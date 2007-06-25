@@ -1,0 +1,25 @@
+
+# default, $REALM
+dn: ou=default,$SUFFIX
+objectClass: organizationalUnit
+objectClass: top
+ou: default
+
+# users, default, $REALM
+dn: cn=users,ou=default,$SUFFIX
+objectClass: nsContainer
+objectClass: top
+cn: users
+
+# groups, default, $REALM
+dn: cn=groups,ou=default,$SUFFIX
+objectClass: nsContainer
+objectClass: top
+cn: groups
+
+# computers, default, $REALM
+dn: cn=computers,ou=default,$SUFFIX
+objectClass: nsContainer
+objectClass: top
+cn: computers
+

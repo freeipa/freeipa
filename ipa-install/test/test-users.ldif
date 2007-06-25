@@ -1,0 +1,23 @@
+# test, users, default, $REALM
+dn: uid=test,cn=users,ou=default,$SUFFIX
+uidNumber: 1001
+uid: test
+gecos: test
+homeDirectory: /home/test
+loginShell: /bin/bash
+shadowMin: 0
+shadowWarning: 7
+shadowMax: 99999
+shadowExpire: -1
+shadowInactive: -1
+shadowLastChange: 13655
+shadowFlag: -1
+gidNumber: 100
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: account
+objectClass: top
+objectClass: krbprincipalaux
+cn: test
+userPassword:: e1NTSEF9T0FNVnNCL2hjYlJFRVlQaU9kYy9BY0dmNmdBaFdpYVNub2VPenc9PQ=
+ =
