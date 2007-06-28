@@ -1,5 +1,5 @@
 # test, users, default, $REALM
-dn: uid=test,cn=users,ou=default,$SUFFIX
+dn: uid=test,ou=users,ou=default,$SUFFIX
 uidNumber: 1001
 uid: test
 gecos: test
@@ -17,7 +17,4 @@ objectClass: posixAccount
 objectClass: shadowAccount
 objectClass: account
 objectClass: top
-objectClass: krbprincipalaux
 cn: test
-userPassword:: e1NTSEF9T0FNVnNCL2hjYlJFRVlQaU9kYy9BY0dmNmdBaFdpYVNub2VPenc9PQ=
- =

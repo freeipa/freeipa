@@ -29,6 +29,7 @@ VERSION = "%prog .1"
 import logging
 from optparse import OptionParser
 import ipa.dsinstance
+import ipa.krbinstance
 
 def parse_options():
     parser = OptionParser(version=VERSION)
@@ -38,6 +39,8 @@ def parse_options():
                       help="host address (name or IP address)")
     parser.add_option("-p", "--password", dest="password",
                       help="admin password")
+    parser.add_option("-m", "--master-password", dest="master_password",
+                      help="kerberos master password")
 
     options, args = parser.parse_args()
 
@@ -54,6 +57,11 @@ def main():
     options = parse_options()
     ds = ipa.dsinstance.DsInstance()
     ds.create_instance(options.realm_name, options.host_name, options.password)
+
+    krb = ipa.krbinstance.KrbInstance()
+    krb.create_instance(options.realm_name, options.host_name, options.password, options.master_password)
+    #restart ds after the krb instance have add the sasl map
+    ds.restart()
 
     return 0
 

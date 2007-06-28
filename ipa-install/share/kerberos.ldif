@@ -1,0 +1,26 @@
+#kerberos base object
+dn: cn=kerberos,$SUFFIX
+changetype: add
+objectClass: krbContainer
+objectClass: top
+cn: kerberos
+aci: (targetattr="*")(version 3.0; acl "KDC System Account"; allow(all)userdn= "ldap:///uid=kdc,cn=kerberos,$SUFFIX";)
+
+#kerberos user
+dn: uid=kdc,cn=kerberos,$SUFFIX
+changetype: add
+objectclass: account
+objectclass: simplesecurityobject
+uid: kdc
+userPassword: $PASSWORD
+
+#sasl mapping
+dn: cn=kerberos,cn=mapping,cn=sasl,cn=config
+changetype: add
+objectclass: top
+objectclass: nsSaslMapping
+cn: kerberos
+nsSaslMapRegexString: \(.*\)@\(.*\)
+nsSaslMapBaseDNTemplate: $SUFFIX
+nsSaslMapFilterTemplate: (krbPrincipalName=\1@\2)
+

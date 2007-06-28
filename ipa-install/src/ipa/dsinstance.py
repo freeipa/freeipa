@@ -6,7 +6,7 @@
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
-# published by the Free Software Foundation; version 2 only
+# published by the Free Software Foundation; version 2 or later
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -136,6 +136,8 @@ class DsInstance:
     def __add_default_schemas(self):
         shutil.copyfile(SHARE_DIR + "60kerberos.ldif",
                         self.schema_dirname() + "60kerberos.ldif")
+        shutil.copyfile(SHARE_DIR + "60samba.ldif",
+                        self.schema_dirname() + "60samba.ldif")
 
     def __enable_ssl(self):
         dirname = self.config_dirname()
@@ -146,7 +148,7 @@ class DsInstance:
     def __add_default_layout(self):
         txt = template_file(SHARE_DIR + "bootstrap-template.ldif", self.sub_dict)
         inf_fd = write_tmp_file(txt)
-        args = ["/usr/bin/ldapadd", "-xv", "-D", "cn=Directory Manager",
+        args = ["/usr/bin/ldapmodify", "-xv", "-D", "cn=Directory Manager",
                 "-w", self.admin_password, "-f", inf_fd.name]
         run(args)
 

@@ -1,0 +1,14 @@
+[kdcdefaults]
+ v4_mode = nopreauth
+
+[realms]
+ $REALM = {
+  master_key_type = des3-hmac-sha1
+  supported_enctypes = des3-hmac-sha1:normal arcfour-hmac:normal des-hmac-sha1:normal des-cbc-md5:normal des-cbc-crc:normal des-cbc-crc:v4 des-cbc-crc:afs3
+  max_life = 7d
+  max_renewable_life = 14d
+  acl_file = /var/kerberos/krb5kdc/kadm5.acl
+  dict_file = /usr/share/dict/words
+  default_principal_flags = +preauth
+;  admin_keytab = /var/kerberos/krb5kdc/kadm5.keytab
+ }

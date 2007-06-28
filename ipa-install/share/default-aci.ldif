@@ -1,0 +1,8 @@
+# $SUFFIX (base entry)
+dn: $SUFFIX
+changetype: modify
+replace: aci
+aci: (targetattr!="userPassword || krbPrincipalKey ||sambaLMPassword || sambaNTPassword")(version 3.0; acl "Enable anonymous access"; allow (read, search, compare)userdn="ldap:///anyone";)
+aci: (targetattr="carLicense ||description ||displayName ||facsimileTelephoneNumber ||homePhone ||homePostalAddress ||initials ||jpegPhoto ||labeledURL ||mail ||mobile ||pager ||photo ||postOfficeBox ||postalAddress ||postalCode ||preferredDeliveryMethod ||preferredLanguage ||registeredAddress ||roomNumber | |secretary ||seeAlso ||st ||street ||telephoneNumber ||telexNumber ||title || userCertificate ||userPassword ||userSMIMECertificate ||x500UniqueIdentifier")(version 3.0; acl "Enable self write for common attributes"; allow (write) userdn="ldap:///self";)
+aci: (targetattr="krbPrincipalKey")(version 3.0; acl "KDC System Account"; allow(read, search,compare)userdn="ldap:///uid=kdc,cn=kerberos,$SUFFIX";)
+aci: (targetattr="*")(version 3.0; acl "Directory Administrators can manage all entries"; allow(all)groupdn="ldap:///cn=Directory Administrators,$SUFFIX";)

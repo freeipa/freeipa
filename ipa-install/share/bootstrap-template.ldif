@@ -1,25 +1,33 @@
+dn: $SUFFIX
+changetype: modify
+add: objectClass
+objectClass: pilotObject
+info: IPA V1.0
 
 # default, $REALM
 dn: ou=default,$SUFFIX
+changetype: add
 objectClass: organizationalUnit
 objectClass: top
 ou: default
 
 # users, default, $REALM
-dn: cn=users,ou=default,$SUFFIX
-objectClass: nsContainer
+dn: ou=users,ou=default,$SUFFIX
+changetype: add
+objectClass: organizationalUnit
 objectClass: top
-cn: users
+ou: users
 
 # groups, default, $REALM
-dn: cn=groups,ou=default,$SUFFIX
-objectClass: nsContainer
+dn: ou=groups,ou=default,$SUFFIX
+changetype: add
+objectClass: organizationalUnit
 objectClass: top
-cn: groups
+ou: groups
 
 # computers, default, $REALM
-dn: cn=computers,ou=default,$SUFFIX
-objectClass: nsContainer
-objectClass: top
-cn: computers
+#dn: ou=computers,ou=default,$SUFFIX
+#objectClass: organizationalUnit
+#objectClass: top
+#ou: computers
 

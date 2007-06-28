@@ -1,0 +1,5 @@
+
+Required packages:
+krb5-server
+fedora-ds-base
+openldap-clients
