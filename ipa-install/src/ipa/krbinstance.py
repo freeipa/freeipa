@@ -115,7 +115,6 @@ class KrbInstance:
             hexpwd += (hex(ord(x))[2:])
         pwd_fd = open("/var/kerberos/krb5kdc/ldappwd", "a+")
         pwd_fd.write("uid=kdc,cn=kerberos,"+self.suffix+"#{HEX}"+hexpwd+"\n")
-        pwd_fd.write("#test:"+self.kdc_password+"\n")
         pwd_fd.close()
 
     def __setup_sub_dict(self):
