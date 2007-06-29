@@ -40,7 +40,7 @@ def generate_serverid():
 
 def realm_to_suffix(realm_name):
     s = realm_name.split(".")
-    terms = ["dc=" + x for x in s]
+    terms = ["dc=" + x.lower() for x in s]
     return ",".join(terms)
 
 def template_str(txt, vars):
@@ -93,7 +93,7 @@ class DsInstance:
 
     def create_instance(self, realm_name, host_name, admin_password):
         self.serverid = generate_serverid()
-        self.realm_name = realm_name
+        self.realm_name = realm_name.upper()
         self.host_name = host_name
         self.admin_password = admin_password
         self.__setup_sub_dict()

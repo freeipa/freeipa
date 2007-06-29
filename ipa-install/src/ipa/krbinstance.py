@@ -30,7 +30,7 @@ SHARE_DIR = "/usr/share/ipa/"
 
 def realm_to_suffix(realm_name):
     s = realm_name.split(".")
-    terms = ["dc=" + x for x in s]
+    terms = ["dc=" + x.lower() for x in s]
     return ",".join(terms)
 
 def generate_kdc_password():
@@ -38,7 +38,8 @@ def generate_kdc_password():
     r = Random()
     r.seed(gmtime())
     for x in range(12):
-        rndpwd += chr(r.randint(32,126))
+#        rndpwd += chr(r.randint(32,126))
+        rndpwd += chr(r.randint(65,90)) #stricter set for testing
     return rndpwd
 
 def template_str(txt, vars):
@@ -82,18 +83,21 @@ class KrbInstance:
         self.sub_dict = None
 
     def create_instance(self, realm_name, host_name, admin_password, master_password):
-        self.realm_name = realm_name
+        self.realm_name = realm_name.upper()
         self.host_name = host_name
         self.admin_password = admin_password
         self.master_password = master_password
         
 	self.suffix = realm_to_suffix(self.realm_name)
         self.kdc_password = generate_kdc_password()
+	self.__configure_kdc_account_password()
 
         self.__setup_sub_dict()
 
         self.__configure_ldap()
+
         self.__create_instance()
+
         self.start()
 
     def stop(self):
@@ -111,12 +115,15 @@ class KrbInstance:
             hexpwd += (hex(ord(x))[2:])
         pwd_fd = open("/var/kerberos/krb5kdc/ldappwd", "a+")
         pwd_fd.write("uid=kdc,cn=kerberos,"+self.suffix+"#{HEX}"+hexpwd+"\n")
+        pwd_fd.write("#test:"+self.kdc_password+"\n")
         pwd_fd.close()
 
     def __setup_sub_dict(self):
+	#FIXME: can DOMAIN be different than REALM ?
         self.sub_dict = dict(FQHN=self.host_name,
                              PASSWORD=self.kdc_password,
                              SUFFIX=self.suffix,
+                             DOMAIN= self.realm_name.lower(),
                              REALM=self.realm_name)
 
     def __configure_ldap(self):
@@ -125,17 +132,13 @@ class KrbInstance:
         kerberos_txt = template_file(SHARE_DIR + "kerberos.ldif", self.sub_dict)
         kerberos_fd = write_tmp_file(kerberos_txt)
         ldap_mod(kerberos_fd, "cn=Directory Manager", self.admin_password)
-	name = kerberos_fd.name
         kerberos_fd.close()
-        os.unlink(name)
 
 	#Change the default ACL to avoid anonimous access to kerberos keys and othe hashes
-        aci_txt = template_file(SHARE_DIR + "default_aci.ldif", self.sub_dict)
+        aci_txt = template_file(SHARE_DIR + "default-aci.ldif", self.sub_dict)
         aci_fd = write_tmp_file(aci_txt) 
         ldap_mod(aci_fd, "cn=Directory Manager", self.admin_password)
-	name = aci_fd.name
         aci_fd.close()
-        os.unlink(name)
 
     def __create_instance(self):
         kdc_conf = template_file(SHARE_DIR+"kdc.conf.template", self.sub_dict)
@@ -149,5 +152,5 @@ class KrbInstance:
         krb5_fd.close()
 
         #populate the directory with the realm structure
-        args = ["/usr/kerberos/sbin/kdb5_ldap_util", "-D", "uid=kdc,cn=kerberos,"+self.suffix, "create", "-s", "-r", self.realm_name, "-subtrees", self.suffix, "-sscope", "sub"]
+        args = ["/usr/kerberos/sbin/kdb5_ldap_util", "-D", "uid=kdc,cn=kerberos,"+self.suffix, "-w", self.kdc_password, "create", "-s", "-r", self.realm_name, "-subtrees", self.suffix, "-sscope", "sub"]
         run(args)

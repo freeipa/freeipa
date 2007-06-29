@@ -1,5 +1,16 @@
 
 Required packages:
+
 krb5-server
 fedora-ds-base
 openldap-clients
+krb5-server-ldap
+
+
+Installation example:
+
+cd ipa-install
+make install
+cd ..
+/usr/sbin/ipa-server-install -r FREEIPA.ORG -a rc1.freeipa.org -p freeipa -m ipafree
+
