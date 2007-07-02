@@ -125,7 +125,7 @@ struct krb5p_keysalt {
 	krb5_int32	salt_type;	
 };
 
-static void *krb5pwd_plugin_id;
+static void *ipapwd_plugin_id;
 
 krb5_keyblock kmkey;
 
@@ -183,7 +183,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 
 	krbPrincipalName = slapi_entry_attr_get_charptr(e, "krbPrincipalName");
 	if (!krbPrincipalName) {
-		slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop", "no krbPrincipalName present in this entry\n");
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "no krbPrincipalName present in this entry\n");
 		return NULL;
 	}
 
@@ -193,7 +193,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 
 	svals = (Slapi_Value **)calloc(num_versions + 1, sizeof(Slapi_Value *));
 	if (!svals) {
-		slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop", "memory allocation failed\n");
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "memory allocation failed\n");
 		return NULL;
 	}
 
@@ -201,7 +201,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 	
 	krberr = krb5_parse_name(krbctx, krbPrincipalName, &princ);
 	if (krberr) {
-		slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 				"krb5_parse_name failed [%s]\n",
 				krb5_get_error_message(krbctx, krberr));
 		goto enc_error;
@@ -215,7 +215,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 	be = ber_alloc_t( LBER_USE_DER );
 
 	if (!be) {
-		slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 				"memory allocation failed\n");
 		goto enc_error;
 	}
@@ -230,7 +230,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 				(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 3), 0,
 				(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 4));
 	if (ret == -1) {
-		slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 				"encoding asn1 vno info failed\n");
 		goto enc_error;
 	}
@@ -252,14 +252,14 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 
 			p = strchr(krbPrincipalName, '@');
 			if (!p) {
-				slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+				slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 						"Invalid principal name, no realm found!\n");
 				goto enc_error;
 			}	
 			p++;
 			salt.data = strdup(p);
 			if (!salt.data) {
-				slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+				slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 						"memory allocation failed\n");
 				goto enc_error;
 			}
@@ -270,7 +270,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 
 			krberr = krb5_principal2salt_norealm(krbctx, princ, &salt);
 			if (krberr) {
-				slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+				slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 						"krb5_principal2salt failed [%s]\n",
 						krb5_get_error_message(krbctx, krberr));
 				goto enc_error;
@@ -287,7 +287,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 				salt.length = KRB5P_SALT_SIZE;
 				krberr = krb5_c_random_make_octets(krbctx, &salt);
 				if (!krberr) {
-					slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+					slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 							"krb5_c_random_make_octets failed [%s]\n",
 							krb5_get_error_message(krbctx, krberr));
 					goto enc_error;
@@ -295,7 +295,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 			} else {
 				krberr = krb5_principal2salt(krbctx, princ, &salt);
 				if (krberr) {
-					slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+					slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 							"krb5_principal2salt failed [%s]\n",
 							krb5_get_error_message(krbctx, krberr));
 					goto enc_error;
@@ -311,14 +311,14 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 
 			p = strchr(krbPrincipalName, '@');
 			if (!p) {
-				slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+				slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 						"Invalid principal name, no realm found!\n");
 				goto enc_error;
 			}	
 			p++;
 			salt.data = strdup(p);
 			if (!salt.data) {
-				slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+				slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 						"memory allocation failed\n");
 				goto enc_error;
 			}
@@ -326,7 +326,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 			break;
 
 		default:
-			slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 					"Invalid salt type [%d]\n", keysalts[i].salt_type);
 			goto enc_error;
 		}
@@ -334,7 +334,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 		/* need to build the key now to manage the AFS salt.length special case */
 		krberr = krb5_c_string_to_key(krbctx, keysalts[i].enc_type, &pwd, &salt, &key);
 		if (krberr) {
-			slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 					"krb5_c_string_to_key failed [%s]\n",
 					krb5_get_error_message(krbctx, krberr));
 			krb5_free_data_contents(krbctx, &salt);
@@ -346,7 +346,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 
 		krberr = krb5_c_encrypt_length(krbctx, kmkey.enctype, key.length, &len);
 		if (krberr) {
-			slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 					"krb5_c_string_to_key failed [%s]\n",
 					krb5_get_error_message(krbctx, krberr));
 			krb5int_c_free_keyblock_contents(krbctx, &key);
@@ -355,7 +355,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 		}
 
 		if ((ptr = (krb5_octet *) malloc(2 + len)) == NULL) {
-			slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 					"memory allocation failed\n");
 			krb5int_c_free_keyblock_contents(krbctx, &key);
 			krb5_free_data_contents(krbctx, &salt);
@@ -372,7 +372,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 
 		krberr = krb5_c_encrypt(krbctx, &kmkey, 0, 0, &plain, &cipher);
 		if (krberr) {
-			slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 					"krb5_c_encrypt failed [%s]\n",
 					krb5_get_error_message(krbctx, krberr));
 			krb5int_c_free_keyblock_contents(krbctx, &key);
@@ -393,7 +393,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 							(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0), keysalts[i].salt_type);
 		}
 		if (ret == -1) {
-			slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 					"encoding asn1 KrbSalt failed\n");
 			krb5int_c_free_keyblock_contents(krbctx, &key);
 			krb5_free_data_contents(krbctx, &salt);
@@ -407,7 +407,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 						(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0), key.enctype,
 						(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 1), ptr, len+2);
 		if (ret == -1) {
-			slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 					"encoding asn1 EncryptionKey failed\n");
 			krb5int_c_free_keyblock_contents(krbctx, &key);
 			krb5_free_data_contents(krbctx, &salt);
@@ -423,21 +423,21 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 
 	ret = ber_printf(be, "}]}");
 	if (ret == -1) {
-		slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 				"encoding asn1 end of sequences failed\n");
 		goto enc_error;
 	}
 
 	ret = ber_flatten(be, &bval);
 	if (ret == -1) {
-		slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 				"flattening asn1 failed\n");
 		goto enc_error;
 	}
 
 	svals[0] = slapi_value_new_berval(bval);
 	if (!svals[0]) {
-		slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop",
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 				"Converting berval to Slapi_Value\n");
 		goto enc_error;
 	}
@@ -641,20 +641,20 @@ done:
  *  If NOT found : returns the search result as LDAP_NO_SUCH_OBJECT
  */
 static int 
-krb5pwd_getEntry( const char *dn, Slapi_Entry **e2 ) {
+ipapwd_getEntry( const char *dn, Slapi_Entry **e2 ) {
 	int		search_result = 0;
 	Slapi_DN 	*sdn;
-	slapi_log_error(SLAPI_LOG_TRACE, "krb5pwd_extop", "=> krb5pwd_getEntry\n");
+	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "=> ipapwd_getEntry\n");
 
 	sdn = slapi_sdn_new_dn_byref(dn);
 	if ((search_result = slapi_search_internal_get_entry( sdn, NULL, e2,
- 					krb5pwd_plugin_id)) != LDAP_SUCCESS ){
-	 slapi_log_error(SLAPI_LOG_TRACE, "krb5pwd_extop", "krb5pwd_getEntry: No such entry-(%s), err (%d)\n",
+ 					ipapwd_plugin_id)) != LDAP_SUCCESS ){
+	 slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "ipapwd_getEntry: No such entry-(%s), err (%d)\n",
 					 dn, search_result);
 	}
 
 	slapi_sdn_free( &sdn );
-	slapi_log_error(SLAPI_LOG_TRACE, "krb5pwd_extop", "<= krb5pwd_getEntry: %d\n", search_result);
+	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "<= ipapwd_getEntry: %d\n", search_result);
 	return search_result;
 }
 
@@ -662,12 +662,12 @@ krb5pwd_getEntry( const char *dn, Slapi_Entry **e2 ) {
 /* Construct Mods pblock and perform the modify operation 
  * Sets result of operation in SLAPI_PLUGIN_INTOP_RESULT 
  */
-static int krb5pwd_apply_mods(const char *dn, Slapi_Mods *mods) 
+static int ipapwd_apply_mods(const char *dn, Slapi_Mods *mods) 
 {
 	Slapi_PBlock *pb;
 	int ret=0;
 
-	slapi_log_error(SLAPI_LOG_TRACE, "krb5pwd_extop", "=> krb5pwd_apply_mods\n");
+	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "=> ipapwd_apply_mods\n");
 
 	if (mods && (slapi_mods_get_num_mods(mods) > 0)) 
 	{
@@ -676,7 +676,7 @@ static int krb5pwd_apply_mods(const char *dn, Slapi_Mods *mods)
 		  slapi_mods_get_ldapmods_byref(mods),
 		  NULL, /* Controls */
 		  NULL, /* UniqueID */
-		  krb5pwd_plugin_id, /* PluginID */
+		  ipapwd_plugin_id, /* PluginID */
 		  0); /* Flags */ 
 
 	 ret = slapi_modify_internal_pb (pb);
@@ -684,14 +684,14 @@ static int krb5pwd_apply_mods(const char *dn, Slapi_Mods *mods)
 	 slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_RESULT, &ret);
 
 	 if (ret != LDAP_SUCCESS){
-	  slapi_log_error(SLAPI_LOG_TRACE, "krb5pwd_extop", "WARNING: modify error %d on entry '%s'\n",
+	  slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "WARNING: modify error %d on entry '%s'\n",
 			ret, dn);
 	 }
 
 	slapi_pblock_destroy(pb);
  	}
  
- 	slapi_log_error(SLAPI_LOG_TRACE, "krb5pwd_extop", "<= krb5pwd_apply_mods: %d\n", ret);
+ 	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "<= ipapwd_apply_mods: %d\n", ret);
  
  	return ret;
 }
@@ -711,7 +711,7 @@ static void hexbuf(char *out, const uint8_t *in)
 }
 
 /* Modify the userPassword attribute field of the entry */
-static int krb5pwd_userpassword(Slapi_Entry *targetEntry, const char *newPasswd)
+static int ipapwd_userpassword(Slapi_Entry *targetEntry, const char *newPasswd)
 {
 	char *dn = NULL;
 	int ret = 0, i = 0;
@@ -730,11 +730,11 @@ static int krb5pwd_userpassword(Slapi_Entry *targetEntry, const char *newPasswd)
 	
 	krberr = krb5_init_context(&krbctx);
 	if (krberr) {
-		slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop", "krb5_init_context failed\n");
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "krb5_init_context failed\n");
 		return LDAP_OPERATIONS_ERROR;
 	}
 
-	slapi_log_error(SLAPI_LOG_TRACE, "krb5pwd_extop", "=> krb5pwd_userpassword\n");
+	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "=> ipapwd_userpassword\n");
 
 	smods = slapi_mods_new();
 	dn = slapi_entry_get_ndn( targetEntry );
@@ -742,7 +742,7 @@ static int krb5pwd_userpassword(Slapi_Entry *targetEntry, const char *newPasswd)
 	/* generate kerberos keys to be put into krbPrincipalKey */
 	svals = encrypt_encode_key(krbctx, targetEntry, newPasswd);
 	if (!svals) {
-		slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop", "key encryption/encoding failed\n");
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "key encryption/encoding failed\n");
 		krb5_free_context(krbctx);
 		return LDAP_OPERATIONS_ERROR;
 	}
@@ -754,12 +754,12 @@ static int krb5pwd_userpassword(Slapi_Entry *targetEntry, const char *newPasswd)
 	/* change Last Password Change field with the current date */
 	curtime = time(NULL);
 	if (!gmtime_r(&curtime, &utctime)) {
-		slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop", "failed to retrieve current date (buggy gmtime_r ?)\n");
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "failed to retrieve current date (buggy gmtime_r ?)\n");
 		return LDAP_OPERATIONS_ERROR;
 	}
 	if (utctime.tm_year > 8099 || utctime.tm_mon > 11 || utctime.tm_mday > 31 ||
 	    utctime.tm_hour > 23 || utctime.tm_min > 59 || utctime.tm_sec > 59) {
-		slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop", "retrieved a bad date (buggy gmtime_r ?)\n");
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "retrieved a bad date (buggy gmtime_r ?)\n");
 		return LDAP_OPERATIONS_ERROR;
 	}
 
@@ -793,11 +793,11 @@ static int krb5pwd_userpassword(Slapi_Entry *targetEntry, const char *newPasswd)
 	}
 
 	/* commit changes */
-	ret = krb5pwd_apply_mods(dn, smods);
+	ret = ipapwd_apply_mods(dn, smods);
  
 	slapi_mods_free(&smods);
 
-	slapi_log_error(SLAPI_LOG_TRACE, "krb5pwd_extop", "<= krb5pwd_userpassword: %d\n", ret);
+	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "<= ipapwd_userpassword: %d\n", ret);
 
 
 mod_done:
@@ -809,7 +809,7 @@ mod_done:
 }
 
 /* Generate a new, basic random password */
-static int krb5pwd_generate_basic_passwd( int passlen, char **genpasswd )
+static int ipapwd_generate_basic_passwd( int passlen, char **genpasswd )
 {
 	unsigned char *data = NULL;
 	char *enc = NULL;
@@ -851,7 +851,7 @@ static int krb5pwd_generate_basic_passwd( int passlen, char **genpasswd )
 
 /* Password Modify Extended operation plugin function */
 int
-krb5pwd_extop( Slapi_PBlock *pb )
+ipapwd_extop( Slapi_PBlock *pb )
 {
 	char		*oid = NULL;
 	char 		*bindDN = NULL;
@@ -869,7 +869,7 @@ krb5pwd_extop( Slapi_PBlock *pb )
 	Slapi_Entry *targetEntry=NULL;
 	/* Slapi_DN sdn; */
 
-	slapi_log_error(SLAPI_LOG_TRACE, "krb5pwd_extop", "=> krb5pwd_extop\n");
+	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "=> ipa_pwd_extop\n");
 
 	/* Before going any further, we'll make sure that the right extended operation plugin
 	 * has been called: i.e., the OID shipped whithin the extended operation request must 
@@ -877,11 +877,11 @@ krb5pwd_extop( Slapi_PBlock *pb )
 	if ( slapi_pblock_get( pb, SLAPI_EXT_OP_REQ_OID, &oid ) != 0 ) {
 		errMesg = "Could not get OID value from request.\n";
 		rc = LDAP_OPERATIONS_ERROR;
-		slapi_log_error( SLAPI_LOG_PLUGIN, "krb5pwd_extop", 
+		slapi_log_error( SLAPI_LOG_PLUGIN, "ipa_pwd_extop", 
 				 errMesg );
 		goto free_and_return;
 	} else {
-	        slapi_log_error( SLAPI_LOG_PLUGIN, "krb5pwd_extop", 
+	        slapi_log_error( SLAPI_LOG_PLUGIN, "ipa_pwd_extop", 
 				 "Received extended operation request with OID %s\n", oid );
 	}
 	
@@ -890,7 +890,7 @@ krb5pwd_extop( Slapi_PBlock *pb )
 		rc = LDAP_OPERATIONS_ERROR;
 		goto free_and_return;
 	} else {
-	        slapi_log_error( SLAPI_LOG_PLUGIN, "krb5pwd_extop", 
+	        slapi_log_error( SLAPI_LOG_PLUGIN, "ipa_pwd_extop", 
 				 "Password Modify extended operation request confirmed.\n" );
 	}
 	
@@ -902,7 +902,7 @@ krb5pwd_extop( Slapi_PBlock *pb )
 	if ( slapi_pblock_get(pb, SLAPI_CONN_SASL_SSF, &sasl_ssf) != 0) {
 		errMesg = "Could not get SASL SSF from connection\n";
 		rc = LDAP_OPERATIONS_ERROR;
-		slapi_log_error( SLAPI_LOG_PLUGIN, "krb5pwd_extop",
+		slapi_log_error( SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
 				 errMesg );
 		goto free_and_return;
 	}
@@ -910,7 +910,7 @@ krb5pwd_extop( Slapi_PBlock *pb )
 	if (slapi_pblock_get(pb, SLAPI_CONN_IS_SSL_SESSION, &is_ssl) != 0) {
 		errMesg = "Could not get IS SSL from connection\n";
 		rc = LDAP_OPERATIONS_ERROR;
-		slapi_log_error( SLAPI_LOG_PLUGIN, "krb5pwd_extop",
+		slapi_log_error( SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
 				 errMesg );
 		goto free_and_return;
 	}
@@ -963,7 +963,7 @@ krb5pwd_extop( Slapi_PBlock *pb )
 		if ( ber_scanf( ber, "a", &dn) == LBER_ERROR )
 		{
 		slapi_ch_free_string(&dn);
-		slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop", "ber_scanf failed :{\n");
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "ber_scanf failed :{\n");
 		errMesg = "ber_scanf failed at userID parse.\n";
 		rc = LDAP_PROTOCOL_ERROR;
 		goto free_and_return;
@@ -979,7 +979,7 @@ krb5pwd_extop( Slapi_PBlock *pb )
 		if ( ber_scanf( ber, "a", &oldPasswd ) == LBER_ERROR )
 		{
 		slapi_ch_free_string(&oldPasswd);
-		slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop", "ber_scanf failed :{\n");
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "ber_scanf failed :{\n");
 		errMesg = "ber_scanf failed at oldPasswd parse.\n";
 		rc = LDAP_PROTOCOL_ERROR;
 		goto free_and_return;
@@ -993,7 +993,7 @@ krb5pwd_extop( Slapi_PBlock *pb )
 		if ( ber_scanf( ber, "a", &newPasswd ) == LBER_ERROR )
 		{
 		slapi_ch_free_string(&newPasswd);
-		slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop", "ber_scanf failed :{\n");
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "ber_scanf failed :{\n");
 		errMesg = "ber_scanf failed at newPasswd parse.\n";
 		rc = LDAP_PROTOCOL_ERROR;
 		goto free_and_return;
@@ -1042,14 +1042,14 @@ parse_req_done:
 	if (dn == NULL || *dn == '\0') {
 	 	/* Get the DN from the bind identity on this connection */
 		dn = slapi_ch_strdup(bindDN);
-		slapi_log_error(SLAPI_LOG_TRACE, "krb5pwd_extop",
+		slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
 			"Missing userIdentity in request, using the bind DN instead.\n");
 	 }
 	 
 	 slapi_pblock_set( pb, SLAPI_ORIGINAL_TARGET, dn ); 
 
 	 /* Now we have the DN, look for the entry */
-	 ret = krb5pwd_getEntry(dn, &targetEntry);
+	 ret = ipapwd_getEntry(dn, &targetEntry);
 	 /* If we can't find the entry, then that's an error */
 	 if (ret) {
 	 	/* Couldn't find the entry, fail */
@@ -1097,12 +1097,12 @@ parse_req_done:
 	if (oldPasswd && *oldPasswd) {
 		/* If user is authenticated, they already gave their password during
 		the bind operation (or used sasl or client cert auth or OS creds) */
-		slapi_log_error(SLAPI_LOG_TRACE, "krb5pwd_extop", "oldPasswd provided, but we will ignore it");
+		slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "oldPasswd provided, but we will ignore it");
 	}
 	
 
 	/* Now we're ready to make actual password change */
-	ret = krb5pwd_userpassword(targetEntry, newPasswd);
+	ret = ipapwd_userpassword(targetEntry, newPasswd);
 	if (ret != LDAP_SUCCESS) {
 		/* Failed to modify the password, e.g. because insufficient access allowed */
 		errMesg = "Failed to update password\n";
@@ -1110,7 +1110,7 @@ parse_req_done:
 		goto free_and_return;
 	}
 
-	slapi_log_error(SLAPI_LOG_TRACE, "krb5pwd_extop", "<= krb5pwd_extop: %d\n", rc);
+	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "<= ipa_pwd_extop: %d\n", rc);
 	
 	/* Free anything that we allocated above */
 	free_and_return:
@@ -1133,24 +1133,24 @@ parse_req_done:
 		ber = NULL;
 	}
 	
-	slapi_log_error( SLAPI_LOG_PLUGIN, "krb5pwd_extop", 
+	slapi_log_error( SLAPI_LOG_PLUGIN, "ipa_pwd_extop", 
 			errMesg ? errMesg : "success" );
 	send_ldap_result( pb, rc, NULL, errMesg, 0, NULL );
 	
 
 	return( SLAPI_PLUGIN_EXTENDED_SENT_RESULT );
 
-}/* krb5pwd_extop */
+}/* ipa_pwd_extop */
 
 
-static char *krb5pwd_oid_list[] = {
+static char *ipapwd_oid_list[] = {
 	EXOP_PASSWD_OID,
 	NULL
 };
 
 
-static char *krb5pwd_name_list[] = {
-	"krb5pwd_extop",
+static char *ipapwd_name_list[] = {
+	"ipa_pwd_extop",
 	NULL
 };
 
@@ -1168,7 +1168,7 @@ const char *krb_sup_encs[] = {
 
 #define KRBCHECK(ctx, err, fname) do { \
 		if (err) { \
-			slapi_log_error(SLAPI_LOG_PLUGIN, "krb5pwd_start", \
+			slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_start", \
 				"%s failed [%s]\n", fname, \
 				krb5_get_error_message(ctx, err)); \
 			return LDAP_OPERATIONS_ERROR; \
@@ -1176,7 +1176,7 @@ const char *krb_sup_encs[] = {
 
 /* Init data structs */
 /* TODO: read input from tree */
-int krb5pwd_start( Slapi_PBlock *pb )
+int ipapwd_start( Slapi_PBlock *pb )
 {
 	int krberr, i;
 	krb5_context krbctx;
@@ -1193,7 +1193,7 @@ int krb5pwd_start( Slapi_PBlock *pb )
 
 	krberr = krb5_init_context(&krbctx);
 	if (krberr) {
-		slapi_log_error(SLAPI_LOG_FATAL, "krb5pwd_extop", "krb5_init_context failed\n");
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "krb5_init_context failed\n");
 		return LDAP_OPERATIONS_ERROR;
 	}
 
@@ -1213,13 +1213,13 @@ int krb5pwd_start( Slapi_PBlock *pb )
 
 		enc = strdup(krb_sup_encs[i]);
 		if (!enc) {
-			slapi_log_error( SLAPI_LOG_PLUGIN, "krb5pwd_start", "Allocation error\n");
+			slapi_log_error( SLAPI_LOG_PLUGIN, "ipapwd_start", "Allocation error\n");
 			krb5_free_context(krbctx);
 			return LDAP_OPERATIONS_ERROR;
 		}
 		salt = strchr(enc, ':');
 		if (!salt) {
-			slapi_log_error( SLAPI_LOG_PLUGIN, "krb5pwd_start", "Invalid krb5 enc string\n");
+			slapi_log_error( SLAPI_LOG_PLUGIN, "ipapwd_start", "Invalid krb5 enc string\n");
 			free(enc);
 			continue;
 		}
@@ -1228,7 +1228,7 @@ int krb5pwd_start( Slapi_PBlock *pb )
 
 		krberr = krb5_string_to_enctype(enc, &tmpenc);
 		if (krberr) {
-			slapi_log_error( SLAPI_LOG_PLUGIN, "krb5pwd_start", "Invalid krb5 enctype\n");
+			slapi_log_error( SLAPI_LOG_PLUGIN, "ipapwd_start", "Invalid krb5 enctype\n");
 			free(enc);
 			continue;
 		}
@@ -1253,61 +1253,61 @@ int krb5pwd_start( Slapi_PBlock *pb )
 
 	/*retrieve the master key from the stash file */
 	if (slapi_pblock_get(pb, SLAPI_TARGET_DN, &config_dn) != 0) {
-		slapi_log_error( SLAPI_LOG_FATAL, "krb5pwd_start", "No config DN?\n");
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "No config DN?\n");
 		krb5_free_context(krbctx);
 		return LDAP_OPERATIONS_ERROR;
 	}
 
-	if (krb5pwd_getEntry(config_dn, &config_entry) != LDAP_SUCCESS) {
-		slapi_log_error( SLAPI_LOG_FATAL, "krb5pwd_start", "No config Entry?\n");
+	if (ipapwd_getEntry(config_dn, &config_entry) != LDAP_SUCCESS) {
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "No config Entry?\n");
 		krb5_free_context(krbctx);
 		return LDAP_OPERATIONS_ERROR;
 	}
 
 	stash_file = slapi_entry_attr_get_charptr(config_entry, "nsslapd-pluginarg0");
 	if (!stash_file) {
-		slapi_log_error( SLAPI_LOG_FATAL, "krb5pwd_start", "Missing Master key stash file path configuration entry (nsslapd-pluginarg0)!\n");
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Missing Master key stash file path configuration entry (nsslapd-pluginarg0)!\n");
 		krb5_free_context(krbctx);
 		return LDAP_OPERATIONS_ERROR;
 	}
 
 	fd = open(stash_file, O_RDONLY);
 	if (fd == -1) {
-		slapi_log_error( SLAPI_LOG_FATAL, "krb5pwd_start", "Missing Master key stash file!\n");
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Missing Master key stash file!\n");
 		krb5_free_context(krbctx);
 		return LDAP_OPERATIONS_ERROR;
 	}
 
 	r = read(fd, &e, 2); /* read enctype a local endian 16bit value */
 	if (r != 2) {
-		slapi_log_error( SLAPI_LOG_FATAL, "krb5pwd_start", "Error reading Master key stash file!\n");
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Error reading Master key stash file!\n");
 		krb5_free_context(krbctx);
 		return LDAP_OPERATIONS_ERROR;
 	}
 
 	r = read(fd, &l, sizeof(l)); /* read the key length, a horrible sizeof(int) local endian value */
 	if (r != sizeof(l)) {
-		slapi_log_error( SLAPI_LOG_FATAL, "krb5pwd_start", "Error reading Master key stash file!\n");
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Error reading Master key stash file!\n");
 		krb5_free_context(krbctx);
 		return LDAP_OPERATIONS_ERROR;
 	}
 
 	if (l == 0 || l > 1024) { /* the maximum key size should be 32 bytes, lets's not accept more than 1k anyway */
-		slapi_log_error( SLAPI_LOG_FATAL, "krb5pwd_start", "Invalid key lenght, Master key stash file corrupted?\n");
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Invalid key lenght, Master key stash file corrupted?\n");
 		krb5_free_context(krbctx);
 		return LDAP_OPERATIONS_ERROR;
         }
 
 	o = malloc(l);
 	if (!o) {
-		slapi_log_error( SLAPI_LOG_FATAL, "krb5pwd_start", "Memory allocation problem!\n");
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Memory allocation problem!\n");
 		krb5_free_context(krbctx);
 		return LDAP_OPERATIONS_ERROR;
         }
 
 	r = read(fd, o, l);
 	if (r != l) {
-		slapi_log_error( SLAPI_LOG_FATAL, "krb5pwd_start", "Error reading Master key stash file!\n");
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Error reading Master key stash file!\n");
 		krb5_free_context(krbctx);
                 return LDAP_OPERATIONS_ERROR;
         }
@@ -1324,7 +1324,7 @@ int krb5pwd_start( Slapi_PBlock *pb )
 }
 
 /* Initialization function */
-int krb5pwd_init( Slapi_PBlock *pb )
+int ipapwd_init( Slapi_PBlock *pb )
 {
 	char	**argv;
 	char	*oid;
@@ -1334,9 +1334,9 @@ int krb5pwd_init( Slapi_PBlock *pb )
 	 * extended operation.
 	 */ 
 
-	if ((slapi_pblock_get(pb, SLAPI_PLUGIN_IDENTITY, &krb5pwd_plugin_id) != 0)
-	 || (krb5pwd_plugin_id == NULL)) {
-		slapi_log_error( SLAPI_LOG_PLUGIN, "krb5pwd_init", "Could not get identity or identity was NULL\n");
+	if ((slapi_pblock_get(pb, SLAPI_PLUGIN_IDENTITY, &ipapwd_plugin_id) != 0)
+	 || (ipapwd_plugin_id == NULL)) {
+		slapi_log_error( SLAPI_LOG_PLUGIN, "ipapwd_init", "Could not get identity or identity was NULL\n");
 		return( -1 );
 	}
 
@@ -1345,12 +1345,12 @@ int krb5pwd_init( Slapi_PBlock *pb )
 	 * OID 1.3.6.1.4.1.4203.1.11.1 .  Also specify the version of the server 
 	 * plug-in */ 
 	if ( slapi_pblock_set( pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01 ) != 0 || 
-	     slapi_pblock_set( pb, SLAPI_PLUGIN_START_FN, (void *) krb5pwd_start ) != 0 ||
-	     slapi_pblock_set( pb, SLAPI_PLUGIN_EXT_OP_FN, (void *) krb5pwd_extop ) != 0 ||
-	     slapi_pblock_set( pb, SLAPI_PLUGIN_EXT_OP_OIDLIST, krb5pwd_oid_list ) != 0 ||
-	     slapi_pblock_set( pb, SLAPI_PLUGIN_EXT_OP_NAMELIST, krb5pwd_name_list ) != 0 ) {
+	     slapi_pblock_set( pb, SLAPI_PLUGIN_START_FN, (void *) ipapwd_start ) != 0 ||
+	     slapi_pblock_set( pb, SLAPI_PLUGIN_EXT_OP_FN, (void *) ipapwd_extop ) != 0 ||
+	     slapi_pblock_set( pb, SLAPI_PLUGIN_EXT_OP_OIDLIST, ipapwd_oid_list ) != 0 ||
+	     slapi_pblock_set( pb, SLAPI_PLUGIN_EXT_OP_NAMELIST, ipapwd_name_list ) != 0 ) {
 
-		slapi_log_error( SLAPI_LOG_PLUGIN, "krb5pwd_init",
+		slapi_log_error( SLAPI_LOG_PLUGIN, "ipapwd_init",
 				 "Failed to set plug-in version, function, and OID.\n" );
 		return( -1 );
 	}
