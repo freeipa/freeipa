@@ -23,6 +23,7 @@ import string
 import tempfile
 import shutil
 import logging
+import pwd
 
 SHARE_DIR = "/usr/share/ipa/"
 
@@ -73,7 +74,7 @@ def run(args, stdin=None):
 INF_TEMPLATE = """
 [General]
 FullMachineName=   $FQHN
-SuiteSpotUserID=   nobody
+SuiteSpotUserID=   $USER
 ServerRoot=    /usr/lib/fedora-ds-base
 [slapd]
 ServerPort=   389
@@ -91,13 +92,15 @@ class DsInstance:
         self.admin_password = None
         self.sub_dict = None
 
-    def create_instance(self, realm_name, host_name, admin_password):
+    def create_instance(self, ds_user, realm_name, host_name, admin_password):
+        self.ds_user = ds_user
         self.serverid = generate_serverid()
         self.realm_name = realm_name.upper()
         self.host_name = host_name
         self.admin_password = admin_password
         self.__setup_sub_dict()
 
+        self.__create_ds_user()
         self.__create_instance()
         self.__add_default_schemas()
         self.__enable_ssl()
@@ -125,7 +128,14 @@ class DsInstance:
         suffix = realm_to_suffix(self.realm_name)
         self.sub_dict = dict(FQHN=self.host_name, SERVERID=self.serverid,
                              PASSWORD=self.admin_password, SUFFIX=suffix,
-                             REALM=self.realm_name)
+                             REALM=self.realm_name, USER=self.ds_user)
+
+    def __create_ds_user(self):
+	try:
+            pwd.getpwnam(self.ds_user)
+	except KeyError:
+            args = ["/usr/sbin/useradd", "-c", "DS System User", "-d", "/var/lib/fedora-ds", "-M", "-r", "-s", "/sbin/nologin", self.ds_user]
+            run(args)
 
     def __create_instance(self):
         inf_txt = template_str(INF_TEMPLATE, self.sub_dict)
@@ -151,7 +161,3 @@ class DsInstance:
         args = ["/usr/bin/ldapmodify", "-xv", "-D", "cn=Directory Manager",
                 "-w", self.admin_password, "-f", inf_fd.name]
         run(args)
-
-        
-        
-

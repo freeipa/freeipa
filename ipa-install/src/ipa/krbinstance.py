@@ -74,6 +74,7 @@ def run(args, stdin=None):
     
 class KrbInstance:
     def __init__(self):
+        self.ds_user = None
         self.realm_name = None
         self.host_name = None
         self.admin_password = None
@@ -82,7 +83,8 @@ class KrbInstance:
         self.kdc_password = None
         self.sub_dict = None
 
-    def create_instance(self, realm_name, host_name, admin_password, master_password):
+    def create_instance(self, ds_user, realm_name, host_name, admin_password, master_password):
+        self.ds_user = ds_user
         self.realm_name = realm_name.upper()
         self.host_name = host_name
         self.admin_password = admin_password
@@ -153,3 +155,15 @@ class KrbInstance:
         #populate the directory with the realm structure
         args = ["/usr/kerberos/sbin/kdb5_ldap_util", "-D", "uid=kdc,cn=kerberos,"+self.suffix, "-w", self.kdc_password, "create", "-s", "-r", self.realm_name, "-subtrees", self.suffix, "-sscope", "sub"]
         run(args)
+
+    # TODO: NOT called yet, need to find out how to make sure the plugin is available first
+    def __add_pwd_extop_module(self):
+	#add the password extop module
+	extop_txt = template_file(SHARE_DIR + "ipapwd_extop_plugin.ldif", self.sub_dict)
+	extop_fd = write_tmp_file(extop_txt)
+	ldap_mod(extop_fd, "cn=Directory Manager", self.admin_password)
+	extop_fd.close()
+
+	#add an ACL to let the DS user read the master key
+	args = ["/usr/bin/setfacl", "-m", "u:"+self.ds_user+":r", "/var/kerberos/krb5kdc/.k5."+self.realm_name]
+	run(args)
