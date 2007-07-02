@@ -11,3 +11,4 @@ nsslapd-pluginid: Multi-hash Change Password Extended Operation
 nsslapd-pluginversion: 1.0
 nsslapd-pluginvendor: RedHat
 nsslapd-plugindescription: Support saving passwords in multiple fornmats for different consumers like krb5, samba, freeradius, etc.
+nsslapd-pluginarg0: /var/kerberos/krb5kdc/.k5.$REALM
