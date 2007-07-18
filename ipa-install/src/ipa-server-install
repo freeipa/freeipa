@@ -43,6 +43,8 @@ def parse_options():
                       help="admin password")
     parser.add_option("-m", "--master-password", dest="master_password",
                       help="kerberos master password")
+    parser.add_option("-d", "--debug", dest="debug", action="store_true",
+                     dest="debug", default=False, help="print debugging information")
 
     options, args = parser.parse_args()
 
@@ -51,15 +53,34 @@ def parse_options():
 
     return options
 
-def main():
+def logging_setup(options):
+    # Always log everything (i.e., DEBUG) to the log
+    # file.
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s %(message)s',
                         filename='ipa-install.log',
                         filemode='w')
+
+    console = logging.StreamHandler()
+    # If the debug option is set, also log debug messages to the console
+    if options.debug:
+        console.setLevel(logging.DEBUG)
+    else:
+        # Otherwise, log critical and error messages
+        console.setLevel(logging.ERROR)
+    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+    console.setFormatter(formatter)
+    logging.getLogger('').addHandler(console)
+        
+def main():
     options = parse_options()
+    logging_setup(options)
+
+    # Create a directory server instance
     ds = ipa.dsinstance.DsInstance()
     ds.create_instance(options.ds_user, options.realm_name, options.host_name, options.password)
 
+    # Create a kerberos instance
     krb = ipa.krbinstance.KrbInstance()
     krb.create_instance(options.ds_user, options.realm_name, options.host_name, options.password, options.master_password)
     #restart ds after the krb instance have add the sasl map

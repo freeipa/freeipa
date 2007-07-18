@@ -59,6 +59,7 @@ def write_tmp_file(txt):
     return fd
 
 def run(args, stdin=None):
+    logging.debug("running command [%s]" % (" ".join(args)))
     p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if stdin:
         stdout,stderr = p.communicate(stdin)
@@ -133,15 +134,26 @@ class DsInstance:
     def __create_ds_user(self):
 	try:
             pwd.getpwnam(self.ds_user)
+            logging.debug("ds user %s exists" % self.ds_user)
 	except KeyError:
+            logging.debug("adding ds user %s" % self.ds_user)
             args = ["/usr/sbin/useradd", "-c", "DS System User", "-d", "/var/lib/fedora-ds", "-M", "-r", "-s", "/sbin/nologin", self.ds_user]
             run(args)
+            logging.debug("done adding user")
 
     def __create_instance(self):
+        logging.debug("creating ds instance . . . ")
         inf_txt = template_str(INF_TEMPLATE, self.sub_dict)
+        logging.debug(inf_txt)
         inf_fd = write_tmp_file(inf_txt)
+        logging.debug("writing inf template")
         args = ["/usr/bin/ds_newinst.pl", inf_fd.name]
+        logging.debug("calling ds_newinst.pl")
         run(args)
+        logging.debug("completed creating ds instance")
+        logging.debug("restarting ds instance")
+        self.restart()
+        logging.debug("done restarting ds instance")
 
     def __add_default_schemas(self):
         shutil.copyfile(SHARE_DIR + "60kerberos.ldif",
@@ -150,14 +162,18 @@ class DsInstance:
                         self.schema_dirname() + "60samba.ldif")
 
     def __enable_ssl(self):
+        logging.debug("configuring ssl for ds instance")
         dirname = self.config_dirname()
         args = ["/usr/sbin/ipa-server-setupssl", self.admin_password,
                 dirname, self.host_name]
         run(args)
+        logging.debug("done configuring ssl for ds instance")
         
     def __add_default_layout(self):
         txt = template_file(SHARE_DIR + "bootstrap-template.ldif", self.sub_dict)
         inf_fd = write_tmp_file(txt)
+        logging.debug("adding default ds layout")
         args = ["/usr/bin/ldapmodify", "-xv", "-D", "cn=Directory Manager",
                 "-w", self.admin_password, "-f", inf_fd.name]
         run(args)
+        logging.debug("done adding default ds layout")
