@@ -26,6 +26,7 @@
 
 VERSION = "%prog .1"
 
+import socket
 import logging
 from optparse import OptionParser
 import ipa.dsinstance
@@ -37,19 +38,18 @@ def parse_options():
                       help="ds user")
     parser.add_option("-r", "--realm", dest="realm_name",
                       help="realm name")
-    parser.add_option("-a", "--host-address", dest="host_name",
-                      help="host address (name or IP address)")
     parser.add_option("-p", "--password", dest="password",
                       help="admin password")
     parser.add_option("-m", "--master-password", dest="master_password",
                       help="kerberos master password")
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                      dest="debug", default=False, help="print debugging information")
+    parser.add_option("--hostname", dest="host_name", help="fully qualified name of server")
 
     options, args = parser.parse_args()
 
-    if not options.realm_name or not options.host_name or not options.password:
-        parser.error("error: password, realm, and host name required")
+    if not options.ds_user or not options.realm_name or not options.password or not options.master_password:
+        parser.error("error: all options are required")
 
     return options
 
@@ -76,13 +76,39 @@ def main():
     options = parse_options()
     logging_setup(options)
 
+    # check the hostname is correctly configured, it must be as the kldap
+    # utilities just use the hostname as returned by gethostbyname to set
+    # up some of the standard entries
+
+    if options.host_name:
+        host_name = options.host_name
+    else:
+        host_name = socket.gethostname()
+    if len(host_name.split(".")) < 2:
+        print "Invalid hostname <"+host_name+">"
+        print "Check the /etc/hosts file and make sure to have a valid FQDN"
+        return "-Fatal Error-"
+
+    if socket.gethostbyname(host_name) == "127.0.0.1":
+        print "The hostname resolves to the localhost address (127.0.0.1)"
+        print "Please change your /etc/hosts file or your DNS so that the"
+        print "hostname resolves to the ip address of your network interface."
+        print "The KDC service does not listen on 127.0.0.1"
+        return "-Fatal Error-"
+
+    print "The Final KDC Host Name will be: " + host_name
+
+
     # Create a directory server instance
     ds = ipa.dsinstance.DsInstance()
-    ds.create_instance(options.ds_user, options.realm_name, options.host_name, options.password)
+    ds.create_instance(options.ds_user, options.realm_name, host_name,
+                       options.password)
 
     # Create a kerberos instance
     krb = ipa.krbinstance.KrbInstance()
-    krb.create_instance(options.ds_user, options.realm_name, options.host_name, options.password, options.master_password)
+    krb.create_instance(options.ds_user, options.realm_name, host_name,
+                        options.password, options.master_password)
+
     #restart ds after the krb instance have add the sasl map
     ds.restart()
 

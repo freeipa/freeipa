@@ -10,6 +10,13 @@
  ticket_lifetime = 24h
  forwardable = yes
 
+[realms]
+ $REALM = {
+  kdc = $FQDN:88
+  admin_server = $FQDN:749
+  default_domain = $DOMAIN
+}
+
 [domain_realm]
  .$DOMAIN = $REALM
  $DOMAIN = $REALM
@@ -29,7 +36,7 @@
     ldap_servers = ldap://127.0.0.1/
     ldap_kerberos_container_dn = cn=kerberos,$SUFFIX
     ldap_kdc_dn = uid=kdc,cn=kerberos,$SUFFIX
-;    ldap_kadmind_dn = cn=Directory Manager
+    ldap_kadmind_dn = uid=kdc,cn=kerberos,$SUFFIX
     ldap_service_password_file = /var/kerberos/krb5kdc/ldappwd
   }
 

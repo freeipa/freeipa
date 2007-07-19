@@ -25,6 +25,9 @@ import shutil
 import logging
 from random import Random
 from time import gmtime
+import os
+import pwd
+import socket
 
 SHARE_DIR = "/usr/share/ipa/"
 
@@ -32,6 +35,10 @@ def realm_to_suffix(realm_name):
     s = realm_name.split(".")
     terms = ["dc=" + x.lower() for x in s]
     return ",".join(terms)
+
+def host_to_domain(fqdn):
+    s = fqdn.split(".")
+    return ".".join(s[1:])
 
 def generate_kdc_password():
     rndpwd = ''
@@ -75,8 +82,10 @@ def run(args, stdin=None):
 class KrbInstance:
     def __init__(self):
         self.ds_user = None
-        self.realm_name = None
-        self.host_name = None
+        self.fqdn = None
+        self.realm = None
+	self.domain = None
+        self.host = None
         self.admin_password = None
         self.master_password = None
         self.suffix = None
@@ -85,12 +94,15 @@ class KrbInstance:
 
     def create_instance(self, ds_user, realm_name, host_name, admin_password, master_password):
         self.ds_user = ds_user
-        self.realm_name = realm_name.upper()
-        self.host_name = host_name
+        self.fqdn = host_name
+        self.ip = socket.gethostbyname(host_name)
+        self.realm = realm_name.upper()
+        self.host = host_name.split(".")[0]
+        self.domain = host_to_domain(host_name)
         self.admin_password = admin_password
         self.master_password = master_password
         
-	self.suffix = realm_to_suffix(self.realm_name)
+	self.suffix = realm_to_suffix(self.realm)
         self.kdc_password = generate_kdc_password()
 	self.__configure_kdc_account_password()
 
@@ -99,6 +111,10 @@ class KrbInstance:
         self.__configure_ldap()
 
         self.__create_instance()
+
+        self.__create_ds_keytab()
+
+        self.__create_sample_bind_zone()
 
         self.start()
 
@@ -120,12 +136,13 @@ class KrbInstance:
         pwd_fd.close()
 
     def __setup_sub_dict(self):
-	#FIXME: can DOMAIN be different than REALM ?
-        self.sub_dict = dict(FQHN=self.host_name,
+        self.sub_dict = dict(FQDN=self.fqdn,
+                             IP=self.ip,
                              PASSWORD=self.kdc_password,
                              SUFFIX=self.suffix,
-                             DOMAIN= self.realm_name.lower(),
-                             REALM=self.realm_name)
+                             DOMAIN=self.domain,
+                             HOST=self.host,
+                             REALM=self.realm)
 
     def __configure_ldap(self):
 
@@ -153,7 +170,7 @@ class KrbInstance:
         krb5_fd.close()
 
         #populate the directory with the realm structure
-        args = ["/usr/kerberos/sbin/kdb5_ldap_util", "-D", "uid=kdc,cn=kerberos,"+self.suffix, "-w", self.kdc_password, "create", "-s", "-r", self.realm_name, "-subtrees", self.suffix, "-sscope", "sub"]
+        args = ["/usr/kerberos/sbin/kdb5_ldap_util", "-D", "uid=kdc,cn=kerberos,"+self.suffix, "-w", self.kdc_password, "create", "-s", "-P", self.master_password, "-r", self.realm, "-subtrees", self.suffix, "-sscope", "sub"]
         run(args)
 
     # TODO: NOT called yet, need to find out how to make sure the plugin is available first
@@ -165,5 +182,28 @@ class KrbInstance:
 	extop_fd.close()
 
 	#add an ACL to let the DS user read the master key
-	args = ["/usr/bin/setfacl", "-m", "u:"+self.ds_user+":r", "/var/kerberos/krb5kdc/.k5."+self.realm_name]
+	args = ["/usr/bin/setfacl", "-m", "u:"+self.ds_user+":r", "/var/kerberos/krb5kdc/.k5."+self.realm]
 	run(args)
+
+    def __create_sample_bind_zone(self):
+        bind_txt = template_file(SHARE_DIR + "bind.zone.db.template", self.sub_dict)
+        [bind_fd, bind_name] = tempfile.mkstemp(".db","sample.zone.")
+        os.write(bind_fd, bind_txt)
+        os.close(bind_fd)
+        print "Sample zone file for bind has been created in "+bind_name
+
+    def __create_ds_keytab(self):
+        (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
+        kwrite.write("addprinc -randkey ldap/"+self.fqdn+"@"+self.realm+"\n")
+        kwrite.flush()
+        kwrite.write("ktadd -k /etc/fedora-ds/ds.keytab ldap/"+self.fqdn+"@"+self.realm+"\n")
+        kwrite.flush()
+        kwrite.close()
+        kread.close()
+        kerr.close()
+
+	cfg_fd = open("/etc/sysconfig/fedora-ds", "a")
+        cfg_fd.write("export KRB5_KTNAME=/etc/fedora-ds/ds.keytab\n")
+        cfg_fd.close()
+	pent = pwd.getpwnam(self.ds_user)
+        os.chown("/etc/sysconfig/fedora-ds", pent.pw_uid, pent.pw_gid)

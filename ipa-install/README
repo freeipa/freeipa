@@ -5,12 +5,17 @@ krb5-server
 fedora-ds-base
 openldap-clients
 krb5-server-ldap
+cyrus-sasl-gssapi
 
 
 Installation example:
 
+TEMPORARY: (until fedora ds scripts are fixed)
+please use the fedora-ds.init.patch under share/ to patch your init scripts before
+running ipa-server-install
+
 cd ipa-install
 make install
 cd ..
-/usr/sbin/ipa-server-install -r FREEIPA.ORG -a rc1.freeipa.org -p freeipa -m ipafree
+/usr/sbin/ipa-server-install -u fds -r FREEIPA.ORG -p freeipa -m ipafree
 
