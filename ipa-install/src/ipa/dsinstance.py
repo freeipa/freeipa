@@ -24,6 +24,7 @@ import tempfile
 import shutil
 import logging
 import pwd
+import os
 
 SHARE_DIR = "/usr/share/ipa/"
 
@@ -102,6 +103,7 @@ class DsInstance:
         self.__setup_sub_dict()
 
         self.__create_ds_user()
+        self.__set_ds_perms()
         self.__create_instance()
         self.__add_default_schemas()
         self.__enable_ssl()
@@ -140,6 +142,12 @@ class DsInstance:
             args = ["/usr/sbin/useradd", "-c", "DS System User", "-d", "/var/lib/fedora-ds", "-M", "-r", "-s", "/sbin/nologin", self.ds_user]
             run(args)
             logging.debug("done adding user")
+
+    def __set_ds_perms(self):
+        p = pwd.getpwnam(self.ds_user)
+        uid = p.pw_uid
+        gid = p.pg_gid
+        os.chown("/var/tmp/fedora-ds", uid, gid)
 
     def __create_instance(self):
         logging.debug("creating ds instance . . . ")
