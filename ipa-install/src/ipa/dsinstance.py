@@ -25,8 +25,14 @@ import shutil
 import logging
 import pwd
 import os
+import stat
+from util import *
+
 
 SHARE_DIR = "/usr/share/ipa/"
+SERVER_ROOT_64 = "/usr/lib64/fedora-ds-base"
+SERVER_ROOT_32 = "/usr/lib/fedora-ds-base"
+
 
 def generate_serverid():
     """Generate a UUID (universally unique identifier) suitable
@@ -45,39 +51,20 @@ def realm_to_suffix(realm_name):
     terms = ["dc=" + x.lower() for x in s]
     return ",".join(terms)
 
-def template_str(txt, vars):
-    return string.Template(txt).substitute(vars)
+def find_server_root():
+    try:
+        mode = os.stat(SERVER_ROOT_64)[ST_MODE]
+        if stat.IS_DIR(mode):
+            return SERVER_ROOT_64
+    except:
+        return SERVER_ROOT_32
 
-def template_file(infilename, vars):
-    txt = open(infilename).read()
-    return template_str(txt, vars)
-
-def write_tmp_file(txt):
-    fd = tempfile.NamedTemporaryFile()
-    fd.write(txt)
-    fd.flush()
-
-    return fd
-
-def run(args, stdin=None):
-    logging.debug("running command [%s]" % (" ".join(args)))
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if stdin:
-        stdout,stderr = p.communicate(stdin)
-    else:
-        stdout,stderr = p.communicate()
-    logging.info(stdout)
-    logging.info(stderr)
-
-    if p.returncode != 0:
-        raise subprocess.CalledProcessError(p.returncode, args[0])
-    
 
 INF_TEMPLATE = """
 [General]
 FullMachineName=   $FQHN
 SuiteSpotUserID=   $USER
-ServerRoot=    /usr/lib/fedora-ds-base
+ServerRoot=    $SERVER_ROOT
 [slapd]
 ServerPort=   389
 ServerIdentifier=   $SERVERID
@@ -103,7 +90,6 @@ class DsInstance:
         self.__setup_sub_dict()
 
         self.__create_ds_user()
-        self.__set_ds_perms()
         self.__create_instance()
         self.__add_default_schemas()
         self.__enable_ssl()
@@ -129,9 +115,11 @@ class DsInstance:
 
     def __setup_sub_dict(self):
         suffix = realm_to_suffix(self.realm_name)
+        server_root = find_server_root()
         self.sub_dict = dict(FQHN=self.host_name, SERVERID=self.serverid,
                              PASSWORD=self.admin_password, SUFFIX=suffix,
-                             REALM=self.realm_name, USER=self.ds_user)
+                             REALM=self.realm_name, USER=self.ds_user,
+                             SERVER_ROOT=server_root)
 
     def __create_ds_user(self):
 	try:
@@ -142,12 +130,6 @@ class DsInstance:
             args = ["/usr/sbin/useradd", "-c", "DS System User", "-d", "/var/lib/fedora-ds", "-M", "-r", "-s", "/sbin/nologin", self.ds_user]
             run(args)
             logging.debug("done adding user")
-
-    def __set_ds_perms(self):
-        p = pwd.getpwnam(self.ds_user)
-        uid = p.pw_uid
-        gid = p.pg_gid
-        os.chown("/var/tmp/fedora-ds", uid, gid)
 
     def __create_instance(self):
         logging.debug("creating ds instance . . . ")
