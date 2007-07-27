@@ -33,8 +33,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%{_sbindir}/*
-%{pkgpythondir}
+%{_sbindir}/ipa-server-install
+%{_sbindir}/ipa-server-setupssl
 
 %dir %{_usr}/share/ipa
 %{_usr}/share/ipa/*
