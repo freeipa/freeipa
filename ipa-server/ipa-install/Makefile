@@ -1,10 +1,12 @@
+SBINDIR=$(PREFIX)/usr/sbin
+
 all: ;
 
 install:
-	$(MAKE) -C src $@
+	install -m 755 ipa-server-install $(SBINDIR)
+	install -m 755 ipa-server-setupssl $(SBINDIR)
 	$(MAKE) -C share $@
 
 clean:
-	$(MAKE) -C src $@
 	$(MAKE) -C share $@
-	rm -f *~
+	rm -f *~ *.pyc

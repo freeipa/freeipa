@@ -32,8 +32,8 @@ sys.path.append("/usr/share/ipa")
 import socket
 import logging
 from optparse import OptionParser
-import ipa.dsinstance
-import ipa.krbinstance
+import ipaserver.dsinstance
+import ipaserver.krbinstance
 
 def parse_options():
     parser = OptionParser(version=VERSION)
@@ -61,7 +61,7 @@ def logging_setup(options):
     # file.
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s %(message)s',
-                        filename='ipa-install.log',
+                        filename='ipaserver-install.log',
                         filemode='w')
 
     console = logging.StreamHandler()
@@ -103,12 +103,12 @@ def main():
 
 
     # Create a directory server instance
-    ds = ipa.dsinstance.DsInstance()
+    ds = ipaserver.dsinstance.DsInstance()
     ds.create_instance(options.ds_user, options.realm_name, host_name,
                        options.password)
 
     # Create a kerberos instance
-    krb = ipa.krbinstance.KrbInstance()
+    krb = ipaserver.krbinstance.KrbInstance()
     krb.create_instance(options.ds_user, options.realm_name, host_name,
                         options.password, options.master_password)
 
