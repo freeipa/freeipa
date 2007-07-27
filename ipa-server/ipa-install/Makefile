@@ -1,4 +1,4 @@
-SBINDIR=$(PREFIX)/usr/sbin
+SBINDIR=$(DESTDIR)/usr/sbin
 
 all: ;
 
