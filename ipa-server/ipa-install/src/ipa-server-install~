@@ -26,9 +26,6 @@
 
 VERSION = "%prog .1"
 
-import sys
-sys.path.append("/usr/share/ipa")
-
 import socket
 import logging
 from optparse import OptionParser
