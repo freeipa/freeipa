@@ -17,18 +17,20 @@ Requires: python fedora-ds-base krb5-server krb5-server-ldap
 %define pkgpythondir  %{python_sitelib}/%{name}
 
 %description
-Madison is a set of tools and libraries for SELinux policy generation.
+FreeIPA is a server for identity, policy, and audit.
 
 %prep
 %setup -q
 
 %install
-rm -rf $RPM_BUILD_ROOT
-make install DESTDIR=$RPM_BUILD_ROOT
+rm -rf %{buildroot}
+mkdir -p %{buildroot}%{_sbindir}
+
+make install DESTDIR=%{buildroot}
 
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 
 %files
