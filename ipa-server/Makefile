@@ -19,3 +19,5 @@ clean:
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
+	rm -f *~
+	rm -f ipaserver/*~
