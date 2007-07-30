@@ -137,7 +137,7 @@ class DsInstance:
         logging.debug(inf_txt)
         inf_fd = write_tmp_file(inf_txt)
         logging.debug("writing inf template")
-        args = ["/usr/bin/ds_newinst.pl", inf_fd.name]
+        args = ["/usr/sbin/setup-ds.pl", "--silent", "--logfile", "-", "-f", inf_fd.name, ]
         logging.debug("calling ds_newinst.pl")
         run(args)
         logging.debug("completed creating ds instance")
