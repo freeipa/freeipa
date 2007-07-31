@@ -44,7 +44,7 @@ def get_user (username):
     ent=""
 
     # FIXME: Is this the filter we want or should it be more specific?
-    filter = "(uid="  username  ")"
+    filter = "(uid=" + username + ")"
     try:
         m1 = ipaserver.ipaldap.IPAdmin(host,port,binddn,bindpw)
         ent = m1.getEntry(basedn, scope, filter, None)

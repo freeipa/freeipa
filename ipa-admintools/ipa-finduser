@@ -21,7 +21,6 @@
 from optparse import OptionParser
 import ipa
 import ipa.rpcclient
-import ipa.ipaldap
 import base64
 import sys
 import xmlrpclib
@@ -46,10 +45,13 @@ def main():
 
     try:
         ent = ipa.rpcclient.get_user(args[0])
-        entry = ipa.ipaldap.Entry(ent['dn'])
-        for e in ent:
-            entry.setValues(e, ent[e])
-        print entry
+        for name, value in ent.items():
+            if isinstance(value, str):
+                print name + ": " + value
+            else:
+                print name + ": "
+                for x in value:
+                    print "\t" + x
     except xmlrpclib.Fault, fault:
         print fault.faultString
 

@@ -24,6 +24,9 @@
 # Rob Crittenden <rcritten@redhat.com>
 
 import sys
+sys.path.append("/usr/share/ipa")
+
+
 import time
 import traceback
 import pprint
@@ -201,7 +204,7 @@ class ModXMLRPCRequestHandler(object):
             if x == 0 and func.func_code.co_varnames[x] == "self":
                 continue
             if func.func_defaults and func.func_code.co_argcount - x <= len(func.func_defaults):
-                args.append((func.func_code.co_varnames[x], func.func_defaults[x - func.func_code.co_argcount  len(func.func_defaults)]))
+                args.append((func.func_code.co_varnames[x], func.func_defaults[x - func.func_code.co_argcount + len(func.func_defaults)]))
             else:
                 args.append(func.func_code.co_varnames[x])
         return args
@@ -225,7 +228,7 @@ class ModXMLRPCRequestHandler(object):
                 arglist.append('%s=%s' % (arg[0], arg[1]))
         ret = '%s(%s)' % (method, ", ".join(arglist))
         if func.__doc__:
-            ret = "\ndescription: %s" % func.__doc__
+            ret += "\ndescription: %s" % func.__doc__
         return ret
 
     def handle_request(self,req):
@@ -259,7 +262,7 @@ def handler(req, profiling=False):
         sys.stdout = strstream
         stats.sort_stats("time")
         stats.print_stats()
-        req.write("<pre>"  strstream.getvalue()  "</pre>")
+        req.write("<pre>" + strstream.getvalue() + "</pre>")
         _profiling_req = None
     else:
         opts = req.get_options()

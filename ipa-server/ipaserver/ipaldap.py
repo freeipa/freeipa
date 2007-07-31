@@ -187,7 +187,7 @@ class IPAdmin(SimpleLDAPObject):
                 ent = self.getEntry('cn=config', ldap.SCOPE_BASE, '(objectclass=*)',
                                     [ 'nsslapd-instancedir', 'nsslapd-errorlog' ])
                 instdir = ent.getValue('nsslapd-instancedir')
-                self.sroot, self.inst = re.match(r'(.*)[\/]slapd-(\w)$', instdir).groups()
+                self.sroot, self.inst = re.match(r'(.*)[\/]slapd-(\w+)$', instdir).groups()
                 self.errlog = ent.getValue('nsslapd-errorlog')
             except (ldap.INSUFFICIENT_ACCESS, ldap.CONNECT_ERROR, NoSuchEntryError):
                 pass # usually means 
@@ -230,7 +230,7 @@ class IPAdmin(SimpleLDAPObject):
         self.__localinit__()
 
     def __str__(self):
-        return self.host  ":"  str(self.port)
+        return self.host + ":" + str(self.port)
 
     def toLDAPURL(self):
         return "ldap://%s:%d/" % (self.host,self.port)
@@ -240,7 +240,7 @@ class IPAdmin(SimpleLDAPObject):
         res = self.search(*args)
         type, obj = self.result(res)
         if not obj:
-            raise NoSuchEntryError("no such entry for "  str(args))
+            raise NoSuchEntryError("no such entry for " + str(args))
         elif isinstance(obj,Entry):
             return obj
         else: # assume list/tuple
@@ -268,7 +268,7 @@ class IPAdmin(SimpleLDAPObject):
                 setattr(self, name, wrapper(attr, name))
 
     def exportLDIF(self, file, suffix, forrepl=False, verbose=False):
-        cn = "export"  str(int(time.time()))
+        cn = "export" + str(int(time.time()))
         dn = "cn=%s, cn=export, cn=tasks, cn=config" % cn
         entry = Entry(dn)
         entry.setValues('objectclass', 'top', 'extensibleObject')
@@ -295,7 +295,7 @@ class IPAdmin(SimpleLDAPObject):
         if attr:
             filter = "(%s=*)" % attr
             attrlist.append(attr)
-        timeout = int(time.time())
+        timeout += int(time.time())
 
         if isinstance(dn,Entry):
             dn = dn.dn
@@ -356,7 +356,7 @@ class IPAdmin(SimpleLDAPObject):
         fqdn = IPAdmin.getfqdn(name)
         index = fqdn.find('.')
         if index >= 0:
-            return fqdn[index1:]
+            return fqdn[index+1:]
         else:
             return fqdn
     getdomainname = staticmethod(getdomainname)
@@ -364,7 +364,7 @@ class IPAdmin(SimpleLDAPObject):
     def getdefaultsuffix(name=''):
         dm = IPAdmin.getdomainname(name)
         if dm:
-            return "dc="  dm.replace('.', ', dc=')
+            return "dc=" + dm.replace('.', ', dc=')
         else:
             return 'dc=localdomain'
     getdefaultsuffix = staticmethod(getdefaultsuffix)

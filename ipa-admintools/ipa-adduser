@@ -53,6 +53,7 @@ def parse_options():
 def main():
     user={}
     (options, args) = parse_options()
+    print args
 
     if len(args) != 1:
         usage()
@@ -66,12 +67,12 @@ def main():
         user['homedirectory'] = options.directory
     if options.shell:
         user['loginshell'] = options.shell
-    else
+    else:
         user['loginshell'] = "/bin/bash"
 
     try:
         ipa.rpcclient.add_user(user)
-        print args[0]  "successfully added"
+        print args[0] + " successfully added"
     except xmlrpclib.Fault, f:
         print f.faultString
 
