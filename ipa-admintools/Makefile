@@ -1,8 +1,10 @@
+SBINDIR = $(DESTDIR)/usr/sbin
+
 all: ;
 
 install:
-	$(MAKE) -C src $@
+	install -m 755 ipa-adduser $(SBINDIR)
+	install -m 755 ipa-finduser $(SBINDIR)
 
 clean:
-	$(MAKE) -C src $@
-	rm -f *~
+	rm -f *~ *.pyc

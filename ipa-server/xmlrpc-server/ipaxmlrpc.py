@@ -30,7 +30,7 @@ import pprint
 from xmlrpclib import Marshaller,loads,dumps,Fault
 from mod_python import apache
 
-import ipa
+import ipaserver
 import funcs
 import string
 import base64
@@ -154,7 +154,7 @@ class ModXMLRPCRequestHandler(object):
         func = self.funcs.get(method,None)
         if func is None:
              raise Fault(1, "Invalid method: %s" % method)
-        params,opts = ipa.decode_args(*params)
+        params,opts = ipaserver.decode_args(*params)
         
         ret = func(*params,**opts)
 
@@ -272,17 +272,3 @@ def handler(req, profiling=False):
         finally:
              pass
     return apache.OK
-diff -r 0afcf345979d ipa-server/ipa-web/client/Makefile
---- a/dev/null	Thu Jan 01 00:00:00 1970 0000
- b/ipa-server/ipa-web/client/Makefile	Wed Jul 19 20:17:24 2007 -0400
-PYTHONLIBDIR ?= $(shell  python -c "from distutils.sysconfig import *; print get_python_lib(1)")
-PACKAGEDIR ?= $(DESTDIR)/$(PYTHONLIBDIR)/ipa
-
-all: ;
-
-install:
-	-mkdir -p $(PACKAGEDIR)
-	install -m 644 *.py $(PACKAGEDIR)
-
-clean:
-	rm -f *~ *.pyc

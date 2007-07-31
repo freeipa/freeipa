@@ -1,4 +1,4 @@
-SHAREDIR = $(DESTDIR)/usr/share/ipa
+SHAREDIR = $(DESTDIR)/usr/share/ipa/ipaserver
 HTTPDIR = $(DESTDIR)/etc/httpd/conf.d/
 
 all: ;

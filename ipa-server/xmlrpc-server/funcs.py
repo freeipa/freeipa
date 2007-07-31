@@ -17,10 +17,12 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+import sys
+sys.path.append("/usr/share/ipa")
+
 import ldap
-import ipa
-import ipa.dsinstance
-import ipa.ipaldap
+import ipaserver.dsinstance
+import ipaserver.ipaldap
 import pdb
 import string
 from types import *
@@ -44,11 +46,11 @@ def get_user (username):
     # FIXME: Is this the filter we want or should it be more specific?
     filter = "(uid="  username  ")"
     try:
-        m1 = ipa.ipaldap.IPAdmin(host,port,binddn,bindpw)
+        m1 = ipaserver.ipaldap.IPAdmin(host,port,binddn,bindpw)
         ent = m1.getEntry(basedn, scope, filter, None)
     except ldap.LDAPError, e:
         raise xmlrpclib.Fault(1, e)
-    except ipa.ipaldap.NoSuchEntryError:
+    except ipaserver.ipaldap.NoSuchEntryError:
         raise xmlrpclib.Fault(2, "No such user")
 
     # Convert to LDIF
@@ -84,7 +86,7 @@ def get_user (username):
 def add_user (user):
     """Add a user in LDAP"""
     dn="uid=%s,ou=users,ou=default,dc=greyoak,dc=com" % user['uid']
-    entry = ipa.ipaldap.Entry(dn)
+    entry = ipaserver.ipaldap.Entry(dn)
 
     # some required objectclasses
     entry.setValues('objectClass', 'top', 'posixAccount', 'shadowAccount', 'account', 'person', 'inetOrgPerson', 'organizationalPerson', 'krbPrincipalAux', 'krbTicketPolicyAux')
@@ -104,7 +106,7 @@ def add_user (user):
         entry.setValues(u, user[u])
 
     try:
-        m1 = ipa.ipaldap.IPAdmin(host,port,binddn,bindpw)
+        m1 = ipaserver.ipaldap.IPAdmin(host,port,binddn,bindpw)
         res = m1.addEntry(entry)
         return res
     except ldap.ALREADY_EXISTS:

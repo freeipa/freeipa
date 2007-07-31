@@ -1,4 +1,4 @@
-SUBDIRS=ipa-server ipa-admintools
+SUBDIRS=ipa-server ipa-admintools ipa-python
 
 PRJ_PREFIX=freeipa
 
@@ -9,7 +9,6 @@ SERV_MAJOR=0
 SERV_MINOR=1
 SERV_RELEASE=0
 SERV_VERSION=$(SERV_MAJOR).$(SERV_MINOR).$(SERV_RELEASE)
-
 SERV_TARBALL_PREFIX=$(PRJ_PREFIX)-server-$(SERV_VERSION)
 SERV_TARBALL=$(SERV_TARBALL_PREFIX).tgz
 
@@ -17,9 +16,15 @@ ADMIN_MAJOR=0
 ADMIN_MINOR=1
 ADMIN_RELEASE=0
 ADMIN_VERSION=$(ADMIN_MAJOR).$(ADMIN_MINOR).$(ADMIN_RELEASE)
-
 ADMIN_TARBALL_PREFIX=$(PRJ_PREFIX)-admintools-$(ADMIN_VERSION)
 ADMIN_TARBALL=$(ADMIN_TARBALL_PREFIX).tgz
+
+PYTHON_MAJOR=0
+PYTHON_MINOR=1
+PYTHON_RELEASE=0
+PYTHON_VERSION=$(PYTHON_MAJOR).$(PYTHON_MINOR).$(PYTHON_RELEASE)
+PYTHON_TARBALL_PREFIX=$(PRJ_PREFIX)-admintools-$(PYTHON_VERSION)
+PYTHON_TARBALL=$(PYTHON_TARBALL_PREFIX).tgz
 
 all:
 	@for subdir in $(SUBDIRS); do \
@@ -35,6 +40,7 @@ clean:
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
+	rm -f *~
 
 version-update:
 	sed s/VERSION/$(SERV_VERSION)/ ipa-server/freeipa-server.spec.in \
@@ -54,6 +60,12 @@ tarballs:
 	rm -f dist/$(ADMIN_TARBALL)
 	cd dist; tar cfz $(ADMIN_TARBALL) $(ADMIN_TARBALL_PREFIX)
 	rm -fr dist/$(ADMIN_TARBALL_PREFIX)
+
+        # ipa-python
+	mv dist/freeipa/ipa-python dist/$(PYTHON_TARBALL_PREFIX)
+	rm -f dist/$(PYTHON_TARBALL)
+	cd dist; tar cfz $(PYTHON_TARBALL) $(PYTHON_TARBALL_PREFIX)
+	rm -fr dist/$(PYTHON_TARBALL_PREFIX)
 
         # cleanup
 	rm -fr dist/freeipa

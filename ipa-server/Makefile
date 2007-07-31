@@ -1,4 +1,4 @@
-SUBDIRS=ipa-install
+SUBDIRS=ipa-install xmlrpc-server
 PYTHONDIR=$(DESTDIR)/usr/share/ipa/ipaserver
 
 all:
