@@ -23,7 +23,7 @@ PYTHON_MAJOR=0
 PYTHON_MINOR=1
 PYTHON_RELEASE=0
 PYTHON_VERSION=$(PYTHON_MAJOR).$(PYTHON_MINOR).$(PYTHON_RELEASE)
-PYTHON_TARBALL_PREFIX=$(PRJ_PREFIX)-admintools-$(PYTHON_VERSION)
+PYTHON_TARBALL_PREFIX=$(PRJ_PREFIX)-python-$(PYTHON_VERSION)
 PYTHON_TARBALL=$(PYTHON_TARBALL_PREFIX).tgz
 
 all:
@@ -45,6 +45,14 @@ clean:
 version-update:
 	sed s/VERSION/$(SERV_VERSION)/ ipa-server/freeipa-server.spec.in \
 		> ipa-server/freeipa-server.spec
+
+	sed s/VERSION/$(ADMIN_VERSION)/ ipa-admintools/freeipa-admintools.spec.in \
+		> ipa-admintools/freeipa-admintools.spec
+
+	sed s/VERSION/$(PYTHON_VERSION)/ ipa-python/freeipa-python.spec.in \
+		> ipa-python/freeipa-python.spec
+
+
 tarballs:
 	-mkdir -p dist
 	hg archive -t files dist/freeipa
@@ -70,11 +78,27 @@ tarballs:
         # cleanup
 	rm -fr dist/freeipa
 
-dist: version-update tarballs
+rpm-ipa-server:
 	cp dist/$(SERV_TARBALL) ~/rpmbuild/SOURCES/.
 	rpmbuild -ba ipa-server/freeipa-server.spec
 	cp ~/rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-server-$(SERV_VERSION)-*.rpm dist/.
 	cp ~/rpmbuild/SRPMS/$(PRJ_PREFIX)-server-$(SERV_VERSION)-*.src.rpm dist/.
+
+rpm-ipa-admin:
+	cp dist/$(ADMIN_TARBALL) ~/rpmbuild/SOURCES/.
+	rpmbuild -ba ipa-admintools/freeipa-admintools.spec
+	cp ~/rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-admintools-$(ADMIN_VERSION)-*.rpm dist/.
+	cp ~/rpmbuild/SRPMS/$(PRJ_PREFIX)-admintools-$(ADMIN_VERSION)-*.src.rpm dist/.
+
+rpm-ipa-python:
+	cp dist/$(PYTHON_TARBALL) ~/rpmbuild/SOURCES/.
+	rpmbuild -ba ipa-python/freeipa-python.spec
+	cp ~/rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-python-$(PYTHON_VERSION)-*.rpm dist/.
+	cp ~/rpmbuild/SRPMS/$(PRJ_PREFIX)-python-$(PYTHON_VERSION)-*.src.rpm dist/.
+
+rpms: rpm-ipa-server rpm-ipa-admin rpm-ipa-python
+
+dist: version-update tarballs rpms
 
 dist-clean: clean
 	rm -fr dist

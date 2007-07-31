@@ -1,5 +1,5 @@
-Name:           freeipa-server
-Version:        VERSION
+Name:           freeipa-python
+Version:        0.1.0
 Release:        1%{?dist}
 Summary:        FreeIPA authentication server
 
@@ -10,9 +10,11 @@ Source0:        %{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: 	noarch
 
-Requires: python fedora-ds-base krb5-server krb5-server-ldap nss-tools openldap-clients httpd mod_python python-ldap freeipa-python
+Requires: python
 
-%define httpd_conf /etc/httpd/conf.d
+%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+
+%define pkgpythondir  %{python_sitelib}/ipa
 
 %description
 FreeIPA is a server for identity, policy, and audit.
@@ -22,8 +24,7 @@ FreeIPA is a server for identity, policy, and audit.
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}%{_sbindir}
-mkdir -p %{buildroot}%{httpd_conf}
+mkdir -p %{buildroot}%{pkgpythondir}
 
 make install DESTDIR=%{buildroot}
 
@@ -34,13 +35,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%{_sbindir}/ipa-server-install
-%{_sbindir}/ipa-server-setupssl
-
-%dir %{_usr}/share/ipa
-%{_usr}/share/ipa/*
-
-%{httpd_conf}/ipa.conf
+%{pkgpythondir}/*
 
 
 %changelog
