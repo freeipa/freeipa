@@ -53,7 +53,6 @@ def parse_options():
 def main():
     user={}
     (options, args) = parse_options()
-    print args
 
     if len(args) != 1:
         usage()
