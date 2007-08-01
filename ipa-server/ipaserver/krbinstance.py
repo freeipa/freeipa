@@ -28,13 +28,7 @@ from time import gmtime
 import os
 import pwd
 import socket
-
-SHARE_DIR = "/usr/share/ipa/"
-
-def realm_to_suffix(realm_name):
-    s = realm_name.split(".")
-    terms = ["dc=" + x.lower() for x in s]
-    return ",".join(terms)
+from util import *
 
 def host_to_domain(fqdn):
     s = fqdn.split(".")
@@ -149,15 +143,15 @@ class KrbInstance:
 
     # TODO: NOT called yet, need to find out how to make sure the plugin is available first
     def __add_pwd_extop_module(self):
-	#add the password extop module
-	extop_txt = template_file(SHARE_DIR + "ipapwd_extop_plugin.ldif", self.sub_dict)
-	extop_fd = write_tmp_file(extop_txt)
-	ldap_mod(extop_fd, "cn=Directory Manager", self.admin_password)
-	extop_fd.close()
+        #add the password extop module
+        extop_txt = template_file(SHARE_DIR + "ipapwd_extop_plugin.ldif", self.sub_dict)
+        extop_fd = write_tmp_file(extop_txt)
+        ldap_mod(extop_fd, "cn=Directory Manager", self.admin_password)
+        extop_fd.close()
 
-	#add an ACL to let the DS user read the master key
-	args = ["/usr/bin/setfacl", "-m", "u:"+self.ds_user+":r", "/var/kerberos/krb5kdc/.k5."+self.realm]
-	run(args)
+        #add an ACL to let the DS user read the master key
+        args = ["/usr/bin/setfacl", "-m", "u:"+self.ds_user+":r", "/var/kerberos/krb5kdc/.k5."+self.realm]
+        run(args)
 
     def __create_sample_bind_zone(self):
         bind_txt = template_file(SHARE_DIR + "bind.zone.db.template", self.sub_dict)
