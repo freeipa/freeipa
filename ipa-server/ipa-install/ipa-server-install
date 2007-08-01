@@ -34,7 +34,7 @@ import logging
 from optparse import OptionParser
 import ipaserver.dsinstance
 import ipaserver.krbinstance
-import ipaserver.util.run as run
+from ipaserver.util import run
 
 def parse_options():
     parser = OptionParser(version=VERSION)
@@ -117,7 +117,7 @@ def main():
     ds.restart()
 
     # Restart apache
-    run(["/sbin/server", "httpd", "restart"])
+    run(["/sbin/service", "httpd", "restart"])
 
     return 0
 

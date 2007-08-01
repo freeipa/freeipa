@@ -24,8 +24,6 @@ import tempfile
 import shutil
 import logging
 import pwd
-import os
-import stat
 from util import *
 
 
@@ -52,13 +50,10 @@ def realm_to_suffix(realm_name):
     return ",".join(terms)
 
 def find_server_root():
-    try:
-        mode = os.stat(SERVER_ROOT_64)[ST_MODE]
-        if stat.IS_DIR(mode):
-            return SERVER_ROOT_64
-    except:
+    if dir_exists(SERVER_ROOT_64):
+        return SERVER_ROOT_64
+    else:
         return SERVER_ROOT_32
-
 
 INF_TEMPLATE = """
 [General]
@@ -137,8 +132,12 @@ class DsInstance:
         logging.debug(inf_txt)
         inf_fd = write_tmp_file(inf_txt)
         logging.debug("writing inf template")
-        args = ["/usr/sbin/setup-ds.pl", "--silent", "--logfile", "-", "-f", inf_fd.name, ]
-        logging.debug("calling ds_newinst.pl")
+        if file_exists("/usr/sbin/setup-ds.pl"):
+            args = ["/usr/sbin/setup-ds.pl", "--silent", "--logfile", "-", "-f", inf_fd.name]
+            logging.debug("calling setup-ds.pl")
+        else:
+            args = ["/usr/sbin/ds_newinst.pl", inf_fd.name]
+            logging.debug("calling ds_newinst.pl")
         run(args)
         logging.debug("completed creating ds instance")
         logging.debug("restarting ds instance")

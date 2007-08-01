@@ -24,6 +24,8 @@ import string
 import tempfile
 import logging
 import subprocess
+import os
+import stat
 
 def realm_to_suffix(realm_name):
     s = realm_name.split(".")
@@ -56,3 +58,23 @@ def run(args, stdin=None):
 
     if p.returncode != 0:
         raise subprocess.CalledProcessError(p.returncode, args[0])
+
+def file_exists(filename):
+    try:
+        mode = os.stat(filename)[stat.ST_MODE]
+        if stat.S_ISREG(mode):
+            return True
+        else:
+            return False
+    except:
+        return False
+
+def dir_exists(filename):
+    try:
+        mode = os.stat(filename)[stat.ST_MODE]
+        if stat.S_ISDIR(mode):
+            return True
+        else:
+            return False
+    except:
+        return False
