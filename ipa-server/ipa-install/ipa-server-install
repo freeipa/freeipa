@@ -26,11 +26,15 @@
 
 VERSION = "%prog .1"
 
+import sys
+sys.path.append("/usr/share/ipa")
+
 import socket
 import logging
 from optparse import OptionParser
-import ipa.dsinstance
-import ipa.krbinstance
+import ipaserver.dsinstance
+import ipaserver.krbinstance
+from ipaserver.util import run
 
 def parse_options():
     parser = OptionParser(version=VERSION)
@@ -42,6 +46,9 @@ def parse_options():
                       help="admin password")
     parser.add_option("-m", "--master-password", dest="master_password",
                       help="kerberos master password")
+    parser.add_option("-d", "--debug", dest="debug", action="store_true",
+                     dest="debug", default=False, help="print debugging information")
+    parser.add_option("--hostname", dest="host_name", help="fully qualified name of server")
 
     options, args = parser.parse_args()
 
@@ -50,19 +57,37 @@ def parse_options():
 
     return options
 
-def main():
+def logging_setup(options):
+    # Always log everything (i.e., DEBUG) to the log
+    # file.
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s %(message)s',
-                        filename='ipa-install.log',
+                        filename='ipaserver-install.log',
                         filemode='w')
 
+    console = logging.StreamHandler()
+    # If the debug option is set, also log debug messages to the console
+    if options.debug:
+        console.setLevel(logging.DEBUG)
+    else:
+        # Otherwise, log critical and error messages
+        console.setLevel(logging.ERROR)
+    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+    console.setFormatter(formatter)
+    logging.getLogger('').addHandler(console)
+        
+def main():
     options = parse_options()
+    logging_setup(options)
 
     # check the hostname is correctly configured, it must be as the kldap
     # utilities just use the hostname as returned by gethostbyname to set
     # up some of the standard entries
 
-    host_name = socket.gethostname()
+    if options.host_name:
+        host_name = options.host_name
+    else:
+        host_name = socket.gethostname()
     if len(host_name.split(".")) < 2:
         print "Invalid hostname <"+host_name+">"
         print "Check the /etc/hosts file and make sure to have a valid FQDN"
@@ -77,14 +102,22 @@ def main():
 
     print "The Final KDC Host Name will be: " + host_name
 
-    ds = ipa.dsinstance.DsInstance()
-    ds.create_instance(options.ds_user, options.realm_name, host_name, options.password)
 
-    krb = ipa.krbinstance.KrbInstance()
-    krb.create_instance(options.ds_user, options.realm_name, host_name, options.password, options.master_password)
+    # Create a directory server instance
+    ds = ipaserver.dsinstance.DsInstance()
+    ds.create_instance(options.ds_user, options.realm_name, host_name,
+                       options.password)
 
-    #restart ds after the krb instance have add the sasl map and the ldap keytab
+    # Create a kerberos instance
+    krb = ipaserver.krbinstance.KrbInstance()
+    krb.create_instance(options.ds_user, options.realm_name, host_name,
+                        options.password, options.master_password)
+
+    # Restart ds after the krb instance have add the sasl map
     ds.restart()
+
+    # Restart apache
+    run(["/sbin/service", "httpd", "restart"])
 
     return 0
 

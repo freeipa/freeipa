@@ -49,36 +49,10 @@ def generate_kdc_password():
         rndpwd += chr(r.randint(65,90)) #stricter set for testing
     return rndpwd
 
-def template_str(txt, vars):
-    return string.Template(txt).substitute(vars)
-
-def template_file(infilename, vars):
-    txt = open(infilename).read()
-    return template_str(txt, vars)
-
-def write_tmp_file(txt):
-    fd = tempfile.NamedTemporaryFile()
-    fd.write(txt)
-    fd.flush()
-
-    return fd
-
 def ldap_mod(fd, dn, pwd):
     args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv", "-D", dn, "-w", pwd, "-f", fd.name]
     run(args)
 
-def run(args, stdin=None):
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if stdin:
-        stdout,stderr = p.communicate(stdin)
-    else:
-        stdout,stderr = p.communicate()
-    logging.info(stdout)
-    logging.info(stderr)
-
-    if p.returncode != 0:
-        raise subprocess.CalledProcessError(p.returncode, args[0])
-    
 class KrbInstance:
     def __init__(self):
         self.ds_user = None

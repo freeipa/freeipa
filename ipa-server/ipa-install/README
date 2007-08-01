@@ -1,0 +1,23 @@
+
+Required packages:
+
+krb5-server
+fedora-ds-base
+openldap-clients
+krb5-server-ldap
+cyrus-sasl-gssapi
+httpd
+mod_auth_kerb
+
+
+Installation example:
+
+TEMPORARY: (until fedora ds scripts are fixed)
+please use the fedora-ds.init.patch under share/ to patch your init scripts before
+running ipa-server-install
+
+cd ipa-install
+make install
+cd ..
+/usr/sbin/ipa-server-install -u fds -r FREEIPA.ORG -p freeipa -m ipafree
+

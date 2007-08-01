@@ -24,8 +24,13 @@ import tempfile
 import shutil
 import logging
 import pwd
+from util import *
+
 
 SHARE_DIR = "/usr/share/ipa/"
+SERVER_ROOT_64 = "/usr/lib64/fedora-ds-base"
+SERVER_ROOT_32 = "/usr/lib/fedora-ds-base"
+
 
 def generate_serverid():
     """Generate a UUID (universally unique identifier) suitable
@@ -44,38 +49,17 @@ def realm_to_suffix(realm_name):
     terms = ["dc=" + x.lower() for x in s]
     return ",".join(terms)
 
-def template_str(txt, vars):
-    return string.Template(txt).substitute(vars)
-
-def template_file(infilename, vars):
-    txt = open(infilename).read()
-    return template_str(txt, vars)
-
-def write_tmp_file(txt):
-    fd = tempfile.NamedTemporaryFile()
-    fd.write(txt)
-    fd.flush()
-
-    return fd
-
-def run(args, stdin=None):
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if stdin:
-        stdout,stderr = p.communicate(stdin)
+def find_server_root():
+    if dir_exists(SERVER_ROOT_64):
+        return SERVER_ROOT_64
     else:
-        stdout,stderr = p.communicate()
-    logging.info(stdout)
-    logging.info(stderr)
-
-    if p.returncode != 0:
-        raise subprocess.CalledProcessError(p.returncode, args[0])
-    
+        return SERVER_ROOT_32
 
 INF_TEMPLATE = """
 [General]
 FullMachineName=   $FQHN
 SuiteSpotUserID=   $USER
-ServerRoot=    /usr/lib/fedora-ds-base
+ServerRoot=    $SERVER_ROOT
 [slapd]
 ServerPort=   389
 ServerIdentifier=   $SERVERID
@@ -126,22 +110,39 @@ class DsInstance:
 
     def __setup_sub_dict(self):
         suffix = realm_to_suffix(self.realm_name)
+        server_root = find_server_root()
         self.sub_dict = dict(FQHN=self.host_name, SERVERID=self.serverid,
                              PASSWORD=self.admin_password, SUFFIX=suffix,
-                             REALM=self.realm_name, USER=self.ds_user)
+                             REALM=self.realm_name, USER=self.ds_user,
+                             SERVER_ROOT=server_root)
 
     def __create_ds_user(self):
 	try:
             pwd.getpwnam(self.ds_user)
+            logging.debug("ds user %s exists" % self.ds_user)
 	except KeyError:
+            logging.debug("adding ds user %s" % self.ds_user)
             args = ["/usr/sbin/useradd", "-c", "DS System User", "-d", "/var/lib/fedora-ds", "-M", "-r", "-s", "/sbin/nologin", self.ds_user]
             run(args)
+            logging.debug("done adding user")
 
     def __create_instance(self):
+        logging.debug("creating ds instance . . . ")
         inf_txt = template_str(INF_TEMPLATE, self.sub_dict)
+        logging.debug(inf_txt)
         inf_fd = write_tmp_file(inf_txt)
-        args = ["/usr/bin/ds_newinst.pl", inf_fd.name]
+        logging.debug("writing inf template")
+        if file_exists("/usr/sbin/setup-ds.pl"):
+            args = ["/usr/sbin/setup-ds.pl", "--silent", "--logfile", "-", "-f", inf_fd.name]
+            logging.debug("calling setup-ds.pl")
+        else:
+            args = ["/usr/sbin/ds_newinst.pl", inf_fd.name]
+            logging.debug("calling ds_newinst.pl")
         run(args)
+        logging.debug("completed creating ds instance")
+        logging.debug("restarting ds instance")
+        self.restart()
+        logging.debug("done restarting ds instance")
 
     def __add_default_schemas(self):
         shutil.copyfile(SHARE_DIR + "60kerberos.ldif",
@@ -150,14 +151,18 @@ class DsInstance:
                         self.schema_dirname() + "60samba.ldif")
 
     def __enable_ssl(self):
+        logging.debug("configuring ssl for ds instance")
         dirname = self.config_dirname()
         args = ["/usr/sbin/ipa-server-setupssl", self.admin_password,
                 dirname, self.host_name]
         run(args)
+        logging.debug("done configuring ssl for ds instance")
         
     def __add_default_layout(self):
         txt = template_file(SHARE_DIR + "bootstrap-template.ldif", self.sub_dict)
         inf_fd = write_tmp_file(txt)
+        logging.debug("adding default ds layout")
         args = ["/usr/bin/ldapmodify", "-xv", "-D", "cn=Directory Manager",
                 "-w", self.admin_password, "-f", inf_fd.name]
         run(args)
+        logging.debug("done adding default ds layout")
