@@ -1,0 +1,2 @@
+This is an implementation of the RFC3244 kpasswd protocol.
+It is used to proxy password change operations to Directory Server.
