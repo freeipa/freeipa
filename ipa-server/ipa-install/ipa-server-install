@@ -75,7 +75,7 @@ def logging_setup(options):
     formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
-        
+
 def main():
     options = parse_options()
     logging_setup(options)
@@ -118,6 +118,13 @@ def main():
 
     # Restart apache
     run(["/sbin/service", "httpd", "restart"])
+
+    # Create the config file
+    fd = open("/etc/ipa/ipa.conf", "w")
+    fd.write("[defaults]\n")
+    fd.write("server=" + host_name + "\n")
+    fd.write("realm=" + options.realm_name + "\n")
+    fd.close()
 
     return 0
 

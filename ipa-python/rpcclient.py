@@ -26,18 +26,25 @@ except ImportError:
     pass
 import xmlrpclib
 import socket
-import os
-import base64
+import config
 
 # Some errors to catch
 # http://cvs.fedora.redhat.com/viewcvs/ldapserver/ldap/servers/plugins/pam_passthru/README?root=dirsec&rev=1.6&view=auto
-    
+
+def server_url():
+    return "http://" + config.config.get_server() + "/ipa"
+
 # FIXME: do we want this set somewhere else?
-server = xmlrpclib.ServerProxy("http://localhost:80/ipa")
+server = None
+
+def setup_server():
+    global server
+    if not server:
+        server = xmlrpclib.ServerProxy(server_url())
     
 def get_user(username):
     """Get a specific user"""
-    
+    setup_server()
     try:
       result = server.get_user(username)
       myuser = result
@@ -52,9 +59,10 @@ def get_user(username):
     
 def add_user(user):
     """Add a new user"""
+    setup_server()
 
     # FIXME: Get the realm from somewhere
-    realm="GREYOAK.COM"
+    realm = config.config.get_realm()
 
     # FIXME: This should be dynamic and can include just about anything
     # Let us add in some missing attributes
@@ -87,13 +95,14 @@ def get_add_schema():
     """Get the list of attributes we need to ask when adding a new
        user.
     """
+    setup_server()
     
     # FIXME: Hardcoded and designed for the TurboGears GUI. Do we want
     # this for the CLI as well?
     try:
         result = server.get_add_schema()
     except xmlrpclib.Fault, fault:
-        raise xmlrpclib.Fault(fault,faultCode, fault.faultString)
+        raise xmlrpclib.Fault(fault, fault.faultString)
         return None
     except socket.error, (value, msg):
         raise xmlrpclib.Fault(value, msg)

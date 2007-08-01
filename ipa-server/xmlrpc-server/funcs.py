@@ -23,10 +23,12 @@ sys.path.append("/usr/share/ipa")
 import ldap
 import ipaserver.dsinstance
 import ipaserver.ipaldap
+import ipaserver.util
 import pdb
 import string
 from types import *
 import xmlrpclib
+import ipa.config
 
 # FIXME, this needs to be auto-discovered
 host = 'localhost'
@@ -34,7 +36,10 @@ port = 389
 binddn = "cn=directory manager"
 bindpw = "freeipa"
 
-basedn = "dc=greyoak,dc=com"
+ipa.config.init_config()
+basedn = ipaserver.util.realm_to_suffix(ipa.config.config.get_realm())
+import sys
+sys.stderr.write(basedn)
 scope = ldap.SCOPE_SUBTREE
 
 def get_user (username):
@@ -85,7 +90,7 @@ def get_user (username):
 
 def add_user (user):
     """Add a user in LDAP"""
-    dn="uid=%s,ou=users,ou=default,dc=greyoak,dc=com" % user['uid']
+    dn="uid=%s,ou=users,ou=default,%s" % (user['uid'], basedn)
     entry = ipaserver.ipaldap.Entry(dn)
 
     # some required objectclasses

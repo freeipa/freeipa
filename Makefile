@@ -53,10 +53,20 @@ version-update:
 		> ipa-python/freeipa-python.spec
 
 
-tarballs:
+archive:
 	-mkdir -p dist
 	hg archive -t files dist/freeipa
 
+local-archive:
+	-mkdir -p dist/freeipa
+	@for subdir in $(SUBDIRS); do \
+		cp -pr $$subdir dist/freeipa/.; \
+	done
+
+archive-cleanup:
+	rm -fr dist/freeipa
+
+tarballs:
         # ipa-server
 	mv dist/freeipa/ipa-server dist/$(SERV_TARBALL_PREFIX)
 	rm -f dist/$(SERV_TARBALL)
@@ -74,9 +84,6 @@ tarballs:
 	rm -f dist/$(PYTHON_TARBALL)
 	cd dist; tar cfz $(PYTHON_TARBALL) $(PYTHON_TARBALL_PREFIX)
 	rm -fr dist/$(PYTHON_TARBALL_PREFIX)
-
-        # cleanup
-	rm -fr dist/freeipa
 
 rpm-ipa-server:
 	cp dist/$(SERV_TARBALL) ~/rpmbuild/SOURCES/.
@@ -98,7 +105,9 @@ rpm-ipa-python:
 
 rpms: rpm-ipa-server rpm-ipa-admin rpm-ipa-python
 
-dist: version-update tarballs rpms
+dist: version-update archive tarballs archive-cleanup rpms
+
+local-dist: clean version-update local-archive tarballs archive-cleanup rpms
 
 dist-clean: clean
 	rm -fr dist

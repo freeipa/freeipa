@@ -15,6 +15,7 @@ Requires: python
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 %define pkgpythondir  %{python_sitelib}/ipa
+%define configdir /etc/ipa
 
 %description
 FreeIPA is a server for identity, policy, and audit.
@@ -25,6 +26,7 @@ FreeIPA is a server for identity, policy, and audit.
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{pkgpythondir}
+mkdir -p %{buildroot}%{configdir}
 
 make install DESTDIR=%{buildroot}
 
@@ -36,6 +38,7 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %{pkgpythondir}/*
+%config(noreplace) %{configdir}/ipa.conf
 
 
 %changelog

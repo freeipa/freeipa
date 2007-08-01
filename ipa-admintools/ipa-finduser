@@ -18,9 +18,12 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+import sys
 from optparse import OptionParser
 import ipa
 import ipa.rpcclient
+import ipa.config
+
 import base64
 import sys
 import xmlrpclib
@@ -32,19 +35,20 @@ def usage():
 def parse_options():
     parser = OptionParser()
 
-    (options, args) = parser.parse_args()
+    args = ipa.config.init_config(sys.argv)
+    options, args = parser.parse_args(args)
 
     return options, args
 
 def main():
     user={}
-    (options, args) = parse_options()
+    options, args = parse_options()
 
-    if len(args) != 1:
+    if len(args) != 2:
         usage()
 
     try:
-        ent = ipa.rpcclient.get_user(args[0])
+        ent = ipa.rpcclient.get_user(args[1])
         for name, value in ent.items():
             if isinstance(value, str):
                 print name + ": " + value

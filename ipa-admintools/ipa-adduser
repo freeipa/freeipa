@@ -22,6 +22,8 @@ import sys
 from optparse import OptionParser
 import ipa
 import ipa.rpcclient
+import ipa.config
+
 import xmlrpclib
 
 def usage():
@@ -43,7 +45,8 @@ def parse_options():
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
-    (options, args) = parser.parse_args()
+    args = ipa.config.init_config(sys.argv)
+    options, args = parser.parse_args(args)
 
     if not options.gn or not options.sn:
         usage()
@@ -52,14 +55,14 @@ def parse_options():
 
 def main():
     user={}
-    (options, args) = parse_options()
+    options, args = parse_options()
 
-    if len(args) != 1:
+    if len(args) != 2:
         usage()
 
     user['gn'] = options.gn
     user['sn'] = options.sn
-    user['uid'] = args[0]
+    user['uid'] = args[1]
     if options.gecos:
         user['gecos'] = options.gecos
     if options.directory:
