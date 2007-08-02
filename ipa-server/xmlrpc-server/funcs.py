@@ -146,7 +146,7 @@ def get_add_schema ():
     fields.append(field1)
 
     field1 = {
-        "name":       "gn" ,
+        "name":       "givenName" ,
         "label":      "First name:",
         "type":       "text",
         "validator":  "string",

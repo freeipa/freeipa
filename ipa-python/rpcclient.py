@@ -77,9 +77,7 @@ def add_user(user):
     # FIXME: What is the default group for users?
     user['gidNumber'] ='501'
     user['krbPrincipalName'] = "%s@%s" % (user['uid'], realm)
-    user['cn'] = "%s %s" % (user['gn'], user['sn'])
-    if user.get('gn'):
-        del user['gn']
+    user['cn'] = "%s %s" % (user['givenName'], user['sn'])
 
     try:
         result = server.add_user(user)

@@ -60,7 +60,7 @@ def main():
     if len(args) != 2:
         usage()
 
-    user['gn'] = options.gn
+    user['givenName'] = options.gn
     user['sn'] = options.sn
     user['uid'] = args[1]
     if options.gecos:
