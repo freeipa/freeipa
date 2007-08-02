@@ -34,17 +34,12 @@ import config
 def server_url():
     return "http://" + config.config.get_server() + "/ipa"
 
-# FIXME: do we want this set somewhere else?
-server = None
-
 def setup_server():
-    global server
-    if not server:
-        server = xmlrpclib.ServerProxy(server_url())
+    return xmlrpclib.ServerProxy(server_url())
     
 def get_user(username):
     """Get a specific user"""
-    setup_server()
+    server = setup_server()
     try:
       result = server.get_user(username)
       myuser = result
@@ -59,7 +54,7 @@ def get_user(username):
     
 def add_user(user):
     """Add a new user"""
-    setup_server()
+    server = setup_server()
 
     # FIXME: Get the realm from somewhere
     realm = config.config.get_realm()
@@ -93,7 +88,7 @@ def get_add_schema():
     """Get the list of attributes we need to ask when adding a new
        user.
     """
-    setup_server()
+    server = setup_server()
     
     # FIXME: Hardcoded and designed for the TurboGears GUI. Do we want
     # this for the CLI as well?
