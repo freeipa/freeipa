@@ -8,7 +8,10 @@ install:
 	-mkdir -p $(PACKAGEDIR)
 	install -m 644 *.py $(PACKAGEDIR)
 	-mkdir -p $(CONFIGDIR)
-	install -m 644 ipa.conf $(CONFIGDIR)
+	if ! [ -e $(CONFIGDIR)/ipa.conf ]; then \
+		install -m 644 ipa.conf $(CONFIGDIR); \
+	fi
 
 clean:
 	rm -f *~ *.pyc
+
