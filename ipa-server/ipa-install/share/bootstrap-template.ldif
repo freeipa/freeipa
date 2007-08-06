@@ -31,3 +31,26 @@ ou: groups
 #objectClass: top
 #ou: computers
 
+dn: ou=special,$SUFFIX
+changetype: add
+objectClass: organizationalUnit
+objectClass: top
+ou: special
+
+dn: uid=webservice,ou=special,$SUFFIX
+changetype: add
+uid: webservice
+objectClass: account
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+cn: Web Service
+sn: Service
+
+dn: cn=admin,ou=groups,ou=default,$SUFFIX
+changetype: add
+description: ou=users administrators
+objectClass: top
+objectClass: groupofuniquenames
+cn: admin

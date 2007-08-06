@@ -1,6 +1,6 @@
 Name:           freeipa-server
 Version:        VERSION
-Release:        1%{?dist}
+Release:        3%{?dist}
 Summary:        FreeIPA authentication server
 
 Group:          System Environment/Base
@@ -10,7 +10,7 @@ Source0:        %{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: 	noarch
 
-Requires: python fedora-ds-base krb5-server krb5-server-ldap nss-tools openldap-clients httpd mod_python python-ldap freeipa-python
+Requires: python fedora-ds-base krb5-server krb5-server-ldap nss-tools openldap-clients httpd mod_python mod_auth_kerb python-ldap freeipa-python cyrus-sasl-gssapi
 
 %define httpd_conf /etc/httpd/conf.d
 
@@ -44,6 +44,17 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Aug  5 2007 Rob Crittenden <rcritten@redhat.com> - 0.1.0-3
+- Abstracted client class to work directly or over RPC
+
+* Wed Aug  1 2007 Rob Crittenden <rcritten@redhat.com> - 0.1.0-2
+- Add mod_auth_kerb and cyrus-sasl-gssapi to Requires
+- Remove references to admin server in ipa-server-setupssl
+- Generate a client certificate for the XML-RPC server to connect to LDAP with
+- Create a keytab for Apache
+- Create an ldif with a test user
+- Provide a certmap.conf for doing SSL client authentication
+
 * Fri Jul 27 2007 Karl MacMillan <kmacmill@localhost.localdomain> - 0.1.0-1
 - Initial rpm version
 

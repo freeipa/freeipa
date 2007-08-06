@@ -1,6 +1,6 @@
 #! /usr/bin/python -E
 # Authors: Rich Megginson <richm@redhat.com>
-#          Rob Crittenden <rcritten2redhat.com
+#          Rob Crittenden <rcritten@redhat.com
 #
 # Copyright (C) 2007  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -33,6 +33,8 @@ import ldap
 import cStringIO
 import time
 import operator
+import struct
+from ldap.controls import LDAPControl,DecodeControlTuples,EncodeControlTuples
 
 from ldap.ldapobject import SimpleLDAPObject
 
@@ -197,31 +199,25 @@ class IPAdmin(SimpleLDAPObject):
                 raise
 
     def __localinit__(self):
-        SimpleLDAPObject.__init__(self,'ldap://%s:%d' % (self.host,self.port))
-        # see if binddn is a dn or a uid that we need to lookup
-        if self.binddn and not IPAdmin.is_a_dn(self.binddn):
-            self.simple_bind("","") # anon
-            ent = self.getEntry(IPAdmin.CFGSUFFIX, ldap.SCOPE_SUBTREE,
-                                "(uid=%s)" % self.binddn,
-                                ['uid'])
-            if ent:
-                self.binddn = ent.dn
-            else:
-                print "Error: could not find %s under %s" % (self.binddn, IPAdmin.CFGSUFFIX)
-        self.simple_bind(self.binddn,self.bindpw)
-#        self.__initPart2()
-                
-    def __init__(self,host,port,binddn,bindpw):
+        SimpleLDAPObject.__init__(self,'ldaps://%s:%d' % (self.host,self.port))
+
+    def __init__(self,host,port,cacert,bindcert,bindkey,proxydn=None):
         """We just set our instance variables and wrap the methods - the real work is
         done in __localinit__ and __initPart2 - these are separated out this way so
         that we can call them from places other than instance creation e.g. when
         using the start command, we just need to reconnect, not create a new instance"""
+#        ldap.set_option(ldap.OPT_DEBUG_LEVEL,255)
+        ldap.set_option(ldap.OPT_X_TLS_CACERTFILE,cacert)
+        ldap.set_option(ldap.OPT_X_TLS_CERTFILE,bindcert)
+        ldap.set_option(ldap.OPT_X_TLS_KEYFILE,bindkey)
+
         self.__wrapmethods()
         self.port = port or 389
         self.sslport = 0
         self.host = host
-        self.binddn = binddn
-        self.bindpw = bindpw
+        self.bindcert = bindcert
+        self.bindkey = bindkey
+        self.proxydn = proxydn
         # see if is local or not
         host1 = IPAdmin.getfqdn(host)
         host2 = IPAdmin.getfqdn()
@@ -237,7 +233,22 @@ class IPAdmin(SimpleLDAPObject):
 
     def getEntry(self,*args):
         """This wraps the search function.  It is common to just get one entry"""
-        res = self.search(*args)
+        # 0x04 = Octet String
+        # 4|0x80 sets the length of the length at 4 bytes
+        # the struct() gets us the length in bytes of string s
+        # s is the proxy dn to send
+
+        if self.proxydn is not None:
+            proxydn = chr(0x04) + chr(4|0x80) + struct.pack('l', socket.htonl(len(self.proxydn))) + self.proxydn;
+
+            # Create the proxy control
+            sctrl=[]
+            sctrl.append(LDAPControl('2.16.840.1.113730.3.4.18',True,proxydn))
+        else:
+            sctrl=None
+
+        res = self.search_ext(args[0], args[1], filterstr=args[2], serverctrls=sctrl)
+
         type, obj = self.result(res)
         if not obj:
             raise NoSuchEntryError("no such entry for " + str(args))
@@ -246,10 +257,38 @@ class IPAdmin(SimpleLDAPObject):
         else: # assume list/tuple
             return obj[0]
 
+    def getList(self,*args):
+        """This wraps the search function to find all users."""
+
+        res = self.search(*args)
+        type, obj = self.result(res)
+        if not obj:
+            raise NoSuchEntryError("no such entry for " + str(args))
+
+        all_users = []
+        for s in obj:
+            all_users.append(s)
+
+        return all_users
+
     def addEntry(self,*args):
         """This wraps the add function. It assumes that the entry is already
            populated with all of the desired objectclasses and attributes"""
+        if self.proxydn is not None:
+            proxydn = chr(0x04) + chr(4|0x80) + struct.pack('l', socket.htonl(len(self.proxydn))) + self.proxydn;
+
+            # Create the proxy control
+            sctrl=[]
+            sctrl.append(LDAPControl('2.16.840.1.113730.3.4.18',True,proxydn))
+        else:
+            sctrl=None
+
+        # Create the proxy control
+        sctrl=[]
+        sctrl.append(LDAPControl('2.16.840.1.113730.3.4.18',True,proxydn))
+
         try:
+            self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.add_s(*args)
         except ldap.ALREADY_EXISTS:
             raise ldap.ALREADY_EXISTS

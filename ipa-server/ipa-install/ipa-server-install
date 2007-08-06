@@ -119,6 +119,9 @@ def main():
     # Restart apache
     run(["/sbin/service", "httpd", "restart"])
 
+    # Set apache to be on at boot
+    run(["/sbin/chkconfig", "httpd", "on"])
+
     # Create the config file
     fd = open("/etc/ipa/ipa.conf", "w")
     fd.write("[defaults]\n")

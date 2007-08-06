@@ -28,6 +28,7 @@ from time import gmtime
 import os
 import pwd
 import socket
+import time
 from util import *
 
 def host_to_domain(fqdn):
@@ -81,6 +82,8 @@ class KrbInstance:
         self.__create_instance()
 
         self.__create_ds_keytab()
+
+        self.__create_http_keytab()
 
         self.__create_sample_bind_zone()
 
@@ -175,3 +178,18 @@ class KrbInstance:
         cfg_fd.close()
 	pent = pwd.getpwnam(self.ds_user)
         os.chown("/etc/sysconfig/fedora-ds", pent.pw_uid, pent.pw_gid)
+
+    def __create_http_keytab(self):
+        (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
+        kwrite.write("addprinc -randkey HTTP/"+self.fqdn+"@"+self.realm+"\n")
+        kwrite.flush()
+        kwrite.write("ktadd -k /etc/httpd/conf/ipa.keytab HTTP/"+self.fqdn+"@"+self.realm+"\n")
+        kwrite.flush()
+        kwrite.close()
+        kread.close()
+        kerr.close()
+
+        while not file_exists("/etc/httpd/conf/ipa.keytab"):
+            time.sleep(1)
+        pent = pwd.getpwnam("apache")
+        os.chown("/etc/httpd/conf/ipa.keytab", pent.pw_uid, pent.pw_gid)
