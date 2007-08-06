@@ -12,8 +12,6 @@ BuildArch: 	noarch
 
 Requires: python fedora-ds-base krb5-server krb5-server-ldap nss-tools openldap-clients httpd mod_python mod_auth_kerb python-ldap freeipa-python cyrus-sasl-gssapi
 
-%define httpd_conf /etc/httpd/conf.d
-
 %description
 FreeIPA is a server for identity, policy, and audit.
 
@@ -23,7 +21,6 @@ FreeIPA is a server for identity, policy, and audit.
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_sbindir}
-mkdir -p %{buildroot}%{httpd_conf}
 
 make install DESTDIR=%{buildroot}
 
@@ -39,8 +36,6 @@ rm -rf %{buildroot}
 
 %dir %{_usr}/share/ipa
 %{_usr}/share/ipa/*
-
-%{httpd_conf}/ipa.conf
 
 
 %changelog

@@ -79,6 +79,8 @@ class KrbInstance:
 
         self.__configure_ldap()
 
+        self.__configure_http()
+
         self.__create_instance()
 
         self.__create_ds_keytab()
@@ -193,3 +195,9 @@ class KrbInstance:
             time.sleep(1)
         pent = pwd.getpwnam("apache")
         os.chown("/etc/httpd/conf/ipa.keytab", pent.pw_uid, pent.pw_gid)
+
+    def __configure_http(self):
+        http_txt = template_file(SHARE_DIR + "ipa.conf", self.sub_dict)
+        http_fd = open("/etc/httpd/conf.d/ipa.conf", "w")
+        http_fd.write(http_txt)
+        http_fd.close()
