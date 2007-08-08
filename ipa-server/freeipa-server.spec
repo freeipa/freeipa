@@ -10,7 +10,13 @@ Source0:        %{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: 	noarch
 
+<<<<<<< /home/kmacmill/projects/freeipa/hg/freeipa/ipa-server/freeipa-server.spec
+Requires: python fedora-ds-base krb5-server krb5-server-ldap nss-tools openldap-clients httpd mod_python python-ldap freeipa-python ntpd
+
+%define httpd_conf /etc/httpd/conf.d
+=======
 Requires: python fedora-ds-base krb5-server krb5-server-ldap nss-tools openldap-clients httpd mod_python mod_auth_kerb python-ldap freeipa-python cyrus-sasl-gssapi
+>>>>>>> /tmp/freeipa-server.spec~other.ELhG8g
 
 %description
 FreeIPA is a server for identity, policy, and audit.
