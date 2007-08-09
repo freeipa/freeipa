@@ -348,6 +348,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 	}
 
 	/* find base dn */
+	/* TODO: address the case where we have multiple naming contexts */
 	tv.tv_sec = 10;
 	tv.tv_usec = 0; 
 
