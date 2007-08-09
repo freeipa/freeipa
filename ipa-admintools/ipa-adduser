@@ -21,8 +21,11 @@
 import sys
 from optparse import OptionParser
 import ipa
-import ipa.rpcclient
+import ipa.ipaclient as ipaclient
+import ipa.config
+
 import xmlrpclib
+import kerberos
 
 def usage():
     print "ipa-adduser [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] user"
@@ -43,7 +46,8 @@ def parse_options():
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
-    (options, args) = parser.parse_args()
+    args = ipa.config.init_config(sys.argv)
+    options, args = parser.parse_args(args)
 
     if not options.gn or not options.sn:
         usage()
@@ -52,14 +56,14 @@ def parse_options():
 
 def main():
     user={}
-    (options, args) = parse_options()
+    options, args = parse_options()
 
-    if len(args) != 1:
+    if len(args) != 2:
         usage()
 
-    user['gn'] = options.gn
+    user['givenName'] = options.gn
     user['sn'] = options.sn
-    user['uid'] = args[0]
+    user['uid'] = args[1]
     if options.gecos:
         user['gecos'] = options.gecos
     if options.directory:
@@ -70,10 +74,15 @@ def main():
         user['loginshell'] = "/bin/bash"
 
     try:
-        ipa.rpcclient.add_user(user)
-        print args[0] + " successfully added"
+        client = ipaclient.IPAClient()
+        client.add_user(user)
+        print args[1] + " successfully added"
     except xmlrpclib.Fault, f:
         print f.faultString
+        return 1
+    except kerberos.GSSError, e:
+        print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])
+        return 1
 
     return 0
 

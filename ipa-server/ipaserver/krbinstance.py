@@ -28,6 +28,7 @@ from time import gmtime
 import os
 import pwd
 import socket
+import time
 from util import *
 
 def host_to_domain(fqdn):
@@ -78,9 +79,15 @@ class KrbInstance:
 
         self.__configure_ldap()
 
+        self.__configure_http()
+
         self.__create_instance()
 
         self.__create_ds_keytab()
+
+        self.__create_http_keytab()
+
+        self.__set_kadmin_changepw_preauth()
 
         self.__create_sample_bind_zone()
 
@@ -183,3 +190,24 @@ class KrbInstance:
         kwrite.close()
         kread.close()
         kerr.close()
+
+    def __create_http_keytab(self):
+        (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
+        kwrite.write("addprinc -randkey HTTP/"+self.fqdn+"@"+self.realm+"\n")
+        kwrite.flush()
+        kwrite.write("ktadd -k /etc/httpd/conf/ipa.keytab HTTP/"+self.fqdn+"@"+self.realm+"\n")
+        kwrite.flush()
+        kwrite.close()
+        kread.close()
+        kerr.close()
+
+        while not file_exists("/etc/httpd/conf/ipa.keytab"):
+            time.sleep(1)
+        pent = pwd.getpwnam("apache")
+        os.chown("/etc/httpd/conf/ipa.keytab", pent.pw_uid, pent.pw_gid)
+
+    def __configure_http(self):
+        http_txt = template_file(SHARE_DIR + "ipa.conf", self.sub_dict)
+        http_fd = open("/etc/httpd/conf.d/ipa.conf", "w")
+        http_fd.write(http_txt)
+        http_fd.close()

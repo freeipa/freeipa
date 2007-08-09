@@ -1,5 +1,6 @@
 # test, users, default, $REALM
 dn: uid=test,ou=users,ou=default,$SUFFIX
+changetype: add
 uidNumber: 1001
 uid: test
 gecos: test
@@ -13,8 +14,17 @@ shadowInactive: -1
 shadowLastChange: 13655
 shadowFlag: -1
 gidNumber: 100
+objectclass: krbPrincipalAux
+objectclass: inetOrgPerson
 objectClass: posixAccount
 objectClass: shadowAccount
 objectClass: account
 objectClass: top
-cn: test
+cn: Test User
+sn: User
+krbPrincipalName: test@$REALM
+
+dn: cn=admin,ou=groups,ou=default,$SUFFIX
+changetype: modify
+add: uniqueMember
+uniqueMember: uid=test,ou=users,ou=default,$SUFFIX

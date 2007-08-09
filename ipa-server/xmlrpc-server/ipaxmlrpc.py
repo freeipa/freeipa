@@ -123,10 +123,15 @@ class ModXMLRPCRequestHandler(object):
     def register_instance(self,instance):
         self.register_module(instance)
 
-    def _marshaled_dispatch(self, data):
+    def _marshaled_dispatch(self, data, remoteuser):
         """Dispatches an XML-RPC method from marshalled (XML) data."""
 
         params, method = loads(data)
+
+        opts={}
+        opts['remoteuser'] = remoteuser
+
+        params = ipaserver.encode_args(params, opts)
 
         # special case
 #        if method == "get_user":
@@ -239,7 +244,7 @@ class ModXMLRPCRequestHandler(object):
             req.allow_methods(['POST'],1)
             raise apache.SERVER_RETURN, apache.HTTP_METHOD_NOT_ALLOWED
 
-        response = self._marshaled_dispatch(req.read())
+        response = self._marshaled_dispatch(req.read(), req.user)
 
         req.content_type = "text/xml"
         req.set_content_length(len(response))
@@ -267,10 +272,12 @@ def handler(req, profiling=False):
     else:
         opts = req.get_options()
         try:
+            f = funcs.IPAServer()
             h = ModXMLRPCRequestHandler()
-            h.register_function(funcs.get_user)
-            h.register_function(funcs.add_user)
-            h.register_function(funcs.get_add_schema)
+            h.register_function(f.get_user)
+            h.register_function(f.add_user)
+            h.register_function(f.get_add_schema)
+            h.register_function(f.get_all_users)
             h.handle_request(req)
         finally:
              pass

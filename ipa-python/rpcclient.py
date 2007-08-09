@@ -20,83 +20,101 @@
 
 #!/usr/bin/python
 
-try:
-    import krbV
-except ImportError:
-    pass
 import xmlrpclib
 import socket
+import config
+from krbtransport import KerbTransport
+from kerberos import GSSError
 import os
 import base64
+import user
+import ipa
 
 # Some errors to catch
 # http://cvs.fedora.redhat.com/viewcvs/ldapserver/ldap/servers/plugins/pam_passthru/README?root=dirsec&rev=1.6&view=auto
-    
-# FIXME: do we want this set somewhere else?
-server = xmlrpclib.ServerProxy("http://localhost:80/ipa")
-    
-def get_user(username):
-    """Get a specific user"""
-    
-    try:
-      result = server.get_user(username)
-      myuser = result
-    except xmlrpclib.Fault, fault:
-        raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
-        return None
-    except socket.error, (value, msg):
-        raise xmlrpclib.Fault(value, msg)
-        return None
-    
-    return myuser
-    
-def add_user(user):
-    """Add a new user"""
 
-    # FIXME: Get the realm from somewhere
-    realm="GREYOAK.COM"
+class RPCClient:
 
-    # FIXME: This should be dynamic and can include just about anything
-    # Let us add in some missing attributes
-    if user.get('homeDirectory') is None:
-        user['homeDirectory'] ='/home/%s' % user['uid']
-    if user.get('gecos') is None:
-        user['gecos'] = user['uid']
+    def __init__(self):
+        ipa.config.init_config()
+    
+    def server_url(self):
+        return "http://" + config.config.get_server() + "/ipa"
+    
+    def setup_server(self):
+        return xmlrpclib.ServerProxy(self.server_url(), KerbTransport())
+    
+    def convert_entry(self,ent):
+        # Convert into a dict. We need to handle multi-valued attributes as well
+        # so we'll convert those into lists.
+        user={}
+        for (k) in ent:
+            k = k.lower()
+            if user.get(k) is not None:
+                if isinstance(user[k],list):
+                    user[k].append(ent[k].strip())
+                else:
+                    first = user[k]
+                    user[k] = ()
+                    user[k].append(first)
+                    user[k].append(ent[k].strip())
+            else:
+                 user[k] = ent[k]
+    
+        return user
+        
+    def get_user(self,username):
+        """Get a specific user"""
+        server = self.setup_server()
+        try:
+            result = server.get_user(username)
+        except xmlrpclib.Fault, fault:
+            raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
 
-    # FIXME: This can be removed once the DS plugin is installed
-    user['uidNumber'] ='501'
-
-    # FIXME: What is the default group for users?
-    user['gidNumber'] ='501'
-    user['krbPrincipalName'] = "%s@%s" % (user['uid'], realm)
-    user['cn'] = "%s %s" % (user['gn'], user['sn'])
-    if user.get('gn'):
-        del user['gn']
-
-    try:
-        result = server.add_user(user)
         return result
-    except xmlrpclib.Fault, fault:
-        raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
-        return None
-    except socket.error, (value, msg):
-        raise xmlrpclib.Fault(value, msg)
-        return None
+        
+        
+    def add_user(self,user):
+        """Add a new user"""
+        server = self.setup_server()
     
-def get_add_schema():
-    """Get the list of attributes we need to ask when adding a new
-       user.
-    """
+        try:
+            result = server.add_user(user)
+        except xmlrpclib.Fault, fault:
+            raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return result
+        
+    def get_add_schema(self):
+        """Get the list of attributes we need to ask when adding a new
+           user.
+        """
+        server = self.setup_server()
+        
+        # FIXME: Hardcoded and designed for the TurboGears GUI. Do we want
+        # this for the CLI as well?
+        try:
+            result = server.get_add_schema()
+        except xmlrpclib.Fault, fault:
+            raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+      
+        return result
     
-    # FIXME: Hardcoded and designed for the TurboGears GUI. Do we want
-    # this for the CLI as well?
-    try:
-        result = server.get_add_schema()
-    except xmlrpclib.Fault, fault:
-        raise xmlrpclib.Fault(fault,faultCode, fault.faultString)
-        return None
-    except socket.error, (value, msg):
-        raise xmlrpclib.Fault(value, msg)
-        return None
-  
-    return result
+    def get_all_users (self):
+        """Return a list containing a User object for each existing user."""
+    
+        server = self.setup_server()
+        try:
+            result = server.get_all_users()
+        except xmlrpclib.Fault, fault:
+            raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+    
+        return result

@@ -1,6 +1,6 @@
 Name:           freeipa-admintools
 Version:        0.1.0
-Release:        1%{?dist}
+Release:        3%{?dist}
 Summary:        FreeIPA authentication server
 
 Group:          System Environment/Base
@@ -36,7 +36,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Aug  5 2007 Rob Crittenden <rcritten@redhat.com> - 0.1.0-3
+- Abstracted client class to work directly or over RPC
+
+* Wed Aug  1 2007 Rob Crittenden <rcritten@redhat.com> - 0.1.0-2
+- Update tools to do kerberos
+- Add User class
+
 * Fri Jul 27 2007 Karl MacMillan <kmacmill@localhost.localdomain> - 0.1.0-1
 - Initial rpm version
-
-

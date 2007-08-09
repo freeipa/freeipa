@@ -7,4 +7,6 @@ aci: (targetattr="carLicense ||description ||displayName ||facsimileTelephoneNum
 aci: (targetattr="krbPrincipalKey")(version 3.0; acl "KDC System Account"; allow (read, search, compare) userdn="ldap:///uid=kdc,cn=kerberos,$SUFFIX";)
 aci: (targetattr="*")(version 3.0; acl "Directory Administrators can manage all entries"; allow(all)groupdn="ldap:///cn=Directory Administrators,$SUFFIX";)
 aci: (targetattr="userPassword || krbPrincipalKey ||sambaLMPassword || sambaNTPassword")(version 3.0; acl "Kpasswd access to passowrd hashes for passowrd changes"; allow (all) userdn="ldap:///krbprincipalname=kadmin/changepw@$REALM,cn=$REALM,cn=kerberos,$SUFFIX";)
-
+aci: (target="ldap:///uid=*,ou=users,ou=default,$SUFFIX")(targetattr="*")(version 3.0; acl "allowproxy-webservice"; allow (proxy) userdn="ldap:///uid=webservice,ou=special,$SUFFIX";)
+aci: (target="ldap:///uid=*,ou=users,ou=default,$SUFFIX")(targetattr="*")(version 3.0; acl "admins can write entries"; allow(add,delete,write)groupdn="ldap:///cn=admin,ou=groups,ou=default,$SUFFIX";) 
+aci: (targetattr="userPrincipal")(version 3.0; acl "allow webservice to find users by kerberos principal name"; allow (read, search) userdn="ldap:///uid=webservice,ou=special,$SUFFIX";) 

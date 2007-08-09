@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ "$1" ] ; then
     password=$1
@@ -49,22 +49,14 @@ if [ -f $secdir/cert8.db ] ; then
         needServerCert=1
     fi
 
-    # look for admin server cert
-    if certutil -L -d $secdir -n "server-cert" 2> /dev/null ; then
-        echo "Using existing admin server-cert"
-    else
-        echo "No Admin Server Cert found - will create new one"
-        needASCert=1
-    fi
     prefix="new-"
     prefixarg="-P $prefix"
 else
     needCA=1
     needServerCert=1
-    needASCert=1
 fi
 
-if test -z "$needCA" -a -z "$needServerCert" -a -z "$needASCert" ; then
+if test -z "$needCA" -a -z "$needServerCert" ; then
     echo "No certs needed - exiting"
     exit 0
 fi
@@ -120,17 +112,17 @@ if test -n "$needServerCert" ; then
     certutil -S $prefixarg -n "Server-Cert" -s "cn=$myhost,ou=Fedora Directory Server" -c "CA certificate" -t "u,u,u" -m 1001 -v 120 -d $secdir -z $secdir/noise.txt -f $secdir/pwdfile.txt
 fi
 
-if test -n "$needASCert" ; then
-# Generate the admin server certificate
-    certutil -S $prefixarg -n "server-cert" -s "cn=$myhost,ou=Fedora Administration Server" -c "CA certificate" -t "u,u,u" -m 1002 -v 120 -d $secdir -z $secdir/noise.txt -f $secdir/pwdfile.txt
+# 8. Generate the web service client certificate:
+    echo -e "0\n2\n9\nn\n0\n9\nn\n" | certutil -S $prefixarg -n webservice -s "uid=webservice, CN=Web Service, OU=Fedora Directory Server" -c "CA certificate" -t u,pu,u -m 1002 -v 120 -d $secdir -z $secdir/noise.txt -f $secdir/pwdfile.txt -1 -5
 
-# export the admin server certificate/private key for import into its key/cert db
-    pk12util -d $secdir $prefixarg -o $secdir/adminserver.p12 -n server-cert -w $secdir/pwdfile.txt -k $secdir/pwdfile.txt
-    if test -n "$isroot" ; then
-        chown $uid:$gid $secdir/adminserver.p12
-    fi
-    chmod 400 $secdir/adminserver.p12
-fi
+    pk12util -d $secdir $prefixarg -o $secdir/webservice.p12 -n "webservice" -w $secdir/pwdfile.txt -k $secdir/pwdfile.txt
+
+    openssl pkcs12 -in $secdir/webservice.p12 -clcerts -nokeys -out /usr/share/ipa/cert.pem -passin file:$secdir/pwdfile.txt
+    openssl pkcs12 -in $secdir/webservice.p12 -nocerts -nodes -out /usr/share/ipa/key.pem -passin file:$secdir/pwdfile.txt
+
+    cp -p $secdir/cacert.asc /usr/share/ipa
+    chown apache:apache /usr/share/ipa/cert.pem /usr/share/ipa/key.pem /usr/share/ipa/cacert.asc
+    chmod 600 /usr/share/ipa/cert.pem /usr/share/ipa/key.pem
 
 # create the pin file
 if [ ! -f $secdir/pin.txt ] ; then
@@ -151,42 +143,6 @@ if [ -n "$prefix" ] ; then
     # move in the new files - will be used after server restart
     mv $secdir/${prefix}cert8.db $secdir/cert8.db
     mv $secdir/${prefix}key3.db $secdir/key3.db
-fi
-
-# create the admin server key/cert db
-asprefix=admin-serv-
-if [ ! -f ${asprefix}cert8.db ] ; then
-    certutil -N -d $secdir -P $asprefix -f $secdir/pwdfile.txt
-    if test -n "$isroot" ; then
-        chown $uid:$gid $secdir/admin-serv-*.db
-    fi
-    chmod 600 $secdir/admin-serv-*.db
-fi
-
-if test -n "$needASCert" ; then
-# import the admin server key/cert
-    pk12util -d $secdir -P $asprefix -n server-cert -i $secdir/adminserver.p12 -w $secdir/pwdfile.txt -k $secdir/pwdfile.txt
-
-# import the CA cert to the admin server cert db
-    certutil -A -d $secdir -P $asprefix -n "CA certificate" -t "CT,," -a -i $secdir/cacert.asc
-fi
-
-if [ ! -f $secdir/password.conf ] ; then
-# create the admin server password file
-    echo 'internal:'`cat $secdir/pwdfile.txt` > $secdir/password.conf
-    if test -n "$isroot" ; then
-        chown $uid:$gid $secdir/password.conf
-    fi
-    chmod 400 $secdir/password.conf
-fi
-
-# tell admin server to use the password file
-if [ -f ../admin-serv/config/nss.conf ] ; then
-    sed -e "s@^NSSPassPhraseDialog .*@NSSPassPhraseDialog file:`pwd`/password.conf@" ../admin-serv/config/nss.conf > /tmp/nss.conf && mv /tmp/nss.conf ../admin-serv/config/nss.conf
-    if test -n "$isroot" ; then
-        chown $uid:$gid ../admin-serv/config/nss.conf
-    fi
-    chmod 400 ../admin-serv/config/nss.conf
 fi
 
 # enable SSL in the directory server

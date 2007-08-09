@@ -88,8 +88,10 @@ class DsInstance:
         self.__create_instance()
         self.__add_default_schemas()
         self.__enable_ssl()
+        self.__certmap_conf()
         self.restart()
         self.__add_default_layout()
+        self.__create_test_users()
 
     def config_dirname(self):
         if not self.serverid:
@@ -136,7 +138,7 @@ class DsInstance:
             args = ["/usr/sbin/setup-ds.pl", "--silent", "--logfile", "-", "-f", inf_fd.name]
             logging.debug("calling setup-ds.pl")
         else:
-            args = ["/usr/sbin/ds_newinst.pl", inf_fd.name]
+            args = ["/usr/bin/ds_newinst.pl", inf_fd.name]
             logging.debug("calling ds_newinst.pl")
         run(args)
         logging.debug("completed creating ds instance")
@@ -166,3 +168,21 @@ class DsInstance:
                 "-w", self.admin_password, "-f", inf_fd.name]
         run(args)
         logging.debug("done adding default ds layout")
+        
+    def __create_test_users(self):
+        logging.debug("create test users ldif")
+        txt = template_file(SHARE_DIR + "test-users-template.ldif", self.sub_dict)
+        user_fd = open(SHARE_DIR+"test-users.ldif", "w")
+        user_fd.write(txt)
+        user_fd.close()
+        logging.debug("done creating test users ldif")
+
+    def __certmap_conf(self):
+        logging.debug("configuring certmap.conf for ds instance")
+        dirname = self.config_dirname()
+        certmap_conf = template_file(SHARE_DIR+"certmap.conf.template", self.sub_dict)
+        certmap_fd = open(dirname+"certmap.conf", "w+")
+        certmap_fd.write(certmap_conf)
+        certmap_fd.close()
+
+        logging.debug("done configuring certmap.conf for ds instance")
