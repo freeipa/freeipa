@@ -1,7 +1,7 @@
 $$ORIGIN $DOMAIN.
 $$TTL	86400
 @			IN SOA	$DOMAIN. root.$DOMAIN. (
-				01		; serial (d. adams)
+				01		; serial 
 				3H		; refresh
 				15M		; retry
 				1W		; expiry
@@ -21,6 +21,6 @@ _kerberos._tcp		IN SRV 0 100 88		$HOST
 _kerberos._udp		IN SRV 0 100 88		$HOST
 _kerberos-master._tcp	IN SRV 0 100 88		$HOST
 _kerberos-master._udp	IN SRV 0 100 88		$HOST
-_kpasswd._tcp		IN SRV 0 100 88		$HOST
-_kpasswd._udp		IN SRV 0 100 88		$HOST
+_kpasswd._tcp		IN SRV 0 100 464	$HOST
+_kpasswd._udp		IN SRV 0 100 464	$HOST
 
