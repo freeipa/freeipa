@@ -162,7 +162,7 @@ class KrbInstance:
 
     def __create_sample_bind_zone(self):
         bind_txt = template_file(SHARE_DIR + "bind.zone.db.template", self.sub_dict)
-        [bind_fd, bind_name] = tempfile.mkstemp(".db","sammple.zone.")
+        [bind_fd, bind_name] = tempfile.mkstemp(".db","sample.zone.")
         os.write(bind_fd, bind_txt)
         os.close(bind_fd)
         print "Sample zone file for bind has been created in "+bind_name
