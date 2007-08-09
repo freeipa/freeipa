@@ -175,3 +175,11 @@ class KrbInstance:
         cfg_fd.close()
 	pent = pwd.getpwnam(self.ds_user)
         os.chown("/etc/sysconfig/fedora-ds", pent.pw_uid, pent.pw_gid)
+
+    def __set_kadmin_changepw_preauth(self):
+        (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
+        kwrite.write("modprinc +requires_preauth kadmin/changepw\n")
+        kwrite.flush()
+        kwrite.close()
+        kread.close()
+        kerr.close()
