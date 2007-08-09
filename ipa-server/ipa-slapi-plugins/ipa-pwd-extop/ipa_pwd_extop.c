@@ -792,6 +792,11 @@ static int ipapwd_userpassword(Slapi_Entry *targetEntry, const char *newPasswd)
 		}
 	}
 
+	/* TODO !!!
+	 * instead of replace we should use a delete/add so that we are
+	 * completely sure nobody else modified the entry meanwhile and
+	 * fail if that's the case */
+
 	/* commit changes */
 	ret = ipapwd_apply_mods(dn, smods);
  

@@ -8,6 +8,7 @@ krb5-server-ldap
 cyrus-sasl-gssapi
 httpd
 mod_auth_kerb
+ntpd
 
 
 Installation example:
