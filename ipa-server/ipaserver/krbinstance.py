@@ -89,6 +89,8 @@ class KrbInstance:
 
         self.__set_kadmin_changepw_preauth()
 
+	self.__export_kadmin_changepw_keytab()
+
         self.__create_sample_bind_zone()
 
         self.start()
@@ -186,6 +188,14 @@ class KrbInstance:
     def __set_kadmin_changepw_preauth(self):
         (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
         kwrite.write("modprinc +requires_preauth kadmin/changepw\n")
+        kwrite.flush()
+        kwrite.close()
+        kread.close()
+        kerr.close()
+
+    def __export_kadmin_changepw_keytab(self):
+        (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
+        kwrite.write("ktadd -k /var/kerberos/krb5kdc/kpasswd.keytab kadmin/changepw\n")
         kwrite.flush()
         kwrite.close()
         kread.close()
