@@ -14,72 +14,317 @@
 #include <string.h>
 #include <errno.h>
 #include <netinet/in.h>
+#include <time.h>
 #include <krb5.h>
 #include <ldap.h>
 #include <sasl/sasl.h>
 
+#define TMP_TEMPLATE "/tmp/kpasswd.XXXXXX"
 #define KPASSWD_PORT 464
 #define KPASSWD_TCP 1
 #define KPASSWD_UDP 2
 
+struct blacklist {
+	struct blacklist *next;
+	char *address;
+	pid_t pid;
+};
+
+static struct blacklist *global_blacklist = NULL;
+
+int check_blacklist(char *address)
+{
+	struct blacklist *bl;
+
+	if (!global_blacklist) {
+		return 0;
+	}
+
+	for (bl = global_blacklist; bl; bl = bl->next) {
+		if (strcmp(address, bl->address) == 0) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+int add_blacklist(pid_t pid, char *address)
+{
+	struct blacklist *bl, *gbl;
+
+	bl = malloc(sizeof(struct blacklist));
+	if (!bl) return -1;
+
+	bl->next = NULL;
+	bl->pid = pid;
+	bl->address = strdup(address);
+	if (!bl->address) {
+		free(bl);
+		return -1;
+	}
+
+	if (!global_blacklist) {
+		global_blacklist = bl;
+		return 0;
+	}
+
+	gbl = global_blacklist;
+	while (gbl->next) {
+		gbl = gbl->next;
+	}
+	gbl->next = bl;
+	return 0;
+}
+
+int remove_blacklist(pid_t pid)
+{
+	struct blacklist *bl, *pbl;
+
+	if (!global_blacklist) {
+		return -1;
+	}
+
+	pbl = NULL;
+	bl = global_blacklist;
+	while (bl) {
+		if (pid == bl->pid) {
+			if (pbl == NULL) {
+				global_blacklist = bl->next;
+			} else {
+				pbl->next = bl->next;
+			}
+			free(bl->address);
+			free(bl);
+			return 0;
+		}
+		pbl = bl;
+		bl = bl->next;
+	}
+	return -1;
+}
+
 int debug = 1;
 char *srv_pri_name = "kadmin/changepw";
 char *keytab_name = "FILE:/var/kerberos/krb5kdc/kpasswd.keytab";
-char *realm_name = "BLUEBOX.REDHAT.COM";
-char *ldap_uri = "ldap://rc1.bluebox.redhat.com:389";
+
+static int get_krb5_ticket(char *tmpfile)
+{
+	char *ccname;
+	char *realm_name = NULL;
+	krb5_context context = NULL;
+	krb5_keytab keytab = NULL;
+	krb5_ccache ccache = NULL;
+	krb5_principal kprincpw;
+	krb5_creds my_creds;
+	krb5_get_init_creds_opt options;
+	int krberr, ret;
+
+	krberr = krb5_init_context(&context);
+	if (krberr) {
+		fprintf(stderr, "Failed to init kerberos context\n");
+		return -1;
+	}
+
+	krberr = krb5_get_default_realm(context, &realm_name);
+	if (krberr) {
+		fprintf(stderr, "Failed to get default realm name: %s\n",
+			krb5_get_error_message(context, krberr));
+		ret = -1;
+		goto done;
+	}
+
+	krberr = krb5_build_principal(context, &kprincpw,
+				      strlen(realm_name), realm_name,
+				      "kadmin", "changepw", NULL);
+	if (krberr) {
+		fprintf(stderr, "Unable to build principal: %s\n",
+			krb5_get_error_message(context, krberr));
+		ret = -1;
+		goto done;
+	}
+
+	krberr = krb5_kt_resolve(context, keytab_name, &keytab);
+	if (krberr) {
+		fprintf(stderr, "Failed to read keytab file: %s\n",
+			krb5_get_error_message(context, krberr));
+		ret = -1;
+		goto done;
+	}
+
+	ret = asprintf(&ccname, "FILE:%s", tmpfile);
+	if (ret == -1) {
+		fprintf(stderr, "Out of memory!\n");
+		goto done;
+	}
+
+	ret = setenv("KRB5CCNAME", ccname, 1);
+	if (ret == -1) {
+		fprintf(stderr, "Unable to set env. variable KRB5CCNAME!\n");
+		goto done;
+	}
+
+	krberr = krb5_cc_resolve(context, ccname, &ccache);
+	if (krberr) {
+		fprintf(stderr, "Failed to set cache name: %s\n",
+			krb5_get_error_message(context, krberr));
+		ret = -1;
+		goto done;
+	}
+
+	memset(&my_creds, 0, sizeof(my_creds));
+	memset(&options, 0, sizeof(options));
+
+	krb5_get_init_creds_opt_set_address_list(&options, NULL);
+	krb5_get_init_creds_opt_set_forwardable(&options, 0);
+	krb5_get_init_creds_opt_set_proxiable(&options, 0);
+	/* set a very short lifetime, we don't keep the ticket around */
+	krb5_get_init_creds_opt_set_tkt_life(&options, 300);
+
+	krberr = krb5_get_init_creds_keytab(context, &my_creds, kprincpw,
+                                          keytab, 0, NULL,
+                                          &options);
+
+	if (krberr) {
+		fprintf(stderr, "Failed to init credentials: %s\n",
+			krb5_get_error_message(context, krberr));
+		ret = -1;
+		goto done;
+	}
+
+	krb5_cc_initialize(context, ccache, kprincpw);
+	if (krberr) {
+		fprintf(stderr, "Failed to init ccache: %s\n",
+			krb5_get_error_message(context, krberr));
+		ret = -1;
+		goto done;
+	}
+
+	krberr = krb5_cc_store_cred(context, ccache, &my_creds);
+	if (krberr) {
+		fprintf(stderr, "Failed to store creds: %s\n",
+			krb5_get_error_message(context, krberr));
+		ret = -1;
+		goto done;
+	}
+
+	ret = 0;
+
+done:
+	/* TODO: mem cleanup */
+	if (keytab) krb5_kt_close(context, keytab);
+	if (context) krb5_free_context(context);
+	return ret;
+}
 
 int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *sit)
 {
-	sasl_interact_t **in = sit;
-	int i, ret = LDAP_OTHER;
+	sasl_interact_t *in = NULL;
+	int ret = LDAP_OTHER;
+	char *realm_name = (char *)priv_data;
 
 	if (!ld) return LDAP_PARAM_ERROR;
 
-	for (i = 0; in[i] && in[i]->id != SASL_CB_LIST_END; i++) {
-		switch(in[i]->id) {
+	for (in = sit; in && in->id != SASL_CB_LIST_END; in++) {
+		switch(in->id) {
 		case SASL_CB_USER:
-			in[i]->result = srv_pri_name;
-			in[i]->len = strlen(srv_pri_name);
+			in->result = srv_pri_name;
+			in->len = strlen(srv_pri_name);
 			ret = LDAP_SUCCESS;
 			break;
 		case SASL_CB_GETREALM:
-			in[i]->result = realm_name;
-			in[i]->len = strlen(realm_name);
+			in->result = realm_name;
+			in->len = strlen(realm_name);
 			ret = LDAP_SUCCESS;
 			break;
 		default:
 			if (debug > 0) {
 				fprintf(stderr,
 					"Unhandled SASL int. option %d\n",
-					in[i]->id);
+					in->id);
 			}
-			in[i]->result = NULL;
-			in[i]->len = 0;
+			in->result = NULL;
+			in->len = 0;
 			ret = LDAP_OTHER;
 		}
 	}
         return ret;
 }
 
-int ldap_pwd_change(char *client_name, krb5_data pwd)
+int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 {
+	char *tmpfile = NULL;
 	int id, version;
 	LDAP *ld = NULL;
 	BerElement *ctrl = NULL;
 	struct berval control;
 	struct berval newpw;
+	char hostname[1024];
+	char *ldap_uri = NULL;
+	struct berval **ncvals;
+	char *ldap_base = NULL;
+	char *filter;
+	char *attrs[] = {"krbprincipalname", NULL};
+	char *root_attrs[] = {"namingContexts", NULL};
 	char *userdn = NULL;
+	char *retoid = NULL;
+	struct berval *retdata = NULL;
+	struct timeval tv;
+	LDAPMessage *entry, *res = NULL;
 	int ret;
+
+	tmpfile = strdup(TMP_TEMPLATE);
+	if (!tmpfile) {
+		fprintf(stderr, "Out of memory!\n");
+		ret = KRB5_KPASSWD_HARDERROR;
+		goto done;
+	}
+
+	ret = mkstemp(tmpfile);
+	if (ret == -1) {
+		fprintf(stderr,
+			"Failed to create tmp file with errno: %d\n", errno);
+		ret = KRB5_KPASSWD_HARDERROR;
+		goto done;
+	}
+	/* close mimmediately, we don't need to keep the file open,
+	 * just that it exist and has a unique name */
+	close(ret);
+
+	/* In the long term we may want to do this in the main daemon
+	 * and just renew when needed.
+	 * Right now do it at every password change for robustness */
+	ret = get_krb5_ticket(tmpfile);
+	if (ret) {
+		fprintf(stderr, "Unable to kinit!\n");
+		ret = KRB5_KPASSWD_HARDERROR;
+		goto done;
+	}
 
 	newpw.bv_len = pwd.length;
 	newpw.bv_val = pwd.data;
+
+	/* retrieve server name and build uri */
+	ret = gethostname(hostname, 1023);
+	if (ret == -1) {
+		fprintf(stderr, "Unable to get the hostname!\n");
+		ret = KRB5_KPASSWD_HARDERROR;
+		goto done;
+	}
+
+	ret = asprintf(&ldap_uri, "ldap://%s:389", hostname);
+	if (ret == -1) {
+		fprintf(stderr, "Out of memory!\n");
+		ret = KRB5_KPASSWD_HARDERROR;
+		goto done;
+	}
 
 	/* connect to ldap server */
 	/* TODO: support referrals ? */
 	ret = ldap_initialize(&ld, ldap_uri);
 	if(ret != LDAP_SUCCESS) {
 		fprintf(stderr, "Unable to connect to ldap server");
-		ret = -1;
+		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
@@ -87,7 +332,7 @@ int ldap_pwd_change(char *client_name, krb5_data pwd)
 	ret = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
         if (ret != LDAP_OPT_SUCCESS) {
 		fprintf(stderr, "Unable to set ldap protocol version");
-		ret = -1;
+		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
@@ -95,20 +340,82 @@ int ldap_pwd_change(char *client_name, krb5_data pwd)
 					   NULL, "GSSAPI",
 					   NULL, NULL,
 					   LDAP_SASL_AUTOMATIC,
-					   ldap_sasl_interact, NULL);
+					   ldap_sasl_interact, realm_name);
 	if (ret != LDAP_SUCCESS) {
 		fprintf(stderr, "Unable to bind to ldap server");
-		ret = -1;
+		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
+	/* find base dn */
+	tv.tv_sec = 10;
+	tv.tv_usec = 0; 
+
+	ret = ldap_search_ext_s(ld, "", LDAP_SCOPE_BASE,
+				"objectclass=*", root_attrs, 0,
+				NULL, NULL, &tv, 0, &res);
+
+	if (ret != LDAP_SUCCESS) {
+		fprintf(stderr,
+			"Search for %s on rootdse failed with error %d\n",
+			root_attrs[0], ret);
+		ret = KRB5_KPASSWD_HARDERROR;
+		goto done;
+	}
+
+	/* for now just use the first result we get */
+	entry = ldap_first_entry(ld, res);
+	ncvals = ldap_get_values_len(ld, entry, root_attrs[0]);
+	if (!ncvals) {
+		fprintf(stderr, "No values for %s\n", root_attrs[0]);
+		ret = KRB5_KPASSWD_HARDERROR;
+		goto done;
+	}
+
+	ldap_base = strdup(ncvals[0]->bv_val);
+
+	ldap_value_free_len(ncvals);
+	ldap_msgfree(res);
+
 	/* find user dn */
+	ret = asprintf(&filter, "krbPrincipalName=%s", client_name);
+	if (ret == -1) {
+		fprintf(stderr, "Out of memory!\n");
+		ret = KRB5_KPASSWD_HARDERROR;
+		goto done;
+	}
+
+	tv.tv_sec = 10;
+	tv.tv_usec = 0; 
+
+	ret = ldap_search_ext_s(ld, ldap_base, LDAP_SCOPE_SUBTREE,
+				filter, attrs, 1, NULL, NULL, &tv, 0, &res);
+
+	if (ret != LDAP_SUCCESS) {
+		fprintf(stderr, "Search for %s failed with error %d\n",
+			filter, ret);
+		ret = KRB5_KPASSWD_HARDERROR;
+		goto done;
+	}
+	free(filter);
+
+	/* for now just use the first result we get */
+	entry = ldap_first_entry(ld, res);
+	userdn = ldap_get_dn(ld, entry);
+
+	ldap_msgfree(res);
+
+	if (!userdn) {
+		fprintf(stderr, "No userdn, can't change password!\n");
+		ret = -1;
+		goto done;
+	}
 
 	/* build password change control */
 	ctrl = ber_alloc_t(LBER_USE_DER);
 	if (!ctrl) {
 		fprintf(stderr, "Out of memory!\n");
-		ret = -1;
+		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 	ber_printf(ctrl, "{tstON}",
@@ -122,12 +429,27 @@ int ldap_pwd_change(char *client_name, krb5_data pwd)
 		goto done;
 	}
 
-	/* perform poassword change */
-	ret = ldap_extended_operation(ld, LDAP_EXOP_MODIFY_PASSWD,
-				      &control, NULL, NULL, &id);
+	/* perform password change */
+	ret = ldap_extended_operation_s(ld, LDAP_EXOP_MODIFY_PASSWD, &control,
+				      NULL, NULL, &retoid, &retdata);
+
+	if (ret != LDAP_SUCCESS) {
+		fprintf(stderr, "password change failed!\n");
+		ret = KRB5_KPASSWD_HARDERROR;
+		goto done;
+	}
+
+	/* TODO: interpret retdata so that we can give back meaningful errors */
+
 done:
+	if (userdn) free(userdn);
 	if (ctrl) ber_free(ctrl, 1);
-	if (ld) 
+	if (ld) ldap_unbind(ld);
+	if (ldap_uri) free(ldap_uri);
+	if (tmpfile) {
+		unlink(tmpfile);
+		free(tmpfile);
+	}
 	return ret;
 }
 
@@ -149,7 +471,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	socklen_t addrlen;
 	size_t reqlen;
 	size_t verno;
-	char *client_name;
+	char *client_name, *realm_name;
 	char *result_string;
 	int result_err;
 	uint8_t *reply;
@@ -161,6 +483,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	krep.length = 0;
 	krep.data = NULL;
 	kprincpw = NULL;
+	context = NULL;
 	ticket = NULL;
 	lkaddr = NULL;
 
@@ -205,6 +528,14 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	krberr = krb5_init_context(&context);
 	if (krberr) {
 		result_string = "Failed to init kerberos context";
+		result_err = KRB5_KPASSWD_HARDERROR;
+		fprintf(stderr, "%s\n", result_string);
+		goto done;
+	}
+
+	krberr = krb5_get_default_realm(context, &realm_name);
+	if (krberr) {
+		result_string = "Failed to get default realm name";
 		result_err = KRB5_KPASSWD_HARDERROR;
 		fprintf(stderr, "%s\n", result_string);
 		goto done;
@@ -317,11 +648,13 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 			client_name, kdec.length, kdec.data);
 	}
 
-	err = ldap_pwd_change(client_name, kdec);
-
-	/* ok we are done, and the password change was successful! */
-	result_err = KRB5_KPASSWD_SUCCESS;
-	result_string = "";
+	/* Actually try to change the password */
+	result_err = ldap_pwd_change(client_name, realm_name, kdec);
+	if (result_err != KRB5_KPASSWD_SUCCESS) {
+		result_string = "Generic error occurred while changing password";
+	} else {
+		result_string = "";
+	}
 
 	/* make sure password is cleared off before we free the memory */
 	memset(kdec.data, 0, kdec.length);
@@ -424,19 +757,21 @@ done:
 	if (ticket) krb5_free_ticket(context, ticket);
 	if (kdec.length) free(kdec.data);
 	if (lkaddr) krb5_free_addresses(context, lkaddr);
-	krb5_free_context(context);
+	if (context) krb5_free_context(context);
 }
 
 pid_t handle_conn(int fd, int type)
 {
 	int mfd;
 	pid_t pid;
+	char address[INET6_ADDRSTRLEN+1];
 	uint8_t request[1500];
 	ssize_t reqlen;
 	uint8_t *reply;
 	ssize_t replen;
 	struct sockaddr_in from;
 	socklen_t fromlen;
+	ssize_t sendret;
 
 	fromlen = sizeof(from);
 
@@ -462,16 +797,29 @@ pid_t handle_conn(int fd, int type)
 		return -1;
 	}
 
+	if (!inet_ntop(from.sin_family, &from.sin_addr,
+			address, sizeof(address))) {
+		address[0] = '\0';
+	}
+
 	if (debug > 0) {
-		uint32_t host = ntohl(from.sin_addr.s_addr);
 		uint16_t port = ntohs(from.sin_port);
-		fprintf(stderr,
-			"Connection from %d.%d.%d.%d:%d\n",
-			(host & 0xff000000) >> 24,
-			(host & 0x00ff0000) >> 16,
-			(host & 0x0000ff00) >> 8,
-			host & 0x000000ff,
-			port);
+
+		fprintf(stderr, "Connection from %s:%d\n", address, port);
+	}
+
+	/* Check blacklist for requests frm the same IP until operations
+	 * are finished on the active client.
+	 * the password change may be slow and pam_krb5 sends up to 3 UDP
+	 * requests waiting 1 sec. each time.
+	 * We do not want to start 3 password changes at the same time */
+
+	if (check_blacklist(address)) {
+		if (debug > 0) {
+			fprintf(stderr, "[%s] blacklisted\n", address);
+		}
+		if (type == KPASSWD_TCP) close(mfd);
+		return 0;
 	}
 
 #if 1
@@ -485,22 +833,29 @@ pid_t handle_conn(int fd, int type)
 	}
 	if (pid != 0) { /* parent */
 		if (type == KPASSWD_TCP) close(mfd);
+		add_blacklist(pid, address);
 		return pid;
 	}
 #endif
+
 	/* children */
 	handle_krb_packets(request, reqlen, &from, &reply, &replen);
 
 	if (replen) { /* we have something to reply */
 		if (type == KPASSWD_TCP) {
-			sendto(mfd, reply, replen, 0, NULL, 0);
+			sendret = sendto(mfd, reply, replen, 0, NULL, 0);
 		} else {
-			sendto(mfd, reply, replen, 0, (struct sockaddr *)&from, fromlen);
+			sendret = sendto(mfd, reply, replen, 0, (struct sockaddr *)&from, fromlen);
+		}
+		if (sendret == -1) {
+			fprintf(stderr, "Error sending reply (%d)\n", errno);
 		}
 	}
 	close(mfd);
 	exit(0);
 }
+
+/* TODO: make this IPv6 aware */
 
 int main(int argc, char *argv[])
 {
@@ -589,14 +944,18 @@ int main(int argc, char *argv[])
 	/* now that sockets are set up, enter the select loop */
 
 	while (1) {
-		int cstatus;
+		struct timeval tv;
+		int cstatus, cid;
 		fd_set rfd;
+
+		tv.tv_sec = 3;
+		tv.tv_usec = 0;
 
 		FD_ZERO(&rfd);
 		FD_SET(udp_s, &rfd);
 		FD_SET(tcp_s, &rfd);
 
-		ret = select(udp_s+1, &rfd, NULL, NULL, NULL);
+		ret = select(udp_s+1, &rfd, NULL, NULL, &tv);
 
 		switch(ret) {
 		case 0:
@@ -618,12 +977,12 @@ int main(int argc, char *argv[])
 				handle_conn(udp_s, KPASSWD_UDP);
 				break;
 			}
-			/* what else?? */
-			fprintf(stderr, "Select returned but no fd ready\n");
-			exit(6);
 		}
 
 		/* check for children exiting */
-		waitpid(-1, &cstatus, WNOHANG);
+		cid = waitpid(-1, &cstatus, WNOHANG);
+		if (cid != -1 && cid != 0) {
+			remove_blacklist(cid);
+		}
 	}
 }
