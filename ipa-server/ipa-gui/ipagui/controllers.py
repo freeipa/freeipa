@@ -7,7 +7,6 @@ from turbogears import error_handler
 # from model import *
 # import logging
 # log = logging.getLogger("ipagui.controllers")
-# import ipa.rpcclient
 import ipa.config
 import ipa.ipaclient
 import ipa.user
@@ -15,7 +14,8 @@ import xmlrpclib
 import forms.user
 
 ipa.config.init_config()
-user_form = forms.user.UserFormWidget()
+user_new_form = forms.user.UserNewForm()
+user_edit_form = forms.user.UserEditForm()
 
 client = ipa.ipaclient.IPAClient(True)
 client.set_principal("test@FREEIPA.ORG")
@@ -32,8 +32,12 @@ def user_to_hash(user):
         'sn'        : user.getValue('sn'),
         'mail'      : user.getValue('mail'),
         'telephoneNumber': user.getValue('telephoneNumber'),
-        'uidNumber': user.getValue('uidNumber'),
-        'gidNumber': user.getValue('gidNumber'),
+        'uidNumber'      : user.getValue('uidNumber'),
+        'gidNumber'      : user.getValue('gidNumber'),
+        'givenName_orig' : user.getValue('givenName'),
+        'sn_orig'        : user.getValue('sn'),
+        'mail_orig'      : user.getValue('mail'),
+        'telephoneNumber_orig': user.getValue('telephoneNumber'),
             }
 
 class Root(controllers.RootController):
@@ -53,7 +57,7 @@ class Root(controllers.RootController):
         if tg_errors:
             turbogears.flash("There was a problem with the form!")
 
-        return dict(form=user_form)
+        return dict(form=user_new_form)
 
     @expose()
     def usercreate(self, **kw):
@@ -63,12 +67,11 @@ class Root(controllers.RootController):
             turbogears.flash("Add user cancelled")
             raise turbogears.redirect('/userlist')
 
-        tg_errors, kw = self.uservalidate(**kw)
+        tg_errors, kw = self.usercreatevalidate(**kw)
         if tg_errors:
-            return dict(form=user_form, tg_template='ipagui.templates.usernew')
+            return dict(form=user_new_form, tg_template='ipagui.templates.usernew')
 
         try:
-            # rv = ipa.rpcclient.add_user(kw)
             newuser = ipa.user.User(None)
             newuser.setValue('uid', kw['uid'])
             newuser.setValue('givenName', kw['givenName'])
@@ -87,7 +90,7 @@ class Root(controllers.RootController):
             raise turbogears.redirect('/usershow', uid=kw['uid'])
         except xmlrpclib.Fault, f:
             turbogears.flash("User add failed: " + str(f.faultString))
-            return dict(form=user_form, tg_template='ipagui.templates.usernew')
+            return dict(form=user_new_form, tg_template='ipagui.templates.usernew')
 
 
     @expose("ipagui.templates.useredit")
@@ -96,9 +99,8 @@ class Root(controllers.RootController):
         if tg_errors:
             turbogears.flash("There was a problem with the form!")
 
-        # user = ipa.rpcclient.get_user(uid)
         user = client.get_user(uid)
-        return dict(form=user_form, user=user_to_hash(user))
+        return dict(form=user_edit_form, user=user_to_hash(user))
 
     @expose()
     def userupdate(self, **kw):
@@ -108,24 +110,24 @@ class Root(controllers.RootController):
             turbogears.flash("Edit user cancelled")
             raise turbogears.redirect('/usershow', uid=kw.get('uid'))
 
-        tg_errors, kw = self.uservalidate(**kw)
+        tg_errors, kw = self.userupdatevalidate(**kw)
         if tg_errors:
-            return dict(form=user_form, user={}, tg_template='ipagui.templates.useredit')
+            return dict(form=user_edit_form, user=kw,
+                        tg_template='ipagui.templates.useredit')
 
         try:
-            # rv = ipa.rpcclient.add_user(kw)
             turbogears.flash("%s updated!" % kw['uid'])
             raise turbogears.redirect('/usershow', uid=kw['uid'])
         except xmlrpclib.Fault, f:
             turbogears.flash("User add failed: " + str(f.faultString))
-            return dict(form=user_form, user={}, tg_template='ipagui.templates.useredit')
+            return dict(form=user_edit_form, user=kw,
+                        tg_template='ipagui.templates.useredit')
 
 
     @expose("ipagui.templates.userlist")
     @paginate('users', limit=3, allow_limit_override=True)
     def userlist(self):
         """Retrieve a list of all users and display them in one huge list"""
-        # users = ipa.rpcclient.get_all_users()
         users = client.get_all_users()
         return dict(users=users)
 
@@ -134,15 +136,18 @@ class Root(controllers.RootController):
     def usershow(self, uid):
         """Retrieve a single user for display"""
         try:
-            # user = ipa.rpcclient.get_user(uid)
             user = client.get_user(uid)
             return dict(user=user_to_hash(user))
         except xmlrpclib.Fault, f:
             turbogears.flash("User show failed: " + str(f.faultString))
             raise turbogears.redirect("/")
 
-    @validate(form=user_form)
-    def uservalidate(self, tg_errors=None, **kw):
+    @validate(form=user_new_form)
+    def usercreatevalidate(self, tg_errors=None, **kw):
+        return tg_errors, kw
+
+    @validate(form=user_edit_form)
+    def userupdatevalidate(self, tg_errors=None, **kw):
         return tg_errors, kw
 
     @expose()

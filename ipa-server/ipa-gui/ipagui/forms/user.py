@@ -19,26 +19,48 @@ class UserFields():
     #  validators.PhoneNumber may be a bit too picky, requiring an area code
     telephoneNumber.validator = validators.PlainText(not_empty=True)
 
+    uid_hidden = widgets.HiddenField(name="uid")
+    uidNumber_hidden = widgets.HiddenField(name="uidNumber")
+    gidNumber_hidden = widgets.HiddenField(name="gidNumber")
+    givenName_orig = widgets.HiddenField(name="givenName_orig")
+    sn_orig = widgets.HiddenField(name="sn_orig")
+    mail_orig = widgets.HiddenField(name="mail_orig")
+    telephoneNumber_orig = widgets.HiddenField(name="telephoneNumber_orig")
 
-class UserFormWidget(widgets.Form):
+
+class UserNewForm(widgets.Form):
     params = ['user']
-#     fields = [UserFields.uid, UserFields.userPassword, UserFields.givenName,
-#               UserFields.sn, UserFields.mail]
+
     fields = [UserFields.uid, UserFields.givenName,
               UserFields.uidNumber, UserFields.gidNumber,
-               UserFields.sn, UserFields.mail]
+              UserFields.sn, UserFields.mail]
 
     def __init__(self, *args, **kw):
-        super(UserFormWidget,self).__init__(*args, **kw)
-        (self.template_c, self.template) = widgets.meta.load_kid_template("ipagui.templates.userform")
+        super(UserNewForm,self).__init__(*args, **kw)
+        (self.template_c, self.template) = widgets.meta.load_kid_template("ipagui.templates.usernewform")
         self.user = UserFields
 
     def update_params(self, params):
-        super(UserFormWidget,self).update_params(params)
+        super(UserNewForm,self).update_params(params)
         params['has_foo'] = self.has_foo
 
     def has_foo(self):
         return False
+
+
+class UserEditForm(widgets.Form):
+    params = ['user']
+
+    fields = [UserFields.givenName, UserFields.sn, UserFields.mail,
+              UserFields.givenName_orig, UserFields.sn_orig, UserFields.mail_orig,
+              UserFields.uid_hidden,
+              UserFields.uidNumber_hidden, UserFields.gidNumber_hidden]
+
+    def __init__(self, *args, **kw):
+        super(UserEditForm,self).__init__(*args, **kw)
+        (self.template_c, self.template) = widgets.meta.load_kid_template("ipagui.templates.usereditform")
+        self.user = UserFields
+
 
 # TODO - add dynamic field retrieval:
 #      myfields=[]
