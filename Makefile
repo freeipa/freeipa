@@ -97,7 +97,7 @@ tarballs:
 rpm-ipa-server:
 	cp dist/$(SERV_TARBALL) ~/rpmbuild/SOURCES/.
 	rpmbuild -ba ipa-server/freeipa-server.spec
-	cp ~/rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-server-$(SERV_VERSION)-*.rpm dist/.
+	cp ~/rpmbuild/RPMS/*/$(PRJ_PREFIX)-server-$(SERV_VERSION)-*.rpm dist/.
 	cp ~/rpmbuild/SRPMS/$(PRJ_PREFIX)-server-$(SERV_VERSION)-*.src.rpm dist/.
 
 rpm-ipa-admin:
