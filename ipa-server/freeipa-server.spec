@@ -1,6 +1,6 @@
 Name:           freeipa-server
-Version:        0.1.0
-Release:        %{?dist}
+Version:        0.2.0
+Release:        1%{?dist}
 Summary:        FreeIPA authentication server
 
 Group:          System Environment/Base
@@ -8,7 +8,6 @@ License:        GPL
 URL:            http://www.freeipa.org
 Source0:        %{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-#BuildArch: 	
 
 BuildRequires: fedora-ds-base-devel openldap-devel krb5-devel nss-devel mozldap-devel openssl-devel mhash-devel
 
@@ -53,7 +52,7 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Fri Aug 10 2007 Karl MacMillan <kmacmill@localhost.localdomain> - 0.1.0-3
+* Fri Aug 10 2007 Karl MacMillan <kmacmill@redhat.com> - 0.2.0-1
 - Added support for ipa_kpasswd and ipa_pwd_extop
 
 * Mon Aug  5 2007 Rob Crittenden <rcritten@redhat.com> - 0.1.0-3
@@ -67,7 +66,7 @@ rm -rf %{buildroot}
 - Create an ldif with a test user
 - Provide a certmap.conf for doing SSL client authentication
 
-* Fri Jul 27 2007 Karl MacMillan <kmacmill@localhost.localdomain> - 0.1.0-1
+* Fri Jul 27 2007 Karl MacMillan <kmacmill@redhat.com> - 0.1.0-1
 - Initial rpm version
 
 
