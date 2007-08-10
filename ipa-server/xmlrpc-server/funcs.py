@@ -119,11 +119,11 @@ class IPAServer:
     
         return self.convert_entry(ent)
     
-    def add_user (self, user, opts=None):
+    def add_user (self, user, user_container="ou=users,ou=default",opts=None):
         """Add a user in LDAP"""
         if (isinstance(user, tuple)):
             user = user[0]
-        dn="uid=%s,ou=users,ou=default,%s" % (user['uid'], self.basedn)
+        dn="uid=%s,%s,%s" % (user['uid'], user_container,self.basedn)
         entry = ipaserver.ipaldap.Entry(str(dn))
 
         # some required objectclasses
