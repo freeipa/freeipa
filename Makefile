@@ -2,6 +2,9 @@ SUBDIRS=ipa-server ipa-admintools ipa-python
 
 PRJ_PREFIX=freeipa
 
+# set to 1 to produce a debug build of all subprojects
+#DEBUG=1
+
 # Version numbers - this is for the entire server. After
 # updating this you should run the version-update
 # target.
@@ -26,12 +29,18 @@ PYTHON_VERSION=$(PYTHON_MAJOR).$(PYTHON_MINOR).$(PYTHON_RELEASE)
 PYTHON_TARBALL_PREFIX=$(PRJ_PREFIX)-python-$(PYTHON_VERSION)
 PYTHON_TARBALL=$(PYTHON_TARBALL_PREFIX).tgz
 
+ifeq ($(DEBUG),1)
+	export CFLAGS = -g -Wall -Wshadow
+	export LDFLAGS = -g
+endif
+
+
 all:
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 
-install:
+install: all
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done

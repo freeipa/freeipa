@@ -1,5 +1,22 @@
-all:
-	gcc ipa_kpasswd.c -I/usr/include -lkrb5 -llber -lldap -g -o ipa_kpasswd
+PREFIX ?= $(DESTDIR)/usr
+SBIN = $(PREFIX)/sbin
+
+LDFLAGS +=-lkrb5 -llber -lldap
+CFLAGS ?= -Wall -Wshadow -O2
+
+OBJS = $(patsubst %.c,%.o,$(wildcard *.c))
+
+all: $(OBJS)
+	$(CC) $(LDFLAGS) $(OBJS) -o ipa_kpasswd
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 install:
-	cp -f ipa_kpasswd /usr/sbin/
+	-mkdir -p $(SBIN)
+	install -m 755 ipa_kpasswd $(SBIN)
+
+clean:
+	rm -f *.o
+	rm -f ipa_kpasswd
+	rm -f *~
