@@ -2,36 +2,45 @@ SUBDIRS=ipa-server ipa-admintools ipa-python
 
 PRJ_PREFIX=freeipa
 
+# set to 1 to produce a debug build of all subprojects
+#DEBUG=1
+
 # Version numbers - this is for the entire server. After
 # updating this you should run the version-update
 # target.
 SERV_MAJOR=0
-SERV_MINOR=1
+SERV_MINOR=2
 SERV_RELEASE=0
 SERV_VERSION=$(SERV_MAJOR).$(SERV_MINOR).$(SERV_RELEASE)
 SERV_TARBALL_PREFIX=$(PRJ_PREFIX)-server-$(SERV_VERSION)
 SERV_TARBALL=$(SERV_TARBALL_PREFIX).tgz
 
 ADMIN_MAJOR=0
-ADMIN_MINOR=1
+ADMIN_MINOR=2
 ADMIN_RELEASE=0
 ADMIN_VERSION=$(ADMIN_MAJOR).$(ADMIN_MINOR).$(ADMIN_RELEASE)
 ADMIN_TARBALL_PREFIX=$(PRJ_PREFIX)-admintools-$(ADMIN_VERSION)
 ADMIN_TARBALL=$(ADMIN_TARBALL_PREFIX).tgz
 
 PYTHON_MAJOR=0
-PYTHON_MINOR=1
+PYTHON_MINOR=2
 PYTHON_RELEASE=0
 PYTHON_VERSION=$(PYTHON_MAJOR).$(PYTHON_MINOR).$(PYTHON_RELEASE)
 PYTHON_TARBALL_PREFIX=$(PRJ_PREFIX)-python-$(PYTHON_VERSION)
 PYTHON_TARBALL=$(PYTHON_TARBALL_PREFIX).tgz
+
+ifeq ($(DEBUG),1)
+	export CFLAGS = -g -Wall -Wshadow
+	export LDFLAGS = -g
+endif
+
 
 all:
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 
-install:
+install: all
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
@@ -88,7 +97,7 @@ tarballs:
 rpm-ipa-server:
 	cp dist/$(SERV_TARBALL) ~/rpmbuild/SOURCES/.
 	rpmbuild -ba ipa-server/freeipa-server.spec
-	cp ~/rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-server-$(SERV_VERSION)-*.rpm dist/.
+	cp ~/rpmbuild/RPMS/*/$(PRJ_PREFIX)-server-$(SERV_VERSION)-*.rpm dist/.
 	cp ~/rpmbuild/SRPMS/$(PRJ_PREFIX)-server-$(SERV_VERSION)-*.src.rpm dist/.
 
 rpm-ipa-admin:

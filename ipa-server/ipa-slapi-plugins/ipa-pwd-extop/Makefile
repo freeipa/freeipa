@@ -1,5 +1,28 @@
-all:
-	gcc ipa_pwd_extop.c -I/usr/include -I/usr/include/nss3 -I/usr/include/mozldap -I/usr/include/nspr4 -I/usr/include/fedora-ds -lkrb5 -lmhash -llber -lssl -shared -g -fPIC -DPIC -Wl,-soname -Wl,libipa_pwd_extop.so -o libipa_pwd_extop.so
+PREFIX ?= $(DESTDIR)/usr
+LIBDIR = $(PREFIX)/lib/fedora-ds/plugins
+SHAREDIR = $(DESTDIR)/usr/share/ipa
+
+SONAME = libipa_pwd_extop.so
+LDFLAGS += -lkrb5 -llber -lldap -lmhash -llber -lssl
+CFLAGS ?= -Wall -Wshadow -O2
+CFLAGS += -I/usr/include/fedora-ds -I/usr/include/nss3 -I/usr/include/mozldap -I/usr/include/nspr4 -fPIC -DPIC
+
+OBJS = $(patsubst %.c,%.o,$(wildcard *.c))
+
+all: $(OBJS)
+	$(CC) $(LDFLAGS) $(OBJS) -Wl,-soname -Wl,$(SONAME) -shared -o $(SONAME)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 install:
-	cp -f libipa_pwd_extop.so /usr/lib/fedora-ds/plugins/
+	-mkdir -p $(LIBDIR)
+	install -m 644 libipa_pwd_extop.so $(LIBDIR)
+	install -m 644 *.ldif $(SHAREDIR)
+
+clean:
+	rm -f *.o
+	rm -f $(SONAME)
+	rm -f *~
+
+

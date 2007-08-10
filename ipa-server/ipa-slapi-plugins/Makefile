@@ -1,16 +1,11 @@
-SUBDIRS=ipa-install xmlrpc-server ipa-kpasswd ipa-slapi-plugins
-PYTHONDIR=$(DESTDIR)/usr/share/ipa/ipaserver
+SUBDIRS=ipa-pwd-extop
 
 all:
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 
-install-ipaserver:
-	-mkdir -p $(PYTHONDIR)
-	install -m 644 ipaserver/*.py $(PYTHONDIR)
-
-install: install-ipaserver
+install:
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
@@ -20,4 +15,3 @@ clean:
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 	rm -f *~
-	rm -f ipaserver/*~
