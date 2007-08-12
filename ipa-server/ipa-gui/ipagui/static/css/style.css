@@ -1,0 +1,146 @@
+/*
+ * Quick mash-up of CSS for the TG quick start page.
+ */
+
+html, body {
+  color: #000;
+  background:#fff;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-width: 750px;
+}
+
+#page {
+  background:#ccc;   /* should be same as #sidebar */
+  margin:0 auto;
+  width:100%;
+}
+
+
+#header {
+  background:#fff;
+}
+
+#header h1 {
+  padding:5px;
+  margin:0;
+}
+
+
+#nav {
+  background:#cc0000;
+  color:#fff;
+  padding:5px;
+}
+
+#nav ul {
+  margin:0;
+  padding:0;
+  list-style:none;
+}
+
+#nav li {
+  display:inline;
+}
+
+#nav a:visited {
+  color:#fff;
+}
+#nav a:link {
+  color:#fff;
+}
+
+
+#main_content {
+  background:#fff;
+  float:right;
+  width:85%;
+  border-left: 1px solid #000;
+  padding-left: 15px;
+  padding-bottom: 15px;
+/*  color: black;
+  font-size: 127%;
+  background-color: white;
+  margin: 0 auto 0 auto;
+  padding: 10px;
+  float: left; */
+}
+
+
+#sidebar {
+  background:#ccc;  /* should be same as #page */
+  float:left;
+  width:10%;
+  /* border: 1px solid #aaa;
+  background-color: #eee;
+  margin: 0.5em;
+  padding: 1em;
+  float: left;
+  font-size: 88%; */
+}
+
+#sidebar h2 {
+  margin-top: 0;
+}
+
+#sidebar ul {
+  margin-left: 1.5em;
+  padding-left: 0;
+}
+
+
+#footer {
+  background:#fff;
+  clear:both;
+  border-top: 1px solid #000;
+  /* color: #999;
+  background-color: white;
+  padding: 10px;
+  font-size: 80%;
+  text-align: center;
+  margin: 0 auto 1em auto; */
+}
+
+
+.formsection {
+  color: #888888;
+  width: 90%;
+  font-weight: bold;
+  border-bottom: 1px solid;
+  margin: 20px 0px 20px 0px;
+}
+
+.formtable {
+  width: 90%;
+}
+
+.formtable th {
+  width: 15%;
+  text-align: right;
+}
+
+#status_block {
+  margin: 0 auto 0.5em auto;
+  padding: 15px 10px 15px 55px;
+  background: #cec URL('../images/ok.png') left center no-repeat;
+  border: 1px solid #9c9;
+  width: 450px;
+  font-size: 120%;
+  font-weight: bolder;
+}
+
+.notice {
+  margin: 0.5em auto 0.5em auto;
+  padding: 15px 10px 15px 55px;
+  width: 450px;
+  background: #eef URL('../images/info.png') left center no-repeat;
+  border: 1px solid #cce;
+}
+
+.fielderror {
+    color: red;
+    font-weight: bold;
+}

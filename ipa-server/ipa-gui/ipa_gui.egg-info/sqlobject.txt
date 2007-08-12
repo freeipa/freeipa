@@ -1,0 +1,2 @@
+db_module=ipagui.model
+history_dir=$base/ipagui/sqlobject-history
