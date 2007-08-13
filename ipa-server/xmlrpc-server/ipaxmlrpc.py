@@ -278,6 +278,7 @@ def handler(req, profiling=False):
             h.register_function(f.add_user)
             h.register_function(f.get_add_schema)
             h.register_function(f.get_all_users)
+            h.register_function(f.find_users)
             h.handle_request(req)
         finally:
              pass

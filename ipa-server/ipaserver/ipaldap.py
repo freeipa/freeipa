@@ -228,15 +228,14 @@ class IPAdmin(SimpleLDAPObject):
     def __str__(self):
         return self.host + ":" + str(self.port)
 
-    def toLDAPURL(self):
-        return "ldap://%s:%d/" % (self.host,self.port)
+    def __get_server_controls__(self):
+        """Create the proxy user server control. The control has the form
+        0x04 = Octet String
+        4|0x80 sets the length of the string length field at 4 bytes
+        the struct() gets us the length in bytes of string self.proxydn
+        self.proxydn is the proxy dn to send"""
 
-    def getEntry(self,*args):
-        """This wraps the search function.  It is common to just get one entry"""
-        # 0x04 = Octet String
-        # 4|0x80 sets the length of the length at 4 bytes
-        # the struct() gets us the length in bytes of string s
-        # s is the proxy dn to send
+        import sys
 
         if self.proxydn is not None:
             proxydn = chr(0x04) + chr(4|0x80) + struct.pack('l', socket.htonl(len(self.proxydn))) + self.proxydn;
@@ -247,7 +246,24 @@ class IPAdmin(SimpleLDAPObject):
         else:
             sctrl=None
 
-        res = self.search_ext(args[0], args[1], filterstr=args[2], serverctrls=sctrl)
+        return sctrl
+
+    def toLDAPURL(self):
+        return "ldap://%s:%d/" % (self.host,self.port)
+
+    def set_proxydn(self, proxydn):
+        self.proxydn = proxydn
+
+    def getEntry(self,*args):
+        """This wraps the search function.  It is common to just get one entry"""
+        sctrl = self.__get_server_controls__()
+
+        if sctrl is not None:
+            self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
+
+        res = self.search(*args)
+
+#        res = self.search_ext(args[0], args[1], filterstr=args[2], attrlist=args[3], serverctrls=sctrl)
 
         type, obj = self.result(res)
         if not obj:
@@ -259,6 +275,11 @@ class IPAdmin(SimpleLDAPObject):
 
     def getList(self,*args):
         """This wraps the search function to find all users."""
+
+        sctrl = self.__get_server_controls__()
+
+        if sctrl is not None:
+            self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
 
         res = self.search(*args)
         type, obj = self.result(res)
@@ -274,18 +295,8 @@ class IPAdmin(SimpleLDAPObject):
     def addEntry(self,*args):
         """This wraps the add function. It assumes that the entry is already
            populated with all of the desired objectclasses and attributes"""
-        if self.proxydn is not None:
-            proxydn = chr(0x04) + chr(4|0x80) + struct.pack('l', socket.htonl(len(self.proxydn))) + self.proxydn;
 
-            # Create the proxy control
-            sctrl=[]
-            sctrl.append(LDAPControl('2.16.840.1.113730.3.4.18',True,proxydn))
-        else:
-            sctrl=None
-
-        # Create the proxy control
-        sctrl=[]
-        sctrl.append(LDAPControl('2.16.840.1.113730.3.4.18',True,proxydn))
+        sctrl = self.__get_server_controls__()
 
         try:
             self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)

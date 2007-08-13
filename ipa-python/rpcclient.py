@@ -118,3 +118,20 @@ class RPCClient:
             raise xmlrpclib.Fault(value, msg)
     
         return result
+
+    def find_users (self, criteria, sattrs=None):
+        """Return a list containing a User object for each user that matches
+           the criteria."""
+    
+        server = self.setup_server()
+        try:
+            if sattrs is not None:
+                result = server.find_users(criteria, sattrs)
+            else:
+                result = server.find_users(criteria)
+        except xmlrpclib.Fault, fault:
+            raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+    
+        return result

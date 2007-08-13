@@ -85,3 +85,14 @@ class IPAClient:
     def get_add_schema(self):
         result = self.transport.get_add_schema()
         return result
+
+    def find_users(self, criteria, sattrs=None):
+        result = self.transport.find_users(criteria, sattrs)
+
+        users = []
+        for (attrs) in result:
+                if attrs is not None:
+                        users.append(user.User(attrs))
+
+        return users
+

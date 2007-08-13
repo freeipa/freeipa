@@ -48,19 +48,22 @@ def main():
 
     try:
         client = ipaclient.IPAClient()
-        ent = client.get_user(args[1])
-        attr = ent.attrList()
+        users = client.find_users(args[1], sattrs=['dn','uid','cn','homeDirectory'])
+        for ent in users:
+            attr = ent.attrList()
 
-        print "dn: " + ent.dn
+            print "dn: " + ent.dn
 
-        for a in attr:
-            value = ent.getValues(a)
-            if isinstance(value,str):
-                print a + ": " + value
-            else:
-                print a + ": "
-                for l in value:
-                    print "\t" +  l
+            for a in attr:
+                value = ent.getValues(a)
+                if isinstance(value,str):
+                    print a + ": " + value
+                else:
+                    print a + ": "
+                    for l in value:
+                        print "\t" +  l
+            # blank line between results
+            print 
 
     except xmlrpclib.Fault, fault:
         print fault.faultString

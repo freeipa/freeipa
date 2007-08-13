@@ -28,10 +28,37 @@ import string
 from types import *
 import xmlrpclib
 import ipa.config
+import os
+
+# Need a global to store this between requests
+_LDAPPool = None
+
+#
+# Apache runs in multi-process mode so each process will have its own
+# connection. This could theoretically drive the total number of connections
+# very high but since this represents just the administrative interface
+# this is not anticipated.
+class IPAConnPool:
+    def __init__(self):
+        self.numentries = 0
+        self.freelist = []
+
+    def getConn(self, host, port, bindca, bindcert, bindkey, proxydn=None):
+        self.numentries = self.numentries + 1
+        if len(self.freelist) > 0:
+            conn = self.freelist.pop()
+        else:
+            conn = ipaserver.ipaldap.IPAdmin(host,port,bindca,bindcert,bindkey)
+        conn.set_proxydn(proxydn)
+        return conn
+
+    def releaseConn(self, conn):
+        self.freelist.append(conn)
 
 class IPAServer:
 
     def __init__(self):
+        global _LDAPPool
         # FIXME, this needs to be auto-discovered
         self.host = 'localhost'
         self.port = 636
@@ -39,6 +66,8 @@ class IPAServer:
         self.bindkey = "/usr/share/ipa/key.pem"
         self.bindca = "/usr/share/ipa/cacert.asc"
     
+        if _LDAPPool is None:
+            _LDAPPool = IPAConnPool()
         ipa.config.init_config()
         self.basedn = ipaserver.util.realm_to_suffix(ipa.config.config.get_realm())
         self.scope = ldap.SCOPE_SUBTREE
@@ -49,10 +78,15 @@ class IPAServer:
     
     def get_dn_from_principal(self, princ):
         """Given a kerberls principal get the LDAP uid"""
+        global _LDAPPool
+
+        # FIXME: should we search for this in a specific area of the tree?
         filter = "(krbPrincipalName=" + princ + ")"
         try:
-            m1 = ipaserver.ipaldap.IPAdmin(self.host,self.port,self.bindca,self.bindcert,self.bindkey)
-            ent = m1.getEntry(self.basedn, self.scope, filter, None)
+            # The only anonymous search we should have
+            m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,None)
+            ent = m1.getEntry(self.basedn, self.scope, filter, ['dn'])
+            _LDAPPool.releaseConn(m1)
         except ldap.LDAPError, e:
             raise xmlrpclib.Fault(1, e)
         except ipaserver.ipaldap.NoSuchEntryError:
@@ -95,6 +129,7 @@ class IPAServer:
         """Get a specific user's entry. Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
+        global _LDAPPool
         ent=""
         if opts:
             self.set_principal(opts['remoteuser'])
@@ -110,8 +145,9 @@ class IPAServer:
     
         filter = "(uid=" + username + ")"
         try:
-            m1 = ipaserver.ipaldap.IPAdmin(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
+            m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
             ent = m1.getEntry(self.basedn, self.scope, filter, None)
+            _LDAPPool.releaseConn(m1)
         except ldap.LDAPError, e:
             raise xmlrpclib.Fault(1, e)
         except ipaserver.ipaldap.NoSuchEntryError:
@@ -121,6 +157,7 @@ class IPAServer:
     
     def add_user (self, user, user_container="ou=users,ou=default",opts=None):
         """Add a user in LDAP"""
+        global _LDAPPool
         if (isinstance(user, tuple)):
             user = user[0]
         dn="uid=%s,%s,%s" % (user['uid'], user_container,self.basedn)
@@ -154,8 +191,9 @@ class IPAServer:
             raise xmlrpclib.Fault(2, "No such user")
 
         try:
-            m1 = ipaserver.ipaldap.IPAdmin(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
+            m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
             res = m1.addEntry(entry)
+            _LDAPPool.releaseConn(m1)
             return res
         except ldap.ALREADY_EXISTS:
             raise xmlrpclib.Fault(3, "User already exists")
@@ -210,12 +248,24 @@ class IPAServer:
         """Return a list containing a User object for each
         existing user.
         """
+        global _LDAPPool
+    
+        if opts:
+            self.set_principal(opts['remoteuser'])
+
+        try:
+            dn = self.get_dn_from_principal(self.princ)
+        except ldap.LDAPError, e:
+            raise xmlrpclib.Fault(1, e)
+        except ipaserver.ipaldap.NoSuchEntryError:
+            raise xmlrpclib.Fault(2, "No such user")
     
         # FIXME: Is this the filter we want or should it be more specific?
         filter = "(objectclass=posixAccount)"
         try:
-            m1 = ipaserver.ipaldap.IPAdmin(self.host,self.port,self.bindca,self.bindcert,self.bindkey)
+            m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
             all_users = m1.getList(self.basedn, self.scope, filter, None)
+            _LDAPPool.releaseConn(m1)
         except ldap.LDAPError, e:
             raise xmlrpclib.Fault(1, e)
         except ipaserver.ipaldap.NoSuchEntryError:
@@ -223,6 +273,55 @@ class IPAServer:
     
         users = []
         for u in all_users:
+            users.append(self.convert_entry(u))
+    
+        return users
+
+    def find_users (self, args, sattrs=None, opts=None):
+        """Return a list containing a User object for each
+        existing user that matches the criteria.
+        """
+        global _LDAPPool
+
+        # The XML-RPC server marshals the arguments into one variable
+        # while the direct caller has them separate. So do a little
+        # bit of gymnastics to figure things out. There has to be a
+        # better way, so FIXME
+        if isinstance(args,tuple):
+            opts = sattrs
+            if len(args) == 2:
+                criteria = args[0]
+                sattrs = args[1]
+            else:
+                criteria = args
+                sattrs = None
+        else:
+            criteria = args
+
+        if opts:
+            self.set_principal(opts['remoteuser'])
+
+        try:
+            dn = self.get_dn_from_principal(self.princ)
+        except ldap.LDAPError, e:
+            raise xmlrpclib.Fault(1, e)
+        except ipaserver.ipaldap.NoSuchEntryError:
+            raise xmlrpclib.Fault(2, "No such user")
+    
+        # FIXME: Is this the filter we want or do we want to do searches of
+        # cn as well? Or should the caller pass in the filter?
+        filter = "(uid=%s)" % criteria
+        try:
+            m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
+            results = m1.getList(self.basedn, self.scope, filter, sattrs)
+            _LDAPPool.releaseConn(m1)
+        except ldap.LDAPError, e:
+            raise xmlrpclib.Fault(1, e)
+        except ipaserver.ipaldap.NoSuchEntryError:
+            raise xmlrpclib.Fault(2, "No such user")
+    
+        users = []
+        for u in results:
             users.append(self.convert_entry(u))
     
         return users
