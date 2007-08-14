@@ -1,3 +1,4 @@
+import random
 import cherrypy
 import turbogears
 from turbogears import controllers, expose, flash
@@ -16,6 +17,8 @@ import forms.user
 ipa.config.init_config()
 user_new_form = forms.user.UserNewForm()
 user_edit_form = forms.user.UserEditForm()
+
+password_chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 client = ipa.ipaclient.IPAClient(True)
 client.set_principal("test@FREEIPA.ORG")
@@ -137,7 +140,7 @@ class Root(controllers.RootController):
         """Retrieve a single user for display"""
         try:
             user = client.get_user(uid)
-            return dict(user=user_to_hash(user))
+            return dict(user=user_to_hash(user), fields=forms.user.UserFields())
         except xmlrpclib.Fault, f:
             turbogears.flash("User show failed: " + str(f.faultString))
             raise turbogears.redirect("/")
@@ -153,6 +156,16 @@ class Root(controllers.RootController):
     @expose()
     def userindex(self):
         raise turbogears.redirect("/userlist")
+
+    @expose()
+    def generate_password(self):
+        password = ""
+        generator = random.SystemRandom()
+        for char in range(8):
+            index = generator.randint(0, len(password_chars) - 1)
+            password += password_chars[index]
+
+        return password
 
 
     #########

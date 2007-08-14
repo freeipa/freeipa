@@ -11,15 +11,21 @@
     <div class="formsection">Account Details</div>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
-          <th>User ID:</th>
+          <th>
+            <label class="fieldlabel" py:content="fields.uid.label" />
+          </th>
           <td>${user.get("uid")}</td>
         </tr>
         <tr>
-          <th>UID:</th>
+          <th>
+            <label class="fieldlabel" py:content="fields.uidNumber.label" />
+          </th>
           <td>${user.get("uidNumber")}</td>
         </tr>
         <tr>
-          <th>GID:</th>
+          <th>
+            <label class="fieldlabel" py:content="fields.gidNumber.label" />
+          </th>
           <td>${user.get("gidNumber")}</td>
         </tr>
     </table>
@@ -27,19 +33,31 @@
     <div class="formsection">Identity Details</div>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
-          <th>Full Name:</th>
-          <td>${user.get("givenName")} ${user.get("sn")}</td>
+          <th>
+            <label class="fieldlabel" py:content="fields.givenName.label" />
+          </th>
+          <td>${user.get("givenName")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.sn.label" />
+          </th>
+          <td>${user.get("sn")}</td>
         </tr>
     </table>
 
     <div class="formsection">Contact Details</div>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
-          <th>Email:</th>
+          <th>
+            <label class="fieldlabel" py:content="fields.mail.label" />
+          </th>
           <td>${user.get("mail")}</td>
         </tr>
         <tr>
-          <th>Telephone:</th>
+          <th>
+            <label class="fieldlabel" py:content="fields.telephoneNumber.label" />
+          </th>
           <td>${user.get("telephoneNumber")}</td>
         </tr>
     </table>

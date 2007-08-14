@@ -19,17 +19,50 @@
         </td>
       </tr>
 
-<!--      <tr>
-        <th>
+      <tr>
+        <th valign="top">
           <label class="fieldlabel" for="${user.userPassword.field_id}"
             py:content="user.userPassword.label" />
         </th>
-        <td>
+        <td valign="top">
           <span py:replace="user.userPassword.display(value_for(user.userPassword))" />
           <span py:if="tg.errors.get('userPassword')" class="fielderror"
               py:content="tg.errors.get('userPassword')" />
+          <span id="password_text">********</span>
+
+          <input id="genpassword_button" type="button" value="Generate Password"
+              disabled="true"
+              onclick="new Ajax.Request('${tg.url('/generate_password')}',
+                {
+                  method: 'get',
+                  onSuccess: function(transport) {
+                    document.getElementById('form_userPassword').value =
+                        transport.responseText;
+                  }
+                });" />
+          <br />
+          <input type="checkbox"
+              onclick="togglePassword(this);"><span class="small">edit</span></input>
+          <script type="text/javascript">
+            document.getElementById('form_userPassword').style.display='none';
+
+            function togglePassword(checkbox) {
+              passwordField = document.getElementById('form_userPassword');
+              passwordText = document.getElementById('password_text');
+              passwordButton = document.getElementById('genpassword_button');
+              if (checkbox.checked) {
+                passwordField.style.display='inline';
+                passwordText.style.display='none';
+                passwordButton.disabled=false;
+              } else {
+                passwordField.style.display='none';
+                passwordText.style.display='inline';
+                passwordButton.disabled=true;
+              }
+            }
+          </script>
         </td>
-      </tr> -->
+      </tr>
 
       <tr>
         <th>

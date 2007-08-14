@@ -16,7 +16,7 @@
         </td>
       </tr>
 
-<!--      <tr>
+      <tr>
         <th>
           <label class="fieldlabel" for="${user.userPassword.field_id}"
             py:content="user.userPassword.label" />
@@ -25,8 +25,18 @@
           <span py:replace="user.userPassword.display(value_for(user.userPassword))" />
           <span py:if="tg.errors.get('userPassword')" class="fielderror"
               py:content="tg.errors.get('userPassword')" />
+
+          <input type="button" value="Generate Password"
+              onclick="new Ajax.Request('${tg.url('/generate_password')}',
+                {
+                  method: 'get',
+                  onSuccess: function(transport) {
+                    document.getElementById('form_userPassword').value =
+                        transport.responseText;
+                  }
+                });" />
         </td>
-      </tr> -->
+      </tr>
 
       <tr>
         <th>
