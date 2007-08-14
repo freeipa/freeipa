@@ -58,6 +58,8 @@ class User:
     def getValue(self,name):
         """Get the first value for the attribute named name"""
         value =  self.data.get(name,[None])
+        if (len(value) < 1):
+            return value
         if isinstance(value[0],list) or isinstance(value[0],tuple):
             return value[0]
         else:
@@ -72,6 +74,8 @@ class User:
            ent.setValue('name', ('value1', 'value2', ..., 'valueN'))
         Since *value is a tuple, we may have to extract a list or tuple from that
         tuple as in the last two examples above"""
+        if (len(value[0]) < 1):
+            return
         if isinstance(value[0],list) or isinstance(value[0],tuple):
             self.data[name] = value[0]
         else:
@@ -84,6 +88,15 @@ class User:
         of the tuple is the attribute name.  The second element is either a
         single value or a list of values."""
         return self.data.items()
+
+    def toDict(self):
+        """Convert the attrs and values to a dict. The dict is keyed on the
+        attribute name.  The value is either single value or a list of values."""
+        result = {}
+        for k in self.data.keys():
+            result[k] = self.data[k]
+        result['dn'] = self.dn
+        return result
 
     def attrList(self):
         """Return a list of all attributes in the entry"""

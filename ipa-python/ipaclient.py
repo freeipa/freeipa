@@ -96,3 +96,9 @@ class IPAClient:
 
         return users
 
+    def update_user(self,olduser,newuser):
+
+        realm = config.config.get_realm()
+
+        result = self.transport.update_user(olduser,newuser)
+        return result

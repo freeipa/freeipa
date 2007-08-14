@@ -239,6 +239,11 @@ class ModXMLRPCRequestHandler(object):
     def handle_request(self,req):
         """Handle a single XML-RPC request"""
 
+        # The LDAP connection pool is not thread-safe. Avoid problems and
+        # force the forked model for now.
+        if not apache.mpm_query(apache.AP_MPMQ_IS_FORKED):
+            raise Fault(3, "Apache must use the forked model")
+
         # XMLRPC uses POST only. Reject anything else
         if req.method != 'POST':
             req.allow_methods(['POST'],1)
@@ -279,6 +284,7 @@ def handler(req, profiling=False):
             h.register_function(f.get_add_schema)
             h.register_function(f.get_all_users)
             h.register_function(f.find_users)
+            h.register_function(f.update_user)
             h.handle_request(req)
         finally:
              pass

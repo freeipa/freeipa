@@ -35,6 +35,7 @@ import time
 import operator
 import struct
 from ldap.controls import LDAPControl,DecodeControlTuples,EncodeControlTuples
+from ldap.modlist import modifyModlist
 
 from ldap.ldapobject import SimpleLDAPObject
 
@@ -301,6 +302,25 @@ class IPAdmin(SimpleLDAPObject):
         try:
             self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.add_s(*args)
+        except ldap.ALREADY_EXISTS:
+            raise ldap.ALREADY_EXISTS
+        except ldap.LDAPError, e:
+            raise e
+        return "Success"
+
+    def updateEntry(self,dn,olduser,newuser):
+        """This wraps the mod function. It assumes that the entry is already
+           populated with all of the desired objectclasses and attributes"""
+
+        sctrl = self.__get_server_controls__()
+
+        # find the differences but don't remove attributes that are missing
+        # from the update
+        modlist = modifyModlist(olduser, newuser, None, 1)
+
+        try:
+            self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
+            self.modify_s(dn, modlist)
         except ldap.ALREADY_EXISTS:
             raise ldap.ALREADY_EXISTS
         except ldap.LDAPError, e:

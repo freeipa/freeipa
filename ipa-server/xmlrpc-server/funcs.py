@@ -325,3 +325,50 @@ class IPAServer:
             users.append(self.convert_entry(u))
     
         return users
+
+    def update_user (self, args, newuser=None, opts=None):
+        """Update a user in LDAP"""
+        global _LDAPPool
+
+        # The XML-RPC server marshals the arguments into one variable
+        # while the direct caller has them separate. So do a little
+        # bit of gymnastics to figure things out. There has to be a
+        # better way, so FIXME
+        if isinstance(args,tuple):
+            opts = newuser
+            if len(args) == 2:
+                olduser = args[0]
+                newuser = args[1]
+        else:
+            olduser = args
+
+        if (isinstance(olduser, tuple)):
+            olduser = olduser[0]
+        if (isinstance(newuser, tuple)):
+            newuser = newuser[0]
+
+        # Should be able to get this from either the old or new user
+        # but just in case someone has decided to try changing it, use the
+        # original
+        try:
+            moddn = olduser['dn']
+        except KeyError, e:
+            raise xmlrpclib.Fault(4, "Old user has no dn")
+
+        if opts:
+            self.set_principal(opts['remoteuser'])
+    
+        try:
+            proxydn = self.get_dn_from_principal(self.princ)
+        except ldap.LDAPError, e:
+            raise xmlrpclib.Fault(1, e)
+        except ipaserver.ipaldap.NoSuchEntryError:
+            raise xmlrpclib.Fault(2, "No such user")
+
+        try:
+            m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,proxydn)
+            res = m1.updateEntry(moddn, olduser, newuser)
+            _LDAPPool.releaseConn(m1)
+            return res
+        except ldap.LDAPError, e:
+            raise xmlrpclib.Fault(1, str(e))

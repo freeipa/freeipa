@@ -74,8 +74,7 @@ class RPCClient:
             raise xmlrpclib.Fault(value, msg)
 
         return result
-        
-        
+
     def add_user(self,user):
         """Add a new user"""
         server = self.setup_server()
@@ -134,4 +133,17 @@ class RPCClient:
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
     
+        return result
+
+    def update_user(self,olduser,newuser):
+        """Update an existing user. olduser and newuser are dicts of attributes"""
+        server = self.setup_server()
+    
+        try:
+            result = server.update_user(olduser, newuser)
+        except xmlrpclib.Fault, fault:
+            raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
         return result
