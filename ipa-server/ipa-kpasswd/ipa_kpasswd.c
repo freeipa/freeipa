@@ -2,6 +2,7 @@
 /* Kpasswd-LDAP proxy */
 
 /* (C) Simo Sorce */
+#define _GNU_SOURCE
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -14,6 +15,7 @@
 #include <string.h>
 #include <errno.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <time.h>
 #include <krb5.h>
 #include <ldap.h>
@@ -108,7 +110,7 @@ int debug = 1;
 char *srv_pri_name = "kadmin/changepw";
 char *keytab_name = "FILE:/var/kerberos/krb5kdc/kpasswd.keytab";
 
-static int get_krb5_ticket(char *tmpfile)
+static int get_krb5_ticket(char *tmp_file)
 {
 	char *ccname;
 	char *realm_name = NULL;
@@ -152,7 +154,7 @@ static int get_krb5_ticket(char *tmpfile)
 		goto done;
 	}
 
-	ret = asprintf(&ccname, "FILE:%s", tmpfile);
+	ret = asprintf(&ccname, "FILE:%s", tmp_file);
 	if (ret == -1) {
 		fprintf(stderr, "Out of memory!\n");
 		goto done;
@@ -240,7 +242,7 @@ int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *sit)
 		default:
 			if (debug > 0) {
 				fprintf(stderr,
-					"Unhandled SASL int. option %d\n",
+					"Unhandled SASL int. option %ld\n",
 					in->id);
 			}
 			in->result = NULL;
@@ -253,8 +255,8 @@ int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *sit)
 
 int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 {
-	char *tmpfile = NULL;
-	int id, version;
+	char *tmp_file = NULL;
+	int version;
 	LDAP *ld = NULL;
 	BerElement *ctrl = NULL;
 	struct berval control;
@@ -273,14 +275,14 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 	LDAPMessage *entry, *res = NULL;
 	int ret;
 
-	tmpfile = strdup(TMP_TEMPLATE);
-	if (!tmpfile) {
+	tmp_file = strdup(TMP_TEMPLATE);
+	if (!tmp_file) {
 		fprintf(stderr, "Out of memory!\n");
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
-	ret = mkstemp(tmpfile);
+	ret = mkstemp(tmp_file);
 	if (ret == -1) {
 		fprintf(stderr,
 			"Failed to create tmp file with errno: %d\n", errno);
@@ -294,7 +296,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 	/* In the long term we may want to do this in the main daemon
 	 * and just renew when needed.
 	 * Right now do it at every password change for robustness */
-	ret = get_krb5_ticket(tmpfile);
+	ret = get_krb5_ticket(tmp_file);
 	if (ret) {
 		fprintf(stderr, "Unable to kinit!\n");
 		ret = KRB5_KPASSWD_HARDERROR;
@@ -445,11 +447,11 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 done:
 	if (userdn) free(userdn);
 	if (ctrl) ber_free(ctrl, 1);
-	if (ld) ldap_unbind(ld);
+	if (ld) ldap_unbind_ext_s(ld, NULL, NULL);
 	if (ldap_uri) free(ldap_uri);
-	if (tmpfile) {
-		unlink(tmpfile);
-		free(tmpfile);
+	if (tmp_file) {
+		unlink(tmp_file);
+		free(tmp_file);
 	}
 	return ret;
 }
@@ -467,9 +469,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	krb5_data kreq, krep, kenc, kdec;
 	krb5_replay_data replay;
 	krb5_error krb5err;
-	int krberr, err;
-	struct sockaddr_in laddr, raddr;
-	socklen_t addrlen;
+	int krberr;
 	size_t reqlen;
 	size_t verno;
 	char *client_name, *realm_name;
@@ -524,7 +524,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 		fprintf(stderr, "%s\n", result_string);
 		goto done;
 	}
-	kreq.data = &buf[6];
+	kreq.data = (char *)&buf[6];
 
 	krberr = krb5_init_context(&context);
 	if (krberr) {
