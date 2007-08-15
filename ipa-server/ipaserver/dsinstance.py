@@ -28,8 +28,8 @@ from util import *
 
 
 SHARE_DIR = "/usr/share/ipa/"
-SERVER_ROOT_64 = "/usr/lib64/fedora-ds-base"
-SERVER_ROOT_32 = "/usr/lib/fedora-ds-base"
+SERVER_ROOT_64 = "/usr/lib64/dirsrv"
+SERVER_ROOT_32 = "/usr/lib/dirsrv"
 
 
 def generate_serverid():
@@ -96,19 +96,19 @@ class DsInstance:
     def config_dirname(self):
         if not self.serverid:
             raise RuntimeError("serverid not set")
-        return "/etc/fedora-ds/slapd-" + self.serverid + "/"
+        return "/etc/dirsrv/slapd-" + self.serverid + "/"
 
     def schema_dirname(self):
         return self.config_dirname() + "/schema/"
 
     def stop(self):
-        run(["/sbin/service", "fedora-ds", "stop"])
+        run(["/sbin/service", "dirsrv", "stop"])
 
     def start(self):
-        run(["/sbin/service", "fedora-ds", "start"])
+        run(["/sbin/service", "dirsrv", "start"])
 
     def restart(self):
-        run(["/sbin/service", "fedora-ds", "restart"])
+        run(["/sbin/service", "dirsrv", "restart"])
 
     def __setup_sub_dict(self):
         suffix = realm_to_suffix(self.realm_name)
@@ -124,7 +124,7 @@ class DsInstance:
             logging.debug("ds user %s exists" % self.ds_user)
 	except KeyError:
             logging.debug("adding ds user %s" % self.ds_user)
-            args = ["/usr/sbin/useradd", "-c", "DS System User", "-d", "/var/lib/fedora-ds", "-M", "-r", "-s", "/sbin/nologin", self.ds_user]
+            args = ["/usr/sbin/useradd", "-c", "DS System User", "-d", "/var/lib/dirsrv", "-M", "-r", "-s", "/sbin/nologin", self.ds_user]
             run(args)
             logging.debug("done adding user")
 

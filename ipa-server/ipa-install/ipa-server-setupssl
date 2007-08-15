@@ -10,7 +10,7 @@ fi
 if [ "$2" -a -d "$2" ] ; then
     secdir="$2"
 else
-    secdir=/etc/fedora-ds/slapd-localhost
+    secdir=/etc/dirsrv/slapd-localhost
 fi
 
 if [ "$3" ] ; then

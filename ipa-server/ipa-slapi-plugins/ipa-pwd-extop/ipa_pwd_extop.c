@@ -61,7 +61,7 @@
 
 #include <prio.h>
 #include <ssl.h>
-#include <slapi-plugin.h>
+#include <dirsrv/slapi-plugin.h>
 #include <krb5.h>
 #include <lber.h>
 #include <time.h>

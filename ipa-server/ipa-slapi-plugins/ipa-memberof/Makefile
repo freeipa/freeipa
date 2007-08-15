@@ -1,12 +1,13 @@
+DIRSRV ?= dirsrv
 PREFIX ?= $(DESTDIR)/usr
-LIBDIR ?= $(PREFIX)/lib/fedora-ds/plugins
-LIB64DIR ?= $(PREFIX)/lib64/fedora-ds/plugins
+LIBDIR ?= $(PREFIX)/lib/$(DIRSRV)/plugins
+LIB64DIR ?= $(PREFIX)/lib64/$(DIRSRV)/plugins
 SHAREDIR = $(DESTDIR)/usr/share/ipa
 
 SONAME = libipa-memberof-plugin.so
 LDFLAGS += -llber
 CFLAGS ?= -Wall -Wshadow -O2
-CFLAGS += -I/usr/include/fedora-ds -I/usr/include/nss3 -I/usr/include/mozldap -I/usr/include/nspr4 -fPIC -DPIC
+CFLAGS += -I/usr/include/$(DIRSRV) -I/usr/include/nss3 -I/usr/include/mozldap -I/usr/include/nspr4 -fPIC -DPIC
 
 OBJS = $(patsubst %.c,%.o,$(wildcard *.c))
 
@@ -18,7 +19,7 @@ all: $(OBJS)
 
 install:
 	-mkdir -p $(LIBDIR)
-	if [ -e $(PREFIX)/lib/fedora-ds ]; then \
+	if [ -e $(PREFIX)/lib/$(DIRSRV) ]; then \
 		install -m 644 $(SONAME) $(LIBDIR); \
 	else \
 		install -m 644 $(SONAME) $(LIB64DIR); \

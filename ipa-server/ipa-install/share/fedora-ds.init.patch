@@ -1,11 +1,11 @@
---- /etc/init.d/fedora-ds.orig	2007-07-06 18:21:30.000000000 -0400
-+++ /etc/init.d/fedora-ds	2007-05-18 19:36:24.000000000 -0400
+--- /etc/init.d/dirsrv.orig	2007-07-06 18:21:30.000000000 -0400
++++ /etc/init.d/dirsrv		2007-05-18 19:36:24.000000000 -0400
 @@ -10,6 +10,9 @@
- # datadir:     /var/lib/fedora-ds/slapd-<instance name>
+ # datadir:     /var/lib/dirsrv/slapd-<instance name>
  #
  
 +# Get config.
-+[ -r /etc/sysconfig/fedora-ds ] && . /etc/sysconfig/fedora-ds
++[ -r /etc/sysconfig/dirsrv ] && . /etc/sysconfig/dirsrv
 +
  # Source function library.
  if [ -f /etc/rc.d/init.d/functions ] ; then

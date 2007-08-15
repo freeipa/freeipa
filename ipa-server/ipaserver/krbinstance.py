@@ -173,17 +173,17 @@ class KrbInstance:
         (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
         kwrite.write("addprinc -randkey ldap/"+self.fqdn+"@"+self.realm+"\n")
         kwrite.flush()
-        kwrite.write("ktadd -k /etc/fedora-ds/ds.keytab ldap/"+self.fqdn+"@"+self.realm+"\n")
+        kwrite.write("ktadd -k /etc/dirsrv/ds.keytab ldap/"+self.fqdn+"@"+self.realm+"\n")
         kwrite.flush()
         kwrite.close()
         kread.close()
         kerr.close()
 
-	cfg_fd = open("/etc/sysconfig/fedora-ds", "a")
-        cfg_fd.write("export KRB5_KTNAME=/etc/fedora-ds/ds.keytab\n")
+        cfg_fd = open("/etc/sysconfig/dirsrv", "a")
+        cfg_fd.write("export KRB5_KTNAME=/etc/dirsrv/ds.keytab\n")
         cfg_fd.close()
-	pent = pwd.getpwnam(self.ds_user)
-        os.chown("/etc/sysconfig/fedora-ds", pent.pw_uid, pent.pw_gid)
+        pent = pwd.getpwnam(self.ds_user)
+        os.chown("/etc/sysconfig/dirsrv", pent.pw_uid, pent.pw_gid)
 
     def __export_kadmin_changepw_keytab(self):
         (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
@@ -200,10 +200,10 @@ class KrbInstance:
         kread.close()
         kerr.close()
 
-	cfg_fd = open("/etc/sysconfig/ipa-kpasswd", "a")
+        cfg_fd = open("/etc/sysconfig/ipa-kpasswd", "a")
         cfg_fd.write("export KRB5_KTNAME=/var/kerberos/krb5kdc/kpasswd.keytab\n")
         cfg_fd.close()
-	pent = pwd.getpwnam(self.ds_user)
+        pent = pwd.getpwnam(self.ds_user)
         os.chown("/etc/sysconfig/ipa-kpasswd", pent.pw_uid, pent.pw_gid)
 
     def __create_http_keytab(self):

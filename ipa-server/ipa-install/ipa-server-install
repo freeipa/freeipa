@@ -123,7 +123,7 @@ def main():
     run(["/sbin/chkconfig", "httpd", "on"])
 
     # Set fedora-ds to start on boot
-    run(["/sbin/chkconfig", "fedora-ds", "on"])
+    run(["/sbin/chkconfig", "dirsrv", "on"])
 
     # Set the KDC to start on boot
     run(["/sbin/chkconfig", "krb5kdc", "on"])
