@@ -3,12 +3,12 @@ objectclass: top
 objectclass: nsSlapdPlugin
 objectclass: extensibleObject
 cn: ipa_pwd_extop
-nsslapd-pluginpath: /usr/lib/fedora-ds/plugins/libipa_pwd_extop.so
+nsslapd-pluginpath: libipa_pwd_extop.so
 nsslapd-plugininitfunc: ipapwd_init
 nsslapd-plugintype: extendedop
 nsslapd-pluginenabled: on
 nsslapd-pluginid: Multi-hash Change Password Extended Operation
 nsslapd-pluginversion: 1.0
 nsslapd-pluginvendor: RedHat
-nsslapd-plugindescription: Support saving passwords in multiple fornmats for different consumers like krb5, samba, freeradius, etc.
+nsslapd-plugindescription: Support saving passwords in multiple formats for different consumers (krb5, samba, freeradius, etc.)
 nsslapd-pluginarg0: /var/kerberos/krb5kdc/.k5.$REALM
