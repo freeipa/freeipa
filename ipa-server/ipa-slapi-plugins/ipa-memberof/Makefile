@@ -1,5 +1,6 @@
 PREFIX ?= $(DESTDIR)/usr
-LIBDIR = $(PREFIX)/lib/fedora-ds/plugins
+LIBDIR ?= $(PREFIX)/lib/fedora-ds/plugins
+LIB64DIR ?= $(PREFIX)/lib64/fedora-ds/plugins
 SHAREDIR = $(DESTDIR)/usr/share/ipa
 
 SONAME = libipa-memberof-plugin.so
@@ -17,7 +18,11 @@ all: $(OBJS)
 
 install:
 	-mkdir -p $(LIBDIR)
-	install -m 644 $(SONAME) $(LIBDIR)
+	if [ -e $(PREFIX)/lib/fedora-ds ]; then \
+		install -m 644 $(SONAME) $(LIBDIR); \
+	else \
+		install -m 644 $(SONAME) $(LIB64DIR); \
+	fi	
 	install -m 644 *.ldif $(SHAREDIR)
 
 clean:
