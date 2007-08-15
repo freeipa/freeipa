@@ -113,7 +113,7 @@ def main():
     krb.create_instance(options.ds_user, options.realm_name, host_name,
                         options.password, options.master_password)
 
-    # Restart ds after the krb instance have add the sasl map
+    # Restart ds after the krb instance has changed ds configurations
     ds.restart()
 
     # Restart apache
@@ -127,6 +127,12 @@ def main():
 
     # Set the KDC to start on boot
     run(["/sbin/chkconfig", "krb5kdc", "on"])
+
+    # Set the Kpasswd to start on boot
+    run(["/sbin/chkconfig", "ipa-kpasswd", "on"])
+
+    # Start Kpasswd
+    run(["/sbin/service", "ipa-kpasswd", "start"])
 
     # Create the config file
     fd = open("/etc/ipa/ipa.conf", "w")

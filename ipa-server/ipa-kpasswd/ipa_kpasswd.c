@@ -21,6 +21,7 @@
 #include <ldap.h>
 #include <sasl/sasl.h>
 
+#define DEFAULT_KEYTAB "FILE:/var/kerberos/krb5kdc/kpasswd.keytab"
 #define TMP_TEMPLATE "/tmp/kpasswd.XXXXXX"
 #define KPASSWD_PORT 464
 #define KPASSWD_TCP 1
@@ -108,7 +109,7 @@ int remove_blacklist(pid_t pid)
 
 int debug = 1;
 char *srv_pri_name = "kadmin/changepw";
-char *keytab_name = "FILE:/var/kerberos/krb5kdc/kpasswd.keytab";
+char *keytab_name = NULL;
 
 static int get_krb5_ticket(char *tmp_file)
 {
@@ -864,6 +865,16 @@ int main(int argc, char *argv[])
 	int tcp_s, udp_s;
 	int tru = 1;
 	int ret;
+	char *key;
+
+	key = getenv("KRB5_KTNAME");
+	if (!key) {
+		key = DEFAULT_KEYTAB;
+	}
+	keytab_name = strdup(key);
+	if (!keytab_name) {
+		fprintf(stderr, "Out of memory!\n");
+	}
 
 	tcp_s = socket(AF_INET, SOCK_STREAM, 0);
 	if (tcp_s == -1) {

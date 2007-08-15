@@ -87,11 +87,11 @@ class KrbInstance:
 
         self.__create_http_keytab()
 
-        self.__set_kadmin_changepw_preauth()
-
-	self.__export_kadmin_changepw_keytab()
+        self.__export_kadmin_changepw_keytab()
 
         self.__create_sample_bind_zone()
+
+        self.__add_pwd_extop_module()
 
         self.start()
 
@@ -185,7 +185,7 @@ class KrbInstance:
 	pent = pwd.getpwnam(self.ds_user)
         os.chown("/etc/sysconfig/fedora-ds", pent.pw_uid, pent.pw_gid)
 
-    def __set_kadmin_changepw_preauth(self):
+    def __export_kadmin_changepw_keytab(self):
         (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
         kwrite.write("modprinc +requires_preauth kadmin/changepw\n")
         kwrite.flush()
@@ -193,13 +193,18 @@ class KrbInstance:
         kread.close()
         kerr.close()
 
-    def __export_kadmin_changepw_keytab(self):
         (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
         kwrite.write("ktadd -k /var/kerberos/krb5kdc/kpasswd.keytab kadmin/changepw\n")
         kwrite.flush()
         kwrite.close()
         kread.close()
         kerr.close()
+
+	cfg_fd = open("/etc/sysconfig/ipa-kpasswd", "a")
+        cfg_fd.write("export KRB5_KTNAME=/var/kerberos/krb5kdc/kpasswd.keytab\n")
+        cfg_fd.close()
+	pent = pwd.getpwnam(self.ds_user)
+        os.chown("/etc/sysconfig/ipa-kpasswd", pent.pw_uid, pent.pw_gid)
 
     def __create_http_keytab(self):
         (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
