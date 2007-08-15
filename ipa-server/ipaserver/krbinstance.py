@@ -153,7 +153,7 @@ class KrbInstance:
     # TODO: NOT called yet, need to find out how to make sure the plugin is available first
     def __add_pwd_extop_module(self):
         #add the password extop module
-        extop_txt = template_file(SHARE_DIR + "ipapwd_extop_plugin.ldif", self.sub_dict)
+        extop_txt = template_file(SHARE_DIR + "pwd-extop-conf.ldif", self.sub_dict)
         extop_fd = write_tmp_file(extop_txt)
         ldap_mod(extop_fd, "cn=Directory Manager", self.admin_password)
         extop_fd.close()
