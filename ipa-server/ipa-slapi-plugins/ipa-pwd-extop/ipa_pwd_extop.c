@@ -365,10 +365,10 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 		encode_int16(key.length, ptr);
 
 		plain.length = key.length;
-		plain.data = key.contents;
+		plain.data = (char *)key.contents;
 
 		cipher.ciphertext.length = len;
-		cipher.ciphertext.data = ptr+2;
+		cipher.ciphertext.data = (char *)ptr+2;
 
 		krberr = krb5_c_encrypt(krbctx, &kmkey, 0, 0, &plain, &cipher);
 		if (krberr) {
@@ -476,19 +476,16 @@ static const uint8_t parity_table[128] = {
 	193,194,196,199,200,203,205,206,208,211,213,214,217,218,220,223,
 	224,227,229,230,233,234,236,239,241,242,244,247,248,251,253,254};
 
-static void lm_shuffle(char *out, char *in)
+static void lm_shuffle(uint8_t *out, uint8_t *in)
 {
-	uint8_t *outb = (uint8_t *)out;
-	uint8_t *inb = (uint8_t *)in;
-
-	outb[0] = parity_table[inb[0]>>1];
-	outb[1] = parity_table[((inb[0]<<6)|(in[1]>>2)) & 0x7F];
-	outb[2] = parity_table[((inb[1]<<5)|(in[2]>>3)) & 0x7F];
-	outb[3] = parity_table[((inb[2]<<4)|(in[3]>>4)) & 0x7F];
-	outb[4] = parity_table[((inb[3]<<3)|(in[4]>>5)) & 0x7F];
-	outb[5] = parity_table[((inb[4]<<2)|(in[5]>>6)) & 0x7F];
-	outb[6] = parity_table[((inb[5]<<1)|(in[6]>>7)) & 0x7F];
-	outb[7] = parity_table[inb[6] & 0x7F];
+	out[0] = parity_table[in[0]>>1];
+	out[1] = parity_table[((in[0]<<6)|(in[1]>>2)) & 0x7F];
+	out[2] = parity_table[((in[1]<<5)|(in[2]>>3)) & 0x7F];
+	out[3] = parity_table[((in[2]<<4)|(in[3]>>4)) & 0x7F];
+	out[4] = parity_table[((in[3]<<3)|(in[4]>>5)) & 0x7F];
+	out[5] = parity_table[((in[4]<<2)|(in[5]>>6)) & 0x7F];
+	out[6] = parity_table[((in[5]<<1)|(in[6]>>7)) & 0x7F];
+	out[7] = parity_table[in[6] & 0x7F];
 }
 
 /* create the lm and nt hashes
@@ -518,7 +515,7 @@ static int encode_ntlm_keys(char *newPasswd, unsigned int flags, struct ntlm_key
 		}
 
 		/* the lanman password is upper case */
-		upperPasswd = slapi_utf8StrToUpper(newPasswd);
+		upperPasswd = (char *)slapi_utf8StrToUpper((unsigned char *)newPasswd);
 		if (!upperPasswd) {
 			ret = -1;
 			goto done;
@@ -556,13 +553,13 @@ static int encode_ntlm_keys(char *newPasswd, unsigned int flags, struct ntlm_key
 		}
 		
 		/* first half */
-		lm_shuffle(deskey, asciiPasswd);
+		lm_shuffle(deskey, (uint8_t *)asciiPasswd);
 
 		DES_set_key_unchecked(&deskey, &schedule);
 		DES_ecb_encrypt(&magic, (DES_cblock *)keys->lm, &schedule, DES_ENCRYPT);
 
 		/* second half */
-		lm_shuffle(deskey, &asciiPasswd[7]);
+		lm_shuffle(deskey, (uint8_t *)&asciiPasswd[7]);
 
 		DES_set_key_unchecked(&deskey, &schedule);
 		DES_ecb_encrypt(&magic, (DES_cblock *)&(keys->lm[8]), &schedule, DES_ENCRYPT);
@@ -716,7 +713,6 @@ static int ipapwd_userpassword(Slapi_Entry *targetEntry, const char *newPasswd)
 	char *dn = NULL;
 	int ret = 0, i = 0;
 	Slapi_Mods *smods;
-	Slapi_Mod *keymod;
 	Slapi_Value **svals;
 	time_t curtime;
 	struct tm utctime;
@@ -804,14 +800,14 @@ static int ipapwd_userpassword(Slapi_Entry *targetEntry, const char *newPasswd)
 
 	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "<= ipapwd_userpassword: %d\n", ret);
 
-
-mod_done:
 	for (i = 0; svals[i]; i++) { 
 		slapi_value_free(&svals[i]);
 	}
 	free(svals);
 	return ret;
 }
+
+#if 0 /* Not used right now */
 
 /* Generate a new, basic random password */
 static int ipapwd_generate_basic_passwd( int passlen, char **genpasswd )
@@ -852,7 +848,7 @@ static int ipapwd_generate_basic_passwd( int passlen, char **genpasswd )
 
 	return LDAP_SUCCESS;
 }
-
+#endif
 
 /* Password Modify Extended operation plugin function */
 int
@@ -870,7 +866,6 @@ ipapwd_extop( Slapi_PBlock *pb )
 	ber_len_t	len=-1;
 	struct berval	*extop_value = NULL;
 	BerElement	*ber = NULL;
-	BerElement	*response_ber = NULL;
 	Slapi_Entry *targetEntry=NULL;
 	/* Slapi_DN sdn; */
 
@@ -1140,7 +1135,7 @@ parse_req_done:
 	
 	slapi_log_error( SLAPI_LOG_PLUGIN, "ipa_pwd_extop", 
 			errMesg ? errMesg : "success" );
-	send_ldap_result( pb, rc, NULL, errMesg, 0, NULL );
+	slapi_send_ldap_result( pb, rc, NULL, errMesg, 0, NULL );
 	
 
 	return( SLAPI_PLUGIN_EXTENDED_SENT_RESULT );
@@ -1185,8 +1180,6 @@ int ipapwd_start( Slapi_PBlock *pb )
 {
 	int krberr, i;
 	krb5_context krbctx;
-	krb5_data pwd, salt;
-	krb5_enctype etype;
 	char *config_dn;
 	Slapi_Entry *config_entry;
 	const char *stash_file;
@@ -1194,7 +1187,7 @@ int ipapwd_start( Slapi_PBlock *pb )
 	ssize_t r;
 	uint16_t e;
 	unsigned int l;
-	char *o;
+	unsigned char *o;
 
 	krberr = krb5_init_context(&krbctx);
 	if (krberr) {
@@ -1331,14 +1324,10 @@ int ipapwd_start( Slapi_PBlock *pb )
 /* Initialization function */
 int ipapwd_init( Slapi_PBlock *pb )
 {
-	char	**argv;
-	char	*oid;
-
 	/* Get the arguments appended to the plugin extendedop directive. The first argument 
 	 * (after the standard arguments for the directive) should contain the OID of the
 	 * extended operation.
 	 */ 
-
 	if ((slapi_pblock_get(pb, SLAPI_PLUGIN_IDENTITY, &ipapwd_plugin_id) != 0)
 	 || (ipapwd_plugin_id == NULL)) {
 		slapi_log_error( SLAPI_LOG_PLUGIN, "ipapwd_init", "Could not get identity or identity was NULL\n");
