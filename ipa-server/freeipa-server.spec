@@ -49,6 +49,7 @@ rm -rf %{buildroot}
 %{_usr}/share/ipa/*
 
 %{plugin_dir}/libipa_pwd_extop.so
+%{plugin_dir}/libipa-memberof-plugin.so
 
 
 %changelog
