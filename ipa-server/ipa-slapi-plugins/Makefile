@@ -1,4 +1,4 @@
-SUBDIRS=ipa-pwd-extop
+SUBDIRS=ipa-pwd-extop ipa-memberof
 
 all:
 	@for subdir in $(SUBDIRS); do \

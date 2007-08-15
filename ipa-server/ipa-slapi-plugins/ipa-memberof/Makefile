@@ -1,10 +1,10 @@
 PREFIX ?= $(DESTDIR)/usr
-LIBDIR = $(PREFIX)/lib/fedora-ds/plugins
+LIBDIR ?= $(PREFIX)/lib/fedora-ds/plugins
 LIB64DIR ?= $(PREFIX)/lib64/fedora-ds/plugins
 SHAREDIR = $(DESTDIR)/usr/share/ipa
 
-SONAME = libipa_pwd_extop.so
-LDFLAGS += -lkrb5 -llber -lldap -lmhash -llber -lssl
+SONAME = libipa-memberof-plugin.so
+LDFLAGS += -llber
 CFLAGS ?= -Wall -Wshadow -O2
 CFLAGS += -I/usr/include/fedora-ds -I/usr/include/nss3 -I/usr/include/mozldap -I/usr/include/nspr4 -fPIC -DPIC
 
