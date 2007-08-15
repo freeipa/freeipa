@@ -9,7 +9,7 @@ cyrus-sasl-gssapi
 httpd
 mod_auth_kerb
 ntpd
-
+mhash/libgcrypt
 
 Installation example:
 
