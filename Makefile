@@ -2,6 +2,8 @@ SUBDIRS=ipa-server ipa-admintools ipa-python
 
 PRJ_PREFIX=freeipa
 
+RPMBUILD ?= $(PWD)/rpmbuild
+
 # set to 1 to produce a debug build of all subprojects
 #DEBUG=1
 
@@ -94,25 +96,32 @@ tarballs:
 	cd dist; tar cfz $(PYTHON_TARBALL) $(PYTHON_TARBALL_PREFIX)
 	rm -fr dist/$(PYTHON_TARBALL_PREFIX)
 
+rpmroot:
+	mkdir -p $(RPMBUILD)/BUILD
+	mkdir -p $(RPMBUILD)/RPMS
+	mkdir -p $(RPMBUILD)/SOURCES
+	mkdir -p $(RPMBUILD)/SPECS
+	mkdir -p $(RPMBUILD)/SRPMS
+
 rpm-ipa-server:
-	cp dist/$(SERV_TARBALL) ~/rpmbuild/SOURCES/.
-	rpmbuild -ba ipa-server/freeipa-server.spec
-	cp ~/rpmbuild/RPMS/*/$(PRJ_PREFIX)-server-$(SERV_VERSION)-*.rpm dist/.
-	cp ~/rpmbuild/SRPMS/$(PRJ_PREFIX)-server-$(SERV_VERSION)-*.src.rpm dist/.
+	cp dist/$(SERV_TARBALL) $(RPMBUILD)/SOURCES/.
+	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa-server/freeipa-server.spec
+	cp rpmbuild/RPMS/*/$(PRJ_PREFIX)-server-$(SERV_VERSION)-*.rpm dist/.
+	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-server-$(SERV_VERSION)-*.src.rpm dist/.
 
 rpm-ipa-admin:
-	cp dist/$(ADMIN_TARBALL) ~/rpmbuild/SOURCES/.
-	rpmbuild -ba ipa-admintools/freeipa-admintools.spec
-	cp ~/rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-admintools-$(ADMIN_VERSION)-*.rpm dist/.
-	cp ~/rpmbuild/SRPMS/$(PRJ_PREFIX)-admintools-$(ADMIN_VERSION)-*.src.rpm dist/.
+	cp dist/$(ADMIN_TARBALL) $(RPMBUILD)/SOURCES/.
+	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa-admintools/freeipa-admintools.spec
+	cp rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-admintools-$(ADMIN_VERSION)-*.rpm dist/.
+	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-admintools-$(ADMIN_VERSION)-*.src.rpm dist/.
 
 rpm-ipa-python:
-	cp dist/$(PYTHON_TARBALL) ~/rpmbuild/SOURCES/.
-	rpmbuild -ba ipa-python/freeipa-python.spec
-	cp ~/rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-python-$(PYTHON_VERSION)-*.rpm dist/.
-	cp ~/rpmbuild/SRPMS/$(PRJ_PREFIX)-python-$(PYTHON_VERSION)-*.src.rpm dist/.
+	cp dist/$(PYTHON_TARBALL) $(RPMBUILD)/SOURCES/.
+	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa-python/freeipa-python.spec
+	cp rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-python-$(PYTHON_VERSION)-*.rpm dist/.
+	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-python-$(PYTHON_VERSION)-*.src.rpm dist/.
 
-rpms: rpm-ipa-server rpm-ipa-admin rpm-ipa-python
+rpms: rpmroot rpm-ipa-server rpm-ipa-admin rpm-ipa-python
 
 dist: version-update archive tarballs archive-cleanup rpms
 
