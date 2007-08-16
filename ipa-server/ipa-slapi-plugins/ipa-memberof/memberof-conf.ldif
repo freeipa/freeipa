@@ -3,7 +3,7 @@ objectclass: top
 objectclass: nsSlapdPlugin
 objectclass: extensibleObject
 cn: ipa-memberof
-nsslapd-pluginpath: libipa-memberof-plugin.so
+nsslapd-pluginpath: libipa-memberof-plugin
 nsslapd-plugininitfunc: ipamo_postop_init
 nsslapd-plugintype: postoperation
 nsslapd-pluginenabled: on

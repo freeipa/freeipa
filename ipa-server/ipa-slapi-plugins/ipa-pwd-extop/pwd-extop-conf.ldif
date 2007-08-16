@@ -4,7 +4,7 @@ objectclass: top
 objectclass: nsSlapdPlugin
 objectclass: extensibleObject
 cn: ipa_pwd_extop
-nsslapd-pluginpath: libipa_pwd_extop.so
+nsslapd-pluginpath: libipa_pwd_extop
 nsslapd-plugininitfunc: ipapwd_init
 nsslapd-plugintype: extendedop
 nsslapd-pluginenabled: on
