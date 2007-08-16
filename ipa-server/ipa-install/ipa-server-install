@@ -132,7 +132,7 @@ def main():
     run(["/sbin/chkconfig", "ipa-kpasswd", "on"])
 
     # Start Kpasswd
-    run(["/sbin/service", "ipa-kpasswd", "start"])
+    # run(["/sbin/service", "ipa-kpasswd", "start"])
 
     # Create the config file
     fd = open("/etc/ipa/ipa.conf", "w")

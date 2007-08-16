@@ -150,9 +150,8 @@ class KrbInstance:
         args = ["/usr/kerberos/sbin/kdb5_ldap_util", "-D", "uid=kdc,cn=kerberos,"+self.suffix, "-w", self.kdc_password, "create", "-s", "-P", self.master_password, "-r", self.realm, "-subtrees", self.suffix, "-sscope", "sub"]
         run(args)
 
-    # TODO: NOT called yet, need to find out how to make sure the plugin is available first
+    #add the password extop module
     def __add_pwd_extop_module(self):
-        #add the password extop module
         extop_txt = template_file(SHARE_DIR + "pwd-extop-conf.ldif", self.sub_dict)
         extop_fd = write_tmp_file(extop_txt)
         ldap_mod(extop_fd, "cn=Directory Manager", self.admin_password)
