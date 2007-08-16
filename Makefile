@@ -1,4 +1,4 @@
-SUBDIRS=ipa-server ipa-admintools ipa-python
+SUBDIRS=ipa-server ipa-admintools ipa-python ipa-client
 
 PRJ_PREFIX=freeipa
 
@@ -31,6 +31,13 @@ PYTHON_VERSION=$(PYTHON_MAJOR).$(PYTHON_MINOR).$(PYTHON_RELEASE)
 PYTHON_TARBALL_PREFIX=$(PRJ_PREFIX)-python-$(PYTHON_VERSION)
 PYTHON_TARBALL=$(PYTHON_TARBALL_PREFIX).tgz
 
+CLI_MAJOR=0
+CLI_MINOR=1
+CLI_RELEASE=0
+CLI_VERSION=$(CLI_MAJOR).$(CLI_MINOR).$(CLI_RELEASE)
+CLI_TARBALL_PREFIX=$(PRJ_PREFIX)-client-$(CLI_VERSION)
+CLI_TARBALL=$(CLI_TARBALL_PREFIX).tgz
+
 ifeq ($(DEBUG),1)
 	export CFLAGS = -g -Wall -Wshadow
 	export LDFLAGS = -g
@@ -62,6 +69,9 @@ version-update:
 
 	sed s/VERSION/$(PYTHON_VERSION)/ ipa-python/freeipa-python.spec.in \
 		> ipa-python/freeipa-python.spec
+
+	sed s/VERSION/$(CLI_VERSION)/ ipa-client/freeipa-client.spec.in \
+		> ipa-client/freeipa-client.spec
 
 
 archive:
@@ -96,6 +106,12 @@ tarballs:
 	cd dist; tar cfz $(PYTHON_TARBALL) $(PYTHON_TARBALL_PREFIX)
 	rm -fr dist/$(PYTHON_TARBALL_PREFIX)
 
+        # ipa-client
+	mv dist/freeipa/ipa-client dist/$(CLI_TARBALL_PREFIX)
+	rm -f dist/$(CLI_TARBALL)
+	cd dist; tar cfz $(CLI_TARBALL) $(CLI_TARBALL_PREFIX)
+	rm -fr dist/$(CLI_TARBALL_PREFIX)
+
 rpmroot:
 	mkdir -p $(RPMBUILD)/BUILD
 	mkdir -p $(RPMBUILD)/RPMS
@@ -121,7 +137,13 @@ rpm-ipa-python:
 	cp rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-python-$(PYTHON_VERSION)-*.rpm dist/.
 	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-python-$(PYTHON_VERSION)-*.src.rpm dist/.
 
-rpms: rpmroot rpm-ipa-server rpm-ipa-admin rpm-ipa-python
+rpm-ipa-client:
+	cp dist/$(CLI_TARBALL) $(RPMBUILD)/SOURCES/.
+	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa-client/freeipa-client.spec
+	cp rpmbuild/RPMS/*/$(PRJ_PREFIX)-client-$(CLI_VERSION)-*.rpm dist/.
+	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-client-$(CLI_VERSION)-*.src.rpm dist/.
+
+rpms: rpmroot rpm-ipa-server rpm-ipa-admin rpm-ipa-python rpm-ipa-client
 
 dist: version-update archive tarballs archive-cleanup rpms
 

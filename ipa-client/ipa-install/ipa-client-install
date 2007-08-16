@@ -1,0 +1,109 @@
+#! /usr/bin/python -E
+# Authors: Simo Sorce <ssorce@redhat.com>
+#          Karl MacMillan <kmacmillan@mentalrootkit.com>
+#
+# Copyright (C) 2007  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+VERSION = "%prog .1"
+
+import sys
+sys.path.append("/usr/share/ipa")
+
+import socket
+import logging
+from optparse import OptionParser
+import ipaclient.ipadiscovery
+from ipaserver.util import run
+
+def parse_options():
+    parser = OptionParser(version=VERSION)
+    parser.add_option("--domain", dest="domain", help="domain name")
+    parser.add_option("--server", dest="server", help="IPA server")
+    parser.add_option("--realm", dest="realm_name", help="realm name")
+    parser.add_option("-d", "--debug", dest="debug", action="store_true",
+                     dest="debug", default=False, help="print debugging information")
+    parser.add_option("-u", "--unattended", dest="unattended",
+                     help="unattended installation never prompts the user")
+
+    options, args = parser.parse_args()
+
+    return options
+
+def logging_setup(options):
+    # Always log everything (i.e., DEBUG) to the log
+    # file.
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)s %(message)s',
+                        filename='ipaclient-install.log',
+                        filemode='w')
+
+    console = logging.StreamHandler()
+    # If the debug option is set, also log debug messages to the console
+    if options.debug:
+        console.setLevel(logging.DEBUG)
+    else:
+        # Otherwise, log critical and error messages
+        console.setLevel(logging.ERROR)
+    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+    console.setFormatter(formatter)
+    logging.getLogger('').addHandler(console)
+
+def main():
+    options = parse_options()
+    logging_setup(options)
+
+    # Create the discovery instance
+    ds = ipaclient.ipadiscovery.IPADiscovery()
+
+    ret = ds.search()
+    if ret == -10:
+        print "Can't get the fully qualified name of this host"
+        print "Please check that the client is properly configured"
+        return ret
+    if ret == -1:
+        logging.debug("Domain not found")
+        if options.domain:
+            dom = options.domain
+        elif options.unattended:
+            return ret
+        else:
+            print "Failed to determine your DNS domain (DNS misconfigured?)"
+            dom = raw_input("Please provide your domain name (ex: example.com):")
+        ret = ds.search(domain=dom)
+        if ret == -2:
+            logging.debug("IPA Server not found")
+            if options.server:
+                srv = options.server
+            elif options.unattended:
+                return ret
+            else:
+                print "Failed to find the IPA Server (DNS misconfigured?)"
+                srv = raw_input("Please provide your server name (ex: ipa.example.com):")
+            ret = ds.search(domain=dom, server=srv)
+            if ret != 0:
+                print "Failed to verify that "+srv+" is an IPA Server, aborting!"
+                return ret
+
+    print "Discovery was successful!"
+    print "Realm: "+ds.getRealmName()
+    print "DNS Domain: "+ds.getDomainName()
+    print "IPA Server: "+ds.getServerName()
+
+    return 0
+
+main()
