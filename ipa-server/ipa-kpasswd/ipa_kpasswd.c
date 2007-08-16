@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <syslog.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <time.h>
@@ -125,13 +126,13 @@ static int get_krb5_ticket(char *tmp_file)
 
 	krberr = krb5_init_context(&context);
 	if (krberr) {
-		fprintf(stderr, "Failed to init kerberos context\n");
+		syslog(LOG_ERR, "Failed to init kerberos context");
 		return -1;
 	}
 
 	krberr = krb5_get_default_realm(context, &realm_name);
 	if (krberr) {
-		fprintf(stderr, "Failed to get default realm name: %s\n",
+		syslog(LOG_ERR, "Failed to get default realm name: %s",
 			krb5_get_error_message(context, krberr));
 		ret = -1;
 		goto done;
@@ -141,7 +142,7 @@ static int get_krb5_ticket(char *tmp_file)
 				      strlen(realm_name), realm_name,
 				      "kadmin", "changepw", NULL);
 	if (krberr) {
-		fprintf(stderr, "Unable to build principal: %s\n",
+		syslog(LOG_ERR, "Unable to build principal: %s",
 			krb5_get_error_message(context, krberr));
 		ret = -1;
 		goto done;
@@ -149,7 +150,7 @@ static int get_krb5_ticket(char *tmp_file)
 
 	krberr = krb5_kt_resolve(context, keytab_name, &keytab);
 	if (krberr) {
-		fprintf(stderr, "Failed to read keytab file: %s\n",
+		syslog(LOG_ERR, "Failed to read keytab file: %s",
 			krb5_get_error_message(context, krberr));
 		ret = -1;
 		goto done;
@@ -157,19 +158,19 @@ static int get_krb5_ticket(char *tmp_file)
 
 	ret = asprintf(&ccname, "FILE:%s", tmp_file);
 	if (ret == -1) {
-		fprintf(stderr, "Out of memory!\n");
+		syslog(LOG_ERR, "Out of memory!");
 		goto done;
 	}
 
 	ret = setenv("KRB5CCNAME", ccname, 1);
 	if (ret == -1) {
-		fprintf(stderr, "Unable to set env. variable KRB5CCNAME!\n");
+		syslog(LOG_ERR, "Unable to set env. variable KRB5CCNAME!");
 		goto done;
 	}
 
 	krberr = krb5_cc_resolve(context, ccname, &ccache);
 	if (krberr) {
-		fprintf(stderr, "Failed to set cache name: %s\n",
+		syslog(LOG_ERR, "Failed to set cache name: %s",
 			krb5_get_error_message(context, krberr));
 		ret = -1;
 		goto done;
@@ -189,7 +190,7 @@ static int get_krb5_ticket(char *tmp_file)
                                           &options);
 
 	if (krberr) {
-		fprintf(stderr, "Failed to init credentials: %s\n",
+		syslog(LOG_ERR, "Failed to init credentials: %s",
 			krb5_get_error_message(context, krberr));
 		ret = -1;
 		goto done;
@@ -197,7 +198,7 @@ static int get_krb5_ticket(char *tmp_file)
 
 	krb5_cc_initialize(context, ccache, kprincpw);
 	if (krberr) {
-		fprintf(stderr, "Failed to init ccache: %s\n",
+		syslog(LOG_ERR, "Failed to init ccache: %s",
 			krb5_get_error_message(context, krberr));
 		ret = -1;
 		goto done;
@@ -205,7 +206,7 @@ static int get_krb5_ticket(char *tmp_file)
 
 	krberr = krb5_cc_store_cred(context, ccache, &my_creds);
 	if (krberr) {
-		fprintf(stderr, "Failed to store creds: %s\n",
+		syslog(LOG_ERR, "Failed to store creds: %s",
 			krb5_get_error_message(context, krberr));
 		ret = -1;
 		goto done;
@@ -242,8 +243,8 @@ int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *sit)
 			break;
 		default:
 			if (debug > 0) {
-				fprintf(stderr,
-					"Unhandled SASL int. option %ld\n",
+				syslog(LOG_ERR,
+					"Unhandled SASL int. option %ld",
 					in->id);
 			}
 			in->result = NULL;
@@ -278,15 +279,15 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 
 	tmp_file = strdup(TMP_TEMPLATE);
 	if (!tmp_file) {
-		fprintf(stderr, "Out of memory!\n");
+		syslog(LOG_ERR, "Out of memory!");
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
 	ret = mkstemp(tmp_file);
 	if (ret == -1) {
-		fprintf(stderr,
-			"Failed to create tmp file with errno: %d\n", errno);
+		syslog(LOG_ERR,
+			"Failed to create tmp file with errno: %d", errno);
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
@@ -299,7 +300,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 	 * Right now do it at every password change for robustness */
 	ret = get_krb5_ticket(tmp_file);
 	if (ret) {
-		fprintf(stderr, "Unable to kinit!\n");
+		syslog(LOG_ERR, "Unable to kinit!");
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
@@ -310,14 +311,14 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 	/* retrieve server name and build uri */
 	ret = gethostname(hostname, 1023);
 	if (ret == -1) {
-		fprintf(stderr, "Unable to get the hostname!\n");
+		syslog(LOG_ERR, "Unable to get the hostname!");
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
 	ret = asprintf(&ldap_uri, "ldap://%s:389", hostname);
 	if (ret == -1) {
-		fprintf(stderr, "Out of memory!\n");
+		syslog(LOG_ERR, "Out of memory!");
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
@@ -326,7 +327,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 	/* TODO: support referrals ? */
 	ret = ldap_initialize(&ld, ldap_uri);
 	if(ret != LDAP_SUCCESS) {
-		fprintf(stderr, "Unable to connect to ldap server");
+		syslog(LOG_ERR, "Unable to connect to ldap server");
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
@@ -334,7 +335,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 	version = LDAP_VERSION3;
 	ret = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
         if (ret != LDAP_OPT_SUCCESS) {
-		fprintf(stderr, "Unable to set ldap protocol version");
+		syslog(LOG_ERR, "Unable to set ldap protocol version");
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
@@ -345,7 +346,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 					   LDAP_SASL_AUTOMATIC,
 					   ldap_sasl_interact, realm_name);
 	if (ret != LDAP_SUCCESS) {
-		fprintf(stderr, "Unable to bind to ldap server");
+		syslog(LOG_ERR, "Unable to bind to ldap server");
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
@@ -360,8 +361,8 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 				NULL, NULL, &tv, 0, &res);
 
 	if (ret != LDAP_SUCCESS) {
-		fprintf(stderr,
-			"Search for %s on rootdse failed with error %d\n",
+		syslog(LOG_ERR,
+			"Search for %s on rootdse failed with error %d",
 			root_attrs[0], ret);
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
@@ -371,7 +372,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 	entry = ldap_first_entry(ld, res);
 	ncvals = ldap_get_values_len(ld, entry, root_attrs[0]);
 	if (!ncvals) {
-		fprintf(stderr, "No values for %s\n", root_attrs[0]);
+		syslog(LOG_ERR, "No values for %s", root_attrs[0]);
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
@@ -384,7 +385,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 	/* find user dn */
 	ret = asprintf(&filter, "krbPrincipalName=%s", client_name);
 	if (ret == -1) {
-		fprintf(stderr, "Out of memory!\n");
+		syslog(LOG_ERR, "Out of memory!");
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
@@ -396,7 +397,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 				filter, attrs, 1, NULL, NULL, &tv, 0, &res);
 
 	if (ret != LDAP_SUCCESS) {
-		fprintf(stderr, "Search for %s failed with error %d\n",
+		syslog(LOG_ERR, "Search for %s failed with error %d",
 			filter, ret);
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
@@ -410,7 +411,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 	ldap_msgfree(res);
 
 	if (!userdn) {
-		fprintf(stderr, "No userdn, can't change password!\n");
+		syslog(LOG_ERR, "No userdn, can't change password!");
 		ret = -1;
 		goto done;
 	}
@@ -418,7 +419,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 	/* build password change control */
 	ctrl = ber_alloc_t(LBER_USE_DER);
 	if (!ctrl) {
-		fprintf(stderr, "Out of memory!\n");
+		syslog(LOG_ERR, "Out of memory!");
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
@@ -428,7 +429,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 
 	ret = ber_flatten2(ctrl, &control, 0);
 	if (ret < 0) {
-		fprintf(stderr, "ber flattening failed!\n");
+		syslog(LOG_ERR, "ber flattening failed!");
 		ret = -1;
 		goto done;
 	}
@@ -438,7 +439,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 				      NULL, NULL, &retoid, &retdata);
 
 	if (ret != LDAP_SUCCESS) {
-		fprintf(stderr, "password change failed!\n");
+		syslog(LOG_ERR, "password change failed!");
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
@@ -496,7 +497,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	if (buflen < 4) {
 		result_string = "Request truncated";
 		result_err = KRB5_KPASSWD_MALFORMED;
-		fprintf(stderr, "%s\n", result_string);
+		syslog(LOG_ERR, "%s", result_string);
 		goto done;
 	}
 
@@ -505,7 +506,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	if (reqlen != buflen) {
 		result_string = "Unmatching request length";
 		result_err = KRB5_KPASSWD_MALFORMED;
-		fprintf(stderr, "%s\n", result_string);
+		syslog(LOG_ERR, "%s", result_string);
 		goto done;
 	}
 
@@ -514,7 +515,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	if (verno != 1) {
 		result_string = "Unsupported version";
 		result_err = KRB5_KPASSWD_BAD_VERSION;
-		fprintf(stderr, "%s\n", result_string);
+		syslog(LOG_ERR, "%s", result_string);
 		goto done;
 	}
 
@@ -522,7 +523,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	if (kreq.length > (buflen - 6)) {
 		result_string = "Request truncated";
 		result_err = KRB5_KPASSWD_MALFORMED;
-		fprintf(stderr, "%s\n", result_string);
+		syslog(LOG_ERR, "%s", result_string);
 		goto done;
 	}
 	kreq.data = (char *)&buf[6];
@@ -531,7 +532,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	if (krberr) {
 		result_string = "Failed to init kerberos context";
 		result_err = KRB5_KPASSWD_HARDERROR;
-		fprintf(stderr, "%s\n", result_string);
+		syslog(LOG_ERR, "%s", result_string);
 		goto done;
 	}
 
@@ -539,7 +540,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	if (krberr) {
 		result_string = "Failed to get default realm name";
 		result_err = KRB5_KPASSWD_HARDERROR;
-		fprintf(stderr, "%s\n", result_string);
+		syslog(LOG_ERR, "%s", result_string);
 		goto done;
 	}
 
@@ -547,7 +548,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	if (krberr) {
 		result_string = "Unable to init auth context";
 		result_err = KRB5_KPASSWD_HARDERROR;
-		fprintf(stderr, "%s: %s\n", result_string,
+		syslog(LOG_ERR, "%s: %s", result_string,
 			krb5_get_error_message(context, krberr));
 		goto done;
 	}
@@ -557,7 +558,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	if (krberr) {
 		result_string = "Unable to init auth context";
 		result_err = KRB5_KPASSWD_HARDERROR;
-		fprintf(stderr, "%s: %s\n", result_string,
+		syslog(LOG_ERR, "%s: %s", result_string,
 			krb5_get_error_message(context, krberr));
 		goto done;
 	}
@@ -568,7 +569,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	if (krberr) {
 		result_string = "Unable to build principal";
 		result_err = KRB5_KPASSWD_HARDERROR;
-		fprintf(stderr, "%s: %s\n", result_string,
+		syslog(LOG_ERR, "%s: %s", result_string,
 			krb5_get_error_message(context, krberr));
 		goto done;
 	}
@@ -577,7 +578,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	if (krberr) {
 		result_string = "Unable to retrieve keytab";
 		result_err = KRB5_KPASSWD_HARDERROR;
-		fprintf(stderr, "%s: %s\n", result_string,
+		syslog(LOG_ERR, "%s: %s", result_string,
 			krb5_get_error_message(context, krberr));
 		goto done;
 	}
@@ -587,7 +588,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	if (krberr) {
 		result_string = "Unable to read request";
 		result_err = KRB5_KPASSWD_AUTHERROR;
-		fprintf(stderr, "%s: %s\n", result_string,
+		syslog(LOG_ERR, "%s: %s", result_string,
 			krb5_get_error_message(context, krberr));
 		goto done;
 	}
@@ -599,7 +600,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	if (krberr) {
 		result_string = "Failed to to build reply";
 		result_err = KRB5_KPASSWD_HARDERROR;
-		fprintf(stderr, "%s: %s\n", result_string,
+		syslog(LOG_ERR, "%s: %s", result_string,
 			krb5_get_error_message(context, krberr));
 		goto done;
 	}
@@ -608,7 +609,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	if (!(ticket->enc_part2->flags & TKT_FLG_INITIAL)) {
 		result_string = "Ticket must be derived from a password";
 		result_err = KRB5_KPASSWD_AUTHERROR;
-		fprintf(stderr, "%s\n", result_string);
+		syslog(LOG_ERR, "%s", result_string);
 		goto kpreply;
 	}
 
@@ -617,7 +618,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	if (krberr) {
 		result_string = "Unable to parse client name";
 		result_err = KRB5_KPASSWD_HARDERROR;
-		fprintf(stderr, "%s\n", result_string);
+		syslog(LOG_ERR, "%s", result_string);
 		goto kpreply;
 	}
 
@@ -625,7 +626,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	if (krberr) {
 		result_string = "Failed to set client address";
 		result_err = KRB5_KPASSWD_HARDERROR;
-		fprintf(stderr, "%s: %s\n", result_string,
+		syslog(LOG_ERR, "%s: %s", result_string,
 			krb5_get_error_message(context, krberr));
 		goto kpreply;
 	}
@@ -640,13 +641,13 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	if (krberr) {
 		result_string = "Failed to decrypt password";
 		result_err = KRB5_KPASSWD_HARDERROR;
-		fprintf(stderr, "%s: %s\n", result_string,
+		syslog(LOG_ERR, "%s: %s", result_string,
 			krb5_get_error_message(context, krberr));
 		goto kpreply;
 	}
 
 	if (debug > 0) {
-		fprintf(stderr, "Client %s trying to set password [%*s]\n",
+		syslog(LOG_ERR, "Client %s trying to set password [%*s]",
 			client_name, kdec.length, kdec.data);
 	}
 
@@ -668,7 +669,7 @@ kpreply:
 	kdec.length = 2 + strlen(result_string);
 	kdec.data = malloc(kdec.length);
 	if (!kdec.data) {
-		fprintf(stderr, "Out of memory!\n");
+		syslog(LOG_ERR, "Out of memory!");
 		goto done;
 	}
 	
@@ -680,7 +681,7 @@ kpreply:
         krberr = krb5_os_localaddr(context, &lkaddr);
 	if (krberr) {
 		result_string = "Failed to retrieve local address";
-		fprintf(stderr, "%s: %s\n", result_string, 
+		syslog(LOG_ERR, "%s: %s", result_string, 
 			krb5_get_error_message(context, krberr));
 		goto done;
 	}
@@ -688,7 +689,7 @@ kpreply:
 	krberr = krb5_auth_con_setaddrs(context, auth_context, lkaddr[0], NULL);
 	if (krberr) {
 		result_string = "Failed to set local address";
-		fprintf(stderr, "%s: %s\n", result_string, 
+		syslog(LOG_ERR, "%s: %s", result_string, 
 			krb5_get_error_message(context, krberr));
 		goto done;
 	}
@@ -696,7 +697,7 @@ kpreply:
 	krberr = krb5_mk_priv(context, auth_context, &kdec, &kenc, &replay);
 	if (krberr) {
 		result_string = "Failed to encrypt reply message";
-		fprintf(stderr, "%s: %s\n", result_string, 
+		syslog(LOG_ERR, "%s: %s", result_string, 
 			krb5_get_error_message(context, krberr));
 		/* encryption was unsuccessful, let's return a krb error */
 
@@ -714,7 +715,7 @@ kpreply:
 		krberr = krb5_timeofday(context, &krb5err.stime);
 		if (krberr) {
 			result_string = "Failed to set time of day";
-			fprintf(stderr, "%s: %s\n", result_string, 
+			syslog(LOG_ERR, "%s: %s", result_string, 
 				krb5_get_error_message(context, krberr));
 			goto done;
 		}
@@ -724,7 +725,7 @@ kpreply:
 		krberr = krb5_mk_error(context, &krb5err, &kenc);
 		if (krberr) {
 			result_string = "Failed to build error message";
-			fprintf(stderr, "%s: %s\n", result_string, 
+			syslog(LOG_ERR, "%s: %s", result_string, 
 				krb5_get_error_message(context, krberr));
 			goto done;
 		}
@@ -733,7 +734,7 @@ kpreply:
 	replylen = 6 + krep.length + kenc.length;
 	reply = malloc(replylen);
 	if (!reply) {
-		fprintf(stderr, "Out of memory!\n");
+		syslog(LOG_ERR, "Out of memory!");
 		goto done;
 	}
 	*repbuf = reply;
@@ -782,7 +783,7 @@ pid_t handle_conn(int fd, int type)
 
 		mfd = accept(fd, (struct sockaddr *)&from, &fromlen);
 		if (mfd == -1) {
-			fprintf(stderr, "Accept failed with error (%d) %s\n",
+			syslog(LOG_ERR, "Accept failed with error (%d) %s",
 				errno, strerror(errno));
 			return -1;
 		}
@@ -793,7 +794,7 @@ pid_t handle_conn(int fd, int type)
 	reqlen = recvfrom(mfd, request, sizeof(request), 0,
 			   (struct sockaddr *)&from, &fromlen);
 	if (reqlen <= 0) {
-		fprintf(stderr, "Error receiving request (%d) %s\n",
+		syslog(LOG_ERR, "Error receiving request (%d) %s",
 			errno, strerror(errno));
 		if (type == KPASSWD_TCP) close(mfd);
 		return -1;
@@ -807,7 +808,7 @@ pid_t handle_conn(int fd, int type)
 	if (debug > 0) {
 		uint16_t port = ntohs(from.sin_port);
 
-		fprintf(stderr, "Connection from %s:%d\n", address, port);
+		syslog(LOG_ERR, "Connection from %s:%d", address, port);
 	}
 
 	/* Check blacklist for requests frm the same IP until operations
@@ -818,7 +819,7 @@ pid_t handle_conn(int fd, int type)
 
 	if (check_blacklist(address)) {
 		if (debug > 0) {
-			fprintf(stderr, "[%s] blacklisted\n", address);
+			syslog(LOG_ERR, "[%s] blacklisted", address);
 		}
 		if (type == KPASSWD_TCP) close(mfd);
 		return 0;
@@ -828,7 +829,7 @@ pid_t handle_conn(int fd, int type)
 	/* handle kerberos and ldap operations in childrens */
 	pid = fork();
 	if (pid == -1) {
-		fprintf(stderr, "Fork failed with error (%d) %s\n",
+		syslog(LOG_ERR, "Fork failed with error (%d) %s",
 			errno, strerror(errno));
 		if (type == KPASSWD_TCP) close(mfd);
 		return 0;
@@ -850,7 +851,7 @@ pid_t handle_conn(int fd, int type)
 			sendret = sendto(mfd, reply, replen, 0, (struct sockaddr *)&from, fromlen);
 		}
 		if (sendret == -1) {
-			fprintf(stderr, "Error sending reply (%d)\n", errno);
+			syslog(LOG_ERR, "Error sending reply (%d)", errno);
 		}
 	}
 	close(mfd);
@@ -861,11 +862,45 @@ pid_t handle_conn(int fd, int type)
 
 int main(int argc, char *argv[])
 {
+	pid_t pid;
 	struct sockaddr_in addr;
 	int tcp_s, udp_s;
 	int tru = 1;
 	int ret;
 	char *key;
+
+	/* log to syslog */
+	openlog("kpasswd", LOG_PID, LOG_DAEMON);
+
+	/* do not keep any fs busy */
+	ret = chdir("/");
+	if (ret == -1) {
+		syslog(LOG_ERR, "Unable to chage dir to '/'");
+		exit(-1);
+	}
+
+	/* daemonize */
+	pid = fork();
+	if (pid == -1) {
+		syslog(LOG_ERR, "Error fork() failed!");
+		exit(-1);
+	}
+	if (pid != 0) { /* parent */
+		exit(0);
+	}
+
+	/* new session */
+	setsid();
+
+	/* fork again to make sure we completely detach from parent process */
+	pid = fork();
+	if (pid == -1) {
+		syslog(LOG_ERR, "Error fork() failed!");
+		exit(-1);
+	}
+	if (pid != 0) { /* parent */
+		exit(0);
+	}
 
 	key = getenv("KRB5_KTNAME");
 	if (!key) {
@@ -873,18 +908,18 @@ int main(int argc, char *argv[])
 	}
 	keytab_name = strdup(key);
 	if (!keytab_name) {
-		fprintf(stderr, "Out of memory!\n");
+		syslog(LOG_ERR, "Out of memory!");
 	}
 
 	tcp_s = socket(AF_INET, SOCK_STREAM, 0);
 	if (tcp_s == -1) {
-		fprintf(stderr, "Unable to create TCP socket\n");
+		syslog(LOG_ERR, "Unable to create TCP socket");
 		exit(1);
 	}
 
 	udp_s = socket(AF_INET, SOCK_DGRAM, 0);
 	if (udp_s == -1) {
-		fprintf(stderr, "Unable to create UDP socket\n");
+		syslog(LOG_ERR, "Unable to create UDP socket");
 		close(tcp_s);
 		exit(1);
 	}
@@ -893,8 +928,8 @@ int main(int argc, char *argv[])
         ret = setsockopt(tcp_s, SOL_SOCKET, SO_REUSEADDR,
 			 (void *)&tru, sizeof(tru));
 	if (ret == -1) {
-		fprintf(stderr,
-			"Unable to set SO_REUSEADDR for the TCP socket (%d) %s\n",
+		syslog(LOG_ERR,
+			"Unable to set SO_REUSEADDR for the TCP socket (%d) %s",
 			errno, strerror(errno));
 		close(tcp_s);
 		close(udp_s);
@@ -904,8 +939,8 @@ int main(int argc, char *argv[])
         ret = setsockopt(udp_s, SOL_SOCKET, SO_REUSEADDR,
 			 (void *)&tru, sizeof(tru));
 	if (ret == -1) {
-		fprintf(stderr,
-			"Unable to set SO_REUSEADDR for the UDP socket (%d) %s\n",
+		syslog(LOG_ERR,
+			"Unable to set SO_REUSEADDR for the UDP socket (%d) %s",
 			errno, strerror(errno));
 		close(tcp_s);
 		close(udp_s);
@@ -920,8 +955,8 @@ int main(int argc, char *argv[])
 
 	ret = bind(tcp_s, (struct sockaddr *)&addr, sizeof(addr));
 	if (ret == -1) {
-		fprintf(stderr,
-			"Unable to bind the TCP kpasswd port (%d) %s\n",
+		syslog(LOG_ERR,
+			"Unable to bind the TCP kpasswd port (%d) %s",
 			errno, strerror(errno));
 		close(tcp_s);
 		close(udp_s);
@@ -935,8 +970,8 @@ int main(int argc, char *argv[])
 
 	ret = bind(udp_s, (struct sockaddr *)&addr, sizeof(addr));
 	if (ret == -1) {
-		fprintf(stderr,
-			"Unable to bind the UDP kpasswd port (%d) %s\n",
+		syslog(LOG_ERR,
+			"Unable to bind the UDP kpasswd port (%d) %s",
 			errno, strerror(errno));
 		close(tcp_s);
 		close(udp_s);
@@ -945,8 +980,8 @@ int main(int argc, char *argv[])
 
 	ret = listen(tcp_s, 5);
 	if (ret == -1) {
-		fprintf(stderr,
-			"Unable to listen oin the TCP socket (%d) %s\n",
+		syslog(LOG_ERR,
+			"Unable to listen oin the TCP socket (%d) %s",
 			errno, strerror(errno));
 		close(tcp_s);
 		close(udp_s);
@@ -974,8 +1009,8 @@ int main(int argc, char *argv[])
 			break;
 		case -1:
 			if (errno != EINTR) {
-				fprintf(stderr,
-					"Unexpected error in select (%d) %s\n",
+				syslog(LOG_ERR,
+					"Unexpected error in select (%d) %s",
 					errno, strerror(errno));
 				exit(5);
 			}
