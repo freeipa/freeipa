@@ -244,7 +244,7 @@ class IPAServer:
     
         return fields
     
-    def get_all_users (self):
+    def get_all_users (self, args=None, opts=None):
         """Return a list containing a User object for each
         existing user.
         """
