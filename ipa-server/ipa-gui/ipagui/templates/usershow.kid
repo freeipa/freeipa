@@ -18,15 +18,15 @@
         </tr>
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.uidNumber.label" />
+            <label class="fieldlabel" py:content="fields.uidnumber.label" />
           </th>
-          <td>${user.get("uidNumber")}</td>
+          <td>${user.get("uidnumber")}</td>
         </tr>
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.gidNumber.label" />
+            <label class="fieldlabel" py:content="fields.gidnumber.label" />
           </th>
-          <td>${user.get("gidNumber")}</td>
+          <td>${user.get("gidnumber")}</td>
         </tr>
     </table>
 
@@ -34,9 +34,9 @@
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.givenName.label" />
+            <label class="fieldlabel" py:content="fields.givenname.label" />
           </th>
-          <td>${user.get("givenName")}</td>
+          <td>${user.get("givenname")}</td>
         </tr>
         <tr>
           <th>
@@ -56,9 +56,9 @@
         </tr>
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.telephoneNumber.label" />
+            <label class="fieldlabel" py:content="fields.telephonenumber.label" />
           </th>
-          <td>${user.get("telephoneNumber")}</td>
+          <td>${user.get("telephonenumber")}</td>
         </tr>
     </table>
 

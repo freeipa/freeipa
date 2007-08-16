@@ -21,13 +21,13 @@
 
       <tr>
         <th valign="top">
-          <label class="fieldlabel" for="${user.userPassword.field_id}"
-            py:content="user.userPassword.label" />
+          <label class="fieldlabel" for="${user.userpassword.field_id}"
+            py:content="user.userpassword.label" />
         </th>
         <td valign="top">
-          <span py:replace="user.userPassword.display(value_for(user.userPassword))" />
-          <span py:if="tg.errors.get('userPassword')" class="fielderror"
-              py:content="tg.errors.get('userPassword')" />
+          <span py:replace="user.userpassword.display(value_for(user.userpassword))" />
+          <span py:if="tg.errors.get('userpassword')" class="fielderror"
+              py:content="tg.errors.get('userpassword')" />
           <span id="password_text">********</span>
 
           <input id="genpassword_button" type="button" value="Generate Password"
@@ -36,7 +36,7 @@
                 {
                   method: 'get',
                   onSuccess: function(transport) {
-                    document.getElementById('form_userPassword').value =
+                    document.getElementById('form_userpassword').value =
                         transport.responseText;
                   }
                 });" />
@@ -44,10 +44,10 @@
           <input type="checkbox"
               onclick="togglePassword(this);"><span class="small">edit</span></input>
           <script type="text/javascript">
-            document.getElementById('form_userPassword').style.display='none';
+            document.getElementById('form_userpassword').style.display='none';
 
             function togglePassword(checkbox) {
-              passwordField = document.getElementById('form_userPassword');
+              passwordField = document.getElementById('form_userpassword');
               passwordText = document.getElementById('password_text');
               passwordButton = document.getElementById('genpassword_button');
               if (checkbox.checked) {
@@ -66,21 +66,21 @@
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.uidNumber.field_id}"
-            py:content="user.uidNumber.label" />
+          <label class="fieldlabel" for="${user.uidnumber.field_id}"
+            py:content="user.uidnumber.label" />
         </th>
         <td>
-          ${value_for(user.uidNumber)}
+          ${value_for(user.uidnumber)}
         </td>
       </tr>
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.gidNumber.field_id}"
-            py:content="user.gidNumber.label" />
+          <label class="fieldlabel" for="${user.gidnumber.field_id}"
+            py:content="user.gidnumber.label" />
         </th>
         <td>
-          ${value_for(user.gidNumber)}
+          ${value_for(user.gidnumber)}
         </td>
       </tr>
     </table>
@@ -89,13 +89,13 @@
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.givenName.field_id}"
-            py:content="user.givenName.label" />
+          <label class="fieldlabel" for="${user.givenname.field_id}"
+            py:content="user.givenname.label" />
         </th>
         <td>
-          <span py:replace="user.givenName.display(value_for(user.givenName))" />
-          <span py:if="tg.errors.get('givenName')" class="fielderror"
-              py:content="tg.errors.get('givenName')" />
+          <span py:replace="user.givenname.display(value_for(user.givenname))" />
+          <span py:if="tg.errors.get('givenname')" class="fielderror"
+              py:content="tg.errors.get('givenname')" />
 
         </td>
       </tr>
@@ -128,13 +128,13 @@
       </tr>
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.telephoneNumber.field_id}"
-            py:content="user.telephoneNumber.label" />
+          <label class="fieldlabel" for="${user.telephonenumber.field_id}"
+            py:content="user.telephonenumber.label" />
         </th>
         <td>
-          <span py:replace="user.telephoneNumber.display(value_for(user.telephoneNumber))" />
-          <span py:if="tg.errors.get('telephoneNumber')" class="fielderror"
-              py:content="tg.errors.get('telephoneNumber')" />
+          <span py:replace="user.telephonenumber.display(value_for(user.telephonenumber))" />
+          <span py:if="tg.errors.get('telephonenumber')" class="fielderror"
+              py:content="tg.errors.get('telephonenumber')" />
         </td>
       </tr>
     </table>

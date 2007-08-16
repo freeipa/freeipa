@@ -1,4 +1,7 @@
 import random
+from pickle import dumps, loads
+from base64 import b64encode, b64decode
+
 import cherrypy
 import turbogears
 from turbogears import controllers, expose, flash
@@ -8,6 +11,7 @@ from turbogears import error_handler
 # from model import *
 # import logging
 # log = logging.getLogger("ipagui.controllers")
+
 import ipa.config
 import ipa.ipaclient
 import ipa.user
@@ -28,20 +32,26 @@ def restrict_post():
         turbogears.flash("This method only accepts posts")
         raise turbogears.redirect("/")
 
-def user_to_hash(user):
-    return {
-        'uid'       : user.getValue('uid'),
-        'givenName' : user.getValue('givenName'),
-        'sn'        : user.getValue('sn'),
-        'mail'      : user.getValue('mail'),
-        'telephoneNumber': user.getValue('telephoneNumber'),
-        'uidNumber'      : user.getValue('uidNumber'),
-        'gidNumber'      : user.getValue('gidNumber'),
-        'givenName_orig' : user.getValue('givenName'),
-        'sn_orig'        : user.getValue('sn'),
-        'mail_orig'      : user.getValue('mail'),
-        'telephoneNumber_orig': user.getValue('telephoneNumber'),
-            }
+def to_ldap_hash(orig):
+    """LDAP hashes expect all values to be a list.  This method converts single
+       entries to a list."""
+    new={}
+    for (k,v) in orig.iteritems():
+        if v == None:
+            continue
+        if not isinstance(v, list) and k != 'dn':
+            v = [v]
+        new[k] = v
+
+    return new
+
+def set_ldap_value(hash, key, value):
+    """Converts unicode strings to normal strings
+       (because LDAP is choking on unicode strings"""
+    if value != None:
+        value = str(value)
+    hash[key] = value
+
 
 class Root(controllers.RootController):
 
@@ -75,20 +85,14 @@ class Root(controllers.RootController):
             return dict(form=user_new_form, tg_template='ipagui.templates.usernew')
 
         try:
-            newuser = ipa.user.User(None)
-            newuser.setValue('uid', kw['uid'])
-            newuser.setValue('givenName', kw['givenName'])
-            newuser.setValue('sn', kw['sn'])
-            newuser.setValue('mail', kw['mail'])
-            newuser.setValue('telephoneNumber', kw['telephoneNumber'])
-            newuser2 = {
-                'uid'       : kw['uid'],
-                'givenName' : kw['givenName'],
-                'sn'        : kw['sn'],
-                'mail'      : kw['mail'],
-                'telephoneNumber': kw['telephoneNumber']
-                    }
-            rv = client.add_user(newuser2)
+            new_user = {}
+            set_ldap_value(new_user, 'uid', kw.get('uid'))
+            set_ldap_value(new_user, 'givenname', kw.get('givenname'))
+            set_ldap_value(new_user, 'sn', kw.get('sn'))
+            set_ldap_value(new_user, 'mail', kw.get('mail'))
+            set_ldap_value(new_user, 'telephonenumber', kw.get('telephonenumber'))
+
+            rv = client.add_user(new_user)
             turbogears.flash("%s added!" % kw['uid'])
             raise turbogears.redirect('/usershow', uid=kw['uid'])
         except xmlrpclib.Fault, f:
@@ -103,7 +107,11 @@ class Root(controllers.RootController):
             turbogears.flash("There was a problem with the form!")
 
         user = client.get_user(uid)
-        return dict(form=user_edit_form, user=user_to_hash(user))
+        user_hash = user.toDict()
+        # store a copy of the original user for the update later
+        user_data = b64encode(dumps(user_hash))
+        user_hash['user_orig'] = user_data
+        return dict(form=user_edit_form, user=user_hash)
 
     @expose()
     def userupdate(self, **kw):
@@ -119,10 +127,22 @@ class Root(controllers.RootController):
                         tg_template='ipagui.templates.useredit')
 
         try:
+            orig_user = loads(b64decode(kw.get('user_orig')))
+
+            new_user = dict(orig_user)
+            set_ldap_value(new_user, 'givenname', kw.get('givenname'))
+            set_ldap_value(new_user, 'sn', kw.get('sn'))
+            set_ldap_value(new_user, 'mail', kw.get('mail'))
+            set_ldap_value(new_user, 'telephonenumber', kw.get('telephonenumber'))
+
+            orig_user = to_ldap_hash(orig_user)
+            new_user = to_ldap_hash(new_user)
+
+            rv = client.update_user(orig_user, new_user)
             turbogears.flash("%s updated!" % kw['uid'])
             raise turbogears.redirect('/usershow', uid=kw['uid'])
         except xmlrpclib.Fault, f:
-            turbogears.flash("User add failed: " + str(f.faultString))
+            turbogears.flash("User update failed: " + str(f.faultString))
             return dict(form=user_edit_form, user=kw,
                         tg_template='ipagui.templates.useredit')
 
@@ -140,7 +160,7 @@ class Root(controllers.RootController):
         """Retrieve a single user for display"""
         try:
             user = client.get_user(uid)
-            return dict(user=user_to_hash(user), fields=forms.user.UserFields())
+            return dict(user=user.toDict(), fields=forms.user.UserFields())
         except xmlrpclib.Fault, f:
             turbogears.flash("User show failed: " + str(f.faultString))
             raise turbogears.redirect("/")

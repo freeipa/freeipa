@@ -59,18 +59,18 @@ class IPAClient:
 
         # FIXME: This should be dynamic and can include just about anything
         # Let us add in some missing attributes
-        if user.get('homeDirectory') is None:
-                user['homeDirectory'] ='/home/%s' % user['uid']
+        if user.get('homedirectory') is None:
+                user['homedirectory'] ='/home/%s' % user['uid']
         if user.get('gecos') is None:
                 user['gecos'] = user['uid']
 
         # FIXME: This can be removed once the DS plugin is installed
-        user['uidNumber'] ='501'
+        user['uidnumber'] ='501'
 
         # FIXME: What is the default group for users?
-        user['gidNumber'] ='501'
-        user['krbPrincipalName'] = "%s@%s" % (user['uid'], realm)
-        user['cn'] = "%s %s" % (user['givenName'], user['sn'])
+        user['gidnumber'] ='501'
+        user['krbprincipalname'] = "%s@%s" % (user['uid'], realm)
+        user['cn'] = "%s %s" % (user['givenname'], user['sn'])
         if user.get('gn'):
                 del user['gn']
 
