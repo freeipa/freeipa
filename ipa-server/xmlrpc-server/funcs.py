@@ -337,7 +337,8 @@ class IPAServer:
         except ldap.LDAPError, e:
             raise xmlrpclib.Fault(1, e)
         except ipaserver.ipaldap.NoSuchEntryError:
-            raise xmlrpclib.Fault(2, "No such user")
+            results = []
+            # raise xmlrpclib.Fault(2, "No such user")
     
         users = []
         for u in results:

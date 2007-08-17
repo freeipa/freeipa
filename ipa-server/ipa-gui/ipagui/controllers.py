@@ -134,6 +134,11 @@ class Root(controllers.RootController):
             set_ldap_value(new_user, 'sn', kw.get('sn'))
             set_ldap_value(new_user, 'mail', kw.get('mail'))
             set_ldap_value(new_user, 'telephonenumber', kw.get('telephonenumber'))
+            #
+            # this is a hack until we decide on the policy for names/cn/sn/givenName
+            #
+            set_ldap_value(new_user, 'sn', 
+                           "%s %s" % (kw.get('givenname'), kw.get('sn')))
 
             orig_user = to_ldap_hash(orig_user)
             new_user = to_ldap_hash(new_user)
@@ -148,11 +153,14 @@ class Root(controllers.RootController):
 
 
     @expose("ipagui.templates.userlist")
-    @paginate('users', limit=3, allow_limit_override=True)
-    def userlist(self):
+    def userlist(self, **kw):
         """Retrieve a list of all users and display them in one huge list"""
-        users = client.get_all_users()
-        return dict(users=users)
+        users = None
+        uid = kw.get('uid')
+        if uid != None and len(uid) > 0:
+            users = client.find_users("*%s*" % uid)
+
+        return dict(users=users, fields=forms.user.UserFields())
 
 
     @expose("ipagui.templates.usershow")

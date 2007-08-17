@@ -6,21 +6,41 @@
 <title>User Listing</title>
 </head>
 <body>
-      <fieldset>
-        <legend>People List</legend>
-        <div>
-          Page: 
-          <span py:for="page in tg.paginate.pages">
-              <a py:if="page != tg.paginate.current_page"
-                  href="${tg.paginate.get_href(page)}">${page}</a>
-              <b py:if="page == tg.paginate.current_page">${page}</b>
-          </span>
-          <p/>
-          <span py:for="user in users">
-             <a href="${tg.url('/usershow',uid=user.uid)}">${user.cn}</a>
-            <br/>
-          </span>
+    <div id="search">
+        <form action="${tg.url('/userlist')}" method="post">
+            Search by uid:
+            <input type="text" name="uid" />
+            <input type="submit" />
+        </form>
+    </div>
+    <div py:if='users != None'>
+        <h2>Results</h2>
+        <table py:if='len(users) > 0'>
+            <tr>
+                <th>
+                    <label class="fieldlabel" py:content="fields.uid.label" />
+                </th>
+                <th>
+                    Name
+                </th>
+            </tr>
+            <tr py:for="user in users">
+                <td>
+                    <a href="${tg.url('/usershow',uid=user.uid)}">${user.uid}</a>
+                </td>
+                <td>
+                    ${user.cn}
+                </td>
+            </tr>
+        </table>
+        <div py:if='len(users) == 0'>
+            No results found.
         </div>
-       </fieldset>
+    </div>
+
+    <!-- fix for visual artifact of my crappy ui -->
+    <div>
+        <br /><br /><br /><br />
+    </div>
 </body>
 </html>
