@@ -891,6 +891,10 @@ int main(int argc, char *argv[])
 
 	/* new session */
 	setsid();
+	/* close std* descriptors */
+	close(0);
+	close(1);
+	close(2);
 
 	/* fork again to make sure we completely detach from parent process */
 	pid = fork();
