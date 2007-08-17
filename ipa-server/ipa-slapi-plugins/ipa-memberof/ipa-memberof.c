@@ -109,7 +109,6 @@ static void ipamo_load_array(Slapi_Value **array, Slapi_Attr *attr);
 static Slapi_Filter *ipamo_string2filter(char *strfilter);
 static int ipamo_is_legit_member(Slapi_PBlock *pb, char *group_dn,
 	char *op_this, char *op_to, ipamostringll *stack);
-static int ipamo_memberof_search_callback(Slapi_Entry *e, void *callback_data);
 static int ipamo_del_dn_from_groups(Slapi_PBlock *pb, char *dn);
 static int ipamo_call_foreach_dn(Slapi_PBlock *pb, char *dn,
 	char *type, plugin_search_entry_callback callback,  void *callback_data);
@@ -301,7 +300,8 @@ int ipamo_del_dn_from_groups(Slapi_PBlock *pb, char *dn)
 {
 	del_dn_data data = {dn, IPA_GROUP_ATTR};
 
-	ipamo_call_foreach_dn(pb, dn, IPA_GROUP_ATTR, ipamo_del_dn_type_callback, &data);
+	return ipamo_call_foreach_dn(pb, dn,
+		IPA_GROUP_ATTR, ipamo_del_dn_type_callback, &data);
 }
 
 int ipamo_del_dn_type_callback(Slapi_Entry *e, void *callback_data)
@@ -348,7 +348,6 @@ int ipamo_call_foreach_dn(Slapi_PBlock *pb, char *dn,
 	Slapi_Backend *be = 0;
 	Slapi_DN *sdn = 0;
 	Slapi_DN *base_sdn = 0;
-	char *attrlist[2] = {"1.1",0};
 	char *filter_str = 0;
 
 	/* get the base dn for the backend we are in
@@ -402,7 +401,6 @@ int ipamo_call_foreach_dn(Slapi_PBlock *pb, char *dn,
 int ipamo_postop_modrdn(Slapi_PBlock *pb)
 {
 	int ret = 0;
-	char *dn = 0;
 
 	slapi_log_error( SLAPI_LOG_TRACE, IPAMO_PLUGIN_SUBSYSTEM,
 		     "--> ipamo_postop_modrdn\n" );
@@ -720,7 +718,7 @@ char *ipamo_getdn(Slapi_PBlock *pb)
  */
 int ipamo_modop_one(Slapi_PBlock *pb, int mod_op, char *op_this, char *op_to)
 {
-	ipamo_modop_one_r(pb, mod_op, op_this, op_this, op_to, 0);
+	return ipamo_modop_one_r(pb, mod_op, op_this, op_this, op_to, 0);
 }
 
 /* ipamo_modop_one_r()
@@ -841,7 +839,16 @@ int ipamo_modop_one_replace_r(Slapi_PBlock *pb, int mod_op, char *group_dn,
 			ipamo_mod_attr_list_r(pb, mod_op, group_dn, op_this, members, ll);
 		}
 
-		slapi_ch_free((void**)&ll);
+		{
+			/* crazyness follows:
+			 * strict-aliasing doesn't like the required cast
+			 * to void for slapi_ch_free so we are made to
+			 * juggle to get a normal thing done
+			 */
+			void *pll = ll;
+			slapi_ch_free(&pll);
+			ll = 0;
+		}
 	}
 	/* continue with operation */
 	{
@@ -1353,9 +1360,19 @@ int ipamo_test_membership_callback(Slapi_Entry *e, void *callback_data)
 
 				outer_index++;
 			}
-
-			slapi_ch_free((void**)&candidate_array);
-			slapi_ch_free((void**)&member_array);
+			{
+				/* crazyness follows:
+				 * strict-aliasing doesn't like the required cast
+				 * to void for slapi_ch_free so we are made to
+				 * juggle to get a normal thing done
+				 */
+				void *pmember_array = member_array;
+				void *pcandidate_array = candidate_array;
+				slapi_ch_free(&pcandidate_array);
+				slapi_ch_free(&pmember_array);
+				candidate_array = 0;
+				member_array = 0;
+			}
 		}
 	}
 
@@ -1502,6 +1519,7 @@ int ipamod_replace_list(Slapi_PBlock *pb, char *group_dn)
 		}
 	}
 	
+	return 0;
 }
 
 /* ipamo_load_array()
@@ -1712,7 +1730,7 @@ int ipamo_is_legit_member(Slapi_PBlock *pb, char *group_dn,
 	}
 
 bail:
-	slapi_ch_free((void**)&filter_str);
+	slapi_ch_free_string(&filter_str);
 
 	slapi_log_error( SLAPI_LOG_TRACE, IPAMO_PLUGIN_SUBSYSTEM,
 		"<-- ipamo_is_legit_member\n" );
