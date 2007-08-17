@@ -125,12 +125,28 @@ class IPAServer:
     
         return user
     
-    def get_user (self, username, opts=None):
+    def get_user (self, args, sattrs=None, opts=None):
         """Get a specific user's entry. Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
         global _LDAPPool
         ent=""
+
+        # The XML-RPC server marshals the arguments into one variable
+        # while the direct caller has them separate. So do a little
+        # bit of gymnastics to figure things out. There has to be a
+        # better way, so FIXME
+        if isinstance(args,tuple):
+            opts = sattrs
+            if len(args) == 2:
+                username = args[0]
+                sattrs = args[1]
+            else:
+                username = args
+                sattrs = None
+        else:
+            username = args
+
         if opts:
             self.set_principal(opts['remoteuser'])
         if (isinstance(username, tuple)):
@@ -146,7 +162,7 @@ class IPAServer:
         filter = "(uid=" + username + ")"
         try:
             m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
-            ent = m1.getEntry(self.basedn, self.scope, filter, None)
+            ent = m1.getEntry(self.basedn, self.scope, filter, sattrs)
             _LDAPPool.releaseConn(m1)
         except ldap.LDAPError, e:
             raise xmlrpclib.Fault(1, e)
@@ -156,7 +172,10 @@ class IPAServer:
         return self.convert_entry(ent)
     
     def add_user (self, user, user_container="ou=users,ou=default",opts=None):
-        """Add a user in LDAP"""
+        """Add a user in LDAP. Takes as input a dict where the key is the
+           attribute name and the value is either a string or in the case
+           of a multi-valued field a list of values. user_container sets
+           where in the tree the user is placed."""
         global _LDAPPool
         if (isinstance(user, tuple)):
             user = user[0]
@@ -368,6 +387,42 @@ class IPAServer:
         try:
             m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,proxydn)
             res = m1.updateEntry(moddn, olduser, newuser)
+            _LDAPPool.releaseConn(m1)
+            return res
+        except ldap.LDAPError, e:
+            raise xmlrpclib.Fault(1, str(e))
+
+    def mark_user_deleted (self, args, opts=None):
+        """Mark a user as inactive in LDAP. We aren't actually deleting
+           users here, just making it so they can't log in, etc."""
+        global _LDAPPool
+
+        uid = args[0]
+
+        if opts:
+            self.set_principal(opts['remoteuser'])
+
+        try:
+            proxydn = self.get_dn_from_principal(self.princ)
+        except ldap.LDAPError, e:
+            raise xmlrpclib.Fault(1, e)
+        except ipaserver.ipaldap.NoSuchEntryError:
+            raise xmlrpclib.Fault(2, "No such user")
+
+        try:
+            user = self.get_user(uid, ['dn', 'nsAccountlock'], opts)
+        except ldap.LDAPError, e:
+            raise xmlrpclib.Fault(1, str(e))
+
+        # Are we doing an add or replace operation?
+        if user.has_key('nsaccountlock'):
+            has_key = True
+        else:
+            has_key = False
+
+        try:
+            m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,proxydn)
+            res = m1.inactivateEntry(user['dn'], has_key)
             _LDAPPool.releaseConn(m1)
             return res
         except ldap.LDAPError, e:

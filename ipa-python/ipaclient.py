@@ -41,14 +41,19 @@ class IPAClient:
             self.transport = rpcclient.RPCClient()
 
     def set_principal(self,princ):
+        """Set the name of the principal that will be used for
+           LDAP proxy authentication"""
         if self.local:
             self.transport.set_principal(princ)
 
-    def get_user(self,uid):
-        result = self.transport.get_user(uid)
+    def get_user(self,uid,sattrs=None):
+        """Get a specific user by uid. If sattrs is set then only those
+           attributes will be returned."""
+        result = self.transport.get_user(uid,sattrs)
         return user.User(result)
 
     def add_user(self,user):
+        """Add a user. user is a dict of attribute/value pairs"""
 
         realm = config.config.get_realm()
 
@@ -73,32 +78,48 @@ class IPAClient:
         return result
 
     def get_all_users(self):
+        """Get as a list of User objects all users in the directory"""
         result = self.transport.get_all_users()
 
         all_users = []
         for (attrs) in result:
-                if attrs is not None:
-                        all_users.append(user.User(attrs))
+            if attrs is not None:
+                all_users.append(user.User(attrs))
 
         return all_users
 
     def get_add_schema(self):
+        """Prototype for the GUI. Specify in the directory fields to
+           be displayed and what data to get for new users."""
         result = self.transport.get_add_schema()
         return result
 
     def find_users(self, criteria, sattrs=None):
+        """Find users whose uid matches the criteria. Wildcards are 
+           acceptable. Returns a list of User objects."""
         result = self.transport.find_users(criteria, sattrs)
 
         users = []
         for (attrs) in result:
-                if attrs is not None:
-                        users.append(user.User(attrs))
+            if attrs is not None:
+                users.append(user.User(attrs))
 
         return users
 
     def update_user(self,olduser,newuser):
+        """Update a user entry. olduser is a dict of attribute/value pairs
+           of the original entry. newuser is a dict of attribute/value pairs
+           of the new entry."""
 
         realm = config.config.get_realm()
 
         result = self.transport.update_user(olduser,newuser)
+        return result
+
+    def mark_user_deleted(self,uid):
+        """Set a user as inactive by uid."""
+
+        realm = config.config.get_realm()
+
+        result = self.transport.mark_user_deleted(uid)
         return result
