@@ -171,14 +171,31 @@ class IPAServer:
     
         return self.convert_entry(ent)
     
-    def add_user (self, user, user_container="ou=users,ou=default",opts=None):
+    def add_user (self, args, user_container="ou=users,ou=default",opts=None):
         """Add a user in LDAP. Takes as input a dict where the key is the
            attribute name and the value is either a string or in the case
            of a multi-valued field a list of values. user_container sets
            where in the tree the user is placed."""
         global _LDAPPool
+
+        # The XML-RPC server marshals the arguments into one variable
+        # while the direct caller has them separate. So do a little
+        # bit of gymnastics to figure things out. There has to be a
+        # better way, so FIXME
+        if isinstance(args,tuple):
+            opts = user_container
+            if len(args) == 2:
+                user = args[0]
+                user_container = args[1]
+            else:
+                user = args
+                user_container = "ou=users,ou=default"
+        else:
+            user = args
+
         if (isinstance(user, tuple)):
             user = user[0]
+
         dn="uid=%s,%s,%s" % (user['uid'], user_container,self.basedn)
         entry = ipaserver.ipaldap.Entry(str(dn))
 

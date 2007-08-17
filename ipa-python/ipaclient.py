@@ -29,6 +29,14 @@ import user
 import ipa
 import config
 
+def cidict_to_dict(cid):
+    """Convert a cidict to a standard dict for sending across the wire"""
+    newdict = {}
+    kindex = cid.keys()
+    for dkey in kindex:
+        newdict[dkey] = cid[dkey]
+    return newdict
+
 class IPAClient:
 
     def __init__(self,local=None):
@@ -53,7 +61,7 @@ class IPAClient:
         return user.User(result)
 
     def add_user(self,user):
-        """Add a user. user is a dict of attribute/value pairs"""
+        """Add a user. user is a cidict() of attribute/value pairs"""
 
         realm = config.config.get_realm()
 
@@ -74,7 +82,9 @@ class IPAClient:
         if user.get('gn'):
                 del user['gn']
 
-        result = self.transport.add_user(user)
+        # convert to a regular dict before sending
+        dict_user = cidict_to_dict(user)
+        result = self.transport.add_user(dict_user)
         return result
 
     def get_all_users(self):

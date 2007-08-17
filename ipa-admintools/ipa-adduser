@@ -26,6 +26,7 @@ import ipa.config
 
 import xmlrpclib
 import kerberos
+import ldap
 
 def usage():
     print "ipa-adduser [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] user"
@@ -55,7 +56,7 @@ def parse_options():
     return options, args
 
 def main():
-    user={}
+    user=ldap.cidict.cidict()
     options, args = parse_options()
 
     if len(args) != 2:
