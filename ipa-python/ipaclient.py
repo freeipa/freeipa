@@ -70,7 +70,7 @@ class IPAClient:
         # FIXME: What is the default group for users?
         user['gidnumber'] ='501'
         user['krbprincipalname'] = "%s@%s" % (user['uid'], realm)
-        user['cn'] = "%s %s" % (user['givenName'], user['sn'])
+        user['cn'] = "%s %s" % (user['givenname'], user['sn'])
         if user.get('gn'):
                 del user['gn']
 
