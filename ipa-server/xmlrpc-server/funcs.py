@@ -197,7 +197,7 @@ class IPAServer:
             user = user[0]
 
         dn="uid=%s,%s,%s" % (user['uid'], user_container,self.basedn)
-        entry = ipaserver.ipaldap.Entry(str(dn))
+        entry = ipaserver.ipaldap.Entry(dn)
 
         # some required objectclasses
         entry.setValues('objectClass', 'top', 'posixAccount', 'shadowAccount', 'account', 'person', 'inetOrgPerson', 'organizationalPerson', 'krbPrincipalAux', 'krbTicketPolicyAux')
@@ -214,7 +214,7 @@ class IPAServer:
     
         # fill in our new entry with everything sent by the user
         for u in user:
-            entry.setValues(str(u), str(user[u]))
+            entry.setValues(u, user[u])
 
         if opts:
             self.set_principal(opts['remoteuser'])

@@ -49,7 +49,7 @@ def set_ldap_value(hash, key, value):
     """Converts unicode strings to normal strings
        (because LDAP is choking on unicode strings"""
     if value != None:
-        value = str(value)
+        value = value.encode('utf-8')
     hash[key] = value
 
 
@@ -137,7 +137,7 @@ class Root(controllers.RootController):
             #
             # this is a hack until we decide on the policy for names/cn/sn/givenName
             #
-            set_ldap_value(new_user, 'sn', 
+            set_ldap_value(new_user, 'cn', 
                            "%s %s" % (kw.get('givenname'), kw.get('sn')))
 
             orig_user = to_ldap_hash(orig_user)
