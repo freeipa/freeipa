@@ -1,6 +1,6 @@
 Name:           freeipa-admintools
 Version:        0.2.0
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        FreeIPA authentication server
 
 Group:          System Environment/Base
@@ -31,11 +31,12 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%{_sbindir}/ipa-adduser
-%{_sbindir}/ipa-finduser
-
+%{_sbindir}/ipa*
 
 %changelog
+* Fri Aug 17 2007 Karl MacMillan <kmacmill@redhat.com> - 0.2.0-4
+- Package additional utilities.
+
 * Mon Aug  5 2007 Rob Crittenden <rcritten@redhat.com> - 0.1.0-3
 - Abstracted client class to work directly or over RPC
 
