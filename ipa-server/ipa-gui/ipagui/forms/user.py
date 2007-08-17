@@ -2,14 +2,14 @@ import turbogears
 from turbogears import validators, widgets
 
 class UserFields():
-    uid = widgets.TextField(name="uid", label="Login:")
-    userpassword = widgets.TextField(name="userpassword", label="Password:")
-    uidnumber = widgets.TextField(name="uidnumber", label="UID:")
-    gidnumber = widgets.TextField(name="gidnumber", label="GID:")
-    givenname = widgets.TextField(name="givenname", label="First name:")
-    sn = widgets.TextField(name="sn", label="Last name:")
-    mail = widgets.TextField(name="mail", label="E-mail address:")
-    telephonenumber = widgets.TextField(name="telephonenumber", label="Phone:")
+    uid = widgets.TextField(name="uid", label="Login")
+    userpassword = widgets.TextField(name="userpassword", label="Password")
+    uidnumber = widgets.TextField(name="uidnumber", label="UID")
+    gidnumber = widgets.TextField(name="gidnumber", label="GID")
+    givenname = widgets.TextField(name="givenname", label="First name")
+    sn = widgets.TextField(name="sn", label="Last name")
+    mail = widgets.TextField(name="mail", label="E-mail address")
+    telephonenumber = widgets.TextField(name="telephonenumber", label="Phone")
 
     uid.validator = validators.PlainText(not_empty=True)
     userpassword.validator = validators.String(not_empty=True)

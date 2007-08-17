@@ -12,19 +12,19 @@
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.uid.label" />
+            <label class="fieldlabel" py:content="fields.uid.label" />:
           </th>
           <td>${user.get("uid")}</td>
         </tr>
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.uidnumber.label" />
+            <label class="fieldlabel" py:content="fields.uidnumber.label" />:
           </th>
           <td>${user.get("uidnumber")}</td>
         </tr>
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.gidnumber.label" />
+            <label class="fieldlabel" py:content="fields.gidnumber.label" />:
           </th>
           <td>${user.get("gidnumber")}</td>
         </tr>
@@ -34,13 +34,13 @@
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.givenname.label" />
+            <label class="fieldlabel" py:content="fields.givenname.label" />:
           </th>
           <td>${user.get("givenname")}</td>
         </tr>
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.sn.label" />
+            <label class="fieldlabel" py:content="fields.sn.label" />:
           </th>
           <td>${user.get("sn")}</td>
         </tr>
@@ -50,13 +50,13 @@
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.mail.label" />
+            <label class="fieldlabel" py:content="fields.mail.label" />:
           </th>
           <td>${user.get("mail")}</td>
         </tr>
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.telephonenumber.label" />
+            <label class="fieldlabel" py:content="fields.telephonenumber.label" />:
           </th>
           <td>${user.get("telephonenumber")}</td>
         </tr>

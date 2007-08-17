@@ -7,7 +7,7 @@
       <tr>
         <th>
           <label class="fieldlabel" for="${user.uid.field_id}"
-            py:content="user.uid.label" />
+            py:content="user.uid.label" />:
         </th>
         <td>
           <span py:replace="user.uid.display(value_for(user.uid))" />
@@ -19,7 +19,7 @@
       <tr>
         <th>
           <label class="fieldlabel" for="${user.userpassword.field_id}"
-            py:content="user.userpassword.label" />
+            py:content="user.userpassword.label" />:
         </th>
         <td>
           <span py:replace="user.userpassword.display(value_for(user.userpassword))" />
@@ -41,7 +41,7 @@
       <tr>
         <th>
           <label class="fieldlabel" for="${user.uidnumber.field_id}"
-            py:content="user.uidnumber.label" />
+            py:content="user.uidnumber.label" />:
         </th>
         <td>
           <span py:replace="user.uidnumber.display(value_for(user.uidnumber))" />
@@ -53,7 +53,7 @@
       <tr>
         <th>
           <label class="fieldlabel" for="${user.gidnumber.field_id}"
-            py:content="user.gidnumber.label" />
+            py:content="user.gidnumber.label" />:
         </th>
         <td>
           <span py:replace="user.gidnumber.display(value_for(user.gidnumber))" />
@@ -68,7 +68,7 @@
       <tr>
         <th>
           <label class="fieldlabel" for="${user.givenname.field_id}"
-            py:content="user.givenname.label" />
+            py:content="user.givenname.label" />:
         </th>
         <td>
           <span py:replace="user.givenname.display(value_for(user.givenname))" />
@@ -81,7 +81,7 @@
       <tr>
         <th>
           <label class="fieldlabel" for="${user.sn.field_id}"
-            py:content="user.sn.label" />
+            py:content="user.sn.label" />:
         </th>
         <td>
           <span py:replace="user.sn.display(value_for(user.sn))" />
@@ -96,7 +96,7 @@
       <tr>
         <th>
           <label class="fieldlabel" for="${user.mail.field_id}"
-            py:content="user.mail.label" />
+            py:content="user.mail.label" />:
         </th>
         <td>
           <span py:replace="user.mail.display(value_for(user.mail))" />
@@ -107,7 +107,7 @@
       <tr>
         <th>
           <label class="fieldlabel" for="${user.telephonenumber.field_id}"
-            py:content="user.telephonenumber.label" />
+            py:content="user.telephonenumber.label" />:
         </th>
         <td>
           <span py:replace="user.telephonenumber.display(value_for(user.telephonenumber))" />
