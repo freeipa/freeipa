@@ -321,8 +321,28 @@ class IPAdmin(SimpleLDAPObject):
         try:
             self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modify_s(dn, modlist)
-        except ldap.ALREADY_EXISTS:
-            raise ldap.ALREADY_EXISTS
+        except ldap.LDAPError, e:
+            raise e
+        return "Success"
+
+    def inactivateEntry(self,dn,has_key):
+        """Rather than deleting entries we mark them as inactive.
+           has_key defines whether the entry already has nsAccountlock
+           set so we can determine which type of mod operation to run."""
+
+        sctrl = self.__get_server_controls__()
+        modlist=[]
+
+        if has_key == True:
+            operation = ldap.MOD_REPLACE
+        else:
+            operation = ldap.MOD_ADD
+
+        modlist.append((operation, "nsAccountlock", "true"))
+
+        try:
+            self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
+            self.modify_s(dn, modlist)
         except ldap.LDAPError, e:
             raise e
         return "Success"

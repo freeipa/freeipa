@@ -58,9 +58,7 @@ class User:
     def getValue(self,name):
         """Get the first value for the attribute named name"""
         value =  self.data.get(name,[None])
-        if (len(value) < 1):
-            return value
-        if isinstance(value[0],list) or isinstance(value[0],tuple):
+        if isinstance(value,list) or isinstance(value,tuple):
             return value[0]
         else:
             return value

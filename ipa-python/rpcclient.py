@@ -39,9 +39,12 @@ class RPCClient:
         ipa.config.init_config()
     
     def server_url(self):
+        """Build the XML-RPC server URL from our configuration"""
         return "http://" + config.config.get_server() + "/ipa"
     
     def setup_server(self):
+        """Create our XML-RPC server connection using kerberos
+           authentication"""
         return xmlrpclib.ServerProxy(self.server_url(), KerbTransport())
     
     def convert_entry(self,ent):
@@ -63,11 +66,15 @@ class RPCClient:
     
         return user
         
-    def get_user(self,username):
-        """Get a specific user"""
+    def get_user(self,username,sattrs=None):
+        """Get a specific user. If sattrs is not None then only those
+           attributes will be returned. The result is a dict."""
         server = self.setup_server()
         try:
-            result = server.get_user(username)
+            if sattrs is not None:
+                result = server.get_user(username,sattrs)
+            else:
+                result = server.get_user(username)
         except xmlrpclib.Fault, fault:
             raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
@@ -76,7 +83,9 @@ class RPCClient:
         return result
 
     def add_user(self,user):
-        """Add a new user"""
+        """Add a new user. Takes as input a dict where the key is the
+           attribute name and the value is either a string or in the case
+           of a multi-valued field a list of values"""
         server = self.setup_server()
     
         try:
@@ -141,6 +150,19 @@ class RPCClient:
     
         try:
             result = server.update_user(olduser, newuser)
+        except xmlrpclib.Fault, fault:
+            raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return result
+
+    def mark_user_deleted(self,uid):
+        """Mark a user as deleted/inactive"""
+        server = self.setup_server()
+    
+        try:
+            result = server.mark_user_deleted(uid)
         except xmlrpclib.Fault, fault:
             raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):

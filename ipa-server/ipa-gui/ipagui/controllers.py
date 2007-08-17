@@ -1,3 +1,7 @@
+import random
+from pickle import dumps, loads
+from base64 import b64encode, b64decode
+
 import cherrypy
 import turbogears
 from turbogears import controllers, expose, flash
@@ -7,7 +11,7 @@ from turbogears import error_handler
 # from model import *
 # import logging
 # log = logging.getLogger("ipagui.controllers")
-# import ipa.rpcclient
+
 import ipa.config
 import ipa.ipaclient
 import ipa.user
@@ -15,7 +19,10 @@ import xmlrpclib
 import forms.user
 
 ipa.config.init_config()
-user_form = forms.user.UserFormWidget()
+user_new_form = forms.user.UserNewForm()
+user_edit_form = forms.user.UserEditForm()
+
+password_chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 client = ipa.ipaclient.IPAClient(True)
 client.set_principal("test@FREEIPA.ORG")
@@ -25,16 +32,26 @@ def restrict_post():
         turbogears.flash("This method only accepts posts")
         raise turbogears.redirect("/")
 
-def user_to_hash(user):
-    return {
-        'uid'       : user.getValue('uid'),
-        'givenName' : user.getValue('givenName'),
-        'sn'        : user.getValue('sn'),
-        'mail'      : user.getValue('mail'),
-        'telephoneNumber': user.getValue('telephoneNumber'),
-        'uidNumber': user.getValue('uidNumber'),
-        'gidNumber': user.getValue('gidNumber'),
-            }
+def to_ldap_hash(orig):
+    """LDAP hashes expect all values to be a list.  This method converts single
+       entries to a list."""
+    new={}
+    for (k,v) in orig.iteritems():
+        if v == None:
+            continue
+        if not isinstance(v, list) and k != 'dn':
+            v = [v]
+        new[k] = v
+
+    return new
+
+def set_ldap_value(hash, key, value):
+    """Converts unicode strings to normal strings
+       (because LDAP is choking on unicode strings"""
+    if value != None:
+        value = str(value)
+    hash[key] = value
+
 
 class Root(controllers.RootController):
 
@@ -53,7 +70,7 @@ class Root(controllers.RootController):
         if tg_errors:
             turbogears.flash("There was a problem with the form!")
 
-        return dict(form=user_form)
+        return dict(form=user_new_form)
 
     @expose()
     def usercreate(self, **kw):
@@ -63,31 +80,24 @@ class Root(controllers.RootController):
             turbogears.flash("Add user cancelled")
             raise turbogears.redirect('/userlist')
 
-        tg_errors, kw = self.uservalidate(**kw)
+        tg_errors, kw = self.usercreatevalidate(**kw)
         if tg_errors:
-            return dict(form=user_form, tg_template='ipagui.templates.usernew')
+            return dict(form=user_new_form, tg_template='ipagui.templates.usernew')
 
         try:
-            # rv = ipa.rpcclient.add_user(kw)
-            newuser = ipa.user.User(None)
-            newuser.setValue('uid', kw['uid'])
-            newuser.setValue('givenName', kw['givenName'])
-            newuser.setValue('sn', kw['sn'])
-            newuser.setValue('mail', kw['mail'])
-            newuser.setValue('telephoneNumber', kw['telephoneNumber'])
-            newuser2 = {
-                'uid'       : kw['uid'],
-                'givenName' : kw['givenName'],
-                'sn'        : kw['sn'],
-                'mail'      : kw['mail'],
-                'telephoneNumber': kw['telephoneNumber']
-                    }
-            rv = client.add_user(newuser2)
+            new_user = {}
+            set_ldap_value(new_user, 'uid', kw.get('uid'))
+            set_ldap_value(new_user, 'givenname', kw.get('givenname'))
+            set_ldap_value(new_user, 'sn', kw.get('sn'))
+            set_ldap_value(new_user, 'mail', kw.get('mail'))
+            set_ldap_value(new_user, 'telephonenumber', kw.get('telephonenumber'))
+
+            rv = client.add_user(new_user)
             turbogears.flash("%s added!" % kw['uid'])
             raise turbogears.redirect('/usershow', uid=kw['uid'])
         except xmlrpclib.Fault, f:
             turbogears.flash("User add failed: " + str(f.faultString))
-            return dict(form=user_form, tg_template='ipagui.templates.usernew')
+            return dict(form=user_new_form, tg_template='ipagui.templates.usernew')
 
 
     @expose("ipagui.templates.useredit")
@@ -96,9 +106,12 @@ class Root(controllers.RootController):
         if tg_errors:
             turbogears.flash("There was a problem with the form!")
 
-        # user = ipa.rpcclient.get_user(uid)
         user = client.get_user(uid)
-        return dict(form=user_form, user=user_to_hash(user))
+        user_hash = user.toDict()
+        # store a copy of the original user for the update later
+        user_data = b64encode(dumps(user_hash))
+        user_hash['user_orig'] = user_data
+        return dict(form=user_edit_form, user=user_hash)
 
     @expose()
     def userupdate(self, **kw):
@@ -108,24 +121,36 @@ class Root(controllers.RootController):
             turbogears.flash("Edit user cancelled")
             raise turbogears.redirect('/usershow', uid=kw.get('uid'))
 
-        tg_errors, kw = self.uservalidate(**kw)
+        tg_errors, kw = self.userupdatevalidate(**kw)
         if tg_errors:
-            return dict(form=user_form, user={}, tg_template='ipagui.templates.useredit')
+            return dict(form=user_edit_form, user=kw,
+                        tg_template='ipagui.templates.useredit')
 
         try:
-            # rv = ipa.rpcclient.add_user(kw)
+            orig_user = loads(b64decode(kw.get('user_orig')))
+
+            new_user = dict(orig_user)
+            set_ldap_value(new_user, 'givenname', kw.get('givenname'))
+            set_ldap_value(new_user, 'sn', kw.get('sn'))
+            set_ldap_value(new_user, 'mail', kw.get('mail'))
+            set_ldap_value(new_user, 'telephonenumber', kw.get('telephonenumber'))
+
+            orig_user = to_ldap_hash(orig_user)
+            new_user = to_ldap_hash(new_user)
+
+            rv = client.update_user(orig_user, new_user)
             turbogears.flash("%s updated!" % kw['uid'])
             raise turbogears.redirect('/usershow', uid=kw['uid'])
         except xmlrpclib.Fault, f:
-            turbogears.flash("User add failed: " + str(f.faultString))
-            return dict(form=user_form, user={}, tg_template='ipagui.templates.useredit')
+            turbogears.flash("User update failed: " + str(f.faultString))
+            return dict(form=user_edit_form, user=kw,
+                        tg_template='ipagui.templates.useredit')
 
 
     @expose("ipagui.templates.userlist")
     @paginate('users', limit=3, allow_limit_override=True)
     def userlist(self):
         """Retrieve a list of all users and display them in one huge list"""
-        # users = ipa.rpcclient.get_all_users()
         users = client.get_all_users()
         return dict(users=users)
 
@@ -134,20 +159,33 @@ class Root(controllers.RootController):
     def usershow(self, uid):
         """Retrieve a single user for display"""
         try:
-            # user = ipa.rpcclient.get_user(uid)
             user = client.get_user(uid)
-            return dict(user=user_to_hash(user))
+            return dict(user=user.toDict(), fields=forms.user.UserFields())
         except xmlrpclib.Fault, f:
             turbogears.flash("User show failed: " + str(f.faultString))
             raise turbogears.redirect("/")
 
-    @validate(form=user_form)
-    def uservalidate(self, tg_errors=None, **kw):
+    @validate(form=user_new_form)
+    def usercreatevalidate(self, tg_errors=None, **kw):
+        return tg_errors, kw
+
+    @validate(form=user_edit_form)
+    def userupdatevalidate(self, tg_errors=None, **kw):
         return tg_errors, kw
 
     @expose()
     def userindex(self):
         raise turbogears.redirect("/userlist")
+
+    @expose()
+    def generate_password(self):
+        password = ""
+        generator = random.SystemRandom()
+        for char in range(8):
+            index = generator.randint(0, len(password_chars) - 1)
+            password += password_chars[index]
+
+        return password
 
 
     #########

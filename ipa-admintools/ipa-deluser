@@ -28,17 +28,11 @@ import xmlrpclib
 import kerberos
 
 def usage():
-    print "ipa-usermod [-c|--gecos STRING] [-d|--directory STRING] user"
+    print "ipa-adduser user"
     sys.exit(1)
 
 def parse_options():
     parser = OptionParser()
-    parser.add_option("-c", "--gecos", dest="gecos",
-                      help="Set the GECOS field")
-    parser.add_option("-d", "--directory", dest="directory",
-                      help="Set the User's home directory")
-    parser.add_option("-s", "--shell", dest="shell",
-                      help="Set user's login shell to shell")
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
@@ -48,28 +42,15 @@ def parse_options():
     return options, args
 
 def main():
-    olduser={}
-    newuser={}
     options, args = parse_options()
 
     if len(args) != 2:
         usage()
 
-    client = ipaclient.IPAClient()
-    u = client.get_user(args[1])
-    olduser = u.toDict()
-    newuser = u.toDict()
-
-    if options.gecos:
-        newuser['gecos'] = options.gecos
-    if options.directory:
-        newuser['homedirectory'] = options.directory
-    if options.shell:
-        newuser['loginshell'] = options.shell
-
     try:
-        client.update_user(olduser, newuser)
-        print args[1] + " successfully modified"
+        client = ipaclient.IPAClient()
+        client.mark_user_deleted(args[1])
+        print args[1] + " successfully deleted"
     except xmlrpclib.Fault, f:
         print f.faultString
         return 1

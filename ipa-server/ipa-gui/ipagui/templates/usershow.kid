@@ -11,36 +11,54 @@
     <div class="formsection">Account Details</div>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
-          <th>User ID:</th>
+          <th>
+            <label class="fieldlabel" py:content="fields.uid.label" />
+          </th>
           <td>${user.get("uid")}</td>
         </tr>
         <tr>
-          <th>UID:</th>
-          <td>${user.get("uidNumber")}</td>
+          <th>
+            <label class="fieldlabel" py:content="fields.uidnumber.label" />
+          </th>
+          <td>${user.get("uidnumber")}</td>
         </tr>
         <tr>
-          <th>GID:</th>
-          <td>${user.get("gidNumber")}</td>
+          <th>
+            <label class="fieldlabel" py:content="fields.gidnumber.label" />
+          </th>
+          <td>${user.get("gidnumber")}</td>
         </tr>
     </table>
 
     <div class="formsection">Identity Details</div>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
-          <th>Full Name:</th>
-          <td>${user.get("givenName")} ${user.get("sn")}</td>
+          <th>
+            <label class="fieldlabel" py:content="fields.givenname.label" />
+          </th>
+          <td>${user.get("givenname")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.sn.label" />
+          </th>
+          <td>${user.get("sn")}</td>
         </tr>
     </table>
 
     <div class="formsection">Contact Details</div>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
-          <th>Email:</th>
+          <th>
+            <label class="fieldlabel" py:content="fields.mail.label" />
+          </th>
           <td>${user.get("mail")}</td>
         </tr>
         <tr>
-          <th>Telephone:</th>
-          <td>${user.get("telephoneNumber")}</td>
+          <th>
+            <label class="fieldlabel" py:content="fields.telephonenumber.label" />
+          </th>
+          <td>${user.get("telephonenumber")}</td>
         </tr>
     </table>
 

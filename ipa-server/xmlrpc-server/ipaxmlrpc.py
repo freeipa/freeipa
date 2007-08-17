@@ -285,6 +285,7 @@ def handler(req, profiling=False):
             h.register_function(f.get_all_users)
             h.register_function(f.find_users)
             h.register_function(f.update_user)
+            h.register_function(f.mark_user_deleted)
             h.handle_request(req)
         finally:
              pass

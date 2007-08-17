@@ -2,14 +2,14 @@
 Required packages:
 
 krb5-server
-fedora-ds-base
+fedora-ds-base / fedora-ds-base-devel
 openldap-clients
 krb5-server-ldap
 cyrus-sasl-gssapi
 httpd
 mod_auth_kerb
-ntpd
-mhash/libgcrypt
+ntp
+mhash / libgcrypt / mhash-devel
 
 Installation example:
 
