@@ -61,11 +61,11 @@ def main():
     newuser = u.toDict()
 
     if options.gecos:
-        newuser['gecos'] = options.gecos
+        newuser['gecos'] = [options.gecos]
     if options.directory:
-        newuser['homedirectory'] = options.directory
+        newuser['homedirectory'] = [options.directory]
     if options.shell:
-        newuser['loginshell'] = options.shell
+        newuser['loginshell'] = [options.shell]
 
     try:
         client.update_user(olduser, newuser)
