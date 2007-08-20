@@ -346,7 +346,7 @@ class IPAServer:
     
         # FIXME: Is this the filter we want or do we want to do searches of
         # cn as well? Or should the caller pass in the filter?
-        filter = "(uid=%s)" % criteria
+        filter = "(|(uid=%s)(cn=%s))" % (criteria, criteria)
         try:
             m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
             results = m1.getList(self.basedn, self.scope, filter, sattrs)

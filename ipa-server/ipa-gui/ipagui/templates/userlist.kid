@@ -8,7 +8,7 @@
 <body>
     <div id="search">
         <form action="${tg.url('/userlist')}" method="post">
-            Search by uid:
+            Search by login/name:
             <input type="text" name="uid" />
             <input type="submit" />
         </form>
