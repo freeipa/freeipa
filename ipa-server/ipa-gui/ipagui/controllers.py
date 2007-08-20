@@ -141,7 +141,7 @@ class Root(controllers.RootController):
         users = None
         uid = kw.get('uid')
         if uid != None and len(uid) > 0:
-            users = client.find_users("*%s*" % uid)
+            users = client.find_users(uid)
 
         return dict(users=users, fields=forms.user.UserFields())
 
