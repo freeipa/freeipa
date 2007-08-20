@@ -314,16 +314,47 @@ class IPAdmin(SimpleLDAPObject):
 
         sctrl = self.__get_server_controls__()
 
-        # find the differences but don't remove attributes that are missing
-        # from the update
-        modlist = modifyModlist(olduser, newuser, None, 1)
+        modlist = self.generateModList(olduser, newuser)
 
         try:
             self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modify_s(dn, modlist)
         except ldap.LDAPError, e:
             raise e
+            # raise Exception, modlist
         return "Success"
+
+    def generateModList(self, old_entry, new_entry):
+        """A mod list generator that computes more precise modification lists
+           than the python-ldap version.  This version purposely generates no
+           REPLACE operations, to deal with multi-user updates more properly."""
+        modlist = []
+
+        keys = set(old_entry.keys())
+        keys.update(new_entry.keys())
+
+        for key in keys:
+            new_values = new_entry.get(key, [])
+            if not(isinstance(new_values,list) or isinstance(new_values,tuple)):
+                new_values = [new_values]
+            new_values = filter(lambda value:value!=None, new_values)
+            new_values = set(new_values)
+
+            old_values = old_entry.get(key, [])
+            if not(isinstance(old_values,list) or isinstance(old_values,tuple)):
+                old_values = [old_values]
+            old_values = filter(lambda value:value!=None, old_values)
+            old_values = set(old_values)
+
+            adds = list(new_values.difference(old_values))
+            removes = list(old_values.difference(new_values))
+
+            if len(adds) > 0:
+                modlist.append((ldap.MOD_ADD, key, adds))
+            if len(removes) > 0:
+                modlist.append((ldap.MOD_DELETE, key, removes))
+
+        return modlist
 
     def inactivateEntry(self,dn,has_key):
         """Rather than deleting entries we mark them as inactive.
