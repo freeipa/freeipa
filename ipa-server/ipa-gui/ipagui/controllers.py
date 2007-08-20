@@ -32,25 +32,10 @@ def restrict_post():
         turbogears.flash("This method only accepts posts")
         raise turbogears.redirect("/")
 
-def to_ldap_hash(orig):
-    """LDAP hashes expect all values to be a list.  This method converts single
-       entries to a list."""
-    new={}
-    for (k,v) in orig.iteritems():
-        if v == None:
-            continue
-        if not isinstance(v, list) and k != 'dn':
-            v = [v]
-        new[k] = v
-
-    return new
-
-def set_ldap_value(hash, key, value):
-    """Converts unicode strings to normal strings
-       (because LDAP is choking on unicode strings"""
+def utf8_encode(value):
     if value != None:
         value = value.encode('utf-8')
-    hash[key] = value
+    return value
 
 
 class Root(controllers.RootController):
@@ -86,11 +71,11 @@ class Root(controllers.RootController):
 
         try:
             new_user = {}
-            set_ldap_value(new_user, 'uid', kw.get('uid'))
-            set_ldap_value(new_user, 'givenname', kw.get('givenname'))
-            set_ldap_value(new_user, 'sn', kw.get('sn'))
-            set_ldap_value(new_user, 'mail', kw.get('mail'))
-            set_ldap_value(new_user, 'telephonenumber', kw.get('telephonenumber'))
+            new_user['uid'] = utf8_encode(kw.get('uid'))
+            new_user['givenname'] = utf8_encode(kw.get('givenname'))
+            new_user['sn'] = utf8_encode(kw.get('sn'))
+            new_user['mail'] = utf8_encode(kw.get('mail'))
+            new_user['telephonenumber'] = utf8_encode(kw.get('telephonenumber'))
 
             rv = client.add_user(new_user)
             turbogears.flash("%s added!" % kw['uid'])
@@ -107,11 +92,11 @@ class Root(controllers.RootController):
             turbogears.flash("There was a problem with the form!")
 
         user = client.get_user(uid)
-        user_hash = user.toDict()
+        user_dict = user.toDict()
         # store a copy of the original user for the update later
-        user_data = b64encode(dumps(user_hash))
-        user_hash['user_orig'] = user_data
-        return dict(form=user_edit_form, user=user_hash)
+        user_data = b64encode(dumps(user_dict))
+        user_dict['user_orig'] = user_data
+        return dict(form=user_edit_form, user=user_dict)
 
     @expose()
     def userupdate(self, **kw):
@@ -127,23 +112,21 @@ class Root(controllers.RootController):
                         tg_template='ipagui.templates.useredit')
 
         try:
-            orig_user = loads(b64decode(kw.get('user_orig')))
+            orig_user_dict = loads(b64decode(kw.get('user_orig')))
 
-            new_user = dict(orig_user)
-            set_ldap_value(new_user, 'givenname', kw.get('givenname'))
-            set_ldap_value(new_user, 'sn', kw.get('sn'))
-            set_ldap_value(new_user, 'mail', kw.get('mail'))
-            set_ldap_value(new_user, 'telephonenumber', kw.get('telephonenumber'))
+            new_user = ipa.user.User(orig_user_dict)
+            new_user.setValue('givenname', utf8_encode(kw.get('givenname')))
+            new_user.setValue('sn', utf8_encode(kw.get('sn')))
+            new_user.setValue('mail', utf8_encode(kw.get('mail')))
+            new_user.setValue('telephonenumber', utf8_encode(kw.get('telephonenumber')))
             #
             # this is a hack until we decide on the policy for names/cn/sn/givenName
             #
-            set_ldap_value(new_user, 'cn', 
-                           "%s %s" % (kw.get('givenname'), kw.get('sn')))
+            new_user.setValue('cn',
+                           "%s %s" % (new_user.getValue('givenname'),
+                                      new_user.getValue('sn')))
 
-            orig_user = to_ldap_hash(orig_user)
-            new_user = to_ldap_hash(new_user)
-
-            rv = client.update_user(orig_user, new_user)
+            rv = client.update_user(new_user)
             turbogears.flash("%s updated!" % kw['uid'])
             raise turbogears.redirect('/usershow', uid=kw['uid'])
         except xmlrpclib.Fault, f:

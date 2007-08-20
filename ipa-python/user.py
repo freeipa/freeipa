@@ -11,7 +11,8 @@ class User:
     In python-ldap, entries are returned as a list of 2-tuples.
     Instance variables:
     dn - string - the string DN of the entry
-    data - cidict - case insensitive dict of the attributes and values"""
+    data - cidict - case insensitive dict of the attributes and values
+    orig_data - cidict - case insentiive dict of the original attributes and values"""
 
     def __init__(self,entrydata):
         """data is the raw data returned from the python-ldap result method,
@@ -32,6 +33,8 @@ class User:
             self.dn = ''
             self.data = ldap.cidict.cidict()
 
+        self.orig_data = dict(self.data)
+
     def __nonzero__(self):
         """This allows us to do tests like if entry: returns false if there is no data,
         true otherwise"""
@@ -40,6 +43,14 @@ class User:
     def hasAttr(self,name):
         """Return True if this entry has an attribute named name, False otherwise"""
         return self.data and self.data.has_key(name)
+
+    def __setattr__(self,name,value):
+        """One should use setValue() or setValues() to set values except for
+           dn and data which are special."""
+        if name != 'dn' and name != 'data' and name != 'orig_data':
+            raise KeyError, 'use setValue() or setValues()'
+        else:
+            self.__dict__[name] = value
 
     def __getattr__(self,name):
         """If name is the name of an LDAP attribute, return the first value for that
@@ -72,9 +83,9 @@ class User:
            ent.setValue('name', ('value1', 'value2', ..., 'valueN'))
         Since *value is a tuple, we may have to extract a list or tuple from that
         tuple as in the last two examples above"""
-        if (len(value[0]) < 1):
+        if (len(value) < 1):
             return
-        if isinstance(value[0],list) or isinstance(value[0],tuple):
+        if (len(value) == 1):
             self.data[name] = value[0]
         else:
             self.data[name] = value
@@ -99,6 +110,14 @@ class User:
     def attrList(self):
         """Return a list of all attributes in the entry"""
         return self.data.keys()
+
+    def origDataDict(self):
+        """Returns a dict of the original values of the user.  Used for updates."""
+        result = {}
+        for k in self.orig_data.keys():
+            result[k] = self.orig_data[k]
+        result['dn'] = self.dn
+        return result
 
 #    def __str__(self):
 #        """Convert the Entry to its LDIF representation"""

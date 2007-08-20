@@ -363,6 +363,17 @@ class IPAServer:
     
         return users
 
+    def convert_scalar_values(self, orig_dict):
+        """LDAP update dicts expect all values to be a list (except for dn).
+           This method converts single entries to a list."""
+        new_dict={}
+        for (k,v) in orig_dict.iteritems():
+            if not isinstance(v, list) and k != 'dn':
+                v = [v]
+            new_dict[k] = v
+
+        return new_dict
+
     def update_user (self, args, newuser=None, opts=None):
         """Update a user in LDAP"""
         global _LDAPPool
@@ -383,6 +394,9 @@ class IPAServer:
             olduser = olduser[0]
         if (isinstance(newuser, tuple)):
             newuser = newuser[0]
+
+        olduser = self.convert_scalar_values(olduser)
+        newuser = self.convert_scalar_values(newuser)
 
         # Should be able to get this from either the old or new user
         # but just in case someone has decided to try changing it, use the

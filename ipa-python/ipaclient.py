@@ -116,14 +116,12 @@ class IPAClient:
 
         return users
 
-    def update_user(self,olduser,newuser):
-        """Update a user entry. olduser is a dict of attribute/value pairs
-           of the original entry. newuser is a dict of attribute/value pairs
-           of the new entry."""
+    def update_user(self,user):
+        """Update a user entry."""
 
         realm = config.config.get_realm()
 
-        result = self.transport.update_user(olduser,newuser)
+        result = self.transport.update_user(user.origDataDict(), user.toDict())
         return result
 
     def mark_user_deleted(self,uid):
