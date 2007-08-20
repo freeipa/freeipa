@@ -70,12 +70,12 @@ class Root(controllers.RootController):
             return dict(form=user_new_form, tg_template='ipagui.templates.usernew')
 
         try:
-            new_user = {}
-            new_user['uid'] = utf8_encode(kw.get('uid'))
-            new_user['givenname'] = utf8_encode(kw.get('givenname'))
-            new_user['sn'] = utf8_encode(kw.get('sn'))
-            new_user['mail'] = utf8_encode(kw.get('mail'))
-            new_user['telephonenumber'] = utf8_encode(kw.get('telephonenumber'))
+            new_user = ipa.user.User()
+            new_user.setValue('uid', kw.get('uid'))
+            new_user.setValue('givenname', kw.get('givenname'))
+            new_user.setValue('sn', kw.get('sn'))
+            new_user.setValue('mail', kw.get('mail'))
+            new_user.setValue('telephonenumber', kw.get('telephonenumber'))
 
             rv = client.add_user(new_user)
             turbogears.flash("%s added!" % kw['uid'])

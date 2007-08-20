@@ -21,6 +21,7 @@
 import sys
 from optparse import OptionParser
 import ipa
+import ipa.user
 import ipa.ipaclient as ipaclient
 import ipa.config
 
@@ -56,23 +57,23 @@ def parse_options():
     return options, args
 
 def main():
-    user=ldap.cidict.cidict()
+    user=ipa.user.User()
     options, args = parse_options()
 
     if len(args) != 2:
         usage()
 
-    user['givenname'] = options.gn
-    user['sn'] = options.sn
-    user['uid'] = args[1]
+    user.setValue('givenname', options.gn)
+    user.setValue('sn', options.sn)
+    user.setValue('uid', args[1])
     if options.gecos:
-        user['gecos'] = options.gecos
+        user.setValue('gecos', options.gecos)
     if options.directory:
-        user['homedirectory'] = options.directory
+        user.setValue('homedirectory', options.directory)
     if options.shell:
-        user['loginshell'] = options.shell
+        user.setValue('loginshell', options.shell)
     else:
-        user['loginshell'] = "/bin/bash"
+        user.setValue('loginshell', "/bin/bash")
 
     try:
         client = ipaclient.IPAClient()

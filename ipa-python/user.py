@@ -25,7 +25,7 @@ class User:
     data - cidict - case insensitive dict of the attributes and values
     orig_data - cidict - case insentiive dict of the original attributes and values"""
 
-    def __init__(self,entrydata):
+    def __init__(self,entrydata=None):
         """data is the raw data returned from the python-ldap result method,
         which is a search result entry or a reference or None.
         If creating a new empty entry, data is the string DN."""

@@ -61,30 +61,33 @@ class IPAClient:
         return user.User(result)
 
     def add_user(self,user):
-        """Add a user. user is a cidict() of attribute/value pairs"""
+        """Add a user. user is a ipa.user object"""
 
         realm = config.config.get_realm()
 
         # FIXME: This should be dynamic and can include just about anything
         # Let us add in some missing attributes
-        if user.get('homedirectory') is None:
-                user['homedirectory'] ='/home/%s' % user['uid']
-        if user.get('gecos') is None:
-                user['gecos'] = user['uid']
+        if user.getValue('homedirectory') is None:
+                user.setValue('homedirectory', '/home/%s' % user.getValue('uid'))
+        if user.getValue('gecos') is None:
+                user.setValue('gecos', user.getValue('uid'))
 
         # FIXME: This can be removed once the DS plugin is installed
-        user['uidnumber'] ='501'
+        user.setValue('uidnumber', '501')
 
         # FIXME: What is the default group for users?
-        user['gidnumber'] ='501'
-        user['krbprincipalname'] = "%s@%s" % (user['uid'], realm)
-        user['cn'] = "%s %s" % (user['givenname'], user['sn'])
-        if user.get('gn'):
-                del user['gn']
+        user.setValue('gidnumber', '501')
+        user.setValue('krbprincipalname', "%s@%s" % (user.getValue('uid'), realm))
+        user.setValue('cn', "%s %s" % (user.getValue('givenname'),
+                                       user.getValue('sn')))
+        user_dict = user.toDict()
+        if user_dict.get('gn'):
+            del user_dict['gn']
+
+        del user_dict['dn']
 
         # convert to a regular dict before sending
-        dict_user = cidict_to_dict(user)
-        result = self.transport.add_user(dict_user)
+        result = self.transport.add_user(user_dict)
         return result
 
     def get_all_users(self):
