@@ -42,18 +42,23 @@ def parse_options():
                       help="ds user")
     parser.add_option("-r", "--realm", dest="realm_name",
                       help="realm name")
-    parser.add_option("-p", "--password", dest="password",
+    parser.add_option("-p", "--ds-password", dest="ds_password",
                       help="admin password")
-    parser.add_option("-m", "--master-password", dest="master_password",
+    parser.add_option("-P", "--master-password", dest="master_password",
                       help="kerberos master password")
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                      dest="debug", default=False, help="print debugging information")
     parser.add_option("--hostname", dest="host_name", help="fully qualified name of server")
+    parser.add_option("-U", "--unattended", dest="unattended",
+                     help="unattended installation never prompts the user")
 
     options, args = parser.parse_args()
 
-    if not options.ds_user or not options.realm_name or not options.password or not options.master_password:
-        parser.error("error: all options are required")
+    if options.unattended and (not options.ds_user or
+                               not options.realm_name or
+                               not options.ds_password or
+                               not options.master_password):
+        parser.error("error: In unattended mode you need to provide -u, -r, -p and -P options")
 
     return options
 
@@ -76,9 +81,21 @@ def logging_setup(options):
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
+def setup_hosts(host, ip):
+    print ""
+    print "TODO"
+    print ""
+    print ""
+
 def main():
     options = parse_options()
     logging_setup(options)
+
+    ds_user = ""
+    realm_name = ""
+    host_name = ""
+    master_password = ""
+    ds_password = ""
 
     # check the hostname is correctly configured, it must be as the kldap
     # utilities just use the hostname as returned by gethostbyname to set
@@ -93,25 +110,102 @@ def main():
         print "Check the /etc/hosts file and make sure to have a valid FQDN"
         return "-Fatal Error-"
 
-    if socket.gethostbyname(host_name) == "127.0.0.1":
+    ip = socket.gethostbyname(host_name)
+    if ip == "127.0.0.1":
         print "The hostname resolves to the localhost address (127.0.0.1)"
         print "Please change your /etc/hosts file or your DNS so that the"
         print "hostname resolves to the ip address of your network interface."
         print "The KDC service does not listen on 127.0.0.1"
-        return "-Fatal Error-"
+        print ""
+        if not options.unattended:
+            change_hosts = raw_input("Do you want to change the /etc/hosts file ? [y/N] ")
+            print ""
+            if change_hosts.lower() == "y":
+                ip = raw_input("What is the netowrk IP address used by this server ? ")
+                print ""
+                if (ip.find(".") == -1):
+                    print "["+ip+"] is an invalid IP address"
+                    return "-Fatal Error-"
+                setup_hosts(host_name, ip)
+            else:
+                print "Please fix your /etc/hosts file and restart the setup program"
+                print "-Aborted-"
+        else:
+            return "-Fatal Error-"
+     
+    print "The Final KDC Host Name will be: " + host_name + ". With IP address: " + ip
+    print ""
 
-    print "The Final KDC Host Name will be: " + host_name
+    if not options.ds_user:
+        print "To securely run Directory Server we need a user account to be set up."
+        print "This will allow DS to run as a user and not as root."
+        print "The user account will have access to some security material so it should not be shared with any other application."
+        print "A good user account name could be 'ds' or 'dirsrv', if it does not exist it will be created as part of the installation procedure."
+        print ""
+        ds_user = raw_input("Which account name do you want to use for the DS instance ? ")
+        print ""
+        if ds_user == "":
+             return "-Aborted-"
+    else:
+        ds_user = options.ds_user
 
+    if not options.realm_name:
+        print "The kerberos protocol requires a Realm name to be defined."
+        print "Usually the domain name all in uppercase is used as realm name."
+        print ""
+        upper_dom = (host_name[host_name.find(".")+1:]).upper()
+        dom_realm = raw_input("Do you want to use ["+upper_dom+"] as the realm name ? [y/N] ")
+        print ""
+        if dom_realm.lower() == "y":
+            realm_name = upper_dom
+        else:
+            realm_name = raw_input("Please provide a realm name: ")
+            print ""
+            if realm_name == "":
+                return "-Aborted-"
+            upper_dom = realm_name.upper()
+            if upper_dom != realm_name:
+                print "It is strongly adviced to use a completely uppercased name for the realm."
+                dom_realm = raw_input("Do you want to use "+upper_dom+" as realm name ? [Y/n] ")
+                print ""
+                if dom_realm.lower() != "y":
+                    print "WARNING: Using a non upper-cased realm name may cause unexpected problems."
+                else:
+                    realm_name = upper_dom
+        if realm_name == "":
+             print "-Aborted-"
+    else:
+        realm_name = options.realm_name
+
+    if not options.ds_password:
+        print "The Directory Manager user is the equivalent of 'root' for Diretcory Server."
+        print ""
+        #TODO: provide the option of generating a random password
+        ds_password = raw_input("Please provide a password for the Directory Manager: ")
+        print ""
+    else:
+        ds_password = options.ds_password
+
+    if not options.master_password:
+        print "The Kerberos database is usually encrypted using a master password."
+        print "Please store this password offline in a secure place."
+        print "It may be necessary in a recovery situation or to install a replica."
+        print "Without the master password the encrypted material can't be used by the KDC."
+        print "If the master password gets lost all kerberos related secrets will be lost."
+        print ""
+        #TODO: provide the option of generating a random password
+        master_password = raw_input("Please provide a master password: ")
+        print ""
+    else:
+        master_password = options.master_password
 
     # Create a directory server instance
     ds = ipaserver.dsinstance.DsInstance()
-    ds.create_instance(options.ds_user, options.realm_name, host_name,
-                       options.password)
+    ds.create_instance(ds_user, realm_name, host_name, ds_password)
 
     # Create a kerberos instance
     krb = ipaserver.krbinstance.KrbInstance()
-    krb.create_instance(options.ds_user, options.realm_name, host_name,
-                        options.password, options.master_password)
+    krb.create_instance(ds_user, realm_name, host_name, ds_password, master_password)
 
     # Restart ds after the krb instance has changed ds configurations
     ds.restart()
@@ -138,7 +232,7 @@ def main():
     fd = open("/etc/ipa/ipa.conf", "w")
     fd.write("[defaults]\n")
     fd.write("server=" + host_name + "\n")
-    fd.write("realm=" + options.realm_name + "\n")
+    fd.write("realm=" + realm_name + "\n")
     fd.close()
 
     return 0
