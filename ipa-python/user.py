@@ -3,6 +3,17 @@ import ldif
 import re
 import cStringIO
 
+def utf8_encode_value(value):
+    if isinstance(value,unicode):
+        return value.encode('utf-8')
+    return value
+
+def utf8_encode_values(values):
+    if isinstance(values,list) or isinstance(values,tuple):
+        return map(utf8_encode_value, values)
+    else:
+        return utf8_encode_value(values)
+
 class User:
     """This class represents an IPA user.  An LDAP entry consists of a DN
     and a list of attributes.  Each attribute consists of a name and a list of
@@ -86,9 +97,9 @@ class User:
         if (len(value) < 1):
             return
         if (len(value) == 1):
-            self.data[name] = value[0]
+            self.data[name] = utf8_encode_values(value[0])
         else:
-            self.data[name] = value
+            self.data[name] = utf8_encode_values(value)
 
     setValues = setValue
 

@@ -115,10 +115,10 @@ class Root(controllers.RootController):
             orig_user_dict = loads(b64decode(kw.get('user_orig')))
 
             new_user = ipa.user.User(orig_user_dict)
-            new_user.setValue('givenname', utf8_encode(kw.get('givenname')))
-            new_user.setValue('sn', utf8_encode(kw.get('sn')))
-            new_user.setValue('mail', utf8_encode(kw.get('mail')))
-            new_user.setValue('telephonenumber', utf8_encode(kw.get('telephonenumber')))
+            new_user.setValue('givenname', kw.get('givenname'))
+            new_user.setValue('sn', kw.get('sn'))
+            new_user.setValue('mail', kw.get('mail'))
+            new_user.setValue('telephonenumber', kw.get('telephonenumber'))
             #
             # this is a hack until we decide on the policy for names/cn/sn/givenName
             #
