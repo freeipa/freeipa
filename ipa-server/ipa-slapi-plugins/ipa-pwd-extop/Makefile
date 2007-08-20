@@ -5,8 +5,8 @@ LIB64DIR ?= $(PREFIX)/lib64/$(DIRSRV)/plugins
 SHAREDIR = $(DESTDIR)/usr/share/ipa
 
 SONAME = libipa_pwd_extop.so
-LDFLAGS += -lkrb5 -llber -lldap -lmhash -llber -lssl
-CFLAGS ?= -Wall -Wshadow -O2
+LDFLAGS += -lkrb5 -llber -lldap -llber -lssl
+CFLAGS ?= -g -Wall -Wshadow
 CFLAGS += -I/usr/include/$(DIRSRV) -I/usr/include/nss3 -I/usr/include/mozldap -I/usr/include/nspr4 -fPIC -DPIC
 
 OBJS = $(patsubst %.c,%.o,$(wildcard *.c))

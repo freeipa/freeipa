@@ -66,8 +66,8 @@
 #include <lber.h>
 #include <time.h>
 #include <iconv.h>
-#include <mhash.h>
 #include <openssl/des.h>
+#include <openssl/md4.h>
 
 /* Type of connection for this operation;*/
 #define LDAP_EXTOP_PASSMOD_CONN_SECURE
@@ -576,7 +576,7 @@ static int encode_ntlm_keys(char *newPasswd, unsigned int flags, struct ntlm_key
 		size_t cs, il, ol, sl;
 		char *inc, *outc;
 		char *ucs2Passwd;
-		MHASH td;
+		MD4_CTX md4ctx;
 
 		/* TODO: must store the dos charset somewhere in the directory */
 		cd = iconv_open(KTF_UCS2, KTF_UTF8);
@@ -615,19 +615,30 @@ static int encode_ntlm_keys(char *newPasswd, unsigned int flags, struct ntlm_key
 			sl = 28;
 		}
 		
-		td = mhash_init(MHASH_MD4);
-		if (td == MHASH_FAILED) {
+		ret = MD4_Init(&md4ctx);
+		if (ret == 0) {
+			ret = -1;
+			free(ucs2Passwd);
+			goto done;
+		}
+		ret = MD4_Update(&md4ctx, ucs2Passwd, sl);
+		if (ret == 0) {
+			ret = -1;
+			free(ucs2Passwd);
+			goto done;
+		}
+		ret = MD4_Final(keys->nt, &md4ctx);
+		if (ret == 0) {
 			ret = -1;
 			free(ucs2Passwd);
 			goto done;
 		}
 
-		mhash(td, ucs2Passwd, sl);
-		mhash_deinit(td, keys->nt);
-
 	} else {
 		memset(keys->nt, 0, 16);
 	}
+
+	ret = 0;
 
 done:
 	return ret;

@@ -3,7 +3,7 @@ SBIN = $(PREFIX)/sbin
 INITDIR = $(DESTDIR)/etc/rc.d/init.d
 
 LDFLAGS +=-lkrb5 -llber -lldap
-CFLAGS ?= -Wall -Wshadow -O2
+CFLAGS ?= -g -Wall -Wshadow
 
 OBJS = $(patsubst %.c,%.o,$(wildcard *.c))
 
