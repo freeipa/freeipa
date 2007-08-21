@@ -38,6 +38,29 @@
  * END COPYRIGHT BLOCK
  **/
 
+/* The memberof plugin updates the memberof attribute of entries
+ * based on modifications performed on groupofuniquenames entries
+ *
+ * In addition the plugin provides a DS task that may be started
+ * administrative clients and that creates the initial memberof
+ * list for imported entries and/or fixes the memberof list of
+ * existing entries that have inconsistent state (for example,
+ * if the memberof attribute was incorrectly edited directly) 
+ *
+ * To start the memberof task add an entry like:
+ *
+ * dn: cn=memberof task 2, cn=memberof task, cn=tasks, cn=config
+ * objectClass: top
+ * objectClass: extensibleObject
+ * cn: sample task
+ * basedn: dc=example, dc=com
+ * filter: (uid=test4)
+ *
+ * where "basedn" is required and refers to the top most node to perform the
+ * task on, and where "filter" is an optional attribute that provides a filter
+ * describing the entries to be worked on
+ */
+
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -66,6 +89,48 @@ typedef struct _ipamostringll
 	void *next;
 } ipamostringll;
 
+
+
+/****** secrets *********/
+
+/*from FDS slap.h
+ * until we get a proper api for access
+ */
+#define TASK_RUNNING_AS_TASK             0x0
+
+/*from FDS slapi-private.h
+ * until we get a proper api for access
+ */
+
+
+#define SLAPI_DSE_CALLBACK_OK			(1)
+#define SLAPI_DSE_CALLBACK_ERROR		(-1)
+#define SLAPI_DSE_CALLBACK_DO_NOT_APPLY	(0)
+
+/******************************************************************************
+ * Online tasks interface (to support import, export, etc)
+ * After some cleanup, we could consider making these public.
+ */
+struct _slapi_task {
+    struct _slapi_task *next;
+    char *task_dn;
+    int task_exitcode;          /* for the end user */
+    int task_state;             /* (see above) */
+    int task_progress;          /* number between 0 and task_work */
+    int task_work;              /* "units" of work to be done */
+    int task_flags;             /* (see above) */
+
+    /* it is the task's responsibility to allocate this memory & free it: */
+    char *task_status;          /* transient status info */
+    char *task_log;             /* appended warnings, etc */
+
+    void *task_private;         /* for use by backends */
+    TaskCallbackFn cancel;      /* task has been cancelled by user */
+    TaskCallbackFn destructor;  /* task entry is being destroyed */
+	int task_refcount;
+};
+
+/****** secrets ********/
 
 
 /*** function prototypes ***/
@@ -124,6 +189,14 @@ static void ipamo_lock();
 static void ipamo_unlock();
 static int ipamo_add_groups_search_callback(Slapi_Entry *e, void *callback_data);
 static int ipamo_add_membership(Slapi_PBlock *pb, char *op_this, char *op_to);
+static int ipamo_task_add(Slapi_PBlock *pb, Slapi_Entry *e,
+                    Slapi_Entry *eAfter, int *returncode, char *returntext,
+                    void *arg);
+static const char *fetch_attr(Slapi_Entry *e, const char *attrname,
+                                              const char *default_val);
+static void ipamo_memberof_fixup_task_thread(void *arg);
+static int ipamo_fix_memberof(char *dn, char *filter_str);
+static int ipamo_fix_memberof_callback(Slapi_Entry *e, void *callback_data);
 
 
 /*** implementation ***/
@@ -201,6 +274,12 @@ int ipamo_postop_start(Slapi_PBlock *pb)
 	if(0 == ipa_group_filter || 0 == ipamo_operation_lock)
 	{
 		rc = -1;
+		goto bail;
+	}
+
+	rc = slapi_task_register_handler("memberof task", ipamo_task_add);
+	if(rc)
+	{
 		goto bail;
 	}
 
@@ -1219,11 +1298,11 @@ int ipamo_is_group_member(Slapi_Value *groupdn, Slapi_Value *memberdn)
 }
 
 /* ipamo_memberof_search_callback()
- * for each attribute in the member of attribute
+ * for each attribute in the memberof attribute
  * determine if the entry is still a member
  * 
  * test each for direct membership
- * move groups entry is member of to member group
+ * move groups entry is memberof to member group
  * test remaining groups for membership in member groups
  * iterate until a pass fails to move a group over to member groups
  * remaining groups should be deleted 
@@ -1745,5 +1824,191 @@ void ipamo_lock()
 void ipamo_unlock()
 {
 	slapi_unlock_mutex(ipamo_operation_lock);
+}
+
+/* 
+ *
+ */
+ 
+typedef struct _task_data
+{
+	char *dn;
+	char *filter_str;
+	Slapi_Task *task;
+} task_data;
+
+void ipamo_memberof_fixup_task_thread(void *arg)
+{
+	task_data *td = (task_data *)arg;
+	Slapi_Task *task = td->task;
+	int rc = 0;
+
+	task->task_work = 1;
+	task->task_progress = 0;
+	task->task_state = SLAPI_TASK_RUNNING;
+
+	slapi_task_status_changed(task);
+
+	slapi_task_log_notice(task, "Memberof task starts (arg: %s) ...\n", 
+								td->filter_str);
+
+	/* do real work */
+	rc = ipamo_fix_memberof(td->dn, td->filter_str);
+
+	slapi_task_log_notice(task, "Memberof task finished.");
+	slapi_task_log_status(task, "Memberof task finished.");
+
+	task->task_progress = 1;
+	task->task_exitcode = rc;
+	task->task_state = SLAPI_TASK_FINISHED;
+	slapi_task_status_changed(task);
+
+	slapi_ch_free_string(&td->dn);
+	slapi_ch_free_string(&td->filter_str);
+
+	{
+		/* make the compiler happy */
+		void *ptd = td;
+		slapi_ch_free(&ptd);
+	}
+}
+
+/* extract a single value from the entry (as a string) -- if it's not in the
+ * entry, the default will be returned (which can be NULL).
+ * you do not need to free anything returned by this.
+ */
+const char *fetch_attr(Slapi_Entry *e, const char *attrname,
+                                              const char *default_val)
+{
+	Slapi_Attr *attr;
+	Slapi_Value *val = NULL;
+
+	if (slapi_entry_attr_find(e, attrname, &attr) != 0)
+		return default_val;
+	slapi_attr_first_value(attr, &val);
+	return slapi_value_get_string(val);
+}
+
+int ipamo_task_add(Slapi_PBlock *pb, Slapi_Entry *e,
+                    Slapi_Entry *eAfter, int *returncode, char *returntext,
+                    void *arg)
+{
+	PRThread *thread = NULL;
+	int rv = SLAPI_DSE_CALLBACK_OK;
+	task_data *mytaskdata = NULL;
+	Slapi_Task *task = NULL;
+	const char *filter;
+	const char *dn = 0;
+
+	*returncode = LDAP_SUCCESS;
+	/* get arg(s) */
+	if ((dn = fetch_attr(e, "basedn", 0)) == NULL)
+	{
+		*returncode = LDAP_OBJECT_CLASS_VIOLATION;
+		rv = SLAPI_DSE_CALLBACK_ERROR;
+		goto out;
+	}
+
+	if ((filter = fetch_attr(e, "filter", "(objectclass=inetuser)")) == NULL)
+	{
+		*returncode = LDAP_OBJECT_CLASS_VIOLATION;
+		rv = SLAPI_DSE_CALLBACK_ERROR;
+		goto out;
+	}
+
+	/* allocate new task now */
+	task = slapi_new_task(slapi_entry_get_ndn(e));
+	task->task_state = SLAPI_TASK_SETUP;
+	task->task_work = 1;
+	task->task_progress = 0;
+
+	/* create a pblock to pass the necessary info to the task thread */
+	mytaskdata = (task_data*)slapi_ch_malloc(sizeof(task_data));
+	if (mytaskdata == NULL)
+	{
+		*returncode = LDAP_OPERATIONS_ERROR;
+		rv = SLAPI_DSE_CALLBACK_ERROR;
+		goto out;
+	}
+	mytaskdata->dn = slapi_ch_strdup(dn);
+	mytaskdata->filter_str = slapi_ch_strdup(filter);
+	mytaskdata->task = task;
+
+	/* start the sample task as a separate thread */
+	thread = PR_CreateThread(PR_USER_THREAD, ipamo_memberof_fixup_task_thread,
+		(void *)mytaskdata, PR_PRIORITY_NORMAL, PR_GLOBAL_THREAD,
+		PR_UNJOINABLE_THREAD, SLAPD_DEFAULT_THREAD_STACKSIZE);
+	if (thread == NULL)
+	{
+		slapi_log_error( SLAPI_LOG_FATAL, IPAMO_PLUGIN_SUBSYSTEM,
+			"unable to create task thread!\n");
+		*returncode = LDAP_OPERATIONS_ERROR;
+		rv = SLAPI_DSE_CALLBACK_ERROR;
+
+		slapi_ch_free_string(&mytaskdata->dn);
+		slapi_ch_free_string(&mytaskdata->filter_str);
+
+		{
+			void *ptask = mytaskdata;
+			slapi_ch_free(&ptask);
+			goto out;
+		}
+	}
+
+	/* thread successful -- don't free the pb, let the thread do that. */
+	return SLAPI_DSE_CALLBACK_OK;
+
+out:
+	if (task)
+	{
+		slapi_destroy_task(task);
+	}
+	return rv;
+}
+
+int ipamo_fix_memberof(char *dn, char *filter_str)
+{
+	int rc = 0;
+	Slapi_PBlock *search_pb = slapi_pblock_new();
+
+	slapi_search_internal_set_pb(search_pb, dn,
+		LDAP_SCOPE_SUBTREE, filter_str, 0, 0,
+		0, 0,
+		ipamo_get_plugin_id(),
+		0);	
+
+	rc = slapi_search_internal_callback_pb(search_pb,
+		0,
+		0, ipamo_fix_memberof_callback,
+		0);
+
+	slapi_pblock_destroy(search_pb);
+
+	return rc;
+}
+
+/* ipamo_fix_memberof_callback()
+ * Add initial and/or fix up broken group list in entry
+ *
+ * 1. Make sure direct membership groups are in the entry
+ * 2. Add all groups that current group list allows through nested membership
+ * 3. Trim groups that have no relationship to entry
+ */
+int ipamo_fix_memberof_callback(Slapi_Entry *e, void *callback_data)
+{
+	int rc = 0;
+	char *dn = slapi_entry_get_dn(e);
+	ipamo_add_groups data = {dn, dn};
+
+	/* step 1. and step 2. */
+	rc = ipamo_call_foreach_dn(0, dn, IPA_GROUP_ATTR, 
+		ipamo_add_groups_search_callback, &data);
+	if(0 == rc)
+	{
+		/* step 3. */
+		rc = ipamo_test_membership_callback(e, 0);
+	}
+
+	return rc;
 }
 

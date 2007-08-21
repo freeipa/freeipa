@@ -6,7 +6,7 @@ SHAREDIR = $(DESTDIR)/usr/share/ipa
 
 SONAME = libipa-memberof-plugin.so
 LDFLAGS += -llber
-CFLAGS ?= -Wall -Wshadow -O2
+CFLAGS ?= -g -Wall -Wshadow
 CFLAGS += -I/usr/include/$(DIRSRV) -I/usr/include/nss3 -I/usr/include/mozldap -I/usr/include/nspr4 -fPIC -DPIC
 
 OBJS = $(patsubst %.c,%.o,$(wildcard *.c))
