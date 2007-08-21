@@ -47,7 +47,7 @@ def ldap_search_escape(match):
 
     if value == u"(":
         return u"\\28"
-    elif value == ")":
+    elif value == u")":
         return u"\\29"
     elif value == u"\\":
         return u"\\5c"
