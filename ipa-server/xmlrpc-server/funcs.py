@@ -29,6 +29,7 @@ from types import *
 import xmlrpclib
 import ipa.config
 import os
+import re
 
 # Need a global to store this between requests
 _LDAPPool = None
@@ -343,7 +344,14 @@ class IPAServer:
             raise xmlrpclib.Fault(1, e)
         except ipaserver.ipaldap.NoSuchEntryError:
             raise xmlrpclib.Fault(2, "No such user")
-    
+
+        # TODO: this escaper assumes the python-ldap library will error out
+        #       on invalid codepoints.  we need to check malformed utf-8 input
+        #       where the second byte in a multi-byte character
+        #       is (illegally) ')' and make sure python-ldap
+        #       bombs out.
+        criteria = re.sub(r'[\(\)\\]', ldap_search_escape, criteria)
+
         # FIXME: Is this the filter we want or do we want to do searches of
         # cn as well? Or should the caller pass in the filter?
         filter = "(|(uid=%s)(cn=%s))" % (criteria, criteria)
@@ -459,3 +467,20 @@ class IPAServer:
             return res
         except ldap.LDAPError, e:
             raise xmlrpclib.Fault(1, str(e))
+
+
+def ldap_search_escape(match):
+    """Escapes out nasty characters from the ldap search.
+    See RFC 2254."""
+    value = match.group()
+    if (len(value) != 1):
+        return ""
+
+    if value == "(":
+        return "\\28"
+    elif value == ")":
+        return "\\29"
+    elif value == "\\":
+        return "\\5c"
+    else:
+        return value

@@ -1,7 +1,6 @@
 import random
 from pickle import dumps, loads
 from base64 import b64encode, b64decode
-import re
 
 import cherrypy
 import turbogears
@@ -37,22 +36,6 @@ def utf8_encode(value):
     if value != None:
         value = value.encode('utf-8')
     return value
-
-def ldap_search_escape(match):
-    """Escapes out nasty characters from the ldap search.
-       See RFC 2254."""
-    value = match.group()
-    if (len(value) != 1):
-        return u""
-
-    if value == u"(":
-        return u"\\28"
-    elif value == u")":
-        return u"\\29"
-    elif value == u"\\":
-        return u"\\5c"
-    else:
-        return value
 
 
 class Root(controllers.RootController):
@@ -159,7 +142,6 @@ class Root(controllers.RootController):
         uid = kw.get('uid')
         if uid != None and len(uid) > 0:
             try:
-                uid = re.sub(r'[\(\)\\]', ldap_search_escape, uid)
                 users = client.find_users(uid.encode('utf-8'))
             except xmlrpclib.Fault, f:
                 turbogears.flash("User show failed: " + str(f.faultString))
