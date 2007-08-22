@@ -17,6 +17,7 @@ import ipa.ipaclient
 import ipa.user
 import xmlrpclib
 import forms.user
+from ipa import ipaerror
 
 ipa.config.init_config()
 user_new_form = forms.user.UserNewForm()
@@ -80,8 +81,8 @@ class Root(controllers.RootController):
             rv = client.add_user(new_user)
             turbogears.flash("%s added!" % kw['uid'])
             raise turbogears.redirect('/usershow', uid=kw['uid'])
-        except xmlrpclib.Fault, f:
-            turbogears.flash("User add failed: " + str(f.faultString))
+        except ipaerror.IPAError, e:
+            turbogears.flash("User add failed: " + str(e))
             return dict(form=user_new_form, tg_template='ipagui.templates.usernew')
 
 
@@ -129,8 +130,8 @@ class Root(controllers.RootController):
             rv = client.update_user(new_user)
             turbogears.flash("%s updated!" % kw['uid'])
             raise turbogears.redirect('/usershow', uid=kw['uid'])
-        except xmlrpclib.Fault, f:
-            turbogears.flash("User update failed: " + str(f.faultString))
+        except ipaerror.IPAError, e:
+            turbogears.flash("User update failed: " + str(e))
             return dict(form=user_edit_form, user=kw,
                         tg_template='ipagui.templates.useredit')
 
@@ -143,8 +144,8 @@ class Root(controllers.RootController):
         if uid != None and len(uid) > 0:
             try:
                 users = client.find_users(uid.encode('utf-8'))
-            except xmlrpclib.Fault, f:
-                turbogears.flash("User show failed: " + str(f.faultString))
+            except ipaerror.IPAError, e:
+                turbogears.flash("User show failed: " + str(e))
                 raise turbogears.redirect("/userlist")
 
         return dict(users=users, fields=forms.user.UserFields())
@@ -156,8 +157,8 @@ class Root(controllers.RootController):
         try:
             user = client.get_user(uid)
             return dict(user=user.toDict(), fields=forms.user.UserFields())
-        except xmlrpclib.Fault, f:
-            turbogears.flash("User show failed: " + str(f.faultString))
+        except ipaerror.IPAError, e:
+            turbogears.flash("User show failed: " + str(e))
             raise turbogears.redirect("/")
 
     @validate(form=user_new_form)

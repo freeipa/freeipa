@@ -24,10 +24,12 @@ import ldap
 import ipaserver.dsinstance
 import ipaserver.ipaldap
 import ipaserver.util
-import string
-from types import *
 import xmlrpclib
 import ipa.config
+from ipa import ipaerror
+
+import string
+from types import *
 import os
 import re
 
@@ -83,15 +85,10 @@ class IPAServer:
 
         # FIXME: should we search for this in a specific area of the tree?
         filter = "(krbPrincipalName=" + princ + ")"
-        try:
-            # The only anonymous search we should have
-            m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,None)
-            ent = m1.getEntry(self.basedn, self.scope, filter, ['dn'])
-            _LDAPPool.releaseConn(m1)
-        except ldap.LDAPError, e:
-            raise xmlrpclib.Fault(1, e)
-        except ipaserver.ipaldap.NoSuchEntryError:
-            raise xmlrpclib.Fault(2, "No such user")
+        # The only anonymous search we should have
+        m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,None)
+        ent = m1.getEntry(self.basedn, self.scope, filter, ['dn'])
+        _LDAPPool.releaseConn(m1)
     
         return "dn:" + ent.dn
     
@@ -153,22 +150,13 @@ class IPAServer:
         if (isinstance(username, tuple)):
             username = username[0]
     
-        try:
-            dn = self.get_dn_from_principal(self.princ)
-        except ldap.LDAPError, e:
-            raise xmlrpclib.Fault(1, e)
-        except ipaserver.ipaldap.NoSuchEntryError:
-            raise xmlrpclib.Fault(2, "No such user")
+        dn = self.get_dn_from_principal(self.princ)
     
         filter = "(uid=" + username + ")"
-        try:
-            m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
-            ent = m1.getEntry(self.basedn, self.scope, filter, sattrs)
-            _LDAPPool.releaseConn(m1)
-        except ldap.LDAPError, e:
-            raise xmlrpclib.Fault(1, e)
-        except ipaserver.ipaldap.NoSuchEntryError:
-            raise xmlrpclib.Fault(2, "No such user")
+
+        m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
+        ent = m1.getEntry(self.basedn, self.scope, filter, sattrs)
+        _LDAPPool.releaseConn(m1)
     
         return self.convert_entry(ent)
     
@@ -220,22 +208,12 @@ class IPAServer:
         if opts:
             self.set_principal(opts['remoteuser'])
     
-        try:
-            dn = self.get_dn_from_principal(self.princ)
-        except ldap.LDAPError, e:
-            raise xmlrpclib.Fault(1, e)
-        except ipaserver.ipaldap.NoSuchEntryError:
-            raise xmlrpclib.Fault(2, "No such user")
+        dn = self.get_dn_from_principal(self.princ)
 
-        try:
-            m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
-            res = m1.addEntry(entry)
-            _LDAPPool.releaseConn(m1)
-            return res
-        except ldap.ALREADY_EXISTS:
-            raise xmlrpclib.Fault(3, "User already exists")
-        except ldap.LDAPError, e:
-            raise xmlrpclib.Fault(1, str(e))
+        m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
+        res = m1.addEntry(entry)
+        _LDAPPool.releaseConn(m1)
+        return res
     
     def get_add_schema (self):
         """Get the list of fields to be used when adding users in the GUI."""
@@ -290,23 +268,14 @@ class IPAServer:
         if opts:
             self.set_principal(opts['remoteuser'])
 
-        try:
-            dn = self.get_dn_from_principal(self.princ)
-        except ldap.LDAPError, e:
-            raise xmlrpclib.Fault(1, e)
-        except ipaserver.ipaldap.NoSuchEntryError:
-            raise xmlrpclib.Fault(2, "No such user")
+        dn = self.get_dn_from_principal(self.princ)
     
         # FIXME: Is this the filter we want or should it be more specific?
         filter = "(objectclass=posixAccount)"
-        try:
-            m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
-            all_users = m1.getList(self.basedn, self.scope, filter, None)
-            _LDAPPool.releaseConn(m1)
-        except ldap.LDAPError, e:
-            raise xmlrpclib.Fault(1, e)
-        except ipaserver.ipaldap.NoSuchEntryError:
-            raise xmlrpclib.Fault(2, "No such user")
+
+        m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
+        all_users = m1.getList(self.basedn, self.scope, filter, None)
+        _LDAPPool.releaseConn(m1)
     
         users = []
         for u in all_users:
@@ -338,12 +307,7 @@ class IPAServer:
         if opts:
             self.set_principal(opts['remoteuser'])
 
-        try:
-            dn = self.get_dn_from_principal(self.princ)
-        except ldap.LDAPError, e:
-            raise xmlrpclib.Fault(1, e)
-        except ipaserver.ipaldap.NoSuchEntryError:
-            raise xmlrpclib.Fault(2, "No such user")
+        dn = self.get_dn_from_principal(self.princ)
 
         # TODO: this escaper assumes the python-ldap library will error out
         #       on invalid codepoints.  we need to check malformed utf-8 input
@@ -359,12 +323,9 @@ class IPAServer:
             m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
             results = m1.getList(self.basedn, self.scope, filter, sattrs)
             _LDAPPool.releaseConn(m1)
-        except ldap.LDAPError, e:
-            raise xmlrpclib.Fault(1, e)
-        except ipaserver.ipaldap.NoSuchEntryError:
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             results = []
-            # raise xmlrpclib.Fault(2, "No such user")
-    
+
         users = []
         for u in results:
             users.append(self.convert_entry(u))
@@ -412,25 +373,17 @@ class IPAServer:
         try:
             moddn = olduser['dn']
         except KeyError, e:
-            raise xmlrpclib.Fault(4, "Old user has no dn")
+            raise ipaerror.gen_exception(ipaerror.LDAP_MISSING_DN)
 
         if opts:
             self.set_principal(opts['remoteuser'])
     
-        try:
-            proxydn = self.get_dn_from_principal(self.princ)
-        except ldap.LDAPError, e:
-            raise xmlrpclib.Fault(1, e)
-        except ipaserver.ipaldap.NoSuchEntryError:
-            raise xmlrpclib.Fault(2, "No such user")
+        proxydn = self.get_dn_from_principal(self.princ)
 
-        try:
-            m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,proxydn)
-            res = m1.updateEntry(moddn, olduser, newuser)
-            _LDAPPool.releaseConn(m1)
-            return res
-        except ldap.LDAPError, e:
-            raise xmlrpclib.Fault(1, str(e))
+        m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,proxydn)
+        res = m1.updateEntry(moddn, olduser, newuser)
+        _LDAPPool.releaseConn(m1)
+        return res
 
     def mark_user_deleted (self, args, opts=None):
         """Mark a user as inactive in LDAP. We aren't actually deleting
@@ -442,17 +395,9 @@ class IPAServer:
         if opts:
             self.set_principal(opts['remoteuser'])
 
-        try:
-            proxydn = self.get_dn_from_principal(self.princ)
-        except ldap.LDAPError, e:
-            raise xmlrpclib.Fault(1, e)
-        except ipaserver.ipaldap.NoSuchEntryError:
-            raise xmlrpclib.Fault(2, "No such user")
+        proxydn = self.get_dn_from_principal(self.princ)
 
-        try:
-            user = self.get_user(uid, ['dn', 'nsAccountlock'], opts)
-        except ldap.LDAPError, e:
-            raise xmlrpclib.Fault(1, str(e))
+        user = self.get_user(uid, ['dn', 'nsAccountlock'], opts)
 
         # Are we doing an add or replace operation?
         if user.has_key('nsaccountlock'):
@@ -460,13 +405,10 @@ class IPAServer:
         else:
             has_key = False
 
-        try:
-            m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,proxydn)
-            res = m1.inactivateEntry(user['dn'], has_key)
-            _LDAPPool.releaseConn(m1)
-            return res
-        except ldap.LDAPError, e:
-            raise xmlrpclib.Fault(1, str(e))
+        m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,proxydn)
+        res = m1.inactivateEntry(user['dn'], has_key)
+        _LDAPPool.releaseConn(m1)
+        return res
 
 
 def ldap_search_escape(match):

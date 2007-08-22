@@ -35,6 +35,8 @@ from mod_python import apache
 
 import ipaserver
 import funcs
+from ipa import ipaerror
+
 import string
 import base64
 
@@ -144,9 +146,9 @@ class ModXMLRPCRequestHandler(object):
             # wrap response in a singleton tuple
             response = (response,)
             response = dumps(response, methodresponse=1, allow_none=1)
-        except Fault, fault:
+        except ipaerror.IPAError, e:
             self.traceback = True
-            response = dumps(fault)
+            response = dumps(Fault(e.code, str(e)))
         except:
             self.traceback = True
             # report exception back to server

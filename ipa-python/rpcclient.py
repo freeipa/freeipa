@@ -29,6 +29,7 @@ import os
 import base64
 import user
 import ipa
+from ipa import ipaerror
 
 # Some errors to catch
 # http://cvs.fedora.redhat.com/viewcvs/ldapserver/ldap/servers/plugins/pam_passthru/README?root=dirsec&rev=1.6&view=auto
@@ -76,7 +77,7 @@ class RPCClient:
             else:
                 result = server.get_user(username)
         except xmlrpclib.Fault, fault:
-            raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
 
@@ -91,7 +92,7 @@ class RPCClient:
         try:
             result = server.add_user(user)
         except xmlrpclib.Fault, fault:
-            raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
 
@@ -108,7 +109,7 @@ class RPCClient:
         try:
             result = server.get_add_schema()
         except xmlrpclib.Fault, fault:
-            raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
       
@@ -121,7 +122,7 @@ class RPCClient:
         try:
             result = server.get_all_users()
         except xmlrpclib.Fault, fault:
-            raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
     
@@ -138,7 +139,7 @@ class RPCClient:
             else:
                 result = server.find_users(criteria)
         except xmlrpclib.Fault, fault:
-            raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
     
@@ -151,7 +152,7 @@ class RPCClient:
         try:
             result = server.update_user(olduser, newuser)
         except xmlrpclib.Fault, fault:
-            raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
 
@@ -164,7 +165,7 @@ class RPCClient:
         try:
             result = server.mark_user_deleted(uid)
         except xmlrpclib.Fault, fault:
-            raise xmlrpclib.Fault(fault.faultCode, fault.faultString)
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
 

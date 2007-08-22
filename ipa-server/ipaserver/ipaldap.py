@@ -39,13 +39,7 @@ from ldap.modlist import modifyModlist
 
 from ldap.ldapobject import SimpleLDAPObject
 
-class Error(Exception): pass
-class InvalidArgumentError(Error):
-    def __init__(self,message): self.message = message
-    def __repr__(self): return message
-class NoSuchEntryError(Error):
-    def __init__(self,message): self.message = message
-    def __repr__(self): return message
+from ipa import ipaerror
 
 class Entry:
     """This class represents an LDAP Entry object.  An LDAP entry consists of a DN
@@ -192,12 +186,13 @@ class IPAdmin(SimpleLDAPObject):
                 instdir = ent.getValue('nsslapd-instancedir')
                 self.sroot, self.inst = re.match(r'(.*)[\/]slapd-(\w+)$', instdir).groups()
                 self.errlog = ent.getValue('nsslapd-errorlog')
-            except (ldap.INSUFFICIENT_ACCESS, ldap.CONNECT_ERROR, NoSuchEntryError):
+            except (ldap.INSUFFICIENT_ACCESS, ldap.CONNECT_ERROR,
+                    ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND)):
                 pass # usually means 
 #                print "ignored exception"
             except ldap.LDAPError, e:
                 print "caught exception ", e
-                raise
+                raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
 
     def __localinit__(self):
         SimpleLDAPObject.__init__(self,'ldaps://%s:%d' % (self.host,self.port))
@@ -257,18 +252,23 @@ class IPAdmin(SimpleLDAPObject):
 
     def getEntry(self,*args):
         """This wraps the search function.  It is common to just get one entry"""
+
         sctrl = self.__get_server_controls__()
 
         if sctrl is not None:
             self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
 
-        res = self.search(*args)
+        try:
+            res = self.search(*args)
 
-#        res = self.search_ext(args[0], args[1], filterstr=args[2], attrlist=args[3], serverctrls=sctrl)
+    #        res = self.search_ext(args[0], args[1], filterstr=args[2], attrlist=args[3], serverctrls=sctrl)
+        except ldap.LDAPError, e:
+            raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
 
         type, obj = self.result(res)
         if not obj:
-            raise NoSuchEntryError("no such entry for " + str(args))
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND,
+                    "no such entry for " + str(args))
         elif isinstance(obj,Entry):
             return obj
         else: # assume list/tuple
@@ -278,14 +278,18 @@ class IPAdmin(SimpleLDAPObject):
         """This wraps the search function to find all users."""
 
         sctrl = self.__get_server_controls__()
-
         if sctrl is not None:
             self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
 
-        res = self.search(*args)
+        try:
+            res = self.search(*args)
+        except ldap.LDAPError, e:
+            raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
+
         type, obj = self.result(res)
         if not obj:
-            raise NoSuchEntryError("no such entry for " + str(args))
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND,
+                    "no such entry for " + str(args))
 
         all_users = []
         for s in obj:
@@ -303,9 +307,9 @@ class IPAdmin(SimpleLDAPObject):
             self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.add_s(*args)
         except ldap.ALREADY_EXISTS:
-            raise ldap.ALREADY_EXISTS
+            raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
         except ldap.LDAPError, e:
-            raise e
+            raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
         return "Success"
 
     def updateEntry(self,dn,olduser,newuser):
@@ -319,9 +323,13 @@ class IPAdmin(SimpleLDAPObject):
         try:
             self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modify_s(dn, modlist)
+        # this is raised when a 'delete' attribute isn't found.
+        # it indicates the previous attribute was removed by another
+        # update, making the olduser stale.
+        except ldap.NO_SUCH_ATTRIBUTE:
+            raise ipaerror.gen_exception(ipaerror.LDAP_MIDAIR_COLLISION)
         except ldap.LDAPError, e:
-            raise e
-            # raise Exception, modlist
+            raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
         return "Success"
 
     def generateModList(self, old_entry, new_entry):
@@ -375,7 +383,7 @@ class IPAdmin(SimpleLDAPObject):
             self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modify_s(dn, modlist)
         except ldap.LDAPError, e:
-            raise e
+            raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
         return "Success"
 
     def __wrapmethods(self):
@@ -429,7 +437,8 @@ class IPAdmin(SimpleLDAPObject):
         while not entry and int(time.time()) < timeout:
             try:
                 entry = self.getEntry(dn, scope, filter, attrlist)
-            except NoSuchEntryError: pass # found entry, but no attr
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                pass # found entry, but no attr
             except ldap.NO_SUCH_OBJECT: pass # no entry yet
             except ldap.LDAPError, e: # badness
                 print "\nError reading entry", dn, e
