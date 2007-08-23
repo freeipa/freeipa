@@ -49,6 +49,11 @@ def main():
     try:
         client = ipaclient.IPAClient()
         users = client.find_users(args[1], sattrs=['dn','uid','cn','homeDirectory'])
+
+        if len(users) == 0:
+            print "No entries found for", args[1]
+            return 0
+
         for ent in users:
             attr = ent.attrList()
 

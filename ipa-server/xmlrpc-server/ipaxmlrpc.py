@@ -133,7 +133,9 @@ class ModXMLRPCRequestHandler(object):
         opts={}
         opts['remoteuser'] = remoteuser
 
-        params = ipaserver.encode_args(params, opts)
+        # Tack onto the end of the passed-in arguments any options we also
+        # need
+        params = params + (opts,)
 
         # special case
 #        if method == "get_user":
@@ -164,9 +166,13 @@ class ModXMLRPCRequestHandler(object):
         func = self.funcs.get(method,None)
         if func is None:
              raise Fault(1, "Invalid method: %s" % method)
-        params,opts = ipaserver.decode_args(*params)
-        
-        ret = func(*params,**opts)
+
+        args = list(params)
+        for i in range(len(args)):
+          if args[i] == '__NONE__':
+              args[i] = None 
+
+        ret = func(*args)
 
         return ret
 
@@ -281,7 +287,8 @@ def handler(req, profiling=False):
         try:
             f = funcs.IPAServer()
             h = ModXMLRPCRequestHandler()
-            h.register_function(f.get_user)
+            h.register_function(f.get_user_by_uid)
+            h.register_function(f.get_user_by_dn)
             h.register_function(f.add_user)
             h.register_function(f.get_add_schema)
             h.register_function(f.get_all_users)

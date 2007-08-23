@@ -33,7 +33,7 @@ class User:
             if isinstance(entrydata,tuple):
                 self.dn = entrydata[0]
                 self.data = ldap.cidict.cidict(entrydata[1])
-            elif isinstance(entrydata,str):
+            elif isinstance(entrydata,str) or isinstance(entrydata,unicode):
                 self.dn = entrydata
                 self.data = ldap.cidict.cidict()
             elif isinstance(entrydata,dict):

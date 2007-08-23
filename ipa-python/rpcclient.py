@@ -67,15 +67,29 @@ class RPCClient:
     
         return user
         
-    def get_user(self,username,sattrs=None):
+    def get_user_by_uid(self,uid,sattrs=None):
         """Get a specific user. If sattrs is not None then only those
            attributes will be returned. The result is a dict."""
         server = self.setup_server()
+        if sattrs is None:
+            sattrs = "__NONE__"
         try:
-            if sattrs is not None:
-                result = server.get_user(username,sattrs)
-            else:
-                result = server.get_user(username)
+            result = server.get_user_by_uid(uid, sattrs)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return result
+        
+    def get_user_by_dn(self,dn,sattrs=None):
+        """Get a specific user. If sattrs is not None then only those
+           attributes will be returned. The result is a dict."""
+        server = self.setup_server()
+        if sattrs is None:
+            sattrs = "__NONE__"
+        try:
+            result = server.get_user_by_dn(dn, sattrs)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
@@ -83,14 +97,17 @@ class RPCClient:
 
         return result
 
-    def add_user(self,user):
+    def add_user(self,user,user_container=None):
         """Add a new user. Takes as input a dict where the key is the
            attribute name and the value is either a string or in the case
            of a multi-valued field a list of values"""
         server = self.setup_server()
+
+        if user_container is None:
+            user_container = "__NONE__"
     
         try:
-            result = server.add_user(user)
+            result = server.add_user(user, user_container)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
@@ -128,16 +145,18 @@ class RPCClient:
     
         return result
 
-    def find_users (self, criteria, sattrs=None):
+    def find_users (self, criteria, sattrs=None, user_container=None):
         """Return a list containing a User object for each user that matches
            the criteria."""
     
         server = self.setup_server()
         try:
-            if sattrs is not None:
-                result = server.find_users(criteria, sattrs)
-            else:
-                result = server.find_users(criteria)
+            # None values are not allowed in XML-RPC
+            if sattrs is None:
+                sattrs = "__NONE__"
+            if user_container is None:
+                user_container = "__NONE__"
+            result = server.find_users(criteria, sattrs, user_container)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):

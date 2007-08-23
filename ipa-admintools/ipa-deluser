@@ -49,8 +49,11 @@ def main():
 
     try:
         client = ipaclient.IPAClient()
-        client.mark_user_deleted(args[1])
-        print args[1] + " successfully deleted"
+        ret = client.mark_user_deleted(args[1])
+        if (ret == "Success"):
+            print args[1] + " successfully deleted"
+        else:
+            print args[1] + " " + ret
     except xmlrpclib.Fault, f:
         print f.faultString
         return 1

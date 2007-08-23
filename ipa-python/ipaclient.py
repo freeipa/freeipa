@@ -54,13 +54,19 @@ class IPAClient:
         if self.local:
             self.transport.set_principal(princ)
 
-    def get_user(self,uid,sattrs=None):
+    def get_user_by_uid(self,uid,sattrs=None):
         """Get a specific user by uid. If sattrs is set then only those
            attributes will be returned."""
-        result = self.transport.get_user(uid,sattrs)
+        result = self.transport.get_user_by_uid(uid,sattrs)
         return user.User(result)
 
-    def add_user(self,user):
+    def get_user_by_dn(self,dn,sattrs=None):
+        """Get a specific user by uid. If sattrs is set then only those
+           attributes will be returned."""
+        result = self.transport.get_user_by_dn(dn,sattrs)
+        return user.User(result)
+
+    def add_user(self,user,user_container=None):
         """Add a user. user is a ipa.user object"""
 
         realm = config.config.get_realm()
@@ -87,7 +93,7 @@ class IPAClient:
         del user_dict['dn']
 
         # convert to a regular dict before sending
-        result = self.transport.add_user(user_dict)
+        result = self.transport.add_user(user_dict, user_container)
         return result
 
     def get_all_users(self):
@@ -107,10 +113,10 @@ class IPAClient:
         result = self.transport.get_add_schema()
         return result
 
-    def find_users(self, criteria, sattrs=None):
+    def find_users(self, criteria, sattrs=None, user_container=None):
         """Find users whose uid matches the criteria. Wildcards are 
            acceptable. Returns a list of User objects."""
-        result = self.transport.find_users(criteria, sattrs)
+        result = self.transport.find_users(criteria, sattrs, user_container)
 
         users = []
         for (attrs) in result:

@@ -54,7 +54,7 @@ def main():
         usage()
 
     client = ipaclient.IPAClient()
-    user = client.get_user(args[1])
+    user = client.get_user_by_uid(args[1])
 
     if options.gecos:
         user.setValue('gecos', options.gecos)

@@ -36,6 +36,8 @@ import re
 # Need a global to store this between requests
 _LDAPPool = None
 
+DefaultContainer = "ou=users,ou=default"
+
 #
 # Apache runs in multi-process mode so each process will have its own
 # connection. This could theoretically drive the total number of connections
@@ -96,10 +98,10 @@ class IPAServer:
     
         # Convert to LDIF
         entry = str(ent) 
-    
+
         # Strip off any junk
         entry = entry.strip()
-    
+
         # Don't need to identify binary fields and this breaks the parser so
         # remove double colons
         entry = entry.replace('::', ':')
@@ -123,67 +125,49 @@ class IPAServer:
     
         return user
     
-    def get_user (self, args, sattrs=None, opts=None):
+    def __get_user (self, base, filter, sattrs=None, opts=None):
         """Get a specific user's entry. Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
         global _LDAPPool
         ent=""
 
-        # The XML-RPC server marshals the arguments into one variable
-        # while the direct caller has them separate. So do a little
-        # bit of gymnastics to figure things out. There has to be a
-        # better way, so FIXME
-        if isinstance(args,tuple):
-            opts = sattrs
-            if len(args) == 2:
-                username = args[0]
-                sattrs = args[1]
-            else:
-                username = args
-                sattrs = None
-        else:
-            username = args
-
         if opts:
             self.set_principal(opts['remoteuser'])
-        if (isinstance(username, tuple)):
-            username = username[0]
     
         dn = self.get_dn_from_principal(self.princ)
     
-        filter = "(uid=" + username + ")"
-
         m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
-        ent = m1.getEntry(self.basedn, self.scope, filter, sattrs)
+        ent = m1.getEntry(base, self.scope, filter, sattrs)
         _LDAPPool.releaseConn(m1)
     
         return self.convert_entry(ent)
+ 
+    def get_user_by_uid (self, uid, sattrs=None, opts=None):
+        """Get a specific user's entry. Return as a dict of values.
+           Multi-valued fields are represented as lists.
+        """
+
+        filter = "(uid=" + uid + ")"
+        return self.__get_user(self.basedn, filter, sattrs, opts)
     
-    def add_user (self, args, user_container="ou=users,ou=default",opts=None):
+    def get_user_by_dn (self, dn, sattrs=None, opts=None):
+        """Get a specific user's entry. Return as a dict of values.
+           Multi-valued fields are represented as lists.
+        """
+
+        filter = "(objectClass=*)"
+        return self.__get_user(dn, filter, sattrs, opts)
+    
+    def add_user (self, user, user_container=None, opts=None):
         """Add a user in LDAP. Takes as input a dict where the key is the
            attribute name and the value is either a string or in the case
            of a multi-valued field a list of values. user_container sets
            where in the tree the user is placed."""
         global _LDAPPool
 
-        # The XML-RPC server marshals the arguments into one variable
-        # while the direct caller has them separate. So do a little
-        # bit of gymnastics to figure things out. There has to be a
-        # better way, so FIXME
-        if isinstance(args,tuple):
-            opts = user_container
-            if len(args) == 2:
-                user = args[0]
-                user_container = args[1]
-            else:
-                user = args
-                user_container = "ou=users,ou=default"
-        else:
-            user = args
-
-        if (isinstance(user, tuple)):
-            user = user[0]
+        if user_container is None:
+            user_container = DefaultContainer
 
         dn="uid=%s,%s,%s" % (user['uid'], user_container,self.basedn)
         entry = ipaserver.ipaldap.Entry(dn)
@@ -283,26 +267,14 @@ class IPAServer:
     
         return users
 
-    def find_users (self, args, sattrs=None, opts=None):
+    def find_users (self, criteria, sattrs=None, user_container=None, opts=None):
         """Return a list containing a User object for each
         existing user that matches the criteria.
         """
         global _LDAPPool
 
-        # The XML-RPC server marshals the arguments into one variable
-        # while the direct caller has them separate. So do a little
-        # bit of gymnastics to figure things out. There has to be a
-        # better way, so FIXME
-        if isinstance(args,tuple):
-            opts = sattrs
-            if len(args) == 2:
-                criteria = args[0]
-                sattrs = args[1]
-            else:
-                criteria = args
-                sattrs = None
-        else:
-            criteria = args
+        if user_container is None:
+            user_container = DefaultContainer
 
         if opts:
             self.set_principal(opts['remoteuser'])
@@ -319,9 +291,10 @@ class IPAServer:
         # FIXME: Is this the filter we want or do we want to do searches of
         # cn as well? Or should the caller pass in the filter?
         filter = "(|(uid=%s)(cn=%s))" % (criteria, criteria)
+        basedn = user_container + "," +  self.basedn
         try:
             m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
-            results = m1.getList(self.basedn, self.scope, filter, sattrs)
+            results = m1.getList(basedn, self.scope, filter, sattrs)
             _LDAPPool.releaseConn(m1)
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             results = []
@@ -343,26 +316,9 @@ class IPAServer:
 
         return new_dict
 
-    def update_user (self, args, newuser=None, opts=None):
+    def update_user (self, olduser, newuser, opts=None):
         """Update a user in LDAP"""
         global _LDAPPool
-
-        # The XML-RPC server marshals the arguments into one variable
-        # while the direct caller has them separate. So do a little
-        # bit of gymnastics to figure things out. There has to be a
-        # better way, so FIXME
-        if isinstance(args,tuple):
-            opts = newuser
-            if len(args) == 2:
-                olduser = args[0]
-                newuser = args[1]
-        else:
-            olduser = args
-
-        if (isinstance(olduser, tuple)):
-            olduser = olduser[0]
-        if (isinstance(newuser, tuple)):
-            newuser = newuser[0]
 
         olduser = self.convert_scalar_values(olduser)
         newuser = self.convert_scalar_values(newuser)
@@ -385,22 +341,22 @@ class IPAServer:
         _LDAPPool.releaseConn(m1)
         return res
 
-    def mark_user_deleted (self, args, opts=None):
+    def mark_user_deleted (self, uid, opts=None):
         """Mark a user as inactive in LDAP. We aren't actually deleting
            users here, just making it so they can't log in, etc."""
         global _LDAPPool
-
-        uid = args[0]
 
         if opts:
             self.set_principal(opts['remoteuser'])
 
         proxydn = self.get_dn_from_principal(self.princ)
 
-        user = self.get_user(uid, ['dn', 'nsAccountlock'], opts)
+        user = self.get_user_by_uid(uid, ['dn', 'uid', 'nsAccountlock'], opts)
 
         # Are we doing an add or replace operation?
         if user.has_key('nsaccountlock'):
+            if user['nsaccountlock'] == "true":
+                return "already marked as deleted"
             has_key = True
         else:
             has_key = False
