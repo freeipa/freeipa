@@ -172,6 +172,34 @@ class IPAServer:
         dn="uid=%s,%s,%s" % (user['uid'], user_container,self.basedn)
         entry = ipaserver.ipaldap.Entry(dn)
 
+        # FIXME: This should be dynamic and can include just about anything
+
+        # Let us add in some missing attributes
+        if user.get('homedirectory') is None:
+                user['homedirectory'] = '/home/%s' % user.get('uid')
+        if not user.get('gecos') is None:
+                user['gecos'] = user['uid']
+
+        # FIXME: This can be removed once the DS plugin is installed
+        user['uidnumber'] = '501'
+
+        # FIXME: What is the default group for users?
+        user['gidnumber'] = '501'
+
+        realm = ipa.config.config.get_realm()
+        user['krbprincipalname'] = "%s@%s" % (user.get('uid'), realm)
+
+        # FIXME. This is a hack so we can request separate First and Last
+        # name in the GUI.
+        if user.get('cn') is None:
+            user['cn'] = "%s %s" % (user.get('givenname'),
+                                           user.get('sn'))
+
+        if user.get('gn'):
+            del user['gn']
+        if user.get('givenname'):
+            del user['givenname']
+
         # some required objectclasses
         entry.setValues('objectClass', 'top', 'posixAccount', 'shadowAccount', 'account', 'person', 'inetOrgPerson', 'organizationalPerson', 'krbPrincipalAux', 'krbTicketPolicyAux')
     

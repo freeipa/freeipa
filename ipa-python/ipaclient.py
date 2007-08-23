@@ -71,25 +71,9 @@ class IPAClient:
 
         realm = config.config.get_realm()
 
-        # FIXME: This should be dynamic and can include just about anything
-        # Let us add in some missing attributes
-        if user.getValue('homedirectory') is None:
-                user.setValue('homedirectory', '/home/%s' % user.getValue('uid'))
-        if user.getValue('gecos') is None:
-                user.setValue('gecos', user.getValue('uid'))
-
-        # FIXME: This can be removed once the DS plugin is installed
-        user.setValue('uidnumber', '501')
-
-        # FIXME: What is the default group for users?
-        user.setValue('gidnumber', '501')
-        user.setValue('krbprincipalname', "%s@%s" % (user.getValue('uid'), realm))
-        user.setValue('cn', "%s %s" % (user.getValue('givenname'),
-                                       user.getValue('sn')))
         user_dict = user.toDict()
-        if user_dict.get('gn'):
-            del user_dict['gn']
 
+        # dn is set on the server-side
         del user_dict['dn']
 
         # convert to a regular dict before sending
