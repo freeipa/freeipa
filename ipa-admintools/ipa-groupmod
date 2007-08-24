@@ -21,55 +21,66 @@
 import sys
 from optparse import OptionParser
 import ipa
+import ipa.group
 import ipa.ipaclient as ipaclient
 import ipa.config
+import ipa.ipaerror
 
 import xmlrpclib
 import kerberos
+import ldap
 
 def usage():
-    print "ipa-usermod [-c|--gecos STRING] [-d|--directory STRING] user"
+    print "ipa-groupmod [-a] [-r] user group"
+    print "ipa-groupmod [-d|--desc description STRING] group"
     sys.exit(1)
 
 def parse_options():
     parser = OptionParser()
-    parser.add_option("-c", "--gecos", dest="gecos",
-                      help="Set the GECOS field")
-    parser.add_option("-d", "--directory", dest="directory",
-                      help="Set the User's home directory")
-    parser.add_option("-s", "--shell", dest="shell",
-                      help="Set user's login shell to shell")
+    parser.add_option("-a", "--add", dest="add", action="store_true",
+                      help="Add a user to the group")
+    parser.add_option("-r", "--remove", dest="remove", action="store_true",
+                      help="Remove a user from the group")
+    parser.add_option("-d", "--description", dest="desc", 
+                      help="Modify the description of the group")
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
     args = ipa.config.init_config(sys.argv)
     options, args = parser.parse_args(args)
 
+    if (not options.add and not options.remove) and (not options.desc):
+        usage()
+
     return options, args
 
 def main():
+    group=ipa.group.Group()
     options, args = parse_options()
 
-    if len(args) != 2:
+    print "len = ", len(args)
+    if (options.add or options.remove) and (len(args) != 3):
+        usage()
+    if (options.desc and (len(args) != 2)):
         usage()
 
-    client = ipaclient.IPAClient()
     try:
-        user = client.get_user_by_uid(args[1])
-    except ipa.ipaerror.IPAError, e:
-        print "%s" % e.message
-        return 1
-
-    if options.gecos:
-        user.setValue('gecos', options.gecos)
-    if options.directory:
-        user.setValue('homedirectory', options.directory)
-    if options.shell:
-        user.setValue('loginshell', options.shell)
-
-    try:
-        client.update_user(user)
-        print args[1] + " successfully modified"
+        client = ipaclient.IPAClient()
+        if options.add:
+            client.add_user_to_group(args[1], args[2])
+            print args[1] + " successfully added"
+        elif options.remove:
+            client.remove_user_from_group(args[1], args[2])
+            print args[1] + " successfully removed"
+        elif options.desc:
+            try:
+                group = client.get_group_by_cn(args[1])
+            except ipa.ipaerror.IPAError, e:
+                print "%s" % e.message
+                return 1
+            group.setValue('description', options.desc)
+            client.update_group(group)
+            print args[1] + " successfully updated"
     except xmlrpclib.Fault, f:
         print f.faultString
         return 1
@@ -78,6 +89,9 @@ def main():
         return 1
     except xmlrpclib.ProtocolError, e:
         print "Unable to connect to IPA server: %s" % (e.errmsg)
+        return 1
+    except ipa.ipaerror.IPAError, e:
+        print "%s" % (e.message)
         return 1
 
     return 0

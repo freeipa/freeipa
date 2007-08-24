@@ -115,6 +115,11 @@ LDAP_MISSING_DN = gen_error_code(
         0x0005,
         "Entry missing dn")
 
+LDAP_EMPTY_MODLIST = gen_error_code(
+        LDAP_CATEGORY,
+        0x0006,
+        "No modifications to be performed")
+
 #
 # Input errors  (sample - replace me)
 #

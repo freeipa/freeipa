@@ -26,6 +26,7 @@ import ipaserver.ipaldap
 import ipaserver.util
 import xmlrpclib
 import ipa.config
+import copy
 from ipa import ipaerror
 
 import string
@@ -36,7 +37,8 @@ import re
 # Need a global to store this between requests
 _LDAPPool = None
 
-DefaultContainer = "ou=users,ou=default"
+DefaultUserContainer = "ou=users,ou=default"
+DefaultGroupContainer = "ou=groups,ou=default"
 
 #
 # Apache runs in multi-process mode so each process will have its own
@@ -85,7 +87,6 @@ class IPAServer:
         """Given a kerberls principal get the LDAP uid"""
         global _LDAPPool
 
-        # FIXME: should we search for this in a specific area of the tree?
         filter = "(krbPrincipalName=" + princ + ")"
         # The only anonymous search we should have
         m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,None)
@@ -93,7 +94,7 @@ class IPAServer:
         _LDAPPool.releaseConn(m1)
     
         return "dn:" + ent.dn
-    
+
     def convert_entry(self, ent):
     
         # Convert to LDIF
@@ -109,24 +110,24 @@ class IPAServer:
     
         # Convert into a dict. We need to handle multi-valued attributes as well
         # so we'll convert those into lists.
-        user={}
+        obj={}
         for (k,v) in specs:
             k = k.lower()
-            if user.get(k) is not None:
-                if isinstance(user[k],list):
-                    user[k].append(v.strip())
+            if obj.get(k) is not None:
+                if isinstance(obj[k],list):
+                    obj[k].append(v.strip())
                 else:
-                    first = user[k]
-                    user[k] = []
-                    user[k].append(first)
-                    user[k].append(v.strip())
+                    first = obj[k]
+                    obj[k] = []
+                    obj[k].append(first)
+                    obj[k].append(v.strip())
             else:
-                    user[k] = v.strip()
+                    obj[k] = v.strip()
     
-        return user
+        return obj 
     
-    def __get_user (self, base, filter, sattrs=None, opts=None):
-        """Get a specific user's entry. Return as a dict of values.
+    def __get_entry (self, base, filter, sattrs=None, opts=None):
+        """Get a specific entry. Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
         global _LDAPPool
@@ -142,14 +143,70 @@ class IPAServer:
         _LDAPPool.releaseConn(m1)
     
         return self.convert_entry(ent)
+
+    def __update_entry (self, oldentry, newentry, opts=None):
+        """Update an LDAP entry
+
+           oldentry is a dict
+           newentry is a dict
+        """
+        global _LDAPPool
+
+        oldentry = self.convert_scalar_values(oldentry)
+        newentry = self.convert_scalar_values(newentry)
+
+        # Should be able to get this from either the old or new entry
+        # but just in case someone has decided to try changing it, use the
+        # original
+        try:
+            moddn = oldentry['dn']
+        except KeyError, e:
+            raise ipaerror.gen_exception(ipaerror.LDAP_MISSING_DN)
+
+        if opts:
+            self.set_principal(opts['remoteuser'])
+    
+        proxydn = self.get_dn_from_principal(self.princ)
+
+        m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,proxydn)
+        res = m1.updateEntry(moddn, oldentry, newentry)
+        _LDAPPool.releaseConn(m1)
+        return res
+
+    def __safe_filter(self, criteria):
+        """Make sure any arguments used when creating a filter are safe."""
+
+        # TODO: this escaper assumes the python-ldap library will error out
+        #       on invalid codepoints.  we need to check malformed utf-8 input
+        #       where the second byte in a multi-byte character
+        #       is (illegally) ')' and make sure python-ldap
+        #       bombs out.
+        criteria = re.sub(r'[\(\)\\]', ldap_search_escape, criteria)
+
+        return criteria
  
+# User support
+
+    def __is_user_unique(self, uid, opts):
+        """Return 1 if the uid is unique in the tree, 0 otherwise."""
+        uid = self.__safe_filter(uid)
+        filter = "(&(uid=%s)(objectclass=posixAccount))" % uid
+ 
+        entry = self.__get_entry(self.basedn, filter, ['dn','uid'], opts)
+
+        if entry is not None:
+            return 0
+        else:
+            return 1
+
     def get_user_by_uid (self, uid, sattrs=None, opts=None):
         """Get a specific user's entry. Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
 
+        uid = self.__safe_filter(uid)
         filter = "(uid=" + uid + ")"
-        return self.__get_user(self.basedn, filter, sattrs, opts)
+        return self.__get_entry(self.basedn, filter, sattrs, opts)
     
     def get_user_by_dn (self, dn, sattrs=None, opts=None):
         """Get a specific user's entry. Return as a dict of values.
@@ -157,7 +214,7 @@ class IPAServer:
         """
 
         filter = "(objectClass=*)"
-        return self.__get_user(dn, filter, sattrs, opts)
+        return self.__get_entry(dn, filter, sattrs, opts)
     
     def add_user (self, user, user_container=None, opts=None):
         """Add a user in LDAP. Takes as input a dict where the key is the
@@ -167,7 +224,10 @@ class IPAServer:
         global _LDAPPool
 
         if user_container is None:
-            user_container = DefaultContainer
+            user_container = DefaultUserContainer
+
+        if self.__is_user_unique(user['uid'], opts) == 0:
+            raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
 
         dn="uid=%s,%s,%s" % (user['uid'], user_container,self.basedn)
         entry = ipaserver.ipaldap.Entry(dn)
@@ -282,7 +342,6 @@ class IPAServer:
 
         dn = self.get_dn_from_principal(self.princ)
     
-        # FIXME: Is this the filter we want or should it be more specific?
         filter = "(objectclass=posixAccount)"
 
         m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
@@ -295,34 +354,23 @@ class IPAServer:
     
         return users
 
-    def find_users (self, criteria, sattrs=None, user_container=None, opts=None):
+    def find_users (self, criteria, sattrs=None, opts=None):
         """Return a list containing a User object for each
         existing user that matches the criteria.
         """
         global _LDAPPool
-
-        if user_container is None:
-            user_container = DefaultContainer
 
         if opts:
             self.set_principal(opts['remoteuser'])
 
         dn = self.get_dn_from_principal(self.princ)
 
-        # TODO: this escaper assumes the python-ldap library will error out
-        #       on invalid codepoints.  we need to check malformed utf-8 input
-        #       where the second byte in a multi-byte character
-        #       is (illegally) ')' and make sure python-ldap
-        #       bombs out.
-        criteria = re.sub(r'[\(\)\\]', ldap_search_escape, criteria)
+        criteria = self.__safe_filter(criteria)
 
-        # FIXME: Is this the filter we want or do we want to do searches of
-        # cn as well? Or should the caller pass in the filter?
         filter = "(|(uid=%s)(cn=%s))" % (criteria, criteria)
-        basedn = user_container + "," +  self.basedn
         try:
             m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
-            results = m1.getList(basedn, self.scope, filter, sattrs)
+            results = m1.getList(self.basedn, self.scope, filter, sattrs)
             _LDAPPool.releaseConn(m1)
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             results = []
@@ -346,28 +394,7 @@ class IPAServer:
 
     def update_user (self, olduser, newuser, opts=None):
         """Update a user in LDAP"""
-        global _LDAPPool
-
-        olduser = self.convert_scalar_values(olduser)
-        newuser = self.convert_scalar_values(newuser)
-
-        # Should be able to get this from either the old or new user
-        # but just in case someone has decided to try changing it, use the
-        # original
-        try:
-            moddn = olduser['dn']
-        except KeyError, e:
-            raise ipaerror.gen_exception(ipaerror.LDAP_MISSING_DN)
-
-        if opts:
-            self.set_principal(opts['remoteuser'])
-    
-        proxydn = self.get_dn_from_principal(self.princ)
-
-        m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,proxydn)
-        res = m1.updateEntry(moddn, olduser, newuser)
-        _LDAPPool.releaseConn(m1)
-        return res
+        return self.__update_entry(olduser, newuser, opts)
 
     def mark_user_deleted (self, uid, opts=None):
         """Mark a user as inactive in LDAP. We aren't actually deleting
@@ -394,6 +421,217 @@ class IPAServer:
         _LDAPPool.releaseConn(m1)
         return res
 
+# Group support
+
+    def __is_group_unique(self, cn, opts):
+        """Return 1 if the cn is unique in the tree, 0 otherwise."""
+        cn = self.__safe_filter(cn)
+        filter = "(&(cn=%s)(objectclass=posixGroup))" % cn
+ 
+        entry = self.__get_entry(self.basedn, filter, ['dn','cn'], opts)
+
+        if entry is not None:
+            return 0
+        else:
+            return 1
+
+    def get_group_by_cn (self, cn, sattrs=None, opts=None):
+        """Get a specific group's entry. Return as a dict of values.
+           Multi-valued fields are represented as lists.
+        """
+
+        cn = self.__safe_filter(cn)
+        filter = "(cn=" + cn + ")"
+        return self.__get_entry(self.basedn, filter, sattrs, opts)
+    
+    def get_group_by_dn (self, dn, sattrs=None, opts=None):
+        """Get a specific group's entry. Return as a dict of values.
+           Multi-valued fields are represented as lists.
+        """
+
+        filter = "(objectClass=*)"
+        return self.__get_entry(dn, filter, sattrs, opts)
+    
+    def add_group (self, group, group_container=None, opts=None):
+        """Add a group in LDAP. Takes as input a dict where the key is the
+           attribute name and the value is either a string or in the case
+           of a multi-valued field a list of values. group_container sets
+           where in the tree the group is placed."""
+        global _LDAPPool
+
+        if group_container is None:
+            group_container = DefaultGroupContainer
+
+        if self.__is_group_unique(group['cn'], opts) == 0:
+            raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
+
+        dn="cn=%s,%s,%s" % (group['cn'], group_container,self.basedn)
+        entry = ipaserver.ipaldap.Entry(dn)
+
+        # some required objectclasses
+        entry.setValues('objectClass', 'top', 'groupofuniquenames', 'posixGroup')
+
+        # FIXME, need a gidNumber generator
+        if group.get('gidnumber') is None:
+            entry.setValues('gidNumber', '501')
+
+        # fill in our new entry with everything sent by the user
+        for g in group:
+            entry.setValues(g, group[g])
+
+        if opts:
+            self.set_principal(opts['remoteuser'])
+    
+        dn = self.get_dn_from_principal(self.princ)
+
+        m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
+        res = m1.addEntry(entry)
+        _LDAPPool.releaseConn(m1)
+
+    def find_groups (self, criteria, sattrs=None, opts=None):
+        """Return a list containing a User object for each
+        existing group that matches the criteria.
+        """
+        global _LDAPPool
+
+        if opts:
+            self.set_principal(opts['remoteuser'])
+
+        dn = self.get_dn_from_principal(self.princ)
+
+        criteria = self.__safe_filter(criteria)
+
+        filter = "(&(cn=%s)(objectClass=posixGroup))" % criteria
+        try:
+            m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
+            results = m1.getList(self.basedn, self.scope, filter, sattrs)
+            _LDAPPool.releaseConn(m1)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            results = []
+
+        groups = []
+        for u in results:
+            groups.append(self.convert_entry(u))
+    
+        return groups
+
+    def add_user_to_group(self, user, group, opts=None):
+        """Add a user to an existing group.
+           user is a uid of the user to add
+           group is the cn of the group to be added to
+        """
+
+        if opts:
+            self.set_principal(opts['remoteuser'])
+
+        old_group = self.get_group_by_cn(group, None, opts)
+        if old_group is None:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+        new_group = copy.deepcopy(old_group)
+
+        user_dn = self.get_user_by_uid(user, ['dn', 'uid', 'objectclass'], opts)
+        if user_dn is None:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+
+        if new_group.get('uniquemember') is not None:
+            if ((isinstance(new_group.get('uniquemember'), str)) or (isinstance(new_group.get('uniquemember'), unicode))):
+                new_group['uniquemember'] = [new_group['uniquemember']]
+            new_group['uniquemember'].append(user_dn['dn'])
+        else:
+            new_group['uniquemember'] = user_dn['dn']
+
+        try:
+            ret = self.__update_entry(old_group, new_group, opts)
+        except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
+            raise
+        return ret
+
+    def add_users_to_group(self, users, group, opts=None):
+        """Given a list of user uid's add them to the group cn denoted by group
+           Returns a list of the users were not added to the group.
+        """
+
+        failed = []
+
+        if (isinstance(users, str)):
+            users = [users]
+
+        for user in users:
+            try:
+                self.add_user_to_group(user, group, opts)
+            except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
+                # User is already in the group
+                failed.append(user)
+            except ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND):
+                # User or the group does not exist
+                failed.append(user)
+
+        return failed
+
+    def remove_user_from_group(self, user, group, opts=None):
+        """Remove a user from an existing group.
+           user is a uid of the user to remove
+           group is the cn of the group to be removed from
+        """
+
+        if opts:
+            self.set_principal(opts['remoteuser'])
+
+        old_group = self.get_group_by_cn(group, None, opts)
+        if old_group is None:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+        new_group = copy.deepcopy(old_group)
+
+        user_dn = self.get_user_by_uid(user, ['dn', 'uid', 'objectclass'], opts)
+        if user_dn is None:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+
+        if new_group.get('uniquemember') is not None:
+            if ((isinstance(new_group.get('uniquemember'), str)) or (isinstance(new_group.get('uniquemember'), unicode))):
+                new_group['uniquemember'] = [new_group['uniquemember']]
+            try:
+                new_group['uniquemember'].remove(user_dn['dn'])
+            except ValueError:
+                # User is not in the group
+                # FIXME: raise more specific error?
+                raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+        else:
+            # Nothing to do if the group has no members
+            # FIXME raise SOMETHING?
+            return "Success"
+
+        try:
+            ret = self.__update_entry(old_group, new_group, opts)
+        except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
+            raise
+        return ret
+
+    def remove_users_from_group(self, users, group, opts=None):
+        """Given a list of user uid's remove them from the group cn denoted
+           by group
+           Returns a list of the users were not removed from the group.
+        """
+
+        failed = []
+
+        if (isinstance(users, str)):
+            users = [users]
+
+        for user in users:
+            try:
+                self.remove_user_from_group(user, group, opts)
+            except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
+                # User is not in the group
+                failed.append(user)
+            except ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND):
+                # User or the group does not exist
+                failed.append(user)
+
+        return failed
+
+    def update_group (self, oldgroup, newgroup, opts=None):
+        """Update a group in LDAP"""
+        return self.__update_entry(oldgroup, newgroup, opts)
 
 def ldap_search_escape(match):
     """Escapes out nasty characters from the ldap search.

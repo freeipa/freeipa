@@ -20,27 +20,19 @@
 
 import sys
 from optparse import OptionParser
-import ipa
 import ipa.ipaclient as ipaclient
 import ipa.config
 
+import sys
 import xmlrpclib
 import kerberos
 
 def usage():
-    print "ipa-usermod [-c|--gecos STRING] [-d|--directory STRING] user"
-    sys.exit(1)
+    print "ipa-findgroup <uid>"
+    sys.exit()
 
 def parse_options():
     parser = OptionParser()
-    parser.add_option("-c", "--gecos", dest="gecos",
-                      help="Set the GECOS field")
-    parser.add_option("-d", "--directory", dest="directory",
-                      help="Set the User's home directory")
-    parser.add_option("-s", "--shell", dest="shell",
-                      help="Set user's login shell to shell")
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
 
     args = ipa.config.init_config(sys.argv)
     options, args = parser.parse_args(args)
@@ -48,30 +40,38 @@ def parse_options():
     return options, args
 
 def main():
+    group={}
     options, args = parse_options()
 
     if len(args) != 2:
         usage()
 
-    client = ipaclient.IPAClient()
     try:
-        user = client.get_user_by_uid(args[1])
-    except ipa.ipaerror.IPAError, e:
-        print "%s" % e.message
-        return 1
+        client = ipaclient.IPAClient()
+        groups = client.find_groups(args[1])
 
-    if options.gecos:
-        user.setValue('gecos', options.gecos)
-    if options.directory:
-        user.setValue('homedirectory', options.directory)
-    if options.shell:
-        user.setValue('loginshell', options.shell)
+        if len(groups) == 0:
+            print "No entries found for", args[1]
+            return 0
 
-    try:
-        client.update_user(user)
-        print args[1] + " successfully modified"
-    except xmlrpclib.Fault, f:
-        print f.faultString
+        for ent in groups:
+            attr = ent.attrList()
+
+            print "dn: " + ent.dn
+
+            for a in attr:
+                value = ent.getValues(a)
+                if isinstance(value,str):
+                    print a + ": " + value
+                else:
+                    print a + ": "
+                    for l in value:
+                        print "\t" +  l
+            # blank line between results
+            print 
+
+    except xmlrpclib.Fault, fault:
+        print fault.faultString
         return 1
     except kerberos.GSSError, e:
         print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])

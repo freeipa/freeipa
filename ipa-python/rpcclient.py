@@ -51,25 +51,28 @@ class RPCClient:
     def convert_entry(self,ent):
         # Convert into a dict. We need to handle multi-valued attributes as well
         # so we'll convert those into lists.
-        user={}
+        obj={}
         for (k) in ent:
             k = k.lower()
-            if user.get(k) is not None:
-                if isinstance(user[k],list):
-                    user[k].append(ent[k].strip())
+            if obj.get(k) is not None:
+                if isinstance(obj[k],list):
+                    obj[k].append(ent[k].strip())
                 else:
-                    first = user[k]
-                    user[k] = ()
-                    user[k].append(first)
-                    user[k].append(ent[k].strip())
+                    first = obj[k]
+                    obj[k] = ()
+                    obj[k].append(first)
+                    obj[k].append(ent[k].strip())
             else:
-                 user[k] = ent[k]
+                 obj[k] = ent[k]
     
-        return user
+        return obj 
         
+# User support
+
     def get_user_by_uid(self,uid,sattrs=None):
         """Get a specific user. If sattrs is not None then only those
-           attributes will be returned. The result is a dict."""
+           attributes will be returned, otherwise all available
+           attributes are returned. The result is a dict."""
         server = self.setup_server()
         if sattrs is None:
             sattrs = "__NONE__"
@@ -84,7 +87,8 @@ class RPCClient:
         
     def get_user_by_dn(self,dn,sattrs=None):
         """Get a specific user. If sattrs is not None then only those
-           attributes will be returned. The result is a dict."""
+           attributes will be returned, otherwise all available
+           attributes are returned. The result is a dict."""
         server = self.setup_server()
         if sattrs is None:
             sattrs = "__NONE__"
@@ -145,7 +149,7 @@ class RPCClient:
     
         return result
 
-    def find_users (self, criteria, sattrs=None, user_container=None):
+    def find_users (self, criteria, sattrs=None):
         """Return a list containing a User object for each user that matches
            the criteria."""
     
@@ -154,9 +158,7 @@ class RPCClient:
             # None values are not allowed in XML-RPC
             if sattrs is None:
                 sattrs = "__NONE__"
-            if user_container is None:
-                user_container = "__NONE__"
-            result = server.find_users(criteria, sattrs, user_container)
+            result = server.find_users(criteria, sattrs)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
@@ -183,6 +185,150 @@ class RPCClient:
     
         try:
             result = server.mark_user_deleted(uid)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return result
+
+# Group support
+        
+    def get_group_by_cn(self,cn,sattrs=None):
+        """Get a specific group. If sattrs is not None then only those
+           attributes will be returned, otherwise all available
+           attributes are returned. The result is a dict."""
+        server = self.setup_server()
+        if sattrs is None:
+            sattrs = "__NONE__"
+        try:
+            result = server.get_group_by_cn(cn, sattrs)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return result
+        
+    def get_group_by_dn(self,dn,sattrs=None):
+        """Get a specific group. If sattrs is not None then only those
+           attributes will be returned, otherwise all available
+           attributes are returned. The result is a dict."""
+        server = self.setup_server()
+        if sattrs is None:
+            sattrs = "__NONE__"
+        try:
+            result = server.get_group_by_dn(dn, sattrs)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return result
+
+    def add_group(self,group,group_container=None):
+        """Add a new group. Takes as input a dict where the key is the
+           attribute name and the value is either a string or in the case
+           of a multi-valued field a list of values"""
+        server = self.setup_server()
+
+        if group_container is None:
+            group_container = "__NONE__"
+    
+        try:
+            result = server.add_group(group, group_container)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+    def find_groups (self, criteria, sattrs=None):
+        """Return a list containing a Group object for each group that matches
+           the criteria."""
+    
+        server = self.setup_server()
+        try:
+            # None values are not allowed in XML-RPC
+            if sattrs is None:
+                sattrs = "__NONE__"
+            result = server.find_groups(criteria, sattrs)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+    
+        return result
+
+    def add_user_to_group(self, user, group):
+        """Add a user to an existing group.
+           user is a uid of the user to add
+           group is the cn of the group to be added to
+        """
+        server = self.setup_server()
+        try:
+            result = server.add_user_to_group(user, group)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+    
+        return result
+
+    def add_users_to_group(self, users, group):
+        """Add several users to an existing group.
+           user is a list of the uids of the users to add
+           group is the cn of the group to be added to
+
+           Returns a list of the users that were not added.
+        """
+        server = self.setup_server()
+        try:
+            result = server.add_users_to_group(users, group)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+    
+        return result
+
+    def remove_user_from_group(self, user, group):
+        """Remove a user from an existing group.
+           user is a uid of the user to remove
+           group is the cn of the group to be removed from
+        """
+        server = self.setup_server()
+        try:
+            result = server.remove_user_from_group(user, group)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+    
+        return result
+
+    def remove_users_from_group(self, users, group):
+        """Remove several users from an existing group.
+           user is a list of the uids of the users to remove
+           group is the cn of the group to be removed from
+
+           Returns a list of the users that were not removed.
+        """
+        server = self.setup_server()
+        try:
+            result = server.remove_users_from_group(users, group)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+    
+        return result
+
+    def update_group(self,oldgroup,newgroup):
+        """Update an existing group. oldgroup and newgroup are dicts of attributes"""
+        server = self.setup_server()
+    
+        try:
+            result = server.update_group(oldgroup, newgroup)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):

@@ -320,6 +320,9 @@ class IPAdmin(SimpleLDAPObject):
 
         modlist = self.generateModList(olduser, newuser)
 
+        if len(modlist) == 0:
+            raise ipaerror.gen_exception(ipaerror.LDAP_EMPTY_MODLIST)
+
         try:
             self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modify_s(dn, modlist)

@@ -88,6 +88,9 @@ def main():
     except xmlrpclib.ProtocolError, e:
         print "Unable to connect to IPA server: %s" % (e.errmsg)
         return 1
+    except ipa.ipaerror.IPAError, e:
+        print "%s" % (e.message)
+        return 1
 
     return 0
 
