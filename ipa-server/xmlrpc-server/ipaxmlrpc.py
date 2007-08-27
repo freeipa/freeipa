@@ -36,6 +36,7 @@ from mod_python import apache
 import ipaserver
 import funcs
 from ipa import ipaerror
+import ldap
 
 import string
 import base64
@@ -150,7 +151,12 @@ class ModXMLRPCRequestHandler(object):
             response = dumps(response, methodresponse=1, allow_none=1)
         except ipaerror.IPAError, e:
             self.traceback = True
-            response = dumps(Fault(e.code, str(e)))
+
+            if (isinstance(e.detail, ldap.LDAPError)):
+u               err = ": %s: %s" % (e.detail.args[0]['desc'], e.detail.args[0].get('info',''))
+                response = dumps(Fault(e.code, str(e) + err))
+            else:
+                response = dumps(Fault(e.code, str(e)))
         except:
             self.traceback = True
             # report exception back to server

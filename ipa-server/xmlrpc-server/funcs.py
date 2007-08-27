@@ -192,11 +192,10 @@ class IPAServer:
         uid = self.__safe_filter(uid)
         filter = "(&(uid=%s)(objectclass=posixAccount))" % uid
  
-        entry = self.__get_entry(self.basedn, filter, ['dn','uid'], opts)
-
-        if entry is not None:
+        try:
+            entry = self.__get_entry(self.basedn, filter, ['dn','uid'], opts)
             return 0
-        else:
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return 1
 
     def get_user_by_uid (self, uid, sattrs=None, opts=None):
