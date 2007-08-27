@@ -25,9 +25,10 @@ class CIDict(dict):
     """
     Case-insensitive but case-respecting dictionary.
 
-    Idea from python-ldap cidict, however this version extends 'dict'
-    so it works properly with TurboGears.
+    This code is derived from python-ldap's cidict.py module,
+    written by stroeder: http://python-ldap.sourceforge.net/
 
+    This version extends 'dict' so it works properly with TurboGears.
     If you extend UserDict, isinstance(foo, dict) returns false.
     """
 
