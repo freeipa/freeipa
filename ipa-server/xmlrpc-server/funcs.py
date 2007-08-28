@@ -90,42 +90,27 @@ class IPAServer:
         filter = "(krbPrincipalName=" + princ + ")"
         # The only anonymous search we should have
         m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,None)
-        ent = m1.getEntry(self.basedn, self.scope, filter, ['dn'])
-        _LDAPPool.releaseConn(m1)
+        try:
+            ent = m1.getEntry(self.basedn, self.scope, filter, ['dn'])
+        finally:
+            _LDAPPool.releaseConn(m1)
     
         return "dn:" + ent.dn
 
     def convert_entry(self, ent):
-    
-        # Convert to LDIF
-        entry = str(ent) 
+        entry = dict(ent.data)
+        entry['dn'] = ent.dn
+        # For now convert single entry lists to a string for the ui.
+        # TODO: we need to deal with multi-values better
+        for key,value in entry.iteritems():
+            if isinstance(value,list) or isinstance(value,tuple):
+                if len(value) == 0:
+                    entry[key] = ''
+                elif len(value) == 1:
+                    entry[key] = value[0]
+        return entry
 
-        # Strip off any junk
-        entry = entry.strip()
 
-        # Don't need to identify binary fields and this breaks the parser so
-        # remove double colons
-        entry = entry.replace('::', ':')
-        specs = [spec.split(':') for spec in entry.split('\n')]
-    
-        # Convert into a dict. We need to handle multi-valued attributes as well
-        # so we'll convert those into lists.
-        obj={}
-        for (k,v) in specs:
-            k = k.lower()
-            if obj.get(k) is not None:
-                if isinstance(obj[k],list):
-                    obj[k].append(v.strip())
-                else:
-                    first = obj[k]
-                    obj[k] = []
-                    obj[k].append(first)
-                    obj[k].append(v.strip())
-            else:
-                    obj[k] = v.strip()
-    
-        return obj 
-    
     def __get_entry (self, base, filter, sattrs=None, opts=None):
         """Get a specific entry. Return as a dict of values.
            Multi-valued fields are represented as lists.
@@ -139,8 +124,10 @@ class IPAServer:
         dn = self.get_dn_from_principal(self.princ)
     
         m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
-        ent = m1.getEntry(base, self.scope, filter, sattrs)
-        _LDAPPool.releaseConn(m1)
+        try:
+            ent = m1.getEntry(base, self.scope, filter, sattrs)
+        finally:
+            _LDAPPool.releaseConn(m1)
     
         return self.convert_entry(ent)
 
@@ -169,8 +156,10 @@ class IPAServer:
         proxydn = self.get_dn_from_principal(self.princ)
 
         m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,proxydn)
-        res = m1.updateEntry(moddn, oldentry, newentry)
-        _LDAPPool.releaseConn(m1)
+        try:
+            res = m1.updateEntry(moddn, oldentry, newentry)
+        finally:
+            _LDAPPool.releaseConn(m1)
         return res
 
     def __safe_filter(self, criteria):
@@ -181,9 +170,34 @@ class IPAServer:
         #       where the second byte in a multi-byte character
         #       is (illegally) ')' and make sure python-ldap
         #       bombs out.
-        criteria = re.sub(r'[\(\)\\]', ldap_search_escape, criteria)
+        criteria = re.sub(r'[\(\)\\\*]', ldap_search_escape, criteria)
 
         return criteria
+
+    def __generate_match_filters(self, search_fields, criteria_words):
+        """Generates a search filter based on a list of words and a list
+           of fields to search against.
+
+           Returns a tuple of two filters: (exact_match, partial_match)"""
+
+        # construct search pattern for a single word
+        # (|(f1=word)(f2=word)...)
+        search_pattern = "(|"
+        for field in search_fields:
+            search_pattern += "(" + field + "=%(match)s)"
+        search_pattern += ")"
+        gen_search_pattern = lambda word: search_pattern % {'match':word}
+
+        # construct the giant match for all words
+        exact_match_filter = "(&"
+        partial_match_filter = "(&"
+        for word in criteria_words:
+            exact_match_filter += gen_search_pattern(word)
+            partial_match_filter += gen_search_pattern("*%s*" % word)
+        exact_match_filter += ")"
+        partial_match_filter += ")"
+
+        return (exact_match_filter, partial_match_filter)
  
 # User support
 
@@ -192,11 +206,10 @@ class IPAServer:
         uid = self.__safe_filter(uid)
         filter = "(&(uid=%s)(objectclass=posixAccount))" % uid
  
-        entry = self.__get_entry(self.basedn, filter, ['dn','uid'], opts)
-
-        if entry is not None:
+        try:
+            entry = self.__get_entry(self.basedn, filter, ['dn','uid'], opts)
             return 0
-        else:
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return 1
 
     def get_user_by_uid (self, uid, sattrs=None, opts=None):
@@ -283,8 +296,10 @@ class IPAServer:
         dn = self.get_dn_from_principal(self.princ)
 
         m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
-        res = m1.addEntry(entry)
-        _LDAPPool.releaseConn(m1)
+        try:
+            res = m1.addEntry(entry)
+        finally:
+            _LDAPPool.releaseConn(m1)
         return res
     
     def get_add_schema (self):
@@ -345,8 +360,10 @@ class IPAServer:
         filter = "(objectclass=posixAccount)"
 
         m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
-        all_users = m1.getList(self.basedn, self.scope, filter, None)
-        _LDAPPool.releaseConn(m1)
+        try:
+            all_users = m1.getList(self.basedn, self.scope, filter, None)
+        finally:
+            _LDAPPool.releaseConn(m1)
     
         users = []
         for u in all_users:
@@ -365,20 +382,46 @@ class IPAServer:
 
         dn = self.get_dn_from_principal(self.princ)
 
-        criteria = self.__safe_filter(criteria)
+        # Assume the list of fields to search will come from a central
+        # configuration repository.  A good format for that would be
+        # a comma-separated list of fields
+        search_fields_conf_str = "uid,givenName,sn,telephoneNumber"
+        search_fields = string.split(search_fields_conf_str, ",")
 
-        filter = "(|(uid=%s)(cn=%s))" % (criteria, criteria)
+        criteria = self.__safe_filter(criteria)
+        criteria_words = re.split(r'\s+', criteria)
+        criteria_words = filter(lambda value:value!="", criteria_words)
+        if len(criteria_words) == 0:
+            return []
+
+        (exact_match_filter, partial_match_filter) = self.__generate_match_filters(
+                search_fields, criteria_words)
+
+        m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
         try:
-            m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
-            results = m1.getList(self.basedn, self.scope, filter, sattrs)
+            try:
+                exact_results = m1.getList(self.basedn, self.scope,
+                        exact_match_filter, sattrs)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                exact_results = []
+
+            try:
+                partial_results = m1.getList(self.basedn, self.scope,
+                        partial_match_filter, sattrs)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                partial_results = []
+        finally:
             _LDAPPool.releaseConn(m1)
-        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-            results = []
+
+        # Remove exact matches from the partial_match list
+        exact_dns = set(map(lambda e: e.dn, exact_results))
+        partial_results = filter(lambda e: e.dn not in exact_dns,
+                                 partial_results)
 
         users = []
-        for u in results:
+        for u in exact_results + partial_results:
             users.append(self.convert_entry(u))
-    
+
         return users
 
     def convert_scalar_values(self, orig_dict):
@@ -417,8 +460,10 @@ class IPAServer:
             has_key = False
 
         m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,proxydn)
-        res = m1.inactivateEntry(user['dn'], has_key)
-        _LDAPPool.releaseConn(m1)
+        try:
+            res = m1.inactivateEntry(user['dn'], has_key)
+        finally:
+            _LDAPPool.releaseConn(m1)
         return res
 
 # Group support
@@ -485,8 +530,10 @@ class IPAServer:
         dn = self.get_dn_from_principal(self.princ)
 
         m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
-        res = m1.addEntry(entry)
-        _LDAPPool.releaseConn(m1)
+        try:
+            res = m1.addEntry(entry)
+        finally:
+            _LDAPPool.releaseConn(m1)
 
     def find_groups (self, criteria, sattrs=None, opts=None):
         """Return a list containing a User object for each
@@ -502,12 +549,13 @@ class IPAServer:
         criteria = self.__safe_filter(criteria)
 
         filter = "(&(cn=%s)(objectClass=posixGroup))" % criteria
+        m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
         try:
-            m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
             results = m1.getList(self.basedn, self.scope, filter, sattrs)
-            _LDAPPool.releaseConn(m1)
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             results = []
+        finally:
+            _LDAPPool.releaseConn(m1)
 
         groups = []
         for u in results:
@@ -646,5 +694,8 @@ def ldap_search_escape(match):
         return "\\29"
     elif value == "\\":
         return "\\5c"
+    elif value == "*":
+        # drop '*' from input.  search performs its own wildcarding
+        return ""
     else:
         return value

@@ -30,14 +30,6 @@ import group
 import ipa
 import config
 
-def cidict_to_dict(cid):
-    """Convert a cidict to a standard dict for sending across the wire"""
-    newdict = {}
-    kindex = cid.keys()
-    for dkey in kindex:
-        newdict[dkey] = cid[dkey]
-    return newdict
-
 class IPAClient:
 
     def __init__(self,local=None):
@@ -89,7 +81,7 @@ class IPAClient:
         result = self.transport.get_all_users()
 
         all_users = []
-        for (attrs) in result:
+        for attrs in result:
             if attrs is not None:
                 all_users.append(user.User(attrs))
 
@@ -107,7 +99,7 @@ class IPAClient:
         result = self.transport.find_users(criteria, sattrs)
 
         users = []
-        for (attrs) in result:
+        for attrs in result:
             if attrs is not None:
                 users.append(user.User(attrs))
 
@@ -165,7 +157,7 @@ class IPAClient:
         result = self.transport.find_groups(criteria, sattrs)
 
         groups = []
-        for (attrs) in result:
+        for attrs in result:
             if attrs is not None:
                 groups.append(group.Group(attrs))
 

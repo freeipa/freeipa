@@ -29,7 +29,7 @@ import os
 import base64
 import user
 import ipa
-from ipa import ipaerror
+from ipa import ipaerror, ipautil
 
 # Some errors to catch
 # http://cvs.fedora.redhat.com/viewcvs/ldapserver/ldap/servers/plugins/pam_passthru/README?root=dirsec&rev=1.6&view=auto
@@ -83,7 +83,7 @@ class RPCClient:
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
 
-        return result
+        return ipautil.unwrap_binary_data(result)
         
     def get_user_by_dn(self,dn,sattrs=None):
         """Get a specific user. If sattrs is not None then only those
@@ -99,7 +99,7 @@ class RPCClient:
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
 
-        return result
+        return ipautil.unwrap_binary_data(result)
 
     def add_user(self,user,user_container=None):
         """Add a new user. Takes as input a dict where the key is the
@@ -111,13 +111,14 @@ class RPCClient:
             user_container = "__NONE__"
     
         try:
-            result = server.add_user(user, user_container)
+            result = server.add_user(ipautil.wrap_binary_data(user),
+                    user_container)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
 
-        return result
+        return ipautil.unwrap_binary_data(result)
         
     def get_add_schema(self):
         """Get the list of attributes we need to ask when adding a new
@@ -134,7 +135,7 @@ class RPCClient:
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
       
-        return result
+        return ipautil.unwrap_binary_data(result)
     
     def get_all_users (self):
         """Return a list containing a User object for each existing user."""
@@ -147,7 +148,7 @@ class RPCClient:
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
     
-        return result
+        return ipautil.unwrap_binary_data(result)
 
     def find_users (self, criteria, sattrs=None):
         """Return a list containing a User object for each user that matches
@@ -164,20 +165,21 @@ class RPCClient:
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
     
-        return result
+        return ipautil.unwrap_binary_data(result)
 
     def update_user(self,olduser,newuser):
         """Update an existing user. olduser and newuser are dicts of attributes"""
         server = self.setup_server()
     
         try:
-            result = server.update_user(olduser, newuser)
+            result = server.update_user(ipautil.wrap_binary_data(olduser),
+                    ipautil.wrap_binary_data(newuser))
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
 
-        return result
+        return ipautil.unwrap_binary_data(result)
 
     def mark_user_deleted(self,uid):
         """Mark a user as deleted/inactive"""
@@ -190,7 +192,7 @@ class RPCClient:
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
 
-        return result
+        return ipautil.unwrap_binary_data(result)
 
 # Group support
         
@@ -208,7 +210,7 @@ class RPCClient:
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
 
-        return result
+        return ipautil.unwrap_binary_data(result)
         
     def get_group_by_dn(self,dn,sattrs=None):
         """Get a specific group. If sattrs is not None then only those
@@ -224,7 +226,7 @@ class RPCClient:
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
 
-        return result
+        return ipautil.unwrap_binary_data(result)
 
     def add_group(self,group,group_container=None):
         """Add a new group. Takes as input a dict where the key is the
@@ -236,7 +238,8 @@ class RPCClient:
             group_container = "__NONE__"
     
         try:
-            result = server.add_group(group, group_container)
+            result = server.add_group(ipautil.wrap_binary_data(group),
+                    group_container)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
@@ -257,7 +260,7 @@ class RPCClient:
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
     
-        return result
+        return ipautil.unwrap_binary_data(result)
 
     def add_user_to_group(self, user, group):
         """Add a user to an existing group.
@@ -266,13 +269,14 @@ class RPCClient:
         """
         server = self.setup_server()
         try:
-            result = server.add_user_to_group(user, group)
+            result = server.add_user_to_group(ipautil.wrap_binary_data(user),
+                    ipautil.wrap_binary_data(group))
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
     
-        return result
+        return ipautil.unwrap_binary_data(result)
 
     def add_users_to_group(self, users, group):
         """Add several users to an existing group.
@@ -283,13 +287,14 @@ class RPCClient:
         """
         server = self.setup_server()
         try:
-            result = server.add_users_to_group(users, group)
+            result = server.add_users_to_group(ipautil.wrap_binary_data(users),
+                    ipautil.wrap_binary_data(group))
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
     
-        return result
+        return ipautil.unwrap_binary_data(result)
 
     def remove_user_from_group(self, user, group):
         """Remove a user from an existing group.
@@ -298,13 +303,14 @@ class RPCClient:
         """
         server = self.setup_server()
         try:
-            result = server.remove_user_from_group(user, group)
+            result = server.remove_user_from_group(ipautil.wrap_binary_data(user),
+                    ipautil.wrap_binary_data(group))
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
     
-        return result
+        return ipautil.unwrap_binary_data(result)
 
     def remove_users_from_group(self, users, group):
         """Remove several users from an existing group.
@@ -315,23 +321,26 @@ class RPCClient:
         """
         server = self.setup_server()
         try:
-            result = server.remove_users_from_group(users, group)
+            result = server.remove_users_from_group(
+                    ipautil.wrap_binary_data(users),
+                    ipautil.wrap_binary_data(group))
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
     
-        return result
+        return ipautil.unwrap_binary_data(result)
 
     def update_group(self,oldgroup,newgroup):
         """Update an existing group. oldgroup and newgroup are dicts of attributes"""
         server = self.setup_server()
     
         try:
-            result = server.update_group(oldgroup, newgroup)
+            result = server.update_group(ipautil.wrap_binary_data(oldgroup),
+                    ipautil.wrap_binary_data(newgroup))
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
 
-        return result
+        return ipautil.unwrap_binary_data(result)

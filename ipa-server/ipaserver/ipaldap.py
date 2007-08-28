@@ -39,7 +39,7 @@ from ldap.modlist import modifyModlist
 
 from ldap.ldapobject import SimpleLDAPObject
 
-from ipa import ipaerror
+from ipa import ipaerror, ipautil
 
 class Entry:
     """This class represents an LDAP Entry object.  An LDAP entry consists of a DN
@@ -47,7 +47,7 @@ class Entry:
     values.  In python-ldap, entries are returned as a list of 2-tuples.
     Instance variables:
     dn - string - the string DN of the entry
-    data - cidict - case insensitive dict of the attributes and values"""
+    data - CIDict - case insensitive dict of the attributes and values"""
 
     def __init__(self,entrydata):
         """data is the raw data returned from the python-ldap result method, which is
@@ -56,13 +56,13 @@ class Entry:
         if entrydata:
             if isinstance(entrydata,tuple):
                 self.dn = entrydata[0]
-                self.data = ldap.cidict.cidict(entrydata[1])
+                self.data = ipautil.CIDict(entrydata[1])
             elif isinstance(entrydata,str) or isinstance(entrydata,unicode):
                 self.dn = entrydata
-                self.data = ldap.cidict.cidict()
+                self.data = ipautil.CIDict()
         else:
             self.dn = ''
-            self.data = ldap.cidict.cidict()
+            self.data = ipautil.CIDict()
 
     def __nonzero__(self):
         """This allows us to do tests like if entry: returns false if there is no data,

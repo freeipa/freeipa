@@ -92,7 +92,7 @@ class Root(controllers.RootController):
         if tg_errors:
             turbogears.flash("There was a problem with the form!")
 
-        user = client.get_user(uid)
+        user = client.get_user_by_uid(uid)
         user_dict = user.toDict()
         # store a copy of the original user for the update later
         user_data = b64encode(dumps(user_dict))
@@ -155,7 +155,7 @@ class Root(controllers.RootController):
     def usershow(self, uid):
         """Retrieve a single user for display"""
         try:
-            user = client.get_user(uid)
+            user = client.get_user_by_uid(uid)
             return dict(user=user.toDict(), fields=forms.user.UserFields())
         except ipaerror.IPAError, e:
             turbogears.flash("User show failed: " + str(e))
