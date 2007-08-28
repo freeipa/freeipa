@@ -385,7 +385,7 @@ class IPAServer:
         # Assume the list of fields to search will come from a central
         # configuration repository.  A good format for that would be
         # a comma-separated list of fields
-        search_fields_conf_str = "uid,givenName,sn,telephoneNumber"
+        search_fields_conf_str = "uid,givenName,sn,telephoneNumber,ou,carLicense,title"
         search_fields = string.split(search_fields_conf_str, ",")
 
         criteria = self.__safe_filter(criteria)

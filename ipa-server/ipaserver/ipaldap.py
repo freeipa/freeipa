@@ -260,12 +260,12 @@ class IPAdmin(SimpleLDAPObject):
 
         try:
             res = self.search(*args)
+            type, obj = self.result(res)
 
     #        res = self.search_ext(args[0], args[1], filterstr=args[2], attrlist=args[3], serverctrls=sctrl)
         except ldap.LDAPError, e:
             raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
 
-        type, obj = self.result(res)
         if not obj:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND,
                     "no such entry for " + str(args))
@@ -283,10 +283,13 @@ class IPAdmin(SimpleLDAPObject):
 
         try:
             res = self.search(*args)
+            type, obj = self.result(res)
+        except (ldap.ADMINLIMIT_EXCEEDED, ldap.SIZELIMIT_EXCEEDED), e:
+            raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR,
+                    "Too many results returned by search", e)
         except ldap.LDAPError, e:
             raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
 
-        type, obj = self.result(res)
         if not obj:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND,
                     "no such entry for " + str(args))

@@ -145,7 +145,7 @@ class Root(controllers.RootController):
             try:
                 users = client.find_users(uid.encode('utf-8'))
             except ipaerror.IPAError, e:
-                turbogears.flash("User show failed: " + str(e))
+                turbogears.flash("User list failed: " + str(e))
                 raise turbogears.redirect("/userlist")
 
         return dict(users=users, fields=forms.user.UserFields())
