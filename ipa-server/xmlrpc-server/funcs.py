@@ -98,36 +98,19 @@ class IPAServer:
         return "dn:" + ent.dn
 
     def convert_entry(self, ent):
-    
-        # Convert to LDIF
-        entry = str(ent) 
+        entry = dict(ent.data)
+        entry['dn'] = ent.dn
+        # For now convert single entry lists to a string for the ui.
+        # TODO: we need to deal with multi-values better
+        for key,value in entry.iteritems():
+            if isinstance(value,list) or isinstance(value,tuple):
+                if len(value) == 0:
+                    entry[key] = ''
+                elif len(value) == 1:
+                    entry[key] = value[0]
+        return entry
 
-        # Strip off any junk
-        entry = entry.strip()
 
-        # Don't need to identify binary fields and this breaks the parser so
-        # remove double colons
-        entry = entry.replace('::', ':')
-        specs = [spec.split(':') for spec in entry.split('\n')]
-    
-        # Convert into a dict. We need to handle multi-valued attributes as well
-        # so we'll convert those into lists.
-        obj={}
-        for (k,v) in specs:
-            k = k.lower()
-            if obj.get(k) is not None:
-                if isinstance(obj[k],list):
-                    obj[k].append(v.strip())
-                else:
-                    first = obj[k]
-                    obj[k] = []
-                    obj[k].append(first)
-                    obj[k].append(v.strip())
-            else:
-                    obj[k] = v.strip()
-    
-        return obj 
-    
     def __get_entry (self, base, filter, sattrs=None, opts=None):
         """Get a specific entry. Return as a dict of values.
            Multi-valued fields are represented as lists.

@@ -18,6 +18,8 @@
 #
 
 from string import lower
+import re
+import xmlrpclib
 
 class CIDict(dict):
     """
@@ -105,4 +107,66 @@ class CIDict(dict):
 
         return (key,value)
 
+
+#
+# The safe_string_re regexp and needs_base64 function are extracted from the
+# python-ldap ldif module, which was
+# written by Michael Stroeder <michael@stroeder.com>
+# http://python-ldap.sourceforge.net
+#
+# It was extracted because ipaldap.py is naughtily reaching into the ldif
+# module and squashing this regexp.
+#
+SAFE_STRING_PATTERN = '(^(\000|\n|\r| |:|<)|[\000\n\r\200-\377]+|[ ]+$)'
+safe_string_re = re.compile(SAFE_STRING_PATTERN)
+
+def needs_base64(s):
+  """
+  returns 1 if s has to be base-64 encoded because of special chars
+  """
+  return not safe_string_re.search(s) is None
+
+
+def wrap_binary_data(data):
+    """Converts all binary data strings into Binary objects for transport
+       back over xmlrpc."""
+    if isinstance(data, str):
+        if needs_base64(data):
+            return xmlrpclib.Binary(data)
+        else:
+            return data
+    elif isinstance(data, list) or isinstance(data,tuple):
+        retval = []
+        for value in data:
+            retval.append(wrap_binary_data(value))
+        return retval
+    elif isinstance(data, dict):
+        retval = {}
+        for (k,v) in data.iteritems():
+            retval[k] = wrap_binary_data(v)
+        return retval
+    else:
+        return data
+
+
+def unwrap_binary_data(data):
+    """Converts all Binary objects back into strings."""
+    if isinstance(data, xmlrpclib.Binary):
+        # The data is decoded by the xmlproxy, but is stored
+        # in a binary object for us.
+        return str(data)
+    elif isinstance(data, str):
+        return data
+    elif isinstance(data, list) or isinstance(data,tuple):
+        retval = []
+        for value in data:
+            retval.append(unwrap_binary_data(value))
+        return retval
+    elif isinstance(data, dict):
+        retval = {}
+        for (k,v) in data.iteritems():
+            retval[k] = unwrap_binary_data(v)
+        return retval
+    else:
+        return data
 

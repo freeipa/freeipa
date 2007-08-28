@@ -3,6 +3,8 @@ import ldif
 import re
 import cStringIO
 
+import ipa.ipautil
+
 def utf8_encode_value(value):
     if isinstance(value,unicode):
         return value.encode('utf-8')
@@ -22,8 +24,8 @@ class Entity:
     In python-ldap, entries are returned as a list of 2-tuples.
     Instance variables:
     dn - string - the string DN of the entry
-    data - cidict - case insensitive dict of the attributes and values
-    orig_data - cidict - case insentiive dict of the original attributes and values"""
+    data - CIDict - case insensitive dict of the attributes and values
+    orig_data - CIDict - case insentiive dict of the original attributes and values"""
 
     def __init__(self,entrydata=None):
         """data is the raw data returned from the python-ldap result method,
@@ -32,19 +34,19 @@ class Entity:
         if entrydata:
             if isinstance(entrydata,tuple):
                 self.dn = entrydata[0]
-                self.data = ldap.cidict.cidict(entrydata[1])
+                self.data = ipa.ipautil.CIDict(entrydata[1])
             elif isinstance(entrydata,str) or isinstance(entrydata,unicode):
                 self.dn = entrydata
-                self.data = ldap.cidict.cidict()
+                self.data = ipa.ipautil.CIDict()
             elif isinstance(entrydata,dict):
                 self.dn = entrydata['dn']
                 del entrydata['dn']
-                self.data = ldap.cidict.cidict(entrydata)
+                self.data = ipa.ipautil.CIDict(entrydata)
         else:
             self.dn = ''
-            self.data = ldap.cidict.cidict()
+            self.data = ipa.ipautil.CIDict()
 
-        self.orig_data = dict(self.data)
+        self.orig_data = ipa.ipautil.CIDict(self.data)
 
     def __nonzero__(self):
         """This allows us to do tests like if entry: returns false if there is no data,
@@ -112,9 +114,7 @@ class Entity:
     def toDict(self):
         """Convert the attrs and values to a dict. The dict is keyed on the
         attribute name.  The value is either single value or a list of values."""
-        result = {}
-        for k in self.data.keys():
-            result[k] = self.data[k]
+        result = ipa.ipautil.CIDict(self.data)
         result['dn'] = self.dn
         return result
 
@@ -124,9 +124,7 @@ class Entity:
 
     def origDataDict(self):
         """Returns a dict of the original values of the user.  Used for updates."""
-        result = {}
-        for k in self.orig_data.keys():
-            result[k] = self.orig_data[k]
+        result = ipa.ipautil.CIDict(self.orig_data)
         result['dn'] = self.dn
         return result
 

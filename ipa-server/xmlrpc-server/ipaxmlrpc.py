@@ -35,7 +35,7 @@ from mod_python import apache
 
 import ipaserver
 import funcs
-from ipa import ipaerror
+from ipa import ipaerror, ipautil
 import ldap
 
 import string
@@ -173,14 +173,14 @@ class ModXMLRPCRequestHandler(object):
         if func is None:
              raise Fault(1, "Invalid method: %s" % method)
 
-        args = list(params)
+        args = list(ipautil.unwrap_binary_data(params))
         for i in range(len(args)):
           if args[i] == '__NONE__':
               args[i] = None 
 
         ret = func(*args)
 
-        return ret
+        return ipautil.wrap_binary_data(ret)
 
     def multiCall(self, calls):
         """Execute a multicall.  Execute each method call in the calls list, collecting
