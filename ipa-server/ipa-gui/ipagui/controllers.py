@@ -140,10 +140,16 @@ class Root(controllers.RootController):
     def userlist(self, **kw):
         """Retrieve a list of all users and display them in one huge list"""
         users = None
+        counter = 0
         uid = kw.get('uid')
         if uid != None and len(uid) > 0:
             try:
                 users = client.find_users(uid.encode('utf-8'))
+                counter = users[0]
+                users = users[1:]
+                if counter == -1:
+                    turbogears.flash("These results are truncated.\n" +
+                                    "Please refine your search and try again.")
             except ipaerror.IPAError, e:
                 turbogears.flash("User list failed: " + str(e))
                 raise turbogears.redirect("/userlist")

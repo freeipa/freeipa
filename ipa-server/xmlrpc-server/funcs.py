@@ -372,9 +372,8 @@ class IPAServer:
         return users
 
     def find_users (self, criteria, sattrs=None, opts=None):
-        """Return a list containing a User object for each
-        existing user that matches the criteria.
-        """
+        """Returns a list: counter followed by the results.
+           If the results are truncated, counter will be set to -1."""
         global _LDAPPool
 
         if opts:
@@ -400,25 +399,36 @@ class IPAServer:
         m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
         try:
             try:
-                exact_results = m1.getList(self.basedn, self.scope,
+                exact_results = m1.getListAsync(self.basedn, self.scope,
                         exact_match_filter, sattrs)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-                exact_results = []
+                exact_results = [0]
 
             try:
-                partial_results = m1.getList(self.basedn, self.scope,
+                partial_results = m1.getListAsync(self.basedn, self.scope,
                         partial_match_filter, sattrs)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-                partial_results = []
+                partial_results = [0]
         finally:
             _LDAPPool.releaseConn(m1)
+
+        exact_counter = exact_results[0]
+        partial_counter = partial_results[0]
+
+        exact_results = exact_results[1:]
+        partial_results = partial_results[1:]
 
         # Remove exact matches from the partial_match list
         exact_dns = set(map(lambda e: e.dn, exact_results))
         partial_results = filter(lambda e: e.dn not in exact_dns,
                                  partial_results)
 
-        users = []
+        if (exact_counter == -1) or (partial_counter == -1):
+            counter = -1
+        else:
+            counter = len(exact_results) + len(partial_results)
+
+        users = [counter]
         for u in exact_results + partial_results:
             users.append(self.convert_entry(u))
 

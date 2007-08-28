@@ -94,12 +94,14 @@ class IPAClient:
         return result
 
     def find_users(self, criteria, sattrs=None):
-        """Find users whose uid matches the criteria. Wildcards are 
-           acceptable. Returns a list of User objects."""
+        """Return a list: counter followed by a User object for each user that
+           matches the criteria. If the results are truncated, counter will
+           be set to -1"""
         result = self.transport.find_users(criteria, sattrs)
+        counter = result[0]
 
-        users = []
-        for attrs in result:
+        users = [counter]
+        for attrs in result[1:]:
             if attrs is not None:
                 users.append(user.User(attrs))
 

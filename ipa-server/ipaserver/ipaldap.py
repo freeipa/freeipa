@@ -300,6 +300,44 @@ class IPAdmin(SimpleLDAPObject):
 
         return all_users
 
+    def getListAsync(self,*args):
+        """This version performs an asynchronous search, to allow
+           results even if we hit a limit.
+
+           It returns a list: counter followed by the results.
+           If the results are truncated, counter will be set to -1.
+           """
+
+        sctrl = self.__get_server_controls__()
+        if sctrl is not None:
+            self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
+
+        entries = []
+        partial = 0
+
+        try:
+            msgid = self.search_ext(*args)
+            type, result_list = self.result(msgid, 0)
+            while result_list:
+                for result in result_list:
+                    entries.append(result)
+                type, result_list = self.result(msgid, 0)
+        except (ldap.ADMINLIMIT_EXCEEDED, ldap.SIZELIMIT_EXCEEDED), e:
+            partial = 1
+        except ldap.LDAPError, e:
+            raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
+
+        if not entries:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND,
+                    "no such entry for " + str(args))
+
+        if partial == 1:
+            counter = -1
+        else:
+            counter = len(entries)
+
+        return [counter] + entries
+
     def addEntry(self,*args):
         """This wraps the add function. It assumes that the entry is already
            populated with all of the desired objectclasses and attributes"""

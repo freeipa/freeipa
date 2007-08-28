@@ -151,8 +151,9 @@ class RPCClient:
         return ipautil.unwrap_binary_data(result)
 
     def find_users (self, criteria, sattrs=None):
-        """Return a list containing a User object for each user that matches
-           the criteria."""
+        """Return a list: counter followed by a User object for each user that
+           matches the criteria. If the results are truncated, counter will
+           be set to -1"""
     
         server = self.setup_server()
         try:

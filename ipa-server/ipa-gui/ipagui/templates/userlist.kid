@@ -8,13 +8,13 @@
 <body>
     <div id="search">
         <form action="${tg.url('/userlist')}" method="post">
-            Search by login/name:
+            Search:
             <input type="text" name="uid" />
             <input type="submit" />
         </form>
     </div>
     <div py:if='users != None'>
-        <h2>Results</h2>
+        <h2>${len(users)} results returned:</h2>
         <table py:if='len(users) > 0' border="1">
             <tr>
                 <th>
