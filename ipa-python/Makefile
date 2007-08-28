@@ -1,4 +1,4 @@
-PYTHONLIBDIR ?= $(shell  python -c "from distutils.sysconfig import *; print get_python_lib(1)")
+PYTHONLIBDIR ?= $(shell  python -c "from distutils.sysconfig import *; print get_python_lib()")
 PACKAGEDIR ?= $(DESTDIR)/$(PYTHONLIBDIR)/ipa
 CONFIGDIR ?= $(DESTDIR)/etc/ipa
 
