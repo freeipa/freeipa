@@ -300,6 +300,7 @@ def handler(req, profiling=False):
             h.register_function(f.get_all_users)
             h.register_function(f.find_users)
             h.register_function(f.update_user)
+            h.register_function(f.delete_user)
             h.register_function(f.mark_user_deleted)
             h.register_function(f.get_group_by_cn)
             h.register_function(f.get_group_by_dn)
@@ -307,9 +308,11 @@ def handler(req, profiling=False):
             h.register_function(f.find_groups)
             h.register_function(f.add_user_to_group)
             h.register_function(f.add_users_to_group)
+            h.register_function(f.add_group_to_group)
             h.register_function(f.remove_user_from_group)
             h.register_function(f.remove_users_from_group)
             h.register_function(f.update_group)
+            h.register_function(f.delete_group)
             h.handle_request(req)
         finally:
              pass

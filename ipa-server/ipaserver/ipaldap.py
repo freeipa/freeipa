@@ -389,6 +389,18 @@ class IPAdmin(SimpleLDAPObject):
             raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
         return "Success"
 
+    def deleteEntry(self,*args):
+        """This wraps the delete function. Use with caution."""
+
+        sctrl = self.__get_server_controls__()
+
+        try:
+            self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
+            self.delete_s(*args)
+        except ldap.LDAPError, e:
+            raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
+        return "Success"
+
     def __wrapmethods(self):
         """This wraps all methods of SimpleLDAPObject, so that we can intercept
         the methods that deal with entries.  Instead of using a raw list of tuples

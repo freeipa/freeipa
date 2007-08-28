@@ -113,6 +113,14 @@ class IPAClient:
         result = self.transport.update_user(user.origDataDict(), user.toDict())
         return result
 
+    def delete_user(self,uid):
+        """Delete a user entry."""
+
+        realm = config.config.get_realm()
+
+        result = self.transport.delete_user(uid)
+        return result
+
     def mark_user_deleted(self,uid):
         """Set a user as inactive by uid."""
 
@@ -202,7 +210,17 @@ class IPAClient:
     def update_group(self,group):
         """Update a group entry."""
 
-        realm = config.config.get_realm()
+        return self.transport.update_group(group.origDataDict(), group.toDict())
 
-        result = self.transport.update_group(group.origDataDict(), group.toDict())
-        return result
+    def delete_group(self,group_cn):
+        """Delete a group entry."""
+
+        return self.transport.delete_group(group_cn)
+
+    def add_group_to_group(self, group_cn, tgroup_cn):
+        """Add a group to an existing group.
+           group_cn is a cn of the group to add
+           tgroup_cn is the cn of the group to be added to
+        """
+
+        return self.transport.add_group_to_group(group_cn, tgroup_cn)

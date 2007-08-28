@@ -466,6 +466,29 @@ class IPAServer:
             _LDAPPool.releaseConn(m1)
         return res
 
+    def delete_user (self, uid, opts=None):
+        """Delete a user. Not to be confused with inactivate_user. This
+           makes the entry go away completely.
+
+           uid is the uid of the user to delete
+
+           The memberOf plugin handles removing the user from any other
+           groups.
+        """
+        if opts:
+            self.set_principal(opts['remoteuser'])
+
+        dn = self.get_dn_from_principal(self.princ)
+
+        user_dn = self.get_user_by_uid(uid, ['dn', 'uid', 'objectclass'], opts)
+        if user_dn is None:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+
+        m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
+        res = m1.deleteEntry(user_dn['dn'])
+        _LDAPPool.releaseConn(m1)
+        return res
+
 # Group support
 
     def __is_group_unique(self, cn, opts):
@@ -473,11 +496,10 @@ class IPAServer:
         cn = self.__safe_filter(cn)
         filter = "(&(cn=%s)(objectclass=posixGroup))" % cn
  
-        entry = self.__get_entry(self.basedn, filter, ['dn','cn'], opts)
-
-        if entry is not None:
+        try:
+            entry = self.__get_entry(self.basedn, filter, ['dn','cn'], opts)
             return 0
-        else:
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return 1
 
     def get_group_by_cn (self, cn, sattrs=None, opts=None):
@@ -680,6 +702,59 @@ class IPAServer:
     def update_group (self, oldgroup, newgroup, opts=None):
         """Update a group in LDAP"""
         return self.__update_entry(oldgroup, newgroup, opts)
+
+    def delete_group (self, group_cn, opts=None):
+        """Delete a group
+           group_cn is the cn of the group to delete
+
+           The memberOf plugin handles removing the group from any other
+           groups.
+        """
+        if opts:
+            self.set_principal(opts['remoteuser'])
+
+        dn = self.get_dn_from_principal(self.princ)
+
+        group = self.get_group_by_cn(group_cn, ['dn', 'cn'], opts)
+
+        if len(group) != 1:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+
+        m1 = _LDAPPool.getConn(self.host,self.port,self.bindca,self.bindcert,self.bindkey,dn)
+        res = m1.deleteEntry(group[0]['dn'])
+        _LDAPPool.releaseConn(m1)
+        return res
+
+    def add_group_to_group(self, group, tgroup, opts=None):
+        """Add a user to an existing group.
+           group is a cn of the group to add
+           tgroup is the cn of the group to be added to
+        """
+
+        if opts:
+            self.set_principal(opts['remoteuser'])
+
+        old_group = self.get_group_by_cn(tgroup, None, opts)
+        if old_group is None:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+        new_group = copy.deepcopy(old_group)
+
+        group_dn = self.get_group_by_cn(group, ['dn', 'cn', 'objectclass'], opts)
+        if group_dn is None:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+
+        if new_group.get('uniquemember') is not None:
+            if ((isinstance(new_group.get('uniquemember'), str)) or (isinstance(new_group.get('uniquemember'), unicode))):
+                new_group['uniquemember'] = [new_group['uniquemember']]
+            new_group['uniquemember'].append(group_dn['dn'])
+        else:
+            new_group['uniquemember'] = group_dn['dn']
+
+        try:
+            ret = self.__update_entry(old_group, new_group, opts)
+        except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
+            raise
+        return ret
 
 def ldap_search_escape(match):
     """Escapes out nasty characters from the ldap search.

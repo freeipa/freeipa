@@ -181,6 +181,19 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
+    def delete_user(self,uid):
+        """Delete a user. uid is the uid of the user to delete."""
+        server = self.setup_server()
+    
+        try:
+            result = server.delete_user(uid)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return result
+
     def mark_user_deleted(self,uid):
         """Mark a user as deleted/inactive"""
         server = self.setup_server()
@@ -343,4 +356,32 @@ class RPCClient:
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
 
+        return ipautil.unwrap_binary_data(result)
+
+    def delete_group(self,group_cn):
+        """Delete a group. group_cn is the cn of the group to be deleted."""
+        server = self.setup_server()
+    
+        try:
+            result = server.delete_group(group_cn)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
+    def add_group_to_group(self, group_cn, tgroup_cn):
+        """Add a group to an existing group.
+           group_cn is a cn of the group to add
+           tgroup_cn is the cn of the group to be added to
+        """
+        server = self.setup_server()
+        try:
+            result = server.add_group_to_group(group_cn, tgroup_cn)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+    
         return ipautil.unwrap_binary_data(result)
