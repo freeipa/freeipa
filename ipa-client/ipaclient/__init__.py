@@ -1,6 +1,5 @@
 #! /usr/bin/python -E
-# Authors: Karl MacMillan <kmacmillan@mentalrootkit.com>
-#          see inline
+# Authors: Simo Sorce <ssorce@redhat.com>
 #
 # Copyright (C) 2007  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -19,5 +18,5 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-__all__ = ["ipadiscovery"]
+__all__ = ["ipadiscovery", "ipachangeconf", "dnsclient"]
 
