@@ -4,55 +4,78 @@ add: objectClass
 objectClass: pilotObject
 info: IPA V1.0
 
-# default, $REALM
-dn: ou=default,$SUFFIX
+dn: cn=accounts,$SUFFIX
 changetype: add
-objectClass: organizationalUnit
 objectClass: top
-ou: default
+objectClass: nsContainer
+cn: accounts
 
-# users, default, $REALM
-dn: ou=users,ou=default,$SUFFIX
+dn: cn=users,cn=accounts,$SUFFIX
 changetype: add
-objectClass: organizationalUnit
 objectClass: top
-ou: users
+objectClass: nsContainer
+cn: users
 
-# groups, default, $REALM
-dn: ou=groups,ou=default,$SUFFIX
+dn: cn=groups,ou=accounts,$SUFFIX
 changetype: add
-objectClass: organizationalUnit
 objectClass: top
-ou: groups
+objectClass: nsContainer
+cn: groups
 
-# computers, default, $REALM
-#dn: ou=computers,ou=default,$SUFFIX
-#objectClass: organizationalUnit
+#dn: cn=computers,cn=accounts,$SUFFIX
 #objectClass: top
-#ou: computers
+#objectClass: nsContainer
+#cn: computers
 
-dn: ou=special,$SUFFIX
+dn: cn=etc,$SUFFIX
 changetype: add
-objectClass: organizationalUnit
+objectClass: nsContainer
 objectClass: top
-ou: special
+cn: etc
 
-dn: uid=webservice,ou=special,$SUFFIX
+dn: cn=sysaccounts,cn=etc,$SUFFIX
 changetype: add
-uid: webservice
+objectClass: nsContainer
+objectClass: top
+cn: sysaccounts
+
+dn: uid=webservice,cn=sysaccounts,cn=etc,$SUFFIX
+changetype: add
+objectClass: top
 objectClass: account
-objectClass: top
-objectClass: inetOrgPerson
-objectClass: organizationalPerson
-objectClass: person
-cn: Web Service
-sn: Service
+uid: webservice
 
-dn: cn=admin,ou=groups,ou=default,$SUFFIX
+dn: uid=admin,cn=users,cn=accounts,$SUFFIX
 changetype: add
-description: ou=users administrators
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: KrbPrincipalAux
+uid: admin
+krbPrincipalName: admin@$REALM
+cn: Administrator
+sn: Administrator
+uidNumber: 1000
+gidNumber: 1001
+homeDirectory: /home/admin
+loginShell: /bin/bash
+gecos: Administrator
+
+dn: cn=admins,cn=groups,cn=accounts,$SUFFIX
+changetype: add
 objectClass: top
 objectClass: groupofuniquenames
 objectClass: posixGroup
-gidNumber: 500
-cn: admin
+cn: admins
+gidNumber: 1001
+uniqueMember: uid=admin,cn=sysaccounts,cn=etc,$SUFFIX
+
+dn: cn=ipausers,cn=groups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofuniquenames
+objectClass: posixGroup
+gidNumber: 1002
+cn: ipausers

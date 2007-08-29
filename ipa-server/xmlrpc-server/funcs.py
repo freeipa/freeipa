@@ -37,8 +37,8 @@ import re
 # Need a global to store this between requests
 _LDAPPool = None
 
-DefaultUserContainer = "ou=users,ou=default"
-DefaultGroupContainer = "ou=groups,ou=default"
+DefaultUserContainer = "cn=users,cn=accounts"
+DefaultGroupContainer = "cn=groups,cn=accounts"
 
 #
 # Apache runs in multi-process mode so each process will have its own
