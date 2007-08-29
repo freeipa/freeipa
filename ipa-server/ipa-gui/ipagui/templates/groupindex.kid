@@ -7,12 +7,5 @@
 </head>
 <body>
        Groups go here.
-       <br />
-       <br />
-       <br />
-       <br />
-       <br />
-       <br />
-       <br />
 </body>
 </html>

@@ -6,16 +6,17 @@
 
 <body py:match="item.tag=='{http://www.w3.org/1999/xhtml}body'" py:attrs="item.items()">
       <div id="main_content">
-        <div id="status_block" class="flash" py:if="value_of('tg_flash', None)" py:content="tg_flash"></div>
+        <div id="status_block" py:if="value_of('tg_flash', None)"
+            py:content="XML(tg_flash)"></div>
 
         <div py:replace="[item.text]+item[:]"></div>
       </div>
 
-      <div id="sidebar">
+<!--      <div id="sidebar">
           <h2>Tools</h2>
           <a href="${tg.url('/usernew')}">Add Person</a><br/>
           <a href="${tg.url('/userlist')}">Find People</a><br/>
-      </div>
+      </div> -->
 </body>
 
 </html>

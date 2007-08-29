@@ -25,22 +25,33 @@
 
     <div id="page">
       <div id="header">
-        <h1>Free IPA</h1>
+        <a href="${tg.url('/')}"><img 
+          src="${tg.url('/static/images/logo.png')}"
+          border="0"
+          /></a>
       </div>
 
-      <div id="nav">
-        <ul>
-          <li><a href="${tg.url('/userindex')}">Users</a></li>
-          <li><a href="${tg.url('/groupindex')}">Groups</a></li>
-          <li><a href="${tg.url('/resindex')}">Resources</a></li>
-        </ul>
+      <div id="nav"><!-- 
+      This used to have links.  Keeping around in case we move them back...
+      --></div>
+
+      <div id="sidebar">
+        <h2>Tasks</h2>
+        <a href="${tg.url('/usernew')}">Add Person</a><br/>
+        <a href="${tg.url('/userlist')}">Find People</a><br/>
+        <br />
+        <a href="${tg.url('/groupindex')}">Add Group</a><br/>
+        <a href="${tg.url('/groupindex')}">Find Groups</a><br/>
+        <br />
+        <a href="${tg.url('/')}">Manage Policy</a><br/>
+        <a href="${tg.url('/')}">Self Service</a><br/>
       </div>
 
       <div py:replace="[item.text]+item[:]"></div>
 
 
       <div id="footer">
-        This is the footer
+        <a href="http://www.freeipa.com/">Powered by FreeIPA</a>
       </div>
     </div>
 

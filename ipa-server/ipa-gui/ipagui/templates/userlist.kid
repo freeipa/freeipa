@@ -3,19 +3,23 @@
     py:extends="'userlayout.kid'">
 <head>
 <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
-<title>User Listing</title>
+<title>Find People</title>
 </head>
 <body>
+    <h2>Find People</h2>
     <div id="search">
         <form action="${tg.url('/userlist')}" method="post">
             Search:
-            <input type="text" name="uid" />
+            <input id="uid" type="text" name="uid" value="${uid}" />
             <input type="submit" />
         </form>
+        <script type="text/javascript">
+            document.getElementById("uid").focus();
+        </script>
     </div>
     <div py:if='users != None'>
         <h2>${len(users)} results returned:</h2>
-        <table py:if='len(users) > 0' border="1">
+        <table id="resultstable" py:if='len(users) > 0'>
             <tr>
                 <th>
                     <label class="fieldlabel" py:content="fields.uid.label" />
@@ -60,11 +64,6 @@
         <div py:if='len(users) == 0'>
             No results found.
         </div>
-    </div>
-
-    <!-- fix for visual artifact of my crappy ui -->
-    <div>
-        <br /><br /><br /><br />
     </div>
 </body>
 </html>

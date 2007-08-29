@@ -3,10 +3,10 @@
     py:extends="'userlayout.kid'">
 <head>
 <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
-<title>Edit a Person</title>
+<title>Edit Person</title>
 </head>
 <body>
-    <h2>Edit User</h2>
+    <h2>Edit Person</h2>
 
      ${form.display(action="userupdate", value=user)}
 </body>

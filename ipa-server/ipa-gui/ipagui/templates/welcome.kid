@@ -6,11 +6,9 @@
 <title>Welcome</title>
 </head>
 <body>
-    <div id="sidebar">
-        <h2>Tools</h2>
-    </div>
     <div id="main_content">
-        <div id="status_block" class="flash" py:if="value_of('tg_flash', None)" py:content="tg_flash"></div>
+        <div id="status_block" py:if="value_of('tg_flash', None)"
+            py:content="XML(tg_flash)"></div>
         <h1>Welcome to Free IPA</h1>
     </div>
 
