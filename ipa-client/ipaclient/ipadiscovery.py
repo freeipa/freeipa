@@ -30,6 +30,7 @@ class IPADiscovery:
         self.realm = None
         self.domain = None
         self.server = None
+        self.basedn = None
 
     def getServerName(self):
         return str(self.server)
@@ -39,6 +40,9 @@ class IPADiscovery:
 
     def getRealmName(self):
         return str(self.realm)
+
+    def getBaseDN(self):
+        return str(self.basedn)
 
     def search(self, domain = "", server = ""):
         hostname = ""
@@ -127,10 +131,10 @@ class IPADiscovery:
             lret = lh.search_s("", ldap.SCOPE_BASE, "(objectClass=*)")
             for lattr in lret[0][1]:
                 if lattr.lower() == "namingcontexts":
-                    lbase = lret[0][1][lattr][0]
+                    self.basedn = lret[0][1][lattr][0]
     
-            logging.debug("Search for (info=*) in "+lbase+"(base)")
-            lret = lh.search_s(lbase, ldap.SCOPE_BASE, "(info=IPA*)")
+            logging.debug("Search for (info=*) in "+self.basedn+"(base)")
+            lret = lh.search_s(self.basedn, ldap.SCOPE_BASE, "(info=IPA*)")
             if not lret:
                 return []
             logging.debug("Found: "+str(lret))
@@ -144,8 +148,8 @@ class IPADiscovery:
                 return []
     
             #search and return known realms
-            logging.debug("Search for (objectClass=krbRealmContainer) in "+lbase+"(sub)")
-            lret = lh.search_s("cn=kerberos,"+lbase, ldap.SCOPE_SUBTREE, "(objectClass=krbRealmContainer)")
+            logging.debug("Search for (objectClass=krbRealmContainer) in "+self.basedn+"(sub)")
+            lret = lh.search_s("cn=kerberos,"+self.basedn, ldap.SCOPE_SUBTREE, "(objectClass=krbRealmContainer)")
             if not lret:
                 #something very wrong
                 return []
@@ -235,5 +239,4 @@ class IPADiscovery:
                     else:
                         kdc = qname
 
-        print "["+realm+", "+kdc+"]"
         return [realm, kdc]

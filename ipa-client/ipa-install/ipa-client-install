@@ -24,10 +24,12 @@ VERSION = "%prog .1"
 import sys
 sys.path.append("/usr/share/ipa")
 
+import krbV
 import socket
 import logging
 from optparse import OptionParser
 import ipaclient.ipadiscovery
+import ipaclient.ipachangeconf
 from ipaserver.util import run
 
 def parse_options():
@@ -35,10 +37,12 @@ def parse_options():
     parser.add_option("--domain", dest="domain", help="domain name")
     parser.add_option("--server", dest="server", help="IPA server")
     parser.add_option("--realm", dest="realm_name", help="realm name")
+    parser.add_option("-f", "--force", dest="force", action="store_true",
+                      default=False, help="force setting of ldap/kerberos conf")
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
-                     dest="debug", default=False, help="print debugging information")
+                      default=False, help="print debugging information")
     parser.add_option("-U", "--unattended", dest="unattended",
-                     help="unattended installation never prompts the user")
+                      help="unattended installation never prompts the user")
 
     options, args = parser.parse_args()
 
@@ -66,6 +70,7 @@ def logging_setup(options):
 def main():
     options = parse_options()
     logging_setup(options)
+    dnsok = True
 
     # Create the discovery instance
     ds = ipaclient.ipadiscovery.IPADiscovery()
@@ -85,24 +90,98 @@ def main():
             print "Failed to determine your DNS domain (DNS misconfigured?)"
             dom = raw_input("Please provide your domain name (ex: example.com): ")
         ret = ds.search(domain=dom)
-        if ret == -2:
-            logging.debug("IPA Server not found")
-            if options.server:
-                srv = options.server
-            elif options.unattended:
-                return ret
-            else:
-                print "Failed to find the IPA Server (DNS misconfigured?)"
-                srv = raw_input("Please provide your server name (ex: ipa.example.com): ")
-            ret = ds.search(domain=dom, server=srv)
-            if ret != 0:
-                print "Failed to verify that "+srv+" is an IPA Server, aborting!"
-                return ret
+    if ret == -2:
+        dnsok = False
+        logging.debug("IPA Server not found")
+        if options.server:
+            srv = options.server
+        elif options.unattended:
+            return ret
+        else:
+            print "Failed to find the IPA Server (DNS misconfigured?)"
+            srv = raw_input("Please provide your server name (ex: ipa.example.com): ")
+        ret = ds.search(domain=dom, server=srv)
+    if ret != 0:
+        print "Failed to verify that "+srv+" is an IPA Server, aborting!"
+        return ret
 
-    print "Discovery was successful!"
+    if dnsok:
+        print "Discovery was successful!"
+    elif not options.unattended:
+        print "\nThe failure to use DNS to find your IPA server indicates that your resolv.conf file is not properly configured\n."
+        print "Autodiscovery of servers for failover cannot work with this configuration.\n"
+        print "If you proceed with the installation, services will be configured to always access the discovered server for all operation and will not fail over to other servers in case of failure\n"
+        yesno = raw_input("Do you want to proceed and configure the system with fixed values with no DNS discovery? [y/N] ")
+        if yesno.lower() != "y":
+            return ret
+        print "\n"
+
     print "Realm: "+ds.getRealmName()
     print "DNS Domain: "+ds.getDomainName()
     print "IPA Server: "+ds.getServerName()
+    print "BaseDN: "+ds.getBaseDN()
+
+    # Configure ldap.conf
+    ldapconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+    opts = [{'name':'host', 'action':'comment'},
+            {'name':'port', 'action':'comment'},
+            {'name':'binddn', 'action':'comment'},
+            {'name':'bindpw', 'action':'comment'},
+            {'name':'rootbinddn', 'action':'comment'},
+            {'name':'nss_base_passwd', 'value':ds.getBaseDN()+'?sub', 'action':'set'},
+            {'name':'nss_base_group', 'value':ds.getBaseDN()+'?sub', 'action':'set'},
+            {'name':'base', 'value':ds.getBaseDN(), 'action':'set'},
+            {'name':'ldap_version', 'value':'3', 'action':'set'}]
+    if dnsok and not options.force:
+        opts.insert(0, {'name':'uri', 'action':'comment'})
+    else:
+        opts.append({'name':'uri', 'value':'ldap://'+ds.getServerName(), 'action':'set'})
+    ldapconf.setOptionAssignment(" ")
+    ldapconf.changeConf("/etc/ldap.conf", opts)
+
+    #Check if kerberos is already configured properly
+    krbctx = krbV.default_context()
+    # If we find our domain assume we are properly configured
+    #(ex. we are configuring the client side of a Master)
+    if not krbctx.default_realm == ds.getRealmName() or options.force:
+
+        #Configure krb5.conf
+        krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+        krbconf.setOptionAssignment(" = ")
+        krbconf.setSectionNameDelimiters(("[","]"))
+
+        #[libdefaults]
+        opts = [{'name':'default_realm', 'value':ds.getRealmName(), 'action':'set'},
+                {'name':'ticket_lifetime', 'value':'24h', 'action':'set'},
+                {'name':'forwardable', 'value':'yes', 'action':'set'}]
+        if dnsok and not options.force:
+            opts.insert(1, {'name':'dns_lookup_realm', 'value':'true', 'action':'set'})
+            opts.insert(2, {'name':'dns_lookup_kdc', 'value':'true', 'action':'set'})
+        else:
+            opts.insert(1, {'name':'dns_lookup_realm', 'value':'false', 'action':'set'})
+            opts.insert(2, {'name':'dns_lookup_kdc', 'value':'false', 'action':'set'})
+        krbconf.changeConf("/etc/krb5.conf", opts, "libdefaults");
+
+	#the following are necessary only if DNS discovery does not work
+        if not dnsok or options.force:
+            #[realms]
+            opts = [{'name':ds.getRealmName(), 'value':'{', 'action':'set'},
+                    {'name':'kdc', 'value':ds.getServerName()+':88', 'action':'set'},
+                    {'name':'admin_server', 'value':ds.getServerName()+':749', 'action':'set'},
+                    # adding '\n}' is a dirty hack because we still don't have subsections support
+                    {'name':'default_domain', 'value':ds.getDomainName()+'\n}', 'action':'set'}]
+            krbconf.changeConf("/etc/krb5.conf", opts, "realms");
+
+            #[domain_realm]
+            opts = [{'name':'.'+ds.getDomainName(), 'value':ds.getRealmName(), 'action':'set'},
+                    {'name':ds.getDomainName(), 'value':ds.getRealmName(), 'action':'set'}]
+            krbconf.changeConf("/etc/krb5.conf", opts, "domain_realm");
+
+    #Modify nsswitch to add nss_ldap
+    run(["/usr/sbin/authconfig", "--enableldap", "--update"])
+
+    #Modify pam to add pam_krb5
+    run(["/usr/sbin/authconfig", "--enablekrb5", "--update"])
 
     return 0
 
