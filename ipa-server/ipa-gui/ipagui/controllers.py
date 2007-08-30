@@ -189,6 +189,82 @@ class Root(controllers.RootController):
 
         return password
 
+    @expose()
+    def suggest_uid(self, givenname, sn):
+        if (len(givenname) == 0) or (len(sn) == 0):
+            return ""
+
+        uid = givenname[0] + sn[:7]
+        try:
+            client.get_user_by_uid(uid)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            return uid
+
+        uid = givenname[:7] + sn[0]
+        try:
+            client.get_user_by_uid(uid)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            return uid
+
+        uid = (givenname + sn)[:8]
+        try:
+            client.get_user_by_uid(uid)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            return uid
+
+        uid = sn[:8]
+        try:
+            client.get_user_by_uid(uid)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            return uid
+
+        suffix = 2
+        template = givenname[0] + sn[:7]
+        while suffix < 20:
+            uid = template[:8 - len(str(suffix))] + str(suffix)
+            try:
+                client.get_user_by_uid(uid)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                return uid
+            suffix += 1
+
+        return ""
+
+    @expose()
+    def suggest_email(self, givenname, sn):
+        if (len(givenname) == 0) or (len(sn) == 0):
+            return ""
+
+        # TODO - get from config
+        domain = "freeipa.org"
+
+        return "%s.%s@%s" % (givenname, sn, domain)
+
+
+        # TODO - mail is currently not indexed nor searchable.
+        #        implement when it's done
+        # email = givenname + "." + sn + domain
+        # users = client.find_users(email, ['mail'])
+        # if len(filter(lambda u: u['mail'] == email, users[1:])) == 0:
+        #     return email
+
+        # email = self.suggest_uid(givenname, sn) + domain
+        # users = client.find_users(email, ['mail'])
+        # if len(filter(lambda u: u['mail'] == email, users[1:])) == 0:
+        #     return email
+
+        # suffix = 2
+        # template = givenname + "." + sn
+        # while suffix < 20:
+        #     email = template + str(suffix) + domain
+        #     users = client.find_users(email, ['mail'])
+        #     if len(filter(lambda u: u['mail'] == email, users[1:])) == 0:
+        #         return email
+        #     suffix += 1
+
+        # return ""
+
+
 
     #########
     # Group #

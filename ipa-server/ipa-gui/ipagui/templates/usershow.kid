@@ -8,6 +8,22 @@
 <body>
     <h2>View Person</h2>
 
+    <div class="formsection">Identity Details</div>
+    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.givenname.label" />:
+          </th>
+          <td>${user.get("givenname")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.sn.label" />:
+          </th>
+          <td>${user.get("sn")}</td>
+        </tr>
+    </table>
+
     <div class="formsection">Account Details</div>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
@@ -27,22 +43,6 @@
             <label class="fieldlabel" py:content="fields.gidnumber.label" />:
           </th>
           <td>${user.get("gidnumber")}</td>
-        </tr>
-    </table>
-
-    <div class="formsection">Identity Details</div>
-    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
-        <tr>
-          <th>
-            <label class="fieldlabel" py:content="fields.givenname.label" />:
-          </th>
-          <td>${user.get("givenname")}</td>
-        </tr>
-        <tr>
-          <th>
-            <label class="fieldlabel" py:content="fields.sn.label" />:
-          </th>
-          <td>${user.get("sn")}</td>
         </tr>
     </table>
 
