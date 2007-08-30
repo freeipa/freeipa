@@ -15,20 +15,20 @@ cn: kerberos
 aci: (targetattr="*")(version 3.0; acl "KDC System Account"; allow (all) userdn= "ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
 
 #sasl mapping
-dn: cn=fullprinc,cn=mapping,cn=sasl,cn=config
+dn: cn=Full Principal,cn=mapping,cn=sasl,cn=config
 changetype: add
 objectclass: top
 objectclass: nsSaslMapping
-cn: fullprinc
+cn: Full Principal
 nsSaslMapRegexString: \(.*\)@\(.*\)
 nsSaslMapBaseDNTemplate: $SUFFIX
 nsSaslMapFilterTemplate: (krbPrincipalName=\1@\2)
 
-dn: cn=justname,cn=mapping,cn=sasl,cn=config
+dn: cn=Name Only,cn=mapping,cn=sasl,cn=config
 changetype: add
 objectclass: top
 objectclass: nsSaslMapping
-cn: justname
+cn: Name Only
 nsSaslMapRegexString: \(.*\)
 nsSaslMapBaseDNTemplate: $SUFFIX
 nsSaslMapFilterTemplate: (krbPrincipalName=\1@$REALM)

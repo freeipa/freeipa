@@ -45,12 +45,10 @@ objectClass: top
 objectClass: account
 uid: webservice
 
-dn: uid=admin,cn=users,cn=accounts,$SUFFIX
+dn: uid=admin,cn=sysaccounts,cn=etc,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: person
-objectClass: organizationalPerson
-objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: KrbPrincipalAux
 uid: admin
@@ -68,7 +66,8 @@ changetype: add
 objectClass: top
 objectClass: groupofuniquenames
 objectClass: posixGroup
-cn: admins
+cn: Account Admins
+description: Account administrators group
 gidNumber: 1001
 uniqueMember: uid=admin,cn=sysaccounts,cn=etc,$SUFFIX
 
