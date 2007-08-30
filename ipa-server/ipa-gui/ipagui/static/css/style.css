@@ -33,7 +33,8 @@ body {
 #nav {
   background:#cc0000;
   color:#fff;
-  padding:5px;
+  min-height:3px;
+  max-height:3px;
 }
 
 #nav ul {
@@ -58,15 +59,14 @@ body {
   background:#fff;
   float:right;
   width:85%;
+  min-height:500px;
   border-left: 1px solid #000;
-  padding-left: 15px;
-  padding-bottom: 15px;
-/*  color: black;
-  font-size: 127%;
-  background-color: white;
-  margin: 0 auto 0 auto;
   padding: 10px;
-  float: left; */
+}
+
+#main_content h1,h2 {
+  margin-top: 0px;
+  margin-bottom: 5px;
 }
 
 
@@ -74,12 +74,8 @@ body {
   background:#ccc;  /* should be same as #page */
   float:left;
   width:10%;
-  /* border: 1px solid #aaa;
-  background-color: #eee;
-  margin: 0.5em;
-  padding: 1em;
-  float: left;
-  font-size: 88%; */
+  padding: 5px;
+  font-size: small;
 }
 
 #sidebar h2 {
@@ -91,17 +87,25 @@ body {
   padding-left: 0;
 }
 
+#sidebar a:visited,
+#sidebar a:link {
+  color:#000;
+}
+
 
 #footer {
   background:#fff;
   clear:both;
   border-top: 1px solid #000;
-  /* color: #999;
-  background-color: white;
-  padding: 10px;
-  font-size: 80%;
+  padding-top: 10px;
   text-align: center;
-  margin: 0 auto 1em auto; */
+  font-size: x-small;
+}
+
+#footer a:visited,
+#footer a:link {
+  color:#777;
+  text-decoration: none;
 }
 
 
@@ -129,26 +133,32 @@ body {
 #status_block {
   margin: 0 auto 0.5em auto;
   padding: 15px 10px 15px 55px;
-  background: #cec URL('../images/ok.png') left center no-repeat;
-  border: 1px solid #9c9;
+  background: #ecc;
+  border: 1px solid #c99;
   width: 450px;
   font-size: 120%;
   font-weight: bolder;
 }
 
-.notice {
-  margin: 0.5em auto 0.5em auto;
-  padding: 15px 10px 15px 55px;
-  width: 450px;
-  background: #eef URL('../images/info.png') left center no-repeat;
-  border: 1px solid #cce;
-}
-
 .fielderror {
-    color: red;
-    font-weight: bold;
+  color: red;
+  font-weight: bold;
 }
 
 .requiredfield {
-    background: #eebbbb;
+  background: #eebbbb;
+}
+
+#resultstable,
+#resultstable th,
+#resultstable td {
+  border-collapse: collapse;
+  border-style: solid;
+  border-width: 1px;
+  margin: 0px;
+  padding: 5px;
+}
+
+#resultstable th {
+  background: #eee;
 }

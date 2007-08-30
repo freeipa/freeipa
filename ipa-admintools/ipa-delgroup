@@ -28,7 +28,7 @@ import xmlrpclib
 import kerberos
 
 def usage():
-    print "ipa-deluser user"
+    print "ipa-delgroup group"
     sys.exit(1)
 
 def parse_options():
@@ -49,7 +49,7 @@ def main():
 
     try:
         client = ipaclient.IPAClient()
-        ret = client.mark_user_deleted(args[1])
+        ret = client.delete_group(args[1])
         if (ret == "Success"):
             print args[1] + " successfully deleted"
         else:

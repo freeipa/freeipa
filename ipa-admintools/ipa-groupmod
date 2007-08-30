@@ -58,7 +58,6 @@ def main():
     group=ipa.group.Group()
     options, args = parse_options()
 
-    print "len = ", len(args)
     if (options.add or options.remove) and (len(args) != 3):
         usage()
     if (options.desc and (len(args) != 2)):
@@ -68,7 +67,7 @@ def main():
         client = ipaclient.IPAClient()
         if options.add:
             client.add_user_to_group(args[1], args[2])
-            print args[1] + " successfully added"
+            print args[1] + " successfully added to " + args[2]
         elif options.remove:
             client.remove_user_from_group(args[1], args[2])
             print args[1] + " successfully removed"

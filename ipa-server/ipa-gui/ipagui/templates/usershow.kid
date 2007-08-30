@@ -3,10 +3,10 @@
     py:extends="'userlayout.kid'">
 <head>
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
-    <title>View a Person</title>
+    <title>View Person</title>
 </head>
 <body>
-    <h2>View User</h2>
+    <h2>View Person</h2>
 
     <div class="formsection">Account Details</div>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">

@@ -3,19 +3,23 @@
     py:extends="'userlayout.kid'">
 <head>
 <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
-<title>User Listing</title>
+<title>Find People</title>
 </head>
 <body>
+    <h2>Find People</h2>
     <div id="search">
         <form action="${tg.url('/userlist')}" method="post">
-            Search by login/name:
-            <input type="text" name="uid" />
+            Search:
+            <input id="uid" type="text" name="uid" value="${uid}" />
             <input type="submit" />
         </form>
+        <script type="text/javascript">
+            document.getElementById("uid").focus();
+        </script>
     </div>
     <div py:if='users != None'>
-        <h2>Results</h2>
-        <table py:if='len(users) > 0'>
+        <h2>${len(users)} results returned:</h2>
+        <table id="resultstable" py:if='len(users) > 0'>
             <tr>
                 <th>
                     <label class="fieldlabel" py:content="fields.uid.label" />
@@ -23,24 +27,43 @@
                 <th>
                     Name
                 </th>
+                <th>
+                    Phone
+                </th>
+                <th>
+                    Unit
+                </th>
+                <th>
+                    Title
+                </th>
+                <th>
+                    License Plate
+                </th>
             </tr>
             <tr py:for="user in users">
                 <td>
                     <a href="${tg.url('/usershow',uid=user.uid)}">${user.uid}</a>
                 </td>
                 <td>
-                    ${user.cn}
+                    ${user.givenName} ${user.sn}
+                </td>
+                <td>
+                    ${user.telephoneNumber}
+                </td>
+                <td>
+                    ${user.ou}
+                </td>
+                <td>
+                    ${user.title}
+                </td>
+                <td>
+                    ${user.carLicense}
                 </td>
             </tr>
         </table>
         <div py:if='len(users) == 0'>
             No results found.
         </div>
-    </div>
-
-    <!-- fix for visual artifact of my crappy ui -->
-    <div>
-        <br /><br /><br /><br />
     </div>
 </body>
 </html>
