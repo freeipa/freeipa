@@ -16,7 +16,7 @@ objectClass: top
 objectClass: nsContainer
 cn: users
 
-dn: cn=groups,ou=accounts,$SUFFIX
+dn: cn=groups,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: nsContainer
