@@ -109,7 +109,7 @@ class KrbInstance:
 	for x in self.kdc_password:
             hexpwd += (hex(ord(x))[2:])
         pwd_fd = open("/var/kerberos/krb5kdc/ldappwd", "a+")
-        pwd_fd.write("uid=kdc,cn=kerberos,"+self.suffix+"#{HEX}"+hexpwd+"\n")
+        pwd_fd.write("uid=kdc,cn=sysaccounts,cn=etc,"+self.suffix+"#{HEX}"+hexpwd+"\n")
         pwd_fd.close()
 
     def __setup_sub_dict(self):
@@ -147,7 +147,7 @@ class KrbInstance:
         krb5_fd.close()
 
         #populate the directory with the realm structure
-        args = ["/usr/kerberos/sbin/kdb5_ldap_util", "-D", "uid=kdc,cn=kerberos,"+self.suffix, "-w", self.kdc_password, "create", "-s", "-P", self.master_password, "-r", self.realm, "-subtrees", self.suffix, "-sscope", "sub"]
+        args = ["/usr/kerberos/sbin/kdb5_ldap_util", "-D", "uid=kdc,cn=sysaccounts,cn=etc,"+self.suffix, "-w", self.kdc_password, "create", "-s", "-P", self.master_password, "-r", self.realm, "-subtrees", self.suffix, "-sscope", "sub"]
         run(args)
 
     #add the password extop module
@@ -178,6 +178,15 @@ class KrbInstance:
         kread.close()
         kerr.close()
 
+        # give kadmin time to actually write the file before we go on
+	retry = 0
+        while not file_exists("/etc/dirsrv/ds.keytab"):
+            time.sleep(1)
+            retry += 1
+            if retry > 15:
+                print "Error timed out waiting for kadmin to finish operations\n"
+                os.exit()
+
         cfg_fd = open("/etc/sysconfig/dirsrv", "a")
         cfg_fd.write("export KRB5_KTNAME=/etc/dirsrv/ds.keytab\n")
         cfg_fd.close()
@@ -199,6 +208,15 @@ class KrbInstance:
         kread.close()
         kerr.close()
 
+        # give kadmin time to actually write the file before we go on
+	retry = 0
+        while not file_exists("/var/kerberos/krb5kdc/kpasswd.keytab"):
+            time.sleep(1)
+            retry += 1
+            if retry > 15:
+                print "Error timed out waiting for kadmin to finish operations\n"
+                os.exit()
+
         cfg_fd = open("/etc/sysconfig/ipa-kpasswd", "a")
         cfg_fd.write("export KRB5_KTNAME=/var/kerberos/krb5kdc/kpasswd.keytab\n")
         cfg_fd.close()
@@ -215,8 +233,15 @@ class KrbInstance:
         kread.close()
         kerr.close()
 
+        # give kadmin time to actually write the file before we go on
+	retry = 0
         while not file_exists("/etc/httpd/conf/ipa.keytab"):
             time.sleep(1)
+            retry += 1
+            if retry > 15:
+                print "Error timed out waiting for kadmin to finish operations\n"
+                os.exit()
+
         pent = pwd.getpwnam("apache")
         os.chown("/etc/httpd/conf/ipa.keytab", pent.pw_uid, pent.pw_gid)
 

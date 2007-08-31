@@ -72,16 +72,18 @@ class DsInstance:
     def __init__(self):
         self.serverid = None
         self.realm_name = None
+        self.suffix = None
         self.host_name = None
-        self.admin_password = None
+        self.dm_password = None
         self.sub_dict = None
 
-    def create_instance(self, ds_user, realm_name, host_name, admin_password):
+    def create_instance(self, ds_user, realm_name, host_name, dm_password):
         self.ds_user = ds_user
         self.serverid = generate_serverid()
         self.realm_name = realm_name.upper()
+        self.suffix = realm_to_suffix(self.realm_name)
         self.host_name = host_name
-        self.admin_password = admin_password
+        self.dm_password = dm_password
         self.__setup_sub_dict()
 
         self.__create_ds_user()
@@ -111,10 +113,9 @@ class DsInstance:
         run(["/sbin/service", "dirsrv", "restart"])
 
     def __setup_sub_dict(self):
-        suffix = realm_to_suffix(self.realm_name)
         server_root = find_server_root()
         self.sub_dict = dict(FQHN=self.host_name, SERVERID=self.serverid,
-                             PASSWORD=self.admin_password, SUFFIX=suffix,
+                             PASSWORD=self.dm_password, SUFFIX=self.suffix,
                              REALM=self.realm_name, USER=self.ds_user,
                              SERVER_ROOT=server_root)
 
@@ -155,7 +156,7 @@ class DsInstance:
     def __enable_ssl(self):
         logging.debug("configuring ssl for ds instance")
         dirname = self.config_dirname()
-        args = ["/usr/sbin/ipa-server-setupssl", self.admin_password,
+        args = ["/usr/sbin/ipa-server-setupssl", self.dm_password,
                 dirname, self.host_name]
         run(args)
         logging.debug("done configuring ssl for ds instance")
@@ -165,7 +166,7 @@ class DsInstance:
         inf_fd = write_tmp_file(txt)
         logging.debug("adding default ds layout")
         args = ["/usr/bin/ldapmodify", "-xv", "-D", "cn=Directory Manager",
-                "-w", self.admin_password, "-f", inf_fd.name]
+                "-w", self.dm_password, "-f", inf_fd.name]
         run(args)
         logging.debug("done adding default ds layout")
         
@@ -184,5 +185,15 @@ class DsInstance:
         certmap_fd = open(dirname+"certmap.conf", "w+")
         certmap_fd.write(certmap_conf)
         certmap_fd.close()
-
         logging.debug("done configuring certmap.conf for ds instance")
+
+    def change_admin_password(self, password):
+        logging.debug("Changing admin password")
+        dirname = self.config_dirname()
+        args = ["/usr/lib/mozldap/ldappasswd",
+                "-D", "cn=Directory Manager", "-w", self.dm_password,
+                "-P", dirname+"/cert8.db", "-ZZZ", "-s", password,
+                "uid=admin,cn=sysaccounts,cn=etc,"+self.suffix]
+        run(args)
+        logging.debug("ldappasswd done")
+

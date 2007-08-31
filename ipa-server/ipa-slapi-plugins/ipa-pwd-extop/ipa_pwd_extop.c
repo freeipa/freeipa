@@ -926,7 +926,7 @@ ipapwd_extop( Slapi_PBlock *pb )
 		goto free_and_return;
 	}
 		
-	if ( (is_ssl <=1) && (sasl_ssf <= 1) ) {
+	if ( (is_ssl == 0) && (sasl_ssf <= 1) ) {
 		errMesg = "Operation requires a secure connection.\n";
 		rc = LDAP_CONFIDENTIALITY_REQUIRED;
 		goto free_and_return;

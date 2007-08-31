@@ -31,6 +31,7 @@ sys.path.append("/usr/share/ipa")
 
 import socket
 import logging
+import pwd
 from optparse import OptionParser
 import ipaserver.dsinstance
 import ipaserver.krbinstance
@@ -42,10 +43,12 @@ def parse_options():
                       help="ds user")
     parser.add_option("-r", "--realm", dest="realm_name",
                       help="realm name")
-    parser.add_option("-p", "--ds-password", dest="ds_password",
+    parser.add_option("-p", "--ds-password", dest="dm_password",
                       help="admin password")
     parser.add_option("-P", "--master-password", dest="master_password",
                       help="kerberos master password")
+    parser.add_option("-a", "--admin-password", dest="admin_password",
+                      help="admin user kerberos password")
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                      dest="debug", default=False, help="print debugging information")
     parser.add_option("--hostname", dest="host_name", help="fully qualified name of server")
@@ -56,7 +59,8 @@ def parse_options():
 
     if options.unattended and (not options.ds_user or
                                not options.realm_name or
-                               not options.ds_password or
+                               not options.dm_password or
+                               not options.admin_password or
                                not options.master_password):
         parser.error("error: In unattended mode you need to provide -u, -r, -p and -P options")
 
@@ -95,7 +99,8 @@ def main():
     realm_name = ""
     host_name = ""
     master_password = ""
-    ds_password = ""
+    dm_password = ""
+    admin_password = ""
 
     # check the hostname is correctly configured, it must be as the kldap
     # utilities just use the hostname as returned by gethostbyname to set
@@ -137,13 +142,25 @@ def main():
     print ""
 
     if not options.ds_user:
-        print "To securely run Directory Server we need a user account to be set up."
-        print "This will allow DS to run as a user and not as root."
-        print "The user account will have access to some security material so it should not be shared with any other application."
-        print "A good user account name could be 'ds' or 'dirsrv', if it does not exist it will be created as part of the installation procedure."
-        print ""
-        ds_user = raw_input("Which account name do you want to use for the DS instance ? ")
-        print ""
+
+        try:
+            pwd.getpwnam('dirsrv')
+
+            print "To securely run Directory Server we need a user account to be set up."
+            print "This will allow DS to run as a user and not as root."
+            print "The user account will have access to some security material so it should not be shared with any other application."
+            print "A user account named 'dirsrv' already exist. You should not share the account with any other service."
+            print ""
+            yesno = raw_input("Do you want to use the existing 'dirsrv' account ? (y/N)")
+            print ""
+            if yesno.lower() == "y":
+                ds_user = "dirsrv"
+            else:
+                ds_user = raw_input("Which account name do you want to use for the DS instance ? ")
+                print ""
+        except KeyError:
+            ds_user = "dirsrv"
+
         if ds_user == "":
              return "-Aborted-"
     else:
@@ -177,14 +194,15 @@ def main():
     else:
         realm_name = options.realm_name
 
-    if not options.ds_password:
+    if not options.dm_password:
         print "The Directory Manager user is the equivalent of 'root' for Diretcory Server."
+        print "This account has full access to the Directory and is used for system management tasks."
         print ""
         #TODO: provide the option of generating a random password
-        ds_password = raw_input("Please provide a password for the Directory Manager: ")
+        dm_password = raw_input("Please provide a password for the Directory Manager: ")
         print ""
     else:
-        ds_password = options.ds_password
+        dm_password = options.dm_password
 
     if not options.master_password:
         print "The Kerberos database is usually encrypted using a master password."
@@ -199,13 +217,23 @@ def main():
     else:
         master_password = options.master_password
 
+    if not options.admin_password:
+        print "The 'admin' user is the administrative user used to administare an IPA server."
+        print "This account is the one that will be used for normal administration and is also a regular unix user"
+        print ""
+        #TODO: provide the option of generating a random password
+        admin_password = raw_input("Please provide a kerberos password for the 'admin' user: ")
+        print ""
+    else:
+        admin_password = options.admin_password
+
     # Create a directory server instance
     ds = ipaserver.dsinstance.DsInstance()
-    ds.create_instance(ds_user, realm_name, host_name, ds_password)
+    ds.create_instance(ds_user, realm_name, host_name, dm_password)
 
     # Create a kerberos instance
     krb = ipaserver.krbinstance.KrbInstance()
-    krb.create_instance(ds_user, realm_name, host_name, ds_password, master_password)
+    krb.create_instance(ds_user, realm_name, host_name, dm_password, master_password)
 
     # Restart ds after the krb instance has changed ds configurations
     ds.restart()
@@ -227,6 +255,9 @@ def main():
 
     # Start Kpasswd
     run(["/sbin/service", "ipa-kpasswd", "start"])
+
+    # Set the admin user kerberos password
+    ds.change_admin_password(admin_password)
 
     # Create the config file
     fd = open("/etc/ipa/ipa.conf", "w")
