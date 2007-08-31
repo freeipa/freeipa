@@ -62,6 +62,16 @@
         </tr>
     </table>
 
+    <div class="formsection">Account Status</div>
+    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
+      <tr>
+        <th>
+          <label class="fieldlabel" py:content="fields.nsAccountLock.label" />:
+        </th>
+        <td>${user.get("nsAccountLock")}</td>
+      </tr>
+    </table>
+
     <a href="${tg.url('/useredit', uid=user.get('uid'))}">edit</a>
 
 </body>

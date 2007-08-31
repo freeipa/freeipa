@@ -150,6 +150,21 @@
       </tr>
     </table>
 
+    <div class="formsection">Account Status</div>
+    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.nsAccountLock.field_id}"
+            py:content="user.nsAccountLock.label" />:
+        </th>
+        <td>
+          <span py:replace="user.nsAccountLock.display(value_for(user.nsAccountLock))" />
+          <span py:if="tg.errors.get('nsAccountLock')" class="fielderror"
+                    py:content="tg.errors.get('nsAccountLock')" />
+        </td>
+      </tr>
+    </table>
+
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>

@@ -29,6 +29,7 @@ import urllib2
 import socket
 import ldif
 import re
+import string
 import ldap
 import cStringIO
 import time
@@ -382,8 +383,11 @@ class IPAdmin(SimpleLDAPObject):
            REPLACE operations, to deal with multi-user updates more properly."""
         modlist = []
 
-        keys = set(old_entry.keys())
-        keys.update(new_entry.keys())
+        old_entry = ipautil.CIDict(old_entry)
+        new_entry = ipautil.CIDict(new_entry)
+
+        keys = set(map(string.lower, old_entry.keys()))
+        keys.update(map(string.lower, new_entry.keys()))
 
         for key in keys:
             new_values = new_entry.get(key, [])

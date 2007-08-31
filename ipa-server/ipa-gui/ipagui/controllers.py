@@ -28,6 +28,8 @@ password_chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
 client = ipa.ipaclient.IPAClient(True)
 client.set_principal("test@FREEIPA.ORG")
 
+user_fields = ['*', 'nsAccountLock']
+
 def restrict_post():
     if cherrypy.request.method != "POST":
         turbogears.flash("This method only accepts posts")
@@ -77,6 +79,8 @@ class Root(controllers.RootController):
             new_user.setValue('sn', kw.get('sn'))
             new_user.setValue('mail', kw.get('mail'))
             new_user.setValue('telephonenumber', kw.get('telephonenumber'))
+            if kw.get('nsAccountLock'):
+                new_user.setValue('nsAccountLock', 'true')
 
             rv = client.add_user(new_user)
             turbogears.flash("%s added!" % kw['uid'])
@@ -92,7 +96,7 @@ class Root(controllers.RootController):
         if tg_errors:
             turbogears.flash("There was a problem with the form!")
 
-        user = client.get_user_by_uid(uid)
+        user = client.get_user_by_uid(uid, user_fields)
         user_dict = user.toDict()
         # store a copy of the original user for the update later
         user_data = b64encode(dumps(user_dict))
@@ -120,6 +124,11 @@ class Root(controllers.RootController):
             new_user.setValue('sn', kw.get('sn'))
             new_user.setValue('mail', kw.get('mail'))
             new_user.setValue('telephonenumber', kw.get('telephonenumber'))
+            if kw.get('nsAccountLock'):
+                new_user.setValue('nsAccountLock', 'true')
+            else:
+                new_user.setValue('nsAccountLock', None)
+
             #
             # this is a hack until we decide on the policy for names/cn/sn/givenName
             #
@@ -161,7 +170,7 @@ class Root(controllers.RootController):
     def usershow(self, uid):
         """Retrieve a single user for display"""
         try:
-            user = client.get_user_by_uid(uid)
+            user = client.get_user_by_uid(uid, user_fields)
             return dict(user=user.toDict(), fields=forms.user.UserFields())
         except ipaerror.IPAError, e:
             turbogears.flash("User show failed: " + str(e))

@@ -270,8 +270,6 @@ class IPAServer:
 
         if user.get('gn'):
             del user['gn']
-        if user.get('givenname'):
-            del user['givenname']
 
         # some required objectclasses
         entry.setValues('objectClass', 'top', 'posixAccount', 'shadowAccount', 'account', 'person', 'inetOrgPerson', 'organizationalPerson', 'krbPrincipalAux', 'krbTicketPolicyAux')
