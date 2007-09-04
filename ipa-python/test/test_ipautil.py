@@ -21,6 +21,7 @@ import sys
 sys.path.insert(0, ".")
 
 import unittest
+import datetime
 
 import ipautil
 
@@ -206,6 +207,102 @@ class TestCIDict(unittest.TestCase):
         self.assertEqual(0, len(self.cidict))
         self.assert_(item in items)
         items.discard(item)
+
+class TestTimeParser(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def testSimple(self):
+        timestr = "20070803"
+
+        time = ipautil.parse_generalized_time(timestr)
+        self.assertEqual(2007, time.year)
+        self.assertEqual(8, time.month)
+        self.assertEqual(3, time.day)
+        self.assertEqual(0, time.hour)
+        self.assertEqual(0, time.minute)
+        self.assertEqual(0, time.second)
+
+    def testHourMinSec(self):
+        timestr = "20051213141205"
+
+        time = ipautil.parse_generalized_time(timestr)
+        self.assertEqual(2005, time.year)
+        self.assertEqual(12, time.month)
+        self.assertEqual(13, time.day)
+        self.assertEqual(14, time.hour)
+        self.assertEqual(12, time.minute)
+        self.assertEqual(5, time.second)
+
+    def testFractions(self):
+        timestr = "2003092208.5"
+
+        time = ipautil.parse_generalized_time(timestr)
+        self.assertEqual(2003, time.year)
+        self.assertEqual(9, time.month)
+        self.assertEqual(22, time.day)
+        self.assertEqual(8, time.hour)
+        self.assertEqual(30, time.minute)
+        self.assertEqual(0, time.second)
+
+        timestr = "199203301544,25"
+
+        time = ipautil.parse_generalized_time(timestr)
+        self.assertEqual(1992, time.year)
+        self.assertEqual(3, time.month)
+        self.assertEqual(30, time.day)
+        self.assertEqual(15, time.hour)
+        self.assertEqual(44, time.minute)
+        self.assertEqual(15, time.second)
+
+        timestr = "20060401185912,8"
+
+        time = ipautil.parse_generalized_time(timestr)
+        self.assertEqual(2006, time.year)
+        self.assertEqual(4, time.month)
+        self.assertEqual(1, time.day)
+        self.assertEqual(18, time.hour)
+        self.assertEqual(59, time.minute)
+        self.assertEqual(12, time.second)
+        self.assertEqual(800000, time.microsecond)
+
+    def testTimeZones(self):
+        timestr = "20051213141205Z"
+
+        time = ipautil.parse_generalized_time(timestr)
+        self.assertEqual(0, time.tzinfo.houroffset)
+        self.assertEqual(0, time.tzinfo.minoffset)
+        offset = time.tzinfo.utcoffset(None)
+        self.assertEqual(0, offset.seconds)
+
+        timestr = "20051213141205+0500"
+
+        time = ipautil.parse_generalized_time(timestr)
+        self.assertEqual(5, time.tzinfo.houroffset)
+        self.assertEqual(0, time.tzinfo.minoffset)
+        offset = time.tzinfo.utcoffset(None)
+        self.assertEqual(5 * 60 * 60, offset.seconds)
+
+        timestr = "20051213141205-0500"
+
+        time = ipautil.parse_generalized_time(timestr)
+        self.assertEqual(-5, time.tzinfo.houroffset)
+        self.assertEqual(0, time.tzinfo.minoffset)
+        # NOTE - the offset is always positive - it's minutes
+        #        _east_ of UTC
+        offset = time.tzinfo.utcoffset(None)
+        self.assertEqual((24 - 5) * 60 * 60, offset.seconds)
+
+        timestr = "20051213141205-0930"
+
+        time = ipautil.parse_generalized_time(timestr)
+        self.assertEqual(-9, time.tzinfo.houroffset)
+        self.assertEqual(-30, time.tzinfo.minoffset)
+        offset = time.tzinfo.utcoffset(None)
+        self.assertEqual(((24 - 9) * 60 * 60) - (30 * 60), offset.seconds)
 
 
 if __name__ == '__main__':

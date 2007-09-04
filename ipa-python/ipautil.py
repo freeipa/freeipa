@@ -30,6 +30,7 @@ import stat
 from string import lower
 import re
 import xmlrpclib
+import datetime
 
 def realm_to_suffix(realm_name):
     s = realm_name.split(".")
@@ -233,3 +234,100 @@ def unwrap_binary_data(data):
     else:
         return data
 
+class GeneralizedTimeZone(datetime.tzinfo):
+    """This class is a basic timezone wrapper for the offset specified
+       in a Generalized Time.  It is dst-ignorant."""
+    def __init__(self,offsetstr="Z"):
+        super(GeneralizedTimeZone, self).__init__()
+
+        self.name = offsetstr
+        self.houroffset = 0
+        self.minoffset = 0
+
+        if offsetstr == "Z":
+            self.houroffset = 0
+            self.minoffset = 0
+        else:
+            if (len(offsetstr) >= 3) and re.match(r'[-+]\d\d', offsetstr):
+                self.houroffset = int(offsetstr[0:3])
+                offsetstr = offsetstr[3:]
+            if (len(offsetstr) >= 2) and re.match(r'\d\d', offsetstr):
+                self.minoffset = int(offsetstr[0:2])
+                offsetstr = offsetstr[2:]
+            if len(offsetstr) > 0:
+                raise ValueError()
+        if self.houroffset < 0:
+            self.minoffset *= -1
+
+    def utcoffset(self, dt):
+        return datetime.timedelta(hours=self.houroffset, minutes=self.minoffset)
+
+    def dst(self, dt):
+        return datetime.timedelta(0)
+
+    def tzname(self, dt):
+        return self.name
+
+
+def parse_generalized_time(timestr):
+    """Parses are Generalized Time string (as specified in X.680),
+       returning a datetime object.  Generalized Times are stored inside
+       the krbPasswordExpiration attribute in LDAP.
+
+       This method doesn't attempt to be perfect wrt timezones.  If python
+       can't be bothered to implement them, how can we..."""
+
+    if len(timestr) < 8:
+        return None
+    try:
+        date = timestr[:8]
+        time = timestr[8:]
+
+        year = int(date[:4])
+        month = int(date[4:6])
+        day = int(date[6:8])
+
+        hour = min = sec = msec = 0
+        tzone = None
+
+        if (len(time) >= 2) and re.match(r'\d', time[0]):
+            hour = int(time[:2])
+            time = time[2:]
+            if len(time) >= 2 and (time[0] == "," or time[0] == "."):
+                hour_fraction = "."
+                time = time[1:]
+                while (len(time) > 0) and re.match(r'\d', time[0]):
+                    hour_fraction += time[0]
+                    time = time[1:]
+                total_secs = int(float(hour_fraction) * 3600)
+                min, sec = divmod(total_secs, 60)
+
+        if (len(time) >= 2) and re.match(r'\d', time[0]):
+            min = int(time[:2])
+            time = time[2:]
+            if len(time) >= 2 and (time[0] == "," or time[0] == "."):
+                min_fraction = "."
+                time = time[1:]
+                while (len(time) > 0) and re.match(r'\d', time[0]):
+                    min_fraction += time[0]
+                    time = time[1:]
+                sec = int(float(min_fraction) * 60)
+
+        if (len(time) >= 2) and re.match(r'\d', time[0]):
+            sec = int(time[:2])
+            time = time[2:]
+            if len(time) >= 2 and (time[0] == "," or time[0] == "."):
+                sec_fraction = "."
+                time = time[1:]
+                while (len(time) > 0) and re.match(r'\d', time[0]):
+                    sec_fraction += time[0]
+                    time = time[1:]
+                msec = int(float(sec_fraction) * 1000000)
+
+        if (len(time) > 0):
+            tzone = GeneralizedTimeZone(time)
+
+        return datetime.datetime(year, month, day, hour, min, sec, msec, tzone)
+
+    except ValueError:
+        return None
