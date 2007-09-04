@@ -21,3 +21,5 @@ clean:
 	done
 	rm -f *~
 	rm -f ipaserver/*~
+
+test:

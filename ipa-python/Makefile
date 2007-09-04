@@ -1,6 +1,7 @@
 PYTHONLIBDIR ?= $(shell  python -c "from distutils.sysconfig import *; print get_python_lib()")
 PACKAGEDIR ?= $(DESTDIR)/$(PYTHONLIBDIR)/ipa
 CONFIGDIR ?= $(DESTDIR)/etc/ipa
+TESTS = $(wildcard test/*.py)
 
 all: ;
 
@@ -14,4 +15,11 @@ install:
 
 clean:
 	rm -f *~ *.pyc
+
+.PHONY: test
+test: $(subst .py,.tst,$(TESTS))
+
+%.tst: %.py
+	python $<
+
 

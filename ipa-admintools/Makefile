@@ -10,3 +10,5 @@ install:
 
 clean:
 	rm -f *~ *.pyc
+
+test:
