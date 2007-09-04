@@ -8,6 +8,22 @@
 <body>
     <h2>View Person</h2>
 
+    <div class="formsection">Identity Details</div>
+    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.givenname.label" />:
+          </th>
+          <td>${user.get("givenname")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.sn.label" />:
+          </th>
+          <td>${user.get("sn")}</td>
+        </tr>
+    </table>
+
     <div class="formsection">Account Details</div>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
@@ -30,22 +46,6 @@
         </tr>
     </table>
 
-    <div class="formsection">Identity Details</div>
-    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
-        <tr>
-          <th>
-            <label class="fieldlabel" py:content="fields.givenname.label" />:
-          </th>
-          <td>${user.get("givenname")}</td>
-        </tr>
-        <tr>
-          <th>
-            <label class="fieldlabel" py:content="fields.sn.label" />:
-          </th>
-          <td>${user.get("sn")}</td>
-        </tr>
-    </table>
-
     <div class="formsection">Contact Details</div>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
@@ -60,6 +60,16 @@
           </th>
           <td>${user.get("telephonenumber")}</td>
         </tr>
+    </table>
+
+    <div class="formsection">Account Status</div>
+    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
+      <tr>
+        <th>
+          <label class="fieldlabel" py:content="fields.nsAccountLock.label" />:
+        </th>
+        <td>${user.get("nsAccountLock")}</td>
+      </tr>
     </table>
 
     <a href="${tg.url('/useredit', uid=user.get('uid'))}">edit</a>

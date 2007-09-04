@@ -28,6 +28,8 @@ password_chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
 client = ipa.ipaclient.IPAClient(True)
 client.set_principal("test@FREEIPA.ORG")
 
+user_fields = ['*', 'nsAccountLock']
+
 def restrict_post():
     if cherrypy.request.method != "POST":
         turbogears.flash("This method only accepts posts")
@@ -77,6 +79,8 @@ class Root(controllers.RootController):
             new_user.setValue('sn', kw.get('sn'))
             new_user.setValue('mail', kw.get('mail'))
             new_user.setValue('telephonenumber', kw.get('telephonenumber'))
+            if kw.get('nsAccountLock'):
+                new_user.setValue('nsAccountLock', 'true')
 
             rv = client.add_user(new_user)
             turbogears.flash("%s added!" % kw['uid'])
@@ -92,7 +96,7 @@ class Root(controllers.RootController):
         if tg_errors:
             turbogears.flash("There was a problem with the form!")
 
-        user = client.get_user_by_uid(uid)
+        user = client.get_user_by_uid(uid, user_fields)
         user_dict = user.toDict()
         # store a copy of the original user for the update later
         user_data = b64encode(dumps(user_dict))
@@ -120,6 +124,11 @@ class Root(controllers.RootController):
             new_user.setValue('sn', kw.get('sn'))
             new_user.setValue('mail', kw.get('mail'))
             new_user.setValue('telephonenumber', kw.get('telephonenumber'))
+            if kw.get('nsAccountLock'):
+                new_user.setValue('nsAccountLock', 'true')
+            else:
+                new_user.setValue('nsAccountLock', None)
+
             #
             # this is a hack until we decide on the policy for names/cn/sn/givenName
             #
@@ -161,7 +170,7 @@ class Root(controllers.RootController):
     def usershow(self, uid):
         """Retrieve a single user for display"""
         try:
-            user = client.get_user_by_uid(uid)
+            user = client.get_user_by_uid(uid, user_fields)
             return dict(user=user.toDict(), fields=forms.user.UserFields())
         except ipaerror.IPAError, e:
             turbogears.flash("User show failed: " + str(e))
@@ -188,6 +197,82 @@ class Root(controllers.RootController):
             password += password_chars[index]
 
         return password
+
+    @expose()
+    def suggest_uid(self, givenname, sn):
+        if (len(givenname) == 0) or (len(sn) == 0):
+            return ""
+
+        uid = givenname[0] + sn[:7]
+        try:
+            client.get_user_by_uid(uid)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            return uid
+
+        uid = givenname[:7] + sn[0]
+        try:
+            client.get_user_by_uid(uid)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            return uid
+
+        uid = (givenname + sn)[:8]
+        try:
+            client.get_user_by_uid(uid)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            return uid
+
+        uid = sn[:8]
+        try:
+            client.get_user_by_uid(uid)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            return uid
+
+        suffix = 2
+        template = givenname[0] + sn[:7]
+        while suffix < 20:
+            uid = template[:8 - len(str(suffix))] + str(suffix)
+            try:
+                client.get_user_by_uid(uid)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                return uid
+            suffix += 1
+
+        return ""
+
+    @expose()
+    def suggest_email(self, givenname, sn):
+        if (len(givenname) == 0) or (len(sn) == 0):
+            return ""
+
+        # TODO - get from config
+        domain = "freeipa.org"
+
+        return "%s.%s@%s" % (givenname, sn, domain)
+
+
+        # TODO - mail is currently not indexed nor searchable.
+        #        implement when it's done
+        # email = givenname + "." + sn + domain
+        # users = client.find_users(email, ['mail'])
+        # if len(filter(lambda u: u['mail'] == email, users[1:])) == 0:
+        #     return email
+
+        # email = self.suggest_uid(givenname, sn) + domain
+        # users = client.find_users(email, ['mail'])
+        # if len(filter(lambda u: u['mail'] == email, users[1:])) == 0:
+        #     return email
+
+        # suffix = 2
+        # template = givenname + "." + sn
+        # while suffix < 20:
+        #     email = template + str(suffix) + domain
+        #     users = client.find_users(email, ['mail'])
+        #     if len(filter(lambda u: u['mail'] == email, users[1:])) == 0:
+        #         return email
+        #     suffix += 1
+
+        # return ""
+
 
 
     #########

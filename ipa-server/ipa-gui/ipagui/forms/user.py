@@ -10,6 +10,7 @@ class UserFields():
     sn = widgets.TextField(name="sn", label="Last name")
     mail = widgets.TextField(name="mail", label="E-mail address")
     telephonenumber = widgets.TextField(name="telephonenumber", label="Phone")
+    nsAccountLock = widgets.CheckBox(name="nsAccountLock", label="Account Deactivated")
 
     uid.validator = validators.PlainText(not_empty=True)
     userpassword.validator = validators.String(not_empty=True)

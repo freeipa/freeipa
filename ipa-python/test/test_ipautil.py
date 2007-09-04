@@ -17,12 +17,17 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+import sys
+sys.path.insert(0, ".")
+
 import unittest
-import ipa.ipautil
+
+import ipautil
+
 
 class TestCIDict(unittest.TestCase):
     def setUp(self):
-        self.cidict = ipa.ipautil.CIDict()
+        self.cidict = ipautil.CIDict()
         self.cidict["Key1"] = "val1"
         self.cidict["key2"] = "val2"
         self.cidict["KEY3"] = "VAL3"

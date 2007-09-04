@@ -60,6 +60,11 @@ clean:
 	done
 	rm -f *~
 
+test:
+	@for subdir in $(SUBDIRS); do \
+		(cd $$subdir && $(MAKE) $@) || exit 1; \
+	done
+
 version-update:
 	sed s/VERSION/$(SERV_VERSION)/ ipa-server/freeipa-server.spec.in \
 		> ipa-server/freeipa-server.spec
