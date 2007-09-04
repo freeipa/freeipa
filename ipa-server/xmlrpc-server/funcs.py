@@ -23,7 +23,7 @@ sys.path.append("/usr/share/ipa")
 import ldap
 import ipaserver.dsinstance
 import ipaserver.ipaldap
-import ipaserver.util
+import ipa.ipautil
 import xmlrpclib
 import ipa.config
 import copy
@@ -76,7 +76,7 @@ class IPAServer:
         if _LDAPPool is None:
             _LDAPPool = IPAConnPool()
         ipa.config.init_config()
-        self.basedn = ipaserver.util.realm_to_suffix(ipa.config.config.get_realm())
+        self.basedn = ipa.ipautil.realm_to_suffix(ipa.config.config.get_realm())
         self.scope = ldap.SCOPE_SUBTREE
         self.princ = None
 

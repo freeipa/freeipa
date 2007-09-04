@@ -1,4 +1,5 @@
 #! /usr/bin/python -E
+# Authors: Simo Sorce <ssorce@redhat.com>
 #
 # Copyright (C) 2007    Red Hat
 # see file 'COPYING' for use and warranty information
@@ -17,9 +18,70 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+SHARE_DIR = "/usr/share/ipa/"
+
+import string
+import tempfile
+import logging
+import subprocess
+import os
+import stat
+
 from string import lower
 import re
 import xmlrpclib
+
+def realm_to_suffix(realm_name):
+    s = realm_name.split(".")
+    terms = ["dc=" + x.lower() for x in s]
+    return ",".join(terms)
+
+
+def template_str(txt, vars):
+    return string.Template(txt).substitute(vars)
+
+def template_file(infilename, vars):
+    txt = open(infilename).read()
+    return template_str(txt, vars)
+
+def write_tmp_file(txt):
+    fd = tempfile.NamedTemporaryFile()
+    fd.write(txt)
+    fd.flush()
+
+    return fd
+
+def run(args, stdin=None):
+    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if stdin:
+        stdout,stderr = p.communicate(stdin)
+    else:
+        stdout,stderr = p.communicate()
+    logging.info(stdout)
+    logging.info(stderr)
+
+    if p.returncode != 0:
+        raise subprocess.CalledProcessError(p.returncode, args[0])
+
+def file_exists(filename):
+    try:
+        mode = os.stat(filename)[stat.ST_MODE]
+        if stat.S_ISREG(mode):
+            return True
+        else:
+            return False
+    except:
+        return False
+
+def dir_exists(filename):
+    try:
+        mode = os.stat(filename)[stat.ST_MODE]
+        if stat.S_ISDIR(mode):
+            return True
+        else:
+            return False
+    except:
+        return False
 
 class CIDict(dict):
     """

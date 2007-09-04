@@ -35,7 +35,7 @@ import pwd
 from optparse import OptionParser
 import ipaserver.dsinstance
 import ipaserver.krbinstance
-from ipaserver.util import run
+from ipa.ipautil import run
 
 def parse_options():
     parser = OptionParser(version=VERSION)
