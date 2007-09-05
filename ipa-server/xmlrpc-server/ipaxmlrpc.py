@@ -126,13 +126,19 @@ class ModXMLRPCRequestHandler(object):
     def register_instance(self,instance):
         self.register_module(instance)
 
-    def _marshaled_dispatch(self, data, remoteuser):
+    def _marshaled_dispatch(self, data, req):
         """Dispatches an XML-RPC method from marshalled (XML) data."""
 
         params, method = loads(data)
 
+        # Populate the Apache environment variables
+        req.add_common_vars()
+
         opts={}
-        opts['remoteuser'] = remoteuser
+        opts['remoteuser'] = req.user
+
+        if req.subprocess_env.get("KRB5CCNAME") is not None:
+            opts['keytab'] = req.subprocess_env.get("KRB5CCNAME")
 
         # Tack onto the end of the passed-in arguments any options we also
         # need
@@ -263,7 +269,7 @@ class ModXMLRPCRequestHandler(object):
             req.allow_methods(['POST'],1)
             raise apache.SERVER_RETURN, apache.HTTP_METHOD_NOT_ALLOWED
 
-        response = self._marshaled_dispatch(req.read(), req.user)
+        response = self._marshaled_dispatch(req.read(), req)
 
         req.content_type = "text/xml"
         req.set_content_length(len(response))

@@ -35,12 +35,13 @@ import cStringIO
 import time
 import operator
 import struct
+import ldap.sasl
 from ldap.controls import LDAPControl,DecodeControlTuples,EncodeControlTuples
-from ldap.modlist import modifyModlist
-
 from ldap.ldapobject import SimpleLDAPObject
-
 from ipa import ipaerror, ipautil
+
+# Global variable to define SASL auth
+sasl_auth = ldap.sasl.sasl({},'GSSAPI')
 
 class Entry:
     """This class represents an LDAP Entry object.  An LDAP entry consists of a DN
@@ -196,22 +197,34 @@ class IPAdmin(SimpleLDAPObject):
                 raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
 
     def __localinit__(self):
-        SimpleLDAPObject.__init__(self,'ldaps://%s:%d' % (self.host,self.port))
+        """If a CA certificate is provided then it is assumed that we are
+           doing SSL client authentication with proxy auth.
+
+           If a CA certificate is not present then it is assumed that we are
+           using a forwarded kerberos ticket for SASL auth. SASL provides
+           its own encryption.
+        """
+        if self.cacert is not None:
+            SimpleLDAPObject.__init__(self,'ldaps://%s:%d' % (self.host,self.port))
+        else:
+            SimpleLDAPObject.__init__(self,'ldap://%s:%d' % (self.host,self.port))
 
     def __init__(self,host,port,cacert,bindcert,bindkey,proxydn=None):
-        """We just set our instance variables and wrap the methods - the real work is
-        done in __localinit__ and __initPart2 - these are separated out this way so
-        that we can call them from places other than instance creation e.g. when
-        using the start command, we just need to reconnect, not create a new instance"""
+        """We just set our instance variables and wrap the methods - the real
+           work is done in __localinit__ and __initPart2 - these are separated
+           out this way so that we can call them from places other than
+           instance creation e.g. when we just need to reconnect, not create a
+           new instance"""
 #        ldap.set_option(ldap.OPT_DEBUG_LEVEL,255)
-        ldap.set_option(ldap.OPT_X_TLS_CACERTFILE,cacert)
-        ldap.set_option(ldap.OPT_X_TLS_CERTFILE,bindcert)
-        ldap.set_option(ldap.OPT_X_TLS_KEYFILE,bindkey)
+        if cacert is not None:
+            ldap.set_option(ldap.OPT_X_TLS_CACERTFILE,cacert)
+            ldap.set_option(ldap.OPT_X_TLS_CERTFILE,bindcert)
+            ldap.set_option(ldap.OPT_X_TLS_KEYFILE,bindkey)
 
         self.__wrapmethods()
         self.port = port or 389
-        self.sslport = 0
         self.host = host
+        self.cacert = cacert
         self.bindcert = bindcert
         self.bindkey = bindkey
         self.proxydn = proxydn
@@ -250,6 +263,12 @@ class IPAdmin(SimpleLDAPObject):
 
     def set_proxydn(self, proxydn):
         self.proxydn = proxydn
+
+    def set_keytab(self, keytab):
+        if keytab is not None:
+            os.environ["KRB5CCNAME"] = keytab
+            self.sasl_interactive_bind_s("", sasl_auth)
+        self.proxydn = None
 
     def getEntry(self,*args):
         """This wraps the search function.  It is common to just get one entry"""
@@ -346,7 +365,8 @@ class IPAdmin(SimpleLDAPObject):
         sctrl = self.__get_server_controls__()
 
         try:
-            self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
+            if sctrl is not None:
+                self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.add_s(*args)
         except ldap.ALREADY_EXISTS:
             raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
@@ -366,7 +386,8 @@ class IPAdmin(SimpleLDAPObject):
             raise ipaerror.gen_exception(ipaerror.LDAP_EMPTY_MODLIST)
 
         try:
-            self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
+            if sctrl is not None:
+                self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modify_s(dn, modlist)
         # this is raised when a 'delete' attribute isn't found.
         # it indicates the previous attribute was removed by another
@@ -428,7 +449,8 @@ class IPAdmin(SimpleLDAPObject):
         modlist.append((operation, "nsAccountlock", "true"))
 
         try:
-            self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
+            if sctrl is not None:
+                self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modify_s(dn, modlist)
         except ldap.LDAPError, e:
             raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
@@ -440,7 +462,8 @@ class IPAdmin(SimpleLDAPObject):
         sctrl = self.__get_server_controls__()
 
         try:
-            self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
+            if sctrl is not None:
+                self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.delete_s(*args)
         except ldap.LDAPError, e:
             raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
