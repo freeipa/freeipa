@@ -29,12 +29,20 @@ body {
   margin:0;
 }
 
+#header #logo {
+}
+
+#header #login {
+  float:right;
+}
+
 
 #nav {
   background:#cc0000;
   color:#fff;
   min-height:3px;
   max-height:3px;
+  clear:both;
 }
 
 #nav ul {
@@ -75,7 +83,11 @@ body {
   float:left;
   width:10%;
   padding: 5px;
-  font-size: small;
+  font-size: medium;
+}
+
+#sidebar p {
+  line-height: 150%;
 }
 
 #sidebar h2 {

@@ -167,15 +167,11 @@
 
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
-        <th>
-          <br />
-          <input type="submit" class="submitbutton" name="submit" value="Submit"/>
-        </th>
+        <th></th>
         <td>
           <br />
-          <input type="submit" class="submitbutton" name="submit" value="Cancel" />
+          <input type="submit" class="submitbutton" name="submit" value="Add Person"/>
         </td>
-        <td></td>
       </tr>
     </table>
 

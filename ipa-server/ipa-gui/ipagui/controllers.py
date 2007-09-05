@@ -108,7 +108,7 @@ class Root(controllers.RootController):
     def userupdate(self, **kw):
         """Updates an existing user"""
         restrict_post()
-        if kw.get('submit') == 'Cancel':
+        if kw.get('submit') == 'Cancel Edit':
             turbogears.flash("Edit user cancelled")
             raise turbogears.redirect('/usershow', uid=kw.get('uid'))
 

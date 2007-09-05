@@ -158,11 +158,13 @@
       <tr>
         <th>
           <br />
-          <input type="submit" class="submitbutton" name="submit" value="Submit"/>
+          <input type="submit" class="submitbutton" name="submit"
+              value="Update Person"/>
         </th>
         <td>
           <br />
-          <input type="submit" class="submitbutton" name="submit" value="Cancel" />
+          <input type="submit" class="submitbutton" name="submit"
+              value="Cancel Edit" />
         </td>
         <td></td>
       </tr>
