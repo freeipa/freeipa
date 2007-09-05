@@ -8,6 +8,24 @@
 <body>
     <h2>View Person</h2>
 
+<?python
+from ipagui.helpers import userhelper
+pw_expires_days = userhelper.password_expires_in(user.get("krbPasswordExpiration"))
+pw_expires_soon = userhelper.password_expires_soon(pw_expires_days)
+pw_is_expired = userhelper.password_is_expired(pw_expires_days)
+if pw_expires_days != 1:
+    days_suffix = "s"
+else:
+    days_suffix = ""
+?>
+
+    <div py:if='pw_expires_soon' class="warning_message">
+        Password will expire in ${pw_expires_days} day${days_suffix}
+    </div>
+    <div py:if='pw_is_expired' class="warning_message">
+        Password has expired
+    </div>
+
     <div class="formsection">Identity Details</div>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>

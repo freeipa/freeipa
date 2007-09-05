@@ -23,6 +23,7 @@ class UserFields():
     uid_hidden = widgets.HiddenField(name="uid")
     uidnumber_hidden = widgets.HiddenField(name="uidnumber")
     gidnumber_hidden = widgets.HiddenField(name="gidnumber")
+    krbPasswordExpiration_hidden = widgets.HiddenField(name="krbPasswordExpiration")
 
     user_orig = widgets.HiddenField(name="user_orig")
 
@@ -53,6 +54,7 @@ class UserEditForm(widgets.Form):
     fields = [UserFields.givenname, UserFields.sn, UserFields.mail,
               UserFields.uid_hidden, UserFields.user_orig,
               UserFields.uidnumber_hidden, UserFields.gidnumber_hidden,
+              UserFields.krbPasswordExpiration_hidden,
               ]
 
     def __init__(self, *args, **kw):

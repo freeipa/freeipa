@@ -17,6 +17,7 @@ import ipa.ipaclient
 import ipa.user
 import xmlrpclib
 import forms.user
+from helpers import userhelper
 from ipa import ipaerror
 
 ipa.config.init_config()
@@ -203,6 +204,9 @@ class Root(controllers.RootController):
         if (len(givenname) == 0) or (len(sn) == 0):
             return ""
 
+        givenname = givenname.lower()
+        sn = sn.lower()
+
         uid = givenname[0] + sn[:7]
         try:
             client.get_user_by_uid(uid)
@@ -243,6 +247,9 @@ class Root(controllers.RootController):
     def suggest_email(self, givenname, sn):
         if (len(givenname) == 0) or (len(sn) == 0):
             return ""
+
+        givenname = givenname.lower()
+        sn = sn.lower()
 
         # TODO - get from config
         domain = "freeipa.org"

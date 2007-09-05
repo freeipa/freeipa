@@ -140,6 +140,12 @@ body {
   font-weight: bolder;
 }
 
+.warning_message {
+  font-size: 120%;
+  color: #ee0000;
+  font-weight: bolder;
+}
+
 .fielderror {
   color: red;
   font-weight: bold;
