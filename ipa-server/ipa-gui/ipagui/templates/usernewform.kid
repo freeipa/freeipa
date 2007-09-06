@@ -92,6 +92,7 @@
           <span py:if="tg.errors.get('userpassword')" class="fielderror"
               py:content="tg.errors.get('userpassword')" />
 
+          <!--
           <input type="button" value="Generate Password"
               onclick="new Ajax.Request('${tg.url('/generate_password')}',
                 {
@@ -101,6 +102,20 @@
                         transport.responseText;
                   }
                 });" />
+            -->
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.userpassword_confirm.field_id}"
+            py:content="user.userpassword_confirm.label" />:
+        </th>
+        <td>
+          <span py:replace="user.userpassword_confirm.display(
+              value_for(user.userpassword_confirm))" />
+          <span py:if="tg.errors.get('userpassword_confirm')" class="fielderror"
+              py:content="tg.errors.get('userpassword_confirm')" />
         </td>
       </tr>
 

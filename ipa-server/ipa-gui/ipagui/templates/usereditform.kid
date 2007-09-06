@@ -56,8 +56,9 @@
           <span py:replace="user.userpassword.display(value_for(user.userpassword))" />
           <span py:if="tg.errors.get('userpassword')" class="fielderror"
               py:content="tg.errors.get('userpassword')" />
-          <span id="password_text">********</span>
 
+          <!-- 
+          <span id="password_text">********</span>
           <input id="genpassword_button" type="button" value="Generate Password"
               disabled="true"
               onclick="new Ajax.Request('${tg.url('/generate_password')}',
@@ -89,6 +90,20 @@
               }
             }
           </script>
+          -->
+        </td>
+      </tr>
+
+      <tr>
+        <th valign="top">
+          <label class="fieldlabel" for="${user.userpassword_confirm.field_id}"
+            py:content="user.userpassword_confirm.label" />:
+        </th>
+        <td valign="top">
+          <span py:replace="user.userpassword_confirm.display(
+               value_for(user.userpassword_confirm))" />
+          <span py:if="tg.errors.get('userpassword_confirm')" class="fielderror"
+              py:content="tg.errors.get('userpassword_confirm')" />
         </td>
       </tr>
 

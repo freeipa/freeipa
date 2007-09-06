@@ -31,6 +31,7 @@ body {
 
 #header #headerinfo {
   text-align:right;
+  padding-right:10px;
 }
 
 #header #headerinfo #login {

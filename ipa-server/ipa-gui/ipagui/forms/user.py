@@ -3,7 +3,9 @@ from turbogears import validators, widgets
 
 class UserFields():
     uid = widgets.TextField(name="uid", label="Login")
-    userpassword = widgets.TextField(name="userpassword", label="Password")
+    userpassword = widgets.PasswordField(name="userpassword", label="Password")
+    userpassword_confirm = widgets.PasswordField(name="userpassword_confirm",
+            label="Confirm Password")
     uidnumber = widgets.TextField(name="uidnumber", label="UID")
     gidnumber = widgets.TextField(name="gidnumber", label="GID")
     givenname = widgets.TextField(name="givenname", label="First name")
@@ -15,20 +17,26 @@ class UserFields():
             label="Account Status",
             options = [("", "active"), ("true", "inactive")])
 
-    uid.validator = validators.PlainText(not_empty=True)
-    userpassword.validator = validators.String(not_empty=True)
-    givenname.validator = validators.String(not_empty=True)
-    sn.validator = validators.String(not_empty=True)
-    mail.validator = validators.Email(not_empty=True)
-    #  validators.PhoneNumber may be a bit too picky, requiring an area code
-    telephonenumber.validator = validators.PlainText(not_empty=True)
-
     uid_hidden = widgets.HiddenField(name="uid")
     uidnumber_hidden = widgets.HiddenField(name="uidnumber")
     gidnumber_hidden = widgets.HiddenField(name="gidnumber")
     krbPasswordExpiration_hidden = widgets.HiddenField(name="krbPasswordExpiration")
 
     user_orig = widgets.HiddenField(name="user_orig")
+
+class UserNewValidator(validators.Schema):
+    uid = validators.PlainText(not_empty=True)
+    userpassword = validators.String(not_empty=True)
+    userpassword_confirm = validators.String(not_empty=True)
+    givenname = validators.String(not_empty=True)
+    sn = validators.String(not_empty=True)
+    mail = validators.Email(not_empty=True)
+    #  validators.PhoneNumber may be a bit too picky, requiring an area code
+    # telephonenumber = validators.PlainText(not_empty=False)
+
+    chained_validators = [
+      validators.FieldsMatch('userpassword', 'userpassword_confirm')
+    ]
 
 
 class UserNewForm(widgets.Form):
@@ -37,6 +45,8 @@ class UserNewForm(widgets.Form):
     fields = [UserFields.uid, UserFields.givenname,
               UserFields.uidnumber, UserFields.gidnumber,
               UserFields.sn, UserFields.mail]
+
+    validator = UserNewValidator()
 
     def __init__(self, *args, **kw):
         super(UserNewForm,self).__init__(*args, **kw)
@@ -50,6 +60,18 @@ class UserNewForm(widgets.Form):
     def has_foo(self):
         return False
 
+class UserEditValidator(validators.Schema):
+    userpassword = validators.String(not_empty=False)
+    userpassword_confirm = validators.String(not_empty=False)
+    givenname = validators.String(not_empty=True)
+    sn = validators.String(not_empty=True)
+    mail = validators.Email(not_empty=True)
+    #  validators.PhoneNumber may be a bit too picky, requiring an area code
+    # telephonenumber = validators.PlainText(not_empty=False)
+
+    chained_validators = [
+      validators.FieldsMatch('userpassword', 'userpassword_confirm')
+    ]
 
 class UserEditForm(widgets.Form):
     params = ['user']
@@ -59,6 +81,8 @@ class UserEditForm(widgets.Form):
               UserFields.uidnumber_hidden, UserFields.gidnumber_hidden,
               UserFields.krbPasswordExpiration_hidden,
               ]
+
+    validator = UserEditValidator()
 
     def __init__(self, *args, **kw):
         super(UserEditForm,self).__init__(*args, **kw)

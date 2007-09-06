@@ -197,7 +197,7 @@ class Root(controllers.RootController):
     def userindex(self):
         raise turbogears.redirect("/userlist")
 
-    @expose()
+    # @expose()
     def generate_password(self):
         password = ""
         generator = random.SystemRandom()
