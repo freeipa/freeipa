@@ -21,3 +21,9 @@ def password_is_expired(days):
 
 def password_expires_soon(days):
     return (not password_is_expired(days)) and (days < 7)
+
+def account_status_display(status):
+    if status == "true":
+        return "inactive"
+    else:
+        return "active"

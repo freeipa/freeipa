@@ -24,19 +24,41 @@
         </span>
     </div>
 
-    <div id="page">
-      <div id="header">
+    <div id="header">
+      <div id="logo">
+        <a href="${tg.url('/')}"><img 
+        src="${tg.url('/static/images/logo.png')}"
+        border="0"
+        /></a>
+      </div>
+      <div id="headerinfo">
         <div id="login">
           Logged in as: ace
         </div>
-        <div id="logo">
-            <a href="${tg.url('/')}"><img 
-            src="${tg.url('/static/images/logo.png')}"
-            border="0"
-            /></a>
+        <div id="topsearch">
+          <form action="${tg.url('/topsearch')}" method="post">
+            <select name="searchtype">
+                <option>Users</option>
+                <option>Groups</option>
+            </select>
+            <input class="searchtext" id="topsearchbox" type="text"
+              name="searchvalue"
+              value="Type search terms here."
+              onfocus="clearsearch()" />
+            <input type="submit" value="Search"/>
+          </form>
+          <script type="text/javascript">
+            function clearsearch() {
+              topsearchbox = document.getElementById('topsearchbox');
+              topsearchbox.onfocus = null;
+              topsearchbox.value = "";
+            }
+          </script>
         </div>
       </div>
+    </div>
 
+    <div id="page">
       <div id="nav"><!-- 
       This used to have links.  Keeping around in case we move them back...
       --></div>

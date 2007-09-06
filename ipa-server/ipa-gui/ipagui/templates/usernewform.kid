@@ -27,6 +27,9 @@
           <span py:if="tg.errors.get('sn')" class="fielderror"
               py:content="tg.errors.get('sn')" />
           <script type="text/javascript">
+            var uid_suggest = ""
+            var mail_suggest = ""
+
             function autofill(self) {
               givenname = document.getElementById('form_givenname');
               sn = document.getElementById('form_sn');
@@ -35,22 +38,24 @@
               }
               uid = document.getElementById('form_uid');
               mail = document.getElementById('form_mail');
-              if (uid.value == "") {
+              if ((uid.value == "") || (uid.value == uid_suggest)) {
                 new Ajax.Request('${tg.url('/suggest_uid')}', {
                     method: 'get',
                     parameters: {'givenname': givenname.value, 'sn': sn.value},
                     onSuccess: function(transport) {
                         uid.value = transport.responseText;
+                        uid_suggest = uid.value;
                         new Effect.Highlight(uid);
                       }
                     });
               }
-              if (mail.value == "") {
+              if ((mail.value == "") || (mail.value == mail_suggest)) {
                 new Ajax.Request('${tg.url('/suggest_email')}', {
                     method: 'get',
                     parameters: {'givenname': givenname.value, 'sn': sn.value},
                     onSuccess: function(transport) {
                         mail.value = transport.responseText;
+                        mail_suggest = mail.value;
                         new Effect.Highlight(mail);
                       }
                     });

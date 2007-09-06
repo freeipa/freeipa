@@ -48,6 +48,14 @@ class Root(controllers.RootController):
     def index(self):
         return dict()
 
+    @expose()
+    def topsearch(self, **kw):
+        if kw.get('searchtype') == "Users":
+            return self.userlist(uid=kw.get('searchvalue'))
+        else:
+            return self.index()
+
+
 
     ########
     # User #

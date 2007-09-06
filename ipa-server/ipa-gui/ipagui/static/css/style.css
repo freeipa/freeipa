@@ -17,6 +17,7 @@ body {
   background:#ccc;   /* should be same as #sidebar */
   margin:0 auto;
   width:100%;
+  clear:both;
 }
 
 
@@ -24,16 +25,25 @@ body {
   background:#fff;
 }
 
-#header h1 {
-  padding:5px;
-  margin:0;
-}
-
 #header #logo {
+  float:left;
 }
 
-#header #login {
-  float:right;
+#header #headerinfo {
+  text-align:right;
+}
+
+#header #headerinfo #login {
+}
+
+#header #headerinfo #topsearch {
+  padding-top: 15px;
+}
+
+.searchtext {
+  background-color:#E5F1F4;
+  border:1px solid #8E8E8E;
+  color:#444444;
 }
 
 
@@ -42,7 +52,6 @@ body {
   color:#fff;
   min-height:3px;
   max-height:3px;
-  clear:both;
 }
 
 #nav ul {

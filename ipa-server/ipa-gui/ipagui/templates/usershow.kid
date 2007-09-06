@@ -86,7 +86,7 @@ else:
         <th>
           <label class="fieldlabel" py:content="fields.nsAccountLock.label" />:
         </th>
-        <td>${user.get("nsAccountLock")}</td>
+        <td>${userhelper.account_status_display(user.get("nsAccountLock"))}</td>
       </tr>
     </table>
 
