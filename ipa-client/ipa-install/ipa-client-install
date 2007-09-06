@@ -31,6 +31,7 @@ from optparse import OptionParser
 import ipaclient.ipadiscovery
 import ipaclient.ipachangeconf
 from ipa.ipautil import run
+import shutil
 
 def parse_options():
     parser = OptionParser(version=VERSION)
@@ -123,21 +124,19 @@ def main():
 
     # Configure ldap.conf
     ldapconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
-    opts = [{'name':'host', 'action':'comment'},
-            {'name':'port', 'action':'comment'},
-            {'name':'binddn', 'action':'comment'},
-            {'name':'bindpw', 'action':'comment'},
-            {'name':'rootbinddn', 'action':'comment'},
-            {'name':'nss_base_passwd', 'value':ds.getBaseDN()+'?sub', 'action':'set'},
-            {'name':'nss_base_group', 'value':ds.getBaseDN()+'?sub', 'action':'set'},
-            {'name':'base', 'value':ds.getBaseDN(), 'action':'set'},
-            {'name':'ldap_version', 'value':'3', 'action':'set'}]
-    if dnsok and not options.force:
-        opts.insert(0, {'name':'uri', 'action':'comment'})
-    else:
-        opts.append({'name':'uri', 'value':'ldap://'+ds.getServerName(), 'action':'set'})
     ldapconf.setOptionAssignment(" ")
-    ldapconf.changeConf("/etc/ldap.conf", opts)
+
+    opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
+            {'name':'empty', 'type':'empty'},
+            {'name':'nss_base_passwd', 'type':'option', 'value':ds.getBaseDN()+'?sub'},
+            {'name':'nss_base_group', 'type':'option', 'value':ds.getBaseDN()+'?sub'},
+            {'name':'base', 'type':'option', 'value':ds.getBaseDN()},
+            {'name':'ldap_version', 'type':'option', 'value':'3'}]
+    if not dnsok or options.force:
+        opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+ds.getServerName()})
+
+    opts.append({'name':'empty', 'type':'empty'})
+    ldapconf.newConf("/etc/ldap.conf", opts)
 
     #Check if kerberos is already configured properly
     krbctx = krbV.default_context()
@@ -149,33 +148,52 @@ def main():
         krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
         krbconf.setOptionAssignment(" = ")
         krbconf.setSectionNameDelimiters(("[","]"))
+        krbconf.setSubSectionDelimiters(("{","}"))
+        krbconf.setIndent(("","  ","    "))
+
+        opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
+                {'name':'empty', 'type':'empty'}]
 
         #[libdefaults]
-        opts = [{'name':'default_realm', 'value':ds.getRealmName(), 'action':'set'},
-                {'name':'ticket_lifetime', 'value':'24h', 'action':'set'},
-                {'name':'forwardable', 'value':'yes', 'action':'set'}]
+        libopts = [{'name':'default_realm', 'type':'option', 'value':ds.getRealmName()}]
         if dnsok and not options.force:
-            opts.insert(1, {'name':'dns_lookup_realm', 'value':'true', 'action':'set'})
-            opts.insert(2, {'name':'dns_lookup_kdc', 'value':'true', 'action':'set'})
+            libopts.append({'name':'dns_lookup_realm', 'type':'option', 'value':'true'})
+            libopts.append({'name':'dns_lookup_kdc', 'type':'option', 'value':'true'})
         else:
-            opts.insert(1, {'name':'dns_lookup_realm', 'value':'false', 'action':'set'})
-            opts.insert(2, {'name':'dns_lookup_kdc', 'value':'false', 'action':'set'})
-        krbconf.changeConf("/etc/krb5.conf", opts, "libdefaults");
+            libopts.append({'name':'dns_lookup_realm', 'type':'option', 'value':'false'})
+            libopts.append({'name':'dns_lookup_kdc', 'type':'option', 'value':'false'})
+        libopts.append({'name':'ticket_lifetime', 'type':'option', 'value':'24h'})
+        libopts.append({'name':'forwardable', 'type':'option', 'value':'yes'})
+
+        opts.append({'name':'libdefaults', 'type':'section', 'value':libopts})
+        opts.append({'name':'empty', 'type':'empty'})
 
 	#the following are necessary only if DNS discovery does not work
         if not dnsok or options.force:
             #[realms]
-            opts = [{'name':ds.getRealmName(), 'value':'{', 'action':'set'},
-                    {'name':'kdc', 'value':ds.getServerName()+':88', 'action':'set'},
-                    {'name':'admin_server', 'value':ds.getServerName()+':749', 'action':'set'},
-                    # adding '\n}' is a dirty hack because we still don't have subsections support
-                    {'name':'default_domain', 'value':ds.getDomainName()+'\n}', 'action':'set'}]
-            krbconf.changeConf("/etc/krb5.conf", opts, "realms");
+            kropts =[{'name':'kdc', 'type':'option', 'value':ds.getServerName()+':88'},
+                     {'name':'admin_server', 'type':'option', 'value':ds.getServerName()+':749'},
+                     {'name':'default_domain', 'type':'option', 'value':ds.getDomainName()}]
+            ropts = [{'name':ds.getRealmName(), 'type':'subsection', 'value':kropts}]
+            opts.append({'name':'realms', 'type':'section', 'value':ropts})
+            opts.append({'name':'empty', 'type':'empty'})
 
             #[domain_realm]
-            opts = [{'name':'.'+ds.getDomainName(), 'value':ds.getRealmName(), 'action':'set'},
-                    {'name':ds.getDomainName(), 'value':ds.getRealmName(), 'action':'set'}]
-            krbconf.changeConf("/etc/krb5.conf", opts, "domain_realm");
+            dropts = [{'name':'.'+ds.getDomainName(), 'type':'option', 'value':ds.getRealmName()},
+                      {'name':ds.getDomainName(), 'type':'option', 'value':ds.getRealmName()}]
+            opts.append({'name':'domain_realm', 'type':'section', 'value':dropts})
+            opts.append({'name':'empty', 'type':'empty'})
+
+        #[appdefaults]
+        pamopts = [{'name':'debug', 'type':'option', 'value':'false'},
+                   {'name':'ticket_lifetime', 'type':'option', 'value':'36000'},
+                   {'name':'renew_lifetime', 'type':'option', 'value':'36000'},
+                   {'name':'forwardable', 'type':'option', 'value':'true'},
+                   {'name':'krb4_convert', 'type':'option', 'value':'false'}]
+        appopts = [{'name':'pam', 'type':'subsection', 'value':pamopts}]
+        opts.append({'name':'appdefaults', 'type':'section', 'value':appopts})
+
+        krbconf.newConf("/etc/krb5.conf", opts);
 
     #Modify nsswitch to add nss_ldap
     run(["/usr/sbin/authconfig", "--enableldap", "--update"])
