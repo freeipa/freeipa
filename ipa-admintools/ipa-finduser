@@ -50,7 +50,9 @@ def main():
         client = ipaclient.IPAClient()
         users = client.find_users(args[1], sattrs=['dn','uid','cn','homeDirectory'])
 
-        if len(users) == 0:
+        counter = users[0]
+        users = users[1:]
+        if counter == 0:
             print "No entries found for", args[1]
             return 0
 

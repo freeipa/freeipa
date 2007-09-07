@@ -17,6 +17,7 @@ import ipa.ipaclient
 import ipa.user
 import xmlrpclib
 import forms.user
+from helpers import userhelper
 from ipa import ipaerror
 
 ipa.config.init_config()
@@ -46,6 +47,14 @@ class Root(controllers.RootController):
     @expose(template="ipagui.templates.welcome")
     def index(self):
         return dict()
+
+    @expose()
+    def topsearch(self, **kw):
+        if kw.get('searchtype') == "Users":
+            return self.userlist(uid=kw.get('searchvalue'))
+        else:
+            return self.index()
+
 
 
     ########
@@ -107,7 +116,7 @@ class Root(controllers.RootController):
     def userupdate(self, **kw):
         """Updates an existing user"""
         restrict_post()
-        if kw.get('submit') == 'Cancel':
+        if kw.get('submit') == 'Cancel Edit':
             turbogears.flash("Edit user cancelled")
             raise turbogears.redirect('/usershow', uid=kw.get('uid'))
 
@@ -188,7 +197,7 @@ class Root(controllers.RootController):
     def userindex(self):
         raise turbogears.redirect("/userlist")
 
-    @expose()
+    # @expose()
     def generate_password(self):
         password = ""
         generator = random.SystemRandom()
@@ -202,6 +211,9 @@ class Root(controllers.RootController):
     def suggest_uid(self, givenname, sn):
         if (len(givenname) == 0) or (len(sn) == 0):
             return ""
+
+        givenname = givenname.lower()
+        sn = sn.lower()
 
         uid = givenname[0] + sn[:7]
         try:
@@ -243,6 +255,9 @@ class Root(controllers.RootController):
     def suggest_email(self, givenname, sn):
         if (len(givenname) == 0) or (len(sn) == 0):
             return ""
+
+        givenname = givenname.lower()
+        sn = sn.lower()
 
         # TODO - get from config
         domain = "freeipa.org"

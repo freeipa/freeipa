@@ -24,7 +24,7 @@ import tempfile
 import shutil
 import logging
 import pwd
-from util import *
+from ipa.ipautil import *
 
 
 SHARE_DIR = "/usr/share/ipa/"

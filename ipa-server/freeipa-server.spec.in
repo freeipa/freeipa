@@ -50,6 +50,7 @@ rm -rf %{buildroot}
 
 %attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so
 %attr(755,root,root) %{plugin_dir}/libipa-memberof-plugin.so
+%attr(755,root,root) %{plugin_dir}/libipa-dna-plugin.so
 
 
 %changelog

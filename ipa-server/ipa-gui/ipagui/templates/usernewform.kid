@@ -27,6 +27,9 @@
           <span py:if="tg.errors.get('sn')" class="fielderror"
               py:content="tg.errors.get('sn')" />
           <script type="text/javascript">
+            var uid_suggest = ""
+            var mail_suggest = ""
+
             function autofill(self) {
               givenname = document.getElementById('form_givenname');
               sn = document.getElementById('form_sn');
@@ -35,22 +38,24 @@
               }
               uid = document.getElementById('form_uid');
               mail = document.getElementById('form_mail');
-              if (uid.value == "") {
+              if ((uid.value == "") || (uid.value == uid_suggest)) {
                 new Ajax.Request('${tg.url('/suggest_uid')}', {
                     method: 'get',
                     parameters: {'givenname': givenname.value, 'sn': sn.value},
                     onSuccess: function(transport) {
                         uid.value = transport.responseText;
+                        uid_suggest = uid.value;
                         new Effect.Highlight(uid);
                       }
                     });
               }
-              if (mail.value == "") {
+              if ((mail.value == "") || (mail.value == mail_suggest)) {
                 new Ajax.Request('${tg.url('/suggest_email')}', {
                     method: 'get',
                     parameters: {'givenname': givenname.value, 'sn': sn.value},
                     onSuccess: function(transport) {
                         mail.value = transport.responseText;
+                        mail_suggest = mail.value;
                         new Effect.Highlight(mail);
                       }
                     });
@@ -87,6 +92,7 @@
           <span py:if="tg.errors.get('userpassword')" class="fielderror"
               py:content="tg.errors.get('userpassword')" />
 
+          <!--
           <input type="button" value="Generate Password"
               onclick="new Ajax.Request('${tg.url('/generate_password')}',
                 {
@@ -96,6 +102,20 @@
                         transport.responseText;
                   }
                 });" />
+            -->
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.userpassword_confirm.field_id}"
+            py:content="user.userpassword_confirm.label" />:
+        </th>
+        <td>
+          <span py:replace="user.userpassword_confirm.display(
+              value_for(user.userpassword_confirm))" />
+          <span py:if="tg.errors.get('userpassword_confirm')" class="fielderror"
+              py:content="tg.errors.get('userpassword_confirm')" />
         </td>
       </tr>
 
@@ -167,15 +187,11 @@
 
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
-        <th>
-          <br />
-          <input type="submit" class="submitbutton" name="submit" value="Submit"/>
-        </th>
+        <th></th>
         <td>
           <br />
-          <input type="submit" class="submitbutton" name="submit" value="Cancel" />
+          <input type="submit" class="submitbutton" name="submit" value="Add Person"/>
         </td>
-        <td></td>
       </tr>
     </table>
 

@@ -2,7 +2,8 @@
 Required packages:
 
 krb5-server
-fedora-ds-base / fedora-ds-base-devel
+fedora-ds-base
+fedora-ds-base-devel
 openldap-clients
 krb5-server-ldap
 cyrus-sasl-gssapi
@@ -13,12 +14,40 @@ openssl-devel
 
 Installation example:
 
-TEMPORARY: (until fedora ds scripts are fixed)
-please use the fedora-ds.init.patch under share/ to patch your init scripts before
-running ipa-server-install
+TEMPORARY: until bug https://bugzilla.redhat.com/show_bug.cgi?id=248169 is
+           fixed.
 
-cd ipa-install
-make install
-cd ..
-/usr/sbin/ipa-server-install -u fds -r FREEIPA.ORG -p freeipa -m ipafree
+Please apply the fedora-ds.init.patch in freeipa/ipa-server/ipa-install/share/
+to patch your init scripts before running ipa-server-install. This tells
+FDS where to find its kerberos keytab.
 
+Things done as root are denoted by #. Things done as a unix user are denoted
+by %.
+
+# cd freeipa
+# patch -p0 < ipa-server/ipa-install/share/fedora-ds.init.patch
+
+Now to do the installation.
+
+# cd freeipa
+# make install
+# /usr/sbin/ipa-server-install -u fds -r FREEIPA.ORG -p freeipa -P ipafree
+
+For more verbose output add the -d flag
+
+You have a basic working system with one super administrator (named admin).
+
+To create another administrative user:
+
+% kinit admin@FREEIPA.ORG
+% /usr/sbin/ipa-adduser -f Test -l User test
+% ldappasswd -Y GSSAPI -h localhost -s password uid=test,cn=users,cn=accounts,dc=freeipa,dc=org
+% /usr/sbin/ipa-groupmod -a test admins
+
+An admin user is just a regular user in the group admin.
+
+Now you can destroy the old ticket and log in as test:
+
+% kdestroy
+% kinit test@FREEIPA.ORG
+% /usr/sbin/ipa-finduser test

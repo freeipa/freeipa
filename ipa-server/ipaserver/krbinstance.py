@@ -29,7 +29,7 @@ import os
 import pwd
 import socket
 import time
-from util import *
+from ipa.ipautil import *
 
 def host_to_domain(fqdn):
     s = fqdn.split(".")

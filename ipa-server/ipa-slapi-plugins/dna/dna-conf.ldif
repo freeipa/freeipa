@@ -1,0 +1,13 @@
+dn: cn=ipa-dna,cn=plugins,cn=config
+objectclass: top
+objectclass: nsSlapdPlugin
+objectclass: extensibleObject
+cn: ipa-dna
+nsslapd-pluginpath: libipa-dna-plugin
+nsslapd-plugininitfunc: dna_init
+nsslapd-plugintype: postoperation
+nsslapd-pluginenabled: on
+nsslapd-pluginid: ipa-dna
+nsslapd-pluginversion: 1.0
+nsslapd-pluginvendor: Red Hat
+nsslapd-plugindescription: Distributed numeric assignment plugin

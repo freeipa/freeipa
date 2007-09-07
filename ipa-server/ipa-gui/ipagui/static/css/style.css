@@ -17,6 +17,7 @@ body {
   background:#ccc;   /* should be same as #sidebar */
   margin:0 auto;
   width:100%;
+  clear:both;
 }
 
 
@@ -24,9 +25,26 @@ body {
   background:#fff;
 }
 
-#header h1 {
-  padding:5px;
-  margin:0;
+#header #logo {
+  float:left;
+}
+
+#header #headerinfo {
+  text-align:right;
+  padding-right:10px;
+}
+
+#header #headerinfo #login {
+}
+
+#header #headerinfo #topsearch {
+  padding-top: 15px;
+}
+
+.searchtext {
+  background-color:#E5F1F4;
+  border:1px solid #8E8E8E;
+  color:#444444;
 }
 
 
@@ -75,7 +93,11 @@ body {
   float:left;
   width:10%;
   padding: 5px;
-  font-size: small;
+  font-size: medium;
+}
+
+#sidebar p {
+  line-height: 150%;
 }
 
 #sidebar h2 {
@@ -137,6 +159,12 @@ body {
   border: 1px solid #c99;
   width: 450px;
   font-size: 120%;
+  font-weight: bolder;
+}
+
+.warning_message {
+  font-size: 120%;
+  color: #ee0000;
   font-weight: bolder;
 }
 

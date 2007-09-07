@@ -6,20 +6,18 @@
 <title>Find People</title>
 </head>
 <body>
-    <h2>Find People</h2>
     <div id="search">
         <form action="${tg.url('/userlist')}" method="post">
-            Search:
             <input id="uid" type="text" name="uid" value="${uid}" />
-            <input type="submit" />
+            <input type="submit" value="Find People"/>
         </form>
         <script type="text/javascript">
             document.getElementById("uid").focus();
         </script>
     </div>
-    <div py:if='users != None'>
+    <div py:if='(users != None) and (len(users) > 0)'>
         <h2>${len(users)} results returned:</h2>
-        <table id="resultstable" py:if='len(users) > 0'>
+        <table id="resultstable">
             <tr>
                 <th>
                     <label class="fieldlabel" py:content="fields.uid.label" />
@@ -61,9 +59,9 @@
                 </td>
             </tr>
         </table>
-        <div py:if='len(users) == 0'>
-            No results found.
-        </div>
+    </div>
+    <div py:if='(users != None) and (len(users) == 0)'>
+        <h2>No results found for "${uid}"</h2>
     </div>
 </body>
 </html>

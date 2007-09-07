@@ -7,6 +7,10 @@ install:
 	install -m 755 ipa-finduser $(SBINDIR)
 	install -m 755 ipa-usermod $(SBINDIR)
 	install -m 755 ipa-deluser $(SBINDIR)
+	install -m 755 ipa-addgroup $(SBINDIR)
+	install -m 755 ipa-delgroup $(SBINDIR)
+	install -m 755 ipa-findgroup $(SBINDIR)
+	install -m 755 ipa-groupmod $(SBINDIR)
 
 clean:
 	rm -f *~ *.pyc
