@@ -426,7 +426,7 @@ class IPAServer:
         criteria_words = re.split(r'\s+', criteria)
         criteria_words = filter(lambda value:value!="", criteria_words)
         if len(criteria_words) == 0:
-            return []
+            return [0]
 
         (exact_match_filter, partial_match_filter) = self.__generate_match_filters(
                 search_fields, criteria_words)

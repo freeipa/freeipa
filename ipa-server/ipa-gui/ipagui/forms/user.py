@@ -26,8 +26,8 @@ class UserFields():
 
 class UserNewValidator(validators.Schema):
     uid = validators.PlainText(not_empty=True)
-    userpassword = validators.String(not_empty=True)
-    userpassword_confirm = validators.String(not_empty=True)
+    userpassword = validators.String(not_empty=False)
+    userpassword_confirm = validators.String(not_empty=False)
     givenname = validators.String(not_empty=True)
     sn = validators.String(not_empty=True)
     mail = validators.Email(not_empty=True)
