@@ -94,6 +94,10 @@ class Root(controllers.RootController):
             rv = client.add_user(new_user)
             turbogears.flash("%s added!" % kw['uid'])
             raise turbogears.redirect('/usershow', uid=kw['uid'])
+        except ipaerror.exception_for(ipaerror.LDAP_DUPLICATE):
+            turbogears.flash("Person with login '%s' already exists" %
+                    kw.get('uid'))
+            return dict(form=user_new_form, tg_template='ipagui.templates.usernew')
         except ipaerror.IPAError, e:
             turbogears.flash("User add failed: " + str(e))
             return dict(form=user_new_form, tg_template='ipagui.templates.usernew')
@@ -107,6 +111,10 @@ class Root(controllers.RootController):
 
         user = client.get_user_by_uid(uid, user_fields)
         user_dict = user.toDict()
+        # Edit shouldn't fill in the password field.
+        if user_dict.has_key('userpassword'):
+            del(user_dict['userpassword'])
+
         # store a copy of the original user for the update later
         user_data = b64encode(dumps(user_dict))
         user_dict['user_orig'] = user_data

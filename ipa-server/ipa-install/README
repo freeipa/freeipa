@@ -18,6 +18,7 @@ mozldap-devel
 mod_python
 gcc
 python-ldap
+TurboGears
 
 Installation example:
 
