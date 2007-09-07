@@ -31,9 +31,11 @@ Now to do the installation.
 
 # cd freeipa
 # make install
-# /usr/sbin/ipa-server-install -u fds -r FREEIPA.ORG -p freeipa -P ipafree
 
-For more verbose output add the -d flag
+To start an interactive installation use:
+# /usr/sbin/ipa-server-install 
+
+For more verbose output add the -d flag run the command with -h to see all options
 
 You have a basic working system with one super administrator (named admin).
 
