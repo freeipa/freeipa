@@ -1,4 +1,4 @@
-DIRSRV ?= fedora-ds
+DIRSRV ?= dirsrv
 PREFIX ?= $(DESTDIR)/usr
 LIBDIR ?= $(PREFIX)/lib/$(DIRSRV)/plugins
 LIB64DIR ?= $(PREFIX)/lib64/$(DIRSRV)/plugins
