@@ -1,5 +1,5 @@
 Name:           freeipa-server
-Version:        0.2.0
+Version:        0.3.0
 Release:        1%{?dist}
 Summary:        FreeIPA authentication server
 
@@ -54,6 +54,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Sep 7 2007 Karl MacMillan <kmacmill@redhat.com> - 0.3.0-1
+- Added support for libipa-dna-plugin
+
 * Fri Aug 10 2007 Karl MacMillan <kmacmill@redhat.com> - 0.2.0-1
 - Added support for ipa_kpasswd and ipa_pwd_extop
 

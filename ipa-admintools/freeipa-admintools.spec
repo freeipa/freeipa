@@ -1,5 +1,5 @@
 Name:           freeipa-admintools
-Version:        0.2.0
+Version:        0.3.0
 Release:        4%{?dist}
 Summary:        FreeIPA authentication server
 
