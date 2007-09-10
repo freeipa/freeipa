@@ -8,6 +8,7 @@ from turbogears import controllers, expose, flash
 from turbogears import validators, validate
 from turbogears import widgets, paginate
 from turbogears import error_handler
+from turbogears import identity
 # from model import *
 # import logging
 # log = logging.getLogger("ipagui.controllers")
@@ -27,7 +28,6 @@ user_edit_form = forms.user.UserEditForm()
 password_chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 client = ipa.ipaclient.IPAClient(True)
-client.set_principal("test@FREEIPA.ORG")
 
 user_fields = ['*', 'nsAccountLock']
 
@@ -45,10 +45,12 @@ def utf8_encode(value):
 class Root(controllers.RootController):
 
     @expose(template="ipagui.templates.welcome")
+    @identity.require(identity.not_anonymous())
     def index(self):
         return dict()
 
     @expose()
+    @identity.require(identity.not_anonymous())
     def topsearch(self, **kw):
         if kw.get('searchtype') == "Users":
             return self.userlist(uid=kw.get('searchvalue'))
@@ -62,6 +64,7 @@ class Root(controllers.RootController):
     ########
 
     @expose("ipagui.templates.usernew")
+    @identity.require(identity.not_anonymous())
     def usernew(self, tg_errors=None):
         """Displays the new user form"""
         if tg_errors:
@@ -70,9 +73,11 @@ class Root(controllers.RootController):
         return dict(form=user_new_form)
 
     @expose()
+    @identity.require(identity.not_anonymous())
     def usercreate(self, **kw):
         """Creates a new user"""
         restrict_post()
+        client.set_principal(identity.current.user_name)
         if kw.get('submit') == 'Cancel':
             turbogears.flash("Add user cancelled")
             raise turbogears.redirect('/userlist')
@@ -104,11 +109,13 @@ class Root(controllers.RootController):
 
 
     @expose("ipagui.templates.useredit")
+    @identity.require(identity.not_anonymous())
     def useredit(self, uid, tg_errors=None):
         """Displays the edit user form"""
         if tg_errors:
             turbogears.flash("There was a problem with the form!")
 
+        client.set_principal(identity.current.user_name)
         user = client.get_user_by_uid(uid, user_fields)
         user_dict = user.toDict()
         # Edit shouldn't fill in the password field.
@@ -121,9 +128,11 @@ class Root(controllers.RootController):
         return dict(form=user_edit_form, user=user_dict)
 
     @expose()
+    @identity.require(identity.not_anonymous())
     def userupdate(self, **kw):
         """Updates an existing user"""
         restrict_post()
+        client.set_principal(identity.current.user_name)
         if kw.get('submit') == 'Cancel Edit':
             turbogears.flash("Edit user cancelled")
             raise turbogears.redirect('/usershow', uid=kw.get('uid'))
@@ -169,8 +178,10 @@ class Root(controllers.RootController):
 
 
     @expose("ipagui.templates.userlist")
+    @identity.require(identity.not_anonymous())
     def userlist(self, **kw):
         """Retrieve a list of all users and display them in one huge list"""
+        client.set_principal(identity.current.user_name)
         users = None
         counter = 0
         uid = kw.get('uid')
@@ -190,8 +201,10 @@ class Root(controllers.RootController):
 
 
     @expose("ipagui.templates.usershow")
+    @identity.require(identity.not_anonymous())
     def usershow(self, uid):
         """Retrieve a single user for display"""
+        client.set_principal(identity.current.user_name)
         try:
             user = client.get_user_by_uid(uid, user_fields)
             return dict(user=user.toDict(), fields=forms.user.UserFields())
@@ -200,10 +213,12 @@ class Root(controllers.RootController):
             raise turbogears.redirect("/")
 
     @validate(form=user_new_form)
+    @identity.require(identity.not_anonymous())
     def usercreatevalidate(self, tg_errors=None, **kw):
         return tg_errors, kw
 
     @validate(form=user_edit_form)
+    @identity.require(identity.not_anonymous())
     def userupdatevalidate(self, tg_errors=None, **kw):
         return tg_errors, kw
 
@@ -222,10 +237,12 @@ class Root(controllers.RootController):
         return password
 
     @expose()
+    @identity.require(identity.not_anonymous())
     def suggest_uid(self, givenname, sn):
         if (len(givenname) == 0) or (len(sn) == 0):
             return ""
 
+        client.set_principal(identity.current.user_name)
         givenname = givenname.lower()
         sn = sn.lower()
 
@@ -309,7 +326,9 @@ class Root(controllers.RootController):
     #########
 
     @expose("ipagui.templates.groupindex")
+    @identity.require(identity.not_anonymous())
     def groupindex(self, tg_errors=None):
+        client.set_principal(identity.current.user_name)
         return dict()
 
 
@@ -318,5 +337,7 @@ class Root(controllers.RootController):
     ############
 
     @expose("ipagui.templates.resindex")
+    @identity.require(identity.not_anonymous())
     def resindex(self, tg_errors=None):
+        client.set_principal(identity.current.user_name)
         return dict()

@@ -14,15 +14,6 @@
 </head>
 
 <body py:match="item.tag=='{http://www.w3.org/1999/xhtml}body'" py:attrs="item.items()">
-    <div py:if="tg.config('identity.on') and not defined('logging_in')" id="pageLogin">
-        <span py:if="tg.identity.anonymous">
-            <a href="${tg.url('/login')}">Login</a>
-        </span>
-        <span py:if="not tg.identity.anonymous">
-            Welcome ${tg.identity.user.display_name}.
-            <a href="${tg.url('/logout')}">Logout</a>
-        </span>
-    </div>
 
     <div id="header">
       <div id="logo">
@@ -33,7 +24,15 @@
       </div>
       <div id="headerinfo">
         <div id="login">
-          Logged in as: ace
+    <div py:if="tg.config('identity.on') and not defined('logging_in')" id="pageLogin">
+        <span py:if="tg.identity.anonymous">
+            <a href="${tg.url('/login')}">Login</a>
+        </span>
+        <span py:if="not tg.identity.anonymous">
+            Logged in as: ${tg.identity.user.display_name}
+        </span>
+    </div>
+
         </div>
         <div id="topsearch">
           <form action="${tg.url('/topsearch')}" method="post">

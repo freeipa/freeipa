@@ -58,5 +58,11 @@ setup(
         # 'Framework :: TurboGears :: Widgets',
     ],
     test_suite = 'nose.collector',
+    entry_points = """
+    [turbogears.identity.provider]
+    proxyprovider = ipagui.proxyprovider:ProxyIdentityProvider
+    [turbogears.visit.manager]
+    proxyvisit = ipagui.proxyvisit:ProxyVisitManager
+    """,
     )
     
