@@ -1,6 +1,6 @@
 Name:           freeipa-python
 Version:        VERSION
-Release:        4%{?dist}
+Release:        1%{?dist}
 Summary:        FreeIPA authentication server
 
 Group:          System Environment/Base
