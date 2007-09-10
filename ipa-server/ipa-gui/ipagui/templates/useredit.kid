@@ -6,7 +6,16 @@
 <title>Edit Person</title>
 </head>
 <body>
+
+  <div>
+    <div style="float:right">
+      <input type="checkbox"
+          onclick="toggleProtectedFields(this);">
+        <span class="small">edit protected fields</span>
+      </input>
+    </div>
     <h2>Edit Person</h2>
+  </div>
 
 <?python
 from ipagui.helpers import userhelper

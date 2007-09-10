@@ -77,7 +77,7 @@ class UserEditForm(widgets.Form):
 
     fields = [UserFields.givenname, UserFields.sn, UserFields.mail,
               UserFields.uid_hidden, UserFields.user_orig,
-              UserFields.uidnumber_hidden, UserFields.gidnumber_hidden,
+              UserFields.uidnumber, UserFields.gidnumber,
               UserFields.krbPasswordExpiration_hidden,
               ]
 

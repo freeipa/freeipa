@@ -2,6 +2,26 @@
   class="simpleroster">
   <form action="${action}" name="${name}" method="${method}" class="tableform">
 
+  <script type="text/javascript">
+    function toggleProtectedFields(checkbox) {
+      passwordField = document.getElementById('form_userpassword');
+      passwordConfirmField = document.getElementById('form_userpassword_confirm');
+      uidnumberField = document.getElementById('form_uidnumber');
+      gidnumberField = document.getElementById('form_gidnumber');
+      if (checkbox.checked) {
+        passwordField.disabled = false;
+        passwordConfirmField.disabled = false;
+        uidnumberField.disabled = false;
+        gidnumberField.disabled = false;
+      } else {
+        passwordField.disabled = true;
+        passwordConfirmField.disabled = true;
+        uidnumberField.disabled = true;
+        gidnumberField.disabled = true;
+      }
+    }
+  </script>
+
 
   <div py:for="field in hidden_fields"
     py:replace="field.display(value_for(field), **params_for(field))" 
@@ -57,6 +77,10 @@
           <span py:if="tg.errors.get('userpassword')" class="fielderror"
               py:content="tg.errors.get('userpassword')" />
 
+          <script type="text/javascript">
+              document.getElementById('form_userpassword').disabled = true;
+          </script>
+
           <!-- 
           <span id="password_text">********</span>
           <input id="genpassword_button" type="button" value="Generate Password"
@@ -71,7 +95,7 @@
                 });" />
           <br />
           <input type="checkbox"
-              onclick="togglePassword(this);"><span class="small">edit</span></input>
+              onclick="togglePassword(this);"><span class="xsmall">edit</span></input>
           <script type="text/javascript">
             document.getElementById('form_userpassword').style.display='none';
 
@@ -104,6 +128,10 @@
                value_for(user.userpassword_confirm))" />
           <span py:if="tg.errors.get('userpassword_confirm')" class="fielderror"
               py:content="tg.errors.get('userpassword_confirm')" />
+
+          <script type="text/javascript">
+              document.getElementById('form_userpassword_confirm').disabled = true;
+          </script>
         </td>
       </tr>
 
@@ -113,7 +141,14 @@
             py:content="user.uidnumber.label" />:
         </th>
         <td>
-          ${value_for(user.uidnumber)}
+          <span py:replace="user.uidnumber.display(
+               value_for(user.uidnumber))" />
+          <span py:if="tg.errors.get('uidnumber')" class="fielderror"
+              py:content="tg.errors.get('uidnumber')" />
+
+          <script type="text/javascript">
+              document.getElementById('form_uidnumber').disabled = true;
+          </script>
         </td>
       </tr>
 
@@ -123,7 +158,14 @@
             py:content="user.gidnumber.label" />:
         </th>
         <td>
-          ${value_for(user.gidnumber)}
+          <span py:replace="user.gidnumber.display(
+               value_for(user.gidnumber))" />
+          <span py:if="tg.errors.get('gidnumber')" class="fielderror"
+              py:content="tg.errors.get('gidnumber')" />
+
+          <script type="text/javascript">
+              document.getElementById('form_gidnumber').disabled = true;
+          </script>
         </td>
       </tr>
     </table>

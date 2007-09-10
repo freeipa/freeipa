@@ -145,6 +145,12 @@ class Root(controllers.RootController):
                 new_user.setValue('nsAccountLock', 'true')
             else:
                 new_user.setValue('nsAccountLock', None)
+            if kw.get('userpassword'):
+                new_user.setValue('userpassword', kw.get('userpassword'))
+            if kw.get('uidnumber'):
+                new_user.setValue('uidnumber', kw.get('uidnumber'))
+            if kw.get('gidnumber'):
+                new_user.setValue('gidnumber', kw.get('gidnumber'))
 
             #
             # this is a hack until we decide on the policy for names/cn/sn/givenName

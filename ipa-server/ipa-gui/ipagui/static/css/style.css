@@ -149,6 +149,10 @@ body {
 }
 
 .small {
+  font-size: small;
+}
+
+.xsmall {
   font-size: x-small;
 }
 

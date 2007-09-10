@@ -28,7 +28,7 @@
       <div id="logo">
         <a href="${tg.url('/')}"><img 
         src="${tg.url('/static/images/logo.png')}"
-        border="0"
+        border="0" alt="homepage"
         /></a>
       </div>
       <div id="headerinfo">
