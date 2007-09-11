@@ -31,19 +31,19 @@ class ProxyIdentity(object):
     user= property(_get_user)
 
     def _get_user_name(self):
-        if not self.user:
+        if not self._user:
             return None
-        return self.user.user_name
+        return self._user.user_name
     user_name= property(_get_user_name)
 
-    def _get_name(self):
-        if not self.user:
+    def _get_display_name(self):
+        if not self._user:
             return None
-        return self.user.name
-    user_name= property(_get_name)
+        return self._user.display_name
+    display_name= property(_get_display_name)
 
     def _get_anonymous(self):
-        return not self.user
+        return not self._user
     anonymous= property(_get_anonymous)
 
     def _get_permissions(self):
