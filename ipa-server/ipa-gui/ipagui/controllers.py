@@ -18,12 +18,15 @@ import ipa.ipaclient
 import ipa.user
 import xmlrpclib
 import forms.user
+import forms.group
 from helpers import userhelper
 from ipa import ipaerror
 
 ipa.config.init_config()
 user_new_form = forms.user.UserNewForm()
 user_edit_form = forms.user.UserEditForm()
+group_new_form = forms.group.GroupNewForm()
+group_edit_form = forms.group.GroupEditForm()
 
 password_chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
@@ -283,10 +286,12 @@ class Root(controllers.RootController):
         return ""
 
     @expose()
+    @identity.require(identity.not_anonymous())
     def suggest_email(self, givenname, sn):
         if (len(givenname) == 0) or (len(sn) == 0):
             return ""
 
+        client.set_principal(identity.current.user_name)
         givenname = givenname.lower()
         sn = sn.lower()
 
@@ -331,13 +336,55 @@ class Root(controllers.RootController):
         client.set_principal(identity.current.user_name)
         return dict()
 
-
-    ############
-    # Resource #
-    ############
-
-    @expose("ipagui.templates.resindex")
+    @expose("ipagui.templates.groupnew")
     @identity.require(identity.not_anonymous())
-    def resindex(self, tg_errors=None):
+    def groupnew(self, tg_errors=None):
+        """Displays the new group form"""
+        if tg_errors:
+            turbogears.flash("There was a problem with the form!")
+
         client.set_principal(identity.current.user_name)
-        return dict()
+
+        return dict(form=group_new_form)
+
+    @expose()
+    @identity.require(identity.not_anonymous())
+    def groupcreate(self, **kw):
+        """Creates a new group"""
+        restrict_post()
+        client.set_principal(identity.current.user_name)
+
+        if kw.get('submit') == 'Cancel':
+            turbogears.flash("Add group cancelled")
+            raise turbogears.redirect('/')
+
+        tg_errors, kw = self.groupcreatevalidate(**kw)
+        if tg_errors:
+            return dict(form=group_new_form, tg_template='ipagui.templates.groupnew')
+
+        try:
+            new_group = ipa.group.Group()
+            new_group.setValue('cn', kw.get('cn'))
+            new_group.setValue('description', kw.get('description'))
+
+            rv = client.add_group(new_group)
+            turbogears.flash("%s added!" % kw.get('cn'))
+            # raise turbogears.redirect('/groupedit', cn=kw['cn'])
+            raise turbogears.redirect('/')
+        except ipaerror.exception_for(ipaerror.LDAP_DUPLICATE):
+            turbogears.flash("Group with name '%s' already exists" %
+                    kw.get('cn'))
+            return dict(form=group_new_form, tg_template='ipagui.templates.groupnew')
+        except ipaerror.IPAError, e:
+            turbogears.flash("Group add failed: " + str(e) + "<br/>" + str(e.detail))
+            return dict(form=group_new_form, tg_template='ipagui.templates.groupnew')
+
+    @validate(form=group_new_form)
+    @identity.require(identity.not_anonymous())
+    def groupcreatevalidate(self, tg_errors=None, **kw):
+        return tg_errors, kw
+
+    @validate(form=group_edit_form)
+    @identity.require(identity.not_anonymous())
+    def groupupdatevalidate(self, tg_errors=None, **kw):
+        return tg_errors, kw

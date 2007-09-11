@@ -65,6 +65,8 @@ class UserEditValidator(validators.Schema):
     givenname = validators.String(not_empty=True)
     sn = validators.String(not_empty=True)
     mail = validators.Email(not_empty=True)
+    uidnumber = validators.Int(not_empty=False)
+    gidnumber = validators.Int(not_empty=False)
     #  validators.PhoneNumber may be a bit too picky, requiring an area code
     # telephonenumber = validators.PlainText(not_empty=False)
 
