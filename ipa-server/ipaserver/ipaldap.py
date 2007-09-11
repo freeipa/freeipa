@@ -469,6 +469,24 @@ class IPAdmin(SimpleLDAPObject):
             raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
         return "Success"
 
+    def modifyPassword(self,dn,oldpass,newpass):
+        """Set the user password using RFC 3062, LDAP Password Modify Extended
+           Operation. This ends up calling the IPA password slapi plugin 
+           handler so the Kerberos password gets set properly.
+
+           oldpass is not mandatory
+        """
+
+        sctrl = self.__get_server_controls__()
+
+        try:
+            if sctrl is not None:
+                self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
+            self.passwd_s(dn, oldpass, newpass)
+        except ldap.LDAPError, e:
+            raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
+        return "Success"
+
     def __wrapmethods(self):
         """This wraps all methods of SimpleLDAPObject, so that we can intercept
         the methods that deal with entries.  Instead of using a raw list of tuples

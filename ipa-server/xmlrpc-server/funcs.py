@@ -524,6 +524,24 @@ class IPAServer:
             self.releaseConnection(conn)
         return res
 
+    def modifyPassword (self, uid, oldpass, newpass, opts=None):
+        """Set/Reset a user's password
+
+           uid tells us who's password to change
+           oldpass is the old password (if available)
+           newpass is the new password
+        """
+        user_dn = self.get_user_by_uid(uid, ['dn', 'uid', 'objectclass'], opts)
+        if user_dn is None:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+
+        conn = self.getConnection(opts)
+        try:
+            res = conn.modifyPassword(user_dn['dn'], oldpass, newpass)
+        finally:
+            self.releaseConnection(conn)
+        return res
+
 # Group support
 
     def __is_group_unique(self, cn, opts):

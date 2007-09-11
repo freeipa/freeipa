@@ -65,8 +65,6 @@ class IPAClient:
     def add_user(self,user,user_container=None):
         """Add a user. user is a ipa.user.User object"""
 
-        realm = config.config.get_realm()
-
         user_dict = user.toDict()
 
         # dn is set on the server-side
@@ -110,23 +108,24 @@ class IPAClient:
     def update_user(self,user):
         """Update a user entry."""
 
-        realm = config.config.get_realm()
-
         result = self.transport.update_user(user.origDataDict(), user.toDict())
         return result
 
     def delete_user(self,uid):
         """Delete a user entry."""
 
-        realm = config.config.get_realm()
-
         result = self.transport.delete_user(uid)
+        return result
+
+    def modifyPassword(self,uid,oldpass,newpass):
+        """Modify a user's password"""
+
+        result = self.transport.modifyPassword(uid,oldpass,newpass)
+
         return result
 
     def mark_user_deleted(self,uid):
         """Set a user as inactive by uid."""
-
-        realm = config.config.get_realm()
 
         result = self.transport.mark_user_deleted(uid)
         return result
@@ -149,8 +148,6 @@ class IPAClient:
 
     def add_group(self,group,group_container=None):
         """Add a group. group is a ipa.group.Group object"""
-
-        realm = config.config.get_realm()
 
         group_dict = group.toDict()
 

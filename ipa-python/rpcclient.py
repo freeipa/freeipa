@@ -195,6 +195,22 @@ class RPCClient:
 
         return result
 
+    def modifyPassword(self,uid,oldpass,newpass):
+        """Modify a user's password"""
+        server = self.setup_server()
+
+        if oldpass is None:
+            oldpass = "__NONE__"
+    
+        try:
+            result = server.modifyPassword(uid,oldpass,newpass)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return result
+
     def mark_user_deleted(self,uid):
         """Mark a user as deleted/inactive"""
         server = self.setup_server()
