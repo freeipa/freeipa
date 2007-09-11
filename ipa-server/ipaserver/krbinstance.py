@@ -108,7 +108,7 @@ class KrbInstance:
         hexpwd = ''
 	for x in self.kdc_password:
             hexpwd += (hex(ord(x))[2:])
-        pwd_fd = open("/var/kerberos/krb5kdc/ldappwd", "a+")
+        pwd_fd = open("/var/kerberos/krb5kdc/ldappwd", "w")
         pwd_fd.write("uid=kdc,cn=sysaccounts,cn=etc,"+self.suffix+"#{HEX}"+hexpwd+"\n")
         pwd_fd.close()
 
