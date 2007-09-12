@@ -32,6 +32,7 @@ sys.path.append("/usr/share/ipa")
 import socket
 import logging
 import pwd
+import getpass
 from optparse import OptionParser
 import ipaserver.dsinstance
 import ipaserver.krbinstance
@@ -199,7 +200,7 @@ def main():
         print "This account has full access to the Directory and is used for system management tasks."
         print ""
         #TODO: provide the option of generating a random password
-        dm_password = raw_input("Please provide a password for the Directory Manager: ")
+        dm_password = getpass.getpass("Please provide a password for the Directory Manager: ")
         print ""
     else:
         dm_password = options.dm_password
@@ -212,7 +213,7 @@ def main():
         print "If the master password gets lost all kerberos related secrets will be lost."
         print ""
         #TODO: provide the option of generating a random password
-        master_password = raw_input("Please provide a master password: ")
+        master_password = getpass.getpass("Please provide a master password: ")
         print ""
     else:
         master_password = options.master_password
@@ -222,7 +223,7 @@ def main():
         print "This account is the one that will be used for normal administration and is also a regular unix user"
         print ""
         #TODO: provide the option of generating a random password
-        admin_password = raw_input("Please provide a kerberos password for the 'admin' user: ")
+        admin_password = getpass.getpass("Please provide a kerberos password for the 'admin' user: ")
         print ""
     else:
         admin_password = options.admin_password
