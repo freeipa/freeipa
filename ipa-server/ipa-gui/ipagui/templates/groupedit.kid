@@ -3,11 +3,19 @@
     py:extends="'grouplayout.kid'">
 <head>
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
-    <title>Add Group</title>
+    <title>Edit Group</title>
 </head>
 <body>
-    <h2>Add Group</h2>
+  <div>
+    <div style="float:right">
+      <input type="checkbox"
+          onclick="toggleProtectedFields(this);">
+        <span class="small">edit protected fields</span>
+      </input>
+    </div>
+    <h2>Edit Group</h2>
+  </div>
 
-    ${form.display(action="groupcreate")}
+  ${form.display(action="groupupdate", value=group)}
 </body>
 </html>

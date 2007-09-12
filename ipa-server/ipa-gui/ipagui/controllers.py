@@ -34,6 +34,8 @@ client = ipa.ipaclient.IPAClient(True)
 
 user_fields = ['*', 'nsAccountLock']
 
+group_fields = ['*']
+
 def restrict_post():
     if cherrypy.request.method != "POST":
         turbogears.flash("This method only accepts posts")
@@ -58,7 +60,7 @@ class Root(controllers.RootController):
         if kw.get('searchtype') == "Users":
             return self.userlist(uid=kw.get('searchvalue'))
         else:
-            return self.index()
+            return self.grouplist(criteria=kw.get('searchvalue'))
 
 
 
@@ -160,9 +162,9 @@ class Root(controllers.RootController):
             if kw.get('userpassword'):
                 new_user.setValue('userpassword', kw.get('userpassword'))
             if kw.get('uidnumber'):
-                new_user.setValue('uidnumber', kw.get('uidnumber'))
+                new_user.setValue('uidnumber', str(kw.get('uidnumber')))
             if kw.get('gidnumber'):
-                new_user.setValue('gidnumber', kw.get('gidnumber'))
+                new_user.setValue('gidnumber', str(kw.get('gidnumber')))
 
             #
             # this is a hack until we decide on the policy for names/cn/sn/givenName
@@ -183,7 +185,7 @@ class Root(controllers.RootController):
     @expose("ipagui.templates.userlist")
     @identity.require(identity.not_anonymous())
     def userlist(self, **kw):
-        """Retrieve a list of all users and display them in one huge list"""
+        """Searches for users and displays list of results"""
         client.set_principal(identity.current.user_name)
         users = None
         counter = 0
@@ -378,6 +380,88 @@ class Root(controllers.RootController):
         except ipaerror.IPAError, e:
             turbogears.flash("Group add failed: " + str(e) + "<br/>" + str(e.detail))
             return dict(form=group_new_form, tg_template='ipagui.templates.groupnew')
+
+
+    @expose("ipagui.templates.groupedit")
+    @identity.require(identity.not_anonymous())
+    def groupedit(self, cn, tg_errors=None):
+        """Displays the edit group form"""
+        if tg_errors:
+            turbogears.flash("There was a problem with the form!")
+
+        client.set_principal(identity.current.user_name)
+        group = client.get_group_by_cn(cn, group_fields)
+        group_dict = group.toDict()
+
+        # store a copy of the original group for the update later
+        group_data = b64encode(dumps(group_dict))
+        group_dict['group_orig'] = group_data
+        return dict(form=group_edit_form, group=group_dict)
+
+    @expose()
+    @identity.require(identity.not_anonymous())
+    def groupupdate(self, **kw):
+        """Updates an existing group"""
+        restrict_post()
+        client.set_principal(identity.current.user_name)
+        if kw.get('submit') == 'Cancel Edit':
+            turbogears.flash("Edit group cancelled")
+            raise turbogears.redirect('/groupshow', cn=kw.get('cn'))
+
+        tg_errors, kw = self.groupupdatevalidate(**kw)
+        if tg_errors:
+            return dict(form=group_edit_form, group=kw,
+                        tg_template='ipagui.templates.groupedit')
+
+        try:
+            orig_group_dict = loads(b64decode(kw.get('group_orig')))
+
+            new_group = ipa.group.Group(orig_group_dict)
+            new_group.setValue('description', kw.get('description'))
+            if kw.get('gidnumber'):
+                new_group.setValue('gidnumber', str(kw.get('gidnumber')))
+
+            rv = client.update_group(new_group)
+            turbogears.flash("%s updated!" % kw['cn'])
+            raise turbogears.redirect('/groupshow', cn=kw['cn'])
+        except ipaerror.IPAError, e:
+            turbogears.flash("User update failed: " + str(e))
+            return dict(form=group_edit_form, group=kw,
+                        tg_template='ipagui.templates.groupedit')
+
+    @expose("ipagui.templates.grouplist")
+    @identity.require(identity.not_anonymous())
+    def grouplist(self, **kw):
+        """Search for groups and display results"""
+        client.set_principal(identity.current.user_name)
+        groups = None
+        # counter = 0
+        criteria = kw.get('criteria')
+        if criteria != None and len(criteria) > 0:
+            try:
+                groups = client.find_groups(criteria.encode('utf-8'))
+                # counter = groups[0]
+                # groups = groups[1:]
+                # if counter == -1:
+                #     turbogears.flash("These results are truncated.<br />" +
+                #                     "Please refine your search and try again.")
+            except ipaerror.IPAError, e:
+                turbogears.flash("Find groups failed: " + str(e))
+                raise turbogears.redirect("/grouplist")
+
+        return dict(groups=groups, criteria=criteria, fields=forms.group.GroupFields())
+
+    @expose("ipagui.templates.groupshow")
+    @identity.require(identity.not_anonymous())
+    def groupshow(self, cn):
+        """Retrieve a single group for display"""
+        client.set_principal(identity.current.user_name)
+        try:
+            group = client.get_group_by_cn(cn, group_fields)
+            return dict(group=group.toDict(), fields=forms.group.GroupFields())
+        except ipaerror.IPAError, e:
+            turbogears.flash("Group show failed: " + str(e))
+            raise turbogears.redirect("/")
 
     @validate(form=group_new_form)
     @identity.require(identity.not_anonymous())

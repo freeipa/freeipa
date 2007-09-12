@@ -32,13 +32,15 @@ class GroupNewForm(widgets.Form):
 
 
 class GroupEditValidator(validators.Schema):
-    gidnumber = widgets.TextField(name="gidnumber", label="GID")
-    description = widgets.TextField(name="description", label="Description")
+    gidnumber = validators.Int(not_empty=False)
+    description = validators.String(not_empty=False)
 
 class GroupEditForm(widgets.Form):
     params = ['group']
 
-    fields = [GroupFields.gidnumber, GroupFields.description]
+    fields = [GroupFields.gidnumber, GroupFields.description,
+              GroupFields.cn_hidden,
+              GroupFields.group_orig]
 
     validator = GroupEditValidator()
 
