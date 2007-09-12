@@ -200,7 +200,15 @@ def main():
         print "This account has full access to the Directory and is used for system management tasks."
         print ""
         #TODO: provide the option of generating a random password
-        dm_password = getpass.getpass("Please provide a password for the Directory Manager: ")
+        correct = False
+        while not correct:
+            dm_password = getpass.getpass("Please provide a password for the Directory Manager: ")
+            pwd_confirm = getpass.getpass("Please confirm the password: ")
+            if dm_password != pwd_confirm:
+                print "Password mismatch!"
+                print ""
+            else:
+                correct = True
         print ""
     else:
         dm_password = options.dm_password
@@ -213,7 +221,15 @@ def main():
         print "If the master password gets lost all kerberos related secrets will be lost."
         print ""
         #TODO: provide the option of generating a random password
-        master_password = getpass.getpass("Please provide a master password: ")
+        correct = False
+        while not correct:
+            master_password = getpass.getpass("Please provide a master password: ")
+            pwd_confirm = getpass.getpass("Please confirm the password: ")
+            if master_password != pwd_confirm:
+                print "Password mismatch!"
+                print ""
+            else:
+                correct = True
         print ""
     else:
         master_password = options.master_password
@@ -223,7 +239,15 @@ def main():
         print "This account is the one that will be used for normal administration and is also a regular unix user"
         print ""
         #TODO: provide the option of generating a random password
-        admin_password = getpass.getpass("Please provide a kerberos password for the 'admin' user: ")
+        correct = False
+        while not correct:
+            admin_password = getpass.getpass("Please provide a kerberos password for the 'admin' user: ")
+            pwd_confirm = getpass.getpass("Please confirm the password: ")
+            if admin_password != pwd_confirm:
+                print "Password mismatch!"
+                print ""
+            else:
+                correct = True
         print ""
     else:
         admin_password = options.admin_password
