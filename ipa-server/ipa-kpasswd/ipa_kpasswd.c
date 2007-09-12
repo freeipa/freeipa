@@ -842,7 +842,15 @@ pid_t handle_conn(int fd, int type)
 #endif
 
 	/* children */
-	handle_krb_packets(request, reqlen, &from, &reply, &replen);
+
+	/* TCP packets prepend the lenght as a 32bit network order field,
+	 * this information seem to be just redundant, so let's simply
+	 * skip it */
+        if (type == KPASSWD_TCP) {
+		handle_krb_packets(request+4, reqlen-4, &from, &reply, &replen);
+	} else {
+		handle_krb_packets(request, reqlen, &from, &reply, &replen);
+	}
 
 	if (replen) { /* we have something to reply */
 		if (type == KPASSWD_TCP) {

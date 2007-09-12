@@ -1,6 +1,6 @@
 Name:           freeipa-client
-Version:        0.2.0
-Release:        2%{?dist}
+Version:        0.3.0
+Release:        1%{?dist}
 Summary:        FreeIPA client
 
 Group:          System Environment/Base
