@@ -172,26 +172,20 @@ def main():
         print "Usually the domain name all in uppercase is used as realm name."
         print ""
         upper_dom = (host_name[host_name.find(".")+1:]).upper()
-        dom_realm = raw_input("Do you want to use ["+upper_dom+"] as the realm name ? [y/N] ")
+        realm_name = raw_input("Please provide a realm name ["+upper_dom+"]: ")
         print ""
-        if dom_realm.lower() == "y":
+        if realm_name == "":
             realm_name = upper_dom
         else:
-            realm_name = raw_input("Please provide a realm name: ")
-            print ""
-            if realm_name == "":
-                return "-Aborted-"
             upper_dom = realm_name.upper()
-            if upper_dom != realm_name:
-                print "It is strongly adviced to use a completely uppercased name for the realm."
-                dom_realm = raw_input("Do you want to use "+upper_dom+" as realm name ? [Y/n] ")
-                print ""
-                if dom_realm.lower() != "y":
-                    print "WARNING: Using a non upper-cased realm name may cause unexpected problems."
-                else:
-                    realm_name = upper_dom
-        if realm_name == "":
-             print "-Aborted-"
+        if upper_dom != realm_name:
+            print "It is strongly adviced to use a completely uppercased name for the realm."
+            dom_realm = raw_input("Do you want to use "+upper_dom+" as realm name ? [Y/n] ")
+            print ""
+            if dom_realm.lower() != "y":
+                print "WARNING: Using a non upper-cased realm name may cause unexpected problems."
+            else:
+                realm_name = upper_dom
     else:
         realm_name = options.realm_name
 
