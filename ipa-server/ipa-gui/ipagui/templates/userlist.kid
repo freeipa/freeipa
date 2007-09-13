@@ -6,6 +6,7 @@
 <title>Find People</title>
 </head>
 <body>
+    <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/tablekit.js')}"></script>
     <div id="search">
         <form action="${tg.url('/userlist')}" method="post">
             <input id="uid" type="text" name="uid" value="${uid}" />
@@ -17,10 +18,11 @@
     </div>
     <div py:if='(users != None) and (len(users) > 0)'>
         <h2>${len(users)} results returned:</h2>
-        <table id="resultstable">
+        <table id="resultstable" class="sortable resizable">
+          <thead>
             <tr>
                 <th>
-                    <label class="fieldlabel" py:content="fields.uid.label" />
+                    ${fields.uid.label}
                 </th>
                 <th>
                     Name
@@ -38,6 +40,8 @@
                     License Plate
                 </th>
             </tr>
+          </thead>
+          <tbody>
             <tr py:for="user in users">
                 <td>
                     <a href="${tg.url('/usershow',uid=user.uid)}">${user.uid}</a>
@@ -58,6 +62,7 @@
                     ${user.carLicense}
                 </td>
             </tr>
+          </tbody>
         </table>
     </div>
     <div py:if='(users != None) and (len(users) == 0)'>
