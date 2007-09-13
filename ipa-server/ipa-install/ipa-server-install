@@ -86,12 +86,6 @@ def logging_setup(options):
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
-def setup_hosts(host, ip):
-    print ""
-    print "TODO"
-    print ""
-    print ""
-
 def main():
     options = parse_options()
     logging_setup(options)
@@ -123,21 +117,8 @@ def main():
         print "hostname resolves to the ip address of your network interface."
         print "The KDC service does not listen on 127.0.0.1"
         print ""
-        if not options.unattended:
-            change_hosts = raw_input("Do you want to change the /etc/hosts file ? [y/N] ")
-            print ""
-            if change_hosts.lower() == "y":
-                ip = raw_input("What is the netowrk IP address used by this server ? ")
-                print ""
-                if (ip.find(".") == -1):
-                    print "["+ip+"] is an invalid IP address"
-                    return "-Fatal Error-"
-                setup_hosts(host_name, ip)
-            else:
-                print "Please fix your /etc/hosts file and restart the setup program"
-                print "-Aborted-"
-        else:
-            return "-Fatal Error-"
+        print "Please fix your /etc/hosts file and restart the setup program"
+        return "-Fatal Error-"
      
     print "The Final KDC Host Name will be: " + host_name + ". With IP address: " + ip
     print ""
