@@ -49,7 +49,7 @@ class IPAConnPool:
     def __init__(self):
         self.freelist = []
 
-    def getConn(self, host, port, bindca, bindcert, bindkey, proxydn=None, keytab=None):
+    def getConn(self, host, port, bindca, bindcert, bindkey, proxydn=None, krbccache=None):
         conn = None
         if len(self.freelist) > 0:
             for i in range(len(self.freelist)):
@@ -62,12 +62,12 @@ class IPAConnPool:
         if proxydn is not None:
             conn.set_proxydn(proxydn)
         else:
-            conn.set_keytab(keytab)
+            conn.set_krbccache(krbccache)
         return conn
 
     def releaseConn(self, conn):
         # We can't re-use SASL connections. If proxydn is None it means
-        # we have a keytab set. See ipaldap.set_keytab
+        # we have a Kerberos credentails cache set. See ipaldap.set_krbccache
         if conn.proxydn is None:
             conn.unbind_s()
         else:
@@ -91,13 +91,13 @@ class IPAServer:
         self.basedn = ipa.ipautil.realm_to_suffix(ipa.config.config.get_realm())
         self.scope = ldap.SCOPE_SUBTREE
         self.princ = None
-        self.keytab = None
+        self.krbccache = None
 
     def set_principal(self, princ):
         self.princ = princ
 
-    def set_keytab(self, keytab):
-        self.keytab = keytab
+    def set_krbccache(self, krbccache):
+        self.krbccache = krbccache
     
     def get_dn_from_principal(self, princ):
         """Given a kerberos principal get the LDAP uid"""
@@ -115,43 +115,45 @@ class IPAServer:
 
     def __setup_connection(self, opts):
         """Set up common things done in the connection.
-           If there is a keytab then return None as the proxy dn and the keytab
-           otherwise return the proxy dn and None as the keytab.
+           If there is a Kerberos credentials cache then return None as the
+           proxy dn and the ccache otherwise return the proxy dn and None as
+           the ccache.
 
            We only want one or the other used at one time and we prefer
-           the keytab. So if there is a keytab, return that and None for
-           proxy dn to make calling getConn() easier.
+           the Kerberos credentials cache. So if there is a ccache, return
+           that and None for proxy dn to make calling getConn() easier.
         """
 
         if opts:
-            if opts.get('keytab'):
-                self.set_keytab(opts['keytab'])
+            if opts.get('krbccache'):
+                self.set_krbccache(opts['krbccache'])
                 self.set_principal(None)
             else:
-                self.set_keytab(None)
+                self.set_krbccache(None)
                 self.set_principal(opts['remoteuser'])
         else:
-            self.set_keytab(None)
-            # The caller should have already set the principal
+            # The caller should have already set the principal or the
+            # krbccache. If not they'll get an authentication error later.
+            pass
 
         if self.princ is not None:
             return self.get_dn_from_principal(self.princ), None
         else:
-            return None, self.keytab
+            return None, self.krbccache
 
     def getConnection(self, opts):
         """Wrapper around IPAConnPool.getConn() so we don't have to pass
            around self.* every time a connection is needed.
 
-           For SASL connections (where we have a keytab) we can't set
+           For SASL connections (where we have a krbccache) we can't set
            the SSL variables for certificates. It confuses the ldap
            module.
         """
         global _LDAPPool
 
-        (proxy_dn, keytab) = self.__setup_connection(opts)
+        (proxy_dn, krbccache) = self.__setup_connection(opts)
 
-        if keytab is not None:
+        if krbccache is not None:
             bindca = None
             bindcert = None
             bindkey = None
@@ -162,7 +164,7 @@ class IPAServer:
             bindkey = self.bindkey
             port = self.sslport
 
-        return _LDAPPool.getConn(self.host,port,bindca,bindcert,bindkey,proxy_dn,keytab)
+        return _LDAPPool.getConn(self.host,port,bindca,bindcert,bindkey,proxy_dn,krbccache)
 
     def releaseConnection(self, conn):
         global _LDAPPool

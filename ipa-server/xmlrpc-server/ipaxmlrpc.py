@@ -138,7 +138,7 @@ class ModXMLRPCRequestHandler(object):
         opts['remoteuser'] = req.user
 
         if req.subprocess_env.get("KRB5CCNAME") is not None:
-            opts['keytab'] = req.subprocess_env.get("KRB5CCNAME")
+            opts['krbccache'] = req.subprocess_env.get("KRB5CCNAME")
 
         # Tack onto the end of the passed-in arguments any options we also
         # need

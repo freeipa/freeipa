@@ -2,6 +2,7 @@ import random
 from pickle import dumps, loads
 from base64 import b64encode, b64decode
 
+import os
 import cherrypy
 import turbogears
 from turbogears import controllers, expose, flash
@@ -77,7 +78,7 @@ class Root(controllers.RootController):
     def usercreate(self, **kw):
         """Creates a new user"""
         restrict_post()
-        client.set_principal(identity.current.user_name)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
         if kw.get('submit') == 'Cancel':
             turbogears.flash("Add user cancelled")
             raise turbogears.redirect('/userlist')
@@ -115,7 +116,7 @@ class Root(controllers.RootController):
         if tg_errors:
             turbogears.flash("There was a problem with the form!")
 
-        client.set_principal(identity.current.user_name)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
         user = client.get_user_by_uid(uid, user_fields)
         user_dict = user.toDict()
         # Edit shouldn't fill in the password field.
@@ -132,7 +133,7 @@ class Root(controllers.RootController):
     def userupdate(self, **kw):
         """Updates an existing user"""
         restrict_post()
-        client.set_principal(identity.current.user_name)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
         if kw.get('submit') == 'Cancel Edit':
             turbogears.flash("Edit user cancelled")
             raise turbogears.redirect('/usershow', uid=kw.get('uid'))
@@ -181,7 +182,7 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     def userlist(self, **kw):
         """Retrieve a list of all users and display them in one huge list"""
-        client.set_principal(identity.current.user_name)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
         users = None
         counter = 0
         uid = kw.get('uid')
@@ -204,7 +205,7 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     def usershow(self, uid):
         """Retrieve a single user for display"""
-        client.set_principal(identity.current.user_name)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
         try:
             user = client.get_user_by_uid(uid, user_fields)
             return dict(user=user.toDict(), fields=forms.user.UserFields())
@@ -242,7 +243,7 @@ class Root(controllers.RootController):
         if (len(givenname) == 0) or (len(sn) == 0):
             return ""
 
-        client.set_principal(identity.current.user_name)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
         givenname = givenname.lower()
         sn = sn.lower()
 
@@ -328,7 +329,7 @@ class Root(controllers.RootController):
     @expose("ipagui.templates.groupindex")
     @identity.require(identity.not_anonymous())
     def groupindex(self, tg_errors=None):
-        client.set_principal(identity.current.user_name)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
         return dict()
 
 
@@ -339,5 +340,5 @@ class Root(controllers.RootController):
     @expose("ipagui.templates.resindex")
     @identity.require(identity.not_anonymous())
     def resindex(self, tg_errors=None):
-        client.set_principal(identity.current.user_name)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
         return dict()

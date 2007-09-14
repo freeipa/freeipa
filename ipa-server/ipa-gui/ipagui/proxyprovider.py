@@ -1,6 +1,7 @@
 from turbogears.identity.soprovider import *
 from turbogears.identity.visitor import *
 import logging
+import os
 
 log = logging.getLogger("turbogears.identity")
 
@@ -97,8 +98,10 @@ class ProxyIdentityProvider(SqlObjectIdentityProvider):
 
     def load_identity(self, visit_key):
         try:
-#            user_name= cherrypy.request.headers['X-FORWARDED-USER']
-             user_name= "test@FREEIPA.ORG"
+            user_name= cherrypy.request.headers['X-FORWARDED-USER']
+            os.environ["KRB5CCNAME"] = cherrypy.request.headers['X-FORWARDED-KEYTAB']
+#             user_name = "test@FREEIPA.ORG"
+#             os.environ["KRB5CCNAME"] = "FILE:/tmp/krb5cc_500"
         except KeyError:
             return None
         set_login_attempted( True )

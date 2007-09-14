@@ -264,9 +264,9 @@ class IPAdmin(SimpleLDAPObject):
     def set_proxydn(self, proxydn):
         self.proxydn = proxydn
 
-    def set_keytab(self, keytab):
-        if keytab is not None:
-            os.environ["KRB5CCNAME"] = keytab
+    def set_krbccache(self, krbccache):
+        if krbccache is not None:
+            os.environ["KRB5CCNAME"] = krbccache
             self.sasl_interactive_bind_s("", sasl_auth)
         self.proxydn = None
 

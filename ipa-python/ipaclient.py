@@ -47,6 +47,12 @@ class IPAClient:
         if self.local:
             self.transport.set_principal(princ)
 
+    def set_krbccache(self,krbccache):
+        """Set the file location of the Kerberos credentials cache to be used
+           for LDAP authentication"""
+        if self.local:
+            self.transport.set_krbccache(krbccache)
+
 # User support
     def get_user_by_uid(self,uid,sattrs=None):
         """Get a specific user by uid. If sattrs is set then only those
