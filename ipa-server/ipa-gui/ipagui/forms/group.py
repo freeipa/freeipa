@@ -9,6 +9,7 @@ class GroupFields():
     cn_hidden = widgets.HiddenField(name="cn")
 
     group_orig = widgets.HiddenField(name="group_orig")
+    member_data = widgets.HiddenField(name="member_data")
 
 class GroupNewValidator(validators.Schema):
     cn = validators.PlainText(not_empty=True)
@@ -36,11 +37,11 @@ class GroupEditValidator(validators.Schema):
     description = validators.String(not_empty=False)
 
 class GroupEditForm(widgets.Form):
-    params = ['group']
+    params = ['members', 'group']
 
     fields = [GroupFields.gidnumber, GroupFields.description,
               GroupFields.cn_hidden,
-              GroupFields.group_orig]
+              GroupFields.group_orig, GroupFields.member_data]
 
     validator = GroupEditValidator()
 

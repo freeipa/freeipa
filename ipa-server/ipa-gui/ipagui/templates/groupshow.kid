@@ -32,6 +32,18 @@
         </tr>
     </table>
 
+    <div class="formsection">Group Members</div>
+    <div py:for="member in members">
+      <?python
+      member_name = "%s %s" % (member.get('givenname', ''),
+                               member.get('sn', ''))
+      ?>
+      ${member_name} (${member.get('uid')})
+    </div>
+
+    <br/>
+    <br/>
+
     <a href="${tg.url('/groupedit', cn=group.get('cn'))}">edit</a>
 
 </body>

@@ -120,17 +120,21 @@ class Root(controllers.RootController):
         if tg_errors:
             turbogears.flash("There was a problem with the form!")
 
-        client.set_principal(identity.current.user_name)
-        user = client.get_user_by_uid(uid, user_fields)
-        user_dict = user.toDict()
-        # Edit shouldn't fill in the password field.
-        if user_dict.has_key('userpassword'):
-            del(user_dict['userpassword'])
+        try:
+            client.set_principal(identity.current.user_name)
+            user = client.get_user_by_uid(uid, user_fields)
+            user_dict = user.toDict()
+            # Edit shouldn't fill in the password field.
+            if user_dict.has_key('userpassword'):
+                del(user_dict['userpassword'])
 
-        # store a copy of the original user for the update later
-        user_data = b64encode(dumps(user_dict))
-        user_dict['user_orig'] = user_data
-        return dict(form=user_edit_form, user=user_dict)
+            # store a copy of the original user for the update later
+            user_data = b64encode(dumps(user_dict))
+            user_dict['user_orig'] = user_data
+            return dict(form=user_edit_form, user=user_dict)
+        except ipaerror.IPAError, e:
+            turbogears.flash("User edit failed: " + str(e))
+            raise turbogears.redirect('/usershow', uid=kw.get('uid'))
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -201,6 +205,24 @@ class Root(controllers.RootController):
             except ipaerror.IPAError, e:
                 turbogears.flash("User list failed: " + str(e))
                 raise turbogears.redirect("/userlist")
+
+        return dict(users=users, uid=uid, fields=forms.user.UserFields())
+
+    @expose("ipagui.templates.userlistajax")
+    @identity.require(identity.not_anonymous())
+    def userlist_ajax(self, **kw):
+        """Searches for users and displays list of results in a table.
+           This method is used for ajax calls."""
+        client.set_principal(identity.current.user_name)
+        users = []
+        uid = kw.get('uid')
+        if uid != None and len(uid) > 0:
+            try:
+                users = client.find_users(uid.encode('utf-8'))
+                counter = users[0]
+                users = users[1:]
+            except ipaerror.IPAError, e:
+                turbogears.flash("User list failed: " + str(e))
 
         return dict(users=users, uid=uid, fields=forms.user.UserFields())
 
@@ -371,8 +393,7 @@ class Root(controllers.RootController):
 
             rv = client.add_group(new_group)
             turbogears.flash("%s added!" % kw.get('cn'))
-            # raise turbogears.redirect('/groupedit', cn=kw['cn'])
-            raise turbogears.redirect('/')
+            raise turbogears.redirect('/groupshow', cn=kw.get('cn'))
         except ipaerror.exception_for(ipaerror.LDAP_DUPLICATE):
             turbogears.flash("Group with name '%s' already exists" %
                     kw.get('cn'))
@@ -390,13 +411,43 @@ class Root(controllers.RootController):
             turbogears.flash("There was a problem with the form!")
 
         client.set_principal(identity.current.user_name)
-        group = client.get_group_by_cn(cn, group_fields)
-        group_dict = group.toDict()
+        try:
+            group = client.get_group_by_cn(cn, group_fields)
 
-        # store a copy of the original group for the update later
-        group_data = b64encode(dumps(group_dict))
-        group_dict['group_orig'] = group_data
-        return dict(form=group_edit_form, group=group_dict)
+            group_dict = group.toDict()
+
+            #
+            # convert members to users, for easier manipulation on the page
+            #
+            member_dns = []
+            if group_dict.has_key('uniquemember'):
+                member_dns = group_dict.get('uniquemember')
+                # remove from dict - it's not needed for update
+                # and we are storing the members in a different form
+                del group_dict['uniquemember']
+            if not(isinstance(member_dns,list) or isinstance(member_dns,tuple)):
+                member_dns = [member_dns]
+
+            # TODO: convert this into an efficient (single) function call
+            member_users = map(
+                    lambda dn: client.get_user_by_dn(dn, ['givenname', 'sn', 'uid']),
+                    member_dns)
+
+            # Map users into an array of dicts, which can be serialized
+            # (so we don't have to do this on each round trip)
+            member_dicts = map(lambda user: user.toDict(), member_users)
+
+            # store a copy of the original group for the update later
+            group_data = b64encode(dumps(group_dict))
+            member_data = b64encode(dumps(member_dicts))
+            group_dict['group_orig'] = group_data
+            group_dict['member_data'] = member_data
+
+            return dict(form=group_edit_form, group=group_dict, members=member_dicts)
+        except ipaerror.IPAError, e:
+            turbogears.flash("User show failed: " + str(e))
+            turbogears.flash("Group edit failed: " + str(e))
+            raise turbogears.redirect('/groupshow', uid=kw.get('cn'))
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -408,26 +459,83 @@ class Root(controllers.RootController):
             turbogears.flash("Edit group cancelled")
             raise turbogears.redirect('/groupshow', cn=kw.get('cn'))
 
+        # Decode the member data, in case we need to round trip
+        member_dicts = loads(b64decode(kw.get('member_data')))
+
+
         tg_errors, kw = self.groupupdatevalidate(**kw)
         if tg_errors:
-            return dict(form=group_edit_form, group=kw,
+            return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
 
+        group_modified = False
+
+        #
+        # Update group itself
+        #
         try:
             orig_group_dict = loads(b64decode(kw.get('group_orig')))
 
             new_group = ipa.group.Group(orig_group_dict)
-            new_group.setValue('description', kw.get('description'))
+            if new_group.description != kw.get('description'):
+                group_modified = True
+                new_group.setValue('description', kw.get('description'))
             if kw.get('gidnumber'):
+                group_modified = True
                 new_group.setValue('gidnumber', str(kw.get('gidnumber')))
 
-            rv = client.update_group(new_group)
-            turbogears.flash("%s updated!" % kw['cn'])
-            raise turbogears.redirect('/groupshow', cn=kw['cn'])
+            if group_modified:
+                rv = client.update_group(new_group)
+            #
+            # TODO - if the group update succeeds, but below operations fail,
+            # we needs to make sure a subsequent submit doesn't try to update
+            # the group again.  Probably by overwriting the group_orig hidden
+            # field blob.
+            #
         except ipaerror.IPAError, e:
             turbogears.flash("User update failed: " + str(e))
-            return dict(form=group_edit_form, group=kw,
+            return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
+
+        #
+        # Add members
+        #
+        try:
+            uidadds = kw.get('uidadd')
+            if uidadds != None:
+                if not(isinstance(uidadds,list) or isinstance(uidadds,tuple)):
+                    uidadds = [uidadds]
+                failed = client.add_users_to_group(uidadds, kw.get('cn'))
+                #
+                # TODO - deal with failed adds
+                #
+        except ipaerror.IPAError, e:
+            turbogears.flash("User update failed: " + str(e))
+            return dict(form=group_edit_form, group=kw, members=member_dicts,
+                        tg_template='ipagui.templates.groupedit')
+
+        #
+        # Remove members
+        #
+        try:
+            uiddels = kw.get('uiddel')
+            if uiddels != None:
+                if not(isinstance(uiddels,list) or isinstance(uiddels,tuple)):
+                    uiddels = [uiddels]
+                failed = client.remove_users_from_group(uiddels, kw.get('cn'))
+                #
+                # TODO - deal with failed removals
+                #
+        except ipaerror.IPAError, e:
+            turbogears.flash("User update failed: " + str(e))
+            return dict(form=group_edit_form, group=kw, members=member_dicts,
+                        tg_template='ipagui.templates.groupedit')
+
+        # TODO if not group_modified
+
+        turbogears.flash("%s updated!" % kw['cn'])
+        raise turbogears.redirect('/groupshow', cn=kw['cn'])
+
 
     @expose("ipagui.templates.grouplist")
     @identity.require(identity.not_anonymous())
@@ -458,7 +566,25 @@ class Root(controllers.RootController):
         client.set_principal(identity.current.user_name)
         try:
             group = client.get_group_by_cn(cn, group_fields)
-            return dict(group=group.toDict(), fields=forms.group.GroupFields())
+            group_dict = group.toDict()
+
+            #
+            # convert members to users, for display on the page
+            #
+            member_dns = []
+            if group_dict.has_key('uniquemember'):
+                member_dns = group_dict.get('uniquemember')
+            if not(isinstance(member_dns,list) or isinstance(member_dns,tuple)):
+                member_dns = [member_dns]
+
+            # TODO: convert this into an efficient (single) function call
+            member_users = map(
+                    lambda dn: client.get_user_by_dn(dn, ['givenname', 'sn', 'uid']),
+                    member_dns)
+            member_dicts = map(lambda user: user.toDict(), member_users)
+
+            return dict(group=group_dict, fields=forms.group.GroupFields(),
+                    members = member_dicts)
         except ipaerror.IPAError, e:
             turbogears.flash("Group show failed: " + str(e))
             raise turbogears.redirect("/")
