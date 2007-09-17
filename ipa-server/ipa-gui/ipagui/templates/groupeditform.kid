@@ -1,13 +1,18 @@
 <div xmlns:py="http://purl.org/kid/ns#"
   class="simpleroster">
-  <form action="${action}" name="${name}" method="${method}" class="tableform">
+  <form action="${action}" name="${name}" method="${method}" class="tableform"
+      onsubmit="preSubmit()" >
 
 
   <?python searchurl = tg.url('/userlist_ajax') ?>
 
   <script type="text/javascript">
+    // this is used for round-trip recontruction of the names.
+    // the hidden fields only contain uids.  
+    var uid_to_cn_hash = new Hash();
+
     function toggleProtectedFields(checkbox) {
-      gidnumberField = $('form_gidnumber');
+      var gidnumberField = $('form_gidnumber');
       if (checkbox.checked) {
         gidnumberField.disabled = false;
       } else {
@@ -23,11 +28,13 @@
     }
 
     function adduser(uid, cn) {
-      newdiv = document.createElement('div');
+      uid_to_cn_hash[uid] = cn;
+
+      var newdiv = document.createElement('div');
       newdiv.appendChild(document.createTextNode(
         cn.escapeHTML() + " (" + uid.escapeHTML() + ") "));
 
-      undolink = document.createElement('a');
+      var undolink = document.createElement('a');
       undolink.setAttribute('href', '');
       undolink.setAttribute('onclick',
         'new Effect.Fade(Element.up(this), {afterFinish: removeElement});' +
@@ -35,7 +42,7 @@
       undolink.appendChild(document.createTextNode("undo"));
       newdiv.appendChild(undolink);
 
-      uidInfo = document.createElement('input');
+      var uidInfo = document.createElement('input');
       uidInfo.setAttribute('type', 'hidden');
       uidInfo.setAttribute('name', 'uidadd');
       uidInfo.setAttribute('value', uid);
@@ -48,18 +55,20 @@
     }
 
     function adduserHandler(element, uid, cn) {
-      newdiv = adduser(uid, cn)
+      var newdiv = adduser(uid, cn)
       new Effect.Fade(Element.up(element));
       new Effect.Appear(newdiv);
       /* Element.up(element).remove(); */
     }
 
     function removeuser(uid, cn) {
-      newdiv = document.createElement('div');
+      uid_to_cn_hash[uid] = cn;
+
+      var newdiv = document.createElement('div');
       newdiv.appendChild(document.createTextNode(
         cn.escapeHTML() + " (" + uid.escapeHTML() + ") "));
 
-      undolink = document.createElement('a');
+      var undolink = document.createElement('a');
       undolink.setAttribute('href', '');
       undolink.setAttribute('onclick',
         'new Effect.Fade(Element.up(this), {afterFinish: removeElement});' +
@@ -68,7 +77,7 @@
       undolink.appendChild(document.createTextNode("undo"));
       newdiv.appendChild(undolink);
 
-      uidInfo = document.createElement('input');
+      var uidInfo = document.createElement('input');
       uidInfo.setAttribute('type', 'hidden');
       uidInfo.setAttribute('name', 'uiddel');
       uidInfo.setAttribute('value', uid);
@@ -81,7 +90,7 @@
     }
 
     function removeuserHandler(element, uid, cn) {
-      newdiv = removeuser(uid, cn);
+      var newdiv = removeuser(uid, cn);
       new Effect.Fade(Element.up(element));
       new Effect.Appear(newdiv);
       /* Element.up(element).remove(); */
@@ -108,6 +117,12 @@
           {  asynchronous:true,
              parameters: { uid: $('uid').value } });
       return false;
+    }
+
+    function preSubmit() {
+      var json = uid_to_cn_hash.toJSON();
+      $('form_uid_to_cn_json').value = json;
+      return true;
     }
   </script>
 
@@ -178,7 +193,7 @@
                                    member.get('sn', ''))
           ?>
           ${member_name}
-          <a href="" 
+          <a href="#" 
             onclick="removeuserHandler(this, '${member_uid}', '${member_name}');
                      return false;"
           >remove</a>
@@ -227,4 +242,40 @@
     </table>
 
   </form>
+
+  <script type="text/javascript">
+    /*
+     * This section restores the contents of the add and remove lists
+     * dynamically if we have to refresh the page
+     */
+    if ($('form_uid_to_cn_json').value != "") {
+      uid_to_cn_hash = new Hash($('form_uid_to_cn_json').value.evalJSON());
+    }
+  </script>
+
+  <?python
+  uidadds = value.get('uidadd', [])
+  if not(isinstance(uidadds,list) or isinstance(uidadds,tuple)):
+      uidadds = [uidadds]
+
+  uiddels = value.get('uiddel', [])
+  if not(isinstance(uiddels,list) or isinstance(uiddels,tuple)):
+      uiddels = [uiddels]
+  ?>
+
+  <script py:for="uidadd in uidadds">
+    var uid = "${uidadd}";
+    var cn = uid_to_cn_hash[uid];
+    var newdiv = adduser(uid, cn);
+    newdiv.style.display = 'block';
+  </script>
+
+  <script py:for="uiddel in uiddels">
+    var uid = "${uiddel}";
+    var cn = uid_to_cn_hash[uid];
+    var newdiv = removeuser(uid, cn);
+    newdiv.style.display = 'block';
+    $('member-' + uid).style.display = 'none';
+  </script>
+
 </div>

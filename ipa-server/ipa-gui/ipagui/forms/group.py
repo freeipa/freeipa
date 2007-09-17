@@ -10,6 +10,7 @@ class GroupFields():
 
     group_orig = widgets.HiddenField(name="group_orig")
     member_data = widgets.HiddenField(name="member_data")
+    uid_to_cn_json = widgets.HiddenField(name="uid_to_cn_json")
 
 class GroupNewValidator(validators.Schema):
     cn = validators.PlainText(not_empty=True)
@@ -41,7 +42,8 @@ class GroupEditForm(widgets.Form):
 
     fields = [GroupFields.gidnumber, GroupFields.description,
               GroupFields.cn_hidden,
-              GroupFields.group_orig, GroupFields.member_data]
+              GroupFields.group_orig, GroupFields.member_data,
+              GroupFields.uid_to_cn_json]
 
     validator = GroupEditValidator()
 
