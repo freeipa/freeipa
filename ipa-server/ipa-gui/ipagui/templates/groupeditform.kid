@@ -11,6 +11,15 @@
     // the hidden fields only contain uids.  
     var uid_to_cn_hash = new Hash();
 
+    // used to filter search results.
+    // records uids already in the group
+    var member_hash = new Hash();
+
+    // used to prevent double adding
+    // records uid to be added
+    var added_hash = new Hash();
+
+
     function toggleProtectedFields(checkbox) {
       var gidnumberField = $('form_gidnumber');
       if (checkbox.checked) {
@@ -30,6 +39,11 @@
     function adduser(uid, cn) {
       uid_to_cn_hash[uid] = cn;
 
+      if ((added_hash[uid] == 1) || (member_hash[uid] == 1)) {
+        return null;
+      }
+      added_hash[uid] = 1;
+
       var newdiv = document.createElement('div');
       newdiv.appendChild(document.createTextNode(
         cn.escapeHTML() + " (" + uid.escapeHTML() + ") "));
@@ -38,6 +52,7 @@
       undolink.setAttribute('href', '');
       undolink.setAttribute('onclick',
         'new Effect.Fade(Element.up(this), {afterFinish: removeElement});' +
+        'added_hash.remove("' + uid + '");' +
         'return false;');
       undolink.appendChild(document.createTextNode("undo"));
       newdiv.appendChild(undolink);
@@ -56,9 +71,11 @@
 
     function adduserHandler(element, uid, cn) {
       var newdiv = adduser(uid, cn)
-      new Effect.Fade(Element.up(element));
-      new Effect.Appear(newdiv);
-      /* Element.up(element).remove(); */
+      if (newdiv != null) {
+        new Effect.Fade(Element.up(element));
+        new Effect.Appear(newdiv);
+        /* Element.up(element).remove(); */
+      }
     }
 
     function removeuser(uid, cn) {
@@ -112,10 +129,12 @@
     }
 
     function doSearch() {
+      $('searchresults').update("Searching...");
       new Ajax.Updater('searchresults',
           '${searchurl}',
           {  asynchronous:true,
-             parameters: { uid: $('uid').value } });
+             parameters: { uid: $('uid').value },
+             evalScripts: true });
       return false;
     }
 
@@ -192,11 +211,14 @@
           member_name = "%s %s" % (member.get('givenname', ''),
                                    member.get('sn', ''))
           ?>
-          ${member_name}
+          ${member_name} (${member_uid})
           <a href="#" 
             onclick="removeuserHandler(this, '${member_uid}', '${member_name}');
                      return false;"
           >remove</a>
+          <script type="text/javascript">
+            member_hash["${member_uid}"] = 1;
+          </script>
         </div>
       </div>
 
@@ -267,7 +289,9 @@
     var uid = "${uidadd}";
     var cn = uid_to_cn_hash[uid];
     var newdiv = adduser(uid, cn);
-    newdiv.style.display = 'block';
+    if (newdiv != null) {
+      newdiv.style.display = 'block';
+    }
   </script>
 
   <script py:for="uiddel in uiddels">
