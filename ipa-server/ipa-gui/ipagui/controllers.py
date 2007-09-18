@@ -163,11 +163,10 @@ class Root(controllers.RootController):
                 new_user.setValue('nsAccountLock', 'true')
             else:
                 new_user.setValue('nsAccountLock', None)
-            if kw.get('userpassword'):
-                new_user.setValue('userpassword', kw.get('userpassword'))
-            if kw.get('uidnumber'):
+            if kw.get('editprotected') == 'true':
+                if kw.get('userpassword'):
+                    new_user.setValue('userpassword', kw.get('userpassword'))
                 new_user.setValue('uidnumber', str(kw.get('uidnumber')))
-            if kw.get('gidnumber'):
                 new_user.setValue('gidnumber', str(kw.get('gidnumber')))
 
             #
@@ -480,9 +479,11 @@ class Root(controllers.RootController):
             if new_group.description != kw.get('description'):
                 group_modified = True
                 new_group.setValue('description', kw.get('description'))
-            if kw.get('gidnumber'):
-                group_modified = True
-                new_group.setValue('gidnumber', str(kw.get('gidnumber')))
+            if kw.get('editprotected') == 'true':
+                new_gid = str(kw.get('gidnumber'))
+                if new_group.gidnumber != new_gid:
+                    group_modified = True
+                    new_group.setValue('gidnumber', new_gid)
 
             if group_modified:
                 rv = client.update_group(new_group)

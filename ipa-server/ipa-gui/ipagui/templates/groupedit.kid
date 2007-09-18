@@ -8,7 +8,7 @@
 <body>
   <div>
     <div style="float:right">
-      <input type="checkbox"
+      <input type="checkbox" id="toggleprotected_checkbox"
           onclick="toggleProtectedFields(this);">
         <span class="small">edit protected fields</span>
       </input>

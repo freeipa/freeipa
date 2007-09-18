@@ -24,8 +24,10 @@
       var gidnumberField = $('form_gidnumber');
       if (checkbox.checked) {
         gidnumberField.disabled = false;
+        $('form_editprotected').value = 'true';
       } else {
         gidnumberField.disabled = true;
+        $('form_editprotected').value = '';
       }
     }
 
@@ -272,6 +274,11 @@
      */
     if ($('form_uid_to_cn_json').value != "") {
       uid_to_cn_hash = new Hash($('form_uid_to_cn_json').value.evalJSON());
+    }
+
+    if ($('form_editprotected').value != "") {
+      $('toggleprotected_checkbox').checked = true;
+      toggleProtectedFields($('toggleprotected_checkbox'));
     }
   </script>
 
