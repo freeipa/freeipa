@@ -413,7 +413,7 @@ class IPAServer:
     
         return users
 
-    def find_users (self, criteria, sattrs=None, opts=None):
+    def find_users (self, criteria, sattrs=None, searchlimit=0, opts=None):
         """Returns a list: counter followed by the results.
            If the results are truncated, counter will be set to -1."""
         # Assume the list of fields to search will come from a central
@@ -435,13 +435,13 @@ class IPAServer:
         try:
             try:
                 exact_results = conn.getListAsync(self.basedn, self.scope,
-                        exact_match_filter, sattrs)
+                        exact_match_filter, sattrs, 0, None, None, -1, searchlimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 exact_results = [0]
 
             try:
                 partial_results = conn.getListAsync(self.basedn, self.scope,
-                        partial_match_filter, sattrs)
+                        partial_match_filter, sattrs, 0, None, None, -1, searchlimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 partial_results = [0]
         finally:

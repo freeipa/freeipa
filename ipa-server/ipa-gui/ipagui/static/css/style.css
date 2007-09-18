@@ -148,6 +148,16 @@ body {
   text-align: right;
 }
 
+.floatlist {
+  float: right;
+  width: 50%;
+}
+
+.floatheader {
+  color: #885555;
+  font-weight: bold;
+}
+
 .small {
   font-size: small;
 }

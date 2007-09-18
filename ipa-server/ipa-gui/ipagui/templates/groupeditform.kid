@@ -200,8 +200,8 @@
     <div>
       <div class="formsection">Group Members</div>
 
-      <div style="float:right; width:50%">
-        <div>To Remove:</div>
+      <div class="floatlist">
+        <div class="floatheader">To Remove:</div>
         <div id="delmembers">
         </div>
       </div>
@@ -229,8 +229,8 @@
     <div style="clear:both">
       <div class="formsection">Add Persons</div>
 
-      <div style="float:right; width:50%">
-        <div>To Add:</div>
+      <div class="floatlist">
+        <div class="floatheader">To Add:</div>
         <div id="newmembers">
         </div>
       </div>

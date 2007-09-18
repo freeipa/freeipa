@@ -23,11 +23,14 @@
     </div>
     <script type="text/javascript">
       if (results_counter == 0) {
-        $('search-results-count').appendChild(document.createTextNode(
-          "No results found for " + search_string));
+        var message = "No results found for " + search_string;
       } else {
-        $('search-results-count').appendChild(document.createTextNode(
-          "" + results_counter + " results found:"));
+        var message =  results_counter + " results found:";
       }
+      $('search-results-count').appendChild(document.createTextNode(message));
+    </script>
+    <script py:if="counter &lt; 0">
+      $('search-results-count').appendChild(document.createTextNode(
+        " (truncated)"));
     </script>
 </div>

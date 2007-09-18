@@ -93,11 +93,11 @@ class IPAClient:
         result = self.transport.get_add_schema()
         return result
 
-    def find_users(self, criteria, sattrs=None):
+    def find_users(self, criteria, sattrs=None, searchlimit=0):
         """Return a list: counter followed by a User object for each user that
            matches the criteria. If the results are truncated, counter will
            be set to -1"""
-        result = self.transport.find_users(criteria, sattrs)
+        result = self.transport.find_users(criteria, sattrs, searchlimit)
         counter = result[0]
 
         users = [counter]

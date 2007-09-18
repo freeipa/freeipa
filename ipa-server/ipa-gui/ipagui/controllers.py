@@ -214,16 +214,18 @@ class Root(controllers.RootController):
            This method is used for ajax calls."""
         client.set_principal(identity.current.user_name)
         users = []
+        searchlimit = 100
         uid = kw.get('uid')
         if uid != None and len(uid) > 0:
             try:
-                users = client.find_users(uid.encode('utf-8'))
+                users = client.find_users(uid.encode('utf-8'), None, searchlimit)
                 counter = users[0]
                 users = users[1:]
             except ipaerror.IPAError, e:
                 turbogears.flash("User list failed: " + str(e))
 
-        return dict(users=users, uid=uid, fields=forms.user.UserFields())
+        return dict(users=users, uid=uid, fields=forms.user.UserFields(),
+                counter=counter)
 
 
     @expose("ipagui.templates.usershow")
