@@ -151,6 +151,7 @@ class Root(controllers.RootController):
             return dict(form=user_edit_form, user=kw,
                         tg_template='ipagui.templates.useredit')
 
+        password_change = False
         try:
             orig_user_dict = loads(b64decode(kw.get('user_orig')))
 
@@ -165,7 +166,7 @@ class Root(controllers.RootController):
                 new_user.setValue('nsAccountLock', None)
             if kw.get('editprotected') == 'true':
                 if kw.get('userpassword'):
-                    new_user.setValue('userpassword', kw.get('userpassword'))
+                    password_change = True
                 new_user.setValue('uidnumber', str(kw.get('uidnumber')))
                 new_user.setValue('gidnumber', str(kw.get('gidnumber')))
 
@@ -177,12 +178,26 @@ class Root(controllers.RootController):
                                       new_user.getValue('sn')))
 
             rv = client.update_user(new_user)
-            turbogears.flash("%s updated!" % kw['uid'])
-            raise turbogears.redirect('/usershow', uid=kw['uid'])
+        except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST), e:
+            if not password_change:
+                turbogears.flash("User update failed: " + str(e))
+                return dict(form=user_edit_form, user=kw,
+                            tg_template='ipagui.templates.useredit')
         except ipaerror.IPAError, e:
             turbogears.flash("User update failed: " + str(e))
             return dict(form=user_edit_form, user=kw,
                         tg_template='ipagui.templates.useredit')
+
+        try:
+            if password_change:
+                rv = client.modifyPassword(kw['uid'], "", kw.get('userpassword'))
+        except ipaerror.IPAError, e:
+            turbogears.flash("User password change failed: " + str(e))
+            return dict(form=user_edit_form, user=kw,
+                        tg_template='ipagui.templates.useredit')
+
+        turbogears.flash("%s updated!" % kw['uid'])
+        raise turbogears.redirect('/usershow', uid=kw['uid'])
 
 
     @expose("ipagui.templates.userlist")
