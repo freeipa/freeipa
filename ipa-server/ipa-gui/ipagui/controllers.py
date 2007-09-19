@@ -551,11 +551,11 @@ class Root(controllers.RootController):
         if criteria != None and len(criteria) > 0:
             try:
                 groups = client.find_groups(criteria.encode('utf-8'))
-                # counter = groups[0]
-                # groups = groups[1:]
-                # if counter == -1:
-                #     turbogears.flash("These results are truncated.<br />" +
-                #                     "Please refine your search and try again.")
+                counter = groups[0]
+                groups = groups[1:]
+                if counter == -1:
+                    turbogears.flash("These results are truncated.<br />" +
+                                    "Please refine your search and try again.")
             except ipaerror.IPAError, e:
                 turbogears.flash("Find groups failed: " + str(e))
                 raise turbogears.redirect("/grouplist")

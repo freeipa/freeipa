@@ -161,13 +161,14 @@ class IPAClient:
         result = self.transport.add_group(group_dict, group_container)
         return result
 
-    def find_groups(self, criteria, sattrs=None):
+    def find_groups(self, criteria, sattrs=None, searchlimit=0):
         """Find groups whose cn matches the criteria. Wildcards are 
            acceptable. Returns a list of Group objects."""
-        result = self.transport.find_groups(criteria, sattrs)
+        result = self.transport.find_groups(criteria, sattrs, searchlimit)
+        counter = result[0]
 
-        groups = []
-        for attrs in result:
+        groups = [counter]
+        for attrs in result[1:]:
             if attrs is not None:
                 groups.append(group.Group(attrs))
 

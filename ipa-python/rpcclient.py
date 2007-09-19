@@ -259,7 +259,7 @@ class RPCClient:
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
 
-    def find_groups (self, criteria, sattrs=None):
+    def find_groups (self, criteria, sattrs=None, searchlimit=0):
         """Return a list containing a Group object for each group that matches
            the criteria."""
     
@@ -268,7 +268,7 @@ class RPCClient:
             # None values are not allowed in XML-RPC
             if sattrs is None:
                 sattrs = "__NONE__"
-            result = server.find_groups(criteria, sattrs)
+            result = server.find_groups(criteria, sattrs, searchlimit)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
