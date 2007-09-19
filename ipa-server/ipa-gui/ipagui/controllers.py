@@ -446,7 +446,6 @@ class Root(controllers.RootController):
 
             return dict(form=group_edit_form, group=group_dict, members=member_dicts)
         except ipaerror.IPAError, e:
-            turbogears.flash("User show failed: " + str(e))
             turbogears.flash("Group edit failed: " + str(e))
             raise turbogears.redirect('/groupshow', uid=kw.get('cn'))
 
@@ -489,12 +488,12 @@ class Root(controllers.RootController):
 
             if group_modified:
                 rv = client.update_group(new_group)
-            #
-            # TODO - if the group update succeeds, but below operations fail,
-            # we needs to make sure a subsequent submit doesn't try to update
-            # the group again.  Probably by overwriting the group_orig hidden
-            # field blob.
-            #
+                #
+                # If the group update succeeds, but below operations fail, we
+                # need to make sure a subsequent submit doesn't try to update
+                # the group again.
+                #
+                kw['group_orig'] = b64encode(dumps(new_group.toDict()))
         except ipaerror.IPAError, e:
             turbogears.flash("User update failed: " + str(e))
             return dict(form=group_edit_form, group=kw, members=member_dicts,
@@ -503,15 +502,14 @@ class Root(controllers.RootController):
         #
         # Add members
         #
+        failed_adds = []
         try:
             uidadds = kw.get('uidadd')
             if uidadds != None:
                 if not(isinstance(uidadds,list) or isinstance(uidadds,tuple)):
                     uidadds = [uidadds]
-                failed = client.add_users_to_group(uidadds, kw.get('cn'))
-                #
-                # TODO - deal with failed adds
-                #
+                failed_adds = client.add_users_to_group(uidadds, kw.get('cn'))
+                kw['uidadd'] = failed_adds
         except ipaerror.IPAError, e:
             turbogears.flash("User update failed: " + str(e))
             return dict(form=group_edit_form, group=kw, members=member_dicts,
@@ -520,21 +518,36 @@ class Root(controllers.RootController):
         #
         # Remove members
         #
+        failed_dels = []
         try:
             uiddels = kw.get('uiddel')
             if uiddels != None:
                 if not(isinstance(uiddels,list) or isinstance(uiddels,tuple)):
                     uiddels = [uiddels]
-                failed = client.remove_users_from_group(uiddels, kw.get('cn'))
-                #
-                # TODO - deal with failed removals
-                #
+                failed_dels = client.remove_users_from_group(uiddels, kw.get('cn'))
+                kw['uiddel'] = failed_dels
         except ipaerror.IPAError, e:
             turbogears.flash("User update failed: " + str(e))
             return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
 
-        # TODO if not group_modified
+        #
+        # TODO - check failed ops to see if it's because of another update.
+        #        handle "someone else already did it" errors better - perhaps
+        #        not even as an error
+        # TODO - update the Group Members list.
+        #        (note that we have to handle the above todo first, or else
+        #         there will be an error message, but the add/del lists will
+        #         be empty)
+        #
+        if (len(failed_adds) > 0) or (len(failed_dels) > 0):
+            message = "There was an error updating group members.<br />"
+            message += "Failures have been preserved in the add/remove lists."
+            if group_modified:
+                message = "Group Details successfully updated.<br />" + message
+            turbogears.flash(message)
+            return dict(form=group_edit_form, group=kw, members=member_dicts,
+                        tg_template='ipagui.templates.groupedit')
 
         turbogears.flash("%s updated!" % kw['cn'])
         raise turbogears.redirect('/groupshow', cn=kw['cn'])

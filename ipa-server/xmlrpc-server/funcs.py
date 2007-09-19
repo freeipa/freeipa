@@ -697,7 +697,7 @@ class IPAServer:
             except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
                 # User is already in the group
                 failed.append(user)
-            except ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND):
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 # User or the group does not exist
                 failed.append(user)
 
@@ -755,7 +755,7 @@ class IPAServer:
             except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
                 # User is not in the group
                 failed.append(user)
-            except ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND):
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 # User or the group does not exist
                 failed.append(user)
 
