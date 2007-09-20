@@ -39,12 +39,6 @@ objectClass: nsContainer
 objectClass: top
 cn: sysaccounts
 
-dn: uid=webservice,cn=sysaccounts,cn=etc,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: account
-uid: webservice
-
 dn: uid=admin,cn=sysaccounts,cn=etc,$SUFFIX
 changetype: add
 objectClass: top

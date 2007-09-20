@@ -112,18 +112,6 @@ if test -n "$needServerCert" ; then
     certutil -S $prefixarg -n "Server-Cert" -s "cn=$myhost,ou=Fedora Directory Server" -c "CA certificate" -t "u,u,u" -m 1001 -v 120 -d $secdir -z $secdir/noise.txt -f $secdir/pwdfile.txt
 fi
 
-# 8. Generate the web service client certificate:
-    echo -e "0\n2\n9\nn\n0\n9\nn\n" | certutil -S $prefixarg -n webservice -s "uid=webservice, CN=Web Service, OU=Fedora Directory Server" -c "CA certificate" -t u,pu,u -m 1002 -v 120 -d $secdir -z $secdir/noise.txt -f $secdir/pwdfile.txt -1 -5
-
-    pk12util -d $secdir $prefixarg -o $secdir/webservice.p12 -n "webservice" -w $secdir/pwdfile.txt -k $secdir/pwdfile.txt
-
-    openssl pkcs12 -in $secdir/webservice.p12 -clcerts -nokeys -out /usr/share/ipa/cert.pem -passin file:$secdir/pwdfile.txt
-    openssl pkcs12 -in $secdir/webservice.p12 -nocerts -nodes -out /usr/share/ipa/key.pem -passin file:$secdir/pwdfile.txt
-
-    cp -p $secdir/cacert.asc /usr/share/ipa
-    chown apache:apache /usr/share/ipa/cert.pem /usr/share/ipa/key.pem /usr/share/ipa/cacert.asc
-    chmod 600 /usr/share/ipa/cert.pem /usr/share/ipa/key.pem
-
 # create the pin file
 if [ ! -f $secdir/pin.txt ] ; then
     pinfile=$secdir/pin.txt
