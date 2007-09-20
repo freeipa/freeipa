@@ -31,7 +31,6 @@ from optparse import OptionParser
 import ipaclient.ipadiscovery
 import ipaclient.ipachangeconf
 from ipa.ipautil import run
-import shutil
 
 def parse_options():
     parser = OptionParser(version=VERSION)

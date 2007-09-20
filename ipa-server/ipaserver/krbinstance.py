@@ -73,6 +73,9 @@ class KrbInstance:
         
 	self.suffix = realm_to_suffix(self.realm)
         self.kdc_password = generate_kdc_password()
+
+        self.stop()
+
 	self.__configure_kdc_account_password()
 
         self.__setup_sub_dict()
@@ -88,8 +91,6 @@ class KrbInstance:
         self.__create_http_keytab()
 
         self.__export_kadmin_changepw_keytab()
-
-        self.__create_sample_bind_zone()
 
         self.__add_pwd_extop_module()
 
@@ -160,13 +161,6 @@ class KrbInstance:
         #add an ACL to let the DS user read the master key
         args = ["/usr/bin/setfacl", "-m", "u:"+self.ds_user+":r", "/var/kerberos/krb5kdc/.k5."+self.realm]
         run(args)
-
-    def __create_sample_bind_zone(self):
-        bind_txt = template_file(SHARE_DIR + "bind.zone.db.template", self.sub_dict)
-        [bind_fd, bind_name] = tempfile.mkstemp(".db","sample.zone.")
-        os.write(bind_fd, bind_txt)
-        os.close(bind_fd)
-        print "Sample zone file for bind has been created in "+bind_name
 
     def __create_ds_keytab(self):
         (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")

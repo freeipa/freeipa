@@ -1,0 +1,41 @@
+options {
+	/* make named use port 53 for the source of all queries, to allow
+	 * firewalls to block all ports except 53:
+	 */
+	query-source    port 53;
+	query-source-v6 port 53;
+
+	// Put files that named is allowed to write in the data/ directory:
+	directory "/var/named"; // the default
+	dump-file               "data/cache_dump.db";
+	statistics-file         "data/named_stats.txt";
+	memstatistics-file      "data/named_mem_stats.txt";
+
+        /* Not used yet, support only on very recent bind versions */
+#       tkey-gssapi-credential "DNS/$FQDN";
+#       tkey-domain "$REALM";
+};
+
+logging {
+/*      If you want to enable debugging, eg. using the 'rndc trace' command,
+ *      By default, SELinux policy does not allow named to modify the /var/named directory,
+ *      so put the default debug log file in data/ :
+ */
+        channel default_debug {
+                file "data/named.run";
+                severity dynamic;
+        };
+};
+
+zone "." IN {
+	type hint;
+	file "named.ca";
+};
+
+include "/etc/named.rfc1912.zones";
+
+zone "$DOMAIN" {
+	type master;
+	file "$DOMAIN.zone.db";
+};
+

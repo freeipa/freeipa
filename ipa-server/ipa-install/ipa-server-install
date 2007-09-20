@@ -36,6 +36,7 @@ import getpass
 from optparse import OptionParser
 import ipaserver.dsinstance
 import ipaserver.krbinstance
+import ipaserver.bindinstance
 from ipa.ipautil import run
 
 def parse_options():
@@ -51,10 +52,13 @@ def parse_options():
     parser.add_option("-a", "--admin-password", dest="admin_password",
                       help="admin user kerberos password")
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
-                     dest="debug", default=False, help="print debugging information")
+                      default=False, help="print debugging information")
     parser.add_option("--hostname", dest="host_name", help="fully qualified name of server")
-    parser.add_option("-U", "--unattended", dest="unattended",
-                     help="unattended installation never prompts the user")
+    parser.add_option("--ip-address", dest="ip_address", help="Master Server IP Address")
+    parser.add_option("--setup-bind", dest="setup_bind", action="store_true",
+                      default=False, help="configure bind with our zone file")
+    parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
+                      default=False, help="unattended installation never prompts the user")
 
     options, args = parser.parse_args()
 
@@ -63,7 +67,7 @@ def parse_options():
                                not options.dm_password or
                                not options.admin_password or
                                not options.master_password):
-        parser.error("error: In unattended mode you need to provide -u, -r, -p and -P options")
+        parser.error("error: In unattended mode you need to provide iat least -u, -r, -p and -P options")
 
     return options
 
@@ -93,34 +97,140 @@ def main():
     ds_user = ""
     realm_name = ""
     host_name = ""
+    domain_name = ""
+    ip_address = ""
     master_password = ""
     dm_password = ""
     admin_password = ""
+
+    # check bind packages are installed
+    bind = ipaserver.bindinstance.BindInstance()
+    if options.setup_bind:
+        if not bind.check_inst():
+            print "--setup-bind was specified but bind is not installed on the system"
+            print "Please install bind (you also need the package 'caching-nameserver') and restart the setup program"
+            return "-Fatal Error-"
 
     # check the hostname is correctly configured, it must be as the kldap
     # utilities just use the hostname as returned by gethostbyname to set
     # up some of the standard entries
 
+    host_name = ""
     if options.host_name:
         host_name = options.host_name
     else:
-        host_name = socket.gethostname()
-    if len(host_name.split(".")) < 2:
-        print "Invalid hostname <"+host_name+">"
-        print "Check the /etc/hosts file and make sure to have a valid FQDN"
-        return "-Fatal Error-"
+        try:
+            host_name = socket.gethostname()
+        except:
+            pass
+        if options.unattended:
+           if len(host_name.split(".")) < 2 or host_name == "localhost.localdomain":
+               print "Invalid hostname: "+host_name
+               print "This host name can't be used as a hostname for an IPA Server"
+               return "-Fatal Error-"
+        else:
+            host_ok = False
+            while not host_ok:
+               if host_name == "":
+                   print ""
+                   host_name = raw_input("Please provide a Fully Qualified name to use for your system [master.example.com]: ")
+                   if host_name != "":
+                       host_name = "master.example.com"
+    
+               if len(host_name.split(".")) < 2 or host_name == "localhost.localdomain":
+                   print "Invalid hostname: "+host_name
+                   print "This host name can't be used as a hostname for an IPA Server"
+                   host_name = ""
+                   continue
+               else:
+                   host_ok = True
+    
+               yesno = raw_input("Please confirm this ["+host_name+"] is the server hostname you want to use [Y/n]: ")
+               if yesno != "" and yesno.lower() != 'y':
+                   host_name = ""
+                   host_ok = False
 
-    ip = socket.gethostbyname(host_name)
-    if ip == "127.0.0.1":
-        print "The hostname resolves to the localhost address (127.0.0.1)"
-        print "Please change your /etc/hosts file or your DNS so that the"
-        print "hostname resolves to the ip address of your network interface."
-        print "The KDC service does not listen on 127.0.0.1"
-        print ""
-        print "Please fix your /etc/hosts file and restart the setup program"
-        return "-Fatal Error-"
-     
-    print "The Final KDC Host Name will be: " + host_name + ". With IP address: " + ip
+    domain_name = host_name[host_name.find(".")+1:]
+
+    # Check we have a public IP that is associated with the hostname
+    ip = ""
+    askip = False
+    try:
+        ip = socket.gethostbyname(host_name)
+
+        if ip == "127.0.0.1" or ip == "::1":
+            print "The hostname resolves to the localhost address (127.0.0.1/::1)"
+            print "Please change your /etc/hosts file so that the hostname"
+            print "resolves to the ip address of your network interface."
+            print "The KDC service does not listen on localhost"
+            print ""
+            print "Please fix your /etc/hosts file and restart the setup program"
+            return "-Fatal Error-"
+
+    except:
+        print "The provided hostname can't actually be use to resolve the IP address"
+        if options.ip_address:
+            ip = options.ip_address
+        else:
+            askip = True
+
+    if ip != "":
+        try:
+            socket.inet_pton(socket.AF_INET, ip)
+        except:
+            try:
+                socket.inet_pton(socket.AF_INET6, ip)
+            except:
+                print "Invalid IP format"
+                if options.unattended:
+                    return "-Fatal Error-"
+                else:
+                    ip = ""
+                    askip = True
+
+        if options.ip_address and options.ip_address != ip:
+            if options.setup_bind:
+                ip = options.ip_address
+            else:
+                print "Error: the hostname resolves to an IP that is different from the one provided on the command line"
+                print "Please fix your DNS or /etc/hosts file to provide consistent information and restart the setup program"
+                return "-Fatal Error-"
+ 
+    if options.unattended:
+        if askip or ip == "":
+            print "Unable to resolve IP address"
+            return "-Fatal Error-"
+
+    while askip:
+        ip = raw_input("Please provide the IP address to be used for this host name: ")
+
+        if ip == "":
+            print "An empty IP is not acceptable"
+            continue
+        if ip == "127.0.0.1" or ip == "::1":
+            print "The IPA Server can't use localhost as a valid IP"
+            continue
+
+        try:
+            socket.inet_pton(socket.AF_INET, ip)
+        except:
+            try:
+                socket.inet_pton(socket.AF_INET6, ip)
+            except:
+                print "Invalid IP format"
+                continue
+
+        print "Adding ["+ip+" "+host_name+"] to your /etc/hosts file"
+        hosts_fd = open('/etc/hosts', 'r+')
+        hosts_fd.seek(0, 2)
+        hosts_fd.write(ip+'\t'+host_name+' '+host_name[:host_name.find('.')]+'\n')
+        hosts_fd.close()
+        askip = False
+
+    ip_address = ip
+
+    print "The IPA Master Server Name will be: " + host_name + ". With IP address: " + ip_address
+    print "The IPA Domain Name will be: " + domain_name
     print ""
 
     if not options.ds_user:
@@ -152,7 +262,7 @@ def main():
         print "The kerberos protocol requires a Realm name to be defined."
         print "Usually the domain name all in uppercase is used as realm name."
         print ""
-        upper_dom = (host_name[host_name.find(".")+1:]).upper()
+        upper_dom = domain_name.upper()
         realm_name = raw_input("Please provide a realm name ["+upper_dom+"]: ")
         print ""
         if realm_name == "":
@@ -227,6 +337,11 @@ def main():
     else:
         admin_password = options.admin_password
 
+    if not options.unattended:
+        print ""
+        print "The following operations may take some minutes to complete."
+        print "Please wait until the prompt is returned."
+
     # Create a directory server instance
     ds = ipaserver.dsinstance.DsInstance()
     ds.create_instance(ds_user, realm_name, host_name, dm_password)
@@ -235,8 +350,24 @@ def main():
     krb = ipaserver.krbinstance.KrbInstance()
     krb.create_instance(ds_user, realm_name, host_name, dm_password, master_password)
 
-    # Restart ds after the krb instance has changed ds configurations
+    bind.setup(host_name, ip_address, realm_name)
+    if options.setup_bind:
+        skipbind = False
+        if not options.unattended:
+            print "This program is about to replace the DNS Server configuration,"
+            print "with an automatically generated one, based on the data gathered so far."
+            print "This will REPLACE any existing configuration."
+            yesno = raw_input("Are you sure you want to configure the DNS Server ? [y/N]: ")
+            if yesno.lower() != 'y':
+                skipbind = True
+        if not skipbind:
+            bind.create_instance()
+    else:
+        bind.create_sample_bind_zone()
+
+    # Restart ds and krb after configurations have been changed
     ds.restart()
+    krb.restart()
 
     # Restart apache
     run(["/sbin/service", "httpd", "restart"])
