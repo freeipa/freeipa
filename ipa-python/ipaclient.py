@@ -71,6 +71,8 @@ class IPAClient:
     def add_user(self,user,user_container=None):
         """Add a user. user is a ipa.user.User object"""
 
+        realm = config.config.get_realm()
+
         user_dict = user.toDict()
 
         # dn is set on the server-side
@@ -97,11 +99,11 @@ class IPAClient:
         result = self.transport.get_add_schema()
         return result
 
-    def find_users(self, criteria, sattrs=None):
+    def find_users(self, criteria, sattrs=None, searchlimit=0):
         """Return a list: counter followed by a User object for each user that
            matches the criteria. If the results are truncated, counter will
            be set to -1"""
-        result = self.transport.find_users(criteria, sattrs)
+        result = self.transport.find_users(criteria, sattrs, searchlimit)
         counter = result[0]
 
         users = [counter]
@@ -114,11 +116,15 @@ class IPAClient:
     def update_user(self,user):
         """Update a user entry."""
 
+        realm = config.config.get_realm()
+
         result = self.transport.update_user(user.origDataDict(), user.toDict())
         return result
 
     def delete_user(self,uid):
         """Delete a user entry."""
+
+        realm = config.config.get_realm()
 
         result = self.transport.delete_user(uid)
         return result
@@ -132,6 +138,8 @@ class IPAClient:
 
     def mark_user_deleted(self,uid):
         """Set a user as inactive by uid."""
+
+        realm = config.config.get_realm()
 
         result = self.transport.mark_user_deleted(uid)
         return result
@@ -155,6 +163,8 @@ class IPAClient:
     def add_group(self,group,group_container=None):
         """Add a group. group is a ipa.group.Group object"""
 
+        realm = config.config.get_realm()
+
         group_dict = group.toDict()
 
         # dn is set on the server-side
@@ -164,13 +174,14 @@ class IPAClient:
         result = self.transport.add_group(group_dict, group_container)
         return result
 
-    def find_groups(self, criteria, sattrs=None):
+    def find_groups(self, criteria, sattrs=None, searchlimit=0):
         """Find groups whose cn matches the criteria. Wildcards are 
            acceptable. Returns a list of Group objects."""
-        result = self.transport.find_groups(criteria, sattrs)
+        result = self.transport.find_groups(criteria, sattrs, searchlimit)
+        counter = result[0]
 
-        groups = []
-        for attrs in result:
+        groups = [counter]
+        for attrs in result[1:]:
             if attrs is not None:
                 groups.append(group.Group(attrs))
 

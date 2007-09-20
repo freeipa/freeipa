@@ -148,6 +148,16 @@ body {
   text-align: right;
 }
 
+.floatlist {
+  float: right;
+  width: 50%;
+}
+
+.floatheader {
+  color: #885555;
+  font-weight: bold;
+}
+
 .small {
   font-size: small;
 }
@@ -194,3 +204,37 @@ body {
 #resultstable th {
   background: #eee;
 }
+
+/*
+ * TableKit css
+ */
+
+.sortcol {
+  cursor: pointer;
+  padding-right: 20px !important;
+  background-repeat: no-repeat !important;
+  background-position: right center !important;
+}
+.sortasc {
+  background-image: url(/static/images/up.gif) !important;
+}
+.sortdesc {
+  background-image: url(/static/images/down.gif) !important;
+}
+.nosort {
+  cursor: default;
+}
+
+th.resize-handle-active {
+  cursor: e-resize;
+}
+
+div.resize-handle {
+  cursor: e-resize;
+  width: 2px;
+  border-right: 1px dashed #1E90FF;
+  position:absolute;
+  top:0;
+  left:0;
+}
+

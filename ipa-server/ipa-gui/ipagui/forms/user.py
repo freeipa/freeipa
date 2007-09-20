@@ -21,6 +21,7 @@ class UserFields():
     uidnumber_hidden = widgets.HiddenField(name="uidnumber")
     gidnumber_hidden = widgets.HiddenField(name="gidnumber")
     krbPasswordExpiration_hidden = widgets.HiddenField(name="krbPasswordExpiration")
+    editprotected_hidden = widgets.HiddenField(name="editprotected")
 
     user_orig = widgets.HiddenField(name="user_orig")
 
@@ -65,8 +66,15 @@ class UserEditValidator(validators.Schema):
     givenname = validators.String(not_empty=True)
     sn = validators.String(not_empty=True)
     mail = validators.Email(not_empty=True)
+    uidnumber = validators.Int(not_empty=False)
+    gidnumber = validators.Int(not_empty=False)
     #  validators.PhoneNumber may be a bit too picky, requiring an area code
     # telephonenumber = validators.PlainText(not_empty=False)
+
+    pre_validators = [
+      validators.RequireIfPresent(required='uidnumber', present='editprotected'),
+      validators.RequireIfPresent(required='gidnumber', present='editprotected'),
+    ]
 
     chained_validators = [
       validators.FieldsMatch('userpassword', 'userpassword_confirm')
@@ -79,6 +87,7 @@ class UserEditForm(widgets.Form):
               UserFields.uid_hidden, UserFields.user_orig,
               UserFields.uidnumber, UserFields.gidnumber,
               UserFields.krbPasswordExpiration_hidden,
+              UserFields.editprotected_hidden,
               ]
 
     validator = UserEditValidator()

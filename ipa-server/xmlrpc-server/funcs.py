@@ -415,7 +415,7 @@ class IPAServer:
     
         return users
 
-    def find_users (self, criteria, sattrs=None, opts=None):
+    def find_users (self, criteria, sattrs=None, searchlimit=0, opts=None):
         """Returns a list: counter followed by the results.
            If the results are truncated, counter will be set to -1."""
         # Assume the list of fields to search will come from a central
@@ -437,13 +437,13 @@ class IPAServer:
         try:
             try:
                 exact_results = conn.getListAsync(self.basedn, self.scope,
-                        exact_match_filter, sattrs)
+                        exact_match_filter, sattrs, 0, None, None, -1, searchlimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 exact_results = [0]
 
             try:
                 partial_results = conn.getListAsync(self.basedn, self.scope,
-                        partial_match_filter, sattrs)
+                        partial_match_filter, sattrs, 0, None, None, -1, searchlimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 partial_results = [0]
         finally:
@@ -605,25 +605,72 @@ class IPAServer:
         finally:
             self.releaseConnection(conn)
 
-    def find_groups (self, criteria, sattrs=None, opts=None):
+    def find_groups (self, criteria, sattrs=None, searchlimit=0, opts=None):
         """Return a list containing a User object for each
         existing group that matches the criteria.
         """
-        criteria = self.__safe_filter(criteria)
+        # Assume the list of fields to search will come from a central
+        # configuration repository.  A good format for that would be
+        # a comma-separated list of fields
+        search_fields_conf_str = "cn,description"
+        search_fields = string.split(search_fields_conf_str, ",")
 
-        filter = "(&(cn=%s)(objectClass=posixGroup))" % criteria
+        criteria = self.__safe_filter(criteria)
+        criteria_words = re.split(r'\s+', criteria)
+        criteria_words = filter(lambda value:value!="", criteria_words)
+        if len(criteria_words) == 0:
+            return [0]
+
+        (exact_match_filter, partial_match_filter) = self.__generate_match_filters(
+                search_fields, criteria_words)
+
+        #
+        # further constrain search to just the objectClass
+        # TODO - need to parameterize this into generate_match_filters,
+        #        and work it into the field-specification search feature
+        #
+        exact_match_filter = "(&(objectClass=posixGroup)%s)" % exact_match_filter
+        partial_match_filter = "(&(objectClass=posixGroup)%s)" % partial_match_filter
+
+        #
+        # TODO - copy/paste from find_users.  needs to be refactored
+        #
         conn = self.getConnection(opts)
         try:
-            results = conn.getList(self.basedn, self.scope, filter, sattrs)
-        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-            results = []
+            try:
+                exact_results = conn.getListAsync(self.basedn, self.scope,
+                        exact_match_filter, sattrs, 0, None, None, -1, searchlimit)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                exact_results = [0]
+
+            try:
+                partial_results = conn.getListAsync(self.basedn, self.scope,
+                        partial_match_filter, sattrs, 0, None, None, -1, searchlimit)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                partial_results = [0]
         finally:
             self.releaseConnection(conn)
 
-        groups = []
-        for u in results:
+        exact_counter = exact_results[0]
+        partial_counter = partial_results[0]
+
+        exact_results = exact_results[1:]
+        partial_results = partial_results[1:]
+
+        # Remove exact matches from the partial_match list
+        exact_dns = set(map(lambda e: e.dn, exact_results))
+        partial_results = filter(lambda e: e.dn not in exact_dns,
+                                 partial_results)
+
+        if (exact_counter == -1) or (partial_counter == -1):
+            counter = -1
+        else:
+            counter = len(exact_results) + len(partial_results)
+
+        groups = [counter]
+        for u in exact_results + partial_results:
             groups.append(self.convert_entry(u))
-    
+
         return groups
 
     def add_user_to_group(self, user, group, opts=None):
@@ -670,7 +717,7 @@ class IPAServer:
             except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
                 # User is already in the group
                 failed.append(user)
-            except ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND):
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 # User or the group does not exist
                 failed.append(user)
 
@@ -728,7 +775,7 @@ class IPAServer:
             except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
                 # User is not in the group
                 failed.append(user)
-            except ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND):
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 # User or the group does not exist
                 failed.append(user)
 

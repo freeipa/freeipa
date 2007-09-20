@@ -13,11 +13,13 @@
         passwordConfirmField.disabled = false;
         uidnumberField.disabled = false;
         gidnumberField.disabled = false;
+        $('form_editprotected').value = 'true';
       } else {
         passwordField.disabled = true;
         passwordConfirmField.disabled = true;
         uidnumberField.disabled = true;
         gidnumberField.disabled = true;
+        $('form_editprotected').value = '';
       }
     }
   </script>
@@ -228,4 +230,11 @@
     </table>
 
   </form>
+
+  <script type="text/javascript">
+    if ($('form_editprotected').value != "") {
+      $('toggleprotected_checkbox').checked = true;
+      toggleProtectedFields($('toggleprotected_checkbox'));
+    }
+  </script>
 </div>
