@@ -228,7 +228,7 @@ class Root(controllers.RootController):
     def userlist_ajax(self, **kw):
         """Searches for users and displays list of results in a table.
            This method is used for ajax calls."""
-        client.set_principal(identity.current.user_name)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
         users = []
         searchlimit = 100
         uid = kw.get('uid')
@@ -332,7 +332,7 @@ class Root(controllers.RootController):
         if (len(givenname) == 0) or (len(sn) == 0):
             return ""
 
-        client.set_principal(identity.current.user_name)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
         givenname = givenname.lower()
         sn = sn.lower()
 
@@ -384,7 +384,7 @@ class Root(controllers.RootController):
         if tg_errors:
             turbogears.flash("There was a problem with the form!")
 
-        client.set_principal(identity.current.user_name)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
 
         return dict(form=group_new_form)
 
@@ -393,7 +393,7 @@ class Root(controllers.RootController):
     def groupcreate(self, **kw):
         """Creates a new group"""
         restrict_post()
-        client.set_principal(identity.current.user_name)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
 
         if kw.get('submit') == 'Cancel':
             turbogears.flash("Add group cancelled")
@@ -427,7 +427,7 @@ class Root(controllers.RootController):
         if tg_errors:
             turbogears.flash("There was a problem with the form!")
 
-        client.set_principal(identity.current.user_name)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
         try:
             group = client.get_group_by_cn(cn, group_fields)
 
@@ -470,7 +470,7 @@ class Root(controllers.RootController):
     def groupupdate(self, **kw):
         """Updates an existing group"""
         restrict_post()
-        client.set_principal(identity.current.user_name)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
         if kw.get('submit') == 'Cancel Edit':
             turbogears.flash("Edit group cancelled")
             raise turbogears.redirect('/groupshow', cn=kw.get('cn'))
@@ -573,7 +573,7 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     def grouplist(self, **kw):
         """Search for groups and display results"""
-        client.set_principal(identity.current.user_name)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
         groups = None
         # counter = 0
         criteria = kw.get('criteria')
@@ -595,7 +595,7 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     def groupshow(self, cn):
         """Retrieve a single group for display"""
-        client.set_principal(identity.current.user_name)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
         try:
             group = client.get_group_by_cn(cn, group_fields)
             group_dict = group.toDict()

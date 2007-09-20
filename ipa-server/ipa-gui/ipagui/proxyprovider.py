@@ -19,8 +19,7 @@ class IPA_User(object):
 
 class ProxyIdentity(object):
     def __init__(self, visit_key, user=None):
-        if user:
-            self._user= user
+        self._user= user
         self.visit_key= visit_key
    
     def _get_user(self):
