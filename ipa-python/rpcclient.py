@@ -150,7 +150,7 @@ class RPCClient:
     
         return ipautil.unwrap_binary_data(result)
 
-    def find_users (self, criteria, sattrs=None):
+    def find_users (self, criteria, sattrs=None, searchlimit=0):
         """Return a list: counter followed by a User object for each user that
            matches the criteria. If the results are truncated, counter will
            be set to -1"""
@@ -160,7 +160,7 @@ class RPCClient:
             # None values are not allowed in XML-RPC
             if sattrs is None:
                 sattrs = "__NONE__"
-            result = server.find_users(criteria, sattrs)
+            result = server.find_users(criteria, sattrs, searchlimit)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
@@ -188,6 +188,22 @@ class RPCClient:
     
         try:
             result = server.delete_user(uid)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return result
+
+    def modifyPassword(self,uid,oldpass,newpass):
+        """Modify a user's password"""
+        server = self.setup_server()
+
+        if oldpass is None:
+            oldpass = "__NONE__"
+    
+        try:
+            result = server.modifyPassword(uid,oldpass,newpass)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
@@ -259,7 +275,7 @@ class RPCClient:
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
 
-    def find_groups (self, criteria, sattrs=None):
+    def find_groups (self, criteria, sattrs=None, searchlimit=0):
         """Return a list containing a Group object for each group that matches
            the criteria."""
     
@@ -268,7 +284,7 @@ class RPCClient:
             # None values are not allowed in XML-RPC
             if sattrs is None:
                 sattrs = "__NONE__"
-            result = server.find_groups(criteria, sattrs)
+            result = server.find_groups(criteria, sattrs, searchlimit)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):

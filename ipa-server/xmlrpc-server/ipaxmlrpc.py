@@ -138,7 +138,7 @@ class ModXMLRPCRequestHandler(object):
         opts['remoteuser'] = req.user
 
         if req.subprocess_env.get("KRB5CCNAME") is not None:
-            opts['keytab'] = req.subprocess_env.get("KRB5CCNAME")
+            opts['krbccache'] = req.subprocess_env.get("KRB5CCNAME")
 
         # Tack onto the end of the passed-in arguments any options we also
         # need
@@ -308,6 +308,7 @@ def handler(req, profiling=False):
             h.register_function(f.update_user)
             h.register_function(f.delete_user)
             h.register_function(f.mark_user_deleted)
+            h.register_function(f.modifyPassword)
             h.register_function(f.get_group_by_cn)
             h.register_function(f.get_group_by_dn)
             h.register_function(f.add_group)

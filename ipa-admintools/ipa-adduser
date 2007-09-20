@@ -43,6 +43,8 @@ def parse_options():
                       help="User's first name")
     parser.add_option("-l", "--lastname", dest="sn",
                       help="User's last name")
+    parser.add_option("-p", "--password", dest="password",
+                      help="Set user's password")
     parser.add_option("-s", "--shell", dest="shell",
                       help="Set user's login shell to shell")
     parser.add_option("--usage", action="store_true",
@@ -75,10 +77,11 @@ def main():
     else:
         user.setValue('loginshell', "/bin/bash")
 
+    username = args[1]
+
     try:
         client = ipaclient.IPAClient()
         client.add_user(user)
-        print args[1] + " successfully added"
     except xmlrpclib.Fault, f:
         print f.faultString
         return 1
@@ -92,6 +95,14 @@ def main():
         print "%s" % (e.message)
         return 1
 
+    if options.password is not None:
+        try:
+            client.modifyPassword(username, None, options.password)
+        except ipa.ipaerror.IPAError, e:
+            print "%s" % (e.message)
+            return 1
+
+    print username + " successfully added"
     return 0
 
 main()

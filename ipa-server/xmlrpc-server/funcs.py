@@ -49,7 +49,7 @@ class IPAConnPool:
     def __init__(self):
         self.freelist = []
 
-    def getConn(self, host, port, bindca, bindcert, bindkey, proxydn=None, keytab=None):
+    def getConn(self, host, port, bindca, bindcert, bindkey, proxydn=None, krbccache=None):
         conn = None
         if len(self.freelist) > 0:
             for i in range(len(self.freelist)):
@@ -62,12 +62,12 @@ class IPAConnPool:
         if proxydn is not None:
             conn.set_proxydn(proxydn)
         else:
-            conn.set_keytab(keytab)
+            conn.set_krbccache(krbccache)
         return conn
 
     def releaseConn(self, conn):
         # We can't re-use SASL connections. If proxydn is None it means
-        # we have a keytab set. See ipaldap.set_keytab
+        # we have a Kerberos credentails cache set. See ipaldap.set_krbccache
         if conn.proxydn is None:
             conn.unbind_s()
         else:
@@ -91,13 +91,13 @@ class IPAServer:
         self.basedn = ipa.ipautil.realm_to_suffix(ipa.config.config.get_realm())
         self.scope = ldap.SCOPE_SUBTREE
         self.princ = None
-        self.keytab = None
+        self.krbccache = None
 
     def set_principal(self, princ):
         self.princ = princ
 
-    def set_keytab(self, keytab):
-        self.keytab = keytab
+    def set_krbccache(self, krbccache):
+        self.krbccache = krbccache
     
     def get_dn_from_principal(self, princ):
         """Given a kerberos principal get the LDAP uid"""
@@ -115,43 +115,45 @@ class IPAServer:
 
     def __setup_connection(self, opts):
         """Set up common things done in the connection.
-           If there is a keytab then return None as the proxy dn and the keytab
-           otherwise return the proxy dn and None as the keytab.
+           If there is a Kerberos credentials cache then return None as the
+           proxy dn and the ccache otherwise return the proxy dn and None as
+           the ccache.
 
            We only want one or the other used at one time and we prefer
-           the keytab. So if there is a keytab, return that and None for
-           proxy dn to make calling getConn() easier.
+           the Kerberos credentials cache. So if there is a ccache, return
+           that and None for proxy dn to make calling getConn() easier.
         """
 
         if opts:
-            if opts.get('keytab'):
-                self.set_keytab(opts['keytab'])
+            if opts.get('krbccache'):
+                self.set_krbccache(opts['krbccache'])
                 self.set_principal(None)
             else:
-                self.set_keytab(None)
+                self.set_krbccache(None)
                 self.set_principal(opts['remoteuser'])
         else:
-            self.set_keytab(None)
-            # The caller should have already set the principal
+            # The caller should have already set the principal or the
+            # krbccache. If not they'll get an authentication error later.
+            pass
 
         if self.princ is not None:
             return self.get_dn_from_principal(self.princ), None
         else:
-            return None, self.keytab
+            return None, self.krbccache
 
     def getConnection(self, opts):
         """Wrapper around IPAConnPool.getConn() so we don't have to pass
            around self.* every time a connection is needed.
 
-           For SASL connections (where we have a keytab) we can't set
+           For SASL connections (where we have a krbccache) we can't set
            the SSL variables for certificates. It confuses the ldap
            module.
         """
         global _LDAPPool
 
-        (proxy_dn, keytab) = self.__setup_connection(opts)
+        (proxy_dn, krbccache) = self.__setup_connection(opts)
 
-        if keytab is not None:
+        if krbccache is not None:
             bindca = None
             bindcert = None
             bindkey = None
@@ -162,7 +164,7 @@ class IPAServer:
             bindkey = self.bindkey
             port = self.sslport
 
-        return _LDAPPool.getConn(self.host,port,bindca,bindcert,bindkey,proxy_dn,keytab)
+        return _LDAPPool.getConn(self.host,port,bindca,bindcert,bindkey,proxy_dn,krbccache)
 
     def releaseConnection(self, conn):
         global _LDAPPool
@@ -413,7 +415,7 @@ class IPAServer:
     
         return users
 
-    def find_users (self, criteria, sattrs=None, opts=None):
+    def find_users (self, criteria, sattrs=None, searchlimit=0, opts=None):
         """Returns a list: counter followed by the results.
            If the results are truncated, counter will be set to -1."""
         # Assume the list of fields to search will come from a central
@@ -435,13 +437,13 @@ class IPAServer:
         try:
             try:
                 exact_results = conn.getListAsync(self.basedn, self.scope,
-                        exact_match_filter, sattrs)
+                        exact_match_filter, sattrs, 0, None, None, -1, searchlimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 exact_results = [0]
 
             try:
                 partial_results = conn.getListAsync(self.basedn, self.scope,
-                        partial_match_filter, sattrs)
+                        partial_match_filter, sattrs, 0, None, None, -1, searchlimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 partial_results = [0]
         finally:
@@ -524,6 +526,24 @@ class IPAServer:
             self.releaseConnection(conn)
         return res
 
+    def modifyPassword (self, uid, oldpass, newpass, opts=None):
+        """Set/Reset a user's password
+
+           uid tells us who's password to change
+           oldpass is the old password (if available)
+           newpass is the new password
+        """
+        user_dn = self.get_user_by_uid(uid, ['dn', 'uid', 'objectclass'], opts)
+        if user_dn is None:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+
+        conn = self.getConnection(opts)
+        try:
+            res = conn.modifyPassword(user_dn['dn'], oldpass, newpass)
+        finally:
+            self.releaseConnection(conn)
+        return res
+
 # Group support
 
     def __is_group_unique(self, cn, opts):
@@ -585,25 +605,72 @@ class IPAServer:
         finally:
             self.releaseConnection(conn)
 
-    def find_groups (self, criteria, sattrs=None, opts=None):
+    def find_groups (self, criteria, sattrs=None, searchlimit=0, opts=None):
         """Return a list containing a User object for each
         existing group that matches the criteria.
         """
-        criteria = self.__safe_filter(criteria)
+        # Assume the list of fields to search will come from a central
+        # configuration repository.  A good format for that would be
+        # a comma-separated list of fields
+        search_fields_conf_str = "cn,description"
+        search_fields = string.split(search_fields_conf_str, ",")
 
-        filter = "(&(cn=%s)(objectClass=posixGroup))" % criteria
+        criteria = self.__safe_filter(criteria)
+        criteria_words = re.split(r'\s+', criteria)
+        criteria_words = filter(lambda value:value!="", criteria_words)
+        if len(criteria_words) == 0:
+            return [0]
+
+        (exact_match_filter, partial_match_filter) = self.__generate_match_filters(
+                search_fields, criteria_words)
+
+        #
+        # further constrain search to just the objectClass
+        # TODO - need to parameterize this into generate_match_filters,
+        #        and work it into the field-specification search feature
+        #
+        exact_match_filter = "(&(objectClass=posixGroup)%s)" % exact_match_filter
+        partial_match_filter = "(&(objectClass=posixGroup)%s)" % partial_match_filter
+
+        #
+        # TODO - copy/paste from find_users.  needs to be refactored
+        #
         conn = self.getConnection(opts)
         try:
-            results = conn.getList(self.basedn, self.scope, filter, sattrs)
-        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-            results = []
+            try:
+                exact_results = conn.getListAsync(self.basedn, self.scope,
+                        exact_match_filter, sattrs, 0, None, None, -1, searchlimit)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                exact_results = [0]
+
+            try:
+                partial_results = conn.getListAsync(self.basedn, self.scope,
+                        partial_match_filter, sattrs, 0, None, None, -1, searchlimit)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                partial_results = [0]
         finally:
             self.releaseConnection(conn)
 
-        groups = []
-        for u in results:
+        exact_counter = exact_results[0]
+        partial_counter = partial_results[0]
+
+        exact_results = exact_results[1:]
+        partial_results = partial_results[1:]
+
+        # Remove exact matches from the partial_match list
+        exact_dns = set(map(lambda e: e.dn, exact_results))
+        partial_results = filter(lambda e: e.dn not in exact_dns,
+                                 partial_results)
+
+        if (exact_counter == -1) or (partial_counter == -1):
+            counter = -1
+        else:
+            counter = len(exact_results) + len(partial_results)
+
+        groups = [counter]
+        for u in exact_results + partial_results:
             groups.append(self.convert_entry(u))
-    
+
         return groups
 
     def add_user_to_group(self, user, group, opts=None):
@@ -650,7 +717,7 @@ class IPAServer:
             except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
                 # User is already in the group
                 failed.append(user)
-            except ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND):
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 # User or the group does not exist
                 failed.append(user)
 
@@ -708,7 +775,7 @@ class IPAServer:
             except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
                 # User is not in the group
                 failed.append(user)
-            except ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND):
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 # User or the group does not exist
                 failed.append(user)
 

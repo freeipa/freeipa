@@ -47,6 +47,12 @@ class IPAClient:
         if self.local:
             self.transport.set_principal(princ)
 
+    def set_krbccache(self,krbccache):
+        """Set the file location of the Kerberos credentials cache to be used
+           for LDAP authentication"""
+        if self.local:
+            self.transport.set_krbccache(krbccache)
+
 # User support
     def get_user_by_uid(self,uid,sattrs=None):
         """Get a specific user by uid. If sattrs is set then only those
@@ -93,11 +99,11 @@ class IPAClient:
         result = self.transport.get_add_schema()
         return result
 
-    def find_users(self, criteria, sattrs=None):
+    def find_users(self, criteria, sattrs=None, searchlimit=0):
         """Return a list: counter followed by a User object for each user that
            matches the criteria. If the results are truncated, counter will
            be set to -1"""
-        result = self.transport.find_users(criteria, sattrs)
+        result = self.transport.find_users(criteria, sattrs, searchlimit)
         counter = result[0]
 
         users = [counter]
@@ -121,6 +127,13 @@ class IPAClient:
         realm = config.config.get_realm()
 
         result = self.transport.delete_user(uid)
+        return result
+
+    def modifyPassword(self,uid,oldpass,newpass):
+        """Modify a user's password"""
+
+        result = self.transport.modifyPassword(uid,oldpass,newpass)
+
         return result
 
     def mark_user_deleted(self,uid):
@@ -161,13 +174,14 @@ class IPAClient:
         result = self.transport.add_group(group_dict, group_container)
         return result
 
-    def find_groups(self, criteria, sattrs=None):
+    def find_groups(self, criteria, sattrs=None, searchlimit=0):
         """Find groups whose cn matches the criteria. Wildcards are 
            acceptable. Returns a list of Group objects."""
-        result = self.transport.find_groups(criteria, sattrs)
+        result = self.transport.find_groups(criteria, sattrs, searchlimit)
+        counter = result[0]
 
-        groups = []
-        for attrs in result:
+        groups = [counter]
+        for attrs in result[1:]:
             if attrs is not None:
                 groups.append(group.Group(attrs))
 

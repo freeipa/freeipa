@@ -264,9 +264,9 @@ class IPAdmin(SimpleLDAPObject):
     def set_proxydn(self, proxydn):
         self.proxydn = proxydn
 
-    def set_keytab(self, keytab):
-        if keytab is not None:
-            os.environ["KRB5CCNAME"] = keytab
+    def set_krbccache(self, krbccache):
+        if krbccache is not None:
+            os.environ["KRB5CCNAME"] = krbccache
             self.sasl_interactive_bind_s("", sasl_auth)
         self.proxydn = None
 
@@ -465,6 +465,24 @@ class IPAdmin(SimpleLDAPObject):
             if sctrl is not None:
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.delete_s(*args)
+        except ldap.LDAPError, e:
+            raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
+        return "Success"
+
+    def modifyPassword(self,dn,oldpass,newpass):
+        """Set the user password using RFC 3062, LDAP Password Modify Extended
+           Operation. This ends up calling the IPA password slapi plugin 
+           handler so the Kerberos password gets set properly.
+
+           oldpass is not mandatory
+        """
+
+        sctrl = self.__get_server_controls__()
+
+        try:
+            if sctrl is not None:
+                self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
+            self.passwd_s(dn, oldpass, newpass)
         except ldap.LDAPError, e:
             raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
         return "Success"
