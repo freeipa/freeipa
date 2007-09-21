@@ -1,0 +1,99 @@
+#! /usr/bin/python -E
+# Authors: Rob Crittenden <rcritten@redhat.com>
+#
+# Copyright (C) 2007  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Tempal Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+import sys
+from optparse import OptionParser
+import ipa
+import ipa.ipaclient as ipaclient
+import ipa.config
+
+import xmlrpclib
+import kerberos
+import krbV
+import ldap
+import getpass
+
+def usage():
+    print "ipa-passwd [user]"
+    sys.exit(1)
+
+def parse_options():
+    parser = OptionParser()
+    parser.add_option("--usage", action="store_true",
+                      help="Program usage")
+
+    args = ipa.config.init_config(sys.argv)
+    options, args = parser.parse_args(args)
+
+    return options, args
+
+def get_principal():
+    try:
+        ctx = krbV.default_context()
+        ccache = ctx.default_ccache()
+        cprinc = ccache.principal()
+    except krbV.Krb5Error, e:
+        print "Unable to get kerberos principal: %s" % e[1]
+        return None
+        
+    return cprinc.name
+
+def main():
+    match = False
+
+    options, args = parse_options()
+
+    if len(args) == 2:
+        username = args[1]
+    else:
+        username = get_principal()
+        if username is None:
+            return 1
+
+    u = username.split('@')
+    if len(u) > 1:
+        username = u[0]
+
+    print "Changing password for %s" % username
+
+    while (match != True):
+        # No syntax checking of the password is required because that is done
+        # on the server side
+        password = getpass.getpass("  New Password: ")
+        confirm = getpass.getpass("  New Password (again): ")
+        if (password != confirm):
+            print "Passwords do not match"
+            match = False
+        else:
+            match = True
+            if (len(password) < 1):
+                print "Password cannot be empty"
+                match = False
+
+    try:
+        client = ipaclient.IPAClient()
+        client.modifyPassword(username, None, password)
+    except ipa.ipaerror.IPAError, e:
+        print "%s" % (e.message)
+        return 1
+
+    return 0
+
+main()

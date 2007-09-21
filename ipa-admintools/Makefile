@@ -11,6 +11,7 @@ install:
 	install -m 755 ipa-delgroup $(SBINDIR)
 	install -m 755 ipa-findgroup $(SBINDIR)
 	install -m 755 ipa-groupmod $(SBINDIR)
+	install -m 755 ipa-passwd $(SBINDIR)
 
 clean:
 	rm -f *~ *.pyc

@@ -23,11 +23,13 @@ from optparse import OptionParser
 import ipa
 import ipa.user
 import ipa.ipaclient as ipaclient
+import ipa.ipavalidate as ipavalidate
 import ipa.config
 
 import xmlrpclib
 import kerberos
 import ldap
+import getpass
 
 def usage():
     print "ipa-adduser [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] user"
@@ -47,37 +49,168 @@ def parse_options():
                       help="Set user's password")
     parser.add_option("-s", "--shell", dest="shell",
                       help="Set user's login shell to shell")
+    parser.add_option("-G", "--groups", dest="groups",
+                      help="Add account to one or more groups (comma-separated)")
+    parser.add_option("-M", "--mailAddress", dest="mail",
+                      help="Set uesr's e-mail address")
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
     args = ipa.config.init_config(sys.argv)
     options, args = parser.parse_args(args)
 
-    if not options.gn or not options.sn:
-        usage()
-
     return options, args
 
 def main():
+    # The following fields are required
+    givenname = ""
+    lastname = ""
+    username = ""
+    password = ""
+    mail = ""
+    gecos = ""
+    directory = ""
+    shell = ""
+    groups = ""
+
+    match = False
+    cont = False
+
+    all_interactive = False
+
     user=ipa.user.User()
     options, args = parse_options()
 
     if len(args) != 2:
-        usage()
+        all_interactive = True
 
-    user.setValue('givenname', options.gn)
-    user.setValue('sn', options.sn)
-    user.setValue('uid', args[1])
-    if options.gecos:
-        user.setValue('gecos', options.gecos)
-    if options.directory:
-        user.setValue('homedirectory', options.directory)
-    if options.shell:
-        user.setValue('loginshell', options.shell)
+    if not options.gn:
+        while (cont != True):
+            givenname = raw_input("First name: ")
+            if (ipavalidate.plain(givenname, notEmpty=True)):
+                print "Field is required and must be letters or '"
+            else:
+                cont = True
     else:
-        user.setValue('loginshell', "/bin/bash")
+        givenname = options.gn
+        if (ipavalidate.plain(givenname, notEmpty=True)):
+            print "First name is required and must be letters or '"
+            return 1
 
-    username = args[1]
+    cont = False
+    if not options.sn:
+        while (cont != True):
+            lastname = raw_input(" Last name: ")
+            if (ipavalidate.plain(lastname, notEmpty=True)):
+                print "Field is required and must be letters or '"
+            else:
+                cont = True
+    else:
+        lastname = options.sn
+        if (ipavalidate.plain(lastname, notEmpty=True)):
+            print "Last name is required and must be letters or '"
+            return 1
+
+    cont = False
+    if (len(args) != 2):
+        while (cont != True):
+            username = raw_input("Login name: ")
+            if (ipavalidate.plain(username, notEmpty=True)):
+                print "Field is required and must be letters or '"
+            else:
+                cont = True
+    else:
+        username = args[1]
+        if (ipavalidate.plain(username, notEmpty=True)):
+            print "Username is required and must be letters or '"
+            return 1
+
+    if not options.password:
+        while (match != True):
+            password = getpass.getpass("  Password: ")
+            confirm = getpass.getpass("  Password (again): ")
+            if (password != confirm):
+                print "Passwords do not match"
+                match = False
+            else:
+                match = True
+                if (len(password) < 1):
+                    print "Password cannot be empty"
+                    match = False
+    else:
+        password = options.sn
+
+    cont = False
+    if not options.mail:
+        while (cont != True):
+            mail = raw_input("E-mail addr: ")
+            if (ipavalidate.email(mail)):
+                print "Field is required and must include a user and domain name"
+            else:
+                cont = True
+    else:
+        mail = options.mail
+        if (ipavalidate.email(mail)):
+            print "E-mail is required and must include a user and domain name"
+            return 1
+
+    # Ask the questions we don't normally force. We don't require answers
+    # for these.
+    if all_interactive is True:
+        cont = False
+        if not options.gecos:
+            while (cont != True):
+                gecos = raw_input("gecos []: ")
+                if (ipavalidate.plain(gecos, notEmpty=False)):
+                    print "Must be letters, numbers, spaces or '"
+                else:
+                    cont = True
+        cont = False
+        if not options.directory:
+            while (cont != True):
+                directory = raw_input("home directory []: ")
+                if (ipavalidate.path(gecos, notEmpty=False)):
+                    print "Must be letters, numbers, spaces or '"
+                else:
+                    cont = True
+        cont = False
+        if not options.shell:
+            while (cont != True):
+                shell = raw_input("shell [/bin/sh]: ")
+              
+                if len(shell) < 1:
+                    shell = None
+                    cont = True
+        cont = False
+        if not options.groups:
+            while (cont != True):
+                g = raw_input("Add to group [blank to exit]: ")
+              
+                if len(g) < 1:
+                    cont = True
+                else:
+                    if (ipavalidate.path(g, notEmpty=False)):
+                        print "Must be letters, numbers, spaces or '"
+                    else:
+                        groups = groups + "," + g
+    else:
+        gecos = options.gecos
+        directory = options.directory
+        shell = options.shell
+        groups = options.groups
+
+    user.setValue('givenname', givenname)
+    user.setValue('sn', lastname)
+    user.setValue('uid', username)
+    user.setValue('mail', mail)
+    if gecos:
+        user.setValue('gecos', gecos)
+    if directory:
+        user.setValue('homedirectory', directory)
+    if shell:
+        user.setValue('loginshell', shell)
+    else:
+        user.setValue('loginshell', "/bin/sh")
 
     try:
         client = ipaclient.IPAClient()
@@ -95,12 +228,25 @@ def main():
         print "%s" % (e.message)
         return 1
 
-    if options.password is not None:
+    # Set the User's password
+    if password is not None:
         try:
-            client.modifyPassword(username, None, options.password)
+            client.modifyPassword(username, None, password)
         except ipa.ipaerror.IPAError, e:
+            print "User added but setting the password failed."
             print "%s" % (e.message)
             return 1
+
+    # Add to any groups
+    if groups:
+        add_groups = groups.split(',')
+        for g in add_groups:
+            if g:
+                try:
+                    client.add_user_to_group(username, g)
+                    print "%s added to group %s" % (username, g)
+                except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_NOT_FOUND):
+                    print "group %s doesn't exist, skipping" % g
 
     print username + " successfully added"
     return 0

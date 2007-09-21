@@ -23,6 +23,7 @@ from optparse import OptionParser
 import ipa
 import ipa.group
 import ipa.ipaclient as ipaclient
+import ipa.ipavalidate as ipavalidate
 import ipa.config
 import ipa.ipaerror
 
@@ -49,22 +50,51 @@ def parse_options():
     return options, args
 
 def main():
+    cn = ""
+    desc = ""
+
     group=ipa.group.Group()
     options, args = parse_options()
 
-    if len(args) != 2:
-        usage()
+    cont = False
 
-    group.setValue('cn', args[1])
-    if options.desc:
-        group.setValue('description', options.desc)
+    if (len(args) != 2):
+        while (cont != True):
+            cn = raw_input("Group name: ")
+            if (ipavalidate.plain(cn, notEmpty=True)):
+                print "Field is required and must be letters or '."
+            else:
+                cont = True
+    else:
+        cn = args[1]
+        if (ipavalidate.plain(cn, notEmpty=True)):
+            print "Group name is required and must be letters or '."
+            return 1
+
+    cont = False
+    if not options.desc:
+        while (cont != True):
+            desc = raw_input("Description: ")
+            if (ipavalidate.plain(desc, notEmpty=True)):
+                print "Field is required and must be letters or '."
+            else:
+                cont = True
+    else:
+        desc = options.desc
+        if (ipavalidate.plain(desc, notEmpty=True)):
+            print "First name is required and must be letters or '."
+            return 1
+
     if options.gid:
         group.setValue('gidnumber', options.gid)
+
+    group.setValue('cn', cn)
+    group.setValue('description', desc)
 
     try:
         client = ipaclient.IPAClient()
         client.add_group(group)
-        print args[1] + " successfully added"
+        print cn + " successfully added"
     except xmlrpclib.Fault, f:
         print f.faultString
         return 1

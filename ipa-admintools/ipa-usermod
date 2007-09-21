@@ -21,14 +21,17 @@
 import sys
 from optparse import OptionParser
 import ipa
+import ipa.user
 import ipa.ipaclient as ipaclient
+import ipa.ipavalidate as ipavalidate
 import ipa.config
 
 import xmlrpclib
 import kerberos
+import ldap
 
 def usage():
-    print "ipa-usermod [-c|--gecos STRING] [-d|--directory STRING] user"
+    print "ipa-usermod [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] user"
     sys.exit(1)
 
 def parse_options():
@@ -37,8 +40,14 @@ def parse_options():
                       help="Set the GECOS field")
     parser.add_option("-d", "--directory", dest="directory",
                       help="Set the User's home directory")
+    parser.add_option("-f", "--firstname", dest="gn",
+                      help="User's first name")
+    parser.add_option("-l", "--lastname", dest="sn",
+                      help="User's last name")
     parser.add_option("-s", "--shell", dest="shell",
                       help="Set user's login shell to shell")
+    parser.add_option("-M", "--mailAddress", dest="mail",
+                      help="Set uesr's e-mail address")
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
@@ -48,14 +57,32 @@ def parse_options():
     return options, args
 
 def main():
+    # The following fields are required
+    givenname = ""
+    lastname = ""
+    username = ""
+    mail = ""
+    gecos = ""
+    directory = ""
+    groups = ""
+    shell = ""
+
+    match = False
+    cont = False
+
     options, args = parse_options()
 
     if len(args) != 2:
         usage()
 
+    username = args[1]
+
     client = ipaclient.IPAClient()
     try:
-        user = client.get_user_by_uid(args[1])
+        user = client.get_user_by_uid(username)
+    except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_NOT_FOUND):
+        print "User %s not found" % username
+        return 1
     except ipa.ipaerror.IPAError, e:
         print "%s" % e.message
         return 1
@@ -63,16 +90,107 @@ def main():
         print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])
         return 1
 
-    if options.gecos:
-        user.setValue('gecos', options.gecos)
-    if options.directory:
-        user.setValue('homedirectory', options.directory)
-    if options.shell:
-        user.setValue('loginshell', options.shell)
+    # If any options are set we use just those. Otherwise ask for all of them.
+    if options.gn or options.sn or options.directory or options.gecos or options.mail:
+        givenname = options.gn
+        lastname = options.sn
+        gecos = options.gecos
+        directory = options.directory
+        mail = options.mail
+    else:
+        if not options.gn:
+            while (cont != True):
+                givenname = raw_input("First name: [%s] " % user.getValue('givenname'))
+                if (ipavalidate.plain(givenname, notEmpty=False)):
+                    print "Must be letters or '"
+                else:
+                    cont = True
+                if len(givenname) < 1:
+                    shell = None
+                    cont = True
+        else:
+            givenname = options.gn
+            if (ipavalidate.plain(givenname, notEmpty=True)):
+                print "First name must be letters or '"
+                return 1
+
+        cont = False
+        if not options.sn:
+            while (cont != True):
+                lastname = raw_input(" Last name: [%s] " % user.getValue('sn'))
+                if (ipavalidate.plain(lastname, notEmpty=False)):
+                    print "Must be letters or '"
+                else:
+                    cont = True
+                if len(lastname) < 1:
+                    shell = None
+                    cont = True
+        else:
+            lastname = options.sn
+            if (ipavalidate.plain(lastname, notEmpty=True)):
+                print "Last name must be letters or '"
+                return 1
+
+        cont = False
+        if not options.mail:
+            while (cont != True):
+                mail = raw_input("E-mail addr: [%s]" % user.getValue('mail'))
+                if (ipavalidate.email(mail, notEmpty=False)):
+                    print "Must include a user and domain name"
+                else:
+                    cont = True
+        else:
+            mail = options.mail
+            if (ipavalidate.email(mail)):
+                print "E-mail must include a user and domain name"
+                return 1
+
+        # Ask the questions we don't normally force. We don't require answers
+        # for these.
+        cont = False
+        if not options.gecos:
+            while (cont != True):
+                gecos = raw_input("gecos: [%s] " % user.getValue('gecos'))
+                if (ipavalidate.plain(gecos, notEmpty=False)):
+                    print "Must be letters, numbers, spaces or '"
+                else:
+                    cont = True
+        cont = False
+        if not options.directory:
+            while (cont != True):
+                directory = raw_input("home directory: [%s] " % user.getValue('homeDirectory'))
+                if (ipavalidate.path(gecos, notEmpty=False)):
+                    print "Must be letters, numbers, spaces or '"
+                else:
+                    cont = True
+        cont = False
+        if not options.shell:
+            while (cont != True):
+                shell = raw_input("shell: [%s] " % user.getValue('loginshell'))
+              
+                if len(shell) < 1:
+                    shell = None
+                    cont = True
+        cont = False
+
+    if givenname:
+        user.setValue('givenname', givenname)
+    if lastname:
+        user.setValue('sn', lastname)
+    if mail:
+        user.setValue('mail', mail)
+    user.setValue('cn', "%s %s" % (user.getValue('givenname'),
+                                   user.getValue('sn')))
+
+    if gecos:
+        user.setValue('gecos', gecos)
+    if directory:
+        user.setValue('homedirectory', directory)
+    if shell:
+        user.setValue('loginshell', shell)
 
     try:
         client.update_user(user)
-        print args[1] + " successfully modified"
     except xmlrpclib.Fault, f:
         print f.faultString
         return 1
@@ -86,6 +204,7 @@ def main():
         print "%s" % (e.message)
         return 1
 
+    print username + " successfully updated"
     return 0
 
 main()

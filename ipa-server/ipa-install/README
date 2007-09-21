@@ -19,6 +19,8 @@ mod_python
 gcc
 python-ldap
 TurboGears
+PyKerberos
+python-krbV
 
 Installation example:
 
