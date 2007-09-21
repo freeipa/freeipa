@@ -630,3 +630,7 @@ class Root(controllers.RootController):
     @identity.require(identity.not_anonymous())
     def groupupdatevalidate(self, tg_errors=None, **kw):
         return tg_errors, kw
+
+    @expose("ipagui.templates.loginfailed")
+    def loginfailed(self, **kw):
+        return dict()

@@ -26,7 +26,7 @@
         <div id="login">
     <div py:if="tg.config('identity.on') and not defined('logging_in')" id="pageLogin">
         <span py:if="tg.identity.anonymous">
-            <a href="${tg.url('/login')}">Login</a>
+            Kerberos login failed.
         </span>
         <span py:if="not tg.identity.anonymous">
             Logged in as: ${tg.identity.user.display_name}
