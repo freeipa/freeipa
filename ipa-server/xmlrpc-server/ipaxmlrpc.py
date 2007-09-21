@@ -130,6 +130,7 @@ class ModXMLRPCRequestHandler(object):
         """Dispatches an XML-RPC method from marshalled (XML) data."""
 
         params, method = loads(data)
+        pythonopts = req.get_options()
 
         # Populate the Apache environment variables
         req.add_common_vars()
@@ -139,6 +140,9 @@ class ModXMLRPCRequestHandler(object):
 
         if req.subprocess_env.get("KRB5CCNAME") is not None:
             opts['krbccache'] = req.subprocess_env.get("KRB5CCNAME")
+
+        if pythonopts.get("IPADebug"):
+            opts['ipadebug'] = pythonopts.get("IPADebug")
 
         # Tack onto the end of the passed-in arguments any options we also
         # need

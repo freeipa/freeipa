@@ -49,7 +49,7 @@ class IPAConnPool:
     def __init__(self):
         self.freelist = []
 
-    def getConn(self, host, port, bindca, bindcert, bindkey, proxydn=None, krbccache=None):
+    def getConn(self, host, port, bindca, bindcert, bindkey, proxydn=None, krbccache=None, debug=None):
         conn = None
         if len(self.freelist) > 0:
             for i in range(len(self.freelist)):
@@ -58,7 +58,7 @@ class IPAConnPool:
                     conn = self.freelist.pop(i)
                     break
         if conn is None:
-            conn = ipaserver.ipaldap.IPAdmin(host,port,bindca,bindcert,bindkey)
+            conn = ipaserver.ipaldap.IPAdmin(host,port,bindca,bindcert,bindkey,None,debug)
         if proxydn is not None:
             conn.set_proxydn(proxydn)
         else:
@@ -99,13 +99,13 @@ class IPAServer:
     def set_krbccache(self, krbccache):
         self.krbccache = krbccache
     
-    def get_dn_from_principal(self, princ):
+    def get_dn_from_principal(self, princ, debug):
         """Given a kerberos principal get the LDAP uid"""
         global _LDAPPool
 
         filter = "(krbPrincipalName=" + princ + ")"
         # The only anonymous search we should have
-        conn = _LDAPPool.getConn(self.host,self.sslport,self.bindca,self.bindcert,self.bindkey,None,None)
+        conn = _LDAPPool.getConn(self.host,self.sslport,self.bindca,self.bindcert,self.bindkey,None,None,debug)
         try:
             ent = conn.getEntry(self.basedn, self.scope, filter, ['dn'])
         finally:
@@ -124,6 +124,8 @@ class IPAServer:
            that and None for proxy dn to make calling getConn() easier.
         """
 
+        debug = opts.get('ipadebug')
+
         if opts:
             if opts.get('krbccache'):
                 self.set_krbccache(opts['krbccache'])
@@ -137,9 +139,9 @@ class IPAServer:
             pass
 
         if self.princ is not None:
-            return self.get_dn_from_principal(self.princ), None
+            return self.get_dn_from_principal(self.princ, debug), None, debug
         else:
-            return None, self.krbccache
+            return None, self.krbccache, debug
 
     def getConnection(self, opts):
         """Wrapper around IPAConnPool.getConn() so we don't have to pass
@@ -151,7 +153,7 @@ class IPAServer:
         """
         global _LDAPPool
 
-        (proxy_dn, krbccache) = self.__setup_connection(opts)
+        (proxy_dn, krbccache, debug) = self.__setup_connection(opts)
 
         if krbccache is not None:
             bindca = None
@@ -167,7 +169,7 @@ class IPAServer:
         else:
              return None
 
-        return _LDAPPool.getConn(self.host,port,bindca,bindcert,bindkey,proxy_dn,krbccache)
+        return _LDAPPool.getConn(self.host,port,bindca,bindcert,bindkey,proxy_dn,krbccache,debug)
 
     def releaseConnection(self, conn):
         global _LDAPPool
