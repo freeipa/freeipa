@@ -15,3 +15,9 @@ First need to remove any existing values for these.
 
 For more information on autoconfiguration, see:
 http://mit.edu/~firefox/www/maintainers/autoconfig.html
+
+globalsetup.sh will change the default setup for all users and will
+lock the preferences. The downside is that rpm -V will show firefox as
+corrupt.
+
+usersetup.sh will change all existing profiles of the current user

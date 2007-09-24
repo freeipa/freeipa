@@ -18,8 +18,8 @@
 try
 {
     /* Kerberos SSO configuration */
-    lockPref("network.negotiate-auth.trusted-uris", ".greyoak.com");
-    lockPref("network.negotiate-auth.delegation-uris", ".greyoak.com");
+    lockPref("network.negotiate-auth.trusted-uris", ".freeipa.org");
+    lockPref("network.negotiate-auth.delegation-uris", ".freeipa.org");
 
     /* These are the defaults */
     lockPref("network.negotiate-auth.gsslib", "");
