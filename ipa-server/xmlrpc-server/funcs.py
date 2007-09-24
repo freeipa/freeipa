@@ -158,11 +158,14 @@ class IPAServer:
             bindcert = None
             bindkey = None
             port = self.port
+#        Fallback to use proxy authentication. We no longer support this method
+#        else:
+#            bindca = self.bindca
+#            bindcert = self.bindcert 
+#            bindkey = self.bindkey
+#            port = self.sslport
         else:
-            bindca = self.bindca
-            bindcert = self.bindcert 
-            bindkey = self.bindkey
-            port = self.sslport
+             return None
 
         return _LDAPPool.getConn(self.host,port,bindca,bindcert,bindkey,proxy_dn,krbccache)
 
