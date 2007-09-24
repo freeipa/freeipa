@@ -1,0 +1,65 @@
+<html>
+<body>
+    <h2>Browser Kerberos Setup</h2>
+    <h3> Internet Explorer Configuration </h3>
+<p>Once you are able to log into the workstation with your kerberos key you should be able to use that ticket in Internet Explorer.
+</p>
+<ul><li> Login to the Windows machine using an account of domain FREEIPA.ORG
+
+</li><li> The next few steps are better-documented (with screenies) at  <a href="http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dnsecure/html/http-sso-1.asp" class="external free" rel="nofollow" title="http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dnsecure/html/http-sso-1.asp">http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dnsecure/html/http-sso-1.asp</a>
+</li><li> In Internet Explorer, click Tools, and then click Internet Options.
+</li></ul>
+<ol><li> Click the Security tab.
+</li><li> Click Local intranet.
+</li><li> Click Sites
+</li><li> Click Advanced
+</li><li> Add *.freeipa.org to the list
+
+</li></ol>
+<ul><li> In Internet Explorer, click Tools, and then click Internet Options.
+</li></ul>
+<ol><li> Click the Security tab.
+</li><li> Click Local intranet.
+</li><li> Click Custom Level
+</li><li> Select Automatic logon only in Intranet zone.
+</li></ol>
+<ul><li> Visit a kerberized web site using IE. You must use the fully-qualified DN in the URL.
+</li><li> If all went right, it should work.
+
+</li></ul>
+<h3 class="title">Firefox Configuration</h3>
+<p>
+You can configure Firefox to use Kerberos for Single Sign-on. In order for this functionality to work correctly, you need to configure your web browser to send your Kerberos credentials to the appropriate <span class="abbrev">KDC</span>.The following section describes the configuration changes and other requirements to achieve this.
+</p>
+<ol class="arabic">
+<li>
+<p>
+In the address bar of Firefox, type <b class="userinput"><tt>about:config</tt></b> to display the list of current configuration options.
+</p>
+</li>
+
+<li>
+<p>
+In the <span><b class="guilabel">Filter</b></span> field, type <b class="userinput"><tt>negotiate</tt></b> to restrict the list of options.
+</p>
+</li>
+<li>
+<p>
+Double-click the <span class="emphasis"><em>network.negotiate-auth.trusted-uris</em></span> entry to display the <span class="emphasis"><em>Enter string value</em></span> dialog box.
+
+</p>
+</li>
+<li>
+<p>
+Enter the name of the domain against which you want to authenticate, for example, <i class="replaceable"><tt>.example.com</tt></i>.
+</p>
+</li>
+<li>
+<p>
+Repeat the above procedure for the <span class="emphasis"><em>network.negotiate-auth.delegation-uris</em></span> entry, using the same domain.
+</p>
+</li>
+
+</ol>
+</body>
+</html>
