@@ -1,4 +1,4 @@
-SUBDIRS=ipa-install
+SUBDIRS=ipa-install firefox
 PYTHONDIR=$(DESTDIR)/usr/share/ipa/ipaclient
 
 all:

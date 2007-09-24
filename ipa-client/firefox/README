@@ -1,0 +1,17 @@
+Firefox automatic configuration.
+
+ipa.cfg needs to be installed in the Firefox root directory
+(/usr/lib/firefox-version). It can be a symlink somewhere else. We install
+the actual file into /usr/share/ipa.
+
+ipa.js contains the javascript that sets the desired configuration.
+
+The Firefox all.js needs to be modified to set:
+
+pref('general.config.obscure_value', 0);
+pref('general.config.filename', 'ipa.cfg');
+
+First need to remove any existing values for these.
+
+For more information on autoconfiguration, see:
+http://mit.edu/~firefox/www/maintainers/autoconfig.html
