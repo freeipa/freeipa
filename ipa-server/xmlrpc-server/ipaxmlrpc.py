@@ -140,9 +140,20 @@ class ModXMLRPCRequestHandler(object):
 
         if req.subprocess_env.get("KRB5CCNAME") is not None:
             opts['krbccache'] = req.subprocess_env.get("KRB5CCNAME")
+        else:
+            sys.stderr.write("IPA: did not receive a Kerberos credentials cache. Expect problems")
+            sys.stderr.flush()
 
         if pythonopts.get("IPADebug"):
             opts['ipadebug'] = pythonopts.get("IPADebug")
+
+            if opts['ipadebug'].lower() == "on":
+                for o in opts:
+                    sys.stderr.write("IPA: setting option %s: %s\n" % (o, opts[o]))
+                    sys.stderr.flush()
+                for e in req.subprocess_env:
+                    sys.stderr.write("IPA: environment %s: %s\n" % (e, req.subprocess_env[e]))
+                    sys.stderr.flush()
 
         # Tack onto the end of the passed-in arguments any options we also
         # need
