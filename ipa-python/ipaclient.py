@@ -160,6 +160,15 @@ class IPAClient:
         result = self.transport.get_group_by_dn(dn,sattrs)
         return group.Group(result)
 
+    def get_groups_by_member(self,member_dn,sattrs=None):
+        """Gets the groups that member_dn belongs to.
+           If sattrs is not None then only those
+           attributes will be returned, otherwise all available
+           attributes are returned. The result is a list of groups."""
+        results = self.transport.get_groups_by_member(member_dn,sattrs)
+
+        return map(lambda result: group.Group(result), results)
+
     def add_group(self,group,group_container=None):
         """Add a group. group is a ipa.group.Group object"""
 

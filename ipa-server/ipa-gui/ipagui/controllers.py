@@ -251,7 +251,9 @@ class Root(controllers.RootController):
         client.set_krbccache(os.environ["KRB5CCNAME"])
         try:
             user = client.get_user_by_uid(uid, user_fields)
-            return dict(user=user.toDict(), fields=forms.user.UserFields())
+            user_groups = client.get_groups_by_member(user.dn, ['cn'])
+            return dict(user=user.toDict(), fields=forms.user.UserFields(),
+                        user_groups=user_groups)
         except ipaerror.IPAError, e:
             turbogears.flash("User show failed: " + str(e))
             raise turbogears.redirect("/")

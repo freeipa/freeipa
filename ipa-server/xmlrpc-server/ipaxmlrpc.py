@@ -326,6 +326,7 @@ def handler(req, profiling=False):
             h.register_function(f.modifyPassword)
             h.register_function(f.get_group_by_cn)
             h.register_function(f.get_group_by_dn)
+            h.register_function(f.get_groups_by_member)
             h.register_function(f.add_group)
             h.register_function(f.find_groups)
             h.register_function(f.add_user_to_group)

@@ -90,6 +90,14 @@ else:
       </tr>
     </table>
 
+    <div class="formsection">Groups</div>
+    <div py:for="group in user_groups">
+      <a href="${tg.url('/groupshow', cn=group.cn)}">${group.cn}</a>
+    </div>
+
+    <br/>
+    <br/>
+
     <a href="${tg.url('/useredit', uid=user.get('uid'))}">edit</a>
 
 </body>

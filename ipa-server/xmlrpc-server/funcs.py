@@ -204,6 +204,20 @@ class IPAServer:
     
         return self.convert_entry(ent)
 
+    def __get_list (self, base, filter, sattrs=None, opts=None):
+        """Gets a list of entries. Each is converted to a dict of values.
+           Multi-valued fields are represented as lists.
+        """
+        entries = []
+
+        conn = self.getConnection(opts)
+        try:
+            entries = conn.getList(base, self.scope, filter, sattrs)
+        finally:
+            self.releaseConnection(conn)
+
+        return map(self.convert_entry, entries)
+
     def __update_entry (self, oldentry, newentry, opts=None):
         """Update an LDAP entry
 
@@ -571,7 +585,7 @@ class IPAServer:
         cn = self.__safe_filter(cn)
         filter = "(cn=" + cn + ")"
         return self.__get_entry(self.basedn, filter, sattrs, opts)
-    
+
     def get_group_by_dn (self, dn, sattrs=None, opts=None):
         """Get a specific group's entry. Return as a dict of values.
            Multi-valued fields are represented as lists.
@@ -579,7 +593,16 @@ class IPAServer:
 
         filter = "(objectClass=*)"
         return self.__get_entry(dn, filter, sattrs, opts)
-    
+
+    def get_groups_by_member (self, member_dn, sattrs=None, opts=None):
+        """Get a specific group's entry. Return as a dict of values.
+           Multi-valued fields are represented as lists.
+        """
+
+        filter = "(&(objectClass=posixGroup)(uniqueMember=%s))" % member_dn
+
+        return self.__get_list(self.basedn, filter, sattrs, opts)
+
     def add_group (self, group, group_container=None, opts=None):
         """Add a group in LDAP. Takes as input a dict where the key is the
            attribute name and the value is either a string or in the case

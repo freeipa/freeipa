@@ -258,6 +258,23 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
+    def get_groups_by_member(self,member_dn,sattrs=None):
+        """Gets the groups that member_dn belongs to.
+           If sattrs is not None then only those
+           attributes will be returned, otherwise all available
+           attributes are returned. The result is a list of dicts."""
+        server = self.setup_server()
+        if sattrs is None:
+            sattrs = "__NONE__"
+        try:
+            result = server.get_groups_by_member(member_dn, sattrs)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
     def add_group(self,group,group_container=None):
         """Add a new group. Takes as input a dict where the key is the
            attribute name and the value is either a string or in the case
