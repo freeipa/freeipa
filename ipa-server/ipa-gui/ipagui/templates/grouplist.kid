@@ -7,7 +7,7 @@
 </head>
 <body>
     <div id="search">
-        <form action="${tg.url('/grouplist')}" method="post">
+        <form action="${tg.url('/grouplist')}" method="get">
             <input id="criteria" type="text" name="criteria" value="${criteria}" />
             <input type="submit" value="Find Groups"/>
         </form>

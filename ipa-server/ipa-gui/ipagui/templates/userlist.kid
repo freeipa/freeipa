@@ -8,7 +8,7 @@
 <body>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/tablekit.js')}"></script>
     <div id="search">
-        <form action="${tg.url('/userlist')}" method="post">
+        <form action="${tg.url('/userlist')}" method="get">
             <input id="uid" type="text" name="uid" value="${uid}" />
             <input type="submit" value="Find People"/>
         </form>
@@ -22,10 +22,7 @@
           <thead>
             <tr>
                 <th>
-                    ${fields.uid.label}
-                </th>
-                <th>
-                    Name
+                    Person
                 </th>
                 <th>
                     Phone
@@ -36,18 +33,14 @@
                 <th>
                     Title
                 </th>
-                <th>
-                    License Plate
-                </th>
             </tr>
           </thead>
           <tbody>
             <tr py:for="user in users">
                 <td>
-                    <a href="${tg.url('/usershow',uid=user.uid)}">${user.uid}</a>
-                </td>
-                <td>
-                    ${user.givenName} ${user.sn}
+                    <a href="${tg.url('/usershow',uid=user.uid)}"
+                    >${user.givenName} ${user.sn}</a>
+                    (${user.uid})
                 </td>
                 <td>
                     ${user.telephoneNumber}
@@ -57,9 +50,6 @@
                 </td>
                 <td>
                     ${user.title}
-                </td>
-                <td>
-                    ${user.carLicense}
                 </td>
             </tr>
           </tbody>

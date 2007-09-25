@@ -343,7 +343,8 @@ class IPAdmin(SimpleLDAPObject):
                 for result in result_list:
                     entries.append(result)
                 type, result_list = self.result(msgid, 0)
-        except (ldap.ADMINLIMIT_EXCEEDED, ldap.SIZELIMIT_EXCEEDED), e:
+        except (ldap.ADMINLIMIT_EXCEEDED, ldap.SIZELIMIT_EXCEEDED,
+                ldap.TIMELIMIT_EXCEEDED), e:
             partial = 1
         except ldap.LDAPError, e:
             raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)

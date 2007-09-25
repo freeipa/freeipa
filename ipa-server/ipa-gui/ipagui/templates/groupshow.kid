@@ -37,8 +37,10 @@
       <?python
       member_name = "%s %s" % (member.get('givenname', ''),
                                member.get('sn', ''))
+      member_uid = member.get('uid')
       ?>
-      ${member_name} (${member.get('uid')})
+      <a href="${tg.url('usershow', uid=member_uid)}"
+        >${member_name}</a> (${member_uid})
     </div>
 
     <br/>

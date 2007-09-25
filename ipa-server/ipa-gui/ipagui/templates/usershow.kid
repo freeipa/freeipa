@@ -70,7 +70,7 @@ else:
           <th>
             <label class="fieldlabel" py:content="fields.mail.label" />:
           </th>
-          <td>${user.get("mail")}</td>
+          <td><a href="mailto:${user.get('mail')}">${user.get("mail")}</a></td>
         </tr>
         <tr>
           <th>

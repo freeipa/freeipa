@@ -451,10 +451,14 @@ class IPAServer:
     def find_users (self, criteria, sattrs=None, searchlimit=0, opts=None):
         """Returns a list: counter followed by the results.
            If the results are truncated, counter will be set to -1."""
+
+        # TODO - retrieve from config
+        timelimit = 2
+
         # Assume the list of fields to search will come from a central
         # configuration repository.  A good format for that would be
         # a comma-separated list of fields
-        search_fields_conf_str = "uid,givenName,sn,telephoneNumber,ou,carLicense,title"
+        search_fields_conf_str = "uid,givenName,sn,telephoneNumber,ou,title"
         search_fields = string.split(search_fields_conf_str, ",")
 
         criteria = self.__safe_filter(criteria)
@@ -466,17 +470,27 @@ class IPAServer:
         (exact_match_filter, partial_match_filter) = self.__generate_match_filters(
                 search_fields, criteria_words)
 
+        #
+        # further constrain search to just the objectClass
+        # TODO - need to parameterize this into generate_match_filters,
+        #        and work it into the field-specification search feature
+        #
+        exact_match_filter = "(&(objectClass=person)%s)" % exact_match_filter
+        partial_match_filter = "(&(objectClass=person)%s)" % partial_match_filter
+
         conn = self.getConnection(opts)
         try:
             try:
                 exact_results = conn.getListAsync(self.basedn, self.scope,
-                        exact_match_filter, sattrs, 0, None, None, -1, searchlimit)
+                        exact_match_filter, sattrs, 0, None, None, timelimit,
+                        searchlimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 exact_results = [0]
 
             try:
                 partial_results = conn.getListAsync(self.basedn, self.scope,
-                        partial_match_filter, sattrs, 0, None, None, -1, searchlimit)
+                        partial_match_filter, sattrs, 0, None, None, timelimit,
+                        searchlimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 partial_results = [0]
         finally:
@@ -654,6 +668,10 @@ class IPAServer:
         """Return a list containing a User object for each
         existing group that matches the criteria.
         """
+
+        # TODO - retrieve from config
+        timelimit = 2
+
         # Assume the list of fields to search will come from a central
         # configuration repository.  A good format for that would be
         # a comma-separated list of fields
@@ -684,13 +702,15 @@ class IPAServer:
         try:
             try:
                 exact_results = conn.getListAsync(self.basedn, self.scope,
-                        exact_match_filter, sattrs, 0, None, None, -1, searchlimit)
+                        exact_match_filter, sattrs, 0, None, None, timelimit,
+                        searchlimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 exact_results = [0]
 
             try:
                 partial_results = conn.getListAsync(self.basedn, self.scope,
-                        partial_match_filter, sattrs, 0, None, None, -1, searchlimit)
+                        partial_match_filter, sattrs, 0, None, None, timelimit,
+                        searchlimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 partial_results = [0]
         finally:
