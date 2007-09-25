@@ -29,7 +29,8 @@ the kerberos credentials.
 
 If that works, the second test more closely models the way that IPA works.
 
-- copy test_mod_python.py /usr/share/ipa/ipaserver
+- mkdir /usr/share/ipa/ipatest
+- cp test_mod_python.py /usr/share/ipa/ipatest
 - uncomment the entries for ipatest in /etc/httpd/conf.d/ipa.conf. There are
   entries for ProxyPass and ProxyReversePass, an Alias and a Directory
 - restart Apache
