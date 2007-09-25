@@ -308,7 +308,18 @@ class IPAServer:
 
         filter = "(objectClass=*)"
         return self.__get_entry(dn, filter, sattrs, opts)
-    
+
+    def get_users_by_manager (self, manager_dn, sattrs=None, opts=None):
+        """Gets the users that report to a particular manager.
+        """
+
+        filter = "(&(objectClass=person)(manager=%s))" % manager_dn
+
+        try:
+            return self.__get_list(self.basedn, filter, sattrs, opts)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            return []
+
     def add_user (self, user, user_container=None, opts=None):
         """Add a user in LDAP. Takes as input a dict where the key is the
            attribute name and the value is either a string or in the case
@@ -601,7 +612,10 @@ class IPAServer:
 
         filter = "(&(objectClass=posixGroup)(uniqueMember=%s))" % member_dn
 
-        return self.__get_list(self.basedn, filter, sattrs, opts)
+        try:
+            return self.__get_list(self.basedn, filter, sattrs, opts)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            return []
 
     def add_group (self, group, group_container=None, opts=None):
         """Add a group in LDAP. Takes as input a dict where the key is the

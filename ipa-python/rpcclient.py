@@ -101,6 +101,23 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
+    def get_users_by_manager(self,manager_dn,sattrs=None):
+        """Gets the users that report to a manager.
+           If sattrs is not None then only those
+           attributes will be returned, otherwise all available
+           attributes are returned. The result is a list of dicts."""
+        server = self.setup_server()
+        if sattrs is None:
+            sattrs = "__NONE__"
+        try:
+            result = server.get_users_by_manager(manager_dn, sattrs)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
     def add_user(self,user,user_container=None):
         """Add a new user. Takes as input a dict where the key is the
            attribute name and the value is either a string or in the case

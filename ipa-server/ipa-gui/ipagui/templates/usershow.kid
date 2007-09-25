@@ -78,6 +78,15 @@ else:
           </th>
           <td>${user.get("telephonenumber")}</td>
         </tr>
+        <tr py:if='user_manager'>
+          <th>
+            Manager:
+          </th>
+          <td>
+            <a href="${tg.url('/usershow', uid=user_manager.uid)}"
+              >${user_manager.givenname} ${user_manager.sn}</a>
+          </td>
+        </tr>
     </table>
 
     <div class="formsection">Account Status</div>
@@ -89,6 +98,12 @@ else:
         <td>${userhelper.account_status_display(user.get("nsAccountLock"))}</td>
       </tr>
     </table>
+
+    <div class="formsection" py:if='len(user_reports) &gt; 0'>Direct Reports</div>
+    <div py:for="report in user_reports">
+      <a href="${tg.url('/usershow', uid=report.uid)}"
+        >${report.givenname} ${report.sn}</a>
+    </div>
 
     <div class="formsection">Groups</div>
     <div py:for="group in user_groups">

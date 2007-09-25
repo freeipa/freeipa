@@ -68,6 +68,15 @@ class IPAClient:
         result = self.transport.get_user_by_dn(dn,sattrs)
         return user.User(result)
 
+    def get_users_by_manager(self,manager_dn,sattrs=None):
+        """Gets the users the report to a particular manager.
+           If sattrs is not None then only those
+           attributes will be returned, otherwise all available
+           attributes are returned. The result is a list of groups."""
+        results = self.transport.get_users_by_manager(manager_dn, sattrs)
+
+        return map(lambda result: user.User(result), results)
+
     def add_user(self,user,user_container=None):
         """Add a user. user is a ipa.user.User object"""
 

@@ -316,6 +316,7 @@ def handler(req, profiling=False):
             h = ModXMLRPCRequestHandler()
             h.register_function(f.get_user_by_uid)
             h.register_function(f.get_user_by_dn)
+            h.register_function(f.get_users_by_manager)
             h.register_function(f.add_user)
             h.register_function(f.get_add_schema)
             h.register_function(f.get_all_users)

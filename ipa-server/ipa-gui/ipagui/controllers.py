@@ -252,8 +252,20 @@ class Root(controllers.RootController):
         try:
             user = client.get_user_by_uid(uid, user_fields)
             user_groups = client.get_groups_by_member(user.dn, ['cn'])
+            user_reports = client.get_users_by_manager(user.dn,
+                    ['givenname', 'sn', 'uid'])
+
+            user_manager = None
+            try:
+                if user.manager:
+                    user_manager = client.get_user_by_dn(user.manager,
+                        ['givenname', 'sn', 'uid'])
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                pass
+
             return dict(user=user.toDict(), fields=forms.user.UserFields(),
-                        user_groups=user_groups)
+                        user_groups=user_groups, user_reports=user_reports,
+                        user_manager=user_manager)
         except ipaerror.IPAError, e:
             turbogears.flash("User show failed: " + str(e))
             raise turbogears.redirect("/")
