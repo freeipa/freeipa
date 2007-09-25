@@ -124,9 +124,10 @@ class IPAServer:
            that and None for proxy dn to make calling getConn() easier.
         """
 
-        debug = opts.get('ipadebug')
+        debug = "Off"
 
-        if opts:
+        if opts is not None:
+            debug = opts.get('ipadebug')
             if opts.get('krbccache'):
                 self.set_krbccache(opts['krbccache'])
                 self.set_principal(None)
