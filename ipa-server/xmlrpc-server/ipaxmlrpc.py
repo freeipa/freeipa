@@ -227,7 +227,7 @@ class ModXMLRPCRequestHandler(object):
 
         return results
 
-    def list_api(self):
+    def list_api(self,opts):
         funcs = []
         for name,func in self.funcs.items():
             #the keys in self.funcs determine the name of the method as seen over xmlrpc
@@ -249,14 +249,14 @@ class ModXMLRPCRequestHandler(object):
                 args.append(func.func_code.co_varnames[x])
         return args
 
-    def system_listMethods(self):
+    def system_listMethods(self, opts):
         return self.funcs.keys()
 
-    def system_methodSignature(self, method):
+    def system_methodSignature(self, method, opts):
         #it is not possible to autogenerate this data
         return 'signatures not supported'
 
-    def system_methodHelp(self, method):
+    def system_methodHelp(self, method, opts):
         func = self.funcs.get(method)
         if func is None:
             return ""

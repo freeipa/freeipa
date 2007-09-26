@@ -52,3 +52,9 @@ Sucessfully bound to LDAP using SASL mechanism GSSAPI<br>
 
 It should print all of the environment variables available to mod_python
 and do a GSSAPI LDAP connection.
+
+A final test, which lists the capabilities of the XML-RPC server is
+test_methods.py. This is more a sanity check that new functions added
+to the server work as expected.
+
+Note that opts is added by the server itself and is not passed in by the user.
