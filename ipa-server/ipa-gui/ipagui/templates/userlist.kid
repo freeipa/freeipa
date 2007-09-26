@@ -68,5 +68,22 @@
     <div py:if='(users != None) and (len(users) == 0)'>
         <h2>No results found for "${uid}"</h2>
     </div>
+    <div py:if='users == None'>
+      <p>
+        Search automatically looks across multiple fields.  If you want to find
+        Joe in Finance, try typing "joe finance" into the search box.
+      </p>
+      <p>
+        Exact matches are listed first, followed by partial matches.  If your search
+        is too broad, you will get a warning that the search returned too many
+        results.  Try being more specific.
+      </p>
+      <p>
+        The results that come back are sortable.  Simply click on a column
+        header to sort on that header.  A triangle will indicate the sorted
+        column, along with its direction. Clicking and dragging between headers
+        will allow you to resize the header.
+      </p>
+    </div>
 </body>
 </html>
