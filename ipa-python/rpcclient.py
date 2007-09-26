@@ -326,49 +326,98 @@ class RPCClient:
     
         return ipautil.unwrap_binary_data(result)
 
-    def add_user_to_group(self, user, group):
+    def add_member_to_group(self, member_dn, group_cn):
+        """Add a new member to an existing group.
+        """
+        server = self.setup_server()
+        try:
+            result = server.add_member_to_group(member_dn, group_cn)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
+    def add_members_to_group(self, member_dns, group_cn):
+        """Add several members to an existing group.
+           member_dns is a list of the dns to add
+
+           Returns a list of the dns that were not added.
+        """
+        server = self.setup_server()
+        try:
+            result = server.add_members_to_group(member_dns, group_cn)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
+    def remove_member_from_group(self, member_dn, group_cn):
+        """Remove a member from an existing group.
+        """
+        server = self.setup_server()
+        try:
+            result = server.remove_member_from_group(member_dn, group_cn)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
+    def remove_members_from_group(self, member_dns, group_cn):
+        """Remove several members from an existing group.
+
+           Returns a list of the dns that were not removed.
+        """
+        server = self.setup_server()
+        try:
+            result = server.remove_members_from_group(member_dns, group_cn)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
+    def add_user_to_group(self, user_uid, group_cn):
         """Add a user to an existing group.
-           user is a uid of the user to add
-           group is the cn of the group to be added to
         """
         server = self.setup_server()
         try:
-            result = server.add_user_to_group(ipautil.wrap_binary_data(user),
-                    ipautil.wrap_binary_data(group))
+            result = server.add_user_to_group(user_uid, group_cn)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
-    
+
         return ipautil.unwrap_binary_data(result)
 
-    def add_users_to_group(self, users, group):
+    def add_users_to_group(self, user_uids, group_cn):
         """Add several users to an existing group.
-           user is a list of the uids of the users to add
-           group is the cn of the group to be added to
+           user_uids is a list of the uids of the users to add
 
-           Returns a list of the users that were not added.
+           Returns a list of the user uids that were not added.
         """
         server = self.setup_server()
         try:
-            result = server.add_users_to_group(ipautil.wrap_binary_data(users),
-                    ipautil.wrap_binary_data(group))
+            result = server.add_users_to_group(user_uids, group_cn)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
-    
+
         return ipautil.unwrap_binary_data(result)
 
-    def remove_user_from_group(self, user, group):
+    def remove_user_from_group(self, user_uid, group_cn):
         """Remove a user from an existing group.
-           user is a uid of the user to remove
-           group is the cn of the group to be removed from
         """
         server = self.setup_server()
         try:
-            result = server.remove_user_from_group(ipautil.wrap_binary_data(user),
-                    ipautil.wrap_binary_data(group))
+            result = server.remove_user_from_group(user_uid, group_cn)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
@@ -376,18 +425,15 @@ class RPCClient:
     
         return ipautil.unwrap_binary_data(result)
 
-    def remove_users_from_group(self, users, group):
+    def remove_users_from_group(self, user_uids, group_cn):
         """Remove several users from an existing group.
-           user is a list of the uids of the users to remove
-           group is the cn of the group to be removed from
+           user_uids is a list of the uids of the users to remove
 
-           Returns a list of the users that were not removed.
+           Returns a list of the user uids that were not removed.
         """
         server = self.setup_server()
         try:
-            result = server.remove_users_from_group(
-                    ipautil.wrap_binary_data(users),
-                    ipautil.wrap_binary_data(group))
+            result = server.remove_users_from_group(user_uids, group_cn)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):

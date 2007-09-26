@@ -205,41 +205,65 @@ class IPAClient:
 
         return groups
 
-    def add_user_to_group(self, user, group):
+    def add_member_to_group(self, member_dn, group_cn):
+        """Add a member to an existing group.
+        """
+
+        return self.transport.add_member_to_group(member_dn, group_cn)
+
+    def add_members_to_group(self, member_dns, group_cn):
+        """Add several members to an existing group.
+           member_dns is a list of dns to add
+
+           Returns a list of the dns that were not added.
+        """
+
+        return self.transport.add_members_to_group(member_dns, group_cn)
+
+    def remove_member_from_group(self, member_dn, group_cn):
+        """Remove a member from an existing group.
+        """
+
+        return self.transport.remove_member_from_group(member_dn, group_cn)
+
+    def remove_members_from_group(self, member_dns, group_cn):
+        """Remove several members from an existing group.
+           member_dns is a list of dns to remove
+
+           Returns a list of the dns that were not removed.
+        """
+
+        return self.transport.remove_members_from_group(member_dns, group_cn)
+
+    def add_user_to_group(self, user_uid, group_cn):
         """Add a user to an existing group.
-           user is a uid of the user to add
-           group is the cn of the group to be added to
         """
 
-        return self.transport.add_user_to_group(user, group)
+        return self.transport.add_user_to_group(user_uid, group_cn)
 
-    def add_users_to_group(self, users, group):
+    def add_users_to_group(self, user_uids, group_cn):
         """Add several users to an existing group.
-           user is a list of uids of the users to add
-           group is the cn of the group to be added to
+           user_uids is a list of uids of the users to add
 
-           Returns a list of the users that were not added.
+           Returns a list of the user uids that were not added.
         """
 
-        return self.transport.add_users_to_group(users, group)
+        return self.transport.add_users_to_group(user_uids, group_cn)
 
-    def remove_user_from_group(self, user, group):
+    def remove_user_from_group(self, user_uid, group_cn):
         """Remove a user from an existing group.
-           user is a uid of the user to remove
-           group is the cn of the group to be removed from
         """
 
-        return self.transport.remove_user_from_group(user, group)
+        return self.transport.remove_user_from_group(user_uid, group_cn)
 
-    def remove_users_from_group(self, users, group):
+    def remove_users_from_group(self, user_uids, group_cn):
         """Remove several users from an existing group.
-           user is a list of uids of the users to remove
-           group is the cn of the group to be removed from
+           user_uids is a list of uids of the users to remove
 
-           Returns a list of the users that were not removed.
+           Returns a list of the user uids that were not removed.
         """
 
-        return self.transport.remove_users_from_group(users, group)
+        return self.transport.remove_users_from_group(user_uids, group_cn)
 
     def update_group(self,group):
         """Update a group entry."""

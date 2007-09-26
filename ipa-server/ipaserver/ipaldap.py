@@ -215,7 +215,7 @@ class IPAdmin(SimpleLDAPObject):
            out this way so that we can call them from places other than
            instance creation e.g. when we just need to reconnect, not create a
            new instance"""
-        if debug.lower() == "on":
+        if debug and debug.lower() == "on":
             ldap.set_option(ldap.OPT_DEBUG_LEVEL,255)
         if cacert is not None:
             ldap.set_option(ldap.OPT_X_TLS_CACERTFILE,cacert)

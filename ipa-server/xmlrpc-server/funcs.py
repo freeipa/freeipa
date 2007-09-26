@@ -66,6 +66,8 @@ class IPAConnPool:
         return conn
 
     def releaseConn(self, conn):
+        if conn is None:
+            return
         # We can't re-use SASL connections. If proxydn is None it means
         # we have a Kerberos credentails cache set. See ipaldap.set_krbccache
         if conn.proxydn is None:
@@ -716,27 +718,24 @@ class IPAServer:
 
         return groups
 
-    def add_user_to_group(self, user, group, opts=None):
-        """Add a user to an existing group.
-           user is a uid of the user to add
-           group is the cn of the group to be added to
+    def add_member_to_group(self, member_dn, group_cn, opts=None):
+        """Add a member to an existing group.
         """
 
-        old_group = self.get_group_by_cn(group, None, opts)
+        old_group = self.get_group_by_cn(group_cn, None, opts)
         if old_group is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
         new_group = copy.deepcopy(old_group)
 
-        user_dn = self.get_user_by_uid(user, ['dn', 'uid', 'objectclass'], opts)
-        if user_dn is None:
-            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+        # check to make sure member_dn exists
+        member_entry = self.__get_entry(member_dn, "(objectClass=*)", ['dn','uid'], opts)
 
         if new_group.get('uniquemember') is not None:
             if ((isinstance(new_group.get('uniquemember'), str)) or (isinstance(new_group.get('uniquemember'), unicode))):
                 new_group['uniquemember'] = [new_group['uniquemember']]
-            new_group['uniquemember'].append(user_dn['dn'])
+            new_group['uniquemember'].append(member_dn)
         else:
-            new_group['uniquemember'] = user_dn['dn']
+            new_group['uniquemember'] = member_dn
 
         try:
             ret = self.__update_entry(old_group, new_group, opts)
@@ -744,50 +743,44 @@ class IPAServer:
             raise
         return ret
 
-    def add_users_to_group(self, users, group, opts=None):
-        """Given a list of user uid's add them to the group cn denoted by group
-           Returns a list of the users were not added to the group.
+    def add_members_to_group(self, member_dns, group_cn, opts=None):
+        """Given a list of dn's, add them to the group cn denoted by group
+           Returns a list of the member_dns that were not added to the group.
         """
 
         failed = []
 
-        if (isinstance(users, str)):
-            users = [users]
+        if (isinstance(member_dns, str)):
+            member_dns = [member_dns]
 
-        for user in users:
+        for member_dn in member_dns:
             try:
-                self.add_user_to_group(user, group, opts)
+                self.add_member_to_group(member_dn, group_cn, opts)
             except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
                 # User is already in the group
-                failed.append(user)
+                failed.append(member_dn)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 # User or the group does not exist
-                failed.append(user)
+                failed.append(member_dn)
 
         return failed
 
-    def remove_user_from_group(self, user, group, opts=None):
-        """Remove a user from an existing group.
-           user is a uid of the user to remove
-           group is the cn of the group to be removed from
+    def remove_member_from_group(self, member_dn, group_cn, opts=None):
+        """Remove a member_dn from an existing group.
         """
 
-        old_group = self.get_group_by_cn(group, None, opts)
+        old_group = self.get_group_by_cn(group_cn, None, opts)
         if old_group is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
         new_group = copy.deepcopy(old_group)
-
-        user_dn = self.get_user_by_uid(user, ['dn', 'uid', 'objectclass'], opts)
-        if user_dn is None:
-            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
 
         if new_group.get('uniquemember') is not None:
             if ((isinstance(new_group.get('uniquemember'), str)) or (isinstance(new_group.get('uniquemember'), unicode))):
                 new_group['uniquemember'] = [new_group['uniquemember']]
             try:
-                new_group['uniquemember'].remove(user_dn['dn'])
+                new_group['uniquemember'].remove(member_dn)
             except ValueError:
-                # User is not in the group
+                # member is not in the group
                 # FIXME: raise more specific error?
                 raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
         else:
@@ -801,26 +794,89 @@ class IPAServer:
             raise
         return ret
 
-    def remove_users_from_group(self, users, group, opts=None):
-        """Given a list of user uid's remove them from the group cn denoted
-           by group
-           Returns a list of the users were not removed from the group.
+    def remove_members_from_group(self, member_dns, group_cn, opts=None):
+        """Given a list of member dn's remove them from the group.
+           Returns a list of the members not removed from the group.
         """
 
         failed = []
 
-        if (isinstance(users, str)):
-            users = [users]
+        if (isinstance(member_dns, str)):
+            member_dns = [member_dns]
 
-        for user in users:
+        for member_dn in member_dns:
             try:
-                self.remove_user_from_group(user, group, opts)
+                self.remove_member_from_group(member_dn, group_cn, opts)
             except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
-                # User is not in the group
-                failed.append(user)
+                # member is not in the group
+                failed.append(member_dn)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                # member_dn or the group does not exist
+                failed.append(member_dn)
+
+        return failed
+
+    def add_user_to_group(self, user_uid, group_cn, opts=None):
+        """Add a user to an existing group.
+        """
+
+        user = self.get_user_by_uid(user_uid, ['dn', 'uid', 'objectclass'], opts)
+        if user is None:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+
+        return self.add_member_to_group(user['dn'], group_cn, opts)
+
+    def add_users_to_group(self, user_uids, group_cn, opts=None):
+        """Given a list of user uid's add them to the group cn denoted by group
+           Returns a list of the users were not added to the group.
+        """
+
+        failed = []
+
+        if (isinstance(user_uids, str)):
+            user_uids = [user_uids]
+
+        for user_uid in user_uids:
+            try:
+                self.add_user_to_group(user_uid, group_cn, opts)
+            except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
+                # User is already in the group
+                failed.append(user_uid)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 # User or the group does not exist
-                failed.append(user)
+                failed.append(user_uid)
+
+        return failed
+
+    def remove_user_from_group(self, user_uid, group_cn, opts=None):
+        """Remove a user from an existing group.
+        """
+
+        user = self.get_user_by_uid(user_uid, ['dn', 'uid', 'objectclass'], opts)
+        if user is None:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+
+        return self.remove_member_from_group(user['dn'], group_cn, opts)
+
+    def remove_users_from_group(self, user_uids, group_cn, opts=None):
+        """Given a list of user uid's remove them from the group
+           Returns a list of the user uids not removed from the group.
+        """
+
+        failed = []
+
+        if (isinstance(user_uids, str)):
+            user_uids = [user_uids]
+
+        for user_uid in user_uids:
+            try:
+                self.remove_user_from_group(user_uid, group_cn, opts)
+            except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
+                # User is not in the group
+                failed.append(user_uid)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                # User or the group does not exist
+                failed.append(user_uid)
 
         return failed
 
