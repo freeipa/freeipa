@@ -3,21 +3,30 @@
   <form action="${action}" name="${name}" method="${method}" class="tableform"
       onsubmit="preSubmit()" >
 
+<?python
+from ipagui.helpers import ipahelper
+?>
+
 
   <?python searchurl = tg.url('/userlist_ajax') ?>
 
   <script type="text/javascript">
     // this is used for round-trip recontruction of the names.
-    // the hidden fields only contain uids.  
-    var uid_to_cn_hash = new Hash();
+    // the hidden fields only contain dns.
+    var dn_to_cn_hash = new Hash();
 
     // used to filter search results.
-    // records uids already in the group
+    // records dns already in the group
     var member_hash = new Hash();
 
     // used to prevent double adding
-    // records uid to be added
+    // records dns to be added
     var added_hash = new Hash();
+
+    // Tracks the div ids that each member belongs to.
+    // Since dn's will contain illegal characters for div ids, this is used
+    // to map them to the correct div
+    var dn_to_member_div_id = new Hash();
 
 
     function toggleProtectedFields(checkbox) {
@@ -38,32 +47,32 @@
       Element.remove(effect.element);
     }
 
-    function adduser(uid, cn) {
-      uid_to_cn_hash[uid] = cn;
+    function adduser(dn, cn) {
+      dn_to_cn_hash[dn] = cn;
 
-      if ((added_hash[uid] == 1) || (member_hash[uid] == 1)) {
+      if ((added_hash[dn] == 1) || (member_hash[dn] == 1)) {
         return null;
       }
-      added_hash[uid] = 1;
+      added_hash[dn] = 1;
 
       var newdiv = document.createElement('div');
       newdiv.appendChild(document.createTextNode(
-        cn.escapeHTML() + " (" + uid.escapeHTML() + ") "));
+        cn.escapeHTML() + " "));
 
       var undolink = document.createElement('a');
       undolink.setAttribute('href', '');
       undolink.setAttribute('onclick',
         'new Effect.Fade(Element.up(this), {afterFinish: removeElement});' +
-        'added_hash.remove("' + uid + '");' +
+        'added_hash.remove("' + jsStringEscape(dn) + '");' +
         'return false;');
       undolink.appendChild(document.createTextNode("undo"));
       newdiv.appendChild(undolink);
 
-      var uidInfo = document.createElement('input');
-      uidInfo.setAttribute('type', 'hidden');
-      uidInfo.setAttribute('name', 'uidadd');
-      uidInfo.setAttribute('value', uid);
-      newdiv.appendChild(uidInfo);
+      var dnInfo = document.createElement('input');
+      dnInfo.setAttribute('type', 'hidden');
+      dnInfo.setAttribute('name', 'dnadd');
+      dnInfo.setAttribute('value', dn);
+      newdiv.appendChild(dnInfo);
 
       newdiv.style.display = 'none';
       $('newmembers').appendChild(newdiv);
@@ -71,8 +80,8 @@
       return newdiv
     }
 
-    function adduserHandler(element, uid, cn) {
-      var newdiv = adduser(uid, cn)
+    function adduserHandler(element, dn, cn) {
+      var newdiv = adduser(dn, cn)
       if (newdiv != null) {
         new Effect.Fade(Element.up(element));
         new Effect.Appear(newdiv);
@@ -80,27 +89,28 @@
       }
     }
 
-    function removeuser(uid, cn) {
-      uid_to_cn_hash[uid] = cn;
+    function removeuser(dn, cn) {
+      dn_to_cn_hash[dn] = cn;
 
       var newdiv = document.createElement('div');
       newdiv.appendChild(document.createTextNode(
-        cn.escapeHTML() + " (" + uid.escapeHTML() + ") "));
+        cn.escapeHTML() + " "));
 
+      orig_div_id = dn_to_member_div_id[dn];
       var undolink = document.createElement('a');
       undolink.setAttribute('href', '');
       undolink.setAttribute('onclick',
         'new Effect.Fade(Element.up(this), {afterFinish: removeElement});' +
-        "new Effect.Appear($('member-" + uid + "'));" +
+        "new Effect.Appear($('" + orig_div_id + "'));" +
         'return false;');
       undolink.appendChild(document.createTextNode("undo"));
       newdiv.appendChild(undolink);
 
-      var uidInfo = document.createElement('input');
-      uidInfo.setAttribute('type', 'hidden');
-      uidInfo.setAttribute('name', 'uiddel');
-      uidInfo.setAttribute('value', uid);
-      newdiv.appendChild(uidInfo);
+      var dnInfo = document.createElement('input');
+      dnInfo.setAttribute('type', 'hidden');
+      dnInfo.setAttribute('name', 'dndel');
+      dnInfo.setAttribute('value', dn);
+      newdiv.appendChild(dnInfo);
 
       newdiv.style.display = 'none';
       $('delmembers').appendChild(newdiv);
@@ -108,8 +118,8 @@
       return newdiv
     }
 
-    function removeuserHandler(element, uid, cn) {
-      var newdiv = removeuser(uid, cn);
+    function removeuserHandler(element, dn, cn) {
+      var newdiv = removeuser(dn, cn);
       new Effect.Fade(Element.up(element));
       new Effect.Appear(newdiv);
       /* Element.up(element).remove(); */
@@ -141,8 +151,8 @@
     }
 
     function preSubmit() {
-      var json = uid_to_cn_hash.toJSON();
-      $('form_uid_to_cn_json').value = json;
+      var json = dn_to_cn_hash.toJSON();
+      $('form_dn_to_cn_json').value = json;
       return true;
     }
   </script>
@@ -207,20 +217,32 @@
       </div>
 
       <div>
-        <div py:for="member in members" id="member-${member.get('uid')}">
+        <?python div_counter = 1 ?>
+        <div py:for="member in members" id="member-${div_counter}">
           <?python
+          member_dn = member.get('dn')
+          member_dn_esc = ipahelper.javascript_string_escape(member_dn)
+
           member_uid = member.get('uid')
+          member_uid_esc = ipahelper.javascript_string_escape(member_uid)
+
           member_name = "%s %s" % (member.get('givenname', ''),
                                    member.get('sn', ''))
+          member_name_esc = ipahelper.javascript_string_escape(member_name)
           ?>
           ${member_name} (${member_uid})
           <a href="#" 
-            onclick="removeuserHandler(this, '${member_uid}', '${member_name}');
+            onclick="removeuserHandler(this, '${member_dn_esc}',
+                                       '${member_name_esc} (${member_uid_esc})');
                      return false;"
           >remove</a>
           <script type="text/javascript">
-            member_hash["${member_uid}"] = 1;
+            dn_to_member_div_id['${member_dn_esc}'] = "member-${div_counter}";
+            member_hash["${member_dn_esc}"] = 1;
           </script>
+          <?python
+          div_counter = div_counter + 1
+          ?>
         </div>
       </div>
 
@@ -272,8 +294,8 @@
      * This section restores the contents of the add and remove lists
      * dynamically if we have to refresh the page
      */
-    if ($('form_uid_to_cn_json').value != "") {
-      uid_to_cn_hash = new Hash($('form_uid_to_cn_json').value.evalJSON());
+    if ($('form_dn_to_cn_json').value != "") {
+      dn_to_cn_hash = new Hash($('form_dn_to_cn_json').value.evalJSON());
     }
 
     if ($('form_editprotected').value != "") {
@@ -283,30 +305,37 @@
   </script>
 
   <?python
-  uidadds = value.get('uidadd', [])
-  if not(isinstance(uidadds,list) or isinstance(uidadds,tuple)):
-      uidadds = [uidadds]
+  dnadds = value.get('dnadd', [])
+  if not(isinstance(dnadds,list) or isinstance(dnadds,tuple)):
+      dnadds = [dnadds]
 
-  uiddels = value.get('uiddel', [])
-  if not(isinstance(uiddels,list) or isinstance(uiddels,tuple)):
-      uiddels = [uiddels]
+  dndels = value.get('dndel', [])
+  if not(isinstance(dndels,list) or isinstance(dndels,tuple)):
+      dndels = [dndels]
   ?>
 
-  <script py:for="uidadd in uidadds">
-    var uid = "${uidadd}";
-    var cn = uid_to_cn_hash[uid];
-    var newdiv = adduser(uid, cn);
+  <script py:for="dnadd in dnadds">
+    <?python
+    dnadd_esc = ipahelper.javascript_string_escape(dnadd)
+    ?>
+    var dn = "${dnadd_esc}";
+    var cn = dn_to_cn_hash[dn];
+    var newdiv = adduser(dn, cn);
     if (newdiv != null) {
       newdiv.style.display = 'block';
     }
   </script>
 
-  <script py:for="uiddel in uiddels">
-    var uid = "${uiddel}";
-    var cn = uid_to_cn_hash[uid];
-    var newdiv = removeuser(uid, cn);
+  <script py:for="dndel in dndels">
+    <?python
+    dndel_esc = ipahelper.javascript_string_escape(dndel)
+    ?>
+    var dn = "${dndel_esc}";
+    var cn = dn_to_cn_hash[dn];
+    var newdiv = removeuser(dn, cn);
     newdiv.style.display = 'block';
-    $('member-' + uid).style.display = 'none';
+    orig_div_id = dn_to_member_div_id[dn]
+    $(orig_div_id).style.display = 'none';
   </script>
 
 </div>

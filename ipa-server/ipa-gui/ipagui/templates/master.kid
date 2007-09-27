@@ -11,6 +11,7 @@
     </style>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/prototype.js')}"></script>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/scriptaculous.js?load=effects')}"></script>
+    <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/ipautil.js')}"></script>
 </head>
 
 <body py:match="item.tag=='{http://www.w3.org/1999/xhtml}body'" py:attrs="item.items()">

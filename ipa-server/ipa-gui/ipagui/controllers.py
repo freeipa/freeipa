@@ -17,6 +17,7 @@ from turbogears import identity
 import ipa.config
 import ipa.ipaclient
 import ipa.user
+from ipa.entity import utf8_encode_values
 import xmlrpclib
 import forms.user
 import forms.group
@@ -534,12 +535,13 @@ class Root(controllers.RootController):
         #
         failed_adds = []
         try:
-            uidadds = kw.get('uidadd')
-            if uidadds != None:
-                if not(isinstance(uidadds,list) or isinstance(uidadds,tuple)):
-                    uidadds = [uidadds]
-                failed_adds = client.add_users_to_group(uidadds, kw.get('cn'))
-                kw['uidadd'] = failed_adds
+            dnadds = kw.get('dnadd')
+            if dnadds != None:
+                if not(isinstance(dnadds,list) or isinstance(dnadds,tuple)):
+                    dnadds = [dnadds]
+                failed_adds = client.add_members_to_group(
+                        utf8_encode_values(dnadds), kw.get('cn'))
+                kw['dnadd'] = failed_adds
         except ipaerror.IPAError, e:
             turbogears.flash("User update failed: " + str(e))
             return dict(form=group_edit_form, group=kw, members=member_dicts,
@@ -550,12 +552,13 @@ class Root(controllers.RootController):
         #
         failed_dels = []
         try:
-            uiddels = kw.get('uiddel')
-            if uiddels != None:
-                if not(isinstance(uiddels,list) or isinstance(uiddels,tuple)):
-                    uiddels = [uiddels]
-                failed_dels = client.remove_users_from_group(uiddels, kw.get('cn'))
-                kw['uiddel'] = failed_dels
+            dndels = kw.get('dndel')
+            if dndels != None:
+                if not(isinstance(dndels,list) or isinstance(dndels,tuple)):
+                    dndels = [dndels]
+                failed_dels = client.remove_members_from_group(
+                        utf8_encode_values(dndels), kw.get('cn'))
+                kw['dndel'] = failed_dels
         except ipaerror.IPAError, e:
             turbogears.flash("User update failed: " + str(e))
             return dict(form=group_edit_form, group=kw, members=member_dicts,
