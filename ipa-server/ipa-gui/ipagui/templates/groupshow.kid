@@ -35,12 +35,19 @@
     <div class="formsection">Group Members</div>
     <div py:for="member in members">
       <?python
-      member_name = "%s %s" % (member.get('givenname', ''),
-                               member.get('sn', ''))
+
       member_uid = member.get('uid')
+      if member_uid:
+          member_cn = "%s %s" % (member.get('givenName'), member.get('sn'))
+          member_desc = "(%s)" % member_uid
+          view_url = tg.url('usershow', uid=member_uid)
+      else:
+          member_cn = "%s" % member.get('cn')
+          member_desc = "[group]"
+          view_url = tg.url('groupshow', cn=member_cn)
       ?>
-      <a href="${tg.url('usershow', uid=member_uid)}"
-        >${member_name}</a> (${member_uid})
+      <a href="${view_url}"
+        >${member_cn}</a> ${member_desc}
     </div>
 
     <br/>

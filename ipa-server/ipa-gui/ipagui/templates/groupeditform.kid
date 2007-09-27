@@ -8,7 +8,7 @@ from ipagui.helpers import ipahelper
 ?>
 
 
-  <?python searchurl = tg.url('/userlist_ajax') ?>
+  <?python searchurl = tg.url('/groupedit_search') ?>
 
   <script type="text/javascript">
     // this is used for round-trip recontruction of the names.
@@ -47,7 +47,7 @@ from ipagui.helpers import ipahelper
       Element.remove(effect.element);
     }
 
-    function adduser(dn, cn) {
+    function addmember(dn, cn) {
       dn_to_cn_hash[dn] = cn;
 
       if ((added_hash[dn] == 1) || (member_hash[dn] == 1)) {
@@ -80,8 +80,8 @@ from ipagui.helpers import ipahelper
       return newdiv
     }
 
-    function adduserHandler(element, dn, cn) {
-      var newdiv = adduser(dn, cn)
+    function addmemberHandler(element, dn, cn) {
+      var newdiv = addmember(dn, cn)
       if (newdiv != null) {
         new Effect.Fade(Element.up(element));
         new Effect.Appear(newdiv);
@@ -89,7 +89,7 @@ from ipagui.helpers import ipahelper
       }
     }
 
-    function removeuser(dn, cn) {
+    function removemember(dn, cn) {
       dn_to_cn_hash[dn] = cn;
 
       var newdiv = document.createElement('div');
@@ -118,8 +118,8 @@ from ipagui.helpers import ipahelper
       return newdiv
     }
 
-    function removeuserHandler(element, dn, cn) {
-      var newdiv = removeuser(dn, cn);
+    function removememberHandler(element, dn, cn) {
+      var newdiv = removemember(dn, cn);
       new Effect.Fade(Element.up(element));
       new Effect.Appear(newdiv);
       /* Element.up(element).remove(); */
@@ -145,7 +145,7 @@ from ipagui.helpers import ipahelper
       new Ajax.Updater('searchresults',
           '${searchurl}',
           {  asynchronous:true,
-             parameters: { uid: $('uid').value },
+             parameters: { criteria: $('criteria').value },
              evalScripts: true });
       return false;
     }
@@ -224,16 +224,17 @@ from ipagui.helpers import ipahelper
           member_dn_esc = ipahelper.javascript_string_escape(member_dn)
 
           member_uid = member.get('uid')
-          member_uid_esc = ipahelper.javascript_string_escape(member_uid)
-
-          member_name = "%s %s" % (member.get('givenname', ''),
-                                   member.get('sn', ''))
-          member_name_esc = ipahelper.javascript_string_escape(member_name)
+          if member_uid:
+              member_cn = "%s %s (%s)" % (member.get('givenName'),
+                                          member.get('sn'),
+                                          member.get('uid'))
+          else:
+              member_cn = "%s [group]" % member.get('cn')
+          member_cn_esc = ipahelper.javascript_string_escape(member_cn)
           ?>
-          ${member_name} (${member_uid})
+          ${member_cn}
           <a href="#" 
-            onclick="removeuserHandler(this, '${member_dn_esc}',
-                                       '${member_name_esc} (${member_uid_esc})');
+            onclick="removememberHandler(this, '${member_dn_esc}', '${member_cn_esc}');
                      return false;"
           >remove</a>
           <script type="text/javascript">
@@ -249,7 +250,7 @@ from ipagui.helpers import ipahelper
     </div>
 
     <div style="clear:both">
-      <div class="formsection">Add Persons</div>
+      <div class="formsection">Add Members</div>
 
       <div class="floatlist">
         <div class="floatheader">To Add:</div>
@@ -259,9 +260,9 @@ from ipagui.helpers import ipahelper
 
       <div>
         <div id="search">
-          <input id="uid" type="text" name="uid"
+          <input id="criteria" type="text" name="criteria"
             onkeypress="return enterDoSearch(event);" />
-          <input type="button" value="Find Users"
+          <input type="button" value="Find"
             onclick="return doSearch();"
           />
         </div>
@@ -320,7 +321,7 @@ from ipagui.helpers import ipahelper
     ?>
     var dn = "${dnadd_esc}";
     var cn = dn_to_cn_hash[dn];
-    var newdiv = adduser(dn, cn);
+    var newdiv = addmember(dn, cn);
     if (newdiv != null) {
       newdiv.style.display = 'block';
     }
@@ -332,7 +333,7 @@ from ipagui.helpers import ipahelper
     ?>
     var dn = "${dndel_esc}";
     var cn = dn_to_cn_hash[dn];
-    var newdiv = removeuser(dn, cn);
+    var newdiv = removemember(dn, cn);
     newdiv.style.display = 'block';
     orig_div_id = dn_to_member_div_id[dn]
     $(orig_div_id).style.display = 'none';

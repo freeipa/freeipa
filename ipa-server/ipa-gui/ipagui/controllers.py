@@ -224,26 +224,6 @@ class Root(controllers.RootController):
 
         return dict(users=users, uid=uid, fields=forms.user.UserFields())
 
-    @expose("ipagui.templates.userlistajax")
-    @identity.require(identity.not_anonymous())
-    def userlist_ajax(self, **kw):
-        """Searches for users and displays list of results in a table.
-           This method is used for ajax calls."""
-        client.set_krbccache(os.environ["KRB5CCNAME"])
-        users = []
-        searchlimit = 100
-        uid = kw.get('uid')
-        if uid != None and len(uid) > 0:
-            try:
-                users = client.find_users(uid.encode('utf-8'), None, searchlimit)
-                counter = users[0]
-                users = users[1:]
-            except ipaerror.IPAError, e:
-                turbogears.flash("User list failed: " + str(e))
-
-        return dict(users=users, uid=uid, fields=forms.user.UserFields(),
-                counter=counter)
-
 
     @expose("ipagui.templates.usershow")
     @identity.require(identity.not_anonymous())
@@ -434,6 +414,40 @@ class Root(controllers.RootController):
             turbogears.flash("Group add failed: " + str(e) + "<br/>" + str(e.detail))
             return dict(form=group_new_form, tg_template='ipagui.templates.groupnew')
 
+    @expose("ipagui.templates.groupeditsearch")
+    @identity.require(identity.not_anonymous())
+    def groupedit_search(self, **kw):
+        """Searches for users+groups and displays list of results in a table.
+           This method is used for the ajax search on the group edit page.
+           It's not re-usable because the ajax/dom manipulation is tightly
+           bound to the groupedit page"""
+        client.set_krbccache(os.environ["KRB5CCNAME"])
+        users = []
+        groups = []
+        counter = 0
+        searchlimit = 100
+        criteria = kw.get('criteria')
+        if criteria != None and len(criteria) > 0:
+            try:
+                users = client.find_users(criteria.encode('utf-8'), None, searchlimit)
+                users_counter = users[0]
+                users = users[1:]
+
+                groups = client.find_groups(criteria.encode('utf-8'), None,
+                        searchlimit)
+                groups_counter = groups[0]
+                groups = groups[1:]
+
+                if users_counter < 0 or groups_counter < 0:
+                    counter = -1
+                else:
+                    counter = users_counter + groups_counter
+            except ipaerror.IPAError, e:
+                turbogears.flash("search failed: " + str(e))
+
+        return dict(users=users, groups=groups, criteria=criteria,
+                counter=counter)
+
 
     @expose("ipagui.templates.groupedit")
     @identity.require(identity.not_anonymous())
@@ -461,13 +475,15 @@ class Root(controllers.RootController):
                 member_dns = [member_dns]
 
             # TODO: convert this into an efficient (single) function call
-            member_users = map(
-                    lambda dn: client.get_user_by_dn(dn, ['givenname', 'sn', 'uid']),
+            # Note: this isn't quite right, since it can be users and groups.
+            members = map(
+                    lambda dn: client.get_user_by_dn(dn, ['dn', 'givenname', 'sn',
+                        'uid', 'cn']),
                     member_dns)
 
             # Map users into an array of dicts, which can be serialized
             # (so we don't have to do this on each round trip)
-            member_dicts = map(lambda user: user.toDict(), member_users)
+            member_dicts = map(lambda member: member.toDict(), members)
 
             # store a copy of the original group for the update later
             group_data = b64encode(dumps(group_dict))
@@ -526,7 +542,7 @@ class Root(controllers.RootController):
                 #
                 kw['group_orig'] = b64encode(dumps(new_group.toDict()))
         except ipaerror.IPAError, e:
-            turbogears.flash("User update failed: " + str(e))
+            turbogears.flash("Group update failed: " + str(e))
             return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
 
@@ -543,7 +559,7 @@ class Root(controllers.RootController):
                         utf8_encode_values(dnadds), kw.get('cn'))
                 kw['dnadd'] = failed_adds
         except ipaerror.IPAError, e:
-            turbogears.flash("User update failed: " + str(e))
+            turbogears.flash("Group update failed: " + str(e))
             return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
 
@@ -560,7 +576,7 @@ class Root(controllers.RootController):
                         utf8_encode_values(dndels), kw.get('cn'))
                 kw['dndel'] = failed_dels
         except ipaerror.IPAError, e:
-            turbogears.flash("User update failed: " + str(e))
+            turbogears.flash("Group update failed: " + str(e))
             return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
 
@@ -627,10 +643,12 @@ class Root(controllers.RootController):
                 member_dns = [member_dns]
 
             # TODO: convert this into an efficient (single) function call
-            member_users = map(
-                    lambda dn: client.get_user_by_dn(dn, ['givenname', 'sn', 'uid']),
+            # Note: this isn't quite right, since it can be users and groups.
+            members = map(
+                    lambda dn: client.get_user_by_dn(dn, ['dn', 'givenname', 'sn',
+                        'uid', 'cn']),
                     member_dns)
-            member_dicts = map(lambda user: user.toDict(), member_users)
+            member_dicts = map(lambda member: member.toDict(), members)
 
             return dict(group=group_dict, fields=forms.group.GroupFields(),
                     members = member_dicts)
