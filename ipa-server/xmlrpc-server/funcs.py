@@ -448,12 +448,10 @@ class IPAServer:
     
         return users
 
-    def find_users (self, criteria, sattrs=None, searchlimit=0, opts=None):
+    def find_users (self, criteria, sattrs=None, searchlimit=0, timelimit=-1,
+            opts=None):
         """Returns a list: counter followed by the results.
            If the results are truncated, counter will be set to -1."""
-
-        # TODO - retrieve from config
-        timelimit = 2
 
         # Assume the list of fields to search will come from a central
         # configuration repository.  A good format for that would be
@@ -664,13 +662,11 @@ class IPAServer:
         finally:
             self.releaseConnection(conn)
 
-    def find_groups (self, criteria, sattrs=None, searchlimit=0, opts=None):
+    def find_groups (self, criteria, sattrs=None, searchlimit=0, timelimit=-1,
+            opts=None):
         """Return a list containing a User object for each
         existing group that matches the criteria.
         """
-
-        # TODO - retrieve from config
-        timelimit = 2
 
         # Assume the list of fields to search will come from a central
         # configuration repository.  A good format for that would be

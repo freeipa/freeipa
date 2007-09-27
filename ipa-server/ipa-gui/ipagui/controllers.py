@@ -212,7 +212,7 @@ class Root(controllers.RootController):
         uid = kw.get('uid')
         if uid != None and len(uid) > 0:
             try:
-                users = client.find_users(uid.encode('utf-8'))
+                users = client.find_users(uid.encode('utf-8'), None, 0, 2)
                 counter = users[0]
                 users = users[1:]
                 if counter == -1:
@@ -596,7 +596,7 @@ class Root(controllers.RootController):
         criteria = kw.get('criteria')
         if criteria != None and len(criteria) > 0:
             try:
-                groups = client.find_groups(criteria.encode('utf-8'))
+                groups = client.find_groups(criteria.encode('utf-8'), None, 0, 2)
                 counter = groups[0]
                 groups = groups[1:]
                 if counter == -1:

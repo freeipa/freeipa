@@ -167,7 +167,7 @@ class RPCClient:
     
         return ipautil.unwrap_binary_data(result)
 
-    def find_users (self, criteria, sattrs=None, searchlimit=0):
+    def find_users (self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
         """Return a list: counter followed by a User object for each user that
            matches the criteria. If the results are truncated, counter will
            be set to -1"""
@@ -177,7 +177,7 @@ class RPCClient:
             # None values are not allowed in XML-RPC
             if sattrs is None:
                 sattrs = "__NONE__"
-            result = server.find_users(criteria, sattrs, searchlimit)
+            result = server.find_users(criteria, sattrs, searchlimit, timelimit)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
@@ -309,7 +309,7 @@ class RPCClient:
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
 
-    def find_groups (self, criteria, sattrs=None, searchlimit=0):
+    def find_groups (self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
         """Return a list containing a Group object for each group that matches
            the criteria."""
     
@@ -318,7 +318,7 @@ class RPCClient:
             # None values are not allowed in XML-RPC
             if sattrs is None:
                 sattrs = "__NONE__"
-            result = server.find_groups(criteria, sattrs, searchlimit)
+            result = server.find_groups(criteria, sattrs, searchlimit, timelimit)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):

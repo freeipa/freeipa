@@ -109,11 +109,11 @@ class IPAClient:
         result = self.transport.get_add_schema()
         return result
 
-    def find_users(self, criteria, sattrs=None, searchlimit=0):
+    def find_users(self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
         """Return a list: counter followed by a User object for each user that
            matches the criteria. If the results are truncated, counter will
            be set to -1"""
-        result = self.transport.find_users(criteria, sattrs, searchlimit)
+        result = self.transport.find_users(criteria, sattrs, searchlimit, timelimit)
         counter = result[0]
 
         users = [counter]
@@ -193,10 +193,10 @@ class IPAClient:
         result = self.transport.add_group(group_dict, group_container)
         return result
 
-    def find_groups(self, criteria, sattrs=None, searchlimit=0):
+    def find_groups(self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
         """Find groups whose cn matches the criteria. Wildcards are 
            acceptable. Returns a list of Group objects."""
-        result = self.transport.find_groups(criteria, sattrs, searchlimit)
+        result = self.transport.find_groups(criteria, sattrs, searchlimit, timelimit)
         counter = result[0]
 
         groups = [counter]
