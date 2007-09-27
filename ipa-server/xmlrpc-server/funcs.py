@@ -105,6 +105,7 @@ class IPAServer:
         """Given a kerberos principal get the LDAP uid"""
         global _LDAPPool
 
+        princ = self.__safe_filter(princ)
         filter = "(krbPrincipalName=" + princ + ")"
         # The only anonymous search we should have
         conn = _LDAPPool.getConn(self.host,self.sslport,self.bindca,self.bindcert,self.bindkey,None,None,debug)
@@ -315,6 +316,7 @@ class IPAServer:
         """Gets the users that report to a particular manager.
         """
 
+        manager_dn = self.__safe_filter(manager_dn)
         filter = "(&(objectClass=person)(manager=%s))" % manager_dn
 
         try:
@@ -624,6 +626,7 @@ class IPAServer:
            Multi-valued fields are represented as lists.
         """
 
+        member_dn = self.__safe_filter(member_dn)
         filter = "(&(objectClass=posixGroup)(uniqueMember=%s))" % member_dn
 
         try:
