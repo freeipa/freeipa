@@ -899,6 +899,56 @@ class IPAServer:
 
         return failed
 
+    def add_groups_to_user(self, group_dns, user_dn, opts=None):
+        """Given a list of group dn's add them to the user.
+
+           Returns a list of the group dns that were not added.
+        """
+
+        failed = []
+
+        if (isinstance(group_dns, str)):
+            group_dns = [group_dns]
+
+        for group_dn in group_dns:
+            # TODO - change add_member_to_group to take a group_dn
+            try:
+                group = self.get_group_by_dn(group_dn, ['cn'], opts)
+                self.add_member_to_group(user_dn, group.get('cn'), opts)
+            except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
+                # User is already in the group
+                failed.append(group_dn)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                # User or the group does not exist
+                failed.append(group_dn)
+
+        return failed
+
+    def remove_groups_from_user(self, group_dns, user_dn, opts=None):
+        """Given a list of group dn's remove them from the user.
+
+           Returns a list of the group dns that were not removed.
+        """
+
+        failed = []
+
+        if (isinstance(group_dns, str)):
+            group_dns = [group_dns]
+
+        for group_dn in group_dns:
+            # TODO - change remove_member_from_group to take a group_dn
+            try:
+                group = self.get_group_by_dn(group_dn, ['cn'], opts)
+                self.remove_member_from_group(user_dn, group.get('cn'), opts)
+            except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
+                # User is not in the group
+                failed.append(group_dn)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                # User or the group does not exist
+                failed.append(group_dn)
+
+        return failed
+
     def update_group (self, oldgroup, newgroup, opts=None):
         """Update a group in LDAP"""
         return self.__update_entry(oldgroup, newgroup, opts)

@@ -79,6 +79,15 @@ def sort_group_member(a, b):
         else:
             return 1
 
+def sort_by_cn(a, b):
+    """Comparator function used for sorting groups."""
+    if a.get('cn', '') == b.get('cn', ''):
+        return 0
+    elif a.get('cn', '') < b.get('cn', ''):
+        return -1
+    else:
+        return 1
+
 class Root(controllers.RootController):
 
     @expose(template="ipagui.templates.welcome")
@@ -144,6 +153,28 @@ class Root(controllers.RootController):
             turbogears.flash("User add failed: " + str(e))
             return dict(form=user_new_form, tg_template='ipagui.templates.usernew')
 
+    @expose("ipagui.templates.dynamiceditsearch")
+    @identity.require(identity.not_anonymous())
+    def useredit_search(self, **kw):
+        """Searches for groups and displays list of results in a table.
+           This method is used for the ajax search on the user edit page."""
+        client.set_krbccache(os.environ["KRB5CCNAME"])
+        groups = []
+        counter = 0
+        searchlimit = 100
+        criteria = kw.get('criteria')
+        if criteria != None and len(criteria) > 0:
+            try:
+                groups = client.find_groups(criteria.encode('utf-8'), None,
+                        searchlimit)
+                groups_counter = groups[0]
+                groups = groups[1:]
+            except ipaerror.IPAError, e:
+                turbogears.flash("search failed: " + str(e))
+
+        return dict(users=None, groups=groups, criteria=criteria,
+                counter=groups_counter)
+
 
     @expose("ipagui.templates.useredit")
     @identity.require(identity.not_anonymous())
@@ -152,18 +183,26 @@ class Root(controllers.RootController):
         if tg_errors:
             turbogears.flash("There was a problem with the form!")
 
+        client.set_krbccache(os.environ["KRB5CCNAME"])
         try:
-            client.set_krbccache(os.environ["KRB5CCNAME"])
             user = client.get_user_by_uid(uid, user_fields)
             user_dict = user.toDict()
             # Edit shouldn't fill in the password field.
             if user_dict.has_key('userpassword'):
                 del(user_dict['userpassword'])
 
+            user_groups = client.get_groups_by_member(user.dn, ['dn', 'cn'])
+            user_groups_dicts = map(lambda group: group.toDict(), user_groups)
+            user_groups_dicts.sort(sort_by_cn)
+            user_groups_data = b64encode(dumps(user_groups_dicts))
+
             # store a copy of the original user for the update later
             user_data = b64encode(dumps(user_dict))
             user_dict['user_orig'] = user_data
-            return dict(form=user_edit_form, user=user_dict)
+            user_dict['user_groups_data'] = user_groups_data
+
+            return dict(form=user_edit_form, user=user_dict,
+                    user_groups=user_groups_dicts)
         except ipaerror.IPAError, e:
             turbogears.flash("User edit failed: " + str(e))
             raise turbogears.redirect('/usershow', uid=kw.get('uid'))
@@ -178,12 +217,20 @@ class Root(controllers.RootController):
             turbogears.flash("Edit user cancelled")
             raise turbogears.redirect('/usershow', uid=kw.get('uid'))
 
+        # Decode the group data, in case we need to round trip
+        user_groups_dicts = loads(b64decode(kw.get('user_groups_data')))
+
         tg_errors, kw = self.userupdatevalidate(**kw)
         if tg_errors:
             return dict(form=user_edit_form, user=kw,
+                        user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')
 
         password_change = False
+
+        #
+        # Update the user itself
+        #
         try:
             orig_user_dict = loads(b64decode(kw.get('user_orig')))
 
@@ -210,22 +257,77 @@ class Root(controllers.RootController):
                                       new_user.getValue('sn')))
 
             rv = client.update_user(new_user)
+            #
+            # If the user update succeeds, but below operations fail, we
+            # need to make sure a subsequent submit doesn't try to update
+            # the user again.
+            #
+            kw['user_orig'] = b64encode(dumps(new_user.toDict()))
         except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST), e:
-            if not password_change:
-                turbogears.flash("User update failed: " + str(e))
-                return dict(form=user_edit_form, user=kw,
-                            tg_template='ipagui.templates.useredit')
+            # could be a password change
+            # could be groups change
+            # too much work to figure out unless someone really screams
+            pass
         except ipaerror.IPAError, e:
             turbogears.flash("User update failed: " + str(e))
             return dict(form=user_edit_form, user=kw,
+                        user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')
 
+        #
+        # Password change
+        #
         try:
             if password_change:
                 rv = client.modifyPassword(kw['uid'], "", kw.get('userpassword'))
         except ipaerror.IPAError, e:
             turbogears.flash("User password change failed: " + str(e))
             return dict(form=user_edit_form, user=kw,
+                        user_groups=user_groups_dicts,
+                        tg_template='ipagui.templates.useredit')
+
+        #
+        # Add groups
+        #
+        failed_adds = []
+        try:
+            dnadds = kw.get('dnadd')
+            if dnadds != None:
+                if not(isinstance(dnadds,list) or isinstance(dnadds,tuple)):
+                    dnadds = [dnadds]
+                failed_adds = client.add_groups_to_user(
+                        utf8_encode_values(dnadds), new_user.dn)
+                kw['dnadd'] = failed_adds
+        except ipaerror.IPAError, e:
+            turbogears.flash("Group update failed: " + str(e))
+            return dict(form=user_edit_form, user=kw,
+                        user_groups=user_groups_dicts,
+                        tg_template='ipagui.templates.useredit')
+
+        #
+        # Remove groups
+        #
+        failed_dels = []
+        try:
+            dndels = kw.get('dndel')
+            if dndels != None:
+                if not(isinstance(dndels,list) or isinstance(dndels,tuple)):
+                    dndels = [dndels]
+                failed_dels = client.remove_groups_from_user(
+                        utf8_encode_values(dndels), new_user.dn)
+                kw['dndel'] = failed_dels
+        except ipaerror.IPAError, e:
+            turbogears.flash("Group update failed: " + str(e))
+            return dict(form=user_edit_form, user=kw,
+                        user_groups=user_groups_dicts,
+                        tg_template='ipagui.templates.useredit')
+
+        if (len(failed_adds) > 0) or (len(failed_dels) > 0):
+            message = "There was an error updating groups.<br />"
+            message += "Failures have been preserved in the add/remove lists."
+            turbogears.flash(message)
+            return dict(form=user_edit_form, user=kw,
+                        user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')
 
         turbogears.flash("%s updated!" % kw['uid'])

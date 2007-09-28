@@ -35,6 +35,6 @@ else:
         Password has expired
     </div>
 
-     ${form.display(action="userupdate", value=user)}
+     ${form.display(action="userupdate", value=user, user_groups=user_groups)}
 </body>
 </html>

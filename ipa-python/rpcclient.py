@@ -441,6 +441,36 @@ class RPCClient:
     
         return ipautil.unwrap_binary_data(result)
 
+    def add_groups_to_user(self, group_dns, user_dn):
+        """Given a list of group dn's add them to the user.
+
+           Returns a list of the group dns that were not added.
+        """
+        server = self.setup_server()
+        try:
+            result = server.add_groups_to_user(group_dns, user_dn)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
+    def remove_groups_from_user(self, group_dns, user_dn):
+        """Given a list of group dn's remove them from the user.
+
+           Returns a list of the group dns that were not removed.
+        """
+        server = self.setup_server()
+        try:
+            result = server.remove_groups_from_user(group_dns, user_dn)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
     def update_group(self,oldgroup,newgroup):
         """Update an existing group. oldgroup and newgroup are dicts of attributes"""
         server = self.setup_server()

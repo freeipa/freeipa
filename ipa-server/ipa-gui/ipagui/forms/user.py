@@ -24,6 +24,8 @@ class UserFields():
     editprotected_hidden = widgets.HiddenField(name="editprotected")
 
     user_orig = widgets.HiddenField(name="user_orig")
+    user_groups_data = widgets.HiddenField(name="user_groups_data")
+    dn_to_info_json = widgets.HiddenField(name="dn_to_info_json")
 
 class UserNewValidator(validators.Schema):
     uid = validators.PlainText(not_empty=True)
@@ -88,6 +90,8 @@ class UserEditForm(widgets.Form):
               UserFields.uidnumber, UserFields.gidnumber,
               UserFields.krbPasswordExpiration_hidden,
               UserFields.editprotected_hidden,
+              UserFields.user_groups_data,
+              UserFields.dn_to_info_json,
               ]
 
     validator = UserEditValidator()

@@ -266,6 +266,21 @@ class IPAClient:
 
         return self.transport.remove_users_from_group(user_uids, group_cn)
 
+    def add_groups_to_user(self, group_dns, user_dn):
+        """Given a list of group dn's add them to the user.
+
+           Returns a list of the group dns that were not added.
+        """
+        return self.transport.add_groups_to_user(group_dns, user_dn)
+
+    def remove_groups_from_user(self, group_dns, user_dn):
+        """Given a list of group dn's remove them from the user.
+
+           Returns a list of the group dns that were not removed.
+        """
+
+        return self.transport.remove_groups_from_user(group_dns, user_dn)
+
     def update_group(self,group):
         """Update a group entry."""
 

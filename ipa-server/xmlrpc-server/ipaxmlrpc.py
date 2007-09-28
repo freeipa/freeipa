@@ -342,6 +342,8 @@ def handler(req, profiling=False):
             h.register_function(f.add_group_to_group)
             h.register_function(f.remove_user_from_group)
             h.register_function(f.remove_users_from_group)
+            h.register_function(f.add_groups_to_user)
+            h.register_function(f.remove_groups_from_user)
             h.register_function(f.update_group)
             h.register_function(f.delete_group)
             h.handle_request(req)
