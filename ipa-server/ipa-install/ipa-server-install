@@ -369,6 +369,9 @@ def main():
     ds.restart()
     krb.restart()
 
+    # Allow apache to connect to the turbogears web gui
+    run(["/usr/sbin/setsebool", "httpd_can_network", "true"])
+
     # Restart apache
     run(["/sbin/service", "httpd", "restart"])
 
