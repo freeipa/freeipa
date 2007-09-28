@@ -289,7 +289,10 @@ def main():
         while not correct:
             dm_password = getpass.getpass("Please provide a password for the Directory Manager: ")
             pwd_confirm = getpass.getpass("Please confirm the password: ")
-            if dm_password != pwd_confirm:
+            if dm_password == "":
+                print "Password is empty!"
+                print ""
+            elif dm_password != pwd_confirm:
                 print "Password mismatch!"
                 print ""
             else:
@@ -310,7 +313,10 @@ def main():
         while not correct:
             master_password = getpass.getpass("Please provide a master password: ")
             pwd_confirm = getpass.getpass("Please confirm the password: ")
-            if master_password != pwd_confirm:
+            if master_password == "":
+                print "Password is empty!"
+                print ""
+            elif master_password != pwd_confirm:
                 print "Password mismatch!"
                 print ""
             else:
@@ -328,7 +334,10 @@ def main():
         while not correct:
             admin_password = getpass.getpass("Please provide a kerberos password for the 'admin' user: ")
             pwd_confirm = getpass.getpass("Please confirm the password: ")
-            if admin_password != pwd_confirm:
+            if admin_password == "":
+                print "Password is empty!"
+                print ""
+            elif admin_password != pwd_confirm:
                 print "Password mismatch!"
                 print ""
             else:
