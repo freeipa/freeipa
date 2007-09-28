@@ -134,7 +134,7 @@ def main():
                if host_name == "":
                    print ""
                    host_name = raw_input("Please provide a Fully Qualified name to use for your system [master.example.com]: ")
-                   if host_name != "":
+                   if host_name == "":
                        host_name = "master.example.com"
     
                if len(host_name.split(".")) < 2 or host_name == "localhost.localdomain":

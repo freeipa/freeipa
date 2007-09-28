@@ -155,4 +155,4 @@ dist: version-update archive tarballs archive-cleanup rpms
 local-dist: clean version-update local-archive tarballs archive-cleanup rpms
 
 dist-clean: clean
-	rm -fr dist
+	rm -fr rpmbuild dist

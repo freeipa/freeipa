@@ -1,5 +1,9 @@
 SUBDIRS=ipa-install xmlrpc-server ipa-kpasswd ipa-slapi-plugins
-PYTHONDIR=$(DESTDIR)/usr/share/ipa/ipaserver
+
+SHAREDIR=$(DESTDIR)/usr/share/ipa
+PYTHONDIR=$(SHAREDIR)/ipaserver
+SBINDIR=$(DESTDIR)/usr/sbin
+
 
 all:
 	@for subdir in $(SUBDIRS); do \

@@ -156,7 +156,7 @@ class DsInstance:
     def __enable_ssl(self):
         logging.debug("configuring ssl for ds instance")
         dirname = self.config_dirname()
-        args = ["/usr/sbin/ipa-server-setupssl", self.dm_password,
+        args = ["/usr/share/ipa/ipa-server-setupssl", self.dm_password,
                 dirname, self.host_name]
         run(args)
         logging.debug("done configuring ssl for ds instance")

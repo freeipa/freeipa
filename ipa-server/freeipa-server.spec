@@ -41,7 +41,6 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %{_sbindir}/ipa-server-install
-%{_sbindir}/ipa-server-setupssl
 %{_sbindir}/ipa_kpasswd
 %attr(755,root,root) %{_initrddir}/ipa-kpasswd
 

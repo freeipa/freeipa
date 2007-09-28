@@ -1,3 +1,4 @@
+SHAREDIR=$(DESTDIR)/usr/share/ipa
 SBINDIR=$(DESTDIR)/usr/sbin
 
 all: ;
@@ -5,7 +6,7 @@ all: ;
 install:
 	-mkdir $(SBINDIR)
 	install -m 755 ipa-server-install $(SBINDIR)
-	install -m 755 ipa-server-setupssl $(SBINDIR)
+	install -m 755 ipa-server-setupssl $(SHAREDIR)
 	$(MAKE) -C share $@
 	$(MAKE) -C test $@
 
