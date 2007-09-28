@@ -48,6 +48,36 @@ def utf8_encode(value):
         value = value.encode('utf-8')
     return value
 
+def sort_group_member(a, b):
+    """Comparator function used for sorting group members."""
+    if a.get('uid') and b.get('uid'):
+        if a.get('givenname', '') == b.get('givenname', ''):
+            if a.get('sn', '') == b.get('sn', ''):
+                if a.get('uid') == b.get('uid'):
+                    return 0
+                elif a.get('uid') < b.get('uid'):
+                    return -1
+                else:
+                    return 1
+            elif a.get('sn', '') < b.get('sn', ''):
+                return -1
+            else:
+                return 1
+        elif a.get('givenname') < b.get('givenname'):
+            return -1
+        else:
+            return 1
+    elif a.get('uid'):
+        return -1
+    elif b.get('uid'):
+        return 1
+    else:
+        if a.get('cn', '') == b.get('cn', ''):
+            return 0
+        elif a.get('cn', '') < b.get('cn', ''):
+            return -1
+        else:
+            return 1
 
 class Root(controllers.RootController):
 
@@ -484,6 +514,7 @@ class Root(controllers.RootController):
             # Map users into an array of dicts, which can be serialized
             # (so we don't have to do this on each round trip)
             member_dicts = map(lambda member: member.toDict(), members)
+            member_dicts.sort(sort_group_member)
 
             # store a copy of the original group for the update later
             group_data = b64encode(dumps(group_dict))
@@ -649,6 +680,7 @@ class Root(controllers.RootController):
                         'uid', 'cn']),
                     member_dns)
             member_dicts = map(lambda member: member.toDict(), members)
+            member_dicts.sort(sort_group_member)
 
             return dict(group=group_dict, fields=forms.group.GroupFields(),
                     members = member_dicts)
