@@ -1,0 +1,71 @@
+#!/bin/sh
+#
+# ipa-webgui    This starts and stops ipa-webgui
+#
+# chkconfig:   - 36 64
+# description: ipa-webgui IPA Web User Interface
+# processname: /usr/sbin/ipa-webgui
+# configdir:   /etc/sysconfig/ipa-webgui
+#
+
+# Source function library.
+if [ -f /etc/rc.d/init.d/functions ] ; then
+. /etc/rc.d/init.d/functions
+fi
+# Source networking configuration.
+if [ -f /etc/sysconfig/network ] ; then
+. /etc/sysconfig/network
+fi
+
+# Check that networking is up.
+if [ "${NETWORKING}" = "no" ]
+then
+    echo "Networking is down"
+    exit 0
+fi
+
+NAME="ipa-webgui"
+
+start() {
+	echo -n $"Starting $NAME: "
+	daemon $NAME
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/$NAME || \
+	   RETVAL=1
+	return $RETVAL
+}	
+
+stop() {
+	echo -n $"Shutting down $NAME: "
+	killproc $NAME
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$NAME
+	return $RETVAL
+}	
+
+restart() {
+	stop
+	start
+}	
+
+case "$1" in
+  start)
+  	start
+	;;
+  stop)
+  	stop
+	;;
+  restart)
+  	restart
+	;;
+  condrestart)
+  	[ -f /var/lock/subsys/$NAME ] && restart || :
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|restart|condrestart}"
+	exit 2
+esac
+
+exit $?

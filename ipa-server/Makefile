@@ -1,4 +1,4 @@
-SUBDIRS=ipa-install xmlrpc-server ipa-kpasswd ipa-slapi-plugins
+SUBDIRS=ipa-install xmlrpc-server ipa-kpasswd ipa-slapi-plugins ipa-gui
 
 SHAREDIR=$(DESTDIR)/usr/share/ipa
 PYTHONDIR=$(SHAREDIR)/ipaserver

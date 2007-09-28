@@ -1,6 +1,6 @@
 Name:           freeipa-server
 Version:        0.4.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        FreeIPA authentication server
 
 Group:          System Environment/Base
@@ -42,7 +42,9 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %{_sbindir}/ipa-server-install
 %{_sbindir}/ipa_kpasswd
+%{_sbindir}/ipa-webgui
 %attr(755,root,root) %{_initrddir}/ipa-kpasswd
+%attr(755,root,root) %{_initrddir}/ipa-webgui
 
 %dir %{_usr}/share/ipa
 %{_usr}/share/ipa/*
@@ -53,6 +55,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Sep 25 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.0-2
+- Package ipa-webgui
+
 * Fri Sep 7 2007 Karl MacMillan <kmacmill@redhat.com> - 0.3.0-1
 - Added support for libipa-dna-plugin
 

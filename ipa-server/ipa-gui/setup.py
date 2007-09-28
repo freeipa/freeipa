@@ -19,30 +19,10 @@ setup(
     install_requires = [
         "TurboGears >= 1.0.2.2",
     ],
-    scripts = ["start-ipagui.py"],
     zip_safe=False,
     packages=find_packages(),
     package_data = find_package_data(where='ipagui',
                                      package='ipagui'),
-    keywords = [
-        # Use keywords if you'll be adding your package to the
-        # Python Cheeseshop
-        
-        # if this has widgets, uncomment the next line
-        # 'turbogears.widgets',
-        
-        # if this has a tg-admin command, uncomment the next line
-        # 'turbogears.command',
-        
-        # if this has identity providers, uncomment the next line
-        # 'turbogears.identity.provider',
-    
-        # If this is a template plugin, uncomment the next line
-        # 'python.templating.engines',
-        
-        # If this is a full application, uncomment the next line
-        # 'turbogears.app',
-    ],
     classifiers = [
         'Development Status :: 3 - Alpha',
         'Operating System :: OS Independent',

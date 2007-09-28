@@ -1,4 +1,5 @@
 README.txt
+ipa-webgui
 setup.py
 start-ipagui.py
 ipa_gui.egg-info/PKG-INFO
@@ -19,6 +20,7 @@ ipagui/proxyvisit.py
 ipagui/release.py
 ipagui/config/__init__.py
 ipagui/forms/__init__.py
+ipagui/forms/group.py
 ipagui/forms/user.py
 ipagui/helpers/__init__.py
 ipagui/helpers/userhelper.py

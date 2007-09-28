@@ -21,7 +21,8 @@
 #!/usr/bin/python
 
 import sys
-sys.path.append("/usr/share/ipa")
+if "/usr/share/ipa" not in sys.path:
+    sys.path.append("/usr/share/ipa")
 
 from ipaserver import funcs
 import ipa.rpcclient as rpcclient

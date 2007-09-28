@@ -370,7 +370,13 @@ def main():
     krb.restart()
 
     # Allow apache to connect to the turbogears web gui
-    run(["/usr/sbin/setsebool", "httpd_can_network", "true"])
+    run(["/usr/sbin/setsebool", "-P", "httpd_can_network_connect", "true"])
+
+    # Start the web gui
+    run(["/sbin/service", "ipa-webgui", "start"])
+
+    # Set the web gui to start on boot
+    run(["/sbin/chkconfig", "ipa-webgui", "on"])
 
     # Restart apache
     run(["/sbin/service", "httpd", "restart"])
