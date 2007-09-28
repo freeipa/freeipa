@@ -459,7 +459,7 @@ done:
 }
 
 void handle_krb_packets(uint8_t *buf, ssize_t buflen,
-			struct sockaddr_in *from,
+			struct sockaddr_storage *from,
 			uint8_t **repbuf, ssize_t *replen)
 {
 	krb5_auth_context auth_context;
@@ -490,9 +490,29 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	ticket = NULL;
 	lkaddr = NULL;
 
-	rkaddr.addrtype = ADDRTYPE_INET;
-	rkaddr.length = sizeof(from->sin_addr);
-	rkaddr.contents = (krb5_octet *) &from->sin_addr;
+	switch(((struct sockaddr *)from)->sa_family) {
+	case AF_INET:
+		rkaddr.addrtype = ADDRTYPE_INET;
+		rkaddr.length = sizeof(((struct sockaddr_in *)from)->sin_addr);
+		rkaddr.contents = (krb5_octet *) &(((struct sockaddr_in *)from)->sin_addr);
+		break;
+	case AF_INET6:
+		if (IN6_IS_ADDR_V4MAPPED (&((struct sockaddr_in6 *)from)->sin6_addr)) {
+			rkaddr.addrtype = ADDRTYPE_INET;
+			rkaddr.length = 4;
+			rkaddr.contents = 12 + (krb5_octet *) &(((struct sockaddr_in6 *)from)->sin6_addr);
+		} else {
+			rkaddr.addrtype = ADDRTYPE_INET6;
+			rkaddr.length = sizeof(((struct sockaddr_in6 *)from)->sin6_addr);
+			rkaddr.contents = (krb5_octet *) &(((struct sockaddr_in6 *)from)->sin6_addr);
+		}
+		break;
+	default:
+		result_string = "Invalid remopte IP address";
+		result_err = KRB5_KPASSWD_MALFORMED;
+		syslog(LOG_ERR, "%s", result_string);
+		goto done;
+	}
 
 	if (buflen < 4) {
 		result_string = "Request truncated";
@@ -772,7 +792,7 @@ pid_t handle_conn(int fd, int type)
 	ssize_t reqlen;
 	uint8_t *reply;
 	ssize_t replen;
-	struct sockaddr_in from;
+	struct sockaddr_storage from;
 	socklen_t fromlen;
 	ssize_t sendret;
 
@@ -800,15 +820,30 @@ pid_t handle_conn(int fd, int type)
 		return -1;
 	}
 
-	if (!inet_ntop(from.sin_family, &from.sin_addr,
-			address, sizeof(address))) {
-		address[0] = '\0';
+	switch(((struct sockaddr *)&from)->sa_family) {
+	case AF_INET:
+		if (!inet_ntop(((struct sockaddr_in *)&from)->sin_family,
+				&(((struct sockaddr_in *)&from)->sin_addr),
+				address, sizeof(address))) {
+			address[0] = '\0';
+		}
+		break;
+	case AF_INET6:
+		if (!inet_ntop(((struct sockaddr_in6 *)&from)->sin6_family,
+				&(((struct sockaddr_in6 *)&from)->sin6_addr),
+				address, sizeof(address))) {
+			address[0] = '\0';
+		}
+		break;
+	default:
+		syslog(LOG_ERR, "Invalid IP address Family");
+		if (type == KPASSWD_TCP) close(mfd);
+		return -1;
 	}
 
-	if (debug > 0) {
-		uint16_t port = ntohs(from.sin_port);
 
-		syslog(LOG_ERR, "Connection from %s:%d", address, port);
+	if (debug > 0) {
+		syslog(LOG_ERR, "Connection from %s", address);
 	}
 
 	/* Check blacklist for requests frm the same IP until operations
@@ -871,7 +906,7 @@ pid_t handle_conn(int fd, int type)
 int main(int argc, char *argv[])
 {
 	pid_t pid;
-	struct sockaddr_in addr;
+	struct sockaddr_in6 addr;
 	int tcp_s, udp_s;
 	int tru = 1;
 	int ret;
@@ -923,13 +958,13 @@ int main(int argc, char *argv[])
 		syslog(LOG_ERR, "Out of memory!");
 	}
 
-	tcp_s = socket(AF_INET, SOCK_STREAM, 0);
+	tcp_s = socket(AF_INET6, SOCK_STREAM, 0);
 	if (tcp_s == -1) {
 		syslog(LOG_ERR, "Unable to create TCP socket");
 		exit(1);
 	}
 
-	udp_s = socket(AF_INET, SOCK_DGRAM, 0);
+	udp_s = socket(AF_INET6, SOCK_DGRAM, 0);
 	if (udp_s == -1) {
 		syslog(LOG_ERR, "Unable to create UDP socket");
 		close(tcp_s);
@@ -961,9 +996,9 @@ int main(int argc, char *argv[])
 
 	/* bind sockets */
 	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = INADDR_ANY;
-	addr.sin_port = htons(KPASSWD_PORT);
+	addr.sin6_family = AF_INET6;
+	addr.sin6_addr = in6addr_any;
+	addr.sin6_port = htons(KPASSWD_PORT);
 
 	ret = bind(tcp_s, (struct sockaddr *)&addr, sizeof(addr));
 	if (ret == -1) {
@@ -976,9 +1011,9 @@ int main(int argc, char *argv[])
 	}
 
 	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = INADDR_ANY;
-	addr.sin_port = htons(KPASSWD_PORT);
+	addr.sin6_family = AF_INET6;
+	addr.sin6_addr = in6addr_any;
+	addr.sin6_port = htons(KPASSWD_PORT);
 
 	ret = bind(udp_s, (struct sockaddr *)&addr, sizeof(addr));
 	if (ret == -1) {
