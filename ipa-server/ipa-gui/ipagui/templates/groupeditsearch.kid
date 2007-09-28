@@ -20,11 +20,18 @@ from ipagui.helpers import ipahelper
             ent_dn_esc = ipahelper.javascript_string_escape(entity.dn)
             ent_uid = entity.uid
             if ent_uid:
-                ent_cn = "%s %s (%s)" % (entity.givenName, entity.sn, entity.uid)
+                ent_name = "%s %s" % (entity.givenName, entity.sn)
+                ent_descr = "(%s)" % entity.uid
+                ent_type = "user"
             else:
-                ent_cn = "%s [group]" % entity.cn
-            ent_cn_esc = ipahelper.javascript_string_escape(ent_cn)
+                ent_name = entity.cn
+                ent_descr = "[group]"
+                ent_type = "group"
+            ent_name_esc = ipahelper.javascript_string_escape(ent_name)
+            ent_descr_esc = ipahelper.javascript_string_escape(ent_descr)
+            ent_type_esc = ipahelper.javascript_string_escape(ent_type)
             ?>
+            <span id="search-info-${search_div_counter}"></span>
             <script type="text/javascript">
               if ((added_hash["${ent_dn_esc}"] == 1) ||
                   (member_hash["${ent_dn_esc}"] == 1)) {
@@ -32,10 +39,17 @@ from ipagui.helpers import ipahelper
               } else {
                 results_counter = results_counter + 1;
               }
+
+              renderMemberInfo($('search-info-${search_div_counter}'),
+                           new MemberDisplayInfo('${ent_name_esc}',
+                                                 '${ent_descr_esc}',
+                                                 '${ent_type_esc}'));
             </script>
-            ${ent_cn}
             <a href=""
-              onclick="addmemberHandler(this, '${ent_dn_esc}', '${ent_cn_esc}');
+              onclick="addmemberHandler(this, '${ent_dn_esc}',
+                           new MemberDisplayInfo('${ent_name_esc}',
+                                                 '${ent_descr_esc}',
+                                                 '${ent_type_esc}'));
                       return false;"
             >add</a>
             <?python

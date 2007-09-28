@@ -40,14 +40,24 @@
       if member_uid:
           member_cn = "%s %s" % (member.get('givenName'), member.get('sn'))
           member_desc = "(%s)" % member_uid
+          member_type = "user"
           view_url = tg.url('usershow', uid=member_uid)
       else:
           member_cn = "%s" % member.get('cn')
           member_desc = "[group]"
+          member_type = "group"
           view_url = tg.url('groupshow', cn=member_cn)
       ?>
-      <a href="${view_url}"
-        >${member_cn}</a> ${member_desc}
+      <span py:if='member_type == "user"'>
+        <a href="${view_url}"
+          >${member_cn}</a> ${member_desc}
+      </span>
+      <span py:if='member_type == "group"'>
+        <i>
+          <a href="${view_url}"
+            >${member_cn}</a> ${member_desc}
+        </i>
+      </span>
     </div>
 
     <br/>

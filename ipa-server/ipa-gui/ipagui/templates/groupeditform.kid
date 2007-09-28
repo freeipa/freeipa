@@ -11,9 +11,21 @@ from ipagui.helpers import ipahelper
   <?python searchurl = tg.url('/groupedit_search') ?>
 
   <script type="text/javascript">
+
+    // Stored as the values in the dn_to_info_hash
+    MemberDisplayInfo = Class.create();
+    MemberDisplayInfo.prototype = {
+      initialize: function(name, descr, type) {
+        this.name = name;
+        this.descr = descr;
+        this.type = type;
+      },
+    };
+
+
     // this is used for round-trip recontruction of the names.
     // the hidden fields only contain dns.
-    var dn_to_cn_hash = new Hash();
+    var dn_to_info_hash = new Hash();
 
     // used to filter search results.
     // records dns already in the group
@@ -41,14 +53,33 @@ from ipagui.helpers import ipahelper
     }
 
     /*
+     * Renders the information about the member into the passed in
+     * element.  This is used by addmember and removemember to
+     * consistently create the dom for the member information
+     * (name, descr) and add icons/font changes correct for each type.
+     */
+    function renderMemberInfo(newdiv, info) {
+      if (info.type == "user") {
+        newdiv.appendChild(document.createTextNode(
+          info.name.escapeHTML() + " " + info.descr.escapeHTML() + " "));
+      } else if (info.type == "group") {
+        ital = document.createElement('i');
+        ital.appendChild(document.createTextNode(
+          info.name.escapeHTML() + " " + 
+          info.descr.escapeHTML() + " "));
+        newdiv.appendChild(ital);
+      }
+    }
+
+    /*
      * Callback used for afterFinish in scriptaculous effect
      */
     function removeElement(effect) {
       Element.remove(effect.element);
     }
 
-    function addmember(dn, cn) {
-      dn_to_cn_hash[dn] = cn;
+    function addmember(dn, info) {
+      dn_to_info_hash[dn] = info;
 
       if ((added_hash[dn] == 1) || (member_hash[dn] == 1)) {
         return null;
@@ -56,8 +87,7 @@ from ipagui.helpers import ipahelper
       added_hash[dn] = 1;
 
       var newdiv = document.createElement('div');
-      newdiv.appendChild(document.createTextNode(
-        cn.escapeHTML() + " "));
+      renderMemberInfo(newdiv, info);
 
       var undolink = document.createElement('a');
       undolink.setAttribute('href', '');
@@ -80,8 +110,8 @@ from ipagui.helpers import ipahelper
       return newdiv
     }
 
-    function addmemberHandler(element, dn, cn) {
-      var newdiv = addmember(dn, cn)
+    function addmemberHandler(element, dn, info) {
+      var newdiv = addmember(dn, info)
       if (newdiv != null) {
         new Effect.Fade(Element.up(element));
         new Effect.Appear(newdiv);
@@ -89,12 +119,11 @@ from ipagui.helpers import ipahelper
       }
     }
 
-    function removemember(dn, cn) {
-      dn_to_cn_hash[dn] = cn;
+    function removemember(dn, info) {
+      dn_to_info_hash[dn] = info;
 
       var newdiv = document.createElement('div');
-      newdiv.appendChild(document.createTextNode(
-        cn.escapeHTML() + " "));
+      renderMemberInfo(newdiv, info);
 
       orig_div_id = dn_to_member_div_id[dn];
       var undolink = document.createElement('a');
@@ -118,8 +147,8 @@ from ipagui.helpers import ipahelper
       return newdiv
     }
 
-    function removememberHandler(element, dn, cn) {
-      var newdiv = removemember(dn, cn);
+    function removememberHandler(element, dn, info) {
+      var newdiv = removemember(dn, info);
       new Effect.Fade(Element.up(element));
       new Effect.Appear(newdiv);
       /* Element.up(element).remove(); */
@@ -151,8 +180,8 @@ from ipagui.helpers import ipahelper
     }
 
     function preSubmit() {
-      var json = dn_to_cn_hash.toJSON();
-      $('form_dn_to_cn_json').value = json;
+      var json = dn_to_info_hash.toJSON();
+      $('form_dn_to_info_json').value = json;
       return true;
     }
   </script>
@@ -225,16 +254,30 @@ from ipagui.helpers import ipahelper
 
           member_uid = member.get('uid')
           if member_uid:
-              member_cn = "%s %s (%s)" % (member.get('givenName'),
-                                          member.get('sn'),
-                                          member.get('uid'))
+              member_name = "%s %s" % (member.get('givenName'),
+                                     member.get('sn'))
+              member_descr = "(%s)" % member.get('uid')
+              member_type = "user"
           else:
-              member_cn = "%s [group]" % member.get('cn')
-          member_cn_esc = ipahelper.javascript_string_escape(member_cn)
+              member_name = member.get('cn')
+              member_descr = "[group]"
+              member_type = "group"
+          member_name_esc = ipahelper.javascript_string_escape(member_name)
+          member_descr_esc = ipahelper.javascript_string_escape(member_descr)
+          member_type_esc = ipahelper.javascript_string_escape(member_type)
           ?>
-          ${member_cn}
+          <span id="member-info-${div_counter}"></span>
+          <script type="text/javascript">
+            renderMemberInfo($('member-info-${div_counter}'),
+                         new MemberDisplayInfo('${member_name_esc}',
+                                               '${member_descr_esc}',
+                                               '${member_type_esc}'));
+          </script>
           <a href="#" 
-            onclick="removememberHandler(this, '${member_dn_esc}', '${member_cn_esc}');
+            onclick="removememberHandler(this, '${member_dn_esc}',
+                         new MemberDisplayInfo('${member_name_esc}',
+                                               '${member_descr_esc}',
+                                               '${member_type_esc}'));
                      return false;"
           >remove</a>
           <script type="text/javascript">
@@ -295,8 +338,8 @@ from ipagui.helpers import ipahelper
      * This section restores the contents of the add and remove lists
      * dynamically if we have to refresh the page
      */
-    if ($('form_dn_to_cn_json').value != "") {
-      dn_to_cn_hash = new Hash($('form_dn_to_cn_json').value.evalJSON());
+    if ($('form_dn_to_info_json').value != "") {
+      dn_to_info_hash = new Hash($('form_dn_to_info_json').value.evalJSON());
     }
 
     if ($('form_editprotected').value != "") {
@@ -320,8 +363,8 @@ from ipagui.helpers import ipahelper
     dnadd_esc = ipahelper.javascript_string_escape(dnadd)
     ?>
     var dn = "${dnadd_esc}";
-    var cn = dn_to_cn_hash[dn];
-    var newdiv = addmember(dn, cn);
+    var info = dn_to_info_hash[dn];
+    var newdiv = addmember(dn, info);
     if (newdiv != null) {
       newdiv.style.display = 'block';
     }
@@ -332,8 +375,8 @@ from ipagui.helpers import ipahelper
     dndel_esc = ipahelper.javascript_string_escape(dndel)
     ?>
     var dn = "${dndel_esc}";
-    var cn = dn_to_cn_hash[dn];
-    var newdiv = removemember(dn, cn);
+    var info = dn_to_info_hash[dn];
+    var newdiv = removemember(dn, info);
     newdiv.style.display = 'block';
     orig_div_id = dn_to_member_div_id[dn]
     $(orig_div_id).style.display = 'none';
