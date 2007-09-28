@@ -444,13 +444,11 @@ class Root(controllers.RootController):
             turbogears.flash("Group add failed: " + str(e) + "<br/>" + str(e.detail))
             return dict(form=group_new_form, tg_template='ipagui.templates.groupnew')
 
-    @expose("ipagui.templates.groupeditsearch")
+    @expose("ipagui.templates.dynamiceditsearch")
     @identity.require(identity.not_anonymous())
     def groupedit_search(self, **kw):
         """Searches for users+groups and displays list of results in a table.
-           This method is used for the ajax search on the group edit page.
-           It's not re-usable because the ajax/dom manipulation is tightly
-           bound to the groupedit page"""
+           This method is used for the ajax search on the group edit page."""
         client.set_krbccache(os.environ["KRB5CCNAME"])
         users = []
         groups = []

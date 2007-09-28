@@ -2,6 +2,12 @@
 
 <?python
 from ipagui.helpers import ipahelper
+#
+# This file is used to render the results from an AJAX search onto a page.
+# It has many expectations of the page being rendered into:
+#   - Source page must have included dynamicedit.js and followed all of its
+#     requirements
+#
 ?>
     <div id="search-results-count">
     </div>
