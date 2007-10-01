@@ -24,21 +24,6 @@ from ipagui.helpers import ipahelper
       }
     }
 
-    function enterDoSearch(e) {
-      var keyPressed;
-      if (window.event) {
-        keyPressed = window.event.keyCode;
-      } else {
-        keyPressed = e.which; 
-      }
-
-      if (keyPressed == 13) {
-        return doSearch();
-      } else {
-        return true;
-      }
-    }
-
     function doSearch() {
       $('searchresults').update("Searching...");
       new Ajax.Updater('searchresults',

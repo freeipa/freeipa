@@ -46,7 +46,9 @@ class UserNewForm(widgets.Form):
     params = ['user']
 
     fields = [UserFields.uid, UserFields.givenname,
-              UserFields.sn, UserFields.mail]
+              UserFields.sn, UserFields.mail,
+              UserFields.dn_to_info_json,
+             ]
 
     validator = UserNewValidator()
 

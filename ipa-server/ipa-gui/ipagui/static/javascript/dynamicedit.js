@@ -169,3 +169,18 @@ function preSubmit() {
   $('form_dn_to_info_json').value = json;
   return true;
 }
+
+function enterDoSearch(e) {
+  var keyPressed;
+  if (window.event) {
+    keyPressed = window.event.keyCode;
+  } else {
+    keyPressed = e.which; 
+  }
+
+  if (keyPressed == 13) {
+    return doSearch();
+  } else {
+    return true;
+  }
+}

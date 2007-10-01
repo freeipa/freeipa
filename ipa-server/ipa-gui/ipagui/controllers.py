@@ -116,7 +116,7 @@ class Root(controllers.RootController):
         if tg_errors:
             turbogears.flash("There was a problem with the form!")
 
-        return dict(form=user_new_form)
+        return dict(form=user_new_form, user={})
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -130,8 +130,12 @@ class Root(controllers.RootController):
 
         tg_errors, kw = self.usercreatevalidate(**kw)
         if tg_errors:
-            return dict(form=user_new_form, tg_template='ipagui.templates.usernew')
+            return dict(form=user_new_form, user=kw,
+                    tg_template='ipagui.templates.usernew')
 
+        #
+        # Update the user itself
+        #
         try:
             new_user = ipa.user.User()
             new_user.setValue('uid', kw.get('uid'))
@@ -143,15 +147,67 @@ class Root(controllers.RootController):
                 new_user.setValue('nsAccountLock', 'true')
 
             rv = client.add_user(new_user)
-            turbogears.flash("%s added!" % kw['uid'])
-            raise turbogears.redirect('/usershow', uid=kw['uid'])
         except ipaerror.exception_for(ipaerror.LDAP_DUPLICATE):
             turbogears.flash("Person with login '%s' already exists" %
                     kw.get('uid'))
-            return dict(form=user_new_form, tg_template='ipagui.templates.usernew')
+            return dict(form=user_new_form, user=kw,
+                    tg_template='ipagui.templates.usernew')
         except ipaerror.IPAError, e:
             turbogears.flash("User add failed: " + str(e))
-            return dict(form=user_new_form, tg_template='ipagui.templates.usernew')
+            return dict(form=user_new_form, user=kw,
+                    tg_template='ipagui.templates.usernew')
+
+        #
+        # NOTE: from here on, the user account now exists.
+        #       on any error, we redirect to the _edit_ user page.
+        #       this code does data setup, similar to useredit()
+        #
+        user = client.get_user_by_uid(kw['uid'], user_fields)
+        user_dict = user.toDict()
+
+        user_groups_dicts = []
+        user_groups_data = b64encode(dumps(user_groups_dicts))
+
+        # store a copy of the original user for the update later
+        user_data = b64encode(dumps(user_dict))
+        user_dict['user_orig'] = user_data
+        user_dict['user_groups_data'] = user_groups_data
+
+        # preserve group add info in case of errors
+        user_dict['dnadd'] = kw.get('dnadd')
+        user_dict['dn_to_info_json'] = kw.get('dn_to_info_json')
+
+        #
+        # Password change
+        # TODO
+        #
+
+        #
+        # Add groups
+        #
+        failed_adds = []
+        try:
+            dnadds = kw.get('dnadd')
+            if dnadds != None:
+                if not(isinstance(dnadds,list) or isinstance(dnadds,tuple)):
+                    dnadds = [dnadds]
+                failed_adds = client.add_groups_to_user(
+                        utf8_encode_values(dnadds), user.dn)
+                kw['dnadd'] = failed_adds
+        except ipaerror.IPAError, e:
+            failed_adds = dnadds
+
+        if len(failed_adds) > 0:
+            message = "Person successfully updated.<br />"
+            message += "There was an error adding groups.<br />"
+            message += "Failures have been preserved in the add/remove lists."
+            turbogears.flash(message)
+            return dict(form=user_edit_form, user=user_dict,
+                        user_groups=user_groups_dicts,
+                        tg_template='ipagui.templates.useredit')
+
+        turbogears.flash("%s added!" % kw['uid'])
+        raise turbogears.redirect('/usershow', uid=kw['uid'])
 
     @expose("ipagui.templates.dynamiceditsearch")
     @identity.require(identity.not_anonymous())
@@ -227,6 +283,7 @@ class Root(controllers.RootController):
                         tg_template='ipagui.templates.useredit')
 
         password_change = False
+        user_modified = False
 
         #
         # Update the user itself
@@ -262,6 +319,7 @@ class Root(controllers.RootController):
             # need to make sure a subsequent submit doesn't try to update
             # the user again.
             #
+            user_modified = True
             kw['user_orig'] = b64encode(dumps(new_user.toDict()))
         except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST), e:
             # could be a password change
@@ -299,10 +357,7 @@ class Root(controllers.RootController):
                         utf8_encode_values(dnadds), new_user.dn)
                 kw['dnadd'] = failed_adds
         except ipaerror.IPAError, e:
-            turbogears.flash("Group update failed: " + str(e))
-            return dict(form=user_edit_form, user=kw,
-                        user_groups=user_groups_dicts,
-                        tg_template='ipagui.templates.useredit')
+            failed_adds = dnadds
 
         #
         # Remove groups
@@ -317,14 +372,15 @@ class Root(controllers.RootController):
                         utf8_encode_values(dndels), new_user.dn)
                 kw['dndel'] = failed_dels
         except ipaerror.IPAError, e:
-            turbogears.flash("Group update failed: " + str(e))
-            return dict(form=user_edit_form, user=kw,
-                        user_groups=user_groups_dicts,
-                        tg_template='ipagui.templates.useredit')
+            failed_dels = dndels
 
         if (len(failed_adds) > 0) or (len(failed_dels) > 0):
             message = "There was an error updating groups.<br />"
             message += "Failures have been preserved in the add/remove lists."
+            if user_modified:
+                message = "User Details successfully updated.<br />" + message
+            if password_change:
+                message = "User password successfully updated.<br />" + message
             turbogears.flash(message)
             return dict(form=user_edit_form, user=kw,
                         user_groups=user_groups_dicts,
