@@ -243,6 +243,9 @@ class ModXMLRPCRequestHandler(object):
         for x in range(0, func.func_code.co_argcount):
             if x == 0 and func.func_code.co_varnames[x] == "self":
                 continue
+            # opts is a name we tack on internally. Don't publish it.
+            if func.func_code.co_varnames[x] == "opts":
+                continue
             if func.func_defaults and func.func_code.co_argcount - x <= len(func.func_defaults):
                 args.append((func.func_code.co_varnames[x], func.func_defaults[x - func.func_code.co_argcount + len(func.func_defaults)]))
             else:
