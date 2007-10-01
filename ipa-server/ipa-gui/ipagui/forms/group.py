@@ -21,7 +21,8 @@ class GroupNewValidator(validators.Schema):
 class GroupNewForm(widgets.Form):
     params = ['group']
 
-    fields = [GroupFields.cn, GroupFields.description]
+    fields = [GroupFields.cn, GroupFields.description,
+              GroupFields.dn_to_info_json]
 
     validator = GroupNewValidator()
 

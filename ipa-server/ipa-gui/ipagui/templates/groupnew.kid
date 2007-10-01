@@ -8,6 +8,6 @@
 <body>
     <h2>Add Group</h2>
 
-    ${form.display(action="groupcreate")}
+    ${form.display(action="groupcreate", value=group)}
 </body>
 </html>

@@ -134,7 +134,7 @@ class Root(controllers.RootController):
                     tg_template='ipagui.templates.usernew')
 
         #
-        # Update the user itself
+        # Create the user itself
         #
         try:
             new_user = ipa.user.User()
@@ -198,7 +198,7 @@ class Root(controllers.RootController):
             failed_adds = dnadds
 
         if len(failed_adds) > 0:
-            message = "Person successfully updated.<br />"
+            message = "Person successfully created.<br />"
             message += "There was an error adding groups.<br />"
             message += "Failures have been preserved in the add/remove lists."
             turbogears.flash(message)
@@ -569,7 +569,7 @@ class Root(controllers.RootController):
 
         client.set_krbccache(os.environ["KRB5CCNAME"])
 
-        return dict(form=group_new_form)
+        return dict(form=group_new_form, group={})
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -584,23 +584,73 @@ class Root(controllers.RootController):
 
         tg_errors, kw = self.groupcreatevalidate(**kw)
         if tg_errors:
-            return dict(form=group_new_form, tg_template='ipagui.templates.groupnew')
+            return dict(form=group_new_form, group=kw,
+                    tg_template='ipagui.templates.groupnew')
 
+        #
+        # Create the group itself
+        #
         try:
             new_group = ipa.group.Group()
             new_group.setValue('cn', kw.get('cn'))
             new_group.setValue('description', kw.get('description'))
 
             rv = client.add_group(new_group)
-            turbogears.flash("%s added!" % kw.get('cn'))
-            raise turbogears.redirect('/groupshow', cn=kw.get('cn'))
         except ipaerror.exception_for(ipaerror.LDAP_DUPLICATE):
             turbogears.flash("Group with name '%s' already exists" %
                     kw.get('cn'))
-            return dict(form=group_new_form, tg_template='ipagui.templates.groupnew')
+            return dict(form=group_new_form, group=kw,
+                    tg_template='ipagui.templates.groupnew')
         except ipaerror.IPAError, e:
             turbogears.flash("Group add failed: " + str(e) + "<br/>" + str(e.detail))
-            return dict(form=group_new_form, tg_template='ipagui.templates.groupnew')
+            return dict(form=group_new_form, group=kw,
+                    tg_template='ipagui.templates.groupnew')
+
+        #
+        # NOTE: from here on, the group now exists.
+        #       on any error, we redirect to the _edit_ group page.
+        #       this code does data setup, similar to groupedit()
+        #
+        group = client.get_group_by_cn(kw['cn'], group_fields)
+        group_dict = group.toDict()
+        member_dicts = []
+
+        # store a copy of the original group for the update later
+        group_data = b64encode(dumps(group_dict))
+        member_data = b64encode(dumps(member_dicts))
+        group_dict['group_orig'] = group_data
+        group_dict['member_data'] = member_data
+
+        # preserve group add info in case of errors
+        group_dict['dnadd'] = kw.get('dnadd')
+        group_dict['dn_to_info_json'] = kw.get('dn_to_info_json')
+
+        #
+        # Add members
+        #
+        failed_adds = []
+        try:
+            dnadds = kw.get('dnadd')
+            if dnadds != None:
+                if not(isinstance(dnadds,list) or isinstance(dnadds,tuple)):
+                    dnadds = [dnadds]
+                failed_adds = client.add_members_to_group(
+                        utf8_encode_values(dnadds), kw.get('cn'))
+                kw['dnadd'] = failed_adds
+        except ipaerror.IPAError, e:
+            failed_adds = dnadds
+
+        if len(failed_adds) > 0:
+            message = "Group successfully created.<br />"
+            message += "There was an error adding group members.<br />"
+            message += "Failures have been preserved in the add/remove lists."
+            turbogears.flash(message)
+            return dict(form=group_edit_form, group=group_dict,
+                        members=member_dicts,
+                        tg_template='ipagui.templates.groupedit')
+
+        turbogears.flash("%s added!" % kw.get('cn'))
+        raise turbogears.redirect('/groupshow', cn=kw.get('cn'))
 
     @expose("ipagui.templates.dynamiceditsearch")
     @identity.require(identity.not_anonymous())

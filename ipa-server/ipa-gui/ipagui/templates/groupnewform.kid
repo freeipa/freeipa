@@ -1,6 +1,32 @@
 <div xmlns:py="http://purl.org/kid/ns#"
   class="simpleroster">
-  <form action="${action}" name="${name}" method="${method}" class="tableform">
+  <form action="${action}" name="${name}" method="${method}" class="tableform"
+      onsubmit="preSubmit()" >
+
+<?python
+from ipagui.helpers import ipahelper
+?>
+
+  <script type="text/javascript" charset="utf-8"
+    src="${tg.url('/static/javascript/dynamicedit.js')}"></script>
+
+  <?python searchurl = tg.url('/groupedit_search') ?>
+
+  <script type="text/javascript">
+    function doSearch() {
+      $('searchresults').update("Searching...");
+      new Ajax.Updater('searchresults',
+          '${searchurl}',
+          {  asynchronous:true,
+             parameters: { criteria: $('criteria').value },
+             evalScripts: true });
+      return false;
+    }
+  </script>
+
+    <div py:for="field in hidden_fields"
+      py:replace="field.display(value_for(field), **params_for(field))" 
+      />
 
     <div class="formsection">Group Details</div>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
@@ -41,6 +67,28 @@
       </tr>
     </table>
 
+    <div style="clear:both">
+      <div class="formsection">Add Members</div>
+
+      <div class="floatlist">
+        <div class="floatheader">To Add:</div>
+        <div id="newmembers">
+        </div>
+      </div>
+
+      <div>
+        <div id="search">
+          <input id="criteria" type="text" name="criteria"
+            onkeypress="return enterDoSearch(event);" />
+          <input type="button" value="Find"
+            onclick="return doSearch();"
+          />
+        </div>
+        <div id="searchresults">
+        </div>
+      </div>
+    </div>
+
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th></th>
@@ -52,4 +100,33 @@
     </table>
 
   </form>
+
+  <script type="text/javascript">
+    /*
+     * This section restores the contents of the add and remove lists
+     * dynamically if we have to refresh the page
+     */
+    if ($('form_dn_to_info_json').value != "") {
+      dn_to_info_hash = new Hash($('form_dn_to_info_json').value.evalJSON());
+    }
+  </script>
+
+  <?python
+  dnadds = value.get('dnadd', [])
+  if not(isinstance(dnadds,list) or isinstance(dnadds,tuple)):
+      dnadds = [dnadds]
+  ?>
+
+  <script py:for="dnadd in dnadds">
+    <?python
+    dnadd_esc = ipahelper.javascript_string_escape(dnadd)
+    ?>
+    var dn = "${dnadd_esc}";
+    var info = dn_to_info_hash[dn];
+    var newdiv = addmember(dn, info);
+    if (newdiv != null) {
+      newdiv.style.display = 'block';
+    }
+  </script>
+
 </div>
