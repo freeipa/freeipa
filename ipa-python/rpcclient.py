@@ -84,7 +84,7 @@ class RPCClient:
             raise xmlrpclib.Fault(value, msg)
 
         return ipautil.unwrap_binary_data(result)
-        
+ 
     def get_user_by_dn(self,dn,sattrs=None):
         """Get a specific user. If sattrs is not None then only those
            attributes will be returned, otherwise all available
@@ -101,6 +101,22 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
+    def get_user_by_principal(self,principal,sattrs=None):
+        """Get a specific user. If sattrs is not None then only those
+           attributes will be returned, otherwise all available
+           attributes are returned. The result is a dict."""
+        server = self.setup_server()
+        if sattrs is None:
+            sattrs = "__NONE__"
+        try:
+            result = server.get_user_by_principal(principal, sattrs)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+ 
     def get_users_by_manager(self,manager_dn,sattrs=None):
         """Gets the users that report to a manager.
            If sattrs is not None then only those
@@ -212,7 +228,7 @@ class RPCClient:
 
         return result
 
-    def modifyPassword(self,uid,oldpass,newpass):
+    def modifyPassword(self,principal,oldpass,newpass):
         """Modify a user's password"""
         server = self.setup_server()
 
@@ -220,7 +236,7 @@ class RPCClient:
             oldpass = "__NONE__"
     
         try:
-            result = server.modifyPassword(uid,oldpass,newpass)
+            result = server.modifyPassword(principal,oldpass,newpass)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):

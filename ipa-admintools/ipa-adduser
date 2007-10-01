@@ -28,6 +28,7 @@ import ipa.config
 
 import xmlrpclib
 import kerberos
+import krbV
 import ldap
 import getpass
 
@@ -51,8 +52,10 @@ def parse_options():
                       help="Set user's login shell to shell")
     parser.add_option("-G", "--groups", dest="groups",
                       help="Add account to one or more groups (comma-separated)")
+    parser.add_option("-k", "--krb-principal", dest="principal",
+                      help="Set user's Kerberos Principal Name")
     parser.add_option("-M", "--mailAddress", dest="mail",
-                      help="Set uesr's e-mail address")
+                      help="Set user's e-mail address")
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
@@ -66,8 +69,9 @@ def main():
     givenname = ""
     lastname = ""
     username = ""
+    principal = ""
     password = ""
-    mail = ""
+    mail = "" 
     gecos = ""
     directory = ""
     shell = ""
@@ -100,7 +104,7 @@ def main():
     cont = False
     if not options.sn:
         while (cont != True):
-            lastname = raw_input(" Last name: ")
+            lastname = raw_input("Last name: ")
             if (ipavalidate.plain(lastname, notEmpty=True)):
                 print "Field is required and must be letters or '"
             else:
@@ -140,18 +144,10 @@ def main():
     else:
         password = options.sn
 
-    cont = False
-    if not options.mail:
-        while (cont != True):
-            mail = raw_input("E-mail addr: ")
-            if (ipavalidate.email(mail)):
-                print "Field is required and must include a user and domain name"
-            else:
-                cont = True
-    else:
+    if options.mail:
         mail = options.mail
         if (ipavalidate.email(mail)):
-            print "E-mail is required and must include a user and domain name"
+            print "The email provided seem not a valid email."
             return 1
 
     # Ask the questions we don't normally force. We don't require answers
@@ -168,8 +164,10 @@ def main():
         cont = False
         if not options.directory:
             while (cont != True):
-                directory = raw_input("home directory []: ")
-                if (ipavalidate.path(gecos, notEmpty=False)):
+                directory = raw_input("home directory [/home/"+username+"]: ")
+                if directory == "":
+                     directory = "/home/"+username
+                if (ipavalidate.path(directory, notEmpty=False)):
                     print "Must be letters, numbers, spaces or '"
                 else:
                     cont = True
@@ -180,29 +178,26 @@ def main():
               
                 if len(shell) < 1:
                     shell = None
-                    cont = True
-        cont = False
-        if not options.groups:
-            while (cont != True):
-                g = raw_input("Add to group [blank to exit]: ")
-              
-                if len(g) < 1:
-                    cont = True
-                else:
-                    if (ipavalidate.path(g, notEmpty=False)):
-                        print "Must be letters, numbers, spaces or '"
-                    else:
-                        groups = groups + "," + g
+                cont = True
+
     else:
         gecos = options.gecos
         directory = options.directory
         shell = options.shell
         groups = options.groups
 
+    if options.principal:
+        principal = options.principal
+    else:
+        ctx = krbV.default_context()
+        principal = username + "@" + ctx.default_realm
+
     user.setValue('givenname', givenname)
     user.setValue('sn', lastname)
     user.setValue('uid', username)
-    user.setValue('mail', mail)
+    user.setValue('krbprincipalname', principal)
+    if mail:
+        user.setValue('mail', mail)
     if gecos:
         user.setValue('gecos', gecos)
     if directory:
@@ -231,7 +226,7 @@ def main():
     # Set the User's password
     if password is not None:
         try:
-            client.modifyPassword(username, None, password)
+            client.modifyPassword(principal, None, password)
         except ipa.ipaerror.IPAError, e:
             print "User added but setting the password failed."
             print "%s" % (e.message)

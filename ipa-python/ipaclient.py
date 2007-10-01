@@ -35,7 +35,6 @@ class IPAClient:
 
     def __init__(self,local=None):
         self.local = local
-        ipa.config.init_config()
         if local:
             self.transport = funcs.IPAServer()
             # client needs to call set_principal(user@REALM)
@@ -69,6 +68,13 @@ class IPAClient:
         result = self.transport.get_user_by_dn(dn,sattrs)
         return user.User(result)
 
+    def get_user_by_principal(self,principal,sattrs=None):
+        """Get a specific user by uid. If sattrs is set then only those
+           attributes will be returned, otherwise all available attributes
+           are returned."""
+        result = self.transport.get_user_by_principal(principal,sattrs)
+        return user.User(result)
+
     def get_users_by_manager(self,manager_dn,sattrs=None):
         """Gets the users the report to a particular manager.
            If sattrs is not None then only those
@@ -80,8 +86,6 @@ class IPAClient:
 
     def add_user(self,user,user_container=None):
         """Add a user. user is a ipa.user.User object"""
-
-        realm = config.config.get_realm()
 
         user_dict = user.toDict()
 
@@ -126,30 +130,24 @@ class IPAClient:
     def update_user(self,user):
         """Update a user entry."""
 
-        realm = config.config.get_realm()
-
         result = self.transport.update_user(user.origDataDict(), user.toDict())
         return result
 
     def delete_user(self,uid):
         """Delete a user entry."""
 
-        realm = config.config.get_realm()
-
         result = self.transport.delete_user(uid)
         return result
 
-    def modifyPassword(self,uid,oldpass,newpass):
+    def modifyPassword(self,principal,oldpass,newpass):
         """Modify a user's password"""
 
-        result = self.transport.modifyPassword(uid,oldpass,newpass)
+        result = self.transport.modifyPassword(principal,oldpass,newpass)
 
         return result
 
     def mark_user_deleted(self,uid):
         """Set a user as inactive by uid."""
-
-        realm = config.config.get_realm()
 
         result = self.transport.mark_user_deleted(uid)
         return result
@@ -181,8 +179,6 @@ class IPAClient:
 
     def add_group(self,group,group_container=None):
         """Add a group. group is a ipa.group.Group object"""
-
-        realm = config.config.get_realm()
 
         group_dict = group.toDict()
 
@@ -238,6 +234,8 @@ class IPAClient:
 
     def add_user_to_group(self, user_uid, group_cn):
         """Add a user to an existing group.
+           user is a uid of the user to add
+           group is the cn of the group to be added to
         """
 
         return self.transport.add_user_to_group(user_uid, group_cn)
@@ -253,6 +251,8 @@ class IPAClient:
 
     def remove_user_from_group(self, user_uid, group_cn):
         """Remove a user from an existing group.
+           user is a uid of the user to remove
+           group is the cn of the group to be removed from
         """
 
         return self.transport.remove_user_from_group(user_uid, group_cn)

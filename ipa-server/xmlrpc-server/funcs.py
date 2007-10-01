@@ -20,12 +20,12 @@
 import sys
 sys.path.append("/usr/share/ipa")
 
+import krbV
 import ldap
 import ipaserver.dsinstance
 import ipaserver.ipaldap
 import ipa.ipautil
 import xmlrpclib
-import ipa.config
 import copy
 from ipa import ipaerror
 
@@ -86,11 +86,12 @@ class IPAServer:
         self.bindcert = "/usr/share/ipa/cert.pem"
         self.bindkey = "/usr/share/ipa/key.pem"
         self.bindca = "/usr/share/ipa/cacert.asc"
-    
+        self.krbctx = krbV.default_context()
+        self.realm = self.krbctx.default_realm
+
         if _LDAPPool is None:
             _LDAPPool = IPAConnPool()
-        ipa.config.init_config()
-        self.basedn = ipa.ipautil.realm_to_suffix(ipa.config.config.get_realm())
+        self.basedn = ipa.ipautil.realm_to_suffix(self.realm)
         self.scope = ldap.SCOPE_SUBTREE
         self.princ = None
         self.krbccache = None
@@ -312,6 +313,15 @@ class IPAServer:
         filter = "(objectClass=*)"
         return self.__get_entry(dn, filter, sattrs, opts)
 
+    def get_user_by_principal(self, principal, sattrs=None, opts=None):
+        """Get a user entry searching by Kerberos Principal Name.
+           Return as a dict of values. Multi-valued fields are
+           represented as lists.
+        """
+
+        filter = "(krbPrincipalName="+self.__safe_filter(principal)+")"
+        return self.__get_entry(self.basedn, filter, sattrs, opts)
+    
     def get_users_by_manager (self, manager_dn, sattrs=None, opts=None):
         """Gets the users that report to a particular manager.
         """
@@ -342,9 +352,9 @@ class IPAServer:
 
         # Let us add in some missing attributes
         if user.get('homedirectory') is None:
-                user['homedirectory'] = '/home/%s' % user.get('uid')
+            user['homedirectory'] = '/home/%s' % user.get('uid')
         if not user.get('gecos') is None:
-                user['gecos'] = user['uid']
+            user['gecos'] = user['uid']
 
         # FIXME: This can be removed once the DS plugin is installed
         user['uidnumber'] = '501'
@@ -352,8 +362,8 @@ class IPAServer:
         # FIXME: What is the default group for users?
         user['gidnumber'] = '501'
 
-        realm = ipa.config.config.get_realm()
-        user['krbprincipalname'] = "%s@%s" % (user.get('uid'), realm)
+        if user.get('krbprincipalname') is None:
+            user['krbprincipalname'] = "%s@%s" % (user.get('uid'), self.realm)
 
         # FIXME. This is a hack so we can request separate First and Last
         # name in the GUI.
@@ -365,17 +375,7 @@ class IPAServer:
             del user['gn']
 
         # some required objectclasses
-        entry.setValues('objectClass', 'top', 'posixAccount', 'shadowAccount', 'account', 'person', 'inetOrgPerson', 'organizationalPerson', 'krbPrincipalAux', 'krbTicketPolicyAux')
-    
-        # Fill in shadow fields
-        entry.setValue('shadowMin', '0')
-        entry.setValue('shadowMax', '99999')
-        entry.setValue('shadowWarning', '7')
-        entry.setValue('shadowExpire', '-1')
-        entry.setValue('shadowInactive', '-1')
-        entry.setValue('shadowFlag', '-1')
-    
-        # FIXME: calculate shadowLastChange
+        entry.setValues('objectClass', 'top', 'person', 'organizationalPerson', 'inetOrgPerson', 'posixAccount', 'krbPrincipalAux')
     
         # fill in our new entry with everything sent by the user
         for u in user:
@@ -426,7 +426,7 @@ class IPAServer:
             "label":      "E-mail address:",
             "type":       "text",
             "validator":  "email",
-            "required":   "true"
+            "required":   "false"
         }
         fields.append(field1)
     
@@ -454,6 +454,9 @@ class IPAServer:
             opts=None):
         """Returns a list: counter followed by the results.
            If the results are truncated, counter will be set to -1."""
+
+        # TODO - retrieve from config
+        timelimit = 2
 
         # Assume the list of fields to search will come from a central
         # configuration repository.  A good format for that would be
@@ -562,31 +565,31 @@ class IPAServer:
            The memberOf plugin handles removing the user from any other
            groups.
         """
-        user_dn = self.get_user_by_uid(uid, ['dn', 'uid', 'objectclass'], opts)
-        if user_dn is None:
+        user = self.get_user_by_uid(uid, ['dn', 'uid', 'objectclass'], opts)
+        if user is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
 
         conn = self.getConnection(opts)
         try:
-            res = conn.deleteEntry(user_dn['dn'])
+            res = conn.deleteEntry(user['dn'])
         finally:
             self.releaseConnection(conn)
         return res
 
-    def modifyPassword (self, uid, oldpass, newpass, opts=None):
+    def modifyPassword (self, principal, oldpass, newpass, opts=None):
         """Set/Reset a user's password
 
            uid tells us who's password to change
            oldpass is the old password (if available)
            newpass is the new password
         """
-        user_dn = self.get_user_by_uid(uid, ['dn', 'uid', 'objectclass'], opts)
-        if user_dn is None:
+        user = self.get_user_by_principal(principal, ['krbprincipalname'], opts)
+        if user is None or user['krbprincipalname'] != principal:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
 
         conn = self.getConnection(opts)
         try:
-            res = conn.modifyPassword(user_dn['dn'], oldpass, newpass)
+            res = conn.modifyPassword(user['dn'], oldpass, newpass)
         finally:
             self.releaseConnection(conn)
         return res

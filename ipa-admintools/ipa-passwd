@@ -44,12 +44,12 @@ def parse_options():
 
     return options, args
 
-def get_principal():
+def get_principal(krbctx):
     try:
-        ctx = krbV.default_context()
-        ccache = ctx.default_ccache()
+        ccache = krbctx.default_ccache()
         cprinc = ccache.principal()
     except krbV.Krb5Error, e:
+        #TODO: do a kinit
         print "Unable to get kerberos principal: %s" % e[1]
         return None
         
@@ -57,39 +57,47 @@ def get_principal():
 
 def main():
     match = False
+    username = None
+    principal = None
 
+    krbctx = krbV.default_context()
     options, args = parse_options()
 
     if len(args) == 2:
         username = args[1]
     else:
-        username = get_principal()
-        if username is None:
+        principal = get_principal(krbctx)
+        if principal is None:
             return 1
 
-    u = username.split('@')
-    if len(u) > 1:
-        username = u[0]
+    if not principal:
+        u = username.split('@')
+        if len(u) > 2 or len(u) == 0:
+            print "Invalid user name (%s)" % username
+        if len(u) == 1:
+            principal = username+"@"+krbctx.default_realm
+        else:
+            principal = username
 
-    print "Changing password for %s" % username
+    print "Changing password for %s" % principal
 
     while (match != True):
         # No syntax checking of the password is required because that is done
         # on the server side
         password = getpass.getpass("  New Password: ")
-        confirm = getpass.getpass("  New Password (again): ")
+        confirm = getpass.getpass("  Confirm Password: ")
         if (password != confirm):
             print "Passwords do not match"
             match = False
+        elif (len(password) < 1):
+            print "Password cannot be empty"
+            match = False
         else:
             match = True
-            if (len(password) < 1):
-                print "Password cannot be empty"
-                match = False
 
     try:
         client = ipaclient.IPAClient()
-        client.modifyPassword(username, None, password)
+        client.modifyPassword(principal, None, password)
     except ipa.ipaerror.IPAError, e:
         print "%s" % (e.message)
         return 1

@@ -338,7 +338,7 @@ class Root(controllers.RootController):
         #
         try:
             if password_change:
-                rv = client.modifyPassword(kw['uid'], "", kw.get('userpassword'))
+                rv = client.modifyPassword(kw['krbprincipalname'], "", kw.get('userpassword'))
         except ipaerror.IPAError, e:
             turbogears.flash("User password change failed: " + str(e))
             return dict(form=user_edit_form, user=kw,
