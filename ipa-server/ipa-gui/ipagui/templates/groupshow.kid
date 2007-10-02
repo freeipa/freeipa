@@ -6,7 +6,14 @@
     <title>View Group</title>
 </head>
 <body>
+<?python
+edit_url = tg.url('/groupedit', cn=group.get('cn'))
+?>
     <h2>View Group</h2>
+
+    <input type="button"
+      onclick="document.location.href='${edit_url}'"
+      value="Edit Group" />
 
     <div class="formsection">Group Details</div>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
@@ -61,9 +68,10 @@
     </div>
 
     <br/>
-    <br/>
 
-    <a href="${tg.url('/groupedit', cn=group.get('cn'))}">edit</a>
+    <input type="button"
+      onclick="document.location.href='${edit_url}'"
+      value="Edit Group" />
 
 </body>
 </html>

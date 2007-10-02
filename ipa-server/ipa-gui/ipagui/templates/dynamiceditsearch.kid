@@ -66,7 +66,7 @@ from ipagui.helpers import ipahelper
     </div>
     <script type="text/javascript">
       if (results_counter == 0) {
-        var message = "No results found for " + search_string;
+        var message = "No results found for '" + search_string + "'";
       } else {
         var message =  results_counter + " results found:";
       }

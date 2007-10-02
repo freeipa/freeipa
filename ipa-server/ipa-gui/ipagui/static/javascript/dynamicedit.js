@@ -102,7 +102,7 @@ function addmember(dn, info) {
   var undolink = document.createElement('a');
   undolink.setAttribute('href', '');
   undolink.setAttribute('onclick',
-    'new Effect.Fade(Element.up(this), {afterFinish: removeElement});' +
+    'new Effect.Fade(Element.up(this), {afterFinish: removeElement, duration: 0.75});' +
     'added_hash.remove("' + jsStringEscape(dn) + '");' +
     'return false;');
   undolink.appendChild(document.createTextNode("undo"));
@@ -123,8 +123,8 @@ function addmember(dn, info) {
 function addmemberHandler(element, dn, info) {
   var newdiv = addmember(dn, info)
   if (newdiv != null) {
-    new Effect.Fade(Element.up(element));
-    new Effect.Appear(newdiv);
+    new Effect.Fade(Element.up(element), {duration: 0.75});
+    new Effect.Appear(newdiv, {duration: 0.75});
     /* Element.up(element).remove(); */
   }
 }
@@ -139,8 +139,8 @@ function removemember(dn, info) {
   var undolink = document.createElement('a');
   undolink.setAttribute('href', '');
   undolink.setAttribute('onclick',
-    'new Effect.Fade(Element.up(this), {afterFinish: removeElement});' +
-    "new Effect.Appear($('" + orig_div_id + "'));" +
+    'new Effect.Fade(Element.up(this), {afterFinish: removeElement, duration: 0.75});' +
+    "new Effect.Appear($('" + orig_div_id + "'), {duration: 0.75});" +
     'return false;');
   undolink.appendChild(document.createTextNode("undo"));
   newdiv.appendChild(undolink);
@@ -159,8 +159,8 @@ function removemember(dn, info) {
 
 function removememberHandler(element, dn, info) {
   var newdiv = removemember(dn, info);
-  new Effect.Fade(Element.up(element));
-  new Effect.Appear(newdiv);
+  new Effect.Fade(Element.up(element), {duration: 0.75});
+  new Effect.Appear(newdiv, {duration: 0.75});
   /* Element.up(element).remove(); */
 }
 

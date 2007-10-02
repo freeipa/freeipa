@@ -11,6 +11,13 @@
             py:content="XML(tg_flash)"></div>
         <h1>Welcome to Free IPA</h1>
 
+        <noscript>
+        <span class="warning_message">
+        This site makes heavy use of JavaScript.<br />
+        Please enable JavaScript in your browser to make sure all pages function properly.
+        </span>
+        </noscript>
+
         <p>
           IPA is used to manage Identity, Policy, and Auditing for your
           organization.

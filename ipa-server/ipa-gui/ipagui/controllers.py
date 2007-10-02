@@ -1,6 +1,7 @@
 import random
 from pickle import dumps, loads
 from base64 import b64encode, b64decode
+import re
 
 import os
 import cherrypy
@@ -50,40 +51,40 @@ def utf8_encode(value):
 
 def sort_group_member(a, b):
     """Comparator function used for sorting group members."""
-    if a.get('uid') and b.get('uid'):
-        if a.get('givenname', '') == b.get('givenname', ''):
-            if a.get('sn', '') == b.get('sn', ''):
-                if a.get('uid') == b.get('uid'):
+    if a.getValue('uid') and b.getValue('uid'):
+        if a.getValue('givenname') == b.getValue('givenname'):
+            if a.getValue('sn') == b.getValue('sn'):
+                if a.getValue('uid') == b.getValue('uid'):
                     return 0
-                elif a.get('uid') < b.get('uid'):
+                elif a.getValue('uid') < b.getValue('uid'):
                     return -1
                 else:
                     return 1
-            elif a.get('sn', '') < b.get('sn', ''):
+            elif a.getValue('sn') < b.getValue('sn'):
                 return -1
             else:
                 return 1
-        elif a.get('givenname') < b.get('givenname'):
+        elif a.getValue('givenname') < b.getValue('givenname'):
             return -1
         else:
             return 1
-    elif a.get('uid'):
+    elif a.getValue('uid'):
         return -1
-    elif b.get('uid'):
+    elif b.getValue('uid'):
         return 1
     else:
-        if a.get('cn', '') == b.get('cn', ''):
+        if a.getValue('cn') == b.getValue('cn'):
             return 0
-        elif a.get('cn', '') < b.get('cn', ''):
+        elif a.getValue('cn') < b.getValue('cn'):
             return -1
         else:
             return 1
 
 def sort_by_cn(a, b):
     """Comparator function used for sorting groups."""
-    if a.get('cn', '') == b.get('cn', ''):
+    if a.getValue('cn') == b.getValue('cn'):
         return 0
-    elif a.get('cn', '') < b.get('cn', ''):
+    elif a.getValue('cn') < b.getValue('cn'):
         return -1
     else:
         return 1
@@ -216,7 +217,7 @@ class Root(controllers.RootController):
            This method is used for the ajax search on the user edit page."""
         client.set_krbccache(os.environ["KRB5CCNAME"])
         groups = []
-        counter = 0
+        groups_counter = 0
         searchlimit = 100
         criteria = kw.get('criteria')
         if criteria != None and len(criteria) > 0:
@@ -248,8 +249,8 @@ class Root(controllers.RootController):
                 del(user_dict['userpassword'])
 
             user_groups = client.get_groups_by_member(user.dn, ['dn', 'cn'])
+            user_groups.sort(sort_by_cn)
             user_groups_dicts = map(lambda group: group.toDict(), user_groups)
-            user_groups_dicts.sort(sort_by_cn)
             user_groups_data = b64encode(dumps(user_groups_dicts))
 
             # store a copy of the original user for the update later
@@ -421,8 +422,10 @@ class Root(controllers.RootController):
         try:
             user = client.get_user_by_uid(uid, user_fields)
             user_groups = client.get_groups_by_member(user.dn, ['cn'])
+            user_groups.sort(sort_by_cn)
             user_reports = client.get_users_by_manager(user.dn,
                     ['givenname', 'sn', 'uid'])
+            user_reports.sort(sort_group_member)
 
             user_manager = None
             try:
@@ -466,6 +469,10 @@ class Root(controllers.RootController):
     @expose()
     @identity.require(identity.not_anonymous())
     def suggest_uid(self, givenname, sn):
+        # filter illegal uid characters out
+        givenname = re.sub(r'[^a-zA-Z_\-0-9]', "", givenname)
+        sn = re.sub(r'[^a-zA-Z_\-0-9]', "", sn)
+
         if (len(givenname) == 0) or (len(sn) == 0):
             return ""
 
@@ -512,6 +519,10 @@ class Root(controllers.RootController):
     @expose()
     @identity.require(identity.not_anonymous())
     def suggest_email(self, givenname, sn):
+        # remove illegal email characters
+        givenname = re.sub(r'[^a-zA-Z0-9!#\$%\*/?\|\^\{\}`~&\'\+\-=_]', "", givenname)
+        sn = re.sub(r'[^a-zA-Z0-9!#\$%\*/?\|\^\{\}`~&\'\+\-=_]', "", sn)
+
         if (len(givenname) == 0) or (len(sn) == 0):
             return ""
 
@@ -716,11 +727,11 @@ class Root(controllers.RootController):
                     lambda dn: client.get_user_by_dn(dn, ['dn', 'givenname', 'sn',
                         'uid', 'cn']),
                     member_dns)
+            members.sort(sort_group_member)
 
             # Map users into an array of dicts, which can be serialized
             # (so we don't have to do this on each round trip)
             member_dicts = map(lambda member: member.toDict(), members)
-            member_dicts.sort(sort_group_member)
 
             # store a copy of the original group for the update later
             group_data = b64encode(dumps(group_dict))
@@ -885,8 +896,8 @@ class Root(controllers.RootController):
                     lambda dn: client.get_user_by_dn(dn, ['dn', 'givenname', 'sn',
                         'uid', 'cn']),
                     member_dns)
+            members.sort(sort_group_member)
             member_dicts = map(lambda member: member.toDict(), members)
-            member_dicts.sort(sort_group_member)
 
             return dict(group=group_dict, fields=forms.group.GroupFields(),
                     members = member_dicts)

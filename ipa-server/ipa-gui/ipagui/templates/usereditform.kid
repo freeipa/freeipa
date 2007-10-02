@@ -3,6 +3,20 @@
   <form action="${action}" name="${name}" method="${method}" class="tableform"
     onsubmit="preSubmit()">
 
+    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
+      <tr>
+        <th>
+          <input type="submit" class="submitbutton" name="submit"
+              value="Update Person"/>
+        </th>
+        <td>
+          <input type="submit" class="submitbutton" name="submit"
+              value="Cancel Edit" />
+        </td>
+        <td></td>
+      </tr>
+    </table>
+
 <?python
 from ipagui.helpers import ipahelper
 ?>
@@ -313,9 +327,6 @@ from ipagui.helpers import ipahelper
         </div>
       </div>
     </div>
-
-
-
 
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>

@@ -291,7 +291,9 @@ TableKit.Sortable = {
 		
 		if(cell.hasClassName(op.noSortClass)) {return;}	
 		
-		order = order ? order : (cell.hasClassName(op.descendingClass) ? 1 : -1);
+		// order = order ? order : (cell.hasClassName(op.descendingClass) ? 1 : -1);
+                // kmccarth - change default sort order to ascending
+		order = order ? order : (cell.hasClassName(op.ascendingClass) ? -1 : 1);
 		var rows = TableKit.getBodyRows(table);
 
 		if(cell.hasClassName(op.ascendingClass) || cell.hasClassName(op.descendingClass)) {

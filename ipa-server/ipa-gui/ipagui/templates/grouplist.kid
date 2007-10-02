@@ -6,6 +6,7 @@
 <title>Find Groups</title>
 </head>
 <body>
+    <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/tablekit.js')}"></script>
     <div id="search">
         <form action="${tg.url('/grouplist')}" method="get">
             <input id="criteria" type="text" name="criteria" value="${criteria}" />
@@ -17,15 +18,18 @@
     </div>
     <div py:if='(groups != None) and (len(groups) > 0)'>
         <h2>${len(groups)} results returned:</h2>
-        <table id="resultstable">
+        <table id="resultstable" class="sortable resizable">
+          <thead>
             <tr>
                 <th>
-                    <label class="fieldlabel" py:content="fields.cn.label" />
+                    ${fields.cn.label}
                 </th>
                 <th>
-                    <label class="fieldlabel" py:content="fields.description.label" />
+                    ${fields.description.label}
                 </th>
             </tr>
+          </thead>
+          <tbody>
             <tr py:for="group in groups">
                 <td>
                     <a href="${tg.url('/groupshow',cn=group.cn)}">${group.cn}</a>
@@ -34,6 +38,7 @@
                     ${group.description}
                 </td>
             </tr>
+          </tbody>
         </table>
     </div>
     <div py:if='(groups != None) and (len(groups) == 0)'>

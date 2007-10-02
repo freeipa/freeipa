@@ -8,9 +8,9 @@ class UserFields():
             label="Confirm Password")
     uidnumber = widgets.TextField(name="uidnumber", label="UID")
     gidnumber = widgets.TextField(name="gidnumber", label="GID")
-    givenname = widgets.TextField(name="givenname", label="First name")
-    sn = widgets.TextField(name="sn", label="Last name")
-    mail = widgets.TextField(name="mail", label="E-mail address")
+    givenname = widgets.TextField(name="givenname", label="Given Name")
+    sn = widgets.TextField(name="sn", label="Family Name")
+    mail = widgets.TextField(name="mail", label="E-mail Address")
     telephonenumber = widgets.TextField(name="telephonenumber", label="Phone")
     # nsAccountLock = widgets.CheckBox(name="nsAccountLock", label="Account Deactivated")
     nsAccountLock = widgets.SingleSelectField(name="nsAccountLock",

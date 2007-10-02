@@ -3,6 +3,14 @@
   <form action="${action}" name="${name}" method="${method}" class="tableform"
     onsubmit="preSubmit()">
 
+    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
+      <tr>
+        <td>
+          <input type="submit" class="submitbutton" name="submit" value="Add Person"/>
+        </td>
+      </tr>
+    </table>
+
 <?python
 from ipagui.helpers import ipahelper
 ?>
@@ -240,7 +248,6 @@ from ipagui.helpers import ipahelper
 
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
-        <th></th>
         <td>
           <br />
           <input type="submit" class="submitbutton" name="submit" value="Add Person"/>

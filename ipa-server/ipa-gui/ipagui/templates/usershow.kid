@@ -6,7 +6,14 @@
     <title>View Person</title>
 </head>
 <body>
+<?python
+edit_url = tg.url('/useredit', uid=user.get('uid'))
+?>
     <h2>View Person</h2>
+
+    <input type="button"
+      onclick="document.location.href='${edit_url}'"
+      value="Edit Person" />
 
 <?python
 from ipagui.helpers import userhelper
@@ -111,9 +118,10 @@ else:
     </div>
 
     <br/>
-    <br/>
 
-    <a href="${tg.url('/useredit', uid=user.get('uid'))}">edit</a>
+    <input type="button"
+      onclick="document.location.href='${edit_url}'"
+      value="Edit Person" />
 
 </body>
 </html>
