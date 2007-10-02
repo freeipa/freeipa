@@ -28,7 +28,7 @@ import xmlrpclib
 import kerberos
 
 def usage():
-    print "ipa-findgroup <uid>"
+    print "ipa-findgroup <group_name>"
     sys.exit()
 
 def parse_options():

@@ -108,7 +108,7 @@ LDAP_NOT_FOUND = gen_error_code(
 LDAP_DUPLICATE = gen_error_code(
         LDAP_CATEGORY,
         0x0004,
-        "Duplicate entry already in LDAP")
+        "This entry already exists")
 
 LDAP_MISSING_DN = gen_error_code(
         LDAP_CATEGORY,
@@ -129,3 +129,18 @@ INPUT_INVALID_ERROR = gen_error_code(
         INPUT_CATEGORY,
         0x0001,
         "Illegal input")
+
+#
+# Connection errors
+#
+CONNECTION_CATEGORY = 0x0003
+
+CONNECTION_NO_CONN = gen_error_code(
+        CONNECTION_CATEGORY,
+        0x0001,
+        "Connection to database failed")
+
+CONNECTION_NO_CCACHE = gen_error_code(
+        CONNECTION_CATEGORY,
+        0x0002,
+        "No Kerberos credentials cache is available. Connection cannot be made.")

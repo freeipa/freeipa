@@ -54,6 +54,15 @@ def parse_options():
 
     return options, args
 
+def get_group(client, group_cn):
+    try:
+        group = client.get_group_by_cn(group_cn)
+    except ipa.ipaerror.IPAError, e:
+        print "%s" % e.message
+        return None
+
+    return group
+
 def main():
     group=ipa.group.Group()
     options, args = parse_options()
@@ -66,16 +75,20 @@ def main():
     try:
         client = ipaclient.IPAClient()
         if options.add:
-            client.add_user_to_group(args[1], args[2])
+            group = get_group(client, args[2])
+            if group is None:
+                return 1
+            client.add_user_to_group(args[1], group.dn)
             print args[1] + " successfully added to " + args[2]
         elif options.remove:
-            client.remove_user_from_group(args[1], args[2])
+            group = get_group(client, args[2])
+            if group is None:
+                return 1
+            client.remove_user_from_group(args[1], group.dn)
             print args[1] + " successfully removed"
         elif options.desc:
-            try:
-                group = client.get_group_by_cn(args[1])
-            except ipa.ipaerror.IPAError, e:
-                print "%s" % e.message
+            group = get_group(client, args[1])
+            if group is None:
                 return 1
             group.setValue('description', options.desc)
             client.update_group(group)
