@@ -29,10 +29,14 @@ VERSION = "%prog .1"
 import sys
 sys.path.append("/usr/share/ipa")
 
+import os
 import socket
 import logging
 import pwd
 import getpass
+import signal
+import shutil
+import glob
 from optparse import OptionParser
 import ipaserver.dsinstance
 import ipaserver.krbinstance
@@ -90,7 +94,55 @@ def logging_setup(options):
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
+def erase_ds_instance_data(serverid):
+    try:
+        shutil.rmtree("/etc/dirsrv/slapd-%s" % serverid)
+    except:
+        pass
+    try:
+        shutil.rmtree("/var/lib/dirsrv/slapd-%s" % serverid)
+    except:
+        pass
+    try:
+        shutil.rmtree("/var/lock/dirsrv/slapd-%s" % serverid)
+    except:
+        pass
+
+def signal_handler(signum, frame):
+    global ds
+    print "\nCleaning up..."
+    if ds:
+        print "Removing configuration for %s instance" % ds.serverid
+        ds.stop()
+        if ds.serverid:
+            erase_ds_instance_data (ds.serverid)
+    sys.exit(1)
+
+def check_existing_installation():
+    dirs = glob.glob("/etc/dirsrv/slapd-*")
+    if not dirs:
+        return
+    yesno = raw_input("An existing Directory Server has been detected.  Do you wish to remove it and create a new one? [y/N]: ")
+    if yesno.lower() != "y":
+        sys.exit(1)
+    for d in dirs:
+        serverid = os.path.basename(d).split("slapd-", 1)[1]
+        if ds.serverid:
+            erase_ds_instance_data (serverid)
+
 def main():
+    global ds
+    ds = None
+    
+    if os.getegid() != 0:
+        print "Must be root to setup server"
+        return
+    
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
+
+    check_existing_installation()
+
     options = parse_options()
     logging_setup(options)
 
@@ -379,7 +431,11 @@ def main():
     krb.restart()
 
     # Allow apache to connect to the turbogears web gui
-    run(["/usr/sbin/setsebool", "-P", "httpd_can_network_connect", "true"])
+    try:
+        run(["/usr/sbin/setsebool", "-P", "httpd_can_network_connect", "true"])
+    except:
+        # SELinux may be disabled
+        pass
 
     # Start the web gui
     run(["/sbin/service", "ipa-webgui", "start"])

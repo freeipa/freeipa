@@ -62,7 +62,7 @@ def run(args, stdin=None):
     logging.info(stderr)
 
     if p.returncode != 0:
-        raise subprocess.CalledProcessError(p.returncode, args[0])
+        raise subprocess.CalledProcessError(p.returncode, ' '.join(args))
 
 def file_exists(filename):
     try:
