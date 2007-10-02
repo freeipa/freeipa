@@ -913,10 +913,8 @@ class IPAServer:
             group_dns = [group_dns]
 
         for group_dn in group_dns:
-            # TODO - change add_member_to_group to take a group_dn
             try:
-                group = self.get_group_by_dn(group_dn, ['cn'], opts)
-                self.add_member_to_group(user_dn, group.get('cn'), opts)
+                self.add_member_to_group(user_dn, group_dn, opts)
             except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
                 # User is already in the group
                 failed.append(group_dn)
@@ -938,10 +936,8 @@ class IPAServer:
             group_dns = [group_dns]
 
         for group_dn in group_dns:
-            # TODO - change remove_member_from_group to take a group_dn
             try:
-                group = self.get_group_by_dn(group_dn, ['cn'], opts)
-                self.remove_member_from_group(user_dn, group.get('cn'), opts)
+                self.remove_member_from_group(user_dn, group_dn, opts)
             except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
                 # User is not in the group
                 failed.append(group_dn)
