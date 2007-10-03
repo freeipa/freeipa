@@ -32,17 +32,20 @@ from ipagui.helpers import ipahelper
       passwordConfirmField = document.getElementById('form_userpassword_confirm');
       uidnumberField = document.getElementById('form_uidnumber');
       gidnumberField = document.getElementById('form_gidnumber');
+      homedirectoryField = document.getElementById('form_homedirectory');
       if (checkbox.checked) {
         passwordField.disabled = false;
         passwordConfirmField.disabled = false;
         uidnumberField.disabled = false;
         gidnumberField.disabled = false;
+        homedirectoryField.disabled = false;
         $('form_editprotected').value = 'true';
       } else {
         passwordField.disabled = true;
         passwordConfirmField.disabled = true;
         uidnumberField.disabled = true;
         gidnumberField.disabled = true;
+        homedirectoryField.disabled = true;
         $('form_editprotected').value = '';
       }
     }
@@ -76,6 +79,19 @@ from ipagui.helpers import ipahelper
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
+          <label class="fieldlabel" for="${user.title.field_id}"
+            py:content="user.title.label" />:
+        </th>
+        <td>
+          <span py:replace="user.title.display(value_for(user.title))" />
+          <span py:if="tg.errors.get('title')" class="fielderror"
+              py:content="tg.errors.get('title')" />
+
+        </td>
+      </tr>
+
+      <tr>
+        <th>
           <label class="fieldlabel" for="${user.givenname.field_id}"
             py:content="user.givenname.label" />:
         </th>
@@ -98,10 +114,60 @@ from ipagui.helpers import ipahelper
               py:content="tg.errors.get('sn')" />
         </td>
       </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.cn.field_id}"
+            py:content="user.cn.label" />:
+        </th>
+        <td>
+          <span py:replace="user.cn.display(value_for(user.cn))" />
+          <span py:if="tg.errors.get('cn')" class="fielderror"
+              py:content="tg.errors.get('cn')" />
+
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.displayname.field_id}"
+            py:content="user.displayname.label" />:
+        </th>
+        <td>
+          <span py:replace="user.displayname.display(value_for(user.displayname))" />
+          <span py:if="tg.errors.get('displayname')" class="fielderror"
+              py:content="tg.errors.get('displayname')" />
+
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.initials.field_id}"
+            py:content="user.initials.label" />:
+        </th>
+        <td>
+          <span py:replace="user.initials.display(value_for(user.initials))" />
+          <span py:if="tg.errors.get('initials')" class="fielderror"
+              py:content="tg.errors.get('initials')" />
+
+        </td>
+      </tr>
     </table>
 
     <div class="formsection">Account Details</div>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.nsAccountLock.field_id}"
+            py:content="user.nsAccountLock.label" />:
+        </th>
+        <td>
+          <span py:replace="user.nsAccountLock.display(value_for(user.nsAccountLock))" />
+          <span py:if="tg.errors.get('nsAccountLock')" class="fielderror"
+                    py:content="tg.errors.get('nsAccountLock')" />
+        </td>
+      </tr>
       <tr>
         <th>
           <label class="fieldlabel" for="${user.uid.field_id}"
@@ -213,6 +279,49 @@ from ipagui.helpers import ipahelper
           </script>
         </td>
       </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.homedirectory.field_id}"
+            py:content="user.homedirectory.label" />:
+        </th>
+        <td>
+          <span py:replace="user.homedirectory.display(
+               value_for(user.homedirectory))" />
+          <span py:if="tg.errors.get('homedirectory')" class="fielderror"
+              py:content="tg.errors.get('homedirectory')" />
+
+          <script type="text/javascript">
+              document.getElementById('form_homedirectory').disabled = true;
+          </script>
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.loginshell.field_id}"
+            py:content="user.loginshell.label" />:
+        </th>
+        <td>
+          <span py:replace="user.loginshell.display(
+              value_for(user.loginshell))" />
+          <span py:if="tg.errors.get('loginshell')" class="fielderror"
+              py:content="tg.errors.get('loginshell')" />
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.gecos.field_id}"
+            py:content="user.gecos.label" />:
+        </th>
+        <td>
+          <span py:replace="user.gecos.display(
+              value_for(user.gecos))" />
+          <span py:if="tg.errors.get('gecos')" class="fielderror"
+              py:content="tg.errors.get('gecos')" />
+        </td>
+      </tr>
     </table>
 
     <div class="formsection">Contact Details</div>
@@ -228,6 +337,7 @@ from ipagui.helpers import ipahelper
               py:content="tg.errors.get('mail')" />
         </td>
       </tr>
+
       <tr>
         <th>
           <label class="fieldlabel" for="${user.telephonenumber.field_id}"
@@ -239,22 +349,216 @@ from ipagui.helpers import ipahelper
               py:content="tg.errors.get('telephonenumber')" />
         </td>
       </tr>
-    </table>
 
-    <div class="formsection">Account Status</div>
-    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.nsAccountLock.field_id}"
-            py:content="user.nsAccountLock.label" />:
+          <label class="fieldlabel" for="${user.facsimiletelephonenumber.field_id}"
+            py:content="user.facsimiletelephonenumber.label" />:
         </th>
         <td>
-          <span py:replace="user.nsAccountLock.display(value_for(user.nsAccountLock))" />
-          <span py:if="tg.errors.get('nsAccountLock')" class="fielderror"
-                    py:content="tg.errors.get('nsAccountLock')" />
+          <span py:replace="user.facsimiletelephonenumber.display(value_for(user.facsimiletelephonenumber))" />
+          <span py:if="tg.errors.get('facsimiletelephonenumber')" class="fielderror"
+              py:content="tg.errors.get('facsimiletelephonenumber')" />
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.mobile.field_id}"
+            py:content="user.mobile.label" />:
+        </th>
+        <td>
+          <span py:replace="user.mobile.display(value_for(user.mobile))" />
+          <span py:if="tg.errors.get('mobile')" class="fielderror"
+              py:content="tg.errors.get('mobile')" />
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.pager.field_id}"
+            py:content="user.pager.label" />:
+        </th>
+        <td>
+          <span py:replace="user.pager.display(value_for(user.pager))" />
+          <span py:if="tg.errors.get('pager')" class="fielderror"
+              py:content="tg.errors.get('pager')" />
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.homephone.field_id}"
+            py:content="user.homephone.label" />:
+        </th>
+        <td>
+          <span py:replace="user.homephone.display(value_for(user.homephone))" />
+          <span py:if="tg.errors.get('homephone')" class="fielderror"
+              py:content="tg.errors.get('homephone')" />
         </td>
       </tr>
     </table>
+
+    <div class="formsection">Mailing Address</div>
+    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.street.field_id}"
+            py:content="user.street.label" />:
+        </th>
+        <td>
+          <span py:replace="user.street.display(value_for(user.street))" />
+          <span py:if="tg.errors.get('street')" class="fielderror"
+              py:content="tg.errors.get('street')" />
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.l.field_id}"
+            py:content="user.l.label" />:
+        </th>
+        <td>
+          <span py:replace="user.l.display(value_for(user.l))" />
+          <span py:if="tg.errors.get('l')" class="fielderror"
+              py:content="tg.errors.get('l')" />
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.st.field_id}"
+            py:content="user.st.label" />:
+        </th>
+        <td>
+          <span py:replace="user.st.display(value_for(user.st))" />
+          <span py:if="tg.errors.get('st')" class="fielderror"
+              py:content="tg.errors.get('st')" />
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.postalcode.field_id}"
+            py:content="user.postalcode.label" />:
+        </th>
+        <td>
+          <span py:replace="user.postalcode.display(value_for(user.postalcode))" />
+          <span py:if="tg.errors.get('postalcode')" class="fielderror"
+              py:content="tg.errors.get('postalcode')" />
+        </td>
+      </tr>
+    </table>
+
+    <div class="formsection">Employee Information</div>
+    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.ou.field_id}"
+            py:content="user.ou.label" />:
+        </th>
+        <td>
+          <span py:replace="user.ou.display(value_for(user.ou))" />
+          <span py:if="tg.errors.get('ou')" class="fielderror"
+              py:content="tg.errors.get('ou')" />
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.businesscategory.field_id}"
+            py:content="user.businesscategory.label" />:
+        </th>
+        <td>
+          <span py:replace="user.businesscategory.display(value_for(user.businesscategory))" />
+          <span py:if="tg.errors.get('businesscategory')" class="fielderror"
+              py:content="tg.errors.get('businesscategory')" />
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.description.field_id}"
+            py:content="user.description.label" />:
+        </th>
+        <td>
+          <span py:replace="user.description.display(value_for(user.description))" />
+          <span py:if="tg.errors.get('description')" class="fielderror"
+              py:content="tg.errors.get('description')" />
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.employeetype.field_id}"
+            py:content="user.employeetype.label" />:
+        </th>
+        <td>
+          <span py:replace="user.employeetype.display(value_for(user.employeetype))" />
+          <span py:if="tg.errors.get('employeetype')" class="fielderror"
+              py:content="tg.errors.get('employeetype')" />
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.manager.field_id}"
+            py:content="user.manager.label" />:
+        </th>
+        <td>
+           TODO
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.roomnumber.field_id}"
+            py:content="user.roomnumber.label" />:
+        </th>
+        <td>
+          <span py:replace="user.roomnumber.display(value_for(user.roomnumber))" />
+          <span py:if="tg.errors.get('roomnumber')" class="fielderror"
+              py:content="tg.errors.get('roomnumber')" />
+        </td>
+      </tr>
+
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.secretary.field_id}"
+            py:content="user.secretary.label" />:
+        </th>
+        <td>
+           TODO
+        </td>
+      </tr>
+    </table>
+
+    <div class="formsection">Misc Information</div>
+    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.carlicense.field_id}"
+            py:content="user.carlicense.label" />:
+        </th>
+        <td>
+          <span py:replace="user.carlicense.display(value_for(user.carlicense))" />
+          <span py:if="tg.errors.get('carlicense')" class="fielderror"
+              py:content="tg.errors.get('carlicense')" />
+        </td>
+      </tr>
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user.labeleduri.field_id}"
+            py:content="user.labeleduri.label" />:
+        </th>
+        <td>
+          <span py:replace="user.labeleduri.display(value_for(user.labeleduri))" />
+          <span py:if="tg.errors.get('labeleduri')" class="fielderror"
+              py:content="tg.errors.get('labeleduri')" />
+        </td>
+      </tr>
+    </table>
+
 
     <div>
       <div class="formsection">Groups</div>

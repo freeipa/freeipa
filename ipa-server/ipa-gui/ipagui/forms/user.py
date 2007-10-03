@@ -2,17 +2,47 @@ import turbogears
 from turbogears import validators, widgets
 
 class UserFields():
+    givenname = widgets.TextField(name="givenname", label="Given Name")
+    sn = widgets.TextField(name="sn", label="Family Name")
+    cn = widgets.TextField(name="cn", label="Common Names")
+    title = widgets.TextField(name="title", label="Title")
+    displayname = widgets.TextField(name="displayname", label="Display Name")
+    initials = widgets.TextField(name="initials", label="Initials")
+
     uid = widgets.TextField(name="uid", label="Login")
     userpassword = widgets.PasswordField(name="userpassword", label="Password")
     userpassword_confirm = widgets.PasswordField(name="userpassword_confirm",
             label="Confirm Password")
     uidnumber = widgets.TextField(name="uidnumber", label="UID")
     gidnumber = widgets.TextField(name="gidnumber", label="GID")
-    givenname = widgets.TextField(name="givenname", label="Given Name")
-    sn = widgets.TextField(name="sn", label="Family Name")
+    homedirectory = widgets.TextField(name="homedirectory", label="Home Directory")
+    loginshell = widgets.TextField(name="loginshell", label="Login Shell")
+    gecos = widgets.TextField(name="gecos", label="GECOS")
+
     mail = widgets.TextField(name="mail", label="E-mail Address")
-    telephonenumber = widgets.TextField(name="telephonenumber", label="Phone")
-    # nsAccountLock = widgets.CheckBox(name="nsAccountLock", label="Account Deactivated")
+    telephonenumber = widgets.TextField(name="telephonenumber", label="Work Number")
+    facsimiletelephonenumber = widgets.TextField(name="facsimiletelephonenumber",
+            label="Fax Number")
+    mobile = widgets.TextField(name="mobile", label="Cell Number")
+    pager = widgets.TextField(name="pager", label="Pager Number")
+    homephone = widgets.TextField(name="homephone", label="Home Number")
+
+    street = widgets.TextField(name="street", label="Street Address")
+    l = widgets.TextField(name="l", label="City")
+    st = widgets.TextField(name="st", label="State")
+    postalcode = widgets.TextField(name="postalcode", label="ZIP")
+
+    ou = widgets.TextField(name="ou", label="Org Unit")
+    businesscategory = widgets.TextField(name="businesscategory", label="Tags")
+    description = widgets.TextField(name="description", label="Description")
+    employeetype = widgets.TextField(name="employeetype", label="Employee Type")
+    manager = widgets.TextField(name="manager", label="Manager")
+    roomnumber = widgets.TextField(name="roomnumber", label="Room Number")
+    secretary = widgets.TextField(name="secretary", label="Secretary")
+
+    carlicense = widgets.TextField(name="carlicense", label="Car License")
+    labeleduri = widgets.TextField(name="labeleduri", label="Home Page")
+
     nsAccountLock = widgets.SingleSelectField(name="nsAccountLock",
             label="Account Status",
             options = [("", "active"), ("true", "inactive")])
@@ -34,8 +64,6 @@ class UserNewValidator(validators.Schema):
     givenname = validators.String(not_empty=True)
     sn = validators.String(not_empty=True)
     mail = validators.Email(not_empty=True)
-    #  validators.PhoneNumber may be a bit too picky, requiring an area code
-    # telephonenumber = validators.PlainText(not_empty=False)
 
     chained_validators = [
       validators.FieldsMatch('userpassword', 'userpassword_confirm')
@@ -45,10 +73,9 @@ class UserNewValidator(validators.Schema):
 class UserNewForm(widgets.Form):
     params = ['user']
 
-    fields = [UserFields.uid, UserFields.givenname,
-              UserFields.sn, UserFields.mail,
-              UserFields.dn_to_info_json,
-             ]
+    hidden_fields = [
+      UserFields.dn_to_info_json,
+    ]
 
     validator = UserNewValidator()
 
@@ -59,10 +86,6 @@ class UserNewForm(widgets.Form):
 
     def update_params(self, params):
         super(UserNewForm,self).update_params(params)
-        params['has_foo'] = self.has_foo
-
-    def has_foo(self):
-        return False
 
 class UserEditValidator(validators.Schema):
     userpassword = validators.String(not_empty=False)
@@ -72,8 +95,6 @@ class UserEditValidator(validators.Schema):
     mail = validators.Email(not_empty=True)
     uidnumber = validators.Int(not_empty=False)
     gidnumber = validators.Int(not_empty=False)
-    #  validators.PhoneNumber may be a bit too picky, requiring an area code
-    # telephonenumber = validators.PlainText(not_empty=False)
 
     pre_validators = [
       validators.RequireIfPresent(required='uidnumber', present='editprotected'),
@@ -87,14 +108,13 @@ class UserEditValidator(validators.Schema):
 class UserEditForm(widgets.Form):
     params = ['user']
 
-    fields = [UserFields.givenname, UserFields.sn, UserFields.mail,
-              UserFields.uid_hidden, UserFields.user_orig,
-              UserFields.uidnumber, UserFields.gidnumber,
-              UserFields.krbPasswordExpiration_hidden,
-              UserFields.editprotected_hidden,
-              UserFields.user_groups_data,
-              UserFields.dn_to_info_json,
-              ]
+    hidden_fields = [
+      UserFields.uid_hidden, UserFields.user_orig,
+      UserFields.krbPasswordExpiration_hidden,
+      UserFields.editprotected_hidden,
+      UserFields.user_groups_data,
+      UserFields.dn_to_info_json,
+    ]
 
     validator = UserEditValidator()
 

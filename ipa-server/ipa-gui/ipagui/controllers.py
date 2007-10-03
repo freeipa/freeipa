@@ -139,11 +139,41 @@ class Root(controllers.RootController):
         #
         try:
             new_user = ipa.user.User()
-            new_user.setValue('uid', kw.get('uid'))
+            new_user.setValue('title', kw.get('title'))
             new_user.setValue('givenname', kw.get('givenname'))
             new_user.setValue('sn', kw.get('sn'))
+            new_user.setValue('cn', kw.get('cn'))
+            new_user.setValue('displayname', kw.get('displayname'))
+            new_user.setValue('initials', kw.get('initials'))
+
+            new_user.setValue('uid', kw.get('uid'))
+            new_user.setValue('loginshell', kw.get('loginshell'))
+            new_user.setValue('gecos', kw.get('gecos'))
+
             new_user.setValue('mail', kw.get('mail'))
             new_user.setValue('telephonenumber', kw.get('telephonenumber'))
+            new_user.setValue('facsimiletelephonenumber',
+                    kw.get('facsimiletelephonenumber'))
+            new_user.setValue('mobile', kw.get('mobile'))
+            new_user.setValue('pager', kw.get('pager'))
+            new_user.setValue('homephone', kw.get('homephone'))
+
+            new_user.setValue('street', kw.get('street'))
+            new_user.setValue('l', kw.get('l'))
+            new_user.setValue('st', kw.get('st'))
+            new_user.setValue('postalcode', kw.get('postalcode'))
+
+            new_user.setValue('ou', kw.get('ou'))
+            new_user.setValue('businesscategory', kw.get('businesscategory'))
+            new_user.setValue('description', kw.get('description'))
+            new_user.setValue('employeetype', kw.get('employeetype'))
+            # new_user.setValue('manager', kw.get('manager'))
+            new_user.setValue('roomnumber', kw.get('roomnumber'))
+            # new_user.setValue('secretary', kw.get('secretary'))
+
+            new_user.setValue('carlicense', kw.get('carlicense'))
+            new_user.setValue('labeleduri', kw.get('labeleduri'))
+
             if kw.get('nsAccountLock'):
                 new_user.setValue('nsAccountLock', 'true')
 
@@ -293,10 +323,41 @@ class Root(controllers.RootController):
             orig_user_dict = loads(b64decode(kw.get('user_orig')))
 
             new_user = ipa.user.User(orig_user_dict)
+            new_user.setValue('title', kw.get('title'))
             new_user.setValue('givenname', kw.get('givenname'))
             new_user.setValue('sn', kw.get('sn'))
+            new_user.setValue('cn', kw.get('cn'))
+            new_user.setValue('displayname', kw.get('displayname'))
+            new_user.setValue('initials', kw.get('initials'))
+
+            new_user.setValue('loginshell', kw.get('loginshell'))
+            new_user.setValue('gecos', kw.get('gecos'))
+
             new_user.setValue('mail', kw.get('mail'))
             new_user.setValue('telephonenumber', kw.get('telephonenumber'))
+            new_user.setValue('facsimiletelephonenumber',
+                    kw.get('facsimiletelephonenumber'))
+            new_user.setValue('mobile', kw.get('mobile'))
+            new_user.setValue('pager', kw.get('pager'))
+            new_user.setValue('homephone', kw.get('homephone'))
+
+            new_user.setValue('street', kw.get('street'))
+            new_user.setValue('l', kw.get('l'))
+            new_user.setValue('st', kw.get('st'))
+            new_user.setValue('postalcode', kw.get('postalcode'))
+
+            new_user.setValue('ou', kw.get('ou'))
+            new_user.setValue('businesscategory', kw.get('businesscategory'))
+            new_user.setValue('description', kw.get('description'))
+            new_user.setValue('employeetype', kw.get('employeetype'))
+            # new_user.setValue('manager', kw.get('manager'))
+            new_user.setValue('roomnumber', kw.get('roomnumber'))
+            # new_user.setValue('secretary', kw.get('secretary'))
+
+            new_user.setValue('carlicense', kw.get('carlicense'))
+            new_user.setValue('labeleduri', kw.get('labeleduri'))
+
+
             if kw.get('nsAccountLock'):
                 new_user.setValue('nsAccountLock', 'true')
             else:
@@ -306,13 +367,7 @@ class Root(controllers.RootController):
                     password_change = True
                 new_user.setValue('uidnumber', str(kw.get('uidnumber')))
                 new_user.setValue('gidnumber', str(kw.get('gidnumber')))
-
-            #
-            # this is a hack until we decide on the policy for names/cn/sn/givenName
-            #
-            new_user.setValue('cn',
-                           "%s %s" % (new_user.getValue('givenname'),
-                                      new_user.getValue('sn')))
+                new_user.setValue('homedirectory', str(kw.get('homedirectory')))
 
             rv = client.update_user(new_user)
             #

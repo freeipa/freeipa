@@ -352,7 +352,7 @@ class IPAServer:
         # Let us add in some missing attributes
         if user.get('homedirectory') is None:
             user['homedirectory'] = '/home/%s' % user.get('uid')
-        if not user.get('gecos') is None:
+        if user.get('gecos') is None:
             user['gecos'] = user['uid']
 
         # FIXME: This can be removed once the DS plugin is installed

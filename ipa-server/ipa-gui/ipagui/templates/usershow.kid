@@ -37,6 +37,12 @@ else:
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
           <th>
+            <label class="fieldlabel" py:content="fields.title.label" />:
+          </th>
+          <td>${user.get("title")}</td>
+        </tr>
+        <tr>
+          <th>
             <label class="fieldlabel" py:content="fields.givenname.label" />:
           </th>
           <td>${user.get("givenname")}</td>
@@ -47,10 +53,34 @@ else:
           </th>
           <td>${user.get("sn")}</td>
         </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.cn.label" />:
+          </th>
+          <td>${user.get("cn")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.displayname.label" />:
+          </th>
+          <td>${user.get("displayname")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.initials.label" />:
+          </th>
+          <td>${user.get("initials")}</td>
+        </tr>
     </table>
 
     <div class="formsection">Account Details</div>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.nsAccountLock.label" />:
+          </th>
+          <td>${userhelper.account_status_display(user.get("nsAccountLock"))}</td>
+        </tr>
         <tr>
           <th>
             <label class="fieldlabel" py:content="fields.uid.label" />:
@@ -69,6 +99,24 @@ else:
           </th>
           <td>${user.get("gidnumber")}</td>
         </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.homedirectory.label" />:
+          </th>
+          <td>${user.get("homedirectory")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.loginshell.label" />:
+          </th>
+          <td>${user.get("loginshell")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.gecos.label" />:
+          </th>
+          <td>${user.get("gecos")}</td>
+        </tr>
     </table>
 
     <div class="formsection">Contact Details</div>
@@ -85,6 +133,86 @@ else:
           </th>
           <td>${user.get("telephonenumber")}</td>
         </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.facsimiletelephonenumber.label" />:
+          </th>
+          <td>${user.get("facsimiletelephonenumber")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.mobile.label" />:
+          </th>
+          <td>${user.get("mobile")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.pager.label" />:
+          </th>
+          <td>${user.get("pager")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.homephone.label" />:
+          </th>
+          <td>${user.get("homephone")}</td>
+        </tr>
+    </table>
+
+    <div class="formsection">Mailing Address</div>
+    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.street.label" />:
+          </th>
+          <td>${user.get("street")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.l.label" />:
+          </th>
+          <td>${user.get("l")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.st.label" />:
+          </th>
+          <td>${user.get("st")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.postalcode.label" />:
+          </th>
+          <td>${user.get("postalcode")}</td>
+        </tr>
+    </table>
+
+    <div class="formsection">Employee Information</div>
+    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.ou.label" />:
+          </th>
+          <td>${user.get("ou")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.businesscategory.label" />:
+          </th>
+          <td>${user.get("businesscategory")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.description.label" />:
+          </th>
+          <td>${user.get("description")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.employeetype.label" />:
+          </th>
+          <td>${user.get("employeetype")}</td>
+        </tr>
         <tr py:if='user_manager'>
           <th>
             Manager:
@@ -94,16 +222,34 @@ else:
               >${user_manager.givenname} ${user_manager.sn}</a>
           </td>
         </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.roomnumber.label" />:
+          </th>
+          <td>${user.get("roomnumber")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.secretary.label" />:
+          </th>
+          <td>TODO</td>
+        </tr>
     </table>
 
-    <div class="formsection">Account Status</div>
+    <div class="formsection">Misc Information</div>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
-      <tr>
-        <th>
-          <label class="fieldlabel" py:content="fields.nsAccountLock.label" />:
-        </th>
-        <td>${userhelper.account_status_display(user.get("nsAccountLock"))}</td>
-      </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.carlicense.label" />:
+          </th>
+          <td>${user.get("carlicense")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.labeleduri.label" />:
+          </th>
+          <td>${user.get("labeleduri")}</td>
+        </tr>
     </table>
 
     <div class="formsection" py:if='len(user_reports) &gt; 0'>Direct Reports</div>
