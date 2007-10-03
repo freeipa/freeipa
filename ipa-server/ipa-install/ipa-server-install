@@ -34,6 +34,7 @@ import socket
 import logging
 import pwd
 import getpass
+import subprocess
 import signal
 import shutil
 import glob
@@ -430,36 +431,46 @@ def main():
     ds.restart()
     krb.restart()
 
-    # Allow apache to connect to the turbogears web gui
     try:
-        run(["/usr/sbin/setsebool", "-P", "httpd_can_network_connect", "true"])
-    except:
-        # SELinux may be disabled
-        pass
+        selinux=0
+        try:
+            if (os.path.exists('/usr/sbin/selinuxenabled')):
+                run(["/usr/sbin/selinuxenabled"])
+                selinux=1
+        except subprocess.CalledProcessError, e:
+            # selinuxenabled returns 1 if not enabled
+            pass
 
-    # Start the web gui
-    run(["/sbin/service", "ipa-webgui", "start"])
+        if selinux:
+            # Allow apache to connect to the turbogears web gui
+            run(["/usr/sbin/setsebool", "-P", "httpd_can_network_connect", "true"])
 
-    # Set the web gui to start on boot
-    run(["/sbin/chkconfig", "ipa-webgui", "on"])
+        # Start the web gui
+        run(["/sbin/service", "ipa-webgui", "start"])
 
-    # Restart apache
-    run(["/sbin/service", "httpd", "restart"])
+        # Set the web gui to start on boot
+        run(["/sbin/chkconfig", "ipa-webgui", "on"])
 
-    # Set apache to start on boot
-    run(["/sbin/chkconfig", "httpd", "on"])
+        # Restart apache
+        run(["/sbin/service", "httpd", "restart"])
 
-    # Set fedora-ds to start on boot
-    run(["/sbin/chkconfig", "dirsrv", "on"])
+        # Set apache to start on boot
+        run(["/sbin/chkconfig", "httpd", "on"])
 
-    # Set the KDC to start on boot
-    run(["/sbin/chkconfig", "krb5kdc", "on"])
+        # Set fedora-ds to start on boot
+        run(["/sbin/chkconfig", "dirsrv", "on"])
 
-    # Set the Kpasswd to start on boot
-    run(["/sbin/chkconfig", "ipa-kpasswd", "on"])
+        # Set the KDC to start on boot
+        run(["/sbin/chkconfig", "krb5kdc", "on"])
 
-    # Start Kpasswd
-    run(["/sbin/service", "ipa-kpasswd", "start"])
+        # Set the Kpasswd to start on boot
+        run(["/sbin/chkconfig", "ipa-kpasswd", "on"])
+
+        # Start Kpasswd
+        run(["/sbin/service", "ipa-kpasswd", "start"])
+    except subprocess.CalledProcessError, e:
+        print "Installation failed:", e
+        return 1
 
     # Set the admin user kerberos password
     ds.change_admin_password(admin_password)

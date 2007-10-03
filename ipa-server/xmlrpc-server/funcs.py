@@ -69,7 +69,7 @@ class IPAConnPool:
         if conn is None:
             return
         # We can't re-use SASL connections. If proxydn is None it means
-        # we have a Kerberos credentails cache set. See ipaldap.set_krbccache
+        # we have a Kerberos credentials cache set. See ipaldap.set_krbccache
         if conn.proxydn is None:
             conn.unbind_s()
         else:
@@ -168,7 +168,10 @@ class IPAServer:
         else:
             raise ipaerror.gen_exception(ipaerror.CONNECTION_NO_CCACHE)
 
-        conn = _LDAPPool.getConn(self.host,port,bindca,bindcert,bindkey,proxy_dn,krbccache,debug)
+        try:
+            conn = _LDAPPool.getConn(self.host,port,bindca,bindcert,bindkey,proxy_dn,krbccache,debug)
+        except ldap.INVALID_CREDENTIALS, e:
+            raise ipaerror.gen_exception(ipaerror.CONNECTION_GSSAPI_CREDENTIALS, nested_exception=e)
 
         if conn is None:
             raise ipaerror.gen_exception(ipaerror.CONNECTION_NO_CONN)

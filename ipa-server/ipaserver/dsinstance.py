@@ -91,7 +91,11 @@ class DsInstance:
         self.__add_default_schemas()
         self.__enable_ssl()
         self.__certmap_conf()
-        self.restart()
+        try:
+            self.restart()
+        except:
+            # TODO: roll back here?
+            print "Failed to restart the ds instance"
         self.__add_default_layout()
         self.__create_test_users()
 
@@ -126,8 +130,12 @@ class DsInstance:
 	except KeyError:
             logging.debug("adding ds user %s" % self.ds_user)
             args = ["/usr/sbin/useradd", "-c", "DS System User", "-d", "/var/lib/dirsrv", "-M", "-r", "-s", "/sbin/nologin", self.ds_user]
-            run(args)
-            logging.debug("done adding user")
+            try:
+                run(args)
+                logging.debug("done adding user")
+            except subprocess.CalledProcessError, e:
+                print "Failed to add user", e
+                logging.debug("failed to add user %s" % e)
 
     def __create_instance(self):
         logging.debug("creating ds instance . . . ")
@@ -141,11 +149,19 @@ class DsInstance:
         else:
             args = ["/usr/bin/ds_newinst.pl", inf_fd.name]
             logging.debug("calling ds_newinst.pl")
-        run(args)
-        logging.debug("completed creating ds instance")
+        try:
+            run(args)
+            logging.debug("completed creating ds instance")
+        except subprocess.CalledProcessError, e:
+            print "failed to restart ds instance", e
+            logging.debug("failed to restart ds instance %s" % e)
         logging.debug("restarting ds instance")
-        self.restart()
-        logging.debug("done restarting ds instance")
+        try:
+            self.restart()
+            logging.debug("done restarting ds instance")
+        except subprocess.CalledProcessError, e:
+            print "failed to restart ds instance", e
+            logging.debug("failed to restart ds instance %s" % e)
 
     def __add_default_schemas(self):
         shutil.copyfile(SHARE_DIR + "60kerberos.ldif",
@@ -158,8 +174,12 @@ class DsInstance:
         dirname = self.config_dirname()
         args = ["/usr/share/ipa/ipa-server-setupssl", self.dm_password,
                 dirname, self.host_name]
-        run(args)
-        logging.debug("done configuring ssl for ds instance")
+        try:
+            run(args)
+            logging.debug("done configuring ssl for ds instance")
+        except subprocess.CalledProcessError, e:
+            print "Failed to enable ssl in ds instance", e
+            logging.debug("Failed to configure ssl in ds instance %s" % e)
         
     def __add_default_layout(self):
         txt = template_file(SHARE_DIR + "bootstrap-template.ldif", self.sub_dict)
@@ -167,8 +187,12 @@ class DsInstance:
         logging.debug("adding default ds layout")
         args = ["/usr/bin/ldapmodify", "-xv", "-D", "cn=Directory Manager",
                 "-w", self.dm_password, "-f", inf_fd.name]
-        run(args)
-        logging.debug("done adding default ds layout")
+        try:
+            run(args)
+            logging.debug("done adding default ds layout")
+        except subprocess.CalledProcessError, e:
+            print "Failed to add default ds layout", e
+            logging.debug("Failed to add default ds layout %s" % e)
         
     def __create_test_users(self):
         logging.debug("create test users ldif")
@@ -194,6 +218,10 @@ class DsInstance:
                 "-D", "cn=Directory Manager", "-w", self.dm_password,
                 "-P", dirname+"/cert8.db", "-ZZZ", "-s", password,
                 "uid=admin,cn=sysaccounts,cn=etc,"+self.suffix]
-        run(args)
-        logging.debug("ldappasswd done")
+        try:
+            run(args)
+            logging.debug("ldappasswd done")
+        except subprocess.CalledProcessError, e:
+            print "Unable to set admin password", e
+            logging.debug("Unable to set admin password %s" % e)
 

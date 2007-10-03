@@ -68,7 +68,10 @@ class BindInstance:
         self.__setup_zone()
         self.__setup_named_conf()
 
-        self.start()
+        try:
+            self.start()
+        except:
+            print "named service failed to start"
 
     def stop(self):
         run(["/sbin/service", "named", "stop"])

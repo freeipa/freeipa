@@ -144,3 +144,8 @@ CONNECTION_NO_CCACHE = gen_error_code(
         CONNECTION_CATEGORY,
         0x0002,
         "No Kerberos credentials cache is available. Connection cannot be made.")
+
+CONNECTION_GSSAPI_CREDENTIALS = gen_error_code(
+        CONNECTION_CATEGORY,
+        0x0003,
+        "GSSAPI Authorization error")
