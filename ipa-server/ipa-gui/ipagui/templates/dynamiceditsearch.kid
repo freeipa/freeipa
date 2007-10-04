@@ -26,7 +26,8 @@ from ipagui.helpers import ipahelper
             ent_dn_esc = ipahelper.javascript_string_escape(entity.dn)
             ent_uid = entity.uid
             if ent_uid:
-                ent_name = "%s %s" % (entity.givenName, entity.sn)
+                ent_name = "%s %s" % (entity.getValue('givenName', ''),
+                                      entity.getValue('sn', ''))
                 ent_descr = "(%s)" % entity.uid
                 ent_type = "user"
             else:

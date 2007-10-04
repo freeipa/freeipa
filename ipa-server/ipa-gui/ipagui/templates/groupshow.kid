@@ -45,7 +45,7 @@ edit_url = tg.url('/groupedit', cn=group.get('cn'))
 
       member_uid = member.get('uid')
       if member_uid:
-          member_cn = "%s %s" % (member.get('givenName'), member.get('sn'))
+          member_cn = "%s %s" % (member.get('givenName', ''), member.get('sn', ''))
           member_desc = "(%s)" % member_uid
           member_type = "user"
           view_url = tg.url('usershow', uid=member_uid)

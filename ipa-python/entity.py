@@ -79,9 +79,9 @@ class Entity:
         """Get the list (array) of values for the attribute named name"""
         return self.data.get(name)
 
-    def getValue(self,name):
+    def getValue(self,name,default=None):
         """Get the first value for the attribute named name"""
-        value =  self.data.get(name,[None])
+        value =  self.data.get(name,default)
         if isinstance(value,list) or isinstance(value,tuple):
             return value[0]
         else:

@@ -116,8 +116,8 @@ from ipagui.helpers import ipahelper
 
           member_uid = member.get('uid')
           if member_uid:
-              member_name = "%s %s" % (member.get('givenName'),
-                                     member.get('sn'))
+              member_name = "%s %s" % (member.get('givenName', ''),
+                                     member.get('sn', ''))
               member_descr = "(%s)" % member.get('uid')
               member_type = "user"
           else:
