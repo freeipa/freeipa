@@ -102,6 +102,26 @@ from ipagui.helpers import ipahelper
               var displayname = $('form_displayname');
               var initials = $('form_initials');
 
+              if ((cn.value == "") || (cn.value == cn_suggest)) {
+                cn.value = givenname.value + " " + sn.value;
+                cn_suggest = cn.value;
+                new Effect.Highlight(cn);
+              }
+
+              if ((displayname.value == "") ||
+                  (displayname.value == displayname_suggest)) {
+                displayname.value = givenname.value + " " + sn.value;
+                displayname_suggest = displayname.value;
+                new Effect.Highlight(displayname);
+              }
+
+              if ((initials.value == "") ||
+                  (initials.value == initials_suggest)) {
+                initials.value = givenname.value[0] + sn.value[0];
+                initials_suggest = initials.value;
+                new Effect.Highlight(initials);
+              }
+
               if ((uid.value == "") || (uid.value == uid_suggest)) {
                 new Ajax.Request('${tg.url('/suggest_uid')}', {
                     method: 'get',
@@ -124,26 +144,6 @@ from ipagui.helpers import ipahelper
                         new Effect.Highlight(mail);
                       }
                     });
-              }
-
-              if ((cn.value == "") || (cn.value == cn_suggest)) {
-                cn.value = givenname.value + " " + sn.value;
-                cn_suggest = cn.value;
-                new Effect.Highlight(cn);
-              }
-
-              if ((displayname.value == "") ||
-                  (displayname.value == displayname_suggest)) {
-                displayname.value = givenname.value + " " + sn.value;
-                displayname_suggest = displayname.value;
-                new Effect.Highlight(displayname);
-              }
-
-              if ((displayname.value == "") ||
-                  (displayname.value == displayname_suggest)) {
-                initials.value = givenname.value[0] + sn.value[0];
-                initials_suggest = initials.value;
-                new Effect.Highlight(initials);
               }
             }
 
