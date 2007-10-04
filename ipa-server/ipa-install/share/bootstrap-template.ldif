@@ -60,7 +60,7 @@ changetype: add
 objectClass: top
 objectClass: groupofuniquenames
 objectClass: posixGroup
-cn: Account Admins
+cn: admins
 description: Account administrators group
 gidNumber: 1001
 uniqueMember: uid=admin,cn=sysaccounts,cn=etc,$SUFFIX
