@@ -701,7 +701,7 @@ class Root(controllers.RootController):
                 if not(isinstance(dnadds,list) or isinstance(dnadds,tuple)):
                     dnadds = [dnadds]
                 failed_adds = client.add_members_to_group(
-                        utf8_encode_values(dnadds), kw.get('cn'))
+                        utf8_encode_values(dnadds), group.dn)
                 kw['dnadd'] = failed_adds
         except ipaerror.IPAError, e:
             failed_adds = dnadds
@@ -797,7 +797,7 @@ class Root(controllers.RootController):
             return dict(form=group_edit_form, group=group_dict, members=member_dicts)
         except ipaerror.IPAError, e:
             turbogears.flash("Group edit failed: " + str(e))
-            raise turbogears.redirect('/groupshow', uid=kw.get('cn'))
+            raise turbogears.redirect('/groupshow', uid=cn)
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -859,7 +859,7 @@ class Root(controllers.RootController):
                 if not(isinstance(dnadds,list) or isinstance(dnadds,tuple)):
                     dnadds = [dnadds]
                 failed_adds = client.add_members_to_group(
-                        utf8_encode_values(dnadds), kw.get('cn'))
+                        utf8_encode_values(dnadds), new_group.dn)
                 kw['dnadd'] = failed_adds
         except ipaerror.IPAError, e:
             turbogears.flash("Group update failed: " + str(e))
@@ -876,7 +876,7 @@ class Root(controllers.RootController):
                 if not(isinstance(dndels,list) or isinstance(dndels,tuple)):
                     dndels = [dndels]
                 failed_dels = client.remove_members_from_group(
-                        utf8_encode_values(dndels), kw.get('cn'))
+                        utf8_encode_values(dndels), new_group.dn)
                 kw['dndel'] = failed_dels
         except ipaerror.IPAError, e:
             turbogears.flash("Group update failed: " + str(e))
