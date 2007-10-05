@@ -8,7 +8,7 @@
 <body>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/tablekit.js')}"></script>
     <div id="search">
-        <form action="${tg.url('/userlist')}" method="get">
+        <form action="${tg.url('/user/list')}" method="get">
             <input id="uid" type="text" name="uid" value="${uid}" />
             <input type="submit" value="Find People"/>
         </form>
@@ -38,7 +38,7 @@
           <tbody>
             <tr py:for="user in users">
                 <td>
-                    <a href="${tg.url('/usershow',uid=user.uid)}"
+                    <a href="${tg.url('/user/show',uid=user.uid)}"
                     >${user.givenName} ${user.sn}</a>
                     (${user.uid})
                 </td>

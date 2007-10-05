@@ -18,7 +18,7 @@ from ipagui.helpers import ipahelper
   <script type="text/javascript" charset="utf-8"
     src="${tg.url('/static/javascript/dynamicedit.js')}"></script>
 
-  <?python searchurl = tg.url('/groupedit_search') ?>
+  <?python searchurl = tg.url('/group/edit_search') ?>
 
   <script type="text/javascript">
     function doSearch() {

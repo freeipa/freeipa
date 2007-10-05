@@ -8,6 +8,6 @@
 <body>
     <h2>Add Person</h2>
 
-    ${form.display(action="usercreate", value=user)}
+    ${form.display(action=tg.url("/user/create"), value=user)}
 </body>
 </html>

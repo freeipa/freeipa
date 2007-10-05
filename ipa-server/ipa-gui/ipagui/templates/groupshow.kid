@@ -7,7 +7,7 @@
 </head>
 <body>
 <?python
-edit_url = tg.url('/groupedit', cn=group.get('cn'))
+edit_url = tg.url('/group/edit', cn=group.get('cn'))
 ?>
     <h2>View Group</h2>
 
@@ -48,12 +48,12 @@ edit_url = tg.url('/groupedit', cn=group.get('cn'))
           member_cn = "%s %s" % (member.get('givenName', ''), member.get('sn', ''))
           member_desc = "(%s)" % member_uid
           member_type = "user"
-          view_url = tg.url('usershow', uid=member_uid)
+          view_url = tg.url('/user/show', uid=member_uid)
       else:
           member_cn = "%s" % member.get('cn')
           member_desc = "[group]"
           member_type = "group"
-          view_url = tg.url('groupshow', cn=member_cn)
+          view_url = tg.url('/group/show', cn=member_cn)
       ?>
       <span py:if='member_type == "user"'>
         <a href="${view_url}"

@@ -35,6 +35,6 @@ else:
         Password has expired
     </div>
 
-     ${form.display(action="userupdate", value=user, user_groups=user_groups)}
+     ${form.display(action=tg.url('/user/update'), value=user, user_groups=user_groups)}
 </body>
 </html>

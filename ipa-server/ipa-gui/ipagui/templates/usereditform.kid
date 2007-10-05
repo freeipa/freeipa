@@ -24,7 +24,7 @@ from ipagui.helpers import ipahelper
   <script type="text/javascript" charset="utf-8"
     src="${tg.url('/static/javascript/dynamicedit.js')}"></script>
 
-  <?python searchurl = tg.url('/useredit_search') ?>
+  <?python searchurl = tg.url('/user/edit_search') ?>
 
   <script type="text/javascript">
     function toggleProtectedFields(checkbox) {
@@ -196,7 +196,7 @@ from ipagui.helpers import ipahelper
           <span id="password_text">********</span>
           <input id="genpassword_button" type="button" value="Generate Password"
               disabled="true"
-              onclick="new Ajax.Request('${tg.url('/generate_password')}',
+              onclick="new Ajax.Request('${tg.url('/user/generate_password')}',
                 {
                   method: 'get',
                   onSuccess: function(transport) {

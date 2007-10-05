@@ -18,7 +18,7 @@ from ipagui.helpers import ipahelper
   <script type="text/javascript" charset="utf-8"
     src="${tg.url('/static/javascript/dynamicedit.js')}"></script>
 
-  <?python searchurl = tg.url('/useredit_search') ?>
+  <?python searchurl = tg.url('/user/edit_search') ?>
 
   <script type="text/javascript">
     function doSearch() {
@@ -123,7 +123,7 @@ from ipagui.helpers import ipahelper
               }
 
               if ((uid.value == "") || (uid.value == uid_suggest)) {
-                new Ajax.Request('${tg.url('/suggest_uid')}', {
+                new Ajax.Request('${tg.url('/user/suggest_uid')}', {
                     method: 'get',
                     parameters: {'givenname': givenname.value, 'sn': sn.value},
                     onSuccess: function(transport) {
@@ -135,7 +135,7 @@ from ipagui.helpers import ipahelper
               }
 
               if ((mail.value == "") || (mail.value == mail_suggest)) {
-                new Ajax.Request('${tg.url('/suggest_email')}', {
+                new Ajax.Request('${tg.url('/user/suggest_email')}', {
                     method: 'get',
                     parameters: {'givenname': givenname.value, 'sn': sn.value},
                     onSuccess: function(transport) {
@@ -230,7 +230,7 @@ from ipagui.helpers import ipahelper
 
           <!--
           <input type="button" value="Generate Password"
-              onclick="new Ajax.Request('${tg.url('/generate_password')}',
+              onclick="new Ajax.Request('${tg.url('/user/generate_password')}',
                 {
                   method: 'get',
                   onSuccess: function(transport) {

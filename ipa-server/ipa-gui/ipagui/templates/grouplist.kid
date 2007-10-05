@@ -8,7 +8,7 @@
 <body>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/tablekit.js')}"></script>
     <div id="search">
-        <form action="${tg.url('/grouplist')}" method="get">
+        <form action="${tg.url('/group/list')}" method="get">
             <input id="criteria" type="text" name="criteria" value="${criteria}" />
             <input type="submit" value="Find Groups"/>
         </form>
@@ -32,7 +32,7 @@
           <tbody>
             <tr py:for="group in groups">
                 <td>
-                    <a href="${tg.url('/groupshow',cn=group.cn)}">${group.cn}</a>
+                    <a href="${tg.url('/group/show',cn=group.cn)}">${group.cn}</a>
                 </td>
                 <td>
                     ${group.description}

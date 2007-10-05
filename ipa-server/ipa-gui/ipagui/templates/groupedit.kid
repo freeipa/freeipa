@@ -16,6 +16,6 @@
     <h2>Edit Group</h2>
   </div>
 
-  ${form.display(action="groupupdate", value=group, members=members)}
+  ${form.display(action=tg.url('/group/update'), value=group, members=members)}
 </body>
 </html>

@@ -14,8 +14,8 @@
 
 <!--      <div id="sidebar">
           <h2>Tools</h2>
-          <a href="${tg.url('/usernew')}">Add Person</a><br/>
-          <a href="${tg.url('/userlist')}">Find People</a><br/>
+          <a href="${tg.url('/user/new')}">Add Person</a><br/>
+          <a href="${tg.url('/user/list')}">Find People</a><br/>
       </div> -->
 </body>
 

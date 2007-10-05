@@ -7,7 +7,7 @@
 </head>
 <body>
 <?python
-edit_url = tg.url('/useredit', uid=user.get('uid'))
+edit_url = tg.url('/user/edit', uid=user.get('uid'))
 ?>
     <h2>View Person</h2>
 
@@ -218,7 +218,7 @@ else:
             Manager:
           </th>
           <td>
-            <a href="${tg.url('/usershow', uid=user_manager.uid)}"
+            <a href="${tg.url('/user/show', uid=user_manager.uid)}"
               >${user_manager.givenname} ${user_manager.sn}</a>
           </td>
         </tr>
@@ -254,13 +254,13 @@ else:
 
     <div class="formsection" py:if='len(user_reports) &gt; 0'>Direct Reports</div>
     <div py:for="report in user_reports">
-      <a href="${tg.url('/usershow', uid=report.uid)}"
+      <a href="${tg.url('/user/show', uid=report.uid)}"
         >${report.givenname} ${report.sn}</a>
     </div>
 
     <div class="formsection">Groups</div>
     <div py:for="group in user_groups">
-      <a href="${tg.url('/groupshow', cn=group.cn)}">${group.cn}</a>
+      <a href="${tg.url('/group/show', cn=group.cn)}">${group.cn}</a>
     </div>
 
     <br/>

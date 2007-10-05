@@ -66,12 +66,12 @@
       <div id="sidebar">
         <h2>Tasks</h2>
         <p>
-        <a href="${tg.url('/usernew')}">Add Person</a><br/>
-        <a href="${tg.url('/userlist')}">Find People</a><br/>
+        <a href="${tg.url('/user/new')}">Add Person</a><br/>
+        <a href="${tg.url('/user/list')}">Find People</a><br/>
         </p>
         <p>
-        <a href="${tg.url('/groupnew')}">Add Group</a><br/>
-        <a href="${tg.url('/grouplist')}">Find Groups</a><br/>
+        <a href="${tg.url('/group/new')}">Add Group</a><br/>
+        <a href="${tg.url('/group/list')}">Find Groups</a><br/>
         </p>
         <p>
         <a href="${tg.url('/')}">Manage Policy</a><br/>

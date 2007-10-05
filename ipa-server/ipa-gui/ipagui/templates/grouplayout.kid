@@ -14,9 +14,9 @@
 
 <!--      <div id="sidebar">
           <h2>Tools</h2>
-          <a href="${tg.url('/groupindex')}">Add Group</a><br/>
-          <a href="${tg.url('/groupindex')}">Find Group</a><br/>
-          <a href="${tg.url('/groupindex')}">List Groups</a><br/>
+          <a href="${tg.url('/group/index')}">Add Group</a><br/>
+          <a href="${tg.url('/group/index')}">Find Group</a><br/>
+          <a href="${tg.url('/group/index')}">List Groups</a><br/>
       </div> -->
 </body>
 
