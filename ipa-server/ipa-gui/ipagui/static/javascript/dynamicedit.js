@@ -39,7 +39,7 @@ MemberDisplayInfo.prototype = {
     this.name = name;
     this.descr = descr;
     this.type = type;
-  },
+  }
 };
 
 
