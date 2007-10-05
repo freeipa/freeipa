@@ -71,12 +71,12 @@ var dn_to_member_div_id = new Hash();
 function renderMemberInfo(newdiv, info) {
   if (info.type == "user") {
     newdiv.appendChild(document.createTextNode(
-      info.name.escapeHTML() + " " + info.descr.escapeHTML() + " "));
+      info.name + " " + info.descr + " "));
   } else if (info.type == "group") {
     ital = document.createElement('i');
     ital.appendChild(document.createTextNode(
-      info.name.escapeHTML() + " " + 
-      info.descr.escapeHTML() + " "));
+      info.name + " " + 
+      info.descr + " "));
     newdiv.appendChild(ital);
   }
 }

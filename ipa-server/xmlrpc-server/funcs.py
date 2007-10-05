@@ -22,6 +22,7 @@ sys.path.append("/usr/share/ipa")
 
 import krbV
 import ldap
+import ldap.dn
 import ipaserver.dsinstance
 import ipaserver.ipaldap
 import ipa.ipautil
@@ -385,7 +386,8 @@ class IPAServer:
         if self.__is_user_unique(user['uid'], opts) == 0:
             raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
 
-        dn="uid=%s,%s,%s" % (user['uid'], user_container,self.basedn)
+        dn="uid=%s,%s,%s" % (ldap.dn.escape_dn_chars(user['uid']),
+                             user_container,self.basedn)
         entry = ipaserver.ipaldap.Entry(dn)
 
         # FIXME: This should be dynamic and can include just about anything
@@ -688,7 +690,8 @@ class IPAServer:
         if self.__is_group_unique(group['cn'], opts) == 0:
             raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
 
-        dn="cn=%s,%s,%s" % (group['cn'], group_container,self.basedn)
+        dn="cn=%s,%s,%s" % (ldap.dn.escape_dn_chars(group['cn']),
+                            group_container,self.basedn)
         entry = ipaserver.ipaldap.Entry(dn)
 
         # some required objectclasses
@@ -1055,5 +1058,7 @@ def ldap_search_escape(match):
     elif value == "*":
         # drop '*' from input.  search performs its own wildcarding
         return ""
+    elif value =='\x00':
+        return r'\00'
     else:
         return value
