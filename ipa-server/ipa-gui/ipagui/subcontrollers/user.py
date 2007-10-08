@@ -1,4 +1,3 @@
-import os
 import re
 import random
 from pickle import dumps, loads
@@ -13,15 +12,10 @@ from turbogears import error_handler
 from turbogears import identity
 
 from ipacontroller import IPAController
-import ipa.config
-import ipa.ipaclient
 import ipa.user
 from ipa.entity import utf8_encode_values
 from ipa import ipaerror
 import ipagui.forms.user
-
-ipa.config.init_config()
-client = ipa.ipaclient.IPAClient(True)
 
 password_chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
@@ -50,7 +44,8 @@ class UserController(IPAController):
     def create(self, **kw):
         """Creates a new user"""
         self.restrict_post()
-        client.set_krbccache(os.environ["KRB5CCNAME"])
+        client = self.get_ipaclient()
+
         if kw.get('submit') == 'Cancel':
             turbogears.flash("Add user cancelled")
             raise turbogears.redirect('/user/list')
@@ -171,7 +166,8 @@ class UserController(IPAController):
     def edit_search(self, **kw):
         """Searches for groups and displays list of results in a table.
            This method is used for the ajax search on the user edit page."""
-        client.set_krbccache(os.environ["KRB5CCNAME"])
+        client = self.get_ipaclient()
+
         groups = []
         groups_counter = 0
         searchlimit = 100
@@ -196,7 +192,8 @@ class UserController(IPAController):
         if tg_errors:
             turbogears.flash("There was a problem with the form!")
 
-        client.set_krbccache(os.environ["KRB5CCNAME"])
+        client = self.get_ipaclient()
+
         try:
             user = client.get_user_by_uid(uid, user_fields)
             user_dict = user.toDict()
@@ -225,7 +222,8 @@ class UserController(IPAController):
     def update(self, **kw):
         """Updates an existing user"""
         self.restrict_post()
-        client.set_krbccache(os.environ["KRB5CCNAME"])
+        client = self.get_ipaclient()
+
         if kw.get('submit') == 'Cancel Edit':
             turbogears.flash("Edit user cancelled")
             raise turbogears.redirect('/user/show', uid=kw.get('uid'))
@@ -376,7 +374,8 @@ class UserController(IPAController):
     @identity.require(identity.not_anonymous())
     def list(self, **kw):
         """Searches for users and displays list of results"""
-        client.set_krbccache(os.environ["KRB5CCNAME"])
+        client = self.get_ipaclient()
+
         users = None
         counter = 0
         uid = kw.get('uid')
@@ -399,7 +398,8 @@ class UserController(IPAController):
     @identity.require(identity.not_anonymous())
     def show(self, uid):
         """Retrieve a single user for display"""
-        client.set_krbccache(os.environ["KRB5CCNAME"])
+        client = self.get_ipaclient()
+
         try:
             user = client.get_user_by_uid(uid, user_fields)
             user_groups = client.get_groups_by_member(user.dn, ['cn'])
@@ -453,7 +453,8 @@ class UserController(IPAController):
         if (len(givenname) == 0) or (len(sn) == 0):
             return ""
 
-        client.set_krbccache(os.environ["KRB5CCNAME"])
+        client = self.get_ipaclient()
+
         givenname = givenname.lower()
         sn = sn.lower()
 
@@ -503,7 +504,8 @@ class UserController(IPAController):
         if (len(givenname) == 0) or (len(sn) == 0):
             return ""
 
-        client.set_krbccache(os.environ["KRB5CCNAME"])
+        client = self.get_ipaclient()
+
         givenname = givenname.lower()
         sn = sn.lower()
 

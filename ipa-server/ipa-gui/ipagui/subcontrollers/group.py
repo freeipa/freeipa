@@ -1,4 +1,3 @@
-import os
 from pickle import dumps, loads
 from base64 import b64encode, b64decode
 
@@ -12,14 +11,10 @@ from turbogears import identity
 
 from ipacontroller import IPAController
 import ipa.config
-import ipa.ipaclient
 import ipa.group
 from ipa.entity import utf8_encode_values
 from ipa import ipaerror
 import ipagui.forms.group
-
-ipa.config.init_config()
-client = ipa.ipaclient.IPAClient(True)
 
 group_new_form = ipagui.forms.group.GroupNewForm()
 group_edit_form = ipagui.forms.group.GroupEditForm()
@@ -45,7 +40,7 @@ class GroupController(IPAController):
         if tg_errors:
             turbogears.flash("There was a problem with the form!")
 
-        client.set_krbccache(os.environ["KRB5CCNAME"])
+        client = self.get_ipaclient()
 
         return dict(form=group_new_form, group={})
 
@@ -54,7 +49,7 @@ class GroupController(IPAController):
     def create(self, **kw):
         """Creates a new group"""
         self.restrict_post()
-        client.set_krbccache(os.environ["KRB5CCNAME"])
+        client = self.get_ipaclient()
 
         if kw.get('submit') == 'Cancel':
             turbogears.flash("Add group cancelled")
@@ -135,7 +130,8 @@ class GroupController(IPAController):
     def edit_search(self, **kw):
         """Searches for users+groups and displays list of results in a table.
            This method is used for the ajax search on the group edit page."""
-        client.set_krbccache(os.environ["KRB5CCNAME"])
+        client = self.get_ipaclient()
+
         users = []
         groups = []
         counter = 0
@@ -170,7 +166,8 @@ class GroupController(IPAController):
         if tg_errors:
             turbogears.flash("There was a problem with the form!")
 
-        client.set_krbccache(os.environ["KRB5CCNAME"])
+        client = self.get_ipaclient()
+
         try:
             group = client.get_group_by_cn(cn, group_fields)
 
@@ -216,7 +213,8 @@ class GroupController(IPAController):
     def update(self, **kw):
         """Updates an existing group"""
         self.restrict_post()
-        client.set_krbccache(os.environ["KRB5CCNAME"])
+        client = self.get_ipaclient()
+
         if kw.get('submit') == 'Cancel Edit':
             turbogears.flash("Edit group cancelled")
             raise turbogears.redirect('/group/show', cn=kw.get('cn'))
@@ -321,7 +319,8 @@ class GroupController(IPAController):
     @identity.require(identity.not_anonymous())
     def list(self, **kw):
         """Search for groups and display results"""
-        client.set_krbccache(os.environ["KRB5CCNAME"])
+        client = self.get_ipaclient()
+
         groups = None
         # counter = 0
         criteria = kw.get('criteria')
@@ -344,7 +343,8 @@ class GroupController(IPAController):
     @identity.require(identity.not_anonymous())
     def show(self, cn):
         """Retrieve a single group for display"""
-        client.set_krbccache(os.environ["KRB5CCNAME"])
+        client = self.get_ipaclient()
+
         try:
             group = client.get_group_by_cn(cn, group_fields)
             group_dict = group.toDict()

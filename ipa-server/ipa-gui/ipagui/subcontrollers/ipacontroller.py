@@ -1,3 +1,5 @@
+import os
+
 import cherrypy
 import turbogears
 from turbogears import controllers, expose, flash
@@ -6,11 +8,21 @@ from turbogears import widgets, paginate
 from turbogears import error_handler
 from turbogears import identity
 
+import ipa.ipaclient
+import ipa.config
+
+ipa.config.init_config()
+
 class IPAController(controllers.Controller):
     def restrict_post(self):
         if cherrypy.request.method != "POST":
             turbogears.flash("This method only accepts posts")
             raise turbogears.redirect("/")
+
+    def get_ipaclient(self):
+        client = ipa.ipaclient.IPAClient(True)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
+        return client
 
     def utf8_encode(self, value):
         if value != None:
