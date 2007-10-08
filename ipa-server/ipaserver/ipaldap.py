@@ -429,10 +429,10 @@ class IPAdmin(SimpleLDAPObject):
             adds = list(new_values.difference(old_values))
             removes = list(old_values.difference(new_values))
 
-            if len(adds) > 0:
-                modlist.append((ldap.MOD_ADD, key, adds))
             if len(removes) > 0:
                 modlist.append((ldap.MOD_DELETE, key, removes))
+            if len(adds) > 0:
+                modlist.append((ldap.MOD_ADD, key, adds))
 
         return modlist
 
