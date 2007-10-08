@@ -33,11 +33,10 @@ class GroupController(IPAController):
     # Group #
     #########
 
-    @expose("ipagui.templates.groupindex")
+    @expose()
     @identity.require(identity.not_anonymous())
     def index(self, tg_errors=None):
-        client.set_krbccache(os.environ["KRB5CCNAME"])
-        return dict()
+        raise turbogears.redirect("/group/list")
 
     @expose("ipagui.templates.groupnew")
     @identity.require(identity.not_anonymous())

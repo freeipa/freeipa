@@ -21,8 +21,9 @@ class GroupNewValidator(validators.Schema):
 class GroupNewForm(widgets.Form):
     params = ['group']
 
-    fields = [GroupFields.cn, GroupFields.description,
-              GroupFields.dn_to_info_json]
+    hidden_fields = [
+      GroupFields.dn_to_info_json
+    ]
 
     validator = GroupNewValidator()
 
@@ -46,10 +47,11 @@ class GroupEditValidator(validators.Schema):
 class GroupEditForm(widgets.Form):
     params = ['members', 'group']
 
-    fields = [GroupFields.gidnumber, GroupFields.description,
-              GroupFields.cn_hidden, GroupFields.editprotected_hidden,
-              GroupFields.group_orig, GroupFields.member_data,
-              GroupFields.dn_to_info_json]
+    hidden_fields = [
+      GroupFields.cn_hidden, GroupFields.editprotected_hidden,
+      GroupFields.group_orig, GroupFields.member_data,
+      GroupFields.dn_to_info_json
+    ]
 
     validator = GroupEditValidator()
 
