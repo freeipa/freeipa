@@ -34,6 +34,11 @@ from types import *
 import os
 import re
 
+try:
+    from threading import Lock
+except ImportError:
+    from dummy_threading import Lock
+
 # Need a global to store this between requests
 _LDAPPool = None
 
@@ -45,35 +50,68 @@ DefaultGroupContainer = "cn=groups,cn=accounts"
 # connection. This could theoretically drive the total number of connections
 # very high but since this represents just the administrative interface
 # this is not anticipated.
-class IPAConnPool:
-    def __init__(self):
-        self.freelist = []
+#
+# The pool consists of two things, a dictionary keyed on the principal name
+# that contains the connection and a list that is used to keep track of the
+# order. If the list fills up just pop the top entry off and you've got
+# the least recently used.
 
-    def getConn(self, host, port, bindca, bindcert, bindkey, proxydn=None, krbccache=None, debug=None):
+# maxsize = 0 means no limit
+class IPAConnPool:
+    def __init__(self, maxsize = 0):
+        self._dict = {}
+        self._lru = []
+        self._lock = Lock()
+        self._maxsize = maxsize
+        self._ctx = krbV.default_context()
+
+    def getConn(self, host, port, krbccache=None, debug=None):
         conn = None
-        if len(self.freelist) > 0:
-            for i in range(len(self.freelist)):
-                c = self.freelist[i]
-                if ((c.host == host) and (c.port == port)):
-                    conn = self.freelist.pop(i)
-                    break
-        if conn is None:
-            conn = ipaserver.ipaldap.IPAdmin(host,port,bindca,bindcert,bindkey,None,debug)
-        if proxydn is not None:
-            conn.set_proxydn(proxydn)
-        else:
-            conn.set_krbccache(krbccache)
+        ccache = krbV.CCache(name=krbccache, context=self._ctx)
+        cprinc = ccache.principal()
+        self._lock.acquire()
+        try:
+            try:
+                conn = self._dict[cprinc.name]
+                del self._dict[cprinc.name]
+                self._lru.remove(cprinc.name)
+            except KeyError:
+                conn = ipaserver.ipaldap.IPAdmin(host,port,None,None,None,debug)
+                conn.set_krbccache(krbccache, cprinc.name)
+        finally:
+            self._lock.release()
+
         return conn
 
     def releaseConn(self, conn):
         if conn is None:
             return
-        # We can't re-use SASL connections. If proxydn is None it means
-        # we have a Kerberos credentials cache set. See ipaldap.set_krbccache
-        if conn.proxydn is None:
-            conn.unbind_s()
-        else:
-            self.freelist.append(conn)
+
+        cprinc = conn.principal
+
+        self._lock.acquire()
+        try:
+
+            # Look to see if we are already on the list from another source and
+            # if so, remove it.
+            try:
+                c = self._dict[cprinc]
+                del self._dict[cprinc]
+                self._lru.remove(cprinc)
+            except KeyError:
+                # Not in the list
+                pass
+
+            if self._maxsize and len(self._dict) > self._maxsize:
+                princ = self._lru.pop(0)
+                c = self._dict[princ]
+                c.unbind_s()
+                del self._dict[cprinc]
+
+            self._lru.append(cprinc)
+            self._dict[cprinc] = conn
+        finally:
+            self._lock.release()
 
 class IPAServer:
 
@@ -90,7 +128,7 @@ class IPAServer:
         self.realm = self.krbctx.default_realm
 
         if _LDAPPool is None:
-            _LDAPPool = IPAConnPool()
+            _LDAPPool = IPAConnPool(128)
         self.basedn = ipa.ipautil.realm_to_suffix(self.realm)
         self.scope = ldap.SCOPE_SUBTREE
         self.princ = None
@@ -169,7 +207,7 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.CONNECTION_NO_CCACHE)
 
         try:
-            conn = _LDAPPool.getConn(self.host,port,bindca,bindcert,bindkey,proxy_dn,krbccache,debug)
+            conn = _LDAPPool.getConn(self.host,port,krbccache,debug)
         except ldap.INVALID_CREDENTIALS, e:
             raise ipaerror.gen_exception(ipaerror.CONNECTION_GSSAPI_CREDENTIALS, nested_exception=e)
 

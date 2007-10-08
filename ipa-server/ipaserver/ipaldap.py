@@ -265,10 +265,11 @@ class IPAdmin(SimpleLDAPObject):
     def set_proxydn(self, proxydn):
         self.proxydn = proxydn
 
-    def set_krbccache(self, krbccache):
+    def set_krbccache(self, krbccache, principal):
         if krbccache is not None:
             os.environ["KRB5CCNAME"] = krbccache
             self.sasl_interactive_bind_s("", sasl_auth)
+            self.principal = principal
         self.proxydn = None
 
     def getEntry(self,*args):
