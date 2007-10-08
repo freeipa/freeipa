@@ -23,6 +23,9 @@ import string
 import tempfile
 import shutil
 import logging
+import fileinput
+import re
+import sys
 from random import Random
 from time import gmtime
 import os
@@ -48,6 +51,18 @@ def ldap_mod(fd, dn, pwd):
     args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv", "-D", dn, "-w", pwd, "-f", fd.name]
     run(args)
 
+def update_key_val_in_file(filename, key, val):
+    if os.path.exists(filename):
+        pattern = "^[\s#]*%s\s*=" % re.escape(key)
+        p = re.compile(pattern)
+        for line in fileinput.input(filename, inplace=1):
+            if not p.search(line):
+                sys.stdout.write(line)
+        fileinput.close()
+    f = open(filename, "a")
+    f.write("%s=%s\n" % (key, val))
+    f.close()
+    
 class KrbInstance:
     def __init__(self):
         self.ds_user = None
@@ -207,9 +222,7 @@ class KrbInstance:
                 print "Error timed out waiting for kadmin to finish operations\n"
                 os.exit()
 
-        cfg_fd = open("/etc/sysconfig/dirsrv", "a")
-        cfg_fd.write("export KRB5_KTNAME=/etc/dirsrv/ds.keytab\n")
-        cfg_fd.close()
+        update_key_val_in_file("/etc/sysconfig/dirsrv", "export KRB5_KTNAME", "/etc/dirsrv/ds.keytab")
         pent = pwd.getpwnam(self.ds_user)
         os.chown("/etc/dirsrv/ds.keytab", pent.pw_uid, pent.pw_gid)
 
@@ -237,9 +250,7 @@ class KrbInstance:
                 print "Error timed out waiting for kadmin to finish operations\n"
                 os.exit()
 
-        cfg_fd = open("/etc/sysconfig/ipa-kpasswd", "a")
-        cfg_fd.write("export KRB5_KTNAME=/var/kerberos/krb5kdc/kpasswd.keytab\n")
-        cfg_fd.close()
+        update_key_val_in_file("/etc/sysconfig/ipa-kpasswd", "export KRB5_KTNAME", "/var/kerberos/krb5kdc/kpasswd.keytab")
         pent = pwd.getpwnam(self.ds_user)
         os.chown("/var/kerberos/krb5kdc/kpasswd.keytab", pent.pw_uid, pent.pw_gid)
 
