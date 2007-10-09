@@ -72,7 +72,7 @@ def parse_options():
                                not options.dm_password or
                                not options.admin_password or
                                not options.master_password):
-        parser.error("error: In unattended mode you need to provide iat least -u, -r, -p and -P options")
+        parser.error("error: In unattended mode you need to provide at least -u, -r, -p and -P options")
 
     return options
 
@@ -123,13 +123,204 @@ def check_existing_installation():
     dirs = glob.glob("/etc/dirsrv/slapd-*")
     if not dirs:
         return
-    yesno = raw_input("An existing Directory Server has been detected.  Do you wish to remove it and create a new one? [y/N]: ")
-    if yesno.lower() != "y":
+    print ""
+    print "An existing Directory Server has been detected."
+    yesno = raw_input("Do you wish to remove it and create a new one? [no]: ")
+    if not yesno or yesno.lower()[0] != "y":
         sys.exit(1)
     for d in dirs:
         serverid = os.path.basename(d).split("slapd-", 1)[1]
         if serverid:
             erase_ds_instance_data (serverid)
+
+def get_fqdn():
+    fqdn = ""
+    try:
+        fqdn = socket.getfqdn()
+    except:
+        try:
+            fqdn = socket.gethostname()
+        except:
+            fqdn = ""
+    return fqdn
+   
+def verify_fqdn(host_name):
+    is_ok = True
+    if len(host_name.split(".")) < 2 or host_name == "localhost.localdomain":
+        print "Invalid hostname: " + host_name
+        print "This host name can't be used as a hostname for an IPA Server"
+        is_ok = False
+    return is_ok
+
+def read_host_name(host_default):
+    host_ok = False
+    host_name = ""
+
+    print "Enter the fully qualified domain name of the computer"
+    print "on which you're setting up server software. Using the form"
+    print "<hostname>.<domainname>"
+    print "Example: master.example.com."
+    print ""
+    print ""
+    if host_default == "":
+        host_default = "master.example.com"
+    while not host_ok:
+        host_input = raw_input("Server host name [" + host_default + "]: ")
+        print ""
+        if host_input == "":
+            host_name = host_default
+        else:
+            host_name = host_input
+        if not verify_fqdn(host_name):
+            host_name = ""
+            continue
+        else:
+            host_ok = True
+    return host_name
+
+def resolve_host(host_name):
+    ip = ""
+    try:
+        ip = socket.gethostbyname(host_name)
+
+        if ip == "127.0.0.1" or ip == "::1":
+            print "The hostname resolves to the localhost address (127.0.0.1/::1)"
+            print "Please change your /etc/hosts file so that the hostname"
+            print "resolves to the ip address of your network interface."
+            print "The KDC service does not listen on localhost"
+            print ""
+            print "Please fix your /etc/hosts file and restart the setup program"
+            return "-Fatal Error-"
+
+    except:
+        print "Unable to lookup the IP address of the provided host"
+    return ip
+
+def verify_ip_address(ip):
+    is_ok = True
+    try:
+        socket.inet_pton(socket.AF_INET, ip)
+    except:
+        try:
+            socket.inet_pton(socket.AF_INET6, ip)
+        except:
+            print "Unable to verify IP address"
+            is_ok = False
+    return is_ok
+
+def read_ip_address():
+    askip = True
+    while askip:
+        ip = raw_input("Please provide the IP address to be used for this host name: ")
+
+        if ip == "":
+            continue
+        if ip == "127.0.0.1" or ip == "::1":
+            print "The IPA Server can't use localhost as a valid IP"
+            continue
+
+        if not verify_ip_address(ip):
+            continue
+
+        print "Adding ["+ip+" "+host_name+"] to your /etc/hosts file"
+        hosts_fd = open('/etc/hosts', 'r+')
+        hosts_fd.seek(0, 2)
+        hosts_fd.write(ip+'\t'+host_name+' '+host_name[:host_name.find('.')]+'\n')
+        hosts_fd.close()
+        askip = False
+
+def read_ds_user():
+    print "The server must run as a specific user in a specific group."
+    print "It is strongly recommended that this user should have no privileges"
+    print "on the computer (i.e. a non-root user).  The setup procedure"
+    print "will give this user/group some permissions in specific paths/files"
+    print "to perform server-specific operations."
+    print ""
+    
+    ds_user = ""
+    try:
+        pwd.getpwnam('dirsrv')
+
+        print "A user account named 'dirsrv' already exists."
+        print ""
+        yesno = raw_input("Do you want to use the existing 'dirsrv' account? [yes]: ")
+        print ""
+        if not yesno or yesno.lower()[0] != "n":
+            ds_user = "dirsrv"
+        else:
+            ds_user = raw_input("Which account name do you want to use for the DS instance? ")
+            print ""
+    except KeyError:
+        ds_user = "dirsrv"
+
+    return ds_user
+
+def read_realm_name(domain_name):
+    print "The kerberos protocol requires a Realm name to be defined."
+    print "This is typically the domain name converted to uppercase."
+    print ""
+    upper_dom = domain_name.upper()
+    realm_name = raw_input("Please provide a realm name ["+upper_dom+"]: ")
+    print ""
+    if realm_name == "":
+        realm_name = upper_dom
+    else:
+        upper_dom = realm_name.upper()
+    if upper_dom != realm_name:
+        print "It is strongly recommended that you use a completely uppercased name for the realm."
+        dom_realm = raw_input("Do you want to use "+upper_dom+" as realm name ? [yes]: ")
+        print ""
+        if dom_realm and dom_realm.lower()[0] != "y":
+            print "WARNING: Using a non upper-cased realm name may cause unexpected problems."
+        else:
+            realm_name = upper_dom
+    return realm_name
+
+def read_password(user):
+    correct = False
+    pwd = ""
+    while not correct:
+        pwd = getpass.getpass(user + " password: ")
+        if not pwd:
+            continue
+        pwd_confirm = getpass.getpass("Password (confirm): ")
+        if pwd != pwd_confirm:
+            print "Password mismatch!"
+            print ""
+        else:
+            correct = True
+        #TODO: check validity/length
+    print ""
+    return pwd
+
+def read_dm_password():
+    print "Certain directory server operations require an administrative user."
+    print "This user is referred to as the Directory Manager and has full access"
+    print "to the Directory for system management tasks."
+    print "The password must be at least 8 characters long, and contain no spaces."
+    print ""
+    #TODO: provide the option of generating a random password
+    dm_password = read_password("Directory Manager")
+    return dm_password
+
+def read_master_password():
+    print "The Kerberos database is usually encrypted using a master password."
+    print "Please store this password offline in a secure place."
+    print "It may be necessary in a recovery situation or to install a replica."
+    print "Without the master password the encrypted material can't be used by the KDC."
+    print "If the master password is lost all kerberos related secrets will also be lost."
+    print ""
+    #TODO: provide the option of generating a random password
+    master_password = read_password("Kerberos master")
+    return master_password
+
+def read_admin_password():
+    print "The IPA server requires an administrative user, named 'admin'."
+    print "This user is a regular system account used for IPA server administration."
+    print ""
+    #TODO: provide the option of generating a random password
+    admin_password = read_password("IPA admin")
+    return admin_password
 
 def main():
     global ds
@@ -141,6 +332,12 @@ def main():
     
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
+
+    print "=============================================================================="
+    print "This program will setup the FreeIPA Server."
+    print ""
+    print "To accept the default shown in brackets, press the Enter key."
+    print ""
 
     check_existing_installation()
 
@@ -168,234 +365,84 @@ def main():
     # utilities just use the hostname as returned by gethostbyname to set
     # up some of the standard entries
 
-    host_name = ""
+    host_default = ""
     if options.host_name:
-        host_name = options.host_name
+        host_default = options.host_name
     else:
-        try:
-            host_name = socket.gethostname()
-        except:
-            pass
-        if options.unattended:
-           if len(host_name.split(".")) < 2 or host_name == "localhost.localdomain":
-               print "Invalid hostname: "+host_name
-               print "This host name can't be used as a hostname for an IPA Server"
-               return "-Fatal Error-"
+        host_default = get_fqdn()
+        
+    if options.unattended:
+        if not verify_fqdn(host_default):
+            return "-Fatal Error-"
         else:
-            host_ok = False
-            while not host_ok:
-               if host_name == "":
-                   print ""
-                   host_name = raw_input("Please provide a Fully Qualified name to use for your system [master.example.com]: ")
-                   if host_name == "":
-                       host_name = "master.example.com"
+            host_name = host_default
+    else:
+        host_name = read_host_name(host_default)
     
-               if len(host_name.split(".")) < 2 or host_name == "localhost.localdomain":
-                   print "Invalid hostname: "+host_name
-                   print "This host name can't be used as a hostname for an IPA Server"
-                   host_name = ""
-                   continue
-               else:
-                   host_ok = True
-    
-               yesno = raw_input("Please confirm this ["+host_name+"] is the server hostname you want to use [Y/n]: ")
-               if yesno != "" and yesno.lower() != 'y':
-                   host_name = ""
-                   host_ok = False
-
     domain_name = host_name[host_name.find(".")+1:]
 
     # Check we have a public IP that is associated with the hostname
-    ip = ""
-    askip = False
-    try:
-        ip = socket.gethostbyname(host_name)
-
-        if ip == "127.0.0.1" or ip == "::1":
-            print "The hostname resolves to the localhost address (127.0.0.1/::1)"
-            print "Please change your /etc/hosts file so that the hostname"
-            print "resolves to the ip address of your network interface."
-            print "The KDC service does not listen on localhost"
-            print ""
-            print "Please fix your /etc/hosts file and restart the setup program"
-            return "-Fatal Error-"
-
-    except:
-        print "The provided hostname can't actually be use to resolve the IP address"
+    ip = resolve_host(host_name)
+    if not ip:
         if options.ip_address:
             ip = options.ip_address
+    if not ip and options.unattended:
+        print "Unable to resolve IP address for host name"
+        return "-Fatal Error-"
+
+    if not verify_ip_address(ip):
+        ip = ""
+        if options.unattended:
+            return "-Fatal Error-"
+
+    if options.ip_address and options.ip_address != ip:
+        if options.setup_bind:
+            ip = options.ip_address
         else:
-            askip = True
-
-    if ip != "":
-        try:
-            socket.inet_pton(socket.AF_INET, ip)
-        except:
-            try:
-                socket.inet_pton(socket.AF_INET6, ip)
-            except:
-                print "Invalid IP format"
-                if options.unattended:
-                    return "-Fatal Error-"
-                else:
-                    ip = ""
-                    askip = True
-
-        if options.ip_address and options.ip_address != ip:
-            if options.setup_bind:
-                ip = options.ip_address
-            else:
-                print "Error: the hostname resolves to an IP that is different from the one provided on the command line"
-                print "Please fix your DNS or /etc/hosts file to provide consistent information and restart the setup program"
-                return "-Fatal Error-"
+            print "Error: the hostname resolves to an IP address that is different"
+            print "from the one provided on the command line.  Please fix your DNS"
+            print "or /etc/hosts file and restart the installation."
+            return "-Fatal Error-"
  
     if options.unattended:
-        if askip or ip == "":
+        if not ip:
             print "Unable to resolve IP address"
             return "-Fatal Error-"
 
-    while askip:
-        ip = raw_input("Please provide the IP address to be used for this host name: ")
-
-        if ip == "":
-            print "An empty IP is not acceptable"
-            continue
-        if ip == "127.0.0.1" or ip == "::1":
-            print "The IPA Server can't use localhost as a valid IP"
-            continue
-
-        try:
-            socket.inet_pton(socket.AF_INET, ip)
-        except:
-            try:
-                socket.inet_pton(socket.AF_INET6, ip)
-            except:
-                print "Invalid IP format"
-                continue
-
-        print "Adding ["+ip+" "+host_name+"] to your /etc/hosts file"
-        hosts_fd = open('/etc/hosts', 'r+')
-        hosts_fd.seek(0, 2)
-        hosts_fd.write(ip+'\t'+host_name+' '+host_name[:host_name.find('.')]+'\n')
-        hosts_fd.close()
-        askip = False
-
+    if not ip:
+        ip = read_ip_address ()
     ip_address = ip
 
-    print "The IPA Master Server Name will be: " + host_name + ". With IP address: " + ip_address
-    print "The IPA Domain Name will be: " + domain_name
+    print "The IPA Master Server will be configured with"
+    print "Hostname:    " + host_name
+    print "IP address:  " + ip_address
+    print "Domain name: " + domain_name
     print ""
 
     if not options.ds_user:
-
-        try:
-            pwd.getpwnam('dirsrv')
-
-            print "To securely run Directory Server we need a user account to be set up."
-            print "This will allow DS to run as a user and not as root."
-            print "The user account will have access to some security material so it should not be shared with any other application."
-            print "A user account named 'dirsrv' already exist. You should not share the account with any other service."
-            print ""
-            yesno = raw_input("Do you want to use the existing 'dirsrv' account ? (y/N)")
-            print ""
-            if yesno.lower() == "y":
-                ds_user = "dirsrv"
-            else:
-                ds_user = raw_input("Which account name do you want to use for the DS instance ? ")
-                print ""
-        except KeyError:
-            ds_user = "dirsrv"
-
+        ds_user = read_ds_user()
         if ds_user == "":
-             return "-Aborted-"
+            return "-Aborted-"
     else:
         ds_user = options.ds_user
 
     if not options.realm_name:
-        print "The kerberos protocol requires a Realm name to be defined."
-        print "Usually the domain name all in uppercase is used as realm name."
-        print ""
-        upper_dom = domain_name.upper()
-        realm_name = raw_input("Please provide a realm name ["+upper_dom+"]: ")
-        print ""
-        if realm_name == "":
-            realm_name = upper_dom
-        else:
-            upper_dom = realm_name.upper()
-        if upper_dom != realm_name:
-            print "It is strongly adviced to use a completely uppercased name for the realm."
-            dom_realm = raw_input("Do you want to use "+upper_dom+" as realm name ? [Y/n] ")
-            print ""
-            if dom_realm.lower() != "y":
-                print "WARNING: Using a non upper-cased realm name may cause unexpected problems."
-            else:
-                realm_name = upper_dom
+        realm_name = read_realm_name(domain_name)
     else:
         realm_name = options.realm_name
 
     if not options.dm_password:
-        print "The Directory Manager user is the equivalent of 'root' for Diretcory Server."
-        print "This account has full access to the Directory and is used for system management tasks."
-        print ""
-        #TODO: provide the option of generating a random password
-        correct = False
-        while not correct:
-            dm_password = getpass.getpass("Please provide a password for the Directory Manager: ")
-            pwd_confirm = getpass.getpass("Please confirm the password: ")
-            if dm_password == "":
-                print "Password is empty!"
-                print ""
-            elif dm_password != pwd_confirm:
-                print "Password mismatch!"
-                print ""
-            else:
-                correct = True
-        print ""
+        dm_password = read_dm_password()
     else:
         dm_password = options.dm_password
 
     if not options.master_password:
-        print "The Kerberos database is usually encrypted using a master password."
-        print "Please store this password offline in a secure place."
-        print "It may be necessary in a recovery situation or to install a replica."
-        print "Without the master password the encrypted material can't be used by the KDC."
-        print "If the master password gets lost all kerberos related secrets will be lost."
-        print ""
-        #TODO: provide the option of generating a random password
-        correct = False
-        while not correct:
-            master_password = getpass.getpass("Please provide a master password: ")
-            pwd_confirm = getpass.getpass("Please confirm the password: ")
-            if master_password == "":
-                print "Password is empty!"
-                print ""
-            elif master_password != pwd_confirm:
-                print "Password mismatch!"
-                print ""
-            else:
-                correct = True
-        print ""
+        master_password = read_master_password()
     else:
         master_password = options.master_password
 
     if not options.admin_password:
-        print "The 'admin' user is the administrative user used to administare an IPA server."
-        print "This account is the one that will be used for normal administration and is also a regular unix user"
-        print ""
-        #TODO: provide the option of generating a random password
-        correct = False
-        while not correct:
-            admin_password = getpass.getpass("Please provide a kerberos password for the 'admin' user: ")
-            pwd_confirm = getpass.getpass("Please confirm the password: ")
-            if admin_password == "":
-                print "Password is empty!"
-                print ""
-            elif admin_password != pwd_confirm:
-                print "Password mismatch!"
-                print ""
-            else:
-                correct = True
-        print ""
+        admin_password = read_admin_password()
     else:
         admin_password = options.admin_password
 
@@ -419,8 +466,8 @@ def main():
             print "This program is about to replace the DNS Server configuration,"
             print "with an automatically generated one, based on the data gathered so far."
             print "This will REPLACE any existing configuration."
-            yesno = raw_input("Are you sure you want to configure the DNS Server ? [y/N]: ")
-            if yesno.lower() != 'y':
+            yesno = raw_input("Are you sure you want to configure the DNS Server ? [no]: ")
+            if not yesno or yesno.lower()[0] != 'y':
                 skipbind = True
         if not skipbind:
             bind.create_instance()
