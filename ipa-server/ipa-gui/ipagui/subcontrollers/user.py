@@ -411,7 +411,7 @@ class UserController(IPAController):
             user_manager = None
             try:
                 if user.manager:
-                    user_manager = client.get_user_by_dn(user.manager,
+                    user_manager = client.get_entry_by_dn(user.manager,
                         ['givenname', 'sn', 'uid'])
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 pass

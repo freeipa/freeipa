@@ -84,7 +84,7 @@ class GroupController(IPAController):
         #       on any error, we redirect to the _edit_ group page.
         #       this code does data setup, similar to groupedit()
         #
-        group = client.get_group_by_cn(kw['cn'], group_fields)
+        group = client.get_entry_by_cn(kw['cn'], group_fields)
         group_dict = group.toDict()
         member_dicts = []
 
@@ -169,7 +169,7 @@ class GroupController(IPAController):
         client = self.get_ipaclient()
 
         try:
-            group = client.get_group_by_cn(cn, group_fields)
+            group = client.get_entry_by_cn(cn, group_fields)
 
             group_dict = group.toDict()
 
@@ -186,9 +186,8 @@ class GroupController(IPAController):
                 member_dns = [member_dns]
 
             # TODO: convert this into an efficient (single) function call
-            # Note: this isn't quite right, since it can be users and groups.
             members = map(
-                    lambda dn: client.get_user_by_dn(dn, ['dn', 'givenname', 'sn',
+                    lambda dn: client.get_entry_by_dn(dn, ['dn', 'givenname', 'sn',
                         'uid', 'cn']),
                     member_dns)
             members.sort(self.sort_group_member)
@@ -346,7 +345,7 @@ class GroupController(IPAController):
         client = self.get_ipaclient()
 
         try:
-            group = client.get_group_by_cn(cn, group_fields)
+            group = client.get_entry_by_cn(cn, group_fields)
             group_dict = group.toDict()
 
             #
@@ -359,9 +358,8 @@ class GroupController(IPAController):
                 member_dns = [member_dns]
 
             # TODO: convert this into an efficient (single) function call
-            # Note: this isn't quite right, since it can be users and groups.
             members = map(
-                    lambda dn: client.get_user_by_dn(dn, ['dn', 'givenname', 'sn',
+                    lambda dn: client.get_entry_by_dn(dn, ['dn', 'givenname', 'sn',
                         'uid', 'cn']),
                     member_dns)
             members.sort(self.sort_group_member)

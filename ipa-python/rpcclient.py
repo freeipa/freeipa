@@ -66,7 +66,42 @@ class RPCClient:
                  obj[k] = ent[k]
     
         return obj 
-        
+
+# General searches
+
+    def get_entry_by_dn(self,dn,sattrs=None):
+        """Get a specific entry. If sattrs is not None then only those
+           attributes will be returned, otherwise all available
+           attributes are returned. The result is a dict."""
+        server = self.setup_server()
+        if sattrs is None:
+            sattrs = "__NONE__"
+        try:
+            result = server.get_entry_by_dn(dn, sattrs)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
+    def get_entry_by_cn(self,cn,sattrs=None):
+        """Get a specific entry by cn. If sattrs is not None then only those
+           attributes will be returned, otherwise all available
+           attributes are returned. The result is a dict."""
+        server = self.setup_server()
+        if sattrs is None:
+            sattrs = "__NONE__"
+        try:
+            result = server.get_entry_by_cn(cn, sattrs)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
+
 # User support
 
     def get_user_by_uid(self,uid,sattrs=None):
@@ -78,22 +113,6 @@ class RPCClient:
             sattrs = "__NONE__"
         try:
             result = server.get_user_by_uid(uid, sattrs)
-        except xmlrpclib.Fault, fault:
-            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
-        except socket.error, (value, msg):
-            raise xmlrpclib.Fault(value, msg)
-
-        return ipautil.unwrap_binary_data(result)
- 
-    def get_user_by_dn(self,dn,sattrs=None):
-        """Get a specific user. If sattrs is not None then only those
-           attributes will be returned, otherwise all available
-           attributes are returned. The result is a dict."""
-        server = self.setup_server()
-        if sattrs is None:
-            sattrs = "__NONE__"
-        try:
-            result = server.get_user_by_dn(dn, sattrs)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
@@ -258,38 +277,6 @@ class RPCClient:
         return ipautil.unwrap_binary_data(result)
 
 # Group support
-        
-    def get_group_by_cn(self,cn,sattrs=None):
-        """Get a specific group. If sattrs is not None then only those
-           attributes will be returned, otherwise all available
-           attributes are returned. The result is a dict."""
-        server = self.setup_server()
-        if sattrs is None:
-            sattrs = "__NONE__"
-        try:
-            result = server.get_group_by_cn(cn, sattrs)
-        except xmlrpclib.Fault, fault:
-            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
-        except socket.error, (value, msg):
-            raise xmlrpclib.Fault(value, msg)
-
-        return ipautil.unwrap_binary_data(result)
-        
-    def get_group_by_dn(self,dn,sattrs=None):
-        """Get a specific group. If sattrs is not None then only those
-           attributes will be returned, otherwise all available
-           attributes are returned. The result is a dict."""
-        server = self.setup_server()
-        if sattrs is None:
-            sattrs = "__NONE__"
-        try:
-            result = server.get_group_by_dn(dn, sattrs)
-        except xmlrpclib.Fault, fault:
-            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
-        except socket.error, (value, msg):
-            raise xmlrpclib.Fault(value, msg)
-
-        return ipautil.unwrap_binary_data(result)
 
     def get_groups_by_member(self,member_dn,sattrs=None):
         """Gets the groups that member_dn belongs to.
