@@ -56,7 +56,7 @@ def parse_options():
 
 def get_group(client, group_cn):
     try:
-        group = client.get_group_by_cn(group_cn)
+        group = client.get_entry_by_cn(group_cn)
     except ipa.ipaerror.IPAError, e:
         print "%s" % e.message
         return None

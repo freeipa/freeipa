@@ -65,7 +65,7 @@ from ipagui.helpers import ipahelper
     function renderMemberInfo(newdiv, info) {
       if (info.type == "group") {
         newdiv.appendChild(document.createTextNode(
-          info.name.escapeHTML() + " "));
+          info.name + " "));
       }
     }
   </script>

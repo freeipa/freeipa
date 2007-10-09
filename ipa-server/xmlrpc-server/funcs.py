@@ -323,7 +323,26 @@ class IPAServer:
         partial_match_filter += ")"
 
         return (exact_match_filter, partial_match_filter)
- 
+
+# General searches
+
+    def get_entry_by_dn (self, dn, sattrs=None, opts=None):
+        """Get a specific entry. Return as a dict of values.
+           Multi-valued fields are represented as lists.
+        """
+
+        filter = "(objectClass=*)"
+        return self.__get_entry(dn, filter, sattrs, opts)
+
+    def get_entry_by_cn (self, cn, sattrs=None, opts=None):
+        """Get a specific entry by cn. Return as a dict of values.
+           Multi-valued fields are represented as lists.
+        """
+
+        cn = self.__safe_filter(cn)
+        filter = "(cn=" + cn + ")"
+        return self.__get_entry(self.basedn, filter, sattrs, opts)
+
 # User support
 
     def __is_user_unique(self, uid, opts):
@@ -345,14 +364,6 @@ class IPAServer:
         uid = self.__safe_filter(uid)
         filter = "(uid=" + uid + ")"
         return self.__get_entry(self.basedn, filter, sattrs, opts)
-    
-    def get_user_by_dn (self, dn, sattrs=None, opts=None):
-        """Get a specific user's entry. Return as a dict of values.
-           Multi-valued fields are represented as lists.
-        """
-
-        filter = "(objectClass=*)"
-        return self.__get_entry(dn, filter, sattrs, opts)
 
     def get_user_by_principal(self, principal, sattrs=None, opts=None):
         """Get a user entry searching by Kerberos Principal Name.
@@ -649,23 +660,6 @@ class IPAServer:
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return 1
 
-    def get_group_by_cn (self, cn, sattrs=None, opts=None):
-        """Get a specific group's entry. Return as a dict of values.
-           Multi-valued fields are represented as lists.
-        """
-
-        cn = self.__safe_filter(cn)
-        filter = "(cn=" + cn + ")"
-        return self.__get_entry(self.basedn, filter, sattrs, opts)
-
-    def get_group_by_dn (self, dn, sattrs=None, opts=None):
-        """Get a specific group's entry. Return as a dict of values.
-           Multi-valued fields are represented as lists.
-        """
-
-        filter = "(objectClass=*)"
-        return self.__get_entry(dn, filter, sattrs, opts)
-
     def get_groups_by_member (self, member_dn, sattrs=None, opts=None):
         """Get a specific group's entry. Return as a dict of values.
            Multi-valued fields are represented as lists.
@@ -787,7 +781,7 @@ class IPAServer:
         """Add a member to an existing group.
         """
 
-        old_group = self.get_group_by_dn(group_dn, None, opts)
+        old_group = self.get_entry_by_dn(group_dn, None, opts)
         if old_group is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
         new_group = copy.deepcopy(old_group)
@@ -834,7 +828,7 @@ class IPAServer:
         """Remove a member_dn from an existing group.
         """
 
-        old_group = self.get_group_by_dn(group_dn, None, opts)
+        old_group = self.get_entry_by_dn(group_dn, None, opts)
         if old_group is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
         new_group = copy.deepcopy(old_group)
@@ -1002,7 +996,7 @@ class IPAServer:
            The memberOf plugin handles removing the group from any other
            groups.
         """
-        group = self.get_group_by_dn(group_dn, ['dn', 'cn'], opts)
+        group = self.get_entry_by_dn(group_dn, ['dn', 'cn'], opts)
 
         if len(group) != 1:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
@@ -1020,12 +1014,12 @@ class IPAServer:
            tgroup is the DN of the target group to be added to
         """
 
-        old_group = self.get_group_by_dn(tgroup, None, opts)
+        old_group = self.get_entry_by_dn(tgroup, None, opts)
         if old_group is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
         new_group = copy.deepcopy(old_group)
 
-        group_dn = self.get_group_by_dn(group, ['dn', 'cn', 'objectclass'], opts)
+        group_dn = self.get_entry_by_dn(group, ['dn', 'cn', 'objectclass'], opts)
         if group_dn is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
 

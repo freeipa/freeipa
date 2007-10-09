@@ -26,6 +26,7 @@ if "/usr/share/ipa" not in sys.path:
 
 from ipaserver import funcs
 import ipa.rpcclient as rpcclient
+import entity
 import user
 import group
 import ipa
@@ -53,19 +54,28 @@ class IPAClient:
         if self.local:
             self.transport.set_krbccache(krbccache)
 
+# General searches
+
+    def get_entry_by_dn(self,dn,sattrs=None):
+        """Get a specific entry by dn. If sattrs is set then only those
+           attributes will be returned, otherwise all available attributes
+           are returned."""
+        result = self.transport.get_entry_by_dn(dn,sattrs)
+        return entity.Entity(result)
+
+    def get_entry_by_cn(self,cn,sattrs=None):
+        """Get a specific entry by cn. If sattrs is set then only those
+           attributes will be returned, otherwise all available attributes
+           are returned."""
+        result = self.transport.get_entry_by_cn(cn,sattrs)
+        return entity.Entity(result)
+
 # User support
     def get_user_by_uid(self,uid,sattrs=None):
         """Get a specific user by uid. If sattrs is set then only those
            attributes will be returned, otherwise all available attributes
            are returned."""
         result = self.transport.get_user_by_uid(uid,sattrs)
-        return user.User(result)
-
-    def get_user_by_dn(self,dn,sattrs=None):
-        """Get a specific user by dn. If sattrs is set then only those
-           attributes will be returned, otherwise all available attributes
-           are returned."""
-        result = self.transport.get_user_by_dn(dn,sattrs)
         return user.User(result)
 
     def get_user_by_principal(self,principal,sattrs=None):
@@ -153,20 +163,6 @@ class IPAClient:
         return result
 
 # Groups support
-
-    def get_group_by_cn(self,cn,sattrs=None):
-        """Get a specific group by cn. If sattrs is set then only those
-           attributes will be returned, otherwise all available attributes
-           are returned."""
-        result = self.transport.get_group_by_cn(cn,sattrs)
-        return group.Group(result)
-
-    def get_group_by_dn(self,dn,sattrs=None):
-        """Get a specific group by cn. If sattrs is set then only those
-           attributes will be returned, otherwise all available attributes
-           are returned."""
-        result = self.transport.get_group_by_dn(dn,sattrs)
-        return group.Group(result)
 
     def get_groups_by_member(self,member_dn,sattrs=None):
         """Gets the groups that member_dn belongs to.
