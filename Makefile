@@ -4,9 +4,6 @@ PRJ_PREFIX=freeipa
 
 RPMBUILD ?= $(PWD)/rpmbuild
 
-# set to 1 to produce a debug build of all subprojects
-#DEBUG=1
-
 # Version numbers - this is for the entire server. After
 # updating this you should run the version-update
 # target.
@@ -37,12 +34,6 @@ CLI_RELEASE=0
 CLI_VERSION=$(CLI_MAJOR).$(CLI_MINOR).$(CLI_RELEASE)
 CLI_TARBALL_PREFIX=$(PRJ_PREFIX)-client-$(CLI_VERSION)
 CLI_TARBALL=$(CLI_TARBALL_PREFIX).tgz
-
-ifeq ($(DEBUG),1)
-	export CFLAGS = -g -Wall -Wshadow
-	export LDFLAGS = -g
-endif
-
 
 all:
 	@for subdir in $(SUBDIRS); do \

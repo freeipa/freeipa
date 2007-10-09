@@ -1,9 +1,6 @@
+include Makefile.common
+
 SUBDIRS=ipa-install xmlrpc-server ipa-kpasswd ipa-slapi-plugins ipa-gui
-
-SHAREDIR=$(DESTDIR)/usr/share/ipa
-PYTHONDIR=$(SHAREDIR)/ipaserver
-SBINDIR=$(DESTDIR)/usr/sbin
-
 
 all:
 	@for subdir in $(SUBDIRS); do \

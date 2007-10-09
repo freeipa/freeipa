@@ -1,8 +1,6 @@
-SHAREDIR=$(DESTDIR)/usr/share/ipa
-SBINDIR=$(DESTDIR)/usr/sbin
-INITDIR = $(DESTDIR)/etc/rc.d/init.d
+include ../Makefile.common
 
-IPAGUI_SUBDIRS=config forms helpers templates
+IPAGUI_SUBDIRS=config forms helpers templates subcontrollers
 STATIC_SUBDIRS=css images javascript
 
 all: ;
@@ -20,6 +18,7 @@ install:
 	done
 
 	install -m 644 ipagui/config/*.cfg $(SHAREDIR)/ipagui/config
+	install -m 644 ipagui/templates/*.kid $(SHAREDIR)/ipagui/templates
 
 	-mkdir -p $(SHAREDIR)/ipagui/static
 	@for subdir in $(STATIC_SUBDIRS); do \

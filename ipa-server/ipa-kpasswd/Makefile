@@ -1,9 +1,6 @@
-PREFIX ?= $(DESTDIR)/usr
-SBIN = $(PREFIX)/sbin
-INITDIR = $(DESTDIR)/etc/rc.d/init.d
+include ../Makefile.common
 
 LDFLAGS +=-lkrb5 -llber -lldap
-CFLAGS ?= -g -Wall -Wshadow
 
 OBJS = $(patsubst %.c,%.o,$(wildcard *.c))
 
@@ -14,8 +11,9 @@ all: $(OBJS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 install:
-	-mkdir -p $(SBIN)
-	install -m 755 ipa_kpasswd $(SBIN)
+	echo $(SBINDIR)
+	-mkdir -p $(SBINDIR)
+	install -m 755 ipa_kpasswd $(SBINDIR)
 	-mkdir -p $(INITDIR)
 	install -m 755 ipa-kpasswd.init $(INITDIR)/ipa-kpasswd
 

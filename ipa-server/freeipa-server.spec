@@ -14,7 +14,7 @@ BuildRequires: fedora-ds-base-devel openldap-devel krb5-devel nss-devel mozldap-
 Requires: python fedora-ds-base krb5-server krb5-server-ldap nss-tools openldap-clients httpd mod_python mod_auth_kerb python-ldap freeipa-python ntp cyrus-sasl-gssapi nss TurboGears
 
 %define httpd_conf /etc/httpd/conf.d
-%define plugin_dir /usr/lib/dirsrv/plugins
+%define plugin_dir %{_libdir}/dirsrv/plugins
 
 %description
 FreeIPA is a server for identity, policy, and audit.
@@ -31,7 +31,7 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_sbindir}
 mkdir -p %{buildroot}%{plugin_dir}
 
-make install DESTDIR=%{buildroot}
+make install DESTDIR=%{buildroot} LIBDIR=%{buildroot}%{_libdir}
 
 
 %clean

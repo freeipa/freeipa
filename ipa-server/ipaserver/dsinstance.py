@@ -214,7 +214,11 @@ class DsInstance:
     def change_admin_password(self, password):
         logging.debug("Changing admin password")
         dirname = self.config_dirname()
-        args = ["/usr/lib/mozldap/ldappasswd",
+        if dir_exists("/usr/lib64/mozldap"):
+            app = "/usr/lib64/mozldap/ldappasswd"
+        else:
+            app = "/usr/lib/mozldap/ldappasswd"
+        args = [app,
                 "-D", "cn=Directory Manager", "-w", self.dm_password,
                 "-P", dirname+"/cert8.db", "-ZZZ", "-s", password,
                 "uid=admin,cn=sysaccounts,cn=etc,"+self.suffix]

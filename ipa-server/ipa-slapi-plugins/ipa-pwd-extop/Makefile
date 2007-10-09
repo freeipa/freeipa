@@ -1,12 +1,7 @@
-DIRSRV ?= dirsrv
-PREFIX ?= $(DESTDIR)/usr
-LIBDIR = $(PREFIX)/lib/$(DIRSRV)/plugins
-LIB64DIR ?= $(PREFIX)/lib64/$(DIRSRV)/plugins
-SHAREDIR = $(DESTDIR)/usr/share/ipa
+include ../../Makefile.common
 
 SONAME = libipa_pwd_extop.so
 LDFLAGS += -lkrb5 -llber -lldap -llber -lssl
-CFLAGS ?= -g -Wall -Wshadow
 CFLAGS += -I/usr/include/$(DIRSRV) -I/usr/include/nss3 -I/usr/include/mozldap -I/usr/include/nspr4 -fPIC -DPIC
 
 OBJS = $(patsubst %.c,%.o,$(wildcard *.c))
@@ -18,12 +13,8 @@ all: $(OBJS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 install:
-	-mkdir -p $(LIBDIR)
-	if [ -e $(PREFIX)/lib/$(DIRSRV) ]; then \
-		install -m 644 $(SONAME) $(LIBDIR); \
-	else \
-		install -m 644 $(SONAME) $(LIB64DIR); \
-	fi	
+	mkdir -p $(PLUGINDIR); \
+	install -m 644 $(SONAME) $(PLUGINDIR); \
 	install -m 644 *.ldif $(SHAREDIR)
 
 clean:
