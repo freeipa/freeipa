@@ -22,22 +22,50 @@ import sys
 from optparse import OptionParser
 import ipa.ipaclient as ipaclient
 import ipa.config
+import ipa.ipautil as ipautil
+import base64
 
 import sys
 import xmlrpclib
 import kerberos
 
 def usage():
-    print "ipa-finduser <uid>"
+    print "ipa-finduser user"
     sys.exit()
 
 def parse_options():
     parser = OptionParser()
 
+    parser.add_option("-a", "--all", action="store_true", dest="all",
+                      help="Set user's e-mail address")
+    parser.add_option("--usage", action="store_true",
+                      help="Program usage")
+
     args = ipa.config.init_config(sys.argv)
     options, args = parser.parse_args(args)
 
     return options, args
+
+def wrap_binary_data(data):
+    """Converts all binary data strings into base64-encoded objects for display
+    """
+    if isinstance(data, str):
+        if ipautil.needs_base64(data):
+            return base64.encodestring(data)
+        else:
+            return data
+    elif isinstance(data, list) or isinstance(data,tuple):
+        retval = []
+        for value in data:
+            retval.append(wrap_binary_data(value))
+        return retval
+    elif isinstance(data, dict):
+        retval = {}
+        for (k,v) in data.iteritems():
+            retval[k] = wrap_binary_data(v)
+        return retval
+    else:
+        return data
 
 def main():
     user={}
@@ -48,7 +76,10 @@ def main():
 
     try:
         client = ipaclient.IPAClient()
-        users = client.find_users(args[1], sattrs=['dn','uid','cn','homeDirectory'])
+        if options.all is None:
+            users = client.find_users(args[1], sattrs=['uid','cn','homeDirectory','loginshell'])
+        else:
+            users = client.find_users(args[1], sattrs=None)
 
         counter = users[0]
         users = users[1:]
@@ -58,17 +89,19 @@ def main():
 
         for ent in users:
             attr = ent.attrList()
+            attr.sort()
 
-            print "dn: " + ent.dn
+            if options.all is True:
+                print "dn: " + ent.dn
 
             for a in attr:
                 value = ent.getValues(a)
                 if isinstance(value,str):
-                    print a + ": " + value
+                    print a + ": " + str(wrap_binary_data(value)).rstrip()
                 else:
                     print a + ": "
                     for l in value:
-                        print "\t" +  l
+                        print "\t" + wrap_binary_data(l)
             # blank line between results
             print 
 
