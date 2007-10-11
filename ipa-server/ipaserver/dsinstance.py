@@ -97,7 +97,6 @@ class DsInstance:
             # TODO: roll back here?
             print "Failed to restart the ds instance"
         self.__add_default_layout()
-        self.__create_test_users()
 
     def config_dirname(self):
         if not self.serverid:
@@ -193,14 +192,6 @@ class DsInstance:
         except subprocess.CalledProcessError, e:
             print "Failed to add default ds layout", e
             logging.debug("Failed to add default ds layout %s" % e)
-        
-    def __create_test_users(self):
-        logging.debug("create test users ldif")
-        txt = template_file(SHARE_DIR + "test-users-template.ldif", self.sub_dict)
-        user_fd = open(SHARE_DIR+"test-users.ldif", "w")
-        user_fd.write(txt)
-        user_fd.close()
-        logging.debug("done creating test users ldif")
 
     def __certmap_conf(self):
         logging.debug("configuring certmap.conf for ds instance")

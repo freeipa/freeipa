@@ -448,8 +448,9 @@ class IPAServer:
             del user['gn']
 
         # some required objectclasses
-        entry.setValues('objectClass', 'top', 'person', 'organizationalPerson', 'inetOrgPerson', 'posixAccount', 'krbPrincipalAux')
-    
+        entry.setValues('objectClass', 'top', 'person', 'organizationalPerson',
+                'inetOrgPerson', 'inetUser', 'posixAccount', 'krbPrincipalAux')
+
         # fill in our new entry with everything sent by the user
         for u in user:
             entry.setValues(u, user[u])
@@ -709,7 +710,8 @@ class IPAServer:
         entry = ipaserver.ipaldap.Entry(dn)
 
         # some required objectclasses
-        entry.setValues('objectClass', 'top', 'groupofuniquenames', 'posixGroup')
+        entry.setValues('objectClass', 'top', 'groupofuniquenames', 'posixGroup',
+                        'inetUser')
 
         # FIXME, need a gidNumber generator
         if group.get('gidnumber') is None:
