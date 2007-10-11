@@ -235,19 +235,39 @@ class IPAServer:
                     entry[key] = value[0]
         return entry
 
-    def __get_entry (self, base, filter, sattrs=None, opts=None):
-        """Get a specific entry. Return as a dict of values.
+    # TODO: rethink the get_entry vs get_list API calls.
+    #       they currently restrict the data coming back without
+    #       restricting scope.  For now adding a __get_base/sub_entry()
+    #       calls, but the API isn't great.
+    def __get_entry (self, base, scope, filter, sattrs=None, opts=None):
+        """Get a specific entry (with a parametized scope).
+           Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
         ent=""
 
         conn = self.getConnection(opts)
         try:
-            ent = conn.getEntry(base, self.scope, filter, sattrs)
+            ent = conn.getEntry(base, scope, filter, sattrs)
+
         finally:
             self.releaseConnection(conn)
-    
+
         return self.convert_entry(ent)
+
+    def __get_base_entry (self, base, filter, sattrs=None, opts=None):
+        """Get a specific entry (with a scope of BASE).
+           Return as a dict of values.
+           Multi-valued fields are represented as lists.
+        """
+        return self.__get_entry(base, ldap.SCOPE_BASE, filter, sattrs, opts)
+
+    def __get_sub_entry (self, base, filter, sattrs=None, opts=None):
+        """Get a specific entry (with a scope of SUB).
+           Return as a dict of values.
+           Multi-valued fields are represented as lists.
+        """
+        return self.__get_entry(base, ldap.SCOPE_SUBTREE, filter, sattrs, opts)
 
     def __get_list (self, base, filter, sattrs=None, opts=None):
         """Gets a list of entries. Each is converted to a dict of values.
@@ -332,7 +352,7 @@ class IPAServer:
         """
 
         filter = "(objectClass=*)"
-        return self.__get_entry(dn, filter, sattrs, opts)
+        return self.__get_base_entry(dn, filter, sattrs, opts)
 
     def get_entry_by_cn (self, cn, sattrs=None, opts=None):
         """Get a specific entry by cn. Return as a dict of values.
@@ -341,7 +361,7 @@ class IPAServer:
 
         cn = self.__safe_filter(cn)
         filter = "(cn=" + cn + ")"
-        return self.__get_entry(self.basedn, filter, sattrs, opts)
+        return self.__get_sub_entry(self.basedn, filter, sattrs, opts)
 
 # User support
 
@@ -351,7 +371,7 @@ class IPAServer:
         filter = "(&(uid=%s)(objectclass=posixAccount))" % uid
  
         try:
-            entry = self.__get_entry(self.basedn, filter, ['dn','uid'], opts)
+            entry = self.__get_sub_entry(self.basedn, filter, ['dn','uid'], opts)
             return 0
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return 1
@@ -363,7 +383,7 @@ class IPAServer:
 
         uid = self.__safe_filter(uid)
         filter = "(uid=" + uid + ")"
-        return self.__get_entry(self.basedn, filter, sattrs, opts)
+        return self.__get_sub_entry(self.basedn, filter, sattrs, opts)
 
     def get_user_by_principal(self, principal, sattrs=None, opts=None):
         """Get a user entry searching by Kerberos Principal Name.
@@ -372,7 +392,7 @@ class IPAServer:
         """
 
         filter = "(krbPrincipalName="+self.__safe_filter(principal)+")"
-        return self.__get_entry(self.basedn, filter, sattrs, opts)
+        return self.__get_sub_entry(self.basedn, filter, sattrs, opts)
     
     def get_users_by_manager (self, manager_dn, sattrs=None, opts=None):
         """Gets the users that report to a particular manager.
@@ -655,7 +675,7 @@ class IPAServer:
         filter = "(&(cn=%s)(objectclass=posixGroup))" % cn
  
         try:
-            entry = self.__get_entry(self.basedn, filter, ['dn','cn'], opts)
+            entry = self.__get_sub_entry(self.basedn, filter, ['dn','cn'], opts)
             return 0
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return 1
@@ -787,7 +807,7 @@ class IPAServer:
         new_group = copy.deepcopy(old_group)
 
         # check to make sure member_dn exists
-        member_entry = self.__get_entry(member_dn, "(objectClass=*)", ['dn','uid'], opts)
+        member_entry = self.__get_base_entry(member_dn, "(objectClass=*)", ['dn','uid'], opts)
 
         if new_group.get('uniquemember') is not None:
             if ((isinstance(new_group.get('uniquemember'), str)) or (isinstance(new_group.get('uniquemember'), unicode))):
