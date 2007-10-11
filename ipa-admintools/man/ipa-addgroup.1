@@ -1,0 +1,47 @@
+.\" A man page for ipa-addgroup
+.\" Copyright (C) 2007 Red Hat, Inc.
+.\" 
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\" 
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\" 
+.TH "ipa-addgroup" "1" "Oct 10 2007" "freeipa" ""
+.SH "NAME"
+ipa\-addgroup \- Add a group
+
+.SH "SYNOPSIS"
+ipa\-addgroup [\fIOPTION\fR]... \fIgroup\fR
+
+.SH "DESCRIPTION"
+Adds a group with group name \fIgroup\fR.
+
+.SH "OPTIONS"
+.TP 
+\fB\-d\fR, \fB\-\-description\fR=\fIdescription\fR
+Set the description of the group to \fIdescription\fR.
+
+.TP 
+\fB\-g\fR, \fB\-\-gid\fR=\fIgid\fR
+Set the gid for this group to \fIgid\fR.
+If this option is not present, one is created automatically
+by .B freeIPA.
+
+.PP 
+group and description are mandatory fields. If either of
+these are not included on the command line you will be asked interactively.
+
+If no options are passed then all questions are asked.
+.SH "EXIT STATUS"
+The exit status is 0 on success, nonzero on error.

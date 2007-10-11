@@ -1,6 +1,6 @@
 Name:           freeipa-admintools
 Version:        0.4.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        FreeIPA authentication server
 
 Group:          System Environment/Base
@@ -32,8 +32,18 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %{_sbindir}/ipa*
+%{_mandir}/man1/*
 
 %changelog
+* Thu Oct 11 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.0-2
+- Package man files
+
+* Tue Oct  2 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.0-1
+- Milestone 4
+
+* Mon Sep 10 2007 Karl MacMillan <kmacmill@redhat.com> - 0.3.0-1
+- Milestone 3
+
 * Fri Aug 17 2007 Karl MacMillan <kmacmill@redhat.com> - 0.2.0-4
 - Package additional utilities.
 

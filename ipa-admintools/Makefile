@@ -1,6 +1,11 @@
+SUBDIRS=man
 SBINDIR = $(DESTDIR)/usr/sbin
 
+
 all: ;
+	@for subdir in $(SUBDIRS); do \
+		(cd $$subdir && $(MAKE) $@) || exit 1; \
+	done
 
 install:
 	install -m 755 ipa-adduser $(SBINDIR)
@@ -12,6 +17,12 @@ install:
 	install -m 755 ipa-findgroup $(SBINDIR)
 	install -m 755 ipa-groupmod $(SBINDIR)
 	install -m 755 ipa-passwd $(SBINDIR)
+	@for subdir in $(SUBDIRS); do \
+		(cd $$subdir && $(MAKE) $@) || exit 1; \
+	done
+
+install-man:
+	install -m 644
 
 clean:
 	rm -f *~ *.pyc

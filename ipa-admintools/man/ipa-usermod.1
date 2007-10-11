@@ -1,0 +1,41 @@
+.\" A man page for ipa-usermod
+.\" Copyright (C) 2007 Red Hat, Inc.
+.\" 
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\" 
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\" 
+.TH "ipa-usermod" "1" "Oct 10 2007" "freeipa" ""
+.SH "NAME"
+ipa\-usermod \- Modify a user
+.SH "SYNOPSIS"
+ipa\-usermod [\fIOPTION\fR]... \fIgroup\fR
+
+.SH "DESCRIPTION"
+Updates the members or description of \fIgroup\fR.
+.SH "OPTIONS"
+.TP 
+\fB\-a\fR, \fB\-\-add\fR=\fIuser1,user2,...usern\fR
+Add one or more users to the group
+
+.TP 
+\fB\-d\fR, \fB\-\-description\fR=\fIdescription\fR
+Modify the description of the group
+
+.TP 
+\fB\-r\fR, \fB\-\-remove\fR=\fIuser1,user2,...usern\fR
+Remove one or more users from the group
+.SH "EXIT STATUS"
+The exit status is 0 on success, nonzero on error.

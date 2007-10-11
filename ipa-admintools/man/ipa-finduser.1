@@ -1,0 +1,40 @@
+.\" A man page for ipa-finduser
+.\" Copyright (C) 2007 Red Hat, Inc.
+.\" 
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\" 
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\" 
+.TH "ipa-finduser" "1" "Oct 10 2007" "freeipa" ""
+.SH "NAME"
+ipa\-finduser \- Find a user
+.SH "SYNOPSIS"
+ipa\-finduser [\fIOPTION\fR]... \fIstring\fR
+
+.SH "DESCRIPTION"
+Searches for a user that contains \fIstring\fR.
+
+The search is a substring search in the username, given name, family name, telephone Number, organization and title attributes.
+
+All entries that match are displayed.
+.SH "OPTIONS"
+.TP 
+\fB\-a\fR, \fB\-\-all
+Display all attributes
+
+.PP 
+By default the full name, home Directory and login shell and username fields are displayed.
+.SH "EXIT STATUS"
+The exit status is 0 on success, nonzero on error.
