@@ -3,7 +3,7 @@ include ../Makefile.common
 all: ;
 
 install:
-	-mkdir $(SBINDIR)
+	-mkdir -p $(SBINDIR)
 	install -m 755 ipa-server-install $(SBINDIR)
 	install -m 755 ipa-server-setupssl $(SHAREDIR)
 
