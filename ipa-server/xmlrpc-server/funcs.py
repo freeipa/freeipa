@@ -68,19 +68,14 @@ class IPAConnPool:
 
     def getConn(self, host, port, krbccache=None, debug=None):
         conn = None
+
         ccache = krbV.CCache(name=krbccache, context=self._ctx)
         cprinc = ccache.principal()
-        self._lock.acquire()
-        try:
-            try:
-                conn = self._dict[cprinc.name]
-                del self._dict[cprinc.name]
-                self._lru.remove(cprinc.name)
-            except KeyError:
-                conn = ipaserver.ipaldap.IPAdmin(host,port,None,None,None,debug)
-                conn.set_krbccache(krbccache, cprinc.name)
-        finally:
-            self._lock.release()
+
+        conn = ipaserver.ipaldap.IPAdmin(host,port,None,None,None,debug)
+
+        # This will bind the connection
+        conn.set_krbccache(krbccache, cprinc.name)
 
         return conn
 
@@ -88,31 +83,7 @@ class IPAConnPool:
         if conn is None:
             return
 
-        cprinc = conn.principal
-
-        self._lock.acquire()
-        try:
-
-            # Look to see if we are already on the list from another source and
-            # if so, remove it.
-            try:
-                c = self._dict[cprinc]
-                del self._dict[cprinc]
-                self._lru.remove(cprinc)
-            except KeyError:
-                # Not in the list
-                pass
-
-            if self._maxsize and len(self._dict) > self._maxsize:
-                princ = self._lru.pop(0)
-                c = self._dict[princ]
-                c.unbind_s()
-                del self._dict[cprinc]
-
-            self._lru.append(cprinc)
-            self._dict[cprinc] = conn
-        finally:
-            self._lock.release()
+        conn.unbind_s()
 
 class IPAServer:
 
