@@ -8,12 +8,14 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/wait.h>
+#include <sys/poll.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <netdb.h>
 #include <syslog.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -25,8 +27,6 @@
 #define DEFAULT_KEYTAB "FILE:/var/kerberos/krb5kdc/kpasswd.keytab"
 #define TMP_TEMPLATE "/tmp/kpasswd.XXXXXX"
 #define KPASSWD_PORT 464
-#define KPASSWD_TCP 1
-#define KPASSWD_UDP 2
 
 struct blacklist {
 	struct blacklist *next;
@@ -785,7 +785,7 @@ done:
 
 pid_t handle_conn(int fd, int type)
 {
-	int mfd;
+	int mfd, tcp;
 	pid_t pid;
 	char address[INET6_ADDRSTRLEN+1];
 	uint8_t request[1500];
@@ -797,10 +797,11 @@ pid_t handle_conn(int fd, int type)
 	ssize_t sendret;
 
 	fromlen = sizeof(from);
+	tcp = 0;
 
 	/* receive request */
-	if (type == KPASSWD_TCP) {
-
+	if (type == SOCK_STREAM) {
+		tcp = 1;
 		mfd = accept(fd, (struct sockaddr *)&from, &fromlen);
 		if (mfd == -1) {
 			syslog(LOG_ERR, "Accept failed with error (%d) %s",
@@ -811,42 +812,15 @@ pid_t handle_conn(int fd, int type)
 		mfd = fd;
 	}
 
-	reqlen = recvfrom(mfd, request, sizeof(request), 0,
-			   (struct sockaddr *)&from, &fromlen);
-	if (reqlen <= 0) {
-		syslog(LOG_ERR, "Error receiving request (%d) %s",
-			errno, strerror(errno));
-		if (type == KPASSWD_TCP) close(mfd);
-		return -1;
-	}
-
-	switch(((struct sockaddr *)&from)->sa_family) {
-	case AF_INET:
-		if (!inet_ntop(((struct sockaddr_in *)&from)->sin_family,
-				&(((struct sockaddr_in *)&from)->sin_addr),
-				address, sizeof(address))) {
-			address[0] = '\0';
-		}
-		break;
-	case AF_INET6:
-		if (!inet_ntop(((struct sockaddr_in6 *)&from)->sin6_family,
-				&(((struct sockaddr_in6 *)&from)->sin6_addr),
-				address, sizeof(address))) {
-			address[0] = '\0';
-		}
-		break;
-	default:
-		syslog(LOG_ERR, "Invalid IP address Family");
-		if (type == KPASSWD_TCP) close(mfd);
-		return -1;
-	}
-
+	(void) getnameinfo((struct sockaddr *)&from, fromlen,
+			  address, INET6_ADDRSTRLEN+1,
+			  NULL, 0, NI_NUMERICHOST);
 
 	if (debug > 0) {
 		syslog(LOG_ERR, "Connection from %s", address);
 	}
 
-	/* Check blacklist for requests frm the same IP until operations
+	/* Check blacklist for requests from the same IP until operations
 	 * are finished on the active client.
 	 * the password change may be slow and pam_krb5 sends up to 3 UDP
 	 * requests waiting 1 sec. each time.
@@ -856,8 +830,17 @@ pid_t handle_conn(int fd, int type)
 		if (debug > 0) {
 			syslog(LOG_ERR, "[%s] blacklisted", address);
 		}
-		if (type == KPASSWD_TCP) close(mfd);
+		if (tcp) close(mfd);
 		return 0;
+	}
+
+	reqlen = recvfrom(mfd, request, sizeof(request), 0,
+			   (struct sockaddr *)&from, &fromlen);
+	if (reqlen <= 0) {
+		syslog(LOG_ERR, "Error receiving request (%d) %s",
+			errno, strerror(errno));
+		if (tcp) close(mfd);
+		return -1;
 	}
 
 #if 1
@@ -866,11 +849,11 @@ pid_t handle_conn(int fd, int type)
 	if (pid == -1) {
 		syslog(LOG_ERR, "Fork failed with error (%d) %s",
 			errno, strerror(errno));
-		if (type == KPASSWD_TCP) close(mfd);
+		if (tcp) close(mfd);
 		return 0;
 	}
 	if (pid != 0) { /* parent */
-		if (type == KPASSWD_TCP) close(mfd);
+		if (tcp) close(mfd);
 		add_blacklist(pid, address);
 		return pid;
 	}
@@ -881,14 +864,14 @@ pid_t handle_conn(int fd, int type)
 	/* TCP packets prepend the lenght as a 32bit network order field,
 	 * this information seem to be just redundant, so let's simply
 	 * skip it */
-        if (type == KPASSWD_TCP) {
+        if (tcp) {
 		handle_krb_packets(request+4, reqlen-4, &from, &reply, &replen);
 	} else {
 		handle_krb_packets(request, reqlen, &from, &reply, &replen);
 	}
 
 	if (replen) { /* we have something to reply */
-		if (type == KPASSWD_TCP) {
+		if (tcp) {
 			sendret = sendto(mfd, reply, replen, 0, NULL, 0);
 		} else {
 			sendret = sendto(mfd, reply, replen, 0, (struct sockaddr *)&from, fromlen);
@@ -906,9 +889,11 @@ pid_t handle_conn(int fd, int type)
 int main(int argc, char *argv[])
 {
 	pid_t pid;
-	struct sockaddr_in6 addr;
-	int tcp_s, udp_s;
-	int tru = 1;
+	struct addrinfo *ai, *tai;
+	struct addrinfo hints;
+	struct pollfd pfds[4];
+	int pfdtype[4];
+	int nfds;
 	int ret;
 	char *key;
 
@@ -935,6 +920,7 @@ int main(int argc, char *argv[])
 	/* new session */
 	setsid();
 	/* close std* descriptors */
+
 	close(0);
 	close(1);
 	close(2);
@@ -958,98 +944,65 @@ int main(int argc, char *argv[])
 		syslog(LOG_ERR, "Out of memory!");
 	}
 
-	tcp_s = socket(AF_INET6, SOCK_STREAM, 0);
-	if (tcp_s == -1) {
-		syslog(LOG_ERR, "Unable to create TCP socket");
+	/* set hints */
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
+
+	ret = getaddrinfo (NULL, "kpasswd", &hints, &ai);
+	if (ret) {
+		syslog(LOG_ERR, "getaddrinfo failed: %s", gai_strerror(ret));
 		exit(1);
 	}
 
-	udp_s = socket(AF_INET6, SOCK_DGRAM, 0);
-	if (udp_s == -1) {
-		syslog(LOG_ERR, "Unable to create UDP socket");
-		close(tcp_s);
-		exit(1);
+	tai = ai;
+	nfds = 0;
+	/* we can have a maximum of 4 sockets (IPv4/IPv6(TCP/UDP)) */
+	for (tai = ai; tai != NULL && nfds < 4; tai = tai->ai_next) {
+		int tru = 1;
+
+		pfds[nfds].fd = socket( tai->ai_family,
+					tai->ai_socktype,
+					tai->ai_protocol);
+		if (pfds[nfds].fd == -1) {
+			syslog(LOG_ERR, "Unable to create socket (%d)", nfds);
+			exit(1);
+		}
+		pfds[nfds].events = POLLIN;
+		ret = setsockopt(pfds[nfds].fd, SOL_SOCKET, SO_REUSEADDR,
+				 (void *)&tru, sizeof(tru));
+
+
+		ret = bind(pfds[nfds].fd, tai->ai_addr, tai->ai_addrlen);
+		if (ret) {
+			if (errno != EADDRINUSE) {
+				syslog(LOG_ERR, "Unable to bind to socket");
+				exit(1);
+			}
+			/* if EADDRINUSE it means we are on a machine
+			 * with a dual ipv4/ipv6 stack that does not
+			 * allow to bind on both at the same time as the
+			 * ipv6 bind already allows connections on ipv4
+			 * Just ignore */
+			close(pfds[nfds].fd);
+		} else {
+			if (tai->ai_socktype == SOCK_STREAM) {
+				ret = listen(pfds[nfds].fd, SOMAXCONN);
+				if (ret) {
+					syslog(LOG_ERR, "Unable to listen to socket");
+					exit(1);
+				}
+			} 
+			pfdtype[nfds] = tai->ai_socktype;
+			nfds++;
+		}
 	}
 
-	/* make sockets immediately reusable */
-        ret = setsockopt(tcp_s, SOL_SOCKET, SO_REUSEADDR,
-			 (void *)&tru, sizeof(tru));
-	if (ret == -1) {
-		syslog(LOG_ERR,
-			"Unable to set SO_REUSEADDR for the TCP socket (%d) %s",
-			errno, strerror(errno));
-		close(tcp_s);
-		close(udp_s);
-		exit(2);
-	}
-
-        ret = setsockopt(udp_s, SOL_SOCKET, SO_REUSEADDR,
-			 (void *)&tru, sizeof(tru));
-	if (ret == -1) {
-		syslog(LOG_ERR,
-			"Unable to set SO_REUSEADDR for the UDP socket (%d) %s",
-			errno, strerror(errno));
-		close(tcp_s);
-		close(udp_s);
-		exit(2);
-	}
-
-	/* bind sockets */
-	memset(&addr, 0, sizeof(addr));
-	addr.sin6_family = AF_INET6;
-	addr.sin6_addr = in6addr_any;
-	addr.sin6_port = htons(KPASSWD_PORT);
-
-	ret = bind(tcp_s, (struct sockaddr *)&addr, sizeof(addr));
-	if (ret == -1) {
-		syslog(LOG_ERR,
-			"Unable to bind the TCP kpasswd port (%d) %s",
-			errno, strerror(errno));
-		close(tcp_s);
-		close(udp_s);
-		exit(3);
-	}
-
-	memset(&addr, 0, sizeof(addr));
-	addr.sin6_family = AF_INET6;
-	addr.sin6_addr = in6addr_any;
-	addr.sin6_port = htons(KPASSWD_PORT);
-
-	ret = bind(udp_s, (struct sockaddr *)&addr, sizeof(addr));
-	if (ret == -1) {
-		syslog(LOG_ERR,
-			"Unable to bind the UDP kpasswd port (%d) %s",
-			errno, strerror(errno));
-		close(tcp_s);
-		close(udp_s);
-		exit(3);
-	}
-
-	ret = listen(tcp_s, 5);
-	if (ret == -1) {
-		syslog(LOG_ERR,
-			"Unable to listen oin the TCP socket (%d) %s",
-			errno, strerror(errno));
-		close(tcp_s);
-		close(udp_s);
-		exit(4);
-	}
-
-	/* now that sockets are set up, enter the select loop */
+	/* now that sockets are set up, enter the poll loop */
 
 	while (1) {
-		struct timeval tv;
-		int cstatus, cid;
-		fd_set rfd;
+		int cstatus, cid, i;
 
-		tv.tv_sec = 3;
-		tv.tv_usec = 0;
-
-		FD_ZERO(&rfd);
-		FD_SET(udp_s, &rfd);
-		FD_SET(tcp_s, &rfd);
-
-		ret = select(udp_s+1, &rfd, NULL, NULL, &tv);
+		ret = poll(pfds, nfds, 3000);
 
 		switch(ret) {
 		case 0:
@@ -1057,19 +1010,16 @@ int main(int argc, char *argv[])
 		case -1:
 			if (errno != EINTR) {
 				syslog(LOG_ERR,
-					"Unexpected error in select (%d) %s",
+					"Unexpected error in poll (%d) %s",
 					errno, strerror(errno));
 				exit(5);
 			}
 			break;
 		default:
-			if (FD_ISSET(tcp_s, &rfd)) {
-				handle_conn(tcp_s, KPASSWD_TCP);
-				break;
-			}
-			if (FD_ISSET(udp_s, &rfd)) {
-				handle_conn(udp_s, KPASSWD_UDP);
-				break;
+			for (i = 0; i < nfds; i++) {
+				if (pfds[i].revents & POLLIN) {
+					handle_conn(pfds[i].fd, pfdtype[i]);
+				}
 			}
 		}
 
