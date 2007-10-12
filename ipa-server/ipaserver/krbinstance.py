@@ -201,8 +201,9 @@ class KrbInstance:
 
     def __create_ds_keytab(self):
         try:
-            os.remove("/etc/dirsrv/ds.keytab")
-        except os.error :
+            if file_exists("/etc/dirsrv/ds.keytab"):
+                os.remove("/etc/dirsrv/ds.keytab")
+        except os.error:
             print "Failed to remove /etc/dirsrv/ds.keytab."
         (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
         kwrite.write("addprinc -randkey ldap/"+self.fqdn+"@"+self.realm+"\n")
@@ -256,7 +257,8 @@ class KrbInstance:
 
     def __create_http_keytab(self):
         try:
-            os.remove("/etc/httpd/conf/ipa.keytab")
+            if file_exists("/etc/httpd/conf/ipa.keytab"):
+                os.remove("/etc/httpd/conf/ipa.keytab")
         except os.error:
             print "Failed to remove /etc/httpd/conf/ipa.keytab."
         (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
