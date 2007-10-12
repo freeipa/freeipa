@@ -1,0 +1,168 @@
+import os
+from pickle import dumps, loads
+from base64 import b64encode, b64decode
+
+import cherrypy
+import turbogears
+from turbogears import controllers, expose, flash
+from turbogears import validators, validate
+from turbogears import widgets, paginate
+from turbogears import error_handler
+from turbogears import identity
+
+from ipacontroller import IPAController
+from ipa.entity import utf8_encode_values
+from ipa import ipaerror
+import ipagui.forms.delegate
+import ipa.aci
+
+import ldap.dn
+
+aci_fields = ['*', 'aci']
+
+delegate_new_form = ipagui.forms.delegate.DelegateNewForm()
+
+class DelegationController(IPAController):
+
+    @expose()
+    @identity.require(identity.not_anonymous())
+    def index(self, tg_errors=None):
+        raise turbogears.redirect("/delegate/list")
+
+    @expose("ipagui.templates.delegatenew")
+    @identity.require(identity.not_anonymous())
+    def new(self):
+        """Display delegate page"""
+        client = self.get_ipaclient()
+        delegate = {}
+        delegate['source_group_cn'] = "Please choose"
+        delegate['dest_group_cn'] = "Please choose"
+
+        return dict(form=delegate_new_form, delegate=delegate)
+
+    @expose()
+    @identity.require(identity.not_anonymous())
+    def create(self, **kw):
+        """Creates a new delegation"""
+        client = self.get_ipaclient()
+
+        tg_errors, kw = self.delegatecreatevalidate(**kw)
+        if tg_errors:
+            return dict(form=delegate_new_form, delegate=kw,
+                    tg_template='ipagui.templates.delegatenew')
+
+        try:
+            new_aci = ipa.aci.ACI()
+            new_aci.name = kw.get('name')
+            new_aci.source_group = kw.get('source_group_dn')
+            new_aci.dest_group = kw.get('dest_group_dn')
+            new_aci.attrs = kw.get('attrs')
+
+            # not pulling down existing aci attributes
+            aci_entry = client.get_aci_entry(['dn'])
+            aci_entry.setValue('aci', new_aci.export_to_string())
+
+            # TODO - add a client.update_entry() call instead
+            client.update_group(aci_entry)
+        except ipaerror.IPAError, e:
+            turbogears.flash("Delgate add failed: " + str(e))
+            return dict(form=delegate_new_form, delegate=kw,
+                    tg_template='ipagui.templates.delegatenew')
+
+        turbogears.flash("delegate created")
+        raise turbogears.redirect('/delegate/list')
+# 
+#     @expose("ipagui.templates.delegateedit")
+#     @identity.require(identity.not_anonymous())
+#     def edit(self):
+#         """Display delegate page"""
+#         client = self.get_ipaclient()
+# 
+#         return dict(userfields=ipagui.forms.user.UserFields())
+# 
+#     @expose()
+#     @identity.require(identity.not_anonymous())
+#     def update(self, **kw):
+#         """Display delegate page"""
+#         client = self.get_ipaclient()
+# 
+#         turbogears.flash("delegate updated")
+#         raise turbogears.redirect('/delegate/list')
+
+    @expose("ipagui.templates.delegatelist")
+    @identity.require(identity.not_anonymous())
+    def list(self):
+        """Display delegate page"""
+        client = self.get_ipaclient()
+
+        aci_entry = client.get_aci_entry(aci_fields)
+        aci_str_list = aci_entry.getValues('aci')
+        if aci_str_list is None:
+            aci_str_list = []
+
+        aci_list = []
+        for aci_str in aci_str_list:
+            try:
+                aci = ipa.aci.ACI(aci_str)
+                aci_list.append(aci)
+            except SyntaxError:
+                # ignore aci_str's that ACI can't parse
+                pass
+        group_dn_to_cn = self.extract_group_cns(aci_list, client)
+
+        return dict(aci_list=aci_list, group_dn_to_cn=group_dn_to_cn)
+
+    @expose("ipagui.templates.delegategroupsearch")
+    @identity.require(identity.not_anonymous())
+    def group_search(self, **kw):
+        """Searches for groups and displays list of results in a table.
+           This method is used for the ajax search on the delegation pages."""
+        client = self.get_ipaclient()
+
+        groups = []
+        groups_counter = 0
+        searchlimit = 100
+        criteria = kw.get('criteria')
+        if criteria != None and len(criteria) > 0:
+            try:
+                groups = client.find_groups(criteria.encode('utf-8'), None,
+                        searchlimit)
+                groups_counter = groups[0]
+                groups = groups[1:]
+            except ipaerror.IPAError, e:
+                turbogears.flash("search failed: " + str(e))
+
+        return dict(groups=groups, criteria=criteria,
+                which_group=kw.get('which_group'),
+                counter=groups_counter)
+
+    @validate(form=delegate_new_form)
+    @identity.require(identity.not_anonymous())
+    def delegatecreatevalidate(self, tg_errors=None, **kw):
+        return tg_errors, kw
+
+    def extract_group_cns(self, aci_list, client):
+        """Extracts all the cn's from a list of aci's and returns them as a hash
+           from group_dn to group_cn.
+
+           It first tries to cheat by looking at the first rdn for the
+           group dn.  If that's not cn for some reason, it looks up the group."""
+        group_dn_to_cn = {}
+        for aci in aci_list:
+            for dn in (aci.source_group, aci.dest_group):
+                if not group_dn_to_cn.has_key(dn):
+                    rdn_list = ldap.dn.str2dn(dn)
+                    first_rdn = rdn_list[0]
+                    for (type,value,junk) in first_rdn:
+                        if type == "cn":
+                            group_dn_to_cn[dn] = value
+                            break;
+                    else:
+                        try:
+                            group = client.get_entry_by_dn(dn, ['cn'])
+                            group_dn_to_cn[dn] = group.getValue('cn')
+                        except ipaerror.IPAError, e:
+                            group_dn_to_cn[dn] = 'unknown'
+
+        return group_dn_to_cn
+

@@ -317,6 +317,7 @@ def handler(req, profiling=False):
         try:
             f = funcs.IPAServer()
             h = ModXMLRPCRequestHandler()
+            h.register_function(f.get_aci_entry)
             h.register_function(f.get_entry_by_dn)
             h.register_function(f.get_entry_by_cn)
             h.register_function(f.get_user_by_uid)

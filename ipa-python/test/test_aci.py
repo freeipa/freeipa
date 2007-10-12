@@ -22,15 +22,16 @@ sys.path.insert(0, ".")
 
 import unittest
 import aci
+import urllib
 
 
 class TestACI(unittest.TestCase):
-    acitemplate = ('(targetattr = "%s")' +
+    acitemplate = ('(targetattr="%s")' +
                '(targetfilter="(memberOf=%s)")' +
                '(version 3.0;' +
                'acl "%s";' +
                'allow (write) ' +
-               'groupdn="%s";)')
+               'groupdn="ldap:///%s";)')
 
     def setUp(self):
         self.aci = aci.ACI()
@@ -52,6 +53,20 @@ class TestACI(unittest.TestCase):
 
         self.assertEqual(aci, exportaci)
 
+    def testURLEncodedExport(self):
+        self.aci.source_group = 'cn=foo " bar, dc=freeipa, dc=org'
+        self.aci.dest_group = 'cn=bar, dc=freeipa, dc=org'
+        self.aci.name = 'this is a "name'
+        self.aci.attrs = ['field1', 'field2', 'field3']
+
+        exportaci = self.aci.export_to_string()
+        aci = TestACI.acitemplate % ('field1 || field2 || field3',
+                                     self.aci.dest_group,
+                                     'this is a "name',
+                                     urllib.quote(self.aci.source_group, "/=, "))
+
+        self.assertEqual(aci, exportaci)
+
     def testSimpleParse(self):
         attr_str = 'field3 || field4 || field5'
         dest_dn = 'cn=dest\\"group, dc=freeipa, dc=org'
@@ -59,6 +74,21 @@ class TestACI(unittest.TestCase):
         src_dn = 'cn=srcgroup, dc=freeipa, dc=org'
 
         acistr = TestACI.acitemplate % (attr_str, dest_dn, name, src_dn)
+        self.aci.parse_acistr(acistr)
+
+        self.assertEqual(['field3', 'field4', 'field5'], self.aci.attrs)
+        self.assertEqual(dest_dn, self.aci.dest_group)
+        self.assertEqual(name, self.aci.name)
+        self.assertEqual(src_dn, self.aci.source_group)
+
+    def testUrlEncodedParse(self):
+        attr_str = 'field3 || field4 || field5'
+        dest_dn = 'cn=dest\\"group, dc=freeipa, dc=org'
+        name = 'my name'
+        src_dn = 'cn=src " group, dc=freeipa, dc=org'
+
+        acistr = TestACI.acitemplate % (attr_str, dest_dn, name, 
+                urllib.quote(src_dn, "/=, "))
         self.aci.parse_acistr(acistr)
 
         self.assertEqual(['field3', 'field4', 'field5'], self.aci.attrs)

@@ -43,6 +43,7 @@ except ImportError:
 # Need a global to store this between requests
 _LDAPPool = None
 
+ACIContainer = "cn=accounts"
 DefaultUserContainer = "cn=users,cn=accounts"
 DefaultGroupContainer = "cn=groups,cn=accounts"
 
@@ -314,6 +315,14 @@ class IPAServer:
         partial_match_filter += ")"
 
         return (exact_match_filter, partial_match_filter)
+
+# Higher-level API
+
+    def get_aci_entry(self, sattrs=None, opts=None):
+        """Returns the entry containing access control ACIs."""
+
+        dn="%s,%s" % (ACIContainer, self.basedn)
+        return self.get_entry_by_dn(dn, sattrs, opts)
 
 # General searches
 

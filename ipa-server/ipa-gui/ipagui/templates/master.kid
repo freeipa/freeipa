@@ -77,6 +77,9 @@
         <a href="${tg.url('/')}">Manage Policy</a><br/>
         <a href="${tg.url('/')}">Self Service</a><br/>
         </p>
+        <p>
+        <a href="${tg.url('/delegate/list')}">Delegation Mgmt</a><br/>
+        </p>
       </div>
 
       <div py:replace="[item.text]+item[:]"></div>

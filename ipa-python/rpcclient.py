@@ -67,6 +67,23 @@ class RPCClient:
     
         return obj 
 
+# Higher-level API
+
+    def get_aci_entry(self, sattrs=None):
+        """Returns the entry containing access control ACIs."""
+        server = self.setup_server()
+        if sattrs is None:
+            sattrs = "__NONE__"
+        try:
+            result = server.get_aci_entry(sattrs)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
+
 # General searches
 
     def get_entry_by_dn(self,dn,sattrs=None):

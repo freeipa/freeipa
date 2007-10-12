@@ -16,6 +16,7 @@
 #
 
 import re
+import urllib
 
 class ACI:
     """
@@ -25,10 +26,10 @@ class ACI:
     """
 
     def __init__(self,acistr=None):
+        self.name = ''
         self.source_group = ''
         self.dest_group = ''
         self.attrs = []
-        self.name = ''
         if acistr is not None:
             self.parse_acistr(acistr)
 
@@ -40,15 +41,15 @@ class ACI:
         # dn's aren't typed in, but searched for, and the search results
         # will return escaped dns
 
-        acistr = ('(targetattr = "%s")' +
+        acistr = ('(targetattr="%s")' +
                   '(targetfilter="(memberOf=%s)")' +
                   '(version 3.0;' +
                   'acl "%s";' +
                   'allow (write) ' +
-                  'groupdn="%s";)') % (attrs_str,
+                  'groupdn="ldap:///%s";)') % (attrs_str,
                                        self.dest_group,
                                        self.name,
-                                       self.source_group)
+                                       urllib.quote(self.source_group, "/=, "))
         return acistr
 
     def _match(self, prefix, inputstr):
@@ -89,7 +90,7 @@ class ACI:
     def parse_acistr(self, acistr):
         """Parses the acistr.  If the string isn't recognized, a SyntaxError
            is raised."""
-        acistr = self._match('(targetattr = ', acistr)
+        acistr = self._match('(targetattr=', acistr)
         (attrstr, acistr) = self._match_str(acistr)
         self.attrs = attrstr.split(' || ')
 
@@ -107,7 +108,8 @@ class ACI:
 
         acistr = self._match(';allow (write) groupdn=', acistr)
         (src_dn_str, acistr) = self._match_str(acistr)
-        self.source_group = src_dn_str
+        src_dn_str = self._match('ldap:///', src_dn_str)
+        self.source_group = urllib.unquote(src_dn_str)
 
         acistr = self._match(';)', acistr)
         if len(acistr) > 0:

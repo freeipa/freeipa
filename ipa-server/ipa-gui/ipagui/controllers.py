@@ -14,12 +14,14 @@ import ipa.ipaclient
 
 from subcontrollers.user import UserController
 from subcontrollers.group import GroupController
+from subcontrollers.delegation import DelegationController
 
 ipa.config.init_config()
 
 class Root(controllers.RootController):
     user = UserController()
     group = GroupController()
+    delegate = DelegationController()
 
     @expose(template="ipagui.templates.welcome")
     @identity.require(identity.not_anonymous())

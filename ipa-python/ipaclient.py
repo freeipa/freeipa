@@ -54,6 +54,14 @@ class IPAClient:
         if self.local:
             self.transport.set_krbccache(krbccache)
 
+# Higher-level API
+
+    def get_aci_entry(self, sattrs=None):
+        """Returns the entry containing access control ACIs."""
+
+        result = self.transport.get_aci_entry(sattrs)
+        return entity.Entity(result)
+
 # General searches
 
     def get_entry_by_dn(self,dn,sattrs=None):
