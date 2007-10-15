@@ -18,6 +18,8 @@
 import re
 import urllib
 
+import ipa.ipautil
+
 class ACI:
     """
     Holds the basic data for an ACI entry, as stored in the cn=accounts
@@ -30,6 +32,7 @@ class ACI:
         self.source_group = ''
         self.dest_group = ''
         self.attrs = []
+        self.orig_acistr = acistr
         if acistr is not None:
             self.parse_acistr(acistr)
 
@@ -51,6 +54,16 @@ class ACI:
                                        self.name,
                                        urllib.quote(self.source_group, "/=, "))
         return acistr
+
+    def to_dict(self):
+        result = ipa.ipautil.CIDict()
+        result['name'] = self.name
+        result['source_group'] = self.source_group
+        result['dest_group'] = self.dest_group
+        result['attrs'] = self.attrs
+        result['orig_acistr'] = self.orig_acistr
+
+        return result
 
     def _match(self, prefix, inputstr):
         """Returns inputstr with prefix removed, or else raises a
@@ -90,6 +103,8 @@ class ACI:
     def parse_acistr(self, acistr):
         """Parses the acistr.  If the string isn't recognized, a SyntaxError
            is raised."""
+        self.orig_acistr = acistr
+
         acistr = self._match('(targetattr=', acistr)
         (attrstr, acistr) = self._match_str(acistr)
         self.attrs = attrstr.split(' || ')

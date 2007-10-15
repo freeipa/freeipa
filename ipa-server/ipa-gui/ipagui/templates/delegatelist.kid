@@ -41,7 +41,13 @@
           >${dest_cn}</a>
       </td>
       <td>
-        <a href="${tg.url('/delegate/edit')}">edit</a> (TODO)<br />
+        <?python
+        # it's probably a bad idea to use a GET string here.
+        # orig_acistr may be quite long
+        # TODO - change to use a form/POST
+        #
+        ?>
+        <a href="${tg.url('/delegate/edit', acistr=aci.orig_acistr)}">edit</a><br />
       </td>
     </tr>
     </tbody>

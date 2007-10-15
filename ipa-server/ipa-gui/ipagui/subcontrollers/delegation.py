@@ -1,6 +1,7 @@
 import os
 from pickle import dumps, loads
 from base64 import b64encode, b64decode
+import copy
 
 import cherrypy
 import turbogears
@@ -20,7 +21,7 @@ import ldap.dn
 
 aci_fields = ['*', 'aci']
 
-delegate_new_form = ipagui.forms.delegate.DelegateNewForm()
+delegate_form = ipagui.forms.delegate.DelegateForm()
 
 class DelegationController(IPAController):
 
@@ -35,20 +36,25 @@ class DelegationController(IPAController):
         """Display delegate page"""
         client = self.get_ipaclient()
         delegate = {}
-        delegate['source_group_cn'] = "Please choose"
-        delegate['dest_group_cn'] = "Please choose"
+        delegate['source_group_cn'] = "Please choose:"
+        delegate['dest_group_cn'] = "Please choose:"
 
-        return dict(form=delegate_new_form, delegate=delegate)
+        return dict(form=delegate_form, delegate=delegate)
 
     @expose()
     @identity.require(identity.not_anonymous())
     def create(self, **kw):
         """Creates a new delegation"""
+        self.restrict_post()
         client = self.get_ipaclient()
 
-        tg_errors, kw = self.delegatecreatevalidate(**kw)
+        if kw.get('submit', '').startswith('Cancel'):
+            turbogears.flash("Add delegation cancelled")
+            raise turbogears.redirect('/delegate/list')
+
+        tg_errors, kw = self.delegatevalidate(**kw)
         if tg_errors:
-            return dict(form=delegate_new_form, delegate=kw,
+            return dict(form=delegate_form, delegate=kw,
                     tg_template='ipagui.templates.delegatenew')
 
         try:
@@ -65,28 +71,90 @@ class DelegationController(IPAController):
             client.update_entry(aci_entry)
         except ipaerror.IPAError, e:
             turbogears.flash("Delgate add failed: " + str(e))
-            return dict(form=delegate_new_form, delegate=kw,
+            return dict(form=delegate_form, delegate=kw,
                     tg_template='ipagui.templates.delegatenew')
 
         turbogears.flash("delegate created")
         raise turbogears.redirect('/delegate/list')
-# 
-#     @expose("ipagui.templates.delegateedit")
-#     @identity.require(identity.not_anonymous())
-#     def edit(self):
-#         """Display delegate page"""
-#         client = self.get_ipaclient()
-# 
-#         return dict(userfields=ipagui.forms.user.UserFields())
-# 
-#     @expose()
-#     @identity.require(identity.not_anonymous())
-#     def update(self, **kw):
-#         """Display delegate page"""
-#         client = self.get_ipaclient()
-# 
-#         turbogears.flash("delegate updated")
-#         raise turbogears.redirect('/delegate/list')
+
+    @expose("ipagui.templates.delegateedit")
+    @identity.require(identity.not_anonymous())
+    def edit(self, acistr, tg_errors=None):
+        """Display delegate page"""
+        if tg_errors:
+            turbogears.flash("There was a problem with the form!")
+
+        client = self.get_ipaclient()
+
+        try:
+            aci_entry = client.get_aci_entry(aci_fields)
+            aci = ipa.aci.ACI(acistr)
+            group_dn_to_cn = self.extract_group_cns([aci], client)
+
+            delegate = aci.to_dict()
+            delegate['source_group_dn'] = delegate['source_group']
+            delegate['source_group_cn'] = group_dn_to_cn[delegate['source_group_dn']]
+            delegate['dest_group_dn'] = delegate['dest_group']
+            delegate['dest_group_cn'] = group_dn_to_cn[delegate['dest_group_dn']]
+
+            return dict(form=delegate_form, delegate=delegate)
+        except (SyntaxError, ipaerror.IPAError), e:
+            turbogears.flash("Delegation edit failed: " + str(e))
+            raise turbogears.redirect('/delegate/list')
+
+
+    @expose()
+    @identity.require(identity.not_anonymous())
+    def update(self, **kw):
+        """Display delegate page"""
+        self.restrict_post()
+        client = self.get_ipaclient()
+
+        if kw.get('submit', '').startswith('Cancel'):
+            turbogears.flash("Edit delegation cancelled")
+            raise turbogears.redirect('/delegate/list')
+
+        tg_errors, kw = self.delegatevalidate(**kw)
+        if tg_errors:
+            return dict(form=delegate_form, delegate=kw,
+                    tg_template='ipagui.templates.delegatenew')
+
+        try:
+            aci_entry = client.get_aci_entry(aci_fields)
+
+            aci_str_list = aci_entry.getValues('aci')
+            if aci_str_list is None:
+                aci_str_list = []
+
+            try :
+                old_aci_index = aci_str_list.index(kw['orig_acistr'])
+            except ValueError:
+                turbogears.flash("Delegation update failed:<br />" +
+                        "The delegation you were attempting to update has been " +
+                        "concurrently modified.  Please cancel the edit " +
+                        "and try editing the delegation again.")
+                return dict(form=delegate_form, delegate=kw,
+                            tg_template='ipagui.templates.delegateedit')
+
+            new_aci = ipa.aci.ACI()
+            new_aci.name = kw.get('name')
+            new_aci.source_group = kw.get('source_group_dn')
+            new_aci.dest_group = kw.get('dest_group_dn')
+            new_aci.attrs = kw.get('attrs')
+            new_aci_str = new_aci.export_to_string()
+
+            new_aci_str_list = copy.copy(aci_str_list)
+            new_aci_str_list[old_aci_index] = new_aci_str
+            aci_entry.setValue('aci', new_aci_str_list)
+
+            client.update_entry(aci_entry)
+
+            turbogears.flash("delegate updated")
+            raise turbogears.redirect('/delegate/list')
+        except (SyntaxError, ipaerror.IPAError), e:
+            turbogears.flash("Delegation update failed: " + str(e))
+            return dict(form=delegate_form, delegate=kw,
+                        tg_template='ipagui.templates.delegateedit')
 
     @expose("ipagui.templates.delegatelist")
     @identity.require(identity.not_anonymous())
@@ -94,7 +162,12 @@ class DelegationController(IPAController):
         """Display delegate page"""
         client = self.get_ipaclient()
 
-        aci_entry = client.get_aci_entry(aci_fields)
+        try:
+            aci_entry = client.get_aci_entry(aci_fields)
+        except ipaerror.IPAError, e:
+            turbogears.flash("Delegation list failed: " + str(e))
+            raise turbogears.redirect('/')
+
         aci_str_list = aci_entry.getValues('aci')
         if aci_str_list is None:
             aci_str_list = []
@@ -135,9 +208,9 @@ class DelegationController(IPAController):
                 which_group=kw.get('which_group'),
                 counter=groups_counter)
 
-    @validate(form=delegate_new_form)
+    @validate(form=delegate_form)
     @identity.require(identity.not_anonymous())
-    def delegatecreatevalidate(self, tg_errors=None, **kw):
+    def delegatevalidate(self, tg_errors=None, **kw):
         return tg_errors, kw
 
     def extract_group_cns(self, aci_list, client):

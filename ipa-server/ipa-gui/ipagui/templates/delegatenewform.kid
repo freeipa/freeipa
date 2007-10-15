@@ -49,9 +49,15 @@
 
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
+        <th>
+          <input type="submit" class="submitbutton" name="submit"
+                 value="${actionname} Delegation"/>
+          <br />
+        </th>
         <td>
           <input type="submit" class="submitbutton" name="submit"
-                 value="Add Delegation"/>
+                 value="Cancel ${actionname}"/>
+          <br />
         </td>
       </tr>
     </table>
@@ -143,12 +149,25 @@
 
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
+        <th>
+          <input type="submit" class="submitbutton" name="submit"
+                 value="${actionname} Delegation"/>
+        </th>
         <td>
           <input type="submit" class="submitbutton" name="submit"
-                 value="Add Delegation"/>
+                 value="Cancel ${actionname}"/>
         </td>
       </tr>
     </table>
+
+  <script py:if="not value.get('source_group_dn')">
+      new Effect.Appear($('source_searcharea'), {duration: 0.25});
+      new Effect.Fade($('source_change_link'), {duration: 0.25});
+  </script>
+  <script py:if="not value.get('dest_group_dn')">
+      new Effect.Appear($('dest_searcharea'), {duration: 0.25});
+      new Effect.Fade($('dest_change_link'), {duration: 0.25});
+  </script>
 
   </form>
 </div>

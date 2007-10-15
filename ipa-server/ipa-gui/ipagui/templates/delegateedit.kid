@@ -3,14 +3,14 @@
     py:extends="'delegatelayout.kid'">
 <head>
 <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
-<title>Add Delegation</title>
+<title>Edit Delegation</title>
 </head>
 <body>
 
-    <h2>Add Delegation</h2>
+    <h2>Edit Delegation</h2>
 
-    ${form.display(action=tg.url("/delegate/create"), value=delegate,
-                   actionname='Add')}
+    ${form.display(action=tg.url("/delegate/update"), value=delegate,
+                   actionname='Edit')}
 
 </body>
 </html>

@@ -52,10 +52,12 @@ class DelegateFields():
     dest_group_cn = widgets.HiddenField(name="dest_group_cn",
         label="For People in Group")
 
+    orig_acistr = widgets.HiddenField(name="orig_acistr")
+
     attrs = widgets.CheckBoxList(name="attrs", label="Can Modify",
             options=aci_checkbox_attrs, validator=validators.NotEmpty)
 
-class DelegateNewValidator(validators.Schema):
+class DelegateValidator(validators.Schema):
     name = validators.String(not_empty=True)
     source_group_dn = validators.String(not_empty=True,
         messages = { 'empty': _("Please choose a group"), })
@@ -64,7 +66,7 @@ class DelegateNewValidator(validators.Schema):
     attrs = validators.NotEmpty(
         messages = { 'empty': _("Please select at least one value"), })
 
-class DelegateNewForm(widgets.Form):
+class DelegateForm(widgets.Form):
     params = ['delegate', 'attr_list']
 
     hidden_fields = [
@@ -72,15 +74,17 @@ class DelegateNewForm(widgets.Form):
       DelegateFields.dest_group_dn,
       DelegateFields.source_group_cn,
       DelegateFields.dest_group_cn,
+      DelegateFields.orig_acistr,
     ]
 
-    validator = DelegateNewValidator()
+    validator = DelegateValidator()
 
     def __init__(self, *args, **kw):
-        super(DelegateNewForm,self).__init__(*args, **kw)
+        super(DelegateForm,self).__init__(*args, **kw)
+        # TODO - rename to delegateform
         (self.template_c, self.template) = widgets.meta.load_kid_template(
                 "ipagui.templates.delegatenewform")
         self.delegate = DelegateFields
 
     def update_params(self, params):
-        super(DelegateNewForm,self).update_params(params)
+        super(DelegateForm,self).update_params(params)
