@@ -41,6 +41,8 @@ aci_attrs = [
 
 aci_checkbox_attrs = [(field.name, field.label) for field in aci_attrs]
 
+aci_name_to_label = dict(aci_checkbox_attrs)
+
 class DelegateFields():
     name = widgets.TextField(name="name", label="ACI Name")
 

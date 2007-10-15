@@ -182,6 +182,13 @@ class DelegationController(IPAController):
                 pass
         group_dn_to_cn = self.extract_group_cns(aci_list, client)
 
+        # The list page needs to display field labels, not raw
+        # LDAP attributes
+        for aci in aci_list:
+            aci.attrs = map(lambda name:
+                      ipagui.forms.delegate.aci_name_to_label.get(name, name),
+                      aci.attrs)
+
         return dict(aci_list=aci_list, group_dn_to_cn=group_dn_to_cn)
 
     @expose("ipagui.templates.delegategroupsearch")

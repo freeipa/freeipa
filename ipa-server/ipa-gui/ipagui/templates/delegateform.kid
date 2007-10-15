@@ -160,11 +160,13 @@
       </tr>
     </table>
 
-  <script py:if="not value.get('source_group_dn')">
+  <script py:if="not value.get('source_group_dn')"
+    type="text/javascript">
       new Effect.Appear($('source_searcharea'), {duration: 0.25});
       new Effect.Fade($('source_change_link'), {duration: 0.25});
   </script>
-  <script py:if="not value.get('dest_group_dn')">
+  <script py:if="not value.get('dest_group_dn')"
+    type="text/javascript">
       new Effect.Appear($('dest_searcharea'), {duration: 0.25});
       new Effect.Fade($('dest_change_link'), {duration: 0.25});
   </script>
