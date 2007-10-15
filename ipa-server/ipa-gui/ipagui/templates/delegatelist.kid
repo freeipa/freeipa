@@ -6,18 +6,35 @@
 <title>Delegations</title>
 </head>
 <body>
+
+<?python
+from ipagui.helpers import ipahelper
+?>
+
   <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/tablekit.js')}"></script>
+
+  <script type="text/javascript">
+    function editDelegation(acistr) {
+      $('edit_acistr').value = acistr;
+      $('editform').submit();
+      return false;
+    }
+  </script>
+
+  <form style="display:none" id='editform'
+    method="post" action="${tg.url('/delegate/edit')}">
+    <input type="hidden" id="edit_acistr" name="acistr" value="" />
+  </form>
 
   <h2>Delegations</h2>
 
   <table id="resultstable" class="sortable resizable">
     <thead>
     <tr>
-      <th>Name</th>
-      <th>People in Group</th>
-      <th>Can Modify</th>
-      <th>For People in Group</th>
-      <th>Action</th>
+      <th>${fields.name.label}</th>
+      <th>${fields.source_group_cn.label}</th>
+      <th>${fields.attrs.label}</th>
+      <th>${fields.dest_group_cn.label}</th>
     </tr>
     </thead>
     <tbody>
@@ -25,9 +42,12 @@
       <?python
       source_cn = group_dn_to_cn.get(aci.source_group)
       dest_cn = group_dn_to_cn.get(aci.dest_group)
+      acistr = aci.orig_acistr
+      acistr_esc = ipahelper.javascript_string_escape(acistr)
       ?>
       <td>
-        ${aci.name}
+        <a href="#" onclick="return editDelegation('${acistr_esc}');"
+        >${aci.name}</a>
       </td>
       <td>
         <a href="${tg.url('/group/show', cn=source_cn)}"
@@ -39,15 +59,6 @@
       <td>
         <a href="${tg.url('/group/show', cn=dest_cn)}"
           >${dest_cn}</a>
-      </td>
-      <td>
-        <?python
-        # it's probably a bad idea to use a GET string here.
-        # orig_acistr may be quite long
-        # TODO - change to use a form/POST
-        #
-        ?>
-        <a href="${tg.url('/delegate/edit', acistr=aci.orig_acistr)}">edit</a><br />
       </td>
     </tr>
     </tbody>

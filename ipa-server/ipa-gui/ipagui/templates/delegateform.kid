@@ -52,12 +52,12 @@
         <th>
           <input type="submit" class="submitbutton" name="submit"
                  value="${actionname} Delegation"/>
-          <br />
+          <br/><br/>
         </th>
         <td>
           <input type="submit" class="submitbutton" name="submit"
                  value="Cancel ${actionname}"/>
-          <br />
+          <br/><br/>
         </td>
       </tr>
     </table>
@@ -150,10 +150,12 @@
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
+          <br/>
           <input type="submit" class="submitbutton" name="submit"
                  value="${actionname} Delegation"/>
         </th>
         <td>
+          <br/>
           <input type="submit" class="submitbutton" name="submit"
                  value="Cancel ${actionname}"/>
         </td>

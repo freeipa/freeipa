@@ -193,7 +193,8 @@ class DelegationController(IPAController):
                       ipagui.forms.delegate.aci_name_to_label.get(name, name),
                       aci.attrs)
 
-        return dict(aci_list=aci_list, group_dn_to_cn=group_dn_to_cn)
+        return dict(aci_list=aci_list, group_dn_to_cn=group_dn_to_cn,
+                    fields=ipagui.forms.delegate.DelegateFields())
 
     @expose("ipagui.templates.delegategroupsearch")
     @identity.require(identity.not_anonymous())
