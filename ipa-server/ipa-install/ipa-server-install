@@ -31,6 +31,7 @@ sys.path.append("/usr/share/ipa")
 
 import os
 import socket
+import errno
 import logging
 import pwd
 import getpass
@@ -138,6 +139,18 @@ def check_existing_installation():
         if serverid:
             erase_ds_instance_data(serverid)
 
+def check_ports():
+    ds_unsecure = port_available(389)
+    ds_secure = port_available(636)
+    if not ds_unsecure or not ds_secure:
+        print "IPA requires ports 389 and 636 for the Directory Server."
+        print "These are currently in use:"
+        if not ds_unsecure:
+            print "\t389"
+        if not ds_secure:
+            print "\t636"
+        sys.exit(1)
+
 def get_fqdn():
     fqdn = ""
     try:
@@ -233,6 +246,36 @@ def read_ip_address():
         hosts_fd.write(ip+'\t'+host_name+' '+host_name[:host_name.find('.')]+'\n')
         hosts_fd.close()
         askip = False
+
+def port_available(port):
+    """Try to bind to a port on the wildcard host
+       Return 1 if the port is available
+       Return 0 if the port is in use
+    """
+    rv = 1
+
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind(('', port))
+        s.shutdown(0)
+        s.close()
+    except socket.error, e:
+        if e[0] == errno.EADDRINUSE:
+            rv = 0
+
+    if rv:
+        try:
+            s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            s.bind(('', port))
+            s.shutdown(0)
+            s.close()
+        except socket.error, e:
+            if e[0] == errno.EADDRINUSE:
+                rv = 0
+
+    return rv
 
 def read_ds_user():
     print "The server must run as a specific user in a specific group."
@@ -344,6 +387,7 @@ def main():
     print "To accept the default shown in brackets, press the Enter key."
     print ""
 
+    check_ports()
     check_existing_installation()
 
     options = parse_options()
