@@ -343,6 +343,10 @@ class IPAServer:
         filter = "(cn=" + cn + ")"
         return self.__get_sub_entry(self.basedn, filter, sattrs, opts)
 
+    def update_entry (self, oldentry, newentry, opts=None):
+        """Update an entry in LDAP"""
+        return self.__update_entry(oldentry, newentry, opts)
+
 # User support
 
     def __is_user_unique(self, uid, opts):
@@ -586,9 +590,7 @@ class IPAServer:
 
         return new_dict
 
-    def update_user (self, olduser, newuser, opts=None):
-        """Update a user in LDAP"""
-        return self.__update_entry(olduser, newuser, opts)
+    update_user = update_entry
 
     def mark_user_deleted (self, uid, opts=None):
         """Mark a user as inactive in LDAP. We aren't actually deleting
@@ -987,9 +989,7 @@ class IPAServer:
 
         return failed
 
-    def update_group (self, oldgroup, newgroup, opts=None):
-        """Update a group in LDAP"""
-        return self.__update_entry(oldgroup, newgroup, opts)
+    update_group = update_entry
 
     def delete_group (self, group_dn, opts=None):
         """Delete a group

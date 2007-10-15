@@ -320,6 +320,7 @@ def handler(req, profiling=False):
             h.register_function(f.get_aci_entry)
             h.register_function(f.get_entry_by_dn)
             h.register_function(f.get_entry_by_cn)
+            h.register_function(f.update_entry)
             h.register_function(f.get_user_by_uid)
             h.register_function(f.get_user_by_principal)
             h.register_function(f.get_users_by_manager)

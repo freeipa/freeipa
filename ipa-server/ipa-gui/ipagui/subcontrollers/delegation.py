@@ -62,8 +62,7 @@ class DelegationController(IPAController):
             aci_entry = client.get_aci_entry(['dn'])
             aci_entry.setValue('aci', new_aci.export_to_string())
 
-            # TODO - add a client.update_entry() call instead
-            client.update_group(aci_entry)
+            client.update_entry(aci_entry)
         except ipaerror.IPAError, e:
             turbogears.flash("Delgate add failed: " + str(e))
             return dict(form=delegate_new_form, delegate=kw,

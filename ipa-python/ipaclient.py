@@ -78,6 +78,12 @@ class IPAClient:
         result = self.transport.get_entry_by_cn(cn,sattrs)
         return entity.Entity(result)
 
+    def update_entry(self,entry):
+        """Update a entry."""
+
+        result = self.transport.update_entry(entry.origDataDict(), entry.toDict())
+        return result
+
 # User support
     def get_user_by_uid(self,uid,sattrs=None):
         """Get a specific user by uid. If sattrs is set then only those

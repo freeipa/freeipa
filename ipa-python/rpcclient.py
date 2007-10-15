@@ -118,6 +118,20 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
+    def update_entry(self,oldentry,newentry):
+        """Update an existing entry. oldentry and newentry are dicts of attributes"""
+        server = self.setup_server()
+
+        try:
+            result = server.update_entry(ipautil.wrap_binary_data(oldentry),
+                    ipautil.wrap_binary_data(newentry))
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
 
 # User support
 
