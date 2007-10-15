@@ -81,9 +81,8 @@ class DelegateForm(widgets.Form):
 
     def __init__(self, *args, **kw):
         super(DelegateForm,self).__init__(*args, **kw)
-        # TODO - rename to delegateform
         (self.template_c, self.template) = widgets.meta.load_kid_template(
-                "ipagui.templates.delegatenewform")
+                "ipagui.templates.delegateform")
         self.delegate = DelegateFields
 
     def update_params(self, params):
