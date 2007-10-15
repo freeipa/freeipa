@@ -43,6 +43,7 @@ from optparse import OptionParser
 import ipaserver.dsinstance
 import ipaserver.krbinstance
 import ipaserver.bindinstance
+import ipaserver.httpinstance
 from ipa.ipautil import run
 
 def parse_options():
@@ -387,8 +388,8 @@ def main():
     print "To accept the default shown in brackets, press the Enter key."
     print ""
 
-    check_ports()
     check_existing_installation()
+    check_ports()
 
     options = parse_options()
     logging_setup(options)
@@ -507,6 +508,10 @@ def main():
     # Create a kerberos instance
     krb = ipaserver.krbinstance.KrbInstance()
     krb.create_instance(ds_user, realm_name, host_name, dm_password, master_password)
+
+    # Create a HTTP instance
+    http = ipaserver.httpinstance.HTTPInstance()
+    http.create_instance()
 
     bind.setup(host_name, ip_address, realm_name)
     if options.setup_bind:
