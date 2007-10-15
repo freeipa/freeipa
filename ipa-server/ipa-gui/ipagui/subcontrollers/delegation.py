@@ -125,6 +125,8 @@ class DelegationController(IPAController):
             aci_str_list = aci_entry.getValues('aci')
             if aci_str_list is None:
                 aci_str_list = []
+            if not(isinstance(aci_str_list,list) or isinstance(aci_str_list,tuple)):
+                aci_str_list = [aci_str_list]
 
             try :
                 old_aci_index = aci_str_list.index(kw['orig_acistr'])
@@ -171,6 +173,8 @@ class DelegationController(IPAController):
         aci_str_list = aci_entry.getValues('aci')
         if aci_str_list is None:
             aci_str_list = []
+        if not(isinstance(aci_str_list,list) or isinstance(aci_str_list,tuple)):
+            aci_str_list = [aci_str_list]
 
         aci_list = []
         for aci_str in aci_str_list:
