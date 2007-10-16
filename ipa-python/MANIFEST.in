@@ -1,0 +1,3 @@
+include *.conf
+include freeipa-python.spec*
+

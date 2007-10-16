@@ -1,3 +1,6 @@
+%define pyver  %(%{__python} -c 'import sys ; print sys.version[:3]')
+%define pynext %(%{__python} -c 'print %{pyver} + 0.1')
+
 Name:           freeipa-python
 Version:        0.4.0
 Release:        1%{?dist}
@@ -6,16 +9,12 @@ Summary:        FreeIPA authentication server
 Group:          System Environment/Base
 License:        GPL
 URL:            http://www.freeipa.org
-Source0:        %{name}-%{version}.tgz
+Source0:        http://www.freeipa.org/downloads/%{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: 	noarch
-
-Requires: python PyKerberos
-
-%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
-
-%define pkgpythondir  %{python_sitelib}/ipa
-%define configdir /etc/ipa
+BuildRequires: python >= 0:%{pyver}, python < 0:%{pynext}
+Requires: python >= 0:%{pyver}, python < 0:%{pynext}
+Requires: PyKerberos
 
 %description
 FreeIPA is a server for identity, policy, and audit.
@@ -23,22 +22,22 @@ FreeIPA is a server for identity, policy, and audit.
 %prep
 %setup -q
 
+%build
+%{__python} setup.py build
+
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}%{pkgpythondir}
-mkdir -p %{buildroot}%{configdir}
-
-make install DESTDIR=%{buildroot}
-
+%{__python} setup.py install -O1 --root=%{buildroot} --record=INSTALLED_FILES
+sed 's|^\(.*\.pyo\)$|%ghost \1|' < INSTALLED_FILES > %{name}-%{version}.files
+find $RPM_BUILD_ROOT%{_libdir}/python%{pyver}/site-packages/* -type d \
+  | sed "s|^$RPM_BUILD_ROOT|%dir |" >> %{name}-%{version}.files
 
 %clean
 rm -rf %{buildroot}
 
-
-%files
+%files -f %{name}-%{version}.files
 %defattr(-,root,root,-)
-%{pkgpythondir}/*
-%config(noreplace) %{configdir}/ipa.conf
+%config(noreplace) %{_sysconfdir}/ipa.conf
 
 
 %changelog
