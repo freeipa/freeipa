@@ -31,6 +31,9 @@ SHARE_DIR = "/usr/share/ipa/"
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
 
+def ldap_mod(fd, dn, pwd):
+    args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv", "-D", dn, "-w", pwd, "-f", fd.name]
+    run(args)
 
 def generate_serverid():
     """Generate a UUID (universally unique identifier) suitable
@@ -89,6 +92,7 @@ class DsInstance:
         self.__create_ds_user()
         self.__create_instance()
         self.__add_default_schemas()
+        self.__add_memberof_module()
         self.__enable_ssl()
         self.__certmap_conf()
         try:
@@ -167,6 +171,15 @@ class DsInstance:
                         self.schema_dirname() + "60kerberos.ldif")
         shutil.copyfile(SHARE_DIR + "60samba.ldif",
                         self.schema_dirname() + "60samba.ldif")
+
+    def __add_memberof_module(self):
+        memberof_txt = template_file(SHARE_DIR + "memberof-conf.ldif", self.sub_dict)
+        memberof_fd = write_tmp_file(memberof_txt)
+        try:
+            ldap_mod(memberof_fd, "cn=Directory Manager", self.dm_password)
+        except subprocess.CalledProcessError, e:
+            print "Failed to load memberof-conf.ldif", e
+        memberof_fd.close()
 
     def __enable_ssl(self):
         logging.debug("configuring ssl for ds instance")

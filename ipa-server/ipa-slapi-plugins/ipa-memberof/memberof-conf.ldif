@@ -1,4 +1,5 @@
 dn: cn=ipa-memberof,cn=plugins,cn=config
+changetype: add
 objectclass: top
 objectclass: nsSlapdPlugin
 objectclass: extensibleObject
