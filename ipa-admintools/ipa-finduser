@@ -85,7 +85,7 @@ def main():
         users = users[1:]
         if counter == 0:
             print "No entries found for", args[1]
-            return 0
+            return 2
 
         for ent in users:
             attr = ent.attrList()
