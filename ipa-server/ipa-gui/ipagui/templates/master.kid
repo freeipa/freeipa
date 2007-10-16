@@ -78,7 +78,7 @@
         <a href="${tg.url('/')}">Self Service</a><br/>
         </p>
         <p>
-        <a href="${tg.url('/delegate/list')}">Delegation Mgmt</a><br/>
+        <a href="${tg.url('/delegate/list')}">Delegations</a><br/>
         </p>
       </div>
 
