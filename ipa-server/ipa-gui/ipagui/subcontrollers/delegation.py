@@ -196,6 +196,42 @@ class DelegationController(IPAController):
         return dict(aci_list=aci_list, group_dn_to_cn=group_dn_to_cn,
                     fields=ipagui.forms.delegate.DelegateFields())
 
+    @expose()
+    @identity.require(identity.not_anonymous())
+    def delete(self, acistr):
+        """Display delegate page"""
+        self.restrict_post()
+        client = self.get_ipaclient()
+
+        try:
+            aci_entry = client.get_aci_entry(aci_fields)
+
+            aci_str_list = aci_entry.getValues('aci')
+            if aci_str_list is None:
+                aci_str_list = []
+            if not(isinstance(aci_str_list,list) or isinstance(aci_str_list,tuple)):
+                aci_str_list = [aci_str_list]
+
+            try :
+                old_aci_index = aci_str_list.index(acistr)
+            except ValueError:
+                turbogears.flash("Delegation deletion failed:<br />" +
+                        "The delegation you were attempting to delete has been " +
+                        "concurrently modified.")
+                raise turbogears.redirect('/delegate/list')
+
+            new_aci_str_list = copy.copy(aci_str_list)
+            del new_aci_str_list[old_aci_index]
+            aci_entry.setValue('aci', new_aci_str_list)
+
+            client.update_entry(aci_entry)
+
+            turbogears.flash("delegate deleted")
+            raise turbogears.redirect('/delegate/list')
+        except (SyntaxError, ipaerror.IPAError), e:
+            turbogears.flash("Delegation deletion failed: " + str(e))
+            raise turbogears.redirect('/delegate/list')
+
     @expose("ipagui.templates.delegategroupsearch")
     @identity.require(identity.not_anonymous())
     def group_search(self, **kw):

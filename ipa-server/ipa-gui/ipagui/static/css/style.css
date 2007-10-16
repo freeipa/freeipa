@@ -206,6 +206,10 @@ body {
   background: #eee;
 }
 
+.deletebutton {
+  background: #ee2222;
+}
+
 /*
  * Used for checkboxlist of aci attributes
  */
