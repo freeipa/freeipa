@@ -248,7 +248,9 @@ else:
           <th>
             <label class="fieldlabel" py:content="fields.labeleduri.label" />:
           </th>
-          <td>${user.get("labeleduri")}</td>
+          <td>
+            <a href="${user.get('labeleduri')}">${user.get('labeleduri')}</a>
+          </td>
         </tr>
     </table>
 

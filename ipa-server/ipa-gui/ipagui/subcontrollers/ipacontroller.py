@@ -32,19 +32,19 @@ class IPAController(controllers.Controller):
     def sort_group_member(self, a, b):
         """Comparator function used for sorting group members."""
         if a.getValue('uid') and b.getValue('uid'):
-            if a.getValue('givenname') == b.getValue('givenname'):
-                if a.getValue('sn') == b.getValue('sn'):
+            if a.getValue('sn') == b.getValue('sn'):
+                if a.getValue('givenName') == b.getValue('givenName'):
                     if a.getValue('uid') == b.getValue('uid'):
                         return 0
                     elif a.getValue('uid') < b.getValue('uid'):
                         return -1
                     else:
                         return 1
-                elif a.getValue('sn') < b.getValue('sn'):
+                elif a.getValue('givenName') < b.getValue('givenName'):
                     return -1
                 else:
                     return 1
-            elif a.getValue('givenname') < b.getValue('givenname'):
+            elif a.getValue('sn') < b.getValue('sn'):
                 return -1
             else:
                 return 1
