@@ -117,11 +117,11 @@ function addmember(dn, info) {
   newdiv.style.display = 'none';
   $('newmembers').appendChild(newdiv);
 
-  return newdiv
+  return newdiv;
 }
 
 function addmemberHandler(element, dn, info) {
-  var newdiv = addmember(dn, info)
+  var newdiv = addmember(dn, info);
   if (newdiv != null) {
     new Effect.Fade(Element.up(element), {duration: 0.75});
     new Effect.Appear(newdiv, {duration: 0.75});
@@ -154,7 +154,7 @@ function removemember(dn, info) {
   newdiv.style.display = 'none';
   $('delmembers').appendChild(newdiv);
 
-  return newdiv
+  return newdiv;
 }
 
 function removememberHandler(element, dn, info) {

@@ -43,7 +43,19 @@
       new Effect.Fade($(which_group + '_searcharea'), {duration: 0.25});
       new Effect.Appear($(which_group + '_change_link'), {duration: 0.25});
     }
+
+    function confirmDelete() {
+      if (confirm("Are you sure you want to delete this delegation?")) {
+        $('deleteform').submit();
+      }
+      return false;
+    }
   </script>
+
+  <form style="display:none" id='deleteform'
+    method="post" action="${tg.url('/delegate/delete')}">
+    <input type="hidden" name="acistr" value="${value.get('orig_acistr')}" />
+  </form>
 
   <form action="${action}" name="${name}" method="${method}" class="tableform">
 
@@ -52,12 +64,20 @@
         <th>
           <input type="submit" class="submitbutton" name="submit"
                  value="${actionname} Delegation"/>
-          <br />
+          <br/><br/>
         </th>
         <td>
           <input type="submit" class="submitbutton" name="submit"
                  value="Cancel ${actionname}"/>
-          <br />
+          <br/><br/>
+        </td>
+        <td py:if='actionname == "Edit"'>
+          &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+          <input type="button" class="deletebutton"
+                 value="Delete Delegation"
+                 onclick="return confirmDelete();"
+                 />
+          <br/><br/>
         </td>
       </tr>
     </table>
@@ -150,21 +170,33 @@
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
+          <br/>
           <input type="submit" class="submitbutton" name="submit"
                  value="${actionname} Delegation"/>
         </th>
         <td>
+          <br/>
           <input type="submit" class="submitbutton" name="submit"
                  value="Cancel ${actionname}"/>
+        </td>
+        <td py:if='actionname == "Edit"'>
+          <br/>
+          &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+          <input type="button" class="deletebutton"
+                 value="Delete Delegation"
+                 onclick="return confirmDelete();"
+                 />
         </td>
       </tr>
     </table>
 
-  <script py:if="not value.get('source_group_dn')">
+  <script py:if="not value.get('source_group_dn')"
+    type="text/javascript">
       new Effect.Appear($('source_searcharea'), {duration: 0.25});
       new Effect.Fade($('source_change_link'), {duration: 0.25});
   </script>
-  <script py:if="not value.get('dest_group_dn')">
+  <script py:if="not value.get('dest_group_dn')"
+    type="text/javascript">
       new Effect.Appear($('dest_searcharea'), {duration: 0.25});
       new Effect.Fade($('dest_change_link'), {duration: 0.25});
   </script>

@@ -41,8 +41,10 @@ aci_attrs = [
 
 aci_checkbox_attrs = [(field.name, field.label) for field in aci_attrs]
 
+aci_name_to_label = dict(aci_checkbox_attrs)
+
 class DelegateFields():
-    name = widgets.TextField(name="name", label="ACI Name")
+    name = widgets.TextField(name="name", label="Name")
 
     source_group_dn = widgets.HiddenField(name="source_group_dn")
     dest_group_dn = widgets.HiddenField(name="dest_group_dn")
@@ -81,9 +83,8 @@ class DelegateForm(widgets.Form):
 
     def __init__(self, *args, **kw):
         super(DelegateForm,self).__init__(*args, **kw)
-        # TODO - rename to delegateform
         (self.template_c, self.template) = widgets.meta.load_kid_template(
-                "ipagui.templates.delegatenewform")
+                "ipagui.templates.delegateform")
         self.delegate = DelegateFields
 
     def update_params(self, params):
