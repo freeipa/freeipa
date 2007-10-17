@@ -10,7 +10,7 @@
     <h2>Edit Delegation</h2>
 
     ${form.display(action=tg.url("/delegate/update"), value=delegate,
-                   actionname='Edit')}
+                   actionname='Update')}
 
 </body>
 </html>

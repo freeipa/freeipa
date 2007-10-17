@@ -255,3 +255,18 @@ div.resize-handle {
   left:0;
 }
 
+
+/*
+ * Overrides for printing
+ */
+@media print {
+    #header  { display:none; }
+    #nav     { display:none; }
+    #sidebar { display:none; }
+    #footer  { display:none; }
+    #main_content { width: 95%; margin:0; padding:0; border-left-style: none; }
+
+    .submitbutton { display:none; }
+    .deletebutton { display:none; }
+}
+

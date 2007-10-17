@@ -6,7 +6,7 @@
     <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
     <title py:replace="''">Your title goes here</title>
     <meta py:replace="item[:]"/>
-    <style type="text/css" media="screen">
+    <style type="text/css" media="all">
     @import "${tg.url('/static/css/style.css')}";
     </style>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/prototype.js')}"></script>
