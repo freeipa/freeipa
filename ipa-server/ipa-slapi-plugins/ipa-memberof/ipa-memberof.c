@@ -65,7 +65,8 @@
 #  include <config.h>
 #endif
 
-#include "slapi-plugin.h"
+#include <dirsrv/slapi-plugin.h>
+
 #include "string.h"
 #include "nspr.h"
 

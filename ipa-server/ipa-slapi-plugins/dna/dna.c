@@ -45,7 +45,9 @@
 /**
  * Distributed Numeric Assignment plug-in 
  */
-#include "slapi-plugin.h"
+
+#include <dirsrv/slapi-plugin.h>
+
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
