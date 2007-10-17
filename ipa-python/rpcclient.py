@@ -1,4 +1,3 @@
-#! /usr/bin/python -E
 # Authors: Rob Crittenden <rcritten@redhat.com>
 #
 # Copyright (C) 2007  Red Hat

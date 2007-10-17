@@ -1,5 +1,3 @@
-#! /usr/bin/python -E
-#
 # Copyright (C) 2007    Red Hat
 # see file 'COPYING' for use and warranty information
 #

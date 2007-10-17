@@ -3,18 +3,22 @@
 
 Name:           freeipa-python
 Version:        0.4.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        FreeIPA authentication server
 
 Group:          System Environment/Base
 License:        GPL
 URL:            http://www.freeipa.org
-Source0:        http://www.freeipa.org/downloads/%{name}-%{version}.tar.gz
+Source0:        http://www.freeipa.org/downloads/%{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: 	noarch
-BuildRequires: python >= 0:%{pyver}, python < 0:%{pynext}
+BuildRequires: python >= 0:%{pyver}, python < 0:%{pynext}, python-devel <= 0:%{pyver}
 Requires: python >= 0:%{pyver}, python < 0:%{pynext}
 Requires: PyKerberos
+
+%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+
+%define pkgpythondir  %{python_sitelib}/ipa
 
 %description
 FreeIPA is a server for identity, policy, and audit.
@@ -23,24 +27,30 @@ FreeIPA is a server for identity, policy, and audit.
 %setup -q
 
 %build
-%{__python} setup.py build
 
 %install
 rm -rf %{buildroot}
-%{__python} setup.py install -O1 --root=%{buildroot} --record=INSTALLED_FILES
-sed 's|^\(.*\.pyo\)$|%ghost \1|' < INSTALLED_FILES > %{name}-%{version}.files
-find $RPM_BUILD_ROOT%{_libdir}/python%{pyver}/site-packages/* -type d \
-  | sed "s|^$RPM_BUILD_ROOT|%dir |" >> %{name}-%{version}.files
+%{__python} setup.py install --no-compile --root=%{buildroot}
 
 %clean
 rm -rf %{buildroot}
 
-%files -f %{name}-%{version}.files
+%files
 %defattr(-,root,root,-)
-%config(noreplace) %{_sysconfdir}/ipa.conf
-
+%dir %{pkgpythondir}
+%{pkgpythondir}/*
+%config(noreplace) %{_sysconfdir}/ipa/ipa.conf
 
 %changelog
+* Wed Oct 17 2007 Rob Crittenden <rcritten@redhat.com> - 0.4.0-2
+- Use new python setup.py build script
+
+* Tue Oct  2 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.0-1
+- Milestone 4
+
+* Mon Sep 10 2007 Karl MacMillan <kmacmill@redhat.com> - 0.3.0-1
+- Milestone 3
+
 * Fri Aug 17 2007 Karl MacMillan <kmacmill@redhat.com> = 0.2.0-4
 - Added PyKerberos dep.
 
@@ -53,5 +63,3 @@ rm -rf %{buildroot}
 
 * Fri Jul 27 2007 Karl MacMillan <kmacmill@localhost.localdomain> - 0.1.0-1
 - Initial rpm version
-
-

@@ -6,11 +6,10 @@ TESTS = $(wildcard test/*.py)
 all: ;
 
 install:
-	-mkdir -p $(PACKAGEDIR)
-	install -m 644 *.py $(PACKAGEDIR)
-	-mkdir -p $(CONFIGDIR)
-	if ! [ -e $(CONFIGDIR)/ipa.conf ]; then \
-		install -m 644 ipa.conf $(CONFIGDIR); \
+	if [ "$(DESTDIR)" = "" ]; then \
+		python setup.py install; \
+	else \
+		python setup.py install --root $(DESTDIR); \
 	fi
 
 clean:
