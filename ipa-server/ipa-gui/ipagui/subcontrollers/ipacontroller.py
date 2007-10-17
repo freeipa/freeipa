@@ -1,4 +1,5 @@
 import os
+import logging
 
 import cherrypy
 import turbogears
@@ -10,6 +11,8 @@ from turbogears import identity
 
 import ipa.ipaclient
 import ipa.config
+
+log = logging.getLogger(__name__)
 
 ipa.config.init_config()
 

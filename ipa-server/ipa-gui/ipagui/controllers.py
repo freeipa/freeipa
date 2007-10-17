@@ -1,3 +1,5 @@
+import logging
+
 import cherrypy
 import turbogears
 from turbogears import controllers, expose, flash
@@ -5,9 +7,6 @@ from turbogears import validators, validate
 from turbogears import widgets, paginate
 from turbogears import error_handler
 from turbogears import identity
-# from model import *
-# import logging
-# log = logging.getLogger("ipagui.controllers")
 
 import ipa.config
 import ipa.ipaclient
@@ -18,7 +17,10 @@ from subcontrollers.delegation import DelegationController
 
 ipa.config.init_config()
 
+log = logging.getLogger(__name__)
+
 class Root(controllers.RootController):
+
     user = UserController()
     group = GroupController()
     delegate = DelegationController()

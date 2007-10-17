@@ -2,6 +2,7 @@ import os
 from pickle import dumps, loads
 from base64 import b64encode, b64decode
 import copy
+import logging
 
 import cherrypy
 import turbogears
@@ -18,6 +19,8 @@ import ipagui.forms.delegate
 import ipa.aci
 
 import ldap.dn
+
+log = logging.getLogger(__name__)
 
 aci_fields = ['*', 'aci']
 

@@ -1,5 +1,6 @@
 from pickle import dumps, loads
 from base64 import b64encode, b64decode
+import logging
 
 import cherrypy
 import turbogears
@@ -15,6 +16,8 @@ import ipa.group
 from ipa.entity import utf8_encode_values
 from ipa import ipaerror
 import ipagui.forms.group
+
+log = logging.getLogger(__name__)
 
 group_new_form = ipagui.forms.group.GroupNewForm()
 group_edit_form = ipagui.forms.group.GroupEditForm()
