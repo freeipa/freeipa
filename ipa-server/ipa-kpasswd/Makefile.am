@@ -14,7 +14,7 @@ INCLUDES =							\
 	$(NULL)
 
 sbin_PROGRAMS =			\
-	ipa-kpasswd		\
+	ipa_kpasswd		\
 	$(NULL)
 
 ipa_kpasswd_SOURCES = 		\

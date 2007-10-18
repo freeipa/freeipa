@@ -1,6 +1,6 @@
 Name:           freeipa-server
 Version:        0.4.0
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        FreeIPA authentication server
 
 Group:          System Environment/Base
@@ -40,7 +40,7 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %{_sbindir}/ipa-server-install
-%{_sbindir}/ipa-kpasswd
+%{_sbindir}/ipa_kpasswd
 %{_sbindir}/ipa-webgui
 %attr(755,root,root) %{_initrddir}/ipa-kpasswd
 %attr(755,root,root) %{_initrddir}/ipa-webgui
@@ -57,6 +57,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Oct 18 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.0-3
+- Convert to autotools-based build
+
 * Tue Sep 25 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.0-2
 - Package ipa-webgui
 

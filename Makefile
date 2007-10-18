@@ -41,19 +41,17 @@ all:
 	done
 
 autogen:
-	cd ipa-server && sh autogen.sh --prefix=/usr --sysconfdir=/etc
-	cd ipa-client && sh autogen.sh --prefix=/usr --sysconfdir=/etc
+	cd ipa-server; ./autogen.sh --prefix=/usr --sysconfdir=/etc
+	cd ipa-client; ./autogen.sh --prefix=/usr --sysconfdir=/etc
+
+configure:
+	cd ipa-server; ./configure --prefix=/usr --sysconfdir=/etc
+	cd ipa-client; ./configure --prefix=/usr --sysconfdir=/etc
 
 install: all
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
-
-clean:
-	@for subdir in $(SUBDIRS); do \
-		(cd $$subdir && $(MAKE) $@) || exit 1; \
-	done
-	rm -f *~
 
 test:
 	@for subdir in $(SUBDIRS); do \
@@ -91,7 +89,7 @@ tarballs:
         # ipa-server
 	mv dist/freeipa/ipa-server dist/$(SERV_TARBALL_PREFIX)
 	rm -f dist/$(SERV_TARBALL)
-	cd dist/$(SERV_TARBALL_PREFIX); sh autogen.sh
+	cd dist/$(SERV_TARBALL_PREFIX); ./autogen.sh; make distclean
 	cd dist; tar cfz $(SERV_TARBALL) $(SERV_TARBALL_PREFIX)
 	rm -fr dist/$(SERV_TARBALL_PREFIX)
 
@@ -110,7 +108,7 @@ tarballs:
         # ipa-client
 	mv dist/freeipa/ipa-client dist/$(CLI_TARBALL_PREFIX)
 	rm -f dist/$(CLI_TARBALL)
-	cd dist/$(CLI_TARBALL_PREFIX); sh autogen.sh
+	cd dist/$(CLI_TARBALL_PREFIX); ./autogen.sh; make distclean
 	cd dist; tar cfz $(CLI_TARBALL) $(CLI_TARBALL_PREFIX)
 	rm -fr dist/$(CLI_TARBALL_PREFIX)
 
@@ -149,7 +147,20 @@ rpms: rpmroot rpm-ipa-server rpm-ipa-admin rpm-ipa-python rpm-ipa-client
 
 dist: version-update archive tarballs archive-cleanup rpms
 
-local-dist: clean version-update local-archive tarballs archive-cleanup rpms
+local-dist: autogen clean version-update local-archive tarballs archive-cleanup rpms
+
+
+clean:
+	@for subdir in $(SUBDIRS); do \
+		(cd $$subdir && $(MAKE) $@) || exit 1; \
+	done
+	rm -f *~
+
+distclean:
+	@for subdir in $(SUBDIRS); do \
+		(cd $$subdir && $(MAKE) $@) || exit 1; \
+	done
+	rm -fr rpmbuild dist
 
 maintainer-clean: clean
 	rm -fr rpmbuild dist
