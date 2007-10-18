@@ -91,7 +91,7 @@ tarballs:
         # ipa-server
 	mv dist/freeipa/ipa-server dist/$(SERV_TARBALL_PREFIX)
 	rm -f dist/$(SERV_TARBALL)
-	cd dist/$(SERV_TARBALL_PREFIX; sh autogen.sh
+	cd dist/$(SERV_TARBALL_PREFIX); sh autogen.sh
 	cd dist; tar cfz $(SERV_TARBALL) $(SERV_TARBALL_PREFIX)
 	rm -fr dist/$(SERV_TARBALL_PREFIX)
 
@@ -110,7 +110,7 @@ tarballs:
         # ipa-client
 	mv dist/freeipa/ipa-client dist/$(CLI_TARBALL_PREFIX)
 	rm -f dist/$(CLI_TARBALL)
-	cd dist/$(CLI_TARBALL_PREFIX; sh autogen.sh
+	cd dist/$(CLI_TARBALL_PREFIX); sh autogen.sh
 	cd dist; tar cfz $(CLI_TARBALL) $(CLI_TARBALL_PREFIX)
 	rm -fr dist/$(CLI_TARBALL_PREFIX)
 
