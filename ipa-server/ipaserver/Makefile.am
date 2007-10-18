@@ -7,6 +7,7 @@ app_PYTHON = 			\
 	dsinstance.py		\
 	ipaldap.py		\
 	krbinstance.py		\
+	httpinstance.py		\
 	$(NULL)
 
 EXTRA_DIST =			\
