@@ -2,7 +2,7 @@
 # Run this to generate all the initial makefiles, etc.
 set -e
 
-PACKAGE=freeipa-server
+PACKAGE=freeipa-client
 
 LIBTOOLIZE=${LIBTOOLIZE-libtoolize}
 LIBTOOLIZE_FLAGS="--copy --force"
