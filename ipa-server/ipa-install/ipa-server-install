@@ -39,6 +39,7 @@ import subprocess
 import signal
 import shutil
 import glob
+import traceback
 from optparse import OptionParser
 import ipaserver.dsinstance
 import ipaserver.krbinstance
@@ -374,7 +375,7 @@ def read_admin_password():
 def main():
     global ds
     ds = None
-    
+
     if os.getegid() != 0:
         print "Must be root to setup server"
         return
@@ -588,4 +589,9 @@ def main():
 try:
     main()
 except Exception, e:
-    print "Unexpected error - see ipaserver-install.log for details:\n %s" % str(e)
+    message = "Unexpected error - see ipaserver-install.log for details:\n %s" % str(e)
+    print message
+    message = str(e)
+    for str in traceback.format_tb(sys.exc_info()[2]):
+        message = message + "\n" + str
+    logging.debug(message)
