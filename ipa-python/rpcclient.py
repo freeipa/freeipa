@@ -165,7 +165,23 @@ class RPCClient:
             raise xmlrpclib.Fault(value, msg)
 
         return ipautil.unwrap_binary_data(result)
- 
+
+    def get_user_by_email(self,email,sattrs=None):
+        """Get a specific user's entry. Return as a dict of values.
+           Multi-valued fields are represented as lists.
+        """
+        server = self.setup_server()
+        if sattrs is None:
+            sattrs = "__NONE__"
+        try:
+            result = server.get_user_by_email(email, sattrs)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
     def get_users_by_manager(self,manager_dn,sattrs=None):
         """Gets the users that report to a manager.
            If sattrs is not None then only those

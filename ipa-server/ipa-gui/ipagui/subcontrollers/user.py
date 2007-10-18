@@ -17,6 +17,7 @@ import ipa.user
 from ipa.entity import utf8_encode_values
 from ipa import ipaerror
 import ipagui.forms.user
+import ipa.config
 
 log = logging.getLogger(__name__)
 
@@ -26,6 +27,8 @@ user_new_form = ipagui.forms.user.UserNewForm()
 user_edit_form = ipagui.forms.user.UserEditForm()
 
 user_fields = ['*', 'nsAccountLock']
+
+email_domain = ipa.config.config.default_realm.lower()
 
 class UserController(IPAController):
 
@@ -518,31 +521,16 @@ class UserController(IPAController):
         givenname = givenname.lower()
         sn = sn.lower()
 
-        # TODO - get from config
-        domain = "freeipa.org"
+        email = "%s.%s@%s" % (givenname, sn, email_domain)
+        try:
+            client.get_user_by_email(email)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            return email
 
-        return "%s.%s@%s" % (givenname, sn, domain)
+        email = "%s@%s" % (self.suggest_uid(givenname, sn), email_domain)
+        try:
+            client.get_user_by_email(email)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            return email
 
-
-        # TODO - mail is currently not indexed nor searchable.
-        #        implement when it's done
-        # email = givenname + "." + sn + domain
-        # users = client.find_users(email, ['mail'])
-        # if len(filter(lambda u: u['mail'] == email, users[1:])) == 0:
-        #     return email
-
-        # email = self.suggest_uid(givenname, sn) + domain
-        # users = client.find_users(email, ['mail'])
-        # if len(filter(lambda u: u['mail'] == email, users[1:])) == 0:
-        #     return email
-
-        # suffix = 2
-        # template = givenname + "." + sn
-        # while suffix < 20:
-        #     email = template + str(suffix) + domain
-        #     users = client.find_users(email, ['mail'])
-        #     if len(filter(lambda u: u['mail'] == email, users[1:])) == 0:
-        #         return email
-        #     suffix += 1
-
-        # return ""
+        return ""

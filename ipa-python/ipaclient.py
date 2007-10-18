@@ -98,6 +98,13 @@ class IPAClient:
         result = self.transport.get_user_by_principal(principal,sattrs)
         return user.User(result)
 
+    def get_user_by_email(self,email,sattrs=None):
+        """Get a specific user's entry. Return as a dict of values.
+           Multi-valued fields are represented as lists.
+        """
+        result = self.transport.get_user_by_email(email,sattrs)
+        return user.User(result)
+
     def get_users_by_manager(self,manager_dn,sattrs=None):
         """Gets the users the report to a particular manager.
            If sattrs is not None then only those

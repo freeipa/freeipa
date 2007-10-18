@@ -377,7 +377,16 @@ class IPAServer:
 
         filter = "(krbPrincipalName="+self.__safe_filter(principal)+")"
         return self.__get_sub_entry(self.basedn, filter, sattrs, opts)
-    
+
+    def get_user_by_email (self, email, sattrs=None, opts=None):
+        """Get a specific user's entry. Return as a dict of values.
+           Multi-valued fields are represented as lists.
+        """
+
+        email = self.__safe_filter(email)
+        filter = "(mail=" + email + ")"
+        return self.__get_sub_entry(self.basedn, filter, sattrs, opts)
+
     def get_users_by_manager (self, manager_dn, sattrs=None, opts=None):
         """Gets the users that report to a particular manager.
         """
