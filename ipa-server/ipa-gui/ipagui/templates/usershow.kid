@@ -248,15 +248,19 @@ else:
           <th>
             <label class="fieldlabel" py:content="fields.labeleduri.label" />:
           </th>
-          <td>${user.get("labeleduri")}</td>
+          <td>
+            <a href="${user.get('labeleduri')}">${user.get('labeleduri')}</a>
+          </td>
         </tr>
     </table>
 
     <div class="formsection" py:if='len(user_reports) &gt; 0'>Direct Reports</div>
-    <div py:for="report in user_reports">
-      <a href="${tg.url('/user/show', uid=report.uid)}"
-        >${report.givenname} ${report.sn}</a>
-    </div>
+    <ol>
+      <li py:for="report in user_reports">
+        <a href="${tg.url('/user/show', uid=report.uid)}"
+          >${report.givenname} ${report.sn}</a>
+      </li>
+    </ol>
 
     <div class="formsection">Groups</div>
     <div py:for="group in user_groups">

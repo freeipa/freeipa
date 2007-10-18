@@ -71,7 +71,7 @@
                  value="Cancel ${actionname}"/>
           <br/><br/>
         </td>
-        <td py:if='actionname == "Edit"'>
+        <td py:if='actionname == "Update"'>
           &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
           <input type="button" class="deletebutton"
                  value="Delete Delegation"
@@ -179,7 +179,7 @@
           <input type="submit" class="submitbutton" name="submit"
                  value="Cancel ${actionname}"/>
         </td>
-        <td py:if='actionname == "Edit"'>
+        <td py:if='actionname == "Update"'>
           <br/>
           &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
           <input type="button" class="deletebutton"
