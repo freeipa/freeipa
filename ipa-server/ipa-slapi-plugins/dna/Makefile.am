@@ -23,6 +23,8 @@ libipa_dna_plugin_la_SOURCES = 		\
 	dna.c				\
 	$(NULL)
 
+libipa_dna_plugin_la_LDFLAGS = -avoid-version
+
 libipa_dna_plugin_la_LIBADD = 		\
 	$(MOZLDAP_LIBS)			\
 	$(NULL)

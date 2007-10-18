@@ -17,16 +17,16 @@ The client package provide install and configuration scripts for clients.
 
 %prep
 %setup -q
+./configure --prefix=%{buildroot}/usr --libdir=%{buildroot}/%{_libdir} --sysconfdir=%{buildroot}/etc
 
 %build
 
-make DESTDIR=%{buildroot}
+make
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}%{_sbindir}
 
-make install DESTDIR=%{buildroot}
+make install
 
 
 %clean

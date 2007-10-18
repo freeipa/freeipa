@@ -23,6 +23,8 @@ libipa_pwd_extop_la_SOURCES = 		\
 	ipa_pwd_extop.c			\
 	$(NULL)
 
+libipa_pwd_extop_la_LDFLAGS = -avoid-version
+
 libipa_pwd_extop_la_LIBADD = 		\
 	$(MOZLDAP_LIBS)			\
 	$(NULL)

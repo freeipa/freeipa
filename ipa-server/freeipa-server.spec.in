@@ -21,17 +21,16 @@ FreeIPA is a server for identity, policy, and audit.
 
 %prep
 %setup -q
+./configure --prefix=%{buildroot}/usr --libdir=%{buildroot}/%{_libdir} --sysconfdir=%{buildroot}/etc
 
 %build
 
-make DESTDIR=%{buildroot}
+make
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}%{_sbindir}
-mkdir -p %{buildroot}%{plugin_dir}
 
-make install DESTDIR=%{buildroot} LIBDIR=%{buildroot}%{_libdir}
+make install
 
 
 %clean
@@ -41,7 +40,7 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %{_sbindir}/ipa-server-install
-%{_sbindir}/ipa_kpasswd
+%{_sbindir}/ipa-kpasswd
 %{_sbindir}/ipa-webgui
 %attr(755,root,root) %{_initrddir}/ipa-kpasswd
 %attr(755,root,root) %{_initrddir}/ipa-webgui
@@ -50,8 +49,11 @@ rm -rf %{buildroot}
 %{_usr}/share/ipa/*
 
 %attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so
+%attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.la
 %attr(755,root,root) %{plugin_dir}/libipa-memberof-plugin.so
+%attr(755,root,root) %{plugin_dir}/libipa-memberof-plugin.la
 %attr(755,root,root) %{plugin_dir}/libipa-dna-plugin.so
+%attr(755,root,root) %{plugin_dir}/libipa-dna-plugin.la
 
 
 %changelog

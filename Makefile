@@ -40,6 +40,10 @@ all:
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 
+autogen:
+	cd ipa-server && sh autogen.sh --prefix=/usr --sysconfdir=/etc
+	cd ipa-client && sh autogen.sh --prefix=/usr --sysconfdir=/etc
+
 install: all
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
@@ -87,6 +91,7 @@ tarballs:
         # ipa-server
 	mv dist/freeipa/ipa-server dist/$(SERV_TARBALL_PREFIX)
 	rm -f dist/$(SERV_TARBALL)
+	cd dist/$(SERV_TARBALL_PREFIX; sh autogen.sh
 	cd dist; tar cfz $(SERV_TARBALL) $(SERV_TARBALL_PREFIX)
 	rm -fr dist/$(SERV_TARBALL_PREFIX)
 
@@ -105,6 +110,7 @@ tarballs:
         # ipa-client
 	mv dist/freeipa/ipa-client dist/$(CLI_TARBALL_PREFIX)
 	rm -f dist/$(CLI_TARBALL)
+	cd dist/$(CLI_TARBALL_PREFIX; sh autogen.sh
 	cd dist; tar cfz $(CLI_TARBALL) $(CLI_TARBALL_PREFIX)
 	rm -fr dist/$(CLI_TARBALL_PREFIX)
 
@@ -145,5 +151,7 @@ dist: version-update archive tarballs archive-cleanup rpms
 
 local-dist: clean version-update local-archive tarballs archive-cleanup rpms
 
-dist-clean: clean
+maintainer-clean: clean
 	rm -fr rpmbuild dist
+	cd ipa-server && $(MAKE) maintainer-clean
+	cd ipa-client && $(MAKE) maintainer-clean

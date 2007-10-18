@@ -23,6 +23,8 @@ libipa_memberof_plugin_la_SOURCES = 	\
 	ipa-memberof.c			\
 	$(NULL)
 
+libipa_memberof_plugin_la_LDFLAGS = -avoid-version
+
 libipa_memberof_plugin_la_LIBADD = 	\
 	$(MOZLDAP_LIBS)			\
 	$(NULL)
