@@ -32,6 +32,11 @@ rm -rf %{buildroot}
 
 make install
 
+# Remove .la files from libtool - we don't want to package
+# these files
+rm %{buildroot}/%{plugin_dir}/libipa_pwd_extop.la
+rm %{buildroot}/%{plugin_dir}/libipa-memberof-plugin.la
+rm %{buildroot}/%{plugin_dir}/libipa-dna-plugin.la
 
 %clean
 rm -rf %{buildroot}
@@ -49,11 +54,8 @@ rm -rf %{buildroot}
 %{_usr}/share/ipa/*
 
 %attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so
-%attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.la
 %attr(755,root,root) %{plugin_dir}/libipa-memberof-plugin.so
-%attr(755,root,root) %{plugin_dir}/libipa-memberof-plugin.la
 %attr(755,root,root) %{plugin_dir}/libipa-dna-plugin.so
-%attr(755,root,root) %{plugin_dir}/libipa-dna-plugin.la
 
 
 %changelog

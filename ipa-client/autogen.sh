@@ -2,7 +2,7 @@
 # Run this to generate all the initial makefiles, etc.
 set -e
 
-PACKAGE=freeipa-client
+PACKAGE=freeipa-server
 
 LIBTOOLIZE=${LIBTOOLIZE-libtoolize}
 LIBTOOLIZE_FLAGS="--copy --force"
@@ -32,6 +32,26 @@ test -z "$srcdir" && srcdir=.
 ORIGDIR=`pwd`
 
 cd $srcdir
+
+# Usage:
+#     compare_versions MIN_VERSION ACTUAL_VERSION
+# returns true if ACTUAL_VERSION >= MIN_VERSION
+compare_versions() {
+    ch_min_version=$1
+    ch_actual_version=$2
+    ch_status=0
+    IFS="${IFS=         }"; ch_save_IFS="$IFS"; IFS="."
+    set $ch_actual_version
+    for ch_min in $ch_min_version; do
+        ch_cur=`echo $1 | sed 's/[^0-9].*$//'`; shift # remove letter suffixes
+        if [ -z "$ch_min" ]; then break; fi
+        if [ -z "$ch_cur" ]; then ch_status=1; break; fi
+        if [ $ch_cur -gt $ch_min ]; then break; fi
+        if [ $ch_cur -lt $ch_min ]; then ch_status=1; break; fi
+    done
+    IFS="$ch_save_IFS"
+    return $ch_status
+}
 
 if ($AUTOCONF --version) < /dev/null > /dev/null 2>&1 ; then
     if ($AUTOCONF --version | head -n 1 | awk 'NR==1 { if( $(NF) >= '$autoconf_min_vers') \
@@ -78,23 +98,24 @@ fi
 # aren't sufficiently new.
 #
 if ($AUTOMAKE --version) < /dev/null > /dev/null 2>&1 ; then
-  if ($AUTOMAKE --version | head -n 1 | awk 'NR==1 { if( $(NF) >= '$automake_min_vers') \
-			     exit 1; exit 0; }');
-     then
-     echo "$ARGV0: ERROR: \`$AUTOMAKE' is too old."
-     $AUTOMAKE --version
-     echo "           (version $automake_min_vers or newer is required)"
-     DIE="yes"
-  fi
+      automake_actual_version=`$AUTOMAKE --version | head -n 1 | \
+                               sed 's/^.*[ 	]\([0-9.]*[a-z]*\).*$/\1/'`
+      if ! compare_versions $automake_min_vers $automake_actual_version; then
+	  echo "$ARGV0: ERROR: \`$AUTOMAKE' is too old."
+	  $AUTOMAKE --version
+	  echo "           (version $automake_min_vers or newer is required)"
+	  DIE="yes"
+      fi
   if ($ACLOCAL --version) < /dev/null > /dev/null 2>&1; then
-    if ($ACLOCAL --version | head -n 1 | awk 'NR==1 { if( $(NF) >= '$aclocal_min_vers' ) \
-						exit 1; exit 0; }' );
-    then
-      echo "$ARGV0: ERROR: \`$ACLOCAL' is too old."
-      $ACLOCAL --version
-      echo "           (version $aclocal_min_vers or newer is required)"
-      DIE="yes"
-    fi
+      aclocal_actual_version=`$ACLOCAL --version | head -n 1 | \
+                               sed 's/^.*[ 	]\([0-9.]*[a-z]*\).*$/\1/'`
+
+      if ! compare_versions $aclocal_min_vers $aclocal_actual_version; then
+	  echo "$ARGV0: ERROR: \`$ACLOCAL' is too old."
+	  $ACLOCAL --version
+	  echo "           (version $aclocal_min_vers or newer is required)"
+	  DIE="yes"
+      fi
   else
     echo $ACLOCAL: command not found
     echo
