@@ -24,7 +24,7 @@ import xmlrpclib
 import kerberos
 from kerberos import GSSError
 
-class KerbTransport(xmlrpclib.Transport):
+class KerbTransport(xmlrpclib.SafeTransport):
     """Handles Kerberos Negotiation authentication to an XML-RPC server."""
 
     def get_host_info(self, host):

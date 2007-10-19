@@ -133,6 +133,50 @@ if [ -n "$prefix" ] ; then
     mv $secdir/${prefix}key3.db $secdir/key3.db
 fi
 
+modnssdir=/etc/httpd/alias
+
+# Setup SSL in Apache
+if [ -e $modnssdir ]; then
+    mkdir ${modnssdir}.ipa
+    mv $modnssdir/cert8.db ${modnssdir}.ipa
+    mv $modnssdir/key3.db ${modnssdir}.ipa
+fi
+
+# Create a new database for mod_nss
+echo -e "\n" > $modnssdir/pw.txt
+certutil -N -d $modnssdir -f $modnssdir/pw.txt
+
+# Add the CA we created
+certutil -A -d $modnssdir -n "CA certificate" -t "CT,CT," -a -i $secdir/cacert.asc
+
+# Request a new server cert
+certutil -R -d $modnssdir \
+            -s "cn=$myhost,ou=Apache Web Server" \
+            -o $modnssdir/tmpcertreq \
+            -g 1024 \
+            -z $secdir/noise.txt \
+            -f $modnssdir/pw.txt
+
+# Have the FDS CA issue the cert
+echo -e "2\n9\nn\n1\n9\nn\n" | \
+certutil -C -d $secdir \
+            -c "CA certificate" \
+            -i $modnssdir/tmpcertreq \
+            -o $modnssdir/tmpcert.der \
+            -m 1002 \
+            -v 120 \
+            -f $secdir/pwdfile.txt \
+            -1 \
+            -5
+
+# Now add this cert to the Apache database
+certutil -A -d $modnssdir -n "Server-Cert"\
+         -t u,u,u \
+         -i $modnssdir/tmpcert.der \
+         -f $modnsdir/tmpcert.der
+
+rm -f $modnssdir/pw.txt $modnssdir/tmpcertreq $modnssder/tmpcert.der
+
 # enable SSL in the directory server
 
 ldapmodify -x -h localhost -p $ldapport -D "cn=Directory Manager" -w $password <<EOF
