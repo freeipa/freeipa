@@ -15,10 +15,10 @@ install:
 clean:
 	rm -f *~ *.pyc
 
+distclean: clean
+
 .PHONY: test
 test: $(subst .py,.tst,$(TESTS))
 
 %.tst: %.py
 	python $<
-
-

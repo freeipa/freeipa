@@ -27,4 +27,6 @@ install-man:
 clean:
 	rm -f *~ *.pyc
 
+distclean: clean
+
 test:
