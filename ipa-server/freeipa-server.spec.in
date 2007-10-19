@@ -1,6 +1,6 @@
 Name:           freeipa-server
 Version:        VERSION
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        FreeIPA authentication server
 
 Group:          System Environment/Base
@@ -11,7 +11,8 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires: fedora-ds-base-devel openldap-devel krb5-devel nss-devel mozldap-devel openssl-devel
 
-Requires: python fedora-ds-base krb5-server krb5-server-ldap nss-tools openldap-clients httpd mod_python mod_auth_kerb python-ldap freeipa-python ntp cyrus-sasl-gssapi nss TurboGears mod_nss
+Requires: python fedora-ds-base krb5-server krb5-server-ldap nss-tools openldap-clients httpd mod_python mod_auth_kerb python-ldap freeipa-python ntp cyrus-sasl-gssapi nss TurboGears
+Requires: mod_nss >= 1.0.7-2
 
 %define httpd_conf /etc/httpd/conf.d
 %define plugin_dir %{_libdir}/dirsrv/plugins
@@ -59,6 +60,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Oct 19 2007 Rob Crittenden <rcritten@redhat.com> - 0.4.0-4
+- Require mod_nss-1.0.7-2 for mod_proxy fixes
+
 * Thu Oct 18 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.0-3
 - Convert to autotools-based build
 
