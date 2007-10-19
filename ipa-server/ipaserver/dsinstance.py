@@ -35,18 +35,6 @@ def ldap_mod(fd, dn, pwd):
     args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv", "-D", dn, "-w", pwd, "-f", fd.name]
     run(args)
 
-def generate_serverid():
-    """Generate a UUID (universally unique identifier) suitable
-    for use as a unique identifier for a DS instance.
-    """
-    try:
-        import uuid
-        id = str(uuid.uuid1())
-    except ImportError:
-        import commands
-        id = commands.getoutput("/usr/bin/uuidgen")
-    return id
-
 def realm_to_suffix(realm_name):
     s = realm_name.split(".")
     terms = ["dc=" + x.lower() for x in s]
@@ -82,8 +70,8 @@ class DsInstance:
 
     def create_instance(self, ds_user, realm_name, host_name, dm_password):
         self.ds_user = ds_user
-        self.serverid = generate_serverid()
         self.realm_name = realm_name.upper()
+        self.serverid = "-".join(self.realm_name.split("."))
         self.suffix = realm_to_suffix(self.realm_name)
         self.host_name = host_name
         self.dm_password = dm_password
