@@ -26,6 +26,7 @@ libipa_pwd_extop_la_SOURCES = 		\
 libipa_pwd_extop_la_LDFLAGS = -avoid-version
 
 libipa_pwd_extop_la_LIBADD = 		\
+	$(KRB5_LIBS)			\
 	$(MOZLDAP_LIBS)			\
 	$(NULL)
 

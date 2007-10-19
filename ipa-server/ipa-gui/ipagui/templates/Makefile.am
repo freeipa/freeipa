@@ -6,6 +6,12 @@ app_PYTHON = 			\
 	$(NULL)
 
 app_DATA =			\
+	delegateedit.kid	\
+	delegateform.kid	\
+	delegategroupsearch.kid	\
+	delegatelayout.kid	\
+	delegatelist.kid	\
+	delegatenew.kid		\
 	dynamiceditsearch.kid	\
 	groupeditform.kid	\
 	groupedit.kid		\

@@ -6,6 +6,7 @@ app_PYTHON = 			\
 	group.py		\
 	ipacontroller.py	\
 	user.py			\
+	delegation.py		\
 	$(NULL)
 
 EXTRA_DIST =			\

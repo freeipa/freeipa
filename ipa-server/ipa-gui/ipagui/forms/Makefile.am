@@ -5,6 +5,7 @@ app_PYTHON = 			\
 	__init__.py		\
 	group.py		\
 	user.py			\
+	delegate.py			\
 	$(NULL)
 
 EXTRA_DIST =			\
