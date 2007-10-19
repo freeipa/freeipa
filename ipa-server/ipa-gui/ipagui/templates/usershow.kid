@@ -222,18 +222,21 @@ else:
         </tr>
         <tr py:if='user_manager'>
           <th>
-            Manager:
+            <label class="fieldlabel" py:content="fields.manager.label" />:
           </th>
           <td>
             <a href="${tg.url('/user/show', uid=user_manager.uid)}"
               >${user_manager.givenname} ${user_manager.sn}</a>
           </td>
         </tr>
-        <tr>
+        <tr py:if='user_secretary'>
           <th>
             <label class="fieldlabel" py:content="fields.secretary.label" />:
           </th>
-          <td>TODO</td>
+          <td>
+            <a href="${tg.url('/user/show', uid=user_secretary.uid)}"
+              >${user_secretary.givenname} ${user_secretary.sn}</a>
+          </td>
         </tr>
     </table>
 

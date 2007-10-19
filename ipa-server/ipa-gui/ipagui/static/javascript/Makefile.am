@@ -3,6 +3,7 @@ NULL =
 appdir = $(IPA_DATA_DIR)/ipagui/static/javascript
 app_DATA = 			\
 	dynamicedit.js		\
+	dynamicselect.js	\
 	effects.js		\
 	ipautil.js		\
 	prototype.js		\

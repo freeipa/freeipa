@@ -17,8 +17,13 @@ from ipagui.helpers import ipahelper
 
   <script type="text/javascript" charset="utf-8"
     src="${tg.url('/static/javascript/dynamicedit.js')}"></script>
+  <script type="text/javascript" charset="utf-8"
+    src="${tg.url('/static/javascript/dynamicselect.js')}"></script>
 
-  <?python searchurl = tg.url('/user/edit_search') ?>
+  <?python 
+  searchurl = tg.url('/user/edit_search')
+  selectSearchurl = tg.url('/user/user_select_search')
+  ?>
 
   <script type="text/javascript">
     function doSearch() {
@@ -38,6 +43,17 @@ from ipagui.helpers import ipahelper
         newdiv.appendChild(document.createTextNode(
           info.name + " "));
       }
+    }
+
+    function doSelectSearch(which_select) {
+      $(which_select + '_searchresults').update("Searching...");
+      new Ajax.Updater(which_select + '_searchresults',
+          '${selectSearchurl}',
+          {  asynchronous:true,
+             parameters: { criteria: $(which_select + '_criteria').value,
+                           which_select: which_select},
+             evalScripts: true });
+      return false;
     }
   </script>
 
@@ -501,12 +517,31 @@ from ipagui.helpers import ipahelper
       </tr>
 
       <tr>
-        <th>
+        <th valign="top">
           <label class="fieldlabel" for="${user.manager.field_id}"
             py:content="user.manager.label" />:
         </th>
-        <td>
-           TODO
+        <td valign="top">
+          <div>
+            <span id='manager_select_cn'>${value_for(user.manager)}</span>
+            <span id='manager_links'>
+              <a href="#" onclick="return clearSelect('manager');">clear</a>
+              <a href="#" onclick="return startSelect('manager');">change</a>
+            </span>
+            <span py:if="tg.errors.get('manager')" class="fielderror"
+                py:content="tg.errors.get('manager')" />
+          </div>
+          <div id="manager_searcharea" style="display:none">
+            <div>
+              <input id="manager_criteria" type="text"
+                onkeypress="return enterDoSelectSearch(event, 'manager');" />
+              <input type="button" value="Find"
+                onclick="return doSelectSearch('manager');"
+              />
+            </div>
+            <div id="manager_searchresults">
+            </div>
+          </div>
         </td>
       </tr>
 
@@ -516,7 +551,26 @@ from ipagui.helpers import ipahelper
             py:content="user.secretary.label" />:
         </th>
         <td>
-           TODO
+          <div>
+            <span id='secretary_select_cn'>${value_for(user.secretary)}</span>
+            <span id='secretary_links'>
+              <a href="#" onclick="return clearSelect('secretary');">clear</a>
+              <a href="#" onclick="return startSelect('secretary');">change</a>
+            </span>
+            <span py:if="tg.errors.get('secretary')" class="fielderror"
+                py:content="tg.errors.get('secretary')" />
+          </div>
+          <div id="secretary_searcharea" style="display:none">
+            <div>
+              <input id="secretary_criteria" type="text"
+                onkeypress="return enterDoSelectSearch(event, 'secretary');" />
+              <input type="button" value="Find"
+                onclick="return doSelectSearch('secretary');"
+              />
+            </div>
+            <div id="secretary_searchresults">
+            </div>
+          </div>
         </td>
       </tr>
     </table>

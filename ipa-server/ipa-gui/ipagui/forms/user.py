@@ -36,9 +36,11 @@ class UserFields():
     businesscategory = widgets.TextField(name="businesscategory", label="Tags")
     description = widgets.TextField(name="description", label="Description")
     employeetype = widgets.TextField(name="employeetype", label="Employee Type")
-    manager = widgets.TextField(name="manager", label="Manager")
+    manager = widgets.HiddenField(name="manager", label="Manager")
+    manager_cn = widgets.HiddenField(name="manager_cn", label="Manager")
     roomnumber = widgets.TextField(name="roomnumber", label="Room Number")
-    secretary = widgets.TextField(name="secretary", label="Secretary")
+    secretary = widgets.HiddenField(name="secretary", label="Secretary")
+    secretary_cn = widgets.HiddenField(name="secretary_cn", label="Manager")
 
     carlicense = widgets.TextField(name="carlicense", label="Car License")
     labeleduri = widgets.TextField(name="labeleduri", label="Home Page")
@@ -75,6 +77,10 @@ class UserNewForm(widgets.Form):
 
     hidden_fields = [
       UserFields.dn_to_info_json,
+      UserFields.manager,
+      UserFields.manager_cn,
+      UserFields.secretary,
+      UserFields.secretary_cn,
     ]
 
     validator = UserNewValidator()
@@ -114,6 +120,10 @@ class UserEditForm(widgets.Form):
       UserFields.editprotected_hidden,
       UserFields.user_groups_data,
       UserFields.dn_to_info_json,
+      UserFields.manager,
+      UserFields.manager_cn,
+      UserFields.secretary,
+      UserFields.secretary_cn,
     ]
 
     validator = UserEditValidator()

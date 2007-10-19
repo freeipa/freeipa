@@ -97,9 +97,9 @@ class UserController(IPAController):
             new_user.setValue('businesscategory', kw.get('businesscategory'))
             new_user.setValue('description', kw.get('description'))
             new_user.setValue('employeetype', kw.get('employeetype'))
-            # new_user.setValue('manager', kw.get('manager'))
+            new_user.setValue('manager', kw.get('manager'))
             new_user.setValue('roomnumber', kw.get('roomnumber'))
-            # new_user.setValue('secretary', kw.get('secretary'))
+            new_user.setValue('secretary', kw.get('secretary'))
 
             new_user.setValue('carlicense', kw.get('carlicense'))
             new_user.setValue('labeleduri', kw.get('labeleduri'))
@@ -221,11 +221,33 @@ class UserController(IPAController):
             user_dict['user_orig'] = user_data
             user_dict['user_groups_data'] = user_groups_data
 
+            # grab manager and secretary names
+            if user.manager:
+                try:
+                    user_manager = client.get_entry_by_dn(user.manager,
+                        ['givenname', 'sn', 'uid'])
+                    user_dict['manager_cn'] = "%s %s" % (
+                            user_manager.getValue('givenname', ''),
+                            user_manager.getValue('sn', ''))
+                except (ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND),
+                        ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR)):
+                    pass
+            if user.secretary:
+                try:
+                    user_secretary = client.get_entry_by_dn(user.secretary,
+                        ['givenname', 'sn', 'uid'])
+                    user_dict['secretary_cn'] = "%s %s" % (
+                            user_secretary.getValue('givenname', ''),
+                            user_secretary.getValue('sn', ''))
+                except (ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND),
+                        ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR)):
+                    pass
+
             return dict(form=user_edit_form, user=user_dict,
                     user_groups=user_groups_dicts)
         except ipaerror.IPAError, e:
             turbogears.flash("User edit failed: " + str(e))
-            raise turbogears.redirect('/user/show', uid=kw.get('uid'))
+            raise turbogears.redirect('/user/show', uid=uid)
 
     @expose()
     @identity.require(identity.not_anonymous())
@@ -286,9 +308,9 @@ class UserController(IPAController):
             new_user.setValue('businesscategory', kw.get('businesscategory'))
             new_user.setValue('description', kw.get('description'))
             new_user.setValue('employeetype', kw.get('employeetype'))
-            # new_user.setValue('manager', kw.get('manager'))
+            new_user.setValue('manager', kw.get('manager'))
             new_user.setValue('roomnumber', kw.get('roomnumber'))
-            # new_user.setValue('secretary', kw.get('secretary'))
+            new_user.setValue('secretary', kw.get('secretary'))
 
             new_user.setValue('carlicense', kw.get('carlicense'))
             new_user.setValue('labeleduri', kw.get('labeleduri'))
@@ -421,16 +443,26 @@ class UserController(IPAController):
             user_reports.sort(self.sort_group_member)
 
             user_manager = None
+            user_secretary = None
             try:
                 if user.manager:
                     user_manager = client.get_entry_by_dn(user.manager,
                         ['givenname', 'sn', 'uid'])
-            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            except (ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND),
+                    ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR)):
+                pass
+
+            try:
+                if user.secretary:
+                    user_secretary = client.get_entry_by_dn(user.secretary,
+                        ['givenname', 'sn', 'uid'])
+            except (ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND),
+                    ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR)):
                 pass
 
             return dict(user=user.toDict(), fields=ipagui.forms.user.UserFields(),
                         user_groups=user_groups, user_reports=user_reports,
-                        user_manager=user_manager)
+                        user_manager=user_manager, user_secretary=user_secretary)
         except ipaerror.IPAError, e:
             turbogears.flash("User show failed: " + str(e))
             raise turbogears.redirect("/")
@@ -534,3 +566,28 @@ class UserController(IPAController):
             return email
 
         return ""
+
+    @expose("ipagui.templates.userselectsearch")
+    @identity.require(identity.not_anonymous())
+    def user_select_search(self, **kw):
+        """Searches for users and displays list of results in a table.
+           This method is used for the ajax search for managers
+           and secrectary on the user pages."""
+        client = self.get_ipaclient()
+
+        users = []
+        users_counter = 0
+        searchlimit = 100
+        criteria = kw.get('criteria')
+        if criteria != None and len(criteria) > 0:
+            try:
+                users = client.find_users(criteria.encode('utf-8'), None,
+                        searchlimit)
+                users_counter = users[0]
+                users = users[1:]
+            except ipaerror.IPAError, e:
+                turbogears.flash("search failed: " + str(e))
+
+        return dict(users=users, criteria=criteria,
+                which_select=kw.get('which_select'),
+                counter=users_counter)

@@ -28,6 +28,7 @@ app_DATA =			\
 	userlist.kid		\
 	usernewform.kid		\
 	usernew.kid		\
+	userselectsearch.kid	\
 	usershow.kid		\
 	welcome.kid		\
 	unhandled_exception.kid \
