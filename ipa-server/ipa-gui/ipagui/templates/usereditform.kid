@@ -415,6 +415,18 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
+          <label class="fieldlabel" for="${user.roomnumber.field_id}"
+            py:content="user.roomnumber.label" />:
+        </th>
+        <td>
+          <span py:replace="user.roomnumber.display(value_for(user.roomnumber))" />
+          <span py:if="tg.errors.get('roomnumber')" class="fielderror"
+              py:content="tg.errors.get('roomnumber')" />
+        </td>
+      </tr>
+
+      <tr>
+        <th>
           <label class="fieldlabel" for="${user.l.field_id}"
             py:content="user.l.label" />:
         </th>
@@ -507,18 +519,6 @@ from ipagui.helpers import ipahelper
         </th>
         <td>
            TODO
-        </td>
-      </tr>
-
-      <tr>
-        <th>
-          <label class="fieldlabel" for="${user.roomnumber.field_id}"
-            py:content="user.roomnumber.label" />:
-        </th>
-        <td>
-          <span py:replace="user.roomnumber.display(value_for(user.roomnumber))" />
-          <span py:if="tg.errors.get('roomnumber')" class="fielderror"
-              py:content="tg.errors.get('roomnumber')" />
         </td>
       </tr>
 

@@ -125,7 +125,8 @@ else:
           <th>
             <label class="fieldlabel" py:content="fields.mail.label" />:
           </th>
-          <td><a href="mailto:${user.get('mail')}">${user.get("mail")}</a></td>
+          <td><a py:if="user.get('mail')"
+                 href="mailto:${user.get('mail')}">${user.get("mail")}</a></td>
         </tr>
         <tr>
           <th>
@@ -166,6 +167,12 @@ else:
             <label class="fieldlabel" py:content="fields.street.label" />:
           </th>
           <td>${user.get("street")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.roomnumber.label" />:
+          </th>
+          <td>${user.get("roomnumber")}</td>
         </tr>
         <tr>
           <th>
@@ -224,12 +231,6 @@ else:
         </tr>
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.roomnumber.label" />:
-          </th>
-          <td>${user.get("roomnumber")}</td>
-        </tr>
-        <tr>
-          <th>
             <label class="fieldlabel" py:content="fields.secretary.label" />:
           </th>
           <td>TODO</td>
@@ -249,13 +250,14 @@ else:
             <label class="fieldlabel" py:content="fields.labeleduri.label" />:
           </th>
           <td>
-            <a href="${user.get('labeleduri')}">${user.get('labeleduri')}</a>
+            <a py:if="user.get('labeleduri')"
+               href="${user.get('labeleduri')}">${user.get('labeleduri')}</a>
           </td>
         </tr>
     </table>
 
     <div class="formsection" py:if='len(user_reports) &gt; 0'>Direct Reports</div>
-    <ol>
+    <ol py:if="len(user_reports) &gt; 0">
       <li py:for="report in user_reports">
         <a href="${tg.url('/user/show', uid=report.uid)}"
           >${report.givenname} ${report.sn}</a>
