@@ -20,10 +20,7 @@
 #!/usr/bin/python
 
 import sys
-if "/usr/share/ipa" not in sys.path:
-    sys.path.append("/usr/share/ipa")
 
-from ipaserver import funcs
 import ipa.rpcclient as rpcclient
 import entity
 import user
@@ -33,12 +30,12 @@ import config
 
 class IPAClient:
 
-    def __init__(self,local=None):
-        self.local = local
-        if local:
-            self.transport = funcs.IPAServer()
-            # client needs to call set_principal(user@REALM)
+    def __init__(self,transport=None):
+        if transport:
+            self.local = True
+            self.transport = transport
         else:
+            self.local = False
             self.transport = rpcclient.RPCClient()
 
     def set_principal(self,princ):

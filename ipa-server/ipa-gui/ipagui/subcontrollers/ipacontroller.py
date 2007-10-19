@@ -10,6 +10,7 @@ from turbogears import error_handler
 from turbogears import identity
 
 import ipa.ipaclient
+from ipaserver import funcs
 import ipa.config
 
 log = logging.getLogger(__name__)
@@ -23,7 +24,8 @@ class IPAController(controllers.Controller):
             raise turbogears.redirect("/")
 
     def get_ipaclient(self):
-        client = ipa.ipaclient.IPAClient(True)
+        transport = funcs.IPAServer()
+        client = ipa.ipaclient.IPAClient(transport)
         client.set_krbccache(os.environ["KRB5CCNAME"])
         return client
 
