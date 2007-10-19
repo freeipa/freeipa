@@ -30,6 +30,7 @@ app_DATA =			\
 	usernew.kid		\
 	usershow.kid		\
 	welcome.kid		\
+	unhandled_exception.kid \
 	$(NULL)
 
 EXTRA_DIST =			\
