@@ -246,4 +246,5 @@ def main():
     print username + " successfully added"
     return 0
 
-main()
+if __name__ == "__main__":
+    sys.exit(main())
