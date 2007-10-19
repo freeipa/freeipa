@@ -57,6 +57,8 @@ class DelegationController(IPAController):
 
         tg_errors, kw = self.delegatevalidate(**kw)
         if tg_errors:
+            turbogears.flash("There were validation errors.<br/>" +
+                             "Please see the messages below for details.")
             return dict(form=delegate_form, delegate=kw,
                     tg_template='ipagui.templates.delegatenew')
 
@@ -85,7 +87,8 @@ class DelegationController(IPAController):
     def edit(self, acistr, tg_errors=None):
         """Display delegate page"""
         if tg_errors:
-            turbogears.flash("There was a problem with the form!")
+            turbogears.flash("There were validation errors.<br/>" +
+                             "Please see the messages below for details.")
 
         client = self.get_ipaclient()
 
@@ -119,6 +122,8 @@ class DelegationController(IPAController):
 
         tg_errors, kw = self.delegatevalidate(**kw)
         if tg_errors:
+            turbogears.flash("There were validation errors.<br/>" +
+                             "Please see the messages below for details.")
             return dict(form=delegate_form, delegate=kw,
                     tg_template='ipagui.templates.delegatenew')
 

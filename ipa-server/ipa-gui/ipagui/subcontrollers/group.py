@@ -41,7 +41,8 @@ class GroupController(IPAController):
     def new(self, tg_errors=None):
         """Displays the new group form"""
         if tg_errors:
-            turbogears.flash("There was a problem with the form!")
+            turbogears.flash("There were validation errors.<br/>" +
+                             "Please see the messages below for details.")
 
         client = self.get_ipaclient()
 
@@ -60,6 +61,8 @@ class GroupController(IPAController):
 
         tg_errors, kw = self.groupcreatevalidate(**kw)
         if tg_errors:
+            turbogears.flash("There were validation errors.<br/>" +
+                             "Please see the messages below for details.")
             return dict(form=group_new_form, group=kw,
                     tg_template='ipagui.templates.groupnew')
 
@@ -167,7 +170,8 @@ class GroupController(IPAController):
     def edit(self, cn, tg_errors=None):
         """Displays the edit group form"""
         if tg_errors:
-            turbogears.flash("There was a problem with the form!")
+            turbogears.flash("There were validation errors.<br/>" +
+                             "Please see the messages below for details.")
 
         client = self.get_ipaclient()
 
@@ -227,6 +231,8 @@ class GroupController(IPAController):
 
         tg_errors, kw = self.groupupdatevalidate(**kw)
         if tg_errors:
+            turbogears.flash("There were validation errors.<br/>" +
+                             "Please see the messages below for details.")
             return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
 

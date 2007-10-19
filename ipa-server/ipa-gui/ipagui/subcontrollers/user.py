@@ -38,7 +38,8 @@ class UserController(IPAController):
     def new(self, tg_errors=None):
         """Displays the new user form"""
         if tg_errors:
-            turbogears.flash("There was a problem with the form!")
+            turbogears.flash("There were validation errors.<br/>" +
+                             "Please see the messages below for details.")
 
         return dict(form=user_new_form, user={})
 
@@ -55,6 +56,8 @@ class UserController(IPAController):
 
         tg_errors, kw = self.usercreatevalidate(**kw)
         if tg_errors:
+            turbogears.flash("There were validation errors.<br/>" +
+                             "Please see the messages below for details.")
             return dict(form=user_new_form, user=kw,
                     tg_template='ipagui.templates.usernew')
 
@@ -193,7 +196,8 @@ class UserController(IPAController):
     def edit(self, uid, tg_errors=None):
         """Displays the edit user form"""
         if tg_errors:
-            turbogears.flash("There was a problem with the form!")
+            turbogears.flash("There were validation errors.<br/>" +
+                             "Please see the messages below for details.")
 
         client = self.get_ipaclient()
 
@@ -236,6 +240,8 @@ class UserController(IPAController):
 
         tg_errors, kw = self.userupdatevalidate(**kw)
         if tg_errors:
+            turbogears.flash("There were validation errors.<br/>" +
+                             "Please see the messages below for details.")
             return dict(form=user_edit_form, user=kw,
                         user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')
