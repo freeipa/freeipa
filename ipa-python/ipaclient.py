@@ -311,3 +311,8 @@ class IPAClient:
         """
 
         return self.transport.add_group_to_group(group_cn, tgroup_cn)
+
+    def attrs_to_labels(self,attrs):
+        """Convert a list of LDAP attributes into a more readable form."""
+
+        return self.transport.attrs_to_labels(attrs)

@@ -561,3 +561,16 @@ class RPCClient:
             raise xmlrpclib.Fault(value, msg)
     
         return ipautil.unwrap_binary_data(result)
+
+    def attrs_to_labels(self,attrs):
+        """Convert a list of LDAP attributes into a more readable form."""
+
+        server = self.setup_server()
+        try:
+            result = server.attrs_to_labels(attrs)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)

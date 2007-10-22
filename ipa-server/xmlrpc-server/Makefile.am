@@ -12,6 +12,7 @@ html_DATA =			\
 
 serverdir = $(IPA_DATA_DIR)/ipaserver
 server_PYTHON =			\
+	attrs.py		\
 	funcs.py		\
 	ipaxmlrpc.py		\
 	$(NULL)

@@ -28,6 +28,7 @@ import ipaserver.ipaldap
 import ipa.ipautil
 import xmlrpclib
 import copy
+import attrs
 from ipa import ipaerror
 
 import string
@@ -1050,6 +1051,16 @@ class IPAServer:
         except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
             raise
         return ret
+
+    def attrs_to_labels(self, attr_list, opts=None):
+        """Take a list of LDAP attributes and convert them to more friendly
+           labels."""
+        label_list = {}
+
+        for a in attr_list:
+            label_list[a] = attrs.attr_label_list.get(a,a)
+
+        return label_list
 
 def ldap_search_escape(match):
     """Escapes out nasty characters from the ldap search.

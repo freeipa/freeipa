@@ -349,6 +349,7 @@ def handler(req, profiling=False):
             h.register_function(f.remove_groups_from_user)
             h.register_function(f.update_group)
             h.register_function(f.delete_group)
+            h.register_function(f.attrs_to_labels)
             h.handle_request(req)
         finally:
              pass

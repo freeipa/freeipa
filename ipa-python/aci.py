@@ -17,6 +17,7 @@
 
 import re
 import urllib
+import ldap
 
 import ipa.ipautil
 
@@ -129,3 +130,28 @@ class ACI:
         acistr = self._match(';)', acistr)
         if len(acistr) > 0:
             raise SyntaxError, "unexpected aci suffix at '%s'" % acistr
+
+def extract_group_cns(aci_list, client):
+    """Extracts all the cn's from a list of aci's and returns them as a hash
+       from group_dn to group_cn.
+
+       It first tries to cheat by looking at the first rdn for the
+       group dn.  If that's not cn for some reason, it looks up the group."""
+    group_dn_to_cn = {}
+    for aci in aci_list:
+        for dn in (aci.source_group, aci.dest_group):
+            if not group_dn_to_cn.has_key(dn):
+                rdn_list = ldap.dn.str2dn(dn)
+                first_rdn = rdn_list[0]
+                for (type,value,junk) in first_rdn:
+                    if type == "cn":
+                        group_dn_to_cn[dn] = value
+                        break;
+                else:
+                    try:
+                        group = client.get_entry_by_dn(dn, ['cn'])
+                        group_dn_to_cn[dn] = group.getValue('cn')
+                    except ipaerror.IPAError, e:
+                        group_dn_to_cn[dn] = 'unknown'
+
+    return group_dn_to_cn
