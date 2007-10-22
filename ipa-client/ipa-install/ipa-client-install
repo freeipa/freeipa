@@ -67,6 +67,14 @@ def logging_setup(options):
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
+def check_ntp():
+    ret_code = 1
+    p = subprocess.Popen(["/sbin/service", "ntpd", "status"], stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+
+    return p.returncode
+
 def main():
     options = parse_options()
     logging_setup(options)
@@ -199,6 +207,11 @@ def main():
 
     #Modify pam to add pam_krb5
     run(["/usr/sbin/authconfig", "--enablekrb5", "--update"])
+
+    # print warning about ntp
+    if check_ntp() != 0:
+        print "WARNING: Kerberos requires time synchronization between clients"
+        print "and servers for correct operation. You should consider enabling ntpd."
 
     return 0
 

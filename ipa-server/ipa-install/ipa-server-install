@@ -372,6 +372,15 @@ def read_admin_password():
     admin_password = read_password("IPA admin")
     return admin_password
 
+def check_ntp():
+    ret_code = 1
+    p = subprocess.Popen(["/sbin/service", "ntpd", "status"], stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+
+    return p.returncode
+    
+
 def main():
     global ds
     ds = None
@@ -583,6 +592,28 @@ def main():
     fd.write("server=" + host_name + "\n")
     fd.write("realm=" + realm_name + "\n")
     fd.close()
+
+    print "=============================================================================="
+    print "Setup complete"
+    print ""
+    print "Next steps:"
+    print "\t1. You may need to open some network ports - specifically:"
+    print "\t\tTCP Ports:"
+    print "\t\t  * 80, 443, 8080: HTTP/HTTPS"
+    print "\t\t  * 389, 636: LDAP/LDAPS"
+    print "\t\t  * 464: kpasswd"
+    print "\t\tUDP Ports:"
+    print "\t\t  * 88, 750: kerberos"
+    print ""
+    print "\t2. You can now obtain a kerberos ticket using the command: 'kinit admin'."
+    print "\t   This ticket will allow you to use the IPA tools (e.g., ipa-adduser)"
+    print "\t   and the web user interface."
+
+    if check_ntp() != 0:
+        print "\t3. Kerberos requires time synchronization between clients"
+        print "\t   and servers for correct operation. You should consider enabling ntpd."
+
+
 
     return 0
 
