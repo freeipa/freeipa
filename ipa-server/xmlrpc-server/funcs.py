@@ -599,7 +599,9 @@ class IPAServer:
 
         return new_dict
 
-    update_user = update_entry
+    def update_user (self, oldentry, newentry, opts=None):
+        """Thin wrapper around update_entry"""
+        return self.update_entry(oldentry, newentry, opts)
 
     def mark_user_deleted (self, uid, opts=None):
         """Mark a user as inactive in LDAP. We aren't actually deleting
@@ -998,7 +1000,9 @@ class IPAServer:
 
         return failed
 
-    update_group = update_entry
+    def update_group (self, oldentry, newentry, opts=None):
+        """Thin wrapper around update_entry"""
+        return self.update_entry(oldentry, newentry, opts)
 
     def delete_group (self, group_dn, opts=None):
         """Delete a group
