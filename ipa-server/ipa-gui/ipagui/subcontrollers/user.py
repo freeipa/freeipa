@@ -127,9 +127,11 @@ class UserController(IPAController):
             new_user.setValue('businesscategory', kw.get('businesscategory'))
             new_user.setValue('description', kw.get('description'))
             new_user.setValue('employeetype', kw.get('employeetype'))
-            new_user.setValue('manager', kw.get('manager'))
+            if kw.get('manager'):
+                new_user.setValue('manager', kw.get('manager'))
             new_user.setValue('roomnumber', kw.get('roomnumber'))
-            new_user.setValue('secretary', kw.get('secretary'))
+            if kw.get('secretary'):
+                new_user.setValue('secretary', kw.get('secretary'))
 
             new_user.setValue('carlicense', kw.get('carlicense'))
             new_user.setValue('labeleduri', kw.get('labeleduri'))
@@ -514,6 +516,22 @@ class UserController(IPAController):
         except ipaerror.IPAError, e:
             turbogears.flash("User show failed: " + str(e))
             raise turbogears.redirect("/")
+
+    @expose()
+    @identity.require(identity.not_anonymous())
+    def delete(self, uid):
+        """Delete user."""
+        self.restrict_post()
+        client = self.get_ipaclient()
+
+        try:
+            client.delete_user(uid)
+
+            turbogears.flash("user deleted")
+            raise turbogears.redirect('/user/list')
+        except (SyntaxError, ipaerror.IPAError), e:
+            turbogears.flash("User deletion failed: " + str(e))
+            raise turbogears.redirect('/user/list')
 
     @validate(form=user_new_form)
     @identity.require(identity.not_anonymous())

@@ -1013,13 +1013,12 @@ class IPAServer:
            groups.
         """
         group = self.get_entry_by_dn(group_dn, ['dn', 'cn'], opts)
-
-        if len(group) != 1:
+        if group is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
 
         conn = self.getConnection(opts)
         try:
-            res = conn.deleteEntry(group[0]['dn'])
+            res = conn.deleteEntry(group_dn)
         finally:
             self.releaseConnection(conn)
         return res

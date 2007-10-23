@@ -534,12 +534,12 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
-    def delete_group(self,group_cn):
-        """Delete a group. group_cn is the cn of the group to be deleted."""
+    def delete_group(self,group_dn):
+        """Delete a group. group_dn is the dn of the group to be deleted."""
         server = self.setup_server()
     
         try:
-            result = server.delete_group(group_cn)
+            result = server.delete_group(group_dn)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):

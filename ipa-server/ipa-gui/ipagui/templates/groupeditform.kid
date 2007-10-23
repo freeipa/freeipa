@@ -1,5 +1,11 @@
 <div xmlns:py="http://purl.org/kid/ns#"
   class="simpleroster">
+
+  <form style="display:none" id='deleteform'
+    method="post" action="${tg.url('/group/delete')}">
+    <input type="hidden" name="dn" value="${value.get('dn')}" />
+  </form>
+
   <form action="${action}" name="${name}" method="${method}" class="tableform"
       onsubmit="preSubmit()" >
 
@@ -12,6 +18,14 @@
         <td>
           <input type="submit" class="submitbutton" name="submit"
               value="Cancel Edit" />
+        </td>
+        <td>
+          &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+          <input type="button" class="deletebutton"
+                 value="Delete Group"
+                 onclick="return confirmDelete();"
+                 />
+          <br/><br/>
         </td>
       </tr>
     </table>
@@ -44,6 +58,13 @@ from ipagui.helpers import ipahelper
           {  asynchronous:true,
              parameters: { criteria: $('criteria').value },
              evalScripts: true });
+      return false;
+    }
+
+    function confirmDelete() {
+      if (confirm("Are you sure you want to delete this group?")) {
+        $('deleteform').submit();
+      }
       return false;
     }
   </script>
@@ -187,6 +208,14 @@ from ipagui.helpers import ipahelper
           <br />
           <input type="submit" class="submitbutton" name="submit"
               value="Cancel Edit" />
+        </td>
+        <td>
+          <br />
+          &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+          <input type="button" class="deletebutton"
+                 value="Delete Group"
+                 onclick="return confirmDelete();"
+                 />
         </td>
       </tr>
     </table>

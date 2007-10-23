@@ -380,6 +380,22 @@ class GroupController(IPAController):
             turbogears.flash("Group show failed: " + str(e))
             raise turbogears.redirect("/")
 
+    @expose()
+    @identity.require(identity.not_anonymous())
+    def delete(self, dn):
+        """Delete group."""
+        self.restrict_post()
+        client = self.get_ipaclient()
+
+        try:
+            client.delete_group(dn)
+
+            turbogears.flash("group deleted")
+            raise turbogears.redirect('/group/list')
+        except (SyntaxError, ipaerror.IPAError), e:
+            turbogears.flash("Group deletion failed: " + str(e) + "<br/>" + str(e.detail))
+            raise turbogears.redirect('/group/list')
+
     @validate(form=group_new_form)
     @identity.require(identity.not_anonymous())
     def groupcreatevalidate(self, tg_errors=None, **kw):

@@ -299,10 +299,10 @@ class IPAClient:
 
         return self.transport.update_group(group.origDataDict(), group.toDict())
 
-    def delete_group(self,group_cn):
+    def delete_group(self,group_dn):
         """Delete a group entry."""
 
-        return self.transport.delete_group(group_cn)
+        return self.transport.delete_group(group_dn)
 
     def add_group_to_group(self, group_cn, tgroup_cn):
         """Add a group to an existing group.

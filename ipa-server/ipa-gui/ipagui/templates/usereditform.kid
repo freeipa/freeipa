@@ -1,5 +1,11 @@
 <div xmlns:py="http://purl.org/kid/ns#"
   class="simpleroster">
+
+  <form style="display:none" id='deleteform'
+    method="post" action="${tg.url('/user/delete')}">
+    <input type="hidden" name="uid" value="${value.get('uid')}" />
+  </form>
+
   <form action="${action}" name="${name}" method="${method}" class="tableform"
     onsubmit="preSubmit()">
 
@@ -13,7 +19,13 @@
           <input type="submit" class="submitbutton" name="submit"
               value="Cancel Edit" />
         </td>
-        <td></td>
+        <td>
+          &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+          <input type="button" class="deletebutton"
+                 value="Delete Person"
+                 onclick="return confirmDelete();"
+                 />
+        </td>
       </tr>
     </table>
 
@@ -82,6 +94,13 @@ from ipagui.helpers import ipahelper
              parameters: { criteria: $(which_select + '_criteria').value,
                            which_select: which_select},
              evalScripts: true });
+      return false;
+    }
+
+    function confirmDelete() {
+      if (confirm("Are you sure you want to delete this person?")) {
+        $('deleteform').submit();
+      }
       return false;
     }
   </script>
@@ -715,7 +734,14 @@ from ipagui.helpers import ipahelper
           <input type="submit" class="submitbutton" name="submit"
               value="Cancel Edit" />
         </td>
-        <td></td>
+        <td>
+          <br />
+          &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+          <input type="button" class="deletebutton"
+                 value="Delete Person"
+                 onclick="return confirmDelete();"
+                 />
+        </td>
       </tr>
     </table>
 
