@@ -57,11 +57,10 @@ def daemonize():
 # environment to load a different configuration and avoid becoming
 # a daemon
 devel = False
-if os.path.exists(os.path.join(os.path.dirname(__file__), "Makefile")):
+if os.path.exists(os.path.join(os.path.dirname(__file__), "Makefile.am")):
     devel = True
 
-if not devel:
-    sys.path.append("/usr/share/ipa/")
+sys.path.append("/usr/share/ipa/")
 
 # this must be after sys.path is changed to work correctly
 import pkg_resources
