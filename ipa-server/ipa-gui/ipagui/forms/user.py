@@ -59,6 +59,8 @@ class UserFields():
     user_groups_data = widgets.HiddenField(name="user_groups_data")
     dn_to_info_json = widgets.HiddenField(name="dn_to_info_json")
 
+    custom_fields = []
+
 class UserNewValidator(validators.Schema):
     uid = validators.PlainText(not_empty=True)
     userpassword = validators.String(not_empty=False)
@@ -73,7 +75,7 @@ class UserNewValidator(validators.Schema):
 
 
 class UserNewForm(widgets.Form):
-    params = ['user']
+    params = ['user', 'custom_fields']
 
     hidden_fields = [
       UserFields.dn_to_info_json,
@@ -82,6 +84,8 @@ class UserNewForm(widgets.Form):
       UserFields.secretary,
       UserFields.secretary_cn,
     ]
+
+    custom_fields = []
 
     validator = UserNewValidator()
 
@@ -112,7 +116,7 @@ class UserEditValidator(validators.Schema):
     ]
 
 class UserEditForm(widgets.Form):
-    params = ['user']
+    params = ['user', 'custom_fields']
 
     hidden_fields = [
       UserFields.uid_hidden, UserFields.user_orig,
@@ -125,6 +129,8 @@ class UserEditForm(widgets.Form):
       UserFields.secretary,
       UserFields.secretary_cn,
     ]
+
+    custom_fields = []
 
     validator = UserEditValidator()
 

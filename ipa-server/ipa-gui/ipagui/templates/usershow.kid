@@ -259,6 +259,21 @@ else:
         </tr>
     </table>
 
+    <div py:if='len(fields.custom_fields) &gt; 0'>
+      <div class="formsection" >Custom Fields</div>
+      <table class="formtable" cellpadding="2" cellspacing="0" border="0">
+        <tr py:for='custom_field in fields.custom_fields'>
+          <th>
+            <label class="fieldlabel" for="${custom_field.field_id}"
+              py:content="custom_field.label" />:
+          </th>
+          <td>
+            ${user.get(custom_field.name)}
+          </td>
+        </tr>
+      </table>
+    </div>
+
     <div class="formsection" py:if='len(user_reports) &gt; 0'>Direct Reports</div>
     <ol py:if="len(user_reports) &gt; 0">
       <li py:for="report in user_reports">

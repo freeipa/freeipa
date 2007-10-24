@@ -601,6 +601,23 @@ from ipagui.helpers import ipahelper
       </tr>
     </table>
 
+    <div py:if='len(custom_fields) &gt; 0'>
+      <div class="formsection" >Custom Fields</div>
+      <table class="formtable" cellpadding="2" cellspacing="0" border="0">
+        <tr py:for='custom_field in custom_fields'>
+          <th>
+            <label class="fieldlabel" for="${custom_field.field_id}"
+              py:content="custom_field.label" />:
+          </th>
+          <td>
+            <span py:replace="custom_field.display(value_for(custom_field))" />
+            <span py:if="tg.errors.get(custom_field.name)" class="fielderror"
+                py:content="tg.errors.get(custom_field.name)" />
+          </td>
+        </tr>
+      </table>
+    </div>
+
     <div style="clear:both">
       <div class="formsection">Add Groups</div>
 

@@ -32,6 +32,36 @@ email_domain = ipa.config.config.default_realm.lower()
 
 class UserController(IPAController):
 
+    def __init__(self, *args, **kw):
+        super(UserController,self).__init__(*args, **kw)
+        self.load_custom_fields()
+
+    def load_custom_fields(self):
+        # client = self.get_ipaclient()
+        # schema = client.get_user_custom_schema()
+        schema = [
+          { 'label': 'See Also',
+            'field': 'seeAlso',
+            'required': 'true', } ,
+          { 'label': 'O O O',
+            'field': 'o',
+            'required': 'false', } ,
+        ]
+        for s in schema:
+            required=False
+            if (s['required'] == "true"):
+                required=True
+            field = widgets.TextField(name=s['field'],label=s['label'])
+            validator = validators.String(not_empty=required)
+
+            ipagui.forms.user.UserFields.custom_fields.append(field)
+            user_new_form.custom_fields.append(field)
+            user_edit_form.custom_fields.append(field)
+
+            user_new_form.validator.add_field(s['field'], validator)
+            user_edit_form.validator.add_field(s['field'], validator)
+
+
     @expose()
     def index(self):
         raise turbogears.redirect("/user/list")
@@ -106,6 +136,10 @@ class UserController(IPAController):
 
             if kw.get('nsAccountLock'):
                 new_user.setValue('nsAccountLock', 'true')
+
+            for custom_field in user_new_form.custom_fields:
+                new_user.setValue(custom_field.name,
+                                  kw.get(custom_field.name, ''))
 
             rv = client.add_user(new_user)
         except ipaerror.exception_for(ipaerror.LDAP_DUPLICATE):
@@ -320,12 +354,17 @@ class UserController(IPAController):
                 new_user.setValue('nsAccountLock', 'true')
             else:
                 new_user.setValue('nsAccountLock', None)
+
             if kw.get('editprotected') == 'true':
                 if kw.get('userpassword'):
                     password_change = True
                 new_user.setValue('uidnumber', str(kw.get('uidnumber')))
                 new_user.setValue('gidnumber', str(kw.get('gidnumber')))
                 new_user.setValue('homedirectory', str(kw.get('homedirectory')))
+
+            for custom_field in user_edit_form.custom_fields:
+                new_user.setValue(custom_field.name,
+                                  kw.get(custom_field.name, ''))
 
             rv = client.update_user(new_user)
             #
