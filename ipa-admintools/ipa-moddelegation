@@ -1,0 +1,162 @@
+#! /usr/bin/python -E
+# Authors: Rob Crittenden <rcritten@redhat.com>
+#
+# Copyright (C) 2007  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+import sys
+from optparse import OptionParser
+import ipa
+import ipa.user
+import ipa.ipaclient as ipaclient
+import ipa.ipavalidate as ipavalidate
+import ipa.config
+import ipa.aci
+
+import xmlrpclib
+import kerberos
+import krbV
+import ldap
+import copy
+
+aci_fields = ['*', 'aci']
+
+def usage():
+    print "ipa-moddelgation [-a|--attributes attr1,attr2,..,attrn] [-s|--source STRING] [-t|--target STRING] name"
+    sys.exit(1)
+
+def parse_options():
+    parser = OptionParser()
+    parser.add_option("-a", "--attributes", dest="attributes",
+                      help="The attributes the source group may change in the target group")
+    parser.add_option("-s", "--source", dest="source",
+                      help="The source group name")
+    parser.add_option("-t", "--target", dest="target",
+                      help="The target group name")
+    parser.add_option("--usage", action="store_true",
+                      help="Program usage")
+
+    args = ipa.config.init_config(sys.argv)
+    options, args = parser.parse_args(args)
+
+    return options, args
+
+def main():
+
+    options, args = parse_options()
+
+    if len(args) != 2:
+        print "args is %s" % len(args)
+        usage()
+
+    if not options.attributes and not options.source and not options.target:
+        print "Missing something"
+        usage()
+
+    try:
+        client = ipaclient.IPAClient()
+
+        # first do some sanity checking
+
+        if options.source:
+            source_grp = client.find_groups(options.source)
+            if source_grp[0] > 1:
+                print "Multiple matches found for %s." % options.source
+                return 1
+            elif source_grp[0] == 0:
+                print "No matches found for %s." % options.source
+                return 1
+
+        if options.target:
+            target_grp = client.find_groups(options.target)
+            if target_grp[0] > 1:
+                print "Multiple matches found for %s." % options.target
+                return 1
+            elif target_grp[0] == 0:
+                print "No matches found for %s." % options.target
+                return 1
+
+        if options.attributes:
+            attr_list = options.attributes.split(',')
+
+        # find the old aci
+
+        aci_entry = client.get_aci_entry(aci_fields)
+
+        aci_str_list = aci_entry.getValues('aci')
+        if aci_str_list is None:
+            aci_str_list = []
+        if not(isinstance(aci_str_list,list) or isinstance(aci_str_list,tuple)):
+            aci_str_list = [aci_str_list]
+
+        old_aci = None
+        acistr = None
+        for aci_str in aci_str_list:
+            try:
+                old_aci = ipa.aci.ACI(aci_str)
+                if old_aci.name == args[1]:
+                    acistr = aci_str
+                    break
+            except SyntaxError:
+                # ignore aci_str's that ACI can't parse
+                pass
+
+        if acistr is None:
+            print "No delegation %s found." % args[1]
+            return 2
+
+        old_aci_index = aci_str_list.index(acistr)
+
+        new_aci = ipa.aci.ACI()
+        new_aci.name = args[1]
+        if options.source:
+            new_aci.source_group = source_grp[1].dn
+        else:
+            new_aci.source_group = old_aci.source_group
+        if options.target:
+            new_aci.dest_group = target_grp[1].dn
+        else:
+            new_aci.dest_group = old_aci.dest_group
+        if options.attributes:
+            new_aci.attrs = attr_list
+        else:
+            new_aci.attrs = old_aci.attrs
+        new_aci_str = new_aci.export_to_string()
+
+        new_aci_str_list = copy.deepcopy(aci_str_list)
+        new_aci_str_list[old_aci_index] = new_aci_str
+        aci_entry.setValue('aci', new_aci_str_list)
+
+        client.update_entry(aci_entry)
+    except xmlrpclib.Fault, f:
+        print f.faultString
+        return 1
+    except kerberos.GSSError, e:
+        print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])
+        return 1
+    except xmlrpclib.ProtocolError, e:
+        print "Unable to connect to IPA server: %s" % (e.errmsg)
+        return 1
+    except ipa.ipaerror.IPAError, e:
+        print "%s" % (e.message)
+        return 1
+
+    print "Delegation %s successfully added" % args[1]
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())

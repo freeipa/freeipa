@@ -1,0 +1,55 @@
+.\" A man page for ipa-adddelegation
+.\" Copyright (C) 2007 Red Hat, Inc.
+.\" 
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\" 
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\" 
+.TH "ipa-adddelegation" "1" "Oct 24 2007" "freeipa" ""
+.SH "NAME"
+ipa\-adddelegation \- Add a delegation
+
+.SH "SYNOPSIS"
+ipa\-adddelegation [\fIOPTION\fR]... \fIname\fR
+
+.SH "DESCRIPTION"
+Adds a delegation named \fIname\fR.
+
+A delegation is used to grant access to certain attributes from one group to another.
+
+For example, a secretary group may be granted access to modify the phone attribute of all users in a manager's group.
+.SH "OPTIONS"
+.TP 
+\fB\-a\fR, \fB\-\-attributes\fR=\fIATTRIBUTES\fR
+A comma\-separated list of the the \f[SM]attributes\fR that may be written by the source group.
+
+.TP 
+\fB\-s\fR, \fB\-\-source\fR=\fISOURCE\fR
+The name of the group that is being granted write permission.
+
+.TP 
+\fB\-t\fR, \fB\-\-target\fR=\fITARGET\fR
+The name of the group that will be written to.
+
+.PP 
+All arguments are mandatory.
+.SH "EXIT STATUS"
+0 if the delegation was added successfully
+
+1 if an error occurred
+
+2 if no not exactly one matching source group was found (0 or more than one)
+
+3 if no not exactly one matching target group was found (0 or more than one
