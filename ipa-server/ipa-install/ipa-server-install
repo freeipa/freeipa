@@ -554,7 +554,16 @@ def main():
 
         if selinux:
             # Allow apache to connect to the turbogears web gui
-            run(["/usr/sbin/setsebool", "-P", "httpd_can_network_connect", "true"])
+            # This can still fail even if selinux is enabled
+            try:
+                run(["/usr/sbin/setsebool", "-P", "httpd_can_network_connect", "true"])
+            except:
+                print "WARNING: could not set selinux boolean httpd_can_network_connect to true."
+                print "The web interface may not function correctly until this boolean is"
+                print "successfully change with the command:"
+                print "   /usr/sbin/setsebool -P httpd_can_network_connect true"
+                print "Try updating the policycoreutils and selinux-policy packages."
+                pass
 
         # Start the web gui
         run(["/sbin/service", "ipa-webgui", "start"])
