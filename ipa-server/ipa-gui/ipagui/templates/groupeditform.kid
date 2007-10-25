@@ -56,25 +56,25 @@ from ipagui.helpers import ipahelper
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
-          <label class="fieldlabel" for="${group.cn.field_id}"
-            py:content="group.cn.label" />:
+          <label class="fieldlabel" for="${group_fields.cn.field_id}"
+            py:content="group_fields.cn.label" />:
         </th>
         <td>
-          <!-- <span py:replace="group.cn.display(value_for(group.cn))" />
+          <!-- <span py:replace="group_fields.cn.display(value_for(group_fields.cn))" />
           <span py:if="tg.errors.get('cn')" class="fielderror"
               py:content="tg.errors.get('cn')" /> -->
-          ${value_for(group.cn)}
+          ${value_for(group_fields.cn)}
 
         </td>
       </tr>
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${group.description.field_id}"
-            py:content="group.description.label" />:
+          <label class="fieldlabel" for="${group_fields.description.field_id}"
+            py:content="group_fields.description.label" />:
         </th>
         <td>
-          <span py:replace="group.description.display(value_for(group.description))" />
+          <span py:replace="group_fields.description.display(value_for(group_fields.description))" />
           <span py:if="tg.errors.get('description')" class="fielderror"
               py:content="tg.errors.get('description')" />
 
@@ -83,11 +83,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${group.gidnumber.field_id}"
-            py:content="group.gidnumber.label" />:
+          <label class="fieldlabel" for="${group_fields.gidnumber.field_id}"
+            py:content="group_fields.gidnumber.label" />:
         </th>
         <td>
-          <span py:replace="group.gidnumber.display(value_for(group.gidnumber))" />
+          <span py:replace="group_fields.gidnumber.display(value_for(group_fields.gidnumber))" />
           <span py:if="tg.errors.get('gidnumber')" class="fielderror"
               py:content="tg.errors.get('gidnumber')" />
 

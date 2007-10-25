@@ -75,7 +75,7 @@ class UserNewValidator(validators.Schema):
 
 
 class UserNewForm(widgets.Form):
-    params = ['user', 'custom_fields']
+    params = ['user_fields', 'custom_fields']
 
     hidden_fields = [
       UserFields.dn_to_info_json,
@@ -92,7 +92,7 @@ class UserNewForm(widgets.Form):
     def __init__(self, *args, **kw):
         super(UserNewForm,self).__init__(*args, **kw)
         (self.template_c, self.template) = widgets.meta.load_kid_template("ipagui.templates.usernewform")
-        self.user = UserFields
+        self.user_fields = UserFields
 
     def update_params(self, params):
         super(UserNewForm,self).update_params(params)
@@ -116,7 +116,7 @@ class UserEditValidator(validators.Schema):
     ]
 
 class UserEditForm(widgets.Form):
-    params = ['user', 'custom_fields']
+    params = ['user_fields', 'custom_fields']
 
     hidden_fields = [
       UserFields.uid_hidden, UserFields.user_orig,
@@ -137,7 +137,7 @@ class UserEditForm(widgets.Form):
     def __init__(self, *args, **kw):
         super(UserEditForm,self).__init__(*args, **kw)
         (self.template_c, self.template) = widgets.meta.load_kid_template("ipagui.templates.usereditform")
-        self.user = UserFields
+        self.user_fields = UserFields
 
 
 # TODO - add dynamic field retrieval:

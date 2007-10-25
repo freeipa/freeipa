@@ -69,7 +69,7 @@ class DelegateValidator(validators.Schema):
         messages = { 'empty': _("Please select at least one value"), })
 
 class DelegateForm(widgets.Form):
-    params = ['delegate', 'attr_list']
+    params = ['delegate_fields', 'attr_list']
 
     hidden_fields = [
       DelegateFields.source_group_dn,
@@ -85,7 +85,7 @@ class DelegateForm(widgets.Form):
         super(DelegateForm,self).__init__(*args, **kw)
         (self.template_c, self.template) = widgets.meta.load_kid_template(
                 "ipagui.templates.delegateform")
-        self.delegate = DelegateFields
+        self.delegate_fields = DelegateFields
 
     def update_params(self, params):
         super(DelegateForm,self).update_params(params)

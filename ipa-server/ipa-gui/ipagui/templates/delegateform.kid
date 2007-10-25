@@ -89,23 +89,23 @@
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th valign="top">
-          <label class="fieldlabel" for="${delegate.name.field_id}"
-            py:content="delegate.name.label" />:
+          <label class="fieldlabel" for="${delegate_fields.name.field_id}"
+            py:content="delegate_fields.name.label" />:
         </th>
         <td>
-          <span py:replace="delegate.name.display(value_for(delegate.name))" />
+          <span py:replace="delegate_fields.name.display(value_for(delegate_fields.name))" />
           <span py:if="tg.errors.get('name')" class="fielderror"
               py:content="tg.errors.get('name')" />
         </td>
       </tr>
       <tr>
         <th valign="top">
-          <label class="fieldlabel" for="${delegate.source_group_cn.field_id}"
-            py:content="delegate.source_group_cn.label" />:
+          <label class="fieldlabel" for="${delegate_fields.source_group_cn.field_id}"
+            py:content="delegate_fields.source_group_cn.label" />:
         </th>
         <td>
           <div>
-            <span id='source_group_cn'>${value_for(delegate.source_group_cn)}</span>
+            <span id='source_group_cn'>${value_for(delegate_fields.source_group_cn)}</span>
             <a href="#" id='source_change_link'
               onclick="new Effect.Appear($('source_searcharea'), {duration: 0.25});
                        new Effect.Fade(this, {duration: 0.25});
@@ -128,23 +128,23 @@
       </tr>
       <tr>
         <th valign="top">
-          <label class="fieldlabel" for="${delegate.attrs.field_id}"
-            py:content="delegate.attrs.label" />:
+          <label class="fieldlabel" for="${delegate_fields.attrs.field_id}"
+            py:content="delegate_fields.attrs.label" />:
         </th>
         <td valign="top">
           <span py:if="tg.errors.get('attrs')" class="fielderror"
               py:content="tg.errors.get('attrs')" />
-          <span py:replace="delegate.attrs.display(value_for(delegate.attrs))" />
+          <span py:replace="delegate_fields.attrs.display(value_for(delegate_fields.attrs))" />
         </td>
       </tr>
       <tr>
         <th valign="top">
-          <label class="fieldlabel" for="${delegate.dest_group_cn.field_id}"
-            py:content="delegate.dest_group_cn.label" />:
+          <label class="fieldlabel" for="${delegate_fields.dest_group_cn.field_id}"
+            py:content="delegate_fields.dest_group_cn.label" />:
         </th>
         <td>
           <div>
-            <span id='dest_group_cn'>${value_for(delegate.dest_group_cn)}</span>
+            <span id='dest_group_cn'>${value_for(delegate_fields.dest_group_cn)}</span>
             <a href="#" id='dest_change_link'
               onclick="new Effect.Appear($('dest_searcharea'), {duration: 0.25});
                        new Effect.Fade(this, {duration: 0.25});

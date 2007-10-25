@@ -19,7 +19,7 @@ class GroupNewValidator(validators.Schema):
 
 
 class GroupNewForm(widgets.Form):
-    params = ['group']
+    params = ['group_fields']
 
     hidden_fields = [
       GroupFields.dn_to_info_json
@@ -30,7 +30,7 @@ class GroupNewForm(widgets.Form):
     def __init__(self, *args, **kw):
         super(GroupNewForm,self).__init__(*args, **kw)
         (self.template_c, self.template) = widgets.meta.load_kid_template("ipagui.templates.groupnewform")
-        self.group = GroupFields
+        self.group_fields = GroupFields
 
     def update_params(self, params):
         super(GroupNewForm,self).update_params(params)
@@ -45,7 +45,7 @@ class GroupEditValidator(validators.Schema):
     ]
 
 class GroupEditForm(widgets.Form):
-    params = ['members', 'group']
+    params = ['members', 'group_fields']
 
     hidden_fields = [
       GroupFields.cn_hidden, GroupFields.editprotected_hidden,
@@ -58,4 +58,4 @@ class GroupEditForm(widgets.Form):
     def __init__(self, *args, **kw):
         super(GroupEditForm,self).__init__(*args, **kw)
         (self.template_c, self.template) = widgets.meta.load_kid_template("ipagui.templates.groupeditform")
-        self.group = GroupFields
+        self.group_fields = GroupFields

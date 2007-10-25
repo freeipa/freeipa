@@ -65,11 +65,11 @@ from ipagui.helpers import ipahelper
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.title.field_id}"
-            py:content="user.title.label" />:
+          <label class="fieldlabel" for="${user_fields.title.field_id}"
+            py:content="user_fields.title.label" />:
         </th>
         <td>
-          <span py:replace="user.title.display(value_for(user.title))" />
+          <span py:replace="user_fields.title.display(value_for(user_fields.title))" />
           <span py:if="tg.errors.get('title')" class="fielderror"
               py:content="tg.errors.get('title')" />
 
@@ -78,11 +78,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.givenname.field_id}"
-            py:content="user.givenname.label" />:
+          <label class="fieldlabel" for="${user_fields.givenname.field_id}"
+            py:content="user_fields.givenname.label" />:
         </th>
         <td>
-          <span py:replace="user.givenname.display(value_for(user.givenname))" />
+          <span py:replace="user_fields.givenname.display(value_for(user_fields.givenname))" />
           <span py:if="tg.errors.get('givenname')" class="fielderror"
               py:content="tg.errors.get('givenname')" />
 
@@ -91,11 +91,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.sn.field_id}"
-            py:content="user.sn.label" />:
+          <label class="fieldlabel" for="${user_fields.sn.field_id}"
+            py:content="user_fields.sn.label" />:
         </th>
         <td>
-          <span py:replace="user.sn.display(value_for(user.sn))" />
+          <span py:replace="user_fields.sn.display(value_for(user_fields.sn))" />
           <span py:if="tg.errors.get('sn')" class="fielderror"
               py:content="tg.errors.get('sn')" />
           <script type="text/javascript">
@@ -171,11 +171,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.cn.field_id}"
-            py:content="user.cn.label" />:
+          <label class="fieldlabel" for="${user_fields.cn.field_id}"
+            py:content="user_fields.cn.label" />:
         </th>
         <td>
-          <span py:replace="user.cn.display(value_for(user.cn))" />
+          <span py:replace="user_fields.cn.display(value_for(user_fields.cn))" />
           <span py:if="tg.errors.get('cn')" class="fielderror"
               py:content="tg.errors.get('cn')" />
 
@@ -184,11 +184,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.displayname.field_id}"
-            py:content="user.displayname.label" />:
+          <label class="fieldlabel" for="${user_fields.displayname.field_id}"
+            py:content="user_fields.displayname.label" />:
         </th>
         <td>
-          <span py:replace="user.displayname.display(value_for(user.displayname))" />
+          <span py:replace="user_fields.displayname.display(value_for(user_fields.displayname))" />
           <span py:if="tg.errors.get('displayname')" class="fielderror"
               py:content="tg.errors.get('displayname')" />
 
@@ -197,11 +197,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.initials.field_id}"
-            py:content="user.initials.label" />:
+          <label class="fieldlabel" for="${user_fields.initials.field_id}"
+            py:content="user_fields.initials.label" />:
         </th>
         <td>
-          <span py:replace="user.initials.display(value_for(user.initials))" />
+          <span py:replace="user_fields.initials.display(value_for(user_fields.initials))" />
           <span py:if="tg.errors.get('initials')" class="fielderror"
               py:content="tg.errors.get('initials')" />
 
@@ -213,22 +213,22 @@ from ipagui.helpers import ipahelper
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.nsAccountLock.field_id}"
-            py:content="user.nsAccountLock.label" />:
+          <label class="fieldlabel" for="${user_fields.nsAccountLock.field_id}"
+            py:content="user_fields.nsAccountLock.label" />:
         </th>
         <td>
-          <span py:replace="user.nsAccountLock.display(value_for(user.nsAccountLock))" />
+          <span py:replace="user_fields.nsAccountLock.display(value_for(user_fields.nsAccountLock))" />
           <span py:if="tg.errors.get('nsAccountLock')" class="fielderror"
                     py:content="tg.errors.get('nsAccountLock')" />
         </td>
       </tr>
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.uid.field_id}"
-            py:content="user.uid.label" />:
+          <label class="fieldlabel" for="${user_fields.uid.field_id}"
+            py:content="user_fields.uid.label" />:
         </th>
         <td>
-          <span py:replace="user.uid.display(value_for(user.uid))" />
+          <span py:replace="user_fields.uid.display(value_for(user_fields.uid))" />
           <span py:if="tg.errors.get('uid')" class="fielderror"
               py:content="tg.errors.get('uid')" />
         </td>
@@ -236,11 +236,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.userpassword.field_id}"
-            py:content="user.userpassword.label" />:
+          <label class="fieldlabel" for="${user_fields.userpassword.field_id}"
+            py:content="user_fields.userpassword.label" />:
         </th>
         <td>
-          <span py:replace="user.userpassword.display(value_for(user.userpassword))" />
+          <span py:replace="user_fields.userpassword.display(value_for(user_fields.userpassword))" />
           <span py:if="tg.errors.get('userpassword')" class="fielderror"
               py:content="tg.errors.get('userpassword')" />
 
@@ -260,12 +260,12 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.userpassword_confirm.field_id}"
-            py:content="user.userpassword_confirm.label" />:
+          <label class="fieldlabel" for="${user_fields.userpassword_confirm.field_id}"
+            py:content="user_fields.userpassword_confirm.label" />:
         </th>
         <td>
-          <span py:replace="user.userpassword_confirm.display(
-              value_for(user.userpassword_confirm))" />
+          <span py:replace="user_fields.userpassword_confirm.display(
+              value_for(user_fields.userpassword_confirm))" />
           <span py:if="tg.errors.get('userpassword_confirm')" class="fielderror"
               py:content="tg.errors.get('userpassword_confirm')" />
         </td>
@@ -273,8 +273,8 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.uidnumber.field_id}"
-            py:content="user.uidnumber.label" />:
+          <label class="fieldlabel" for="${user_fields.uidnumber.field_id}"
+            py:content="user_fields.uidnumber.label" />:
         </th>
         <td>
           Generated by server
@@ -283,8 +283,8 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.gidnumber.field_id}"
-            py:content="user.gidnumber.label" />:
+          <label class="fieldlabel" for="${user_fields.gidnumber.field_id}"
+            py:content="user_fields.gidnumber.label" />:
         </th>
         <td>
           Generated by server
@@ -293,8 +293,8 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.homedirectory.field_id}"
-            py:content="user.homedirectory.label" />:
+          <label class="fieldlabel" for="${user_fields.homedirectory.field_id}"
+            py:content="user_fields.homedirectory.label" />:
         </th>
         <td>
           Generated by server
@@ -303,12 +303,12 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.loginshell.field_id}"
-            py:content="user.loginshell.label" />:
+          <label class="fieldlabel" for="${user_fields.loginshell.field_id}"
+            py:content="user_fields.loginshell.label" />:
         </th>
         <td>
-          <span py:replace="user.loginshell.display(
-              value_for(user.loginshell))" />
+          <span py:replace="user_fields.loginshell.display(
+              value_for(user_fields.loginshell))" />
           <span py:if="tg.errors.get('loginshell')" class="fielderror"
               py:content="tg.errors.get('loginshell')" />
         </td>
@@ -316,12 +316,12 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.gecos.field_id}"
-            py:content="user.gecos.label" />:
+          <label class="fieldlabel" for="${user_fields.gecos.field_id}"
+            py:content="user_fields.gecos.label" />:
         </th>
         <td>
-          <span py:replace="user.gecos.display(
-              value_for(user.gecos))" />
+          <span py:replace="user_fields.gecos.display(
+              value_for(user_fields.gecos))" />
           <span py:if="tg.errors.get('gecos')" class="fielderror"
               py:content="tg.errors.get('gecos')" />
         </td>
@@ -332,11 +332,11 @@ from ipagui.helpers import ipahelper
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.mail.field_id}"
-            py:content="user.mail.label" />:
+          <label class="fieldlabel" for="${user_fields.mail.field_id}"
+            py:content="user_fields.mail.label" />:
         </th>
         <td>
-          <span py:replace="user.mail.display(value_for(user.mail))" />
+          <span py:replace="user_fields.mail.display(value_for(user_fields.mail))" />
           <span py:if="tg.errors.get('mail')" class="fielderror"
               py:content="tg.errors.get('mail')" />
         </td>
@@ -344,11 +344,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.telephonenumber.field_id}"
-            py:content="user.telephonenumber.label" />:
+          <label class="fieldlabel" for="${user_fields.telephonenumber.field_id}"
+            py:content="user_fields.telephonenumber.label" />:
         </th>
         <td>
-          <span py:replace="user.telephonenumber.display(value_for(user.telephonenumber))" />
+          <span py:replace="user_fields.telephonenumber.display(value_for(user_fields.telephonenumber))" />
           <span py:if="tg.errors.get('telephonenumber')" class="fielderror"
               py:content="tg.errors.get('telephonenumber')" />
         </td>
@@ -356,11 +356,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.facsimiletelephonenumber.field_id}"
-            py:content="user.facsimiletelephonenumber.label" />:
+          <label class="fieldlabel" for="${user_fields.facsimiletelephonenumber.field_id}"
+            py:content="user_fields.facsimiletelephonenumber.label" />:
         </th>
         <td>
-          <span py:replace="user.facsimiletelephonenumber.display(value_for(user.facsimiletelephonenumber))" />
+          <span py:replace="user_fields.facsimiletelephonenumber.display(value_for(user_fields.facsimiletelephonenumber))" />
           <span py:if="tg.errors.get('facsimiletelephonenumber')" class="fielderror"
               py:content="tg.errors.get('facsimiletelephonenumber')" />
         </td>
@@ -368,11 +368,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.mobile.field_id}"
-            py:content="user.mobile.label" />:
+          <label class="fieldlabel" for="${user_fields.mobile.field_id}"
+            py:content="user_fields.mobile.label" />:
         </th>
         <td>
-          <span py:replace="user.mobile.display(value_for(user.mobile))" />
+          <span py:replace="user_fields.mobile.display(value_for(user_fields.mobile))" />
           <span py:if="tg.errors.get('mobile')" class="fielderror"
               py:content="tg.errors.get('mobile')" />
         </td>
@@ -380,11 +380,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.pager.field_id}"
-            py:content="user.pager.label" />:
+          <label class="fieldlabel" for="${user_fields.pager.field_id}"
+            py:content="user_fields.pager.label" />:
         </th>
         <td>
-          <span py:replace="user.pager.display(value_for(user.pager))" />
+          <span py:replace="user_fields.pager.display(value_for(user_fields.pager))" />
           <span py:if="tg.errors.get('pager')" class="fielderror"
               py:content="tg.errors.get('pager')" />
         </td>
@@ -392,11 +392,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.homephone.field_id}"
-            py:content="user.homephone.label" />:
+          <label class="fieldlabel" for="${user_fields.homephone.field_id}"
+            py:content="user_fields.homephone.label" />:
         </th>
         <td>
-          <span py:replace="user.homephone.display(value_for(user.homephone))" />
+          <span py:replace="user_fields.homephone.display(value_for(user_fields.homephone))" />
           <span py:if="tg.errors.get('homephone')" class="fielderror"
               py:content="tg.errors.get('homephone')" />
         </td>
@@ -407,11 +407,11 @@ from ipagui.helpers import ipahelper
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.street.field_id}"
-            py:content="user.street.label" />:
+          <label class="fieldlabel" for="${user_fields.street.field_id}"
+            py:content="user_fields.street.label" />:
         </th>
         <td>
-          <span py:replace="user.street.display(value_for(user.street))" />
+          <span py:replace="user_fields.street.display(value_for(user_fields.street))" />
           <span py:if="tg.errors.get('street')" class="fielderror"
               py:content="tg.errors.get('street')" />
         </td>
@@ -419,11 +419,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.roomnumber.field_id}"
-            py:content="user.roomnumber.label" />:
+          <label class="fieldlabel" for="${user_fields.roomnumber.field_id}"
+            py:content="user_fields.roomnumber.label" />:
         </th>
         <td>
-          <span py:replace="user.roomnumber.display(value_for(user.roomnumber))" />
+          <span py:replace="user_fields.roomnumber.display(value_for(user_fields.roomnumber))" />
           <span py:if="tg.errors.get('roomnumber')" class="fielderror"
               py:content="tg.errors.get('roomnumber')" />
         </td>
@@ -431,11 +431,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.l.field_id}"
-            py:content="user.l.label" />:
+          <label class="fieldlabel" for="${user_fields.l.field_id}"
+            py:content="user_fields.l.label" />:
         </th>
         <td>
-          <span py:replace="user.l.display(value_for(user.l))" />
+          <span py:replace="user_fields.l.display(value_for(user_fields.l))" />
           <span py:if="tg.errors.get('l')" class="fielderror"
               py:content="tg.errors.get('l')" />
         </td>
@@ -443,11 +443,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.st.field_id}"
-            py:content="user.st.label" />:
+          <label class="fieldlabel" for="${user_fields.st.field_id}"
+            py:content="user_fields.st.label" />:
         </th>
         <td>
-          <span py:replace="user.st.display(value_for(user.st))" />
+          <span py:replace="user_fields.st.display(value_for(user_fields.st))" />
           <span py:if="tg.errors.get('st')" class="fielderror"
               py:content="tg.errors.get('st')" />
         </td>
@@ -455,11 +455,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.postalcode.field_id}"
-            py:content="user.postalcode.label" />:
+          <label class="fieldlabel" for="${user_fields.postalcode.field_id}"
+            py:content="user_fields.postalcode.label" />:
         </th>
         <td>
-          <span py:replace="user.postalcode.display(value_for(user.postalcode))" />
+          <span py:replace="user_fields.postalcode.display(value_for(user_fields.postalcode))" />
           <span py:if="tg.errors.get('postalcode')" class="fielderror"
               py:content="tg.errors.get('postalcode')" />
         </td>
@@ -470,11 +470,11 @@ from ipagui.helpers import ipahelper
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.ou.field_id}"
-            py:content="user.ou.label" />:
+          <label class="fieldlabel" for="${user_fields.ou.field_id}"
+            py:content="user_fields.ou.label" />:
         </th>
         <td>
-          <span py:replace="user.ou.display(value_for(user.ou))" />
+          <span py:replace="user_fields.ou.display(value_for(user_fields.ou))" />
           <span py:if="tg.errors.get('ou')" class="fielderror"
               py:content="tg.errors.get('ou')" />
         </td>
@@ -482,11 +482,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.businesscategory.field_id}"
-            py:content="user.businesscategory.label" />:
+          <label class="fieldlabel" for="${user_fields.businesscategory.field_id}"
+            py:content="user_fields.businesscategory.label" />:
         </th>
         <td>
-          <span py:replace="user.businesscategory.display(value_for(user.businesscategory))" />
+          <span py:replace="user_fields.businesscategory.display(value_for(user_fields.businesscategory))" />
           <span py:if="tg.errors.get('businesscategory')" class="fielderror"
               py:content="tg.errors.get('businesscategory')" />
         </td>
@@ -494,11 +494,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.description.field_id}"
-            py:content="user.description.label" />:
+          <label class="fieldlabel" for="${user_fields.description.field_id}"
+            py:content="user_fields.description.label" />:
         </th>
         <td>
-          <span py:replace="user.description.display(value_for(user.description))" />
+          <span py:replace="user_fields.description.display(value_for(user_fields.description))" />
           <span py:if="tg.errors.get('description')" class="fielderror"
               py:content="tg.errors.get('description')" />
         </td>
@@ -506,11 +506,11 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.employeetype.field_id}"
-            py:content="user.employeetype.label" />:
+          <label class="fieldlabel" for="${user_fields.employeetype.field_id}"
+            py:content="user_fields.employeetype.label" />:
         </th>
         <td>
-          <span py:replace="user.employeetype.display(value_for(user.employeetype))" />
+          <span py:replace="user_fields.employeetype.display(value_for(user_fields.employeetype))" />
           <span py:if="tg.errors.get('employeetype')" class="fielderror"
               py:content="tg.errors.get('employeetype')" />
         </td>
@@ -518,12 +518,12 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th valign="top">
-          <label class="fieldlabel" for="${user.manager.field_id}"
-            py:content="user.manager.label" />:
+          <label class="fieldlabel" for="${user_fields.manager.field_id}"
+            py:content="user_fields.manager.label" />:
         </th>
         <td valign="top">
           <div>
-            <span id='manager_select_cn'>${value_for(user.manager)}</span>
+            <span id='manager_select_cn'>${value_for(user_fields.manager)}</span>
             <span id='manager_links'>
               <a href="#" onclick="return clearSelect('manager');">clear</a>
               <a href="#" onclick="return startSelect('manager');">change</a>
@@ -547,12 +547,12 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.secretary.field_id}"
-            py:content="user.secretary.label" />:
+          <label class="fieldlabel" for="${user_fields.secretary.field_id}"
+            py:content="user_fields.secretary.label" />:
         </th>
         <td>
           <div>
-            <span id='secretary_select_cn'>${value_for(user.secretary)}</span>
+            <span id='secretary_select_cn'>${value_for(user_fields.secretary)}</span>
             <span id='secretary_links'>
               <a href="#" onclick="return clearSelect('secretary');">clear</a>
               <a href="#" onclick="return startSelect('secretary');">change</a>
@@ -579,22 +579,22 @@ from ipagui.helpers import ipahelper
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.carlicense.field_id}"
-            py:content="user.carlicense.label" />:
+          <label class="fieldlabel" for="${user_fields.carlicense.field_id}"
+            py:content="user_fields.carlicense.label" />:
         </th>
         <td>
-          <span py:replace="user.carlicense.display(value_for(user.carlicense))" />
+          <span py:replace="user_fields.carlicense.display(value_for(user_fields.carlicense))" />
           <span py:if="tg.errors.get('carlicense')" class="fielderror"
               py:content="tg.errors.get('carlicense')" />
         </td>
       </tr>
       <tr>
         <th>
-          <label class="fieldlabel" for="${user.labeleduri.field_id}"
-            py:content="user.labeleduri.label" />:
+          <label class="fieldlabel" for="${user_fields.labeleduri.field_id}"
+            py:content="user_fields.labeleduri.label" />:
         </th>
         <td>
-          <span py:replace="user.labeleduri.display(value_for(user.labeleduri))" />
+          <span py:replace="user_fields.labeleduri.display(value_for(user_fields.labeleduri))" />
           <span py:if="tg.errors.get('labeleduri')" class="fielderror"
               py:content="tg.errors.get('labeleduri')" />
         </td>
