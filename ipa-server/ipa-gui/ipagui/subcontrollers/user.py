@@ -173,9 +173,18 @@ class UserController(IPAController):
         user_dict['dn_to_info_json'] = kw.get('dn_to_info_json')
 
         #
-        # Password change
-        # TODO
+        # Set the Password
         #
+        if kw.get('userpassword'):
+            try:
+                client.modifyPassword(user_dict['krbprincipalname'], "", kw.get('userpassword'))
+            except ipaerror.IPAError, e:
+                message = "Person successfully created.<br />"
+                message += "There was an error setting the password.<br />"
+                turbogears.flash(message)
+                return dict(form=user_edit_form, user=user_dict,
+                            user_groups=user_groups_dicts,
+                            tg_template='ipagui.templates.useredit')
 
         #
         # Add groups
