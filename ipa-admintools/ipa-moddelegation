@@ -155,7 +155,7 @@ def main():
         print "%s" % (e.message)
         return 1
 
-    print "Delegation %s successfully added" % args[1]
+    print "Delegation %s successfully updated" % args[1]
     return 0
 
 if __name__ == "__main__":

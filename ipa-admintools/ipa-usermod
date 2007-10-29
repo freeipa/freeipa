@@ -47,7 +47,7 @@ def parse_options():
     parser.add_option("-s", "--shell", dest="shell",
                       help="Set user's login shell to shell")
     parser.add_option("-M", "--mailAddress", dest="mail",
-                      help="Set uesr's e-mail address")
+                      help="Set user's e-mail address")
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
@@ -179,8 +179,6 @@ def main():
         user.setValue('sn', lastname)
     if mail:
         user.setValue('mail', mail)
-    user.setValue('cn', "%s %s" % (user.getValue('givenname'),
-                                   user.getValue('sn')))
 
     if gecos:
         user.setValue('gecos', gecos)
