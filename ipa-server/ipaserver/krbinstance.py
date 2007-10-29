@@ -175,6 +175,22 @@ class KrbInstance:
         krb5_fd.write(krb5_conf)
         krb5_fd.close()
 
+        # Windows configuration files
+        krb5_ini = template_file(SHARE_DIR+"krb5.ini.template", self.sub_dict)
+        krb5_fd = open("/usr/share/ipa/html/krb5.ini", "w+")
+        krb5_fd.write(krb5_ini)
+        krb5_fd.close()
+
+        krb_con = template_file(SHARE_DIR+"krb.con.template", self.sub_dict)
+        krb_fd = open("/usr/share/ipa/html/krb.con", "w+")
+        krb_fd.write(krb_con)
+        krb_fd.close()
+
+        krb_realm = template_file(SHARE_DIR+"krbrealm.con.template", self.sub_dict)
+        krb_fd = open("/usr/share/ipa/html/krbrealm.con", "w+")
+        krb_fd.write(krb_realm)
+        krb_fd.close()
+
         #populate the directory with the realm structure
         args = ["/usr/kerberos/sbin/kdb5_ldap_util", "-D", "uid=kdc,cn=sysaccounts,cn=etc,"+self.suffix, "-w", self.kdc_password, "create", "-s", "-P", self.master_password, "-r", self.realm, "-subtrees", self.suffix, "-sscope", "sub"]
         try:

@@ -12,6 +12,9 @@ app_DATA =			\
 	certmap.conf.template	\
 	kdc.conf.template	\
 	krb5.conf.template	\
+	krb5.ini.template	\
+	krb.con.template	\
+	krbrealm.con.template	\
 	$(NULL)
 
 EXTRA_DIST =			\

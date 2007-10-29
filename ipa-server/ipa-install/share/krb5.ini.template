@@ -1,0 +1,19 @@
+[libdefaults]
+        default_realm = $REALM
+        krb4_config = /usr/kerberos/lib/krb.conf
+        krb4_realms = /usr/kerberos/lib/krb.realms
+        dns_lookup_kdc = true
+
+[realms]
+        $REALM = {
+                admin_server = $FQDN
+                kdc = $FQDN
+                default_domain = $REALM
+        }
+
+[domain_realm]
+        .$DOMAIN = $REALM
+        $DOMAIN = $REALM
+
+[logging]
+#       kdc = CONSOLE
