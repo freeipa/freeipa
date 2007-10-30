@@ -45,6 +45,7 @@ objectClass: top
 objectClass: person
 objectClass: posixAccount
 objectClass: KrbPrincipalAux
+objectClass: inetUser
 uid: admin
 krbPrincipalName: admin@$REALM
 cn: Administrator
