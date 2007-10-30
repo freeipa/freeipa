@@ -1061,6 +1061,37 @@ class IPAServer:
 
         return label_list
 
+    def memberOf(self, groupdn, attr_list, opts=None):
+        """Do a memberOf search of groupdn and return the attributes in
+           attr_list (an empty list returns everything)."""
+
+        # TODO - retrieve from config
+        timelimit = 2
+
+        searchlimit = 0
+
+        groupdn = self.__safe_filter(groupdn)
+        filter = "(memberOf=%s)" % groupdn
+
+        conn = self.getConnection(opts)
+        try:
+            results = conn.getListAsync(self.basedn, self.scope,
+                filter, attr_list, 0, None, None, timelimit,
+                searchlimit)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            results = [0]
+        finally:
+            self.releaseConnection(conn)
+
+        counter = results[0]
+        results = results[1:]
+
+        entries = [counter]
+        for e in results:
+            entries.append(self.convert_entry(e))
+
+        return entries
+
 def ldap_search_escape(match):
     """Escapes out nasty characters from the ldap search.
     See RFC 2254."""

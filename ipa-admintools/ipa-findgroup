@@ -48,7 +48,7 @@ def main():
 
     try:
         client = ipaclient.IPAClient()
-        groups = client.find_groups(args[1])
+        groups = client.find_groups(args[1], ['cn','description','gidnumber'])
 
         counter = groups[0]
         groups = groups[1:]
@@ -57,6 +57,12 @@ def main():
             return 2
 
         for ent in groups:
+            try:
+                members = client.memberOf(ent.dn, ['dn','cn'])
+            except ipa.ipaerror.IPAError, e:
+                print "Error getting members for " + ent.dn
+                print str(e)
+                continue
             attr = ent.attrList()
 
             print "dn: " + ent.dn
@@ -69,6 +75,14 @@ def main():
                     print a + ": "
                     for l in value:
                         print "\t" +  l
+
+            counter = members[0]
+            members = members[1:]
+
+            if counter > 0:
+                print "Members:"
+                for m in members:
+                    print "    " + m['cn'] + ": " + m['dn']
             # blank line between results
             print 
 

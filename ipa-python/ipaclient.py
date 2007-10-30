@@ -316,3 +316,11 @@ class IPAClient:
         """Convert a list of LDAP attributes into a more readable form."""
 
         return self.transport.attrs_to_labels(attrs)
+
+    def memberOf(self, groupdn, attr_list):
+        """Do a memberOf search of groupdn and return the attributes in
+           attr_list (an empty list returns everything)."""
+
+        return self.transport.memberOf(groupdn, attr_list)
+
+
