@@ -7,6 +7,7 @@ app_DATA =			\
 	bootstrap-template.ldif	\
 	default-aci.ldif	\
 	kerberos.ldif		\
+	indeces.ldif		\
 	bind.named.conf.template\
 	bind.zone.db.template	\
 	certmap.conf.template	\

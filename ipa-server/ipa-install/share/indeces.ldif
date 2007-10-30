@@ -1,0 +1,57 @@
+dn: cn=krbPrincipalName,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+objectClass:top
+objectClass:nsIndex
+cn:krbPrincipalName
+nsSystemIndex:false
+nsIndexType:eq
+nsIndexType:sub
+
+dn: cn=ou,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+objectClass:top
+objectClass:nsIndex
+cn:ou
+nsSystemIndex:false
+nsIndexType:eq
+nsIndexType:sub
+
+dn: cn=carLicense,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+objectClass:top
+objectClass:nsIndex
+cn:carLicense
+nsSystemIndex:false
+nsIndexType:eq
+nsIndexType:sub
+
+dn: cn=title,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+objectClass:top
+objectClass:nsIndex
+cn:title
+nsSystemIndex:false
+nsIndexType:eq
+nsIndexType:sub
+
+dn: cn=manager,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+objectClass:top
+objectClass:nsIndex
+cn:manager
+nsSystemIndex:false
+nsIndexType:eq
+
+dn: cn=displayname,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+objectClass:top
+objectClass:nsIndex
+cn:displayname
+nsSystemIndex:false
+nsIndexType:eq
+nsIndexType:sub
+
+dn: cn=uid,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: modify
+add: nsIndexType
+nsIndexType:sub

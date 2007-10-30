@@ -81,6 +81,7 @@ class DsInstance:
         self.__create_instance()
         self.__add_default_schemas()
         self.__add_memberof_module()
+        self.__create_indeces()
         self.__enable_ssl()
         self.__certmap_conf()
         try:
@@ -193,6 +194,19 @@ class DsInstance:
         except subprocess.CalledProcessError, e:
             print "Failed to add default ds layout", e
             logging.debug("Failed to add default ds layout %s" % e)
+        
+    def __create_indeces(self):
+        txt = template_file(SHARE_DIR + "indeces.ldif", self.sub_dict)
+        inf_fd = write_tmp_file(txt)
+        logging.debug("adding/updating indeces")
+        args = ["/usr/bin/ldapmodify", "-xv", "-D", "cn=Directory Manager",
+                "-w", self.dm_password, "-f", inf_fd.name]
+        try:
+            run(args)
+            logging.debug("done adding/updating indeces")
+        except subprocess.CalledProcessError, e:
+            print "Failed to add default ds layout", e
+            logging.debug("Failed to add/update indeces %s" % e)
 
     def __certmap_conf(self):
         logging.debug("configuring certmap.conf for ds instance")
