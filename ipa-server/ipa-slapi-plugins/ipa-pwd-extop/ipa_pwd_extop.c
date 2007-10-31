@@ -162,6 +162,21 @@ int n_keysalts;
 
  */
 
+struct kbvals {
+	ber_int_t kvno;
+	struct berval *bval;
+};
+
+static int cmpkbvals(const void *p1, const void *p2)
+{
+	const struct kbvals *k1, *k2;
+
+	k1 = (struct kbvals *)p1;
+	k2 = (struct kbvals *)p2;
+
+	return (((int)k1->kvno) - ((int)k2->kvno));
+}
+
 static inline void encode_int16(unsigned int val, unsigned char *p)
 {
     p[1] = (val >>  8) & 0xff; 
@@ -170,16 +185,26 @@ static inline void encode_int16(unsigned int val, unsigned char *p)
 
 static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, const char *newPasswd)
 {
+	const char *krbPrincipalName;
+	const char *krbLastPwdChange;
+	uint32_t krbMaxTicketLife;
+	Slapi_Attr *krbPrincipalKey = NULL;
+	struct kbvals *kbvals = NULL;
+	time_t lastpwchange;
+	time_t time_now;
+	int kvno;
+	int num_versions, num_keys;
+	int krbTicketFlags;
+	BerElement *be;
 	struct berval *bval = NULL;
 	Slapi_Value **svals = NULL;
-	BerElement *be = NULL;
-	int num_versions;
-	int krbTicketFlags;
-	const char *krbPrincipalName;
+	int svals_no;
 	krb5_principal princ;
 	krb5_error_code krberr;
 	krb5_data pwd;
 	int ret, i;
+
+	time_now = time(NULL);
 
 	krbPrincipalName = slapi_entry_attr_get_charptr(e, "krbPrincipalName");
 	if (!krbPrincipalName) {
@@ -187,9 +212,119 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 		return NULL;
 	}
 
-	/* TODO: retrieve current kvno and increment it */
-	/* TODO: keep previous version */
+	krbMaxTicketLife = slapi_entry_attr_get_uint(e, "krbMaxTicketLife");
+	if (krbMaxTicketLife == 0) {
+		/* FIXME: retrieve the default from config (max_life from kdc.conf) */
+		krbMaxTicketLife = 86400; /* just set the default 24h for now */
+	}
+
+	krbLastPwdChange = slapi_entry_attr_get_charptr(e, "krbLastPwdChange");
+	if (!krbLastPwdChange) {
+		lastpwchange = -1;
+	} else {
+		struct tm tm;
+
+		memset(&tm, 0, sizeof(struct tm));
+		ret = sscanf(krbLastPwdChange,
+			     "%04u%02u%02u%02u%02u%02u",
+			     &tm.tm_year, &tm.tm_mon, &tm.tm_mday, 
+			     &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
+
+		if (ret == 6) {
+			tm.tm_year -= 1900;
+			tm.tm_mon -= 1;
+			lastpwchange = timegm(&tm);
+		} else {
+			/* FIXME: report an error ? */
+			lastpwchange = -1;
+		}
+	}
+	/* FIXME: warn if lastpwchange == -1 ? */
+
+	kvno = 0;
+	num_keys = 0;
 	num_versions = 1;
+
+	/* retrieve current kvno and and keys */
+	ret = slapi_entry_attr_find(e, "krbPrincipalKey", &krbPrincipalKey);
+	if (ret == 0) {
+		int i, n, count, idx;
+		ber_int_t tkvno;
+		Slapi_ValueSet *svs;
+		Slapi_Value *sv;
+		ber_tag_t tag, tmp;
+
+		slapi_attr_get_valueset(krbPrincipalKey, &svs);
+		count = slapi_valueset_count(svs);
+		if (count > 0) {
+			kbvals = (struct kbvals *)calloc(count, sizeof(struct kbvals));
+		}
+		n = 0;
+		for (i = 0; count > 0 && i < count; i++) {
+			if (i == 0) {
+				idx = slapi_valueset_first_value(svs, &sv);
+			} else {
+				idx = slapi_valueset_next_value(svs, idx, &sv);
+			}
+			if (idx == -1) {
+				slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
+						"Array of stored keys shorter than expected\n");
+				break;
+			}
+			bval = slapi_value_get_berval(sv);
+			if (!bval) {
+				slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
+						"Error retrieving berval from Slapi_Value\n");
+				continue;
+			}
+			be = ber_init(bval);
+			if (!be) {
+				slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
+						"ber_init() failed!\n");
+				continue;
+			}
+
+			tag = ber_scanf(be, "{xxt[i]", &tmp, &tkvno);
+			if (tag == LBER_ERROR) {
+				slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
+						"Bad OLD key encoding ?!\n");
+				ber_free(be, 1);
+				continue;
+			}
+
+			kbvals[n].kvno = tkvno;
+			kbvals[n].bval = bval;
+			n++;
+
+			if (tkvno > kvno) {
+				kvno = tkvno;
+			}
+
+			ber_free(be, 1);
+		}
+		num_keys = n;
+
+		/* now verify how many keys we need to keep around */
+		if (num_keys > 0 && lastpwchange != -1) {
+			if (time_now > lastpwchange + krbMaxTicketLife) {
+				/* the last password change was long ago,
+				 * at most only the last entry need to be kept */
+				num_versions = 2;
+			} else {
+				/* we don't know how many changes have happened since
+				 * the oldest krbtgt was release, keep all + new */
+				num_versions = num_keys + 1;
+			}
+
+			/* now reorder by kvno */
+			if (num_keys > 1) {
+				qsort(kbvals, num_keys, sizeof(struct kbvals), cmpkbvals);
+			}
+		}
+	}
+
+	/* increment kvno (will be 1 if this is a new entry) */
+	kvno++;
 
 	svals = (Slapi_Value **)calloc(num_versions + 1, sizeof(Slapi_Value *));
 	if (!svals) {
@@ -197,8 +332,19 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 		return NULL;
 	}
 
-	svals[1] = NULL;
-	
+	/* set all old keys to save */
+	for (svals_no = 0; svals_no < (num_versions - 1); svals_no++) {
+		int idx;
+
+		idx = num_keys - (num_versions - 1) + svals_no;
+		svals[svals_no] = slapi_value_new_berval(kbvals[idx].bval);
+		if (!svals[svals_no]) {
+			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
+					"Converting berval to Slapi_Value\n");
+			goto enc_error;
+		}
+	}
+
 	krberr = krb5_parse_name(krbctx, krbPrincipalName, &princ);
 	if (krberr) {
 		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
@@ -220,13 +366,13 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 		goto enc_error;
 	}
 
-	/* major-vno = 1 and minor-von = 1 */
-	/* this encoding assumes all keys have the same kvno (currently set at 1) */
+	/* major-vno = 1 and minor-vno = 1 */
+	/* this encoding assumes all keys have the same kvno */
 	/* we also assum mkvno is 0 */
 	ret = ber_printf(be, "{t[i]t[i]t[i]t[i]t[{",
 				(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0), 1,
 				(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 1), 1,
-				(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 2), 1,
+				(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 2), kvno,
 				(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 3), 0,
 				(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 4));
 	if (ret == -1) {
@@ -435,12 +581,15 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, Slapi_Entry *e, con
 		goto enc_error;
 	}
 
-	svals[0] = slapi_value_new_berval(bval);
-	if (!svals[0]) {
+	svals[svals_no] = slapi_value_new_berval(bval);
+	if (!svals[svals_no]) {
 		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 				"Converting berval to Slapi_Value\n");
 		goto enc_error;
 	}
+
+	svals_no++;
+	svals[svals_no] = NULL;
 
 	krb5_free_principal(krbctx, princ);
 	ber_bvfree(bval);
