@@ -317,11 +317,11 @@ class IPAClient:
 
         return self.transport.attrs_to_labels(attrs)
 
-    def memberOf(self, groupdn, attr_list):
+    def group_members(self, groupdn, attr_list):
         """Do a memberOf search of groupdn and return the attributes in
            attr_list (an empty list returns everything)."""
 
-        results = self.transport.memberOf(groupdn, attr_list)
+        results = self.transport.group_members(groupdn, attr_list)
 
         counter = results[0]
 

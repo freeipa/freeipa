@@ -184,7 +184,7 @@ class GroupController(IPAController):
             # convert members to users, for easier manipulation on the page
             #
 
-            members = client.memberOf(group.dn, ['dn', 'givenname', 'sn', 'uid', 'cn'])
+            members = client.group_members(group.dn, ['dn', 'givenname', 'sn', 'uid', 'cn'])
             members.sort(self.sort_group_member)
 
             # Map users into an array of dicts, which can be serialized
@@ -349,7 +349,7 @@ class GroupController(IPAController):
             # convert members to users, for display on the page
             #
 
-            members = client.memberOf(group.dn, ['dn', 'givenname', 'sn', 'uid', 'cn'])
+            members = client.group_members(group.dn, ['dn', 'givenname', 'sn', 'uid', 'cn'])
             members = members[1:]
             members.sort(self.sort_group_member)
             member_dicts = map(lambda member: member.toDict(), members)

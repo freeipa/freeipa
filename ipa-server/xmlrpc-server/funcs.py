@@ -1061,7 +1061,7 @@ class IPAServer:
 
         return label_list
 
-    def memberOf(self, groupdn, attr_list, opts=None):
+    def group_members(self, groupdn, attr_list, opts=None):
         """Do a memberOf search of groupdn and return the attributes in
            attr_list (an empty list returns everything)."""
 

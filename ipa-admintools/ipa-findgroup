@@ -58,7 +58,7 @@ def main():
 
         for ent in groups:
             try:
-                members = client.memberOf(ent.dn, ['dn','cn'])
+                members = client.group_members(ent.dn, ['dn','cn'])
             except ipa.ipaerror.IPAError, e:
                 print "Error getting members for " + ent.dn
                 print str(e)
