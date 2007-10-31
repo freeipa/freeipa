@@ -31,7 +31,7 @@ import kerberos
 import ldap
 
 def usage():
-    print "ipa-usermod [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] [-s|--shell STRING] [--add attribute=value(,value1,..,valuen)] [--del attribute] [--set attribute=value(,value1,..,valuen)] user"
+    print "ipa-usermod [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] [-s|--shell STRING] [--add attribute=value] [--del attribute] [--set attribute=value] user"
     sys.exit(1)
 
 def set_add_usage(which):
@@ -50,7 +50,7 @@ def parse_options():
     parser.add_option("-s", "--shell", dest="shell",
                       help="Set user's login shell to shell")
     parser.add_option("--add", dest="addattr",
-                      help="Adds an attribute or values to that attribute, attr=value(,value1,value2)",
+                      help="Adds an attribute or values to that attribute, attr=value",
                       action="append")
     parser.add_option("--del", dest="delattr",
                       help="Remove an attribute", action="append")
@@ -167,6 +167,7 @@ def main():
                     print "Must be letters, numbers, spaces or '"
                 else:
                     cont = True
+
         cont = False
         if not options.directory:
             while (cont != True):
@@ -210,9 +211,8 @@ def main():
             if len(s) != 2:
                 set_add_usage("set")
                 sys.exit(1)
-            (attr,value) = s            
-            values = value.split(',')
-            user.setValue(attr, values)
+            (attr,value) = s   
+            user.setValue(attr, value)
 
     if options.addattr:
         for a in options.addattr:
@@ -221,13 +221,12 @@ def main():
                 set_add_usage("add")
                 sys.exit(1)
             (attr,value) = a      
-            values = value.split(',')
             cvalue = user.getValue(attr)
             if cvalue:
                 if isinstance(cvalue,str):
                     cvalue = [cvalue]
-                values = cvalue + values
-            user.setValue(attr, values)
+                value = cvalue + [value]
+            user.setValue(attr, value)
 
 
     try:
