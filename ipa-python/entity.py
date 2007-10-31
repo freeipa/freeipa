@@ -105,6 +105,11 @@ class Entity:
 
     setValues = setValue
 
+    def delValue(self,name):
+        """Remove the attribute named name."""
+        if self.data.get(name,None):
+            del self.data[name]
+
     def toTupleList(self):
         """Convert the attrs and values to a list of 2-tuples.  The first element
         of the tuple is the attribute name.  The second element is either a
