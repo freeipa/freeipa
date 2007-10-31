@@ -34,6 +34,9 @@ def usage():
     print "ipa-usermod [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] [-s|--shell STRING] [--add attribute=value(,value1,..,valuen)] [--del attribute] [--set attribute=value(,value1,..,valuen)] user"
     sys.exit(1)
 
+def set_add_usage(which):
+    print "%s option usage: --%s NAME=VALUE" % (which, which)
+
 def parse_options():
     parser = OptionParser()
     parser.add_option("-c", "--gecos", dest="gecos",
@@ -47,11 +50,13 @@ def parse_options():
     parser.add_option("-s", "--shell", dest="shell",
                       help="Set user's login shell to shell")
     parser.add_option("--add", dest="addattr",
-                      help="Adds an attribute or values to that attribute, attr=value(,value1,value2)")
+                      help="Adds an attribute or values to that attribute, attr=value(,value1,value2)",
+                      action="append")
     parser.add_option("--del", dest="delattr",
-                      help="Remove an attribute")
+                      help="Remove an attribute", action="append")
     parser.add_option("--set", dest="setattr",
-                      help="Set an attribute, dropping any existing values that may exist")
+                      help="Set an attribute, dropping any existing values that may exist",
+                      action="append")
     parser.add_option("-M", "--mailAddress", dest="mail",
                       help="Set user's e-mail address")
     parser.add_option("--usage", action="store_true",
@@ -194,24 +199,36 @@ def main():
     if shell:
         user.setValue('loginshell', shell)
 
+    if options.delattr:
+        for d in options.delattr:
+            # doesn't truly delete the attribute but does null out the value
+            user.setValue(d, '')
+
     if options.setattr:
-        (attr,value) = options.setattr.split('=')
-        values = value.split(',')
-        user.setValue(attr, values)
+        for s in options.setattr:
+            s = s.split('=')
+            if len(s) != 2:
+                set_add_usage("set")
+                sys.exit(1)
+            (attr,value) = s            
+            values = value.split(',')
+            user.setValue(attr, values)
 
     if options.addattr:
-        (attr,value) = options.addattr.split('=')
-        values = value.split(',')
-        cvalue = user.getValue(attr)
-        if cvalue:
-            if isinstance(cvalue,str):
-                cvalue = [cvalue]
-            values = cvalue + values
-        user.setValue(attr, values)
+        for a in options.addattr:
+            a = a.split('=')
+            if len(a) != 2:
+                set_add_usage("add")
+                sys.exit(1)
+            (attr,value) = a      
+            values = value.split(',')
+            cvalue = user.getValue(attr)
+            if cvalue:
+                if isinstance(cvalue,str):
+                    cvalue = [cvalue]
+                values = cvalue + values
+            user.setValue(attr, values)
 
-    if options.delattr:
-        # doesn't truly delete the attribute but does null out the value
-        user.setValue(options.delattr, '')
 
     try:
         client.update_user(user)
