@@ -31,7 +31,7 @@ import kerberos
 import ldap
 
 def usage():
-    print "ipa-usermod [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] user"
+    print "ipa-usermod [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] [-s|--shell STRING] [--add attribute=value(,value1,..,valuen)] [--del attribute] [--set attribute=value(,value1,..,valuen)] user"
     sys.exit(1)
 
 def parse_options():
@@ -46,6 +46,12 @@ def parse_options():
                       help="User's last name")
     parser.add_option("-s", "--shell", dest="shell",
                       help="Set user's login shell to shell")
+    parser.add_option("--add", dest="addattr",
+                      help="Adds an attribute or values to that attribute, attr=value(,value1,value2)")
+    parser.add_option("--del", dest="delattr",
+                      help="Remove an attribute")
+    parser.add_option("--set", dest="setattr",
+                      help="Set an attribute, dropping any existing values that may exist")
     parser.add_option("-M", "--mailAddress", dest="mail",
                       help="Set user's e-mail address")
     parser.add_option("--usage", action="store_true",
@@ -91,12 +97,13 @@ def main():
         return 1
 
     # If any options are set we use just those. Otherwise ask for all of them.
-    if options.gn or options.sn or options.directory or options.gecos or options.mail:
+    if options.gn or options.sn or options.directory or options.gecos or options.mail or options.shell or options.addattr or options.delattr or options.setattr:
         givenname = options.gn
         lastname = options.sn
         gecos = options.gecos
         directory = options.directory
         mail = options.mail
+        shell = options.shell
     else:
         if not options.gn:
             while (cont != True):
@@ -106,7 +113,7 @@ def main():
                 else:
                     cont = True
                 if len(givenname) < 1:
-                    shell = None
+                    givenname = None
                     cont = True
         else:
             givenname = options.gn
@@ -123,7 +130,7 @@ def main():
                 else:
                     cont = True
                 if len(lastname) < 1:
-                    shell = None
+                    lastname = None
                     cont = True
         else:
             lastname = options.sn
@@ -186,6 +193,25 @@ def main():
         user.setValue('homedirectory', directory)
     if shell:
         user.setValue('loginshell', shell)
+
+    if options.setattr:
+        (attr,value) = options.setattr.split('=')
+        values = value.split(',')
+        user.setValue(attr, values)
+
+    if options.addattr:
+        (attr,value) = options.addattr.split('=')
+        values = value.split(',')
+        cvalue = user.getValue(attr)
+        if cvalue:
+            if isinstance(cvalue,str):
+                cvalue = [cvalue]
+            values = cvalue + values
+        user.setValue(attr, values)
+
+    if options.delattr:
+        # doesn't truly delete the attribute but does null out the value
+        user.setValue(options.delattr, '')
 
     try:
         client.update_user(user)
