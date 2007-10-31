@@ -183,20 +183,8 @@ class GroupController(IPAController):
             #
             # convert members to users, for easier manipulation on the page
             #
-            member_dns = []
-            if group_dict.has_key('uniquemember'):
-                member_dns = group_dict.get('uniquemember')
-                # remove from dict - it's not needed for update
-                # and we are storing the members in a different form
-                del group_dict['uniquemember']
-            if not(isinstance(member_dns,list) or isinstance(member_dns,tuple)):
-                member_dns = [member_dns]
 
-            # TODO: convert this into an efficient (single) function call
-            members = map(
-                    lambda dn: client.get_entry_by_dn(dn, ['dn', 'givenname', 'sn',
-                        'uid', 'cn']),
-                    member_dns)
+            members = client.memberOf(group.dn, ['dn', 'givenname', 'sn', 'uid', 'cn'])
             members.sort(self.sort_group_member)
 
             # Map users into an array of dicts, which can be serialized
@@ -360,17 +348,9 @@ class GroupController(IPAController):
             #
             # convert members to users, for display on the page
             #
-            member_dns = []
-            if group_dict.has_key('uniquemember'):
-                member_dns = group_dict.get('uniquemember')
-            if not(isinstance(member_dns,list) or isinstance(member_dns,tuple)):
-                member_dns = [member_dns]
 
-            # TODO: convert this into an efficient (single) function call
-            members = map(
-                    lambda dn: client.get_entry_by_dn(dn, ['dn', 'givenname', 'sn',
-                        'uid', 'cn']),
-                    member_dns)
+            members = client.memberOf(group.dn, ['dn', 'givenname', 'sn', 'uid', 'cn'])
+            members = members[1:]
             members.sort(self.sort_group_member)
             member_dicts = map(lambda member: member.toDict(), members)
 

@@ -321,6 +321,13 @@ class IPAClient:
         """Do a memberOf search of groupdn and return the attributes in
            attr_list (an empty list returns everything)."""
 
-        return self.transport.memberOf(groupdn, attr_list)
+        results = self.transport.memberOf(groupdn, attr_list)
 
+        counter = results[0]
 
+        entries = [counter]
+        for e in results[1:]:
+            if e is not None:
+                entries.append(user.User(e))
+
+        return entries
