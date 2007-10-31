@@ -1,6 +1,6 @@
 Name:           freeipa-server
 Version:        VERSION
-Release:        5%{?dist}
+Release:        6%{?dist}
 Summary:        FreeIPA authentication server
 
 Group:          System Environment/Base
@@ -11,7 +11,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires: fedora-ds-base-devel openldap-devel krb5-devel nss-devel mozldap-devel openssl-devel
 
-Requires: python fedora-ds-base krb5-server krb5-server-ldap nss-tools openldap-clients httpd mod_python mod_auth_kerb python-ldap freeipa-python ntp cyrus-sasl-gssapi nss TurboGears python-krbV
+Requires: python fedora-ds-base krb5-server krb5-server-ldap nss-tools openldap-clients httpd mod_python mod_auth_kerb python-ldap freeipa-python ntp cyrus-sasl-gssapi nss TurboGears python-krbV acl freeipa-admintools
 Requires: mod_nss >= 1.0.7-2
 
 %define httpd_conf /etc/httpd/conf.d
@@ -60,6 +60,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Oct 31 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.0-6
+- Add dep for freeipa-admintools and acl
+
 * Wed Oct 24 2007 Rob Crittenden <rcritten@redhat.com> - 0.4.0-5
 - Add dependency for python-krbV
 
