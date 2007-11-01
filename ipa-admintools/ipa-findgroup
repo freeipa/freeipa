@@ -82,7 +82,7 @@ def main():
             if counter > 0:
                 print "Members:"
                 for m in members:
-                    print "    " + m['cn'] + ": " + m['dn']
+                    print "    " + m.getValue('cn') + ": " + m.dn
             # blank line between results
             print 
 
