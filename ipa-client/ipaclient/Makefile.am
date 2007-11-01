@@ -6,6 +6,7 @@ app_PYTHON = 			\
 	dnsclient.py		\
 	ipachangeconf.py	\
 	ipadiscovery.py		\
+	ntpconf.py		\
 	$(NULL)
 
 EXTRA_DIST =			\

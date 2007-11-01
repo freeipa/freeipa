@@ -16,6 +16,7 @@ app_DATA =			\
 	krb5.ini.template	\
 	krb.con.template	\
 	krbrealm.con.template	\
+	ntp.conf.server.template \
 	$(NULL)
 
 EXTRA_DIST =			\

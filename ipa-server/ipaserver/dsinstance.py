@@ -26,8 +26,6 @@ import logging
 import pwd
 from ipa.ipautil import *
 
-
-SHARE_DIR = "/usr/share/ipa/"
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
 

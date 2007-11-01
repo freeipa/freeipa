@@ -41,10 +41,13 @@ import shutil
 import glob
 import traceback
 from optparse import OptionParser
+
 import ipaserver.dsinstance
 import ipaserver.krbinstance
 import ipaserver.bindinstance
 import ipaserver.httpinstance
+import ipaserver.ntpinstance
+
 from ipa.ipautil import run
 
 def parse_options():
@@ -542,6 +545,10 @@ def main():
     ds.restart()
     krb.restart()
 
+    # Configure ntpd
+    ntp = ipaserver.ntpinstance.NTPInstance()
+    ntp.create_instance()
+
     try:
         selinux=0
         try:
@@ -588,6 +595,12 @@ def main():
 
         # Start Kpasswd
         run(["/sbin/service", "ipa-kpasswd", "start"])
+
+        # Set the ntpd to start on boot
+        run(["/sbin/chkconfig", "ntpd", "on"])
+
+        # Restart ntpd
+        run(["/sbin/service", "ntpd", "restart"])
     except subprocess.CalledProcessError, e:
         print "Installation failed:", e
         return 1
@@ -610,9 +623,10 @@ def main():
     print "\t\tTCP Ports:"
     print "\t\t  * 80, 443, 8080: HTTP/HTTPS"
     print "\t\t  * 389, 636: LDAP/LDAPS"
-    print "\t\t  * 464: kpasswd"
+    print "\t\t  * 88, 464: kerberos"
     print "\t\tUDP Ports:"
-    print "\t\t  * 88, 750: kerberos"
+    print "\t\t  * 88, 464: kerberos"
+    print "\t\t  * 123: ntp"
     print ""
     print "\t2. You can now obtain a kerberos ticket using the command: 'kinit admin'."
     print "\t   This ticket will allow you to use the IPA tools (e.g., ipa-adduser)"

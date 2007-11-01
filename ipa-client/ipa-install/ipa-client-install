@@ -30,6 +30,7 @@ import logging
 from optparse import OptionParser
 import ipaclient.ipadiscovery
 import ipaclient.ipachangeconf
+import ipaclient.ntpconf
 from ipa.ipautil import run
 
 def parse_options():
@@ -43,6 +44,8 @@ def parse_options():
                       default=False, help="print debugging information")
     parser.add_option("-U", "--unattended", dest="unattended",
                       help="unattended installation never prompts the user")
+    parser.add_option("-N", "--no-ntp", action="store_false",
+                      help="do not configure ntp", default=True, dest="conf_ntp")
 
     options, args = parser.parse_args()
 
@@ -66,14 +69,6 @@ def logging_setup(options):
     formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
-
-def check_ntp():
-    ret_code = 1
-    p = subprocess.Popen(["/sbin/service", "ntpd", "status"], stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    stdout, stderr = p.communicate()
-
-    return p.returncode
 
 def main():
     options = parse_options()
@@ -208,10 +203,8 @@ def main():
     #Modify pam to add pam_krb5
     run(["/usr/sbin/authconfig", "--enablekrb5", "--update"])
 
-    # print warning about ntp
-    if check_ntp() != 0:
-        print "WARNING: Kerberos requires time synchronization between clients"
-        print "and servers for correct operation. You should consider enabling ntpd."
+    if options.conf_ntp:
+        ipaclient.ntpconf.config_ntp(ds.getServerName())
 
     return 0
 
