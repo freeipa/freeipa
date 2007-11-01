@@ -6,11 +6,12 @@
 
 <body py:match="item.tag=='{http://www.w3.org/1999/xhtml}body'" py:attrs="item.items()">
       <div id="main_content">
-        <div id="status_block" py:if="value_of('tg_flash', None)"
-            py:content="XML(tg_flash)"></div>
+<div id="details">
+        <div id="alertbox" py:if="value_of('tg_flash', None)"><p py:content="XML(tg_flash)"></p></div>
 
         <div py:replace="[item.text]+item[:]"></div>
       </div>
+</div>
 </body>
 
 </html>

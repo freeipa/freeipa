@@ -2,14 +2,8 @@
   class="simpleroster">
   <form action="${action}" name="${name}" method="${method}" class="tableform"
     onsubmit="preSubmit()">
-
-    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
-      <tr>
-        <td>
-          <input type="submit" class="submitbutton" name="submit" value="Add Person"/>
-        </td>
-      </tr>
-    </table>
+        
+<input type="submit" class="submitbutton" name="submit" value="Add Person"/>
 
 <?python
 from ipagui.helpers import ipahelper
@@ -20,7 +14,7 @@ from ipagui.helpers import ipahelper
   <script type="text/javascript" charset="utf-8"
     src="${tg.url('/static/javascript/dynamicselect.js')}"></script>
 
-  <?python 
+  <?python
   searchurl = tg.url('/user/edit_search')
   selectSearchurl = tg.url('/user/user_select_search')
   ?>
@@ -44,7 +38,6 @@ from ipagui.helpers import ipahelper
           info.name + " "));
       }
     }
-
     function doSelectSearch(which_select) {
       $(which_select + '_searchresults').update("Searching...");
       new Ajax.Updater(which_select + '_searchresults',
@@ -61,7 +54,7 @@ from ipagui.helpers import ipahelper
     py:replace="field.display(value_for(field), **params_for(field))" 
     />
 
-    <div class="formsection">Identity Details</div>
+    <h2 class="formsection">Identity Details</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
@@ -209,7 +202,7 @@ from ipagui.helpers import ipahelper
       </tr>
     </table>
 
-    <div class="formsection">Account Details</div>
+    <h2 class="formsection">Account Details</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
@@ -328,7 +321,7 @@ from ipagui.helpers import ipahelper
       </tr>
     </table>
 
-    <div class="formsection">Contact Details</div>
+    <h2 class="formsection">Contact Details</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
@@ -403,7 +396,7 @@ from ipagui.helpers import ipahelper
       </tr>
     </table>
 
-    <div class="formsection">Mailing Address</div>
+    <h2 class="formsection">Mailing Address</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
@@ -466,7 +459,7 @@ from ipagui.helpers import ipahelper
       </tr>
     </table>
 
-    <div class="formsection">Employee Information</div>
+    <h2 class="formsection">Employee Information</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
@@ -575,7 +568,7 @@ from ipagui.helpers import ipahelper
       </tr>
     </table>
 
-    <div class="formsection">Misc Information</div>
+    <h2 class="formsection">Misc Information</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
@@ -619,7 +612,8 @@ from ipagui.helpers import ipahelper
     </div>
 
     <div style="clear:both">
-      <div class="formsection">Add Groups</div>
+      <h2 class="formsection">Add Groups</h2>
+
 
       <div class="floatlist">
         <div class="floatheader">To Add:</div>
@@ -631,7 +625,7 @@ from ipagui.helpers import ipahelper
         <div id="search">
           <input id="criteria" type="text" name="criteria"
             onkeypress="return enterDoSearch(event);" />
-          <input type="button" value="Find"
+          <input class="searchbutton" type="button" value="Find"
             onclick="return doSearch();"
           />
         </div>
@@ -640,14 +634,8 @@ from ipagui.helpers import ipahelper
       </div>
     </div>
 
-    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
-      <tr>
-        <td>
-          <br />
-          <input type="submit" class="submitbutton" name="submit" value="Add Person"/>
-        </td>
-      </tr>
-    </table>
+<hr />
+<input type="submit" class="submitbutton" name="submit" value="Add Person"/>
 
   </form>
 

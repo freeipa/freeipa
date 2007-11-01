@@ -14,7 +14,7 @@
         <span class="small">edit protected fields</span>
       </input>
     </div>
-    <h2>Edit Person</h2>
+    <h1>Edit Person</h1>
   </div>
 
 <?python

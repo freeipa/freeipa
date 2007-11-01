@@ -9,26 +9,15 @@
   <form action="${action}" name="${name}" method="${method}" class="tableform"
       onsubmit="preSubmit()" >
 
-    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
-      <tr>
-        <th>
           <input type="submit" class="submitbutton" name="submit"
               value="Update Group"/>
-        </th>
-        <td>
           <input type="submit" class="submitbutton" name="submit"
               value="Cancel Edit" />
-        </td>
-        <td>
-          &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
           <input type="button" class="deletebutton"
                  value="Delete Group"
                  onclick="return confirmDelete();"
                  />
-          <br/><br/>
-        </td>
-      </tr>
-    </table>
+
 
 <?python
 from ipagui.helpers import ipahelper
@@ -73,7 +62,7 @@ from ipagui.helpers import ipahelper
       py:replace="field.display(value_for(field), **params_for(field))" 
       />
 
-    <div class="formsection">Group Details</div>
+    <h2 class="formsection">Group Details</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
@@ -120,7 +109,7 @@ from ipagui.helpers import ipahelper
     </table>
 
     <div>
-      <div class="formsection">Group Members</div>
+      <h2 class="formsection">Group Members</h2>
 
       <div class="floatlist">
         <div class="floatheader">To Remove:</div>
@@ -176,7 +165,7 @@ from ipagui.helpers import ipahelper
     </div>
 
     <div style="clear:both">
-      <div class="formsection">Add Members</div>
+      <h2 class="formsection">Add Members</h2>
 
       <div class="floatlist">
         <div class="floatheader">To Add:</div>
@@ -188,7 +177,7 @@ from ipagui.helpers import ipahelper
         <div id="search">
           <input id="criteria" type="text" name="criteria"
             onkeypress="return enterDoSearch(event);" />
-          <input type="button" value="Find"
+          <input class="searchbutton" type="button" value="Find"
             onclick="return doSearch();"
           />
         </div>
@@ -196,30 +185,15 @@ from ipagui.helpers import ipahelper
         </div>
       </div>
     </div>
-
-    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
-      <tr>
-        <th>
-          <br />
+<hr />
           <input type="submit" class="submitbutton" name="submit"
               value="Update Group"/>
-        </th>
-        <td>
-          <br />
           <input type="submit" class="submitbutton" name="submit"
               value="Cancel Edit" />
-        </td>
-        <td>
-          <br />
-          &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
           <input type="button" class="deletebutton"
                  value="Delete Group"
                  onclick="return confirmDelete();"
                  />
-        </td>
-      </tr>
-    </table>
-
   </form>
 
   <script type="text/javascript">

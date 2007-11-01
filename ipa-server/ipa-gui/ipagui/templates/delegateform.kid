@@ -59,32 +59,22 @@
 
   <form action="${action}" name="${name}" method="${method}" class="tableform">
 
-    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
-      <tr>
-        <th>
           <input type="submit" class="submitbutton" name="submit"
                  value="${actionname} Delegation"/>
-          <br/><br/>
-        </th>
-        <td>
           <input type="submit" class="submitbutton" name="submit"
                  value="Cancel ${actionname}"/>
-          <br/><br/>
-        </td>
-        <td py:if='actionname == "Update"'>
-          &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+        <span py:if='actionname == "Update"'>
           <input type="button" class="deletebutton"
                  value="Delete Delegation"
                  onclick="return confirmDelete();"
                  />
-          <br/><br/>
-        </td>
-      </tr>
-    </table>
+	</span>
 
     <div py:for="field in hidden_fields"
       py:replace="field.display(value_for(field), **params_for(field))" 
       />
+
+<h2>Delegation Details</h2>
 
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
@@ -114,13 +104,11 @@
                 py:content="tg.errors.get('source_group_dn')" />
           </div>
           <div id="source_searcharea" style="display:none">
-            <div>
               <input id="source_criteria" type="text"
                 onkeypress="return enterDoSearch(event, 'source');" />
-              <input type="button" value="Find"
+              <input class="searchbutton" type="button" value="Find"
                 onclick="return doSearch('source');"
               />
-            </div>
             <div id="source_searchresults">
             </div>
           </div>
@@ -156,7 +144,7 @@
             <div>
               <input id="dest_criteria" type="text"
                 onkeypress="return enterDoSearch(event, 'dest');" />
-              <input type="button" value="Find"
+              <input class="searchbutton" type="button" value="Find"
                 onclick="return doSearch('dest');"
               />
             </div>
@@ -167,28 +155,18 @@
       </tr>
     </table>
 
-    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
-      <tr>
-        <th>
-          <br/>
+<hr />
+
           <input type="submit" class="submitbutton" name="submit"
                  value="${actionname} Delegation"/>
-        </th>
-        <td>
-          <br/>
           <input type="submit" class="submitbutton" name="submit"
                  value="Cancel ${actionname}"/>
-        </td>
-        <td py:if='actionname == "Update"'>
-          <br/>
-          &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+        <span py:if='actionname == "Update"'>
           <input type="button" class="deletebutton"
                  value="Delete Delegation"
                  onclick="return confirmDelete();"
                  />
-        </td>
-      </tr>
-    </table>
+	</span>
 
   <script py:if="not value.get('source_group_dn')"
     type="text/javascript">

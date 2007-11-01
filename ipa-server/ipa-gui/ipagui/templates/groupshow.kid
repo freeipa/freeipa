@@ -9,13 +9,14 @@
 <?python
 edit_url = tg.url('/group/edit', cn=group.get('cn'))
 ?>
-    <h2>View Group</h2>
+<div id="details">
+    <h1>View Group</h1>
 
-    <input type="button"
+    <input class="submitbutton" type="button"
       onclick="document.location.href='${edit_url}'"
       value="Edit Group" />
 
-    <div class="formsection">Group Details</div>
+    <h2 class="formsection">Group Details</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
           <th>
@@ -39,7 +40,7 @@ edit_url = tg.url('/group/edit', cn=group.get('cn'))
         </tr>
     </table>
 
-    <div class="formsection">Group Members</div>
+    <h2 class="formsection">Group Members</h2>
     <div py:for="member in members">
       <?python
 
@@ -68,10 +69,10 @@ edit_url = tg.url('/group/edit', cn=group.get('cn'))
     </div>
 
     <br/>
-
-    <input type="button"
+<hr />
+    <input class="submitbutton" type="button"
       onclick="document.location.href='${edit_url}'"
       value="Edit Group" />
-
+</div>
 </body>
 </html>

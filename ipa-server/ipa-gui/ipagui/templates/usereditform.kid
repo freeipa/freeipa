@@ -9,25 +9,14 @@
   <form action="${action}" name="${name}" method="${method}" class="tableform"
     onsubmit="preSubmit()">
 
-    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
-      <tr>
-        <th>
           <input type="submit" class="submitbutton" name="submit"
               value="Update Person"/>
-        </th>
-        <td>
           <input type="submit" class="submitbutton" name="submit"
               value="Cancel Edit" />
-        </td>
-        <td>
-          &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
-          <input type="button" class="deletebutton"
+          <input type="button" class="submitbutton"
                  value="Delete Person"
                  onclick="return confirmDelete();"
                  />
-        </td>
-      </tr>
-    </table>
 
 <?python
 from ipagui.helpers import ipahelper
@@ -38,7 +27,7 @@ from ipagui.helpers import ipahelper
   <script type="text/javascript" charset="utf-8"
     src="${tg.url('/static/javascript/dynamicselect.js')}"></script>
 
-  <?python 
+  <?python
   searchurl = tg.url('/user/edit_search')
   selectSearchurl = tg.url('/user/user_select_search')
   ?>
@@ -110,7 +99,7 @@ from ipagui.helpers import ipahelper
     py:replace="field.display(value_for(field), **params_for(field))" 
     />
 
-    <div class="formsection">Identity Details</div>
+    <h2 class="formsection">Identity Details</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
@@ -190,7 +179,7 @@ from ipagui.helpers import ipahelper
       </tr>
     </table>
 
-    <div class="formsection">Account Details</div>
+    <h2 class="formsection">Account Details</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
@@ -359,7 +348,7 @@ from ipagui.helpers import ipahelper
       </tr>
     </table>
 
-    <div class="formsection">Contact Details</div>
+    <h2 class="formsection">Contact Details</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
@@ -434,7 +423,7 @@ from ipagui.helpers import ipahelper
       </tr>
     </table>
 
-    <div class="formsection">Mailing Address</div>
+    <h2 class="formsection">Mailing Address</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
@@ -497,7 +486,7 @@ from ipagui.helpers import ipahelper
       </tr>
     </table>
 
-    <div class="formsection">Employee Information</div>
+    <h2 class="formsection">Employee Information</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
@@ -606,7 +595,7 @@ from ipagui.helpers import ipahelper
       </tr>
     </table>
 
-    <div class="formsection">Misc Information</div>
+    <h2 class="formsection">Misc Information</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
@@ -633,7 +622,7 @@ from ipagui.helpers import ipahelper
     </table>
 
     <div py:if='len(custom_fields) &gt; 0'>
-      <div class="formsection" >Custom Fields</div>
+      <h2 class="formsection" >Custom Fields</h2>
       <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr py:for='custom_field in custom_fields'>
           <th>
@@ -651,7 +640,7 @@ from ipagui.helpers import ipahelper
 
 
     <div>
-      <div class="formsection">Groups</div>
+      <h2 class="formsection">Groups</h2>
 
       <div class="floatlist">
         <div class="floatheader">To Remove:</div>
@@ -701,7 +690,7 @@ from ipagui.helpers import ipahelper
     </div>
 
     <div style="clear:both">
-      <div class="formsection">Add Groups</div>
+      <h2 class="formsection">Add Groups</h2>
 
       <div class="floatlist">
         <div class="floatheader">To Add:</div>
@@ -722,28 +711,16 @@ from ipagui.helpers import ipahelper
       </div>
     </div>
 
-    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
-      <tr>
-        <th>
-          <br />
+    <hr/>
+
           <input type="submit" class="submitbutton" name="submit"
               value="Update Person"/>
-        </th>
-        <td>
-          <br />
           <input type="submit" class="submitbutton" name="submit"
               value="Cancel Edit" />
-        </td>
-        <td>
-          <br />
-          &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
-          <input type="button" class="deletebutton"
+          <input type="button" class="submitbutton"
                  value="Delete Person"
                  onclick="return confirmDelete();"
                  />
-        </td>
-      </tr>
-    </table>
 
   </form>
 

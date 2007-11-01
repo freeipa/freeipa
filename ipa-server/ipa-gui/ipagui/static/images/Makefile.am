@@ -1,5 +1,10 @@
 NULL =
 
+SUBDIRS =			\
+        branding		\
+        template		\
+        $(NULL)
+
 appdir = $(IPA_DATA_DIR)/ipagui/static/images
 app_DATA = 			\
 	down.gif		\

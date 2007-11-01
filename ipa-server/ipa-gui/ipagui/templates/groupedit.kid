@@ -6,16 +6,14 @@
     <title>Edit Group</title>
 </head>
 <body>
-  <div>
-    <div style="float:right">
-      <input type="checkbox" id="toggleprotected_checkbox"
+  <div id="details">
+          <h1>Edit Group</h1>
+<input type="checkbox" id="toggleprotected_checkbox"
           onclick="toggleProtectedFields(this);">
         <span class="small">edit protected fields</span>
       </input>
-    </div>
-    <h2>Edit Group</h2>
-  </div>
 
   ${form.display(action=tg.url('/group/update'), value=group, members=members)}
+</div>
 </body>
 </html>

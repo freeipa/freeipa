@@ -7,7 +7,7 @@
 </head>
 <body>
 
-    <h2>Edit Delegation</h2>
+    <h1>Edit Delegation</h1>
 
     ${form.display(action=tg.url("/delegate/update"), value=delegate,
                    actionname='Update')}

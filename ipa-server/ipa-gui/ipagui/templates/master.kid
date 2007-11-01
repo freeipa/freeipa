@@ -16,26 +16,10 @@
 
 <body py:match="item.tag=='{http://www.w3.org/1999/xhtml}body'" py:attrs="item.items()">
 
-    <div id="header">
-      <div id="logo">
-        <a href="${tg.url('/')}"><img 
-        src="${tg.url('/static/images/logo.png')}"
-        border="0" alt="homepage"
-        /></a>
-      </div>
+    <div id="head">
+      <h1><a href="${tg.url('/')}">Free IPA</a></h1>
       <div id="headerinfo">
-        <div id="login">
-    <div py:if="tg.config('identity.on') and not defined('logging_in')" id="pageLogin">
-        <span py:if="tg.identity.anonymous">
-            Kerberos login failed.
-        </span>
-        <span py:if="not tg.identity.anonymous">
-            Logged in as: ${tg.identity.user.display_name}
-        </span>
-    </div>
-
-        </div>
-        <div id="topsearch">
+        <div id="searchbar">
           <form action="${tg.url('/topsearch')}" method="post">
             <select name="searchtype">
                 <option>Users</option>
@@ -56,40 +40,60 @@
           </script>
         </div>
       </div>
+</div>
+      <div id="navbar">
+<!-- hiding the tabs
+        <ul>
+          <li><a href="#">Overview</a></li>
+          <li class="active"><a href="#">Users</a></li>
+          <li><a href="#">Groups</a></li>
+          <li><a href="#">Resources</a></li>
+          <li><a href="#">Policy</a></li>
+          <li><a href="#">Search</a></li>
+        </ul>
+-->
+  <div id="login">
+    <div py:if="tg.config('identity.on') and not defined('logging_in')" id="pageLogin">
+        <span py:if="tg.identity.anonymous">
+            Kerberos login failed.
+        </span>
+        <span py:if="not tg.identity.anonymous">
+            Logged in as: ${tg.identity.user.display_name}
+        </span>
     </div>
+        </div>
 
-    <div id="page">
-      <div id="nav"><!-- 
-      This used to have links.  Keeping around in case we move them back...
-      --></div>
 
+      </div>
+
+    <div id="content">
       <div id="sidebar">
         <h2>Tasks</h2>
-        <p>
-        <a href="${tg.url('/user/new')}">Add Person</a><br/>
-        <a href="${tg.url('/user/list')}">Find People</a><br/>
-        </p>
-        <p>
-        <a href="${tg.url('/group/new')}">Add Group</a><br/>
-        <a href="${tg.url('/group/list')}">Find Groups</a><br/>
-        </p>
-        <p>
-        <a href="${tg.url('/')}">Manage Policy</a><br/>
-        <a href="${tg.url('/')}">Self Service</a><br/>
-        </p>
-        <p>
-        <a href="${tg.url('/delegate/list')}">Delegations</a><br/>
-        </p>
+        <ul>
+        <li><a href="${tg.url('/user/new')}">Add Person</a></li>
+        <li><a href="${tg.url('/user/list')}">Find People</a></li>
+        </ul>
+        <ul>
+        <li><a href="${tg.url('/group/new')}">Add Group</a></li>
+        <li><a href="${tg.url('/group/list')}">Find Groups</a></li>
+        </ul>
+        <ul>
+        <li><a href="${tg.url('/')}">Manage Policy</a></li>
+        <li><a href="${tg.url('/')}">Self Service</a></li>
+        </ul>
+        <ul>
+        <li><a href="${tg.url('/delegate/list')}">Delegations</a></li>
+        </ul>
       </div>
 
       <div py:replace="[item.text]+item[:]"></div>
 
 
+    </div>
+
       <div id="footer">
         <a href="http://www.freeipa.com/" target="_blank">Powered by FreeIPA</a>
       </div>
-    </div>
-
 </body>
 
 </html>

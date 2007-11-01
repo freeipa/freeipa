@@ -9,9 +9,9 @@
 <?python
 edit_url = tg.url('/user/edit', uid=user.get('uid'))
 ?>
-    <h2>View Person</h2>
+    <h1>View Person</h1>
 
-    <input type="button"
+    <input class="submitbutton" type="button"
       onclick="document.location.href='${edit_url}'"
       value="Edit Person" />
 
@@ -26,14 +26,14 @@ else:
     days_suffix = ""
 ?>
 
-    <div py:if='pw_expires_soon' class="warning_message">
+    <div id="alertbox" py:if='pw_expires_soon' class="warning_message">
         Password will expire in ${pw_expires_days} day${days_suffix}
     </div>
-    <div py:if='pw_is_expired' class="warning_message">
+    <div id="alertbox" py:if='pw_is_expired' class="warning_message">
         Password has expired
     </div>
 
-    <div class="formsection">Identity Details</div>
+    <h2 class="formsection">Identity Details</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
           <th>
@@ -73,7 +73,7 @@ else:
         </tr>
     </table>
 
-    <div class="formsection">Account Details</div>
+    <h2 class="formsection">Account Details</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
           <th>
@@ -119,7 +119,7 @@ else:
         </tr>
     </table>
 
-    <div class="formsection">Contact Details</div>
+    <h2 class="formsection">Contact Details</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
           <th>
@@ -160,7 +160,7 @@ else:
         </tr>
     </table>
 
-    <div class="formsection">Mailing Address</div>
+    <h2 class="formsection">Mailing Address</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
           <th>
@@ -194,7 +194,7 @@ else:
         </tr>
     </table>
 
-    <div class="formsection">Employee Information</div>
+    <h2 class="formsection">Employee Information</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
           <th>
@@ -240,7 +240,7 @@ else:
         </tr>
     </table>
 
-    <div class="formsection">Misc Information</div>
+    <h2 class="formsection">Misc Information</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
           <th>
@@ -274,7 +274,7 @@ else:
       </table>
     </div>
 
-    <div class="formsection" py:if='len(user_reports) &gt; 0'>Direct Reports</div>
+    <h2 class="formsection" py:if='len(user_reports) &gt; 0'>Direct Reports</h2>
     <ol py:if="len(user_reports) &gt; 0">
       <li py:for="report in user_reports">
         <a href="${tg.url('/user/show', uid=report.uid)}"
@@ -282,16 +282,15 @@ else:
       </li>
     </ol>
 
-    <div class="formsection">Groups</div>
+    <h2 class="formsection">Groups</h2>
     <div py:for="group in user_groups">
       <a href="${tg.url('/group/show', cn=group.cn)}">${group.cn}</a>
     </div>
 
     <br/>
-
-    <input type="button"
+<hr />
+    <input class="submitbutton" type="button"
       onclick="document.location.href='${edit_url}'"
       value="Edit Person" />
-
 </body>
 </html>

@@ -6,11 +6,12 @@
 <title>Find People</title>
 </head>
 <body>
+    <h1>Find People</h1>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/tablekit.js')}"></script>
     <div id="search">
         <form action="${tg.url('/user/list')}" method="get">
             <input id="uid" type="text" name="uid" value="${uid}" />
-            <input type="submit" value="Find People"/>
+            <input class="searchbutton" type="submit" value="Find People"/>
         </form>
         <script type="text/javascript">
             document.getElementById("uid").focus();
@@ -18,7 +19,7 @@
     </div>
     <div py:if='(users != None) and (len(users) > 0)'>
         <h2>${len(users)} results returned:</h2>
-        <table id="resultstable" class="sortable resizable">
+        <table id="resultstable" class="details sortable resizable">
           <thead>
             <tr>
                 <th>
@@ -55,10 +56,11 @@
           </tbody>
         </table>
     </div>
-    <div py:if='(users != None) and (len(users) == 0)'>
-        <h2>No results found for "${uid}"</h2>
+    <div id="alertbox" py:if='(users != None) and (len(users) == 0)'>
+        <p id="alertbox">No results found for "${uid}"</p>
     </div>
-    <div py:if='users == None'>
+
+    <div class="instructions" py:if='users == None'>
       <p>
         Search automatically looks across multiple fields.  If you want to find
         Joe in Finance, try typing "joe finance" into the search box.

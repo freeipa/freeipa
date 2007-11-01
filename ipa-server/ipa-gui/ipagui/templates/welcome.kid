@@ -6,9 +6,9 @@
 <title>Welcome</title>
 </head>
 <body>
-    <div id="main_content">
-        <div id="status_block" py:if="value_of('tg_flash', None)"
-            py:content="XML(tg_flash)"></div>
+    <div id="details">
+        <div id="alertbox" py:if="value_of('tg_flash', None)">
+            <p py:content="XML(tg_flash)"></p></div>
         <h1>Welcome to Free IPA</h1>
 
         <noscript>
@@ -19,8 +19,7 @@
         </noscript>
 
         <p>
-          IPA is used to manage Identity, Policy, and Auditing for your
-          organization.
+IPA is used to manage Identity, Policy, and Auditing for your organization.
         </p>
         <p>
           To get started, you can use the search box in the top right to find

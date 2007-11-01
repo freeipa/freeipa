@@ -6,7 +6,7 @@
     <title>Add Person</title>
 </head>
 <body>
-    <h2>Add Person</h2>
+    <h1>Add Person</h1>
 
     ${form.display(action=tg.url("/user/create"), value=user)}
 </body>

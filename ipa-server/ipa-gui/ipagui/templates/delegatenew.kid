@@ -6,11 +6,9 @@
 <title>Add Delegation</title>
 </head>
 <body>
-
-    <h2>Add Delegation</h2>
+    <h1>Add Delegation</h1>
 
     ${form.display(action=tg.url("/delegate/create"), value=delegate,
                    actionname='Add')}
-
 </body>
 </html>

@@ -3,13 +3,7 @@
   <form action="${action}" name="${name}" method="${method}" class="tableform"
       onsubmit="preSubmit()" >
 
-    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
-      <tr>
-        <td>
           <input type="submit" class="submitbutton" name="submit" value="Add Group"/>
-        </td>
-      </tr>
-    </table>
 
 <?python
 from ipagui.helpers import ipahelper
@@ -36,7 +30,7 @@ from ipagui.helpers import ipahelper
       py:replace="field.display(value_for(field), **params_for(field))" 
       />
 
-    <div class="formsection">Group Details</div>
+    <h2 class="formsection">Group Details</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
@@ -76,7 +70,7 @@ from ipagui.helpers import ipahelper
     </table>
 
     <div style="clear:both">
-      <div class="formsection">Add Members</div>
+      <h2 class="formsection">Add Members</h2>
 
       <div class="floatlist">
         <div class="floatheader">To Add:</div>
@@ -97,14 +91,9 @@ from ipagui.helpers import ipahelper
       </div>
     </div>
 
-    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
-      <tr>
-        <td>
-          <br />
-          <input type="submit" class="submitbutton" name="submit" value="Add Group"/>
-        </td>
-      </tr>
-    </table>
+<hr />
+
+ <input type="submit" class="submitbutton" name="submit" value="Add Group"/>
 
   </form>
 

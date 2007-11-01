@@ -6,6 +6,8 @@
 <title>Find Groups</title>
 </head>
 <body>
+<div id="details">
+    <h1>Find Groups</h1>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/tablekit.js')}"></script>
     <div id="search">
         <form action="${tg.url('/group/list')}" method="get">
@@ -18,7 +20,7 @@
     </div>
     <div py:if='(groups != None) and (len(groups) > 0)'>
         <h2>${len(groups)} results returned:</h2>
-        <table id="resultstable" class="sortable resizable">
+        <table id="resultstable" class="details sortable resizable">
           <thead>
             <tr>
                 <th>
@@ -44,7 +46,7 @@
     <div py:if='(groups != None) and (len(groups) == 0)'>
         <h2>No results found for "${criteria}"</h2>
     </div>
-    <div py:if='groups == None'>
+    <div class="instructions" py:if='groups == None'>
       <p>
         Search automatically looks across multiple fields.  If you want to find
         Joe in Finance, try typing "joe finance" into the search box.
@@ -61,5 +63,6 @@
         will allow you to resize the header.
       </p>
     </div>
+</div>
 </body>
 </html>

@@ -6,8 +6,10 @@
     <title>Add Group</title>
 </head>
 <body>
-    <h2>Add Group</h2>
+<div id="details">
+    <h1>Add Group</h1>
 
     ${form.display(action=tg.url('/group/create'), value=group)}
+</div>
 </body>
 </html>
