@@ -20,14 +20,24 @@
 import os, sys
 
 def daemonize():
-    pid = os.fork()
+    # fork once so the parent can exit
+    try:
+        pid = os.fork()
+    except OSError, e:
+        raise Exception, "%s [%d]" % (e.strerror, e.errno)
+
     if pid != 0:
         os._exit(0)
+
     # become session leader
     os.setsid()
     
     # fork again to reparent to init
-    pid = os.fork()
+    try:
+        pid = os.fork()
+    except OSError, e:
+        raise Exception, "%s [%d]" % (e.strerror, e.errno)
+
     if pid != 0:
         os._exit(0)
 
@@ -60,6 +70,13 @@ devel = False
 if os.path.exists(os.path.join(os.path.dirname(__file__), "Makefile.am")):
     devel = True
 
+if not devel:
+    try:
+        daemonize()
+    except Exception, e:
+        sys.stderr.write("error becoming daemon: " + str(e))
+        sys.exit(1)
+
 sys.path.append("/usr/share/ipa/")
 
 # this must be after sys.path is changed to work correctly
@@ -83,16 +100,4 @@ else:
 
 from ipagui.controllers import Root
 
-if not devel:
-    try:
-        daemonize()
-    except Exception, e:
-        sys.stderr.write("error becoming daemon: " + str(e))
-        sys.exit(1)
-
 start_server(Root())
-
-
-    
-        
-        
