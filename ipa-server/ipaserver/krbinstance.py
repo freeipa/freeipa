@@ -237,7 +237,7 @@ class KrbInstance:
             retry += 1
             if retry > 15:
                 print "Error timed out waiting for kadmin to finish operations\n"
-                os.exit()
+                sys.exit(1)
 
         update_key_val_in_file("/etc/sysconfig/dirsrv", "export KRB5_KTNAME", "/etc/dirsrv/ds.keytab")
         pent = pwd.getpwnam(self.ds_user)
@@ -265,7 +265,7 @@ class KrbInstance:
             retry += 1
             if retry > 15:
                 print "Error timed out waiting for kadmin to finish operations\n"
-                os.exit()
+                sys.exit(1)
 
         update_key_val_in_file("/etc/sysconfig/ipa-kpasswd", "export KRB5_KTNAME", "/var/kerberos/krb5kdc/kpasswd.keytab")
         pent = pwd.getpwnam(self.ds_user)
@@ -293,7 +293,7 @@ class KrbInstance:
             retry += 1
             if retry > 15:
                 print "Error timed out waiting for kadmin to finish operations\n"
-                os.exit()
+                sys.exit(1)
 
         pent = pwd.getpwnam("apache")
         os.chown("/etc/httpd/conf/ipa.keytab", pent.pw_uid, pent.pw_gid)
