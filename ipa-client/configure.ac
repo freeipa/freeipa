@@ -1,6 +1,6 @@
 AC_PREREQ(2.59c)
 AC_INIT([freeipa-client],
-        [0.4],
+        [0.3.1],
         [https://hosted.fedoraproject.org/projects/freeipa/newticket])
 
 AC_CONFIG_SRCDIR([ipaclient/__init__.py])

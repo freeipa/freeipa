@@ -1,7 +1,6 @@
-
 Name:           freeipa-python
-Version:        0.4.0
-Release:        2%{?dist}
+Version:        0.4.1
+Release:        1%{?dist}
 Summary:        FreeIPA authentication server
 
 Group:          System Environment/Base
@@ -39,6 +38,9 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/ipa/ipa.conf
 
 %changelog
+* Thu Nov 1 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.1-1
+- Version bump for release
+
 * Wed Oct 17 2007 Rob Crittenden <rcritten@redhat.com> - 0.4.0-2
 - Use new python setup.py build script
 

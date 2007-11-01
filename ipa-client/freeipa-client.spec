@@ -1,6 +1,6 @@
 Name:           freeipa-client
-Version:        0.3.0
-Release:        2%{?dist}
+Version:        0.3.1
+Release:        1%{?dist}
 Summary:        FreeIPA client
 
 Group:          System Environment/Base
@@ -41,6 +41,9 @@ rm -rf %{buildroot}
 %{_usr}/share/ipa/*
 
 %changelog
+* Thu Nov 1 2007 Karl MacMillan <kmacmill@redhat.com> - 0.3.1-1
+- Version bump for release
+
 * Thu Oct 18 2007 Karl MacMillan <kmacmill@redhat.com> - 0.3.0-2
 - Convert to autotools-based build
 

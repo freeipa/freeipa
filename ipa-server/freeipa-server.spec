@@ -1,6 +1,6 @@
 Name:           freeipa-server
-Version:        0.4.0
-Release:        6%{?dist}
+Version:        0.4.1
+Release:        1%{?dist}
 Summary:        FreeIPA authentication server
 
 Group:          System Environment/Base
@@ -60,6 +60,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Nov 1 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.1-1
+- Version bump for release
+
 * Wed Oct 31 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.0-6
 - Add dep for freeipa-admintools and acl
 

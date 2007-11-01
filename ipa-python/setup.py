@@ -14,11 +14,9 @@ CLASSIFIERS = """\
 Development Status :: 4 - Beta
 Intended Audience :: System Environment/Base
 License :: GPL
-Programming Language :: C
 Programming Language :: Python
 Operating System :: POSIX
 Operating System :: Unix
-Operating System :: MacOS
 """
 
 # BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
@@ -37,10 +35,10 @@ def setup_package():
     try:
         setup(
             name = "freeipa-python",
-            version = "0.4",
+            version = "0.4.1",
             license = "GPL",
             author = "Karl MacMillan, et.al.",
-            author_email = "kmacmillan@mentalrootkit.com",
+            author_email = "kmacmillan@redhat.com",
             maintainer = "freeIPA Developers",
             maintainer_email = "freeipa-devel@redhat.com",
             url = "http://www.freeipa.org/",
@@ -48,7 +46,7 @@ def setup_package():
             long_description = "\n".join(DOCLINES[2:]),
             download_url = "http://www.freeipa.org/page/Downloads",
             classifiers=filter(None, CLASSIFIERS.split('\n')),
-            platforms = ["Linux", "Solaris", "Mac OS-X", "Unix"],
+            platforms = ["Linux", "Solaris", "Unix"],
             package_dir = {'ipa': ''},
             packages = [ "ipa" ],
             data_files = [('/etc/ipa', ['ipa.conf'])]
