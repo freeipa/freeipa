@@ -35,14 +35,14 @@ CLI_VERSION=$(CLI_MAJOR).$(CLI_MINOR).$(CLI_RELEASE)
 CLI_TARBALL_PREFIX=$(PRJ_PREFIX)-client-$(CLI_VERSION)
 CLI_TARBALL=$(CLI_TARBALL_PREFIX).tgz
 
-all:
+all: autogen
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 
 autogen:
-	cd ipa-server; ./autogen.sh --prefix=/usr --sysconfdir=/etc
-	cd ipa-client; ./autogen.sh --prefix=/usr --sysconfdir=/etc
+	cd ipa-server; if [ ! -e Makefile ]; then ./autogen.sh --prefix=/usr --sysconfdir=/etc; fi
+	cd ipa-client; if [ ! -e Makefile ]; then ./autogen.sh --prefix=/usr --sysconfdir=/etc; fi
 
 configure:
 	cd ipa-server; ./configure --prefix=/usr --sysconfdir=/etc
