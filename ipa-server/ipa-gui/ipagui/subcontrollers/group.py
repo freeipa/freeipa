@@ -185,6 +185,7 @@ class GroupController(IPAController):
             #
 
             members = client.group_members(group.dn, ['dn', 'givenname', 'sn', 'uid', 'cn'])
+            members = members[1:]
             members.sort(self.sort_group_member)
 
             # Map users into an array of dicts, which can be serialized
