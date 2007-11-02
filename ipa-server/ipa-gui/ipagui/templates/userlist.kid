@@ -19,7 +19,7 @@
     </div>
     <div py:if='(users != None) and (len(users) > 0)'>
         <h2>${len(users)} results returned:</h2>
-        <table id="resultstable" class="details sortable resizable">
+        <table id="resultstable" class="details sortable resizable" cellspacing="0">
           <thead>
             <tr>
                 <th>
@@ -37,7 +37,25 @@
             </tr>
           </thead>
           <tbody>
-            <tr py:for="user in users">
+            <tr py:for="user in users" py:if="user.nsAccountLock != 'true'">
+                <td>
+                    <a href="${tg.url('/user/show',uid=user.uid)}"
+                    >${user.givenName} ${user.sn}</a>
+                    (${user.uid})
+                </td>
+                <td>
+                    ${user.telephoneNumber}
+                </td>
+                <td>
+                    ${user.ou}
+                </td>
+                <td>
+                    ${user.title}
+                </td>
+            </tr>
+          </tbody>
+          <tbody>
+            <tr id="inactive" py:for="user in users" py:if="user.nsAccountLock == 'true'">
                 <td>
                     <a href="${tg.url('/user/show',uid=user.uid)}"
                     >${user.givenName} ${user.sn}</a>

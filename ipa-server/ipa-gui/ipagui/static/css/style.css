@@ -379,3 +379,7 @@ ul.checkboxlist li input {
   width:			1.2em;
   border:			1px solid red;
 }
+
+#inactive {
+  background-color:            silver;
+}
