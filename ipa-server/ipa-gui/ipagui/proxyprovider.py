@@ -12,7 +12,8 @@ class IPA_User(object):
 
     def __init__(self, user_name):
         self.user_name = user_name
-        self.display_name = user_name
+        (principal, realm) = user_name.split('@')
+        self.display_name = principal
         self.permissions = None
         self.groups = None
         return

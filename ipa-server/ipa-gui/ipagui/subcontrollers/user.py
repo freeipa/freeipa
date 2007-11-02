@@ -241,7 +241,7 @@ class UserController(IPAController):
 
     @expose("ipagui.templates.useredit")
     @identity.require(identity.not_anonymous())
-    def edit(self, uid, tg_errors=None):
+    def edit(self, uid=None, principal=None, tg_errors=None):
         """Displays the edit user form"""
         if tg_errors:
             turbogears.flash("There were validation errors.<br/>" +
@@ -250,7 +250,14 @@ class UserController(IPAController):
         client = self.get_ipaclient()
 
         try:
-            user = client.get_user_by_uid(uid, user_fields)
+            if uid is not None:
+                user = client.get_user_by_uid(uid, user_fields)
+            elif principal is not None:
+                principal = principal + "@" + ipa.config.config.default_realm
+                user = client.get_user_by_principal(principal, user_fields)
+            else:
+                turbogears.flash("User edit failed: No uid or principal provided")
+                raise turbogears.redirect('/')
             user_dict = user.toDict()
             # Edit shouldn't fill in the password field.
             if user_dict.has_key('userpassword'):
@@ -291,6 +298,8 @@ class UserController(IPAController):
             return dict(form=user_edit_form, user=user_dict,
                     user_groups=user_groups_dicts)
         except ipaerror.IPAError, e:
+            if uid is None:
+                uid = principal
             turbogears.flash("User edit failed: " + str(e))
             raise turbogears.redirect('/user/show', uid=uid)
 
