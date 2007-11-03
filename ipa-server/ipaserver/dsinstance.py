@@ -159,6 +159,8 @@ class DsInstance:
                         self.schema_dirname() + "60kerberos.ldif")
         shutil.copyfile(SHARE_DIR + "60samba.ldif",
                         self.schema_dirname() + "60samba.ldif")
+        shutil.copyfile(SHARE_DIR + "60radius.ldif",
+                        self.schema_dirname() + "60radius.ldif")
 
     def __add_memberof_module(self):
         memberof_txt = template_file(SHARE_DIR + "memberof-conf.ldif", self.sub_dict)

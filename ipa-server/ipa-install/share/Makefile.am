@@ -1,28 +1,30 @@
 NULL =
 
 appdir = $(IPA_DATA_DIR)
-app_DATA =			\
-	60kerberos.ldif		\
-	60samba.ldif		\
-	bootstrap-template.ldif	\
-	default-aci.ldif	\
-	kerberos.ldif		\
-	indeces.ldif		\
-	bind.named.conf.template\
-	bind.zone.db.template	\
-	certmap.conf.template	\
-	kdc.conf.template	\
-	krb5.conf.template	\
-	krb5.ini.template	\
-	krb.con.template	\
-	krbrealm.con.template	\
-	ntp.conf.server.template \
+app_DATA =				\
+	60kerberos.ldif			\
+	60samba.ldif			\
+	60radius.ldif			\
+	bootstrap-template.ldif		\
+	default-aci.ldif		\
+	kerberos.ldif			\
+	indeces.ldif			\
+	bind.named.conf.template	\
+	bind.zone.db.template		\
+	certmap.conf.template		\
+	kdc.conf.template		\
+	krb5.conf.template		\
+	krb5.ini.template		\
+	krb.con.template		\
+	krbrealm.con.template		\
+	ntp.conf.server.template 	\
+	radius.radiusd.conf.template	\
 	$(NULL)
 
-EXTRA_DIST =			\
-	$(app_DATA)		\
+EXTRA_DIST =				\
+	$(app_DATA)			\
 	$(NULL)
 
-MAINTAINERCLEANFILES =		\
-	*~			\
+MAINTAINERCLEANFILES =			\
+	*~				\
 	Makefile.in

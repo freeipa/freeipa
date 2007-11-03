@@ -11,8 +11,9 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires: fedora-ds-base-devel openldap-devel krb5-devel nss-devel mozldap-devel openssl-devel
 
-Requires: python fedora-ds-base krb5-server krb5-server-ldap nss-tools openldap-clients httpd mod_python mod_auth_kerb python-ldap freeipa-python ntp cyrus-sasl-gssapi nss TurboGears python-krbV acl freeipa-admintools
+Requires: python fedora-ds-base krb5-server krb5-server-ldap nss-tools openldap-clients httpd mod_python mod_auth_kerb python-ldap freeipa-python ntp cyrus-sasl-gssapi nss TurboGears python-krbV acl freeipa-admintools rpm
 Requires: mod_nss >= 1.0.7-2
+Requires: freeradius >= 1.1.7
 
 %define httpd_conf /etc/httpd/conf.d
 %define plugin_dir %{_libdir}/dirsrv/plugins

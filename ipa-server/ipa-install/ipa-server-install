@@ -47,6 +47,7 @@ import ipaserver.krbinstance
 import ipaserver.bindinstance
 import ipaserver.httpinstance
 import ipaserver.ntpinstance
+import ipaserver.radiusinstance
 
 from ipa.ipautil import run
 
@@ -525,6 +526,11 @@ def main():
     # Create a HTTP instance
     http = ipaserver.httpinstance.HTTPInstance()
     http.create_instance()
+
+    # Create a radius instance
+    radius = ipaserver.radiusinstance.RadiusInstance()
+    # FIXME: ldap_server should be derived, not hardcoded to localhost, also should it be a URL?
+    radius.create_instance(realm_name, host_name, 'localhost') 
 
     bind.setup(host_name, ip_address, realm_name)
     if options.setup_bind:
