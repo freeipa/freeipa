@@ -79,6 +79,7 @@ class DsInstance:
         self.__create_instance()
         self.__add_default_schemas()
         self.__add_memberof_module()
+        self.__add_referint_module()
         self.__create_indeces()
         self.__enable_ssl()
         self.__certmap_conf()
@@ -167,6 +168,15 @@ class DsInstance:
         except subprocess.CalledProcessError, e:
             print "Failed to load memberof-conf.ldif", e
         memberof_fd.close()
+
+    def __add_referint_module(self):
+        referint_txt = template_file(SHARE_DIR + "referint-conf.ldif", self.sub_dict)
+        referint_fd = write_tmp_file(referint_txt)
+        try:
+            ldap_mod(referint_fd, "cn=Directory Manager", self.dm_password)
+        except subprocess.CalledProcessError, e:
+            print "Failed to load referint-conf.ldif", e
+        referint_fd.close()
 
     def __enable_ssl(self):
         logging.debug("configuring ssl for ds instance")

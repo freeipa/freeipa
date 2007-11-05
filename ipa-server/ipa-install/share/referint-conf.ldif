@@ -1,0 +1,7 @@
+dn: cn=referential integrity postoperation,cn=plugins,cn=config
+changetype: modify
+replace: nsslapd-pluginenabled
+nsslapd-pluginenabled: on
+nsslapd-pluginArg7: manager
+nsslapd-pluginArg8: secretary
+
