@@ -48,6 +48,9 @@ import ipaserver.bindinstance
 import ipaserver.httpinstance
 import ipaserver.ntpinstance
 import ipaserver.radiusinstance
+import ipaserver.webguiinstance
+
+from ipaserver import service
 
 from ipa.ipautil import run
 
@@ -525,7 +528,11 @@ def main():
 
     # Create a HTTP instance
     http = ipaserver.httpinstance.HTTPInstance()
-    http.create_instance()
+    http.create_instance(realm_name, host_name)
+
+    # Create a Web Gui instance
+    webgui = ipaserver.webguiinstance.WebGuiInstance()
+    webgui.create_instance()
 
     # Create a radius instance
     radius = ipaserver.radiusinstance.RadiusInstance()
@@ -548,68 +555,15 @@ def main():
         bind.create_sample_bind_zone()
 
     # Restart ds and krb after configurations have been changed
+    service.print_msg("restarting the directory server")
     ds.restart()
+    
+    service.print_msg("restarting the KDC")
     krb.restart()
 
     # Configure ntpd
     ntp = ipaserver.ntpinstance.NTPInstance()
     ntp.create_instance()
-
-    try:
-        selinux=0
-        try:
-            if (os.path.exists('/usr/sbin/selinuxenabled')):
-                run(["/usr/sbin/selinuxenabled"])
-                selinux=1
-        except subprocess.CalledProcessError, e:
-            # selinuxenabled returns 1 if not enabled
-            pass
-
-        if selinux:
-            # Allow apache to connect to the turbogears web gui
-            # This can still fail even if selinux is enabled
-            try:
-                run(["/usr/sbin/setsebool", "-P", "httpd_can_network_connect", "true"])
-            except:
-                print "WARNING: could not set selinux boolean httpd_can_network_connect to true."
-                print "The web interface may not function correctly until this boolean is"
-                print "successfully change with the command:"
-                print "   /usr/sbin/setsebool -P httpd_can_network_connect true"
-                print "Try updating the policycoreutils and selinux-policy packages."
-                pass
-
-        # Start the web gui
-        run(["/sbin/service", "ipa-webgui", "start"])
-
-        # Set the web gui to start on boot
-        run(["/sbin/chkconfig", "ipa-webgui", "on"])
-
-        # Restart apache
-        run(["/sbin/service", "httpd", "restart"])
-
-        # Set apache to start on boot
-        run(["/sbin/chkconfig", "httpd", "on"])
-
-        # Set fedora-ds to start on boot
-        run(["/sbin/chkconfig", "dirsrv", "on"])
-
-        # Set the KDC to start on boot
-        run(["/sbin/chkconfig", "krb5kdc", "on"])
-
-        # Set the Kpasswd to start on boot
-        run(["/sbin/chkconfig", "ipa-kpasswd", "on"])
-
-        # Start Kpasswd
-        run(["/sbin/service", "ipa-kpasswd", "start"])
-
-        # Set the ntpd to start on boot
-        run(["/sbin/chkconfig", "ntpd", "on"])
-
-        # Restart ntpd
-        run(["/sbin/service", "ntpd", "restart"])
-    except subprocess.CalledProcessError, e:
-        print "Installation failed:", e
-        return 1
 
     # Set the admin user kerberos password
     ds.change_admin_password(admin_password)

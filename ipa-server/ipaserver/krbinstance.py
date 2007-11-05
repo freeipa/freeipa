@@ -32,6 +32,8 @@ import os
 import pwd
 import socket
 import time
+
+import service
 from ipa.ipautil import *
 
 def host_to_domain(fqdn):
@@ -63,8 +65,9 @@ def update_key_val_in_file(filename, key, val):
     f.write("%s=%s\n" % (key, val))
     f.close()
     
-class KrbInstance:
+class KrbInstance(service.Service):
     def __init__(self):
+        service.Service.__init__(self, "krb5kdc")
         self.ds_user = None
         self.fqdn = None
         self.realm = None
@@ -95,39 +98,41 @@ class KrbInstance:
             # It could have been not running
             pass
 
+        self.start_creation(10, "Configuring Kerberos KDC")
+
 	self.__configure_kdc_account_password()
 
         self.__setup_sub_dict()
 
         self.__configure_ldap()
 
-        self.__configure_http()
-
         self.__create_instance()
 
         self.__create_ds_keytab()
-
-        self.__create_http_keytab()
 
         self.__export_kadmin_changepw_keytab()
 
         self.__add_pwd_extop_module()
 
         try:
+            self.step("starting the KDC")
             self.start()
         except:
-            print "krb5kdc service failed to start"
+            logging.critical("krb5kdc service failed to start")
 
-    def stop(self):
-        run(["/sbin/service", "krb5kdc", "stop"])
+        self.step("configuring KDC to start on boot")
+        self.chkconfig_on()
 
-    def start(self):
-        run(["/sbin/service", "krb5kdc", "start"])
+        self.step("configuring ipa-kpasswd to start on boot")
+        service.chkconfig_on("ipa-kpasswd")
 
-    def restart(self):
-        run(["/sbin/service", "krb5kdc", "restart"])
+        self.step("starting ipa-kpasswd")
+        service.start("ipa-kpasswd")
+
+        self.done_creation()
 
     def __configure_kdc_account_password(self):
+        self.step("setting KDC account password")
         hexpwd = ''
 	for x in self.kdc_password:
             hexpwd += (hex(ord(x))[2:])
@@ -145,14 +150,14 @@ class KrbInstance:
                              REALM=self.realm)
 
     def __configure_ldap(self):
-
+        self.step("adding kerberos configuration to the directory")
 	#TODO: test that the ldif is ok with any random charcter we may use in the password
         kerberos_txt = template_file(SHARE_DIR + "kerberos.ldif", self.sub_dict)
         kerberos_fd = write_tmp_file(kerberos_txt)
         try:
             ldap_mod(kerberos_fd, "cn=Directory Manager", self.admin_password)
         except subprocess.CalledProcessError, e:
-            print "Failed to load kerberos.ldif", e
+            logging.critical("Failed to load kerberos.ldif: %s" % str(e))
         kerberos_fd.close()
 
 	#Change the default ACL to avoid anonimous access to kerberos keys and othe hashes
@@ -161,10 +166,11 @@ class KrbInstance:
         try:
             ldap_mod(aci_fd, "cn=Directory Manager", self.admin_password)
         except subprocess.CalledProcessError, e:
-            print "Failed to load default-aci.ldif", e
+            logging.critical("Failed to load default-aci.ldif: %s" % str(e))
         aci_fd.close()
 
     def __create_instance(self):
+        self.step("configuring KDC")
         kdc_conf = template_file(SHARE_DIR+"kdc.conf.template", self.sub_dict)
         kdc_fd = open("/var/kerberos/krb5kdc/kdc.conf", "w+")
         kdc_fd.write(kdc_conf)
@@ -200,12 +206,13 @@ class KrbInstance:
 
     #add the password extop module
     def __add_pwd_extop_module(self):
+        self.step("adding the password extenstion to the directory")
         extop_txt = template_file(SHARE_DIR + "pwd-extop-conf.ldif", self.sub_dict)
         extop_fd = write_tmp_file(extop_txt)
         try:
             ldap_mod(extop_fd, "cn=Directory Manager", self.admin_password)
         except subprocess.CalledProcessError, e:
-            print "Failed to load pwd-extop-conf.ldif", e
+            logging.critical("Failed to load pwd-extop-conf.ldif: %s" % str(e))
         extop_fd.close()
 
         #add an ACL to let the DS user read the master key
@@ -213,14 +220,15 @@ class KrbInstance:
         try:
             run(args)
         except subprocess.CalledProcessError, e:
-            print "Failed to set the ACL on the master key", e
+            logging.critical("Failed to set the ACL on the master key: %s" % str(e))
 
     def __create_ds_keytab(self):
+        self.step("creating a keytab for the directory")
         try:
             if file_exists("/etc/dirsrv/ds.keytab"):
                 os.remove("/etc/dirsrv/ds.keytab")
         except os.error:
-            print "Failed to remove /etc/dirsrv/ds.keytab."
+            logging.critical("Failed to remove /etc/dirsrv/ds.keytab.")
         (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
         kwrite.write("addprinc -randkey ldap/"+self.fqdn+"@"+self.realm+"\n")
         kwrite.flush()
@@ -236,7 +244,7 @@ class KrbInstance:
             time.sleep(1)
             retry += 1
             if retry > 15:
-                print "Error timed out waiting for kadmin to finish operations\n"
+                logging.critical("Error timed out waiting for kadmin to finish operations")
                 sys.exit(1)
 
         update_key_val_in_file("/etc/sysconfig/dirsrv", "export KRB5_KTNAME", "/etc/dirsrv/ds.keytab")
@@ -244,6 +252,7 @@ class KrbInstance:
         os.chown("/etc/dirsrv/ds.keytab", pent.pw_uid, pent.pw_gid)
 
     def __export_kadmin_changepw_keytab(self):
+        self.step("exporting the kadmin keytab")
         (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
         kwrite.write("modprinc +requires_preauth kadmin/changepw\n")
         kwrite.flush()
@@ -264,42 +273,11 @@ class KrbInstance:
             time.sleep(1)
             retry += 1
             if retry > 15:
-                print "Error timed out waiting for kadmin to finish operations\n"
+                logging.critical("Error timed out waiting for kadmin to finish operations")
                 sys.exit(1)
 
         update_key_val_in_file("/etc/sysconfig/ipa-kpasswd", "export KRB5_KTNAME", "/var/kerberos/krb5kdc/kpasswd.keytab")
         pent = pwd.getpwnam(self.ds_user)
         os.chown("/var/kerberos/krb5kdc/kpasswd.keytab", pent.pw_uid, pent.pw_gid)
 
-    def __create_http_keytab(self):
-        try:
-            if file_exists("/etc/httpd/conf/ipa.keytab"):
-                os.remove("/etc/httpd/conf/ipa.keytab")
-        except os.error:
-            print "Failed to remove /etc/httpd/conf/ipa.keytab."
-        (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
-        kwrite.write("addprinc -randkey HTTP/"+self.fqdn+"@"+self.realm+"\n")
-        kwrite.flush()
-        kwrite.write("ktadd -k /etc/httpd/conf/ipa.keytab HTTP/"+self.fqdn+"@"+self.realm+"\n")
-        kwrite.flush()
-        kwrite.close()
-        kread.close()
-        kerr.close()
 
-        # give kadmin time to actually write the file before we go on
-	retry = 0
-        while not file_exists("/etc/httpd/conf/ipa.keytab"):
-            time.sleep(1)
-            retry += 1
-            if retry > 15:
-                print "Error timed out waiting for kadmin to finish operations\n"
-                sys.exit(1)
-
-        pent = pwd.getpwnam("apache")
-        os.chown("/etc/httpd/conf/ipa.keytab", pent.pw_uid, pent.pw_gid)
-
-    def __configure_http(self):
-        http_txt = template_file(SHARE_DIR + "ipa.conf", self.sub_dict)
-        http_fd = open("/etc/httpd/conf.d/ipa.conf", "w")
-        http_fd.write(http_txt)
-        http_fd.close()

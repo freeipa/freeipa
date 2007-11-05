@@ -27,6 +27,8 @@ import pwd
 import time
 from ipa.ipautil import *
 
+import service
+
 import os
 import re
 
@@ -47,8 +49,9 @@ from ipaserver.funcs import DefaultUserContainer, DefaultGroupContainer
 
 #-------------------------------------------------------------------------------
 
-class RadiusInstance:
+class RadiusInstance(service.Service):
     def __init__(self):
+        service.Service.__init__(self, "radiusd")
         self.fqdn        = None
         self.realm       = None
         self.principal   = None
@@ -66,6 +69,8 @@ class RadiusInstance:
         else:
             self.rpm_name = self.rpm_version = self.rpm_release = None
 
+        self.start_creation(4, "Configuring radiusd")
+
         try:
             self.stop()
         except:
@@ -76,22 +81,17 @@ class RadiusInstance:
         self.__radiusd_conf()
 
         try:
+            self.step("starting radiusd")
             self.start()
         except:
             logging.error("radiusd service failed to start")
 
+        self.step("configuring radiusd to start on boot")
+        self.chkconfig_on()
 
-    def stop(self):
-        run(['/sbin/service', 'radiusd', 'stop'])
-
-    def start(self):
-        run(['/sbin/service', 'radiusd', 'start'])
-
-    def restart(self):
-        run(['/sbin/service', 'radiusd', 'restart'])
 
     def __radiusd_conf(self):
-        logging.debug('configuring radiusd.conf for radius instance')
+        self.step('configuring radiusd.conf for radius instance')
 
         version = 'IPA_RADIUS_VERSION=%s RADIUS_PACKAGE_VERSION=%s' % (IPA_RADIUS_VERSION, self.rpm_nvr)
         sub_dict = {'CONFIG_FILE_VERSION_INFO' : version,
@@ -110,6 +110,7 @@ class RadiusInstance:
             logging.error("could not create %s: %s", RADIUSD_CONF_FILEPATH, e)
 
     def __create_radius_keytab(self):
+        self.step("create radiusd keytab")
         try:
             if file_exists(IPA_KEYTAB_FILEPATH):
                 os.remove(IPA_KEYTAB_FILEPATH)

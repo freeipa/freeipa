@@ -19,6 +19,7 @@ app_DATA =				\
 	krbrealm.con.template		\
 	ntp.conf.server.template 	\
 	radius.radiusd.conf.template	\
+	referint-conf.ldif		\
 	$(NULL)
 
 EXTRA_DIST =				\

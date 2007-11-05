@@ -20,8 +20,16 @@
 from ipa.ipautil import *
 import shutil
 
-class NTPInstance:
+import service
+
+class NTPInstance(service.Service):
+    def __init__(self):
+        service.Service.__init__(self, "ntpd")
+        
     def create_instance(self):
+        self.start_creation(3, "Configuring ntpd")
+
+        self.step("writing configuration")
         # The template sets the config to point towards ntp.pool.org, but
         # they request that software not point towards the default pool.
         # We use the OS variable to point it towards either the rhel
@@ -48,3 +56,9 @@ class NTPInstance:
 
         # we might consider setting the date manually using ntpd -qg in case
         # the current time is very far off.
+
+        self.step("starting ntpd")
+        self.start()
+        
+        self.step("configuring ntpd to start on boot")
+        self.chkconfig_on()

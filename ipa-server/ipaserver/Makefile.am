@@ -10,6 +10,8 @@ app_PYTHON = 			\
 	httpinstance.py		\
 	ntpinstance.py		\
 	radiusinstance.py	\
+	webguiinstance.py	\
+	service.py		\
 	$(NULL)
 
 EXTRA_DIST =			\

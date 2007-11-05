@@ -24,7 +24,9 @@ import tempfile
 import shutil
 import logging
 import pwd
+
 from ipa.ipautil import *
+import service
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
@@ -57,8 +59,9 @@ RootDN=   cn=Directory Manager
 RootDNPwd= $PASSWORD
 """
 
-class DsInstance:
+class DsInstance(service.Service):
     def __init__(self):
+        service.Service.__init__(self, "dirsrv")
         self.serverid = None
         self.realm_name = None
         self.suffix = None
@@ -75,6 +78,7 @@ class DsInstance:
         self.dm_password = dm_password
         self.__setup_sub_dict()
 
+        self.start_creation(11, "Configuring directory server:")
         self.__create_ds_user()
         self.__create_instance()
         self.__add_default_schemas()
@@ -84,11 +88,17 @@ class DsInstance:
         self.__enable_ssl()
         self.__certmap_conf()
         try:
+            self.step("restarting directory server")
             self.restart()
         except:
             # TODO: roll back here?
-            print "Failed to restart the ds instance"
+            logging.critical("Failed to restart the ds instance")
         self.__add_default_layout()
+
+        self.step("configuring directoy to start on boot")
+        self.chkconfig_on()
+
+        self.done_creation()
 
     def config_dirname(self):
         if not self.serverid:
@@ -98,15 +108,6 @@ class DsInstance:
     def schema_dirname(self):
         return self.config_dirname() + "/schema/"
 
-    def stop(self):
-        run(["/sbin/service", "dirsrv", "stop"])
-
-    def start(self):
-        run(["/sbin/service", "dirsrv", "start"])
-
-    def restart(self):
-        run(["/sbin/service", "dirsrv", "restart"])
-
     def __setup_sub_dict(self):
         server_root = find_server_root()
         self.sub_dict = dict(FQHN=self.host_name, SERVERID=self.serverid,
@@ -115,6 +116,7 @@ class DsInstance:
                              SERVER_ROOT=server_root)
 
     def __create_ds_user(self):
+        self.step("creating directory server user")
 	try:
             pwd.getpwnam(self.ds_user)
             logging.debug("ds user %s exists" % self.ds_user)
@@ -125,11 +127,10 @@ class DsInstance:
                 run(args)
                 logging.debug("done adding user")
             except subprocess.CalledProcessError, e:
-                print "Failed to add user", e
-                logging.debug("failed to add user %s" % e)
+                logging.critical("failed to add user %s" % e)
 
     def __create_instance(self):
-        logging.debug("creating ds instance . . . ")
+        self.step("creating directory server instance")
         inf_txt = template_str(INF_TEMPLATE, self.sub_dict)
         logging.debug(inf_txt)
         inf_fd = write_tmp_file(inf_txt)
@@ -144,8 +145,7 @@ class DsInstance:
             run(args)
             logging.debug("completed creating ds instance")
         except subprocess.CalledProcessError, e:
-            print "failed to restart ds instance", e
-            logging.debug("failed to restart ds instance %s" % e)
+            logging.critical("failed to restart ds instance %s" % e)
         logging.debug("restarting ds instance")
         try:
             self.restart()
@@ -155,6 +155,7 @@ class DsInstance:
             logging.debug("failed to restart ds instance %s" % e)
 
     def __add_default_schemas(self):
+        self.step("adding default schema")
         shutil.copyfile(SHARE_DIR + "60kerberos.ldif",
                         self.schema_dirname() + "60kerberos.ldif")
         shutil.copyfile(SHARE_DIR + "60samba.ldif",
@@ -163,15 +164,17 @@ class DsInstance:
                         self.schema_dirname() + "60radius.ldif")
 
     def __add_memberof_module(self):
+        self.step("enabling memboerof plugin")
         memberof_txt = template_file(SHARE_DIR + "memberof-conf.ldif", self.sub_dict)
         memberof_fd = write_tmp_file(memberof_txt)
         try:
             ldap_mod(memberof_fd, "cn=Directory Manager", self.dm_password)
         except subprocess.CalledProcessError, e:
-            print "Failed to load memberof-conf.ldif", e
+            logging.critical("Failed to load memberof-conf.ldif: %s" % str(e))
         memberof_fd.close()
 
     def __add_referint_module(self):
+        self.step("enabling referential integrity plugin")
         referint_txt = template_file(SHARE_DIR + "referint-conf.ldif", self.sub_dict)
         referint_fd = write_tmp_file(referint_txt)
         try:
@@ -181,7 +184,7 @@ class DsInstance:
         referint_fd.close()
 
     def __enable_ssl(self):
-        logging.debug("configuring ssl for ds instance")
+        self.step("configuring ssl for ds instance")
         dirname = self.config_dirname()
         args = ["/usr/share/ipa/ipa-server-setupssl", self.dm_password,
                 dirname, self.host_name]
@@ -189,13 +192,13 @@ class DsInstance:
             run(args)
             logging.debug("done configuring ssl for ds instance")
         except subprocess.CalledProcessError, e:
-            print "Failed to enable ssl in ds instance", e
-            logging.debug("Failed to configure ssl in ds instance %s" % e)
+            logging.critical("Failed to configure ssl in ds instance %s" % e)
         
     def __add_default_layout(self):
+        self.step("adding default layout")
         txt = template_file(SHARE_DIR + "bootstrap-template.ldif", self.sub_dict)
         inf_fd = write_tmp_file(txt)
-        logging.debug("adding default ds layout")
+        logging.debug("adding default dfrom ipa.ipautil import *s layout")
         args = ["/usr/bin/ldapmodify", "-xv", "-D", "cn=Directory Manager",
                 "-w", self.dm_password, "-f", inf_fd.name]
         try:
@@ -203,9 +206,10 @@ class DsInstance:
             logging.debug("done adding default ds layout")
         except subprocess.CalledProcessError, e:
             print "Failed to add default ds layout", e
-            logging.debug("Failed to add default ds layout %s" % e)
+            logging.critical("Failed to add default ds layout %s" % e)
         
     def __create_indeces(self):
+        self.step("creating indeces")
         txt = template_file(SHARE_DIR + "indeces.ldif", self.sub_dict)
         inf_fd = write_tmp_file(txt)
         logging.debug("adding/updating indeces")
@@ -215,17 +219,15 @@ class DsInstance:
             run(args)
             logging.debug("done adding/updating indeces")
         except subprocess.CalledProcessError, e:
-            print "Failed to add default ds layout", e
-            logging.debug("Failed to add/update indeces %s" % e)
+            logging.critical("Failed to add/update indeces %s" % str(e))
 
     def __certmap_conf(self):
-        logging.debug("configuring certmap.conf for ds instance")
+        self.step("configuring certmap.conf")
         dirname = self.config_dirname()
         certmap_conf = template_file(SHARE_DIR+"certmap.conf.template", self.sub_dict)
         certmap_fd = open(dirname+"certmap.conf", "w+")
         certmap_fd.write(certmap_conf)
         certmap_fd.close()
-        logging.debug("done configuring certmap.conf for ds instance")
 
     def change_admin_password(self, password):
         logging.debug("Changing admin password")
