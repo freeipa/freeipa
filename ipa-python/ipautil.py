@@ -30,7 +30,6 @@ from string import lower
 import re
 import xmlrpclib
 import datetime
-import rpm
 
 def realm_to_suffix(realm_name):
     s = realm_name.split(".")
@@ -331,39 +330,4 @@ def parse_generalized_time(timestr):
 
     except ValueError:
         return None
-
-#-------------------------------------------------------------------------------
-
-def get_rpm_nvr_from_header(hdr):
-    'Given an RPM header return the package NVR as a string'
-    name    = hdr['name']
-    version = hdr['version']
-    release = hdr['release']
-
-    return '%s-%s-%s' % (name, version, release)
-
-def get_rpm_nvr_by_name(name):
-    if name is None:
-        return None
-
-    nvr = None
-    try:
-        ts = rpm.ts()
-        mi = ts.dbMatch(rpm.RPMTAG_NAME, name)
-        for h in mi:
-            nvr = get_rpm_nvr_from_header(h)
-            break
-    except:
-        logging.exception('failed to retrieve rpm info for %s', name)
-    return nvr
-
-def split_rpm_nvr(nvr):
-    components = nvr.split('-')
-    release = components[-1]
-    version = components[-2]
-    name    = '-'.join(components[:-2])
-    return (name, version, release)
-
-
-
 

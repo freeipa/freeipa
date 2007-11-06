@@ -44,8 +44,29 @@ LDAP_ATTR_MAP_FILEPATH         = os.path.join(PKG_CONFIG_DIR, 'ldap.attrmap')
 RADIUSD_CONF_FILEPATH          = os.path.join(PKG_CONFIG_DIR, 'radiusd.conf')
 RADIUSD_CONF_TEMPLATE_FILEPATH = os.path.join(SHARE_DIR,       'radius.radiusd.conf.template')
 
+RADIUSD = '/usr/sbin/radiusd'
+
 # FIXME there should a utility to get the user base dn
 from ipaserver.funcs import DefaultUserContainer, DefaultGroupContainer
+
+#-------------------------------------------------------------------------------
+
+def get_radius_version():
+    version = None
+    try:
+        p = subprocess.Popen([RADIUSD, '-v'], stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        status =  p.returncode
+
+        if status == 0:
+            match = re.search("radiusd: FreeRADIUS Version (.+), for host", stdout)
+            if match:
+                version = match.group(1)
+    except Exception, e:
+        pass
+    return version
+
 
 #-------------------------------------------------------------------------------
 
@@ -63,12 +84,7 @@ class RadiusInstance(service.Service):
         self.principal    = "%s/%s@%s" % (RADIUS_SERVICE_NAME, self.fqdn, self.realm)
         self.basedn       = realm_to_suffix(self.realm)
         self.user_basedn  = "%s,%s" % (DefaultUserContainer, self.basedn) # FIXME, should be utility to get this
-        self.rpm_nvr = get_rpm_nvr_by_name(PKG_NAME)
-        if self.rpm_nvr is not None:
-            self.rpm_name, self.rpm_version, self.rpm_release = split_rpm_nvr(self.rpm_nvr)
-        else:
-            self.rpm_name = self.rpm_version = self.rpm_release = None
-
+        self.radius_version = get_radius_version()
         self.start_creation(4, "Configuring radiusd")
 
         try:
@@ -93,7 +109,7 @@ class RadiusInstance(service.Service):
     def __radiusd_conf(self):
         self.step('configuring radiusd.conf for radius instance')
 
-        version = 'IPA_RADIUS_VERSION=%s RADIUS_PACKAGE_VERSION=%s' % (IPA_RADIUS_VERSION, self.rpm_nvr)
+        version = 'IPA_RADIUS_VERSION=%s FREE_RADIUS_VERSION=%s' % (IPA_RADIUS_VERSION, self.radius_version)
         sub_dict = {'CONFIG_FILE_VERSION_INFO' : version,
                     'LDAP_SERVER'              : self.ldap_server,
                     'RADIUS_KEYTAB'            : IPA_KEYTAB_FILEPATH,
