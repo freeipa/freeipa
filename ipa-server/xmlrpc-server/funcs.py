@@ -443,7 +443,7 @@ class IPAServer:
 
         # some required objectclasses
         entry.setValues('objectClass', 'top', 'person', 'organizationalPerson',
-                'inetOrgPerson', 'inetUser', 'posixAccount', 'krbPrincipalAux')
+                'inetOrgPerson', 'inetUser', 'posixAccount', 'krbPrincipalAux', 'radiusprofile')
 
         # fill in our new entry with everything sent by the user
         for u in user:
