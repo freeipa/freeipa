@@ -65,7 +65,7 @@
 #include <sys/stat.h>
 #endif
 
-#define DNA_PLUGIN_SUBSYSTEM			"dna-plugin"
+#define DNA_PLUGIN_SUBSYSTEM			"ipa-dna-plugin"
 #define DNA_PLUGIN_VERSION				0x00010000
 
 #define DNA_DN							"cn=ipa-dna,cn=plugins,cn=config" /* temporary */
@@ -84,8 +84,8 @@
 #define DNA_FILTER	"dnaFilter"
 #define DNA_SCOPE	"dnaScope"
 
-#define FEATURE_DESC	"Distributed Numeric Assignment"
-#define PLUGIN_DESC	"Distributed Numeric Assignment plugin"
+#define FEATURE_DESC	"IPA Distributed Numeric Assignment"
+#define PLUGIN_DESC	"IPA Distributed Numeric Assignment plugin"
 
 static Slapi_PluginDesc pdesc = { 	FEATURE_DESC,
 					"FreeIPA project", "FreeIPA/1.0",
@@ -125,7 +125,7 @@ static Slapi_Mutex *g_new_value_lock;
  * DNA plug-in management functions
  *
  */
-int dna_init(Slapi_PBlock *pb); 
+int ipa_dna_init(Slapi_PBlock *pb); 
 static int dna_start(Slapi_PBlock *pb);
 static int dna_close(Slapi_PBlock *pb);
 static int dna_postop_init(Slapi_PBlock *pb);
@@ -235,12 +235,12 @@ char * getPluginDN()
 	-------------
 	adds our callbacks to the list
 */
-int dna_init( Slapi_PBlock *pb )
+int ipa_dna_init( Slapi_PBlock *pb )
 {
 	int status = DNA_SUCCESS;
 	char * plugin_identity=NULL;
 
-	slapi_log_error( SLAPI_LOG_TRACE, DNA_PLUGIN_SUBSYSTEM , "--> dna_init\n");
+	slapi_log_error( SLAPI_LOG_TRACE, DNA_PLUGIN_SUBSYSTEM , "--> ipa_dna_init\n");
 
 	/**
 	 * Store the plugin identity for later use.
@@ -267,7 +267,7 @@ int dna_init( Slapi_PBlock *pb )
 		slapi_register_plugin(
 			"postoperation",	/* op type */
 			1, 			/* Enabled */ 
-			"dna_init", 		/* this function desc */
+			"ipa_dna_init", 		/* this function desc */
 			dna_postop_init,	/* init func for post op */ 
 			PLUGIN_DESC,		/* plugin desc */
 			NULL,			/* ? */
@@ -276,11 +276,11 @@ int dna_init( Slapi_PBlock *pb )
 	)
 	{
 		slapi_log_error( SLAPI_LOG_FATAL, DNA_PLUGIN_SUBSYSTEM,
-                     "dna_init: failed to register plugin\n" );
+                     "ipa_dna_init: failed to register plugin\n" );
 		status = DNA_FAILURE;
 	}
 
-	slapi_log_error( SLAPI_LOG_TRACE, DNA_PLUGIN_SUBSYSTEM , "<-- dna_init\n");
+	slapi_log_error( SLAPI_LOG_TRACE, DNA_PLUGIN_SUBSYSTEM , "<-- ipa_dna_init\n");
 	return status;
 }
 

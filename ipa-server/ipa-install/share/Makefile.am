@@ -20,6 +20,8 @@ app_DATA =				\
 	ntp.conf.server.template 	\
 	radius.radiusd.conf.template	\
 	referint-conf.ldif		\
+	dna-posix.ldif			\
+	master-entry.ldif		\
 	$(NULL)
 
 EXTRA_DIST =				\

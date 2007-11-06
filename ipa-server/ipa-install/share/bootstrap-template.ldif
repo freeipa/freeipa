@@ -39,6 +39,18 @@ objectClass: nsContainer
 objectClass: top
 cn: sysaccounts
 
+dn: cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: ipa
+
+dn: cn=masters,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: masters
+
 dn: uid=admin,cn=sysaccounts,cn=etc,$SUFFIX
 changetype: add
 objectClass: top
@@ -50,7 +62,7 @@ uid: admin
 krbPrincipalName: admin@$REALM
 cn: Administrator
 sn: Administrator
-uidNumber: 1000
+uidNumber: 999
 gidNumber: 1001
 homeDirectory: /home/admin
 loginShell: /bin/bash
