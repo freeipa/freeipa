@@ -44,7 +44,7 @@ aci_checkbox_attrs = [(field.name, field.label) for field in aci_attrs]
 aci_name_to_label = dict(aci_checkbox_attrs)
 
 class DelegateFields():
-    name = widgets.TextField(name="name", label="Name")
+    name = widgets.TextField(name="name", label="Delegation Name")
 
     source_group_dn = widgets.HiddenField(name="source_group_dn")
     dest_group_dn = widgets.HiddenField(name="dest_group_dn")

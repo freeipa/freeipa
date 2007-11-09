@@ -23,6 +23,7 @@ from optparse import OptionParser
 import ipa.ipaclient as ipaclient
 import ipa.config
 
+import operator
 import xmlrpclib
 import kerberos
 
@@ -75,7 +76,8 @@ def main():
 
     group_dn_to_cn = ipa.aci.extract_group_cns(aci_list, client)
 
-    for a in aci_list:
+    # the operator.itemgetter(0) lets us sort by the name field
+    for a in sorted(aci_list, key=operator.itemgetter(0)):
         labels = client.attrs_to_labels(a.attrs)
         print "Delegation Name: " + a.name
         print "Group " + group_dn_to_cn[a.source_group] 

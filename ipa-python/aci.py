@@ -37,6 +37,16 @@ class ACI:
         if acistr is not None:
             self.parse_acistr(acistr)
 
+    def __getitem__(self,key):
+        """Fake getting attributes by key for sorting"""
+        if key == 0:
+            return self.name
+        if key == 1:
+            return self.source_group
+        if key == 2:
+            return self.dest_group
+        raise TypeError("Unknown key value %s" % key)
+
     def export_to_string(self):
         """Converts the ACI to a string suitable for an LDAP aci attribute."""
         attrs_str = ' || '.join(self.attrs)
