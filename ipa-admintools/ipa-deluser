@@ -33,6 +33,8 @@ def usage():
 
 def parse_options():
     parser = OptionParser()
+    parser.add_option("-d", "--delete", action="store_true", dest="deluser",
+                      help="Delete the user, don't inactivate them.")
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
@@ -47,11 +49,16 @@ def main():
     if len(args) != 2:
         usage()
 
+    msg = "inactivated"
     try:
         client = ipaclient.IPAClient()
-        ret = client.mark_user_deleted(args[1])
+        if options.deluser:
+            ret = client.delete_user(args[1])
+            msg = "deleted"
+        else:
+            ret = client.mark_user_deleted(args[1])
         if (ret == "Success"):
-            print args[1] + " successfully deleted"
+            print args[1] + " successfully %s" % msg
         else:
             print args[1] + " " + ret
     except xmlrpclib.Fault, f:

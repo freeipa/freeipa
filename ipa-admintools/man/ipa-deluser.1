@@ -19,14 +19,20 @@
 .\" 
 .TH "ipa-deluser" "1" "Oct 10 2007" "freeipa" ""
 .SH "NAME"
-ipa\-deluser \- Delete a user
+ipa\-deluser \- Delete or inactivate a user
 
 .SH "SYNOPSIS"
-ipa\-deluser \fIuser\fR
+ipa\-deluser [\fIOPTION\fR]... \fIuser\fR
 
 .SH "DESCRIPTION"
-Deletes a user with name \fIname\fR.
+Inactivates a user with login name \fIname\fR.
 
-Users are not completely removed with the command, just marked as inactive.
+By default users are not completely removed. They are marked as inactive. Use the [\-d|\-\-delete] option to completely remove them.
+
+Users are automatically removed from groups when they are deleted. The are not when inactivated.
+.SH "OPTIONS"
+.TP 
+\fB\-d\fR, \fB\-\-delete
+Completely remove the user from the database. The default is to mark the user inactive.
 .SH "EXIT STATUS"
 The exit status is 0 on success, nonzero on error.
