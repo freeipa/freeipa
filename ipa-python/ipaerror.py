@@ -152,3 +152,8 @@ CONNECTION_GSSAPI_CREDENTIALS = gen_error_code(
         CONNECTION_CATEGORY,
         0x0003,
         "GSSAPI Authorization error")
+
+CONNECTION_UNWILLING = gen_error_code(
+        CONNECTION_CATEGORY,
+        0x0004,
+        "Account inactivated. Server is unwilling to perform.")

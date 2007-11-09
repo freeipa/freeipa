@@ -77,7 +77,10 @@ class IPAConnPool:
         conn = ipaserver.ipaldap.IPAdmin(host,port,None,None,None,debug)
 
         # This will bind the connection
-        conn.set_krbccache(krbccache, cprinc.name)
+        try:
+            conn.set_krbccache(krbccache, cprinc.name)
+        except ldap.UNWILLING_TO_PERFORM, e:
+            raise ipaerror.gen_exception(ipaerror.CONNECTION_UNWILLING)
 
         return conn
 
