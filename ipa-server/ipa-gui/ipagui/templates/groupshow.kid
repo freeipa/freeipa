@@ -7,7 +7,7 @@
 </head>
 <body>
 <?python
-edit_url = tg.url('/group/edit', cn=group.get('cn'))
+edit_url = tg.url('/group/edit', cn=group.get('cn')[0])
 ?>
 <div id="details">
     <h1>View Group</h1>
@@ -22,7 +22,21 @@ edit_url = tg.url('/group/edit', cn=group.get('cn'))
           <th>
             <label class="fieldlabel" py:content="fields.cn.label" />:
           </th>
-          <td>${group.get("cn")}</td>
+          <td>
+          <table cellpadding="2" cellspacing="0" border="0">
+            <tbody>
+              <?python
+                index = 0
+                values = group.get("cn")      
+                if isinstance(values, str):
+                    values = [values]
+               ?>
+              <tr py:for="index in range(len(values))">
+              <td>${values[index]}</td>
+              </tr>
+            </tbody>
+          </table>
+          </td>
         </tr>
 
         <tr>
@@ -51,7 +65,7 @@ edit_url = tg.url('/group/edit', cn=group.get('cn'))
           member_type = "user"
           view_url = tg.url('/user/show', uid=member_uid)
       else:
-          member_cn = "%s" % member.get('cn')
+          member_cn = "%s" % member.get('cn')[0]
           member_desc = "[group]"
           member_type = "group"
           view_url = tg.url('/group/show', cn=member_cn)

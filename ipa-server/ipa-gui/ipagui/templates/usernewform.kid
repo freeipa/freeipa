@@ -13,6 +13,8 @@ from ipagui.helpers import ipahelper
     src="${tg.url('/static/javascript/dynamicedit.js')}"></script>
   <script type="text/javascript" charset="utf-8"
     src="${tg.url('/static/javascript/dynamicselect.js')}"></script>
+  <script type="text/javascript" charset="utf-8"
+    src="${tg.url('/tg_widgets/tg_expanding_form_widget/javascript/expanding_form.js')}"></script>
 
   <?python
   searchurl = tg.url('/user/edit_search')

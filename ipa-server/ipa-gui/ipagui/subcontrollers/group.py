@@ -90,7 +90,7 @@ class GroupController(IPAController):
         #       on any error, we redirect to the _edit_ group page.
         #       this code does data setup, similar to groupedit()
         #
-        group = client.get_entry_by_cn(kw['cn'], group_fields)
+        group = client.get_entry_by_cn(kw['cn'][0], group_fields)
         group_dict = group.toDict()
         member_dicts = []
 
@@ -180,6 +180,14 @@ class GroupController(IPAController):
 
             group_dict = group.toDict()
 
+            # Load potential multi-valued fields
+            if isinstance(group_dict['cn'], str):
+                group_dict['cn'] = [group_dict['cn']]
+            cns = []
+            for cn in group_dict['cn']:
+                cns.append(dict(cn=cn))
+            group_dict['cns'] = cns
+
             #
             # convert members to users, for easier manipulation on the page
             #
@@ -210,13 +218,18 @@ class GroupController(IPAController):
         self.restrict_post()
         client = self.get_ipaclient()
 
+        # Fix incoming multi-valued form fields
+        kw['cn'] = []
+        for i in range(len(kw['cns'])):
+            kw['cn'].append(kw['cns'][i]['cn'])
+        del(kw['cns'])
+
         if kw.get('submit') == 'Cancel Edit':
             turbogears.flash("Edit group cancelled")
-            raise turbogears.redirect('/group/show', cn=kw.get('cn'))
+            raise turbogears.redirect('/group/show', cn=kw.get('cn')[0])
 
         # Decode the member data, in case we need to round trip
         member_dicts = loads(b64decode(kw.get('member_data')))
-
 
         tg_errors, kw = self.groupupdatevalidate(**kw)
         if tg_errors:
@@ -233,6 +246,9 @@ class GroupController(IPAController):
         try:
             orig_group_dict = loads(b64decode(kw.get('group_orig')))
 
+            # remove multi-valued form fields
+            del(orig_group_dict['cns'])
+
             new_group = ipa.group.Group(orig_group_dict)
             if new_group.description != kw.get('description'):
                 group_modified = True
@@ -243,6 +259,14 @@ class GroupController(IPAController):
                     group_modified = True
                     new_group.setValue('gidnumber', new_gid)
 
+            # Did any cn entries change?
+            oldcn = new_group.getValues('cn')
+            if isinstance(oldcn, str):
+                oldcn = [oldcn]
+            if oldcn != kw['cn']:
+                group_modified = True
+                new_group.setValue('cn', kw['cn'])
+
             if group_modified:
                 rv = client.update_group(new_group)
                 #
@@ -252,7 +276,7 @@ class GroupController(IPAController):
                 #
                 kw['group_orig'] = b64encode(dumps(new_group.toDict()))
         except ipaerror.IPAError, e:
-            turbogears.flash("Group update failed: " + str(e))
+            turbogears.flash("Group update failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
 
@@ -268,8 +292,9 @@ class GroupController(IPAController):
                 failed_adds = client.add_members_to_group(
                         utf8_encode_values(dnadds), new_group.dn)
                 kw['dnadd'] = failed_adds
+                group_modified = True
         except ipaerror.IPAError, e:
-            turbogears.flash("Group update failed: " + str(e))
+            turbogears.flash("Group update failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
 
@@ -285,8 +310,9 @@ class GroupController(IPAController):
                 failed_dels = client.remove_members_from_group(
                         utf8_encode_values(dndels), new_group.dn)
                 kw['dndel'] = failed_dels
+                group_modified = True
         except ipaerror.IPAError, e:
-            turbogears.flash("Group update failed: " + str(e))
+            turbogears.flash("Group update failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
 
@@ -308,8 +334,11 @@ class GroupController(IPAController):
             return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
 
-        turbogears.flash("%s updated!" % kw['cn'])
-        raise turbogears.redirect('/group/show', cn=kw['cn'])
+        if group_modified == True:
+            turbogears.flash("%s updated!" % kw['cn'][0])
+        else:
+            turbogears.flash("No modifications requested.")
+        raise turbogears.redirect('/group/show', cn=kw['cn'][0])
 
 
     @expose("ipagui.templates.grouplist")
@@ -330,7 +359,7 @@ class GroupController(IPAController):
                     turbogears.flash("These results are truncated.<br />" +
                                     "Please refine your search and try again.")
             except ipaerror.IPAError, e:
-                turbogears.flash("Find groups failed: " + str(e))
+                turbogears.flash("Find groups failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
                 raise turbogears.redirect("/group/list")
 
         return dict(groups=groups, criteria=criteria,
@@ -358,7 +387,7 @@ class GroupController(IPAController):
             return dict(group=group_dict, fields=ipagui.forms.group.GroupFields(),
                     members = member_dicts)
         except ipaerror.IPAError, e:
-            turbogears.flash("Group show failed: " + str(e))
+            turbogears.flash("Group show failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             raise turbogears.redirect("/")
 
     @expose()

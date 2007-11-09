@@ -1,8 +1,10 @@
 import turbogears
 from turbogears import validators, widgets
+from tg_expanding_form_widget.tg_expanding_form_widget import ExpandingForm
 
 class GroupFields():
     cn = widgets.TextField(name="cn", label="Name")
+    cns = ExpandingForm(name="cns", label="Common Names", fields=[cn])
     gidnumber = widgets.TextField(name="gidnumber", label="GID")
     description = widgets.TextField(name="description", label="Description")
 
@@ -37,6 +39,7 @@ class GroupNewForm(widgets.Form):
 
 
 class GroupEditValidator(validators.Schema):
+    cn = validators.ForEach(validators.String(not_empty=True))
     gidnumber = validators.Int(not_empty=False)
     description = validators.String(not_empty=False)
 

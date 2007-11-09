@@ -1,10 +1,12 @@
 import turbogears
 from turbogears import validators, widgets
+from tg_expanding_form_widget.tg_expanding_form_widget import ExpandingForm
 
 class UserFields():
     givenname = widgets.TextField(name="givenname", label="Given Name")
     sn = widgets.TextField(name="sn", label="Family Name")
     cn = widgets.TextField(name="cn", label="Common Names")
+    cns = ExpandingForm(name="cns", label="Common Names", fields=[cn])
     title = widgets.TextField(name="title", label="Title")
     displayname = widgets.TextField(name="displayname", label="Display Name")
     initials = widgets.TextField(name="initials", label="Initials")
@@ -21,11 +23,16 @@ class UserFields():
 
     mail = widgets.TextField(name="mail", label="E-mail Address")
     telephonenumber = widgets.TextField(name="telephonenumber", label="Work Number")
+    telephonenumbers = ExpandingForm(name="telephonenumbers", label="Work Numbers", fields=[telephonenumber])
     facsimiletelephonenumber = widgets.TextField(name="facsimiletelephonenumber",
             label="Fax Number")
+    facsimiletelephonenumbers = ExpandingForm(name="facsimiletelephonenumbers", label="Fax Numbers", fields=[facsimiletelephonenumber])
     mobile = widgets.TextField(name="mobile", label="Cell Number")
+    mobiles = ExpandingForm(name="mobiles", label="Cell Numbers", fields=[mobile])
     pager = widgets.TextField(name="pager", label="Pager Number")
+    pagers = ExpandingForm(name="pagers", label="Pager Numbers", fields=[pager])
     homephone = widgets.TextField(name="homephone", label="Home Number")
+    homephones = ExpandingForm(name="homephones", label="Home Numbers", fields=[homephone])
 
     street = widgets.TextField(name="street", label="Street Address")
     l = widgets.TextField(name="l", label="City")
@@ -102,6 +109,7 @@ class UserEditValidator(validators.Schema):
     userpassword_confirm = validators.String(not_empty=False)
     givenname = validators.String(not_empty=True)
     sn = validators.String(not_empty=True)
+    cn = validators.ForEach(validators.String(not_empty=True))
     mail = validators.Email(not_empty=True)
     uidnumber = validators.Int(not_empty=False)
     gidnumber = validators.Int(not_empty=False)

@@ -61,6 +61,35 @@ class UserController(IPAController):
             user_new_form.validator.add_field(s['field'], validator)
             user_edit_form.validator.add_field(s['field'], validator)
 
+    def setup_mv_fields(self, field, fieldname):
+        """Given a field (must be a list) and field name, convert that
+           field into a list of dictionaries of the form:
+              [ { fieldname : v1}, { fieldname : v2 }, .. ]
+
+           This is how we pre-fill values for multi-valued fields.
+        """
+        mvlist = []
+        if field is not None:
+            for v in field:
+                mvlist.append({ fieldname : v } )
+        else:
+            # We need to return an empty value so something can be
+            # displayed on the edit page. Otherwise only an Add link
+            # will show, not an empty field.
+            mvlist.append({ fieldname : '' } )
+        return mvlist
+
+    def fix_incoming_fields(self, fields, fieldname, multifieldname):
+        """This is called by the update() function. It takes the incoming
+           list of dictionaries and converts it into back into the original
+           field, then removes the multiple field.
+        """
+        fields[fieldname] = []
+        for i in range(len(fields[multifieldname])):
+            fields[fieldname].append(fields[multifieldname][i][fieldname])
+        del(fields[multifieldname])
+
+        return fields
 
     @expose()
     def index(self):
@@ -150,7 +179,7 @@ class UserController(IPAController):
             return dict(form=user_new_form, user=kw,
                     tg_template='ipagui.templates.usernew')
         except ipaerror.IPAError, e:
-            turbogears.flash("User add failed: " + str(e))
+            turbogears.flash("User add failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             return dict(form=user_new_form, user=kw,
                     tg_template='ipagui.templates.usernew')
 
@@ -259,6 +288,32 @@ class UserController(IPAController):
                 turbogears.flash("User edit failed: No uid or principal provided")
                 raise turbogears.redirect('/')
             user_dict = user.toDict()
+
+            # Load potential multi-valued fields
+            if isinstance(user_dict['cn'], str):
+                user_dict['cn'] = [user_dict['cn']]
+            user_dict['cns'] = self.setup_mv_fields(user_dict['cn'], 'cn')
+
+            if isinstance(user_dict.get('telephonenumber',''), str):
+                user_dict['telephonenumber'] = [user_dict.get('telephonenumber'),'']
+            user_dict['telephonenumbers'] = self.setup_mv_fields(user_dict.get('telephonenumber'), 'telephonenumber')
+
+            if isinstance(user_dict.get('facsimiletelephonenumber',''), str):
+                user_dict['facsimiletelephonenumber'] = [user_dict.get('facsimiletelephonenumber'),'']
+            user_dict['facsimiletelephonenumbers'] = self.setup_mv_fields(user_dict.get('facsimiletelephonenumber'), 'facsimiletelephonenumber')
+
+            if isinstance(user_dict.get('mobile',''), str):
+                user_dict['mobile'] = [user_dict.get('mobile'),'']
+            user_dict['mobiles'] = self.setup_mv_fields(user_dict.get('mobile'), 'mobile')
+
+            if isinstance(user_dict.get('pager',''), str):
+                user_dict['pager'] = [user_dict.get('pager'),'']
+            user_dict['pagers'] = self.setup_mv_fields(user_dict.get('pager'), 'pager')
+
+            if isinstance(user_dict.get('homephone',''), str):
+                user_dict['homephone'] = [user_dict.get('homephone'),'']
+            user_dict['homephones'] = self.setup_mv_fields(user_dict.get('homephone'), 'homephone')
+
             # Edit shouldn't fill in the password field.
             if user_dict.has_key('userpassword'):
                 del(user_dict['userpassword'])
@@ -300,7 +355,7 @@ class UserController(IPAController):
         except ipaerror.IPAError, e:
             if uid is None:
                 uid = principal
-            turbogears.flash("User edit failed: " + str(e))
+            turbogears.flash("User edit failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             raise turbogears.redirect('/user/show', uid=uid)
 
     @expose()
@@ -313,6 +368,14 @@ class UserController(IPAController):
         if kw.get('submit') == 'Cancel Edit':
             turbogears.flash("Edit user cancelled")
             raise turbogears.redirect('/user/show', uid=kw.get('uid'))
+
+        # Fix incoming multi-valued fields we created for the form
+        kw = self.fix_incoming_fields(kw, 'cn', 'cns')
+        kw = self.fix_incoming_fields(kw, 'telephonenumber', 'telephonenumbers')
+        kw = self.fix_incoming_fields(kw, 'facsimiletelephonenumber', 'facsimiletelephonenumbers')
+        kw = self.fix_incoming_fields(kw, 'mobile', 'mobiles')
+        kw = self.fix_incoming_fields(kw, 'pager', 'pagers')
+        kw = self.fix_incoming_fields(kw, 'homephone', 'homephones')
 
         # Decode the group data, in case we need to round trip
         user_groups_dicts = loads(b64decode(kw.get('user_groups_data')))
@@ -333,6 +396,14 @@ class UserController(IPAController):
         #
         try:
             orig_user_dict = loads(b64decode(kw.get('user_orig')))
+
+            # remove multi-valued fields we created for the form
+            del(orig_user_dict['cns'])
+            del(orig_user_dict['telephonenumbers'])
+            del(orig_user_dict['facsimiletelephonenumbers'])
+            del(orig_user_dict['mobiles'])
+            del(orig_user_dict['pagers'])
+            del(orig_user_dict['homephones'])
 
             new_user = ipa.user.User(orig_user_dict)
             new_user.setValue('title', kw.get('title'))
@@ -400,7 +471,7 @@ class UserController(IPAController):
             # too much work to figure out unless someone really screams
             pass
         except ipaerror.IPAError, e:
-            turbogears.flash("User update failed: " + str(e))
+            turbogears.flash("User update failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             return dict(form=user_edit_form, user=kw,
                         user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')
@@ -412,7 +483,7 @@ class UserController(IPAController):
             if password_change:
                 rv = client.modifyPassword(kw['krbprincipalname'], "", kw.get('userpassword'))
         except ipaerror.IPAError, e:
-            turbogears.flash("User password change failed: " + str(e))
+            turbogears.flash("User password change failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             return dict(form=user_edit_form, user=kw,
                         user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')
@@ -481,7 +552,7 @@ class UserController(IPAController):
                     turbogears.flash("These results are truncated.<br />" +
                                     "Please refine your search and try again.")
             except ipaerror.IPAError, e:
-                turbogears.flash("User list failed: " + str(e))
+                turbogears.flash("User list failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
                 raise turbogears.redirect("/user/list")
 
         return dict(users=users, uid=uid, fields=ipagui.forms.user.UserFields())
@@ -523,7 +594,7 @@ class UserController(IPAController):
                         user_groups=user_groups, user_reports=user_reports,
                         user_manager=user_manager, user_secretary=user_secretary)
         except ipaerror.IPAError, e:
-            turbogears.flash("User show failed: " + str(e))
+            turbogears.flash("User show failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             raise turbogears.redirect("/")
 
     @expose()
@@ -539,7 +610,7 @@ class UserController(IPAController):
             turbogears.flash("user deleted")
             raise turbogears.redirect('/user/list')
         except (SyntaxError, ipaerror.IPAError), e:
-            turbogears.flash("User deletion failed: " + str(e))
+            turbogears.flash("User deletion failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             raise turbogears.redirect('/user/list')
 
     @validate(form=user_new_form)
@@ -661,7 +732,7 @@ class UserController(IPAController):
                 users_counter = users[0]
                 users = users[1:]
             except ipaerror.IPAError, e:
-                turbogears.flash("search failed: " + str(e))
+                turbogears.flash("search failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
 
         return dict(users=users, criteria=criteria,
                 which_select=kw.get('which_select'),

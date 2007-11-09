@@ -28,6 +28,11 @@ class IPAError(exceptions.Exception):
            error."""
         self.code = code
         self.message = message
+        # Fill this in as an empty LDAP error message so we don't have a lot
+        # of "if e.detail ..." everywhere
+        if detail is None:
+             detail = []
+             detail.append({'desc':'','info':''})
         self.detail = detail
 
     def __str__(self):

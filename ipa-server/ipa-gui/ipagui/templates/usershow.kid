@@ -57,7 +57,21 @@ else:
           <th>
             <label class="fieldlabel" py:content="fields.cn.label" />:
           </th>
-          <td>${user.get("cn")}</td>
+          <td>
+          <table cellpadding="2" cellspacing="0" border="0">
+            <tbody>
+              <?python
+                index = 0
+                values = user.get("cn")
+                if isinstance(values, str):
+                    values = [values]
+               ?>
+              <tr py:for="index in range(len(values))">
+              <td>${values[index]}</td>
+              </tr>
+            </tbody>
+          </table>
+          </td>
         </tr>
         <tr>
           <th>
@@ -132,31 +146,101 @@ else:
           <th>
             <label class="fieldlabel" py:content="fields.telephonenumber.label" />:
           </th>
-          <td>${user.get("telephonenumber")}</td>
+          <td>
+          <table cellpadding="2" cellspacing="0" border="0">
+            <tbody>
+              <?python
+                index = 0
+                values = user.get("telephonenumber", '')
+                if isinstance(values, str):
+                    values = [values]
+               ?>
+              <tr py:for="index in range(len(values))">
+              <td>${values[index]}</td>
+              </tr>
+            </tbody>
+          </table>
+          </td>
         </tr>
         <tr>
           <th>
             <label class="fieldlabel" py:content="fields.facsimiletelephonenumber.label" />:
           </th>
-          <td>${user.get("facsimiletelephonenumber")}</td>
+          <td>
+          <table cellpadding="2" cellspacing="0" border="0">
+            <tbody>
+              <?python
+                index = 0
+                values = user.get("facsimiletelephonenumber", '')
+                if isinstance(values, str):
+                    values = [values]
+               ?>
+              <tr py:for="index in range(len(values))">
+              <td>${values[index]}</td>
+              </tr>
+            </tbody>
+          </table>
+          </td>
         </tr>
         <tr>
           <th>
             <label class="fieldlabel" py:content="fields.mobile.label" />:
           </th>
-          <td>${user.get("mobile")}</td>
+          <td>
+          <table cellpadding="2" cellspacing="0" border="0">
+            <tbody>
+              <?python
+                index = 0
+                values = user.get("mobile", '') 
+                if isinstance(values, str):
+                    values = [values]
+               ?>
+              <tr py:for="index in range(len(values))">
+              <td>${values[index]}</td>
+              </tr>
+            </tbody>
+          </table>
+          </td>
         </tr>
         <tr>
           <th>
             <label class="fieldlabel" py:content="fields.pager.label" />:
           </th>
-          <td>${user.get("pager")}</td>
+          <td>
+          <table cellpadding="2" cellspacing="0" border="0">
+            <tbody>
+              <?python
+                index = 0
+                values = user.get("pager", '')
+                if isinstance(values, str):
+                    values = [values]
+               ?>
+              <tr py:for="index in range(len(values))">
+              <td>${values[index]}</td>
+              </tr>
+            </tbody>
+          </table>
+          </td>
         </tr>
         <tr>
           <th>
             <label class="fieldlabel" py:content="fields.homephone.label" />:
           </th>
-          <td>${user.get("homephone")}</td>
+          <td>
+          <table cellpadding="2" cellspacing="0" border="0">
+            <tbody>
+              <?python
+                index = 0
+                values = user.get("homephone", '')
+                if isinstance(values, str):
+                    values = [values]
+               ?>
+              <tr py:for="index in range(len(values))">
+              <td>${values[index]}</td>
+              </tr>
+            </tbody>
+          </table>
+          </td>
         </tr>
     </table>
 

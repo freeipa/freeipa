@@ -25,6 +25,8 @@ from ipagui.helpers import ipahelper
 
   <script type="text/javascript" charset="utf-8"
     src="${tg.url('/static/javascript/dynamicedit.js')}"></script>
+  <script type="text/javascript" charset="utf-8"
+    src="${tg.url('/tg_widgets/tg_expanding_form_widget/javascript/expanding_form.js')}"></script>
 
   <?python searchurl = tg.url('/group/edit_search') ?>
 
@@ -66,15 +68,35 @@ from ipagui.helpers import ipahelper
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
       <tr>
         <th>
-          <label class="fieldlabel" for="${group_fields.cn.field_id}"
+          <label class="fieldlabel" for="${group_fields.cns.field_id}"
             py:content="group_fields.cn.label" />:
         </th>
-        <td>
-          <!-- <span py:replace="group_fields.cn.display(value_for(group_fields.cn))" />
-          <span py:if="tg.errors.get('cn')" class="fielderror"
-              py:content="tg.errors.get('cn')" /> -->
-          ${value_for(group_fields.cn)}
+        <td colspan="3">
+          <table class="formtable" cellpadding="2" cellspacing="0" border="0" id="${group_fields.cns.field_id}">
+            <tbody>
+              <?python repetition = 0
+                       cn_index = 0
+                       cn_error = tg.errors.get('cn')         
+              ?>
+              <tr py:for="cn in value_for(group_fields.cn)"
+                  id="${group_fields.cns.field_id}_${repetition}" 
+                  class="${group_fields.cns.field_class}">
 
+                <td py:for="field in group_fields.cns.fields">
+                  <span><input class="textfield" type="text" id="${group_fields.cns.field_id}_${repetition}_cn" name="cns-${repetition}.cn" value="${cn}"/></span>
+                  <span py:if="cn_error and cn_error[cn_index]" class="fielderror"
+                        py:content="tg.errors.get('cn')" />
+                </td>
+                <?python cn_index = cn_index + 1 ?>
+                <td>
+                  <a
+                  href="javascript:ExpandingForm.removeItem('${group_fields.cns.field_id}_${repetition}')">Remove (-)</a>
+                </td>
+                <?python repetition = repetition + 1?>
+              </tr>
+            </tbody>
+          </table>
+          <a id="${group_fields.cns.field_id}_doclink" href="javascript:ExpandingForm.addItem('${group_fields.cns.field_id}');">Add ( + )</a>
         </td>
       </tr>
 
