@@ -81,7 +81,7 @@ class GroupController(IPAController):
             return dict(form=group_new_form, group=kw,
                     tg_template='ipagui.templates.groupnew')
         except ipaerror.IPAError, e:
-            turbogears.flash("Group add failed: " + str(e) + "<br/>" + str(e.detail))
+            turbogears.flash("Group add failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             return dict(form=group_new_form, group=kw,
                     tg_template='ipagui.templates.groupnew')
 
@@ -90,6 +90,8 @@ class GroupController(IPAController):
         #       on any error, we redirect to the _edit_ group page.
         #       this code does data setup, similar to groupedit()
         #
+        if isinstance(kw['cn'], str):
+            kw['cn'] = [kw['cn']]
         group = client.get_entry_by_cn(kw['cn'][0], group_fields)
         group_dict = group.toDict()
         member_dicts = []
@@ -403,7 +405,7 @@ class GroupController(IPAController):
             turbogears.flash("group deleted")
             raise turbogears.redirect('/group/list')
         except (SyntaxError, ipaerror.IPAError), e:
-            turbogears.flash("Group deletion failed: " + str(e) + "<br/>" + str(e.detail))
+            turbogears.flash("Group deletion failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             raise turbogears.redirect('/group/list')
 
     @validate(form=group_new_form)
