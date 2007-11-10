@@ -57,9 +57,6 @@ thread pool {
 	max_requests_per_server = 0
 }
 modules {
-	pap {
-		auto_header = yes
-	}
 	chap {
 		authtype = CHAP
 	}
@@ -85,13 +82,17 @@ $$INCLUDE $${confdir}/eap.conf
 		filter = "(uid=%{Stripped-User-Name:-%{User-Name}})"
 		base_filter = "(objectclass=radiusprofile)"
 		start_tls = no
-		access_attr = "$ACCESS_ATTRIBUTE"
+		# FIXME: we'll want to toggle the access_attr feature on/off,
+		# but it needs a control, so disable it for now.
+		#access_attr = "$ACCESS_ATTRIBUTE"
+		#access_attr_used_for_allow = "$ACCESS_ATTRIBUTE_DEFAULT"
 		dictionary_mapping = $${raddbdir}/ldap.attrmap
 		ldap_connections_number = 5
 		edir_account_policy_check=no
 		timeout = 4
 		timelimit = 3
 		net_timeout = 1
+		clients_basedn = "$CLIENTS_BASEDN"
 	}
 	realm IPASS {
 		format = prefix
@@ -229,6 +230,10 @@ $$INCLUDE $${confdir}/eap.conf
 		override = no
 		maximum-timeout = 0
 	}
+	krb5 {
+		keytab = "$RADIUS_KEYTAB"
+		service_principal = "$RADIUS_PRINCIPAL"
+	}
 }
 instantiate {
 	exec
@@ -242,20 +247,18 @@ authorize {
 	eap
 	#files
 	ldap
-	pap
 }
 authenticate {
-	Auth-Type PAP {
-		pap
-	}
 	Auth-Type CHAP {
 		chap
 	}
 	Auth-Type MS-CHAP {
 		mschap
 	}
-	unix
 	eap
+	Auth-Type Kerberos {
+		krb5
+	}
 }
 preacct {
 	preprocess

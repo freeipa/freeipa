@@ -79,10 +79,11 @@ class RadiusInstance(service.Service):
 
     def create_instance(self, realm_name, host_name, ldap_server):
         self.realm        = realm_name.upper()
+        self.suffix       = realm_to_suffix(self.realm)
         self.fqdn         = host_name
         self.ldap_server  = ldap_server
         self.principal    = "%s/%s@%s" % (RADIUS_SERVICE_NAME, self.fqdn, self.realm)
-        self.basedn       = realm_to_suffix(self.realm)
+        self.basedn       = self.suffix
         self.user_basedn  = "%s,%s" % (DefaultUserContainer, self.basedn) # FIXME, should be utility to get this
         self.radius_version = get_radius_version()
         self.start_creation(4, "Configuring radiusd")
@@ -115,7 +116,9 @@ class RadiusInstance(service.Service):
                     'RADIUS_KEYTAB'            : IPA_KEYTAB_FILEPATH,
                     'RADIUS_PRINCIPAL'         : self.principal,
                     'RADIUS_USER_BASE_DN'      : self.user_basedn,
-                    'ACCESS_ATTRIBUTE'         : 'dialupAccess' 
+                    'ACCESS_ATTRIBUTE'         : '',
+                    'ACCESS_ATTRIBUTE_DEFAULT' : 'TRUE',
+                    'CLIENTS_BASEDN'           : 'cn=clients,cn=radius,cn=services,cn=etc,%s' % self.suffix
                     }
         try:
             radiusd_conf = template_file(RADIUSD_CONF_TEMPLATE_FILEPATH, sub_dict)

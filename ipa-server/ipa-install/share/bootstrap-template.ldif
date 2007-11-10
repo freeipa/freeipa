@@ -56,6 +56,24 @@ homeDirectory: /home/admin
 loginShell: /bin/bash
 gecos: Administrator
 
+dn: cn=services,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: services
+
+dn: cn=radius,cn=services,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: radius
+
+dn: cn=clients,cn=radius,cn=services,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: clients
+
 dn: cn=admins,cn=groups,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
