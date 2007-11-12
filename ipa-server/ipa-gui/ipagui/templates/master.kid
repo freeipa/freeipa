@@ -78,7 +78,7 @@
         <li><a href="${tg.url('/group/list')}">Find Groups</a></li>
         </ul>
         <ul>
-        <li><a href="${tg.url('/')}">Manage Policy</a></li>
+        <li><a href="${tg.url('/policy/index')}">Manage Policy</a></li>
         <li><a href="${tg.url('/user/edit/', principal=tg.identity.user.display_name)}">Self Service</a></li>
         </ul>
         <ul>

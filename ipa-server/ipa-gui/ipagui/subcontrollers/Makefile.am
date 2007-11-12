@@ -5,6 +5,8 @@ app_PYTHON = 			\
 	__init__.py		\
 	group.py		\
 	ipacontroller.py	\
+	ipapolicy.py		\
+	policy.py		\
 	user.py			\
 	delegation.py		\
 	$(NULL)

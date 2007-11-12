@@ -20,8 +20,14 @@ app_DATA =			\
 	groupnewform.kid	\
 	groupnew.kid		\
 	groupshow.kid		\
+	ipapolicyeditform.kid	\
+	ipapolicyedit.kid	\
+	ipapolicyindex.kid	\
+	ipapolicyshow.kid	\
 	loginfailed.kid		\
 	master.kid		\
+	policyindex.kid		\
+	policylayout.kid	\
 	usereditform.kid	\
 	useredit.kid		\
 	userlayout.kid		\
