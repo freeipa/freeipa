@@ -383,3 +383,22 @@ ul.checkboxlist li input {
 #inactive {
   background-color:            silver;
 }
+
+/*
+ *  * TableKit css
+ *  
+ */
+
+.sortcol {
+  cursor: pointer;
+  padding-right: 20px !important;
+  background-repeat: no-repeat !important;
+  background-position: right center !important;
+  text-decoration: underline;
+}
+.sortasc {
+  background-image: url(/static/images/up.gif) !important;
+}
+.sortdesc {
+  background-image: url(/static/images/down.gif) !important;
+}
