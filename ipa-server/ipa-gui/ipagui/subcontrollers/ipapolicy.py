@@ -39,6 +39,9 @@ class IPAPolicyController(IPAController):
         ipapolicy['searchlimit'] = 2
         ipapolicy['maxuidlength'] = 3
         ipapolicy['passwordnotif'] = 4
+        ipapolicy['homedir'] = "/home"
+        ipapolicy['defaultgroup'] = "ipausers"
+        ipapolicy['defaultshell'] = "/bin/bash"
         return dict(ipapolicy=ipapolicy,fields=ipagui.forms.ipapolicy.IPAPolicyFields())
 
     @expose("ipagui.templates.ipapolicyedit")
@@ -55,6 +58,9 @@ class IPAPolicyController(IPAController):
             ipapolicy_dict['searchlimit'] = 2
             ipapolicy_dict['maxuidlength'] = 3
             ipapolicy_dict['passwordnotif'] = 4
+            ipapolicy_dict['homedir'] = "/home"
+            ipapolicy_dict['defaultgroup'] = "ipausers"
+            ipapolicy_dict['defaultshell'] = "/bin/bash"
             return dict(form=ipapolicy_edit_form, ipapolicy=ipapolicy_dict)
         except ipaerror.IPAError, e:
             turbogears.flash("IPA Policy edit failed: " + str(e) + "<br/>" + str(e.detail))

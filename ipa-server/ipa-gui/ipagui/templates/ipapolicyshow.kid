@@ -34,11 +34,32 @@ edit_url = tg.url('/ipapolicy/edit')
           </th>
           <td>${ipapolicy.get("passwordnotif")}</td>
         </tr>
+    </table>
+    <h2 class="formsection">User Settings</h2>
+    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
           <th>
             <label class="fieldlabel" py:content="fields.maxuidlength.label" />:
           </th>
           <td>${ipapolicy.get("maxuidlength")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.homedir.label" />:
+          </th>
+          <td>${ipapolicy.get("homedir")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.defaultshell.label" />:
+          </th>
+          <td>${ipapolicy.get("defaultshell")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.defaultgroup.label" />:
+          </th>
+          <td>${ipapolicy.get("defaultgroup")}</td>
         </tr>
     </table>
 <hr />

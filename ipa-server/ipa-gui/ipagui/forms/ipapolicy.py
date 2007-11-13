@@ -2,14 +2,20 @@ import turbogears
 from turbogears import validators, widgets
 
 class IPAPolicyFields():
-    searchlimit = widgets.TextField(name="searchlimit", label="Search Time Limit", attrs=dict(size=6,maxlength=6))
+    searchlimit = widgets.TextField(name="searchlimit", label="Search Time Limit (sec.)", attrs=dict(size=6,maxlength=6))
     maxuidlength = widgets.TextField(name="maxuidlength", label="Max. UID Length", attrs=dict(size=3,maxlength=3))
     passwordnotif = widgets.TextField(name="passwordnotif", label="Password Expiration Notification (days)", attrs=dict(size=3,maxlength=3))
+    homedir = widgets.TextField(name="homedir", label="Root for Home Directories")
+    defaultshell = widgets.TextField(name="defaultshell", label="Default shell")
+    defaultgroup = widgets.TextField(name="defaultgroup", label="Default Users group")
 
 class IPAPolicyValidator(validators.Schema):
     searchlimit = validators.Number(not_empty=True)
     maxuidlength = validators.Number(not_empty=True)
     passwordnotif = validators.Number(not_empty=True)
+    homedir = validators.String(not_empty=True)
+    defaultshell = validators.String(not_empty=True)
+    defaultgroup = validators.String(not_empty=True)
 
 class IPAPolicyForm(widgets.Form):
     params = ['ipapolicy_fields']

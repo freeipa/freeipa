@@ -46,6 +46,10 @@ from ipagui.helpers import ipahelper
               py:content="tg.errors.get('passwordnotif')" />
           </td>
         </tr>
+    </table>
+
+    <h2 class="formsection">Password Policy</h2>
+    <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
           <th>
             <label class="fieldlabel" py:content="ipapolicy_fields.maxuidlength.label" />:
@@ -54,6 +58,36 @@ from ipagui.helpers import ipahelper
           <span py:replace="ipapolicy_fields.maxuidlength.display(value_for(ipapolicy_fields.maxuidlength))" />
           <span py:if="tg.errors.get('maxuidlength')" class="fielderror"
               py:content="tg.errors.get('maxuidlength')" />
+          </td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="ipapolicy_fields.homedir.label" />:
+          </th>
+          <td>
+          <span py:replace="ipapolicy_fields.homedir.display(value_for(ipapolicy_fields.homedir))" />
+          <span py:if="tg.errors.get('homedir')" class="fielderror"
+              py:content="tg.errors.get('homedir')" />
+          </td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="ipapolicy_fields.defaultshell.label" />:
+          </th>
+          <td>
+          <span py:replace="ipapolicy_fields.defaultshell.display(value_for(ipapolicy_fields.defaultshell))" />
+          <span py:if="tg.errors.get('defaultshell')" class="fielderror"
+              py:content="tg.errors.get('defaultshell')" />
+          </td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="ipapolicy_fields.defaultgroup.label" />:
+          </th>
+          <td>
+          <span py:replace="ipapolicy_fields.defaultgroup.display(value_for(ipapolicy_fields.defaultgroup))" />
+          <span py:if="tg.errors.get('defaultgroup')" class="fielderror"
+              py:content="tg.errors.get('defaultgroup')" />
           </td>
         </tr>
     </table>
