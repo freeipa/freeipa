@@ -21,10 +21,10 @@
 .SH "NAME"
 ipa\-usermod \- Modify a user
 .SH "SYNOPSIS"
-ipa\-usermod [\fIOPTION\fR]... \fIgroup\fR
+ipa\-usermod [\fIOPTION\fR]... \fIname\fR
 
 .SH "DESCRIPTION"
-Updates the members or description of \fIgroup\fR.
+Updates the user \fIname\fR.
 .SH "OPTIONS"
 .TP 
 \fB\-a\fR, \fB\-\-add\fR=\fIuser1,user2,...usern\fR
@@ -37,5 +37,17 @@ Modify the description of the group
 .TP 
 \fB\-r\fR, \fB\-\-remove\fR=\fIuser1,user2,...usern\fR
 Remove one or more users from the group
+
+.TP 
+\fB\-\-addattr\fR=\fIattr=value\fR
+Add a new attribute, or value to an existing attribute
+
+.TP 
+\fB\-\-delattr\fR=\fIattr=value\fR
+Remove an attribute and all values
+
+.TP 
+\fB\-\-setattr\fR=\fIattr=value\fR
+Set an attribute to a new value, removing all old ones
 .SH "EXIT STATUS"
 The exit status is 0 on success, nonzero on error.

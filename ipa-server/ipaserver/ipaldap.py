@@ -377,6 +377,23 @@ class IPAdmin(SimpleLDAPObject):
             raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
         return "Success"
 
+    def updateRDN(self, dn, newrdn):
+        """Wrap the modrdn function."""
+
+        sctrl = self.__get_server_controls__()
+
+        if dn == newrdn:
+            # no need to report an error
+            return "Success"
+
+        try:
+            if sctrl is not None:
+                self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
+            self.modrdn_s(dn, newrdn, delold=1)
+        except ldap.LDAPError, e:
+            raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
+        return "Success"
+
     def updateEntry(self,dn,olduser,newuser):
         """This wraps the mod function. It assumes that the entry is already
            populated with all of the desired objectclasses and attributes"""

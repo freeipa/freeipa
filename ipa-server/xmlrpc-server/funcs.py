@@ -604,8 +604,40 @@ class IPAServer:
         return new_dict
 
     def update_user (self, oldentry, newentry, opts=None):
-        """Thin wrapper around update_entry"""
-        return self.update_entry(oldentry, newentry, opts)
+        """Wrapper around update_entry with user-specific handling.
+
+           If you want to change the RDN of a user you must use
+           this function. update_entry will fail.
+        """
+
+        newrdn = 0
+
+        if oldentry.get('uid') != newentry.get('uid'):
+            # RDN change
+            conn = self.getConnection(opts)
+            try:
+                res = conn.updateRDN(oldentry.get('dn'), "uid=" + newentry.get('uid'))
+                newdn = oldentry.get('dn')
+                newdn = newdn.replace("uid=%s" % oldentry.get('uid'), "uid=%s" % newentry.get('uid'))
+
+                # Now fix up the dns and uids so they aren't seen as having
+                # changed.
+                oldentry['dn'] = newdn
+                newentry['dn'] = newdn
+                oldentry['uid'] = newentry['uid']
+                newrdn = 1
+            finally:
+                self.releaseConnection(conn)
+
+        try:
+           rv = self.update_entry(oldentry, newentry, opts)
+           return rv
+        except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
+           # This means that there was just an rdn change, nothing else.
+           if newrdn == 1:
+               return "Success"
+           else:
+               raise
 
     def mark_user_deleted (self, uid, opts=None):
         """Mark a user as inactive in LDAP. We aren't actually deleting
@@ -1005,8 +1037,56 @@ class IPAServer:
         return failed
 
     def update_group (self, oldentry, newentry, opts=None):
-        """Thin wrapper around update_entry"""
-        return self.update_entry(oldentry, newentry, opts)
+        """Wrapper around update_entry with group-specific handling.
+
+           If you want to change the RDN of a group you must use
+           this function. update_entry will fail.
+        """
+
+        newrdn = 0
+
+        oldcn=oldentry.get('cn')
+        newcn=newentry.get('cn')
+        if isinstance(oldcn, str):
+            oldcn = [oldcn]
+        if isinstance(newcn, str):
+            newcn = [newcn]
+
+        oldcn.sort()
+        newcn.sort()
+        if oldcn != newcn:
+            # RDN change
+            conn = self.getConnection(opts)
+            try:
+                res = conn.updateRDN(oldentry.get('dn'), "cn=" + newcn[0])
+                newdn = oldentry.get('dn')
+
+                # Ick. Need to find the exact cn used in the old DN so we'll
+                # walk the list of cns and skip the obviously bad ones:
+                for c in oldentry.get('dn').split("cn="):
+                    if c and c != "groups" and not c.startswith("accounts"):
+                        newdn = newdn.replace("cn=%s" % c, "uid=%s" % newentry.get('cn')[0])
+                        break
+
+                # Now fix up the dns and cns so they aren't seen as having
+                # changed.
+                oldentry['dn'] = newdn
+                newentry['dn'] = newdn
+                oldentry['cn'] = newentry['cn']
+                newrdn = 1
+            finally:
+                self.releaseConnection(conn)
+
+        try:
+           rv = self.update_entry(oldentry, newentry, opts)
+           return rv
+        except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
+           if newrdn == 1:
+               # This means that there was just the rdn change, no other
+               # attributes
+               return "Success"
+           else:
+               raise
 
     def delete_group (self, group_dn, opts=None):
         """Delete a group

@@ -49,12 +49,12 @@ def parse_options():
                       help="User's last name")
     parser.add_option("-s", "--shell", dest="shell",
                       help="Set user's login shell to shell")
-    parser.add_option("--add", dest="addattr",
+    parser.add_option("--addattr", dest="addattr",
                       help="Adds an attribute or values to that attribute, attr=value",
                       action="append")
-    parser.add_option("--del", dest="delattr",
+    parser.add_option("--delattr", dest="delattr",
                       help="Remove an attribute", action="append")
-    parser.add_option("--set", dest="setattr",
+    parser.add_option("--setattr", dest="setattr",
                       help="Set an attribute, dropping any existing values that may exist",
                       action="append")
     parser.add_option("-M", "--mailAddress", dest="mail",

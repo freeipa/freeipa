@@ -31,9 +31,12 @@ import kerberos
 import ldap
 
 def usage():
-    print "ipa-groupmod [-a] [-r] user group"
-    print "ipa-groupmod [-d|--desc description STRING] group"
+    print "ipa-groupmod [-a|--add] [-r|--remove] user group"
+    print "ipa-groupmod [-d|--desc description STRING] [--addattr attribute=value] [--delattr attribute] [--setattr attribute=value] group"
     sys.exit(1)
+
+def set_add_usage(which):
+    print "%s option usage: --%s NAME=VALUE" % (which, which)
 
 def parse_options():
     parser = OptionParser()
@@ -43,13 +46,22 @@ def parse_options():
                       help="Remove a user from the group")
     parser.add_option("-d", "--description", dest="desc", 
                       help="Modify the description of the group")
+    parser.add_option("--addattr", dest="addattr",
+                      help="Adds an attribute or values to that attribute, attr=value",
+                      action="append")
+    parser.add_option("--delattr", dest="delattr",
+                      help="Remove an attribute", action="append")
+    parser.add_option("--setattr", dest="setattr",
+                      help="Set an attribute, dropping any existing values that may exist",
+                      action="append")
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
     args = ipa.config.init_config(sys.argv)
     options, args = parser.parse_args(args)
 
-    if (not options.add and not options.remove) and (not options.desc):
+    if (not options.add and not options.remove) and (not options.desc and
+        not options.addattr and not options.delattr and not options.setattr):
         usage()
 
     return options, args
@@ -69,7 +81,7 @@ def main():
 
     if (options.add or options.remove) and (len(args) != 3):
         usage()
-    if (options.desc and (len(args) != 2)):
+    elif ((options.desc or options.addattr or options.delattr or options.setattr) and (len(args) != 2)):
         usage()
 
     try:
@@ -78,19 +90,54 @@ def main():
             group = get_group(client, args[2])
             if group is None:
                 return 1
-            client.add_user_to_group(args[1], group.dn)
-            print args[1] + " successfully added to " + args[2]
+            users = args[1].split(',')
+            for user in users:
+                client.add_user_to_group(user, group.dn)
+                print user + " successfully added to " + args[2]
         elif options.remove:
             group = get_group(client, args[2])
             if group is None:
                 return 1
-            client.remove_user_from_group(args[1], group.dn)
-            print args[1] + " successfully removed"
-        elif options.desc:
+            users = args[1].split(',')
+            for user in users:
+                client.remove_user_from_group(user, group.dn)
+                print user + " successfully removed"
+        else:
             group = get_group(client, args[1])
             if group is None:
                 return 1
-            group.setValue('description', options.desc)
+
+            if options.desc:
+                group.setValue('description', options.desc)
+
+            if options.delattr:
+                for d in options.delattr:
+                    # doesn't truly delete the attribute but does null out the value
+                    group.setValue(d, '')
+
+            if options.setattr:
+                for s in options.setattr:
+                    s = s.split('=')
+                    if len(s) != 2:
+                        set_add_usage("set")
+                        sys.exit(1)
+                    (attr,value) = s
+                    group.setValue(attr, value)
+
+            if options.addattr:
+                for a in options.addattr:
+                    a = a.split('=')
+                    if len(a) != 2:
+                        set_add_usage("add")
+                        sys.exit(1)
+                    (attr,value) = a
+                    cvalue = group.getValue(attr)
+                    if cvalue:
+                        if isinstance(cvalue,str):
+                            cvalue = [cvalue]
+                        value = cvalue + [value]
+                    group.setValue(attr, value)
+
             client.update_group(group)
             print args[1] + " successfully updated"
     except xmlrpclib.Fault, f:
