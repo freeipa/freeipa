@@ -22,7 +22,6 @@ app_DATA =			\
 	groupshow.kid		\
 	ipapolicyeditform.kid	\
 	ipapolicyedit.kid	\
-	ipapolicyindex.kid	\
 	ipapolicyshow.kid	\
 	loginfailed.kid		\
 	master.kid		\
