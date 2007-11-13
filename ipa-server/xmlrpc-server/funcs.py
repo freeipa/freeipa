@@ -426,11 +426,18 @@ class IPAServer:
         if user.get('gecos') is None:
             user['gecos'] = user['uid']
 
-        # FIXME: This can be removed once the DS plugin is installed
-        user['uidnumber'] = '501'
+        # If uidnumber is blank the the FDS dna_plugin will automatically
+        # assign the next value. So we don't have to do anything with it.
 
-        # FIXME: What is the default group for users?
-        user['gidnumber'] = '501'
+        # FIXME: put the default group in a config file
+        group_dn="cn=%s,%s,%s" % ("ipausers", DefaultGroupContainer, self.basedn)
+        try:
+            default_group = self.get_entry_by_dn(group_dn, ['dn','gidNumber'], opts)
+            if default_group:
+                user['gidnumber'] = default_group.get('gidnumber')
+        except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR):
+            # Fake an LDAP error so we can return something useful to the user
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND, "No default group for new users can be found.")
 
         if user.get('krbprincipalname') is None:
             user['krbprincipalname'] = "%s@%s" % (user.get('uid'), self.realm)
@@ -455,6 +462,7 @@ class IPAServer:
         conn = self.getConnection(opts)
         try:
             res = conn.addEntry(entry)
+            self.add_user_to_group(user.get('uid'), group_dn, opts)
         finally:
             self.releaseConnection(conn)
         return res
@@ -742,9 +750,8 @@ class IPAServer:
         entry.setValues('objectClass', 'top', 'groupofuniquenames', 'posixGroup',
                         'inetUser')
 
-        # FIXME, need a gidNumber generator
-        if group.get('gidnumber') is None:
-            entry.setValues('gidNumber', '501')
+        # No need to explicitly set gidNumber. The dna_plugin will do this
+        # for us if the value isn't provided by the user.
 
         # fill in our new entry with everything sent by the user
         for g in group:
