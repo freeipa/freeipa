@@ -56,7 +56,7 @@ class HTTPInstance(service.Service):
         service.Service.__init__(self, "httpd")
 
     def create_instance(self, realm, fqdn):
-        self.sub_dict = { "REALM" : realm }
+        self.sub_dict = { "REALM" : realm, "FQDN":  fqdn }
         self.fqdn = fqdn
         self.realm = realm
         
