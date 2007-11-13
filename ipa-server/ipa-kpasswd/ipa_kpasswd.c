@@ -399,7 +399,11 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 	if (ret != LDAP_SUCCESS) {
 		syslog(LOG_ERR, "Search for %s failed with error %d",
 			filter, ret);
-		ret = KRB5_KPASSWD_HARDERROR;
+		if (ret == LDAP_CONSTRAINT_VIOLATION) {
+			ret = KRB5_KPASSWD_SOFTERROR;
+		} else {
+			ret = KRB5_KPASSWD_HARDERROR;
+		}
 		goto done;
 	}
 	free(filter);
