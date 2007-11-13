@@ -51,6 +51,10 @@ from ipaserver.funcs import DefaultUserContainer, DefaultGroupContainer
 
 #-------------------------------------------------------------------------------
 
+def ldap_mod(fd, dn, pwd):
+    args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv", "-D", dn, "-w", pwd, "-f", fd.name]
+    run(args)
+
 def get_radius_version():
     version = None
     try:
@@ -159,6 +163,17 @@ class RadiusInstance(service.Service):
             os.chown(IPA_KEYTAB_FILEPATH, pent.pw_uid, pent.pw_gid)
         except Exception, e:
             logging.error("could not chown on %s to %s: %s", IPA_KEYTAB_FILEPATH, RADIUS_USER, e)
+
+    def __set_ldap_encrypted_attributes(self):
+        ldif_file = 'encrypted_attribute.ldif'
+        self.step("setting ldap encrypted attributes")
+        ldif_txt = template_file(SHARE_DIR + ldif_file, {'ENCRYPTED_ATTRIBUTE':'radiusClientSecret')
+        ldif_fd = write_tmp_file(ldif_txt)
+        try:
+            ldap_mod(ldif_fd, "cn=Directory Manager", self.dm_password)
+        except subprocess.CalledProcessError, e:
+            logging.critical("Failed to load %s: %s" % (ldif_file, str(e)))
+        ldif_fd.close()
 
 #-------------------------------------------------------------------------------
 

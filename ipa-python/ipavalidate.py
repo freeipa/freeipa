@@ -96,3 +96,4 @@ def path(text, notEmpty=False):
         return 1
 
     return 0
+

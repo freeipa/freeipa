@@ -456,6 +456,31 @@ class IPAServer:
             self.releaseConnection(conn)
         return res
     
+    def add_radius_client (self, client, opts=None):
+        client_container = 'cn=clients,cn=radius,cn=services,cn=etc' # FIXME, should not be hardcoded
+        if self.__is_client_unique(client['radiusClientNASIpAddress'], opts) == 0:
+            raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
+
+        dn="radiusClientNASIpAddress=%s,%s,%s" % (ldap.dn.escape_dn_chars(client['radiusClientNASIpAddress']),
+                             client_container,self.basedn)
+        entry = ipaserver.ipaldap.Entry(dn)
+
+        # FIXME: This should be dynamic and can include just about anything
+
+        # some required objectclasses
+        entry.setValues('objectClass', 'top', 'radiusClientProfile')
+
+        # fill in our new entry with everything sent by the client
+        for u in client:
+            entry.setValues(u, client[u])
+
+        conn = self.getConnection(opts)
+        try:
+            res = conn.addEntry(entry)
+        finally:
+            self.releaseConnection(conn)
+        return res
+    
     def get_add_schema (self):
         """Get the list of fields to be used when adding users in the GUI."""
     

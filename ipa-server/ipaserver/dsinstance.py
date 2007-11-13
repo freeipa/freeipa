@@ -84,6 +84,7 @@ class DsInstance(service.Service):
         self.__add_default_schemas()
         self.__add_memberof_module()
         self.__add_referint_module()
+        self.__add_dna_module()
         self.__create_indeces()
         self.__enable_ssl()
         self.__certmap_conf()
@@ -93,7 +94,10 @@ class DsInstance(service.Service):
         except:
             # TODO: roll back here?
             logging.critical("Failed to restart the ds instance")
+	self.__config_uidgid_gen_first_master()
         self.__add_default_layout()
+	self.__add_master_entry_first_master()
+
 
         self.step("configuring directoy to start on boot")
         self.chkconfig_on()
@@ -182,6 +186,36 @@ class DsInstance(service.Service):
         except subprocess.CalledProcessError, e:
             print "Failed to load referint-conf.ldif", e
         referint_fd.close()
+
+    def __add_dna_module(self):
+        self.step("enabling distributed numeric assignment plugin")
+        dna_txt = template_file(SHARE_DIR + "dna-conf.ldif", self.sub_dict)
+        dna_fd = write_tmp_file(dna_txt)
+        try:
+            ldap_mod(dna_fd, "cn=Directory Manager", self.dm_password)
+        except subprocess.CalledProcessError, e:
+            print "Failed to load dna-conf.ldif", e
+        dna_fd.close()
+
+    def __config_uidgid_gen_first_master(self):
+        self.step("configuring Posix uid/gid generation as first master")
+        dna_txt = template_file(SHARE_DIR + "dna-posix.ldif", self.sub_dict)
+        dna_fd = write_tmp_file(dna_txt)
+        try:
+            ldap_mod(dna_fd, "cn=Directory Manager", self.dm_password)
+        except subprocess.CalledProcessError, e:
+            print "Failed to configure Posix uid/gid generation with dna-posix.ldif", e
+        dna_fd.close()
+
+    def __add_master_entry_first_master(self):
+        self.step("adding master entry as first master")
+        master_txt = template_file(SHARE_DIR + "master-entry.ldif", self.sub_dict)
+        master_fd = write_tmp_file(master_txt)
+        try:
+            ldap_mod(master_fd, "cn=Directory Manager", self.dm_password)
+        except subprocess.CalledProcessError, e:
+            print "Failed to add master-entry.ldif", e
+        master_fd.close()
 
     def __enable_ssl(self):
         self.step("configuring ssl for ds instance")

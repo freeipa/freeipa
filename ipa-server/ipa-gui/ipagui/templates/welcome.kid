@@ -28,7 +28,7 @@ IPA is used to manage Identity, Policy, and Auditing for your organization.
           "joe finance" into the search box.
         </p>
         <p>
-          Alternatively, select a task from the left sidebar.
+          Alternatively, select a task from the right sidebar.
         </p>
     </div>
 

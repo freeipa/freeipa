@@ -1,0 +1,37 @@
+# add container for posix configuration
+
+dn: cn=Posix,cn=ipa-dna,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: nsContainer
+objectclass: extensibleObject
+cn: Posix
+
+# add plugin configuration for posix users
+
+dn: cn=Accounts,cn=Posix,cn=ipa-dna,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: extensibleObject
+cn: Accounts
+dnaType: uidNumber
+dnaNextValue: 1100
+dnaInterval: 4
+dnaMagicRegen: 999
+dnaFilter: (objectclass=posixAccount)
+dnaScope: $SUFFIX
+
+# add plugin configuration for posix groups
+
+dn: cn=Groups,cn=Posix,cn=ipa-dna,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: extensibleObject
+cn: Groups
+dnaType: gidNumber
+dnaNextValue: 1100
+dnaInterval: 4
+dnaMagicRegen: 999
+dnaFilter: (objectclass=posixGroup)
+dnaScope: $SUFFIX
+

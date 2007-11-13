@@ -82,6 +82,8 @@ $$INCLUDE $${confdir}/eap.conf
 		filter = "(uid=%{Stripped-User-Name:-%{User-Name}})"
 		base_filter = "(objectclass=radiusprofile)"
 		start_tls = no
+		profile_attribute = "radiusProfileDn"
+		default_profile = "uid=ipa_default,cn=profiles,cn=radius,cn=services,cn=etc,$SUFFIX
 		# FIXME: we'll want to toggle the access_attr feature on/off,
 		# but it needs a control, so disable it for now.
 		#access_attr = "$ACCESS_ATTRIBUTE"
