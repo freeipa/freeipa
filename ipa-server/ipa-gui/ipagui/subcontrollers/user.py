@@ -96,7 +96,7 @@ class UserController(IPAController):
         raise turbogears.redirect("/user/list")
 
     @expose("ipagui.templates.usernew")
-    @identity.require(identity.not_anonymous())
+    @identity.require(identity.in_group("admins"))
     def new(self, tg_errors=None):
         """Displays the new user form"""
         if tg_errors:
@@ -106,7 +106,7 @@ class UserController(IPAController):
         return dict(form=user_new_form, user={})
 
     @expose()
-    @identity.require(identity.not_anonymous())
+    @identity.require(identity.in_group("admins"))
     def create(self, **kw):
         """Creates a new user"""
         self.restrict_post()

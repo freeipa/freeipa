@@ -37,7 +37,7 @@ class GroupController(IPAController):
         raise turbogears.redirect("/group/list")
 
     @expose("ipagui.templates.groupnew")
-    @identity.require(identity.not_anonymous())
+    @identity.require(identity.in_group("admins"))
     def new(self, tg_errors=None):
         """Displays the new group form"""
         if tg_errors:
@@ -49,7 +49,7 @@ class GroupController(IPAController):
         return dict(form=group_new_form, group={})
 
     @expose()
-    @identity.require(identity.not_anonymous())
+    @identity.require(identity.in_group("admins"))
     def create(self, **kw):
         """Creates a new group"""
         self.restrict_post()

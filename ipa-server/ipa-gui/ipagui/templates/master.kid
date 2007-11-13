@@ -70,19 +70,19 @@
       <div id="sidebar">
         <h2>Tasks</h2>
         <ul>
-        <li><a href="${tg.url('/user/new')}">Add Person</a></li>
+        <li py:if="'admins' in tg.identity.groups"><a href="${tg.url('/user/new')}">Add Person</a></li>
         <li><a href="${tg.url('/user/list')}">Find People</a></li>
         </ul>
         <ul>
-        <li><a href="${tg.url('/group/new')}">Add Group</a></li>
+        <li py:if="'admins' in tg.identity.groups"><a href="${tg.url('/group/new')}">Add Group</a></li>
         <li><a href="${tg.url('/group/list')}">Find Groups</a></li>
         </ul>
         <ul>
-        <li><a href="${tg.url('/policy/index')}">Manage Policy</a></li>
+        <li py:if="'admins' in tg.identity.groups"><a href="${tg.url('/policy/index')}">Manage Policy</a></li>
         <li><a href="${tg.url('/user/edit/', principal=tg.identity.user.display_name)}">Self Service</a></li>
         </ul>
         <ul>
-        <li><a href="${tg.url('/delegate/list')}">Delegations</a></li>
+        <li py:if="'admins' in tg.identity.groups"><a href="${tg.url('/delegate/list')}">Delegations</a></li>
         </ul>
       </div>
 
