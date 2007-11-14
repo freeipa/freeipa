@@ -4,7 +4,6 @@ from tg_expanding_form_widget.tg_expanding_form_widget import ExpandingForm
 
 class GroupFields():
     cn = widgets.TextField(name="cn", label="Name")
-    cns = ExpandingForm(name="cns", label="Common Names", fields=[cn])
     gidnumber = widgets.TextField(name="gidnumber", label="GID")
     description = widgets.TextField(name="description", label="Description")
 

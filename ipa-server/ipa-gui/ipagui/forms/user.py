@@ -74,6 +74,7 @@ class UserNewValidator(validators.Schema):
     userpassword_confirm = validators.String(not_empty=False)
     givenname = validators.String(not_empty=True)
     sn = validators.String(not_empty=True)
+    cn = validators.ForEach(validators.String(not_empty=True))
     mail = validators.Email(not_empty=False)
 
     chained_validators = [

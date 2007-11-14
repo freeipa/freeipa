@@ -90,9 +90,11 @@ class GroupController(IPAController):
         #       on any error, we redirect to the _edit_ group page.
         #       this code does data setup, similar to groupedit()
         #
-        if isinstance(kw['cn'], str):
-            kw['cn'] = [kw['cn']]
-        group = client.get_entry_by_cn(kw['cn'][0], group_fields)
+        if isinstance(kw['cn'], list):
+            cn0 = kw['cn'][0]
+        else:
+            cn0 = kw['cn']
+        group = client.get_entry_by_cn(cn0, group_fields)
         group_dict = group.toDict()
         member_dicts = []
 
@@ -219,12 +221,6 @@ class GroupController(IPAController):
         """Updates an existing group"""
         self.restrict_post()
         client = self.get_ipaclient()
-
-        # Fix incoming multi-valued form fields
-        kw['cn'] = []
-        for i in range(len(kw['cns'])):
-            kw['cn'].append(kw['cns'][i]['cn'])
-        del(kw['cns'])
 
         if kw.get('submit') == 'Cancel Edit':
             turbogears.flash("Edit group cancelled")

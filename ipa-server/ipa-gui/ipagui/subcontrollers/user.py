@@ -117,6 +117,15 @@ class UserController(IPAController):
             raise turbogears.redirect('/user/list')
 
         tg_errors, kw = self.usercreatevalidate(**kw)
+
+        # Fix incoming multi-valued fields we created for the form
+        kw = self.fix_incoming_fields(kw, 'cn', 'cns')
+        kw = self.fix_incoming_fields(kw, 'telephonenumber', 'telephonenumbers')
+        kw = self.fix_incoming_fields(kw, 'facsimiletelephonenumber', 'facsimiletelephonenumbers')
+        kw = self.fix_incoming_fields(kw, 'mobile', 'mobiles')
+        kw = self.fix_incoming_fields(kw, 'pager', 'pagers')
+        kw = self.fix_incoming_fields(kw, 'homephone', 'homephones')
+
         if tg_errors:
             turbogears.flash("There were validation errors.<br/>" +
                              "Please see the messages below for details.")
