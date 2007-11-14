@@ -26,6 +26,7 @@ import ipa.ipaclient as ipaclient
 import ipa.ipavalidate as ipavalidate
 import ipa.config
 import ipa.ipaerror
+import ipa.ipautil
 
 import xmlrpclib
 import kerberos
@@ -43,6 +44,14 @@ def parse_options():
     return options, args
 
 #------------------------------------------------------------------------------
+
+attr_to_name = ipa.ipautil.CIDict({
+    'radiusClientNASIpAddress' : 'IP Address',
+    'radiusClientSecret'       : 'Secret',
+    'radiusClientNASType'      : 'NAS Type',
+    'radiusClientShortName'    : 'Name',
+    'description'              : 'Description',
+ })
 
 # FIXME
 def usage():
@@ -69,8 +78,6 @@ def main():
             print "No entries found for", ip_addrs
             return 2
 
-        print "successfully found"
-
         for radius_client in radius_clients:
             attrs = radius_client.attrList()
             attrs.sort()
@@ -78,7 +85,7 @@ def main():
             print "%s:" % radius_client.getValues('radiusClientNASIpAddress')
             for attr in attrs:
                 value = radius_client.getValues(attr)
-                print "\t%s=%s" % (attr, value)
+                print "\t%s = %s" % (attr_to_name[attr], value)
 
     except xmlrpclib.Fault, f:
         print f.faultString

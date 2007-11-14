@@ -565,5 +565,5 @@ objectClasses:
         SUP top STRUCTURAL
         DESC 'A Container Objectclass to be used for describing radius clients'
         MUST (radiusClientNASIpAddress $ radiusClientSecret)
-        MAY ( radiusClientNASType $ radiusClientShortName $ nsEncryptionAlgorithm $ description )
+        MAY ( radiusClientNASType $ radiusClientShortName $ description )
   )
