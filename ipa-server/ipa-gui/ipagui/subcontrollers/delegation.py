@@ -35,7 +35,7 @@ class DelegationController(IPAController):
         raise turbogears.redirect("/delegate/list")
 
     @expose("ipagui.templates.delegatenew")
-    @identity.require(identity.not_anonymous())
+    @identity.require(identity.in_group("admins"))
     def new(self):
         """Display delegate page"""
         client = self.get_ipaclient()
@@ -46,7 +46,7 @@ class DelegationController(IPAController):
         return dict(form=delegate_form, delegate=delegate)
 
     @expose()
-    @identity.require(identity.not_anonymous())
+    @identity.require(identity.in_group("admins"))
     def create(self, **kw):
         """Creates a new delegation"""
         self.restrict_post()
@@ -107,7 +107,7 @@ class DelegationController(IPAController):
         raise turbogears.redirect('/delegate/list')
 
     @expose("ipagui.templates.delegateedit")
-    @identity.require(identity.not_anonymous())
+    @identity.require(identity.in_group("admins"))
     def edit(self, acistr, tg_errors=None):
         """Display delegate page"""
         if tg_errors:
@@ -134,7 +134,7 @@ class DelegationController(IPAController):
 
 
     @expose()
-    @identity.require(identity.not_anonymous())
+    @identity.require(identity.in_group("admins"))
     def update(self, **kw):
         """Display delegate page"""
         self.restrict_post()
@@ -230,7 +230,7 @@ class DelegationController(IPAController):
                     fields=ipagui.forms.delegate.DelegateFields())
 
     @expose()
-    @identity.require(identity.not_anonymous())
+    @identity.require(identity.in_group("admins"))
     def delete(self, acistr):
         """Display delegate page"""
         self.restrict_post()

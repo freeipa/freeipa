@@ -12,7 +12,8 @@ edit_url = tg.url('/group/edit', cn=group.get('cn')[0])
 <div id="details">
     <h1>View Group</h1>
 
-    <input class="submitbutton" type="button"
+    <input py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups"
+      class="submitbutton" type="button"
       onclick="document.location.href='${edit_url}'"
       value="Edit Group" />
 
@@ -84,7 +85,8 @@ edit_url = tg.url('/group/edit', cn=group.get('cn')[0])
 
     <br/>
 <hr />
-    <input class="submitbutton" type="button"
+    <input py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups"
+      class="submitbutton" type="button"
       onclick="document.location.href='${edit_url}'"
       value="Edit Group" />
 </div>

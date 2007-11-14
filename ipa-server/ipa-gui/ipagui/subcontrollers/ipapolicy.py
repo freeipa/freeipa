@@ -26,11 +26,12 @@ ipapolicy_edit_form = ipagui.forms.ipapolicy.IPAPolicyForm()
 class IPAPolicyController(IPAController):
 
     @expose()
+    @identity.require(identity.in_group("admins"))
     def index(self):
         raise turbogears.redirect("/ipapolicy/show")
 
     @expose("ipagui.templates.ipapolicyshow")
-    @identity.require(identity.not_anonymous())
+    @identity.require(identity.in_group("admins"))
     def show(self, tg_errors=None):
         """Displays the one policy page"""
 
@@ -45,7 +46,7 @@ class IPAPolicyController(IPAController):
         return dict(ipapolicy=ipapolicy,fields=ipagui.forms.ipapolicy.IPAPolicyFields())
 
     @expose("ipagui.templates.ipapolicyedit")
-    @identity.require(identity.not_anonymous())
+    @identity.require(identity.in_group("admins"))
     def edit(self, tg_errors=None):
         """Displays the edit IPA policy form"""
         if tg_errors:
@@ -68,7 +69,7 @@ class IPAPolicyController(IPAController):
 
 
     @expose()
-    @identity.require(identity.not_anonymous())
+    @identity.require(identity.in_group("admins"))
     def update(self, **kw):
         """Display delegate page"""
         self.restrict_post()

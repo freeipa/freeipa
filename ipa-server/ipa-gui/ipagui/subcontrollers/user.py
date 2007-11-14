@@ -96,7 +96,7 @@ class UserController(IPAController):
         raise turbogears.redirect("/user/list")
 
     @expose("ipagui.templates.usernew")
-    @identity.require(identity.in_group("admins"))
+    @identity.require(identity.in_any_group("admins","editors"))
     def new(self, tg_errors=None):
         """Displays the new user form"""
         if tg_errors:
@@ -106,7 +106,7 @@ class UserController(IPAController):
         return dict(form=user_new_form, user={})
 
     @expose()
-    @identity.require(identity.in_group("admins"))
+    @identity.require(identity.in_any_group("admins","editors"))
     def create(self, **kw):
         """Creates a new user"""
         self.restrict_post()
@@ -376,6 +376,15 @@ class UserController(IPAController):
         kw = self.fix_incoming_fields(kw, 'mobile', 'mobiles')
         kw = self.fix_incoming_fields(kw, 'pager', 'pagers')
         kw = self.fix_incoming_fields(kw, 'homephone', 'homephones')
+
+        # admins and editors can update anybody. A user can only update
+        # themselves. We need this check because it is very easy to guess
+        # the edit URI.
+        if ((not 'admins' in turbogears.identity.current.groups and
+            not 'editors' in turbogears.identity.current.groups) and 
+            (kw.get('uid') != turbogears.identity.current.display_name)):
+            turbogears.flash("You do not have permission to update this user.")
+            raise turbogears.redirect('/user/show', uid=kw.get('uid'))
 
         # Decode the group data, in case we need to round trip
         user_groups_dicts = loads(b64decode(kw.get('user_groups_data')))

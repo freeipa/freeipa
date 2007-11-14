@@ -11,7 +11,8 @@ edit_url = tg.url('/user/edit', uid=user.get('uid'))
 ?>
     <h1>View Person</h1>
 
-    <input class="submitbutton" type="button"
+    <input py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups"
+      class="submitbutton" type="button"
       onclick="document.location.href='${edit_url}'"
       value="Edit Person" />
 
@@ -373,7 +374,8 @@ else:
 
     <br/>
 <hr />
-    <input class="submitbutton" type="button"
+    <input py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups"
+      class="submitbutton" type="button"
       onclick="document.location.href='${edit_url}'"
       value="Edit Person" />
 </body>

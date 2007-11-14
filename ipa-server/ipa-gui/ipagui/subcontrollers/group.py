@@ -168,7 +168,7 @@ class GroupController(IPAController):
 
 
     @expose("ipagui.templates.groupedit")
-    @identity.require(identity.not_anonymous())
+    @identity.require(identity.in_group("admins"))
     def edit(self, cn, tg_errors=None):
         """Displays the edit group form"""
         if tg_errors:
@@ -214,7 +214,7 @@ class GroupController(IPAController):
             raise turbogears.redirect('/group/show', uid=cn)
 
     @expose()
-    @identity.require(identity.not_anonymous())
+    @identity.require(identity.in_group("admins"))
     def update(self, **kw):
         """Updates an existing group"""
         self.restrict_post()

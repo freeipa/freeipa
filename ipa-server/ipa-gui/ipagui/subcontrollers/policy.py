@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 class PolicyController(IPAController):
 
     @expose("ipagui.templates.policyindex")
-    @identity.require(identity.not_anonymous())
+    @identity.require(identity.in_group("admins"))
     def index(self, tg_errors=None):
         """Displays the one policy page"""
 
