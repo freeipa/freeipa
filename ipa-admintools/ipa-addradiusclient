@@ -163,7 +163,7 @@ def main():
     nastype = None
     desc = None
 
-    client=ipa.radius_client.RadiusClient()
+    radius_client = ipa.radius_client.RadiusClient()
     options, args = parse_options()
 
     # client address is required
@@ -205,29 +205,29 @@ def main():
     #print "ip_addr=%s secret=%s name=%s nastype=%s desc=%s" % (ip_addr, secret, name, nastype, desc)
 
     if ip_addr is not None:
-        client.setValue('radiusClientNASIpAddress', ip_addr)
+        radius_client.setValue('radiusClientNASIpAddress', ip_addr)
     else:
         print "client IP Address is required"
         return 1
 
     if secret is not None:
-        client.setValue('radiusClientSecret', secret)
+        radius_client.setValue('radiusClientSecret', secret)
     else:
         print "client secret is required"
         return 1
 
     if name is not None:
-        client.setValue('radiusClientShortName', name)
+        radius_client.setValue('radiusClientShortName', name)
 
     if nastype is not None:
-        client.setValue('radiusClientNASType', nastype)
+        radius_client.setValue('radiusClientNASType', nastype)
        
     if desc is not None:
-        client.setValue('description', desc)
+        radius_client.setValue('description', desc)
        
     try:
-        client = ipaclient.IPAClient()
-        client.add_radius_client(client)
+        ipa_client = ipaclient.IPAClient()
+        ipa_client.add_radius_client(radius_client)
         print "successfully added"
     except xmlrpclib.Fault, f:
         print f.faultString

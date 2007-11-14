@@ -456,22 +456,38 @@ class IPAServer:
             self.releaseConnection(conn)
         return res
     
+    def __is_radius_client_unique(self, ip_addr, opts):
+        """Return 1 if the radius client is unique in the tree, 0 otherwise."""
+        ip_addr = self.__safe_filter(ip_addr)
+        basedn = 'cn=clients,cn=radius,cn=services,cn=etc,%s' % self.basedn # FIXME, should not be hardcoded
+
+        filter = "(&(radiusClientNASIpAddress=%s)(objectclass=radiusClientProfile))" % ip_addr
+ 
+        try:
+            entry = self.__get_sub_entry(basedn, filter, ['dn','uid'], opts)
+            return 0
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            return 1
+
     def add_radius_client (self, client, opts=None):
+        print "add_radius_client:"
         client_container = 'cn=clients,cn=radius,cn=services,cn=etc' # FIXME, should not be hardcoded
-        if self.__is_client_unique(client['radiusClientNASIpAddress'], opts) == 0:
+        if self.__is_radius_client_unique(client['radiusClientNASIpAddress'], opts) == 0:
             raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
 
         dn="radiusClientNASIpAddress=%s,%s,%s" % (ldap.dn.escape_dn_chars(client['radiusClientNASIpAddress']),
                              client_container,self.basedn)
-        entry = ipaserver.ipaldap.Entry(dn)
 
-        # FIXME: This should be dynamic and can include just about anything
+        print "add_radius_client: dn=%s" % (dn)
+
+        entry = ipaserver.ipaldap.Entry(dn)
 
         # some required objectclasses
         entry.setValues('objectClass', 'top', 'radiusClientProfile')
 
         # fill in our new entry with everything sent by the client
         for u in client:
+            print "add_radius_client: attr=%s %s" % (u, client[u])
             entry.setValues(u, client[u])
 
         conn = self.getConnection(opts)

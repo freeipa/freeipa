@@ -92,11 +92,11 @@ objectClass: nsContainer
 objectClass: top
 cn: profiles
 
-dn: uid=ipa_default, cn=profiles,cn=radius,cn=services,cn=etc,$SUFFIX
+dn: cn=ipa_default, cn=profiles,cn=radius,cn=services,cn=etc,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: radiusprofile
-uid: ipa_default
+cn: ipa_default
 
 dn: cn=admins,cn=groups,cn=accounts,$SUFFIX
 changetype: add

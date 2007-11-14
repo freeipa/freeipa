@@ -351,6 +351,7 @@ def handler(req, profiling=False):
             h.register_function(f.delete_group)
             h.register_function(f.attrs_to_labels)
             h.register_function(f.group_members)
+            h.register_function(f.add_radius_client)
             h.handle_request(req)
         finally:
              pass

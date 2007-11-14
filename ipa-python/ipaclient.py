@@ -331,3 +331,14 @@ class IPAClient:
                 entries.append(user.User(e))
 
         return entries
+
+    def add_radius_client(self,client):
+        client_dict = client.toDict()
+
+        # dn is set on the server-side
+        del client_dict['dn']
+
+        # convert to a regular dict before sending
+        result = self.transport.add_radius_client(client_dict)
+        return result
+

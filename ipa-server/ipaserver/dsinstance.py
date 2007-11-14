@@ -78,7 +78,7 @@ class DsInstance(service.Service):
         self.dm_password = dm_password
         self.__setup_sub_dict()
 
-        self.start_creation(11, "Configuring directory server:")
+        self.start_creation(14, "Configuring directory server:")
         self.__create_ds_user()
         self.__create_instance()
         self.__add_default_schemas()

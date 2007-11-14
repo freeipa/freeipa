@@ -591,3 +591,16 @@ class RPCClient:
             raise xmlrpclib.Fault(value, msg)
 
         return ipautil.unwrap_binary_data(result)
+
+    def add_radius_client(self,client):
+        server = self.setup_server()
+
+        try:
+            result = server.add_radius_client(ipautil.wrap_binary_data(client))
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+        

@@ -122,7 +122,8 @@ class RadiusInstance(service.Service):
                     'RADIUS_USER_BASE_DN'      : self.user_basedn,
                     'ACCESS_ATTRIBUTE'         : '',
                     'ACCESS_ATTRIBUTE_DEFAULT' : 'TRUE',
-                    'CLIENTS_BASEDN'           : 'cn=clients,cn=radius,cn=services,cn=etc,%s' % self.suffix
+                    'CLIENTS_BASEDN'           : 'cn=clients,cn=radius,cn=services,cn=etc,%s' % self.suffix,
+                    'SUFFIX'                   : self.suffix,
                     }
         try:
             radiusd_conf = template_file(RADIUSD_CONF_TEMPLATE_FILEPATH, sub_dict)
@@ -164,10 +165,11 @@ class RadiusInstance(service.Service):
         except Exception, e:
             logging.error("could not chown on %s to %s: %s", IPA_KEYTAB_FILEPATH, RADIUS_USER, e)
 
+    #FIXME, should use IPAdmin method
     def __set_ldap_encrypted_attributes(self):
         ldif_file = 'encrypted_attribute.ldif'
         self.step("setting ldap encrypted attributes")
-        ldif_txt = template_file(SHARE_DIR + ldif_file, {'ENCRYPTED_ATTRIBUTE':'radiusClientSecret')
+        ldif_txt = template_file(SHARE_DIR + ldif_file, {'ENCRYPTED_ATTRIBUTE':'radiusClientSecret'})
         ldif_fd = write_tmp_file(ldif_txt)
         try:
             ldap_mod(ldif_fd, "cn=Directory Manager", self.dm_password)
