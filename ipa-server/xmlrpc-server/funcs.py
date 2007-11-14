@@ -516,6 +516,36 @@ class IPAServer:
             self.releaseConnection(conn)
         return res
 
+    def find_radius_clients(self, ip_attrs, sattrs=None, searchlimit=0, timelimit=-1, opts=None):
+        def gen_filter(objectclass, attr, values):
+            '''Given ('myclass', 'myattr', [v1, v2]) returns
+               (&(objectclass=myclass)(|(myattr=v1)(myattr=v2)))
+            '''
+            # Don't use __safe_filter, prevents wildcarding
+            #attrs = ''.join(['(%s=%s)' % (attr, self.__safe_filter(val)) for val in values])
+            attrs = ''.join(['(%s=%s)' % (attr, val) for val in values])
+            filter = "(&(objectclass=%s)(|%s))" % (objectclass, attrs)
+            return filter
+
+        basedn = 'cn=clients,cn=radius,cn=services,cn=etc,%s' % self.basedn # FIXME, should not be hardcoded
+        filter = gen_filter('radiusClientProfile', 'radiusClientNASIpAddress', ip_attrs)
+        conn = self.getConnection(opts)
+        try:
+            try:
+                results = conn.getListAsync(basedn, self.scope, filter, sattrs, 0, None, None, timelimit, searchlimit)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                results = [0]
+        finally:
+            self.releaseConnection(conn)
+
+        counter = results[0]
+        results = results[1:]
+        radius_clients = [counter]
+        for radius_client in results:
+            radius_clients.append(self.convert_entry(radius_client))
+
+        return radius_clients
+
     def get_add_schema (self):
         """Get the list of fields to be used when adding users in the GUI."""
     
@@ -1151,6 +1181,7 @@ class IPAServer:
             entries.append(self.convert_entry(e))
 
         return entries
+
 
 def ldap_search_escape(match):
     """Escapes out nasty characters from the ldap search.

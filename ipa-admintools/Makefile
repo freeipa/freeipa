@@ -24,6 +24,7 @@ install:
 	install -m 755 ipa-addradiusclient $(SBINDIR)
 	install -m 755 ipa-radiusclientmod $(SBINDIR)
 	install -m 755 ipa-delradiusclient $(SBINDIR)
+	install -m 755 ipa-findradiusclient $(SBINDIR)
 
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \

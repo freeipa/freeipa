@@ -645,3 +645,17 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
+    def find_radius_clients(self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
+        server = self.setup_server()
+        try:
+            # None values are not allowed in XML-RPC
+            if sattrs is None:
+                sattrs = "__NONE__"
+            result = server.find_radius_clients(criteria, sattrs, searchlimit, timelimit)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+    
+        return ipautil.unwrap_binary_data(result)
+

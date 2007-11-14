@@ -355,3 +355,14 @@ class IPAClient:
     def delete_radius_client(self,ip_addr):
         return self.transport.delete_radius_client(ip_addr)
 
+    def find_radius_clients(self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
+        result = self.transport.find_radius_clients(criteria, sattrs, searchlimit, timelimit)
+        counter = result[0]
+
+        users = [counter]
+        for attrs in result[1:]:
+            if attrs is not None:
+                users.append(user.User(attrs))
+
+        return users
+
