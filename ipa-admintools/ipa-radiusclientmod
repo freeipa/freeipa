@@ -37,8 +37,6 @@ def parse_options():
     parser = OptionParser()
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
-    parser.add_option("-a", "--address", dest="ip_addr",
-                      help="RADIUS client IP address (required)")
     parser.add_option("-s", "--secret", dest="secret",
                       help="RADIUS client secret (required)")
     parser.add_option("-n", "--name", dest="name",
@@ -55,6 +53,11 @@ def parse_options():
 
 #------------------------------------------------------------------------------
 
+# FIXME
+def usage():
+    print "ipa-radiusclientmod ip_addr"
+    sys.exit(1)
+
 def main():
     ip_addr = None
     secret = None
@@ -62,72 +65,51 @@ def main():
     nastype = None
     desc = None
 
-    radius_client = ipa.radius_client.RadiusClient()
     options, args = parse_options()
 
-    # client address is required
-    if options.ip_addr:
-        ip_addr = options.ip_addr
-        if not validate_ip_addr(ip_addr): return 1
-    else:
-        valid = False
-        while not valid:
-            ip_addr = raw_input("Client IP: ")
-            if validate_ip_addr(ip_addr): valid = True
+    if len(args) != 2:
+        usage()
 
-    # client secret is required
+    ip_addr = args[1]
+
+    radius_client = ipa.radius_client.RadiusClient()
+    ipa_client = ipaclient.IPAClient()
+    try:
+        radius_client = ipa_client.get_radius_client_by_ip_addr(ip_addr)
+        pass
+    except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_NOT_FOUND):
+        print "client %s not found" % ip_addr
+        return 1
+    except ipa.ipaerror.IPAError, e:
+        print "%s" % e.message
+        return 1
+    except kerberos.GSSError, e:
+        print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])
+        return 1
+
     if options.secret:
         secret = options.secret
         if not validate_secret(secret): return 1
-    else:
-        valid = False
-        while not valid:
-            secret = get_secret()
-            if validate_secret(secret): valid = True
-                
-    # client name is optional
+        radius_client.setValue('radiusClientSecret', secret)
+
     if options.name:
         name = options.name
         if not validate_name(name): return 1
+        radius_client.setValue('radiusClientShortName', name)
 
-    # client NAS Type is optional
     if options.nastype:
         nastype = options.nastype
         if not validate_nastype(nastype): return 1
+        radius_client.setValue('radiusClientNASType', nastype)
         
-    # client description is optional
     if options.desc:
         desc = options.desc
         if not validate_desc(desc): return 1
-        
-
-    #print "ip_addr=%s secret=%s name=%s nastype=%s desc=%s" % (ip_addr, secret, name, nastype, desc)
-
-    if ip_addr is not None:
-        radius_client.setValue('radiusClientNASIpAddress', ip_addr)
-    else:
-        print "client IP Address is required"
-        return 1
-
-    if secret is not None:
-        radius_client.setValue('radiusClientSecret', secret)
-    else:
-        print "client secret is required"
-        return 1
-
-    if name is not None:
-        radius_client.setValue('radiusClientShortName', name)
-
-    if nastype is not None:
-        radius_client.setValue('radiusClientNASType', nastype)
-       
-    if desc is not None:
         radius_client.setValue('description', desc)
        
     try:
-        ipa_client = ipaclient.IPAClient()
-        ipa_client.add_radius_client(radius_client)
-        print "successfully added"
+        ipa_client.update_radius_client(radius_client)
+        print "successfully modified"
     except xmlrpclib.Fault, f:
         print f.faultString
         return 1

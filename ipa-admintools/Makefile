@@ -22,6 +22,8 @@ install:
 	install -m 755 ipa-listdelegation $(SBINDIR)
 	install -m 755 ipa-moddelegation $(SBINDIR)
 	install -m 755 ipa-addradiusclient $(SBINDIR)
+	install -m 755 ipa-radiusclientmod $(SBINDIR)
+	install -m 755 ipa-delradiusclient $(SBINDIR)
 
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \

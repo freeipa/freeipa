@@ -27,6 +27,7 @@ import user
 import group
 import ipa
 import config
+import radius_client
 
 class IPAClient:
 
@@ -332,6 +333,11 @@ class IPAClient:
 
         return entries
 
+# radius support
+    def get_radius_client_by_ip_addr(self,ip_addr,sattrs=None):
+        result = self.transport.get_radius_client_by_ip_addr(ip_addr,sattrs)
+        return radius_client.RadiusClient(result)
+
     def add_radius_client(self,client):
         client_dict = client.toDict()
 
@@ -341,4 +347,11 @@ class IPAClient:
         # convert to a regular dict before sending
         result = self.transport.add_radius_client(client_dict)
         return result
+
+    def update_radius_client(self,client):
+        result = self.transport.update_radius_client(client.origDataDict(), client.toDict())
+        return result
+
+    def delete_radius_client(self,ip_addr):
+        return self.transport.delete_radius_client(ip_addr)
 

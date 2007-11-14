@@ -33,15 +33,15 @@ __all__ = ['RadiusClient',
 
 #------------------------------------------------------------------------------
 
-dotted_octet_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)\.(\d+)(/(\d+))?$")
-dns_RE = re.compile(r"^[a-zA-Z][a-zA-Z.-]+$")
+dotted_octet_re = re.compile(r"^(\d+)\.(\d+)\.(\d+)\.(\d+)(/(\d+))?$")
+dns_re = re.compile(r"^[a-zA-Z][a-zA-Z0-9.-]+$")
 # secret, name, nastype all have 31 char max in freeRADIUS, max ip address len is 255
 valid_secret_len = (1,31)
 valid_name_len = (1,31)
 valid_nastype_len = (1,31)
 valid_ip_addr_len = (1,255)
 
-valid_ip_addr_msg = "IP address must be either a DNS name or a dotted octet with optional mask"
+valid_ip_addr_msg = "IP address must be either a DNS name (letters,digits,dot,hyphen, beginning with a letter),or a dotted octet followed by an optional mask (e.g 192.168.1.0/24)"
 valid_desc_msg = "Description must text string"
 
 #------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ def valid_ip_addr(text):
     # is it a dotted octet? If so there should be 4 integers seperated
     # by a dot and each integer should be between 0 and 255
     # there may be an optional mask preceded by a slash (e.g. 1.2.3.4/24)
-    match = dotted_octet_RE.search(text)
+    match = dotted_octet_re.search(text)
     if match:
         # dotted octet notation
         i = 1
@@ -88,8 +88,8 @@ def valid_ip_addr(text):
                 return False
         return True
     else:
-        # DNS name, can contain letters, dot and hypen
-        if dns_RE.search(text): return True
+        # DNS name, can contain letters, numbers, dot and hypen, must start with a letter
+        if dns_re.search(text): return True
     return False
 
 def validate_length(value, limits):

@@ -456,11 +456,19 @@ class IPAServer:
             self.releaseConnection(conn)
         return res
     
+# radius support
+
+    # FIXME, why not just use get_entry_by_dn?
+    def get_radius_client_by_ip_addr(self, ip_addr, sattrs=None, opts=None):
+        ip_addr = self.__safe_filter(ip_addr)
+        basedn = 'cn=clients,cn=radius,cn=services,cn=etc,%s' % self.basedn # FIXME, should not be hardcoded
+        filter = "(&(radiusClientNASIpAddress=%s)(objectclass=radiusClientProfile))" % ip_addr
+        return self.__get_sub_entry(basedn, filter, sattrs, opts)
+
     def __is_radius_client_unique(self, ip_addr, opts):
         """Return 1 if the radius client is unique in the tree, 0 otherwise."""
         ip_addr = self.__safe_filter(ip_addr)
         basedn = 'cn=clients,cn=radius,cn=services,cn=etc,%s' % self.basedn # FIXME, should not be hardcoded
-
         filter = "(&(radiusClientNASIpAddress=%s)(objectclass=radiusClientProfile))" % ip_addr
  
         try:
@@ -470,15 +478,12 @@ class IPAServer:
             return 1
 
     def add_radius_client (self, client, opts=None):
-        print "add_radius_client:"
         client_container = 'cn=clients,cn=radius,cn=services,cn=etc' # FIXME, should not be hardcoded
         if self.__is_radius_client_unique(client['radiusClientNASIpAddress'], opts) == 0:
             raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
 
         dn="radiusClientNASIpAddress=%s,%s,%s" % (ldap.dn.escape_dn_chars(client['radiusClientNASIpAddress']),
                              client_container,self.basedn)
-
-        print "add_radius_client: dn=%s" % (dn)
 
         entry = ipaserver.ipaldap.Entry(dn)
 
@@ -487,7 +492,6 @@ class IPAServer:
 
         # fill in our new entry with everything sent by the client
         for u in client:
-            print "add_radius_client: attr=%s %s" % (u, client[u])
             entry.setValues(u, client[u])
 
         conn = self.getConnection(opts)
@@ -497,6 +501,21 @@ class IPAServer:
             self.releaseConnection(conn)
         return res
     
+    def update_radius_client(self, oldentry, newentry, opts=None):
+        return self.update_entry(oldentry, newentry, opts)
+
+    def delete_radius_client(self, ip_addr, opts=None):
+        client = self.get_radius_client_by_ip_addr(ip_addr, ['dn', 'cn'], opts)
+        if client is None:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+
+        conn = self.getConnection(opts)
+        try:
+            res = conn.deleteEntry(client['dn'])
+        finally:
+            self.releaseConnection(conn)
+        return res
+
     def get_add_schema (self):
         """Get the list of fields to be used when adding users in the GUI."""
     

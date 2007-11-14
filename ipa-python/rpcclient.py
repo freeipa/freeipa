@@ -592,6 +592,21 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
+# radius support
+
+    def get_radius_client_by_ip_addr(self,ip_addr,sattrs=None):
+        server = self.setup_server()
+        if sattrs is None:
+            sattrs = "__NONE__"
+        try:
+            result = server.get_radius_client_by_ip_addr(ip_addr, sattrs)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
     def add_radius_client(self,client):
         server = self.setup_server()
 
@@ -603,4 +618,30 @@ class RPCClient:
             raise xmlrpclib.Fault(value, msg)
 
         return ipautil.unwrap_binary_data(result)
+
+    def update_radius_client(self,oldclient,newclient):
+        server = self.setup_server()
+    
+        try:
+            result = server.update_radius_client(ipautil.wrap_binary_data(oldclient),
+                                                 ipautil.wrap_binary_data(newclient))
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
         
+    def delete_radius_client(self,ip_addr):
+        server = self.setup_server()
+    
+        try:
+            result = server.delete_radius_client(ip_addr)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
