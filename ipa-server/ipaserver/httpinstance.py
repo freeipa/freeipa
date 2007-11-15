@@ -50,6 +50,10 @@ def update_file(filename, orig, subst):
             else:
                 sys.stdout.write(p.sub(subst, line))
         fileinput.close()
+        return 0
+    else:
+        print "File %s doesn't exist." % filename
+        return 1
 
 class HTTPInstance(service.Service):
     def __init__(self):
@@ -137,4 +141,5 @@ class HTTPInstance(service.Service):
 
     def __set_mod_nss_port(self):
         self.step("Setting mod_nss port to 443")
-        update_file(NSS_CONF, '8443', '443')
+        if update_file(NSS_CONF, '8443', '443') != 0:
+            print "Updating %s failed." % NSS_CONF
