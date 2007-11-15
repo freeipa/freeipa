@@ -35,6 +35,9 @@ def ldap_mod(fd, dn, pwd):
     args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv", "-D", dn, "-w", pwd, "-f", fd.name]
     run(args)
 
+    text = fd.read()
+    print text
+
 def realm_to_suffix(realm_name):
     s = realm_name.split(".")
     terms = ["dc=" + x.lower() for x in s]
@@ -78,7 +81,7 @@ class DsInstance(service.Service):
         self.dm_password = dm_password
         self.__setup_sub_dict()
 
-        self.start_creation(11, "Configuring directory server:")
+        self.start_creation(15, "Configuring directory server:")
         self.__create_ds_user()
         self.__create_instance()
         self.__add_default_schemas()
@@ -97,6 +100,7 @@ class DsInstance(service.Service):
 	self.__config_uidgid_gen_first_master()
         self.__add_default_layout()
 	self.__add_master_entry_first_master()
+        self.__init_memberof()
 
 
         self.step("configuring directoy to start on boot")
@@ -170,6 +174,16 @@ class DsInstance(service.Service):
     def __add_memberof_module(self):
         self.step("enabling memboerof plugin")
         memberof_txt = template_file(SHARE_DIR + "memberof-conf.ldif", self.sub_dict)
+        memberof_fd = write_tmp_file(memberof_txt)
+        try:
+            ldap_mod(memberof_fd, "cn=Directory Manager", self.dm_password)
+        except subprocess.CalledProcessError, e:
+            logging.critical("Failed to load memberof-conf.ldif: %s" % str(e))
+        memberof_fd.close()
+
+    def __init_memberof(self):
+        self.step("initializing group membership")
+        memberof_txt = template_file(SHARE_DIR + "memberof-task.ldif", self.sub_dict)
         memberof_fd = write_tmp_file(memberof_txt)
         try:
             ldap_mod(memberof_fd, "cn=Directory Manager", self.dm_password)

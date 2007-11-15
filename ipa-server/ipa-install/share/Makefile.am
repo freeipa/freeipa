@@ -22,6 +22,7 @@ app_DATA =				\
 	referint-conf.ldif		\
 	dna-posix.ldif			\
 	master-entry.ldif		\
+	memberof-task.ldif		\
 	$(NULL)
 
 EXTRA_DIST =				\
