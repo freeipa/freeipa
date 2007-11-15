@@ -31,6 +31,7 @@ import kerberos
 import krbV
 import ldap
 import getpass
+import errno
 
 def usage():
     print "ipa-adduser [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] user"
@@ -210,8 +211,11 @@ def main():
     try:
         client = ipaclient.IPAClient()
         client.add_user(user)
-    except xmlrpclib.Fault, f:
-        print f.faultString
+    except xmlrpclib.Fault, fault:
+        if fault.faultCode == errno.ECONNREFUSED:
+            print "The IPA XML-RPC service is not responding."
+        else:
+            print fault.faultString
         return 1
     except kerberos.GSSError, e:
         print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])

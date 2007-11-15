@@ -29,6 +29,7 @@ import ipa.config
 import xmlrpclib
 import kerberos
 import ldap
+import errno
 
 def usage():
     print "ipa-usermod [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] [-s|--shell STRING] [--add attribute=value] [--del attribute] [--set attribute=value] user"
@@ -231,8 +232,11 @@ def main():
 
     try:
         client.update_user(user)
-    except xmlrpclib.Fault, f:
-        print f.faultString
+    except xmlrpclib.Fault, fault:
+        if fault.faultCode == errno.ECONNREFUSED:
+            print "The IPA XML-RPC service is not responding."
+        else:
+            print fault.faultString
         return 1
     except kerberos.GSSError, e:
         print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])

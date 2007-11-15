@@ -23,6 +23,7 @@ from optparse import OptionParser
 import ipa
 import ipa.ipaclient as ipaclient
 import ipa.config
+import errno
 
 import xmlrpclib
 import kerberos
@@ -61,8 +62,11 @@ def main():
             print args[1] + " successfully %s" % msg
         else:
             print args[1] + " " + ret
-    except xmlrpclib.Fault, f:
-        print f.faultString
+    except xmlrpclib.Fault, fault:
+        if fault.faultCode == errno.ECONNREFUSED:
+            print "The IPA XML-RPC service is not responding."
+        else:
+            print fault.faultString
         return 1
     except kerberos.GSSError, e:
         print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])

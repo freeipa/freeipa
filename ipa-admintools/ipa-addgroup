@@ -30,6 +30,7 @@ import ipa.ipaerror
 import xmlrpclib
 import kerberos
 import ldap
+import errno
 
 def usage():
     print "ipa-addgroup [-d|--description STRING] group"
@@ -95,8 +96,11 @@ def main():
         client = ipaclient.IPAClient()
         client.add_group(group)
         print cn + " successfully added"
-    except xmlrpclib.Fault, f:
-        print f.faultString
+    except xmlrpclib.Fault, fault:
+        if fault.faultCode == errno.ECONNREFUSED:
+            print "The IPA XML-RPC service is not responding."
+        else:
+            print fault.faultString
         return 1
     except kerberos.GSSError, e:
         print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])

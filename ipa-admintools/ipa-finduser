@@ -25,6 +25,7 @@ import ipa.config
 import ipa.ipautil as ipautil
 import base64
 
+import errno
 import sys
 import xmlrpclib
 import kerberos
@@ -106,7 +107,10 @@ def main():
             print 
 
     except xmlrpclib.Fault, fault:
-        print fault.faultString
+        if fault.faultCode == errno.ECONNREFUSED:
+            print "The IPA XML-RPC service is not responding."
+        else:
+            print fault.faultString
         return 1
     except kerberos.GSSError, e:
         print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])
