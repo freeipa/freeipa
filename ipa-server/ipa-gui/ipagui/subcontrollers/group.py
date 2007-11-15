@@ -184,14 +184,6 @@ class GroupController(IPAController):
 
             group_dict = group.toDict()
 
-            # Load potential multi-valued fields
-            if isinstance(group_dict['cn'], str):
-                group_dict['cn'] = [group_dict['cn']]
-            cns = []
-            for cn in group_dict['cn']:
-                cns.append(dict(cn=cn))
-            group_dict['cns'] = cns
-
             #
             # convert members to users, for easier manipulation on the page
             #
@@ -223,8 +215,14 @@ class GroupController(IPAController):
         client = self.get_ipaclient()
 
         if kw.get('submit') == 'Cancel Edit':
+            orig_group_dict = loads(b64decode(kw.get('group_orig')))
+            # if cancelling need to use the original group because the one
+            # in kw may not exist yet.
+            cn = orig_group_dict.get('cn')
+            if (isinstance(cn,str)):
+                cn = [cn]
             turbogears.flash("Edit group cancelled")
-            raise turbogears.redirect('/group/show', cn=kw.get('cn')[0])
+            raise turbogears.redirect('/group/show', cn=cn[0])
 
         # Decode the member data, in case we need to round trip
         member_dicts = loads(b64decode(kw.get('member_data')))
@@ -244,9 +242,6 @@ class GroupController(IPAController):
         try:
             orig_group_dict = loads(b64decode(kw.get('group_orig')))
 
-            # remove multi-valued form fields
-            del(orig_group_dict['cns'])
-
             new_group = ipa.group.Group(orig_group_dict)
             if new_group.description != kw.get('description'):
                 group_modified = True
@@ -256,12 +251,7 @@ class GroupController(IPAController):
                 if new_group.gidnumber != new_gid:
                     group_modified = True
                     new_group.setValue('gidnumber', new_gid)
-
-            # Did any cn entries change?
-            oldcn = new_group.getValues('cn')
-            if isinstance(oldcn, str):
-                oldcn = [oldcn]
-            if oldcn != kw['cn']:
+            if new_group.cn != kw.get('cn'):
                 group_modified = True
                 new_group.setValue('cn', kw['cn'])
 
@@ -332,11 +322,15 @@ class GroupController(IPAController):
             return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
 
+        if isinstance(kw['cn'], list):
+            cn0 = kw['cn'][0]
+        else:
+            cn0 = kw['cn']
         if group_modified == True:
-            turbogears.flash("%s updated!" % kw['cn'][0])
+            turbogears.flash("%s updated!" % cn0)
         else:
             turbogears.flash("No modifications requested.")
-        raise turbogears.redirect('/group/show', cn=kw['cn'][0])
+        raise turbogears.redirect('/group/show', cn=cn0)
 
 
     @expose("ipagui.templates.grouplist")
@@ -385,7 +379,7 @@ class GroupController(IPAController):
             return dict(group=group_dict, fields=ipagui.forms.group.GroupFields(),
                     members = member_dicts)
         except ipaerror.IPAError, e:
-            turbogears.flash("Group show failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("Group show failed: " + str(e))
             raise turbogears.redirect("/")
 
     @expose()

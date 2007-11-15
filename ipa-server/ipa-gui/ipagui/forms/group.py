@@ -7,7 +7,6 @@ class GroupFields():
     gidnumber = widgets.TextField(name="gidnumber", label="GID")
     description = widgets.TextField(name="description", label="Description")
 
-    cn_hidden = widgets.HiddenField(name="cn")
     editprotected_hidden = widgets.HiddenField(name="editprotected")
 
     group_orig = widgets.HiddenField(name="group_orig")
@@ -38,7 +37,7 @@ class GroupNewForm(widgets.Form):
 
 
 class GroupEditValidator(validators.Schema):
-    cn = validators.ForEach(validators.String(not_empty=True))
+    cn = validators.String(not_empty=True)
     gidnumber = validators.Int(not_empty=False)
     description = validators.String(not_empty=False)
 
@@ -50,7 +49,7 @@ class GroupEditForm(widgets.Form):
     params = ['members', 'group_fields']
 
     hidden_fields = [
-      GroupFields.cn_hidden, GroupFields.editprotected_hidden,
+      GroupFields.editprotected_hidden,
       GroupFields.group_orig, GroupFields.member_data,
       GroupFields.dn_to_info_json
     ]
