@@ -39,6 +39,9 @@ def parse_options():
 
     parser.add_option("-a", "--all", action="store_true", dest="all",
                       help="Set user's e-mail address")
+    parser.add_option("-n", "--notranslate", action="store_true",
+                      dest="notranslate",
+                      help="Don't translate LDAP attributes into readable labels")
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
@@ -91,6 +94,12 @@ def main():
         for ent in users:
             attr = ent.attrList()
             attr.sort()
+            if options.notranslate:
+                labels = {}
+                for a in attr:
+                    labels[a] = a
+            else:
+                labels = client.attrs_to_labels(attr)
 
             if options.all is True:
                 print "dn: " + ent.dn
@@ -98,9 +107,9 @@ def main():
             for a in attr:
                 value = ent.getValues(a)
                 if isinstance(value,str):
-                    print a + ": " + str(wrap_binary_data(value)).rstrip()
+                    print labels[a] + ": " + str(wrap_binary_data(value)).rstrip()
                 else:
-                    print a + ": "
+                    print labels[a] + ": "
                     for l in value:
                         print "\t" + wrap_binary_data(l)
             # blank line between results
