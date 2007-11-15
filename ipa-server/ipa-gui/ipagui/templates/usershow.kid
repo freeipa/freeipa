@@ -3,18 +3,18 @@
     py:extends="'userlayout.kid'">
 <head>
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
-    <title>View Person</title>
+    <title>View User</title>
 </head>
 <body>
 <?python
 edit_url = tg.url('/user/edit', uid=user.get('uid'))
 ?>
-    <h1>View Person</h1>
+    <h1>View User</h1>
 
     <input py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups"
       class="submitbutton" type="button"
       onclick="document.location.href='${edit_url}'"
-      value="Edit Person" />
+      value="Edit User" />
 
 <?python
 from ipagui.helpers import userhelper
@@ -377,6 +377,6 @@ else:
     <input py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups"
       class="submitbutton" type="button"
       onclick="document.location.href='${edit_url}'"
-      value="Edit Person" />
+      value="Edit User" />
 </body>
 </html>

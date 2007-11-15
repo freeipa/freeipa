@@ -3,7 +3,7 @@
   <form action="${action}" name="${name}" method="${method}" class="tableform"
     onsubmit="preSubmit()">
 
-<input type="submit" class="submitbutton" name="submit" value="Add Person"/>
+<input type="submit" class="submitbutton" name="submit" value="Add User"/>
 
 <?python
 from ipagui.helpers import ipahelper
@@ -786,7 +786,7 @@ from ipagui.helpers import ipahelper
     </div>
 
 <hr />
-<input type="submit" class="submitbutton" name="submit" value="Add Person"/>
+<input type="submit" class="submitbutton" name="submit" value="Add User"/>
 
   </form>
 

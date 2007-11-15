@@ -183,7 +183,7 @@ class UserController(IPAController):
 
             rv = client.add_user(new_user)
         except ipaerror.exception_for(ipaerror.LDAP_DUPLICATE):
-            turbogears.flash("Person with login '%s' already exists" %
+            turbogears.flash("User with login '%s' already exists" %
                     kw.get('uid'))
             return dict(form=user_new_form, user=kw,
                     tg_template='ipagui.templates.usernew')
@@ -219,7 +219,7 @@ class UserController(IPAController):
             try:
                 client.modifyPassword(user_dict['krbprincipalname'], "", kw.get('userpassword'))
             except ipaerror.IPAError, e:
-                message = "Person successfully created.<br />"
+                message = "User successfully created.<br />"
                 message += "There was an error setting the password.<br />"
                 turbogears.flash(message)
                 return dict(form=user_edit_form, user=user_dict,
@@ -242,7 +242,7 @@ class UserController(IPAController):
             failed_adds = dnadds
 
         if len(failed_adds) > 0:
-            message = "Person successfully created.<br />"
+            message = "User successfully created.<br />"
             message += "There was an error adding groups.<br />"
             message += "Failures have been preserved in the add/remove lists."
             turbogears.flash(message)

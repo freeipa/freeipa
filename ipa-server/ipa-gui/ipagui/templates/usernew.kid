@@ -3,10 +3,10 @@
     py:extends="'userlayout.kid'">
 <head>
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
-    <title>Add Person</title>
+    <title>Add User</title>
 </head>
 <body>
-    <h1>Add Person</h1>
+    <h1>Add User</h1>
 
     ${form.display(action=tg.url("/user/create"), value=user)}
 </body>
