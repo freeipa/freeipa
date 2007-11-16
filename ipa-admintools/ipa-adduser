@@ -205,8 +205,6 @@ def main():
         user.setValue('homedirectory', directory)
     if shell:
         user.setValue('loginshell', shell)
-    else:
-        user.setValue('loginshell', "/bin/sh")
 
     try:
         client = ipaclient.IPAClient()

@@ -20,9 +20,27 @@ edit_url = tg.url('/ipapolicy/edit')
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.searchlimit.label" />:
+            <label class="fieldlabel" py:content="fields.ipasearchtimelimit.label" />:
           </th>
-          <td>${ipapolicy.get("searchlimit")}</td>
+          <td>${ipapolicy.get("ipasearchtimelimit")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.ipasearchrecordslimit.label" />:
+          </th>
+          <td>${ipapolicy.get("ipasearchrecordslimit")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.ipausersearchfields.label" />:
+          </th>
+          <td>${ipapolicy.get("ipausersearchfields")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.ipagroupsearchfields.label" />:
+          </th>
+          <td>${ipapolicy.get("ipagroupsearchfields")}</td>
         </tr>
     </table>
 
@@ -30,36 +48,66 @@ edit_url = tg.url('/ipapolicy/edit')
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.passwordnotif.label" />:
+            <label class="fieldlabel" py:content="fields.ipapwdexpadvnotify.label" />:
           </th>
-          <td>${ipapolicy.get("passwordnotif")}</td>
+          <td>${ipapolicy.get("ipapwdexpadvnotify")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.krbminpwdlife.label" />:
+          </th>
+          <td>${password.get("krbminpwdlife")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.krbmaxpwdlife.label" />:
+          </th>
+          <td>${password.get("krbmaxpwdlife")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.krbpwdmindiffchars.label" />:
+          </th>
+          <td>${password.get("krbpwdmindiffchars")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.krbpwdminlength.label" />:
+          </th>
+          <td>${password.get("krbpwdminlength")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.krbpwdhistorylength.label" />:
+          </th>
+          <td>${password.get("krbpwdhistorylength")}</td>
         </tr>
     </table>
     <h2 class="formsection">User Settings</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.maxuidlength.label" />:
+            <label class="fieldlabel" py:content="fields.ipamaxusernamelength.label" />:
           </th>
-          <td>${ipapolicy.get("maxuidlength")}</td>
+          <td>${ipapolicy.get("ipamaxusernamelength")}</td>
         </tr>
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.homedir.label" />:
+            <label class="fieldlabel" py:content="fields.ipahomesrootdir.label" />:
           </th>
-          <td>${ipapolicy.get("homedir")}</td>
+          <td>${ipapolicy.get("ipahomesrootdir")}</td>
         </tr>
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.defaultshell.label" />:
+            <label class="fieldlabel" py:content="fields.ipadefaultloginshell.label" />:
           </th>
-          <td>${ipapolicy.get("defaultshell")}</td>
+          <td>${ipapolicy.get("ipadefaultloginshell")}</td>
         </tr>
         <tr>
           <th>
-            <label class="fieldlabel" py:content="fields.defaultgroup.label" />:
+            <label class="fieldlabel" py:content="fields.ipadefaultprimarygroup.label" />:
           </th>
-          <td>${ipapolicy.get("defaultgroup")}</td>
+          <td>${ipapolicy.get("ipadefaultprimarygroup")}</td>
         </tr>
     </table>
 <hr />

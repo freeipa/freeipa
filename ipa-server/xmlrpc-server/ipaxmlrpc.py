@@ -326,7 +326,8 @@ def handler(req, profiling=False):
             h.register_function(f.get_user_by_email)
             h.register_function(f.get_users_by_manager)
             h.register_function(f.add_user)
-            h.register_function(f.get_add_schema)
+            h.register_function(f.get_custom_fields)
+            h.register_function(f.set_custom_fields)
             h.register_function(f.get_all_users)
             h.register_function(f.find_users)
             h.register_function(f.update_user)
@@ -351,6 +352,10 @@ def handler(req, profiling=False):
             h.register_function(f.delete_group)
             h.register_function(f.attrs_to_labels)
             h.register_function(f.group_members)
+            h.register_function(f.get_ipa_config)
+            h.register_function(f.update_ipa_config)
+            h.register_function(f.get_password_policy)
+            h.register_function(f.update_password_policy)
             h.handle_request(req)
         finally:
              pass

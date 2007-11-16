@@ -345,7 +345,7 @@ else:
     </table>
 
     <div py:if='len(fields.custom_fields) &gt; 0'>
-      <div class="formsection" >Custom Fields</div>
+      <h2 class="formsection">Custom Fields</h2>
       <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr py:for='custom_field in fields.custom_fields'>
           <th>

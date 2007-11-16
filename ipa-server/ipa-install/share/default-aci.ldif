@@ -9,3 +9,14 @@ aci: (targetattr="krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCo
 aci: (targetattr="userPassword || krbPrincipalKey ||sambaLMPassword || sambaNTPassword || krbPasswordExpiration || krbPwdHistory || krbLastPwdChange")(version 3.0; acl "Kpasswd access to passowrd hashes for passowrd changes"; allow (read, write) userdn="ldap:///krbprincipalname=kadmin/changepw@$REALM,cn=$REALM,cn=kerberos,$SUFFIX";)
 aci: (targetfilter="(|(objectClass=person)(objectClass=krbPrincipalAux)(objectClass=posixAccount)(objectClass=groupOfUniqueNames)(objectClass=posixGroup))")(targetattr="*")(version 3.0; acl "Account Admins can manage Users and Groups"; allow (add,delete,read,write) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 aci: (targetattr = "givenName || sn || cn || displayName || initials || loginShell || homePhone || mobile || pager || facsimileTelephoneNumber || telephoneNumber || street || roomNumber || l || st || postalCode || manager || description || carLicense || labeledURI || inetUserHTTPURL || seeAlso || userPassword")(version 3.0;acl "Self service";allow (write) userdn="ldap:///self";)
+
+dn: cn=ipaConfig,cn=etc,dc=greyoak,dc=com
+changetype: modify
+add: aci
+aci: (targetattr = "ipaUserSearchFields || ipaGroupSearchFields || ipaSearchTimeLimit || ipaSearchRecordsLimit || ipaCustomFields || ipaHomesRootDir || ipaDefaultLoginShell || ipaDefaultPrimaryGroup || ipaMaxUsernameLength || ipaPwdExpAdvNotify")(version 3.0;acl "Admins can write IPA policy"; allow (write) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+replace: aci
+
+dn: cn=accounts,$SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr = "krbMaxPwdLife || krbMinPwdLife || krbPwdMinDiffChars || krbPwdMinLength || krbPwdHistoryLength")(version 3.0;acl "Admins can write password policy"; allow (write) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)

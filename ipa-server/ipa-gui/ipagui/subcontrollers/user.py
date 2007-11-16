@@ -34,25 +34,47 @@ class UserController(IPAController):
 
     def __init__(self, *args, **kw):
         super(UserController,self).__init__(*args, **kw)
-        self.load_custom_fields()
+#        self.load_custom_fields()
 
     def load_custom_fields(self):
-        # client = self.get_ipaclient()
-        # schema = client.get_user_custom_schema()
-        schema = [
-          { 'label': 'See Also',
-            'field': 'seeAlso',
-            'required': 'true', } ,
-          { 'label': 'O O O',
-            'field': 'o',
-            'required': 'false', } ,
-        ]
+
+        client = self.get_ipaclient()
+        schema = client.get_custom_fields()
+
+        # FIXME: Don't load from LDAP every single time it is called
+
+        # FIXME: Is removing the attributes on the fly thread-safe? Do we
+        # need to lock here?
         for s in schema:
             required=False
-            if (s['required'] == "true"):
+            if (s['required'].lower() == "true"):
                 required=True
             field = widgets.TextField(name=s['field'],label=s['label'])
             validator = validators.String(not_empty=required)
+
+            # Don't allow dupes on the new form
+            try:
+                for i in range(len(user_new_form.custom_fields)):
+                    if user_new_form.custom_fields[i].name == s['field']:
+                        user_new_form.custom_fields.pop(i)
+            except:
+                pass
+
+            # Don't allow dupes on the edit form
+            try:
+                for i in range(len(user_edit_form.custom_fields)):
+                    if user_edit_form.custom_fields[i].name == s['field']:
+                        user_edit_form.custom_fields.pop(i)
+            except:
+                pass
+
+            # Don't allow dupes in the list of user fields
+            try:
+                for i in range(len(ipagui.forms.user.UserFields.custom_fields)):
+                    if ipagui.forms.user.UserFields.custom_fields[i].name == s['field']:
+                        ipagui.forms.user.UserFields.custom_fields.pop(i)
+            except:
+                pass
 
             ipagui.forms.user.UserFields.custom_fields.append(field)
             user_new_form.custom_fields.append(field)
@@ -99,6 +121,7 @@ class UserController(IPAController):
     @identity.require(identity.in_any_group("admins","editors"))
     def new(self, tg_errors=None):
         """Displays the new user form"""
+        self.load_custom_fields()
         if tg_errors:
             turbogears.flash("There were validation errors.<br/>" +
                              "Please see the messages below for details.")
@@ -281,6 +304,7 @@ class UserController(IPAController):
     @identity.require(identity.not_anonymous())
     def edit(self, uid=None, principal=None, tg_errors=None):
         """Displays the edit user form"""
+        self.load_custom_fields()
         if tg_errors:
             turbogears.flash("There were validation errors.<br/>" +
                              "Please see the messages below for details.")
@@ -581,6 +605,7 @@ class UserController(IPAController):
     def show(self, uid):
         """Retrieve a single user for display"""
         client = self.get_ipaclient()
+        self.load_custom_fields()
 
         try:
             user = client.get_user_by_uid(uid, user_fields)
