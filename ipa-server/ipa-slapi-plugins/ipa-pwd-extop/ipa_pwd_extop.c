@@ -128,11 +128,16 @@ struct krb5p_keysalt {
 
 static void *ipapwd_plugin_id;
 
-krb5_keyblock kmkey;
 
-char *ipa_realm;
-struct krb5p_keysalt *keysalts;
-int n_keysalts;
+const char *ipa_realm_dn = NULL;
+const char *ipa_realm = NULL;
+struct krb5p_keysalt *ipa_keysalts = NULL;
+int ipa_n_keysalts = 0;
+
+Slapi_Mutex *ipa_globals = NULL;
+krb5_keyblock *ipa_kmkey = NULL;
+
+static int ipapwd_getMasterKey(const char *realm_dn);
 
 /* Novell key-format scheme:
 
@@ -166,7 +171,7 @@ int n_keysalts;
 
 struct kbvals {
 	ber_int_t kvno;
-	struct berval *bval;
+	const struct berval *bval;
 };
 
 static int cmpkbvals(const void *p1, const void *p2)
@@ -185,6 +190,10 @@ static inline void encode_int16(unsigned int val, unsigned char *p)
     p[0] = (val      ) & 0xff; 
 }
 
+#define IPA_CHANGETYPE_NORMAL 0
+#define IPA_CHANGETYPE_ADMIN 1
+#define IPA_CHANGETYPE_DSMGR 2
+
 struct ipapwd_data {
 	Slapi_Entry *target;
 	const char *dn;
@@ -192,11 +201,13 @@ struct ipapwd_data {
 	time_t timeNow;
 	time_t lastPwChange;
 	time_t expireTime;
-	int adminChange;
+	int changetype;
+	int pwHistoryLen;
 };
 
 static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data *data)
 {
+	krb5_keyblock *kmkey;
 	const char *krbPrincipalName;
 	uint32_t krbMaxTicketLife;
 	Slapi_Attr *krbPrincipalKey = NULL;
@@ -205,7 +216,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 	int kvno;
 	int num_versions, num_keys;
 	int krbTicketFlags;
-	BerElement *be;
+	BerElement *be = NULL;
 	struct berval *bval = NULL;
 	Slapi_Value **svals = NULL;
 	int svals_no;
@@ -213,6 +224,10 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 	krb5_error_code krberr;
 	krb5_data pwd;
 	int ret, i;
+
+	slapi_lock_mutex(ipa_globals);
+	kmkey = ipa_kmkey;
+	slapi_unlock_mutex(ipa_globals);
 
 	time_now = time(NULL);
 
@@ -248,7 +263,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 			kbvals = (struct kbvals *)calloc(count, sizeof(struct kbvals));
 		}
 		n = 0;
-		for (i = 0; count > 0 && i < count; i++) {
+		for (i = 0i, idx = 0; count > 0 && i < count; i++) {
 			if (i == 0) {
 				idx = slapi_valueset_first_value(svs, &sv);
 			} else {
@@ -371,7 +386,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 		goto enc_error;
 	}
 
-	for (i = 0; i < n_keysalts; i++) {
+	for (i = 0; i < ipa_n_keysalts; i++) {
 		krb5_keyblock key;
 		krb5_data salt;
 		krb5_octet *ptr;
@@ -382,7 +397,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 
 		salt.data = NULL;
 
-		switch (keysalts[i].salt_type) {
+		switch (ipa_keysalts[i].salt_type) {
 
 		case KRB5_KDB_SALTTYPE_ONLYREALM:
 
@@ -463,12 +478,12 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 
 		default:
 			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
-					"Invalid salt type [%d]\n", keysalts[i].salt_type);
+					"Invalid salt type [%d]\n", ipa_keysalts[i].salt_type);
 			goto enc_error;
 		}
 
 		/* need to build the key now to manage the AFS salt.length special case */
-		krberr = krb5_c_string_to_key(krbctx, keysalts[i].enc_type, &pwd, &salt, &key);
+		krberr = krb5_c_string_to_key(krbctx, ipa_keysalts[i].enc_type, &pwd, &salt, &key);
 		if (krberr) {
 			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 					"krb5_c_string_to_key failed [%s]\n",
@@ -480,7 +495,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 			salt.length = strlen(salt.data);
 		}
 
-		krberr = krb5_c_encrypt_length(krbctx, kmkey.enctype, key.length, &len);
+		krberr = krb5_c_encrypt_length(krbctx, kmkey->enctype, key.length, &len);
 		if (krberr) {
 			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 					"krb5_c_string_to_key failed [%s]\n",
@@ -506,7 +521,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 		cipher.ciphertext.length = len;
 		cipher.ciphertext.data = (char *)ptr+2;
 
-		krberr = krb5_c_encrypt(krbctx, &kmkey, 0, 0, &plain, &cipher);
+		krberr = krb5_c_encrypt(krbctx, kmkey, 0, 0, &plain, &cipher);
 		if (krberr) {
 			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 					"krb5_c_encrypt failed [%s]\n",
@@ -521,12 +536,12 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 		if (salt.length) {
 			ret = ber_printf(be, "{t[{t[i]t[o]}]",
 						(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0),
-							(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0), keysalts[i].salt_type,
+							(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0), ipa_keysalts[i].salt_type,
 							(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 1), salt.data, salt.length);
 		} else {
 			ret = ber_printf(be, "{t[{t[i]}]",
 						(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0),
-							(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0), keysalts[i].salt_type);
+							(ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0), ipa_keysalts[i].salt_type);
 		}
 		if (ret == -1) {
 			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
@@ -922,27 +937,142 @@ static int ipapwd_getPolicy(const char *dn, Slapi_Entry *target, Slapi_Entry **e
 	return 0;
 }
 
+#define GENERALIZED_TIME_LENGTH 15
+
+static int ipapwd_sv_pw_cmp(const void *pv1, const void *pv2)
+{
+	const char *pw1 = slapi_value_get_string(*((Slapi_Value **)pv1));
+	const char *pw2 = slapi_value_get_string(*((Slapi_Value **)pv2));
+
+	return strncmp(pw1, pw2, GENERALIZED_TIME_LENGTH);
+}
+
+static Slapi_Value **ipapwd_setPasswordHistory(Slapi_Mods *smods, struct ipapwd_data *data)
+{
+	Slapi_Value **pH = NULL;
+	Slapi_Attr *passwordHistory = NULL;
+	char timestr[GENERALIZED_TIME_LENGTH+1];
+	char *histr, *old_pw;
+	struct tm utctime;
+	int ret, pc;
+
+	old_pw = slapi_entry_attr_get_charptr(data->target, "userPassword");
+	if (!old_pw) {
+		/* no old password to store, just return */
+		return NULL;
+	}
+
+	if (!gmtime_r(&(data->timeNow), &utctime)) {
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "failed to retrieve current date (buggy gmtime_r ?)\n");
+		return NULL;
+	}
+	strftime(timestr, GENERALIZED_TIME_LENGTH+1, "%Y%m%d%H%M%SZ", &utctime);
+
+	histr = slapi_ch_smprintf("%s%s", timestr, old_pw);
+	if (!histr) {
+		slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
+				"ipapwd_checkPassword: Out of Memory\n");
+		return NULL;
+	}
+
+	/* retrieve current history */
+	ret = slapi_entry_attr_find(data->target, "passwordHistory", &passwordHistory);
+	if (ret == 0) {
+		int ret, hint, count, i;
+		Slapi_Value *pw;
+
+		hint = 0;
+		count = 0;
+		ret = slapi_attr_get_numvalues(passwordHistory, &count);
+		/* if we have one */
+		if (count > 0) {
+			pH = calloc(count + 2, sizeof(Slapi_Value *));
+			if (!pH) {
+				slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
+						"ipapwd_checkPassword: Out of Memory\n");
+				free(histr);
+				return NULL;
+			}
+
+			i = 0;
+			hint = slapi_attr_first_value(passwordHistory, &pw);
+			while (hint != -1) {
+				pH[i] = slapi_value_dup(pw);
+				i++;
+				hint = slapi_attr_next_value(passwordHistory, hint, &pw);
+			}
+
+			qsort(pH, i, sizeof(Slapi_Value *), ipapwd_sv_pw_cmp);
+
+			if (count > data->pwHistoryLen) {
+				count = data->pwHistoryLen;
+			}
+
+			if (count == data->pwHistoryLen) {
+				/* replace oldest */
+				slapi_value_free(&pH[0]);
+				i = 0;
+			}
+
+			pc = i;
+		}
+
+	}
+
+	if (pH == NULL) {
+		pH = calloc(2, sizeof(Slapi_Value *));
+		if (!pH) {
+			slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
+					"ipapwd_checkPassword: Out of Memory\n");
+			free(histr);
+			return NULL;
+		}
+		pc = 0;
+	}
+
+	/* add new history value */
+	pH[pc] = slapi_value_new_string(histr);
+	
+	free(histr);
+
+	return pH;
+}
+
+static Slapi_Value *ipapwd_strip_pw_date(Slapi_Value *pw)
+{
+	char *pwstr;
+
+	pwstr = slapi_value_get_string(pw);
+	if (strlen(pwstr) <= GENERALIZED_TIME_LENGTH) {
+		/* not good, must be garbage, we never set histories without time */
+		return NULL;
+	}
+
+	return slapi_value_new_string(&pwstr[GENERALIZED_TIME_LENGTH]);
+}
+
 #define IPAPWD_POLICY_MASK 0x0FF
 #define IPAPWD_POLICY_ERROR 0x100
 #define IPAPWD_POLICY_OK 0
 
 /* 90 days default pwd max lifetime */
 #define IPAPWD_DEFAULT_PWDLIFE (90 * 24 *3600)
-#define IPAPWD_DEFAULT_MINLEN 8
+#define IPAPWD_DEFAULT_MINLEN 0
 
 /* check password strenght and history */
 static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 {
 	const char *krbPrincipalExpiration;
 	const char *krbLastPwdChange;
-	int krbMaxPwdLife = 0;
-	int krbPwdMinLength = 0;
+	int krbMaxPwdLife = IPAPWD_DEFAULT_PWDLIFE;
+	int krbPwdMinLength = IPAPWD_DEFAULT_MINLEN;
 	int krbPwdMinDiffChars = 0;
 	int krbMinPwdLife = 0;
 	int pwdCharLen = 0;
 	Slapi_Entry *policy = NULL;
+	Slapi_Attr *passwordHistory = NULL;
 	struct tm tm;
-	int ret;
+	int tmp, ret;
 
 	/* check account is not expired */
 	krbPrincipalExpiration = slapi_entry_attr_get_charptr(data->target, "krbPrincipalExpiration");
@@ -966,42 +1096,43 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 		/* FIXME: else error out ? */
 	}
 
-	if (data->adminChange) {
-		/* we must skip policy checks (Admin change) but
-		 * force a password change on the next login */
-
-		data->expireTime = data->timeNow;
-
-	} else {
-		krbLastPwdChange = slapi_entry_attr_get_charptr(data->target, "krbLastPwdChange");
-		/* if no previous change, it means this is probably a new account
-		 * or imported, log and just ignore */
-		if (krbLastPwdChange) {
-
-			memset(&tm, 0, sizeof(struct tm));
-			ret = sscanf(krbLastPwdChange,
-				     "%04u%02u%02u%02u%02u%02u",
-				     &tm.tm_year, &tm.tm_mon, &tm.tm_mday, 
-				     &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
-
-			if (ret == 6) {
-				tm.tm_year -= 1900;
-				tm.tm_mon -= 1;
-				data->lastPwChange = timegm(&tm);
-			}
-			/* FIXME: *else* report an error ? */
-		} else {
-			slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "Warning: Last Password Change Time is not available");
+	if (data->changetype != IPA_CHANGETYPE_NORMAL) {
+		/* We must skip policy checks (Admin change) but
+		 * force a password change on the next login.
+		 * But not if Directory Manager */
+		if (data->changetype == IPA_CHANGETYPE_ADMIN) {
+			data->expireTime = data->timeNow;
 		}
+
+		/* skip policy checks */
+		goto no_policy;
+	} 
+
+	krbLastPwdChange = slapi_entry_attr_get_charptr(data->target, "krbLastPwdChange");
+	/* if no previous change, it means this is probably a new account
+	 * or imported, log and just ignore */
+	if (krbLastPwdChange) {
+
+		memset(&tm, 0, sizeof(struct tm));
+		ret = sscanf(krbLastPwdChange,
+			     "%04u%02u%02u%02u%02u%02u",
+			     &tm.tm_year, &tm.tm_mon, &tm.tm_mday, 
+			     &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
+
+		if (ret == 6) {
+			tm.tm_year -= 1900;
+			tm.tm_mon -= 1;
+			data->lastPwChange = timegm(&tm);
+		}
+		/* FIXME: *else* report an error ? */
+	} else {
+		slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "Warning: Last Password Change Time is not available");
 	}
 
 	/* find the entry with the password policy */
 	ret = ipapwd_getPolicy(data->dn, data->target, &policy);
 	if (ret) {
 		slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "No password policy");
-
-		krbMaxPwdLife = IPAPWD_DEFAULT_PWDLIFE;
-		krbPwdMinLength = IPAPWD_DEFAULT_MINLEN;
 		goto no_policy;
 	}
 
@@ -1019,10 +1150,9 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 	}
 
 	/* Retrieve min length */
-	krbPwdMinLength = slapi_entry_attr_get_int(policy, "krbPwdMinLength");
-	if (krbPwdMinLength == 0) {
-		/* if no default then set a minimum of 8 */
-		krbPwdMinLength = 8;
+	tmp = slapi_entry_attr_get_int(policy, "krbPwdMinLength");
+	if (tmp != 0) {
+		krbPwdMinLength = tmp;
 	}
 
 	/* check complexity */
@@ -1110,7 +1240,7 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 		 *        so just treat anything as a category, we will fix this when we merge
 		 *        with DS policies */
 
-		if (max_repeated > 0)
+		if (max_repeated > 1)
 			--num_categories;
 
 		if (num_categories < krbPwdMinDiffChars) {
@@ -1121,17 +1251,72 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 		}
 	}
 
-	/* TODO: Check password history */
+	/* Check password history */
+	ret = slapi_entry_attr_find(data->target, "passwordHistory", &passwordHistory);
+	if (ret == 0) {
+		int ret, hint, count, i;
+		Slapi_Value **pH;
+		Slapi_Value *pw;
 
-	/* Calculate max age */
-	krbMaxPwdLife = slapi_entry_attr_get_int(policy, "krbMaxPwdLife");
-	if (krbMaxPwdLife <= 0) {
-		/* set default expiration date of 90 days */
-		krbMaxPwdLife = IPAPWD_DEFAULT_PWDLIFE;
+		hint = 0;
+		count = 0;
+		i = 0;
+		ret = slapi_attr_get_numvalues(passwordHistory, &count);
+		/* check history only if we have one */
+		if (count > 0) {
+			pH = calloc(count + 1, sizeof(Slapi_Value *));
+			if (!pH) {
+				slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
+						"ipapwd_checkPassword: Out of Memory\n");
+				slapi_entry_free(policy); 
+				return LDAP_OPERATIONS_ERROR;
+			}
+
+			hint = slapi_attr_first_value(passwordHistory, &pw);
+			while (hint != -1) {
+				pH[i] = ipapwd_strip_pw_date(pw);
+				if (pH[i]) i++;
+				hint = slapi_attr_next_value(passwordHistory, hint, &pw);
+			}
+
+			pw = slapi_value_new_string(data->password);
+			if (!pw) {
+				slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
+						"ipapwd_checkPassword: Out of Memory\n");
+				slapi_entry_free(policy);
+				free(pH);
+				return LDAP_OPERATIONS_ERROR;
+			}
+
+			ret = slapi_pw_find_sv(pH, pw);
+
+			slapi_value_free(&pw);
+
+			for (i = 0; pH[i]; i++) {
+				slapi_value_free(&pH[i]);
+			}
+			free(pH);
+
+			if (ret == 0) {
+				slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
+					"ipapwd_checkPassword: Password in history\n");
+				slapi_entry_free(policy); 
+				return IPAPWD_POLICY_ERROR | LDAP_PWPOLICY_PWDINHISTORY;
+			}
+		}
 	}
 
+	/* Calculate max age */
+	tmp = slapi_entry_attr_get_int(policy, "krbMaxPwdLife");
+	if (tmp != 0) {
+		krbMaxPwdLife = tmp;
+	}
+
+	/* Retrieve History Len */
+	data->pwHistoryLen = slapi_entry_attr_get_int(policy, "krbPwdHistoryLength");
+
 	slapi_entry_free(policy); 
-	
+
 no_policy:
 
 	/* check min lenght */
@@ -1155,7 +1340,7 @@ no_policy:
  *  If found	 : fills in slapi_entry structure and returns 0
  *  If NOT found : returns the search result as LDAP_NO_SUCH_OBJECT
  */
-static int ipapwd_getEntry(const char *dn, Slapi_Entry **e2)
+static int ipapwd_getEntry(const char *dn, Slapi_Entry **e2, char **attrlist)
 {
 	Slapi_DN *sdn;
 	int search_result = 0;
@@ -1163,7 +1348,7 @@ static int ipapwd_getEntry(const char *dn, Slapi_Entry **e2)
 	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "=> ipapwd_getEntry\n");
 
 	sdn = slapi_sdn_new_dn_byref(dn);
-	if ((search_result = slapi_search_internal_get_entry( sdn, NULL, e2,
+	if ((search_result = slapi_search_internal_get_entry( sdn, attrlist, e2,
  					ipapwd_plugin_id)) != LDAP_SUCCESS ){
 		slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
 				"ipapwd_getEntry: No such entry-(%s), err (%d)\n",
@@ -1240,18 +1425,19 @@ static void hexbuf(char *out, const uint8_t *in)
 /* Modify the Password attributes of the entry */
 static int ipapwd_SetPassword(struct ipapwd_data *data)
 {
-	char *dn = NULL;
 	int ret = 0, i = 0;
 	Slapi_Mods *smods;
 	Slapi_Value **svals;
+	Slapi_Value **pwvals;
 	struct tm utctime;
-	char timestr[16];
+	char timestr[GENERALIZED_TIME_LENGTH+1];
 	krb5_context krbctx;
 	krb5_error_code krberr;
 	char lm[33], nt[33];
 	struct ntlm_keys ntlm;
 	int ntlm_flags = 0;
 	Slapi_Value *sambaSamAccount;
+	char *userpwd;
 	
 	krberr = krb5_init_context(&krbctx);
 	if (krberr) {
@@ -1281,30 +1467,16 @@ static int ipapwd_SetPassword(struct ipapwd_data *data)
 		free(svals);
 		return LDAP_OPERATIONS_ERROR;
 	}
-	if (utctime.tm_year > 8099 || utctime.tm_mon > 11 || utctime.tm_mday > 31 ||
-	    utctime.tm_hour > 23 || utctime.tm_min > 59 || utctime.tm_sec > 59) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "retrieved a bad date (buggy gmtime_r ?)\n");
-		free(svals);
-		return LDAP_OPERATIONS_ERROR;
-	}
-	snprintf(timestr, 16, "%04d%02d%02d%02d%02d%02dZ", utctime.tm_year+1900, utctime.tm_mon+1,
-		utctime.tm_mday, utctime.tm_hour, utctime.tm_min, utctime.tm_sec);
+	strftime(timestr, GENERALIZED_TIME_LENGTH+1, "%Y%m%d%H%M%SZ", &utctime);
 	slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "krbLastPwdChange", timestr);
 
 	/* set Password Expiration date */
 	if (!gmtime_r(&(data->expireTime), &utctime)) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "failed to retrieve current date (buggy gmtime_r ?)\n");
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "failed to convert expiration date\n");
 		free(svals);
 		return LDAP_OPERATIONS_ERROR;
 	}
-	if (utctime.tm_year > 8099 || utctime.tm_mon > 11 || utctime.tm_mday > 31 ||
-	    utctime.tm_hour > 23 || utctime.tm_min > 59 || utctime.tm_sec > 59) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "retrieved a bad date (buggy gmtime_r ?)\n");
-		free(svals);
-		return LDAP_OPERATIONS_ERROR;
-	}
-	snprintf(timestr, 16, "%04d%02d%02d%02d%02d%02dZ", utctime.tm_year+1900, utctime.tm_mon+1,
-		utctime.tm_mday, utctime.tm_hour, utctime.tm_min, utctime.tm_sec);
+	strftime(timestr, GENERALIZED_TIME_LENGTH+1, "%Y%m%d%H%M%SZ", &utctime);
 	slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "krbPasswordExpiration", timestr);
 
 	sambaSamAccount = slapi_value_new_string("sambaSamAccount");
@@ -1334,6 +1506,22 @@ static int ipapwd_SetPassword(struct ipapwd_data *data)
 		free(password);
 	}
 
+	/* use the default configured encoding */
+	userpwd = slapi_encode(data->password, NULL);
+	if (!userpwd) {
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "failed to make userPassword hash\n");
+		free(svals);
+		return LDAP_OPERATIONS_ERROR;
+	}
+
+	slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "userPassword", userpwd);
+
+	/* set password history */
+	pwvals = ipapwd_setPasswordHistory(smods, data);
+	if (pwvals) {
+		slapi_mods_add_mod_values(smods, LDAP_MOD_REPLACE, "passwordHistory", pwvals);
+	}
+
 	/* FIXME:
 	 * instead of replace we should use a delete/add so that we are
 	 * completely sure nobody else modified the entry meanwhile and
@@ -1350,6 +1538,10 @@ static int ipapwd_SetPassword(struct ipapwd_data *data)
 		slapi_value_free(&svals[i]);
 	}
 	free(svals);
+	for (i = 0; pwvals[i]; i++) { 
+		slapi_value_free(&pwvals[i]);
+	}
+	free(pwvals);
 	return ret;
 }
 
@@ -1397,8 +1589,7 @@ static int ipapwd_generate_basic_passwd( int passlen, char **genpasswd )
 #endif
 
 /* Password Modify Extended operation plugin function */
-int
-ipapwd_extop(Slapi_PBlock *pb)
+static int ipapwd_extop(Slapi_PBlock *pb)
 {
 	char		*oid = NULL;
 	char 		*bindDN = NULL;
@@ -1413,10 +1604,22 @@ ipapwd_extop(Slapi_PBlock *pb)
 	struct berval	*extop_value = NULL;
 	BerElement	*ber = NULL;
 	Slapi_Entry *targetEntry=NULL;
+	char *attrlist[] = {"*", "passwordHistory", NULL };
 	struct ipapwd_data pwdata;
 
 	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "=> ipapwd_extop\n");
 
+	/* make sure we have the master key */
+	if (ipa_kmkey == NULL) {
+		ret = ipapwd_getMasterKey(ipa_realm_dn);
+		if (ret != LDAP_SUCCESS) {
+			errMesg = "Fatal Internal Error Retrieving Master Key";
+			rc = LDAP_OPERATIONS_ERROR;
+			slapi_log_error( SLAPI_LOG_PLUGIN, "ipa_pwd_extop", errMesg );
+			goto free_and_return;
+		}
+	}
+			
 	/* Before going any further, we'll make sure that the right extended operation plugin
 	 * has been called: i.e., the OID shipped whithin the extended operation request must 
 	 * match this very plugin's OID: EXOP_PASSWD_OID. */
@@ -1502,47 +1705,42 @@ ipapwd_extop(Slapi_PBlock *pb)
 		tag = ber_peek_tag( ber, &len);
 	}
 
-	
 	/* identify userID field by tags */
 	if (tag == LDAP_EXTOP_PASSMOD_TAG_USERID )
 	{
-		if ( ber_scanf( ber, "a", &dn) == LBER_ERROR )
-		{
-		slapi_ch_free_string(&dn);
-		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "ber_scanf failed :{\n");
-		errMesg = "ber_scanf failed at userID parse.\n";
-		rc = LDAP_PROTOCOL_ERROR;
-		goto free_and_return;
+		if (ber_scanf(ber, "a", &dn) == LBER_ERROR) {
+			slapi_ch_free_string(&dn);
+			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "ber_scanf failed :{\n");
+			errMesg = "ber_scanf failed at userID parse.\n";
+			rc = LDAP_PROTOCOL_ERROR;
+			goto free_and_return;
 		}
 		
-		tag = ber_peek_tag( ber, &len);
+		tag = ber_peek_tag(ber, &len);
 	} 
-	
 	
 	/* identify oldPasswd field by tags */
 	if (tag == LDAP_EXTOP_PASSMOD_TAG_OLDPWD )
 	{
-		if ( ber_scanf( ber, "a", &oldPasswd ) == LBER_ERROR )
-		{
-		slapi_ch_free_string(&oldPasswd);
-		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "ber_scanf failed :{\n");
-		errMesg = "ber_scanf failed at oldPasswd parse.\n";
-		rc = LDAP_PROTOCOL_ERROR;
-		goto free_and_return;
+		if (ber_scanf(ber, "a", &oldPasswd) == LBER_ERROR) {
+			slapi_ch_free_string(&oldPasswd);
+			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "ber_scanf failed :{\n");
+			errMesg = "ber_scanf failed at oldPasswd parse.\n";
+			rc = LDAP_PROTOCOL_ERROR;
+			goto free_and_return;
 		}
-		tag = ber_peek_tag( ber, &len);
+		tag = ber_peek_tag(ber, &len);
 	}
 	
 	/* identify newPasswd field by tags */
-	if (tag ==  LDAP_EXTOP_PASSMOD_TAG_NEWPWD )
+	if (tag == LDAP_EXTOP_PASSMOD_TAG_NEWPWD )
 	{
-		if ( ber_scanf( ber, "a", &newPasswd ) == LBER_ERROR )
-		{
-		slapi_ch_free_string(&newPasswd);
-		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "ber_scanf failed :{\n");
-		errMesg = "ber_scanf failed at newPasswd parse.\n";
-		rc = LDAP_PROTOCOL_ERROR;
-		goto free_and_return;
+		if (ber_scanf(ber, "a", &newPasswd) == LBER_ERROR) {
+			slapi_ch_free_string(&newPasswd);
+			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "ber_scanf failed :{\n");
+			errMesg = "ber_scanf failed at newPasswd parse.\n";
+			rc = LDAP_PROTOCOL_ERROR;
+			goto free_and_return;
 		}
 	}
 
@@ -1553,7 +1751,7 @@ parse_req_done:
 
 	 
 	 /* Get Bind DN */
-	 slapi_pblock_get( pb, SLAPI_CONN_DN, &bindDN );
+	 slapi_pblock_get(pb, SLAPI_CONN_DN, &bindDN);
 
 	 /* If the connection is bound anonymously, we must refuse to process this operation. */
 	if (bindDN == NULL || *bindDN == '\0') {
@@ -1595,7 +1793,7 @@ parse_req_done:
 	 slapi_pblock_set( pb, SLAPI_ORIGINAL_TARGET, dn ); 
 
 	 /* Now we have the DN, look for the entry */
-	 ret = ipapwd_getEntry(dn, &targetEntry);
+	 ret = ipapwd_getEntry(dn, &targetEntry, attrlist);
 	 /* If we can't find the entry, then that's an error */
 	 if (ret) {
 	 	/* Couldn't find the entry, fail */
@@ -1646,24 +1844,29 @@ parse_req_done:
 		slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "oldPasswd provided, but we will ignore it");
 	}
 
+	memset(&pwdata, 0, sizeof(pwdata));
 	pwdata.target = targetEntry;
 	pwdata.dn = dn;
 	pwdata.password = newPasswd;
 	pwdata.timeNow = time(NULL);
-	pwdata.lastPwChange = 0;
-	pwdata.expireTime = 0;
+	pwdata.changetype = IPA_CHANGETYPE_NORMAL;
 
-	pwdata.adminChange = 1;
-	/* if it is a regular password change */
-	if (0 == strcmp(dn, bindDN)) {
-		pwdata.adminChange = 0;
-	} else {
+	/* determine type of password change */
+	if (strcasecmp(dn, bindDN) != 0) {
 		char **bindexp;
+
+		pwdata.changetype = IPA_CHANGETYPE_ADMIN;
+	
 		bindexp = ldap_explode_dn(bindDN, 0);
 		if (bindexp) {
+			/* special case kpasswd and Directory Manager */
 			if ((strncasecmp(bindexp[0], "krbprincipalname=kadmin/changepw@", 33) == 0) &&
 			    (strcasecmp(&(bindexp[0][33]), ipa_realm) == 0)) {
-				pwdata.adminChange = 0;
+				pwdata.changetype = IPA_CHANGETYPE_NORMAL;
+			}
+			if ((strcasecmp(bindexp[0], "cn=Directory Manager") == 0) &&
+			    bindexp[1] == NULL) {
+				pwdata.changetype = IPA_CHANGETYPE_DSMGR;
 			}
 			ldap_value_free(bindexp);
 		}
@@ -1673,8 +1876,13 @@ parse_req_done:
 	ret = ipapwd_CheckPolicy(&pwdata);
 	if (ret) {
 		errMesg = "Password Fails to meet minimum strength criteria";
-		slapi_pwpolicy_make_response_control(pb, -1, -1, ret & 0x0F);
-		rc = LDAP_CONSTRAINT_VIOLATION;
+		if (ret & IPAPWD_POLICY_ERROR) {
+			slapi_pwpolicy_make_response_control(pb, -1, -1, ret & IPAPWD_POLICY_MASK);
+			rc = LDAP_CONSTRAINT_VIOLATION;
+		} else {
+			errMesg = "Internal error";
+			rc = ret;
+		}
 		goto free_and_return;
 	}
 
@@ -1682,7 +1890,7 @@ parse_req_done:
 	ret = ipapwd_SetPassword(&pwdata);
 	if (ret != LDAP_SUCCESS) {
 		/* Failed to modify the password, e.g. because insufficient access allowed */
-		errMesg = "Failed to update password\n";
+		errMesg = "Failed to update password";
 		if (ret > 0) {
 			rc = ret;
 		} else {
@@ -1723,6 +1931,106 @@ free_and_return:
 
 } /* ipapwd_extop */
 
+/* Novell key-format scheme:
+ KrbMKey ::= SEQUENCE {
+ kvno    [0] UInt32,
+ key     [1] MasterKey
+ }
+
+ MasterKey ::= SEQUENCE {
+ keytype         [0] Int32,
+ keyvalue        [1] OCTET STRING
+ }
+*/
+
+static int ipapwd_getMasterKey(const char *realm_dn)
+{
+	krb5_keyblock *kmkey;
+	Slapi_Attr *a;
+	Slapi_Value *v;
+	Slapi_Entry *realm_entry;
+	BerElement *be;
+	ber_tag_t tag, tmp;
+	ber_int_t ttype;
+	const struct berval *bval;
+	struct berval *mkey;
+
+	kmkey = malloc(sizeof(krb5_keyblock));
+	if (!kmkey) {
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory!\n");
+		return LDAP_OPERATIONS_ERROR;
+	}
+
+	if (ipapwd_getEntry(realm_dn, &realm_entry, NULL) != LDAP_SUCCESS) {
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "No realm Entry?\n");
+		free(kmkey);
+		return LDAP_OPERATIONS_ERROR;
+	}
+
+	if (slapi_entry_attr_find(realm_entry, "krbMKey", &a) == -1) {
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "No master key??\n");
+		free(kmkey);
+		slapi_entry_free(realm_entry);
+		return LDAP_OPERATIONS_ERROR;
+	}
+
+	/* there should be only one value here */
+	if (slapi_attr_first_value(a, &v) == -1) {
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "No master key values??\n");
+		free(kmkey);
+		slapi_entry_free(realm_entry);
+		return LDAP_OPERATIONS_ERROR;
+	}
+
+	bval = slapi_value_get_berval(v);
+	if (!bval) {
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Error retrieving master key berval\n");
+		free(kmkey);
+		slapi_entry_free(realm_entry);
+		return LDAP_OPERATIONS_ERROR;
+	}
+
+	be = ber_init(bval);
+	if (!bval) {
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "ber_init() failed!\n");
+		free(kmkey);
+		slapi_entry_free(realm_entry);
+		return LDAP_OPERATIONS_ERROR;
+	}
+
+	tag = ber_scanf(be, "{i{iO}}", &tmp, &ttype, &mkey);
+	if (tag == LBER_ERROR) {
+		slapi_log_error(SLAPI_LOG_TRACE, "ipapwd_start",
+				"Bad Master key encoding ?!\n");
+		free(kmkey);
+		ber_free(be, 1);
+		slapi_entry_free(realm_entry);
+		return LDAP_OPERATIONS_ERROR;
+	}
+
+	kmkey->magic = KV5M_KEYBLOCK;
+	kmkey->enctype = ttype;
+	kmkey->length = mkey->bv_len;
+	kmkey->contents = malloc(mkey->bv_len);
+	if (!kmkey->contents) {
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory!\n");
+		free(kmkey);
+		ber_free(be, 1);
+		slapi_entry_free(realm_entry);
+		return LDAP_OPERATIONS_ERROR;
+	}	
+	memcpy(kmkey->contents, mkey->bv_val, mkey->bv_len);
+
+	slapi_lock_mutex(ipa_globals);
+	ipa_kmkey = kmkey;
+	slapi_unlock_mutex(ipa_globals);
+
+	slapi_entry_free(realm_entry);
+	ber_bvfree(mkey);
+	ber_free(be, 1);
+	return LDAP_SUCCESS;
+}
+
 
 static char *ipapwd_oid_list[] = {
 	EXOP_PASSWD_OID,
@@ -1757,33 +2065,35 @@ const char *krb_sup_encs[] = {
 
 /* Init data structs */
 /* TODO: read input from tree */
-int ipapwd_start( Slapi_PBlock *pb )
+static int ipapwd_start( Slapi_PBlock *pb )
 {
 	int krberr, i;
 	krb5_context krbctx;
+	char *realm;
+	char *realm_dn;
 	char *config_dn;
+	char *partition_dn;
 	Slapi_Entry *config_entry;
-	const char *stash_file;
-	int fd;
-	ssize_t r;
-	uint16_t e;
-	unsigned int l;
-	unsigned char *o;
+	int ret;
+	struct krb5p_keysalt *keysalts;
+	int n_keysalts;
 
+	ipa_globals = slapi_new_mutex();
+	
 	krberr = krb5_init_context(&krbctx);
 	if (krberr) {
 		slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start", "krb5_init_context failed\n");
 		return LDAP_OPERATIONS_ERROR;
 	}
-	if (krb5_get_default_realm(krbctx, &ipa_realm)) {
+	if (krb5_get_default_realm(krbctx, &realm)) {
 		krb5_free_context(krbctx);
 		return LDAP_OPERATIONS_ERROR;
 	}
-
 	for (i = 0; krb_sup_encs[i]; i++) /* count */ ;
 	keysalts = (struct krb5p_keysalt *)malloc(sizeof(struct krb5p_keysalt) * (i + 1));
 	if (!keysalts) {
 		krb5_free_context(krbctx);
+		free(realm);
 		return LDAP_OPERATIONS_ERROR;
 	}
 
@@ -1798,6 +2108,7 @@ int ipapwd_start( Slapi_PBlock *pb )
 		if (!enc) {
 			slapi_log_error( SLAPI_LOG_PLUGIN, "ipapwd_start", "Allocation error\n");
 			krb5_free_context(krbctx);
+			free(realm);
 			return LDAP_OPERATIONS_ERROR;
 		}
 		salt = strchr(enc, ':');
@@ -1834,76 +2145,56 @@ int ipapwd_start( Slapi_PBlock *pb )
 		free(enc);
 	}
 
+	krb5_free_context(krbctx);
+
 	/*retrieve the master key from the stash file */
 	if (slapi_pblock_get(pb, SLAPI_TARGET_DN, &config_dn) != 0) {
 		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "No config DN?\n");
 		krb5_free_context(krbctx);
+		free(keysalts);
+		free(realm);
 		return LDAP_OPERATIONS_ERROR;
 	}
 
-	if (ipapwd_getEntry(config_dn, &config_entry) != LDAP_SUCCESS) {
+	if (ipapwd_getEntry(config_dn, &config_entry, NULL) != LDAP_SUCCESS) {
 		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "No config Entry?\n");
 		krb5_free_context(krbctx);
+		free(keysalts);
+		free(realm);
 		return LDAP_OPERATIONS_ERROR;
 	}
 
-	stash_file = slapi_entry_attr_get_charptr(config_entry, "nsslapd-pluginarg0");
-	if (!stash_file) {
-		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Missing Master key stash file path configuration entry (nsslapd-pluginarg0)!\n");
+	partition_dn = slapi_entry_attr_get_charptr(config_entry, "nsslapd-realmtree");
+	if (!partition_dn) {
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Missing partition configuration entry (nsslapd-targetSubtree)!\n");
 		krb5_free_context(krbctx);
+		slapi_entry_free(config_entry);
+		free(keysalts);
+		free(realm);
 		return LDAP_OPERATIONS_ERROR;
 	}
 
-	fd = open(stash_file, O_RDONLY);
-	if (fd == -1) {
-		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Missing Master key stash file!\n");
-		krb5_free_context(krbctx);
+	realm_dn = slapi_ch_smprintf("cn=%s,cn=kerberos,%s", realm, partition_dn);
+	if (!realm_dn) {
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory ?\n");
+		free(keysalts);
+		free(realm);
 		return LDAP_OPERATIONS_ERROR;
 	}
 
-	r = read(fd, &e, 2); /* read enctype a local endian 16bit value */
-	if (r != 2) {
-		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Error reading Master key stash file!\n");
-		krb5_free_context(krbctx);
-		return LDAP_OPERATIONS_ERROR;
+	ipa_realm = realm;
+	ipa_realm_dn = realm_dn;
+	ipa_keysalts = keysalts;
+	ipa_n_keysalts = n_keysalts;
+
+	ret = ipapwd_getMasterKey(ipa_realm_dn);
+	if (ret) {
+		slapi_log_error( SLAPI_LOG_PLUGIN, "ipapwd_start", "Couldn't init master key at start delaying ...");
+		ret = LDAP_SUCCESS;
 	}
 
-	r = read(fd, &l, sizeof(l)); /* read the key length, a horrible sizeof(int) local endian value */
-	if (r != sizeof(l)) {
-		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Error reading Master key stash file!\n");
-		krb5_free_context(krbctx);
-		return LDAP_OPERATIONS_ERROR;
-	}
-
-	if (l == 0 || l > 1024) { /* the maximum key size should be 32 bytes, lets's not accept more than 1k anyway */
-		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Invalid key lenght, Master key stash file corrupted?\n");
-		krb5_free_context(krbctx);
-		return LDAP_OPERATIONS_ERROR;
-        }
-
-	o = malloc(l);
-	if (!o) {
-		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Memory allocation problem!\n");
-		krb5_free_context(krbctx);
-		return LDAP_OPERATIONS_ERROR;
-        }
-
-	r = read(fd, o, l);
-	if (r != l) {
-		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Error reading Master key stash file!\n");
-		krb5_free_context(krbctx);
-                return LDAP_OPERATIONS_ERROR;
-        }
-
-	close(fd);
-
-	kmkey.magic = KV5M_KEYBLOCK;
-	kmkey.enctype = e;
-	kmkey.length = l;
-	kmkey.contents = o;
-
-	krb5_free_context(krbctx);
-	return LDAP_SUCCESS;
+	slapi_entry_free(config_entry);
+	return ret;
 }
 
 /* Initialization function */

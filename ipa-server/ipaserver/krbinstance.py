@@ -35,6 +35,10 @@ import time
 
 import service
 from ipa.ipautil import *
+from pyasn1.type import univ
+import pyasn1.codec.ber.encoder
+import struct
+import base64
 
 def host_to_domain(fqdn):
     s = fqdn.split(".")
@@ -215,12 +219,35 @@ class KrbInstance(service.Service):
             logging.critical("Failed to load pwd-extop-conf.ldif: %s" % str(e))
         extop_fd.close()
 
-        #add an ACL to let the DS user read the master key
-        args = ["/usr/bin/setfacl", "-m", "u:"+self.ds_user+":r", "/var/kerberos/krb5kdc/.k5."+self.realm]
+        #get the Master Key from the stash file
         try:
-            run(args)
+            stash = open("/var/kerberos/krb5kdc/.k5."+self.realm, "r")
+            keytype = struct.unpack('h', stash.read(2))[0]
+            keylen = struct.unpack('i', stash.read(4))[0]
+            keydata = stash.read(keylen)
+        except os.error:
+            logging.critical("Failed to retrieve Master Key from Stash file: %s")
+	#encode it in the asn.1 attribute
+        MasterKey = univ.Sequence()
+        MasterKey.setComponentByPosition(0, univ.Integer(keytype))
+        MasterKey.setComponentByPosition(1, univ.OctetString(keydata))
+        krbMKey = univ.Sequence()
+        krbMKey.setComponentByPosition(0, univ.Integer(0)) #we have no kvno
+        krbMKey.setComponentByPosition(1, MasterKey)
+        asn1key = pyasn1.codec.ber.encoder.encode(krbMKey)
+
+	#put the attribute in the Directory
+        mod_txt = "dn: cn="+self.realm+",cn=kerberos,"+self.suffix+"\n"
+        mod_txt += "changetype: modify\n"
+        mod_txt += "add: krbMKey\n"
+        mod_txt += "krbMKey:: "+base64.encodestring(asn1key)+"\n"
+        mod_txt += "\n"
+        mod_fd = write_tmp_file(mod_txt)
+        try:
+            ldap_mod(mod_fd, "cn=Directory Manager", self.admin_password)
         except subprocess.CalledProcessError, e:
-            logging.critical("Failed to set the ACL on the master key: %s" % str(e))
+            logging.critical("Failed to load Master Key: %s" % str(e))
+        mod_fd.close()
 
     def __create_ds_keytab(self):
         self.step("creating a keytab for the directory")
