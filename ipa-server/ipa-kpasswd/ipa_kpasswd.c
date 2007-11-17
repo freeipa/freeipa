@@ -108,7 +108,7 @@ int remove_blacklist(pid_t pid)
 	return -1;
 }
 
-int debug = 1;
+int debug = 0;
 char *srv_pri_name = "kadmin/changepw";
 char *keytab_name = NULL;
 
@@ -255,12 +255,19 @@ int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *sit)
         return ret;
 }
 
-int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
+/* from DS ldaprot.h */
+#define LDAP_TAG_PWP_WARNING    0xA0    /* context specific + constructed + 0 */ 
+#define LDAP_TAG_PWP_SECSLEFT   0x80L   /* context specific + primitive */ 
+#define LDAP_TAG_PWP_GRCLOGINS  0x81L   /* context specific + primitive + 1 */ 
+#define LDAP_TAG_PWP_ERROR      0x81L   /* context specific + primitive + 1 */ 
+
+int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **errstr)
 {
 	char *tmp_file = NULL;
 	int version;
 	LDAP *ld = NULL;
 	BerElement *ctrl = NULL;
+	BerElement *sctrl = NULL;
 	struct berval control;
 	struct berval newpw;
 	char hostname[1024];
@@ -275,7 +282,12 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 	struct berval *retdata = NULL;
 	struct timeval tv;
 	LDAPMessage *entry, *res = NULL;
-	int ret;
+	LDAPControl **srvctrl = NULL;
+	char *exterr1 = NULL;
+	char *exterr2 = NULL;
+	char *err;
+	int msgid;
+	int ret, rc;
 
 	tmp_file = strdup(TMP_TEMPLATE);
 	if (!tmp_file) {
@@ -400,6 +412,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 		syslog(LOG_ERR, "Search for %s failed with error %d",
 			filter, ret);
 		if (ret == LDAP_CONSTRAINT_VIOLATION) {
+			*errstr = strdup("Password Change Failed");
 			ret = KRB5_KPASSWD_SOFTERROR;
 		} else {
 			ret = KRB5_KPASSWD_HARDERROR;
@@ -413,6 +426,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 	userdn = ldap_get_dn(ld, entry);
 
 	ldap_msgfree(res);
+	res = NULL;
 
 	if (!userdn) {
 		syslog(LOG_ERR, "No userdn, can't change password!");
@@ -434,25 +448,164 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd)
 	ret = ber_flatten2(ctrl, &control, 0);
 	if (ret < 0) {
 		syslog(LOG_ERR, "ber flattening failed!");
-		ret = -1;
-		goto done;
-	}
-
-	/* perform password change */
-	ret = ldap_extended_operation_s(ld, LDAP_EXOP_MODIFY_PASSWD, &control,
-				      NULL, NULL, &retoid, &retdata);
-
-	if (ret != LDAP_SUCCESS) {
-		syslog(LOG_ERR, "password change failed!");
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
-	/* TODO: interpret retdata so that we can give back meaningful errors */
+	/* perform password change */
+	ret = ldap_extended_operation(ld,
+					LDAP_EXOP_MODIFY_PASSWD,
+					&control, NULL, NULL,
+					&msgid);
+	if (ret != LDAP_SUCCESS) {
+		syslog(LOG_ERR, "ldap_extended_operation() failed. (%d)", ret);
+		ret = KRB5_KPASSWD_HARDERROR;
+		goto done;
+	}
+
+	tv.tv_sec = 10;
+	tv.tv_usec = 0; 
+
+	ret = ldap_result(ld, msgid, 1, &tv, &res);
+	if (ret == -1) {
+		ldap_get_option(ld, LDAP_OPT_ERROR_NUMBER, &rc);
+		syslog(LOG_ERR, "ldap_result() failed. (%d)", rc);
+		ret = KRB5_KPASSWD_HARDERROR;
+		goto done;
+	}
+
+	ret = ldap_parse_extended_result(ld, res, &retoid, &retdata, 0);
+	if(ret != LDAP_SUCCESS) {
+		syslog(LOG_ERR, "ldap_parse_extended_result() failed.");
+		ldap_msgfree(res);
+		ret = KRB5_KPASSWD_HARDERROR;
+		goto done;
+	}
+	if (retoid || retdata) {
+		syslog(LOG_ERR, "ldap_parse_extended_result() returned data, but we don't handle it yet.");
+	}
+	
+	ret = ldap_parse_result(ld, res, &rc, NULL, &err, NULL, &srvctrl, 0);
+        if(ret != LDAP_SUCCESS) {
+		syslog(LOG_ERR, "ldap_parse_result() failed.");
+		ret = KRB5_KPASSWD_HARDERROR;
+		goto done;
+        }
+	if (rc != LDAP_SUCCESS) {
+		ret = KRB5_KPASSWD_SOFTERROR;
+		if (rc != LDAP_CONSTRAINT_VIOLATION) {
+			ret = KRB5_KPASSWD_HARDERROR;
+		}
+	}
+	if (err) {
+		syslog(LOG_ERR, "ldap_parse_result(): [%s]", err);
+		ldap_memfree(err);
+	}
+
+	if (srvctrl) {
+
+		LDAPControl *pprc = NULL;
+		int i;
+
+		for (i = 0; srvctrl[i]; i++) {
+			if (0 == strcmp(srvctrl[i]->ldctl_oid, LDAP_CONTROL_PASSWORDPOLICYRESPONSE)) {
+				pprc = srvctrl[i];
+			}
+		}
+		if (pprc) {
+			sctrl = ber_init(&pprc->ldctl_value);
+		}
+
+		if (sctrl) {
+			/*
+			 * PasswordPolicyResponseValue ::= SEQUENCE {
+			 * 	warning   [0] CHOICE OPTIONAL {
+			 * 		timeBeforeExpiration  [0] INTEGER (0 .. maxInt),
+			 * 		graceLoginsRemaining  [1] INTEGER (0 .. maxInt) }
+			 * 	error     [1] ENUMERATED OPTIONAL {
+			 * 		passwordExpired       (0),
+			 * 		accountLocked         (1),
+			 * 		changeAfterReset      (2),
+			 * 		passwordModNotAllowed (3),
+			 * 		mustSupplyOldPassword (4),
+			 * 		invalidPasswordSyntax (5),
+			 * 		passwordTooShort      (6),
+			 * 		passwordTooYoung      (7),
+			 *		passwordInHistory     (8) } }
+			 */
+
+			ber_tag_t rtag, btag;
+			ber_int_t bint;
+			rtag = ber_scanf(sctrl, "{t", &btag);
+			if (btag == LDAP_TAG_PWP_WARNING) {
+				rtag = ber_scanf(sctrl, "{ti}", &btag, &bint);
+				if (btag == LDAP_TAG_PWP_SECSLEFT) {
+					asprintf(&exterr2, " (%d seconds left before password expires)", bint);
+				} else {
+					asprintf(&exterr2, " (%d grace logins remaining)", bint);
+				}
+				if (!exterr2) {
+					syslog(LOG_ERR, "exterr2: OOM?");
+				}
+				rtag = ber_scanf(sctrl, "t", &btag);
+			}
+			if (btag == LDAP_TAG_PWP_ERROR) {
+				rtag = ber_scanf(sctrl, "e", &bint);
+				switch(bint) {
+				case 0:
+					asprintf(&exterr1, " Err%d: Password Expired.", bint);
+					break;
+				case 1:
+					asprintf(&exterr1, " Err%d: Account locked.", bint);
+					break;
+				case 2:
+					asprintf(&exterr1, " Err%d: Password changed after reset.", bint);
+					break;
+				case 3:
+					asprintf(&exterr1, " Err%d: Password change not allowed.", bint);
+					break;
+				case 4:
+					asprintf(&exterr1, " Err%d: [Shouldn't happen].", bint);
+					break;
+				case 5:
+					asprintf(&exterr1, " Err%d: Password too simple.", bint);
+					break;
+				case 6:
+					asprintf(&exterr1, " Err%d: Password too short.", bint);
+					break;
+				case 7:
+					asprintf(&exterr1, " Err%d: Too soon to change password.", bint);
+					break;
+				case 8:
+					asprintf(&exterr1, " Err%d: Password reuse not permitted.", bint);
+					break;
+				default:
+					asprintf(&exterr1, " Err%d: Unknown Errorcode.", bint);
+					break;
+				}
+				if (!exterr1) {
+					syslog(LOG_ERR, "exterr1: OOM?");
+				}
+			}
+		}
+	}
+
+	if (ret != LDAP_SUCCESS) {
+		syslog(LOG_ERR, "password change failed!");
+		asprintf(errstr, "Password change, Failed.%s%s", exterr1?exterr1:"", exterr2?exterr2:"");
+	} else {
+		syslog(LOG_ERR, "password change succeeded!");
+		asprintf(errstr, "Password change, Succeeded.%s%s", exterr1?exterr1:"", exterr2?exterr2:"");
+	}
 
 done:
-	if (userdn) free(userdn);
 	if (ctrl) ber_free(ctrl, 1);
+	if (sctrl) ber_free(sctrl, 1);
+	if (srvctrl) ldap_controls_free(srvctrl);
+	if (res) ldap_msgfree(res);
+	if (exterr1) free(exterr1);
+	if (exterr2) free(exterr2);
+	if (userdn) free(userdn);
 	if (ld) ldap_unbind_ext_s(ld, NULL, NULL);
 	if (ldap_uri) free(ldap_uri);
 	if (tmp_file) {
@@ -486,6 +639,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 
 	*replen = 0;
 
+	result_string = NULL;
 	auth_context = NULL;
 	krep.length = 0;
 	krep.data = NULL;
@@ -512,14 +666,14 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 		}
 		break;
 	default:
-		result_string = "Invalid remopte IP address";
+		result_string = strdup("Invalid remopte IP address");
 		result_err = KRB5_KPASSWD_MALFORMED;
 		syslog(LOG_ERR, "%s", result_string);
 		goto done;
 	}
 
 	if (buflen < 4) {
-		result_string = "Request truncated";
+		result_string = strdup("Request truncated");
 		result_err = KRB5_KPASSWD_MALFORMED;
 		syslog(LOG_ERR, "%s", result_string);
 		goto done;
@@ -528,7 +682,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	reqlen = (buf[0] << 8) + buf[1];
 
 	if (reqlen != buflen) {
-		result_string = "Unmatching request length";
+		result_string = strdup("Unmatching request length");
 		result_err = KRB5_KPASSWD_MALFORMED;
 		syslog(LOG_ERR, "%s", result_string);
 		goto done;
@@ -537,7 +691,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	verno = (buf[2] << 8) + buf[3];
 
 	if (verno != 1) {
-		result_string = "Unsupported version";
+		result_string = strdup("Unsupported version");
 		result_err = KRB5_KPASSWD_BAD_VERSION;
 		syslog(LOG_ERR, "%s", result_string);
 		goto done;
@@ -545,7 +699,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 
 	kreq.length = (buf[4] << 8) + buf[5];
 	if (kreq.length > (buflen - 6)) {
-		result_string = "Request truncated";
+		result_string = strdup("Request truncated");
 		result_err = KRB5_KPASSWD_MALFORMED;
 		syslog(LOG_ERR, "%s", result_string);
 		goto done;
@@ -554,7 +708,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 
 	krberr = krb5_init_context(&context);
 	if (krberr) {
-		result_string = "Failed to init kerberos context";
+		result_string = strdup("Failed to init kerberos context");
 		result_err = KRB5_KPASSWD_HARDERROR;
 		syslog(LOG_ERR, "%s", result_string);
 		goto done;
@@ -562,7 +716,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 
 	krberr = krb5_get_default_realm(context, &realm_name);
 	if (krberr) {
-		result_string = "Failed to get default realm name";
+		result_string = strdup("Failed to get default realm name");
 		result_err = KRB5_KPASSWD_HARDERROR;
 		syslog(LOG_ERR, "%s", result_string);
 		goto done;
@@ -570,7 +724,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 
 	krberr = krb5_auth_con_init(context, &auth_context);
 	if (krberr) {
-		result_string = "Unable to init auth context";
+		result_string = strdup("Unable to init auth context");
 		result_err = KRB5_KPASSWD_HARDERROR;
 		syslog(LOG_ERR, "%s: %s", result_string,
 			krb5_get_error_message(context, krberr));
@@ -580,7 +734,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	krberr = krb5_auth_con_setflags(context, auth_context,
 					KRB5_AUTH_CONTEXT_DO_SEQUENCE);
 	if (krberr) {
-		result_string = "Unable to init auth context";
+		result_string = strdup("Unable to init auth context");
 		result_err = KRB5_KPASSWD_HARDERROR;
 		syslog(LOG_ERR, "%s: %s", result_string,
 			krb5_get_error_message(context, krberr));
@@ -591,7 +745,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 				      strlen(realm_name), realm_name,
 				      "kadmin", "changepw", NULL);
 	if (krberr) {
-		result_string = "Unable to build principal";
+		result_string = strdup("Unable to build principal");
 		result_err = KRB5_KPASSWD_HARDERROR;
 		syslog(LOG_ERR, "%s: %s", result_string,
 			krb5_get_error_message(context, krberr));
@@ -600,7 +754,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 
 	krberr = krb5_kt_resolve(context, keytab_name, &keytab);
 	if (krberr) {
-		result_string = "Unable to retrieve keytab";
+		result_string = strdup("Unable to retrieve keytab");
 		result_err = KRB5_KPASSWD_HARDERROR;
 		syslog(LOG_ERR, "%s: %s", result_string,
 			krb5_get_error_message(context, krberr));
@@ -610,7 +764,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	krberr = krb5_rd_req(context, &auth_context, &kreq,
 			     kprincpw, keytab, NULL, &ticket);
 	if (krberr) {
-		result_string = "Unable to read request";
+		result_string = strdup("Unable to read request");
 		result_err = KRB5_KPASSWD_AUTHERROR;
 		syslog(LOG_ERR, "%s: %s", result_string,
 			krb5_get_error_message(context, krberr));
@@ -622,7 +776,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	 * the password have been successfully changed */
 	krberr = krb5_mk_rep(context, auth_context, &krep);
 	if (krberr) {
-		result_string = "Failed to to build reply";
+		result_string = strdup("Failed to to build reply");
 		result_err = KRB5_KPASSWD_HARDERROR;
 		syslog(LOG_ERR, "%s: %s", result_string,
 			krb5_get_error_message(context, krberr));
@@ -631,7 +785,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 
 	/* verify that this is an AS_REQ ticket */
 	if (!(ticket->enc_part2->flags & TKT_FLG_INITIAL)) {
-		result_string = "Ticket must be derived from a password";
+		result_string = strdup("Ticket must be derived from a password");
 		result_err = KRB5_KPASSWD_AUTHERROR;
 		syslog(LOG_ERR, "%s", result_string);
 		goto kpreply;
@@ -640,7 +794,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	krberr = krb5_unparse_name(context, ticket->enc_part2->client,
 				   &client_name);
 	if (krberr) {
-		result_string = "Unable to parse client name";
+		result_string = strdup("Unable to parse client name");
 		result_err = KRB5_KPASSWD_HARDERROR;
 		syslog(LOG_ERR, "%s", result_string);
 		goto kpreply;
@@ -648,7 +802,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 
 	krberr = krb5_auth_con_setaddrs(context, auth_context, NULL, &rkaddr);
 	if (krberr) {
-		result_string = "Failed to set client address";
+		result_string = strdup("Failed to set client address");
 		result_err = KRB5_KPASSWD_HARDERROR;
 		syslog(LOG_ERR, "%s: %s", result_string,
 			krb5_get_error_message(context, krberr));
@@ -663,24 +817,22 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	 * requires the local address (from kadmin code) */
 	krberr = krb5_rd_priv(context, auth_context, &kenc, &kdec, &replay);
 	if (krberr) {
-		result_string = "Failed to decrypt password";
+		result_string = strdup("Failed to decrypt password");
 		result_err = KRB5_KPASSWD_HARDERROR;
 		syslog(LOG_ERR, "%s: %s", result_string,
 			krb5_get_error_message(context, krberr));
 		goto kpreply;
 	}
 
-	if (debug > 0) {
+	if (debug > 100) {
 		syslog(LOG_ERR, "Client %s trying to set password [%*s]",
 			client_name, kdec.length, kdec.data);
 	}
 
 	/* Actually try to change the password */
-	result_err = ldap_pwd_change(client_name, realm_name, kdec);
-	if (result_err != KRB5_KPASSWD_SUCCESS) {
-		result_string = "Generic error occurred while changing password";
-	} else {
-		result_string = "";
+	result_err = ldap_pwd_change(client_name, realm_name, kdec, &result_string);
+	if (result_string == NULL) {
+		result_string = strdup("Server Error");
 	}
 
 	/* make sure password is cleared off before we free the memory */
@@ -704,7 +856,7 @@ kpreply:
 	/* we listen on ANYADDR, use this retrieve the right address */
         krberr = krb5_os_localaddr(context, &lkaddr);
 	if (krberr) {
-		result_string = "Failed to retrieve local address";
+		result_string = strdup("Failed to retrieve local address");
 		syslog(LOG_ERR, "%s: %s", result_string, 
 			krb5_get_error_message(context, krberr));
 		goto done;
@@ -712,7 +864,7 @@ kpreply:
 
 	krberr = krb5_auth_con_setaddrs(context, auth_context, lkaddr[0], NULL);
 	if (krberr) {
-		result_string = "Failed to set local address";
+		result_string = strdup("Failed to set local address");
 		syslog(LOG_ERR, "%s: %s", result_string, 
 			krb5_get_error_message(context, krberr));
 		goto done;
@@ -720,7 +872,7 @@ kpreply:
 
 	krberr = krb5_mk_priv(context, auth_context, &kdec, &kenc, &replay);
 	if (krberr) {
-		result_string = "Failed to encrypt reply message";
+		result_string = strdup("Failed to encrypt reply message");
 		syslog(LOG_ERR, "%s: %s", result_string, 
 			krb5_get_error_message(context, krberr));
 		/* encryption was unsuccessful, let's return a krb error */
@@ -738,7 +890,7 @@ kpreply:
 		krb5err.susec = 0;
 		krberr = krb5_timeofday(context, &krb5err.stime);
 		if (krberr) {
-			result_string = "Failed to set time of day";
+			result_string = strdup("Failed to set time of day");
 			syslog(LOG_ERR, "%s: %s", result_string, 
 				krb5_get_error_message(context, krberr));
 			goto done;
@@ -748,7 +900,7 @@ kpreply:
 		krb5err.e_data = kdec;
 		krberr = krb5_mk_error(context, &krb5err, &kenc);
 		if (krberr) {
-			result_string = "Failed to build error message";
+			result_string = strdup("Failed to build error message");
 			syslog(LOG_ERR, "%s: %s", result_string, 
 				krb5_get_error_message(context, krberr));
 			goto done;
@@ -778,6 +930,7 @@ kpreply:
 	*replen = replylen;
 
 done:
+	if (result_string) free(result_string);
 	if (auth_context) krb5_auth_con_free(context, auth_context);
 	if (kprincpw) krb5_free_principal(context, kprincpw);
 	if (krep.length) free(krep.data);
@@ -899,7 +1052,7 @@ int main(int argc, char *argv[])
 	int pfdtype[4];
 	int nfds;
 	int ret;
-	char *key;
+	char *env;
 
 	/* log to syslog */
 	openlog("kpasswd", LOG_PID, LOG_DAEMON);
@@ -939,13 +1092,19 @@ int main(int argc, char *argv[])
 		exit(0);
 	}
 
-	key = getenv("KRB5_KTNAME");
-	if (!key) {
-		key = DEFAULT_KEYTAB;
+	/* source evn vars */
+	env = getenv("KRB5_KTNAME");
+	if (!env) {
+		env = DEFAULT_KEYTAB;
 	}
-	keytab_name = strdup(key);
+	keytab_name = strdup(env);
 	if (!keytab_name) {
 		syslog(LOG_ERR, "Out of memory!");
+	}
+
+	env = getenv("IPA_KPASSWD_DEBUG");
+	if (env) {
+		debug = strtol(env, NULL, 0);
 	}
 
 	/* set hints */
