@@ -5,6 +5,7 @@ app_DATA =				\
 	60kerberos.ldif			\
 	60samba.ldif			\
 	60radius.ldif			\
+	60ipaconfig.ldif		\
 	bootstrap-template.ldif		\
 	default-aci.ldif		\
 	kerberos.ldif			\

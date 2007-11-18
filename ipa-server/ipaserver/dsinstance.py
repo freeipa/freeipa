@@ -170,6 +170,8 @@ class DsInstance(service.Service):
                         self.schema_dirname() + "60samba.ldif")
         shutil.copyfile(SHARE_DIR + "60radius.ldif",
                         self.schema_dirname() + "60radius.ldif")
+        shutil.copyfile(SHARE_DIR + "60ipaconfig.ldif",
+                        self.schema_dirname() + "60ipaconfig.ldif")
 
     def __add_memberof_module(self):
         self.step("enabling memboerof plugin")
