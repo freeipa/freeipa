@@ -30,6 +30,7 @@ import xmlrpclib
 import copy
 import attrs
 from ipa import ipaerror
+from urllib import quote,unquote
 
 import string
 from types import *
@@ -420,17 +421,23 @@ class IPAServer:
 
         # FIXME: This should be dynamic and can include just about anything
 
+        # Get our configuration
+        config = self.get_ipa_config(opts)
+
         # Let us add in some missing attributes
         if user.get('homedirectory') is None:
-            user['homedirectory'] = '/home/%s' % user.get('uid')
+            user['homedirectory'] = '%s/%s' % (config.get('ipahomesrootdir'), user.get('uid'))
+            user['homedirectory'] = user['homedirectory'].replace('//', '/')
+            user['homedirectory'] = user['homedirectory'].rstrip('/')
+        if user.get('loginshell') is None:
+            user['loginshell'] = config.get('ipadefaultloginshell')
         if user.get('gecos') is None:
             user['gecos'] = user['uid']
 
         # If uidnumber is blank the the FDS dna_plugin will automatically
         # assign the next value. So we don't have to do anything with it.
 
-        # FIXME: put the default group in a config file
-        group_dn="cn=%s,%s,%s" % ("ipausers", DefaultGroupContainer, self.basedn)
+        group_dn="cn=%s,%s,%s" % (config.get('ipadefaultprimarygroup'), DefaultGroupContainer, self.basedn)
         try:
             default_group = self.get_entry_by_dn(group_dn, ['dn','gidNumber'], opts)
             if default_group:
@@ -467,50 +474,67 @@ class IPAServer:
             self.releaseConnection(conn)
         return res
     
-    def get_add_schema (self):
-        """Get the list of fields to be used when adding users in the GUI."""
+    def get_custom_fields (self, opts=None):
+        """Get the list of custom user fields.
+
+           A schema is a list of dict's of the form:
+               label: The label dispayed to the user
+               field: the attribute name
+               required: true/false
+
+           It is displayed to the user in the order of the list.
+        """
+
+        config = self.get_ipa_config(opts)
+
+        fields = config.get('ipacustomfields')
+
+        if fields is None or fields == '':
+            return []
+
+        fl = fields.split('$')
+        schema = []
+        for x in range(len(fl)):
+            vals = fl[x].split(',')
+            if len(vals) != 3:
+                # Raise?
+                print "Invalid field, skipping"
+            d = dict(label=unquote(vals[0]), field=unquote(vals[1]), required=unquote(vals[2]))
+            schema.append(d)
+
+        return schema
     
-        # FIXME: this needs to be pulled from LDAP
-        fields = []
-    
-        field1 = {
-            "name":       "uid" ,
-            "label":      "Login:",
-            "type":       "text",
-            "validator":  "text",
-            "required":   "true"
-        }
-        fields.append(field1)
-    
-        field1 = {
-            "name":       "givenName" ,
-            "label":      "First name:",
-            "type":       "text",
-            "validator":  "string",
-            "required":   "true"
-        }
-        fields.append(field1)
-    
-        field1 = {
-            "name":       "sn" ,
-            "label":      "Last name:",
-            "type":       "text",
-            "validator":  "string",
-            "required":   "true"
-        }
-        fields.append(field1)
-    
-        field1 = {
-            "name":       "mail" ,
-            "label":      "E-mail address:",
-            "type":       "text",
-            "validator":  "email",
-            "required":   "false"
-        }
-        fields.append(field1)
-    
-        return fields
-    
+    def set_custom_fields (self, schema, opts=None):
+        """Set the list of custom user fields.
+
+           A schema is a list of dict's of the form:
+               label: The label dispayed to the user
+               field: the attribute name
+               required: true/false
+
+           It is displayed to the user in the order of the list.
+        """
+        config = self.get_ipa_config(opts)
+
+        # The schema is stored as:
+        #     label,field,required$label,field,required$...
+        # quote() from urilib is used to ensure that it is easy to unparse
+
+        stored_schema = ""
+        for i in range(len(schema)):
+            entry = schema[i]
+            entry = quote(entry.get('label')) + "," + quote(entry.get('field')) + "," + quote(entry.get('required'))
+
+            if stored_schema != "":
+                stored_schema = stored_schema + "$" + entry
+            else:
+                stored_schema = entry
+
+        new_config = copy.deepcopy(config)
+        new_config['ipacustomfields'] = stored_schema
+
+        return self.update_entry(config, new_config, opts)
+
     def get_all_users (self, args=None, opts=None):
         """Return a list containing a User object for each
         existing user.
@@ -529,18 +553,21 @@ class IPAServer:
     
         return users
 
-    def find_users (self, criteria, sattrs=None, searchlimit=0, timelimit=-1,
+    def find_users (self, criteria, sattrs=None, searchlimit=-1, timelimit=-1,
             opts=None):
         """Returns a list: counter followed by the results.
            If the results are truncated, counter will be set to -1."""
 
-        # TODO - retrieve from config
-        timelimit = 2
+        config = self.get_ipa_config(opts)
+        if timelimit < 0:
+            timelimit = float(config.get('ipasearchtimelimit'))
+        if searchlimit < 0:
+            searchlimit = float(config.get('ipasearchrecordslimit'))
 
         # Assume the list of fields to search will come from a central
         # configuration repository.  A good format for that would be
         # a comma-separated list of fields
-        search_fields_conf_str = "uid,givenName,sn,telephoneNumber,ou,title"
+        search_fields_conf_str = config.get('ipausersearchfields')
         search_fields = string.split(search_fields_conf_str, ",")
 
         criteria = self.__safe_filter(criteria)
@@ -763,16 +790,22 @@ class IPAServer:
         finally:
             self.releaseConnection(conn)
 
-    def find_groups (self, criteria, sattrs=None, searchlimit=0, timelimit=-1,
+    def find_groups (self, criteria, sattrs=None, searchlimit=-1, timelimit=-1,
             opts=None):
         """Return a list containing a User object for each
         existing group that matches the criteria.
         """
 
+        config = self.get_ipa_config(opts)
+        if timelimit < 0:
+            timelimit = float(config.get('ipasearchtimelimit'))
+        if searchlimit < 0:
+            searchlimit = float(config.get('ipasearchrecordslimit'))
+
         # Assume the list of fields to search will come from a central
         # configuration repository.  A good format for that would be
         # a comma-separated list of fields
-        search_fields_conf_str = "cn,description"
+        search_fields_conf_str = config.get('ipagroupsearchfields')
         search_fields = string.split(search_fields_conf_str, ",")
 
         criteria = self.__safe_filter(criteria)
@@ -1155,10 +1188,10 @@ class IPAServer:
         """Do a memberOf search of groupdn and return the attributes in
            attr_list (an empty list returns everything)."""
 
-        # TODO - retrieve from config
-        timelimit = 2
+        config = self.get_ipa_config(opts)
+        timelimit = float(config.get('ipasearchtimelimit'))
 
-        searchlimit = 0
+        searchlimit = float(config.get('ipasearchrecordslimit'))
 
         groupdn = self.__safe_filter(groupdn)
         filter = "(memberOf=%s)" % groupdn
@@ -1181,6 +1214,58 @@ class IPAServer:
             entries.append(self.convert_entry(e))
 
         return entries
+
+# Configuration support
+    def get_ipa_config(self, opts=None):
+        """Retrieve the IPA configuration"""
+        try:
+            config = self.get_entry_by_cn("ipaconfig", None, opts)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            raise ipaerror.gen_exception(ipaerror.LDAP_NO_CONFIG)
+
+        return config
+
+    def update_ipa_config(self, oldconfig, newconfig, opts=None):
+        """Update the IPA configuration"""
+ 
+        # The LDAP routines want strings, not ints, so convert a few
+        # things. Otherwise it sees a string -> int conversion as a change.
+        try:
+            newconfig['krbmaxpwdlife'] = str(newconfig.get('krbmaxpwdlife'))
+            newconfig['krbminpwdlife'] = str(newconfig.get('krbminpwdlife'))
+            newconfig['krbpwdmindiffchars'] = str(newconfig.get('krbpwdmindiffchars'))
+            newconfig['krbpwdminlength'] = str(newconfig.get('krbpwdminlength'))
+            newconfig['krbpwdhistorylength'] = str(newconfig.get('krbpwdhistorylength'))
+        except KeyError:
+            # These should all be there but if not, let things proceed
+            pass
+        return self.update_entry(oldconfig, newconfig, opts)
+
+    def get_password_policy(self, opts=None):
+        """Retrieve the IPA password policy"""
+        try:
+            policy = self.get_entry_by_cn("accounts", None, opts)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            raise ipaerror.gen_exception(ipaerror.LDAP_NO_CONFIG)
+
+        return policy
+
+    def update_password_policy(self, oldpolicy, newpolicy, opts=None):
+        """Update the IPA configuration"""
+
+        # The LDAP routines want strings, not ints, so convert a few
+        # things. Otherwise it sees a string -> int conversion as a change.
+        try:
+            newpolicy['krbmaxpwdlife'] = str(newpolicy.get('krbmaxpwdlife'))
+            newpolicy['krbminpwdlife'] = str(newpolicy.get('krbminpwdlife'))
+            newpolicy['krbpwdhistorylength'] = str(newpolicy.get('krbpwdhistorylength'))
+            newpolicy['krbpwdmindiffchars'] = str(newpolicy.get('krbpwdmindiffchars'))
+            newpolicy['krbpwdminlength'] = str(newpolicy.get('krbpwdminlength'))
+        except KeyError:
+            # These should all be there but if not, let things proceed
+            pass
+
+        return self.update_entry(oldpolicy, newpolicy, opts)
 
 def ldap_search_escape(match):
     """Escapes out nasty characters from the ldap search.

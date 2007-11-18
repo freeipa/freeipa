@@ -67,9 +67,18 @@ def parse_options():
 
     return options, args
 
-def get_group(client, group_cn):
+def get_group(client, options, group_cn):
     try:
-        group = client.get_entry_by_cn(group_cn)
+        attrs = ['*']
+
+        # in case any attributes being modified are operational such as
+        # nsaccountlock. Any attribute to be deleted needs to be included
+        # in the original record so it can be seen as being removed.
+        if options.delattr:
+            for d in options.delattr:
+                attrs.append(d)
+        group = client.get_entry_by_cn(group_cn, sattrs=attrs)
+
     except ipa.ipaerror.IPAError, e:
         print "%s" % e.message
         return None
@@ -88,7 +97,7 @@ def main():
     try:
         client = ipaclient.IPAClient()
         if options.add:
-            group = get_group(client, args[2])
+            group = get_group(client, options, args[2])
             if group is None:
                 return 1
             users = args[1].split(',')
@@ -96,7 +105,7 @@ def main():
                 client.add_user_to_group(user, group.dn)
                 print user + " successfully added to " + args[2]
         elif options.remove:
-            group = get_group(client, args[2])
+            group = get_group(client, options, args[2])
             if group is None:
                 return 1
             users = args[1].split(',')
@@ -104,7 +113,7 @@ def main():
                 client.remove_user_from_group(user, group.dn)
                 print user + " successfully removed"
         else:
-            group = get_group(client, args[1])
+            group = get_group(client, options, args[1])
             if group is None:
                 return 1
 
@@ -113,8 +122,7 @@ def main():
 
             if options.delattr:
                 for d in options.delattr:
-                    # doesn't truly delete the attribute but does null out the value
-                    group.setValue(d, '')
+                    group.delValue(d)
 
             if options.setattr:
                 for s in options.setattr:

@@ -10,11 +10,11 @@
     onsubmit="preSubmit()">
 
           <input type="submit" class="submitbutton" name="submit"
-              value="Update Person"/>
+              value="Update User"/>
           <input type="submit" class="submitbutton" name="submit"
               value="Cancel Edit" />
           <input type="button" class="submitbutton"
-                 value="Delete Person"
+                 value="Delete User"
                  onclick="return confirmDelete();"
                  />
 
@@ -847,11 +847,11 @@ from ipagui.helpers import ipahelper
     <hr/>
 
           <input type="submit" class="submitbutton" name="submit"
-              value="Update Person"/>
+              value="Update User"/>
           <input type="submit" class="submitbutton" name="submit"
               value="Cancel Edit" />
           <input type="button" class="submitbutton"
-                 value="Delete Person"
+                 value="Delete User"
                  onclick="return confirmDelete();"
                  />
 

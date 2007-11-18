@@ -218,23 +218,32 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
         
-    def get_add_schema(self):
-        """Get the list of attributes we need to ask when adding a new
-           user.
-        """
+    def get_custom_fields(self):
+        """Get custom user fields."""
         server = self.setup_server()
         
-        # FIXME: Hardcoded and designed for the TurboGears GUI. Do we want
-        # this for the CLI as well?
         try:
-            result = server.get_add_schema()
+            result = server.get_custom_fields()
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
       
         return ipautil.unwrap_binary_data(result)
-    
+
+    def set_custom_fields(self, schema):
+        """Set custom user fields."""
+        server = self.setup_server()
+        
+        try:
+            result = server.set_custom_fields(schema)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+      
     def get_all_users (self):
         """Return a list containing a User object for each existing user."""
     
@@ -585,6 +594,54 @@ class RPCClient:
         server = self.setup_server()
         try:
             result = server.group_members(groupdn, attr_list)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
+    def get_ipa_config(self):
+        """Get the IPA configuration"""
+        server = self.setup_server()
+        try:
+            result = server.get_ipa_config()
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
+    def update_ipa_config(self, oldconfig, newconfig):
+        """Update the IPA configuration"""
+        server = self.setup_server()
+        try:
+            result = server.update_ipa_config(oldconfig, newconfig)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
+    def get_password_policy(self):
+        """Get the IPA password policy"""
+        server = self.setup_server()
+        try:
+            result = server.get_password_policy()
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
+    def update_password_policy(self, oldpolicy, newpolicy):
+        """Update the IPA password policy"""
+        server = self.setup_server()
+        try:
+            result = server.update_password_policy(oldpolicy, newpolicy)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):

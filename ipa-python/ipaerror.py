@@ -123,6 +123,11 @@ LDAP_EMPTY_MODLIST = gen_error_code(
         0x0006,
         "No modifications to be performed")
 
+LDAP_NO_CONFIG = gen_error_code(
+        LDAP_CATEGORY,
+        0x0007,
+        "IPA configuration not found")
+
 #
 # Input errors  (sample - replace me)
 #

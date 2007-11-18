@@ -263,7 +263,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 			kbvals = (struct kbvals *)calloc(count, sizeof(struct kbvals));
 		}
 		n = 0;
-		for (i = 0i, idx = 0; count > 0 && i < count; i++) {
+		for (i = 0, idx = 0; count > 0 && i < count; i++) {
 			if (i == 0) {
 				idx = slapi_valueset_first_value(svs, &sv);
 			} else {

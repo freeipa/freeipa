@@ -134,10 +134,14 @@ class IPAClient:
 
         return all_users
 
-    def get_add_schema(self):
-        """Prototype for the GUI. Specify in the directory fields to
-           be displayed and what data to get for new users."""
-        result = self.transport.get_add_schema()
+    def get_custom_fields(self):
+        """Get custom user fields"""
+        result = self.transport.get_custom_fields()
+        return result
+
+    def set_custom_fields(self, schema):
+        """Set custom user fields"""
+        result = self.transport.set_custom_fields(schema)
         return result
 
     def find_users(self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
@@ -331,3 +335,29 @@ class IPAClient:
                 entries.append(user.User(e))
 
         return entries
+
+    def get_ipa_config(self):
+        """Get the IPA configuration"""
+        result = self.transport.get_ipa_config()
+        return entity.Entity(result)
+
+    def update_ipa_config(self, config):
+        """Updates the IPA configuration.
+
+           config is an Entity object.
+        """
+        result = self.transport.update_ipa_config(config.origDataDict(), config.toDict())
+        return result
+
+    def get_password_policy(self):
+        """Get the IPA password policy"""
+        result = self.transport.get_password_policy()
+        return entity.Entity(result)
+
+    def update_password_policy(self, policy):
+        """Updates the IPA password policy.
+
+           policy is an Entity object.
+        """
+        result = self.transport.update_password_policy(policy.origDataDict(), policy.toDict())
+        return result

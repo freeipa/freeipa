@@ -91,7 +91,15 @@ def main():
 
     client = ipaclient.IPAClient()
     try:
-        user = client.get_user_by_uid(username)
+        attrs = ['*']
+
+        # in case any attributes being modified are operational such as
+        # nsaccountlock. Any attribute to be deleted needs to be included
+        # in the original record so it can be seen as being removed.
+        if options.delattr:
+            for d in options.delattr:
+                attrs.append(d)
+        user = client.get_user_by_uid(username, sattrs=attrs)
     except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_NOT_FOUND):
         print "User %s not found" % username
         return 1
@@ -203,8 +211,7 @@ def main():
 
     if options.delattr:
         for d in options.delattr:
-            # doesn't truly delete the attribute but does null out the value
-            user.setValue(d, '')
+            user.delValue(d)
 
     if options.setattr:
         for s in options.setattr:

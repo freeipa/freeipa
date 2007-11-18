@@ -70,8 +70,8 @@
       <div id="sidebar">
         <h2>Tasks</h2>
         <ul>
-        <li py:if="'admins' in tg.identity.groups"><a href="${tg.url('/user/new')}">Add Person</a></li>
-        <li><a href="${tg.url('/user/list')}">Find People</a></li>
+        <li py:if="'admins' in tg.identity.groups"><a href="${tg.url('/user/new')}">Add User</a></li>
+        <li><a href="${tg.url('/user/list')}">Find Users</a></li>
         </ul>
         <ul>
         <li py:if="'admins' in tg.identity.groups"><a href="${tg.url('/group/new')}">Add Group</a></li>
