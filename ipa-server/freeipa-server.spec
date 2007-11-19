@@ -37,6 +37,7 @@ Requires: TurboGears
 Requires: python-tgexpandingformwidget
 Requires: acl
 Requires: freeradius >= 1.1.7
+Requires: pyasn1
 
 %define httpd_conf /etc/httpd/conf.d
 %define plugin_dir %{_libdir}/dirsrv/plugins
