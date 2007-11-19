@@ -97,7 +97,7 @@ class DsInstance(service.Service):
         except:
             # TODO: roll back here?
             logging.critical("Failed to restart the ds instance")
-	self.__config_uidgid_gen_first_master()
+        self.__config_uidgid_gen_first_master()
         self.__add_default_layout()
 	self.__add_master_entry_first_master()
         self.__init_memberof()

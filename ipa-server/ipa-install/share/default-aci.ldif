@@ -14,7 +14,6 @@ dn: cn=ipaConfig,cn=etc,$SUFFIX
 changetype: modify
 add: aci
 aci: (targetattr = "ipaUserSearchFields || ipaGroupSearchFields || ipaSearchTimeLimit || ipaSearchRecordsLimit || ipaCustomFields || ipaHomesRootDir || ipaDefaultLoginShell || ipaDefaultPrimaryGroup || ipaMaxUsernameLength || ipaPwdExpAdvNotify")(version 3.0;acl "Admins can write IPA policy"; allow (write) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
-replace: aci
 
 dn: cn=accounts,$SUFFIX
 changetype: modify

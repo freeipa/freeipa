@@ -102,7 +102,7 @@ gidNumber: 1003
 description: Limited admins who can edit other users
 cn: editors
 
-dn: cn=ipaConfig,cn=etc,dc=greyoak,dc=com
+dn: cn=ipaConfig,cn=etc,$SUFFIX
 changetype: add
 objectClass: nsContainer
 objectClass: top
