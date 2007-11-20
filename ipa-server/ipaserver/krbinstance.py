@@ -35,6 +35,11 @@ import time
 
 import service
 from ipa.ipautil import *
+
+import ldap
+from ldap import LDAPError
+from ldap import ldapobject
+
 from pyasn1.type import univ
 import pyasn1.codec.ber.encoder
 import struct
@@ -155,6 +160,20 @@ class KrbInstance(service.Service):
 
     def __configure_ldap(self):
         self.step("adding kerberos configuration to the directory")
+        # we need to remove any existing SASL mappings in the directory as otherwise they
+        # they may conflict. There is no way to define the order they are used in atm.
+        try:
+            lo = ldapobject.SimpleLDAPObject("ldap://127.0.0.1/")
+            lo.bind("cn=Directory Manager", self.admin_password)
+            msgid = lo.search("cn=mapping,cn=sasl,cn=config", ldap.SCOPE_ONELEVEL, "(objectclass=nsSaslMapping)")
+            res = lo.result(msgid)
+            for r in res[1]:
+                mid = lo.delete(r[0])
+                delres = lo.result(mid)
+            lo.unbind()
+        except LDAPError, e:
+            logging.critical("Error during SASL mapping removal: %s" % str(e))
+
 	#TODO: test that the ldif is ok with any random charcter we may use in the password
         kerberos_txt = template_file(SHARE_DIR + "kerberos.ldif", self.sub_dict)
         kerberos_fd = write_tmp_file(kerberos_txt)
