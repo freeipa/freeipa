@@ -811,7 +811,7 @@ class IPAServer:
         """
 
         member_dn = self.__safe_filter(member_dn)
-        filter = "(&(objectClass=posixGroup)(uniqueMember=%s))" % member_dn
+        filter = "(&(objectClass=posixGroup)(member=%s))" % member_dn
 
         try:
             return self.__get_list(self.basedn, filter, sattrs, opts)
@@ -834,7 +834,7 @@ class IPAServer:
         entry = ipaserver.ipaldap.Entry(dn)
 
         # some required objectclasses
-        entry.setValues('objectClass', 'top', 'groupofuniquenames', 'posixGroup',
+        entry.setValues('objectClass', 'top', 'groupofnames', 'posixGroup',
                         'inetUser')
 
         # No need to explicitly set gidNumber. The dna_plugin will do this
@@ -940,12 +940,12 @@ class IPAServer:
         # check to make sure member_dn exists
         member_entry = self.__get_base_entry(member_dn, "(objectClass=*)", ['dn','uid'], opts)
 
-        if new_group.get('uniquemember') is not None:
-            if ((isinstance(new_group.get('uniquemember'), str)) or (isinstance(new_group.get('uniquemember'), unicode))):
-                new_group['uniquemember'] = [new_group['uniquemember']]
-            new_group['uniquemember'].append(member_dn)
+        if new_group.get('member') is not None:
+            if ((isinstance(new_group.get('member'), str)) or (isinstance(new_group.get('member'), unicode))):
+                new_group['member'] = [new_group['member']]
+            new_group['member'].append(member_dn)
         else:
-            new_group['uniquemember'] = member_dn
+            new_group['member'] = member_dn
 
         try:
             ret = self.__update_entry(old_group, new_group, opts)
@@ -984,11 +984,11 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
         new_group = copy.deepcopy(old_group)
 
-        if new_group.get('uniquemember') is not None:
-            if ((isinstance(new_group.get('uniquemember'), str)) or (isinstance(new_group.get('uniquemember'), unicode))):
-                new_group['uniquemember'] = [new_group['uniquemember']]
+        if new_group.get('member') is not None:
+            if ((isinstance(new_group.get('member'), str)) or (isinstance(new_group.get('member'), unicode))):
+                new_group['member'] = [new_group['member']]
             try:
-                new_group['uniquemember'].remove(member_dn)
+                new_group['member'].remove(member_dn)
             except ValueError:
                 # member is not in the group
                 # FIXME: raise more specific error?
@@ -1221,12 +1221,12 @@ class IPAServer:
         if group_dn is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
 
-        if new_group.get('uniquemember') is not None:
-            if ((isinstance(new_group.get('uniquemember'), str)) or (isinstance(new_group.get('uniquemember'), unicode))):
-                new_group['uniquemember'] = [new_group['uniquemember']]
-            new_group['uniquemember'].append(group_dn['dn'])
+        if new_group.get('member') is not None:
+            if ((isinstance(new_group.get('member'), str)) or (isinstance(new_group.get('member'), unicode))):
+                new_group['member'] = [new_group['member']]
+            new_group['member'].append(group_dn['dn'])
         else:
-            new_group['uniquemember'] = group_dn['dn']
+            new_group['member'] = group_dn['dn']
 
         try:
             ret = self.__update_entry(old_group, new_group, opts)

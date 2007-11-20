@@ -77,17 +77,17 @@ gecos: Administrator
 dn: cn=admins,cn=groups,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
-objectClass: groupofuniquenames
+objectClass: groupofnames
 objectClass: posixGroup
 cn: admins
 description: Account administrators group
 gidNumber: 1001
-uniqueMember: uid=admin,cn=sysaccounts,cn=etc,$SUFFIX
+member: uid=admin,cn=sysaccounts,cn=etc,$SUFFIX
 
 dn: cn=ipausers,cn=groups,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
-objectClass: groupofuniquenames
+objectClass: groupofnames
 objectClass: posixGroup
 gidNumber: 1002
 description: Default group for all users
@@ -96,7 +96,7 @@ cn: ipausers
 dn: cn=editors,cn=groups,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
-objectClass: groupofuniquenames
+objectClass: groupofnames
 objectClass: posixGroup
 gidNumber: 1003
 description: Limited admins who can edit other users

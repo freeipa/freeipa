@@ -70,7 +70,7 @@
 #include "string.h"
 #include "nspr.h"
 
-#define IPA_GROUP_ATTR "uniquemember"
+#define IPA_GROUP_ATTR "member"
 #define IPA_MEMBEROF_ATTR "memberof"
 #define IPA_GROUP_ATTR_IS_DN 1
 #define IPA_GROUP_ATTR_TYPE "uid"
