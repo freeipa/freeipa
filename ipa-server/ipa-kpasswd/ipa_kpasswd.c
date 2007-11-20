@@ -28,26 +28,54 @@
 #define TMP_TEMPLATE "/tmp/kpasswd.XXXXXX"
 #define KPASSWD_PORT 464
 
+/* blacklist entries are released only BLCAKLIST_TIMEOUT seconds
+ * after the children performing the noperation has finished.
+ * this is to avoid races */
+
+#define BLACKLIST_TIMEOUT 5
+
 struct blacklist {
 	struct blacklist *next;
 	char *address;
 	pid_t pid;
+	time_t expire;
 };
 
 static struct blacklist *global_blacklist = NULL;
 
 int check_blacklist(char *address)
 {
-	struct blacklist *bl;
+	struct blacklist *bl, *prev_bl;
+	time_t now = time(NULL);
 
 	if (!global_blacklist) {
 		return 0;
 	}
 
-	for (bl = global_blacklist; bl; bl = bl->next) {
+	prev_bl = NULL;
+	bl = global_blacklist;
+	while (bl) {
+		if (bl->expire && (bl->expire < now)) {
+			if (prev_bl) {
+				prev_bl->next = bl->next;
+				free(bl->address);
+				free(bl);
+				bl = prev_bl->next;
+			} else {
+				global_blacklist = bl->next;
+				free(bl->address);
+				free(bl);
+				bl = global_blacklist;
+			}
+			continue;
+		}
+
 		if (strcmp(address, bl->address) == 0) {
 			return 1;
 		}
+
+		prev_bl = bl;
+		bl = bl->next;
 	}
 
 	return 0;
@@ -62,6 +90,7 @@ int add_blacklist(pid_t pid, char *address)
 
 	bl->next = NULL;
 	bl->pid = pid;
+	bl->expire = 0;
 	bl->address = strdup(address);
 	if (!bl->address) {
 		free(bl);
@@ -83,26 +112,18 @@ int add_blacklist(pid_t pid, char *address)
 
 int remove_blacklist(pid_t pid)
 {
-	struct blacklist *bl, *pbl;
+	struct blacklist *bl;
 
 	if (!global_blacklist) {
 		return -1;
 	}
 
-	pbl = NULL;
 	bl = global_blacklist;
 	while (bl) {
 		if (pid == bl->pid) {
-			if (pbl == NULL) {
-				global_blacklist = bl->next;
-			} else {
-				pbl->next = bl->next;
-			}
-			free(bl->address);
-			free(bl);
+			bl->expire = time(NULL) + BLACKLIST_TIMEOUT;
 			return 0;
 		}
-		pbl = bl;
 		bl = bl->next;
 	}
 	return -1;
@@ -944,6 +965,7 @@ pid_t handle_conn(int fd, int type)
 {
 	int mfd, tcp;
 	pid_t pid;
+	char addrto6[INET6_ADDRSTRLEN+1];
 	char address[INET6_ADDRSTRLEN+1];
 	uint8_t request[1500];
 	ssize_t reqlen;
@@ -966,16 +988,37 @@ pid_t handle_conn(int fd, int type)
 			return -1;
 		}
 	} else {
-		mfd = fd;
+		/* read first to empty the buffer on udp connections */
+		reqlen = recvfrom(fd, request, sizeof(request), 0,
+				   (struct sockaddr *)&from, &fromlen);
+		if (reqlen <= 0) {
+			syslog(LOG_ERR, "Error receiving request (%d) %s",
+				errno, strerror(errno));
+			return -1;
+		}
+
 	}
 
 	(void) getnameinfo((struct sockaddr *)&from, fromlen,
-			  address, INET6_ADDRSTRLEN+1,
+			  addrto6, INET6_ADDRSTRLEN+1,
 			  NULL, 0, NI_NUMERICHOST);
 
 	if (debug > 0) {
-		syslog(LOG_ERR, "Connection from %s", address);
+		syslog(LOG_ERR, "Connection from %s", addrto6);
 	}
+
+	if (strchr(addrto6, ':') == NULL) {
+		char *prefix6 = "::ffff:";
+		/* this is an IPv4 formatted addr
+		 * convert to IPv6 mapped addr */
+		memcpy(address, prefix6, 7);
+		memcpy(&address[7], addrto6, INET6_ADDRSTRLEN-7);
+	} else {
+		/* regular IPv6 address, copy as is */
+		memcpy(address, addrto6, INET6_ADDRSTRLEN);
+	}
+	/* make sure we have termination */
+	address[INET6_ADDRSTRLEN] = '\0';
 
 	/* Check blacklist for requests from the same IP until operations
 	 * are finished on the active client.
@@ -991,15 +1034,17 @@ pid_t handle_conn(int fd, int type)
 		return 0;
 	}
 
-	reqlen = recvfrom(mfd, request, sizeof(request), 0,
-			   (struct sockaddr *)&from, &fromlen);
-	if (reqlen <= 0) {
-		syslog(LOG_ERR, "Error receiving request (%d) %s",
-			errno, strerror(errno));
-		if (tcp) close(mfd);
-		return -1;
+	/* now read data if it was a TCP connection */
+	if (tcp) {
+		reqlen = recvfrom(mfd, request, sizeof(request), 0,
+				   (struct sockaddr *)&from, &fromlen);
+		if (reqlen <= 0) {
+			syslog(LOG_ERR, "Error receiving request (%d) %s",
+				errno, strerror(errno));
+			close(mfd);
+			return -1;
+		}
 	}
-
 #if 1
 	/* handle kerberos and ldap operations in childrens */
 	pid = fork();
@@ -1017,6 +1062,7 @@ pid_t handle_conn(int fd, int type)
 #endif
 
 	/* children */
+	if (debug > 0) syslog(LOG_ERR, "Servicing %s", address);
 
 	/* TCP packets prepend the lenght as a 32bit network order field,
 	 * this information seem to be just redundant, so let's simply
@@ -1031,13 +1077,13 @@ pid_t handle_conn(int fd, int type)
 		if (tcp) {
 			sendret = sendto(mfd, reply, replen, 0, NULL, 0);
 		} else {
-			sendret = sendto(mfd, reply, replen, 0, (struct sockaddr *)&from, fromlen);
+			sendret = sendto(fd, reply, replen, 0, (struct sockaddr *)&from, fromlen);
 		}
 		if (sendret == -1) {
 			syslog(LOG_ERR, "Error sending reply (%d)", errno);
 		}
 	}
-	close(mfd);
+	if (tcp) close(mfd);
 	exit(0);
 }
 
@@ -1189,6 +1235,8 @@ int main(int argc, char *argv[])
 		/* check for children exiting */
 		cid = waitpid(-1, &cstatus, WNOHANG);
 		if (cid != -1 && cid != 0) {
+			if (debug > 0)
+				syslog(LOG_ERR, "pid %d completed operations!\n", cid);
 			remove_blacklist(cid);
 		}
 	}
