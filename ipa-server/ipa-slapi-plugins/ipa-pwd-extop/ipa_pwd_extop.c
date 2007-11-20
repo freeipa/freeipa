@@ -852,9 +852,8 @@ static int ipapwd_getPolicy(const char *dn, Slapi_Entry *target, Slapi_Entry **e
 		slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
 				"ipapwd_getPolicy: Couldn't find policy, err (%d)\n",
 				res?res:ret);
-		slapi_free_search_results_internal(pb);
-		slapi_sdn_free(&sdn);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	/* get entries */
@@ -862,9 +861,8 @@ static int ipapwd_getPolicy(const char *dn, Slapi_Entry *target, Slapi_Entry **e
 	if (!es) {
 		slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
 				"ipapwd_getPolicy: No entries ?!");
-		slapi_free_search_results_internal(pb);
-		slapi_sdn_free(&sdn);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	/* count entries */
@@ -874,9 +872,8 @@ static int ipapwd_getPolicy(const char *dn, Slapi_Entry *target, Slapi_Entry **e
 	if (i == 1) {
 		*e = slapi_entry_dup(es[0]);
 
-		slapi_free_search_results_internal(pb);
-		slapi_sdn_free(&sdn);
-		return 0;
+		ret = 0;
+		goto done;
 	}
 
 	/* count number of RDNs in DN */
@@ -884,9 +881,8 @@ static int ipapwd_getPolicy(const char *dn, Slapi_Entry *target, Slapi_Entry **e
 	if (!edn) {
 		slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
 				"ipapwd_getPolicy: ldap_explode_dn(dn) failed ?!");
-		slapi_free_search_results_internal(pb);
-		slapi_sdn_free(&sdn);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 	for (rdnc = 0; edn[rdnc]; rdnc++) /* count */ ;
 	ldap_value_free(edn);
@@ -925,16 +921,17 @@ static int ipapwd_getPolicy(const char *dn, Slapi_Entry *target, Slapi_Entry **e
 	}
 
 	if (pe == NULL) {
-		slapi_free_search_results_internal(pb);
-		slapi_sdn_free(&sdn);
-		return -1;
+		ret = -1;
+		goto done;
 	}
 
 	*e = slapi_entry_dup(pe);
-
+	ret = 0;
+done:
 	slapi_free_search_results_internal(pb);
+	slapi_pblock_destroy(pb);
 	slapi_sdn_free(&sdn);
-	return 0;
+	return ret;
 }
 
 #define GENERALIZED_TIME_LENGTH 15
@@ -1538,10 +1535,12 @@ static int ipapwd_SetPassword(struct ipapwd_data *data)
 		slapi_value_free(&svals[i]);
 	}
 	free(svals);
-	for (i = 0; pwvals[i]; i++) { 
-		slapi_value_free(&pwvals[i]);
+	if (pwvals) {
+		for (i = 0; pwvals[i]; i++) { 
+			slapi_value_free(&pwvals[i]);
+		}
+		free(pwvals);
 	}
-	free(pwvals);
 	return ret;
 }
 
@@ -1723,7 +1722,6 @@ static int ipapwd_extop(Slapi_PBlock *pb)
 	if (tag == LDAP_EXTOP_PASSMOD_TAG_OLDPWD )
 	{
 		if (ber_scanf(ber, "a", &oldPasswd) == LBER_ERROR) {
-			slapi_ch_free_string(&oldPasswd);
 			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "ber_scanf failed :{\n");
 			errMesg = "ber_scanf failed at oldPasswd parse.\n";
 			rc = LDAP_PROTOCOL_ERROR;
@@ -1736,7 +1734,6 @@ static int ipapwd_extop(Slapi_PBlock *pb)
 	if (tag == LDAP_EXTOP_PASSMOD_TAG_NEWPWD )
 	{
 		if (ber_scanf(ber, "a", &newPasswd) == LBER_ERROR) {
-			slapi_ch_free_string(&newPasswd);
 			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "ber_scanf failed :{\n");
 			errMesg = "ber_scanf failed at newPasswd parse.\n";
 			rc = LDAP_PROTOCOL_ERROR;
@@ -1913,19 +1910,11 @@ free_and_return:
 	slapi_pblock_set(pb, SLAPI_ORIGINAL_TARGET, NULL);
 	slapi_ch_free_string(&authmethod);
 
-	if (targetEntry != NULL) {
-		slapi_entry_free(targetEntry); 
-	}
+	if (targetEntry) slapi_entry_free(targetEntry);
+	if (ber) ber_free(ber, 1);
 	
-	if (ber != NULL) {
-		ber_free(ber, 1);
-		ber = NULL;
-	}
-	
-	slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop", 
-			errMesg ? errMesg : "success");
+	slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop", errMesg ? errMesg : "success");
 	slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
-	
 
 	return SLAPI_PLUGIN_EXTENDED_SENT_RESULT;
 
@@ -2014,8 +2003,9 @@ static int ipapwd_getMasterKey(const char *realm_dn)
 	kmkey->contents = malloc(mkey->bv_len);
 	if (!kmkey->contents) {
 		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory!\n");
-		free(kmkey);
+		ber_bvfree(mkey);
 		ber_free(be, 1);
+		free(kmkey);
 		slapi_entry_free(realm_entry);
 		return LDAP_OPERATIONS_ERROR;
 	}	
