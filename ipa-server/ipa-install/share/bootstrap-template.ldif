@@ -111,7 +111,6 @@ ipaUserSearchFields: uid,givenName,sn,telephoneNumber,ou,title
 ipaGroupSearchFields: cn,description
 ipaSearchTimeLimit: 2
 ipaSearchRecordsLimit: 0
-ipaCustomFields:
 ipaHomesRootDir: /home
 ipaDefaultLoginShell: /bin/sh
 ipaDefaultPrimaryGroup: ipausers
