@@ -26,8 +26,6 @@ import logging
 import fileinput
 import re
 import sys
-from random import Random
-from time import gmtime
 import os
 import pwd
 import socket
@@ -53,15 +51,6 @@ import base64
 def host_to_domain(fqdn):
     s = fqdn.split(".")
     return ".".join(s[1:])
-
-def generate_kdc_password():
-    rndpwd = ''
-    r = Random()
-    r.seed(gmtime())
-    for x in range(12):
-#        rndpwd += chr(r.randint(32,126))
-        rndpwd += chr(r.randint(65,90)) #stricter set for testing
-    return rndpwd
 
 def ldap_mod(fd, dn, pwd):
     args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv", "-D", dn, "-w", pwd, "-f", fd.name]
@@ -101,7 +90,7 @@ class KrbInstance(service.Service):
         self.ip = socket.gethostbyname(host_name)
         self.domain = host_to_domain(host_name)        
 	self.suffix = realm_to_suffix(self.realm)
-        self.kdc_password = generate_kdc_password()
+        self.kdc_password = ipa_generate_password()
         self.admin_password = admin_password
 
         self.__setup_sub_dict()

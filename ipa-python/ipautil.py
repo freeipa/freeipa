@@ -23,6 +23,8 @@ import string
 import tempfile
 import logging
 import subprocess
+from random import Random
+from time import gmtime
 import os
 import stat
 import socket
@@ -330,4 +332,14 @@ def parse_generalized_time(timestr):
 
     except ValueError:
         return None
+
+
+def ipa_generate_password():
+    rndpwd = ''
+    r = Random()
+    r.seed(gmtime())
+    for x in range(12):
+#        rndpwd += chr(r.randint(32,126))
+        rndpwd += chr(r.randint(65,90)) #stricter set for testing
+    return rndpwd
 

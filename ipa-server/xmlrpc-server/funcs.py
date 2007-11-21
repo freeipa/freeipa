@@ -51,9 +51,9 @@ DefaultUserContainer = "cn=users,cn=accounts"
 DefaultGroupContainer = "cn=groups,cn=accounts"
 
 # FIXME: need to check the ipadebug option in ipa.conf
-logging.basicConfig(level=logging.DEBUG,
-    format='%(asctime)s %(levelname)s %(message)s',
-    stream=sys.stderr)
+#logging.basicConfig(level=logging.DEBUG,
+#    format='%(asctime)s %(levelname)s %(message)s',
+#    stream=sys.stderr)
 
 #
 # Apache runs in multi-process mode so each process will have its own

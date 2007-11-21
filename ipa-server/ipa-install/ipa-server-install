@@ -232,17 +232,6 @@ def read_dm_password():
     dm_password = read_password("Directory Manager")
     return dm_password
 
-def read_master_password():
-    print "The Kerberos database is usually encrypted using a master password."
-    print "Please store this password offline in a secure place."
-    print "It may be necessary in a recovery situation or to install a replica."
-    print "Without the master password the encrypted material can't be used by the KDC."
-    print "If the master password is lost all kerberos related secrets will also be lost."
-    print ""
-    #TODO: provide the option of generating a random password
-    master_password = read_password("Kerberos master")
-    return master_password
-
 def read_admin_password():
     print "The IPA server requires an administrative user, named 'admin'."
     print "This user is a regular system account used for IPA server administration."
@@ -381,7 +370,7 @@ def main():
         dm_password = options.dm_password
 
     if not options.master_password:
-        master_password = read_master_password()
+        master_password = ipa_generate_password()
     else:
         master_password = options.master_password
 
