@@ -24,9 +24,13 @@ import tempfile
 import shutil
 import logging
 import pwd
+import glob
+import sys
 
 from ipa.ipautil import *
 import service
+
+import installutils
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
@@ -34,9 +38,6 @@ SERVER_ROOT_32 = "/usr/lib/dirsrv"
 def ldap_mod(fd, dn, pwd):
     args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv", "-D", dn, "-w", pwd, "-f", fd.name]
     run(args)
-
-    text = fd.read()
-    print text
 
 def realm_to_suffix(realm_name):
     s = realm_name.split(".")
@@ -48,6 +49,61 @@ def find_server_root():
         return SERVER_ROOT_64
     else:
         return SERVER_ROOT_32
+
+def realm_to_serverid(realm_name):
+    return "-".join(realm_name.split("."))
+
+def config_dirname(realm_name):
+    return "/etc/dirsrv/slapd-" + realm_to_serverid(realm_name) + "/"
+
+def schema_dirname(realm_name):
+    return config_dirname(realm_name) + "/schema/"
+
+def erase_ds_instance_data(serverid):
+    try:
+        shutil.rmtree("/etc/dirsrv/slapd-%s" % serverid)
+    except:
+        pass
+    try:
+        shutil.rmtree("/var/lib/dirsrv/slapd-%s" % serverid)
+    except:
+        pass
+    try:
+        shutil.rmtree("/var/lock/dirsrv/slapd-%s" % serverid)
+    except:
+        pass
+
+def check_existing_installation():
+    dirs = glob.glob("/etc/dirsrv/slapd-*")
+    if not dirs:
+        return
+    print ""
+    print "An existing Directory Server has been detected."
+    yesno = raw_input("Do you wish to remove it and create a new one? [no]: ")
+    if not yesno or yesno.lower()[0] != "y":
+        sys.exit(1)
+
+    try:
+        run(["/sbin/service", "dirsrv", "stop"])
+    except:
+        pass
+    for d in dirs:
+        serverid = os.path.basename(d).split("slapd-", 1)[1]
+        if serverid:
+            erase_ds_instance_data(serverid)
+
+def check_ports():
+    ds_unsecure = installutils.port_available(389)
+    ds_secure = installutils.port_available(636)
+    if not ds_unsecure or not ds_secure:
+        print "IPA requires ports 389 and 636 for the Directory Server."
+        print "These are currently in use:"
+        if not ds_unsecure:
+            print "\t389"
+        if not ds_secure:
+            print "\t636"
+        sys.exit(1)
+
 
 INF_TEMPLATE = """
 [General]
@@ -72,20 +128,25 @@ class DsInstance(service.Service):
         self.dm_password = None
         self.sub_dict = None
 
-    def create_instance(self, ds_user, realm_name, host_name, dm_password):
+    def create_instance(self, ds_user, realm_name, host_name, dm_password, ro_replica=False):
         self.ds_user = ds_user
         self.realm_name = realm_name.upper()
-        self.serverid = "-".join(self.realm_name.split("."))
+        self.serverid = realm_to_serverid(self.realm_name)
         self.suffix = realm_to_suffix(self.realm_name)
         self.host_name = host_name
         self.dm_password = dm_password
         self.__setup_sub_dict()
+        
+        if ro_replica:
+            self.start_creation(15, "Configuring directory server:")
+        else:
+            self.start_creation(15, "Configuring directory server:")
 
-        self.start_creation(15, "Configuring directory server:")
         self.__create_ds_user()
         self.__create_instance()
         self.__add_default_schemas()
-        self.__add_memberof_module()
+        if not ro_replica:
+            self.__add_memberof_module()
         self.__add_referint_module()
         self.__add_dna_module()
         self.__create_indeces()
@@ -97,24 +158,17 @@ class DsInstance(service.Service):
         except:
             # TODO: roll back here?
             logging.critical("Failed to restart the ds instance")
-        self.__config_uidgid_gen_first_master()
         self.__add_default_layout()
-	self.__add_master_entry_first_master()
-        self.__init_memberof()
+        if not ro_replica:
+            self.__config_uidgid_gen_first_master()
+            self.__add_master_entry_first_master()
+            self.__init_memberof()
 
 
         self.step("configuring directoy to start on boot")
         self.chkconfig_on()
 
         self.done_creation()
-
-    def config_dirname(self):
-        if not self.serverid:
-            raise RuntimeError("serverid not set")
-        return "/etc/dirsrv/slapd-" + self.serverid + "/"
-
-    def schema_dirname(self):
-        return self.config_dirname() + "/schema/"
 
     def __setup_sub_dict(self):
         server_root = find_server_root()
@@ -165,13 +219,13 @@ class DsInstance(service.Service):
     def __add_default_schemas(self):
         self.step("adding default schema")
         shutil.copyfile(SHARE_DIR + "60kerberos.ldif",
-                        self.schema_dirname() + "60kerberos.ldif")
+                        schema_dirname(self.realm_name) + "60kerberos.ldif")
         shutil.copyfile(SHARE_DIR + "60samba.ldif",
-                        self.schema_dirname() + "60samba.ldif")
+                        schema_dirname(self.realm_name) + "60samba.ldif")
         shutil.copyfile(SHARE_DIR + "60radius.ldif",
-                        self.schema_dirname() + "60radius.ldif")
+                        schema_dirname(self.realm_name) + "60radius.ldif")
         shutil.copyfile(SHARE_DIR + "60ipaconfig.ldif",
-                        self.schema_dirname() + "60ipaconfig.ldif")
+                        schema_dirname(self.realm_name) + "60ipaconfig.ldif")
 
     def __add_memberof_module(self):
         self.step("enabling memboerof plugin")
@@ -235,7 +289,7 @@ class DsInstance(service.Service):
 
     def __enable_ssl(self):
         self.step("configuring ssl for ds instance")
-        dirname = self.config_dirname()
+        dirname = config_dirname(self.realm_name)
         args = ["/usr/share/ipa/ipa-server-setupssl", self.dm_password,
                 dirname, self.host_name]
         try:
@@ -273,7 +327,7 @@ class DsInstance(service.Service):
 
     def __certmap_conf(self):
         self.step("configuring certmap.conf")
-        dirname = self.config_dirname()
+        dirname = config_dirname(self.realm_name)
         certmap_conf = template_file(SHARE_DIR+"certmap.conf.template", self.sub_dict)
         certmap_fd = open(dirname+"certmap.conf", "w+")
         certmap_fd.write(certmap_conf)
@@ -281,7 +335,7 @@ class DsInstance(service.Service):
 
     def change_admin_password(self, password):
         logging.debug("Changing admin password")
-        dirname = self.config_dirname()
+        dirname = config_dirname(self.realm_name)
         if dir_exists("/usr/lib64/mozldap"):
             app = "/usr/lib64/mozldap/ldappasswd"
         else:

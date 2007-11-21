@@ -25,6 +25,7 @@ import logging
 import subprocess
 import os
 import stat
+import socket
 
 from string import lower
 import re
@@ -35,7 +36,6 @@ def realm_to_suffix(realm_name):
     s = realm_name.split(".")
     terms = ["dc=" + x.lower() for x in s]
     return ",".join(terms)
-
 
 def template_str(txt, vars):
     return string.Template(txt).substitute(vars)

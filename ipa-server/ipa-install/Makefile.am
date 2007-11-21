@@ -6,6 +6,8 @@ SUBDIRS =			\
 
 sbin_SCRIPTS =			\
 	ipa-server-install	\
+	ipa-replica-install	\
+	ipa-replica-prepare	\
 	$(NULL)
 
 appdir = $(IPA_DATA_DIR)

@@ -25,6 +25,7 @@ import shutil
 import logging
 import pwd
 import time
+import sys
 from ipa.ipautil import *
 
 import service
@@ -149,7 +150,7 @@ class RadiusInstance(service.Service):
             retry += 1
             if retry > 15:
                 print "Error timed out waiting for kadmin to finish operations\n"
-                os.exit()
+                sys.exit(1)
                 
         try:
             pent = pwd.getpwnam(RADIUS_USER)

@@ -12,6 +12,8 @@ app_PYTHON = 			\
 	radiusinstance.py	\
 	webguiinstance.py	\
 	service.py		\
+	installutils.py		\
+	replication.py		\
 	$(NULL)
 
 EXTRA_DIST =			\

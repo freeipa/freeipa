@@ -71,6 +71,8 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %{_sbindir}/ipa-server-install
+%{_sbindir}/ipa-replica-install
+%{_sbindir}/ipa-replica-prepare
 %{_sbindir}/ipa_kpasswd
 %{_sbindir}/ipa-webgui
 %attr(755,root,root) %{_initrddir}/ipa-kpasswd

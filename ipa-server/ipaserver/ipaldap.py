@@ -176,25 +176,90 @@ def wrapper(f,name):
             return f(*args, **kargs)
     return inner
 
+class LDIFConn(ldif.LDIFParser):
+    def __init__(
+        self,
+        input_file,
+        ignored_attr_types=None,max_entries=0,process_url_schemes=None
+    ):
+        """
+        See LDIFParser.__init__()
+        
+        Additional Parameters:
+        all_records
+        List instance for storing parsed records
+        """
+        self.dndict = {} # maps dn to Entry
+        self.dnlist = [] # contains entries in order read
+        myfile = input_file
+        if isinstance(input_file,str) or isinstance(input_file,unicode):
+            myfile = open(input_file, "r")
+        ldif.LDIFParser.__init__(self,myfile,ignored_attr_types,max_entries,process_url_schemes)
+        self.parse()
+        if isinstance(input_file,str) or isinstance(input_file,unicode):
+            myfile.close()
+
+    def handle(self,dn,entry):
+        """
+        Append single record to dictionary of all records.
+        """
+        if not dn:
+            dn = ''
+        newentry = Entry((dn, entry))
+        self.dndict[IPAdmin.normalizeDN(dn)] = newentry
+        self.dnlist.append(newentry)
+
+    def get(self,dn):
+        ndn = IPAdmin.normalizeDN(dn)
+        return self.dndict.get(ndn, Entry(None))
+
 class IPAdmin(SimpleLDAPObject):
     CFGSUFFIX = "o=NetscapeRoot"
     DEFAULT_USER_ID = "nobody"
+
+    def getDseAttr(self,attrname):
+        conffile = self.confdir + '/dse.ldif'
+        dseldif = LDIFConn(conffile)
+        cnconfig = dseldif.get("cn=config")
+        if cnconfig:
+            return cnconfig.getValue(attrname)
+        return None
     
     def __initPart2(self):
         if self.binddn and len(self.binddn) and not hasattr(self,'sroot'):
             try:
                 ent = self.getEntry('cn=config', ldap.SCOPE_BASE, '(objectclass=*)',
-                                    [ 'nsslapd-instancedir', 'nsslapd-errorlog' ])
-                instdir = ent.getValue('nsslapd-instancedir')
-                self.sroot, self.inst = re.match(r'(.*)[\/]slapd-(\w+)$', instdir).groups()
+                                    [ 'nsslapd-instancedir', 'nsslapd-errorlog',
+                                      'nsslapd-certdir', 'nsslapd-schemadir' ])
                 self.errlog = ent.getValue('nsslapd-errorlog')
-            except (ldap.INSUFFICIENT_ACCESS, ldap.CONNECT_ERROR,
-                    ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND)):
+                self.confdir = None
+                if self.isLocal:
+                    self.confdir = ent.getValue('nsslapd-certdir')
+                    if not self.confdir or not os.access(self.confdir + '/dse.ldif', os.R_OK):
+                        self.confdir = ent.getValue('nsslapd-schemadir')
+                        if self.confdir:
+                            self.confdir = os.path.dirname(self.confdir)
+                instdir = ent.getValue('nsslapd-instancedir')
+                if not instdir:
+                    # get instance name from errorlog
+                    self.inst = re.match(r'(.*)[\/]slapd-([\w-]+)/errors', self.errlog).group(2)
+                    if self.confdir:
+                        instdir = self.getDseAttr('nsslapd-instancedir')
+                    else:
+                        if self.isLocal:
+                            print instdir
+                            self.sroot, self.inst = re.match(r'(.*)[\/]slapd-([\w-]+)$', instdir).groups()
+                            instdir = re.match(r'(.*/slapd-.*)/errors', self.errlog).group(1)
+                            #self.sroot, self.inst = re.match(r'(.*)[\/]slapd-([\w-]+)$', instdir).groups()
+                ent = self.getEntry('cn=config,cn=ldbm database,cn=plugins,cn=config',
+                                    ldap.SCOPE_BASE, '(objectclass=*)',
+                                    [ 'nsslapd-directory' ])
+                self.dbdir = os.path.dirname(ent.getValue('nsslapd-directory'))
+            except (ldap.INSUFFICIENT_ACCESS, ldap.CONNECT_ERROR):
                 pass # usually means 
-#                print "ignored exception"
             except ldap.LDAPError, e:
                 print "caught exception ", e
-                raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
+                raise
 
     def __localinit__(self):
         """If a CA certificate is provided then it is assumed that we are
@@ -209,7 +274,7 @@ class IPAdmin(SimpleLDAPObject):
         else:
             SimpleLDAPObject.__init__(self,'ldap://%s:%d' % (self.host,self.port))
 
-    def __init__(self,host,port,cacert,bindcert,bindkey,proxydn=None,debug=None):
+    def __init__(self,host,port=389,cacert=None,bindcert=None,bindkey=None,proxydn=None,debug=None):
         """We just set our instance variables and wrap the methods - the real
            work is done in __localinit__ and __initPart2 - these are separated
            out this way so that we can call them from places other than
@@ -223,7 +288,7 @@ class IPAdmin(SimpleLDAPObject):
             ldap.set_option(ldap.OPT_X_TLS_KEYFILE,bindkey)
 
         self.__wrapmethods()
-        self.port = port or 389
+        self.port = port
         self.host = host
         self.cacert = cacert
         self.bindcert = bindcert
@@ -272,6 +337,12 @@ class IPAdmin(SimpleLDAPObject):
             self.principal = principal
         self.proxydn = None
 
+    def do_simple_bind(self, binddn="cn=directory manager", bindpw=""):
+        self.binddn = binddn
+        self.bindpwd = bindpw
+        self.simple_bind_s(binddn, bindpw)
+        self.__initPart2()
+
     def getEntry(self,*args):
         """This wraps the search function.  It is common to just get one entry"""
 
@@ -283,8 +354,9 @@ class IPAdmin(SimpleLDAPObject):
         try:
             res = self.search(*args)
             type, obj = self.result(res)
-
-    #        res = self.search_ext(args[0], args[1], filterstr=args[2], attrlist=args[3], serverctrls=sctrl)
+        except ldap.NO_SUCH_OBJECT:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND,
+                    "no such entry for " + str(args))            
         except ldap.LDAPError, e:
             raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
 
@@ -538,7 +610,7 @@ class IPAdmin(SimpleLDAPObject):
                 print "Export task %s for file %s completed successfully" % (cn,file)
         return rc
 
-    def waitForEntry(self, dn, timeout=7200, attr='', quiet=False):
+    def waitForEntry(self, dn, timeout=7200, attr='', quiet=True):
         scope = ldap.SCOPE_BASE
         filter = "(objectclass=*)"
         attrlist = []
@@ -560,7 +632,8 @@ class IPAdmin(SimpleLDAPObject):
                 entry = self.getEntry(dn, scope, filter, attrlist)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 pass # found entry, but no attr
-            except ldap.NO_SUCH_OBJECT: pass # no entry yet
+            except ldap.NO_SUCH_OBJECT:
+                pass # no entry yet
             except ldap.LDAPError, e: # badness
                 print "\nError reading entry", dn, e
                 break
@@ -574,7 +647,7 @@ class IPAdmin(SimpleLDAPObject):
             print "\nwaitForEntry timeout for %s for %s" % (self,dn)
         elif entry and not quiet:
             print "\nThe waited for entry is:", entry
-        else:
+        elif not entry:
             print "\nError: could not read entry %s from %s" % (dn,self)
 
         return entry

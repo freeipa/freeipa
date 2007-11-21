@@ -34,7 +34,6 @@ import socket
 import errno
 import logging
 import pwd
-import getpass
 import subprocess
 import signal
 import shutil
@@ -51,8 +50,9 @@ import ipaserver.radiusinstance
 import ipaserver.webguiinstance
 
 from ipaserver import service
+from ipaserver.installutils import *
 
-from ipa.ipautil import run
+from ipa.ipautil import *
 
 def parse_options():
     parser = OptionParser(version=VERSION)
@@ -86,39 +86,6 @@ def parse_options():
 
     return options
 
-def logging_setup(options):
-    # Always log everything (i.e., DEBUG) to the log
-    # file.
-    logging.basicConfig(level=logging.DEBUG,
-                        format='%(asctime)s %(levelname)s %(message)s',
-                        filename='ipaserver-install.log',
-                        filemode='w')
-
-    console = logging.StreamHandler()
-    # If the debug option is set, also log debug messages to the console
-    if options.debug:
-        console.setLevel(logging.DEBUG)
-    else:
-        # Otherwise, log critical and error messages
-        console.setLevel(logging.ERROR)
-    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger('').addHandler(console)
-
-def erase_ds_instance_data(serverid):
-    try:
-        shutil.rmtree("/etc/dirsrv/slapd-%s" % serverid)
-    except:
-        pass
-    try:
-        shutil.rmtree("/var/lib/dirsrv/slapd-%s" % serverid)
-    except:
-        pass
-    try:
-        shutil.rmtree("/var/lock/dirsrv/slapd-%s" % serverid)
-    except:
-        pass
-
 def signal_handler(signum, frame):
     global ds
     print "\nCleaning up..."
@@ -126,58 +93,8 @@ def signal_handler(signum, frame):
         print "Removing configuration for %s instance" % ds.serverid
         ds.stop()
         if ds.serverid:
-            erase_ds_instance_data (ds.serverid)
+            ipaserver.dsinstance.erase_ds_instance_data (ds.serverid)
     sys.exit(1)
-
-def check_existing_installation():
-    dirs = glob.glob("/etc/dirsrv/slapd-*")
-    if not dirs:
-        return
-    print ""
-    print "An existing Directory Server has been detected."
-    yesno = raw_input("Do you wish to remove it and create a new one? [no]: ")
-    if not yesno or yesno.lower()[0] != "y":
-        sys.exit(1)
-
-    try:
-        run(["/sbin/service", "dirsrv", "stop"])
-    except:
-        pass
-    for d in dirs:
-        serverid = os.path.basename(d).split("slapd-", 1)[1]
-        if serverid:
-            erase_ds_instance_data(serverid)
-
-def check_ports():
-    ds_unsecure = port_available(389)
-    ds_secure = port_available(636)
-    if not ds_unsecure or not ds_secure:
-        print "IPA requires ports 389 and 636 for the Directory Server."
-        print "These are currently in use:"
-        if not ds_unsecure:
-            print "\t389"
-        if not ds_secure:
-            print "\t636"
-        sys.exit(1)
-
-def get_fqdn():
-    fqdn = ""
-    try:
-        fqdn = socket.getfqdn()
-    except:
-        try:
-            fqdn = socket.gethostname()
-        except:
-            fqdn = ""
-    return fqdn
-   
-def verify_fqdn(host_name):
-    is_ok = True
-    if len(host_name.split(".")) < 2 or host_name == "localhost.localdomain":
-        print "Invalid hostname: " + host_name
-        print "This host name can't be used as a hostname for an IPA Server"
-        is_ok = False
-    return is_ok
 
 def read_host_name(host_default):
     host_ok = False
@@ -198,7 +115,9 @@ def read_host_name(host_default):
             host_name = host_default
         else:
             host_name = host_input
-        if not verify_fqdn(host_name):
+        try:
+            verify_fqdn(host_name)
+        except:
             host_name = ""
             continue
         else:
@@ -256,36 +175,6 @@ def read_ip_address(host_name):
 
         return ip
 
-def port_available(port):
-    """Try to bind to a port on the wildcard host
-       Return 1 if the port is available
-       Return 0 if the port is in use
-    """
-    rv = 1
-
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s.bind(('', port))
-        s.shutdown(0)
-        s.close()
-    except socket.error, e:
-        if e[0] == errno.EADDRINUSE:
-            rv = 0
-
-    if rv:
-        try:
-            s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.bind(('', port))
-            s.shutdown(0)
-            s.close()
-        except socket.error, e:
-            if e[0] == errno.EADDRINUSE:
-                rv = 0
-
-    return rv
-
 def read_ds_user():
     print "The server must run as a specific user in a specific group."
     print "It is strongly recommended that this user should have no privileges"
@@ -333,23 +222,6 @@ def read_realm_name(domain_name):
             realm_name = upper_dom
     return realm_name
 
-def read_password(user):
-    correct = False
-    pwd = ""
-    while not correct:
-        pwd = getpass.getpass(user + " password: ")
-        if not pwd:
-            continue
-        pwd_confirm = getpass.getpass("Password (confirm): ")
-        if pwd != pwd_confirm:
-            print "Password mismatch!"
-            print ""
-        else:
-            correct = True
-        #TODO: check validity/length
-    print ""
-    return pwd
-
 def read_dm_password():
     print "Certain directory server operations require an administrative user."
     print "This user is referred to as the Directory Manager and has full access"
@@ -392,6 +264,8 @@ def main():
     global ds
     ds = None
 
+    options = parse_options()
+
     if os.getegid() != 0:
         print "Must be root to setup server"
         return
@@ -399,17 +273,17 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
+    standard_logging_setup("ipaserver-install.log", options.debug)
+
     print "=============================================================================="
     print "This program will setup the FreeIPA Server."
     print ""
     print "To accept the default shown in brackets, press the Enter key."
     print ""
 
-    check_existing_installation()
-    check_ports()
+    ipaserver.dsinstance.check_existing_installation()
+    ipaserver.dsinstance.check_ports()
 
-    options = parse_options()
-    logging_setup(options)
 
     ds_user = ""
     realm_name = ""
@@ -439,10 +313,13 @@ def main():
         host_default = get_fqdn()
         
     if options.unattended:
-        if not verify_fqdn(host_default):
+        try:
+            verify_fqdn(host_default)
+        except RuntimeError, e:
+            logging.error(str(e) + "\n")
             return "-Fatal Error-"
-        else:
-            host_name = host_default
+
+        host_name = host_default
     else:
         host_name = read_host_name(host_default)
     
