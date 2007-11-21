@@ -342,17 +342,17 @@ class IPAClient:
 
         return entries
  
-     def mark_group_active(self,cn):
-         """Set a group as active by cn."""
- 
-         result = self.transport.mark_group_active(cn)
-         return result
- 
-     def mark_group_inactive(self,cn):
-         """Set a group as inactive by cn."""
- 
-         result = self.transport.mark_group_inactive(cn)
-         return result
+    def mark_group_active(self,cn):
+        """Set a group as active by cn."""
+
+        result = self.transport.mark_group_active(cn)
+        return result
+
+    def mark_group_inactive(self,cn):
+        """Set a group as inactive by cn."""
+
+        result = self.transport.mark_group_inactive(cn)
+        return result
 
 # Configuration
 
