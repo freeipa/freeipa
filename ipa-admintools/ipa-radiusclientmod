@@ -19,13 +19,14 @@
 #
 
 import sys
+import os
 from optparse import OptionParser
-import ipa
 from ipa.radius_client import *
 import ipa.ipaclient as ipaclient
-import ipa.ipavalidate as ipavalidate
+import ipa.ipautil as ipautil
 import ipa.config
 import ipa.ipaerror
+import ipa.radius_util as radius_util
 
 import xmlrpclib
 import kerberos
@@ -33,49 +34,76 @@ import ldap
 
 #------------------------------------------------------------------------------
 
-def parse_options():
-    parser = OptionParser()
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
-    parser.add_option("-s", "--secret", dest="secret",
-                      help="RADIUS client secret (required)")
-    parser.add_option("-n", "--name", dest="name",
-                      help="RADIUS client name")
-    parser.add_option("-t", "--type", dest="nastype",
-                      help="RADIUS client NAS Type")
-    parser.add_option("-d", "--description", dest="desc", 
-                      help="description of the RADIUS client")
-
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
-
-    return options, args
+attrs = radius_util.client_name_to_ldap_attr.keys()
+mandatory_attrs = ['Client-IP-Address']
 
 #------------------------------------------------------------------------------
 
-# FIXME
-def usage():
-    print "ipa-radiusclientmod ip_addr"
-    sys.exit(1)
+def help_option_callback(option, opt_str, value, parser, *args, **kwargs):
+    parser.print_help()
+    print
+    print "Valid interative attributes are:"
+    print ipautil.format_list(attrs, quote='"')
+    print
+    print "Required attributes are:"
+    print ipautil.format_list(mandatory_attrs, quote='"')
+    sys.exit(0)
+
+#------------------------------------------------------------------------------
 
 def main():
-    ip_addr = None
-    secret = None
-    name = None
-    nastype = None
-    desc = None
+    opt_parser = OptionParser(add_help_option=False)
+    opt_parser.add_option("-h", "--help", action="callback", callback=help_option_callback,
+                        help="detailed help information")
+    opt_parser.add_option("-i", "--interactive", dest="interactive", action='store_true', default=False,
+                      help="interactive mode, prompts with auto-completion")
+    opt_parser.add_option("-n", "--name", dest="name",
+                      help="RADIUS client name")
+    opt_parser.add_option("-t", "--type", dest="nastype",
+                      help="RADIUS client NAS Type")
+    opt_parser.add_option("-d", "--description", dest="desc", 
+                      help="description of the RADIUS client")
 
-    options, args = parse_options()
+    #FIXME interactive vs. non-interactive usage
+    opt_parser.set_usage("Usage: %s [options] %s" % (os.path.basename(sys.argv[0]), ' '.join(mandatory_attrs)))
+    #FIXME, map options name to our name?
+    #FIXME if mandatory is on command line remove it from mandatory passed to completer
 
-    if len(args) != 2:
-        usage()
+    args = ipa.config.init_config(sys.argv)
+    options, args = opt_parser.parse_args(args)
+
+    if options.interactive:
+        c = ipautil.AttributeValueCompleter(attrs)
+        c.open()
+        pairs = c.get_pairs("Enter: ", mandatory_attrs, validate)
+        c.close()
+    else:
+        pairs = {}
+
+        if False and len(args) != 2:
+            print "wrong number of arguments"
+            opt_parser.print_help()
+            sys.exit(1)
+
+        pairs['Client-IP-Address']  = args[1]
+        pairs['Secret'] = args[2]
+        if options.name: pairs['Name'] = options.name
+        if options.nastype: pairs['NAS-Type'] = options.nastype
+        if options.desc: pairs['Description'] = options.desc
+
+        for name,value in pairs.items():
+            if not validate(name, value): return 1
 
     ip_addr = args[1]
+
 
     radius_client = ipa.radius_client.RadiusClient()
     ipa_client = ipaclient.IPAClient()
     try:
-        radius_client = ipa_client.get_radius_client_by_ip_addr(ip_addr)
+        #radius_client = ipa_client.get_radius_client_by_ip_addr(ip_addr)
+        dn = radius_util.radius_client_dn(ip_addr, 'dc=ipatest,dc=jrd')
+        print dn
+        radius_client = ipa_client.get_entry_by_dn(dn)
         pass
     except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_NOT_FOUND):
         print "client %s not found" % ip_addr
@@ -86,6 +114,8 @@ def main():
     except kerberos.GSSError, e:
         print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])
         return 1
+
+    sys.exit(0)
 
     if options.secret:
         secret = options.secret

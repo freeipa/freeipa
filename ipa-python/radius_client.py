@@ -21,6 +21,7 @@ import getpass
 import re
 
 from ipa.entity import Entity
+import ipa.ipavalidate as ipavalidate
 
 __all__ = ['RadiusClient',
            'get_secret',
@@ -29,6 +30,7 @@ __all__ = ['RadiusClient',
            'validate_name',
            'validate_nastype',
            'validate_desc',
+           'validate',
            ]
 
 #------------------------------------------------------------------------------
@@ -41,7 +43,10 @@ valid_name_len = (1,31)
 valid_nastype_len = (1,31)
 valid_ip_addr_len = (1,255)
 
-valid_ip_addr_msg = "IP address must be either a DNS name (letters,digits,dot,hyphen, beginning with a letter),or a dotted octet followed by an optional mask (e.g 192.168.1.0/24)"
+valid_ip_addr_msg = '''\
+IP address must be either a DNS name (letters,digits,dot,hyphen, beginning with
+a letter),or a dotted octet followed by an optional mask (e.g 192.168.1.0/24)'''
+
 valid_desc_msg = "Description must text string"
 
 #------------------------------------------------------------------------------
@@ -101,38 +106,60 @@ def validate_length(value, limits):
 def valid_length_msg(name, limits):
     return "%s length must be at least %d and not more than %d" % (name, limits[0], limits[1])
 
+def err_msg(variable, variable_name=None):
+    if variable_name is None: variable_name = 'value'
+    print "ERROR: %s = %s" % (variable_name, variable)
+
 #------------------------------------------------------------------------------
 
-def validate_ip_addr(ip_addr):
+def validate_ip_addr(ip_addr, variable_name=None):
     if not validate_length(ip_addr, valid_ip_addr_len):
+        err_msg(ip_addr, variable_name)
         print valid_length_msg('ip address', valid_ip_addr_len)
         return False
     if not valid_ip_addr(ip_addr):
+        err_msg(ip_addr, variable_name)
         print valid_ip_addr_msg
         return False
     return True
 
-def validate_secret(secret):
+def validate_secret(secret, variable_name=None):
     if not validate_length(secret, valid_secret_len):
+        err_msg(secret, variable_name)
         print valid_length_msg('secret', valid_secret_len)
         return False
     return True
 
-def validate_name(name):
+def validate_name(name, variable_name=None):
     if not validate_length(name, valid_name_len):
+        err_msg(name, variable_name)
         print valid_length_msg('name', valid_name_len)
         return False
     return True
 
-def validate_nastype(nastype):
+def validate_nastype(nastype, variable_name=None):
     if not validate_length(nastype, valid_nastype_len):
+        err_msg(nastype, variable_name)
         print valid_length_msg('NAS Type', valid_nastype_len)
         return False
     return True
 
-def validate_desc(desc):
+def validate_desc(desc, variable_name=None):
     if ipavalidate.plain(desc, notEmpty=True) != 0:
         print valid_desc_msg
         return False
+    return True
+
+def validate(attribute, value):
+    if attribute == 'Client-IP-Address':
+        return validate_ip_addr(value, attribute)
+    if attribute == 'Secret':
+        return validate_secret(value, attribute)
+    if attribute == 'NAS-Type':
+        return validate_nastype(value, attribute)
+    if attribute == 'Name':
+        return validate_name(value, attribute)
+    if attribute == 'Description':
+        return validate_desc(value, attribute)
     return True
 

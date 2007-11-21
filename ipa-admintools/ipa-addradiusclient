@@ -19,13 +19,16 @@
 #
 
 import sys
+import os
 from optparse import OptionParser
-import ipa
+import copy
+
 from ipa.radius_client import *
 import ipa.ipaclient as ipaclient
-import ipa.ipavalidate as ipavalidate
+import ipa.ipautil as ipautil
 import ipa.config
 import ipa.ipaerror
+import ipa.radius_util as radius_util
 
 import xmlrpclib
 import kerberos
@@ -33,97 +36,127 @@ import ldap
 
 #------------------------------------------------------------------------------
 
-def parse_options():
-    parser = OptionParser()
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
-    parser.add_option("-a", "--address", dest="ip_addr",
-                      help="RADIUS client IP address (required)")
-    parser.add_option("-s", "--secret", dest="secret",
-                      help="RADIUS client secret (required)")
-    parser.add_option("-n", "--name", dest="name",
-                      help="RADIUS client name")
-    parser.add_option("-t", "--type", dest="nastype",
-                      help="RADIUS client NAS Type")
-    parser.add_option("-d", "--description", dest="desc", 
-                      help="description of the RADIUS client")
-
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
-
-    return options, args
+attrs = radius_util.client_name_to_ldap_attr.keys()
+mandatory_attrs = ['Client-IP-Address', 'Secret']
 
 #------------------------------------------------------------------------------
 
+def help_option_callback(option, opt_str, value, parser, *args, **kwargs):
+    parser.print_help()
+    print
+    print "Valid interative attributes are:"
+    print ipautil.format_list(attrs, quote='"')
+    print
+    print "Required attributes are:"
+    print ipautil.format_list(mandatory_attrs, quote='"')
+    sys.exit(0)
+
 def main():
-    ip_addr = None
-    secret = None
-    name = None
-    nastype = None
-    desc = None
+    pairs = {}
+
+    opt_parser = OptionParser(add_help_option=False)
+
+    opt_parser.add_option("-a", "--Client-IP-Address", dest="ip_addr",
+                      help="RADIUS client ip address")
+    opt_parser.add_option("-s", "--Secret", dest="secret",
+                      help="RADIUS client ip address")
+    opt_parser.add_option("-n", "--Name", dest="name",
+                      help="RADIUS client name")
+    opt_parser.add_option("-t", "--NAS-Type", dest="nastype",
+                      help="RADIUS client NAS Type")
+    opt_parser.add_option("-d", "--Description", dest="desc", 
+                      help="description of the RADIUS client")
+
+    opt_parser.add_option("-h", "--help", action="callback", callback=help_option_callback,
+                        help="detailed help information")
+    opt_parser.add_option("-i", "--interactive", dest="interactive", action='store_true', default=False,
+                      help="interactive mode, prompts with auto-completion")
+    opt_parser.add_option("-p", "--pair", dest="pairs", action='append',
+                      help="specify one or more attribute=value pair(s), value may be optionally quoted, pairs are delimited by whitespace")
+    opt_parser.add_option("-f", "--file", dest="pair_file",
+                      help="attribute=value pair(s) are read from file, value may be optionally quoted, pairs are delimited by whitespace. Reads from stdin if file is -")
+    opt_parser.add_option("-v", "--verbose", dest="verbose", action='store_true',
+                      help="print information")
+
+    #opt_parser.set_usage("Usage: %s [options] %s" % (os.path.basename(sys.argv[0]), ' '.join(mandatory_attrs)))
+
+    args = ipa.config.init_config(sys.argv)
+    options, args = opt_parser.parse_args(args)
+
+    # Get pairs from a file or stdin
+    if options.pair_file:
+        try:
+            av = radius_util.read_pairs_file(options.pair_file)
+            pairs.update(av)
+        except Exception, e:
+            print "ERROR, could not read pairs (%s)" % (e)
+
+    # Get pairs specified on the command line as a named argument
+    if options.ip_addr: pairs['Client-IP-Address'] = options.ip_addr
+    if options.secret: pairs['Secret'] = options.secret
+    if options.name: pairs['Name'] = options.name
+    if options.nastype: pairs['NAS-Type'] = options.nastype
+    if options.desc: pairs['Description'] = options.desc
+
+    # Get pairs specified on the command line as a pair argument
+    if options.pairs:
+        for p in options.pairs:
+            av = ipautil.parse_key_value_pairs(p)
+            pairs.update(av)
+
+    # Get pairs interactively
+    if options.interactive:
+        # Remove any mandatory attriubtes which have been previously specified
+        interactive_mandatory_attrs = copy.copy(mandatory_attrs)
+        for attr in pairs.keys():
+            try:
+                interactive_mandatory_attrs.remove(attr)
+            except ValueError:
+                pass
+        c = ipautil.AttributeValueCompleter(attrs, pairs)
+        c.open()
+        av = c.get_pairs("Enter: ", interactive_mandatory_attrs, validate)
+        pairs.update(av)
+        c.close()
+
+    # Data collection done, assure mandatory data has been specified
+    valid = True
+    for attr in mandatory_attrs:
+        if not pairs.has_key(attr):
+            valid = False
+            print "ERROR, %s is mandatory, but has not been specified" % (attr)
+    if not valid:
+        return 1
+
+    # Make sure each attribute is a member of the set of valid attributes
+    valid = True
+    for attr,value in pairs.items():
+        if attr not in attrs:
+            valid = False
+            print "ERROR, %s is not a valid attribute" % (attr)
+    if not valid:
+        print "Valid attributes are:"
+        print ipautil.format_list(attrs, quote='"')
+        return 1
+
+    # Makse sure each value is valid
+    valid = True
+    for attr,value in pairs.items():
+        if not validate(attr, value):
+            valid = False
+    if not valid:
+        return 1
+
+    # Dump what we've got so far
+    if options.verbose:
+        print "Pairs:"
+        for attr,value in pairs.items():
+            print "\t%s = %s" % (attr, value)
 
     radius_client = ipa.radius_client.RadiusClient()
-    options, args = parse_options()
+    for attr,value in pairs.items():
+        radius_client.setValue(radius_util.client_name_to_ldap_attr[attr], value)
 
-    # client address is required
-    if options.ip_addr:
-        ip_addr = options.ip_addr
-        if not validate_ip_addr(ip_addr): return 1
-    else:
-        valid = False
-        while not valid:
-            ip_addr = raw_input("Client IP: ")
-            if validate_ip_addr(ip_addr): valid = True
-
-    # client secret is required
-    if options.secret:
-        secret = options.secret
-        if not validate_secret(secret): return 1
-    else:
-        valid = False
-        while not valid:
-            secret = get_secret()
-            if validate_secret(secret): valid = True
-                
-    # client name is optional
-    if options.name:
-        name = options.name
-        if not validate_name(name): return 1
-
-    # client NAS Type is optional
-    if options.nastype:
-        nastype = options.nastype
-        if not validate_nastype(nastype): return 1
-        
-    # client description is optional
-    if options.desc:
-        desc = options.desc
-        if not validate_desc(desc): return 1
-        
-
-    #print "ip_addr=%s secret=%s name=%s nastype=%s desc=%s" % (ip_addr, secret, name, nastype, desc)
-
-    if ip_addr is not None:
-        radius_client.setValue('radiusClientNASIpAddress', ip_addr)
-    else:
-        print "client IP Address is required"
-        return 1
-
-    if secret is not None:
-        radius_client.setValue('radiusClientSecret', secret)
-    else:
-        print "client secret is required"
-        return 1
-
-    if name is not None:
-        radius_client.setValue('radiusClientShortName', name)
-
-    if nastype is not None:
-        radius_client.setValue('radiusClientNASType', nastype)
-       
-    if desc is not None:
-        radius_client.setValue('description', desc)
-       
     try:
         ipa_client = ipaclient.IPAClient()
         ipa_client.add_radius_client(radius_client)

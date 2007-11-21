@@ -22,6 +22,7 @@ import sys
 from optparse import OptionParser
 import ipa
 from ipa.radius_client import *
+from ipa import radius_util
 import ipa.ipaclient as ipaclient
 import ipa.ipavalidate as ipavalidate
 import ipa.config
@@ -45,21 +46,13 @@ def parse_options():
 
 #------------------------------------------------------------------------------
 
-attr_to_name = ipa.ipautil.CIDict({
-    'radiusClientNASIpAddress' : 'IP Address',
-    'radiusClientSecret'       : 'Secret',
-    'radiusClientNASType'      : 'NAS Type',
-    'radiusClientShortName'    : 'Name',
-    'description'              : 'Description',
- })
-
 # FIXME
 def usage():
     print "ipa-findradiusclients ip_addr [ip_addr ...]"
     sys.exit(1)
 
 def main():
-    attrs=['radiusClientNASIpAddress', 'radiusClientSecret', 'radiusClientNASType', 'radiusClientShortName', 'description']
+    attrs=['radiusClientIPAddress', 'radiusClientSecret', 'radiusClientNASType', 'radiusClientShortName', 'description']
 
     options, args = parse_options()
 
@@ -82,10 +75,10 @@ def main():
             attrs = radius_client.attrList()
             attrs.sort()
             
-            print "%s:" % radius_client.getValues('radiusClientNASIpAddress')
+            print "%s:" % radius_client.getValues('radiusClientIPAddress')
             for attr in attrs:
                 value = radius_client.getValues(attr)
-                print "\t%s = %s" % (attr_to_name[attr], value)
+                print "\t%s = %s" % (radius_util.client_ldap_attr_to_name[attr], value)
 
     except xmlrpclib.Fault, f:
         print f.faultString

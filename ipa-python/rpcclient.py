@@ -594,12 +594,12 @@ class RPCClient:
 
 # radius support
 
-    def get_radius_client_by_ip_addr(self,ip_addr,sattrs=None):
+    def get_radius_client_by_ip_addr(self,ip_addr, container, sattrs=None):
         server = self.setup_server()
-        if sattrs is None:
-            sattrs = "__NONE__"
+        if container is None: container = "__NONE__"
+        if sattrs is None: sattrs = "__NONE__"
         try:
-            result = server.get_radius_client_by_ip_addr(ip_addr, sattrs)
+            result = server.get_radius_client_by_ip_addr(ip_addr, container, sattrs)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
@@ -607,11 +607,13 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
-    def add_radius_client(self,client):
+    def add_radius_client(self,client, container=None):
         server = self.setup_server()
 
+        if container is None: container = "__NONE__"
+
         try:
-            result = server.add_radius_client(ipautil.wrap_binary_data(client))
+            result = server.add_radius_client(ipautil.wrap_binary_data(client), container)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
@@ -633,11 +635,12 @@ class RPCClient:
         return ipautil.unwrap_binary_data(result)
 
         
-    def delete_radius_client(self,ip_addr):
+    def delete_radius_client(self,ip_addr, container=None):
         server = self.setup_server()
+        if container is None: container = "__NONE__"
     
         try:
-            result = server.delete_radius_client(ip_addr)
+            result = server.delete_radius_client(ip_addr, container)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
@@ -645,13 +648,14 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
-    def find_radius_clients(self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
+    def find_radius_clients(self, criteria, container=None, sattrs=None, searchlimit=0, timelimit=-1):
         server = self.setup_server()
+        if container is None: container = "__NONE__"
         try:
             # None values are not allowed in XML-RPC
             if sattrs is None:
                 sattrs = "__NONE__"
-            result = server.find_radius_clients(criteria, sattrs, searchlimit, timelimit)
+            result = server.find_radius_clients(criteria, container, sattrs, searchlimit, timelimit)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):

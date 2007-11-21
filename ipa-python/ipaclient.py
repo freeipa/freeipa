@@ -334,29 +334,29 @@ class IPAClient:
         return entries
 
 # radius support
-    def get_radius_client_by_ip_addr(self,ip_addr,sattrs=None):
-        result = self.transport.get_radius_client_by_ip_addr(ip_addr,sattrs)
+    def get_radius_client_by_ip_addr(self, ip_addr, container=None, sattrs=None):
+        result = self.transport.get_radius_client_by_ip_addr(ip_addr, container, sattrs)
         return radius_client.RadiusClient(result)
 
-    def add_radius_client(self,client):
+    def add_radius_client(self,client, container=None):
         client_dict = client.toDict()
 
         # dn is set on the server-side
         del client_dict['dn']
 
         # convert to a regular dict before sending
-        result = self.transport.add_radius_client(client_dict)
+        result = self.transport.add_radius_client(client_dict, container)
         return result
 
     def update_radius_client(self,client):
         result = self.transport.update_radius_client(client.origDataDict(), client.toDict())
         return result
 
-    def delete_radius_client(self,ip_addr):
-        return self.transport.delete_radius_client(ip_addr)
+    def delete_radius_client(self, ip_addr, container=None):
+        return self.transport.delete_radius_client(ip_addr, container)
 
-    def find_radius_clients(self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
-        result = self.transport.find_radius_clients(criteria, sattrs, searchlimit, timelimit)
+    def find_radius_clients(self, criteria, container=None, sattrs=None, searchlimit=0, timelimit=-1):
+        result = self.transport.find_radius_clients(criteria, container, sattrs, searchlimit, timelimit)
         counter = result[0]
 
         users = [counter]

@@ -356,6 +356,11 @@ def handler(req, profiling=False):
             h.register_function(f.update_radius_client)
             h.register_function(f.delete_radius_client)
             h.register_function(f.find_radius_clients)
+            h.register_function(f.get_radius_profile_by_uid)
+            h.register_function(f.add_radius_profile)
+            h.register_function(f.update_radius_profile)
+            h.register_function(f.delete_radius_profile)
+            h.register_function(f.find_radius_profiles)
             h.handle_request(req)
         finally:
              pass

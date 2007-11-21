@@ -25,6 +25,10 @@ import logging
 import subprocess
 import os
 import stat
+import copy
+import readline
+import traceback
+from types import *
 
 from string import lower
 import re
@@ -331,3 +335,329 @@ def parse_generalized_time(timestr):
     except ValueError:
         return None
 
+
+def format_list(items, quote=None, page_width=80):
+    '''Format a list of items formatting them so they wrap to fit the
+    available width. The items will be sorted. 
+
+    The items may optionally be quoted. The quote parameter may either be
+    a string, in which case it is added before and after the item. Or the
+    quote parameter may be a pair (either a tuple or list). In this case 
+    quote[0] is left hand quote and quote[1] is the right hand quote.
+    '''
+    left_quote = right_quote = ''
+    num_items = len(items)
+    if not num_items: return text
+
+    if quote is not None:
+        if type(quote) in StringTypes:
+            left_quote = right_quote = quote
+        elif type(quote) is TupleType or type(quote) is ListType:
+            left_quote = quote[0]
+            right_quote = quote[1]
+
+    max_len = max(map(len, items))
+    max_len += len(left_quote) + len(right_quote)
+    num_columns = (page_width + max_len) / (max_len+1)
+    num_rows = (num_items + num_columns - 1) / num_columns
+    items.sort()
+
+    rows = [''] * num_rows
+    i = row = col = 0
+
+    while i < num_items:
+        row = 0
+        if col == 0:
+            separator = ''
+        else:
+            separator = ' '
+
+        while i < num_items and row < num_rows:
+            rows[row] += "%s%*s" % (separator, -max_len, "%s%s%s" % (left_quote, items[i], right_quote))
+            i += 1
+            row += 1
+        col += 1
+    return '\n'.join(rows)
+
+key_value_re = re.compile("([^\s=]+)\s*=\s*((\S+)|(?P<quote>['\\\"])((?P=quote)|(.*?[^\\\])(?P=quote)))")
+def parse_key_value_pairs(input):
+    ''' Given a string composed of key=value pairs parse it and return
+    a dict of the key/value pairs. Keys must be a word, a key must be followed
+    by an equal sign (=) and a value. The value may be a single word or may be
+    quoted. Quotes may be either single or double quotes, but must be balanced.
+    Inside the quoted text the same quote used to start the quoted value may be
+    used if it is escaped by preceding it with a backslash (\).
+    White space between the key, the equal sign, and the value is ignored.
+    Values are always strings. Empty values must be specified with an empty
+    quoted string, it's value after parsing will be an empty string.
+
+    Example: The string
+
+    arg0 = '' arg1 = 1 arg2='two' arg3 = "three's a crowd" arg4 = "this is a \" quote" 
+    
+    will produce
+
+    arg0=   arg1=1
+    arg2=two
+    arg3=three's a crowd
+    arg4=this is a " quote
+    '''
+
+    kv_dict = {}
+    for match in key_value_re.finditer(input):
+        key = match.group(1)
+        quote = match.group('quote')
+        if match.group(5):
+            value = match.group(6)
+            if value is None: value = ''
+            value = re.sub('\\\%s' % quote, quote, value)
+        else:
+            value = match.group(2)
+        kv_dict[key] = value
+    return kv_dict
+
+class AttributeValueCompleter:
+    '''
+    Gets input from the user in the form "lhs operator rhs"
+    TAB completes partial input.
+    lhs completes to a name in @lhs_names
+    The lhs is fully parsed if a lhs_delim delimiter is seen, then TAB will
+    complete to the operator and a default value.
+    Default values for a lhs value can specified as:
+      - a string, all lhs values will use this default
+      - a dict, the lhs value is looked up in the dict to return the default or None
+      - a function with a single arg, the lhs value, it returns the default or None
+
+    After creating the completer you must open it to set the terminal
+    up, Then get a line of input from the user by calling read_input()
+    which returns two values, the lhs and rhs, which might be None if
+    lhs or rhs was not parsed.  After you are done getting input you
+    should close the completer to restore the terminal.
+
+    Example: (note this is essentially what the convenience function get_pairs() does)
+
+    This will allow the user to autocomplete foo & foobar, both have
+    defaults defined in a dict. In addition the foobar attribute must
+    be specified before the prompting loop will exit. Also, this
+    example show how to require that each attrbute entered by the user
+    is valid.
+
+    attrs = ['foo', 'foobar']
+    defaults = {'foo' : 'foo_default', 'foobar' : 'foobar_default'}
+    mandatory_attrs = ['foobar']
+
+    c = AttributeValueCompleter(attrs, defaults)
+    c.open()
+    mandatory_attrs_remaining = copy.copy(mandatory_attrs)
+
+    while True:
+        if mandatory_attrs_remaining:
+            attribute, value = c.read_input("Enter: ", mandatory_attrs_remaining[0])
+            try:
+                mandatory_attrs_remaining.remove(attribute)
+            except ValueError:
+                pass
+        else:
+            attribute, value = c.read_input("Enter: ")
+        if attribute is None:
+            # Are we done?
+            if mandatory_attrs_remaining:
+                print "ERROR, you must specify: %s" % (','.join(mandatory_attrs_remaining))
+                continue
+            else:
+                break
+        if attribute not in attrs:
+            print "ERROR: %s is not a valid attribute" % (attribute)
+        else:
+            print "got '%s' = '%s'" % (attribute, value)
+
+    c.close()
+    print "exiting..."
+    '''
+
+    def __init__(self, lhs_names, default_value=None, lhs_regexp=r'^\s*(?P<lhs>[^ =]+)', lhs_delims=' =',
+                 operator='=', strip_rhs=True):
+        self.lhs_names = lhs_names
+        self.default_value = default_value
+        # lhs_regexp must have named group 'lhs' which returns the contents of the lhs
+        self.lhs_regexp = lhs_regexp
+        self.lhs_re = re.compile(self.lhs_regexp)
+        self.lhs_delims = lhs_delims
+        self.operator = operator
+        self.strip_rhs = strip_rhs
+        self._reset()
+
+    def _reset(self):
+        self.lhs = None
+        self.lhs_complete = False
+        self.operator_complete = False
+        self.rhs = None
+
+    def open(self):
+        # Save state
+        self.prev_completer = readline.get_completer()
+        self.prev_completer_delims = readline.get_completer_delims()
+
+        # Set up for ourself
+        readline.parse_and_bind("tab: complete")
+        readline.set_completer(self.complete)
+        readline.set_completer_delims(self.lhs_delims)
+
+    def close(self):
+        # Restore previous state
+        readline.set_completer_delims(self.prev_completer_delims)
+        readline.set_completer(self.prev_completer)
+        
+    def _debug(self):
+        print  >> output_fd, "lhs='%s' lhs_complete=%s operator='%s' operator_complete=%s rhs='%s'" % \
+            (self.lhs, self.lhs_complete, self.operator, self.operator_complete, self.rhs)
+
+
+    def parse_input(self):
+        '''We are looking for 3 tokens: <lhs,op,rhs>
+        Extract as much of each token as possible.
+        Set flags indicating if token is fully parsed.
+        '''
+        try:
+            self._reset()
+            buf_len = len(self.line_buffer)
+            pos = 0
+            lhs_match = self.lhs_re.search(self.line_buffer, pos)
+            if not lhs_match: return            # no lhs content
+            self.lhs = lhs_match.group('lhs')   # get lhs contents
+            pos = lhs_match.end('lhs')          # new scanning position
+            if pos == buf_len: return           # nothing after lhs, lhs incomplete
+            self.lhs_complete = True            # something trails the lhs, lhs is complete
+            operator_beg = self.line_buffer.find(self.operator, pos) # locate operator
+            if operator_beg == -1: return	# did not find the operator
+            self.operator_complete = True       # operator fully parsed
+            operator_end = operator_beg + len(self.operator)
+            pos = operator_end                  # step over the operator
+            self.rhs = self.line_buffer[pos:]
+        except Exception, e:
+            traceback.print_exc()
+            print "Exception in %s.parse_input(): %s" % (self.__class__.__name__, e)
+
+    def get_default_value(self):
+        '''default_value can be a string, a dict, or a function.
+        If it's a string it's a global default for all attributes.
+        If it's a dict the default is looked up in the dict index by attribute.
+        If it's a function, the function is called with 1 parameter, the attribute
+        and it should return the default value for the attriubte or None'''
+
+        if not self.lhs_complete: raise ValueError("attribute not parsed")
+        default_value_type = type(self.default_value)
+        if default_value_type is DictType:
+            return self.default_value.get(self.lhs, None)
+        elif default_value_type is FunctionType:
+            return self.default_value(self.lhs)
+        elif default_value_type is StringsType:
+            return self.default_value
+        else:
+            return None
+
+    def get_lhs_completions(self, text):
+        if text:
+            self.completions = [lhs for lhs in self.lhs_names if lhs.startswith(text)]
+        else:
+            self.completions = self.lhs_names
+
+    def complete(self, text, state):
+        self.line_buffer= readline.get_line_buffer()
+        self.parse_input()
+        if not self.lhs_complete:
+            # lhs is not complete, set up to complete the lhs
+            if state == 0:
+                beg = readline.get_begidx()
+                end = readline.get_endidx()
+                self.get_lhs_completions(self.line_buffer[beg:end])
+            if state >= len(self.completions): return None
+            return self.completions[state]
+
+
+        elif not self.operator_complete:
+            # lhs is complete, but the operator is not so we complete
+            # by inserting the operator manually.
+            # Also try to complete the default value at this time.
+            readline.insert_text('%s ' % self.operator)
+            default_value = self.get_default_value()
+            if default_value is not None:
+                readline.insert_text(default_value)
+            readline.redisplay()
+            return None
+        else:
+            # lhs and operator are complete, if the the rhs is blank
+            # (either empty or only only whitespace) then attempt
+            # to complete by inserting the default value, otherwise
+            # there is nothing we can complete to so we're done.
+            if self.rhs.strip():
+                return None
+            default_value = self.get_default_value()
+            if default_value is not None:
+                readline.insert_text(default_value)
+                readline.redisplay()
+            return None
+
+    def pre_input_hook(self):
+        readline.insert_text('%s %s ' % (self.initial_lhs, self.operator))
+        readline.redisplay()
+
+    def read_input(self, prompt, initial_lhs=None):
+        self.initial_lhs = initial_lhs
+        try:
+            self._reset()
+            if initial_lhs is None:
+                readline.set_pre_input_hook(None)
+            else:
+                readline.set_pre_input_hook(self.pre_input_hook)
+            self.line_buffer = raw_input(prompt).strip()
+            self.parse_input()
+            if self.strip_rhs and self.rhs is not None:
+                return self.lhs, self.rhs.strip()
+            else:
+                return self.lhs, self.rhs
+        except EOFError:
+            return None, None
+
+    def get_pairs(self, prompt, mandatory_attrs=None, validate_callback=None, must_match=True, value_required=True):
+        pairs = {}
+        if mandatory_attrs:
+            mandatory_attrs_remaining = copy.copy(mandatory_attrs)
+        else:
+            mandatory_attrs_remaining = []
+
+        print "Enter name = value"
+        print "Press <ENTER> to accept, a blank line terminates input"
+        print "Pressing <TAB> will auto completes name, assignment, and value"
+        print
+        while True:
+            if mandatory_attrs_remaining:
+                attribute, value = self.read_input(prompt, mandatory_attrs_remaining[0])
+            else:
+                attribute, value = self.read_input(prompt)
+            if attribute is None:
+                # Are we done?
+                if mandatory_attrs_remaining:
+                    print "ERROR, you must specify: %s" % (','.join(mandatory_attrs_remaining))
+                    continue
+                else:
+                    break
+            if value is None:
+                if value_required:
+                    print "ERROR: you must specify a value for %s" % attribute
+                    continue
+            else:
+                if must_match and attribute not in self.lhs_names:
+                    print "ERROR: %s is not a valid name" % (attribute)
+                    continue
+            if validate_callback is not None:
+                if not validate_callback(attribute, value):
+                    print "ERROR: %s is not valid for %s" % (value, attribute)
+                    continue
+            try:
+                mandatory_attrs_remaining.remove(attribute)
+            except ValueError:
+                pass
+
+            pairs[attribute] = value
+        return pairs
