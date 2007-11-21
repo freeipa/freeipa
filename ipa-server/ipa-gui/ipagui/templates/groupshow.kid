@@ -11,6 +11,7 @@ cn = group.get('cn')
 if isinstance(cn, list):
     cn = cn[0]
 edit_url = tg.url('/group/edit', cn=cn)
+from ipagui.helpers import userhelper
 ?>
 <div id="details">
     <h1>View Group</h1>
@@ -42,6 +43,12 @@ edit_url = tg.url('/group/edit', cn=cn)
           </th>
           <td>${group.get("gidnumber")}</td>
         </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.nsAccountLock.label" />:
+          </th>
+          <td>${userhelper.account_status_display(group.get("nsAccountLock"))}</td>
+         </tr>
     </table>
 
     <h2 class="formsection">Group Members</h2>

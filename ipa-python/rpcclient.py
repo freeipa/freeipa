@@ -318,18 +318,32 @@ class RPCClient:
 
         return result
 
-    def mark_user_deleted(self,uid):
-        """Mark a user as deleted/inactive"""
+    def mark_user_active(self,uid):
+        """Mark a user as active"""
         server = self.setup_server()
     
         try:
-            result = server.mark_user_deleted(uid)
+            result = server.mark_user_active(uid)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
 
         return ipautil.unwrap_binary_data(result)
+
+    def mark_user_inactive(self,uid):
+        """Mark a user as inactive"""
+        server = self.setup_server()
+    
+        try:
+            result = server.mark_user_inactive(uid)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
 
 # Group support
 
@@ -600,6 +614,34 @@ class RPCClient:
             raise xmlrpclib.Fault(value, msg)
 
         return ipautil.unwrap_binary_data(result)
+
+    def mark_group_active(self,cn):
+        """Mark a group as active"""
+        server = self.setup_server()
+    
+        try:
+            result = server.mark_group_active(cn)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
+    def mark_group_inactive(self,cn):
+        """Mark a group as inactive"""
+        server = self.setup_server()
+    
+        try:
+            result = server.mark_group_inactive(cn)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
+# Configuration support
 
     def get_ipa_config(self):
         """Get the IPA configuration"""

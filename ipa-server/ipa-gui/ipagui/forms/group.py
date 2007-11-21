@@ -9,6 +9,10 @@ class GroupFields():
 
     editprotected_hidden = widgets.HiddenField(name="editprotected")
 
+    nsAccountLock = widgets.SingleSelectField(name="nsAccountLock",
+            label="Group Status",
+            options = [("", "active"), ("true", "inactive")])
+
     group_orig = widgets.HiddenField(name="group_orig")
     member_data = widgets.HiddenField(name="member_data")
     dn_to_info_json = widgets.HiddenField(name="dn_to_info_json")

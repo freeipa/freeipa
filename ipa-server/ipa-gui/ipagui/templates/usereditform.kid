@@ -787,7 +787,7 @@ from ipagui.helpers import ipahelper
           group_dn = group.get('dn')
           group_dn_esc = ipahelper.javascript_string_escape(group_dn)
 
-          group_name = group.get('cn')[0]
+          group_name = group.get('cn')
           group_descr = "[group]"
           group_type = "group"
 

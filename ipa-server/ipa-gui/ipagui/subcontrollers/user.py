@@ -197,14 +197,14 @@ class UserController(IPAController):
             new_user.setValue('carlicense', kw.get('carlicense'))
             new_user.setValue('labeleduri', kw.get('labeleduri'))
 
-            if kw.get('nsAccountLock'):
-                new_user.setValue('nsAccountLock', 'true')
-
             for custom_field in user_new_form.custom_fields:
                 new_user.setValue(custom_field.name,
                                   kw.get(custom_field.name, ''))
 
             rv = client.add_user(new_user)
+
+            if kw.get('nsAccountLock'):
+                client.mark_user_inactive(kw.get('uid'))
         except ipaerror.exception_for(ipaerror.LDAP_DUPLICATE):
             turbogears.flash("User with login '%s' already exists" %
                     kw.get('uid'))
@@ -482,12 +482,6 @@ class UserController(IPAController):
             new_user.setValue('carlicense', kw.get('carlicense'))
             new_user.setValue('labeleduri', kw.get('labeleduri'))
 
-
-            if kw.get('nsAccountLock'):
-                new_user.setValue('nsAccountLock', 'true')
-            else:
-                new_user.setValue('nsAccountLock', None)
-
             if kw.get('editprotected') == 'true':
                 if kw.get('userpassword'):
                     password_change = True
@@ -568,6 +562,20 @@ class UserController(IPAController):
             if password_change:
                 message = "User password successfully updated.<br />" + message
             turbogears.flash(message)
+            return dict(form=user_edit_form, user=kw,
+                        user_groups=user_groups_dicts,
+                        tg_template='ipagui.templates.useredit')
+
+        if kw.get('nsAccountLock') == '':
+            kw['nsAccountLock'] = "false"
+
+        try:
+            if kw.get('nsAccountLock') == "false" and new_user.getValues('nsaccountlock') == "true":
+                client.mark_user_active(kw.get('uid'))
+            elif kw.get('nsAccountLock') == "true" and new_user.nsaccountlock != "true":
+                client.mark_user_inactive(kw.get('uid'))
+        except ipaerror.IPAError, e:
+            turbogears.flash("User status change failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             return dict(form=user_edit_form, user=kw,
                         user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')

@@ -116,3 +116,42 @@ ipaDefaultLoginShell: /bin/sh
 ipaDefaultPrimaryGroup: ipausers
 ipaMaxUsernameLength: 8
 ipaPwdExpAdvNotify: 4
+
+dn: cn=account inactivation,cn=accounts,$SUFFIX
+description: Lock accounts based on group membership
+objectClass: top
+objectClass: ldapsubentry
+objectClass: cosSuperDefinition
+objectClass: cosClassicDefinition
+cosTemplateDn: cn=cosTemplates,cn=accounts,$SUFFIX
+cosAttribute: nsAccountLock operational
+cosAttribute: pager
+cosSpecifier: memberOf
+cn: Account Inactivation
+
+dn: cn=cosTemplates,cn=accounts,$SUFFIX
+objectclass: top
+objectclass: nsContainer
+cn: cosTemplates
+
+dn: cn="cn=inactivated,cn=account inactivation,cn=accounts,$SUFFIX", cn=cosTemplates,cn=accounts,$SUFFIX
+objectClass: top
+objectClass: cosTemplate
+objectClass: extensibleobject
+nsAccountLock: true
+cosPriority: 1
+
+dn: cn=inactivated,cn=account inactivation,cn=accounts,$SUFFIX
+objectclass: top
+objectclass: groupofuniquenames
+
+dn: cn="cn=activated,cn=account inactivation,cn=accounts,$SUFFIX", cn=cosTemplates,cn=accounts,$SUFFIX
+objectClass: top
+objectClass: cosTemplate
+objectClass: extensibleobject
+nsAccountLock: false
+cosPriority: 0
+
+dn: cn=Activated,cn=Account Inactivation,cn=accounts,$SUFFIX
+objectclass: top
+objectclass: groupofuniquenames

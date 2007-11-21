@@ -177,10 +177,16 @@ class IPAClient:
 
         return result
 
-    def mark_user_deleted(self,uid):
+    def mark_user_active(self,uid):
+        """Set a user as active by uid."""
+
+        result = self.transport.mark_user_active(uid)
+        return result
+
+    def mark_user_inactive(self,uid):
         """Set a user as inactive by uid."""
 
-        result = self.transport.mark_user_deleted(uid)
+        result = self.transport.mark_user_inactive(uid)
         return result
 
 # Groups support
@@ -335,6 +341,20 @@ class IPAClient:
                 entries.append(user.User(e))
 
         return entries
+ 
+     def mark_group_active(self,cn):
+         """Set a group as active by cn."""
+ 
+         result = self.transport.mark_group_active(cn)
+         return result
+ 
+     def mark_group_inactive(self,cn):
+         """Set a group as inactive by cn."""
+ 
+         result = self.transport.mark_group_inactive(cn)
+         return result
+
+# Configuration
 
     def get_ipa_config(self):
         """Get the IPA configuration"""

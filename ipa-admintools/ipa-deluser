@@ -57,11 +57,14 @@ def main():
             ret = client.delete_user(args[1])
             msg = "deleted"
         else:
-            ret = client.mark_user_deleted(args[1])
-        if (ret == "Success"):
+            try:
+                ret = client.mark_user_inactive(args[1])
+            except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_EMPTY_MODLIST):
+                print "User is already marked inactive"
+                return 0
+            except:
+                raise
             print args[1] + " successfully %s" % msg
-        else:
-            print args[1] + " " + ret
     except xmlrpclib.Fault, fault:
         if fault.faultCode == errno.ECONNREFUSED:
             print "The IPA XML-RPC service is not responding."

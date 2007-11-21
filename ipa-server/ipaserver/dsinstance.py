@@ -119,7 +119,7 @@ class DsInstance(service.Service):
     def __setup_sub_dict(self):
         server_root = find_server_root()
         self.sub_dict = dict(FQHN=self.host_name, SERVERID=self.serverid,
-                             PASSWORD=self.dm_password, SUFFIX=self.suffix,
+                             PASSWORD=self.dm_password, SUFFIX=self.suffix.lower(),
                              REALM=self.realm_name, USER=self.ds_user,
                              SERVER_ROOT=server_root)
 

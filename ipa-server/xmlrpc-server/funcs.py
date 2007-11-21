@@ -36,6 +36,7 @@ import string
 from types import *
 import os
 import re
+import logging
 
 try:
     from threading import Lock
@@ -48,6 +49,11 @@ _LDAPPool = None
 ACIContainer = "cn=accounts"
 DefaultUserContainer = "cn=users,cn=accounts"
 DefaultGroupContainer = "cn=groups,cn=accounts"
+
+# FIXME: need to check the ipadebug option in ipa.conf
+logging.basicConfig(level=logging.DEBUG,
+    format='%(asctime)s %(levelname)s %(message)s',
+    stream=sys.stderr)
 
 #
 # Apache runs in multi-process mode so each process will have its own
@@ -674,25 +680,79 @@ class IPAServer:
            else:
                raise
 
-    def mark_user_deleted (self, uid, opts=None):
-        """Mark a user as inactive in LDAP. We aren't actually deleting
-           users here, just making it so they can't log in, etc."""
-        user = self.get_user_by_uid(uid, ['dn', 'uid', 'nsAccountlock'], opts)
+    def mark_entry_active (self, dn, opts=None):
+        """Mark an entry as active in LDAP."""
 
-        # Are we doing an add or replace operation?
-        if user.has_key('nsaccountlock'):
-            if user['nsaccountlock'] == "true":
-                return "already marked as deleted"
-            has_key = True
-        else:
-            has_key = False
+        # This can be tricky. The entry itself can be marked inactive
+        # by being in the inactivated group. It can also be inactivated by
+        # being the member of an inactive group.
+        #
+        # First we try to remove the entry from the inactivated group. Then
+        # if it is still inactive we have to add it to the activated group
+        # which will override the group membership.
 
-        conn = self.getConnection(opts)
-        try:
-            res = conn.inactivateEntry(user['dn'], has_key)
-        finally:
-            self.releaseConnection(conn)
+        logging.debug("IPA: activating entry %s" % dn)
+
+        res = ""
+        # First, check the entry status
+        entry = self.get_entry_by_dn(dn, ['dn', 'nsAccountlock'], opts)
+
+        if entry.get('nsaccountlock', 'false') == "false":
+            logging.debug("IPA: already active")
+            raise ipaerror.gen_exception(ipaerror.LDAP_EMPTY_MODLIST)
+
+        group = self.get_entry_by_cn("inactivated", None, opts)
+        res = self.remove_member_from_group(entry.get('dn'), group.get('dn'), opts)
+
+        # Now they aren't a member of inactivated directly, what is the status
+        # now?
+        entry = self.get_entry_by_dn(dn, ['dn', 'nsAccountlock'], opts)
+
+        if entry.get('nsaccountlock', 'false') == "false":
+            # great, we're done
+            logging.debug("IPA: removing from inactivated did it.")
+            return res
+
+        # So still inactive, add them to activated
+        group = self.get_entry_by_cn("activated", None, opts)
+        res = self.add_member_to_group(dn, group.get('dn'), opts)
+        logging.debug("IPA: added to activated.")
+
         return res
+
+    def mark_entry_inactive (self, dn, opts=None):
+        """Mark an entry as inactive in LDAP."""
+
+        logging.debug("IPA: inactivating entry %s" % dn)
+
+        entry = self.get_entry_by_dn(dn, ['dn', 'nsAccountlock', 'memberOf'], opts)
+
+        if entry.get('nsaccountlock', 'false') == "true":
+            logging.debug("IPA: already marked as inactive")
+            raise ipaerror.gen_exception(ipaerror.LDAP_EMPTY_MODLIST)
+
+        # First see if they are in the activated group as this will override
+        # the our inactivation.
+        group = self.get_entry_by_cn("activated", None, opts)
+        self.remove_member_from_group(dn, group.get('dn'), opts)
+
+        # Now add them to inactivated
+        group = self.get_entry_by_cn("inactivated", None, opts)
+        res = self.add_member_to_group(dn, group.get('dn'), opts)
+            
+        return res
+
+    def mark_user_active(self, uid, opts=None):
+        """Mark a user as active"""
+
+        user = self.get_user_by_uid(uid, ['dn', 'uid'], opts)
+        return self.mark_entry_active(user.get('dn'))
+
+    def mark_user_inactive(self, uid, opts=None):
+        """Mark a user as inactive"""
+
+        user = self.get_user_by_uid(uid, ['dn', 'uid'], opts)
+        return self.mark_entry_inactive(user.get('dn'))
 
     def delete_user (self, uid, opts=None):
         """Delete a user. Not to be confused with inactivate_user. This
@@ -1214,6 +1274,18 @@ class IPAServer:
             entries.append(self.convert_entry(e))
 
         return entries
+
+    def mark_group_active(self, cn, opts=None):
+        """Mark a group as active"""
+
+        group = self.get_entry_by_cn(cn, ['dn', 'cn'], opts)
+        return self.mark_entry_active(group.get('dn'))
+
+    def mark_group_inactive(self, cn, opts=None):
+        """Mark a group as inactive"""
+
+        group = self.get_entry_by_cn(cn, ['dn', 'uid'], opts)
+        return self.mark_entry_inactive(group.get('dn'))
 
 # Configuration support
     def get_ipa_config(self, opts=None):

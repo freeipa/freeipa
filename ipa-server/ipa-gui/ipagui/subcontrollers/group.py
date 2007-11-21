@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 group_new_form = ipagui.forms.group.GroupNewForm()
 group_edit_form = ipagui.forms.group.GroupEditForm()
 
-group_fields = ['*']
+group_fields = ['*', 'nsAccountLock']
 
 class GroupController(IPAController):
 
@@ -75,6 +75,9 @@ class GroupController(IPAController):
             new_group.setValue('description', kw.get('description'))
 
             rv = client.add_group(new_group)
+
+            if kw.get('nsAccountLock'):
+                client.mark_group_inactive(kw.get('cn'))
         except ipaerror.exception_for(ipaerror.LDAP_DUPLICATE):
             turbogears.flash("Group with name '%s' already exists" %
                     kw.get('cn'))
@@ -224,6 +227,12 @@ class GroupController(IPAController):
             turbogears.flash("Edit group cancelled")
             raise turbogears.redirect('/group/show', cn=cn[0])
 
+        if kw.get('editprotected') == '':
+            # if editprotected set these don't get sent in kw
+            orig_group_dict = loads(b64decode(kw.get('group_orig')))
+            kw['cn'] = orig_group_dict['cn']
+            kw['gidnumber'] = orig_group_dict['gidnumber']
+
         # Decode the member data, in case we need to round trip
         member_dicts = loads(b64decode(kw.get('member_data')))
 
@@ -251,6 +260,17 @@ class GroupController(IPAController):
                 if new_group.gidnumber != new_gid:
                     group_modified = True
                     new_group.setValue('gidnumber', new_gid)
+            else:
+                new_group.setValue('gidnumber', orig_group_dict.get('gidnumber'))
+                new_group.setValue('cn', orig_group_dict.get('cn'))
+            if new_group.cn != kw.get('cn'):
+                group_modified = True
+                new_group.setValue('cn', kw['cn'])
+
+            if group_modified:
+                rv = client.update_group(new_group)
+                #
+                # If the group update succeeds, but below operations fail, we
             if new_group.cn != kw.get('cn'):
                 group_modified = True
                 new_group.setValue('cn', kw['cn'])
@@ -267,6 +287,17 @@ class GroupController(IPAController):
             turbogears.flash("Group update failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
+
+        if kw.get('nsAccountLock') == '':
+            kw['nsAccountLock'] = "false"
+
+        modify_no_update = False
+        if kw.get('nsAccountLock') == "false" and new_group.getValues('nsaccountlock') == "true":
+            client.mark_group_active(kw.get('cn'))
+            modify_no_update = True
+        elif kw.get('nsAccountLock') == "true" and new_group.nsaccountlock != "true":
+            client.mark_group_inactive(kw.get('cn'))
+            modify_no_update = True
 
         #
         # Add members
@@ -326,7 +357,7 @@ class GroupController(IPAController):
             cn0 = kw['cn'][0]
         else:
             cn0 = kw['cn']
-        if group_modified == True:
+        if group_modified == True or modify_no_update == True:
             turbogears.flash("%s updated!" % cn0)
         else:
             turbogears.flash("No modifications requested.")

@@ -112,6 +112,16 @@ from ipagui.helpers import ipahelper
           </script>
         </td>
       </tr>
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${group_fields.nsAccountLock.field_id}" py:content="group_fields.nsAccountLock.label" />:
+        </th>
+        <td>
+          <span py:replace="group_fields.nsAccountLock.display(value_for(group_fields.nsAccountLock))" />
+          <span py:if="tg.errors.get('nsAccountLock')" class="fielderror"
+                    py:content="tg.errors.get('nsAccountLock')" />
+         </td>
+       </tr>
     </table>
 
     <div>
