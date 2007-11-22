@@ -1,7 +1,7 @@
-Name:           freeipa-server
+Name:           ipa-server
 Version:        0.5.0
 Release:        1%{?dist}
-Summary:        FreeIPA authentication server
+Summary:        Ipa authentication server
 
 Group:          System Environment/Base
 License:        GPL
@@ -16,8 +16,8 @@ BuildRequires: openldap-devel
 BuildRequires: krb5-devel
 BuildRequires: nss-devel
 
-Requires: freeipa-python
-Requires: freeipa-admintools
+Requires: ipa-python
+Requires: ipa-admintools
 Requires: fedora-ds-base >= 1.1
 Requires: openldap-clients
 Requires: nss
@@ -43,7 +43,7 @@ Requires: pyasn1
 %define plugin_dir %{_libdir}/dirsrv/plugins
 
 %description
-FreeIPA is a server for identity, policy, and audit.
+Ipa is a server for identity, policy, and audit.
 
 %prep
 %setup -q
@@ -87,6 +87,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Nov 21 2007 Karl MacMillan <kmacmill@mentalrootkit.com> - 0.5.0-1
+- Version bump for relase and rpm name change
+
 * Thu Nov 15 2007 Rob Crittenden <rcritten@redhat.com> - 0.4.1-2
 - Broke invididual Requires and BuildRequires onto separate lines and
   reordered them

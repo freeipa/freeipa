@@ -1,7 +1,7 @@
-Name:           freeipa-admintools
-Version:        0.5.0
+Name:           ipa-admintools
+Version:        VERSION
 Release:        1%{?dist}
-Summary:        FreeIPA authentication server
+Summary:        IPA authentication server
 
 Group:          System Environment/Base
 License:        GPL
@@ -10,10 +10,10 @@ Source0:        %{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: 	noarch
 
-Requires: python python-krbV freeipa-python
+Requires: python python-krbV ipa-python
 
 %description
-FreeIPA is a server for identity, policy, and audit.
+IPA is a server for identity, policy, and audit.
 
 %prep
 %setup -q
@@ -35,6 +35,9 @@ rm -rf %{buildroot}
 %{_mandir}/man1/*
 
 %changelog
+* Wed Nov 21 2007 Karl MacMillan <kmacmill@redhat.com> - 0.5.0-1
+- Version bump for release and rpm name change
+
 * Thu Nov 1 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.1-1
 - Version bump for release
 

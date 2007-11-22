@@ -1,7 +1,7 @@
-Name:           freeipa-python
+Name:           ipa-python
 Version:        0.5.0
 Release:        1%{?dist}
-Summary:        FreeIPA authentication server
+Summary:        Ipa authentication server
 
 Group:          System Environment/Base
 License:        GPL
@@ -17,7 +17,7 @@ Requires: PyKerberos
 %define pkgpythondir  %{python_sitelib}/ipa
 
 %description
-FreeIPA is a server for identity, policy, and audit.
+Ipa is a server for identity, policy, and audit.
 
 %prep
 %setup -q
@@ -38,6 +38,9 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/ipa/ipa.conf
 
 %changelog
+* Wed Nov 21 2007 Karl MacMillan <kmacmill@redhat.com> - 0.5.0-1
+- Version bump for release and rename of rpm
+
 * Thu Nov 1 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.1-1
 - Version bump for release
 

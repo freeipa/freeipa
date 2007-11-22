@@ -1,7 +1,7 @@
-Name:           freeipa-client
-Version:        0.5.0
+Name:           ipa-client
+Version:        VERSION
 Release:        1%{?dist}
-Summary:        FreeIPA client
+Summary:        IPA client
 
 Group:          System Environment/Base
 License:        GPL
@@ -9,10 +9,10 @@ URL:            http://www.freeipa.org
 Source0:        %{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-Requires: python python-ldap python-krbV freeipa-python
+Requires: python python-ldap python-krbV ipa-python
 
 %description
-FreeIPA is a server for identity, policy, and audit.
+IPA is a server for identity, policy, and audit.
 The client package provide install and configuration scripts for clients.
 
 %prep
@@ -41,6 +41,9 @@ rm -rf %{buildroot}
 %{_usr}/share/ipa/*
 
 %changelog
+* Wed Nov 21 2007 Karl MacMillan <kmacmill@redhat.com> - 0.5.0-1
+- Version bump for release and rpm name change
+
 * Thu Nov 1 2007 Karl MacMillan <kmacmill@redhat.com> - 0.3.1-1
 - Version bump for release
 
