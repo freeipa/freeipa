@@ -28,10 +28,11 @@ objectClass: top
 objectClass: nsContainer
 cn: groups
 
-#dn: cn=computers,cn=accounts,$SUFFIX
-#objectClass: top
-#objectClass: nsContainer
-#cn: computers
+dn: cn=services,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: services
 
 dn: cn=etc,$SUFFIX
 changetype: add

@@ -37,6 +37,7 @@ from types import *
 import os
 import re
 import logging
+import subprocess
 
 try:
     from threading import Lock
@@ -49,6 +50,7 @@ _LDAPPool = None
 ACIContainer = "cn=accounts"
 DefaultUserContainer = "cn=users,cn=accounts"
 DefaultGroupContainer = "cn=groups,cn=accounts"
+DefaultServiceContainer = "cn=services,cn=accounts"
 
 # FIXME: need to check the ipadebug option in ipa.conf
 #logging.basicConfig(level=logging.DEBUG,
@@ -1286,6 +1288,71 @@ class IPAServer:
 
         group = self.get_entry_by_cn(cn, ['dn', 'uid'], opts)
         return self.mark_entry_inactive(group.get('dn'))
+
+    def __is_service_unique(self, name, opts):
+        """Return 1 if the uid is unique in the tree, 0 otherwise."""
+        name = self.__safe_filter(name)
+        filter = "(&(krbprincipalname=%s)(objectclass=krbPrincipal))" % name
+ 
+        try:
+            entry = self.__get_sub_entry(self.basedn, filter, ['dn','krbprincipalname'], opts)
+            return 0
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            return 1
+
+    def add_service_principal(self, name, opts=None):
+        service_container = DefaultServiceContainer
+
+        princ_name = name + "@" + self.realm
+        
+        conn = self.getConnection(opts)
+        if self.__is_service_unique(name, opts) == 0:
+            raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
+
+        dn = "krbprincipalname=%s,%s,%s" % (ldap.dn.escape_dn_chars(princ_name),
+                                            service_container,self.basedn)
+        entry = ipaserver.ipaldap.Entry(dn)
+
+        entry.setValues('objectclass', 'krbPrincipal', 'krbPrincipalAux', 'krbTicketPolicyAux')
+        entry.setValues('krbprincipalname', princ_name)
+        
+        try:
+            res = conn.addEntry(entry)
+        finally:
+            self.releaseConnection(conn)
+        return res
+        
+
+    def get_keytab(self, name, opts=None):
+        """get a keytab"""
+
+        princ_name = name + "@" + self.realm
+
+        conn = self.getConnection(opts)
+
+        if conn.principal != "admin@" + self.realm:
+            raise ipaerror.gen_exception(ipaerror.CONNECTION_GSSAPI_CREDENTIALS)
+
+        try:
+            try:
+                princs = conn.getList(self.basedn, self.scope, "krbprincipalname=" + princ_name, None)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                return None
+        finally:
+            self.releaseConnection(conn)
+
+
+        # This is ugly - call out to a C wrapper around kadmin.local
+        p = subprocess.Popen(["/usr/sbin/ipa-keytab-util", princ_name, self.realm],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout,stderr = p.communicate()
+
+        if p.returncode != 0:
+            return None
+
+        return stdout
+        
+        
 
 # Configuration support
     def get_ipa_config(self, opts=None):

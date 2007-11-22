@@ -229,6 +229,7 @@ AC_CONFIG_FILES([
     ipa-slapi-plugins/ipa-pwd-extop/Makefile
     xmlrpc-server/Makefile
     xmlrpc-server/test/Makefile
+    ipa-keytab-util/Makefile
 ])
 
 AC_OUTPUT

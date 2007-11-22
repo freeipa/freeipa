@@ -165,6 +165,7 @@ class KrbInstance(service.Service):
 
     def __copy_ldap_passwd(self, filename):
         shutil.copy(filename, "/var/kerberos/krb5kdc/ldappwd")
+        os.chmod("/var/kerberos/krb5kdc/ldappwd", 0600)
         
         
     def __configure_kdc_account_password(self):
@@ -175,6 +176,7 @@ class KrbInstance(service.Service):
         pwd_fd = open("/var/kerberos/krb5kdc/ldappwd", "w")
         pwd_fd.write("uid=kdc,cn=sysaccounts,cn=etc,"+self.suffix+"#{HEX}"+hexpwd+"\n")
         pwd_fd.close()
+        os.chmod("/var/kerberos/krb5kdc/ldappwd", 0600)
 
     def __setup_sub_dict(self):
         self.sub_dict = dict(FQDN=self.fqdn,

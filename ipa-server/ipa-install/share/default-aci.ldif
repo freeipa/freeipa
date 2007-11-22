@@ -19,3 +19,8 @@ dn: cn=accounts,$SUFFIX
 changetype: modify
 add: aci
 aci: (targetattr = "krbMaxPwdLife || krbMinPwdLife || krbPwdMinDiffChars || krbPwdMinLength || krbPwdHistoryLength")(version 3.0;acl "Admins can write password policy"; allow (write) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+
+dn: cn=services,cn=accounts,$SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr="krbPrincipalName || krbUPEnabled || krbPrincipalKey || krbMKey || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData")(version 3.0; acl "KDC System Account"; allow (read, search, compare,write) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)

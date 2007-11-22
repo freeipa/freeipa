@@ -381,3 +381,10 @@ class IPAClient:
         """
         result = self.transport.update_password_policy(policy.origDataDict(), policy.toDict())
         return result
+
+    def add_service_principal(self, princ_name):
+        return self.transport.add_service_principal(princ_name)
+
+    def get_keytab(self, princ_name):
+        return self.transport.get_keytab(princ_name)
+
