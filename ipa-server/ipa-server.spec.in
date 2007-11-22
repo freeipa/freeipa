@@ -75,7 +75,7 @@ rm -rf %{buildroot}
 %{_sbindir}/ipa-replica-prepare
 %{_sbindir}/ipa_kpasswd
 %{_sbindir}/ipa-webgui
-%{_sbindir}/ipa-keytab-util
+%attr(4750,root,apache) %{_sbindir}/ipa-keytab-util
 %attr(755,root,root) %{_initrddir}/ipa-kpasswd
 %attr(755,root,root) %{_initrddir}/ipa-webgui
 
@@ -89,6 +89,7 @@ rm -rf %{buildroot}
 
 %changelog
 * Wed Nov 21 2007 Karl MacMillan <kmacmill@mentalrootkit.com> - 0.5.0-1
+- Preverse mode on ipa-keytab-util
 - Version bump for relase and rpm name change
 
 * Thu Nov 15 2007 Rob Crittenden <rcritten@redhat.com> - 0.4.1-2
