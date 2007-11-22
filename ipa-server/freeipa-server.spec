@@ -1,6 +1,6 @@
 Name:           freeipa-server
-Version:        0.4.1
-Release:        2%{?dist}
+Version:        0.5.0
+Release:        1%{?dist}
 Summary:        FreeIPA authentication server
 
 Group:          System Environment/Base
@@ -36,7 +36,7 @@ Requires: python-krbV
 Requires: TurboGears
 Requires: python-tgexpandingformwidget
 Requires: acl
-Requires: freeradius >= 1.1.7
+Requires: freeradius
 Requires: pyasn1
 
 %define httpd_conf /etc/httpd/conf.d
