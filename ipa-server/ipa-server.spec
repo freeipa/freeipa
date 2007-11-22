@@ -75,6 +75,7 @@ rm -rf %{buildroot}
 %{_sbindir}/ipa-replica-prepare
 %{_sbindir}/ipa_kpasswd
 %{_sbindir}/ipa-webgui
+%{_sbindir}/ipa-keytab-util
 %attr(755,root,root) %{_initrddir}/ipa-kpasswd
 %attr(755,root,root) %{_initrddir}/ipa-webgui
 
