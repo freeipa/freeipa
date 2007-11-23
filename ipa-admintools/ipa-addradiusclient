@@ -119,6 +119,8 @@ def main():
         pairs.update(av)
         c.close()
 
+    # FIXME: validation should be moved to xmlrpc server
+
     # Data collection done, assure mandatory data has been specified
     valid = True
     for attr in mandatory_attrs:

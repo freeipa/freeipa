@@ -18,6 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+import os
 import sys
 from optparse import OptionParser
 import ipa
@@ -35,29 +36,34 @@ import ldap
 
 #------------------------------------------------------------------------------
 
-def parse_options():
-    parser = OptionParser()
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+attrs = radius_util.client_ldap_attr_to_name.keys()
 
+#------------------------------------------------------------------------------
+
+def parse_options():
     return options, args
 
 #------------------------------------------------------------------------------
 
 # FIXME
-def usage():
-    print "ipa-findradiusclients ip_addr [ip_addr ...]"
-    sys.exit(1)
+def help_option_callback(option, opt_str, value, parser, *args, **kwargs):
+    parser.print_help()
+    print
+    print "Note: Client-IP-Address may contain wildcards, to get all clients use '*'"
+    sys.exit(0)
 
 def main():
-    attrs=['radiusClientIPAddress', 'radiusClientSecret', 'radiusClientNASType', 'radiusClientShortName', 'description']
+    opt_parser = OptionParser(add_help_option=False)
+    opt_parser.add_option("-h", "--help", action="callback", callback=help_option_callback,
+                        help="detailed help information")
 
-    options, args = parse_options()
+    args = ipa.config.init_config(sys.argv)
+    options, args = opt_parser.parse_args(args)
+
+    opt_parser.set_usage("Usage: %s [options] Client-IP-Address [Client-IP-Address ...]" % (os.path.basename(sys.argv[0])))
 
     if len(args) < 2:
-        usage()
+        opt_parser.error("missing Client-IP-Address(es)")
 
     ip_addrs = args[1:]
 
@@ -72,11 +78,11 @@ def main():
             return 2
 
         for radius_client in radius_clients:
-            attrs = radius_client.attrList()
-            attrs.sort()
+            client_attrs = radius_client.attrList()
+            client_attrs.sort()
             
-            print "%s:" % radius_client.getValues('radiusClientIPAddress')
-            for attr in attrs:
+            print "%s:" % radius_client.getValues(radius_util.client_name_to_ldap_attr['Client-IP-Address'])
+            for attr in client_attrs:
                 value = radius_client.getValues(attr)
                 print "\t%s = %s" % (radius_util.client_ldap_attr_to_name[attr], value)
 

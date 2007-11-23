@@ -18,6 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+import sys
 import subprocess
 import string
 import tempfile
@@ -123,7 +124,7 @@ class RadiusInstance(service.Service):
             logging.error("could not create %s: %s", radius_util.RADIUSD_CONF_FILEPATH, e)
 
     def __create_radius_keytab(self):
-        self.step("create radiusd keytab")
+        self.step("creating a keytab for httpd")
         try:
             if file_exists(radius_util.RADIUS_IPA_KEYTAB_FILEPATH):
                 os.remove(radius_util.RADIUS_IPA_KEYTAB_FILEPATH)
@@ -146,7 +147,7 @@ class RadiusInstance(service.Service):
             retry += 1
             if retry > 15:
                 print "Error timed out waiting for kadmin to finish operations\n"
-                os.exit()
+                sys.exit()
                 
         try:
             pent = pwd.getpwnam(radius_util.RADIUS_USER)
