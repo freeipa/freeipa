@@ -36,8 +36,8 @@ import ldap
 
 #------------------------------------------------------------------------------
 
-attrs = radius_util.client_name_to_ldap_attr.keys()
-mandatory_attrs = ['Client-IP-Address', 'Secret']
+radius_attrs = radius_util.radius_client_attr_to_ldap_attr.keys()
+mandatory_radius_attrs = ['Client-IP-Address', 'Secret']
 
 #------------------------------------------------------------------------------
 
@@ -45,10 +45,10 @@ def help_option_callback(option, opt_str, value, parser, *args, **kwargs):
     parser.print_help()
     print
     print "Valid interative attributes are:"
-    print ipautil.format_list(attrs, quote='"')
+    print ipautil.format_list(radius_attrs, quote='"')
     print
     print "Required attributes are:"
-    print ipautil.format_list(mandatory_attrs, quote='"')
+    print ipautil.format_list(mandatory_radius_attrs, quote='"')
     sys.exit(0)
 
 def main():
@@ -78,10 +78,15 @@ def main():
     opt_parser.add_option("-v", "--verbose", dest="verbose", action='store_true',
                       help="print information")
 
-    #opt_parser.set_usage("Usage: %s [options] %s" % (os.path.basename(sys.argv[0]), ' '.join(mandatory_attrs)))
+    opt_parser.set_usage("Usage: %s [options] Client-IP-Address" % (os.path.basename(sys.argv[0])))
 
     args = ipa.config.init_config(sys.argv)
     options, args = opt_parser.parse_args(args)
+
+    if len(args) < 2:
+        opt_parser.error("missing Client-IP-Address")
+
+    ip_addr = args[1]
 
     # Get pairs from a file or stdin
     if options.pair_file:
@@ -107,13 +112,13 @@ def main():
     # Get pairs interactively
     if options.interactive:
         # Remove any mandatory attriubtes which have been previously specified
-        interactive_mandatory_attrs = copy.copy(mandatory_attrs)
+        interactive_mandatory_attrs = copy.copy(mandatory_radius_attrs)
         for attr in pairs.keys():
             try:
                 interactive_mandatory_attrs.remove(attr)
             except ValueError:
                 pass
-        c = ipautil.AttributeValueCompleter(attrs, pairs)
+        c = ipautil.AttributeValueCompleter(radius_attrs, pairs)
         c.open()
         av = c.get_pairs("Enter: ", interactive_mandatory_attrs, validate)
         pairs.update(av)
@@ -122,8 +127,14 @@ def main():
     # FIXME: validation should be moved to xmlrpc server
 
     # Data collection done, assure mandatory data has been specified
+
+    if pairs.has_key('Client-IP-Address') and pairs['Client-IP-Address'] != ip_addr:
+        print "ERROR, Client-IP-Address specified on command line (%s) does not match value found in pairs (%s)" % \
+            (ip_addr, pairs['Client-IP-Address'])
+        return 1
+
     valid = True
-    for attr in mandatory_attrs:
+    for attr in mandatory_radius_attrs:
         if not pairs.has_key(attr):
             valid = False
             print "ERROR, %s is mandatory, but has not been specified" % (attr)
@@ -133,12 +144,12 @@ def main():
     # Make sure each attribute is a member of the set of valid attributes
     valid = True
     for attr,value in pairs.items():
-        if attr not in attrs:
+        if attr not in radius_attrs:
             valid = False
             print "ERROR, %s is not a valid attribute" % (attr)
     if not valid:
         print "Valid attributes are:"
-        print ipautil.format_list(attrs, quote='"')
+        print ipautil.format_list(radius_attrs, quote='"')
         return 1
 
     # Makse sure each value is valid
@@ -157,7 +168,7 @@ def main():
 
     radius_client = ipa.radius_client.RadiusClient()
     for attr,value in pairs.items():
-        radius_client.setValue(radius_util.client_name_to_ldap_attr[attr], value)
+        radius_client.setValue(radius_util.radius_client_attr_to_ldap_attr[attr], value)
 
     try:
         ipa_client = ipaclient.IPAClient()

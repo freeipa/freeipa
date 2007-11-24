@@ -47,8 +47,11 @@ __all__ = [
     'radius_profile_filter',
     'radius_profile_dn',
 
-    'client_ldap_attr_to_name',
-    'client_name_to_ldap_attr',
+    'radius_client_ldap_attr_to_radius_attr',
+    'radius_client_attr_to_ldap_attr',
+
+    'radius_profile_ldap_attr_to_radius_attr',
+    'radius_profile_attr_to_ldap_attr',
 
     'read_pairs_file',
 ]
@@ -82,7 +85,7 @@ def reverse_map_dict(src_dict):
 
 #------------------------------------------------------------------------------
 
-client_ldap_attr_to_name = ipautil.CIDict({
+radius_client_ldap_attr_to_radius_attr = ipautil.CIDict({
     'radiusClientIPAddress' : 'Client-IP-Address',
     'radiusClientSecret'    : 'Secret',
     'radiusClientNASType'   : 'NAS-Type',
@@ -90,11 +93,11 @@ client_ldap_attr_to_name = ipautil.CIDict({
     'description'           : 'Description',
  })
 
-client_name_to_ldap_attr = reverse_map_dict(client_ldap_attr_to_name)
+radius_client_attr_to_ldap_attr = reverse_map_dict(radius_client_ldap_attr_to_radius_attr)
 
 #------------------------------------------------------------------------------
 
-profile_ldap_attr_to_name = {
+radius_profile_ldap_attr_to_radius_attr = {
     'radiusArapFeatures'            : 'Arap-Features',
     'radiusArapSecurity'            : 'Arap-Security',
     'radiusArapZoneAccess'          : 'Arap-Zone-Access',
@@ -156,7 +159,7 @@ profile_ldap_attr_to_name = {
     'radiusVSA'                     : 'VSA',
 }
 
-profile_name_to_ldap_attr = reverse_map_dict(profile_ldap_attr_to_name)
+radius_profile_attr_to_ldap_attr = reverse_map_dict(radius_profile_ldap_attr_to_radius_attr)
 
 #------------------------------------------------------------------------------
 

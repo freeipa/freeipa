@@ -26,6 +26,7 @@ import ipa.ipaclient as ipaclient
 import ipa.ipavalidate as ipavalidate
 import ipa.config
 import ipa.ipaerror
+import ipa.radius_util as radius_util
 
 import xmlrpclib
 import kerberos
@@ -33,33 +34,23 @@ import ldap
 
 #------------------------------------------------------------------------------
 
-def parse_options():
-    parser = OptionParser()
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+def help_option_callback(option, opt_str, value, parser, *args, **kwargs):
+    parser.print_help()
+    sys.exit(0)
 
-    return options, args
-
-#------------------------------------------------------------------------------
-
-# FIXME
-def usage():
-    print "ipa-delradiusclient ip_addr"
-    sys.exit(1)
 
 def main():
-    ip_addr = None
-    secret = None
-    name = None
-    nastype = None
-    desc = None
+    opt_parser = OptionParser(add_help_option=False)
 
-    options, args = parse_options()
+    opt_parser.add_option("-h", "--help", action="callback", callback=help_option_callback,
+                        help="detailed help information")
+    opt_parser.set_usage("Usage: %s [options] Client-IP-Address" % (os.path.basename(sys.argv[0])))
 
-    if len(args) != 2:
-        usage()
+    args = ipa.config.init_config(sys.argv)
+    options, args = opt_parser.parse_args(args)
+
+    if len(args) < 2:
+        opt_parser.error("missing Client-IP-Address")
 
     ip_addr = args[1]
 

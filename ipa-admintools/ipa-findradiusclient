@@ -36,7 +36,7 @@ import ldap
 
 #------------------------------------------------------------------------------
 
-attrs = radius_util.client_ldap_attr_to_name.keys()
+attrs = radius_util.radius_client_ldap_attr_to_radius_attr.keys()
 
 #------------------------------------------------------------------------------
 
@@ -81,10 +81,10 @@ def main():
             client_attrs = radius_client.attrList()
             client_attrs.sort()
             
-            print "%s:" % radius_client.getValues(radius_util.client_name_to_ldap_attr['Client-IP-Address'])
+            print "%s:" % radius_client.getValues(radius_util.radius_client_attr_to_ldap_attr['Client-IP-Address'])
             for attr in client_attrs:
                 value = radius_client.getValues(attr)
-                print "\t%s = %s" % (radius_util.client_ldap_attr_to_name[attr], value)
+                print "\t%s = %s" % (radius_util.radius_client_ldap_attr_to_radius_attr[attr], value)
 
     except xmlrpclib.Fault, f:
         print f.faultString
