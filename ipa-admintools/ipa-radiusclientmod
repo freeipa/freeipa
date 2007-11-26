@@ -23,7 +23,6 @@ import os
 from optparse import OptionParser
 import copy
 
-from ipa.radius_client import *
 import ipa.ipaclient as ipaclient
 import ipa.ipautil as ipautil
 import ipa.config
@@ -90,7 +89,7 @@ def main():
     pairs['Client-IP-Address'] = ip_addr
 
     # Verify client previously exists and get current values
-    radius_client = ipa.radius_client.RadiusClient()
+    radius_client = radius_util.RadiusClient()
     ipa_client = ipaclient.IPAClient()
     try:
         radius_client = ipa_client.get_radius_client_by_ip_addr(ip_addr)
@@ -141,7 +140,7 @@ def main():
                 pass
         c = ipautil.AttributeValueCompleter(radius_attrs, pairs)
         c.open()
-        av = c.get_pairs("Enter: ", interactive_mandatory_attrs, validate)
+        av = c.get_pairs("Enter: ", interactive_mandatory_attrs, radius_util.validate)
         pairs.update(av)
         c.close()
 
@@ -176,7 +175,7 @@ def main():
     # Makse sure each value is valid
     valid = True
     for attr,value in pairs.items():
-        if not validate(attr, value):
+        if not radius_util.validate(attr, value):
             valid = False
     if not valid:
         return 1

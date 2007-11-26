@@ -23,7 +23,6 @@ import os
 from optparse import OptionParser
 import copy
 
-from ipa.radius_client import *
 import ipa.ipaclient as ipaclient
 import ipa.ipautil as ipautil
 import ipa.config
@@ -121,7 +120,7 @@ def main():
                 pass
         c = ipautil.AttributeValueCompleter(radius_attrs, pairs)
         c.open()
-        av = c.get_pairs("Enter: ", interactive_mandatory_attrs, validate)
+        av = c.get_pairs("Enter: ", interactive_mandatory_attrs, radius_util.validate)
         pairs.update(av)
         c.close()
 
@@ -156,7 +155,7 @@ def main():
     # Makse sure each value is valid
     valid = True
     for attr,value in pairs.items():
-        if not validate(attr, value):
+        if not radius_util.validate(attr, value):
             valid = False
     if not valid:
         return 1
@@ -167,7 +166,7 @@ def main():
         for attr,value in pairs.items():
             print "\t%s = %s" % (attr, value)
 
-    radius_client = ipa.radius_client.RadiusClient()
+    radius_client = radius_util.RadiusClient()
     for attr,value in pairs.items():
         radius_client.setValue(radius_util.radius_client_attr_to_ldap_attr[attr], value)
 
