@@ -87,6 +87,7 @@ def main():
         opt_parser.error("missing Client-IP-Address")
 
     ip_addr = args[1]
+    pairs['Client-IP-Address'] = ip_addr
 
     # Get pairs from a file or stdin
     if options.pair_file:

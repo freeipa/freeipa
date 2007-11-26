@@ -87,6 +87,7 @@ def main():
         opt_parser.error("missing Client-IP-Address")
 
     ip_addr = args[1]
+    pairs['Client-IP-Address'] = ip_addr
 
     # Verify client previously exists and get current values
     radius_client = ipa.radius_client.RadiusClient()
@@ -186,7 +187,6 @@ def main():
         for attr,value in pairs.items():
             print "\t%s = %s" % (attr, value)
 
-    radius_client = ipa.radius_client.RadiusClient()
     for attr,value in pairs.items():
         radius_client.setValue(radius_util.radius_client_attr_to_ldap_attr[attr], value)
 
