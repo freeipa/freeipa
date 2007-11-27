@@ -140,7 +140,8 @@ radius_client_attr_to_ldap_attr = reverse_map_dict(radius_client_ldap_attr_to_ra
 
 #------------------------------------------------------------------------------
 
-radius_profile_ldap_attr_to_radius_attr = {
+radius_profile_ldap_attr_to_radius_attr = ipautil.CIDict({
+    'uid'                           : 'UID',
     'radiusArapFeatures'            : 'Arap-Features',
     'radiusArapSecurity'            : 'Arap-Security',
     'radiusArapZoneAccess'          : 'Arap-Zone-Access',
@@ -200,7 +201,7 @@ radius_profile_ldap_attr_to_radius_attr = {
     'radiusTunnelType'              : 'Tunnel-Type',
     'radiusUserCategory'            : 'User-Category',
     'radiusVSA'                     : 'VSA',
-}
+})
 
 radius_profile_attr_to_ldap_attr = reverse_map_dict(radius_profile_ldap_attr_to_radius_attr)
 

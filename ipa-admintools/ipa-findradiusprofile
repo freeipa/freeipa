@@ -1,0 +1,104 @@
+#! /usr/bin/python -E
+# Authors: John Dennis <jdennis@redhat.com>
+#
+# Copyright (C) 2007  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+import os
+import sys
+from optparse import OptionParser
+import ipa
+from ipa import radius_util
+import ipa.ipaclient as ipaclient
+import ipa.ipavalidate as ipavalidate
+import ipa.config
+import ipa.ipaerror
+import ipa.ipautil
+
+import xmlrpclib
+import kerberos
+import ldap
+
+#------------------------------------------------------------------------------
+
+attrs = radius_util.radius_profile_ldap_attr_to_radius_attr.keys()
+
+#------------------------------------------------------------------------------
+
+def parse_options():
+    return options, args
+
+#------------------------------------------------------------------------------
+
+# FIXME
+def help_option_callback(option, opt_str, value, parser, *args, **kwargs):
+    parser.print_help()
+    print
+    print "Note: UID may contain wildcards, to get all profiles use '*'"
+    sys.exit(0)
+
+def main():
+    opt_parser = OptionParser(add_help_option=False)
+    opt_parser.add_option("-h", "--help", action="callback", callback=help_option_callback,
+                        help="detailed help information")
+
+    args = ipa.config.init_config(sys.argv)
+    options, args = opt_parser.parse_args(args)
+
+    opt_parser.set_usage("Usage: %s [options] UID [UID ...]" % (os.path.basename(sys.argv[0])))
+
+    if len(args) < 2:
+        opt_parser.error("missing UID(es)")
+
+    uids = args[1:]
+
+    try:
+        ipa_client = ipaclient.IPAClient()
+        radius_profiles = ipa_client.find_radius_profiles(uids, sattrs=attrs)
+        counter = radius_profiles[0]
+        radius_profiles = radius_profiles[1:]
+
+        if counter == 0:
+            print "No entries found for", uids
+            return 2
+
+        for radius_profile in radius_profiles:
+            profile_attrs = radius_profile.attrList()
+            profile_attrs.sort()
+            
+            print "%s:" % radius_profile.getValues(radius_util.radius_profile_attr_to_ldap_attr['UID'])
+            for attr in profile_attrs:
+                value = radius_profile.getValues(attr)
+                print "\t%s = %s" % (radius_util.radius_profile_ldap_attr_to_radius_attr[attr], value)
+
+    except xmlrpclib.Fault, f:
+        print f.faultString
+        return 1
+    except kerberos.GSSError, e:
+        print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])
+        return 1
+    except xmlrpclib.ProtocolError, e:
+        print "Unable to connect to IPA server: %s" % (e.errmsg)
+        return 1
+    except ipa.ipaerror.IPAError, e:
+        print "%s" % (e.message)
+        return 1
+
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())

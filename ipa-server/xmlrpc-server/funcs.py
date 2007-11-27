@@ -574,8 +574,10 @@ class IPAServer:
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return False
 
-    def add_radius_profile (self, uid, user_profile=True, opts=None):
-        if self.__radius_profile_exists(profile['uid'], user_profile, opts):
+    def add_radius_profile (self, profile, user_profile=True, opts=None):
+        uid = profile['uid']
+
+        if self.__radius_profile_exists(uid, user_profile, opts):
             raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
 
         if user_profile:
@@ -587,7 +589,7 @@ class IPAServer:
         entry = ipaserver.ipaldap.Entry(dn)
 
         # some required objectclasses
-        entry.setValues('objectClass', 'top', 'radiusClientProfile')
+        entry.setValues('objectClass', 'top', 'radiusprofile')
 
         # fill in our new entry with everything sent by the profile
         for attr in profile:
@@ -631,8 +633,7 @@ class IPAServer:
         else:
             container = radius_util.profiles_container
 
-        uid = self.__safe_filter(uid)
-        filter = gen_filter('radiusClientProfile' 'uid', uids)
+        filter = gen_filter('radiusprofile', 'uid', uids)
         basedn="%s,%s" % (container, self.basedn)
         conn = self.getConnection(opts)
         try:
