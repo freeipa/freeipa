@@ -126,7 +126,6 @@ objectClass: cosSuperDefinition
 objectClass: cosClassicDefinition
 cosTemplateDn: cn=cosTemplates,cn=accounts,$SUFFIX
 cosAttribute: nsAccountLock operational
-cosAttribute: pager
 cosSpecifier: memberOf
 cn: Account Inactivation
 
