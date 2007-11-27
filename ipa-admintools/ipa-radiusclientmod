@@ -111,7 +111,7 @@ def main():
     # Get pairs from a file or stdin
     if options.pair_file:
         try:
-            av = radius_util.read_pairs_file(options.pair_file)
+            av = ipautil.read_pairs_file(options.pair_file)
             pairs.update(av)
         except Exception, e:
             print "ERROR, could not read pairs (%s)" % (e)

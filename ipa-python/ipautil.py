@@ -416,6 +416,39 @@ def parse_key_value_pairs(input):
         kv_dict[key] = value
     return kv_dict
 
+def parse_items(text):
+    '''Given text with items separated by whitespace or comma, return a list of those items'''
+    split_re = re.compile('[ ,\t\n]+')
+    items = split_re.split(text)
+    for item in items[:]:
+        if not item: items.remove(item)
+    return items
+
+def read_pairs_file(filename):
+    comment_re = re.compile('#.*$', re.MULTILINE)
+    if filename == '-':
+        fd = sys.stdin
+    else:
+        fd = open(filename)
+    text = fd.read()
+    text = comment_re.sub('', text) # kill comments
+    pairs = ipautil.parse_key_value_pairs(text)
+    if fd != sys.stdin: fd.close()
+    return pairs
+
+def read_items_file(filename):
+    comment_re = re.compile('#.*$', re.MULTILINE)
+    if filename == '-':
+        fd = sys.stdin
+    else:
+        fd = open(filename)
+    text = fd.read()
+    text = comment_re.sub('', text) # kill comments
+    items = ipautil.parse_items(text)
+    if fd != sys.stdin: fd.close()
+    return items
+
+
 class AttributeValueCompleter:
     '''
     Gets input from the user in the form "lhs operator rhs"
@@ -733,7 +766,6 @@ class ItemCompleter:
                 readline.set_pre_input_hook(self.pre_input_hook)
             self.line_buffer = raw_input(prompt).strip()
             items = self.split_re.split(self.line_buffer)
-            print items
             for item in items[:]:
                 if not item: items.remove(item)
             if self.must_match:

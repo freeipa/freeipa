@@ -59,8 +59,6 @@ __all__ = [
     'radius_profile_ldap_attr_to_radius_attr',
     'radius_profile_attr_to_ldap_attr',
 
-    'read_pairs_file',
-
     'get_secret',
     'validate_ip_addr',
     'validate_secret',
@@ -239,19 +237,6 @@ def radius_profile_dn(uid, container, suffix):
 
 
 #------------------------------------------------------------------------------
-
-comment_re = re.compile('#.*$', re.MULTILINE)
-def read_pairs_file(filename):
-    if filename == '-':
-        fd = sys.stdin
-    else:
-        fd = open(filename)
-    data = fd.read()
-    data = comment_re.sub('', data) # kill comments
-    pairs = ipautil.parse_key_value_pairs(data)
-    if fd != sys.stdin: fd.close()
-    return pairs
-
 
 def get_ldap_attr_translations():
     comment_re = re.compile('#.*$')
