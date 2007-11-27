@@ -21,7 +21,6 @@
 import sys
 import os
 from optparse import OptionParser
-import copy
 from sets import Set
 
 import ipa.ipaclient as ipaclient
@@ -38,7 +37,9 @@ import ldap
 
 radius_attrs = radius_util.radius_client_attr_to_ldap_attr.keys()
 radius_attr_to_ldap_attr = radius_util.radius_client_attr_to_ldap_attr
-mandatory_radius_attrs = ['Client-IP-Address']
+ldap_attr_to_radius_attr = radius_util.radius_client_ldap_attr_to_radius_attr
+mandatory_radius_attrs = ['Client-IP-Address', 'Secret']
+distinguished_attr = 'Client-IP-Address'
 
 #------------------------------------------------------------------------------
 
@@ -109,11 +110,6 @@ def main():
     # so handle the two cases independently.
     if options.delete_attrs:
         attrs = Set()
-        # Populate the attr list with pre-existing values
-        for ldap_attr in radius_client.attrList():
-            radius_attr = radius_client.getValues(radius_attr_to_ldap_attr[ldap_attr])
-            attrs.add(radius_attr)
-
         # Get attrs from a file or stdin
         if options.data_file:
             try:
@@ -123,7 +119,6 @@ def main():
                 print "ERROR, could not read attrs (%s)" % (e)
 
         # Get attrs specified on the command line as a named argument
-        if options.ip_addr is not None: attrs.add('Client-IP-Address')
         if options.secret is not None: attrs.add('Secret')
         if options.name is not None: attrs.add('Name')
         if options.nastype is not None: attrs.add('NAS-Type')
@@ -137,24 +132,23 @@ def main():
 
         # Get attrs interactively
         if options.interactive:
-            # Remove any mandatory attriubtes so we don't prompt to delete them
-            interactive_delete_attrs = radius_client.attrList()
-            for attr in interactive_delete_attrs:
-                if attr in mandatory_radius_attrs:
-                try:
-                    interactive_delete_attrs.remove(attr)
-                except ValueError:
-                    pass
-            c = ipautil.ItemCompleter(attrs)
-            c.open()
-            items = c.get_items("Enter: ")
-            attrs.update(items)
-            c.close()
+            deletable_attrs = []
+            for radius_attr in radius_attrs:
+                if radius_attr in mandatory_radius_attrs: continue
+                if radius_client.hasAttr(radius_attr_to_ldap_attr[radius_attr]):
+                    deletable_attrs.append(radius_attr)
+
+            if deletable_attrs:
+                c = ipautil.ItemCompleter(deletable_attrs)
+                c.open()
+                items = c.get_items("Enter: ")
+                attrs.update(items)
+                c.close()
 
         # Data collection done, assure no mandatory attrs are in the delete list
         valid = True
         for attr in mandatory_radius_attrs:
-            if attr in attrs
+            if attr in attrs:
                 valid = False
                 print "ERROR, %s is mandatory, but is set to be deleted" % (attr)
         if not valid:
@@ -182,7 +176,7 @@ def main():
 
     else:
         pairs = {}
-        pairs['Client-IP-Address'] = ip_addr
+        pairs[distinguished_attr] = ip_addr
 
         # Populate the pair list with pre-existing values
         for attr in radius_attrs:
@@ -197,7 +191,7 @@ def main():
                 print "ERROR, could not read pairs (%s)" % (e)
 
         # Get pairs specified on the command line as a named argument
-        if options.ip_addr is not None: pairs['Client-IP-Address'] = options.ip_addr
+        if options.ip_addr is not None: pairs[distinguished_attr] = options.ip_addr
         if options.secret is not None: pairs['Secret'] = options.secret
         if options.name is not None: pairs['Name'] = options.name
         if options.nastype is not None: pairs['NAS-Type'] = options.nastype
@@ -211,16 +205,11 @@ def main():
 
         # Get pairs interactively
         if options.interactive:
-            # Remove any mandatory attriubtes which have been previously specified
-            interactive_mandatory_attrs = copy.copy(mandatory_radius_attrs)
-            for attr in pairs.keys():
-                try:
-                    interactive_mandatory_attrs.remove(attr)
-                except ValueError:
-                    pass
-            c = ipautil.AttributeValueCompleter(radius_attrs, pairs)
+            prompted_attrs = radius_attrs[:]
+            prompted_attrs.remove(distinguished_attr)
+            c = ipautil.AttributeValueCompleter(prompted_attrs, pairs)
             c.open()
-            av = c.get_pairs("Enter: ", interactive_mandatory_attrs, radius_util.validate)
+            av = c.get_pairs("Enter: ", validate_callback=radius_util.validate)
             pairs.update(av)
             c.close()
 
@@ -228,17 +217,9 @@ def main():
 
         # Data collection done, assure mandatory data has been specified
 
-        if pairs.has_key('Client-IP-Address') and pairs['Client-IP-Address'] != ip_addr:
-            print "ERROR, Client-IP-Address specified on command line (%s) does not match value found in pairs (%s)" % \
-                (ip_addr, pairs['Client-IP-Address'])
-            return 1
-
-        valid = True
-        for attr in mandatory_radius_attrs:
-            if not pairs.has_key(attr):
-                valid = False
-                print "ERROR, %s is mandatory, but has not been specified" % (attr)
-        if not valid:
+        if pairs.has_key(distinguished_attr) and pairs[distinguished_attr] != ip_addr:
+            print "ERROR, %s specified on command line (%s) does not match value found in pairs (%s)" % \
+                (distinguished_attr, ip_addr, pairs[distinguished_attr])
             return 1
 
         # Make sure each attribute is a member of the set of valid attributes

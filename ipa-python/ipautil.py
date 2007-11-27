@@ -25,7 +25,6 @@ import logging
 import subprocess
 import os
 import stat
-import copy
 import readline
 import traceback
 from types import *
@@ -481,7 +480,7 @@ class AttributeValueCompleter:
 
     c = AttributeValueCompleter(attrs, defaults)
     c.open()
-    mandatory_attrs_remaining = copy.copy(mandatory_attrs)
+    mandatory_attrs_remaining = mandatory_attrs[:]
 
     while True:
         if mandatory_attrs_remaining:
@@ -652,10 +651,10 @@ class AttributeValueCompleter:
         except EOFError:
             return None, None
 
-    def get_pairs(self, prompt, mandatory_attrs=None, validate_callback=None, must_match=Trueo, value_required=True):
+    def get_pairs(self, prompt, mandatory_attrs=None, validate_callback=None, must_match=True, value_required=True):
         pairs = {}
         if mandatory_attrs:
-            mandatory_attrs_remaining = copy.copy(mandatory_attrs)
+            mandatory_attrs_remaining = mandatory_attrs[:]
         else:
             mandatory_attrs_remaining = []
 
@@ -714,9 +713,8 @@ class ItemCompleter:
 
     '''
 
-    def __init__(self, items, must_match=True):
+    def __init__(self, items):
         self.items = items
-        self.must_match = must_match
         self.initial_input = None
         self.item_delims = ' \t,'
         self.split_re = re.compile('[%s]+' % self.item_delims)
@@ -768,26 +766,25 @@ class ItemCompleter:
             items = self.split_re.split(self.line_buffer)
             for item in items[:]:
                 if not item: items.remove(item)
-            if self.must_match:
-                for item in items[:]:
-                    if item not in self.items:
-                        print "ERROR: %s is not valid" % (item)
-                        items.remove(item)
             return items
         except EOFError:
             return items
 
-    def get_items(self, prompt):
+    def get_items(self, prompt, must_match=True):
         items = []
 
         print "Enter name [name ...]"
-        print "Press <ENTER> to accept, control-D terminates input"
+        print "Press <ENTER> to accept, blank line or control-D terminates input"
         print "Pressing <TAB> auto completes name"
         print
         while True:
             new_items = self.read_input(prompt)
-            if new_items is None: break
+            if not new_items: break
             for item in new_items:
+                if must_match:
+                    if item not in self.items:
+                        print "ERROR: %s is not valid" % (item)
+                        continue
                 if item in items: continue
                 items.append(item)
 
