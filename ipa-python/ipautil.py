@@ -619,7 +619,7 @@ class AttributeValueCompleter:
         except EOFError:
             return None, None
 
-    def get_pairs(self, prompt, mandatory_attrs=None, validate_callback=None, must_match=True, value_required=True):
+    def get_pairs(self, prompt, mandatory_attrs=None, validate_callback=None, must_match=Trueo, value_required=True):
         pairs = {}
         if mandatory_attrs:
             mandatory_attrs_remaining = copy.copy(mandatory_attrs)
@@ -661,3 +661,103 @@ class AttributeValueCompleter:
 
             pairs[attribute] = value
         return pairs
+
+class ItemCompleter:
+    '''
+    Prompts the user for items in a list of items with auto completion.
+    TAB completes partial input.
+    More than one item can be specifed during input, whitespace and/or comma's seperate.
+    Example:
+
+    possible_items = ['foo', 'bar']
+    c = ItemCompleter(possible_items)
+    c.open()
+    # Use read_input() to limit input to a single carriage return (e.g. <ENTER>)
+    #items = c.read_input("Enter: ")
+    # Use get_items to iterate until a blank line is entered.
+    items = c.get_items("Enter: ")
+    c.close()
+    print "items=%s" % (items)
+
+    '''
+
+    def __init__(self, items, must_match=True):
+        self.items = items
+        self.must_match = must_match
+        self.initial_input = None
+        self.item_delims = ' \t,'
+        self.split_re = re.compile('[%s]+' % self.item_delims)
+
+    def open(self):
+        # Save state
+        self.prev_completer = readline.get_completer()
+        self.prev_completer_delims = readline.get_completer_delims()
+
+        # Set up for ourself
+        readline.parse_and_bind("tab: complete")
+        readline.set_completer(self.complete)
+        readline.set_completer_delims(self.item_delims)
+
+    def close(self):
+        # Restore previous state
+        readline.set_completer_delims(self.prev_completer_delims)
+        readline.set_completer(self.prev_completer)
+        
+    def get_item_completions(self, text):
+        if text:
+            self.completions = [lhs for lhs in self.items if lhs.startswith(text)]
+        else:
+            self.completions = self.items
+
+    def complete(self, text, state):
+        self.line_buffer= readline.get_line_buffer()
+        if state == 0:
+            beg = readline.get_begidx()
+            end = readline.get_endidx()
+            self.get_item_completions(self.line_buffer[beg:end])
+        if state >= len(self.completions): return None
+        return self.completions[state]
+
+    def pre_input_hook(self):
+        readline.insert_text('%s %s ' % (self.initial_input, self.operator))
+        readline.redisplay()
+
+    def read_input(self, prompt, initial_input=None):
+        items = []
+        
+        self.initial_input = initial_input
+        try:
+            if initial_input is None:
+                readline.set_pre_input_hook(None)
+            else:
+                readline.set_pre_input_hook(self.pre_input_hook)
+            self.line_buffer = raw_input(prompt).strip()
+            items = self.split_re.split(self.line_buffer)
+            print items
+            for item in items[:]:
+                if not item: items.remove(item)
+            if self.must_match:
+                for item in items[:]:
+                    if item not in self.items:
+                        print "ERROR: %s is not valid" % (item)
+                        items.remove(item)
+            return items
+        except EOFError:
+            return items
+
+    def get_items(self, prompt):
+        items = []
+
+        print "Enter name [name ...]"
+        print "Press <ENTER> to accept, control-D terminates input"
+        print "Pressing <TAB> auto completes name"
+        print
+        while True:
+            new_items = self.read_input(prompt)
+            if new_items is None: break
+            for item in new_items:
+                if item in items: continue
+                items.append(item)
+
+        return items
+
