@@ -53,6 +53,8 @@ def help_option_callback(option, opt_str, value, parser, *args, **kwargs):
 
 def main():
     opt_parser = OptionParser(add_help_option=False)
+    opt_parser.add_option("-s", "--shared", dest="shared", default=False, action='store_true',
+                      help="profile is shared")
     opt_parser.add_option("-h", "--help", action="callback", callback=help_option_callback,
                         help="detailed help information")
 
@@ -65,10 +67,11 @@ def main():
         opt_parser.error("missing UID(es)")
 
     uids = args[1:]
+    user_profile = not options.shared
 
     try:
         ipa_client = ipaclient.IPAClient()
-        radius_profiles = ipa_client.find_radius_profiles(uids, sattrs=attrs)
+        radius_profiles = ipa_client.find_radius_profiles(uids, user_profile, sattrs=attrs)
         counter = radius_profiles[0]
         radius_profiles = radius_profiles[1:]
 

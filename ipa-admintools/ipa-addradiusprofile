@@ -59,6 +59,8 @@ def main():
 
     opt_parser.add_option("-u", "--uid", dest="uid",
                       help="RADIUS profile identifier")
+    opt_parser.add_option("-s", "--shared", dest="shared", default=False, action='store_true',
+                      help="profile is shared")
     opt_parser.add_option("-d", "--Description", dest="desc", 
                       help="description of the RADIUS client")
 
@@ -82,7 +84,13 @@ def main():
         opt_parser.error('missing %s' % (distinguished_attr))
 
     uid = args[1]
+    user_profile = not options.shared
     pairs[distinguished_attr] = uid
+
+    # Per user profiles are pre-created (i.e. objectclass radiusprofile is always added for each user)
+    if user_profile:
+        print "ERROR, you cannot add a per-user radius profile, it pre-exists"
+        return 1
 
     # Get pairs from a file or stdin
     if options.pair_file:

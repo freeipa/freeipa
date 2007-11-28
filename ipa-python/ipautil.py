@@ -528,6 +528,7 @@ class AttributeValueCompleter:
         self.lhs_delims = lhs_delims
         self.operator = operator
         self.strip_rhs = strip_rhs
+        self.pairs = None
         self._reset()
 
     def _reset(self):
@@ -589,6 +590,13 @@ class AttributeValueCompleter:
         and it should return the default value for the attriubte or None'''
 
         if not self.lhs_complete: raise ValueError("attribute not parsed")
+
+        # If the user previously provided a value let that override the supplied default
+        if self.pairs is not None:
+            prev_value = self.pairs.get(self.lhs)
+            if prev_value is not None: return prev_value
+
+        # No previous user provided value, query for a default
         default_value_type = type(self.default_value)
         if default_value_type is DictType:
             return self.default_value.get(self.lhs, None)
@@ -663,7 +671,7 @@ class AttributeValueCompleter:
             return None, None
 
     def get_pairs(self, prompt, mandatory_attrs=None, validate_callback=None, must_match=True, value_required=True):
-        pairs = {}
+        self.pairs = {}
         if mandatory_attrs:
             mandatory_attrs_remaining = mandatory_attrs[:]
         else:
@@ -702,8 +710,8 @@ class AttributeValueCompleter:
             except ValueError:
                 pass
 
-            pairs[attribute] = value
-        return pairs
+            self.pairs[attribute] = value
+        return self.pairs
 
 class ItemCompleter:
     '''
