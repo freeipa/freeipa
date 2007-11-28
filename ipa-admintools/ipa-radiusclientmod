@@ -80,21 +80,20 @@ def main():
     opt_parser.add_option("-v", "--verbose", dest="verbose", action='store_true',
                       help="print information")
 
-    opt_parser.set_usage("Usage: %s [options] Client-IP-Address" % (os.path.basename(sys.argv[0])))
+    opt_parser.set_usage("Usage: %s [options] %s" % (distinguished_attr, os.path.basename(sys.argv[0])))
 
     args = ipa.config.init_config(sys.argv)
     options, args = opt_parser.parse_args(args)
 
     if len(args) < 2:
-        opt_parser.error("missing Client-IP-Address")
+        opt_parser.error('missing %s' % (distinguished_attr))
 
     ip_addr = args[1]
 
-    # Verify client previously exists and get current values
-    radius_client = radius_util.RadiusClient()
+    # Verify entity previously exists and get current values
     ipa_client = ipaclient.IPAClient()
     try:
-        radius_client = ipa_client.get_radius_client_by_ip_addr(ip_addr)
+        radius_entity = ipa_client.get_radius_client_by_ip_addr(ip_addr)
     except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_NOT_FOUND):
         print "client %s not found" % ip_addr
         return 1
@@ -135,7 +134,7 @@ def main():
             deletable_attrs = []
             for radius_attr in radius_attrs:
                 if radius_attr in mandatory_radius_attrs: continue
-                if radius_client.hasAttr(radius_attr_to_ldap_attr[radius_attr]):
+                if radius_entity.hasAttr(radius_attr_to_ldap_attr[radius_attr]):
                     deletable_attrs.append(radius_attr)
 
             if deletable_attrs:
@@ -172,7 +171,7 @@ def main():
                 print "\t%s" % (attr)
 
         for attr in attrs:
-            radius_client.delValue(radius_attr_to_ldap_attr[attr])
+            radius_entity.delValue(radius_attr_to_ldap_attr[attr])
 
     else:
         pairs = {}
@@ -180,7 +179,7 @@ def main():
 
         # Populate the pair list with pre-existing values
         for attr in radius_attrs:
-            pairs[attr] = radius_client.getValues(radius_attr_to_ldap_attr[attr])
+            pairs[attr] = radius_entity.getValues(radius_attr_to_ldap_attr[attr])
 
         # Get pairs from a file or stdin
         if options.data_file:
@@ -248,10 +247,10 @@ def main():
                 print "\t%s = %s" % (attr, value)
 
         for attr,value in pairs.items():
-            radius_client.setValue(radius_attr_to_ldap_attr[attr], value)
+            radius_entity.setValue(radius_attr_to_ldap_attr[attr], value)
 
     try:
-        ipa_client.update_radius_client(radius_client)
+        ipa_client.update_radius_client(radius_entity)
         print "successfully modified"
     except xmlrpclib.Fault, f:
         print f.faultString

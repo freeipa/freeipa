@@ -79,13 +79,13 @@ def main():
     opt_parser.add_option("-v", "--verbose", dest="verbose", action='store_true',
                       help="print information")
 
-    opt_parser.set_usage("Usage: %s [options] Client-IP-Address" % (os.path.basename(sys.argv[0])))
+    opt_parser.set_usage("Usage: %s [options] %s" % (distinguished_attr, os.path.basename(sys.argv[0])))
 
     args = ipa.config.init_config(sys.argv)
     options, args = opt_parser.parse_args(args)
 
     if len(args) < 2:
-        opt_parser.error("missing Client-IP-Address")
+        opt_parser.error('missing %s' % (distinguished_attr))
 
     ip_addr = args[1]
     pairs[distinguished_attr] = ip_addr
@@ -168,13 +168,13 @@ def main():
         for attr,value in pairs.items():
             print "\t%s = %s" % (attr, value)
 
-    radius_client = radius_util.RadiusClient()
+    radius_entity = radius_util.RadiusClient()
     for attr,value in pairs.items():
-        radius_client.setValue(radius_attr_to_ldap_attr[attr], value)
+        radius_entity.setValue(radius_attr_to_ldap_attr[attr], value)
 
     try:
         ipa_client = ipaclient.IPAClient()
-        ipa_client.add_radius_client(radius_client)
+        ipa_client.add_radius_client(radius_entity)
         print "successfully added"
     except xmlrpclib.Fault, f:
         print f.faultString
