@@ -179,7 +179,9 @@ def main():
 
         # Populate the pair list with pre-existing values
         for attr in radius_attrs:
-            pairs[attr] = radius_entity.getValues(radius_attr_to_ldap_attr[attr])
+            value = radius_entity.getValues(radius_attr_to_ldap_attr[attr])
+            if value is None: continue
+            pairs[attr] = value
 
         # Get pairs from a file or stdin
         if options.data_file:

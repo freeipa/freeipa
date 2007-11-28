@@ -106,7 +106,7 @@ def main():
     if options.interactive:
         # Prompt first for mandatory attributes which have not been previously specified
         prompted_mandatory_attrs = []
-        existing_attrs = pairs.keys():
+        existing_attrs = pairs.keys()
         for attr in mandatory_radius_attrs:
             if not attr in existing_attrs:
                 prompted_mandatory_attrs.append(attr)

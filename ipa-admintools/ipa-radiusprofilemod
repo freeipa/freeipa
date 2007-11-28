@@ -115,9 +115,6 @@ def main():
                 print "ERROR, could not read attrs (%s)" % (e)
 
         # Get attrs specified on the command line as a named argument
-        if options.secret is not None: attrs.add('Secret')
-        if options.name is not None: attrs.add('Name')
-        if options.nastype is not None: attrs.add('NAS-Type')
         if options.desc is not None: attrs.add('Description')
 
         # Get attrs specified on the command line as a attr argument
@@ -172,11 +169,13 @@ def main():
 
     else:
         pairs = {}
-        pairs[distinguished_attr] = ip_addr
+        pairs[distinguished_attr] = uid
 
         # Populate the pair list with pre-existing values
         for attr in radius_attrs:
-            pairs[attr] = radius_entity.getValues(radius_attr_to_ldap_attr[attr])
+            value = radius_entity.getValues(radius_attr_to_ldap_attr[attr])
+            if value is None: continue
+            pairs[attr] = value
 
         # Get pairs from a file or stdin
         if options.data_file:
@@ -187,10 +186,6 @@ def main():
                 print "ERROR, could not read pairs (%s)" % (e)
 
         # Get pairs specified on the command line as a named argument
-        if options.ip_addr is not None: pairs[distinguished_attr] = options.ip_addr
-        if options.secret is not None: pairs['Secret'] = options.secret
-        if options.name is not None: pairs['Name'] = options.name
-        if options.nastype is not None: pairs['NAS-Type'] = options.nastype
         if options.desc is not None: pairs['Description'] = options.desc
 
         # Get pairs specified on the command line as a pair argument
@@ -213,9 +208,9 @@ def main():
 
         # Data collection done, assure mandatory data has been specified
 
-        if pairs.has_key(distinguished_attr) and pairs[distinguished_attr] != ip_addr:
+        if pairs.has_key(distinguished_attr) and pairs[distinguished_attr] != uid:
             print "ERROR, %s specified on command line (%s) does not match value found in pairs (%s)" % \
-                (distinguished_attr, ip_addr, pairs[distinguished_attr])
+                (distinguished_attr, uid, pairs[distinguished_attr])
             return 1
 
         # Make sure each attribute is a member of the set of valid attributes
