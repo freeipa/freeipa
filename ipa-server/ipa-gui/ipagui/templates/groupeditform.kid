@@ -25,17 +25,22 @@ from ipagui.helpers import ipahelper
 
   <script type="text/javascript" charset="utf-8"
     src="${tg.url('/static/javascript/dynamicedit.js')}"></script>
+  <script type="text/javascript" charset="utf-8"
+    src="${tg.url('/tg_widgets/tg_expanding_form_widget/javascript/expanding_form.js')}"></script>
 
   <?python searchurl = tg.url('/group/edit_search') ?>
 
   <script type="text/javascript">
     function toggleProtectedFields(checkbox) {
       var gidnumberField = $('form_gidnumber');
+      var cnField = $('form_cn');
       if (checkbox.checked) {
         gidnumberField.disabled = false;
+        cnField.disabled = false;
         $('form_editprotected').value = 'true';
       } else {
         gidnumberField.disabled = true;
+        cnField.disabled = true;
         $('form_editprotected').value = '';
       }
     }
@@ -70,11 +75,9 @@ from ipagui.helpers import ipahelper
             py:content="group_fields.cn.label" />:
         </th>
         <td>
-          <!-- <span py:replace="group_fields.cn.display(value_for(group_fields.cn))" />
+          <span py:replace="group_fields.cn.display(value_for(group_fields.cn))" />
           <span py:if="tg.errors.get('cn')" class="fielderror"
-              py:content="tg.errors.get('cn')" /> -->
-          ${value_for(group_fields.cn)}
-
+              py:content="tg.errors.get('cn')" />
         </td>
       </tr>
 
@@ -88,6 +91,9 @@ from ipagui.helpers import ipahelper
           <span py:if="tg.errors.get('description')" class="fielderror"
               py:content="tg.errors.get('description')" />
 
+          <script type="text/javascript">
+              document.getElementById('form_cn').disabled = true;
+          </script>
         </td>
       </tr>
 
@@ -106,6 +112,16 @@ from ipagui.helpers import ipahelper
           </script>
         </td>
       </tr>
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${group_fields.nsAccountLock.field_id}" py:content="group_fields.nsAccountLock.label" />:
+        </th>
+        <td>
+          <span py:replace="group_fields.nsAccountLock.display(value_for(group_fields.nsAccountLock))" />
+          <span py:if="tg.errors.get('nsAccountLock')" class="fielderror"
+                    py:content="tg.errors.get('nsAccountLock')" />
+         </td>
+       </tr>
     </table>
 
     <div>
@@ -160,6 +176,7 @@ from ipagui.helpers import ipahelper
           div_counter = div_counter + 1
           ?>
         </div>
+        &nbsp; <!-- a space here to prevent an empty div -->
       </div>
 
     </div>

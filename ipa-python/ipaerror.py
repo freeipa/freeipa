@@ -28,6 +28,11 @@ class IPAError(exceptions.Exception):
            error."""
         self.code = code
         self.message = message
+        # Fill this in as an empty LDAP error message so we don't have a lot
+        # of "if e.detail ..." everywhere
+        if detail is None:
+             detail = []
+             detail.append({'desc':'','info':''})
         self.detail = detail
 
     def __str__(self):
@@ -118,6 +123,11 @@ LDAP_EMPTY_MODLIST = gen_error_code(
         0x0006,
         "No modifications to be performed")
 
+LDAP_NO_CONFIG = gen_error_code(
+        LDAP_CATEGORY,
+        0x0007,
+        "IPA configuration not found")
+
 #
 # Input errors  (sample - replace me)
 #
@@ -147,3 +157,8 @@ CONNECTION_GSSAPI_CREDENTIALS = gen_error_code(
         CONNECTION_CATEGORY,
         0x0003,
         "GSSAPI Authorization error")
+
+CONNECTION_UNWILLING = gen_error_code(
+        CONNECTION_CATEGORY,
+        0x0004,
+        "Account inactivated. Server is unwilling to perform.")

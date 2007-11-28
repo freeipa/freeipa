@@ -23,6 +23,7 @@ from optparse import OptionParser
 import ipa
 import ipa.ipaclient as ipaclient
 import ipa.config
+import errno
 
 import xmlrpclib
 import kerberos
@@ -33,6 +34,8 @@ def usage():
 
 def parse_options():
     parser = OptionParser()
+    parser.add_option("-d", "--delete", action="store_true", dest="deluser",
+                      help="Delete the user, don't inactivate them.")
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
@@ -47,15 +50,26 @@ def main():
     if len(args) != 2:
         usage()
 
+    msg = "inactivated"
     try:
         client = ipaclient.IPAClient()
-        ret = client.mark_user_deleted(args[1])
-        if (ret == "Success"):
-            print args[1] + " successfully deleted"
+        if options.deluser:
+            ret = client.delete_user(args[1])
+            msg = "deleted"
         else:
-            print args[1] + " " + ret
-    except xmlrpclib.Fault, f:
-        print f.faultString
+            try:
+                ret = client.mark_user_inactive(args[1])
+            except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_EMPTY_MODLIST):
+                print "User is already marked inactive"
+                return 0
+            except:
+                raise
+            print args[1] + " successfully %s" % msg
+    except xmlrpclib.Fault, fault:
+        if fault.faultCode == errno.ECONNREFUSED:
+            print "The IPA XML-RPC service is not responding."
+        else:
+            print fault.faultString
         return 1
     except kerberos.GSSError, e:
         print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])

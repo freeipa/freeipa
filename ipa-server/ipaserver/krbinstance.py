@@ -26,28 +26,31 @@ import logging
 import fileinput
 import re
 import sys
-from random import Random
-from time import gmtime
 import os
 import pwd
 import socket
 import time
+import shutil
 
 import service
 from ipa.ipautil import *
+from ipa import ipaerror
+
+import ipaldap
+
+import ldap
+from ldap import LDAPError
+from ldap import ldapobject
+
+from pyasn1.type import univ, namedtype
+import pyasn1.codec.ber.encoder
+import pyasn1.codec.ber.decoder
+import struct
+import base64
 
 def host_to_domain(fqdn):
     s = fqdn.split(".")
     return ".".join(s[1:])
-
-def generate_kdc_password():
-    rndpwd = ''
-    r = Random()
-    r.seed(gmtime())
-    for x in range(12):
-#        rndpwd += chr(r.randint(32,126))
-        rndpwd += chr(r.randint(65,90)) #stricter set for testing
-    return rndpwd
 
 def ldap_mod(fd, dn, pwd):
     args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv", "-D", dn, "-w", pwd, "-f", fd.name]
@@ -79,18 +82,26 @@ class KrbInstance(service.Service):
         self.kdc_password = None
         self.sub_dict = None
 
-    def create_instance(self, ds_user, realm_name, host_name, admin_password, master_password):
+    def __common_setup(self, ds_user, realm_name, host_name, admin_password):
         self.ds_user = ds_user
-        self.fqdn = host_name
-        self.ip = socket.gethostbyname(host_name)
+        self.fqdn = host_name        
         self.realm = realm_name.upper()
         self.host = host_name.split(".")[0]
-        self.domain = host_to_domain(host_name)
-        self.admin_password = admin_password
-        self.master_password = master_password
-        
+        self.ip = socket.gethostbyname(host_name)
+        self.domain = host_to_domain(host_name)        
 	self.suffix = realm_to_suffix(self.realm)
-        self.kdc_password = generate_kdc_password()
+        self.kdc_password = ipa_generate_password()
+        self.admin_password = admin_password
+
+        self.__setup_sub_dict()
+
+        # get a connection to the DS
+        try:
+            self.conn = ipaldap.IPAdmin(self.fqdn)
+            self.conn.do_simple_bind(bindpw=self.admin_password)
+        except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR), e:
+            logging.critical("Could not connect to DS")
+            raise e
 
         try:
             self.stop()
@@ -98,22 +109,7 @@ class KrbInstance(service.Service):
             # It could have been not running
             pass
 
-        self.start_creation(10, "Configuring Kerberos KDC")
-
-	self.__configure_kdc_account_password()
-
-        self.__setup_sub_dict()
-
-        self.__configure_ldap()
-
-        self.__create_instance()
-
-        self.__create_ds_keytab()
-
-        self.__export_kadmin_changepw_keytab()
-
-        self.__add_pwd_extop_module()
-
+    def __common_post_setup(self):
         try:
             self.step("starting the KDC")
             self.start()
@@ -129,8 +125,49 @@ class KrbInstance(service.Service):
         self.step("starting ipa-kpasswd")
         service.start("ipa-kpasswd")
 
+
+    def create_instance(self, ds_user, realm_name, host_name, admin_password, master_password):
+        self.master_password = master_password
+
+        self.__common_setup(ds_user, realm_name, host_name, admin_password)
+
+        self.start_creation(11, "Configuring Kerberos KDC")
+        
+	self.__configure_kdc_account_password()
+        self.__configure_sasl_mappings()
+        self.__add_krb_entries()
+        self.__create_instance()
+        self.__create_ds_keytab()
+        self.__export_kadmin_changepw_keytab()
+        self.__add_pwd_extop_module()
+
+        self.__common_post_setup()
+
         self.done_creation()
 
+
+    def create_replica(self, ds_user, realm_name, host_name, admin_password, ldap_passwd_filename):
+        
+        self.__common_setup(ds_user, realm_name, host_name, admin_password)
+
+        self.start_creation(9, "Configuring Kerberos KDC")
+        self.__copy_ldap_passwd(ldap_passwd_filename)
+        self.__configure_sasl_mappings()
+        self.__write_stash_from_ds()
+        self.__create_instance(replica=True)
+        self.__create_ds_keytab()
+        self.__export_kadmin_changepw_keytab()
+
+        self.__common_post_setup()
+
+        self.done_creation()
+
+
+    def __copy_ldap_passwd(self, filename):
+        shutil.copy(filename, "/var/kerberos/krb5kdc/ldappwd")
+        os.chmod("/var/kerberos/krb5kdc/ldappwd", 0600)
+        
+        
     def __configure_kdc_account_password(self):
         self.step("setting KDC account password")
         hexpwd = ''
@@ -139,6 +176,7 @@ class KrbInstance(service.Service):
         pwd_fd = open("/var/kerberos/krb5kdc/ldappwd", "w")
         pwd_fd.write("uid=kdc,cn=sysaccounts,cn=etc,"+self.suffix+"#{HEX}"+hexpwd+"\n")
         pwd_fd.close()
+        os.chmod("/var/kerberos/krb5kdc/ldappwd", 0600)
 
     def __setup_sub_dict(self):
         self.sub_dict = dict(FQDN=self.fqdn,
@@ -149,9 +187,60 @@ class KrbInstance(service.Service):
                              HOST=self.host,
                              REALM=self.realm)
 
-    def __configure_ldap(self):
-        self.step("adding kerberos configuration to the directory")
-	#TODO: test that the ldif is ok with any random charcter we may use in the password
+    def __configure_sasl_mappings(self):
+        self.step("adding sasl mappings to the directory")
+        # we need to remove any existing SASL mappings in the directory as otherwise they
+        # they may conflict. There is no way to define the order they are used in atm.
+
+        # FIXME: for some reason IPAdmin dies here, so we switch
+        # it out for a regular ldapobject.
+        conn = self.conn
+        self.conn = ldapobject.SimpleLDAPObject("ldap://127.0.0.1/")
+        self.conn.bind("cn=directory manager", self.admin_password)
+        try:
+            msgid = self.conn.search("cn=mapping,cn=sasl,cn=config", ldap.SCOPE_ONELEVEL, "(objectclass=nsSaslMapping)")
+            res = self.conn.result(msgid)
+            for r in res[1]:
+                mid = self.conn.delete_s(r[0])
+        #except LDAPError, e:
+        #    logging.critical("Error during SASL mapping removal: %s" % str(e))
+        except Exception, e:
+            print type(e)
+            print dir(e)
+            raise e
+            
+        self.conn = conn
+
+        entry = ipaldap.Entry("cn=Full Principal,cn=mapping,cn=sasl,cn=config")
+        entry.setValues("objectclass", "top", "nsSaslMapping")
+        entry.setValues("cn", "Full Principal")
+        entry.setValues("nsSaslMapRegexString", '\(.*\)@\(.*\)')
+        entry.setValues("nsSaslMapBaseDNTemplate", self.suffix)
+        entry.setValues("nsSaslMapFilterTemplate", '(krbPrincipalName=\\1@\\2)')
+
+        try:
+            self.conn.add_s(entry)
+        except ldap.ALREADY_EXISTS:
+            logging.critical("failed to add Full Principal Sasl mapping")
+            raise e
+
+        entry = ipaldap.Entry("cn=Name Only,cn=mapping,cn=sasl,cn=config")
+        entry.setValues("objectclass", "top", "nsSaslMapping")
+        entry.setValues("cn", "Name Only")
+        entry.setValues("nsSaslMapRegexString", '\(.*\)')
+        entry.setValues("nsSaslMapBaseDNTemplate", self.suffix)
+        entry.setValues("nsSaslMapFilterTemplate", '(krbPrincipalName=\\1@%s)' % self.realm)
+
+        try:
+            self.conn.add_s(entry)
+        except ldap.ALREADY_EXISTS:
+            logging.critical("failed to add Name Only Sasl mapping")
+            raise e
+
+    def __add_krb_entries(self):
+        self.step("adding kerberos entries to the DS")
+
+        #TODO: test that the ldif is ok with any random charcter we may use in the password
         kerberos_txt = template_file(SHARE_DIR + "kerberos.ldif", self.sub_dict)
         kerberos_fd = write_tmp_file(kerberos_txt)
         try:
@@ -169,7 +258,7 @@ class KrbInstance(service.Service):
             logging.critical("Failed to load default-aci.ldif: %s" % str(e))
         aci_fd.close()
 
-    def __create_instance(self):
+    def __create_instance(self, replica=False):
         self.step("configuring KDC")
         kdc_conf = template_file(SHARE_DIR+"kdc.conf.template", self.sub_dict)
         kdc_fd = open("/var/kerberos/krb5kdc/kdc.conf", "w+")
@@ -197,12 +286,34 @@ class KrbInstance(service.Service):
         krb_fd.write(krb_realm)
         krb_fd.close()
 
-        #populate the directory with the realm structure
-        args = ["/usr/kerberos/sbin/kdb5_ldap_util", "-D", "uid=kdc,cn=sysaccounts,cn=etc,"+self.suffix, "-w", self.kdc_password, "create", "-s", "-P", self.master_password, "-r", self.realm, "-subtrees", self.suffix, "-sscope", "sub"]
+        if not replica:
+            #populate the directory with the realm structure
+            args = ["/usr/kerberos/sbin/kdb5_ldap_util", "-D", "uid=kdc,cn=sysaccounts,cn=etc,"+self.suffix, "-w", self.kdc_password, "create", "-s", "-P", self.master_password, "-r", self.realm, "-subtrees", self.suffix, "-sscope", "sub"]
+            try:
+                run(args)
+            except subprocess.CalledProcessError, e:
+                print "Failed to populate the realm structure in kerberos", e
+
+    def __write_stash_from_ds(self):
+        self.step("writing stash file from DS")
         try:
-            run(args)
-        except subprocess.CalledProcessError, e:
-            print "Failed to populate the realm structure in kerberos", e
+            entry = self.conn.getEntry("cn=%s, cn=kerberos, %s" % (self.realm, self.suffix), ldap.SCOPE_SUBTREE)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND), e:
+            logging.critical("Could not find master key in DS")
+            raise e
+
+        krbMKey = pyasn1.codec.ber.decoder.decode(entry.krbmkey)
+        keytype = int(krbMKey[0][1][0])
+        keydata = str(krbMKey[0][1][1])
+
+        format = '=hi%ss' % len(keydata)
+        s = struct.pack(format, keytype, len(keydata), keydata)
+        try:
+            fd = open("/var/kerberos/krb5kdc/.k5."+self.realm, "w")
+            fd.write(s)
+        except os.error, e:
+            logging.critical("failed to write stash file")
+            raise e
 
     #add the password extop module
     def __add_pwd_extop_module(self):
@@ -215,12 +326,31 @@ class KrbInstance(service.Service):
             logging.critical("Failed to load pwd-extop-conf.ldif: %s" % str(e))
         extop_fd.close()
 
-        #add an ACL to let the DS user read the master key
-        args = ["/usr/bin/setfacl", "-m", "u:"+self.ds_user+":r", "/var/kerberos/krb5kdc/.k5."+self.realm]
+        #get the Master Key from the stash file
         try:
-            run(args)
-        except subprocess.CalledProcessError, e:
-            logging.critical("Failed to set the ACL on the master key: %s" % str(e))
+            stash = open("/var/kerberos/krb5kdc/.k5."+self.realm, "r")
+            keytype = struct.unpack('h', stash.read(2))[0]
+            keylen = struct.unpack('i', stash.read(4))[0]
+            keydata = stash.read(keylen)
+        except os.error:
+            logging.critical("Failed to retrieve Master Key from Stash file: %s")
+	#encode it in the asn.1 attribute
+        MasterKey = univ.Sequence()
+        MasterKey.setComponentByPosition(0, univ.Integer(keytype))
+        MasterKey.setComponentByPosition(1, univ.OctetString(keydata))
+        krbMKey = univ.Sequence()
+        krbMKey.setComponentByPosition(0, univ.Integer(0)) #we have no kvno
+        krbMKey.setComponentByPosition(1, MasterKey)
+        asn1key = pyasn1.codec.ber.encoder.encode(krbMKey)
+
+        entry = ipaldap.Entry("cn="+self.realm+",cn=kerberos,"+self.suffix)
+        dn = "cn="+self.realm+",cn=kerberos,"+self.suffix
+        mod = [(ldap.MOD_ADD, 'krbMKey', str(asn1key))]
+        try:
+            self.conn.modify_s(dn, mod)
+        except ldap.TYPE_OR_VALUE_EXISTS, e:
+            logging.critical("failed to add master key to kerberos database\n")
+            raise e
 
     def __create_ds_keytab(self):
         self.step("creating a keytab for the directory")

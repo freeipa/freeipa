@@ -11,6 +11,7 @@ SUBDIRS =			\
 	ipaserver		\
 	ipa-slapi-plugins	\
 	xmlrpc-server		\
+	ipa-keytab-util		\
 	$(NULL)
 
 EXTRA_DIST =			\

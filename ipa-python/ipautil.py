@@ -23,8 +23,11 @@ import string
 import tempfile
 import logging
 import subprocess
+from random import Random
+from time import gmtime
 import os
 import stat
+import socket
 import readline
 import traceback
 from types import *
@@ -38,7 +41,6 @@ def realm_to_suffix(realm_name):
     s = realm_name.split(".")
     terms = ["dc=" + x.lower() for x in s]
     return ",".join(terms)
-
 
 def template_str(txt, vars):
     return string.Template(txt).substitute(vars)
@@ -333,6 +335,15 @@ def parse_generalized_time(timestr):
 
     except ValueError:
         return None
+
+def ipa_generate_password():
+    rndpwd = ''
+    r = Random()
+    r.seed(gmtime())
+    for x in range(12):
+#        rndpwd += chr(r.randint(32,126))
+        rndpwd += chr(r.randint(65,90)) #stricter set for testing
+    return rndpwd
 
 
 def format_list(items, quote=None, page_width=80):

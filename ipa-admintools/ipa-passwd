@@ -29,6 +29,7 @@ import kerberos
 import krbV
 import ldap
 import getpass
+import errno
 
 def usage():
     print "ipa-passwd [user]"
@@ -98,6 +99,18 @@ def main():
     try:
         client = ipaclient.IPAClient()
         client.modifyPassword(principal, None, password)
+    except xmlrpclib.Fault, fault:
+        if fault.faultCode == errno.ECONNREFUSED:
+            print "The IPA XML-RPC service is not responding."
+        else:
+            print fault.faultString
+        return 1
+    except kerberos.GSSError, e:
+        print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])
+        return 1
+    except xmlrpclib.ProtocolError, e:
+        print "Unable to connect to IPA server: %s" % (e.errmsg)
+        return 1
     except ipa.ipaerror.IPAError, e:
         print "%s" % (e.message)
         return 1

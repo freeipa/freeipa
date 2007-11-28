@@ -1,0 +1,114 @@
+#! /usr/bin/python -E
+# Authors: Karl MacMillan <kmacmillan@mentalrootkit.com>
+#
+# Copyright (C) 2007  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 or later
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+import sys
+sys.path.append("/usr/share/ipa")
+
+import logging, tempfile, shutil, os, pwd
+from ConfigParser import SafeConfigParser
+import krbV
+
+from ipa import ipautil
+from ipaserver import dsinstance
+from ipaserver import installutils
+
+certutil = "/usr/bin/certutil"
+
+def get_host_name():
+    hostname = installutils.get_fqdn()
+    try:
+        installutils.verify_fqdn(hostname)
+    except RuntimeError, e:
+        logging.error(str(e))
+        sys.exit(1)
+
+    return hostname
+
+def get_realm_name():
+    c = krbV.default_context()
+    return c.default_realm
+
+def check_ipa_configuration(realm_name):
+    config_dir = dsinstance.config_dirname(realm_name)
+    if not ipautil.dir_exists(config_dir):
+        logging.error("could not find directory instance: %s" % config_dir)
+        sys.exit(1)
+
+def create_certdb(ds_dir, dir):
+    # copy the passwd, noise, and pin files
+    shutil.copyfile(ds_dir + "/pwdfile.txt", dir + "/pwdfile.txt")
+    shutil.copyfile(ds_dir + "/noise.txt", dir + "/noise.txt")
+    shutil.copyfile(ds_dir + "/pin.txt", dir + "/pin.txt")
+
+    # create a new cert db
+    ipautil.run([certutil, "-N", "-d", dir, "-f", dir + "/pwdfile.txt"])
+
+    # Add the CA cert
+    ipautil.run([certutil, "-A", "-d", dir, "-n", "CA certificate", "-t", "CT,CT", "-a", "-i",
+                 ds_dir + "/cacert.asc"])
+
+def get_ds_user(ds_dir):
+    uid = os.stat(ds_dir).st_uid
+    user = pwd.getpwuid(uid)[0]
+
+    return user
+
+def copy_files(realm_name, dir):
+    shutil.copy("/var/kerberos/krb5kdc/ldappwd", dir + "/ldappwd")
+    
+    
+def save_config(dir, realm_name, host_name, ds_user):
+    config = SafeConfigParser()
+    config.add_section("realm")
+    config.set("realm", "realm_name", realm_name)
+    config.set("realm", "master_host_name", host_name)
+    config.set("realm", "ds_user", ds_user)
+    fd = open(dir + "/realm_info", "w")
+    config.write(fd)
+    
+
+def main():
+    realm_name = get_realm_name()
+    host_name = get_host_name()
+    ds_dir = dsinstance.config_dirname(realm_name)
+    ds_user = get_ds_user(ds_dir)
+
+    check_ipa_configuration(realm_name)
+
+    top_dir = tempfile.mkdtemp("ipa")
+    dir = top_dir + "/realm_info"
+    os.mkdir(dir, 0700)
+
+    create_certdb(ds_dir, dir)
+
+    copy_files(realm_name, dir)
+
+    save_config(dir, realm_name, host_name, ds_user)
+
+    ipautil.run(["/bin/tar", "cfz", "replica-info-" + realm_name, "-C", top_dir, "realm_info"])
+
+    shutil.rmtree(dir)
+
+main()    
+    
+
+
+    
+    

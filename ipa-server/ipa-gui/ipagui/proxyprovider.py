@@ -2,6 +2,11 @@ from turbogears.identity.soprovider import *
 from turbogears.identity.visitor import *
 import logging
 import os
+import ipa.ipaclient
+from ipaserver import funcs
+import ipa.config
+import ipa.group
+import ipa.user
 
 log = logging.getLogger("turbogears.identity")
 
@@ -15,7 +20,25 @@ class IPA_User(object):
         (principal, realm) = user_name.split('@')
         self.display_name = principal
         self.permissions = None
-        self.groups = None
+        transport = funcs.IPAServer()
+        client = ipa.ipaclient.IPAClient(transport)
+        client.set_krbccache(os.environ["KRB5CCNAME"])
+        try:
+            user = client.get_user_by_principal(user_name, ['dn'])
+            self.groups = []
+            groups = client.get_groups_by_member(user.dn, ['dn', 'cn'])
+            if isinstance(groups, str):
+                groups = [groups]
+            for ginfo in groups:
+                # cn may be multi-valued, add them all just in case
+                cn = ginfo.getValue('cn')
+                if isinstance(cn, str):
+                    cn = [cn]
+                for c in cn:
+                    self.groups.append(c)
+        except:
+            raise
+
         return
 
 class ProxyIdentity(object):
@@ -57,7 +80,7 @@ class ProxyIdentity(object):
 
     def _get_groups(self):
         try:
-            return self._groups
+            return self._user.groups
         except AttributeError:
             # Groups haven't been computed yet
             return None
@@ -87,10 +110,14 @@ class ProxyIdentityProvider(SqlObjectIdentityProvider):
         pass
 
     def validate_identity(self, user_name, password, visit_key):
-        user = IPA_User(user_name)
-        log.debug( "validate_identity %s" % user_name)
-  
-        return ProxyIdentity(visit_key, user)
+        try:
+            user = IPA_User(user_name)
+            log.debug( "validate_identity %s" % user_name)
+            return ProxyIdentity(visit_key, user)
+        except:
+            # Something went wrong in fetching the user. Set to
+            # anonymous which will deny access.
+            return ProxyIdentity( None )
 
     def validate_password(self, user, user_name, password):
         '''Validation has already occurred in the proxy'''

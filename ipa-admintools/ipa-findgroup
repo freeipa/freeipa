@@ -23,6 +23,7 @@ from optparse import OptionParser
 import ipa.ipaclient as ipaclient
 import ipa.config
 
+import errno
 import sys
 import xmlrpclib
 import kerberos
@@ -33,6 +34,12 @@ def usage():
 
 def parse_options():
     parser = OptionParser()
+
+    parser.add_option("-a", "--all", action="store_true", dest="all",
+                      help="Show all group attributes")
+    parser.add_option("-n", "--notranslate", action="store_true",
+                      dest="notranslate",
+                      help="Don't translate LDAP attributes into readable labels")
 
     args = ipa.config.init_config(sys.argv)
     options, args = parser.parse_args(args)
@@ -48,7 +55,10 @@ def main():
 
     try:
         client = ipaclient.IPAClient()
-        groups = client.find_groups(args[1], ['cn','description','gidnumber'])
+        if options.all is None:
+            groups = client.find_groups(args[1], ['cn','description','gidnumber','nsAccountLock'])
+        else:
+            groups = client.find_groups(args[1], sattrs=['*','nsAccountLock'])
 
         counter = groups[0]
         groups = groups[1:]
@@ -64,15 +74,21 @@ def main():
                 print str(e)
                 continue
             attr = ent.attrList()
+            if options.notranslate:
+                labels = {}
+                for a in attr:
+                    labels[a] = a
+            else:
+                labels = client.attrs_to_labels(attr)
 
             print "dn: " + ent.dn
 
             for a in attr:
                 value = ent.getValues(a)
                 if isinstance(value,str):
-                    print a + ": " + value
+                    print labels[a] + ": " + value
                 else:
-                    print a + ": "
+                    print labels[a] + ": "
                     for l in value:
                         print "\t" +  l
 
@@ -87,7 +103,10 @@ def main():
             print 
 
     except xmlrpclib.Fault, fault:
-        print fault.faultString
+        if fault.faultCode == errno.ECONNREFUSED:
+            print "The IPA XML-RPC service is not responding."
+        else:
+            print fault.faultString
         return 1
     except kerberos.GSSError, e:
         print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])

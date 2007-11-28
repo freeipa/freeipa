@@ -3,17 +3,18 @@
     py:extends="'userlayout.kid'">
 <head>
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
-    <title>View Person</title>
+    <title>View User</title>
 </head>
 <body>
 <?python
 edit_url = tg.url('/user/edit', uid=user.get('uid'))
 ?>
-    <h1>View Person</h1>
+    <h1>View User</h1>
 
-    <input class="submitbutton" type="button"
+    <input py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups"
+      class="submitbutton" type="button"
       onclick="document.location.href='${edit_url}'"
-      value="Edit Person" />
+      value="Edit User" />
 
 <?python
 from ipagui.helpers import userhelper
@@ -57,7 +58,21 @@ else:
           <th>
             <label class="fieldlabel" py:content="fields.cn.label" />:
           </th>
-          <td>${user.get("cn")}</td>
+          <td>
+          <table cellpadding="2" cellspacing="0" border="0">
+            <tbody>
+              <?python
+                index = 0
+                values = user.get("cn")
+                if isinstance(values, str):
+                    values = [values]
+               ?>
+              <tr py:for="index in range(len(values))">
+              <td>${values[index]}</td>
+              </tr>
+            </tbody>
+          </table>
+          </td>
         </tr>
         <tr>
           <th>
@@ -132,31 +147,101 @@ else:
           <th>
             <label class="fieldlabel" py:content="fields.telephonenumber.label" />:
           </th>
-          <td>${user.get("telephonenumber")}</td>
+          <td>
+          <table cellpadding="2" cellspacing="0" border="0">
+            <tbody>
+              <?python
+                index = 0
+                values = user.get("telephonenumber", '')
+                if isinstance(values, str):
+                    values = [values]
+               ?>
+              <tr py:for="index in range(len(values))">
+              <td>${values[index]}</td>
+              </tr>
+            </tbody>
+          </table>
+          </td>
         </tr>
         <tr>
           <th>
             <label class="fieldlabel" py:content="fields.facsimiletelephonenumber.label" />:
           </th>
-          <td>${user.get("facsimiletelephonenumber")}</td>
+          <td>
+          <table cellpadding="2" cellspacing="0" border="0">
+            <tbody>
+              <?python
+                index = 0
+                values = user.get("facsimiletelephonenumber", '')
+                if isinstance(values, str):
+                    values = [values]
+               ?>
+              <tr py:for="index in range(len(values))">
+              <td>${values[index]}</td>
+              </tr>
+            </tbody>
+          </table>
+          </td>
         </tr>
         <tr>
           <th>
             <label class="fieldlabel" py:content="fields.mobile.label" />:
           </th>
-          <td>${user.get("mobile")}</td>
+          <td>
+          <table cellpadding="2" cellspacing="0" border="0">
+            <tbody>
+              <?python
+                index = 0
+                values = user.get("mobile", '') 
+                if isinstance(values, str):
+                    values = [values]
+               ?>
+              <tr py:for="index in range(len(values))">
+              <td>${values[index]}</td>
+              </tr>
+            </tbody>
+          </table>
+          </td>
         </tr>
         <tr>
           <th>
             <label class="fieldlabel" py:content="fields.pager.label" />:
           </th>
-          <td>${user.get("pager")}</td>
+          <td>
+          <table cellpadding="2" cellspacing="0" border="0">
+            <tbody>
+              <?python
+                index = 0
+                values = user.get("pager", '')
+                if isinstance(values, str):
+                    values = [values]
+               ?>
+              <tr py:for="index in range(len(values))">
+              <td>${values[index]}</td>
+              </tr>
+            </tbody>
+          </table>
+          </td>
         </tr>
         <tr>
           <th>
             <label class="fieldlabel" py:content="fields.homephone.label" />:
           </th>
-          <td>${user.get("homephone")}</td>
+          <td>
+          <table cellpadding="2" cellspacing="0" border="0">
+            <tbody>
+              <?python
+                index = 0
+                values = user.get("homephone", '')
+                if isinstance(values, str):
+                    values = [values]
+               ?>
+              <tr py:for="index in range(len(values))">
+              <td>${values[index]}</td>
+              </tr>
+            </tbody>
+          </table>
+          </td>
         </tr>
     </table>
 
@@ -260,7 +345,7 @@ else:
     </table>
 
     <div py:if='len(fields.custom_fields) &gt; 0'>
-      <div class="formsection" >Custom Fields</div>
+      <h2 class="formsection">Custom Fields</h2>
       <table class="formtable" cellpadding="2" cellspacing="0" border="0">
         <tr py:for='custom_field in fields.custom_fields'>
           <th>
@@ -289,8 +374,9 @@ else:
 
     <br/>
 <hr />
-    <input class="submitbutton" type="button"
+    <input py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups"
+      class="submitbutton" type="button"
       onclick="document.location.href='${edit_url}'"
-      value="Edit Person" />
+      value="Edit User" />
 </body>
 </html>

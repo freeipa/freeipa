@@ -8,7 +8,13 @@ dn: cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: nsContainer
+objectClass: krbPwdPolicy
 cn: accounts
+krbMinPwdLife: 3600
+krbPwdMinDiffChars: 0
+krbPwdMinLength: 8
+krbPwdHistoryLength: 0
+krbMaxPwdLife: 864000
 
 dn: cn=users,cn=accounts,$SUFFIX
 changetype: add
@@ -22,10 +28,11 @@ objectClass: top
 objectClass: nsContainer
 cn: groups
 
-#dn: cn=computers,cn=accounts,$SUFFIX
-#objectClass: top
-#objectClass: nsContainer
-#cn: computers
+dn: cn=services,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: services
 
 dn: cn=etc,$SUFFIX
 changetype: add
@@ -101,17 +108,80 @@ uid: ipa_default
 dn: cn=admins,cn=groups,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
-objectClass: groupofuniquenames
+objectClass: groupofnames
 objectClass: posixGroup
 cn: admins
 description: Account administrators group
 gidNumber: 1001
-uniqueMember: uid=admin,cn=sysaccounts,cn=etc,$SUFFIX
+member: uid=admin,cn=sysaccounts,cn=etc,$SUFFIX
 
 dn: cn=ipausers,cn=groups,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
-objectClass: groupofuniquenames
+objectClass: groupofnames
 objectClass: posixGroup
 gidNumber: 1002
+description: Default group for all users
 cn: ipausers
+
+dn: cn=editors,cn=groups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: posixGroup
+gidNumber: 1003
+description: Limited admins who can edit other users
+cn: editors
+
+dn: cn=ipaConfig,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+objectClass: ipaGuiConfig
+ipaUserSearchFields: uid,givenName,sn,telephoneNumber,ou,title
+ipaGroupSearchFields: cn,description
+ipaSearchTimeLimit: 2
+ipaSearchRecordsLimit: 0
+ipaHomesRootDir: /home
+ipaDefaultLoginShell: /bin/sh
+ipaDefaultPrimaryGroup: ipausers
+ipaMaxUsernameLength: 8
+ipaPwdExpAdvNotify: 4
+
+dn: cn=account inactivation,cn=accounts,$SUFFIX
+description: Lock accounts based on group membership
+objectClass: top
+objectClass: ldapsubentry
+objectClass: cosSuperDefinition
+objectClass: cosClassicDefinition
+cosTemplateDn: cn=cosTemplates,cn=accounts,$SUFFIX
+cosAttribute: nsAccountLock operational
+cosSpecifier: memberOf
+cn: Account Inactivation
+
+dn: cn=cosTemplates,cn=accounts,$SUFFIX
+objectclass: top
+objectclass: nsContainer
+cn: cosTemplates
+
+dn: cn="cn=inactivated,cn=account inactivation,cn=accounts,$SUFFIX", cn=cosTemplates,cn=accounts,$SUFFIX
+objectClass: top
+objectClass: cosTemplate
+objectClass: extensibleobject
+nsAccountLock: true
+cosPriority: 1
+
+dn: cn=inactivated,cn=account inactivation,cn=accounts,$SUFFIX
+objectclass: top
+objectclass: groupofnames
+
+dn: cn="cn=activated,cn=account inactivation,cn=accounts,$SUFFIX", cn=cosTemplates,cn=accounts,$SUFFIX
+objectClass: top
+objectClass: cosTemplate
+objectClass: extensibleobject
+nsAccountLock: false
+cosPriority: 0
+
+dn: cn=Activated,cn=Account Inactivation,cn=accounts,$SUFFIX
+objectclass: top
+objectclass: groupofnames

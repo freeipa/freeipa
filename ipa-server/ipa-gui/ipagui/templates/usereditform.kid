@@ -10,11 +10,11 @@
     onsubmit="preSubmit()">
 
           <input type="submit" class="submitbutton" name="submit"
-              value="Update Person"/>
+              value="Update User"/>
           <input type="submit" class="submitbutton" name="submit"
               value="Cancel Edit" />
           <input type="button" class="submitbutton"
-                 value="Delete Person"
+                 value="Delete User"
                  onclick="return confirmDelete();"
                  />
 
@@ -26,6 +26,8 @@ from ipagui.helpers import ipahelper
     src="${tg.url('/static/javascript/dynamicedit.js')}"></script>
   <script type="text/javascript" charset="utf-8"
     src="${tg.url('/static/javascript/dynamicselect.js')}"></script>
+  <script type="text/javascript" charset="utf-8"
+    src="${tg.url('/tg_widgets/tg_expanding_form_widget/javascript/expanding_form.js')}"></script>
 
   <?python
   searchurl = tg.url('/user/edit_search')
@@ -141,14 +143,35 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user_fields.cn.field_id}"
-            py:content="user_fields.cn.label" />:
+          <label class="fieldlabel" for="${user_fields.cns.field_id}"
+            py:content="user_fields.cns.label" />:
         </th>
-        <td>
-          <span py:replace="user_fields.cn.display(value_for(user_fields.cn))" />
-          <span py:if="tg.errors.get('cn')" class="fielderror"
-              py:content="tg.errors.get('cn')" />
+        <td colspan="3">
+          <table class="formtable" cellpadding="2" cellspacing="0" border="0" id="${user_fields.cns.field_id}">
+            <tbody>
+              <?python repetition = 0
+                       cn_index = 0
+                       cn_error = tg.errors.get('cn')         
+              ?>
+              <tr py:for="cn in value_for(user_fields.cn)"
+                  id="${user_fields.cns.field_id}_${repetition}" 
+                  class="${user_fields.cns.field_class}">
 
+                <td py:for="field in user_fields.cns.fields">
+                  <span><input class="textfield" type="text" id="${user_fields.cns.field_id}_${repetition}_cn" name="cns-${repetition}.cn" value="${cn}"/></span>
+                  <span py:if="cn_error and cn_error[cn_index]" class="fielderror"
+                        py:content="tg.errors.get('cn')" />
+                </td>
+                <?python cn_index = cn_index + 1 ?>
+                <td>
+                  <a
+                  href="javascript:ExpandingForm.removeItem('${user_fields.cns.field_id}_${repetition}')">Remove</a>
+                </td>
+                <?python repetition = repetition + 1?>
+              </tr>
+            </tbody>
+          </table>
+          <a id="${user_fields.cns.field_id}_doclink" href="javascript:ExpandingForm.addItem('${user_fields.cns.field_id}');">Add Common Name</a>
         </td>
       </tr>
 
@@ -364,61 +387,170 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user_fields.telephonenumber.field_id}"
-            py:content="user_fields.telephonenumber.label" />:
+          <label class="fieldlabel" for="${user_fields.telephonenumbers.field_id}"
+            py:content="user_fields.telephonenumbers.label" />:
         </th>
-        <td>
-          <span py:replace="user_fields.telephonenumber.display(value_for(user_fields.telephonenumber))" />
-          <span py:if="tg.errors.get('telephonenumber')" class="fielderror"
-              py:content="tg.errors.get('telephonenumber')" />
+        <td colspan="3">
+          <table class="formtable" cellpadding="2" cellspacing="0" border="0" id="${user_fields.telephonenumbers.field_id}">
+            <tbody>
+              <?python repetition = 0
+                       tele_index = 0
+                       tele_error = tg.errors.get('telephonenumber')         
+              ?>
+              <tr py:for="tele in value_for(user_fields.telephonenumber)"
+                  id="${user_fields.telephonenumbers.field_id}_${repetition}" 
+                  class="${user_fields.telephonenumbers.field_class}">
+
+                <td py:for="field in user_fields.telephonenumbers.fields">
+                  <span><input class="textfield" type="text" id="${user_fields.telephonenumbers.field_id}_${repetition}_telephonenumber" name="telephonenumbers-${repetition}.telephonenumber" value="${tele}"/></span>
+                  <span py:if="tele_error and tele_error[tele_index]" class="fielderror"
+                        py:content="tg.errors.get('telephonenumber')" />
+                </td>
+                <?python tele_index = tele_index + 1 ?>
+                <td>
+                  <a
+                  href="javascript:ExpandingForm.removeItem('${user_fields.telephonenumbers.field_id}_${repetition}')">Remove</a>
+                </td>
+                <?python repetition = repetition + 1?>
+              </tr>
+            </tbody>
+          </table>
+          <a id="${user_fields.telephonenumbers.field_id}_doclink" href="javascript:ExpandingForm.addItem('${user_fields.telephonenumbers.field_id}');">Add Work Number</a>
+        </td>
+      </tr>
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${user_fields.facsimiletelephonenumbers.field_id}"
+            py:content="user_fields.facsimiletelephonenumbers.label" />:
+        </th>
+        <td colspan="3">
+          <table class="formtable" cellpadding="2" cellspacing="0" border="0" id="${user_fields.facsimiletelephonenumbers.field_id}">
+            <tbody>
+              <?python repetition = 0
+                       fax_index = 0
+                       fax_error = tg.errors.get('facsimiletelephonenumber')         
+              ?>
+              <tr py:for="fax in value_for(user_fields.facsimiletelephonenumber)"
+                  id="${user_fields.facsimiletelephonenumbers.field_id}_${repetition}" 
+                  class="${user_fields.facsimiletelephonenumbers.field_class}">
+
+                <td py:for="field in user_fields.facsimiletelephonenumbers.fields">
+                  <span><input class="textfield" type="text" id="${user_fields.facsimiletelephonenumbers.field_id}_${repetition}_facsimiletelephonenumber" name="facsimiletelephonenumbers-${repetition}.facsimiletelephonenumber" value="${fax}"/></span>
+                  <span py:if="fax_error and fax_error[fax_index]" class="fielderror"
+                        py:content="tg.errors.get('facsimiletelephonenumber')" />
+                </td>
+                <?python fax_index = fax_index + 1 ?>
+                <td>
+                  <a
+                  href="javascript:ExpandingForm.removeItem('${user_fields.facsimiletelephonenumbers.field_id}_${repetition}')">Remove</a>
+                </td>
+                <?python repetition = repetition + 1?>
+              </tr>
+            </tbody>
+          </table>
+          <a id="${user_fields.facsimiletelephonenumbers.field_id}_doclink" href="javascript:ExpandingForm.addItem('${user_fields.facsimiletelephonenumbers.field_id}');">Add Fax Number</a>
         </td>
       </tr>
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user_fields.facsimiletelephonenumber.field_id}"
-            py:content="user_fields.facsimiletelephonenumber.label" />:
+          <label class="fieldlabel" for="${user_fields.mobiles.field_id}"
+            py:content="user_fields.mobiles.label" />:
         </th>
-        <td>
-          <span py:replace="user_fields.facsimiletelephonenumber.display(value_for(user_fields.facsimiletelephonenumber))" />
-          <span py:if="tg.errors.get('facsimiletelephonenumber')" class="fielderror"
-              py:content="tg.errors.get('facsimiletelephonenumber')" />
+        <td colspan="3">
+          <table class="formtable" cellpadding="2" cellspacing="0" border="0" id="${user_fields.mobiles.field_id}">
+            <tbody>
+              <?python repetition = 0
+                       mobile_index = 0
+                       mobile_error = tg.errors.get('mobile')         
+              ?>
+              <tr py:for="mobile in value_for(user_fields.mobile)"
+                  id="${user_fields.mobiles.field_id}_${repetition}" 
+                  class="${user_fields.mobiles.field_class}">
+
+                <td py:for="field in user_fields.mobiles.fields">
+                  <span><input class="textfield" type="text" id="${user_fields.mobiles.field_id}_${repetition}_mobile" name="mobiles-${repetition}.mobile" value="${mobile}"/></span>
+                  <span py:if="mobile_error and mobile_error[mobile_index]" class="fielderror"
+                        py:content="tg.errors.get('mobile')" />
+                </td>
+                <?python mobile_index = mobile_index + 1 ?>
+                <td>
+                  <a
+                  href="javascript:ExpandingForm.removeItem('${user_fields.mobiles.field_id}_${repetition}')">Remove</a>
+                </td>
+                <?python repetition = repetition + 1?>
+              </tr>
+            </tbody>
+          </table>
+          <a id="${user_fields.mobiles.field_id}_doclink" href="javascript:ExpandingForm.addItem('${user_fields.mobiles.field_id}');">Add Cell Number</a>
         </td>
       </tr>
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user_fields.mobile.field_id}"
-            py:content="user_fields.mobile.label" />:
+          <label class="fieldlabel" for="${user_fields.pagers.field_id}"
+            py:content="user_fields.pagers.label" />:
         </th>
-        <td>
-          <span py:replace="user_fields.mobile.display(value_for(user_fields.mobile))" />
-          <span py:if="tg.errors.get('mobile')" class="fielderror"
-              py:content="tg.errors.get('mobile')" />
+        <td colspan="3">
+          <table class="formtable" cellpadding="2" cellspacing="0" border="0" id="${user_fields.pagers.field_id}">
+            <tbody>
+              <?python repetition = 0
+                       pager_index = 0
+                       pager_error = tg.errors.get('pager')         
+              ?>
+              <tr py:for="pager in value_for(user_fields.pager)"
+                  id="${user_fields.pagers.field_id}_${repetition}" 
+                  class="${user_fields.pagers.field_class}">
+
+                <td py:for="field in user_fields.pagers.fields">
+                  <span><input class="textfield" type="text" id="${user_fields.pagers.field_id}_${repetition}_pager" name="pagers-${repetition}.pager" value="${pager}"/></span>
+                  <span py:if="pager_error and pager_error[pager_index]" class="fielderror"
+                        py:content="tg.errors.get('pager')" />
+                </td>
+                <?python pager_index = pager_index + 1 ?>
+                <td>
+                  <a
+                  href="javascript:ExpandingForm.removeItem('${user_fields.pagers.field_id}_${repetition}')">Remove</a>
+                </td>
+                <?python repetition = repetition + 1?>
+              </tr>
+            </tbody>
+          </table>
+          <a id="${user_fields.pagers.field_id}_doclink" href="javascript:ExpandingForm.addItem('${user_fields.pagers.field_id}');">Add Pager Number</a>
         </td>
       </tr>
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user_fields.pager.field_id}"
-            py:content="user_fields.pager.label" />:
+          <label class="fieldlabel" for="${user_fields.homephones.field_id}"
+            py:content="user_fields.homephones.label" />:
         </th>
-        <td>
-          <span py:replace="user_fields.pager.display(value_for(user_fields.pager))" />
-          <span py:if="tg.errors.get('pager')" class="fielderror"
-              py:content="tg.errors.get('pager')" />
-        </td>
-      </tr>
+        <td colspan="3">
+          <table class="formtable" cellpadding="2" cellspacing="0" border="0" id="${user_fields.homephones.field_id}">
+            <tbody>
+              <?python repetition = 0
+                       homephone_index = 0
+                       homephone_error = tg.errors.get('homephone')         
+              ?>
+              <tr py:for="homephone in value_for(user_fields.homephone)"
+                  id="${user_fields.homephones.field_id}_${repetition}" 
+                  class="${user_fields.homephones.field_class}">
 
-      <tr>
-        <th>
-          <label class="fieldlabel" for="${user_fields.homephone.field_id}"
-            py:content="user_fields.homephone.label" />:
-        </th>
-        <td>
-          <span py:replace="user_fields.homephone.display(value_for(user_fields.homephone))" />
-          <span py:if="tg.errors.get('homephone')" class="fielderror"
-              py:content="tg.errors.get('homephone')" />
+                <td py:for="field in user_fields.homephones.fields">
+                  <span><input class="textfield" type="text" id="${user_fields.homephones.field_id}_${repetition}_homephone" name="homephones-${repetition}.homephone" value="${homephone}"/></span>
+                  <span py:if="homephone_error and homephone_error[homephone_index]" class="fielderror"
+                        py:content="tg.errors.get('homephone')" />
+                </td>
+                <?python homephone_index = homephone_index + 1 ?>
+                <td>
+                  <a
+                  href="javascript:ExpandingForm.removeItem('${user_fields.homephones.field_id}_${repetition}')">Remove</a>
+                </td>
+                <?python repetition = repetition + 1?>
+              </tr>
+            </tbody>
+          </table>
+          <a id="${user_fields.homephones.field_id}_doclink" href="javascript:ExpandingForm.addItem('${user_fields.homephones.field_id}');">Add Home Phone</a>
         </td>
       </tr>
     </table>
@@ -685,6 +817,7 @@ from ipagui.helpers import ipahelper
           div_counter = div_counter + 1
           ?>
         </div>
+        &nbsp; <!-- a space here to prevent an empty div -->
       </div>
 
     </div>
@@ -714,11 +847,11 @@ from ipagui.helpers import ipahelper
     <hr/>
 
           <input type="submit" class="submitbutton" name="submit"
-              value="Update Person"/>
+              value="Update User"/>
           <input type="submit" class="submitbutton" name="submit"
               value="Cancel Edit" />
           <input type="button" class="submitbutton"
-                 value="Delete Person"
+                 value="Delete User"
                  onclick="return confirmDelete();"
                  />
 

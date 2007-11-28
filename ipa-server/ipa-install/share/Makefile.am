@@ -5,6 +5,7 @@ app_DATA =				\
 	60kerberos.ldif			\
 	60samba.ldif			\
 	60radius.ldif			\
+	60ipaconfig.ldif		\
 	bootstrap-template.ldif		\
 	default-aci.ldif		\
 	kerberos.ldif			\
@@ -22,6 +23,7 @@ app_DATA =				\
 	referint-conf.ldif		\
 	dna-posix.ldif			\
 	master-entry.ldif		\
+	memberof-task.ldif		\
 	$(NULL)
 
 EXTRA_DIST =				\

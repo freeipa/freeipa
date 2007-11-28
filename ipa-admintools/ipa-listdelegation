@@ -23,8 +23,10 @@ from optparse import OptionParser
 import ipa.ipaclient as ipaclient
 import ipa.config
 
+import operator
 import xmlrpclib
 import kerberos
+import errno
 
 import ipa.aci
 from ipa import ipaerror
@@ -51,11 +53,20 @@ def main():
     client = ipaclient.IPAClient()
     try:
         aci_entry = client.get_aci_entry(aci_fields)
-    except ipaerror.IPAError, e:
-        print("Delegation list failed: " + str(e))
+    except xmlrpclib.Fault, fault:
+        if fault.faultCode == errno.ECONNREFUSED:
+            print "The IPA XML-RPC service is not responding."
+        else:
+            print fault.faultString
         return 1
     except kerberos.GSSError, e:
         print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])
+        return 1
+    except xmlrpclib.ProtocolError, e:
+        print "Unable to connect to IPA server: %s" % (e.errmsg)
+        return 1
+    except ipaerror.IPAError, e:
+        print("Delegation list failed: " + str(e))
         return 1
 
     aci_str_list = aci_entry.getValues('aci')
@@ -75,7 +86,8 @@ def main():
 
     group_dn_to_cn = ipa.aci.extract_group_cns(aci_list, client)
 
-    for a in aci_list:
+    # the operator.itemgetter(0) lets us sort by the name field
+    for a in sorted(aci_list, key=operator.itemgetter(0)):
         labels = client.attrs_to_labels(a.attrs)
         print "Delegation Name: " + a.name
         print "Group " + group_dn_to_cn[a.source_group] 

@@ -30,12 +30,15 @@ import xmlrpclib
 import copy
 import attrs
 from ipa import ipaerror
+from urllib import quote,unquote
 from ipa import radius_util
 
 import string
 from types import *
 import os
 import re
+import logging
+import subprocess
 
 try:
     from threading import Lock
@@ -48,6 +51,12 @@ _LDAPPool = None
 ACIContainer = "cn=accounts"
 DefaultUserContainer = "cn=users,cn=accounts"
 DefaultGroupContainer = "cn=groups,cn=accounts"
+DefaultServiceContainer = "cn=services,cn=accounts"
+
+# FIXME: need to check the ipadebug option in ipa.conf
+#logging.basicConfig(level=logging.DEBUG,
+#    format='%(asctime)s %(levelname)s %(message)s',
+#    stream=sys.stderr)
 
 #
 # Apache runs in multi-process mode so each process will have its own
@@ -78,7 +87,10 @@ class IPAConnPool:
         conn = ipaserver.ipaldap.IPAdmin(host,port,None,None,None,debug)
 
         # This will bind the connection
-        conn.set_krbccache(krbccache, cprinc.name)
+        try:
+            conn.set_krbccache(krbccache, cprinc.name)
+        except ldap.UNWILLING_TO_PERFORM, e:
+            raise ipaerror.gen_exception(ipaerror.CONNECTION_UNWILLING)
 
         return conn
 
@@ -418,17 +430,30 @@ class IPAServer:
 
         # FIXME: This should be dynamic and can include just about anything
 
+        # Get our configuration
+        config = self.get_ipa_config(opts)
+
         # Let us add in some missing attributes
         if user.get('homedirectory') is None:
-            user['homedirectory'] = '/home/%s' % user.get('uid')
+            user['homedirectory'] = '%s/%s' % (config.get('ipahomesrootdir'), user.get('uid'))
+            user['homedirectory'] = user['homedirectory'].replace('//', '/')
+            user['homedirectory'] = user['homedirectory'].rstrip('/')
+        if user.get('loginshell') is None:
+            user['loginshell'] = config.get('ipadefaultloginshell')
         if user.get('gecos') is None:
             user['gecos'] = user['uid']
 
-        # FIXME: This can be removed once the DS plugin is installed
-        user['uidnumber'] = '501'
+        # If uidnumber is blank the the FDS dna_plugin will automatically
+        # assign the next value. So we don't have to do anything with it.
 
-        # FIXME: What is the default group for users?
-        user['gidnumber'] = '501'
+        group_dn="cn=%s,%s,%s" % (config.get('ipadefaultprimarygroup'), DefaultGroupContainer, self.basedn)
+        try:
+            default_group = self.get_entry_by_dn(group_dn, ['dn','gidNumber'], opts)
+            if default_group:
+                user['gidnumber'] = default_group.get('gidnumber')
+        except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR):
+            # Fake an LDAP error so we can return something useful to the user
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND, "No default group for new users can be found.")
 
         if user.get('krbprincipalname') is None:
             user['krbprincipalname'] = "%s@%s" % (user.get('uid'), self.realm)
@@ -453,10 +478,40 @@ class IPAServer:
         conn = self.getConnection(opts)
         try:
             res = conn.addEntry(entry)
+            self.add_user_to_group(user.get('uid'), group_dn, opts)
         finally:
             self.releaseConnection(conn)
         return res
     
+    def get_custom_fields (self, opts=None):
+        """Get the list of custom user fields.
+
+           A schema is a list of dict's of the form:
+               label: The label dispayed to the user
+               field: the attribute name
+               required: true/false
+
+           It is displayed to the user in the order of the list.
+        """
+
+        config = self.get_ipa_config(opts)
+
+        fields = config.get('ipacustomfields')
+
+        if fields is None or fields == '':
+            return []
+
+        fl = fields.split('$')
+        schema = []
+        for x in range(len(fl)):
+            vals = fl[x].split(',')
+            if len(vals) != 3:
+                # Raise?
+                print "Invalid field, skipping"
+            d = dict(label=unquote(vals[0]), field=unquote(vals[1]), required=unquote(vals[2]))
+            schema.append(d)
+
+        return schema
 # radius support
 
     # clients
@@ -696,6 +751,37 @@ class IPAServer:
     
         return fields
     
+    def set_custom_fields (self, schema, opts=None):
+        """Set the list of custom user fields.
+
+           A schema is a list of dict's of the form:
+               label: The label dispayed to the user
+               field: the attribute name
+               required: true/false
+
+           It is displayed to the user in the order of the list.
+        """
+        config = self.get_ipa_config(opts)
+
+        # The schema is stored as:
+        #     label,field,required$label,field,required$...
+        # quote() from urilib is used to ensure that it is easy to unparse
+
+        stored_schema = ""
+        for i in range(len(schema)):
+            entry = schema[i]
+            entry = quote(entry.get('label')) + "," + quote(entry.get('field')) + "," + quote(entry.get('required'))
+
+            if stored_schema != "":
+                stored_schema = stored_schema + "$" + entry
+            else:
+                stored_schema = entry
+
+        new_config = copy.deepcopy(config)
+        new_config['ipacustomfields'] = stored_schema
+
+        return self.update_entry(config, new_config, opts)
+
     def get_all_users (self, args=None, opts=None):
         """Return a list containing a User object for each
         existing user.
@@ -714,18 +800,21 @@ class IPAServer:
     
         return users
 
-    def find_users (self, criteria, sattrs=None, searchlimit=0, timelimit=-1,
+    def find_users (self, criteria, sattrs=None, searchlimit=-1, timelimit=-1,
             opts=None):
         """Returns a list: counter followed by the results.
            If the results are truncated, counter will be set to -1."""
 
-        # TODO - retrieve from config
-        timelimit = 2
+        config = self.get_ipa_config(opts)
+        if timelimit < 0:
+            timelimit = float(config.get('ipasearchtimelimit'))
+        if searchlimit < 0:
+            searchlimit = float(config.get('ipasearchrecordslimit'))
 
         # Assume the list of fields to search will come from a central
         # configuration repository.  A good format for that would be
         # a comma-separated list of fields
-        search_fields_conf_str = "uid,givenName,sn,telephoneNumber,ou,title"
+        search_fields_conf_str = config.get('ipausersearchfields')
         search_fields = string.split(search_fields_conf_str, ",")
 
         criteria = self.__safe_filter(criteria)
@@ -797,28 +886,114 @@ class IPAServer:
         return new_dict
 
     def update_user (self, oldentry, newentry, opts=None):
-        """Thin wrapper around update_entry"""
-        return self.update_entry(oldentry, newentry, opts)
+        """Wrapper around update_entry with user-specific handling.
 
-    def mark_user_deleted (self, uid, opts=None):
-        """Mark a user as inactive in LDAP. We aren't actually deleting
-           users here, just making it so they can't log in, etc."""
-        user = self.get_user_by_uid(uid, ['dn', 'uid', 'nsAccountlock'], opts)
+           If you want to change the RDN of a user you must use
+           this function. update_entry will fail.
+        """
 
-        # Are we doing an add or replace operation?
-        if user.has_key('nsaccountlock'):
-            if user['nsaccountlock'] == "true":
-                return "already marked as deleted"
-            has_key = True
-        else:
-            has_key = False
+        newrdn = 0
 
-        conn = self.getConnection(opts)
+        if oldentry.get('uid') != newentry.get('uid'):
+            # RDN change
+            conn = self.getConnection(opts)
+            try:
+                res = conn.updateRDN(oldentry.get('dn'), "uid=" + newentry.get('uid'))
+                newdn = oldentry.get('dn')
+                newdn = newdn.replace("uid=%s" % oldentry.get('uid'), "uid=%s" % newentry.get('uid'))
+
+                # Now fix up the dns and uids so they aren't seen as having
+                # changed.
+                oldentry['dn'] = newdn
+                newentry['dn'] = newdn
+                oldentry['uid'] = newentry['uid']
+                newrdn = 1
+            finally:
+                self.releaseConnection(conn)
+
         try:
-            res = conn.inactivateEntry(user['dn'], has_key)
-        finally:
-            self.releaseConnection(conn)
+           rv = self.update_entry(oldentry, newentry, opts)
+           return rv
+        except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
+           # This means that there was just an rdn change, nothing else.
+           if newrdn == 1:
+               return "Success"
+           else:
+               raise
+
+    def mark_entry_active (self, dn, opts=None):
+        """Mark an entry as active in LDAP."""
+
+        # This can be tricky. The entry itself can be marked inactive
+        # by being in the inactivated group. It can also be inactivated by
+        # being the member of an inactive group.
+        #
+        # First we try to remove the entry from the inactivated group. Then
+        # if it is still inactive we have to add it to the activated group
+        # which will override the group membership.
+
+        logging.debug("IPA: activating entry %s" % dn)
+
+        res = ""
+        # First, check the entry status
+        entry = self.get_entry_by_dn(dn, ['dn', 'nsAccountlock'], opts)
+
+        if entry.get('nsaccountlock', 'false') == "false":
+            logging.debug("IPA: already active")
+            raise ipaerror.gen_exception(ipaerror.LDAP_EMPTY_MODLIST)
+
+        group = self.get_entry_by_cn("inactivated", None, opts)
+        res = self.remove_member_from_group(entry.get('dn'), group.get('dn'), opts)
+
+        # Now they aren't a member of inactivated directly, what is the status
+        # now?
+        entry = self.get_entry_by_dn(dn, ['dn', 'nsAccountlock'], opts)
+
+        if entry.get('nsaccountlock', 'false') == "false":
+            # great, we're done
+            logging.debug("IPA: removing from inactivated did it.")
+            return res
+
+        # So still inactive, add them to activated
+        group = self.get_entry_by_cn("activated", None, opts)
+        res = self.add_member_to_group(dn, group.get('dn'), opts)
+        logging.debug("IPA: added to activated.")
+
         return res
+
+    def mark_entry_inactive (self, dn, opts=None):
+        """Mark an entry as inactive in LDAP."""
+
+        logging.debug("IPA: inactivating entry %s" % dn)
+
+        entry = self.get_entry_by_dn(dn, ['dn', 'nsAccountlock', 'memberOf'], opts)
+
+        if entry.get('nsaccountlock', 'false') == "true":
+            logging.debug("IPA: already marked as inactive")
+            raise ipaerror.gen_exception(ipaerror.LDAP_EMPTY_MODLIST)
+
+        # First see if they are in the activated group as this will override
+        # the our inactivation.
+        group = self.get_entry_by_cn("activated", None, opts)
+        self.remove_member_from_group(dn, group.get('dn'), opts)
+
+        # Now add them to inactivated
+        group = self.get_entry_by_cn("inactivated", None, opts)
+        res = self.add_member_to_group(dn, group.get('dn'), opts)
+            
+        return res
+
+    def mark_user_active(self, uid, opts=None):
+        """Mark a user as active"""
+
+        user = self.get_user_by_uid(uid, ['dn', 'uid'], opts)
+        return self.mark_entry_active(user.get('dn'))
+
+    def mark_user_inactive(self, uid, opts=None):
+        """Mark a user as inactive"""
+
+        user = self.get_user_by_uid(uid, ['dn', 'uid'], opts)
+        return self.mark_entry_inactive(user.get('dn'))
 
     def delete_user (self, uid, opts=None):
         """Delete a user. Not to be confused with inactivate_user. This
@@ -877,7 +1052,7 @@ class IPAServer:
         """
 
         member_dn = self.__safe_filter(member_dn)
-        filter = "(&(objectClass=posixGroup)(uniqueMember=%s))" % member_dn
+        filter = "(&(objectClass=posixGroup)(member=%s))" % member_dn
 
         try:
             return self.__get_list(self.basedn, filter, sattrs, opts)
@@ -900,12 +1075,11 @@ class IPAServer:
         entry = ipaserver.ipaldap.Entry(dn)
 
         # some required objectclasses
-        entry.setValues('objectClass', 'top', 'groupofuniquenames', 'posixGroup',
+        entry.setValues('objectClass', 'top', 'groupofnames', 'posixGroup',
                         'inetUser')
 
-        # FIXME, need a gidNumber generator
-        if group.get('gidnumber') is None:
-            entry.setValues('gidNumber', '501')
+        # No need to explicitly set gidNumber. The dna_plugin will do this
+        # for us if the value isn't provided by the user.
 
         # fill in our new entry with everything sent by the user
         for g in group:
@@ -917,16 +1091,22 @@ class IPAServer:
         finally:
             self.releaseConnection(conn)
 
-    def find_groups (self, criteria, sattrs=None, searchlimit=0, timelimit=-1,
+    def find_groups (self, criteria, sattrs=None, searchlimit=-1, timelimit=-1,
             opts=None):
         """Return a list containing a User object for each
         existing group that matches the criteria.
         """
 
+        config = self.get_ipa_config(opts)
+        if timelimit < 0:
+            timelimit = float(config.get('ipasearchtimelimit'))
+        if searchlimit < 0:
+            searchlimit = float(config.get('ipasearchrecordslimit'))
+
         # Assume the list of fields to search will come from a central
         # configuration repository.  A good format for that would be
         # a comma-separated list of fields
-        search_fields_conf_str = "cn,description"
+        search_fields_conf_str = config.get('ipagroupsearchfields')
         search_fields = string.split(search_fields_conf_str, ",")
 
         criteria = self.__safe_filter(criteria)
@@ -1001,12 +1181,12 @@ class IPAServer:
         # check to make sure member_dn exists
         member_entry = self.__get_base_entry(member_dn, "(objectClass=*)", ['dn','uid'], opts)
 
-        if new_group.get('uniquemember') is not None:
-            if ((isinstance(new_group.get('uniquemember'), str)) or (isinstance(new_group.get('uniquemember'), unicode))):
-                new_group['uniquemember'] = [new_group['uniquemember']]
-            new_group['uniquemember'].append(member_dn)
+        if new_group.get('member') is not None:
+            if ((isinstance(new_group.get('member'), str)) or (isinstance(new_group.get('member'), unicode))):
+                new_group['member'] = [new_group['member']]
+            new_group['member'].append(member_dn)
         else:
-            new_group['uniquemember'] = member_dn
+            new_group['member'] = member_dn
 
         try:
             ret = self.__update_entry(old_group, new_group, opts)
@@ -1045,11 +1225,11 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
         new_group = copy.deepcopy(old_group)
 
-        if new_group.get('uniquemember') is not None:
-            if ((isinstance(new_group.get('uniquemember'), str)) or (isinstance(new_group.get('uniquemember'), unicode))):
-                new_group['uniquemember'] = [new_group['uniquemember']]
+        if new_group.get('member') is not None:
+            if ((isinstance(new_group.get('member'), str)) or (isinstance(new_group.get('member'), unicode))):
+                new_group['member'] = [new_group['member']]
             try:
-                new_group['uniquemember'].remove(member_dn)
+                new_group['member'].remove(member_dn)
             except ValueError:
                 # member is not in the group
                 # FIXME: raise more specific error?
@@ -1198,8 +1378,56 @@ class IPAServer:
         return failed
 
     def update_group (self, oldentry, newentry, opts=None):
-        """Thin wrapper around update_entry"""
-        return self.update_entry(oldentry, newentry, opts)
+        """Wrapper around update_entry with group-specific handling.
+
+           If you want to change the RDN of a group you must use
+           this function. update_entry will fail.
+        """
+
+        newrdn = 0
+
+        oldcn=oldentry.get('cn')
+        newcn=newentry.get('cn')
+        if isinstance(oldcn, str):
+            oldcn = [oldcn]
+        if isinstance(newcn, str):
+            newcn = [newcn]
+
+        oldcn.sort()
+        newcn.sort()
+        if oldcn != newcn:
+            # RDN change
+            conn = self.getConnection(opts)
+            try:
+                res = conn.updateRDN(oldentry.get('dn'), "cn=" + newcn[0])
+                newdn = oldentry.get('dn')
+
+                # Ick. Need to find the exact cn used in the old DN so we'll
+                # walk the list of cns and skip the obviously bad ones:
+                for c in oldentry.get('dn').split("cn="):
+                    if c and c != "groups" and not c.startswith("accounts"):
+                        newdn = newdn.replace("cn=%s" % c, "uid=%s" % newentry.get('cn')[0])
+                        break
+
+                # Now fix up the dns and cns so they aren't seen as having
+                # changed.
+                oldentry['dn'] = newdn
+                newentry['dn'] = newdn
+                oldentry['cn'] = newentry['cn']
+                newrdn = 1
+            finally:
+                self.releaseConnection(conn)
+
+        try:
+           rv = self.update_entry(oldentry, newentry, opts)
+           return rv
+        except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST):
+           if newrdn == 1:
+               # This means that there was just the rdn change, no other
+               # attributes
+               return "Success"
+           else:
+               raise
 
     def delete_group (self, group_dn, opts=None):
         """Delete a group
@@ -1234,12 +1462,12 @@ class IPAServer:
         if group_dn is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
 
-        if new_group.get('uniquemember') is not None:
-            if ((isinstance(new_group.get('uniquemember'), str)) or (isinstance(new_group.get('uniquemember'), unicode))):
-                new_group['uniquemember'] = [new_group['uniquemember']]
-            new_group['uniquemember'].append(group_dn['dn'])
+        if new_group.get('member') is not None:
+            if ((isinstance(new_group.get('member'), str)) or (isinstance(new_group.get('member'), unicode))):
+                new_group['member'] = [new_group['member']]
+            new_group['member'].append(group_dn['dn'])
         else:
-            new_group['uniquemember'] = group_dn['dn']
+            new_group['member'] = group_dn['dn']
 
         try:
             ret = self.__update_entry(old_group, new_group, opts)
@@ -1261,10 +1489,10 @@ class IPAServer:
         """Do a memberOf search of groupdn and return the attributes in
            attr_list (an empty list returns everything)."""
 
-        # TODO - retrieve from config
-        timelimit = 2
+        config = self.get_ipa_config(opts)
+        timelimit = float(config.get('ipasearchtimelimit'))
 
-        searchlimit = 0
+        searchlimit = float(config.get('ipasearchrecordslimit'))
 
         groupdn = self.__safe_filter(groupdn)
         filter = "(memberOf=%s)" % groupdn
@@ -1288,6 +1516,134 @@ class IPAServer:
 
         return entries
 
+    def mark_group_active(self, cn, opts=None):
+        """Mark a group as active"""
+
+        group = self.get_entry_by_cn(cn, ['dn', 'cn'], opts)
+        return self.mark_entry_active(group.get('dn'))
+
+    def mark_group_inactive(self, cn, opts=None):
+        """Mark a group as inactive"""
+
+        group = self.get_entry_by_cn(cn, ['dn', 'uid'], opts)
+        return self.mark_entry_inactive(group.get('dn'))
+
+    def __is_service_unique(self, name, opts):
+        """Return 1 if the uid is unique in the tree, 0 otherwise."""
+        name = self.__safe_filter(name)
+        filter = "(&(krbprincipalname=%s)(objectclass=krbPrincipal))" % name
+ 
+        try:
+            entry = self.__get_sub_entry(self.basedn, filter, ['dn','krbprincipalname'], opts)
+            return 0
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            return 1
+
+    def add_service_principal(self, name, opts=None):
+        service_container = DefaultServiceContainer
+
+        princ_name = name + "@" + self.realm
+        
+        conn = self.getConnection(opts)
+        if self.__is_service_unique(name, opts) == 0:
+            raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
+
+        dn = "krbprincipalname=%s,%s,%s" % (ldap.dn.escape_dn_chars(princ_name),
+                                            service_container,self.basedn)
+        entry = ipaserver.ipaldap.Entry(dn)
+
+        entry.setValues('objectclass', 'krbPrincipal', 'krbPrincipalAux', 'krbTicketPolicyAux')
+        entry.setValues('krbprincipalname', princ_name)
+        
+        try:
+            res = conn.addEntry(entry)
+        finally:
+            self.releaseConnection(conn)
+        return res
+        
+
+    def get_keytab(self, name, opts=None):
+        """get a keytab"""
+
+        princ_name = name + "@" + self.realm
+
+        conn = self.getConnection(opts)
+
+        if conn.principal != "admin@" + self.realm:
+            raise ipaerror.gen_exception(ipaerror.CONNECTION_GSSAPI_CREDENTIALS)
+
+        try:
+            try:
+                princs = conn.getList(self.basedn, self.scope, "krbprincipalname=" + princ_name, None)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                return None
+        finally:
+            self.releaseConnection(conn)
+
+
+        # This is ugly - call out to a C wrapper around kadmin.local
+        p = subprocess.Popen(["/usr/sbin/ipa-keytab-util", princ_name, self.realm],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout,stderr = p.communicate()
+
+        if p.returncode != 0:
+            return None
+
+        return stdout
+        
+        
+
+# Configuration support
+    def get_ipa_config(self, opts=None):
+        """Retrieve the IPA configuration"""
+        try:
+            config = self.get_entry_by_cn("ipaconfig", None, opts)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            raise ipaerror.gen_exception(ipaerror.LDAP_NO_CONFIG)
+
+        return config
+
+    def update_ipa_config(self, oldconfig, newconfig, opts=None):
+        """Update the IPA configuration"""
+ 
+        # The LDAP routines want strings, not ints, so convert a few
+        # things. Otherwise it sees a string -> int conversion as a change.
+        try:
+            newconfig['krbmaxpwdlife'] = str(newconfig.get('krbmaxpwdlife'))
+            newconfig['krbminpwdlife'] = str(newconfig.get('krbminpwdlife'))
+            newconfig['krbpwdmindiffchars'] = str(newconfig.get('krbpwdmindiffchars'))
+            newconfig['krbpwdminlength'] = str(newconfig.get('krbpwdminlength'))
+            newconfig['krbpwdhistorylength'] = str(newconfig.get('krbpwdhistorylength'))
+        except KeyError:
+            # These should all be there but if not, let things proceed
+            pass
+        return self.update_entry(oldconfig, newconfig, opts)
+
+    def get_password_policy(self, opts=None):
+        """Retrieve the IPA password policy"""
+        try:
+            policy = self.get_entry_by_cn("accounts", None, opts)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            raise ipaerror.gen_exception(ipaerror.LDAP_NO_CONFIG)
+
+        return policy
+
+    def update_password_policy(self, oldpolicy, newpolicy, opts=None):
+        """Update the IPA configuration"""
+
+        # The LDAP routines want strings, not ints, so convert a few
+        # things. Otherwise it sees a string -> int conversion as a change.
+        try:
+            newpolicy['krbmaxpwdlife'] = str(newpolicy.get('krbmaxpwdlife'))
+            newpolicy['krbminpwdlife'] = str(newpolicy.get('krbminpwdlife'))
+            newpolicy['krbpwdhistorylength'] = str(newpolicy.get('krbpwdhistorylength'))
+            newpolicy['krbpwdmindiffchars'] = str(newpolicy.get('krbpwdmindiffchars'))
+            newpolicy['krbpwdminlength'] = str(newpolicy.get('krbpwdminlength'))
+        except KeyError:
+            # These should all be there but if not, let things proceed
+            pass
+
+        return self.update_entry(oldpolicy, newpolicy, opts)
 
 def ldap_search_escape(match):
     """Escapes out nasty characters from the ldap search.

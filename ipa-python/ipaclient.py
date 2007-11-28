@@ -135,10 +135,14 @@ class IPAClient:
 
         return all_users
 
-    def get_add_schema(self):
-        """Prototype for the GUI. Specify in the directory fields to
-           be displayed and what data to get for new users."""
-        result = self.transport.get_add_schema()
+    def get_custom_fields(self):
+        """Get custom user fields"""
+        result = self.transport.get_custom_fields()
+        return result
+
+    def set_custom_fields(self, schema):
+        """Set custom user fields"""
+        result = self.transport.set_custom_fields(schema)
         return result
 
     def find_users(self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
@@ -174,10 +178,16 @@ class IPAClient:
 
         return result
 
-    def mark_user_deleted(self,uid):
+    def mark_user_active(self,uid):
+        """Set a user as active by uid."""
+
+        result = self.transport.mark_user_active(uid)
+        return result
+
+    def mark_user_inactive(self,uid):
         """Set a user as inactive by uid."""
 
-        result = self.transport.mark_user_deleted(uid)
+        result = self.transport.mark_user_inactive(uid)
         return result
 
 # Groups support
@@ -332,6 +342,52 @@ class IPAClient:
                 entries.append(user.User(e))
 
         return entries
+ 
+    def mark_group_active(self,cn):
+        """Set a group as active by cn."""
+
+        result = self.transport.mark_group_active(cn)
+        return result
+
+    def mark_group_inactive(self,cn):
+        """Set a group as inactive by cn."""
+
+        result = self.transport.mark_group_inactive(cn)
+        return result
+
+# Configuration
+
+    def get_ipa_config(self):
+        """Get the IPA configuration"""
+        result = self.transport.get_ipa_config()
+        return entity.Entity(result)
+
+    def update_ipa_config(self, config):
+        """Updates the IPA configuration.
+
+           config is an Entity object.
+        """
+        result = self.transport.update_ipa_config(config.origDataDict(), config.toDict())
+        return result
+
+    def get_password_policy(self):
+        """Get the IPA password policy"""
+        result = self.transport.get_password_policy()
+        return entity.Entity(result)
+
+    def update_password_policy(self, policy):
+        """Updates the IPA password policy.
+
+           policy is an Entity object.
+        """
+        result = self.transport.update_password_policy(policy.origDataDict(), policy.toDict())
+        return result
+
+    def add_service_principal(self, princ_name):
+        return self.transport.add_service_principal(princ_name)
+
+    def get_keytab(self, princ_name):
+        return self.transport.get_keytab(princ_name)
 
 # radius support
     def get_radius_client_by_ip_addr(self, ip_addr, container=None, sattrs=None):

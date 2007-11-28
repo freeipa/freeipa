@@ -34,25 +34,47 @@ class UserController(IPAController):
 
     def __init__(self, *args, **kw):
         super(UserController,self).__init__(*args, **kw)
-        self.load_custom_fields()
+#        self.load_custom_fields()
 
     def load_custom_fields(self):
-        # client = self.get_ipaclient()
-        # schema = client.get_user_custom_schema()
-        schema = [
-          { 'label': 'See Also',
-            'field': 'seeAlso',
-            'required': 'true', } ,
-          { 'label': 'O O O',
-            'field': 'o',
-            'required': 'false', } ,
-        ]
+
+        client = self.get_ipaclient()
+        schema = client.get_custom_fields()
+
+        # FIXME: Don't load from LDAP every single time it is called
+
+        # FIXME: Is removing the attributes on the fly thread-safe? Do we
+        # need to lock here?
         for s in schema:
             required=False
-            if (s['required'] == "true"):
+            if (s['required'].lower() == "true"):
                 required=True
             field = widgets.TextField(name=s['field'],label=s['label'])
             validator = validators.String(not_empty=required)
+
+            # Don't allow dupes on the new form
+            try:
+                for i in range(len(user_new_form.custom_fields)):
+                    if user_new_form.custom_fields[i].name == s['field']:
+                        user_new_form.custom_fields.pop(i)
+            except:
+                pass
+
+            # Don't allow dupes on the edit form
+            try:
+                for i in range(len(user_edit_form.custom_fields)):
+                    if user_edit_form.custom_fields[i].name == s['field']:
+                        user_edit_form.custom_fields.pop(i)
+            except:
+                pass
+
+            # Don't allow dupes in the list of user fields
+            try:
+                for i in range(len(ipagui.forms.user.UserFields.custom_fields)):
+                    if ipagui.forms.user.UserFields.custom_fields[i].name == s['field']:
+                        ipagui.forms.user.UserFields.custom_fields.pop(i)
+            except:
+                pass
 
             ipagui.forms.user.UserFields.custom_fields.append(field)
             user_new_form.custom_fields.append(field)
@@ -61,15 +83,45 @@ class UserController(IPAController):
             user_new_form.validator.add_field(s['field'], validator)
             user_edit_form.validator.add_field(s['field'], validator)
 
+    def setup_mv_fields(self, field, fieldname):
+        """Given a field (must be a list) and field name, convert that
+           field into a list of dictionaries of the form:
+              [ { fieldname : v1}, { fieldname : v2 }, .. ]
+
+           This is how we pre-fill values for multi-valued fields.
+        """
+        mvlist = []
+        if field is not None:
+            for v in field:
+                mvlist.append({ fieldname : v } )
+        else:
+            # We need to return an empty value so something can be
+            # displayed on the edit page. Otherwise only an Add link
+            # will show, not an empty field.
+            mvlist.append({ fieldname : '' } )
+        return mvlist
+
+    def fix_incoming_fields(self, fields, fieldname, multifieldname):
+        """This is called by the update() function. It takes the incoming
+           list of dictionaries and converts it into back into the original
+           field, then removes the multiple field.
+        """
+        fields[fieldname] = []
+        for i in range(len(fields[multifieldname])):
+            fields[fieldname].append(fields[multifieldname][i][fieldname])
+        del(fields[multifieldname])
+
+        return fields
 
     @expose()
     def index(self):
         raise turbogears.redirect("/user/list")
 
     @expose("ipagui.templates.usernew")
-    @identity.require(identity.not_anonymous())
+    @identity.require(identity.in_any_group("admins","editors"))
     def new(self, tg_errors=None):
         """Displays the new user form"""
+        self.load_custom_fields()
         if tg_errors:
             turbogears.flash("There were validation errors.<br/>" +
                              "Please see the messages below for details.")
@@ -77,7 +129,7 @@ class UserController(IPAController):
         return dict(form=user_new_form, user={})
 
     @expose()
-    @identity.require(identity.not_anonymous())
+    @identity.require(identity.in_any_group("admins","editors"))
     def create(self, **kw):
         """Creates a new user"""
         self.restrict_post()
@@ -88,6 +140,15 @@ class UserController(IPAController):
             raise turbogears.redirect('/user/list')
 
         tg_errors, kw = self.usercreatevalidate(**kw)
+
+        # Fix incoming multi-valued fields we created for the form
+        kw = self.fix_incoming_fields(kw, 'cn', 'cns')
+        kw = self.fix_incoming_fields(kw, 'telephonenumber', 'telephonenumbers')
+        kw = self.fix_incoming_fields(kw, 'facsimiletelephonenumber', 'facsimiletelephonenumbers')
+        kw = self.fix_incoming_fields(kw, 'mobile', 'mobiles')
+        kw = self.fix_incoming_fields(kw, 'pager', 'pagers')
+        kw = self.fix_incoming_fields(kw, 'homephone', 'homephones')
+
         if tg_errors:
             turbogears.flash("There were validation errors.<br/>" +
                              "Please see the messages below for details.")
@@ -136,21 +197,21 @@ class UserController(IPAController):
             new_user.setValue('carlicense', kw.get('carlicense'))
             new_user.setValue('labeleduri', kw.get('labeleduri'))
 
-            if kw.get('nsAccountLock'):
-                new_user.setValue('nsAccountLock', 'true')
-
             for custom_field in user_new_form.custom_fields:
                 new_user.setValue(custom_field.name,
                                   kw.get(custom_field.name, ''))
 
             rv = client.add_user(new_user)
+
+            if kw.get('nsAccountLock'):
+                client.mark_user_inactive(kw.get('uid'))
         except ipaerror.exception_for(ipaerror.LDAP_DUPLICATE):
-            turbogears.flash("Person with login '%s' already exists" %
+            turbogears.flash("User with login '%s' already exists" %
                     kw.get('uid'))
             return dict(form=user_new_form, user=kw,
                     tg_template='ipagui.templates.usernew')
         except ipaerror.IPAError, e:
-            turbogears.flash("User add failed: " + str(e))
+            turbogears.flash("User add failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             return dict(form=user_new_form, user=kw,
                     tg_template='ipagui.templates.usernew')
 
@@ -181,7 +242,7 @@ class UserController(IPAController):
             try:
                 client.modifyPassword(user_dict['krbprincipalname'], "", kw.get('userpassword'))
             except ipaerror.IPAError, e:
-                message = "Person successfully created.<br />"
+                message = "User successfully created.<br />"
                 message += "There was an error setting the password.<br />"
                 turbogears.flash(message)
                 return dict(form=user_edit_form, user=user_dict,
@@ -204,7 +265,7 @@ class UserController(IPAController):
             failed_adds = dnadds
 
         if len(failed_adds) > 0:
-            message = "Person successfully created.<br />"
+            message = "User successfully created.<br />"
             message += "There was an error adding groups.<br />"
             message += "Failures have been preserved in the add/remove lists."
             turbogears.flash(message)
@@ -243,6 +304,7 @@ class UserController(IPAController):
     @identity.require(identity.not_anonymous())
     def edit(self, uid=None, principal=None, tg_errors=None):
         """Displays the edit user form"""
+        self.load_custom_fields()
         if tg_errors:
             turbogears.flash("There were validation errors.<br/>" +
                              "Please see the messages below for details.")
@@ -259,6 +321,32 @@ class UserController(IPAController):
                 turbogears.flash("User edit failed: No uid or principal provided")
                 raise turbogears.redirect('/')
             user_dict = user.toDict()
+
+            # Load potential multi-valued fields
+            if isinstance(user_dict['cn'], str):
+                user_dict['cn'] = [user_dict['cn']]
+            user_dict['cns'] = self.setup_mv_fields(user_dict['cn'], 'cn')
+
+            if isinstance(user_dict.get('telephonenumber',''), str):
+                user_dict['telephonenumber'] = [user_dict.get('telephonenumber'),'']
+            user_dict['telephonenumbers'] = self.setup_mv_fields(user_dict.get('telephonenumber'), 'telephonenumber')
+
+            if isinstance(user_dict.get('facsimiletelephonenumber',''), str):
+                user_dict['facsimiletelephonenumber'] = [user_dict.get('facsimiletelephonenumber'),'']
+            user_dict['facsimiletelephonenumbers'] = self.setup_mv_fields(user_dict.get('facsimiletelephonenumber'), 'facsimiletelephonenumber')
+
+            if isinstance(user_dict.get('mobile',''), str):
+                user_dict['mobile'] = [user_dict.get('mobile'),'']
+            user_dict['mobiles'] = self.setup_mv_fields(user_dict.get('mobile'), 'mobile')
+
+            if isinstance(user_dict.get('pager',''), str):
+                user_dict['pager'] = [user_dict.get('pager'),'']
+            user_dict['pagers'] = self.setup_mv_fields(user_dict.get('pager'), 'pager')
+
+            if isinstance(user_dict.get('homephone',''), str):
+                user_dict['homephone'] = [user_dict.get('homephone'),'']
+            user_dict['homephones'] = self.setup_mv_fields(user_dict.get('homephone'), 'homephone')
+
             # Edit shouldn't fill in the password field.
             if user_dict.has_key('userpassword'):
                 del(user_dict['userpassword'])
@@ -300,7 +388,7 @@ class UserController(IPAController):
         except ipaerror.IPAError, e:
             if uid is None:
                 uid = principal
-            turbogears.flash("User edit failed: " + str(e))
+            turbogears.flash("User edit failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             raise turbogears.redirect('/user/show', uid=uid)
 
     @expose()
@@ -312,6 +400,23 @@ class UserController(IPAController):
 
         if kw.get('submit') == 'Cancel Edit':
             turbogears.flash("Edit user cancelled")
+            raise turbogears.redirect('/user/show', uid=kw.get('uid'))
+
+        # Fix incoming multi-valued fields we created for the form
+        kw = self.fix_incoming_fields(kw, 'cn', 'cns')
+        kw = self.fix_incoming_fields(kw, 'telephonenumber', 'telephonenumbers')
+        kw = self.fix_incoming_fields(kw, 'facsimiletelephonenumber', 'facsimiletelephonenumbers')
+        kw = self.fix_incoming_fields(kw, 'mobile', 'mobiles')
+        kw = self.fix_incoming_fields(kw, 'pager', 'pagers')
+        kw = self.fix_incoming_fields(kw, 'homephone', 'homephones')
+
+        # admins and editors can update anybody. A user can only update
+        # themselves. We need this check because it is very easy to guess
+        # the edit URI.
+        if ((not 'admins' in turbogears.identity.current.groups and
+            not 'editors' in turbogears.identity.current.groups) and 
+            (kw.get('uid') != turbogears.identity.current.display_name)):
+            turbogears.flash("You do not have permission to update this user.")
             raise turbogears.redirect('/user/show', uid=kw.get('uid'))
 
         # Decode the group data, in case we need to round trip
@@ -333,6 +438,14 @@ class UserController(IPAController):
         #
         try:
             orig_user_dict = loads(b64decode(kw.get('user_orig')))
+
+            # remove multi-valued fields we created for the form
+            del(orig_user_dict['cns'])
+            del(orig_user_dict['telephonenumbers'])
+            del(orig_user_dict['facsimiletelephonenumbers'])
+            del(orig_user_dict['mobiles'])
+            del(orig_user_dict['pagers'])
+            del(orig_user_dict['homephones'])
 
             new_user = ipa.user.User(orig_user_dict)
             new_user.setValue('title', kw.get('title'))
@@ -369,12 +482,6 @@ class UserController(IPAController):
             new_user.setValue('carlicense', kw.get('carlicense'))
             new_user.setValue('labeleduri', kw.get('labeleduri'))
 
-
-            if kw.get('nsAccountLock'):
-                new_user.setValue('nsAccountLock', 'true')
-            else:
-                new_user.setValue('nsAccountLock', None)
-
             if kw.get('editprotected') == 'true':
                 if kw.get('userpassword'):
                     password_change = True
@@ -400,7 +507,7 @@ class UserController(IPAController):
             # too much work to figure out unless someone really screams
             pass
         except ipaerror.IPAError, e:
-            turbogears.flash("User update failed: " + str(e))
+            turbogears.flash("User update failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             return dict(form=user_edit_form, user=kw,
                         user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')
@@ -412,7 +519,7 @@ class UserController(IPAController):
             if password_change:
                 rv = client.modifyPassword(kw['krbprincipalname'], "", kw.get('userpassword'))
         except ipaerror.IPAError, e:
-            turbogears.flash("User password change failed: " + str(e))
+            turbogears.flash("User password change failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             return dict(form=user_edit_form, user=kw,
                         user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')
@@ -459,6 +566,20 @@ class UserController(IPAController):
                         user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')
 
+        if kw.get('nsAccountLock') == '':
+            kw['nsAccountLock'] = "false"
+
+        try:
+            if kw.get('nsAccountLock') == "false" and new_user.getValues('nsaccountlock') == "true":
+                client.mark_user_active(kw.get('uid'))
+            elif kw.get('nsAccountLock') == "true" and new_user.nsaccountlock != "true":
+                client.mark_user_inactive(kw.get('uid'))
+        except ipaerror.IPAError, e:
+            turbogears.flash("User status change failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            return dict(form=user_edit_form, user=kw,
+                        user_groups=user_groups_dicts,
+                        tg_template='ipagui.templates.useredit')
+
         turbogears.flash("%s updated!" % kw['uid'])
         raise turbogears.redirect('/user/show', uid=kw['uid'])
 
@@ -481,7 +602,7 @@ class UserController(IPAController):
                     turbogears.flash("These results are truncated.<br />" +
                                     "Please refine your search and try again.")
             except ipaerror.IPAError, e:
-                turbogears.flash("User list failed: " + str(e))
+                turbogears.flash("User list failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
                 raise turbogears.redirect("/user/list")
 
         return dict(users=users, uid=uid, fields=ipagui.forms.user.UserFields())
@@ -492,6 +613,7 @@ class UserController(IPAController):
     def show(self, uid):
         """Retrieve a single user for display"""
         client = self.get_ipaclient()
+        self.load_custom_fields()
 
         try:
             user = client.get_user_by_uid(uid, user_fields)
@@ -523,7 +645,7 @@ class UserController(IPAController):
                         user_groups=user_groups, user_reports=user_reports,
                         user_manager=user_manager, user_secretary=user_secretary)
         except ipaerror.IPAError, e:
-            turbogears.flash("User show failed: " + str(e))
+            turbogears.flash("User show failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             raise turbogears.redirect("/")
 
     @expose()
@@ -539,7 +661,7 @@ class UserController(IPAController):
             turbogears.flash("user deleted")
             raise turbogears.redirect('/user/list')
         except (SyntaxError, ipaerror.IPAError), e:
-            turbogears.flash("User deletion failed: " + str(e))
+            turbogears.flash("User deletion failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             raise turbogears.redirect('/user/list')
 
     @validate(form=user_new_form)
@@ -661,7 +783,7 @@ class UserController(IPAController):
                 users_counter = users[0]
                 users = users[1:]
             except ipaerror.IPAError, e:
-                turbogears.flash("search failed: " + str(e))
+                turbogears.flash("search failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
 
         return dict(users=users, criteria=criteria,
                 which_select=kw.get('which_select'),

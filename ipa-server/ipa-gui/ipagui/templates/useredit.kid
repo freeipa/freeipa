@@ -3,7 +3,7 @@
     py:extends="'userlayout.kid'">
 <head>
 <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
-<title>Edit Person</title>
+<title>Edit User</title>
 </head>
 <body>
 
@@ -14,7 +14,7 @@
         <span class="small">edit protected fields</span>
       </input>
     </div>
-    <h1>Edit Person</h1>
+    <h1>Edit User</h1>
   </div>
 
 <?python

@@ -31,6 +31,7 @@ import xmlrpclib
 import kerberos
 import krbV
 import ldap
+import errno
 
 def usage():
     print "ipa-adddelgation [-a|--attributes attr1,attr2,..,attrn] [-s|--source STRING] [-t|--target STRING] name"
@@ -90,12 +91,34 @@ def main():
         new_aci.dest_group = target_grp[1].dn
         new_aci.attrs = attr_list
 
+        aci_entry = client.get_aci_entry(['*', 'aci'])
+
+        # Look for an existing ACI of the same name
+        aci_str_list = aci_entry.getValues('aci')
+        if aci_str_list is None:
+            aci_str_list = []
+        if not(isinstance(aci_str_list,list) or isinstance(aci_str_list,tuple)):
+            aci_str_list = [aci_str_list]
+
+        for aci_str in aci_str_list:
+            try:
+                old_aci = ipa.aci.ACI(aci_str)
+                if old_aci.name == new_aci.name:
+                    print "A delegation of that name already exists"
+                    return 2
+            except SyntaxError:
+                # ignore aci_str's that ACI can't parse
+                pass
+
         aci_entry = client.get_aci_entry(['dn'])
         aci_entry.setValue('aci', new_aci.export_to_string())
 
         client.update_entry(aci_entry)
-    except xmlrpclib.Fault, f:
-        print f.faultString
+    except xmlrpclib.Fault, fault:
+        if fault.faultCode == errno.ECONNREFUSED:
+            print "The IPA XML-RPC service is not responding."
+        else:
+            print fault.faultString
         return 1
     except kerberos.GSSError, e:
         print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])

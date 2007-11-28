@@ -1,0 +1,83 @@
+#! /usr/bin/python -E
+# Authors: Karl MacMillan <kmacmill@redhat.com>
+#
+# Copyright (C) 2007  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+import sys
+from optparse import OptionParser
+import ipa
+import ipa.user
+import ipa.ipaclient as ipaclient
+import ipa.ipavalidate as ipavalidate
+import ipa.config
+
+import base64
+
+import xmlrpclib
+import kerberos
+import krbV
+import ldap
+import getpass
+import errno
+
+def usage():
+    print "ipa-getkeytab [-a] principal filename"
+    sys.exit(1)
+
+def parse_options():
+    parser = OptionParser()
+    parser.add_option("-a", "--add", dest="add_princ", action="store_true",
+                      help="add the principal")
+
+    args = ipa.config.init_config(sys.argv)
+    options, args = parser.parse_args(args)
+
+    return options, args
+
+def main():
+    # The following fields are required
+    princ_name = ""
+
+    options, args = parse_options()
+
+    if len(args) != 3:
+        usage()
+    princ_name = args[1]
+    file_name = args[2]
+
+    client = ipaclient.IPAClient()
+
+    try:
+        if options.add_princ:
+            client.add_service_principal(princ_name)
+
+        princs = client.get_keytab(princ_name)
+
+        if princs is None:
+            print "could not generate keytab"
+            sys.exit(1)
+
+        fd = open(file_name, "w")
+        fd.write(princs)
+
+    except Exception, e:
+        print str(e)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -124,6 +124,21 @@ def main():
     print "IPA Server: "+ds.getServerName()
     print "BaseDN: "+ds.getBaseDN()
 
+    # Configure ipa.conf
+    ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+    ipaconf.setOptionAssignment(" = ")
+    ipaconf.setSectionNameDelimiters(("[","]"))
+
+    opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
+            {'name':'empty', 'type':'empty'}]
+    defopts.append({'name':'server', 'type':'option', 'value':ds.getServerName()})
+    defopts.append({'name':'realm', 'type':'option', 'value':ds.getRealmName()})
+
+    opts.append({'name':'defaults', 'type':'section', 'value':defopts})
+    opts.append({'name':'empty', 'type':'empty'})
+
+    ipaconf.newConf("/etc/ipa/ipa.conf", opts)
+
     # Configure ldap.conf
     ldapconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
     ldapconf.setOptionAssignment(" ")

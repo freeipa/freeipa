@@ -42,6 +42,14 @@ cn:manager
 nsSystemIndex:false
 nsIndexType:eq
 
+dn: cn=secretary,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+objectClass:top
+objectClass:nsIndex
+cn:secretary
+nsSystemIndex:false
+nsIndexType:eq
+
 dn: cn=displayname,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 changetype: add
 objectClass:top

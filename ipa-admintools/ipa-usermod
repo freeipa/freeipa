@@ -29,9 +29,10 @@ import ipa.config
 import xmlrpclib
 import kerberos
 import ldap
+import errno
 
 def usage():
-    print "ipa-usermod [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] [-s|--shell STRING] [--add attribute=value] [--del attribute] [--set attribute=value] user"
+    print "ipa-usermod [-a|--activate] [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] [-s|--shell STRING] [--add attribute=value] [--del attribute] [--set attribute=value] user"
     sys.exit(1)
 
 def set_add_usage(which):
@@ -39,6 +40,8 @@ def set_add_usage(which):
 
 def parse_options():
     parser = OptionParser()
+    parser.add_option("-a", "--activate", dest="activate", action="store_true",
+                      help="Activate the user")
     parser.add_option("-c", "--gecos", dest="gecos",
                       help="Set the GECOS field")
     parser.add_option("-d", "--directory", dest="directory",
@@ -49,12 +52,12 @@ def parse_options():
                       help="User's last name")
     parser.add_option("-s", "--shell", dest="shell",
                       help="Set user's login shell to shell")
-    parser.add_option("--add", dest="addattr",
+    parser.add_option("--addattr", dest="addattr",
                       help="Adds an attribute or values to that attribute, attr=value",
                       action="append")
-    parser.add_option("--del", dest="delattr",
+    parser.add_option("--delattr", dest="delattr",
                       help="Remove an attribute", action="append")
-    parser.add_option("--set", dest="setattr",
+    parser.add_option("--setattr", dest="setattr",
                       help="Set an attribute, dropping any existing values that may exist",
                       action="append")
     parser.add_option("-M", "--mailAddress", dest="mail",
@@ -90,7 +93,15 @@ def main():
 
     client = ipaclient.IPAClient()
     try:
-        user = client.get_user_by_uid(username)
+        attrs = ['*']
+
+        # in case any attributes being modified are operational such as
+        # nsaccountlock. Any attribute to be deleted needs to be included
+        # in the original record so it can be seen as being removed.
+        if options.delattr:
+            for d in options.delattr:
+                attrs.append(d)
+        user = client.get_user_by_uid(username, sattrs=attrs)
     except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_NOT_FOUND):
         print "User %s not found" % username
         return 1
@@ -102,7 +113,7 @@ def main():
         return 1
 
     # If any options are set we use just those. Otherwise ask for all of them.
-    if options.gn or options.sn or options.directory or options.gecos or options.mail or options.shell or options.addattr or options.delattr or options.setattr:
+    if options.gn or options.sn or options.directory or options.gecos or options.mail or options.shell or options.addattr or options.delattr or options.setattr or options.activate:
         givenname = options.gn
         lastname = options.sn
         gecos = options.gecos
@@ -202,8 +213,7 @@ def main():
 
     if options.delattr:
         for d in options.delattr:
-            # doesn't truly delete the attribute but does null out the value
-            user.setValue(d, '')
+            user.delValue(d)
 
     if options.setattr:
         for s in options.setattr:
@@ -228,11 +238,22 @@ def main():
                 value = cvalue + [value]
             user.setValue(attr, value)
 
-
     try:
+        if options.activate:
+            try:
+                client.mark_user_active(user.getValues('uid'))
+                print "User activated successfully."
+            except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_EMPTY_MODLIST):
+                print "User is already marked active"
+                return 0
+            except:
+                raise
         client.update_user(user)
-    except xmlrpclib.Fault, f:
-        print f.faultString
+    except xmlrpclib.Fault, fault:
+        if fault.faultCode == errno.ECONNREFUSED:
+            print "The IPA XML-RPC service is not responding."
+        else:
+            print fault.faultString
         return 1
     except kerberos.GSSError, e:
         print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])

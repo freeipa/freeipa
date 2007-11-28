@@ -3,15 +3,15 @@
     py:extends="'userlayout.kid'">
 <head>
 <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
-<title>Find People</title>
+<title>Find Users</title>
 </head>
 <body>
-    <h1>Find People</h1>
+    <h1>Find Users</h1>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/tablekit.js')}"></script>
     <div id="search">
         <form action="${tg.url('/user/list')}" method="get">
             <input id="uid" type="text" name="uid" value="${uid}" />
-            <input class="searchbutton" type="submit" value="Find People"/>
+            <input class="searchbutton" type="submit" value="Find Users"/>
         </form>
         <script type="text/javascript">
             document.getElementById("uid").focus();
@@ -23,7 +23,7 @@
           <thead>
             <tr>
                 <th>
-                    Person
+                    User
                 </th>
                 <th>
                     Phone

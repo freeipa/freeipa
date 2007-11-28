@@ -1,0 +1,27 @@
+The way multi-valued fields work is this:
+  - A new widget is added to the form. I name it as the attribute + s.
+    For example, I use cns for the cn attribute.
+  - If you need a new validator use a ForEach() so that each value is
+    checked. 
+  - This attribute is populated from the incoming attribute from the
+    user or group record. The widget can support multiple fields at once
+    but I'm using it for just one field. In fact, I don't know if it
+    will work with more the way I'm using it.
+  - In the GUI an operator can add/remove values to each multi-valued field.
+  - Naming is very important in the widget. TurboGears automatically
+    re-assembles the data into a list of dict entries if you name things
+    properly. For example, the cns (multiple CN entries) looks like:
+    cns-0.cn=Rob+Crittenden&cns-1.cn=Robert+Crittenden&cns-2.cn=rcrit
+  - This gets converted to:  
+    [{'cn': u'Rob Crittenden'}, {'cn': u'Robert Crittenden'}, {'cn': u'rcrit'}]
+  - I take this list of dicts and pull out each value and append it to a new
+    list that represents the original multi-valued field
+  - Then the list/dict version is removed (in this case, kw['cns']).
+
+When adding a new field you have to update:
+
+1. The form to add the new ExpandingForm() field and perhaps a validator
+2. The edit template to add the boilerplate to display the field
+3. The show template to be able to display all the fields separately
+4. The new template if you want to be able to enter these on new entries
+5. The subcontroller so you can do the input and output conversions

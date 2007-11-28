@@ -141,8 +141,8 @@ class ModXMLRPCRequestHandler(object):
         if req.subprocess_env.get("KRB5CCNAME") is not None:
             opts['krbccache'] = req.subprocess_env.get("KRB5CCNAME")
         else:
-            sys.stderr.write("IPA: did not receive a Kerberos credentials cache. Expect problems")
-            sys.stderr.flush()
+            response = dumps(Fault(5, "Did not receive Kerberos credentials."))
+            return response
 
         if pythonopts.get("IPADebug"):
             opts['ipadebug'] = pythonopts.get("IPADebug")
@@ -277,17 +277,17 @@ class ModXMLRPCRequestHandler(object):
     def handle_request(self,req):
         """Handle a single XML-RPC request"""
 
-        # The LDAP connection pool is not thread-safe. Avoid problems and
-        # force the forked model for now.
-        if not apache.mpm_query(apache.AP_MPMQ_IS_FORKED):
-            raise Fault(3, "Apache must use the forked model")
-
         # XMLRPC uses POST only. Reject anything else
         if req.method != 'POST':
             req.allow_methods(['POST'],1)
             raise apache.SERVER_RETURN, apache.HTTP_METHOD_NOT_ALLOWED
 
-        response = self._marshaled_dispatch(req.read(), req)
+        # The LDAP connection pool is not thread-safe. Avoid problems and
+        # force the forked model for now.
+        if apache.mpm_query(apache.AP_MPMQ_IS_THREADED):
+            response = dumps(Fault(3, "Apache must use the forked model"))
+        else:
+            response = self._marshaled_dispatch(req.read(), req)
 
         req.content_type = "text/xml"
         req.set_content_length(len(response))
@@ -326,12 +326,16 @@ def handler(req, profiling=False):
             h.register_function(f.get_user_by_email)
             h.register_function(f.get_users_by_manager)
             h.register_function(f.add_user)
-            h.register_function(f.get_add_schema)
+            h.register_function(f.get_custom_fields)
+            h.register_function(f.set_custom_fields)
             h.register_function(f.get_all_users)
             h.register_function(f.find_users)
             h.register_function(f.update_user)
             h.register_function(f.delete_user)
-            h.register_function(f.mark_user_deleted)
+            h.register_function(f.mark_user_active)
+            h.register_function(f.mark_user_inactive)
+            h.register_function(f.mark_group_active)
+            h.register_function(f.mark_group_inactive)
             h.register_function(f.modifyPassword)
             h.register_function(f.get_groups_by_member)
             h.register_function(f.add_group)
@@ -351,6 +355,12 @@ def handler(req, profiling=False):
             h.register_function(f.delete_group)
             h.register_function(f.attrs_to_labels)
             h.register_function(f.group_members)
+            h.register_function(f.get_ipa_config)
+            h.register_function(f.update_ipa_config)
+            h.register_function(f.get_password_policy)
+            h.register_function(f.update_password_policy)
+            h.register_function(f.add_service_principal)
+            h.register_function(f.get_keytab)
             h.register_function(f.get_radius_client_by_ip_addr)
             h.register_function(f.add_radius_client)
             h.register_function(f.update_radius_client)

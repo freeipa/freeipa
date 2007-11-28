@@ -1,13 +1,17 @@
 import turbogears
 from turbogears import validators, widgets
+from tg_expanding_form_widget.tg_expanding_form_widget import ExpandingForm
 
 class GroupFields():
     cn = widgets.TextField(name="cn", label="Name")
     gidnumber = widgets.TextField(name="gidnumber", label="GID")
     description = widgets.TextField(name="description", label="Description")
 
-    cn_hidden = widgets.HiddenField(name="cn")
     editprotected_hidden = widgets.HiddenField(name="editprotected")
+
+    nsAccountLock = widgets.SingleSelectField(name="nsAccountLock",
+            label="Group Status",
+            options = [("", "active"), ("true", "inactive")])
 
     group_orig = widgets.HiddenField(name="group_orig")
     member_data = widgets.HiddenField(name="member_data")
@@ -37,6 +41,7 @@ class GroupNewForm(widgets.Form):
 
 
 class GroupEditValidator(validators.Schema):
+    cn = validators.String(not_empty=True)
     gidnumber = validators.Int(not_empty=False)
     description = validators.String(not_empty=False)
 
@@ -48,7 +53,7 @@ class GroupEditForm(widgets.Form):
     params = ['members', 'group_fields']
 
     hidden_fields = [
-      GroupFields.cn_hidden, GroupFields.editprotected_hidden,
+      GroupFields.editprotected_hidden,
       GroupFields.group_orig, GroupFields.member_data,
       GroupFields.dn_to_info_json
     ]

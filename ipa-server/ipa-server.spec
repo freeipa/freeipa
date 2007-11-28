@@ -1,7 +1,7 @@
-Name:           freeipa-server
-Version:        0.4.1
+Name:           ipa-server
+Version:        0.5.0
 Release:        1%{?dist}
-Summary:        FreeIPA authentication server
+Summary:        Ipa authentication server
 
 Group:          System Environment/Base
 License:        GPL
@@ -9,17 +9,41 @@ URL:            http://www.freeipa.org
 Source0:        %{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires: fedora-ds-base-devel openldap-devel krb5-devel nss-devel mozldap-devel openssl-devel
+BuildRequires: fedora-ds-base-devel >= 1.1
+BuildRequires: mozldap-devel
+BuildRequires: openssl-devel
+BuildRequires: openldap-devel
+BuildRequires: krb5-devel
+BuildRequires: nss-devel
 
-Requires: python fedora-ds-base krb5-server krb5-server-ldap nss-tools openldap-clients httpd mod_python mod_auth_kerb python-ldap freeipa-python ntp cyrus-sasl-gssapi nss TurboGears python-krbV acl freeipa-admintools
+Requires: ipa-python
+Requires: ipa-admintools
+Requires: fedora-ds-base >= 1.1
+Requires: openldap-clients
+Requires: nss
+Requires: nss-tools
+Requires: krb5-server
+Requires: krb5-server-ldap
+Requires: cyrus-sasl-gssapi
+Requires: ntp
+Requires: httpd
+Requires: mod_python
+Requires: mod_auth_kerb
 Requires: mod_nss >= 1.0.7-2
-Requires: freeradius >= 1.1.7
+Requires: python-ldap
+Requires: python
+Requires: python-krbV
+Requires: TurboGears
+Requires: python-tgexpandingformwidget
+Requires: acl
+Requires: freeradius
+Requires: pyasn1
 
 %define httpd_conf /etc/httpd/conf.d
 %define plugin_dir %{_libdir}/dirsrv/plugins
 
 %description
-FreeIPA is a server for identity, policy, and audit.
+Ipa is a server for identity, policy, and audit.
 
 %prep
 %setup -q
@@ -47,8 +71,11 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %{_sbindir}/ipa-server-install
+%{_sbindir}/ipa-replica-install
+%{_sbindir}/ipa-replica-prepare
 %{_sbindir}/ipa_kpasswd
 %{_sbindir}/ipa-webgui
+%attr(4750,root,apache) %{_sbindir}/ipa-keytab-util
 %attr(755,root,root) %{_initrddir}/ipa-kpasswd
 %attr(755,root,root) %{_initrddir}/ipa-webgui
 
@@ -61,7 +88,17 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Thu Nov 1 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.1-1
+* Wed Nov 21 2007 Karl MacMillan <kmacmill@mentalrootkit.com> - 0.5.0-1
+- Preverse mode on ipa-keytab-util
+- Version bump for relase and rpm name change
+
+* Thu Nov 15 2007 Rob Crittenden <rcritten@redhat.com> - 0.4.1-2
+- Broke invididual Requires and BuildRequires onto separate lines and
+  reordered them
+- Added python-tgexpandingformwidget as a dependency
+- Require at least fedora-ds-base 1.1
+
+* Thu Nov  1 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.1-1
 - Version bump for release
 
 * Wed Oct 31 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.0-6
@@ -98,5 +135,3 @@ rm -rf %{buildroot}
 
 * Fri Jul 27 2007 Karl MacMillan <kmacmill@redhat.com> - 0.1.0-1
 - Initial rpm version
-
-

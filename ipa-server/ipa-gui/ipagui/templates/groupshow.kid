@@ -7,12 +7,17 @@
 </head>
 <body>
 <?python
-edit_url = tg.url('/group/edit', cn=group.get('cn'))
+cn = group.get('cn')
+if isinstance(cn, list):
+    cn = cn[0]
+edit_url = tg.url('/group/edit', cn=cn)
+from ipagui.helpers import userhelper
 ?>
 <div id="details">
     <h1>View Group</h1>
 
-    <input class="submitbutton" type="button"
+    <input py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups"
+      class="submitbutton" type="button"
       onclick="document.location.href='${edit_url}'"
       value="Edit Group" />
 
@@ -38,6 +43,12 @@ edit_url = tg.url('/group/edit', cn=group.get('cn'))
           </th>
           <td>${group.get("gidnumber")}</td>
         </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.nsAccountLock.label" />:
+          </th>
+          <td>${userhelper.account_status_display(group.get("nsAccountLock"))}</td>
+         </tr>
     </table>
 
     <h2 class="formsection">Group Members</h2>
@@ -51,7 +62,10 @@ edit_url = tg.url('/group/edit', cn=group.get('cn'))
           member_type = "user"
           view_url = tg.url('/user/show', uid=member_uid)
       else:
-          member_cn = "%s" % member.get('cn')
+          mem = member.get('cn')
+          if isinstance(mem, list):
+              mem = mem[0]
+          member_cn = "%s" % mem
           member_desc = "[group]"
           member_type = "group"
           view_url = tg.url('/group/show', cn=member_cn)
@@ -70,7 +84,8 @@ edit_url = tg.url('/group/edit', cn=group.get('cn'))
 
     <br/>
 <hr />
-    <input class="submitbutton" type="button"
+    <input py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups"
+      class="submitbutton" type="button"
       onclick="document.location.href='${edit_url}'"
       value="Edit Group" />
 </div>

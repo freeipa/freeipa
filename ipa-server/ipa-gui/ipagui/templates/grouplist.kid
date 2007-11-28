@@ -20,7 +20,7 @@
     </div>
     <div py:if='(groups != None) and (len(groups) > 0)'>
         <h2>${len(groups)} results returned:</h2>
-        <table id="resultstable" class="details sortable resizable">
+        <table id="resultstable" class="details sortable resizable" cellspacing="0">
           <thead>
             <tr>
                 <th>
@@ -32,7 +32,15 @@
             </tr>
           </thead>
           <tbody>
-            <tr py:for="group in groups">
+            <tr py:for="group in groups" py:if="group.nsAccountLock != 'true'">
+                <td>
+                    <a href="${tg.url('/group/show',cn=group.cn)}">${group.cn}</a>
+                </td>
+                <td>
+                    ${group.description}
+                </td>
+            </tr>
+            <tr id="inactive" py:for="group in groups" py:if="group.nsAccountLock == 'true'">
                 <td>
                     <a href="${tg.url('/group/show',cn=group.cn)}">${group.cn}</a>
                 </td>

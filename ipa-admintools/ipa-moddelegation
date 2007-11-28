@@ -32,6 +32,7 @@ import kerberos
 import krbV
 import ldap
 import copy
+import errno
 
 aci_fields = ['*', 'aci']
 
@@ -142,8 +143,11 @@ def main():
         aci_entry.setValue('aci', new_aci_str_list)
 
         client.update_entry(aci_entry)
-    except xmlrpclib.Fault, f:
-        print f.faultString
+    except xmlrpclib.Fault, fault:
+        if fault.faultCode == errno.ECONNREFUSED:
+            print "The IPA XML-RPC service is not responding."
+        else:
+            print fault.faultString
         return 1
     except kerberos.GSSError, e:
         print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])

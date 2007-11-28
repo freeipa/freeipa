@@ -13,7 +13,7 @@ def password_expires_in(datestr):
     if not expdate:
         return sys.maxint
 
-    delta = expdate - datetime.datetime.now()
+    delta = expdate - datetime.datetime.now(ipautil.GeneralizedTimeZone())
     return delta.days
 
 def password_is_expired(days):
