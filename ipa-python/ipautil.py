@@ -378,7 +378,7 @@ def format_list(items, quote=None, page_width=80):
         col += 1
     return '\n'.join(rows)
 
-key_value_re = re.compile("([^\s=]+)\s*=\s*((\S+)|(?P<quote>['\\\"])((?P=quote)|(.*?[^\\\])(?P=quote)))")
+key_value_re = re.compile("(\w+)\s*=\s*(([^\s'\\\"]+)|(?P<quote>['\\\"])((?P=quote)|(.*?[^\\\])(?P=quote)))")
 def parse_key_value_pairs(input):
     ''' Given a string composed of key=value pairs parse it and return
     a dict of the key/value pairs. Keys must be a word, a key must be followed
