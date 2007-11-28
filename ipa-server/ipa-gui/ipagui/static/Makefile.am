@@ -8,4 +8,5 @@ SUBDIRS =			\
 
 MAINTAINERCLEANFILES =		\
 	*~			\
+	*.pyc			\
 	Makefile.in
