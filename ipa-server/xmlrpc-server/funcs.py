@@ -707,50 +707,6 @@ class IPAServer:
 
         return radius_profiles
 
-    def get_add_schema (self):
-        """Get the list of fields to be used when adding users in the GUI."""
-    
-        # FIXME: this needs to be pulled from LDAP
-        fields = []
-    
-        field1 = {
-            "name":       "uid" ,
-            "label":      "Login:",
-            "type":       "text",
-            "validator":  "text",
-            "required":   "true"
-        }
-        fields.append(field1)
-    
-        field1 = {
-            "name":       "givenName" ,
-            "label":      "First name:",
-            "type":       "text",
-            "validator":  "string",
-            "required":   "true"
-        }
-        fields.append(field1)
-    
-        field1 = {
-            "name":       "sn" ,
-            "label":      "Last name:",
-            "type":       "text",
-            "validator":  "string",
-            "required":   "true"
-        }
-        fields.append(field1)
-    
-        field1 = {
-            "name":       "mail" ,
-            "label":      "E-mail address:",
-            "type":       "text",
-            "validator":  "email",
-            "required":   "false"
-        }
-        fields.append(field1)
-    
-        return fields
-    
     def set_custom_fields (self, schema, opts=None):
         """Set the list of custom user fields.
 
