@@ -29,10 +29,10 @@ else:
 ?>
 
     <div py:if='pw_expires_soon' class="warning_message">
-        Password will expire in ${pw_expires_days} day${days_suffix}
+        ${user.get("uid")}'s password will expire in ${pw_expires_days} day${days_suffix}
     </div>
     <div py:if='pw_is_expired' class="warning_message">
-        Password has expired
+        ${user.get("uid")}'s password has expired
     </div>
 
      ${form.display(action=tg.url('/user/update'), value=user, user_groups=user_groups)}
