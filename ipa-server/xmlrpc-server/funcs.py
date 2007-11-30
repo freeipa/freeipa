@@ -1201,6 +1201,16 @@ class IPAServer:
         if group is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
 
+        # We have 2 special groups, don't allow them to be removed
+        if "admins" in group.get('cn') or "editors" in group.get('cn'):
+            raise ipaerror.gen_exception(ipaerror.CONFIG_REQUIRED_GROUPS)
+
+        # Don't allow the default user group to be removed
+        config=self.get_ipa_config(opts)
+        default_group = self.get_entry_by_cn(config.get('ipadefaultprimarygroup'), None, opts)
+        if group_dn == default_group.get('dn'):
+            raise ipaerror.gen_exception(ipaerror.CONFIG_DEFAULT_GROUP)
+
         conn = self.getConnection(opts)
         try:
             res = conn.deleteEntry(group_dn)
