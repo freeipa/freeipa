@@ -1270,11 +1270,12 @@ class IPAServer:
 
         conn = self.getConnection(opts)
         try:
-            results = conn.getListAsync(self.basedn, self.scope,
-                filter, attr_list, 0, None, None, timelimit,
-                searchlimit)
-        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-            results = [0]
+            try:
+                results = conn.getListAsync(self.basedn, self.scope,
+                    filter, attr_list, 0, None, None, timelimit,
+                    searchlimit)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                results = [0]
         finally:
             self.releaseConnection(conn)
 

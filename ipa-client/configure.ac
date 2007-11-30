@@ -1,4 +1,4 @@
-AC_PREREQ(2.59c)
+AC_PREREQ(2.59)
 AC_INIT([ipa-client],
         [0.5.0],
         [https://hosted.fedoraproject.org/projects/freeipa/newticket])

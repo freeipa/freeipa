@@ -1,9 +1,9 @@
 import turbogears
 from turbogears import validators, widgets
 
-class IPAPolicyFields():
+class IPAPolicyFields(object):
     # From cn=ipaConfig
-    ipausersearchfields =  widgets.TextField(name="ipausersearchfields", label="User Search Fields")
+    ipausersearchfields =  widgets.TextField(name="ipausersearchfields", label="User Search Fields", attrs=dict(size=50))
     ipagroupsearchfields =  widgets.TextField(name="ipagroupsearchfields", label="Group Search Fields")
     ipasearchtimelimit = widgets.TextField(name="ipasearchtimelimit", label="Search Time Limit (sec.)", attrs=dict(size=6,maxlength=6))
     ipasearchrecordslimit = widgets.TextField(name="ipasearchrecordslimit", label="Search Records Limit", attrs=dict(size=6,maxlength=6))

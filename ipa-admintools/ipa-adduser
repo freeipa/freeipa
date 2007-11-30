@@ -228,7 +228,7 @@ def main():
     # Set the User's password
     if password is not None:
         try:
-            client.modifyPassword(principal, None, password)
+            client.modifyPassword(principal, '', password)
         except ipa.ipaerror.IPAError, e:
             print "User added but setting the password failed."
             print "%s" % (e.message)
