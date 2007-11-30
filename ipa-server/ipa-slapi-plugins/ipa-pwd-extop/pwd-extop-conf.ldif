@@ -8,7 +8,7 @@ nsslapd-pluginpath: libipa_pwd_extop
 nsslapd-plugininitfunc: ipapwd_init
 nsslapd-plugintype: extendedop
 nsslapd-pluginenabled: on
-nsslapd-pluginid: Multi-hash Change Password Extended Operation
+nsslapd-pluginid: ipa_pwd_extop
 nsslapd-pluginversion: 1.0
 nsslapd-pluginvendor: RedHat
 nsslapd-plugindescription: Support saving passwords in multiple formats for different consumers (krb5, samba, freeradius, etc.)
