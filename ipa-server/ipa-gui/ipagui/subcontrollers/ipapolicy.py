@@ -104,7 +104,7 @@ class IPAPolicyController(IPAController):
 
             new_ipapolicy = ipa.entity.Entity(orig_ipapolicy_dict)
             new_password = ipa.entity.Entity(orig_password_dict)
-            
+
             if str(new_ipapolicy.ipasearchtimelimit) != str(kw.get('ipasearchtimelimit')):
                 policy_modified = True
                 new_ipapolicy.setValue('ipasearchtimelimit', kw.get('ipasearchtimelimit'))
@@ -158,7 +158,7 @@ class IPAPolicyController(IPAController):
             turbogears.flash("IPA Policy updated")
             raise turbogears.redirect('/ipapolicy/show')
         except ipaerror.IPAError, e:
-            turbogears.flash("Policy update failed: " + str(e) + e.detail[0]['desc'])
+            turbogears.flash("Policy update failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             return dict(form=ipapolicy_edit_form, ipapolicy=kw,
                         tg_template='ipagui.templates.ipapolicyedit')
 

@@ -53,9 +53,9 @@ DefaultGroupContainer = "cn=groups,cn=accounts"
 DefaultServiceContainer = "cn=services,cn=accounts"
 
 # FIXME: need to check the ipadebug option in ipa.conf
-#logging.basicConfig(level=logging.DEBUG,
-#    format='%(asctime)s %(levelname)s %(message)s',
-#    stream=sys.stderr)
+logging.basicConfig(level=logging.DEBUG,
+    format='%(asctime)s %(levelname)s %(message)s',
+    stream=sys.stderr)
 
 #
 # Apache runs in multi-process mode so each process will have its own
@@ -1380,14 +1380,22 @@ class IPAServer:
         # The LDAP routines want strings, not ints, so convert a few
         # things. Otherwise it sees a string -> int conversion as a change.
         try:
-            newconfig['krbmaxpwdlife'] = str(newconfig.get('krbmaxpwdlife'))
-            newconfig['krbminpwdlife'] = str(newconfig.get('krbminpwdlife'))
-            newconfig['krbpwdmindiffchars'] = str(newconfig.get('krbpwdmindiffchars'))
-            newconfig['krbpwdminlength'] = str(newconfig.get('krbpwdminlength'))
-            newconfig['krbpwdhistorylength'] = str(newconfig.get('krbpwdhistorylength'))
+            newconfig['ipapwdexpadvnotify'] = str(newconfig.get('ipapwdexpadvnotify'))
+            newconfig['ipasearchtimelimit'] = str(newconfig.get('ipasearchtimelimit'))
+            newconfig['ipasearchrecordslimit'] = str(newconfig.get('ipasearchrecordslimit'))
+            newconfig['ipamaxusernamelength'] = str(newconfig.get('ipamaxusernamelength'))
         except KeyError:
             # These should all be there but if not, let things proceed
             pass
+
+        # Ensure that the default group for users exists
+        try:
+            group = self.get_entry_by_cn(newconfig.get('ipadefaultprimarygroup'), None, opts)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            raise
+        except:
+            raise 
+
         return self.update_entry(oldconfig, newconfig, opts)
 
     def get_password_policy(self, opts=None):
@@ -1413,6 +1421,9 @@ class IPAServer:
         except KeyError:
             # These should all be there but if not, let things proceed
             pass
+        except:
+            # Anything else raise an error
+            raise
 
         return self.update_entry(oldpolicy, newpolicy, opts)
 
