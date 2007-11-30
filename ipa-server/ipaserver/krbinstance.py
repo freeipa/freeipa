@@ -89,7 +89,7 @@ class KrbInstance(service.Service):
         self.host = host_name.split(".")[0]
         self.ip = socket.gethostbyname(host_name)
         self.domain = host_to_domain(host_name)        
-	self.suffix = realm_to_suffix(self.realm)
+        self.suffix = realm_to_suffix(self.realm)
         self.kdc_password = ipa_generate_password()
         self.admin_password = admin_password
 
@@ -133,7 +133,7 @@ class KrbInstance(service.Service):
 
         self.start_creation(11, "Configuring Kerberos KDC")
         
-	self.__configure_kdc_account_password()
+        self.__configure_kdc_account_password()
         self.__configure_sasl_mappings()
         self.__add_krb_entries()
         self.__create_instance()
