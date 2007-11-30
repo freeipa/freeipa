@@ -1,19 +1,22 @@
 # $SUFFIX (base entry)
+# FIXME: We need to allow truly anonymous access only to NIS data for older clients. We need to allow broad access to most attributes only to authewnticated users
 dn: $SUFFIX
 changetype: modify
 replace: aci
-aci: (targetattr!="userPassword || krbPrincipalKey ||sambaLMPassword || sambaNTPassword")(version 3.0; acl "Enable anonymous access"; allow (read, search, compare) userdn="ldap:///anyone";)
-aci: (targetattr=*)(version 3.0; acl "Admin can manage any entry"; allow (all) userdn="ldap:///uid=admin,cn=sysaccounts,cn=etc,$SUFFIX";)
-aci: (targetattr="krbPrincipalName || krbUPEnabled || krbPrincipalKey || krbMKey || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData")(version 3.0; acl "KDC System Account"; allow (read, search, compare) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
-aci: (targetattr="krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount")(version 3.0; acl "KDC System Account"; allow (read, search, compare, write) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
-aci: (targetattr="userPassword || krbPrincipalKey ||sambaLMPassword || sambaNTPassword || krbPasswordExpiration || krbPwdHistory || krbLastPwdChange")(version 3.0; acl "Kpasswd access to passowrd hashes for passowrd changes"; allow (read, write) userdn="ldap:///krbprincipalname=kadmin/changepw@$REALM,cn=$REALM,cn=kerberos,$SUFFIX";)
-aci: (targetfilter="(|(objectClass=person)(objectClass=krbPrincipalAux)(objectClass=posixAccount)(objectClass=groupOfNames)(objectClass=posixGroup))")(targetattr="*")(version 3.0; acl "Account Admins can manage Users and Groups"; allow (add,delete,read,write) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
-aci: (targetattr = "givenName || sn || cn || displayName || initials || loginShell || homePhone || mobile || pager || facsimileTelephoneNumber || telephoneNumber || street || roomNumber || l || st || postalCode || manager || description || carLicense || labeledURI || inetUserHTTPURL || seeAlso || userPassword")(version 3.0;acl "Self service";allow (write) userdn="ldap:///self";)
+aci: (targetattr != "userPassword || krbPrincipalKey || krbMKey || sambaLMPassword || sambaNTPassword")(version 3.0; acl "Enable anonymous access"; allow (read, search, compare) userdn = "ldap:///anyone";)
+aci: (targetattr != "userPassword || krbPrincipalKey || krbMKey || sambaLMPassword || sambaNTPassword")(version 3.0; acl "Admin can manage any entry except for passwords"; allow (all) userdn = "ldap:///uid=admin,cn=sysaccounts,cn=etc,$SUFFIX";)
+aci: (targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword")(version 3.0; acl "Admin can write passwords"; allow (write) userdn="ldap:///uid=admin,cn=sysaccounts,cn=etc,$SUFFIX";)
+aci: (targetattr = "krbPrincipalName || krbUPEnabled || krbPrincipalKey || krbMKey || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData")(version 3.0; acl "KDC System Account has access to kerberos material"; allow (read, search, compare) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
+aci: (targetattr = "krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount")(version 3.0; acl "KDC System Account can update some fields"; allow (read, search, compare, write) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
+aci: (targetattr = "userPassword || krbPrincipalKey ||sambaLMPassword || sambaNTPassword || krbPasswordExpiration || krbPwdHistory || krbLastPwdChange")(version 3.0; acl "Kpasswd access to passowrd hashes for passowrd changes"; allow (read, write) userdn = "ldap:///krbprincipalname=kadmin/changepw@$REALM,cn=$REALM,cn=kerberos,$SUFFIX";)
+aci: (targetfilter = "(|(objectClass=person)(objectClass=krbPrincipalAux)(objectClass=posixAccount)(objectClass=groupOfNames)(objectClass=posixGroup))")(targetattr != "aci")(version 3.0; acl "Account Admins can manage Users and Groups"; allow (add, delete, read, write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+aci: (targetfilter = "(objectClass=krbPwdPolicy)")(targetattr = "krbMaxPwdLife || krbMinPwdLife || krbPwdMinDiffChars || krbPwdMinLength || krbPwdHistoryLength")(version 3.0;acl "Admins can write password policies"; allow (read, search, compare, write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+aci: (targetattr = "givenName || sn || cn || displayName || initials || loginShell || homePhone || mobile || pager || facsimileTelephoneNumber || telephoneNumber || street || roomNumber || l || st || postalCode || manager || description || carLicense || labeledURI || inetUserHTTPURL || seeAlso")(version 3.0;acl "Self service";allow (write) userdn = "ldap:///self";)
 
 dn: cn=ipaConfig,cn=etc,$SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "ipaUserSearchFields || ipaGroupSearchFields || ipaSearchTimeLimit || ipaSearchRecordsLimit || ipaCustomFields || ipaHomesRootDir || ipaDefaultLoginShell || ipaDefaultPrimaryGroup || ipaMaxUsernameLength || ipaPwdExpAdvNotify")(version 3.0;acl "Admins can write IPA policy"; allow (write) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+aci: (targetfilter = "(objectClass=ipaGuiConfig)")(targetattr != "aci")(version 3.0;acl "Admins can change GUI config"; allow (read, search, compare, write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 
 dn: cn=accounts,$SUFFIX
 changetype: modify
@@ -23,4 +26,4 @@ aci: (targetattr = "krbMaxPwdLife || krbMinPwdLife || krbPwdMinDiffChars || krbP
 dn: cn=services,cn=accounts,$SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr="krbPrincipalName || krbUPEnabled || krbPrincipalKey || krbMKey || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData")(version 3.0; acl "KDC System Account"; allow (read, search, compare,write) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
+aci: (targetattr="krbPrincipalName || krbUPEnabled || krbPrincipalKey || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData")(version 3.0; acl "KDC System Account"; allow (read, search, compare, write) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
