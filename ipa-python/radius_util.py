@@ -205,7 +205,7 @@ radius_profile_attr_to_ldap_attr = reverse_map_dict(radius_profile_ldap_attr_to_
 
 #------------------------------------------------------------------------------
 
-clients_container = 'cn=clients,cn=radius,cn=services,cn=etc'
+clients_container = 'cn=clients,cn=radius'
 
 def radius_clients_basedn(container, suffix):
     if container is None: container = clients_container
@@ -221,7 +221,7 @@ def radius_client_dn(client, container, suffix):
 
 # --
 
-profiles_container = 'cn=profiles,cn=radius,cn=services,cn=etc'
+profiles_container = 'cn=profiles,cn=radius'
 
 def radius_profiles_basedn(container, suffix):
     if container is None: container = profiles_container

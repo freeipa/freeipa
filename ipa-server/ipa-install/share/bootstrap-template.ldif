@@ -75,31 +75,25 @@ homeDirectory: /home/admin
 loginShell: /bin/bash
 gecos: Administrator
 
-dn: cn=services,cn=etc,$SUFFIX
-changetype: add
-objectClass: nsContainer
-objectClass: top
-cn: services
-
-dn: cn=radius,cn=services,cn=etc,$SUFFIX
+dn: cn=radius,$SUFFIX
 changetype: add
 objectClass: nsContainer
 objectClass: top
 cn: radius
 
-dn: cn=clients,cn=radius,cn=services,cn=etc,$SUFFIX
+dn: cn=clients,cn=radius,$SUFFIX
 changetype: add
 objectClass: nsContainer
 objectClass: top
 cn: clients
 
-dn: cn=profiles,cn=radius,cn=services,cn=etc,$SUFFIX
+dn: cn=profiles,cn=radius,$SUFFIX
 changetype: add
 objectClass: nsContainer
 objectClass: top
 cn: profiles
 
-dn: uid=ipa_default, cn=profiles,cn=radius,cn=services,cn=etc,$SUFFIX
+dn: uid=ipa_default, cn=profiles,cn=radius,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: radiusprofile
