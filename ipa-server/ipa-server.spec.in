@@ -15,6 +15,7 @@ BuildRequires: openssl-devel
 BuildRequires: openldap-devel
 BuildRequires: krb5-devel
 BuildRequires: nss-devel
+BuildRequires: libcap-devel
 
 Requires: ipa-python
 Requires: ipa-admintools
@@ -38,6 +39,7 @@ Requires: python-tgexpandingformwidget
 Requires: acl
 Requires: freeradius
 Requires: pyasn1
+Requires: libcap
 
 %define httpd_conf /etc/httpd/conf.d
 %define plugin_dir %{_libdir}/dirsrv/plugins
