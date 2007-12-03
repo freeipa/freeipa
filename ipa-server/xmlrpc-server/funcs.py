@@ -1406,6 +1406,10 @@ class IPAServer:
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             raise ipaerror.gen_exception(ipaerror.LDAP_NO_CONFIG)
 
+        # convert some values for display purposes
+        policy['krbmaxpwdlife'] = str(int(policy.get('krbmaxpwdlife')) / 86400)
+        policy['krbminpwdlife'] = str(int(policy.get('krbminpwdlife')) / 3600)
+
         return policy
 
     def update_password_policy(self, oldpolicy, newpolicy, opts=None):
@@ -1414,11 +1418,18 @@ class IPAServer:
         # The LDAP routines want strings, not ints, so convert a few
         # things. Otherwise it sees a string -> int conversion as a change.
         try:
-            newpolicy['krbmaxpwdlife'] = str(newpolicy.get('krbmaxpwdlife'))
-            newpolicy['krbminpwdlife'] = str(newpolicy.get('krbminpwdlife'))
-            newpolicy['krbpwdhistorylength'] = str(newpolicy.get('krbpwdhistorylength'))
-            newpolicy['krbpwdmindiffchars'] = str(newpolicy.get('krbpwdmindiffchars'))
-            newpolicy['krbpwdminlength'] = str(newpolicy.get('krbpwdminlength'))
+            for k in oldpolicy.iterkeys():
+                if k.startswith("krb", 0, 3):
+                    oldpolicy[k] = str(oldpolicy[k])
+            for k in newpolicy.iterkeys():
+                if k.startswith("krb", 0, 3):
+                    newpolicy[k] = str(newpolicy[k])
+
+            # Convert hours and days to seconds       
+            oldpolicy['krbmaxpwdlife'] = str(int(oldpolicy.get('krbmaxpwdlife')) * 86400)
+            oldpolicy['krbminpwdlife'] = str(int(oldpolicy.get('krbminpwdlife')) * 3600)
+            newpolicy['krbmaxpwdlife'] = str(int(newpolicy.get('krbmaxpwdlife')) * 86400)
+            newpolicy['krbminpwdlife'] = str(int(newpolicy.get('krbminpwdlife')) * 3600)
         except KeyError:
             # These should all be there but if not, let things proceed
             pass
