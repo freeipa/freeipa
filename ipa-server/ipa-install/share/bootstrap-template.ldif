@@ -14,7 +14,7 @@ krbMinPwdLife: 3600
 krbPwdMinDiffChars: 0
 krbPwdMinLength: 8
 krbPwdHistoryLength: 0
-krbMaxPwdLife: 864000
+krbMaxPwdLife: 7776000
 
 dn: cn=users,cn=accounts,$SUFFIX
 changetype: add
