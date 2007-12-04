@@ -14,7 +14,7 @@ krbMinPwdLife: 3600
 krbPwdMinDiffChars: 0
 krbPwdMinLength: 8
 krbPwdHistoryLength: 0
-krbMaxPwdLife: 864000
+krbMaxPwdLife: 7776000
 
 dn: cn=users,cn=accounts,$SUFFIX
 changetype: add
@@ -33,6 +33,12 @@ changetype: add
 objectClass: top
 objectClass: nsContainer
 cn: services
+
+dn: cn=computers,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: computers
 
 dn: cn=etc,$SUFFIX
 changetype: add
@@ -143,6 +149,7 @@ ipaMaxUsernameLength: 8
 ipaPwdExpAdvNotify: 4
 
 dn: cn=account inactivation,cn=accounts,$SUFFIX
+changetype: add
 description: Lock accounts based on group membership
 objectClass: top
 objectClass: ldapsubentry
@@ -154,11 +161,13 @@ cosSpecifier: memberOf
 cn: Account Inactivation
 
 dn: cn=cosTemplates,cn=accounts,$SUFFIX
+changetype: add
 objectclass: top
 objectclass: nsContainer
 cn: cosTemplates
 
 dn: cn="cn=inactivated,cn=account inactivation,cn=accounts,$SUFFIX", cn=cosTemplates,cn=accounts,$SUFFIX
+changetype: add
 objectClass: top
 objectClass: cosTemplate
 objectClass: extensibleobject
@@ -166,10 +175,12 @@ nsAccountLock: true
 cosPriority: 1
 
 dn: cn=inactivated,cn=account inactivation,cn=accounts,$SUFFIX
+changetype: add
 objectclass: top
 objectclass: groupofnames
 
 dn: cn="cn=activated,cn=account inactivation,cn=accounts,$SUFFIX", cn=cosTemplates,cn=accounts,$SUFFIX
+changetype: add
 objectClass: top
 objectClass: cosTemplate
 objectClass: extensibleobject
@@ -177,5 +188,6 @@ nsAccountLock: false
 cosPriority: 0
 
 dn: cn=Activated,cn=Account Inactivation,cn=accounts,$SUFFIX
+changetype: add
 objectclass: top
 objectclass: groupofnames

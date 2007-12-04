@@ -29,7 +29,6 @@ import sys
 
 from ipa.ipautil import *
 import service
-
 import installutils
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
@@ -188,7 +187,7 @@ class DsInstance(service.Service):
             try:
                 run(args)
                 logging.debug("done adding user")
-            except subprocess.CalledProcessError, e:
+            except ipautil.CalledProcessError, e:
                 logging.critical("failed to add user %s" % e)
 
     def __create_instance(self):
@@ -206,13 +205,13 @@ class DsInstance(service.Service):
         try:
             run(args)
             logging.debug("completed creating ds instance")
-        except subprocess.CalledProcessError, e:
+        except ipautil.CalledProcessError, e:
             logging.critical("failed to restart ds instance %s" % e)
         logging.debug("restarting ds instance")
         try:
             self.restart()
             logging.debug("done restarting ds instance")
-        except subprocess.CalledProcessError, e:
+        except ipautil.CalledProcessError, e:
             print "failed to restart ds instance", e
             logging.debug("failed to restart ds instance %s" % e)
 
@@ -233,7 +232,7 @@ class DsInstance(service.Service):
         memberof_fd = write_tmp_file(memberof_txt)
         try:
             ldap_mod(memberof_fd, "cn=Directory Manager", self.dm_password)
-        except subprocess.CalledProcessError, e:
+        except ipautil.CalledProcessError, e:
             logging.critical("Failed to load memberof-conf.ldif: %s" % str(e))
         memberof_fd.close()
 
@@ -243,7 +242,7 @@ class DsInstance(service.Service):
         memberof_fd = write_tmp_file(memberof_txt)
         try:
             ldap_mod(memberof_fd, "cn=Directory Manager", self.dm_password)
-        except subprocess.CalledProcessError, e:
+        except ipautil.CalledProcessError, e:
             logging.critical("Failed to load memberof-conf.ldif: %s" % str(e))
         memberof_fd.close()
 
@@ -253,7 +252,7 @@ class DsInstance(service.Service):
         referint_fd = write_tmp_file(referint_txt)
         try:
             ldap_mod(referint_fd, "cn=Directory Manager", self.dm_password)
-        except subprocess.CalledProcessError, e:
+        except ipautil.CalledProcessError, e:
             print "Failed to load referint-conf.ldif", e
         referint_fd.close()
 
@@ -263,7 +262,7 @@ class DsInstance(service.Service):
         dna_fd = write_tmp_file(dna_txt)
         try:
             ldap_mod(dna_fd, "cn=Directory Manager", self.dm_password)
-        except subprocess.CalledProcessError, e:
+        except ipautil.CalledProcessError, e:
             print "Failed to load dna-conf.ldif", e
         dna_fd.close()
 
@@ -273,7 +272,7 @@ class DsInstance(service.Service):
         dna_fd = write_tmp_file(dna_txt)
         try:
             ldap_mod(dna_fd, "cn=Directory Manager", self.dm_password)
-        except subprocess.CalledProcessError, e:
+        except ipautil.CalledProcessError, e:
             print "Failed to configure Posix uid/gid generation with dna-posix.ldif", e
         dna_fd.close()
 
@@ -283,7 +282,7 @@ class DsInstance(service.Service):
         master_fd = write_tmp_file(master_txt)
         try:
             ldap_mod(master_fd, "cn=Directory Manager", self.dm_password)
-        except subprocess.CalledProcessError, e:
+        except ipautil.CalledProcessError, e:
             print "Failed to add master-entry.ldif", e
         master_fd.close()
 
@@ -295,7 +294,7 @@ class DsInstance(service.Service):
         try:
             run(args)
             logging.debug("done configuring ssl for ds instance")
-        except subprocess.CalledProcessError, e:
+        except ipautil.CalledProcessError, e:
             logging.critical("Failed to configure ssl in ds instance %s" % e)
         
     def __add_default_layout(self):
@@ -308,7 +307,7 @@ class DsInstance(service.Service):
         try:
             run(args)
             logging.debug("done adding default ds layout")
-        except subprocess.CalledProcessError, e:
+        except ipautil.CalledProcessError, e:
             print "Failed to add default ds layout", e
             logging.critical("Failed to add default ds layout %s" % e)
         
@@ -322,7 +321,7 @@ class DsInstance(service.Service):
         try:
             run(args)
             logging.debug("done adding/updating indeces")
-        except subprocess.CalledProcessError, e:
+        except ipautil.CalledProcessError, e:
             logging.critical("Failed to add/update indeces %s" % str(e))
 
     def __certmap_conf(self):
@@ -347,7 +346,7 @@ class DsInstance(service.Service):
         try:
             run(args)
             logging.debug("ldappasswd done")
-        except subprocess.CalledProcessError, e:
+        except ipautil.CalledProcessError, e:
             print "Unable to set admin password", e
             logging.debug("Unable to set admin password %s" % e)
 

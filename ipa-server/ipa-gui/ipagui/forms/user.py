@@ -2,7 +2,7 @@ import turbogears
 from turbogears import validators, widgets
 from tg_expanding_form_widget.tg_expanding_form_widget import ExpandingForm
 
-class UserFields():
+class UserFields(object):
     givenname = widgets.TextField(name="givenname", label="Given Name")
     sn = widgets.TextField(name="sn", label="Family Name")
     cn = widgets.TextField(name="cn", label="Common Names")

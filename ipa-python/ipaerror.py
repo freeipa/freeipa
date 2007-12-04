@@ -162,3 +162,18 @@ CONNECTION_UNWILLING = gen_error_code(
         CONNECTION_CATEGORY,
         0x0004,
         "Account inactivated. Server is unwilling to perform.")
+
+#
+# Configuration errors
+#
+CONFIGURATION_CATEGORY = 0x0004
+
+CONFIG_REQUIRED_GROUPS = gen_error_code(
+        CONFIGURATION_CATEGORY,
+        0x0001,
+        "The admins and editors groups are required.")
+
+CONFIG_DEFAULT_GROUP = gen_error_code(
+        CONFIGURATION_CATEGORY,
+        0x0002,
+        "You cannot remove the default users group.")

@@ -29,11 +29,13 @@ import xmlrpclib
 import kerberos
 
 def usage():
-    print "ipa-deluser user"
+    print "ipa-lockuser user"
     sys.exit(1)
 
 def parse_options():
     parser = OptionParser()
+    parser.add_option("-u", "--unlock", action="store_true", dest="unlock",
+                      help="Unlock a user's account")
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
@@ -48,10 +50,27 @@ def main():
     if len(args) != 2:
         usage()
 
+    msg = "inactivated"
     try:
         client = ipaclient.IPAClient()
-        ret = client.delete_user(args[1])
-        print args[1] + " successfully deleted"
+        if options.unlock:
+            try:
+                ret = client.mark_user_active(args[1])
+                msg = "unlocked"
+            except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_EMPTY_MODLIST):
+                print "User is already marked active"
+                return 0
+            except:
+                raise
+        else:
+            try:
+                ret = client.mark_user_inactive(args[1])
+            except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_EMPTY_MODLIST):
+                print "User is already marked inactive"
+                return 0
+            except:
+                raise
+            print args[1] + " successfully %s" % msg
     except xmlrpclib.Fault, fault:
         if fault.faultCode == errno.ECONNREFUSED:
             print "The IPA XML-RPC service is not responding."

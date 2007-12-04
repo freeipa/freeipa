@@ -17,6 +17,9 @@ clean:
 
 distclean: clean
 
+maintainer-clean: distclean
+	rm -rf build
+
 .PHONY: test
 test: $(subst .py,.tst,$(TESTS))
 

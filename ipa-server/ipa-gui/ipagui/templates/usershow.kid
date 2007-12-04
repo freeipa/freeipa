@@ -28,10 +28,10 @@ else:
 ?>
 
     <div id="alertbox" py:if='pw_expires_soon' class="warning_message">
-        Password will expire in ${pw_expires_days} day${days_suffix}
+        ${user.get("uid")}'s password will expire in ${pw_expires_days} day${days_suffix}
     </div>
     <div id="alertbox" py:if='pw_is_expired' class="warning_message">
-        Password has expired
+        ${user.get("uid")}'s password has expired
     </div>
 
     <h2 class="formsection">Identity Details</h2>

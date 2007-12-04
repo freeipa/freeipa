@@ -16,4 +16,5 @@ EXTRA_DIST =			\
 
 MAINTAINERCLEANFILES =		\
 	*~			\
+	*.pyc			\
 	Makefile.in

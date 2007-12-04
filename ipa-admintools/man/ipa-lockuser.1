@@ -1,4 +1,4 @@
-.\" A man page for ipa-deluser
+.\" A man page for ipa-lockuser
 .\" Copyright (C) 2007 Red Hat, Inc.
 .\" 
 .\" This is free software; you can redistribute it and/or modify it under
@@ -17,16 +17,20 @@
 .\" 
 .\" Author: Rob Crittenden <rcritten@redhat.com>
 .\" 
-.TH "ipa-deluser" "1" "Oct 10 2007" "freeipa" ""
+.TH "ipa-lockuser" "1" "Oct 10 2007" "freeipa" ""
 .SH "NAME"
-ipa\-deluser \- Delete a user
+ipa\-lockuser \- Lock or unlock a user account
 
 .SH "SYNOPSIS"
-ipa\-deluser \fIuser\fR
+ipa\-lockuser [\fIOPTION\fR]... \fIuser\fR
 
 .SH "DESCRIPTION"
-Deletes a user with login name \fIname\fR.
+Locks a user account with login name \fIname\fR.
 
-Users are automatically removed from groups when they are deleted.
+Users are not removed from groups when their account is locked.
+.SH "OPTIONS"
+.TP 
+\fB\-u\fR, \fB\-\-unlock
+Unlock a user's account
 .SH "EXIT STATUS"
 The exit status is 0 on success, nonzero on error.

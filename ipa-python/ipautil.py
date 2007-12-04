@@ -36,6 +36,22 @@ from string import lower
 import re
 import xmlrpclib
 import datetime
+try:
+    from subprocess import CalledProcessError
+    class CalledProcessError(subprocess.CalledProcessError):
+        def __init__(self, returncode, cmd):
+            super(CalledProcessError, self).__init__(returncode, cmd)
+except ImportError:
+    # Python 2.4 doesn't implement CalledProcessError
+    class CalledProcessError(Exception):
+        """This exception is raised when a process run by check_call() returns
+        a non-zero exit status. The exit status will be stored in the
+        returncode attribute."""
+        def __init__(self, returncode, cmd):
+            self.returncode = returncode
+            self.cmd = cmd
+        def __str__(self):
+            return "Command '%s' returned non-zero exit status %d" % (self.cmd, self.returncode)
 
 def realm_to_suffix(realm_name):
     s = realm_name.split(".")
@@ -66,7 +82,7 @@ def run(args, stdin=None):
     logging.info(stderr)
 
     if p.returncode != 0:
-        raise subprocess.CalledProcessError(p.returncode, ' '.join(args))
+        raise self.CalledProcessError(p.returncode, ' '.join(args))
 
 def file_exists(filename):
     try:

@@ -181,3 +181,4 @@ maintainer-clean: clean
 	rm -fr rpmbuild dist
 	cd ipa-server && $(MAKE) maintainer-clean
 	cd ipa-client && $(MAKE) maintainer-clean
+	cd ipa-python && $(MAKE) maintainer-clean

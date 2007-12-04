@@ -93,11 +93,7 @@
 /* OID of the extended operation handled by this plug-in */
 #define EXOP_PASSWD_OID	"1.3.6.1.4.1.4203.1.11.1"
 
-/* These are thye default enc:salt ypes if nothing is defined.
- * TODO: retrieve the configure set of ecntypes either from the
- * kfc.conf file or by synchronizing the the file content into
- * the directory */
-
+/* krbTicketFlags */
 #define KTF_DISALLOW_POSTDATED        0x00000001
 #define KTF_DISALLOW_FORWARDABLE      0x00000002
 #define KTF_DISALLOW_TGT_BASED        0x00000004
@@ -110,6 +106,11 @@
 #define KTF_REQUIRES_PWCHANGE         0x00000200
 #define KTF_DISALLOW_SVR              0x00001000
 #define KTF_PWCHANGE_SERVICE          0x00002000
+
+/* These are the default enc:salt types if nothing is defined.
+ * TODO: retrieve the configure set of ecntypes either from the
+ * kfc.conf file or by synchronizing the the file content into
+ * the directory */
 
 /* Salt types */
 #define KRB5_KDB_SALTTYPE_NORMAL        0
@@ -1061,6 +1062,7 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 {
 	const char *krbPrincipalExpiration;
 	const char *krbLastPwdChange;
+	const char *krbPasswordExpiration;
 	int krbMaxPwdLife = IPAPWD_DEFAULT_PWDLIFE;
 	int krbPwdMinLength = IPAPWD_DEFAULT_MINLEN;
 	int krbPwdMinDiffChars = 0;
@@ -1105,6 +1107,7 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 		goto no_policy;
 	} 
 
+	krbPasswordExpiration = slapi_entry_attr_get_charptr(data->target, "krbPasswordExpiration");
 	krbLastPwdChange = slapi_entry_attr_get_charptr(data->target, "krbLastPwdChange");
 	/* if no previous change, it means this is probably a new account
 	 * or imported, log and just ignore */
@@ -1138,9 +1141,17 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 	/* if no default then treat it as no limit */
 	if (krbMinPwdLife != 0) {
 
-		if (data->timeNow < data->lastPwChange + krbMinPwdLife) {
+		/* check for reset cases */
+		if (strcmp(krbPasswordExpiration, krbLastPwdChange) == 0) {
+			/* Expiration and last change time are the same
+			 * this happens only when a password is reset by an admin
+			 * or no expiration policy is set, PASS */
 			slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
-				"ipapwd_checkPassword: Too soon to change password\n");
+				"ipapwd_checkPolicy: Ignore krbMinPwdLife Expiration and Last change dates match\n");
+
+		} else if (data->timeNow < data->lastPwChange + krbMinPwdLife) {
+			slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
+				"ipapwd_checkPolicy: Too soon to change password\n");
 			slapi_entry_free(policy); 
 			return IPAPWD_POLICY_ERROR | LDAP_PWPOLICY_PWDTOOYOUNG;
 		}
@@ -1424,8 +1435,8 @@ static int ipapwd_SetPassword(struct ipapwd_data *data)
 {
 	int ret = 0, i = 0;
 	Slapi_Mods *smods;
-	Slapi_Value **svals;
-	Slapi_Value **pwvals;
+	Slapi_Value **svals = NULL;
+	Slapi_Value **pwvals = NULL;
 	struct tm utctime;
 	char timestr[GENERALIZED_TIME_LENGTH+1];
 	krb5_context krbctx;
@@ -1608,17 +1619,6 @@ static int ipapwd_extop(Slapi_PBlock *pb)
 
 	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "=> ipapwd_extop\n");
 
-	/* make sure we have the master key */
-	if (ipa_kmkey == NULL) {
-		ret = ipapwd_getMasterKey(ipa_realm_dn);
-		if (ret != LDAP_SUCCESS) {
-			errMesg = "Fatal Internal Error Retrieving Master Key";
-			rc = LDAP_OPERATIONS_ERROR;
-			slapi_log_error( SLAPI_LOG_PLUGIN, "ipa_pwd_extop", errMesg );
-			goto free_and_return;
-		}
-	}
-			
 	/* Before going any further, we'll make sure that the right extended operation plugin
 	 * has been called: i.e., the OID shipped whithin the extended operation request must 
 	 * match this very plugin's OID: EXOP_PASSWD_OID. */
@@ -1641,9 +1641,19 @@ static int ipapwd_extop(Slapi_PBlock *pb)
 	        slapi_log_error( SLAPI_LOG_PLUGIN, "ipa_pwd_extop", 
 				 "Password Modify extended operation request confirmed.\n" );
 	}
-	
 	/* Now , at least we know that the request was indeed a Password Modify one. */
 
+	/* make sure we have the master key */
+	if (ipa_kmkey == NULL) {
+		ret = ipapwd_getMasterKey(ipa_realm_dn);
+		if (ret != LDAP_SUCCESS) {
+			errMesg = "Fatal Internal Error Retrieving Master Key";
+			rc = LDAP_OPERATIONS_ERROR;
+			slapi_log_error( SLAPI_LOG_PLUGIN, "ipa_pwd_extop", errMesg );
+			goto free_and_return;
+		}
+	}
+			
 #ifdef LDAP_EXTOP_PASSMOD_CONN_SECURE
 	/* Allow password modify only for SSL/TLS established connections and
 	 * connections using SASL privacy layers */
@@ -1824,7 +1834,7 @@ parse_req_done:
 		slapi_pblock_set(pb, SLAPI_BACKEND, be);
 	}
 
-	ret = slapi_access_allowed ( pb, targetEntry, SLAPI_USERPWD_ATTR, NULL, SLAPI_ACL_WRITE );
+	ret = slapi_access_allowed ( pb, targetEntry, "krbPrincipalKey", NULL, SLAPI_ACL_WRITE );
 	if ( ret != LDAP_SUCCESS ) {
 		errMesg = "Insufficient access rights\n";
 		rc = LDAP_INSUFFICIENT_ACCESS;
@@ -2140,7 +2150,6 @@ static int ipapwd_start( Slapi_PBlock *pb )
 	/*retrieve the master key from the stash file */
 	if (slapi_pblock_get(pb, SLAPI_TARGET_DN, &config_dn) != 0) {
 		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "No config DN?\n");
-		krb5_free_context(krbctx);
 		free(keysalts);
 		free(realm);
 		return LDAP_OPERATIONS_ERROR;
@@ -2148,7 +2157,6 @@ static int ipapwd_start( Slapi_PBlock *pb )
 
 	if (ipapwd_getEntry(config_dn, &config_entry, NULL) != LDAP_SUCCESS) {
 		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "No config Entry?\n");
-		krb5_free_context(krbctx);
 		free(keysalts);
 		free(realm);
 		return LDAP_OPERATIONS_ERROR;
@@ -2208,7 +2216,7 @@ int ipapwd_init( Slapi_PBlock *pb )
 	     slapi_pblock_set( pb, SLAPI_PLUGIN_START_FN, (void *) ipapwd_start ) != 0 ||
 	     slapi_pblock_set( pb, SLAPI_PLUGIN_EXT_OP_FN, (void *) ipapwd_extop ) != 0 ||
 	     slapi_pblock_set( pb, SLAPI_PLUGIN_EXT_OP_OIDLIST, ipapwd_oid_list ) != 0 ||
-	     slapi_pblock_set( pb, SLAPI_PLUGIN_EXT_OP_NAMELIST, ipapwd_name_list ) != 0 ) {
+	     slapi_pblock_set( pb, SLAPI_PLUGIN_EXT_OP_NAMELIST, ipapwd_name_list ) != 0) {
 
 		slapi_log_error( SLAPI_LOG_PLUGIN, "ipapwd_init",
 				 "Failed to set plug-in version, function, and OID.\n" );

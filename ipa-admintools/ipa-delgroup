@@ -50,7 +50,19 @@ def main():
 
     try:
         client = ipaclient.IPAClient()
-        ret = client.delete_group(args[1])
+        groups = client.find_groups(args[1], ['cn','description','gidnumber','nsAccountLock'])
+    
+        counter = groups[0]
+        groups = groups[1:] 
+
+        if counter == 0:
+            print "Group '%s' not found." % args[1]
+            return 2
+        if counter != 1:
+            print "An exact group match was not found. Found %d groups" % counter
+            return 2
+
+        ret = client.delete_group(groups[0].dn)
         if (ret == "Success"):
             print args[1] + " successfully deleted"
         else:

@@ -86,7 +86,7 @@ class HTTPInstance(service.Service):
             if (os.path.exists('/usr/sbin/selinuxenabled')):
                 run(["/usr/sbin/selinuxenabled"])
                 selinux=1
-        except subprocess.CalledProcessError:
+        except ipautil.CalledProcessError:
             # selinuxenabled returns 1 if not enabled
             pass
 

@@ -332,7 +332,7 @@ class IPAServer:
 
 # Higher-level API
 
-    def get_aci_entry(self, sattrs=None, opts=None):
+    def get_aci_entry(self, sattrs, opts=None):
         """Returns the entry containing access control ACIs."""
 
         dn="%s,%s" % (ACIContainer, self.basedn)
@@ -340,7 +340,7 @@ class IPAServer:
 
 # General searches
 
-    def get_entry_by_dn (self, dn, sattrs=None, opts=None):
+    def get_entry_by_dn (self, dn, sattrs, opts=None):
         """Get a specific entry. Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
@@ -348,7 +348,7 @@ class IPAServer:
         filter = "(objectClass=*)"
         return self.__get_base_entry(dn, filter, sattrs, opts)
 
-    def get_entry_by_cn (self, cn, sattrs=None, opts=None):
+    def get_entry_by_cn (self, cn, sattrs, opts=None):
         """Get a specific entry by cn. Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
@@ -374,7 +374,7 @@ class IPAServer:
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return 1
 
-    def get_user_by_uid (self, uid, sattrs=None, opts=None):
+    def get_user_by_uid (self, uid, sattrs, opts=None):
         """Get a specific user's entry. Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
@@ -383,7 +383,7 @@ class IPAServer:
         filter = "(uid=" + uid + ")"
         return self.__get_sub_entry(self.basedn, filter, sattrs, opts)
 
-    def get_user_by_principal(self, principal, sattrs=None, opts=None):
+    def get_user_by_principal(self, principal, sattrs, opts=None):
         """Get a user entry searching by Kerberos Principal Name.
            Return as a dict of values. Multi-valued fields are
            represented as lists.
@@ -392,7 +392,7 @@ class IPAServer:
         filter = "(krbPrincipalName="+self.__safe_filter(principal)+")"
         return self.__get_sub_entry(self.basedn, filter, sattrs, opts)
 
-    def get_user_by_email (self, email, sattrs=None, opts=None):
+    def get_user_by_email (self, email, sattrs, opts=None):
         """Get a specific user's entry. Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
@@ -401,7 +401,7 @@ class IPAServer:
         filter = "(mail=" + email + ")"
         return self.__get_sub_entry(self.basedn, filter, sattrs, opts)
 
-    def get_users_by_manager (self, manager_dn, sattrs=None, opts=None):
+    def get_users_by_manager (self, manager_dn, sattrs, opts=None):
         """Gets the users that report to a particular manager.
         """
 
@@ -413,12 +413,12 @@ class IPAServer:
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return []
 
-    def add_user (self, user, user_container=None, opts=None):
+    def add_user (self, user, user_container, opts=None):
         """Add a user in LDAP. Takes as input a dict where the key is the
            attribute name and the value is either a string or in the case
            of a multi-valued field a list of values. user_container sets
            where in the tree the user is placed."""
-        if user_container is None:
+        if not user_container:
             user_container = DefaultUserContainer
 
         if self.__is_user_unique(user['uid'], opts) == 0:
@@ -738,7 +738,7 @@ class IPAServer:
 
         return self.update_entry(config, new_config, opts)
 
-    def get_all_users (self, args=None, opts=None):
+    def get_all_users (self, opts=None):
         """Return a list containing a User object for each
         existing user.
         """
@@ -756,7 +756,7 @@ class IPAServer:
     
         return users
 
-    def find_users (self, criteria, sattrs=None, searchlimit=-1, timelimit=-1,
+    def find_users (self, criteria, sattrs, searchlimit=-1, timelimit=-1,
             opts=None):
         """Returns a list: counter followed by the results.
            If the results are truncated, counter will be set to -1."""
@@ -1002,7 +1002,7 @@ class IPAServer:
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return 1
 
-    def get_groups_by_member (self, member_dn, sattrs=None, opts=None):
+    def get_groups_by_member (self, member_dn, sattrs, opts=None):
         """Get a specific group's entry. Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
@@ -1015,12 +1015,12 @@ class IPAServer:
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return []
 
-    def add_group (self, group, group_container=None, opts=None):
+    def add_group (self, group, group_container, opts=None):
         """Add a group in LDAP. Takes as input a dict where the key is the
            attribute name and the value is either a string or in the case
            of a multi-valued field a list of values. group_container sets
            where in the tree the group is placed."""
-        if group_container is None:
+        if not group_container:
             group_container = DefaultGroupContainer
 
         if self.__is_group_unique(group['cn'], opts) == 0:
@@ -1047,7 +1047,7 @@ class IPAServer:
         finally:
             self.releaseConnection(conn)
 
-    def find_groups (self, criteria, sattrs=None, searchlimit=-1, timelimit=-1,
+    def find_groups (self, criteria, sattrs, searchlimit=-1, timelimit=-1,
             opts=None):
         """Return a list containing a User object for each
         existing group that matches the criteria.
@@ -1396,6 +1396,16 @@ class IPAServer:
         if group is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
 
+        # We have 2 special groups, don't allow them to be removed
+        if "admins" in group.get('cn') or "editors" in group.get('cn'):
+            raise ipaerror.gen_exception(ipaerror.CONFIG_REQUIRED_GROUPS)
+
+        # Don't allow the default user group to be removed
+        config=self.get_ipa_config(opts)
+        default_group = self.get_entry_by_cn(config.get('ipadefaultprimarygroup'), None, opts)
+        if group_dn == default_group.get('dn'):
+            raise ipaerror.gen_exception(ipaerror.CONFIG_DEFAULT_GROUP)
+
         conn = self.getConnection(opts)
         try:
             res = conn.deleteEntry(group_dn)
@@ -1455,11 +1465,12 @@ class IPAServer:
 
         conn = self.getConnection(opts)
         try:
-            results = conn.getListAsync(self.basedn, self.scope,
-                filter, attr_list, 0, None, None, timelimit,
-                searchlimit)
-        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-            results = [0]
+            try:
+                results = conn.getListAsync(self.basedn, self.scope,
+                    filter, attr_list, 0, None, None, timelimit,
+                    searchlimit)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                results = [0]
         finally:
             self.releaseConnection(conn)
 
@@ -1565,14 +1576,22 @@ class IPAServer:
         # The LDAP routines want strings, not ints, so convert a few
         # things. Otherwise it sees a string -> int conversion as a change.
         try:
-            newconfig['krbmaxpwdlife'] = str(newconfig.get('krbmaxpwdlife'))
-            newconfig['krbminpwdlife'] = str(newconfig.get('krbminpwdlife'))
-            newconfig['krbpwdmindiffchars'] = str(newconfig.get('krbpwdmindiffchars'))
-            newconfig['krbpwdminlength'] = str(newconfig.get('krbpwdminlength'))
-            newconfig['krbpwdhistorylength'] = str(newconfig.get('krbpwdhistorylength'))
+            newconfig['ipapwdexpadvnotify'] = str(newconfig.get('ipapwdexpadvnotify'))
+            newconfig['ipasearchtimelimit'] = str(newconfig.get('ipasearchtimelimit'))
+            newconfig['ipasearchrecordslimit'] = str(newconfig.get('ipasearchrecordslimit'))
+            newconfig['ipamaxusernamelength'] = str(newconfig.get('ipamaxusernamelength'))
         except KeyError:
             # These should all be there but if not, let things proceed
             pass
+
+        # Ensure that the default group for users exists
+        try:
+            group = self.get_entry_by_cn(newconfig.get('ipadefaultprimarygroup'), None, opts)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            raise
+        except:
+            raise 
+
         return self.update_entry(oldconfig, newconfig, opts)
 
     def get_password_policy(self, opts=None):
@@ -1582,6 +1601,10 @@ class IPAServer:
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             raise ipaerror.gen_exception(ipaerror.LDAP_NO_CONFIG)
 
+        # convert some values for display purposes
+        policy['krbmaxpwdlife'] = str(int(policy.get('krbmaxpwdlife')) / 86400)
+        policy['krbminpwdlife'] = str(int(policy.get('krbminpwdlife')) / 3600)
+
         return policy
 
     def update_password_policy(self, oldpolicy, newpolicy, opts=None):
@@ -1590,14 +1613,24 @@ class IPAServer:
         # The LDAP routines want strings, not ints, so convert a few
         # things. Otherwise it sees a string -> int conversion as a change.
         try:
-            newpolicy['krbmaxpwdlife'] = str(newpolicy.get('krbmaxpwdlife'))
-            newpolicy['krbminpwdlife'] = str(newpolicy.get('krbminpwdlife'))
-            newpolicy['krbpwdhistorylength'] = str(newpolicy.get('krbpwdhistorylength'))
-            newpolicy['krbpwdmindiffchars'] = str(newpolicy.get('krbpwdmindiffchars'))
-            newpolicy['krbpwdminlength'] = str(newpolicy.get('krbpwdminlength'))
+            for k in oldpolicy.iterkeys():
+                if k.startswith("krb", 0, 3):
+                    oldpolicy[k] = str(oldpolicy[k])
+            for k in newpolicy.iterkeys():
+                if k.startswith("krb", 0, 3):
+                    newpolicy[k] = str(newpolicy[k])
+
+            # Convert hours and days to seconds       
+            oldpolicy['krbmaxpwdlife'] = str(int(oldpolicy.get('krbmaxpwdlife')) * 86400)
+            oldpolicy['krbminpwdlife'] = str(int(oldpolicy.get('krbminpwdlife')) * 3600)
+            newpolicy['krbmaxpwdlife'] = str(int(newpolicy.get('krbmaxpwdlife')) * 86400)
+            newpolicy['krbminpwdlife'] = str(int(newpolicy.get('krbminpwdlife')) * 3600)
         except KeyError:
             # These should all be there but if not, let things proceed
             pass
+        except:
+            # Anything else raise an error
+            raise
 
         return self.update_entry(oldpolicy, newpolicy, opts)
 

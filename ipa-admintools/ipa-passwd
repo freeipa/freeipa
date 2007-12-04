@@ -98,7 +98,7 @@ def main():
 
     try:
         client = ipaclient.IPAClient()
-        client.modifyPassword(principal, None, password)
+        client.modifyPassword(principal, '', password)
     except xmlrpclib.Fault, fault:
         if fault.faultCode == errno.ECONNREFUSED:
             print "The IPA XML-RPC service is not responding."
