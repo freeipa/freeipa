@@ -109,6 +109,46 @@ edit_url = tg.url('/ipapolicy/edit')
           </th>
           <td>${ipapolicy.get("ipadefaultprimarygroup")}</td>
         </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.ipauserobjectclasses.label" />:
+          </th>
+          <td>
+          <table cellpadding="2" cellspacing="0" border="0">
+            <tbody>
+              <?python
+                index = 0
+                values = ipapolicy.get("ipauserobjectclasses", '')
+                if isinstance(values, str):
+                    values = [values]
+               ?>
+              <tr py:for="index in range(len(values))">
+              <td>${values[index]}</td>
+              </tr>
+            </tbody>
+          </table>
+          </td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.ipagroupobjectclasses.label" />:
+          </th>
+          <td>
+          <table cellpadding="2" cellspacing="0" border="0">
+            <tbody>
+              <?python
+                index = 0
+                values = ipapolicy.get("ipagroupobjectclasses", '')
+                if isinstance(values, str):
+                    values = [values]
+               ?>
+              <tr py:for="index in range(len(values))">
+              <td>${values[index]}</td>
+              </tr>
+            </tbody>
+          </table>
+          </td>
+        </tr>
     </table>
 <hr />
     <input class="submitbutton" type="button"

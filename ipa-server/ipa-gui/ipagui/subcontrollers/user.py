@@ -18,6 +18,7 @@ from ipa.entity import utf8_encode_values
 from ipa import ipaerror
 import ipagui.forms.user
 import ipa.config
+from ipagui.helpers import ipahelper
 
 log = logging.getLogger(__name__)
 
@@ -83,36 +84,6 @@ class UserController(IPAController):
             user_new_form.validator.add_field(s['field'], validator)
             user_edit_form.validator.add_field(s['field'], validator)
 
-    def setup_mv_fields(self, field, fieldname):
-        """Given a field (must be a list) and field name, convert that
-           field into a list of dictionaries of the form:
-              [ { fieldname : v1}, { fieldname : v2 }, .. ]
-
-           This is how we pre-fill values for multi-valued fields.
-        """
-        mvlist = []
-        if field is not None:
-            for v in field:
-                mvlist.append({ fieldname : v } )
-        else:
-            # We need to return an empty value so something can be
-            # displayed on the edit page. Otherwise only an Add link
-            # will show, not an empty field.
-            mvlist.append({ fieldname : '' } )
-        return mvlist
-
-    def fix_incoming_fields(self, fields, fieldname, multifieldname):
-        """This is called by the update() function. It takes the incoming
-           list of dictionaries and converts it into back into the original
-           field, then removes the multiple field.
-        """
-        fields[fieldname] = []
-        for i in range(len(fields[multifieldname])):
-            fields[fieldname].append(fields[multifieldname][i][fieldname])
-        del(fields[multifieldname])
-
-        return fields
-
     @expose()
     def index(self):
         raise turbogears.redirect("/user/list")
@@ -142,12 +113,12 @@ class UserController(IPAController):
         tg_errors, kw = self.usercreatevalidate(**kw)
 
         # Fix incoming multi-valued fields we created for the form
-        kw = self.fix_incoming_fields(kw, 'cn', 'cns')
-        kw = self.fix_incoming_fields(kw, 'telephonenumber', 'telephonenumbers')
-        kw = self.fix_incoming_fields(kw, 'facsimiletelephonenumber', 'facsimiletelephonenumbers')
-        kw = self.fix_incoming_fields(kw, 'mobile', 'mobiles')
-        kw = self.fix_incoming_fields(kw, 'pager', 'pagers')
-        kw = self.fix_incoming_fields(kw, 'homephone', 'homephones')
+        kw = ipahelper.fix_incoming_fields(kw, 'cn', 'cns')
+        kw = ipahelper.fix_incoming_fields(kw, 'telephonenumber', 'telephonenumbers')
+        kw = ipahelper.fix_incoming_fields(kw, 'facsimiletelephonenumber', 'facsimiletelephonenumbers')
+        kw = ipahelper.fix_incoming_fields(kw, 'mobile', 'mobiles')
+        kw = ipahelper.fix_incoming_fields(kw, 'pager', 'pagers')
+        kw = ipahelper.fix_incoming_fields(kw, 'homephone', 'homephones')
 
         if tg_errors:
             turbogears.flash("There were validation errors.<br/>" +
@@ -325,27 +296,27 @@ class UserController(IPAController):
             # Load potential multi-valued fields
             if isinstance(user_dict['cn'], str):
                 user_dict['cn'] = [user_dict['cn']]
-            user_dict['cns'] = self.setup_mv_fields(user_dict['cn'], 'cn')
+            user_dict['cns'] = ipahelper.setup_mv_fields(user_dict['cn'], 'cn')
 
             if isinstance(user_dict.get('telephonenumber',''), str):
-                user_dict['telephonenumber'] = [user_dict.get('telephonenumber'),'']
-            user_dict['telephonenumbers'] = self.setup_mv_fields(user_dict.get('telephonenumber'), 'telephonenumber')
+                user_dict['telephonenumber'] = [user_dict.get('telephonenumber')]
+            user_dict['telephonenumbers'] = ipahelper.setup_mv_fields(user_dict.get('telephonenumber'), 'telephonenumber')
 
             if isinstance(user_dict.get('facsimiletelephonenumber',''), str):
-                user_dict['facsimiletelephonenumber'] = [user_dict.get('facsimiletelephonenumber'),'']
-            user_dict['facsimiletelephonenumbers'] = self.setup_mv_fields(user_dict.get('facsimiletelephonenumber'), 'facsimiletelephonenumber')
+                user_dict['facsimiletelephonenumber'] = [user_dict.get('facsimiletelephonenumber')]
+            user_dict['facsimiletelephonenumbers'] = ipahelper.setup_mv_fields(user_dict.get('facsimiletelephonenumber'), 'facsimiletelephonenumber')
 
             if isinstance(user_dict.get('mobile',''), str):
-                user_dict['mobile'] = [user_dict.get('mobile'),'']
-            user_dict['mobiles'] = self.setup_mv_fields(user_dict.get('mobile'), 'mobile')
+                user_dict['mobile'] = [user_dict.get('mobile')]
+            user_dict['mobiles'] = ipahelper.setup_mv_fields(user_dict.get('mobile'), 'mobile')
 
             if isinstance(user_dict.get('pager',''), str):
-                user_dict['pager'] = [user_dict.get('pager'),'']
-            user_dict['pagers'] = self.setup_mv_fields(user_dict.get('pager'), 'pager')
+                user_dict['pager'] = [user_dict.get('pager')]
+            user_dict['pagers'] = ipahelper.setup_mv_fields(user_dict.get('pager'), 'pager')
 
             if isinstance(user_dict.get('homephone',''), str):
-                user_dict['homephone'] = [user_dict.get('homephone'),'']
-            user_dict['homephones'] = self.setup_mv_fields(user_dict.get('homephone'), 'homephone')
+                user_dict['homephone'] = [user_dict.get('homephone')]
+            user_dict['homephones'] = ipahelper.setup_mv_fields(user_dict.get('homephone'), 'homephone')
 
             # Edit shouldn't fill in the password field.
             if user_dict.has_key('userpassword'):
@@ -403,12 +374,12 @@ class UserController(IPAController):
             raise turbogears.redirect('/user/show', uid=kw.get('uid'))
 
         # Fix incoming multi-valued fields we created for the form
-        kw = self.fix_incoming_fields(kw, 'cn', 'cns')
-        kw = self.fix_incoming_fields(kw, 'telephonenumber', 'telephonenumbers')
-        kw = self.fix_incoming_fields(kw, 'facsimiletelephonenumber', 'facsimiletelephonenumbers')
-        kw = self.fix_incoming_fields(kw, 'mobile', 'mobiles')
-        kw = self.fix_incoming_fields(kw, 'pager', 'pagers')
-        kw = self.fix_incoming_fields(kw, 'homephone', 'homephones')
+        kw = ipahelper.fix_incoming_fields(kw, 'cn', 'cns')
+        kw = ipahelper.fix_incoming_fields(kw, 'telephonenumber', 'telephonenumbers')
+        kw = ipahelper.fix_incoming_fields(kw, 'facsimiletelephonenumber', 'facsimiletelephonenumbers')
+        kw = ipahelper.fix_incoming_fields(kw, 'mobile', 'mobiles')
+        kw = ipahelper.fix_incoming_fields(kw, 'pager', 'pagers')
+        kw = ipahelper.fix_incoming_fields(kw, 'homephone', 'homephones')
 
         # admins and editors can update anybody. A user can only update
         # themselves. We need this check because it is very easy to guess

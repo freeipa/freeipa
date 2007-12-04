@@ -329,6 +329,32 @@ class IPAServer:
 
         return (exact_match_filter, partial_match_filter)
 
+    def __get_schema(self, opts=None):
+        """Retrieves the current LDAP schema from the LDAP server."""
+
+        schema_entry = self.__get_base_entry("", "objectclass=*", ['dn','subschemasubentry'], opts)
+        schema_cn = schema_entry.get('subschemasubentry')
+        schema = self.__get_base_entry(schema_cn, "objectclass=*", ['*'], opts)
+
+        return schema
+
+    def __get_objectclasses(self, opts=None):
+        """Returns a list of available objectclasses that the LDAP
+           server supports. This parses out the syntax, attributes, etc
+           and JUST returns a lower-case list of the names."""
+
+        schema = self.__get_schema(opts)
+
+        objectclasses = schema.get('objectclasses')
+
+        # Convert this list into something more readable
+        result = []
+        for i in range(len(objectclasses)):
+            oc = objectclasses[i].lower().split(" ")
+            result.append(oc[3].replace("'",""))
+
+        return result
+
 # Higher-level API
 
     def get_aci_entry(self, sattrs, opts=None):
@@ -1396,6 +1422,19 @@ class IPAServer:
             raise
         except:
             raise 
+
+        # Run through the list of User and Group object classes to make
+        # sure they are all valid. This doesn't handle dependencies but it
+        # will at least catch typos.
+        classes = self.__get_objectclasses(opts)
+        oc = newconfig['ipauserobjectclasses']
+        for i in range(len(oc)):
+            if not oc[i].lower() in classes:
+                raise ipaerror.gen_exception(ipaerror.CONFIG_INVALID_OC)
+        oc = newconfig['ipagroupobjectclasses']
+        for i in range(len(oc)):
+            if not oc[i].lower() in classes:
+                raise ipaerror.gen_exception(ipaerror.CONFIG_INVALID_OC)
 
         return self.update_entry(oldconfig, newconfig, opts)
 
