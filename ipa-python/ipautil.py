@@ -27,9 +27,7 @@ from random import Random
 from time import gmtime
 import os
 import stat
-import socket
 
-from string import lower
 import re
 import xmlrpclib
 import datetime
@@ -79,7 +77,7 @@ def run(args, stdin=None):
     logging.info(stderr)
 
     if p.returncode != 0:
-        raise self.CalledProcessError(p.returncode, ' '.join(args))
+        raise CalledProcessError(p.returncode, ' '.join(args))
 
 def file_exists(filename):
     try:
@@ -118,24 +116,24 @@ class CIDict(dict):
         self.update(default or {})
 
     def __getitem__(self,key):
-        return super(CIDict,self).__getitem__(lower(key))
+        return super(CIDict,self).__getitem__(string.lower(key))
 
     def __setitem__(self,key,value):
-        lower_key = lower(key)
+        lower_key = string.lower(key)
         self._keys[lower_key] = key
-        return super(CIDict,self).__setitem__(lower(key),value)
+        return super(CIDict,self).__setitem__(string.lower(key),value)
 
     def __delitem__(self,key):
-        lower_key = lower(key)
+        lower_key = string.lower(key)
         del self._keys[lower_key]
-        return super(CIDict,self).__delitem__(lower(key))
+        return super(CIDict,self).__delitem__(string.lower(key))
 
     def update(self,dict):
         for key in dict.keys():
             self[key] = dict[key]
 
     def has_key(self,key):
-        return super(CIDict, self).has_key(lower(key))
+        return super(CIDict, self).has_key(string.lower(key))
 
     def get(self,key,failobj=None):
         try:
