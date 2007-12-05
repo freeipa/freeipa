@@ -406,3 +406,20 @@ ul.checkboxlist li input {
 .sortdesc {
   background-image: url(/static/images/down.gif) !important;
 }
+
+.warning_message {
+  font-size: 120%;
+/*
+  color: #ee0000;
+*/
+  font-weight: bolder;
+}
+
+.fielderror {
+  color: red !important;
+  font-weight: bold;
+}
+
+.requiredfield {
+  background-color: #eebbbb !important;
+}
