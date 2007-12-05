@@ -116,9 +116,6 @@ class IPAClient:
 
         user_dict = user.toDict()
 
-        # dn is set on the server-side
-        del user_dict['dn']
-
         # convert to a regular dict before sending
         result = self.transport.add_user(user_dict, user_container)
         return result

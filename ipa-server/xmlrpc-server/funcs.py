@@ -449,6 +449,19 @@ class IPAServer:
         if self.__is_user_unique(user['uid'], opts) == 0:
             raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
 
+        # dn is set here, not by the user
+        try:
+            del user['dn']
+        except KeyError:
+            pass
+
+        # No need to set empty fields, and they can cause issues when they
+        # get to LDAP, like:
+        #     TypeError: ('expected a string in the list', None)
+        for k in user.keys():
+            if not user[k] or len(user[k]) == 0 or (len(user[k]) == 1 and '' in user[k]):
+                del user[k]
+
         dn="uid=%s,%s,%s" % (ldap.dn.escape_dn_chars(user['uid']),
                              user_container,self.basedn)
         entry = ipaserver.ipaldap.Entry(dn)
@@ -502,8 +515,16 @@ class IPAServer:
 
         conn = self.getConnection(opts)
         try:
-            res = conn.addEntry(entry)
-            self.add_user_to_group(user.get('uid'), group_dn, opts)
+            try:
+                res = conn.addEntry(entry)
+            except TypeError, e:
+                raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, "There is a problem with one of the data types.")
+            except Exception, e:
+                raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, e)
+            try:
+                self.add_user_to_group(user.get('uid'), group_dn, opts)
+            except Exception, e:
+                raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, "The user was created but adding to group %s failed" % group_dn)
         finally:
             self.releaseConnection(conn)
         return res
