@@ -385,6 +385,20 @@ class IPAClient:
     def add_service_principal(self, princ_name):
         return self.transport.add_service_principal(princ_name)
 
+    def find_service_principal(self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
+        """Return a list: counter followed by a Entity object for each host that
+           matches the criteria. If the results are truncated, counter will
+           be set to -1"""
+        result = self.transport.find_service_principal(criteria, sattrs, searchlimit, timelimit)
+        counter = result[0]
+
+        hosts = [counter]
+        for attrs in result[1:]:
+            if attrs is not None:
+                hosts.append(entity.Entity(attrs))
+
+        return hosts
+
     def get_keytab(self, princ_name):
         return self.transport.get_keytab(princ_name)
 

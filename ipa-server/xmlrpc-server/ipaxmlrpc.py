@@ -360,6 +360,7 @@ def handler(req, profiling=False):
             h.register_function(f.get_password_policy)
             h.register_function(f.update_password_policy)
             h.register_function(f.add_service_principal)
+            h.register_function(f.find_service_principal)
             h.register_function(f.get_keytab)
             h.handle_request(req)
         finally:

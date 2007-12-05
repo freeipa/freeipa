@@ -1358,7 +1358,78 @@ class IPAServer:
         finally:
             self.releaseConnection(conn)
         return res
-        
+
+    def find_service_principal(self, criteria, sattrs, searchlimit=-1,
+            timelimit=-1, opts=None):
+        """Returns a list: counter followed by the results.
+           If the results are truncated, counter will be set to -1."""
+
+        config = self.get_ipa_config(opts)
+        if timelimit < 0:
+            timelimit = float(config.get('ipasearchtimelimit'))
+        if searchlimit < 0:
+            searchlimit = float(config.get('ipasearchrecordslimit'))
+
+        search_fields = ["krbprincipalname"]
+
+        criteria = self.__safe_filter(criteria)
+        criteria_words = re.split(r'\s+', criteria)
+        criteria_words = filter(lambda value:value!="", criteria_words)
+        if len(criteria_words) == 0:
+            return [0]
+
+        (exact_match_filter, partial_match_filter) = self.__generate_match_filters(
+                search_fields, criteria_words)
+
+        #
+        # further constrain search to just the objectClass
+        # TODO - need to parameterize this into generate_match_filters,
+        #        and work it into the field-specification search feature
+        #
+        exact_match_filter = "(&(objectclass=krbPrincipalAux)(!(objectClass=person))(!(krbprincipalname=kadmin/*))%s)" % exact_match_filter
+        partial_match_filter = "(&(objectclass=krbPrincipalAux)(!(objectClass=person))(!(krbprincipalname=kadmin/*))%s)" % partial_match_filter
+        print exact_match_filter
+        print partial_match_filter
+
+        conn = self.getConnection(opts)
+        try:
+            try:
+                exact_results = conn.getListAsync(self.basedn, self.scope,
+                        exact_match_filter, sattrs, 0, None, None, timelimit,
+                        searchlimit)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                exact_results = [0]
+
+            try:
+                partial_results = conn.getListAsync(self.basedn, self.scope,
+                        partial_match_filter, sattrs, 0, None, None, timelimit,
+                        searchlimit)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                partial_results = [0]
+        finally:
+            self.releaseConnection(conn)
+
+        exact_counter = exact_results[0]
+        partial_counter = partial_results[0]
+
+        exact_results = exact_results[1:]
+        partial_results = partial_results[1:]
+
+        # Remove exact matches from the partial_match list
+        exact_dns = set(map(lambda e: e.dn, exact_results))
+        partial_results = filter(lambda e: e.dn not in exact_dns,
+                                 partial_results)
+
+        if (exact_counter == -1) or (partial_counter == -1):
+            counter = -1
+        else:
+            counter = len(exact_results) + len(partial_results)
+
+        entries = [counter]
+        for e in exact_results + partial_results:
+            entries.append(self.convert_entry(e))
+
+        return entries
 
     def get_keytab(self, name, opts=None):
         """get a keytab"""
