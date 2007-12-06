@@ -374,12 +374,6 @@ class UserController(IPAController):
         if not kw.get('uid'):
             kw['uid'] = kw.get('uid_hidden')
 
-        # We don't want to inadvertantly add this to a record
-        try:
-            del kw['uid_hidden']
-        except KeyError:
-            pass
-
         if kw.get('submit') == 'Cancel Edit':
             turbogears.flash("Edit user cancelled")
             raise turbogears.redirect('/user/show', uid=kw.get('uid'))
@@ -411,6 +405,12 @@ class UserController(IPAController):
             return dict(form=user_edit_form, user=kw,
                         user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')
+
+        # We don't want to inadvertantly add this to a record
+        try:
+            del kw['uid_hidden']
+        except KeyError:
+            pass
 
         password_change = False
         user_modified = False
