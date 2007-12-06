@@ -339,14 +339,18 @@ table.formtable td input[type="text"], input#criteria {
   border:			1px inset #dcdcdc;
   font-size:			medium;
   padding:			2px 1px;
+/*
   background-color:		#f5faff;
+*/
 }
 
 table.formtable td select {
   border:			1px inset #dcdcdc;
   font-size:			small;
   padding:			2px 1px;
+/*
   background-color:		#f5faff;
+*/
 }
 
 p.empty-message {

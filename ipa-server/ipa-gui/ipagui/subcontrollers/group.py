@@ -271,14 +271,6 @@ class GroupController(IPAController):
                 rv = client.update_group(new_group)
                 #
                 # If the group update succeeds, but below operations fail, we
-            if new_group.cn != kw.get('cn'):
-                group_modified = True
-                new_group.setValue('cn', kw['cn'])
-
-            if group_modified:
-                rv = client.update_group(new_group)
-                #
-                # If the group update succeeds, but below operations fail, we
                 # need to make sure a subsequent submit doesn't try to update
                 # the group again.
                 #
@@ -313,7 +305,7 @@ class GroupController(IPAController):
                 kw['dnadd'] = failed_adds
                 group_modified = True
         except ipaerror.IPAError, e:
-            turbogears.flash("Group update failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("Updating group membership failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
 
@@ -331,7 +323,7 @@ class GroupController(IPAController):
                 kw['dndel'] = failed_dels
                 group_modified = True
         except ipaerror.IPAError, e:
-            turbogears.flash("Group update failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("Updating group membership failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
 

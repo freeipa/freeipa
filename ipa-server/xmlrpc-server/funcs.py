@@ -1216,19 +1216,22 @@ class IPAServer:
             try:
                 res = conn.updateRDN(oldentry.get('dn'), "cn=" + newcn[0])
                 newdn = oldentry.get('dn')
+                newcn = newentry.get('cn')
+                if isinstance(newcn, str):
+                    newcn = [newcn]
 
                 # Ick. Need to find the exact cn used in the old DN so we'll
                 # walk the list of cns and skip the obviously bad ones:
                 for c in oldentry.get('dn').split("cn="):
                     if c and c != "groups" and not c.startswith("accounts"):
-                        newdn = newdn.replace("cn=%s" % c, "uid=%s" % newentry.get('cn')[0])
+                        newdn = newdn.replace("cn=%s" % c, "cn=%s," % newcn[0])
                         break
 
                 # Now fix up the dns and cns so they aren't seen as having
                 # changed.
                 oldentry['dn'] = newdn
                 newentry['dn'] = newdn
-                oldentry['cn'] = newentry['cn']
+                oldentry['cn'] = newentry.get('cn')
                 newrdn = 1
             finally:
                 self.releaseConnection(conn)
@@ -1237,7 +1240,7 @@ class IPAServer:
         config = self.get_ipa_config(opts)
 
         # Make sure we have the latest object classes
-        newentry['objectclass'] = uniq_list(newentry.get('objectclass') + config.get('ipauserobjectclasses'))
+        newentry['objectclass'] = uniq_list(newentry.get('objectclass') + config.get('ipagroupobjectclasses'))
 
         try:
            rv = self.update_entry(oldentry, newentry, opts)

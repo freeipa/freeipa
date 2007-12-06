@@ -322,6 +322,8 @@ class UserController(IPAController):
             if user_dict.has_key('userpassword'):
                 del(user_dict['userpassword'])
 
+            user_dict['uid_hidden'] = user_dict.get('uid')
+
             user_groups = client.get_groups_by_member(user.dn, ['dn', 'cn'])
             user_groups.sort(self.sort_by_cn)
             user_groups_dicts = map(lambda group: group.toDict(), user_groups)
@@ -368,6 +370,15 @@ class UserController(IPAController):
         """Updates an existing user"""
         self.restrict_post()
         client = self.get_ipaclient()
+
+        if not kw.get('uid'):
+            kw['uid'] = kw.get('uid_hidden')
+
+        # We don't want to inadvertantly add this to a record
+        try:
+            del kw['uid_hidden']
+        except KeyError:
+            pass
 
         if kw.get('submit') == 'Cancel Edit':
             turbogears.flash("Edit user cancelled")
@@ -459,6 +470,7 @@ class UserController(IPAController):
                 new_user.setValue('uidnumber', str(kw.get('uidnumber')))
                 new_user.setValue('gidnumber', str(kw.get('gidnumber')))
                 new_user.setValue('homedirectory', str(kw.get('homedirectory')))
+                new_user.setValue('uid', str(kw.get('uid')))
 
             for custom_field in user_edit_form.custom_fields:
                 new_user.setValue(custom_field.name,
