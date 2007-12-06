@@ -10,14 +10,8 @@ sbin_SCRIPTS =			\
 	ipa-replica-prepare	\
 	$(NULL)
 
-appdir = $(IPA_DATA_DIR)
-app_SCRIPTS =			\
-	ipa-server-setupssl	\
-	$(NULL)
-
 EXTRA_DIST =			\
 	README			\
-	$(app_SCRIPTS)		\
 	$(sbin_SCRIPTS)		\
 	$(NULL)
 

@@ -27,6 +27,7 @@ from random import Random
 from time import gmtime
 import os, sys, traceback, readline
 import stat
+import shutil
 
 from types import *
 
@@ -100,6 +101,15 @@ def dir_exists(filename):
             return False
     except:
         return False
+
+def install_file(fname, dest):
+    if file_exists(dest):
+        os.rename(dest, dest + ".orig")
+    shutil.move(fname, dest)
+
+def backup_file(fname):
+    if file_exists(fname):
+        os.rename(fname, fname + ".orig")
 
 class CIDict(dict):
     """
