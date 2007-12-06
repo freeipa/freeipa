@@ -506,8 +506,7 @@ class IPAServer:
             del user['gn']
 
         # some required objectclasses
-        entry.setValues('objectClass', 'top', 'person', 'organizationalPerson',
-                'inetOrgPerson', 'inetUser', 'posixAccount', 'krbPrincipalAux', 'radiusprofile')
+        entry.setValues('objectClass', (config.get('ipauserobjectclasses')))
 
         # fill in our new entry with everything sent by the user
         for u in user:
@@ -719,6 +718,12 @@ class IPAServer:
             finally:
                 self.releaseConnection(conn)
 
+        # Get our configuration
+        config = self.get_ipa_config(opts)
+
+        # Make sure we have the latest object classes
+        newentry['objectclass'] = uniq_list(newentry.get('objectclass') + config.get('ipauserobjectclasses'))
+        
         try:
            rv = self.update_entry(oldentry, newentry, opts)
            return rv
@@ -878,13 +883,15 @@ class IPAServer:
         if self.__is_group_unique(group['cn'], opts) == 0:
             raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
 
+        # Get our configuration
+        config = self.get_ipa_config(opts)
+
         dn="cn=%s,%s,%s" % (ldap.dn.escape_dn_chars(group['cn']),
                             group_container,self.basedn)
         entry = ipaserver.ipaldap.Entry(dn)
 
         # some required objectclasses
-        entry.setValues('objectClass', 'top', 'groupofnames', 'posixGroup',
-                        'inetUser')
+        entry.setValues('objectClass', (config.get('ipagroupobjectclasses')))
 
         # No need to explicitly set gidNumber. The dna_plugin will do this
         # for us if the value isn't provided by the user.
@@ -1225,6 +1232,12 @@ class IPAServer:
                 newrdn = 1
             finally:
                 self.releaseConnection(conn)
+
+        # Get our configuration
+        config = self.get_ipa_config(opts)
+
+        # Make sure we have the latest object classes
+        newentry['objectclass'] = uniq_list(newentry.get('objectclass') + config.get('ipauserobjectclasses'))
 
         try:
            rv = self.update_entry(oldentry, newentry, opts)
@@ -1590,3 +1603,8 @@ def ldap_search_escape(match):
         return r'\00'
     else:
         return value
+
+def uniq_list(x):
+    """Return a unique list, preserving order and ignoring case"""
+    set = {}
+    return [set.setdefault(e,e) for e in x if e.lower() not in set]

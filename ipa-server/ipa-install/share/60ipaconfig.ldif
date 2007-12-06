@@ -30,9 +30,9 @@ attributetypes: ( 2.16.840.1.113730.3.8.1.9 NAME 'ipaMaxUsernameLength' EQUALITY
 ## ipaPwdExpAdvNotify - time in days to send out paswword expiration notification before passwpord actually expires
 attributetypes: ( 2.16.840.1.113730.3.8.1.10 NAME 'ipaPwdExpAdvNotify' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE)
 # ipaUserObjectClasses - required objectclasses for users
-attributetypes: ( 2.16.840.1.113730.3.8.1.11 NAME 'ipaUserObjectClasses' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27)
+attributetypes: ( 2.16.840.1.113730.3.8.1.11 NAME 'ipaUserObjectClasses' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15)
 # ipaGroupObjectClasses - required objectclasses for groups
-attributetypes: ( 2.16.840.1.113730.3.8.1.12 NAME 'ipaGroupObjectClasses' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27)
+attributetypes: ( 2.16.840.1.113730.3.8.1.12 NAME 'ipaGroupObjectClasses' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15)
 ###############################################
 ##
 ## ObjectClasses
