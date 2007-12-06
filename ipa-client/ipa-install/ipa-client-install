@@ -131,8 +131,10 @@ def main():
 
     opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
             {'name':'empty', 'type':'empty'}]
-    defopts.append({'name':'server', 'type':'option', 'value':ds.getServerName()})
-    defopts.append({'name':'realm', 'type':'option', 'value':ds.getRealmName()})
+
+    #[defaults]
+    defopts = [{'name':'server', 'type':'option', 'value':ds.getServerName()},
+             {'name':'realm', 'type':'option', 'value':ds.getRealmName()}]
 
     opts.append({'name':'defaults', 'type':'section', 'value':defopts})
     opts.append({'name':'empty', 'type':'empty'})

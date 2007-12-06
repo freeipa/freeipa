@@ -703,6 +703,24 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
+    def find_service_principal (self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
+        """Return a list: counter followed by a Entity object for each host that
+           matches the criteria. If the results are truncated, counter will
+           be set to -1"""
+    
+        server = self.setup_server()
+        try:
+            # None values are not allowed in XML-RPC
+            if sattrs is None:
+                sattrs = "__NONE__"
+            result = server.find_service_principal(criteria, sattrs, searchlimit, timelimit)
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+    
+        return ipautil.unwrap_binary_data(result)
+
     def get_keytab(self, princ_name):
         server = self.setup_server()
     

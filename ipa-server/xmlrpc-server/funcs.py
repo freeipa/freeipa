@@ -329,6 +329,32 @@ class IPAServer:
 
         return (exact_match_filter, partial_match_filter)
 
+    def __get_schema(self, opts=None):
+        """Retrieves the current LDAP schema from the LDAP server."""
+
+        schema_entry = self.__get_base_entry("", "objectclass=*", ['dn','subschemasubentry'], opts)
+        schema_cn = schema_entry.get('subschemasubentry')
+        schema = self.__get_base_entry(schema_cn, "objectclass=*", ['*'], opts)
+
+        return schema
+
+    def __get_objectclasses(self, opts=None):
+        """Returns a list of available objectclasses that the LDAP
+           server supports. This parses out the syntax, attributes, etc
+           and JUST returns a lower-case list of the names."""
+
+        schema = self.__get_schema(opts)
+
+        objectclasses = schema.get('objectclasses')
+
+        # Convert this list into something more readable
+        result = []
+        for i in range(len(objectclasses)):
+            oc = objectclasses[i].lower().split(" ")
+            result.append(oc[3].replace("'",""))
+
+        return result
+
 # Higher-level API
 
     def get_aci_entry(self, sattrs, opts=None):
@@ -423,6 +449,19 @@ class IPAServer:
         if self.__is_user_unique(user['uid'], opts) == 0:
             raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
 
+        # dn is set here, not by the user
+        try:
+            del user['dn']
+        except KeyError:
+            pass
+
+        # No need to set empty fields, and they can cause issues when they
+        # get to LDAP, like:
+        #     TypeError: ('expected a string in the list', None)
+        for k in user.keys():
+            if not user[k] or len(user[k]) == 0 or (len(user[k]) == 1 and '' in user[k]):
+                del user[k]
+
         dn="uid=%s,%s,%s" % (ldap.dn.escape_dn_chars(user['uid']),
                              user_container,self.basedn)
         entry = ipaserver.ipaldap.Entry(dn)
@@ -476,8 +515,16 @@ class IPAServer:
 
         conn = self.getConnection(opts)
         try:
-            res = conn.addEntry(entry)
-            self.add_user_to_group(user.get('uid'), group_dn, opts)
+            try:
+                res = conn.addEntry(entry)
+            except TypeError, e:
+                raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, "There is a problem with one of the data types.")
+            except Exception, e:
+                raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, e)
+            try:
+                self.add_user_to_group(user.get('uid'), group_dn, opts)
+            except Exception, e:
+                raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, "The user was created but adding to group %s failed" % group_dn)
         finally:
             self.releaseConnection(conn)
         return res
@@ -1332,7 +1379,78 @@ class IPAServer:
         finally:
             self.releaseConnection(conn)
         return res
-        
+
+    def find_service_principal(self, criteria, sattrs, searchlimit=-1,
+            timelimit=-1, opts=None):
+        """Returns a list: counter followed by the results.
+           If the results are truncated, counter will be set to -1."""
+
+        config = self.get_ipa_config(opts)
+        if timelimit < 0:
+            timelimit = float(config.get('ipasearchtimelimit'))
+        if searchlimit < 0:
+            searchlimit = float(config.get('ipasearchrecordslimit'))
+
+        search_fields = ["krbprincipalname"]
+
+        criteria = self.__safe_filter(criteria)
+        criteria_words = re.split(r'\s+', criteria)
+        criteria_words = filter(lambda value:value!="", criteria_words)
+        if len(criteria_words) == 0:
+            return [0]
+
+        (exact_match_filter, partial_match_filter) = self.__generate_match_filters(
+                search_fields, criteria_words)
+
+        #
+        # further constrain search to just the objectClass
+        # TODO - need to parameterize this into generate_match_filters,
+        #        and work it into the field-specification search feature
+        #
+        exact_match_filter = "(&(objectclass=krbPrincipalAux)(!(objectClass=person))(!(krbprincipalname=kadmin/*))%s)" % exact_match_filter
+        partial_match_filter = "(&(objectclass=krbPrincipalAux)(!(objectClass=person))(!(krbprincipalname=kadmin/*))%s)" % partial_match_filter
+        print exact_match_filter
+        print partial_match_filter
+
+        conn = self.getConnection(opts)
+        try:
+            try:
+                exact_results = conn.getListAsync(self.basedn, self.scope,
+                        exact_match_filter, sattrs, 0, None, None, timelimit,
+                        searchlimit)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                exact_results = [0]
+
+            try:
+                partial_results = conn.getListAsync(self.basedn, self.scope,
+                        partial_match_filter, sattrs, 0, None, None, timelimit,
+                        searchlimit)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                partial_results = [0]
+        finally:
+            self.releaseConnection(conn)
+
+        exact_counter = exact_results[0]
+        partial_counter = partial_results[0]
+
+        exact_results = exact_results[1:]
+        partial_results = partial_results[1:]
+
+        # Remove exact matches from the partial_match list
+        exact_dns = set(map(lambda e: e.dn, exact_results))
+        partial_results = filter(lambda e: e.dn not in exact_dns,
+                                 partial_results)
+
+        if (exact_counter == -1) or (partial_counter == -1):
+            counter = -1
+        else:
+            counter = len(exact_results) + len(partial_results)
+
+        entries = [counter]
+        for e in exact_results + partial_results:
+            entries.append(self.convert_entry(e))
+
+        return entries
 
     def get_keytab(self, name, opts=None):
         """get a keytab"""
@@ -1397,6 +1515,19 @@ class IPAServer:
         except:
             raise 
 
+        # Run through the list of User and Group object classes to make
+        # sure they are all valid. This doesn't handle dependencies but it
+        # will at least catch typos.
+        classes = self.__get_objectclasses(opts)
+        oc = newconfig['ipauserobjectclasses']
+        for i in range(len(oc)):
+            if not oc[i].lower() in classes:
+                raise ipaerror.gen_exception(ipaerror.CONFIG_INVALID_OC)
+        oc = newconfig['ipagroupobjectclasses']
+        for i in range(len(oc)):
+            if not oc[i].lower() in classes:
+                raise ipaerror.gen_exception(ipaerror.CONFIG_INVALID_OC)
+
         return self.update_entry(oldconfig, newconfig, opts)
 
     def get_password_policy(self, opts=None):
@@ -1406,6 +1537,10 @@ class IPAServer:
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             raise ipaerror.gen_exception(ipaerror.LDAP_NO_CONFIG)
 
+        # convert some values for display purposes
+        policy['krbmaxpwdlife'] = str(int(policy.get('krbmaxpwdlife')) / 86400)
+        policy['krbminpwdlife'] = str(int(policy.get('krbminpwdlife')) / 3600)
+
         return policy
 
     def update_password_policy(self, oldpolicy, newpolicy, opts=None):
@@ -1414,11 +1549,18 @@ class IPAServer:
         # The LDAP routines want strings, not ints, so convert a few
         # things. Otherwise it sees a string -> int conversion as a change.
         try:
-            newpolicy['krbmaxpwdlife'] = str(newpolicy.get('krbmaxpwdlife'))
-            newpolicy['krbminpwdlife'] = str(newpolicy.get('krbminpwdlife'))
-            newpolicy['krbpwdhistorylength'] = str(newpolicy.get('krbpwdhistorylength'))
-            newpolicy['krbpwdmindiffchars'] = str(newpolicy.get('krbpwdmindiffchars'))
-            newpolicy['krbpwdminlength'] = str(newpolicy.get('krbpwdminlength'))
+            for k in oldpolicy.iterkeys():
+                if k.startswith("krb", 0, 3):
+                    oldpolicy[k] = str(oldpolicy[k])
+            for k in newpolicy.iterkeys():
+                if k.startswith("krb", 0, 3):
+                    newpolicy[k] = str(newpolicy[k])
+
+            # Convert hours and days to seconds       
+            oldpolicy['krbmaxpwdlife'] = str(int(oldpolicy.get('krbmaxpwdlife')) * 86400)
+            oldpolicy['krbminpwdlife'] = str(int(oldpolicy.get('krbminpwdlife')) * 3600)
+            newpolicy['krbmaxpwdlife'] = str(int(newpolicy.get('krbmaxpwdlife')) * 86400)
+            newpolicy['krbminpwdlife'] = str(int(newpolicy.get('krbminpwdlife')) * 3600)
         except KeyError:
             # These should all be there but if not, let things proceed
             pass
