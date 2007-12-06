@@ -98,6 +98,10 @@ from ipagui.helpers import ipahelper
   </form>
 
   <script type="text/javascript">
+    document.getElementById("form_cn").focus();
+  </script>
+
+  <script type="text/javascript">
     /*
      * This section restores the contents of the add and remove lists
      * dynamically if we have to refresh the page

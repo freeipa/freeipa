@@ -180,4 +180,10 @@
   </script>
 
   </form>
+
+
+  <script type="text/javascript">
+    document.getElementById("form_name").focus();
+  </script>
+
 </div>

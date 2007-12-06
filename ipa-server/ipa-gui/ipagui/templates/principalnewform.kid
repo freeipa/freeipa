@@ -95,4 +95,8 @@ from ipagui.helpers import ipahelper
 
   </form>
 
+  <script type="text/javascript">
+    document.getElementById("form_hostname").focus();
+  </script>
+
 </div>
