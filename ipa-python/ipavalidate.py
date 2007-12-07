@@ -19,7 +19,7 @@
 
 import re
 
-def email(mail, notEmpty=True):
+def Email(mail, notEmpty=True):
     """Do some basic validation of an e-mail address.
        Return 0 if ok
        Return 1 if not
@@ -49,7 +49,7 @@ def email(mail, notEmpty=True):
 
     return 0
 
-def plain(text, notEmpty=False):
+def Plain(text, notEmpty=False, allowSpaces=True):
     """Do some basic validation of a plain text field
        Return 0 if ok
        Return 1 if not
@@ -57,23 +57,33 @@ def plain(text, notEmpty=False):
        If notEmpty is True the this will return an error if the field
        is "" or None.
     """
-    textRE = re.compile(r"^[a-zA-Z_\-0-9\'\ ]*$")
-
-    if not text and notEmpty is True:
-        return 1
-
-    if text is None:
+    if (text is None) or (not text.strip()):
         if notEmpty is True:
             return 1
         else:
             return 0
 
+    if allowSpaces:
+        textRE = re.compile(r"^[a-zA-Z_\-0-9\'\ ]*$")
+    else:
+        textRE = re.compile(r"^[a-zA-Z_\-0-9\']*$")
     if not textRE.search(text):
         return 1
 
     return 0
 
-def path(text, notEmpty=False):
+def String(text, notEmpty=False):
+    """A string type. This is much looser in what it allows than plain"""
+
+    if text is None or not text.strip():
+        if notEmpty is True:
+            return 1
+        else:
+            return 0
+
+    return 0
+
+def Path(text, notEmpty=False):
     """Do some basic validation of a path
        Return 0 if ok
        Return 1 if not

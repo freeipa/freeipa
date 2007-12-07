@@ -124,8 +124,8 @@ def main():
         if not options.gn:
             while (cont != True):
                 givenname = raw_input("First name: [%s] " % user.getValue('givenname'))
-                if (ipavalidate.plain(givenname, notEmpty=False)):
-                    print "Must be letters or '"
+                if (ipavalidate.String(givenname, notEmpty=False)):
+                    print "Please enter a value"
                 else:
                     cont = True
                 if len(givenname) < 1:
@@ -133,16 +133,16 @@ def main():
                     cont = True
         else:
             givenname = options.gn
-            if (ipavalidate.plain(givenname, notEmpty=True)):
-                print "First name must be letters or '"
+            if (ipavalidate.String(givenname, notEmpty=True)):
+                print "Please enter a value"
                 return 1
 
         cont = False
         if not options.sn:
             while (cont != True):
                 lastname = raw_input(" Last name: [%s] " % user.getValue('sn'))
-                if (ipavalidate.plain(lastname, notEmpty=False)):
-                    print "Must be letters or '"
+                if (ipavalidate.String(lastname, notEmpty=False)):
+                    print "Please enter a value"
                 else:
                     cont = True
                 if len(lastname) < 1:
@@ -150,21 +150,21 @@ def main():
                     cont = True
         else:
             lastname = options.sn
-            if (ipavalidate.plain(lastname, notEmpty=True)):
-                print "Last name must be letters or '"
+            if (ipavalidate.String(lastname, notEmpty=True)):
+                print "Please enter a value"
                 return 1
 
         cont = False
         if not options.mail:
             while (cont != True):
                 mail = raw_input("E-mail addr: [%s]" % user.getValue('mail'))
-                if (ipavalidate.email(mail, notEmpty=False)):
-                    print "Must include a user and domain name"
+                if (ipavalidate.Email(mail, notEmpty=False)):
+                    print "E-mail must include a user and domain name"
                 else:
                     cont = True
         else:
             mail = options.mail
-            if (ipavalidate.email(mail)):
+            if (ipavalidate.Email(mail)):
                 print "E-mail must include a user and domain name"
                 return 1
 
@@ -174,8 +174,8 @@ def main():
         if not options.gecos:
             while (cont != True):
                 gecos = raw_input("gecos: [%s] " % user.getValue('gecos'))
-                if (ipavalidate.plain(gecos, notEmpty=False)):
-                    print "Must be letters, numbers, spaces or '"
+                if (ipavalidate.String(gecos, notEmpty=False)):
+                    print "Please enter a value"
                 else:
                     cont = True
 
@@ -183,8 +183,8 @@ def main():
         if not options.directory:
             while (cont != True):
                 directory = raw_input("home directory: [%s] " % user.getValue('homeDirectory'))
-                if (ipavalidate.path(gecos, notEmpty=False)):
-                    print "Must be letters, numbers, spaces or '"
+                if (ipavalidate.Path(gecos, notEmpty=False)):
+                    print "Valid path is required"
                 else:
                     cont = True
         cont = False
