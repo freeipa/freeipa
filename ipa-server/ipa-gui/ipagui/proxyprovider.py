@@ -83,7 +83,7 @@ class ProxyIdentity(object):
             return self._user.groups
         except AttributeError:
             # Groups haven't been computed yet
-            return None
+            return []
     groups= property(_get_groups)
 
     def logout(self):

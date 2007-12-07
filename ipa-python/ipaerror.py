@@ -177,3 +177,8 @@ CONFIG_DEFAULT_GROUP = gen_error_code(
         CONFIGURATION_CATEGORY,
         0x0002,
         "You cannot remove the default users group.")
+
+CONFIG_INVALID_OC = gen_error_code(
+        CONFIGURATION_CATEGORY,
+        0x0003,
+        "Invalid object class.")

@@ -123,6 +123,18 @@ ipaDefaultLoginShell: /bin/sh
 ipaDefaultPrimaryGroup: ipausers
 ipaMaxUsernameLength: 8
 ipaPwdExpAdvNotify: 4
+ipaGroupObjectClasses: top
+ipaGroupObjectClasses: groupofnames
+ipaGroupObjectClasses: posixGroup
+ipaGroupObjectClasses: inetUser
+ipaUserObjectClasses: top
+ipaUserObjectClasses: person
+ipaUserObjectClasses: organizationalPerson
+ipaUserObjectClasses: inetOrgPerson
+ipaUserObjectClasses: inetUser
+ipaUserObjectClasses: posixAccount
+ipaUserObjectClasses: krbPrincipalAux
+ipaUserObjectClasses: radiusprofile
 
 dn: cn=account inactivation,cn=accounts,$SUFFIX
 changetype: add

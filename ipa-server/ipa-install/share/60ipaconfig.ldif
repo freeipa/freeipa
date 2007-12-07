@@ -27,11 +27,15 @@ attributetypes: ( 2.16.840.1.113730.3.8.1.7 NAME 'ipaDefaultLoginShell' EQUALITY
 attributetypes: ( 2.16.840.1.113730.3.8.1.8 NAME 'ipaDefaultPrimaryGroup' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE)
 ## ipaMaxUsernameLength - maximum username length to allow in the UI
 attributetypes: ( 2.16.840.1.113730.3.8.1.9 NAME 'ipaMaxUsernameLength' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE)
-## ipaPwdExpAdvNotify - time in days to send out paswwrod expiration notification before passwpord actually expires
+## ipaPwdExpAdvNotify - time in days to send out paswword expiration notification before passwpord actually expires
 attributetypes: ( 2.16.840.1.113730.3.8.1.10 NAME 'ipaPwdExpAdvNotify' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE)
+# ipaUserObjectClasses - required objectclasses for users
+attributetypes: ( 2.16.840.1.113730.3.8.1.11 NAME 'ipaUserObjectClasses' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15)
+# ipaGroupObjectClasses - required objectclasses for groups
+attributetypes: ( 2.16.840.1.113730.3.8.1.12 NAME 'ipaGroupObjectClasses' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15)
 ###############################################
 ##
 ## ObjectClasses
 ##
 ## ipaGuiConfig - GUI config parameters objectclass
-objectClasses: ( 2.16.840.1.113730.3.8.2.1 NAME 'ipaGuiConfig' AUXILIARY MAY ( ipaUserSearchFields $ ipaGroupSearchFields $ ipaSearchTimeLimit $ ipaSearchRecordsLimit $ ipaCustomFields $ ipaHomesRootDir $ ipaDefaultLoginShell $ ipaDefaultPrimaryGroup $ ipaMaxUsernameLength $ ipaPwdExpAdvNotify ) )
+objectClasses: ( 2.16.840.1.113730.3.8.2.1 NAME 'ipaGuiConfig' AUXILIARY MAY ( ipaUserSearchFields $ ipaGroupSearchFields $ ipaSearchTimeLimit $ ipaSearchRecordsLimit $ ipaCustomFields $ ipaHomesRootDir $ ipaDefaultLoginShell $ ipaDefaultPrimaryGroup $ ipaMaxUsernameLength $ ipaPwdExpAdvNotify $ ipaUserObjectClasses $ ipaGroupObjectClasses) )

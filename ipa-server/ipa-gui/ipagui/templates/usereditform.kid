@@ -38,12 +38,14 @@ from ipagui.helpers import ipahelper
     function toggleProtectedFields(checkbox) {
       passwordField = document.getElementById('form_userpassword');
       passwordConfirmField = document.getElementById('form_userpassword_confirm');
+      uidField = document.getElementById('form_uid');
       uidnumberField = document.getElementById('form_uidnumber');
       gidnumberField = document.getElementById('form_gidnumber');
       homedirectoryField = document.getElementById('form_homedirectory');
       if (checkbox.checked) {
         passwordField.disabled = false;
         passwordConfirmField.disabled = false;
+        uidField.disabled = false;
         uidnumberField.disabled = false;
         gidnumberField.disabled = false;
         homedirectoryField.disabled = false;
@@ -51,11 +53,19 @@ from ipagui.helpers import ipahelper
       } else {
         passwordField.disabled = true;
         passwordConfirmField.disabled = true;
+        uidField.disabled = true;
         uidnumberField.disabled = true;
         gidnumberField.disabled = true;
         homedirectoryField.disabled = true;
         $('form_editprotected').value = '';
       }
+    }
+
+    function warnRDN() {
+      if (confirm("Are you sure you want to change the login name?<br/>This can have unexpected results. A password change is required.")) {
+        return true;
+      }
+      return false;
     }
 
     function doSearch() {
@@ -215,13 +225,21 @@ from ipagui.helpers import ipahelper
                     py:content="tg.errors.get('nsAccountLock')" />
         </td>
       </tr>
+
       <tr>
         <th>
           <label class="fieldlabel" for="${user_fields.uid.field_id}"
             py:content="user_fields.uid.label" />:
         </th>
         <td>
-          ${value_for(user_fields.uid)}
+          <span py:replace="user_fields.uid.display(
+               value_for(user_fields.uid))" />
+          <span py:if="tg.errors.get('uid')" class="fielderror"
+              py:content="tg.errors.get('uid')" />
+
+          <script type="text/javascript">
+              document.getElementById('form_uid').disabled = true;
+          </script>
         </td>
       </tr>
 

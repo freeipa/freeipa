@@ -17,6 +17,7 @@ from ipa.entity import utf8_encode_values
 from ipa import ipaerror
 import ipa.entity
 import ipagui.forms.ipapolicy
+from ipagui.helpers import ipahelper
 
 import ldap.dn
 
@@ -71,6 +72,15 @@ class IPAPolicyController(IPAController):
             # Combine the 2 dicts to make the form easier
             ipapolicy_dict.update(password_dict)
 
+            # Load potential multi-valued fields
+            if isinstance(ipapolicy_dict.get('ipauserobjectclasses',''), str):
+                ipapolicy_dict['ipauserobjectclasses'] = [ipapolicy_dict.get('ipauserobjectclasses')]
+            ipapolicy_dict['userobjectclasses'] = ipahelper.setup_mv_fields(ipapolicy_dict.get('ipauserobjectclasses'), 'ipauserobjectclasses')
+
+            if isinstance(ipapolicy_dict.get('ipagroupobjectclasses',''), str):
+                ipapolicy_dict['ipagroupobjectclasses'] = [ipapolicy_dict.get('ipagroupobjectclasses')]
+            ipapolicy_dict['groupobjectclasses'] = ipahelper.setup_mv_fields(ipapolicy_dict.get('ipagroupobjectclasses'), 'ipagroupobjectclasses')
+
             return dict(form=ipapolicy_edit_form, ipapolicy=ipapolicy_dict)
         except ipaerror.IPAError, e:
             turbogears.flash("IPA Policy edit failed: " + str(e) + "<br/>" + str(e.detail))
@@ -87,6 +97,10 @@ class IPAPolicyController(IPAController):
         if kw.get('submit', '').startswith('Cancel'):
             turbogears.flash("Edit policy cancelled")
             raise turbogears.redirect('/ipapolicy/show')
+
+        # Fix incoming multi-valued fields we created for the form
+        kw = ipahelper.fix_incoming_fields(kw, 'ipauserobjectclasses', 'userobjectclasses')
+        kw = ipahelper.fix_incoming_fields(kw, 'ipagroupobjectclasses', 'groupobjectclasses')
 
         tg_errors, kw = self.ipapolicyupdatevalidate(**kw)
         if tg_errors:
@@ -132,6 +146,12 @@ class IPAPolicyController(IPAController):
             if new_ipapolicy.ipadefaultprimarygroup != kw.get('ipadefaultprimarygroup'):
                 policy_modified = True
                 new_ipapolicy.setValue('ipadefaultprimarygroup', kw.get('ipadefaultprimarygroup'))
+            if new_ipapolicy.ipauserobjectclasses != kw.get('ipauserobjectclasses'):
+                policy_modified = True
+                new_ipapolicy.setValue('ipauserobjectclasses', kw.get('ipauserobjectclasses'))
+            if new_ipapolicy.ipagroupobjectclasses != kw.get('ipagroupobjectclasses'):
+                policy_modified = True
+                new_ipapolicy.setValue('ipagroupobjectclasses', kw.get('ipagroupobjectclasses'))
 
             if policy_modified:
                 rv = client.update_ipa_config(new_ipapolicy)
