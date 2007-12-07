@@ -65,6 +65,7 @@ def main():
         if not(isinstance(aci_str_list,list) or isinstance(aci_str_list,tuple)):
             aci_str_list = [aci_str_list]
 
+        acistr = None
         for aci_str in aci_str_list:
             try:
                 aci = ipa.aci.ACI(aci_str)
@@ -76,7 +77,7 @@ def main():
                 pass
 
         if acistr is None:
-            print "No delegation %s found." % args[1]
+            print "No delegation '%s' found." % args[1]
             return 2
 
         old_aci_index = aci_str_list.index(acistr)
@@ -86,6 +87,7 @@ def main():
         aci_entry.setValue('aci', new_aci_str_list)
 
         client.update_entry(aci_entry)
+        print "Delegation removed."
     except xmlrpclib.Fault, fault:
         if fault.faultCode == errno.ECONNREFUSED:
             print "The IPA XML-RPC service is not responding."
