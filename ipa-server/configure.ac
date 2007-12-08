@@ -131,6 +131,15 @@ dnl ---------------------------------------------------------------------------
 PKG_CHECK_MODULES(MOZLDAP, mozldap > 6)
 
 dnl ---------------------------------------------------------------------------
+dnl - Check for OpenSSL Crypto library
+dnl ---------------------------------------------------------------------------
+dnl This is a very simple check, we should probably check also for MD4_Init and
+dnl probably also the version we are using is recent enough
+SSL_LIBS=
+AC_CHECK_LIB(crypto, DES_set_key_unchecked, [SSL_LIBS="-lcrypto"])
+AC_SUBST(SSL_LIBS)
+
+dnl ---------------------------------------------------------------------------
 dnl - Check for Python
 dnl ---------------------------------------------------------------------------
 
@@ -251,5 +260,6 @@ echo "
 	cflags:		          ${CFLAGS}
         LDAP libs:                ${LDAP_LIBS}
         KRB5 libs:                ${KRB5_LIBS}
+        OpenSSL libs:             ${SSL_LIBS}
         Maintainer mode:          ${USE_MAINTAINER_MODE}
 "
