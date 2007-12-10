@@ -92,7 +92,7 @@ def main():
             return 2
         elif counter == -1:
             print "These results are truncated."
-            print "Please revine your search and try again."
+            print "Please refine your search and try again."
 
         for ent in users:
             attr = ent.attrList()
