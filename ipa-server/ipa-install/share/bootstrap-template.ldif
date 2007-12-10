@@ -135,6 +135,7 @@ ipaUserObjectClasses: inetUser
 ipaUserObjectClasses: posixAccount
 ipaUserObjectClasses: krbPrincipalAux
 ipaUserObjectClasses: radiusprofile
+ipaDefaultEmailDomain: $DOMAIN
 
 dn: cn=account inactivation,cn=accounts,$SUFFIX
 changetype: add

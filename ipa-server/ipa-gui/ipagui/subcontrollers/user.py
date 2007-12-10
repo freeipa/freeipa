@@ -29,13 +29,19 @@ user_edit_form = ipagui.forms.user.UserEditForm()
 
 user_fields = ['*', 'nsAccountLock']
 
-email_domain = ipa.config.config.default_realm.lower()
-
 class UserController(IPAController):
 
     def __init__(self, *args, **kw):
         super(UserController,self).__init__(*args, **kw)
 #        self.load_custom_fields()
+
+    def get_email_domain(self):
+        client = self.get_ipaclient()
+
+        conf = client.get_ipa_config()
+        email_domain = conf.ipadefaultemaildomain
+
+        return email_domain
 
     def load_custom_fields(self):
 
@@ -733,13 +739,13 @@ class UserController(IPAController):
         givenname = givenname.lower()
         sn = sn.lower()
 
-        email = "%s.%s@%s" % (givenname, sn, email_domain)
+        email = "%s.%s@%s" % (givenname, sn, self.get_email_domain())
         try:
             client.get_user_by_email(email)
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return email
 
-        email = "%s@%s" % (self.suggest_uid(givenname, sn), email_domain)
+        email = "%s@%s" % (self.suggest_uid(givenname, sn), self.get_email_domain())
         try:
             client.get_user_by_email(email)
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):

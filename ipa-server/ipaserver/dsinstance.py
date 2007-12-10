@@ -125,6 +125,7 @@ class DsInstance(service.Service):
         self.host_name = None
         self.dm_password = None
         self.sub_dict = None
+        self.domain = None
 
     def create_instance(self, ds_user, realm_name, host_name, dm_password, ro_replica=False):
         self.ds_user = ds_user
@@ -133,6 +134,7 @@ class DsInstance(service.Service):
         self.suffix = realm_to_suffix(self.realm_name)
         self.host_name = host_name
         self.dm_password = dm_password
+        self.domain = host_name[host_name.find(".")+1:]
         self.__setup_sub_dict()
         
         if ro_replica:
@@ -173,7 +175,7 @@ class DsInstance(service.Service):
         self.sub_dict = dict(FQHN=self.host_name, SERVERID=self.serverid,
                              PASSWORD=self.dm_password, SUFFIX=self.suffix.lower(),
                              REALM=self.realm_name, USER=self.ds_user,
-                             SERVER_ROOT=server_root)
+                             SERVER_ROOT=server_root, DOMAIN=self.domain)
 
     def __create_ds_user(self):
         self.step("creating directory server user")

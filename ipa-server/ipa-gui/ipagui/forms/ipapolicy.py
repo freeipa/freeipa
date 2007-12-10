@@ -17,6 +17,7 @@ class IPAPolicyFields(object):
     userobjectclasses = ExpandingForm(name="userobjectclasses", label="Default User Object Classes", fields=[ipauserobjectclasses])
     ipagroupobjectclasses = widgets.TextField(name="ipagroupobjectclasses", label="Default Group Object Classes", attrs=dict(size=50))
     groupobjectclasses = ExpandingForm(name="groupobjectclasses", label="Default User Object Classes", fields=[ipagroupobjectclasses])
+    ipadefaultemaildomain =  widgets.TextField(name="ipadefaultemaildomain", label="Default E-mail Domain", attrs=dict(size=20))
 
     ipapolicy_orig = widgets.HiddenField(name="ipapolicy_orig")
 
@@ -41,6 +42,7 @@ class IPAPolicyValidator(validators.Schema):
     ipadefaultprimarygroup = validators.String(not_empty=True)
     ipauserobjectclasses = validators.ForEach(validators.String(not_empty=True))
     ipagroupobjectclasses = validators.ForEach(validators.String(not_empty=True))
+    ipadefaultemaildomain = validators.String(not_empty=True)
 
     krbmaxpwdlife = validators.Number(not_empty=True)
     krbminpwdlife = validators.Number(not_empty=True)

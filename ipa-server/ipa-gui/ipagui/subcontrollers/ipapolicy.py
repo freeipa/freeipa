@@ -152,6 +152,9 @@ class IPAPolicyController(IPAController):
             if new_ipapolicy.ipagroupobjectclasses != kw.get('ipagroupobjectclasses'):
                 policy_modified = True
                 new_ipapolicy.setValue('ipagroupobjectclasses', kw.get('ipagroupobjectclasses'))
+            if new_ipapolicy.ipadefaultemaildomain != kw.get('ipadefaultemaildomain'):
+                policy_modified = True
+                new_ipapolicy.setValue('ipadefaultemaildomain', kw.get('ipadefaultemaildomain'))
 
             if policy_modified:
                 rv = client.update_ipa_config(new_ipapolicy)
