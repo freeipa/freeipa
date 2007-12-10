@@ -1425,8 +1425,6 @@ class IPAServer:
         #
         exact_match_filter = "(&(objectclass=krbPrincipalAux)(!(objectClass=person))(!(krbprincipalname=kadmin/*))%s)" % exact_match_filter
         partial_match_filter = "(&(objectclass=krbPrincipalAux)(!(objectClass=person))(!(krbprincipalname=kadmin/*))%s)" % partial_match_filter
-        print exact_match_filter
-        print partial_match_filter
 
         conn = self.getConnection(opts)
         try:
