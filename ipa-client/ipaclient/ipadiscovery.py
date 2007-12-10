@@ -20,7 +20,7 @@
 
 import socket
 import logging
-import dnsclient
+import ipa.dnsclient
 import ldap
 from ldap import LDAPError
  
@@ -191,10 +191,10 @@ class IPADiscovery:
         # terminate the name
         if not qname.endswith("."):
             qname += "."
-        results = dnsclient.query(qname, dnsclient.DNS_C_IN, dnsclient.DNS_T_SRV)
+        results = ipa.dnsclient.query(qname, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
     
         for result in results:
-            if result.dns_type == dnsclient.DNS_T_SRV:
+            if result.dns_type == ipa.dnsclient.DNS_T_SRV:
                 rserver = result.rdata.server.rstrip(".")
                 if result.rdata.port and result.rdata.port != 389:
                     rserver += ":" + str(result.rdata.port)
@@ -214,10 +214,10 @@ class IPADiscovery:
         # terminate the name
         if not qname.endswith("."):
             qname += "."
-        results = dnsclient.query(qname, dnsclient.DNS_C_IN, dnsclient.DNS_T_TXT)
+        results = ipa.dnsclient.query(qname, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_TXT)
     
         for result in results:
-            if result.dns_type == dnsclient.DNS_T_TXT:
+            if result.dns_type == ipa.dnsclient.DNS_T_TXT:
                 realm = result.rdata.data
                 if realm:
                     break
@@ -228,9 +228,9 @@ class IPADiscovery:
             # terminate the name
             if not qname.endswith("."):
                 qname += "."
-            results = dnsclient.query(qname, dnsclient.DNS_C_IN, dnsclient.DNS_T_SRV)
+            results = ipa.dnsclient.query(qname, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
             for result in results:
-                if result.dns_type == dnsclient.DNS_T_SRV:
+                if result.dns_type == ipa.dnsclient.DNS_T_SRV:
                     qname = result.rdata.server.rstrip(".")
                     if result.rdata.port and result.rdata.port != 88:
                         qname += ":" + str(result.rdata.port)
