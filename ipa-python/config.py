@@ -20,6 +20,10 @@
 import ConfigParser
 from optparse import OptionParser
 
+import krbV
+import socket
+import ipa.dnsclient
+
 class IPAConfigError(Exception):
     def __init__(self, msg=''):
         self.msg = msg
@@ -55,10 +59,50 @@ def __parse_config():
     p.read("/etc/ipa/ipa.conf")
 
     try:
-        config.default_realm = p.get("defaults", "realm")
-        config.default_server = p.get("defaults", "server")
+        if not config.default_realm:
+            config.default_realm = p.get("defaults", "realm")
+        if not config.default_server:
+            config.default_server = p.get("defaults", "server")
     except:
         pass
+
+def __discover_config():
+    try:
+        if not config.default_realm:
+            krbctx = krbV.default_context()
+            config.default_realm = krbctx.default_realm
+            if not config.default_realm:
+                return False
+
+        if not config.default_server:
+            #try once with REALM -> domain
+            name = "_ldap._tcp."+config.default_realm+"."
+            rs = ipa.dnsclient.query(name, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
+            rl = len(rs)
+
+            #try cycling on domain components of FQDN
+            if rl == 0:
+                name = socket.getfqdn()
+            while rl == 0:
+                tok = name.find(".")
+                if tok == -1:
+                    return False
+                name = name[tok+1:]
+                q = "_ldap._tcp." + name + "."
+                rs = ipa.dnsclient.query(q, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
+                rl = len(rs)
+
+            for r in rs:
+                if r.dns_type == ipa.dnsclient.DNS_T_SRV:
+                    rsrv = r.rdata.server.rstrip(".")
+                    # we take only the first one returned for now
+                    config.default_server = rsrv
+                    return True
+
+        #if none found
+        return False
+    except:
+        return False
 
 def usage():
     return """  --realm\tset the IPA realm
@@ -92,15 +136,17 @@ def __parse_args(args):
                       
 
 def init_config(args=None):
-    __parse_config()
     out_args = None
     if args:
         out_args = __parse_args(args)
 
+    __discover_config()
+    __parse_config()
+
     if not config.default_realm:
-        raise IPAConfigError("realm not specified in config file or on command line")
+        raise IPAConfigError("realm not found, nor specified in config file or on command line")
     if not config.default_server:
-        raise IPAConfigError("server not specified in config file or on command line")
+        raise IPAConfigError("server not found, nor specified in config file or on command line")
 
     if out_args:
         return out_args
