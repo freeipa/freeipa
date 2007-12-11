@@ -25,17 +25,15 @@ import ldap
 import ldap.dn
 import ipaserver.dsinstance
 import ipaserver.ipaldap
-import ipa.ipautil
-import xmlrpclib
 import copy
 import attrs
 from ipa import ipaerror
+from ipa import ipautil
 from urllib import quote,unquote
 from ipa import radius_util
 
 import string
 from types import *
-import os
 import re
 import logging
 import subprocess
@@ -84,7 +82,7 @@ class IPAConnPool:
         # This will bind the connection
         try:
             conn.set_krbccache(krbccache, cprinc.name)
-        except ldap.UNWILLING_TO_PERFORM, e:
+        except ldap.UNWILLING_TO_PERFORM:
             raise ipaerror.gen_exception(ipaerror.CONNECTION_UNWILLING)
 
         return conn
@@ -111,7 +109,7 @@ class IPAServer:
 
         if _LDAPPool is None:
             _LDAPPool = IPAConnPool(128)
-        self.basedn = ipa.ipautil.realm_to_suffix(self.realm)
+        self.basedn = ipautil.realm_to_suffix(self.realm)
         self.scope = ldap.SCOPE_SUBTREE
         self.princ = None
         self.krbccache = None
@@ -127,11 +125,11 @@ class IPAServer:
         global _LDAPPool
 
         princ = self.__safe_filter(princ)
-        filter = "(krbPrincipalName=" + princ + ")"
+        searchfilter = "(krbPrincipalName=" + princ + ")"
         # The only anonymous search we should have
         conn = _LDAPPool.getConn(self.host,self.sslport,self.bindca,self.bindcert,self.bindkey,None,None,debug)
         try:
-            ent = conn.getEntry(self.basedn, self.scope, filter, ['dn'])
+            ent = conn.getEntry(self.basedn, self.scope, searchfilter, ['dn'])
         finally:
             _LDAPPool.releaseConn(conn)
     
@@ -220,7 +218,7 @@ class IPAServer:
     #       they currently restrict the data coming back without
     #       restricting scope.  For now adding a __get_base/sub_entry()
     #       calls, but the API isn't great.
-    def __get_entry (self, base, scope, filter, sattrs=None, opts=None):
+    def __get_entry (self, base, scope, searchfilter, sattrs=None, opts=None):
         """Get a specific entry (with a parametized scope).
            Return as a dict of values.
            Multi-valued fields are represented as lists.
@@ -229,28 +227,28 @@ class IPAServer:
 
         conn = self.getConnection(opts)
         try:
-            ent = conn.getEntry(base, scope, filter, sattrs)
+            ent = conn.getEntry(base, scope, searchfilter, sattrs)
 
         finally:
             self.releaseConnection(conn)
 
         return self.convert_entry(ent)
 
-    def __get_base_entry (self, base, filter, sattrs=None, opts=None):
+    def __get_base_entry (self, base, searchfilter, sattrs=None, opts=None):
         """Get a specific entry (with a scope of BASE).
            Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
-        return self.__get_entry(base, ldap.SCOPE_BASE, filter, sattrs, opts)
+        return self.__get_entry(base, ldap.SCOPE_BASE, searchfilter, sattrs, opts)
 
-    def __get_sub_entry (self, base, filter, sattrs=None, opts=None):
+    def __get_sub_entry (self, base, searchfilter, sattrs=None, opts=None):
         """Get a specific entry (with a scope of SUB).
            Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
-        return self.__get_entry(base, ldap.SCOPE_SUBTREE, filter, sattrs, opts)
+        return self.__get_entry(base, ldap.SCOPE_SUBTREE, searchfilter, sattrs, opts)
 
-    def __get_list (self, base, filter, sattrs=None, opts=None):
+    def __get_list (self, base, searchfilter, sattrs=None, opts=None):
         """Gets a list of entries. Each is converted to a dict of values.
            Multi-valued fields are represented as lists.
         """
@@ -258,7 +256,7 @@ class IPAServer:
 
         conn = self.getConnection(opts)
         try:
-            entries = conn.getList(base, self.scope, filter, sattrs)
+            entries = conn.getList(base, self.scope, searchfilter, sattrs)
         finally:
             self.releaseConnection(conn)
 
@@ -278,7 +276,7 @@ class IPAServer:
         # original
         try:
             moddn = oldentry['dn']
-        except KeyError, e:
+        except KeyError:
             raise ipaerror.gen_exception(ipaerror.LDAP_MISSING_DN)
 
         conn = self.getConnection(opts)
@@ -366,43 +364,66 @@ class IPAServer:
            Multi-valued fields are represented as lists.
         """
 
-        filter = "(objectClass=*)"
-        return self.__get_base_entry(dn, filter, sattrs, opts)
+        if not dn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        searchfilter = "(objectClass=*)"
+        return self.__get_base_entry(dn, searchfilter, sattrs, opts)
 
     def get_entry_by_cn (self, cn, sattrs, opts=None):
         """Get a specific entry by cn. Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
 
+        if not cn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         cn = self.__safe_filter(cn)
-        filter = "(cn=" + cn + ")"
-        return self.__get_sub_entry(self.basedn, filter, sattrs, opts)
+        searchfilter = "(cn=" + cn + ")"
+        return self.__get_sub_entry(self.basedn, searchfilter, sattrs, opts)
 
     def update_entry (self, oldentry, newentry, opts=None):
-        """Update an entry in LDAP"""
+        """Update an entry in LDAP
+
+           oldentry and newentry are XML-RPC structs.
+
+           If oldentry is not empty then it is used when determine what
+           has changed.
+
+           If oldentry is empty then the value of newentry is compared
+           to the current value of oldentry.
+        """
+        if not newentry:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
+        if not oldentry:
+            oldentry = self.get_entry_by_dn(newentry.get('dn'), None, opts)
+            if oldentry is None:
+                raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+
         return self.__update_entry(oldentry, newentry, opts)
 
 # User support
 
     def __is_user_unique(self, uid, opts):
-        """Return 1 if the uid is unique in the tree, 0 otherwise."""
+        """Return True if the uid is unique in the tree, False otherwise."""
         uid = self.__safe_filter(uid)
-        filter = "(&(uid=%s)(objectclass=posixAccount))" % uid
+        searchfilter = "(&(uid=%s)(objectclass=posixAccount))" % uid
  
         try:
-            entry = self.__get_sub_entry(self.basedn, filter, ['dn','uid'], opts)
-            return 0
+            entry = self.__get_sub_entry(self.basedn, searchfilter, ['dn','uid'], opts)
+            return False
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-            return 1
+            return True
 
     def get_user_by_uid (self, uid, sattrs, opts=None):
         """Get a specific user's entry. Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
 
+        if not uid:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         uid = self.__safe_filter(uid)
-        filter = "(uid=" + uid + ")"
-        return self.__get_sub_entry(self.basedn, filter, sattrs, opts)
+        searchfilter = "(uid=" + uid + ")"
+        return self.__get_sub_entry(self.basedn, searchfilter, sattrs, opts)
 
     def get_user_by_principal(self, principal, sattrs, opts=None):
         """Get a user entry searching by Kerberos Principal Name.
@@ -410,27 +431,33 @@ class IPAServer:
            represented as lists.
         """
 
-        filter = "(krbPrincipalName="+self.__safe_filter(principal)+")"
-        return self.__get_sub_entry(self.basedn, filter, sattrs, opts)
+        if not principal:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        searchfilter = "(krbPrincipalName="+self.__safe_filter(principal)+")"
+        return self.__get_sub_entry(self.basedn, searchfilter, sattrs, opts)
 
     def get_user_by_email (self, email, sattrs, opts=None):
         """Get a specific user's entry. Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
 
+        if not email:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         email = self.__safe_filter(email)
-        filter = "(mail=" + email + ")"
-        return self.__get_sub_entry(self.basedn, filter, sattrs, opts)
+        searchfilter = "(mail=" + email + ")"
+        return self.__get_sub_entry(self.basedn, searchfilter, sattrs, opts)
 
     def get_users_by_manager (self, manager_dn, sattrs, opts=None):
         """Gets the users that report to a particular manager.
         """
 
+        if not manager_dn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         manager_dn = self.__safe_filter(manager_dn)
-        filter = "(&(objectClass=person)(manager=%s))" % manager_dn
+        searchfilter = "(&(objectClass=person)(manager=%s))" % manager_dn
 
         try:
-            return self.__get_list(self.basedn, filter, sattrs, opts)
+            return self.__get_list(self.basedn, searchfilter, sattrs, opts)
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return []
 
@@ -438,11 +465,16 @@ class IPAServer:
         """Add a user in LDAP. Takes as input a dict where the key is the
            attribute name and the value is either a string or in the case
            of a multi-valued field a list of values. user_container sets
-           where in the tree the user is placed."""
+           where in the tree the user is placed.
+        """
+
+        if not user:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
         if not user_container:
             user_container = DefaultUserContainer
 
-        if self.__is_user_unique(user['uid'], opts) == 0:
+        if not self.__is_user_unique(user['uid'], opts):
             raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
 
         # dn is set here, not by the user
@@ -758,6 +790,8 @@ class IPAServer:
 
            It is displayed to the user in the order of the list.
         """
+        if not schema:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         config = self.get_ipa_config(opts)
 
         # The schema is stored as:
@@ -783,11 +817,11 @@ class IPAServer:
         """Return a list containing a User object for each
         existing user.
         """
-        filter = "(objectclass=posixAccount)"
+        searchfilter = "(objectclass=posixAccount)"
 
         conn = self.getConnection(opts)
         try:
-            all_users = conn.getList(self.basedn, self.scope, filter, None)
+            all_users = conn.getList(self.basedn, self.scope, searchfilter, None)
         finally:
             self.releaseConnection(conn)
     
@@ -803,6 +837,8 @@ class IPAServer:
            If the results are truncated, counter will be set to -1."""
 
         logging.debug("IPA: find users %s" % criteria)
+        if not criteria:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         config = self.get_ipa_config(opts)
         if timelimit < 0:
             timelimit = float(config.get('ipasearchtimelimit'))
@@ -875,6 +911,8 @@ class IPAServer:
     def convert_scalar_values(self, orig_dict):
         """LDAP update dicts expect all values to be a list (except for dn).
            This method converts single entries to a list."""
+        if not orig_dict or not isinstance(orig_dict, dict):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         new_dict={}
         for (k,v) in orig_dict.iteritems():
             if not isinstance(v, list) and k != 'dn':
@@ -886,9 +924,23 @@ class IPAServer:
     def update_user (self, oldentry, newentry, opts=None):
         """Wrapper around update_entry with user-specific handling.
 
+           oldentry and newentry are XML-RPC structs.
+
+           If oldentry is not empty then it is used when determine what
+           has changed.
+
+           If oldentry is empty then the value of newentry is compared
+           to the current value of oldentry.
+
            If you want to change the RDN of a user you must use
            this function. update_entry will fail.
         """
+        if not newentry:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not oldentry:
+            oldentry = self.get_entry_by_dn(newentry.get('dn'), None, opts)
+            if oldentry is None:
+                raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
 
         newrdn = 0
 
@@ -938,6 +990,9 @@ class IPAServer:
 
         logging.debug("IPA: activating entry %s" % dn)
 
+        if not dn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
         res = ""
         # First, check the entry status
         entry = self.get_entry_by_dn(dn, ['dn', 'nsAccountlock'], opts)
@@ -970,6 +1025,9 @@ class IPAServer:
 
         logging.debug("IPA: inactivating entry %s" % dn)
 
+        if not dn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
         entry = self.get_entry_by_dn(dn, ['dn', 'nsAccountlock', 'memberOf'], opts)
 
         if entry.get('nsaccountlock', 'false') == "true":
@@ -990,12 +1048,16 @@ class IPAServer:
     def mark_user_active(self, uid, opts=None):
         """Mark a user as active"""
 
+        if not uid:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         user = self.get_user_by_uid(uid, ['dn', 'uid'], opts)
         return self.mark_entry_active(user.get('dn'))
 
     def mark_user_inactive(self, uid, opts=None):
         """Mark a user as inactive"""
 
+        if not uid:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         user = self.get_user_by_uid(uid, ['dn', 'uid'], opts)
         return self.mark_entry_inactive(user.get('dn'))
 
@@ -1008,6 +1070,8 @@ class IPAServer:
            The memberOf plugin handles removing the user from any other
            groups.
         """
+        if not uid:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         user = self.get_user_by_uid(uid, ['dn', 'uid', 'objectclass'], opts)
         if user is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
@@ -1026,6 +1090,8 @@ class IPAServer:
            oldpass is the old password (if available)
            newpass is the new password
         """
+        if not principal or not newpass:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         user = self.get_user_by_principal(principal, ['krbprincipalname'], opts)
         if user is None or user['krbprincipalname'] != principal:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
@@ -1040,26 +1106,28 @@ class IPAServer:
 # Group support
 
     def __is_group_unique(self, cn, opts):
-        """Return 1 if the cn is unique in the tree, 0 otherwise."""
+        """Return True if the cn is unique in the tree, False otherwise."""
         cn = self.__safe_filter(cn)
-        filter = "(&(cn=%s)(objectclass=posixGroup))" % cn
+        searchfilter = "(&(cn=%s)(objectclass=posixGroup))" % cn
  
         try:
-            entry = self.__get_sub_entry(self.basedn, filter, ['dn','cn'], opts)
-            return 0
+            entry = self.__get_sub_entry(self.basedn, searchfilter, ['dn','cn'], opts)
+            return False
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-            return 1
+            return True
 
     def get_groups_by_member (self, member_dn, sattrs, opts=None):
         """Get a specific group's entry. Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
+        if not member_dn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         member_dn = self.__safe_filter(member_dn)
-        filter = "(&(objectClass=posixGroup)(member=%s))" % member_dn
+        searchfilter = "(&(objectClass=posixGroup)(member=%s))" % member_dn
 
         try:
-            return self.__get_list(self.basedn, filter, sattrs, opts)
+            return self.__get_list(self.basedn, searchfilter, sattrs, opts)
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return []
 
@@ -1068,10 +1136,13 @@ class IPAServer:
            attribute name and the value is either a string or in the case
            of a multi-valued field a list of values. group_container sets
            where in the tree the group is placed."""
+        if not group:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
         if not group_container:
             group_container = DefaultGroupContainer
 
-        if self.__is_group_unique(group['cn'], opts) == 0:
+        if not self.__is_group_unique(group['cn'], opts):
             raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
 
         # Get our configuration
@@ -1102,6 +1173,8 @@ class IPAServer:
         """Return a list containing a User object for each
         existing group that matches the criteria.
         """
+        if not criteria:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         config = self.get_ipa_config(opts)
         if timelimit < 0:
@@ -1178,6 +1251,8 @@ class IPAServer:
     def add_member_to_group(self, member_dn, group_dn, opts=None):
         """Add a member to an existing group.
         """
+        if not member_dn or not group_dn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         old_group = self.get_entry_by_dn(group_dn, None, opts)
         if old_group is None:
@@ -1186,6 +1261,8 @@ class IPAServer:
 
         # check to make sure member_dn exists
         member_entry = self.__get_base_entry(member_dn, "(objectClass=*)", ['dn','uid'], opts)
+        if not member_entry:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
 
         if new_group.get('member') is not None:
             if ((isinstance(new_group.get('member'), str)) or (isinstance(new_group.get('member'), unicode))):
@@ -1204,6 +1281,9 @@ class IPAServer:
         """Given a list of dn's, add them to the group cn denoted by group
            Returns a list of the member_dns that were not added to the group.
         """
+
+        if not member_dns or not group_dn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         failed = []
 
@@ -1225,6 +1305,8 @@ class IPAServer:
     def remove_member_from_group(self, member_dn, group_dn, opts=None):
         """Remove a member_dn from an existing group.
         """
+        if not member_dn or not group_dn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         old_group = self.get_entry_by_dn(group_dn, None, opts)
         if old_group is None:
@@ -1255,6 +1337,8 @@ class IPAServer:
         """Given a list of member dn's remove them from the group.
            Returns a list of the members not removed from the group.
         """
+        if not member_dns or not group_dn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         failed = []
 
@@ -1277,6 +1361,8 @@ class IPAServer:
         """Add a user to an existing group.
         """
 
+        if not user_uid or not group_dn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         user = self.get_user_by_uid(user_uid, ['dn', 'uid', 'objectclass'], opts)
         if user is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
@@ -1287,6 +1373,8 @@ class IPAServer:
         """Given a list of user uid's add them to the group cn denoted by group
            Returns a list of the users were not added to the group.
         """
+        if not user_uids or not group_dn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         failed = []
 
@@ -1309,6 +1397,9 @@ class IPAServer:
         """Remove a user from an existing group.
         """
 
+        if not user_uid or not group_dn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
         user = self.get_user_by_uid(user_uid, ['dn', 'uid', 'objectclass'], opts)
         if user is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
@@ -1319,6 +1410,8 @@ class IPAServer:
         """Given a list of user uid's remove them from the group
            Returns a list of the user uids not removed from the group.
         """
+        if not user_uids or not group_dn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         failed = []
 
@@ -1342,6 +1435,8 @@ class IPAServer:
 
            Returns a list of the group dns that were not added.
         """
+        if not group_dns or not user_dn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         failed = []
 
@@ -1365,6 +1460,8 @@ class IPAServer:
 
            Returns a list of the group dns that were not removed.
         """
+        if not group_dns or not user_dn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         failed = []
 
@@ -1386,9 +1483,23 @@ class IPAServer:
     def update_group (self, oldentry, newentry, opts=None):
         """Wrapper around update_entry with group-specific handling.
 
+           oldentry and newentry are XML-RPC structs.
+
+           If oldentry is not empty then it is used when determine what
+           has changed.
+
+           If oldentry is empty then the value of newentry is compared
+           to the current value of oldentry.
+
            If you want to change the RDN of a group you must use
            this function. update_entry will fail.
         """
+        if not newentry:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not oldentry:
+            oldentry = self.get_entry_by_dn(newentry.get('dn'), None, opts)
+            if oldentry is None:
+                raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
 
         newrdn = 0
 
@@ -1451,6 +1562,8 @@ class IPAServer:
            The memberOf plugin handles removing the group from any other
            groups.
         """
+        if not group_dn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         group = self.get_entry_by_dn(group_dn, ['dn', 'cn'], opts)
         if group is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
@@ -1478,6 +1591,8 @@ class IPAServer:
            tgroup is the DN of the target group to be added to
         """
 
+        if not group or not tgroup:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         old_group = self.get_entry_by_dn(tgroup, None, opts)
         if old_group is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
@@ -1514,19 +1629,21 @@ class IPAServer:
         """Do a memberOf search of groupdn and return the attributes in
            attr_list (an empty list returns everything)."""
 
+        if not groupdn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         config = self.get_ipa_config(opts)
         timelimit = float(config.get('ipasearchtimelimit'))
 
         searchlimit = float(config.get('ipasearchrecordslimit'))
 
         groupdn = self.__safe_filter(groupdn)
-        filter = "(memberOf=%s)" % groupdn
+        searchfilter = "(memberOf=%s)" % groupdn
 
         conn = self.getConnection(opts)
         try:
             try:
                 results = conn.getListAsync(self.basedn, self.scope,
-                    filter, attr_list, 0, None, None, timelimit,
+                    searchfilter, attr_list, 0, None, None, timelimit,
                     searchlimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 results = [0]
@@ -1545,33 +1662,42 @@ class IPAServer:
     def mark_group_active(self, cn, opts=None):
         """Mark a group as active"""
 
+        if not cn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         group = self.get_entry_by_cn(cn, ['dn', 'cn'], opts)
         return self.mark_entry_active(group.get('dn'))
 
     def mark_group_inactive(self, cn, opts=None):
         """Mark a group as inactive"""
 
+        if not cn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         group = self.get_entry_by_cn(cn, ['dn', 'uid'], opts)
         return self.mark_entry_inactive(group.get('dn'))
 
     def __is_service_unique(self, name, opts):
-        """Return 1 if the uid is unique in the tree, 0 otherwise."""
+        """Return True if the uid is unique in the tree, False otherwise."""
         name = self.__safe_filter(name)
-        filter = "(&(krbprincipalname=%s)(objectclass=krbPrincipal))" % name
+        searchfilter = "(&(krbprincipalname=%s)(objectclass=krbPrincipal))" % name
  
         try:
-            entry = self.__get_sub_entry(self.basedn, filter, ['dn','krbprincipalname'], opts)
-            return 0
+            entry = self.__get_sub_entry(self.basedn, searchfilter, ['dn','krbprincipalname'], opts)
+            return False
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-            return 1
+            return True
 
     def add_service_principal(self, name, opts=None):
+        """Given a name of the form: service/FQDN create a service
+           principal for it in the default realm."""
+        if not name:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
         service_container = DefaultServiceContainer
 
         princ_name = name + "@" + self.realm
         
         conn = self.getConnection(opts)
-        if self.__is_service_unique(name, opts) == 0:
+        if not self.__is_service_unique(name, opts):
             raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
 
         dn = "krbprincipalname=%s,%s,%s" % (ldap.dn.escape_dn_chars(princ_name),
@@ -1591,6 +1717,8 @@ class IPAServer:
             timelimit=-1, opts=None):
         """Returns a list: counter followed by the results.
            If the results are truncated, counter will be set to -1."""
+        if not criteria:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         config = self.get_ipa_config(opts)
         if timelimit < 0:
@@ -1658,7 +1786,10 @@ class IPAServer:
         return entries
 
     def get_keytab(self, name, opts=None):
-        """get a keytab"""
+        """Return a keytab for an existing service principal. Note that
+           this increments the secret thus invalidating any older keys."""
+        if not name:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         princ_name = name + "@" + self.realm
 
@@ -1699,8 +1830,24 @@ class IPAServer:
         return config
 
     def update_ipa_config(self, oldconfig, newconfig, opts=None):
-        """Update the IPA configuration"""
- 
+        """Update the IPA configuration.
+
+           oldconfig and newconfig are XML-RPC structs.
+
+           If oldconfig is not empty then it is used when determine what
+           has changed.
+
+           If oldconfig is empty then the value of newconfig is compared
+           to the current value of oldconfig.
+
+        """
+        if not newconfig:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not oldconfig:
+            oldconfig = self.get_entry_by_dn(newconfig.get('dn'), None, opts)
+            if oldconfig is None:
+                raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+
         # The LDAP routines want strings, not ints, so convert a few
         # things. Otherwise it sees a string -> int conversion as a change.
         try:
@@ -1749,7 +1896,24 @@ class IPAServer:
         return policy
 
     def update_password_policy(self, oldpolicy, newpolicy, opts=None):
-        """Update the IPA configuration"""
+        """Update the IPA configuration
+
+           oldpolicy and newpolicy are XML-RPC structs.
+
+           If oldpolicy is not empty then it is used when determine what
+           has changed.
+
+           If oldpolicy is empty then the value of newpolicy is compared
+           to the current value of oldpolicy.
+
+        """
+        if not newpolicy:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not oldpolicy:
+            oldpolicy = self.get_entry_by_dn(newpolicy.get('dn'), None, opts)
+            if oldpolicy is None:
+                raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+
 
         # The LDAP routines want strings, not ints, so convert a few
         # things. Otherwise it sees a string -> int conversion as a change.

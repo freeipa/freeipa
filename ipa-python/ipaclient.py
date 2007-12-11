@@ -19,14 +19,10 @@
 
 #!/usr/bin/python
 
-import sys
-
 import ipa.rpcclient as rpcclient
 import entity
 import user
 import group
-import ipa
-import config
 import radius_util
 
 class IPAClient:

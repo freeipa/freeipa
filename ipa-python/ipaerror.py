@@ -129,14 +129,14 @@ LDAP_NO_CONFIG = gen_error_code(
         "IPA configuration not found")
 
 #
-# Input errors  (sample - replace me)
+# Function input errors
 #
 INPUT_CATEGORY = 0x0002
 
-INPUT_INVALID_ERROR = gen_error_code(
+INPUT_INVALID_PARAMETER = gen_error_code(
         INPUT_CATEGORY,
         0x0001,
-        "Illegal input")
+        "Invalid parameter(s)")
 
 #
 # Connection errors
