@@ -34,6 +34,7 @@ from ipa.ipautil import *
 HTTPD_DIR = "/etc/httpd"
 SSL_CONF = HTTPD_DIR + "/conf.d/ssl.conf"
 NSS_CONF = HTTPD_DIR + "/conf.d/nss.conf"
+NSS_DIR  = HTTPD_DIR + "/alias"
 
 selinux_warning = """WARNING: could not set selinux boolean httpd_can_network_connect to true.
 The web interface may not function correctly until this boolean is
@@ -66,12 +67,13 @@ class HTTPInstance(service.Service):
         self.fqdn = fqdn
         self.realm = realm
         
-        self.start_creation(6, "Configuring the web interface")
+        self.start_creation(7, "Configuring the web interface")
         
         self.__disable_mod_ssl()
         self.__set_mod_nss_port()
         self.__configure_http()
         self.__create_http_keytab()
+        self.__setup_ssl()
 
         self.step("restarting httpd")
         self.restart()
@@ -149,7 +151,8 @@ class HTTPInstance(service.Service):
     def __setup_ssl(self):
         self.step("Setting up ssl")
         ds_ca = certs.CertDB(dsinstance.config_dirname(self.realm))
-        ca = certs.CertDB(dirname)
+        ca = certs.CertDB(NSS_DIR)
+        ds_ca.cur_serial = 2000
         ca.create_from_cacert(ds_ca.cacert_fname)
-        ca.create_server_cert_extca("Server-Cert", "cn=%s,ou=Apache Web Server" % self.fqdn, ds_ca)
+        ca.create_server_cert("Server-Cert", "cn=%s,ou=Apache Web Server" % self.fqdn, ds_ca)
         
