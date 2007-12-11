@@ -383,6 +383,11 @@ class KrbInstance(service.Service):
 
     def __export_kadmin_changepw_keytab(self):
         self.step("exporting the kadmin keytab")
+        try:
+            if file_exists("/var/kerberos/krb5kdc/kpasswd.keytab"):
+                os.remove("/var/kerberos/krb5kdc/kpasswd.keytab")
+        except os.error:
+            logging.critical("Failed to remove /var/kerberos/krb5kdc/kpasswd.keytab.")
         (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
         kwrite.write("modprinc +requires_preauth kadmin/changepw\n")
         kwrite.flush()
