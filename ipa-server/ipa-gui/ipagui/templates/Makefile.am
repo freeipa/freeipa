@@ -27,6 +27,10 @@ app_DATA =			\
 	master.kid		\
 	policyindex.kid		\
 	policylayout.kid	\
+	principallayout.kid	\
+	principallist.kid	\
+	principalnewform.kid	\
+	principalnew.kid	\
 	usereditform.kid	\
 	useredit.kid		\
 	userlayout.kid		\

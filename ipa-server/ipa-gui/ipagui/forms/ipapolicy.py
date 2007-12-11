@@ -9,23 +9,24 @@ class IPAPolicyFields(object):
     ipasearchtimelimit = widgets.TextField(name="ipasearchtimelimit", label="Search Time Limit (sec.)", attrs=dict(size=6,maxlength=6))
     ipasearchrecordslimit = widgets.TextField(name="ipasearchrecordslimit", label="Search Records Limit", attrs=dict(size=6,maxlength=6))
     ipahomesrootdir = widgets.TextField(name="ipahomesrootdir", label="Root for Home Directories")
-    ipadefaultloginshell = widgets.TextField(name="ipadefaultloginshell", label="Default shell")
-    ipadefaultprimarygroup = widgets.TextField(name="ipadefaultprimarygroup", label="Default Users group")
+    ipadefaultloginshell = widgets.TextField(name="ipadefaultloginshell", label="Default Shell")
+    ipadefaultprimarygroup = widgets.TextField(name="ipadefaultprimarygroup", label="Default User Group")
     ipamaxusernamelength = widgets.TextField(name="ipamaxusernamelength", label="Max. Username Length", attrs=dict(size=3,maxlength=3))
     ipapwdexpadvnotify = widgets.TextField(name="ipapwdexpadvnotify", label="Password Expiration Notification (days)", attrs=dict(size=3,maxlength=3))
     ipauserobjectclasses = widgets.TextField(name="ipauserobjectclasses", label="Default User Object Classes", attrs=dict(size=50))
     userobjectclasses = ExpandingForm(name="userobjectclasses", label="Default User Object Classes", fields=[ipauserobjectclasses])
     ipagroupobjectclasses = widgets.TextField(name="ipagroupobjectclasses", label="Default Group Object Classes", attrs=dict(size=50))
     groupobjectclasses = ExpandingForm(name="groupobjectclasses", label="Default User Object Classes", fields=[ipagroupobjectclasses])
+    ipadefaultemaildomain =  widgets.TextField(name="ipadefaultemaildomain", label="Default E-mail Domain", attrs=dict(size=20))
 
     ipapolicy_orig = widgets.HiddenField(name="ipapolicy_orig")
 
     # From cn=accounts
     krbmaxpwdlife = widgets.TextField(name="krbmaxpwdlife", label="Max. Password Lifetime (days)", attrs=dict(size=3,maxlength=3))
     krbminpwdlife = widgets.TextField(name="krbminpwdlife", label="Min. Password Lifetime (hours)", attrs=dict(size=3,maxlength=3))
-    krbpwdmindiffchars = widgets.TextField(name="krbpwdmindiffchars", label="Min. number of character classes", attrs=dict(size=3,maxlength=3))
-    krbpwdminlength = widgets.TextField(name="krbpwdminlength", label="Min. Length of password", attrs=dict(size=3,maxlength=3))
-    krbpwdhistorylength = widgets.TextField(name="krbpwdhistorylength", label="Password History size", attrs=dict(size=3,maxlength=3))
+    krbpwdmindiffchars = widgets.TextField(name="krbpwdmindiffchars", label="Min. Number of Character Classes", attrs=dict(size=3,maxlength=3))
+    krbpwdminlength = widgets.TextField(name="krbpwdminlength", label="Min. Length of Password", attrs=dict(size=3,maxlength=3))
+    krbpwdhistorylength = widgets.TextField(name="krbpwdhistorylength", label="Password History Size", attrs=dict(size=3,maxlength=3))
 
     password_orig = widgets.HiddenField(name="password_orig")
 
@@ -41,6 +42,7 @@ class IPAPolicyValidator(validators.Schema):
     ipadefaultprimarygroup = validators.String(not_empty=True)
     ipauserobjectclasses = validators.ForEach(validators.String(not_empty=True))
     ipagroupobjectclasses = validators.ForEach(validators.String(not_empty=True))
+    ipadefaultemaildomain = validators.String(not_empty=True)
 
     krbmaxpwdlife = validators.Number(not_empty=True)
     krbminpwdlife = validators.Number(not_empty=True)

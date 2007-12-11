@@ -31,39 +31,54 @@ class TestValidate(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_validemail(self):
-        self.assertEqual(0, ipavalidate.email("test@freeipa.org"))
-        self.assertEqual(0, ipavalidate.email("", notEmpty=False))
+    def test_validEmail(self):
+        self.assertEqual(0, ipavalidate.Email("test@freeipa.org"))
+        self.assertEqual(0, ipavalidate.Email("", notEmpty=False))
 
-    def test_invalidemail(self):
-        self.assertEqual(1, ipavalidate.email("test"))
-        self.assertEqual(1, ipavalidate.email("test@freeipa"))
-        self.assertEqual(1, ipavalidate.email("test@.com"))
-        self.assertEqual(1, ipavalidate.email(""))
-        self.assertEqual(1, ipavalidate.email(None))
+    def test_invalidEmail(self):
+        self.assertEqual(1, ipavalidate.Email("test"))
+        self.assertEqual(1, ipavalidate.Email("test@freeipa"))
+        self.assertEqual(1, ipavalidate.Email("test@.com"))
+        self.assertEqual(1, ipavalidate.Email(""))
+        self.assertEqual(1, ipavalidate.Email(None))
 
-    def test_validplain(self):
-        self.assertEqual(0, ipavalidate.plain("Joe User"))
-        self.assertEqual(0, ipavalidate.plain("Joe O'Malley"))
-        self.assertEqual(0, ipavalidate.plain("", notEmpty=False))
-        self.assertEqual(0, ipavalidate.plain(None, notEmpty=False))
+    def test_validPlain(self):
+        self.assertEqual(0, ipavalidate.Plain("Joe User"))
+        self.assertEqual(0, ipavalidate.Plain("Joe O'Malley"))
+        self.assertEqual(0, ipavalidate.Plain("", notEmpty=False))
+        self.assertEqual(0, ipavalidate.Plain(None, notEmpty=False))
+        self.assertEqual(0, ipavalidate.Plain("JoeUser", allowSpaces=False))
+        self.assertEqual(0, ipavalidate.Plain("JoeUser", allowSpaces=True))
 
-    def test_invalidplain(self):
-        self.assertEqual(1, ipavalidate.plain("Joe (User)"))
-        self.assertEqual(1, ipavalidate.plain("", notEmpty=True))
-        self.assertEqual(1, ipavalidate.plain(None, notEmpty=True))
+    def test_invalidPlain(self):
+        self.assertEqual(1, ipavalidate.Plain("Joe (User)"))
+        self.assertEqual(1, ipavalidate.Plain("Joe C. User"))
+        self.assertEqual(1, ipavalidate.Plain("", notEmpty=True))
+        self.assertEqual(1, ipavalidate.Plain(None, notEmpty=True))
+        self.assertEqual(1, ipavalidate.Plain("Joe User", allowSpaces=False))
 
-    def test_validpath(self):
-        self.assertEqual(0, ipavalidate.path("/"))
-        self.assertEqual(0, ipavalidate.path("/home/user"))
-        self.assertEqual(0, ipavalidate.path("../home/user"))
-        self.assertEqual(0, ipavalidate.path("", notEmpty=False))
-        self.assertEqual(0, ipavalidate.path(None, notEmpty=False))
+    def test_validString(self):
+        self.assertEqual(0, ipavalidate.String("Joe User"))
+        self.assertEqual(0, ipavalidate.String("Joe O'Malley"))
+        self.assertEqual(1, ipavalidate.Plain("Joe C. User"))
+        self.assertEqual(0, ipavalidate.String("", notEmpty=False))
+        self.assertEqual(0, ipavalidate.String(None, notEmpty=False))
 
-    def test_invalidpath(self):
-        self.assertEqual(1, ipavalidate.path("(foo)"))
-        self.assertEqual(1, ipavalidate.path("", notEmpty=True))
-        self.assertEqual(1, ipavalidate.path(None, notEmpty=True))
+    def test_invalidString(self):
+        self.assertEqual(1, ipavalidate.String("", notEmpty=True))
+        self.assertEqual(1, ipavalidate.String(None, notEmpty=True))
+
+    def test_validPath(self):
+        self.assertEqual(0, ipavalidate.Path("/"))
+        self.assertEqual(0, ipavalidate.Path("/home/user"))
+        self.assertEqual(0, ipavalidate.Path("../home/user"))
+        self.assertEqual(0, ipavalidate.Path("", notEmpty=False))
+        self.assertEqual(0, ipavalidate.Path(None, notEmpty=False))
+
+    def test_invalidPath(self):
+        self.assertEqual(1, ipavalidate.Path("(foo)"))
+        self.assertEqual(1, ipavalidate.Path("", notEmpty=True))
+        self.assertEqual(1, ipavalidate.Path(None, notEmpty=True))
 
 if __name__ == '__main__':
     unittest.main()

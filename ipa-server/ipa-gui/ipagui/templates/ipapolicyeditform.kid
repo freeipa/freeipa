@@ -172,6 +172,16 @@ from ipagui.helpers import ipahelper
               py:content="tg.errors.get('ipadefaultprimarygroup')" />
           </td>
         </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="ipapolicy_fields.ipadefaultemaildomain.label" />:
+          </th>
+          <td>
+          <span py:replace="ipapolicy_fields.ipadefaultemaildomain.display(value_for(ipapolicy_fields.ipadefaultemaildomain))" />
+          <span py:if="tg.errors.get('ipadefaultemaildomain')" class="fielderror"
+              py:content="tg.errors.get('ipadefaultemaildomain')" />
+          </td>
+        </tr>
       <tr>
         <th>
           <label class="fieldlabel" for="${ipapolicy_fields.userobjectclasses.field_id}"
