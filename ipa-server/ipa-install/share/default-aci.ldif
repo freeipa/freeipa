@@ -23,6 +23,7 @@ dn: cn=accounts,$SUFFIX
 changetype: modify
 add: aci
 aci: (targetattr = "krbMaxPwdLife || krbMinPwdLife || krbPwdMinDiffChars || krbPwdMinLength || krbPwdHistoryLength")(version 3.0;acl "Admins can write password policy"; allow (write) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+aci: (targetattr = "aci")(version 3.0;acl "Admins can manage delegations"; allow (write, delete) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 
 dn: cn=services,cn=accounts,$SUFFIX
 changetype: modify

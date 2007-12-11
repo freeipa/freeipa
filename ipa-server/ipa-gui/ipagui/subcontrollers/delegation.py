@@ -71,7 +71,7 @@ class DelegationController(IPAController):
             new_aci.source_group = kw.get('source_group_dn')
             new_aci.dest_group = kw.get('dest_group_dn')
             new_aci.attrs = kw.get('attrs')
-            if (new_aci.attrs, str):
+            if isinstance(new_aci.attrs, str):
                 new_aci.attrs = [new_aci.attrs]
 
             # Look for an existing ACI of the same name

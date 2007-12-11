@@ -62,28 +62,28 @@ def main():
     if (len(args) != 2):
         while (cont != True):
             cn = raw_input("Group name: ")
-            if (ipavalidate.plain(cn, notEmpty=True)):
-                print "Field is required and must be letters or '."
+            if (ipavalidate.String(cn, notEmpty=True)):
+                print "Please enter a value"
             else:
                 cont = True
     else:
         cn = args[1]
-        if (ipavalidate.plain(cn, notEmpty=True)):
-            print "Group name is required and must be letters or '."
+        if (ipavalidate.ipastsring(cn, notEmpty=True)):
+            print "Please enter a value"
             return 1
 
     cont = False
     if not options.desc:
         while (cont != True):
             desc = raw_input("Description: ")
-            if (ipavalidate.plain(desc, notEmpty=True)):
-                print "Field is required and must be letters or '."
+            if (ipavalidate.String(desc, notEmpty=True)):
+                print "Please enter a value"
             else:
                 cont = True
     else:
         desc = options.desc
-        if (ipavalidate.plain(desc, notEmpty=True)):
-            print "First name is required and must be letters or '."
+        if (ipavalidate.String(desc, notEmpty=True)):
+            print "Please enter a value"
             return 1
 
     if options.gid:

@@ -92,42 +92,42 @@ def main():
     if not options.gn:
         while (cont != True):
             givenname = raw_input("First name: ")
-            if (ipavalidate.plain(givenname, notEmpty=True)):
-                print "Field is required and must be letters or '"
+            if (ipavalidate.String(givenname, notEmpty=True)):
+                print "Please enter a value"
             else:
                 cont = True
     else:
         givenname = options.gn
-        if (ipavalidate.plain(givenname, notEmpty=True)):
-            print "First name is required and must be letters or '"
+        if (ipavalidate.String(givenname, notEmpty=True)):
+            print "Please enter a value"
             return 1
 
     cont = False
     if not options.sn:
         while (cont != True):
             lastname = raw_input("Last name: ")
-            if (ipavalidate.plain(lastname, notEmpty=True)):
-                print "Field is required and must be letters or '"
+            if (ipavalidate.String(lastname, notEmpty=True)):
+                print "Please enter a value"
             else:
                 cont = True
     else:
         lastname = options.sn
-        if (ipavalidate.plain(lastname, notEmpty=True)):
-            print "Last name is required and must be letters or '"
+        if (ipavalidate.String(lastname, notEmpty=True)):
+            print "Please enter a value"
             return 1
 
     cont = False
     if (len(args) != 2):
         while (cont != True):
             username = raw_input("Login name: ")
-            if (ipavalidate.plain(username, notEmpty=True)):
-                print "Field is required and must be letters or '"
+            if (ipavalidate.Plain(username, notEmpty=True, allowSpaces=False)):
+                print "Please enter a value"
             else:
                 cont = True
     else:
         username = args[1]
-        if (ipavalidate.plain(username, notEmpty=True)):
-            print "Username is required and must be letters or '"
+        if (ipavalidate.Plain(username, notEmpty=True, allowSpaces=False)):
+            print "Username is required and may only include letters and numbers"
             return 1
 
     if not options.password:
@@ -147,7 +147,7 @@ def main():
 
     if options.mail:
         mail = options.mail
-        if (ipavalidate.email(mail)):
+        if (ipavalidate.Email(mail)):
             print "The email provided seem not a valid email."
             return 1
 
@@ -158,8 +158,8 @@ def main():
         if not options.gecos:
             while (cont != True):
                 gecos = raw_input("gecos []: ")
-                if (ipavalidate.plain(gecos, notEmpty=False)):
-                    print "Must be letters, numbers, spaces or '"
+                if (ipavalidate.String(gecos, notEmpty=False)):
+                    print "Please enter a value"
                 else:
                     cont = True
         cont = False
@@ -168,8 +168,8 @@ def main():
                 directory = raw_input("home directory [/home/"+username+"]: ")
                 if directory == "":
                      directory = "/home/"+username
-                if (ipavalidate.path(directory, notEmpty=False)):
-                    print "Must be letters, numbers, spaces or '"
+                if (ipavalidate.Path(directory, notEmpty=False)):
+                    print "Please enter a value"
                 else:
                     cont = True
         cont = False
