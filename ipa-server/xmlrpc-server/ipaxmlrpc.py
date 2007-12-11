@@ -32,6 +32,7 @@ import traceback
 import pprint
 from xmlrpclib import Marshaller,loads,dumps,Fault
 from mod_python import apache
+import logging
 
 import ipaserver
 import funcs
@@ -148,12 +149,15 @@ class ModXMLRPCRequestHandler(object):
             opts['ipadebug'] = pythonopts.get("IPADebug")
 
             if opts['ipadebug'].lower() == "on":
+                logging.basicConfig(level=logging.DEBUG,
+                    format='[%(asctime)s] [%(levelname)s] %(message)s',
+                    datefmt='%a %b %d %H:%M:%S %Y',
+                    stream=sys.stderr)
+
                 for o in opts:
-                    sys.stderr.write("IPA: setting option %s: %s\n" % (o, opts[o]))
-                    sys.stderr.flush()
-                for e in req.subprocess_env:
-                    sys.stderr.write("IPA: environment %s: %s\n" % (e, req.subprocess_env[e]))
-                    sys.stderr.flush()
+                    logging.debug("IPA: setting option %s: %s" % (o, opts[o]))
+#                for e in req.subprocess_env:
+#                    logging.debug("IPA: environment %s: %s" % (e, req.subprocess_env[e]))
 
         # Tack onto the end of the passed-in arguments any options we also
         # need

@@ -53,11 +53,6 @@ DefaultUserContainer = "cn=users,cn=accounts"
 DefaultGroupContainer = "cn=groups,cn=accounts"
 DefaultServiceContainer = "cn=services,cn=accounts"
 
-# FIXME: need to check the ipadebug option in ipa.conf
-#logging.basicConfig(level=logging.DEBUG,
-#    format='%(asctime)s %(levelname)s %(message)s',
-#    stream=sys.stderr)
-
 #
 # Apache runs in multi-process mode so each process will have its own
 # connection. This could theoretically drive the total number of connections
@@ -807,6 +802,7 @@ class IPAServer:
         """Returns a list: counter followed by the results.
            If the results are truncated, counter will be set to -1."""
 
+        logging.debug("IPA: find users %s" % criteria)
         config = self.get_ipa_config(opts)
         if timelimit < 0:
             timelimit = float(config.get('ipasearchtimelimit'))
