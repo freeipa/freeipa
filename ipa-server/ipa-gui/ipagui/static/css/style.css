@@ -395,9 +395,9 @@ ul.checkboxlist li input {
 
 .sortcol {
   cursor: pointer;
-  padding-right: 20px !important;
+  padding-left: 10px !important;
   background-repeat: no-repeat !important;
-  background-position: right center !important;
+  background-position: left center !important;
   text-decoration: underline;
 }
 .sortasc {
