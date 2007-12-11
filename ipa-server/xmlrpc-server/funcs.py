@@ -316,7 +316,7 @@ class IPAServer:
 
         # construct the giant match for all words
         exact_match_filter = "(&"
-        partial_match_filter = "(&"
+        partial_match_filter = "(|"
         for word in criteria_words:
             exact_match_filter += gen_search_pattern(word)
             partial_match_filter += gen_search_pattern("*%s*" % word)
