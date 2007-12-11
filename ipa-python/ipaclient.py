@@ -27,6 +27,7 @@ import user
 import group
 import ipa
 import config
+import radius_util
 
 class IPAClient:
 
@@ -398,4 +399,69 @@ class IPAClient:
 
     def get_keytab(self, princ_name):
         return self.transport.get_keytab(princ_name)
+
+# radius support
+    def get_radius_client_by_ip_addr(self, ip_addr, container=None, sattrs=None):
+        result = self.transport.get_radius_client_by_ip_addr(ip_addr, container, sattrs)
+        return radius_util.RadiusClient(result)
+
+    def add_radius_client(self, client, container=None):
+        client_dict = client.toDict()
+
+        # dn is set on the server-side
+        del client_dict['dn']
+
+        # convert to a regular dict before sending
+        result = self.transport.add_radius_client(client_dict, container)
+        return result
+
+    def update_radius_client(self, client):
+        result = self.transport.update_radius_client(client.origDataDict(), client.toDict())
+        return result
+
+    def delete_radius_client(self, ip_addr, container=None):
+        return self.transport.delete_radius_client(ip_addr, container)
+
+    def find_radius_clients(self, criteria, container=None, sattrs=None, searchlimit=0, timelimit=-1):
+        result = self.transport.find_radius_clients(criteria, container, sattrs, searchlimit, timelimit)
+        counter = result[0]
+
+        users = [counter]
+        for attrs in result[1:]:
+            if attrs is not None:
+                users.append(user.User(attrs))
+
+        return users
+
+    def get_radius_profile_by_uid(self, uid, user_profile=None, sattrs=None):
+        result = self.transport.get_radius_profile_by_uid(uid, user_profile, sattrs)
+        return radius_util.RadiusClient(result)
+
+    def add_radius_profile(self, profile, user_profile=None):
+        profile_dict = profile.toDict()
+
+        # dn is set on the server-side
+        del profile_dict['dn']
+
+        # convert to a regular dict before sending
+        result = self.transport.add_radius_profile(profile_dict, user_profile)
+        return result
+
+    def update_radius_profile(self, profile):
+        result = self.transport.update_radius_profile(profile.origDataDict(), profile.toDict())
+        return result
+
+    def delete_radius_profile(self, ip_addr, user_profile=None):
+        return self.transport.delete_radius_profile(ip_addr, user_profile)
+
+    def find_radius_profiles(self, criteria, user_profile=None, sattrs=None, searchlimit=0, timelimit=-1):
+        result = self.transport.find_radius_profiles(criteria, user_profile, sattrs, searchlimit, timelimit)
+        counter = result[0]
+
+        users = [counter]
+        for attrs in result[1:]:
+            if attrs is not None:
+                users.append(user.User(attrs))
+
+        return users
 

@@ -23,6 +23,7 @@ from optparse import OptionParser
 import ipa.ipaclient as ipaclient
 import ipa.config
 import ipa.ipautil as ipautil
+import ipa.ipaadminutil as ipaadminutil
 import base64
 
 import errno
@@ -87,6 +88,7 @@ def main():
 
         counter = users[0]
         users = users[1:]
+        userindex = 0
         if counter == 0:
             print "No entries found for", args[1]
             return 2
@@ -94,6 +96,15 @@ def main():
             print "These results are truncated."
             print "Please refine your search and try again."
 
+        if counter > 1:
+            userindex = ipaadminutil.select_user(counter, users)
+            if userindex == "q":
+                return
+
+
+        if userindex >= 0:
+            users = [users[userindex]]
+         
         for ent in users:
             attr = ent.attrList()
             attr.sort()

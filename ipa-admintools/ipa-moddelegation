@@ -23,7 +23,7 @@ from optparse import OptionParser
 import ipa
 import ipa.user
 import ipa.ipaclient as ipaclient
-import ipa.ipavalidate as ipavalidate
+import ipa.ipaadminutil as ipaadminutil
 import ipa.config
 import ipa.aci
 
@@ -75,21 +75,47 @@ def main():
 
         if options.source:
             source_grp = client.find_groups(options.source)
-            if source_grp[0] > 1:
-                print "Multiple matches found for %s." % options.source
-                return 1
-            elif source_grp[0] == 0:
-                print "No matches found for %s." % options.source
-                return 1
+            counter = source_grp[0]
+            source_grp = source_grp[1:]
+            groupindex = -1
+            if counter == 0:
+                print "No entries found for %s" % options.source
+                return 2 
+            elif counter == -1:
+                print "These results are truncated."
+                print "Please refine your search and try again."
+                return 3
+
+            if counter > 1:
+                print "\nMultiple entries for the source group found."
+                groupindex = ipaadminutil.select_group(counter, source_grp)
+                if groupindex == "q":
+                    return 0
+
+            if groupindex >= 0:
+                source_grp = [source_grp[groupindex]]
 
         if options.target:
             target_grp = client.find_groups(options.target)
-            if target_grp[0] > 1:
-                print "Multiple matches found for %s." % options.target
-                return 1
-            elif target_grp[0] == 0:
-                print "No matches found for %s." % options.target
-                return 1
+            counter = target_grp[0]
+            target_grp = target_grp[1:]
+            groupindex = -1
+            if counter == 0:
+                print "No entries found for %s" % options.target
+                return 2 
+            elif counter == -1:
+                print "These results are truncated."
+                print "Please refine your search and try again."
+                return 3
+
+            if counter > 1:
+                print "\nMultiple entries for the target group found."
+                groupindex = ipaadminutil.select_group(counter, target_grp)
+                if groupindex == "q":
+                    return 0
+
+            if groupindex >= 0:
+                target_grp = [target_grp[groupindex]]
 
         if options.attributes:
             attr_list = options.attributes.split(',')
@@ -125,11 +151,11 @@ def main():
         new_aci = ipa.aci.ACI()
         new_aci.name = args[1]
         if options.source:
-            new_aci.source_group = source_grp[1].dn
+            new_aci.source_group = source_grp[0].dn
         else:
             new_aci.source_group = old_aci.source_group
         if options.target:
-            new_aci.dest_group = target_grp[1].dn
+            new_aci.dest_group = target_grp[0].dn
         else:
             new_aci.dest_group = old_aci.dest_group
         if options.attributes:

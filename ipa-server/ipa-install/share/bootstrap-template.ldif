@@ -81,6 +81,30 @@ homeDirectory: /home/admin
 loginShell: /bin/bash
 gecos: Administrator
 
+dn: cn=radius,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: radius
+
+dn: cn=clients,cn=radius,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: clients
+
+dn: cn=profiles,cn=radius,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: profiles
+
+dn: uid=ipa_default, cn=profiles,cn=radius,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: radiusprofile
+uid: ipa_default
+
 dn: cn=admins,cn=groups,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top

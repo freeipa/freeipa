@@ -31,6 +31,7 @@ import copy
 import attrs
 from ipa import ipaerror
 from urllib import quote,unquote
+from ipa import radius_util
 
 import string
 from types import *
@@ -51,11 +52,6 @@ ACIContainer = "cn=accounts"
 DefaultUserContainer = "cn=users,cn=accounts"
 DefaultGroupContainer = "cn=groups,cn=accounts"
 DefaultServiceContainer = "cn=services,cn=accounts"
-
-# FIXME: need to check the ipadebug option in ipa.conf
-#logging.basicConfig(level=logging.DEBUG,
-#    format='%(asctime)s %(levelname)s %(message)s',
-#    stream=sys.stderr)
 
 #
 # Apache runs in multi-process mode so each process will have its own
@@ -557,7 +553,201 @@ class IPAServer:
             schema.append(d)
 
         return schema
+# radius support
+
+    # clients
+    def get_radius_client_by_ip_addr(self, ip_addr, container=None, sattrs=None, opts=None):
+        filter = radius_util.radius_client_filter(ip_addr)
+        basedn = radius_util.radius_clients_basedn(container, self.basedn)
+        return self.__get_sub_entry(basedn, filter, sattrs, opts)
+
+    def __radius_client_exists(self, ip_addr, container, opts):
+        filter = radius_util.radius_client_filter(ip_addr)
+        basedn = radius_util.radius_clients_basedn(container, self.basedn)
+ 
+        try:
+            entry = self.__get_sub_entry(basedn, filter, ['dn','uid'], opts)
+            return True
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            return False
+
+    def add_radius_client (self, client, container=None, opts=None):
+        if container is None:
+            container = radius_util.clients_container
+
+        ip_addr = client['radiusClientIPAddress']
+
+        if self.__radius_client_exists(ip_addr, container, opts):
+            raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
+
+        dn = radius_util.radius_client_dn(ip_addr, container, self.basedn)
+        entry = ipaserver.ipaldap.Entry(dn)
+
+        # some required objectclasses
+        entry.setValues('objectClass', 'top', 'radiusClientProfile')
+
+        # fill in our new entry with everything sent by the client
+        for attr in client:
+            entry.setValues(attr, client[attr])
+
+        conn = self.getConnection(opts)
+        try:
+            res = conn.addEntry(entry)
+        finally:
+            self.releaseConnection(conn)
+        return res
     
+    def update_radius_client(self, oldentry, newentry, opts=None):
+        return self.update_entry(oldentry, newentry, opts)
+
+    def delete_radius_client(self, ip_addr, container=None, opts=None):
+        client = self.get_radius_client_by_ip_addr(ip_addr, container, ['dn', 'cn'], opts)
+        if client is None:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+
+        conn = self.getConnection(opts)
+        try:
+            res = conn.deleteEntry(client['dn'])
+        finally:
+            self.releaseConnection(conn)
+        return res
+
+    def find_radius_clients(self, ip_attrs, container=None, sattrs=None, searchlimit=0, timelimit=-1, opts=None):
+        def gen_filter(objectclass, attr, values):
+            '''Given ('myclass', 'myattr', [v1, v2]) returns
+               (&(objectclass=myclass)(|(myattr=v1)(myattr=v2)))
+            '''
+            # Don't use __safe_filter, prevents wildcarding
+            #attrs = ''.join(['(%s=%s)' % (attr, self.__safe_filter(val)) for val in values])
+            attrs = ''.join(['(%s=%s)' % (attr, val) for val in values])
+            filter = "(&(objectclass=%s)(|%s))" % (objectclass, attrs)
+            return filter
+
+        basedn = radius_util.radius_clients_basedn(container, self.basedn)
+        filter = gen_filter('radiusClientProfile', 'radiusClientIPAddress', ip_attrs)
+        conn = self.getConnection(opts)
+        try:
+            try:
+                results = conn.getListAsync(basedn, self.scope, filter, sattrs, 0, None, None, timelimit, searchlimit)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                results = [0]
+        finally:
+            self.releaseConnection(conn)
+
+        counter = results[0]
+        results = results[1:]
+        radius_clients = [counter]
+        for radius_client in results:
+            radius_clients.append(self.convert_entry(radius_client))
+
+        return radius_clients
+
+    # profiles
+    def get_radius_profile_by_uid(self, uid, user_profile=True, sattrs=None, opts=None):
+        if user_profile:
+            container = DefaultUserContainer
+        else:
+            container = radius_util.profiles_container
+
+        uid = self.__safe_filter(uid)
+        filter = radius_util.radius_profile_filter(uid)
+        basedn = radius_util.radius_profiles_basedn(container, self.basedn)
+        return self.__get_sub_entry(basedn, filter, sattrs, opts)
+
+    def __radius_profile_exists(self, uid, user_profile, opts):
+        if user_profile:
+            container = DefaultUserContainer
+        else:
+            container = radius_util.profiles_container
+
+        uid = self.__safe_filter(uid)
+        filter = radius_util.radius_profile_filter(uid)
+        basedn = radius_util.radius_profiles_basedn(container, self.basedn)
+ 
+        try:
+            entry = self.__get_sub_entry(basedn, filter, ['dn','uid'], opts)
+            return True
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            return False
+
+    def add_radius_profile (self, profile, user_profile=True, opts=None):
+        uid = profile['uid']
+
+        if self.__radius_profile_exists(uid, user_profile, opts):
+            raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
+
+        if user_profile:
+            container = DefaultUserContainer
+        else:
+            container = radius_util.profiles_container
+
+        dn = radius_util.radius_profile_dn(uid, container, self.basedn)
+        entry = ipaserver.ipaldap.Entry(dn)
+
+        # some required objectclasses
+        entry.setValues('objectClass', 'top', 'radiusprofile')
+
+        # fill in our new entry with everything sent by the profile
+        for attr in profile:
+            entry.setValues(attr, profile[attr])
+
+        conn = self.getConnection(opts)
+        try:
+            res = conn.addEntry(entry)
+        finally:
+            self.releaseConnection(conn)
+        return res
+    
+    def update_radius_profile(self, oldentry, newentry, opts=None):
+        return self.update_entry(oldentry, newentry, opts)
+
+    def delete_radius_profile(self, uid, user_profile, opts=None):
+        profile = self.get_radius_profile_by_uid(uid, user_profile, ['dn', 'cn'], opts)
+        if profile is None:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+
+        conn = self.getConnection(opts)
+        try:
+            res = conn.deleteEntry(profile['dn'])
+        finally:
+            self.releaseConnection(conn)
+        return res
+
+    def find_radius_profiles(self, uids, user_profile=True, sattrs=None, searchlimit=0, timelimit=-1, opts=None):
+        def gen_filter(objectclass, attr, values):
+            '''Given ('myclass', 'myattr', [v1, v2]) returns
+               (&(objectclass=myclass)(|(myattr=v1)(myattr=v2)))
+            '''
+            # Don't use __safe_filter, prevents wildcarding
+            #attrs = ''.join(['(%s=%s)' % (attr, self.__safe_filter(val)) for val in values])
+            attrs = ''.join(['(%s=%s)' % (attr, val) for val in values])
+            filter = "(&(objectclass=%s)(|%s))" % (objectclass, attrs)
+            return filter
+
+        if user_profile:
+            container = DefaultUserContainer
+        else:
+            container = radius_util.profiles_container
+
+        filter = gen_filter('radiusprofile', 'uid', uids)
+        basedn="%s,%s" % (container, self.basedn)
+        conn = self.getConnection(opts)
+        try:
+            try:
+                results = conn.getListAsync(basedn, self.scope, filter, sattrs, 0, None, None, timelimit, searchlimit)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                results = [0]
+        finally:
+            self.releaseConnection(conn)
+
+        counter = results[0]
+        results = results[1:]
+        radius_profiles = [counter]
+        for radius_profile in results:
+            radius_profiles.append(self.convert_entry(radius_profile))
+
+        return radius_profiles
+
     def set_custom_fields (self, schema, opts=None):
         """Set the list of custom user fields.
 
@@ -612,6 +802,7 @@ class IPAServer:
         """Returns a list: counter followed by the results.
            If the results are truncated, counter will be set to -1."""
 
+        logging.debug("IPA: find users %s" % criteria)
         config = self.get_ipa_config(opts)
         if timelimit < 0:
             timelimit = float(config.get('ipasearchtimelimit'))

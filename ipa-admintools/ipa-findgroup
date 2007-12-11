@@ -21,6 +21,7 @@
 import sys
 from optparse import OptionParser
 import ipa.ipaclient as ipaclient
+import ipa.ipaadminutil as ipaadminutil
 import ipa.config
 
 import errno
@@ -62,6 +63,7 @@ def main():
 
         counter = groups[0]
         groups = groups[1:]
+        groupindex = -1
         if counter == 0:
             print "No entries found for", args[1]
             return 2
@@ -69,6 +71,14 @@ def main():
             print "These results are truncated."
             print "Please refine your search and try again."
 
+        if counter > 1:
+            groupindex = ipaadminutil.select_group(counter, groups)
+            if groupindex == "q":
+                return 0
+
+        if groupindex >= 0:
+            groups = [groups[groupindex]]
+   
         for ent in groups:
             try:
                 members = client.group_members(ent.dn, ['dn','cn'])

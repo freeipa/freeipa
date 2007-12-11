@@ -1,0 +1,6 @@
+dn: cn=$ENCRYPTED_ATTRIBUTE, cn=encrypted attributes, cn=userRoot, cn=ldbm database, cn=plugins, cn=config
+changetype: add
+objectClass: top
+objectClass: nsAttributeEncryption
+cn: $ENCRYPTED_ATTRIBUTE
+nsEncryptionAlgorithm: AES

@@ -29,6 +29,8 @@ from ipa import ipautil
 
 import service
 import installutils
+import certs
+import ipaldap, ldap
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
@@ -290,13 +292,36 @@ class DsInstance(service.Service):
     def __enable_ssl(self):
         self.step("configuring ssl for ds instance")
         dirname = config_dirname(self.realm_name)
-        args = ["/usr/share/ipa/ipa-server-setupssl", self.dm_password,
-                dirname, self.host_name]
-        try:
-            ipautil.run(args)
-            logging.debug("done configuring ssl for ds instance")
-        except ipautil.CalledProcessError, e:
-            logging.critical("Failed to configure ssl in ds instance %s" % e)
+        ca = certs.CertDB(dirname)
+        ca.create_self_signed()
+        ca.create_server_cert("Server-Cert", "cn=%s,ou=Fedora Directory Server" % self.host_name)
+
+        conn = ipaldap.IPAdmin("127.0.0.1")
+        conn.simple_bind_s("cn=directory manager", self.dm_password)
+
+        mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
+               (ldap.MOD_REPLACE, "nsSSL3Ciphers",
+                "-rsa_null_md5,+rsa_rc4_128_md5,+rsa_rc4_40_md5,+rsa_rc2_40_md5,\
++rsa_des_sha,+rsa_fips_des_sha,+rsa_3des_sha,+rsa_fips_3des_sha,+fortezza,\
++fortezza_rc4_128_sha,+fortezza_null,+tls_rsa_export1024_with_rc4_56_sha,\
++tls_rsa_export1024_with_des_cbc_sha")]
+        conn.modify_s("cn=encryption,cn=config", mod)
+
+        mod = [(ldap.MOD_ADD, "nsslapd-security", "on"),
+               (ldap.MOD_REPLACE, "nsslapd-ssl-check-hostname", "off")]
+        conn.modify_s("cn=config", mod)
+
+        entry = ipaldap.Entry("cn=RSA,cn=encryption,cn=config")
+        
+        entry.setValues("objectclass", "top", "nsEncryptionModule")
+        entry.setValues("cn", "RSA")
+        entry.setValues("nsSSLPersonalitySSL", "Server-Cert")
+        entry.setValues("nsSSLToken", "internal (software)")
+        entry.setValues("nsSSLActivation", "on")
+
+        conn.addEntry(entry)
+        
+        conn.unbind()
         
     def __add_default_layout(self):
         self.step("adding default layout")

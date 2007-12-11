@@ -4,6 +4,11 @@
 # LDAP v3 version by Jochen Friedrich <jochen@scram.de>
 # Updates by Adrian Pavlykevych <pam@polynet.lviv.ua>
 # Modified by John Dennis <jdennis@redhat.com> for use with Directory Sever/IPA
+#
+# Note: These OID's do not seem to be registered, the closest I could find
+# was 1.3.6.1.4.1.3317
+# {iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) gnome(3317)}
+#
 ##############
 dn: cn=schema
 attributeTypes:
@@ -487,7 +492,7 @@ objectClasses:
         NAME 'radiusprofile'
         SUP top AUXILIARY
         DESC ''
-        MUST cn
+        MUST uid
         MAY ( radiusArapFeatures $ radiusArapSecurity $ radiusArapZoneAccess $
             radiusAuthType $ radiusCallbackId $ radiusCallbackNumber $
             radiusCalledStationId $ radiusCallingStationId $ radiusClass $
@@ -520,4 +525,35 @@ objectClasses:
         DESC 'A Container Objectclass to be used for creating radius profile object'
         MUST cn
         MAY ( uid $ userPassword $ description )
+  )
+attributeTypes:
+    ( 1.3.6.1.4.1.3317.4.3.1.64
+        NAME 'radiusClientSecret'
+        DESC ''
+        EQUALITY caseIgnoreIA5Match
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+        SINGLE-VALUE
+    )
+attributeTypes:
+    ( 1.3.6.1.4.1.3317.4.3.1.65
+        NAME 'radiusClientNASType'
+        DESC ''
+        EQUALITY caseIgnoreIA5Match
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+        SINGLE-VALUE
+    )
+attributeTypes:
+    ( 1.3.6.1.4.1.3317.4.3.1.66
+        NAME 'radiusClientShortName'
+        DESC ''
+        EQUALITY caseIgnoreIA5Match
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+    )
+objectClasses:
+    ( 1.3.6.1.4.1.3317.4.3.2.3
+        NAME 'radiusClientProfile'
+        SUP top STRUCTURAL
+        DESC 'A Container Objectclass to be used for describing radius clients'
+        MUST (radiusClientIPAddress $ radiusClientSecret)
+        MAY ( radiusClientNASType $ radiusClientShortName $ description )
   )

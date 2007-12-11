@@ -18,6 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+import sys
 import subprocess
 import string
 import tempfile
@@ -27,6 +28,7 @@ import pwd
 import time
 import sys
 from ipa.ipautil import *
+from ipa import radius_util
 
 import service
 
@@ -34,28 +36,20 @@ import os
 import re
 
 IPA_RADIUS_VERSION  = '0.0.0'
-PKG_NAME            = 'freeradius'
-PKG_CONFIG_DIR      = '/etc/raddb'
-
-RADIUS_SERVICE_NAME = 'radius'
-RADIUS_USER         = 'radiusd'
-
-IPA_KEYTAB_FILEPATH            = os.path.join(PKG_CONFIG_DIR, 'ipa.keytab')
-LDAP_ATTR_MAP_FILEPATH         = os.path.join(PKG_CONFIG_DIR, 'ldap.attrmap')
-RADIUSD_CONF_FILEPATH          = os.path.join(PKG_CONFIG_DIR, 'radiusd.conf')
-RADIUSD_CONF_TEMPLATE_FILEPATH = os.path.join(SHARE_DIR,       'radius.radiusd.conf.template')
-
-RADIUSD = '/usr/sbin/radiusd'
 
 # FIXME there should a utility to get the user base dn
 from ipaserver.funcs import DefaultUserContainer, DefaultGroupContainer
 
 #-------------------------------------------------------------------------------
 
+def ldap_mod(fd, dn, pwd):
+    args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv", "-D", dn, "-w", pwd, "-f", fd.name]
+    run(args)
+
 def get_radius_version():
     version = None
     try:
-        p = subprocess.Popen([RADIUSD, '-v'], stdout=subprocess.PIPE,
+        p = subprocess.Popen([radius_util.RADIUSD, '-v'], stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         status =  p.returncode
@@ -80,10 +74,11 @@ class RadiusInstance(service.Service):
 
     def create_instance(self, realm_name, host_name, ldap_server):
         self.realm        = realm_name.upper()
+        self.suffix       = realm_to_suffix(self.realm)
         self.fqdn         = host_name
         self.ldap_server  = ldap_server
-        self.principal    = "%s/%s@%s" % (RADIUS_SERVICE_NAME, self.fqdn, self.realm)
-        self.basedn       = realm_to_suffix(self.realm)
+        self.principal    = "%s/%s@%s" % (radius_util.RADIUS_SERVICE_NAME, self.fqdn, self.realm)
+        self.basedn       = self.suffix
         self.user_basedn  = "%s,%s" % (DefaultUserContainer, self.basedn) # FIXME, should be utility to get this
         self.radius_version = get_radius_version()
         self.start_creation(4, "Configuring radiusd")
@@ -113,31 +108,34 @@ class RadiusInstance(service.Service):
         version = 'IPA_RADIUS_VERSION=%s FREE_RADIUS_VERSION=%s' % (IPA_RADIUS_VERSION, self.radius_version)
         sub_dict = {'CONFIG_FILE_VERSION_INFO' : version,
                     'LDAP_SERVER'              : self.ldap_server,
-                    'RADIUS_KEYTAB'            : IPA_KEYTAB_FILEPATH,
+                    'RADIUS_KEYTAB'            : radius_util.RADIUS_IPA_KEYTAB_FILEPATH,
                     'RADIUS_PRINCIPAL'         : self.principal,
                     'RADIUS_USER_BASE_DN'      : self.user_basedn,
-                    'ACCESS_ATTRIBUTE'         : 'dialupAccess' 
+                    'ACCESS_ATTRIBUTE'         : '',
+                    'ACCESS_ATTRIBUTE_DEFAULT' : 'TRUE',
+                    'CLIENTS_BASEDN'           : radius_util.radius_clients_basedn(None, self.suffix),
+                    'SUFFIX'                   : self.suffix,
                     }
         try:
-            radiusd_conf = template_file(RADIUSD_CONF_TEMPLATE_FILEPATH, sub_dict)
-            radiusd_fd = open(RADIUSD_CONF_FILEPATH, 'w+')
+            radiusd_conf = template_file(radius_util.RADIUSD_CONF_TEMPLATE_FILEPATH, sub_dict)
+            radiusd_fd = open(radius_util.RADIUSD_CONF_FILEPATH, 'w+')
             radiusd_fd.write(radiusd_conf)
             radiusd_fd.close()
         except Exception, e:
-            logging.error("could not create %s: %s", RADIUSD_CONF_FILEPATH, e)
+            logging.error("could not create %s: %s", radius_util.RADIUSD_CONF_FILEPATH, e)
 
     def __create_radius_keytab(self):
-        self.step("create radiusd keytab")
+        self.step("creating a keytab for httpd")
         try:
-            if file_exists(IPA_KEYTAB_FILEPATH):
-                os.remove(IPA_KEYTAB_FILEPATH)
+            if file_exists(radius_util.RADIUS_IPA_KEYTAB_FILEPATH):
+                os.remove(radius_util.RADIUS_IPA_KEYTAB_FILEPATH)
         except os.error:
-            logging.error("Failed to remove %s", IPA_KEYTAB_FILEPATH)
+            logging.error("Failed to remove %s", radius_util.RADIUS_IPA_KEYTAB_FILEPATH)
 
         (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
         kwrite.write("addprinc -randkey %s\n" % (self.principal))
         kwrite.flush()
-        kwrite.write("ktadd -k %s %s\n" % (IPA_KEYTAB_FILEPATH, self.principal))
+        kwrite.write("ktadd -k %s %s\n" % (radius_util.RADIUS_IPA_KEYTAB_FILEPATH, self.principal))
         kwrite.flush()
         kwrite.close()
         kread.close()
@@ -145,42 +143,29 @@ class RadiusInstance(service.Service):
 
         # give kadmin time to actually write the file before we go on
         retry = 0
-        while not file_exists(IPA_KEYTAB_FILEPATH):
+        while not file_exists(radius_util.RADIUS_IPA_KEYTAB_FILEPATH):
             time.sleep(1)
             retry += 1
             if retry > 15:
                 print "Error timed out waiting for kadmin to finish operations\n"
                 sys.exit(1)
-                
         try:
-            pent = pwd.getpwnam(RADIUS_USER)
-            os.chown(IPA_KEYTAB_FILEPATH, pent.pw_uid, pent.pw_gid)
+            pent = pwd.getpwnam(radius_util.RADIUS_USER)
+            os.chown(radius_util.RADIUS_IPA_KEYTAB_FILEPATH, pent.pw_uid, pent.pw_gid)
         except Exception, e:
-            logging.error("could not chown on %s to %s: %s", IPA_KEYTAB_FILEPATH, RADIUS_USER, e)
+            logging.error("could not chown on %s to %s: %s", radius_util.RADIUS_IPA_KEYTAB_FILEPATH, radius_util.RADIUS_USER, e)
+
+    #FIXME, should use IPAdmin method
+    def __set_ldap_encrypted_attributes(self):
+        ldif_file = 'encrypted_attribute.ldif'
+        self.step("setting ldap encrypted attributes")
+        ldif_txt = template_file(SHARE_DIR + ldif_file, {'ENCRYPTED_ATTRIBUTE':'radiusClientSecret'})
+        ldif_fd = write_tmp_file(ldif_txt)
+        try:
+            ldap_mod(ldif_fd, "cn=Directory Manager", self.dm_password)
+        except subprocess.CalledProcessError, e:
+            logging.critical("Failed to load %s: %s" % (ldif_file, str(e)))
+        ldif_fd.close()
 
 #-------------------------------------------------------------------------------
-
-# FIXME: this should be in a common area so it can be shared
-def get_ldap_attr_translations():
-    comment_re = re.compile('#.*$')
-    radius_attr_to_ldap_attr = {}
-    ldap_attr_to_radius_attr = {}
-    try:
-        f = open(LDAP_ATTR_MAP_FILEPATH)
-        for line in f.readlines():
-            line = comment_re.sub('', line).strip()
-            if not line: continue
-            attr_type, radius_attr, ldap_attr = line.split()
-            print 'type="%s" radius="%s" ldap="%s"' % (attr_type, radius_attr, ldap_attr)
-            radius_attr_to_ldap_attr[radius_attr] = {'ldap_attr':ldap_attr, 'attr_type':attr_type}
-            ldap_attr_to_radius_attr[ldap_attr] = {'radius_attr':radius_attr, 'attr_type':attr_type}
-        f.close()
-    except Exception, e:
-        logging.error('cold not read radius ldap attribute map file (%s): %s', LDAP_ATTR_MAP_FILEPATH, e)
-        pass                    # FIXME
-
-    #for k,v in radius_attr_to_ldap_attr.items():
-    #    print '%s --> %s' % (k,v)
-    #for k,v in ldap_attr_to_radius_attr.items():
-    #    print '%s --> %s' % (k,v)
 
