@@ -19,6 +19,7 @@ from subcontrollers.group import GroupController
 from subcontrollers.delegation import DelegationController
 from subcontrollers.policy import PolicyController
 from subcontrollers.ipapolicy import IPAPolicyController
+from subcontrollers.principal import PrincipalController
 
 ipa.config.init_config()
 
@@ -31,6 +32,7 @@ class Root(controllers.RootController):
     delegate = DelegationController()
     policy = PolicyController()
     ipapolicy = IPAPolicyController()
+    principal = PrincipalController()
 
     @expose(template="ipagui.templates.welcome")
     @identity.require(identity.not_anonymous())

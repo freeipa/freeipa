@@ -15,6 +15,9 @@ edit_url = tg.url('/ipapolicy/edit')
   <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/tablekit.js')}"></script>
 
   <h1>Manage IPA Policy</h1>
+    <input class="submitbutton" type="button"
+      onclick="document.location.href='${edit_url}'"
+      value="Edit Policy" />
 
     <h2 class="formsection">Search</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">
@@ -108,6 +111,52 @@ edit_url = tg.url('/ipapolicy/edit')
             <label class="fieldlabel" py:content="fields.ipadefaultprimarygroup.label" />:
           </th>
           <td>${ipapolicy.get("ipadefaultprimarygroup")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.ipadefaultemaildomain.label" />:
+          </th>
+          <td>${ipapolicy.get("ipadefaultemaildomain")}</td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.ipauserobjectclasses.label" />:
+          </th>
+          <td>
+          <table cellpadding="2" cellspacing="0" border="0">
+            <tbody>
+              <?python
+                index = 0
+                values = ipapolicy.get("ipauserobjectclasses", '')
+                if isinstance(values, str):
+                    values = [values]
+               ?>
+              <tr py:for="index in range(len(values))">
+              <td>${values[index]}</td>
+              </tr>
+            </tbody>
+          </table>
+          </td>
+        </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="fields.ipagroupobjectclasses.label" />:
+          </th>
+          <td>
+          <table cellpadding="2" cellspacing="0" border="0">
+            <tbody>
+              <?python
+                index = 0
+                values = ipapolicy.get("ipagroupobjectclasses", '')
+                if isinstance(values, str):
+                    values = [values]
+               ?>
+              <tr py:for="index in range(len(values))">
+              <td>${values[index]}</td>
+              </tr>
+            </tbody>
+          </table>
+          </td>
         </tr>
     </table>
 <hr />

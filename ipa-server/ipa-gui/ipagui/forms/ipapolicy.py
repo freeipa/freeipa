@@ -1,5 +1,6 @@
 import turbogears
 from turbogears import validators, widgets
+from tg_expanding_form_widget.tg_expanding_form_widget import ExpandingForm
 
 class IPAPolicyFields(object):
     # From cn=ipaConfig
@@ -12,6 +13,11 @@ class IPAPolicyFields(object):
     ipadefaultprimarygroup = widgets.TextField(name="ipadefaultprimarygroup", label="Default Users group")
     ipamaxusernamelength = widgets.TextField(name="ipamaxusernamelength", label="Max. Username Length", attrs=dict(size=3,maxlength=3))
     ipapwdexpadvnotify = widgets.TextField(name="ipapwdexpadvnotify", label="Password Expiration Notification (days)", attrs=dict(size=3,maxlength=3))
+    ipauserobjectclasses = widgets.TextField(name="ipauserobjectclasses", label="Default User Object Classes", attrs=dict(size=50))
+    userobjectclasses = ExpandingForm(name="userobjectclasses", label="Default User Object Classes", fields=[ipauserobjectclasses])
+    ipagroupobjectclasses = widgets.TextField(name="ipagroupobjectclasses", label="Default Group Object Classes", attrs=dict(size=50))
+    groupobjectclasses = ExpandingForm(name="groupobjectclasses", label="Default User Object Classes", fields=[ipagroupobjectclasses])
+    ipadefaultemaildomain =  widgets.TextField(name="ipadefaultemaildomain", label="Default E-mail Domain", attrs=dict(size=20))
 
     ipapolicy_orig = widgets.HiddenField(name="ipapolicy_orig")
 
@@ -34,6 +40,10 @@ class IPAPolicyValidator(validators.Schema):
     ipahomesrootdir = validators.String(not_empty=True)
     ipadefaultloginshell = validators.String(not_empty=True)
     ipadefaultprimarygroup = validators.String(not_empty=True)
+    ipauserobjectclasses = validators.ForEach(validators.String(not_empty=True))
+    ipagroupobjectclasses = validators.ForEach(validators.String(not_empty=True))
+    ipadefaultemaildomain = validators.String(not_empty=True)
+
     krbmaxpwdlife = validators.Number(not_empty=True)
     krbminpwdlife = validators.Number(not_empty=True)
     krbpwdmindiffchars = validators.Number(not_empty=True)

@@ -11,7 +11,7 @@ class UserFields(object):
     displayname = widgets.TextField(name="displayname", label="Display Name")
     initials = widgets.TextField(name="initials", label="Initials")
 
-    uid = widgets.TextField(name="uid", label="Login")
+    uid = widgets.TextField(name="uid", label="Login", attrs=dict(onchange="warnRDN(this.id)"))
     userpassword = widgets.PasswordField(name="userpassword", label="Password")
     userpassword_confirm = widgets.PasswordField(name="userpassword_confirm",
             label="Confirm Password")
@@ -56,9 +56,7 @@ class UserFields(object):
             label="Account Status",
             options = [("", "active"), ("true", "inactive")])
 
-    uid_hidden = widgets.HiddenField(name="uid")
-    uidnumber_hidden = widgets.HiddenField(name="uidnumber")
-    gidnumber_hidden = widgets.HiddenField(name="gidnumber")
+    uid_hidden = widgets.HiddenField(name="uid_hidden")
     krbPasswordExpiration_hidden = widgets.HiddenField(name="krbPasswordExpiration")
     editprotected_hidden = widgets.HiddenField(name="editprotected")
 
@@ -111,11 +109,12 @@ class UserEditValidator(validators.Schema):
     givenname = validators.String(not_empty=True)
     sn = validators.String(not_empty=True)
     cn = validators.ForEach(validators.String(not_empty=True))
-    mail = validators.Email(not_empty=True)
+    mail = validators.Email(not_empty=False)
     uidnumber = validators.Int(not_empty=False)
     gidnumber = validators.Int(not_empty=False)
 
     pre_validators = [
+      validators.RequireIfPresent(required='uid', present='editprotected'),
       validators.RequireIfPresent(required='uidnumber', present='editprotected'),
       validators.RequireIfPresent(required='gidnumber', present='editprotected'),
     ]

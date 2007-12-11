@@ -356,13 +356,13 @@ class IPAdmin(SimpleLDAPObject):
             type, obj = self.result(res)
         except ldap.NO_SUCH_OBJECT:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND,
-                    "no such entry for " + str(args))            
+                    notfound(args))
         except ldap.LDAPError, e:
             raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, None, e)
 
         if not obj:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND,
-                    "no such entry for " + str(args))
+                    notfound(args))
         elif isinstance(obj,Entry):
             return obj
         else: # assume list/tuple
@@ -386,7 +386,7 @@ class IPAdmin(SimpleLDAPObject):
 
         if not obj:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND,
-                    "no such entry for " + str(args))
+                    notfound(args))
 
         all_users = []
         for s in obj:
@@ -424,7 +424,7 @@ class IPAdmin(SimpleLDAPObject):
 
         if not entries:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND,
-                    "no such entry for " + str(args))
+                    notfound(args))
 
         if partial == 1:
             counter = -1
@@ -717,3 +717,16 @@ class IPAdmin(SimpleLDAPObject):
         """Returns True if the given string is a DN, False otherwise."""
         return (dn.find("=") > 0)
     is_a_dn = staticmethod(is_a_dn)
+
+
+def notfound(args):
+    """Return a string suitable for displaying as an error when a
+       search returns no results.
+
+       This just returns whatever is after the equals sign"""
+    filter = args[2]
+    try:
+        target = re.match(r'\(.*=(.*)\)', filter).group(1)
+    except:
+        target = filter
+    return "%s not found" % str(target)            

@@ -90,6 +90,9 @@ def main():
         if counter == 0:
             print "No entries found for", args[1]
             return 2
+        elif counter == -1:
+            print "These results are truncated."
+            print "Please revine your search and try again."
 
         for ent in users:
             attr = ent.attrList()

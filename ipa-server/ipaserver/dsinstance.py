@@ -18,16 +18,15 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import subprocess
-import string
-import tempfile
 import shutil
 import logging
 import pwd
 import glob
 import sys
+import os
 
-from ipa.ipautil import *
+from ipa import ipautil
+
 import service
 import installutils
 
@@ -36,7 +35,7 @@ SERVER_ROOT_32 = "/usr/lib/dirsrv"
 
 def ldap_mod(fd, dn, pwd):
     args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv", "-D", dn, "-w", pwd, "-f", fd.name]
-    run(args)
+    ipautil.run(args)
 
 def realm_to_suffix(realm_name):
     s = realm_name.split(".")
@@ -44,7 +43,7 @@ def realm_to_suffix(realm_name):
     return ",".join(terms)
 
 def find_server_root():
-    if dir_exists(SERVER_ROOT_64):
+    if ipautil.dir_exists(SERVER_ROOT_64):
         return SERVER_ROOT_64
     else:
         return SERVER_ROOT_32
@@ -83,7 +82,7 @@ def check_existing_installation():
         sys.exit(1)
 
     try:
-        run(["/sbin/service", "dirsrv", "stop"])
+        ipautil.run(["/sbin/service", "dirsrv", "stop"])
     except:
         pass
     for d in dirs:
@@ -126,6 +125,7 @@ class DsInstance(service.Service):
         self.host_name = None
         self.dm_password = None
         self.sub_dict = None
+        self.domain = None
 
     def create_instance(self, ds_user, realm_name, host_name, dm_password, ro_replica=False):
         self.ds_user = ds_user
@@ -134,6 +134,7 @@ class DsInstance(service.Service):
         self.suffix = realm_to_suffix(self.realm_name)
         self.host_name = host_name
         self.dm_password = dm_password
+        self.domain = host_name[host_name.find(".")+1:]
         self.__setup_sub_dict()
         
         if ro_replica:
@@ -174,7 +175,7 @@ class DsInstance(service.Service):
         self.sub_dict = dict(FQHN=self.host_name, SERVERID=self.serverid,
                              PASSWORD=self.dm_password, SUFFIX=self.suffix.lower(),
                              REALM=self.realm_name, USER=self.ds_user,
-                             SERVER_ROOT=server_root)
+                             SERVER_ROOT=server_root, DOMAIN=self.domain)
 
     def __create_ds_user(self):
         self.step("creating directory server user")
@@ -185,25 +186,25 @@ class DsInstance(service.Service):
             logging.debug("adding ds user %s" % self.ds_user)
             args = ["/usr/sbin/useradd", "-c", "DS System User", "-d", "/var/lib/dirsrv", "-M", "-r", "-s", "/sbin/nologin", self.ds_user]
             try:
-                run(args)
+                ipautil.run(args)
                 logging.debug("done adding user")
             except ipautil.CalledProcessError, e:
                 logging.critical("failed to add user %s" % e)
 
     def __create_instance(self):
         self.step("creating directory server instance")
-        inf_txt = template_str(INF_TEMPLATE, self.sub_dict)
+        inf_txt = ipautil.template_str(INF_TEMPLATE, self.sub_dict)
         logging.debug(inf_txt)
-        inf_fd = write_tmp_file(inf_txt)
+        inf_fd = ipautil.write_tmp_file(inf_txt)
         logging.debug("writing inf template")
-        if file_exists("/usr/sbin/setup-ds.pl"):
+        if ipautil.file_exists("/usr/sbin/setup-ds.pl"):
             args = ["/usr/sbin/setup-ds.pl", "--silent", "--logfile", "-", "-f", inf_fd.name]
             logging.debug("calling setup-ds.pl")
         else:
             args = ["/usr/bin/ds_newinst.pl", inf_fd.name]
             logging.debug("calling ds_newinst.pl")
         try:
-            run(args)
+            ipautil.run(args)
             logging.debug("completed creating ds instance")
         except ipautil.CalledProcessError, e:
             logging.critical("failed to restart ds instance %s" % e)
@@ -217,19 +218,19 @@ class DsInstance(service.Service):
 
     def __add_default_schemas(self):
         self.step("adding default schema")
-        shutil.copyfile(SHARE_DIR + "60kerberos.ldif",
+        shutil.copyfile(ipautil.SHARE_DIR + "60kerberos.ldif",
                         schema_dirname(self.realm_name) + "60kerberos.ldif")
-        shutil.copyfile(SHARE_DIR + "60samba.ldif",
+        shutil.copyfile(ipautil.SHARE_DIR + "60samba.ldif",
                         schema_dirname(self.realm_name) + "60samba.ldif")
-        shutil.copyfile(SHARE_DIR + "60radius.ldif",
+        shutil.copyfile(ipautil.SHARE_DIR + "60radius.ldif",
                         schema_dirname(self.realm_name) + "60radius.ldif")
-        shutil.copyfile(SHARE_DIR + "60ipaconfig.ldif",
+        shutil.copyfile(ipautil.SHARE_DIR + "60ipaconfig.ldif",
                         schema_dirname(self.realm_name) + "60ipaconfig.ldif")
 
     def __add_memberof_module(self):
         self.step("enabling memboerof plugin")
-        memberof_txt = template_file(SHARE_DIR + "memberof-conf.ldif", self.sub_dict)
-        memberof_fd = write_tmp_file(memberof_txt)
+        memberof_txt = ipautil.template_file(ipautil.SHARE_DIR + "memberof-conf.ldif", self.sub_dict)
+        memberof_fd = ipautil.write_tmp_file(memberof_txt)
         try:
             ldap_mod(memberof_fd, "cn=Directory Manager", self.dm_password)
         except ipautil.CalledProcessError, e:
@@ -238,8 +239,8 @@ class DsInstance(service.Service):
 
     def __init_memberof(self):
         self.step("initializing group membership")
-        memberof_txt = template_file(SHARE_DIR + "memberof-task.ldif", self.sub_dict)
-        memberof_fd = write_tmp_file(memberof_txt)
+        memberof_txt = ipautil.template_file(ipautil.SHARE_DIR + "memberof-task.ldif", self.sub_dict)
+        memberof_fd = ipautil.write_tmp_file(memberof_txt)
         try:
             ldap_mod(memberof_fd, "cn=Directory Manager", self.dm_password)
         except ipautil.CalledProcessError, e:
@@ -248,8 +249,8 @@ class DsInstance(service.Service):
 
     def __add_referint_module(self):
         self.step("enabling referential integrity plugin")
-        referint_txt = template_file(SHARE_DIR + "referint-conf.ldif", self.sub_dict)
-        referint_fd = write_tmp_file(referint_txt)
+        referint_txt = ipautil.template_file(ipautil.SHARE_DIR + "referint-conf.ldif", self.sub_dict)
+        referint_fd = ipautil.write_tmp_file(referint_txt)
         try:
             ldap_mod(referint_fd, "cn=Directory Manager", self.dm_password)
         except ipautil.CalledProcessError, e:
@@ -258,8 +259,8 @@ class DsInstance(service.Service):
 
     def __add_dna_module(self):
         self.step("enabling distributed numeric assignment plugin")
-        dna_txt = template_file(SHARE_DIR + "dna-conf.ldif", self.sub_dict)
-        dna_fd = write_tmp_file(dna_txt)
+        dna_txt = ipautil.template_file(ipautil.SHARE_DIR + "dna-conf.ldif", self.sub_dict)
+        dna_fd = ipautil.write_tmp_file(dna_txt)
         try:
             ldap_mod(dna_fd, "cn=Directory Manager", self.dm_password)
         except ipautil.CalledProcessError, e:
@@ -268,8 +269,8 @@ class DsInstance(service.Service):
 
     def __config_uidgid_gen_first_master(self):
         self.step("configuring Posix uid/gid generation as first master")
-        dna_txt = template_file(SHARE_DIR + "dna-posix.ldif", self.sub_dict)
-        dna_fd = write_tmp_file(dna_txt)
+        dna_txt = ipautil.template_file(ipautil.SHARE_DIR + "dna-posix.ldif", self.sub_dict)
+        dna_fd = ipautil.write_tmp_file(dna_txt)
         try:
             ldap_mod(dna_fd, "cn=Directory Manager", self.dm_password)
         except ipautil.CalledProcessError, e:
@@ -278,8 +279,8 @@ class DsInstance(service.Service):
 
     def __add_master_entry_first_master(self):
         self.step("adding master entry as first master")
-        master_txt = template_file(SHARE_DIR + "master-entry.ldif", self.sub_dict)
-        master_fd = write_tmp_file(master_txt)
+        master_txt = ipautil.template_file(ipautil.SHARE_DIR + "master-entry.ldif", self.sub_dict)
+        master_fd = ipautil.write_tmp_file(master_txt)
         try:
             ldap_mod(master_fd, "cn=Directory Manager", self.dm_password)
         except ipautil.CalledProcessError, e:
@@ -292,20 +293,20 @@ class DsInstance(service.Service):
         args = ["/usr/share/ipa/ipa-server-setupssl", self.dm_password,
                 dirname, self.host_name]
         try:
-            run(args)
+            ipautil.run(args)
             logging.debug("done configuring ssl for ds instance")
         except ipautil.CalledProcessError, e:
             logging.critical("Failed to configure ssl in ds instance %s" % e)
         
     def __add_default_layout(self):
         self.step("adding default layout")
-        txt = template_file(SHARE_DIR + "bootstrap-template.ldif", self.sub_dict)
-        inf_fd = write_tmp_file(txt)
+        txt = ipautil.template_file(ipautil.SHARE_DIR + "bootstrap-template.ldif", self.sub_dict)
+        inf_fd = ipautil.write_tmp_file(txt)
         logging.debug("adding default dfrom ipa.ipautil import *s layout")
         args = ["/usr/bin/ldapmodify", "-xv", "-D", "cn=Directory Manager",
                 "-w", self.dm_password, "-f", inf_fd.name]
         try:
-            run(args)
+            ipautil.run(args)
             logging.debug("done adding default ds layout")
         except ipautil.CalledProcessError, e:
             print "Failed to add default ds layout", e
@@ -313,13 +314,13 @@ class DsInstance(service.Service):
         
     def __create_indeces(self):
         self.step("creating indeces")
-        txt = template_file(SHARE_DIR + "indeces.ldif", self.sub_dict)
-        inf_fd = write_tmp_file(txt)
+        txt = ipautil.template_file(ipautil.SHARE_DIR + "indeces.ldif", self.sub_dict)
+        inf_fd = ipautil.write_tmp_file(txt)
         logging.debug("adding/updating indeces")
         args = ["/usr/bin/ldapmodify", "-xv", "-D", "cn=Directory Manager",
                 "-w", self.dm_password, "-f", inf_fd.name]
         try:
-            run(args)
+            ipautil.run(args)
             logging.debug("done adding/updating indeces")
         except ipautil.CalledProcessError, e:
             logging.critical("Failed to add/update indeces %s" % str(e))
@@ -327,7 +328,7 @@ class DsInstance(service.Service):
     def __certmap_conf(self):
         self.step("configuring certmap.conf")
         dirname = config_dirname(self.realm_name)
-        certmap_conf = template_file(SHARE_DIR+"certmap.conf.template", self.sub_dict)
+        certmap_conf = ipautil.template_file(ipautil.SHARE_DIR + "certmap.conf.template", self.sub_dict)
         certmap_fd = open(dirname+"certmap.conf", "w+")
         certmap_fd.write(certmap_conf)
         certmap_fd.close()
@@ -335,7 +336,7 @@ class DsInstance(service.Service):
     def change_admin_password(self, password):
         logging.debug("Changing admin password")
         dirname = config_dirname(self.realm_name)
-        if dir_exists("/usr/lib64/mozldap"):
+        if ipautil.dir_exists("/usr/lib64/mozldap"):
             app = "/usr/lib64/mozldap/ldappasswd"
         else:
             app = "/usr/lib/mozldap/ldappasswd"
@@ -344,7 +345,7 @@ class DsInstance(service.Service):
                 "-P", dirname+"/cert8.db", "-ZZZ", "-s", password,
                 "uid=admin,cn=sysaccounts,cn=etc,"+self.suffix]
         try:
-            run(args)
+            ipautil.run(args)
             logging.debug("ldappasswd done")
         except ipautil.CalledProcessError, e:
             print "Unable to set admin password", e

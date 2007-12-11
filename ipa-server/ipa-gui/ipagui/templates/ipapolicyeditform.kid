@@ -15,6 +15,8 @@ from ipagui.helpers import ipahelper
 
   <script type="text/javascript" charset="utf-8"
     src="${tg.url('/static/javascript/dynamicedit.js')}"></script>
+  <script type="text/javascript" charset="utf-8"
+    src="${tg.url('/tg_widgets/tg_expanding_form_widget/javascript/expanding_form.js')}"></script>
 
     <div py:for="field in hidden_fields"
       py:replace="field.display(value_for(field), **params_for(field))"
@@ -170,7 +172,90 @@ from ipagui.helpers import ipahelper
               py:content="tg.errors.get('ipadefaultprimarygroup')" />
           </td>
         </tr>
+        <tr>
+          <th>
+            <label class="fieldlabel" py:content="ipapolicy_fields.ipadefaultemaildomain.label" />:
+          </th>
+          <td>
+          <span py:replace="ipapolicy_fields.ipadefaultemaildomain.display(value_for(ipapolicy_fields.ipadefaultemaildomain))" />
+          <span py:if="tg.errors.get('ipadefaultemaildomain')" class="fielderror"
+              py:content="tg.errors.get('ipadefaultemaildomain')" />
+          </td>
+        </tr>
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${ipapolicy_fields.userobjectclasses.field_id}"
+            py:content="ipapolicy_fields.userobjectclasses.label" />:
+        </th>
+        <td colspan="3">
+          <table class="formtable" cellpadding="2" cellspacing="0" border="0" id="${ipapolicy_fields.userobjectclasses.field_id}">
+            <tbody>
+              <?python repetition = 0
+                       fld_index = 0
+                       fld_error = tg.errors.get('ipauserobjectclasses')
+              ?>
+              <tr py:for="fld in value_for(ipapolicy_fields.ipauserobjectclasses)"
+                  id="${ipapolicy_fields.userobjectclasses.field_id}_${repetition}"
+                  class="${ipapolicy_fields.userobjectclasses.field_class}">
+
+                <td py:for="field in ipapolicy_fields.userobjectclasses.fields">
+                  <span><input class="textfield" type="text" id="${ipapolicy_fields.userobjectclasses.field_id}_${repetition}_ipauserobjectclasses" name="userobjectclasses-${repetition}.ipauserobjectclasses" value="${fld}"/></span>
+                  <span py:if="fld_error and fld_error[fld_index]" class="fielderror"
+                        py:content="tg.errors.get('ipauserobjectclasses')" />
+                </td>
+                <?python fld_index = fld_index + 1 ?>
+                <td>
+                  <a
+                  href="javascript:ExpandingForm.removeItem('${ipapolicy_fields.userobjectclasses.field_id}_${repetition}')">Remove</a>
+                </td>
+                <?python repetition = repetition + 1?>
+              </tr>
+            </tbody>
+          </table>
+          <a id="${ipapolicy_fields.userobjectclasses.field_id}_doclink" href="javascript:ExpandingForm.addItem('${ipapolicy_fields.userobjectclasses.field_id}');">Add User Object Class</a>
+        </td>
+      </tr>
+      <tr>
+        <th>
+          <label class="fieldlabel" for="${ipapolicy_fields.groupobjectclasses.field_id}"
+            py:content="ipapolicy_fields.groupobjectclasses.label" />:
+        </th>
+        <td colspan="3">
+          <table class="formtable" cellpadding="2" cellspacing="0" border="0" id="${ipapolicy_fields.groupobjectclasses.field_id}">
+            <tbody>
+              <?python repetition = 0
+                       fld_index = 0
+                       fld_error = tg.errors.get('ipagroupobjectclasses')
+              ?>
+              <tr py:for="fld in value_for(ipapolicy_fields.ipagroupobjectclasses)"
+                  id="${ipapolicy_fields.groupobjectclasses.field_id}_${repetition}"
+                  class="${ipapolicy_fields.groupobjectclasses.field_class}">
+
+                <td py:for="field in ipapolicy_fields.groupobjectclasses.fields">
+                  <span><input class="textfield" type="text" id="${ipapolicy_fields.groupobjectclasses.field_id}_${repetition}_ipagroupobjectclasses" name="groupobjectclasses-${repetition}.ipagroupobjectclasses" value="${fld}"/></span>
+                  <span py:if="fld_error and fld_error[fld_index]" class="fielderror"
+                        py:content="tg.errors.get('ipagroupobjectclasses')" />
+                </td>
+                <?python fld_index = fld_index + 1 ?>
+                <td>
+                  <a
+                  href="javascript:ExpandingForm.removeItem('${ipapolicy_fields.groupobjectclasses.field_id}_${repetition}')">Remove</a>
+                </td>
+                <?python repetition = repetition + 1?>
+              </tr>
+            </tbody>
+          </table>
+          <a id="${ipapolicy_fields.groupobjectclasses.field_id}_doclink" href="javascript:ExpandingForm.addItem('${ipapolicy_fields.groupobjectclasses.field_id}');">Add Group Object Class</a>
+        </td>
+      </tr>
     </table>
+
+    <hr/>
+
+          <input type="submit" class="submitbutton" name="submit"
+              value="Update Policy"/>
+          <input type="submit" class="submitbutton" name="submit"
+              value="Cancel Edit" />
   </form>
 
 </div>

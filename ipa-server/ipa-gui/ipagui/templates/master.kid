@@ -78,10 +78,14 @@
         <li><a href="${tg.url('/group/list')}">Find Groups</a></li>
         </ul>
         <ul py:if="'admins' in tg.identity.groups">
+        <li><a href="${tg.url('/principal/new')}">Add Service Principal</a></li>
+        <li><a href="${tg.url('/principal/list')}">Find Service Principal</a></li>
+        </ul>
+        <ul py:if="'admins' in tg.identity.groups">
         <li><a href="${tg.url('/policy/index')}">Manage Policy</a></li>
         </ul>
         <ul>
-        <li><a href="${tg.url('/user/edit/', principal=tg.identity.user.display_name)}">Self Service</a></li>
+        <li py:if="not tg.identity.anonymous"><a href="${tg.url('/user/edit/', principal=tg.identity.user.display_name)}">Self Service</a></li>
         </ul>
         <ul py:if="'admins' in tg.identity.groups">
         <li><a href="${tg.url('/delegate/list')}">Delegations</a></li>

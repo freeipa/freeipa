@@ -9,6 +9,7 @@ app_PYTHON = 			\
 	policy.py		\
 	user.py			\
 	delegation.py		\
+	principal.py		\
 	$(NULL)
 
 EXTRA_DIST =			\

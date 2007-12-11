@@ -664,6 +664,8 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	auth_context = NULL;
 	krep.length = 0;
 	krep.data = NULL;
+	kdec.length = 0;
+	kdec.data = NULL;
 	kprincpw = NULL;
 	context = NULL;
 	ticket = NULL;
@@ -859,6 +861,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	/* make sure password is cleared off before we free the memory */
 	memset(kdec.data, 0, kdec.length);
 	free(kdec.data);
+	kdec.length = 0;
 
 kpreply:
 
@@ -867,6 +870,7 @@ kpreply:
 	kdec.data = malloc(kdec.length);
 	if (!kdec.data) {
 		syslog(LOG_ERR, "Out of memory!");
+		kdec.length = 0;
 		goto done;
 	}
 	

@@ -7,6 +7,7 @@ app_PYTHON = 			\
 	ipapolicy.py		\
 	user.py			\
 	delegate.py		\
+	principal.py		\
 	$(NULL)
 
 EXTRA_DIST =			\

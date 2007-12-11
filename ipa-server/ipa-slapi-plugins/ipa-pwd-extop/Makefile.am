@@ -11,6 +11,7 @@ INCLUDES =							\
 	$(MOZLDAP_CFLAGS)					\
 	$(LDAP_CFLAGS)						\
 	$(KRB5_CFLAGS)						\
+	$(SSL_CFLAGS)						\
 	$(WARN_CFLAGS)						\
 	$(NULL)
 
@@ -27,6 +28,7 @@ libipa_pwd_extop_la_LDFLAGS = -avoid-version
 
 libipa_pwd_extop_la_LIBADD = 		\
 	$(KRB5_LIBS)			\
+	$(SSL_LIBS)			\
 	$(MOZLDAP_LIBS)			\
 	$(NULL)
 

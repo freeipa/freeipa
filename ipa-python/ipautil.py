@@ -25,14 +25,11 @@ import logging
 import subprocess
 from random import Random
 from time import gmtime
-import os
+import os, sys, traceback, readline
 import stat
-import socket
-import readline
-import traceback
+
 from types import *
 
-from string import lower
 import re
 import xmlrpclib
 import datetime
@@ -82,7 +79,7 @@ def run(args, stdin=None):
     logging.info(stderr)
 
     if p.returncode != 0:
-        raise self.CalledProcessError(p.returncode, ' '.join(args))
+        raise CalledProcessError(p.returncode, ' '.join(args))
 
 def file_exists(filename):
     try:
@@ -121,24 +118,24 @@ class CIDict(dict):
         self.update(default or {})
 
     def __getitem__(self,key):
-        return super(CIDict,self).__getitem__(lower(key))
+        return super(CIDict,self).__getitem__(string.lower(key))
 
     def __setitem__(self,key,value):
-        lower_key = lower(key)
+        lower_key = string.lower(key)
         self._keys[lower_key] = key
-        return super(CIDict,self).__setitem__(lower(key),value)
+        return super(CIDict,self).__setitem__(string.lower(key),value)
 
     def __delitem__(self,key):
-        lower_key = lower(key)
+        lower_key = string.lower(key)
         del self._keys[lower_key]
-        return super(CIDict,self).__delitem__(lower(key))
+        return super(CIDict,self).__delitem__(string.lower(key))
 
     def update(self,dict):
         for key in dict.keys():
             self[key] = dict[key]
 
     def has_key(self,key):
-        return super(CIDict, self).has_key(lower(key))
+        return super(CIDict, self).has_key(string.lower(key))
 
     def get(self,key,failobj=None):
         try:
@@ -373,7 +370,7 @@ def format_list(items, quote=None, page_width=80):
     '''
     left_quote = right_quote = ''
     num_items = len(items)
-    if not num_items: return text
+    if not num_items: return ""
 
     if quote is not None:
         if type(quote) in StringTypes:
@@ -458,7 +455,7 @@ def read_pairs_file(filename):
         fd = open(filename)
     text = fd.read()
     text = comment_re.sub('', text) # kill comments
-    pairs = ipautil.parse_key_value_pairs(text)
+    pairs = parse_key_value_pairs(text)
     if fd != sys.stdin: fd.close()
     return pairs
 
@@ -470,7 +467,7 @@ def read_items_file(filename):
         fd = open(filename)
     text = fd.read()
     text = comment_re.sub('', text) # kill comments
-    items = ipautil.parse_items(text)
+    items = parse_items(text)
     if fd != sys.stdin: fd.close()
     return items
 
@@ -568,11 +565,6 @@ class AttributeValueCompleter:
         readline.set_completer_delims(self.prev_completer_delims)
         readline.set_completer(self.prev_completer)
         
-    def _debug(self):
-        print  >> output_fd, "lhs='%s' lhs_complete=%s operator='%s' operator_complete=%s rhs='%s'" % \
-            (self.lhs, self.lhs_complete, self.operator, self.operator_complete, self.rhs)
-
-
     def parse_input(self):
         '''We are looking for 3 tokens: <lhs,op,rhs>
         Extract as much of each token as possible.
