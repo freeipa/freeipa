@@ -124,6 +124,12 @@ def main():
     print "IPA Server: "+ds.getServerName()
     print "BaseDN: "+ds.getBaseDN()
 
+    print "\n"
+    yesno = raw_input("Continue to configure the system with these values? [y/N] ")
+    if yesno.lower() != "y":
+        return 1
+    print "\n"
+
     # Configure ipa.conf
     ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
     ipaconf.setOptionAssignment(" = ")
@@ -225,4 +231,4 @@ def main():
 
     return 0
 
-main()
+sys.exit(main())
