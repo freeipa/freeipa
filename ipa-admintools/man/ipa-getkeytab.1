@@ -1,0 +1,64 @@
+.\" A man page for ipa-getkeytab
+.\" Copyright (C) 2007 Red Hat, Inc.
+.\" 
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\" 
+.\" Author: Karl MacMillan <kmacmill@redhat.com>
+.\" 
+.TH "ipa-getkeytab" "1" "Oct 10 2007" "freeipa" ""
+.SH "NAME"
+ipa\-getkeytab \- Get a keytab for a kerberos principal
+.SH "SYNOPSIS"
+ipa\-getkeytab [\fI-a\fR] \fIprincipal-name\fR \fIfile-name\fR
+
+.SH "DESCRIPTION"
+Retrieves a kerberos \fIkeytab\fR and optionally adds a
+service \fIprincipal\fR.
+
+Kerberos keytabs are used for services (like sshd) to
+perform kerberos authentication. A keytab is a file
+with one or more secrets (or keys) for a kerberos
+principal.
+
+A kerberos service principal is a kerberos identity
+that can be used for authentication. Service principals
+contain the name of the service, the hostname of the
+server, and the realm name. For example, the following
+is an example principal for an ldap server:
+
+   ldap/foo.example.com@EXAMPLE.COM
+
+When using ipa-getkeytab the realm name is already
+provided, so the principal name is just the service
+name and hostname (ldap/foo.example.com from the 
+example above).
+
+\fBWARNING:\fR retrieving the keytab resets the secret
+rendering all other keytabs for that principal invalid.
+
+.SH "OPTIONS"
+.TP 
+\fB\-a\fR
+Add the service principal in addition to getting the keytab
+
+.SH "EXAMPLES"
+
+Add and retrieve a keytab for the ldap service principal on
+the host foo.example.com and save it in the file ldap.keytab.
+
+   # ipa-getkeytab -a ldap/foo.example.com ldap.keytab
+
+.SH "EXIT STATUS"
+The exit status is 0 on success, nonzero on error.

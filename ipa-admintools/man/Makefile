@@ -14,7 +14,8 @@ MANFILES=\
 	ipa-lockuser.1 \
 	ipa-moddelegation.1 \
 	ipa-passwd.1 \
-	ipa-usermod.1
+	ipa-usermod.1 \
+	ipa-getkeytab.1
 
 all: ;
 
