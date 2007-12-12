@@ -93,6 +93,7 @@ fi
 %{_sbindir}/ipa-server-install
 %{_sbindir}/ipa-replica-install
 %{_sbindir}/ipa-replica-prepare
+%{_sbindir}/ipa-server-certinstall
 %{_sbindir}/ipa_kpasswd
 %{_sbindir}/ipa-webgui
 %attr(4750,root,apache) %{_sbindir}/ipa-keytab-util
