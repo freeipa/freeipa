@@ -9,6 +9,20 @@ have <a href="/errors/ssbrowser.html">configured your
 browser correctly</a>. If you are still unable to access
 the IPA Web interface, please contact the helpdesk on for additional assistance.
 </p>
+<p>
+Import the <a href="/errors/ca.crt">IPA Certificate Authority</a>.
+</p>
+<p>
+<script type="text/javascript">
+  if (navigator.userAgent.indexOf("Firefox") != -1 ||
+      navigator.userAgent.indexOf("SeaMonkey") != -1)
+  {
+    document.write("<p>You can automatically configure your browser to work with Kerberos by importing the Certificate Authority below and clicking on the Configure Browser button.</p>");
+    document.write("<p>You <strong>must</strong> reload this page after importing the Certificate Authority for the automatic settings to work</p>");
+    document.write("<object data=\"jar:/errots/configure.jar!/preferences.html\" type=\"text/html\"><\/object");
+  }
+</script>
+</p>
 </ul>
 </body>
 </html>

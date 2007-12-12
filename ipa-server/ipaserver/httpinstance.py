@@ -25,6 +25,7 @@ import pwd
 import fileinput
 import sys
 import time
+import shutil
 
 import service
 import certs
@@ -49,9 +50,10 @@ class HTTPInstance(service.Service):
         service.Service.__init__(self, "httpd")
 
     def create_instance(self, realm, fqdn):
-        self.sub_dict = { "REALM" : realm, "FQDN":  fqdn }
         self.fqdn = fqdn
         self.realm = realm
+        self.domain = fqdn[fqdn.find(".")+1:]
+        self.sub_dict = { "REALM" : realm, "FQDN": fqdn, "DOMAIN" : self.domain }
         
         self.start_creation(7, "Configuring the web interface")
         
@@ -60,6 +62,7 @@ class HTTPInstance(service.Service):
         self.__configure_http()
         self.__create_http_keytab()
         self.__setup_ssl()
+        self.__setup_autoconfig()
 
         self.step("restarting httpd")
         self.restart()
@@ -141,4 +144,31 @@ class HTTPInstance(service.Service):
         ds_ca.cur_serial = 2000
         ca.create_from_cacert(ds_ca.cacert_fname)
         ca.create_server_cert("Server-Cert", "cn=%s,ou=Apache Web Server" % self.fqdn, ds_ca)
-        
+        ca.create_signing_cert("Signing-Cert", "cn=%s,ou=Signing Certificate,o=Identity Policy Audit" % self.fqdn, ds_ca)
+
+    def __setup_autoconfig(self):
+        prefs_txt = template_file(SHARE_DIR + "preferences.html.template", self.sub_dict)
+        prefs_fd = open("/usr/share/ipa/html/preferences.html", "w")
+        prefs_fd.write(prefs_txt)
+        prefs_fd.close()                
+
+        # The signing cert is generated in __setup_ssl
+        ds_ca = certs.CertDB(dsinstance.config_dirname(self.realm))
+        ca = certs.CertDB(NSS_DIR)
+
+        # Publish the CA certificate
+        shutil.copy(ds_ca.cacert_fname, "/usr/share/ipa/html/ca.crt")
+        os.chmod("/usr/share/ipa/html/ca.crt", 0444)
+
+        try:
+            shutil.rmtree("/tmp/ipa")
+        except:
+            pass
+        os.mkdir("/tmp/ipa")
+        shutil.copy("/usr/share/ipa/html/preferences.html", "/tmp/ipa")
+
+        ca.run_signtool(["-k", "Signing-Cert",
+                         "-Z", "/usr/share/ipa/html/configure.jar",
+                         "-e", ".html",
+                         "/tmp/ipa"])
+        shutil.rmtree("/tmp/ipa")
