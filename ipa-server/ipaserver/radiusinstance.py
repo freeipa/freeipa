@@ -125,7 +125,7 @@ class RadiusInstance(service.Service):
             logging.error("could not create %s: %s", radius_util.RADIUSD_CONF_FILEPATH, e)
 
     def __create_radius_keytab(self):
-        self.step("creating a keytab for httpd")
+        self.step("creating a keytab for radiusd")
         try:
             if file_exists(radius_util.RADIUS_IPA_KEYTAB_FILEPATH):
                 os.remove(radius_util.RADIUS_IPA_KEYTAB_FILEPATH)
