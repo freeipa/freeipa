@@ -46,7 +46,6 @@ import ipaserver.krbinstance
 import ipaserver.bindinstance
 import ipaserver.httpinstance
 import ipaserver.ntpinstance
-import ipaserver.radiusinstance
 import ipaserver.webguiinstance
 
 from ipaserver import service
