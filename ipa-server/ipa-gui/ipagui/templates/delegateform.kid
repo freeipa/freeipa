@@ -104,7 +104,7 @@
                 py:content="tg.errors.get('source_group_dn')" />
           </div>
           <div id="source_searcharea" style="display:none">
-              <input id="source_criteria" type="text"
+              <input class="requiredfield" id="source_criteria" type="text"
                 onkeypress="return enterDoSearch(event, 'source');" />
               <input class="searchbutton" type="button" value="Find"
                 onclick="return doSearch('source');"
@@ -142,7 +142,7 @@
           </div>
           <div id="dest_searcharea" style="display:none">
             <div>
-              <input id="dest_criteria" type="text"
+              <input class="requiredfield" id="dest_criteria" type="text"
                 onkeypress="return enterDoSearch(event, 'dest');" />
               <input class="searchbutton" type="button" value="Find"
                 onclick="return doSearch('dest');"

@@ -292,4 +292,11 @@ class DelegationController(IPAController):
     @validate(form=delegate_form)
     @identity.require(identity.not_anonymous())
     def delegatevalidate(self, tg_errors=None, **kw):
+        # We are faking this because otherwise it shows up as one huge
+        # block of color in the UI when it has a not empty validator.
+        if not kw.get('attrs'):
+            if not tg_errors:
+                tg_errors = {}
+            tg_errors['attrs'] = _("Please select at least one value")
+            cherrypy.request.validation_errors = tg_errors
         return tg_errors, kw

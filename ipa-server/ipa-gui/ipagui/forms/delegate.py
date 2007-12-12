@@ -65,8 +65,9 @@ class DelegateValidator(validators.Schema):
         messages = { 'empty': _("Please choose a group"), })
     dest_group_dn = validators.String(not_empty=True,
         messages = { 'empty': _("Please choose a group"), })
-    attrs = validators.NotEmpty(
-        messages = { 'empty': _("Please select at least one value"), })
+    # There is no attrs validator here because then it shows as one
+    # huge block of color in the form. The validation is done in
+    # the subcontroller.
 
 class DelegateForm(widgets.Form):
     params = ['delegate_fields', 'attr_list']
