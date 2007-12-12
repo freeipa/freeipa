@@ -245,7 +245,7 @@ class KrbInstance(service.Service):
         kerberos_fd = write_tmp_file(kerberos_txt)
         try:
             ldap_mod(kerberos_fd, "cn=Directory Manager", self.admin_password)
-        except ipautil.CalledProcessError, e:
+        except CalledProcessError, e:
             logging.critical("Failed to load kerberos.ldif: %s" % str(e))
         kerberos_fd.close()
 
@@ -254,7 +254,7 @@ class KrbInstance(service.Service):
         aci_fd = write_tmp_file(aci_txt) 
         try:
             ldap_mod(aci_fd, "cn=Directory Manager", self.admin_password)
-        except ipautil.CalledProcessError, e:
+        except CalledProcessError, e:
             logging.critical("Failed to load default-aci.ldif: %s" % str(e))
         aci_fd.close()
 
@@ -291,7 +291,7 @@ class KrbInstance(service.Service):
             args = ["/usr/kerberos/sbin/kdb5_ldap_util", "-D", "uid=kdc,cn=sysaccounts,cn=etc,"+self.suffix, "-w", self.kdc_password, "create", "-s", "-P", self.master_password, "-r", self.realm, "-subtrees", self.suffix, "-sscope", "sub"]
             try:
                 run(args)
-            except ipautil.CalledProcessError, e:
+            except CalledProcessError, e:
                 print "Failed to populate the realm structure in kerberos", e
 
     def __write_stash_from_ds(self):
@@ -322,7 +322,7 @@ class KrbInstance(service.Service):
         extop_fd = write_tmp_file(extop_txt)
         try:
             ldap_mod(extop_fd, "cn=Directory Manager", self.admin_password)
-        except ipautil.CalledProcessError, e:
+        except CalledProcessError, e:
             logging.critical("Failed to load pwd-extop-conf.ldif: %s" % str(e))
         extop_fd.close()
 
