@@ -33,6 +33,7 @@ import time
 import shutil
 
 import service
+from ipa import ipautil
 from ipa import ipaerror
 
 import ipaldap
@@ -46,7 +47,6 @@ import pyasn1.codec.ber.encoder
 import pyasn1.codec.ber.decoder
 import struct
 import base64
-from ipa.ipautil import *
 
 def host_to_domain(fqdn):
     s = fqdn.split(".")
@@ -54,7 +54,7 @@ def host_to_domain(fqdn):
 
 def ldap_mod(fd, dn, pwd):
     args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv", "-D", dn, "-w", pwd, "-f", fd.name]
-    run(args)
+    ipautil.run(args)
 
 def update_key_val_in_file(filename, key, val):
     if os.path.exists(filename):
@@ -89,8 +89,8 @@ class KrbInstance(service.Service):
         self.host = host_name.split(".")[0]
         self.ip = socket.gethostbyname(host_name)
         self.domain = host_to_domain(host_name)        
-        self.suffix = realm_to_suffix(self.realm)
-        self.kdc_password = ipa_generate_password()
+        self.suffix = ipautil.realm_to_suffix(self.realm)
+        self.kdc_password = ipautil.ipa_generate_password()
         self.admin_password = admin_password
 
         self.__setup_sub_dict()
@@ -241,8 +241,8 @@ class KrbInstance(service.Service):
         self.step("adding kerberos entries to the DS")
 
         #TODO: test that the ldif is ok with any random charcter we may use in the password
-        kerberos_txt = template_file(SHARE_DIR + "kerberos.ldif", self.sub_dict)
-        kerberos_fd = write_tmp_file(kerberos_txt)
+        kerberos_txt = ipautil.template_file(ipautil.SHARE_DIR + "kerberos.ldif", self.sub_dict)
+        kerberos_fd = ipautil.write_tmp_file(kerberos_txt)
         try:
             ldap_mod(kerberos_fd, "cn=Directory Manager", self.admin_password)
         except ipautil.CalledProcessError, e:
@@ -250,8 +250,8 @@ class KrbInstance(service.Service):
         kerberos_fd.close()
 
 	#Change the default ACL to avoid anonimous access to kerberos keys and othe hashes
-        aci_txt = template_file(SHARE_DIR + "default-aci.ldif", self.sub_dict)
-        aci_fd = write_tmp_file(aci_txt) 
+        aci_txt = ipautil.template_file(ipautil.SHARE_DIR + "default-aci.ldif", self.sub_dict)
+        aci_fd = ipautil.write_tmp_file(aci_txt) 
         try:
             ldap_mod(aci_fd, "cn=Directory Manager", self.admin_password)
         except ipautil.CalledProcessError, e:
@@ -260,28 +260,28 @@ class KrbInstance(service.Service):
 
     def __create_instance(self, replica=False):
         self.step("configuring KDC")
-        kdc_conf = template_file(SHARE_DIR+"kdc.conf.template", self.sub_dict)
+        kdc_conf = ipautil.template_file(ipautil.SHARE_DIR+"kdc.conf.template", self.sub_dict)
         kdc_fd = open("/var/kerberos/krb5kdc/kdc.conf", "w+")
         kdc_fd.write(kdc_conf)
         kdc_fd.close()
 
-        krb5_conf = template_file(SHARE_DIR+"krb5.conf.template", self.sub_dict)
+        krb5_conf = ipautil.template_file(ipautil.SHARE_DIR+"krb5.conf.template", self.sub_dict)
         krb5_fd = open("/etc/krb5.conf", "w+")
         krb5_fd.write(krb5_conf)
         krb5_fd.close()
 
         # Windows configuration files
-        krb5_ini = template_file(SHARE_DIR+"krb5.ini.template", self.sub_dict)
+        krb5_ini = ipautil.template_file(ipautil.SHARE_DIR+"krb5.ini.template", self.sub_dict)
         krb5_fd = open("/usr/share/ipa/html/krb5.ini", "w+")
         krb5_fd.write(krb5_ini)
         krb5_fd.close()
 
-        krb_con = template_file(SHARE_DIR+"krb.con.template", self.sub_dict)
+        krb_con = ipautil.template_file(ipautil.SHARE_DIR+"krb.con.template", self.sub_dict)
         krb_fd = open("/usr/share/ipa/html/krb.con", "w+")
         krb_fd.write(krb_con)
         krb_fd.close()
 
-        krb_realm = template_file(SHARE_DIR+"krbrealm.con.template", self.sub_dict)
+        krb_realm = ipautil.template_file(ipautil.SHARE_DIR+"krbrealm.con.template", self.sub_dict)
         krb_fd = open("/usr/share/ipa/html/krbrealm.con", "w+")
         krb_fd.write(krb_realm)
         krb_fd.close()
@@ -290,7 +290,7 @@ class KrbInstance(service.Service):
             #populate the directory with the realm structure
             args = ["/usr/kerberos/sbin/kdb5_ldap_util", "-D", "uid=kdc,cn=sysaccounts,cn=etc,"+self.suffix, "-w", self.kdc_password, "create", "-s", "-P", self.master_password, "-r", self.realm, "-subtrees", self.suffix, "-sscope", "sub"]
             try:
-                run(args)
+                ipautil.run(args)
             except ipautil.CalledProcessError, e:
                 print "Failed to populate the realm structure in kerberos", e
 
@@ -318,8 +318,8 @@ class KrbInstance(service.Service):
     #add the password extop module
     def __add_pwd_extop_module(self):
         self.step("adding the password extenstion to the directory")
-        extop_txt = template_file(SHARE_DIR + "pwd-extop-conf.ldif", self.sub_dict)
-        extop_fd = write_tmp_file(extop_txt)
+        extop_txt = ipautil.template_file(ipautil.SHARE_DIR + "pwd-extop-conf.ldif", self.sub_dict)
+        extop_fd = ipautil.write_tmp_file(extop_txt)
         try:
             ldap_mod(extop_fd, "cn=Directory Manager", self.admin_password)
         except ipautil.CalledProcessError, e:
@@ -355,7 +355,7 @@ class KrbInstance(service.Service):
     def __create_ds_keytab(self):
         self.step("creating a keytab for the directory")
         try:
-            if file_exists("/etc/dirsrv/ds.keytab"):
+            if ipautil.file_exists("/etc/dirsrv/ds.keytab"):
                 os.remove("/etc/dirsrv/ds.keytab")
         except os.error:
             logging.critical("Failed to remove /etc/dirsrv/ds.keytab.")
@@ -370,7 +370,7 @@ class KrbInstance(service.Service):
 
         # give kadmin time to actually write the file before we go on
 	retry = 0
-        while not file_exists("/etc/dirsrv/ds.keytab"):
+        while not ipautil.file_exists("/etc/dirsrv/ds.keytab"):
             time.sleep(1)
             retry += 1
             if retry > 15:
@@ -384,7 +384,7 @@ class KrbInstance(service.Service):
     def __export_kadmin_changepw_keytab(self):
         self.step("exporting the kadmin keytab")
         try:
-            if file_exists("/var/kerberos/krb5kdc/kpasswd.keytab"):
+            if ipautil.file_exists("/var/kerberos/krb5kdc/kpasswd.keytab"):
                 os.remove("/var/kerberos/krb5kdc/kpasswd.keytab")
         except os.error:
             logging.critical("Failed to remove /var/kerberos/krb5kdc/kpasswd.keytab.")
@@ -404,7 +404,7 @@ class KrbInstance(service.Service):
 
         # give kadmin time to actually write the file before we go on
 	retry = 0
-        while not file_exists("/var/kerberos/krb5kdc/kpasswd.keytab"):
+        while not ipautil.file_exists("/var/kerberos/krb5kdc/kpasswd.keytab"):
             time.sleep(1)
             retry += 1
             if retry > 15:

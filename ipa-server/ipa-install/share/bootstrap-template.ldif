@@ -80,6 +80,7 @@ gidNumber: 1001
 homeDirectory: /home/admin
 loginShell: /bin/bash
 gecos: Administrator
+nsAccountLock: False
 
 dn: cn=radius,$SUFFIX
 changetype: add
@@ -114,6 +115,7 @@ cn: admins
 description: Account administrators group
 gidNumber: 1001
 member: uid=admin,cn=sysaccounts,cn=etc,$SUFFIX
+nsAccountLock: False
 
 dn: cn=ipausers,cn=groups,cn=accounts,$SUFFIX
 changetype: add
