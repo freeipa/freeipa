@@ -51,6 +51,13 @@ def parse_options():
 
     return options
 
+def ask_for_confirmation(message):
+    yesno = raw_input(message + " [y/N]: ")
+    if not yesno or yesno.lower()[0] != "y":
+        return False
+    print "\n"
+    return True
+
 def logging_setup(options):
     # Always log everything (i.e., DEBUG) to the log
     # file.
@@ -114,10 +121,8 @@ def main():
         print "\nThe failure to use DNS to find your IPA server indicates that your resolv.conf file is not properly configured\n."
         print "Autodiscovery of servers for failover cannot work with this configuration.\n"
         print "If you proceed with the installation, services will be configured to always access the discovered server for all operation and will not fail over to other servers in case of failure\n"
-        yesno = raw_input("Do you want to proceed and configure the system with fixed values with no DNS discovery? [y/N] ")
-        if yesno.lower() != "y":
+        if not ask_for_confirmation("Do you want to proceed and configure the system with fixed values with no DNS discovery?"):
             return ret
-        print "\n"
 
     print "Realm: "+ds.getRealmName()
     print "DNS Domain: "+ds.getDomainName()
@@ -125,10 +130,8 @@ def main():
     print "BaseDN: "+ds.getBaseDN()
 
     print "\n"
-    yesno = raw_input("Continue to configure the system with these values? [y/N] ")
-    if yesno.lower() != "y":
+    if not ask_for_confirmation("Continue to configure the system with these values?"):
         return 1
-    print "\n"
 
     # Configure ipa.conf
     ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
