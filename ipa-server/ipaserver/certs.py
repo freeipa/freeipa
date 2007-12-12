@@ -17,7 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import os, stat, subprocess
+import os, stat, subprocess, re
 import sha
 
 from ipa import ipautil
@@ -196,6 +196,50 @@ class CertDB(object):
         f.close()
         self.set_perms(self.pin_fname)
 
+    def trust_root_cert(self, nickname):
+        p = subprocess.Popen(["/usr/bin/certutil", "-d", self.secdir,
+                              "-O", "-n", nickname], stdout=subprocess.PIPE)
+
+        chain = p.stdout.read()
+        chain = chain.split("\n")
+
+        root_nickname = re.match('\ *"(.*)".*', chain[0]).groups()[0]
+
+        self.run_certutil(["-M", "-n", root_nickname,
+                           "-t", "CT,CT,"])
+
+    def find_server_certs(self):
+        p = subprocess.Popen(["/usr/bin/certutil", "-d", self.secdir,
+                              "-L"], stdout=subprocess.PIPE)
+
+        certs = p.stdout.read()
+
+        certs = certs.split("\n")
+
+        server_certs = []
+
+        for cert in certs:
+            fields = cert.split()
+            if not len(fields):
+                continue
+            flags = fields[-1]
+            if 'u' in flags:
+                name = " ".join(fields[0:-1])
+                server_certs.append((name, flags))
+
+        return server_certs
+                
+
+    def import_pkcs12(self, pkcs12_fname):
+        try:
+            ipautil.run(["/usr/bin/pk12util", "-d", self.secdir,
+                         "-i", pkcs12_fname])
+        except ipautil.CalledProcessError, e:
+            if e.returncode == 17:
+                raise RuntimeError("incorrect password")
+            else:
+                raise RuntimeError("unknown error import pkcs#12 file")
+
     def create_self_signed(self, passwd=True):
         self.create_noise_file()
         self.create_passwd_file(passwd)
@@ -208,6 +252,3 @@ class CertDB(object):
         self.create_passwd_file(passwd)
         self.create_certdbs()
         self.load_cacert(cacert_fname)
-
-
-

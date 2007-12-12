@@ -322,7 +322,7 @@ class DsInstance(service.Service):
         conn.addEntry(entry)
         
         conn.unbind()
-        
+
     def __add_default_layout(self):
         self.step("adding default layout")
         txt = ipautil.template_file(ipautil.SHARE_DIR + "bootstrap-template.ldif", self.sub_dict)

@@ -29,6 +29,7 @@ import time
 import service
 import certs
 import dsinstance
+import installutils
 from ipa.ipautil import *
 
 HTTPD_DIR = "/etc/httpd"
@@ -42,21 +43,6 @@ successfully change with the command:
    /usr/sbin/setsebool -P httpd_can_network_connect true
 Try updating the policycoreutils and selinux-policy packages.
 """
-
-def update_file(filename, orig, subst):
-    if os.path.exists(filename):
-        pattern = "%s" % re.escape(orig)
-        p = re.compile(pattern)
-        for line in fileinput.input(filename, inplace=1):
-            if not p.search(line):
-                sys.stdout.write(line)
-            else:
-                sys.stdout.write(p.sub(subst, line))
-        fileinput.close()
-        return 0
-    else:
-        print "File %s doesn't exist." % filename
-        return 1
 
 class HTTPInstance(service.Service):
     def __init__(self):
@@ -145,7 +131,7 @@ class HTTPInstance(service.Service):
 
     def __set_mod_nss_port(self):
         self.step("Setting mod_nss port to 443")
-        if update_file(NSS_CONF, '8443', '443') != 0:
+        if installutils.update_file(NSS_CONF, '8443', '443') != 0:
             print "Updating %s failed." % NSS_CONF
 
     def __setup_ssl(self):
