@@ -19,6 +19,8 @@
 #
 
 import sys
+sys.path.append("/usr/share/ipa")
+
 import subprocess
 import string
 import tempfile
@@ -30,7 +32,7 @@ import sys
 from ipa.ipautil import *
 from ipa import radius_util
 
-import service
+from ipaserver import service
 
 import os
 import re

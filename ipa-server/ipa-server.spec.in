@@ -37,7 +37,6 @@ Requires: python-krbV
 Requires: TurboGears
 Requires: python-tgexpandingformwidget
 Requires: acl
-Requires: freeradius
 Requires: pyasn1
 Requires: libcap
 

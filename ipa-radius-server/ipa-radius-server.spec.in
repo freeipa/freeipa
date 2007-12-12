@@ -1,0 +1,50 @@
+Name:           ipa-radius-server
+Version:        VERSION
+Release:        1%{?dist}
+Summary:        IPA authentication server - radius plugin
+
+Group:          System Environment/Base
+License:        GPL
+URL:            http://www.freeipa.org
+Source0:        %{name}-%{version}.tgz
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildArch: 	noarch
+
+Requires: python
+Requires: ipa-server
+Requires: freeradius
+
+%description
+Radius plugin for an IPA server
+
+%prep
+%setup -q
+
+%install
+rm -rf %{buildroot}
+mkdir -p %{buildroot}%{_sbindir}
+
+make install DESTDIR=%{buildroot}
+
+
+%clean
+rm -rf %{buildroot}
+
+
+%files
+%defattr(-,root,root,-)
+%{_sbindir}/ipa*
+
+%dir %{_usr}/share/ipa/plugins
+%{_usr}/share/ipa/plugins/*
+
+%dir %{_usr}/share/ipa/ipaserver/plugins
+%{_usr}/share/ipa/ipaserver/plugins/*
+
+%changelog
+* Wed Dec 12 2007 Karl MacMillan <kmacmill@redhat.com> - 0.5.0-1
+- Initial version
+
+
+
+

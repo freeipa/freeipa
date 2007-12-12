@@ -23,7 +23,8 @@ sys.path.append("/usr/share/ipa")
 
 import traceback, logging, krbV
 
-from ipaserver import radiusinstance, installutils
+from ipaserver import installutils
+from ipaserver.plugins import radiusinstance
 
 from ipa import ipautil
 
