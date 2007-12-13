@@ -52,10 +52,6 @@ def host_to_domain(fqdn):
     s = fqdn.split(".")
     return ".".join(s[1:])
 
-def ldap_mod(fd, dn, pwd):
-    args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv", "-D", dn, "-w", pwd, "-f", fd.name]
-    ipautil.run(args)
-
 def update_key_val_in_file(filename, key, val):
     if os.path.exists(filename):
         pattern = "^[\s#]*%s\s*=\s*%s\s*" % (re.escape(key), re.escape(val))
@@ -139,7 +135,7 @@ class KrbInstance(service.Service):
 
         self.__common_setup(ds_user, realm_name, host_name, admin_password)
 
-        self.start_creation(11, "Configuring Kerberos KDC")
+        self.start_creation(12, "Configuring Kerberos KDC")
         
         self.__configure_kdc_account_password()
         self.__configure_sasl_mappings()
@@ -195,6 +191,22 @@ class KrbInstance(service.Service):
                              HOST=self.host,
                              REALM=self.realm)
 
+    def __ldap_mod(self, step, ldif):
+        self.step(step)
+
+        txt = ipautil.template_file(ipautil.SHARE_DIR + ldif, self.sub_dict)
+        fd = ipautil.write_tmp_file(txt)
+
+        args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv",
+                "-D", "cn=Directory Manager", "-w", self.admin_password, "-f", fd.name]
+
+        try:
+            ipautil.run(args)
+        except ipautil.CalledProcessError, e:
+            logging.critical("Failed to load %s: %s" % (ldif, str(e)))
+
+        fd.close()
+
     def __configure_sasl_mappings(self):
         self.step("adding sasl mappings to the directory")
         # we need to remove any existing SASL mappings in the directory as otherwise they
@@ -246,25 +258,10 @@ class KrbInstance(service.Service):
             raise e
 
     def __add_krb_entries(self):
-        self.step("adding kerberos entries to the DS")
-
-        #TODO: test that the ldif is ok with any random charcter we may use in the password
-        kerberos_txt = ipautil.template_file(ipautil.SHARE_DIR + "kerberos.ldif", self.sub_dict)
-        kerberos_fd = ipautil.write_tmp_file(kerberos_txt)
-        try:
-            ldap_mod(kerberos_fd, "cn=Directory Manager", self.admin_password)
-        except ipautil.CalledProcessError, e:
-            logging.critical("Failed to load kerberos.ldif: %s" % str(e))
-        kerberos_fd.close()
+        self.__ldap_mod("adding kerberos entries to the DS", "kerberos.ldif")
 
 	#Change the default ACL to avoid anonimous access to kerberos keys and othe hashes
-        aci_txt = ipautil.template_file(ipautil.SHARE_DIR + "default-aci.ldif", self.sub_dict)
-        aci_fd = ipautil.write_tmp_file(aci_txt) 
-        try:
-            ldap_mod(aci_fd, "cn=Directory Manager", self.admin_password)
-        except ipautil.CalledProcessError, e:
-            logging.critical("Failed to load default-aci.ldif: %s" % str(e))
-        aci_fd.close()
+        self.__ldap_mod("adding defalt ACIs", "default-aci.ldif")
 
     def __create_instance(self, replica=False):
         self.step("configuring KDC")
@@ -325,14 +322,7 @@ class KrbInstance(service.Service):
 
     #add the password extop module
     def __add_pwd_extop_module(self):
-        self.step("adding the password extenstion to the directory")
-        extop_txt = ipautil.template_file(ipautil.SHARE_DIR + "pwd-extop-conf.ldif", self.sub_dict)
-        extop_fd = ipautil.write_tmp_file(extop_txt)
-        try:
-            ldap_mod(extop_fd, "cn=Directory Manager", self.admin_password)
-        except ipautil.CalledProcessError, e:
-            logging.critical("Failed to load pwd-extop-conf.ldif: %s" % str(e))
-        extop_fd.close()
+        self.__ldap_mod("adding the password extenstion to the directory", "pwd-extop-conf.ldif")
 
         #get the Master Key from the stash file
         try:

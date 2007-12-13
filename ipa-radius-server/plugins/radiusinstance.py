@@ -44,10 +44,6 @@ from ipaserver.funcs import DefaultUserContainer, DefaultGroupContainer
 
 #-------------------------------------------------------------------------------
 
-def ldap_mod(fd, dn, pwd):
-    args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv", "-D", dn, "-w", pwd, "-f", fd.name]
-    ipautil.run(args)
-
 def get_radius_version():
     version = None
     try:
@@ -157,17 +153,26 @@ class RadiusInstance(service.Service):
         except Exception, e:
             logging.error("could not chown on %s to %s: %s", radius_util.RADIUS_IPA_KEYTAB_FILEPATH, radius_util.RADIUS_USER, e)
 
+    def __ldap_mod(self, step, ldif):
+        self.step(step)
+
+        txt = iputil.template_file(ipautil.SHARE_DIR + ldif, self.sub_dict)
+        fd = ipautil.write_tmp_file(txt)
+
+        args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv",
+                "-D", "cn=Directory Manager", "-w", self.dm_password, "-f", fd.name]
+
+        try:
+            ipautil.run(args)
+        except ipautil.CalledProcessError, e:
+            logging.critical("Failed to load %s: %s" % (ldif, str(e)))
+
+        fd.close()
+
     #FIXME, should use IPAdmin method
     def __set_ldap_encrypted_attributes(self):
-        ldif_file = 'encrypted_attribute.ldif'
-        self.step("setting ldap encrypted attributes")
-        ldif_txt = ipautil.template_file(ipautil.SHARE_DIR + ldif_file, {'ENCRYPTED_ATTRIBUTE':'radiusClientSecret'})
-        ldif_fd = ipautil.write_tmp_file(ldif_txt)
-        try:
-            ldap_mod(ldif_fd, "cn=Directory Manager", self.dm_password)
-        except ipautil.CalledProcessError, e:
-            logging.critical("Failed to load %s: %s" % (ldif_file, str(e)))
-        ldif_fd.close()
+        self.__ldap_mod("setting ldap encrypted attributes",
+                        "encrypted_attribute.ldif", {"ENCRYPTED_ATTRIBUTE" : "radiusClientSecret"})
 
 #-------------------------------------------------------------------------------
 

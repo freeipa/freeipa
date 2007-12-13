@@ -35,10 +35,6 @@ import ipaldap, ldap
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
 
-def ldap_mod(fd, dn, pwd):
-    args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv", "-D", dn, "-w", pwd, "-f", fd.name]
-    ipautil.run(args)
-
 def realm_to_suffix(realm_name):
     s = realm_name.split(".")
     terms = ["dc=" + x.lower() for x in s]
@@ -229,65 +225,39 @@ class DsInstance(service.Service):
         shutil.copyfile(ipautil.SHARE_DIR + "60ipaconfig.ldif",
                         schema_dirname(self.realm_name) + "60ipaconfig.ldif")
 
-    def __add_memberof_module(self):
-        self.step("enabling memboerof plugin")
-        memberof_txt = ipautil.template_file(ipautil.SHARE_DIR + "memberof-conf.ldif", self.sub_dict)
-        memberof_fd = ipautil.write_tmp_file(memberof_txt)
+    def __ldap_mod(self, step, ldif):
+        self.step(step)
+
+        txt = ipautil.template_file(ipautil.SHARE_DIR + ldif, self.sub_dict)
+        fd = ipautil.write_tmp_file(txt)
+
+        args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv",
+                "-D", "cn=Directory Manager", "-w", self.dm_password, "-f", fd.name]
+
         try:
-            ldap_mod(memberof_fd, "cn=Directory Manager", self.dm_password)
+            ipautil.run(args)
         except ipautil.CalledProcessError, e:
-            logging.critical("Failed to load memberof-conf.ldif: %s" % str(e))
-        memberof_fd.close()
+            logging.critical("Failed to load %s: %s" % (ldif, str(e)))
+
+        fd.close()
+
+    def __add_memberof_module(self):
+        self.__ldap_mod("enabling memberof plugin", "memberof-conf.ldif")
 
     def __init_memberof(self):
-        self.step("initializing group membership")
-        memberof_txt = ipautil.template_file(ipautil.SHARE_DIR + "memberof-task.ldif", self.sub_dict)
-        memberof_fd = ipautil.write_tmp_file(memberof_txt)
-        try:
-            ldap_mod(memberof_fd, "cn=Directory Manager", self.dm_password)
-        except ipautil.CalledProcessError, e:
-            logging.critical("Failed to load memberof-conf.ldif: %s" % str(e))
-        memberof_fd.close()
+        self.__ldap_mod("initializing group membership", "memberof-task.ldif")
 
     def __add_referint_module(self):
-        self.step("enabling referential integrity plugin")
-        referint_txt = ipautil.template_file(ipautil.SHARE_DIR + "referint-conf.ldif", self.sub_dict)
-        referint_fd = ipautil.write_tmp_file(referint_txt)
-        try:
-            ldap_mod(referint_fd, "cn=Directory Manager", self.dm_password)
-        except ipautil.CalledProcessError, e:
-            print "Failed to load referint-conf.ldif", e
-        referint_fd.close()
+        self.__ldap_mod("enabling referential integrity plugin", "referint-conf.ldif")
 
     def __add_dna_module(self):
-        self.step("enabling distributed numeric assignment plugin")
-        dna_txt = ipautil.template_file(ipautil.SHARE_DIR + "dna-conf.ldif", self.sub_dict)
-        dna_fd = ipautil.write_tmp_file(dna_txt)
-        try:
-            ldap_mod(dna_fd, "cn=Directory Manager", self.dm_password)
-        except ipautil.CalledProcessError, e:
-            print "Failed to load dna-conf.ldif", e
-        dna_fd.close()
+        self.__ldap_mod("enabling distributed numeric assignment plugin", "dna-conf.ldif")
 
     def __config_uidgid_gen_first_master(self):
-        self.step("configuring Posix uid/gid generation as first master")
-        dna_txt = ipautil.template_file(ipautil.SHARE_DIR + "dna-posix.ldif", self.sub_dict)
-        dna_fd = ipautil.write_tmp_file(dna_txt)
-        try:
-            ldap_mod(dna_fd, "cn=Directory Manager", self.dm_password)
-        except ipautil.CalledProcessError, e:
-            print "Failed to configure Posix uid/gid generation with dna-posix.ldif", e
-        dna_fd.close()
+        self.__ldap_mod("configuring Posix uid/gid generation as first master", "dna-posix.ldif")
 
     def __add_master_entry_first_master(self):
-        self.step("adding master entry as first master")
-        master_txt = ipautil.template_file(ipautil.SHARE_DIR + "master-entry.ldif", self.sub_dict)
-        master_fd = ipautil.write_tmp_file(master_txt)
-        try:
-            ldap_mod(master_fd, "cn=Directory Manager", self.dm_password)
-        except ipautil.CalledProcessError, e:
-            print "Failed to add master-entry.ldif", e
-        master_fd.close()
+        self.__ldap_mod("adding master entry as first master", "master-entry.ldif")
 
     def __enable_ssl(self):
         self.step("configuring ssl for ds instance")
@@ -324,31 +294,10 @@ class DsInstance(service.Service):
         conn.unbind()
 
     def __add_default_layout(self):
-        self.step("adding default layout")
-        txt = ipautil.template_file(ipautil.SHARE_DIR + "bootstrap-template.ldif", self.sub_dict)
-        inf_fd = ipautil.write_tmp_file(txt)
-        logging.debug("adding default dfrom ipa.ipautil import *s layout")
-        args = ["/usr/bin/ldapmodify", "-xv", "-D", "cn=Directory Manager",
-                "-w", self.dm_password, "-f", inf_fd.name]
-        try:
-            ipautil.run(args)
-            logging.debug("done adding default ds layout")
-        except ipautil.CalledProcessError, e:
-            print "Failed to add default ds layout", e
-            logging.critical("Failed to add default ds layout %s" % e)
+        self.__ldap_mod("adding default layout", "bootstrap-template.ldif")
         
     def __create_indeces(self):
-        self.step("creating indeces")
-        txt = ipautil.template_file(ipautil.SHARE_DIR + "indeces.ldif", self.sub_dict)
-        inf_fd = ipautil.write_tmp_file(txt)
-        logging.debug("adding/updating indeces")
-        args = ["/usr/bin/ldapmodify", "-xv", "-D", "cn=Directory Manager",
-                "-w", self.dm_password, "-f", inf_fd.name]
-        try:
-            ipautil.run(args)
-            logging.debug("done adding/updating indeces")
-        except ipautil.CalledProcessError, e:
-            logging.critical("Failed to add/update indeces %s" % str(e))
+        self.__ldap_mod("creating indeces", "indeces.ldif")
 
     def __certmap_conf(self):
         self.step("configuring certmap.conf")
