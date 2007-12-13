@@ -225,39 +225,50 @@ class DsInstance(service.Service):
         shutil.copyfile(ipautil.SHARE_DIR + "60ipaconfig.ldif",
                         schema_dirname(self.realm_name) + "60ipaconfig.ldif")
 
-    def __ldap_mod(self, step, ldif):
+    def __ldap_mod(self, step, ldif, sub_dict = None):
         self.step(step)
 
-        txt = ipautil.template_file(ipautil.SHARE_DIR + ldif, self.sub_dict)
-        fd = ipautil.write_tmp_file(txt)
+        fd = None
+        path = ipautil.SHARE_DIR + ldif
+
+        if not sub_dict is None:
+            txt = ipautil.template_file(path, sub_dict)
+            fd = ipautil.write_tmp_file(txt)
+            path = fd.name
 
         args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv",
-                "-D", "cn=Directory Manager", "-w", self.dm_password, "-f", fd.name]
+                "-D", "cn=Directory Manager", "-w", self.dm_password, "-f", path]
 
         try:
             ipautil.run(args)
         except ipautil.CalledProcessError, e:
             logging.critical("Failed to load %s: %s" % (ldif, str(e)))
 
-        fd.close()
+        if not fd is None:
+            fd.close()
 
     def __add_memberof_module(self):
         self.__ldap_mod("enabling memberof plugin", "memberof-conf.ldif")
 
     def __init_memberof(self):
-        self.__ldap_mod("initializing group membership", "memberof-task.ldif")
+        self.__ldap_mod("initializing group membership",
+                        "memberof-task.ldif", self.sub_dict)
 
     def __add_referint_module(self):
-        self.__ldap_mod("enabling referential integrity plugin", "referint-conf.ldif")
+        self.__ldap_mod("enabling referential integrity plugin",
+                        "referint-conf.ldif")
 
     def __add_dna_module(self):
-        self.__ldap_mod("enabling distributed numeric assignment plugin", "dna-conf.ldif")
+        self.__ldap_mod("enabling distributed numeric assignment plugin",
+                        "dna-conf.ldif")
 
     def __config_uidgid_gen_first_master(self):
-        self.__ldap_mod("configuring Posix uid/gid generation as first master", "dna-posix.ldif")
+        self.__ldap_mod("configuring Posix uid/gid generation as first master",
+                        "dna-posix.ldif", self.sub_dict)
 
     def __add_master_entry_first_master(self):
-        self.__ldap_mod("adding master entry as first master", "master-entry.ldif")
+        self.__ldap_mod("adding master entry as first master",
+                        "master-entry.ldif", self.sub_dict)
 
     def __enable_ssl(self):
         self.step("configuring ssl for ds instance")
@@ -294,18 +305,16 @@ class DsInstance(service.Service):
         conn.unbind()
 
     def __add_default_layout(self):
-        self.__ldap_mod("adding default layout", "bootstrap-template.ldif")
+        self.__ldap_mod("adding default layout",
+                        "bootstrap-template.ldif", self.sub_dict)
         
     def __create_indeces(self):
         self.__ldap_mod("creating indeces", "indeces.ldif")
 
     def __certmap_conf(self):
         self.step("configuring certmap.conf")
-        dirname = config_dirname(self.realm_name)
-        certmap_conf = ipautil.template_file(ipautil.SHARE_DIR + "certmap.conf.template", self.sub_dict)
-        certmap_fd = open(dirname+"certmap.conf", "w+")
-        certmap_fd.write(certmap_conf)
-        certmap_fd.close()
+        shutil.copyfile(ipautil.SHARE_DIR + "certmap.conf.template",
+                        config_dirname(self.realm_name) + "certmap.conf")
 
     def change_admin_password(self, password):
         logging.debug("Changing admin password")
