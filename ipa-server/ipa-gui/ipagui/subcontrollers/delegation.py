@@ -56,6 +56,25 @@ class DelegationController(IPAController):
             turbogears.flash("Add delegation cancelled")
             raise turbogears.redirect('/delegate/list')
 
+        # Try to handle the case where the user entered just some data
+        # into the source/dest group name but didn't do a Find. We'll do
+        # our best to see if a group by that name exists and if so, use it.
+        dest_group_dn = kw.get('dest_group_dn')
+        dest_group_cn = kw.get('dest_group_cn')
+        if not dest_group_dn and dest_group_cn:
+            try:
+                group = client.get_entry_by_cn(dest_group_cn, ['dn'])
+                kw['dest_group_dn'] = group.dn
+            except:
+                kw['dest_group_cn'] = "Please choose:"
+        source_group_dn = kw.get('source_group_dn')
+        source_group_cn = kw.get('source_group_cn')
+        if not source_group_dn and source_group_cn:
+            try:
+                group = client.get_entry_by_cn(source_group_cn, ['dn'])
+                kw['source_group_dn'] = group.dn
+            except:
+                kw['source_group_cn'] = "Please choose:"
         tg_errors, kw = self.delegatevalidate(**kw)
         if tg_errors:
             turbogears.flash("There were validation errors.<br/>" +
