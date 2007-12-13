@@ -2,6 +2,8 @@ dn: $SUFFIX
 changetype: modify
 add: objectClass
 objectClass: pilotObject
+-
+add: info
 info: IPA V1.0
 
 dn: cn=accounts,$SUFFIX
