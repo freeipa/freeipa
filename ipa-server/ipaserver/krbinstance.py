@@ -58,6 +58,14 @@ def ldap_mod(fd, dn, pwd):
 
 def update_key_val_in_file(filename, key, val):
     if os.path.exists(filename):
+        pattern = "^[\s#]*%s\s*=\s*%s\s*" % (re.escape(key), re.escape(val))
+        p = re.compile(pattern)
+        for line in fileinput.input(filename):
+            if p.search(line):
+                fileinput.close()
+                return
+        fileinput.close()
+
         pattern = "^[\s#]*%s\s*=" % re.escape(key)
         p = re.compile(pattern)
         for line in fileinput.input(filename, inplace=1):
