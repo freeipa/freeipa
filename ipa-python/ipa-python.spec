@@ -14,8 +14,6 @@ Requires: PyKerberos
 
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
-%define pkgpythondir  %{python_sitelib}/ipa
-
 %description
 Ipa is a server for identity, policy, and audit.
 
@@ -33,8 +31,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%dir %{pkgpythondir}
-%{pkgpythondir}/*
+%{python_sitelib}/*
 %config(noreplace) %{_sysconfdir}/ipa/ipa.conf
 
 %changelog
