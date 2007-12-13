@@ -17,10 +17,10 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from ipa.ipautil import *
 import shutil
 
 import service
+from ipa import ipautil
 
 class NTPInstance(service.Service):
     def __init__(self):
@@ -36,9 +36,9 @@ class NTPInstance(service.Service):
         # or fedora pools. Other distros should be added in the future
         # or we can get our own pool.
         os = ""
-        if file_exists("/etc/fedora-release"):
+        if ipautil.file_exists("/etc/fedora-release"):
             os = "fedora."
-        elif file_exists("/etc/redhat-release"):
+        elif ipautil.file_exists("/etc/redhat-release"):
             os = "rhel."
 
         sub_dict = { }
@@ -46,7 +46,7 @@ class NTPInstance(service.Service):
         sub_dict["SERVERB"] = "1.%spool.ntp.org" % os
         sub_dict["SERVERC"] = "2.%spool.ntp.org" % os
 
-        ntp_conf = template_file(SHARE_DIR + "ntp.conf.server.template", sub_dict)
+        ntp_conf = ipautil.template_file(ipautil.SHARE_DIR + "ntp.conf.server.template", sub_dict)
 
         shutil.copy("/etc/ntp.conf", "/etc/ntp.conf.ipasave")
 

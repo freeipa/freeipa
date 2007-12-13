@@ -17,6 +17,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+import os
+import os.path
 import subprocess
 import string
 import tempfile
@@ -31,7 +33,7 @@ import service
 import certs
 import dsinstance
 import installutils
-from ipa.ipautil import *
+from ipa import ipautil
 
 HTTPD_DIR = "/etc/httpd"
 SSL_CONF = HTTPD_DIR + "/conf.d/ssl.conf"
@@ -77,7 +79,7 @@ class HTTPInstance(service.Service):
         selinux=0
         try:
             if (os.path.exists('/usr/sbin/selinuxenabled')):
-                run(["/usr/sbin/selinuxenabled"])
+                ipautil.run(["/usr/sbin/selinuxenabled"])
                 selinux=1
         except ipautil.CalledProcessError:
             # selinuxenabled returns 1 if not enabled
@@ -87,14 +89,14 @@ class HTTPInstance(service.Service):
             # Allow apache to connect to the turbogears web gui
             # This can still fail even if selinux is enabled
             try:
-                run(["/usr/sbin/setsebool", "-P", "httpd_can_network_connect", "true"])
+                ipautil.run(["/usr/sbin/setsebool", "-P", "httpd_can_network_connect", "true"])
             except:
                 self.print_msg(selinux_warning)
                 
     def __create_http_keytab(self):
         self.step("creating a keytab for httpd")
         try:
-            if file_exists("/etc/httpd/conf/ipa.keytab"):
+            if ipautil.file_exists("/etc/httpd/conf/ipa.keytab"):
                 os.remove("/etc/httpd/conf/ipa.keytab")
         except os.error:
             print "Failed to remove /etc/httpd/conf/ipa.keytab."
@@ -109,7 +111,7 @@ class HTTPInstance(service.Service):
 
         # give kadmin time to actually write the file before we go on
 	retry = 0
-        while not file_exists("/etc/httpd/conf/ipa.keytab"):
+        while not ipautil.file_exists("/etc/httpd/conf/ipa.keytab"):
             time.sleep(1)
             retry += 1
             if retry > 15:
@@ -121,7 +123,7 @@ class HTTPInstance(service.Service):
 
     def __configure_http(self):
         self.step("configuring httpd")
-        http_txt = template_file(SHARE_DIR + "ipa.conf", self.sub_dict)
+        http_txt = ipautil.template_file(ipautil.SHARE_DIR + "ipa.conf", self.sub_dict)
         http_fd = open("/etc/httpd/conf.d/ipa.conf", "w")
         http_fd.write(http_txt)
         http_fd.close()                
@@ -147,7 +149,7 @@ class HTTPInstance(service.Service):
         ca.create_signing_cert("Signing-Cert", "cn=%s,ou=Signing Certificate,o=Identity Policy Audit" % self.fqdn, ds_ca)
 
     def __setup_autoconfig(self):
-        prefs_txt = template_file(SHARE_DIR + "preferences.html.template", self.sub_dict)
+        prefs_txt = ipautil.template_file(ipautil.SHARE_DIR + "preferences.html.template", self.sub_dict)
         prefs_fd = open("/usr/share/ipa/html/preferences.html", "w")
         prefs_fd.write(prefs_txt)
         prefs_fd.close()                

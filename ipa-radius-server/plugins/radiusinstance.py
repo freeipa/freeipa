@@ -29,7 +29,7 @@ import logging
 import pwd
 import time
 import sys
-from ipa.ipautil import *
+from ipa import ipautil
 from ipa import radius_util
 
 from ipaserver import service
@@ -46,7 +46,7 @@ from ipaserver.funcs import DefaultUserContainer, DefaultGroupContainer
 
 def ldap_mod(fd, dn, pwd):
     args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv", "-D", dn, "-w", pwd, "-f", fd.name]
-    run(args)
+    ipautil.run(args)
 
 def get_radius_version():
     version = None
@@ -76,7 +76,7 @@ class RadiusInstance(service.Service):
 
     def create_instance(self, realm_name, host_name, ldap_server):
         self.realm        = realm_name.upper()
-        self.suffix       = realm_to_suffix(self.realm)
+        self.suffix       = ipautil.realm_to_suffix(self.realm)
         self.fqdn         = host_name
         self.ldap_server  = ldap_server
         self.principal    = "%s/%s@%s" % (radius_util.RADIUS_SERVICE_NAME, self.fqdn, self.realm)
@@ -119,7 +119,7 @@ class RadiusInstance(service.Service):
                     'SUFFIX'                   : self.suffix,
                     }
         try:
-            radiusd_conf = template_file(radius_util.RADIUSD_CONF_TEMPLATE_FILEPATH, sub_dict)
+            radiusd_conf = ipautil.template_file(radius_util.RADIUSD_CONF_TEMPLATE_FILEPATH, sub_dict)
             radiusd_fd = open(radius_util.RADIUSD_CONF_FILEPATH, 'w+')
             radiusd_fd.write(radiusd_conf)
             radiusd_fd.close()
@@ -129,7 +129,7 @@ class RadiusInstance(service.Service):
     def __create_radius_keytab(self):
         self.step("creating a keytab for radiusd")
         try:
-            if file_exists(radius_util.RADIUS_IPA_KEYTAB_FILEPATH):
+            if ipautil.file_exists(radius_util.RADIUS_IPA_KEYTAB_FILEPATH):
                 os.remove(radius_util.RADIUS_IPA_KEYTAB_FILEPATH)
         except os.error:
             logging.error("Failed to remove %s", radius_util.RADIUS_IPA_KEYTAB_FILEPATH)
@@ -145,7 +145,7 @@ class RadiusInstance(service.Service):
 
         # give kadmin time to actually write the file before we go on
         retry = 0
-        while not file_exists(radius_util.RADIUS_IPA_KEYTAB_FILEPATH):
+        while not ipautil.file_exists(radius_util.RADIUS_IPA_KEYTAB_FILEPATH):
             time.sleep(1)
             retry += 1
             if retry > 15:
@@ -161,11 +161,11 @@ class RadiusInstance(service.Service):
     def __set_ldap_encrypted_attributes(self):
         ldif_file = 'encrypted_attribute.ldif'
         self.step("setting ldap encrypted attributes")
-        ldif_txt = template_file(SHARE_DIR + ldif_file, {'ENCRYPTED_ATTRIBUTE':'radiusClientSecret'})
-        ldif_fd = write_tmp_file(ldif_txt)
+        ldif_txt = ipautil.template_file(ipautil.SHARE_DIR + ldif_file, {'ENCRYPTED_ATTRIBUTE':'radiusClientSecret'})
+        ldif_fd = ipautil.write_tmp_file(ldif_txt)
         try:
             ldap_mod(ldif_fd, "cn=Directory Manager", self.dm_password)
-        except subprocess.CalledProcessError, e:
+        except ipautil.CalledProcessError, e:
             logging.critical("Failed to load %s: %s" % (ldif_file, str(e)))
         ldif_fd.close()
 

@@ -17,24 +17,24 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from ipa.ipautil import *
 import logging, sys
+from ipa import ipautil
 
 
 def stop(service_name):
-    run(["/sbin/service", service_name, "stop"])
+    ipautil.run(["/sbin/service", service_name, "stop"])
 
 def start(service_name):
-    run(["/sbin/service", service_name, "start"])
+    ipautil.run(["/sbin/service", service_name, "start"])
 
 def restart(service_name):
-    run(["/sbin/service", service_name, "restart"])
+    ipautil.run(["/sbin/service", service_name, "restart"])
     
 def chkconfig_on(service_name):
-    run(["/sbin/chkconfig", service_name, "on"])
+    ipautil.run(["/sbin/chkconfig", service_name, "on"])
 
 def chkconfig_off(service_name):
-    run(["/sbin/chkconfig", service_name, "off"])
+    ipautil.run(["/sbin/chkconfig", service_name, "off"])
     
 def print_msg(message, output_fd=sys.stdout):
     logging.debug(message)
