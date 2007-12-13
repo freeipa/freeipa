@@ -129,6 +129,7 @@ class KrbInstance(service.Service):
         self.step("adding defalt ACIs", self.__add_default_acis)
         self.step("configuring KDC", self.__create_instance)
         self.step("creating a keytab for the directory", self.__create_ds_keytab)
+        self.step("creating a keytab for the machine", self.__create_host_keytab)
         self.step("exporting the kadmin keytab", self.__export_kadmin_changepw_keytab)
         self.step("adding the password extenstion to the directory", self.__add_pwd_extop_module)
 
@@ -145,6 +146,7 @@ class KrbInstance(service.Service):
         self.step("writing stash file from DS", self.__write_stash_from_ds)
         self.step("configuring KDC", self.__create_replica_instance)
         self.step("creating a keytab for the directory", self.__create_ds_keytab)
+        self.step("creating a keytab for the machine", self.__create_host_keytab)
         self.step("exporting the kadmin keytab", self.__export_kadmin_changepw_keytab)
 
         self.__common_post_setup()
@@ -369,6 +371,35 @@ class KrbInstance(service.Service):
         update_key_val_in_file("/etc/sysconfig/dirsrv", "export KRB5_KTNAME", "/etc/dirsrv/ds.keytab")
         pent = pwd.getpwnam(self.ds_user)
         os.chown("/etc/dirsrv/ds.keytab", pent.pw_uid, pent.pw_gid)
+
+    def __create_host_keytab(self):
+        self.step("creating a keytab for the machine (sshd use this)")
+        try:
+            if ipautil.file_exists("/etc/krb5.keytab"):
+                os.remove("/etc/krb5.keytab")
+        except os.error:
+            logging.critical("Failed to remove /etc/krb5.keytab.")
+        (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
+        kwrite.write("addprinc -randkey host/"+self.fqdn+"@"+self.realm+"\n")
+        kwrite.flush()
+        kwrite.write("ktadd -k /etc/krb5.keytab host/"+self.fqdn+"@"+self.realm+"\n")
+        kwrite.flush()
+        kwrite.close()
+        kread.close()
+        kerr.close()
+
+        # give kadmin time to actually write the file before we go on
+	retry = 0
+        while not ipautil.file_exists("/etc/krb5.keytab"):
+            time.sleep(1)
+            retry += 1
+            if retry > 15:
+                logging.critical("Error timed out waiting for kadmin to finish operations")
+                sys.exit(1)
+
+        # Make sure access is strictly reserved to root only for now
+        os.chown("/etc/krb5.keytab", 0, 0)
+        os.chmod("/etc/krb5.keytab", 0600)
 
     def __export_kadmin_changepw_keytab(self):
         try:
