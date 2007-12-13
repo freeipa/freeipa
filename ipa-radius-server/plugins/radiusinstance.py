@@ -79,7 +79,6 @@ class RadiusInstance(service.Service):
         self.basedn       = self.suffix
         self.user_basedn  = "%s,%s" % (DefaultUserContainer, self.basedn) # FIXME, should be utility to get this
         self.radius_version = get_radius_version()
-        self.start_creation(4, "Configuring radiusd")
 
         try:
             self.stop()
@@ -87,22 +86,23 @@ class RadiusInstance(service.Service):
             # It could have been not running
             pass
 
-        self.__create_radius_keytab()
-        self.__radiusd_conf()
+        self.step("create radiusd keytab", self.__create_radius_keytab)
+        self.step("configuring radiusd.conf for radius instance", self.__radiusd_conf)
+        self.step("starting radiusd", self.__start_instance)
+        self.step("configuring radiusd to start on boot", self.chkconfig_on)
 
+        # FIXME:
+        # self.step("setting ldap encrypted attributes", self.__set_ldap_encrypted_attributes)
+
+        self.start_creation("Configuring radiusd")
+
+    def __start_instance(self):
         try:
-            self.step("starting radiusd")
             self.start()
         except:
             logging.error("radiusd service failed to start")
 
-        self.step("configuring radiusd to start on boot")
-        self.chkconfig_on()
-
-
     def __radiusd_conf(self):
-        self.step('configuring radiusd.conf for radius instance')
-
         version = 'IPA_RADIUS_VERSION=%s FREE_RADIUS_VERSION=%s' % (IPA_RADIUS_VERSION, self.radius_version)
         sub_dict = {'CONFIG_FILE_VERSION_INFO' : version,
                     'LDAP_SERVER'              : self.ldap_server,
@@ -123,7 +123,6 @@ class RadiusInstance(service.Service):
             logging.error("could not create %s: %s", radius_util.RADIUSD_CONF_FILEPATH, e)
 
     def __create_radius_keytab(self):
-        self.step("creating a keytab for radiusd")
         try:
             if ipautil.file_exists(radius_util.RADIUS_IPA_KEYTAB_FILEPATH):
                 os.remove(radius_util.RADIUS_IPA_KEYTAB_FILEPATH)
@@ -153,9 +152,7 @@ class RadiusInstance(service.Service):
         except Exception, e:
             logging.error("could not chown on %s to %s: %s", radius_util.RADIUS_IPA_KEYTAB_FILEPATH, radius_util.RADIUS_USER, e)
 
-    def __ldap_mod(self, step, ldif):
-        self.step(step)
-
+    def __ldap_mod(self, ldif):
         txt = iputil.template_file(ipautil.SHARE_DIR + ldif, self.sub_dict)
         fd = ipautil.write_tmp_file(txt)
 
@@ -171,8 +168,7 @@ class RadiusInstance(service.Service):
 
     #FIXME, should use IPAdmin method
     def __set_ldap_encrypted_attributes(self):
-        self.__ldap_mod("setting ldap encrypted attributes",
-                        "encrypted_attribute.ldif", {"ENCRYPTED_ATTRIBUTE" : "radiusClientSecret"})
+        self.__ldap_mod("encrypted_attribute.ldif", {"ENCRYPTED_ATTRIBUTE" : "radiusClientSecret"})
 
 #-------------------------------------------------------------------------------
 

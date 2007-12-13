@@ -135,38 +135,29 @@ class DsInstance(service.Service):
         self.domain = host_name[host_name.find(".")+1:]
         self.__setup_sub_dict()
         
-        if ro_replica:
-            self.start_creation(15, "Configuring directory server:")
-        else:
-            self.start_creation(15, "Configuring directory server:")
-
-        self.__create_ds_user()
-        self.__create_instance()
-        self.__add_default_schemas()
+        self.step("creating directory server user", self.__create_ds_user)
+        self.step("creating directory server instance", self.__create_instance)
+        self.step("adding default schema", self.__add_default_schemas)
         if not ro_replica:
-            self.__add_memberof_module()
-        self.__add_referint_module()
-        self.__add_dna_module()
-        self.__create_indeces()
-        self.__enable_ssl()
-        self.__certmap_conf()
-        try:
-            self.step("restarting directory server")
-            self.restart()
-        except:
-            # TODO: roll back here?
-            logging.critical("Failed to restart the ds instance")
-        self.__add_default_layout()
+            self.step("enabling memberof plugin", self.__add_memberof_module)
+        self.step("enabling referential integrity plugin", self.__add_referint_module)
+        self.step("enabling distributed numeric assignment plugin", self.__add_dna_module)
+        self.step("creating indeces", self.__create_indeces)
+        self.step("configuring ssl for ds instance", self.__enable_ssl)
+        self.step("configuring certmap.conf", self.__certmap_conf)
+        self.step("restarting directory server", self.__restart_instance)
+        self.step("adding default layout", self.__add_default_layout)
         if not ro_replica:
-            self.__config_uidgid_gen_first_master()
-            self.__add_master_entry_first_master()
-            self.__init_memberof()
+            self.step("configuring Posix uid/gid generation as first master",
+                      self.__config_uidgid_gen_first_master)
+            self.step("adding master entry as first master",
+                      self.__add_master_entry_first_master)
+            self.step("initializing group membership",
+                      self.__init_memberof)
 
+        self.step("configuring directory to start on boot", self.chkconfig_on)
 
-        self.step("configuring directoy to start on boot")
-        self.chkconfig_on()
-
-        self.done_creation()
+        self.start_creation("Configuring directory server:")
 
     def __setup_sub_dict(self):
         server_root = find_server_root()
@@ -176,7 +167,6 @@ class DsInstance(service.Service):
                              SERVER_ROOT=server_root, DOMAIN=self.domain)
 
     def __create_ds_user(self):
-        self.step("creating directory server user")
 	try:
             pwd.getpwnam(self.ds_user)
             logging.debug("ds user %s exists" % self.ds_user)
@@ -190,7 +180,6 @@ class DsInstance(service.Service):
                 logging.critical("failed to add user %s" % e)
 
     def __create_instance(self):
-        self.step("creating directory server instance")
         inf_txt = ipautil.template_str(INF_TEMPLATE, self.sub_dict)
         logging.debug(inf_txt)
         inf_fd = ipautil.write_tmp_file(inf_txt)
@@ -215,7 +204,6 @@ class DsInstance(service.Service):
             logging.debug("failed to restart ds instance %s" % e)
 
     def __add_default_schemas(self):
-        self.step("adding default schema")
         shutil.copyfile(ipautil.SHARE_DIR + "60kerberos.ldif",
                         schema_dirname(self.realm_name) + "60kerberos.ldif")
         shutil.copyfile(ipautil.SHARE_DIR + "60samba.ldif",
@@ -225,9 +213,14 @@ class DsInstance(service.Service):
         shutil.copyfile(ipautil.SHARE_DIR + "60ipaconfig.ldif",
                         schema_dirname(self.realm_name) + "60ipaconfig.ldif")
 
-    def __ldap_mod(self, step, ldif, sub_dict = None):
-        self.step(step)
+    def __restart_instance(self):
+        try:
+            self.restart()
+        except:
+            # TODO: roll back here?
+            logging.critical("Failed to restart the ds instance")
 
+    def __ldap_mod(self, ldif, sub_dict = None):
         fd = None
         path = ipautil.SHARE_DIR + ldif
 
@@ -248,30 +241,24 @@ class DsInstance(service.Service):
             fd.close()
 
     def __add_memberof_module(self):
-        self.__ldap_mod("enabling memberof plugin", "memberof-conf.ldif")
+        self.__ldap_mod("memberof-conf.ldif")
 
     def __init_memberof(self):
-        self.__ldap_mod("initializing group membership",
-                        "memberof-task.ldif", self.sub_dict)
+        self.__ldap_mod("memberof-task.ldif", self.sub_dict)
 
     def __add_referint_module(self):
-        self.__ldap_mod("enabling referential integrity plugin",
-                        "referint-conf.ldif")
+        self.__ldap_mod("referint-conf.ldif")
 
     def __add_dna_module(self):
-        self.__ldap_mod("enabling distributed numeric assignment plugin",
-                        "dna-conf.ldif")
+        self.__ldap_mod("dna-conf.ldif")
 
     def __config_uidgid_gen_first_master(self):
-        self.__ldap_mod("configuring Posix uid/gid generation as first master",
-                        "dna-posix.ldif", self.sub_dict)
+        self.__ldap_mod("dna-posix.ldif", self.sub_dict)
 
     def __add_master_entry_first_master(self):
-        self.__ldap_mod("adding master entry as first master",
-                        "master-entry.ldif", self.sub_dict)
+        self.__ldap_mod("master-entry.ldif", self.sub_dict)
 
     def __enable_ssl(self):
-        self.step("configuring ssl for ds instance")
         dirname = config_dirname(self.realm_name)
         ca = certs.CertDB(dirname)
         ca.create_self_signed()
@@ -305,14 +292,12 @@ class DsInstance(service.Service):
         conn.unbind()
 
     def __add_default_layout(self):
-        self.__ldap_mod("adding default layout",
-                        "bootstrap-template.ldif", self.sub_dict)
+        self.__ldap_mod("bootstrap-template.ldif", self.sub_dict)
         
     def __create_indeces(self):
-        self.__ldap_mod("creating indeces", "indeces.ldif")
+        self.__ldap_mod("indeces.ldif")
 
     def __certmap_conf(self):
-        self.step("configuring certmap.conf")
         shutil.copyfile(ipautil.SHARE_DIR + "certmap.conf.template",
                         config_dirname(self.realm_name) + "certmap.conf")
 

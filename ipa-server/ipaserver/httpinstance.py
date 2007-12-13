@@ -57,25 +57,19 @@ class HTTPInstance(service.Service):
         self.domain = fqdn[fqdn.find(".")+1:]
         self.sub_dict = { "REALM" : realm, "FQDN": fqdn, "DOMAIN" : self.domain }
         
-        self.start_creation(7, "Configuring the web interface")
-        
-        self.__disable_mod_ssl()
-        self.__set_mod_nss_port()
-        self.__configure_http()
-        self.__create_http_keytab()
-        self.__setup_ssl()
-        self.__setup_autoconfig()
+        self.step("disabling mod_ssl in httpd", self.__disable_mod_ssl)
+        self.step("Setting mod_nss port to 443", self.__set_mod_nss_port)
+        self.step("configuring httpd", self.__configure_http)
+        self.step("creating a keytab for httpd", self.__create_http_keytab)
+        self.step("Setting up ssl", self.__setup_ssl)
+        self.step("Setting up browser autoconfig", self.__setup_autoconfig)
+        self.step("configuring SELinux for httpd", self.__selinux_config)
+        self.step("restarting httpd", self.restart)
+        self.step("configuring httpd to start on boot", self.chkconfig_on)
 
-        self.step("restarting httpd")
-        self.restart()
-
-        self.step("configuring httpd to start on boot")
-        self.chkconfig_on()
-
-        self.done_creation()
+        self.start_creation("Configuring the web interface")
 
     def __selinux_config(self):
-        self.step("configuring SELinux for httpd")
         selinux=0
         try:
             if (os.path.exists('/usr/sbin/selinuxenabled')):
@@ -94,7 +88,6 @@ class HTTPInstance(service.Service):
                 self.print_msg(selinux_warning)
                 
     def __create_http_keytab(self):
-        self.step("creating a keytab for httpd")
         try:
             if ipautil.file_exists("/etc/httpd/conf/ipa.keytab"):
                 os.remove("/etc/httpd/conf/ipa.keytab")
@@ -122,7 +115,6 @@ class HTTPInstance(service.Service):
         os.chown("/etc/httpd/conf/ipa.keytab", pent.pw_uid, pent.pw_gid)
 
     def __configure_http(self):
-        self.step("configuring httpd")
         http_txt = ipautil.template_file(ipautil.SHARE_DIR + "ipa.conf", self.sub_dict)
         http_fd = open("/etc/httpd/conf.d/ipa.conf", "w")
         http_fd.write(http_txt)
@@ -130,17 +122,14 @@ class HTTPInstance(service.Service):
 
 
     def __disable_mod_ssl(self):
-        self.step("disabling mod_ssl in httpd")
         if os.path.exists(SSL_CONF):
             os.rename(SSL_CONF, "%s.moved_by_ipa" % SSL_CONF)
 
     def __set_mod_nss_port(self):
-        self.step("Setting mod_nss port to 443")
         if installutils.update_file(NSS_CONF, '8443', '443') != 0:
             print "Updating %s failed." % NSS_CONF
 
     def __setup_ssl(self):
-        self.step("Setting up ssl")
         ds_ca = certs.CertDB(dsinstance.config_dirname(self.realm))
         ca = certs.CertDB(NSS_DIR)
         ds_ca.cur_serial = 2000

@@ -114,58 +114,42 @@ class KrbInstance(service.Service):
             pass
 
     def __common_post_setup(self):
-        try:
-            self.step("starting the KDC")
-            self.start()
-        except:
-            logging.critical("krb5kdc service failed to start")
-
-        self.step("configuring KDC to start on boot")
-        self.chkconfig_on()
-
-        self.step("configuring ipa-kpasswd to start on boot")
-        service.chkconfig_on("ipa-kpasswd")
-
-        self.step("starting ipa-kpasswd")
-        service.start("ipa-kpasswd")
-
+        self.step("starting the KDC", self.__start_instance)
+        self.step("configuring KDC to start on boot", self.chkconfig_on)
+        self.step("enabling and starting ipa-kpasswd", self.__enable_kpasswd)
 
     def create_instance(self, ds_user, realm_name, host_name, admin_password, master_password):
         self.master_password = master_password
 
         self.__common_setup(ds_user, realm_name, host_name, admin_password)
 
-        self.start_creation(12, "Configuring Kerberos KDC")
-        
-        self.__configure_kdc_account_password()
-        self.__configure_sasl_mappings()
-        self.__add_krb_entries()
-        self.__create_instance()
-        self.__create_ds_keytab()
-        self.__export_kadmin_changepw_keytab()
-        self.__add_pwd_extop_module()
+        self.step("setting KDC account password", self.__configure_kdc_account_password)
+        self.step("adding sasl mappings to the directory", self.__configure_sasl_mappings)
+        self.step("adding kerberos entries to the DS", self.__add_krb_entries)
+        self.step("adding defalt ACIs", self.__add_default_acis)
+        self.step("configuring KDC", self.__create_instance)
+        self.step("creating a keytab for the directory", self.__create_ds_keytab)
+        self.step("exporting the kadmin keytab", self.__export_kadmin_changepw_keytab)
+        self.step("adding the password extenstion to the directory", self.__add_pwd_extop_module)
 
         self.__common_post_setup()
 
-        self.done_creation()
-
+        self.start_creation("Configuring Kerberos KDC")
 
     def create_replica(self, ds_user, realm_name, host_name, admin_password, ldap_passwd_filename):
-        
+        self.__copy_ldap_passwd(ldap_passwd_filename)
+
         self.__common_setup(ds_user, realm_name, host_name, admin_password)
 
-        self.start_creation(9, "Configuring Kerberos KDC")
-        self.__copy_ldap_passwd(ldap_passwd_filename)
-        self.__configure_sasl_mappings()
-        self.__write_stash_from_ds()
-        self.__create_instance(replica=True)
-        self.__create_ds_keytab()
-        self.__export_kadmin_changepw_keytab()
+        self.step("adding sasl mappings to the directory", self.__configure_sasl_mappings)
+        self.step("writing stash file from DS", self.__write_stash_from_ds)
+        self.step("configuring KDC", self.__create_replica_instance)
+        self.step("creating a keytab for the directory", self.__create_ds_keytab)
+        self.step("exporting the kadmin keytab", self.__export_kadmin_changepw_keytab)
 
         self.__common_post_setup()
 
-        self.done_creation()
-
+        self.start_creation("Configuring Kerberos KDC")
 
     def __copy_ldap_passwd(self, filename):
         shutil.copy(filename, "/var/kerberos/krb5kdc/ldappwd")
@@ -173,7 +157,6 @@ class KrbInstance(service.Service):
         
         
     def __configure_kdc_account_password(self):
-        self.step("setting KDC account password")
         hexpwd = ''
 	for x in self.kdc_password:
             hexpwd += (hex(ord(x))[2:])
@@ -181,6 +164,16 @@ class KrbInstance(service.Service):
         pwd_fd.write("uid=kdc,cn=sysaccounts,cn=etc,"+self.suffix+"#{HEX}"+hexpwd+"\n")
         pwd_fd.close()
         os.chmod("/var/kerberos/krb5kdc/ldappwd", 0600)
+
+    def __start_instance(self):
+        try:
+            self.start()
+        except:
+            logging.critical("krb5kdc service failed to start")
+
+    def __enable_kpasswd(self):
+        service.chkconfig_on("ipa-kpasswd")
+        service.start("ipa-kpasswd")
 
     def __setup_sub_dict(self):
         self.sub_dict = dict(FQDN=self.fqdn,
@@ -191,9 +184,7 @@ class KrbInstance(service.Service):
                              HOST=self.host,
                              REALM=self.realm)
 
-    def __ldap_mod(self, step, ldif):
-        self.step(step)
-
+    def __ldap_mod(self, ldif):
         txt = ipautil.template_file(ipautil.SHARE_DIR + ldif, self.sub_dict)
         fd = ipautil.write_tmp_file(txt)
 
@@ -208,7 +199,6 @@ class KrbInstance(service.Service):
         fd.close()
 
     def __configure_sasl_mappings(self):
-        self.step("adding sasl mappings to the directory")
         # we need to remove any existing SASL mappings in the directory as otherwise they
         # they may conflict. There is no way to define the order they are used in atm.
 
@@ -258,13 +248,16 @@ class KrbInstance(service.Service):
             raise e
 
     def __add_krb_entries(self):
-        self.__ldap_mod("adding kerberos entries to the DS", "kerberos.ldif")
+        self.__ldap_mod("kerberos.ldif")
 
+    def __add_default_acis(self):
 	#Change the default ACL to avoid anonimous access to kerberos keys and othe hashes
-        self.__ldap_mod("adding defalt ACIs", "default-aci.ldif")
+        self.__ldap_mod("default-aci.ldif")
+
+    def __create_replica_instance(self):
+        self.__create_instance(replace=True)
 
     def __create_instance(self, replica=False):
-        self.step("configuring KDC")
         kdc_conf = ipautil.template_file(ipautil.SHARE_DIR+"kdc.conf.template", self.sub_dict)
         kdc_fd = open("/var/kerberos/krb5kdc/kdc.conf", "w+")
         kdc_fd.write(kdc_conf)
@@ -300,7 +293,6 @@ class KrbInstance(service.Service):
                 print "Failed to populate the realm structure in kerberos", e
 
     def __write_stash_from_ds(self):
-        self.step("writing stash file from DS")
         try:
             entry = self.conn.getEntry("cn=%s, cn=kerberos, %s" % (self.realm, self.suffix), ldap.SCOPE_SUBTREE)
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND), e:
@@ -322,7 +314,7 @@ class KrbInstance(service.Service):
 
     #add the password extop module
     def __add_pwd_extop_module(self):
-        self.__ldap_mod("adding the password extenstion to the directory", "pwd-extop-conf.ldif")
+        self.__ldap_mod("pwd-extop-conf.ldif")
 
         #get the Master Key from the stash file
         try:
@@ -351,7 +343,6 @@ class KrbInstance(service.Service):
             raise e
 
     def __create_ds_keytab(self):
-        self.step("creating a keytab for the directory")
         try:
             if ipautil.file_exists("/etc/dirsrv/ds.keytab"):
                 os.remove("/etc/dirsrv/ds.keytab")
@@ -380,7 +371,6 @@ class KrbInstance(service.Service):
         os.chown("/etc/dirsrv/ds.keytab", pent.pw_uid, pent.pw_gid)
 
     def __export_kadmin_changepw_keytab(self):
-        self.step("exporting the kadmin keytab")
         try:
             if ipautil.file_exists("/var/kerberos/krb5kdc/kpasswd.keytab"):
                 os.remove("/var/kerberos/krb5kdc/kpasswd.keytab")
