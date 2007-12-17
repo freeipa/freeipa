@@ -373,7 +373,6 @@ class KrbInstance(service.Service):
         os.chown("/etc/dirsrv/ds.keytab", pent.pw_uid, pent.pw_gid)
 
     def __create_host_keytab(self):
-        self.step("creating a keytab for the machine (sshd use this)")
         try:
             if ipautil.file_exists("/etc/krb5.keytab"):
                 os.remove("/etc/krb5.keytab")
