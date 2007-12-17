@@ -24,6 +24,6 @@ class WebGuiInstance(service.Service):
         service.Service.__init__(self, "ipa-webgui")
 
     def create_instance(self):
-        self.step("starting ipa-webgui", self.start)
+        self.step("starting ipa-webgui", self.restart)
         self.step("configuring ipa-webgui to start on boot", self.chkconfig_on)
         self.start_creation("Configuring ipa-webgui")
