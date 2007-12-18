@@ -29,10 +29,10 @@ import sys
 import os
 import pwd
 import socket
-import time
 import shutil
 
 import service
+import installutils
 from ipa import ipautil
 from ipa import ipaerror
 
@@ -345,89 +345,26 @@ class KrbInstance(service.Service):
             raise e
 
     def __create_ds_keytab(self):
-        try:
-            if ipautil.file_exists("/etc/dirsrv/ds.keytab"):
-                os.remove("/etc/dirsrv/ds.keytab")
-        except os.error:
-            logging.critical("Failed to remove /etc/dirsrv/ds.keytab.")
-        (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
-        kwrite.write("addprinc -randkey ldap/"+self.fqdn+"@"+self.realm+"\n")
-        kwrite.flush()
-        kwrite.write("ktadd -k /etc/dirsrv/ds.keytab ldap/"+self.fqdn+"@"+self.realm+"\n")
-        kwrite.flush()
-        kwrite.close()
-        kread.close()
-        kerr.close()
-
-        # give kadmin time to actually write the file before we go on
-	retry = 0
-        while not ipautil.file_exists("/etc/dirsrv/ds.keytab"):
-            time.sleep(1)
-            retry += 1
-            if retry > 15:
-                logging.critical("Error timed out waiting for kadmin to finish operations")
-                sys.exit(1)
+        ldap_principal = "ldap/" + self.fqdn + "@" + self.realm
+        installutils.kadmin_addprinc(ldap_principal)
+        installutils.create_keytab("/etc/dirsrv/ds.keytab", ldap_principal)
 
         update_key_val_in_file("/etc/sysconfig/dirsrv", "export KRB5_KTNAME", "/etc/dirsrv/ds.keytab")
         pent = pwd.getpwnam(self.ds_user)
         os.chown("/etc/dirsrv/ds.keytab", pent.pw_uid, pent.pw_gid)
 
     def __create_host_keytab(self):
-        try:
-            if ipautil.file_exists("/etc/krb5.keytab"):
-                os.remove("/etc/krb5.keytab")
-        except os.error:
-            logging.critical("Failed to remove /etc/krb5.keytab.")
-        (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
-        kwrite.write("addprinc -randkey host/"+self.fqdn+"@"+self.realm+"\n")
-        kwrite.flush()
-        kwrite.write("ktadd -k /etc/krb5.keytab host/"+self.fqdn+"@"+self.realm+"\n")
-        kwrite.flush()
-        kwrite.close()
-        kread.close()
-        kerr.close()
-
-        # give kadmin time to actually write the file before we go on
-	retry = 0
-        while not ipautil.file_exists("/etc/krb5.keytab"):
-            time.sleep(1)
-            retry += 1
-            if retry > 15:
-                logging.critical("Error timed out waiting for kadmin to finish operations")
-                sys.exit(1)
+        host_principal = "host/" + self.fqdn + "@" + self.realm
+        installutils.kadmin_addprinc(host_principal)
+        installutils.create_keytab("/etc/krb5.keytab", host_principal)
 
         # Make sure access is strictly reserved to root only for now
         os.chown("/etc/krb5.keytab", 0, 0)
         os.chmod("/etc/krb5.keytab", 0600)
 
     def __export_kadmin_changepw_keytab(self):
-        try:
-            if ipautil.file_exists("/var/kerberos/krb5kdc/kpasswd.keytab"):
-                os.remove("/var/kerberos/krb5kdc/kpasswd.keytab")
-        except os.error:
-            logging.critical("Failed to remove /var/kerberos/krb5kdc/kpasswd.keytab.")
-        (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
-        kwrite.write("modprinc +requires_preauth kadmin/changepw\n")
-        kwrite.flush()
-        kwrite.close()
-        kread.close()
-        kerr.close()
-
-        (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
-        kwrite.write("ktadd -k /var/kerberos/krb5kdc/kpasswd.keytab kadmin/changepw\n")
-        kwrite.flush()
-        kwrite.close()
-        kread.close()
-        kerr.close()
-
-        # give kadmin time to actually write the file before we go on
-	retry = 0
-        while not ipautil.file_exists("/var/kerberos/krb5kdc/kpasswd.keytab"):
-            time.sleep(1)
-            retry += 1
-            if retry > 15:
-                logging.critical("Error timed out waiting for kadmin to finish operations")
-                sys.exit(1)
+        installutils.kadmin_modprinc("kadmin/changepw", "+requires_preauth")
+        installutils.create_keytab("/var/kerberos/krb5kdc/kpasswd.keytab", "kadmin/changepw")
 
         update_key_val_in_file("/etc/sysconfig/ipa-kpasswd", "export KRB5_KTNAME", "/var/kerberos/krb5kdc/kpasswd.keytab")
         pent = pwd.getpwnam(self.ds_user)

@@ -25,6 +25,9 @@ import os
 import re
 import fileinput
 import sys
+import time
+
+from ipa import ipautil
 
 def get_fqdn():
     fqdn = ""
@@ -124,4 +127,36 @@ def update_file(filename, orig, subst):
         print "File %s doesn't exist." % filename
         return 1
 
+def kadmin(command):
+    (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
 
+    kwrite.write(command)
+    kwrite.write("\n")
+    kwrite.flush()
+
+    for k in (kwrite, kread, kerr):
+        k.close()
+
+def kadmin_addprinc(principal):
+    kadmin("addprinc -randkey " + principal)
+
+def kadmin_modprinc(principal, options):
+    kadmin("modprinc " + options + " " + principal)
+
+def create_keytab(path, principal):
+    try:
+        if ipautil.file_exists(path):
+            os.remove(path)
+    except os.error:
+        logging.critical("Failed to remove %s." % path)
+
+    kadmin("ktadd -k " + path + " " + principal)
+
+    # give kadmin time to actually write the file before we go on
+    retry = 0
+    while not ipautil.file_exists(path):
+        time.sleep(1)
+        retry += 1
+        if retry > 15:
+            logging.critical("Error timed out waiting for kadmin to finish operations")
+            sys.exit(1)

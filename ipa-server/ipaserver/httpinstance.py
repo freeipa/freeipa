@@ -26,7 +26,6 @@ import logging
 import pwd
 import fileinput
 import sys
-import time
 import shutil
 
 import service
@@ -88,28 +87,9 @@ class HTTPInstance(service.Service):
                 self.print_msg(selinux_warning)
                 
     def __create_http_keytab(self):
-        try:
-            if ipautil.file_exists("/etc/httpd/conf/ipa.keytab"):
-                os.remove("/etc/httpd/conf/ipa.keytab")
-        except os.error:
-            print "Failed to remove /etc/httpd/conf/ipa.keytab."
-        (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
-        kwrite.write("addprinc -randkey HTTP/"+self.fqdn+"@"+self.realm+"\n")
-        kwrite.flush()
-        kwrite.write("ktadd -k /etc/httpd/conf/ipa.keytab HTTP/"+self.fqdn+"@"+self.realm+"\n")
-        kwrite.flush()
-        kwrite.close()
-        kread.close()
-        kerr.close()
-
-        # give kadmin time to actually write the file before we go on
-	retry = 0
-        while not ipautil.file_exists("/etc/httpd/conf/ipa.keytab"):
-            time.sleep(1)
-            retry += 1
-            if retry > 15:
-                print "Error timed out waiting for kadmin to finish operations\n"
-                sys.exit(1)
+        http_principal = "HTTP/" + self.fqdn + "@" + self.realm
+        installutils.kadmin_addprinc(http_principal)
+        installutils.create_keytab("/etc/httpd/conf/ipa.keytab", http_principal)
 
         pent = pwd.getpwnam("apache")
         os.chown("/etc/httpd/conf/ipa.keytab", pent.pw_uid, pent.pw_gid)
