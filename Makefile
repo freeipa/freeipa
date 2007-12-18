@@ -1,4 +1,4 @@
-SUBDIRS=ipa-server ipa-admintools ipa-python ipa-client ipa-radius-server
+SUBDIRS=ipa-server ipa-admintools ipa-python ipa-client ipa-radius-server ipa-radius-admintools
 
 PRJ_PREFIX=ipa
 
@@ -41,6 +41,13 @@ RADIUS_SERVER_RELEASE=0
 RADIUS_SERVER_VERSION=$(RADIUS_SERVER_MAJOR).$(RADIUS_SERVER_MINOR).$(RADIUS_SERVER_RELEASE)
 RADIUS_SERVER_TARBALL_PREFIX=$(PRJ_PREFIX)-radius-server-$(RADIUS_SERVER_VERSION)
 RADIUS_SERVER_TARBALL=$(RADIUS_SERVER_TARBALL_PREFIX).tgz
+
+RADIUS_ADMINTOOLS_MAJOR=0
+RADIUS_ADMINTOOLS_MINOR=5
+RADIUS_ADMINTOOLS_RELEASE=0
+RADIUS_ADMINTOOLS_VERSION=$(RADIUS_ADMINTOOLS_MAJOR).$(RADIUS_ADMINTOOLS_MINOR).$(RADIUS_ADMINTOOLS_RELEASE)
+RADIUS_ADMINTOOLS_TARBALL_PREFIX=$(PRJ_PREFIX)-radius-admintools-$(RADIUS_ADMINTOOLS_VERSION)
+RADIUS_ADMINTOOLS_TARBALL=$(RADIUS_ADMINTOOLS_TARBALL_PREFIX).tgz
 
 LIBDIR ?= /usr/lib
 
@@ -86,6 +93,9 @@ version-update:
 
 	sed s/VERSION/$(RADIUS_SERVER_VERSION)/ ipa-radius-server/ipa-radius-server.spec.in \
 		> ipa-radius-server/ipa-radius-server.spec
+
+	sed s/VERSION/$(RADIUS_ADMINTOOLS_VERSION)/ ipa-radius-admintools/ipa-radius-admintools.spec.in \
+		> ipa-radius-admintools/ipa-radius-admintools.spec
 
 
 archive:
@@ -136,6 +146,12 @@ tarballs:
 	cd dist; tar cfz sources/$(RADIUS_SERVER_TARBALL) $(RADIUS_SERVER_TARBALL_PREFIX)
 	rm -fr dist/$(RADIUS_SERVER_TARBALL_PREFIX)
 
+        # ipa-radius-admintools
+	mv dist/ipa/ipa-radius-admintools dist/$(RADIUS_ADMINTOOLS_TARBALL_PREFIX)
+	rm -f dist/sources/$(RADIUS_ADMINTOOLS_TARBALL)
+	cd dist; tar cfz sources/$(RADIUS_ADMINTOOLS_TARBALL) $(RADIUS_ADMINTOOLS_TARBALL_PREFIX)
+	rm -fr dist/$(RADIUS_ADMINTOOLS_TARBALL_PREFIX)
+
 
 rpmroot:
 	mkdir -p $(RPMBUILD)/BUILD
@@ -178,8 +194,14 @@ rpm-ipa-radius-server:
 	cp rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-radius-server-$(RADIUS_SERVER_VERSION)-*.rpm dist/rpms/
 	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-radius-server-$(RADIUS_SERVER_VERSION)-*.src.rpm dist/srpms/
 
+rpm-ipa-radius-admintools:
+	cp dist/sources/$(RADIUS_ADMINTOOLS_TARBALL) $(RPMBUILD)/SOURCES/.
+	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa-radius-admintools/ipa-radius-admintools.spec
+	cp rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-radius-admintools-$(RADIUS_ADMINTOOLS_VERSION)-*.rpm dist/rpms/
+	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-radius-admintools-$(RADIUS_ADMINTOOLS_VERSION)-*.src.rpm dist/srpms/
 
-rpms: rpmroot rpmdistdir rpm-ipa-server rpm-ipa-admin rpm-ipa-python rpm-ipa-client rpm-ipa-radius-server
+
+rpms: rpmroot rpmdistdir rpm-ipa-server rpm-ipa-admin rpm-ipa-python rpm-ipa-client rpm-ipa-radius-server rpm-ipa-radius-admintools
 
 repodata:
 	-createrepo -p dist
