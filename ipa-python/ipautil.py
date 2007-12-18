@@ -18,6 +18,7 @@
 #
 
 SHARE_DIR = "/usr/share/ipa/"
+PLUGINS_SHARE_DIR = "/usr/share/ipa/plugins"
 
 import string
 import tempfile

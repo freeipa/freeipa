@@ -1,0 +1,73 @@
+#! /usr/bin/python -E
+# Authors: Karl MacMillan <kmacmillan@mentalrootkit.com>
+#
+# Copyright (C) 2007  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+import sys
+sys.path.append("/usr/share/ipa")
+
+import traceback, logging, krbV
+
+from ipaserver import installutils
+from ipaserver.plugins import radiusinstance
+
+from ipa import ipautil
+
+def get_host_name():
+    hostname = installutils.get_fqdn()
+    try:
+        installutils.verify_fqdn(hostname)
+    except RuntimeError, e:
+        logging.error(str(e))
+        sys.exit(1)
+
+    return hostname
+
+def get_realm_name():
+    c = krbV.default_context()
+    return c.default_realm
+
+def main():
+    if not ipautil.file_exists("/etc/ipa/ipa.conf"):
+        print "This system does not appear to have IPA configured."
+        print "Has ipa-server-install been run?"
+        yesno = raw_input("Continue with radius install [y/N]? ")
+        if yesno.lower() != "y":
+            sys.exit(1)
+
+    installutils.standard_logging_setup("iparadius-install.log", False)
+
+    host_name = get_host_name()
+
+    realm_name = get_realm_name()
+
+    # Create a radius instance
+    radius = radiusinstance.RadiusInstance()
+    # FIXME: ldap_server should be derived, not hardcoded to localhost, also should it be a URL?
+    radius.create_instance(realm_name, host_name, 'localhost') 
+
+
+try:
+    main()
+except Exception, e:
+    message = "Unexpected error - see iparadius-install.log for details:\n %s" % str(e)
+    print message
+    message = str(e)
+    for str in traceback.format_tb(sys.exc_info()[2]):
+        message = message + "\n" + str
+    logging.debug(message)

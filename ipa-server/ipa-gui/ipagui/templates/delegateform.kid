@@ -4,6 +4,13 @@
   <?python searchurl = tg.url('/delegate/group_search') ?>
 
   <script type="text/javascript">
+    function lostFocus(which_group) {
+      /* The user has left the field, save what they put in there in case
+       * they don't do a Find. */
+      group_cn_field = $('form_' + which_group + '_group_cn');
+      group_criteria_field = $(which_group + '_criteria')
+      group_cn_field.value = group_criteria_field.value
+    }
 
     function enterDoSearch(e, which_group) {
       var keyPressed;
@@ -104,8 +111,8 @@
                 py:content="tg.errors.get('source_group_dn')" />
           </div>
           <div id="source_searcharea" style="display:none">
-              <input id="source_criteria" type="text"
-                onkeypress="return enterDoSearch(event, 'source');" />
+              <input class="requiredfield" id="source_criteria" type="text"
+                onkeypress="return enterDoSearch(event, 'source');" onblur="return lostFocus('source');"/>
               <input class="searchbutton" type="button" value="Find"
                 onclick="return doSearch('source');"
               />
@@ -142,8 +149,8 @@
           </div>
           <div id="dest_searcharea" style="display:none">
             <div>
-              <input id="dest_criteria" type="text"
-                onkeypress="return enterDoSearch(event, 'dest');" />
+              <input class="requiredfield" id="dest_criteria" type="text"
+                onkeypress="return enterDoSearch(event, 'dest');" onblur="return lostFocus('dest');"/>
               <input class="searchbutton" type="button" value="Find"
                 onclick="return doSearch('dest');"
               />

@@ -19,7 +19,7 @@ app_DATA =				\
 	krb.con.template		\
 	krbrealm.con.template		\
 	ntp.conf.server.template 	\
-	radius.radiusd.conf.template	\
+	preferences.html.template 	\
 	referint-conf.ldif		\
 	dna-posix.ldif			\
 	master-entry.ldif		\

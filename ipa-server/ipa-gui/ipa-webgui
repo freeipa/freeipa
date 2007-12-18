@@ -63,41 +63,48 @@ def daemonize():
     # stderr
     os.open("/dev/null", os.O_RDWR)
 
-# To make development easier, we detect if we are in the development
-# environment to load a different configuration and avoid becoming
-# a daemon
-devel = False
-if os.path.exists(os.path.join(os.path.dirname(__file__), "Makefile.am")):
-    devel = True
+def main():
+    # To make development easier, we detect if we are in the development
+    # environment to load a different configuration and avoid becoming
+    # a daemon
+    devel = False
+    if os.path.exists(os.path.join(os.path.dirname(__file__), "Makefile.am")):
+        devel = True
 
-if not devel:
-    try:
-        daemonize()
-    except Exception, e:
-        sys.stderr.write("error becoming daemon: " + str(e))
-        sys.exit(1)
+    if not devel:
+        try:
+            daemonize()
+        except Exception, e:
+            sys.stderr.write("error becoming daemon: " + str(e))
+            sys.exit(1)
 
-sys.path.append("/usr/share/ipa/")
+    sys.path.append("/usr/share/ipa/")
 
-# this must be after sys.path is changed to work correctly
-import pkg_resources
-pkg_resources.require("TurboGears")
-pkg_resources.require("ipa_gui")
+    # this must be after sys.path is changed to work correctly
+    import pkg_resources
+    pkg_resources.require("TurboGears")
+    pkg_resources.require("ipa_gui")
 
 
-from turbogears import update_config, start_server
-import cherrypy
-cherrypy.lowercase_api = True
+    from turbogears import update_config, start_server
+    import cherrypy
+    cherrypy.lowercase_api = True
 
-# Load the config - look for a local file first for development
-# and then the system config file
-if devel:
-    update_config(configfile="dev.cfg",
-                  modulename="ipagui.config")
-else:
-    update_config(configfile="/usr/share/ipa/ipa-webgui.cfg",
-                  modulename="ipagui.config.app")
+    # Load the config - look for a local file first for development
+    # and then the system config file
+    if devel:
+        update_config(configfile="dev.cfg",
+                      modulename="ipagui.config")
+    else:
+        update_config(configfile="/usr/share/ipa/ipa-webgui.cfg",
+                      modulename="ipagui.config.app")
 
-from ipagui.controllers import Root
+    from ipagui.controllers import Root
 
-start_server(Root())
+    start_server(Root())
+
+try:
+    main()
+except Exception, e:
+    print "failed to start web gui: %s" % str(e)
+    sys.exit(1)

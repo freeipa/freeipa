@@ -17,28 +17,25 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from ipa.ipautil import *
 import shutil
 
 import service
+from ipa import ipautil
 
 class NTPInstance(service.Service):
     def __init__(self):
         service.Service.__init__(self, "ntpd")
-        
-    def create_instance(self):
-        self.start_creation(3, "Configuring ntpd")
 
-        self.step("writing configuration")
+    def __write_config(self):
         # The template sets the config to point towards ntp.pool.org, but
         # they request that software not point towards the default pool.
         # We use the OS variable to point it towards either the rhel
         # or fedora pools. Other distros should be added in the future
         # or we can get our own pool.
         os = ""
-        if file_exists("/etc/fedora-release"):
+        if ipautil.file_exists("/etc/fedora-release"):
             os = "fedora."
-        elif file_exists("/etc/redhat-release"):
+        elif ipautil.file_exists("/etc/redhat-release"):
             os = "rhel."
 
         sub_dict = { }
@@ -46,7 +43,7 @@ class NTPInstance(service.Service):
         sub_dict["SERVERB"] = "1.%spool.ntp.org" % os
         sub_dict["SERVERC"] = "2.%spool.ntp.org" % os
 
-        ntp_conf = template_file(SHARE_DIR + "ntp.conf.server.template", sub_dict)
+        ntp_conf = ipautil.template_file(ipautil.SHARE_DIR + "ntp.conf.server.template", sub_dict)
 
         shutil.copy("/etc/ntp.conf", "/etc/ntp.conf.ipasave")
 
@@ -54,11 +51,13 @@ class NTPInstance(service.Service):
         fd.write(ntp_conf)
         fd.close()
 
+    def create_instance(self):
+        self.step("writing configuration", self.__write_config)
+
         # we might consider setting the date manually using ntpd -qg in case
         # the current time is very far off.
 
-        self.step("starting ntpd")
-        self.start()
-        
-        self.step("configuring ntpd to start on boot")
-        self.chkconfig_on()
+        self.step("starting ntpd", self.start)
+        self.step("configuring ntpd to start on boot", self.chkconfig_on)
+
+        self.start_creation("Configuring ntpd")

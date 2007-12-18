@@ -1,0 +1,156 @@
+#! /usr/bin/python -E
+# Authors: Karl MacMillan <kmacmillan@mentalrootkit.com>
+#
+# Copyright (C) 2007  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 or later
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+import sys
+sys.path.append("/usr/share/ipa")
+
+import traceback
+
+import krbV, ldap, getpass
+
+from ipaserver import certs, dsinstance, httpinstance, ipaldap, installutils
+
+def get_realm_name():
+    c = krbV.default_context()
+    return c.default_realm
+
+def parse_options():
+    from optparse import OptionParser
+    parser = OptionParser()
+
+    parser.add_option("-d", "--dirsrv", dest="dirsrv", action="store_true",
+                      default=False, help="install certificate for the directory server")
+    parser.add_option("-w", "--http", dest="http", action="store_true",
+                      default=False, help="install certificate for the http server")
+
+
+    options, args = parser.parse_args()
+
+    if not options.dirsrv and not options.http:
+        parser.error("you must specify dirsrv and/or http")
+
+    if len(args) != 1:
+        parser.error("you must provide a pkcs12 filename")
+
+    return options, args[0]
+
+def set_ds_cert_name(cert_name, dm_password):
+    conn = ipaldap.IPAdmin("127.0.0.1")
+    conn.simple_bind_s("cn=directory manager", dm_password)
+
+    mod = [(ldap.MOD_REPLACE, "nsSSLPersonalitySSL", cert_name)]
+
+    conn.modify_s("cn=RSA,cn=encryption,cn=config", mod)
+
+    conn.unbind()
+
+def set_http_cert_name(cert_name):
+    # find the existing cert name
+    fd = open(httpinstance.NSS_CONF)
+    nick_name = None
+    file = []
+    for line in fd:
+        if "NSSNickname" in line:
+            file.append('NSSNickname "%s"\n' % cert_name)
+        else:
+            file.append(line)
+    fd.close()
+
+    fd = open(httpinstance.NSS_CONF, "w")
+    fd.write("".join(file))
+    fd.close()
+    
+        
+def choose_server_cert(server_certs):
+    print "Please select the certificate to use:"
+    num = 1
+    for cert in server_certs:
+        print "%d. %s" % (num, cert[0])
+        num += 1
+        
+    cert_num = 0
+    while 1:
+        cert_input = raw_input("Certificate number [1]: ")
+        print ""
+        if cert_input == "":
+            break
+        else:
+            try:
+                num = int(cert_input)
+            except ValueError:
+                print "invalid number"
+                continue
+            if num > len(server_certs):
+                print "number out of range"
+                continue
+            cert_num = num - 1
+            break
+    return server_certs[cert_num]
+    
+
+def import_cert(dirname, pkcs12_fname):
+    cdb = certs.CertDB(dirname)
+    cdb.create_passwd_file(False)
+    cdb.create_certdbs()
+    try:
+        cdb.import_pkcs12(pkcs12_fname)
+    except RuntimeError, e:
+        print str(e)
+        sys.exit(1)
+
+    server_certs = cdb.find_server_certs()
+    if len(server_certs) == 0:
+        print "could not find a suitable server cert in import"
+        sys.exit(1)
+    elif len(server_certs) == 1:
+        server_cert = server_certs[0]
+    else:
+        server_cert = choose_server_cert(server_certs)
+
+    cdb.trust_root_cert(server_cert[0])
+
+    return server_cert
+
+def main():
+    options, pkcs12_fname = parse_options()
+
+    try:
+        if options.dirsrv:
+            dm_password = getpass.getpass("Directory Manager password: ")
+            realm = get_realm_name()
+            dirname = dsinstance.config_dirname(realm)
+            server_cert = import_cert(dirname, pkcs12_fname)
+            set_ds_cert_name(server_cert[0], dm_password)
+
+        if options.http:
+            dirname = httpinstance.NSS_DIR
+            server_cert = import_cert(dirname, pkcs12_fname)
+            print server_cert
+            set_http_cert_name(server_cert[0])
+
+    except Exception, e:
+        print "an unexpected error occurred: %s" % str(e)
+        traceback.print_exc()
+        return 1
+
+    return 0
+
+    
+sys.exit(main())

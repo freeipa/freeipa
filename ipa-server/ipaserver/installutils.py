@@ -21,6 +21,10 @@ import logging
 import socket
 import errno
 import getpass
+import os
+import re
+import fileinput
+import sys
 
 def get_fqdn():
     fqdn = ""
@@ -104,5 +108,20 @@ def read_password(user):
             correct = True
     print ""
     return pwd
+
+def update_file(filename, orig, subst):
+    if os.path.exists(filename):
+        pattern = "%s" % re.escape(orig)
+        p = re.compile(pattern)
+        for line in fileinput.input(filename, inplace=1):
+            if not p.search(line):
+                sys.stdout.write(line)
+            else:
+                sys.stdout.write(p.sub(subst, line))
+        fileinput.close()
+        return 0
+    else:
+        print "File %s doesn't exist." % filename
+        return 1
 
 

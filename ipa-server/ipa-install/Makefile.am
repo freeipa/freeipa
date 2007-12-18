@@ -8,6 +8,7 @@ sbin_SCRIPTS =			\
 	ipa-server-install	\
 	ipa-replica-install	\
 	ipa-replica-prepare	\
+ 	ipa-server-certinstall  \
 	$(NULL)
 
 EXTRA_DIST =			\

@@ -5,8 +5,8 @@ from tg_expanding_form_widget.tg_expanding_form_widget import ExpandingForm
 class UserFields(object):
     givenname = widgets.TextField(name="givenname", label="First Name")
     sn = widgets.TextField(name="sn", label="Last Name")
-    cn = widgets.TextField(name="cn", label="Common Names")
-    cns = ExpandingForm(name="cns", label="Common Names", fields=[cn])
+    cn = widgets.TextField(name="cn", label="Full Name")
+    cns = ExpandingForm(name="cns", label="Full Name", fields=[cn])
     title = widgets.TextField(name="title", label="Title")
     displayname = widgets.TextField(name="displayname", label="Display Name")
     initials = widgets.TextField(name="initials", label="Initials")

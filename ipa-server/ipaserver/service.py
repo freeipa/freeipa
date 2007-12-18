@@ -17,24 +17,24 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from ipa.ipautil import *
 import logging, sys
+from ipa import ipautil
 
 
 def stop(service_name):
-    run(["/sbin/service", service_name, "stop"])
+    ipautil.run(["/sbin/service", service_name, "stop"])
 
 def start(service_name):
-    run(["/sbin/service", service_name, "start"])
+    ipautil.run(["/sbin/service", service_name, "start"])
 
 def restart(service_name):
-    run(["/sbin/service", service_name, "restart"])
+    ipautil.run(["/sbin/service", service_name, "restart"])
     
 def chkconfig_on(service_name):
-    run(["/sbin/chkconfig", service_name, "on"])
+    ipautil.run(["/sbin/chkconfig", service_name, "on"])
 
 def chkconfig_off(service_name):
-    run(["/sbin/chkconfig", service_name, "off"])
+    ipautil.run(["/sbin/chkconfig", service_name, "off"])
     
 def print_msg(message, output_fd=sys.stdout):
     logging.debug(message)
@@ -45,8 +45,7 @@ def print_msg(message, output_fd=sys.stdout):
 class Service:
     def __init__(self, service_name):
         self.service_name = service_name
-        self.num_steps = -1
-        self.current_step = -1
+        self.steps = []
         self.output_fd = sys.stdout
 
     def set_output(self, fd):
@@ -69,18 +68,19 @@ class Service:
 
     def print_msg(self, message):
         print_msg(message, self.output_fd)
-        
-    def start_creation(self, num_steps, message):
-        self.num_steps = num_steps
-        self.cur_step = 0
+
+    def step(self, message, method):
+        self.steps.append((message, method))
+
+    def start_creation(self, message):
         self.print_msg(message)
 
-    def step(self, message):
-        self.cur_step += 1
-        self.print_msg("  [%d/%d]: %s" % (self.cur_step, self.num_steps, message))
-
-    def done_creation(self):
-        self.cur_step = -1
-        self.num_steps = -1
+        step = 0
+        for (message, method) in self.steps:
+            self.print_msg("  [%d/%d]: %s" % (step, len(self.steps), message))
+            method()
+            step += 1
+        
         self.print_msg("done configuring %s." % self.service_name)
 
+        self.steps = []

@@ -24,11 +24,8 @@ import socket
 import config
 from krbtransport import KerbTransport
 from kerberos import GSSError
-import os
-import base64
-import user
-import ipa
 from ipa import ipaerror, ipautil
+from ipa import config
 
 # Some errors to catch
 # http://cvs.fedora.redhat.com/viewcvs/ldapserver/ldap/servers/plugins/pam_passthru/README?root=dirsec&rev=1.6&view=auto
@@ -36,7 +33,7 @@ from ipa import ipaerror, ipautil
 class RPCClient:
 
     def __init__(self):
-        ipa.config.init_config()
+        config.init_config()
     
     def server_url(self):
         """Build the XML-RPC server URL from our configuration"""
@@ -47,25 +44,6 @@ class RPCClient:
            authentication"""
         return xmlrpclib.ServerProxy(self.server_url(), KerbTransport())
     
-    def convert_entry(self,ent):
-        # Convert into a dict. We need to handle multi-valued attributes as well
-        # so we'll convert those into lists.
-        obj={}
-        for (k) in ent:
-            k = k.lower()
-            if obj.get(k) is not None:
-                if isinstance(obj[k],list):
-                    obj[k].append(ent[k].strip())
-                else:
-                    first = obj[k]
-                    obj[k] = ()
-                    obj[k].append(first)
-                    obj[k].append(ent[k].strip())
-            else:
-                 obj[k] = ent[k]
-    
-        return obj 
-
 # Higher-level API
 
     def get_aci_entry(self, sattrs=None):
@@ -168,7 +146,8 @@ class RPCClient:
 
     def get_user_by_email(self,email,sattrs=None):
         """Get a specific user's entry. Return as a dict of values.
-           Multi-valued fields are represented as lists.
+           Multi-valued fields are represented as lists. The result is a
+           dict.
         """
         server = self.setup_server()
         if sattrs is None:
@@ -245,7 +224,7 @@ class RPCClient:
         return ipautil.unwrap_binary_data(result)
       
     def get_all_users (self):
-        """Return a list containing a User object for each existing user."""
+        """Return a list containing a dict for each existing user."""
     
         server = self.setup_server()
         try:
@@ -258,7 +237,7 @@ class RPCClient:
         return ipautil.unwrap_binary_data(result)
 
     def find_users (self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
-        """Return a list: counter followed by a User object for each user that
+        """Return a list: counter followed by a dict for each user that
            matches the criteria. If the results are truncated, counter will
            be set to -1"""
     
@@ -380,6 +359,8 @@ class RPCClient:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
             raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
 
     def find_groups (self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
         """Return a list containing a Group object for each group that matches

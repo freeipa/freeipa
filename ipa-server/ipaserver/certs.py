@@ -17,7 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import os, stat, subprocess
+import os, stat, subprocess, re
 import sha
 
 from ipa import ipautil
@@ -77,6 +77,11 @@ class CertDB(object):
         new_args = new_args + args
         ipautil.run(new_args, stdin)
 
+    def run_signtool(self, args, stdin=None):
+        new_args = ["/usr/bin/signtool", "-d", self.secdir]
+        new_args = new_args + args
+        ipautil.run(new_args, stdin)
+
     def create_noise_file(self):
         ipautil.backup_file(self.noise_fname)
         f = open(self.noise_fname, "w")
@@ -108,7 +113,7 @@ class CertDB(object):
         self.run_certutil(["-S", "-n", self.cacert_name,
                            "-s", "cn=CAcert",
                            "-x",
-                           "-t", "CT,,",
+                           "-t", "CT,,C",
                            "-m", self.next_serial(),
                            "-v", self.valid_months,
                            "-z", self.noise_fname,
@@ -130,7 +135,7 @@ class CertDB(object):
 
     def load_cacert(self, cacert_fname):
         self.run_certutil(["-A", "-n", self.cacert_name,
-                           "-t", "CT,CT,",
+                           "-t", "CT,,C",
                            "-a",
                            "-i", cacert_fname])
         
@@ -139,7 +144,17 @@ class CertDB(object):
         if not cdb:
             cdb = self
         self.request_cert(name)
-        cdb.issue_cert(self.certreq_fname, self.certder_fname)
+        cdb.issue_server_cert(self.certreq_fname, self.certder_fname)
+        self.add_cert(self.certder_fname, nickname)
+        os.unlink(self.certreq_fname)
+        os.unlink(self.certder_fname)
+        
+    def create_signing_cert(self, nickname, name, other_certdb=None):
+        cdb = other_certdb
+        if not cdb:
+            cdb = self
+        self.request_cert(name)
+        cdb.issue_signing_cert(self.certreq_fname, self.certder_fname)
         self.add_cert(self.certder_fname, nickname)
         os.unlink(self.certreq_fname)
         os.unlink(self.certder_fname)
@@ -151,7 +166,7 @@ class CertDB(object):
                            "-z", self.noise_fname,
                            "-f", self.passwd_fname])
 
-    def issue_cert(self, certreq_fname, cert_fname):
+    def issue_server_cert(self, certreq_fname, cert_fname):
         p = subprocess.Popen(["/usr/bin/certutil",
                               "-d", self.secdir,
                               "-C", "-c", self.cacert_name,
@@ -179,8 +194,37 @@ class CertDB(object):
         #     n - not critical
         p.stdin.write("2\n9\nn\n1\n9\nn\n")
         p.wait()
-        
-        
+
+    def issue_signing_cert(self, certreq_fname, cert_fname):
+        p = subprocess.Popen(["/usr/bin/certutil",
+                              "-d", self.secdir,
+                              "-C", "-c", self.cacert_name,
+                              "-i", certreq_fname,
+                              "-o", cert_fname,
+                              "-m", self.next_serial(),
+                              "-v", self.valid_months,
+                              "-f", self.passwd_fname,
+                              "-1", "-5"],
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE)
+
+        # Bah - this sucks, but I guess it isn't possible to fully
+        # control this with command line arguments.
+        #
+        # What this is requesting is:
+        #  -1 (Create key usage extension)
+        #     0 - Digital Signature
+        #     5 - Cert signing key
+        #     9 - done
+        #     n - not critical
+        #
+        #  -5 (Create netscape cert type extension)
+        #     3 - Object Signing
+        #     9 - done
+        #     n - not critical
+        p.stdin.write("0\n5\n9\nn\n3\n9\nn\n")
+        p.wait()
+
     def add_cert(self, cert_fname, nickname):
         self.run_certutil(["-A", "-n", nickname,
                            "-t", "u,u,u",
@@ -196,6 +240,50 @@ class CertDB(object):
         f.close()
         self.set_perms(self.pin_fname)
 
+    def trust_root_cert(self, nickname):
+        p = subprocess.Popen(["/usr/bin/certutil", "-d", self.secdir,
+                              "-O", "-n", nickname], stdout=subprocess.PIPE)
+
+        chain = p.stdout.read()
+        chain = chain.split("\n")
+
+        root_nickname = re.match('\ *"(.*)".*', chain[0]).groups()[0]
+
+        self.run_certutil(["-M", "-n", root_nickname,
+                           "-t", "CT,CT,"])
+
+    def find_server_certs(self):
+        p = subprocess.Popen(["/usr/bin/certutil", "-d", self.secdir,
+                              "-L"], stdout=subprocess.PIPE)
+
+        certs = p.stdout.read()
+
+        certs = certs.split("\n")
+
+        server_certs = []
+
+        for cert in certs:
+            fields = cert.split()
+            if not len(fields):
+                continue
+            flags = fields[-1]
+            if 'u' in flags:
+                name = " ".join(fields[0:-1])
+                server_certs.append((name, flags))
+
+        return server_certs
+                
+
+    def import_pkcs12(self, pkcs12_fname):
+        try:
+            ipautil.run(["/usr/bin/pk12util", "-d", self.secdir,
+                         "-i", pkcs12_fname])
+        except ipautil.CalledProcessError, e:
+            if e.returncode == 17:
+                raise RuntimeError("incorrect password")
+            else:
+                raise RuntimeError("unknown error import pkcs#12 file")
+
     def create_self_signed(self, passwd=True):
         self.create_noise_file()
         self.create_passwd_file(passwd)
@@ -208,6 +296,3 @@ class CertDB(object):
         self.create_passwd_file(passwd)
         self.create_certdbs()
         self.load_cacert(cacert_fname)
-
-
-

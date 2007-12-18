@@ -79,7 +79,7 @@ RADIUS_USER         = 'radiusd'
 RADIUS_IPA_KEYTAB_FILEPATH     = os.path.join(RADIUS_PKG_CONFIG_DIR, 'ipa.keytab')
 RADIUS_LDAP_ATTR_MAP_FILEPATH  = os.path.join(RADIUS_PKG_CONFIG_DIR, 'ldap.attrmap')
 RADIUSD_CONF_FILEPATH          = os.path.join(RADIUS_PKG_CONFIG_DIR, 'radiusd.conf')
-RADIUSD_CONF_TEMPLATE_FILEPATH = os.path.join(ipautil.SHARE_DIR,     'radius.radiusd.conf.template')
+RADIUSD_CONF_TEMPLATE_FILEPATH = os.path.join(ipautil.PLUGINS_SHARE_DIR,     'radius.radiusd.conf.template')
 
 RADIUSD = '/usr/sbin/radiusd'
 

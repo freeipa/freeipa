@@ -37,7 +37,6 @@ Requires: python-krbV
 Requires: TurboGears
 Requires: python-tgexpandingformwidget
 Requires: acl
-Requires: freeradius
 Requires: pyasn1
 Requires: libcap
 
@@ -69,12 +68,32 @@ rm %{buildroot}/%{plugin_dir}/libipa-dna-plugin.la
 %clean
 rm -rf %{buildroot}
 
+%post
+if [ $1 = 1 ]; then
+    /sbin/chkconfig --add ipa-kpasswd
+    /sbin/chkconfig --add ipa-webgui
+fi
+
+%preun
+if [ $1 = 0 ]; then
+    /sbin/chkconfig --del ipa-kpasswd
+    /sbin/chkconfig --del ipa-webgui
+    /sbin/service ipa-kpasswd stop >/dev/null 2>&1 || :
+    /sbin/service ipa-webgui stop >/dev/null 2>&1 || :
+fi
+
+%postun
+if [ "$1" -ge "1" ]; then
+    /sbin/service ipa-kpasswd condrestart >/dev/null 2>&1 || :
+    /sbin/service ipa-webgui condrestart >/dev/null 2>&1 || :
+fi
 
 %files
 %defattr(-,root,root,-)
 %{_sbindir}/ipa-server-install
 %{_sbindir}/ipa-replica-install
 %{_sbindir}/ipa-replica-prepare
+%{_sbindir}/ipa-server-certinstall
 %{_sbindir}/ipa_kpasswd
 %{_sbindir}/ipa-webgui
 %attr(4750,root,apache) %{_sbindir}/ipa-keytab-util

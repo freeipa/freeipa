@@ -1,0 +1,33 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>Automatically set browser preferences</title>
+</head>
+<body>
+<form action="undefined" method="get">
+<input type=button onclick="setPreferences()" name="prefs" value="Configure Firefox">
+</form>
+
+<script type="text/javascript">
+function setPreferences() {
+  try {
+    netscape.security.PrivilegeManager.enablePrivilege("UniversalPreferencesWrite");
+      try {
+        navigator.preference("network.negotiate-auth.using-native-gsslib", true)
+        navigator.preference("network.negotiate-auth.delegation-uris", ".$DOMAIN")
+        navigator.preference("network.negotiate-auth.trusted-uris", ".$DOMAIN")
+        navigator.preference("network.negotiate-auth.allow-proxies", true)
+      } catch (e) {
+        alert("Unable to store preferences: " + e)
+      }
+      netscape.security.PrivilegeManager.disablePrivilege("UniversalPreferencesWrite");
+      alert("Successfully configured Firefox for single sign on.")
+    } catch (e) {
+      alert("Unable to apply recommended settings.\n\nClick on the Certificate Authority link and select trust for all, then reload this page and try again.\n\nThe error returned was: " + e);
+      return;
+  }
+}
+</script>
+
+</body>
+</html>

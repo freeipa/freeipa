@@ -17,6 +17,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+import os
+import os.path
 import subprocess
 import string
 import tempfile
@@ -25,11 +27,13 @@ import pwd
 import fileinput
 import sys
 import time
+import shutil
 
 import service
 import certs
 import dsinstance
-from ipa.ipautil import *
+import installutils
+from ipa import ipautil
 
 HTTPD_DIR = "/etc/httpd"
 SSL_CONF = HTTPD_DIR + "/conf.d/ssl.conf"
@@ -43,52 +47,33 @@ successfully change with the command:
 Try updating the policycoreutils and selinux-policy packages.
 """
 
-def update_file(filename, orig, subst):
-    if os.path.exists(filename):
-        pattern = "%s" % re.escape(orig)
-        p = re.compile(pattern)
-        for line in fileinput.input(filename, inplace=1):
-            if not p.search(line):
-                sys.stdout.write(line)
-            else:
-                sys.stdout.write(p.sub(subst, line))
-        fileinput.close()
-        return 0
-    else:
-        print "File %s doesn't exist." % filename
-        return 1
-
 class HTTPInstance(service.Service):
     def __init__(self):
         service.Service.__init__(self, "httpd")
 
     def create_instance(self, realm, fqdn):
-        self.sub_dict = { "REALM" : realm, "FQDN":  fqdn }
         self.fqdn = fqdn
         self.realm = realm
+        self.domain = fqdn[fqdn.find(".")+1:]
+        self.sub_dict = { "REALM" : realm, "FQDN": fqdn, "DOMAIN" : self.domain }
         
-        self.start_creation(7, "Configuring the web interface")
-        
-        self.__disable_mod_ssl()
-        self.__set_mod_nss_port()
-        self.__configure_http()
-        self.__create_http_keytab()
-        self.__setup_ssl()
+        self.step("disabling mod_ssl in httpd", self.__disable_mod_ssl)
+        self.step("Setting mod_nss port to 443", self.__set_mod_nss_port)
+        self.step("configuring httpd", self.__configure_http)
+        self.step("creating a keytab for httpd", self.__create_http_keytab)
+        self.step("Setting up ssl", self.__setup_ssl)
+        self.step("Setting up browser autoconfig", self.__setup_autoconfig)
+        self.step("configuring SELinux for httpd", self.__selinux_config)
+        self.step("restarting httpd", self.restart)
+        self.step("configuring httpd to start on boot", self.chkconfig_on)
 
-        self.step("restarting httpd")
-        self.restart()
-
-        self.step("configuring httpd to start on boot")
-        self.chkconfig_on()
-
-        self.done_creation()
+        self.start_creation("Configuring the web interface")
 
     def __selinux_config(self):
-        self.step("configuring SELinux for httpd")
         selinux=0
         try:
             if (os.path.exists('/usr/sbin/selinuxenabled')):
-                run(["/usr/sbin/selinuxenabled"])
+                ipautil.run(["/usr/sbin/selinuxenabled"])
                 selinux=1
         except ipautil.CalledProcessError:
             # selinuxenabled returns 1 if not enabled
@@ -98,14 +83,13 @@ class HTTPInstance(service.Service):
             # Allow apache to connect to the turbogears web gui
             # This can still fail even if selinux is enabled
             try:
-                run(["/usr/sbin/setsebool", "-P", "httpd_can_network_connect", "true"])
+                ipautil.run(["/usr/sbin/setsebool", "-P", "httpd_can_network_connect", "true"])
             except:
                 self.print_msg(selinux_warning)
                 
     def __create_http_keytab(self):
-        self.step("creating a keytab for httpd")
         try:
-            if file_exists("/etc/httpd/conf/ipa.keytab"):
+            if ipautil.file_exists("/etc/httpd/conf/ipa.keytab"):
                 os.remove("/etc/httpd/conf/ipa.keytab")
         except os.error:
             print "Failed to remove /etc/httpd/conf/ipa.keytab."
@@ -120,7 +104,7 @@ class HTTPInstance(service.Service):
 
         # give kadmin time to actually write the file before we go on
 	retry = 0
-        while not file_exists("/etc/httpd/conf/ipa.keytab"):
+        while not ipautil.file_exists("/etc/httpd/conf/ipa.keytab"):
             time.sleep(1)
             retry += 1
             if retry > 15:
@@ -131,28 +115,51 @@ class HTTPInstance(service.Service):
         os.chown("/etc/httpd/conf/ipa.keytab", pent.pw_uid, pent.pw_gid)
 
     def __configure_http(self):
-        self.step("configuring httpd")
-        http_txt = template_file(SHARE_DIR + "ipa.conf", self.sub_dict)
+        http_txt = ipautil.template_file(ipautil.SHARE_DIR + "ipa.conf", self.sub_dict)
         http_fd = open("/etc/httpd/conf.d/ipa.conf", "w")
         http_fd.write(http_txt)
         http_fd.close()                
 
 
     def __disable_mod_ssl(self):
-        self.step("disabling mod_ssl in httpd")
         if os.path.exists(SSL_CONF):
             os.rename(SSL_CONF, "%s.moved_by_ipa" % SSL_CONF)
 
     def __set_mod_nss_port(self):
-        self.step("Setting mod_nss port to 443")
-        if update_file(NSS_CONF, '8443', '443') != 0:
+        if installutils.update_file(NSS_CONF, '8443', '443') != 0:
             print "Updating %s failed." % NSS_CONF
 
     def __setup_ssl(self):
-        self.step("Setting up ssl")
         ds_ca = certs.CertDB(dsinstance.config_dirname(self.realm))
         ca = certs.CertDB(NSS_DIR)
         ds_ca.cur_serial = 2000
         ca.create_from_cacert(ds_ca.cacert_fname)
         ca.create_server_cert("Server-Cert", "cn=%s,ou=Apache Web Server" % self.fqdn, ds_ca)
-        
+        ca.create_signing_cert("Signing-Cert", "cn=%s,ou=Signing Certificate,o=Identity Policy Audit" % self.fqdn, ds_ca)
+
+    def __setup_autoconfig(self):
+        prefs_txt = ipautil.template_file(ipautil.SHARE_DIR + "preferences.html.template", self.sub_dict)
+        prefs_fd = open("/usr/share/ipa/html/preferences.html", "w")
+        prefs_fd.write(prefs_txt)
+        prefs_fd.close()                
+
+        # The signing cert is generated in __setup_ssl
+        ds_ca = certs.CertDB(dsinstance.config_dirname(self.realm))
+        ca = certs.CertDB(NSS_DIR)
+
+        # Publish the CA certificate
+        shutil.copy(ds_ca.cacert_fname, "/usr/share/ipa/html/ca.crt")
+        os.chmod("/usr/share/ipa/html/ca.crt", 0444)
+
+        try:
+            shutil.rmtree("/tmp/ipa")
+        except:
+            pass
+        os.mkdir("/tmp/ipa")
+        shutil.copy("/usr/share/ipa/html/preferences.html", "/tmp/ipa")
+
+        ca.run_signtool(["-k", "Signing-Cert",
+                         "-Z", "/usr/share/ipa/html/configure.jar",
+                         "-e", ".html",
+                         "/tmp/ipa"])
+        shutil.rmtree("/tmp/ipa")

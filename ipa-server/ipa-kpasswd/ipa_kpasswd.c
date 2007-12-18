@@ -306,7 +306,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	LDAPControl **srvctrl = NULL;
 	char *exterr1 = NULL;
 	char *exterr2 = NULL;
-	char *err;
+	char *err = NULL;
 	int msgid;
 	int ret, rc;
 

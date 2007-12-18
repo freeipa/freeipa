@@ -17,9 +17,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import logging
-
-from ipa.ipautil import *
 import service
 
 class WebGuiInstance(service.Service):
@@ -27,14 +24,6 @@ class WebGuiInstance(service.Service):
         service.Service.__init__(self, "ipa-webgui")
 
     def create_instance(self):
-        self.start_creation(2, "Configuring ipa-webgui")
-
-        self.step("starting ipa-webgui")
-        service.start("ipa-webgui")
-
-        self.step("configuring ipa-webgui to start on boot")
-        service.chkconfig_on("ipa-webgui")
-
-        self.done_creation()
-
-
+        self.step("starting ipa-webgui", self.restart)
+        self.step("configuring ipa-webgui to start on boot", self.chkconfig_on)
+        self.start_creation("Configuring ipa-webgui")

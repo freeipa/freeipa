@@ -34,7 +34,7 @@ def setup_package():
 
     try:
         setup(
-            name = "freeipa-python",
+            name = "ipa",
             version = "0.5.0",
             license = "GPL",
             author = "Karl MacMillan, et.al.",

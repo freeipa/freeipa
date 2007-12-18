@@ -23,10 +23,13 @@ import tempfile
 import shutil
 import os
 import socket
-from ipa.ipautil import *
 
-class BindInstance:
+import service
+from ipa import ipautil
+
+class BindInstance(service.Service):
     def __init__(self):
+        service.Service.__init__(self, "named")
         self.fqdn = None
 	self.domain = None
         self.host = None
@@ -52,7 +55,7 @@ class BindInstance:
         return True
 
     def create_sample_bind_zone(self):
-        bind_txt = template_file(SHARE_DIR + "bind.zone.db.template", self.sub_dict)
+        bind_txt = ipautil.template_file(ipautil.SHARE_DIR + "bind.zone.db.template", self.sub_dict)
         [bind_fd, bind_name] = tempfile.mkstemp(".db","sample.zone.")
         os.write(bind_fd, bind_txt)
         os.close(bind_fd)
@@ -73,15 +76,6 @@ class BindInstance:
         except:
             print "named service failed to start"
 
-    def stop(self):
-        run(["/sbin/service", "named", "stop"])
-
-    def start(self):
-        run(["/sbin/service", "named", "start"])
-
-    def restart(self):
-        run(["/sbin/service", "named", "restart"])
-
     def __setup_sub_dict(self):
         self.sub_dict = dict(FQDN=self.fqdn,
                              IP=self.ip_address,
@@ -90,7 +84,7 @@ class BindInstance:
                              REALM=self.realm)
 
     def __setup_zone(self):
-        zone_txt = template_file(SHARE_DIR + "bind.zone.db.template", self.sub_dict)
+        zone_txt = ipautil.template_file(ipautil.SHARE_DIR + "bind.zone.db.template", self.sub_dict)
         zone_fd = open('/var/named/'+self.domain+'.zone.db', 'w')
         zone_fd.write(zone_txt)
         zone_fd.close()
@@ -98,7 +92,7 @@ class BindInstance:
     def __setup_named_conf(self):
         if os.path.exists('/etc/named.conf'):
             shutil.copy2('/etc/named.conf', '/etc/named.conf.ipabkp')
-        named_txt = template_file(SHARE_DIR + "bind.named.conf.template", self.sub_dict)
+        named_txt = ipautil.template_file(ipautil.SHARE_DIR + "bind.named.conf.template", self.sub_dict)
         named_fd = open('/etc/named.conf', 'w')
         named_fd.seek(0)
         named_fd.truncate(0)
