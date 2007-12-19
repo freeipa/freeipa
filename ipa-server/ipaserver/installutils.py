@@ -128,14 +128,7 @@ def update_file(filename, orig, subst):
         return 1
 
 def kadmin(command):
-    (kwrite, kread, kerr) = os.popen3("/usr/kerberos/sbin/kadmin.local")
-
-    kwrite.write(command)
-    kwrite.write("\n")
-    kwrite.flush()
-
-    for k in (kwrite, kread, kerr):
-        k.close()
+    ipautil.run(["/usr/kerberos/sbin/kadmin.local", "-q", command])
 
 def kadmin_addprinc(principal):
     kadmin("addprinc -randkey " + principal)
@@ -152,11 +145,3 @@ def create_keytab(path, principal):
 
     kadmin("ktadd -k " + path + " " + principal)
 
-    # give kadmin time to actually write the file before we go on
-    retry = 0
-    while not ipautil.file_exists(path):
-        time.sleep(1)
-        retry += 1
-        if retry > 15:
-            logging.critical("Error timed out waiting for kadmin to finish operations")
-            sys.exit(1)
