@@ -77,7 +77,7 @@ class ReplicationManager:
         except ldap.NO_SUCH_OBJECT:
             pass
 
-    def get_replica_type(self, master):
+    def get_replica_type(self, master=True):
         if master:
             return "3"
         else:
@@ -87,7 +87,7 @@ class ReplicationManager:
         return 'cn=replica, cn="%s", cn=mapping tree, cn=config' % self.suffix
         
 
-    def local_replica_config(self, conn, master, replica_id):
+    def local_replica_config(self, conn, replica_id):
         dn = self.replica_dn()
 
         try:
@@ -97,7 +97,7 @@ class ReplicationManager:
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             pass
 
-        replica_type = self.get_replica_type(master)
+        replica_type = self.get_replica_type()
 
         entry = ipaldap.Entry(dn)
         entry.setValues('objectclass', "top", "nsds5replica", "extensibleobject")
@@ -284,13 +284,12 @@ class ReplicationManager:
         return self.wait_for_repl_init(other_conn, dn)
         
 
-    def basic_replication_setup(self, conn, master, replica_id):
+    def basic_replication_setup(self, conn, replica_id):
         self.add_replication_manager(conn)
-        self.local_replica_config(conn, master, replica_id)
-        if master:
-            self.setup_changelog(conn)
+        self.local_replica_config(conn, replica_id)
+        self.setup_changelog(conn)
 
-    def setup_replication(self, other_hostname, realm_name, master=True):
+    def setup_replication(self, other_hostname, realm_name):
         """
         NOTES:
            - the directory manager password needs to be the same on
@@ -300,15 +299,11 @@ class ReplicationManager:
         other_conn.do_simple_bind(bindpw=self.dirman_passwd)
         self.suffix = ipaldap.IPAdmin.normalizeDN(dsinstance.realm_to_suffix(realm_name))
 
-        self.basic_replication_setup(self.conn, master, 1)
-        self.basic_replication_setup(other_conn, True, 2)
+        self.basic_replication_setup(self.conn, 1)
+        self.basic_replication_setup(other_conn, 2)
 
         self.setup_agreement(other_conn, self.conn)
-        if master:
-            self.setup_agreement(self.conn, other_conn)
-        else:
-            self.setup_chaining_farm(other_conn)
-            self.setup_chain_on_update(other_conn)
+        self.setup_agreement(self.conn, other_conn)
         
         return self.start_replication(other_conn)
         

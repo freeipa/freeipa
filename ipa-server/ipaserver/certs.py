@@ -119,6 +119,7 @@ class CertDB(object):
                            "-z", self.noise_fname,
                            "-f", self.passwd_fname])
 
+    def export_ca_cert(self):
         # export the CA cert for use with other apps
         ipautil.backup_file(self.cacert_fname)
         self.run_certutil(["-L", "-n", "CA certificate",
@@ -274,21 +275,33 @@ class CertDB(object):
         return server_certs
                 
 
-    def import_pkcs12(self, pkcs12_fname):
+    def import_pkcs12(self, pkcs12_fname, passwd_fname=None):
+        args = ["/usr/bin/pk12util", "-d", self.secdir,
+                "-i", pkcs12_fname,
+                "-k", self.passwd_fname]
+        if passwd_fname:
+            args = args + ["-w", passwd_fname]
         try:
-            ipautil.run(["/usr/bin/pk12util", "-d", self.secdir,
-                         "-i", pkcs12_fname])
+            ipautil.run(args)
         except ipautil.CalledProcessError, e:
             if e.returncode == 17:
                 raise RuntimeError("incorrect password")
             else:
                 raise RuntimeError("unknown error import pkcs#12 file")
 
+    def export_pkcs12(self, pkcs12_fname, pkcs12_pwd_fname, nickname="CA certificate"):
+        ipautil.run(["/usr/bin/pk12util", "-d", self.secdir,
+                     "-o", pkcs12_fname,
+                     "-n", nickname,
+                     "-k", self.passwd_fname,
+                     "-w", pkcs12_pwd_fname])
+
     def create_self_signed(self, passwd=True):
         self.create_noise_file()
         self.create_passwd_file(passwd)
         self.create_certdbs()
         self.create_ca_cert()
+        self.export_ca_cert()
         self.create_pin_file()
 
     def create_from_cacert(self, cacert_fname, passwd=False):
@@ -296,3 +309,13 @@ class CertDB(object):
         self.create_passwd_file(passwd)
         self.create_certdbs()
         self.load_cacert(cacert_fname)
+
+    def create_from_pkcs12(self, pkcs12_fname, pkcs12_pwd_fname, nickname="CA certificate", passwd=True):
+        self.create_noise_file()
+        self.create_passwd_file(passwd)
+        self.create_certdbs()
+        self.import_pkcs12(pkcs12_fname, pkcs12_pwd_fname)
+        self.trust_root_cert(nickname)
+        self.create_pin_file()
+        self.export_ca_cert()
+        

@@ -257,7 +257,7 @@ class KrbInstance(service.Service):
         self.__ldap_mod("default-aci.ldif")
 
     def __create_replica_instance(self):
-        self.__create_instance(replace=True)
+        self.__create_instance(replica=True)
 
     def __create_instance(self, replica=False):
         kdc_conf = ipautil.template_file(ipautil.SHARE_DIR+"kdc.conf.template", self.sub_dict)

@@ -724,9 +724,12 @@ def notfound(args):
        search returns no results.
 
        This just returns whatever is after the equals sign"""
-    filter = args[2]
-    try:
-        target = re.match(r'\(.*=(.*)\)', filter).group(1)
-    except:
-        target = filter
-    return "%s not found" % str(target)            
+    if len(args) > 2:
+        filter = args[2]
+        try:
+            target = re.match(r'\(.*=(.*)\)', filter).group(1)
+        except:
+            target = filter
+        return "%s not found" % str(target)
+    else:
+        return args[0]

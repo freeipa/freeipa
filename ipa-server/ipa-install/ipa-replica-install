@@ -21,13 +21,13 @@
 import sys
 sys.path.append("/usr/share/ipa")
 
-import tempfile
+import tempfile, os, pwd, traceback, logging
 from ConfigParser import SafeConfigParser
 
 from ipa import ipautil
 
 from ipaserver import dsinstance, replication, installutils, krbinstance, service
-from ipaserver import httpinstance, webguiinstance, radiusinstance, ntpinstance
+from ipaserver import httpinstance, webguiinstance, radiusinstance, ntpinstance, certs
 
 class ReplicaConfig:
     def __init__(self):
@@ -42,8 +42,8 @@ class ReplicaConfig:
 def parse_options():
     from optparse import OptionParser
     parser = OptionParser()
-    parser.add_option("-r", "--read-only", dest="master", action="store_false",
-                      default=True, help="create read-only replica - default is master")
+    parser.add_option("-d", "--debug", dest="debug", action="store_true",
+                      default=False, help="gather extra debugging information")
 
     options, args = parser.parse_args()
 
@@ -82,12 +82,25 @@ def get_host_name():
 
     return hostname
 
+def set_owner(config, dir):
+    pw = pwd.getpwnam(config.ds_user)
+    os.chown(dir, pw.pw_uid, pw.pw_gid)
+
 def install_ds(config):
     dsinstance.check_existing_installation()
     dsinstance.check_ports()
 
+    # if we have a pkcs12 file, create the cert db from
+    # that. Otherwise the ds setup will create the CA
+    # cert
+    pkcs12_info = None
+    if ipautil.file_exists(config.dir + "/cacert.p12"):
+        pkcs12_info = (config.dir + "/cacert.p12",
+                       config.dir + "/pwdfile.txt")
+
     ds = dsinstance.DsInstance()
-    ds.create_instance(config.ds_user, config.realm_name, config.host_name, config.dirman_password)
+    ds.create_instance(config.ds_user, config.realm_name, config.host_name, config.dirman_password,
+                       pkcs12_info)
 
 def install_krb(config):
     krb = krbinstance.KrbInstance()
@@ -101,6 +114,8 @@ def install_http(config):
 
 def main():
     options, filename = parse_options()
+    installutils.standard_logging_setup("ipareplica-install.log", options.debug)
+
     top_dir, dir = expand_info(filename)
     
     config = ReplicaConfig()
@@ -115,7 +130,9 @@ def main():
     install_ds(config)
     
     repl = replication.ReplicationManager(config.host_name, config.dirman_password)
-    repl.setup_replication(config.master_host_name, config.realm_name, options.master)
+    ret = repl.setup_replication(config.master_host_name, config.realm_name)
+    if ret != 0:
+        raise RuntimeError("failed to start replication")
 
     install_krb(config)
     install_http(config)
@@ -123,11 +140,6 @@ def main():
     # Create a Web Gui instance
     webgui = webguiinstance.WebGuiInstance()
     webgui.create_instance()
-
-    # Create a radius instance
-    radius = radiusinstance.RadiusInstance()
-    # FIXME: ldap_server should be derived, not hardcoded to localhost, also should it be a URL?
-    radius.create_instance(config.realm_name, config.host_name, 'localhost')
 
     # Configure ntpd
     ntp = ntpinstance.NTPInstance()
@@ -137,6 +149,13 @@ def main():
     service.restart("dirsrv")
     service.restart("krb5kdc")
     
-main()
-    
+try:
+    main()
+except Exception, e:
+    print "creation of replica failed: %s" % str(e)
+    message = str(e)
+    for str in traceback.format_tb(sys.exc_info()[2]):
+        message = message + "\n" + str
+    logging.debug(message)
+    sys.exit(1)    
     

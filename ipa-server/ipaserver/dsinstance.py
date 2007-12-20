@@ -125,7 +125,7 @@ class DsInstance(service.Service):
         self.sub_dict = None
         self.domain = None
 
-    def create_instance(self, ds_user, realm_name, host_name, dm_password, ro_replica=False):
+    def create_instance(self, ds_user, realm_name, host_name, dm_password, pkcs12_info=None):
         self.ds_user = ds_user
         self.realm_name = realm_name.upper()
         self.serverid = realm_to_serverid(self.realm_name)
@@ -133,13 +133,13 @@ class DsInstance(service.Service):
         self.host_name = host_name
         self.dm_password = dm_password
         self.domain = host_name[host_name.find(".")+1:]
+        self.pkcs12_info = pkcs12_info
         self.__setup_sub_dict()
         
         self.step("creating directory server user", self.__create_ds_user)
         self.step("creating directory server instance", self.__create_instance)
         self.step("adding default schema", self.__add_default_schemas)
-        if not ro_replica:
-            self.step("enabling memberof plugin", self.__add_memberof_module)
+        self.step("enabling memberof plugin", self.__add_memberof_module)
         self.step("enabling referential integrity plugin", self.__add_referint_module)
         self.step("enabling distributed numeric assignment plugin", self.__add_dna_module)
         self.step("creating indeces", self.__create_indeces)
@@ -147,13 +147,12 @@ class DsInstance(service.Service):
         self.step("configuring certmap.conf", self.__certmap_conf)
         self.step("restarting directory server", self.__restart_instance)
         self.step("adding default layout", self.__add_default_layout)
-        if not ro_replica:
-            self.step("configuring Posix uid/gid generation as first master",
-                      self.__config_uidgid_gen_first_master)
-            self.step("adding master entry as first master",
-                      self.__add_master_entry_first_master)
-            self.step("initializing group membership",
-                      self.__init_memberof)
+        self.step("configuring Posix uid/gid generation as first master",
+                  self.__config_uidgid_gen_first_master)
+        self.step("adding master entry as first master",
+                  self.__add_master_entry_first_master)
+        self.step("initializing group membership",
+                  self.__init_memberof)
 
         self.step("configuring directory to start on boot", self.chkconfig_on)
 
@@ -261,7 +260,11 @@ class DsInstance(service.Service):
     def __enable_ssl(self):
         dirname = config_dirname(self.realm_name)
         ca = certs.CertDB(dirname)
-        ca.create_self_signed()
+        if self.pkcs12_info:
+            ca.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1])
+            ca.cur_serial = 2000
+        else:
+            ca.create_self_signed()
         ca.create_server_cert("Server-Cert", "cn=%s,ou=Fedora Directory Server" % self.host_name)
 
         conn = ipaldap.IPAdmin("127.0.0.1")

@@ -26,10 +26,7 @@ from ConfigParser import SafeConfigParser
 import krbV
 
 from ipa import ipautil
-from ipaserver import dsinstance
-from ipaserver import installutils
-
-certutil = "/usr/bin/certutil"
+from ipaserver import dsinstance, installutils, certs
 
 def get_host_name():
     hostname = installutils.get_fqdn()
@@ -51,18 +48,25 @@ def check_ipa_configuration(realm_name):
         logging.error("could not find directory instance: %s" % config_dir)
         sys.exit(1)
 
-def create_certdb(ds_dir, dir):
-    # copy the passwd, noise, and pin files
-    shutil.copyfile(ds_dir + "/pwdfile.txt", dir + "/pwdfile.txt")
-    shutil.copyfile(ds_dir + "/noise.txt", dir + "/noise.txt")
-    shutil.copyfile(ds_dir + "/pin.txt", dir + "/pin.txt")
+def export_certdb(ds_dir, dir):
+    ds_cdb = certs.CertDB(ds_dir)
+    
+    pkcs12_fname = dir + "/cacert.p12"
+    passwd_fname = dir + "/pwdfile.txt"
+    fd = open(passwd_fname, "w")
+    fd.write("\n")
+    fd.close()
 
-    # create a new cert db
-    ipautil.run([certutil, "-N", "-d", dir, "-f", dir + "/pwdfile.txt"])
+    try:
+        ds_cdb.export_pkcs12(pkcs12_fname, passwd_fname)
+    except ipautil.CalledProcessError, e:
+        print "error exporting CA certificate: " + str(e)
+        try:
+            os.unlink(pkcs12_fname)
+            os.unlink(passwd_fname)
+        except:
+            pass
 
-    # Add the CA cert
-    ipautil.run([certutil, "-A", "-d", dir, "-n", "CA certificate", "-t", "CT,CT", "-a", "-i",
-                 ds_dir + "/cacert.asc"])
 
 def get_ds_user(ds_dir):
     uid = os.stat(ds_dir).st_uid
@@ -70,10 +74,6 @@ def get_ds_user(ds_dir):
 
     return user
 
-def copy_files(realm_name, dir):
-    shutil.copy("/var/kerberos/krb5kdc/ldappwd", dir + "/ldappwd")
-    
-    
 def save_config(dir, realm_name, host_name, ds_user):
     config = SafeConfigParser()
     config.add_section("realm")
@@ -82,7 +82,9 @@ def save_config(dir, realm_name, host_name, ds_user):
     config.set("realm", "ds_user", ds_user)
     fd = open(dir + "/realm_info", "w")
     config.write(fd)
-    
+
+def copy_files(realm_name, dir):
+    shutil.copy("/var/kerberos/krb5kdc/ldappwd", dir + "/ldappwd") 
 
 def main():
     realm_name = get_realm_name()
@@ -96,10 +98,8 @@ def main():
     dir = top_dir + "/realm_info"
     os.mkdir(dir, 0700)
 
-    create_certdb(ds_dir, dir)
-
+    export_certdb(ds_dir, dir)
     copy_files(realm_name, dir)
-
     save_config(dir, realm_name, host_name, ds_user)
 
     ipautil.run(["/bin/tar", "cfz", "replica-info-" + realm_name, "-C", top_dir, "realm_info"])
