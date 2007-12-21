@@ -1,5 +1,5 @@
 Name:           ipa-client
-Version:        0.5.0
+Version:        0.6.0
 Release:        1%{?dist}
 Summary:        IPA client
 
@@ -42,6 +42,9 @@ rm -rf %{buildroot}
 %{_usr}/share/ipa/*
 
 %changelog
+* Fri Dec 21 2007 Karl MacMillan <kmacmill@redhat.com> - 0.6.0-1
+- Version bump for release
+
 * Wed Nov 21 2007 Karl MacMillan <kmacmill@redhat.com> - 0.5.0-1
 - Version bump for release and rpm name change
 

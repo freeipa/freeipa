@@ -1,5 +1,5 @@
 Name:           ipa-server
-Version:        0.5.0
+Version:        0.6.0
 Release:        1%{?dist}
 Summary:        Ipa authentication server
 
@@ -109,6 +109,9 @@ fi
 
 
 %changelog
+* Fri Dec 21 2007 Karl MacMillan <kmacmill@redhat.com> - 0.6.0-1
+- Version bump for release
+
 * Wed Nov 21 2007 Karl MacMillan <kmacmill@mentalrootkit.com> - 0.5.0-1
 - Preverse mode on ipa-keytab-util
 - Version bump for relase and rpm name change

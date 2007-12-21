@@ -35,10 +35,10 @@ def setup_package():
     try:
         setup(
             name = "ipa",
-            version = "0.5.0",
+            version = "0.6.0",
             license = "GPL",
             author = "Karl MacMillan, et.al.",
-            author_email = "kmacmillan@redhat.com",
+            author_email = "kmacmill@redhat.com",
             maintainer = "freeIPA Developers",
             maintainer_email = "freeipa-devel@redhat.com",
             url = "http://www.freeipa.org/",

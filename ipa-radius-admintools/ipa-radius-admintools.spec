@@ -1,5 +1,5 @@
 Name:           ipa-radius-admintools
-Version:        0.5.0
+Version:        0.6.0
 Release:        1%{?dist}
 Summary:        IPA authentication server - radius admin tools
 
@@ -34,5 +34,8 @@ rm -rf %{buildroot}
 %{_sbindir}/ipa*
 
 %changelog
+* Fri Dec 21 2007 Karl MacMillan <kmacmill@redhat.com> - 0.6.0-1
+- Version bump for release
+
 * Tue Dec 18 2007 Karl MacMillan <kmacmill@redhat.com> - 0.5.0
 - Initial rpm version
