@@ -16,14 +16,6 @@
         <script type="text/javascript">
             document.getElementById("hostname").focus();
         </script>
-        <script type="text/javascript">
-            function confirmDownload() {
-              if (confirm("Are you sure you want to download this principal? It will reset the secret, invalidating any existing keytabs")) {
-                return true;
-              }
-              return false;
-            }
-        </script>
     </div>
     <div py:if='(principals != None) and (len(principals) > 0)'>
         <h2>${len(principals)} results returned:</h2>
@@ -41,8 +33,7 @@
           <tbody>
             <tr py:for="principal in principals">
                 <td>
-                    <a href="${tg.url('/principal/show',principal=principal.krbprincipalname)}" onclick="return confirmDownload();"
-                    >${principal.hostname}</a>
+                    ${principal.hostname}
                 </td>
                 <td>
                     ${principal.service}

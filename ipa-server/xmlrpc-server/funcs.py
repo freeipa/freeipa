@@ -1785,39 +1785,6 @@ class IPAServer:
 
         return entries
 
-    def get_keytab(self, name, opts=None):
-        """Return a keytab for an existing service principal. Note that
-           this increments the secret thus invalidating any older keys."""
-        if not name:
-            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
-
-        princ_name = name + "@" + self.realm
-
-        conn = self.getConnection(opts)
-
-        if conn.principal != "admin@" + self.realm:
-            raise ipaerror.gen_exception(ipaerror.CONNECTION_GSSAPI_CREDENTIALS)
-
-        try:
-            try:
-                princs = conn.getList(self.basedn, self.scope, "krbprincipalname=" + princ_name, None)
-            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-                return None
-        finally:
-            self.releaseConnection(conn)
-
-
-        # This is ugly - call out to a C wrapper around kadmin.local
-        p = subprocess.Popen(["/usr/sbin/ipa-keytab-util", princ_name, self.realm],
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout,stderr = p.communicate()
-
-        if p.returncode != 0:
-            return None
-
-        return stdout
-        
-        
 
 # Configuration support
     def get_ipa_config(self, opts=None):

@@ -125,28 +125,6 @@ class PrincipalController(IPAController):
 
         return dict(principals=principals, hostname=hostname, fields=ipagui.forms.principal.PrincipalFields())
 
-    @expose()
-    @identity.require(identity.not_anonymous())
-    def show(self, **kw):
-        """Returns the keytab for a given principal"""
-        client = self.get_ipaclient()
-
-        principal = kw.get('principal')
-        if principal != None and len(principal) > 0:
-            try:
-                p = principal.split('@')
-                keytab = client.get_keytab(p[0].encode('utf-8'))
-
-                cherrypy.response.headers['Content-Type'] = "application/x-download"
-                cherrypy.response.headers['Content-Disposition'] = 'attachment; filename=krb5.keytab'
-                cherrypy.response.headers['Content-Length'] = len(keytab)
-                cherrypy.response.body = keytab
-                return cherrypy.response.body
-            except ipaerror.IPAError, e:
-                turbogears.flash("keytab retrieval failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
-                raise turbogears.redirect("/principal/list")
-        raise turbogears.redirect("/principal/list")
-
     @validate(form=principal_new_form)
     @identity.require(identity.not_anonymous())
     def principalcreatevalidate(self, tg_errors=None, **kw):
