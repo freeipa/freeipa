@@ -36,13 +36,11 @@ import getpass
 import errno
 
 def usage():
-    print "ipa-getkeytab [-a] principal filename"
+    print "ipa-addservice principal"
     sys.exit(1)
 
 def parse_options():
     parser = OptionParser()
-    parser.add_option("-a", "--add", dest="add_princ", action="store_true",
-                      help="add the principal")
 
     args = ipa.config.init_config(sys.argv)
     options, args = parser.parse_args(args)
@@ -55,25 +53,14 @@ def main():
 
     options, args = parse_options()
 
-    if len(args) != 3:
+    if len(args) != 2:
         usage()
     princ_name = args[1]
-    file_name = args[2]
 
     client = ipaclient.IPAClient()
 
     try:
-        if options.add_princ:
-            client.add_service_principal(princ_name)
-
-        princs = client.get_keytab(princ_name)
-
-        if princs is None:
-            print "could not generate keytab"
-            sys.exit(1)
-
-        fd = open(file_name, "w")
-        fd.write(princs)
+        client.add_service_principal(princ_name)
 
     except Exception, e:
         print str(e)

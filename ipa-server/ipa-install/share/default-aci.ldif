@@ -3,8 +3,9 @@
 dn: $SUFFIX
 changetype: modify
 replace: aci
-aci: (targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMkey")(version 3.0; acl "Enable Anonymous access"; allow (read, search, compare) userdn = "ldap:///anyone";)
-aci: (targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMkey")(version 3.0; acl "Admin can manage any entry"; allow (all) userdn = "ldap:///uid=admin,cn=sysaccounts,cn=etc,$SUFFIX";)
+aci: (targetattr = "krbMKey")(version 3.0; acl "Only the kerberos account can access this one"; deny (read, search, compare, write) userdn != "ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
+aci: (targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Enable Anonymous access"; allow (read, search, compare) userdn = "ldap:///anyone";)
+aci: (targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Admin can manage any entry"; allow (all) userdn = "ldap:///uid=admin,cn=sysaccounts,cn=etc,$SUFFIX";)
 aci: (targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Admins can write passwords"; allow (write) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 aci: (targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Password change service can read/write passwords"; allow (read, write) userdn="ldap:///krbprincipalname=kadmin/changepw@$REALM,cn=$REALM,cn=kerberos,$SUFFIX";)
 aci: (targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "KDC System Account can access passwords"; allow (all) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)

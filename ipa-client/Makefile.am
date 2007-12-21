@@ -4,6 +4,36 @@ AUTOMAKE_OPTIONS = 1.7
 
 NULL =
 
+INCLUDES =							\
+	-I.							\
+	-I$(srcdir)						\
+	-DPREFIX=\""$(prefix)"\" 				\
+	-DBINDIR=\""$(bindir)"\"				\
+	-DLIBDIR=\""$(libdir)"\" 				\
+	-DLIBEXECDIR=\""$(libexecdir)"\"			\
+	-DDATADIR=\""$(datadir)"\"				\
+	$(KRB5_CFLAGS)						\
+	$(LDAP_CFLAGS)						\
+	$(SASL_CFLAGS)						\
+	$(POPT_CFLAGS)						\
+	$(WARN_CFLAGS)						\
+	$(NULL)
+
+sbin_PROGRAMS =			\
+	ipa-getkeytab		\
+	$(NULL)
+
+ipa_getkeytab_SOURCES =		\
+	ipa-getkeytab.c		\
+	$(NULL)
+
+ipa_getkeytab_LDADD = 		\
+	$(KRB5_LIBS)		\
+	$(LDAP_LIBS)		\
+	$(SASL_LIBS)		\
+	$(POPT_LIBS)		\
+	$(NULL)
+
 SUBDIRS =			\
 	firefox			\
 	ipaclient		\

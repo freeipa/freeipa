@@ -8,6 +8,7 @@ app_DATA =				\
 	60ipaconfig.ldif		\
 	bootstrap-template.ldif		\
 	default-aci.ldif		\
+	default-keytypes.ldif		\
 	kerberos.ldif			\
 	indeces.ldif			\
 	bind.named.conf.template	\

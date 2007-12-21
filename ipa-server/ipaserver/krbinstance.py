@@ -128,6 +128,7 @@ class KrbInstance(service.Service):
         self.step("adding kerberos entries to the DS", self.__add_krb_entries)
         self.step("adding defalt ACIs", self.__add_default_acis)
         self.step("configuring KDC", self.__create_instance)
+        self.step("adding defalt keytypes", self.__add_default_keytypes)
         self.step("creating a keytab for the directory", self.__create_ds_keytab)
         self.step("creating a keytab for the machine", self.__create_host_keytab)
         self.step("exporting the kadmin keytab", self.__export_kadmin_changepw_keytab)
@@ -253,8 +254,10 @@ class KrbInstance(service.Service):
         self.__ldap_mod("kerberos.ldif")
 
     def __add_default_acis(self):
-	#Change the default ACL to avoid anonimous access to kerberos keys and othe hashes
         self.__ldap_mod("default-aci.ldif")
+
+    def __add_default_keytypes(self):
+        self.__ldap_mod("default-keytypes.ldif")
 
     def __create_replica_instance(self):
         self.__create_instance(replica=True)

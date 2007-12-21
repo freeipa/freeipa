@@ -14,4 +14,3 @@ objectClass: top
 cn: kerberos
 aci: (targetattr="*")(version 3.0; acl "KDC System Account"; allow (all) userdn= "ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
 
-

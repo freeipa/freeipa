@@ -18,11 +18,11 @@ install:
 	install -m 755 ipa-findgroup $(SBINDIR)
 	install -m 755 ipa-groupmod $(SBINDIR)
 	install -m 755 ipa-passwd $(SBINDIR)
+	install -m 755 ipa-addservice $(SBINDIR)
 	install -m 755 ipa-adddelegation $(SBINDIR)
 	install -m 755 ipa-deldelegation $(SBINDIR)
 	install -m 755 ipa-listdelegation $(SBINDIR)
 	install -m 755 ipa-moddelegation $(SBINDIR)
-	install -m 755 ipa-getkeytab $(SBINDIR)
 
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \

@@ -36,6 +36,7 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %{_sbindir}/ipa-client-install
+%{_sbindir}/ipa-getkeytab
 
 %dir %{_usr}/share/ipa
 %{_usr}/share/ipa/*
