@@ -2072,15 +2072,28 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb)
 		goto free_and_return;
 	}
 
+	/* make sure it is a valid name */
 	krberr = krb5_parse_name(krbctx, serviceName, &krbname);
 	if (krberr) {
+		slapi_ch_free_string(&serviceName);
 		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "krb5_parse_name failed\n");
 		rc = LDAP_OPERATIONS_ERROR;
 		goto free_and_return;
+	} else {
+		/* invert so that we get the canonical form (add REALM if not present for example) */
+		char *canonname;
+		krberr = krb5_unparse_name(krbctx, krbname, &canonname);
+		if (krberr) {
+			slapi_ch_free_string(&serviceName);
+			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "krb5_unparse_name failed\n");
+			rc = LDAP_OPERATIONS_ERROR;
+			goto free_and_return;
+		}
+		slapi_ch_free_string(&serviceName);
+		serviceName = canonname;
 	}
 
 	/* check entry before doing any other decoding */
-
 
 	/* Find ancestor base DN */
 	sdn = slapi_sdn_new_dn_byval(ipa_realm_dn);
@@ -2450,7 +2463,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb)
 
 	/* Free anything that we allocated above */
 free_and_return:
-	slapi_ch_free_string(&serviceName);
+	if (serviceName) free(serviceName);
 	if (kset) ipapwd_keyset_free(&kset);
 
 	if (bval) ber_bvfree(bval);
