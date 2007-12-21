@@ -23,7 +23,7 @@ import ipaldap, ldap, dsinstance
 from ipa import ipaerror
 
 DIRMAN_CN = "cn=directory manager"
-PORT = 389
+PORT = 636
 TIMEOUT = 120
 
 class ReplicationManager:
@@ -43,9 +43,9 @@ class ReplicationManager:
         self.suffix = ""
 
     def find_replication_dns(self, conn):
-        filt = "(objectlcass=nsds5ReplicationAgreement)"
+        filt = "(objectclass=nsDS5ReplicationAgreement)"
         try:
-            ents = conn.search_s("cn=mapping tree,cn-config", ldap.SCOPE_SUBTREE, filt, ["cn"])
+            ents = conn.search_s("cn=mapping tree,cn=config", ldap.SCOPE_SUBTREE, filt)
         except ldap.NO_SUCH_OBJECT:
             return []
         return [ent.dn for ent in ents]
@@ -223,12 +223,16 @@ class ReplicationManager:
         entry.setValues('nsds5replicabindmethod', 'simple')
         entry.setValues('nsds5replicaroot', self.suffix)
         entry.setValues('nsds5replicaupdateschedule', '0000-2359 0123456')
+        entry.setValues('nsds5replicatransportinfo', 'SSL')
         entry.setValues('description', "me to %s%d" % (b.host, PORT))
 
         a.add_s(entry)
 
         entry = a.waitForEntry(entry)
 
+    def delete_agreement(self, other):
+        cn, dn = self.agreement_dn(other)
+        return self.conn.deleteEntry(dn)
 
     def check_repl_init(self, conn, agmtdn):
         done = False

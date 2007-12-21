@@ -1,0 +1,119 @@
+#! /usr/bin/python -E
+# Authors: Karl MacMillan <kmacmillan@mentalrootkit.com>
+#
+# Copyright (C) 2007  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 or later
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+import sys
+sys.path.append("/usr/share/ipa")
+
+import getpass, ldap, re, krbV
+
+from ipa import ipautil
+from ipaserver import replication, ipaldap, dsinstance, installutils
+
+def parse_options():
+    from optparse import OptionParser
+
+    parser = OptionParser()
+    parser.add_option("-H", "--host", dest="host", help="starting host")
+    parser.add_option("-p", "--password", dest="dirman_passwd", help="Directory Manager password")
+    parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
+                      help="provide additional information")
+
+    options, args = parser.parse_args()
+
+    if not len(args) or not ("list" in args[0] or "add" in args[0] or "del" in args[0]):
+        parser.error("must provide a comment [list | add | del]")
+
+    return options, args
+
+def get_realm_name():
+    c = krbV.default_context()
+    return c.default_realm
+
+def get_suffix():
+    suffix = ipaldap.IPAdmin.normalizeDN(dsinstance.realm_to_suffix(get_realm_name()))
+    return suffix
+
+def get_host_name():
+    hostname = installutils.get_fqdn()
+    try:
+        installutils.verify_fqdn(hostname)
+    except RuntimeError, e:
+        logging.error(str(e))
+        sys.exit(1)
+
+    return hostname
+
+def list_masters(replman, verbose):
+    dns = replman.find_replication_dns(replman.conn)
+
+    for dn in dns:
+        entry = replman.conn.search_s(dn, ldap.SCOPE_SUBTREE)[0]
+        cn = entry.cn
+        other = re.search("meTo([a-zA-Z\.]*)[0-9]*", cn).groups()[0]
+        print other
+
+        if verbose:
+            print "  last update status: %s" % entry.nsds5replicalastupdatestatus
+            print "  last update ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastupdateend))
+    
+def del_master(replman, hostname):
+    dirman_passwd = getpass.getpass("Directory Manager password (%s): " % hostname)
+    other_replman = replication.ReplicationManager(hostname, dirman_passwd)
+    other_replman.suffix = get_suffix()
+
+    replman.delete_agreement(other_replman.conn)
+    other_replman.delete_agreement(replman.conn)
+
+def add_master(replman, hostname):
+    replman.setup_replication(hostname, get_realm_name())
+
+def main():
+    options, args = parse_options()
+    
+    if options.dirman_passwd:
+        dirman_passwd = options.dirman_passwd
+    else:
+        dirman_passwd = getpass.getpass("Directory Manager password: ")
+
+    if options.host:
+        host = options.host
+    else:
+        host = get_host_name()
+
+    r = replication.ReplicationManager(host, dirman_passwd)
+    r.suffix = get_suffix()
+
+    if args[0] == "list":
+        list_masters(r, options.verbose)
+    elif args[0] == "del":
+        if len(args) != 2:
+            print "must provide hostname of master to delete"
+            sys.exit(1)
+        del_master(r, args[1])
+    elif args[0] == "add":
+        if len(args) != 2:
+            print "must provide hostname of master to add"
+            sys.exit(1)
+        add_master(r, args[1])
+
+try:
+    main()
+except Exception, e:
+    print "unexpected error: %s" % str(e)
