@@ -1625,6 +1625,13 @@ class IPAServer:
 
         return label_list
 
+    def get_all_attrs(self, opts=None):
+        """We have a list of hardcoded attributes -> readable labels. Return
+           that complete list if someone wants it.
+        """
+
+        return attrs.attr_label_list
+
     def group_members(self, groupdn, attr_list, opts=None):
         """Do a memberOf search of groupdn and return the attributes in
            attr_list (an empty list returns everything)."""

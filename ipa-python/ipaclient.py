@@ -321,6 +321,13 @@ class IPAClient:
 
         return self.transport.attrs_to_labels(attrs)
 
+    def get_all_attrs(self):
+        """We have a list of hardcoded attributes -> readable labels. Return
+           that complete list if someone wants it.
+        """
+
+        return self.transport.get_all_attrs()
+
     def group_members(self, groupdn, attr_list):
         """Do a memberOf search of groupdn and return the attributes in
            attr_list (an empty list returns everything)."""

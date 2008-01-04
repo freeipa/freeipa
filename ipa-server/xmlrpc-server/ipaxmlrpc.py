@@ -358,6 +358,7 @@ def handler(req, profiling=False):
             h.register_function(f.update_group)
             h.register_function(f.delete_group)
             h.register_function(f.attrs_to_labels)
+            h.register_function(f.get_all_attrs)
             h.register_function(f.group_members)
             h.register_function(f.get_ipa_config)
             h.register_function(f.update_ipa_config)

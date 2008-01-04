@@ -27,24 +27,28 @@ ipa\-adddelegation [\fIOPTION\fR]... \fIname\fR
 .SH "DESCRIPTION"
 Adds a delegation named \fIname\fR.
 
-A delegation is used to grant access to certain attributes from one group to another.
+A delegation is used to grant write access to certain attributes from one group to another.
 
-For example, a secretary group may be granted access to modify the phone attribute of all users in a manager's group.
+For example, a secretary group may be granted write access to modify the phone attribute of all users in a manager's group.
 .SH "OPTIONS"
 .TP 
 \fB\-a\fR, \fB\-\-attributes\fR=\fIATTRIBUTES\fR
 A comma\-separated list of the the \f[SM]attributes\fR that may be written by the source group.
-
+.TP 
+\fB\-l\fR
+Provide a list of common attribute names. This is not an exhaustive list.
 .TP 
 \fB\-s\fR, \fB\-\-source\fR=\fISOURCE\fR
 The name of the group that is being granted write permission.
-
 .TP 
 \fB\-t\fR, \fB\-\-target\fR=\fITARGET\fR
 The name of the group that will be written to.
-
 .PP 
 All arguments are mandatory.
+.SH "EXAMPLES"
+.TP
+ipa\-adddelegation \-a telephonenumber,facsimiletelephonenumber,mobile \-s secretaries \-t everyone phones
+Create a delegation named phones that will let anyone in the secretaries group edit the phone numbers of anyone in the group everyone.
 .SH "EXIT STATUS"
 0 if the delegation was added successfully
 

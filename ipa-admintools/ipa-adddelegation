@@ -45,6 +45,8 @@ def parse_options():
                       help="The source group name")
     parser.add_option("-t", "--target", dest="target",
                       help="The target group name")
+    parser.add_option("-l", "--list", dest="list", action="store_true",
+                      help="List common attributes (this is not an exhaustive list)")
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
@@ -56,6 +58,14 @@ def parse_options():
 def main():
 
     options, args = parse_options()
+
+    if options.list:
+        client = ipaclient.IPAClient()
+        list = client.get_all_attrs()
+
+        for x in list:
+            print x
+        return 0
 
     if len(args) != 2:
         print "args is %s" % len(args)

@@ -579,6 +579,21 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
+    def get_all_attrs(self, opts=None):
+        """We have a list of hardcoded attributes -> readable labels. Return
+           that complete list if someone wants it.
+        """
+
+        server = self.setup_server()
+        try:
+            result = server.get_all_attrs()
+        except xmlrpclib.Fault, fault:
+            raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
+        except socket.error, (value, msg):
+            raise xmlrpclib.Fault(value, msg)
+
+        return ipautil.unwrap_binary_data(result)
+
     def group_members(self, groupdn, attr_list=None):
         """Do a memberOf search of groupdn and return the attributes in
            attr_list (an empty list returns everything)."""
