@@ -25,22 +25,18 @@ ipa\-addgroup \- Add a group
 ipa\-addgroup [\fIOPTION\fR]... \fIgroup\fR
 
 .SH "DESCRIPTION"
-Adds a group with group name \fIgroup\fR.
-
+Adds a group with name \fIgroup\fR.
 .SH "OPTIONS"
 .TP 
 \fB\-d\fR, \fB\-\-description\fR=\fIdescription\fR
 Set the description of the group to \fIdescription\fR.
-
 .TP 
 \fB\-g\fR, \fB\-\-gid\fR=\fIgid\fR
 Set the gid for this group to \fIgid\fR.
 If this option is not present, one is created automatically
-by .B freeIPA.
-
+by \fBfreeIPA\fR.
 .PP 
-group and description are mandatory fields. If either of
-these are not included on the command line you will be asked interactively.
+The group name and description are mandatory fields. If either of these are not included on the command line you will be asked interactively.
 
 If no options are passed then all questions are asked.
 .SH "EXIT STATUS"

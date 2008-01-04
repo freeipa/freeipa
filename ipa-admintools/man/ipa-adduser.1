@@ -32,46 +32,37 @@ Adds a user with username \fIuser\fR.
 \fB\-c\fR, \fB\-\-gecos\fR=\fIgecos\fR
 Set the \f[SM]GECOS\fR field to \fIgecos\fR.
 The \f[SM]GECOS\fR field is traditionally used to store user's real name and other information.
-
 .TP 
 \fB\-d\fR, \fB\-\-directory\fR=\fIdirectory\fR
 Set user's home directory to \fIdirectory\fR.
 If this option is not present, a default specified by the
 .B freeIPA configuration is used.
-
 .TP 
 \fB\-f\fR, \fB\-\-firstname\fR=\fIgivenName\fR
 Set user's first name to \fIgivenName\fR.
-
 .TP 
 \fB\-l\fR, \fB\-\-lastname\fR=\fIfamilyName\fR
 Set user's last name to \fIfamilyName\fR.
-
 .TP 
 \fB\-p\fR, \fB\-\-password\fR=\fIpassword\fR
 Set user's password to \fIpassword\fR.
-
 .TP 
 \fB\-s\fR, \fB\-\-shell\fR=\fIshell\fR
 Set the user's login shell to \fIshell\fR.
 If this option is not present, a default specified by the
 .B freeIPA configuration is used.
-
 .TP 
 \fB\-G\fR, \fB\-\-groups\fR=\fIgroups\fR
 Add this user to one or more groups in \fIgroups\fR.
 \fIgroups\fR is a comma\-separated list of groups.
 Each \fIgroup\fR must already exist.
-
 .TP 
 \fB\-k\fR, \fB\-\-krb\-principal\fR=\fIprincipal\fR
 Set this user's principal to \fIprincipal\fR.
 By default the principal is set to \fBuser\fR.
-
 .TP 
 \fB\-M\fR, \fB\-\-mailAddress\fR=\fImail\fR
 Set this user's e\-mail address to \fImail\fR.
-
 .PP 
 The mandatory fields are: user, first name, last name and password. If any of these are not included on the command line you will be asked interactively.
 
