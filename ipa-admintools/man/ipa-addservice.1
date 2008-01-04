@@ -1,0 +1,54 @@
+.\" A man page for ipa-addservice
+.\" Copyright (C) 2007 Red Hat, Inc.
+.\" 
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\" 
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\" 
+.TH "ipa-addservice" "1" "Jan 4 2008" "freeipa" ""
+.SH "NAME"
+ipa\-addservice \- Add a service principal
+
+.SH "SYNOPSIS"
+ipa\-adduser \fIprincipal\fR
+
+.SH "DESCRIPTION"
+Adds a service principal \fIprincipal\fR.
+
+The principal takes the form of:
+
+service "/" fully\-qualified host name
+
+The list of possible services is too exhaustive to list here but a short list is:
+
+cifs
+dhcp
+dns
+host
+HTTP
+ldap
+rpc
+snmp
+
+NOTE: It is not necessary to include the kerberos realm.
+.SH "EXAMPLES"
+.TP
+ipa\-addservice HTTP/www.example.com
+Add a service principal for a web server
+.TP
+ipa\-addservice host/ipa.example.com
+Add a service principal for the host (for ssh, for example)
+.SH "EXIT STATUS"
+The exit status is 0 on success, nonzero on error.
