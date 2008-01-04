@@ -111,7 +111,7 @@ class CertDB(object):
         self.run_certutil(["-G", "-z", self.noise_fname, "-f", self.passwd_fname])
         # Generate the self-signed cert
         self.run_certutil(["-S", "-n", self.cacert_name,
-                           "-s", "cn=CAcert",
+                           "-s", "cn=IPA Test Certificate Authority",
                            "-x",
                            "-t", "CT,,C",
                            "-m", self.next_serial(),
