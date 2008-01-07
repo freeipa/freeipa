@@ -11,7 +11,7 @@
     <div id="search">
         <form action="${tg.url('/principal/list')}" method="get">
             <input id="hostname" type="text" name="hostname" value="${hostname}" />
-            <input class="searchbutton" type="submit" value="Find Hosts"/>
+            <input class="searchbutton" type="submit" value="Find Service Principals"/>
         </form>
         <script type="text/javascript">
             document.getElementById("hostname").focus();
