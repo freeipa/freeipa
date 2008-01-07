@@ -1694,6 +1694,10 @@ class IPAServer:
 
         service_container = DefaultServiceContainer
 
+        # Don't let the user set the realm
+        if name.find('@') > 0:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
         princ_name = name + "@" + self.realm
         
         conn = self.getConnection(opts)
