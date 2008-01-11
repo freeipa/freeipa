@@ -131,15 +131,10 @@ class HTTPInstance(service.Service):
         shutil.copy(ds_ca.cacert_fname, "/usr/share/ipa/html/ca.crt")
         os.chmod("/usr/share/ipa/html/ca.crt", 0444)
 
-        try:
-            shutil.rmtree("/tmp/ipa")
-        except:
-            pass
-        os.mkdir("/tmp/ipa")
-        shutil.copy("/usr/share/ipa/html/preferences.html", "/tmp/ipa")
-
+        tmpdir = tempfile.mkdtemp(prefix = "tmp-")
+        shutil.copy("/usr/share/ipa/html/preferences.html", tmpdir)
         ca.run_signtool(["-k", "Signing-Cert",
                          "-Z", "/usr/share/ipa/html/configure.jar",
                          "-e", ".html",
-                         "/tmp/ipa"])
-        shutil.rmtree("/tmp/ipa")
+                         tmpdir])
+        shutil.rmtree(tmpdir)
