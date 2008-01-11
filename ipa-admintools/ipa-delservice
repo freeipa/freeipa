@@ -1,0 +1,84 @@
+#! /usr/bin/python -E
+# Authors: Rob Crittenden <rcritten@redhat.com>
+#
+# Copyright (C) 2007  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+import sys
+from optparse import OptionParser
+import ipa
+import ipa.user
+import ipa.ipaclient as ipaclient
+import ipa.ipavalidate as ipavalidate
+import ipa.config
+
+import base64
+
+import xmlrpclib
+import kerberos
+import krbV
+import ldap
+import getpass
+import errno
+
+def usage():
+    print "ipa-delservice principal"
+    sys.exit(1)
+
+def parse_options():
+    parser = OptionParser()
+
+    args = ipa.config.init_config(sys.argv)
+    options, args = parser.parse_args(args)
+
+    return options, args
+
+def main():
+    # The following fields are required
+    princ_name = ""
+
+    options, args = parse_options()
+
+    if len(args) != 2:
+        usage()
+    princ_name = args[1]
+
+    client = ipaclient.IPAClient()
+
+    try:
+        hosts = client.find_service_principal(args[1], sattrs=None)
+        counter = hosts[0]
+        hosts = hosts[1:]
+
+        if counter == 0:
+            print "Service Principal '%s' not found." % args[1]
+            return 2
+        if counter != 1:
+            print "An exact match was not found. Found %d principals for %s" % (counter, args[1])
+            return 2
+
+        client.delete_service_principal(hosts[0].dn)
+
+    except Exception, e:
+        print str(e)
+        return 1
+
+    print hosts[0] + " successfully deleted"
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())

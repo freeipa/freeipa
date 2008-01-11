@@ -1,0 +1,93 @@
+#! /usr/bin/python -E
+# Authors: Rob Crittenden <rcritten@redhat.com>
+#
+# Copyright (C) 2007  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+import sys
+from optparse import OptionParser
+import ipa.ipaclient as ipaclient
+import ipa.config
+import ipa.ipautil as ipautil
+import ipa.ipaadminutil as ipaadminutil
+import base64
+
+import errno
+import sys
+import xmlrpclib
+import kerberos
+
+def usage():
+    print "ipa-findservice host"
+    sys.exit()
+
+def parse_options():
+    parser = OptionParser()
+
+    parser.add_option("--usage", action="store_true",
+                      help="Program usage")
+
+    args = ipa.config.init_config(sys.argv)
+    options, args = parser.parse_args(args)
+
+    return options, args
+
+def main():
+    user={}
+    options, args = parse_options()
+
+    if len(args) != 2:
+        usage()
+
+    try:
+        client = ipaclient.IPAClient()
+        hosts = client.find_service_principal(args[1], sattrs=None)
+
+        counter = hosts[0]
+        hosts = hosts[1:]
+        userindex = 0
+        if counter == 0:
+            print "No entries found for", args[1]
+            return 2
+        elif counter == -1:
+            print "These results are truncated."
+            print "Please refine your search and try again."
+
+         
+        for ent in hosts:
+            print ent.krbprincipalname
+
+    except xmlrpclib.Fault, fault:
+        if fault.faultCode == errno.ECONNREFUSED:
+            print "The IPA XML-RPC service is not responding."
+        else:
+            print fault.faultString
+        return 1
+    except kerberos.GSSError, e:
+        print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])
+        return 1
+    except xmlrpclib.ProtocolError, e:
+        print "Unable to connect to IPA server: %s" % (e.errmsg)
+        return 1
+    except ipa.ipaerror.IPAError, e:
+        print "%s" % (e.message)
+        return 1
+
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())
