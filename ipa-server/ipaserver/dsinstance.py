@@ -333,3 +333,28 @@ class DsInstance(service.Service):
             print "Unable to set admin password", e
             logging.debug("Unable to set admin password %s" % e)
 
+    def uninstall(self):
+        running = self.restore_state("running")
+        enabled = self.restore_state("enabled")
+
+        if not running is None:
+            self.stop()
+
+        if not enabled is None and not enabled:
+            self.chkconfig_off()
+
+        serverid = self.restore_state("serverid")
+        if not serverid is None:
+            erase_ds_instance_data(serverid)
+
+        ds_user = self.restore_state("user")
+        user_exists = self.restore_state("user_exists")
+
+        if not ds_user is None and not user_exists is None and not user_exists:
+            try:
+                ipautil.run(["/usr/sbin/userdel", ds_user])
+            except ipautil.CalledProcessError, e:
+                logging.critical("failed to delete user %s" % e)
+
+        if self.restore_state("running"):
+            self.start()

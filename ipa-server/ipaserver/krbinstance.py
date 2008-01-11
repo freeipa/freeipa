@@ -379,4 +379,37 @@ class KrbInstance(service.Service):
         pent = pwd.getpwnam(self.ds_user)
         os.chown("/var/kerberos/krb5kdc/kpasswd.keytab", pent.pw_uid, pent.pw_gid)
 
+    def uninstall(self):
+        running = self.restore_state("running")
+        enabled = self.restore_state("enabled")
 
+        kpasswd_running = sysrestore.restore_state("ipa-kpasswd", "running")
+        kpasswd_enabled = sysrestore.restore_state("ipa-kpasswd", "enabled")
+
+        if not running is None:
+            self.stop()
+        if not kpasswd_running is None:
+            service.stop("ipa-kpasswd")
+
+        if not enabled is None and not enabled:
+            self.chkconfig_off()
+        if not kpasswd_enabled is None and not kpasswd_enabled:
+            service.chkconfig_off("ipa-kpasswd")
+
+        for f in ["/var/kerberos/krb5kdc/ldappwd",
+                  "/var/kerberos/krb5kdc/kdc.conf",
+                  "/etc/krb5.conf",
+                  "/usr/share/ipa/html/krb5.ini",
+                  "/usr/share/ipa/html/krb.con",
+                  "/usr/share/ipa/html/krbrealm.con",
+                  "/etc/dirsrv/ds.keytab",
+                  "/etc/sysconfig/dirsrv",
+                  "/etc/krb5.keytab",
+                  "/var/kerberos/krb5kdc/kpasswd.keytab",
+                  "/etc/sysconfig/ipa-kpasswd"]:
+            sysrestore.restore_file(f)
+
+        if not running is None and running:
+            self.start()
+        if not kpasswd_running is None and kpasswd_running:
+            service.start("ipa-kpasswd")

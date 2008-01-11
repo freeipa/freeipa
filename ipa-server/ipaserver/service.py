@@ -104,6 +104,9 @@ class Service:
     def backup_state(self, key, value):
         sysrestore.backup_state(self.service_name, key, value)
 
+    def restore_state(self, key):
+        return sysrestore.restore_state(self.service_name, key)
+
     def print_msg(self, message):
         print_msg(message, self.output_fd)
 

@@ -110,3 +110,18 @@ class BindInstance(service.Service):
         resolve_fd.write(resolve_txt)
         resolve_fd.close()
 
+    def uninstall(self):
+        running = self.restore_state("running")
+        domain = self.restore_state("domain")
+
+        if not running is None:
+            self.stop()
+
+        if not domain is None:
+            sysrestore.restore_file(os.path.join ("/var/named/", self.domain + ".zone.db"))
+
+        sysrestore.restore_file('/etc/named.conf')
+        sysrestore.restore_file('/etc/resolve.conf')
+
+        if not running is None and running:
+            self.start()

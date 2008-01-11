@@ -158,3 +158,26 @@ class HTTPInstance(service.Service):
                          "-e", ".html",
                          tmpdir])
         shutil.rmtree(tmpdir)
+
+    def uninstall(self):
+        running = self.restore_state("running")
+        enabled = self.restore_state("enabled")
+
+        if not running is None:
+            self.stop()
+
+        if not enabled is None and not enabled:
+            self.chkconfig_off()
+
+        for f in ["/etc/httpd/conf.d/ipa.conf", SSL_CONF, NSS_CONF]:
+            sysrestore.restore_file(f)
+
+        sebool_state = self.restore_state("httpd_can_network_connect")
+        if not sebool_state is None:
+            try:
+                ipautil.run(["/usr/sbin/setsebool", "-P", "httpd_can_network_connect", sebool_state])
+            except:
+                self.print_msg(selinux_warning)
+
+        if not running is None and running:
+            self.start()

@@ -35,3 +35,12 @@ class WebGuiInstance(service.Service):
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
         self.chkconfig_on()
+
+    def uninstall(self):
+        running = self.restore_state("running")
+        enabled = not self.restore_state("enabled")
+
+        if not running is None and not running:
+            self.stop()
+        if not enabled is None and not enabled:
+            self.chkconfig_off()

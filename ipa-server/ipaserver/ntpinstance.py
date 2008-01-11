@@ -70,3 +70,17 @@ class NTPInstance(service.Service):
         self.step("configuring ntpd to start on boot", self.__enable)
 
         self.start_creation("Configuring ntpd")
+
+    def uninstall(self):
+        running = self.restore_state("running")
+        enabled = self.restore_state("enabled")
+
+        if not running is None:
+            self.stop()
+        if not enabled is None and not enabled:
+            self.chkconfig_off()
+
+        sysrestore.restore_file("/etc/ntp.conf")
+
+        if not running is None and running:
+            self.start()
