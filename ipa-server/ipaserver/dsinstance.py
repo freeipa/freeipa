@@ -80,7 +80,7 @@ def check_existing_installation():
         sys.exit(1)
 
     try:
-        ipautil.run(["/sbin/service", "dirsrv", "stop"])
+        service.stop("dirsrv")
     except:
         pass
     for d in dirs:
