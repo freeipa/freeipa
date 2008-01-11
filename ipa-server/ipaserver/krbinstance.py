@@ -262,32 +262,19 @@ class KrbInstance(service.Service):
     def __create_replica_instance(self):
         self.__create_instance(replica=True)
 
+    def __template_file(self, path):
+        template = os.path.join(ipautil.SHARE_DIR, os.path.basename(path) + ".template")
+        conf = ipautil.template_file(template, self.sub_dict)
+        fd = open(path, "w+")
+        fd.write(conf)
+        fd.close()
+
     def __create_instance(self, replica=False):
-        kdc_conf = ipautil.template_file(ipautil.SHARE_DIR+"kdc.conf.template", self.sub_dict)
-        kdc_fd = open("/var/kerberos/krb5kdc/kdc.conf", "w+")
-        kdc_fd.write(kdc_conf)
-        kdc_fd.close()
-
-        krb5_conf = ipautil.template_file(ipautil.SHARE_DIR+"krb5.conf.template", self.sub_dict)
-        krb5_fd = open("/etc/krb5.conf", "w+")
-        krb5_fd.write(krb5_conf)
-        krb5_fd.close()
-
-        # Windows configuration files
-        krb5_ini = ipautil.template_file(ipautil.SHARE_DIR+"krb5.ini.template", self.sub_dict)
-        krb5_fd = open("/usr/share/ipa/html/krb5.ini", "w+")
-        krb5_fd.write(krb5_ini)
-        krb5_fd.close()
-
-        krb_con = ipautil.template_file(ipautil.SHARE_DIR+"krb.con.template", self.sub_dict)
-        krb_fd = open("/usr/share/ipa/html/krb.con", "w+")
-        krb_fd.write(krb_con)
-        krb_fd.close()
-
-        krb_realm = ipautil.template_file(ipautil.SHARE_DIR+"krbrealm.con.template", self.sub_dict)
-        krb_fd = open("/usr/share/ipa/html/krbrealm.con", "w+")
-        krb_fd.write(krb_realm)
-        krb_fd.close()
+        self.__template_file("/var/kerberos/krb5kdc/kdc.conf")
+        self.__template_file("/etc/krb5.conf")
+        self.__template_file("/usr/share/ipa/html/krb5.ini")
+        self.__template_file("/usr/share/ipa/html/krb.con")
+        self.__template_file("/usr/share/ipa/html/krbrealm.con")
 
         if not replica:
             #populate the directory with the realm structure
