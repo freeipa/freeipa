@@ -25,10 +25,12 @@ then
 fi
 
 NAME="ipa-webgui"
+PROG="/usr/sbin/ipa-webgui"
+RUNAS="apache"
 
 start() {
 	echo -n $"Starting $NAME: "
-	daemon $NAME
+	daemon --user $RUNAS $PROG
 	RETVAL=$?
 	echo
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/$NAME || \
