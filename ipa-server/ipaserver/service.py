@@ -34,7 +34,7 @@ def is_running(service_name):
     ret = True
     try:
         ipautil.run(["/sbin/service", service_name, "status"])
-    except CalledProcessError:
+    except ipautil.CalledProcessError:
         ret = False
     return ret
     
@@ -43,6 +43,26 @@ def chkconfig_on(service_name):
 
 def chkconfig_off(service_name):
     ipautil.run(["/sbin/chkconfig", service_name, "off"])
+
+def is_enabled(service_name):
+    (stdout, stderr) = ipautil.run(["/sbin/chkconfig", "--list", service_name])
+
+    runlevels = {}
+    for runlevel in range(0, 7):
+        runlevels[runlevel] = False
+
+    for line in stdout.split("\n"):
+        parts = line.split()
+        if parts[0] == service_name:
+            for s in parts[1:]:
+                (runlevel, status) = s.split(":")[0:2]
+                try:
+                    runlevels[int(runlevel)] = status == "on"
+                except ValueError:
+                    pass
+            break
+
+    return (runlevels[3] and runlevels[4] and runlevels[5])
     
 def print_msg(message, output_fd=sys.stdout):
     logging.debug(message)
@@ -76,6 +96,9 @@ class Service:
 
     def chkconfig_off(self):
         chkconfig_off(self.service_name)
+
+    def is_enabled(self):
+        return is_enabled(self.service_name)
 
     def print_msg(self, message):
         print_msg(message, self.output_fd)

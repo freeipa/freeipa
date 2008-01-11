@@ -83,6 +83,8 @@ def run(args, stdin=None):
     if p.returncode != 0:
         raise CalledProcessError(p.returncode, ' '.join(args))
 
+    return (stdout, stderr)
+
 def file_exists(filename):
     try:
         mode = os.stat(filename)[stat.ST_MODE]
