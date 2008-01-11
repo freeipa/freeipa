@@ -39,7 +39,7 @@ def parse_options():
     parser = OptionParser()
 
     parser.add_option("-a", "--all", action="store_true", dest="all",
-                      help="Set user's e-mail address")
+                      help="Display all attributes")
     parser.add_option("-n", "--notranslate", action="store_true",
                       dest="notranslate",
                       help="Don't translate LDAP attributes into readable labels")
