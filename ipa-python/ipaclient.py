@@ -386,6 +386,9 @@ class IPAClient:
     def add_service_principal(self, princ_name):
         return self.transport.add_service_principal(princ_name)
 
+    def delete_service_principal(self, principal_dn):
+        return self.transport.delete_service_principal(principal_dn)
+
     def find_service_principal(self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
         """Return a list: counter followed by a Entity object for each host that
            matches the criteria. If the results are truncated, counter will

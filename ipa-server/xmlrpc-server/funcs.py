@@ -1724,6 +1724,26 @@ class IPAServer:
             self.releaseConnection(conn)
         return res
 
+    def delete_service_principal (self, principal, opts=None):
+        """Delete a service principal.
+
+           principal is the full DN of the entry to delete.
+
+           This should be called with much care.
+        """
+        if not principal:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        entry = self.get_entry_by_dn(principal, ['dn', 'objectclass'], opts)
+        if entry is None:
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+
+        conn = self.getConnection(opts)
+        try:
+            res = conn.deleteEntry(entry['dn'])
+        finally:
+            self.releaseConnection(conn)
+        return res
+
     def find_service_principal(self, criteria, sattrs, searchlimit=-1,
             timelimit=-1, opts=None):
         """Returns a list: counter followed by the results.

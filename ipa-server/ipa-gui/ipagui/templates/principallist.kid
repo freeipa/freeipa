@@ -33,10 +33,12 @@
           <tbody>
             <tr py:for="principal in principals">
                 <td>
-                    ${principal.hostname}
+                    <a href="${tg.url('/principal/show',principal=principal.krbprincipalname,principal_dn=principal.dn)}"
+                    >${principal.hostname}</a>
                 </td>
                 <td>
-                    ${principal.service}
+                    <a href="${tg.url('/principal/show',principal=principal.krbprincipalname,principal_dn=principal.dn)}"
+                    >${principal.service}</a>
                 </td>
             </tr>
           </tbody>

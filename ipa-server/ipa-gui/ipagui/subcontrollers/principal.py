@@ -125,6 +125,51 @@ class PrincipalController(IPAController):
 
         return dict(principals=principals, hostname=hostname, fields=ipagui.forms.principal.PrincipalFields())
 
+    @expose("ipagui.templates.principalshow")
+    @identity.require(identity.not_anonymous())
+    def show(self, **kw):
+        """Display a single service principal"""
+
+        try:
+            princ = kw['principal']
+            princ_dn = kw['principal_dn']
+        except KeyError, e:
+            turbogears.flash("Principal show failed. Unable to find key %s" % e)
+            raise turbogears.redirect("/principal/list")
+       
+        principal = {}
+
+        try:
+            # The principal info is passed in. Not going to both to re-query this.
+            (service,host) = princ.split('/')
+            h = host.split('@')
+            principal['service'] = service
+            principal['hostname'] = h[0]
+            principal['principal_dn'] = princ_dn
+
+            return dict(principal=principal)
+        except:
+            turbogears.flash("Principal show failed %s" % princ)
+            raise turbogears.redirect("/")
+
+    @expose()
+    @identity.require(identity.in_group("admins"))
+    def delete(self, principal):
+        """Delete a service principal"""
+        self.restrict_post()
+        client = self.get_ipaclient()
+
+        print "Deleting %s" % principal
+
+        try:
+            client.delete_service_principal(principal)
+
+            turbogears.flash("Service principal deleted")
+            raise turbogears.redirect('/principal/list')
+        except (SyntaxError, ipaerror.IPAError), e:
+            turbogears.flash("Service principal deletion failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            raise turbogears.redirect('/principal/list')
+
     @validate(form=principal_new_form)
     @identity.require(identity.not_anonymous())
     def principalcreatevalidate(self, tg_errors=None, **kw):

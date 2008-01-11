@@ -365,6 +365,7 @@ def handler(req, profiling=False):
             h.register_function(f.get_password_policy)
             h.register_function(f.update_password_policy)
             h.register_function(f.add_service_principal)
+            h.register_function(f.delete_service_principal)
             h.register_function(f.find_service_principal)
             h.register_function(f.get_radius_client_by_ip_addr)
             h.register_function(f.add_radius_client)
