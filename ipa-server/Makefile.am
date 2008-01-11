@@ -14,7 +14,7 @@ SUBDIRS =			\
 	$(NULL)
 
 EXTRA_DIST =			\
-	freeipa-server.spec	\
+	ipa-server.spec		\
 	COPYING			\
 	AUTHORS			\
 	INSTALL			\
