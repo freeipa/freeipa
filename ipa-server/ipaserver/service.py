@@ -30,6 +30,14 @@ def start(service_name):
 def restart(service_name):
     ipautil.run(["/sbin/service", service_name, "restart"])
     
+def is_running(service_name):
+    ret = True
+    try:
+        ipautil.run(["/sbin/service", service_name, "status"])
+    except CalledProcessError:
+        ret = False
+    return ret
+    
 def chkconfig_on(service_name):
     ipautil.run(["/sbin/chkconfig", service_name, "on"])
 
@@ -59,6 +67,9 @@ class Service:
 
     def restart(self):
         restart(self.service_name)
+
+    def is_running(self):
+        return is_running(self.service_name)
 
     def chkconfig_on(self):
         chkconfig_on(self.service_name)
