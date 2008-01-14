@@ -20,6 +20,7 @@
 import shutil
 
 import service
+import sysrestore
 from ipa import ipautil
 
 class NTPInstance(service.Service):
@@ -45,11 +46,19 @@ class NTPInstance(service.Service):
 
         ntp_conf = ipautil.template_file(ipautil.SHARE_DIR + "ntp.conf.server.template", sub_dict)
 
-        shutil.copy("/etc/ntp.conf", "/etc/ntp.conf.ipasave")
+        sysrestore.backup_file("/etc/ntp.conf")
 
         fd = open("/etc/ntp.conf", "w")
         fd.write(ntp_conf)
         fd.close()
+
+    def __start(self):
+        self.backup_state("running", self.is_running())
+        self.start()
+
+    def __enable(self):
+        self.backup_state("enabled", self.is_enabled())
+        self.chkconfig_on()
 
     def create_instance(self):
         self.step("writing configuration", self.__write_config)
@@ -57,7 +66,7 @@ class NTPInstance(service.Service):
         # we might consider setting the date manually using ntpd -qg in case
         # the current time is very far off.
 
-        self.step("starting ntpd", self.start)
-        self.step("configuring ntpd to start on boot", self.chkconfig_on)
+        self.step("starting ntpd", self.__start)
+        self.step("configuring ntpd to start on boot", self.__enable)
 
         self.start_creation("Configuring ntpd")

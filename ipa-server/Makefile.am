@@ -13,6 +13,13 @@ SUBDIRS =			\
 	xmlrpc-server		\
 	$(NULL)
 
+install-exec-local:
+	mkdir -p $(DESTDIR)$(localstatedir)/cache/ipa/sysrestore
+
+uninstall-local:
+	-rmdir $(DESTDIR)$(localstatedir)/cache/ipa/sysrestore
+	-rmdir $(DESTDIR)$(localstatedir)/cache/ipa
+
 EXTRA_DIST =			\
 	ipa-server.spec		\
 	COPYING			\

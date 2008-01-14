@@ -154,9 +154,13 @@ class DsInstance(service.Service):
         self.step("initializing group membership",
                   self.__init_memberof)
 
-        self.step("configuring directory to start on boot", self.chkconfig_on)
+        self.step("configuring directory to start on boot", self.__enable)
 
         self.start_creation("Configuring directory server:")
+
+    def __enable(self):
+        self.backup_state("enabled", self.is_enabled())
+        self.chkconfig_on()
 
     def __setup_sub_dict(self):
         server_root = find_server_root()
@@ -166,10 +170,12 @@ class DsInstance(service.Service):
                              SERVER_ROOT=server_root, DOMAIN=self.domain)
 
     def __create_ds_user(self):
+        user_exists = True
 	try:
             pwd.getpwnam(self.ds_user)
             logging.debug("ds user %s exists" % self.ds_user)
 	except KeyError:
+            user_exists = False
             logging.debug("adding ds user %s" % self.ds_user)
             args = ["/usr/sbin/useradd", "-c", "DS System User", "-d", "/var/lib/dirsrv", "-M", "-r", "-s", "/sbin/nologin", self.ds_user]
             try:
@@ -178,7 +184,12 @@ class DsInstance(service.Service):
             except ipautil.CalledProcessError, e:
                 logging.critical("failed to add user %s" % e)
 
+        self.backup_state("user", self.ds_user)
+        self.backup_state("user_exists", user_exists)
+
     def __create_instance(self):
+        self.backup_state("running", self.is_running())
+        self.backup_state("serverid", self.serverid)
         inf_txt = ipautil.template_str(INF_TEMPLATE, self.sub_dict)
         logging.debug(inf_txt)
         inf_fd = ipautil.write_tmp_file(inf_txt)

@@ -29,6 +29,7 @@ import sys
 import shutil
 
 import service
+import sysrestore
 import certs
 import dsinstance
 import installutils
@@ -63,10 +64,18 @@ class HTTPInstance(service.Service):
         self.step("Setting up ssl", self.__setup_ssl)
         self.step("Setting up browser autoconfig", self.__setup_autoconfig)
         self.step("configuring SELinux for httpd", self.__selinux_config)
-        self.step("restarting httpd", self.restart)
-        self.step("configuring httpd to start on boot", self.chkconfig_on)
+        self.step("restarting httpd", self.__start)
+        self.step("configuring httpd to start on boot", self.__enable)
 
         self.start_creation("Configuring the web interface")
+
+    def __start(self):
+        self.backup_state("running", self.is_running())
+        self.restart()
+
+    def __enable(self):
+        self.backup_state("enabled", self.is_running())
+        self.chkconfig_on()
 
     def __selinux_config(self):
         selinux=0
@@ -79,6 +88,14 @@ class HTTPInstance(service.Service):
             pass
 
         if selinux:
+            try:
+                # returns e.g. "httpd_can_network_connect --> off"
+                (stdout, stderr) = ipautils.run(["/usr/sbin/getsebool",
+                                                 "httpd_can_network_connect"])
+                self.backup_state("httpd_can_network_connect", stdout.split()[2])
+            except:
+                pass
+
             # Allow apache to connect to the turbogears web gui
             # This can still fail even if selinux is enabled
             try:
@@ -96,6 +113,7 @@ class HTTPInstance(service.Service):
 
     def __configure_http(self):
         http_txt = ipautil.template_file(ipautil.SHARE_DIR + "ipa.conf", self.sub_dict)
+        sysrestore.backup_file("/etc/httpd/conf.d/ipa.conf")
         http_fd = open("/etc/httpd/conf.d/ipa.conf", "w")
         http_fd.write(http_txt)
         http_fd.close()                
@@ -103,9 +121,11 @@ class HTTPInstance(service.Service):
 
     def __disable_mod_ssl(self):
         if os.path.exists(SSL_CONF):
-            os.rename(SSL_CONF, "%s.moved_by_ipa" % SSL_CONF)
+            sysrestore.backup_file(SSL_CONF)
+            os.unlink(SSL_CONF)
 
     def __set_mod_nss_port(self):
+        sysrestore.backup_file(NSS_CONF)
         if installutils.update_file(NSS_CONF, '8443', '443') != 0:
             print "Updating %s failed." % NSS_CONF
 

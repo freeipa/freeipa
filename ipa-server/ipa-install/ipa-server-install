@@ -49,6 +49,7 @@ import ipaserver.ntpinstance
 import ipaserver.webguiinstance
 
 from ipaserver import service
+from ipaserver import sysrestore
 from ipaserver.installutils import *
 
 from ipa.ipautil import *
@@ -167,6 +168,7 @@ def read_ip_address(host_name):
             continue
 
         print "Adding ["+ip+" "+host_name+"] to your /etc/hosts file"
+        sysrestore.backup_file("/etc/hosts")
         hosts_fd = open('/etc/hosts', 'r+')
         hosts_fd.seek(0, 2)
         hosts_fd.write(ip+'\t'+host_name+' '+host_name[:host_name.find('.')]+'\n')
@@ -420,6 +422,7 @@ def main():
     ds.change_admin_password(admin_password)
 
     # Create the config file
+    sysrestore.backup_file("/etc/ipa/ipa.conf")
     fd = open("/etc/ipa/ipa.conf", "w")
     fd.write("[defaults]\n")
     fd.write("server=" + host_name + "\n")

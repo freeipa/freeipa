@@ -57,12 +57,12 @@ all: bootstrap-autogen
 	done
 
 bootstrap-autogen:
-	cd ipa-server; if [ ! -e Makefile ]; then ./autogen.sh --prefix=/usr --sysconfdir=/etc --libdir=$(LIBDIR); fi
-	cd ipa-client; if [ ! -e Makefile ]; then ./autogen.sh --prefix=/usr --sysconfdir=/etc --libdir=$(LIBDIR); fi
+	cd ipa-server; if [ ! -e Makefile ]; then ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
+	cd ipa-client; if [ ! -e Makefile ]; then ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
 autogen:
-	cd ipa-server; ./autogen.sh --prefix=/usr --sysconfdir=/etc --libdir=$(LIBDIR)
-	cd ipa-client; ./autogen.sh --prefix=/usr --sysconfdir=/etc --libdir=$(LIBDIR)
+	cd ipa-server; ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR)
+	cd ipa-client; ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR)
 
 configure:
 	cd ipa-server; ./configure --prefix=/usr --sysconfdir=/etc

@@ -318,4 +318,17 @@ class CertDB(object):
         self.trust_root_cert(nickname)
         self.create_pin_file()
         self.export_ca_cert()
+
+    def backup_files(self):
+        sysrestore.backup_file(self.noise_fname)
+        sysrestore.backup_file(self.passwd_fname)
+        sysrestore.backup_file(self.certdb_fname)
+        sysrestore.backup_file(self.keydb_fname)
+        sysrestore.backup_file(self.secmod_fname)
+        sysrestore.backup_file(self.cacert_fname)
+        sysrestore.backup_file(self.pk12_fname)
+        sysrestore.backup_file(self.pin_fname)
+        sysrestore.backup_file(self.certreq_fname)
+        sysrestore.backup_file(self.certder_fname)
+
         

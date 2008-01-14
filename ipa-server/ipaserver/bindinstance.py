@@ -25,6 +25,7 @@ import os
 import socket
 
 import service
+import sysrestore
 from ipa import ipautil
 
 class BindInstance(service.Service):
@@ -72,6 +73,7 @@ class BindInstance(service.Service):
         self.__setup_named_conf()
 
         try:
+            self.backup_state("running", self.is_running())
             self.start()
         except:
             print "named service failed to start"
@@ -84,14 +86,15 @@ class BindInstance(service.Service):
                              REALM=self.realm)
 
     def __setup_zone(self):
+        self.backup_state("domain", self.domain)
         zone_txt = ipautil.template_file(ipautil.SHARE_DIR + "bind.zone.db.template", self.sub_dict)
+        sysrestore.backup_file('/var/named/'+self.domain+'.zone.db')
         zone_fd = open('/var/named/'+self.domain+'.zone.db', 'w')
         zone_fd.write(zone_txt)
         zone_fd.close()
 
     def __setup_named_conf(self):
-        if os.path.exists('/etc/named.conf'):
-            shutil.copy2('/etc/named.conf', '/etc/named.conf.ipabkp')
+        sysrestore.backup_file('/etc/named.conf')
         named_txt = ipautil.template_file(ipautil.SHARE_DIR + "bind.named.conf.template", self.sub_dict)
         named_fd = open('/etc/named.conf', 'w')
         named_fd.seek(0)
@@ -99,8 +102,7 @@ class BindInstance(service.Service):
         named_fd.write(named_txt)
         named_fd.close()
 
-        if os.path.exists('/etc/resolve.conf'):
-            shutil.copy2('/etc/resolve.conf', '/etc/resolv.conf.ipabkp')
+        sysrestore.backup_file('/etc/resolve.conf')
         resolve_txt = "search "+self.domain+"\nnameserver "+self.ip_address+"\n"
         resolve_fd = open('/etc/resolve.conf', 'w')
         resolve_fd.seek(0)

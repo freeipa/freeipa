@@ -48,7 +48,7 @@ Ipa is a server for identity, policy, and audit.
 
 %prep
 %setup -q
-./configure --prefix=%{buildroot}/usr --libdir=%{buildroot}/%{_libdir} --sysconfdir=%{buildroot}/etc
+./configure --prefix=%{buildroot}/usr --libdir=%{buildroot}/%{_libdir} --sysconfdir=%{buildroot}/etc --localstatedir=%{buildroot}/var
 
 %build
 
@@ -93,6 +93,7 @@ fi
 %{_sbindir}/ipa-server-install
 %{_sbindir}/ipa-replica-install
 %{_sbindir}/ipa-replica-prepare
+%{_sbindir}/ipa-replica-manage
 %{_sbindir}/ipa-server-certinstall
 %{_sbindir}/ipa_kpasswd
 %{_sbindir}/ipa-webgui
@@ -106,6 +107,8 @@ fi
 %attr(755,root,root) %{plugin_dir}/libipa-memberof-plugin.so
 %attr(755,root,root) %{plugin_dir}/libipa-dna-plugin.so
 
+%dir %{_localstatedir}/cache/ipa
+%dir %{_localstatedir}/cache/ipa/sysrestore
 
 %changelog
 * Fri Dec 21 2007 Karl MacMillan <kmacmill@redhat.com> - 0.6.0-1

@@ -18,6 +18,7 @@
 #
 
 import logging, sys
+import sysrestore
 from ipa import ipautil
 
 
@@ -99,6 +100,9 @@ class Service:
 
     def is_enabled(self):
         return is_enabled(self.service_name)
+
+    def backup_state(self, key, value):
+        sysrestore.backup_state(self.service_name, key, value)
 
     def print_msg(self, message):
         print_msg(message, self.output_fd)

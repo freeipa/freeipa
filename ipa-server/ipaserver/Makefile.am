@@ -14,6 +14,7 @@ app_PYTHON = 			\
 	installutils.py		\
 	replication.py		\
 	certs.py		\
+	sysrestore.py		\
 	$(NULL)
 
 EXTRA_DIST =			\
