@@ -9,7 +9,7 @@ URL:            http://www.freeipa.org
 Source0:        %{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-Requires: python python-ldap python-krbV ipa-python
+Requires: python python-ldap python-krbV ipa-python cyrus-sasl-gssapi
 
 %description
 IPA is a server for identity, policy, and audit.
