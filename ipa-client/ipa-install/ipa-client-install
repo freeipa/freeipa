@@ -43,6 +43,7 @@ def parse_options():
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="print debugging information")
     parser.add_option("-U", "--unattended", dest="unattended",
+                      action="store_true",
                       help="unattended installation never prompts the user")
     parser.add_option("-N", "--no-ntp", action="store_false",
                       help="do not configure ntp", default=True, dest="conf_ntp")
@@ -86,6 +87,7 @@ def main():
     ds = ipaclient.ipadiscovery.IPADiscovery()
 
     ret = ds.search()
+    srv = ""
     if ret == -10:
         print "Can't get the fully qualified name of this host"
         print "Please check that the client is properly configured"
@@ -130,7 +132,7 @@ def main():
     print "BaseDN: "+ds.getBaseDN()
 
     print "\n"
-    if not ask_for_confirmation("Continue to configure the system with these values?"):
+    if not options.unattended and not ask_for_confirmation("Continue to configure the system with these values?"):
         return 1
 
     # Configure ipa.conf
@@ -164,7 +166,11 @@ def main():
         opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+ds.getServerName()})
 
     opts.append({'name':'empty', 'type':'empty'})
-    ldapconf.newConf("/etc/ldap.conf", opts)
+    try:
+        ldapconf.newConf("/etc/ldap.conf", opts)
+    except Exception, e:
+        print "Configuration failed: " + str(e)
+        return 1
 
     #Check if kerberos is already configured properly
     krbctx = krbV.default_context()
@@ -231,6 +237,8 @@ def main():
 
     if options.conf_ntp:
         ipaclient.ntpconf.config_ntp(ds.getServerName())
+
+    print "Client configuration complete."
 
     return 0
 
