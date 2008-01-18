@@ -27,8 +27,6 @@
 VERSION = "%prog .1"
 
 import sys
-sys.path.append("/usr/share/ipa")
-
 import os
 import socket
 import errno

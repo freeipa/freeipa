@@ -1,4 +1,3 @@
-#! /usr/bin/python -E
 # Authors: Rich Megginson <richm@redhat.com>
 #          Rob Crittenden <rcritten@redhat.com
 #

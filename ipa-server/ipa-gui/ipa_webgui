@@ -96,7 +96,7 @@ def main():
         update_config(configfile="dev.cfg",
                       modulename="ipagui.config")
     else:
-        update_config(configfile="/usr/share/ipa/ipa-webgui.cfg",
+        update_config(configfile="/usr/share/ipa/ipa_webgui.cfg",
                       modulename="ipagui.config.app")
 
     from ipagui.controllers import Root

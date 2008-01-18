@@ -1,4 +1,3 @@
-#! /usr/bin/python -E
 # Authors: Simo Sorce <ssorce@redhat.com>
 #
 # Copyright (C) 2007  Red Hat

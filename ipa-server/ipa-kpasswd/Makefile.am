@@ -28,7 +28,7 @@ ipa_kpasswd_LDADD =		\
 
 EXTRA_DIST =			\
 	README			\
-	ipa-kpasswd.init	\
+	ipa_kpasswd.init	\
 	$(NULL)
 
 MAINTAINERCLEANFILES =		\
@@ -37,14 +37,14 @@ MAINTAINERCLEANFILES =		\
 
 initdir=$(sysconfdir)/rc.d/init.d
 
-install-data-hook: ipa-kpasswd.init
+install-data-hook: ipa_kpasswd.init
 
 	if test '!' -d $(DESTDIR)$(initdir); then \
 		$(mkinstalldirs) $(DESTDIR)$(initdir); \
 		chmod 755 $(DESTDIR)$(initdir); \
 	fi
 
-	$(INSTALL_SCRIPT) $(srcdir)/ipa-kpasswd.init $(DESTDIR)$(initdir)/ipa-kpasswd
+	$(INSTALL_SCRIPT) $(srcdir)/ipa_kpasswd.init $(DESTDIR)$(initdir)/ipa_kpasswd
 
 uninstall-hook:
-	rm -f $(DESTDIR)$(initdir)/ipa-kpasswd
+	rm -f $(DESTDIR)$(initdir)/ipa_kpasswd

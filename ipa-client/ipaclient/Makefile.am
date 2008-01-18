@@ -1,6 +1,6 @@
 NULL =
 
-appdir = $(IPA_DATA_DIR)/ipaclient
+appdir = $(pythondir)/ipaclient
 app_PYTHON = 			\
 	__init__.py		\
 	ipachangeconf.py	\

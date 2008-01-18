@@ -1,10 +1,10 @@
 Name:           ipa-server
 Version:        VERSION
-Release:        1%{?dist}
-Summary:        Ipa authentication server
+Release:        2%{?dist}
+Summary:        IPA authentication server
 
 Group:          System Environment/Base
-License:        GPL
+License:        GPLv2+
 URL:            http://www.freeipa.org
 Source0:        %{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -43,8 +43,10 @@ Requires: libcap
 %define httpd_conf /etc/httpd/conf.d
 %define plugin_dir %{_libdir}/dirsrv/plugins
 
+%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+
 %description
-Ipa is a server for identity, policy, and audit.
+IPA is a server for identity, policy, and audit.
 
 %prep
 %setup -q
@@ -70,22 +72,22 @@ rm -rf %{buildroot}
 
 %post
 if [ $1 = 1 ]; then
-    /sbin/chkconfig --add ipa-kpasswd
-    /sbin/chkconfig --add ipa-webgui
+    /sbin/chkconfig --add ipa_kpasswd
+    /sbin/chkconfig --add ipa_webgui
 fi
 
 %preun
 if [ $1 = 0 ]; then
-    /sbin/chkconfig --del ipa-kpasswd
-    /sbin/chkconfig --del ipa-webgui
-    /sbin/service ipa-kpasswd stop >/dev/null 2>&1 || :
-    /sbin/service ipa-webgui stop >/dev/null 2>&1 || :
+    /sbin/chkconfig --del ipa_kpasswd
+    /sbin/chkconfig --del ipa_webgui
+    /sbin/service ipa_kpasswd stop >/dev/null 2>&1 || :
+    /sbin/service ipa_webgui stop >/dev/null 2>&1 || :
 fi
 
 %postun
 if [ "$1" -ge "1" ]; then
-    /sbin/service ipa-kpasswd condrestart >/dev/null 2>&1 || :
-    /sbin/service ipa-webgui condrestart >/dev/null 2>&1 || :
+    /sbin/service ipa_kpasswd condrestart >/dev/null 2>&1 || :
+    /sbin/service ipa_webgui condrestart >/dev/null 2>&1 || :
 fi
 
 %files
@@ -96,12 +98,15 @@ fi
 %{_sbindir}/ipa-replica-manage
 %{_sbindir}/ipa-server-certinstall
 %{_sbindir}/ipa_kpasswd
-%{_sbindir}/ipa-webgui
-%attr(755,root,root) %{_initrddir}/ipa-kpasswd
-%attr(755,root,root) %{_initrddir}/ipa-webgui
+%{_sbindir}/ipa_webgui
+%attr(755,root,root) %{_initrddir}/ipa_kpasswd
+%attr(755,root,root) %{_initrddir}/ipa_webgui
 
 %dir %{_usr}/share/ipa
 %{_usr}/share/ipa/*
+
+%dir %{python_sitelib}/ipaserver
+%{python_sitelib}/ipaserver/*.py*
 
 %attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so
 %attr(755,root,root) %{plugin_dir}/libipa-memberof-plugin.so
@@ -111,6 +116,10 @@ fi
 %dir %{_localstatedir}/cache/ipa/sysrestore
 
 %changelog
+* Thu Jan 17 2008 Rob Crittenden <rcritten@redhat.com> = 0.6.0-2
+- Fixed License in specfile
+- Include files from /usr/lib/python*/site-packages/ipaserver
+
 * Fri Dec 21 2007 Karl MacMillan <kmacmill@redhat.com> - 0.6.0-1
 - Version bump for release
 

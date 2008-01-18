@@ -21,12 +21,12 @@ import service
 
 class WebGuiInstance(service.Service):
     def __init__(self):
-        service.Service.__init__(self, "ipa-webgui")
+        service.Service.__init__(self, "ipa_webgui")
 
     def create_instance(self):
-        self.step("starting ipa-webgui", self.__start)
-        self.step("configuring ipa-webgui to start on boot", self.__enable)
-        self.start_creation("Configuring ipa-webgui")
+        self.step("starting ipa_webgui", self.__start)
+        self.step("configuring ipa_webgui to start on boot", self.__enable)
+        self.start_creation("Configuring ipa_webgui")
 
     def __start(self):
         self.backup_state("running", self.is_running())

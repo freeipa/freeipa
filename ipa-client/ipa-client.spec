@@ -1,15 +1,17 @@
 Name:           ipa-client
 Version:        0.6.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        IPA client
 
 Group:          System Environment/Base
-License:        GPL
+License:        GPLv2+
 URL:            http://www.freeipa.org
 Source0:        %{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Requires: python python-ldap python-krbV ipa-python cyrus-sasl-gssapi
+
+%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 %description
 IPA is a server for identity, policy, and audit.
@@ -41,7 +43,14 @@ rm -rf %{buildroot}
 %dir %{_usr}/share/ipa
 %{_usr}/share/ipa/*
 
+%dir %{python_sitelib}/ipaclient
+%{python_sitelib}/ipaclient/*.py*
+
 %changelog
+* Thu Jan 17 2008 Rob Crittenden <rcritten@redhat.com> = 0.6.0-2
+- Fixed License in specfile
+- Move client python files to /usr/lib*/python*/site-packages
+
 * Fri Dec 21 2007 Karl MacMillan <kmacmill@redhat.com> - 0.6.0-1
 - Version bump for release
 

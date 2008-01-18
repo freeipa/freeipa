@@ -17,8 +17,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-#!/usr/bin/python
-
 import xmlrpclib
 import socket
 import config
@@ -579,7 +577,7 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
-    def get_all_attrs(self, opts=None):
+    def get_all_attrs(self):
         """We have a list of hardcoded attributes -> readable labels. Return
            that complete list if someone wants it.
         """

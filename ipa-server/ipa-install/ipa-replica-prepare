@@ -19,7 +19,6 @@
 #
 
 import sys
-sys.path.append("/usr/share/ipa")
 
 import logging, tempfile, shutil, os, pwd
 from ConfigParser import SafeConfigParser

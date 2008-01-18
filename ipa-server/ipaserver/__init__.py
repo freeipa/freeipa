@@ -1,4 +1,3 @@
-#! /usr/bin/python -E
 # Authors: Karl MacMillan <kmacmillan@mentalrootkit.com>
 #          see inline
 #

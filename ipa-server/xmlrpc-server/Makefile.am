@@ -10,10 +10,14 @@ html_DATA =			\
 	unauthorized.html	\
 	$(NULL)
 
-serverdir = $(IPA_DATA_DIR)/ipaserver
-server_PYTHON =			\
+coredir = $(pythondir)/ipaserver
+core_PYTHON =			\
 	attrs.py		\
 	funcs.py		\
+	$(NULL)
+
+serverdir = $(IPA_DATA_DIR)/ipaserver
+server_PYTHON =			\
 	ipaxmlrpc.py		\
 	$(NULL)
 

@@ -1,10 +1,10 @@
 Name:           ipa-python
 Version:        VERSION
-Release:        1%{?dist}
-Summary:        Ipa authentication server
+Release:        2%{?dist}
+Summary:        IPA authentication server
 
 Group:          System Environment/Base
-License:        GPL
+License:        GPLv2+
 URL:            http://www.freeipa.org
 Source0:        http://www.freeipa.org/downloads/%{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -15,7 +15,7 @@ Requires: PyKerberos
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 %description
-Ipa is a server for identity, policy, and audit.
+IPA is a server for identity, policy, and audit.
 
 %prep
 %setup -q
@@ -35,6 +35,9 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/ipa/ipa.conf
 
 %changelog
+* Thu Jan 17 2008 Rob Crittenden <rcritten@redhat.com> = 0.6.0-2
+- Fixed License in specfile
+
 * Fri Dec 21 2007 Karl MacMillan <kmacmill@redhat.com> - 0.6.0-1
 - Version bump for release
 

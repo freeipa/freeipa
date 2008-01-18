@@ -1,11 +1,11 @@
 #!/bin/sh
 #
-# ipa-kpasswd    This starts and stops ipa-kpasswd
+# ipa_webgui    This starts and stops ipa_webgui
 #
 # chkconfig:   - 36 64
-# description: ipa-kpasswd IPA Kpasswd daemon
-# processname: /usr/sbin/ipa_kpasswd
-# configdir:   /etc/sysconfig/ipa-kpasswd
+# description: ipa_webgui IPA Web User Interface
+# processname: /usr/sbin/ipa_webgui
+# configdir:   /etc/sysconfig/ipa_webgui
 #
 
 # Source function library.
@@ -24,19 +24,16 @@ then
     exit 0
 fi
 
-# Source networking configuration.
-if [ -f /etc/sysconfig/ipa-kpasswd ] ; then
-. /etc/sysconfig/ipa-kpasswd
-fi
-
-NAME="ipa_kpasswd"
+NAME="ipa_webgui"
+PROG="/usr/sbin/ipa_webgui"
+RUNAS="apache"
 
 start() {
 	echo -n $"Starting $NAME: "
-	daemon $NAME
+	daemon --user $RUNAS $PROG
 	RETVAL=$?
 	echo
-	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/$NAME || \
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/ipa_webgui || \
 	   RETVAL=1
 	return $RETVAL
 }	
@@ -46,7 +43,7 @@ stop() {
 	killproc $NAME
 	RETVAL=$?
 	echo
-	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$NAME
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/ipa_webgui
 	return $RETVAL
 }	
 
@@ -62,14 +59,20 @@ case "$1" in
   stop)
   	stop
 	;;
+  status)
+        status $PROG
+        ;;
   restart)
   	restart
 	;;
   condrestart)
-  	[ -f /var/lock/subsys/$NAME ] && restart || :
+  	[ -f /var/lock/subsys/ipa_webgui ] && restart || :
+	;;
+  reload)
+	exit 3
 	;;
   *)
-	echo $"Usage: $0 {start|stop|restart|condrestart}"
+	echo $"Usage: $0 {start|stop|status|restart|condrestart}"
 	exit 2
 esac
 

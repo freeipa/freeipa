@@ -17,12 +17,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-#!/usr/bin/python
-
 import httplib
 import xmlrpclib
 import kerberos
-from kerberos import GSSError
 
 class KerbTransport(xmlrpclib.SafeTransport):
     """Handles Kerberos Negotiation authentication to an XML-RPC server."""
@@ -39,12 +36,12 @@ class KerbTransport(xmlrpclib.SafeTransport):
         try:
             rc, vc = kerberos.authGSSClientInit(service);
         except kerberos.GSSError, e:
-            raise GSSError(e)
+            raise kerberos.GSSError(e)
 
         try:
             kerberos.authGSSClientStep(vc, "");
         except kerberos.GSSError, e:
-            raise GSSError(e)
+            raise kerberos.GSSError(e)
 
         extra_headers = [
             ("Authorization", "negotiate %s" % kerberos.authGSSClientResponse(vc) )

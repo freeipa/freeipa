@@ -1,4 +1,3 @@
-#! /usr/bin/python -E
 # Authors: Karl MacMillan <kmacmillan@mentalrootkit.com>
 #
 # Copyright (C) 2007  Red Hat

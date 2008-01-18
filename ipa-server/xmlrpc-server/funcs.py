@@ -18,7 +18,6 @@
 #
 
 import sys
-sys.path.append("/usr/share/ipa")
 
 import krbV
 import ldap
@@ -26,7 +25,7 @@ import ldap.dn
 import ipaserver.dsinstance
 import ipaserver.ipaldap
 import copy
-import attrs
+from ipaserver import attrs
 from ipa import ipaerror
 from ipa import ipautil
 from urllib import quote,unquote

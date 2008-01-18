@@ -24,7 +24,6 @@
 # Rob Crittenden <rcritten@redhat.com>
 
 import sys
-sys.path.append("/usr/share/ipa")
 
 
 import time
@@ -34,8 +33,7 @@ from xmlrpclib import Marshaller,loads,dumps,Fault
 from mod_python import apache
 import logging
 
-import ipaserver
-import funcs
+from ipaserver import funcs
 from ipa import ipaerror, ipautil
 import ldap
 

@@ -1,6 +1,6 @@
 NULL =
 
-appdir = $(IPA_DATA_DIR)/ipaserver
+appdir = $(pythondir)/ipaserver
 app_PYTHON = 			\
 	__init__.py		\
 	bindinstance.py		\
