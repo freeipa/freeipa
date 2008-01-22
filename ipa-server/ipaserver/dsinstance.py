@@ -71,34 +71,18 @@ def erase_ds_instance_data(serverid):
 def check_existing_installation():
     dirs = glob.glob("/etc/dirsrv/slapd-*")
     if not dirs:
-        return
-    print ""
-    print "An existing Directory Server has been detected."
-    yesno = raw_input("Do you wish to remove it and create a new one? [no]: ")
-    if not yesno or yesno.lower()[0] != "y":
-        sys.exit(1)
+        return []
 
-    try:
-        service.stop("dirsrv")
-    except:
-        pass
+    serverids = []
     for d in dirs:
-        serverid = os.path.basename(d).split("slapd-", 1)[1]
-        if serverid:
-            erase_ds_instance_data(serverid)
+        serverids.append(os.path.basename(d).split("slapd-", 1)[1])
+
+    return serverids
 
 def check_ports():
     ds_unsecure = installutils.port_available(389)
     ds_secure = installutils.port_available(636)
-    if not ds_unsecure or not ds_secure:
-        print "IPA requires ports 389 and 636 for the Directory Server."
-        print "These are currently in use:"
-        if not ds_unsecure:
-            print "\t389"
-        if not ds_secure:
-            print "\t636"
-        sys.exit(1)
-
+    return (ds_unsecure, ds_secure)
 
 INF_TEMPLATE = """
 [General]
