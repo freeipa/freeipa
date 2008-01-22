@@ -107,6 +107,7 @@ class DsInstance(service.Service):
         self.dm_password = None
         self.sub_dict = None
         self.domain = None
+        self.pkcs12_info = None
 
     def create_instance(self, ds_user, realm_name, host_name, dm_password, pkcs12_info=None):
         self.ds_user = ds_user
