@@ -48,11 +48,11 @@ def find_server_root():
 def realm_to_serverid(realm_name):
     return "-".join(realm_name.split("."))
 
-def config_dirname(realm_name):
-    return "/etc/dirsrv/slapd-" + realm_to_serverid(realm_name) + "/"
+def config_dirname(serverid):
+    return "/etc/dirsrv/slapd-" + serverid + "/"
 
-def schema_dirname(realm_name):
-    return config_dirname(realm_name) + "/schema/"
+def schema_dirname(serverid):
+    return config_dirname(serverid) + "/schema/"
 
 def erase_ds_instance_data(serverid):
     try:
@@ -198,13 +198,13 @@ class DsInstance(service.Service):
 
     def __add_default_schemas(self):
         shutil.copyfile(ipautil.SHARE_DIR + "60kerberos.ldif",
-                        schema_dirname(self.realm_name) + "60kerberos.ldif")
+                        schema_dirname(self.serverid) + "60kerberos.ldif")
         shutil.copyfile(ipautil.SHARE_DIR + "60samba.ldif",
-                        schema_dirname(self.realm_name) + "60samba.ldif")
+                        schema_dirname(self.serverid) + "60samba.ldif")
         shutil.copyfile(ipautil.SHARE_DIR + "60radius.ldif",
-                        schema_dirname(self.realm_name) + "60radius.ldif")
+                        schema_dirname(self.serverid) + "60radius.ldif")
         shutil.copyfile(ipautil.SHARE_DIR + "60ipaconfig.ldif",
-                        schema_dirname(self.realm_name) + "60ipaconfig.ldif")
+                        schema_dirname(self.serverid) + "60ipaconfig.ldif")
 
     def __restart_instance(self):
         try:
@@ -252,7 +252,7 @@ class DsInstance(service.Service):
         self.__ldap_mod("master-entry.ldif", self.sub_dict)
 
     def __enable_ssl(self):
-        dirname = config_dirname(self.realm_name)
+        dirname = config_dirname(self.serverid)
         ca = certs.CertDB(dirname)
         if self.pkcs12_info:
             ca.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1])
@@ -296,11 +296,11 @@ class DsInstance(service.Service):
 
     def __certmap_conf(self):
         shutil.copyfile(ipautil.SHARE_DIR + "certmap.conf.template",
-                        config_dirname(self.realm_name) + "certmap.conf")
+                        config_dirname(self.serverid) + "certmap.conf")
 
     def change_admin_password(self, password):
         logging.debug("Changing admin password")
-        dirname = config_dirname(self.realm_name)
+        dirname = config_dirname(self.serverid)
         if ipautil.dir_exists("/usr/lib64/mozldap"):
             app = "/usr/lib64/mozldap/ldappasswd"
         else:

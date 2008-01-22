@@ -130,7 +130,7 @@ class HTTPInstance(service.Service):
             print "Updating %s failed." % NSS_CONF
 
     def __setup_ssl(self):
-        ds_ca = certs.CertDB(dsinstance.config_dirname(self.realm))
+        ds_ca = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(self.realm)))
         ca = certs.CertDB(NSS_DIR)
         ds_ca.cur_serial = 2000
         ca.create_from_cacert(ds_ca.cacert_fname)
@@ -144,7 +144,7 @@ class HTTPInstance(service.Service):
         prefs_fd.close()                
 
         # The signing cert is generated in __setup_ssl
-        ds_ca = certs.CertDB(dsinstance.config_dirname(self.realm))
+        ds_ca = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(self.realm)))
         ca = certs.CertDB(NSS_DIR)
 
         # Publish the CA certificate
