@@ -71,6 +71,10 @@ def update_key_val_in_file(filename, key, val):
     f = open(filename, "a")
     f.write("%s=%s\n" % (key, val))
     f.close()
+
+class KpasswdInstance(service.SimpleServiceInstance):
+    def __init__(self):
+        service.SimpleServiceInstance.__init__(self, "ipa_kpasswd")
     
 class KrbInstance(service.Service):
     def __init__(self):
@@ -85,6 +89,8 @@ class KrbInstance(service.Service):
         self.suffix = None
         self.kdc_password = None
         self.sub_dict = None
+
+        self.kpasswd = KpasswdInstance()
 
     def __common_setup(self, ds_user, realm_name, host_name, admin_password):
         self.ds_user = ds_user
@@ -117,7 +123,6 @@ class KrbInstance(service.Service):
     def __common_post_setup(self):
         self.step("starting the KDC", self.__start_instance)
         self.step("configuring KDC to start on boot", self.__enable)
-        self.step("enabling and starting ipa_kpasswd", self.__enable_kpasswd)
 
     def create_instance(self, ds_user, realm_name, host_name, admin_password, master_password):
         self.master_password = master_password
@@ -139,6 +144,8 @@ class KrbInstance(service.Service):
 
         self.start_creation("Configuring Kerberos KDC")
 
+        self.kpasswd.create_instance()
+
     def create_replica(self, ds_user, realm_name, host_name, admin_password, ldap_passwd_filename):
         self.__copy_ldap_passwd(ldap_passwd_filename)
 
@@ -154,6 +161,8 @@ class KrbInstance(service.Service):
         self.__common_post_setup()
 
         self.start_creation("Configuring Kerberos KDC")
+
+        self.kpasswd.create_instance()
 
     def __copy_ldap_passwd(self, filename):
         sysrestore.backup_file("/var/kerberos/krb5kdc/ldappwd")
@@ -180,12 +189,6 @@ class KrbInstance(service.Service):
             self.start()
         except:
             logging.critical("krb5kdc service failed to start")
-
-    def __enable_kpasswd(self):
-        sysrestore.backup_state("ipa_kpasswd", "enabled", service.is_enabled("ipa_kpasswd"))
-        sysrestore.backup_state("ipa_kpasswd", "running", service.is_running("ipa_kpasswd"))
-        service.chkconfig_on("ipa_kpasswd")
-        service.start("ipa_kpasswd")
 
     def __setup_sub_dict(self):
         self.sub_dict = dict(FQDN=self.fqdn,
@@ -379,21 +382,16 @@ class KrbInstance(service.Service):
         os.chown("/var/kerberos/krb5kdc/kpasswd.keytab", pent.pw_uid, pent.pw_gid)
 
     def uninstall(self):
+        self.kpasswd.uninstall()
+
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
 
-        kpasswd_running = sysrestore.restore_state("ipa_kpasswd", "running")
-        kpasswd_enabled = sysrestore.restore_state("ipa_kpasswd", "enabled")
-
         if not running is None:
             self.stop()
-        if not kpasswd_running is None:
-            service.stop("ipa_kpasswd")
 
         if not enabled is None and not enabled:
             self.chkconfig_off()
-        if not kpasswd_enabled is None and not kpasswd_enabled:
-            service.chkconfig_off("ipa_kpasswd")
 
         for f in ["/var/kerberos/krb5kdc/ldappwd",
                   "/var/kerberos/krb5kdc/kdc.conf",
@@ -410,5 +408,3 @@ class KrbInstance(service.Service):
 
         if not running is None and running:
             self.start()
-        if not kpasswd_running is None and kpasswd_running:
-            service.start("ipa_kpasswd")

@@ -47,6 +47,10 @@ successfully change with the command:
 Try updating the policycoreutils and selinux-policy packages.
 """
 
+class WebGuiInstance(service.SimpleServiceInstance):
+    def __init__(self):
+        service.SimpleServiceInstance.__init__(self, "ipa_webgui")
+
 class HTTPInstance(service.Service):
     def __init__(self):
         service.Service.__init__(self, "httpd")

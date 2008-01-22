@@ -9,7 +9,6 @@ app_PYTHON = 			\
 	krbinstance.py		\
 	httpinstance.py		\
 	ntpinstance.py		\
-	webguiinstance.py	\
 	service.py		\
 	installutils.py		\
 	replication.py		\

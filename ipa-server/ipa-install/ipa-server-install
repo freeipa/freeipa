@@ -44,7 +44,6 @@ import ipaserver.krbinstance
 import ipaserver.bindinstance
 import ipaserver.httpinstance
 import ipaserver.ntpinstance
-import ipaserver.webguiinstance
 
 from ipaserver import service
 from ipaserver import sysrestore
@@ -275,7 +274,7 @@ def check_dirsrv():
 def uninstall():
     ipaserver.ntpinstance.NTPInstance().uninstall()
     ipaserver.bindinstance.BindInstance().uninstall()
-    ipaserver.webguiinstance.WebGuiInstance().uninstall()
+    ipaserver.httpinstance.WebGuiInstance().uninstall()
     ipaserver.httpinstance.HTTPInstance().uninstall()
     ipaserver.krbinstance.KrbInstance().uninstall()
     ipaserver.dsinstance.DsInstance().uninstall()
@@ -432,7 +431,7 @@ def main():
     http.create_instance(realm_name, host_name)
 
     # Create a Web Gui instance
-    webgui = ipaserver.webguiinstance.WebGuiInstance()
+    webgui = ipaserver.httpinstance.WebGuiInstance()
     webgui.create_instance()
 
     bind.setup(host_name, ip_address, realm_name)

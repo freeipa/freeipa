@@ -125,3 +125,26 @@ class Service:
         self.print_msg("done configuring %s." % self.service_name)
 
         self.steps = []
+
+class SimpleServiceInstance(Service):
+    def create_instance(self):
+        self.step("starting %s " % self.service_name, self.__start)
+        self.step("configuring %s to start on boot" % self.service_name, self.__enable)
+        self.start_creation("Configuring %s" % self.service_name)
+
+    def __start(self):
+        self.backup_state("running", self.is_running())
+        self.restart()
+
+    def __enable(self):
+        self.backup_state("enabled", self.is_enabled())
+        self.chkconfig_on()
+
+    def uninstall(self):
+        running = self.restore_state("running")
+        enabled = not self.restore_state("enabled")
+
+        if not running is None and not running:
+            self.stop()
+        if not enabled is None and not enabled:
+            self.chkconfig_off()
