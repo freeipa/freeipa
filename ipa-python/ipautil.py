@@ -24,8 +24,7 @@ import string
 import tempfile
 import logging
 import subprocess
-from random import Random
-from time import gmtime
+import random
 import os, sys, traceback, readline
 import stat
 import shutil
@@ -364,8 +363,7 @@ def parse_generalized_time(timestr):
 
 def ipa_generate_password():
     rndpwd = ''
-    r = Random()
-    r.seed(gmtime())
+    r = random.Random()
     for x in range(12):
 #        rndpwd += chr(r.randint(32,126))
         rndpwd += chr(r.randint(65,90)) #stricter set for testing
