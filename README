@@ -1,0 +1,60 @@
+
+                               IPA Server
+
+  What is it?
+  -----------
+
+  For efficiency, compliance and risk mitigation, organizations need to
+  centrally manage and correlate vital security information including:
+
+    * Identity (machine, user, virtual machines, groups, authentication
+      credentials)
+    * Policy (configuration settings, access control information)
+    * Audit (events, logs, analysis thereof) 
+
+  Since these are not new problems. there exist many approaches and
+  products focused on addressing them. However, these tend to have the
+  following weaknesses:
+
+    * Focus on solving identity management across the enterprise has meant
+      less focus on policy and audit.
+    * Vendor focus on Web identity management problems has meant less well
+      developed solutions for central management of the Linux and Unix
+      world's vital security info. Organizations are forced to maintain
+      a hodgepodge of internal and proprietary solutions at high TCO.
+    * Proprietary security products don't easily provide access to the
+      vital security information they collect or manage. This makes it
+      difficult to synchronize and analyze effectively. 
+
+  The Latest Version
+  ------------------
+
+  Details of the latest version can be found on the IPA server project
+  page under <http://www.freeipa.org/>.
+
+  Documentation
+  -------------
+
+  The most up-to-date documentation can be found at
+  <http://freeipa.org/page/Documentation/>.
+
+  Licensing
+  ---------
+
+  Please see the file called LICENSE.
+
+  Contacts
+  --------
+
+     * If you want to be informed about new code releases, bug fixes,
+       security fixes, general news and information about the IPA server
+       subscribe to the freeipa-announce mailing list at
+       <https://www.redhat.com/mailman/listinfo/freeipa-interest/>.
+
+     * If you have a bug report please submit it at:
+       <https://bugzilla.redhat.com>
+
+     * If you want to participate in actively developing IPA please
+       subscribe to the freeipa-devel mailing list at
+       <https://www.redhat.com/mailman/listinfo/freeipa-devel/> or join
+       us in IRC at irc://irc.freenode.net/freeipa

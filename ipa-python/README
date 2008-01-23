@@ -1,0 +1,30 @@
+This is a set of libraries common to IPA clients and servers though mostly
+geared currently towards command-line tools.
+
+A brief overview:
+
+aci.py - a basic LDAP ACI parser for doing delegations.
+config.py - identify the IPA server domain and realm. It uses dnsclient to
+            try to detect this information first and will fall back to
+            /etc/ipa/ipa.conf if that fails.
+ipaadminutil.py - routines to help reduce the number of entries from a search
+dnsclient.py - find IPA information via DNS
+
+ipaclient.py - the main interface for any command-line tools. When initialized
+               if transport is True then it means the IPA server is on the
+               same machine so no need to use the XML-RPC interface.
+rpcclient.py - the XML-RPC client API. Callers should use ipaclient instead
+               of this directly.
+
+ipautil.py - helper functions
+
+radius_util.py - helper functions for Radius
+
+user.py
+group.py
+entity.py - entity is the main data type. User and Group extend this class
+            (but don't add anything currently).
+
+ipavalidate.py - basic data validation routines
+ipaerror.py - our own error types
+krbtransport.py - do Kerberos auth over HTTP/S

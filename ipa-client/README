@@ -1,0 +1,24 @@
+Code to be installed on any client that wants to be in an IPA domain.
+
+Mostly consists of a tool for Linux systems that will help configure the
+client so it will work properly in a kerberized environment.
+
+It also includes several ways to configure Firefox to do single sign-on.
+
+The two methods on the client side are:
+
+1. globalsetup.sh. This modifies the global Firefox installation so that
+   any profiles created will be pre-configured.
+
+2. usersetup.sh. This will update a user's existing profile.
+
+The downside of #1 is that an rpm -V will return a failure. It will also
+need to be run with every update of Firefox.
+
+One a profile contains the proper preferences it will be unaffected by
+upgrades to Firefox. 
+
+The downside of #2 is that every user would need to run this each time they
+create a new profile.
+
+There is a third, server-side method. See ipa-server/README for details.

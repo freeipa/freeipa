@@ -1,0 +1,13 @@
+These tools are designed for administrators to work from a command-line,
+use in scripts, etc.
+
+The design goal is to provide 100% of capabilities that the UI has, something
+which is often not true.
+
+Developers
+----------
+
+These scripts use an XML-RPC interface to communicate with the IPA server.
+Please use only this API and avoid the temptation to communicate directly
+with the LDAP server. It is our philosophy to have a robust, standard
+interface for doing all IPA administrative work.
