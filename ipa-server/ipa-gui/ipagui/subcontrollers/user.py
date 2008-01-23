@@ -362,6 +362,10 @@ class UserController(IPAController):
                         ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR)):
                     pass
 
+            # Set the uid we're editing in the session. If it doesn't match
+            # later the update will not be processed
+            cherrypy.session['uid'] = user_dict.get('uid')
+
             return dict(form=user_edit_form, user=user_dict,
                     user_groups=user_groups_dicts)
         except ipaerror.IPAError, e:
@@ -383,6 +387,14 @@ class UserController(IPAController):
         if kw.get('submit') == 'Cancel Edit':
             turbogears.flash("Edit user cancelled")
             raise turbogears.redirect('/user/show', uid=kw.get('uid'))
+
+        edituid = cherrypy.session.get('uid')
+        if not edituid or edituid != kw.get('uid'):
+            turbogears.flash("Something went wrong. You last viewed %s but are trying to update %s" % (kw.get('uid'), edituid))
+            raise turbogears.redirect('/user/show', uid=kw.get('uid'))
+
+        # We no longer need this
+        cherrypy.session['uid'] = None
 
         # Fix incoming multi-valued fields we created for the form
         kw = ipahelper.fix_incoming_fields(kw, 'cn', 'cns')

@@ -15,9 +15,12 @@ SUBDIRS =			\
 
 install-exec-local:
 	mkdir -p $(DESTDIR)$(localstatedir)/cache/ipa/sysrestore
+	mkdir -p $(DESTDIR)$(localstatedir)/cache/ipa/sessions
+	chmod 700 $(DESTDIR)$(localstatedir)/cache/ipa/sessions
 
 uninstall-local:
 	-rmdir $(DESTDIR)$(localstatedir)/cache/ipa/sysrestore
+	-rmdir $(DESTDIR)$(localstatedir)/cache/ipa/sessions
 	-rmdir $(DESTDIR)$(localstatedir)/cache/ipa
 
 EXTRA_DIST =			\

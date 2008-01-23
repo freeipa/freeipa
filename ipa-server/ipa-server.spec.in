@@ -1,6 +1,6 @@
 Name:           ipa-server
 Version:        VERSION
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base
@@ -114,8 +114,12 @@ fi
 
 %dir %{_localstatedir}/cache/ipa
 %dir %{_localstatedir}/cache/ipa/sysrestore
+%attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 
 %changelog
+* Tue Jan 22 2008 Rob Crittenden <rcritten@redhat.com> = 0.6.0-3
+- add session cache directory
+
 * Thu Jan 17 2008 Rob Crittenden <rcritten@redhat.com> = 0.6.0-2
 - Fixed License in specfile
 - Include files from /usr/lib/python*/site-packages/ipaserver
