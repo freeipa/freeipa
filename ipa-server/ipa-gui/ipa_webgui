@@ -78,7 +78,7 @@ def main():
             sys.stderr.write("error becoming daemon: " + str(e))
             sys.exit(1)
 
-    sys.path.append("/usr/share/ipa/sessions")
+    sys.path.append("/usr/share/ipa")
 
     # this must be after sys.path is changed to work correctly
     import pkg_resources
