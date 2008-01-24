@@ -117,7 +117,7 @@ tarballs:
         # ipa-server
 	mv dist/ipa/ipa-server dist/$(SERV_TARBALL_PREFIX)
 	rm -f dist/sources/$(SERV_TARBALL)
-	cd dist/$(SERV_TARBALL_PREFIX); ./autogen.sh; make distclean
+	cd dist/$(SERV_TARBALL_PREFIX); ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
 	cd dist; tar cfz sources/$(SERV_TARBALL) $(SERV_TARBALL_PREFIX)
 	rm -fr dist/$(SERV_TARBALL_PREFIX)
 
@@ -136,7 +136,7 @@ tarballs:
         # ipa-client
 	mv dist/ipa/ipa-client dist/$(CLI_TARBALL_PREFIX)
 	rm -f dist/sources/$(CLI_TARBALL)
-	cd dist/$(CLI_TARBALL_PREFIX); ./autogen.sh; make distclean
+	cd dist/$(CLI_TARBALL_PREFIX); ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
 	cd dist; tar cfz sources/$(CLI_TARBALL) $(CLI_TARBALL_PREFIX)
 	rm -fr dist/$(CLI_TARBALL_PREFIX)
 
