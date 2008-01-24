@@ -37,7 +37,7 @@ Requires: python-krbV
 Requires: TurboGears
 Requires: python-tgexpandingformwidget
 Requires: acl
-Requires: pyasn1
+Requires: python-pyasn1
 Requires: libcap
 
 %define httpd_conf /etc/httpd/conf.d
