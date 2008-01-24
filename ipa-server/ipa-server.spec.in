@@ -1,6 +1,6 @@
 Name:           ipa-server
 Version:        VERSION
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base
@@ -117,6 +117,9 @@ fi
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 
 %changelog
+* Thu Jan 24 2008 Rob Crittenden <rcritten@redhat.com> = 0.6.0-4
+- Use new name of pyasn1, python-pyasn1, in Requires
+
 * Tue Jan 22 2008 Rob Crittenden <rcritten@redhat.com> = 0.6.0-3
 - add session cache directory
 

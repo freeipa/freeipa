@@ -1,6 +1,6 @@
 Name:           ipa-server
 Version:        0.6.0
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base
@@ -37,7 +37,7 @@ Requires: python-krbV
 Requires: TurboGears
 Requires: python-tgexpandingformwidget
 Requires: acl
-Requires: pyasn1
+Requires: python-pyasn1
 Requires: libcap
 
 %define httpd_conf /etc/httpd/conf.d
@@ -117,6 +117,9 @@ fi
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 
 %changelog
+* Thu Jan 24 2008 Rob Crittenden <rcritten@redhat.com> = 0.6.0-4
+- Use new name of pyasn1, python-pyasn1, in Requires
+
 * Tue Jan 22 2008 Rob Crittenden <rcritten@redhat.com> = 0.6.0-3
 - add session cache directory
 

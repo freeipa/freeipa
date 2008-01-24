@@ -1,6 +1,6 @@
 Name:           ipa-python
 Version:        VERSION
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base
@@ -9,8 +9,8 @@ URL:            http://www.freeipa.org
 Source0:        http://www.freeipa.org/downloads/%{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: 	noarch
-BuildRequires: python-devel
-Requires: PyKerberos
+BuildRequires:  python-devel
+Requires:       python-kerberos
 
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
@@ -35,6 +35,9 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/ipa/ipa.conf
 
 %changelog
+* Thu Jan 24 2008 Rob Crittenden <rcritten@redhat.com> = 0.6.0-3
+- Use new name of PyKerberos, python-kerberos, in Requires
+
 * Thu Jan 17 2008 Rob Crittenden <rcritten@redhat.com> = 0.6.0-2
 - Fixed License in specfile
 

@@ -19,8 +19,10 @@ mod_python
 gcc
 python-ldap
 TurboGears
-PyKerberos
+python-kerberos
 python-krbV
+python-tgexpandingformwidget
+python-pyasn1
 
 Installation example:
 
