@@ -191,7 +191,8 @@ def read_ds_user():
     try:
         pwd.getpwnam('dirsrv')
 
-        print "A user account named 'dirsrv' already exists."
+        print "A user account named 'dirsrv' already exists. This is the user id"
+        print "that the Directory Server will run as."
         print ""
         yesno = raw_input("Do you want to use the existing 'dirsrv' account? [yes]: ")
         print ""
@@ -229,7 +230,8 @@ def read_realm_name(domain_name):
 def read_dm_password():
     print "Certain directory server operations require an administrative user."
     print "This user is referred to as the Directory Manager and has full access"
-    print "to the Directory for system management tasks."
+    print "to the Directory for system management tasks and will be added to the
+    print "instance of directory server created for IPA."
     print "The password must be at least 8 characters long."
     print ""
     #TODO: provide the option of generating a random password
@@ -251,6 +253,9 @@ def check_dirsrv():
         print "An existing Directory Server has been detected."
         yesno = raw_input("Do you wish to remove it and create a new one? [no]: ")
         if not yesno or yesno.lower()[0] != "y":
+            print ""
+            print "Only a single Directory Server instance is allowed on an IPA"
+            print "server, the one used by IPA itself."
             sys.exit(1)
 
         try:
@@ -302,6 +307,13 @@ def main():
 
     print "=============================================================================="
     print "This program will setup the FreeIPA Server."
+    print ""
+    print "This includes:"
+    print "  * Create and configure an instance of Directory Server"
+    print "  * Create and configure a Kerberos Domain Controller (KDC)"
+    print "  * Configure Apache (httpd)"
+    print "  * Configure TurboGears"
+    print "  * Configure the Network Time Daemon (ntpd)"
     print ""
     print "To accept the default shown in brackets, press the Enter key."
     print ""
@@ -477,7 +489,7 @@ def main():
     print "Next steps:"
     print "\t1. You may need to open some network ports - specifically:"
     print "\t\tTCP Ports:"
-    print "\t\t  * 80, 443, 8080: HTTP/HTTPS"
+    print "\t\t  * 80, 443: HTTP/HTTPS"
     print "\t\t  * 389, 636: LDAP/LDAPS"
     print "\t\t  * 88, 464: kerberos"
     print "\t\tUDP Ports:"

@@ -118,7 +118,7 @@ class Service:
 
         step = 0
         for (message, method) in self.steps:
-            self.print_msg("  [%d/%d]: %s" % (step, len(self.steps), message))
+            self.print_msg("  [%d/%d]: %s" % (step+1, len(self.steps)+1, message))
             method()
             step += 1
         
