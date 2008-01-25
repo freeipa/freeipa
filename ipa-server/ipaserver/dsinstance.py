@@ -126,7 +126,7 @@ class DsInstance(service.Service):
         self.step("enabling memberof plugin", self.__add_memberof_module)
         self.step("enabling referential integrity plugin", self.__add_referint_module)
         self.step("enabling distributed numeric assignment plugin", self.__add_dna_module)
-        self.step("creating indeces", self.__create_indeces)
+        self.step("creating indices", self.__create_indices)
         self.step("configuring ssl for ds instance", self.__enable_ssl)
         self.step("configuring certmap.conf", self.__certmap_conf)
         self.step("restarting directory server", self.__restart_instance)
@@ -292,8 +292,8 @@ class DsInstance(service.Service):
     def __add_default_layout(self):
         self.__ldap_mod("bootstrap-template.ldif", self.sub_dict)
         
-    def __create_indeces(self):
-        self.__ldap_mod("indeces.ldif")
+    def __create_indices(self):
+        self.__ldap_mod("indices.ldif")
 
     def __certmap_conf(self):
         shutil.copyfile(ipautil.SHARE_DIR + "certmap.conf.template",

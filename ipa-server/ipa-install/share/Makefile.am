@@ -10,7 +10,7 @@ app_DATA =				\
 	default-aci.ldif		\
 	default-keytypes.ldif		\
 	kerberos.ldif			\
-	indeces.ldif			\
+	indices.ldif			\
 	bind.named.conf.template	\
 	bind.zone.db.template		\
 	certmap.conf.template		\
