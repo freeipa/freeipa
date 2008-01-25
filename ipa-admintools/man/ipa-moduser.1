@@ -27,27 +27,31 @@ ipa\-moduser [\fIOPTION\fR]... \fIname\fR
 Updates the user \fIname\fR.
 .SH "OPTIONS"
 .TP 
-\fB\-a\fR, \fB\-\-add\fR=\fIuser1,user2,...usern\fR
-Add one or more users to the group
-
+\fB\-a\fR, \fB\-\-activate\fR
+Activate a user that was previously inactivated
 .TP 
-\fB\-d\fR, \fB\-\-description\fR=\fIdescription\fR
-Modify the description of the group
-
+\fB\-c\fR, \fB\-\-gecos\fR=\fIGECOS\fR
+Set the gecos field of the user. This is traditionally the user's full name.
 .TP 
-\fB\-r\fR, \fB\-\-remove\fR=\fIuser1,user2,...usern\fR
-Remove one or more users from the group
-
+\fB\-d\fR, \fB\-\-directory\fR=\fIdirectory\fR
+Set user's home directory
 .TP 
-\fB\-\-addattr\fR=\fIattr=value\fR
+\fB\-f\fR, \fB\-\-firstname\fR=\fINAME\fR
+Set user's first name
+.TP 
+\fB\-l\fR, \fB\-\-lastname\fR=\fINAME\fR
+Set user's last name
+.TP 
+\fB\-s\fR, \fB\-\-shell\fR=\fIshell\fR
+Set user's login shell
+.TP 
+\fB\-\-addattr\fR \fIattr=value\fR
 Add a new attribute, or value to an existing attribute
-
 .TP 
-\fB\-\-delattr\fR=\fIattr=value\fR
+\fB\-\-delattr\fR \fIattr=value\fR
 Remove an attribute and all values
-
 .TP 
-\fB\-\-setattr\fR=\fIattr=value\fR
+\fB\-\-setattr\fR \fIattr=value\fR
 Set an attribute to a new value, removing all old ones
 .SH "EXIT STATUS"
 The exit status is 0 on success, nonzero on error.
