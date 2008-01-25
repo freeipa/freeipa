@@ -32,8 +32,8 @@ import ldap
 import errno
 
 def usage():
-    print "ipa-groupmod [-a|--add] [-r|--remove] user group"
-    print "ipa-groupmod [-d|--desc description STRING] [--addattr attribute=value] [--delattr attribute] [--setattr attribute=value] group"
+    print "ipa-modgroup [-a|--add] [-r|--remove] user group"
+    print "ipa-modgroup [-d|--desc description STRING] [--addattr attribute=value] [--delattr attribute] [--setattr attribute=value] group"
     sys.exit(1)
 
 def set_add_usage(which):

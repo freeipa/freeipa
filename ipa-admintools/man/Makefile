@@ -9,12 +9,12 @@ MANFILES=\
 	ipa-deluser.1 \
 	ipa-findgroup.1 \
 	ipa-finduser.1 \
-	ipa-groupmod.1 \
+	ipa-modgroup.1 \
 	ipa-listdelegation.1 \
 	ipa-lockuser.1 \
 	ipa-moddelegation.1 \
 	ipa-passwd.1 \
-	ipa-usermod.1 \
+	ipa-moduser.1 \
 	ipa-getkeytab.1
 
 all: ;

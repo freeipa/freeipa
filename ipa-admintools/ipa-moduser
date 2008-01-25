@@ -32,7 +32,7 @@ import ldap
 import errno
 
 def usage():
-    print "ipa-usermod [-a|--activate] [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] [-s|--shell STRING] [--add attribute=value] [--del attribute] [--set attribute=value] user"
+    print "ipa-moduser [-a|--activate] [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] [-s|--shell STRING] [--add attribute=value] [--del attribute] [--set attribute=value] user"
     sys.exit(1)
 
 def set_add_usage(which):
