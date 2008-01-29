@@ -26,7 +26,7 @@ from ConfigParser import SafeConfigParser
 from ipa import ipautil
 
 from ipaserver import dsinstance, replication, installutils, krbinstance, service
-from ipaserver import httpinstance, webguiinstance, radiusinstance, ntpinstance, certs
+from ipaserver import httpinstance, webguiinstance, ntpinstance, certs
 
 class ReplicaConfig:
     def __init__(self):
