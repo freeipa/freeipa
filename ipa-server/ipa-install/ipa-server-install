@@ -230,7 +230,7 @@ def read_realm_name(domain_name):
 def read_dm_password():
     print "Certain directory server operations require an administrative user."
     print "This user is referred to as the Directory Manager and has full access"
-    print "to the Directory for system management tasks and will be added to the
+    print "to the Directory for system management tasks and will be added to the"
     print "instance of directory server created for IPA."
     print "The password must be at least 8 characters long."
     print ""
