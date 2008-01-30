@@ -18,6 +18,30 @@
 #
 
 import os, sys
+from optparse import OptionParser
+import ipa.config
+import traceback
+import logging
+
+def usage():
+    print "ipa_webgui [-f|--foreground] [-d|--debug]"
+    sys.exit(1)
+
+def parse_options():
+    parser = OptionParser()
+    parser.add_option("-f", "--foreground", dest="foreground",
+                      action="store_true", default=False,
+                      help="Remain in the foreground")
+    parser.add_option("-d", "--debug", dest="debug", action="store_true",
+                      default=False,
+                      help="Increase the amount of logging information")
+    parser.add_option("--usage", action="store_true",
+                      help="Program usage")
+
+    args = ipa.config.init_config(sys.argv)
+    options, args = parser.parse_args(args)
+
+    return options, args
 
 def daemonize():
     # fork once so the parent can exit
@@ -64,14 +88,31 @@ def daemonize():
     os.open("/dev/null", os.O_RDWR)
 
 def main():
+    options, args = parse_options()
+
+    foreground = options.foreground
+
+    if options.debug:
+        loglevel = logging.DEBUG
+    else:
+        loglevel = logging.WARN
+    
     # To make development easier, we detect if we are in the development
     # environment to load a different configuration and avoid becoming
     # a daemon
     devel = False
     if os.path.exists(os.path.join(os.path.dirname(__file__), "Makefile.am")):
         devel = True
+        foreground = True
+        logging.basicConfig(level=loglevel,
+                            stream=sys.stderr)
+    else:
+        # This log file name needs to be kept in sync with the one in
+        # ipa_webgui.cfg
+        logging.basicConfig(level=loglevel,
+                            filename='/var/log/ipa_error.log')
 
-    if not devel:
+    if not foreground:
         try:
             daemonize()
         except Exception, e:
@@ -84,7 +125,6 @@ def main():
     import pkg_resources
     pkg_resources.require("TurboGears")
     pkg_resources.require("ipa_gui")
-
 
     from turbogears import update_config, start_server
     import cherrypy
@@ -105,6 +145,14 @@ def main():
 
 try:
     main()
+    sys.exit(0)
+except SystemExit, e:
+    sys.exit(e)
 except Exception, e:
-    print "failed to start web gui: %s" % str(e)
+    message = "failed to start web gui: %s" % str(e)
+    print message
+    for str in traceback.format_tb(sys.exc_info()[2]):
+        message = message + "\n" + str
+    logging.error(message)
+
     sys.exit(1)
