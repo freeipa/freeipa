@@ -122,6 +122,27 @@ class Entity:
 
     setValues = setValue
 
+    def setValueNotEmpty(self,name,*value):
+        """Similar to setValue() but will not set an empty field. This
+           is an attempt to avoid adding empty attributes."""
+        if (len(value) >= 1) and value[0] and len(value[0]) > 0:
+            if isinstance(value[0], list):
+                if len(value[0][0]) > 0:
+                    self.setValue(name, *value)
+                    return
+            else:
+                self.setValue(name, *value)
+                return
+
+        # At this point we have an empty incoming value. See if they are
+        # trying to erase the current value. If so we'll delete it so
+        # it gets marked as removed in the modlist.
+        v = self.getValues(name)
+        if v:
+            self.delValue(name)
+           
+        return
+
     def delValue(self,name):
         """Remove the attribute named name."""
         if self.data.get(name,None):

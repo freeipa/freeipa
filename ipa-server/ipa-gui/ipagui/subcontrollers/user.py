@@ -154,45 +154,45 @@ class UserController(IPAController):
         #
         try:
             new_user = ipa.user.User()
-            new_user.setValue('title', kw.get('title'))
-            new_user.setValue('givenname', kw.get('givenname'))
-            new_user.setValue('sn', kw.get('sn'))
-            new_user.setValue('cn', kw.get('cn'))
-            new_user.setValue('displayname', kw.get('displayname'))
-            new_user.setValue('initials', kw.get('initials'))
+            new_user.setValueNotEmpty('title', kw.get('title'))
+            new_user.setValueNotEmpty('givenname', kw.get('givenname'))
+            new_user.setValueNotEmpty('sn', kw.get('sn'))
+            new_user.setValueNotEmpty('cn', kw.get('cn'))
+            new_user.setValueNotEmpty('displayname', kw.get('displayname'))
+            new_user.setValueNotEmpty('initials', kw.get('initials'))
 
-            new_user.setValue('uid', kw.get('uid'))
-            new_user.setValue('loginshell', kw.get('loginshell'))
-            new_user.setValue('gecos', kw.get('gecos'))
+            new_user.setValueNotEmpty('uid', kw.get('uid'))
+            new_user.setValueNotEmpty('loginshell', kw.get('loginshell'))
+            new_user.setValueNotEmpty('gecos', kw.get('gecos'))
 
-            new_user.setValue('mail', kw.get('mail'))
-            new_user.setValue('telephonenumber', kw.get('telephonenumber'))
-            new_user.setValue('facsimiletelephonenumber',
+            new_user.setValueNotEmpty('mail', kw.get('mail'))
+            new_user.setValueNotEmpty('telephonenumber', kw.get('telephonenumber'))
+            new_user.setValueNotEmpty('facsimiletelephonenumber',
                     kw.get('facsimiletelephonenumber'))
-            new_user.setValue('mobile', kw.get('mobile'))
-            new_user.setValue('pager', kw.get('pager'))
-            new_user.setValue('homephone', kw.get('homephone'))
+            new_user.setValueNotEmpty('mobile', kw.get('mobile'))
+            new_user.setValueNotEmpty('pager', kw.get('pager'))
+            new_user.setValueNotEmpty('homephone', kw.get('homephone'))
 
-            new_user.setValue('street', kw.get('street'))
-            new_user.setValue('l', kw.get('l'))
-            new_user.setValue('st', kw.get('st'))
-            new_user.setValue('postalcode', kw.get('postalcode'))
+            new_user.setValueNotEmpty('street', kw.get('street'))
+            new_user.setValueNotEmpty('l', kw.get('l'))
+            new_user.setValueNotEmpty('st', kw.get('st'))
+            new_user.setValueNotEmpty('postalcode', kw.get('postalcode'))
 
-            new_user.setValue('ou', kw.get('ou'))
-            new_user.setValue('businesscategory', kw.get('businesscategory'))
-            new_user.setValue('description', kw.get('description'))
-            new_user.setValue('employeetype', kw.get('employeetype'))
+            new_user.setValueNotEmpty('ou', kw.get('ou'))
+            new_user.setValueNotEmpty('businesscategory', kw.get('businesscategory'))
+            new_user.setValueNotEmpty('description', kw.get('description'))
+            new_user.setValueNotEmpty('employeetype', kw.get('employeetype'))
             if kw.get('manager'):
-                new_user.setValue('manager', kw.get('manager'))
-            new_user.setValue('roomnumber', kw.get('roomnumber'))
+                new_user.setValueNotEmpty('manager', kw.get('manager'))
+            new_user.setValueNotEmpty('roomnumber', kw.get('roomnumber'))
             if kw.get('secretary'):
-                new_user.setValue('secretary', kw.get('secretary'))
+                new_user.setValueNotEmpty('secretary', kw.get('secretary'))
 
-            new_user.setValue('carlicense', kw.get('carlicense'))
-            new_user.setValue('labeleduri', kw.get('labeleduri'))
+            new_user.setValueNotEmpty('carlicense', kw.get('carlicense'))
+            new_user.setValueNotEmpty('labeleduri', kw.get('labeleduri'))
 
             for custom_field in user_new_form.custom_fields:
-                new_user.setValue(custom_field.name,
+                new_user.setValueNotEmpty(custom_field.name,
                                   kw.get(custom_field.name, ''))
 
             rv = client.add_user(new_user)
@@ -465,50 +465,50 @@ class UserController(IPAController):
             del(orig_user_dict['homephones'])
 
             new_user = ipa.user.User(orig_user_dict)
-            new_user.setValue('title', kw.get('title'))
-            new_user.setValue('givenname', kw.get('givenname'))
-            new_user.setValue('sn', kw.get('sn'))
-            new_user.setValue('cn', kw.get('cn'))
-            new_user.setValue('displayname', kw.get('displayname'))
-            new_user.setValue('initials', kw.get('initials'))
+            new_user.setValueNotEmpty('title', kw.get('title'))
+            new_user.setValueNotEmpty('givenname', kw.get('givenname'))
+            new_user.setValueNotEmpty('sn', kw.get('sn'))
+            new_user.setValueNotEmpty('cn', kw.get('cn'))
+            new_user.setValueNotEmpty('displayname', kw.get('displayname'))
+            new_user.setValueNotEmpty('initials', kw.get('initials'))
 
-            new_user.setValue('loginshell', kw.get('loginshell'))
-            new_user.setValue('gecos', kw.get('gecos'))
+            new_user.setValueNotEmpty('loginshell', kw.get('loginshell'))
+            new_user.setValueNotEmpty('gecos', kw.get('gecos'))
 
-            new_user.setValue('mail', kw.get('mail'))
-            new_user.setValue('telephonenumber', kw.get('telephonenumber'))
-            new_user.setValue('facsimiletelephonenumber',
+            new_user.setValueNotEmpty('mail', kw.get('mail'))
+            new_user.setValueNotEmpty('telephonenumber', kw.get('telephonenumber'))
+            new_user.setValueNotEmpty('facsimiletelephonenumber',
                     kw.get('facsimiletelephonenumber'))
-            new_user.setValue('mobile', kw.get('mobile'))
-            new_user.setValue('pager', kw.get('pager'))
-            new_user.setValue('homephone', kw.get('homephone'))
+            new_user.setValueNotEmpty('mobile', kw.get('mobile'))
+            new_user.setValueNotEmpty('pager', kw.get('pager'))
+            new_user.setValueNotEmpty('homephone', kw.get('homephone'))
 
-            new_user.setValue('street', kw.get('street'))
-            new_user.setValue('l', kw.get('l'))
-            new_user.setValue('st', kw.get('st'))
-            new_user.setValue('postalcode', kw.get('postalcode'))
+            new_user.setValueNotEmpty('street', kw.get('street'))
+            new_user.setValueNotEmpty('l', kw.get('l'))
+            new_user.setValueNotEmpty('st', kw.get('st'))
+            new_user.setValueNotEmpty('postalcode', kw.get('postalcode'))
 
-            new_user.setValue('ou', kw.get('ou'))
-            new_user.setValue('businesscategory', kw.get('businesscategory'))
-            new_user.setValue('description', kw.get('description'))
-            new_user.setValue('employeetype', kw.get('employeetype'))
-            new_user.setValue('manager', kw.get('manager'))
-            new_user.setValue('roomnumber', kw.get('roomnumber'))
-            new_user.setValue('secretary', kw.get('secretary'))
+            new_user.setValueNotEmpty('ou', kw.get('ou'))
+            new_user.setValueNotEmpty('businesscategory', kw.get('businesscategory'))
+            new_user.setValueNotEmpty('description', kw.get('description'))
+            new_user.setValueNotEmpty('employeetype', kw.get('employeetype'))
+            new_user.setValueNotEmpty('manager', kw.get('manager'))
+            new_user.setValueNotEmpty('roomnumber', kw.get('roomnumber'))
+            new_user.setValueNotEmpty('secretary', kw.get('secretary'))
 
-            new_user.setValue('carlicense', kw.get('carlicense'))
-            new_user.setValue('labeleduri', kw.get('labeleduri'))
+            new_user.setValueNotEmpty('carlicense', kw.get('carlicense'))
+            new_user.setValueNotEmpty('labeleduri', kw.get('labeleduri'))
 
             if kw.get('editprotected') == 'true':
                 if kw.get('userpassword'):
                     password_change = True
-                new_user.setValue('uidnumber', str(kw.get('uidnumber')))
-                new_user.setValue('gidnumber', str(kw.get('gidnumber')))
-                new_user.setValue('homedirectory', str(kw.get('homedirectory')))
-                new_user.setValue('uid', str(kw.get('uid')))
+                new_user.setValueNotEmpty('uidnumber', str(kw.get('uidnumber')))
+                new_user.setValueNotEmpty('gidnumber', str(kw.get('gidnumber')))
+                new_user.setValueNotEmpty('homedirectory', str(kw.get('homedirectory')))
+                new_user.setValueNotEmpty('uid', str(kw.get('uid')))
 
             for custom_field in user_edit_form.custom_fields:
-                new_user.setValue(custom_field.name,
+                new_user.setValueNotEmpty(custom_field.name,
                                   kw.get(custom_field.name, ''))
 
             rv = client.update_user(new_user)
