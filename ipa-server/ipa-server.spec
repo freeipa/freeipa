@@ -1,6 +1,6 @@
 Name:           ipa-server
 Version:        0.6.0
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base
@@ -67,6 +67,16 @@ rm %{buildroot}/%{plugin_dir}/libipa_pwd_extop.la
 rm %{buildroot}/%{plugin_dir}/libipa-memberof-plugin.la
 rm %{buildroot}/%{plugin_dir}/libipa-dna-plugin.la
 
+# Some user-modifiable HTML files are provided. Move these to /etc
+# and link back.
+mkdir -p %{buildroot}/%{_sysconfdir}/ipa/html
+mv %{buildroot}/%{_usr}/share/ipa/html/ssbrowser.html %{buildroot}/%{_sysconfdir}/ipa/html
+mv %{buildroot}/%{_usr}/share/ipa/html/unauthorized.html %{buildroot}/%{_sysconfdir}/ipa/html
+ln -s ../../../..%{_sysconfdir}/ipa/html/ssbrowser.html \
+    %{buildroot}%{_usr}/share/ipa/html/ssbrowser.html
+ln -s ../../../..%{_sysconfdir}/ipa/html/unauthorized.html \
+    %{buildroot}%{_usr}/share/ipa/html/unauthorized.html
+
 %clean
 rm -rf %{buildroot}
 
@@ -103,7 +113,23 @@ fi
 %attr(755,root,root) %{_initrddir}/ipa_webgui
 
 %dir %{_usr}/share/ipa
-%{_usr}/share/ipa/*
+%{_usr}/share/ipa/*.ldif
+%{_usr}/share/ipa/*.template
+%dir %{_usr}/share/ipa/html
+%{_usr}/share/ipa/html/ssbrowser.html
+%{_usr}/share/ipa/html/unauthorized.html
+%dir %{_sysconfdir}/ipa
+%dir %{_sysconfdir}/ipa/html
+%config(noreplace) %{_sysconfdir}/ipa/html/ssbrowser.html
+%config(noreplace) %{_sysconfdir}/ipa/html/unauthorized.html
+%{_usr}/share/ipa/ipa_webgui.cfg
+%{_usr}/share/ipa/ipa.conf
+%dir %{_usr}/share/ipa/ipagui
+%{_usr}/share/ipa/ipagui/*
+%dir %{_usr}/share/ipa/ipa_gui.egg-info
+%{_usr}/share/ipa/ipa_gui.egg-info/*
+%dir %{_usr}/share/ipa/ipaserver
+%dir %{_usr}/share/ipa/ipaserver/*
 
 %dir %{python_sitelib}/ipaserver
 %{python_sitelib}/ipaserver/*.py*
@@ -117,6 +143,10 @@ fi
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 
 %changelog
+* Tue Jan 29 2008 Rob Crittenden <rcritten@redhat.com> 0.6.0-5
+- Put user-modifiable files into /etc/ipa so they can be marked as
+  config(noreplace).
+
 * Thu Jan 24 2008 Rob Crittenden <rcritten@redhat.com> = 0.6.0-4
 - Use new name of pyasn1, python-pyasn1, in Requires
 
