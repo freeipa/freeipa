@@ -37,13 +37,16 @@ import errno
 aci_fields = ['*', 'aci']
 
 def usage():
-    print "ipa-moddelgation [-a|--attributes attr1,attr2,..,attrn] [-s|--source STRING] [-t|--target STRING] name"
+    print "ipa-moddelegation [-l|--list]"
+    print "ipa-moddelegation [-a|--attributes attr1,attr2,..,attrn] [-s|--source STRING] [-t|--target STRING] name"
     sys.exit(1)
 
 def parse_options():
     parser = OptionParser()
     parser.add_option("-a", "--attributes", dest="attributes",
                       help="The attributes the source group may change in the target group")
+    parser.add_option("-l", "--list", dest="list", action="store_true",
+                      help="List common attributes (this is not an exhaustive list)")
     parser.add_option("-s", "--source", dest="source",
                       help="The source group name")
     parser.add_option("-t", "--target", dest="target",
@@ -60,11 +63,18 @@ def main():
 
     options, args = parse_options()
 
+    if options.list:
+        client = ipaclient.IPAClient()
+        list = client.get_all_attrs()
+
+        for x in list:
+            print x
+        return 0
+
     if options.usage or len(args) != 2:
         usage()
 
     if not options.attributes and not options.source and not options.target:
-        print "Missing something"
         usage()
 
     try:

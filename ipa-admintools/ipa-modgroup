@@ -32,6 +32,7 @@ import ldap
 import errno
 
 def usage():
+    print "ipa-modgroup [-l|--list]"
     print "ipa-modgroup [-a|--add] [-r|--remove] user group"
     print "ipa-modgroup [-d|--desc description STRING] [--addattr attribute=value] [--delattr attribute] [--setattr attribute=value] group"
     sys.exit(1)
@@ -55,6 +56,8 @@ def parse_options():
     parser.add_option("--setattr", dest="setattr",
                       help="Set an attribute, dropping any existing values that may exist",
                       action="append")
+    parser.add_option("-l", "--list", dest="list", action="store_true",
+                      help="List common attributes (this is not an exhaustive list)")
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
@@ -62,7 +65,7 @@ def parse_options():
     options, args = parser.parse_args(args)
 
     if (not options.add and not options.remove) and (not options.desc and
-        not options.addattr and not options.delattr and not options.setattr):
+        not options.addattr and not options.delattr and not options.setattr and not options.list):
         usage()
 
     return options, args
@@ -88,6 +91,14 @@ def get_group(client, options, group_cn):
 def main():
     group=ipa.group.Group()
     options, args = parse_options()
+
+    if options.list:
+        client = ipaclient.IPAClient()
+        list = client.get_all_attrs()
+
+        for x in list:
+            print x
+        return 0
 
     if options.usage:
         usage()

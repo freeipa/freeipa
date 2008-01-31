@@ -34,7 +34,8 @@ import ldap
 import errno
 
 def usage():
-    print "ipa-adddelgation [-a|--attributes attr1,attr2,..,attrn] [-l|--list] [-s|--source STRING] [-t|--target STRING] name"
+    print "ipa-adddelegation [-l|--list]"
+    print "ipa-adddelegation [-a|--attributes attr1,attr2,..,attrn] [-s|--source STRING] [-t|--target STRING] name"
     sys.exit(1)
 
 def parse_options():

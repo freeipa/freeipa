@@ -32,6 +32,7 @@ import ldap
 import errno
 
 def usage():
+    print "ipa-moduser [--list]"
     print "ipa-moduser [-a|--activate] [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] [-s|--shell STRING] [--addattr attribute=value] [--delattr attribute] [--setattr attribute=value] user"
     sys.exit(1)
 
@@ -60,6 +61,8 @@ def parse_options():
     parser.add_option("--setattr", dest="setattr",
                       help="Set an attribute, dropping any existing values that may exist",
                       action="append")
+    parser.add_option("--list", dest="list", action="store_true",
+                      help="List common attributes (this is not an exhaustive list)")
     parser.add_option("-M", "--mailAddress", dest="mail",
                       help="Set user's e-mail address")
     parser.add_option("--usage", action="store_true",
@@ -85,6 +88,14 @@ def main():
     cont = False
 
     options, args = parse_options()
+
+    if options.list:
+        client = ipaclient.IPAClient()
+        list = client.get_all_attrs()
+
+        for x in list:
+            print x
+        return 0
 
     if options.usage or len(args) != 2:
         usage()
