@@ -117,7 +117,7 @@ class BindInstance(service.Service):
             self.stop()
 
         if not domain is None:
-            sysrestore.restore_file(os.path.join ("/var/named/", self.domain + ".zone.db"))
+            sysrestore.restore_file(os.path.join ("/var/named/", domain + ".zone.db"))
 
         sysrestore.restore_file('/etc/named.conf')
         sysrestore.restore_file('/etc/resolve.conf')
