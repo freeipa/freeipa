@@ -518,9 +518,14 @@ class UserController(IPAController):
         #
         try:
             if password_change:
-                rv = client.modifyPassword(kw['krbprincipalname'], "", kw.get('userpassword'))
+                rv = client.modifyPassword(orig_user_dict['krbprincipalname'], "", kw.get('userpassword'))
         except ipaerror.IPAError, e:
             turbogears.flash("User password change failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            return dict(form=user_edit_form, user=kw,
+                        user_groups=user_groups_dicts,
+                        tg_template='ipagui.templates.useredit')
+        except Exception, e:
+            turbogears.flash("User password change failed: " + str(e))
             return dict(form=user_edit_form, user=kw,
                         user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')
