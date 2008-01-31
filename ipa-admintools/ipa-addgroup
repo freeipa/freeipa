@@ -68,7 +68,7 @@ def main():
                 cont = True
     else:
         cn = args[1]
-        if (ipavalidate.ipastsring(cn, notEmpty=True)):
+        if (ipavalidate.String(cn, notEmpty=True)):
             print "Please enter a value"
             return 1
 
