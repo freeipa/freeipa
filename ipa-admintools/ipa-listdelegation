@@ -50,6 +50,9 @@ def main():
 
     options, args = parse_options()
 
+    if options.usage:
+        usage()
+
     client = ipaclient.IPAClient()
     try:
         aci_entry = client.get_aci_entry(aci_fields)

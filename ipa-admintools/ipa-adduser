@@ -34,7 +34,7 @@ import getpass
 import errno
 
 def usage():
-    print "ipa-adduser [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] user"
+    print "ipa-adduser [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] [-s|--shell] [-g|--groups] [-k|krb-principal [-M|mailAddress] user"
     sys.exit(1)
 
 def parse_options():
@@ -85,6 +85,9 @@ def main():
 
     user=ipa.user.User()
     options, args = parse_options()
+
+    if options.usage:
+        usage()
 
     if len(args) != 2:
         all_interactive = True

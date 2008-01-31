@@ -89,6 +89,8 @@ def main():
     group=ipa.group.Group()
     options, args = parse_options()
 
+    if options.usage:
+        usage()
     if (options.add or options.remove) and (len(args) != 3):
         usage()
     elif ((options.desc or options.addattr or options.delattr or options.setattr) and (len(args) != 2)):

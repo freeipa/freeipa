@@ -51,8 +51,7 @@ def main():
 
     options, args = parse_options()
 
-    if len(args) != 2:
-        print "args is %s" % len(args)
+    if options.usage or len(args) != 2:
         usage()
 
     client = ipaclient.IPAClient()

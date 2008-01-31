@@ -61,8 +61,12 @@ def main():
     username = None
     principal = None
 
-    krbctx = krbV.default_context()
     options, args = parse_options()
+
+    if options.usage:
+        usage()
+
+    krbctx = krbV.default_context()
 
     if len(args) == 2:
         username = args[1]

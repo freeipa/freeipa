@@ -86,7 +86,7 @@ def main():
 
     options, args = parse_options()
 
-    if len(args) != 2:
+    if options.usage or len(args) != 2:
         usage()
 
     username = args[1]
