@@ -1,6 +1,6 @@
 Name:           ipa-server
 Version:        0.6.0
-Release:        5%{?dist}
+Release:        6%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base
@@ -85,6 +85,10 @@ if [ $1 = 1 ]; then
     /sbin/chkconfig --add ipa_kpasswd
     /sbin/chkconfig --add ipa_webgui
 fi
+/bin/touch /var/log/ipa_error.log
+/bin/chown apache /var/log/ipa_error.log
+/bin/chmod 600 /var/log/ipa_error.log
+
 
 %preun
 if [ $1 = 0 ]; then
@@ -143,6 +147,9 @@ fi
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 
 %changelog
+* Thu Jan 31 2008 Rob Crittenden <rcritten@redhat.com> 0.6.0-6
+- Ensure that the ipa_webgui error log exists and has correct permissions.
+
 * Tue Jan 29 2008 Rob Crittenden <rcritten@redhat.com> 0.6.0-5
 - Put user-modifiable files into /etc/ipa so they can be marked as
   config(noreplace).
