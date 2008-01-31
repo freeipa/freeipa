@@ -1,10 +1,10 @@
 Name:           ipa-radius-admintools
 Version:        0.6.0
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        IPA authentication server - radius admin tools
 
 Group:          System Environment/Base
-License:        GPLv2+
+License:        GPLv2
 URL:            http://www.freeipa.org
 Source0:        %{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -34,7 +34,10 @@ rm -rf %{buildroot}
 %{_sbindir}/ipa*
 
 %changelog
-* Thu Jan 17 2008 Rob Crittenden <rcritten@redhat.com> = 0.6.0-2
+* Thu Jan 31 2008 Rob Crittenden <rcritten@redhat.com> - 0.6.0-3
+- Marked with wrong license. IPA is GPLv2.
+
+* Thu Jan 17 2008 Rob Crittenden <rcritten@redhat.com> - 0.6.0-2
 - Fixed License in specfile
 
 * Fri Dec 21 2007 Karl MacMillan <kmacmill@redhat.com> - 0.6.0-1

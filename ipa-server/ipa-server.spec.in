@@ -1,10 +1,10 @@
 Name:           ipa-server
 Version:        VERSION
-Release:        6%{?dist}
+Release:        7%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base
-License:        GPLv2+
+License:        GPLv2
 URL:            http://www.freeipa.org
 Source0:        %{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -147,10 +147,13 @@ fi
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 
 %changelog
-* Thu Jan 31 2008 Rob Crittenden <rcritten@redhat.com> 0.6.0-6
+* Thu Jan 31 2008 Rob Crittenden <rcritten@redhat.com> = 0.6.0-7
+- Marked with wrong license. IPA is GPLv2.
+
+* Thu Jan 31 2008 Rob Crittenden <rcritten@redhat.com> = 0.6.0-6
 - Ensure that the ipa_webgui error log exists and has correct permissions.
 
-* Tue Jan 29 2008 Rob Crittenden <rcritten@redhat.com> 0.6.0-5
+* Tue Jan 29 2008 Rob Crittenden <rcritten@redhat.com> = 0.6.0-5
 - Put user-modifiable files into /etc/ipa so they can be marked as
   config(noreplace).
 
