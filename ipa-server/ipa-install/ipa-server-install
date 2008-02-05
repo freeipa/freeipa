@@ -496,7 +496,7 @@ def main():
     print "\t\t  * 88, 464: kerberos"
     print "\t\t  * 123: ntp"
     print ""
-    print "\t2. You can now obtain a kerberos ticket using the command: 'kinit admin'."
+    print "\t2. You can now obtain a kerberos ticket using the command: 'kinit admin'"
     print "\t   This ticket will allow you to use the IPA tools (e.g., ipa-adduser)"
     print "\t   and the web user interface."
 
@@ -504,7 +504,8 @@ def main():
         print "\t3. Kerberos requires time synchronization between clients"
         print "\t   and servers for correct operation. You should consider enabling ntpd."
 
-
+    print ""
+    print "Be sure to back up the CA certificate stored in " + ipaserver.dsinstance.config_dirname(ds.serverid) + "cacert.p12"
 
     return 0
 

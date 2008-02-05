@@ -20,13 +20,13 @@
 
 import sys
 
-import tempfile, os, pwd, traceback, logging
+import tempfile, os, pwd, traceback, logging, shutil
 from ConfigParser import SafeConfigParser
 
 from ipa import ipautil
 
 from ipaserver import dsinstance, replication, installutils, krbinstance, service
-from ipaserver import httpinstance, webguiinstance, ntpinstance, certs
+from ipaserver import httpinstance, ntpinstance, certs
 
 class ReplicaConfig:
     def __init__(self):
@@ -93,13 +93,12 @@ def install_ds(config):
     # that. Otherwise the ds setup will create the CA
     # cert
     pkcs12_info = None
-    if ipautil.file_exists(config.dir + "/cacert.p12"):
-        pkcs12_info = (config.dir + "/cacert.p12",
+    if ipautil.file_exists(config.dir + "/dscert.p12"):
+        pkcs12_info = (config.dir + "/dscert.p12",
                        config.dir + "/pwdfile.txt")
 
     ds = dsinstance.DsInstance()
-    ds.create_instance(config.ds_user, config.realm_name, config.host_name, config.dirman_password,
-                       pkcs12_info)
+    ds.create_instance(config.ds_user, config.realm_name, config.host_name, config.dirman_password, pkcs12_info)
 
 def install_krb(config):
     krb = krbinstance.KrbInstance()
@@ -108,8 +107,25 @@ def install_krb(config):
                        config.dirman_password, ldappwd_filename)
 
 def install_http(config):
+    # if we have a pkcs12 file, create the cert db from
+    # that. Otherwise the ds setup will create the CA
+    # cert
+    pkcs12_info = None
+    if ipautil.file_exists(config.dir + "/httpcert.p12"):
+        pkcs12_info = (config.dir + "/httpcert.p12",
+                       config.dir + "/pwdfile.txt")
+
     http = httpinstance.HTTPInstance()
-    http.create_instance(config.realm_name, config.host_name)
+    http.create_instance(config.realm_name, config.host_name, False, pkcs12_info)
+
+    # Now copy the autoconfiguration files
+    try:
+        shutil.copy(config.dir + "/preferences.html", "/usr/share/ipa/html/preferences.html")
+        shutil.copy(config.dir + "/configure.jar", "/usr/share/ipa/html/configure.jar")
+        shutil.copy(config.dir + "/ca.crt", "/usr/share/ipa/html/ca.crt")
+    except Exception, e:
+        print "error copying files: " + str(e)
+        sys.exit(1)
 
 def main():
     options, filename = parse_options()
@@ -137,18 +153,20 @@ def main():
     install_http(config)
     
     # Create a Web Gui instance
-    webgui = webguiinstance.WebGuiInstance()
+    webgui = httpinstance.WebGuiInstance()
     webgui.create_instance()
 
     # Configure ntpd
     ntp = ntpinstance.NTPInstance()
     ntp.create_instance()
 
-
     service.restart("dirsrv")
     service.restart("krb5kdc")
     
 try:
+    if not os.geteuid()==0:
+        sys.exit("\nYou must be root to run this script.\n")
+
     main()
 except Exception, e:
     print "creation of replica failed: %s" % str(e)
@@ -157,4 +175,3 @@ except Exception, e:
         message = message + "\n" + str
     logging.debug(message)
     sys.exit(1)    
-    

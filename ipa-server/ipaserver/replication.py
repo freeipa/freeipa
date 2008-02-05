@@ -279,7 +279,7 @@ class ReplicationManager:
         return haserror
 
     def start_replication(self, other_conn):
-        print "starting replication"
+        print "Starting replication, please wait until this has completed."
         cn, dn = self.agreement_dn(self.conn)
 
         mod = [(ldap.MOD_ADD, 'nsds5BeginReplicaRefresh', 'start')]

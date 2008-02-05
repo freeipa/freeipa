@@ -21,11 +21,29 @@
 import sys
 
 import logging, tempfile, shutil, os, pwd
+import traceback
 from ConfigParser import SafeConfigParser
 import krbV
+from optparse import OptionParser
 
+import ipa.config
 from ipa import ipautil
 from ipaserver import dsinstance, installutils, certs
+
+def usage():
+    print "ipa-replica-prepate FQDN (e.g. replica.example.com)"
+    sys.exit(1)
+
+def parse_options():
+    parser = OptionParser()
+
+    args = ipa.config.init_config(sys.argv)
+    options, args = parser.parse_args(args)
+
+    if len(args) != 2:
+        parser.error("must provide the fully-qualified name of the replica")
+
+    return options, args
 
 def get_host_name():
     hostname = installutils.get_fqdn()
@@ -42,22 +60,31 @@ def get_realm_name():
     return c.default_realm
 
 def check_ipa_configuration(realm_name):
-    config_dir = dsinstance.config_dirname(realm_name)
+    config_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name))
     if not ipautil.dir_exists(config_dir):
         logging.error("could not find directory instance: %s" % config_dir)
         sys.exit(1)
 
-def export_certdb(ds_dir, dir):
-    ds_cdb = certs.CertDB(ds_dir)
-    
-    pkcs12_fname = dir + "/cacert.p12"
+def export_certdb(realm_name, ds_dir, dir, fname, subject):
+    """realm is the kerberos realm for the IPA server.
+       ds_dir is the location of the master DS we are creating a replica for.
+       dir is the location of the files for the replica we are creating.
+       fname is the filename of the PKCS#12 file for this cert (minus the .p12).
+       subject is the subject of the certificate we are creating
+    """
+    ds_ca = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name)))
+    ca = certs.CertDB(dir)
+    ca.create_from_cacert(ds_ca.cacert_fname)
+    ca.create_server_cert("Server-Cert", subject, ds_ca)
+
+    pkcs12_fname = dir + "/" + fname + ".p12"
     passwd_fname = dir + "/pwdfile.txt"
     fd = open(passwd_fname, "w")
     fd.write("\n")
     fd.close()
 
     try:
-        ds_cdb.export_pkcs12(pkcs12_fname, passwd_fname)
+        ca.export_pkcs12(pkcs12_fname, passwd_fname, "Server-Cert")
     except ipautil.CalledProcessError, e:
         print "error exporting CA certificate: " + str(e)
         try:
@@ -66,6 +93,9 @@ def export_certdb(ds_dir, dir):
         except:
             pass
 
+    os.unlink(dir + "/cert8.db")
+    os.unlink(dir + "/key3.db")
+    os.unlink(dir + "/secmod.db")
 
 def get_ds_user(ds_dir):
     uid = os.stat(ds_dir).st_uid
@@ -83,31 +113,60 @@ def save_config(dir, realm_name, host_name, ds_user):
     config.write(fd)
 
 def copy_files(realm_name, dir):
-    shutil.copy("/var/kerberos/krb5kdc/ldappwd", dir + "/ldappwd") 
+    config_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name))
+    try:
+        shutil.copy("/var/kerberos/krb5kdc/ldappwd", dir + "/ldappwd") 
+        shutil.copy("/usr/share/ipa/html/preferences.html", dir + "/preferences.html")
+        shutil.copy("/usr/share/ipa/html/configure.jar", dir + "/configure.jar")
+        shutil.copy(config_dir + "/cacert.asc", dir + "/ca.crt")
+    except Exception, e:
+        print "error copying files: " + str(e)
+        sys.exit(1)
 
 def main():
+    options, args = parse_options()
+
+    replica_fqdn = args[1]
+
     realm_name = get_realm_name()
+    check_ipa_configuration(realm_name)
+
     host_name = get_host_name()
     ds_dir = dsinstance.config_dirname(realm_name)
     ds_user = get_ds_user(ds_dir)
 
-    check_ipa_configuration(realm_name)
+    print "Preparing replica for %s from %s" % (replica_fqdn, host_name)
 
     top_dir = tempfile.mkdtemp("ipa")
     dir = top_dir + "/realm_info"
     os.mkdir(dir, 0700)
 
-    export_certdb(ds_dir, dir)
+    print "Creating SSL certificate for the Directory Server"
+    export_certdb(realm_name, ds_dir, dir, "dscert", "cn=%s,ou=Fedora Directory Server" % replica_fqdn)
+    print "Creating SSL certificate for the Web Server"
+    export_certdb(realm_name, ds_dir, dir, "httpcert", "cn=%s,ou=Apache Web Server" % replica_fqdn)
+    print "Copying additional files"
     copy_files(realm_name, dir)
+    print "Finalizing configuration"
     save_config(dir, realm_name, host_name, ds_user)
 
+    print "Packaging the replica into %s" % "replica-info-" + realm_name
     ipautil.run(["/bin/tar", "cfz", "replica-info-" + realm_name, "-C", top_dir, "realm_info"])
 
     shutil.rmtree(dir)
 
-main()    
-    
+try:
+    if not os.geteuid()==0:
+        sys.exit("\nYou must be root to run this script.\n")
+    if not ipautil.file_exists("/usr/share/ipa/serial"):
+        sys.exist("The replica must be created on the primary IPA server.")
 
-
-    
-    
+    main()
+except Exception, e:
+    print "preparation of replica failed: %s" % str(e)
+    message = str(e)
+    for str in traceback.format_tb(sys.exc_info()[2]):
+        message = message + "\n" + str
+    logging.debug(message)
+    print message
+    sys.exit(1)

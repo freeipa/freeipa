@@ -257,10 +257,9 @@ class DsInstance(service.Service):
         ca = certs.CertDB(dirname)
         if self.pkcs12_info:
             ca.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1])
-            ca.cur_serial = 2100
         else:
             ca.create_self_signed()
-        ca.create_server_cert("Server-Cert", "cn=%s,ou=Fedora Directory Server" % self.host_name)
+            ca.create_server_cert("Server-Cert", "cn=%s,ou=Fedora Directory Server" % self.host_name)
 
         conn = ipaldap.IPAdmin("127.0.0.1")
         conn.simple_bind_s("cn=directory manager", self.dm_password)

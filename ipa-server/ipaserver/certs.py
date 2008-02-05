@@ -19,6 +19,7 @@
 
 import os, stat, subprocess, re
 import sha
+import errno
 
 from ipa import ipautil
 
@@ -42,7 +43,7 @@ class CertDB(object):
         # responsibility of the caller for now. In the
         # future we might automatically determine this
         # for a given db.
-        self.cur_serial = 1000
+        self.cur_serial = -1
 
         self.cacert_name = "CA certificate"
         self.valid_months = "120"
@@ -57,10 +58,40 @@ class CertDB(object):
         self.uid = mode[stat.ST_UID]
         self.gid = mode[stat.ST_GID]
     
+    def set_serial_from_pkcs12(self):
+        """A CA cert was loaded from a PKCS#12 file. Set up our serial file"""
+
+        self.cur_serial = self.find_cacert_serial()
+        try:
+            f=open("/usr/share/ipa/serial","w")
+            f.write(str(self.cur_serial))
+            f.close()
+        except IOError, e:
+            raise RuntimeError("Unable to increment serial number: %s" % str(e))
+
     def next_serial(self):
-        r = self.cur_serial
-        self.cur_serial += 1
-        return str(r)
+        try:
+            f=open("/usr/share/ipa/serial","r")
+            r = f.readline()
+            self.cur_serial = int(r) + 1
+            f.close()
+        except IOError, e:
+            if e.errno == errno.ENOENT:
+                self.cur_serial = 1000
+                f=open("/usr/share/ipa/serial","w")
+                f.write(str(self.cur_serial))
+                f.close()
+            else:
+                raise RuntimeError("Unable to determine serial number: %s" % str(e))
+
+        try:
+            f=open("/usr/share/ipa/serial","w")
+            f.write(str(self.cur_serial))
+            f.close()
+        except IOError, e:
+            raise RuntimeError("Unable to increment serial number: %s" % str(e))
+
+        return str(self.cur_serial)
 
     def set_perms(self, fname, write=False):
         os.chown(fname, self.uid, self.gid)
@@ -75,7 +106,7 @@ class CertDB(object):
     def run_certutil(self, args, stdin=None):
         new_args = ["/usr/bin/certutil", "-d", self.secdir]
         new_args = new_args + args
-        ipautil.run(new_args, stdin)
+        return ipautil.run(new_args, stdin)
 
     def run_signtool(self, args, stdin=None):
         new_args = ["/usr/bin/signtool", "-d", self.secdir]
@@ -139,6 +170,16 @@ class CertDB(object):
                            "-t", "CT,,C",
                            "-a",
                            "-i", cacert_fname])
+
+    def find_cacert_serial(self):
+        (out,err) = self.run_certutil(["-L", "-n", self.cacert_name])
+        data = out.split('\n')
+        for line in data:
+            x = re.match(r'\s+Serial Number: (\d+) .*', line)
+            if x is not None:
+                return x.group(1)
+
+        raise RuntimeError("Unable to find serial number")
         
     def create_server_cert(self, nickname, name, other_certdb=None):
         cdb = other_certdb
@@ -330,5 +371,3 @@ class CertDB(object):
         sysrestore.backup_file(self.pin_fname)
         sysrestore.backup_file(self.certreq_fname)
         sysrestore.backup_file(self.certder_fname)
-
-        

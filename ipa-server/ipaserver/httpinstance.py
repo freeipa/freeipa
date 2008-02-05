@@ -55,10 +55,11 @@ class HTTPInstance(service.Service):
     def __init__(self):
         service.Service.__init__(self, "httpd")
 
-    def create_instance(self, realm, fqdn):
+    def create_instance(self, realm, fqdn, autoconfig=True, pkcs12_info=None):
         self.fqdn = fqdn
         self.realm = realm
         self.domain = fqdn[fqdn.find(".")+1:]
+        self.pkcs12_info = pkcs12_info
         self.sub_dict = { "REALM" : realm, "FQDN": fqdn, "DOMAIN" : self.domain }
         
         self.step("disabling mod_ssl in httpd", self.__disable_mod_ssl)
@@ -66,7 +67,8 @@ class HTTPInstance(service.Service):
         self.step("configuring httpd", self.__configure_http)
         self.step("creating a keytab for httpd", self.__create_http_keytab)
         self.step("Setting up ssl", self.__setup_ssl)
-        self.step("Setting up browser autoconfig", self.__setup_autoconfig)
+        if autoconfig:
+            self.step("Setting up browser autoconfig", self.__setup_autoconfig)
         self.step("configuring SELinux for httpd", self.__selinux_config)
         self.step("restarting httpd", self.__start)
         self.step("configuring httpd to start on boot", self.__enable)
@@ -136,10 +138,12 @@ class HTTPInstance(service.Service):
     def __setup_ssl(self):
         ds_ca = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(self.realm)))
         ca = certs.CertDB(NSS_DIR)
-        ds_ca.cur_serial = 2000
-        ca.create_from_cacert(ds_ca.cacert_fname)
-        ca.create_server_cert("Server-Cert", "cn=%s,ou=Apache Web Server" % self.fqdn, ds_ca)
-        ca.create_signing_cert("Signing-Cert", "cn=%s,ou=Signing Certificate,o=Identity Policy Audit" % self.fqdn, ds_ca)
+        if self.pkcs12_info:
+            ca.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1], passwd=False)
+        else:
+            ca.create_from_cacert(ds_ca.cacert_fname)
+            ca.create_server_cert("Server-Cert", "cn=%s,ou=Apache Web Server" % self.fqdn, ds_ca)
+            ca.create_signing_cert("Signing-Cert", "cn=%s,ou=Signing Certificate,o=Identity Policy Audit" % self.fqdn, ds_ca)
 
     def __setup_autoconfig(self):
         prefs_txt = ipautil.template_file(ipautil.SHARE_DIR + "preferences.html.template", self.sub_dict)
