@@ -159,6 +159,7 @@ def main():
             {'name':'empty', 'type':'empty'},
             {'name':'nss_base_passwd', 'type':'option', 'value':ds.getBaseDN()+'?sub'},
             {'name':'nss_base_group', 'type':'option', 'value':ds.getBaseDN()+'?sub'},
+            {'name':'nss_map_attribute', 'type':'option', 'value':'uniqueMember member'},
             {'name':'base', 'type':'option', 'value':ds.getBaseDN()},
             {'name':'ldap_version', 'type':'option', 'value':'3'}]
     if not dnsok or options.force:
