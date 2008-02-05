@@ -511,6 +511,7 @@ def main():
 
 try:
     main()
+    return 0
 except Exception, e:
     message = "Unexpected error - see ipaserver-install.log for details:\n %s" % str(e)
     print message
@@ -518,3 +519,4 @@ except Exception, e:
     for str in traceback.format_tb(sys.exc_info()[2]):
         message = message + "\n" + str
     logging.debug(message)
+    return 1
