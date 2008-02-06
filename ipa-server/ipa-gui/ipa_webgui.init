@@ -30,7 +30,7 @@ RUNAS="apache"
 
 start() {
 	echo -n $"Starting $NAME: "
-	daemon --user $RUNAS $PROG
+	daemon $PROG
 	RETVAL=$?
 	echo
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/ipa_webgui || \

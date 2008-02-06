@@ -1110,7 +1110,7 @@ int main(int argc, char *argv[])
 	/* do not keep any fs busy */
 	ret = chdir("/");
 	if (ret == -1) {
-		syslog(LOG_ERR, "Unable to chage dir to '/'");
+		syslog(LOG_ERR, "Unable to change dir to '/'");
 		exit(-1);
 	}
 
@@ -1126,8 +1126,8 @@ int main(int argc, char *argv[])
 
 	/* new session */
 	setsid();
-	/* close std* descriptors */
 
+	/* close std* descriptors */
 	close(0);
 	close(1);
 	close(2);
@@ -1142,7 +1142,7 @@ int main(int argc, char *argv[])
 		exit(0);
 	}
 
-	/* source evn vars */
+	/* source env vars */
 	env = getenv("KRB5_KTNAME");
 	if (!env) {
 		env = DEFAULT_KEYTAB;
@@ -1165,6 +1165,16 @@ int main(int argc, char *argv[])
 	if (ret) {
 		syslog(LOG_ERR, "getaddrinfo failed: %s", gai_strerror(ret));
 		exit(1);
+	}
+
+	/* Write out the pid file after the sigterm handler */
+	FILE *f = fopen("/var/run/ipa_kpasswd.pid", "w");
+	if (f == NULL) {
+		syslog(LOG_ERR,"Couldn't create pid file /var/run/ipa_kpasswd.pid: %s", strerror(errno));
+		exit(1);
+	} else {
+		fprintf(f, "%ld\n", (long) getpid());
+		fclose(f);
 	}
 
 	tai = ai;

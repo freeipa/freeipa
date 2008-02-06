@@ -17,7 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import os, sys
+import os, sys, pwd, grp
 from optparse import OptionParser
 import ipa.config
 import traceback
@@ -118,6 +118,27 @@ def main():
         except Exception, e:
             sys.stderr.write("error becoming daemon: " + str(e))
             sys.exit(1)
+
+    # Drop privileges and write our pid file only if we're running as root
+    if os.getuid() == 0:
+        # Write out our pid file
+        pidfile = open("/var/run/ipa_webgui.pid", "w")
+        pidfile.write(str(os.getpid()))
+        pidfile.close()
+
+        # Drop privs
+        apache_uid = pwd.getpwnam("apache")[2]
+        apache_gid = grp.getgrnam("apache")[2]
+
+        try:
+            os.setgid(apache_gid)
+        except OSError, e:
+            log.error("Could not set effective group id: %s" % e)
+
+        try:
+            os.setuid(apache_uid)
+        except OSError, e:
+            log.error("Could not set effective user id: %s" % e)
 
     sys.path.append("/usr/share/ipa")
 
