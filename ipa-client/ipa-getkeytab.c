@@ -1,4 +1,4 @@
-/* Authors: Simo Sorce <ssorce@redhat.com> 
+/* Authors: Simo Sorce <ssorce@redhat.com>
  *
  * Copyright (C) 2007  Red Hat
  * see file 'COPYING' for use and warranty information
@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */ 
+ */
 
 #define _GNU_SOURCE
 
@@ -67,6 +67,58 @@ static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *s
 #define KEYTAB_SET_OID "2.16.840.1.113730.3.8.3.1"
 #define KEYTAB_RET_OID "2.16.840.1.113730.3.8.3.2"
 
+/* returns 0 if no enctypes available, >0 if enctypes are available */
+static int get_enctypes(krb5_context krbctx, const char *str,
+			krb5_enctype **ktypes)
+{
+	krb5_error_code krberr;
+	krb5_enctype *types;
+	char *p, *tmp, *t;
+	int n, i, j;
+
+	if (str == NULL) {
+		krberr = krb5_get_permitted_enctypes(krbctx, ktypes);
+		if (krberr) {
+			fprintf(stderr, "No system preferred enctypes ?!\n");
+			return 0;
+		}
+		return 1;
+	}
+
+	t = tmp = strdup(str);
+	if (!tmp) return 0;
+
+	/* count */
+	p = t;
+	while (p = strchr(t, ',')) {
+		t = p+1;
+		n++;
+	}
+	n++; /* count the last one that is 0 terminated instead */
+
+	types = calloc(sizeof(krb5_enctype), n+1);
+	if (!types) return 0;
+
+	for (i = 0, j = 0, t = tmp; i < n; i++) {
+		p = strchr(t, ',');
+		if (p ) *p = '\0';
+		krberr = krb5_string_to_enctype(t, &types[j]);
+		if (krberr != 0) {
+			fprintf(stderr,
+				"Warning unrecognized encryption type: [%s]\n",
+				t);
+		} else {
+			j++;
+		}
+		t = p+1;
+	}
+
+	free(tmp);
+	*ktypes = types;
+
+	return j;
+}
+
 static void free_keys(krb5_context krbctx, krb5_keyblock *keys, int num_keys)
 {
 	int i;
@@ -77,30 +129,22 @@ static void free_keys(krb5_context krbctx, krb5_keyblock *keys, int num_keys)
 	free(keys);
 }
 
-static int create_keys(krb5_context krbctx, krb5_keyblock **keys)
+static int create_keys(krb5_context krbctx, krb5_enctype *ktypes,
+			krb5_keyblock **keys)
 {
 	krb5_error_code krberr;
-	krb5_enctype *ktypes;
 	krb5_keyblock *key;
 	int i, j, k, max_keys;
-
-	krberr = krb5_get_permitted_enctypes(krbctx, &ktypes);
-	if (krberr) {
-		fprintf(stderr, "No preferred enctypes ?!\n");
-		return 0;
-	}
 
 	for (i = 0; ktypes[i]; i++) /* count max encodings */ ;
 	max_keys = i;
 	if (!max_keys) {
-		krb5_free_ktypes(krbctx, ktypes);
-		fprintf(stderr, "No preferred enctypes ?!\n");
+		fprintf(stderr, "No enctypes available\n");
 		return 0;
 	}
 
 	key = calloc(max_keys, sizeof(krb5_keyblock));
 	if (!key) {
-		krb5_free_ktypes(krbctx, ktypes);
 		fprintf(stderr, "Out of Memory!\n");
 		return 0;
 	}
@@ -118,7 +162,6 @@ static int create_keys(krb5_context krbctx, krb5_keyblock **keys)
 			krberr = krb5_c_enctype_compare(krbctx, ktypes[i],
 							ktypes[j], &similar);
 			if (krberr) {
-				krb5_free_ktypes(krbctx, ktypes);
 				free_keys(krbctx, key, i);
 				fprintf(stderr, "Enctype comparison failed!\n");
 				return 0;
@@ -129,15 +172,12 @@ static int create_keys(krb5_context krbctx, krb5_keyblock **keys)
 
 		krberr = krb5_c_make_random_key(krbctx, ktypes[i], &key[k]);
 		if (krberr) {
-			krb5_free_ktypes(krbctx, ktypes);
 			free_keys(krbctx, key, k);
 			fprintf(stderr, "Making random key failed!\n");
 			return 0;
 		}
 		k++;
 	}
-
-	krb5_free_ktypes(krbctx, ktypes);
 
 	*keys = key;
 	return k;
@@ -300,7 +340,7 @@ static int ldap_set_keytab(const char *servername,
 	/* find base dn */
 	/* TODO: address the case where we have multiple naming contexts */
 	tv.tv_sec = 10;
-	tv.tv_usec = 0; 
+	tv.tv_usec = 0;
 
 	/* perform password change */
 	ret = ldap_extended_operation(ld,
@@ -313,9 +353,10 @@ static int ldap_set_keytab(const char *servername,
 	}
 
 	ber_bvfree(control);
+	control = NULL;
 
 	tv.tv_sec = 10;
-	tv.tv_usec = 0; 
+	tv.tv_usec = 0;
 
 	ret = ldap_result(ld, msgid, 1, &tv, &res);
 	if (ret == -1) {
@@ -328,7 +369,7 @@ static int ldap_set_keytab(const char *servername,
 		fprintf(stderr, "Operation failed! %s\n", ldap_err2string(ret));
 		goto error_out;
 	}
-	
+
 	ret = ldap_parse_result(ld, res, &rc, NULL, &err, NULL, &srvctrl, 0);
         if(ret != LDAP_SUCCESS || rc != LDAP_SUCCESS) {
 		fprintf(stderr, "Operation failed! %s\n", err?err:ldap_err2string(ret));
@@ -379,7 +420,7 @@ static int ldap_set_keytab(const char *servername,
 	for (i = 0; i < num_keys; i++) {
 		ret = ber_scanf(sctrl, "{i}", &encs[i]);
 		if (ret == LBER_ERROR) break;
-	} 
+	}
 	*enctypes = encs;
 
 	if (err) ldap_memfree(err);
@@ -407,10 +448,12 @@ int main(int argc, char *argv[])
 	static const char *server = NULL;
 	static const char *principal = NULL;
 	static const char *keytab = NULL;
+	static const char *enctypes_string = NULL;
         struct poptOption options[] = {
                 { "server", 's', POPT_ARG_STRING, &server, 0, "Contact this specific KDC Server", "Server Name" },
                 { "principal", 'p', POPT_ARG_STRING, &principal, 0, "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)", "Kerberos Service Principal Name" },
                 { "keytab", 'k', POPT_ARG_STRING, &keytab, 0, "File were to store the keytab information", "Keytab File Name" },
+		{ "enctypes", 'e', POPT_ARG_STRING, &enctypes_string, 0, "Encryption types to request", "Comma separated encription types list" },
 		{ NULL, 0, POPT_ARG_NONE, NULL, 0, NULL, NULL }
 	};
 	poptContext pc;
@@ -423,6 +466,7 @@ int main(int argc, char *argv[])
 	krb5_keyblock *keys = NULL;
 	int num_keys = 0;
 	ber_int_t *enctypes;
+	krb5_enctype *ktypes;
 	krb5_keytab kt;
 	int kvno;
 	int i, ret;
@@ -453,13 +497,15 @@ int main(int argc, char *argv[])
 
 	krberr = krb5_cc_default(krbctx, &ccache);
 	if (krberr) {
-		fprintf(stderr, "Kerberos Credential Cache not found\nDo you have a Kerberos Ticket?\n");
+		fprintf(stderr, "Kerberos Credential Cache not found\n"
+				"Do you have a Kerberos Ticket?\n");
 		exit(5);
 	}
-	
+
 	krberr = krb5_cc_get_principal(krbctx, ccache, &uprinc);
 	if (krberr) {
-		fprintf(stderr, "Kerberos User Principal not found\nDo you have a valid Credential Cache?\n");
+		fprintf(stderr, "Kerberos User Principal not found\n"
+				"Do you have a valid Credential Cache?\n");
 		exit(6);
 	}
 
@@ -470,11 +516,16 @@ int main(int argc, char *argv[])
 	}
 
 	/* create key material */
-	num_keys = create_keys(krbctx, &keys);
+	ret = get_enctypes(krbctx, enctypes_string, &ktypes);
+	if (ret == 0) {
+		exit(8);
+	}
+	num_keys = create_keys(krbctx, ktypes, &keys);
 	if (!num_keys) {
 		fprintf(stderr, "Failed to create random key material\n");
 		exit(8);
 	}
+	krb5_free_ktypes(krbctx, ktypes);
 
 	kvno = ldap_set_keytab(server, principal, uprinc, keys, num_keys, &enctypes);
 	if (!kvno) {
