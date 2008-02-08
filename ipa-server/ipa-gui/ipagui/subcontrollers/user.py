@@ -107,6 +107,38 @@ class UserController(IPAController):
             user_new_form.validator.add_field(s['field'], validator)
             user_edit_form.validator.add_field(s['field'], validator)
 
+    def initialize_mv_fields(self, user_dict):
+        """We use a separate attribute to store multi-values while on
+           the edit page. It is important that this be at least []. If
+           it is None it will cause an error to be thrown."""
+
+        # Load potential multi-valued fields
+        if isinstance(user_dict['cn'], str):
+            user_dict['cn'] = [user_dict['cn']]
+        user_dict['cns'] = ipahelper.setup_mv_fields(user_dict['cn'], 'cn')
+
+        if isinstance(user_dict.get('telephonenumber',''), str):
+            user_dict['telephonenumber'] = [user_dict.get('telephonenumber')]
+        user_dict['telephonenumbers'] = ipahelper.setup_mv_fields(user_dict.get('telephonenumber'), 'telephonenumber')
+
+        if isinstance(user_dict.get('facsimiletelephonenumber',''), str):
+            user_dict['facsimiletelephonenumber'] = [user_dict.get('facsimiletelephonenumber')]
+        user_dict['facsimiletelephonenumbers'] = ipahelper.setup_mv_fields(user_dict.get('facsimiletelephonenumber'), 'facsimiletelephonenumber')
+
+        if isinstance(user_dict.get('mobile',''), str):
+            user_dict['mobile'] = [user_dict.get('mobile')]
+        user_dict['mobiles'] = ipahelper.setup_mv_fields(user_dict.get('mobile'), 'mobile')
+
+        if isinstance(user_dict.get('pager',''), str):
+            user_dict['pager'] = [user_dict.get('pager')]
+        user_dict['pagers'] = ipahelper.setup_mv_fields(user_dict.get('pager'), 'pager')
+
+        if isinstance(user_dict.get('homephone',''), str):
+            user_dict['homephone'] = [user_dict.get('homephone')]
+        user_dict['homephones'] = ipahelper.setup_mv_fields(user_dict.get('homephone'), 'homephone')
+
+        return user_dict
+
     @expose()
     def index(self):
         raise turbogears.redirect("/user/list")
@@ -249,6 +281,7 @@ class UserController(IPAController):
         failed_adds = []
         try:
             dnadds = kw.get('dnadd')
+            cherrypy.session['uid'] = user_dict.get('uid')
             if dnadds != None:
                 if not(isinstance(dnadds,list) or isinstance(dnadds,tuple)):
                     dnadds = [dnadds]
@@ -263,11 +296,16 @@ class UserController(IPAController):
             message += "There was an error adding groups.<br />"
             message += "Failures have been preserved in the add/remove lists."
             turbogears.flash(message)
+
+            # Setup any multi-value fields, otherwise you'll get:
+            # 'NoneType' object is not iterable
+            user_dict = self.initialize_mv_fields(user_dict)
             return dict(form=user_edit_form, user=user_dict,
                         user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')
 
         turbogears.flash("%s added!" % kw['uid'])
+        print "Succeeded "
         raise turbogears.redirect('/user/show', uid=kw['uid'])
 
     @expose("ipagui.templates.dynamiceditsearch")
@@ -316,30 +354,7 @@ class UserController(IPAController):
                 raise turbogears.redirect('/')
             user_dict = user.toDict()
 
-            # Load potential multi-valued fields
-            if isinstance(user_dict['cn'], str):
-                user_dict['cn'] = [user_dict['cn']]
-            user_dict['cns'] = ipahelper.setup_mv_fields(user_dict['cn'], 'cn')
-
-            if isinstance(user_dict.get('telephonenumber',''), str):
-                user_dict['telephonenumber'] = [user_dict.get('telephonenumber')]
-            user_dict['telephonenumbers'] = ipahelper.setup_mv_fields(user_dict.get('telephonenumber'), 'telephonenumber')
-
-            if isinstance(user_dict.get('facsimiletelephonenumber',''), str):
-                user_dict['facsimiletelephonenumber'] = [user_dict.get('facsimiletelephonenumber')]
-            user_dict['facsimiletelephonenumbers'] = ipahelper.setup_mv_fields(user_dict.get('facsimiletelephonenumber'), 'facsimiletelephonenumber')
-
-            if isinstance(user_dict.get('mobile',''), str):
-                user_dict['mobile'] = [user_dict.get('mobile')]
-            user_dict['mobiles'] = ipahelper.setup_mv_fields(user_dict.get('mobile'), 'mobile')
-
-            if isinstance(user_dict.get('pager',''), str):
-                user_dict['pager'] = [user_dict.get('pager')]
-            user_dict['pagers'] = ipahelper.setup_mv_fields(user_dict.get('pager'), 'pager')
-
-            if isinstance(user_dict.get('homephone',''), str):
-                user_dict['homephone'] = [user_dict.get('homephone')]
-            user_dict['homephones'] = ipahelper.setup_mv_fields(user_dict.get('homephone'), 'homephone')
+            user_dict = self.initialize_mv_fields(user_dict)
 
             # Edit shouldn't fill in the password field.
             if user_dict.has_key('userpassword'):
