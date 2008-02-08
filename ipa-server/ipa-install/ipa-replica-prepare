@@ -132,7 +132,7 @@ def main():
     check_ipa_configuration(realm_name)
 
     host_name = get_host_name()
-    ds_dir = dsinstance.config_dirname(realm_name)
+    ds_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name))
     ds_user = get_ds_user(ds_dir)
 
     print "Preparing replica for %s from %s" % (replica_fqdn, host_name)
@@ -162,6 +162,8 @@ try:
         sys.exist("The replica must be created on the primary IPA server.")
 
     main()
+except SystemExit, e:
+    sys.exit(e)
 except Exception, e:
     print "preparation of replica failed: %s" % str(e)
     message = str(e)
