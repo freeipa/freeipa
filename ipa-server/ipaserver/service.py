@@ -45,6 +45,12 @@ def chkconfig_on(service_name):
 def chkconfig_off(service_name):
     ipautil.run(["/sbin/chkconfig", service_name, "off"])
 
+def chkconfig_add(service_name):
+    ipautil.run(["/sbin/chkconfig", "--add", service_name])
+
+def chkconfig_del(service_name):
+    ipautil.run(["/sbin/chkconfig", "--del", service_name])
+
 def is_enabled(service_name):
     (stdout, stderr) = ipautil.run(["/sbin/chkconfig", "--list", service_name])
 
@@ -92,6 +98,12 @@ class Service:
     def is_running(self):
         return is_running(self.service_name)
 
+    def chkconfig_add(self):
+        chkconfig_add(self.service_name)
+
+    def chkconfig_del(self):
+        chkconfig_del(self.service_name)
+
     def chkconfig_on(self):
         chkconfig_on(self.service_name)
 
@@ -137,6 +149,7 @@ class SimpleServiceInstance(Service):
         self.restart()
 
     def __enable(self):
+        self.chkconfig_add()
         self.backup_state("enabled", self.is_enabled())
         self.chkconfig_on()
 
@@ -148,3 +161,4 @@ class SimpleServiceInstance(Service):
             self.stop()
         if not enabled is None and not enabled:
             self.chkconfig_off()
+            self.chkconfig_del()
