@@ -19,6 +19,8 @@ install:
 	install -m 755 ipa-modgroup $(SBINDIR)
 	install -m 755 ipa-passwd $(SBINDIR)
 	install -m 755 ipa-addservice $(SBINDIR)
+	install -m 755 ipa-delservice $(SBINDIR)
+	install -m 755 ipa-findservice $(SBINDIR)
 	install -m 755 ipa-adddelegation $(SBINDIR)
 	install -m 755 ipa-deldelegation $(SBINDIR)
 	install -m 755 ipa-listdelegation $(SBINDIR)
