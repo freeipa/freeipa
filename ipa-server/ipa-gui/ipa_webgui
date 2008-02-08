@@ -19,7 +19,6 @@
 
 import os, sys, pwd, grp
 from optparse import OptionParser
-import ipa.config
 import traceback
 import logging
 
@@ -38,8 +37,7 @@ def parse_options():
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+    options, args = parser.parse_args(sys.argv)
 
     return options, args
 
@@ -104,13 +102,13 @@ def main():
     if os.path.exists(os.path.join(os.path.dirname(__file__), "Makefile.am")):
         devel = True
         foreground = True
-        logging.basicConfig(level=loglevel,
-                            stream=sys.stderr)
-    else:
-        # This log file name needs to be kept in sync with the one in
-        # ipa_webgui.cfg
-        logging.basicConfig(level=loglevel,
-                            filename='/var/log/ipa_error.log')
+
+    if not foreground:
+        try:
+            daemonize()
+        except Exception, e:
+            sys.stderr.write("error becoming daemon: " + str(e))
+            sys.exit(1)
 
     if not foreground:
         try:
@@ -139,6 +137,15 @@ def main():
             os.setuid(apache_uid)
         except OSError, e:
             log.error("Could not set effective user id: %s" % e)
+
+    if devel:
+        logging.basicConfig(level=loglevel,
+                            stream=sys.stderr)
+    else:
+        # This log file name needs to be kept in sync with the one in
+        # ipa_webgui.cfg
+        logging.basicConfig(level=loglevel,
+                            filename='/var/log/ipa_error.log')
 
     sys.path.append("/usr/share/ipa")
 

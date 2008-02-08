@@ -49,6 +49,13 @@ RADIUS_ADMINTOOLS_VERSION=$(RADIUS_ADMINTOOLS_MAJOR).$(RADIUS_ADMINTOOLS_MINOR).
 RADIUS_ADMINTOOLS_TARBALL_PREFIX=$(PRJ_PREFIX)-radius-admintools-$(RADIUS_ADMINTOOLS_VERSION)
 RADIUS_ADMINTOOLS_TARBALL=$(RADIUS_ADMINTOOLS_TARBALL_PREFIX).tgz
 
+SERV_SELINUX_MAJOR=0
+SERV_SELINUX_MINOR=6
+SERV_SELINUX_RELEASE=0
+SERV_SELINUX_VERSION=$(SERV_SELINUX_MAJOR).$(SERV_SELINUX_MINOR).$(SERV_SELINUX_RELEASE)
+SERV_SELINUX_TARBALL_PREFIX=$(PRJ_PREFIX)-server-selinux-$(SERV_SELINUX_VERSION)
+SERV_SELINUX_TARBALL=$(SERV_SELINUX_TARBALL_PREFIX).tgz
+
 LIBDIR ?= /usr/lib
 
 all: bootstrap-autogen
@@ -96,6 +103,9 @@ version-update:
 
 	sed s/VERSION/$(RADIUS_ADMINTOOLS_VERSION)/ ipa-radius-admintools/ipa-radius-admintools.spec.in \
 		> ipa-radius-admintools/ipa-radius-admintools.spec
+
+	sed s/VERSION/$(SERV_SELINUX_VERSION)/ ipa-server/selinux/ipa-server-selinux.spec.in \
+		> ipa-server/selinux/ipa-server-selinux.spec
 
 
 archive:
@@ -152,6 +162,9 @@ tarballs:
 	cd dist; tar cfz sources/$(RADIUS_ADMINTOOLS_TARBALL) $(RADIUS_ADMINTOOLS_TARBALL_PREFIX)
 	rm -fr dist/$(RADIUS_ADMINTOOLS_TARBALL_PREFIX)
 
+	# ipa-server/selinux
+	cp dist/sources/$(SERV_TARBALL) dist/sources/$(SERV_SELINUX_TARBALL)
+
 
 rpmroot:
 	mkdir -p $(RPMBUILD)/BUILD
@@ -200,8 +213,13 @@ rpm-ipa-radius-admintools:
 	cp rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-radius-admintools-$(RADIUS_ADMINTOOLS_VERSION)-*.rpm dist/rpms/
 	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-radius-admintools-$(RADIUS_ADMINTOOLS_VERSION)-*.src.rpm dist/srpms/
 
+rpm-ipa-server-selinux:
+	cp dist/sources/$(SERV_SELINUX_TARBALL) $(RPMBUILD)/SOURCES/.
+	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa-server/selinux/ipa-server-selinux.spec
+	cp rpmbuild/RPMS/*/$(PRJ_PREFIX)-server-selinux-$(SERV_SELINUX_VERSION)-*.rpm dist/rpms/
+	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-server-selinux-$(SERV_SELINUX_VERSION)-*.src.rpm dist/srpms/
 
-rpms: rpmroot rpmdistdir rpm-ipa-server rpm-ipa-admin rpm-ipa-python rpm-ipa-client rpm-ipa-radius-server rpm-ipa-radius-admintools
+rpms: rpmroot rpmdistdir rpm-ipa-server rpm-ipa-admin rpm-ipa-python rpm-ipa-client rpm-ipa-radius-server rpm-ipa-radius-admintools rpm-ipa-server-selinux
 
 repodata:
 	-createrepo -p dist

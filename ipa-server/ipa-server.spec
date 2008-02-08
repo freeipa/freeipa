@@ -1,6 +1,6 @@
 Name:           ipa-server
 Version:        0.6.0
-Release:        7%{?dist}
+Release:        8%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base
@@ -17,6 +17,7 @@ BuildRequires: krb5-devel
 BuildRequires: nss-devel
 BuildRequires: libcap-devel
 
+Requires: ipa-server-selinux
 Requires: ipa-python
 Requires: ipa-admintools
 Requires: fedora-ds-base >= 1.1
@@ -147,6 +148,9 @@ fi
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 
 %changelog
+* Thu Feb  6 2008 Karl MacMillan <kmacmill@redhat.com> = 0.6.0-8
+- Add requirement on ipa-server-selinux
+
 * Thu Jan 31 2008 Rob Crittenden <rcritten@redhat.com> = 0.6.0-7
 - Marked with wrong license. IPA is GPLv2.
 

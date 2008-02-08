@@ -1,0 +1,1 @@
+/usr/sbin/ipa_kpasswd		--	gen_context(system_u:object_r:ipa_kpasswd_exec_t,s0)

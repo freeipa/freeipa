@@ -1,0 +1,11 @@
+#
+# /usr
+#
+/usr/sbin/ipa_webgui		--	gen_context(system_u:object_r:ipa_webgui_exec_t,s0)
+
+
+#
+# /var
+#
+/var/log/ipa_error\.log		--	gen_context(system_u:object_r:ipa_webgui_log_t,s0)
+/var/cache/ipa(/.*)?  gen_context(system_u:object_r:ipa_cache_t,s0)

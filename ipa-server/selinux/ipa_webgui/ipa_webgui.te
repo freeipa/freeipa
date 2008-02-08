@@ -1,0 +1,92 @@
+policy_module(ipa_webgui, 1.0)
+
+########################################
+#
+# Declarations
+#
+
+type ipa_webgui_t;
+type ipa_webgui_exec_t;
+type ipa_webgui_var_run_t;
+type ipa_cache_t;
+files_type(ipa_cache_t)
+init_daemon_domain(ipa_webgui_t, ipa_webgui_exec_t)
+
+type ipa_webgui_log_t;
+logging_log_file(ipa_webgui_log_t)
+
+########################################
+#
+# IPA webgui local policy
+#
+
+allow ipa_webgui_t self:tcp_socket create_stream_socket_perms;
+allow ipa_webgui_t self:udp_socket create_socket_perms;
+allow ipa_webgui_t self:process setfscreate;
+
+# This is how the kerberos credential cache is passed to
+# the ipa_webgui process. Unfortunately, the kerberos
+# libraries seem to insist that it be open rw. To top it
+# all off there is no interface for this either.
+require {
+	type httpd_tmp_t;
+}
+allow ipa_webgui_t httpd_tmp_t:file read_file_perms;
+dontaudit ipa_webgui_t httpd_tmp_t:file write;
+
+apache_search_sys_content(ipa_webgui_t)
+apache_read_config(ipa_webgui_t)
+
+corecmd_list_bin(ipa_webgui_t)
+
+miscfiles_read_localization(ipa_webgui_t)
+
+files_list_usr(ipa_webgui_t)
+files_read_etc_files(ipa_webgui_t)
+files_read_usr_files(ipa_webgui_t)
+files_read_usr_symlinks(ipa_webgui_t)
+files_search_etc(ipa_webgui_t)
+files_search_tmp(ipa_webgui_t)
+
+files_pid_file(ipa_webgui_var_run_t)
+allow ipa_webgui_t ipa_webgui_var_run_t:file manage_file_perms;
+files_pid_filetrans(ipa_webgui_t,ipa_webgui_var_run_t,file)
+
+kerberos_read_config(ipa_webgui_t)
+
+kernel_read_system_state(ipa_webgui_t)
+
+auth_use_nsswitch(ipa_webgui_t)
+
+libs_use_ld_so(ipa_webgui_t)
+libs_use_shared_libs(ipa_webgui_t)
+
+logging_search_logs(ipa_webgui_t)
+logging_log_filetrans(ipa_webgui_t,ipa_webgui_log_t,file)
+allow ipa_webgui_t ipa_webgui_log_t:file rw_file_perms;
+
+allow ipa_webgui_t self:capability { setgid setuid };
+
+# /var/cache/ipa/sessions
+files_type(ipa_cache_t)
+manage_dirs_pattern(ipa_webgui_t, ipa_cache_t, ipa_cache_t)
+manage_files_pattern(ipa_webgui_t, ipa_cache_t, ipa_cache_t)
+files_var_filetrans(ipa_webgui_t, ipa_cache_t,dir)
+
+userdom_dontaudit_search_sysadm_home_dirs(ipa_webgui_t)
+
+corenet_tcp_sendrecv_all_if(ipa_webgui_t)
+corenet_udp_sendrecv_all_if(ipa_webgui_t)
+corenet_raw_sendrecv_all_if(ipa_webgui_t)
+corenet_tcp_sendrecv_all_nodes(ipa_webgui_t)
+corenet_udp_sendrecv_all_nodes(ipa_webgui_t)
+corenet_raw_sendrecv_all_nodes(ipa_webgui_t)
+corenet_tcp_sendrecv_all_ports(ipa_webgui_t)
+corenet_udp_sendrecv_all_ports(ipa_webgui_t)
+corenet_all_recvfrom_unlabeled(ipa_webgui_t)
+corenet_tcp_bind_all_nodes(ipa_webgui_t)
+corenet_udp_bind_all_nodes(ipa_webgui_t)
+corenet_tcp_bind_http_cache_port(ipa_webgui_t)
+corenet_tcp_connect_http_cache_port(ipa_webgui_t)
+corenet_tcp_connect_ldap_port(ipa_webgui_t)
+

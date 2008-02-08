@@ -1,0 +1,80 @@
+%define POLICYCOREUTILSVER 1.33.12-1
+
+Name:           ipa-server-selinux
+Version:        VERSION
+Release:        1%{?dist}
+Summary:        IPA server SELinux policies
+
+Group:          System Environment/Base
+License:        GPLv2
+URL:            http://www.freeipa.org
+Source0:        ipa-server-%{version}.tgz
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildArch:      noarch
+
+BuildRequires: selinux-policy-devel m4 make policycoreutils >= %{POLICYCOREUTILSVER}
+Requires(pre): policycoreutils >= %{POLICYCOREUTILSVER} libsemanage
+
+%description
+SELinux policy for ipa-server
+
+%prep
+%setup -n ipa-server-%{version} -q
+
+%build
+cd selinux
+make
+
+%clean
+%{__rm} -fR %{buildroot}
+
+%install
+%{__rm} -fR %{buildroot}
+cd selinux
+install -d %{buildroot}/%{_usr}/share/selinux/targeted/
+make DESTDIR=%{buildroot} install
+
+%files
+%{_usr}/share/selinux/targeted/ipa_webgui.pp
+%{_usr}/share/selinux/targeted/ipa_kpasswd.pp
+
+
+%define saveFileContext() \
+if [ -s /etc/selinux/config ]; then \
+	. %{_sysconfdir}/selinux/config; \
+	FILE_CONTEXT=%{_sysconfdir}/selinux/%1/contexts/files/file_contexts; \
+	if [ "${SELINUXTYPE}" == %1 -a -f ${FILE_CONTEXT} ]; then \
+		cp -f ${FILE_CONTEXT} ${FILE_CONTEXT}.%{name}; \
+	fi \
+fi;
+
+%define relabel() \
+. %{_sysconfdir}/selinux/config; \
+FILE_CONTEXT=%{_sysconfdir}/selinux/%1/contexts/files/file_contexts; \
+selinuxenabled; \
+if [ $? == 0  -a "${SELINUXTYPE}" == %1 -a -f ${FILE_CONTEXT}.%{name} ]; then \
+	fixfiles -C ${FILE_CONTEXT}.%{name} restore; \
+	rm -f ${FILE_CONTEXT}.%name; \
+fi;
+
+%pre
+%saveFileContext targeted
+
+%post
+semodule -s targeted -i /usr/share/selinux/targeted/ipa_webgui.pp /usr/share/selinux/targeted/ipa_kpasswd.pp
+%relabel targeted
+
+%preun
+if [ $1 = 0 ]; then
+%saveFileContext targeted
+fi
+
+%postun
+if [ $1 = 0 ]; then
+semodule -s targeted -r ipa_webgui ipa_kpasswd
+%relabel targeted
+fi
+
+%changelog
+* Thu Jan 17 2008 Karl MacMillan <kmacmill@redhat.com> - 0.6.0-1
+- Initial version
