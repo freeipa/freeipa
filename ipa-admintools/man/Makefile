@@ -3,11 +3,14 @@ MANDIR = $(DESTDIR)/usr/share/man
 MANFILES=\
 	ipa-adddelegation.1 \
 	ipa-addgroup.1 \
+	ipa-addservice.1 \
 	ipa-adduser.1 \
 	ipa-deldelegation.1 \
 	ipa-delgroup.1 \
+	ipa-delservice.1 \
 	ipa-deluser.1 \
 	ipa-findgroup.1 \
+	ipa-findservice.1 \
 	ipa-finduser.1 \
 	ipa-modgroup.1 \
 	ipa-listdelegation.1 \
