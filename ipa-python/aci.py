@@ -151,12 +151,11 @@ def extract_group_cns(aci_list, client):
     for aci in aci_list:
         for dn in (aci.source_group, aci.dest_group):
             if not group_dn_to_cn.has_key(dn):
-                rdn_list = ldap.dn.str2dn(dn)
+                rdn_list = ldap.explode_dn(dn, 0)
                 first_rdn = rdn_list[0]
-                for (type,value,junk) in first_rdn:
-                    if type == "cn":
-                        group_dn_to_cn[dn] = value
-                        break;
+                (type,value) = first_rdn.split('=')
+                if type == "cn":
+                    group_dn_to_cn[dn] = value
                 else:
                     try:
                         group = client.get_entry_by_dn(dn, ['cn'])
