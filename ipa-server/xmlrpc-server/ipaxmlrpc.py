@@ -175,8 +175,8 @@ class ModXMLRPCRequestHandler(object):
         except ipaerror.IPAError, e:
             self.traceback = True
 
-            if (isinstance(e.detail, ldap.LDAPError)):
-                err = ": %s: %s" % (e.detail.args[0]['desc'], e.detail.args[0].get('info',''))
+            if (isinstance(e.detail, ldap.LDAPError)) and len(e.detail[0].get('desc') > 1):
+                err = ": %s: %s" % (e.detail[0].get('desc'), e.detail[0].get('info',''))
                 response = dumps(Fault(e.code, str(e) + err))
             else:
                 response = dumps(Fault(e.code, str(e)))

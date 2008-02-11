@@ -486,7 +486,7 @@ class IPAServer:
         # get to LDAP, like:
         #     TypeError: ('expected a string in the list', None)
         for k in user.keys():
-            if not user[k] or len(user[k]) == 0 or (len(user[k]) == 1 and '' in user[k]):
+            if not user[k] or len(user[k]) == 0 or (isinstance(user[k],list) and len(user[k]) == 1 and '' in user[k]):
                 del user[k]
 
         dn="uid=%s,%s,%s" % (ldap.dn.escape_dn_chars(user['uid']),
@@ -516,6 +516,8 @@ class IPAServer:
             default_group = self.get_entry_by_dn(group_dn, ['dn','gidNumber'], opts)
             if default_group:
                 user['gidnumber'] = default_group.get('gidnumber')
+        except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR), e:
+            raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, message=None, nested_exception=e.detail)
         except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR):
             # Fake an LDAP error so we can return something useful to the user
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND, "No default group for new users can be found.")
@@ -545,10 +547,14 @@ class IPAServer:
                 res = conn.addEntry(entry)
             except TypeError, e:
                 raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, "There is a problem with one of the data types.")
+            except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR), e:
+                raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, message=None, nested_exception=e.detail)
             except Exception, e:
-                raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, e)
+                raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, nested_exception=e)
             try:
                 self.add_user_to_group(user.get('uid'), group_dn, opts)
+            except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR), e:
+                raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, message=None, nested_exception=e.detail)
             except Exception, e:
                 raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, "The user was created but adding to group %s failed" % group_dn)
         finally:
