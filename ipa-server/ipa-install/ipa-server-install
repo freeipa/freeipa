@@ -512,6 +512,8 @@ def main():
 try:
     main()
     sys.exit(0)
+except SystemExit, e:
+    sys.exit(e)
 except Exception, e:
     message = "Unexpected error - see ipaserver-install.log for details:\n %s" % str(e)
     print message
