@@ -150,20 +150,25 @@ class CertDB(object):
                            "-z", self.noise_fname,
                            "-f", self.passwd_fname])
 
-    def export_ca_cert(self):
+    def export_ca_cert(self, create_pkcs12=False):
+        """create_pkcs12 tells us whether we should create a PKCS#12 file
+           of the CA or not. If we are running on a replica then we won't
+           have the private key to make a PKCS#12 file so we don't need to
+           do that step."""
         # export the CA cert for use with other apps
         ipautil.backup_file(self.cacert_fname)
         self.run_certutil(["-L", "-n", "CA certificate",
                            "-a",
                            "-o", self.cacert_fname])
         self.set_perms(self.cacert_fname)
-        ipautil.backup_file(self.pk12_fname)
-        ipautil.run(["/usr/bin/pk12util", "-d", self.secdir,
-                     "-o", self.pk12_fname,
-                     "-n", "CA certificate",
-                     "-w", self.passwd_fname,
-                     "-k", self.passwd_fname])
-        self.set_perms(self.pk12_fname)
+        if create_pkcs12:
+            ipautil.backup_file(self.pk12_fname)
+            ipautil.run(["/usr/bin/pk12util", "-d", self.secdir,
+                         "-o", self.pk12_fname,
+                         "-n", "CA certificate",
+                         "-w", self.passwd_fname,
+                         "-k", self.passwd_fname])
+            self.set_perms(self.pk12_fname)
 
     def load_cacert(self, cacert_fname):
         self.run_certutil(["-A", "-n", self.cacert_name,
@@ -342,7 +347,7 @@ class CertDB(object):
         self.create_passwd_file(passwd)
         self.create_certdbs()
         self.create_ca_cert()
-        self.export_ca_cert()
+        self.export_ca_cert(True)
         self.create_pin_file()
 
     def create_from_cacert(self, cacert_fname, passwd=False):
@@ -358,7 +363,7 @@ class CertDB(object):
         self.import_pkcs12(pkcs12_fname, pkcs12_pwd_fname)
         self.trust_root_cert(nickname)
         self.create_pin_file()
-        self.export_ca_cert()
+        self.export_ca_cert(False)
 
     def backup_files(self):
         sysrestore.backup_file(self.noise_fname)
