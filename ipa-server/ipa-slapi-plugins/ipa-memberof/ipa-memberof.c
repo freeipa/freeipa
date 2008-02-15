@@ -889,8 +889,8 @@ int ipamo_modop_one_replace_r(Slapi_PBlock *pb, int mod_op, char *group_dn,
 				slapi_value_free(&ll_dn_val);
 
 				/* 	someone set up infinitely
-					recursive groups - crash here please */
-				slapi_log_error( SLAPI_LOG_PLUGIN,
+					recursive groups - bail out */
+				slapi_log_error( SLAPI_LOG_FATAL,
 					IPAMO_PLUGIN_SUBSYSTEM,
 					"ipamo_modop_one_r: group recursion"
 					" detected in %s\n"
@@ -909,8 +909,9 @@ int ipamo_modop_one_replace_r(Slapi_PBlock *pb, int mod_op, char *group_dn,
 			IPAMO_PLUGIN_SUBSYSTEM,
 			"ipamo_modop_one_r: descending into group %s\n",
 			op_to);
+		/* Add the nested group's DN to the stack so we can detect loops later. */
 		ll = (ipamostringll*)slapi_ch_malloc(sizeof(ipamostringll));
-		ll->dn = group_dn;
+		ll->dn = op_to;
 		ll->next = stack;
 		
 		slapi_entry_attr_find( e, IPA_GROUP_ATTR, &members );
@@ -998,8 +999,20 @@ int ipamo_modop_one_replace_r(Slapi_PBlock *pb, int mod_op, char *group_dn,
 
 		if(LDAP_MOD_ADD == mod_op)
 		{
-			/* fix up membership for groups that are now in scope */
-			ipamo_add_membership(pb, op_this, op_to);
+			Slapi_Value *to_dn_val = slapi_value_new_string(op_to);
+			Slapi_Value *this_dn_val = slapi_value_new_string(op_this);
+
+			/* If we failed to update memberOf for op_to, we shouldn't
+			 * try to fix up membership for parent groups.  We also want
+			 * to avoid going into an endless loop if we've hit a
+			 * circular grouping. */
+			if ((rc == 0) && (0 != ipamo_compare(&this_dn_val, &to_dn_val))) {
+				/* fix up membership for groups that are now in scope */
+				ipamo_add_membership(pb, op_this, op_to);
+			}
+
+			slapi_value_free(&to_dn_val);
+			slapi_value_free(&this_dn_val);
 		}
 	}
 
