@@ -33,7 +33,7 @@ class IPAPolicyFields(object):
     ipauserobjectclasses = widgets.TextField(name="ipauserobjectclasses", label="Default User Object Classes", attrs=dict(size=50))
     userobjectclasses = ExpandingForm(name="userobjectclasses", label="Default User Object Classes", fields=[ipauserobjectclasses])
     ipagroupobjectclasses = widgets.TextField(name="ipagroupobjectclasses", label="Default Group Object Classes", attrs=dict(size=50))
-    groupobjectclasses = ExpandingForm(name="groupobjectclasses", label="Default User Object Classes", fields=[ipagroupobjectclasses])
+    groupobjectclasses = ExpandingForm(name="groupobjectclasses", label="Default Group Object Classes", fields=[ipagroupobjectclasses])
     ipadefaultemaildomain =  widgets.TextField(name="ipadefaultemaildomain", label="Default E-mail Domain", attrs=dict(size=20))
 
     ipapolicy_orig = widgets.HiddenField(name="ipapolicy_orig")
