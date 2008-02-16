@@ -109,14 +109,14 @@ class DsInstance(service.Service):
         self.domain = None
         self.pkcs12_info = None
 
-    def create_instance(self, ds_user, realm_name, host_name, dm_password, pkcs12_info=None):
+    def create_instance(self, ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info=None):
         self.ds_user = ds_user
         self.realm_name = realm_name.upper()
         self.serverid = realm_to_serverid(self.realm_name)
         self.suffix = realm_to_suffix(self.realm_name)
         self.host_name = host_name
         self.dm_password = dm_password
-        self.domain = host_name[host_name.find(".")+1:]
+        self.domain = domain_name
         self.pkcs12_info = pkcs12_info
         self.__setup_sub_dict()
         

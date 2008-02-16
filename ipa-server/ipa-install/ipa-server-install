@@ -57,6 +57,8 @@ def parse_options():
                       help="ds user")
     parser.add_option("-r", "--realm", dest="realm_name",
                       help="realm name")
+    parser.add_option("-n", "--domain", dest="domain_name",
+                      help="domain name")
     parser.add_option("-p", "--ds-password", dest="dm_password",
                       help="admin password")
     parser.add_option("-P", "--master-password", dest="master_password",
@@ -205,6 +207,15 @@ def read_ds_user():
         ds_user = "dirsrv"
 
     return ds_user
+
+def read_domain_name(domain_name):
+    print "The domain name has been calculated based on the host name."
+    print ""
+    dn = raw_input("Please confirm the domain name ["+domain_name+"]: ")
+    print ""
+    if dn != "":
+        domain_name = dn
+    return domain_name
 
 def read_realm_name(domain_name):
     print "The kerberos protocol requires a Realm name to be defined."
@@ -357,8 +368,12 @@ def main():
         host_name = host_default
     else:
         host_name = read_host_name(host_default)
-    
-    domain_name = host_name[host_name.find(".")+1:]
+
+    if not options.domain_name:
+        domain_name = host_name[host_name.find(".")+1:]
+        domain_name = read_domain_name(domain_name)
+    else:
+        realm_name = options.realm_name
 
     # Check we have a public IP that is associated with the hostname
     ip = resolve_host(host_name)
@@ -432,21 +447,21 @@ def main():
 
     # Create a directory server instance
     ds = ipaserver.dsinstance.DsInstance()
-    ds.create_instance(ds_user, realm_name, host_name, dm_password)
+    ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password)
 
     # Create a kerberos instance
     krb = ipaserver.krbinstance.KrbInstance()
-    krb.create_instance(ds_user, realm_name, host_name, dm_password, master_password)
+    krb.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, master_password)
 
     # Create a HTTP instance
     http = ipaserver.httpinstance.HTTPInstance()
-    http.create_instance(realm_name, host_name)
+    http.create_instance(realm_name, host_name, domain_name)
 
     # Create a Web Gui instance
     webgui = ipaserver.httpinstance.WebGuiInstance()
     webgui.create_instance()
 
-    bind.setup(host_name, ip_address, realm_name)
+    bind.setup(host_name, ip_address, realm_name, domain_name)
     if options.setup_bind:
         skipbind = False
         if not options.unattended:

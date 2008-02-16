@@ -28,7 +28,8 @@ from optparse import OptionParser
 
 import ipa.config
 from ipa import ipautil
-from ipaserver import dsinstance, installutils, certs
+from ipaserver import dsinstance, installutils, certs, ipaldap
+import ldap
 
 def usage():
     print "ipa-replica-prepate FQDN (e.g. replica.example.com)"
@@ -56,8 +57,27 @@ def get_host_name():
     return hostname
 
 def get_realm_name():
-    c = krbV.default_context()
-    return c.default_realm
+    try:
+        c = krbV.default_context()
+        return c.default_realm
+    except Exception, e:
+        return None
+
+def get_domain_name():
+    try:
+        conn = ipaldap.IPAdmin("127.0.0.1")
+        conn.simple_bind_s("", "")
+
+        context = conn.getEntry("", ldap.SCOPE_BASE, '(objectclass=*)', [ 'namingContexts' ])
+        conn.unbind()
+    except Exception, e:
+        return None
+
+    domain_name = context.getValue('namingContexts')
+    domain_name = domain_name.replace('dc=','')
+    domain_name = domain_name.replace(',','.')
+
+    return domain_name
 
 def check_ipa_configuration(realm_name):
     config_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name))
@@ -96,6 +116,9 @@ def export_certdb(realm_name, ds_dir, dir, fname, subject):
     os.unlink(dir + "/cert8.db")
     os.unlink(dir + "/key3.db")
     os.unlink(dir + "/secmod.db")
+    os.unlink(dir + "/noise.txt")
+    if ipautil.file_exists(passwd_fname + ".orig"):
+        os.unlink(passwd_fname + ".orig")
 
 def get_ds_user(ds_dir):
     uid = os.stat(ds_dir).st_uid
@@ -103,12 +126,13 @@ def get_ds_user(ds_dir):
 
     return user
 
-def save_config(dir, realm_name, host_name, ds_user):
+def save_config(dir, realm_name, host_name, ds_user, domain_name):
     config = SafeConfigParser()
     config.add_section("realm")
     config.set("realm", "realm_name", realm_name)
     config.set("realm", "master_host_name", host_name)
     config.set("realm", "ds_user", ds_user)
+    config.set("realm", "domain_name", domain_name)
     fd = open(dir + "/realm_info", "w")
     config.write(fd)
 
@@ -128,8 +152,19 @@ def main():
 
     replica_fqdn = args[1]
 
+    print "Determining current realm name"
     realm_name = get_realm_name()
+    if realm_name is None:
+        print "Unable to determine default realm"
+        sys.exit(1)
+
     check_ipa_configuration(realm_name)
+
+    print "Getting domain name from LDAP"
+    domain_name = get_domain_name()
+    if domain_name is None:
+        print "Unable to determine LDAP default domain"
+        sys.exit(1)
 
     host_name = get_host_name()
     ds_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name))
@@ -148,7 +183,7 @@ def main():
     print "Copying additional files"
     copy_files(realm_name, dir)
     print "Finalizing configuration"
-    save_config(dir, realm_name, host_name, ds_user)
+    save_config(dir, realm_name, host_name, ds_user, domain_name)
 
     print "Packaging the replica into %s" % "replica-info-" + replica_fqdn
     ipautil.run(["/bin/tar", "cfz", "replica-info-" + replica_fqdn, "-C", top_dir, "realm_info"])
@@ -159,7 +194,7 @@ try:
     if not os.geteuid()==0:
         sys.exit("\nYou must be root to run this script.\n")
     if not ipautil.file_exists("/usr/share/ipa/serial"):
-        sys.exist("The replica must be created on the primary IPA server.")
+        sys.exit("The replica must be created on the primary IPA server.")
 
     main()
 except SystemExit, e:

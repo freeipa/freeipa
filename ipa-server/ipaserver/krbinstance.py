@@ -48,10 +48,6 @@ import pyasn1.codec.ber.decoder
 import struct
 import base64
 
-def host_to_domain(fqdn):
-    s = fqdn.split(".")
-    return ".".join(s[1:])
-
 def update_key_val_in_file(filename, key, val):
     if os.path.exists(filename):
         pattern = "^[\s#]*%s\s*=\s*%s\s*" % (re.escape(key), re.escape(val))
@@ -92,13 +88,13 @@ class KrbInstance(service.Service):
 
         self.kpasswd = KpasswdInstance()
 
-    def __common_setup(self, ds_user, realm_name, host_name, admin_password):
+    def __common_setup(self, ds_user, realm_name, host_name, domain_name, admin_password):
         self.ds_user = ds_user
         self.fqdn = host_name        
         self.realm = realm_name.upper()
         self.host = host_name.split(".")[0]
         self.ip = socket.gethostbyname(host_name)
-        self.domain = host_to_domain(host_name)        
+        self.domain = domain_name
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.kdc_password = ipautil.ipa_generate_password()
         self.admin_password = admin_password
@@ -124,10 +120,10 @@ class KrbInstance(service.Service):
         self.step("starting the KDC", self.__start_instance)
         self.step("configuring KDC to start on boot", self.__enable)
 
-    def create_instance(self, ds_user, realm_name, host_name, admin_password, master_password):
+    def create_instance(self, ds_user, realm_name, host_name, domain_name, admin_password, master_password):
         self.master_password = master_password
 
-        self.__common_setup(ds_user, realm_name, host_name, admin_password)
+        self.__common_setup(ds_user, realm_name, host_name, domain_name, admin_password)
 
         self.step("setting KDC account password", self.__configure_kdc_account_password)
         self.step("adding sasl mappings to the directory", self.__configure_sasl_mappings)
@@ -146,10 +142,10 @@ class KrbInstance(service.Service):
 
         self.kpasswd.create_instance()
 
-    def create_replica(self, ds_user, realm_name, host_name, admin_password, ldap_passwd_filename):
+    def create_replica(self, ds_user, realm_name, host_name, domain_name, admin_password, ldap_passwd_filename):
         self.__copy_ldap_passwd(ldap_passwd_filename)
 
-        self.__common_setup(ds_user, realm_name, host_name, admin_password)
+        self.__common_setup(ds_user, realm_name, host_name, domain_name, admin_password)
 
         self.step("adding sasl mappings to the directory", self.__configure_sasl_mappings)
         self.step("writing stash file from DS", self.__write_stash_from_ds)

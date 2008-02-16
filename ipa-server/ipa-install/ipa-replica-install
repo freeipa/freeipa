@@ -70,6 +70,7 @@ def read_info(dir, rconfig):
     rconfig.realm_name = config.get("realm", "realm_name")
     rconfig.master_host_name = config.get("realm", "master_host_name")
     rconfig.ds_user = config.get("realm", "ds_user")
+    rconfig.domain_name = config.get("realm", "domain_name")
 
 def get_host_name():
     hostname = installutils.get_fqdn()
@@ -98,13 +99,13 @@ def install_ds(config):
                        config.dir + "/pwdfile.txt")
 
     ds = dsinstance.DsInstance()
-    ds.create_instance(config.ds_user, config.realm_name, config.host_name, config.dirman_password, pkcs12_info)
+    ds.create_instance(config.ds_user, config.realm_name, config.host_name, config.domain_name, config.dirman_password, pkcs12_info)
 
 def install_krb(config):
     krb = krbinstance.KrbInstance()
     ldappwd_filename = config.dir + "/ldappwd"
     krb.create_replica(config.ds_user, config.realm_name, config.host_name,
-                       config.dirman_password, ldappwd_filename)
+                       config.domain_name, config.dirman_password, ldappwd_filename)
 
 def install_http(config):
     # if we have a pkcs12 file, create the cert db from
@@ -116,7 +117,7 @@ def install_http(config):
                        config.dir + "/pwdfile.txt")
 
     http = httpinstance.HTTPInstance()
-    http.create_instance(config.realm_name, config.host_name, False, pkcs12_info)
+    http.create_instance(config.realm_name, config.host_name, config.domain_name, False, pkcs12_info)
 
     # Now copy the autoconfiguration files
     try:

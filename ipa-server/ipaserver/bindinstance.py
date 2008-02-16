@@ -37,12 +37,12 @@ class BindInstance(service.Service):
         self.realm = None
         self.sub_dict = None
 
-    def setup(self, fqdn, ip_address, realm_name):
+    def setup(self, fqdn, ip_address, realm_name, domain_name):
         self.fqdn = fqdn
         self.ip_address = ip_address
         self.realm = realm_name
-        self.domain = fqdn[fqdn.find(".")+1:]
-        self.host = fqdn[:fqdn.find(".")]
+        self.domain = domain_name
+        self.host = domain_name[:domain_name.find(".")]
 
         self.__setup_sub_dict()
 

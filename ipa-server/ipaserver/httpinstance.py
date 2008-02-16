@@ -55,10 +55,10 @@ class HTTPInstance(service.Service):
     def __init__(self):
         service.Service.__init__(self, "httpd")
 
-    def create_instance(self, realm, fqdn, autoconfig=True, pkcs12_info=None):
+    def create_instance(self, realm, fqdn, domain_name, autoconfig=True, pkcs12_info=None):
         self.fqdn = fqdn
         self.realm = realm
-        self.domain = fqdn[fqdn.find(".")+1:]
+        self.domain = domain_name
         self.pkcs12_info = pkcs12_info
         self.sub_dict = { "REALM" : realm, "FQDN": fqdn, "DOMAIN" : self.domain }
         
