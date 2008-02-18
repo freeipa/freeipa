@@ -136,40 +136,40 @@ class IPAPolicyController(IPAController):
             new_ipapolicy = ipa.entity.Entity(orig_ipapolicy_dict)
             new_password = ipa.entity.Entity(orig_password_dict)
 
-            if str(new_ipapolicy.ipasearchtimelimit) != str(kw.get('ipasearchtimelimit')):
+            if str(new_ipapolicy.getValues('ipasearchtimelimit')) != str(kw.get('ipasearchtimelimit')):
                 policy_modified = True
                 new_ipapolicy.setValue('ipasearchtimelimit', kw.get('ipasearchtimelimit'))
-            if str(new_ipapolicy.ipasearchrecordslimit) != str(kw.get('ipasearchrecordslimit')):
+            if str(new_ipapolicy.getValues('ipasearchrecordslimit')) != str(kw.get('ipasearchrecordslimit')):
                 policy_modified = True
                 new_ipapolicy.setValue('ipasearchrecordslimit', kw.get('ipasearchrecordslimit'))
-            if new_ipapolicy.ipausersearchfields != kw.get('ipausersearchfields'):
+            if new_ipapolicy.getValues('ipausersearchfields') != kw.get('ipausersearchfields'):
                 policy_modified = True
                 new_ipapolicy.setValue('ipausersearchfields', kw.get('ipausersearchfields'))
-            if new_ipapolicy.ipagroupsearchfields != kw.get('ipagroupsearchfields'):
+            if new_ipapolicy.getValues('ipagroupsearchfields') != kw.get('ipagroupsearchfields'):
                 policy_modified = True
                 new_ipapolicy.setValue('ipagroupsearchfields', kw.get('ipagroupsearchfields'))
-            if str(new_ipapolicy.ipapwdexpadvnotify) != str(kw.get('ipapwdexpadvnotify')):
+            if str(new_ipapolicy.getValues('ipapwdexpadvnotify')) != str(kw.get('ipapwdexpadvnotify')):
                 policy_modified = True
                 new_ipapolicy.setValue('ipapwdexpadvnotify', kw.get('ipapwdexpadvnotify'))
-            if str(new_ipapolicy.ipamaxusernamelength) != str(kw.get('ipamaxusernamelength')):
+            if str(new_ipapolicy.getValues('ipamaxusernamelength')) != str(kw.get('ipamaxusernamelength')):
                 policy_modified = True
                 new_ipapolicy.setValue('ipamaxusernamelength', kw.get('ipamaxusernamelength'))
-            if new_ipapolicy.ipahomesrootdir != kw.get('ipahomesrootdir'):
+            if new_ipapolicy.getValues('ipahomesrootdir') != kw.get('ipahomesrootdir'):
                 policy_modified = True
                 new_ipapolicy.setValue('ipahomesrootdir', kw.get('ipahomesrootdir'))
-            if new_ipapolicy.ipadefaultloginshell != kw.get('ipadefaultloginshell'):
+            if new_ipapolicy.getValues('ipadefaultloginshell') != kw.get('ipadefaultloginshell'):
                 policy_modified = True
                 new_ipapolicy.setValue('ipadefaultloginshell', kw.get('ipadefaultloginshell'))
-            if new_ipapolicy.ipadefaultprimarygroup != kw.get('ipadefaultprimarygroup'):
+            if new_ipapolicy.getValues('ipadefaultprimarygroup') != kw.get('ipadefaultprimarygroup'):
                 policy_modified = True
                 new_ipapolicy.setValue('ipadefaultprimarygroup', kw.get('ipadefaultprimarygroup'))
-            if new_ipapolicy.ipauserobjectclasses != kw.get('ipauserobjectclasses'):
+            if new_ipapolicy.getValues('ipauserobjectclasses') != kw.get('ipauserobjectclasses'):
                 policy_modified = True
                 new_ipapolicy.setValue('ipauserobjectclasses', kw.get('ipauserobjectclasses'))
-            if new_ipapolicy.ipagroupobjectclasses != kw.get('ipagroupobjectclasses'):
+            if new_ipapolicy.getValues('ipagroupobjectclasses') != kw.get('ipagroupobjectclasses'):
                 policy_modified = True
                 new_ipapolicy.setValue('ipagroupobjectclasses', kw.get('ipagroupobjectclasses'))
-            if new_ipapolicy.ipadefaultemaildomain != kw.get('ipadefaultemaildomain'):
+            if new_ipapolicy.getValues('ipadefaultemaildomain') != kw.get('ipadefaultemaildomain'):
                 policy_modified = True
                 new_ipapolicy.setValue('ipadefaultemaildomain', kw.get('ipadefaultemaildomain'))
 
@@ -177,19 +177,19 @@ class IPAPolicyController(IPAController):
                 rv = client.update_ipa_config(new_ipapolicy)
 
             # Now check the password policy for updates
-            if str(new_password.krbmaxpwdlife) != str(kw.get('krbmaxpwdlife')):
+            if str(new_password.getValues('krbmaxpwdlife')) != str(kw.get('krbmaxpwdlife')):
                 password_modified = True
                 new_password.setValue('krbmaxpwdlife', str(kw.get('krbmaxpwdlife')))
-            if str(new_password.krbminpwdlife) != str(kw.get('krbminpwdlife')):
+            if str(new_password.getValues('krbminpwdlife')) != str(kw.get('krbminpwdlife')):
                 password_modified = True
                 new_password.setValue('krbminpwdlife', str(kw.get('krbminpwdlife')))
-            if str(new_password.krbpwdhistorylength) != str(kw.get('krbpwdhistorylength')):
+            if str(new_password.getValues('krbpwdhistorylength')) != str(kw.get('krbpwdhistorylength')):
                 password_modified = True
                 new_password.setValue('krbpwdhistorylength', str(kw.get('krbpwdhistorylength')))
-            if str(new_password.krbpwdmindiffchars) != str(kw.get('krbpwdmindiffchars')):
+            if str(new_password.getValues('krbpwdmindiffchars')) != str(kw.get('krbpwdmindiffchars')):
                 password_modified = True
                 new_password.setValue('krbpwdmindiffchars', str(kw.get('krbpwdmindiffchars')))
-            if str(new_password.krbpwdminlength) != str(kw.get('krbpwdminlength')):
+            if str(new_password.getValues('krbpwdminlength')) != str(kw.get('krbpwdminlength')):
                 password_modified = True
                 new_password.setValue('krbpwdminlength', str(kw.get('krbpwdminlength')))
             if password_modified:
