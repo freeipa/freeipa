@@ -224,6 +224,7 @@ class ReplicationManager:
         entry.setValues('nsds5replicaroot', self.suffix)
         entry.setValues('nsds5replicaupdateschedule', '0000-2359 0123456')
         entry.setValues('nsds5replicatransportinfo', 'SSL')
+        entry.setValues('nsDS5ReplicatedAttributeList', '(objectclass=*) $ EXCLUDE memberOf')
         entry.setValues('description', "me to %s%d" % (b.host, PORT))
 
         a.add_s(entry)
