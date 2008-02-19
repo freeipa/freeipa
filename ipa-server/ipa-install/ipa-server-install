@@ -506,6 +506,7 @@ def main():
 
     print ""
     print "Be sure to back up the CA certificate stored in " + ipaserver.dsinstance.config_dirname(ds.serverid) + "cacert.p12"
+    print "The password for this file is in " + ipaserver.dsinstance.config_dirname(ds.serverid) + "pwdfile.txt"
 
     return 0
 
