@@ -87,7 +87,7 @@ def main():
     # Create the discovery instance
     ds = ipaclient.ipadiscovery.IPADiscovery()
 
-    ret = ds.search()
+    ret = ds.search(domain=options.domain, server=options.server)
     srv = ""
     if ret == -10:
         print "Can't get the fully qualified name of this host"
@@ -121,11 +121,16 @@ def main():
     if dnsok:
         print "Discovery was successful!"
     elif not options.unattended:
-        print "\nThe failure to use DNS to find your IPA server indicates that your resolv.conf file is not properly configured\n."
+        print "\nThe failure to use DNS to find your IPA server indicates that your resolv.conf file is not properly configured.\n"
         print "Autodiscovery of servers for failover cannot work with this configuration.\n"
-        print "If you proceed with the installation, services will be configured to always access the discovered server for all operation and will not fail over to other servers in case of failure\n"
+        print "If you proceed with the installation, services will be configured to always access the discovered server for all operation and will not fail over to other servers in case of failure.\n"
         if not ask_for_confirmation("Do you want to proceed and configure the system with fixed values with no DNS discovery?"):
             return ret
+
+    if options.realm_name != ds.getRealmName():
+        if not options.unattended:
+            print "ERROR: The provided realm name: ["+options.realm_name+"] does not match with the discovered one: ["+ds.getRealmName()+"]\n"
+        return -3
 
     print "Realm: "+ds.getRealmName()
     print "DNS Domain: "+ds.getDomainName()
