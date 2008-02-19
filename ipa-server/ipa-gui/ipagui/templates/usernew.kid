@@ -23,7 +23,7 @@
     <title>Add User</title>
 </head>
 <body>
-    <h1>Add User</h1>
+    <h1 class="user">Add User</h1>
 
     ${form.display(action=tg.url("/user/create"), value=user)}
 </body>

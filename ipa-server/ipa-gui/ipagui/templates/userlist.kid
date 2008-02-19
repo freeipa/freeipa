@@ -23,7 +23,7 @@
 <title>Find Users</title>
 </head>
 <body>
-    <h1>Find Users</h1>
+    <h1 class="user">Find Users</h1>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/tablekit.js')}"></script>
     <div id="search">
         <form action="${tg.url('/user/list')}" method="get">

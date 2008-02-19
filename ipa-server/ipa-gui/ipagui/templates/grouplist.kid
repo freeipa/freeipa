@@ -24,7 +24,7 @@
 </head>
 <body>
 <div id="details">
-    <h1>Find Groups</h1>
+    <h1 class="usergroup">Find Groups</h1>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/tablekit.js')}"></script>
     <div id="search">
         <form action="${tg.url('/group/list')}" method="get">

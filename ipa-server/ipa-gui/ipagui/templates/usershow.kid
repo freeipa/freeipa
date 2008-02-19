@@ -26,7 +26,7 @@
 <?python
 edit_url = tg.url('/user/edit', uid=user.get('uid'))
 ?>
-    <h1>View User</h1>
+    <h1 class="user">View User</h1>
 
     <input py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups or tg.identity.display_name == user.get('uid')"
       class="submitbutton" type="button"

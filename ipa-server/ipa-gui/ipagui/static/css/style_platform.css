@@ -1,0 +1,518 @@
+/** BASIC PAGE STYLES */
+
+* 
+{
+  margin: 			0;
+  padding:			0;
+  font-size:			small;
+}
+
+html, body {
+  height:			100%;
+}
+
+body {
+  background-image:		url('/static/images/template/background.png');
+  background-repeat:		repeat-x;
+  background-color:		#f9f9f9;
+  margin:			0px;
+  padding:			0px;
+  padding-top:			16px;
+  min-width:			750px;
+}
+
+body, h1, h2, h3, h4, h5, p, ul, li, div, span, td {
+  font-family:			"Luxi Sans", "Gill Sans", "Verdana", "Helvetica", sans-serif;
+  font-size:			small;
+  color:			#444;
+}
+
+td, th {
+  text-align:			left;
+}
+
+#head {
+  margin:			0px;
+  padding:			0px 1.5ex;
+} 
+
+#head h1 a {
+  display:			block;
+  text-indent:			-9999px;
+  height:			60px;
+  width:			350px;
+  overflow:			hidden;
+  float:			left;
+  margin-top:			-10px;
+
+  background:			url('/static/images/branding/logo.png') no-repeat;
+}
+
+#content {
+  width:			100%;
+  min-height:			100%;
+
+  background-color:		#f9f9f9;
+  background-image:		url('/static/images/template/background-content.png');
+  background-repeat:		repeat-x;
+}
+
+#main_content table {
+  clear:		left;
+}
+
+#main_content {
+  height: auto;
+  margin-bottom: 4ex;
+}
+
+#footer {
+  font-size: x-small;
+  color: #ccc;
+  clear: both;
+  text-align: center;
+  padding-top: 4ex;
+  border-top: 1px solid #efefef;
+  width: 100%;
+}
+
+/* freeipa only?  */
+div#search {
+  padding-top:			16px;
+  padding-bottom:		24px;
+}
+
+#searchbar {
+  float: 			right;
+  margin-top: 			18px;
+}
+
+/** MAIN NAVBAR SECTION **/
+
+#navbar {
+  width: 			100%;
+  height: 			70px;
+  margin: 			0px;
+  clear:			both;
+
+  background-image:		url('/static/images/template/background-navbar.png');
+  background-repeat:		repeat-x;
+
+}
+
+#navbar ul {
+  margin:			0px;
+  padding:			0px;
+  padding-left:			10px;
+  list-style:			none;
+}
+
+#navbar li {
+  float:			left;
+  margin:			0px;
+  padding:			0px;
+  
+  font-size:			small;
+}
+
+#navbar a {
+  display:			block;
+  margin:			22px 15px;
+}
+
+#navbar .active {
+  background-image:		url('/static/images/template/background-navbar-active.png');
+  height:			70px;
+  width:			116px;
+
+  text-align:			center;
+}
+
+#navbar-secondary li {
+  font-size:			medium;
+}
+
+#navbar-secondary .active a:link,
+#navbar-secondary .active a:visited,
+#navbar-secondary .active a:active,
+#navbar-secondary .active a,
+#navbar-secondary li
+{
+  color:			#555 !important;
+  text-decoration:		none; 
+  font-weight:			bold;
+}
+
+/** SIDEBAR SECTION **/
+
+#sidebar {
+  width:			250px;
+  text-align:			left;
+  
+  padding:			18px 12px;
+  margin-right:			24px;
+  float:			right;
+  height:			100%;
+
+  border:			1px solid #aaa;
+  background-color:		#ccc;
+  background-image:		url('/static/images/template/background-sidebar.png');
+  background-repeat:		repeat-y;
+}
+
+#sidebar h1, h2, h3 {
+  padding:			0px;
+  margin:			0px;
+}
+
+#sidebar h2 { font-size: 	medium; }
+#sidebar h3 { font-size: 	small; }
+
+#sidebar ul {
+  padding:			0px;
+  margin:			0px;
+  list-style:			none;
+  padding-bottom:		10px;
+}
+
+#sidebar ul, #sidebar li  {
+  margin-bottom:		6px;
+  font-size:			small;
+}
+
+#sidebar hr {
+  border-top:			1px solid #aaa;
+  border-bottom:		1px solid #ddd;
+  color:			#ddd;
+  margin-top:			20px !important;
+  margin-bottom:		20px !important;
+}
+
+.context-tools {
+  float: right;
+  margin-top: -1.2em;
+  font-size: small;
+}
+
+.context-tools a:link, .context-tools a:active, .context-tools a:visited {
+  text-decoration: none;
+}
+
+/** DETAILS SECTION **/
+
+#details {
+  height: 			100%;
+  margin:			0px 24px;
+  margin-right:			298px;
+
+  padding:			18px 18px;
+  padding-bottom: 		12%;
+  border-top:			1px solid #aaa;
+  background-color:		white;
+  text-align:			left;
+  color:			#444;
+}
+
+#details p {
+  margin-top:			1ex;
+  margin-bottom:		1ex;
+}
+
+#details h3 {
+  font-size: medium;
+  text-transform: uppercase;
+  margin-bottom: 1ex;
+  margin-top: 1.5ex;
+}
+
+#details h4 {
+  font-size: 	medium;
+  color: 	#8aa445;
+}
+
+
+#details p,
+#details td,
+#details li {
+  font-size:			small;
+  color:			#555;
+}
+
+#details h1 {
+  color:			#7d7d5b;
+  font-size:			x-large;
+  margin-bottom:		18px;
+  height:			40px;
+  padding-left:			48px;
+  padding-top:			6px;
+  vertical-align:		middle;
+  background-repeat:		no-repeat;
+}
+
+
+#details h2, #details table caption {
+  color:			#999;
+  font-size:			large;
+  font-weight:			normal;
+
+  border-bottom:		1px solid #999;
+  margin-bottom:		10px;
+
+  text-align:			left;
+  width:			100%;
+}
+
+#details h2 img {
+  margin-right:			1.4ex;
+}
+
+table.details {
+  margin-bottom:		18px;
+  width:			100%;
+}
+
+#details h3, table.formtable th {
+  font-size: 			small;
+  color:			black;
+}
+
+#details table.details th {
+  font-size:			small;
+  width:			150px;
+  padding:			4px 0px;
+  padding-right:		8px;
+  border-bottom:		1px dotted #ddd;
+}
+
+#details table.details th.even { background-color: white; }
+#details table.details th.odd { background-color: #eee; }
+
+#details table.details td {
+  padding-left:			8px;
+  padding-bottom:		3px;
+  border-bottom:		1px dotted #ddd;
+  width:			60%;
+}
+
+#details hr {
+  margin-top:			48px;
+  margin-bottom:		12px;
+  height:			1px;
+  border-color:			#bbb;
+  border-width:			0pt 0pt 1px;
+  padding:			0.5em;
+  border-style:			none none dashed;
+}
+
+.details-block {
+  border-top: 1px solid #eeeeee;
+}
+
+#details ul.context-nav {
+  float:		left;
+  width: 		100%;
+  padding:		0;
+  margin:		0;
+  list-style-type:	none;
+  border-bottom:	6px solid #eee;
+  margin-bottom:	2ex;
+}
+
+#details ul.context-nav li a {
+  float: 		left;
+  text-decoration:	none;
+  background-color:	#d6d6d6;
+  padding:		1ex 2ex;
+  text-align:		center;
+  margin-right:		3px;
+
+  -moz-border-radius-topleft:	12px;
+  -moz-border-radius-topright:	12px;
+}
+
+#details ul.context-nav li#active a {
+  color: 		#444;
+  background-color:	#eee;
+  font-weight:		bold;
+}
+
+/** FORMS SECTION **/
+
+input.text {
+  border:			1px solid #8e8e8e;
+  background-color:		#e5f1f4;
+  color:			#444444;
+}
+
+input.submitbutton {
+  float:			right;
+}
+
+form.tableform table th {
+  padding-right:	2ex;
+  text-align:		right;
+}
+
+h2.formsection {
+  color:			#999;
+  font-size:			large;
+  font-weight:			normal;
+
+  border-bottom:		1px solid #999;
+  margin-bottom:		10px;
+  margin-top:			12px;
+
+  text-align:			left;
+  width:			100%;
+}
+
+table.formtable {
+  width: 			100%;
+}
+
+/**** freeipa only below? ****/
+ul.checkboxlist li {
+  list-style: none;
+  margin: 8px 0px;
+}
+
+ul.checkboxlist li input {
+  background-color: 		yellow;
+  height:			1.1em;
+  width:			1.2em;
+  border:			1px solid red;
+}
+
+table.formtable th, table.formtable td {
+  vertical-align:		top;
+  padding-bottom:		10px;
+}
+
+table.formtable th {
+  width:			28%;
+}
+
+input.submitbutton, input.searchbutton, #source_searcharea input.searchbutton {
+  border:			1px outset #aaa;
+  padding: 			2px 1px;
+  margin-bottom:		2px;
+}
+
+table.formtable td input[type="text"], input#criteria {
+  border:			1px inset #dcdcdc;
+  font-size:			medium;
+  padding:			2px 1px;
+}
+
+table.formtable td select {
+  border:			1px inset #dcdcdc;
+  font-size:			small;
+  padding:			2px 1px;
+}
+
+#inactive {
+  background-color:            silver;
+}
+
+/** ALERTS / MESSAGING SECTION **/
+
+#alertbox {
+  width:			100%;
+  padding:			10px 0px;
+  margin-top:			12px;
+  margin-bottom:		18px;
+  vertical-align:		middle;
+
+  -moz-border-radius:		6px;
+  background-color:		#7d7d5b;
+  color:			white;
+}
+
+#alertbox h2 {
+  width:			auto;
+  padding:			0px 16px;
+  float:			left;
+  font-size:			medium;
+  text-transform:		uppercase;
+  color:			white;
+  font-weight:			bold;
+  border:			none;
+}
+
+#alertbox p {
+  padding:			0px 16px;
+  text-align:			center;
+  color:			white;
+  width:			auto;
+}
+
+/**** freeipa only alerts/messaging below ****/
+
+p.empty-message {
+  font-size:			large;
+  font-style:			italic;
+  color:			#888 !important;
+}
+
+div.instructions {
+  padding:			2px 6px;
+  margin-top:			16px;
+  border-top:			1px solid #c0d5f1;
+  border-bottom:		1px solid #c0d5f1;
+  background-color:		#eef4fd;
+}
+
+
+/** OVERVIEW PAGE STYLES **/
+
+.summary {
+  width: 40%;
+  float: left;
+  clear: none;
+  padding-top: 2ex;
+}
+
+.tasks, .search {
+  padding: 3ex;
+  padding-top: 2ex;
+  width: 40%;
+  float: right;
+  background-image:     url('/static/images/template/background-search.png');
+  background-repeat:        repeat-y;
+  background-color: white;
+} 
+
+.summary ul, .tasks ul, ul { margin-top: 1ex; padding-top: 1ex; list-style: square; margin-left: 2ex; }
+.summary ul + ul, .tasks ul + ul { border-top: 1px solid #eee; }
+.search ul { list-style: none; margin-left: 2ex; }
+
+.additional-link {
+  font-size: x-small;
+}
+
+#perspectives h3 a {
+  font-size: x-small;
+  text-transform: none;
+  margin-left: 1ex;
+  font-weight: normal;
+}
+
+/** TURBOGEARS GRID-TABLE-SPECIFIC STYLES **/
+
+.grid td, .grid th {padding:3px;border:none;} 
+.grid .action_cell {text-align:right;} 
+.grid THEAD tr th {text-align:left;background-color:#f0f0f0;color:#333;} 
+.grid .heading img {float:right;margin-left:2px;margin-right:3px;}  
+.grid .heading a {text-decoration:none;color:#333;} 
+.grid td a {text-decoration:none;color:#333;} 
+.grid tr.odd td {background-color:#edf3fe;} 
+.grid tr.even td {background-color:#fff;} 
+.grid .pointer {cursor:pointer;} 
+.grid .column_chooser_link {position:relative;background-color:#e3e3e3;} 
+.grid .column_chooser_link ul {position:absolute;display:none;top:0px;right:-20px;} 
+.grid .column_chooser_list a {width:200px;display:block;padding:3px;background-color:#e3e3e3;} 
+.grid .column_chooser_list a:hover {background-color:#cdcdcd;} 
+.grid .column_chooser_list {padding:0;margin:0;list-style:none;background-color:#e3e3e3;}
+
+
+

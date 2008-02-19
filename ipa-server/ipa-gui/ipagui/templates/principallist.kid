@@ -23,7 +23,7 @@
 <title>Find Service Principals</title>
 </head>
 <body>
-    <h1>Find Service Principals</h1>
+    <h1 class="system">Find Service Principals</h1>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/tablekit.js')}"></script>
     <div id="search">
         <form action="${tg.url('/principal/list')}" method="get">

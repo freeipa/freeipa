@@ -24,7 +24,7 @@
 </head>
 <body>
 
-    <h1>Edit Delegation</h1>
+    <h1 class="accesscontrol">Edit Delegation</h1>
 
     ${form.display(action=tg.url("/delegate/update"), value=delegate,
                    actionname='Update')}

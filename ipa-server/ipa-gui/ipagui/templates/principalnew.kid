@@ -23,7 +23,7 @@
     <title>Add Service Principal</title>
 </head>
 <body>
-    <h1>Add Service Principal</h1>
+    <h1 class="system">Add Service Principal</h1>
 
     ${form.display(action=tg.url('/principal/create'), value=principal)}
 </body>

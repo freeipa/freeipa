@@ -2,7 +2,9 @@ NULL =
 
 appdir = $(IPA_DATA_DIR)/ipagui/static/css
 app_DATA = 			\
-	style.css		\
+	style_freeipa.css	\
+	style_platform.css	\
+	style_platform-objects.css	\
 	$(NULL)
 
 EXTRA_DIST =			\

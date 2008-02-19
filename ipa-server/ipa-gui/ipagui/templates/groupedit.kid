@@ -24,7 +24,7 @@
 </head>
 <body>
   <div id="details">
-          <h1>Edit Group</h1>
+          <h1 class="usergroup">Edit Group</h1>
 <input type="checkbox" id="toggleprotected_checkbox"
           onclick="toggleProtectedFields(this);">
         <span class="small">edit protected fields</span>

@@ -1,0 +1,18 @@
+r/* object h1 styles */
+
+#details h1.overview { background-image: url('/static/images/objects/object-overview.png'); }
+
+#details h1.accesscontrol { background-image: url('/static/images/objects/object-accesscontrol.png'); }
+
+#details h1.user { background-image: url('/static/images/objects/object-user.png'); }
+#details h1.usergroup { background-image: url('/static/images/objects/object-usergroup.png'); }
+
+#details h1.content-overview { background-image: url('/static/images/objects/object-content.png'); }
+#details h1.channel { background-image: url('/static/images/objects/object-channel.png'); }
+#details h1.channel-new { background-image: url('/static/images/objects/object-channel.png'); }
+#details h1.channels { background-image: url('/static/images/objects/object-channels.png'); }
+#details h1.media { background-image: url('/static/images/objects/object-media.png'); }
+
+#details h1.system { background-image: url('/static/images/objects/object-system.png'); }
+#details h1.virtualsystem { background-image: url('/static/images/objects/object-virtualsystem.png'); }
+

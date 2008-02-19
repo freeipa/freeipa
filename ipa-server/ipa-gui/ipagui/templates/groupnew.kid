@@ -24,7 +24,7 @@
 </head>
 <body>
 <div id="details">
-    <h1>Add Group</h1>
+    <h1 class="usergroup">Add Group</h1>
 
     ${form.display(action=tg.url('/group/create'), value=group)}
 </div>

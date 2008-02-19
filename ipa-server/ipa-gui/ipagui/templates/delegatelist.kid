@@ -42,7 +42,7 @@ from ipagui.helpers import ipahelper
     method="post" action="${tg.url('/delegate/edit')}">
     <input type="hidden" id="edit_acistr" name="acistr" value="" />
   </form>
-  <h1>Delegations</h1>
+  <h1 class="accesscontrol">Delegations</h1>
 
   <table id="resultstable" class="details sortable resizable">
     <thead>

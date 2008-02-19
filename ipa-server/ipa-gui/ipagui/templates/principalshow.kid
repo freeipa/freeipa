@@ -45,7 +45,7 @@
          onclick="return confirmDelete();"
     />
 
-  <h1>View Service Principal</h1>
+  <h1 class="system">View Service Principal</h1>
 
     <h2 class="formsection">Principal</h2>
     <table class="formtable" cellpadding="2" cellspacing="0" border="0">

@@ -2,6 +2,7 @@ NULL =
 
 SUBDIRS =			\
         branding		\
+        objects			\
         template		\
         $(NULL)
 

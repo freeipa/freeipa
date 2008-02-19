@@ -31,7 +31,7 @@ edit_url = tg.url('/group/edit', cn=cn)
 from ipagui.helpers import userhelper
 ?>
 <div id="details">
-    <h1>View Group</h1>
+    <h1 class="usergroup">View Group</h1>
 
     <input py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups"
       class="submitbutton" type="button"

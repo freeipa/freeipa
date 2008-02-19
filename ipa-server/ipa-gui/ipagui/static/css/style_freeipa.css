@@ -1,0 +1,64 @@
+/* freeipa-specific styles */
+
+body { background-color: red !important !important; }
+
+#login {
+  float:			right;
+  padding-top:			15px;
+  padding-right:		10px;
+}
+
+#details {
+  border-top:			1px solid #bbdc5f;
+}
+
+#details h1 {
+ background-repeat:		no-repeat;
+ margin-bottom:			18px;
+}
+
+
+#alertbox {
+  background-color:		#6995d5;
+}
+
+#footer {
+  padding-top:			0px;
+  border-top:			none;
+  text-align:			center;
+  margin-left:			auto;
+  margin-right:			auto;
+  width:			30%;
+  padding:			20px 20px;
+}
+
+/*** TableKit CSS - see http://www.millstream.com.au/view/code/tablekit/ **/
+
+.sortcol {
+  cursor: pointer;
+  padding-left: 10px !important;
+  background-repeat: no-repeat !important;
+  background-position: left center !important;
+  text-decoration: underline;
+}
+.sortasc {
+  background-image: url(/static/images/up.gif) !important;
+}
+.sortdesc {
+  background-image: url(/static/images/down.gif) !important;
+}
+
+.warning_message {
+  font-size: 120%;
+  font-weight: bolder;
+}
+
+.fielderror {
+  color: red !important;
+  font-weight: bold;
+}
+
+.requiredfield {
+  background-color: #eebbbb !important;
+}
+

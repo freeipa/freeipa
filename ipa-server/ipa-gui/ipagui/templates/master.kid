@@ -24,7 +24,9 @@
     <title py:replace="''">Your title goes here</title>
     <meta py:replace="item[:]"/>
     <style type="text/css" media="all">
-    @import "${tg.url('/static/css/style.css')}";
+    @import "${tg.url('/static/css/style_platform.css')}";
+    @import "${tg.url('/static/css/style_platform-objects.css')}";
+    @import "${tg.url('/static/css/style_freeipa.css')}";
     </style>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/prototype.js')}"></script>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/scriptaculous.js?load=effects')}"></script>

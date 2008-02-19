@@ -223,6 +223,7 @@ AC_CONFIG_FILES([
     ipa-gui/ipagui/static/images/Makefile
     ipa-gui/ipagui/static/images/template/Makefile
     ipa-gui/ipagui/static/images/branding/Makefile
+    ipa-gui/ipagui/static/images/objects/Makefile
     ipa-gui/ipagui/static/javascript/Makefile
     ipa-gui/ipagui/subcontrollers/Makefile
     ipa-gui/ipagui/templates/Makefile
