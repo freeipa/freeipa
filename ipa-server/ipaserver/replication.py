@@ -31,8 +31,13 @@ class ReplicationManager:
     def __init__(self, hostname, dirman_passwd):
         self.hostname = hostname
         self.dirman_passwd = dirman_passwd
-        self.conn = ipaldap.IPAdmin(hostname)
-        self.conn.do_simple_bind(bindpw=dirman_passwd)
+        try:
+            self.conn = ipaldap.IPAdmin(hostname)
+            self.conn.do_simple_bind(bindpw=dirman_passwd)
+        except ldap.CONNECT_ERROR, e:
+            return None
+        except ldap.SERVER_DOWN, e:
+            return None
 
         self.repl_man_passwd = dirman_passwd
 
@@ -270,7 +275,6 @@ class ReplicationManager:
 
         return done, hasError
 
-
     def wait_for_repl_init(self, conn, agmtdn):
         done = False
         haserror = 0
@@ -288,7 +292,6 @@ class ReplicationManager:
 
         return self.wait_for_repl_init(other_conn, dn)
         
-
     def basic_replication_setup(self, conn, replica_id):
         self.add_replication_manager(conn)
         self.local_replica_config(conn, replica_id)
@@ -300,8 +303,14 @@ class ReplicationManager:
            - the directory manager password needs to be the same on
              both directories.
         """
-        other_conn = ipaldap.IPAdmin(other_hostname)
-        other_conn.do_simple_bind(bindpw=self.dirman_passwd)
+        try:
+            other_conn = ipaldap.IPAdmin(other_hostname)
+            other_conn.do_simple_bind(bindpw=self.dirman_passwd)
+        except ldap.CONNECT_ERROR, e:
+            return None
+        except ldap.SERVER_DOWN, e:
+            return None
+
         self.suffix = ipaldap.IPAdmin.normalizeDN(dsinstance.realm_to_suffix(realm_name))
 
         self.basic_replication_setup(self.conn, 1)
@@ -311,6 +320,3 @@ class ReplicationManager:
         self.setup_agreement(self.conn, other_conn)
         
         return self.start_replication(other_conn)
-        
-        
-

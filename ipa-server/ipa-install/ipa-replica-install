@@ -22,11 +22,12 @@ import sys
 
 import tempfile, os, pwd, traceback, logging, shutil
 from ConfigParser import SafeConfigParser
+import ldap
 
 from ipa import ipautil
 
 from ipaserver import dsinstance, replication, installutils, krbinstance, service
-from ipaserver import httpinstance, ntpinstance, certs
+from ipaserver import httpinstance, ntpinstance, certs, ipaldap
 
 class ReplicaConfig:
     def __init__(self):
@@ -141,14 +142,33 @@ def main():
     config.dir = dir
 
     # get the directory manager password
-    config.dirman_password = get_dirman_password()
+    try:
+        config.dirman_password = get_dirman_password()
+    except KeyboardInterrupt:
+        sys.exit(0)
+
+    # Try out the password
+    try:
+        conn = ipaldap.IPAdmin(config.master_host_name)
+        conn.do_simple_bind(bindpw=config.dirman_password)
+        conn.unbind()
+    except ldap.CONNECT_ERROR, e:
+        sys.exit("\nUnable to connect to LDAP server %s" % config.master_host_name)
+    except ldap.SERVER_DOWN, e:
+        sys.exit("\nUnable to connect to LDAP server %s" % config.master_host_name)
+    except ldap.INVALID_CREDENTIALS, e :
+        sys.exit("\nThe password provided is incorrect for LDAP server %s" % config.master_host_name)
 
     install_ds(config)
     
     repl = replication.ReplicationManager(config.host_name, config.dirman_password)
+    if repl is None:
+        raise RuntimeError("Unable to connect to LDAP server %s." % config.host_name)
     ret = repl.setup_replication(config.master_host_name, config.realm_name)
+    if ret is None:
+        raise RuntimeError("Unable to connect to LDAP server %s." % config.master_host_name)
     if ret != 0:
-        raise RuntimeError("failed to start replication")
+        raise RuntimeError("Failed to start replication")
 
     install_krb(config)
     install_http(config)
