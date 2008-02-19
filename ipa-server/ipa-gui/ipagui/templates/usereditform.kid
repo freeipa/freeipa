@@ -30,7 +30,8 @@
               value="Update User"/>
           <input type="submit" class="submitbutton" name="submit"
               value="Cancel Edit" />
-          <input type="button" class="submitbutton"
+          <input py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups and tg.identity.display_name != value.get('uid')"
+                 type="button" class="submitbutton"
                  value="Delete User"
                  onclick="return confirmDelete();"
                  />
@@ -885,7 +886,8 @@ from ipagui.helpers import ipahelper
               value="Update User"/>
           <input type="submit" class="submitbutton" name="submit"
               value="Cancel Edit" />
-          <input type="button" class="submitbutton"
+          <input py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups and tg.identity.display_name != value.get('uid')"
+                 type="button" class="submitbutton"
                  value="Delete User"
                  onclick="return confirmDelete();"
                  />
