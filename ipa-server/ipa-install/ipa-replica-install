@@ -138,6 +138,18 @@ def main():
     config = ReplicaConfig()
     read_info(dir, config)
     config.host_name = get_host_name()
+    p = filename.split('-')
+    if p[len(p)-1] != config.host_name:
+        try:
+            print "This replica was created for '%s' but this machine is named '%s'" % (p[len(p)-1], config.host_name)
+            yesno = raw_input("This may cause problems. Continue? [Y/n]: ")
+            print ""
+            if not yesno or yesno.lower()[0] == "y":
+                pass
+            else:
+                sys.exit(0)
+        except KeyboardInterrupt:
+            sys.exit(0)
     config.repl_password = ipautil.ipa_generate_password()
     config.dir = dir
 
