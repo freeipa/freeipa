@@ -46,6 +46,8 @@ def parse_options():
                       help="unattended installation never prompts the user")
     parser.add_option("-N", "--no-ntp", action="store_false",
                       help="do not configure ntp", default=True, dest="conf_ntp")
+    parser.add_option("--on-master", dest="on_master", action="store_true",
+                      help="use this option when run on a master", default=False)
 
     options, args = parser.parse_args()
 
@@ -162,7 +164,7 @@ def main():
             {'name':'nss_map_attribute', 'type':'option', 'value':'uniqueMember member'},
             {'name':'base', 'type':'option', 'value':ds.getBaseDN()},
             {'name':'ldap_version', 'type':'option', 'value':'3'}]
-    if not dnsok or options.force:
+    if not dnsok or options.force or options.on_master:
         opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+ds.getServerName()})
 
     opts.append({'name':'empty', 'type':'empty'})
@@ -176,7 +178,7 @@ def main():
     krbctx = krbV.default_context()
     # If we find our domain assume we are properly configured
     #(ex. we are configuring the client side of a Master)
-    if not krbctx.default_realm == ds.getRealmName() or options.force:
+    if not options.on_master and (not krbctx.default_realm == ds.getRealmName() or options.force):
 
         #Configure krb5.conf
         krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
@@ -232,10 +234,26 @@ def main():
     #Modify nsswitch to add nss_ldap
     run(["/usr/sbin/authconfig", "--enableldap", "--update"])
 
+    #Check nss_ldap is working properly
+    if not options.on_master:
+        try:
+            run(["getent", "passwd", "admin"])
+        except Exception, e:
+            print "nss_ldap is not able to use DNS disccovery!"
+            print "Changing configuration to use hardcoded server name: " + ds.getServerName()
+
+            opts = [{'name':'uri', 'type':'option', 'value':'ldap://'+ds.getServerName()},
+                    {'name':'empty', 'type':'empty'}]
+            try:
+                ldapconf.changeConf("/etc/ldap.conf", opts)
+            except Exception, e:
+                print "Configuration failed: " + str(e)
+                return 1
+
     #Modify pam to add pam_krb5
     run(["/usr/sbin/authconfig", "--enablekrb5", "--update"])
 
-    if options.conf_ntp:
+    if options.conf_ntp and not options.on_master:
         ipaclient.ntpconf.config_ntp(ds.getServerName())
 
     print "Client configuration complete."

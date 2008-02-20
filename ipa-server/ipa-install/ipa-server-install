@@ -188,7 +188,7 @@ def read_ds_user():
     print "will give this user/group some permissions in specific paths/files"
     print "to perform server-specific operations."
     print ""
-    
+
     ds_user = ""
     try:
         pwd.getpwnam('dirsrv')
@@ -307,7 +307,7 @@ def main():
     if os.getegid() != 0:
         print "Must be root to setup server"
         return
-    
+
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
@@ -357,7 +357,7 @@ def main():
         host_default = options.host_name
     else:
         host_default = get_fqdn()
-        
+
     if options.unattended:
         try:
             verify_fqdn(host_default)
@@ -397,7 +397,7 @@ def main():
             print "from the one provided on the command line.  Please fix your DNS"
             print "or /etc/hosts file and restart the installation."
             return "-Fatal Error-"
- 
+
     if options.unattended:
         if not ip:
             print "Unable to resolve IP address"
@@ -479,7 +479,7 @@ def main():
     # Restart ds and krb after configurations have been changed
     service.print_msg("restarting the directory server")
     ds.restart()
-    
+
     service.print_msg("restarting the KDC")
     krb.restart()
 
@@ -497,6 +497,14 @@ def main():
     fd.write("server=" + host_name + "\n")
     fd.write("realm=" + realm_name + "\n")
     fd.close()
+
+    # Call client install script
+    try:
+        run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--domain", domain_name, "--server", host_name, "--realm", realm_name])
+    except Exception, e:
+        print "Configuration of client side components failed!"
+        print "ipa-client-install returned: " + str(e)
+        return "-Fatal Error-"
 
     print "=============================================================================="
     print "Setup complete"

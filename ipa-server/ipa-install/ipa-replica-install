@@ -134,7 +134,7 @@ def main():
     installutils.standard_logging_setup("ipareplica-install.log", options.debug)
 
     top_dir, dir = expand_info(filename)
-    
+
     config = ReplicaConfig()
     read_info(dir, config)
     config.host_name = get_host_name()
@@ -172,7 +172,7 @@ def main():
         sys.exit("\nThe password provided is incorrect for LDAP server %s" % config.master_host_name)
 
     install_ds(config)
-    
+
     repl = replication.ReplicationManager(config.host_name, config.dirman_password)
     if repl is None:
         raise RuntimeError("Unable to connect to LDAP server %s." % config.host_name)
@@ -184,7 +184,7 @@ def main():
 
     install_krb(config)
     install_http(config)
-    
+
     # Create a Web Gui instance
     webgui = httpinstance.WebGuiInstance()
     webgui.create_instance()
@@ -195,7 +195,14 @@ def main():
 
     service.restart("dirsrv")
     service.restart("krb5kdc")
-    
+
+    # Call client install script
+    try:
+        run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--domain", config.domain_name, "--server", config.host_name, "--realm", config.realm_name])
+    except Exception, e:
+        print "Configuration of client side components failed!"
+        print "ipa-client-install returned: " + str(e)
+        raise RuntimeError("Failed to configure the client")
 try:
     if not os.geteuid()==0:
         sys.exit("\nYou must be root to run this script.\n")
