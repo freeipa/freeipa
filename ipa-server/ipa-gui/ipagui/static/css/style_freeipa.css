@@ -1,7 +1,5 @@
 /* freeipa-specific styles */
 
-body { background-color: red !important !important; }
-
 #login {
   float:			right;
   padding-top:			15px;
