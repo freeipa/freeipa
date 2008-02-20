@@ -24,7 +24,7 @@
 </head>
 <body>
   <div>
-          <h1>Edit IPA Policy</h1>
+          <h1 class="policy">Edit IPA Policy</h1>
 
   ${form.display(action=tg.url('/ipapolicy/update'), value=ipapolicy)}
 </div>

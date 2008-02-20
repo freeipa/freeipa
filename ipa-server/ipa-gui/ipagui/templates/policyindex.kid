@@ -30,7 +30,7 @@ from ipagui.helpers import ipahelper
 
   <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/tablekit.js')}"></script>
 
-  <h1>Manage Policy</h1>
+  <h1 class="policy">Manage Policy</h1>
 
   <table>
     <tbody>
