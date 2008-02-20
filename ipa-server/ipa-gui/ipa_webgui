@@ -155,6 +155,7 @@ def main():
     pkg_resources.require("ipa_gui")
 
     from turbogears import update_config, start_server
+    from turbogears.config import update
     import cherrypy
     cherrypy.lowercase_api = True
 
@@ -163,9 +164,11 @@ def main():
     if devel:
         update_config(configfile="dev.cfg",
                       modulename="ipagui.config")
+        update( { "i18n.locale_dir": "locales"} )
     else:
         update_config(configfile="/usr/share/ipa/ipa_webgui.cfg",
                       modulename="ipagui.config.app")
+        update( { "i18n.locale_dir": "/usr/share/ipa/locales"} )
 
     from ipagui.controllers import Root
 

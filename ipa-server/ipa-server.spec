@@ -1,6 +1,6 @@
 Name:           ipa-server
 Version:        0.6.0
-Release:        8%{?dist}
+Release:        9%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base
@@ -134,7 +134,9 @@ fi
 %dir %{_usr}/share/ipa/ipa_gui.egg-info
 %{_usr}/share/ipa/ipa_gui.egg-info/*
 %dir %{_usr}/share/ipa/ipaserver
-%dir %{_usr}/share/ipa/ipaserver/*
+%{_usr}/share/ipa/ipaserver/*
+%dir %{_usr}/share/ipa/locales/
+%{_usr}/share/ipa/locales/*
 
 %dir %{python_sitelib}/ipaserver
 %{python_sitelib}/ipaserver/*.py*
@@ -148,6 +150,9 @@ fi
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 
 %changelog
+* Thu Feb  7 2008 Masato Taruishi <taruishi@redhat.com> = 0.6.0-9
+- Internationalize the kid templates and include a Japanese translation.
+
 * Thu Feb  6 2008 Karl MacMillan <kmacmill@redhat.com> = 0.6.0-8
 - Add requirement on ipa-server-selinux
 

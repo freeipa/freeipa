@@ -1,0 +1,10 @@
+You can collect the template pot file by running the following command:
+
+~/ipa-server/ipa-gui$ tg-admin i18n collect
+
+which creates locales/messages.pot. However, unfortunately, the above
+command doesn't work correctly for .kid files unless you apply the
+patch i18n.patch.
+
+If you add a new language translation remember to add the name to
+LINGUAS in Makefile.am.
