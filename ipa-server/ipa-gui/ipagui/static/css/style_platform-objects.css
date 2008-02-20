@@ -16,3 +16,4 @@ r/* object h1 styles */
 #details h1.system { background-image: url('/static/images/objects/object-system.png'); }
 #details h1.virtualsystem { background-image: url('/static/images/objects/object-virtualsystem.png'); }
 
+#details h1.policy { background-image: url('/static/images/objects/object-policy.png'); }

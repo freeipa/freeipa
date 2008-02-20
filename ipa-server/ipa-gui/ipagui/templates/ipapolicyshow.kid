@@ -31,7 +31,7 @@ edit_url = tg.url('/ipapolicy/edit')
 
   <script type="text/javascript" charset="utf-8" src="${tg.url('/static/javascript/tablekit.js')}"></script>
 
-  <h1>Manage IPA Policy</h1>
+  <h1 class="policy">Manage IPA Policy</h1>
     <input class="submitbutton" type="button"
       onclick="document.location.href='${edit_url}'"
       value="Edit Policy" />
