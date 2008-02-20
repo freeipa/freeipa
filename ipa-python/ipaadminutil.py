@@ -24,6 +24,11 @@ import subprocess
 import os
 
 def select_user(counter, users):
+    """counter is the number of User objects in users
+       users is a list of User objects
+
+       This purposely doesn't catch KeyboardInterrupt
+    """
     i = 1
     print "%s entries were found. Which one would you like to display?" % counter
     for ent in users:
@@ -35,12 +40,11 @@ def select_user(counter, users):
             return "q"
         if resp == "0":
             userindex = -1
-            break;
+            break
         try:
             userindex = int(resp) - 1
-            if (userindex >= 0 and userindex <= counter):
-                break;
-            break;
+            if (userindex >= 0 and userindex < counter):
+                break
         except:
             # fall through to the error msg
             pass
@@ -50,6 +54,11 @@ def select_user(counter, users):
     return userindex
 
 def select_group(counter, groups):
+    """counter is the number of Group objects in users
+       users is a list of Group objects
+
+       This purposely doesn't catch KeyboardInterrupt
+    """
     i = 1
     print "%s entries were found. Which one would you like to display?" % counter
     for ent in groups:
@@ -61,11 +70,11 @@ def select_group(counter, groups):
             return "q"
         if resp == "0":
             groupindex = -1
-            break;
+            break
         try:
             groupindex = int(resp) - 1
-            if (groupindex >= 0 and groupindex <= counter):
-                break;
+            if (groupindex >= 0 and groupindex < counter):
+                break
         except:
             # fall through to the error msg
             pass

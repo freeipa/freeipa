@@ -74,7 +74,10 @@ def main():
             print "Please refine your search and try again."
 
         if counter > 1:
-            groupindex = ipaadminutil.select_group(counter, groups)
+            try:
+                groupindex = ipaadminutil.select_group(counter, groups)
+            except KeyboardInterrupt:
+                return 1
             if groupindex == "q":
                 return 0
 

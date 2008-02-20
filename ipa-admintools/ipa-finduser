@@ -97,10 +97,12 @@ def main():
             print "Please refine your search and try again."
 
         if counter > 1:
-            userindex = ipaadminutil.select_user(counter, users)
+            try:
+                userindex = ipaadminutil.select_user(counter, users)
+            except KeyboardInterrupt:
+                return 1
             if userindex == "q":
-                return
-
+                return 0
 
         if userindex >= 0:
             users = [users[userindex]]
