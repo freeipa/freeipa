@@ -425,9 +425,6 @@ class UserController(IPAController):
             turbogears.flash("Something went wrong. You last viewed %s but are trying to update %s" % (kw.get('uid'), edituid))
             raise turbogears.redirect('/user/show', uid=kw.get('uid'))
 
-        # We no longer need this
-        cherrypy.session['uid'] = None
-
         # Fix incoming multi-valued fields we created for the form
         kw = ipahelper.fix_incoming_fields(kw, 'cn', 'cns')
         kw = ipahelper.fix_incoming_fields(kw, 'telephonenumber', 'telephonenumbers')
@@ -617,6 +614,9 @@ class UserController(IPAController):
             return dict(form=user_edit_form, user=kw,
                         user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')
+
+        # We no longer need this
+        cherrypy.session['uid'] = None
 
         turbogears.flash("%s updated!" % kw['uid'])
         raise turbogears.redirect('/user/show', uid=kw['uid'])
