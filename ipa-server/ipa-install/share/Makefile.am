@@ -20,6 +20,7 @@ app_DATA =				\
 	krb.con.template		\
 	krbrealm.con.template		\
 	ntp.conf.server.template 	\
+	ntpd.sysconfig.template 	\
 	preferences.html.template 	\
 	referint-conf.ldif		\
 	dna-posix.ldif			\

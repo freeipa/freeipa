@@ -35,25 +35,34 @@ class NTPInstance(service.Service):
         # or we can get our own pool.
         os = ""
         if ipautil.file_exists("/etc/fedora-release"):
-            os = "fedora."
+            os = "fedora"
         elif ipautil.file_exists("/etc/redhat-release"):
-            os = "rhel."
+            os = "rhel"
 
         sub_dict = { }
-        sub_dict["SERVERA"] = "0.%spool.ntp.org" % os
-        sub_dict["SERVERB"] = "1.%spool.ntp.org" % os
-        sub_dict["SERVERC"] = "2.%spool.ntp.org" % os
+        sub_dict["SERVERA"] = "0.%s.pool.ntp.org" % os
+        sub_dict["SERVERB"] = "1.%s.pool.ntp.org" % os
+        sub_dict["SERVERC"] = "2.%s.pool.ntp.org" % os
 
         ntp_conf = ipautil.template_file(ipautil.SHARE_DIR + "ntp.conf.server.template", sub_dict)
+        ntp_sysconf = ipautil.template_file(ipautil.SHARE_DIR + "ntpd.sysconfig.template", {})
 
         sysrestore.backup_file("/etc/ntp.conf")
+        sysrestore.backup_file("/etc/sysconfig/ntpd")
 
         fd = open("/etc/ntp.conf", "w")
         fd.write(ntp_conf)
         fd.close()
 
-    def __start(self):
+        fd = open("/etc/sysconfig/ntpd", "w")
+        fd.write(ntp_sysconf)
+        fd.close()
+
+    def __stop(self):
         self.backup_state("running", self.is_running())
+        self.stop()
+
+    def __start(self):
         self.start()
 
     def __enable(self):
@@ -61,13 +70,14 @@ class NTPInstance(service.Service):
         self.chkconfig_on()
 
     def create_instance(self):
-        self.step("writing configuration", self.__write_config)
 
         # we might consider setting the date manually using ntpd -qg in case
         # the current time is very far off.
 
-        self.step("starting ntpd", self.__start)
+        self.step("stopping ntpd", self.__stop)
+        self.step("writing configuration", self.__write_config)
         self.step("configuring ntpd to start on boot", self.__enable)
+        self.step("starting ntpd", self.__start)
 
         self.start_creation("Configuring ntpd")
 

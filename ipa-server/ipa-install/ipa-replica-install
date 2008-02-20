@@ -42,6 +42,8 @@ class ReplicaConfig:
 def parse_options():
     from optparse import OptionParser
     parser = OptionParser()
+    parser.add_option("-N", "--no-ntp", dest="conf_ntp", action="store_false",
+                      help="do not configure ntp", default=True)
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="gather extra debugging information")
 
@@ -171,6 +173,12 @@ def main():
     except ldap.INVALID_CREDENTIALS, e :
         sys.exit("\nThe password provided is incorrect for LDAP server %s" % config.master_host_name)
 
+    # Configure ntpd
+    if options.conf_ntp:
+        ntp = ntpinstance.NTPInstance()
+        ntp.create_instance()
+
+    # Configure dirsrv
     install_ds(config)
 
     repl = replication.ReplicationManager(config.host_name, config.dirman_password)
@@ -188,10 +196,6 @@ def main():
     # Create a Web Gui instance
     webgui = httpinstance.WebGuiInstance()
     webgui.create_instance()
-
-    # Configure ntpd
-    ntp = ntpinstance.NTPInstance()
-    ntp.create_instance()
 
     service.restart("dirsrv")
     service.restart("krb5kdc")
@@ -214,4 +218,4 @@ except Exception, e:
     for str in traceback.format_tb(sys.exc_info()[2]):
         message = message + "\n" + str
     logging.debug(message)
-    sys.exit(1)    
+    sys.exit(1)

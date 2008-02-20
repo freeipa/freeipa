@@ -75,6 +75,8 @@ def parse_options():
                       default=False, help="unattended installation never prompts the user")
     parser.add_option("", "--uninstall", dest="uninstall", action="store_true",
                       default=False, help="uninstall an existing installation")
+    parser.add_option("-N", "--no-ntp", dest="conf_ntp", action="store_false",
+                      help="do not configure ntp", default=True)
 
     options, args = parser.parse_args()
 
@@ -320,11 +322,11 @@ def main():
     print "This program will setup the FreeIPA Server."
     print ""
     print "This includes:"
+    print "  * Configure the Network Time Daemon (ntpd)"
     print "  * Create and configure an instance of Directory Server"
     print "  * Create and configure a Kerberos Domain Controller (KDC)"
     print "  * Configure Apache (httpd)"
     print "  * Configure TurboGears"
-    print "  * Configure the Network Time Daemon (ntpd)"
     print ""
     print "To accept the default shown in brackets, press the Enter key."
     print ""
@@ -445,6 +447,11 @@ def main():
         print "The following operations may take some minutes to complete."
         print "Please wait until the prompt is returned."
 
+    # Configure ntpd
+    if options.conf_ntp:
+        ntp = ipaserver.ntpinstance.NTPInstance()
+        ntp.create_instance()
+
     # Create a directory server instance
     ds = ipaserver.dsinstance.DsInstance()
     ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password)
@@ -482,10 +489,6 @@ def main():
 
     service.print_msg("restarting the KDC")
     krb.restart()
-
-    # Configure ntpd
-    ntp = ipaserver.ntpinstance.NTPInstance()
-    ntp.create_instance()
 
     # Set the admin user kerberos password
     ds.change_admin_password(admin_password)
