@@ -73,7 +73,10 @@ class CertDB(object):
         try:
             f=open("/usr/share/ipa/serial","r")
             r = f.readline()
-            self.cur_serial = int(r) + 1
+            try:
+                self.cur_serial = int(r) + 1
+            except ValueError:
+                raise RuntimeError("The value in /usr/share/ipa/serial is not an integer")
             f.close()
         except IOError, e:
             if e.errno == errno.ENOENT:

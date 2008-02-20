@@ -92,10 +92,13 @@ def export_certdb(realm_name, ds_dir, dir, fname, subject):
        fname is the filename of the PKCS#12 file for this cert (minus the .p12).
        subject is the subject of the certificate we are creating
     """
-    ds_ca = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name)))
-    ca = certs.CertDB(dir)
-    ca.create_from_cacert(ds_ca.cacert_fname)
-    ca.create_server_cert("Server-Cert", subject, ds_ca)
+    try:
+        ds_ca = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name)))
+        ca = certs.CertDB(dir)
+        ca.create_from_cacert(ds_ca.cacert_fname)
+        ca.create_server_cert("Server-Cert", subject, ds_ca)
+    except Exception, e:
+        raise e
 
     pkcs12_fname = dir + "/" + fname + ".p12"
     passwd_fname = dir + "/pwdfile.txt"
