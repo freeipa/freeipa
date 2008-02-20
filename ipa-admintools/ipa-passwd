@@ -86,19 +86,24 @@ def main():
 
     print "Changing password for %s" % principal
 
-    while (match != True):
-        # No syntax checking of the password is required because that is done
-        # on the server side
-        password = getpass.getpass("  New Password: ")
-        confirm = getpass.getpass("  Confirm Password: ")
-        if (password != confirm):
-            print "Passwords do not match"
-            match = False
-        elif (len(password) < 1):
-            print "Password cannot be empty"
-            match = False
-        else:
-            match = True
+    try:
+        while (match != True):
+            # No syntax checking of the password is required because that is
+            # done on the server side
+            password = getpass.getpass("  New Password: ")
+            confirm = getpass.getpass("  Confirm Password: ")
+            if (password != confirm):
+                print "Passwords do not match"
+                match = False
+            elif (len(password) < 1):
+                print "Password cannot be empty"
+                match = False
+            else:
+                match = True
+    except KeyboardInterrupt:
+        print ""
+        print "Password change cancelled"
+        return 1
 
     try:
         client = ipaclient.IPAClient()
