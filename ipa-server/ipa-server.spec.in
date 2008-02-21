@@ -1,6 +1,6 @@
 Name:           ipa-server
 Version:        VERSION
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base
@@ -129,6 +129,7 @@ fi
 %config(noreplace) %{_sysconfdir}/ipa/html/unauthorized.html
 %{_usr}/share/ipa/ipa_webgui.cfg
 %{_usr}/share/ipa/ipa.conf
+%{_usr}/share/ipa/ipa-rewrite.conf
 %dir %{_usr}/share/ipa/ipagui
 %{_usr}/share/ipa/ipagui/*
 %dir %{_usr}/share/ipa/ipa_gui.egg-info
@@ -150,6 +151,9 @@ fi
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 
 %changelog
+* Thu Feb 21 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-2
+- package new file ipa-rewrite.conf
+
 * Thu Feb 21 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-1
 - Version bump for release
 

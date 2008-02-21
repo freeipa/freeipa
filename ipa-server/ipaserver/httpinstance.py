@@ -64,6 +64,7 @@ class HTTPInstance(service.Service):
         
         self.step("disabling mod_ssl in httpd", self.__disable_mod_ssl)
         self.step("Setting mod_nss port to 443", self.__set_mod_nss_port)
+        self.step("Adding URL rewriting rules", self.__add_include)
         self.step("configuring httpd", self.__configure_http)
         self.step("creating a keytab for httpd", self.__create_http_keytab)
         self.step("Setting up ssl", self.__setup_ssl)
@@ -122,8 +123,13 @@ class HTTPInstance(service.Service):
         sysrestore.backup_file("/etc/httpd/conf.d/ipa.conf")
         http_fd = open("/etc/httpd/conf.d/ipa.conf", "w")
         http_fd.write(http_txt)
-        http_fd.close()                
+        http_fd.close()
 
+        http_txt = ipautil.template_file(ipautil.SHARE_DIR + "ipa-rewrite.conf", self.sub_dict)
+        sysrestore.backup_file("/etc/httpd/conf.d/ipa-rewrite.conf")
+        http_fd = open("/etc/httpd/conf.d/ipa-rewrite.conf", "w")
+        http_fd.write(http_txt)
+        http_fd.close()
 
     def __disable_mod_ssl(self):
         if os.path.exists(SSL_CONF):
@@ -133,7 +139,12 @@ class HTTPInstance(service.Service):
     def __set_mod_nss_port(self):
         sysrestore.backup_file(NSS_CONF)
         if installutils.update_file(NSS_CONF, '8443', '443') != 0:
-            print "Updating %s failed." % NSS_CONF
+            print "Updating port in %s failed." % NSS_CONF
+
+    def __add_include(self):
+        """This should run after __set_mod_nss_port so is already backed up"""
+        if installutils.update_file(NSS_CONF, '</VirtualHost>', 'Include conf.d/ipa-rewrite.conf\n</VirtualHost>') != 0:
+            print "Adding Include conf.d/ipa-rewrite to %s failed." % NSS_CONF
 
     def __setup_ssl(self):
         ds_ca = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(self.realm)))
