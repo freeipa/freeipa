@@ -145,7 +145,10 @@ rpm-ipa-client:
 
 rpms: rpmroot rpm-ipa-server rpm-ipa-admin rpm-ipa-python rpm-ipa-client
 
-dist: version-update archive tarballs archive-cleanup rpms
+repodata:
+	-createrepo -p dist
+
+dist: version-update archive tarballs archive-cleanup rpms repodata
 
 local-dist: autogen clean version-update local-archive tarballs archive-cleanup rpms
 
