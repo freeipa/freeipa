@@ -157,6 +157,7 @@ def main():
     opts.append({'name':'empty', 'type':'empty'})
 
     ipaconf.newConf("/etc/ipa/ipa.conf", opts)
+    print "Created /etc/ipa/ipa.conf"
 
     # Configure ldap.conf
     ldapconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
@@ -175,6 +176,7 @@ def main():
     opts.append({'name':'empty', 'type':'empty'})
     try:
         ldapconf.newConf("/etc/ldap.conf", opts)
+        print "Configured /etc/ldap.conf"
     except Exception, e:
         print "Configuration failed: " + str(e)
         return 1
@@ -235,9 +237,11 @@ def main():
         opts.append({'name':'appdefaults', 'type':'section', 'value':appopts})
 
         krbconf.newConf("/etc/krb5.conf", opts);
+        print "Configured /etc/krb5.conf for IPA realm " + ds.getRealmName()
 
     #Modify nsswitch to add nss_ldap
     run(["/usr/sbin/authconfig", "--enableldap", "--update"])
+    print "LDAP enabled"
 
     #Check nss_ldap is working properly
     if not options.on_master:
@@ -257,9 +261,11 @@ def main():
 
     #Modify pam to add pam_krb5
     run(["/usr/sbin/authconfig", "--enablekrb5", "--update"])
+    print "Kerberos 5 enabled"
 
     if options.conf_ntp and not options.on_master:
         ipaclient.ntpconf.config_ntp(ds.getServerName())
+        print "NTP enabled"
 
     print "Client configuration complete."
 

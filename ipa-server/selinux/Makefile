@@ -19,6 +19,7 @@ maintainer-clean: clean
 distclean: clean
 
 install: all
+	install -d $(POLICY_DIR)
 	install -m 644 ipa_webgui/ipa_webgui.pp $(POLICY_DIR)
 	install -m 644 ipa_kpasswd/ipa_kpasswd.pp $(POLICY_DIR)
 
