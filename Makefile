@@ -86,30 +86,32 @@ archive-cleanup:
 	rm -fr dist/freeipa
 
 tarballs:
+	-mkdir -p dist/sources
+
         # ipa-server
 	mv dist/freeipa/ipa-server dist/$(SERV_TARBALL_PREFIX)
-	rm -f dist/$(SERV_TARBALL)
+	rm -f dist/sources/$(SERV_TARBALL)
 	cd dist/$(SERV_TARBALL_PREFIX); ./autogen.sh; make distclean
-	cd dist; tar cfz $(SERV_TARBALL) $(SERV_TARBALL_PREFIX)
+	cd dist; tar cfz sources/$(SERV_TARBALL) $(SERV_TARBALL_PREFIX)
 	rm -fr dist/$(SERV_TARBALL_PREFIX)
 
         # ipa-admintools
 	mv dist/freeipa/ipa-admintools dist/$(ADMIN_TARBALL_PREFIX)
-	rm -f dist/$(ADMIN_TARBALL)
-	cd dist; tar cfz $(ADMIN_TARBALL) $(ADMIN_TARBALL_PREFIX)
+	rm -f dist/sources/$(ADMIN_TARBALL)
+	cd dist; tar cfz sources/$(ADMIN_TARBALL) $(ADMIN_TARBALL_PREFIX)
 	rm -fr dist/$(ADMIN_TARBALL_PREFIX)
 
         # ipa-python
 	mv dist/freeipa/ipa-python dist/$(PYTHON_TARBALL_PREFIX)
-	rm -f dist/$(PYTHON_TARBALL)
-	cd dist; tar cfz $(PYTHON_TARBALL) $(PYTHON_TARBALL_PREFIX)
+	rm -f dist/sources/$(PYTHON_TARBALL)
+	cd dist; tar cfz sources/$(PYTHON_TARBALL) $(PYTHON_TARBALL_PREFIX)
 	rm -fr dist/$(PYTHON_TARBALL_PREFIX)
 
         # ipa-client
 	mv dist/freeipa/ipa-client dist/$(CLI_TARBALL_PREFIX)
-	rm -f dist/$(CLI_TARBALL)
+	rm -f dist/sources/$(CLI_TARBALL)
 	cd dist/$(CLI_TARBALL_PREFIX); ./autogen.sh; make distclean
-	cd dist; tar cfz $(CLI_TARBALL) $(CLI_TARBALL_PREFIX)
+	cd dist; tar cfz sources/$(CLI_TARBALL) $(CLI_TARBALL_PREFIX)
 	rm -fr dist/$(CLI_TARBALL_PREFIX)
 
 rpmroot:
@@ -119,31 +121,35 @@ rpmroot:
 	mkdir -p $(RPMBUILD)/SPECS
 	mkdir -p $(RPMBUILD)/SRPMS
 
+rpmdistdir:
+	mkdir -p dist/rpms
+	mkdir -p dist/srpms
+
 rpm-ipa-server:
-	cp dist/$(SERV_TARBALL) $(RPMBUILD)/SOURCES/.
+	cp dist/sources/$(SERV_TARBALL) $(RPMBUILD)/SOURCES/.
 	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa-server/freeipa-server.spec
-	cp rpmbuild/RPMS/*/$(PRJ_PREFIX)-server-$(SERV_VERSION)-*.rpm dist/.
-	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-server-$(SERV_VERSION)-*.src.rpm dist/.
+	cp rpmbuild/RPMS/*/$(PRJ_PREFIX)-server-$(SERV_VERSION)-*.rpm dist/rpms/
+	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-server-$(SERV_VERSION)-*.src.rpm dist/srpms/
 
 rpm-ipa-admin:
-	cp dist/$(ADMIN_TARBALL) $(RPMBUILD)/SOURCES/.
+	cp dist/sources/$(ADMIN_TARBALL) $(RPMBUILD)/SOURCES/.
 	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa-admintools/freeipa-admintools.spec
-	cp rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-admintools-$(ADMIN_VERSION)-*.rpm dist/.
-	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-admintools-$(ADMIN_VERSION)-*.src.rpm dist/.
+	cp rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-admintools-$(ADMIN_VERSION)-*.rpm dist/rpms/
+	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-admintools-$(ADMIN_VERSION)-*.src.rpm dist/srpms/
 
 rpm-ipa-python:
-	cp dist/$(PYTHON_TARBALL) $(RPMBUILD)/SOURCES/.
+	cp dist/sources/$(PYTHON_TARBALL) $(RPMBUILD)/SOURCES/.
 	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa-python/freeipa-python.spec
-	cp rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-python-$(PYTHON_VERSION)-*.rpm dist/.
-	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-python-$(PYTHON_VERSION)-*.src.rpm dist/.
+	cp rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-python-$(PYTHON_VERSION)-*.rpm dist/rpms/
+	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-python-$(PYTHON_VERSION)-*.src.rpm dist/srpms/
 
 rpm-ipa-client:
-	cp dist/$(CLI_TARBALL) $(RPMBUILD)/SOURCES/.
+	cp dist/sources/$(CLI_TARBALL) $(RPMBUILD)/SOURCES/.
 	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa-client/freeipa-client.spec
-	cp rpmbuild/RPMS/*/$(PRJ_PREFIX)-client-$(CLI_VERSION)-*.rpm dist/.
-	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-client-$(CLI_VERSION)-*.src.rpm dist/.
+	cp rpmbuild/RPMS/*/$(PRJ_PREFIX)-client-$(CLI_VERSION)-*.rpm dist/rpms/
+	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-client-$(CLI_VERSION)-*.src.rpm dist/srpms/
 
-rpms: rpmroot rpm-ipa-server rpm-ipa-admin rpm-ipa-python rpm-ipa-client
+rpms: rpmroot rpmdistdir rpm-ipa-server rpm-ipa-admin rpm-ipa-python rpm-ipa-client
 
 repodata:
 	-createrepo -p dist
