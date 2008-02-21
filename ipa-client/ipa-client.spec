@@ -1,6 +1,6 @@
 Name:           ipa-client
-Version:        0.6.0
-Release:        3%{?dist}
+Version:        0.99.0
+Release:        1%{?dist}
 Summary:        IPA client
 
 Group:          System Environment/Base
@@ -47,6 +47,9 @@ rm -rf %{buildroot}
 %{python_sitelib}/ipaclient/*.py*
 
 %changelog
+* Thu Feb 21 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-1
+- Version bump for release
+
 * Thu Jan 31 2008 Rob Crittenden <rcritten@redhat.com> - 0.6.0-3
 - Marked with wrong license. IPA is GPLv2.
 

@@ -1,6 +1,6 @@
 Name:           ipa-python
 Version:        VERSION
-Release:        4%{?dist}
+Release:        1%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base
@@ -35,6 +35,9 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/ipa/ipa.conf
 
 %changelog
+* Thu Feb 21 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-1
+- Version bump for release
+
 * Thu Jan 31 2008 Rob Crittenden <rcritten@redhat.com> - 0.6.0-4
 - Marked with wrong license. IPA is GPLv2.
 

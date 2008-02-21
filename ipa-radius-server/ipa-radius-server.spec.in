@@ -1,6 +1,6 @@
 Name:           ipa-radius-server
 Version:        VERSION
-Release:        3%{?dist}
+Release:        1%{?dist}
 Summary:        IPA authentication server - radius plugin
 
 Group:          System Environment/Base
@@ -42,6 +42,9 @@ rm -rf %{buildroot}
 %{_usr}/share/ipa/ipaserver/plugins/*
 
 %changelog
+* Thu Feb 21 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-1
+- Version bump for release
+
 * Thu Jan 31 2008 Rob Crittenden <rcritten@redhat.com> - 0.6.0-3
 - Marked with wrong license. IPA is GPLv2.
 
