@@ -241,6 +241,9 @@ from ipagui.helpers import ipahelper
           <span py:replace="user_fields.nsAccountLock.display(value_for(user_fields.nsAccountLock))" />
           <span py:if="tg.errors.get('nsAccountLock')" class="fielderror"
                     py:content="tg.errors.get('nsAccountLock')" />
+          <script py:if="tg.identity.display_name == value.get('uid')" type="text/javascript">
+              document.getElementById('form_nsAccountLock').disabled = true;
+          </script>
         </td>
       </tr>
 
@@ -712,7 +715,7 @@ from ipagui.helpers import ipahelper
         <td valign="top">
           <div>
             <span id='manager_select_cn'>${value_for(user_fields.manager_cn)}</span>
-            <span id='manager_links'>
+            <span py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups or tg.identity.display_name != value.get('uid')" id='manager_links'>
               <a href="#" onclick="return clearSelect('manager');">clear</a>
               <a href="#" onclick="return startSelect('manager');">change</a>
             </span>
