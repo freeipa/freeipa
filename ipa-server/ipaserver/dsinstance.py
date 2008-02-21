@@ -1,4 +1,5 @@
 # Authors: Karl MacMillan <kmacmillan@mentalrootkit.com>
+#          Simo Sorce <ssorce@redhat.com>
 #
 # Copyright (C) 2007  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -119,7 +120,7 @@ class DsInstance(service.Service):
         self.domain = domain_name
         self.pkcs12_info = pkcs12_info
         self.__setup_sub_dict()
-        
+
         self.step("creating directory server user", self.__create_ds_user)
         self.step("creating directory server instance", self.__create_instance)
         self.step("adding default schema", self.__add_default_schemas)
@@ -277,7 +278,7 @@ class DsInstance(service.Service):
         conn.modify_s("cn=config", mod)
 
         entry = ipaldap.Entry("cn=RSA,cn=encryption,cn=config")
-        
+
         entry.setValues("objectclass", "top", "nsEncryptionModule")
         entry.setValues("cn", "RSA")
         entry.setValues("nsSSLPersonalitySSL", "Server-Cert")
@@ -285,12 +286,12 @@ class DsInstance(service.Service):
         entry.setValues("nsSSLActivation", "on")
 
         conn.addEntry(entry)
-        
+
         conn.unbind()
 
     def __add_default_layout(self):
         self.__ldap_mod("bootstrap-template.ldif", self.sub_dict)
-        
+
     def __create_indices(self):
         self.__ldap_mod("indices.ldif")
 
