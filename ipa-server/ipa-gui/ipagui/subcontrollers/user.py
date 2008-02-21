@@ -113,27 +113,27 @@ class UserController(IPAController):
            it is None it will cause an error to be thrown."""
 
         # Load potential multi-valued fields
-        if isinstance(user_dict['cn'], str):
+        if isinstance(user_dict['cn'], basestring):
             user_dict['cn'] = [user_dict['cn']]
         user_dict['cns'] = ipahelper.setup_mv_fields(user_dict['cn'], 'cn')
 
-        if isinstance(user_dict.get('telephonenumber',''), str):
+        if isinstance(user_dict.get('telephonenumber',''), basestring):
             user_dict['telephonenumber'] = [user_dict.get('telephonenumber')]
         user_dict['telephonenumbers'] = ipahelper.setup_mv_fields(user_dict.get('telephonenumber'), 'telephonenumber')
 
-        if isinstance(user_dict.get('facsimiletelephonenumber',''), str):
+        if isinstance(user_dict.get('facsimiletelephonenumber',''), basestring):
             user_dict['facsimiletelephonenumber'] = [user_dict.get('facsimiletelephonenumber')]
         user_dict['facsimiletelephonenumbers'] = ipahelper.setup_mv_fields(user_dict.get('facsimiletelephonenumber'), 'facsimiletelephonenumber')
 
-        if isinstance(user_dict.get('mobile',''), str):
+        if isinstance(user_dict.get('mobile',''), basestring):
             user_dict['mobile'] = [user_dict.get('mobile')]
         user_dict['mobiles'] = ipahelper.setup_mv_fields(user_dict.get('mobile'), 'mobile')
 
-        if isinstance(user_dict.get('pager',''), str):
+        if isinstance(user_dict.get('pager',''), basestring):
             user_dict['pager'] = [user_dict.get('pager')]
         user_dict['pagers'] = ipahelper.setup_mv_fields(user_dict.get('pager'), 'pager')
 
-        if isinstance(user_dict.get('homephone',''), str):
+        if isinstance(user_dict.get('homephone',''), basestring):
             user_dict['homephone'] = [user_dict.get('homephone')]
         user_dict['homephones'] = ipahelper.setup_mv_fields(user_dict.get('homephone'), 'homephone')
 

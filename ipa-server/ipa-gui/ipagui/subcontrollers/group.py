@@ -239,7 +239,7 @@ class GroupController(IPAController):
             # if cancelling need to use the original group because the one
             # in kw may not exist yet.
             cn = orig_group_dict.get('cn')
-            if (isinstance(cn,str)):
+            if (isinstance(cn,basestring)):
                 cn = [cn]
             turbogears.flash("Edit group cancelled")
             raise turbogears.redirect('/group/show', cn=cn[0])

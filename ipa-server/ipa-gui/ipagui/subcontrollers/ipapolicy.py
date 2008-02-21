@@ -90,11 +90,11 @@ class IPAPolicyController(IPAController):
             ipapolicy_dict.update(password_dict)
 
             # Load potential multi-valued fields
-            if isinstance(ipapolicy_dict.get('ipauserobjectclasses',''), str):
+            if isinstance(ipapolicy_dict.get('ipauserobjectclasses',''), basestring):
                 ipapolicy_dict['ipauserobjectclasses'] = [ipapolicy_dict.get('ipauserobjectclasses')]
             ipapolicy_dict['userobjectclasses'] = ipahelper.setup_mv_fields(ipapolicy_dict.get('ipauserobjectclasses'), 'ipauserobjectclasses')
 
-            if isinstance(ipapolicy_dict.get('ipagroupobjectclasses',''), str):
+            if isinstance(ipapolicy_dict.get('ipagroupobjectclasses',''), basestring):
                 ipapolicy_dict['ipagroupobjectclasses'] = [ipapolicy_dict.get('ipagroupobjectclasses')]
             ipapolicy_dict['groupobjectclasses'] = ipahelper.setup_mv_fields(ipapolicy_dict.get('ipagroupobjectclasses'), 'ipagroupobjectclasses')
 

@@ -107,7 +107,7 @@ class DelegationController(IPAController):
             new_aci.source_group = kw.get('source_group_dn')
             new_aci.dest_group = kw.get('dest_group_dn')
             new_aci.attrs = kw.get('attrs')
-            if isinstance(new_aci.attrs, str):
+            if isinstance(new_aci.attrs, basestring):
                 new_aci.attrs = [new_aci.attrs]
 
             # Look for an existing ACI of the same name
@@ -211,6 +211,8 @@ class DelegationController(IPAController):
             new_aci.source_group = kw.get('source_group_dn')
             new_aci.dest_group = kw.get('dest_group_dn')
             new_aci.attrs = kw.get('attrs')
+            if isinstance(new_aci.attrs, basestring):
+                new_aci.attrs = [new_aci.attrs]
             new_aci_str = new_aci.export_to_string()
 
             new_aci_str_list = copy.copy(aci_str_list)
