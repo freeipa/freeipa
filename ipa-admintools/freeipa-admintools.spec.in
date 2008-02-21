@@ -10,7 +10,7 @@ Source0:        %{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: 	noarch
 
-Requires: python freeipa-python
+Requires: python python-krbV freeipa-python
 
 %description
 FreeIPA is a server for identity, policy, and audit.
