@@ -127,6 +127,7 @@ class DsInstance(service.Service):
         self.step("enabling memberof plugin", self.__add_memberof_module)
         self.step("enabling referential integrity plugin", self.__add_referint_module)
         self.step("enabling distributed numeric assignment plugin", self.__add_dna_module)
+        self.step("configuring uniqueness plugin", self.__set_unique_attrs)
         self.step("creating indices", self.__create_indices)
         self.step("configuring ssl for ds instance", self.__enable_ssl)
         self.step("configuring certmap.conf", self.__certmap_conf)
@@ -246,6 +247,9 @@ class DsInstance(service.Service):
 
     def __add_dna_module(self):
         self.__ldap_mod("dna-conf.ldif")
+
+    def __set_unique_attrs(self):
+        self.__ldap_mod("unique-attributes.ldif", self.sub_dict)
 
     def __config_uidgid_gen_first_master(self):
         self.__ldap_mod("dna-posix.ldif", self.sub_dict)

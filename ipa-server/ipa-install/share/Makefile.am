@@ -26,6 +26,7 @@ app_DATA =				\
 	dna-posix.ldif			\
 	master-entry.ldif		\
 	memberof-task.ldif		\
+	unique-attributes.ldif		\
 	$(NULL)
 
 EXTRA_DIST =				\
