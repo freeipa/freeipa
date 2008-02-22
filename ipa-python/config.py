@@ -23,6 +23,7 @@ from optparse import OptionParser
 import krbV
 import socket
 import ipa.dnsclient
+import re
 
 class IPAConfigError(Exception):
     def __init__(self, msg=''):
@@ -37,7 +38,7 @@ class IPAConfigError(Exception):
 class IPAConfig:
     def __init__(self):
         self.default_realm = None
-        self.default_server = None
+        self.default_server = []
 
     def get_realm(self):
         if self.default_realm:
@@ -62,7 +63,8 @@ def __parse_config():
         if not config.default_realm:
             config.default_realm = p.get("defaults", "realm")
         if not config.default_server:
-            config.default_server = p.get("defaults", "server")
+            s = p.get("defaults", "server")
+            config.default_server = re.sub("\s+", "", s).split(',')
     except:
         pass
 
@@ -95,12 +97,12 @@ def __discover_config():
             for r in rs:
                 if r.dns_type == ipa.dnsclient.DNS_T_SRV:
                     rsrv = r.rdata.server.rstrip(".")
-                    # we take only the first one returned for now
-                    config.default_server = rsrv
-                    return True
+                    config.default_server.append(rsrv)
 
-        #if none found
-        return False
+        if config.default_server:
+            return True
+        else:
+            return False
     except:
         return False
 

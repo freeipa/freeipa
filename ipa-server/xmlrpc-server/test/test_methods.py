@@ -24,7 +24,8 @@ from ipa import config
 
 ipa.config.init_config()
 
-url = "http://" + config.config.get_server() + "/ipa"
+serverlist = config.config.get_server()
+url = "http://" + serverlist[0] + "/ipa"
 s = xmlrpclib.Server(url, KerbTransport())
 
 print "A list of all methods available on the server."

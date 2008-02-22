@@ -20,6 +20,7 @@
 import xmlrpclib
 import socket
 import config
+import errno
 from krbtransport import KerbTransport
 from kerberos import GSSError
 from ipa import ipaerror, ipautil
@@ -31,16 +32,34 @@ from ipa import config
 class RPCClient:
 
     def __init__(self):
+        self.server = None
         config.init_config()
     
-    def server_url(self):
+    def server_url(self, server):
         """Build the XML-RPC server URL from our configuration"""
-        return "https://" + config.config.get_server() + "/ipa"
+        return "https://" + server + "/ipa"
     
     def setup_server(self):
         """Create our XML-RPC server connection using kerberos
            authentication"""
-        return xmlrpclib.ServerProxy(self.server_url(), KerbTransport())
+        if not self.server:
+            serverlist = config.config.get_server()
+
+            # Try each server until we succeed or run out of servers to try
+            # Guaranteed by ipa.config to have at least 1 in the list
+            for s in serverlist:
+                try:
+                    self.server = s
+                    remote = xmlrpclib.ServerProxy(self.server_url(s), KerbTransport())
+                    result = remote.ping()
+                    break
+                except socket.error, e:
+                    if (e[0] == errno.ECONNREFUSED) or (e[0] == errno.ECONNREFUSED) or (e[0] == errno.EHOSTDOWN) or (e[0] == errno.EHOSTUNREACH):
+                        continue
+                    else:
+                        raise e
+
+        return xmlrpclib.ServerProxy(self.server_url(self.server), KerbTransport())
     
 # Higher-level API
 

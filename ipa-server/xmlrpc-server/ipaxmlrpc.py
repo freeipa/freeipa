@@ -91,6 +91,7 @@ class ModXMLRPCRequestHandler(object):
         self.funcs = {}
         self.traceback = False
         #introspection functions
+        self.register_function(self.ping, name="ping")
         self.register_function(self.list_api, name="_listapi")
         self.register_function(self.system_listMethods, name="system.listMethods")
         self.register_function(self.system_methodSignature, name="system.methodSignature")
@@ -239,6 +240,10 @@ class ModXMLRPCRequestHandler(object):
                           'doc': func.__doc__,
                           'args': args})
         return funcs
+
+    def ping(self,opts):
+        """Simple test to see if the XML-RPC is up and active."""
+        return "pong"
 
     def _getFuncArgs(self, func):
         args = []
