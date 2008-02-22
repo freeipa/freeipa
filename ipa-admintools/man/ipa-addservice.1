@@ -21,14 +21,14 @@
 ipa\-addservice \- Add a service principal
 
 .SH "SYNOPSIS"
-ipa\-adduser \fIprincipal\fR
+ipa\-addservice \fIprincipal\fR
 
 .SH "DESCRIPTION"
 Adds a service principal \fIprincipal\fR.
 
 The principal takes the form of:
 
-service "/" fully\-qualified host name
+service/fully\-qualified\-hostname
 
 The list of possible services is too exhaustive to list here but a short list is:
 
@@ -41,12 +41,12 @@ ldap
 rpc
 snmp
 
-NOTE: It is not necessary to include the kerberos realm.
+The IPA server automatically appends the Kerberos realm for which it is configured. You cannot specify a different realm.
 .SH "EXAMPLES"
-.TP
+.TP 
 ipa\-addservice HTTP/www.example.com
 Add a service principal for a web server
-.TP
+.TP 
 ipa\-addservice host/ipa.example.com
 Add a service principal for the host (for ssh, for example)
 .SH "EXIT STATUS"
