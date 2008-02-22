@@ -138,6 +138,11 @@ INPUT_INVALID_PARAMETER = gen_error_code(
         0x0001,
         "Invalid parameter(s)")
 
+INPUT_SAME_GROUP = gen_error_code(
+        INPUT_CATEGORY,
+        0x0002,
+        "You can't add a group to itself")
+
 #
 # Connection errors
 #

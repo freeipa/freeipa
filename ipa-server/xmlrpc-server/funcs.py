@@ -1258,6 +1258,8 @@ class IPAServer:
         """
         if not member_dn or not group_dn:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if member_dn.lower() == group_dn.lower():
+            raise ipaerror.gen_exception(ipaerror.INPUT_SAME_GROUP)
 
         old_group = self.get_entry_by_dn(group_dn, None, opts)
         if old_group is None:
@@ -1591,13 +1593,15 @@ class IPAServer:
         return res
 
     def add_group_to_group(self, group, tgroup, opts=None):
-        """Add a user to an existing group.
+        """Add a group to an existing group.
            group is a DN of the group to add
            tgroup is the DN of the target group to be added to
         """
 
         if not group or not tgroup:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if group.lower() == tgroup.lower():
+            raise ipaerror.gen_exception(ipaerror.INPUT_SAME_GROUP)
         old_group = self.get_entry_by_dn(tgroup, None, opts)
         if old_group is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
