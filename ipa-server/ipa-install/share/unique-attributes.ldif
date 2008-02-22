@@ -1,0 +1,35 @@
+dn: cn=krbPrincipalName uniqueness,cn=plugins,cn=config
+changetype: add
+objectClass: top
+objectClass: nsSlapdPlugin
+objectClass: extensibleObject
+cn: krbPrincipalName uniqueness
+nsslapd-pluginPath: libattr-unique-plugin
+nsslapd-pluginInitfunc: NSUniqueAttr_Init
+nsslapd-pluginType: preoperation
+nsslapd-pluginEnabled: on
+nsslapd-pluginarg0: krbPrincipalName
+nsslapd-pluginarg1: $SUFFIX
+nsslapd-plugin-depends-on-type: database
+nsslapd-pluginId: NSUniqueAttr
+nsslapd-pluginVersion: 1.1.0
+nsslapd-pluginVendor: Fedora Project
+nsslapd-pluginDescription: Enforce unique attribute values
+
+#dn: cn=uid uniqueness,cn=plugins,cn=config
+#objectClass: top
+#objectClass: nsSlapdPlugin
+#objectClass: extensibleObject
+#cn: uid uniqueness
+#nsslapd-pluginPath: libattr-unique-plugin
+#nsslapd-pluginInitfunc: NSUniqueAttr_Init
+#nsslapd-pluginType: preoperation
+#nsslapd-pluginEnabled: on
+#nsslapd-pluginarg0: uid
+#nsslapd-pluginarg1: cn=accounts,$SUFFIX
+#nsslapd-plugin-depends-on-type: database
+#nsslapd-pluginId: NSUniqueAttr
+#nsslapd-pluginVersion: 1.1.0
+#nsslapd-pluginVendor: Fedora Project
+#nsslapd-pluginDescription: Enforce unique attribute values
+#
