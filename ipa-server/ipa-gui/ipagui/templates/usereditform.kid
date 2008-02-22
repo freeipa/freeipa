@@ -80,7 +80,7 @@ from ipagui.helpers import ipahelper
     }
 
     function warnRDN() {
-      if (confirm("Are you sure you want to change the login name?<br/>This can have unexpected results. A password change is required.")) {
+      if (confirm("Are you sure you want to change the login name?\nThis can have unexpected results. Additionally, a password change will be required.")) {
         return true;
       }
       return false;
