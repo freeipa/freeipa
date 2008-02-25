@@ -677,7 +677,7 @@ class RPCClient:
         """Update the IPA password policy"""
         server = self.setup_server()
         try:
-            result = server.update_password_policy(oldpolicy, newpolicy)
+            result = server.update_password_policy(ipautil.wrap_binary_data(oldpolicy), ipautil.wrap_binary_data(newpolicy))
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):

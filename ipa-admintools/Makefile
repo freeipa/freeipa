@@ -18,6 +18,7 @@ install:
 	install -m 755 ipa-findgroup $(SBINDIR)
 	install -m 755 ipa-modgroup $(SBINDIR)
 	install -m 755 ipa-passwd $(SBINDIR)
+	install -m 755 ipa-pwpolicy $(SBINDIR)
 	install -m 755 ipa-addservice $(SBINDIR)
 	install -m 755 ipa-delservice $(SBINDIR)
 	install -m 755 ipa-findservice $(SBINDIR)

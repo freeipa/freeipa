@@ -1,0 +1,141 @@
+#! /usr/bin/python -E
+# Authors: Rob Crittenden <rcritten@redhat.com>
+#
+# Copyright (C) 2007  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+import sys
+from optparse import OptionParser
+import ipa
+import ipa.entity
+import ipa.ipaclient as ipaclient
+import ipa.config
+
+import xmlrpclib
+import kerberos
+import errno
+import validate
+
+def usage():
+    print "ipa-pwpolicy [--maxlife days] [--minlife hours] [--history number] [--minclasses number] [--minlength number]"
+    print "ipa-pwpolicy --show"
+    sys.exit(1)
+
+def parse_options():
+    parser = OptionParser()
+    parser.add_option("--maxlife", dest="maxlife",
+                      help="Max. Password Lifetime (days)")
+    parser.add_option("--minlife", dest="minlife",
+                      help="Min. Password Lifetime (hours)")
+    parser.add_option("--history", dest="history",
+                      help="Password History Size")
+    parser.add_option("--minclasses", dest="minclasses",
+                      help="Min. Number of Character Classes")
+    parser.add_option("--minlength", dest="minlength",
+                      help="Min. Length of Password")
+    parser.add_option("--show", dest="show", action="store_true",
+                      help="Show the current password policy")
+    parser.add_option("--usage", action="store_true",
+                      help="Program usage")
+
+    args = ipa.config.init_config(sys.argv)
+    options, args = parser.parse_args(args)
+
+    return options, args
+
+def show_policy(client):
+    policy = client.get_password_policy()
+    print "Password Policy"
+    print "Min. Password Lifetime (hours): %s" % policy.getValues('krbminpwdlife')
+    print "Max. Password Lifetime (days): %s" % policy.getValues('krbmaxpwdlife')
+    print "Min. Number of Character Classes: %s" % policy.getValues('krbpwdmindiffchars')
+    print "Min. Length of Password: %s" % policy.getValues('krbpwdminlength')
+    print "Password History Size: %s" % policy.getValues('krbpwdhistorylength')
+
+def update_policy(client, options):
+    if not options.maxlife and not options.minlife and not options.history and not options.minclasses and not options.minlength:
+        usage()
+
+    current = client.get_password_policy()
+
+    new = ipa.entity.Entity(current.toDict())
+
+    if options.maxlife:
+        if validate.is_integer(options.maxlife, min=0):
+            new.setValue('krbmaxpwdlife', options.maxlife)
+    if options.minlife:
+        if validate.is_integer(options.minlife, min=0):
+            new.setValue('krbminpwdlife', options.minlife)
+    if options.history:
+        if validate.is_integer(options.history, min=0):
+            new.setValue('krbpwdhistorylength', options.history)
+    if options.minclasses:
+        if validate.is_integer(options.minclasses, min=0):
+            new.setValue('krbpwdmindiffchars', options.minclasses)
+    if options.minlength:
+        if validate.is_integer(options.minlength, min=0):
+            new.setValue('krbpwdminlength', options.minlength)
+
+    client.update_password_policy(new)
+
+def main():
+    options, args = parse_options()
+
+    if options.usage:
+        usage()
+
+    try:
+        client = ipaclient.IPAClient()
+
+        if options.show: 
+            show_policy(client)
+            return 0
+
+        update_policy(client, options)
+    except xmlrpclib.Fault, fault:
+        if fault.faultCode == errno.ECONNREFUSED:
+            print "The IPA XML-RPC service is not responding."
+        else:
+            print fault.faultString
+        return 1
+    except kerberos.GSSError, e:
+        print "Could not initialize GSSAPI: %s/%s" % (e[0][0], e[0][1])
+        return 1
+    except xmlrpclib.ProtocolError, e:
+        print "Unable to connect to IPA server: %s" % (e.errmsg)
+        return 1
+    except ipa.ipaerror.IPAError, e:
+        print "%s" % (e.message)
+        return 1
+    except validate.VdtTypeError, e:
+        print "%s" % (e.message)
+        return 1
+    except validate.VdtValueTooSmallError, e:
+        print "%s" % (e.message)
+        return 1
+    except KeyboardInterrupt, e:
+        return 1
+       
+    return 0
+
+try:
+    if __name__ == "__main__":
+        sys.exit(main())
+except SystemExit, e:
+    sys.exit(e)
+except KeyboardInterrupt, e:
+    sys.exit(1)
