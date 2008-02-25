@@ -38,6 +38,7 @@ SUBDIRS =			\
 	firefox			\
 	ipaclient		\
 	ipa-install		\
+	man			\
 	$(NULL)
 
 EXTRA_DIST =			\

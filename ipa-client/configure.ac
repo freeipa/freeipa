@@ -167,6 +167,7 @@ AC_CONFIG_FILES([
     firefox/Makefile
     ipaclient/Makefile
     ipa-install/Makefile
+    man/Makefile
 ])
 
 AC_OUTPUT

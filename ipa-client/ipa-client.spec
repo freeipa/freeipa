@@ -1,6 +1,6 @@
 Name:           ipa-client
 Version:        0.99.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        IPA client
 
 Group:          System Environment/Base
@@ -46,7 +46,12 @@ rm -rf %{buildroot}
 %dir %{python_sitelib}/ipaclient
 %{python_sitelib}/ipaclient/*.py*
 
+%{_mandir}/man1/*
+
 %changelog
+* Mon Feb 25 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-2
+- Add ipa-getkeytab man page
+
 * Thu Feb 21 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-1
 - Version bump for release
 
@@ -71,5 +76,3 @@ rm -rf %{buildroot}
 
 * Thu Aug 16 2007 Simo Sorce <ssorce@redhat.com> - 0.1.0-1
 - Initial rpm version
-
-
