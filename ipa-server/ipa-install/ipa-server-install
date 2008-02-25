@@ -210,34 +210,38 @@ def read_ds_user():
 
     return ds_user
 
-def read_domain_name(domain_name):
+def read_domain_name(domain_name, unattended):
     print "The domain name has been calculated based on the host name."
     print ""
-    dn = raw_input("Please confirm the domain name ["+domain_name+"]: ")
-    print ""
-    if dn != "":
-        domain_name = dn
+    if not unattended:
+        dn = raw_input("Please confirm the domain name ["+domain_name+"]: ")
+        print ""
+        if dn != "":
+            domain_name = dn
     return domain_name
 
-def read_realm_name(domain_name):
+def read_realm_name(domain_name, unattended):
     print "The kerberos protocol requires a Realm name to be defined."
     print "This is typically the domain name converted to uppercase."
     print ""
     upper_dom = domain_name.upper()
-    realm_name = raw_input("Please provide a realm name ["+upper_dom+"]: ")
-    print ""
-    if realm_name == "":
+    if unattended:
         realm_name = upper_dom
     else:
-        upper_dom = realm_name.upper()
-    if upper_dom != realm_name:
-        print "It is strongly recommended that you use a completely uppercased name for the realm."
-        dom_realm = raw_input("Do you want to use "+upper_dom+" as realm name ? [yes]: ")
+        realm_name = raw_input("Please provide a realm name ["+upper_dom+"]: ")
         print ""
-        if dom_realm and dom_realm.lower()[0] != "y":
-            print "WARNING: Using a non upper-cased realm name may cause unexpected problems."
-        else:
+        if realm_name == "":
             realm_name = upper_dom
+        else:
+            upper_dom = realm_name.upper()
+        if upper_dom != realm_name:
+            print "It is strongly recommended that you use a completely uppercased name for the realm."
+            dom_realm = raw_input("Do you want to use "+upper_dom+" as realm name ? [yes]: ")
+            print ""
+            if dom_realm and dom_realm.lower()[0] != "y":
+                print "WARNING: Using a non upper-cased realm name may cause unexpected problems."
+            else:
+                realm_name = upper_dom
     return realm_name
 
 def read_dm_password():
@@ -372,10 +376,9 @@ def main():
         host_name = read_host_name(host_default)
 
     if not options.domain_name:
-        domain_name = host_name[host_name.find(".")+1:]
-        domain_name = read_domain_name(domain_name)
+        domain_name = read_domain_name(host_name[host_name.find(".")+1:], options.unattended)
     else:
-        realm_name = options.realm_name
+        domain_name = options.domain_name
 
     # Check we have a public IP that is associated with the hostname
     ip = resolve_host(host_name)
@@ -423,7 +426,7 @@ def main():
         ds_user = options.ds_user
 
     if not options.realm_name:
-        realm_name = read_realm_name(domain_name)
+        realm_name = read_realm_name(domain_name, options.unattended)
     else:
         realm_name = options.realm_name
 
