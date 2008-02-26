@@ -96,7 +96,7 @@ class PrincipalController(IPAController):
             # The realm is added by add_service_principal
             principal_name = utf8_encode_values(service + "/" + kw.get('hostname'))
 
-            rv = client.add_service_principal(principal_name)
+            rv = client.add_service_principal(principal_name, 0)
         except ipaerror.exception_for(ipaerror.LDAP_DUPLICATE):
             turbogears.flash("Service principal '%s' already exists" %
                     principal_name)

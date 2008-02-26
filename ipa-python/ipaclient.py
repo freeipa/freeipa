@@ -381,8 +381,8 @@ class IPAClient:
         result = self.transport.update_password_policy(policy.origDataDict(), policy.toDict())
         return result
 
-    def add_service_principal(self, princ_name):
-        return self.transport.add_service_principal(princ_name)
+    def add_service_principal(self, princ_name, force):
+        return self.transport.add_service_principal(princ_name, force)
 
     def delete_service_principal(self, principal_dn):
         return self.transport.delete_service_principal(principal_dn)

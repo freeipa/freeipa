@@ -704,11 +704,11 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
-    def add_service_principal(self, princ_name):
+    def add_service_principal(self, princ_name, force):
         server = self.setup_server()
     
         try:
-            result = server.add_service_principal(princ_name)
+            result = server.add_service_principal(princ_name, force)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):

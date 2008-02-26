@@ -36,11 +36,16 @@ import getpass
 import errno
 
 def usage():
-    print "ipa-addservice principal"
+    print "ipa-addservice [--force] principal"
     sys.exit(1)
 
 def parse_options():
     parser = OptionParser()
+
+    parser.add_option("--force", action="store_true", default=False,
+                      help="Force a service principal name")
+    parser.add_option("--usage", action="store_true",
+                      help="Program usage")
 
     args = ipa.config.init_config(sys.argv)
     options, args = parser.parse_args(args)
@@ -60,7 +65,7 @@ def main():
     client = ipaclient.IPAClient()
 
     try:
-        client.add_service_principal(princ_name)
+        client.add_service_principal(princ_name, "%d" % options.force)
 
     except Exception, e:
         print str(e)

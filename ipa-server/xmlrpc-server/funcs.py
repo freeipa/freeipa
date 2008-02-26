@@ -30,6 +30,7 @@ from ipa import ipaerror
 from ipa import ipautil
 from urllib import quote,unquote
 from ipa import radius_util
+from ipa import dnsclient
 
 import string
 from types import *
@@ -1702,11 +1703,29 @@ class IPAServer:
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return True
 
-    def add_service_principal(self, name, opts=None):
+    def add_service_principal(self, name, force, opts=None):
         """Given a name of the form: service/FQDN create a service
-           principal for it in the default realm."""
+           principal for it in the default realm.
+
+           Ensure that the principal points at a DNS A record so it will
+           work with Kerberos unless force is set to 1"""
         if not name:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
+        try:
+            f = int(force)
+        except ValueError:
+            f = 1
+        logging.debug("IPA: add service principal %s (%d)" % (name, f))
+
+        if not f:
+            fqdn = name + "."
+            rs = dnsclient.query(fqdn, dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
+            if len(rs) == 0:
+                logging.debug("IPA: DNS A record lookup failed for %s" % name)
+                raise ipaerror.gen_exception(ipaerror.INPUT_NOT_DNS_A_RECORD)
+            else:
+                logging.debug("IPA: found %d records for %s" % (len(rs), name))
 
         service_container = DefaultServiceContainer
 

@@ -143,6 +143,11 @@ INPUT_SAME_GROUP = gen_error_code(
         0x0002,
         "You can't add a group to itself")
 
+INPUT_NOT_DNS_A_RECORD = gen_error_code(
+        INPUT_CATEGORY,
+        0x0003,
+        "The requested hostname is not a DNS A record. This is required by Kerberos.")
+
 #
 # Connection errors
 #

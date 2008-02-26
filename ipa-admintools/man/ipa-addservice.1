@@ -21,8 +21,7 @@
 ipa\-addservice \- Add a service principal
 
 .SH "SYNOPSIS"
-ipa\-addservice \fIprincipal\fR
-
+ipa\-addservice [\fIOPTION\fR]... \fIprincipal\fR
 .SH "DESCRIPTION"
 Adds a service principal \fIprincipal\fR.
 
@@ -42,6 +41,12 @@ rpc
 snmp
 
 The IPA server automatically appends the Kerberos realm for which it is configured. You cannot specify a different realm.
+
+The hostname must resolve to a DNS A record in order to ensure that it will work with Kerberos. Use the \-\-force flag to force the creation of a principal.
+.SH "OPTIONS"
+.TP 
+\fB\-\-force\fR
+Force the creation of the given principal name.
 .SH "EXAMPLES"
 .TP 
 ipa\-addservice HTTP/www.example.com
