@@ -24,6 +24,7 @@ import pwd
 import glob
 import sys
 import os
+import re
 
 from ipa import ipautil
 
@@ -177,9 +178,10 @@ class DsInstance(service.Service):
         self.backup_state("running", self.is_running())
         self.backup_state("serverid", self.serverid)
         inf_txt = ipautil.template_str(INF_TEMPLATE, self.sub_dict)
-        logging.debug(inf_txt)
-        inf_fd = ipautil.write_tmp_file(inf_txt)
         logging.debug("writing inf template")
+        inf_fd = ipautil.write_tmp_file(inf_txt)
+        inf_txt = re.sub(r"RootDNPwd=.*\n", "", inf_txt)
+        logging.debug(inf_txt)
         if ipautil.file_exists("/usr/sbin/setup-ds.pl"):
             args = ["/usr/sbin/setup-ds.pl", "--silent", "--logfile", "-", "-f", inf_fd.name]
             logging.debug("calling setup-ds.pl")
