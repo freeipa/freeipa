@@ -1,0 +1,343 @@
+#! /usr/bin/python -E
+# Authors: Simo Sorce <ssorce@redhat.com>
+#          Karl MacMillan <kmacmillan@mentalrootkit.com>
+#
+# Copyright (C) 2007  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+VERSION = "%prog .1"
+
+import sys
+import os
+import string
+import shutil
+import socket
+import logging
+from optparse import OptionParser
+import ipachangeconf
+import ldap
+from ldap import LDAPError
+
+class ipaserver:
+
+    def __init__(self, server):
+        self.server = server
+        self.realm = None
+        self.domain = None
+        self.basedn = None
+
+    def getServerName(self):
+        return str(self.server)
+
+    def getDomainName(self):
+        return str(self.domain)
+
+    def getRealmName(self):
+        return str(self.realm)
+
+    def getBaseDN(self):
+        return str(self.basedn)
+
+    def check(self):
+    
+        lret = []
+        lres = []
+        lattr = ""
+        linfo = ""
+        lrealms = []
+    
+        i = 0
+    
+        #now verify the server is really an IPA server
+        try:
+            logging.debug("Init ldap with: ldap://"+self.server+":389")
+            lh = ldap.initialize("ldap://"+self.server+":389")
+            lh.simple_bind_s("","")
+    
+            logging.debug("Search rootdse")
+            lret = lh.search_s("", ldap.SCOPE_BASE, "(objectClass=*)")
+            for lattr in lret[0][1]:
+                if lattr.lower() == "namingcontexts":
+                    self.basedn = lret[0][1][lattr][0]
+    
+            logging.debug("Search for (info=*) in "+self.basedn+"(base)")
+            lret = lh.search_s(self.basedn, ldap.SCOPE_BASE, "(info=IPA*)")
+            if not lret:
+                return False
+            logging.debug("Found: "+str(lret))
+    
+            for lattr in lret[0][1]:
+                if lattr.lower() == "info":
+                    linfo = lret[0][1][lattr][0].lower()
+                    break
+    
+            if not linfo:
+                return False
+    
+            #search and return known realms
+            logging.debug("Search for (objectClass=krbRealmContainer) in "+self.basedn+"(sub)")
+            lret = lh.search_s("cn=kerberos,"+self.basedn, ldap.SCOPE_SUBTREE, "(objectClass=krbRealmContainer)")
+            if not lret:
+                #something very wrong
+                return False
+            logging.debug("Found: "+str(lret))
+    
+            for lres in lret:
+                for lattr in lres[1]:
+                    if lattr.lower() == "cn":
+                        lrealms.append(lres[1][lattr][0])
+    
+    
+            if len(lrealms) != 1:
+                #which one? we can't attach to a multi-realm server without DNS working
+                return False
+            else:
+                self.realm = lrealms[0]
+                self.domain = lrealms[0].lower()
+                return True
+    
+        except LDAPError, err:
+            #no good
+            logging.error("Ldap Error: "+str(err))
+            return False
+
+ntp_conf = """# Permit time synchronization with our time source, but do not
+# permit the source to query or modify the service on this system.
+restrict default kod nomodify notrap nopeer noquery
+restrict -6 default kod nomodify notrap nopeer noquery
+
+# Permit all access over the loopback interface.  This could
+# be tightened as well, but to do so would effect some of
+# the administrative functions.
+restrict 127.0.0.1 
+restrict -6 ::1
+
+# Hosts on local network are less restricted.
+#restrict 192.168.1.0 mask 255.255.255.0 nomodify notrap
+
+# Use public servers from the pool.ntp.org project.
+# Please consider joining the pool (http://www.pool.ntp.org/join.html).
+server $SERVER
+
+#broadcast 192.168.1.255 key 42		# broadcast server
+#broadcastclient			# broadcast client
+#broadcast 224.0.1.1 key 42		# multicast server
+#multicastclient 224.0.1.1		# multicast client
+#manycastserver 239.255.254.254		# manycast server
+#manycastclient 239.255.254.254 key 42	# manycast client
+
+# Undisciplined Local Clock. This is a fake driver intended for backup
+# and when no outside source of synchronized time is available. 
+server	127.127.1.0	# local clock
+#fudge	127.127.1.0 stratum 10	
+
+# Drift file.  Put this in a directory which the daemon can write to.
+# No symbolic links allowed, either, since the daemon updates the file
+# by creating a temporary in the same directory and then rename()'ing
+# it to the file.
+driftfile /var/lib/ntp/drift
+
+# Key file containing the keys and key identifiers used when operating
+# with symmetric key cryptography. 
+keys /etc/ntp/keys
+
+# Specify the key identifiers which are trusted.
+#trustedkey 4 8 42
+
+# Specify the key identifier to use with the ntpdc utility.
+#requestkey 8
+
+# Specify the key identifier to use with the ntpq utility.
+#controlkey 8
+"""
+
+def config_ntp(server_fqdn):
+
+    nc = string.replace(ntp_conf, "$SERVER", server_fqdn)
+    
+    shutil.copy("/etc/ntp.conf", "/etc/ntp.conf.ipabkp")
+    
+    fd = open("/etc/ntp.conf", "w")
+    fd.write(nc)
+    fd.close()
+
+    # Set the ntpd to start on boot
+    os.system("/sbin/chkconfig ntpd on")
+    
+    # Restart ntpd
+    os.system("/sbin/service ntpd restart")
+
+def parse_options():
+    parser = OptionParser(version=VERSION)
+    parser.add_option("--server", dest="server", help="IPA server")
+    parser.add_option("-d", "--debug", dest="debug", action="store_true",
+                      default=False, help="print debugging information")
+    parser.add_option("-U", "--unattended", dest="unattended",
+                      action="store_true",
+                      help="unattended installation never prompts the user")
+    parser.add_option("-N", "--no-ntp", action="store_false",
+                      help="do not configure ntp", default=True, dest="conf_ntp")
+
+    options, args = parser.parse_args()
+    if not options.server:
+        parser.error("error: must provide an IPA server name with --server")
+
+    return options
+
+def ask_for_confirmation(message):
+    yesno = raw_input(message + " [y/N]: ")
+    if not yesno or yesno.lower()[0] != "y":
+        return False
+    print "\n"
+    return True
+
+def logging_setup(options):
+    # Always log everything (i.e., DEBUG) to the log
+    # file.
+    logger = logging.getLogger('ipa-client-setup')
+    fh = logging.FileHandler('ipaclient-install.log')
+    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+    
+    # If the debug option is set, also log debug messages to the console
+    if options.debug:
+        logger.setLevel(logging.DEBUG)
+    else:
+        # Otherwise, log critical and error messages
+        logger.setLevel(logging.ERROR)
+
+    return logger
+
+def main():
+    options = parse_options()
+    logger = logging_setup(options)
+    dnsok = True
+
+    ipasrv = ipaserver(options.server)
+
+    ret = ipasrv.check()
+    if ret == False:
+        print "Failed to verify that ["+options.server+"] is an IPA Server, aborting!"
+        return -1
+
+    print "IPA Server verified."
+    print "Realm: "+ipasrv.getRealmName()
+    print "DNS Domain: "+ipasrv.getDomainName()
+    print "IPA Server: "+ipasrv.getServerName()
+    print "BaseDN: "+ipasrv.getBaseDN()
+
+    print "\n"
+    if not options.unattended and not ask_for_confirmation("Continue to configure the system with these values?"):
+        return 1
+
+    # Configure ipa.conf
+    ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+    ipaconf.setOptionAssignment(" = ")
+    ipaconf.setSectionNameDelimiters(("[","]"))
+
+    opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
+            {'name':'empty', 'type':'empty'}]
+
+    #[defaults]
+    defopts = [{'name':'server', 'type':'option', 'value':ipasrv.getServerName()},
+             {'name':'realm', 'type':'option', 'value':ipasrv.getRealmName()}]
+
+    opts.append({'name':'defaults', 'type':'section', 'value':defopts})
+    opts.append({'name':'empty', 'type':'empty'})
+
+    ipaconf.newConf("/etc/ipa/ipa.conf", opts)
+
+    # Configure ldap.conf
+    ldapconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+    ldapconf.setOptionAssignment(" ")
+
+    opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
+            {'name':'empty', 'type':'empty'},
+            {'name':'nss_base_passwd', 'type':'option', 'value':ipasrv.getBaseDN()+'?sub'},
+            {'name':'nss_base_group', 'type':'option', 'value':ipasrv.getBaseDN()+'?sub'},
+            {'name':'nss_map_attribute', 'type':'option', 'value':'uniqueMember member'},
+            {'name':'base', 'type':'option', 'value':ipasrv.getBaseDN()},
+            {'name':'ldap_version', 'type':'option', 'value':'3'},
+            {'name':'uri', 'type':'option', 'value':'ldap://'+ipasrv.getServerName()},
+            {'name':'empty', 'type':'empty'}]
+    try:
+        ldapconf.newConf("/etc/ldap.conf", opts)
+    except Exception, e:
+        print "Configuration failed: " + str(e)
+        return 1
+
+    if not "" == ipasrv.getRealmName():
+        #Configure krb5.conf
+        krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+        krbconf.setOptionAssignment(" = ")
+        krbconf.setSectionNameDelimiters(("[","]"))
+        krbconf.setSubSectionDelimiters(("{","}"))
+        krbconf.setIndent(("","  ","    "))
+
+        opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
+                {'name':'empty', 'type':'empty'}]
+
+        #[libdefaults]
+        libopts = [{'name':'default_realm', 'type':'option', 'value':ipasrv.getRealmName()}]
+        libopts.append({'name':'dns_lookup_realm', 'type':'option', 'value':'false'})
+        libopts.append({'name':'dns_lookup_kdc', 'type':'option', 'value':'false'})
+        libopts.append({'name':'ticket_lifetime', 'type':'option', 'value':'24h'})
+        libopts.append({'name':'forwardable', 'type':'option', 'value':'yes'})
+
+        opts.append({'name':'libdefaults', 'type':'section', 'value':libopts})
+        opts.append({'name':'empty', 'type':'empty'})
+
+        #[realms]
+        kropts =[{'name':'kdc', 'type':'option', 'value':ipasrv.getServerName()+':88'},
+                 {'name':'admin_server', 'type':'option', 'value':ipasrv.getServerName()+':749'},
+                 {'name':'default_domain', 'type':'option', 'value':ipasrv.getDomainName()}]
+        ropts = [{'name':ipasrv.getRealmName(), 'type':'subsection', 'value':kropts}]
+        opts.append({'name':'realms', 'type':'section', 'value':ropts})
+        opts.append({'name':'empty', 'type':'empty'})
+
+        #[domain_realm]
+        dropts = [{'name':'.'+ipasrv.getDomainName(), 'type':'option', 'value':ipasrv.getRealmName()},
+                  {'name':ipasrv.getDomainName(), 'type':'option', 'value':ipasrv.getRealmName()}]
+        opts.append({'name':'domain_realm', 'type':'section', 'value':dropts})
+        opts.append({'name':'empty', 'type':'empty'})
+
+        #[appdefaults]
+        pamopts = [{'name':'debug', 'type':'option', 'value':'false'},
+                   {'name':'ticket_lifetime', 'type':'option', 'value':'36000'},
+                   {'name':'renew_lifetime', 'type':'option', 'value':'36000'},
+                   {'name':'forwardable', 'type':'option', 'value':'true'},
+                   {'name':'krb4_convert', 'type':'option', 'value':'false'}]
+        appopts = [{'name':'pam', 'type':'subsection', 'value':pamopts}]
+        opts.append({'name':'appdefaults', 'type':'section', 'value':appopts})
+
+        krbconf.newConf("/etc/krb5.conf", opts);
+
+    #Modify nsswitch to add nss_ldap
+    os.system("/usr/sbin/authconfig --enableldap --kickstart")
+
+    #Modify pam to add pam_krb5
+    os.system("/usr/sbin/authconfig --enablekrb5 --kickstart")
+
+    if options.conf_ntp:
+        config_ntp(ipasrv.getServerName())
+
+    print "Client configuration complete."
+
+    return 0
+
+sys.exit(main())
