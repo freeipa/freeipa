@@ -199,7 +199,7 @@ from ipagui.helpers import ipahelper
               </tr>
             </tbody>
           </table>
-          <a id="${user_fields.cns.field_id}_doclink" href="javascript:ExpandingForm.addItem('${user_fields.cns.field_id}');">Add Common Name</a>
+          <a id="${user_fields.cns.field_id}_doclink" href="javascript:ExpandingForm.addItem('${user_fields.cns.field_id}');">Add Full Name</a>
         </td>
       </tr>
 
