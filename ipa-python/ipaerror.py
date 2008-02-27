@@ -148,6 +148,11 @@ INPUT_NOT_DNS_A_RECORD = gen_error_code(
         0x0003,
         "The requested hostname is not a DNS A record. This is required by Kerberos.")
 
+INPUT_ADMINS_IMMUTABLE = gen_error_code(
+        INPUT_CATEGORY,
+        0x0004,
+        "The admins group cannot be renamed.")
+
 #
 # Connection errors
 #

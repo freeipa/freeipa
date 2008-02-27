@@ -1518,6 +1518,9 @@ class IPAServer:
         if isinstance(newcn, str):
             newcn = [newcn]
 
+        if "admins" in oldcn:
+            raise ipaerror.gen_exception(ipaerror.INPUT_ADMINS_IMMUTABLE)
+
         oldcn.sort()
         newcn.sort()
         if oldcn != newcn:
