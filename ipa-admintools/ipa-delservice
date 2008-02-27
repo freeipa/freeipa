@@ -18,23 +18,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import sys
-from optparse import OptionParser
-import ipa
-import ipa.user
-import ipa.ipaclient as ipaclient
-import ipa.ipavalidate as ipavalidate
-import ipa.config
-
-import base64
-
-import xmlrpclib
-import kerberos
-import krbV
-import ldap
-import getpass
-import errno
-
 def usage():
     print "ipa-delservice principal"
     sys.exit(1)
@@ -59,26 +42,55 @@ def main():
 
     client = ipaclient.IPAClient()
 
-    try:
-        hosts = client.find_service_principal(args[1], sattrs=None)
-        counter = hosts[0]
-        hosts = hosts[1:]
+    hosts = client.find_service_principal(args[1], sattrs=None)
+    counter = hosts[0]
+    hosts = hosts[1:]
 
-        if counter == 0:
-            print "Service Principal '%s' not found." % args[1]
-            return 2
-        if counter != 1:
-            print "An exact match was not found. Found %d principals for %s" % (counter, args[1])
-            return 2
+    if counter == 0:
+        print "Service Principal '%s' not found." % args[1]
+        return 2
+    if counter != 1:
+        print "An exact match was not found. Found %d principals for %s" % (counter, args[1])
+        return 2
 
-        client.delete_service_principal(hosts[0].dn)
+    client.delete_service_principal(hosts[0].dn)
 
-    except Exception, e:
-        print str(e)
-        return 1
+    print "Successfully deleted"
 
-    print hosts[0] + " successfully deleted"
     return 0
 
-if __name__ == "__main__":
-    sys.exit(main())
+try:
+    import sys
+    from optparse import OptionParser
+    import ipa
+    import ipa.ipaclient as ipaclient
+    import ipa.config
+    import ipa.ipautil as ipautil
+
+    import xmlrpclib
+    import kerberos
+    import krbV
+    import ldap
+    import errno
+
+    if __name__ == "__main__":
+        sys.exit(main())
+except SystemExit, e:
+    sys.exit(e)
+except KeyboardInterrupt, e:
+    sys.exit(1)
+except xmlrpclib.Fault, fault:
+    if fault.faultCode == errno.ECONNREFUSED:
+        print "The IPA XML-RPC service is not responding."
+    else:
+        print fault.faultString
+    sys.exit(1)
+except kerberos.GSSError, e:
+    print "Could not initialize GSSAPI: %s/%s" % (ipautil.get_gsserror(e))
+    sys.exit(1)
+except xmlrpclib.ProtocolError, e:
+    print "Unable to connect to IPA server: %s" % (e.errmsg)
+    sys.exit(1)
+except ipa.ipaerror.IPAError, e:
+    print "%s" % (e.message)
+    sys.exit(1)

@@ -828,3 +828,15 @@ class ItemCompleter:
 
         return items
 
+def get_gsserror(e):
+    """A GSSError exception looks differently in python 2.4 than it does
+       in python 2.5, deal with it."""
+
+    try:
+       primary = e[0]
+       secondary = e[1]
+    except:
+       primary = e[0][0]
+       secondary = e[0][1]
+
+    return (primary[0], secondary[0])

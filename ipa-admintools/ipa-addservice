@@ -18,23 +18,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import sys
-from optparse import OptionParser
-import ipa
-import ipa.user
-import ipa.ipaclient as ipaclient
-import ipa.ipavalidate as ipavalidate
-import ipa.config
-
-import base64
-
-import xmlrpclib
-import kerberos
-import krbV
-import ldap
-import getpass
-import errno
-
 def usage():
     print "ipa-addservice [--force] principal"
     sys.exit(1)
@@ -64,12 +47,47 @@ def main():
 
     client = ipaclient.IPAClient()
 
-    try:
-        client.add_service_principal(princ_name, "%d" % options.force)
+    client.add_service_principal(princ_name, "%d" % options.force)
 
-    except Exception, e:
-        print str(e)
+    return 0
 
+try:
+    import sys
+    from optparse import OptionParser
+    import ipa
+    import ipa.user
+    import ipa.ipaclient as ipaclient
+    import ipa.ipavalidate as ipavalidate
+    import ipa.ipautil as ipautil
+    import ipa.config
 
-if __name__ == "__main__":
-    sys.exit(main())
+    import base64
+
+    import xmlrpclib
+    import kerberos
+    import krbV
+    import ldap
+    import getpass
+    import errno
+
+    if __name__ == "__main__":
+        sys.exit(main())
+except SystemExit, e:
+    sys.exit(e)
+except KeyboardInterrupt, e:
+    sys.exit(1)
+except xmlrpclib.Fault, fault:
+    if fault.faultCode == errno.ECONNREFUSED:
+        print "The IPA XML-RPC service is not responding."
+    else:
+        print fault.faultString
+    sys.exit(1)
+except kerberos.GSSError, e:
+    print "Could not initialize GSSAPI: %s/%s" % (ipautil.get_gsserror(e))
+    sys.exit(1)
+except xmlrpclib.ProtocolError, e:
+    print "Unable to connect to IPA server: %s" % (e.errmsg)
+    sys.exit(1)
+except ipa.ipaerror.IPAError, e:
+    print "%s" % (e.message)
+    sys.exit(1)

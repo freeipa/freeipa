@@ -18,16 +18,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import sys
-from optparse import OptionParser
-import ipa
-import ipa.ipaclient as ipaclient
-import ipa.config
-import errno
-
-import xmlrpclib
-import kerberos
-
 def usage():
     print "ipa-delgroup group"
     sys.exit(1)
@@ -48,42 +38,57 @@ def main():
     if options.usage or len(args) != 2:
         usage()
 
-    try:
-        client = ipaclient.IPAClient()
-        groups = client.find_groups(args[1], ['cn','description','gidnumber','nsAccountLock'])
-    
-        counter = groups[0]
-        groups = groups[1:] 
+    client = ipaclient.IPAClient()
+    groups = client.find_groups(args[1], ['cn','description','gidnumber','nsAccountLock'])
 
-        if counter == 0:
-            print "Group '%s' not found." % args[1]
-            return 2
-        if counter != 1:
-            print "An exact group match was not found. Found %d groups" % counter
-            return 2
+    counter = groups[0]
+    groups = groups[1:] 
 
-        ret = client.delete_group(groups[0].dn)
-        if (ret == "Success"):
-            print args[1] + " successfully deleted"
-        else:
-            print args[1] + " " + ret
-    except xmlrpclib.Fault, fault:
-        if fault.faultCode == errno.ECONNREFUSED:
-            print "The IPA XML-RPC service is not responding."
-        else:
-            print fault.faultString
-        return 1
-    except kerberos.GSSError, e:
-        print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])
-        return 1
-    except xmlrpclib.ProtocolError, e:
-        print "Unable to connect to IPA server: %s" % (e.errmsg)
-        return 1
-    except ipa.ipaerror.IPAError, e:
-        print "%s" % (e.message)
-        return 1
+    if counter == 0:
+        print "Group '%s' not found." % args[1]
+        return 2
+    if counter != 1:
+        print "An exact group match was not found. Found %d groups" % counter
+        return 2
+
+    ret = client.delete_group(groups[0].dn)
+    if (ret == "Success"):
+        print args[1] + " successfully deleted"
+    else:
+        print args[1] + " " + ret
 
     return 0
 
-if __name__ == "__main__":
-    sys.exit(main())
+try:
+    import sys
+    from optparse import OptionParser
+    import ipa
+    import ipa.ipaclient as ipaclient
+    import ipa.config
+    import ipa.ipautil as ipautil
+    import errno
+
+    import xmlrpclib
+    import kerberos
+
+    if __name__ == "__main__":
+        sys.exit(main())
+except SystemExit, e:
+    sys.exit(e)
+except KeyboardInterrupt, e:
+    sys.exit(1)
+except xmlrpclib.Fault, fault:
+    if fault.faultCode == errno.ECONNREFUSED:
+        print "The IPA XML-RPC service is not responding."
+    else:
+        print fault.faultString
+    sys.exit(1)
+except kerberos.GSSError, e:
+    print "Could not initialize GSSAPI: %s/%s" % (ipautil.get_gsserror(e))
+    sys.exit(1)
+except xmlrpclib.ProtocolError, e:
+    print "Unable to connect to IPA server: %s" % (e.errmsg)
+    sys.exit(1)
+except ipa.ipaerror.IPAError, e:
+    print "%s" % (e.message)
+    sys.exit(1)

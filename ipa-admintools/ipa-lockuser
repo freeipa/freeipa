@@ -18,16 +18,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import sys
-from optparse import OptionParser
-import ipa
-import ipa.ipaclient as ipaclient
-import ipa.config
-import errno
-
-import xmlrpclib
-import kerberos
-
 def usage():
     print "ipa-lockuser [-u|--unlock] user"
     sys.exit(1)
@@ -51,43 +41,58 @@ def main():
         usage()
 
     msg = "inactivated"
-    try:
-        client = ipaclient.IPAClient()
-        if options.unlock:
-            try:
-                ret = client.mark_user_active(args[1])
-                msg = "unlocked"
-            except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_EMPTY_MODLIST):
-                print "User is already marked active"
-                return 0
-            except:
-                raise
-        else:
-            try:
-                ret = client.mark_user_inactive(args[1])
-            except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_EMPTY_MODLIST):
-                print "User is already marked inactive"
-                return 0
-            except:
-                raise
-            print args[1] + " successfully %s" % msg
-    except xmlrpclib.Fault, fault:
-        if fault.faultCode == errno.ECONNREFUSED:
-            print "The IPA XML-RPC service is not responding."
-        else:
-            print fault.faultString
-        return 1
-    except kerberos.GSSError, e:
-        print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])
-        return 1
-    except xmlrpclib.ProtocolError, e:
-        print "Unable to connect to IPA server: %s" % (e.errmsg)
-        return 1
-    except ipa.ipaerror.IPAError, e:
-        print "%s" % (e.message)
-        return 1
+    client = ipaclient.IPAClient()
+    if options.unlock:
+        try:
+            ret = client.mark_user_active(args[1])
+            msg = "unlocked"
+        except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_EMPTY_MODLIST):
+            print "User is already marked active"
+            return 0
+        except:
+            raise
+    else:
+        try:
+            ret = client.mark_user_inactive(args[1])
+        except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_EMPTY_MODLIST):
+            print "User is already marked inactive"
+            return 0
+        except:
+            raise
+        print args[1] + " successfully %s" % msg
 
     return 0
 
-if __name__ == "__main__":
-    sys.exit(main())
+try:
+    import sys
+    from optparse import OptionParser
+    import ipa
+    import ipa.ipaclient as ipaclient
+    import ipa.config
+    import ipa.ipautil as ipautil
+    import errno
+
+    import xmlrpclib
+    import kerberos
+
+    if __name__ == "__main__":
+        sys.exit(main())
+except SystemExit, e:
+    sys.exit(e)
+except KeyboardInterrupt, e:
+    sys.exit(1)
+except xmlrpclib.Fault, fault:
+    if fault.faultCode == errno.ECONNREFUSED:
+        print "The IPA XML-RPC service is not responding."
+    else:
+        print fault.faultString
+    sys.exit(1)
+except kerberos.GSSError, e:
+    print "Could not initialize GSSAPI: %s/%s" % (ipautil.get_gsserror(e))
+    sys.exit(1)
+except xmlrpclib.ProtocolError, e:
+    print "Unable to connect to IPA server: %s" % (e.errmsg)
+    sys.exit(1)
+except ipa.ipaerror.IPAError, e:
+    print "%s" % (e.message)
+    sys.exit(1)

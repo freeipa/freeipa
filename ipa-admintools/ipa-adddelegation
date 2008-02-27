@@ -18,21 +18,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import sys
-from optparse import OptionParser
-import ipa
-import ipa.user
-import ipa.ipaclient as ipaclient
-import ipa.config
-import ipa.aci
-import ipa.ipaadminutil as ipaadminutil
-
-import xmlrpclib
-import kerberos
-import krbV
-import ldap
-import errno
-
 def usage():
     print "ipa-adddelegation [-l|--list]"
     print "ipa-adddelegation [-a|--attributes attr1,attr2,..,attrn] [-s|--source STRING] [-t|--target STRING] name"
@@ -65,9 +50,9 @@ def main():
 
     if options.list:
         client = ipaclient.IPAClient()
-        list = client.get_all_attrs()
+        l = client.get_all_attrs()
 
-        for x in list:
+        for x in l:
             print x
         return 0
 
@@ -78,100 +63,120 @@ def main():
     if not options.attributes or not options.source or not options.target:
         usage()
 
-    try:
-        client = ipaclient.IPAClient()
+    client = ipaclient.IPAClient()
 
-        source_grp = client.find_groups(options.source)
-        counter = source_grp[0]
-        source_grp = source_grp[1:]
-        groupindex = -1
-        if counter == 0:
-            print "No entries found for %s" % options.source
-            return 2
-        elif counter == -1:
-            print "These results are truncated."
-            print "Please refine your search and try again."
-            return 3
+    source_grp = client.find_groups(options.source)
+    counter = source_grp[0]
+    source_grp = source_grp[1:]
+    groupindex = -1
+    if counter == 0:
+        print "No entries found for %s" % options.source
+        return 2
+    elif counter == -1:
+        print "These results are truncated."
+        print "Please refine your search and try again."
+        return 3
 
-        if counter > 1:
-            print "\nMultiple entries for the source group found."
-            groupindex = ipaadminutil.select_group(counter, source_grp)
-            if groupindex == "q":
-                return 0
+    if counter > 1:
+        print "\nMultiple entries for the source group found."
+        groupindex = ipaadminutil.select_group(counter, source_grp)
+        if groupindex == "q":
+            return 0
 
-        if groupindex >= 0:
-            source_grp = [source_grp[groupindex]]
+    if groupindex >= 0:
+        source_grp = [source_grp[groupindex]]
 
-        target_grp = client.find_groups(options.target)
-        counter = target_grp[0]
-        target_grp = target_grp[1:]
-        groupindex = -1
-        if counter == 0:
-            print "No entries found for %s" % options.target
-            return 2
-        elif counter == -1:
-            print "These results are truncated."
-            print "Please refine your search and try again."
-            return 3
+    target_grp = client.find_groups(options.target)
+    counter = target_grp[0]
+    target_grp = target_grp[1:]
+    groupindex = -1
+    if counter == 0:
+        print "No entries found for %s" % options.target
+        return 2
+    elif counter == -1:
+        print "These results are truncated."
+        print "Please refine your search and try again."
+        return 3
 
-        if counter > 1:
-            print "\nMultiple entries for the target group found."
-            groupindex = ipaadminutil.select_group(counter, target_grp)
-            if groupindex == "q":
-                return 0
+    if counter > 1:
+        print "\nMultiple entries for the target group found."
+        groupindex = ipaadminutil.select_group(counter, target_grp)
+        if groupindex == "q":
+            return 0
 
-        if groupindex >= 0:
-            target_grp = [target_grp[groupindex]]
+    if groupindex >= 0:
+        target_grp = [target_grp[groupindex]]
 
-        attr_list = options.attributes.split(',')
+    attr_list = options.attributes.split(',')
 
-        new_aci = ipa.aci.ACI()
-        new_aci.name = args[1]
-        new_aci.source_group = source_grp[0].dn
-        new_aci.dest_group = target_grp[0].dn
-        new_aci.attrs = attr_list
+    new_aci = ipa.aci.ACI()
+    new_aci.name = args[1]
+    new_aci.source_group = source_grp[0].dn
+    new_aci.dest_group = target_grp[0].dn
+    new_aci.attrs = attr_list
 
-        aci_entry = client.get_aci_entry(['*', 'aci'])
+    aci_entry = client.get_aci_entry(['*', 'aci'])
 
-        # Look for an existing ACI of the same name
-        aci_str_list = aci_entry.getValues('aci')
-        if aci_str_list is None:
-            aci_str_list = []
-        if not(isinstance(aci_str_list,list) or isinstance(aci_str_list,tuple)):
-            aci_str_list = [aci_str_list]
+    # Look for an existing ACI of the same name
+    aci_str_list = aci_entry.getValues('aci')
+    if aci_str_list is None:
+        aci_str_list = []
+    if not(isinstance(aci_str_list,list) or isinstance(aci_str_list,tuple)):
+        aci_str_list = [aci_str_list]
 
-        for aci_str in aci_str_list:
-            try:
-                old_aci = ipa.aci.ACI(aci_str)
-                if old_aci.name == new_aci.name:
-                    print "A delegation of that name already exists"
-                    return 2
-            except SyntaxError:
-                # ignore aci_str's that ACI can't parse
-                pass
+    for aci_str in aci_str_list:
+        try:
+            old_aci = ipa.aci.ACI(aci_str)
+            if old_aci.name == new_aci.name:
+                print "A delegation of that name already exists"
+                return 2
+        except SyntaxError:
+            # ignore aci_str's that ACI can't parse
+            pass
 
-        aci_entry = client.get_aci_entry(['dn'])
-        aci_entry.setValue('aci', new_aci.export_to_string())
+    aci_entry = client.get_aci_entry(['dn'])
+    aci_entry.setValue('aci', new_aci.export_to_string())
 
-        client.update_entry(aci_entry)
-    except xmlrpclib.Fault, fault:
-        if fault.faultCode == errno.ECONNREFUSED:
-            print "The IPA XML-RPC service is not responding."
-        else:
-            print fault.faultString
-        return 1
-    except kerberos.GSSError, e:
-        print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])
-        return 1
-    except xmlrpclib.ProtocolError, e:
-        print "Unable to connect to IPA server: %s" % (e.errmsg)
-        return 1
-    except ipa.ipaerror.IPAError, e:
-        print "%s" % (e.message)
-        return 1
+    client.update_entry(aci_entry)
 
     print "Delegation %s successfully added" % args[1]
     return 0
 
-if __name__ == "__main__":
-    sys.exit(main())
+try:
+    import sys
+    from optparse import OptionParser
+    import ipa
+    import ipa.user
+    import ipa.ipaclient as ipaclient
+    import ipa.config
+    import ipa.aci
+    import ipa.ipaadminutil as ipaadminutil
+    import ipa.ipautil as ipautil
+
+    import xmlrpclib
+    import kerberos
+    import krbV
+    import ldap
+    import errno
+
+    if __name__ == "__main__":
+        sys.exit(main())
+except SystemExit, e:
+    sys.exit(e)
+except KeyboardInterrupt, e:
+    sys.exit(1)
+except xmlrpclib.Fault, fault:
+    if fault.faultCode == errno.ECONNREFUSED:
+        print "The IPA XML-RPC service is not responding."
+    else:
+        print fault.faultString
+    sys.exit(1)
+except kerberos.GSSError, e:
+    print "Could not initialize GSSAPI: %s/%s" % (ipautil.get_gsserror(e))
+    sys.exit(1)
+except xmlrpclib.ProtocolError, e:
+    print "Unable to connect to IPA server: %s" % (e.errmsg)
+    sys.exit(1)
+except ipa.ipaerror.IPAError, e:
+    print "%s" % (e.message)
+    sys.exit(1)

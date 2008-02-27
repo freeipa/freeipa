@@ -18,18 +18,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import sys
-from optparse import OptionParser
-import ipa
-import ipa.entity
-import ipa.ipaclient as ipaclient
-import ipa.config
-
-import xmlrpclib
-import kerberos
-import errno
-import validate
-
 def usage():
     print "ipa-pwpolicy [--maxlife days] [--minlife hours] [--history number] [--minclasses number] [--minlength number]"
     print "ipa-pwpolicy --show"
@@ -74,21 +62,28 @@ def update_policy(client, options):
 
     new = ipa.entity.Entity(current.toDict())
 
-    if options.maxlife:
-        if validate.is_integer(options.maxlife, min=0):
-            new.setValue('krbmaxpwdlife', options.maxlife)
-    if options.minlife:
-        if validate.is_integer(options.minlife, min=0):
-            new.setValue('krbminpwdlife', options.minlife)
-    if options.history:
-        if validate.is_integer(options.history, min=0):
-            new.setValue('krbpwdhistorylength', options.history)
-    if options.minclasses:
-        if validate.is_integer(options.minclasses, min=0):
-            new.setValue('krbpwdmindiffchars', options.minclasses)
-    if options.minlength:
-        if validate.is_integer(options.minlength, min=0):
-            new.setValue('krbpwdminlength', options.minlength)
+    try:
+        if options.maxlife:
+            if validate.is_integer(options.maxlife, min=0):
+                new.setValue('krbmaxpwdlife', options.maxlife)
+        if options.minlife:
+            if validate.is_integer(options.minlife, min=0):
+                new.setValue('krbminpwdlife', options.minlife)
+        if options.history:
+            if validate.is_integer(options.history, min=0):
+                new.setValue('krbpwdhistorylength', options.history)
+        if options.minclasses:
+            if validate.is_integer(options.minclasses, min=0):
+                new.setValue('krbpwdmindiffchars', options.minclasses)
+        if options.minlength:
+            if validate.is_integer(options.minlength, min=0):
+                new.setValue('krbpwdminlength', options.minlength)
+    except validate.VdtTypeError, e:
+        print "%s" % (e.message)
+        return 1
+    except validate.VdtValueTooSmallError, e:
+        print "%s" % (e.message)
+        return 1
 
     client.update_password_policy(new)
 
@@ -98,44 +93,47 @@ def main():
     if options.usage:
         usage()
 
-    try:
-        client = ipaclient.IPAClient()
+    client = ipaclient.IPAClient()
 
-        if options.show: 
-            show_policy(client)
-            return 0
+    if options.show: 
+        show_policy(client)
+        return 0
 
-        update_policy(client, options)
-    except xmlrpclib.Fault, fault:
-        if fault.faultCode == errno.ECONNREFUSED:
-            print "The IPA XML-RPC service is not responding."
-        else:
-            print fault.faultString
-        return 1
-    except kerberos.GSSError, e:
-        print "Could not initialize GSSAPI: %s/%s" % (e[0][0], e[0][1])
-        return 1
-    except xmlrpclib.ProtocolError, e:
-        print "Unable to connect to IPA server: %s" % (e.errmsg)
-        return 1
-    except ipa.ipaerror.IPAError, e:
-        print "%s" % (e.message)
-        return 1
-    except validate.VdtTypeError, e:
-        print "%s" % (e.message)
-        return 1
-    except validate.VdtValueTooSmallError, e:
-        print "%s" % (e.message)
-        return 1
-    except KeyboardInterrupt, e:
-        return 1
-       
+    update_policy(client, options)
+
     return 0
 
 try:
+    import sys
+    from optparse import OptionParser
+    import ipa
+    import ipa.entity
+    import ipa.ipaclient as ipaclient
+    import ipa.config
+
+    import xmlrpclib
+    import kerberos
+    import errno
+    import validate
+
     if __name__ == "__main__":
         sys.exit(main())
 except SystemExit, e:
     sys.exit(e)
 except KeyboardInterrupt, e:
+    sys.exit(1)
+except xmlrpclib.Fault, fault:
+    if fault.faultCode == errno.ECONNREFUSED:
+        print "The IPA XML-RPC service is not responding."
+    else:
+        print fault.faultString
+    sys.exit(1)
+except kerberos.GSSError, e:
+    print "Could not initialize GSSAPI: %s/%s" % (e[0][0], e[0][1])
+    sys.exit(1)
+except xmlrpclib.ProtocolError, e:
+    print "Unable to connect to IPA server: %s" % (e.errmsg)
+    sys.exit(1)
+except ipa.ipaerror.IPAError, e:
+    print "%s" % (e.message)
     sys.exit(1)

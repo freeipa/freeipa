@@ -18,19 +18,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import sys
-from optparse import OptionParser
-import ipa
-import ipa.group
-import ipa.ipaclient as ipaclient
-import ipa.config
-import ipa.ipaerror
-
-import xmlrpclib
-import kerberos
-import ldap
-import errno
-
 def usage():
     print "ipa-modgroup [-l|--list]"
     print "ipa-modgroup [-a|--add] [-r|--remove] user group"
@@ -107,78 +94,95 @@ def main():
     elif ((options.desc or options.addattr or options.delattr or options.setattr) and (len(args) != 2)):
         usage()
 
-    try:
-        client = ipaclient.IPAClient()
-        if options.add:
-            group = get_group(client, options, args[2])
-            if group is None:
-                return 1
-            users = args[1].split(',')
-            for user in users:
-                client.add_user_to_group(user, group.dn)
-                print user + " successfully added to " + args[2]
-        elif options.remove:
-            group = get_group(client, options, args[2])
-            if group is None:
-                return 1
-            users = args[1].split(',')
-            for user in users:
-                client.remove_user_from_group(user, group.dn)
-                print user + " successfully removed"
-        else:
-            group = get_group(client, options, args[1])
-            if group is None:
-                return 1
+    client = ipaclient.IPAClient()
+    if options.add:
+        group = get_group(client, options, args[2])
+        if group is None:
+            return 1
+        users = args[1].split(',')
+        for user in users:
+            client.add_user_to_group(user, group.dn)
+            print user + " successfully added to " + args[2]
+    elif options.remove:
+        group = get_group(client, options, args[2])
+        if group is None:
+            return 1
+        users = args[1].split(',')
+        for user in users:
+            client.remove_user_from_group(user, group.dn)
+            print user + " successfully removed"
+    else:
+        group = get_group(client, options, args[1])
+        if group is None:
+            return 1
 
-            if options.desc:
-                group.setValue('description', options.desc)
+        if options.desc:
+            group.setValue('description', options.desc)
 
-            if options.delattr:
-                for d in options.delattr:
-                    group.delValue(d)
+        if options.delattr:
+            for d in options.delattr:
+                group.delValue(d)
 
-            if options.setattr:
-                for s in options.setattr:
-                    s = s.split('=')
-                    if len(s) != 2:
-                        set_add_usage("set")
-                        sys.exit(1)
-                    (attr,value) = s
-                    group.setValue(attr, value)
+        if options.setattr:
+            for s in options.setattr:
+                s = s.split('=')
+                if len(s) != 2:
+                    set_add_usage("set")
+                    sys.exit(1)
+                (attr,value) = s
+                group.setValue(attr, value)
 
-            if options.addattr:
-                for a in options.addattr:
-                    a = a.split('=')
-                    if len(a) != 2:
-                        set_add_usage("add")
-                        sys.exit(1)
-                    (attr,value) = a
-                    cvalue = group.getValue(attr)
-                    if cvalue:
-                        if isinstance(cvalue,str):
-                            cvalue = [cvalue]
-                        value = cvalue + [value]
-                    group.setValue(attr, value)
+        if options.addattr:
+            for a in options.addattr:
+                a = a.split('=')
+                if len(a) != 2:
+                    set_add_usage("add")
+                    sys.exit(1)
+                (attr,value) = a
+                cvalue = group.getValue(attr)
+                if cvalue:
+                    if isinstance(cvalue,str):
+                        cvalue = [cvalue]
+                    value = cvalue + [value]
+                group.setValue(attr, value)
 
-            client.update_group(group)
-            print args[1] + " successfully updated"
-    except xmlrpclib.Fault, fault:
-        if fault.faultCode == errno.ECONNREFUSED:
-            print "The IPA XML-RPC service is not responding."
-        else:
-            print fault.faultString
-        return 1
-    except kerberos.GSSError, e:
-        print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])
-        return 1
-    except xmlrpclib.ProtocolError, e:
-        print "Unable to connect to IPA server: %s" % (e.errmsg)
-        return 1
-    except ipa.ipaerror.IPAError, e:
-        print "%s" % (e.message)
-        return 1
+        client.update_group(group)
+        print args[1] + " successfully updated"
 
     return 0
 
-if __name__ == "__main__":
-    sys.exit(main())
+try:
+    import sys
+    from optparse import OptionParser
+    import ipa
+    import ipa.group
+    import ipa.ipaclient as ipaclient
+    import ipa.config
+    import ipa.ipaerror
+
+    import xmlrpclib
+    import kerberos
+    import ldap
+    import errno
+
+    if __name__ == "__main__":
+        sys.exit(main())
+except SystemExit, e:
+    sys.exit(e)
+except KeyboardInterrupt, e:
+    sys.exit(1)
+except xmlrpclib.Fault, fault:
+    if fault.faultCode == errno.ECONNREFUSED:
+        print "The IPA XML-RPC service is not responding."
+    else:
+        print fault.faultString
+    sys.exit(1)
+except kerberos.GSSError, e:
+    print "Could not initialize GSSAPI: %s/%s" % (ipautil.get_gsserror(e))
+    sys.exit(1)
+except xmlrpclib.ProtocolError, e:
+    print "Unable to connect to IPA server: %s" % (e.errmsg)
+    sys.exit(1)
+except ipa.ipaerror.IPAError, e:
+    print "%s" % (e.message)
+    sys.exit(1)

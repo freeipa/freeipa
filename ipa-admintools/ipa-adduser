@@ -18,21 +18,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import sys
-from optparse import OptionParser
-import ipa
-import ipa.user
-import ipa.ipaclient as ipaclient
-import ipa.ipavalidate as ipavalidate
-import ipa.config
-
-import xmlrpclib
-import kerberos
-import krbV
-import ldap
-import getpass
-import errno
-
 def usage():
     print "ipa-adduser [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] [-s|--shell] [-g|--groups] [-k|krb-principal [-M|mailAddress] user"
     sys.exit(1)
@@ -179,7 +164,7 @@ def main():
         if not options.shell:
             while (cont != True):
                 shell = raw_input("shell [/bin/sh]: ")
-              
+
                 if len(shell) < 1:
                     shell = None
                 cont = True
@@ -209,24 +194,8 @@ def main():
     if shell:
         user.setValue('loginshell', shell)
 
-    try:
-        client = ipaclient.IPAClient()
-        client.add_user(user)
-    except xmlrpclib.Fault, fault:
-        if fault.faultCode == errno.ECONNREFUSED:
-            print "The IPA XML-RPC service is not responding."
-        else:
-            print fault.faultString
-        return 1
-    except kerberos.GSSError, e:
-        print "Could not initialize GSSAPI: %s/%s" % (e[0][0][0], e[0][1][0])
-        return 1
-    except xmlrpclib.ProtocolError, e:
-        print "Unable to connect to IPA server: %s" % (e.errmsg)
-        return 1
-    except ipa.ipaerror.IPAError, e:
-        print "%s" % (e.message)
-        return 1
+    client = ipaclient.IPAClient()
+    client.add_user(user)
 
     # Set the User's password
     if password is not None:
@@ -251,5 +220,41 @@ def main():
     print username + " successfully added"
     return 0
 
-if __name__ == "__main__":
-    sys.exit(main())
+try:
+    import sys
+    from optparse import OptionParser
+    import ipa
+    import ipa.user
+    import ipa.ipaclient as ipaclient
+    import ipa.ipavalidate as ipavalidate
+    import ipa.ipautil as ipautil
+    import ipa.config
+
+    import xmlrpclib
+    import kerberos
+    import krbV
+    import ldap
+    import getpass
+    import errno
+
+    if __name__ == "__main__":
+        sys.exit(main())
+except SystemExit, e:
+    sys.exit(e)
+except KeyboardInterrupt, e:
+    sys.exit(1)
+except xmlrpclib.Fault, fault:
+    if fault.faultCode == errno.ECONNREFUSED:
+        print "The IPA XML-RPC service is not responding."
+    else:
+        print fault.faultString
+    sys.exit(1)
+except kerberos.GSSError, e:
+    print "Could not initialize GSSAPI: %s/%s" % (ipautil.get_gsserror(e))
+    sys.exit(1)
+except xmlrpclib.ProtocolError, e:
+    print "Unable to connect to IPA server: %s" % (e.errmsg)
+    sys.exit(1)
+except ipa.ipaerror.IPAError, e:
+    print "%s" % (e.message)
+    sys.exit(1)
