@@ -49,9 +49,9 @@ def main():
 
     if options.list:
         client = ipaclient.IPAClient()
-        list = client.get_all_attrs()
+        l = client.get_all_attrs()
 
-        for x in list:
+        for x in l:
             print x
         return 0
 
@@ -124,12 +124,15 @@ def main():
 
     old_aci = None
     acistr = None
+    aci_list = []
     for aci_str in aci_str_list:
         try:
             old_aci = ipa.aci.ACI(aci_str)
             if old_aci.name == args[1]:
                 acistr = aci_str
-                break
+                orig_group = old_aci.source_group
+            else:
+                aci_list.append(old_aci)
         except SyntaxError:
             # ignore aci_str's that ACI can't parse
             pass
@@ -161,6 +164,26 @@ def main():
     aci_entry.setValue('aci', new_aci_str_list)
 
     client.update_entry(aci_entry)
+
+    if options.source:
+        last = True
+        # If this is the last delegation for a group, remove it from editors
+        for a in aci_list:
+            if orig_group == a.source_group:
+                last = False
+                break
+
+        if last:
+            group = client.get_entry_by_cn("editors")
+            client.remove_member_from_group(orig_group, group.dn)
+
+        # Now add to the editors group so they can make changes in the UI
+        try:
+            group = client.get_entry_by_cn("editors")
+            client.add_group_to_group(new_aci.source_group, group.dn)
+        except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_EMPTY_MODLIST):
+            # This is ok, ignore it
+            pass
 
     print "Delegation %s successfully updated" % args[1]
     return 0

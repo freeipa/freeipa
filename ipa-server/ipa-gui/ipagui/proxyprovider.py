@@ -24,6 +24,7 @@ from ipaserver import funcs
 import ipa.config
 import ipa.group
 import ipa.user
+import ldap
 
 log = logging.getLogger("turbogears.identity")
 
@@ -41,18 +42,18 @@ class IPA_User(object):
         client = ipa.ipaclient.IPAClient(transport)
         client.set_krbccache(os.environ["KRB5CCNAME"])
         try:
-            user = client.get_user_by_principal(user_name, ['dn'])
+            # Use memberof so we can see recursive group memberships as well.
+            user = client.get_user_by_principal(user_name, ['dn', 'memberof'])
             self.groups = []
-            groups = client.get_groups_by_member(user.dn, ['dn', 'cn'])
-            if isinstance(groups, str):
-                groups = [groups]
-            for ginfo in groups:
-                # cn may be multi-valued, add them all just in case
-                cn = ginfo.getValue('cn')
-                if isinstance(cn, str):
-                    cn = [cn]
-                for c in cn:
-                    self.groups.append(c)
+            memberof = user.getValues('memberof')
+            if isinstance(memberof, str):
+                memberof = [memberof]
+            for mo in memberof:
+                rdn_list = ldap.explode_dn(mo, 0)
+                first_rdn = rdn_list[0]
+                (type,value) = first_rdn.split('=')
+                if type == "cn":
+                    self.groups.append(value)
         except:
             raise
 

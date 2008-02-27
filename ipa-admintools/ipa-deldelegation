@@ -51,12 +51,15 @@ def main():
         aci_str_list = [aci_str_list]
 
     acistr = None
+    aci_list = []
     for aci_str in aci_str_list:
         try:
             aci = ipa.aci.ACI(aci_str)
             if aci.name == args[1]:
                 acistr = aci_str
-                break
+                source_group = aci.source_group
+            else:
+                aci_list.append(aci)
         except SyntaxError:
             # ignore aci_str's that ACI can't parse
             pass
@@ -72,6 +75,18 @@ def main():
     aci_entry.setValue('aci', new_aci_str_list)
 
     client.update_entry(aci_entry)
+
+    last = True
+    # If this is the last delegation for a group, remove it from editors
+    for a in aci_list:
+        if source_group == a.source_group:
+            last = False
+            break
+
+    if last:
+        group = client.get_entry_by_cn("editors")
+        client.remove_member_from_group(source_group, group.dn)
+
     print "Delegation removed."
 
     return 0

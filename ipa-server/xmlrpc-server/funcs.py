@@ -1123,7 +1123,14 @@ class IPAServer:
             return True
 
     def get_groups_by_member (self, member_dn, sattrs, opts=None):
-        """Get a specific group's entry. Return as a dict of values.
+        """Get all of the groups an object is explicitly a member of.
+
+           This does not include groups an entry may be a member of as a
+           result of recursion (being a group that is a member of another
+           group). In other words, this searches on 'member' and not
+           'memberof'.
+
+           Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
         if not member_dn:

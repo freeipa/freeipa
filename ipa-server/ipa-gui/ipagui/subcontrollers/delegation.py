@@ -134,6 +134,15 @@ class DelegationController(IPAController):
             aci_entry.setValue('aci', new_aci.export_to_string())
 
             client.update_entry(aci_entry)
+
+            # Now add to the editors group so they can make changes in the UI
+            try:
+                group = client.get_entry_by_cn("editors")
+                client.add_group_to_group(new_aci.source_group, group.dn)
+            except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_EMPTY_MODLIST):
+                # This is ok, ignore it
+                pass
+
         except ipaerror.IPAError, e:
             turbogears.flash("Delgate add failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             return dict(form=delegate_form, delegate=kw,
@@ -216,10 +225,36 @@ class DelegationController(IPAController):
             new_aci_str = new_aci.export_to_string()
 
             new_aci_str_list = copy.copy(aci_str_list)
+            old_aci = ipa.aci.ACI(new_aci_str_list[old_aci_index])
             new_aci_str_list[old_aci_index] = new_aci_str
             aci_entry.setValue('aci', new_aci_str_list)
 
             client.update_entry(aci_entry)
+
+            if new_aci.source_group != old_aci.source_group:
+                aci_list = []
+                last = True
+                for aci_str in new_aci_str_list:
+                    try:
+                        aci = ipa.aci.ACI(aci_str)
+                        if aci.source_group == old_aci.source_group:
+                            last = False
+                            break
+                    except SyntaxError:
+                        # ignore aci_str's that ACI can't parse
+                        pass
+                if last:
+                    group = client.get_entry_by_cn("editors")
+                    client.remove_member_from_group(old_aci.source_group, group.dn)
+
+                # Now add to the editors group so they can make changes in the UI
+                try:
+                    group = client.get_entry_by_cn("editors")
+                    client.add_group_to_group(new_aci.source_group, group.dn)
+                except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_EMPTY_MODLIST):
+                    # This is ok, ignore it
+                    pass
+
 
             turbogears.flash("delegate updated")
             raise turbogears.redirect('/delegate/list')
@@ -291,11 +326,27 @@ class DelegationController(IPAController):
                         "concurrently modified.")
                 raise turbogears.redirect('/delegate/list')
 
+            old_aci = ipa.aci.ACI(aci_str_list[old_aci_index])
             new_aci_str_list = copy.copy(aci_str_list)
             del new_aci_str_list[old_aci_index]
             aci_entry.setValue('aci', new_aci_str_list)
 
             client.update_entry(aci_entry)
+
+            aci_list = []
+            last = True
+            for aci_str in new_aci_str_list:
+                try:
+                    aci = ipa.aci.ACI(aci_str)
+                    if aci.source_group == old_aci.source_group:
+                        last = False
+                        break
+                except SyntaxError:
+                    # ignore aci_str's that ACI can't parse
+                    pass
+            if last:
+                group = client.get_entry_by_cn("editors")
+                client.remove_member_from_group(old_aci.source_group, group.dn)
 
             turbogears.flash("delegate deleted")
             raise turbogears.redirect('/delegate/list')
