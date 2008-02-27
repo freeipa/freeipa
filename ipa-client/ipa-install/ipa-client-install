@@ -21,17 +21,6 @@
 
 VERSION = "%prog .1"
 
-import sys
-
-import krbV
-import socket
-import logging
-from optparse import OptionParser
-import ipaclient.ipadiscovery
-import ipaclient.ipachangeconf
-import ipaclient.ntpconf
-from ipa.ipautil import run
-
 def parse_options():
     parser = OptionParser(version=VERSION)
     parser.add_option("--domain", dest="domain", help="domain name")
@@ -184,7 +173,7 @@ def main():
         ldapconf.newConf("/etc/ldap.conf", opts)
         print "Configured /etc/ldap.conf"
     except Exception, e:
-        print "Configuration failed: " + str(e)
+        print "Creation of /etc/ldap.conf: " + str(e)
         return 1
 
     #Check if kerberos is already configured properly
@@ -254,15 +243,15 @@ def main():
         try:
             run(["getent", "passwd", "admin"])
         except Exception, e:
-            print "nss_ldap is not able to use DNS disccovery!"
+            print "nss_ldap is not able to use DNS discovery!"
             print "Changing configuration to use hardcoded server name: " + ds.getServerName()
 
-            opts = [{'name':'uri', 'type':'option', 'value':'ldap://'+ds.getServerName()},
+            opts = [{'name':'uri', 'type':'option', 'action':'set', 'value':'ldap://'+ds.getServerName()},
                     {'name':'empty', 'type':'empty'}]
             try:
                 ldapconf.changeConf("/etc/ldap.conf", opts)
             except Exception, e:
-                print "Configuration failed: " + str(e)
+                print "Adding hardcoded server name to /etc/ldap.conf failed: " + str(e)
                 return 1
 
     #Modify pam to add pam_krb5
@@ -278,6 +267,17 @@ def main():
     return 0
 
 try:
+    import sys
+
+    import krbV
+    import socket
+    import logging
+    from optparse import OptionParser
+    import ipaclient.ipadiscovery
+    import ipaclient.ipachangeconf
+    import ipaclient.ntpconf
+    from ipa.ipautil import run
+
     sys.exit(main())
 except KeyboardInterrupt:
     sys.exit(1)
