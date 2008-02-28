@@ -1,6 +1,6 @@
 Name:           ipa-server
 Version:        0.99.0
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base
@@ -112,6 +112,7 @@ fi
 %{_sbindir}/ipa-replica-prepare
 %{_sbindir}/ipa-replica-manage
 %{_sbindir}/ipa-server-certinstall
+%{_sbindir}/ipactl
 %{_sbindir}/ipa_kpasswd
 %{_sbindir}/ipa_webgui
 %attr(755,root,root) %{_initrddir}/ipa_kpasswd
@@ -151,6 +152,9 @@ fi
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 
 %changelog
+* Thu Feb 26 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-3
+- Add ipactl command
+
 * Thu Feb 21 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-2
 - package new file ipa-rewrite.conf
 
