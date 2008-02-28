@@ -97,6 +97,16 @@ ServerIdentifier=   $SERVERID
 Suffix=   $SUFFIX
 RootDN=   cn=Directory Manager
 RootDNPwd= $PASSWORD
+InstallLdifFile= /var/lib/dirsrv/boot.ldif
+"""
+
+BASE_TEMPLATE = """
+dn: $SUFFIX
+objectClass: top
+objectClass: domain
+objectClass: pilotObject
+dc: $BASEDC
+info: IPA V1.0
 """
 
 class DsInstance(service.Service):
@@ -177,6 +187,15 @@ class DsInstance(service.Service):
     def __create_instance(self):
         self.backup_state("running", self.is_running())
         self.backup_state("serverid", self.serverid)
+
+        self.sub_dict['BASEDC'] = self.domain[:self.domain.find('.')]
+        base_txt = ipautil.template_str(BASE_TEMPLATE, self.sub_dict)
+        logging.debug(base_txt)
+        base_fd = file("/var/lib/dirsrv/boot.ldif", "w")
+        base_fd.write(base_txt)
+        base_fd.flush()
+        base_fd.close()
+
         inf_txt = ipautil.template_str(INF_TEMPLATE, self.sub_dict)
         logging.debug("writing inf template")
         inf_fd = ipautil.write_tmp_file(inf_txt)
@@ -200,6 +219,8 @@ class DsInstance(service.Service):
         except ipautil.CalledProcessError, e:
             print "failed to restart ds instance", e
             logging.debug("failed to restart ds instance %s" % e)
+        inf_fd.close()
+        os.remove("/var/lib/dirsrv/boot.ldif")
 
     def __add_default_schemas(self):
         shutil.copyfile(ipautil.SHARE_DIR + "60kerberos.ldif",
