@@ -21,6 +21,7 @@
 def usage():
     print "ipa-modgroup [-l|--list]"
     print "ipa-modgroup [-a|--add] [-r|--remove] user group"
+    print "ipa-modgroup [-g|--groupadd] [-e|--groupdel] group group"
     print "ipa-modgroup [-d|--desc description STRING] [--addattr attribute=value] [--delattr attribute] [--setattr attribute=value] group"
     sys.exit(1)
 
@@ -33,6 +34,10 @@ def parse_options():
                       help="Add a user to the group")
     parser.add_option("-r", "--remove", dest="remove", action="store_true",
                       help="Remove a user from the group")
+    parser.add_option("-g", "--groupadd", dest="groupadd", action="store_true",
+                      help="Add a group to the group")
+    parser.add_option("-e", "--groupdel", dest="groupdel", action="store_true",
+                      help="Remove a  group from the group")
     parser.add_option("-d", "--description", dest="desc", 
                       help="Modify the description of the group")
     parser.add_option("--addattr", dest="addattr",
@@ -51,8 +56,10 @@ def parse_options():
     args = ipa.config.init_config(sys.argv)
     options, args = parser.parse_args(args)
 
-    if (not options.add and not options.remove) and (not options.desc and
-        not options.addattr and not options.delattr and not options.setattr and not options.list):
+    if ((not options.add and not options.remove) and
+        (not options.groupadd and not options.groupdel) and
+        (not options.desc and not options.addattr and
+        not options.delattr and not options.setattr and not options.list)):
         usage()
 
     return options, args
@@ -111,6 +118,30 @@ def main():
         for user in users:
             client.remove_user_from_group(user, group.dn)
             print user + " successfully removed"
+    elif options.groupadd:
+        group = get_group(client, options, args[2])
+        if group is None:
+            return 1
+        groups = args[1].split(',')
+        for g in groups:
+            tgroup = get_group(client, options, g)
+            if tgroup is not None:
+                client.add_group_to_group(tgroup.dn, group.dn)
+                print g + " successfully added to " + args[2]
+            else:
+                print "Group %s not found" % g
+    elif options.groupdel:
+        group = get_group(client, options, args[2])
+        if group is None:
+            return 1
+        groups = args[1].split(',')
+        for g in groups:
+            tgroup = get_group(client, options, g)
+            if tgroup is not None:
+                client.remove_member_from_group(tgroup.dn, group.dn)
+                print g + " successfully removed " + args[2]
+            else:
+                print "Group %s not found" % g
     else:
         group = get_group(client, options, args[1])
         if group is None:
