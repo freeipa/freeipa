@@ -202,7 +202,7 @@ def main():
 
     # Call client install script
     try:
-        run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--domain", config.domain_name, "--server", config.host_name, "--realm", config.realm_name])
+        ipautil.run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--domain", config.domain_name, "--server", config.host_name, "--realm", config.realm_name])
     except Exception, e:
         print "Configuration of client side components failed!"
         print "ipa-client-install returned: " + str(e)
