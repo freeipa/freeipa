@@ -353,6 +353,9 @@ class IPAServer:
 
     def get_aci_entry(self, sattrs, opts=None):
         """Returns the entry containing access control ACIs."""
+        
+        if sattrs is not None and not isinstance(sattrs,list):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         dn="%s,%s" % (ACIContainer, self.basedn)
         return self.get_entry_by_dn(dn, sattrs, opts)
@@ -363,9 +366,11 @@ class IPAServer:
         """Get a specific entry. Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
-
-        if not dn:
+        if not isinstance(dn,basestring) or len(dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if sattrs is not None and not isinstance(sattrs,list):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
         searchfilter = "(objectClass=*)"
         return self.__get_base_entry(dn, searchfilter, sattrs, opts)
 
@@ -374,8 +379,11 @@ class IPAServer:
            Multi-valued fields are represented as lists.
         """
 
-        if not cn:
+        if not isinstance(cn,basestring) or len(cn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if sattrs is not None and not isinstance(sattrs,list):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
         cn = self.__safe_filter(cn)
         searchfilter = "(cn=" + cn + ")"
         return self.__get_sub_entry(self.basedn, searchfilter, sattrs, opts)
@@ -419,7 +427,9 @@ class IPAServer:
            Multi-valued fields are represented as lists.
         """
 
-        if not uid:
+        if not isinstance(uid,basestring) or len(uid) == 0:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if sattrs is not None and not isinstance(sattrs,list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         uid = self.__safe_filter(uid)
         searchfilter = "(uid=" + uid + ")"
@@ -431,7 +441,9 @@ class IPAServer:
            represented as lists.
         """
 
-        if not principal:
+        if not isinstance(principal,basestring) or len(principal) == 0:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if sattrs is not None and not isinstance(sattrs,list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         searchfilter = "(krbPrincipalName="+self.__safe_filter(principal)+")"
         return self.__get_sub_entry(self.basedn, searchfilter, sattrs, opts)
@@ -441,7 +453,9 @@ class IPAServer:
            Multi-valued fields are represented as lists.
         """
 
-        if not email:
+        if not isinstance(email,basestring) or len(email) == 0:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if sattrs is not None and not isinstance(sattrs,list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         email = self.__safe_filter(email)
         searchfilter = "(mail=" + email + ")"
@@ -451,7 +465,9 @@ class IPAServer:
         """Gets the users that report to a particular manager.
         """
 
-        if not manager_dn:
+        if not isinstance(manager_dn,basestring) or len(manager_dn) == 0:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if sattrs is not None and not isinstance(sattrs,list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         manager_dn = self.__safe_filter(manager_dn)
         searchfilter = "(&(objectClass=person)(manager=%s))" % manager_dn
@@ -467,12 +483,13 @@ class IPAServer:
            of a multi-valued field a list of values. user_container sets
            where in the tree the user is placed.
         """
-
-        if not user:
-            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
-
         if not user_container:
             user_container = DefaultUserContainer
+
+        if not isinstance(user,dict):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(user_container,basestring) or len(user_container) == 0:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         if not self.__is_user_unique(user['uid'], opts):
             raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
@@ -586,7 +603,7 @@ class IPAServer:
             vals = fl[x].split(',')
             if len(vals) != 3:
                 # Raise?
-                print "Invalid field, skipping"
+                logging.debug("IPA: Invalid field, skipping: %s", vals)
             d = dict(label=unquote(vals[0]), field=unquote(vals[1]), required=unquote(vals[2]))
             schema.append(d)
 
@@ -796,8 +813,9 @@ class IPAServer:
 
            It is displayed to the user in the order of the list.
         """
-        if not schema:
+        if not isinstance(schema,basestring) or len(schema) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
         config = self.get_ipa_config(opts)
 
         # The schema is stored as:
@@ -842,9 +860,16 @@ class IPAServer:
         """Returns a list: counter followed by the results.
            If the results are truncated, counter will be set to -1."""
 
-        logging.debug("IPA: find users %s" % criteria)
-        if not criteria:
+        if not isinstance(criteria,basestring) or len(criteria) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if sattrs is not None and not isinstance(sattrs, list):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(searchlimit,int):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(timelimit,int):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
+        logging.debug("IPA: find users %s" % criteria)
         config = self.get_ipa_config(opts)
         if timelimit < 0:
             timelimit = float(config.get('ipasearchtimelimit'))
@@ -941,7 +966,9 @@ class IPAServer:
            If you want to change the RDN of a user you must use
            this function. update_entry will fail.
         """
-        if not newentry:
+        if not isinstance(newentry,dict):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if oldentry and not isinstance(oldentry,dict):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if not oldentry:
             oldentry = self.get_entry_by_dn(newentry.get('dn'), None, opts)
@@ -1054,7 +1081,7 @@ class IPAServer:
     def mark_user_active(self, uid, opts=None):
         """Mark a user as active"""
 
-        if not uid:
+        if not isinstance(uid,basestring) or len(uid) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         user = self.get_user_by_uid(uid, ['dn', 'uid'], opts)
         return self.mark_entry_active(user.get('dn'))
@@ -1062,7 +1089,7 @@ class IPAServer:
     def mark_user_inactive(self, uid, opts=None):
         """Mark a user as inactive"""
 
-        if not uid:
+        if not isinstance(uid,basestring) or len(uid) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         user = self.get_user_by_uid(uid, ['dn', 'uid'], opts)
         return self.mark_entry_inactive(user.get('dn'))
@@ -1076,7 +1103,7 @@ class IPAServer:
            The memberOf plugin handles removing the user from any other
            groups.
         """
-        if not uid:
+        if not isinstance(uid,basestring) or len(uid) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         user = self.get_user_by_uid(uid, ['dn', 'uid', 'objectclass'], opts)
         if user is None:
@@ -1096,8 +1123,13 @@ class IPAServer:
            oldpass is the old password (if available)
            newpass is the new password
         """
-        if not principal or not newpass:
+        if not isinstance(principal,basestring) or len(principal) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if oldpass and not isinstance(oldpass,basestring):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(newpass,basestring) or len(newpass) == 0:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
         user = self.get_user_by_principal(principal, ['krbprincipalname'], opts)
         if user is None or user['krbprincipalname'] != principal:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
@@ -1133,7 +1165,9 @@ class IPAServer:
            Return as a dict of values.
            Multi-valued fields are represented as lists.
         """
-        if not member_dn:
+        if not isinstance(member_dn,basestring) or len(member_dn) == 0:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if sattrs is not None and not isinstance(sattrs,list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         member_dn = self.__safe_filter(member_dn)
@@ -1149,11 +1183,13 @@ class IPAServer:
            attribute name and the value is either a string or in the case
            of a multi-valued field a list of values. group_container sets
            where in the tree the group is placed."""
-        if not group:
-            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
-
         if not group_container:
             group_container = DefaultGroupContainer
+
+        if not isinstance(group,dict):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(group_container,basestring) or len(group_container) == 0:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         if not self.__is_group_unique(group['cn'], opts):
             raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
@@ -1186,8 +1222,16 @@ class IPAServer:
         """Return a list containing a User object for each
         existing group that matches the criteria.
         """
-        if not criteria:
+        if not isinstance(criteria,basestring) or len(criteria) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if sattrs is not None and not isinstance(sattrs, list):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(searchlimit,int):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(timelimit,int):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
+        logging.debug("IPA: find groups %s" % criteria)
 
         config = self.get_ipa_config(opts)
         if timelimit < 0:
@@ -1264,8 +1308,11 @@ class IPAServer:
     def add_member_to_group(self, member_dn, group_dn, opts=None):
         """Add a member to an existing group.
         """
-        if not member_dn or not group_dn:
+        if not isinstance(member_dn,basestring) or len(member_dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(group_dn,basestring) or len(group_dn) == 0:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
         if member_dn.lower() == group_dn.lower():
             raise ipaerror.gen_exception(ipaerror.INPUT_SAME_GROUP)
 
@@ -1280,7 +1327,7 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
 
         if new_group.get('member') is not None:
-            if ((isinstance(new_group.get('member'), str)) or (isinstance(new_group.get('member'), unicode))):
+            if isinstance(new_group.get('member'),basestring):
                 new_group['member'] = [new_group['member']]
             new_group['member'].append(member_dn)
         else:
@@ -1296,13 +1343,17 @@ class IPAServer:
         """Given a list of dn's, add them to the group cn denoted by group
            Returns a list of the member_dns that were not added to the group.
         """
+        if not (isinstance(member_dns,list) or isinstance(member_dns,basestring)):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(group_dn,basestring) or len(group_dn) == 0:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         if not member_dns or not group_dn:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         failed = []
 
-        if (isinstance(member_dns, str)):
+        if (isinstance(member_dns,basestring)):
             member_dns = [member_dns]
 
         for member_dn in member_dns:
@@ -1320,7 +1371,9 @@ class IPAServer:
     def remove_member_from_group(self, member_dn, group_dn, opts=None):
         """Remove a member_dn from an existing group.
         """
-        if not member_dn or not group_dn:
+        if not isinstance(member_dn,basestring) or len(member_dn) == 0:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(group_dn,basestring) or len(group_dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         old_group = self.get_entry_by_dn(group_dn, None, opts)
@@ -1329,7 +1382,7 @@ class IPAServer:
         new_group = copy.deepcopy(old_group)
 
         if new_group.get('member') is not None:
-            if ((isinstance(new_group.get('member'), str)) or (isinstance(new_group.get('member'), unicode))):
+            if isinstance(new_group.get('member'),basestring):
                 new_group['member'] = [new_group['member']]
             try:
                 new_group['member'].remove(member_dn)
@@ -1352,12 +1405,14 @@ class IPAServer:
         """Given a list of member dn's remove them from the group.
            Returns a list of the members not removed from the group.
         """
-        if not member_dns or not group_dn:
+        if not (isinstance(member_dns,list) or isinstance(member_dns,basestring)):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(group_dn,basestring) or len(group_dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         failed = []
 
-        if (isinstance(member_dns, str)):
+        if (isinstance(member_dns,basestring)):
             member_dns = [member_dns]
 
         for member_dn in member_dns:
@@ -1375,9 +1430,11 @@ class IPAServer:
     def add_user_to_group(self, user_uid, group_dn, opts=None):
         """Add a user to an existing group.
         """
-
-        if not user_uid or not group_dn:
+        if not isinstance(user_uid,basestring) or len(user_uid) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(group_dn,basestring) or len(group_dn) == 0:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
         user = self.get_user_by_uid(user_uid, ['dn', 'uid', 'objectclass'], opts)
         if user is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
@@ -1388,12 +1445,14 @@ class IPAServer:
         """Given a list of user uid's add them to the group cn denoted by group
            Returns a list of the users were not added to the group.
         """
-        if not user_uids or not group_dn:
+        if not (isinstance(user_uids,list) or isinstance(user_uids,basestring)):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(group_dn,basestring) or len(group_dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         failed = []
 
-        if (isinstance(user_uids, str)):
+        if (isinstance(user_uids,basestring)):
             user_uids = [user_uids]
 
         for user_uid in user_uids:
@@ -1411,8 +1470,9 @@ class IPAServer:
     def remove_user_from_group(self, user_uid, group_dn, opts=None):
         """Remove a user from an existing group.
         """
-
-        if not user_uid or not group_dn:
+        if not isinstance(user_uid,basestring) or len(user_uid) == 0:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(group_dn,basestring) or len(group_dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         user = self.get_user_by_uid(user_uid, ['dn', 'uid', 'objectclass'], opts)
@@ -1425,12 +1485,14 @@ class IPAServer:
         """Given a list of user uid's remove them from the group
            Returns a list of the user uids not removed from the group.
         """
-        if not user_uids or not group_dn:
+        if not (isinstance(user_uids,list) or isinstance(user_uids,basestring)):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(group_dn,basestring) or len(group_dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         failed = []
 
-        if (isinstance(user_uids, str)):
+        if (isinstance(user_uids,basestring)):
             user_uids = [user_uids]
 
         for user_uid in user_uids:
@@ -1450,12 +1512,14 @@ class IPAServer:
 
            Returns a list of the group dns that were not added.
         """
-        if not group_dns or not user_dn:
+        if not (isinstance(group_dns,list) or isinstance(group_dns,basestring)):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(user_dn,basestring) or len(user_dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         failed = []
 
-        if (isinstance(group_dns, str)):
+        if (isinstance(group_dns, basestring)):
             group_dns = [group_dns]
 
         for group_dn in group_dns:
@@ -1475,12 +1539,14 @@ class IPAServer:
 
            Returns a list of the group dns that were not removed.
         """
-        if not group_dns or not user_dn:
+        if not (isinstance(group_dns,list) or isinstance(group_dns,basestring)):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(user_dn,basestring) or len(user_dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         failed = []
 
-        if (isinstance(group_dns, str)):
+        if (isinstance(group_dns,basestring)):
             group_dns = [group_dns]
 
         for group_dn in group_dns:
@@ -1509,7 +1575,9 @@ class IPAServer:
            If you want to change the RDN of a group you must use
            this function. update_entry will fail.
         """
-        if not newentry:
+        if not isinstance(newentry,dict):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if oldentry and not isinstance(oldentry,dict):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if not oldentry:
             oldentry = self.get_entry_by_dn(newentry.get('dn'), None, opts)
@@ -1520,9 +1588,9 @@ class IPAServer:
 
         oldcn=oldentry.get('cn')
         newcn=newentry.get('cn')
-        if isinstance(oldcn, str):
+        if isinstance(oldcn,basestring):
             oldcn = [oldcn]
-        if isinstance(newcn, str):
+        if isinstance(newcn,basestring):
             newcn = [newcn]
 
         if "admins" in oldcn:
@@ -1537,7 +1605,7 @@ class IPAServer:
                 res = conn.updateRDN(oldentry.get('dn'), "cn=" + newcn[0])
                 newdn = oldentry.get('dn')
                 newcn = newentry.get('cn')
-                if isinstance(newcn, str):
+                if isinstance(newcn,basestring):
                     newcn = [newcn]
 
                 # Ick. Need to find the exact cn used in the old DN so we'll
@@ -1580,8 +1648,9 @@ class IPAServer:
            The memberOf plugin handles removing the group from any other
            groups.
         """
-        if not group_dn:
+        if not isinstance(group_dn,basestring) or len(group_dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
         group = self.get_entry_by_dn(group_dn, ['dn', 'cn'], opts)
         if group is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
@@ -1608,8 +1677,9 @@ class IPAServer:
            group is a DN of the group to add
            tgroup is the DN of the target group to be added to
         """
-
-        if not group or not tgroup:
+        if not isinstance(group,basestring) or len(group) == 0:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(tgroup,basestring) or len(tgroup) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if group.lower() == tgroup.lower():
             raise ipaerror.gen_exception(ipaerror.INPUT_SAME_GROUP)
@@ -1623,7 +1693,7 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
 
         if new_group.get('member') is not None:
-            if ((isinstance(new_group.get('member'), str)) or (isinstance(new_group.get('member'), unicode))):
+            if isinstance(new_group.get('member'),basestring):
                 new_group['member'] = [new_group['member']]
             new_group['member'].append(group_dn['dn'])
         else:
@@ -1638,6 +1708,9 @@ class IPAServer:
     def attrs_to_labels(self, attr_list, opts=None):
         """Take a list of LDAP attributes and convert them to more friendly
            labels."""
+        if not (isinstance(attr_list,list)):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+
         label_list = {}
 
         for a in attr_list:
@@ -1656,7 +1729,9 @@ class IPAServer:
         """Do a memberOf search of groupdn and return the attributes in
            attr_list (an empty list returns everything)."""
 
-        if not groupdn:
+        if not isinstance(groupdn,basestring) or len(groupdn) == 0:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if attr_list is not None and not isinstance(attr_list,list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         config = self.get_ipa_config(opts)
         timelimit = float(config.get('ipasearchtimelimit'))
@@ -1689,7 +1764,7 @@ class IPAServer:
     def mark_group_active(self, cn, opts=None):
         """Mark a group as active"""
 
-        if not cn:
+        if not isinstance(cn,basestsring) or len(cn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         group = self.get_entry_by_cn(cn, ['dn', 'cn'], opts)
         return self.mark_entry_active(group.get('dn'))
@@ -1697,7 +1772,7 @@ class IPAServer:
     def mark_group_inactive(self, cn, opts=None):
         """Mark a group as inactive"""
 
-        if not cn:
+        if not isinstance(cn,basestring) or len(cn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         group = self.get_entry_by_cn(cn, ['dn', 'uid'], opts)
         return self.mark_entry_inactive(group.get('dn'))
@@ -1728,8 +1803,12 @@ class IPAServer:
             f = 1
         logging.debug("IPA: add service principal %s (%d)" % (name, f))
 
+        p = name.split('/')
+        if len(p) != 2:
+            raise ipaerror.gen_exception(ipaerror.INPUT_MALFORMED_SERVICE_PRINCIPAL)
+
         if not f:
-            fqdn = name + "."
+            fqdn = p[1] + "."
             rs = dnsclient.query(fqdn, dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
             if len(rs) == 0:
                 logging.debug("IPA: DNS A record lookup failed for %s" % name)
@@ -1769,7 +1848,7 @@ class IPAServer:
 
            This should be called with much care.
         """
-        if not principal:
+        if not isinstance(principal,basestring) or len(principal) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         entry = self.get_entry_by_dn(principal, ['dn', 'objectclass'], opts)
         if entry is None:
@@ -1786,7 +1865,13 @@ class IPAServer:
             timelimit=-1, opts=None):
         """Returns a list: counter followed by the results.
            If the results are truncated, counter will be set to -1."""
-        if not criteria:
+        if not isinstance(criteria,basestring) or len(criteria) == 0:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if sattrs is not None and not isinstance(sattrs, list):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(searchlimit,int):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if not isinstance(timelimit,int):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         config = self.get_ipa_config(opts)
@@ -1877,7 +1962,9 @@ class IPAServer:
            to the current value of oldconfig.
 
         """
-        if not newconfig:
+        if not isinstance(newconfig,dict):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if oldconfig and not isinstance(oldconfig,dict):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if not oldconfig:
             oldconfig = self.get_entry_by_dn(newconfig.get('dn'), None, opts)
@@ -1943,7 +2030,9 @@ class IPAServer:
            to the current value of oldpolicy.
 
         """
-        if not newpolicy:
+        if not isinstance(newpolicy,dict):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if oldpolicy and not isinstance(oldpolicy,dict):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if not oldpolicy:
             oldpolicy = self.get_entry_by_dn(newpolicy.get('dn'), None, opts)

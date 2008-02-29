@@ -153,6 +153,11 @@ INPUT_ADMINS_IMMUTABLE = gen_error_code(
         0x0004,
         "The admins group cannot be renamed.")
 
+INPUT_MALFORMED_SERVICE_PRINCIPAL = gen_error_code(
+        INPUT_CATEGORY,
+        0x0005,
+        "The requested service principal is not of the form: service/fully-qualified host name")
+
 #
 # Connection errors
 #
