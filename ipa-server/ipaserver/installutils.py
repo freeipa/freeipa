@@ -26,8 +26,10 @@ import re
 import fileinput
 import sys
 import time
+import struct
 
 from ipa import ipautil
+from ipa import dnsclient
 
 def get_fqdn():
     fqdn = ""
@@ -43,6 +45,25 @@ def get_fqdn():
 def verify_fqdn(host_name):
     if len(host_name.split(".")) < 2 or host_name == "localhost.localdomain":
         raise RuntimeError("Invalid hostname: " + host_name)
+
+    # Verify that it is a DNS A record
+    rs = dnsclient.query(host_name+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
+    if len(rs) == 0:
+        raise RuntimeError("hostname %s is not found or is not a DNS A record" % host_name)
+
+    # Compare the forward and reverse
+    forward = rs[0].dns_name
+
+    addr = socket.inet_ntoa(struct.pack('L',rs[0].rdata.address))
+    addr = addr + ".in-addr.arpa."
+
+    rs = dnsclient.query(addr, dnsclient.DNS_C_IN, dnsclient.DNS_T_PTR)
+    if len(rs) == 0:
+        raise RuntimeError("Cannot find PTR record for %s" % addr)
+    reverse = rs[0].rdata.ptrdname
+
+    if forward != reverse:
+        raise RuntimeError("The DNS forward record %s does not match the reverse lookup %s" % (forward, reverse))
 
 def port_available(port):
     """Try to bind to a port on the wildcard host

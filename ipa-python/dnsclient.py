@@ -327,6 +327,7 @@ def dnsParsePTR(data, base):
 	(rest, rdata.ptrdname) = dnsParseLabel(data, base)
 	if DEBUG_DNSCLIENT:
 		print "PTR = \"%s\"." % rdata.ptrdname
+        return rdata
 
 def dnsParseSRV(data, base):
 	rdata = DNSRData()
