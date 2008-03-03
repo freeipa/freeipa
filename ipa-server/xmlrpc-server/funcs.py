@@ -1896,8 +1896,9 @@ class IPAServer:
         # TODO - need to parameterize this into generate_match_filters,
         #        and work it into the field-specification search feature
         #
-        exact_match_filter = "(&(objectclass=krbPrincipalAux)(!(objectClass=person))(!(krbprincipalname=kadmin/*))%s)" % exact_match_filter
-        partial_match_filter = "(&(objectclass=krbPrincipalAux)(!(objectClass=person))(!(krbprincipalname=kadmin/*))%s)" % partial_match_filter
+        exact_match_filter = "(&(objectclass=krbPrincipalAux)(!(objectClass=person))(!(|(krbprincipalname=kadmin/*)(krbprincipalname=K/M@*)(krbprincipalname=krbtgt/*)))%s)" % exact_match_filter
+        partial_match_filter = "(&(objectclass=krbPrincipalAux)(!(objectClass=person))(!(|(krbprincipalname=kadmin/*)(krbprincipalname=K/M@*)(krbprincipalname=krbtgt/*)))%s)" % partial_match_filter
+
 
         conn = self.getConnection(opts)
         try:
