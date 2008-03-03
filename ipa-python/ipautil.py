@@ -71,7 +71,7 @@ def write_tmp_file(txt):
     return fd
 
 def run(args, stdin=None):
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
     if stdin:
         stdout,stderr = p.communicate(stdin)
     else:
