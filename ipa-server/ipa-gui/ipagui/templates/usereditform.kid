@@ -814,7 +814,7 @@ from ipagui.helpers import ipahelper
       <h2 class="formsection">Groups</h2>
 
       <div class="floatlist">
-        <div class="floatheader">To Remove:</div>
+        <div py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups or tg.identity.display_name != value.get('uid')" class="floatheader">To Remove:</div>
         <div id="delmembers">
         </div>
       </div>
@@ -841,7 +841,7 @@ from ipagui.helpers import ipahelper
                                                '${group_descr_esc}',
                                                '${group_type_esc}'));
           </script>
-          <a href="#" 
+          <a py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups or tg.identity.display_name != value.get('uid')" href="#" 
             onclick="removememberHandler(this, '${group_dn_esc}',
                          new MemberDisplayInfo('${group_name_esc}',
                                                '${group_descr_esc}',
@@ -861,7 +861,7 @@ from ipagui.helpers import ipahelper
 
     </div>
 
-    <div style="clear:both">
+    <div py:if="'editors' in tg.identity.groups or 'admins' in tg.identity.groups or tg.identity.display_name != value.get('uid')" style="clear:both">
       <h2 class="formsection">Add Groups</h2>
 
       <div class="floatlist">
