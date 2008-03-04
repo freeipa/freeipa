@@ -328,7 +328,7 @@ def main():
     print "This includes:"
     print "  * Configure the Network Time Daemon (ntpd)"
     print "  * Create and configure an instance of Directory Server"
-    print "  * Create and configure a Kerberos Domain Controller (KDC)"
+    print "  * Create and configure a Kerberos Key Distribution Center (KDC)"
     print "  * Configure Apache (httpd)"
     print "  * Configure TurboGears"
     print ""
