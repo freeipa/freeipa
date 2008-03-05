@@ -62,7 +62,7 @@
         </table>
     </div>
     <div id="alertbox" py:if='(principals != None) and (len(principals) == 0)'>
-        <p id="alertbox">No results found for "${hostname}"</p>
+        <p>No results found for "${hostname}"</p>
     </div>
 
     <div class="instructions" py:if='principals == None'>

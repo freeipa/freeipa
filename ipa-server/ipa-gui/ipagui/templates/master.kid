@@ -116,9 +116,6 @@
 
     </div>
 
-      <div id="footer">
-        <a href="http://www.freeipa.com/" target="_blank">Powered by FreeIPA</a>
-      </div>
 </body>
 
 </html>

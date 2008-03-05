@@ -92,7 +92,7 @@
         </table>
     </div>
     <div id="alertbox" py:if='(users != None) and (len(users) == 0)'>
-        <p id="alertbox">No results found for "${uid}"</p>
+        <p>No results found for "${uid}"</p>
     </div>
 
     <div class="instructions" py:if='users == None'>
