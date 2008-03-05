@@ -330,7 +330,7 @@ static int ldap_set_keytab(const char *servername,
 	ret = ldap_sasl_interactive_bind_s(ld,
 					   NULL, "GSSAPI",
 					   NULL, NULL,
-					   LDAP_SASL_AUTOMATIC,
+					   LDAP_SASL_QUIET,
 					   ldap_sasl_interact, princ);
 	if (ret != LDAP_SUCCESS) {
 		fprintf(stderr, "SASL Bind failed!\n");
@@ -449,11 +449,13 @@ int main(int argc, char *argv[])
 	static const char *principal = NULL;
 	static const char *keytab = NULL;
 	static const char *enctypes_string = NULL;
+	int quiet = 0;
         struct poptOption options[] = {
                 { "server", 's', POPT_ARG_STRING, &server, 0, "Contact this specific KDC Server", "Server Name" },
                 { "principal", 'p', POPT_ARG_STRING, &principal, 0, "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)", "Kerberos Service Principal Name" },
                 { "keytab", 'k', POPT_ARG_STRING, &keytab, 0, "File were to store the keytab information", "Keytab File Name" },
 		{ "enctypes", 'e', POPT_ARG_STRING, &enctypes_string, 0, "Encryption types to request", "Comma separated encription types list" },
+		{ "quiet", 'q', POPT_ARG_NONE, &quiet, 0, "Print as little as possible", "Output only on errors"},
 		{ NULL, 0, POPT_ARG_NONE, NULL, 0, NULL, NULL }
 	};
 	poptContext pc;
@@ -474,7 +476,9 @@ int main(int argc, char *argv[])
 	pc = poptGetContext("ipa-getkeytab", argc, (const char **)argv, options, 0);
 	ret = poptGetNextOpt(pc);
 	if (ret != -1 || !server || !principal || !keytab) {
-		poptPrintUsage(pc, stderr, 0);
+		if (!quiet) {
+			poptPrintUsage(pc, stderr, 0);
+		}
 		exit(1);
 	}
 
@@ -560,5 +564,10 @@ int main(int argc, char *argv[])
 		exit (12);
 	}
 
+	if (!quiet) {
+		fprintf(stderr,
+			"Keytab successfully retrieved and stored in: %s\n",
+			keytab);
+	}
 	exit(0);
 }

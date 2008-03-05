@@ -15,16 +15,16 @@
 .\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 .\" 
 .\" Author: Karl MacMillan <kmacmill@redhat.com>
+.\" Author: Simo Sorce <ssorce@redhat.com>
 .\" 
 .TH "ipa-getkeytab" "1" "Oct 10 2007" "freeipa" ""
 .SH "NAME"
 ipa\-getkeytab \- Get a keytab for a kerberos principal
 .SH "SYNOPSIS"
-ipa\-getkeytab [\fI-a\fR] \fIprincipal-name\fR \fIfile-name\fR
+ipa\-getkeytab <\fI-s ipaserver\fR> <\fI-p principal-name\fR> <\fI-k keytab-file\fR> [\fI-e encryption-types\fR] [\fI-q\fR]
 
 .SH "DESCRIPTION"
-Retrieves a kerberos \fIkeytab\fR and optionally adds a
-service \fIprincipal\fR.
+Retrieves a kerberos \fIkeytab\fR.
 
 Kerberos keytabs are used for services (like sshd) to
 perform kerberos authentication. A keytab is a file
@@ -41,7 +41,7 @@ is an example principal for an ldap server:
 
 When using ipa-getkeytab the realm name is already
 provided, so the principal name is just the service
-name and hostname (ldap/foo.example.com from the 
+name and hostname (ldap/foo.example.com from the
 example above).
 
 \fBWARNING:\fR retrieving the keytab resets the secret
@@ -49,15 +49,29 @@ rendering all other keytabs for that principal invalid.
 
 .SH "OPTIONS"
 .TP 
-\fB\-a\fR
-Add the service principal in addition to getting the keytab
+\fB\-s ipaserver\fR
+The IPA Server to retrieve the keytab from (FQDN).
+
+\fB\-p principal-name\fR
+The non realm part of the full principal name.
+
+\fB\-k keytab-file\fR
+The keytab file where to append the new key (will be
+created if not existing).
+
+\fB\-e encryption-types\fR
+The list of encryption types to use to generate keys.
+ipa-getkeytab will use local client defaults if not provided.
+
+\fB\-q\fR
+Keep quiet.
 
 .SH "EXAMPLES"
 
 Add and retrieve a keytab for the ldap service principal on
 the host foo.example.com and save it in the file ldap.keytab.
 
-   # ipa-getkeytab -a ldap/foo.example.com ldap.keytab
+   # ipa-getkeytab -s ipaserver.example.com -p nfs/foo.example.com -k /tmp/ldap.keytab -e des-cbc-crc
 
 .SH "EXIT STATUS"
 The exit status is 0 on success, nonzero on error.
