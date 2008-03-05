@@ -32,16 +32,16 @@ class IPADiscovery:
         self.basedn = None
 
     def getServerName(self):
-        return str(self.server)
+        return self.server
 
     def getDomainName(self):
-        return str(self.domain)
+        return self.domain
 
     def getRealmName(self):
-        return str(self.realm)
+        return self.realm
 
     def getBaseDN(self):
-        return str(self.basedn)
+        return self.basedn
 
     def search(self, domain = "", server = ""):
         hostname = ""
@@ -100,8 +100,8 @@ class IPADiscovery:
     
         logging.debug("[ipacheckldap]")
         # check ldap now
-        ldapret = self.ipacheckldap(self.server, self.realm);
-    
+        ldapret = self.ipacheckldap(self.server, self.realm)
+
         if not ldapret:
             return -4 # not an IPA server (or broken config)
     
@@ -178,7 +178,11 @@ class IPADiscovery:
     
         except LDAPError, err:
             #no good
-            logging.error("Ldap Error: "+str(err))
+            if type(err.message) == dict:
+                for (k, v) in err.message.iteritems():
+                    logging.error("LDAP Error: %s" % v )
+            else:
+                logging.error("LDAP Error: "+err.message)
             return []
 
     
