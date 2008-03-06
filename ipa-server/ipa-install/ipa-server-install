@@ -123,9 +123,8 @@ def read_host_name(host_default):
             host_name = host_input
         try:
             verify_fqdn(host_name)
-        except:
-            host_name = ""
-            continue
+        except Exception, e:
+            raise e
         else:
             host_ok = True
     return host_name

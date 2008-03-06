@@ -41,6 +41,11 @@ def get_fqdn():
         except:
             fqdn = ""
     return fqdn
+
+def reverse_ip(ipaddr):
+    i = ipaddr.split('.')
+    i.reverse()
+    return '.'.join(i)
    
 def verify_fqdn(host_name):
     if len(host_name.split(".")) < 2 or host_name == "localhost.localdomain":
@@ -64,6 +69,31 @@ def verify_fqdn(host_name):
 
     if forward != reverse:
         raise RuntimeError("The DNS forward record %s does not match the reverse lookup %s" % (forward, reverse))
+
+    # Look in /etc/hosts for this IP
+    try:
+        fd = open("/etc/hosts", "r")
+    except:
+        raise RuntimeError("Unable to open /etc/hosts for reading. Check file permissions.")
+
+    p = re.compile('([a-zA-Z0-9\.:]+)\s+([a-zA-Z0-9\.\-]+)')
+    while True:
+        line = fd.readline()
+        if not line: break
+        if len(line) > 0 and line[0] == "#":
+           continue   
+        m = p.match(line)
+        hname = None
+        try:
+            if m.group(1) == ipaddr:
+                hname = m.group(2) + "."
+        except:
+            pass
+        if hname and hname != forward:
+            fd.close()
+            raise RuntimeError("The IP address in /etc/hosts defines the hostname as '%s' but DNS says it is '%s'. The fully-qualified hostname needs to appear on the list first in /etc/hosts" % (hname, forward))
+
+    fd.close()
 
 def port_available(port):
     """Try to bind to a port on the wildcard host
