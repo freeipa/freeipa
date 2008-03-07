@@ -54,7 +54,7 @@ def verify_fqdn(host_name):
     # Compare the forward and reverse
     forward = rs[0].dns_name
 
-    addr = socket.inet_ntoa(struct.pack('L',rs[0].rdata.address))
+    addr = socket.inet_ntoa(struct.pack('=L',rs[0].rdata.address))
     addr = addr + ".in-addr.arpa."
 
     rs = dnsclient.query(addr, dnsclient.DNS_C_IN, dnsclient.DNS_T_PTR)
