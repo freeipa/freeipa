@@ -20,6 +20,7 @@
 import time, logging
 
 import ipaldap, ldap, dsinstance
+from ldap import modlist
 from ipa import ipaerror
 
 DIRMAN_CN = "cn=directory manager"
@@ -320,3 +321,21 @@ class ReplicationManager:
         self.setup_agreement(self.conn, other_conn)
         
         return self.start_replication(other_conn)
+
+    def initialize_replication(self, dn, conn):
+        mod = [(ldap.MOD_ADD, 'nsds5BeginReplicaRefresh', 'start')]
+        try:
+            conn.modify_s(dn, mod)
+        except ldap.ALREADY_EXISTS:
+            return
+
+    def force_synch(self, dn, schedule, conn):
+        newschedule = '2358-2359 0'
+
+        # On the remote chance of a match. We force a synch to happen right
+        # now by changing the schedule to something else and quickly changing
+        # it back.
+        if newschedule == schedule:
+            newschedule = '2358-2359 1'
+        mod = [(ldap.MOD_REPLACE, 'nsDS5ReplicaUpdateSchedule', [ newschedule ])]
+        conn.modify_s(dn, mod)

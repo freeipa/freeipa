@@ -231,25 +231,12 @@ class IPAdmin(SimpleLDAPObject):
                                     [ 'nsslapd-instancedir', 'nsslapd-errorlog',
                                       'nsslapd-certdir', 'nsslapd-schemadir' ])
                 self.errlog = ent.getValue('nsslapd-errorlog')
-                self.confdir = None
-                if self.isLocal:
-                    self.confdir = ent.getValue('nsslapd-certdir')
-                    if not self.confdir or not os.access(self.confdir + '/dse.ldif', os.R_OK):
-                        self.confdir = ent.getValue('nsslapd-schemadir')
-                        if self.confdir:
-                            self.confdir = os.path.dirname(self.confdir)
-                instdir = ent.getValue('nsslapd-instancedir')
-                if not instdir:
-                    # get instance name from errorlog
-                    self.inst = re.match(r'(.*)[\/]slapd-([\w-]+)/errors', self.errlog).group(2)
+                self.confdir = ent.getValue('nsslapd-certdir')
+                if not self.confdir:
+                    self.confdir = ent.getValue('nsslapd-schemadir')
                     if self.confdir:
-                        instdir = self.getDseAttr('nsslapd-instancedir')
-                    else:
-                        if self.isLocal:
-                            print instdir
-                            self.sroot, self.inst = re.match(r'(.*)[\/]slapd-([\w-]+)$', instdir).groups()
-                            instdir = re.match(r'(.*/slapd-.*)/errors', self.errlog).group(1)
-                            #self.sroot, self.inst = re.match(r'(.*)[\/]slapd-([\w-]+)$', instdir).groups()
+                        self.confdir = os.path.dirname(self.confdir)
+                instdir = ent.getValue('nsslapd-instancedir')
                 ent = self.getEntry('cn=config,cn=ldbm database,cn=plugins,cn=config',
                                     ldap.SCOPE_BASE, '(objectclass=*)',
                                     [ 'nsslapd-directory' ])
@@ -293,10 +280,6 @@ class IPAdmin(SimpleLDAPObject):
         self.bindcert = bindcert
         self.bindkey = bindkey
         self.proxydn = proxydn
-        # see if is local or not
-        host1 = IPAdmin.getfqdn(host)
-        host2 = IPAdmin.getfqdn()
-        self.isLocal = (host1 == host2)
         self.suffixes = {}
         self.__localinit__()
 
@@ -691,26 +674,6 @@ class IPAdmin(SimpleLDAPObject):
         else:
             return 'dc=localdomain'
     getdefaultsuffix = staticmethod(getdefaultsuffix)
-
-    def getnewhost(args):
-        """One of the arguments to createInstance is newhost.  If this is specified, we need
-        to convert it to the fqdn.  If not given, we need to figure out what the fqdn of the
-        local host is.  This method sets newhost in args to the appropriate value and
-        returns True if newhost is the localhost, False otherwise"""
-        isLocal = False
-        if args.has_key('newhost'):
-            args['newhost'] = IPAdmin.getfqdn(args['newhost'])
-            myhost = IPAdmin.getfqdn()
-            if myhost == args['newhost']:
-                isLocal = True
-            elif args['newhost'] == 'localhost' or \
-                     args['newhost'] == 'localhost.localdomain':
-                isLocal = True
-        else:
-            isLocal = True
-            args['newhost'] = IPAdmin.getfqdn()
-        return isLocal
-    getnewhost = staticmethod(getnewhost)
 
     def is_a_dn(dn):
         """Returns True if the given string is a DN, False otherwise."""

@@ -18,13 +18,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import sys
-
-import getpass, ldap, re, krbV
-
-from ipa import ipautil
-from ipaserver import replication, ipaldap, dsinstance, installutils
-
 def parse_options():
     from optparse import OptionParser
 
@@ -36,8 +29,8 @@ def parse_options():
 
     options, args = parser.parse_args()
 
-    if not len(args) or not ("list" in args[0] or "add" in args[0] or "del" in args[0]):
-        parser.error("must provide a comment [list | add | del]")
+    if not len(args) or not ("list" in args[0] or "add" in args[0] or "del" in args[0] or "init" in args[0] or "synch" in args[0]):
+        parser.error("must provide a comment [list | add | del | init | synch]")
 
     return options, args
 
@@ -69,6 +62,8 @@ def list_masters(replman, verbose):
         print other
 
         if verbose:
+            print "  last init status: %s" % entry.nsds5replicalastinitstatus
+            print "  last init ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastinitend))
             print "  last update status: %s" % entry.nsds5replicalastupdatestatus
             print "  last update ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastupdateend))
     
@@ -82,6 +77,26 @@ def del_master(replman, hostname):
 
 def add_master(replman, hostname):
     replman.setup_replication(hostname, get_realm_name())
+
+def init_master(replman, hostname):
+    filter = "(&(nsDS5ReplicaHost=%s)(objectclass=nsds5ReplicationAgreement))" % hostname
+    entry = replman.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
+    if len(entry) == 0:
+        logging.error("Unable to find replication agreement for %s" % hostname)
+        sys.exit(1)
+    if len(entry) > 1:
+        logging.error("Found multiple agreements for %s. Only initializing the first one returned: %s" % (hostname, entry[0].dn))
+    replman.initialize_replication(entry[0].dn, replman.conn)
+
+def synch_master(replman, hostname):
+    filter = "(&(nsDS5ReplicaHost=%s)(objectclass=nsds5ReplicationAgreement))" % hostname
+    entry = replman.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
+    if len(entry) == 0:
+        logging.error("Unable to find replication agreement for %s" % hostname)
+        sys.exit(1)
+    if len(entry) > 1:
+        logging.error("Found multiple agreements for %s. Only initializing the first one returned: %s" % (hostname, entry[0].dn))
+    replman.force_synch(entry[0].dn, entry[0].nsds5replicaupdateschedule, replman.conn)
 
 def main():
     options, args = parse_options()
@@ -111,8 +126,33 @@ def main():
             print "must provide hostname of master to add"
             sys.exit(1)
         add_master(r, args[1])
+    elif args[0] == "init":
+        if len(args) != 2:
+            print "hostname of supplier to initialize from is required."
+            sys.exit(1)
+        init_master(r, args[1])
+    elif args[0] == "synch":
+        if len(args) != 2:
+            print "must provide hostname of supplier to synchronize with"
+            sys.exit(1)
+        synch_master(r, args[1])
 
 try:
+    import sys
+
+    import getpass, ldap, re, krbV
+    import traceback, logging
+
+    from ipa import ipautil
+    from ipaserver import replication, ipaldap, dsinstance, installutils
+
     main()
+except KeyboardInterrupt:
+    sys.exit(1)   
+except SystemExit, e:
+    sys.exit(e)
+except ldap.INVALID_CREDENTIALS:
+    print "Invalid password"
+    sys.exit(1)
 except Exception, e:
     print "unexpected error: %s" % str(e)
