@@ -3,7 +3,6 @@
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "krbMKey")(version 3.0; acl "Only the kerberos account can access this one"; deny (read, search, compare, write) userdn != "ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
 aci: (targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Enable Anonymous access"; allow (read, search, compare) userdn = "ldap:///anyone";)
 aci: (targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Admin can manage any entry"; allow (all) userdn = "ldap:///uid=admin,cn=sysaccounts,cn=etc,$SUFFIX";)
 aci: (targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword")(version 3.0; acl "Self can write own password"; allow (write) userdn="ldap:///self";)

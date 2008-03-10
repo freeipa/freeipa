@@ -421,7 +421,7 @@ class UserController(IPAController):
             raise turbogears.redirect('/user/show', uid=kw.get('uid'))
 
         edituid = cherrypy.session.get('uid')
-        if not edituid or edituid != kw.get('uid'):
+        if edituid and edituid != kw.get('uid') and edituid != kw.get('uid_hidden'):
             turbogears.flash("Something went wrong. You last viewed %s but are trying to update %s" % (kw.get('uid'), edituid))
             raise turbogears.redirect('/user/show', uid=kw.get('uid'))
 
@@ -614,9 +614,6 @@ class UserController(IPAController):
             return dict(form=user_edit_form, user=kw,
                         user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')
-
-        # We no longer need this
-        cherrypy.session['uid'] = None
 
         turbogears.flash("%s updated!" % kw['uid'])
         raise turbogears.redirect('/user/show', uid=kw['uid'])
