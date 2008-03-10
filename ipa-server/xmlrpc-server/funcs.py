@@ -2089,4 +2089,4 @@ def ldap_search_escape(match):
 def uniq_list(x):
     """Return a unique list, preserving order and ignoring case"""
     set = {}
-    return [set.setdefault(e,e) for e in x if e.lower() not in set]
+    return [set.setdefault(e.lower(),e.lower()) for e in x if e.lower() not in set]
