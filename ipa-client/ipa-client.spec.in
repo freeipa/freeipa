@@ -19,7 +19,7 @@ The client package provide install and configuration scripts for clients.
 
 %prep
 %setup -q
-./configure --prefix=%{buildroot}/usr --libdir=%{buildroot}/%{_libdir} --sysconfdir=%{buildroot}/etc
+./configure --prefix=%{buildroot}/usr --libdir=%{buildroot}/%{_libdir} --sysconfdir=%{buildroot}/etc --mandir=%{buildroot}/%{_mandir}
 
 %build
 
