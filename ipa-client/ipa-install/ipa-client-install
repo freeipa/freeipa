@@ -33,6 +33,7 @@ def parse_options():
     parser.add_option("-U", "--unattended", dest="unattended",
                       action="store_true",
                       help="unattended installation never prompts the user")
+    parser.add_option("--ntp-server", dest="ntp_server", help="ntp server to use")
     parser.add_option("-N", "--no-ntp", action="store_false",
                       help="do not configure ntp", default=True, dest="conf_ntp")
     parser.add_option("--on-master", dest="on_master", action="store_true",
@@ -263,7 +264,11 @@ def main():
     print "Kerberos 5 enabled"
 
     if options.conf_ntp and not options.on_master:
-        ipaclient.ntpconf.config_ntp(ds.getServerName())
+        if options.ntp_server:
+            ntp_server = options.ntp_server
+        else:
+            ntp_server = ds.getServerName()
+        ipaclient.ntpconf.config_ntp(ntp_server)
         print "NTP enabled"
 
     print "Client configuration complete."
