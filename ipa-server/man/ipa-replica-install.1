@@ -1,0 +1,38 @@
+.\" A man page for ipa-replica-install
+.\" Copyright (C) 2008 Red Hat, Inc.
+.\" 
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; version 2 only
+.\" 
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\" 
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\" 
+.TH "ipa-replica-install" "1" "Mar 14 2008" "freeipa" ""
+.SH "NAME"
+ipa\-replica\-install \- Create an IPA replica
+.SH "SYNOPSIS"
+ipa\-replica\-install [\fIOPTION\fR]... replica_file
+.SH "DESCRIPTION"
+Configures a new IPA server that is a replica of the server that generated it. Once it has been created it is an exact copy of the original IPA server and is an equal master. Changes made to any master are automatically replicated to other masters.
+
+The replica_file is created using the ipa\-replica\-prepare utility.
+.SH "OPTIONS"
+.TP 
+\fB\-d\fR, \fB\-\-debug
+Enable debug logging when more verbose output is needed
+.TP 
+\fB\-n\fR, \fB\-\-no\-ntp\fR
+Do not configure NTP
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred

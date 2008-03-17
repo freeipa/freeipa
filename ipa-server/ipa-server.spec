@@ -1,6 +1,6 @@
 Name:           ipa-server
 Version:        0.99.0
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base
@@ -40,6 +40,8 @@ Requires: python-tgexpandingformwidget
 Requires: acl
 Requires: python-pyasn1
 Requires: libcap
+
+Conflicts: mod_ssl
 
 %define httpd_conf /etc/httpd/conf.d
 %define plugin_dir %{_libdir}/dirsrv/plugins
@@ -151,7 +153,20 @@ fi
 %dir %{_localstatedir}/cache/ipa/sysrestore
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 
+%{_mandir}/man8/ipactl.8.gz
+%{_mandir}/man8/ipa_kpasswd.8.gz
+%{_mandir}/man8/ipa_webgui.8.gz
+%{_mandir}/man1/ipa-replica-install.1.gz
+%{_mandir}/man1/ipa-replica-manage.1.gz
+%{_mandir}/man1/ipa-replica-prepare.1.gz
+%{_mandir}/man1/ipa-server-certinstall.1.gz
+%{_mandir}/man1/ipa-server-install.1.gz
+
 %changelog
+* Fri Mar 14 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-4
+- Add missing man pages
+- Add Conflicts for mod_ssl
+
 * Thu Feb 26 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-3
 - Add ipactl command
 

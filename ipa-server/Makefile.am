@@ -11,6 +11,7 @@ SUBDIRS =			\
 	ipaserver		\
 	ipa-slapi-plugins	\
 	xmlrpc-server		\
+	man			\
 	$(NULL)
 
 install-exec-local:

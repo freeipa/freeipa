@@ -1,0 +1,41 @@
+.\" A man page for ipa-server-certinstall
+.\" Copyright (C) 2008 Red Hat, Inc.
+.\" 
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; version 2 only
+.\" 
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\" 
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\" 
+.TH "ipa-server-certinstall" "1" "Mar 14 2008" "freeipa" ""
+.SH "NAME"
+ipa\-server\-certinstall \- Install new SSL server certificates
+.SH "SYNOPSIS"
+ipa\-server\-certinstall [\fIOPTION\fR]... PKCS12_FILE
+.SH "DESCRIPTION"
+Replace the current SSL Directory and/or Apache server certificate(s) with the certificate in the PKCS#12 file.
+
+PKCS#12 is a file format used to safely transport SSL certificates and public/private keypairs.
+
+They may be generated and managed using the NSS pk12util command or the OpeNSSL pkcs12 command.
+
+.SH "OPTIONS"
+.TP 
+\fB\-d\fR, \fB\-\-dirsrv\fR
+Install the certificate on the Directory Server
+.TP 
+\fB\-w\fR, \fB\-\-http\fR
+Install the certificate in the Apache Web Server
+.SH "EXIT STATUS"
+0 if the installation was successful
+
+1 if an error occurred

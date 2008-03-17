@@ -1,0 +1,37 @@
+.\" A man page for ipa_webgui
+.\" Copyright (C) 2008 Red Hat, Inc.
+.\" 
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; version 2 only
+.\" 
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\" 
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\" 
+.TH "ipa_webgui" "8" "Mar 14 2008" "freeipa" ""
+.SH "NAME"
+ipa_webgui \- Start the IPA Web User Interface
+.SH "SYNOPSIS"
+ipa_webgui [\fIOPTION\fR]...
+
+.SH "DESCRIPTION"
+Used to start the TurboGears web user interface for IPA
+.SH "OPTIONS"
+.TP 
+\fB\-f\fR, \fB\-\-foreground\fR
+Remain in the foreground instead of becoming a daemon.
+.TP 
+\fB\-d\fR, \fB\-\-debug\fR
+.TP 
+Increase the amount of logging and print it to stdout instead of logging to /var/log/ipa_error.log
+
+.SH "EXIT STATUS"
+1 if an error occurred

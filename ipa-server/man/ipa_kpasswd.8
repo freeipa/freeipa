@@ -1,0 +1,36 @@
+.\" A man page for ipa_kpasswd
+.\" Copyright (C) 2008 Red Hat, Inc.
+.\" 
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; version 2 only
+.\" 
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\" 
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\" 
+.TH "ipa_kpasswd" "1" "Mar 14 2008" "freeipa" ""
+.SH "NAME"
+ipa_kpasswd \- Proxy Kerberos password change requests
+.SH "SYNOPSIS"
+ipa_kpasswd
+.SH "DESCRIPTION"
+Implementation of the kpasswd protocol (RFC 3244). 
+
+It is used to proxy password change operations to Directory Server.
+.SH "ENVIRONMENT VARIABLES"
+.TP 
+KRB5_KTNAME
+Location of the keytab to be used by ipa_kpasswd
+.TP 
+IPA_KPASSWD_DEBUG
+Enable additional syslog output from ipa_kpasswd. Setting greater than 0 gets basic output. Setting higher than 100 gets more.
+.SH "EXIT STATUS"
+\-1 if an error occurred

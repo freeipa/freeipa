@@ -1,0 +1,55 @@
+.\" A man page for ipa-client-install
+.\" Copyright (C) 2008 Red Hat, Inc.
+.\" 
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; version 2 only
+.\" 
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\" 
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\" 
+.TH "ipa-client-install" "1" "Mar 14 2008" "freeipa" ""
+.SH "NAME"
+ipa\-client\-install \- Configure an IPA client
+.SH "SYNOPSIS"
+ipa\-client\-install [\fIOPTION\fR]...
+.SH "DESCRIPTION"
+Configures a client machine to use IPA for authentication and identity services.
+
+This configures PAM and NSS (Name Switching Service) to work with an IPA server over Kerberos an LDAP.
+.SH "OPTIONS"
+.TP 
+\fB\-\-domain\fR=\fIDOMAIN\fR
+Set the domain name to DOMAIN
+.TP 
+\fB\-\-server\fR=\fISERVER\fR
+Set the IPA server to connect to
+.TP 
+\fB\-\-realm\fR=\fIREALM_NAME\fR
+Set the IPA realm name to REALM_NAME
+.TP 
+\fB\-f\fR, \fB\-\-force\fR
+Force the settings even if errors occur
+.TP 
+\fB\-d\fR, \fB\-\-debug\fR
+Print debugging information to stdout
+.TP 
+\fB\-U\fR, \fB\-\-unattended\fR
+Unattended installation. The user will not be prompted.
+.TP 
+\fB\-N\fR, \fB\-\-no\-ntp\fR
+Do not configure or enable NTP
+\fB\-\-on\-master\fB
+The client is being configured on an IPA server
+.SH "EXIT STATUS"
+0 if the installation was successful
+
+1 if an error occurred

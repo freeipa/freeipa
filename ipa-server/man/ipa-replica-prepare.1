@@ -1,0 +1,35 @@
+.\" A man page for ipa-replica-prepare
+.\" Copyright (C) 2008 Red Hat, Inc.
+.\" 
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; version 2 only
+.\" 
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\" 
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\" 
+.TH "ipa-replica-prepare" "1" "Mar 14 2008" "freeipa" ""
+.SH "NAME"
+ipa\-replica\-prepare \- Create an IPA replica file
+.SH "SYNOPSIS"
+ipa\-replica\-prepare [\fIOPTION\fR]... hostname
+.SH "DESCRIPTION"
+Generates a replica file that may be used with ipa\-replica\-install to create a replica of an IPA server.
+
+A replica can only be created on an IPA server installed with ipa\-server\-install (the first server).
+
+You must provide the fully\-qualified hostname of the machine you want to install the replica on and a host\-specific replica_file will be created. It is host\-specific because SSL server certificates are generated as part of the process and they are specific to a particular hostname.
+
+Once the file has been created it will be named replica\-hostname. This file can then be moved across the network to the target machine and a new IPA replica setup by running ipa\-replica\-install replica\-hostname.
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred
