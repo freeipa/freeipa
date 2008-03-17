@@ -109,3 +109,6 @@ except xmlrpclib.ProtocolError, e:
 except ipaerror.IPAError, e:
     print("Delegation list failed: " + str(e))
     sys.exit(1)
+except Exception, e:
+    print "%s" % str(e)
+    sys.exit(1)

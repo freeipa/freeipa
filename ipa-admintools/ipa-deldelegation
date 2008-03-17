@@ -130,3 +130,6 @@ except xmlrpclib.ProtocolError, e:
 except ipa.ipaerror.IPAError, e:
     print "%s" % (e.message)
     sys.exit(1)
+except Exception, e:
+    print "%s" % str(e)
+    sys.exit(1)

@@ -146,9 +146,9 @@ def init_config(args=None):
     __parse_config()
 
     if not config.default_realm:
-        raise IPAConfigError("realm not found, nor specified in config file or on command line")
+        raise IPAConfigError("IPA realm not found in DNS, in the config file (/etc/ipa/ipa.conf) or on the command line.")
     if not config.default_server:
-        raise IPAConfigError("server not found, nor specified in config file or on command line")
+        raise IPAConfigError("IPA server not found in DNS, in the config file (/etc/ipa/ipa.conf) or on the command line.")
 
     if out_args:
         return out_args
