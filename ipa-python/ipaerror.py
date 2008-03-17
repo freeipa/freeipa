@@ -158,6 +158,11 @@ INPUT_MALFORMED_SERVICE_PRINCIPAL = gen_error_code(
         0x0005,
         "The requested service principal is not of the form: service/fully-qualified host name")
 
+INPUT_REALM_MISMATCH = gen_error_code(
+        INPUT_CATEGORY,
+        0x0006,
+        "The realm for the principal does not match the realm for this IPA server.")
+
 #
 # Connection errors
 #

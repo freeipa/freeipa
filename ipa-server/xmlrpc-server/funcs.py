@@ -1820,9 +1820,12 @@ class IPAServer:
 
         # Don't let the user set the realm
         if name.find('@') > 0:
-            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
-
-        princ_name = name + "@" + self.realm
+            r = name[name.find('@')+1:]
+            if (r != self.realm):
+                raise ipaerror.gen_exception(ipaerror.INPUT_REALM_MISMATCH)
+            princ_name = name
+        else:
+            princ_name = name + "@" + self.realm
         
         conn = self.getConnection(opts)
         if not self.__is_service_unique(name, opts):
