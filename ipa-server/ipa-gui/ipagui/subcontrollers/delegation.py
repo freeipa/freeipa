@@ -189,12 +189,32 @@ class DelegationController(IPAController):
             turbogears.flash("Edit delegation cancelled")
             raise turbogears.redirect('/delegate/list')
 
+        # Try to handle the case where the user entered just some data
+        # into the source/dest group name but didn't do a Find. We'll do
+        # our best to see if a group by that name exists and if so, use it.
+        dest_group_cn = kw.get('dest_group_cn')
+        if dest_group_cn:
+            try:
+                group = client.get_entry_by_cn(dest_group_cn, ['dn'])
+                kw['dest_group_dn'] = group.dn
+            except:
+                # This _notfound value is used in delegatevalidate()
+               kw['dest_group_cn_notfound'] = True
+        source_group_cn = kw.get('source_group_cn')
+        if source_group_cn:
+            try:
+                group = client.get_entry_by_cn(source_group_cn, ['dn'])
+                kw['source_group_dn'] = group.dn
+            except:
+                # This _notfound value is used in delegatevalidate()
+                kw['source_group_cn_notfound'] = True
+
         tg_errors, kw = self.delegatevalidate(**kw)
         if tg_errors:
             turbogears.flash("There were validation errors.<br/>" +
                              "Please see the messages below for details.")
             return dict(form=delegate_form, delegate=kw,
-                    tg_template='ipagui.templates.delegatenew')
+                    tg_template='ipagui.templates.delegateedit')
 
         try:
             aci_entry = client.get_aci_entry(aci_fields)
@@ -383,9 +403,13 @@ class DelegationController(IPAController):
     def delegatevalidate(self, tg_errors=None, **kw):
         # We are faking this because otherwise it shows up as one huge
         # block of color in the UI when it has a not empty validator.
+        if not tg_errors:
+            tg_errors = {}
         if not kw.get('attrs'):
-            if not tg_errors:
-                tg_errors = {}
             tg_errors['attrs'] = _("Please select at least one value")
-            cherrypy.request.validation_errors = tg_errors
+        if kw.get('dest_group_cn_notfound'):
+            tg_errors['dest_group_dn'] = _("Group not found")
+        if kw.get('source_group_cn_notfound'):
+            tg_errors['source_group_dn'] = _("Group not found")
+        cherrypy.request.validation_errors = tg_errors
         return tg_errors, kw
