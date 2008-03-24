@@ -25,6 +25,7 @@ import ipa.config
 import ipa.group
 import ipa.user
 import ldap
+import krbV
 
 log = logging.getLogger("turbogears.identity")
 
@@ -132,7 +133,7 @@ class ProxyIdentityProvider(SqlObjectIdentityProvider):
             user = IPA_User(user_name)
             log.debug( "validate_identity %s" % user_name)
             return ProxyIdentity(visit_key, user)
-        except:
+        except Exception, e:
             # Something went wrong in fetching the user. Set to
             # anonymous which will deny access.
             return ProxyIdentity( None )
@@ -143,12 +144,18 @@ class ProxyIdentityProvider(SqlObjectIdentityProvider):
 
     def load_identity(self, visit_key):
         try:
-            user_name= cherrypy.request.headers['X-FORWARDED-USER']
             os.environ["KRB5CCNAME"] = cherrypy.request.headers['X-FORWARDED-KEYTAB']
-#             user_name = "test@FREEIPA.ORG"
-#             os.environ["KRB5CCNAME"] = "FILE:/tmp/krb5cc_500"
+            ccache = krbV.CCache(cherrypy.request.headers['X-FORWARDED-KEYTAB'])
+            user_name = ccache.principal().name
+#            user_name = "test@FREEIPA.ORG"
+#            os.environ["KRB5CCNAME"] = "FILE:/tmp/krb5cc_500"
         except KeyError:
             return None
+        except AttributeError:
+            return None
+        except krbV.Krb5Error:
+            return None
+
         set_login_attempted( True )
         return self.validate_identity( user_name, None, visit_key )
 

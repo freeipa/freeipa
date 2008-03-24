@@ -37,7 +37,7 @@ class RPCClient:
     
     def server_url(self, server):
         """Build the XML-RPC server URL from our configuration"""
-        return "https://" + server + "/ipa"
+        return "https://" + server + "/ipaxml"
     
     def setup_server(self):
         """Create our XML-RPC server connection using kerberos
