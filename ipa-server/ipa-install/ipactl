@@ -22,12 +22,12 @@
 # 
 
 function start() {
-    /sbin/service ntpd start
     /sbin/service dirsrv start
+    /sbin/service ntpd start
     /sbin/service krb5kdc start
-    /sbin/service httpd start
     /sbin/service ipa_kpasswd start
     /sbin/service ipa_webgui start
+    /sbin/service httpd start
 }
 
 function stop() {
