@@ -264,9 +264,9 @@ class UserController(IPAController):
         #
         # Set the Password
         #
-        if kw.get('userpassword'):
+        if kw.get('krbprincipalkey'):
             try:
-                client.modifyPassword(user_dict['krbprincipalname'], "", kw.get('userpassword'))
+                client.modifyPassword(user_dict['krbprincipalname'], "", kw.get('krbprincipalkey'))
             except ipaerror.IPAError, e:
                 message = "User successfully created.<br />"
                 message += "There was an error setting the password.<br />"
@@ -357,8 +357,8 @@ class UserController(IPAController):
             user_dict = self.initialize_mv_fields(user_dict)
 
             # Edit shouldn't fill in the password field.
-            if user_dict.has_key('userpassword'):
-                del(user_dict['userpassword'])
+            if user_dict.has_key('krbprincipalkey'):
+                del(user_dict['krbprincipalkey'])
 
             user_dict['uid_hidden'] = user_dict.get('uid')
 
@@ -512,7 +512,7 @@ class UserController(IPAController):
             new_user.setValueNotEmpty('labeleduri', kw.get('labeleduri'))
 
             if kw.get('editprotected') == 'true':
-                if kw.get('userpassword'):
+                if kw.get('krbprincipalkey'):
                     password_change = True
                 new_user.setValueNotEmpty('uidnumber', str(kw.get('uidnumber')))
                 new_user.setValueNotEmpty('gidnumber', str(kw.get('gidnumber')))
@@ -547,7 +547,7 @@ class UserController(IPAController):
         #
         try:
             if password_change:
-                rv = client.modifyPassword(orig_user_dict['krbprincipalname'], "", kw.get('userpassword'))
+                rv = client.modifyPassword(orig_user_dict['krbprincipalname'], "", kw.get('krbprincipalkey'))
         except ipaerror.IPAError, e:
             turbogears.flash("User password change failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
             return dict(form=user_edit_form, user=kw,

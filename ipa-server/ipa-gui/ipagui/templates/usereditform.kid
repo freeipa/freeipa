@@ -54,8 +54,8 @@ from ipagui.helpers import ipahelper
 
   <script type="text/javascript">
     function toggleProtectedFields(checkbox) {
-      passwordField = document.getElementById('form_userpassword');
-      passwordConfirmField = document.getElementById('form_userpassword_confirm');
+      passwordField = document.getElementById('form_krbprincipalkey');
+      passwordConfirmField = document.getElementById('form_krbprincipalkey_confirm');
       uidField = document.getElementById('form_uid');
       uidnumberField = document.getElementById('form_uidnumber');
       gidnumberField = document.getElementById('form_gidnumber');
@@ -266,16 +266,16 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th valign="top">
-          <label class="fieldlabel" for="${user_fields.userpassword.field_id}"
-            py:content="user_fields.userpassword.label" />:
+          <label class="fieldlabel" for="${user_fields.krbprincipalkey.field_id}"
+            py:content="user_fields.krbprincipalkey.label" />:
         </th>
         <td valign="top">
-          <span py:replace="user_fields.userpassword.display(value_for(user_fields.userpassword))" />
-          <span py:if="tg.errors.get('userpassword')" class="fielderror"
-              py:content="tg.errors.get('userpassword')" />
+          <span py:replace="user_fields.krbprincipalkey.display(value_for(user_fields.krbprincipalkey))" />
+          <span py:if="tg.errors.get('krbprincipalkey')" class="fielderror"
+              py:content="tg.errors.get('krbprincipalkey')" />
 
           <script type="text/javascript">
-              document.getElementById('form_userpassword').disabled = true;
+              document.getElementById('form_krbprincipalkey').disabled = true;
           </script>
 
           <!-- 
@@ -286,7 +286,7 @@ from ipagui.helpers import ipahelper
                 {
                   method: 'get',
                   onSuccess: function(transport) {
-                    document.getElementById('form_userpassword').value =
+                    document.getElementById('form_krbprincipalkey').value =
                         transport.responseText;
                   }
                 });" />
@@ -294,10 +294,10 @@ from ipagui.helpers import ipahelper
           <input type="checkbox"
               onclick="togglePassword(this);"><span class="xsmall">edit</span></input>
           <script type="text/javascript">
-            document.getElementById('form_userpassword').style.display='none';
+            document.getElementById('form_krbprincipalkey').style.display='none';
 
             function togglePassword(checkbox) {
-              passwordField = document.getElementById('form_userpassword');
+              passwordField = document.getElementById('form_krbprincipalkey');
               passwordText = document.getElementById('password_text');
               passwordButton = document.getElementById('genpassword_button');
               if (checkbox.checked) {
@@ -317,17 +317,17 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th valign="top">
-          <label class="fieldlabel" for="${user_fields.userpassword_confirm.field_id}"
-            py:content="user_fields.userpassword_confirm.label" />:
+          <label class="fieldlabel" for="${user_fields.krbprincipalkey_confirm.field_id}"
+            py:content="user_fields.krbprincipalkey_confirm.label" />:
         </th>
         <td valign="top">
-          <span py:replace="user_fields.userpassword_confirm.display(
-               value_for(user_fields.userpassword_confirm))" />
-          <span py:if="tg.errors.get('userpassword_confirm')" class="fielderror"
-              py:content="tg.errors.get('userpassword_confirm')" />
+          <span py:replace="user_fields.krbprincipalkey_confirm.display(
+               value_for(user_fields.krbprincipalkey_confirm))" />
+          <span py:if="tg.errors.get('krbprincipalkey_confirm')" class="fielderror"
+              py:content="tg.errors.get('krbprincipalkey_confirm')" />
 
           <script type="text/javascript">
-              document.getElementById('form_userpassword_confirm').disabled = true;
+              document.getElementById('form_krbprincipalkey_confirm').disabled = true;
           </script>
         </td>
       </tr>

@@ -29,8 +29,8 @@ class UserFields(object):
     initials = widgets.TextField(name="initials", label="Initials")
 
     uid = widgets.TextField(name="uid", label="Login", attrs=dict(onchange="warnRDN(this.id)"))
-    userpassword = widgets.PasswordField(name="userpassword", label="Password")
-    userpassword_confirm = widgets.PasswordField(name="userpassword_confirm",
+    krbprincipalkey = widgets.PasswordField(name="krbprincipalkey", label="Password")
+    krbprincipalkey_confirm = widgets.PasswordField(name="krbprincipalkey_confirm",
             label="Confirm Password")
     uidnumber = widgets.TextField(name="uidnumber", label="UID")
     gidnumber = widgets.TextField(name="gidnumber", label="GID")
@@ -85,15 +85,15 @@ class UserFields(object):
 
 class UserNewValidator(validators.Schema):
     uid = validators.PlainText(not_empty=True)
-    userpassword = validators.String(not_empty=False)
-    userpassword_confirm = validators.String(not_empty=False)
+    krbprincipalkey = validators.String(not_empty=False)
+    krbprincipalkey_confirm = validators.String(not_empty=False)
     givenname = validators.String(not_empty=True)
     sn = validators.String(not_empty=True)
     cn = validators.ForEach(validators.String(not_empty=True))
     mail = validators.Email(not_empty=False)
 
     chained_validators = [
-      validators.FieldsMatch('userpassword', 'userpassword_confirm')
+      validators.FieldsMatch('krbprincipalkey', 'krbprincipalkey_confirm')
     ]
 
 
@@ -121,8 +121,8 @@ class UserNewForm(widgets.Form):
         super(UserNewForm,self).update_params(params)
 
 class UserEditValidator(validators.Schema):
-    userpassword = validators.String(not_empty=False)
-    userpassword_confirm = validators.String(not_empty=False)
+    krbprincipalkey = validators.String(not_empty=False)
+    krbprincipalkey_confirm = validators.String(not_empty=False)
     givenname = validators.String(not_empty=True)
     sn = validators.String(not_empty=True)
     cn = validators.ForEach(validators.String(not_empty=True))
@@ -137,7 +137,7 @@ class UserEditValidator(validators.Schema):
     ]
 
     chained_validators = [
-      validators.FieldsMatch('userpassword', 'userpassword_confirm')
+      validators.FieldsMatch('krbprincipalkey', 'krbprincipalkey_confirm')
     ]
 
 class UserEditForm(widgets.Form):

@@ -272,13 +272,13 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user_fields.userpassword.field_id}"
-            py:content="user_fields.userpassword.label" />:
+          <label class="fieldlabel" for="${user_fields.krbprincipalkey.field_id}"
+            py:content="user_fields.krbprincipalkey.label" />:
         </th>
         <td>
-          <span py:replace="user_fields.userpassword.display(value_for(user_fields.userpassword))" />
-          <span py:if="tg.errors.get('userpassword')" class="fielderror"
-              py:content="tg.errors.get('userpassword')" />
+          <span py:replace="user_fields.krbprincipalkey.display(value_for(user_fields.krbprincipalkey))" />
+          <span py:if="tg.errors.get('krbprincipalkey')" class="fielderror"
+              py:content="tg.errors.get('krbprincipalkey')" />
 
           <!--
           <input type="button" value="Generate Password"
@@ -286,7 +286,7 @@ from ipagui.helpers import ipahelper
                 {
                   method: 'get',
                   onSuccess: function(transport) {
-                    document.getElementById('form_userpassword').value =
+                    document.getElementById('form_krbprincipalkey').value =
                         transport.responseText;
                   }
                 });" />
@@ -296,14 +296,14 @@ from ipagui.helpers import ipahelper
 
       <tr>
         <th>
-          <label class="fieldlabel" for="${user_fields.userpassword_confirm.field_id}"
-            py:content="user_fields.userpassword_confirm.label" />:
+          <label class="fieldlabel" for="${user_fields.krbprincipalkey_confirm.field_id}"
+            py:content="user_fields.krbprincipalkey_confirm.label" />:
         </th>
         <td>
-          <span py:replace="user_fields.userpassword_confirm.display(
-              value_for(user_fields.userpassword_confirm))" />
-          <span py:if="tg.errors.get('userpassword_confirm')" class="fielderror"
-              py:content="tg.errors.get('userpassword_confirm')" />
+          <span py:replace="user_fields.krbprincipalkey_confirm.display(
+              value_for(user_fields.krbprincipalkey_confirm))" />
+          <span py:if="tg.errors.get('krbprincipalkey_confirm')" class="fielderror"
+              py:content="tg.errors.get('krbprincipalkey_confirm')" />
         </td>
       </tr>
 

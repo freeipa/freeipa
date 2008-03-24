@@ -29,7 +29,7 @@ aci_attrs = [
   UserFields.displayname,
   UserFields.initials,
   UserFields.uid,
-  UserFields.userpassword,
+  UserFields.krbprincipalkey,
   UserFields.uidnumber,
   UserFields.gidnumber,
   UserFields.homedirectory,

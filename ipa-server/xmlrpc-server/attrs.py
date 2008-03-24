@@ -18,14 +18,14 @@
 #
 
 attr_label_list = {
-    "givenname":"Given Name",
-    "sn":"Family Name",
-    "cn":"Common Name",
+    "givenname":"First Name",
+    "sn":"Last Name",
+    "cn":"Full Name",
     "title":"Title",
     "displayname":"Display Name",
     "initials":"Initials",
     "uid":"Login",
-    "userpassword":"Password",
+    "krbprincipalkey":"Password",
     "uidnumber":"UID",
     "gidnumber":"GID",
     "homedirectory":"Home Directory",
