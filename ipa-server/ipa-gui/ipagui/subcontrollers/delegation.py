@@ -144,7 +144,7 @@ class DelegationController(IPAController):
                 pass
 
         except ipaerror.IPAError, e:
-            turbogears.flash("Delgate add failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("Delgate add failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             return dict(form=delegate_form, delegate=kw,
                     tg_template='ipagui.templates.delegatenew')
 
@@ -174,7 +174,7 @@ class DelegationController(IPAController):
 
             return dict(form=delegate_form, delegate=delegate)
         except (SyntaxError, ipaerror.IPAError), e:
-            turbogears.flash("Delegation edit failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("Delegation edit failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             raise turbogears.redirect('/delegate/list')
 
 
@@ -259,7 +259,7 @@ class DelegationController(IPAController):
             turbogears.flash("delegate updated")
             raise turbogears.redirect('/delegate/list')
         except (SyntaxError, ipaerror.IPAError), e:
-            turbogears.flash("Delegation update failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("Delegation update failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             return dict(form=delegate_form, delegate=kw,
                         tg_template='ipagui.templates.delegateedit')
 
@@ -272,7 +272,7 @@ class DelegationController(IPAController):
         try:
             aci_entry = client.get_aci_entry(aci_fields)
         except ipaerror.IPAError, e:
-            turbogears.flash("Delegation list failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("Delegation list failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             raise turbogears.redirect('/')
 
         aci_str_list = aci_entry.getValues('aci')
@@ -351,7 +351,7 @@ class DelegationController(IPAController):
             turbogears.flash("delegate deleted")
             raise turbogears.redirect('/delegate/list')
         except (SyntaxError, ipaerror.IPAError), e:
-            turbogears.flash("Delegation deletion failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("Delegation deletion failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             raise turbogears.redirect('/delegate/list')
 
     @expose("ipagui.templates.delegategroupsearch")

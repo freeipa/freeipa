@@ -103,7 +103,7 @@ class PrincipalController(IPAController):
             return dict(form=principal_new_form, principal=kw,
                     tg_template='ipagui.templates.principalnew')
         except ipaerror.IPAError, e:
-            turbogears.flash("Service principal add failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("Service principal add failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             return dict(form=principal_new_form, principal=kw,
                     tg_template='ipagui.templates.principalnew')
 
@@ -137,7 +137,7 @@ class PrincipalController(IPAController):
                     principals[i].setValue('hostname', h[0])
 
             except ipaerror.IPAError, e:
-                turbogears.flash("principal list failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+                turbogears.flash("principal list failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
                 raise turbogears.redirect("/principal/list")
 
         return dict(principals=principals, hostname=hostname, fields=ipagui.forms.principal.PrincipalFields())
@@ -184,7 +184,7 @@ class PrincipalController(IPAController):
             turbogears.flash("Service principal deleted")
             raise turbogears.redirect('/principal/list')
         except (SyntaxError, ipaerror.IPAError), e:
-            turbogears.flash("Service principal deletion failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("Service principal deletion failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             raise turbogears.redirect('/principal/list')
 
     @validate(form=principal_new_form)

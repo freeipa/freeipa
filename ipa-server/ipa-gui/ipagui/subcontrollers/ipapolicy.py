@@ -198,7 +198,7 @@ class IPAPolicyController(IPAController):
             turbogears.flash("IPA Policy updated")
             raise turbogears.redirect('/ipapolicy/show')
         except ipaerror.IPAError, e:
-            turbogears.flash("Policy update failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("Policy update failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             return dict(form=ipapolicy_edit_form, ipapolicy=kw,
                         tg_template='ipagui.templates.ipapolicyedit')
 

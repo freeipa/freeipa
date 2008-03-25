@@ -237,7 +237,7 @@ class UserController(IPAController):
             return dict(form=user_new_form, user=kw,
                     tg_template='ipagui.templates.usernew')
         except ipaerror.IPAError, e:
-            turbogears.flash("User add failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("User add failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             return dict(form=user_new_form, user=kw,
                     tg_template='ipagui.templates.usernew')
 
@@ -403,7 +403,7 @@ class UserController(IPAController):
         except ipaerror.IPAError, e:
             if uid is None:
                 uid = principal
-            turbogears.flash("User edit failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("User edit failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             raise turbogears.redirect('/user/show', uid=uid)
 
     @expose()
@@ -537,7 +537,7 @@ class UserController(IPAController):
             # too much work to figure out unless someone really screams
             pass
         except ipaerror.IPAError, e:
-            turbogears.flash("User update failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("User update failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             return dict(form=user_edit_form, user=kw,
                         user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')
@@ -549,7 +549,7 @@ class UserController(IPAController):
             if password_change:
                 rv = client.modifyPassword(orig_user_dict['krbprincipalname'], "", kw.get('krbprincipalkey'))
         except ipaerror.IPAError, e:
-            turbogears.flash("User password change failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("User password change failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             return dict(form=user_edit_form, user=kw,
                         user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')
@@ -610,7 +610,7 @@ class UserController(IPAController):
             elif kw.get('nsAccountLock') == "true" and new_user.nsaccountlock != "true":
                 client.mark_user_inactive(kw.get('uid'))
         except ipaerror.IPAError, e:
-            turbogears.flash("User status change failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("User status change failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             return dict(form=user_edit_form, user=kw,
                         user_groups=user_groups_dicts,
                         tg_template='ipagui.templates.useredit')
@@ -637,7 +637,7 @@ class UserController(IPAController):
                     turbogears.flash("These results are truncated.<br />" +
                                     "Please refine your search and try again.")
             except ipaerror.IPAError, e:
-                turbogears.flash("User list failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+                turbogears.flash("User list failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
                 raise turbogears.redirect("/user/list")
 
         return dict(users=users, uid=uid, fields=ipagui.forms.user.UserFields())
@@ -680,7 +680,7 @@ class UserController(IPAController):
                         user_groups=user_groups, user_reports=user_reports,
                         user_manager=user_manager, user_secretary=user_secretary)
         except ipaerror.IPAError, e:
-            turbogears.flash("User show failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("User show failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             raise turbogears.redirect("/")
 
     @expose()
@@ -696,7 +696,7 @@ class UserController(IPAController):
             turbogears.flash("user deleted")
             raise turbogears.redirect('/user/list')
         except (SyntaxError, ipaerror.IPAError), e:
-            turbogears.flash("User deletion failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("User deletion failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             raise turbogears.redirect('/user/list')
 
     @validate(form=user_new_form)
@@ -818,7 +818,7 @@ class UserController(IPAController):
                 users_counter = users[0]
                 users = users[1:]
             except ipaerror.IPAError, e:
-                turbogears.flash("search failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+                turbogears.flash("search failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
 
         return dict(users=users, criteria=criteria,
                 which_select=kw.get('which_select'),

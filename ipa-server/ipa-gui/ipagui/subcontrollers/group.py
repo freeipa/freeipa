@@ -101,7 +101,7 @@ class GroupController(IPAController):
             return dict(form=group_new_form, group=kw,
                     tg_template='ipagui.templates.groupnew')
         except ipaerror.IPAError, e:
-            turbogears.flash("Group add failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("Group add failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             return dict(form=group_new_form, group=kw,
                     tg_template='ipagui.templates.groupnew')
 
@@ -293,7 +293,7 @@ class GroupController(IPAController):
                 #
                 kw['group_orig'] = b64encode(dumps(new_group.toDict()))
         except ipaerror.IPAError, e:
-            turbogears.flash("Group update failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("Group update failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
 
@@ -322,7 +322,7 @@ class GroupController(IPAController):
                 kw['dnadd'] = failed_adds
                 group_modified = True
         except ipaerror.IPAError, e:
-            turbogears.flash("Updating group membership failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("Updating group membership failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
 
@@ -340,7 +340,7 @@ class GroupController(IPAController):
                 kw['dndel'] = failed_dels
                 group_modified = True
         except ipaerror.IPAError, e:
-            turbogears.flash("Updating group membership failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("Updating group membership failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             return dict(form=group_edit_form, group=kw, members=member_dicts,
                         tg_template='ipagui.templates.groupedit')
 
@@ -391,7 +391,7 @@ class GroupController(IPAController):
                     turbogears.flash("These results are truncated.<br />" +
                                     "Please refine your search and try again.")
             except ipaerror.IPAError, e:
-                turbogears.flash("Find groups failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+                turbogears.flash("Find groups failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
                 raise turbogears.redirect("/group/list")
 
         return dict(groups=groups, criteria=criteria,
@@ -435,7 +435,7 @@ class GroupController(IPAController):
             turbogears.flash("group deleted")
             raise turbogears.redirect('/group/list')
         except (SyntaxError, ipaerror.IPAError), e:
-            turbogears.flash("Group deletion failed: " + str(e) + "<br/>" + e.detail[0]['desc'])
+            turbogears.flash("Group deletion failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
             raise turbogears.redirect('/group/list')
 
     @validate(form=group_new_form)
