@@ -127,6 +127,7 @@ def install_http(config):
         shutil.copy(config.dir + "/preferences.html", "/usr/share/ipa/html/preferences.html")
         shutil.copy(config.dir + "/configure.jar", "/usr/share/ipa/html/configure.jar")
         shutil.copy(config.dir + "/ca.crt", "/usr/share/ipa/html/ca.crt")
+        os.chmod("/usr/share/ipa/html/ca.crt", 0444)
     except Exception, e:
         print "error copying files: " + str(e)
         sys.exit(1)
