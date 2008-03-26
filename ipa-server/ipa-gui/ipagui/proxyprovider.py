@@ -47,6 +47,9 @@ class IPA_User(object):
             user = client.get_user_by_principal(user_name, ['dn', 'memberof'])
             self.groups = []
             memberof = user.getValues('memberof')
+            if memberof is None:
+                # the user isn't in any groups
+                return
             if isinstance(memberof, str):
                 memberof = [memberof]
             for mo in memberof:
