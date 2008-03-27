@@ -149,8 +149,8 @@ fi
 %attr(755,root,root) %{plugin_dir}/libipa-memberof-plugin.so
 %attr(755,root,root) %{plugin_dir}/libipa-dna-plugin.so
 
-%dir %{_localstatedir}/cache/ipa
-%dir %{_localstatedir}/cache/ipa/sysrestore
+%dir %{_localstatedir}/lib/ipa
+%dir %{_localstatedir}/lib/ipa/sysrestore
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 
 %{_mandir}/man8/ipactl.8.gz

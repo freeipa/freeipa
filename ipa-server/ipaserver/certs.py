@@ -21,10 +21,11 @@ import os, stat, subprocess, re
 import sha
 import errno
 
+from ipa import sysrestore
 from ipa import ipautil
 
 class CertDB(object):
-    def __init__(self, dir):
+    def __init__(self, dir, fstore=None):
         self.secdir = dir
 
         self.noise_fname = self.secdir + "/noise.txt"
@@ -57,7 +58,12 @@ class CertDB(object):
         mode = os.stat(self.secdir)
         self.uid = mode[stat.ST_UID]
         self.gid = mode[stat.ST_GID]
-    
+
+        if fstore:
+            self.fstore = fstore
+        else:
+            self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+
     def set_serial_from_pkcs12(self):
         """A CA cert was loaded from a PKCS#12 file. Set up our serial file"""
 
@@ -188,7 +194,7 @@ class CertDB(object):
                 return x.group(1)
 
         raise RuntimeError("Unable to find serial number")
-        
+
     def create_server_cert(self, nickname, name, other_certdb=None):
         cdb = other_certdb
         if not cdb:
@@ -198,7 +204,7 @@ class CertDB(object):
         self.add_cert(self.certder_fname, nickname)
         os.unlink(self.certreq_fname)
         os.unlink(self.certder_fname)
-        
+
     def create_signing_cert(self, nickname, name, other_certdb=None):
         cdb = other_certdb
         if not cdb:
@@ -322,7 +328,6 @@ class CertDB(object):
                 server_certs.append((name, flags))
 
         return server_certs
-                
 
     def import_pkcs12(self, pkcs12_fname, passwd_fname=None):
         args = ["/usr/bin/pk12util", "-d", self.secdir,
@@ -369,13 +374,13 @@ class CertDB(object):
         self.export_ca_cert(False)
 
     def backup_files(self):
-        sysrestore.backup_file(self.noise_fname)
-        sysrestore.backup_file(self.passwd_fname)
-        sysrestore.backup_file(self.certdb_fname)
-        sysrestore.backup_file(self.keydb_fname)
-        sysrestore.backup_file(self.secmod_fname)
-        sysrestore.backup_file(self.cacert_fname)
-        sysrestore.backup_file(self.pk12_fname)
-        sysrestore.backup_file(self.pin_fname)
-        sysrestore.backup_file(self.certreq_fname)
-        sysrestore.backup_file(self.certder_fname)
+        self.fstore.backup_file(self.noise_fname)
+        self.fstore.backup_file(self.passwd_fname)
+        self.fstore.backup_file(self.certdb_fname)
+        self.fstore.backup_file(self.keydb_fname)
+        self.fstore.backup_file(self.secmod_fname)
+        self.fstore.backup_file(self.cacert_fname)
+        self.fstore.backup_file(self.pk12_fname)
+        self.fstore.backup_file(self.pin_fname)
+        self.fstore.backup_file(self.certreq_fname)
+        self.fstore.backup_file(self.certder_fname)

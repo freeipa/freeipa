@@ -31,8 +31,8 @@ import socket
 import shutil
 
 import service
-import sysrestore
 import installutils
+from ipa import sysrestore
 from ipa import ipautil
 from ipa import ipaerror
 
@@ -71,9 +71,9 @@ def update_key_val_in_file(filename, key, val):
 class KpasswdInstance(service.SimpleServiceInstance):
     def __init__(self):
         service.SimpleServiceInstance.__init__(self, "ipa_kpasswd")
-    
+
 class KrbInstance(service.Service):
-    def __init__(self):
+    def __init__(self, fstore=None):
         service.Service.__init__(self, "krb5kdc")
         self.ds_user = None
         self.fqdn = None
@@ -88,9 +88,14 @@ class KrbInstance(service.Service):
 
         self.kpasswd = KpasswdInstance()
 
+        if fstore:
+            self.fstore = fstore
+        else:
+            self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+
     def __common_setup(self, ds_user, realm_name, host_name, domain_name, admin_password):
         self.ds_user = ds_user
-        self.fqdn = host_name        
+        self.fqdn = host_name
         self.realm = realm_name.upper()
         self.host = host_name.split(".")[0]
         self.ip = socket.gethostbyname(host_name)
@@ -161,16 +166,16 @@ class KrbInstance(service.Service):
         self.kpasswd.create_instance()
 
     def __copy_ldap_passwd(self, filename):
-        sysrestore.backup_file("/var/kerberos/krb5kdc/ldappwd")
+        self.fstore.backup_file("/var/kerberos/krb5kdc/ldappwd")
         shutil.copy(filename, "/var/kerberos/krb5kdc/ldappwd")
         os.chmod("/var/kerberos/krb5kdc/ldappwd", 0600)
-        
-        
+
+
     def __configure_kdc_account_password(self):
         hexpwd = ''
 	for x in self.kdc_password:
             hexpwd += (hex(ord(x))[2:])
-        sysrestore.backup_file("/var/kerberos/krb5kdc/ldappwd")
+        self.fstore.backup_file("/var/kerberos/krb5kdc/ldappwd")
         pwd_fd = open("/var/kerberos/krb5kdc/ldappwd", "w")
         pwd_fd.write("uid=kdc,cn=sysaccounts,cn=etc,"+self.suffix+"#{HEX}"+hexpwd+"\n")
         pwd_fd.close()
@@ -273,7 +278,7 @@ class KrbInstance(service.Service):
     def __template_file(self, path):
         template = os.path.join(ipautil.SHARE_DIR, os.path.basename(path) + ".template")
         conf = ipautil.template_file(template, self.sub_dict)
-        sysrestore.backup_file(path)
+        self.fstore.backup_file(path)
         fd = open(path, "w+")
         fd.write(conf)
         fd.close()
@@ -347,10 +352,10 @@ class KrbInstance(service.Service):
         ldap_principal = "ldap/" + self.fqdn + "@" + self.realm
         installutils.kadmin_addprinc(ldap_principal)
 
-        sysrestore.backup_file("/etc/dirsrv/ds.keytab")
+        self.fstore.backup_file("/etc/dirsrv/ds.keytab")
         installutils.create_keytab("/etc/dirsrv/ds.keytab", ldap_principal)
 
-        sysrestore.backup_file("/etc/sysconfig/dirsrv")
+        self.fstore.backup_file("/etc/sysconfig/dirsrv")
         update_key_val_in_file("/etc/sysconfig/dirsrv", "export KRB5_KTNAME", "/etc/dirsrv/ds.keytab")
         pent = pwd.getpwnam(self.ds_user)
         os.chown("/etc/dirsrv/ds.keytab", pent.pw_uid, pent.pw_gid)
@@ -359,7 +364,7 @@ class KrbInstance(service.Service):
         host_principal = "host/" + self.fqdn + "@" + self.realm
         installutils.kadmin_addprinc(host_principal)
 
-        sysrestore.backup_file("/etc/krb5.keytab")
+        self.fstore.backup_file("/etc/krb5.keytab")
         installutils.create_keytab("/etc/krb5.keytab", host_principal)
 
         # Make sure access is strictly reserved to root only for now
@@ -369,10 +374,10 @@ class KrbInstance(service.Service):
     def __export_kadmin_changepw_keytab(self):
         installutils.kadmin_modprinc("kadmin/changepw", "+requires_preauth")
 
-        sysrestore.backup_file("/var/kerberos/krb5kdc/kpasswd.keytab")
+        self.fstore.backup_file("/var/kerberos/krb5kdc/kpasswd.keytab")
         installutils.create_keytab("/var/kerberos/krb5kdc/kpasswd.keytab", "kadmin/changepw")
 
-        sysrestore.backup_file("/etc/sysconfig/ipa_kpasswd")
+        self.fstore.backup_file("/etc/sysconfig/ipa_kpasswd")
         update_key_val_in_file("/etc/sysconfig/ipa_kpasswd", "export KRB5_KTNAME", "/var/kerberos/krb5kdc/kpasswd.keytab")
         pent = pwd.getpwnam(self.ds_user)
         os.chown("/var/kerberos/krb5kdc/kpasswd.keytab", pent.pw_uid, pent.pw_gid)
@@ -386,21 +391,15 @@ class KrbInstance(service.Service):
         if not running is None:
             self.stop()
 
+        for f in ["/var/kerberos/krb5kdc/ldappwd", "/var/kerberos/krb5kdc/kdc.conf", "/etc/krb5.conf"]:
+            try:
+                self.fstore.restore_file(f)
+            except ValueError, error:
+                logging.debug(error)
+                pass
+
         if not enabled is None and not enabled:
             self.chkconfig_off()
-
-        for f in ["/var/kerberos/krb5kdc/ldappwd",
-                  "/var/kerberos/krb5kdc/kdc.conf",
-                  "/etc/krb5.conf",
-                  "/usr/share/ipa/html/krb5.ini",
-                  "/usr/share/ipa/html/krb.con",
-                  "/usr/share/ipa/html/krbrealm.con",
-                  "/etc/dirsrv/ds.keytab",
-                  "/etc/sysconfig/dirsrv",
-                  "/etc/krb5.keytab",
-                  "/var/kerberos/krb5kdc/kpasswd.keytab",
-                  "/etc/sysconfig/ipa_kpasswd"]:
-            sysrestore.restore_file(f)
 
         if not running is None and running:
             self.start()

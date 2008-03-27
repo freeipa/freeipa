@@ -15,12 +15,14 @@ SUBDIRS =			\
 	$(NULL)
 
 install-exec-local:
-	mkdir -p $(DESTDIR)$(localstatedir)/cache/ipa/sysrestore
+	mkdir -p $(DESTDIR)$(localstatedir)/lib/ipa/sysrestore
+	chmod 700 $(DESTDIR)$(localstatedir)/lib/ipa/sysrestore
 	mkdir -p $(DESTDIR)$(localstatedir)/cache/ipa/sessions
 	chmod 700 $(DESTDIR)$(localstatedir)/cache/ipa/sessions
 
 uninstall-local:
-	-rmdir $(DESTDIR)$(localstatedir)/cache/ipa/sysrestore
+	-rmdir $(DESTDIR)$(localstatedir)/lib/ipa/sysrestore
+	-rmdir $(DESTDIR)$(localstatedir)/lib/ipa
 	-rmdir $(DESTDIR)$(localstatedir)/cache/ipa/sessions
 	-rmdir $(DESTDIR)$(localstatedir)/cache/ipa
 

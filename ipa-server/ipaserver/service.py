@@ -18,7 +18,7 @@
 #
 
 import logging, sys
-import sysrestore
+from ipa import sysrestore
 from ipa import ipautil
 
 
@@ -30,7 +30,7 @@ def start(service_name):
 
 def restart(service_name):
     ipautil.run(["/sbin/service", service_name, "restart"])
-    
+
 def is_running(service_name):
     ret = True
     try:
@@ -38,7 +38,7 @@ def is_running(service_name):
     except ipautil.CalledProcessError:
         ret = False
     return ret
-    
+
 def chkconfig_on(service_name):
     ipautil.run(["/sbin/chkconfig", service_name, "on"])
 
@@ -70,12 +70,12 @@ def is_enabled(service_name):
             break
 
     return (runlevels[3] and runlevels[4] and runlevels[5])
-    
+
 def print_msg(message, output_fd=sys.stdout):
     logging.debug(message)
     output_fd.write(message)
     output_fd.write("\n")
-    
+
 
 class Service:
     def __init__(self, service_name):
@@ -85,7 +85,7 @@ class Service:
 
     def set_output(self, fd):
         self.output_fd = fd
-        
+
     def stop(self):
         stop(self.service_name)
 
@@ -133,7 +133,7 @@ class Service:
             self.print_msg("  [%d/%d]: %s" % (step+1, len(self.steps), message))
             method()
             step += 1
-        
+
         self.print_msg("done configuring %s." % self.service_name)
 
         self.steps = []

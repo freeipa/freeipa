@@ -29,10 +29,10 @@ import sys
 import shutil
 
 import service
-import sysrestore
 import certs
 import dsinstance
 import installutils
+from ipa import sysrestore
 from ipa import ipautil
 
 HTTPD_DIR = "/etc/httpd"
@@ -52,8 +52,12 @@ class WebGuiInstance(service.SimpleServiceInstance):
         service.SimpleServiceInstance.__init__(self, "ipa_webgui")
 
 class HTTPInstance(service.Service):
-    def __init__(self):
+    def __init__(self, fstore = None):
         service.Service.__init__(self, "httpd")
+        if fstore:
+            self.fstore = fstore
+        else:
+            self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
     def create_instance(self, realm, fqdn, domain_name, autoconfig=True, pkcs12_info=None):
         self.fqdn = fqdn
@@ -61,7 +65,7 @@ class HTTPInstance(service.Service):
         self.domain = domain_name
         self.pkcs12_info = pkcs12_info
         self.sub_dict = { "REALM" : realm, "FQDN": fqdn, "DOMAIN" : self.domain }
-        
+
         self.step("disabling mod_ssl in httpd", self.__disable_mod_ssl)
         self.step("Setting mod_nss port to 443", self.__set_mod_nss_port)
         self.step("Adding URL rewriting rules", self.__add_include)
@@ -109,7 +113,7 @@ class HTTPInstance(service.Service):
                 ipautil.run(["/usr/sbin/setsebool", "-P", "httpd_can_network_connect", "true"])
             except:
                 self.print_msg(selinux_warning)
-                
+
     def __create_http_keytab(self):
         http_principal = "HTTP/" + self.fqdn + "@" + self.realm
         installutils.kadmin_addprinc(http_principal)
@@ -120,24 +124,24 @@ class HTTPInstance(service.Service):
 
     def __configure_http(self):
         http_txt = ipautil.template_file(ipautil.SHARE_DIR + "ipa.conf", self.sub_dict)
-        sysrestore.backup_file("/etc/httpd/conf.d/ipa.conf")
+        self.fstore.backup_file("/etc/httpd/conf.d/ipa.conf")
         http_fd = open("/etc/httpd/conf.d/ipa.conf", "w")
         http_fd.write(http_txt)
         http_fd.close()
 
         http_txt = ipautil.template_file(ipautil.SHARE_DIR + "ipa-rewrite.conf", self.sub_dict)
-        sysrestore.backup_file("/etc/httpd/conf.d/ipa-rewrite.conf")
+        self.fstore.backup_file("/etc/httpd/conf.d/ipa-rewrite.conf")
         http_fd = open("/etc/httpd/conf.d/ipa-rewrite.conf", "w")
         http_fd.write(http_txt)
         http_fd.close()
 
     def __disable_mod_ssl(self):
         if os.path.exists(SSL_CONF):
-            sysrestore.backup_file(SSL_CONF)
+            self.fstore.backup_file(SSL_CONF)
             os.unlink(SSL_CONF)
 
     def __set_mod_nss_port(self):
-        sysrestore.backup_file(NSS_CONF)
+        self.fstore.backup_file(NSS_CONF)
         if installutils.update_file(NSS_CONF, '8443', '443') != 0:
             print "Updating port in %s failed." % NSS_CONF
 
@@ -160,7 +164,7 @@ class HTTPInstance(service.Service):
         prefs_txt = ipautil.template_file(ipautil.SHARE_DIR + "preferences.html.template", self.sub_dict)
         prefs_fd = open("/usr/share/ipa/html/preferences.html", "w")
         prefs_fd.write(prefs_txt)
-        prefs_fd.close()                
+        prefs_fd.close()
 
         # The signing cert is generated in __setup_ssl
         ds_ca = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(self.realm)))
@@ -189,7 +193,11 @@ class HTTPInstance(service.Service):
             self.chkconfig_off()
 
         for f in ["/etc/httpd/conf.d/ipa.conf", SSL_CONF, NSS_CONF]:
-            sysrestore.restore_file(f)
+            try:
+                self.fstore.restore_file(f)
+            except ValueError, error:
+                logging.debug(error)
+                pass
 
         sebool_state = self.restore_state("httpd_can_network_connect")
         if not sebool_state is None:

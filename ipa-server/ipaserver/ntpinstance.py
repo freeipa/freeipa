@@ -18,14 +18,20 @@
 #
 
 import shutil
+import logging
 
 import service
-import sysrestore
+from ipa import sysrestore
 from ipa import ipautil
 
 class NTPInstance(service.Service):
-    def __init__(self):
+    def __init__(self, fstore=None):
         service.Service.__init__(self, "ntpd")
+
+        if fstore:
+            self.fstore = fstore
+        else:
+            self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
     def __write_config(self):
         # The template sets the config to point towards ntp.pool.org, but
@@ -47,8 +53,8 @@ class NTPInstance(service.Service):
         ntp_conf = ipautil.template_file(ipautil.SHARE_DIR + "ntp.conf.server.template", sub_dict)
         ntp_sysconf = ipautil.template_file(ipautil.SHARE_DIR + "ntpd.sysconfig.template", {})
 
-        sysrestore.backup_file("/etc/ntp.conf")
-        sysrestore.backup_file("/etc/sysconfig/ntpd")
+        self.fstore.backup_file("/etc/ntp.conf")
+        self.fstore.backup_file("/etc/sysconfig/ntpd")
 
         fd = open("/etc/ntp.conf", "w")
         fd.write(ntp_conf)
@@ -87,10 +93,15 @@ class NTPInstance(service.Service):
 
         if not running is None:
             self.stop()
+
+        try:
+	    self.fstore.restore_file("/etc/ntp.conf")
+        except ValueError, error:
+            logging.debug(error)
+            pass
+
         if not enabled is None and not enabled:
             self.chkconfig_off()
-
-        sysrestore.restore_file("/etc/ntp.conf")
 
         if not running is None and running:
             self.start()
