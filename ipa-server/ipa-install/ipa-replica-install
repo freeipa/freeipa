@@ -104,6 +104,8 @@ def install_ds(config):
     ds = dsinstance.DsInstance()
     ds.create_instance(config.ds_user, config.realm_name, config.host_name, config.domain_name, config.dirman_password, pkcs12_info)
 
+    return ds
+
 def install_krb(config):
     krb = krbinstance.KrbInstance()
     ldappwd_filename = config.dir + "/ldappwd"
@@ -134,7 +136,7 @@ def install_http(config):
 
 def main():
     options, filename = parse_options()
-    installutils.standard_logging_setup("ipareplica-install.log", options.debug)
+    installutils.standard_logging_setup("/var/log/ipareplica-install.log", options.debug)
 
     top_dir, dir = expand_info(filename)
 
@@ -180,7 +182,7 @@ def main():
         ntp.create_instance()
 
     # Configure dirsrv
-    install_ds(config)
+    ds = install_ds(config)
 
     repl = replication.ReplicationManager(config.host_name, config.dirman_password)
     if repl is None:
@@ -208,6 +210,9 @@ def main():
         print "Configuration of client side components failed!"
         print "ipa-client-install returned: " + str(e)
         raise RuntimeError("Failed to configure the client")
+
+    ds.init_memberof()
+
 try:
     if not os.geteuid()==0:
         sys.exit("\nYou must be root to run this script.\n")

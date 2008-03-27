@@ -25,6 +25,7 @@ import glob
 import sys
 import os
 import re
+import time
 
 from ipa import ipautil
 
@@ -110,16 +111,21 @@ info: IPA V1.0
 """
 
 class DsInstance(service.Service):
-    def __init__(self):
+    def __init__(self, realm_name=None, domain_name=None, dm_password=None):
         service.Service.__init__(self, "dirsrv")
-        self.serverid = None
-        self.realm_name = None
-        self.suffix = None
-        self.host_name = None
-        self.dm_password = None
+        self.realm_name = realm_name
+        self.dm_password = dm_password
         self.sub_dict = None
-        self.domain = None
+        self.domain = domain_name
+        self.serverid = None
+        self.host_name = None
         self.pkcs12_info = None
+        self.ds_user = None
+        if realm_name:
+            self.suffix = realm_to_suffix(self.realm_name)
+            self.__setup_sub_dict()
+        else:
+            self.suffix = None
 
     def create_instance(self, ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info=None):
         self.ds_user = ds_user
@@ -149,7 +155,7 @@ class DsInstance(service.Service):
         self.step("adding master entry as first master",
                   self.__add_master_entry_first_master)
         self.step("initializing group membership",
-                  self.__init_memberof)
+                  self.init_memberof)
 
         self.step("configuring directory to start on boot", self.__enable)
 
@@ -164,7 +170,8 @@ class DsInstance(service.Service):
         self.sub_dict = dict(FQHN=self.host_name, SERVERID=self.serverid,
                              PASSWORD=self.dm_password, SUFFIX=self.suffix.lower(),
                              REALM=self.realm_name, USER=self.ds_user,
-                             SERVER_ROOT=server_root, DOMAIN=self.domain)
+                             SERVER_ROOT=server_root, DOMAIN=self.domain,
+                             TIME=int(time.time()))
 
     def __create_ds_user(self):
         user_exists = True
@@ -262,7 +269,7 @@ class DsInstance(service.Service):
     def __add_memberof_module(self):
         self.__ldap_mod("memberof-conf.ldif")
 
-    def __init_memberof(self):
+    def init_memberof(self):
         self.__ldap_mod("memberof-task.ldif", self.sub_dict)
 
     def __add_referint_module(self):

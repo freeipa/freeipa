@@ -78,7 +78,7 @@ def del_master(replman, hostname):
 def add_master(replman, hostname):
     replman.setup_replication(hostname, get_realm_name())
 
-def init_master(replman, hostname):
+def init_master(replman, dirman_passwd, hostname):
     filter = "(&(nsDS5ReplicaHost=%s)(objectclass=nsds5ReplicationAgreement))" % hostname
     entry = replman.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
     if len(entry) == 0:
@@ -87,6 +87,8 @@ def init_master(replman, hostname):
     if len(entry) > 1:
         logging.error("Found multiple agreements for %s. Only initializing the first one returned: %s" % (hostname, entry[0].dn))
     replman.initialize_replication(entry[0].dn, replman.conn)
+    ds = dsinstance.DsInstance(realm_name = get_realm_name(), dm_password = dirman_passwd)
+    ds.init_memberof()
 
 def synch_master(replman, hostname):
     filter = "(&(nsDS5ReplicaHost=%s)(objectclass=nsds5ReplicationAgreement))" % hostname
@@ -130,7 +132,7 @@ def main():
         if len(args) != 2:
             print "hostname of supplier to initialize from is required."
             sys.exit(1)
-        init_master(r, args[1])
+        init_master(r, dirman_passwd, args[1])
     elif args[0] == "synch":
         if len(args) != 2:
             print "must provide hostname of supplier to synchronize with"
