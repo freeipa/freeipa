@@ -194,7 +194,7 @@ def parse_options():
 
     options, args = parser.parse_args()
     if not options.server:
-        parser.error("error: must provide an IPA server name with --server")
+        parser.error("must provide an IPA server name with --server")
 
     return options
 
