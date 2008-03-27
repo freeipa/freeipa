@@ -1725,21 +1725,41 @@ class IPAServer:
 
         return attrs.attr_label_list
 
-    def group_members(self, groupdn, attr_list, opts=None):
+    def group_members(self, groupdn, attr_list, membertype, opts=None):
         """Do a memberOf search of groupdn and return the attributes in
-           attr_list (an empty list returns everything)."""
+           attr_list (an empty list returns all attributes).
+
+           membertype = 0 all members returned
+           membertype = 1 only direct members are returned
+           membertype = 2 only inherited members are returned
+
+           Members may be included in a group as a result of being a member
+           of a group that is a member of the group being queried.
+        """
 
         if not isinstance(groupdn,basestring) or len(groupdn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if attr_list is not None and not isinstance(attr_list,list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if membertype is not None and not isinstance(membertype,int):
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if membertype is None:
+            membertype = 0
+        if membertype < 0 or membertype > 3:
+            raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         config = self.get_ipa_config(opts)
         timelimit = float(config.get('ipasearchtimelimit'))
+
+        logging.debug("IPA: group_members: %s %s %s" % (groupdn, attr_list, membertype))
 
         searchlimit = float(config.get('ipasearchrecordslimit'))
 
         groupdn = self.__safe_filter(groupdn)
         searchfilter = "(memberOf=%s)" % groupdn
+
+        if attr_list is None:
+            attr_list = []
+        attr_list.append("member")
 
         conn = self.getConnection(opts)
         try:
@@ -1755,9 +1775,29 @@ class IPAServer:
         counter = results[0]
         results = results[1:]
 
-        entries = [counter]
+        if membertype == 0:
+            entries = [counter]
+            for e in results:
+                entries.append(self.convert_entry(e))
+
+            return entries
+
+        group = self.get_entry_by_dn(groupdn, ['dn', 'member'], opts)
+        real_members = group.get('member')
+        if isinstance(real_members, basestring):
+            real_members = [real_members]
+
+        entries = [0]
         for e in results:
-            entries.append(self.convert_entry(e))
+            if e.dn not in real_members:
+                if membertype == 2:
+                    entries.append(self.convert_entry(e))
+            else:
+                if membertype == 1:
+                    entries.append(self.convert_entry(e))
+
+        if len(entries) > 1:
+            entries[0] = len(entries) - 1
 
         return entries
 

@@ -611,7 +611,7 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
-    def group_members(self, groupdn, attr_list=None):
+    def group_members(self, groupdn, attr_list=None, memberstype=0):
         """Do a memberOf search of groupdn and return the attributes in
            attr_list (an empty list returns everything)."""
 
@@ -620,7 +620,7 @@ class RPCClient:
 
         server = self.setup_server()
         try:
-            result = server.group_members(groupdn, attr_list)
+            result = server.group_members(groupdn, attr_list, memberstype)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):

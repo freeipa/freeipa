@@ -73,10 +73,14 @@ from ipagui.helpers import userhelper
       <?python
 
       member_uid = member.get('uid')
+      member_inherited = member.get('inherited')
       if member_uid:
           member_cn = "%s %s" % (member.get('givenName', ''), member.get('sn', ''))
           member_desc = "(%s)" % member_uid
-          member_type = "user"
+          if member_inherited:
+              member_type = "iuser"
+          else:
+              member_type = "user"
           view_url = tg.url('/user/show', uid=member_uid)
       else:
           mem = member.get('cn')
@@ -84,14 +88,31 @@ from ipagui.helpers import userhelper
               mem = mem[0]
           member_cn = "%s" % mem
           member_desc = "[group]"
-          member_type = "group"
+          if member_inherited:
+              member_type = "igroup"
+          else:
+              member_type = "group"
           view_url = tg.url('/group/show', cn=member_cn)
       ?>
       <span py:if='member_type == "user"'>
+        <b>
+        <a href="${view_url}"
+          >${member_cn}</a> ${member_desc}
+        </b>
+      </span>
+      <span py:if='member_type == "iuser"'>
         <a href="${view_url}"
           >${member_cn}</a> ${member_desc}
       </span>
       <span py:if='member_type == "group"'>
+        <b>
+        <i>
+          <a href="${view_url}"
+            >${member_cn}</a> ${member_desc}
+        </i>
+        </b>
+      </span>
+      <span py:if='member_type == "igroup"'>
         <i>
           <a href="${view_url}"
             >${member_cn}</a> ${member_desc}

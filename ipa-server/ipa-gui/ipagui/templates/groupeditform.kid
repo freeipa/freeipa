@@ -158,15 +158,22 @@ from ipagui.helpers import ipahelper
           member_dn_esc = ipahelper.javascript_string_escape(member_dn)
 
           member_uid = member.get('uid')
+          member_inherited = member.get('inherited')
           if member_uid:
               member_name = "%s %s" % (member.get('givenName', ''),
                                      member.get('sn', ''))
               member_descr = "(%s)" % member.get('uid')
-              member_type = "user"
+              if member_inherited:
+                  member_type = "iuser"
+              else:
+                  member_type = "user"
           else:
               member_name = member.get('cn')
               member_descr = "[group]"
-              member_type = "group"
+              if member_inherited:
+                  member_type = "igroup"
+              else:
+                  member_type = "group"
           member_name_esc = ipahelper.javascript_string_escape(member_name)
           member_descr_esc = ipahelper.javascript_string_escape(member_descr)
           member_type_esc = ipahelper.javascript_string_escape(member_type)
@@ -178,7 +185,7 @@ from ipagui.helpers import ipahelper
                                                '${member_descr_esc}',
                                                '${member_type_esc}'));
           </script>
-          <a href="#" 
+          <a py:if="member_inherited != True" href="#" 
             onclick="removememberHandler(this, '${member_dn_esc}',
                          new MemberDisplayInfo('${member_name_esc}',
                                                '${member_descr_esc}',

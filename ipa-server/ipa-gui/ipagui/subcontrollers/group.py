@@ -208,13 +208,27 @@ class GroupController(IPAController):
             # convert members to users, for easier manipulation on the page
             #
 
-            members = client.group_members(group.dn, ['dn', 'givenname', 'sn', 'uid', 'cn'])
+            members = client.group_members(group.dn, ['dn', 'givenname', 'sn', 'uid', 'cn'], 1)
             members = members[1:]
             members.sort(self.sort_group_member)
 
             # Map users into an array of dicts, which can be serialized
             # (so we don't have to do this on each round trip)
             member_dicts = map(lambda member: member.toDict(), members)
+
+            indirect_members = client.group_members(group.dn, ['dn', 'givenname', 'sn', 'uid', 'cn'], 2)
+            indirect_members = indirect_members[1:]
+            indirect_members.sort(self.sort_group_member)
+
+            # add our own flag
+            for i in range(len(indirect_members)):
+                indirect_members[i].setValue('inherited', True)
+
+            # Map users into an array of dicts, which can be serialized
+            # (so we don't have to do this on each round trip)
+            indirect_members_dicts = map(lambda member: member.toDict(), indirect_members)
+
+            member_dicts = member_dicts + indirect_members_dicts
 
             # store a copy of the original group for the update later
             group_data = b64encode(dumps(group_dict))
@@ -411,10 +425,25 @@ class GroupController(IPAController):
             # convert members to users, for display on the page
             #
 
-            members = client.group_members(group.dn, ['dn', 'givenname', 'sn', 'uid', 'cn'])
+            members = client.group_members(group.dn, ['dn', 'givenname', 'sn', 'uid', 'cn'], 1)
             members = members[1:]
             members.sort(self.sort_group_member)
             member_dicts = map(lambda member: member.toDict(), members)
+
+            indirect_members = client.group_members(group.dn, ['dn', 'givenname', 'sn', 'uid', 'cn'], 2)
+            indirect_members = indirect_members[1:]
+            indirect_members.sort(self.sort_group_member)
+
+            # add our own flag
+            for i in range(len(indirect_members)):
+                indirect_members[i].setValue('inherited', True)
+
+            # Map users into an array of dicts, which can be serialized
+            # (so we don't have to do this on each round trip)
+            indirect_members_dicts = map(lambda member: member.toDict(), indirect_members)
+
+            member_dicts = member_dicts + indirect_members_dicts
+            logging.info("%s" % member_dicts)
 
             return dict(group=group_dict, fields=ipagui.forms.group.GroupFields(),
                     members = member_dicts)

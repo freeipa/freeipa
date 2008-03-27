@@ -88,9 +88,22 @@ var dn_to_member_div_id = new Hash();
  */
 function renderMemberInfo(newdiv, info) {
   if (info.type == "user") {
+    bold = document.createElement('b');
+    bold.appendChild(document.createTextNode(
+      info.name + " " + info.descr + " "));
+    newdiv.appendChild(bold);
+  } else if (info.type == "iuser") {
     newdiv.appendChild(document.createTextNode(
       info.name + " " + info.descr + " "));
   } else if (info.type == "group") {
+    ital = document.createElement('i');
+    bold = document.createElement('b');
+    ital.appendChild(bold);
+    bold.appendChild(document.createTextNode(
+      info.name + " " + 
+      info.descr + " "));
+    newdiv.appendChild(ital);
+  } else if (info.type == "igroup") {
     ital = document.createElement('i');
     ital.appendChild(document.createTextNode(
       info.name + " " + 
