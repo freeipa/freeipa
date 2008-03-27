@@ -246,7 +246,7 @@ def main():
         return 1
 
     # Configure ipa.conf
-    ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+    ipaconf = ipachangeconf.IPAChangeConf("IPA Installer")
     ipaconf.setOptionAssignment(" = ")
     ipaconf.setSectionNameDelimiters(("[","]"))
 
@@ -263,7 +263,7 @@ def main():
     ipaconf.newConf("/etc/ipa/ipa.conf", opts)
 
     # Configure ldap.conf
-    ldapconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+    ldapconf = ipachangeconf.IPAChangeConf("IPA Installer")
     ldapconf.setOptionAssignment(" ")
 
     opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
@@ -283,7 +283,7 @@ def main():
 
     if not "" == ipasrv.getRealmName():
         #Configure krb5.conf
-        krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+        krbconf = ipachangeconf.IPAChangeConf("IPA Installer")
         krbconf.setOptionAssignment(" = ")
         krbconf.setSectionNameDelimiters(("[","]"))
         krbconf.setSubSectionDelimiters(("{","}"))
