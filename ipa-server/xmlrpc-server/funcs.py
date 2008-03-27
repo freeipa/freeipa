@@ -1787,9 +1787,13 @@ class IPAServer:
         if isinstance(real_members, basestring):
             real_members = [real_members]
 
+        # Normalize all the dns
+        for i in range(len(real_members)):
+            real_members[i] = ipaserver.ipaldap.IPAdmin.normalizeDN(real_members[i])
+
         entries = [0]
         for e in results:
-            if e.dn not in real_members:
+            if ipaserver.ipaldap.IPAdmin.normalizeDN(e.dn) not in real_members:
                 if membertype == 2:
                     entries.append(self.convert_entry(e))
             else:
