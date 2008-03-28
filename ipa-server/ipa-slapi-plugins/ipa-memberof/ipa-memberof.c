@@ -652,8 +652,19 @@ int ipamo_postop_modify(Slapi_PBlock *pb)
 				
 				case LDAP_MOD_DELETE:
 					{
-						/* remove group DN from targets */
-						ipamo_del_smod_list(pb, dn, smod);
+						/* If there are no values in the smod, we should
+						 * just do a replace instead.  The  user is just
+						 * trying to delete all members from this this
+						 * entry, which the replace code deals with. */
+						if (slapi_mod_get_num_values(smod) == 0)
+						{
+							memberof_replace_list(pb, dn);
+						}
+						else
+						{
+							/* remove group DN from target values in smod*/
+							memberof_del_smod_list(pb, dn, smod);
+						}
 						break;
 					}
 
