@@ -199,6 +199,7 @@ from ipagui.helpers import ipahelper
               py:content="tg.errors.get('ipadefaultemaildomain')" />
           </td>
         </tr>
+      <!--
       <tr>
         <th>
           <label class="fieldlabel" for="${ipapolicy_fields.userobjectclasses.field_id}"
@@ -265,6 +266,7 @@ from ipagui.helpers import ipahelper
           <a id="${ipapolicy_fields.groupobjectclasses.field_id}_doclink" href="javascript:ExpandingForm.addItem('${ipapolicy_fields.groupobjectclasses.field_id}');">Add Group Object Class</a>
         </td>
       </tr>
+      -->
     </table>
 
     <hr/>

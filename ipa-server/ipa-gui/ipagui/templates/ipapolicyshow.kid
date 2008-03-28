@@ -135,6 +135,7 @@ edit_url = tg.url('/ipapolicy/edit')
           </th>
           <td>${ipapolicy.get("ipadefaultemaildomain")}</td>
         </tr>
+        <!--
         <tr>
           <th>
             <label class="fieldlabel" py:content="fields.ipauserobjectclasses.label" />:
@@ -175,6 +176,7 @@ edit_url = tg.url('/ipapolicy/edit')
           </table>
           </td>
         </tr>
+        -->
     </table>
 <hr />
     <input class="submitbutton" type="button"

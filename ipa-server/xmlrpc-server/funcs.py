@@ -998,7 +998,7 @@ class IPAServer:
         config = self.get_ipa_config(opts)
 
         # Make sure we have the latest object classes
-        newentry['objectclass'] = uniq_list(newentry.get('objectclass') + config.get('ipauserobjectclasses'))
+        # newentry['objectclass'] = uniq_list(newentry.get('objectclass') + config.get('ipauserobjectclasses'))
         
         try:
            rv = self.update_entry(oldentry, newentry, opts)
@@ -1628,7 +1628,7 @@ class IPAServer:
         config = self.get_ipa_config(opts)
 
         # Make sure we have the latest object classes
-        newentry['objectclass'] = uniq_list(newentry.get('objectclass') + config.get('ipagroupobjectclasses'))
+        # newentry['objectclass'] = uniq_list(newentry.get('objectclass') + config.get('ipagroupobjectclasses'))
 
         try:
            rv = self.update_entry(oldentry, newentry, opts)
@@ -2136,4 +2136,4 @@ def ldap_search_escape(match):
 def uniq_list(x):
     """Return a unique list, preserving order and ignoring case"""
     set = {}
-    return [set.setdefault(e.lower(),e.lower()) for e in x if e.lower() not in set]
+    return [set.setdefault(e.lower(),e) for e in x if e.lower() not in set]
