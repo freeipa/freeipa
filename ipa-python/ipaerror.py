@@ -163,6 +163,11 @@ INPUT_REALM_MISMATCH = gen_error_code(
         0x0006,
         "The realm for the principal does not match the realm for this IPA server.")
 
+INPUT_ADMIN_REQUIRED = gen_error_code(
+        INPUT_CATEGORY,
+        0x0007,
+        "The admin user cannot be deleted.")
+
 #
 # Connection errors
 #

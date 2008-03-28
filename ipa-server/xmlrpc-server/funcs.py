@@ -1105,6 +1105,8 @@ class IPAServer:
         """
         if not isinstance(uid,basestring) or len(uid) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if uid == "admin":
+            raise ipaerror.gen_exception(ipaerror.INPUT_ADMIN_REQUIRED)
         user = self.get_user_by_uid(uid, ['dn', 'uid', 'objectclass'], opts)
         if user is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
