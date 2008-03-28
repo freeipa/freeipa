@@ -188,8 +188,8 @@ def main():
     print "Finalizing configuration"
     save_config(dir, realm_name, host_name, ds_user, domain_name)
 
-    print "Packaging the replica into %s" % "replica-info-" + replica_fqdn
-    ipautil.run(["/bin/tar", "cfz", "replica-info-" + replica_fqdn, "-C", top_dir, "realm_info"])
+    print "Packaging the replica into /var/lib/ipa/%s" % "replica-info-" + replica_fqdn
+    ipautil.run(["/bin/tar", "cfz", "/var/lib/ipa/replica-info-" + replica_fqdn, "-C", top_dir, "realm_info"])
 
     shutil.rmtree(dir)
 
