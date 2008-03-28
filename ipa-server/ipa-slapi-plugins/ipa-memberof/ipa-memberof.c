@@ -944,6 +944,27 @@ int ipamo_modop_one_replace_r(Slapi_PBlock *pb, int mod_op, char *group_dn,
 	}
 	/* continue with operation */
 	{
+		Slapi_Value *to_dn_val = slapi_value_new_string(op_to);
+		Slapi_Value *this_dn_val = slapi_value_new_string(op_this);
+
+		/* We want to avoid listing a group as a memberOf itself
+		 * in case someone set up a circular grouping.
+		 */
+		if (0 == memberof_compare(&this_dn_val, &to_dn_val))
+		{
+			slapi_log_error( SLAPI_LOG_PLUGIN,
+				MEMBEROF_PLUGIN_SUBSYSTEM,
+				"memberof_modop_one_r: not processing memberOf "
+				"operations  on self entry: %s\n", this_dn_val);
+			slapi_value_free(&to_dn_val);
+			slapi_value_free(&this_dn_val);
+			goto bail;
+		}
+
+		/* We don't need the Slapi_Value copies of the DN's anymore */
+		slapi_value_free(&to_dn_val);
+		slapi_value_free(&this_dn_val);
+
 		if(stack && LDAP_MOD_DELETE == mod_op)
 		{
 			if(ipamo_is_legit_member(pb, group_dn, 
@@ -1010,20 +1031,12 @@ int ipamo_modop_one_replace_r(Slapi_PBlock *pb, int mod_op, char *group_dn,
 
 		if(LDAP_MOD_ADD == mod_op)
 		{
-			Slapi_Value *to_dn_val = slapi_value_new_string(op_to);
-			Slapi_Value *this_dn_val = slapi_value_new_string(op_this);
-
 			/* If we failed to update memberOf for op_to, we shouldn't
-			 * try to fix up membership for parent groups.  We also want
-			 * to avoid going into an endless loop if we've hit a
-			 * circular grouping. */
-			if ((rc == 0) && (0 != ipamo_compare(&this_dn_val, &to_dn_val))) {
+			 * try to fix up membership for parent groups. */
+			if (rc == 0) {
 				/* fix up membership for groups that are now in scope */
 				ipamo_add_membership(pb, op_this, op_to);
 			}
-
-			slapi_value_free(&to_dn_val);
-			slapi_value_free(&this_dn_val);
 		}
 	}
 
