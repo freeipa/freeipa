@@ -57,9 +57,7 @@ def list_masters(replman, verbose):
 
     for dn in dns:
         entry = replman.conn.search_s(dn, ldap.SCOPE_SUBTREE)[0]
-        cn = entry.cn
-        other = re.search("meTo([a-zA-Z\.]*)[0-9]*", cn).groups()[0]
-        print other
+        print entry.getValue('nsds5replicahost')
 
         if verbose:
             print "  last init status: %s" % entry.nsds5replicalastinitstatus
