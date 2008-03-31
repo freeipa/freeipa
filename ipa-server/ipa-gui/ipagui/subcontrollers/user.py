@@ -282,11 +282,26 @@ class UserController(IPAController):
         try:
             dnadds = kw.get('dnadd')
             cherrypy.session['uid'] = user_dict.get('uid')
+
+            # remove the default group from failed add
             if dnadds != None:
-                if not(isinstance(dnadds,list) or isinstance(dnadds,tuple)):
-                    dnadds = [dnadds]
-                failed_adds = client.add_groups_to_user(
-                        utf8_encode_values(dnadds), user.dn)
+                try:
+                    conf=client.get_ipa_config()
+                    default_cn="cn=%s" % conf.getValue('ipadefaultprimarygroup')
+                
+                    if not(isinstance(dnadds,list) or isinstance(dnadds,tuple)):
+                        dnadds = [dnadds]
+
+                    for d in dnadds:
+                        e = d.find(default_cn)
+                        if e >= 0:
+                            dnadds.remove(d)
+                except:
+                    pass
+
+                if len(dnadds) > 0:
+                    failed_adds = client.add_groups_to_user(
+                            utf8_encode_values(dnadds), user.dn)
                 kw['dnadd'] = failed_adds
         except ipaerror.IPAError, e:
             failed_adds = dnadds
