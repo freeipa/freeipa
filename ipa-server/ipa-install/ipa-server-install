@@ -292,6 +292,13 @@ def check_dirsrv():
         sys.exit(1)
 
 def uninstall():
+    try:
+        run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--uninstall"])
+    except Exception, e:
+        print "Uninstall of client side components failed!"
+        print "ipa-client-install returned: " + str(e)
+        pass
+
     ipaserver.ntpinstance.NTPInstance(fstore).uninstall()
     ipaserver.bindinstance.BindInstance(fstore).uninstall()
     ipaserver.httpinstance.WebGuiInstance().uninstall()
@@ -324,6 +331,14 @@ def main():
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
     if options.uninstall:
+        if not options.unattended:
+            print "\nThis is a NON REVERSIBLE operation and will delete all data and configuration!\n"
+            yesno = raw_input("Are you sure you want to continue with the uninstall proceedure?:[NO/yes] ")
+            if not yesno or yesno.lower() != "yes":
+                print ""
+                print "Aborting uninstall operation."
+                sys.exit(1)
+
         return uninstall()
 
     print "=============================================================================="
