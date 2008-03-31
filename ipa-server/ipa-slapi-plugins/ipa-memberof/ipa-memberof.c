@@ -953,8 +953,8 @@ int ipamo_modop_one_replace_r(Slapi_PBlock *pb, int mod_op, char *group_dn,
 		if (0 == memberof_compare(&this_dn_val, &to_dn_val))
 		{
 			slapi_log_error( SLAPI_LOG_PLUGIN,
-				MEMBEROF_PLUGIN_SUBSYSTEM,
-				"memberof_modop_one_r: not processing memberOf "
+				IPAMO_PLUGIN_SUBSYSTEM,
+				"ipamo_modop_one_r: not processing memberOf "
 				"operations  on self entry: %s\n", this_dn_val);
 			slapi_value_free(&to_dn_val);
 			slapi_value_free(&this_dn_val);
