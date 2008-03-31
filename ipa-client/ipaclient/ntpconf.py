@@ -70,20 +70,42 @@ keys /etc/ntp/keys
 #controlkey 8
 """
 
-def config_ntp(server_fqdn):
+ntp_sysconfig = """# Drop root to id 'ntp:ntp' by default.
+OPTIONS="-x -u ntp:ntp -p /var/run/ntpd.pid"
+
+# Set to 'yes' to sync hw clock after successful ntpdate
+SYNC_HWCLOCK=yes
+
+# Additional options for ntpdate
+NTPDATE_OPTIONS=""
+"""
+
+def config_ntp(server_fqdn, fstore = None):
     sub_dict = { }
     sub_dict["SERVER"] = server_fqdn
-    
+
     nc = template_str(ntp_conf, sub_dict)
-    
-    shutil.copy("/etc/ntp.conf", "/etc/ntp.conf.ipasave")
-    
+
+    if fstore:
+        fstore.backup_file("/etc/ntp.conf")
+    else:
+        shutil.copy("/etc/ntp.conf", "/etc/ntp.conf.ipasave")
+
     fd = open("/etc/ntp.conf", "w")
     fd.write(nc)
     fd.close()
 
+    if fstore:
+        fstore.backup_file("/etc/sysconfig/ntpd")
+    else:
+        shutil.copy("/etc/sysconfig/ntpd", "/etc/sysconfig/ntpd.ipasave")
+
+    fd = open("/etc/sysconfig/ntpd", "w")
+    fd.write(ntp_sysconfig)
+    fd.close()
+
     # Set the ntpd to start on boot
     run(["/sbin/chkconfig", "ntpd", "on"])
-    
+
     # Restart ntpd
     run(["/sbin/service", "ntpd", "restart"])

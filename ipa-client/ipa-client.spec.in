@@ -30,6 +30,8 @@ rm -rf %{buildroot}
 
 make install
 
+mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
+
 
 %clean
 rm -rf %{buildroot}
@@ -45,6 +47,9 @@ rm -rf %{buildroot}
 
 %dir %{python_sitelib}/ipaclient
 %{python_sitelib}/ipaclient/*.py*
+
+%dir %{_localstatedir}/lib/ipa-client
+%dir %{_localstatedir}/lib/ipa-client/sysrestore
 
 %{_mandir}/man1/*
 

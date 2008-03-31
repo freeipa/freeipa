@@ -38,6 +38,8 @@ def parse_options():
                       help="do not configure ntp", default=True, dest="conf_ntp")
     parser.add_option("--on-master", dest="on_master", action="store_true",
                       help="use this option when run on a master", default=False)
+    parser.add_option("", "--uninstall", dest="uninstall", action="store_true",
+                      default=False, help="uninstall an existing installation")
 
     options, args = parser.parse_args()
 
@@ -53,9 +55,14 @@ def ask_for_confirmation(message):
 def logging_setup(options):
     # Always log everything (i.e., DEBUG) to the log
     # file.
+
+    log_file = "/var/log/ipaclient-install.log"
+    if options.uninstall:
+        log_file = "/var/log/ipaclient-uninstall.log"
+
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s %(message)s',
-                        filename='/var/log/ipaclient-install.log',
+                        filename=log_file,
                         filemode='w')
 
     console = logging.StreamHandler()
@@ -69,10 +76,39 @@ def logging_setup(options):
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
+def uninstall(options):
+
+    print "Restoring client configuration files"
+    fstore.restore_all_files()
+
+    print "Disabling client Kerberos and Ldap configurations"
+    try:
+        run(["/usr/sbin/authconfig", "--disableldap", "--disablekrb5", "--update"])
+    except Exception, e:
+        print "Failed to remove krb5/ldap configuration. " +str(e)
+        sys.exit(1)
+
+    if not options.unattended:
+        print "The original nsswitch.conf configuration has been restored."
+        print "You may need to restart services or reboot the machine."
+        if not options.on_master:
+            if ask_for_confirmation("Do you want to reboot the machine?"):
+                try:
+                    run(["/usr/bin/reboot"])
+                except Exception, e:
+                    print "Reboot command failed to exceute. " + str(e)
+                    sys.exit(1)
+
 def main():
     options = parse_options()
     logging_setup(options)
     dnsok = True
+
+    global fstore
+    fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
+
+    if options.uninstall:
+        return uninstall(options)
 
     # Create the discovery instance
     ds = ipaclient.ipadiscovery.IPADiscovery()
@@ -156,6 +192,7 @@ def main():
     opts.append({'name':'defaults', 'type':'section', 'value':defopts})
     opts.append({'name':'empty', 'type':'empty'})
 
+    fstore.backup_file("/etc/ipa/ipa.conf")
     ipaconf.newConf("/etc/ipa/ipa.conf", opts)
     print "Created /etc/ipa/ipa.conf"
 
@@ -175,6 +212,7 @@ def main():
 
     opts.append({'name':'empty', 'type':'empty'})
     try:
+        fstore.backup_file("/etc/ldap.conf")
         ldapconf.newConf("/etc/ldap.conf", opts)
         print "Configured /etc/ldap.conf"
     except Exception, e:
@@ -236,6 +274,7 @@ def main():
         appopts = [{'name':'pam', 'type':'subsection', 'value':pamopts}]
         opts.append({'name':'appdefaults', 'type':'section', 'value':appopts})
 
+        fstore.backup_file("/etc/krb5.conf")
         krbconf.newConf("/etc/krb5.conf", opts);
         print "Configured /etc/krb5.conf for IPA realm " + ds.getRealmName()
 
@@ -268,7 +307,7 @@ def main():
             ntp_server = options.ntp_server
         else:
             ntp_server = ds.getServerName()
-        ipaclient.ntpconf.config_ntp(ntp_server)
+        ipaclient.ntpconf.config_ntp(ntp_server, fstore)
         print "NTP enabled"
 
     print "Client configuration complete."
@@ -286,6 +325,7 @@ try:
     import ipaclient.ipachangeconf
     import ipaclient.ntpconf
     from ipa.ipautil import run
+    from ipa import sysrestore
 
     sys.exit(main())
 except KeyboardInterrupt:
