@@ -167,7 +167,7 @@ static int ipamo_add_attr_list(Slapi_PBlock *pb, char *groupdn, Slapi_Attr *attr
 static int ipamo_del_attr_list(Slapi_PBlock *pb, char *groupdn, Slapi_Attr *attr);
 static int ipamo_moddn_attr_list(Slapi_PBlock *pb, char *pre_dn, char *post_dn, 
 	Slapi_Attr *attr);
-static int ipamod_replace_list(Slapi_PBlock *pb, char *group_dn);
+static int ipamo_replace_list(Slapi_PBlock *pb, char *group_dn);
 static void ipamo_set_plugin_id(void * plugin_id);
 static void *ipamo_get_plugin_id();
 static int ipamo_compare(const void *a, const void *b);
@@ -658,12 +658,12 @@ int ipamo_postop_modify(Slapi_PBlock *pb)
 						 * entry, which the replace code deals with. */
 						if (slapi_mod_get_num_values(smod) == 0)
 						{
-							memberof_replace_list(pb, dn);
+							ipamo_replace_list(pb, dn);
 						}
 						else
 						{
 							/* remove group DN from target values in smod*/
-							memberof_del_smod_list(pb, dn, smod);
+							ipamo_del_smod_list(pb, dn, smod);
 						}
 						break;
 					}
@@ -671,7 +671,7 @@ int ipamo_postop_modify(Slapi_PBlock *pb)
 				case LDAP_MOD_REPLACE:
 					{
 						/* replace current values */
-						ipamod_replace_list(pb, dn);
+						ipamo_replace_list(pb, dn);
 						break;
 					}
 
@@ -950,7 +950,7 @@ int ipamo_modop_one_replace_r(Slapi_PBlock *pb, int mod_op, char *group_dn,
 		/* We want to avoid listing a group as a memberOf itself
 		 * in case someone set up a circular grouping.
 		 */
-		if (0 == memberof_compare(&this_dn_val, &to_dn_val))
+		if (0 == ipamo_compare(&this_dn_val, &to_dn_val))
 		{
 			slapi_log_error( SLAPI_LOG_PLUGIN,
 				IPAMO_PLUGIN_SUBSYSTEM,
@@ -1515,7 +1515,7 @@ bail:
  * Perform replace the group DN list in the memberof attribute of the list of targets
  *
  */
-int ipamod_replace_list(Slapi_PBlock *pb, char *group_dn)
+int ipamo_replace_list(Slapi_PBlock *pb, char *group_dn)
 {
 	struct slapi_entry *pre_e = NULL;
 	struct slapi_entry *post_e = NULL;
