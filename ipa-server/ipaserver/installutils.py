@@ -43,58 +43,76 @@ def get_fqdn():
             fqdn = ""
     return fqdn
 
-def reverse_ip(ipaddr):
-    i = ipaddr.split('.')
-    i.reverse()
-    return '.'.join(i)
-   
 def verify_fqdn(host_name):
+
     if len(host_name.split(".")) < 2 or host_name == "localhost.localdomain":
         raise RuntimeError("Invalid hostname: " + host_name)
+
+    try:
+        hostaddr = socket.getaddrinfo(host_name, None)
+    except:
+        raise RuntimeError("Unable to resolve host name, check /etc/hosts or DNS name resolution")
+
+    if len(hostaddr) == 0:
+        raise RuntimeError("Unable to resolve host name, check /etc/hosts or DNS name resolution")
+
+    for a in hostaddr:
+        if a[4][0] == '127.0.0.1' or a[4][0] == '::1':
+            raise RuntimeError("The IPA Server hostanme cannot resolve to localhost (%s), a routable IP address must be used." % a[4][0])
+        try:
+            revname = socket.gethostbyaddr(a[4][0])[0]
+        except:
+            raise RuntimeError("Unable to resolve the reverse ip address, check /etc/hosts or DNS name resolution")
+        if revname != host_name:
+            raise RuntimeError("The host name %s does not match the reverse lookup %s" % (host_name, revname))
+
+    # Verify this is NOT a CNAME
+    rs = dnsclient.query(host_name+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_CNAME)
+    if len(rs) != 0:
+        for rsn in rs:
+            if rsn.dns_type == dnsclient.DNS_T_CNAME:
+                raise RuntimeError("The IPA Server Hostname cannot be a CNAME, only A names are allowed.")
 
     # Verify that it is a DNS A record
     rs = dnsclient.query(host_name+".", dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
     if len(rs) == 0:
-        raise RuntimeError("hostname %s is not found or is not a DNS A record" % host_name)
+        print "Warning: Hostname (%s) not found in DNS" % host_name
+        return
+
+    rec = None
+    for rsn in rs:
+        if rsn.dns_type == dnsclient.DNS_T_A:
+            rec = rsn
+            break
+
+    if rec == None:
+        print "Warning: Hostname (%s) not found in DNS" % host_name
+        return
 
     # Compare the forward and reverse
-    forward = rs[0].dns_name
+    forward = rec.dns_name
 
-    addr = socket.inet_ntoa(struct.pack('=L',rs[0].rdata.address))
+    addr = socket.inet_ntoa(struct.pack('<L',rec.rdata.address))
+    ipaddr = socket.inet_ntoa(struct.pack('!L',rec.rdata.address))
+
     addr = addr + ".in-addr.arpa."
-
     rs = dnsclient.query(addr, dnsclient.DNS_C_IN, dnsclient.DNS_T_PTR)
     if len(rs) == 0:
-        raise RuntimeError("Cannot find PTR record for %s" % addr)
-    reverse = rs[0].rdata.ptrdname
+        raise RuntimeError("Cannot find Reverse Address for %s (%s)" % (host_name, addr))
+
+    rev = None
+    for rsn in rs:
+        if rsn.dns_type == dnsclient.DNS_T_PTR:
+            rev = rsn
+            break
+
+    if rev == None:
+        raise RuntimeError("Cannot find Reverse Address for %s (%s)" % (host_name, addr))
+
+    reverse = rev.rdata.ptrdname
 
     if forward != reverse:
-        raise RuntimeError("The DNS forward record %s does not match the reverse lookup %s" % (forward, reverse))
-
-    # Look in /etc/hosts for this IP
-    try:
-        fd = open("/etc/hosts", "r")
-    except:
-        raise RuntimeError("Unable to open /etc/hosts for reading. Check file permissions.")
-
-    p = re.compile('([a-zA-Z0-9\.:]+)\s+([a-zA-Z0-9\.\-]+)')
-    while True:
-        line = fd.readline()
-        if not line: break
-        if len(line) > 0 and line[0] == "#":
-           continue   
-        m = p.match(line)
-        hname = None
-        try:
-            if m.group(1) == ipaddr:
-                hname = m.group(2) + "."
-        except:
-            pass
-        if hname and hname != forward:
-            fd.close()
-            raise RuntimeError("The IP address in /etc/hosts defines the hostname as '%s' but DNS says it is '%s'. The fully-qualified hostname needs to appear on the list first in /etc/hosts" % (hname, forward))
-
-    fd.close()
+        raise RuntimeError("The DNS forward record %s does not match the reverse address %s" % (forward, reverse))
 
 def port_available(port):
     """Try to bind to a port on the wildcard host
