@@ -48,7 +48,8 @@ class FileStore:
         The file @path/sysrestore.index is used to store information
         about the original location of the saved files.
         """
-        self._path = path+"/"+SYSRESTORE_INDEXFILE
+        self._path = path
+        self._index = self._path + "/" + SYSRESTORE_INDEXFILE
 
         self.random = random.Random()
 
@@ -60,12 +61,12 @@ class FileStore:
         be an empty dictionary if the file doesn't exist.
         """
 
-        logging.debug("Loading Index file from '%s'", self._path)
+        logging.debug("Loading Index file from '%s'", self._index)
 
         self.files = {}
 
         p = ConfigParser.SafeConfigParser()
-        p.read(self._path)
+        p.read(self._index)
 
         for section in p.sections():
             if section == "files":
@@ -74,15 +75,15 @@ class FileStore:
 
 
     def save(self):
-        """Save the file list to @_path. If @files is an empty
-        dict, then @_path should be removed.
+        """Save the file list to @_index. If @files is an empty
+        dict, then @_index should be removed.
         """
-        logging.debug("Saving Index File to '%s'", self._path)
+        logging.debug("Saving Index File to '%s'", self._index)
 
         if len(self.files) == 0:
             logging.debug("  -> no files, removing file")
-            if os.path.exists(self._path):
-                os.remove(self._path)
+            if os.path.exists(self._index):
+                os.remove(self._index)
             return
 
         p = ConfigParser.SafeConfigParser()
@@ -91,7 +92,7 @@ class FileStore:
         for (key, value) in self.files.items():
             p.set('files', key, str(value))
 
-        f = file(self._path, "w")
+        f = file(self._index, "w")
         p.write(f)
         f.close()
 
@@ -117,7 +118,7 @@ class FileStore:
             filename += h
         filename += "-"+file
 
-        backup_path = os.path.join(SYSRESTORE_PATH, filename)
+        backup_path = os.path.join(self._path, filename)
         if os.path.exists(backup_path):
             logging.debug("  -> Not backing up - already have a copy of '%s'", path)
             return
@@ -156,7 +157,7 @@ class FileStore:
         if not filename:
             raise ValueError("No such file name in the index")
 
-        backup_path = os.path.join(SYSRESTORE_PATH, filename)
+        backup_path = os.path.join(self._path, filename)
         if not os.path.exists(backup_path):
             logging.debug("  -> Not restoring - '%s' doesn't exist", backup_path)
             return False
@@ -187,7 +188,7 @@ class FileStore:
 
             (mode,uid,gid,path) = string.split(value, ',', 3)
 
-            backup_path = os.path.join(SYSRESTORE_PATH, filename)
+            backup_path = os.path.join(self._path, filename)
             if not os.path.exists(backup_path):
                 logging.debug("  -> Not restoring - '%s' doesn't exist", backup_path)
 
@@ -203,7 +204,7 @@ class FileStore:
 
         return True
 
-class _StateFile:
+class StateFile:
     """A metadata file for recording system state which can
     be backed up and later restored. The format is something
     like:
@@ -214,7 +215,7 @@ class _StateFile:
     """
 
     def __init__(self, path = SYSRESTORE_PATH):
-        """Create a _StateFile object, loading from @path.
+        """Create a StateFile object, loading from @path.
 
         The dictionary @modules, a member of the returned object,
         is where the state can be modified. @modules is indexed
@@ -277,43 +278,40 @@ class _StateFile:
         p.write(f)
         f.close()
 
-def backup_state(module, key, value):
-    """Backup an item of system state from @module, identified
-    by the string @key and with the value @value. @value may be
-    a string or boolean.
-    """
-    if not (isinstance(value, str) or isinstance(value, bool)):
-        raise ValueError("Only strings or booleans supported")
+    def backup_state(self, module, key, value):
+        """Backup an item of system state from @module, identified
+        by the string @key and with the value @value. @value may be
+        a string or boolean.
+        """
+        if not (isinstance(value, str) or isinstance(value, bool)):
+            raise ValueError("Only strings or booleans supported")
 
-    state = _StateFile()
+        if not self.modules.has_key(module):
+            self.modules[module] = {}
 
-    if not state.modules.has_key(module):
-        state.modules[module] = {}
+        if not self.modules.has_key(key):
+            self.modules[module][key] = value
 
-    if not state.modules.has_key(key):
-        state.modules[module][key] = value
+        self.save()
 
-    state.save()
+    def restore_state(self, module, key):
+        """Return the value of an item of system state from @module,
+        identified by the string @key, and remove it from the backed
+        up system state.
 
-def restore_state(module, key):
-    """Return the value of an item of system state from @module,
-    identified by the string @key, and remove it from the backed
-    up system state.
+        If the item doesn't exist, #None will be returned, otherwise
+        the original string or boolean value is returned.
+        """
 
-    If the item doesn't exist, #None will be returned, otherwise
-    the original string or boolean value is returned.
-    """
-    state = _StateFile()
+        if not self.modules.has_key(module):
+            return None
 
-    if not state.modules.has_key(module):
-        return None
+        if not self.modules[module].has_key(key):
+            return None
 
-    if not state.modules[module].has_key(key):
-        return None
+        value = self.modules[module][key]
+        del self.modules[module][key]
 
-    value = state.modules[module][key]
-    del state.modules[module][key]
+        self.save()
 
-    state.save()
-
-    return value
+        return value

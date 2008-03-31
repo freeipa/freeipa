@@ -78,10 +78,15 @@ def print_msg(message, output_fd=sys.stdout):
 
 
 class Service:
-    def __init__(self, service_name):
+    def __init__(self, service_name, sstore=None):
         self.service_name = service_name
         self.steps = []
         self.output_fd = sys.stdout
+
+        if sstore:
+            self.sstore = sstore
+        else:
+            self.sstore = sysrestore.StateFile('/var/lib/ipa/sysrestore')
 
     def set_output(self, fd):
         self.output_fd = fd
@@ -114,10 +119,10 @@ class Service:
         return is_enabled(self.service_name)
 
     def backup_state(self, key, value):
-        sysrestore.backup_state(self.service_name, key, value)
+        self.sstore.backup_state(self.service_name, key, value)
 
     def restore_state(self, key):
-        return sysrestore.restore_state(self.service_name, key)
+        return self.sstore.restore_state(self.service_name, key)
 
     def print_msg(self, message):
         print_msg(message, self.output_fd)
