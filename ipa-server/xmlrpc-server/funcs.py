@@ -349,6 +349,37 @@ class IPAServer:
 
         return result
 
+    def __has_nsaccountlock(self, dn, opts):
+        """Check to see if an entry has the nsaccountlock attribute.
+           This attribute is provided by the Class of Service plugin so
+           doing a search isn't enough. It is provided by the two
+           entries cn=inactivated and cn=activated. So if the entry has
+           the attribute and isn't in either cn=activated or cn=inactivated
+           then the attribute must be in the entry itself.
+
+           Returns True or False
+        """
+        # First get the entry. If it doesn't have nsaccountlock at all we
+        # can exit early.
+        entry = self.get_entry_by_dn(dn, ['dn', 'nsaccountlock', 'memberof'], opts)
+        if not entry.get('nsaccountlock'):
+            return False
+
+        # Now look to see if they are in activated or inactivated
+        # entry is a member
+        memberof = entry.get('memberof')
+        if isinstance(memberof, basestring):
+            memberof = [memberof]
+        for m in memberof:
+            inactivated = m.find("cn=inactivated")
+            activated = m.find("cn=activated")
+            # if they are in either group that means that the nsaccountlock
+            # value comes from there, otherwise it must be in this entry.
+            if inactivated >= 0 or activated >= 0:
+                return False
+        
+        return True
+
 # Higher-level API
 
     def get_aci_entry(self, sattrs, opts=None):
@@ -1030,18 +1061,26 @@ class IPAServer:
         # First, check the entry status
         entry = self.get_entry_by_dn(dn, ['dn', 'nsAccountlock'], opts)
 
-        if entry.get('nsaccountlock', 'false') == "false":
+        if entry.get('nsaccountlock', 'false').lower() == "false":
             logging.debug("IPA: already active")
-            raise ipaerror.gen_exception(ipaerror.LDAP_EMPTY_MODLIST)
+            raise ipaerror.gen_exception(ipaerror.STATUS_ALREADY_ACTIVE)
+
+        if self.__has_nsaccountlock(dn, opts):
+            logging.debug("IPA: appears to have the nsaccountlock attribute")
+            raise ipaerror.gen_exception(ipaerror.STATUS_HAS_NSACCOUNTLOCK)
 
         group = self.get_entry_by_cn("inactivated", None, opts)
-        res = self.remove_member_from_group(entry.get('dn'), group.get('dn'), opts)
+        try:
+            self.remove_member_from_group(entry.get('dn'), group.get('dn'), opts)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            # Perhaps the user is there as a result of group membership
+            pass
 
         # Now they aren't a member of inactivated directly, what is the status
         # now?
         entry = self.get_entry_by_dn(dn, ['dn', 'nsAccountlock'], opts)
 
-        if entry.get('nsaccountlock', 'false') == "false":
+        if entry.get('nsaccountlock', 'false').lower() == "false":
             # great, we're done
             logging.debug("IPA: removing from inactivated did it.")
             return res
@@ -1063,9 +1102,13 @@ class IPAServer:
 
         entry = self.get_entry_by_dn(dn, ['dn', 'nsAccountlock', 'memberOf'], opts)
 
-        if entry.get('nsaccountlock', 'false') == "true":
+        if entry.get('nsaccountlock', 'false').lower() == "true":
             logging.debug("IPA: already marked as inactive")
-            raise ipaerror.gen_exception(ipaerror.LDAP_EMPTY_MODLIST)
+            raise ipaerror.gen_exception(ipaerror.STATUS_ALREADY_INACTIVE)
+
+        if self.__has_nsaccountlock(dn, opts):
+            logging.debug("IPA: appears to have the nsaccountlock attribute")
+            raise ipaerror.gen_exception(ipaerror.STATUS_HAS_NSACCOUNTLOCK)
 
         # First see if they are in the activated group as this will override
         # the our inactivation.
@@ -1091,6 +1134,8 @@ class IPAServer:
 
         if not isinstance(uid,basestring) or len(uid) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if uid == "admin":
+            raise ipaerror.gen_exception(ipaerror.INPUT_CANT_INACTIVATE)
         user = self.get_user_by_uid(uid, ['dn', 'uid'], opts)
         return self.mark_entry_inactive(user.get('dn'))
 
@@ -1820,6 +1865,8 @@ class IPAServer:
 
         if not isinstance(cn,basestring) or len(cn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        if cn == "admins" or cn == "editors":
+            raise ipaerror.gen_exception(ipaerror.INPUT_CANT_INACTIVATE)
         group = self.get_entry_by_cn(cn, ['dn', 'uid'], opts)
         return self.mark_entry_inactive(group.get('dn'))
 

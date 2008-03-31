@@ -168,6 +168,11 @@ INPUT_ADMIN_REQUIRED = gen_error_code(
         0x0007,
         "The admin user cannot be deleted.")
 
+INPUT_CANT_INACTIVATE = gen_error_code(
+        INPUT_CATEGORY,
+        0x0008,
+        "This entry cannot be inactivated.")
+
 #
 # Connection errors
 #
@@ -212,3 +217,23 @@ CONFIG_INVALID_OC = gen_error_code(
         CONFIGURATION_CATEGORY,
         0x0003,
         "Invalid object class.")
+
+#
+# Entry status errors
+#
+STATUS_CATEGORY = 0x0005
+
+STATUS_ALREADY_ACTIVE = gen_error_code(
+        STATUS_CATEGORY,
+        0x0001,
+        "This entry is already active.")
+
+STATUS_ALREADY_INACTIVE = gen_error_code(
+        STATUS_CATEGORY,
+        0x0002,
+        "This entry is already inactive.")
+
+STATUS_HAS_NSACCOUNTLOCK = gen_error_code(
+        STATUS_CATEGORY,
+        0x0003,
+        "This entry appears to have the nsAccountLock attribute in it so the Class of Service activation/inactivation will not work. You will need to remove the attribute nsAccountLock for this to work.")

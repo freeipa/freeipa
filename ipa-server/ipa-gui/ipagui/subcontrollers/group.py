@@ -315,12 +315,17 @@ class GroupController(IPAController):
             kw['nsAccountLock'] = "false"
 
         modify_no_update = False
-        if kw.get('nsAccountLock') == "false" and new_group.getValues('nsaccountlock') == "true":
-            client.mark_group_active(kw.get('cn'))
-            modify_no_update = True
-        elif kw.get('nsAccountLock') == "true" and new_group.nsaccountlock != "true":
-            client.mark_group_inactive(kw.get('cn'))
-            modify_no_update = True
+        try:
+            if kw.get('nsAccountLock') == "false" and new_group.getValues('nsaccountlock') == "true":
+                client.mark_group_active(kw.get('cn'))
+                modify_no_update = True
+            elif kw.get('nsAccountLock') == "true" and new_group.nsaccountlock != "true":
+                client.mark_group_inactive(kw.get('cn'))
+                modify_no_update = True
+        except ipaerror.IPAError, e:
+            turbogears.flash("Group status change failed: " + str(e) + "<br/>" + e.detail[0].get('desc','') + ". " + e.detail[0].get('info',''))
+            return dict(form=group_edit_form, group=kw, members=member_dicts,
+                        tg_template='ipagui.templates.groupedit')
 
         #
         # Add members
