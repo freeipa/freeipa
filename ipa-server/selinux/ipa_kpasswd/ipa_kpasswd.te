@@ -36,6 +36,8 @@ miscfiles_read_localization(ipa_kpasswd_t)
 
 kerberos_use(ipa_kpasswd_t)
 
+kernel_read_system_state(ipa_kpasswd_t)
+
 corenet_tcp_sendrecv_all_if(ipa_kpasswd_t)
 corenet_udp_sendrecv_all_if(ipa_kpasswd_t)
 corenet_raw_sendrecv_all_if(ipa_kpasswd_t)
