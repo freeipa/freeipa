@@ -26,6 +26,14 @@ ipa_kpasswd_LDADD =		\
 	$(KRB5_LIBS)		\
 	$(NULL)
 
+install-exec-local:
+	mkdir -p $(DESTDIR)$(localstatedir)/cache/ipa/kpasswd
+	chmod 700 $(DESTDIR)$(localstatedir)/cache/ipa/kpasswd
+
+uninstall-local:
+	-rmdir $(DESTDIR)$(localstatedir)/cache/ipa/kpasswd
+	-rmdir $(DESTDIR)$(localstatedir)/cache/ipa
+
 EXTRA_DIST =			\
 	README			\
 	ipa_kpasswd.init	\

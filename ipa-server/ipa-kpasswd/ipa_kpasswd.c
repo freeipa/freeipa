@@ -43,7 +43,7 @@
 #include <sasl/sasl.h>
 
 #define DEFAULT_KEYTAB "FILE:/var/kerberos/krb5kdc/kpasswd.keytab"
-#define TMP_TEMPLATE "/tmp/kpasswd.XXXXXX"
+#define TMP_TEMPLATE "/var/cache/ipa/kpasswd/krb5_cc.XXXXXX"
 #define KPASSWD_PORT 464
 
 /* blacklist entries are released only BLCAKLIST_TIMEOUT seconds

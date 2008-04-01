@@ -150,7 +150,9 @@ fi
 %attr(755,root,root) %{plugin_dir}/libipa-dna-plugin.so
 
 %dir %{_localstatedir}/lib/ipa
-%dir %{_localstatedir}/lib/ipa/sysrestore
+%attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
+%dir %{_localstatedir}/cache/ipa
+%attr(700,root,root) %dir %{_localstatedir}/cache/ipa/kpasswd
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
 
 %{_mandir}/man8/ipactl.8.gz
