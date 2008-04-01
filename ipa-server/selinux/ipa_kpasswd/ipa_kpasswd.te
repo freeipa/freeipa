@@ -8,6 +8,7 @@ policy_module(ipa_kpasswd, 1.0)
 type ipa_kpasswd_t;
 type ipa_kpasswd_exec_t;
 type ipa_kpasswd_var_run_t;
+type ipa_kpasswd_ccache_t;
 init_daemon_domain(ipa_kpasswd_t, ipa_kpasswd_exec_t)
 
 ########################################
@@ -37,6 +38,12 @@ miscfiles_read_localization(ipa_kpasswd_t)
 kerberos_use(ipa_kpasswd_t)
 
 kernel_read_system_state(ipa_kpasswd_t)
+
+# /var/cache/ipa/kpasswd
+files_type(ipa_kpasswd_ccache_t)
+manage_dirs_pattern(ipa_kpasswd_t, ipa_kpasswd_ccache_t, ipa_kpasswd_ccache_t)
+manage_files_pattern(ipa_kpasswd_t, ipa_kpasswd_ccache_t, ipa_kpasswd_ccache_t)
+files_var_filetrans(ipa_kpasswd_t, ipa_kpasswd_ccache_t,dir)
 
 corenet_tcp_sendrecv_all_if(ipa_kpasswd_t)
 corenet_udp_sendrecv_all_if(ipa_kpasswd_t)
