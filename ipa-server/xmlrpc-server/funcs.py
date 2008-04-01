@@ -1833,6 +1833,8 @@ class IPAServer:
         real_members = group.get('member')
         if isinstance(real_members, basestring):
             real_members = [real_members]
+        if real_members is None:
+            real_members = []
 
         # Normalize all the dns
         for i in range(len(real_members)):
