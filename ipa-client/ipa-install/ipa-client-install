@@ -202,13 +202,24 @@ def main():
 
     opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
             {'name':'empty', 'type':'empty'},
+            {'name':'ldap_version', 'type':'option', 'value':'3'},
+            {'name':'base', 'type':'option', 'value':ds.getBaseDN()},
+            {'name':'empty', 'type':'empty'},
             {'name':'nss_base_passwd', 'type':'option', 'value':ds.getBaseDN()+'?sub'},
             {'name':'nss_base_group', 'type':'option', 'value':ds.getBaseDN()+'?sub'},
+            {'name':'nss_schema', 'type':'option', 'value':'rfc2307bis'},
             {'name':'nss_map_attribute', 'type':'option', 'value':'uniqueMember member'},
-            {'name':'base', 'type':'option', 'value':ds.getBaseDN()},
-            {'name':'ldap_version', 'type':'option', 'value':'3'}]
+            {'name':'nss_initgroups_ignoreusers', 'type':'option', 'value':'root,dirsrv'},
+            {'name':'empty', 'type':'empty'},
+            {'name':'nss_reconnect_maxsleeptime', 'type':'option', 'value':'8'},
+            {'name':'nss_reconnect_sleeptime', 'type':'option', 'value':'1'},
+            {'name':'bind_timelimit', 'type':'option', 'value':'5'},
+            {'name':'timelimit', 'type':'option', 'value':'15'},
+            {'name':'empty', 'type':'empty'}]
     if not dnsok or options.force or options.on_master:
         opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+ds.getServerName()})
+    else:
+        opts.append({'name':'nss_srv_domain', 'type':'option', 'value':ds.getDomainName()})
 
     opts.append({'name':'empty', 'type':'empty'})
     try:
