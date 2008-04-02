@@ -20,6 +20,7 @@ BuildRequires: libcap-devel
 Requires: ipa-server-selinux
 Requires: ipa-python
 Requires: ipa-admintools
+Requires: ipa-client
 Requires: fedora-ds-base >= 1.1
 Requires: openldap-clients
 Requires: nss
