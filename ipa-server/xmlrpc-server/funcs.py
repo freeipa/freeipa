@@ -1857,7 +1857,7 @@ class IPAServer:
     def mark_group_active(self, cn, opts=None):
         """Mark a group as active"""
 
-        if not isinstance(cn,basestsring) or len(cn) == 0:
+        if not isinstance(cn,basestring) or len(cn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         group = self.get_entry_by_cn(cn, ['dn', 'cn'], opts)
         return self.mark_entry_active(group.get('dn'))
