@@ -12,6 +12,7 @@ BuildArch:      noarch
 #BuildRequires:  python-devel
 
 Requires: python
+Requires: python-ldap
 
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
