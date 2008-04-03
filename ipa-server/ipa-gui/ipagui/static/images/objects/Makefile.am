@@ -12,6 +12,7 @@ app_DATA = 				\
 	object-usergroup.png		\
 	object-user.png			\
 	object-virtualsystem.png	\
+	object-policy.png		\
 	$(NULL)
 
 EXTRA_DIST =			\
