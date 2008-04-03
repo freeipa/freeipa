@@ -81,6 +81,7 @@ class BindInstance(service.Service):
         self.step("configuring named to start on boot", self.__enable)
 
         self.step("Changing resolve.conf to point to ourselves", self.__setup_resolve_conf)
+        self.start_creation("Configuring bind:")
 
     def __start(self):
         try:
