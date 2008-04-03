@@ -163,12 +163,12 @@ class IPAPolicyController(IPAController):
             if new_ipapolicy.getValues('ipadefaultprimarygroup') != kw.get('ipadefaultprimarygroup'):
                 policy_modified = True
                 new_ipapolicy.setValue('ipadefaultprimarygroup', kw.get('ipadefaultprimarygroup'))
-            if new_ipapolicy.getValues('ipauserobjectclasses') != kw.get('ipauserobjectclasses'):
-                policy_modified = True
-                new_ipapolicy.setValue('ipauserobjectclasses', kw.get('ipauserobjectclasses'))
-            if new_ipapolicy.getValues('ipagroupobjectclasses') != kw.get('ipagroupobjectclasses'):
-                policy_modified = True
-                new_ipapolicy.setValue('ipagroupobjectclasses', kw.get('ipagroupobjectclasses'))
+#            if new_ipapolicy.getValues('ipauserobjectclasses') != kw.get('ipauserobjectclasses'):
+#                policy_modified = True
+#                new_ipapolicy.setValue('ipauserobjectclasses', kw.get('ipauserobjectclasses'))
+#            if new_ipapolicy.getValues('ipagroupobjectclasses') != kw.get('ipagroupobjectclasses'):
+#                policy_modified = True
+#                new_ipapolicy.setValue('ipagroupobjectclasses', kw.get('ipagroupobjectclasses'))
             if new_ipapolicy.getValues('ipadefaultemaildomain') != kw.get('ipadefaultemaildomain'):
                 policy_modified = True
                 new_ipapolicy.setValue('ipadefaultemaildomain', kw.get('ipadefaultemaildomain'))

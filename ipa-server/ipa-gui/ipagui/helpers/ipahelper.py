@@ -16,6 +16,7 @@
 #
 
 import re
+import logging
 
 def javascript_string_escape(input):
     """Escapes the ' " and \ characters in a string so
@@ -50,8 +51,11 @@ def fix_incoming_fields(fields, fieldname, multifieldname):
        field, then removes the multiple field.
     """
     fields[fieldname] = []
-    for i in range(len(fields[multifieldname])):
-        fields[fieldname].append(fields[multifieldname][i][fieldname])
-    del(fields[multifieldname])
+    try:
+        for i in range(len(fields[multifieldname])):
+            fields[fieldname].append(fields[multifieldname][i][fieldname])
+        del(fields[multifieldname])
+    except Exception, e:
+        logging.warn("fix_incoming_fields error: " + str(e))
 
     return fields
