@@ -173,6 +173,11 @@ INPUT_CANT_INACTIVATE = gen_error_code(
         0x0008,
         "This entry cannot be inactivated.")
 
+INPUT_ADMIN_REQUIRED_IN_ADMINS = gen_error_code(
+        INPUT_CATEGORY,
+        0x0009,
+        "The admin user cannot be removed from the admins group.")
+
 #
 # Connection errors
 #

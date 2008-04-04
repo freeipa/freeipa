@@ -1426,6 +1426,10 @@ class IPAServer:
         old_group = self.get_entry_by_dn(group_dn, None, opts)
         if old_group is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+        if old_group.get('cn') == "admins":
+            member = self.get_entry_by_dn(member_dn, ['dn','uid'], opts)
+            if member.get('uid') == "admin":
+                raise ipaerror.gen_exception(ipaerror.INPUT_ADMIN_REQUIRED_IN_ADMINS)
         new_group = copy.deepcopy(old_group)
 
         if new_group.get('member') is not None:
@@ -1474,6 +1478,9 @@ class IPAServer:
                 failed.append(member_dn)
             except ipaerror.exception_for(ipaerror.STATUS_NOT_GROUP_MEMBER):
                 # not a member of the group
+                failed.append(member_dn)
+            except ipaerror.exception_for(ipaerror.INPUT_ADMIN_REQUIRED_IN_ADMINS):
+                # Can't remove admin from admins group
                 failed.append(member_dn)
 
         return failed
@@ -1612,6 +1619,9 @@ class IPAServer:
             except ipaerror.exception_for(ipaerror.STATUS_NOT_GROUP_MEMBER):
                 # User is not in the group
                 failed.append(group_dn)
+            except ipaerror.exception_for(ipaerror.INPUT_ADMIN_REQUIRED_IN_ADMINS):
+                # Can't remove admin from admins group
+                failed.append(member_dn)
 
         return failed
 
