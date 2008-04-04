@@ -1072,7 +1072,7 @@ class IPAServer:
         group = self.get_entry_by_cn("inactivated", None, opts)
         try:
             self.remove_member_from_group(entry.get('dn'), group.get('dn'), opts)
-        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+        except ipaerror.exception_for(ipaerror.STATUS_NOT_GROUP_MEMBER):
             # Perhaps the user is there as a result of group membership
             pass
 
@@ -1431,16 +1431,17 @@ class IPAServer:
         if new_group.get('member') is not None:
             if isinstance(new_group.get('member'),basestring):
                 new_group['member'] = [new_group['member']]
+            for i in range(len(new_group['member'])):
+                new_group['member'][i] = ipaserver.ipaldap.IPAdmin.normalizeDN(new_group['member'][i])
             try:
                 new_group['member'].remove(member_dn)
             except ValueError:
                 # member is not in the group
                 # FIXME: raise more specific error?
-                raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+                raise ipaerror.gen_exception(ipaerror.STATUS_NOT_GROUP_MEMBER)
         else:
             # Nothing to do if the group has no members
-            # FIXME raise SOMETHING?
-            return "Success"
+            raise ipaerror.gen_exception(ipaerror.STATUS_NOT_GROUP_MEMBER)
 
         try:
             ret = self.__update_entry(old_group, new_group, opts)
@@ -1470,6 +1471,9 @@ class IPAServer:
                 failed.append(member_dn)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 # member_dn or the group does not exist
+                failed.append(member_dn)
+            except ipaerror.exception_for(ipaerror.STATUS_NOT_GROUP_MEMBER):
+                # not a member of the group
                 failed.append(member_dn)
 
         return failed
@@ -1604,6 +1608,9 @@ class IPAServer:
                 failed.append(group_dn)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 # User or the group does not exist
+                failed.append(group_dn)
+            except ipaerror.exception_for(ipaerror.STATUS_NOT_GROUP_MEMBER):
+                # User is not in the group
                 failed.append(group_dn)
 
         return failed

@@ -237,3 +237,8 @@ STATUS_HAS_NSACCOUNTLOCK = gen_error_code(
         STATUS_CATEGORY,
         0x0003,
         "This entry appears to have the nsAccountLock attribute in it so the Class of Service activation/inactivation will not work. You will need to remove the attribute nsAccountLock for this to work.")
+
+STATUS_NOT_GROUP_MEMBER = gen_error_code(
+        STATUS_CATEGORY,
+        0x0004,
+        "This entry is not a member of the group.")
