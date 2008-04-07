@@ -24,3 +24,5 @@ _kerberos-master._udp	IN SRV 0 100 88		$HOST
 _kpasswd._tcp		IN SRV 0 100 464	$HOST
 _kpasswd._udp		IN SRV 0 100 464	$HOST
 
+;ntp server
+_ntp._udp		IN SRV 0 100 123	$HOST
