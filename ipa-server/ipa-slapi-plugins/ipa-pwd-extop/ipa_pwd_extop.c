@@ -1112,13 +1112,14 @@ static Slapi_Value **ipapwd_setPasswordHistory(Slapi_Mods *smods, struct ipapwd_
 	ret = slapi_entry_attr_find(data->target, "passwordHistory", &passwordHistory);
 	if (ret == 0) {
 		int ret, hint, count, i;
+		const char *pwstr;
 		Slapi_Value *pw;
 
 		hint = 0;
 		count = 0;
 		ret = slapi_attr_get_numvalues(passwordHistory, &count);
 		/* if we have one */
-		if (count > 0) {
+		if (count > 0 && data->pwHistoryLen > 0) {
 			pH = calloc(count + 2, sizeof(Slapi_Value *));
 			if (!pH) {
 				slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
@@ -1130,26 +1131,43 @@ static Slapi_Value **ipapwd_setPasswordHistory(Slapi_Mods *smods, struct ipapwd_
 			i = 0;
 			hint = slapi_attr_first_value(passwordHistory, &pw);
 			while (hint != -1) {
-				pH[i] = slapi_value_dup(pw);
-				i++;
+				pwstr = slapi_value_get_string(pw);
+				/* if shorter than GENERALIZED_TIME_LENGTH, it
+				 * is garbage, we never set timeless entries */
+				if (pwstr &&
+				    (strlen(pwstr) > GENERALIZED_TIME_LENGTH)) {
+					pH[i] = pw;
+					i++;
+				}
 				hint = slapi_attr_next_value(passwordHistory, hint, &pw);
 			}
 
 			qsort(pH, i, sizeof(Slapi_Value *), ipapwd_sv_pw_cmp);
 
-			if (count > data->pwHistoryLen) {
-				count = data->pwHistoryLen;
-			}
-
-			if (count == data->pwHistoryLen) {
-				/* replace oldest */
-				slapi_value_free(&pH[0]);
-				i = 0;
+			if (i >= data->pwHistoryLen) {
+				i = data->pwHistoryLen;
+				pH[i] = NULL;
+				i--;
 			}
 
 			pc = i;
-		}
 
+			/* copy only interesting entries */
+			for (i = 0; i < pc; i++) {
+				pH[i] = slapi_value_dup(pH[i]);
+				if (pH[i] == NULL) {
+					slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
+							"ipapwd_checkPassword: Out of Memory\n");
+					while (i) {
+						i--;
+						slapi_value_free(&pH[i]);
+					}
+					free(pH);
+					free(histr);
+					return NULL;
+				}
+			}
+		}
 	}
 
 	if (pH == NULL) {
@@ -1176,11 +1194,6 @@ static Slapi_Value *ipapwd_strip_pw_date(Slapi_Value *pw)
 	const char *pwstr;
 
 	pwstr = slapi_value_get_string(pw);
-	if (strlen(pwstr) <= GENERALIZED_TIME_LENGTH) {
-		/* not good, must be garbage, we never set histories without time */
-		return NULL;
-	}
-
 	return slapi_value_new_string(&pwstr[GENERALIZED_TIME_LENGTH]);
 }
 
@@ -1207,6 +1220,7 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 	Slapi_Attr *passwordHistory = NULL;
 	struct tm tm;
 	int tmp, ret;
+	const char *old_pw;
 
 	/* check account is not expired */
 	krbPrincipalExpiration = slapi_entry_attr_get_charptr(data->target, "krbPrincipalExpiration");
@@ -1230,6 +1244,16 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 		/* FIXME: else error out ? */
 	}
 
+	/* find the entry with the password policy */
+	ret = ipapwd_getPolicy(data->dn, data->target, &policy);
+	if (ret) {
+		slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "No password policy");
+		goto no_policy;
+	}
+
+	/* Retrieve Max History Len */
+	data->pwHistoryLen = slapi_entry_attr_get_int(policy, "krbPwdHistoryLength");
+
 	if (data->changetype != IPA_CHANGETYPE_NORMAL) {
 		/* We must skip policy checks (Admin change) but
 		 * force a password change on the next login.
@@ -1239,8 +1263,34 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 		}
 
 		/* skip policy checks */
+		slapi_entry_free(policy);
 		goto no_policy;
 	} 
+
+	/* first of all check current password, if any */
+	old_pw = slapi_entry_attr_get_charptr(data->target, "userPassword");
+	if (old_pw) {
+		Slapi_Value *cpw;
+		Slapi_Value *pw;
+
+		cpw = slapi_value_new_string(old_pw);
+		pw = slapi_value_new_string(data->password);
+		if (!cpw || !pw) {
+			slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
+					"ipapwd_checkPassword: Out of Memory\n");
+			slapi_entry_free(policy);
+			return LDAP_OPERATIONS_ERROR;
+		}
+
+		ret = slapi_pw_find_sv(&cpw, pw);
+
+		if (ret == 0) {
+			slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
+				"ipapwd_checkPassword: Password in history\n");
+			slapi_entry_free(policy);
+			return IPAPWD_POLICY_ERROR | LDAP_PWPOLICY_PWDINHISTORY;
+		}
+	}
 
 	krbPasswordExpiration = slapi_entry_attr_get_charptr(data->target, "krbPasswordExpiration");
 	krbLastPwdChange = slapi_entry_attr_get_charptr(data->target, "krbLastPwdChange");
@@ -1263,13 +1313,6 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 	} else {
 		slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
 			"Warning: Last Password Change Time is not available");
-	}
-
-	/* find the entry with the password policy */
-	ret = ipapwd_getPolicy(data->dn, data->target, &policy);
-	if (ret) {
-		slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "No password policy");
-		goto no_policy;
 	}
 
 	/* Check min age */
@@ -1398,17 +1441,17 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 	/* Check password history */
 	ret = slapi_entry_attr_find(data->target, "passwordHistory", &passwordHistory);
 	if (ret == 0) {
-		int ret, hint, count, i;
+		int ret, hint, count, i, j;
+		const char *pwstr;
 		Slapi_Value **pH;
 		Slapi_Value *pw;
 
 		hint = 0;
 		count = 0;
-		i = 0;
 		ret = slapi_attr_get_numvalues(passwordHistory, &count);
 		/* check history only if we have one */
-		if (count > 0) {
-			pH = calloc(count + 1, sizeof(Slapi_Value *));
+		if (count > 0 && data->pwHistoryLen > 0) {
+			pH = calloc(count + 2, sizeof(Slapi_Value *));
 			if (!pH) {
 				slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
 						"ipapwd_checkPassword: Out of Memory\n");
@@ -1416,11 +1459,29 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 				return LDAP_OPERATIONS_ERROR;
 			}
 
+			i = 0;
 			hint = slapi_attr_first_value(passwordHistory, &pw);
 			while (hint != -1) {
-				pH[i] = ipapwd_strip_pw_date(pw);
-				if (pH[i]) i++;
+				pwstr = slapi_value_get_string(pw);
+				/* if shorter than GENERALIZED_TIME_LENGTH, it
+				 * is garbage, we never set timeless entries */
+				if (pwstr &&
+				    (strlen(pwstr) > GENERALIZED_TIME_LENGTH)) {
+					pH[i] = pw;
+					i++;
+				}
 				hint = slapi_attr_next_value(passwordHistory, hint, &pw);
+			}
+
+			qsort(pH, i, sizeof(Slapi_Value *), ipapwd_sv_pw_cmp);
+
+			if (i > data->pwHistoryLen) {
+				i = data->pwHistoryLen;
+				pH[i] = NULL;
+			}
+
+			for (j = 0; pH[j]; j++) {
+				pH[j] = ipapwd_strip_pw_date(pH[j]);
 			}
 
 			pw = slapi_value_new_string(data->password);
@@ -1434,11 +1495,10 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 
 			ret = slapi_pw_find_sv(pH, pw);
 
-			slapi_value_free(&pw);
-
-			for (i = 0; pH[i]; i++) {
-				slapi_value_free(&pH[i]);
+			for (j = 0; pH[j]; j++) {
+				slapi_value_free(&pH[j]);
 			}
+			slapi_value_free(&pw);
 			free(pH);
 
 			if (ret == 0) {
@@ -1455,9 +1515,6 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 	if (tmp != 0) {
 		krbMaxPwdLife = tmp;
 	}
-
-	/* Retrieve History Len */
-	data->pwHistoryLen = slapi_entry_attr_get_int(policy, "krbPwdHistoryLength");
 
 	slapi_entry_free(policy);
 
