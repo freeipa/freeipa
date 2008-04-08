@@ -379,8 +379,6 @@ class KrbInstance(service.Service):
 
         self.fstore.backup_file("/etc/sysconfig/ipa_kpasswd")
         update_key_val_in_file("/etc/sysconfig/ipa_kpasswd", "export KRB5_KTNAME", "/var/kerberos/krb5kdc/kpasswd.keytab")
-        pent = pwd.getpwnam(self.ds_user)
-        os.chown("/var/kerberos/krb5kdc/kpasswd.keytab", pent.pw_uid, pent.pw_gid)
 
     def uninstall(self):
         self.kpasswd.uninstall()
