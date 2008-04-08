@@ -62,9 +62,30 @@ created if not existing).
 \fB\-e encryption-types\fR
 The list of encryption types to use to generate keys.
 ipa-getkeytab will use local client defaults if not provided.
+Valid values depend on the kerberos library version and configuration.
+Common values are:
+aes256-cts
+aes128-cts
+des3-hmac-sha1
+arcfour-hmac
+des-hmac-sha1
+des-cbc-md5
+des-cbc-crc
 
 \fB\-q\fR
 Keep quiet.
+
+\fB\--permitted-enctypes\fR
+This options returns a description of the permitted encryption types, like this:
+Supported encryption types:
+AES-256 CTS mode with 96-bit SHA-1 HMAC
+AES-128 CTS mode with 96-bit SHA-1 HMAC
+Triple DES cbc mode with HMAC/sha1
+ArcFour with HMAC/md5
+DES cbc mode with CRC-32
+DES cbc mode with RSA-MD5
+DES cbc mode with RSA-MD4
+
 
 .SH "EXAMPLES"
 

@@ -450,12 +450,14 @@ int main(int argc, char *argv[])
 	static const char *keytab = NULL;
 	static const char *enctypes_string = NULL;
 	int quiet = 0;
+	int permitted_enctypes = 0;
         struct poptOption options[] = {
                 { "server", 's', POPT_ARG_STRING, &server, 0, "Contact this specific KDC Server", "Server Name" },
                 { "principal", 'p', POPT_ARG_STRING, &principal, 0, "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)", "Kerberos Service Principal Name" },
                 { "keytab", 'k', POPT_ARG_STRING, &keytab, 0, "File were to store the keytab information", "Keytab File Name" },
 		{ "enctypes", 'e', POPT_ARG_STRING, &enctypes_string, 0, "Encryption types to request", "Comma separated encription types list" },
 		{ "quiet", 'q', POPT_ARG_NONE, &quiet, 0, "Print as little as possible", "Output only on errors"},
+		{ "permitted-enctypes", 0, POPT_ARG_NONE, &permitted_enctypes, 0, "Show the list of permitted encryption types and exit", "Permitted Encryption Types"},
 		{ NULL, 0, POPT_ARG_NONE, NULL, 0, NULL, NULL }
 	};
 	poptContext pc;
@@ -473,23 +475,44 @@ int main(int argc, char *argv[])
 	int kvno;
 	int i, ret;
 
+	krberr = krb5_init_context(&krbctx);
+	if (krberr) {
+		fprintf(stderr, "Kerberos context initialization failed\n");
+		exit(1);
+	}
+
 	pc = poptGetContext("ipa-getkeytab", argc, (const char **)argv, options, 0);
 	ret = poptGetNextOpt(pc);
-	if (ret != -1 || !server || !principal || !keytab) {
+	if (ret == -1 && permitted_enctypes &&
+	    !(server || principal || keytab || quiet)) {
+		char enc[79]; /* fit std terminal or truncate */
+
+		krberr = krb5_get_permitted_enctypes(krbctx, &ktypes);
+		if (krberr) {
+			fprintf(stderr, "No system preferred enctypes ?!\n");
+			exit(1);
+		}
+		fprintf(stdout, "Supported encryption types:\n");
+		for (i = 0; ktypes[i]; i++) {
+			krberr = krb5_enctype_to_string(ktypes[i], enc, 79);
+			if (krberr) {
+				fprintf(stderr, "Warning: failed to convert type (#%d)\n", i);
+				continue;
+			}
+			fprintf(stdout, "%s\n", enc);
+		}
+		exit (0);
+	}
+
+	if (ret != -1 || !server || !principal || !keytab || permitted_enctypes) {
 		if (!quiet) {
 			poptPrintUsage(pc, stderr, 0);
 		}
-		exit(1);
+		exit(2);
 	}
 
 	ret = asprintf(&ktname, "WRFILE:%s", keytab);
 	if (ret == -1) {
-		exit(2);
-	}
-
-	krberr = krb5_init_context(&krbctx);
-	if (krberr) {
-		fprintf(stderr, "Kerberos context initialization failed\n");
 		exit(3);
 	}
 
