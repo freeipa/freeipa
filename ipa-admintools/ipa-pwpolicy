@@ -64,25 +64,25 @@ def update_policy(client, options):
 
     try:
         if options.maxlife:
-            if validate.is_integer(options.maxlife, min=0):
-                new.setValue('krbmaxpwdlife', options.maxlife)
+            validate.is_integer(options.maxlife, min=0)
+            new.setValue('krbmaxpwdlife', options.maxlife)
         if options.minlife:
-            if validate.is_integer(options.minlife, min=0):
-                new.setValue('krbminpwdlife', options.minlife)
+            validate.is_integer(options.minlife, min=0)
+            new.setValue('krbminpwdlife', options.minlife)
         if options.history:
-            if validate.is_integer(options.history, min=0):
-                new.setValue('krbpwdhistorylength', options.history)
+            validate.is_integer(options.history, min=0)
+            new.setValue('krbpwdhistorylength', options.history)
         if options.minclasses:
-            if validate.is_integer(options.minclasses, min=0):
-                new.setValue('krbpwdmindiffchars', options.minclasses)
+            validate.is_integer(options.minclasses, min=0)
+            new.setValue('krbpwdmindiffchars', options.minclasses)
         if options.minlength:
-            if validate.is_integer(options.minlength, min=0):
-                new.setValue('krbpwdminlength', options.minlength)
+            validate.is_integer(options.minlength, min=0)
+            new.setValue('krbpwdminlength', options.minlength)
     except validate.VdtTypeError, e:
-        print "%s" % (e.message)
+        print "%s" % str(e)
         return 1
     except validate.VdtValueTooSmallError, e:
-        print "%s" % (e.message)
+        print "%s" % str(e)
         return 1
 
     client.update_password_policy(new)
