@@ -1,6 +1,6 @@
 Name:           ipa-server
 Version:        VERSION
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base
@@ -92,7 +92,7 @@ fi
 /bin/touch /var/log/ipa_error.log
 /bin/chown apache /var/log/ipa_error.log
 /bin/chmod 600 /var/log/ipa_error.log
-
+restorecon /var/log/ipa_error.log
 
 %preun
 if [ $1 = 0 ]; then
@@ -166,6 +166,9 @@ fi
 %{_mandir}/man1/ipa-server-install.1.gz
 
 %changelog
+* Fri Mar 14 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-5
+- Run restorecon on /var/log/ipa_error.log to ensure correct selinux context
+
 * Fri Mar 14 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-4
 - Add missing man pages
 - Add Conflicts for mod_ssl

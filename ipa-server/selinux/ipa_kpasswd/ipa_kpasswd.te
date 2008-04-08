@@ -16,6 +16,7 @@ init_daemon_domain(ipa_kpasswd_t, ipa_kpasswd_exec_t)
 # IPA kpasswd local policy
 #
 
+allow ipa_kpasswd_t self:capability { sys_nice dac_override };
 allow ipa_kpasswd_t self:tcp_socket create_stream_socket_perms;
 allow ipa_kpasswd_t self:udp_socket create_socket_perms;
 
@@ -36,6 +37,8 @@ logging_send_syslog_msg(ipa_kpasswd_t)
 miscfiles_read_localization(ipa_kpasswd_t)
 
 kerberos_use(ipa_kpasswd_t)
+kerberos_manage_host_rcache(ipa_kpasswd_t)
+kerberos_read_kdc_config(ipa_kpasswd_t)
 
 kernel_read_system_state(ipa_kpasswd_t)
 
@@ -58,3 +61,8 @@ corenet_tcp_bind_all_nodes(ipa_kpasswd_t)
 corenet_udp_bind_all_nodes(ipa_kpasswd_t)
 corenet_tcp_bind_kerberos_admin_port(ipa_kpasswd_t)
 corenet_udp_bind_kerberos_admin_port(ipa_kpasswd_t)
+require {
+	type krb5kdc_conf_t; 
+};
+
+allow ipa_kpasswd_t krb5kdc_conf_t:dir search_dir_perms;
