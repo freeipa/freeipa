@@ -93,4 +93,4 @@ corenet_tcp_bind_http_cache_port(ipa_webgui_t)
 corenet_tcp_connect_http_cache_port(ipa_webgui_t)
 corenet_tcp_connect_ldap_port(ipa_webgui_t)
 
-allow ipa_webgui_t sbin_t:dir search;
+corecmd_search_sbin(ipa_webgui_t)
