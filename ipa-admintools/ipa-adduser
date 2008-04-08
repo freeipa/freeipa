@@ -131,7 +131,7 @@ def main():
                     print "Password cannot be empty"
                     match = False
     else:
-        password = options.sn
+        password = options.password
 
     if options.mail:
         mail = options.mail
