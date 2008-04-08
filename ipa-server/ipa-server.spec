@@ -17,7 +17,7 @@ BuildRequires: krb5-devel
 BuildRequires: nss-devel
 BuildRequires: libcap-devel
 
-Requires: ipa-server-selinux
+Requires(post): ipa-server-selinux
 Requires: ipa-python
 Requires: ipa-admintools
 Requires: ipa-client
@@ -168,6 +168,7 @@ fi
 %changelog
 * Fri Mar 14 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-5
 - Run restorecon on /var/log/ipa_error.log to ensure correct selinux context
+- Add (post) to ipa-server-selinux Requires
 
 * Fri Mar 14 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-4
 - Add missing man pages
