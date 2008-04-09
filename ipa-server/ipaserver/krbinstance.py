@@ -147,8 +147,9 @@ class KrbInstance(service.Service):
 
         self.kpasswd.create_instance()
 
-    def create_replica(self, ds_user, realm_name, host_name, domain_name, admin_password, ldap_passwd_filename):
+    def create_replica(self, ds_user, realm_name, host_name, domain_name, admin_password, ldap_passwd_filename, kpasswd_filename):
         self.__copy_ldap_passwd(ldap_passwd_filename)
+        self.__copy_kpasswd_keytab(kpasswd_filename)
 
         self.__common_setup(ds_user, realm_name, host_name, domain_name, admin_password)
 
@@ -157,7 +158,6 @@ class KrbInstance(service.Service):
         self.step("configuring KDC", self.__create_replica_instance)
         self.step("creating a keytab for the directory", self.__create_ds_keytab)
         self.step("creating a keytab for the machine", self.__create_host_keytab)
-        self.step("exporting the kadmin keytab", self.__export_kadmin_changepw_keytab)
 
         self.__common_post_setup()
 
@@ -169,6 +169,11 @@ class KrbInstance(service.Service):
         self.fstore.backup_file("/var/kerberos/krb5kdc/ldappwd")
         shutil.copy(filename, "/var/kerberos/krb5kdc/ldappwd")
         os.chmod("/var/kerberos/krb5kdc/ldappwd", 0600)
+
+    def __copy_kpasswd_keytab(self, filename):
+        self.fstore.backup_file("/var/kerberos/krb5kdc/kpasswd.keytab")
+        shutil.copy(filename, "/var/kerberos/krb5kdc/kpasswd.keytab")
+        os.chmod("/var/kerberos/krb5kdc/kpasswd.keytab", 0600)
 
 
     def __configure_kdc_account_password(self):

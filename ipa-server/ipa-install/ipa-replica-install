@@ -109,8 +109,10 @@ def install_ds(config):
 def install_krb(config):
     krb = krbinstance.KrbInstance()
     ldappwd_filename = config.dir + "/ldappwd"
+    kpasswd_filename = config.dir + "/kpasswd.keytab"
     krb.create_replica(config.ds_user, config.realm_name, config.host_name,
-                       config.domain_name, config.dirman_password, ldappwd_filename)
+                       config.domain_name, config.dirman_password,
+                       ldappwd_filename, kpasswd_filename)
 
 def install_http(config):
     # if we have a pkcs12 file, create the cert db from

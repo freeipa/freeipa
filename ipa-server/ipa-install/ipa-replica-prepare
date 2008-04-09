@@ -143,6 +143,7 @@ def copy_files(realm_name, dir):
     config_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name))
     try:
         shutil.copy("/var/kerberos/krb5kdc/ldappwd", dir + "/ldappwd") 
+        shutil.copy("/var/kerberos/krb5kdc/kpasswd.keytab", dir + "/kpasswd.keytab") 
         shutil.copy("/usr/share/ipa/html/preferences.html", dir + "/preferences.html")
         shutil.copy("/usr/share/ipa/html/configure.jar", dir + "/configure.jar")
         shutil.copy(config_dir + "/cacert.asc", dir + "/ca.crt")
@@ -190,6 +191,7 @@ def main():
 
     print "Packaging the replica into /var/lib/ipa/%s" % "replica-info-" + replica_fqdn
     ipautil.run(["/bin/tar", "cfz", "/var/lib/ipa/replica-info-" + replica_fqdn, "-C", top_dir, "realm_info"])
+    os.chmod("/var/lib/ipa/replica-info-" + replica_fqdn, 0600)
 
     shutil.rmtree(dir)
 
