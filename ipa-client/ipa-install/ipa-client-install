@@ -43,6 +43,9 @@ def parse_options():
 
     options, args = parser.parse_args()
 
+    if (options.server and not options.domain):
+        parser.error("--server cannot be used without providing --domain")
+
     return options
 
 def ask_for_confirmation(message):
@@ -110,6 +113,11 @@ def main():
     if options.uninstall:
         return uninstall(options)
 
+    cli_domain = None
+    cli_server = None
+    cli_realm = None
+    cli_basedn = None
+
     # Create the discovery instance
     ds = ipaclient.ipadiscovery.IPADiscovery()
 
@@ -121,32 +129,38 @@ def main():
     if ret == -1 or not ds.getDomainName():
         logging.debug("Domain not found")
         if options.domain:
-            dom = options.domain
+            cli_domain = options.domain
         elif options.unattended:
             return ret
         else:
             print "Failed to determine your DNS domain (DNS misconfigured?)"
-            dom = ""
-            while dom == "":
-                dom = raw_input("Please provide your domain name (ex: example.com): ")
-        ret = ds.search(domain=dom)
-    dom = ds.getDomainName()
+            cli_domain = ""
+            while cli_domain == "":
+                cli_domain = raw_input("Please provide your domain name (ex: example.com): ")
+        ret = ds.search(domain=cli_domain, server=options.server)
+    if not cli_domain:
+        if ds.getDomainName():
+            cli_domain = ds.getDomainName()
+
     if ret == -2 or not ds.getServerName():
         dnsok = False
         logging.debug("IPA Server not found")
         if options.server:
-            srv = options.server
+            cli_server = options.server
         elif options.unattended:
             return ret
         else:
             print "Failed to find the IPA Server (DNS misconfigured?)"
-            srv = ""
-            while srv == "":
-                srv = raw_input("Please provide your server name (ex: ipa.example.com): ")
-        ret = ds.search(domain=dom, server=srv)
-    srv = ds.getServerName()
+            cli_server = ""
+            while cli_server == "":
+                cli_server = raw_input("Please provide your server name (ex: ipa.example.com): ")
+        ret = ds.search(domain=cli_domain, server=cli_server)
+    if not cli_server:
+        if ds.getServerName():
+            cli_server = ds.getServerName()
+
     if ret != 0:
-        print "Failed to verify that "+srv+" is an IPA Server."
+        print "Failed to verify that "+cli_server+" is an IPA Server."
         print "This may mean that the remote server is not up or is not reachable"
         print "due to network or firewall settings."
         return ret
@@ -168,10 +182,13 @@ def main():
             print "ERROR: The provided realm name: ["+options.realm_name+"] does not match with the discovered one: ["+ds.getRealmName()+"]\n"
         return -3
 
-    print "Realm: "+ds.getRealmName()
-    print "DNS Domain: "+ds.getDomainName()
-    print "IPA Server: "+ds.getServerName()
-    print "BaseDN: "+ds.getBaseDN()
+    cli_realm = ds.getRealmName()
+    cli_basedn = ds.getBaseDN()
+
+    print "Realm: "+cli_realm
+    print "DNS Domain: "+cli_domain
+    print "IPA Server: "+cli_server
+    print "BaseDN: "+cli_basedn
 
     print "\n"
     if not options.unattended and not ask_for_confirmation("Continue to configure the system with these values?"):
@@ -186,8 +203,8 @@ def main():
             {'name':'empty', 'type':'empty'}]
 
     #[defaults]
-    defopts = [{'name':'server', 'type':'option', 'value':ds.getServerName()},
-             {'name':'realm', 'type':'option', 'value':ds.getRealmName()}]
+    defopts = [{'name':'server', 'type':'option', 'value':cli_server},
+             {'name':'realm', 'type':'option', 'value':cli_realm}]
 
     opts.append({'name':'defaults', 'type':'section', 'value':defopts})
     opts.append({'name':'empty', 'type':'empty'})
@@ -203,10 +220,10 @@ def main():
     opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
             {'name':'empty', 'type':'empty'},
             {'name':'ldap_version', 'type':'option', 'value':'3'},
-            {'name':'base', 'type':'option', 'value':ds.getBaseDN()},
+            {'name':'base', 'type':'option', 'value':cli_basedn},
             {'name':'empty', 'type':'empty'},
-            {'name':'nss_base_passwd', 'type':'option', 'value':ds.getBaseDN()+'?sub'},
-            {'name':'nss_base_group', 'type':'option', 'value':ds.getBaseDN()+'?sub'},
+            {'name':'nss_base_passwd', 'type':'option', 'value':cli_basedn+'?sub'},
+            {'name':'nss_base_group', 'type':'option', 'value':cli_basedn+'?sub'},
             {'name':'nss_schema', 'type':'option', 'value':'rfc2307bis'},
             {'name':'nss_map_attribute', 'type':'option', 'value':'uniqueMember member'},
             {'name':'nss_initgroups_ignoreusers', 'type':'option', 'value':'root,dirsrv'},
@@ -217,9 +234,9 @@ def main():
             {'name':'timelimit', 'type':'option', 'value':'15'},
             {'name':'empty', 'type':'empty'}]
     if not dnsok or options.force or options.on_master:
-        opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+ds.getServerName()})
+        opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+cli_server})
     else:
-        opts.append({'name':'nss_srv_domain', 'type':'option', 'value':ds.getDomainName()})
+        opts.append({'name':'nss_srv_domain', 'type':'option', 'value':cli_domain})
 
     opts.append({'name':'empty', 'type':'empty'})
     try:
@@ -234,7 +251,7 @@ def main():
     krbctx = krbV.default_context()
     # If we find our domain assume we are properly configured
     #(ex. we are configuring the client side of a Master)
-    if not options.on_master and (not krbctx.default_realm == ds.getRealmName() or options.force):
+    if not options.on_master and (not krbctx.default_realm == cli_realm or options.force):
 
         #Configure krb5.conf
         krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
@@ -247,7 +264,7 @@ def main():
                 {'name':'empty', 'type':'empty'}]
 
         #[libdefaults]
-        libopts = [{'name':'default_realm', 'type':'option', 'value':ds.getRealmName()}]
+        libopts = [{'name':'default_realm', 'type':'option', 'value':cli_realm}]
         if dnsok and not options.force:
             libopts.append({'name':'dns_lookup_realm', 'type':'option', 'value':'true'})
             libopts.append({'name':'dns_lookup_kdc', 'type':'option', 'value':'true'})
@@ -263,16 +280,16 @@ def main():
 	#the following are necessary only if DNS discovery does not work
         if not dnsok or options.force:
             #[realms]
-            kropts =[{'name':'kdc', 'type':'option', 'value':ds.getServerName()+':88'},
-                     {'name':'admin_server', 'type':'option', 'value':ds.getServerName()+':749'},
-                     {'name':'default_domain', 'type':'option', 'value':ds.getDomainName()}]
-            ropts = [{'name':ds.getRealmName(), 'type':'subsection', 'value':kropts}]
+            kropts =[{'name':'kdc', 'type':'option', 'value':cli_server+':88'},
+                     {'name':'admin_server', 'type':'option', 'value':cli_server+':749'},
+                     {'name':'default_domain', 'type':'option', 'value':cli_domain}]
+            ropts = [{'name':cli_realm, 'type':'subsection', 'value':kropts}]
             opts.append({'name':'realms', 'type':'section', 'value':ropts})
             opts.append({'name':'empty', 'type':'empty'})
 
             #[domain_realm]
-            dropts = [{'name':'.'+ds.getDomainName(), 'type':'option', 'value':ds.getRealmName()},
-                      {'name':ds.getDomainName(), 'type':'option', 'value':ds.getRealmName()}]
+            dropts = [{'name':'.'+cli_domain, 'type':'option', 'value':cli_realm},
+                      {'name':cli_domain, 'type':'option', 'value':cli_realm}]
             opts.append({'name':'domain_realm', 'type':'section', 'value':dropts})
             opts.append({'name':'empty', 'type':'empty'})
 
@@ -287,7 +304,7 @@ def main():
 
         fstore.backup_file("/etc/krb5.conf")
         krbconf.newConf("/etc/krb5.conf", opts);
-        print "Configured /etc/krb5.conf for IPA realm " + ds.getRealmName()
+        print "Configured /etc/krb5.conf for IPA realm " + cli_realm
 
     #Modify nsswitch to add nss_ldap
     run(["/usr/sbin/authconfig", "--enableldap", "--update"])
@@ -299,9 +316,9 @@ def main():
             run(["getent", "passwd", "admin"])
         except Exception, e:
             print "nss_ldap is not able to use DNS discovery!"
-            print "Changing configuration to use hardcoded server name: " + ds.getServerName()
+            print "Changing configuration to use hardcoded server name: " +cli_server
 
-            opts = [{'name':'uri', 'type':'option', 'action':'set', 'value':'ldap://'+ds.getServerName()},
+            opts = [{'name':'uri', 'type':'option', 'action':'set', 'value':'ldap://'+cli_server},
                     {'name':'empty', 'type':'empty'}]
             try:
                 ldapconf.changeConf("/etc/ldap.conf", opts)
@@ -317,7 +334,7 @@ def main():
         if options.ntp_server:
             ntp_server = options.ntp_server
         else:
-            ntp_server = ds.getServerName()
+            ntp_server = cli_server
         ipaclient.ntpconf.config_ntp(ntp_server, fstore)
         print "NTP enabled"
 
