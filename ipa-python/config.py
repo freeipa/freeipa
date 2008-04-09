@@ -76,35 +76,30 @@ def __discover_config():
             if not config.default_realm:
                 return False
 
-        if not config.default_server:
-            #try once with REALM -> domain
-            name = "_ldap._tcp."+config.default_realm+"."
-            rs = ipa.dnsclient.query(name, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
+        #try once with REALM -> domain
+        name = "_ldap._tcp."+config.default_realm+"."
+        rs = ipa.dnsclient.query(name, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
+        rl = len(rs)
+
+        #try cycling on domain components of FQDN
+        if rl == 0:
+            name = socket.getfqdn()
+        while rl == 0:
+            tok = name.find(".")
+            if tok == -1:
+                return False
+            name = name[tok+1:]
+            q = "_ldap._tcp." + name + "."
+            rs = ipa.dnsclient.query(q, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
             rl = len(rs)
 
-            #try cycling on domain components of FQDN
-            if rl == 0:
-                name = socket.getfqdn()
-            while rl == 0:
-                tok = name.find(".")
-                if tok == -1:
-                    return False
-                name = name[tok+1:]
-                q = "_ldap._tcp." + name + "."
-                rs = ipa.dnsclient.query(q, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
-                rl = len(rs)
+        for r in rs:
+            if r.dns_type == ipa.dnsclient.DNS_T_SRV:
+                rsrv = r.rdata.server.rstrip(".")
+                config.default_server.append(rsrv)
 
-            for r in rs:
-                if r.dns_type == ipa.dnsclient.DNS_T_SRV:
-                    rsrv = r.rdata.server.rstrip(".")
-                    config.default_server.append(rsrv)
-
-        if config.default_server:
-            return True
-        else:
-            return False
     except:
-        return False
+        pass
 
 def usage():
     return """  --realm\tset the IPA realm
@@ -128,7 +123,7 @@ def __parse_args(args):
         if args[i] == "--server":
             if i == len(args) - 1:
                 raise IPAConfigError("missing argument to --server")
-            config.default_server = args[i + 1]
+            config.default_server.append(args[i + 1])
             i = i + 2
             continue
         out_args.append(args[i])
@@ -142,8 +137,8 @@ def init_config(args=None):
     if args:
         out_args = __parse_args(args)
 
-    __discover_config()
     __parse_config()
+    __discover_config()
 
     if not config.default_realm:
         raise IPAConfigError("IPA realm not found in DNS, in the config file (/etc/ipa/ipa.conf) or on the command line.")
