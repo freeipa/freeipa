@@ -178,11 +178,14 @@ class IPADiscovery:
     
         except LDAPError, err:
             #no good
-            if type(err.message) == dict:
-                for (k, v) in err.message.iteritems():
-                    logging.error("LDAP Error: %s" % v )
-            else:
-                logging.error("LDAP Error: "+err.message)
+            try:
+                if type(err.message) == dict:
+                    for (k, v) in err.message.iteritems():
+                        logging.error("LDAP Error: %s" % v )
+                else:
+                    logging.error("LDAP Error: "+err.message)
+            except AttributeError:
+                logging.error("LDAP Error: "+str(err))
             return []
 
     
