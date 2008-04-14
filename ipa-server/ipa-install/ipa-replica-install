@@ -137,9 +137,41 @@ def install_http(config):
         print "error copying files: " + str(e)
         sys.exit(1)
 
+def check_dirsrv():
+    serverids = dsinstance.check_existing_installation()
+    if serverids:
+        print ""
+        print "An existing Directory Server has been detected."
+        yesno = raw_input("Do you wish to remove it and create a new one? [no]: ")
+        if not yesno or yesno.lower()[0] != "y":
+            print ""
+            print "Only a single Directory Server instance is allowed on an IPA"
+            print "server, the one used by IPA itself."
+            sys.exit(1)
+
+        try:
+            service.stop("dirsrv")
+        except:
+            pass
+
+        for serverid in serverids:
+            dsinstance.erase_ds_instance_data(serverid)
+
+    (ds_unsecure, ds_secure) = dsinstance.check_ports()
+    if not ds_unsecure or not ds_secure:
+        print "IPA requires ports 389 and 636 for the Directory Server."
+        print "These are currently in use:"
+        if not ds_unsecure:
+            print "\t389"
+        if not ds_secure:
+            print "\t636"
+        sys.exit(1)
+
 def main():
     options, filename = parse_options()
     installutils.standard_logging_setup("/var/log/ipareplica-install.log", options.debug)
+
+    check_dirsrv()
 
     top_dir, dir = expand_info(filename)
 
