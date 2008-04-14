@@ -139,7 +139,8 @@ class KrbInstance(service.Service):
         self.step("creating a keytab for the directory", self.__create_ds_keytab)
         self.step("creating a keytab for the machine", self.__create_host_keytab)
         self.step("exporting the kadmin keytab", self.__export_kadmin_changepw_keytab)
-        self.step("adding the password extenstion to the directory", self.__add_pwd_extop_module)
+        self.step("adding the password extension to the directory", self.__add_pwd_extop_module)
+        self.step("adding the kerberos master key to the directory", self.__add_master_key)
 
         self.__common_post_setup()
 
@@ -158,6 +159,7 @@ class KrbInstance(service.Service):
         self.step("configuring KDC", self.__create_replica_instance)
         self.step("creating a keytab for the directory", self.__create_ds_keytab)
         self.step("creating a keytab for the machine", self.__create_host_keytab)
+        self.step("adding the password extension to the directory", self.__add_pwd_extop_module)
 
         self.__common_post_setup()
 
@@ -327,6 +329,7 @@ class KrbInstance(service.Service):
     def __add_pwd_extop_module(self):
         self.__ldap_mod("pwd-extop-conf.ldif")
 
+    def __add_master_key(self):
         #get the Master Key from the stash file
         try:
             stash = open("/var/kerberos/krb5kdc/.k5."+self.realm, "r")
