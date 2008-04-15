@@ -87,6 +87,21 @@ def check_ports():
     ds_secure = installutils.port_available(636)
     return (ds_unsecure, ds_secure)
 
+def is_ds_running():
+    """The DS init script always returns 0 when requesting status so it cannot
+       be used to determine if the server is running. We have to look at the
+       output.
+    """
+    ret = True
+    try:
+        (sout, serr) = ipautil.run(["/sbin/service", "dirsrv", "status"])
+        if sout.find("is stopped") >= 0:
+            ret = False       
+    except ipautil.CalledProcessError:
+        ret = False
+    return ret
+
+
 INF_TEMPLATE = """
 [General]
 FullMachineName=   $FQHN
@@ -192,7 +207,7 @@ class DsInstance(service.Service):
         self.backup_state("user_exists", user_exists)
 
     def __create_instance(self):
-        self.backup_state("running", self.is_running())
+        self.backup_state("running", is_ds_running())
         self.backup_state("serverid", self.serverid)
 
         self.sub_dict['BASEDC'] = self.realm_name[:self.realm_name.find('.')].lower()
@@ -242,9 +257,14 @@ class DsInstance(service.Service):
     def __restart_instance(self):
         try:
             self.restart()
-        except:
+            if not is_ds_running():
+                logging.critical("Failed to restart the directory server. See the installation log for details.")
+                sys.exit(1)
+        except SystemExit, e:
+            raise e
+        except Exception, e:
             # TODO: roll back here?
-            logging.critical("Failed to restart the ds instance")
+            logging.critical("Failed to restart the directory server. See the installation log for details.")
 
     def __ldap_mod(self, ldif, sub_dict = None):
         fd = None
