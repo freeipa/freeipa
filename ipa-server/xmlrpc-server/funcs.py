@@ -1113,7 +1113,11 @@ class IPAServer:
         # First see if they are in the activated group as this will override
         # the our inactivation.
         group = self.get_entry_by_cn("activated", None, opts)
-        self.remove_member_from_group(dn, group.get('dn'), opts)
+        try:
+            self.remove_member_from_group(dn, group.get('dn'), opts)
+        except ipaerror.exception_for(ipaerror.STATUS_NOT_GROUP_MEMBER):
+            # this is fine, they may not be explicitly in this group
+            pass
 
         # Now add them to inactivated
         group = self.get_entry_by_cn("inactivated", None, opts)
