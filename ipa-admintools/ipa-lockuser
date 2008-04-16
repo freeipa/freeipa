@@ -59,7 +59,7 @@ def main():
             return 0
         except:
             raise
-        print args[1] + " successfully %s" % msg
+    print args[1] + " successfully %s" % msg
 
     return 0
 
