@@ -1,5 +1,5 @@
 Name:           ipa-radius-server
-Version:        0.99.0
+Version:        1.0.0
 Release:        1%{?dist}
 Summary:        IPA authentication server - radius plugin
 
@@ -42,6 +42,9 @@ rm -rf %{buildroot}
 %{_usr}/share/ipa/ipaserver/plugins/*
 
 %changelog
+* Thu Apr  3 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-1
+- Version bump for release
+
 * Thu Feb 21 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-1
 - Version bump for release
 

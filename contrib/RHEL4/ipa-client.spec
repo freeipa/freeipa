@@ -1,5 +1,5 @@
 Name:           ipa-client
-Version:        0.99.0
+Version:        1.0.0
 Release:        1%{?dist}
 Summary:        IPA client Setup script for RHEL-4
 
@@ -46,6 +46,9 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/ipa/ipa.conf
 
 %changelog
+* Thu Apr  3 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-1
+- Version bump for release
+
 * Mon Mar 25 2008 Simo Sorce <ssorce@redhat.com> - 0.99.0-1
 - First RHEL-4 release
 

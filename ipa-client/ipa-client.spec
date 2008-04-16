@@ -1,6 +1,6 @@
 Name:           ipa-client
-Version:        0.99.0
-Release:        2%{?dist}
+Version:        1.0.0
+Release:        1%{?dist}
 Summary:        IPA client
 
 Group:          System Environment/Base
@@ -54,6 +54,9 @@ rm -rf %{buildroot}
 %{_mandir}/man1/*
 
 %changelog
+* Thu Apr  3 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-1
+- Version bump for release
+
 * Mon Feb 25 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-2
 - Add ipa-getkeytab man page
 

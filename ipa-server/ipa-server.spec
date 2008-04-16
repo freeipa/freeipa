@@ -1,6 +1,6 @@
 Name:           ipa-server
-Version:        0.99.0
-Release:        5%{?dist}
+Version:        1.0.0
+Release:        1%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base
@@ -166,6 +166,9 @@ fi
 %{_mandir}/man1/ipa-server-install.1.gz
 
 %changelog
+* Thu Apr  3 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-1
+- Version bump for release
+
 * Fri Mar 14 2008 Rob Crittenden <rcritten@redhat.com> - 0.99.0-5
 - Run restorecon on /var/log/ipa_error.log to ensure correct selinux context
 - Add (post) to ipa-server-selinux Requires
