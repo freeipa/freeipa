@@ -84,6 +84,8 @@ class IPAConnPool:
             conn.set_krbccache(krbccache, cprinc.name)
         except ldap.UNWILLING_TO_PERFORM:
             raise ipaerror.gen_exception(ipaerror.CONNECTION_UNWILLING)
+        except Exception, e:
+            raise ipaerror.gen_exception(ipaerror.CONNECTION_NO_CONN, nested_exception=e)
 
         return conn
 
