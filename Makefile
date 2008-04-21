@@ -5,6 +5,7 @@ SUBDIRS=ipa-server ipa-admintools ipa-python ipa-client ipa-radius-server ipa-ra
 PRJ_PREFIX=ipa
 
 RPMBUILD ?= $(PWD)/rpmbuild
+TARGET ?= master
 
 # After updating the version in VERSION you should run the version-update
 # target.
@@ -109,7 +110,7 @@ version-update:
 
 archive:
 	-mkdir -p dist
-	hg archive -t files dist/ipa
+	git archive --format=tar --prefix=ipa/ $(TARGET) | (cd dist && tar xf -)
 
 local-archive:
 	-mkdir -p dist/ipa
