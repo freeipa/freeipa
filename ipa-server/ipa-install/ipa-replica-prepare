@@ -171,6 +171,9 @@ def main():
         sys.exit(1)
 
     host_name = get_host_name()
+    if host_name == replica_fqdn:
+        print "You can't create a replica on itself"
+        sys.exit(1)
     ds_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name))
     ds_user = get_ds_user(ds_dir)
 
