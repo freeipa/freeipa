@@ -287,11 +287,11 @@ def main():
             opts.append({'name':'realms', 'type':'section', 'value':ropts})
             opts.append({'name':'empty', 'type':'empty'})
 
-            #[domain_realm]
-            dropts = [{'name':'.'+cli_domain, 'type':'option', 'value':cli_realm},
-                      {'name':cli_domain, 'type':'option', 'value':cli_realm}]
-            opts.append({'name':'domain_realm', 'type':'section', 'value':dropts})
-            opts.append({'name':'empty', 'type':'empty'})
+        #[domain_realm]
+        dropts = [{'name':'.'+cli_domain, 'type':'option', 'value':cli_realm},
+                  {'name':cli_domain, 'type':'option', 'value':cli_realm}]
+        opts.append({'name':'domain_realm', 'type':'section', 'value':dropts})
+        opts.append({'name':'empty', 'type':'empty'})
 
         #[appdefaults]
         pamopts = [{'name':'debug', 'type':'option', 'value':'false'},
