@@ -625,7 +625,7 @@ int ipamo_postop_modify(Slapi_PBlock *pb)
 		/* get the mod set */
 		slapi_pblock_get(pb, SLAPI_MODIFY_MODS, &mods);
 		smods = slapi_mods_new();
-		slapi_mods_init_passin(smods, mods);
+		slapi_mods_init_byref(smods, mods);
 
 		next_mod = slapi_mod_new();
 		smod = slapi_mods_get_first_smod(smods, next_mod);
@@ -693,6 +693,7 @@ int ipamo_postop_modify(Slapi_PBlock *pb)
 		}
 
 		slapi_mod_free(&next_mod);
+		slapi_mods_free(&smods);
 	}
 
 	slapi_log_error( SLAPI_LOG_TRACE, IPAMO_PLUGIN_SUBSYSTEM,
@@ -955,7 +956,7 @@ int ipamo_modop_one_replace_r(Slapi_PBlock *pb, int mod_op, char *group_dn,
 			slapi_log_error( SLAPI_LOG_PLUGIN,
 				IPAMO_PLUGIN_SUBSYSTEM,
 				"ipamo_modop_one_r: not processing memberOf "
-				"operations  on self entry: %s\n", this_dn_val);
+				"operations on self entry: %s\n", this_dn_val);
 			slapi_value_free(&to_dn_val);
 			slapi_value_free(&this_dn_val);
 			goto bail;
@@ -1041,6 +1042,7 @@ int ipamo_modop_one_replace_r(Slapi_PBlock *pb, int mod_op, char *group_dn,
 	}
 
 bail:
+	slapi_entry_free(e);
 	return rc;
 }
 
@@ -1339,6 +1341,7 @@ int ipamo_is_group_member(Slapi_Value *groupdn, Slapi_Value *memberdn)
 			rc = 0 == slapi_attr_value_find(
 				attr, slapi_value_get_berval(memberdn));
 		}
+		slapi_entry_free(group_e);
 	}
 
 	slapi_sdn_free(&sdn);
@@ -1644,6 +1647,8 @@ int ipamo_replace_list(Slapi_PBlock *pb, char *group_dn)
 				}
 			}
 		}
+		slapi_ch_free((void **)&pre_array);
+		slapi_ch_free((void **)&post_array);
 	}
 	
 	return 0;
@@ -1857,6 +1862,8 @@ int ipamo_is_legit_member(Slapi_PBlock *pb, char *group_dn,
 	}
 
 bail:
+	slapi_entry_free(group_e);
+	slapi_entry_free(opto_e);
 	slapi_ch_free_string(&filter_str);
 
 	slapi_log_error( SLAPI_LOG_TRACE, IPAMO_PLUGIN_SUBSYSTEM,
