@@ -37,14 +37,14 @@ class IPA_User(object):
     def __init__(self, user_name):
         self.user_name = user_name
         (principal, realm) = user_name.split('@')
-        self.display_name = principal
         self.permissions = None
         transport = funcs.IPAServer()
         client = ipa.ipaclient.IPAClient(transport)
         client.set_krbccache(os.environ["KRB5CCNAME"])
         try:
             # Use memberof so we can see recursive group memberships as well.
-            user = client.get_user_by_principal(user_name, ['dn', 'memberof'])
+            user = client.get_user_by_principal(user_name, ['dn', 'uid', 'memberof'])
+            self.display_name = user.getValue('uid')
             self.groups = []
             memberof = user.getValues('memberof')
             if memberof is None:

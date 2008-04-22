@@ -453,9 +453,14 @@ class UserController(IPAController):
         # the edit URI.
         if ((not 'admins' in turbogears.identity.current.groups and
             not 'editors' in turbogears.identity.current.groups) and 
-            (kw.get('uid') != turbogears.identity.current.display_name)):
+            (kw.get('uid_hidden') != turbogears.identity.current.display_name)):
             turbogears.flash("You do not have permission to update this user.")
             raise turbogears.redirect('/user/show', uid=kw.get('uid'))
+
+        if (kw.get('uid_hidden') == turbogears.identity.current.display_name and
+            kw.get('uid') != kw.get('uid_hidden')):
+            turbogears.flash("You cannot change your own login name.")
+            raise turbogears.redirect('/user/show', uid=kw.get('uid_hidden'))
 
         # Decode the group data, in case we need to round trip
         user_groups_dicts = loads(b64decode(kw.get('user_groups_data')))
