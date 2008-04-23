@@ -30,6 +30,7 @@ class PrincipalFields(object):
                        ("host", "host"),
                        ("HTTP", "HTTP"),
                        ("ldap", "ldap"),
+                       ("nfs", "nfs"),
                        ("other", "other"),
                        ("rpc", "rpc"),
                        ("snmp", "snmp")
