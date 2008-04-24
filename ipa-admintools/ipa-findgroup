@@ -17,9 +17,29 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+import sys
+try:
+    from optparse import OptionParser
+    import ipa.ipaclient as ipaclient
+    import ipa.ipaadminutil as ipaadminutil
+    import ipa.ipautil as ipautil
+    import ipa.config
+
+    import errno
+    import sys
+    import xmlrpclib
+    import kerberos
+except ImportError:
+    print >> sys.stderr, """\
+There was a problem importing one of the required Python modules. The
+error was:
+
+    %s
+""" % sys.exc_value
+    sys.exit(1)
 
 def usage():
-    print "ipa-findgroup [-a|--all] [-n|--notranslate] group"
+    print "ipa-findgroup [-a|--all] [-n|--notranslate] [-v|--verbose] group"
     sys.exit()
 
 def parse_options():
@@ -32,6 +52,8 @@ def parse_options():
                       help="Don't translate LDAP attributes into readable labels")
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
+    parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
+                      help="Verbose output of the XML-RPC connection")
 
     args = ipa.config.init_config(sys.argv)
     options, args = parser.parse_args(args)
@@ -111,18 +133,6 @@ def main():
     return 0
 
 try:
-    import sys
-    from optparse import OptionParser
-    import ipa.ipaclient as ipaclient
-    import ipa.ipaadminutil as ipaadminutil
-    import ipa.ipautil as ipautil
-    import ipa.config
-
-    import errno
-    import sys
-    import xmlrpclib
-    import kerberos
-
     if __name__ == "__main__":
         sys.exit(main())
 except SystemExit, e:

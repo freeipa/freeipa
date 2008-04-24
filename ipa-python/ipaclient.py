@@ -25,13 +25,13 @@ import radius_util
 
 class IPAClient:
 
-    def __init__(self,transport=None):
+    def __init__(self,transport=None,verbose=False):
         if transport:
             self.local = True
             self.transport = transport
         else:
             self.local = False
-            self.transport = rpcclient.RPCClient()
+            self.transport = rpcclient.RPCClient(verbose)
 
     def set_principal(self,princ):
         """Set the name of the principal that will be used for
