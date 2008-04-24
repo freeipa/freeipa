@@ -17,15 +17,38 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Tempal Place, Suite 330, Boston, MA 02111-1307 USA
 #
+import sys
+try:
+    from optparse import OptionParser
+    import ipa
+    import ipa.ipaclient as ipaclient
+    import ipa.config
+
+    import xmlrpclib
+    import kerberos
+    import krbV
+    import ldap
+    import getpass
+    import errno
+except ImportError:
+    print >> sys.stderr, """\
+There was a problem importing one of the required Python modules. The
+error was:
+
+    %s
+""" % sys.exc_value
+    sys.exit(1)
 
 def usage():
-    print "ipa-passwd [user]"
+    print "ipa-passwd [-v|--verbose] [user]"
     sys.exit(1)
 
 def parse_options():
     parser = OptionParser()
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
+    parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
+                      help="Verbose output of the XML-RPC connection")
 
     args = ipa.config.init_config(sys.argv)
     options, args = parser.parse_args(args)
@@ -98,19 +121,6 @@ def main():
     return 0
 
 try:
-    import sys
-    from optparse import OptionParser
-    import ipa
-    import ipa.ipaclient as ipaclient
-    import ipa.config
-
-    import xmlrpclib
-    import kerberos
-    import krbV
-    import ldap
-    import getpass
-    import errno
-
     if __name__ == "__main__":
         sys.exit(main())
 except SystemExit, e:

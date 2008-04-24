@@ -31,13 +31,17 @@ from ipa import config
 
 class RPCClient:
 
-    def __init__(self):
+    def __init__(self, verbose=False):
         self.server = None
+        self.verbose = verbose
         config.init_config()
     
     def server_url(self, server):
         """Build the XML-RPC server URL from our configuration"""
-        return "https://" + server + "/ipaxml"
+        url = "https://" + server + "/ipaxml"
+        if self.verbose:
+            print "Connecting to IPA server: %s" % url
+        return url
     
     def setup_server(self):
         """Create our XML-RPC server connection using kerberos
@@ -59,7 +63,7 @@ class RPCClient:
                     else:
                         raise e
 
-        return xmlrpclib.ServerProxy(self.server_url(self.server), KerbTransport())
+        return xmlrpclib.ServerProxy(self.server_url(self.server), KerbTransport(), verbose=self.verbose)
     
 # Higher-level API
 

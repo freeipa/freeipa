@@ -17,9 +17,32 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+import sys
+try:
+    from optparse import OptionParser
+    import ipa
+    import ipa.group
+    import ipa.ipaclient as ipaclient
+    import ipa.ipavalidate as ipavalidate
+    import ipa.ipautil as ipautil
+    import ipa.config
+    import ipa.ipaerror
+
+    import xmlrpclib
+    import kerberos
+    import ldap
+    import errno
+except ImportError:
+    print >> sys.stderr, """\
+There was a problem importing one of the required Python modules. The
+error was:
+
+    %s
+""" % sys.exc_value
+    sys.exit(1)
 
 def usage():
-    print "ipa-addgroup [-d|--description STRING] [-g|--gid GID] group"
+    print "ipa-addgroup [-d|--description STRING] [-g|--gid GID] [-v|--verbose] group"
     sys.exit(1)
 
 def parse_options():
@@ -28,6 +51,8 @@ def parse_options():
                       help="A description of this group")
     parser.add_option("-g", "--gid", dest="gid",
                       help="The gid to use for this group. If not included one is automatically set.")
+    parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
+                      help="Verbose output of the XML-RPC connection")
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
@@ -88,21 +113,6 @@ def main():
     return 0
 
 try:
-    import sys
-    from optparse import OptionParser
-    import ipa
-    import ipa.group
-    import ipa.ipaclient as ipaclient
-    import ipa.ipavalidate as ipavalidate
-    import ipa.ipautil as ipautil
-    import ipa.config
-    import ipa.ipaerror
-
-    import xmlrpclib
-    import kerberos
-    import ldap
-    import errno
-
     if __name__ == "__main__":
         sys.exit(main())
 except SystemExit, e:
