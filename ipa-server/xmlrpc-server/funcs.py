@@ -700,7 +700,7 @@ class IPAServer:
             self.releaseConnection(conn)
         return res
 
-    def find_radius_clients(self, ip_attrs, container=None, sattrs=None, searchlimit=0, timelimit=-1, opts=None):
+    def find_radius_clients(self, ip_attrs, container=None, sattrs=None, sizelimit=-1, timelimit=-1, opts=None):
         def gen_filter(objectclass, attr, values):
             '''Given ('myclass', 'myattr', [v1, v2]) returns
                (&(objectclass=myclass)(|(myattr=v1)(myattr=v2)))
@@ -716,7 +716,7 @@ class IPAServer:
         conn = self.getConnection(opts)
         try:
             try:
-                results = conn.getListAsync(basedn, self.scope, filter, sattrs, 0, None, None, timelimit, searchlimit)
+                results = conn.getListAsync(basedn, self.scope, filter, sattrs, 0, None, None, timelimit, sizelimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 results = [0]
         finally:
@@ -801,7 +801,7 @@ class IPAServer:
             self.releaseConnection(conn)
         return res
 
-    def find_radius_profiles(self, uids, user_profile=True, sattrs=None, searchlimit=0, timelimit=-1, opts=None):
+    def find_radius_profiles(self, uids, user_profile=True, sattrs=None, sizelimit=-1, timelimit=-1, opts=None):
         def gen_filter(objectclass, attr, values):
             '''Given ('myclass', 'myattr', [v1, v2]) returns
                (&(objectclass=myclass)(|(myattr=v1)(myattr=v2)))
@@ -822,7 +822,7 @@ class IPAServer:
         conn = self.getConnection(opts)
         try:
             try:
-                results = conn.getListAsync(basedn, self.scope, filter, sattrs, 0, None, None, timelimit, searchlimit)
+                results = conn.getListAsync(basedn, self.scope, filter, sattrs, 0, None, None, timelimit, sizelimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 results = [0]
         finally:
@@ -888,7 +888,7 @@ class IPAServer:
     
         return users
 
-    def find_users (self, criteria, sattrs, searchlimit=-1, timelimit=-1,
+    def find_users (self, criteria, sattrs, sizelimit=-1, timelimit=-1,
             opts=None):
         """Returns a list: counter followed by the results.
            If the results are truncated, counter will be set to -1."""
@@ -897,7 +897,7 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if sattrs is not None and not isinstance(sattrs, list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
-        if not isinstance(searchlimit,int):
+        if not isinstance(sizelimit,int):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if not isinstance(timelimit,int):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
@@ -906,8 +906,8 @@ class IPAServer:
         config = self.get_ipa_config(opts)
         if timelimit < 0:
             timelimit = float(config.get('ipasearchtimelimit'))
-        if searchlimit < 0:
-            searchlimit = float(config.get('ipasearchrecordslimit'))
+        if sizelimit < 0:
+            sizelimit = int(config.get('ipasearchrecordslimit'))
 
         # Assume the list of fields to search will come from a central
         # configuration repository.  A good format for that would be
@@ -937,14 +937,14 @@ class IPAServer:
             try:
                 exact_results = conn.getListAsync(self.basedn, self.scope,
                         exact_match_filter, sattrs, 0, None, None, timelimit,
-                        searchlimit)
+                        sizelimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 exact_results = [0]
 
             try:
                 partial_results = conn.getListAsync(self.basedn, self.scope,
                         partial_match_filter, sattrs, 0, None, None, timelimit,
-                        searchlimit)
+                        sizelimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 partial_results = [0]
         finally:
@@ -1270,7 +1270,7 @@ class IPAServer:
         finally:
             self.releaseConnection(conn)
 
-    def find_groups (self, criteria, sattrs, searchlimit=-1, timelimit=-1,
+    def find_groups (self, criteria, sattrs, sizelimit=-1, timelimit=-1,
             opts=None):
         """Return a list containing a User object for each
         existing group that matches the criteria.
@@ -1279,7 +1279,7 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if sattrs is not None and not isinstance(sattrs, list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
-        if not isinstance(searchlimit,int):
+        if not isinstance(sizelimit,int):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if not isinstance(timelimit,int):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
@@ -1289,8 +1289,8 @@ class IPAServer:
         config = self.get_ipa_config(opts)
         if timelimit < 0:
             timelimit = float(config.get('ipasearchtimelimit'))
-        if searchlimit < 0:
-            searchlimit = float(config.get('ipasearchrecordslimit'))
+        if sizelimit < 0:
+            sizelimit = int(config.get('ipasearchrecordslimit'))
 
         # Assume the list of fields to search will come from a central
         # configuration repository.  A good format for that would be
@@ -1323,14 +1323,14 @@ class IPAServer:
             try:
                 exact_results = conn.getListAsync(self.basedn, self.scope,
                         exact_match_filter, sattrs, 0, None, None, timelimit,
-                        searchlimit)
+                        sizelimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 exact_results = [0]
 
             try:
                 partial_results = conn.getListAsync(self.basedn, self.scope,
                         partial_match_filter, sattrs, 0, None, None, timelimit,
-                        searchlimit)
+                        sizelimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 partial_results = [0]
         finally:
@@ -1822,7 +1822,7 @@ class IPAServer:
 
         logging.debug("IPA: group_members: %s %s %s" % (groupdn, attr_list, membertype))
 
-        searchlimit = float(config.get('ipasearchrecordslimit'))
+        sizelimit = int(config.get('ipasearchrecordslimit'))
 
         groupdn = self.__safe_filter(groupdn)
         searchfilter = "(memberOf=%s)" % groupdn
@@ -1836,7 +1836,7 @@ class IPAServer:
             try:
                 results = conn.getListAsync(self.basedn, self.scope,
                     searchfilter, attr_list, 0, None, None, timelimit,
-                    searchlimit)
+                    sizelimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 results = [0]
         finally:
@@ -1982,7 +1982,7 @@ class IPAServer:
             self.releaseConnection(conn)
         return res
 
-    def find_service_principal(self, criteria, sattrs, searchlimit=-1,
+    def find_service_principal(self, criteria, sattrs, sizelimit=-1,
             timelimit=-1, opts=None):
         """Returns a list: counter followed by the results.
            If the results are truncated, counter will be set to -1."""
@@ -1990,7 +1990,7 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if sattrs is not None and not isinstance(sattrs, list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
-        if not isinstance(searchlimit,int):
+        if not isinstance(sizelimit,int):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if not isinstance(timelimit,int):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
@@ -1998,8 +1998,8 @@ class IPAServer:
         config = self.get_ipa_config(opts)
         if timelimit < 0:
             timelimit = float(config.get('ipasearchtimelimit'))
-        if searchlimit < 0:
-            searchlimit = float(config.get('ipasearchrecordslimit'))
+        if sizelimit < 0:
+            sizelimit = int(config.get('ipasearchrecordslimit'))
 
         search_fields = ["krbprincipalname"]
 
@@ -2026,14 +2026,14 @@ class IPAServer:
             try:
                 exact_results = conn.getListAsync(self.basedn, self.scope,
                         exact_match_filter, sattrs, 0, None, None, timelimit,
-                        searchlimit)
+                        sizelimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 exact_results = [0]
 
             try:
                 partial_results = conn.getListAsync(self.basedn, self.scope,
                         partial_match_filter, sattrs, 0, None, None, timelimit,
-                        searchlimit)
+                        sizelimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 partial_results = [0]
         finally:
