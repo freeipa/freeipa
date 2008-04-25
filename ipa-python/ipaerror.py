@@ -178,6 +178,11 @@ INPUT_ADMIN_REQUIRED_IN_ADMINS = gen_error_code(
         0x0009,
         "The admin user cannot be removed from the admins group.")
 
+INPUT_SERVICE_PRINCIPAL_REQUIRED = gen_error_code(
+        INPUT_CATEGORY,
+        0x000A,
+        "You cannot remove IPA server service principals.")
+
 #
 # Connection errors
 #
