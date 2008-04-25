@@ -11,6 +11,11 @@ krbSupportedEncSaltTypes: des-cbc-md5:normal
 krbSupportedEncSaltTypes: des-cbc-crc:normal
 krbSupportedEncSaltTypes: des-cbc-crc:v4
 krbSupportedEncSaltTypes: des-cbc-crc:afs3
+
+#kerberos keytypes
+dn: cn=$REALM,cn=kerberos,$SUFFIX
+changetype: modify
+add: krbDefaultEncSaltTypes
 krbDefaultEncSaltTypes: aes256-cts:normal
 krbDefaultEncSaltTypes: aes128-cts:normal
 krbDefaultEncSaltTypes: des3-hmac-sha1:normal
