@@ -1974,6 +1974,9 @@ class IPAServer:
         entry = self.get_entry_by_dn(principal, ['dn', 'objectclass'], opts)
         if entry is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+        dn_list = ldap.explode_dn(entry['dn'].lower())
+        if "cn=kerberos" in dn_list:
+            raise ipaerror.gen_exception(ipaerror.INPUT_SERVICE_PRINCIPAL_REQUIRED)
 
         conn = self.getConnection(opts)
         try:
