@@ -650,7 +650,7 @@ class UserController(IPAController):
         uid = kw.get('uid')
         if uid != None and len(uid) > 0:
             try:
-                users = client.find_users(uid.encode('utf-8'), user_fields, 0, 2)
+                users = client.find_users(uid.encode('utf-8'), user_fields)
                 counter = users[0]
                 users = users[1:]
                 if counter == -1:

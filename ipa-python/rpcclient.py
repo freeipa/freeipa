@@ -257,7 +257,7 @@ class RPCClient:
     
         return ipautil.unwrap_binary_data(result)
 
-    def find_users (self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
+    def find_users (self, criteria, sattrs=None, sizelimit=-1, timelimit=-1):
         """Return a list: counter followed by a dict for each user that
            matches the criteria. If the results are truncated, counter will
            be set to -1"""
@@ -267,7 +267,7 @@ class RPCClient:
             # None values are not allowed in XML-RPC
             if sattrs is None:
                 sattrs = "__NONE__"
-            result = server.find_users(criteria, sattrs, searchlimit, timelimit)
+            result = server.find_users(criteria, sattrs, sizelimit, timelimit)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
@@ -383,7 +383,7 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
-    def find_groups (self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
+    def find_groups (self, criteria, sattrs=None, sizelimit=-1, timelimit=-1):
         """Return a list containing a Group object for each group that matches
            the criteria."""
     
@@ -392,7 +392,7 @@ class RPCClient:
             # None values are not allowed in XML-RPC
             if sattrs is None:
                 sattrs = "__NONE__"
-            result = server.find_groups(criteria, sattrs, searchlimit, timelimit)
+            result = server.find_groups(criteria, sattrs, sizelimit, timelimit)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
@@ -732,7 +732,7 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
-    def find_service_principal (self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
+    def find_service_principal (self, criteria, sattrs=None, sizelimit=-1, timelimit=-1):
         """Return a list: counter followed by a Entity object for each host that
            matches the criteria. If the results are truncated, counter will
            be set to -1"""
@@ -742,7 +742,7 @@ class RPCClient:
             # None values are not allowed in XML-RPC
             if sattrs is None:
                 sattrs = "__NONE__"
-            result = server.find_service_principal(criteria, sattrs, searchlimit, timelimit)
+            result = server.find_service_principal(criteria, sattrs, sizelimit, timelimit)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
@@ -818,14 +818,14 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
-    def find_radius_clients(self, criteria, container=None, sattrs=None, searchlimit=0, timelimit=-1):
+    def find_radius_clients(self, criteria, container=None, sattrs=None, sizelimit=-1, timelimit=-1):
         server = self.setup_server()
         if container is None: container = "__NONE__"
         try:
             # None values are not allowed in XML-RPC
             if sattrs is None:
                 sattrs = "__NONE__"
-            result = server.find_radius_clients(criteria, container, sattrs, searchlimit, timelimit)
+            result = server.find_radius_clients(criteria, container, sattrs, sizelimit, timelimit)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
@@ -887,14 +887,14 @@ class RPCClient:
 
         return ipautil.unwrap_binary_data(result)
 
-    def find_radius_profiles(self, criteria, user_profile=None, sattrs=None, searchlimit=0, timelimit=-1):
+    def find_radius_profiles(self, criteria, user_profile=None, sattrs=None, sizelimit=-1, timelimit=-1):
         server = self.setup_server()
         if user_profile is None: user_profile = "__NONE__"
         try:
             # None values are not allowed in XML-RPC
             if sattrs is None:
                 sattrs = "__NONE__"
-            result = server.find_radius_profiles(criteria, user_profile, sattrs, searchlimit, timelimit)
+            result = server.find_radius_profiles(criteria, user_profile, sattrs, sizelimit, timelimit)
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):

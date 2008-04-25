@@ -136,11 +136,11 @@ class IPAClient:
         result = self.transport.set_custom_fields(schema)
         return result
 
-    def find_users(self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
+    def find_users(self, criteria, sattrs=None, sizelimit=-1, timelimit=-1):
         """Return a list: counter followed by a User object for each user that
            matches the criteria. If the results are truncated, counter will
            be set to -1"""
-        result = self.transport.find_users(criteria, sattrs, searchlimit, timelimit)
+        result = self.transport.find_users(criteria, sattrs, sizelimit, timelimit)
         counter = result[0]
 
         users = [counter]
@@ -204,10 +204,10 @@ class IPAClient:
         result = self.transport.add_group(group_dict, group_container)
         return result
 
-    def find_groups(self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
+    def find_groups(self, criteria, sattrs=None, sizelimit=-1, timelimit=-1):
         """Find groups whose cn matches the criteria. Wildcards are 
            acceptable. Returns a list of Group objects."""
-        result = self.transport.find_groups(criteria, sattrs, searchlimit, timelimit)
+        result = self.transport.find_groups(criteria, sattrs, sizelimit, timelimit)
         counter = result[0]
 
         groups = [counter]
@@ -387,11 +387,11 @@ class IPAClient:
     def delete_service_principal(self, principal_dn):
         return self.transport.delete_service_principal(principal_dn)
 
-    def find_service_principal(self, criteria, sattrs=None, searchlimit=0, timelimit=-1):
+    def find_service_principal(self, criteria, sattrs=None, sizelimit=-1, timelimit=-1):
         """Return a list: counter followed by a Entity object for each host that
            matches the criteria. If the results are truncated, counter will
            be set to -1"""
-        result = self.transport.find_service_principal(criteria, sattrs, searchlimit, timelimit)
+        result = self.transport.find_service_principal(criteria, sattrs, sizelimit, timelimit)
         counter = result[0]
 
         hosts = [counter]
@@ -426,8 +426,8 @@ class IPAClient:
     def delete_radius_client(self, ip_addr, container=None):
         return self.transport.delete_radius_client(ip_addr, container)
 
-    def find_radius_clients(self, criteria, container=None, sattrs=None, searchlimit=0, timelimit=-1):
-        result = self.transport.find_radius_clients(criteria, container, sattrs, searchlimit, timelimit)
+    def find_radius_clients(self, criteria, container=None, sattrs=None, sizelimit=-1, timelimit=-1):
+        result = self.transport.find_radius_clients(criteria, container, sattrs, sizelimit, timelimit)
         counter = result[0]
 
         users = [counter]
@@ -458,8 +458,8 @@ class IPAClient:
     def delete_radius_profile(self, ip_addr, user_profile=None):
         return self.transport.delete_radius_profile(ip_addr, user_profile)
 
-    def find_radius_profiles(self, criteria, user_profile=None, sattrs=None, searchlimit=0, timelimit=-1):
-        result = self.transport.find_radius_profiles(criteria, user_profile, sattrs, searchlimit, timelimit)
+    def find_radius_profiles(self, criteria, user_profile=None, sattrs=None, sizelimit=-1, timelimit=-1):
+        result = self.transport.find_radius_profiles(criteria, user_profile, sattrs, sizelimit, timelimit)
         counter = result[0]
 
         users = [counter]
