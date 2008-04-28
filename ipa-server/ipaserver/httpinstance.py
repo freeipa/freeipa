@@ -160,6 +160,16 @@ class HTTPInstance(service.Service):
             ca.create_server_cert("Server-Cert", "cn=%s,ou=Apache Web Server" % self.fqdn, ds_ca)
             ca.create_signing_cert("Signing-Cert", "cn=%s,ou=Signing Certificate,o=Identity Policy Audit" % self.fqdn, ds_ca)
 
+        # Fix the database permissions
+        os.chmod(NSS_DIR + "/cert8.db", 0640)
+        os.chmod(NSS_DIR + "/key3.db", 0640)
+        os.chmod(NSS_DIR + "/secmod.db", 0640)
+
+        pent = pwd.getpwnam("apache")
+        os.chown(NSS_DIR + "/cert8.db", 0, pent.pw_gid )
+        os.chown(NSS_DIR + "/key3.db", 0, pent.pw_gid )
+        os.chown(NSS_DIR + "/secmod.db", 0, pent.pw_gid )
+
     def __setup_autoconfig(self):
         prefs_txt = ipautil.template_file(ipautil.SHARE_DIR + "preferences.html.template", self.sub_dict)
         prefs_fd = open("/usr/share/ipa/html/preferences.html", "w")
