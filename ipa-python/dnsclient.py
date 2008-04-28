@@ -365,22 +365,22 @@ def dnsParseResults(results):
 		if not rest:
 			return []
 		
-		rr = DNSResult()
+		qq = DNSResult()
 
 		(rest, label) = dnsParseLabel(rest, results)
 		if label is None:
 			return []
 
-		if len(rest) < rr.qsize():
+		if len(rest) < qq.qsize():
 			return []
 		
-		rr.qunpack(rest)
+		qq.qunpack(rest)
 		
-		rest = rest[rr.qsize():]
+		rest = rest[qq.qsize():]
 
 		if DEBUG_DNSCLIENT:
 			print "Queried for '%s', class = %d, type = %d." % (label,
-				rr.dns_class, rr.dns_type)
+				qq.dns_class, qq.dns_type)
 
 	for i in xrange(header.dns_ancount + header.dns_nscount + header.dns_arcount):
 		(rest, label) = dnsParseLabel(rest, results)
@@ -424,8 +424,6 @@ def dnsParseResults(results):
 		rest = rest[rr.dns_rlength:]
 		rrlist += [rr]
 
-	if not rrlist:
-		rrlist = [rr]
 	return rrlist
 
 def query(query, qclass, qtype):
