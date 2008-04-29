@@ -161,15 +161,18 @@ def standard_logging_setup(log_filename, debug=False):
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
-def read_password(user):
+def read_password(user, confirm=True, validate=True):
     correct = False
     pwd = ""
     while not correct:
         pwd = getpass.getpass(user + " password: ")
         if not pwd:
             continue
-        if len(pwd) < 8:
+        if validate and len(pwd) < 8:
             print "Password must be at least 8 characters long"
+            continue
+        if not confirm:
+            correct = True
             continue
         pwd_confirm = getpass.getpass("Password (confirm): ")
         if pwd != pwd_confirm:
