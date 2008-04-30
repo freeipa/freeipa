@@ -1,0 +1,55 @@
+########################################################
+# freeIPA Version                                      #
+#                                                      #
+# freeIPA versions are as follows                      #
+# 1.0.x                New production series           #
+# 1.0.x{pre,rc}y       Preview/Testing & RC            #
+# 1.0.0GITabcdefg      Build from GIT                  #
+#                                                      #
+########################################################
+
+########################################################
+# This are the main version numbers                    #
+#                                                      #
+# <MAJOR>.<MINOR>.<RELEASE>                            #
+#                                                      #
+# e.g. IPA_VERSION_MAJOR=1                             #
+#      IPA_VERSION_MINOR=0                             #
+#      IPA_VERSION_RELEASE=0                           #
+#  ->  "1.0.0"                                         #
+########################################################
+IPA_VERSION_MAJOR=1
+IPA_VERSION_MINOR=0
+IPA_VERSION_RELEASE=0
+
+########################################################
+# For 'pre' releases the version will be               #
+#                                                      #
+# <MAJOR>.<MINOR>.<RELEASE>pre<PRE_RELEASE>            #
+#                                                      #
+# e.g. IPA_VERSION_PRE_RELEASE=1                       #
+#  ->  "1.0.0pre1"                                     #
+########################################################
+IPA_VERSION_PRE_RELEASE=
+
+########################################################
+# For 'rc' releases the version will be                #
+#                                                      #
+# <MAJOR>.<MINOR>.<RELEASE>rc<RC_RELEASE>              #
+#                                                      #
+# e.g. IPA_VERSION_RC_RELEASE=1                        #
+#  ->  "1.0.0rc1"                                      #
+########################################################
+IPA_VERSION_RC_RELEASE=
+
+########################################################
+# To mark GIT snapshots this should be set to 'yes'    #
+# in the development BRANCH, and set to 'no' only in   #
+# the IPA_X_X_RELEASE BRANCH                           #
+#                                                      #
+# <MAJOR>.<MINOR>.<RELEASE>GITxxx                      #
+#                                                      #
+# e.g. IPA_VERSION_IS_SVN_SNAPSHOT=yes                 #
+#  ->  "1.0.0GITabcdefg"                               #
+########################################################
+IPA_VERSION_IS_GIT_SNAPSHOT="yes"
