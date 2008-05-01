@@ -51,6 +51,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <errno.h>
 /*#include "portable.h"*/
 #include "nspr.h"
 /*#include "slapi-private.h"*/
@@ -66,7 +67,7 @@
 #endif
 
 #define DNA_PLUGIN_SUBSYSTEM "ipa-dna-plugin"
-#define DNA_PLUGIN_VERSION 0x00010000
+#define DNA_PLUGIN_VERSION 0x00020000
 
 /* temporary */
 #define DNA_DN "cn=ipa-dna,cn=plugins,cn=config"
@@ -77,16 +78,28 @@
 /**
  * DNA config types
  */
-#define DNA_TYPE	"dnaType"
-#define DNA_PREFIX	"dnaPrefix"
-#define DNA_NEXTVAL	"dnaNextValue"
-#define DNA_INTERVAL	"dnaInterval"
-#define DNA_GENERATE	"dnaMagicRegen"
-#define DNA_FILTER	"dnaFilter"
-#define DNA_SCOPE	"dnaScope"
+#define DNA_TYPE            "dnaType"
+#define DNA_PREFIX          "dnaPrefix"
+#define DNA_NEXTVAL         "dnaNextValue"
+#define DNA_INTERVAL        "dnaInterval"
+#define DNA_GENERATE        "dnaMagicRegen"
+#define DNA_FILTER          "dnaFilter"
+#define DNA_SCOPE           "dnaScope"
 
-#define FEATURE_DESC	"IPA Distributed Numeric Assignment"
-#define PLUGIN_DESC	"IPA Distributed Numeric Assignment plugin"
+/* since v2 */
+#define DNA_MAXVAL          "dnaMaxValue"
+#define DNA_SHARED_CFG_DN   "dnaSharedCfgDN"
+
+/* Shared Config */
+#define DNA_GLOBAL_RANGE    "dnaGlobalRange"
+#define DNA_RANGE           "dnaRange"
+#define DNA_MAX_RANGE_SIZE  "dnaMaxRangeSize"
+#define DNA_CHUNK_SIZE      "dnaChunkSize"
+
+
+
+#define FEATURE_DESC    "IPA Distributed Numeric Assignment"
+#define PLUGIN_DESC     "IPA Distributed Numeric Assignment plugin"
 
 static Slapi_PluginDesc pdesc = { FEATURE_DESC,
     "FreeIPA project", "FreeIPA/1.0",
@@ -98,19 +111,21 @@ static Slapi_PluginDesc pdesc = { FEATURE_DESC,
  * linked list of config entries
  */
 
-struct _defs {
+struct configEntry {
     PRCList list;
     char *dn;
     char *type;
     char *prefix;
     unsigned long nextval;
     unsigned long interval;
-    struct slapi_filter *filter;
+    unsigned long maxval;
+    char *filter;
+    struct slapi_filter *slapi_filter;
     char *generate;
     char *scope;
-} dna_anchor;
-typedef struct _defs configEntry;
-static PRCList *config;
+};
+
+static PRCList *dna_global_config = NULL;
 static PRRWLock *g_dna_cache_lock;
 
 static void *_PluginID = NULL;
@@ -140,7 +155,7 @@ static int dna_postop_init(Slapi_PBlock * pb);
 static int loadPluginConfig();
 static int parseConfigEntry(Slapi_Entry * e);
 static void deleteConfig();
-static void freeConfigEntry(configEntry ** entry);
+static void freeConfigEntry(struct configEntry ** entry);
 
 /**
  *
@@ -149,8 +164,8 @@ static void freeConfigEntry(configEntry ** entry);
  */
 static char *dna_get_dn(Slapi_PBlock * pb);
 static int dna_dn_is_config(char *dn);
-static int dna_get_next_value(configEntry * config_entry,
-                              char **next_value_ret);
+static int dna_get_next_value(struct configEntry * config_entry,
+                                 char **next_value_ret);
 
 /**
  *
@@ -166,7 +181,7 @@ static int dna_add_pre_op(Slapi_PBlock * pb);
  * debug functions - global, for the debugger
  */
 void dnaDumpConfig();
-void dnaDumpConfigEntry(configEntry *);
+void dnaDumpConfigEntry(struct configEntry *);
 
 /**
  * set the debug level
@@ -325,7 +340,6 @@ static int dna_start(Slapi_PBlock * pb)
     slapi_log_error(SLAPI_LOG_TRACE, DNA_PLUGIN_SUBSYSTEM,
                     "--> dna_start\n");
 
-    config = &dna_anchor.list;
     g_dna_cache_lock = PR_NewRWLock(PR_RWLOCK_RANK_NONE, "dna");
     g_new_value_lock = slapi_new_mutex();
 
@@ -336,13 +350,13 @@ static int dna_start(Slapi_PBlock * pb)
         return DNA_FAILURE;
     }
 
-        /**
+    /**
 	 *	Get the plug-in target dn from the system
 	 *	and store it for future use. This should avoid
 	 *	hardcoding of DN's in the code.
 	 */
     slapi_pblock_get(pb, SLAPI_TARGET_DN, &plugindn);
-    if (plugindn == NULL || strlen(plugindn) == 0) {
+    if (NULL == plugindn || 0 == strlen(plugindn)) {
         slapi_log_error(SLAPI_LOG_PLUGIN, DNA_PLUGIN_SUBSYSTEM,
                         "dna_start: had to use hard coded config dn\n");
         plugindn = DNA_DN;
@@ -357,7 +371,10 @@ static int dna_start(Slapi_PBlock * pb)
         /**
 	 * Load the config for our plug-in
 	 */
-    PR_INIT_CLIST(config);
+    dna_global_config = (struct configEntry *)
+        slapi_ch_calloc(1, sizeof(struct configEntry));
+    PR_INIT_CLIST(dna_global_config);
+
     if (loadPluginConfig() != DNA_SUCCESS) {
         slapi_log_error(SLAPI_LOG_FATAL, DNA_PLUGIN_SUBSYSTEM,
                         "dna_start: unable to load plug-in configuration\n");
@@ -384,6 +401,8 @@ static int dna_close(Slapi_PBlock * pb)
 
     deleteConfig();
 
+    slapi_ch_free((void **)&dna_global_config);
+
     slapi_log_error(SLAPI_LOG_TRACE, DNA_PLUGIN_SUBSYSTEM,
                     "<-- dna_close\n");
 
@@ -393,7 +412,7 @@ static int dna_close(Slapi_PBlock * pb)
 /*
  * config looks like this
  * - cn=myplugin
- * --- ou=posix
+ * --- cn=posix
  * ------ cn=accounts
  * ------ cn=groups
  * --- cn=samba
@@ -416,26 +435,28 @@ static int loadPluginConfig()
 
     search_pb = slapi_pblock_new();
 
-    slapi_search_internal_set_pb(search_pb, DNA_DN, LDAP_SCOPE_SUBTREE,
-                                 "objectclass=*", NULL, 0, NULL, NULL,
-                                 getPluginID(), 0);
+    slapi_search_internal_set_pb(search_pb, getPluginDN(),
+                                 LDAP_SCOPE_SUBTREE, "objectclass=*",
+                                 NULL, 0, NULL, NULL, getPluginID(), 0);
     slapi_search_internal_pb(search_pb);
     slapi_pblock_get(search_pb, SLAPI_PLUGIN_INTOP_RESULT, &result);
 
-    if (status != DNA_SUCCESS) {
-        status = DNA_SUCCESS;
+    if (LDAP_SUCCESS != result) {
+        status = DNA_FAILURE;
         goto cleanup;
     }
 
     slapi_pblock_get(search_pb, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES,
                      &entries);
-    if (NULL == entries || entries[0] == NULL) {
+    if (NULL == entries || NULL == entries[0]) {
         status = DNA_SUCCESS;
         goto cleanup;
     }
 
     for (i = 0; (entries[i] != NULL); i++) {
         status = parseConfigEntry(entries[i]);
+        if (DNA_SUCCESS != status)
+            break;
     }
 
   cleanup:
@@ -450,17 +471,18 @@ static int loadPluginConfig()
 
 static int parseConfigEntry(Slapi_Entry * e)
 {
-    char *value = NULL;
-    configEntry *entry = NULL;
-    configEntry *config_entry = NULL;
-    PRCList *list = NULL;
+    char *value;
+    struct configEntry *entry;
+    struct configEntry *config_entry;
+    PRCList *list;
     int entry_added = 0;
 
     slapi_log_error(SLAPI_LOG_TRACE, DNA_PLUGIN_SUBSYSTEM,
                     "--> parseConfigEntry\n");
 
-    entry = (configEntry *) slapi_ch_calloc(1, sizeof(configEntry));
-    if (0 == entry)
+    entry = (struct configEntry *)
+	slapi_ch_calloc(1, sizeof(struct configEntry));
+    if (NULL == entry)
         goto bail;
 
     value = slapi_entry_get_ndn(e);
@@ -469,7 +491,7 @@ static int parseConfigEntry(Slapi_Entry * e)
     }
 
     slapi_log_error(SLAPI_LOG_CONFIG, DNA_PLUGIN_SUBSYSTEM,
-                    "----------> dn [%s] \n", entry->dn, 0, 0);
+                    "----------> dn [%s]\n", entry->dn, 0, 0);
 
     value = slapi_entry_attr_get_charptr(e, DNA_TYPE);
     if (value) {
@@ -478,38 +500,41 @@ static int parseConfigEntry(Slapi_Entry * e)
         goto bail;
 
     slapi_log_error(SLAPI_LOG_CONFIG, DNA_PLUGIN_SUBSYSTEM,
-                    "----------> dnaType [%s] \n", entry->type, 0, 0);
+                    "----------> dnaType [%s]\n", entry->type, 0, 0);
+
+    /* FIXME: check the attribute type, it must suport matching rules and be
+     * indexed, these are requirements and failure to meet them should result in
+     * the configuration to be disarded and an ERROR logged prominently */
 
     value = slapi_entry_attr_get_charptr(e, DNA_NEXTVAL);
     if (value) {
         entry->nextval = strtoul(value, 0, 0);
         slapi_ch_free_string(&value);
-        value = 0;
     } else
         goto bail;
 
     slapi_log_error(SLAPI_LOG_CONFIG, DNA_PLUGIN_SUBSYSTEM,
-                    "----------> dnaNextValue [%d] \n", entry->nextval, 0,
+                    "----------> dnaNextValue [%d]\n", entry->nextval, 0,
                     0);
 
     value = slapi_entry_attr_get_charptr(e, DNA_PREFIX);
-    if (value) {
+    if (value && value[0]) {
         entry->prefix = value;
     }
 
     slapi_log_error(SLAPI_LOG_CONFIG, DNA_PLUGIN_SUBSYSTEM,
-                    "----------> dnaPrefix [%s] \n", entry->prefix, 0, 0);
+                    "----------> dnaPrefix [%s]\n", entry->prefix, 0, 0);
 
     value = slapi_entry_attr_get_charptr(e, DNA_INTERVAL);
     if (value) {
         entry->interval = strtoul(value, 0, 0);
-        slapi_ch_free_string(&value);
-        value = 0;
     } else
         goto bail;
 
     slapi_log_error(SLAPI_LOG_CONFIG, DNA_PLUGIN_SUBSYSTEM,
-                    "----------> dnaInterval [%s] \n", value, 0, 0);
+                    "----------> dnaInterval [%s]\n", value, 0, 0);
+
+    slapi_ch_free_string(&value);
 
     value = slapi_entry_attr_get_charptr(e, DNA_GENERATE);
     if (value) {
@@ -517,48 +542,59 @@ static int parseConfigEntry(Slapi_Entry * e)
     }
 
     slapi_log_error(SLAPI_LOG_CONFIG, DNA_PLUGIN_SUBSYSTEM,
-                    "----------> dnaMagicRegen [%s] \n", entry->generate,
+                    "----------> dnaMagicRegen [%s]\n", entry->generate,
                     0, 0);
 
     value = slapi_entry_attr_get_charptr(e, DNA_FILTER);
     if (value) {
-        entry->filter = slapi_str2filter(value);
+        entry->filter = value;
+        entry->slapi_filter = slapi_str2filter(value);
     } else
         goto bail;
 
     slapi_log_error(SLAPI_LOG_CONFIG, DNA_PLUGIN_SUBSYSTEM,
-                    "----------> dnaFilter [%s] \n", value, 0, 0);
-
-    slapi_ch_free_string(&value);
-    value = 0;
+                    "----------> dnaFilter [%s]\n", value, 0, 0);
 
     value = slapi_entry_attr_get_charptr(e, DNA_SCOPE);
     if (value) {
-        char *canonical_dn = slapi_dn_normalize(value);
-        entry->scope = canonical_dn;
+        entry->scope = slapi_dn_normalize(value);
     }
 
     slapi_log_error(SLAPI_LOG_CONFIG, DNA_PLUGIN_SUBSYSTEM,
-                    "----------> dnaScope [%s] \n", entry->scope, 0, 0);
+                    "----------> dnaScope [%s]\n", entry->scope, 0, 0);
+
+    /* optional, if not specified set -1  which is converted to the max unisgnee
+     * value */
+    value = slapi_entry_attr_get_charptr(e, DNA_MAXVAL);
+    if (value) {
+            entry->maxval = strtoul(value, 0, 0);
+
+            slapi_log_error(SLAPI_LOG_CONFIG, DNA_PLUGIN_SUBSYSTEM,
+                        "----------> dnaMaxValue [%ld]\n", value, 0, 0);
+
+            slapi_ch_free_string(&value);
+    } else
+        entry->maxval = -1;
 
 
-        /**
-	 * Finally add the entry to the list
-	 * we group by type then by filter
-	 * and finally sort by dn length with longer dn's
-	 * first - this allows the scope checking
-	 * code to be simple and quick and
-	 * cunningly linear
-	 */
-    if (!PR_CLIST_IS_EMPTY(config)) {
-        list = PR_LIST_HEAD(config);
-        while (list != config) {
-            config_entry = (configEntry *) list;
+    /**
+     * Finally add the entry to the list
+     * we group by type then by filter
+     * and finally sort by dn length with longer dn's
+     * first - this allows the scope checking
+     * code to be simple and quick and
+     * cunningly linear
+     */
+    if (!PR_CLIST_IS_EMPTY(dna_global_config)) {
+        list = PR_LIST_HEAD(dna_global_config);
+        while (list != dna_global_config) {
+            config_entry = (struct configEntry *) list;
 
             if (slapi_attr_type_cmp(config_entry->type, entry->type, 1))
                 goto next;
 
-            if (slapi_filter_compare(config_entry->filter, entry->filter))
+            if (slapi_filter_compare(config_entry->slapi_filter,
+                                     entry->slapi_filter))
                 goto next;
 
             if (slapi_dn_issuffix(entry->scope, config_entry->scope)) {
@@ -574,7 +610,7 @@ static int parseConfigEntry(Slapi_Entry * e)
           next:
             list = PR_NEXT_LINK(list);
 
-            if (config == list) {
+            if (dna_global_config == list) {
                 /* add to tail */
                 PR_INSERT_BEFORE(&(entry->list), list);
                 slapi_log_error(SLAPI_LOG_CONFIG, DNA_PLUGIN_SUBSYSTEM,
@@ -586,7 +622,7 @@ static int parseConfigEntry(Slapi_Entry * e)
         }
     } else {
         /* first entry */
-        PR_INSERT_LINK(&(entry->list), config);
+        PR_INSERT_LINK(&(entry->list), dna_global_config);
         slapi_log_error(SLAPI_LOG_CONFIG, DNA_PLUGIN_SUBSYSTEM,
                         "store [%s] at head \n", entry->scope, 0, 0);
         entry_added = 1;
@@ -605,9 +641,9 @@ static int parseConfigEntry(Slapi_Entry * e)
     return DNA_SUCCESS;
 }
 
-static void freeConfigEntry(configEntry ** entry)
+static void freeConfigEntry(struct configEntry ** entry)
 {
-    configEntry *e = *entry;
+    struct configEntry *e = *entry;
 
     if (e->dn) {
         slapi_log_error(SLAPI_LOG_CONFIG, DNA_PLUGIN_SUBSYSTEM,
@@ -622,7 +658,10 @@ static void freeConfigEntry(configEntry ** entry)
         slapi_ch_free_string(&e->prefix);
 
     if (e->filter)
-        slapi_filter_free(e->filter, 1);
+        slapi_ch_free_string(&e->filter);
+
+    if (e->slapi_filter)
+        slapi_filter_free(e->slapi_filter, 1);
 
     if (e->generate)
         slapi_ch_free_string(&e->generate);
@@ -636,21 +675,45 @@ static void freeConfigEntry(configEntry ** entry)
 static void deleteConfigEntry(PRCList * entry)
 {
     PR_REMOVE_LINK(entry);
-    freeConfigEntry((configEntry **) & entry);
+    freeConfigEntry((struct configEntry **) & entry);
 }
 
 static void deleteConfig()
 {
     PRCList *list;
 
-    while (!PR_CLIST_IS_EMPTY(config)) {
-        list = PR_LIST_HEAD(config);
+    while (!PR_CLIST_IS_EMPTY(dna_global_config)) {
+        list = PR_LIST_HEAD(dna_global_config);
         deleteConfigEntry(list);
     }
 
     return;
 }
 
+/****************************************************
+    Distributed ranges Helpers
+****************************************************/
+
+static int dna_fix_maxval(Slapi_DN *dn, unsigned long *cur, unsigned long *max)
+{
+    /* TODO: check the main partition to see if another range
+     * is available, and set the new local configuration
+     * accordingly.
+     * If a new range is not available run the retrieval task
+     * and simply return error
+     */
+
+    return LDAP_OPERATIONS_ERROR;
+}
+
+static void dna_notice_allocation(Slapi_DN *dn, unsigned long new)
+{
+    /* TODO: check if we passed a new chunk threshold and update
+     * the shared configuration on the public partition.
+     */
+
+    return;
+}
 
 /****************************************************
 	Helpers
@@ -697,29 +760,183 @@ static int dna_dn_is_config(char *dn)
     return ret;
 }
 
+static LDAPControl *dna_build_sort_control(const char *attr)
+{
+    LDAPControl *ctrl;
+    BerElement *ber;
+    int rc;
+
+    ber = ber_alloc();
+    if (NULL == ber)
+        return NULL;
+
+    rc = ber_printf(ber, "{{s}}", attr);
+    if (-1 == rc) {
+        ber_free(ber, 1);
+        return NULL;
+    }
+
+    rc = slapi_build_control(LDAP_CONTROL_SORTREQUEST, ber, 1, &ctrl);
+
+    ber_free(ber, 1);
+
+    if (LDAP_SUCCESS != rc)
+         return NULL;
+
+    return ctrl;
+}
 
 /****************************************************
         Functions that actually do things other
         than config and startup
 ****************************************************/
 
+/* we do search all values between newval and maxval asking the
+ * server to sort them, then we check the first free spot and
+ * use it as newval */
+static int dna_first_free_value(struct configEntry *config_entry,
+                                unsigned long *newval,
+                                unsigned long maxval,
+				unsigned long increment)
+{
+    Slapi_Entry **entries = NULL;
+    Slapi_PBlock *pb = NULL;
+    LDAPControl **ctrls;
+    char *attrs[2];
+    char *filter;
+    char *prefix;
+    char *type;
+    int preflen;
+    int result, status;
+    unsigned long tmpval, sval, i;
+    char *strval = NULL;
+
+    prefix = config_entry->prefix;
+    type = config_entry->type;
+    tmpval = *newval;
+
+    attrs[0] = type;
+    attrs[1] = NULL;
+
+    ctrls = (LDAPControl **)slapi_ch_calloc(2, sizeof(LDAPControl));
+    if (NULL == ctrls)
+        return LDAP_OPERATIONS_ERROR;
+
+    ctrls[0] = dna_build_sort_control(config_entry->type);
+    if (NULL == ctrls[0]) {
+        slapi_ch_free((void **)&ctrls);
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    filter = slapi_ch_smprintf("(&%s(&(%s>=%s%llu)(%s<=%s%llu)))",
+                               config_entry->filter,
+                               type, prefix?prefix:"", tmpval,
+                               type, prefix?prefix:"", maxval);
+    if (NULL == filter) {
+        ldap_control_free(ctrls[0]);
+        slapi_ch_free((void **)&ctrls);
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    pb = slapi_pblock_new();
+    if (NULL == pb) {
+        ldap_control_free(ctrls[0]);
+        slapi_ch_free((void **)&ctrls);
+        slapi_ch_free_string(&filter);
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    slapi_search_internal_set_pb(pb, config_entry->scope,
+                                 LDAP_SCOPE_SUBTREE, filter,
+                                 attrs, 0, ctrls,
+                                 NULL, getPluginID(), 0);
+    slapi_search_internal_pb(pb);
+/*
+    ldap_control_free(ctrls[0]);
+*/
+    slapi_ch_free_string(&filter);
+
+    slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_RESULT, &result);
+    if (LDAP_SUCCESS != result) {
+        status = LDAP_OPERATIONS_ERROR;
+        goto cleanup;
+    }
+
+    slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES,
+                     &entries);
+
+    if (NULL == entries || NULL == entries[0]) {
+        /* no values means we already have a good value */
+        status = LDAP_SUCCESS;
+        goto cleanup;
+    }
+
+    /* entries are sorted and filtered for value >= tval therefore if the
+     * first one does not match tval it means that the value is free,
+     * otherwise we need to cycle through values until we find a mismatch,
+     * the first mismatch is the first free pit */
+
+    preflen = prefix?strlen(prefix):0;
+    sval = 0;
+    for (i = 0; NULL != entries[i]; i++) {
+        strval = slapi_entry_attr_get_charptr(entries[i], type);
+        if (preflen) {
+            if (strlen(strval) <= preflen) {
+                /* something very wrong here ... */
+                status = LDAP_OPERATIONS_ERROR;
+                goto cleanup;
+            }
+            strval = &strval[preflen-1];
+        }
+
+        errno = 0;
+        sval = strtoul(strval, 0, 0);
+        if (errno) {
+            /* something very wrong here ... */
+            status = LDAP_OPERATIONS_ERROR;
+            goto cleanup;
+        }
+        slapi_ch_free_string(&strval);
+
+        if (tmpval != sval)
+            break;
+
+        if (maxval < sval)
+            break;
+
+        tmpval += increment;
+    }
+
+    *newval = tmpval;
+    status = LDAP_SUCCESS;
+
+cleanup:
+    slapi_ch_free_string(&strval);
+    slapi_free_search_results_internal(pb);
+    slapi_pblock_destroy(pb);
+
+    return status;
+}
 
 /*
  * Perform ldap operationally atomic increment
  * Return the next value to be assigned
  * Method:
  * 1. retrieve entry
- * 2. remove current value, add new value in one operation
- * 3. if failed, and less than 3 times, goto 1
+ * 2. do increment operations
+ * 3. remove current value, add new value in one operation
+ * 4. if failed, and less than 3 times, goto 1
  */
-static int dna_get_next_value(configEntry * config_entry,
-                              char **next_value_ret)
+static int dna_get_next_value(struct configEntry *config_entry,
+                                 char **next_value_ret)
 {
-    int ret = LDAP_SUCCESS;
-    Slapi_DN *dn = 0;
-    char *attrlist[3];
-    Slapi_Entry *e = 0;
-    int attempts = 0;
+    Slapi_PBlock *pb = NULL;
+    char *old_value = NULL;
+    Slapi_Entry *e = NULL;
+    Slapi_DN *dn = NULL;
+    char *attrlist[4];
+    int attempts;
+    int ret;
 
     slapi_log_error(SLAPI_LOG_TRACE, DNA_PLUGIN_SUBSYSTEM,
                     "--> dna_get_next_value\n");
@@ -727,8 +944,9 @@ static int dna_get_next_value(configEntry * config_entry,
     /* get pre-requisites to search */
     dn = slapi_sdn_new_dn_byref(config_entry->dn);
     attrlist[0] = DNA_NEXTVAL;
-    attrlist[1] = DNA_INTERVAL;
-    attrlist[2] = 0;
+    attrlist[1] = DNA_MAXVAL;
+    attrlist[2] = DNA_INTERVAL;
+    attrlist[3] = NULL;
 
 
     /* the operation is constructed such that race conditions
@@ -739,112 +957,168 @@ static int dna_get_next_value(configEntry * config_entry,
 
     slapi_lock_mutex(g_new_value_lock);
 
-    while (attempts < 3 && LDAP_SUCCESS == ret) {
-        attempts++;
+    for (attempts = 0; attempts < 3; attempts++) {
+
+        LDAPMod mod_add;
+        LDAPMod mod_delete;
+        LDAPMod *mods[3];
+        char *delete_val[2];
+        char *add_val[2];
+        char new_value[16];
+        char *interval;
+        char *max_value;
+        unsigned long increment = 1; /* default increment */
+        unsigned long setval = 0;
+        unsigned long newval = 0;
+        unsigned long maxval = -1;
+        int result;
 
         /* do update */
-        if (e) {
-            slapi_entry_free(e);
-            e = 0;
+        ret = slapi_search_internal_get_entry(dn, attrlist, &e,
+                                              getPluginID());
+        if (LDAP_SUCCESS != ret) {
+            ret = LDAP_OPERATIONS_ERROR;
+            goto done;
         }
 
-        ret =
-            slapi_search_internal_get_entry(dn, attrlist, &e,
-                                            getPluginID());
+        old_value = slapi_entry_attr_get_charptr(e, DNA_NEXTVAL);
+        if (NULL == old_value) {
+            ret = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+
+        setval = strtoul(old_value, 0, 0);
+
+        max_value = slapi_entry_attr_get_charptr(e, DNA_MAXVAL);
+        if (max_value) {
+            maxval = strtoul(max_value, 0, 0);
+            slapi_ch_free_string(&max_value);
+        }
+
+        /* if not present the default is 1 */
+        interval = slapi_entry_attr_get_charptr(e, DNA_INTERVAL);
+        if (NULL != interval) {
+            increment = strtoul(interval, 0, 0);
+        }
+
+        slapi_entry_free(e);
+        e = NULL;
+
+        /* check the value is actually in range */
+
+        /* verify the new value is actually free and get the first
+         * one free if not*/
+        ret = dna_first_free_value(config_entry, &setval, maxval, increment);
+        if (LDAP_SUCCESS != ret)
+            goto done;
+
+        /* try for a new range or fail */
+        if (setval > maxval) {
+            ret = dna_fix_maxval(dn, &setval, &maxval);
+            if (LDAP_SUCCESS != ret) {
+                slapi_log_error(SLAPI_LOG_FATAL, DNA_PLUGIN_SUBSYSTEM,
+                                "dna_get_next_value: no more IDs available!!\n");
+                goto done;
+            }
+
+            /* verify the new value is actually free and get the first
+             * one free if not */
+            ret = dna_first_free_value(config_entry, &setval, maxval, increment);
+            if (LDAP_SUCCESS != ret)
+                goto done;
+        }
+
+        if (setval > maxval) {
+            ret = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+
+        newval = setval + increment;
+
+        /* try for a new range or fail */
+        if (newval > maxval) {
+            ret = dna_fix_maxval(dn, &newval, &maxval);
+            if (LDAP_SUCCESS != ret) {
+                slapi_log_error(SLAPI_LOG_FATAL, DNA_PLUGIN_SUBSYSTEM,
+                                "dna_get_next_value: no more IDs available!!\n");
+                goto done;
+            }
+        }
+
+        /* try to set the new value */
+
+        sprintf(new_value, "%llu", newval);
+
+        delete_val[0] = old_value;
+        delete_val[1] = 0;
+
+        mod_delete.mod_op = LDAP_MOD_DELETE;
+        mod_delete.mod_type = DNA_NEXTVAL;
+        mod_delete.mod_values = delete_val;
+
+        add_val[0] = new_value;
+        add_val[1] = 0;
+
+        mod_add.mod_op = LDAP_MOD_ADD;
+        mod_add.mod_type = DNA_NEXTVAL;
+        mod_add.mod_values = add_val;
+
+        mods[0] = &mod_delete;
+        mods[1] = &mod_add;
+        mods[2] = 0;
+
+        pb = slapi_pblock_new();
+        if (NULL == pb) {
+            ret = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+
+        slapi_modify_internal_set_pb(pb, config_entry->dn,
+                                     mods, 0, 0, getPluginID(), 0);
+
+        slapi_modify_internal_pb(pb);
+
+        slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_RESULT, &ret);
+
+        slapi_pblock_destroy(pb);
+        pb = NULL;
+        slapi_ch_free_string(&interval);
+        slapi_ch_free_string(&old_value);
+
         if (LDAP_SUCCESS == ret) {
-            char *old_value;
+            *next_value_ret = slapi_ch_smprintf("%llu", setval);
+            if (NULL == *next_value_ret) {
+                ret = LDAP_OPERATIONS_ERROR;
+                goto done;
+            }
 
-            old_value = slapi_entry_attr_get_charptr(e, DNA_NEXTVAL);
-            if (old_value) {
-                LDAPMod mod_add;
-                LDAPMod mod_delete;
-                LDAPMod *mods[3];
-                Slapi_PBlock *pb = slapi_pblock_new();
-                char *delete_val[2];
-                char *add_val[2];
-                char new_value[16];
-                char *interval = 0;
+            dna_notice_allocation(dn, newval);
+            goto done;
+        }
 
-                mods[0] = &mod_delete;
-                mods[1] = &mod_add;
-                mods[2] = 0;
-
-                if (0 == pb)
-                    goto bail;
-
-                interval = slapi_entry_attr_get_charptr(e, DNA_INTERVAL);
-                if (0 == interval) {
-                    slapi_pblock_destroy(pb);
-                    slapi_ch_free_string(&old_value);
-                    goto bail;
-                }
-
-                /* perform increment */
-
-                sprintf(new_value, "%lu",
-                        strtoul(interval, 0, 0) +
-                        strtoul(old_value, 0, 0));
-
-                delete_val[0] = old_value;
-                delete_val[1] = 0;
-
-                mod_delete.mod_op = LDAP_MOD_DELETE;
-                mod_delete.mod_type = DNA_NEXTVAL;
-                mod_delete.mod_values = delete_val;
-
-                add_val[0] = new_value;
-                add_val[1] = 0;
-
-                mod_add.mod_op = LDAP_MOD_ADD;
-                mod_add.mod_type = DNA_NEXTVAL;
-                mod_add.mod_values = add_val;
-
-
-                mods[0] = &mod_delete;
-                mods[1] = &mod_add;
-                mods[2] = 0;
-
-                slapi_modify_internal_set_pb(pb, config_entry->dn,
-                                             mods, 0, 0, getPluginID(), 0);
-
-                slapi_modify_internal_pb(pb);
-
-                slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_RESULT, &ret);
-
-                slapi_pblock_destroy(pb);
-                slapi_ch_free_string(&interval);
-
-                if (LDAP_SUCCESS == ret) {
-                    *next_value_ret = old_value;
-                    break;
-                } else {
-                    slapi_ch_free_string(&old_value);
-                    if (LDAP_NO_SUCH_ATTRIBUTE != ret) {
-                        /* not the result of a race
-                           to change the value
-                         */
-                        break;
-                    } else
-                        /* we lost the race to mod
-                           try again
-                         */
-                        ret = LDAP_SUCCESS;
-                }
-            } else
-                break;
-        } else
-            break;
+        if (LDAP_NO_SUCH_ATTRIBUTE != ret) {
+            /* not the result of a race
+               to change the value
+             */
+            goto done;
+        }
     }
 
-  bail:
+  done:
 
     slapi_unlock_mutex(g_new_value_lock);
+
+    if (LDAP_SUCCESS != ret)
+        slapi_ch_free_string(&old_value);
 
     if (dn)
         slapi_sdn_free(&dn);
 
     if (e)
         slapi_entry_free(e);
+
+    if (pb)
+        slapi_pblock_destroy(pb);
 
     slapi_log_error(SLAPI_LOG_TRACE, DNA_PLUGIN_SUBSYSTEM,
                     "<-- dna_get_next_value\n");
@@ -862,7 +1136,7 @@ static int dna_pre_op(Slapi_PBlock * pb, int modtype)
 {
     char *dn = 0;
     PRCList *list = 0;
-    configEntry *config_entry = 0;
+    struct configEntry *config_entry = 0;
     struct slapi_entry *e = 0;
     char *last_type = 0;
     char *value = 0;
@@ -916,11 +1190,11 @@ static int dna_pre_op(Slapi_PBlock * pb, int modtype)
 
     dna_read_lock();
 
-    if (!PR_CLIST_IS_EMPTY(config)) {
-        list = PR_LIST_HEAD(config);
+    if (!PR_CLIST_IS_EMPTY(dna_global_config)) {
+        list = PR_LIST_HEAD(dna_global_config);
 
-        while (list != config && LDAP_SUCCESS == ret) {
-            config_entry = (configEntry *) list;
+        while (list != dna_global_config && LDAP_SUCCESS == ret) {
+            config_entry = (struct configEntry *) list;
 
             /* did we already service this type? */
             if (last_type) {
@@ -935,11 +1209,11 @@ static int dna_pre_op(Slapi_PBlock * pb, int modtype)
             }
 
             /* does the entry match the filter? */
-            if (config_entry->filter) {
+            if (config_entry->slapi_filter) {
                 if (LDAP_SUCCESS != slapi_vattr_filter_test(pb,
                                                             e,
                                                             config_entry->
-                                                            filter, 0))
+                                                            slapi_filter, 0))
                     goto next;
             }
 
@@ -972,8 +1246,8 @@ static int dna_pre_op(Slapi_PBlock * pb, int modtype)
 
                         if (len == bv->bv_len) {
                             if (!slapi_UTF8NCASECMP(bv->bv_val,
-                                                    config_entry->
-                                                    generate, len))
+                                                    config_entry->generate,
+                                                    len))
 
                                 generate = 1;
                             break;
@@ -992,7 +1266,8 @@ static int dna_pre_op(Slapi_PBlock * pb, int modtype)
                 int len;
 
                 /* create the value to add */
-                if ((ret = dna_get_next_value(config_entry, &value)))
+                ret = dna_get_next_value(config_entry, &value);
+		if (DNA_SUCCESS != ret)
                     break;
 
                 len = strlen(value) + 1;
@@ -1066,7 +1341,6 @@ static int dna_pre_op(Slapi_PBlock * pb, int modtype)
     return ret;
 }
 
-
 static int dna_add_pre_op(Slapi_PBlock * pb)
 {
     return dna_pre_op(pb, LDAP_CHANGETYPE_ADD);
@@ -1110,10 +1384,10 @@ void dnaDumpConfig()
 
     dna_read_lock();
 
-    if (!PR_CLIST_IS_EMPTY(config)) {
-        list = PR_LIST_HEAD(config);
-        while (list != config) {
-            dnaDumpConfigEntry((configEntry *) list);
+    if (!PR_CLIST_IS_EMPTY(dna_global_config)) {
+        list = PR_LIST_HEAD(dna_global_config);
+        while (list != dna_global_config) {
+            dnaDumpConfigEntry((struct configEntry *) list);
             list = PR_NEXT_LINK(list);
         }
     }
@@ -1122,7 +1396,7 @@ void dnaDumpConfig()
 }
 
 
-void dnaDumpConfigEntry(configEntry * entry)
+void dnaDumpConfigEntry(struct configEntry * entry)
 {
     printf("<- type --------------> %s\n", entry->type);
     printf("<---- prefix ---------> %s\n", entry->prefix);
