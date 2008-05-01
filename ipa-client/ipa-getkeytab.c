@@ -31,7 +31,11 @@
 #include <errno.h>
 #include <time.h>
 #include <krb5.h>
+#ifdef WITH_MOZLDAP
+#include <mozldap/ldap.h>
+#else
 #include <ldap.h>
+#endif
 #include <sasl/sasl.h>
 #include <popt.h>
 
@@ -275,7 +279,6 @@ static int ldap_set_keytab(const char *servername,
 	BerElement *ctrl = NULL;
 	BerElement *sctrl = NULL;
 	struct berval *control = NULL;
-	char *ldap_uri = NULL;
 	struct berval **ncvals;
 	char *ldap_base = NULL;
 	char *retoid = NULL;
@@ -306,23 +309,16 @@ static int ldap_set_keytab(const char *servername,
 		goto error_out;
 	}
 
-	/* connect to ldap server */
-	ret = asprintf(&ldap_uri, "ldap://%s:389", servername);
-	if (ret == -1) {
-		fprintf(stderr, "Unable to determine server URI!\n");
-		goto error_out;
-	}
-
 	/* TODO: support referrals ? */
-	ret = ldap_initialize(&ld, ldap_uri);
-	if(ret != LDAP_SUCCESS) {
+	ld = ldap_init(servername, 389);
+	if(ld == NULL) {
 		fprintf(stderr, "Unable to initialize ldap library!\n");
 		goto error_out;
 	}
 
 	version = LDAP_VERSION3;
 	ret = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
-        if (ret != LDAP_OPT_SUCCESS) {
+        if (ret != LDAP_SUCCESS) {
 		fprintf(stderr, "Unable to set ldap options!\n");
 		goto error_out;
 	}
@@ -427,8 +423,7 @@ static int ldap_set_keytab(const char *servername,
 	ber_free(sctrl, 1);
 	ldap_controls_free(srvctrl);
 	ldap_msgfree(res);
-	ldap_unbind_ext_s(ld, NULL, NULL);
-	free(ldap_uri);
+	ldap_unbind_ext(ld, NULL, NULL);
 	return kvno;
 
 error_out:
@@ -436,8 +431,7 @@ error_out:
 	if (srvctrl) ldap_controls_free(srvctrl);
 	if (err) ldap_memfree(err);
 	if (res) ldap_msgfree(res);
-	if (ld) ldap_unbind_ext_s(ld, NULL, NULL);
-	if (ldap_uri) free(ldap_uri);
+	if (ld) ldap_unbind_ext(ld, NULL, NULL);
 	if (control) ber_bvfree(control);
 	if (encs) free(encs);
 	return 0;

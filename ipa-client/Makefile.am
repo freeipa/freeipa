@@ -13,7 +13,8 @@ INCLUDES =							\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
 	$(KRB5_CFLAGS)						\
-	$(LDAP_CFLAGS)						\
+	$(OPENLDAP_CFLAGS)					\
+	$(MOZLDAP_CFLAGS)					\
 	$(SASL_CFLAGS)						\
 	$(POPT_CFLAGS)						\
 	$(WARN_CFLAGS)						\
@@ -29,7 +30,8 @@ ipa_getkeytab_SOURCES =		\
 
 ipa_getkeytab_LDADD = 		\
 	$(KRB5_LIBS)		\
-	$(LDAP_LIBS)		\
+	$(OPENLDAP_LIBS)	\
+	$(MOZLDAP_LIBS)		\
 	$(SASL_LIBS)		\
 	$(POPT_LIBS)		\
 	$(NULL)

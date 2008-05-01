@@ -9,7 +9,6 @@ INCLUDES =							\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
 	$(MOZLDAP_CFLAGS)					\
-	$(LDAP_CFLAGS)						\
 	$(KRB5_CFLAGS)						\
 	$(WARN_CFLAGS)						\
 	$(NULL)

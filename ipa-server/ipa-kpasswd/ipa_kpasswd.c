@@ -39,12 +39,22 @@
 #include <arpa/inet.h>
 #include <time.h>
 #include <krb5.h>
+#ifdef WITH_MOZLDAP
+#include <mozldap/ldap.h>
+#else
 #include <ldap.h>
+#endif
 #include <sasl/sasl.h>
 
 #define DEFAULT_KEYTAB "FILE:/var/kerberos/krb5kdc/kpasswd.keytab"
 #define TMP_TEMPLATE "/var/cache/ipa/kpasswd/krb5_cc.XXXXXX"
 #define KPASSWD_PORT 464
+
+#ifdef WITH_MOZLDAP
+/* From OpenLDAP's ldap.h */
+#define LDAP_TAG_EXOP_MODIFY_PASSWD_ID  ((ber_tag_t) 0x80U)
+#define LDAP_TAG_EXOP_MODIFY_PASSWD_NEW ((ber_tag_t) 0x82U)
+#endif
 
 /* blacklist entries are released only BLCAKLIST_TIMEOUT seconds
  * after the children performing the noperation has finished.
@@ -310,7 +320,6 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	struct berval control;
 	struct berval newpw;
 	char hostname[1024];
-	char *ldap_uri = NULL;
 	struct berval **ncvals;
 	char *ldap_base = NULL;
 	char *filter;
@@ -367,17 +376,10 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 		goto done;
 	}
 
-	ret = asprintf(&ldap_uri, "ldap://%s:389", hostname);
-	if (ret == -1) {
-		syslog(LOG_ERR, "Out of memory!");
-		ret = KRB5_KPASSWD_HARDERROR;
-		goto done;
-	}
-
 	/* connect to ldap server */
 	/* TODO: support referrals ? */
-	ret = ldap_initialize(&ld, ldap_uri);
-	if(ret != LDAP_SUCCESS) {
+	ld = ldap_init(hostname, 389);
+	if(ld == NULL) {
 		syslog(LOG_ERR, "Unable to connect to ldap server");
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
@@ -385,7 +387,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 
 	version = LDAP_VERSION3;
 	ret = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
-        if (ret != LDAP_OPT_SUCCESS) {
+        if (ret != LDAP_SUCCESS) {
 		syslog(LOG_ERR, "Unable to set ldap protocol version");
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
@@ -480,11 +482,12 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
+
 	ber_printf(ctrl, "{tstON}",
 		   LDAP_TAG_EXOP_MODIFY_PASSWD_ID, userdn,
 		   LDAP_TAG_EXOP_MODIFY_PASSWD_NEW, &newpw);
 
-	ret = ber_flatten2(ctrl, &control, 0);
+	ret = ber_flatten(ctrl, &control);
 	if (ret < 0) {
 		syslog(LOG_ERR, "ber flattening failed!");
 		ret = KRB5_KPASSWD_HARDERROR;
@@ -645,8 +648,7 @@ done:
 	if (exterr1) free(exterr1);
 	if (exterr2) free(exterr2);
 	if (userdn) free(userdn);
-	if (ld) ldap_unbind_ext_s(ld, NULL, NULL);
-	if (ldap_uri) free(ldap_uri);
+	if (ld) ldap_unbind_ext(ld, NULL, NULL);
 	if (tmp_file) {
 		unlink(tmp_file);
 		free(tmp_file);
