@@ -32,7 +32,7 @@ For example, a secretary group may be granted write access to modify the phone a
 .SH "OPTIONS"
 .TP 
 \fB\-a\fR, \fB\-\-attributes\fR=\fIATTRIBUTES\fR
-A comma\-separated list of the the \f[SM]attributes\fR that may be written by the source group.
+A comma\-separated list of the \f[SM]attributes\fR that may be written by the source group.
 .TP 
 \fB\-l\fR
 Provide a list of common attribute names. This is not an exhaustive list.
@@ -45,9 +45,10 @@ The name of the group that will be written to.
 .PP 
 All arguments are mandatory.
 .SH "EXAMPLES"
-.TP
+.TP 
 ipa\-adddelegation \-a telephonenumber,facsimiletelephonenumber,mobile \-s secretaries \-t everyone phones
-Create a delegation named phones that will let anyone in the secretaries group edit the phone numbers of anyone in the group everyone.
+
+Create a delegation named \fBphones\fR that will let anyone in the \fIsecretaries\fR group edit the phone numbers of anyone in the group \fIeveryone\fR.
 .SH "EXIT STATUS"
 0 if the delegation was added successfully
 
