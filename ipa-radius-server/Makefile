@@ -13,7 +13,7 @@ install:
 	install -m 755 ipa-radius-install $(SBINDIR)
 
 clean:
-	rm -fr *.pyc *~
+	rm -fr *.pyc *~ ipa-radius-server.spec
 
 distclean: clean
 
