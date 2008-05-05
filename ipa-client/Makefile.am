@@ -62,6 +62,7 @@ MAINTAINERCLEANFILES =		\
 	intltool-*.in		\
 	compile			\
 	configure		\
+	COPYING			\
 	INSTALL			\
 	install-sh		\
 	missing			\
@@ -73,6 +74,8 @@ MAINTAINERCLEANFILES =		\
 	Makefile.in		\
 	config.h.*		\
 	aclocal.m4		\
+	ipa-client.spec		\
+	py-compile		\
 	$(NULL)
 
 # Creating ChangeLog from hg log (taken from cairo/Makefile.am):

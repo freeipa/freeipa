@@ -2,6 +2,8 @@
 
 AUTOMAKE_OPTIONS = 1.7
 
+NULL=
+
 man1_MANS = 				\
 	ipa-replica-install.1		\
 	ipa-replica-manage.1		\
@@ -17,3 +19,7 @@ man8_MANS =				\
 install-data-hook:
 	@for i in $(man1_MANS) ; do gzip -f $(DESTDIR)$(man1dir)/$$i ; done
 	@for i in $(man8_MANS) ; do gzip -f $(DESTDIR)$(man8dir)/$$i ; done
+
+MAINTAINERCLEANFILES =          \
+        Makefile.in             \
+        $(NULL)
