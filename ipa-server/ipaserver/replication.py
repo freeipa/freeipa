@@ -91,7 +91,6 @@ class ReplicationManager:
 
     def replica_dn(self):
         return 'cn=replica, cn="%s", cn=mapping tree, cn=config' % self.suffix
-        
 
     def local_replica_config(self, conn, replica_id):
         dn = self.replica_dn()
@@ -196,19 +195,17 @@ class ReplicationManager:
             self.conn.modify_s(dn, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
             logging.debug("chainOnUpdate already enabled for %s" % self.suffix)
-        
-    
+
     def setup_chain_on_update(self, other_conn):
         chainbe = self.setup_chaining_backend(other_conn)
         self.enable_chain_on_update(chainbe)
-                     
+
 
     def agreement_dn(self, conn):
         cn = "meTo%s%d" % (conn.host, PORT)
         dn = "cn=%s, %s" % (cn, self.replica_dn())
 
         return (cn, dn)
-        
 
     def setup_agreement(self, a, b):
         cn, dn = self.agreement_dn(b)
@@ -259,7 +256,7 @@ class ReplicationManager:
                 if not status:
                     print "No status yet"
                 elif status.find("replica busy") > -1:
-                    print "Update failed - replica busy - status", status
+                    print "[%s] reports: Replica Busy! Status: [%s]" % (conn.host, status)
                     done = True
                     hasError = 2
                 elif status.find("Total update succeeded") > -1:
@@ -268,7 +265,7 @@ class ReplicationManager:
                 elif inprogress.lower() == 'true':
                     print "Update in progress yet not in progress"
                 else:
-                    print "Update failed: status", status
+                    print "[%s] reports: Update failed! Status: [%s]" % (conn.host, status)
                     hasError = 1
                     done = True
             else:
@@ -292,7 +289,7 @@ class ReplicationManager:
         other_conn.modify_s(dn, mod)
 
         return self.wait_for_repl_init(other_conn, dn)
-        
+
     def basic_replication_setup(self, conn, replica_id):
         self.add_replication_manager(conn)
         self.local_replica_config(conn, replica_id)
@@ -319,7 +316,7 @@ class ReplicationManager:
 
         self.setup_agreement(other_conn, self.conn)
         self.setup_agreement(self.conn, other_conn)
-        
+
         return self.start_replication(other_conn)
 
     def initialize_replication(self, dn, conn):
