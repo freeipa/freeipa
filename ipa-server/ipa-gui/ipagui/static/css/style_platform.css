@@ -12,7 +12,7 @@ html, body {
 }
 
 body {
-  background-image:		url('/static/images/template/background.png');
+  background-image:		url('/ipa/ui/static/images/template/background.png');
   background-repeat:		repeat-x;
   background-color:		#f9f9f9;
   margin:			0px;
@@ -45,7 +45,7 @@ td, th {
   float:			left;
   margin-top:			-10px;
 
-  background:			url('/static/images/branding/logo.png') no-repeat;
+  background:			url('/ipa/ui/static/images/branding/logo.png') no-repeat;
 }
 
 #content {
@@ -53,7 +53,7 @@ td, th {
   min-height:			100%;
 
   background-color:		#f9f9f9;
-  background-image:		url('/static/images/template/background-content.png');
+  background-image:		url('/ipa/ui/static/images/template/background-content.png');
   background-repeat:		repeat-x;
 }
 
@@ -95,7 +95,7 @@ div#search {
   margin: 			0px;
   clear:			both;
 
-  background-image:		url('/static/images/template/background-navbar.png');
+  background-image:		url('/ipa/ui/static/images/template/background-navbar.png');
   background-repeat:		repeat-x;
 
 }
@@ -121,7 +121,7 @@ div#search {
 }
 
 #navbar .active {
-  background-image:		url('/static/images/template/background-navbar-active.png');
+  background-image:		url('/ipa/ui/static/images/template/background-navbar-active.png');
   height:			70px;
   width:			116px;
 
@@ -156,7 +156,7 @@ div#search {
 
   border:			1px solid #aaa;
   background-color:		#ccc;
-  background-image:		url('/static/images/template/background-sidebar.png');
+  background-image:		url('/ipa/ui/static/images/template/background-sidebar.png');
   background-repeat:		repeat-y;
 }
 
@@ -477,7 +477,7 @@ div.instructions {
   padding-top: 2ex;
   width: 40%;
   float: right;
-  background-image:     url('/static/images/template/background-search.png');
+  background-image:     url('/ipa/ui/static/images/template/background-search.png');
   background-repeat:        repeat-y;
   background-color: white;
 } 

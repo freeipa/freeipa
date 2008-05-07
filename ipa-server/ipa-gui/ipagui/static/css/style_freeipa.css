@@ -40,10 +40,10 @@
   text-decoration: underline;
 }
 .sortasc {
-  background-image: url(/static/images/up.gif) !important;
+  background-image: url(/ipa/ui/static/images/up.gif) !important;
 }
 .sortdesc {
-  background-image: url(/static/images/down.gif) !important;
+  background-image: url(/ipa/ui/static/images/down.gif) !important;
 }
 
 .warning_message {

@@ -38,7 +38,7 @@ class RPCClient:
     
     def server_url(self, server):
         """Build the XML-RPC server URL from our configuration"""
-        url = "https://" + server + "/ipaxml"
+        url = "https://" + server + "/ipa/xml"
         if self.verbose:
             print "Connecting to IPA server: %s" % url
         return url
