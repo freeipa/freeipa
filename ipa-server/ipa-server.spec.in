@@ -1,6 +1,6 @@
 Name:           ipa-server
 Version:        VERSION
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base
@@ -93,6 +93,7 @@ fi
 /bin/chown apache /var/log/ipa_error.log
 /bin/chmod 600 /var/log/ipa_error.log
 restorecon /var/log/ipa_error.log
+/usr/sbin/ipa-upgradeconfig
 
 %preun
 if [ $1 = 0 ]; then
@@ -118,6 +119,7 @@ fi
 %{_sbindir}/ipactl
 %{_sbindir}/ipa_kpasswd
 %{_sbindir}/ipa_webgui
+%{_sbindir}/ipa-upgradeconfig
 %attr(755,root,root) %{_initrddir}/ipa_kpasswd
 %attr(755,root,root) %{_initrddir}/ipa_webgui
 
@@ -166,6 +168,9 @@ fi
 %{_mandir}/man1/ipa-server-install.1.gz
 
 %changelog
+* Tue May  5 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-2
+- Add ipa-upgradeconfig command and run it at post
+
 * Thu Apr  3 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-1
 - Version bump for release
 

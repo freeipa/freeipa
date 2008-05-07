@@ -1,0 +1,112 @@
+#!/usr/bin/python
+#
+# Upgrade configuration files to a newer template.
+
+import sys
+try:
+    from ipa import ipautil
+    import krbV
+    import re
+    import os
+    import shutil
+    import fileinput
+except ImportError:
+    print >> sys.stderr, """\
+There was a problem importing one of the required Python modules. The
+error was:
+
+    %s
+""" % sys.exc_value
+    sys.exit(1)
+
+def backup_file(filename, ext):
+    """Make a backup of filename using ext as the extension. Do not overwrite
+       previous backups."""
+    if not os.path.isabs(filename):
+        raise ValueError("Absolute path required")
+
+    backupfile = filename + ".bak"
+    (reldir, file) = os.path.split(filename)
+
+    while os.path.exists(backupfile):
+        backupfile = backupfile + "." + str(ext)
+
+    shutil.copy2(filename, backupfile)
+
+def update_conf(sub_dict, filename, template_filename):
+    template = ipautil.template_file(template_filename, sub_dict)
+    fd = open(filename, "w")
+    fd.write(template)
+    fd.close()
+
+def find_hostname():
+    """Find the hostname currently configured in ipa-rewrite.conf"""
+    filename="/etc/httpd/conf.d/ipa-rewrite.conf"
+    if os.path.exists(filename):
+        pattern = "^[\s#]*.*https:\/\/([A-Za-z0-9\.\-]*)\/.*"
+        p = re.compile(pattern)
+        for line in fileinput.input(filename):
+            if p.search(line):
+                fileinput.close()
+                return p.search(line).group(1)
+        fileinput.close()
+
+    return None
+
+def find_version(filename):
+    """Find the version of a configuration file"""
+    if os.path.exists(filename):
+        pattern = "^[\s#]*VERSION\s+([0-9]+)\s+.*"
+        p = re.compile(pattern)
+        for line in fileinput.input(filename):
+            if p.search(line):
+                fileinput.close()
+                return p.search(line).group(1)
+        fileinput.close()
+
+        # no VERSION found
+        return 0
+    else:
+        return -1
+
+def upgrade(sub_dict, filename, template):
+    old = int(find_version(filename))
+    new = int(find_version(template))
+
+    if old < 0:
+        print "%s not found." % filename
+        sys.exit(1)
+
+    if new < 0:
+        print "%s not found." % template
+
+    if old < new:
+        backup_file(filename, new)
+        update_conf(sub_dict, filename, template)
+        print "Upgraded %s to version %d" % (filename, new)
+
+def main():
+    try:
+        krbctx = krbV.default_context()
+    except krbV.Krb5Error, e:
+        print "Unable to get default kerberos realm: %s" % e[1]
+        sys.exit(1)
+
+    fqdn = find_hostname()
+
+    if fqdn is None:
+        print "Unable to determine hostname from ipa-rewrite.conf"
+        sys.exit(1)
+
+    sub_dict = { "REALM" : krbctx.default_realm, "FQDN": fqdn }
+
+    upgrade(sub_dict, "/etc/httpd/conf.d/ipa.conf", ipautil.SHARE_DIR + "ipa.conf")
+    upgrade(sub_dict, "/etc/httpd/conf.d/ipa-rewrite.conf", ipautil.SHARE_DIR + "ipa-rewrite.conf")
+
+try:
+    if __name__ == "__main__":
+        sys.exit(main())
+except SystemExit, e:
+    sys.exit(e)
+except KeyboardInterrupt, e:
+    sys.exit(1)

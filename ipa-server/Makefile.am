@@ -14,6 +14,10 @@ SUBDIRS =			\
 	man			\
 	$(NULL)
 
+sbin_SCRIPTS =			\
+	ipa-upgradeconfig	\
+	$(NULL)
+
 install-exec-local:
 	mkdir -p $(DESTDIR)$(localstatedir)/lib/ipa/sysrestore
 	chmod 700 $(DESTDIR)$(localstatedir)/lib/ipa/sysrestore
@@ -35,6 +39,7 @@ EXTRA_DIST =			\
 	HACKING			\
 	NEWS			\
 	ChangeLog		\
+	$(sbin_SCRIPTS)		\
 	$(NULL)
 
 DISTCLEANFILES =		\
