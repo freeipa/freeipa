@@ -47,7 +47,7 @@ class IPAConfig:
             raise IPAConfigError("no default realm")
 
     def get_server(self):
-        if self.default_server:
+        if len(self.default_server):
             return self.default_server
         else:
             raise IPAConfigError("no default server")
@@ -62,7 +62,7 @@ def __parse_config():
     try:
         if not config.default_realm:
             config.default_realm = p.get("defaults", "realm")
-        if not config.default_server:
+        if not len(config.default_server):
             s = p.get("defaults", "server")
             config.default_server = re.sub("\s+", "", s).split(',')
     except:
