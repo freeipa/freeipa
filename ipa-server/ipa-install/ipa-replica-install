@@ -28,6 +28,7 @@ from ipa import ipautil
 
 from ipaserver import dsinstance, replication, installutils, krbinstance, service
 from ipaserver import httpinstance, ntpinstance, certs, ipaldap
+from ipaserver import version
 
 class ReplicaConfig:
     def __init__(self):
@@ -41,7 +42,7 @@ class ReplicaConfig:
 
 def parse_options():
     from optparse import OptionParser
-    parser = OptionParser()
+    parser = OptionParser(version=version.VERSION)
     parser.add_option("-N", "--no-ntp", dest="conf_ntp", action="store_false",
                       help="do not configure ntp", default=True)
     parser.add_option("-d", "--debug", dest="debug", action="store_true",

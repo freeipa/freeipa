@@ -24,8 +24,6 @@
 # openldap-clients
 # nss-tools
 
-VERSION = "%prog .1"
-
 import sys
 import os
 import socket
@@ -46,13 +44,14 @@ import ipaserver.httpinstance
 import ipaserver.ntpinstance
 
 from ipaserver import service
+from ipaserver import version
 from ipaserver.installutils import *
 
 from ipa import sysrestore
 from ipa.ipautil import *
 
 def parse_options():
-    parser = OptionParser(version=VERSION)
+    parser = OptionParser(version=version.VERSION)
     parser.add_option("-u", "--user", dest="ds_user",
                       help="ds user")
     parser.add_option("-r", "--realm", dest="realm_name",

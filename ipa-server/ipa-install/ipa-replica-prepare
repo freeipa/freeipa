@@ -29,6 +29,7 @@ from optparse import OptionParser
 import ipa.config
 from ipa import ipautil
 from ipaserver import dsinstance, installutils, certs, ipaldap
+from ipaserver import version
 import ldap
 
 def usage():
@@ -36,7 +37,7 @@ def usage():
     sys.exit(1)
 
 def parse_options():
-    parser = OptionParser()
+    parser = OptionParser(version=version.VERSION)
 
     args = ipa.config.init_config(sys.argv)
     options, args = parser.parse_args(args)
