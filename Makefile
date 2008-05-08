@@ -103,7 +103,9 @@ version-update:
 		> ipa-server/selinux/ipa-server-selinux.spec
 	sed s/VERSION/$(IPA_VERSION)/ ipa-python/setup.py.in \
 		> ipa-python/setup.py
-
+	sed s/__VERSION__/$(IPA_VERSION)/ ipa-server/ipaserver/version.py.in \
+		> ipa-server/ipaserver/version.py
+	perl -pi -e "s:__NUM_VERSION__:$(IPA_VERSION_MAJOR)$(IPA_VERSION_MINOR)$(IPA_VERSION_RELEASE):" ipa-server/ipaserver/version.py
 
 archive:
 	-mkdir -p dist

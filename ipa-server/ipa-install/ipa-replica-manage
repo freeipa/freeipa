@@ -17,11 +17,19 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+import sys
+
+import getpass, ldap, re, krbV
+import traceback, logging
+
+from ipa import ipautil
+from ipaserver import replication, ipaldap, dsinstance, installutils
+from ipaserver import version
 
 def parse_options():
     from optparse import OptionParser
 
-    parser = OptionParser()
+    parser = OptionParser(version=version.VERSION)
     parser.add_option("-H", "--host", dest="host", help="starting host")
     parser.add_option("-p", "--password", dest="dirman_passwd", help="Directory Manager password")
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
@@ -138,14 +146,6 @@ def main():
         synch_master(r, args[1])
 
 try:
-    import sys
-
-    import getpass, ldap, re, krbV
-    import traceback, logging
-
-    from ipa import ipautil
-    from ipaserver import replication, ipaldap, dsinstance, installutils
-
     main()
 except KeyboardInterrupt:
     sys.exit(1)   

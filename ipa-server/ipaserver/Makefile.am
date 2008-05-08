@@ -13,6 +13,7 @@ app_PYTHON = 			\
 	installutils.py		\
 	replication.py		\
 	certs.py		\
+	version.py		\
 	$(NULL)
 
 EXTRA_DIST =			\
