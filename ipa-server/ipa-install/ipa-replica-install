@@ -254,15 +254,21 @@ try:
         sys.exit("\nYou must be root to run this script.\n")
 
     main()
+    sys.exit(0)
+except SystemExit, e:
+    sys.exit(e)
 except Exception, e:
     print "creation of replica failed: %s" % str(e)
     message = str(e)
     for str in traceback.format_tb(sys.exc_info()[2]):
         message = message + "\n" + str
     logging.debug(message)
-    sys.exit(1)
 except KeyboardInterrupt:
     print "Installation cancelled." 
-    print "Your system may be partly configured." 
-    print "Run /usr/sbin/ipa-server-install --uninstall to clean up."
-    sys.exit(1)
+
+print ""
+print "Your system may be partly configured." 
+print "Run /usr/sbin/ipa-server-install --uninstall to clean up."
+
+# the only way to get here is on error or ^C
+sys.exit(1)
