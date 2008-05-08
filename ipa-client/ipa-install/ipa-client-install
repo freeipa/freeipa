@@ -234,7 +234,10 @@ def main():
             {'name':'timelimit', 'type':'option', 'value':'15'},
             {'name':'empty', 'type':'empty'}]
     if not dnsok or options.force or options.on_master:
-        opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+cli_server})
+        if options.on_master:
+            opts.append({'name':'uri', 'type':'option', 'value':'ldap://loclahost'})
+        else:
+            opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+cli_server})
     else:
         opts.append({'name':'nss_srv_domain', 'type':'option', 'value':cli_domain})
 
@@ -265,7 +268,7 @@ def main():
 
         #[libdefaults]
         libopts = [{'name':'default_realm', 'type':'option', 'value':cli_realm}]
-        if dnsok and not options.force:
+        if dnsok and not options.force and not options.on_master:
             libopts.append({'name':'dns_lookup_realm', 'type':'option', 'value':'true'})
             libopts.append({'name':'dns_lookup_kdc', 'type':'option', 'value':'true'})
         else:
