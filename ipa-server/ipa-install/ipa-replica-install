@@ -55,7 +55,7 @@ def parse_options():
 
     return options, args[0]
 
-def get_dirman_password()
+def get_dirman_password():
     return installutils.read_password("Directory Manager (existing master)", confirm=False, validate=False)
 
 def expand_info(filename):
