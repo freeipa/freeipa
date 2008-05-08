@@ -58,7 +58,7 @@ def verify_fqdn(host_name):
 
     for a in hostaddr:
         if a[4][0] == '127.0.0.1' or a[4][0] == '::1':
-            raise RuntimeError("The IPA Server hostanme cannot resolve to localhost (%s), a routable IP address must be used." % a[4][0])
+            raise RuntimeError("The IPA Server hostname cannot resolve to localhost (%s). A routable IP address must be used. Check /etc/hosts to see if %s is an alias for %s" % (a[4][0], host_name, a[4][0]))
         try:
             revname = socket.gethostbyaddr(a[4][0])[0]
         except:
