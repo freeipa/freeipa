@@ -760,6 +760,8 @@ static int dna_dn_is_config(char *dn)
     return ret;
 }
 
+#define DNA_LDAP_TAG_SK_REVERSE 0x81L
+
 static LDAPControl *dna_build_sort_control(const char *attr)
 {
     LDAPControl *ctrl;
@@ -770,7 +772,7 @@ static LDAPControl *dna_build_sort_control(const char *attr)
     if (NULL == ber)
         return NULL;
 
-    rc = ber_printf(ber, "{{s}}", attr);
+    rc = ber_printf(ber, "{{stb}}", attr, DNA_LDAP_TAG_SK_REVERSE, 1);
     if (-1 == rc) {
         ber_free(ber, 1);
         return NULL;
