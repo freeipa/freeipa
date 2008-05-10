@@ -235,7 +235,7 @@ def main():
             {'name':'empty', 'type':'empty'}]
     if not dnsok or options.force or options.on_master:
         if options.on_master:
-            opts.append({'name':'uri', 'type':'option', 'value':'ldap://loclahost'})
+            opts.append({'name':'uri', 'type':'option', 'value':'ldap://localhost'})
         else:
             opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+cli_server})
     else:
