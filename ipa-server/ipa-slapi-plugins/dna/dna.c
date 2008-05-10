@@ -1147,6 +1147,7 @@ static int dna_pre_op(Slapi_PBlock * pb, int modtype)
     Slapi_Mod *smod = 0;
     LDAPMod **mods;
     int free_entry = 0;
+    char *errstr = NULL;
     int ret = 0;
 
     slapi_log_error(SLAPI_LOG_TRACE, DNA_PLUGIN_SUBSYSTEM,
@@ -1269,8 +1270,12 @@ static int dna_pre_op(Slapi_PBlock * pb, int modtype)
 
                 /* create the value to add */
                 ret = dna_get_next_value(config_entry, &value);
-		if (DNA_SUCCESS != ret)
+                if (DNA_SUCCESS != ret) {
+                    errstr = slapi_ch_smprintf("Allocation of a new value for"
+                                               " %s failed! Unable to proceed.",
+                                               config_entry->type);
                     break;
+                }
 
                 len = strlen(value) + 1;
                 if (config_entry->prefix) {
@@ -1333,9 +1338,13 @@ static int dna_pre_op(Slapi_PBlock * pb, int modtype)
     if (free_entry && e)
         slapi_entry_free(e);
 
-    if (ret)
+    if (ret) {
         slapi_log_error(SLAPI_LOG_PLUGIN, DNA_PLUGIN_SUBSYSTEM,
                         "dna_pre_op: operation failure [%d]\n", ret);
+        slapi_send_ldap_result(pb, ret, NULL, errstr, 0, NULL);
+        slapi_ch_free(&errstr);
+        ret = DNA_FAILURE;
+    }
 
     slapi_log_error(SLAPI_LOG_TRACE, DNA_PLUGIN_SUBSYSTEM,
                     "<-- dna_pre_op\n");
