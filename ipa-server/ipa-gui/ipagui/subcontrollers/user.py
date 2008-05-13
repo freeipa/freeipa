@@ -413,6 +413,16 @@ class UserController(IPAController):
             # later the update will not be processed
             cherrypy.session['uid'] = user_dict.get('uid')
 
+            # Hack. The admin user doesn't have inetorgperson as an
+            # objectclass so don't require the givenName attribute if
+            # this objectclass doesn't exist in the record.
+            oc = [x.lower() for x in user_dict.get('objectclass')]
+            try:
+                p = oc.index('inetorgperson')
+            except ValueError:
+                # This entry doesn't have inetorgperson so don't require gn
+                user_edit_form.validator.fields.get('givenname').not_empty=False
+
             return dict(form=user_edit_form, user=user_dict,
                     user_groups=user_groups_dicts)
         except ipaerror.IPAError, e:
