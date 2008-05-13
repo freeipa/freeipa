@@ -80,7 +80,7 @@ class BindInstance(service.Service):
         self.step("restarting named", self.__start)
         self.step("configuring named to start on boot", self.__enable)
 
-        self.step("Changing resolve.conf to point to ourselves", self.__setup_resolve_conf)
+        self.step("Changing resolv.conf to point to ourselves", self.__setup_resolv_conf)
         self.start_creation("Configuring bind:")
 
     def __start(self):
@@ -118,14 +118,14 @@ class BindInstance(service.Service):
         named_fd.write(named_txt)
         named_fd.close()
 
-    def __setup_resolve_conf(self):
-        self.fstore.backup_file('/etc/resolve.conf')
-        resolve_txt = "search "+self.domain+"\nnameserver "+self.ip_address+"\n"
-        resolve_fd = open('/etc/resolve.conf', 'w')
-        resolve_fd.seek(0)
-        resolve_fd.truncate(0)
-        resolve_fd.write(resolve_txt)
-        resolve_fd.close()
+    def __setup_resolv_conf(self):
+        self.fstore.backup_file('/etc/resolv.conf')
+        resolv_txt = "search "+self.domain+"\nnameserver "+self.ip_address+"\n"
+        resolv_fd = open('/etc/resolv.conf', 'w')
+        resolv_fd.seek(0)
+        resolv_fd.truncate(0)
+        resolv_fd.write(resolv_txt)
+        resolv_fd.close()
 
     def uninstall(self):
         running = self.restore_state("running")
@@ -142,7 +142,7 @@ class BindInstance(service.Service):
                 logging.debug(error)
                 pass
 
-        for f in ["/etc/named.conf", "/etc/resolve.conf"]:
+        for f in ["/etc/named.conf", "/etc/resolv.conf"]:
             try:
                 self.fstore.restore_file(f)
             except ValueError, error:
