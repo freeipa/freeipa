@@ -499,16 +499,7 @@ def main():
 
     bind.setup(host_name, ip_address, realm_name, domain_name)
     if options.setup_bind:
-        skipbind = False
-        if not options.unattended:
-            print "This program is about to replace the DNS Server configuration,"
-            print "with an automatically generated one, based on the data gathered so far."
-            print "This will REPLACE any existing configuration."
-            yesno = raw_input("Are you sure you want to configure the DNS Server ? [no]: ")
-            if not yesno or yesno.lower()[0] != 'y':
-                skipbind = True
-        if not skipbind:
-            bind.create_instance()
+        bind.create_instance()
     else:
         bind.create_sample_bind_zone()
 
