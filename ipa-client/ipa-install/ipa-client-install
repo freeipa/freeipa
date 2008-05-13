@@ -91,6 +91,11 @@ def uninstall(options):
         print "Failed to remove krb5/ldap configuration. " +str(e)
         sys.exit(1)
 
+    try:
+        run(["/sbin/service", "nscd", "restart"])
+    except:
+        print "Failed to restart start the NSCD daemon"
+
     if not options.unattended:
         print "The original nsswitch.conf configuration has been restored."
         print "You may need to restart services or reboot the machine."
