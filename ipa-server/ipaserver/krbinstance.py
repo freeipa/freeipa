@@ -394,8 +394,10 @@ class KrbInstance(service.Service):
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
 
-        if not running is None:
+        try:
             self.stop()
+        except:
+            pass
 
         for f in ["/var/kerberos/krb5kdc/ldappwd", "/var/kerberos/krb5kdc/kdc.conf", "/etc/krb5.conf"]:
             try:
