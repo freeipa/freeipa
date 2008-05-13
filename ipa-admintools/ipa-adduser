@@ -33,6 +33,7 @@ try:
     import ldap
     import getpass
     import errno
+    import socket
 except ImportError:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
@@ -268,6 +269,9 @@ except xmlrpclib.ProtocolError, e:
 except ipa.ipaerror.IPAError, e:
     print "%s" % (e.message)
     sys.exit(1)
+except socket.error, e:
+    print e[1]
+    print "Re-run with -v flag for more details."
 except Exception, e:
     print "%s" % str(e)
     sys.exit(1)
