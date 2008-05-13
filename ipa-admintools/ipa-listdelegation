@@ -28,6 +28,7 @@ try:
     import xmlrpclib
     import kerberos
     import errno
+    import socket
 
     import ipa.aci
     from ipa import ipaerror
@@ -119,6 +120,9 @@ except xmlrpclib.ProtocolError, e:
 except ipaerror.IPAError, e:
     print("Delegation list failed: " + str(e))
     sys.exit(1)
+except socket.error, e:
+    print e[1]
+    print "Re-run with -v flag for more details."
 except Exception, e:
     print "%s" % str(e)
     sys.exit(1)
