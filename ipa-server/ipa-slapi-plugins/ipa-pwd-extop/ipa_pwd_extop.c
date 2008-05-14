@@ -582,6 +582,11 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 			if (krbTicketFlags & KTF_REQUIRES_PRE_AUTH) {
 				salt.length = KRB5P_SALT_SIZE;
 				salt.data = malloc(KRB5P_SALT_SIZE);
+				if (!salt.data) {
+					slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
+							"memory allocation failed\n");
+					goto enc_error;
+				}
 				krberr = krb5_c_random_make_octets(krbctx, &salt);
 				if (krberr) {
 					slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
