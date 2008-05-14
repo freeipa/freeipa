@@ -63,6 +63,10 @@ def erase_ds_instance_data(serverid):
     except:
         pass
     try:
+        shutil.rmtree("/usr/lib/dirsrv/slapd-%s" % serverid)
+    except:
+        pass
+    try:
         shutil.rmtree("/var/lib/dirsrv/slapd-%s" % serverid)
     except:
         pass
