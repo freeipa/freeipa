@@ -198,20 +198,14 @@ static void ipapwd_keyset_free(struct ipapwd_keyset **pkset)
 
 	for (i = 0; i < kset->num_keys; i++) {
 		if (kset->keys[i].salt) {
-			if (kset->keys[i].salt->value.bv_val) {
-				free(kset->keys[i].salt->value.bv_val);
-			}
+			free(kset->keys[i].salt->value.bv_val);
 			free(kset->keys[i].salt);
 		}
 		if (kset->keys[i].ekey) {
-			if (kset->keys[i].ekey->value.bv_val) {
-				free(kset->keys[i].ekey->value.bv_val);
-			}
+			free(kset->keys[i].ekey->value.bv_val);
 			free(kset->keys[i].ekey);
 		}
-		if (kset->keys[i].s2kparams.bv_val) {
-			free(kset->keys[i].s2kparams.bv_val);
-		}
+		free(kset->keys[i].s2kparams.bv_val);
 	}
 	free(kset->keys);
 	free(kset);
@@ -238,20 +232,14 @@ static int filter_keys(struct ipapwd_keyset *kset)
 
 			/* free key */
 			if (kset->keys[i].ekey) {
-				if (kset->keys[i].ekey->value.bv_val) {
-					free(kset->keys[i].ekey->value.bv_val);
-				}
+				free(kset->keys[i].ekey->value.bv_val);
 				free(kset->keys[i].ekey);
 			}
 			if (kset->keys[i].salt) {
-				if (kset->keys[i].salt->value.bv_val) {
-					free(kset->keys[i].salt->value.bv_val);
-				}
+				free(kset->keys[i].salt->value.bv_val);
 				free(kset->keys[i].salt);
 			}
-			if (kset->keys[i].s2kparams.bv_val) {
-				free(kset->keys[i].s2kparams.bv_val);
-			}
+			free(kset->keys[i].s2kparams.bv_val);
 
 			/* move all remaining keys up by one */
 			kset->num_keys -= 1;
@@ -746,7 +734,7 @@ enc_error:
 	if (kset) ipapwd_keyset_free(&kset);
 	krb5_free_principal(krbctx, princ);
 	if (bval) ber_bvfree(bval);
-	if (svals) free(svals);
+	free(svals);
 	return NULL;
 }
 
@@ -2548,7 +2536,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb)
 
 	/* Free anything that we allocated above */
 free_and_return:
-	if (serviceName) free(serviceName);
+	free(serviceName);
 	if (kset) ipapwd_keyset_free(&kset);
 
 	if (bval) ber_bvfree(bval);
@@ -2794,10 +2782,10 @@ static int ipapwd_getConfig(krb5_context krbctx, const char *realm_dn)
 free_and_error:
 	if (mkey) ber_bvfree(mkey);
 	if (be) ber_free(be, 1);
-	if (config->pref_encsalts) free(config->pref_encsalts);
-	if (config->supp_encsalts) free(config->supp_encsalts);
-	if (config->kmkey) free(config->kmkey);
-	if (config) free(config);
+	free(config->pref_encsalts);
+	free(config->supp_encsalts);
+	free(config->kmkey);
+	free(config);
 	if (realm_entry) slapi_entry_free(realm_entry);
 	return LDAP_OPERATIONS_ERROR;
 }

@@ -645,9 +645,9 @@ done:
 	if (sctrl) ber_free(sctrl, 1);
 	if (srvctrl) ldap_controls_free(srvctrl);
 	if (res) ldap_msgfree(res);
-	if (exterr1) free(exterr1);
-	if (exterr2) free(exterr2);
-	if (userdn) free(userdn);
+	free(exterr1);
+	free(exterr2);
+	free(userdn);
 	if (ld) ldap_unbind_ext(ld, NULL, NULL);
 	if (tmp_file) {
 		unlink(tmp_file);
@@ -975,7 +975,7 @@ kpreply:
 	*replen = replylen;
 
 done:
-	if (result_string) free(result_string);
+	free(result_string);
 	if (auth_context) krb5_auth_con_free(context, auth_context);
 	if (kprincpw) krb5_free_principal(context, kprincpw);
 	if (krep.length) free(krep.data);

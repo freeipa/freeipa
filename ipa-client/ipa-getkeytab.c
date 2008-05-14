@@ -433,7 +433,7 @@ error_out:
 	if (res) ldap_msgfree(res);
 	if (ld) ldap_unbind_ext(ld, NULL, NULL);
 	if (control) ber_bvfree(control);
-	if (encs) free(encs);
+	free(encs);
 	return 0;
 }
 
