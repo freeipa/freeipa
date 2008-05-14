@@ -183,6 +183,11 @@ INPUT_SERVICE_PRINCIPAL_REQUIRED = gen_error_code(
         0x000A,
         "You cannot remove IPA server service principals.")
 
+INPUT_UID_TOO_LONG = gen_error_code(
+        INPUT_CATEGORY,
+        0x0009,
+        "The requested username is too long.")
+
 #
 # Connection errors
 #
