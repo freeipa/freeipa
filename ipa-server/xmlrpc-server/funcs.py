@@ -460,6 +460,27 @@ class IPAServer:
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return True
 
+    def __uid_too_long(self, uid, opts):
+        """Verify that the new uid is within the limits we set. This is a
+           very narrow test.
+
+           Returns True if it is longer than allowed
+                   False otherwise
+        """
+        if not isinstance(uid,basestring) or len(uid) == 0:
+            # It is bad, but not too long
+            return False
+        logging.debug("IPA: __uid_too_long(%s)" % uid)
+        try:
+            config = self.get_ipa_config(opts)
+            maxlen = int(config.get('ipamaxusernamelength', 0))
+            if maxlen > 0 and len(uid) > maxlen:
+                return True
+        except Exception, e:
+            logging.debug("There was a problem " + str(e))
+
+        return False
+
     def get_user_by_uid (self, uid, sattrs, opts=None):
         """Get a specific user's entry. Return as a dict of values.
            Multi-valued fields are represented as lists.
@@ -531,6 +552,8 @@ class IPAServer:
 
         if not self.__is_user_unique(user['uid'], opts):
             raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
+        if self.__uid_too_long(user['uid'], opts):
+            raise ipaerror.gen_exception(ipaerror.INPUT_UID_TOO_LONG)
 
         # dn is set here, not by the user
         try:
@@ -1016,6 +1039,8 @@ class IPAServer:
         newrdn = 0
 
         if oldentry.get('uid') != newentry.get('uid'):
+            if self.__uid_too_long(newentry.get('uid'), opts):
+                raise ipaerror.gen_exception(ipaerror.INPUT_UID_TOO_LONG)
             # RDN change
             conn = self.getConnection(opts)
             try:
