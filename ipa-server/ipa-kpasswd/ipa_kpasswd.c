@@ -331,29 +331,30 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	struct timeval tv;
 	LDAPMessage *entry, *res = NULL;
 	LDAPControl **srvctrl = NULL;
+	char *exterr0 = NULL;
 	char *exterr1 = NULL;
 	char *exterr2 = NULL;
 	char *err = NULL;
 	int msgid;
 	int ret, rc;
+	int fd;
+	int kpwd_err = KRB5_KPASSWD_HARDERROR;
 
 	tmp_file = strdup(TMP_TEMPLATE);
 	if (!tmp_file) {
 		syslog(LOG_ERR, "Out of memory!");
-		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
-	ret = mkstemp(tmp_file);
-	if (ret == -1) {
+	fd = mkstemp(tmp_file);
+	if (fd == -1) {
 		syslog(LOG_ERR,
 			"Failed to create tmp file with errno: %d", errno);
-		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 	/* close mimmediately, we don't need to keep the file open,
 	 * just that it exist and has a unique name */
-	close(ret);
+	close(fd);
 
 	/* In the long term we may want to do this in the main daemon
 	 * and just renew when needed.
@@ -361,7 +362,6 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	ret = get_krb5_ticket(tmp_file);
 	if (ret) {
 		syslog(LOG_ERR, "Unable to kinit!");
-		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
@@ -372,7 +372,6 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	ret = gethostname(hostname, 1023);
 	if (ret == -1) {
 		syslog(LOG_ERR, "Unable to get the hostname!");
-		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
@@ -381,7 +380,6 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	ld = ldap_init(hostname, 389);
 	if(ld == NULL) {
 		syslog(LOG_ERR, "Unable to connect to ldap server");
-		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
@@ -389,7 +387,6 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	ret = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
         if (ret != LDAP_SUCCESS) {
 		syslog(LOG_ERR, "Unable to set ldap protocol version");
-		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
@@ -400,7 +397,6 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 					   ldap_sasl_interact, realm_name);
 	if (ret != LDAP_SUCCESS) {
 		syslog(LOG_ERR, "Unable to bind to ldap server");
-		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
@@ -417,7 +413,6 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 		syslog(LOG_ERR,
 			"Search for %s on rootdse failed with error %d",
 			root_attrs[0], ret);
-		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
@@ -426,7 +421,6 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	ncvals = ldap_get_values_len(ld, entry, root_attrs[0]);
 	if (!ncvals) {
 		syslog(LOG_ERR, "No values for %s", root_attrs[0]);
-		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
@@ -439,7 +433,6 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	ret = asprintf(&filter, "krbPrincipalName=%s", client_name);
 	if (ret == -1) {
 		syslog(LOG_ERR, "Out of memory!");
-		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
@@ -454,9 +447,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 			filter, ret);
 		if (ret == LDAP_CONSTRAINT_VIOLATION) {
 			*errstr = strdup("Password Change Failed");
-			ret = KRB5_KPASSWD_SOFTERROR;
-		} else {
-			ret = KRB5_KPASSWD_HARDERROR;
+			kpwd_err = KRB5_KPASSWD_SOFTERROR;
 		}
 		goto done;
 	}
@@ -471,7 +462,6 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 
 	if (!userdn) {
 		syslog(LOG_ERR, "No userdn, can't change password!");
-		ret = -1;
 		goto done;
 	}
 
@@ -479,7 +469,6 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	ctrl = ber_alloc_t(LBER_USE_DER);
 	if (!ctrl) {
 		syslog(LOG_ERR, "Out of memory!");
-		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
@@ -490,7 +479,6 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	ret = ber_flatten(ctrl, &control);
 	if (ret < 0) {
 		syslog(LOG_ERR, "ber flattening failed!");
-		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
@@ -501,7 +489,6 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 					&msgid);
 	if (ret != LDAP_SUCCESS) {
 		syslog(LOG_ERR, "ldap_extended_operation() failed. (%d)", ret);
-		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
@@ -512,7 +499,6 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	if (ret == -1) {
 		ldap_get_option(ld, LDAP_OPT_ERROR_NUMBER, &rc);
 		syslog(LOG_ERR, "ldap_result() failed. (%d)", rc);
-		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 
@@ -520,24 +506,22 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	if(ret != LDAP_SUCCESS) {
 		syslog(LOG_ERR, "ldap_parse_extended_result() failed.");
 		ldap_msgfree(res);
-		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
 	}
 	if (retoid || retdata) {
 		syslog(LOG_ERR, "ldap_parse_extended_result() returned data, but we don't handle it yet.");
 	}
-	
+
 	ret = ldap_parse_result(ld, res, &rc, NULL, &err, NULL, &srvctrl, 0);
         if(ret != LDAP_SUCCESS) {
 		syslog(LOG_ERR, "ldap_parse_result() failed.");
-		ret = KRB5_KPASSWD_HARDERROR;
 		goto done;
         }
 	if (rc != LDAP_SUCCESS) {
-		ret = KRB5_KPASSWD_SOFTERROR;
-		if (rc != LDAP_CONSTRAINT_VIOLATION) {
-			ret = KRB5_KPASSWD_HARDERROR;
+		if (rc == LDAP_CONSTRAINT_VIOLATION) {
+			kpwd_err = KRB5_KPASSWD_SOFTERROR;
 		}
+		ret = LDAP_OPERATIONS_ERROR;
 	}
 	if (err) {
 		syslog(LOG_ERR, "ldap_parse_result(): [%s]", err);
@@ -582,12 +566,13 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 			if (btag == LDAP_TAG_PWP_WARNING) {
 				rtag = ber_scanf(sctrl, "{ti}", &btag, &bint);
 				if (btag == LDAP_TAG_PWP_SECSLEFT) {
-					asprintf(&exterr2, " (%d seconds left before password expires)", bint);
+					ret = asprintf(&exterr2, " (%d seconds left before password expires)", bint);
 				} else {
-					asprintf(&exterr2, " (%d grace logins remaining)", bint);
+					ret = asprintf(&exterr2, " (%d grace logins remaining)", bint);
 				}
-				if (!exterr2) {
-					syslog(LOG_ERR, "exterr2: OOM?");
+				if (ret == -1) {
+					syslog(LOG_ERR, "OOM while creating error message ...");
+					exterr2 = NULL;
 				}
 				rtag = ber_scanf(sctrl, "t", &btag);
 			}
@@ -595,49 +580,54 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 				rtag = ber_scanf(sctrl, "e", &bint);
 				switch(bint) {
 				case 0:
-					asprintf(&exterr1, " Err%d: Password Expired.", bint);
+					ret = asprintf(&exterr1, " Err%d: Password Expired.", bint);
 					break;
 				case 1:
-					asprintf(&exterr1, " Err%d: Account locked.", bint);
+					ret = asprintf(&exterr1, " Err%d: Account locked.", bint);
 					break;
 				case 2:
-					asprintf(&exterr1, " Err%d: Password changed after reset.", bint);
+					ret = asprintf(&exterr1, " Err%d: Password changed after reset.", bint);
 					break;
 				case 3:
-					asprintf(&exterr1, " Err%d: Password change not allowed.", bint);
+					ret = asprintf(&exterr1, " Err%d: Password change not allowed.", bint);
 					break;
 				case 4:
-					asprintf(&exterr1, " Err%d: [Shouldn't happen].", bint);
+					ret = asprintf(&exterr1, " Err%d: [Shouldn't happen].", bint);
 					break;
 				case 5:
-					asprintf(&exterr1, " Err%d: Password too simple.", bint);
+					ret = asprintf(&exterr1, " Err%d: Password too simple.", bint);
 					break;
 				case 6:
-					asprintf(&exterr1, " Err%d: Password too short.", bint);
+					ret = asprintf(&exterr1, " Err%d: Password too short.", bint);
 					break;
 				case 7:
-					asprintf(&exterr1, " Err%d: Too soon to change password.", bint);
+					ret = asprintf(&exterr1, " Err%d: Too soon to change password.", bint);
 					break;
 				case 8:
-					asprintf(&exterr1, " Err%d: Password reuse not permitted.", bint);
+					ret = asprintf(&exterr1, " Err%d: Password reuse not permitted.", bint);
 					break;
 				default:
-					asprintf(&exterr1, " Err%d: Unknown Errorcode.", bint);
+					ret = asprintf(&exterr1, " Err%d: Unknown Errorcode.", bint);
 					break;
 				}
-				if (!exterr1) {
-					syslog(LOG_ERR, "exterr1: OOM?");
+				if (ret == -1) {
+					syslog(LOG_ERR, "OOM while creating error message ...");
+					exterr1 = NULL;
 				}
 			}
 		}
 	}
 
-	if (ret != LDAP_SUCCESS) {
-		syslog(LOG_ERR, "password change failed!");
-		asprintf(errstr, "Password change, Failed.%s%s", exterr1?exterr1:"", exterr2?exterr2:"");
+	if (ret == LDAP_SUCCESS) {
+		kpwd_err = KRB5_KPASSWD_SUCCESS;
+		exterr0 = "Password change succeeded";
 	} else {
-		syslog(LOG_ERR, "password change succeeded!");
-		asprintf(errstr, "Password change, Succeeded.%s%s", exterr1?exterr1:"", exterr2?exterr2:"");
+		exterr0 = "Password change failed";
+	}
+	ret = asprintf(errstr, "%s%s%s", exterr0, exterr1?exterr1:"", exterr2?exterr2:"");
+	if (ret == -1) {
+		syslog(LOG_ERR, "OOM while creating error message ...");
+		*errstr = NULL;
 	}
 
 done:
@@ -653,7 +643,7 @@ done:
 		unlink(tmp_file);
 		free(tmp_file);
 	}
-	return ret;
+	return kpwd_err;
 }
 
 void handle_krb_packets(uint8_t *buf, ssize_t buflen,
@@ -875,8 +865,9 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	/* Actually try to change the password */
 	result_err = ldap_pwd_change(client_name, realm_name, kdec, &result_string);
 	if (result_string == NULL) {
-		result_string = strdup("Server Error");
+		result_string = strdup("Server Error while performing LDAP password change");
 	}
+	syslog(LOG_ERR, "%s", result_string);
 
 	/* make sure password is cleared off before we free the memory */
 	memset(kdec.data, 0, kdec.length);
