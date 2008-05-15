@@ -214,7 +214,7 @@ class DsInstance(service.Service):
         self.backup_state("running", is_ds_running())
         self.backup_state("serverid", self.serverid)
 
-        self.sub_dict['BASEDC'] = self.realm_name[:self.realm_name.find('.')].lower()
+        self.sub_dict['BASEDC'] = self.realm_name.split('.')[0].lower()
         base_txt = ipautil.template_str(BASE_TEMPLATE, self.sub_dict)
         logging.debug(base_txt)
         base_fd = file("/var/lib/dirsrv/boot.ldif", "w")
