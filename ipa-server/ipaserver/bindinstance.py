@@ -48,7 +48,7 @@ class BindInstance(service.Service):
         self.ip_address = ip_address
         self.realm = realm_name
         self.domain = domain_name
-        self.host = fqdn[:fqdn.find(".")]
+        self.host = fqdn.split(".")[0]
 
         self.__setup_sub_dict()
 

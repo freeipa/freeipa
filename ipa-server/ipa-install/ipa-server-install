@@ -175,7 +175,7 @@ def read_ip_address(host_name):
         fstore.backup_file("/etc/hosts")
         hosts_fd = open('/etc/hosts', 'r+')
         hosts_fd.seek(0, 2)
-        hosts_fd.write(ip+'\t'+host_name+' '+host_name[:host_name.find('.')]+'\n')
+        hosts_fd.write(ip+'\t'+host_name+' '+host_name.split('.')[0]+'\n')
         hosts_fd.close()
 
         return ip
