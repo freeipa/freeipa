@@ -3,7 +3,7 @@
 
 /* Authors: Simo Sorce <ssorce@redhat.com>
  *
- * Copyright (C) 2007  Red Hat
+ * Copyright (C) 2007, 2008  Red Hat
  * see file 'COPYING' for use and warranty information
  *
  * This program is free software; you can redistribute it and/or
@@ -1186,13 +1186,18 @@ int main(int argc, char *argv[])
 	}
 
 	/* Write out the pid file after the sigterm handler */
-	FILE *f = fopen("/var/run/ipa_kpasswd.pid", "w");
-	if (f == NULL) {
-		syslog(LOG_ERR,"Couldn't create pid file /var/run/ipa_kpasswd.pid: %s", strerror(errno));
+	const char *pid_file = "/var/run/ipa_kpasswd.pid";
+	FILE *f = fopen(pid_file, "w");
+	int fail = 1;
+	if (f) {
+		int n_bytes = fprintf(f, "%ld\n", (long) getpid());
+		if (fclose(f) == 0 && 0 < n_bytes)
+			fail = 0;
+	}
+	if (fail) {
+		syslog(LOG_ERR,"Couldn't create pid file %s: %s",
+		       pid_file, strerror(errno));
 		exit(1);
-	} else {
-		fprintf(f, "%ld\n", (long) getpid());
-		fclose(f);
 	}
 
 	tai = ai;
