@@ -369,7 +369,7 @@ def main():
     if options.setup_bind:
         if not bind.check_inst():
             print "--setup-bind was specified but bind is not installed on the system"
-            print "Please install bind (you may also need the package 'caching-nameserver') and restart the setup program"
+            print "Please install bind and restart the setup program"
             return "-Fatal Error-"
 
     # check the hostname is correctly configured, it must be as the kldap
