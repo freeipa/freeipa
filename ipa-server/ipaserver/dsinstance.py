@@ -26,6 +26,7 @@ import sys
 import os
 import re
 import time
+import tempfile
 
 from ipa import ipautil
 
@@ -279,13 +280,20 @@ class DsInstance(service.Service):
             fd = ipautil.write_tmp_file(txt)
             path = fd.name
 
+        [pw_fd, pw_name] = tempfile.mkstemp()
+        os.write(pw_fd, self.dm_password)
+        os.close(pw_fd)
+
         args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv",
-                "-D", "cn=Directory Manager", "-w", self.dm_password, "-f", path]
+                "-D", "cn=Directory Manager", "-y", pw_name, "-f", path]
 
         try:
-            ipautil.run(args)
-        except ipautil.CalledProcessError, e:
-            logging.critical("Failed to load %s: %s" % (ldif, str(e)))
+            try:
+                ipautil.run(args)
+            except ipautil.CalledProcessError, e:
+                logging.critical("Failed to load %s: %s" % (ldif, str(e)))
+        finally:
+            os.remove(pw_name)
 
         if not fd is None:
             fd.close()

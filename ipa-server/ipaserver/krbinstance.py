@@ -211,13 +211,20 @@ class KrbInstance(service.Service):
         txt = ipautil.template_file(ipautil.SHARE_DIR + ldif, self.sub_dict)
         fd = ipautil.write_tmp_file(txt)
 
+        [pw_fd, pw_name] = tempfile.mkstemp()
+        os.write(pw_fd, self.admin_password)
+        os.close(pw_fd)
+
         args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv",
-                "-D", "cn=Directory Manager", "-w", self.admin_password, "-f", fd.name]
+                "-D", "cn=Directory Manager", "-y", pw_name, "-f", fd.name]
 
         try:
-            ipautil.run(args)
-        except ipautil.CalledProcessError, e:
-            logging.critical("Failed to load %s: %s" % (ldif, str(e)))
+            try:
+                ipautil.run(args)
+            except ipautil.CalledProcessError, e:
+                logging.critical("Failed to load %s: %s" % (ldif, str(e)))
+        finally:
+            os.remove(pw_name)
 
         fd.close()
 
