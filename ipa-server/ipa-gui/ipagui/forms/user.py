@@ -18,6 +18,7 @@
 import turbogears
 from turbogears import validators, widgets
 from tg_expanding_form_widget.tg_expanding_form_widget import ExpandingForm
+from ipagui.helpers.validators import *
 
 class UserFields(object):
     givenname = widgets.TextField(name="givenname", label="First Name")
@@ -89,8 +90,13 @@ class UserNewValidator(validators.Schema):
     krbprincipalkey_confirm = validators.String(not_empty=False)
     givenname = validators.String(not_empty=True)
     sn = validators.String(not_empty=True)
-    cn = validators.ForEach(validators.String(not_empty=True))
+    cn = UniqueList(not_empty=True)
     mail = validators.Email(not_empty=False)
+    telephonenumber = UniqueList(not_empty=False)
+    facsimiletelephonenumber = UniqueList(not_empty=False)
+    mobile = UniqueList(not_empty=False)
+    pager = UniqueList(not_empty=False)
+    homephone = UniqueList(not_empty=False)
 
     chained_validators = [
       validators.FieldsMatch('krbprincipalkey', 'krbprincipalkey_confirm')
@@ -125,10 +131,15 @@ class UserEditValidator(validators.Schema):
     krbprincipalkey_confirm = validators.String(not_empty=False)
     givenname = validators.String(not_empty=True)
     sn = validators.String(not_empty=True)
-    cn = validators.ForEach(validators.String(not_empty=True))
+    cn = UniqueList(not_empty=True)
     mail = validators.Email(not_empty=False)
     uidnumber = validators.Int(not_empty=False)
     gidnumber = validators.Int(not_empty=False)
+    telephonenumber = UniqueList(not_empty=False)
+    facsimiletelephonenumber = UniqueList(not_empty=False)
+    mobile = UniqueList(not_empty=False)
+    pager = UniqueList(not_empty=False)
+    homephone = UniqueList(not_empty=False)
 
     pre_validators = [
       validators.RequireIfPresent(required='uid', present='editprotected'),
