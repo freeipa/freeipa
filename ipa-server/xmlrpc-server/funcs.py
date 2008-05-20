@@ -1951,32 +1951,43 @@ class IPAServer:
             f = 1
         logging.debug("IPA: add service principal %s (%d)" % (name, f))
 
-        p = name.split('/')
-        if len(p) != 2:
+        # Break down the principal into its component parts, which may or
+        # may not include the realm.
+        sp = name.split('/')
+        if len(sp) != 2:
+            raise ipaerror.gen_exception(ipaerror.INPUT_MALFORMED_SERVICE_PRINCIPAL)
+        service = sp[0]
+
+        sr = sp[1].split('@')
+        if len(sr) == 1:
+            hostname = sr[0].lower()
+            realm = self.realm
+        elif len(sr) == 2:
+            hostname = sr[0].lower()
+            realm = sr[1]
+        else:
             raise ipaerror.gen_exception(ipaerror.INPUT_MALFORMED_SERVICE_PRINCIPAL)
 
         if not f:
-            fqdn = p[1] + "."
+            fqdn = hostname + "."
             rs = dnsclient.query(fqdn, dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
             if len(rs) == 0:
-                logging.debug("IPA: DNS A record lookup failed for %s" % name)
+                logging.debug("IPA: DNS A record lookup failed for %s" % hostname)
                 raise ipaerror.gen_exception(ipaerror.INPUT_NOT_DNS_A_RECORD)
             else:
-                logging.debug("IPA: found %d records for %s" % (len(rs), name))
+                logging.debug("IPA: found %d records for %s" % (len(rs), hostname))
 
         service_container = DefaultServiceContainer
 
-        # Don't let the user set the realm
-        if name.find('@') > 0:
-            r = name[name.find('@')+1:]
-            if (r != self.realm):
-                raise ipaerror.gen_exception(ipaerror.INPUT_REALM_MISMATCH)
-            princ_name = name
-        else:
-            princ_name = name + "@" + self.realm
+        # At some point we'll support multiple realms
+        if (realm != self.realm):
+            raise ipaerror.gen_exception(ipaerror.INPUT_REALM_MISMATCH)
+
+        # Put the principal back together again
+        princ_name = service + "/" + hostname + "@" + realm
         
         conn = self.getConnection(opts)
-        if not self.__is_service_unique(name, opts):
+        if not self.__is_service_unique(princ_name, opts):
             raise ipaerror.gen_exception(ipaerror.LDAP_DUPLICATE)
 
         dn = "krbprincipalname=%s,%s,%s" % (ldap.dn.escape_dn_chars(princ_name),
@@ -2037,6 +2048,7 @@ class IPAServer:
         search_fields = ["krbprincipalname"]
 
         criteria = self.__safe_filter(criteria)
+        criteria = criteria.lower()
         criteria_words = re.split(r'\s+', criteria)
         criteria_words = filter(lambda value:value!="", criteria_words)
         if len(criteria_words) == 0:

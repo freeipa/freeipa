@@ -393,10 +393,14 @@ def main():
     else:
         host_name = read_host_name(host_default)
 
+    host_name = host_name.lower()
+
     if not options.domain_name:
         domain_name = read_domain_name(host_name[host_name.find(".")+1:], options.unattended)
     else:
         domain_name = options.domain_name
+
+    domain_name = domain_name.lower()
 
     # Check we have a public IP that is associated with the hostname
     ip = resolve_host(host_name)
