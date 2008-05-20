@@ -5,6 +5,7 @@ app_PYTHON = 			\
 	__init__.py		\
 	ipahelper.py		\
 	userhelper.py		\
+	validators.py		\
 	$(NULL)
 
 EXTRA_DIST =			\
