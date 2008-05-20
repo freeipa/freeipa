@@ -63,10 +63,12 @@ def logging_setup(options):
     if options.uninstall:
         log_file = "/var/log/ipaclient-uninstall.log"
 
+    old_umask = os.umask(077)
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s %(message)s',
                         filename=log_file,
                         filemode='w')
+    os.umask(old_umask)
 
     console = logging.StreamHandler()
     # If the debug option is set, also log debug messages to the console
@@ -368,6 +370,7 @@ def main():
 try:
     import sys
 
+    import os
     import krbV
     import socket
     import logging
