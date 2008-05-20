@@ -116,9 +116,9 @@ struct configEntry {
     char *dn;
     char *type;
     char *prefix;
-    unsigned long nextval;
-    unsigned long interval;
-    unsigned long maxval;
+    PRUint64 nextval;
+    PRUint64 interval;
+    PRUint64 maxval;
     char *filter;
     struct slapi_filter *slapi_filter;
     char *generate;
@@ -694,7 +694,7 @@ static void deleteConfig()
     Distributed ranges Helpers
 ****************************************************/
 
-static int dna_fix_maxval(Slapi_DN *dn, unsigned long *cur, unsigned long *max)
+static int dna_fix_maxval(Slapi_DN *dn, PRUint64 *cur, PRUint64 *max)
 {
     /* TODO: check the main partition to see if another range
      * is available, and set the new local configuration
@@ -706,7 +706,7 @@ static int dna_fix_maxval(Slapi_DN *dn, unsigned long *cur, unsigned long *max)
     return LDAP_OPERATIONS_ERROR;
 }
 
-static void dna_notice_allocation(Slapi_DN *dn, unsigned long new)
+static void dna_notice_allocation(Slapi_DN *dn, PRUint64 new)
 {
     /* TODO: check if we passed a new chunk threshold and update
      * the shared configuration on the public partition.
@@ -797,9 +797,9 @@ static LDAPControl *dna_build_sort_control(const char *attr)
  * server to sort them, then we check the first free spot and
  * use it as newval */
 static int dna_first_free_value(struct configEntry *config_entry,
-                                unsigned long *newval,
-                                unsigned long maxval,
-				unsigned long increment)
+                                PRUint64 *newval,
+                                PRUint64 maxval,
+				PRUint64 increment)
 {
     Slapi_Entry **entries = NULL;
     Slapi_PBlock *pb = NULL;
@@ -810,7 +810,7 @@ static int dna_first_free_value(struct configEntry *config_entry,
     char *type;
     int preflen;
     int result, status;
-    unsigned long tmpval, sval, i;
+    PRUint64 tmpval, sval, i;
     char *strval = NULL;
 
     prefix = config_entry->prefix;
@@ -969,10 +969,10 @@ static int dna_get_next_value(struct configEntry *config_entry,
         char new_value[16];
         char *interval;
         char *max_value;
-        unsigned long increment = 1; /* default increment */
-        unsigned long setval = 0;
-        unsigned long newval = 0;
-        unsigned long maxval = -1;
+        PRUint64 increment = 1; /* default increment */
+        PRUint64 setval = 0;
+        PRUint64 newval = 0;
+        PRUint64 maxval = -1;
         int result;
 
         /* do update */
