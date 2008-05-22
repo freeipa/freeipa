@@ -140,7 +140,7 @@ def resolve_host(host_name):
             print "The KDC service does not listen on localhost"
             print ""
             print "Please fix your /etc/hosts file and restart the setup program"
-            return "-Fatal Error-"
+            return None
 
     except:
         print "Unable to lookup the IP address of the provided host"
@@ -315,7 +315,7 @@ def main():
 
     if os.getegid() != 0:
         print "Must be root to setup server"
-        return
+        return 1
 
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
@@ -370,7 +370,7 @@ def main():
         if not bind.check_inst():
             print "--setup-bind was specified but bind is not installed on the system"
             print "Please install bind and restart the setup program"
-            return "-Fatal Error-"
+            return 1
 
     # check the hostname is correctly configured, it must be as the kldap
     # utilities just use the hostname as returned by gethostbyname to set
@@ -387,7 +387,7 @@ def main():
             verify_fqdn(host_default)
         except RuntimeError, e:
             logging.error(str(e) + "\n")
-            return "-Fatal Error-"
+            return 1
 
         host_name = host_default
     else:
@@ -404,17 +404,17 @@ def main():
 
     # Check we have a public IP that is associated with the hostname
     ip = resolve_host(host_name)
-    if not ip:
+    if ip is None:
         if options.ip_address:
             ip = options.ip_address
-    if not ip and options.unattended:
+    if ip is None and options.unattended:
         print "Unable to resolve IP address for host name"
-        return "-Fatal Error-"
+        return 1
 
     if not verify_ip_address(ip):
         ip = ""
         if options.unattended:
-            return "-Fatal Error-"
+            return 1
 
     if options.ip_address and options.ip_address != ip:
         if options.setup_bind:
@@ -423,12 +423,12 @@ def main():
             print "Error: the hostname resolves to an IP address that is different"
             print "from the one provided on the command line.  Please fix your DNS"
             print "or /etc/hosts file and restart the installation."
-            return "-Fatal Error-"
+            return 1
 
     if options.unattended:
         if not ip:
             print "Unable to resolve IP address"
-            return "-Fatal Error-"
+            return 1
 
     if not ip:
         ip = read_ip_address(host_name)
@@ -443,7 +443,7 @@ def main():
     if not options.ds_user:
         ds_user = read_ds_user()
         if ds_user == "":
-            return "-Aborted-"
+            return 1
     else:
         ds_user = options.ds_user
 
@@ -523,7 +523,7 @@ def main():
     except Exception, e:
         print "Configuration of client side components failed!"
         print "ipa-client-install returned: " + str(e)
-        return "-Fatal Error-"
+        return 1
 
     print "=============================================================================="
     print "Setup complete"
@@ -553,8 +553,7 @@ def main():
     return 0
 
 try:
-    main()
-    sys.exit(0)
+    sys.exit(main())
 except SystemExit, e:
     sys.exit(e)
 except Exception, e:
