@@ -93,7 +93,7 @@ fi
 /bin/chown apache /var/log/ipa_error.log
 /bin/chmod 600 /var/log/ipa_error.log
 restorecon /var/log/ipa_error.log
-/usr/sbin/ipa-upgradeconfig
+/usr/sbin/ipa-upgradeconfig || :
 
 %preun
 if [ $1 = 0 ]; then
