@@ -58,7 +58,7 @@ objectClass: nsContainer
 objectClass: top
 cn: masters
 
-dn: uid=admin,cn=sysaccounts,cn=etc,$SUFFIX
+dn: uid=admin,cn=users,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: person
@@ -108,7 +108,7 @@ objectClass: posixGroup
 cn: admins
 description: Account administrators group
 gidNumber: 1001
-member: uid=admin,cn=sysaccounts,cn=etc,$SUFFIX
+member: uid=admin,cn=users,cn=accounts,$SUFFIX
 nsAccountLock: False
 
 dn: cn=ipausers,cn=groups,cn=accounts,$SUFFIX
