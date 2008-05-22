@@ -375,7 +375,7 @@ class DsInstance(service.Service):
         args = [app,
                 "-D", "cn=Directory Manager", "-w", self.dm_password,
                 "-P", dirname+"/cert8.db", "-ZZZ", "-s", password,
-                "uid=admin,cn=sysaccounts,cn=etc,"+self.suffix]
+                "uid=admin,cn=users,cn=accounts,"+self.suffix]
         try:
             ipautil.run(args)
             logging.debug("ldappasswd done")
