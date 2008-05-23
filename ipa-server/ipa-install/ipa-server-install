@@ -495,6 +495,7 @@ def main():
     fd.write("[defaults]\n")
     fd.write("server=" + host_name + "\n")
     fd.write("realm=" + realm_name + "\n")
+    fd.write("domain=" + domain_name + "\n")
     fd.close()
 
     # Create a Web Gui instance

@@ -66,17 +66,10 @@ def get_realm_name():
 
 def get_domain_name():
     try:
-        conn = ipaldap.IPAdmin("127.0.0.1")
-        conn.simple_bind_s("", "")
-
-        context = conn.getEntry("", ldap.SCOPE_BASE, '(objectclass=*)', [ 'namingContexts' ])
-        conn.unbind()
+        ipa.config.init_config()
+        domain_name = ipa.config.config.get_domain()
     except Exception, e:
         return None
-
-    domain_name = context.getValue('namingContexts')
-    domain_name = domain_name.replace('dc=','')
-    domain_name = domain_name.replace(',','.')
 
     return domain_name
 

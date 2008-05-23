@@ -202,23 +202,26 @@ def main():
         return 1
 
     # Configure ipa.conf
-    ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
-    ipaconf.setOptionAssignment(" = ")
-    ipaconf.setSectionNameDelimiters(("[","]"))
+    if not options.on_master:
+        ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+        ipaconf.setOptionAssignment(" = ")
+        ipaconf.setSectionNameDelimiters(("[","]"))
 
-    opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
-            {'name':'empty', 'type':'empty'}]
+        opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
+                {'name':'empty', 'type':'empty'}]
 
-    #[defaults]
-    defopts = [{'name':'server', 'type':'option', 'value':cli_server},
-             {'name':'realm', 'type':'option', 'value':cli_realm}]
+        #[defaults]
+        defopts = [{'name':'server', 'type':'option', 'value':cli_server},
+                   {'name':'realm', 'type':'option', 'value':cli_realm},
+                   {'name':'domain', 'type':'option', 'value':cli_domain}]
 
-    opts.append({'name':'defaults', 'type':'section', 'value':defopts})
-    opts.append({'name':'empty', 'type':'empty'})
+        opts.append({'name':'defaults', 'type':'section', 'value':defopts})
+        opts.append({'name':'empty', 'type':'empty'})
 
-    fstore.backup_file("/etc/ipa/ipa.conf")
-    ipaconf.newConf("/etc/ipa/ipa.conf", opts)
-    print "Created /etc/ipa/ipa.conf"
+        fstore.backup_file("/etc/ipa/ipa.conf")
+        ipaconf.newConf("/etc/ipa/ipa.conf", opts)
+        print "Created /etc/ipa/ipa.conf"
+
 
     # Configure ldap.conf
     ldapconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
