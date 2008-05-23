@@ -39,6 +39,7 @@ class IPAConfig:
     def __init__(self):
         self.default_realm = None
         self.default_server = []
+        self.default_domain = None
 
     def get_realm(self):
         if self.default_realm:
@@ -51,6 +52,12 @@ class IPAConfig:
             return self.default_server
         else:
             raise IPAConfigError("no default server")
+
+    def get_domain(self):
+        if self.default_domain:
+            return self.default_domain
+        else:
+            raise IPAConfigError("no default domain")
 
 # Global library config
 config = IPAConfig()
@@ -65,6 +72,8 @@ def __parse_config():
         if not len(config.default_server):
             s = p.get("defaults", "server")
             config.default_server = re.sub("\s+", "", s).split(',')
+        if not config.default_domain:
+            config.default_domain = p.get("defaults", "domain")
     except:
         pass
 
@@ -76,22 +85,29 @@ def __discover_config():
             if not config.default_realm:
                 return False
 
-        #try once with REALM -> domain
-        name = "_ldap._tcp."+config.default_realm+"."
-        rs = ipa.dnsclient.query(name, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
-        rl = len(rs)
-
-        #try cycling on domain components of FQDN
-        if rl == 0:
-            name = socket.getfqdn()
-        while rl == 0:
-            tok = name.find(".")
-            if tok == -1:
-                return False
-            name = name[tok+1:]
-            q = "_ldap._tcp." + name + "."
-            rs = ipa.dnsclient.query(q, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
+        if not config.default_domain:
+            #try once with REALM -> domain
+            dom_name = config.default_realm.lower()
+            name = "_ldap._tcp."+dom_name+"."
+            rs = ipa.dnsclient.query(name, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
             rl = len(rs)
+            if rl == 0:
+                #try cycling on domain components of FQDN
+                dom_name = socket.getfqdn()
+            while rl == 0:
+                tok = dom_name.find(".")
+                if tok == -1:
+                     return False
+                dom_name = dom_name[tok+1:]
+                name = "_ldap._tcp." + dom_name + "."
+                rs = ipa.dnsclient.query(name, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
+                rl = len(rs)
+
+            config.default_domain = dom_name
+
+        if rl == 0:
+             name = "_ldap._tcp."+config.default_domain+"."
+             rs = ipa.dnsclient.query(name, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
 
         for r in rs:
             if r.dns_type == ipa.dnsclient.DNS_T_SRV:
@@ -104,6 +120,7 @@ def __discover_config():
 def usage():
     return """  --realm\tset the IPA realm
   --server\tset the IPA server
+  --domain\tset the IPA dns domain
 """
 
 def __parse_args(args):
@@ -126,11 +143,17 @@ def __parse_args(args):
             config.default_server.append(args[i + 1])
             i = i + 2
             continue
+        if args[i] == "--domain":
+            if i == len(args) - 1:
+                raise IPAConfigError("missing argument to --domain")
+            config.default_domain = args[i + 1]
+            i = i + 2
+            continue
         out_args.append(args[i])
         i = i + 1
-        
+
     return out_args
-                      
+
 
 def init_config(args=None):
     out_args = None
@@ -144,6 +167,8 @@ def init_config(args=None):
         raise IPAConfigError("IPA realm not found in DNS, in the config file (/etc/ipa/ipa.conf) or on the command line.")
     if not config.default_server:
         raise IPAConfigError("IPA server not found in DNS, in the config file (/etc/ipa/ipa.conf) or on the command line.")
+    if not config.default_domain:
+        raise IPAConfigError("IPA domain not found in the config file (/etc/ipa/ipa.conf) or on the command line.")
 
     if out_args:
         return out_args

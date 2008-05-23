@@ -33,6 +33,7 @@ from ipaserver import version
 class ReplicaConfig:
     def __init__(self):
         self.realm_name = ""
+        self.domain_name = ""
         self.master_host_name = ""
         self.dirman_password = ""
         self.ds_user = ""
@@ -231,6 +232,14 @@ def main():
 
     install_krb(config)
     install_http(config)
+
+    # Create the config file
+    fd = open("/etc/ipa/ipa.conf", "w")
+    fd.write("[defaults]\n")
+    fd.write("server=" + config.host_name + "\n")
+    fd.write("realm=" + config.realm_name + "\n")
+    fd.write("domain=" + config.domain_name + "\n")
+    fd.close()
 
     # Create a Web Gui instance
     webgui = httpinstance.WebGuiInstance()
