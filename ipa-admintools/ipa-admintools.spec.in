@@ -1,19 +1,24 @@
 Name:           ipa-admintools
 Version:        VERSION
-Release:        1%{?dist}
-Summary:        IPA authentication server
+Release:        2%{?dist}
+Summary:        IPA admin tools
 
 Group:          System Environment/Base
 License:        GPLv2
 URL:            http://www.freeipa.org
 Source0:        %{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildArch: 	noarch
+BuildArch:      noarch
 
-Requires: python python-krbV ipa-python
+Requires:       python
+Requires:       python-krbV
+Requires:       ipa-python
+Requires:       python-ldap
+Requires:       python-configobj
 
 %description
-IPA is a server for identity, policy, and audit.
+User, group, delegation and policy administration tools for IPA. IPA is a
+server for identity, policy, and audit.
 
 %prep
 %setup -q
@@ -35,6 +40,9 @@ rm -rf %{buildroot}
 %{_mandir}/man1/*
 
 %changelog
+* Fri May 23 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-2
+- Add Requires for python-ldap and python-configobj
+
 * Thu Apr  3 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-1
 - Version bump for release
 
