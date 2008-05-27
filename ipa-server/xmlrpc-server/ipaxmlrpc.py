@@ -144,19 +144,26 @@ class ModXMLRPCRequestHandler(object):
             response = dumps(Fault(5, "Did not receive Kerberos credentials."))
             return response
 
+        debuglevel = logging.INFO
         if pythonopts.get("IPADebug"):
-            opts['ipadebug'] = pythonopts.get("IPADebug")
+            opts['ipadebug'] = pythonopts.get("IPADebug").lower()
 
-            if opts['ipadebug'].lower() == "on":
-                logging.basicConfig(level=logging.DEBUG,
-                    format='[%(asctime)s] [%(levelname)s] %(message)s',
-                    datefmt='%a %b %d %H:%M:%S %Y',
-                    stream=sys.stderr)
+            if opts['ipadebug'] == "on":
+                debuglevel = logging.DEBUG
 
-                for o in opts:
-                    logging.debug("IPA: setting option %s: %s" % (o, opts[o]))
-#                for e in req.subprocess_env:
-#                    logging.debug("IPA: environment %s: %s" % (e, req.subprocess_env[e]))
+        if not opts.get('ipadebug'):
+            opts['ipadebug'] = "off"
+
+        logging.basicConfig(level=debuglevel,
+            format='[%(asctime)s] [%(levelname)s] %(message)s',
+                datefmt='%a %b %d %H:%M:%S %Y',
+                stream=sys.stderr)
+
+#        if opts['ipadebug'] == "on":
+#            for o in opts:
+#                logging.debug("IPA: setting option %s: %s" % (o, opts[o]))
+#            for e in req.subprocess_env:
+#                logging.debug("IPA: environment %s: %s" % (e, req.subprocess_env[e]))
 
         # Tack onto the end of the passed-in arguments any options we also
         # need

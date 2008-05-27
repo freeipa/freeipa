@@ -386,7 +386,7 @@ class IPAServer:
 # Higher-level API
     def version(self, opts=None):
        """The version of IPA"""
-       logging.debug("IPA: version")
+       logging.debug("IPA: version %d" % ipaserver.version.NUM_VERSION)
        return ipaserver.version.NUM_VERSION
 
     def get_aci_entry(self, sattrs, opts=None):
@@ -394,6 +394,7 @@ class IPAServer:
         
         if sattrs is not None and not isinstance(sattrs,list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        logging.info("IPA: get_aci_entry")
 
         dn="%s,%s" % (ACIContainer, self.basedn)
         return self.get_entry_by_dn(dn, sattrs, opts)
@@ -410,6 +411,7 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
         searchfilter = "(objectClass=*)"
+        logging.info("IPA: get_entry_by_dn '%s'" % dn)
         return self.__get_base_entry(dn, searchfilter, sattrs, opts)
 
     def get_entry_by_cn (self, cn, sattrs, opts=None):
@@ -422,6 +424,7 @@ class IPAServer:
         if sattrs is not None and not isinstance(sattrs,list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
+        logging.info("IPA: get_entry_by_cn '%s'" % cn)
         cn = self.__safe_filter(cn)
         searchfilter = "(cn=" + cn + ")"
         return self.__get_sub_entry(self.basedn, searchfilter, sattrs, opts)
@@ -445,6 +448,7 @@ class IPAServer:
             if oldentry is None:
                 raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
 
+        logging.info("IPA: update_entry '%s'" % newentry.get('dn'))
         return self.__update_entry(oldentry, newentry, opts)
 
 # User support
@@ -490,6 +494,7 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if sattrs is not None and not isinstance(sattrs,list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        logging.info("IPA: get_user_by_uid '%s'" % uid)
         uid = self.__safe_filter(uid)
         searchfilter = "(uid=" + uid + ")"
         return self.__get_sub_entry(self.basedn, searchfilter, sattrs, opts)
@@ -505,6 +510,7 @@ class IPAServer:
         if sattrs is not None and not isinstance(sattrs,list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         searchfilter = "(krbPrincipalName="+self.__safe_filter(principal)+")"
+        logging.info("IPA: get_user_by_principal '%s'" % principal)
         return self.__get_sub_entry(self.basedn, searchfilter, sattrs, opts)
 
     def get_user_by_email (self, email, sattrs, opts=None):
@@ -516,6 +522,7 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if sattrs is not None and not isinstance(sattrs,list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        logging.info("IPA: get_user_by_email '%s'" % email)
         email = self.__safe_filter(email)
         searchfilter = "(mail=" + email + ")"
         return self.__get_sub_entry(self.basedn, searchfilter, sattrs, opts)
@@ -528,6 +535,7 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if sattrs is not None and not isinstance(sattrs,list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        logging.info("IPA: get_user_by_manager '%s'" % manager)
         manager_dn = self.__safe_filter(manager_dn)
         searchfilter = "(&(objectClass=person)(manager=%s))" % manager_dn
 
@@ -542,6 +550,7 @@ class IPAServer:
            of a multi-valued field a list of values. user_container sets
            where in the tree the user is placed.
         """
+        logging.info("IPA: add_user")
         if not user_container:
             user_container = DefaultUserContainer
 
@@ -902,6 +911,7 @@ class IPAServer:
         """Return a list containing a User object for each
         existing user.
         """
+        logging.info("IPA: get_all_users")
         searchfilter = "(objectclass=posixAccount)"
 
         conn = self.getConnection(opts)
@@ -930,7 +940,7 @@ class IPAServer:
         if not isinstance(timelimit,int):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
-        logging.debug("IPA: find users %s" % criteria)
+        logging.info("IPA: find_users '%s'" % criteria)
         config = self.get_ipa_config(opts)
         if timelimit < 0:
             timelimit = float(config.get('ipasearchtimelimit'))
@@ -1027,6 +1037,7 @@ class IPAServer:
            If you want to change the RDN of a user you must use
            this function. update_entry will fail.
         """
+        logging.info("IPA: update_user")
         if not isinstance(newentry,dict):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if oldentry and not isinstance(oldentry,dict):
@@ -1084,8 +1095,6 @@ class IPAServer:
         # if it is still inactive we have to add it to the activated group
         # which will override the group membership.
 
-        logging.debug("IPA: activating entry %s" % dn)
-
         if not dn:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
@@ -1127,8 +1136,6 @@ class IPAServer:
     def mark_entry_inactive (self, dn, opts=None):
         """Mark an entry as inactive in LDAP."""
 
-        logging.debug("IPA: inactivating entry %s" % dn)
-
         if not dn:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
@@ -1163,6 +1170,7 @@ class IPAServer:
         if not isinstance(uid,basestring) or len(uid) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         user = self.get_user_by_uid(uid, ['dn', 'uid'], opts)
+        logging.info("IPA: mark_user_active '%s'" % user.get('dn'))
         return self.mark_entry_active(user.get('dn'))
 
     def mark_user_inactive(self, uid, opts=None):
@@ -1173,6 +1181,7 @@ class IPAServer:
         if uid == "admin":
             raise ipaerror.gen_exception(ipaerror.INPUT_CANT_INACTIVATE)
         user = self.get_user_by_uid(uid, ['dn', 'uid'], opts)
+        logging.info("IPA: mark_user_inactive '%s'" % user.get('dn'))
         return self.mark_entry_inactive(user.get('dn'))
 
     def delete_user (self, uid, opts=None):
@@ -1188,6 +1197,7 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if uid == "admin":
             raise ipaerror.gen_exception(ipaerror.INPUT_ADMIN_REQUIRED)
+        logging.info("IPA: delete_user '%s'" % uid)
         user = self.get_user_by_uid(uid, ['dn', 'uid', 'objectclass'], opts)
         if user is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
@@ -1212,6 +1222,7 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if not isinstance(newpass,basestring) or len(newpass) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        logging.info("IPA: modifyPassword '%s'" % principal)
 
         user = self.get_user_by_principal(principal, ['krbprincipalname'], opts)
         if user is None or user['krbprincipalname'] != principal:
@@ -1252,6 +1263,7 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if sattrs is not None and not isinstance(sattrs,list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        logging.info("IPA: get_groups_by_member '%s'" % member_dn)
 
         member_dn = self.__safe_filter(member_dn)
         searchfilter = "(&(objectClass=posixGroup)(member=%s))" % member_dn
@@ -1282,6 +1294,7 @@ class IPAServer:
 
         dn="cn=%s,%s,%s" % (ldap.dn.escape_dn_chars(group['cn']),
                             group_container,self.basedn)
+        logging.info("IPA: add_group '%s'" % dn)
         entry = ipaserver.ipaldap.Entry(dn)
 
         # some required objectclasses
@@ -1314,7 +1327,7 @@ class IPAServer:
         if not isinstance(timelimit,int):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
-        logging.debug("IPA: find groups %s" % criteria)
+        logging.info("IPA: find groups '%s'" % criteria)
 
         config = self.get_ipa_config(opts)
         if timelimit < 0:
@@ -1396,6 +1409,7 @@ class IPAServer:
         if not isinstance(group_dn,basestring) or len(group_dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
+        logging.info("IPA: add_member_to_group '%s' to '%s'" % (member_dn, group_dn))
         if member_dn.lower() == group_dn.lower():
             raise ipaerror.gen_exception(ipaerror.INPUT_SAME_GROUP)
 
@@ -1434,6 +1448,8 @@ class IPAServer:
         if not member_dns or not group_dn:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
+        logging.info("IPA: add_members_to_group '%s'" % group_dn)
+
         failed = []
 
         if (isinstance(member_dns,basestring)):
@@ -1466,6 +1482,7 @@ class IPAServer:
             member = self.get_entry_by_dn(member_dn, ['dn','uid'], opts)
             if member.get('uid') == "admin":
                 raise ipaerror.gen_exception(ipaerror.INPUT_ADMIN_REQUIRED_IN_ADMINS)
+        logging.info("IPA: remove_member_from_group '%s' from '%s'" % (member_dn, group_dn))
         new_group = copy.deepcopy(old_group)
 
         if new_group.get('member') is not None:
@@ -1498,6 +1515,7 @@ class IPAServer:
         if not isinstance(group_dn,basestring) or len(group_dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
+        logging.info("IPA: remove_members_from_group '%s'" % group_dn)
         failed = []
 
         if (isinstance(member_dns,basestring)):
@@ -1528,6 +1546,7 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if not isinstance(group_dn,basestring) or len(group_dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        logging.info("IPA: add_user_to_group '%s' to '%s'" % (user_uid, group_dn))
 
         user = self.get_user_by_uid(user_uid, ['dn', 'uid', 'objectclass'], opts)
         if user is None:
@@ -1544,6 +1563,7 @@ class IPAServer:
         if not isinstance(group_dn,basestring) or len(group_dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
+        logging.info("IPA: add_users_to_group '%s'" % group_dn)
         failed = []
 
         if (isinstance(user_uids,basestring)):
@@ -1569,6 +1589,7 @@ class IPAServer:
         if not isinstance(group_dn,basestring) or len(group_dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
+        logging.info("IPA: remove_user_from_group '%s' from '%s'" % (user_uid, group_dn))
         user = self.get_user_by_uid(user_uid, ['dn', 'uid', 'objectclass'], opts)
         if user is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
@@ -1584,6 +1605,7 @@ class IPAServer:
         if not isinstance(group_dn,basestring) or len(group_dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
+        logging.info("IPA: remove_users_from_group '%s'" % group_dn)
         failed = []
 
         if (isinstance(user_uids,basestring)):
@@ -1611,6 +1633,7 @@ class IPAServer:
         if not isinstance(user_dn,basestring) or len(user_dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
+        logging.info("IPA: add_groups_to_user '%s'" % user_dn)
         failed = []
 
         if (isinstance(group_dns, basestring)):
@@ -1638,6 +1661,7 @@ class IPAServer:
         if not isinstance(user_dn,basestring) or len(user_dn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
 
+        logging.info("IPA: remove_groups_from_user '%s'" % user_dn)
         failed = []
 
         if (isinstance(group_dns,basestring)):
@@ -1684,6 +1708,7 @@ class IPAServer:
             if oldentry is None:
                 raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
 
+        logging.info("IPA: update_group '%s'" % oldentry.get('cn'))
         newrdn = 0
 
         oldcn=oldentry.get('cn')
@@ -1754,6 +1779,7 @@ class IPAServer:
         group = self.get_entry_by_dn(group_dn, ['dn', 'cn'], opts)
         if group is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+        logging.info("IPA: delete_group '%s'" % group_dn)
 
         # We have 2 special groups, don't allow them to be removed
         if "admins" in group.get('cn') or "editors" in group.get('cn'):
@@ -1786,6 +1812,7 @@ class IPAServer:
         old_group = self.get_entry_by_dn(tgroup, None, opts)
         if old_group is None:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND)
+        logging.info("IPA: add_group_to_group '%s' to '%s'" % (group, tgroup))
         new_group = copy.deepcopy(old_group)
 
         group_dn = self.get_entry_by_dn(group, ['dn', 'cn', 'objectclass'], opts)
@@ -1810,6 +1837,7 @@ class IPAServer:
            labels."""
         if not (isinstance(attr_list,list)):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        logging.info("IPA: attrs_to_labels")
 
         label_list = {}
 
@@ -1822,6 +1850,7 @@ class IPAServer:
         """We have a list of hardcoded attributes -> readable labels. Return
            that complete list if someone wants it.
         """
+        logging.info("IPA: get_all_attrs")
 
         return attrs.attr_label_list
 
@@ -1847,10 +1876,9 @@ class IPAServer:
             membertype = 0
         if membertype < 0 or membertype > 3:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        logging.info("IPA: group_members '%s' %d" % (groupdn, membertype))
         config = self.get_ipa_config(opts)
         timelimit = float(config.get('ipasearchtimelimit'))
-
-        logging.debug("IPA: group_members: %s %s %s" % (groupdn, attr_list, membertype))
 
         sizelimit = int(config.get('ipasearchrecordslimit'))
 
@@ -1912,6 +1940,7 @@ class IPAServer:
 
         if not isinstance(cn,basestring) or len(cn) == 0:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+        logging.info("IPA: mark_group_active '%s'" % cn)
         group = self.get_entry_by_cn(cn, ['dn', 'cn'], opts)
         return self.mark_entry_active(group.get('dn'))
 
@@ -1922,6 +1951,7 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if cn == "admins" or cn == "editors":
             raise ipaerror.gen_exception(ipaerror.INPUT_CANT_INACTIVATE)
+        logging.info("IPA: mark_group_inactive '%s'" % cn)
         group = self.get_entry_by_cn(cn, ['dn', 'uid'], opts)
         return self.mark_entry_inactive(group.get('dn'))
 
@@ -1949,7 +1979,7 @@ class IPAServer:
             f = int(force)
         except ValueError:
             f = 1
-        logging.debug("IPA: add service principal %s (%d)" % (name, f))
+        logging.info("IPA: add_service_principal '%s' (%d)" % (name, f))
 
         # Break down the principal into its component parts, which may or
         # may not include the realm.
@@ -1972,10 +2002,10 @@ class IPAServer:
             fqdn = hostname + "."
             rs = dnsclient.query(fqdn, dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
             if len(rs) == 0:
-                logging.debug("IPA: DNS A record lookup failed for %s" % hostname)
+                logging.debug("IPA: DNS A record lookup failed for '%s'" % hostname)
                 raise ipaerror.gen_exception(ipaerror.INPUT_NOT_DNS_A_RECORD)
             else:
-                logging.debug("IPA: found %d records for %s" % (len(rs), hostname))
+                logging.debug("IPA: found %d records for '%s'" % (len(rs), hostname))
 
         service_container = DefaultServiceContainer
 
@@ -2018,6 +2048,7 @@ class IPAServer:
         dn_list = ldap.explode_dn(entry['dn'].lower())
         if "cn=kerberos" in dn_list:
             raise ipaerror.gen_exception(ipaerror.INPUT_SERVICE_PRINCIPAL_REQUIRED)
+        logging.info("IPA: delete_service_principal '%s'" % principal)
 
         conn = self.getConnection(opts)
         try:
@@ -2046,6 +2077,7 @@ class IPAServer:
             sizelimit = int(config.get('ipasearchrecordslimit'))
 
         search_fields = ["krbprincipalname"]
+        logging.info("IPA: find_service_principal '%s'" % criteria)
 
         criteria = self.__safe_filter(criteria)
         criteria = criteria.lower()
