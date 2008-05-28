@@ -317,7 +317,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	LDAP *ld = NULL;
 	BerElement *ctrl = NULL;
 	BerElement *sctrl = NULL;
-	struct berval control;
+	struct berval *control = NULL;
 	struct berval newpw;
 	char hostname[1024];
 	struct berval **ncvals;
@@ -485,7 +485,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	/* perform password change */
 	ret = ldap_extended_operation(ld,
 					LDAP_EXOP_MODIFY_PASSWD,
-					&control, NULL, NULL,
+					control, NULL, NULL,
 					&msgid);
 	if (ret != LDAP_SUCCESS) {
 		syslog(LOG_ERR, "ldap_extended_operation() failed. (%d)", ret);
@@ -635,6 +635,7 @@ done:
 	if (sctrl) ber_free(sctrl, 1);
 	if (srvctrl) ldap_controls_free(srvctrl);
 	if (res) ldap_msgfree(res);
+	if (control) ber_bvfree(control);
 	free(exterr1);
 	free(exterr2);
 	free(userdn);
