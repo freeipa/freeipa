@@ -25,6 +25,7 @@ app_DATA =			\
 	ipapolicyshow.kid	\
 	loginfailed.kid		\
 	master.kid		\
+	not_found.kid		\
 	policyindex.kid		\
 	policylayout.kid	\
 	principallayout.kid	\
