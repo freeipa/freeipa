@@ -45,6 +45,7 @@
 #include <ldap.h>
 #endif
 #include <sasl/sasl.h>
+#include <ifaddrs.h>
 
 #define DEFAULT_KEYTAB "FILE:/var/kerberos/krb5kdc/kpasswd.keytab"
 #define TMP_TEMPLATE "/var/cache/ipa/kpasswd/krb5_cc.XXXXXX"
@@ -70,6 +71,14 @@ struct blacklist {
 };
 
 static struct blacklist *global_blacklist = NULL;
+
+struct socklist {
+	int fd;
+	int socktype;
+	int dest_addr_len;
+	struct sockaddr_storage dest_addr;
+	struct socklist *next;
+};
 
 int check_blacklist(char *address)
 {
@@ -648,6 +657,7 @@ done:
 }
 
 void handle_krb_packets(uint8_t *buf, ssize_t buflen,
+			struct socklist *sd,
 			struct sockaddr_storage *from,
 			uint8_t **repbuf, ssize_t *replen)
 {
@@ -656,7 +666,7 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	krb5_keytab keytab;
 	krb5_principal kprincpw;
 	krb5_ticket *ticket;
-	krb5_address **lkaddr, rkaddr;
+	krb5_address lkaddr, rkaddr;
 	krb5_data kreq, krep, kenc, kdec;
 	krb5_replay_data replay;
 	krb5_error krb5err;
@@ -680,20 +690,31 @@ void handle_krb_packets(uint8_t *buf, ssize_t buflen,
 	kprincpw = NULL;
 	context = NULL;
 	ticket = NULL;
-	lkaddr = NULL;
 
 	switch(((struct sockaddr *)from)->sa_family) {
 	case AF_INET:
+		lkaddr.addrtype = ADDRTYPE_INET;
+		lkaddr.length = sizeof(((struct sockaddr_in *)&sd->dest_addr)->sin_addr);
+		lkaddr.contents = (krb5_octet *) &(((struct sockaddr_in *)&sd->dest_addr)->sin_addr);
+
 		rkaddr.addrtype = ADDRTYPE_INET;
 		rkaddr.length = sizeof(((struct sockaddr_in *)from)->sin_addr);
 		rkaddr.contents = (krb5_octet *) &(((struct sockaddr_in *)from)->sin_addr);
 		break;
 	case AF_INET6:
 		if (IN6_IS_ADDR_V4MAPPED (&((struct sockaddr_in6 *)from)->sin6_addr)) {
+			lkaddr.addrtype = ADDRTYPE_INET;
+			lkaddr.length = 4;
+			lkaddr.contents = 12 + (krb5_octet *) &(((struct sockaddr_in6 *)&sd->dest_addr)->sin6_addr);
+
 			rkaddr.addrtype = ADDRTYPE_INET;
 			rkaddr.length = 4;
 			rkaddr.contents = 12 + (krb5_octet *) &(((struct sockaddr_in6 *)from)->sin6_addr);
 		} else {
+			lkaddr.addrtype = ADDRTYPE_INET6;
+			lkaddr.length = sizeof(((struct sockaddr_in6 *)&sd->dest_addr)->sin6_addr);
+			lkaddr.contents = (krb5_octet *) &(((struct sockaddr_in6 *)&sd->dest_addr)->sin6_addr);
+
 			rkaddr.addrtype = ADDRTYPE_INET6;
 			rkaddr.length = sizeof(((struct sockaddr_in6 *)from)->sin6_addr);
 			rkaddr.contents = (krb5_octet *) &(((struct sockaddr_in6 *)from)->sin6_addr);
@@ -890,16 +911,7 @@ kpreply:
 	kdec.data[1] = result_err & 0xff;
 	memcpy(&kdec.data[2], result_string, strlen(result_string));
 
-	/* we listen on ANYADDR, use this retrieve the right address */
-        krberr = krb5_os_localaddr(context, &lkaddr);
-	if (krberr) {
-		result_string = strdup("Failed to retrieve local address");
-		syslog(LOG_ERR, "%s: %s", result_string, 
-			krb5_get_error_message(context, krberr));
-		goto done;
-	}
-
-	krberr = krb5_auth_con_setaddrs(context, auth_context, lkaddr[0], NULL);
+	krberr = krb5_auth_con_setaddrs(context, auth_context, &lkaddr, NULL);
 	if (krberr) {
 		result_string = strdup("Failed to set local address");
 		syslog(LOG_ERR, "%s: %s", result_string, 
@@ -973,11 +985,10 @@ done:
 	if (krep.length) free(krep.data);
 	if (ticket) krb5_free_ticket(context, ticket);
 	if (kdec.length) free(kdec.data);
-	if (lkaddr) krb5_free_addresses(context, lkaddr);
 	if (context) krb5_free_context(context);
 }
 
-pid_t handle_conn(int fd, int type)
+pid_t handle_conn(struct socklist *sd)
 {
 	int mfd, tcp;
 	pid_t pid;
@@ -990,14 +1001,15 @@ pid_t handle_conn(int fd, int type)
 	struct sockaddr_storage from;
 	socklen_t fromlen;
 	ssize_t sendret;
+	int ret;
 
 	fromlen = sizeof(from);
 	tcp = 0;
 
 	/* receive request */
-	if (type == SOCK_STREAM) {
+	if (sd->socktype == SOCK_STREAM) {
 		tcp = 1;
-		mfd = accept(fd, (struct sockaddr *)&from, &fromlen);
+		mfd = accept(sd->fd, (struct sockaddr *)&from, &fromlen);
 		if (mfd == -1) {
 			syslog(LOG_ERR, "Accept failed with error (%d) %s",
 				errno, strerror(errno));
@@ -1005,7 +1017,7 @@ pid_t handle_conn(int fd, int type)
 		}
 	} else {
 		/* read first to empty the buffer on udp connections */
-		reqlen = recvfrom(fd, request, sizeof(request), 0,
+		reqlen = recvfrom(sd->fd, request, sizeof(request), 0,
 				   (struct sockaddr *)&from, &fromlen);
 		if (reqlen <= 0) {
 			syslog(LOG_ERR, "Error receiving request (%d) %s",
@@ -1015,9 +1027,13 @@ pid_t handle_conn(int fd, int type)
 
 	}
 
-	(void) getnameinfo((struct sockaddr *)&from, fromlen,
+	ret = getnameinfo((struct sockaddr *)&from, fromlen,
 			  addrto6, INET6_ADDRSTRLEN+1,
 			  NULL, 0, NI_NUMERICHOST);
+	if (ret) {
+		syslog(LOG_ERR, "Error retrieving host address\n");
+		return -1;
+	}
 
 	if (debug > 0) {
 		syslog(LOG_ERR, "Connection from %s", addrto6);
@@ -1084,16 +1100,16 @@ pid_t handle_conn(int fd, int type)
 	 * this information seem to be just redundant, so let's simply
 	 * skip it */
         if (tcp) {
-		handle_krb_packets(request+4, reqlen-4, &from, &reply, &replen);
+		handle_krb_packets(request+4, reqlen-4, sd, &from, &reply, &replen);
 	} else {
-		handle_krb_packets(request, reqlen, &from, &reply, &replen);
+		handle_krb_packets(request, reqlen, sd, &from, &reply, &replen);
 	}
 
 	if (replen) { /* we have something to reply */
 		if (tcp) {
 			sendret = sendto(mfd, reply, replen, 0, NULL, 0);
 		} else {
-			sendret = sendto(fd, reply, replen, 0, (struct sockaddr *)&from, fromlen);
+			sendret = sendto(sd->fd, reply, replen, 0, (struct sockaddr *)&from, fromlen);
 		}
 		if (sendret == -1) {
 			syslog(LOG_ERR, "Error sending reply (%d)", errno);
@@ -1103,15 +1119,99 @@ pid_t handle_conn(int fd, int type)
 	exit(0);
 }
 
-/* TODO: make this IPv6 aware */
+static int create_socket(struct addrinfo *ai, struct socklist **_sds,
+			 struct pollfd **_pfds, int *_nfds)
+{
+	struct socklist *csd, *tsd;
+	struct pollfd *pfds;
+	int nfds;
+	int ret;
+	int tru = 1;
+
+	pfds = *_pfds;
+	nfds = *_nfds;
+
+	csd = calloc(1, sizeof(struct socklist));
+	if (csd == NULL) {
+		syslog(LOG_ERR, "Out of memory, can't create socklist\n");
+		return 1;
+	}
+	csd->socktype = ai->ai_socktype;
+	csd->dest_addr_len = ai->ai_addrlen;
+	memcpy(&csd->dest_addr, ai->ai_addr, ai->ai_addrlen);
+
+	csd->fd = socket(csd->dest_addr.ss_family, csd->socktype, 0);
+	if (csd->fd == -1) {
+		syslog(LOG_ERR, "Unable to create socket (%s)",
+		       strerror(errno));
+		goto errout;
+	}
+	ret = setsockopt(csd->fd, SOL_SOCKET, SO_REUSEADDR,
+			 (void *)&tru, sizeof(tru));
+
+	ret = bind(csd->fd, (struct sockaddr *)&csd->dest_addr, csd->dest_addr_len);
+	if (ret) {
+		if (errno != EADDRINUSE) {
+			syslog(LOG_ERR, "Unable to bind to socket");
+			close(csd->fd);
+			goto errout;
+		}
+		/* if EADDRINUSE it means we are on a machine
+		 * with a dual ipv4/ipv6 stack that does not
+		 * allow to bind on both at the same time as the
+		 * ipv6 bind already allows connections on ipv4
+		 * Just ignore */
+		close(csd->fd);
+		free(csd);
+		return 0;
+	}
+
+	if (csd->socktype == SOCK_STREAM) {
+		ret = listen(csd->fd, SOMAXCONN);
+		if (ret) {
+			syslog(LOG_ERR, "Unable to listen to TCP socket (%s)",
+			       strerror(errno));
+			close(csd->fd);
+			goto errout;
+		}
+	}
+
+	pfds = realloc(pfds, sizeof(struct pollfd) * (nfds +1));
+	if (pfds == NULL) {
+		syslog(LOG_ERR, "Out of memory, can't alloc pollfd array\n");
+		close(csd->fd);
+		goto errout;
+	}
+	pfds[nfds].events = POLLIN;
+	pfds[nfds].fd = csd->fd;
+	nfds++;
+
+	if (*_sds) {
+		for (tsd = *_sds; tsd->next; tsd = tsd->next) /* skip */ ;
+		tsd->next = csd;
+	} else {
+		*_sds = csd;
+	}
+
+	*_pfds = pfds;
+	*_nfds = nfds;
+
+	return 0;
+
+errout:
+	free(csd);
+	return 1;
+}
 
 int main(int argc, char *argv[])
 {
 	pid_t pid;
+	struct ifaddrs *ifa, *tifa;
 	struct addrinfo *ai, *tai;
 	struct addrinfo hints;
-	struct pollfd pfds[4];
-	int pfdtype[4];
+	char host[NI_MAXHOST];
+	struct socklist *sds, *csd;
+	struct pollfd *pfds;
 	int nfds;
 	int ret;
 	char *env;
@@ -1169,13 +1269,9 @@ int main(int argc, char *argv[])
 		debug = strtol(env, NULL, 0);
 	}
 
-	/* set hints */
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
-
-	ret = getaddrinfo (NULL, "kpasswd", &hints, &ai);
+	ret = getifaddrs(&ifa);
 	if (ret) {
-		syslog(LOG_ERR, "getaddrinfo failed: %s", gai_strerror(ret));
+		syslog(LOG_ERR, "getifaddrs failed: %s", gai_strerror(ret));
 		exit(1);
 	}
 
@@ -1189,52 +1285,59 @@ int main(int argc, char *argv[])
 			fail = 0;
 	}
 	if (fail) {
-		syslog(LOG_ERR,"Couldn't create pid file %s: %s",
+		syslog(LOG_ERR, "Couldn't create pid file %s: %s",
 		       pid_file, strerror(errno));
 		exit(1);
 	}
 
-	tai = ai;
 	nfds = 0;
-	/* we can have a maximum of 4 sockets (IPv4/IPv6(TCP/UDP)) */
-	for (tai = ai; tai != NULL && nfds < 4; tai = tai->ai_next) {
-		int tru = 1;
+	pfds = NULL;
+	sds = NULL;
 
-		pfds[nfds].fd = socket( tai->ai_family,
-					tai->ai_socktype,
-					tai->ai_protocol);
-		if (pfds[nfds].fd == -1) {
-			syslog(LOG_ERR, "Unable to create socket (%d)", nfds);
-			exit(1);
+	for (tifa = ifa; tifa; tifa = tifa->ifa_next) {
+
+		if (tifa->ifa_addr->sa_family != PF_INET &&
+		    tifa->ifa_addr->sa_family != AF_INET6) {
+			/* not interesting for us */
+			continue;
 		}
-		pfds[nfds].events = POLLIN;
-		ret = setsockopt(pfds[nfds].fd, SOL_SOCKET, SO_REUSEADDR,
-				 (void *)&tru, sizeof(tru));
 
-
-		ret = bind(pfds[nfds].fd, tai->ai_addr, tai->ai_addrlen);
+		ret = getnameinfo(tifa->ifa_addr, sizeof(struct sockaddr_storage),
+				  host, sizeof(host), NULL, 0, NI_NUMERICHOST);
 		if (ret) {
-			if (errno != EADDRINUSE) {
-				syslog(LOG_ERR, "Unable to bind to socket");
-				exit(1);
-			}
-			/* if EADDRINUSE it means we are on a machine
-			 * with a dual ipv4/ipv6 stack that does not
-			 * allow to bind on both at the same time as the
-			 * ipv6 bind already allows connections on ipv4
-			 * Just ignore */
-			close(pfds[nfds].fd);
+			syslog(LOG_ERR, "Error converting address (%d)",
+				gai_strerror(ret));
+			continue;
 		} else {
-			if (tai->ai_socktype == SOCK_STREAM) {
-				ret = listen(pfds[nfds].fd, SOMAXCONN);
-				if (ret) {
-					syslog(LOG_ERR, "Unable to listen to socket");
-					exit(1);
-				}
-			} 
-			pfdtype[nfds] = tai->ai_socktype;
-			nfds++;
+			syslog(LOG_INFO, "Setting up socket for [%s]", host);
 		}
+
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_flags = AI_NUMERICHOST;
+		hints.ai_family = AF_UNSPEC;
+
+		/* this shoud return 2 entries, one for UDP and one for TCP */
+		ret = getaddrinfo(host, "kpasswd", &hints, &ai);
+		if (ret) {
+			syslog(LOG_ERR, "Error getting address info (%d) for [%s]",
+				gai_strerror(ret), host);
+			continue;
+		}
+
+		for (tai = ai; tai; tai = tai->ai_next) {
+			char *socktype = (tai->ai_socktype==SOCK_STREAM)?"TCP":"UDP";
+			ret = create_socket(tai, &sds, &pfds, &nfds);
+			if (ret) {
+				syslog(LOG_ERR,
+				       "Failed to set up %s socket for [%s]",
+				       socktype, host);
+			}
+		}
+	}
+
+	if (nfds == 0) {
+		syslog(LOG_ERR, "Failed to setup any socket. Aborting");
+		exit(1);
 	}
 
 	/* now that sockets are set up, enter the poll loop */
@@ -1258,7 +1361,11 @@ int main(int argc, char *argv[])
 		default:
 			for (i = 0; i < nfds; i++) {
 				if (pfds[i].revents & POLLIN) {
-					handle_conn(pfds[i].fd, pfdtype[i]);
+					for (csd = sds; csd; csd = csd->next) {
+						if (csd->fd == pfds[i].fd) {
+							handle_conn(csd);
+						}
+					}
 				}
 			}
 		}
