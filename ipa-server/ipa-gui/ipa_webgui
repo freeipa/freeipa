@@ -140,11 +140,13 @@ def main():
 
     if devel:
         logging.basicConfig(level=loglevel,
+                            format='%(asctime)s %(name)s %(levelname)s %(message)s',
                             stream=sys.stderr)
     else:
         # This log file name needs to be kept in sync with the one in
         # ipa_webgui.cfg
         logging.basicConfig(level=loglevel,
+                            format='%(asctime)s %(name)s %(levelname)s %(message)s',
                             filename='/var/log/ipa_error.log')
 
     sys.path.append("/usr/share/ipa")
@@ -158,6 +160,11 @@ def main():
     from turbogears.config import update
     import cherrypy
     cherrypy.lowercase_api = True
+
+    # Shut down the logging set up here so that CherryPy logging can take
+    # over. TurboGears configuration errors will not be caught.
+    if not devel:
+        logging.shutdown()
 
     # Load the config - look for a local file first for development
     # and then the system config file

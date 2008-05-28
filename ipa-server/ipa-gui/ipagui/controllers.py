@@ -84,11 +84,14 @@ class Root(controllers.RootController):
         """This method is derived from the sample error catcher on
            http://docs.turbogears.org/1.0/ErrorReporting."""
         try:
-            cherrypy._cputil._cp_on_http_error(status, message)
             error_msg = self._error_codes.get(status, self._error_codes[None])
             url = "%s %s" % (cherrypy.request.method, cherrypy.request.path)
-            log.exception("CherryPy %s error (%s) for request '%s'", status,
-                          error_msg, url)
+            if (status == 500):
+                log.exception("%s error (%s) for request '%s'", status,
+                              error_msg, url)
+            else:
+                log.error("%s error (%s) for request '%s'", status,
+                              error_msg, url)
 
             if config.get('server.environment') == 'production':
                 details = ''
@@ -106,9 +109,14 @@ class Root(controllers.RootController):
                 details = details,
             )
 
+            if status == 404:
+                page_template = 'ipagui.templates.not_found'
+            else:
+                page_template = 'ipagui.templates.unhandled_exception'
+
             body = controllers._process_output(
                 data,
-                'ipagui.templates.unhandled_exception',
+                page_template,
                 'html',
                 'text/html',
                 None
