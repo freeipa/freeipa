@@ -307,7 +307,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	LDAP *ld = NULL;
 	BerElement *ctrl = NULL;
 	BerElement *sctrl = NULL;
-	struct berval control;
+	struct berval *control = NULL;
 	struct berval newpw;
 	char hostname[1024];
 	char *ldap_uri = NULL;
@@ -473,7 +473,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 		   LDAP_TAG_EXOP_MODIFY_PASSWD_ID, userdn,
 		   LDAP_TAG_EXOP_MODIFY_PASSWD_NEW, &newpw);
 
-	ret = ber_flatten2(ctrl, &control, 0);
+	ret = ber_flatten(ctrl, &control);
 	if (ret < 0) {
 		syslog(LOG_ERR, "ber flattening failed!");
 		goto done;
@@ -482,7 +482,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 	/* perform password change */
 	ret = ldap_extended_operation(ld,
 					LDAP_EXOP_MODIFY_PASSWD,
-					&control, NULL, NULL,
+					control, NULL, NULL,
 					&msgid);
 	if (ret != LDAP_SUCCESS) {
 		syslog(LOG_ERR, "ldap_extended_operation() failed. (%d)", ret);
@@ -632,6 +632,7 @@ done:
 	if (sctrl) ber_free(sctrl, 1);
 	if (srvctrl) ldap_controls_free(srvctrl);
 	if (res) ldap_msgfree(res);
+	if (control) ber_bvfree(control);
 	if (exterr1) free(exterr1);
 	if (exterr2) free(exterr2);
 	if (userdn) free(userdn);
