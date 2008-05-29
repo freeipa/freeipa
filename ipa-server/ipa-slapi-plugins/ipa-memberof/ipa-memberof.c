@@ -93,7 +93,7 @@ typedef struct _ipamostringll
 
 
 /****** secrets *********/
-
+#ifndef SLAPI_TASK_PUBLIC
 /*from FDS slap.h
  * until we get a proper api for access
  */
@@ -131,6 +131,58 @@ struct _slapi_task {
 	int task_refcount;
 };
 
+static void slapi_task_set_data(Slapi_Task *task, void *data)
+{
+    if (task) {
+        task->task_private = data;
+    }
+}
+
+/*
+ * Retrieve some opaque task specific data from the task.
+ */
+static void * slapi_task_get_data(Slapi_Task *task)
+{
+    if (task) {
+        return task->task_private;
+    }
+}
+
+static void slapi_task_begin(Slapi_Task *task, int total_work)
+{
+    if (task) {
+        task->task_work = total_work;
+        task->task_progress = 0;
+        task->task_state = SLAPI_TASK_RUNNING;
+        slapi_task_status_changed(task);
+    }
+}
+
+static void slapi_task_inc_progress(Slapi_Task *task)
+{
+    if (task) {
+        task->task_progress++;
+        slapi_task_status_changed(task);
+    }
+}
+
+static void slapi_task_finish(Slapi_Task *task, int rc)
+{
+    if (task) {
+        task->task_exitcode = rc;
+        task->task_state = SLAPI_TASK_FINISHED;
+        slapi_task_status_changed(task);
+    }
+}
+
+static void slapi_task_set_destructor_fn(Slapi_Task *task, TaskCallbackFn func)
+{
+    if (task) {
+        task->destructor = func;
+    }
+}
+
+#endif /* !SLAPI_TASK_PUBLIC */
 /****** secrets ********/
 
 
@@ -193,6 +245,7 @@ static int ipamo_add_membership(Slapi_PBlock *pb, char *op_this, char *op_to);
 static int ipamo_task_add(Slapi_PBlock *pb, Slapi_Entry *e,
                     Slapi_Entry *eAfter, int *returncode, char *returntext,
                     void *arg);
+static void ipamo_task_destructor(Slapi_Task *task);
 static const char *fetch_attr(Slapi_Entry *e, const char *attrname,
                                               const char *default_val);
 static void ipamo_memberof_fixup_task_thread(void *arg);
@@ -1889,21 +1942,18 @@ typedef struct _task_data
 {
 	char *dn;
 	char *filter_str;
-	Slapi_Task *task;
 } task_data;
 
 void ipamo_memberof_fixup_task_thread(void *arg)
 {
-	task_data *td = (task_data *)arg;
-	Slapi_Task *task = td->task;
+	Slapi_Task *task = (Slapi_Task *)arg;
+	task_data *td = NULL;
 	int rc = 0;
 
-	task->task_work = 1;
-	task->task_progress = 0;
-	task->task_state = SLAPI_TASK_RUNNING;
+	/* Fetch our task data from the task */
+	td = (task_data *)slapi_task_get_data(task);
 
-	slapi_task_status_changed(task);
-
+	slapi_task_begin(task, 1);
 	slapi_task_log_notice(task, "Memberof task starts (arg: %s) ...\n", 
 								td->filter_str);
 
@@ -1912,20 +1962,10 @@ void ipamo_memberof_fixup_task_thread(void *arg)
 
 	slapi_task_log_notice(task, "Memberof task finished.");
 	slapi_task_log_status(task, "Memberof task finished.");
+	slapi_task_inc_progress(task);
 
-	task->task_progress = 1;
-	task->task_exitcode = rc;
-	task->task_state = SLAPI_TASK_FINISHED;
-	slapi_task_status_changed(task);
-
-	slapi_ch_free_string(&td->dn);
-	slapi_ch_free_string(&td->filter_str);
-
-	{
-		/* make the compiler happy */
-		void *ptd = td;
-		slapi_ch_free(&ptd);
-	}
+	/* this will queue the destruction of the task */
+	slapi_task_finish(task, rc);
 }
 
 /* extract a single value from the entry (as a string) -- if it's not in the
@@ -1971,13 +2011,7 @@ int ipamo_task_add(Slapi_PBlock *pb, Slapi_Entry *e,
 		goto out;
 	}
 
-	/* allocate new task now */
-	task = slapi_new_task(slapi_entry_get_ndn(e));
-	task->task_state = SLAPI_TASK_SETUP;
-	task->task_work = 1;
-	task->task_progress = 0;
-
-	/* create a pblock to pass the necessary info to the task thread */
+	/* setup our task data */
 	mytaskdata = (task_data*)slapi_ch_malloc(sizeof(task_data));
 	if (mytaskdata == NULL)
 	{
@@ -1987,11 +2021,19 @@ int ipamo_task_add(Slapi_PBlock *pb, Slapi_Entry *e,
 	}
 	mytaskdata->dn = slapi_ch_strdup(dn);
 	mytaskdata->filter_str = slapi_ch_strdup(filter);
-	mytaskdata->task = task;
+
+	/* allocate new task now */
+	task = slapi_new_task(slapi_entry_get_ndn(e));
+
+	/* register our destructor for cleaning up our private data */
+	slapi_task_set_destructor_fn(task, ipamo_task_destructor);
+
+	/* Stash a pointer to our data in the task */
+	slapi_task_set_data(task, mytaskdata);
 
 	/* start the sample task as a separate thread */
 	thread = PR_CreateThread(PR_USER_THREAD, ipamo_memberof_fixup_task_thread,
-		(void *)mytaskdata, PR_PRIORITY_NORMAL, PR_GLOBAL_THREAD,
+		(void *)task, PR_PRIORITY_NORMAL, PR_GLOBAL_THREAD,
 		PR_UNJOINABLE_THREAD, SLAPD_DEFAULT_THREAD_STACKSIZE);
 	if (thread == NULL)
 	{
@@ -1999,26 +2041,27 @@ int ipamo_task_add(Slapi_PBlock *pb, Slapi_Entry *e,
 			"unable to create task thread!\n");
 		*returncode = LDAP_OPERATIONS_ERROR;
 		rv = SLAPI_DSE_CALLBACK_ERROR;
-
-		slapi_ch_free_string(&mytaskdata->dn);
-		slapi_ch_free_string(&mytaskdata->filter_str);
-
-		{
-			void *ptask = mytaskdata;
-			slapi_ch_free(&ptask);
-			goto out;
-		}
+		slapi_task_finish(task, *returncode);
+	} else {
+		rv = SLAPI_DSE_CALLBACK_OK;
 	}
-
-	/* thread successful -- don't free the pb, let the thread do that. */
-	return SLAPI_DSE_CALLBACK_OK;
 
 out:
-	if (task)
-	{
-		slapi_destroy_task(task);
-	}
 	return rv;
+}
+
+void
+ipamo_task_destructor(Slapi_Task *task)
+{
+	if (task) {
+		task_data *mydata = (task_data *)slapi_task_get_data(task);
+		if (mydata) {
+			slapi_ch_free_string(&mydata->dn);
+			slapi_ch_free_string(&mydata->filter_str);
+			/* Need to cast to avoid a compiler warning */
+			slapi_ch_free((void **)&mydata);
+		}
+	}
 }
 
 int ipamo_fix_memberof(char *dn, char *filter_str)
