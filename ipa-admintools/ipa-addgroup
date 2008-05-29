@@ -107,7 +107,7 @@ def main():
     group.setValue('cn', cn)
     group.setValue('description', desc)
 
-    client = ipaclient.IPAClient()
+    client = ipaclient.IPAClient(verbose=options.verbose)
     client.add_group(group)
     print cn + " successfully added"
 

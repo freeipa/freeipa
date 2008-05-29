@@ -66,7 +66,7 @@ def main():
     if options.usage or len(args) != 2:
         usage()
 
-    client = ipaclient.IPAClient()
+    client = ipaclient.IPAClient(verbose=options.verbose)
     aci_entry = client.get_aci_entry(aci_fields)
 
     aci_str_list = aci_entry.getValues('aci')

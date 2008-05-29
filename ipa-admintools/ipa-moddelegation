@@ -75,7 +75,7 @@ def main():
     options, args = parse_options()
 
     if options.list:
-        client = ipaclient.IPAClient()
+        client = ipaclient.IPAClient(verbose=options.verbose)
         l = client.get_all_attrs()
 
         for x in l:

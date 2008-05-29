@@ -116,7 +116,7 @@ def main():
         print "Password change cancelled"
         return 1
 
-    client = ipaclient.IPAClient()
+    client = ipaclient.IPAClient(verbose=options.verbose)
     client.modifyPassword(principal, '', password)
 
     return 0

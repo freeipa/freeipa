@@ -221,7 +221,7 @@ def main():
     if shell:
         user.setValue('loginshell', shell)
 
-    client = ipaclient.IPAClient()
+    client = ipaclient.IPAClient(verbose=options.verbose)
     client.add_user(user)
 
     # Set the User's password

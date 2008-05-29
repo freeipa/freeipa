@@ -60,7 +60,7 @@ def main():
     if options.usage or len(args) != 2:
         usage()
 
-    client = ipaclient.IPAClient()
+    client = ipaclient.IPAClient(verbose=options.verbose)
     groups = client.find_groups(args[1], ['cn','description','gidnumber','nsAccountLock'])
 
     counter = groups[0]

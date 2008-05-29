@@ -60,7 +60,7 @@ def main():
     if options.usage or len(args) != 2:
         usage()
 
-    client = ipaclient.IPAClient()
+    client = ipaclient.IPAClient(verbose=options.verbose)
     ret = client.delete_user(args[1])
     print args[1] + " successfully deleted"
 

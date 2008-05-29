@@ -74,7 +74,7 @@ def main():
         usage()
     princ_name = args[1]
 
-    client = ipaclient.IPAClient()
+    client = ipaclient.IPAClient(verbose=options.verbose)
 
     client.add_service_principal(princ_name, "%d" % options.force)
 
