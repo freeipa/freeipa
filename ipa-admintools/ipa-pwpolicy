@@ -116,7 +116,7 @@ def main():
     if options.usage:
         usage()
 
-    client = ipaclient.IPAClient()
+    client = ipaclient.IPAClient(verbose=options.verbose)
 
     if options.show: 
         show_policy(client)

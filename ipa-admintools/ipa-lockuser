@@ -63,7 +63,7 @@ def main():
         usage()
 
     msg = "inactivated"
-    client = ipaclient.IPAClient()
+    client = ipaclient.IPAClient(verbose=options.verbose)
     if options.unlock:
         try:
             ret = client.mark_user_active(args[1])

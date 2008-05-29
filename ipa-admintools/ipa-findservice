@@ -63,7 +63,7 @@ def main():
     if options.usage or len(args) != 2:
         usage()
 
-    client = ipaclient.IPAClient()
+    client = ipaclient.IPAClient(verbose=options.verbose)
     hosts = client.find_service_principal(args[1], sattrs=None)
 
     counter = hosts[0]
