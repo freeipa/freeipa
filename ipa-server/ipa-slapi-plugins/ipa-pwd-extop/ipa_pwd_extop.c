@@ -1643,7 +1643,6 @@ static int ipapwd_SetPassword(struct ipapwd_data *data)
 	struct ntlm_keys ntlm;
 	int ntlm_flags = 0;
 	Slapi_Value *sambaSamAccount;
-	char *userpwd;
 
 	krberr = krb5_init_context(&krbctx);
 	if (krberr) {
@@ -1713,15 +1712,10 @@ static int ipapwd_SetPassword(struct ipapwd_data *data)
 		free(password);
 	}
 
-	/* use the default configured encoding */
-	userpwd = slapi_encode(data->password, NULL);
-	if (!userpwd) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "failed to make userPassword hash\n");
-		ret = LDAP_OPERATIONS_ERROR;
-		goto free_and_return;
-	}
-
-	slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "userPassword", userpwd);
+	/* let DS encode the password itself, this allows also other plugins to
+	 * intercept it to perform operations like synchronization with Active
+	 * Directory domains through the replication plugin */
+	slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "userPassword", data->password);
 
 	/* set password history */
 	pwvals = ipapwd_setPasswordHistory(smods, data);
