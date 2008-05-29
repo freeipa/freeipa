@@ -535,7 +535,7 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         if sattrs is not None and not isinstance(sattrs,list):
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
-        logging.info("IPA: get_user_by_manager '%s'" % manager)
+        logging.info("IPA: get_user_by_manager '%s'" % manager_dn)
         manager_dn = self.__safe_filter(manager_dn)
         searchfilter = "(&(objectClass=person)(manager=%s))" % manager_dn
 
