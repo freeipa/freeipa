@@ -28,6 +28,14 @@ import service
 from ipa import sysrestore
 from ipa import ipautil
 
+def check_inst():
+    # So far this file is always present in both RHEL5 and Fedora if all the necessary
+    # bind packages are installed (RHEL5 requires also the pkg: caching-nameserver)
+    if not os.path.exists('/etc/named.rfc1912.zones'):
+         return False
+
+    return True
+
 class BindInstance(service.Service):
     def __init__(self, fstore=None):
         service.Service.__init__(self, "named")
@@ -51,14 +59,6 @@ class BindInstance(service.Service):
         self.host = fqdn.split(".")[0]
 
         self.__setup_sub_dict()
-
-    def check_inst(self):
-        # So far this file is always present in both RHEL5 and Fedora if all the necessary
-        # bind packages are installed (RHEL5 requires also the pkg: caching-nameserver)
-        if not os.path.exists('/etc/named.rfc1912.zones'):
-             return False
-
-        return True
 
     def create_sample_bind_zone(self):
         bind_txt = ipautil.template_file(ipautil.SHARE_DIR + "bind.zone.db.template", self.sub_dict)

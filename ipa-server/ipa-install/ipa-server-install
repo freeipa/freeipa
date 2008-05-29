@@ -365,9 +365,8 @@ def main():
     admin_password = ""
 
     # check bind packages are installed
-    bind = ipaserver.bindinstance.BindInstance()
     if options.setup_bind:
-        if not bind.check_inst():
+        if not ipaserver.bindinstance.check_inst():
             print "--setup-bind was specified but bind is not installed on the system"
             print "Please install bind and restart the setup program"
             return 1
@@ -502,6 +501,7 @@ def main():
     webgui = ipaserver.httpinstance.WebGuiInstance()
     webgui.create_instance()
 
+    bind = ipaserver.bindinstance.BindInstance(fstore)
     bind.setup(host_name, ip_address, realm_name, domain_name)
     if options.setup_bind:
         bind.create_instance()
