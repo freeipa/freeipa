@@ -26,7 +26,7 @@ import ipaserver.dsinstance
 import ipaserver.ipaldap
 import copy
 from ipaserver import attrs
-from ipaserver import version
+from ipa import version
 from ipa import ipaerror
 from ipa import ipautil
 from urllib import quote,unquote
@@ -386,8 +386,8 @@ class IPAServer:
 # Higher-level API
     def version(self, opts=None):
        """The version of IPA"""
-       logging.debug("IPA: version %d" % ipaserver.version.NUM_VERSION)
-       return ipaserver.version.NUM_VERSION
+       logging.debug("IPA: version %d" % version.NUM_VERSION)
+       return version.NUM_VERSION
 
     def get_aci_entry(self, sattrs, opts=None):
         """Returns the entry containing access control ACIs."""

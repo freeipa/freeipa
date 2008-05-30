@@ -13,7 +13,7 @@ install:
 	fi
 
 clean:
-	rm -f *~ *.pyc setup.py ipa-python.spec
+	rm -f *~ *.pyc setup.py ipa-python.spec version.py
 
 distclean: clean
 

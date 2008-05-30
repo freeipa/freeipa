@@ -22,4 +22,4 @@ VERSION="__VERSION__"
 
 # Just the numeric portion of the version so one can do direct numeric
 # comparisons to see if the API is compatible.
-NUM_VERSION="__NUM_VERSION__"
+NUM_VERSION=__NUM_VERSION__

@@ -44,7 +44,7 @@ import ipaserver.httpinstance
 import ipaserver.ntpinstance
 
 from ipaserver import service
-from ipaserver import version
+from ipa import version
 from ipaserver.installutils import *
 
 from ipa import sysrestore

@@ -19,10 +19,32 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-VERSION = "%prog .1"
+try:
+    import sys
+
+    import os
+    import krbV
+    import socket
+    import logging
+    from optparse import OptionParser
+    import ipaclient.ipadiscovery
+    import ipaclient.ipachangeconf
+    import ipaclient.ntpconf
+    from ipa.ipautil import run
+    from ipa import sysrestore
+    from ipa import version
+except ImportError:
+    print >> sys.stderr, """\
+There was a problem importing one of the required Python modules. The
+error was:
+
+    %s
+""" % sys.exc_value
+    sys.exit(1)
+
 
 def parse_options():
-    parser = OptionParser(version=VERSION)
+    parser = OptionParser(version=version.VERSION)
     parser.add_option("--domain", dest="domain", help="domain name")
     parser.add_option("--server", dest="server", help="IPA server")
     parser.add_option("--realm", dest="realm_name", help="realm name")
@@ -371,19 +393,9 @@ def main():
     return 0
 
 try:
-    import sys
-
-    import os
-    import krbV
-    import socket
-    import logging
-    from optparse import OptionParser
-    import ipaclient.ipadiscovery
-    import ipaclient.ipachangeconf
-    import ipaclient.ntpconf
-    from ipa.ipautil import run
-    from ipa import sysrestore
-
-    sys.exit(main())
+    if __name__ == "__main__":
+        sys.exit(main())
+except SystemExit, e:
+    sys.exit(e)
 except KeyboardInterrupt:
     sys.exit(1)
