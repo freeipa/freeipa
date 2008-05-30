@@ -44,8 +44,11 @@ error was:
     sys.exit(1)
 
 def usage():
-    print "ipa-adduser [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] [-s|--shell] [-g|--groups] [-k|krb-principal [-M|mailAddress] [-v|--verbose] user"
+    print "ipa-adduser [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] [-s|--shell] [-g|--groups] [-k|krb-principal [-M|mailAddress] [--addattr attribute=value] [--setattr attribute=value] [-v|--verbose] user"
     sys.exit(1)
+
+def set_add_usage(which):
+    print "%s option usage: --%s NAME=VALUE" % (which, which)
 
 def parse_options():
     parser = OptionParser()
@@ -59,6 +62,8 @@ def parse_options():
                       help="User's last name")
     parser.add_option("-p", "--password", dest="password",
                       help="Set user's password")
+    parser.add_option("-P", dest="password_prompt", action="store_true",
+                      help="Prompt on the command-line for the user's password")
     parser.add_option("-s", "--shell", dest="shell",
                       help="Set user's login shell to shell")
     parser.add_option("-G", "--groups", dest="groups",
@@ -71,6 +76,12 @@ def parse_options():
                       help="Program usage")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Verbose output of the XML-RPC connection")
+    parser.add_option("--addattr", dest="addattr",
+                      help="Adds an attribute or values to that attribute, attr=value",
+                      action="append")
+    parser.add_option("--setattr", dest="setattr",
+                      help="Set an attribute, dropping any existing values that may exist",
+                      action="append")
 
     args = ipa.config.init_config(sys.argv)
     options, args = parser.parse_args(args)
@@ -145,7 +156,7 @@ def main():
             print "Username is required and may only include letters and numbers"
             return 1
 
-    if not options.password:
+    if options.password_prompt:
         while (match != True):
             password = getpass.getpass("  Password: ")
             confirm = getpass.getpass("  Password (again): ")
@@ -220,6 +231,29 @@ def main():
         user.setValue('homedirectory', directory)
     if shell:
         user.setValue('loginshell', shell)
+
+    if options.setattr:
+        for s in options.setattr:
+            s = s.split('=')
+            if len(s) != 2:
+                set_add_usage("set")
+                sys.exit(1)
+            (attr,value) = s
+            user.setValue(attr, value)
+
+    if options.addattr:
+        for a in options.addattr:
+            a = a.split('=')
+            if len(a) != 2:
+                set_add_usage("add")
+                sys.exit(1)
+            (attr,value) = a
+            cvalue = user.getValue(attr)
+            if cvalue:
+                if isinstance(cvalue,str):
+                    cvalue = [cvalue]
+                value = cvalue + [value]
+            user.setValue(attr, value)
 
     client = ipaclient.IPAClient(verbose=options.verbose)
     client.add_user(user)

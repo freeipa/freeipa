@@ -43,8 +43,11 @@ error was:
     sys.exit(1)
 
 def usage():
-    print "ipa-addgroup [-d|--description STRING] [-g|--gid GID] [-v|--verbose] group"
+    print "ipa-addgroup [-d|--description STRING] [-g|--gid GID]  [--addattr attribute=value] [--setattr attribute=value] [-v|--verbose] group"
     sys.exit(1)
+
+def set_add_usage(which):
+    print "%s option usage: --%s NAME=VALUE" % (which, which)
 
 def parse_options():
     parser = OptionParser()
@@ -54,6 +57,12 @@ def parse_options():
                       help="The gid to use for this group. If not included one is automatically set.")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Verbose output of the XML-RPC connection")
+    parser.add_option("--addattr", dest="addattr",
+                      help="Adds an attribute or values to that attribute, attr=value",
+                      action="append")
+    parser.add_option("--setattr", dest="setattr",
+                      help="Set an attribute, dropping any existing values that may exist",
+                      action="append")
     parser.add_option("--usage", action="store_true",
                       help="Program usage")
 
@@ -106,6 +115,29 @@ def main():
 
     group.setValue('cn', cn)
     group.setValue('description', desc)
+
+    if options.setattr:
+        for s in options.setattr:
+            s = s.split('=')
+            if len(s) != 2:
+                set_add_usage("set")
+                sys.exit(1)
+            (attr,value) = s
+            group.setValue(attr, value)
+
+    if options.addattr:
+        for a in options.addattr:
+            a = a.split('=')
+            if len(a) != 2:
+                set_add_usage("add")
+                sys.exit(1)
+            (attr,value) = a
+            cvalue = group.getValue(attr)
+            if cvalue:
+                if isinstance(cvalue,str):
+                    cvalue = [cvalue]
+                value = cvalue + [value]
+            group.setValue(attr, value)
 
     client = ipaclient.IPAClient(verbose=options.verbose)
     client.add_group(group)
