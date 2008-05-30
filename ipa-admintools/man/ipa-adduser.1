@@ -46,6 +46,9 @@ Set user's last name to \fIfamilyName\fR.
 \fB\-p\fR, \fB\-\-password\fR=\fIpassword\fR
 Set user's password to \fIpassword\fR.
 .TP 
+\fB\-P\fR
+Prompt for the user's password.
+.TP 
 \fB\-s\fR, \fB\-\-shell\fR=\fIshell\fR
 Set the user's login shell to \fIshell\fR.
 If this option is not present, a default specified by the
@@ -62,8 +65,16 @@ By default the principal is set to \fBuser\fR.
 .TP 
 \fB\-M\fR, \fB\-\-mailAddress\fR=\fImail\fR
 Set this user's e\-mail address to \fImail\fR.
+.TP 
+\fB\-\-addattr\fR \fIattr=value\fR
+Adds \fIvalue\fR to attribute \fIattr\fR. Attributes set this way are done after other options. If an attribute is listed more than once or already exists in the entry, it is considered a multi\-valued attribute and a list of the values is created.
+.TP 
+\fB\-\-setattr\fR \fIattr=value\fR
+Set attribute \fIattr\fR to \fIvalue\fR. Any existing value will be replaced with \fIvalue\fR.
 .PP 
-The mandatory fields are: user, first name, last name and password. If any of these are not included on the command line you will be asked interactively.
+The mandatory fields are: user, first name and last name. If any of these are not included on the command line you will be asked interactively.
+
+The password is asked interactively if not passed on the command\-line but it isn't mandatory. Leaving both values blank will leave the password unset on the account.
 
 If no options are passed then all questions are asked.
 .SH "EXIT STATUS"

@@ -34,6 +34,12 @@ Set the description of the group to \fIdescription\fR.
 Set the gid for this group to \fIgid\fR.
 If this option is not present, one is created automatically
 by \fBfreeIPA\fR.
+.TP
+\fB\-\-addattr\fR \fIattr=value\fR
+Adds \fIvalue\fR to attribute \fIattr\fR. Attributes set this way are done after other options. If an attribute is listed more than once or already exists in the entry, it is considered a multi\-valued attribute and a list of the values is created.
+.TP
+\fB\-\-setattr\fR \fIattr=value\fR
+Set attribute \fIattr\fR to \fIvalue\fR. Any existing value will be replaced with \fIvalue\fR.
 .PP 
 The group name and description are mandatory fields. If either of these are not included on the command line you will be asked interactively.
 
