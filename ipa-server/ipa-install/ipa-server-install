@@ -232,11 +232,12 @@ def read_realm_name(domain_name, unattended):
         else:
             upper_dom = realm_name.upper()
         if upper_dom != realm_name:
-            print "It is strongly recommended that you use a completely uppercased name for the realm."
+            print "An upper-case realm name is required."
             dom_realm = raw_input("Do you want to use "+upper_dom+" as realm name ? [yes]: ")
             print ""
             if dom_realm and dom_realm.lower()[0] != "y":
-                print "WARNING: Using a non upper-cased realm name may cause unexpected problems."
+                print "An upper-case realm name is required. Unable to continue."
+                sys.exit(1)
             else:
                 realm_name = upper_dom
     return realm_name
@@ -458,7 +459,7 @@ def main():
     if not options.realm_name:
         realm_name = read_realm_name(domain_name, options.unattended)
     else:
-        realm_name = options.realm_name
+        realm_name = options.realm_name.upper()
 
     if not options.dm_password:
         dm_password = read_dm_password()
