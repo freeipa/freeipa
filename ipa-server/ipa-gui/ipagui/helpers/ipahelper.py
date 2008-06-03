@@ -53,7 +53,8 @@ def fix_incoming_fields(fields, fieldname, multifieldname):
     fields[fieldname] = []
     try:
         for i in range(len(fields[multifieldname])):
-            fields[fieldname].append(fields[multifieldname][i][fieldname])
+            if fields[multifieldname][i][fieldname] is not None and len(fields[multifieldname][i][fieldname]) > 0:
+                fields[fieldname].append(fields[multifieldname][i][fieldname])
         del(fields[multifieldname])
     except Exception, e:
         logging.warn("fix_incoming_fields error: " + str(e))
