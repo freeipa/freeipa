@@ -24,7 +24,7 @@ import traceback, logging
 
 from ipa import ipautil
 from ipaserver import replication, ipaldap, dsinstance, installutils
-from ipaserver import version
+from ipa import version
 
 def parse_options():
     from optparse import OptionParser
