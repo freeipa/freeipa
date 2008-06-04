@@ -25,9 +25,17 @@ ipa\-findservice \fIstring\fR
 .SH "DESCRIPTION"
 Searches for a service principal that contains \fIstring\fR.
 
-The search is a substring search in the service principal. You can search for all principals on a given host, by service or a substring.
+The search is a substring search in the service principal. You can search for all principals for a given host, by service or a substring.
 
 All entries that match are displayed.
+.SH "EXAMPLES"
+Find all ldap service principals issued by the IPA KDC:
+
+    # ipa\-findservice ldap
+
+Find all service principals for ipa.example.com:
+
+    # ipa\-findservice ipa.example.com
 .SH "EXIT STATUS"
 0 if one or more entries were found
 
