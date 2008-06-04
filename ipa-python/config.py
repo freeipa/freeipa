@@ -78,6 +78,7 @@ def __parse_config():
         pass
 
 def __discover_config():
+    rl = 0
     try:
         if not config.default_realm:
             krbctx = krbV.default_context()
@@ -162,6 +163,8 @@ def init_config(args=None):
 
     __parse_config()
     __discover_config()
+
+    config.default_server = list(set(config.default_server))
 
     if not config.default_realm:
         raise IPAConfigError("IPA realm not found in DNS, in the config file (/etc/ipa/ipa.conf) or on the command line.")
