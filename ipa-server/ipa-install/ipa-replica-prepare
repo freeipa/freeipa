@@ -29,7 +29,7 @@ from optparse import OptionParser
 import ipa.config
 from ipa import ipautil
 from ipaserver import dsinstance, installutils, certs, ipaldap
-from ipaserver import version
+from ipa import version
 import ldap
 
 def usage():
