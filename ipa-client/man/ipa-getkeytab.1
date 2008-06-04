@@ -21,7 +21,7 @@
 .SH "NAME"
 ipa\-getkeytab \- Get a keytab for a kerberos principal
 .SH "SYNOPSIS"
-ipa\-getkeytab <\fI-s ipaserver\fR> <\fI-p principal-name\fR> <\fI-k keytab-file\fR> [\fI-e encryption-types\fR] [\fI-q\fR]
+ipa\-getkeytab <\fI\-s ipaserver\fR> <\fI\-p principal\-name\fR> <\fI\-k keytab\-file\fR> [\fI\-e encryption\-types\fR] [\fI\-q\fR]
 
 .SH "DESCRIPTION"
 Retrieves a kerberos \fIkeytab\fR.
@@ -39,7 +39,7 @@ is an example principal for an ldap server:
 
    ldap/foo.example.com@EXAMPLE.COM
 
-When using ipa-getkeytab the realm name is already
+When using ipa\-getkeytab the realm name is already
 provided, so the principal name is just the service
 name and hostname (ldap/foo.example.com from the
 example above).
@@ -51,48 +51,52 @@ rendering all other keytabs for that principal invalid.
 .TP 
 \fB\-s ipaserver\fR
 The IPA Server to retrieve the keytab from (FQDN).
-
-\fB\-p principal-name\fR
+.TP 
+\fB\-p principal\-name\fR
 The non realm part of the full principal name.
-
-\fB\-k keytab-file\fR
+.TP 
+\fB\-k keytab\-file\fR
 The keytab file where to append the new key (will be
 created if not existing).
-
-\fB\-e encryption-types\fR
+.TP 
+\fB\-e encryption\-types\fR
 The list of encryption types to use to generate keys.
-ipa-getkeytab will use local client defaults if not provided.
+ipa\-getkeytab will use local client defaults if not provided.
 Valid values depend on the kerberos library version and configuration.
 Common values are:
-aes256-cts
-aes128-cts
-des3-hmac-sha1
-arcfour-hmac
-des-hmac-sha1
-des-cbc-md5
-des-cbc-crc
-
+aes256\-cts
+aes128\-cts
+des3\-hmac\-sha1
+arcfour\-hmac
+des\-hmac\-sha1
+des\-cbc\-md5
+des\-cbc\-crc
+.TP 
 \fB\-q\fR
 Keep quiet.
-
-\fB\--permitted-enctypes\fR
+.TP 
+\fB\-\-permitted\-enctypes\fR
 This options returns a description of the permitted encryption types, like this:
 Supported encryption types:
-AES-256 CTS mode with 96-bit SHA-1 HMAC
-AES-128 CTS mode with 96-bit SHA-1 HMAC
+AES\-256 CTS mode with 96\-bit SHA\-1 HMAC
+AES\-128 CTS mode with 96\-bit SHA\-1 HMAC
 Triple DES cbc mode with HMAC/sha1
 ArcFour with HMAC/md5
-DES cbc mode with CRC-32
-DES cbc mode with RSA-MD5
-DES cbc mode with RSA-MD4
-
-
+DES cbc mode with CRC\-32
+DES cbc mode with RSA\-MD5
+DES cbc mode with RSA\-MD4
 .SH "EXAMPLES"
+Add and retrieve a keytab for the NFS service principal on
+the host foo.example.com and save it in the file /tmp/nfs.keytab and retrieve just the des\-cbc\-crc key.
+
+   # ipa\-getkeytab \-s ipaserver.example.com \-p nfs/foo.example.com \-k /tmp/nfs.keytab \-e des\-cbc\-crc
 
 Add and retrieve a keytab for the ldap service principal on
-the host foo.example.com and save it in the file ldap.keytab.
+the host foo.example.com and save it in the file /tmp/ldap.keytab.
 
-   # ipa-getkeytab -s ipaserver.example.com -p nfs/foo.example.com -k /tmp/ldap.keytab -e des-cbc-crc
+   # ipa\-getkeytab \-s ipaserver.example.com \-p ldap/foo.example.com \-k /tmp/ldap.keytab
+
+
 
 .SH "EXIT STATUS"
 The exit status is 0 on success, nonzero on error.
