@@ -452,11 +452,11 @@ int main(int argc, char *argv[])
 	int quiet = 0;
 	int permitted_enctypes = 0;
         struct poptOption options[] = {
+		{ "quiet", 'q', POPT_ARG_NONE, &quiet, 0, "Print as little as possible", "Output only on errors"},
                 { "server", 's', POPT_ARG_STRING, &server, 0, "Contact this specific KDC Server", "Server Name" },
                 { "principal", 'p', POPT_ARG_STRING, &principal, 0, "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)", "Kerberos Service Principal Name" },
                 { "keytab", 'k', POPT_ARG_STRING, &keytab, 0, "File were to store the keytab information", "Keytab File Name" },
-		{ "enctypes", 'e', POPT_ARG_STRING, &enctypes_string, 0, "Encryption types to request", "Comma separated encription types list" },
-		{ "quiet", 'q', POPT_ARG_NONE, &quiet, 0, "Print as little as possible", "Output only on errors"},
+		{ "enctypes", 'e', POPT_ARG_STRING, &enctypes_string, 0, "Encryption types to request", "Comma separated encryption types list" },
 		{ "permitted-enctypes", 0, POPT_ARG_NONE, &permitted_enctypes, 0, "Show the list of permitted encryption types and exit", "Permitted Encryption Types"},
 		{ NULL, 0, POPT_ARG_NONE, NULL, 0, NULL, NULL }
 	};
