@@ -2080,7 +2080,6 @@ class IPAServer:
         logging.info("IPA: find_service_principal '%s'" % criteria)
 
         criteria = self.__safe_filter(criteria)
-        criteria = criteria.lower()
         criteria_words = re.split(r'\s+', criteria)
         criteria_words = filter(lambda value:value!="", criteria_words)
         if len(criteria_words) == 0:
