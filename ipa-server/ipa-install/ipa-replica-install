@@ -28,7 +28,7 @@ from ipa import ipautil
 
 from ipaserver import dsinstance, replication, installutils, krbinstance, service
 from ipaserver import httpinstance, ntpinstance, certs, ipaldap
-from ipaserver import version
+from ipa import version
 
 class ReplicaConfig:
     def __init__(self):
@@ -48,6 +48,8 @@ def parse_options():
                       help="do not configure ntp", default=True)
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="gather extra debugging information")
+    parser.add_option("-p", "--password", dest="password", 
+                      help="Directory Manager (existing master) password")
 
     options, args = parser.parse_args()
 
@@ -196,10 +198,13 @@ def main():
     config.dir = dir
 
     # get the directory manager password
-    try:
-        config.dirman_password = get_dirman_password()
-    except KeyboardInterrupt:
-        sys.exit(0)
+    if not options.password:
+        try:
+            config.dirman_password = get_dirman_password()
+        except KeyboardInterrupt:
+            sys.exit(0)
+    else:
+        config.dirman_password = options.password
 
     # Try out the password
     try:
