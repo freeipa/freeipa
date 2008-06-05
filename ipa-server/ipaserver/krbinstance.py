@@ -110,8 +110,8 @@ class KrbInstance(service.Service):
         try:
             self.conn = ipaldap.IPAdmin(self.fqdn)
             self.conn.do_simple_bind(bindpw=self.admin_password)
-        except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR), e:
-            logging.critical("Could not connect to DS")
+        except Exception, e:
+            logging.critical("Could not connect to the Directory Server on %s" % self.fqdn)
             raise e
 
         self.backup_state("running", self.is_running())
@@ -245,6 +245,8 @@ class KrbInstance(service.Service):
         #except LDAPError, e:
         #    logging.critical("Error during SASL mapping removal: %s" % str(e))
         except Exception, e:
+            logging.critical("Could not connect to the Directory Server on %s" % self.fqdn)
+            raise e
             print type(e)
             print dir(e)
             raise e
