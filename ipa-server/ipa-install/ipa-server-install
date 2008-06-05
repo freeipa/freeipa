@@ -334,7 +334,7 @@ def main():
     if options.uninstall:
         if not options.unattended:
             print "\nThis is a NON REVERSIBLE operation and will delete all data and configuration!\n"
-            yesno = raw_input("Are you sure you want to continue with the uninstall proceedure?:[NO/yes] ")
+            yesno = raw_input("Are you sure you want to continue with the uninstall procedure?:[NO/yes] ")
             if not yesno or yesno.lower() != "yes":
                 print ""
                 print "Aborting uninstall operation."
