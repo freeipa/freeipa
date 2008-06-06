@@ -21,6 +21,7 @@ import os, sys, pwd, grp
 from optparse import OptionParser
 import traceback
 import logging
+import signal
 
 def usage():
     print "ipa_webgui [-f|--foreground] [-d|--debug]"
@@ -138,7 +139,7 @@ def main():
         except OSError, e:
             log.error("Could not set effective user id: %s" % e)
 
-    if devel:
+    if foreground:
         logging.basicConfig(level=loglevel,
                             format='%(asctime)s %(name)s %(levelname)s %(message)s',
                             stream=sys.stderr)
@@ -161,9 +162,19 @@ def main():
     import cherrypy
     cherrypy.lowercase_api = True
 
+    try:
+        if hasattr(signal, "SIGTERM"):
+            def SIGTERM(signum=None, frame=None):
+                cherrypy.server.stop()
+            signal.signal(signal.SIGTERM, SIGTERM)
+    except ValueError, _signal_exc:
+        if _signal_exc.args[0] != "signal only works in main thread":
+            raise
+
+
     # Shut down the logging set up here so that CherryPy logging can take
     # over. TurboGears configuration errors will not be caught.
-    if not devel:
+    if not foreground:
         logging.shutdown()
 
     # Load the config - look for a local file first for development
