@@ -346,11 +346,18 @@ def main():
     print "This program will setup the FreeIPA Server."
     print ""
     print "This includes:"
-    print "  * Configure the Network Time Daemon (ntpd)"
+    if options.conf_ntp:
+        print "  * Configure the Network Time Daemon (ntpd)"
     print "  * Create and configure an instance of Directory Server"
     print "  * Create and configure a Kerberos Key Distribution Center (KDC)"
     print "  * Configure Apache (httpd)"
     print "  * Configure TurboGears"
+    if options.setup_bind:
+        print "  * Configure DNS (bind)"
+    if not options.conf_ntp:
+        print ""
+        print "Excluded by options:"
+        print "  * Configure the Network Time Daemon (ntpd)"
     print ""
     print "To accept the default shown in brackets, press the Enter key."
     print ""
@@ -532,14 +539,19 @@ def main():
     print "Setup complete"
     print ""
     print "Next steps:"
-    print "\t1. You may need to open some network ports - specifically:"
+    print "\t1. You must make sure these network ports are open:"
     print "\t\tTCP Ports:"
     print "\t\t  * 80, 443: HTTP/HTTPS"
     print "\t\t  * 389, 636: LDAP/LDAPS"
     print "\t\t  * 88, 464: kerberos"
+    if options.setup_bind:
+        print "\t\t  * 53: bind"
     print "\t\tUDP Ports:"
     print "\t\t  * 88, 464: kerberos"
-    print "\t\t  * 123: ntp"
+    if options.setup_bind:
+        print "\t\t  * 53: bind"
+    if options.conf_ntp:
+        print "\t\t  * 123: ntp"
     print ""
     print "\t2. You can now obtain a kerberos ticket using the command: 'kinit admin'"
     print "\t   This ticket will allow you to use the IPA tools (e.g., ipa-adduser)"
