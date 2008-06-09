@@ -1294,7 +1294,7 @@ int main(int argc, char *argv[])
 
 	for (tifa = ifa; tifa; tifa = tifa->ifa_next) {
 
-		if (tifa->ifa_addr->sa_family != PF_INET &&
+		if (tifa->ifa_addr->sa_family != AF_INET &&
 		    tifa->ifa_addr->sa_family != AF_INET6) {
 			/* not interesting for us */
 			continue;
