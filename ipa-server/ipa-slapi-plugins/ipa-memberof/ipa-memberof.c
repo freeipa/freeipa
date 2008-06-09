@@ -579,8 +579,7 @@ int ipamo_postop_modrdn(Slapi_PBlock *pb)
 
 	slapi_log_error( SLAPI_LOG_TRACE, IPAMO_PLUGIN_SUBSYSTEM,
 		     "<-- ipamo_postop_modrdn\n" );
-	return ret;slapi_log_error( SLAPI_LOG_TRACE, IPAMO_PLUGIN_SUBSYSTEM,
-		     "--> ipamo_postop_modify\n" );
+	return ret;
 }
 
 typedef struct _replace_dn_data
