@@ -155,6 +155,18 @@ Slapi_Mutex *ipa_globals = NULL;
 
 static struct ipapwd_config *ipapwd_config = NULL;
 
+
+#define IPAPWD_PLUGIN_NAME   "ipa-pwd-extop"
+#define IPAPWD_FEATURE_DESC  "IPA Password Manager"
+#define IPAPWD_PLUGIN_DESC   "IPA Password Extended Operation plugin"
+
+static Slapi_PluginDesc pdesc = {
+    IPAPWD_FEATURE_DESC,
+    "FreeIPA project",
+    "FreeIPA/1.0",
+    IPAPWD_PLUGIN_DESC
+};
+
 static void *ipapwd_plugin_id;
 
 #define IPA_CHANGETYPE_NORMAL 0
@@ -163,8 +175,8 @@ static void *ipapwd_plugin_id;
 
 struct ipapwd_data {
 	Slapi_Entry *target;
-	const char *dn;
-	const char *password;
+	char *dn;
+	char *password;
 	time_t timeNow;
 	time_t lastPwChange;
 	time_t expireTime;
@@ -741,6 +753,21 @@ enc_error:
 	return NULL;
 }
 
+static void ipapwd_free_slapi_value_array(Slapi_Value ***svals)
+{
+    Slapi_Value **sv = *svals;
+    int i;
+
+    if (sv) {
+        for (i = 0; sv[i]; i++) {
+            slapi_value_free(&sv[i]);
+        }
+    }
+
+    slapi_ch_free((void **)sv);
+}
+
+
 struct ntlm_keys {
 	uint8_t lm[16];
 	uint8_t nt[16];
@@ -1204,9 +1231,9 @@ static Slapi_Value *ipapwd_strip_pw_date(Slapi_Value *pw)
 /* check password strenght and history */
 static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 {
-	const char *krbPrincipalExpiration;
-	const char *krbLastPwdChange = NULL;
-	const char *krbPasswordExpiration = NULL;
+	char *krbPrincipalExpiration = NULL;
+	char *krbLastPwdChange = NULL;
+	char *krbPasswordExpiration = NULL;
 	int krbMaxPwdLife = IPAPWD_DEFAULT_PWDLIFE;
 	int krbPwdMinLength = IPAPWD_DEFAULT_MINLEN;
 	int krbPwdMinDiffChars = 0;
@@ -1216,7 +1243,7 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 	Slapi_Attr *passwordHistory = NULL;
 	struct tm tm;
 	int tmp, ret;
-	const char *old_pw;
+	char *old_pw;
 
 	/* check account is not expired. Ignore unixtime = 0 (Jan 1 1970) */
 	krbPrincipalExpiration = slapi_entry_attr_get_charptr(data->target, "krbPrincipalExpiration");
@@ -1743,20 +1770,9 @@ static int ipapwd_SetPassword(struct ipapwd_data *data)
 
 free_and_return:
 	slapi_mods_free(&smods);
+	ipapwd_free_slapi_value_array(&svals);
+	ipapwd_free_slapi_value_array(&pwvals);
 
-	if (svals) {
-		for (i = 0; svals[i]; i++) {
-			slapi_value_free(&svals[i]);
-		}
-		free(svals);
-	}
-
-	if (pwvals) {
-		for (i = 0; pwvals[i]; i++) {
-			slapi_value_free(&pwvals[i]);
-		}
-		free(pwvals);
-	}
 	return ret;
 }
 
@@ -2804,63 +2820,81 @@ free_and_error:
 	return LDAP_OPERATIONS_ERROR;
 }
 
+static int ipapwd_gen_checks(Slapi_PBlock *pb, char **errMesg,
+			     int check_secure_conn)
+{
+    int ret, sasl_ssf, is_ssl;
+    int rc = LDAP_SUCCESS;
+
+    slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "=> ipapwd_gen_checks\n");
+
+#ifdef LDAP_EXTOP_PASSMOD_CONN_SECURE
+    if (check_secure_conn) {
+        /* Allow password modify only for SSL/TLS established connections and
+         * connections using SASL privacy layers */
+        if (slapi_pblock_get(pb, SLAPI_CONN_SASL_SSF, &sasl_ssf) != 0) {
+            slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
+                            "Could not get SASL SSF from connection\n");
+            *errMesg = "Operation requires a secure connection.\n";
+            rc = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+
+        if (slapi_pblock_get(pb, SLAPI_CONN_IS_SSL_SESSION, &is_ssl) != 0) {
+            slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
+                            "Could not get IS SSL from connection\n");
+            *errMesg = "Operation requires a secure connection.\n";
+            rc = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+
+        if ((0 == is_ssl) && (sasl_ssf <= 1)) {
+            *errMesg = "Operation requires a secure connection.\n";
+            rc = LDAP_CONFIDENTIALITY_REQUIRED;
+            goto done;
+        }
+    }
+#endif
+
+    /* make sure we have the master key */
+    if (NULL == ipapwd_config) {
+        krb5_context krbctx;
+        krb5_error_code krberr;
+
+        krberr = krb5_init_context(&krbctx);
+        if (krberr) {
+            slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
+                            "krb5_init_context failed\n");
+            *errMesg = "Fatal Internal Error";
+            rc = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+        ret = ipapwd_getConfig(krbctx, ipa_realm_dn);
+        if (ret != LDAP_SUCCESS) {
+            slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
+                            "Error Retrieving Master Key");
+            *errMesg = "Fatal Internal Error";
+            rc = LDAP_OPERATIONS_ERROR;
+            krb5_free_context(krbctx);
+            goto done;
+        }
+        krb5_free_context(krbctx);
+    }
+done:
+    return rc;
+}
 
 static int ipapwd_extop(Slapi_PBlock *pb)
 {
-	char *oid = NULL;
 	char *errMesg = NULL;
-	int ret=0, rc=0, sasl_ssf=0, is_ssl=0;
+	char *oid = NULL;
+	int rc;
 
 	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "=> ipapwd_extop\n");
 
-#ifdef LDAP_EXTOP_PASSMOD_CONN_SECURE
-	/* Allow password modify only for SSL/TLS established connections and
-	 * connections using SASL privacy layers */
-	if (slapi_pblock_get(pb, SLAPI_CONN_SASL_SSF, &sasl_ssf) != 0) {
-		errMesg = "Could not get SASL SSF from connection\n";
-		rc = LDAP_OPERATIONS_ERROR;
-		slapi_log_error( SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
-				 errMesg );
+	rc = ipapwd_gen_checks(pb, &errMesg, 1);
+	if (rc) {
 		goto free_and_return;
-	}
-
-	if (slapi_pblock_get(pb, SLAPI_CONN_IS_SSL_SESSION, &is_ssl) != 0) {
-		errMesg = "Could not get IS SSL from connection\n";
-		rc = LDAP_OPERATIONS_ERROR;
-		slapi_log_error( SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
-				 errMesg );
-		goto free_and_return;
-	}
-
-	if ((is_ssl == 0) && (sasl_ssf <= 1)) {
-		errMesg = "Operation requires a secure connection.\n";
-		rc = LDAP_CONFIDENTIALITY_REQUIRED;
-		goto free_and_return;
-	}
-#endif
-
-	/* make sure we have the master key */
-	if (ipapwd_config == NULL) {
-		krb5_context krbctx;
-		krb5_error_code krberr;
-
-		krberr = krb5_init_context(&krbctx);
-		if (krberr) {
-			slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
-					"krb5_init_context failed\n");
-			errMesg = "Fatal Internal Error";
-			rc = LDAP_OPERATIONS_ERROR;
-			goto free_and_return;
-		}
-		ret = ipapwd_getConfig(krbctx, ipa_realm_dn);
-		if (ret != LDAP_SUCCESS) {
-			slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
-					"Error Retrieving Master Key");
-			errMesg = "Fatal Internal Error";
-			rc = LDAP_OPERATIONS_ERROR;
-			goto free_and_return;
-		}
-		krb5_free_context(krbctx);
 	}
 
 	/* Before going any further, we'll make sure that the right extended
@@ -2894,6 +2928,833 @@ free_and_return:
 	return SLAPI_PLUGIN_EXTENDED_SENT_RESULT;
 }
 
+/*****************************************************************************
+ * pre/post operations to intercept writes to userPassword
+ ****************************************************************************/
+
+#define IPAPWD_OP_NULL 0
+#define IPAPWD_OP_ADD 1
+#define IPAPWD_OP_MOD 2
+struct ipapwd_operation {
+    struct ipapwd_data pwdata;
+    int pwd_op;
+    int is_krb;
+};
+
+/* structure with information for each extension */
+struct ipapwd_op_ext {
+    char *object_name;   /* name of the object extended   */
+    int object_type;     /* handle to the extended object */
+    int handle;          /* extension handle              */
+};
+
+static struct ipapwd_op_ext ipapwd_op_ext_list;
+
+static void *ipapwd_op_ext_constructor(void *object, void *parent)
+{
+    struct ipapwd_operation *ext;
+
+    ext = (struct ipapwd_operation *)slapi_ch_calloc(1, sizeof(struct ipapwd_operation));
+    return ext;
+}
+
+static void ipapwd_op_ext_destructor(void *ext, void *object, void *parent)
+{
+    struct ipapwd_operation *pwdop = (struct ipapwd_operation *)ext;
+    if (!pwdop)
+        return;
+    if (pwdop->pwd_op != IPAPWD_OP_NULL) {
+        slapi_ch_free_string(&(pwdop->pwdata.dn));
+        slapi_ch_free_string(&(pwdop->pwdata.password));
+
+        /* target should never be set, but just in case ... */
+        if (pwdop->pwdata.target)
+            slapi_entry_free(pwdop->pwdata.target);
+    }
+    slapi_ch_free((void **)&pwdop);
+}
+
+static int ipapwd_entry_checks(Slapi_PBlock *pb, struct slapi_entry *e,
+                               int *is_root, int *is_krb, int *is_smb,
+                               char *attr, int access)
+{
+    Slapi_Value *sval;
+    int rc;
+
+    /* Check ACIs */
+    slapi_pblock_get(pb, SLAPI_REQUESTOR_ISROOT, is_root);
+
+    if (!*is_root) {
+        /* verify this user is allowed to write a user password */
+        rc = slapi_access_allowed(pb, e, attr, NULL, access);
+        if (rc != LDAP_SUCCESS) {
+            /* we have no business here, the operation will be denied anyway */
+            rc = LDAP_SUCCESS;
+            goto done;
+        }
+    }
+
+    /* Check if this is a krbPrincial and therefore needs us to generate other
+     * hashes */
+    sval = slapi_value_new_string("krbPrincipalAux");
+    if (!sval) {
+        rc = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+    *is_krb = slapi_entry_attr_has_syntax_value(e, SLAPI_ATTR_OBJECTCLASS, sval);
+    slapi_value_free(&sval);
+
+    sval = slapi_value_new_string("sambaSamAccount");
+    if (!sval) {
+        rc = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+    *is_smb = slapi_entry_attr_has_syntax_value(e, SLAPI_ATTR_OBJECTCLASS, sval);
+    slapi_value_free(&sval);
+
+    rc = LDAP_SUCCESS;
+
+done:
+    return rc;
+}
+
+static int ipapwd_preop_gen_hashes(struct ipapwd_operation *pwdop,
+                                   char *userpw,
+                                   int is_krb, int is_smb,
+                                   Slapi_Value ***svals,
+                                   char **nthash, char **lmhash)
+{
+    int rc;
+
+    if (is_krb) {
+        krb5_error_code krberr;
+        krb5_context krbctx;
+
+        pwdop->is_krb = 1;
+
+        krberr = krb5_init_context(&krbctx);
+        if (krberr) {
+            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
+                            "krb5_init_context failed\n");
+	    rc = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+
+        *svals = encrypt_encode_key(krbctx, &pwdop->pwdata);
+
+	/* done with it */
+	krb5_free_context(krbctx);
+
+        if (!*svals) {
+            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
+                            "key encryption/encoding failed\n");
+	    rc = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+    }
+
+    if (is_smb) {
+        char lm[33], nt[33];
+        struct ntlm_keys ntlm;
+        int ntlm_flags = 0;
+        int ret;
+
+        /* TODO: retrieve if we want to store the LM hash or not */
+        ntlm_flags = KTF_LM_HASH | KTF_NT_HASH;
+
+        ret = encode_ntlm_keys(userpw, ntlm_flags, &ntlm);
+        if (ret) {
+            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
+                            "Failed to generate NT/LM hashes\n");
+            rc = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+        if (ntlm_flags & KTF_LM_HASH) {
+            hexbuf(lm, ntlm.lm);
+            lm[32] = '\0';
+            *lmhash = slapi_ch_strdup(lm);
+        }
+        if (ntlm_flags & KTF_NT_HASH) {
+            hexbuf(nt, ntlm.nt);
+            nt[32] = '\0';
+            *nthash = slapi_ch_strdup(nt);
+        }
+    }
+
+    rc = LDAP_SUCCESS;
+
+done:
+
+    return rc;
+}
+
+/* PRE ADD Operation:
+ * Gets the clean text password (fail the operation if the password came
+ * pre-hashed, unless this is a replicated operation).
+ * Check user is authorized to add it otherwise just returns, operation will
+ * fail later anyway.
+ * Run a password policy check.
+ * Check if krb or smb hashes are required by testing if the krb or smb
+ * objectclasses are present.
+ * store information for the post operation
+ */
+static int ipapwd_pre_add(Slapi_PBlock *pb)
+{
+    char *errMesg = "Internal operations error\n";
+    struct slapi_entry *e = NULL;
+    char *userpw = NULL;
+    char *dn = NULL;
+    struct ipapwd_operation *pwdop = NULL;
+    void *op;
+    int is_repl_op, is_root, is_krb, is_smb;
+    int ret, rc;
+
+    slapi_log_error(SLAPI_LOG_TRACE, IPAPWD_PLUGIN_NAME, "=> ipapwd_pre_add\n");
+
+    ret = slapi_pblock_get(pb, SLAPI_IS_REPLICATED_OPERATION, &is_repl_op);
+    if (ret != 0) {
+        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
+                        "slapi_pblock_get failed!?\n");
+        rc = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    /* pass through if this is a replicated operation */
+    if (is_repl_op)
+        return 0;
+
+    /* retrieve the entry */
+    slapi_pblock_get(pb, SLAPI_ADD_ENTRY, &e);
+    if (NULL == e)
+        return 0;
+
+    /* check this is something interesting for us first */
+    userpw = slapi_entry_attr_get_charptr(e, SLAPI_USERPWD_ATTR);
+    if (!userpw) {
+	/* nothing interesting here */
+	return 0;
+    }
+
+    /* Ok this is interesting,
+     * Check this is a clear text password, or refuse operation */
+    if ('{' == userpw[0]) {
+        if (0 == strncasecmp(userpw, "{CLEAR}", strlen("{CLEAR}"))) {
+            char *tmp = slapi_ch_strdup(&userpw[strlen("{CLEAR}")]);
+            if (NULL == tmp) {
+                slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
+                                "Strdup failed, Out of memory\n");
+                rc = LDAP_OPERATIONS_ERROR;
+                goto done;
+            }
+            slapi_ch_free_string(&userpw);
+            userpw = tmp;
+        } else if (slapi_is_encoded(userpw)) {
+
+            slapi_ch_free_string(&userpw);
+
+            /* check if we have access to the unhashed user password */
+            userpw = slapi_entry_attr_get_charptr(e, "unhashed#user#password");
+            if (!userpw) {
+                slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
+                                "Pre-Encoded passwords are not valid\n");
+                errMesg = "Pre-Encoded passwords are not valid\n";
+                rc = LDAP_CONSTRAINT_VIOLATION;
+                goto done;
+            }
+        }
+    }
+
+    rc = ipapwd_entry_checks(pb, e,
+                             &is_root, &is_krb, &is_smb,
+                             NULL, SLAPI_ACL_ADD);
+    if (rc) {
+        goto done;
+    }
+
+    rc = ipapwd_gen_checks(pb, &errMesg, 0);
+    if (rc) {
+        goto done;
+    }
+
+    /* Get target DN */
+    ret = slapi_pblock_get(pb, SLAPI_TARGET_DN, &dn);
+    if (ret) {
+        rc = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    /* time to get the operation handler */
+    ret = slapi_pblock_get(pb, SLAPI_OPERATION, &op);
+    if (ret != 0) {
+        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
+                        "slapi_pblock_get failed!?\n");
+        rc = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    pwdop = slapi_get_object_extension(ipapwd_op_ext_list.object_type,
+                                       op, ipapwd_op_ext_list.handle);
+    if (NULL == pwdop) {
+        rc = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    pwdop->pwd_op = IPAPWD_OP_ADD;
+    pwdop->pwdata.password = slapi_ch_strdup(userpw);
+
+    if (is_root) {
+        pwdop->pwdata.changetype = IPA_CHANGETYPE_DSMGR;
+    } else {
+        pwdop->pwdata.changetype = IPA_CHANGETYPE_ADMIN;
+    }
+
+    pwdop->pwdata.dn = slapi_ch_strdup(dn);
+    pwdop->pwdata.timeNow = time(NULL);
+    pwdop->pwdata.target = e;
+
+    ret = ipapwd_CheckPolicy(&pwdop->pwdata);
+    if (ret) {
+        errMesg = "Password Fails to meet minimum strength criteria";
+        rc = LDAP_CONSTRAINT_VIOLATION;
+        goto done;
+    }
+
+    if (is_krb || is_smb) {
+
+        Slapi_Value **svals = NULL;
+        char *nt = NULL;
+        char *lm = NULL;
+
+        rc = ipapwd_preop_gen_hashes(pwdop, userpw,
+                                     is_krb, is_smb,
+                                     &svals, &nt, &lm);
+        if (rc) {
+            goto done;
+        }
+
+        if (svals) {
+            /* add/replace values in existing entry */
+            ret = slapi_entry_attr_replace_sv(e, "krbPrincipalKey", svals);
+            if (ret) {
+                slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
+                                "failed to set encoded values in entry\n");
+	        rc = LDAP_OPERATIONS_ERROR;
+                goto done;
+            }
+
+            ipapwd_free_slapi_value_array(&svals);
+        }
+
+        if (lm) {
+            /* set value */
+            slapi_entry_attr_set_charptr(e, "sambaLMPassword", lm);
+            slapi_ch_free_string(&lm);
+        }
+        if (nt) {
+            /* set value */
+            slapi_entry_attr_set_charptr(e, "sambaNTPassword", nt);
+            slapi_ch_free_string(&nt);
+        }
+    }
+
+    /* we do not know if the entry pointer will still be valid after the op
+     * make sure we do not reference it by mistake later on */
+    pwdop->pwdata.target = NULL;
+
+    rc = LDAP_SUCCESS;
+
+done:
+    slapi_ch_free_string(&userpw);
+    if (rc != LDAP_SUCCESS) {
+        slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
+        return -1;
+    }
+    return 0;
+}
+
+/* PRE MOD Operation:
+ * Gets the clean text password (fail the operation if the password came
+ * pre-hashed, unless this is a replicated operation).
+ * Check user is authorized to add it otherwise just returns, operation will
+ * fail later anyway.
+ * Check if krb or smb hashes are required by testing if the krb or smb
+ * objectclasses are present.
+ * Run a password policy check.
+ * store information for the post operation
+ */
+static int ipapwd_pre_mod(Slapi_PBlock *pb)
+{
+    char *errMesg = NULL;
+    LDAPMod **mods;
+    Slapi_Mod *smod, *tmod;
+    Slapi_Mods *smods;
+    char *userpw = NULL;
+    char *unhashedpw = NULL;
+    char *dn = NULL;
+    Slapi_DN *tmp_dn;
+    struct slapi_entry *e = NULL;
+    int free_entry = 0;
+    struct ipapwd_operation *pwdop = NULL;
+    void *op;
+    int is_repl_op, is_pwd_op, is_root, is_krb, is_smb;
+    int ret, rc;
+
+    slapi_log_error(SLAPI_LOG_TRACE, IPAPWD_PLUGIN_NAME, "=> ipapwd_pre_mod\n");
+
+    ret = slapi_pblock_get(pb, SLAPI_IS_REPLICATED_OPERATION, &is_repl_op);
+    if (ret != 0) {
+        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
+                        "slapi_pblock_get failed!?\n");
+        rc = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    /* pass through if this is a replicated operation */
+    if (is_repl_op)
+        return 0;
+
+    /* grab the mods - we'll put them back later with
+     * our modifications appended
+     */
+    slapi_pblock_get(pb, SLAPI_MODIFY_MODS, &mods);
+    smods = slapi_mods_new();
+    slapi_mods_init_passin(smods, mods);
+
+    /* In the first pass,
+     * only check there is anything we are interested in */
+    is_pwd_op = 0;
+    tmod = slapi_mod_new();
+    smod = slapi_mods_get_first_smod(smods, tmod);
+    while (smod) {
+        struct berval *bv;
+        const char *type;
+        int mop;
+
+        type = slapi_mod_get_type(smod);
+        if (slapi_attr_types_equivalent(type, SLAPI_USERPWD_ATTR)) {
+            mop = slapi_mod_get_operation(smod);
+            /* check op filtering out LDAP_MOD_BVALUES */
+            switch (mop & 0x0f) {
+            case LDAP_MOD_ADD:
+            case LDAP_MOD_REPLACE:
+                is_pwd_op = 1;
+            default:
+                break;
+            }
+        }
+
+        /* we check for unahsehd password here so that we are sure to catch them
+         * early, before further checks go on, this helps checking
+         * LDAP_MOD_DELETE operations in some corner cases later */
+        /* we keep only the last one if multiple are provided for any absurd
+	 * reason */
+        if (slapi_attr_types_equivalent(type, "unhashed#user#password")) {
+            bv = slapi_mod_get_first_value(smod);
+            if (!bv) {
+                slapi_mod_free(&tmod);
+                rc = LDAP_OPERATIONS_ERROR;
+                goto done;
+            }
+            slapi_ch_free_string(&unhashedpw);
+            unhashedpw = slapi_ch_malloc(bv->bv_len+1);
+            if (!unhashedpw) {
+                slapi_mod_free(&tmod);
+                rc = LDAP_OPERATIONS_ERROR;
+                goto done;
+            }
+            memcpy(unhashedpw, bv->bv_val, bv->bv_len);
+            unhashedpw[bv->bv_len] = '\0';
+        }
+        slapi_mod_done(tmod);
+        smod = slapi_mods_get_next_smod(smods, tmod);
+    }
+    slapi_mod_free(&tmod);
+
+    /* If userPassword is not modified we are done here */
+    if (! is_pwd_op) {
+        rc = LDAP_SUCCESS;
+        goto done;
+    }
+
+    /* OK swe have something interesting here, start checking for
+     * pre-requisites */
+
+    /* Get target DN */
+    ret = slapi_pblock_get(pb, SLAPI_TARGET_DN, &dn);
+    if (ret) {
+        rc = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    tmp_dn = slapi_sdn_new_dn_byref(dn);
+    if (tmp_dn) {
+        /* xxxPAR: Ideally SLAPI_MODIFY_EXISTING_ENTRY should be
+         * available but it turns out that is only true if you are
+         * a dbm backend pre-op plugin - lucky dbm backend pre-op
+         * plugins.
+         * I think that is wrong since the entry is useful for filter
+         * tests and schema checks and this plugin shouldn't be limited
+         * to a single backend type, but I don't want that fight right
+         * now so we go get the entry here
+         *
+         slapi_pblock_get( pb, SLAPI_MODIFY_EXISTING_ENTRY, &e);
+         */
+        slapi_search_internal_get_entry(tmp_dn, 0, &e, ipapwd_plugin_id);
+        slapi_sdn_free(&tmp_dn);
+        free_entry = 1;
+    }
+
+    rc = ipapwd_entry_checks(pb, e,
+                             &is_root, &is_krb, &is_smb,
+                             SLAPI_USERPWD_ATTR, SLAPI_ACL_WRITE);
+    if (rc) {
+        goto done;
+    }
+
+    rc = ipapwd_gen_checks(pb, &errMesg, 0);
+    if (rc) {
+        goto done;
+    }
+
+    /* run through the mods again and adjust flags if operations affect them */
+    tmod = slapi_mod_new();
+    smod = slapi_mods_get_first_smod(smods, tmod);
+    while (smod) {
+        struct berval *bv;
+        const char *type;
+        int mop;
+
+        type = slapi_mod_get_type(smod);
+        if (slapi_attr_types_equivalent(type, SLAPI_USERPWD_ATTR)) {
+            mop = slapi_mod_get_operation(smod);
+            /* check op filtering out LDAP_MOD_BVALUES */
+            switch (mop & 0x0f) {
+            case LDAP_MOD_ADD:
+                /* FIXME: should we try to track cases where we would end up
+                 * with multiple userPassword entries ?? */
+            case LDAP_MOD_REPLACE:
+                is_pwd_op = 1;
+                bv = slapi_mod_get_first_value(smod);
+                if (!bv) {
+                    slapi_mod_free(&tmod);
+                    rc = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+                slapi_ch_free_string(&userpw);
+                userpw = slapi_ch_malloc(bv->bv_len+1);
+                if (!userpw) {
+                    slapi_mod_free(&tmod);
+                    rc = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+                memcpy(userpw, bv->bv_val, bv->bv_len);
+                userpw[bv->bv_len] = '\0';
+                break;
+            case LDAP_MOD_DELETE:
+                /* reset only if we are deleting all values, or the exact
+                 * same value previously set, otherwise we are just trying to
+                 * add a new value and delete an existing one */
+                bv = slapi_mod_get_first_value(smod);
+                if (!bv) {
+                    is_pwd_op = 0;
+                } else {
+                    if (0 == strncmp(userpw, bv->bv_val, bv->bv_len) ||
+                        0 == strncmp(unhashedpw, bv->bv_val, bv->bv_len))
+                        is_pwd_op = 0;
+                }
+            default:
+                break;
+            }
+        }
+
+        if (slapi_attr_types_equivalent(type, SLAPI_ATTR_OBJECTCLASS)) {
+            mop = slapi_mod_get_operation(smod);
+            /* check op filtering out LDAP_MOD_BVALUES */
+            switch (mop & 0x0f) {
+            case LDAP_MOD_REPLACE:
+                /* if objectclasses are replaced we need to start clean with
+                 * flags, so we sero them out and see if they get set again */
+                is_krb = 0;
+                is_smb = 0;
+
+            case LDAP_MOD_ADD:
+                bv = slapi_mod_get_first_value(smod);
+                if (!bv) {
+                    slapi_mod_free(&tmod);
+                    rc = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+                do {
+                    if (0 == strncasecmp("krbPrincipalAux", bv->bv_val, bv->bv_len))
+                        is_krb = 1;
+                    if (0 == strncasecmp("sambaSamAccount", bv->bv_val, bv->bv_len))
+                        is_smb = 1;
+                } while ((bv = slapi_mod_get_next_value(smod)) != NULL);
+
+                break;
+
+            case LDAP_MOD_DELETE:
+                /* can this happen for objectclasses ? */
+                is_krb = 0;
+                is_smb = 0;
+
+            default:
+                break;
+            }
+        }
+
+        slapi_mod_done(tmod);
+        smod = slapi_mods_get_next_smod(smods, tmod);
+    }
+    slapi_mod_free(&tmod);
+
+    /* It seem like we have determined that the end result will be deletion of
+     * the userPassword attribute, so we have no more business here */
+    if (! is_pwd_op) {
+        rc = LDAP_SUCCESS;
+        goto done;
+    }
+
+    /* Check this is a clear text password, or refuse operation (only if we need
+     * to comput other hashes */
+    if (! unhashedpw) {
+        if ('{' == userpw[0]) {
+            if (0 == strncasecmp(userpw, "{CLEAR}", strlen("{CLEAR}"))) {
+                unhashedpw = slapi_ch_strdup(&userpw[strlen("{CLEAR}")]);
+                if (NULL == unhashedpw) {
+                    slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
+                                    "Strdup failed, Out of memory\n");
+                    rc = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+                slapi_ch_free_string(&userpw);
+
+            } else if (slapi_is_encoded(userpw)) {
+
+                slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
+                                "Pre-Encoded passwords are not valid\n");
+                errMesg = "Pre-Encoded passwords are not valid\n";
+                rc = LDAP_CONSTRAINT_VIOLATION;
+                goto done;
+            }
+        }
+    }
+
+    /* time to get the operation handler */
+    ret = slapi_pblock_get(pb, SLAPI_OPERATION, &op);
+    if (ret != 0) {
+        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
+                        "slapi_pblock_get failed!?\n");
+        rc = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    pwdop = slapi_get_object_extension(ipapwd_op_ext_list.object_type,
+                                       op, ipapwd_op_ext_list.handle);
+    if (NULL == pwdop) {
+        rc = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    pwdop->pwd_op = IPAPWD_OP_MOD;
+    pwdop->pwdata.password = slapi_ch_strdup(unhashedpw);
+    pwdop->pwdata.changetype = IPA_CHANGETYPE_NORMAL;
+
+    if (is_root) {
+        pwdop->pwdata.changetype = IPA_CHANGETYPE_DSMGR;
+    } else {
+        char *binddn;
+        Slapi_DN *bdn, *tdn;
+
+        /* Check Bind DN */
+        slapi_pblock_get(pb, SLAPI_CONN_DN, &binddn);
+        bdn = slapi_sdn_new_dn_byref(binddn);
+        tdn = slapi_sdn_new_dn_byref(dn);
+
+        /* if the change is performed by someone else,
+         * it is an admin change that will require a new
+         * password change immediately as per our IPA policy */
+        if (slapi_sdn_compare(bdn, tdn)) {
+            pwdop->pwdata.changetype = IPA_CHANGETYPE_ADMIN;
+        }
+
+        slapi_sdn_free(&bdn);
+        slapi_sdn_free(&tdn);
+    }
+
+    pwdop->pwdata.dn = slapi_ch_strdup(dn);
+    pwdop->pwdata.timeNow = time(NULL);
+    pwdop->pwdata.target = e;
+
+    ret = ipapwd_CheckPolicy(&pwdop->pwdata);
+    if (ret) {
+        errMesg = "Password Fails to meet minimum strength criteria";
+        rc = LDAP_CONSTRAINT_VIOLATION;
+        goto done;
+    }
+
+    if (is_krb || is_smb) {
+
+        Slapi_Value **svals = NULL;
+        char *nt = NULL;
+        char *lm = NULL;
+
+        rc = ipapwd_preop_gen_hashes(pwdop, unhashedpw,
+                                     is_krb, is_smb,
+                                     &svals, &nt, &lm);
+        if (rc) {
+            goto done;
+        }
+
+        if (svals) {
+            /* replace values */
+            slapi_mods_add_mod_values(smods, LDAP_MOD_REPLACE,
+                                      "krbPrincipalKey", svals);
+            ipapwd_free_slapi_value_array(&svals);
+        }
+
+        if (lm) {
+            /* replace value */
+            slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
+                                  "sambaLMPassword", lm);
+            slapi_ch_free_string(&lm);
+        }
+        if (nt) {
+            /* replace value */
+            slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
+                                  "sambaNTPassword", nt);
+            slapi_ch_free_string(&nt);
+        }
+    }
+
+    rc = LDAP_SUCCESS;
+
+done:
+    slapi_ch_free_string(&userpw); /* just to be sure */
+    if (e) slapi_entry_free(e); /* this is a copy in this function */
+    if (pwdop) pwdop->pwdata.target = NULL;
+
+    if (rc != LDAP_SUCCESS) {
+        slapi_mods_free(&smods);
+        if (!pwdop) {
+            slapi_ch_free_string(&unhashedpw);
+            slapi_ch_free_string(&dn);
+        }
+        slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
+        return -1;
+    }
+
+    /* put back a, possibly modified, set of mods */
+    mods = slapi_mods_get_ldapmods_passout(smods);
+    slapi_pblock_set(pb, SLAPI_MODIFY_MODS, mods);
+    slapi_mods_free(&smods);
+
+    return 0;
+}
+
+static int ipapwd_post_op(Slapi_PBlock *pb)
+{
+    char *errMesg = "Internal operations error\n";
+    void *op;
+    struct ipapwd_operation *pwdop = NULL;
+    Slapi_Mods *smods;
+    Slapi_Value **pwvals;
+    struct tm utctime;
+    char timestr[GENERALIZED_TIME_LENGTH+1];
+    int ret;
+
+    slapi_log_error(SLAPI_LOG_TRACE, IPAPWD_PLUGIN_NAME,
+                    "=> ipapwd_post_add\n");
+
+    /* time to get the operation handler */
+    ret = slapi_pblock_get(pb, SLAPI_OPERATION, &op);
+    if (ret != 0) {
+        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
+                        "slapi_pblock_get failed!?\n");
+        return 0;
+    }
+
+    pwdop = slapi_get_object_extension(ipapwd_op_ext_list.object_type,
+                                       op, ipapwd_op_ext_list.handle);
+    if (NULL == pwdop) {
+        slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
+                        "Internal error, couldn't find pluginextension ?!\n");
+        return 0;
+    }
+
+    /* not interesting */
+    if (IPAPWD_OP_NULL == pwdop->pwd_op)
+        return 0;
+
+    if ( ! (pwdop->is_krb)) {
+        slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
+                        "Not a kerberos user, ignore krb attributes\n");
+        return 0;
+    }
+
+    /* prepare changes that can be made only as root */
+    smods = slapi_mods_new();
+
+    /* change Last Password Change field with the current date */
+    if (!gmtime_r(&(pwdop->pwdata.timeNow), &utctime)) {
+        slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
+                        "failed to parse current date (buggy gmtime_r ?)\n");
+        return 0;
+    }
+    strftime(timestr, GENERALIZED_TIME_LENGTH+1,
+             "%Y%m%d%H%M%SZ", &utctime);
+    slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
+                          "krbLastPwdChange", timestr);
+
+    /* set Password Expiration date */
+    if (!gmtime_r(&(pwdop->pwdata.expireTime), &utctime)) {
+        slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
+                        "failed to parse expiration date (buggy gmtime_r ?)\n");
+        return 0;
+    }
+    strftime(timestr, GENERALIZED_TIME_LENGTH+1,
+             "%Y%m%d%H%M%SZ", &utctime);
+    slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
+                          "krbPasswordExpiration", timestr);
+
+    /* This was a mod operation on an existing entry, make sure we also update
+     * the password history based on the entry we saved from the pre-op */
+    if (IPAPWD_OP_MOD == pwdop->pwd_op) {
+        pwvals = ipapwd_setPasswordHistory(smods, &pwdop->pwdata);
+        if (pwvals) {
+            slapi_mods_add_mod_values(smods, LDAP_MOD_REPLACE,
+                                      "passwordHistory", pwvals);
+        }
+    }
+
+    ret = ipapwd_apply_mods(pwdop->pwdata.dn, smods);
+    if (ret)
+        slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
+           "Failed to set additional password attributes in the post-op!\n");
+
+    slapi_mods_free(&smods);
+    return 0;
+}
+
+/* Copied from ipamo_string2filter()
+ *
+ * ipapwd_string2filter()
+ *
+ * For some reason slapi_str2filter writes to its input
+ * which means you cannot pass in a string constant
+ * so this is a fix up function for that
+ */
+Slapi_Filter *ipapwd_string2filter(char *strfilter)
+{
+	Slapi_Filter *ret = NULL;
+	char *idontbelieveit = slapi_ch_strdup(strfilter);
+
+	ret = slapi_str2filter(idontbelieveit);
+
+	slapi_ch_free_string(&idontbelieveit);
+
+	return ret;
+}
 
 /* Init data structs */
 static int ipapwd_start( Slapi_PBlock *pb )
@@ -2967,6 +3828,24 @@ static int ipapwd_start( Slapi_PBlock *pb )
 	return ret;
 }
 
+
+static int ipapwd_ext_init()
+{
+    int ret;
+
+    ipapwd_op_ext_list.object_name = SLAPI_EXT_OPERATION;
+
+    ret = slapi_register_object_extension(IPAPWD_PLUGIN_NAME,
+                                          SLAPI_EXT_OPERATION,
+                                          ipapwd_op_ext_constructor,
+                                          ipapwd_op_ext_destructor,
+                                          &ipapwd_op_ext_list.object_type,
+                                          &ipapwd_op_ext_list.handle);
+
+    return ret;
+}
+
+
 static char *ipapwd_oid_list[] = {
 	EXOP_PASSWD_OID,
 	KEYTAB_SET_OID,
@@ -2980,33 +3859,79 @@ static char *ipapwd_name_list[] = {
 	NULL
 };
 
+/* Init pre ops */
+static int ipapwd_pre_init(Slapi_PBlock *pb)
+{
+    int ret;
+
+    ret = slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *)&pdesc);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_PRE_ADD_FN, (void *)ipapwd_pre_add);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_PRE_MODIFY_FN, (void *)ipapwd_pre_mod);
+
+    return ret;
+}
+
+/* Init post ops */
+static int ipapwd_post_init(Slapi_PBlock *pb)
+{
+    int ret;
+
+    ret = slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *)&pdesc);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_ADD_FN, (void *)ipapwd_post_op);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_MODIFY_FN, (void *)ipapwd_post_op);
+
+    return ret;
+}
+
 /* Initialization function */
 int ipapwd_init( Slapi_PBlock *pb )
 {
-	/* Get the arguments appended to the plugin extendedop directive. The first argument 
-	 * (after the standard arguments for the directive) should contain the OID of the
-	 * extended operation.
-	 */
-	if ((slapi_pblock_get(pb, SLAPI_PLUGIN_IDENTITY, &ipapwd_plugin_id) != 0)
-	 || (ipapwd_plugin_id == NULL)) {
-		slapi_log_error( SLAPI_LOG_PLUGIN, "ipapwd_init", "Could not get identity or identity was NULL\n");
-		return( -1 );
-	}
+    int ret;
 
-	/* Register the plug-in function as an extended operation
-	 * plug-in function that handles the operation identified by
-	 * OID 1.3.6.1.4.1.4203.1.11.1 .  Also specify the version of the server
-	 * plug-in */
-	if ( slapi_pblock_set( pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01 ) != 0 || 
-	     slapi_pblock_set( pb, SLAPI_PLUGIN_START_FN, (void *) ipapwd_start ) != 0 ||
-	     slapi_pblock_set( pb, SLAPI_PLUGIN_EXT_OP_FN, (void *) ipapwd_extop ) != 0 ||
-	     slapi_pblock_set( pb, SLAPI_PLUGIN_EXT_OP_OIDLIST, ipapwd_oid_list ) != 0 ||
-	     slapi_pblock_set( pb, SLAPI_PLUGIN_EXT_OP_NAMELIST, ipapwd_name_list ) != 0) {
+    /* Get the arguments appended to the plugin extendedop directive. The first argument
+     * (after the standard arguments for the directive) should contain the OID of the
+     * extended operation. */
 
-		slapi_log_error( SLAPI_LOG_PLUGIN, "ipapwd_init",
-				 "Failed to set plug-in version, function, and OID.\n" );
-		return( -1 );
-	}
+    ret = slapi_pblock_get(pb, SLAPI_PLUGIN_IDENTITY, &ipapwd_plugin_id);
+    if ((ret != 0) || (NULL == ipapwd_plugin_id)) {
+        slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_init",
+                        "Could not get identity or identity was NULL\n");
+        return -1;
+    }
 
-	return( 0 );
+    if (ipapwd_ext_init() != 0) {
+        slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
+                        "Object Extension Operation failed\n");
+        return -1;
+    }
+
+    /* Register the plug-in function as an extended operation
+     * plug-in function that handles the operation identified by
+     * OID 1.3.6.1.4.1.4203.1.11.1 .  Also specify the version of the server
+     * plug-in */
+    ret = slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_START_FN, (void *)ipapwd_start);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *)&pdesc);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_EXT_OP_OIDLIST, ipapwd_oid_list);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_EXT_OP_NAMELIST, ipapwd_name_list);
+    if (!ret) slapi_pblock_set(pb, SLAPI_PLUGIN_EXT_OP_FN, (void *)ipapwd_extop);
+    if (ret) {
+        slapi_log_error( SLAPI_LOG_PLUGIN, "ipapwd_init",
+                 "Failed to set plug-in version, function, and OID.\n" );
+        return -1;
+    }
+
+    slapi_register_plugin("preoperation", 1,
+                          "ipapwd_pre_init", ipapwd_pre_init,
+                          "IPA pwd pre ops", NULL,
+                          ipapwd_plugin_id);
+
+    slapi_register_plugin("postoperation", 1,
+                          "ipapwd_post_init", ipapwd_post_init,
+                          "IPA pwd post ops", NULL,
+                          ipapwd_plugin_id);
+
+    return 0;
 }
