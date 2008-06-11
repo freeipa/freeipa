@@ -88,7 +88,7 @@ def main():
     if not options.attributes and not options.source and not options.target:
         usage()
 
-    client = ipaclient.IPAClient()
+    client = ipaclient.IPAClient(verbose=options.verbose)
 
     # first do some sanity checking
 

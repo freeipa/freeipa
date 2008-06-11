@@ -125,7 +125,7 @@ def main():
     elif ((options.desc or options.addattr or options.delattr or options.setattr) and (len(args) != 2)):
         usage()
 
-    client = ipaclient.IPAClient()
+    client = ipaclient.IPAClient(verbose=options.verbose)
     if options.add:
         group = get_group(client, options, args[2])
         if group is None:
