@@ -90,7 +90,7 @@ def main():
     if not options.attributes or not options.source or not options.target:
         usage()
 
-    client = ipaclient.IPAClient()
+    client = ipaclient.IPAClient(verbose=options.verbose)
 
     source_grp = client.find_groups(options.source)
     counter = source_grp[0]

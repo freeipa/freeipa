@@ -114,7 +114,7 @@ def main():
 
     username = args[1]
 
-    client = ipaclient.IPAClient()
+    client = ipaclient.IPAClient(verbose=options.verbose)
     try:
         attrs = ['*']
 
