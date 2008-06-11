@@ -24,6 +24,10 @@ dnl ---------------------------------------------------------------------------
 
 AC_CHECK_HEADER(dirsrv/slapi-plugin.h)
 
+if test "x$ac_cv_header_dirsrv_slapi_plugin_h" = "xno" ; then
+	AC_MSG_ERROR([Required DS slapi plugin header not available])
+fi
+
 dnl ---------------------------------------------------------------------------
 dnl - Check for KRB5
 dnl ---------------------------------------------------------------------------
