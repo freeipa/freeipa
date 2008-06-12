@@ -71,3 +71,22 @@ objectClass:nsIndex
 cn:memberof
 nsSystemIndex:false
 nsIndexType:eq
+
+dn: cn=uidnumber,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+objectClass:top
+objectClass:nsIndex
+cn:uidnumber
+nsSystemIndex:false
+nsIndexType:eq
+nsMatchingRule: integerOrderingMatch
+
+dn: cn=gidnumber,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+objectClass:top
+objectClass:nsIndex
+cn:gidnumber
+nsSystemIndex:false
+nsIndexType:eq
+nsMatchingRule: integerOrderingMatch
+
