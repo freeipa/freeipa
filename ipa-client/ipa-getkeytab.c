@@ -93,6 +93,7 @@ static int get_enctypes(krb5_context krbctx, const char *str,
 	if (!tmp) return 0;
 
 	/* count */
+        n = 0;
 	p = t;
 	while (p = strchr(t, ',')) {
 		t = p+1;
