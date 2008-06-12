@@ -16,7 +16,8 @@ objectclass: extensibleObject
 cn: Accounts
 dnaType: uidNumber
 dnaNextValue: 1100
-dnaInterval: 4
+dnaInterval: 1
+dnaMaxValue: 1000000000
 dnaMagicRegen: 999
 dnaFilter: (objectclass=posixAccount)
 dnaScope: $SUFFIX
@@ -30,7 +31,8 @@ objectclass: extensibleObject
 cn: Groups
 dnaType: gidNumber
 dnaNextValue: 1100
-dnaInterval: 4
+dnaInterval: 1
+dnaMaxValue: 1000000000
 dnaMagicRegen: 999
 dnaFilter: (objectclass=posixGroup)
 dnaScope: $SUFFIX
