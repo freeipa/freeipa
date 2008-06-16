@@ -52,7 +52,7 @@ SERV_SELINUX_TARBALL=$(SERV_SELINUX_TARBALL_PREFIX).tgz
 
 LIBDIR ?= /usr/lib
 
-all: bootstrap-autogen
+all: version-update bootstrap-autogen
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
