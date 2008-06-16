@@ -22,7 +22,11 @@ dnl ---------------------------------------------------------------------------
 dnl - Check for DS slapi plugin
 dnl ---------------------------------------------------------------------------
 
+# Need to hack CPPFLAGS to be able to correctly detetct slapi-plugin.h
+SAVE_CPPFLAGS=$CPPFLAGS
+CPPFLAGS=-"I/usr/include/nspr4"
 AC_CHECK_HEADER(dirsrv/slapi-plugin.h)
+CPPFLAGS=$SAVE_CPPFLAGS
 
 if test "x$ac_cv_header_dirsrv_slapi_plugin_h" = "xno" ; then
 	AC_MSG_ERROR([Required DS slapi plugin header not available])
