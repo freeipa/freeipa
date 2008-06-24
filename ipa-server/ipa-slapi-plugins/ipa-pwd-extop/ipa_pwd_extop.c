@@ -1258,24 +1258,28 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 		/* skip policy checks */
 		slapi_entry_free(policy);
 		goto no_policy;
-	} 
+	}
 
 	/* first of all check current password, if any */
 	old_pw = slapi_entry_attr_get_charptr(data->target, "userPassword");
 	if (old_pw) {
-		Slapi_Value *cpw;
+		Slapi_Value *cpw[2] = {NULL, NULL};
 		Slapi_Value *pw;
 
-		cpw = slapi_value_new_string(old_pw);
+		cpw[0] = slapi_value_new_string(old_pw);
 		pw = slapi_value_new_string(data->password);
-		if (!cpw || !pw) {
+		if (!cpw[0] || !pw) {
 			slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
 					"ipapwd_checkPassword: Out of Memory\n");
 			slapi_entry_free(policy);
+			slapi_value_free(&cpw[0]);
+			slapi_value_free(&pw);
 			return LDAP_OPERATIONS_ERROR;
 		}
 
-		ret = slapi_pw_find_sv(&cpw, pw);
+		ret = slapi_pw_find_sv(cpw, pw);
+		slapi_value_free(&cpw[0]);
+		slapi_value_free(&pw);
 
 		if (ret == 0) {
 			slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
