@@ -371,7 +371,7 @@ static int dna_start(Slapi_PBlock * pb)
         /**
 	 * Load the config for our plug-in
 	 */
-    dna_global_config = (struct configEntry *)
+    dna_global_config = (PRCList *)
         slapi_ch_calloc(1, sizeof(struct configEntry));
     PR_INIT_CLIST(dna_global_config);
 
@@ -973,7 +973,6 @@ static int dna_get_next_value(struct configEntry *config_entry,
         PRUint64 setval = 0;
         PRUint64 newval = 0;
         PRUint64 maxval = -1;
-        int result;
 
         /* do update */
         ret = slapi_search_internal_get_entry(dn, attrlist, &e,
@@ -1342,7 +1341,7 @@ static int dna_pre_op(Slapi_PBlock * pb, int modtype)
         slapi_log_error(SLAPI_LOG_PLUGIN, DNA_PLUGIN_SUBSYSTEM,
                         "dna_pre_op: operation failure [%d]\n", ret);
         slapi_send_ldap_result(pb, ret, NULL, errstr, 0, NULL);
-        slapi_ch_free(&errstr);
+        slapi_ch_free((void **)&errstr);
         ret = DNA_FAILURE;
     }
 

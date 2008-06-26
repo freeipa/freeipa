@@ -63,6 +63,7 @@
 #include <prio.h>
 #include <ssl.h>
 #include <dirsrv/slapi-plugin.h>
+#define KRB5_PRIVATE 1
 #include <krb5.h>
 #include <lber.h>
 #include <time.h>
@@ -120,6 +121,8 @@
 #define KRB5_KDB_SALTTYPE_AFS3          5
 
 #define KRB5P_SALT_SIZE 16
+
+void krb5int_c_free_keyblock_contents(krb5_context context, register krb5_keyblock *key);
 
 static const char *ipapwd_def_encsalts[] = {
 	"des3-hmac-sha1:normal",

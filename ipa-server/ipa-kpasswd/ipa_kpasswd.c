@@ -1004,7 +1004,9 @@ pid_t handle_conn(struct socklist *sd)
 	int ret;
 
 	fromlen = sizeof(from);
+	mfd = 0;
 	tcp = 0;
+	reqlen = 0;
 
 	/* receive request */
 	if (sd->socktype == SOCK_STREAM) {
@@ -1305,7 +1307,7 @@ int main(int argc, char *argv[])
 		ret = getnameinfo(tifa->ifa_addr, sizeof(struct sockaddr_storage),
 				  host, sizeof(host), NULL, 0, NI_NUMERICHOST);
 		if (ret) {
-			syslog(LOG_ERR, "Error converting address (%d)",
+			syslog(LOG_ERR, "Error converting address (%s)",
 				gai_strerror(ret));
 			continue;
 		} else {
@@ -1319,7 +1321,7 @@ int main(int argc, char *argv[])
 		/* this shoud return 2 entries, one for UDP and one for TCP */
 		ret = getaddrinfo(host, "kpasswd", &hints, &ai);
 		if (ret) {
-			syslog(LOG_ERR, "Error getting address info (%d) for [%s]",
+			syslog(LOG_ERR, "Error getting address info (%s) for [%s]",
 				gai_strerror(ret), host);
 			continue;
 		}

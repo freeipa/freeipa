@@ -30,6 +30,7 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
+#define KRB5_PRIVATE 1
 #include <krb5.h>
 #ifdef WITH_MOZLDAP
 #include <mozldap/ldap.h>
@@ -95,7 +96,7 @@ static int get_enctypes(krb5_context krbctx, const char *str,
 	/* count */
         n = 0;
 	p = t;
-	while (p = strchr(t, ',')) {
+	while ((p = strchr(t, ','))) {
 		t = p+1;
 		n++;
 	}
@@ -239,7 +240,7 @@ static struct berval *create_key_control(krb5_keyblock *keys, int num_keys, cons
 
 int filter_keys(krb5_context krbctx, krb5_keyblock *keys, int *num_keys, ber_int_t *enctypes)
 {
-	int ret, i, j, k;
+	int i, j, k;
 
 	k = *num_keys;
 
@@ -277,15 +278,12 @@ static int ldap_set_keytab(const char *servername,
 {
 	int version;
 	LDAP *ld = NULL;
-	BerElement *ctrl = NULL;
 	BerElement *sctrl = NULL;
 	struct berval *control = NULL;
-	struct berval **ncvals;
-	char *ldap_base = NULL;
 	char *retoid = NULL;
 	struct berval *retdata = NULL;
 	struct timeval tv;
-	LDAPMessage *entry, *res = NULL;
+	LDAPMessage *res = NULL;
 	LDAPControl **srvctrl = NULL;
 	LDAPControl *pprc = NULL;
 	char *err = NULL;
@@ -293,7 +291,6 @@ static int ldap_set_keytab(const char *servername,
 	int ret, rc;
 	int kvno, i;
 	ber_tag_t rtag;
-	struct berval bv;
 	ber_int_t *encs = NULL;
 
 	/* cant' return more than num_keys, sometimes less */
