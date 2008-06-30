@@ -42,6 +42,7 @@
 #ifdef WITH_MOZLDAP
 #include <mozldap/ldap.h>
 #else
+#define LDAP_DEPRECATED 1
 #include <ldap.h>
 #endif
 #include <sasl/sasl.h>
