@@ -19,6 +19,8 @@
 #
 
 import sys
+import os
+import pwd
 
 import traceback
 
@@ -143,6 +145,16 @@ def main():
             server_cert = import_cert(dirname, pkcs12_fname)
             print server_cert
             set_http_cert_name(server_cert[0])
+
+            # Fix the database permissions
+            os.chmod(NSS_DIR + "/cert8.db", 0640)
+            os.chmod(NSS_DIR + "/key3.db", 0640)
+            os.chmod(NSS_DIR + "/secmod.db", 0640)
+
+            pent = pwd.getpwnam("apache")
+            os.chown(NSS_DIR + "/cert8.db", 0, pent.pw_gid )
+            os.chown(NSS_DIR + "/key3.db", 0, pent.pw_gid )
+            os.chown(NSS_DIR + "/secmod.db", 0, pent.pw_gid )
 
     except Exception, e:
         print "an unexpected error occurred: %s" % str(e)
