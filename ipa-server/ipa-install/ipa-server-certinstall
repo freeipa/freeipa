@@ -136,7 +136,7 @@ def main():
         if options.dirsrv:
             dm_password = getpass.getpass("Directory Manager password: ")
             realm = get_realm_name()
-            dirname = dsinstance.config_dirname(realm)
+            dirname = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm))
             server_cert = import_cert(dirname, pkcs12_fname)
             set_ds_cert_name(server_cert[0], dm_password)
 
