@@ -31,15 +31,15 @@ A delegation is used to grant access to certain attributes from one group to ano
 .TP 
 \fB\-a\fR, \fB\-\-attributes\fR=\fIATTRIBUTES\fR
 A comma\-separated list of the the \f[SM]attributes\fR that may be written by the source group. This list of attributes replaces the list in the existing delegation.
-
 .TP 
 \fB\-s\fR, \fB\-\-source\fR=\fISOURCE\fR
 The name of the group that is being granted write permission.
-
 .TP 
 \fB\-t\fR, \fB\-\-target\fR=\fITARGET\fR
 The name of the group that will be written to.
-
+.TP 
+\fB\-v\fR, \fB\-\-verbose\fR
+Display the XML\-RPC request and response for more verbose debugging output.
 .PP 
 At least one of \-a, \-s or \-t is required.
 .SH "EXIT STATUS"
