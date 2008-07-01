@@ -42,8 +42,11 @@ The name of the group that is being granted write permission.
 .TP 
 \fB\-t\fR, \fB\-\-target\fR=\fITARGET\fR
 The name of the group that will be written to.
+.TP 
+\fB\-v\fR, \fB\-\-verbose\fR
+Display the XML\-RPC request and response for more verbose debugging output
 .PP 
-All arguments are mandatory.
+All arguments except \-v/\-\-verbose are mandatory.
 .SH "EXAMPLES"
 .TP 
 ipa\-adddelegation \-a telephonenumber,facsimiletelephonenumber,mobile \-s secretaries \-t everyone phones
