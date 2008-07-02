@@ -48,6 +48,9 @@ manage_dirs_pattern(ipa_kpasswd_t, ipa_kpasswd_ccache_t, ipa_kpasswd_ccache_t)
 manage_files_pattern(ipa_kpasswd_t, ipa_kpasswd_ccache_t, ipa_kpasswd_ccache_t)
 files_var_filetrans(ipa_kpasswd_t, ipa_kpasswd_ccache_t,dir)
 
+kernel_read_network_state(ipa_kpasswd_t)
+kernel_read_network_state_symlinks(ipa_kpasswd_t)
+
 corenet_tcp_sendrecv_all_if(ipa_kpasswd_t)
 corenet_udp_sendrecv_all_if(ipa_kpasswd_t)
 corenet_raw_sendrecv_all_if(ipa_kpasswd_t)
