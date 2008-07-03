@@ -147,14 +147,14 @@ def main():
             set_http_cert_name(server_cert[0])
 
             # Fix the database permissions
-            os.chmod(NSS_DIR + "/cert8.db", 0640)
-            os.chmod(NSS_DIR + "/key3.db", 0640)
-            os.chmod(NSS_DIR + "/secmod.db", 0640)
+            os.chmod(dirname + "/cert8.db", 0640)
+            os.chmod(dirname + "/key3.db", 0640)
+            os.chmod(dirname + "/secmod.db", 0640)
 
             pent = pwd.getpwnam("apache")
-            os.chown(NSS_DIR + "/cert8.db", 0, pent.pw_gid )
-            os.chown(NSS_DIR + "/key3.db", 0, pent.pw_gid )
-            os.chown(NSS_DIR + "/secmod.db", 0, pent.pw_gid )
+            os.chown(dirname + "/cert8.db", 0, pent.pw_gid )
+            os.chown(dirname + "/key3.db", 0, pent.pw_gid )
+            os.chown(dirname + "/secmod.db", 0, pent.pw_gid )
 
     except Exception, e:
         print "an unexpected error occurred: %s" % str(e)
