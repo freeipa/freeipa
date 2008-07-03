@@ -1,5 +1,5 @@
 [kdcdefaults]
- v4_mode = nopreauth
+ kdc_ports = 88
 
 [realms]
  $REALM = {
