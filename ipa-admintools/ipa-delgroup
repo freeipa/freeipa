@@ -26,6 +26,7 @@ try:
     import ipa.ipautil as ipautil
     import errno
     import socket
+    import ldap
 
     import xmlrpclib
     import kerberos
@@ -65,15 +66,18 @@ def main():
 
     counter = groups[0]
     groups = groups[1:] 
+    to_delete = None
 
-    if counter == 0:
+    for i in range(counter):
+        dn_list = ldap.explode_dn(groups[i].dn.lower())
+        if "cn=%s" % args[1].lower() in dn_list:
+            to_delete = groups[i]
+
+    if to_delete is None:
         print "Group '%s' not found." % args[1]
         return 2
-    if counter != 1:
-        print "An exact group match was not found. Found %d groups" % counter
-        return 2
 
-    ret = client.delete_group(groups[0].dn)
+    ret = client.delete_group(to_delete.dn)
     if (ret == "Success"):
         print args[1] + " successfully deleted"
     else:
