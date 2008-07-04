@@ -1205,8 +1205,8 @@ static Slapi_Value *ipapwd_strip_pw_date(Slapi_Value *pw)
 static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 {
 	const char *krbPrincipalExpiration;
-	const char *krbLastPwdChange;
-	const char *krbPasswordExpiration;
+	const char *krbLastPwdChange = NULL;
+	const char *krbPasswordExpiration = NULL;
 	int krbMaxPwdLife = IPAPWD_DEFAULT_PWDLIFE;
 	int krbPwdMinLength = IPAPWD_DEFAULT_MINLEN;
 	int krbPwdMinDiffChars = 0;
@@ -1238,6 +1238,7 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 			}
 		}
 		/* FIXME: else error out ? */
+		slapi_ch_free_string(&krbPrincipalExpiration);
 	}
 
 	/* find the entry with the password policy */
@@ -1269,19 +1270,19 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 		Slapi_Value *cpw[2] = {NULL, NULL};
 		Slapi_Value *pw;
 
-		cpw[0] = slapi_value_new_string(old_pw);
+		cpw[0] = old_pw;
 		pw = slapi_value_new_string(data->password);
-		if (!cpw[0] || !pw) {
+		if (!pw) {
 			slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
 					"ipapwd_checkPassword: Out of Memory\n");
 			slapi_entry_free(policy);
-			slapi_value_free(&cpw[0]);
+			slapi_value_free(&old_pw);
 			slapi_value_free(&pw);
 			return LDAP_OPERATIONS_ERROR;
 		}
 
 		ret = slapi_pw_find_sv(cpw, pw);
-		slapi_value_free(&cpw[0]);
+		slapi_value_free(&old_pw);
 		slapi_value_free(&pw);
 
 		if (ret == 0) {
@@ -1321,20 +1322,29 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 	if (krbMinPwdLife != 0) {
 
 		/* check for reset cases */
-		if (strcmp(krbPasswordExpiration, krbLastPwdChange) == 0) {
-			/* Expiration and last change time are the same this
-			 * happens only when a password is reset by an admin
-			 * or no expiration policy is set, PASS */
+		if (krbLastPwdChange == NULL ||
+                    ((krbPasswordExpiration != NULL) &&
+		     strcmp(krbPasswordExpiration, krbLastPwdChange) == 0)) {
+			/* Expiration and last change time are the same or
+			 * missing this happens only when a password is reset
+			 * by an admin or the account is new or no expiration
+			 * policy is set, PASS */
 			slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
-				"ipapwd_checkPolicy: Ignore krbMinPwdLife Expiration and Last change dates match\n");
+				"ipapwd_checkPolicy: Ignore krbMinPwdLife Expiration, not enough info\n");
 
 		} else if (data->timeNow < data->lastPwChange + krbMinPwdLife) {
 			slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
 				"ipapwd_checkPolicy: Too soon to change password\n");
 			slapi_entry_free(policy);
+			slapi_ch_free_string(&krbPasswordExpiration);
+			slapi_ch_free_string(&krbLastPwdChange);
 			return IPAPWD_POLICY_ERROR | LDAP_PWPOLICY_PWDTOOYOUNG;
 		}
 	}
+
+	/* free strings or we leak them */
+	slapi_ch_free_string(&krbPasswordExpiration);
+	slapi_ch_free_string(&krbLastPwdChange);
 
 	/* Retrieve min length */
 	tmp = slapi_entry_attr_get_int(policy, "krbPwdMinLength");
