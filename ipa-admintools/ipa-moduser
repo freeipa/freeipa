@@ -236,7 +236,7 @@ def main():
 
     if options.setattr:
         for s in options.setattr:
-            s = s.split('=')
+            s = s.split('=', 1)
             if len(s) != 2:
                 set_add_usage("set")
                 sys.exit(1)
@@ -245,7 +245,7 @@ def main():
 
     if options.addattr:
         for a in options.addattr:
-            a = a.split('=')
+            a = a.split('=', 1)
             if len(a) != 2:
                 set_add_usage("add")
                 sys.exit(1)
