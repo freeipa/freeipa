@@ -29,6 +29,19 @@ A replica can only be created on an IPA server installed with ipa\-server\-insta
 You must provide the fully\-qualified hostname of the machine you want to install the replica on and a host\-specific replica_file will be created. It is host\-specific because SSL server certificates are generated as part of the process and they are specific to a particular hostname.
 
 Once the file has been created it will be named replica\-hostname. This file can then be moved across the network to the target machine and a new IPA replica setup by running ipa\-replica\-install replica\-hostname.
+.SH "OPTIONS"
+.TP
+\fB\-\-dirsrv_pkcs12\fR=\fIFILE\fR
+PKCS#12 file containing the Directory Server SSL Certificate
+.TP
+\fB\-\-http_pkcs12\fR=\fIFILE\fR
+PKCS#12 file containing the Apache Server SSL Certificate
+.TP
+\fB\-\-dirsrv_pin\fR=\fIDIRSRV_PIN\fR
+The password of the Directory Server PKCS#12 file
+.TP
+\fB\-\-http_pin\fR=\fIHTTP_PIN\fR
+The password of the Apache Server PKCS#12 file
 .SH "EXIT STATUS"
 0 if the command was successful
 

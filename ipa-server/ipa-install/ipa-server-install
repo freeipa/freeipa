@@ -50,6 +50,8 @@ from ipaserver.installutils import *
 from ipa import sysrestore
 from ipa.ipautil import *
 
+pw_name = None
+
 def parse_options():
     parser = OptionParser(version=version.VERSION)
     parser.add_option("-u", "--user", dest="ds_user",
@@ -76,6 +78,14 @@ def parse_options():
                       default=False, help="uninstall an existing installation")
     parser.add_option("-N", "--no-ntp", dest="conf_ntp", action="store_false",
                       help="do not configure ntp", default=True)
+    parser.add_option("--dirsrv_pkcs12", dest="dirsrv_pkcs12",
+                      help="PKCS#12 file containing the Directory Server SSL certificate")
+    parser.add_option("--http_pkcs12", dest="http_pkcs12",
+                      help="PKCS#12 file containing the Apache Server SSL certificate")
+    parser.add_option("--dirsrv_pin", dest="dirsrv_pin",
+                      help="The password of the Directory Server PKCS#12 file")
+    parser.add_option("--http_pin", dest="http_pin",
+                      help="The password of the Apache Server PKCS#12 file")
 
     options, args = parser.parse_args()
 
@@ -88,6 +98,14 @@ def parse_options():
         if (not options.ds_user or not options.realm_name or
             not options.dm_password or not options.admin_password):
             parser.error("error: In unattended mode you need to provide at least -u, -r, -p and -a options")
+
+    # If any of the PKCS#12 options are selected, all are required. Create a
+    # list of the options and count it to enforce that all are required without
+    # having a huge set of it blocks.
+    pkcs12 = [options.dirsrv_pkcs12, options.http_pkcs12, options.dirsrv_pin, options.http_pin]
+    cnt = pkcs12.count(None)
+    if cnt > 0 and cnt < 4:
+        parser.error("error: All PKCS#12 options are required if any are used.")
 
     return options
 
@@ -312,6 +330,7 @@ def uninstall():
 
 def main():
     global ds
+    global pw_name
     ds = None
 
     options = parse_options()
@@ -486,17 +505,38 @@ def main():
         ntp = ipaserver.ntpinstance.NTPInstance(fstore)
         ntp.create_instance()
 
+    if options.dirsrv_pin:
+        [pw_fd, pw_name] = tempfile.mkstemp()
+        os.write(pw_fd, options.dirsrv_pin)
+        os.close(pw_fd)
+
     # Create a directory server instance
     ds = ipaserver.dsinstance.DsInstance()
-    ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password)
+    if options.dirsrv_pkcs12:
+        pkcs12_info = (options.dirsrv_pkcs12, pw_name)
+        ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info)
+        os.remove(pw_name)
+    else:
+        ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password)
 
     # Create a kerberos instance
     krb = ipaserver.krbinstance.KrbInstance(fstore)
     krb.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, master_password)
 
     # Create a HTTP instance
+
+    if options.http_pin:
+        [pw_fd, pw_name] = tempfile.mkstemp()
+        os.write(pw_fd, options.http_pin)
+        os.close(pw_fd)
+
     http = ipaserver.httpinstance.HTTPInstance(fstore)
-    http.create_instance(realm_name, host_name, domain_name)
+    if options.http_pkcs12:
+        pkcs12_info = (options.http_pkcs12, pw_name)
+        http.create_instance(realm_name, host_name, domain_name, False, pkcs12_info)
+        os.remove(pw_name)
+    else:
+        http.create_instance(realm_name, host_name, domain_name, False)
 
     # Create the config file
     fstore.backup_file("/etc/ipa/ipa.conf")
@@ -563,20 +603,30 @@ def main():
         print "\t   and servers for correct operation. You should consider enabling ntpd."
 
     print ""
-    print "Be sure to back up the CA certificate stored in " + ipaserver.dsinstance.config_dirname(ds.serverid) + "cacert.p12"
-    print "The password for this file is in " + ipaserver.dsinstance.config_dirname(ds.serverid) + "pwdfile.txt"
+    if not options.dirsrv_pkcs12:
+        print "Be sure to back up the CA certificate stored in " + ipaserver.dsinstance.config_dirname(ds.serverid) + "cacert.p12"
+        print "The password for this file is in " + ipaserver.dsinstance.config_dirname(ds.serverid) + "pwdfile.txt"
+    else:
+        print "In order for Firefox autoconfiguration to work you will need to"
+        print "use a SSL signing certificate. See the IPA documentation for more details."
+        print "You also need to install a PEM copy of the HTTP issuing CA into"
+        print "/usr/share/ipa/html/ca.crt"
 
     return 0
 
 try:
-    sys.exit(main())
-except SystemExit, e:
-    sys.exit(e)
-except Exception, e:
-    message = "Unexpected error - see ipaserver-install.log for details:\n %s" % str(e)
-    print message
-    message = str(e)
-    for str in traceback.format_tb(sys.exc_info()[2]):
-        message = message + "\n" + str
-    logging.debug(message)
-    sys.exit(1)
+    try:
+        sys.exit(main())
+    except SystemExit, e:
+        sys.exit(e)
+    except Exception, e:
+        message = "Unexpected error - see ipaserver-install.log for details:\n %s" % str(e)
+        print message
+        message = str(e)
+        for str in traceback.format_tb(sys.exc_info()[2]):
+            message = message + "\n" + str
+        logging.debug(message)
+        sys.exit(1)
+finally:
+    if pw_name and ipautil.file_exists(pw_name):
+        os.remove(pw_name)

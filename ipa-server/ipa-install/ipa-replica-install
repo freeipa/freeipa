@@ -103,7 +103,7 @@ def install_ds(config):
     pkcs12_info = None
     if ipautil.file_exists(config.dir + "/dscert.p12"):
         pkcs12_info = (config.dir + "/dscert.p12",
-                       config.dir + "/pwdfile.txt")
+                       config.dir + "/dirsrv_pin.txt")
 
     ds = dsinstance.DsInstance()
     ds.create_instance(config.ds_user, config.realm_name, config.host_name, config.domain_name, config.dirman_password, pkcs12_info)
@@ -125,7 +125,7 @@ def install_http(config):
     pkcs12_info = None
     if ipautil.file_exists(config.dir + "/httpcert.p12"):
         pkcs12_info = (config.dir + "/httpcert.p12",
-                       config.dir + "/pwdfile.txt")
+                       config.dir + "/http_pin.txt")
 
     http = httpinstance.HTTPInstance()
     http.create_instance(config.realm_name, config.host_name, config.domain_name, False, pkcs12_info)
@@ -173,6 +173,9 @@ def check_dirsrv():
 def main():
     options, filename = parse_options()
     installutils.standard_logging_setup("/var/log/ipareplica-install.log", options.debug)
+
+    if not ipautil.file_exists(filename):
+        sys.exit("Replica file %s does not exist" % filename)
 
     check_dirsrv()
 

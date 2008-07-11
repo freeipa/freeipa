@@ -324,9 +324,16 @@ class DsInstance(service.Service):
         ca = certs.CertDB(dirname)
         if self.pkcs12_info:
             ca.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1])
+            server_certs = ca.find_server_certs()
+            if len(server_certs) == 0:
+                raise RuntimeError("Could not find a suitable server cert in import in %s" % pkcs12_info[0])
+
+            # We only handle one server cert
+            nickname = server_certs[0][0]
         else:
             ca.create_self_signed()
             ca.create_server_cert("Server-Cert", "cn=%s,ou=Fedora Directory Server" % self.host_name)
+            nickname = "Server-Cert"
 
         conn = ipaldap.IPAdmin("127.0.0.1")
         conn.simple_bind_s("cn=directory manager", self.dm_password)
@@ -347,7 +354,7 @@ class DsInstance(service.Service):
 
         entry.setValues("objectclass", "top", "nsEncryptionModule")
         entry.setValues("cn", "RSA")
-        entry.setValues("nsSSLPersonalitySSL", "Server-Cert")
+        entry.setValues("nsSSLPersonalitySSL", nickname)
         entry.setValues("nsSSLToken", "internal (software)")
         entry.setValues("nsSSLActivation", "on")
 

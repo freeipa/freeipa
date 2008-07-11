@@ -60,10 +60,21 @@ Generate a DNS zone file that contains auto\-discovery records for this IPA serv
 .TP 
 \fB\-n\fR, \fB\-\-no\-ntp\fR
 Do not configure NTP
-<fb>\-U\fR, \fB\-\-uninstall\fR
+\fB\-U\fR, \fB\-\-uninstall\fR
 Uninstall an existing IPA installation
+.TP
+\fB\-\-dirsrv_pkcs12\fR=\fIFILE\fR
+PKCS#12 file containing the Directory Server SSL Certificate
+.TP
+\fB\-\-http_pkcs12\fR=\fIFILE\fR
+PKCS#12 file containing the Apache Server SSL Certificate
+.TP
+\fB\-\-dirsrv_pin\fR=\fIDIRSRV_PIN\fR
+The password of the Directory Server PKCS#12 file
+.TP
+\fB\-\-http_pin\fR=\fIHTTP_PIN\fR
+The password of the Apache Server PKCS#12 file
 .PP 
-By default the full name, home Directory and login shell and username fields are displayed.
 .SH "EXIT STATUS"
 0 if the installation was successful
 

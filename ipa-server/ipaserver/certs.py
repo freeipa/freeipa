@@ -128,13 +128,13 @@ class CertDB(object):
         f.write(self.gen_password())
         self.set_perms(self.noise_fname)
 
-    def create_passwd_file(self, passwd=True):
+    def create_passwd_file(self, passwd=None):
         ipautil.backup_file(self.passwd_fname)
         f = open(self.passwd_fname, "w")
-        if passwd:
-            f.write(self.gen_password())
+        if passwd is not None:
+            f.write("%s\n" % passwd)
         else:
-            f.write("\n")
+            f.write(self.gen_password())
         f.close()
         self.set_perms(self.passwd_fname)
 
@@ -159,14 +159,14 @@ class CertDB(object):
                            "-z", self.noise_fname,
                            "-f", self.passwd_fname])
 
-    def export_ca_cert(self, create_pkcs12=False):
+    def export_ca_cert(self, nickname, create_pkcs12=False):
         """create_pkcs12 tells us whether we should create a PKCS#12 file
            of the CA or not. If we are running on a replica then we won't
            have the private key to make a PKCS#12 file so we don't need to
            do that step."""
         # export the CA cert for use with other apps
         ipautil.backup_file(self.cacert_fname)
-        self.run_certutil(["-L", "-n", "CA certificate",
+        self.run_certutil(["-L", "-n", nickname,
                            "-a",
                            "-o", self.cacert_fname])
         self.set_perms(self.cacert_fname)
@@ -174,7 +174,7 @@ class CertDB(object):
             ipautil.backup_file(self.pk12_fname)
             ipautil.run(["/usr/bin/pk12util", "-d", self.secdir,
                          "-o", self.pk12_fname,
-                         "-n", "CA certificate",
+                         "-n", self.cacert_name,
                          "-w", self.passwd_fname,
                          "-k", self.passwd_fname])
             self.set_perms(self.pk12_fname)
@@ -296,7 +296,7 @@ class CertDB(object):
         f.close()
         self.set_perms(self.pin_fname)
 
-    def trust_root_cert(self, nickname):
+    def find_root_cert(self, nickname):
         p = subprocess.Popen(["/usr/bin/certutil", "-d", self.secdir,
                               "-O", "-n", nickname], stdout=subprocess.PIPE)
 
@@ -304,6 +304,11 @@ class CertDB(object):
         chain = chain.split("\n")
 
         root_nickname = re.match('\ *"(.*)".*', chain[0]).groups()[0]
+
+        return root_nickname
+
+    def trust_root_cert(self, nickname):
+        root_nickname = self.find_root_cert(nickname)
 
         self.run_certutil(["-M", "-n", root_nickname,
                            "-t", "CT,CT,"])
@@ -350,28 +355,50 @@ class CertDB(object):
                      "-k", self.passwd_fname,
                      "-w", pkcs12_pwd_fname])
 
-    def create_self_signed(self, passwd=True):
+    def create_self_signed(self, passwd=None):
         self.create_noise_file()
         self.create_passwd_file(passwd)
         self.create_certdbs()
         self.create_ca_cert()
-        self.export_ca_cert(True)
+        self.export_ca_cert(self.cacert_name, True)
         self.create_pin_file()
 
-    def create_from_cacert(self, cacert_fname, passwd=False):
+    def create_from_cacert(self, cacert_fname, passwd=""):
         self.create_noise_file()
         self.create_passwd_file(passwd)
         self.create_certdbs()
         self.load_cacert(cacert_fname)
 
-    def create_from_pkcs12(self, pkcs12_fname, pkcs12_pwd_fname, nickname="CA certificate", passwd=True):
+    def create_from_pkcs12(self, pkcs12_fname, pkcs12_pwd_fname, passwd=None):
+        """Create a new NSS database using the certificates in a PKCS#12 file.
+
+           pkcs12_fname: the filename of the PKCS#12 file
+           pkcs12_pwd_fname: the file containing the pin for the PKCS#12 file
+           nickname: the nickname/friendly-name of the cert we are loading
+           passwd: The password to use for the new NSS database we are creating
+        """
         self.create_noise_file()
         self.create_passwd_file(passwd)
         self.create_certdbs()
         self.import_pkcs12(pkcs12_fname, pkcs12_pwd_fname)
+        server_certs = self.find_server_certs()
+        if len(server_certs) == 0:
+            raise RuntimeError("Could not find a suitable server cert in import in %s" % pkcs12_fname)
+
+        # We only handle one server cert
+        nickname = server_certs[0][0]
+
+        self.cacert_name = self.find_root_cert(nickname)
         self.trust_root_cert(nickname)
         self.create_pin_file()
-        self.export_ca_cert(False)
+        self.export_ca_cert(self.cacert_name, False)
+
+        # This file implies that we have our own self-signed CA. Ensure
+        # that it no longer exists (from previous installs, for example).
+        try:
+            os.remove("/usr/share/ipa/serial")
+        except:
+            pass
 
     def backup_files(self):
         self.fstore.backup_file(self.noise_fname)

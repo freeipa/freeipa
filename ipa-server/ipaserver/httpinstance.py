@@ -145,6 +145,9 @@ class HTTPInstance(service.Service):
         if installutils.update_file(NSS_CONF, '8443', '443') != 0:
             print "Updating port in %s failed." % NSS_CONF
 
+    def __set_mod_nss_nickname(self, nickname):
+        installutils.set_directive(NSS_CONF, 'NSSNickname', nickname)
+
     def __add_include(self):
         """This should run after __set_mod_nss_port so is already backed up"""
         if installutils.update_file(NSS_CONF, '</VirtualHost>', 'Include conf.d/ipa-rewrite.conf\n</VirtualHost>') != 0:
@@ -154,7 +157,15 @@ class HTTPInstance(service.Service):
         ds_ca = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(self.realm)))
         ca = certs.CertDB(NSS_DIR)
         if self.pkcs12_info:
-            ca.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1], passwd=False)
+            ca.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1], passwd="")
+            server_certs = ca.find_server_certs()
+            if len(server_certs) == 0:
+                raise RuntimeError("Could not find a suitable server cert in import in %s" % pkcs12_info[0])
+
+            # We only handle one server cert
+            nickname = server_certs[0][0]
+
+            self.__set_mod_nss_nickname(nickname)
         else:
             ca.create_from_cacert(ds_ca.cacert_fname)
             ca.create_server_cert("Server-Cert", "cn=%s,ou=Apache Web Server" % self.fqdn, ds_ca)

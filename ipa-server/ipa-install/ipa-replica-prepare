@@ -40,7 +40,25 @@ def parse_options():
     parser = OptionParser(version=version.VERSION)
 
     args = ipa.config.init_config(sys.argv)
+
+    parser.add_option("--dirsrv_pkcs12", dest="dirsrv_pkcs12",
+                      help="install certificate for the directory server")
+    parser.add_option("--http_pkcs12", dest="http_pkcs12",
+                      help="install certificate for the http server")
+    parser.add_option("--dirsrv_pin", dest="dirsrv_pin",
+                      help="PIN for the Directory Server PKCS#12 file")
+    parser.add_option("--http_pin", dest="http_pin",
+                      help="PIN for the Apache Server PKCS#12 file")
+
     options, args = parser.parse_args(args)
+
+    # If any of the PKCS#12 options are selected, all are required. Create a
+    # list of the options and count it to enforce that all are required without
+    # having a huge set of it blocks.
+    pkcs12 = [options.dirsrv_pkcs12, options.http_pkcs12, options.dirsrv_pin, options.http_pin]
+    cnt = pkcs12.count(None)
+    if cnt > 0 and cnt < 4:
+        parser.error("error: All PKCS#12 options are required if any are used.")
 
     if len(args) != 2:
         parser.error("must provide the fully-qualified name of the replica")
@@ -79,10 +97,11 @@ def check_ipa_configuration(realm_name):
         logging.error("could not find directory instance: %s" % config_dir)
         sys.exit(1)
 
-def export_certdb(realm_name, ds_dir, dir, fname, subject):
+def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, subject):
     """realm is the kerberos realm for the IPA server.
        ds_dir is the location of the master DS we are creating a replica for.
        dir is the location of the files for the replica we are creating.
+       passwd_fname is the file containing the PKCS#12 password
        fname is the filename of the PKCS#12 file for this cert (minus the .p12).
        subject is the subject of the certificate we are creating
     """
@@ -95,10 +114,6 @@ def export_certdb(realm_name, ds_dir, dir, fname, subject):
         raise e
 
     pkcs12_fname = dir + "/" + fname + ".p12"
-    passwd_fname = dir + "/pwdfile.txt"
-    fd = open(passwd_fname, "w")
-    fd.write("\n")
-    fd.close()
 
     try:
         ca.export_pkcs12(pkcs12_fname, passwd_fname, "Server-Cert")
@@ -150,6 +165,9 @@ def main():
 
     replica_fqdn = args[1]
 
+    if not ipautil.file_exists("/usr/share/ipa/serial") and not options.dirsrv_pin:
+        sys.exit("The replica must be created on the primary IPA server.\nIf you installed IPA with your own certificates using PKCS#12 files you must provide PKCS#12 files for any replicas you create as well.")
+
     print "Determining current realm name"
     realm_name = get_realm_name()
     if realm_name is None:
@@ -177,10 +195,47 @@ def main():
     dir = top_dir + "/realm_info"
     os.mkdir(dir, 0700)
 
-    print "Creating SSL certificate for the Directory Server"
-    export_certdb(realm_name, ds_dir, dir, "dscert", "cn=%s,ou=Fedora Directory Server" % replica_fqdn)
-    print "Creating SSL certificate for the Web Server"
-    export_certdb(realm_name, ds_dir, dir, "httpcert", "cn=%s,ou=Apache Web Server" % replica_fqdn)
+    if options.dirsrv_pin:
+        passwd = options.dirsrv_pin
+    else:
+        passwd = ""
+
+    passwd_fname = dir + "/dirsrv_pin.txt"
+    fd = open(passwd_fname, "w")
+    fd.write("%s\n" % passwd)
+    fd.close()
+
+    if options.dirsrv_pkcs12:
+        print "Copying SSL certificate for the Directory Server from %s" % options.dirsrv_pkcs12
+        try:
+            shutil.copy(options.dirsrv_pkcs12, dir + "/dscert.p12")
+        except IOError, e:
+            print "Copy failed %s" %  e
+            sys.exit(1)
+    else:
+        print "Creating SSL certificate for the Directory Server"
+        export_certdb(realm_name, ds_dir, dir, passwd_fname, "dscert", "cn=%s,ou=Fedora Directory Server" % replica_fqdn)
+
+    if options.http_pin:
+        passwd = options.http_pin
+    else:
+        passwd = ""
+
+    passwd_fname = dir + "/http_pin.txt"
+    fd = open(passwd_fname, "w")
+    fd.write("%s\n" % passwd)
+    fd.close()
+
+    if options.http_pkcs12:
+        print "Copying SSL certificate for the Web Server from %s" % options.http_pkcs12
+        try:
+            shutil.copy(options.http_pkcs12, dir + "/httpcert.p12")
+        except IOError, e:
+            print "Copy failed %s" %  e
+            sys.exit(1)
+    else:
+        print "Creating SSL certificate for the Web Server"
+        export_certdb(realm_name, ds_dir, dir, passwd_fname, "httpcert", "cn=%s,ou=Apache Web Server" % replica_fqdn)
     print "Copying additional files"
     copy_files(realm_name, dir)
     print "Finalizing configuration"
@@ -195,8 +250,6 @@ def main():
 try:
     if not os.geteuid()==0:
         sys.exit("\nYou must be root to run this script.\n")
-    if not ipautil.file_exists("/usr/share/ipa/serial"):
-        sys.exit("The replica must be created on the primary IPA server.")
 
     main()
 except SystemExit, e:

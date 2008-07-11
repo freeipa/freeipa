@@ -200,6 +200,24 @@ def update_file(filename, orig, subst):
         print "File %s doesn't exist." % filename
         return 1
 
+def set_directive(filename, directive, value):
+    """Set a name/value pair directive in a configuration file.
+
+       This has only been tested with nss.conf
+    """
+    fd = open(filename)
+    file = []
+    for line in fd:
+        if directive in line:
+            file.append('%s "%s"\n' % (directive, value))
+        else:
+            file.append(line)
+    fd.close()
+
+    fd = open(filename, "w")
+    fd.write("".join(file))
+    fd.close()
+
 def kadmin(command):
     ipautil.run(["/usr/kerberos/sbin/kadmin.local", "-q", command])
 
