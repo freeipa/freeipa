@@ -1296,6 +1296,10 @@ int main(int argc, char *argv[])
 
 	for (tifa = ifa; tifa; tifa = tifa->ifa_next) {
 
+		if (NULL == tifa->ifa_addr)
+			/* uhmm no address ?? skip it */
+			continue;
+
 		if (tifa->ifa_addr->sa_family != AF_INET &&
 		    tifa->ifa_addr->sa_family != AF_INET6) {
 			/* not interesting for us */
