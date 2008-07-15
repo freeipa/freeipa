@@ -1319,7 +1319,7 @@ int main(int argc, char *argv[])
 		hints.ai_flags = AI_NUMERICHOST;
 		hints.ai_family = AF_UNSPEC;
 
-		/* this shoud return 2 entries, one for UDP and one for TCP */
+		/* this should return 2 entries, one for UDP and one for TCP */
 		ret = getaddrinfo(host, "kpasswd", &hints, &ai);
 		if (ret) {
 			syslog(LOG_ERR, "Error getting address info (%s) for [%s]",
