@@ -20,6 +20,7 @@ plugin_LTLIBRARIES = 			\
 
 libipa_memberof_plugin_la_SOURCES = 	\
 	ipa-memberof.c			\
+	ipa-memberof_config.c		\
 	$(NULL)
 
 libipa_memberof_plugin_la_LDFLAGS = -avoid-version
