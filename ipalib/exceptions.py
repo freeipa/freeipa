@@ -2,7 +2,7 @@
 #   Jason Gerard DeRose <jderose@redhat.com>
 #
 # Copyright (C) 2008  Red Hat
-# see file 'COPYING' for use and warranty information
+# see file 'COPYING' for use and warranty inmsgion
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -21,12 +21,12 @@
 All custom exceptions raised by `ipalib` package.
 """
 
-class IPAException(Exception):
+class IPAError(Exception):
 	"""
 	Use this base class for your custom IPA exceptions unless there is a
 	specific reason to subclass from AttributeError, KeyError, etc.
 	"""
-	format = None
+	msg = None
 
 	def __init__(self, *args, **kw):
 		self.args = args
@@ -36,15 +36,14 @@ class IPAException(Exception):
 		"""
 		Returns the string representation of this exception.
 		"""
-		if self.format is None:
+		if self.msg is None:
 			if len(self.args) == 1:
 				return unicode(self.args[0])
 			return unicode(self.args)
 		if len(self.args) > 0:
-			return self.format % self.args
-		return self.format % self.kw
+			return self.msg % self.args
+		return self.msg % self.kw
 
 
-
-class CommandOverride(IPAException):
-	format = 'Cannot override command %r'
+class NameSpaceError(IPAError):
+	msg = 'Cannot set %r: NameSpace does not allow attribute setting'
