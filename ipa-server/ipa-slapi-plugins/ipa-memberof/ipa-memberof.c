@@ -95,14 +95,14 @@ typedef struct _memberof_get_groups_data
 /****** secrets *********/
 #ifndef SLAPI_TASK_PUBLIC
 /*from FDS slap.h
- *  * until we get a proper api for access
- *   */
+ * until we get a proper api for access
+ */
 #define TASK_RUNNING_AS_TASK             0x0
 
 /******************************************************************************
- *  * Online tasks interface (to support import, export, etc)
- *   * After some cleanup, we could consider making these public.
- *    */
+ * Online tasks interface (to support import, export, etc)
+ * After some cleanup, we could consider making these public.
+ */
 struct _slapi_task {
     struct _slapi_task *next;
     char *task_dn;
@@ -130,8 +130,8 @@ static void slapi_task_set_data(Slapi_Task *task, void *data)
 }
 
 /*
- *  * Retrieve some opaque task specific data from the task.
- *   */
+ * Retrieve some opaque task specific data from the task.
+ */
 static void * slapi_task_get_data(Slapi_Task *task)
 {
     if (task) {
