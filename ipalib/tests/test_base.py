@@ -267,8 +267,7 @@ class test_API:
 		Test expectations of a fresh API instance.
 		"""
 		api = self.new()
-		assert read_only(api, 'objects') is None
-		assert read_only(api, 'objects') is None
+		assert read_only(api, 'cmd') is None
 
 	def test_register_command(self):
 		api = self.new()
@@ -314,3 +313,28 @@ class test_API:
 
 		# Check that override=True works:
 		api.register_command(cmd_my_command, override=True)
+
+	def test_finalize(self):
+		api = self.new()
+		assert read_only(api, 'cmd') is None
+
+		class cmd_my_command(base.Command):
+			pass
+		class cmd_another_command(base.Command):
+			pass
+
+		api.register_command(cmd_my_command)
+		api.register_command(cmd_another_command)
+
+		api.finalize()
+
+		cmd = read_only(api, 'cmd')
+		assert isinstance(cmd, base.NameSpace)
+		assert api.cmd is cmd
+
+		assert len(cmd) == 2
+		assert list(cmd) == ['another_command', 'my_command']
+		assert isinstance(cmd.my_command, cmd_my_command)
+		assert cmd.my_command is cmd['my_command']
+		assert isinstance(cmd.another_command, cmd_another_command)
+		assert cmd.another_command is cmd['another_command']

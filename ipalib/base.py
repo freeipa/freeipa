@@ -158,7 +158,7 @@ class NameSpace(object):
 
 
 class API(object):
-	__commands = None
+	__cmd = None
 	__objects = None
 	__locked = False
 
@@ -171,9 +171,9 @@ class API(object):
 		return self.__objects
 	objects = property(__get_objects)
 
-	def __get_commands(self):
-		return self.__commands
-	commands = property(__get_commands)
+	def __get_cmd(self):
+		return self.__cmd
+	cmd = property(__get_cmd)
 
 	def __merge(self, base, cls, override):
 		assert issubclass(base, Named)
@@ -184,17 +184,24 @@ class API(object):
 			raise exceptions.DuplicateError(cls.__name__, id(cls))
 		if cls.__name__ in self.__names and not override:
 			raise exceptions.OverrideError(cls.__name__)
+		prefix = base.prefix
+		assert cls.__name__.startswith(prefix)
 		self.__classes.add(cls)
 		self.__names.add(cls.__name__)
-		if base not in self.__stage:
-			self.__stage[base.prefix] = {}
-		self.__stage[base.prefix][cls.__name__] = cls
+		if prefix not in self.__stage:
+			self.__stage[prefix] = {}
+		self.__stage[prefix][cls.__name__] = cls
 
 
 	def register_command(self, cls, override=False):
 		self.__merge(Command, cls, override)
 
 	def finalize(self):
-		pass
-		#i = cls()
-		#assert cls.__name__ == (base.prefix + '_' + i.name)
+		for (prefix, d)  in self.__stage.items():
+			n = {}
+			for cls in d.values():
+				i = cls()
+				assert cls.__name__ == (prefix + '_' + i.name)
+				n[i.name] = i
+			if prefix == 'cmd':
+				self.__cmd = NameSpace(n)
