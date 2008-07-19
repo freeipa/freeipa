@@ -45,16 +45,20 @@ class IPAError(Exception):
 		return self.msg % self.kw
 
 
-class SetAttributeError(IPAError):
-	msg = 'Cannot set %r: NameSpace does not allow attribute setting'
+class SetError(IPAError):
+	msg = 'setting %r, but NameSpace does not allow attribute setting'
 
 
 class OverrideError(IPAError):
-	msg = 'Unexpected override of %r; use override=True if intended'
+	msg = 'unexpected override of %r (use override=True if intended)'
+
+
+class DuplicateError(IPAError):
+	msg = 'class %r at %d was already registered'
 
 
 class RegistrationError(IPAError):
-	msg = '%r is not a subclass of %s'
+	msg = '%r must be a subclass of %s'
 
 
 class PrefixError(IPAError):

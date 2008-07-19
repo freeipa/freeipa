@@ -184,7 +184,7 @@ class test_NameSpace:
 			raised = False
 			try:
 				setattr(ns, key, value)
-			except exceptions.SetAttributeError:
+			except exceptions.SetError:
 				raised = True
 			assert raised
 			assert getattr(ns, key, None) != value
@@ -238,13 +238,17 @@ class test_NameSpace:
 		assert len(kw) == len(ns) == 3
 
 
-class test_Command:
-	def new(self):
-		return base.Command()
+class test_Command(ClassChecker):
+	class cmd_some_command(base.Command):
+		pass
+	cls = cmd_some_command
 
 	def test_fresh(self):
 		c = self.new()
-
+		assert isinstance(c, base.Named)
+		assert c.name == 'some_command'
+		assert c.name_cli == 'some-command'
+		assert callable(c)
 
 
 class test_API:
@@ -267,19 +271,46 @@ class test_API:
 		assert read_only(api, 'objects') is None
 
 	def test_register_command(self):
-		class  my_command(base.Command):
-			pass
-		class another_command(base.Command):
-			pass
 		api = self.new()
 
-		api.register_command(my_command)
+		class cmd_my_command(base.Command):
+			pass
+		class cmd_another_command(base.Command):
+			pass
 
-		# Check that RegistrationError is raised passing something not
-		# sub-classed from Command:
+		# Check that RegistrationError is raised when registering anything
+		# other than a subclass of Command:
+		for obj in [object, cmd_my_command()]:
+			raised = False
+			try:
+				api.register_command(obj)
+			except exceptions.RegistrationError:
+				raised = True
+			assert raised
+
+		# Check that command registration works:
+		api.register_command(cmd_my_command)
+		api.register_command(cmd_another_command)
+
+		# Check that DuplicateError is raised when registering the same class
+		# twice:
 		raised = False
 		try:
-			api.register_command(object)
-		except exceptions.RegistrationError:
+			api.register_command(cmd_my_command)
+		except exceptions.DuplicateError:
 			raised = True
 		assert raised
+
+		# Check that OverrideError is raised when registering same name
+		# without override = True:
+		class cmd_my_command(base.Command):
+			pass
+		raised = False
+		try:
+			api.register_command(cmd_my_command)
+		except exceptions.OverrideError:
+			raised = True
+		assert raised
+
+		# Check that override=True works:
+		api.register_command(cmd_my_command, override=True)

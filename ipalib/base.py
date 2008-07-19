@@ -28,12 +28,8 @@ import exceptions
 class Named(object):
 	prefix = None
 
-	@classmethod
-	def clsname(cls):
-		return cls.__name__
-
 	def __init__(self):
-		clsname = self.clsname()
+		clsname = self.__class__.__name__
 		assert type(self.prefix) is str
 		prefix = self.prefix + '_'
 		if not clsname.startswith(prefix):
@@ -50,7 +46,8 @@ class Named(object):
 	name_cli = property(__get_name_cli)
 
 
-class Command(object):
+class Command(Named):
+	prefix = 'cmd'
 
 	def normalize(self, kw):
 		raise NotImplementedError
@@ -92,7 +89,7 @@ class NameSpace(object):
 	For example, setting an attribute the normal way will raise an exception:
 
 	>>> ns.my_message = 'some new value'
-	(raises exceptions.SetAttributeError)
+	(raises exceptions.SetError)
 
 	But a programmer could still set the attribute like this:
 
@@ -123,7 +120,7 @@ class NameSpace(object):
 		NameSpace has been locked; otherwise calls object.__setattr__().
 		"""
 		if self.__locked:
-			raise exceptions.SetAttributeError(name)
+			raise exceptions.SetError(name)
 		super(NameSpace, self).__setattr__(name, value)
 
 	def __getitem__(self, key):
@@ -166,8 +163,9 @@ class API(object):
 	__locked = False
 
 	def __init__(self):
-		self.__c = {} # Proposed commands
-		self.__o = {} # Proposed objects
+		self.__classes = set()
+		self.__names = set()
+		self.__stage = {}
 
 	def __get_objects(self):
 		return self.__objects
@@ -177,19 +175,26 @@ class API(object):
 		return self.__commands
 	commands = property(__get_commands)
 
-	def __merge(self, target, base, cls, override):
-		assert type(target) is dict
-		assert inspect.isclass(base)
-		assert inspect.isclass(cls)
+	def __merge(self, base, cls, override):
+		assert issubclass(base, Named)
 		assert type(override) is bool
-		if not issubclass(cls, base):
-			raise exceptions.RegistrationError(
-				cls,
-				'%s.%s' % (base.__module__, base.__name__)
-			)
+		if not (inspect.isclass(cls) and issubclass(cls, base)):
+			raise exceptions.RegistrationError(cls,	base.__name__)
+		if cls in self.__classes:
+			raise exceptions.DuplicateError(cls.__name__, id(cls))
+		if cls.__name__ in self.__names and not override:
+			raise exceptions.OverrideError(cls.__name__)
+		self.__classes.add(cls)
+		self.__names.add(cls.__name__)
+		if base not in self.__stage:
+			self.__stage[base.prefix] = {}
+		self.__stage[base.prefix][cls.__name__] = cls
+
 
 	def register_command(self, cls, override=False):
-		self.__merge(self.__c, Command, cls, override)
+		self.__merge(Command, cls, override)
 
 	def finalize(self):
 		pass
+		#i = cls()
+		#assert cls.__name__ == (base.prefix + '_' + i.name)
