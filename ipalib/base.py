@@ -21,10 +21,24 @@
 Base classes for plug-in architecture and generative API.
 """
 
-from exceptions import SetAttributeError
+import inspect
+import exceptions
 
 
-class Command(object):
+class Named(object):
+	#def __init__(self, prefix):
+	#	clsname = self.__class__.__name__
+	def __get_name(self):
+		return self.__class__.__name__
+	name = property(__get_name)
+
+	def __get_cli_name(self):
+		return self.name.replace('_', '-')
+	cli_name = property(__get_cli_name)
+
+
+class Command(Named):
+
 	def normalize(self, kw):
 		raise NotImplementedError
 
@@ -35,11 +49,11 @@ class Command(object):
 		raise NotImplementedError
 
 	def __call__(self, **kw):
-		kw = self.normalize(kw)
-		invalid = self.validate(kw)
+		normalized = self.normalize(kw)
+		invalid = self.validate(normalized)
 		if invalid:
 			return invalid
-		return self.execute(kw)
+		return self.execute(normalize)
 
 
 class Argument(object):
@@ -65,7 +79,7 @@ class NameSpace(object):
 	For example, setting an attribute the normal way will raise an exception:
 
 	>>> ns.my_message = 'some new value'
-	(raises ipalib.exceptions.SetAttributeError)
+	(raises exceptions.SetAttributeError)
 
 	But a programmer could still set the attribute like this:
 
@@ -96,7 +110,7 @@ class NameSpace(object):
 		NameSpace has been locked; otherwise calls object.__setattr__().
 		"""
 		if self.__locked:
-			raise SetAttributeError(name)
+			raise exceptions.SetAttributeError(name)
 		super(NameSpace, self).__setattr__(name, value)
 
 	def __getitem__(self, key):
@@ -134,17 +148,35 @@ class NameSpace(object):
 
 
 class API(object):
+	__commands = None
+	__objects = None
+	__locked = False
+
 	def __init__(self):
-		self.__c = object()
-		self.__o = object()
+		self.__c = {} # Proposed commands
+		self.__o = {} # Proposed objects
 
-	def __get_c(self):
-		return self.__c
-	c = property(__get_c)
+	def __get_objects(self):
+		return self.__objects
+	objects = property(__get_objects)
 
-	def __get_o(self):
-		return self.__o
-	o = property(__get_o)
+	def __get_commands(self):
+		return self.__commands
+	commands = property(__get_commands)
 
-	def register_command(self, name, callback, override=False):
+	def __merge(self, target, base, cls, override):
+		assert type(target) is dict
+		assert inspect.isclass(base)
+		assert inspect.isclass(cls)
+		assert type(override) is bool
+		if not issubclass(cls, base):
+			raise exceptions.RegistrationError(
+				cls,
+				'%s.%s' % (base.__module__, base.__name__)
+			)
+
+	def register_command(self, cls, override=False):
+		self.__merge(self.__c, Command, cls, override)
+
+	def finalize(self):
 		pass

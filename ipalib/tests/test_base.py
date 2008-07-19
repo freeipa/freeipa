@@ -24,7 +24,23 @@ Unit tests for `ipalib.base` module.
 from ipalib import base, exceptions
 
 
-class test_NameSpace():
+def read_only(obj, name):
+	"""
+	Check that a given property is read-only.
+	Returns the value of the property.
+	"""
+	assert isinstance(obj, object)
+	assert hasattr(obj, name)
+	raised = False
+	try:
+		setattr(obj, name, 'some new obj')
+	except AttributeError:
+		raised = True
+	assert raised
+	return getattr(obj, name)
+
+
+class test_NameSpace:
 	"""
 	Unit tests for `NameSpace` class.
 	"""
@@ -149,3 +165,50 @@ class test_NameSpace():
 		"""
 		(kw, ns) = self.std()
 		assert len(kw) == len(ns) == 3
+
+
+class test_Command:
+	def new(self):
+		return base.Command()
+
+	def test_fresh(self):
+		c = self.new()
+
+
+
+class test_API:
+	"""
+	Unit tests for `API` class.
+	"""
+
+	def new(self):
+		"""
+		Returns a new API instance.
+		"""
+		return base.API()
+
+	def test_fresh(self):
+		"""
+		Test expectations of a fresh API instance.
+		"""
+		api = self.new()
+		assert read_only(api, 'objects') is None
+		assert read_only(api, 'objects') is None
+
+	def test_register_command(self):
+		class  my_command(base.Command):
+			pass
+		class another_command(base.Command):
+			pass
+		api = self.new()
+
+		api.register_command(my_command)
+
+		# Check that RegistrationError is raised passing something not
+		# sub-classed from Command:
+		raised = False
+		try:
+			api.register_command(object)
+		except exceptions.RegistrationError:
+			raised = True
+		assert raised

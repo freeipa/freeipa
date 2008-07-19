@@ -20,3 +20,7 @@
 """
 IPA library.
 """
+
+import base
+
+api = base.API()

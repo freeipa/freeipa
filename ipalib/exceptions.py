@@ -47,3 +47,11 @@ class IPAError(Exception):
 
 class SetAttributeError(IPAError):
 	msg = 'Cannot set %r: NameSpace does not allow attribute setting'
+
+
+class OverrideError(IPAError):
+	msg = 'Unexpected override of %r; use override=True if intended'
+
+
+class RegistrationError(IPAError):
+	msg = '%r is not a subclass of %s'
