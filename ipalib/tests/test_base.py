@@ -56,61 +56,6 @@ class ClassChecker(object):
 		return self.new(*self.args(), **self.kw())
 
 
-class test_Named:
-	"""
-	Unit tests for `Named` class.
-	"""
-	cls = base.Named
-
-	def new(self):
-		class tst_verb_object(self.cls):
-			prefix = 'tst'
-		return tst_verb_object()
-
-	def test_prefix(self):
-		"""
-		Test prefix exception.
-		"""
-		# Test Example class:
-		class Example(self.cls):
-			prefix = 'eg'
-
-		# Two test subclasses:
-		class do_stuff(Example):
-			pass
-		class eg_do_stuff(Example):
-			pass
-
-		# Test that PrefixError is raised with incorrectly named subclass:
-		raised = False
-		try:
-			do_stuff()
-		except exceptions.PrefixError:
-			raised = True
-		assert raised
-
-		# Test that correctly named subclass works:
-		eg_do_stuff()
-
-	def test_name(self):
-		"""
-		Test Named.name property.
-		"""
-		obj = self.new()
-		assert read_only(obj, 'name') == 'verb_object'
-
-	def test_name_cli(self):
-		"""
-		Test Named.name_cli property.
-		"""
-		obj = self.new()
-		assert read_only(obj, 'name_cli') == 'verb-object'
-
-
-
-
-
-
 class test_NameSpace:
 	"""
 	Unit tests for `NameSpace` class.
@@ -238,17 +183,93 @@ class test_NameSpace:
 		assert len(kw) == len(ns) == 3
 
 
-class test_Command(ClassChecker):
-	class cmd_some_command(base.Command):
+def test_Command():
+	class user(object):
+		name = 'user'
+	class add(base.Command):
 		pass
-	cls = cmd_some_command
+	i = add(user())
+	assert i.name == 'add'
+	assert i.full_name == 'add_user'
 
-	def test_fresh(self):
-		c = self.new()
-		assert isinstance(c, base.Named)
-		assert c.name == 'some_command'
-		assert c.name_cli == 'some-command'
-		assert callable(c)
+
+def test_Attribute():
+	class user(object):
+		name = 'user'
+	class sn(base.Attribute):
+		pass
+	i = sn(user())
+	assert i.name == 'sn'
+	assert i.full_name == 'user_sn'
+
+
+def test_Object():
+	class create(base.Command):
+			pass
+
+	class retrieve(base.Command):
+			pass
+
+	class update(base.Command):
+			pass
+
+	class delete(base.Command):
+			pass
+
+	class givenName(base.Attribute):
+		pass
+
+	class sn(base.Attribute):
+		pass
+
+	class login(base.Attribute):
+		pass
+
+
+	class user(base.Object):
+		def get_commands(self):
+			return [
+				create,
+				retrieve,
+				update,
+				delete,
+			]
+
+		def get_attributes(self):
+			return [
+				givenName,
+				sn,
+				login,
+			]
+
+	i = user()
+	assert i.name == 'user'
+
+	# Test commands:
+	commands = i.commands
+	assert isinstance(commands, base.NameSpace)
+	assert list(commands) == ['create', 'delete', 'retrieve', 'update']
+	assert len(commands) == 4
+	for name in commands:
+		cls = locals()[name]
+		cmd = commands[name]
+		assert type(cmd) is cls
+		assert getattr(commands, name) is cmd
+		assert cmd.name == name
+		assert cmd.full_name == ('%s_user' % name)
+
+	# Test attributes:
+	attributes = i.attributes
+	assert isinstance(attributes, base.NameSpace)
+	assert list(attributes) == ['givenName', 'sn', 'login']
+	assert len(attributes) == 3
+	for name in attributes:
+		cls = locals()[name]
+		attr = attributes[name]
+		assert type(attr) is cls
+		assert getattr(attributes, name) is attr
+		assert attr.name == name
+		assert attr.full_name == ('user_%s' % name)
 
 
 class test_API:
@@ -262,14 +283,14 @@ class test_API:
 		"""
 		return base.API()
 
-	def test_fresh(self):
+	def dont_fresh(self):
 		"""
 		Test expectations of a fresh API instance.
 		"""
 		api = self.new()
 		assert read_only(api, 'cmd') is None
 
-	def test_register_command(self):
+	def dont_register_command(self):
 		api = self.new()
 
 		class cmd_my_command(base.Command):
@@ -314,7 +335,7 @@ class test_API:
 		# Check that override=True works:
 		api.register_command(cmd_my_command, override=True)
 
-	def test_finalize(self):
+	def dont_finalize(self):
 		api = self.new()
 		assert read_only(api, 'cmd') is None
 

@@ -18,66 +18,43 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-
+Base classes for objects with CRUD functionality.
 """
 
-from base import NameSpace
+import base
 
-class Named(object):
-	def __get_name(self):
-		return self.__class__.__name__
-	name = property(__get_name)
-
-class ObjectMember(Named):
-	def __init__(self, obj):
-		self.__obj = obj
-
-	def __get_obj(self):
-		return self.__obj
-	obj = property(__get_obj)
+class create(base.Command):
+		pass
 
 
-class Command(ObjectMember):
-	def __get_full_name(self):
-		return '%s_%s' % (self.name, self.obj.name)
-	full_name = property(__get_full_name)
-
-class Attribute(ObjectMember):
-	def __get_full_name(self):
-		return '%s_%s' % (self.obj.name, self.name)
-	full_name = property(__get_full_name)
+class retrieve(base.Command):
+		pass
 
 
-class Object(Named):
-	def __init__(self):
-		self.__commands = self.__build_ns(self.get_commands)
-		self.__attributes = self.__build_ns(self.get_attributes, True)
+class update(base.Command):
+		pass
 
-	def __get_commands(self):
-		return self.__commands
-	commands = property(__get_commands)
 
-	def __get_attributes(self):
-		return self.__attributes
-	attributes = property(__get_attributes)
+class delete(base.Command):
+		pass
 
-	def __build_ns(self, callback, preserve=False):
-		d = {}
-		o = []
-		for cls in callback():
-			i = cls(self)
-			assert i.name not in d
-			d[i.name] = i
-			o.append(i.name)
-		if preserve:
-			return NameSpace(d, order=o)
-		return NameSpace(d)
 
-	def __get_commands(self):
-		return
+class search(base.Command):
+		pass
 
+
+class user(base.Object):
 	def get_commands(self):
-		raise NotImplementedError
+		return [
+			create,
+			retrieve,
+			update,
+			delete,
+		]
 
 	def get_attributes(self):
-		raise NotImplementedError
+		return [
+			givenName,
+			sn,
+			login,
+		]

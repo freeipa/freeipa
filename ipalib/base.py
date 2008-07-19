@@ -25,51 +25,6 @@ import inspect
 import exceptions
 
 
-class Named(object):
-	prefix = None
-
-	def __init__(self):
-		clsname = self.__class__.__name__
-		assert type(self.prefix) is str
-		prefix = self.prefix + '_'
-		if not clsname.startswith(prefix):
-			raise exceptions.PrefixError(clsname, prefix)
-		self.__name = clsname[len(prefix):]
-		self.__name_cli = self.__name.replace('_', '-')
-
-	def __get_name(self):
-		return self.__name
-	name = property(__get_name)
-
-	def __get_name_cli(self):
-		return self.__name_cli
-	name_cli = property(__get_name_cli)
-
-
-class Command(Named):
-	prefix = 'cmd'
-
-	def normalize(self, kw):
-		raise NotImplementedError
-
-	def validate(self, kw):
-		raise NotImplementedError
-
-	def execute(self, kw):
-		raise NotImplementedError
-
-	def __call__(self, **kw):
-		normalized = self.normalize(kw)
-		invalid = self.validate(normalized)
-		if invalid:
-			return invalid
-		return self.execute(normalize)
-
-
-class Argument(object):
-	pass
-
-
 class NameSpace(object):
 	"""
 	A read-only namespace of (key, value) pairs that can be accessed
@@ -103,8 +58,10 @@ class NameSpace(object):
 
 	def __init__(self, kw, order=None):
 		"""
-		The single constructor argument `kw` is a dict of the (key, value)
-		pairs to be in this NameSpace instance.
+		The `kw` argument is a dict of the (key, value) pairs to be in this
+		NameSpace instance.  The optional `order` keyword argument specifies
+		the order of the keys in this namespace; if omitted, the default is
+		to sort the keys in ascending order.
 		"""
 		assert isinstance(kw, dict)
 		self.__kw = dict(kw)
@@ -141,7 +98,8 @@ class NameSpace(object):
 
 	def __iter__(self):
 		"""
-		Yields the names in this NameSpace in ascending order.
+		Yields the names in this NameSpace in ascending order, or in the
+		the order specified in `order` kw arg.
 
 		For example:
 
@@ -159,6 +117,65 @@ class NameSpace(object):
 		Returns number of items in this NameSpace.
 		"""
 		return len(self.__keys)
+
+
+class Named(object):
+	def __get_name(self):
+		return self.__class__.__name__
+	name = property(__get_name)
+
+
+class ObjectMember(Named):
+	def __init__(self, obj):
+		self.__obj = obj
+
+	def __get_obj(self):
+		return self.__obj
+	obj = property(__get_obj)
+
+
+class Command(ObjectMember):
+	def __get_full_name(self):
+		return '%s_%s' % (self.name, self.obj.name)
+	full_name = property(__get_full_name)
+
+
+class Attribute(ObjectMember):
+	def __get_full_name(self):
+		return '%s_%s' % (self.obj.name, self.name)
+	full_name = property(__get_full_name)
+
+
+class Object(Named):
+	def __init__(self):
+		self.__commands = self.__build_ns(self.get_commands)
+		self.__attributes = self.__build_ns(self.get_attributes, True)
+
+	def __get_commands(self):
+		return self.__commands
+	commands = property(__get_commands)
+
+	def __get_attributes(self):
+		return self.__attributes
+	attributes = property(__get_attributes)
+
+	def __build_ns(self, callback, preserve=False):
+		d = {}
+		o = []
+		for cls in callback():
+			i = cls(self)
+			assert i.name not in d
+			d[i.name] = i
+			o.append(i.name)
+		if preserve:
+			return NameSpace(d, order=o)
+		return NameSpace(d)
+
+	def get_commands(self):
+		raise NotImplementedError
+
+	def get_attributes(self):
+		raise NotImplementedError
 
 
 class API(object):
