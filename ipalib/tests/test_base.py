@@ -40,6 +40,77 @@ def read_only(obj, name):
 	return getattr(obj, name)
 
 
+class ClassChecker(object):
+	cls = None # Override this is subclasses
+
+	def new(self, *args, **kw):
+		return self.cls(*args, **kw)
+
+	def args(self):
+		return []
+
+	def kw(self):
+		return {}
+
+	def std(self):
+		return self.new(*self.args(), **self.kw())
+
+
+class test_Named:
+	"""
+	Unit tests for `Named` class.
+	"""
+	cls = base.Named
+
+	def new(self):
+		class tst_verb_object(self.cls):
+			prefix = 'tst'
+		return tst_verb_object()
+
+	def test_prefix(self):
+		"""
+		Test prefix exception.
+		"""
+		# Test Example class:
+		class Example(self.cls):
+			prefix = 'eg'
+
+		# Two test subclasses:
+		class do_stuff(Example):
+			pass
+		class eg_do_stuff(Example):
+			pass
+
+		# Test that PrefixError is raised with incorrectly named subclass:
+		raised = False
+		try:
+			do_stuff()
+		except exceptions.PrefixError:
+			raised = True
+		assert raised
+
+		# Test that correctly named subclass works:
+		eg_do_stuff()
+
+	def test_name(self):
+		"""
+		Test Named.name property.
+		"""
+		obj = self.new()
+		assert read_only(obj, 'name') == 'verb_object'
+
+	def test_name_cli(self):
+		"""
+		Test Named.name_cli property.
+		"""
+		obj = self.new()
+		assert read_only(obj, 'name_cli') == 'verb-object'
+
+
+
+
+
+
 class test_NameSpace:
 	"""
 	Unit tests for `NameSpace` class.

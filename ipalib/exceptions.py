@@ -55,3 +55,7 @@ class OverrideError(IPAError):
 
 class RegistrationError(IPAError):
 	msg = '%r is not a subclass of %s'
+
+
+class PrefixError(IPAError):
+	msg = 'class name %r must start with %r'

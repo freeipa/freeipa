@@ -26,18 +26,31 @@ import exceptions
 
 
 class Named(object):
-	#def __init__(self, prefix):
-	#	clsname = self.__class__.__name__
+	prefix = None
+
+	@classmethod
+	def clsname(cls):
+		return cls.__name__
+
+	def __init__(self):
+		clsname = self.clsname()
+		assert type(self.prefix) is str
+		prefix = self.prefix + '_'
+		if not clsname.startswith(prefix):
+			raise exceptions.PrefixError(clsname, prefix)
+		self.__name = clsname[len(prefix):]
+		self.__name_cli = self.__name.replace('_', '-')
+
 	def __get_name(self):
-		return self.__class__.__name__
+		return self.__name
 	name = property(__get_name)
 
-	def __get_cli_name(self):
-		return self.name.replace('_', '-')
-	cli_name = property(__get_cli_name)
+	def __get_name_cli(self):
+		return self.__name_cli
+	name_cli = property(__get_name_cli)
 
 
-class Command(Named):
+class Command(object):
 
 	def normalize(self, kw):
 		raise NotImplementedError
