@@ -45,5 +45,5 @@ class IPAError(Exception):
 		return self.msg % self.kw
 
 
-class NameSpaceError(IPAError):
+class SetAttributeError(IPAError):
 	msg = 'Cannot set %r: NameSpace does not allow attribute setting'

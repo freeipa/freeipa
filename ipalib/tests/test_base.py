@@ -56,28 +56,96 @@ class test_NameSpace():
 
 	def test_public(self):
 		"""
-		Test that NameSpace instance created with empty dict has no public
-		attributes.
+		Tests that a NameSpace instance created with empty dict has no public
+		attributes (that would then conflict with names we want to assign to
+		the NameSpace). Also tests that a NameSpace instance created with a
+		non-empty dict has no unexpected public methods.
 		"""
 		ns = self.ns({})
 		assert list(ns) == []
+		assert len(ns) == 0
 		for name in dir(ns):
-			assert name.startswith('_') or name.startswith('_NameSpace__')
+			assert name.startswith('__') or name.startswith('_NameSpace__')
+		(kw, ns) = self.std()
+		keys = set(kw)
+		for name in dir(ns):
+			assert (
+				name.startswith('__') or
+				name.startswith('_NameSpace__') or
+				name in keys
+			)
+
+	def test_dict_vs_attr(self):
+		"""
+		Tests that NameSpace.__getitem__() and NameSpace.__getattr__() return
+		the same values.
+		"""
+		(kw, ns) = self.std()
+		assert len(kw) > 0
+		assert len(kw) == len(list(ns))
+		for (key, val) in kw.items():
+			assert ns[key] is val
+			assert getattr(ns, key) is val
+
+	def test_setattr(self):
+		"""
+		Tests that attributes cannot be set on NameSpace instance.
+		"""
+		(kw, ns) = self.std()
+		value = 'new value'
+		for key in kw:
+			raised = False
+			try:
+				setattr(ns, key, value)
+			except exceptions.SetAttributeError:
+				raised = True
+			assert raised
+			assert getattr(ns, key, None) != value
+			assert ns[key] != value
+
+	def test_setitem(self):
+		"""
+		Tests that attributes cannot be set via NameSpace dict interface.
+		"""
+		(kw, ns) = self.std()
+		value = 'new value'
+		for key in kw:
+			raised = False
+			try:
+				ns[key] = value
+			except TypeError:
+				raised = True
+			assert raised
+			assert getattr(ns, key, None) != value
+			assert ns[key] != value
+
+	def test_hasitem(self):
+		"""
+		Test __hasitem__() membership method.
+		"""
+		(kw, ns) = self.std()
+		nope = [
+			'attr_d',
+			'attr_e',
+			'whatever',
+		]
+		for key in kw:
+			assert key in ns
+		for key in nope:
+			assert key not in kw
+			assert key not in ns
 
 	def test_iter(self):
 		"""
-		Test that __iter__() method returns sorted list of attribute names.
+		Tests that __iter__() method returns sorted list of attribute names.
 		"""
 		(kw, ns) = self.std()
 		assert list(ns) == sorted(kw)
 		assert [ns[k] for k in ns] == ['Hello', 'all', 'yall!']
 
-	def test_dict_vs_attr(self):
+	def test_len(self):
 		"""
-		Tests NameSpace.__getitem__() and NameSpace.__getattr__() return the
-		same values.
+		Test __len__() method.
 		"""
 		(kw, ns) = self.std()
-		for (key, val) in kw.items():
-			assert ns[key] is val
-			assert getattr(ns, key) is val
+		assert len(kw) == len(ns) == 3
