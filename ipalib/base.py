@@ -101,7 +101,7 @@ class NameSpace(object):
 
 	__locked = False # Whether __setattr__ has been locked
 
-	def __init__(self, kw):
+	def __init__(self, kw, order=None):
 		"""
 		The single constructor argument `kw` is a dict of the (key, value)
 		pairs to be in this NameSpace instance.
@@ -111,7 +111,11 @@ class NameSpace(object):
 		for (key, value) in self.__kw.items():
 			assert not key.startswith('_')
 			setattr(self, key, value)
-		self.__keys = sorted(self.__kw)
+		if order is None:
+			self.__keys = sorted(self.__kw)
+		else:
+			self.__keys = list(order)
+			assert set(self.__keys) == set(self.__kw)
 		self.__locked = True
 
 	def __setattr__(self, name, value):
