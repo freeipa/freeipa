@@ -94,7 +94,7 @@ class NameSpace(object):
 		"""
 		Returns True if namespace has an item named `key`.
 		"""
-		return key in self.__kw
+		return key.replace('-', '_') in self.__kw
 
 	def __iter__(self):
 		"""
@@ -131,6 +131,10 @@ class Named(object):
 	def __get_name(self):
 		return self.__class__.__name__
 	name = property(__get_name)
+
+	def __get_doc(self):
+		return self.__class__.__doc__
+	doc = property(__get_doc)
 
 
 class ObjectMember(Named):
@@ -189,6 +193,7 @@ class Object(Named):
 class API(object):
 	__objects = None
 	__commands = None
+	__max_cmd_len = None
 
 	def __init__(self):
 		self.__obj_d = {}
@@ -200,6 +205,14 @@ class API(object):
 	def __get_commands(self):
 		return self.__commands
 	commands = property(__get_commands)
+
+	def __get_max_cmd_len(self):
+		if self.__max_cmd_len is None:
+			if self.__commands is None:
+				return 0
+			self.__max_cmd_len = max(len(n) for n in self.__commands)
+		return self.__max_cmd_len
+	max_cmd_len = property(__get_max_cmd_len)
 
 	def register_object(self, cls, override=False):
 		assert type(override) is bool
