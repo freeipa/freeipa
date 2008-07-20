@@ -183,6 +183,17 @@ class test_NameSpace:
 		assert len(kw) == len(ns) == 3
 
 
+def test_Named():
+	class named_class(base.Named):
+		"""
+		This class is so introspective!
+		"""
+	i = named_class()
+	assert i.name == 'named_class'
+	assert i.cli == 'named-class'
+	assert i.doc == 'This class is so introspective!'
+
+
 def test_Command():
 	class user(object):
 		name = 'user'

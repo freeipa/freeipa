@@ -132,8 +132,12 @@ class Named(object):
 		return self.__class__.__name__
 	name = property(__get_name)
 
+	def __get_cli(self):
+		return self.name.replace('_', '-')
+	cli = property(__get_cli)
+
 	def __get_doc(self):
-		return self.__class__.__doc__
+		return self.__class__.__doc__.strip()
 	doc = property(__get_doc)
 
 
