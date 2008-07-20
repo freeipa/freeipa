@@ -63,3 +63,7 @@ class RegistrationError(IPAError):
 
 class PrefixError(IPAError):
 	msg = 'class name %r must start with %r'
+
+
+class TwiceSetError(IPAError):
+	msg = '%s.%s cannot be set twice'
