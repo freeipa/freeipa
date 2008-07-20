@@ -185,189 +185,96 @@ class test_NameSpace:
 
 def test_Named():
 	class named_class(base.Named):
-		"""
-		This class is so introspective!
-		"""
+		pass
+
 	i = named_class()
 	assert i.name == 'named_class'
-	assert i.cli == 'named-class'
-	assert i.doc == 'This class is so introspective!'
 
 
-def test_Command():
-	class user(object):
-		name = 'user'
-	class add(base.Command):
-		pass
-	i = add(user())
-	assert i.name == 'add'
-	assert i.full_name == 'add_user'
-
-
-def test_Attribute():
-	class user(object):
-		name = 'user'
-	class sn(base.Attribute):
-		pass
-	i = sn(user())
-	assert i.name == 'sn'
-	assert i.full_name == 'user_sn'
-
-
-def test_Object():
-	class create(base.Command):
-			pass
-
-	class retrieve(base.Command):
-			pass
-
-	class update(base.Command):
-			pass
-
-	class delete(base.Command):
-			pass
-
-	class givenName(base.Attribute):
+def test_WithObj():
+	class some_object(base.Named):
 		pass
 
-	class sn(base.Attribute):
+	class another_object(base.Named):
 		pass
 
-	class login(base.Attribute):
-		pass
+	class some_command(base.WithObj):
+		_obj = 'some_object'
 
+	obj = some_object()
+	cmd = some_command()
+
+	# Test that it can be set:
+	assert cmd.obj is None
+	cmd.obj = obj
+	assert cmd.obj is obj
+
+	# Test that it cannot be set twice:
+	raised = False
+	try:
+		cmd.obj = obj
+	except exceptions.TwiceSetError:
+		raised = True
+	assert raised
+
+	# Test that it can't be set with the wrong name:
+	obj = another_object()
+	cmd = some_command()
+	raised = False
+	try:
+		cmd.obj = obj
+	except AssertionError:
+		raised = True
+	assert raised
+
+
+def test_Registar():
+	class adduser(base.Command):
+		_obj = 'user'
+	class moduser(base.Command):
+		_obj = 'user'
+	class deluser(base.Command):
+		_obj = 'user'
+	class finduser(base.Command):
+		_obj = 'user'
+	class kinit(base.Command):
+		pass
 	class user(base.Object):
-		def get_commands(self):
-			return [
-				create,
-				retrieve,
-				update,
-				delete,
-			]
+		pass
+	class group(base.Object):
+		pass
 
-		def get_attributes(self):
-			return [
-				givenName,
-				sn,
-				login,
-			]
+	r = base.Registrar()
+	r.register(adduser)
+	r.register(moduser)
+	r.register(deluser)
+	r.register(finduser)
+	r.register(kinit)
+	r.register(user)
+	r.register(group)
 
-	i = user()
-	assert i.name == 'user'
+	r.finalize()
+	assert len(r.commands) == 5
+	assert len(r.objects) == 2
 
-	# Test commands:
-	commands = i.commands
-	assert isinstance(commands, base.NameSpace)
-	assert list(commands) == ['create', 'delete', 'retrieve', 'update']
-	assert len(commands) == 4
-	for name in commands:
-		cls = locals()[name]
-		cmd = commands[name]
-		assert type(cmd) is cls
-		assert getattr(commands, name) is cmd
-		assert cmd.name == name
-		assert cmd.full_name == ('%s_user' % name)
+	obj = r.objects.user
+	assert type(obj) is user
+	for name in ['adduser', 'moduser', 'deluser', 'finduser']:
+		cmd = r.commands[name]
+		assert type(cmd) is locals()[name]
+		assert cmd.obj is obj
 
-	# Test attributes:
-	attributes = i.attributes
-	assert isinstance(attributes, base.NameSpace)
-	assert list(attributes) == ['givenName', 'sn', 'login']
-	assert len(attributes) == 3
-	for name in attributes:
-		cls = locals()[name]
-		attr = attributes[name]
-		assert type(attr) is cls
-		assert getattr(attributes, name) is attr
-		assert attr.name == name
-		assert attr.full_name == ('user_%s' % name)
+	assert r.commands.kinit.obj is None
 
-
-class test_API:
-	"""
-	Unit tests for `API` class.
-	"""
-
-	def new(self):
-		"""
-		Returns a new API instance.
-		"""
-		return base.API()
-
-	def test_fresh(self):
-		"""
-		Test expectations of a fresh API instance.
-		"""
-		api = self.new()
-		assert read_only(api, 'objects') is None
-		assert read_only(api, 'commands') is None
-
-	def test_register_exception(self):
-		"""
-		Check that RegistrationError is raised when registering anything
-		other than a subclass of Command.
-		"""
-		api = self.new()
-
-		class my_command(base.Command):
-			pass
-
-		for obj in [object, my_command]:
-			raised = False
-			try:
-				api.register_object(obj)
-			except exceptions.RegistrationError:
-				raised = True
-			assert raised
-
-	def test_override_exception(self):
-		class some_object(base.Object):
-			def get_commands(self):
-				return []
-			def get_attributes(self):
-				return []
-
-		api = self.new()
-		api.register_object(some_object)
+	for cmd in r.commands():
 		raised = False
 		try:
-			api.register_object(some_object)
-		except exceptions.OverrideError:
+			cmd.obj = None
+		except exceptions.TwiceSetError:
 			raised = True
 		assert raised
-		api.register_object(some_object, override=True)
 
-	def test_finalize(self):
-		class user(crud.CrudLike):
-			pass
-		class group(crud.CrudLike):
-			pass
-		class service(crud.CrudLike):
-			pass
-
-		names = list(user().commands)
-		assert len(names) == 4
-		full_names = set()
-		for o in ['user', 'group', 'service']:
-			full_names.update('%s_%s' % (v, o) for v in names)
-		assert len(full_names) == 12
-
-
-		api = self.new()
-		api.register_object(user)
-		api.register_object(group)
-		api.register_object(service)
-		api.finalize()
-
-		# Test API.objects property:
-		objects = read_only(api, 'objects')
-		assert type(objects) is base.NameSpace
-		assert objects is api.objects # Same instance must be returned
-		assert len(objects) is 3
-		assert list(objects) == ['group', 'service', 'user']
-
-		# Test API.commands property:
-		commands = read_only(api, 'commands')
-		assert type(commands) is base.NameSpace
-		assert commands is api.commands # Same instance must be returned
-		assert len(commands) is 12
-		assert list(commands) == sorted(full_names)
+	u = r.objects.user
+	assert isinstance(u.commands, base.NameSpace)
+	assert len(u.commands) == 4
+	assert list(u.commands) == ['adduser', 'deluser', 'finduser', 'moduser']

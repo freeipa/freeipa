@@ -127,80 +127,96 @@ class NameSpace(object):
 		return len(self.__keys)
 
 
+
 class Named(object):
 	def __get_name(self):
 		return self.__class__.__name__
 	name = property(__get_name)
 
-	def __get_cli(self):
-		return self.name.replace('_', '-')
-	cli = property(__get_cli)
 
-	def __get_doc(self):
-		return self.__class__.__doc__.strip()
-	doc = property(__get_doc)
-
-
-class ObjectMember(Named):
-	def __init__(self, obj):
-		self.__obj = obj
+class WithObj(Named):
+	_obj = None
+	__obj = None
+	__obj_locked = False
 
 	def __get_obj(self):
 		return self.__obj
-	obj = property(__get_obj)
+	def __set_obj(self, obj):
+		if self.__obj_locked:
+			raise exceptions.TwiceSetError(self.__class__.__name__, 'obj')
+		self.__obj_locked = True
+		if obj is None:
+			assert self.__obj is None
+			assert self.obj is None
+		else:
+			assert isinstance(obj, Named)
+			assert isinstance(self._obj, str)
+			assert obj.name == self._obj
+			self.__obj = obj
+			assert self.obj is obj
+	obj = property(__get_obj, __set_obj)
 
 
-class Command(ObjectMember):
-	def __get_full_name(self):
-		return '%s_%s' % (self.name, self.obj.name)
-	full_name = property(__get_full_name)
+class Command(WithObj):
+	pass
 
-
-class Attribute(ObjectMember):
-	def __get_full_name(self):
-		return '%s_%s' % (self.obj.name, self.name)
-	full_name = property(__get_full_name)
-
+class Property(WithObj):
+	pass
 
 class Object(Named):
-	def __init__(self):
-		self.__commands = self.__build_ns(self.get_commands)
-		self.__attributes = self.__build_ns(self.get_attributes, True)
+	__commands = None
 
 	def __get_commands(self):
 		return self.__commands
-	commands = property(__get_commands)
-
-	def __get_attributes(self):
-		return self.__attributes
-	attributes = property(__get_attributes)
-
-	def __build_ns(self, callback, preserve=False):
-		d = {}
-		o = []
-		for cls in callback():
-			i = cls(self)
-			assert i.name not in d
-			d[i.name] = i
-			o.append(i.name)
-		if preserve:
-			return NameSpace(d, order=o)
-		return NameSpace(d)
-
-	def get_commands(self):
-		return []
-
-	def get_attributes(self):
-		return []
+	def __set_commands(self, commands):
+		if self.__commands is not None:
+			raise exceptions.TwiceSetError(
+				self.__class__.__name__, 'commands'
+			)
+		assert type(commands) is NameSpace
+		self.__commands = commands
+		assert self.commands is commands
+	commands = property(__get_commands, __set_commands)
 
 
-class API(object):
-	__objects = None
+class Collector(object):
+	def __init__(self):
+		self.__d = {}
+		self.globals = []
+
+	def __getitem__(self, key):
+		assert isinstance(key, str)
+		if key not in self.__d:
+			self.__d[key] = []
+		return self.__d[key]
+
+	def __iter__(self):
+		for key in self.__d:
+			yield key
+
+	def add(self, i):
+		assert isinstance(i, WithObj)
+		if i._obj is None:
+			self.globals.append(i)
+		else:
+			self[i._obj].append(i)
+
+	def namespaces(self):
+		for key in self:
+			d = dict((i.name, i) for i in self[key])
+			yield (key, NameSpace(d))
+
+
+
+class Registrar(object):
+	__object = None
 	__commands = None
-	__max_cmd_len = None
+	__properties = None
 
 	def __init__(self):
-		self.__obj_d = {}
+		self.__tmp_objects = {}
+		self.__tmp_commands = {}
+		self.__tmp_properties = {}
 
 	def __get_objects(self):
 		return self.__objects
@@ -210,30 +226,43 @@ class API(object):
 		return self.__commands
 	commands = property(__get_commands)
 
-	def __get_max_cmd_len(self):
-		if self.__max_cmd_len is None:
-			if self.__commands is None:
-				return 0
-			self.__max_cmd_len = max(len(n) for n in self.__commands)
-		return self.__max_cmd_len
-	max_cmd_len = property(__get_max_cmd_len)
+	def __get_target(self, i):
+		if isinstance(i, Object):
+			return (self.__tmp_objects, i.name)
+		if isinstance(i, Command):
+			return (self.__tmp_commands, i.name)
+		assert isinstance(i, Property)
 
-	def register_object(self, cls, override=False):
-		assert type(override) is bool
-		if not (inspect.isclass(cls) and issubclass(cls, Object)):
-			raise exceptions.RegistrationError(cls,	'Object')
-		obj = cls()
-		if obj.name in self.__obj_d and not override:
-			raise exceptions.OverrideError(obj.name)
-		self.__obj_d[obj.name] = obj
+
+	def register(self, cls):
+		assert inspect.isclass(cls)
+		assert issubclass(cls, Named)
+		i = cls()
+		(target, key) = self.__get_target(i)
+		target[key] = i
 
 	def finalize(self):
-		cmd_d = {}
-		cmd_l = {}
-		for obj in self.__obj_d.values():
-			for cmd in obj.commands():
-				assert cmd.full_name not in cmd_d
-				cmd_d[cmd.full_name] = cmd
-		self.__commands = NameSpace(cmd_d)
-		self.__objects = NameSpace(self.__obj_d)
-		self.__obj_d = None
+		obj_cmd = Collector()
+		for cmd in self.__tmp_commands.values():
+			if cmd._obj is None:
+				cmd.obj = None
+			else:
+				obj = self.__tmp_objects[cmd._obj]
+				cmd.obj = obj
+			obj_cmd.add(cmd)
+		self.__objects = NameSpace(self.__tmp_objects)
+		self.__commands = NameSpace(self.__tmp_commands)
+		for (key, ns) in obj_cmd.namespaces():
+			self.objects[key].commands = ns
+
+
+class API(Registrar):
+	__max_cmd_len = None
+
+	def __get_max_cmd_len(self):
+		if self.__max_cmd_len is None:
+			if self.commands is None:
+				return 0
+			self.__max_cmd_len = max(len(n) for n in self.commands)
+		return self.__max_cmd_len
+	max_cmd_len = property(__get_max_cmd_len)

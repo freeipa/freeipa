@@ -22,18 +22,25 @@ Some example plugins.
 """
 
 import crud
+import base
 from run import api
 
-class user(crud.CrudLike):
+class user(base.Object):
 	pass
-api.register_object(user)
+api.register(user)
 
+class adduser(crud.Add):
+	_obj = 'user'
+api.register(adduser)
 
-class group(crud.CrudLike):
-	pass
-api.register_object(group)
+class deluser(crud.Del):
+	_obj = 'user'
+api.register(deluser)
 
+class moduser(crud.Mod):
+	_obj = 'user'
+api.register(moduser)
 
-class service(crud.CrudLike):
-	pass
-api.register_object(service)
+class finduser(crud.Find):
+	_obj = 'user'
+api.register(finduser)
