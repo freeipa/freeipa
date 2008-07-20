@@ -334,11 +334,11 @@ class test_API:
 			pass
 
 		names = list(user().commands)
-		assert len(names) == 5
+		assert len(names) == 4
 		full_names = set()
 		for o in ['user', 'group', 'service']:
 			full_names.update('%s_%s' % (v, o) for v in names)
-		assert len(full_names) == 15
+		assert len(full_names) == 12
 
 
 		api = self.new()
@@ -358,5 +358,5 @@ class test_API:
 		commands = read_only(api, 'commands')
 		assert type(commands) is base.NameSpace
 		assert commands is api.commands # Same instance must be returned
-		assert len(commands) is 15
+		assert len(commands) is 12
 		assert list(commands) == sorted(full_names)
