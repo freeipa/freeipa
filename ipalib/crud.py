@@ -23,15 +23,15 @@ Base classes for objects with CRUD functionality.
 
 import base
 
-class create(base.Command):
+class add(base.Command):
 		pass
 
 
-class retrieve(base.Command):
+class get(base.Command):
 		pass
 
 
-class update(base.Command):
+class edit(base.Command):
 		pass
 
 
@@ -39,22 +39,16 @@ class delete(base.Command):
 		pass
 
 
-class search(base.Command):
+class find(base.Command):
 		pass
 
 
-class user(base.Object):
+class CrudLike(base.Object):
 	def get_commands(self):
 		return [
-			create,
-			retrieve,
-			update,
+			add,
+			get,
+			edit,
 			delete,
-		]
-
-	def get_attributes(self):
-		return [
-			givenName,
-			sn,
-			login,
+			find,
 		]

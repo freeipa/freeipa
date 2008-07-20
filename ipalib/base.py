@@ -112,6 +112,14 @@ class NameSpace(object):
 		for key in self.__keys:
 			yield key
 
+	def __call__(self):
+		"""
+		Iterates through the values in this NameSpace in the same order as
+		the keys.
+		"""
+		for key in self.__keys:
+			yield self.__kw[key]
+
 	def __len__(self):
 		"""
 		Returns number of items in this NameSpace.
@@ -172,57 +180,42 @@ class Object(Named):
 		return NameSpace(d)
 
 	def get_commands(self):
-		raise NotImplementedError
+		return []
 
 	def get_attributes(self):
-		raise NotImplementedError
+		return []
 
 
 class API(object):
-	__cmd = None
 	__objects = None
-	__locked = False
+	__commands = None
 
 	def __init__(self):
-		self.__classes = set()
-		self.__names = set()
-		self.__stage = {}
+		self.__obj_d = {}
 
 	def __get_objects(self):
 		return self.__objects
 	objects = property(__get_objects)
 
-	def __get_cmd(self):
-		return self.__cmd
-	cmd = property(__get_cmd)
+	def __get_commands(self):
+		return self.__commands
+	commands = property(__get_commands)
 
-	def __merge(self, base, cls, override):
-		assert issubclass(base, Named)
+	def register_object(self, cls, override=False):
 		assert type(override) is bool
-		if not (inspect.isclass(cls) and issubclass(cls, base)):
-			raise exceptions.RegistrationError(cls,	base.__name__)
-		if cls in self.__classes:
-			raise exceptions.DuplicateError(cls.__name__, id(cls))
-		if cls.__name__ in self.__names and not override:
-			raise exceptions.OverrideError(cls.__name__)
-		prefix = base.prefix
-		assert cls.__name__.startswith(prefix)
-		self.__classes.add(cls)
-		self.__names.add(cls.__name__)
-		if prefix not in self.__stage:
-			self.__stage[prefix] = {}
-		self.__stage[prefix][cls.__name__] = cls
-
-
-	def register_command(self, cls, override=False):
-		self.__merge(Command, cls, override)
+		if not (inspect.isclass(cls) and issubclass(cls, Object)):
+			raise exceptions.RegistrationError(cls,	'Object')
+		obj = cls()
+		if obj.name in self.__obj_d and not override:
+			raise exceptions.OverrideError(obj.name)
+		self.__obj_d[obj.name] = obj
 
 	def finalize(self):
-		for (prefix, d)  in self.__stage.items():
-			n = {}
-			for cls in d.values():
-				i = cls()
-				assert cls.__name__ == (prefix + '_' + i.name)
-				n[i.name] = i
-			if prefix == 'cmd':
-				self.__cmd = NameSpace(n)
+		cmd_d = {}
+		for obj in self.__obj_d.values():
+			for cmd in obj.commands():
+				assert cmd.full_name not in cmd_d
+				cmd_d[cmd.full_name] = cmd
+		self.__commands = NameSpace(cmd_d)
+		self.__objects = NameSpace(self.__obj_d)
+		self.__obj_d = None

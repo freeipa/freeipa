@@ -21,7 +21,7 @@
 Unit tests for `ipalib.base` module.
 """
 
-from ipalib import base, exceptions
+from ipalib import base, exceptions, crud
 
 
 def read_only(obj, name):
@@ -225,7 +225,6 @@ def test_Object():
 	class login(base.Attribute):
 		pass
 
-
 	class user(base.Object):
 		def get_commands(self):
 			return [
@@ -283,79 +282,81 @@ class test_API:
 		"""
 		return base.API()
 
-	def dont_fresh(self):
+	def test_fresh(self):
 		"""
 		Test expectations of a fresh API instance.
 		"""
 		api = self.new()
-		assert read_only(api, 'cmd') is None
+		assert read_only(api, 'objects') is None
+		assert read_only(api, 'commands') is None
 
-	def dont_register_command(self):
+	def test_register_exception(self):
+		"""
+		Check that RegistrationError is raised when registering anything
+		other than a subclass of Command.
+		"""
 		api = self.new()
 
-		class cmd_my_command(base.Command):
-			pass
-		class cmd_another_command(base.Command):
+		class my_command(base.Command):
 			pass
 
-		# Check that RegistrationError is raised when registering anything
-		# other than a subclass of Command:
-		for obj in [object, cmd_my_command()]:
+		for obj in [object, my_command]:
 			raised = False
 			try:
-				api.register_command(obj)
+				api.register_object(obj)
 			except exceptions.RegistrationError:
 				raised = True
 			assert raised
 
-		# Check that command registration works:
-		api.register_command(cmd_my_command)
-		api.register_command(cmd_another_command)
+	def test_override_exception(self):
+		class some_object(base.Object):
+			def get_commands(self):
+				return []
+			def get_attributes(self):
+				return []
 
-		# Check that DuplicateError is raised when registering the same class
-		# twice:
+		api = self.new()
+		api.register_object(some_object)
 		raised = False
 		try:
-			api.register_command(cmd_my_command)
-		except exceptions.DuplicateError:
-			raised = True
-		assert raised
-
-		# Check that OverrideError is raised when registering same name
-		# without override = True:
-		class cmd_my_command(base.Command):
-			pass
-		raised = False
-		try:
-			api.register_command(cmd_my_command)
+			api.register_object(some_object)
 		except exceptions.OverrideError:
 			raised = True
 		assert raised
+		api.register_object(some_object, override=True)
 
-		# Check that override=True works:
-		api.register_command(cmd_my_command, override=True)
+	def test_finalize(self):
+		class user(crud.CrudLike):
+			pass
+		class group(crud.CrudLike):
+			pass
+		class service(crud.CrudLike):
+			pass
 
-	def dont_finalize(self):
+		names = list(user().commands)
+		assert len(names) == 5
+		full_names = set()
+		for o in ['user', 'group', 'service']:
+			full_names.update('%s_%s' % (v, o) for v in names)
+		assert len(full_names) == 15
+
+
 		api = self.new()
-		assert read_only(api, 'cmd') is None
-
-		class cmd_my_command(base.Command):
-			pass
-		class cmd_another_command(base.Command):
-			pass
-
-		api.register_command(cmd_my_command)
-		api.register_command(cmd_another_command)
-
+		api.register_object(user)
+		api.register_object(group)
+		api.register_object(service)
 		api.finalize()
 
-		cmd = read_only(api, 'cmd')
-		assert isinstance(cmd, base.NameSpace)
-		assert api.cmd is cmd
+		# Test API.objects property:
+		objects = read_only(api, 'objects')
+		assert type(objects) is base.NameSpace
+		assert objects is api.objects # Same instance must be returned
+		assert len(objects) is 3
+		assert list(objects) == ['group', 'service', 'user']
 
-		assert len(cmd) == 2
-		assert list(cmd) == ['another_command', 'my_command']
-		assert isinstance(cmd.my_command, cmd_my_command)
-		assert cmd.my_command is cmd['my_command']
-		assert isinstance(cmd.another_command, cmd_another_command)
-		assert cmd.another_command is cmd['another_command']
+		# Test API.commands property:
+		commands = read_only(api, 'commands')
+		assert type(commands) is base.NameSpace
+		assert commands is api.commands # Same instance must be returned
+		assert len(commands) is 15
+		assert list(commands) == sorted(full_names)
