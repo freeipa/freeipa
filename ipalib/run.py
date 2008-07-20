@@ -18,31 +18,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Base classes for objects with CRUD functionality.
+Standard run-time instances of importard classes.  This is where plugins
+should access the registration API.
 """
 
 import base
 
-class add(base.Command):
-		pass
-
-class find(base.Command):
-		pass
-
-class edit(base.Command):
-		pass
-
-class delete(base.Command):
-		pass
-
-
-
-
-class CrudLike(base.Object):
-	def get_commands(self):
-		return [
-			add,
-			find,
-			edit,
-			delete,
-		]
+# The standard API instance
+api = base.API()

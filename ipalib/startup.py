@@ -18,31 +18,14 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Base classes for objects with CRUD functionality.
+Importing this module causes the plugins to be loaded and the API to be
+generated.
+
+This is not in __init__.py so that imported other IPA modules doesn't cause
+unnecessary side effects (needed for unit tests, among other things).
 """
 
-import base
+from run import api
+import plugins
 
-class add(base.Command):
-		pass
-
-class find(base.Command):
-		pass
-
-class edit(base.Command):
-		pass
-
-class delete(base.Command):
-		pass
-
-
-
-
-class CrudLike(base.Object):
-	def get_commands(self):
-		return [
-			add,
-			find,
-			edit,
-			delete,
-		]
+api.finalize()

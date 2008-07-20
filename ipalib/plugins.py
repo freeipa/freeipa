@@ -18,31 +18,22 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Base classes for objects with CRUD functionality.
+Some example plugins.
 """
 
-import base
+import crud
+from run import api
 
-class add(base.Command):
-		pass
-
-class find(base.Command):
-		pass
-
-class edit(base.Command):
-		pass
-
-class delete(base.Command):
-		pass
+class user(crud.CrudLike):
+	pass
+api.register_object(user)
 
 
+class group(crud.CrudLike):
+	pass
+api.register_object(group)
 
 
-class CrudLike(base.Object):
-	def get_commands(self):
-		return [
-			add,
-			find,
-			edit,
-			delete,
-		]
+class service(crud.CrudLike):
+	pass
+api.register_object(service)

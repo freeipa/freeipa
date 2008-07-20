@@ -212,6 +212,7 @@ class API(object):
 
 	def finalize(self):
 		cmd_d = {}
+		cmd_l = {}
 		for obj in self.__obj_d.values():
 			for cmd in obj.commands():
 				assert cmd.full_name not in cmd_d
