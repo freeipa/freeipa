@@ -47,8 +47,9 @@ def print_api():
 		for n in obj.commands:
 			print '    .%s()' % n
 
-	print '%d objects' % len(api.objects)
-	print '%d commands' % len(api.commands)
+	print '\nStats:'
+	print '  %d objects' % len(api.objects)
+	print '  %d commands' % len(api.commands)
 
 
 if len(sys.argv) < 2:
@@ -58,6 +59,7 @@ if len(sys.argv) < 2:
 cmd = sys.argv[1]
 if cmd == '_api_':
 	print_api()
+	sys.exit()
 elif cmd not in api.commands:
 	print_commands()
 	print 'ipa: ERROR: unknown command %r' % cmd
