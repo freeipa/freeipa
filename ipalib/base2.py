@@ -62,7 +62,48 @@ class Property(WithObj):
 	pass
 
 class Object(Named):
-	pass
+	__commands = None
+
+	def __get_commands(self):
+		return self.__commands
+	def __set_commands(self, commands):
+		if self.__commands is not None:
+			raise exceptions.TwiceSetError(
+				self.__class__.__name__, 'commands'
+			)
+		assert type(commands) is NameSpace
+		self.__commands = commands
+		assert self.commands is commands
+	commands = property(__get_commands, __set_commands)
+
+
+class Collector(object):
+	def __init__(self):
+		self.__d = {}
+		self.globals = []
+
+	def __getitem__(self, key):
+		assert isinstance(key, str)
+		if key not in self.__d:
+			self.__d[key] = []
+		return self.__d[key]
+
+	def __iter__(self):
+		for key in self.__d:
+			yield key
+
+	def add(self, i):
+		assert isinstance(i, WithObj)
+		if i._obj is None:
+			self.globals.append(i)
+		else:
+			self[i._obj].append(i)
+
+	def namespaces(self):
+		for key in self:
+			d = dict((i.name, i) for i in self[key])
+			yield (key, NameSpace(d))
+
 
 
 class Registrar(object):
@@ -99,11 +140,15 @@ class Registrar(object):
 		target[key] = i
 
 	def finalize(self):
+		obj_cmd = Collector()
 		for cmd in self.__tmp_commands.values():
 			if cmd._obj is None:
 				cmd.obj = None
 			else:
 				obj = self.__tmp_objects[cmd._obj]
 				cmd.obj = obj
+			obj_cmd.add(cmd)
 		self.__objects = NameSpace(self.__tmp_objects)
 		self.__commands = NameSpace(self.__tmp_commands)
+		for (key, ns) in obj_cmd.namespaces():
+			self.objects[key].commands = ns

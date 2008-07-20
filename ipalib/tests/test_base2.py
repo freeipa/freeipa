@@ -148,3 +148,8 @@ def test_Registar():
 		except exceptions.TwiceSetError:
 			raised = True
 		assert raised
+
+	u = r.objects.user
+	assert isinstance(u.commands, base.NameSpace)
+	assert len(u.commands) == 4
+	assert list(u.commands) == ['adduser', 'deluser', 'finduser', 'moduser']
