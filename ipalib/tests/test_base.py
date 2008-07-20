@@ -197,15 +197,15 @@ def test_Attribute():
 	i = user__add()
 	assert i.obj_name == 'user'
 	assert i.attr_name == 'add'
-	assert read_only(i, 'obj') is None
+	assert i.obj is None
 	class user(base.Object):
 		pass
 	u = user()
-	i.set_obj(u)
-	assert read_only(i, 'obj') is u
+	i.obj = u
+	assert i.obj is u
 	raised = False
 	try:
-		i.set_obj(u)
+		i.obj = u
 	except exceptions.TwiceSetError:
 		raised = True
 	assert raised
@@ -230,6 +230,15 @@ def test_Property():
 	assert i.obj_name == 'user'
 	assert i.attr_name == 'firstname'
 	assert i.name == 'firstname'
+
+
+def test_Command():
+	class dostuff(base.Command):
+		pass
+	i = dostuff()
+	assert isinstance(i, base.AbstractCommand)
+	assert i.name == 'dostuff'
+
 
 
 def test_AttributeCollector():
@@ -259,56 +268,38 @@ def test_AttributeCollector():
 	assert g.values() == [g_a]
 
 
-
-
-
-def test_WithObj():
-	class some_object(base.Named):
+def test_Collector():
+	class user(base.Object):
 		pass
-
-	class another_object(base.Named):
+	class group(base.Object):
 		pass
+	u = user()
+	g = group()
+	c = base.Collector()
+	c.add(u)
+	c.add(g)
+	ns = c.ns()
+	assert isinstance(ns, base.NameSpace)
+	assert set(ns) == set(['user', 'group'])
+	assert ns.user is u
+	assert ns.group is g
 
-	class some_command(base.WithObj):
-		_obj = 'some_object'
 
-	obj = some_object()
-	cmd = some_command()
 
-	# Test that it can be set:
-	assert cmd.obj is None
-	cmd.obj = obj
-	assert cmd.obj is obj
-
-	# Test that it cannot be set twice:
-	raised = False
-	try:
-		cmd.obj = obj
-	except exceptions.TwiceSetError:
-		raised = True
-	assert raised
-
-	# Test that it can't be set with the wrong name:
-	obj = another_object()
-	cmd = some_command()
-	raised = False
-	try:
-		cmd.obj = obj
-	except AssertionError:
-		raised = True
-	assert raised
 
 
 def test_Registar():
-	class adduser(base.Command):
-		_obj = 'user'
-	class moduser(base.Command):
-		_obj = 'user'
-	class deluser(base.Command):
-		_obj = 'user'
-	class finduser(base.Command):
-		_obj = 'user'
 	class kinit(base.Command):
+		pass
+	class user__add(base.Method):
+		pass
+	class user__del(base.Method):
+		pass
+	class user__firstname(base.Property):
+		pass
+	class user__lastname(base.Property):
+		pass
+	class user__login(base.Property):
 		pass
 	class user(base.Object):
 		pass
@@ -316,36 +307,43 @@ def test_Registar():
 		pass
 
 	r = base.Registrar()
-	r.register(adduser)
-	r.register(moduser)
-	r.register(deluser)
-	r.register(finduser)
+	assert read_only(r, 'objects') is None
+	assert read_only(r, 'commands') is None
+
+
 	r.register(kinit)
+	r.register(user__add)
+	r.register(user__del)
+	r.register(user__firstname)
+	r.register(user__lastname)
+	r.register(user__login)
 	r.register(user)
 	r.register(group)
 
 	r.finalize()
-	assert len(r.commands) == 5
-	assert len(r.objects) == 2
 
-	obj = r.objects.user
-	assert type(obj) is user
-	for name in ['adduser', 'moduser', 'deluser', 'finduser']:
-		cmd = r.commands[name]
-		assert type(cmd) is locals()[name]
-		assert cmd.obj is obj
+	objects = read_only(r, 'objects')
+	assert isinstance(objects, base.NameSpace)
+	assert len(objects) == 2
+	assert list(objects) == ['group', 'user']
+	assert type(objects.user) is user
+	assert type(objects.group) is group
 
-	assert r.commands.kinit.obj is None
+	u = objects.user
+	assert len(u.methods) == 2
+	assert list(u.methods) == ['add', 'del']
+	assert len(u.properties) == 3
+	assert list(u.properties) == ['firstname', 'lastname', 'login']
 
-	for cmd in r.commands():
-		raised = False
-		try:
-			cmd.obj = None
-		except exceptions.TwiceSetError:
-			raised = True
-		assert raised
+	for m in u.methods():
+		assert m.obj is u
+	for p in u.properties():
+		assert p.obj is u
 
-	u = r.objects.user
-	assert isinstance(u.commands, base.NameSpace)
-	assert len(u.commands) == 4
-	assert list(u.commands) == ['adduser', 'deluser', 'finduser', 'moduser']
+	g = objects.group
+	assert len(g.methods) == 0
+	assert len(g.properties) == 0
+
+
+	assert len(r.commands) == 3
+	assert list(r.commands) == sorted(['kinit', 'add_user', 'del_user'])
