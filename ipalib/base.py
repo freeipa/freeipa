@@ -158,7 +158,8 @@ class WithObj(Named):
 
 
 class Command(WithObj):
-	pass
+	def __call__(self):
+		print 'You called %s()' % self.name
 
 class Property(WithObj):
 	pass

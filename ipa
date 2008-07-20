@@ -36,14 +36,30 @@ def print_commands():
 def print_help(cmd):
 	print 'Help on %s' % cmd
 
+def print_api():
+	print '\nCommands:'
+	for n in api.commands:
+		print '  %s' % n
+
+	print '\nObjects:'
+	for obj in api.objects():
+		print '  %s' % obj.name
+		for n in obj.commands:
+			print '    .%s()' % n
+
+	print '%d objects' % len(api.objects)
+	print '%d commands' % len(api.commands)
+
+
 if len(sys.argv) < 2:
 	print_commands()
 	print 'Usage: ipa COMMAND [OPTIONS]'
 	sys.exit(2)
-
 cmd = sys.argv[1]
-
-if cmd not in api.commands:
+if cmd == '_api_':
+	print_api()
+elif cmd not in api.commands:
 	print_commands()
 	print 'ipa: ERROR: unknown command %r' % cmd
 	sys.exit(2)
+api.commands[cmd]()

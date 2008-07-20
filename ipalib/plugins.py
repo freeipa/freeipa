@@ -44,3 +44,46 @@ api.register(moduser)
 class finduser(crud.Find):
 	_obj = 'user'
 api.register(finduser)
+
+
+
+class group(base.Object):
+	pass
+api.register(group)
+
+class addgroup(crud.Add):
+	_obj = 'group'
+api.register(addgroup)
+
+class delgroup(crud.Del):
+	_obj = 'group'
+api.register(delgroup)
+
+class modgroup(crud.Mod):
+	_obj = 'group'
+api.register(modgroup)
+
+class findgroup(crud.Find):
+	_obj = 'group'
+api.register(findgroup)
+
+
+class service(base.Object):
+	pass
+api.register(service)
+
+class addservice(crud.Add):
+	_obj = 'service'
+api.register(addservice)
+
+class delservice(crud.Del):
+	_obj = 'service'
+api.register(delservice)
+
+class modservice(crud.Mod):
+	_obj = 'service'
+api.register(modservice)
+
+class findservice(crud.Find):
+	_obj = 'service'
+api.register(findservice)
