@@ -35,17 +35,23 @@ class Named(object):
 class WithObj(Named):
 	_obj = None
 	__obj = None
+	__obj_locked = False
 
 	def __get_obj(self):
 		return self.__obj
 	def __set_obj(self, obj):
-		if self.__obj is not None:
+		if self.__obj_locked:
 			raise exceptions.TwiceSetError(self.__class__.__name__, 'obj')
-		assert isinstance(obj, Named)
-		assert isinstance(self._obj, str)
-		assert obj.name == self._obj
-		self.__obj = obj
-		assert self.obj is obj
+		self.__obj_locked = True
+		if obj is None:
+			assert self.__obj is None
+			assert self.obj is None
+		else:
+			assert isinstance(obj, Named)
+			assert isinstance(self._obj, str)
+			assert obj.name == self._obj
+			self.__obj = obj
+			assert self.obj is obj
 	obj = property(__get_obj, __set_obj)
 
 
@@ -95,8 +101,9 @@ class Registrar(object):
 	def finalize(self):
 		for cmd in self.__tmp_commands.values():
 			if cmd._obj is None:
-				continue
-			obj = self.__tmp_objects[cmd._obj]
-			cmd.obj = obj
+				cmd.obj = None
+			else:
+				obj = self.__tmp_objects[cmd._obj]
+				cmd.obj = obj
 		self.__objects = NameSpace(self.__tmp_objects)
 		self.__commands = NameSpace(self.__tmp_commands)

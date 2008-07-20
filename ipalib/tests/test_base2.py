@@ -140,3 +140,11 @@ def test_Registar():
 		assert cmd.obj is obj
 
 	assert r.commands.kinit.obj is None
+
+	for cmd in r.commands():
+		raised = False
+		try:
+			cmd.obj = None
+		except exceptions.TwiceSetError:
+			raised = True
+		assert raised
