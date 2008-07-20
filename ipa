@@ -44,8 +44,10 @@ def print_api():
 	print '\nObjects:'
 	for obj in api.objects():
 		print '  %s' % obj.name
-		for n in obj.commands:
+		for n in obj.methods:
 			print '    .%s()' % n
+		for n in obj.properties:
+			print '    .%s' % n
 
 	print '\nStats:'
 	print '  %d objects' % len(api.objects)

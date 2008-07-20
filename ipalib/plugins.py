@@ -25,65 +25,85 @@ import crud
 import base
 from run import api
 
-class user(base.Object):
+
+# Register some methods for the 'user' object:
+class user__add(crud.Add):
 	pass
-api.register(user)
+api.register(user__add)
 
-class adduser(crud.Add):
-	_obj = 'user'
-api.register(adduser)
+class user__del(crud.Del):
+	pass
+api.register(user__del)
 
-class deluser(crud.Del):
-	_obj = 'user'
-api.register(deluser)
+class user__mod(crud.Mod):
+	pass
+api.register(user__mod)
 
-class moduser(crud.Mod):
-	_obj = 'user'
-api.register(moduser)
-
-class finduser(crud.Find):
-	_obj = 'user'
-api.register(finduser)
+class user__find(crud.Find):
+	pass
+api.register(user__find)
 
 
+# Register some properties for the 'user' object:
+class user__firstname(base.Property):
+	pass
+api.register(user__firstname)
 
+class user__lastname(base.Property):
+	pass
+api.register(user__lastname)
+
+class user__lastname(base.Property):
+	pass
+api.register(user__lastname)
+
+
+# Register some methods for the 'group' object:
+class group__add(crud.Add):
+	pass
+api.register(group__add)
+
+class group__del(crud.Del):
+	pass
+api.register(group__del)
+
+class group__mod(crud.Mod):
+	pass
+api.register(group__mod)
+
+class group__find(crud.Find):
+	pass
+api.register(group__find)
+
+
+# Register some methods for the 'service' object
+class service__add(crud.Add):
+	pass
+api.register(service__add)
+
+class service__del(crud.Del):
+	pass
+api.register(service__del)
+
+class service__mod(crud.Mod):
+	pass
+api.register(service__mod)
+
+class service__find(crud.Find):
+	pass
+api.register(service__find)
+
+
+# And to emphasis that the registration order doesn't matter,
+# we'll register the objects last:
 class group(base.Object):
 	pass
 api.register(group)
-
-class addgroup(crud.Add):
-	_obj = 'group'
-api.register(addgroup)
-
-class delgroup(crud.Del):
-	_obj = 'group'
-api.register(delgroup)
-
-class modgroup(crud.Mod):
-	_obj = 'group'
-api.register(modgroup)
-
-class findgroup(crud.Find):
-	_obj = 'group'
-api.register(findgroup)
-
 
 class service(base.Object):
 	pass
 api.register(service)
 
-class addservice(crud.Add):
-	_obj = 'service'
-api.register(addservice)
-
-class delservice(crud.Del):
-	_obj = 'service'
-api.register(delservice)
-
-class modservice(crud.Mod):
-	_obj = 'service'
-api.register(modservice)
-
-class findservice(crud.Find):
-	_obj = 'service'
-api.register(findservice)
+class user(base.Object):
+	pass
+api.register(user)

@@ -24,14 +24,14 @@ Base classes for objects with CRUD functionality.
 import base
 
 
-class Add(base.Command):
+class Add(base.Method):
 	pass
 
-class Del(base.Command):
+class Del(base.Method):
 	pass
 
-class Mod(base.Command):
+class Mod(base.Method):
 	pass
 
-class Find(base.Command):
+class Find(base.Method):
 	pass
