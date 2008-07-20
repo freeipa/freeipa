@@ -191,6 +191,77 @@ def test_Named():
 	assert i.name == 'named_class'
 
 
+def test_Attribute():
+	class user__add(base.Attribute):
+		pass
+	i = user__add()
+	assert i.obj_name == 'user'
+	assert i.attr_name == 'add'
+	assert read_only(i, 'obj') is None
+	class user(base.Object):
+		pass
+	u = user()
+	i.set_obj(u)
+	assert read_only(i, 'obj') is u
+	raised = False
+	try:
+		i.set_obj(u)
+	except exceptions.TwiceSetError:
+		raised = True
+	assert raised
+
+
+def test_Method():
+	class user__mod(base.Method):
+		pass
+	i = user__mod()
+	assert isinstance(i, base.Attribute)
+	assert isinstance(i, base.AbstractCommand)
+	assert i.obj_name == 'user'
+	assert i.attr_name == 'mod'
+	assert i.name == 'mod_user'
+
+
+def test_Property():
+	class user__firstname(base.Property):
+		pass
+	i = user__firstname()
+	assert isinstance(i, base.Attribute)
+	assert i.obj_name == 'user'
+	assert i.attr_name == 'firstname'
+	assert i.name == 'firstname'
+
+
+def test_AttributeCollector():
+	class user__add(base.Attribute):
+		pass
+	class user__mod(base.Attribute):
+		pass
+	class group__add(base.Attribute):
+		pass
+	u_a = user__add()
+	u_m = user__mod()
+	g_a = group__add()
+
+	ac = base.AttributeCollector()
+	ac.add(u_a)
+	ac.add(u_m)
+	ac.add(g_a)
+
+	assert set(ac) == set(['user', 'group'])
+
+	u = ac['user']
+	assert set(u) == set(['add', 'mod'])
+	assert set(u.values()) == set([u_a, u_m])
+
+	g = ac['group']
+	assert g.keys() == ['add']
+	assert g.values() == [g_a]
+
+
+
+
+
 def test_WithObj():
 	class some_object(base.Named):
 		pass

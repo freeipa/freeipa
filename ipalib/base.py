@@ -21,6 +21,7 @@
 Base classes for plug-in architecture and generative API.
 """
 
+import re
 import inspect
 import exceptions
 
@@ -141,6 +142,53 @@ class Named(object):
 	name = property(__get_name)
 
 
+class AbstractCommand(object):
+	def __call__(self):
+		print 'You called %s()' % self.name
+
+class Attribute(Named):
+	__locked = False
+	__obj = None
+
+	def __init__(self):
+		m = re.match('^([a-z]+)__([a-z]+)$', self.__class__.__name__)
+		assert m
+		self.__obj_name = m.group(1)
+		self.__attr_name = m.group(2)
+
+	def __get_obj(self):
+		return self.__obj
+	obj = property(__get_obj)
+
+	def set_obj(self, obj=None):
+		if self.__locked:
+			raise exceptions.TwiceSetError(self.__class__.__name__, 'obj')
+		self.__locked = True
+		if obj is None:
+			return
+		assert isinstance(obj, Object)
+		assert obj.name == self.__obj_name
+		self.__obj = obj
+
+	def __get_obj_name(self):
+		return self.__obj_name
+	obj_name = property(__get_obj_name)
+
+	def __get_attr_name(self):
+		return self.__attr_name
+	attr_name = property(__get_attr_name)
+
+
+class Method(AbstractCommand, Attribute):
+	def _get_name(self):
+		return '%s_%s' % (self.attr_name, self.obj_name)
+
+
+class Property(Attribute):
+	def _get_name(self):
+		return self.attr_name
+
+
 class WithObj(Named):
 	_obj = None
 	__obj = None
@@ -168,8 +216,7 @@ class Command(WithObj):
 	def __call__(self):
 		print 'You called %s()' % self.name
 
-class Property(WithObj):
-	pass
+
 
 class Object(Named):
 	__commands = None
@@ -185,6 +232,31 @@ class Object(Named):
 		self.__commands = commands
 		assert self.commands is commands
 	commands = property(__get_commands, __set_commands)
+
+
+
+
+class AttributeCollector(object):
+	def __init__(self):
+		self.__d = {}
+
+	def __getitem__(self, key):
+		assert isinstance(key, str)
+		if key not in self.__d:
+			self.__d[key] = {}
+		return self.__d[key]
+
+	def __iter__(self):
+		for key in self.__d:
+			yield key
+
+	def add(self, i):
+		assert isinstance(i, Attribute)
+		self[i.obj_name][i.attr_name] = i
+
+	def namespaces(self):
+		for key in self:
+			yield (key, NameSpace(self[key]))
 
 
 class Collector(object):
