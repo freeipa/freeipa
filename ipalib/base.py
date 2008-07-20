@@ -129,8 +129,15 @@ class NameSpace(object):
 
 
 class Named(object):
-	def __get_name(self):
+	__name = None
+
+	def _get_name(self):
 		return self.__class__.__name__
+
+	def __get_name(self):
+		if self.__name is None:
+			self.__name = self._get_name()
+		return self.__name
 	name = property(__get_name)
 
 
