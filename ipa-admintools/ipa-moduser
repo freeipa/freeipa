@@ -97,7 +97,6 @@ def main():
     shell = ""
 
     match = False
-    cont = False
 
     options, args = parse_options()
 
@@ -141,46 +140,23 @@ def main():
         shell = options.shell
     else:
         if not options.gn:
-            while (cont != True):
-                givenname = raw_input("First name: [%s] " % user.getValue('givenname'))
-                if (ipavalidate.String(givenname, notEmpty=False)):
-                    print "Please enter a value"
-                else:
-                    cont = True
-                if len(givenname) < 1:
-                    givenname = None
-                    cont = True
+            givenname = ipautil.user_input("First name", user.getValue('givenname'), allow_empty = False)
         else:
             givenname = options.gn
             if (ipavalidate.String(givenname, notEmpty=True)):
                 print "Please enter a value"
                 return 1
 
-        cont = False
         if not options.sn:
-            while (cont != True):
-                lastname = raw_input(" Last name: [%s] " % user.getValue('sn'))
-                if (ipavalidate.String(lastname, notEmpty=False)):
-                    print "Please enter a value"
-                else:
-                    cont = True
-                if len(lastname) < 1:
-                    lastname = None
-                    cont = True
+            lastname = ipautil.user_input("Last name", user.getValue('sn'), allow_empty = False)
         else:
             lastname = options.sn
             if (ipavalidate.String(lastname, notEmpty=True)):
                 print "Please enter a value"
                 return 1
 
-        cont = False
         if not options.mail:
-            while (cont != True):
-                mail = raw_input("E-mail addr: [%s]" % user.getValue('mail'))
-                if (ipavalidate.Email(mail, notEmpty=False)):
-                    print "E-mail must include a user and domain name"
-                else:
-                    cont = True
+            mail = ipautil.user_input_email("E-mail address", user.getValue('mail'), allow_empty = True)
         else:
             mail = options.mail
             if (ipavalidate.Email(mail)):
@@ -189,32 +165,13 @@ def main():
 
         # Ask the questions we don't normally force. We don't require answers
         # for these.
-        cont = False
         if not options.gecos:
-            while (cont != True):
-                gecos = raw_input("gecos: [%s] " % user.getValue('gecos'))
-                if (ipavalidate.String(gecos, notEmpty=False)):
-                    print "Please enter a value"
-                else:
-                    cont = True
+            gecos = ipautil.user_input("gecos", user.getValue('gecos'))
 
-        cont = False
         if not options.directory:
-            while (cont != True):
-                directory = raw_input("home directory: [%s] " % user.getValue('homeDirectory'))
-                if (ipavalidate.Path(gecos, notEmpty=False)):
-                    print "Valid path is required"
-                else:
-                    cont = True
-        cont = False
+            directory = ipautil.user_input_path("Home directory", user.getValue('homeDirectory'))
         if not options.shell:
-            while (cont != True):
-                shell = raw_input("shell: [%s] " % user.getValue('loginshell'))
-
-                if len(shell) < 1:
-                    shell = None
-                    cont = True
-        cont = False
+            shell = ipautil.user_input("Shell", user.getValue('loginshell'), allow_empty = False)
 
     if givenname:
         user.setValue('givenname', givenname)

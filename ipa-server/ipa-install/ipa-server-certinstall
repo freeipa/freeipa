@@ -24,6 +24,7 @@ import traceback
 
 import krbV, ldap, getpass
 
+from ipa.ipautil import user_input
 from ipaserver import certs, dsinstance, httpinstance, ipaldap, installutils
 
 def get_realm_name():
@@ -84,25 +85,15 @@ def choose_server_cert(server_certs):
         print "%d. %s" % (num, cert[0])
         num += 1
         
-    cert_num = 0
     while 1:
-        cert_input = raw_input("Certificate number [1]: ")
+        num = user_input("Certificate number", 1)
         print ""
-        if cert_input == "":
-            break
+        if num < 1 or num > len(server_certs):
+            print "number out of range"
         else:
-            try:
-                num = int(cert_input)
-            except ValueError:
-                print "invalid number"
-                continue
-            if num > len(server_certs):
-                print "number out of range"
-                continue
-            cert_num = num - 1
             break
-    return server_certs[cert_num]
     
+    return server_certs[num - 1]
 
 def import_cert(dirname, pkcs12_fname):
     cdb = certs.CertDB(dirname)

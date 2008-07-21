@@ -102,7 +102,6 @@ def signal_handler(signum, frame):
     sys.exit(1)
 
 def read_host_name(host_default):
-    host_ok = False
     host_name = ""
 
     print "Enter the fully qualified domain name of the computer"
@@ -113,19 +112,15 @@ def read_host_name(host_default):
     print ""
     if host_default == "":
         host_default = "master.example.com"
-    while not host_ok:
-        host_input = raw_input("Server host name [" + host_default + "]: ")
+    while True:
+        host_name = user_input("Server host name", host_default, allow_empty = False)
         print ""
-        if host_input == "":
-            host_name = host_default
-        else:
-            host_name = host_input
         try:
             verify_fqdn(host_name)
         except Exception, e:
             raise e
         else:
-            host_ok = True
+            break
     return host_name
 
 def resolve_host(host_name):
@@ -160,10 +155,8 @@ def verify_ip_address(ip):
 
 def read_ip_address(host_name):
     while True:
-        ip = raw_input("Please provide the IP address to be used for this host name: ")
+        ip = user_input("Please provide the IP address to be used for this host name", allow_empty = False)
 
-        if ip == "":
-            continue
         if ip == "127.0.0.1" or ip == "::1":
             print "The IPA Server can't use localhost as a valid IP"
             continue
@@ -195,13 +188,12 @@ def read_ds_user():
         print "A user account named 'dirsrv' already exists. This is the user id"
         print "that the Directory Server will run as."
         print ""
-        yesno = raw_input("Do you want to use the existing 'dirsrv' account? [yes]: ")
-        print ""
-        if not yesno or yesno.lower()[0] != "n":
+        if user_input("Do you want to use the existing 'dirsrv' account?", True):
             ds_user = "dirsrv"
         else:
-            ds_user = raw_input("Which account name do you want to use for the DS instance? ")
             print ""
+            ds_user = user_input_plain("Which account name do you want to use for the DS instance?", allow_empty = False, allow_spaces = False)
+        print ""
     except KeyError:
         ds_user = "dirsrv"
 
@@ -211,36 +203,30 @@ def read_domain_name(domain_name, unattended):
     print "The domain name has been calculated based on the host name."
     print ""
     if not unattended:
-        dn = raw_input("Please confirm the domain name ["+domain_name+"]: ")
+        domain_name = user_input("Please confirm the domain name", domain_name)
         print ""
-        if dn != "":
-            domain_name = dn
     return domain_name
 
 def read_realm_name(domain_name, unattended):
     print "The kerberos protocol requires a Realm name to be defined."
     print "This is typically the domain name converted to uppercase."
     print ""
-    upper_dom = domain_name.upper()
+    
     if unattended:
-        realm_name = upper_dom
-    else:
-        realm_name = raw_input("Please provide a realm name ["+upper_dom+"]: ")
-        print ""
-        if realm_name == "":
-            realm_name = upper_dom
-        else:
-            upper_dom = realm_name.upper()
-        if upper_dom != realm_name:
-            print "An upper-case realm name is required."
-            dom_realm = raw_input("Do you want to use "+upper_dom+" as realm name ? [yes]: ")
+        return domain_name.upper()
+    realm_name = user_input("Please provide a realm name", domain_name.upper())
+    upper_dom = realm_name.upper()
+    if upper_dom != realm_name:
+        print "An upper-case realm name is required."
+        if not user_input("Do you want to use " + upper_dom + " as realm name?", True):
             print ""
-            if dom_realm and dom_realm.lower()[0] != "y":
-                print "An upper-case realm name is required. Unable to continue."
-                sys.exit(1)
-            else:
-                realm_name = upper_dom
+            print "An upper-case realm name is required. Unable to continue."
+            sys.exit(1)
+        else:
+            realm_name = upper_dom
+        print ""
     return realm_name
+
 
 def read_dm_password():
     print "Certain directory server operations require an administrative user."
@@ -266,10 +252,7 @@ def check_dirsrv(unattended):
     if serverids:
         print ""
         print "An existing Directory Server has been detected."
-        if unattended:
-            sys.exit(1)
-        yesno = raw_input("Do you wish to remove it and create a new one? [no]: ")
-        if not yesno or yesno.lower()[0] != "y":
+        if unattended or user_input("Do you wish to remove it and create a new one?", False):
             print ""
             print "Only a single Directory Server instance is allowed on an IPA"
             print "server, the one used by IPA itself."
@@ -335,8 +318,7 @@ def main():
     if options.uninstall:
         if not options.unattended:
             print "\nThis is a NON REVERSIBLE operation and will delete all data and configuration!\n"
-            yesno = raw_input("Are you sure you want to continue with the uninstall procedure?:[NO/yes] ")
-            if not yesno or yesno.lower() != "yes":
+            if not user_input("Are you sure you want to continue with the uninstall procedure?", False):
                 print ""
                 print "Aborting uninstall operation."
                 sys.exit(1)

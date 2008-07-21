@@ -145,8 +145,7 @@ def check_dirsrv():
     if serverids:
         print ""
         print "An existing Directory Server has been detected."
-        yesno = raw_input("Do you wish to remove it and create a new one? [no]: ")
-        if not yesno or yesno.lower()[0] != "y":
+        if not ipautil.user_input("Do you wish to remove it and create a new one?", False):
             print ""
             print "Only a single Directory Server instance is allowed on an IPA"
             print "server, the one used by IPA itself."
@@ -186,12 +185,9 @@ def main():
     if host != config.host_name:
         try:
             print "This replica was created for '%s' but this machine is named '%s'" % (host, config.host_name)
-            yesno = raw_input("This may cause problems. Continue? [Y/n]: ")
-            print ""
-            if not yesno or yesno.lower()[0] == "y":
-                pass
-            else:
+            if not ipautil.user_input("This may cause problems. Continue?", True):
                 sys.exit(0)
+            print ""
         except KeyboardInterrupt:
             sys.exit(0)
     config.repl_password = ipautil.ipa_generate_password()

@@ -29,6 +29,7 @@ import os, sys, traceback, readline
 import stat
 import shutil
 
+from ipa import ipavalidate
 from types import *
 
 import re
@@ -481,6 +482,71 @@ def read_items_file(filename):
     items = parse_items(text)
     if fd != sys.stdin: fd.close()
     return items
+
+def user_input(prompt, default = None, allow_empty = True):
+    if default == None:
+        while True:
+            ret = raw_input("%s: " % prompt)
+            if allow_empty or ret.strip():
+                return ret
+                
+    if isinstance(default, basestring):
+        while True:
+            ret = raw_input("%s [%s]: " % (prompt, default))
+            if not ret and (allow_empty or default):
+                return default
+            elif ret.strip():
+                return ret
+    if isinstance(default, bool):
+        if default:
+            choice = "yes"
+        else:
+            choice = "no"
+        while True:
+            ret = raw_input("%s [%s]: " % (prompt, choice))
+            if not ret:
+                return default
+            elif ret.lower()[0] == "y":
+                return True
+            elif ret.lower()[0] == "n":
+                return False
+    if isinstance(default, int):
+        while True:
+            try:
+                ret = raw_input("%s [%s]: " % (prompt, default))
+                if not ret:
+                    return default
+                ret = int(ret)
+            except ValueError:
+                pass
+            else:
+                return ret
+
+def user_input_email(prompt, default = None, allow_empty = False):
+    if default != None and allow_empty:
+        prompt += " (enter \"none\" for empty)"
+    while True:
+        ret = user_input(prompt, default, allow_empty)
+        if allow_empty and ret.lower() == "none":
+            return ""
+        if not ipavalidate.Email(ret, not allow_empty):
+            return ret.strip()
+
+def user_input_plain(prompt, default = None, allow_empty = True, allow_spaces = True):
+    while True:
+        ret = user_input(prompt, default, allow_empty)
+        if not ipavalidate.Plain(ret, not allow_empty, allow_spaces):
+            return ret
+
+def user_input_path(prompt, default = None, allow_empty = True):
+    if default != None and allow_empty:
+        prompt += " (enter \"none\" for empty)"
+    while True:
+        ret = user_input(prompt, default, allow_empty)
+        if allow_empty and ret.lower() == "none":
+            return ""
+        if not ipavalidate.Path(ret, not allow_empty):
+            return ret
 
 
 class AttributeValueCompleter:

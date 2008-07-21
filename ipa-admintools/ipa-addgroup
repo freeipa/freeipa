@@ -81,29 +81,16 @@ def main():
     if options.usage:
         usage()
 
-    cont = False
-
     if (len(args) != 2):
-        while (cont != True):
-            cn = raw_input("Group name: ")
-            if (ipavalidate.String(cn, notEmpty=True)):
-                print "Please enter a value"
-            else:
-                cont = True
+        cn = ipautil.user_input("Group name", allow_empty = False)
     else:
         cn = args[1]
         if (ipavalidate.String(cn, notEmpty=True)):
             print "Please enter a value"
             return 1
 
-    cont = False
     if not options.desc:
-        while (cont != True):
-            desc = raw_input("Description: ")
-            if (ipavalidate.String(desc, notEmpty=True)):
-                print "Please enter a value"
-            else:
-                cont = True
+        desc = ipautil.user_input("Description", allow_empty = False)
     else:
         desc = options.desc
         if (ipavalidate.String(desc, notEmpty=True)):

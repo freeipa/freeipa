@@ -102,7 +102,6 @@ def main():
     groups = ""
 
     match = False
-    cont = False
 
     all_interactive = False
 
@@ -116,40 +115,23 @@ def main():
         all_interactive = True
 
     if not options.gn:
-        while (cont != True):
-            givenname = raw_input("First name: ")
-            if (ipavalidate.String(givenname, notEmpty=True)):
-                print "Please enter a value"
-            else:
-                cont = True
+        givenname = ipautil.user_input("First name", allow_empty = False)
     else:
         givenname = options.gn
         if (ipavalidate.String(givenname, notEmpty=True)):
             print "Please enter a value"
             return 1
 
-    cont = False
     if not options.sn:
-        while (cont != True):
-            lastname = raw_input("Last name: ")
-            if (ipavalidate.String(lastname, notEmpty=True)):
-                print "Please enter a value"
-            else:
-                cont = True
+        lastname = ipautil.user_input("Last name", allow_empty = False)
     else:
         lastname = options.sn
         if (ipavalidate.String(lastname, notEmpty=True)):
             print "Please enter a value"
             return 1
 
-    cont = False
     if (len(args) != 2):
-        while (cont != True):
-            username = raw_input("Login name: ")
-            if (ipavalidate.Plain(username, notEmpty=True, allowSpaces=False)):
-                print "Please enter a value"
-            else:
-                cont = True
+        username = ipautil.user_input_plain("Login name", allow_empty = False, allow_spaces = False)
     else:
         username = args[1]
         if (ipavalidate.Plain(username, notEmpty=True, allowSpaces=False)):
@@ -180,32 +162,12 @@ def main():
     # Ask the questions we don't normally force. We don't require answers
     # for these.
     if all_interactive is True:
-        cont = False
         if not options.gecos:
-            while (cont != True):
-                gecos = raw_input("gecos []: ")
-                if (ipavalidate.String(gecos, notEmpty=False)):
-                    print "Please enter a value"
-                else:
-                    cont = True
-        cont = False
+            gecos = ipautil.user_input("gecos")
         if not options.directory:
-            while (cont != True):
-                directory = raw_input("home directory [/home/"+username+"]: ")
-                if directory == "":
-                     directory = "/home/"+username
-                if (ipavalidate.Path(directory, notEmpty=False)):
-                    print "Please enter a value"
-                else:
-                    cont = True
-        cont = False
+            directory = ipautil.user_input_path("Home directory", "/home/" + username, allow_empty = True)
         if not options.shell:
-            while (cont != True):
-                shell = raw_input("shell [/bin/sh]: ")
-
-                if len(shell) < 1:
-                    shell = None
-                cont = True
+            shell = ipautil.user_input("Shell", "/bin/sh", allow_empty = False)
 
     else:
         gecos = options.gecos
