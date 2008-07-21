@@ -21,37 +21,46 @@
 
 """
 Command Line Interface to IPA.
+
+Just proof of concept stuff in here right now.
 """
 
 import sys
 from ipalib.startup import api
 
+def _(msg):
+	"""
+	Dummy gettext function for testing.
+	"""
+	return msg
+
+
 def print_commands():
 	print 'Commands:'
 	m = api.max_cmd_len
-	for c in api.commands:
-		c = c.replace('_', '-')
-		print '  %s  The help on %s' % (c.ljust(m), c)
+	for cmd in api.commands():
+		print '  %s  %s' % (cmd.cli_name.ljust(m), cmd.get_doc(_))
 
 def print_help(cmd):
 	print 'Help on %s' % cmd
 
 def print_api():
-	print '\nCommands:'
-	for n in api.commands:
-		print '  %s' % n
+	print 'Commands:'
+	for cmd in api.commands():
+		print '  %s [%s]' % (cmd.name, cmd.loc)
 
-	print '\nObjects:'
+	print 'Objects:'
 	for obj in api.objects():
-		print '  %s' % obj.name
-		for n in obj.methods:
-			print '    .%s()' % n
-		for n in obj.properties:
-			print '    .%s' % n
+		print '  %s [%s]' % (obj.name, obj.loc)
+		for meth in obj.methods():
+			print '    .%s() [%s]' % (meth.attr_name, meth.loc)
+		for prop in obj.properties():
+			print '    .%s [%s]' % (prop.attr_name, prop.loc)
 
-	print '\nStats:'
-	print '  %d objects' % len(api.objects)
+	print 'Stats:'
 	print '  %d commands' % len(api.commands)
+	print '  %d objects' % len(api.objects)
+
 
 
 if len(sys.argv) < 2:

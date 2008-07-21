@@ -95,7 +95,7 @@ class NameSpace(object):
 		"""
 		Returns True if namespace has an item named `key`.
 		"""
-		return key.replace('-', '_') in self.__kw
+		return bool(key in self.__kw)
 
 	def __iter__(self):
 		"""
@@ -135,16 +135,43 @@ class Named(object):
 	def _get_name(self):
 		return self.__class__.__name__
 
+	def __get_loc(self):
+		cls = self.__class__
+		return '%s.%s' % (cls.__module__, cls.__name__)
+	loc = property(__get_loc)
+
 	def __get_name(self):
 		if self.__name is None:
 			self.__name = self._get_name()
 		return self.__name
 	name = property(__get_name)
 
+	def __get_cli_name(self):
+		return self.name.replace('_', '-')
+	cli_name = property(__get_cli_name)
+
 
 class AbstractCommand(object):
 	def __call__(self):
 		print 'You called %s()' % self.name
+
+	def get_doc(self, _):
+		"""
+		This should return a gettext translated summarary of the command.
+
+		For example, if you were documenting the 'add-user' command, you're
+		method would look something like this.
+
+		>>> def get_doc(self, _):
+		>>>		return _('add new user')
+		"""
+		raise NotImplementedError('%s.%s.%s()' % (
+				self.__class__.__module__,
+				self.__class__.__name__,
+				'get_doc',
+			)
+		)
+
 
 class Attribute(Named):
 	__locked = False
