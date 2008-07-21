@@ -606,9 +606,9 @@ class IPAServer:
                 user['gidnumber'] = default_group.get('gidnumber')
         except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR), e:
             raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, message=None, nested_exception=e.detail)
-        except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR):
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             # Fake an LDAP error so we can return something useful to the user
-            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND, "No default group for new users can be found.")
+            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND, "The default group for new users, '%s', cannot be found." % config.get('ipadefaultprimarygroup'))
 
         if user.get('krbprincipalname') is None:
             user['krbprincipalname'] = "%s@%s" % (user.get('uid'), self.realm)
