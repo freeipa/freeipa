@@ -68,11 +68,12 @@ if len(sys.argv) < 2:
 	print 'Usage: ipa COMMAND [OPTIONS]'
 	sys.exit(2)
 cmd = sys.argv[1]
+pcmd = cmd.replace('-', '_')
 if cmd == '_api_':
 	print_api()
 	sys.exit()
-elif cmd not in api.commands:
+elif pcmd not in api.commands:
 	print_commands()
 	print 'ipa: ERROR: unknown command %r' % cmd
 	sys.exit(2)
-api.commands[cmd]()
+api.commands[pcmd]()

@@ -153,7 +153,10 @@ class Named(object):
 
 class AbstractCommand(object):
 	def __call__(self):
-		print 'You called %s()' % self.name
+		print 'You called %s.%s()' % (
+			self.__class__.__module__,
+			self.__class__.__name__
+		)
 
 	def get_doc(self, _):
 		"""
