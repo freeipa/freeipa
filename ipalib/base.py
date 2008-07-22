@@ -292,6 +292,64 @@ class Collector(object):
 		return NameSpace(self.__d)
 
 
+class Proxy(object):
+	def __init__(self, d):
+		self.__d = d
+
+	def __getattr__(self, name):
+		if name not in self.__d:
+			raise AttributeError(name)
+		return self.__d[name]
+
+
+
+class Register(object):
+	__allowed = (
+		Command,
+		Object,
+		Method,
+		Property,
+	)
+
+	def __init__(self):
+		self.__d = {}
+		for base in self.__allowed:
+			assert inspect.isclass(base)
+			assert base.__name__ not in self.__d
+			sub_d = {}
+			self.__d[base.__name__] = sub_d
+			setattr(self, base.__name__, Proxy(sub_d))
+
+	def __iter__(self):
+		for key in self.__d:
+			yield key
+
+	def __getitem__(self, key):
+		return dict(self.__d[key])
+
+	def items(self):
+		for key in self:
+			yield (key, self[key])
+
+	def __findbase(self, cls):
+		if not inspect.isclass(cls):
+			raise exceptions.RegistrationError('not a class', cls)
+		for base in self.__allowed:
+			if issubclass(cls, base):
+				return base
+		raise exceptions.RegistrationError(
+			'not subclass of an allowed base',
+			cls,
+		)
+
+	def __call__(self, cls):
+		base = self.__findbase(cls)
+		ns = self.__d[base.__name__]
+		assert cls.__name__ not in ns
+		ns[cls.__name__] = cls
+
+
+
 class Registrar(object):
 	__objects = None
 	__commands = None

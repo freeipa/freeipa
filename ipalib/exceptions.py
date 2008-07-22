@@ -58,7 +58,7 @@ class DuplicateError(IPAError):
 
 
 class RegistrationError(IPAError):
-	msg = '%r must be a subclass of %s'
+	msg = '%s: %r'
 
 
 class PrefixError(IPAError):
