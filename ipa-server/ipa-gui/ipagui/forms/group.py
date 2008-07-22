@@ -18,6 +18,7 @@
 import turbogears
 from turbogears import validators, widgets
 from tg_expanding_form_widget.tg_expanding_form_widget import ExpandingForm
+from ipagui.helpers import ipahelper
 
 class GroupFields(object):
     cn = widgets.TextField(name="cn", label="Name")
@@ -50,7 +51,7 @@ class GroupNewForm(widgets.Form):
 
     def __init__(self, *args, **kw):
         super(GroupNewForm,self).__init__(*args, **kw)
-        (self.template_c, self.template) = widgets.meta.load_kid_template("ipagui.templates.groupnewform")
+        (self.template_c, self.template) = ipahelper.load_template("ipagui.templates.groupnewform")
         self.group_fields = GroupFields
 
     def update_params(self, params):
@@ -80,5 +81,5 @@ class GroupEditForm(widgets.Form):
 
     def __init__(self, *args, **kw):
         super(GroupEditForm,self).__init__(*args, **kw)
-        (self.template_c, self.template) = widgets.meta.load_kid_template("ipagui.templates.groupeditform")
+        (self.template_c, self.template) = ipahelper.load_template("ipagui.templates.groupeditform")
         self.group_fields = GroupFields

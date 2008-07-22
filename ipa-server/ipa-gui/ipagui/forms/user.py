@@ -19,6 +19,7 @@ import turbogears
 from turbogears import validators, widgets
 from tg_expanding_form_widget.tg_expanding_form_widget import ExpandingForm
 from ipagui.helpers.validators import *
+from ipagui.helpers import ipahelper
 
 class UserFields(object):
     givenname = widgets.TextField(name="givenname", label="First Name")
@@ -120,7 +121,8 @@ class UserNewForm(widgets.Form):
 
     def __init__(self, *args, **kw):
         super(UserNewForm,self).__init__(*args, **kw)
-        (self.template_c, self.template) = widgets.meta.load_kid_template("ipagui.templates.usernewform")
+        (self.template_c, self.template) = ipahelper.load_template("ipagui.templates.usernewform")
+
         self.user_fields = UserFields
 
     def update_params(self, params):
@@ -172,7 +174,8 @@ class UserEditForm(widgets.Form):
 
     def __init__(self, *args, **kw):
         super(UserEditForm,self).__init__(*args, **kw)
-        (self.template_c, self.template) = widgets.meta.load_kid_template("ipagui.templates.usereditform")
+        (self.template_c, self.template) = ipahelper.load_template("ipagui.templates.usereditform")
+
         self.user_fields = UserFields
 
 

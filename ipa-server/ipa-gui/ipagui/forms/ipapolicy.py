@@ -18,6 +18,7 @@
 import turbogears
 from turbogears import validators, widgets
 from tg_expanding_form_widget.tg_expanding_form_widget import ExpandingForm
+from ipagui.helpers import ipahelper
 
 class IPAPolicyFields(object):
     # From cn=ipaConfig
@@ -78,7 +79,7 @@ class IPAPolicyForm(widgets.Form):
 
     def __init__(self, *args, **kw):
         super(IPAPolicyForm,self).__init__(*args, **kw)
-        (self.template_c, self.template) = widgets.meta.load_kid_template(
+        (self.template_c, self.template) = ipahelper.load_template(
                 "ipagui.templates.ipapolicyeditform")
         self.ipapolicy_fields = IPAPolicyFields
 

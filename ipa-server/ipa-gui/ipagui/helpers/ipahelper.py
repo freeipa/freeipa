@@ -17,6 +17,10 @@
 
 import re
 import logging
+import turbogears
+import kid
+from turbokid import kidsupport
+from pkg_resources import resource_filename
 
 def javascript_string_escape(input):
     """Escapes the ' " and \ characters in a string so
@@ -60,3 +64,25 @@ def fix_incoming_fields(fields, fieldname, multifieldname):
         logging.warn("fix_incoming_fields error: " + str(e))
 
     return fields
+
+def load_template(classname, encoding=None):
+    """
+    Loads the given template. This only handles .kid files.
+    Returns a tuple (compiled_tmpl, None) to emulate
+    turbogears.meta.load_kid_template() which ends up not properly handling
+    encoding.
+    """
+    if not encoding:
+        encoding = turbogears.config.get('kid.encoding', kidsupport.KidSupport.assume_encoding)
+    divider = classname.rfind(".")
+    package, basename = classname[:divider], classname[divider+1:]
+    file_path = resource_filename(package, basename + ".kid")
+
+    tclass = kid.load_template(
+        file_path,
+        name = classname,
+        ).Template
+    tclass.serializer = kid.HTMLSerializer(encoding=encoding)
+    tclass.assume_encoding=encoding
+
+    return (tclass, None)

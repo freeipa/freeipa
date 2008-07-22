@@ -17,6 +17,7 @@
 
 import turbogears
 from turbogears import validators, widgets
+from ipagui.helpers import ipahelper
 
 from ipagui.forms.user import UserFields
 
@@ -101,7 +102,7 @@ class DelegateForm(widgets.Form):
 
     def __init__(self, *args, **kw):
         super(DelegateForm,self).__init__(*args, **kw)
-        (self.template_c, self.template) = widgets.meta.load_kid_template(
+        (self.template_c, self.template) = ipahelper.load_template(
                 "ipagui.templates.delegateform")
         self.delegate_fields = DelegateFields
 
