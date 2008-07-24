@@ -24,6 +24,8 @@ import errno
 from ipa import sysrestore
 from ipa import ipautil
 
+CA_SERIALNO="/var/lib/ipa/ca_serialno"
+
 class CertDB(object):
     def __init__(self, dir, fstore=None):
         self.secdir = dir
@@ -69,7 +71,7 @@ class CertDB(object):
 
         self.cur_serial = self.find_cacert_serial()
         try:
-            f=open("/usr/share/ipa/serial","w")
+            f=open(CA_SERIALNO,"w")
             f.write(str(self.cur_serial))
             f.close()
         except IOError, e:
@@ -77,24 +79,24 @@ class CertDB(object):
 
     def next_serial(self):
         try:
-            f=open("/usr/share/ipa/serial","r")
+            f=open(CA_SERIALNO,"r")
             r = f.readline()
             try:
                 self.cur_serial = int(r) + 1
             except ValueError:
-                raise RuntimeError("The value in /usr/share/ipa/serial is not an integer")
+                raise RuntimeError("The value in %s is not an integer" % CA_SERIALNO)
             f.close()
         except IOError, e:
             if e.errno == errno.ENOENT:
                 self.cur_serial = 1000
-                f=open("/usr/share/ipa/serial","w")
+                f=open(CA_SERIALNO,"w")
                 f.write(str(self.cur_serial))
                 f.close()
             else:
                 raise RuntimeError("Unable to determine serial number: %s" % str(e))
 
         try:
-            f=open("/usr/share/ipa/serial","w")
+            f=open(CA_SERIALNO,"w")
             f.write(str(self.cur_serial))
             f.close()
         except IOError, e:
@@ -396,7 +398,7 @@ class CertDB(object):
         # This file implies that we have our own self-signed CA. Ensure
         # that it no longer exists (from previous installs, for example).
         try:
-            os.remove("/usr/share/ipa/serial")
+            os.remove(CA_SERIALNO)
         except:
             pass
 

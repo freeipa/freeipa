@@ -1,6 +1,6 @@
 Name:           ipa-server
 Version:        VERSION
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base
@@ -89,6 +89,9 @@ if [ $1 = 1 ]; then
     /sbin/chkconfig --add ipa_kpasswd
     /sbin/chkconfig --add ipa_webgui
 fi
+if [ -e /usr/share/ipa/serial ]; then
+    mv /usr/share/ipa/serial /var/lib/ipa/ca_serialno
+fi
 /bin/touch /var/log/ipa_error.log
 /bin/chown apache /var/log/ipa_error.log
 /bin/chmod 600 /var/log/ipa_error.log
@@ -168,6 +171,9 @@ fi
 %{_mandir}/man1/ipa-server-install.1.gz
 
 %changelog
+* Wed Jul 23 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-3
+- Move location of the self-signed CA serial number
+
 * Tue May  5 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-2
 - Add ipa-upgradeconfig command and run it at post
 

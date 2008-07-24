@@ -165,7 +165,7 @@ def main():
 
     replica_fqdn = args[1]
 
-    if not ipautil.file_exists("/usr/share/ipa/serial") and not options.dirsrv_pin:
+    if not ipautil.file_exists(certs.CA_SERIALNO) and not options.dirsrv_pin:
         sys.exit("The replica must be created on the primary IPA server.\nIf you installed IPA with your own certificates using PKCS#12 files you must provide PKCS#12 files for any replicas you create as well.")
 
     print "Determining current realm name"
