@@ -285,10 +285,82 @@ def test_Collector():
 	assert ns.group is g
 
 
+class test_Registrar():
+	r = base.Registrar()
+	allowed = set(['Command', 'Object', 'Method', 'Property'])
+	assert set(r) == allowed
+
+	# Some test classes:
+	class wrong_base(object):
+		pass
+	class krbtest(base.Command):
+		pass
+	class user(base.Object):
+		pass
+	class user__add(base.Method):
+		pass
+	class user__firstname(base.Property):
+		pass
+
+	# Check that exception is raised trying to register an instance of a
+	# class of a correct base:
+	raised = False
+	try:
+		r(user())
+	except exceptions.RegistrationError:
+		raised = True
+
+	# Check that exception is raised trying to register class of wrong base:
+	raised = False
+	try:
+		r(wrong_base)
+	except exceptions.RegistrationError:
+		raised = True
+	assert raised
+
+	# Check that adding a valid class works
+	for cls in (krbtest, user, user__add, user__firstname):
+		r(cls)
+		key = cls.__bases__[0].__name__
+		d = r[key]
+		assert d.keys() == [cls.__name__]
+		assert d.values() == [cls]
+		# Check that a copy is returned
+		d2 = r[key]
+		assert d2 == d
+		assert d2 is not d
+		p = getattr(r, key)
+		assert isinstance(p, base.Proxy)
+		# Check that same instance is returned
+		assert p is getattr(r, key)
+		assert getattr(p, cls.__name__) is cls
+
+	for base_name in allowed:
+		for i in r.get_instances(base_name):
+			assert isinstance(i, getattr(base, base_name))
+
+
+	m = r.get_attrs('Method')
+	assert isinstance(m, dict)
+	assert len(m) == 1
+	assert len(m['user']) == 1
+	assert isinstance(m['user'][0], user__add)
+
+	p = r.get_attrs('Property')
+	assert isinstance(p, dict)
+	assert len(p) == 1
+	assert len(p['user']) == 1
+	assert isinstance(p['user'][0], user__firstname)
 
 
 
-def test_Registar():
+
+
+
+def test_API():
+	r = base.Registrar()
+	api = base.API(r)
+
 	class kinit(base.Command):
 		pass
 	class user__add(base.Method):
@@ -306,28 +378,31 @@ def test_Registar():
 	class group(base.Object):
 		pass
 
-	r = base.Registrar()
-	assert read_only(r, 'objects') is None
-	assert read_only(r, 'commands') is None
+	assert read_only(api, 'objects') is None
+	assert read_only(api, 'commands') is None
+	assert read_only(api, 'max_cmd_len') is None
+
+	r(kinit)
+	r(user__add)
+	r(user__del)
+	r(user__firstname)
+	r(user__lastname)
+	r(user__login)
+	r(user)
+	r(group)
 
 
-	r.register(kinit)
-	r.register(user__add)
-	r.register(user__del)
-	r.register(user__firstname)
-	r.register(user__lastname)
-	r.register(user__login)
-	r.register(user)
-	r.register(group)
+	api.finalize()
 
-	r.finalize()
 
-	objects = read_only(r, 'objects')
+	objects = read_only(api, 'objects')
 	assert isinstance(objects, base.NameSpace)
 	assert len(objects) == 2
 	assert list(objects) == ['group', 'user']
 	assert type(objects.user) is user
 	assert type(objects.group) is group
+
+	return
 
 	u = objects.user
 	assert len(u.methods) == 2
@@ -347,64 +422,3 @@ def test_Registar():
 
 	assert len(r.commands) == 3
 	assert list(r.commands) == sorted(['kinit', 'add_user', 'del_user'])
-
-
-class test_Register():
-	r = base.Register()
-
-	assert set(r) == set(['Command', 'Object', 'Method', 'Property'])
-
-
-	class wrong_base(object):
-		pass
-
-	class krbtest(base.Command):
-		pass
-
-	class user(base.Object):
-		pass
-
-	class user__add(base.Method):
-		pass
-
-	class user__firstname(base.Property):
-		pass
-
-
-
-
-	#r(wrong_base)
-	#r(user())
-
-	# Check that exception is raised trying to register an instance of a
-	# class of a correct base:
-	raised = False
-	try:
-		r(user())
-	except exceptions.RegistrationError:
-		raised = True
-
-	# Check that exception is raised trying to register class of wrong base:
-	raised = False
-	try:
-		r(wrong_base)
-	except exceptions.RegistrationError:
-		raised = True
-	assert raised
-
-	# Check that added a valid class works
-	for cls in (krbtest, user, user__add, user__firstname):
-		r(cls)
-		key = cls.__bases__[0].__name__
-		d = r[key]
-		assert d.keys() == [cls.__name__]
-		assert d.values() == [cls]
-		# Check that a copy is returned
-		d2 = r[key]
-		assert d2 == d
-		assert d2 is not d
-		p = getattr(r, key)
-		assert isinstance(p, base.Proxy)
-		# Check that same instance is returned
-		assert p is getattr(r, key)
-		assert getattr(p, cls.__name__) is cls

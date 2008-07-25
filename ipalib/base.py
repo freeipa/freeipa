@@ -303,7 +303,7 @@ class Proxy(object):
 
 
 
-class Register(object):
+class Registrar(object):
 	__allowed = (
 		Command,
 		Object,
@@ -311,8 +311,13 @@ class Register(object):
 		Property,
 	)
 
-	def __init__(self):
-		self.__d = {}
+	def __init__(self, d=None):
+		if d is None:
+			self.__d = {}
+		else:
+			assert isinstance(d, dict)
+			assert d == {}
+			self.__d = d
 		for base in self.__allowed:
 			assert inspect.isclass(base)
 			assert base.__name__ not in self.__d
@@ -349,10 +354,25 @@ class Register(object):
 		ns[cls.__name__] = cls
 
 
+	def get_instances(self, base_name):
+		for cls in self[base_name].values():
+			yield cls()
 
-class Registrar(object):
-	__objects = None
-	__commands = None
+	def get_attrs(self, base_name):
+		d = {}
+		for i in self.get_instances(base_name):
+			if i.obj_name not in d:
+				d[i.obj_name] = []
+			d[i.obj_name].append(i)
+		return d
+
+
+
+
+
+
+class RegistrarOld(object):
+
 
 	def __init__(self):
 		self.__tmp_commands = Collector()
@@ -367,6 +387,7 @@ class Registrar(object):
 	def __get_commands(self):
 		return self.__commands
 	commands = property(__get_commands)
+
 
 	def __get_target(self, i):
 		if isinstance(i, Command):
@@ -409,13 +430,70 @@ class Registrar(object):
 
 
 
-class API(Registrar):
+class API(object):
 	__max_cmd_len = None
+	__objects = None
+	__commands = None
+
+	def __init__(self, registrar):
+		assert isinstance(registrar, Registrar)
+		self.__r = registrar
+
+	def __get_objects(self):
+		return self.__objects
+	objects = property(__get_objects)
+
+	def __get_commands(self):
+		return self.__commands
+	commands = property(__get_commands)
 
 	def __get_max_cmd_len(self):
 		if self.__max_cmd_len is None:
 			if self.commands is None:
-				return 0
+				return None
 			self.__max_cmd_len = max(len(n) for n in self.commands)
 		return self.__max_cmd_len
 	max_cmd_len = property(__get_max_cmd_len)
+
+	def __items(self, base, name):
+		for cls in self.__r[base].values():
+			i = cls()
+			yield (getattr(i, name), i)
+
+	def __namespace(self, base, name):
+		return NameSpace(dict(self.__items(base, name)))
+
+
+
+	def finalize(self):
+		self.__objects = self.__namespace('Object', 'name')
+
+		m = {}
+		for obj in self.__objects():
+			if obj.name not in m:
+				m[obj.name] = {}
+
+		for cls in self.__r['Method'].values():
+			meth = cls()
+			assert meth.obj_name in m
+
+		return
+
+		for (key, ns) in self.__tmp_methods.namespaces():
+			self.__objects[key].methods = ns
+		for (key, ns) in self.__tmp_properties.namespaces():
+			self.__objects[key].properties = ns
+		commands = self.__tmp_commands.d
+		for obj in self.__objects():
+			assert isinstance(obj, Object)
+			if obj.methods is None:
+				obj.methods = NameSpace({})
+			if obj.properties is None:
+				obj.properties = NameSpace({})
+			for m in obj.methods():
+				m.obj = obj
+				assert m.name not in commands
+				commands[m.name] = m
+			for p in obj.properties():
+				p.obj = obj
+		self.__commands = NameSpace(commands)
