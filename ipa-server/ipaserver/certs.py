@@ -332,6 +332,9 @@ class CertDB(object):
             flags = fields[-1]
             if 'u' in flags:
                 name = " ".join(fields[0:-1])
+                # NSS 3.12 added a header to the certutil output
+                if name == "Certificate Nickname Trust":
+                    continue
                 server_certs.append((name, flags))
 
         return server_certs
