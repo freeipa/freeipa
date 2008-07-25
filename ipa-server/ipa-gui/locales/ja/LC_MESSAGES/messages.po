@@ -67,7 +67,7 @@ msgid "Unit"
 msgstr "ユニット"
 
 #: ipagui/templates/userlist.kid:th
-msgid "Title"
+msgid "Job Title"
 msgstr ""
 
 #: ipagui/templates/userlist.kid:a

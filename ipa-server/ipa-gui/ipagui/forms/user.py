@@ -25,7 +25,7 @@ class UserFields(object):
     sn = widgets.TextField(name="sn", label="Last Name")
     cn = widgets.TextField(name="cn", label="Full Name")
     cns = ExpandingForm(name="cns", label="Full Name", fields=[cn])
-    title = widgets.TextField(name="title", label="Title")
+    title = widgets.TextField(name="title", label="Job Title")
     displayname = widgets.TextField(name="displayname", label="Display Name")
     initials = widgets.TextField(name="initials", label="Initials")
 

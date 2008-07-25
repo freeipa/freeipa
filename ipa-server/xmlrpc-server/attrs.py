@@ -21,7 +21,7 @@ attr_label_list = {
     "givenname":"First Name",
     "sn":"Last Name",
     "cn":"Full Name",
-    "title":"Title",
+    "title":"Job Title",
     "displayname":"Display Name",
     "initials":"Initials",
     "uid":"Login",

@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2008-02-07 21:59\n"
+"POT-Creation-Date: 2008-07-25 09:17\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,12 +15,25 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: ipagui/forms/delegate.py:82 ipagui/forms/delegate.py:84
+#: ipagui/forms/delegate.py:83 ipagui/forms/delegate.py:85
 msgid "Please choose a group"
 msgstr ""
 
-#: ipagui/subcontrollers/delegation.py:336
+#: ipagui/helpers/validators.py:42
+msgid "Duplicate values are not allowed"
+msgstr ""
+
+#: ipagui/helpers/validators.py:43
+msgid "Empty values not allowed"
+msgstr ""
+
+#: ipagui/subcontrollers/delegation.py:409
 msgid "Please select at least one value"
+msgstr ""
+
+#: ipagui/subcontrollers/delegation.py:411
+#: ipagui/subcontrollers/delegation.py:413
+msgid "Group not found"
 msgstr ""
 
 #: ipagui/templates/ipapolicyeditform.kid:div
@@ -37,18 +50,6 @@ msgstr ""
 
 #: ipagui/templates/ipapolicyeditform.kid:h2
 msgid "User Settings"
-msgstr ""
-
-#: ipagui/templates/ipapolicyeditform.kid:a
-msgid "Remove"
-msgstr ""
-
-#: ipagui/templates/ipapolicyeditform.kid:a
-msgid "Add User Object Class"
-msgstr ""
-
-#: ipagui/templates/ipapolicyeditform.kid:a
-msgid "Add Group Object Class"
 msgstr ""
 
 #: ipagui/templates/principalshow.kid:title
@@ -191,7 +192,11 @@ msgid "Identity Details"
 msgstr ""
 
 #: ipagui/templates/usernewform.kid:a
-msgid "Add Common Name"
+msgid "Remove"
+msgstr ""
+
+#: ipagui/templates/usernewform.kid:a
+msgid "Add Full Name"
 msgstr ""
 
 #: ipagui/templates/usernewform.kid:h2
@@ -533,6 +538,14 @@ msgstr ""
 msgid "You do not have permission to access this page."
 msgstr ""
 
+#: ipagui/templates/not_found.kid:title
+msgid "Page Not Found"
+msgstr ""
+
+#: ipagui/templates/not_found.kid:div
+msgid "${message}"
+msgstr ""
+
 #: ipagui/templates/groupedit.kid:title
 msgid "Edit Group"
 msgstr ""
@@ -589,10 +602,6 @@ msgstr ""
 msgid "Message:"
 msgstr ""
 
-#: ipagui/templates/unhandled_exception.kid:pre
-msgid "${message}"
-msgstr ""
-
 #: ipagui/templates/unhandled_exception.kid:b
 msgid "HTTP Error Message:"
 msgstr ""
@@ -646,7 +655,7 @@ msgid "Unit"
 msgstr ""
 
 #: ipagui/templates/userlist.kid:th
-msgid "Title"
+msgid "Job Title"
 msgstr ""
 
 #: ipagui/templates/userlist.kid:a
@@ -728,7 +737,10 @@ msgid "Your title goes here"
 msgstr ""
 
 #: ipagui/templates/master.kid:style
-msgid "@import \"${tg.url('/static/css/style.css')}\";"
+msgid ""
+"@import \"${tg.url('/static/css/style_platform.css')}\";\n"
+"    @import \"${tg.url('/static/css/style_platform-objects.css')}\";\n"
+"    @import \"${tg.url('/static/css/style_freeipa.css')}\";"
 msgstr ""
 
 #: ipagui/templates/master.kid:a
@@ -766,9 +778,5 @@ msgstr ""
 
 #: ipagui/templates/master.kid:a
 msgid "Self Service"
-msgstr ""
-
-#: ipagui/templates/master.kid:a
-msgid "Powered by FreeIPA"
 msgstr ""
 
