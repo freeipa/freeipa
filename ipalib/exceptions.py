@@ -45,24 +45,82 @@ class IPAError(Exception):
 		return self.msg % self.kw
 
 
+
+
+
 class SetError(IPAError):
 	msg = 'setting %r, but NameSpace does not allow attribute setting'
 
 
-class OverrideError(IPAError):
-	msg = 'unexpected override of %r (use override=True if intended)'
 
 
-class DuplicateError(IPAError):
-	msg = 'class %r at %d was already registered'
+
 
 
 class RegistrationError(IPAError):
-	msg = '%s: %r'
+	"""
+	Base class for errors that occur during plugin registration.
+	"""
 
 
-class PrefixError(IPAError):
-	msg = 'class name %r must start with %r'
+class SubclassError(RegistrationError):
+	"""
+	Raised when registering a plugin that is not a subclass of one of the
+	allowed bases.
+	"""
+	msg = 'plugin %r not subclass of any base in %r'
+
+	def __init__(self, cls, allowed):
+		self.cls = cls
+		self.allowed = allowed
+
+	def __str__(self):
+		return self.msg % (self.cls, self.allowed)
+
+
+class DuplicateError(RegistrationError):
+	"""
+	Raised when registering a plugin whose exact class has already been
+	registered.
+	"""
+	msg = '%r at %d was already registered'
+
+	def __init__(self, cls):
+		self.cls = cls
+
+	def __str__(self):
+		return self.msg % (self.cls, id(self.cls))
+
+
+class OverrideError(RegistrationError):
+	"""
+	Raised when override=False yet registering a plugin that overrides an
+	existing plugin in the same namespace.
+	"""
+	msg = 'unexpected override of %s.%s with %r (use override=True if intended)'
+
+	def __init__(self, base, cls):
+		self.base = base
+		self.cls = cls
+
+	def __str__(self):
+		return self.msg % (self.base.__name__, self.cls.__name__, self.cls)
+
+
+class MissingOverrideError(RegistrationError):
+	"""
+	Raised when override=True yet no preexisting plugin with the same name
+	and base has been registered.
+	"""
+	msg = '%s.%s has not been registered, cannot override with %r'
+
+	def __init__(self, base, cls):
+		self.base = base
+		self.cls = cls
+
+	def __str__(self):
+		return self.msg % (self.base.__name__, self.cls.__name__, self.cls)
+
 
 
 class TwiceSetError(IPAError):
