@@ -1,4 +1,4 @@
-<!-- 
+<!--
  Copyright (C) 2007  Red Hat
  see file 'COPYING' for use and warranty information
 
@@ -56,9 +56,10 @@
           <tbody>
             <tr py:for="user in users" py:if="user.nsAccountLock != 'true'">
                 <td>
-                    <a href="${tg.url('/user/show',uid=user.uid)}"
-                    >${user.givenName} ${user.sn}</a>
-                    (${user.uid})
+                    <a
+                      href="${tg.url('/user/show',uid=user.uid)}"
+                      py:content="u'%s %s (%s)' % (user.givenName, user.sn, user.uid)"
+                    />
                 </td>
                 <td>
                     ${user.telephoneNumber}
@@ -74,9 +75,10 @@
           <tbody>
             <tr id="inactive" py:for="user in users" py:if="user.nsAccountLock == 'true'">
                 <td>
-                    <a href="${tg.url('/user/show',uid=user.uid)}"
-                    >${user.givenName} ${user.sn}</a>
-                    (${user.uid})
+                    <a
+                      href="${tg.url('/user/show',uid=user.uid)}"
+                      py:content="u'%s %s (%s)' % (user.givenName, user.sn, user.uid)"
+                    />
                 </td>
                 <td>
                     ${user.telephoneNumber}
