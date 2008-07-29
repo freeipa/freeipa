@@ -113,6 +113,7 @@ class IPAServer:
         if _LDAPPool is None:
             _LDAPPool = IPAConnPool(128)
         self.basedn = ipautil.realm_to_suffix(self.realm)
+        self.accountsdn = "cn=accounts," + self.basedn
         self.scope = ldap.SCOPE_SUBTREE
         self.princ = None
         self.krbccache = None
@@ -132,7 +133,7 @@ class IPAServer:
         # The only anonymous search we should have
         conn = _LDAPPool.getConn(self.host,self.sslport,self.bindca,self.bindcert,self.bindkey,None,None,debug)
         try:
-            ent = conn.getEntry(self.basedn, self.scope, searchfilter, ['dn'])
+            ent = conn.getEntry(self.accountsdn, self.scope, searchfilter, ['dn'])
         finally:
             _LDAPPool.releaseConn(conn)
     
@@ -427,7 +428,7 @@ class IPAServer:
         logging.info("IPA: get_entry_by_cn '%s'" % cn)
         cn = self.__safe_filter(cn)
         searchfilter = "(cn=" + cn + ")"
-        return self.__get_sub_entry(self.basedn, searchfilter, sattrs, opts)
+        return self.__get_sub_entry(self.accountsdn, searchfilter, sattrs, opts)
 
     def update_entry (self, oldentry, newentry, opts=None):
         """Update an entry in LDAP
@@ -459,7 +460,7 @@ class IPAServer:
         searchfilter = "(&(uid=%s)(objectclass=posixAccount))" % uid
  
         try:
-            entry = self.__get_sub_entry(self.basedn, searchfilter, ['dn','uid'], opts)
+            entry = self.__get_sub_entry(self.accountsdn, searchfilter, ['dn','uid'], opts)
             return False
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return True
@@ -497,7 +498,7 @@ class IPAServer:
         logging.info("IPA: get_user_by_uid '%s'" % uid)
         uid = self.__safe_filter(uid)
         searchfilter = "(uid=" + uid + ")"
-        return self.__get_sub_entry(self.basedn, searchfilter, sattrs, opts)
+        return self.__get_sub_entry(self.accountsdn, searchfilter, sattrs, opts)
 
     def get_user_by_principal(self, principal, sattrs, opts=None):
         """Get a user entry searching by Kerberos Principal Name.
@@ -511,7 +512,7 @@ class IPAServer:
             raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
         searchfilter = "(krbPrincipalName="+self.__safe_filter(principal)+")"
         logging.info("IPA: get_user_by_principal '%s'" % principal)
-        return self.__get_sub_entry(self.basedn, searchfilter, sattrs, opts)
+        return self.__get_sub_entry(self.accountsdn, searchfilter, sattrs, opts)
 
     def get_user_by_email (self, email, sattrs, opts=None):
         """Get a specific user's entry. Return as a dict of values.
@@ -540,7 +541,7 @@ class IPAServer:
         searchfilter = "(&(objectClass=person)(manager=%s))" % manager_dn
 
         try:
-            return self.__get_list(self.basedn, searchfilter, sattrs, opts)
+            return self.__get_list(self.accountsdn, searchfilter, sattrs, opts)
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return []
 
@@ -916,7 +917,7 @@ class IPAServer:
 
         conn = self.getConnection(opts)
         try:
-            all_users = conn.getList(self.basedn, self.scope, searchfilter, None)
+            all_users = conn.getList(self.accountsdn, self.scope, searchfilter, None)
         finally:
             self.releaseConnection(conn)
     
@@ -973,14 +974,14 @@ class IPAServer:
         conn = self.getConnection(opts)
         try:
             try:
-                exact_results = conn.getListAsync(self.basedn, self.scope,
+                exact_results = conn.getListAsync(self.accountsdn, self.scope,
                         exact_match_filter, sattrs, 0, None, None, timelimit,
                         sizelimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 exact_results = [0]
 
             try:
-                partial_results = conn.getListAsync(self.basedn, self.scope,
+                partial_results = conn.getListAsync(self.accountsdn, self.scope,
                         partial_match_filter, sattrs, 0, None, None, timelimit,
                         sizelimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
@@ -1243,7 +1244,7 @@ class IPAServer:
         searchfilter = "(&(cn=%s)(objectclass=posixGroup))" % cn
  
         try:
-            entry = self.__get_sub_entry(self.basedn, searchfilter, ['dn','cn'], opts)
+            entry = self.__get_sub_entry(self.accountsdn, searchfilter, ['dn','cn'], opts)
             return False
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return True
@@ -1269,7 +1270,7 @@ class IPAServer:
         searchfilter = "(&(objectClass=posixGroup)(member=%s))" % member_dn
 
         try:
-            return self.__get_list(self.basedn, searchfilter, sattrs, opts)
+            return self.__get_list(self.accountsdn, searchfilter, sattrs, opts)
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return []
 
@@ -1364,14 +1365,14 @@ class IPAServer:
         conn = self.getConnection(opts)
         try:
             try:
-                exact_results = conn.getListAsync(self.basedn, self.scope,
+                exact_results = conn.getListAsync(self.accountsdn, self.scope,
                         exact_match_filter, sattrs, 0, None, None, timelimit,
                         sizelimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 exact_results = [0]
 
             try:
-                partial_results = conn.getListAsync(self.basedn, self.scope,
+                partial_results = conn.getListAsync(self.accountsdn, self.scope,
                         partial_match_filter, sattrs, 0, None, None, timelimit,
                         sizelimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
@@ -1892,7 +1893,7 @@ class IPAServer:
         conn = self.getConnection(opts)
         try:
             try:
-                results = conn.getListAsync(self.basedn, self.scope,
+                results = conn.getListAsync(self.accountsdn, self.scope,
                     searchfilter, attr_list, 0, None, None, timelimit,
                     sizelimit)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
@@ -1961,7 +1962,7 @@ class IPAServer:
         searchfilter = "(&(krbprincipalname=%s)(objectclass=krbPrincipal))" % name
  
         try:
-            entry = self.__get_sub_entry(self.basedn, searchfilter, ['dn','krbprincipalname'], opts)
+            entry = self.__get_sub_entry(self.accountsdn, searchfilter, ['dn','krbprincipalname'], opts)
             return False
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             return True
@@ -2141,8 +2142,9 @@ class IPAServer:
 # Configuration support
     def get_ipa_config(self, opts=None):
         """Retrieve the IPA configuration"""
+        searchfilter = "cn=ipaconfig"
         try:
-            config = self.get_entry_by_cn("ipaconfig", None, opts)
+            config = self.__get_sub_entry("cn=etc," + self.basedn, searchfilter, None, opts)
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             raise ipaerror.gen_exception(ipaerror.LDAP_NO_CONFIG)
 
