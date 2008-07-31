@@ -21,7 +21,7 @@
 Unit tests for `ipalib.base` module.
 """
 
-from ipalib import base, exceptions, crud
+from ipalib import base, errors, crud
 
 
 def read_only(obj, name):
@@ -129,7 +129,7 @@ class test_NameSpace:
 			raised = False
 			try:
 				setattr(ns, key, value)
-			except exceptions.SetError:
+			except errors.SetError:
 				raised = True
 			assert raised
 			assert getattr(ns, key, None) != value
@@ -206,7 +206,7 @@ def test_Attribute():
 	raised = False
 	try:
 		i.obj = u
-	except exceptions.TwiceSetError:
+	except errors.TwiceSetError:
 		raised = True
 	assert raised
 
@@ -307,14 +307,14 @@ class test_Registrar():
 	raised = False
 	try:
 		r(user())
-	except exceptions.RegistrationError:
+	except errors.RegistrationError:
 		raised = True
 
 	# Check that exception is raised trying to register class of wrong base:
 	raised = False
 	try:
 		r(wrong_base)
-	except exceptions.RegistrationError:
+	except errors.RegistrationError:
 		raised = True
 	assert raised
 

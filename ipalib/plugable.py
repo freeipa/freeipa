@@ -22,7 +22,7 @@ Utility classes for registering plugins, base classe for writing plugins.
 """
 
 import inspect
-import exceptions
+import errors
 
 
 
@@ -50,7 +50,7 @@ class Registrar(object):
 		for base in self.__allowed:
 			if issubclass(cls, base):
 				return base
-		raise exceptions.SubclassError(cls, self.__allowed)
+		raise errors.SubclassError(cls, self.__allowed)
 
 	def __call__(self, cls, override=False):
 		"""
@@ -65,17 +65,17 @@ class Registrar(object):
 
 		# Raise DuplicateError if this exact class was already registered:
 		if cls in self.__registered:
-			raise exceptions.DuplicateError(cls)
+			raise errors.DuplicateError(cls)
 
 		# Check override:
 		if cls.__name__ in sub_d:
 			# Must use override=True to override:
 			if not override:
-				raise exceptions.OverrideError(base, cls)
+				raise errors.OverrideError(base, cls)
 		else:
 			# There was nothing already registered to override:
 			if override:
-				raise exceptions.MissingOverrideError(base, cls)
+				raise errors.MissingOverrideError(base, cls)
 
 		# The plugin is okay, add to __registered and sub_d:
 		self.__registered.add(cls)

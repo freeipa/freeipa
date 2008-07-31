@@ -18,12 +18,12 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-All custom exceptions raised by `ipalib` package.
+All custom errors raised by `ipalib` package.
 """
 
 class IPAError(Exception):
 	"""
-	Use this base class for your custom IPA exceptions unless there is a
+	Use this base class for your custom IPA errors unless there is a
 	specific reason to subclass from AttributeError, KeyError, etc.
 	"""
 	msg = None

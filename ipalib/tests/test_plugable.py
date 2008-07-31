@@ -21,7 +21,7 @@
 Unit tests for `ipalib.plugable` module.
 """
 
-from ipalib import plugable, exceptions
+from ipalib import plugable, errors
 
 
 def test_Registrar():
@@ -56,7 +56,7 @@ def test_Registrar():
 	raised = False
 	try:
 		r(plugin3)
-	except exceptions.SubclassError:
+	except errors.SubclassError:
 		raised = True
 	assert raised
 
@@ -74,7 +74,7 @@ def test_Registrar():
 	raised = False
 	try:
 		r(plugin1)
-	except exceptions.DuplicateError:
+	except errors.DuplicateError:
 		raised = True
 	assert raised
 
@@ -88,7 +88,7 @@ def test_Registrar():
 	raised = False
 	try:
 		r(plugin1)
-	except exceptions.OverrideError:
+	except errors.OverrideError:
 		raised = True
 	assert raised
 
@@ -104,7 +104,7 @@ def test_Registrar():
 	raised = False
 	try:
 		r(plugin2, override=True)
-	except exceptions.MissingOverrideError:
+	except errors.MissingOverrideError:
 		raised = True
 	assert raised
 

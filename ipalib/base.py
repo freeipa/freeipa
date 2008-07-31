@@ -23,7 +23,7 @@ Base classes for plug-in architecture and generative API.
 
 import re
 import inspect
-import exceptions
+import errors
 
 
 class NameSpace(object):
@@ -45,7 +45,7 @@ class NameSpace(object):
 	For example, setting an attribute the normal way will raise an exception:
 
 	>>> ns.my_message = 'some new value'
-	(raises exceptions.SetError)
+	(raises errors.SetError)
 
 	But a programmer could still set the attribute like this:
 
@@ -82,7 +82,7 @@ class NameSpace(object):
 		NameSpace has been locked; otherwise calls object.__setattr__().
 		"""
 		if self.__locked:
-			raise exceptions.SetError(name)
+			raise errors.SetError(name)
 		super(NameSpace, self).__setattr__(name, value)
 
 	def __getitem__(self, key):
@@ -190,7 +190,7 @@ class Attribute(Named):
 		return self.__obj
 	def __set_obj(self, obj):
 		if self.__obj is not None:
-			raise exceptions.TwiceSetError(self.__class__.__name__, 'obj')
+			raise errors.TwiceSetError(self.__class__.__name__, 'obj')
 		assert isinstance(obj, Object)
 		self.__obj = obj
 		assert self.obj is obj
@@ -227,7 +227,7 @@ class Object(Named):
 		return self.__methods
 	def __set_methods(self, methods):
 		if self.__methods is not None:
-			raise exceptions.TwiceSetError(
+			raise errors.TwiceSetError(
 				self.__class__.__name__, 'methods'
 			)
 		assert type(methods) is NameSpace
@@ -239,7 +239,7 @@ class Object(Named):
 		return self.__properties
 	def __set_properties(self, properties):
 		if self.__properties is not None:
-			raise exceptions.TwiceSetError(
+			raise errors.TwiceSetError(
 				self.__class__.__name__, 'properties'
 			)
 		assert type(properties) is NameSpace
@@ -338,11 +338,11 @@ class Registrar(object):
 
 	def __findbase(self, cls):
 		if not inspect.isclass(cls):
-			raise exceptions.RegistrationError('not a class', cls)
+			raise errors.RegistrationError('not a class', cls)
 		for base in self.__allowed:
 			if issubclass(cls, base):
 				return base
-		raise exceptions.RegistrationError(
+		raise errors.RegistrationError(
 			'not subclass of an allowed base',
 			cls,
 		)
