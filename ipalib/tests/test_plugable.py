@@ -24,6 +24,53 @@ Unit tests for `ipalib.plugable` module.
 from ipalib import plugable, errors
 
 
+def test_to_cli():
+	f = plugable.to_cli
+	assert f('initialize') == 'initialize'
+	assert f('find_everything') == 'find-everything'
+	assert f('user__add') == 'user.add'
+	assert f('meta_service__do_something') == 'meta-service.do-something'
+
+
+def test_from_cli():
+	f = plugable.from_cli
+	assert f('initialize') == 'initialize'
+	assert f('find-everything') == 'find_everything'
+	assert f('user.add') == 'user__add'
+	assert f('meta-service.do-something') == 'meta_service__do_something'
+
+
+def test_Plugin():
+	p = plugable.Plugin()
+	assert p.name == 'Plugin'
+	assert repr(p) == '%s.Plugin()' % plugable.__name__
+
+	class some_plugin(plugable.Plugin):
+		pass
+	p = some_plugin()
+	assert p.name == 'some_plugin'
+	assert repr(p) == '%s.some_plugin()' % __name__
+
+
+def test_Proxy():
+	class CommandProxy(plugable.Proxy):
+		__slots__ = (
+			'get_label',
+			'__call__',
+		)
+
+	class Command(plugable.Plugin):
+		def get_label(self):
+			return 'Add User'
+		def __call__(self, *argv, **kw):
+			return (argv, kw)
+
+	i = Command()
+	p = CommandProxy(i, 'hello')
+	assert '__dict__' not in dir(p)
+	#assert repr(p) == 'CommandProxy(%s.Command())' % __name__
+
+
 def test_Registrar():
 	class Base1(object):
 		pass

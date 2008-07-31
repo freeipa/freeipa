@@ -21,9 +21,93 @@
 Utility classes for registering plugins, base classe for writing plugins.
 """
 
+
 import inspect
 import errors
 
+
+def to_cli(name):
+	assert isinstance(name, basestring)
+	return name.replace('__', '.').replace('_', '-')
+
+def from_cli(cli_name):
+	assert isinstance(cli_name, basestring)
+	return cli_name.replace('-', '_').replace('.', '__')
+
+
+class Plugin(object):
+	"""
+	Base class for all plugins.
+	"""
+
+	def __get_name(self):
+		"""
+		Returns the class name of this instance.
+		"""
+		return self.__class__.__name__
+	name = property(__get_name)
+
+	def __repr__(self):
+		"""
+		Returns a valid Python expression that could create this plugin
+		instance given the appropriate environment.
+		"""
+		return '%s.%s()' % (
+			self.__class__.__module__,
+			self.__class__.__name__
+		)
+
+
+class Proxy(object):
+	"""
+	Used to only export certain attributes into the dynamic API.
+
+	Subclasses must list names of attributes to be proxied in the __slots__
+	class attribute.
+	"""
+
+	__slots__ = (
+		'__obj',
+		'name',
+		'cli_name',
+	)
+
+	def __init__(self, obj, proxy_name=None):
+		"""
+		Proxy attributes on `obj`.
+		"""
+		if proxy_name is None:
+			proxy_name = obj.name
+		assert isinstance(proxy_name, str)
+		object.__setattr__(self, '_Proxy__obj', obj)
+		object.__setattr__(self, 'name', proxy_name)
+		object.__setattr__(self, 'cli_name', to_cli(proxy_name))
+		for name in self.__slots__:
+			object.__setattr__(self, name, getattr(obj, name))
+
+	def __setattr__(self, name, value):
+		"""
+		Proxy instances are read-only.  This raises an AttributeError
+		anytime an attempt is made to set an attribute.
+		"""
+		raise AttributeError('cannot set %s.%s' %
+			(self.__class__.__name__, name)
+		)
+
+	def __delattr__(self, name):
+		"""
+		Proxy instances are read-only.  This raises an AttributeError
+		anytime an attempt is made to delete an attribute.
+		"""
+		raise AttributeError('cannot del %s.%s' %
+			(self.__class__.__name__, name)
+		)
+
+	def __repr__(self):
+		return '%s(%r)' % (self.__class__.__name__, self.__obj)
+
+	def __str__(self):
+		return self.cli_name
 
 
 class Registrar(object):
