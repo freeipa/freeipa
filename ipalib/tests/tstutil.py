@@ -49,6 +49,14 @@ def raises(exception, callback, *args, **kw):
 		raise ExceptionNotRaised(exception)
 
 
+def getitem(obj, key):
+	"""
+	Works like getattr but for dictionary interface. Uses this in combination
+	with raises() to test that, for example, KeyError is raised.
+	"""
+	return obj[key]
+
+
 def no_set(obj, name, value='some_new_obj'):
 	"""
 	Tests that attribute cannot be set.

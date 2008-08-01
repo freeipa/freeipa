@@ -130,75 +130,56 @@ class NameSpace(ReadOnly):
 	both as instance attributes and as dictionary items.
 	"""
 
-	def __init__(self, kw):
+	def __init__(self, items):
 		"""
-		The `kw` argument is a dict of the (key, value) pairs to be in this
-		NameSpace instance.  The optional `order` keyword argument specifies
-		the order of the keys in this namespace; if omitted, the default is
-		to sort the keys in ascending order.
 		"""
-		assert isinstance(kw, dict)
-		self.__kw = dict(kw)
-		for (key, value) in self.__kw.items():
-			assert not key.startswith('_')
-			setattr(self, key, value)
-		if order is None:
-			self.__keys = sorted(self.__kw)
-		else:
-			self.__keys = list(order)
-			assert set(self.__keys) == set(self.__kw)
-		self.__locked = True
+		object.__setattr__(self, '_NameSpace__items', tuple(items))
 
-	def __setattr__(self, name, value):
-		"""
-		Raises an exception if trying to set an attribute after the
-		NameSpace has been locked; otherwise calls object.__setattr__().
-		"""
-		if self.__locked:
-			raise errors.SetError(name)
-		super(NameSpace, self).__setattr__(name, value)
+		# dict mapping Python name to item:
+		object.__setattr__(self, '_NameSpace__pname', {})
 
-	def __getitem__(self, key):
-		"""
-		Returns item from namespace named `key`.
-		"""
-		return self.__kw[key]
+		# dict mapping human-readibly name to item:
+		object.__setattr__(self, '_NameSpace__hname', {})
 
-	def __hasitem__(self, key):
-		"""
-		Returns True if namespace has an item named `key`.
-		"""
-		return bool(key in self.__kw)
+		for item in self.__items:
+			for (key, d) in [
+				(item.name, self.__pname),
+				(str(item), self.__hname),
+			]:
+				assert key not in d
+				d[key] = item
 
 	def __iter__(self):
 		"""
-		Yields the names in this NameSpace in ascending order, or in the
-		the order specified in `order` kw arg.
-
-		For example:
-
-		>>> ns = NameSpace(dict(attr_b='world', attr_a='hello'))
-		>>> list(ns)
-		['attr_a', 'attr_b']
-		>>> [ns[k] for k in ns]
-		['hello', 'world']
+		Iterates through the items in this NameSpace in the same order they
+		were passed in the contructor.
 		"""
-		for key in self.__keys:
-			yield key
-
-	def __call__(self):
-		"""
-		Iterates through the values in this NameSpace in the same order as
-		the keys.
-		"""
-		for key in self.__keys:
-			yield self.__kw[key]
+		for item in self.__items:
+			yield item
 
 	def __len__(self):
 		"""
 		Returns number of items in this NameSpace.
 		"""
-		return len(self.__keys)
+		return len(self.__items)
+
+	def __contains__(self, key):
+		"""
+		Returns True if an item with pname or hname `key` is in this
+		NameSpace.
+		"""
+		return (key in self.__pname) or (key in self.__hname)
+
+	def __getitem__(self, key):
+		"""
+		Returns item with pname or hname `key`; otherwise raises KeyError.
+		"""
+		if key in self.__pname:
+			return self.__pname[key]
+		if key in self.__hname:
+			return self.__hname[key]
+		raise KeyError('NameSpace has no item for key %r' % key)
+
 
 
 class Registrar(object):

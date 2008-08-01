@@ -21,7 +21,7 @@
 Unit tests for `ipalib.plugable` module.
 """
 
-from tstutil import raises, no_set, no_del, read_only
+from tstutil import raises, getitem, no_set, no_del, read_only
 from ipalib import plugable, errors
 
 
@@ -236,3 +236,63 @@ def test_Registrar():
 		assert len(d) == 3
 		assert r[base] == d
 		assert r[base.__name__] == d
+
+
+def test_NameSpace():
+	assert issubclass(plugable.NameSpace, plugable.ReadOnly)
+
+	class DummyProxy(object):
+		def __init__(self, name):
+			self.__name = name
+
+		def __get_name(self):
+			return self.__name
+		name = property(__get_name)
+
+		def __str__(self):
+			return plugable.to_cli(self.__name)
+
+	def get_name(i):
+		return 'noun_verb%d' % i
+
+	def get_cli(i):
+		return 'noun-verb%d' % i
+
+	def get_proxies(n):
+		for i in xrange(n):
+			yield DummyProxy(get_name(i))
+
+	cnt = 20
+	ns = plugable.NameSpace(get_proxies(cnt))
+
+	# Test __len__
+	assert len(ns) == cnt
+
+	# Test __iter__
+	i = None
+	for (i, item) in enumerate(ns):
+		assert type(item) is DummyProxy
+		assert item.name == get_name(i)
+		assert str(item) == get_cli(i)
+	assert i == cnt - 1
+
+	# Test __contains__, __getitem__:
+	for i in xrange(cnt):
+		name = get_name(i)
+		cli = get_cli(i)
+		assert name in ns
+		assert cli in ns
+		item = ns[name]
+		assert isinstance(item, DummyProxy)
+		assert item.name == name
+		assert str(item) == cli
+		assert ns[name] is item
+		assert ns[cli] is item
+
+	# Check that KeyError is raised:
+	name = get_name(cnt)
+	cli = get_cli(cnt)
+	assert name not in ns
+	assert cli not in ns
+	raises(KeyError, getitem, ns, name)
+	raises(KeyError, getitem, ns, cli)
