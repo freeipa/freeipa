@@ -49,6 +49,16 @@ class Plugin(object):
 	Base class for all plugins.
 	"""
 
+	def __init__(self, api):
+		self.__api = api
+
+	def __get_api(self):
+		"""
+		Returns the plugable.API object this plugin has been instatiated in.
+		"""
+		return self.__api
+	api = property(__get_api)
+
 	def __get_name(self):
 		"""
 		Returns the class name of this instance.
@@ -132,6 +142,8 @@ class NameSpace(ReadOnly):
 
 	def __init__(self, items):
 		"""
+		`items` should be an iterable providing the members of this
+		NameSpace.
 		"""
 		object.__setattr__(self, '_NameSpace__items', tuple(items))
 
@@ -180,7 +192,6 @@ class NameSpace(ReadOnly):
 		if key in self.__hname:
 			return self.__hname[key]
 		raise KeyError('NameSpace has no item for key %r' % key)
-
 
 
 class Registrar(object):
@@ -265,3 +276,9 @@ class Registrar(object):
 		"""
 		for base in self.__allowed:
 			yield (base, self.__d[base.__name__].values())
+
+
+class API(ReadOnly):
+	def __init__(self, registrar):
+		for (base, plugins) in registrar:
+			pass

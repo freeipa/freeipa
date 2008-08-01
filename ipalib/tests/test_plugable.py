@@ -42,14 +42,17 @@ def test_from_cli():
 
 
 def test_Plugin():
-	p = plugable.Plugin()
-	assert p.name == 'Plugin'
+	api = 'the api instance'
+	p = plugable.Plugin(api)
+	assert read_only(p, 'api') is api
+	assert read_only(p, 'name') == 'Plugin'
 	assert repr(p) == '%s.Plugin()' % plugable.__name__
 
 	class some_plugin(plugable.Plugin):
 		pass
-	p = some_plugin()
-	assert p.name == 'some_plugin'
+	p = some_plugin(api)
+	assert read_only(p, 'api') is api
+	assert read_only(p, 'name') == 'some_plugin'
 	assert repr(p) == '%s.some_plugin()' % __name__
 
 
@@ -302,3 +305,7 @@ def test_NameSpace():
 	raises(KeyError, getitem, ns, cli)
 	raises(AttributeError, getattr, ns, name)
 	no_set(ns, name)
+
+
+def test_API():
+	assert issubclass(plugable.API, plugable.ReadOnly)
