@@ -27,10 +27,19 @@ import errors
 
 
 def to_cli(name):
-	assert isinstance(name, basestring)
+	"""
+	Takes a Python identifier and transforms it into form suitable for the
+	Command Line Interface.
+	"""
+	assert isinstance(name, str)
 	return name.replace('__', '.').replace('_', '-')
 
+
 def from_cli(cli_name):
+	"""
+	Takes a string from the Command Line Interface and transforms it into a
+	Python identifier.
+	"""
 	assert isinstance(cli_name, basestring)
 	return cli_name.replace('-', '_').replace('.', '__')
 
@@ -69,7 +78,6 @@ class Proxy(object):
 	__slots__ = (
 		'__obj',
 		'name',
-		'cli_name',
 	)
 
 	def __init__(self, obj, proxy_name=None):
@@ -77,11 +85,10 @@ class Proxy(object):
 		Proxy attributes on `obj`.
 		"""
 		if proxy_name is None:
-			proxy_name = obj.name
+			proxy_name = obj.__class__.__name__
 		assert isinstance(proxy_name, str)
 		object.__setattr__(self, '_Proxy__obj', obj)
 		object.__setattr__(self, 'name', proxy_name)
-		object.__setattr__(self, 'cli_name', to_cli(proxy_name))
 		for name in self.__slots__:
 			object.__setattr__(self, name, getattr(obj, name))
 
@@ -107,7 +114,7 @@ class Proxy(object):
 		return '%s(%r)' % (self.__class__.__name__, self.__obj)
 
 	def __str__(self):
-		return self.cli_name
+		return to_cli(self.name)
 
 
 class Registrar(object):

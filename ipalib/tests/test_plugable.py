@@ -55,20 +55,77 @@ def test_Plugin():
 def test_Proxy():
 	class CommandProxy(plugable.Proxy):
 		__slots__ = (
-			'get_label',
+			'validate',
 			'__call__',
 		)
 
-	class Command(plugable.Plugin):
-		def get_label(self):
-			return 'Add User'
-		def __call__(self, *argv, **kw):
-			return (argv, kw)
+	class do_something(object):
+		def __repr__(self):
+			return '<my repr>'
 
-	i = Command()
-	p = CommandProxy(i, 'hello')
+		def __call__(self, arg):
+			return arg + 1
+
+		def validate(self, arg):
+			return arg + 2
+
+		def not_public(self, arg):
+			return arg + 3
+
+	# Test basic Proxy functionality
+	i = do_something()
+	p = CommandProxy(i)
 	assert '__dict__' not in dir(p)
-	#assert repr(p) == 'CommandProxy(%s.Command())' % __name__
+	assert p.name == 'do_something'
+	assert str(p) == 'do-something'
+	assert repr(p) == 'CommandProxy(<my repr>)'
+	assert p(1) == 2
+	assert p.validate(1) == 3
+
+	# Test that proxy_name can be overriden:
+	i = do_something()
+	p = CommandProxy(i, proxy_name='user__add')
+	assert '__dict__' not in dir(p)
+	assert p.name == 'user__add'
+	assert str(p) == 'user.add'
+	assert repr(p) == 'CommandProxy(<my repr>)'
+	assert p(1) == 2
+	assert p.validate(1) == 3
+
+	# Test that attributes not listed in __slots__ are not present:
+	name = 'not_public'
+	i = do_something()
+	p = CommandProxy(i)
+	assert getattr(i, name)(1) == 4
+	raised = False
+	try:
+		getattr(p, name)
+	except AttributeError:
+		raised = True
+	assert raised
+
+	# Test that attributes are read-only:
+	name = 'validate'
+	i = do_something()
+	p = CommandProxy(i)
+	assert getattr(p, name)(1) == 3
+	raised = False
+	try:
+		# Test __setattr__()
+		setattr(p, name, 'new_object')
+	except AttributeError:
+		raised = True
+	assert raised
+	raised = False
+	try:
+		# Test __delattr__()
+		delattr(p, name)
+	except AttributeError:
+		raised = True
+	assert raised
+
+
+
 
 
 def test_Registrar():
