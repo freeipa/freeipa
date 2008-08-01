@@ -21,7 +21,7 @@
 Unit tests for `ipalib.plugable` module.
 """
 
-import unit_common as uc
+import tstutil
 from ipalib import plugable, errors
 
 
@@ -57,17 +57,17 @@ def test_ReadOnly():
 	obj = plugable.ReadOnly()
 	names = ['not_an_attribute', 'an_attribute']
 	for name in names:
-		uc.no_set(obj, name)
-		uc.no_del(obj, name)
+		tstutil.no_set(obj, name)
+		tstutil.no_del(obj, name)
 
 	class some_ro_class(plugable.ReadOnly):
 		def __init__(self):
 			object.__setattr__(self, 'an_attribute', 'Hello world!')
 	obj = some_ro_class()
 	for name in names:
-		uc.no_set(obj, name)
-		uc.no_del(obj, name)
-	assert uc.read_only(obj, 'an_attribute') == 'Hello world!'
+		tstutil.no_set(obj, name)
+		tstutil.no_del(obj, name)
+	assert tstutil.read_only(obj, 'an_attribute') == 'Hello world!'
 
 
 def test_Proxy():
