@@ -198,3 +198,41 @@ def test_Registrar():
 	sub_d = r['Base2']
 	assert len(sub_d) == 1
 	assert sub_d['plugin2'] is plugin2
+
+
+	# Setup to test __iter__:
+	class plugin1a(Base1):
+		pass
+	r(plugin1a)
+
+	class plugin1b(Base1):
+		pass
+	r(plugin1b)
+
+	class plugin2a(Base2):
+		pass
+	r(plugin2a)
+
+	class plugin2b(Base2):
+		pass
+	r(plugin2b)
+
+	m = {
+		'Base1': set([plugin1, plugin1a, plugin1b]),
+		'Base2': set([plugin2, plugin2a, plugin2b]),
+	}
+
+	# Now test __iter__:
+	for (base, plugins) in r:
+		assert base in [Base1, Base2]
+		assert set(plugins) == m[base.__name__]
+	assert len(list(r)) == 2
+
+	# Again test __hasitem__, __getitem__:
+	for base in [Base1, Base2]:
+		assert base in r
+		assert base.__name__ in r
+		d = dict((p.__name__, p) for p in m[base.__name__])
+		assert len(d) == 3
+		assert r[base] == d
+		assert r[base.__name__] == d
