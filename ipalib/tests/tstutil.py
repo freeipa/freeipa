@@ -21,40 +21,54 @@
 Utility functions for the unit tests.
 """
 
-
-def no_set(obj, name):
+class ExceptionNotRaised(Exception):
 	"""
-	Tests that attribute cannot be set.
+	Exception raised when an *expected* exception is *not* raised during a
+	unit test.
+	"""
+	msg = 'expected %s'
+
+	def __init__(self, expected):
+		self.expected = expected
+
+	def __str__(self):
+		return self.msg % self.expected.__name__
+
+
+def yes_raises(exception, callback, *args, **kw):
+	"""
+	Tests that the expected exception is raised; raises ExceptionNotRaised
+	if test fails.
 	"""
 	raised = False
 	try:
-		setattr(obj, name, 'some_new_obj')
-	except AttributeError:
+		callback(*args, **kw)
+	except exception:
 		raised = True
-	assert raised
+	if not raised:
+		raise ExceptionNotRaised(exception)
+
+
+def no_set(obj, name, value='some_new_obj'):
+	"""
+	Tests that attribute cannot be set.
+	"""
+	yes_raises(AttributeError, setattr, obj, name, value)
 
 
 def no_del(obj, name):
 	"""
 	Tests that attribute cannot be deleted.
 	"""
-	raised = False
-	try:
-		delattr(obj, name)
-	except AttributeError:
-		raised = True
-	assert raised
+	yes_raises(AttributeError, delattr, obj, name)
 
 
-def read_only(obj, name):
+def read_only(obj, name, value='some_new_obj'):
 	"""
 	Tests that attribute is read-only. Returns attribute.
 	"""
-	assert isinstance(obj, object)
-	assert hasattr(obj, name)
-
 	# Test that it cannot be set:
-	no_set(obj, name)
+	no_set(obj, name, value)
 
 	# Test that it cannot be deleted:
 	no_del(obj, name)
