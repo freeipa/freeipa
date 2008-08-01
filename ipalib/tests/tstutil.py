@@ -35,7 +35,7 @@ class ExceptionNotRaised(Exception):
 		return self.msg % self.expected.__name__
 
 
-def yes_raises(exception, callback, *args, **kw):
+def raises(exception, callback, *args, **kw):
 	"""
 	Tests that the expected exception is raised; raises ExceptionNotRaised
 	if test fails.
@@ -53,14 +53,14 @@ def no_set(obj, name, value='some_new_obj'):
 	"""
 	Tests that attribute cannot be set.
 	"""
-	yes_raises(AttributeError, setattr, obj, name, value)
+	raises(AttributeError, setattr, obj, name, value)
 
 
 def no_del(obj, name):
 	"""
 	Tests that attribute cannot be deleted.
 	"""
-	yes_raises(AttributeError, delattr, obj, name)
+	raises(AttributeError, delattr, obj, name)
 
 
 def read_only(obj, name, value='some_new_obj'):

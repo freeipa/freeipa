@@ -48,7 +48,7 @@ class Prop(object):
 
 
 def test_yes_raised():
-	f = tstutil.yes_raises
+	f = tstutil.raises
 
 	class SomeError(Exception):
 		pass

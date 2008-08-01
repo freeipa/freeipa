@@ -115,35 +115,14 @@ def test_Proxy():
 	i = do_something()
 	p = CommandProxy(i)
 	assert getattr(i, name)(1) == 4
-	raised = False
-	try:
-		getattr(p, name)
-	except AttributeError:
-		raised = True
-	assert raised
+	tstutil.raises(AttributeError, getattr, p, name)
 
 	# Test that attributes are read-only:
 	name = 'validate'
 	i = do_something()
 	p = CommandProxy(i)
 	assert getattr(p, name)(1) == 3
-	raised = False
-	try:
-		# Test __setattr__()
-		setattr(p, name, 'new_object')
-	except AttributeError:
-		raised = True
-	assert raised
-	raised = False
-	try:
-		# Test __delattr__()
-		delattr(p, name)
-	except AttributeError:
-		raised = True
-	assert raised
-
-
-
+	assert tstutil.read_only(p, name)(1) == 3
 
 
 def test_Registrar():
@@ -166,21 +145,11 @@ def test_Registrar():
 
 	# Check that TypeError is raised trying to register something that isn't
 	# a class:
-	raised = False
-	try:
-		r(plugin1())
-	except TypeError:
-		raised = True
-	assert raised
+	tstutil.raises(TypeError, r, plugin1())
 
 	# Check that SubclassError is raised trying to register a class that is
 	# not a subclass of an allowed base:
-	raised = False
-	try:
-		r(plugin3)
-	except errors.SubclassError:
-		raised = True
-	assert raised
+	tstutil.raises(errors.SubclassError, r, plugin3)
 
 	# Check that registration works
 	r(plugin1)
@@ -193,12 +162,7 @@ def test_Registrar():
 
 	# Check that DuplicateError is raised trying to register exact class
 	# again:
-	raised = False
-	try:
-		r(plugin1)
-	except errors.DuplicateError:
-		raised = True
-	assert raised
+	tstutil.raises(errors.DuplicateError, r, plugin1)
 
 	# Check that OverrideError is raised trying to register class with same
 	# name and same base:
@@ -207,12 +171,7 @@ def test_Registrar():
 		pass
 	class plugin1(base1_extended):
 		pass
-	raised = False
-	try:
-		r(plugin1)
-	except errors.OverrideError:
-		raised = True
-	assert raised
+	tstutil.raises(errors.OverrideError, r, plugin1)
 
 	# Check that overriding works
 	r(plugin1, override=True)
@@ -223,12 +182,7 @@ def test_Registrar():
 
 	# Check that MissingOverrideError is raised trying to override a name
 	# not yet registerd:
-	raised = False
-	try:
-		r(plugin2, override=True)
-	except errors.MissingOverrideError:
-		raised = True
-	assert raised
+	tstutil.raises(errors.MissingOverrideError, r, plugin2, override=True)
 
 	# Check that additional plugin can be registered:
 	r(plugin2)
