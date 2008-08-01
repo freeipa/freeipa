@@ -124,6 +124,83 @@ class Proxy(ReadOnly):
 		return to_cli(self.name)
 
 
+class NameSpace(ReadOnly):
+	"""
+	A read-only namespace of (key, value) pairs that can be accessed
+	both as instance attributes and as dictionary items.
+	"""
+
+	def __init__(self, kw):
+		"""
+		The `kw` argument is a dict of the (key, value) pairs to be in this
+		NameSpace instance.  The optional `order` keyword argument specifies
+		the order of the keys in this namespace; if omitted, the default is
+		to sort the keys in ascending order.
+		"""
+		assert isinstance(kw, dict)
+		self.__kw = dict(kw)
+		for (key, value) in self.__kw.items():
+			assert not key.startswith('_')
+			setattr(self, key, value)
+		if order is None:
+			self.__keys = sorted(self.__kw)
+		else:
+			self.__keys = list(order)
+			assert set(self.__keys) == set(self.__kw)
+		self.__locked = True
+
+	def __setattr__(self, name, value):
+		"""
+		Raises an exception if trying to set an attribute after the
+		NameSpace has been locked; otherwise calls object.__setattr__().
+		"""
+		if self.__locked:
+			raise errors.SetError(name)
+		super(NameSpace, self).__setattr__(name, value)
+
+	def __getitem__(self, key):
+		"""
+		Returns item from namespace named `key`.
+		"""
+		return self.__kw[key]
+
+	def __hasitem__(self, key):
+		"""
+		Returns True if namespace has an item named `key`.
+		"""
+		return bool(key in self.__kw)
+
+	def __iter__(self):
+		"""
+		Yields the names in this NameSpace in ascending order, or in the
+		the order specified in `order` kw arg.
+
+		For example:
+
+		>>> ns = NameSpace(dict(attr_b='world', attr_a='hello'))
+		>>> list(ns)
+		['attr_a', 'attr_b']
+		>>> [ns[k] for k in ns]
+		['hello', 'world']
+		"""
+		for key in self.__keys:
+			yield key
+
+	def __call__(self):
+		"""
+		Iterates through the values in this NameSpace in the same order as
+		the keys.
+		"""
+		for key in self.__keys:
+			yield self.__kw[key]
+
+	def __len__(self):
+		"""
+		Returns number of items in this NameSpace.
+		"""
+		return len(self.__keys)
+
+
 class Registrar(object):
 	def __init__(self, *allowed):
 		"""
@@ -179,15 +256,30 @@ class Registrar(object):
 		self.__registered.add(cls)
 		sub_d[cls.__name__] = cls
 
-	def __getitem__(self, name):
+	def __getitem__(self, item):
 		"""
 		Returns a copy of the namespace dict of the base class named `name`.
 		"""
-		return dict(self.__d[name])
+		if inspect.isclass(item):
+			if item not in self.__allowed:
+				raise KeyError(repr(item))
+			key = item.__name__
+		else:
+			key = item
+		return dict(self.__d[key])
+
+	def __contains__(self, item):
+		"""
+		Returns True if a base class named `name` is in this Registrar.
+		"""
+		if inspect.isclass(item):
+			return item in self.__allowed
+		return item in self.__d
 
 	def __iter__(self):
 		"""
-		Iterates through the names of the allowed base classes.
+		Iterates through a (base, registered_plugins) tuple for each allowed
+		base.
 		"""
-		for key in self.__d:
-			yield key
+		for base in self.__allowed:
+			yield (base, self.__d[base.__name__].values())

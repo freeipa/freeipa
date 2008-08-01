@@ -21,7 +21,7 @@
 Unit tests for `ipalib.plugable` module.
 """
 
-import tstutil
+from tstutil import raises, no_set, no_del, read_only
 from ipalib import plugable, errors
 
 
@@ -57,20 +57,22 @@ def test_ReadOnly():
 	obj = plugable.ReadOnly()
 	names = ['not_an_attribute', 'an_attribute']
 	for name in names:
-		tstutil.no_set(obj, name)
-		tstutil.no_del(obj, name)
+		no_set(obj, name)
+		no_del(obj, name)
 
 	class some_ro_class(plugable.ReadOnly):
 		def __init__(self):
 			object.__setattr__(self, 'an_attribute', 'Hello world!')
 	obj = some_ro_class()
 	for name in names:
-		tstutil.no_set(obj, name)
-		tstutil.no_del(obj, name)
-	assert tstutil.read_only(obj, 'an_attribute') == 'Hello world!'
+		no_set(obj, name)
+		no_del(obj, name)
+	assert read_only(obj, 'an_attribute') == 'Hello world!'
 
 
 def test_Proxy():
+	assert issubclass(plugable.Proxy, plugable.ReadOnly)
+
 	class CommandProxy(plugable.Proxy):
 		__slots__ = (
 			'validate',
@@ -115,14 +117,14 @@ def test_Proxy():
 	i = do_something()
 	p = CommandProxy(i)
 	assert getattr(i, name)(1) == 4
-	tstutil.raises(AttributeError, getattr, p, name)
+	raises(AttributeError, getattr, p, name)
 
 	# Test that attributes are read-only:
 	name = 'validate'
 	i = do_something()
 	p = CommandProxy(i)
 	assert getattr(p, name)(1) == 3
-	assert tstutil.read_only(p, name)(1) == 3
+	assert read_only(p, name)(1) == 3
 
 
 def test_Registrar():
@@ -141,15 +143,22 @@ def test_Registrar():
 
 	# Test creation of Registrar:
 	r = plugable.Registrar(Base1, Base2)
-	assert sorted(r) == ['Base1', 'Base2']
+
+	# Test __hasitem__, __getitem__:
+	for base in [Base1, Base2]:
+		assert base in r
+		assert base.__name__ in r
+		assert r[base] == {}
+		assert r[base.__name__] == {}
+
 
 	# Check that TypeError is raised trying to register something that isn't
 	# a class:
-	tstutil.raises(TypeError, r, plugin1())
+	raises(TypeError, r, plugin1())
 
 	# Check that SubclassError is raised trying to register a class that is
 	# not a subclass of an allowed base:
-	tstutil.raises(errors.SubclassError, r, plugin3)
+	raises(errors.SubclassError, r, plugin3)
 
 	# Check that registration works
 	r(plugin1)
@@ -162,7 +171,7 @@ def test_Registrar():
 
 	# Check that DuplicateError is raised trying to register exact class
 	# again:
-	tstutil.raises(errors.DuplicateError, r, plugin1)
+	raises(errors.DuplicateError, r, plugin1)
 
 	# Check that OverrideError is raised trying to register class with same
 	# name and same base:
@@ -171,7 +180,7 @@ def test_Registrar():
 		pass
 	class plugin1(base1_extended):
 		pass
-	tstutil.raises(errors.OverrideError, r, plugin1)
+	raises(errors.OverrideError, r, plugin1)
 
 	# Check that overriding works
 	r(plugin1, override=True)
@@ -182,7 +191,7 @@ def test_Registrar():
 
 	# Check that MissingOverrideError is raised trying to override a name
 	# not yet registerd:
-	tstutil.raises(errors.MissingOverrideError, r, plugin2, override=True)
+	raises(errors.MissingOverrideError, r, plugin2, override=True)
 
 	# Check that additional plugin can be registered:
 	r(plugin2)
