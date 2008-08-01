@@ -67,7 +67,32 @@ class Plugin(object):
 		)
 
 
-class Proxy(object):
+class ReadOnly(object):
+	"""
+	Base class for classes with read-only attributes.
+	"""
+	__slots__ = tuple()
+
+	def __setattr__(self, name, value):
+		"""
+		This raises an AttributeError anytime an attempt is made to set an
+		attribute.
+		"""
+		raise AttributeError('read-only: cannot set %s.%s' %
+			(self.__class__.__name__, name)
+		)
+
+	def __delattr__(self, name):
+		"""
+		This raises an AttributeError anytime an attempt is made to delete an
+		attribute.
+		"""
+		raise AttributeError('read-only: cannot del %s.%s' %
+			(self.__class__.__name__, name)
+		)
+
+
+class Proxy(ReadOnly):
 	"""
 	Used to only export certain attributes into the dynamic API.
 
@@ -91,24 +116,6 @@ class Proxy(object):
 		object.__setattr__(self, 'name', proxy_name)
 		for name in self.__slots__:
 			object.__setattr__(self, name, getattr(obj, name))
-
-	def __setattr__(self, name, value):
-		"""
-		Proxy instances are read-only.  This raises an AttributeError
-		anytime an attempt is made to set an attribute.
-		"""
-		raise AttributeError('cannot set %s.%s' %
-			(self.__class__.__name__, name)
-		)
-
-	def __delattr__(self, name):
-		"""
-		Proxy instances are read-only.  This raises an AttributeError
-		anytime an attempt is made to delete an attribute.
-		"""
-		raise AttributeError('cannot del %s.%s' %
-			(self.__class__.__name__, name)
-		)
 
 	def __repr__(self):
 		return '%s(%r)' % (self.__class__.__name__, self.__obj)
