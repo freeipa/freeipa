@@ -142,6 +142,7 @@ class NameSpace(ReadOnly):
 		object.__setattr__(self, '_NameSpace__hname', {})
 
 		for item in self.__items:
+			object.__setattr__(self, item.name, item)
 			for (key, d) in [
 				(item.name, self.__pname),
 				(str(item), self.__hname),

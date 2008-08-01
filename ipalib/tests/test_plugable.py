@@ -276,7 +276,7 @@ def test_NameSpace():
 		assert str(item) == get_cli(i)
 	assert i == cnt - 1
 
-	# Test __contains__, __getitem__:
+	# Test __contains__, __getitem__, getattr():
 	for i in xrange(cnt):
 		name = get_name(i)
 		cli = get_cli(i)
@@ -288,11 +288,17 @@ def test_NameSpace():
 		assert str(item) == cli
 		assert ns[name] is item
 		assert ns[cli] is item
+		assert read_only(ns, name) is item
 
-	# Check that KeyError is raised:
+	# Test dir():
+	assert set(get_name(i) for i in xrange(cnt)).issubset(set(dir(ns)))
+
+	# Test that KeyError, AttributeError is raised:
 	name = get_name(cnt)
 	cli = get_cli(cnt)
 	assert name not in ns
 	assert cli not in ns
 	raises(KeyError, getitem, ns, name)
 	raises(KeyError, getitem, ns, cli)
+	raises(AttributeError, getattr, ns, name)
+	no_set(ns, name)
