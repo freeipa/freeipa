@@ -21,116 +21,115 @@
 Some example plugins.
 """
 
-import crud
-import base
+import public
 from run import api
 
 
 # Hypothetical functional commands (not associated with any object):
-class krbtest(base.Command):
+class krbtest(public.cmd):
 	def get_doc(self, _):
 		return _('test your Kerberos ticket')
 api.register(krbtest)
 
-class discover(base.Command):
+class discover(public.cmd):
 	def get_doc(self, _):
 		return _('discover IPA servers on network')
 api.register(discover)
 
 
 # Register some methods for the 'user' object:
-class user__add(crud.Add):
+class user_add(public.mthd):
 	def get_doc(self, _):
 		return _('add new user')
-api.register(user__add)
+api.register(user_add)
 
-class user__del(crud.Del):
+class user_del(public.mthd):
 	def get_doc(self, _):
 		return _('delete existing user')
-api.register(user__del)
+api.register(user_del)
 
-class user__mod(crud.Mod):
+class user_mod(public.mthd):
 	def get_doc(self, _):
 		return _('edit existing user')
-api.register(user__mod)
+api.register(user_mod)
 
-class user__find(crud.Find):
+class user_find(public.mthd):
 	def get_doc(self, _):
 		return _('search for users')
-api.register(user__find)
+api.register(user_find)
 
 
 # Register some properties for the 'user' object:
-class user__firstname(base.Property):
+class user_firstname(public.prop):
 	pass
-api.register(user__firstname)
+api.register(user_firstname)
 
-class user__lastname(base.Property):
+class user_lastname(public.prop):
 	pass
-api.register(user__lastname)
+api.register(user_lastname)
 
-class user__login(base.Property):
+class user_login(public.prop):
 	pass
-api.register(user__login)
+api.register(user_login)
 
 
 # Register some methods for the 'group' object:
-class group__add(crud.Add):
+class group_add(public.mthd):
 	def get_doc(self, _):
 		return _('add new group')
-api.register(group__add)
+api.register(group_add)
 
-class group__del(crud.Del):
+class group_del(public.mthd):
 	def get_doc(self, _):
 		return _('delete existing group')
-api.register(group__del)
+api.register(group_del)
 
-class group__mod(crud.Mod):
+class group_mod(public.mthd):
 	def get_doc(self, _):
-		return _('exit existing group')
-api.register(group__mod)
+		return _('edit existing group')
+api.register(group_mod)
 
-class group__find(crud.Find):
+class group_find(public.mthd):
 	def get_doc(self, _):
 		return _('search for groups')
-api.register(group__find)
+api.register(group_find)
 
 
 # Register some methods for the 'service' object
-class service__add(crud.Add):
+class service_add(public.mthd):
 	def get_doc(self, _):
 		return _('add new service')
-api.register(service__add)
+api.register(service_add)
 
-class service__del(crud.Del):
+class service_del(public.mthd):
 	def get_doc(self, _):
 		return _('delete existing service')
-api.register(service__del)
+api.register(service_del)
 
-class service__mod(crud.Mod):
+class service_mod(public.mthd):
 	def get_doc(self, _):
 		return _('edit existing service')
-api.register(service__mod)
+api.register(service_mod)
 
-class service__find(crud.Find):
+class service_find(public.mthd):
 	def get_doc(self, _):
 		return _('search for services')
-api.register(service__find)
+api.register(service_find)
 
 
 # And to emphasis that the registration order doesn't matter,
 # we'll register the objects last:
-class group(base.Object):
+class group(public.obj):
 	def get_doc(self, _):
 		return _('')
 api.register(group)
 
-class service(base.Object):
+class service(public.obj):
 	def get_doc(self, _):
 		return _('')
 api.register(service)
 
-class user(base.Object):
+class user(public.obj):
 	def get_doc(self, _):
 		return _('')
 api.register(user)

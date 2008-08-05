@@ -92,7 +92,7 @@ class Plugin(object):
 		Returns a valid Python expression that could create this plugin
 		instance given the appropriate environment.
 		"""
-		return '%s.%s()' % (
+		return '%s.%s' % (
 			self.__class__.__module__,
 			self.__class__.__name__
 		)
@@ -296,7 +296,8 @@ class Registrar(object):
 		base.
 		"""
 		for base in self.__allowed:
-			yield (base, self.__d[base.__name__].values())
+			sub_d = self.__d[base.__name__]
+			yield (base, tuple(sub_d[k] for k in sorted(sub_d)))
 
 
 class API(ReadOnly):

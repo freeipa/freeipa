@@ -28,18 +28,22 @@ import plugable
 
 class generic_proxy(plugable.Proxy):
 	__slots__ = (
-		'get_label',
+		'get_doc',
 	)
 
 
 class cmd_proxy(plugable.Proxy):
 	__slots__ = (
 		'__call__',
+		'get_doc',
 	)
 
 
 class cmd(plugable.Plugin):
 	proxy = cmd_proxy
+
+	def get_doc(self, _):
+		raise NotImplementedError('%s.get_doc()' % self.name)
 
 	def __call__(self, *args, **kw):
 		print repr(self)
@@ -87,7 +91,21 @@ class mthd(attr, cmd):
 class prop(attr):
 	proxy = generic_proxy
 
+	def get_doc(self, _):
+		return _('prop doc')
+
 
 class PublicAPI(plugable.API):
+	__max_cmd_len = None
+
 	def __init__(self):
 		super(PublicAPI, self).__init__(cmd, obj, prop)
+
+	def __get_max_cmd_len(self):
+		if self.__max_cmd_len is None:
+			if not hasattr(self, 'cmd'):
+				return None
+			max_cmd_len = max(len(str(cmd)) for cmd in self.cmd)
+			object.__setattr__(self, '_PublicAPI__max_cmd_len', max_cmd_len)
+		return self.__max_cmd_len
+	max_cmd_len = property(__get_max_cmd_len)

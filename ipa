@@ -38,42 +38,35 @@ def _(msg):
 def print_commands():
 	print 'Commands:'
 	m = api.max_cmd_len
-	for cmd in api.commands():
-		print '  %s  %s' % (cmd.cli_name.ljust(m), cmd.get_doc(_))
+	for cmd in api.cmd:
+		print '  %s  %s' % (str(cmd).ljust(m), cmd.get_doc(_))
 
 def print_help(cmd):
 	print 'Help on %s' % cmd
 
 def print_api():
-	print 'Commands:'
-	for cmd in api.commands():
-		print '  %s [%s]' % (cmd.name, cmd.loc)
+	def print_ns(name):
+		ns = getattr(api, name)
+		print '%d %s:' % (len(ns), name)
+		m = max(len(i.name) for i in ns)
+		for i in ns:
+			print ' %s %r' % (i.name.ljust(m), i)
 
-	print 'Objects:'
-	for obj in api.objects():
-		print '  %s [%s]' % (obj.name, obj.loc)
-		for meth in obj.methods():
-			print '    .%s() [%s]' % (meth.attr_name, meth.loc)
-		for prop in obj.properties():
-			print '    .%s [%s]' % (prop.attr_name, prop.loc)
-
-	print 'Stats:'
-	print '  %d commands' % len(api.commands)
-	print '  %d objects' % len(api.objects)
-
+	for n in ['cmd', 'obj', 'prop']:
+		print_ns(n)
+		print ''
 
 
 if len(sys.argv) < 2:
 	print_commands()
 	print 'Usage: ipa COMMAND [OPTIONS]'
 	sys.exit(2)
-cmd = sys.argv[1]
-pcmd = cmd.replace('-', '_')
-if cmd == '_api_':
+name= sys.argv[1]
+if name == '_api_':
 	print_api()
 	sys.exit()
-elif pcmd not in api.commands:
+elif name not in api.cmd:
 	print_commands()
-	print 'ipa: ERROR: unknown command %r' % cmd
+	print 'ipa: ERROR: unknown command %r' % name
 	sys.exit(2)
-api.commands[pcmd]()
+api.cmd[name]()
