@@ -18,9 +18,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Utility classes for registering plugins, base classe for writing plugins.
+Utility classes for registering plugins, base classes for writing plugins.
 """
-
 
 import inspect
 import errors
