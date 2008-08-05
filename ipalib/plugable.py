@@ -289,9 +289,15 @@ class Registrar(object):
 
 
 class API(ReadOnly):
-	def __init__(self, registrar):
+	def __init__(self, *allowed):
+		object.__setattr__(self, 'register', Registrar(*allowed))
 		object.__setattr__(self, '_API__plugins', [])
-		for (base, plugins) in registrar:
+
+	def __call__(self):
+		"""
+		Finalize the registration, instantiate the plugins.
+		"""
+		for (base, plugins) in self.register:
 			ns = NameSpace(self.__plugin_iter(base, plugins))
 			assert not hasattr(self, base.__name__)
 			object.__setattr__(self, base.__name__, ns)

@@ -334,7 +334,10 @@ def test_API():
 		def method(self, n):
 			return n + 1
 
-	r = plugable.Registrar(base0, base1)
+	api = plugable.API(base0, base1)
+	r = api.register
+	assert isinstance(r, plugable.Registrar)
+	assert read_only(api, 'register') is r
 
 	class base0_plugin0(base0):
 		pass
@@ -360,10 +363,8 @@ def test_API():
 		pass
 	r(base1_plugin2)
 
-	registrants = tuple(r)
-
 	# Test API instance:
-	api = plugable.API(r)
+	api() # Calling instance performs finalization
 
 	def get_base(b):
 		return 'base%d' % b
