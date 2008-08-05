@@ -56,11 +56,14 @@ class SetError(IPAError):
 
 
 
-
 class RegistrationError(IPAError):
 	"""
 	Base class for errors that occur during plugin registration.
 	"""
+
+
+class NameSpaceError(RegistrationError):
+	msg = 'name %r does not re.match %r'
 
 
 class SubclassError(RegistrationError):

@@ -41,6 +41,30 @@ def test_from_cli():
 	assert f('meta-service.do-something') == 'meta_service__do_something'
 
 
+def test_valid_identifier():
+	f = plugable.check_identifier
+	okay = [
+		'user_add',
+		'stuff2junk',
+		'sixty9',
+	]
+	nope = [
+		'_user_add',
+		'__user_add',
+		'user_add_',
+		'user_add__',
+		'_user_add_',
+		'__user_add__',
+		'60nine',
+	]
+	for name in okay:
+		f(name)
+	for name in nope:
+		raises(errors.NameSpaceError, f, name)
+	for name in okay:
+		raises(errors.NameSpaceError, f, name.upper())
+
+
 def test_Plugin():
 	api = 'the api instance'
 	p = plugable.Plugin()

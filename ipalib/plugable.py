@@ -21,6 +21,7 @@
 Utility classes for registering plugins, base classes for writing plugins.
 """
 
+import re
 import inspect
 import errors
 
@@ -41,6 +42,16 @@ def from_cli(cli_name):
 	"""
 	assert isinstance(cli_name, basestring)
 	return cli_name.replace('-', '_').replace('.', '__')
+
+
+def check_identifier(name):
+	"""
+	Raises errors.NameSpaceError if `name` is not a valid Python identifier
+	suitable for use in a NameSpace.
+	"""
+	regex = r'^[a-z][_a-z0-9]*[a-z0-9]$'
+	if re.match(regex, name) is None:
+		raise errors.NameSpaceError(name, regex)
 
 
 class Plugin(object):
