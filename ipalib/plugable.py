@@ -49,15 +49,26 @@ class Plugin(object):
 	Base class for all plugins.
 	"""
 
-	def __init__(self, api):
-		self.__api = api
+	__api = None
 
 	def __get_api(self):
 		"""
-		Returns the plugable.API object this plugin has been instatiated in.
+		Returns the plugable.API instance passed to Plugin.finalize(), or
+		or returns None if finalize() has not yet been called.
 		"""
 		return self.__api
 	api = property(__get_api)
+
+	def finalize(self, api):
+		"""
+		After all the plugins are instantiated, the plugable.API calls this
+		method, passing itself as the only argument. This is where plugins
+		should check that other plugins they depend upon have actually be
+		loaded.
+		"""
+		assert self.__api is None, 'finalize() can only be called once'
+		assert api is not None, 'finalize() argument cannot be None'
+		self.__api = api
 
 	def __get_name(self):
 		"""
@@ -280,14 +291,18 @@ class Registrar(object):
 
 class API(ReadOnly):
 	def __init__(self, registrar):
+		object.__setattr__(self, '_API__plugins', [])
 		for (base, plugins) in registrar:
 			ns = NameSpace(self.__plugin_iter(base, plugins))
 			assert not hasattr(self, base.__name__)
 			object.__setattr__(self, base.__name__, ns)
+		for plugin in self.__plugins:
+			plugin.finalize(self)
+			assert plugin.api is self
 
 	def __plugin_iter(self, base, plugins):
 		assert issubclass(base.proxy, Proxy)
 		for cls in plugins:
-			plugin = cls(self)
-			assert plugin.api is self
+			plugin = cls()
+			self.__plugins.append(plugin)
 			yield base.proxy(plugin)

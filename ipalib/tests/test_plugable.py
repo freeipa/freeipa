@@ -43,17 +43,25 @@ def test_from_cli():
 
 def test_Plugin():
 	api = 'the api instance'
-	p = plugable.Plugin(api)
-	assert read_only(p, 'api') is api
+	p = plugable.Plugin()
 	assert read_only(p, 'name') == 'Plugin'
 	assert repr(p) == '%s.Plugin()' % plugable.__name__
+	assert read_only(p, 'api') is None
+	raises(AssertionError, p.finalize, None)
+	p.finalize(api)
+	assert read_only(p, 'api') is api
+	raises(AssertionError, p.finalize, api)
 
 	class some_plugin(plugable.Plugin):
 		pass
-	p = some_plugin(api)
-	assert read_only(p, 'api') is api
+	p = some_plugin()
 	assert read_only(p, 'name') == 'some_plugin'
 	assert repr(p) == '%s.some_plugin()' % __name__
+	assert read_only(p, 'api') is None
+	raises(AssertionError, p.finalize, None)
+	p.finalize(api)
+	assert read_only(p, 'api') is api
+	raises(AssertionError, p.finalize, api)
 
 
 def test_ReadOnly():
