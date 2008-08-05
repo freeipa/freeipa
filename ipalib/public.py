@@ -26,25 +26,32 @@ import re
 import plugable
 
 
-class cmd_proxy(plugable.Proxy):
+class generic_proxy(plugable.Proxy):
 	__slots__ = (
 		'get_label',
-		'get_summary',
-		'get_help',
-		'get_options',
+	)
+
+
+class cmd_proxy(plugable.Proxy):
+	__slots__ = (
+		'__call__',
 	)
 
 
 class cmd(plugable.Plugin):
 	proxy = cmd_proxy
 
+	def __call__(self, *args, **kw):
+		print repr(self)
+
 
 class obj(plugable.Plugin):
-	pass
+	proxy = generic_proxy
 
 
 class attr(plugable.Plugin):
 	__obj = None
+	proxy = generic_proxy
 
 	def __init__(self):
 		m = re.match('^([a-z]+)_([a-z]+)$', self.__class__.__name__)
@@ -74,8 +81,13 @@ class attr(plugable.Plugin):
 
 
 class mthd(attr, cmd):
-	pass
+	proxy = generic_proxy
 
 
 class prop(attr):
-	pass
+	proxy = generic_proxy
+
+
+class PublicAPI(plugable.API):
+	def __init__(self):
+		super(PublicAPI, self).__init__(cmd, obj, prop)

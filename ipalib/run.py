@@ -22,7 +22,7 @@ Standard run-time instances of importard classes.  This is where plugins
 should access the registration API.
 """
 
-import base
+import public
 
 # The standard API instance
-api = base.API()
+api = public.PublicAPI()

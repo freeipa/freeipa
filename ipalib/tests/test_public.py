@@ -64,3 +64,20 @@ def test_mthd():
 def test_prop():
 	cls = public.prop
 	assert issubclass(cls, public.attr)
+
+
+def test_PublicAPI():
+	cls = public.PublicAPI
+	assert issubclass(cls, plugable.API)
+
+	api = cls()
+
+	class cmd1(public.cmd):
+		pass
+	api.register(cmd1)
+
+	class cmd2(public.cmd):
+		pass
+	api.register(cmd2)
+
+	api()
