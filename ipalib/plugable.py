@@ -281,4 +281,13 @@ class Registrar(object):
 class API(ReadOnly):
 	def __init__(self, registrar):
 		for (base, plugins) in registrar:
-			pass
+			ns = NameSpace(self.__plugin_iter(base, plugins))
+			assert not hasattr(self, base.__name__)
+			object.__setattr__(self, base.__name__, ns)
+
+	def __plugin_iter(self, base, plugins):
+		assert issubclass(base.proxy, Proxy)
+		for cls in plugins:
+			plugin = cls(self)
+			assert plugin.api is self
+			yield base.proxy(plugin)

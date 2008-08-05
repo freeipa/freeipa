@@ -309,3 +309,70 @@ def test_NameSpace():
 
 def test_API():
 	assert issubclass(plugable.API, plugable.ReadOnly)
+
+	# Setup the test plugins, create the Registrar:
+	class ExampleProxy(plugable.Proxy):
+		__slots__ = ['method']
+
+	class base0(plugable.Plugin):
+		proxy = ExampleProxy
+
+		def method(self, n):
+			return n
+
+	class base1(plugable.Plugin):
+		proxy = ExampleProxy
+
+		def method(self, n):
+			return n + 1
+
+	r = plugable.Registrar(base0, base1)
+
+	class base0_plugin0(base0):
+		pass
+	r(base0_plugin0)
+
+	class base0_plugin1(base0):
+		pass
+	r(base0_plugin1)
+
+	class base0_plugin2(base0):
+		pass
+	r(base0_plugin2)
+
+	class base1_plugin0(base1):
+		pass
+	r(base1_plugin0)
+
+	class base1_plugin1(base1):
+		pass
+	r(base1_plugin1)
+
+	class base1_plugin2(base1):
+		pass
+	r(base1_plugin2)
+
+	registrants = tuple(r)
+
+	# Test API instance:
+	api = plugable.API(r)
+
+	def get_base(b):
+		return 'base%d' % b
+
+	def get_plugin(b, p):
+		return 'base%d_plugin%d' % (b, p)
+
+	for b in xrange(2):
+		base_name = get_base(b)
+		ns = getattr(api, base_name)
+		assert isinstance(ns, plugable.NameSpace)
+		assert read_only(api, base_name) is ns
+		assert len(ns) == 3
+		for p in xrange(3):
+			plugin_name = get_plugin(b, p)
+			proxy = ns[plugin_name]
+			assert isinstance(proxy, ExampleProxy)
+			assert proxy.name == plugin_name
+			assert read_only(ns, plugin_name) is proxy
+			assert read_only(proxy, 'method')(7) == 7 + b
