@@ -236,10 +236,13 @@ class Registrar(object):
 		base; otherwise raises SubclassError.
 		"""
 		assert inspect.isclass(cls)
+		found = False
 		for base in self.__allowed:
 			if issubclass(cls, base):
-				return base
-		raise errors.SubclassError(cls, self.__allowed)
+				found = True
+				yield base
+		if not found:
+			raise errors.SubclassError(cls, self.__allowed)
 
 	def __call__(self, cls, override=False):
 		"""
@@ -248,27 +251,29 @@ class Registrar(object):
 		if not inspect.isclass(cls):
 			raise TypeError('plugin must be a class: %r'  % cls)
 
-		# Find the base class or raise SubclassError:
-		base = self.__findbase(cls)
-		sub_d = self.__d[base.__name__]
-
 		# Raise DuplicateError if this exact class was already registered:
 		if cls in self.__registered:
 			raise errors.DuplicateError(cls)
 
-		# Check override:
-		if cls.__name__ in sub_d:
-			# Must use override=True to override:
-			if not override:
-				raise errors.OverrideError(base, cls)
-		else:
-			# There was nothing already registered to override:
-			if override:
-				raise errors.MissingOverrideError(base, cls)
+		# Find the base class or raise SubclassError:
+		for base in self.__findbase(cls):
+			sub_d = self.__d[base.__name__]
 
-		# The plugin is okay, add to __registered and sub_d:
+			# Check override:
+			if cls.__name__ in sub_d:
+				# Must use override=True to override:
+				if not override:
+					raise errors.OverrideError(base, cls)
+			else:
+				# There was nothing already registered to override:
+				if override:
+					raise errors.MissingOverrideError(base, cls)
+
+			# The plugin is okay, add to sub_d:
+			sub_d[cls.__name__] = cls
+
+		# The plugin is okay, add to __registered:
 		self.__registered.add(cls)
-		sub_d[cls.__name__] = cls
 
 	def __getitem__(self, item):
 		"""

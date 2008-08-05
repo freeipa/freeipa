@@ -99,7 +99,7 @@ class PublicAPI(plugable.API):
 	__max_cmd_len = None
 
 	def __init__(self):
-		super(PublicAPI, self).__init__(cmd, obj, prop)
+		super(PublicAPI, self).__init__(cmd, obj, mthd, prop)
 
 	def __get_max_cmd_len(self):
 		if self.__max_cmd_len is None:

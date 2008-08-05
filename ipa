@@ -52,7 +52,7 @@ def print_api():
 		for i in ns:
 			print ' %s %r' % (i.name.ljust(m), i)
 
-	for n in ['cmd', 'obj', 'prop']:
+	for n in ['cmd', 'obj', 'mthd', 'prop']:
 		print_ns(n)
 		print ''
 
