@@ -105,71 +105,7 @@ def test_ReadOnly():
 
 
 def test_Proxy():
-	assert issubclass(plugable.Proxy, plugable.ReadOnly)
-
-	class CommandProxy(plugable.Proxy):
-		__slots__ = (
-			'validate',
-			'__call__',
-		)
-
-	class do_something(object):
-		def __repr__(self):
-			return '<my repr>'
-
-		def __call__(self, arg):
-			return arg + 1
-
-		def validate(self, arg):
-			return arg + 2
-
-		def not_public(self, arg):
-			return arg + 3
-
-	# Test basic Proxy functionality
-	i = do_something()
-	p = CommandProxy(i)
-	assert '__dict__' not in dir(p)
-	assert p.name == 'do_something'
-	assert str(p) == 'do-something'
-	assert repr(p) == 'CommandProxy(<my repr>)'
-	assert p(1) == 2
-	assert p.validate(1) == 3
-
-	# Test that proxy_name can be overriden:
-	i = do_something()
-	p = CommandProxy(i, proxy_name='user_add')
-	assert '__dict__' not in dir(p)
-	assert p.name == 'user_add'
-	assert str(p) == 'user-add'
-	assert repr(p) == 'CommandProxy(<my repr>)'
-	assert p(1) == 2
-	assert p.validate(1) == 3
-
-	# Test that attributes not listed in __slots__ are not present:
-	name = 'not_public'
-	i = do_something()
-	p = CommandProxy(i)
-	assert getattr(i, name)(1) == 4
-	raises(AttributeError, getattr, p, name)
-
-	# Test that attributes are read-only:
-	name = 'validate'
-	i = do_something()
-	p = CommandProxy(i)
-	assert getattr(p, name)(1) == 3
-	assert read_only(p, name)(1) == 3
-
-	# Test cloning:
-	i = do_something()
-	p = CommandProxy(i)
-	c = p._clone('do_a_thing')
-	assert isinstance(c, CommandProxy)
-	assert c.name == 'do_a_thing'
-
-
-def test_Proxy2():
-	cls = plugable.Proxy2
+	cls = plugable.Proxy
 	assert issubclass(cls, plugable.ReadOnly)
 
 	# Setup:
@@ -209,7 +145,7 @@ def test_Proxy2():
 	i = plugin()
 	p = cls(base, i)
 	assert read_only(p, 'base') is base
-	assert read_only(p, 'name') is 'user_add'
+	assert read_only(p, 'name') == 'user_add'
 	assert list(p) == sorted(base.public)
 
 	# Test normal methods:
@@ -230,11 +166,22 @@ def test_Proxy2():
 
 	# Test name_attr='name' kw arg
 	i = plugin()
+	p = cls(base, i, 'attr_name')
+	assert read_only(p, 'name') == 'add'
+
+	# Test _clone():
+	i = plugin()
 	p = cls(base, i)
+	assert read_only(p, 'name') == 'user_add'
+	c = p._clone('attr_name')
+	assert isinstance(c, cls)
+	assert read_only(c, 'name') == 'add'
+	assert c is not p
+	assert c('whoever') == p('whoever')
 
 
-def test_NameSpace2():
-	cls = plugable.NameSpace2
+def test_NameSpace():
+	cls = plugable.NameSpace
 	assert issubclass(cls, plugable.ReadOnly)
 
 	class base(object):
@@ -254,7 +201,7 @@ def test_NameSpace2():
 
 	def get_proxies(n):
 		for i in xrange(n):
-			yield plugable.Proxy2(base, plugin(get_name(i)))
+			yield plugable.Proxy(base, plugin(get_name(i)))
 
 	cnt = 20
 	ns = cls(get_proxies(cnt))
@@ -265,7 +212,7 @@ def test_NameSpace2():
 	# Test __iter__
 	i = None
 	for (i, proxy) in enumerate(ns):
-		assert type(proxy) is plugable.Proxy2
+		assert type(proxy) is plugable.Proxy
 		assert proxy.name == get_name(i)
 	assert i == cnt - 1
 
@@ -276,7 +223,7 @@ def test_NameSpace2():
 		assert name in ns
 		proxy = ns[name]
 		assert proxy.name == name
-		assert type(proxy) is plugable.Proxy2
+		assert type(proxy) is plugable.Proxy
 		assert proxy in proxies
 		assert read_only(ns, name) is proxy
 
@@ -289,8 +236,6 @@ def test_NameSpace2():
 	raises(KeyError, getitem, ns, name)
 	raises(AttributeError, getattr, ns, name)
 	no_set(ns, name)
-
-
 
 
 def test_Registrar():
@@ -402,72 +347,6 @@ def test_Registrar():
 		assert len(d) == 3
 		assert r[base] == d
 		assert r[base.__name__] == d
-
-
-def test_NameSpace():
-	assert issubclass(plugable.NameSpace, plugable.ReadOnly)
-
-	class DummyProxy(object):
-		def __init__(self, name):
-			self.__name = name
-
-		def __get_name(self):
-			return self.__name
-		name = property(__get_name)
-
-		def __str__(self):
-			return plugable.to_cli(self.__name)
-
-	def get_name(i):
-		return 'noun_verb%d' % i
-
-	def get_cli(i):
-		return 'noun-verb%d' % i
-
-	def get_proxies(n):
-		for i in xrange(n):
-			yield DummyProxy(get_name(i))
-
-	cnt = 20
-	ns = plugable.NameSpace(get_proxies(cnt))
-
-	# Test __len__
-	assert len(ns) == cnt
-
-	# Test __iter__
-	i = None
-	for (i, item) in enumerate(ns):
-		assert type(item) is DummyProxy
-		assert item.name == get_name(i)
-		assert str(item) == get_cli(i)
-	assert i == cnt - 1
-
-	# Test __contains__, __getitem__, getattr():
-	for i in xrange(cnt):
-		name = get_name(i)
-		cli = get_cli(i)
-		assert name in ns
-		assert cli in ns
-		item = ns[name]
-		assert isinstance(item, DummyProxy)
-		assert item.name == name
-		assert str(item) == cli
-		assert ns[name] is item
-		assert ns[cli] is item
-		assert read_only(ns, name) is item
-
-	# Test dir():
-	assert set(get_name(i) for i in xrange(cnt)).issubset(set(dir(ns)))
-
-	# Test that KeyError, AttributeError is raised:
-	name = get_name(cnt)
-	cli = get_cli(cnt)
-	assert name not in ns
-	assert cli not in ns
-	raises(KeyError, getitem, ns, name)
-	raises(KeyError, getitem, ns, cli)
-	raises(AttributeError, getattr, ns, name)
-	no_set(ns, name)
 
 
 def test_API():

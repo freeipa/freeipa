@@ -123,52 +123,6 @@ class ReadOnly(object):
 
 
 class Proxy(ReadOnly):
-	"""
-	Used to only export certain attributes into the generative API.
-
-	Subclasses must list names of attributes to be proxied in the __slots__
-	class attribute.
-	"""
-
-	__slots__ = (
-		'__obj',
-		'name',
-	)
-
-	def __init__(self, obj, proxy_name=None):
-		"""
-		Proxy attributes on `obj`.
-		"""
-		if proxy_name is None:
-			proxy_name = obj.__class__.__name__
-		check_identifier(proxy_name)
-		object.__setattr__(self, '_Proxy__obj', obj)
-		object.__setattr__(self, 'name', proxy_name)
-		for name in self.__slots__:
-			attr = getattr(obj, name)
-			if callable(attr):
-				object.__setattr__(self, name, attr)
-
-	def __repr__(self):
-		return '%s(%r)' % (self.__class__.__name__, self.__obj)
-
-	def __str__(self):
-		return to_cli(self.name)
-
-	def _clone(self, new_name):
-		return self.__class__(self.__obj, proxy_name=new_name)
-
-	def __getattr__(self, name):
-		if name in self.__slots__:
-			return getattr(self.__obj, name)
-		raise AttributeError('attribute %r not in %s.__slots__' % (
-				name,
-				self.__class__.__name__
-			)
-		)
-
-
-class Proxy2(ReadOnly):
 	__slots__ = (
 		'base',
 		'name',
@@ -180,7 +134,7 @@ class Proxy2(ReadOnly):
 		if not isinstance(target, base):
 			raise ValueError('arg2 must be instance of arg1, got %r' % target)
 		object.__setattr__(self, 'base', base)
-		object.__setattr__(self, '_Proxy2__target', target)
+		object.__setattr__(self, '_Proxy__target', target)
 
 		# Check base.public
 		assert type(self.base.public) is frozenset
@@ -206,8 +160,11 @@ class Proxy2(ReadOnly):
 	def __call__(self, *args, **kw):
 		return self['__call__'](*args, **kw)
 
+	def _clone(self, name_attr):
+		return self.__class__(self.base, self.__target, name_attr)
 
-class NameSpace2(ReadOnly):
+
+class NameSpace(ReadOnly):
 	"""
 	A read-only namespace of (key, value) pairs that can be accessed
 	both as instance attributes and as dictionary items.
@@ -215,12 +172,12 @@ class NameSpace2(ReadOnly):
 
 	def __init__(self, proxies):
 		"""
-		NameSpace2
+		NameSpace
 		"""
-		object.__setattr__(self, '_NameSpace2__proxies', tuple(proxies))
-		object.__setattr__(self, '_NameSpace2__d', dict())
+		object.__setattr__(self, '_NameSpace__proxies', tuple(proxies))
+		object.__setattr__(self, '_NameSpace__d', dict())
 		for proxy in self.__proxies:
-			assert isinstance(proxy, Proxy2)
+			assert isinstance(proxy, Proxy)
 			assert proxy.name not in self.__d
 			self.__d[proxy.name] = proxy
 			assert not hasattr(self, proxy.name)
@@ -257,68 +214,6 @@ class NameSpace2(ReadOnly):
 	def __repr__(self):
 		return '%s(<%d proxies>)' % (self.__class__.__name__, len(self))
 
-
-class NameSpace(ReadOnly):
-	"""
-	A read-only namespace of (key, value) pairs that can be accessed
-	both as instance attributes and as dictionary items.
-	"""
-
-	def __init__(self, items):
-		"""
-		`items` should be an iterable providing the members of this
-		NameSpace.
-		"""
-		object.__setattr__(self, '_NameSpace__items', tuple(items))
-
-		# dict mapping Python name to item:
-		object.__setattr__(self, '_NameSpace__pname', {})
-
-		# dict mapping human-readibly name to item:
-		object.__setattr__(self, '_NameSpace__hname', {})
-
-		for item in self.__items:
-			object.__setattr__(self, item.name, item)
-			for (key, d) in [
-				(item.name, self.__pname),
-				(str(item), self.__hname),
-			]:
-				assert key not in d
-				d[key] = item
-
-	def __iter__(self):
-		"""
-		Iterates through the items in this NameSpace in the same order they
-		were passed in the contructor.
-		"""
-		for item in self.__items:
-			yield item
-
-	def __len__(self):
-		"""
-		Returns number of items in this NameSpace.
-		"""
-		return len(self.__items)
-
-	def __contains__(self, key):
-		"""
-		Returns True if an item with pname or hname `key` is in this
-		NameSpace.
-		"""
-		return (key in self.__pname) or (key in self.__hname)
-
-	def __getitem__(self, key):
-		"""
-		Returns item with pname or hname `key`; otherwise raises KeyError.
-		"""
-		if key in self.__pname:
-			return self.__pname[key]
-		if key in self.__hname:
-			return self.__hname[key]
-		raise KeyError('NameSpace has no item for key %r' % key)
-
-	def __repr__(self):
-		return '%s(<%d proxies>)' % (self.__class__.__name__, len(self))
 
 
 class Registrar(object):
