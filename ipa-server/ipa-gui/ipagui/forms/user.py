@@ -86,7 +86,7 @@ class UserFields(object):
     custom_fields = []
 
 class UserNewValidator(validators.Schema):
-    uid = validators.PlainText(not_empty=True)
+    uid = GoodName(not_empty=True)
     krbprincipalkey = validators.String(not_empty=False)
     krbprincipalkey_confirm = validators.String(not_empty=False)
     givenname = validators.String(not_empty=True)
@@ -129,6 +129,7 @@ class UserNewForm(widgets.Form):
         super(UserNewForm,self).update_params(params)
 
 class UserEditValidator(validators.Schema):
+    uid = GoodName(not_empty=False)
     krbprincipalkey = validators.String(not_empty=False)
     krbprincipalkey_confirm = validators.String(not_empty=False)
     givenname = validators.String(not_empty=True)

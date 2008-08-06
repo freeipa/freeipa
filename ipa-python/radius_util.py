@@ -347,7 +347,7 @@ def validate_nastype(nastype, variable_name=None):
     return True
 
 def validate_desc(desc, variable_name=None):
-    if ipavalidate.Plain(desc) != 0:
+    if not ipavalidate.Plain(desc):
         print valid_desc_msg
         return False
     return True

@@ -22,6 +22,7 @@ import tempfile
 import logging
 import subprocess
 import os
+import ipa.ipavalidate as ipavalidate
 
 def select_user(counter, users):
     """counter is the number of User objects in users
@@ -82,3 +83,11 @@ def select_group(counter, groups):
         print "Please enter a number between 1 and %s" % counter
 
     return groupindex
+
+def check_name(name):
+    """Helper to ensure that a user or group name is legal"""
+
+    if (not ipavalidate.GoodName(name, notEmpty=True)):
+        raise ValueError("may only include letters, numbers, _, -, . and $")
+
+    return

@@ -21,8 +21,8 @@ import re
 
 def Email(mail, notEmpty=True):
     """Do some basic validation of an e-mail address.
-       Return 0 if ok
-       Return 1 if not
+       Return True if ok
+       Return False if not
 
        If notEmpty is True the this will return an error if the field
        is "" or None.
@@ -32,61 +32,61 @@ def Email(mail, notEmpty=True):
 
     if not mail or mail is None:
         if  notEmpty is True:
-            return 1
+            return False
         else:
-            return 0
+            return True
 
     mail = mail.strip()
     s = mail.split('@', 1)
     try:
         username, domain=s
     except ValueError:
-        return 1
+        return False
     if not usernameRE.search(username):
-        return 1
+        return False
     if not domainRE.search(domain):
-        return 1
+        return False
 
-    return 0
+    return True
 
 def Plain(text, notEmpty=False, allowSpaces=True):
     """Do some basic validation of a plain text field
-       Return 0 if ok
-       Return 1 if not
+       Return True if ok
+       Return False if not
 
        If notEmpty is True the this will return an error if the field
        is "" or None.
     """
     if (text is None) or (not text.strip()):
         if notEmpty is True:
-            return 1
+            return False
         else:
-            return 0
+            return True
 
     if allowSpaces:
         textRE = re.compile(r"^[a-zA-Z_\-0-9\'\ ]*$")
     else:
         textRE = re.compile(r"^[a-zA-Z_\-0-9\']*$")
     if not textRE.search(text):
-        return 1
+        return False
 
-    return 0
+    return True
 
 def String(text, notEmpty=False):
     """A string type. This is much looser in what it allows than plain"""
 
     if text is None or not text.strip():
         if notEmpty is True:
-            return 1
+            return False
         else:
-            return 0
+            return True
 
-    return 0
+    return True
 
 def Path(text, notEmpty=False):
     """Do some basic validation of a path
-       Return 0 if ok
-       Return 1 if not
+       Return True if ok
+       Return False if not
 
        If notEmpty is True the this will return an error if the field
        is "" or None.
@@ -94,16 +94,44 @@ def Path(text, notEmpty=False):
     textRE = re.compile(r"^[a-zA-Z_\-0-9\\ \.\/\\:]*$")
 
     if not text and notEmpty is True:
-        return 1
+        return False
 
     if text is None:
         if notEmpty is True:
-            return 1
+            return False
         else:
-            return 0
+            return True
 
     if not textRE.search(text):
-        return 1
+        return False
 
-    return 0
+    return True
 
+def GoodName(text, notEmpty=False):
+    """From shadow-utils:
+
+       User/group names must match gnu e-regex:
+       [a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,30}[a-zA-Z0-9_.$-]?
+
+       as a non-POSIX, extension, allow "$" as the last char for
+       sake of Samba 3.x "add machine script"
+
+       Return True if ok
+       Return False if not
+    """
+    textRE = re.compile(r"^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,30}[a-zA-Z0-9_.$-]?$")
+
+    if not text and notEmpty is True:
+        return False
+
+    if text is None:
+        if notEmpty is True:
+            return False
+        else:
+            return True
+
+    m = textRE.match(text)
+    if not m or text != m.group(0):
+        return False
+
+    return True

@@ -23,7 +23,6 @@ try:
     import ipa
     import ipa.user
     import ipa.ipaclient as ipaclient
-    import ipa.ipavalidate as ipavalidate
     import ipa.ipautil as ipautil
     import ipa.config
 

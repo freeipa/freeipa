@@ -63,3 +63,31 @@ class UniqueList(FancyValidator):
         if orig > check:
             raise Invalid(self.message('notunique', state),
                           value, state)
+
+class GoodName(Regex):
+    """
+    Test that the field contains only letters, numbers, underscore,
+    dash, hyphen and $.
+
+    Examples::
+
+        >>> GoodName.to_python('_this9_')
+        '_this9_'
+        >>> GoodName.from_python('  this  ')
+        '  this  '
+        >>> GoodName(accept_python=False).from_python('  this  ')
+        Traceback (most recent call last):
+          ...
+        Invalid: Enter only letters, numbers, _ (underscore), - (dash) or $')
+        >>> GoodName(strip=True).to_python('  this  ')
+        'this'
+        >>> GoodName(strip=True).from_python('  this  ')
+        'this'
+    """
+
+    regex = r"^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,30}[a-zA-Z0-9_.$-]?$"
+
+    messages = {
+        'invalid': _('Enter only letters, numbers, _ (underscore), - (dash) or 
+$'),
+    }

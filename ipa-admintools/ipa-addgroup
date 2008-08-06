@@ -27,6 +27,7 @@ try:
     import ipa.ipautil as ipautil
     import ipa.config
     import ipa.ipaerror
+    import ipa.ipaadminutil as ipaadminutil
 
     import xmlrpclib
     import kerberos
@@ -82,18 +83,20 @@ def main():
         usage()
 
     if (len(args) != 2):
-        cn = ipautil.user_input("Group name", allow_empty = False)
+        cn = ipautil.user_input_name("Group name")
     else:
         cn = args[1]
-        if (ipavalidate.String(cn, notEmpty=True)):
-            print "Please enter a value"
+        try:
+            ipaadminutil.check_name(cn)
+        except ValueError, e:
+            print "Group name " + str(e)
             return 1
 
     if not options.desc:
         desc = ipautil.user_input("Description", allow_empty = False)
     else:
         desc = options.desc
-        if (ipavalidate.String(desc, notEmpty=True)):
+        if (not ipavalidate.String(desc, notEmpty=True)):
             print "Please enter a value"
             return 1
 

@@ -26,6 +26,7 @@ try:
     import ipa.ipavalidate as ipavalidate
     import ipa.ipautil as ipautil
     import ipa.config
+    import ipa.ipaadminutil as ipaadminutil
 
     import xmlrpclib
     import kerberos
@@ -118,7 +119,7 @@ def main():
         givenname = ipautil.user_input("First name", allow_empty = False)
     else:
         givenname = options.gn
-        if (ipavalidate.String(givenname, notEmpty=True)):
+        if (not ipavalidate.String(givenname, notEmpty=True)):
             print "Please enter a value"
             return 1
 
@@ -126,16 +127,18 @@ def main():
         lastname = ipautil.user_input("Last name", allow_empty = False)
     else:
         lastname = options.sn
-        if (ipavalidate.String(lastname, notEmpty=True)):
+        if (not ipavalidate.String(lastname, notEmpty=True)):
             print "Please enter a value"
             return 1
 
     if (len(args) != 2):
-        username = ipautil.user_input_plain("Login name", allow_empty = False, allow_spaces = False)
+        username = ipautil.user_input_name("Login name")
     else:
         username = args[1]
-        if (ipavalidate.Plain(username, notEmpty=True, allowSpaces=False)):
-            print "Username is required and may only include letters and numbers"
+        try:
+            ipaadminutil.check_name(username)
+        except ValueError, e:
+            print "Login name " + str(e)
             return 1
 
     if options.password_prompt:
@@ -155,7 +158,7 @@ def main():
 
     if options.mail:
         mail = options.mail
-        if (ipavalidate.Email(mail)):
+        if (not ipavalidate.Email(mail)):
             print "The email provided seem not a valid email."
             return 1
 

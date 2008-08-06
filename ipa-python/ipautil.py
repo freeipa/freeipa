@@ -30,6 +30,7 @@ import stat
 import shutil
 
 from ipa import ipavalidate
+from ipa import ipaadminutil
 from types import *
 
 import re
@@ -529,13 +530,13 @@ def user_input_email(prompt, default = None, allow_empty = False):
         ret = user_input(prompt, default, allow_empty)
         if allow_empty and ret.lower() == "none":
             return ""
-        if not ipavalidate.Email(ret, not allow_empty):
+        if ipavalidate.Email(ret, not allow_empty):
             return ret.strip()
 
 def user_input_plain(prompt, default = None, allow_empty = True, allow_spaces = True):
     while True:
         ret = user_input(prompt, default, allow_empty)
-        if not ipavalidate.Plain(ret, not allow_empty, allow_spaces):
+        if ipavalidate.Plain(ret, not allow_empty, allow_spaces):
             return ret
 
 def user_input_path(prompt, default = None, allow_empty = True):
@@ -545,9 +546,17 @@ def user_input_path(prompt, default = None, allow_empty = True):
         ret = user_input(prompt, default, allow_empty)
         if allow_empty and ret.lower() == "none":
             return ""
-        if not ipavalidate.Path(ret, not allow_empty):
+        if ipavalidate.Path(ret, not allow_empty):
             return ret
 
+def user_input_name(prompt, default = None):
+    while True:
+        ret = user_input(prompt, default, False)
+        try:
+            ipaadminutil.check_name(ret)
+            return ret
+        except ValueError, e:
+            print prompt + " " + str(e)
 
 class AttributeValueCompleter:
     '''

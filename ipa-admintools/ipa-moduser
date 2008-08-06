@@ -143,7 +143,7 @@ def main():
             givenname = ipautil.user_input("First name", user.getValue('givenname'), allow_empty = False)
         else:
             givenname = options.gn
-            if (ipavalidate.String(givenname, notEmpty=True)):
+            if (not ipavalidate.String(givenname, notEmpty=True)):
                 print "Please enter a value"
                 return 1
 
@@ -151,7 +151,7 @@ def main():
             lastname = ipautil.user_input("Last name", user.getValue('sn'), allow_empty = False)
         else:
             lastname = options.sn
-            if (ipavalidate.String(lastname, notEmpty=True)):
+            if (not ipavalidate.String(lastname, notEmpty=True)):
                 print "Please enter a value"
                 return 1
 
@@ -159,7 +159,7 @@ def main():
             mail = ipautil.user_input_email("E-mail address", user.getValue('mail'), allow_empty = True)
         else:
             mail = options.mail
-            if (ipavalidate.Email(mail)):
+            if (not ipavalidate.Email(mail)):
                 print "E-mail must include a user and domain name"
                 return 1
 
