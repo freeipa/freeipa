@@ -41,9 +41,34 @@ class cmd_proxy(plugable.Proxy):
 
 class cmd(plugable.Plugin):
 	proxy = cmd_proxy
+	__opt = None
 
 	def get_doc(self, _):
+		"""
+		Returns the gettext translated doc-string for this command.
+
+		For example:
+
+		>>> def get_doc(self, _):
+		>>> 	return _('add new user')
+		"""
 		raise NotImplementedError('%s.get_doc()' % self.name)
+
+	def get_options(self):
+		"""
+		Returns iterable with opt_proxy objects used to create the opt
+		NameSpace when __get_opt() is called.
+		"""
+		raise NotImplementedError('%s.get_options()' % self.name)
+
+	def __get_opt(self):
+		"""
+		Returns the NameSpace containing opt_proxy objects.
+		"""
+		if self.__opt is None:
+			self.__opt = plugable.NameSpace(self.get_options())
+		return self.__opt
+	opt = property(__get_opt)
 
 	def __call__(self, *args, **kw):
 		print repr(self)
