@@ -1218,10 +1218,11 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 	int tmp, ret;
 	const char *old_pw;
 
-	/* check account is not expired */
+	/* check account is not expired. Ignore unixtime = 0 (Jan 1 1970) */
 	krbPrincipalExpiration = slapi_entry_attr_get_charptr(data->target, "krbPrincipalExpiration");
-	if (krbPrincipalExpiration) {
-		/* if expiration date set check it */
+	if (krbPrincipalExpiration &&
+	    (strcasecmp("19700101000000Z", krbPrincipalExpiration) != 0)) {
+		/* if expiration date is set check it */
 		memset(&tm, 0, sizeof(struct tm));
 		ret = sscanf(krbPrincipalExpiration,
 			     "%04u%02u%02u%02u%02u%02u",
@@ -1238,8 +1239,8 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 			}
 		}
 		/* FIXME: else error out ? */
-		slapi_ch_free_string(&krbPrincipalExpiration);
 	}
+	slapi_ch_free_string(&krbPrincipalExpiration);
 
 	/* find the entry with the password policy */
 	ret = ipapwd_getPolicy(data->dn, data->target, &policy);
