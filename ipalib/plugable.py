@@ -131,7 +131,6 @@ class Proxy(ReadOnly):
 	"""
 
 	__slots__ = (
-		'__call__',
 		'__obj',
 		'name',
 	)
@@ -145,10 +144,10 @@ class Proxy(ReadOnly):
 		check_identifier(proxy_name)
 		object.__setattr__(self, '_Proxy__obj', obj)
 		object.__setattr__(self, 'name', proxy_name)
-		if callable(obj):
-			object.__setattr__(self, '__call__', obj.__call__)
-		#for name in self.__slots__:
-		#	object.__setattr__(self, name, getattr(obj, name))
+		for name in self.__slots__:
+			attr = getattr(obj, name)
+			if callable(attr):
+				object.__setattr__(self, name, attr)
 
 	def __repr__(self):
 		return '%s(%r)' % (self.__class__.__name__, self.__obj)

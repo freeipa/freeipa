@@ -62,6 +62,9 @@ def test_valid_identifier():
 
 
 def test_Plugin():
+	cls = plugable.Plugin
+	assert type(cls.name) is property
+
 	api = 'the api instance'
 	p = plugable.Plugin()
 	assert read_only(p, 'name') == 'Plugin'
