@@ -25,6 +25,29 @@ import re
 import inspect
 import errors
 
+EXPORT_FLAG = 'exported'
+
+def export(obj):
+	"""
+	Decorator function to set the 'exported' flag to True.
+
+	For example:
+
+	>>> @export
+	>>> def my_func():
+	>>> 	pass
+	>>> assert my_func.exported is True
+	"""
+	assert not hasattr(obj, EXPORT_FLAG)
+	setattr(obj, EXPORT_FLAG, True)
+	return obj
+
+def is_exported(obj):
+	"""
+	Returns True if `obj` as an 'exported' attribute that is True.
+	"""
+	return getattr(obj, EXPORT_FLAG, False) is True
+
 
 def to_cli(name):
 	"""
@@ -166,6 +189,56 @@ class Proxy(ReadOnly):
 				self.__class__.__name__
 			)
 		)
+
+
+class Proxy2(ReadOnly):
+	def __init__(self, base, target):
+		if not inspect.isclass(base):
+			raise TypeError('arg1 must be a class, got %r' % base)
+		if not isinstance(target, base):
+			raise ValueError('arg2 must be instance of arg1, got %r' % target)
+		object.__setattr__(self, 'base', base)
+		object.__setattr__(self, '_Proxy2__target', target)
+		object.__setattr__(self, '_Proxy2__props', dict())
+
+		names = [] # The names of exported attributes
+		# This matches implied property fget methods like '_get_user'
+		r = re.compile(r'^_get_([a-z][_a-z0-9]*[a-z0-9])$')
+		for name in dir(base):
+			match = r.match(name)
+			if name != '__call__' and name.startswith('_') and not match:
+				continue # Skip '_SomeClass__private', etc.
+			base_attr = getattr(base, name)
+			if is_exported(base_attr):
+				target_attr = getattr(target, name)
+				assert not hasattr(self, name), 'Cannot override %r' % name
+				object.__setattr__(self, name, target_attr)
+				names.append(name)
+				if match:
+					assert callable(target_attr), '%s must be callable' % name
+					key = match.group(1)
+					assert not hasattr(self, key), (
+						'%r cannot override %r' % (name, key)
+					)
+					self.__props[key] = target_attr
+		object.__setattr__(self, '_Proxy2__names', tuple(names))
+
+	def __call__(self, *args, **kw):
+		return self.__target(*args, **kw)
+
+	def __iter__(self):
+		for name in self.__names:
+			yield name
+
+	def __getattr__(self, name):
+		if name in self.__props:
+			return self.__props[name]()
+		raise AttributeError(name)
+
+
+
+
+
 
 
 class NameSpace(ReadOnly):

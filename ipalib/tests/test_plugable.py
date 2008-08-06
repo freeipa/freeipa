@@ -168,6 +168,77 @@ def test_Proxy():
 	assert c.name == 'do_a_thing'
 
 
+def test_Proxy2():
+	cls = plugable.Proxy2
+	export = plugable.export
+	assert issubclass(cls, plugable.ReadOnly)
+
+	# Setup:
+	class base(object):
+		@export
+		def public_0(self):
+			return 'public_0'
+
+		@export
+		def public_1(self):
+			return 'public_1'
+
+		@export
+		def _get_some_prop(self):
+			return 'ya got it'
+
+		def __call__(self, caller):
+			return 'ya called it, %s.' % caller
+
+		def private_0(self):
+			return 'private_0'
+
+		def private_1(self):
+			return 'private_1'
+
+	class plugin(base):
+		pass
+
+	# Test that TypeError is raised when base is not a class:
+	raises(TypeError, cls, base(), None)
+
+	# Test that ValueError is raised when target is not instance of base:
+	raises(ValueError, cls, base, object())
+
+	# Test with correct arguments:
+	i = plugin()
+	p = cls(base, i)
+	assert read_only(p, 'base') is base
+	assert list(p) == ['_get_some_prop', 'public_0', 'public_1']
+
+	# Test normal methods:
+	for n in xrange(2):
+		pub = 'public_%d' % n
+		priv = 'private_%d' % n
+		assert getattr(i, pub)() == pub
+		assert getattr(p, pub)() == pub
+		assert getattr(i, priv)() == priv
+		assert not hasattr(p, priv)
+
+	# Test __call__:
+	value = 'ya called it, dude.'
+	assert i('dude') == value
+	assert p('dude') == value
+
+	# Test implied property:
+	fget = '_get_some_prop'
+	name = 'some_prop'
+	value = 'ya got it'
+	assert getattr(i, fget)() == value
+	assert getattr(p, fget)() == value
+	assert getattr(p, name) == value
+
+
+
+
+
+
+
 def test_Registrar():
 	class Base1(object):
 		pass
