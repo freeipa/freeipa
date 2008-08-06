@@ -45,7 +45,7 @@ def main():
     if not ipautil.file_exists("/etc/ipa/ipa.conf"):
         print "This system does not appear to have IPA configured."
         print "Has ipa-server-install been run?"
-        if not ipautil.user_input("Continue with radius install?", False)
+        if not ipautil.user_input("Continue with radius install?", False):
             sys.exit(1)
 
     installutils.standard_logging_setup("iparadius-install.log", False)
