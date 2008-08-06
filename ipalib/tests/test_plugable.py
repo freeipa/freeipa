@@ -233,7 +233,62 @@ def test_Proxy2():
 	p = cls(base, i)
 
 
+def test_NameSpace2():
+	cls = plugable.NameSpace2
+	assert issubclass(cls, plugable.ReadOnly)
 
+	class base(object):
+		public = frozenset((
+			'plusplus',
+		))
+
+		def plusplus(self, n):
+			return n + 1
+
+	class plugin(base):
+		def __init__(self, name):
+			self.name = name
+
+	def get_name(i):
+		return 'noun_verb%d' % i
+
+	def get_proxies(n):
+		for i in xrange(n):
+			yield plugable.Proxy2(base, plugin(get_name(i)))
+
+	cnt = 20
+	ns = cls(get_proxies(cnt))
+
+	# Test __len__
+	assert len(ns) == cnt
+
+	# Test __iter__
+	i = None
+	for (i, proxy) in enumerate(ns):
+		assert type(proxy) is plugable.Proxy2
+		assert proxy.name == get_name(i)
+	assert i == cnt - 1
+
+	# Test __contains__, __getitem__, getattr():
+	proxies = frozenset(ns)
+	for i in xrange(cnt):
+		name = get_name(i)
+		assert name in ns
+		proxy = ns[name]
+		assert proxy.name == name
+		assert type(proxy) is plugable.Proxy2
+		assert proxy in proxies
+		assert read_only(ns, name) is proxy
+
+	# Test dir():
+	assert set(get_name(i) for i in xrange(cnt)).issubset(set(dir(ns)))
+
+	# Test that KeyError, AttributeError is raised:
+	name = get_name(cnt)
+	assert name not in ns
+	raises(KeyError, getitem, ns, name)
+	raises(AttributeError, getattr, ns, name)
+	no_set(ns, name)
 
 
 

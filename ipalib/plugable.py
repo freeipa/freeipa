@@ -207,6 +207,57 @@ class Proxy2(ReadOnly):
 		return self['__call__'](*args, **kw)
 
 
+class NameSpace2(ReadOnly):
+	"""
+	A read-only namespace of (key, value) pairs that can be accessed
+	both as instance attributes and as dictionary items.
+	"""
+
+	def __init__(self, proxies):
+		"""
+		NameSpace2
+		"""
+		object.__setattr__(self, '_NameSpace2__proxies', tuple(proxies))
+		object.__setattr__(self, '_NameSpace2__d', dict())
+		for proxy in self.__proxies:
+			assert isinstance(proxy, Proxy2)
+			assert proxy.name not in self.__d
+			self.__d[proxy.name] = proxy
+			assert not hasattr(self, proxy.name)
+			object.__setattr__(self, proxy.name, proxy)
+
+	def __iter__(self):
+		"""
+		Iterates through the proxies in this NameSpace in the same order they
+		were passed in the contructor.
+		"""
+		for proxy in self.__proxies:
+			yield proxy
+
+	def __len__(self):
+		"""
+		Returns number of proxies in this NameSpace.
+		"""
+		return len(self.__proxies)
+
+	def __contains__(self, key):
+		"""
+		Returns True if a proxy named `key` is in this NameSpace.
+		"""
+		return key in self.__d
+
+	def __getitem__(self, key):
+		"""
+		Returns proxy named `key`; otherwise raises KeyError.
+		"""
+		if key in self.__d:
+			return self.__d[key]
+		raise KeyError('NameSpace has no item for key %r' % key)
+
+	def __repr__(self):
+		return '%s(<%d proxies>)' % (self.__class__.__name__, len(self))
+
+
 class NameSpace(ReadOnly):
 	"""
 	A read-only namespace of (key, value) pairs that can be accessed
