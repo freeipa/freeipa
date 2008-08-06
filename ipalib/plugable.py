@@ -175,8 +175,6 @@ class NameSpace(ReadOnly):
 	both as instance attributes and as dictionary items.
 	"""
 
-	__max_len = None
-
 	def __init__(self, items, base=None):
 		"""
 		`items` should be an iterable providing the members of this
@@ -231,21 +229,12 @@ class NameSpace(ReadOnly):
 			return self.__hname[key]
 		raise KeyError('NameSpace has no item for key %r' % key)
 
-	def __call__(self):
-		if self.__max_len is None:
-			ml = max(len(k) for k in self.__pname)
-			object.__setattr__(self, '_NameSpace__max_len', ml)
-		return self.__max_len
-
 	def __repr__(self):
 		if self.__base is None:
 			base = repr(self.__base)
 		else:
 			base = '%s.%s' % (self.__base.__module__, self.__base.__name__)
 		return '%s(*proxies, base=%s)' % (self.__class__.__name__, base)
-
-
-
 
 
 class Registrar(object):
