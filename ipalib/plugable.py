@@ -175,12 +175,13 @@ class NameSpace(ReadOnly):
 
 	__max_len = None
 
-	def __init__(self, items):
+	def __init__(self, items, base=None):
 		"""
 		`items` should be an iterable providing the members of this
 		NameSpace.
 		"""
 		object.__setattr__(self, '_NameSpace__items', tuple(items))
+		object.__setattr__(self, '_NameSpace__base', base)
 
 		# dict mapping Python name to item:
 		object.__setattr__(self, '_NameSpace__pname', {})
@@ -233,6 +234,14 @@ class NameSpace(ReadOnly):
 			ml = max(len(k) for k in self.__pname)
 			object.__setattr__(self, '_NameSpace__max_len', ml)
 		return self.__max_len
+
+	def __repr__(self):
+		if self.__base is None:
+			base = repr(self.__base)
+		else:
+			base = '%s.%s' % (self.__base.__module__, self.__base.__name__)
+		return '%s(*proxies, base=%s)' % (self.__class__.__name__, base)
+
 
 
 
@@ -329,6 +338,8 @@ class Registrar(object):
 
 class API(ReadOnly):
 	def __init__(self, *allowed):
+		keys = tuple(b.__name__ for b in allowed)
+		object.__setattr__(self, '_API__keys', keys)
 		object.__setattr__(self, 'register', Registrar(*allowed))
 		object.__setattr__(self, '_API__plugins', [])
 
@@ -337,7 +348,7 @@ class API(ReadOnly):
 		Finalize the registration, instantiate the plugins.
 		"""
 		for (base, plugins) in self.register:
-			ns = NameSpace(self.__plugin_iter(base, plugins))
+			ns = NameSpace(self.__plugin_iter(base, plugins), base=base)
 			assert not hasattr(self, base.__name__)
 			object.__setattr__(self, base.__name__, ns)
 		for plugin in self.__plugins:
@@ -350,3 +361,7 @@ class API(ReadOnly):
 			plugin = cls()
 			self.__plugins.append(plugin)
 			yield base.proxy(plugin)
+
+	def __iter__(self):
+		for key in self.__keys:
+			yield key
