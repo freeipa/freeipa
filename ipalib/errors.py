@@ -53,9 +53,6 @@ class SetError(IPAError):
 
 
 
-
-
-
 class RegistrationError(IPAError):
 	"""
 	Base class for errors that occur during plugin registration.

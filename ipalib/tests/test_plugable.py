@@ -170,22 +170,21 @@ def test_Proxy():
 
 def test_Proxy2():
 	cls = plugable.Proxy2
-	export = plugable.export
 	assert issubclass(cls, plugable.ReadOnly)
 
 	# Setup:
 	class base(object):
-		@export
+		public = frozenset((
+			'public_0',
+			'public_1',
+			'__call__',
+		))
+
 		def public_0(self):
 			return 'public_0'
 
-		@export
 		def public_1(self):
 			return 'public_1'
-
-		@export
-		def _get_some_prop(self):
-			return 'ya got it'
 
 		def __call__(self, caller):
 			return 'ya called it, %s.' % caller
@@ -197,7 +196,8 @@ def test_Proxy2():
 			return 'private_1'
 
 	class plugin(base):
-		pass
+		name = 'user_add'
+		attr_name = 'add'
 
 	# Test that TypeError is raised when base is not a class:
 	raises(TypeError, cls, base(), None)
@@ -209,7 +209,8 @@ def test_Proxy2():
 	i = plugin()
 	p = cls(base, i)
 	assert read_only(p, 'base') is base
-	assert list(p) == ['_get_some_prop', 'public_0', 'public_1']
+	assert read_only(p, 'name') is 'user_add'
+	assert list(p) == sorted(base.public)
 
 	# Test normal methods:
 	for n in xrange(2):
@@ -217,6 +218,7 @@ def test_Proxy2():
 		priv = 'private_%d' % n
 		assert getattr(i, pub)() == pub
 		assert getattr(p, pub)() == pub
+		assert hasattr(p, pub)
 		assert getattr(i, priv)() == priv
 		assert not hasattr(p, priv)
 
@@ -224,14 +226,11 @@ def test_Proxy2():
 	value = 'ya called it, dude.'
 	assert i('dude') == value
 	assert p('dude') == value
+	assert callable(p)
 
-	# Test implied property:
-	fget = '_get_some_prop'
-	name = 'some_prop'
-	value = 'ya got it'
-	assert getattr(i, fget)() == value
-	assert getattr(p, fget)() == value
-	assert getattr(p, name) == value
+	# Test name_attr='name' kw arg
+	i = plugin()
+	p = cls(base, i)
 
 
 
