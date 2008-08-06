@@ -145,8 +145,8 @@ class Proxy(ReadOnly):
 		assert isinstance(proxy_name, str)
 		object.__setattr__(self, '_Proxy__obj', obj)
 		object.__setattr__(self, 'name', proxy_name)
-		for name in self.__slots__:
-			object.__setattr__(self, name, getattr(obj, name))
+		#for name in self.__slots__:
+		#	object.__setattr__(self, name, getattr(obj, name))
 
 	def __repr__(self):
 		return '%s(%r)' % (self.__class__.__name__, self.__obj)
@@ -154,12 +154,26 @@ class Proxy(ReadOnly):
 	def __str__(self):
 		return to_cli(self.name)
 
+	def _clone(self, new_name):
+		return self.__class__(self.__obj, proxy_name=new_name)
+
+	def __getattr__(self, name):
+		if name in self.__slots__:
+			return getattr(self.__obj, name)
+		raise AttributeError('attribute %r not in %s.__slots__' % (
+				name,
+				self.__class__.__name__
+			)
+		)
+
 
 class NameSpace(ReadOnly):
 	"""
 	A read-only namespace of (key, value) pairs that can be accessed
 	both as instance attributes and as dictionary items.
 	"""
+
+	__max_len = None
 
 	def __init__(self, items):
 		"""
@@ -213,6 +227,14 @@ class NameSpace(ReadOnly):
 		if key in self.__hname:
 			return self.__hname[key]
 		raise KeyError('NameSpace has no item for key %r' % key)
+
+	def __call__(self):
+		if self.__max_len is None:
+			ml = max(len(k) for k in self.__pname)
+			object.__setattr__(self, '_NameSpace__max_len', ml)
+		return self.__max_len
+
+
 
 
 class Registrar(object):

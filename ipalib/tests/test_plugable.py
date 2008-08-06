@@ -161,6 +161,13 @@ def test_Proxy():
 	assert getattr(p, name)(1) == 3
 	assert read_only(p, name)(1) == 3
 
+	# Test cloning:
+	i = do_something()
+	p = CommandProxy(i)
+	c = p._clone('do_a_thing')
+	assert isinstance(c, CommandProxy)
+	assert c.name == 'do_a_thing'
+
 
 def test_Registrar():
 	class Base1(object):

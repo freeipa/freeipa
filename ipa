@@ -28,11 +28,47 @@ Just proof of concept stuff in here right now.
 import sys
 from ipalib.startup import api
 
+TAB_WIDTH = 2
+
 def _(msg):
 	"""
 	Dummy gettext function for testing.
 	"""
 	return msg
+
+class row(object):
+	def __init__(self, tab, c1, c2=None):
+		assert type(tab) is int
+		assert type(c1) is str
+		assert type(c2) is str or c2 is None
+		self.tab = tab
+		self.c1 = c1
+		self.c2 = c2
+
+	def __len__(self):
+		return len(str(self.c1))
+
+	def pretty_print(self, ljust):
+		tab = ' ' * (self.tab * TAB_WIDTH)
+		if self.c2 is None:
+			print '%s%s' % (tab, self.c1)
+		else:
+			print '%s%s %s' % (tab, self.c1.ljust(ljust),	self.c2)
+
+def pretty_print(rows):
+	def at_tab(tab):
+		for r in rows:
+			if r.tab == tab:
+				yield len(r)
+
+	_max_len = {}
+	def max_len(tab):
+		if tab not in _max_len:
+			_max_len[tab] = max(at_tab(tab))
+		return _max_len[tab]
+
+	for r in rows:
+		r.pretty_print(max_len(r.tab))
 
 
 def print_commands():
@@ -44,17 +80,36 @@ def print_commands():
 def print_help(cmd):
 	print 'Help on %s' % cmd
 
-def print_api():
-	def print_ns(name):
-		ns = getattr(api, name)
-		print '%d %s:' % (len(ns), name)
-		m = max(len(i.name) for i in ns)
-		for i in ns:
-			print ' %s %r' % (i.name.ljust(m), i)
 
-	for n in ['cmd', 'obj', 'mthd', 'prop']:
-		print_ns(n)
-		print ''
+
+
+
+
+
+
+def iter_ns(tab, name):
+	ns = getattr(api, name)
+	yield row(
+		tab,
+		'%d %s:' % (len(ns), name)
+	)
+	for i in ns:
+		yield row(
+			tab + 1,
+			i.name,
+			repr(i)
+		)
+
+
+
+def print_api():
+	rows = []
+	for name in ['cmd', 'obj', 'mthd', 'prop']:
+		rows.extend(iter_ns(0, name))
+
+	pretty_print(rows)
+
+
 
 
 if len(sys.argv) < 2:

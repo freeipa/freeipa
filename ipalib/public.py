@@ -49,9 +49,44 @@ class cmd(plugable.Plugin):
 		print repr(self)
 
 
-class obj(plugable.Plugin):
-	proxy = generic_proxy
+class obj_proxy(plugable.Proxy):
+	__slots__ = (
+		'mthd',
+		'prop',
+	)
 
+
+class obj(plugable.Plugin):
+	proxy = obj_proxy
+	__mthd = None
+	__prop = None
+
+	def __get_mthd(self):
+		return self.__mthd
+	mthd = property(__get_mthd)
+
+	def __get_prop(self):
+		return self.__prop
+	prop = property(__get_prop)
+
+	def finalize(self, api):
+		super(obj, self).finalize(api)
+		self.__mthd = self.__create_ns('mthd')
+		self.__prop = self.__create_ns('prop')
+
+	def __create_ns(self, name):
+		return plugable.NameSpace(self.__filter(name))
+
+	def __filter(self, name):
+		for i in getattr(self.api, name):
+			if i.obj_name == self.name:
+				yield i._clone(i.attr_name)
+
+
+ATTR_SLOTS = (
+	'obj_name',
+	'attr_name',
+)
 
 class attr(plugable.Plugin):
 	__obj = None
@@ -84,12 +119,23 @@ class attr(plugable.Plugin):
 		self.__obj = api.obj[self.obj_name]
 
 
-class mthd(attr, cmd):
-	proxy = generic_proxy
+class mthd_proxy(plugable.Proxy):
+	__slots__ = (
+		'__call__',
+		'get_doc',
+	) + ATTR_SLOTS
 
+class mthd(attr, cmd):
+	proxy = mthd_proxy
+
+
+class prop_proxy(plugable.Proxy):
+	__slots__ = (
+		'get_doc',
+	) + ATTR_SLOTS
 
 class prop(attr):
-	proxy = generic_proxy
+	proxy = prop_proxy
 
 	def get_doc(self, _):
 		return _('prop doc')
