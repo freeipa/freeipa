@@ -1,0 +1,383 @@
+#! /usr/bin/python -E
+# Authors: Simo Sorce <ssorce@redhat.com>
+#
+# Copyright (C) 2007 Simo Sorce <ssorce@redhat.com>
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 or later
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+etckrb5conf = "/etc/krb5.conf"
+krb5dir = "/var/kerberos/krb5kdc"
+cachedir = "/var/cache/ipa"
+libdir = "/var/lib/ipa"
+basedir = libdir+"/mkey"
+ourkrb5conf = basedir+"/krb5.conf"
+ldappwdfile = basedir+"/ldappwd"
+
+password = ""
+
+import sys
+try:
+    from optparse import OptionParser
+    import ipa
+    import ipa.config
+    import ipa.ipautil
+    from ipaclient import ipachangeconf
+    from ipaserver import ipaldap
+
+    import krbV
+
+    import ldap
+    from ldap import LDAPError
+    from ldap import ldapobject
+
+    from pyasn1.type import univ, namedtype
+    import pyasn1.codec.ber.encoder
+    import pyasn1.codec.ber.decoder
+    import struct
+    import base64
+
+    import random
+    import time
+    import os
+    import shutil
+    import getpass
+except ImportError:
+    print >> sys.stderr, """\
+There was a problem importing one of the required Python modules. The
+error was:
+
+    %s
+""" % sys.exc_value
+    sys.exit(1)
+
+def usage():
+    print "ipa-change-master-key [-q|--quiet] [-p DM_PASSWORD]"
+    sys.exit(1)
+
+def parse_options():
+    parser = OptionParser()
+    parser.add_option("-p", "--dm-password", dest="dm_password",
+                      help="The Directory Manager password")
+    parser.add_option("-q", "--quiet", action="store_true", dest="quiet",
+                      help="Keep quiet")
+    parser.add_option("--usage", action="store_true",
+                      help="Program usage")
+
+    args = ipa.config.init_config(sys.argv)
+    options, args = parser.parse_args(args)
+
+    return options, args
+
+# We support only des3 encoded stash files for now
+def generate_new_stash_file(file):
+
+    odd_parity_bytes_pool = ['\x01', '\x02', '\x04', '\x07', '\x08', '\x0b', '\r', '\x0e', '\x10', '\x13', '\x15', '\x16', '\x19', '\x1a', '\x1c', '\x1f', ' ', '#', '%', '&', ')', '*', ',', '/', '1', '2', '4', '7', '8', ';', '=', '>', '@', 'C', 'E', 'F', 'I', 'J', 'L', 'O', 'Q', 'R', 'T', 'W', 'X', '[', ']', '^', 'a', 'b', 'd', 'g', 'h', 'k', 'm', 'n', 'p', 's', 'u', 'v', 'y', 'z', '|', '\x7f', '\x80', '\x83', '\x85', '\x86', '\x89', '\x8a', '\x8c', '\x8f', '\x91', '\x92', '\x94', '\x97', '\x98', '\x9b', '\x9d', '\x9e', '\xa1', '\xa2', '\xa4', '\xa7', '\xa8', '\xab', '\xad', '\xae', '\xb0', '\xb3', '\xb5', '\xb6', '\xb9', '\xba', '\xbc', '\xbf', '\xc1', '\xc2', '\xc4', '\xc7', '\xc8', '\xcb', '\xcd', '\xce', '\xd0', '\xd3', '\xd5', '\xd6', '\xd9', '\xda', '\xdc', '\xdf', '\xe0', '\xe3',
+'\xe5', '\xe6', '\xe9', '\xea', '\xec', '\xef', '\xf1', '\xf2', '\xf4', '\xf7',
+'\xf8', '\xfb', '\xfd', '\xfe']
+    pool_len = len(odd_parity_bytes_pool)
+    keytype = 16 # des3
+    keydata = ""
+
+    r = random.SystemRandom()
+    for k in range(24):
+        keydata += r.choice(odd_parity_bytes_pool)
+
+    format = '=hi%ss' % len(keydata)
+    s = struct.pack(format, keytype, len(keydata), keydata)
+    try:
+        fd = open(file, "w")
+        fd.write(s)
+    except os.error, e:
+        logging.critical("failed to write stash file")
+        raise e
+
+# clean up procedures
+def cleanup(password):
+    try:
+        os.stat(basedir)
+    except:
+        return None
+    try:
+        # always remove ldappwdfile as it contains the Directory Manager password
+        os.remove(ldappwdfile)
+    except:
+        pass
+
+    # tar and encrypt the working dir so that we do not leave sensitive data
+    # around unproteceted
+    curtime = time.strftime("%Y%m%d%H%M%S",time.gmtime())
+    tarfile = libdir+"/ipa-change-mkey-"+curtime+".tar"
+    gpgfile = tarfile+".gpg"
+    args = ['/bin/tar', '-C', libdir, '-cf', tarfile, 'mkey']
+    ipa.ipautil.run(args)
+    ipa.ipautil.encrypt_file(tarfile, gpgfile, password, cachedir)
+    os.remove(tarfile)
+    shutil.rmtree(basedir, ignore_errors=True)
+
+    return "The temporary working directory with backup dump files has been securely archived and gpg-encrypted as "+gpgfile+" using the Directory Manager password."
+
+def main():
+
+    global password
+
+    options, args = parse_options()
+
+    if options.usage:
+        usage()
+
+    krbctx = krbV.default_context()
+
+    realm = krbctx.default_realm
+    suffix = ipa.ipautil.realm_to_suffix(realm)
+
+    backupfile = basedir+"/backup.dump"
+    convertfile = basedir+"/convert.dump"
+    oldstashfile = krb5dir+"/.k5."+realm
+    newstashfile = basedir+"/.new.mkey"
+    bkpstashfile = basedir+"/.k5."+realm
+
+    if os.getuid() != 0:
+        print "ERROR: This command must be run as root"
+
+    print "DANGER: This is a dangerous operation, make sure you backup all your IPA data before running the tool"
+    print "This command will restart your Directory and KDC Servers."
+
+    #TODO: ask for confirmation
+    if not ipa.ipautil.user_input("Do you want to proceed and change the Kerberos Master key?", False):
+        print ""
+        print "Aborting..."
+        return 1
+
+    password = options.dm_password
+    if not password:
+        password = getpass.getpass("Directory Manager password: ")
+
+    # get a connection to the DS
+    try:
+        conn = ipaldap.IPAdmin(ipa.config.config.default_server[0])
+        conn.do_simple_bind(bindpw=password)
+    except Exception, e:
+        print "ERROR: Could not connect to the Directory Server on "+ipa.config.config.default_server[0]+" ("+str(e)+")"
+        return 1
+
+    #  Wipe basedir and recreate it
+    shutil.rmtree(basedir, ignore_errors=True)
+    os.mkdir(basedir, 0700)
+
+    generate_new_stash_file(newstashfile)
+
+    # Generate conf files
+    try:
+        shutil.copyfile(etckrb5conf, ourkrb5conf)
+
+        krbconf = ipachangeconf.IPAChangeConf("IPA Installer")
+        krbconf.setOptionAssignment(" = ")
+        krbconf.setSectionNameDelimiters(("[","]"))
+        krbconf.setSubSectionDelimiters(("{","}"))
+        krbconf.setIndent(("","  ","    "))
+
+        #OPTS
+        opts = [{'name':'ldap_kadmind_dn', 'type':'option', 'action':'set', 'value':'cn=Directory Manager'},
+                {'name':'ldap_service_password_file', 'type':'option', 'action':'set', 'value':ldappwdfile}]
+
+        #REALM
+        realmopts = [{'name':realm, 'type':'subsection', 'action':'set', 'value':opts}]
+
+        #DBMODULES
+        dbopts = [{'name':'dbmodules', 'type':'section', 'action':'set', 'value':realmopts}]
+
+        krbconf.changeConf(ourkrb5conf, dbopts);
+
+        hexpwd = ""
+        for x in password:
+            hexpwd += (hex(ord(x))[2:])
+        pwd_fd = open(ldappwdfile, "w")
+        pwd_fd.write("cn=Directory Manager#{HEX}"+hexpwd+"\n")
+        pwd_fd.close()
+        os.chmod(ldappwdfile, 0600)
+
+    except Exception, e:
+        print "Failed to create custom configuration files ("+str(e)+") aborting..."
+        return 1
+
+    #Set environment vars so that the modified krb5.conf is used
+    os.environ['KRB5_CONFIG'] = ourkrb5conf
+
+    #Backup the kerberos key material for recovery if needed
+    args = ["/usr/kerberos/sbin/kdb5_util", "dump", "-verbose", backupfile]
+    print "Performing safety backup of the key material"
+    try:
+        output = ipa.ipautil.run(args)
+    except ipa.ipautil.CalledProcessError, e:
+        print "Failed to backup key material ("+str(e)+"), aborting ..."
+        return 1
+
+    if not options.quiet:
+        princlist = output[1].split('\n')
+        print "Principals stored into the backup file "+backupfile+":"
+        for p in princlist:
+            print p
+        print ""
+
+    #Convert the kerberos keys to the new master key
+    args = ["/usr/kerberos/sbin/kdb5_util", "dump", "-verbose", "-new_mkey_file", newstashfile, convertfile]
+    print "Converting key material to new master key"
+    try:
+        output = ipa.ipautil.run(args)
+    except ipa.ipautil.CalledProcessError, e:
+        print "Failed to convert key material, aborting ..."
+        return 1
+
+    savedprinclist = output[1].split('\n')
+
+    if not options.quiet:
+        princlist = output[1].split('\n')
+        print "Principals dumped for conversion:"
+        for p in princlist:
+            print p
+        print ""
+
+    #Stop the KDC
+    args = ["/etc/init.d/krb5kdc", "stop"]
+    try:
+        output = ipa.ipautil.run(args)
+        if output[0]:
+            print output[0]
+        if output[1]:
+            print output[1]
+    except ipa.ipautil.CalledProcessError, e:
+        print "WARNING: Failed to restart the KDC ("+str(e)+")"
+        print "You will have to manually restart the KDC when the operation is completed"
+
+    #Change the mkey into ldap
+    try:
+        stash = open(newstashfile, "r")
+        keytype = struct.unpack('h', stash.read(2))[0]
+        keylen = struct.unpack('i', stash.read(4))[0]
+        keydata = stash.read(keylen)
+
+        #encode it in the asn.1 attribute
+        MasterKey = univ.Sequence()
+        MasterKey.setComponentByPosition(0, univ.Integer(keytype))
+        MasterKey.setComponentByPosition(1, univ.OctetString(keydata))
+        krbMKey = univ.Sequence()
+        krbMKey.setComponentByPosition(0, univ.Integer(0)) #we have no kvno
+        krbMKey.setComponentByPosition(1, MasterKey)
+        asn1key = pyasn1.codec.ber.encoder.encode(krbMKey)
+
+        dn = "cn="+realm+",cn=kerberos,"+suffix
+        mod = [(ldap.MOD_REPLACE, 'krbMKey', str(asn1key))]
+        conn.modify_s(dn, mod)
+    except Exception, e:
+        print "ERROR: Failed to upload the Master Key from the Stash file: "+newstashfile+" ("+str(e)+")"
+        return 1
+
+    #Backup old stash file and substitute with new
+    try:
+        shutil.move(oldstashfile, bkpstashfile)
+        shutil.copyfile(newstashfile, oldstashfile)
+    except Exception, e:
+        print "ERROR: An error occurred while installing the new stash file("+str(e)+")"
+        print "The KDC may fail to start if the correct stash file is not in place"
+        print "Verify that "+newstashfile+" has been correctly installed into "+oldstashfile
+        print "A backup copy of the old stash file should be saved in "+bkpstashfile
+
+    #Finally upload the converted principals
+    args = ["/usr/kerberos/sbin/kdb5_util", "load", "-verbose", "-update", convertfile]
+    print "Uploading converted key material"
+    try:
+        output = ipa.ipautil.run(args)
+    except ipa.ipautil.CalledProcessError, e:
+        print "Failed to upload key material ("+e+"), aborting ..."
+        return 1
+
+    if not options.quiet:
+        princlist = output[1].split('\n')
+        print "Principals converted and uploaded:"
+        for p in princlist:
+            print p
+        print ""
+
+    uploadedprinclist = output[1].split('\n')
+
+    #Check for differences and report
+    d = []
+    for p in savedprinclist:
+        if uploadedprinclist.count(p) == 0:
+            d.append(p)
+    if len(d) != 0:
+        print "WARNING: Not all dumped principals have been updated"
+        print "Principals not Updated:"
+        for p in d:
+            print p
+
+    #Remove custom environ
+    del os.environ['KRB5_CONFIG']
+
+    #Restart Directory Server (the pwd plugin need to read the new mkey)
+    args = ["/etc/init.d/dirsrv", "restart"]
+    try:
+        output = ipa.ipautil.run(args)
+        if output[0]:
+            print output[0]
+        if output[1]:
+            print output[1]
+    except ipa.ipautil.CalledProcessError, e:
+        print "WARNING: Failed to restart the Directory Server ("+str(e)+")"
+        print "Please manually restart the DS with 'service dirsrv restart'"
+
+    #Restart the KDC
+    args = ["/etc/init.d/krb5kdc", "start"]
+    try:
+        output = ipa.ipautil.run(args)
+        if output[0]:
+            print output[0]
+        if output[1]:
+            print output[1]
+    except ipa.ipautil.CalledProcessError, e:
+        print "WARNING: Failed to restart the KDC ("+str(e)+")"
+        print "Please manually restart the kdc with 'service krb5kdc start'"
+
+    #TODO: encrypt the backup/temp directory with the Directory Manager password
+
+    print "Master Password successfully changed"
+    print "You MUST now copy the stash file "+oldstashfile+" to all the replicas and restart them!"
+    print ""
+
+    return 0
+
+if __name__ == "__main__":
+    ret = 0
+    try:
+        ret = main()
+    except SystemExit, e:
+        ret = e
+    except KeyboardInterrupt, e:
+        ret = 1
+    except Exception, e:
+        print "%s" % str(e)
+        ret = 1
+
+    try:
+        msg = cleanup(password)
+        if msg:
+            print msg
+    except Exception, e:
+        print "Failed to clean up the temporary location for the dump files and generate and encrypted archive with error:"
+        print e
+        print "Please securely archive/encrypt "+basedir
+
+    sys.exit(ret)
