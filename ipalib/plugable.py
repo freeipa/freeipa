@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Utility classes for registering plugins, base classes for writing plugins.
+Base classes for plug-in architecture and generative API.
 """
 
 import re
@@ -89,8 +89,7 @@ class Plugin(object):
 
 	def __repr__(self):
 		"""
-		Returns a valid Python expression that could create this plugin
-		instance given the appropriate environment.
+		Returns a fully qualified <module><name> representation of the class.
 		"""
 		return '%s.%s' % (
 			self.__class__.__module__,
@@ -125,7 +124,7 @@ class ReadOnly(object):
 
 class Proxy(ReadOnly):
 	"""
-	Used to only export certain attributes into the dynamic API.
+	Used to only export certain attributes into the generative API.
 
 	Subclasses must list names of attributes to be proxied in the __slots__
 	class attribute.
