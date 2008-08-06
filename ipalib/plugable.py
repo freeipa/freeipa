@@ -32,7 +32,7 @@ def to_cli(name):
 	Command Line Interface.
 	"""
 	assert isinstance(name, str)
-	return name.replace('__', '.').replace('_', '-')
+	return name.replace('_', '-')
 
 
 def from_cli(cli_name):
@@ -41,7 +41,7 @@ def from_cli(cli_name):
 	Python identifier.
 	"""
 	assert isinstance(cli_name, basestring)
-	return cli_name.replace('-', '_').replace('.', '__')
+	return cli_name.replace('-', '_')
 
 
 def check_identifier(name):
@@ -143,7 +143,7 @@ class Proxy(ReadOnly):
 		"""
 		if proxy_name is None:
 			proxy_name = obj.__class__.__name__
-		assert isinstance(proxy_name, str)
+		check_identifier(proxy_name)
 		object.__setattr__(self, '_Proxy__obj', obj)
 		object.__setattr__(self, 'name', proxy_name)
 		if callable(obj):

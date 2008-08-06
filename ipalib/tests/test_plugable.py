@@ -28,17 +28,13 @@ from ipalib import plugable, errors
 def test_to_cli():
 	f = plugable.to_cli
 	assert f('initialize') == 'initialize'
-	assert f('find_everything') == 'find-everything'
-	assert f('user__add') == 'user.add'
-	assert f('meta_service__do_something') == 'meta-service.do-something'
+	assert f('user_add') == 'user-add'
 
 
 def test_from_cli():
 	f = plugable.from_cli
 	assert f('initialize') == 'initialize'
-	assert f('find-everything') == 'find_everything'
-	assert f('user.add') == 'user__add'
-	assert f('meta-service.do-something') == 'meta_service__do_something'
+	assert f('user-add') == 'user_add'
 
 
 def test_valid_identifier():
@@ -139,10 +135,10 @@ def test_Proxy():
 
 	# Test that proxy_name can be overriden:
 	i = do_something()
-	p = CommandProxy(i, proxy_name='user__add')
+	p = CommandProxy(i, proxy_name='user_add')
 	assert '__dict__' not in dir(p)
-	assert p.name == 'user__add'
-	assert str(p) == 'user.add'
+	assert p.name == 'user_add'
+	assert str(p) == 'user-add'
 	assert repr(p) == 'CommandProxy(<my repr>)'
 	assert p(1) == 2
 	assert p.validate(1) == 3
