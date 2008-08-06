@@ -174,13 +174,12 @@ class NameSpace(ReadOnly):
 	both as instance attributes and as dictionary items.
 	"""
 
-	def __init__(self, items, base=None):
+	def __init__(self, items):
 		"""
 		`items` should be an iterable providing the members of this
 		NameSpace.
 		"""
 		object.__setattr__(self, '_NameSpace__items', tuple(items))
-		object.__setattr__(self, '_NameSpace__base', base)
 
 		# dict mapping Python name to item:
 		object.__setattr__(self, '_NameSpace__pname', {})
@@ -229,11 +228,7 @@ class NameSpace(ReadOnly):
 		raise KeyError('NameSpace has no item for key %r' % key)
 
 	def __repr__(self):
-		if self.__base is None:
-			base = repr(self.__base)
-		else:
-			base = '%s.%s' % (self.__base.__module__, self.__base.__name__)
-		return '%s(*proxies, base=%s)' % (self.__class__.__name__, base)
+		return '%s(<%d proxies>)' % (self.__class__.__name__, len(self))
 
 
 class Registrar(object):
@@ -338,7 +333,7 @@ class API(ReadOnly):
 		Finalize the registration, instantiate the plugins.
 		"""
 		for (base, plugins) in self.register:
-			ns = NameSpace(self.__plugin_iter(base, plugins), base=base)
+			ns = NameSpace(self.__plugin_iter(base, plugins))
 			assert not hasattr(self, base.__name__)
 			object.__setattr__(self, base.__name__, ns)
 		for plugin in self.__plugins:
