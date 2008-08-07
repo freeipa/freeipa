@@ -27,6 +27,19 @@ import plugable
 import errors
 
 
+RULE_FLAG = 'validation_rule'
+
+def rule(obj):
+	assert not hasattr(obj, RULE_FLAG)
+	setattr(obj, RULE_FLAG, True)
+	return obj
+
+def is_rule(obj):
+	return getattr(obj, RULE_FLAG, False) is True
+
+
+
+
 class opt(plugable.ReadOnly):
 	__public__ = frozenset((
 		'normalize',
@@ -35,6 +48,7 @@ class opt(plugable.ReadOnly):
 		'required',
 		'type',
 	))
+	__rules = None
 
 	def normalize(self, value):
 		try:
@@ -43,6 +57,18 @@ class opt(plugable.ReadOnly):
 			raise errors.NormalizationError(
 				self.__class__.__name__, value, self.type
 			)
+
+	def __get_rules(self):
+		if self.__rules is None:
+			self.__rules = tuple(self.__rules_iter())
+		return self.__rules
+	rules = property(__get_rules)
+
+	def __rules_iter(self):
+		pass
+
+	def validate(self, value):
+		pass
 
 
 

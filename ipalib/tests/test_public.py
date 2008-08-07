@@ -25,40 +25,94 @@ from tstutil import raises, getitem, no_set, no_del, read_only
 from ipalib import public, plugable, errors
 
 
-def test_opt():
-	cls = public.opt
-	assert issubclass(cls, plugable.ReadOnly)
+def test_RULE_FLAG():
+	assert public.RULE_FLAG == 'validation_rule'
 
-	class int_opt(cls):
-		type = int
 
-	i = int_opt()
+def test_rule():
+	flag = public.RULE_FLAG
+	rule = public.rule
+	def my_func():
+		pass
+	assert not hasattr(my_func, flag)
+	rule(my_func)
+	assert getattr(my_func, flag) is True
+	@rule
+	def my_func2():
+		pass
+	assert getattr(my_func2, flag) is True
 
-	# Test with values that can't be converted:
-	nope = (
-		'7.0'
-		'whatever',
-		object,
-		None,
-	)
-	for val in nope:
-		e = raises(errors.NormalizationError, i.normalize, val)
-		assert isinstance(e, errors.ValidationError)
-		assert e.name == 'int_opt'
-		assert e.value == val
-		assert e.error == "not <type 'int'>"
-		assert e.type is int
-	# Test with values that can be converted:
-	okay = (
-		7,
-		7.0,
-		7.2,
-		7L,
-		'7',
-		' 7 ',
-	)
-	for val in okay:
-		assert i.normalize(val) == 7
+
+def test_is_rule():
+	is_rule = public.is_rule
+	flag = public.RULE_FLAG
+
+	class example(object):
+		def __init__(self, value):
+			if value is not None:
+				assert value in (True, False)
+				setattr(self, flag, value)
+
+	obj = example(True)
+	assert getattr(obj, flag) is True
+	assert is_rule(obj)
+
+	obj = example(False)
+	assert getattr(obj, flag) is False
+	assert not is_rule(obj)
+
+	obj = example(None)
+	assert not hasattr(obj, flag)
+	assert not is_rule(obj)
+
+
+
+
+
+
+class test_opt():
+	def cls(self):
+		return public.opt
+
+	def sub(self):
+		class int_opt(self.cls()):
+			type = int
+		return int_opt
+
+	def test_class(self):
+		cls = self.cls()
+		assert issubclass(cls, plugable.ReadOnly)
+
+	def test_normalize(self):
+		sub = self.sub()
+
+		i = sub()
+
+		# Test with values that can't be converted:
+		nope = (
+			'7.0'
+			'whatever',
+			object,
+			None,
+		)
+		for val in nope:
+			e = raises(errors.NormalizationError, i.normalize, val)
+			assert isinstance(e, errors.ValidationError)
+			assert e.name == 'int_opt'
+			assert e.value == val
+			assert e.error == "not <type 'int'>"
+			assert e.type is int
+		# Test with values that can be converted:
+		okay = (
+			7,
+			7.0,
+			7.2,
+			7L,
+			'7',
+			' 7 ',
+		)
+		for val in okay:
+			assert i.normalize(val) == 7
 
 def test_cmd():
 	cls = public.cmd

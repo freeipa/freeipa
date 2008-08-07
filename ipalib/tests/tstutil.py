@@ -86,7 +86,14 @@ def read_only(obj, name, value='some_new_obj'):
 	return getattr(obj, name)
 
 
+def is_prop(prop):
+	return type(prop) is property
+
+
 class ClassChecker(object):
 
 	def new(self, *args, **kw):
 		return self.cls(*args, **kw)
+
+	def get_sub(self):
+		raise NotImplementedError('get_sub()')
