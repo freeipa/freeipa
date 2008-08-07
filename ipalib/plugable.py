@@ -91,7 +91,7 @@ class Plugin(object):
 		"""
 		Returns a fully qualified <module><name> representation of the class.
 		"""
-		return '%s.%s' % (
+		return '%s.%s()' % (
 			self.__class__.__module__,
 			self.__class__.__name__
 		)

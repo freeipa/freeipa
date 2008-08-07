@@ -68,7 +68,7 @@ def test_Plugin():
 	api = 'the api instance'
 	p = plugable.Plugin()
 	assert read_only(p, 'name') == 'Plugin'
-	assert repr(p) == '%s.Plugin' % plugable.__name__
+	assert repr(p) == '%s.Plugin()' % plugable.__name__
 	assert read_only(p, 'api') is None
 	raises(AssertionError, p.finalize, None)
 	p.finalize(api)
@@ -79,7 +79,7 @@ def test_Plugin():
 		pass
 	p = some_plugin()
 	assert read_only(p, 'name') == 'some_plugin'
-	assert repr(p) == '%s.some_plugin' % __name__
+	assert repr(p) == '%s.some_plugin()' % __name__
 	assert read_only(p, 'api') is None
 	raises(AssertionError, p.finalize, None)
 	p.finalize(api)
