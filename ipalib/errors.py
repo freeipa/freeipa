@@ -54,6 +54,7 @@ class ValidationError(IPAError):
 		self.error = error
 		super(ValidationError, self).__init__(name, value, error)
 
+
 class NormalizationError(ValidationError):
 	def __init__(self, name, value, type):
 		self.type = type
@@ -62,9 +63,10 @@ class NormalizationError(ValidationError):
 		)
 
 
-
-class ValidationRuleError(ValidationError):
-	msg = '%r is invalid %r: %s'
+class RuleError(ValidationError):
+	def __init__(self, name, value, rule, error):
+		self.rule = rule
+		super(RuleError, self).__init__(name, value, error)
 
 
 

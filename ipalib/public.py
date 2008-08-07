@@ -76,9 +76,19 @@ class opt(plugable.ReadOnly):
 				if is_rule(attr):
 					yield attr
 
-
 	def validate(self, value):
-		pass
+		for rule in self.rules:
+			msg = rule(value)
+			if msg is None:
+				continue
+			raise errors.RuleError(
+				self.__class__.__name__,
+				value,
+				rule,
+				msg,
+			)
+
+
 
 
 

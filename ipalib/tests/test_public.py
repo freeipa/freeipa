@@ -72,29 +72,40 @@ class test_opt():
 		class int_opt(self.cls()):
 			type = int
 			@rule
-			def rule_a(self, value):
-				if value == 'a':
-					return 'cannot be a'
+			def rule_0(self, value):
+				if value == 0:
+					return 'cannot be 0'
 			@rule
-			def rule_b(self, value):
-				if value == 'b':
-					return 'cannot be b'
+			def rule_1(self, value):
+				if value == 1:
+					return 'cannot be 1'
 			@rule
-			def rule_c(self, value):
-				if value == 'c':
-					return 'cannot be c'
+			def rule_2(self, value):
+				if value == 2:
+					return 'cannot be 2'
 		return int_opt
 
 	def test_rules(self):
 		"""
 		Test the rules property.
 		"""
-		i = self.sub()()
-		def i_attr(l):
-			return getattr(i, 'rule_%s' % l)
-		letters = ('a', 'b', 'c')
-		rules = tuple(i_attr(l) for l in letters)
-		assert i.rules == rules
+		o = self.sub()()
+		def get_rule(i):
+			return getattr(o, 'rule_%d' % i)
+		rules = tuple(get_rule(i) for i in xrange(3))
+		assert o.rules == rules
+
+	def test_validation(self):
+		"""
+		Test the validation method.
+		"""
+		o = self.sub()()
+		o.validate(9)
+		for i in xrange(3):
+			e = raises(errors.RuleError, o.validate, i)
+			assert e.error == 'cannot be %d' % i
+
+
 
 
 
