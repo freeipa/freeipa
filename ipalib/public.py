@@ -35,9 +35,7 @@ def rule(obj):
 	return obj
 
 def is_rule(obj):
-	return getattr(obj, RULE_FLAG, False) is True
-
-
+	return callable(obj) and getattr(obj, RULE_FLAG, False) is True
 
 
 class opt(plugable.ReadOnly):
@@ -65,7 +63,12 @@ class opt(plugable.ReadOnly):
 	rules = property(__get_rules)
 
 	def __rules_iter(self):
-		pass
+		for name in dir(self):
+			if name.startswith('_'):
+				continue
+			attr = getattr(self, name)
+			if is_rule(attr):
+				yield attr
 
 	def validate(self, value):
 		pass

@@ -47,27 +47,20 @@ def test_is_rule():
 	is_rule = public.is_rule
 	flag = public.RULE_FLAG
 
-	class example(object):
+	class no_call(object):
 		def __init__(self, value):
 			if value is not None:
 				assert value in (True, False)
 				setattr(self, flag, value)
 
-	obj = example(True)
-	assert getattr(obj, flag) is True
-	assert is_rule(obj)
+	class call(no_call):
+		def __call__(self):
+			pass
 
-	obj = example(False)
-	assert getattr(obj, flag) is False
-	assert not is_rule(obj)
-
-	obj = example(None)
-	assert not hasattr(obj, flag)
-	assert not is_rule(obj)
-
-
-
-
+	assert is_rule(call(True))
+	assert not is_rule(no_call(True))
+	assert not is_rule(call(False))
+	assert not is_rule(call(None))
 
 
 class test_opt():
