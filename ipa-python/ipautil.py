@@ -73,11 +73,13 @@ def write_tmp_file(txt):
     return fd
 
 def run(args, stdin=None):
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
     if stdin:
+        p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         stdout,stderr = p.communicate(stdin)
     else:
+        p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         stdout,stderr = p.communicate()
+
     logging.info(stdout)
     logging.info(stderr)
 
@@ -114,6 +116,67 @@ def install_file(fname, dest):
 def backup_file(fname):
     if file_exists(fname):
         os.rename(fname, fname + ".orig")
+
+# uses gpg to compress and encrypt a file
+def encrypt_file(source, dest, password, workdir = None):
+    if type(source) is not StringType or not len(source):
+        raise ValueError('Missing Source File')
+    #stat it so that we get back an exception if it does no t exist
+    os.stat(source)
+
+    if type(dest) is not StringType or not len(dest):
+        raise ValueError('Missing Destination File')
+
+    if type(password) is not StringType or not len(password):
+        raise ValueError('Missing Password')
+
+    #create a tempdir so that we can clean up with easily
+    tempdir = tempfile.mkdtemp('', 'ipa-', workdir)
+    gpgdir = tempdir+"/.gnupg"
+
+    try:
+        try:
+            #give gpg a fake dir so that we can leater remove all
+            #the cruft when we clean up the tempdir
+            os.mkdir(gpgdir)
+            args = ['/usr/bin/gpg', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-c', source]
+            run(args, password)
+        except:
+            raise
+    finally:
+        #job done, clean up
+        shutil.rmtree(tempdir, ignore_errors=True)
+
+
+def decrypt_file(source, dest, password, workdir = None):
+    if type(source) is not StringType or not len(source):
+        raise ValueError('Missing Source File')
+    #stat it so that we get back an exception if it does no t exist
+    os.stat(source)
+
+    if type(dest) is not StringType or not len(dest):
+        raise ValueError('Missing Destination File')
+
+    if type(password) is not StringType or not len(password):
+        raise ValueError('Missing Password')
+
+    #create a tempdir so that we can clean up with easily
+    tempdir = tempfile.mkdtemp('', 'ipa-', workdir)
+    gpgdir = tempdir+"/.gnupg"
+
+    try:
+        try:
+            #give gpg a fake dir so that we can leater remove all
+            #the cruft when we clean up the tempdir
+            os.mkdir(gpgdir)
+            args = ['/usr/bin/gpg', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-d', source]
+            run(args, password)
+        except:
+            raise
+    finally:
+        #job done, clean up
+        shutil.rmtree(tempdir, ignore_errors=True)
+
 
 class CIDict(dict):
     """
