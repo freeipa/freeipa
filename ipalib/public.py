@@ -79,14 +79,13 @@ class opt(plugable.ReadOnly):
 	def validate(self, value):
 		for rule in self.rules:
 			msg = rule(value)
-			if msg is None:
-				continue
-			raise errors.RuleError(
-				self.__class__.__name__,
-				value,
-				rule,
-				msg,
-			)
+			if msg is not None:
+				raise errors.RuleError(
+					self.__class__.__name__,
+					value,
+					rule,
+					msg,
+				)
 
 
 
@@ -136,6 +135,7 @@ class cmd(plugable.Plugin):
 		(args, kw) = self.normalize(*args, **kw)
 		(args, kw) = self.autofill(*args, **kw)
 		self.validate(*args, **kw)
+		self.execute(*args, **kw)
 
 
 
