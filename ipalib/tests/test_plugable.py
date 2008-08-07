@@ -144,7 +144,6 @@ def test_Proxy():
 	# Test with correct arguments:
 	i = plugin()
 	p = cls(base, i)
-	assert read_only(p, 'base') is base
 	assert read_only(p, 'name') == 'user_add'
 	assert list(p) == sorted(base.public)
 

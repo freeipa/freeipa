@@ -124,38 +124,41 @@ class ReadOnly(object):
 
 class Proxy(ReadOnly):
 	__slots__ = (
-		'base',
-		'name',
+		'__base',
 		'__target',
 		'__name_attr',
+		'__public',
+		'name',
 	)
+
 	def __init__(self, base, target, name_attr='name'):
 		if not inspect.isclass(base):
 			raise TypeError('arg1 must be a class, got %r' % base)
 		if not isinstance(target, base):
 			raise ValueError('arg2 must be instance of arg1, got %r' % target)
-		object.__setattr__(self, 'base', base)
+		object.__setattr__(self, '_Proxy__base', base)
 		object.__setattr__(self, '_Proxy__target', target)
 		object.__setattr__(self, '_Proxy__name_attr', name_attr)
+		object.__setattr__(self, '_Proxy__public', base.public)
+		object.__setattr__(self, 'name', getattr(target, name_attr))
 
-		# Check base.public
-		assert type(self.base.public) is frozenset
+		# Check __public
+		assert type(self.__public) is frozenset
 
 		# Check name
-		object.__setattr__(self, 'name', getattr(target, name_attr))
 		check_identifier(self.name)
 
 	def __iter__(self):
-		for name in sorted(self.base.public):
+		for name in sorted(self.__public):
 			yield name
 
 	def __getitem__(self, key):
-		if key in self.base.public:
+		if key in self.__public:
 			return getattr(self.__target, key)
 		raise KeyError('no proxy attribute %r' % key)
 
 	def __getattr__(self, name):
-		if name in self.base.public:
+		if name in self.__public:
 			return getattr(self.__target, name)
 		raise AttributeError('no proxy attribute %r' % name)
 
@@ -163,12 +166,12 @@ class Proxy(ReadOnly):
 		return self['__call__'](*args, **kw)
 
 	def _clone(self, name_attr):
-		return self.__class__(self.base, self.__target, name_attr)
+		return self.__class__(self.__base, self.__target, name_attr)
 
 	def __repr__(self):
 		return '%s(%s, %r, %r)' % (
 			self.__class__.__name__,
-			self.base.__name__,
+			self.__base.__name__,
 			self.__target,
 			self.__name_attr,
 		)
