@@ -110,7 +110,7 @@ def test_Proxy():
 
 	# Setup:
 	class base(object):
-		public = frozenset((
+		__public__ = frozenset((
 			'public_0',
 			'public_1',
 			'__call__',
@@ -145,7 +145,7 @@ def test_Proxy():
 	i = plugin()
 	p = cls(base, i)
 	assert read_only(p, 'name') == 'user_add'
-	assert list(p) == sorted(base.public)
+	assert list(p) == sorted(base.__public__)
 
 	# Test normal methods:
 	for n in xrange(2):
@@ -184,7 +184,7 @@ def test_NameSpace():
 	assert issubclass(cls, plugable.ReadOnly)
 
 	class base(object):
-		public = frozenset((
+		__public__ = frozenset((
 			'plusplus',
 		))
 
@@ -353,7 +353,7 @@ def test_API():
 
 	# Setup the test bases, create the API:
 	class base0(plugable.Plugin):
-		public = frozenset((
+		__public__ = frozenset((
 			'method',
 		))
 
@@ -361,7 +361,7 @@ def test_API():
 			return n
 
 	class base1(plugable.Plugin):
-		public = frozenset((
+		__public__ = frozenset((
 			'method',
 		))
 

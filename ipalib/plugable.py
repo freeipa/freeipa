@@ -139,7 +139,7 @@ class Proxy(ReadOnly):
 		object.__setattr__(self, '_Proxy__base', base)
 		object.__setattr__(self, '_Proxy__target', target)
 		object.__setattr__(self, '_Proxy__name_attr', name_attr)
-		object.__setattr__(self, '_Proxy__public', base.public)
+		object.__setattr__(self, '_Proxy__public', base.__public__)
 		object.__setattr__(self, 'name', getattr(target, name_attr))
 
 		# Check __public
@@ -226,7 +226,6 @@ class NameSpace(ReadOnly):
 
 	def __repr__(self):
 		return '%s(<%d proxies>)' % (self.__class__.__name__, len(self))
-
 
 
 class Registrar(object):

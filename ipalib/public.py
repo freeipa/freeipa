@@ -27,7 +27,7 @@ import plugable
 
 
 class cmd(plugable.Plugin):
-	public = frozenset((
+	__public__ = frozenset((
 		'__call__',
 		'get_doc',
 		'opt',
@@ -67,7 +67,7 @@ class cmd(plugable.Plugin):
 
 
 class obj(plugable.Plugin):
-	public = frozenset((
+	__public__ = frozenset((
 		'mthd',
 		'prop',
 	))
@@ -127,14 +127,14 @@ class attr(plugable.Plugin):
 
 
 class mthd(attr, cmd):
-	public = frozenset((
+	__public__ = frozenset((
 		'obj',
 		'obj_name',
 	))
 
 
 class prop(attr):
-	public = frozenset((
+	__public__ = frozenset((
 		'obj',
 		'obj_name',
 	))
