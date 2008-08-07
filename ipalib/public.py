@@ -58,21 +58,27 @@ class opt(plugable.ReadOnly):
 
 	def __get_rules(self):
 		if self.__rules is None:
-			self.__rules = tuple(self.__rules_iter())
+			rules = sorted(
+				self.__rules_iter(),
+				key=lambda f: getattr(f, '__name__'),
+			)
+			object.__setattr__(self, '_opt__rules', tuple(rules))
 		return self.__rules
 	rules = property(__get_rules)
 
 	def __rules_iter(self):
-		for name in dir(self):
+		for name in dir(self.__class__):
 			if name.startswith('_'):
 				continue
-			attr = getattr(self, name)
-			if is_rule(attr):
-				yield attr
+			base_attr = getattr(self.__class__, name)
+			if is_rule(base_attr):
+				attr = getattr(self, name)
+				if is_rule(attr):
+					yield attr
+
 
 	def validate(self, value):
 		pass
-
 
 
 

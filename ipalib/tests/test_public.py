@@ -68,9 +68,35 @@ class test_opt():
 		return public.opt
 
 	def sub(self):
+		rule = public.rule
 		class int_opt(self.cls()):
 			type = int
+			@rule
+			def rule_a(self, value):
+				if value == 'a':
+					return 'cannot be a'
+			@rule
+			def rule_b(self, value):
+				if value == 'b':
+					return 'cannot be b'
+			@rule
+			def rule_c(self, value):
+				if value == 'c':
+					return 'cannot be c'
 		return int_opt
+
+	def test_rules(self):
+		"""
+		Test the rules property.
+		"""
+		i = self.sub()()
+		def i_attr(l):
+			return getattr(i, 'rule_%s' % l)
+		letters = ('a', 'b', 'c')
+		rules = tuple(i_attr(l) for l in letters)
+		assert i.rules == rules
+
+
 
 	def test_class(self):
 		cls = self.cls()
