@@ -25,6 +25,41 @@ from tstutil import raises, getitem, no_set, no_del, read_only
 from ipalib import public, plugable, errors
 
 
+def test_opt():
+	cls = public.opt
+	assert issubclass(cls, plugable.ReadOnly)
+
+	class int_opt(cls):
+		type = int
+
+	i = int_opt()
+
+	# Test with values that can't be converted:
+	nope = (
+		'7.0'
+		'whatever',
+		object,
+		None,
+	)
+	for val in nope:
+		e = raises(errors.NormalizationError, i.normalize, val)
+		assert isinstance(e, errors.ValidationError)
+		assert e.name == 'int_opt'
+		assert e.value == val
+		assert e.error == "not <type 'int'>"
+		assert e.type is int
+	# Test with values that can be converted:
+	okay = (
+		7,
+		7.0,
+		7.2,
+		7L,
+		'7',
+		' 7 ',
+	)
+	for val in okay:
+		assert i.normalize(val) == 7
+
 def test_cmd():
 	cls = public.cmd
 	assert issubclass(cls, plugable.Plugin)
@@ -33,6 +68,7 @@ def test_cmd():
 def test_obj():
 	cls = public.obj
 	assert issubclass(cls, plugable.Plugin)
+
 
 
 def test_attr():

@@ -43,10 +43,11 @@ def raises(exception, callback, *args, **kw):
 	raised = False
 	try:
 		callback(*args, **kw)
-	except exception:
+	except exception, e:
 		raised = True
 	if not raised:
 		raise ExceptionNotRaised(exception)
+	return e
 
 
 def getitem(obj, key):
@@ -83,3 +84,9 @@ def read_only(obj, name, value='some_new_obj'):
 
 	# Return the attribute
 	return getattr(obj, name)
+
+
+class ClassChecker(object):
+
+	def new(self, *args, **kw):
+		return self.cls(*args, **kw)

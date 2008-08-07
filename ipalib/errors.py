@@ -45,6 +45,26 @@ class IPAError(Exception):
 		return self.msg % self.kw
 
 
+class ValidationError(IPAError):
+	msg = 'invalid %r value %r: %s'
+
+	def __init__(self, name, value, error):
+		self.name = name
+		self.value = value
+		self.error = error
+		super(ValidationError, self).__init__(name, value, error)
+
+class NormalizationError(ValidationError):
+	def __init__(self, name, value, type):
+		self.type = type
+		super(NormalizationError, self).__init__(name, value,
+			'not %r' % type
+		)
+
+
+
+class ValidationRuleError(ValidationError):
+	msg = '%r is invalid %r: %s'
 
 
 

@@ -24,10 +24,35 @@ and UI all use.
 
 import re
 import plugable
+import errors
+
+
+class opt(plugable.ReadOnly):
+	__public__ = frozenset((
+		'normalize',
+		'validate',
+		'default',
+		'required',
+		'type',
+	))
+
+	def normalize(self, value):
+		try:
+			return self.type(value)
+		except (TypeError, ValueError):
+			raise errors.NormalizationError(
+				self.__class__.__name__, value, self.type
+			)
+
+
+
+
 
 
 class cmd(plugable.Plugin):
 	__public__ = frozenset((
+		'normalize',
+		'autofill',
 		'__call__',
 		'get_doc',
 		'opt',
@@ -63,7 +88,10 @@ class cmd(plugable.Plugin):
 	opt = property(__get_opt)
 
 	def __call__(self, *args, **kw):
-		print repr(self)
+		(args, kw) = self.normalize(*args, **kw)
+		(args, kw) = self.autofill(*args, **kw)
+		self.validate(*args, **kw)
+
 
 
 class obj(plugable.Plugin):
