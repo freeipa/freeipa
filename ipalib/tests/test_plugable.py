@@ -352,18 +352,19 @@ def test_Registrar():
 def test_API():
 	assert issubclass(plugable.API, plugable.ReadOnly)
 
-	# Setup the test plugins, create the Registrar:
-	class ExampleProxy(plugable.Proxy):
-		__slots__ = ['method']
-
+	# Setup the test bases, create the API:
 	class base0(plugable.Plugin):
-		proxy = ExampleProxy
+		public = frozenset((
+			'method',
+		))
 
 		def method(self, n):
 			return n
 
 	class base1(plugable.Plugin):
-		proxy = ExampleProxy
+		public = frozenset((
+			'method',
+		))
 
 		def method(self, n):
 			return n + 1
@@ -415,7 +416,7 @@ def test_API():
 		for p in xrange(3):
 			plugin_name = get_plugin(b, p)
 			proxy = ns[plugin_name]
-			assert isinstance(proxy, ExampleProxy)
+			assert isinstance(proxy, plugable.Proxy)
 			assert proxy.name == plugin_name
 			assert read_only(ns, plugin_name) is proxy
 			assert read_only(proxy, 'method')(7) == 7 + b

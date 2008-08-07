@@ -28,7 +28,6 @@ from ipalib import public, plugable, errors
 def test_cmd():
 	cls = public.cmd
 	assert issubclass(cls, plugable.Plugin)
-	assert cls.proxy is public.cmd_proxy
 
 
 def test_obj():

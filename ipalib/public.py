@@ -26,21 +26,13 @@ import re
 import plugable
 
 
-class generic_proxy(plugable.Proxy):
-	__slots__ = (
-		'get_doc',
-	)
-
-
-class cmd_proxy(plugable.Proxy):
-	__slots__ = (
+class cmd(plugable.Plugin):
+	public = frozenset((
 		'__call__',
 		'get_doc',
-	)
+		'opt',
 
-
-class cmd(plugable.Plugin):
-	proxy = cmd_proxy
+	))
 	__opt = None
 
 	def get_doc(self, _):
@@ -74,15 +66,11 @@ class cmd(plugable.Plugin):
 		print repr(self)
 
 
-class obj_proxy(plugable.Proxy):
-	__slots__ = (
+class obj(plugable.Plugin):
+	public = frozenset((
 		'mthd',
 		'prop',
-	)
-
-
-class obj(plugable.Plugin):
-	proxy = obj_proxy
+	))
 	__mthd = None
 	__prop = None
 
@@ -105,17 +93,11 @@ class obj(plugable.Plugin):
 	def __filter(self, name):
 		for i in getattr(self.api, name):
 			if i.obj_name == self.name:
-				yield i._clone(i.attr_name)
+				yield i._clone('attr_name')
 
-
-ATTR_SLOTS = (
-	'obj_name',
-	'attr_name',
-)
 
 class attr(plugable.Plugin):
 	__obj = None
-	proxy = generic_proxy
 
 	def __init__(self):
 		m = re.match('^([a-z]+)_([a-z]+)$', self.__class__.__name__)
@@ -144,23 +126,18 @@ class attr(plugable.Plugin):
 		self.__obj = api.obj[self.obj_name]
 
 
-class mthd_proxy(plugable.Proxy):
-	__slots__ = (
-		'__call__',
-		'get_doc',
-	) + ATTR_SLOTS
-
 class mthd(attr, cmd):
-	proxy = mthd_proxy
+	public = frozenset((
+		'obj',
+		'obj_name',
+	))
 
-
-class prop_proxy(plugable.Proxy):
-	__slots__ = (
-		'get_doc',
-	) + ATTR_SLOTS
 
 class prop(attr):
-	proxy = prop_proxy
+	public = frozenset((
+		'obj',
+		'obj_name',
+	))
 
 	def get_doc(self, _):
 		return _('prop doc')

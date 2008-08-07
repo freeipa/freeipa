@@ -127,6 +127,7 @@ class Proxy(ReadOnly):
 		'base',
 		'name',
 		'__target',
+		'__name_attr',
 	)
 	def __init__(self, base, target, name_attr='name'):
 		if not inspect.isclass(base):
@@ -135,6 +136,7 @@ class Proxy(ReadOnly):
 			raise ValueError('arg2 must be instance of arg1, got %r' % target)
 		object.__setattr__(self, 'base', base)
 		object.__setattr__(self, '_Proxy__target', target)
+		object.__setattr__(self, '_Proxy__name_attr', name_attr)
 
 		# Check base.public
 		assert type(self.base.public) is frozenset
@@ -162,6 +164,14 @@ class Proxy(ReadOnly):
 
 	def _clone(self, name_attr):
 		return self.__class__(self.base, self.__target, name_attr)
+
+	def __repr__(self):
+		return '%s(%s, %r, %r)' % (
+			self.__class__.__name__,
+			self.base.__name__,
+			self.__target,
+			self.__name_attr,
+		)
 
 
 class NameSpace(ReadOnly):
@@ -311,26 +321,26 @@ class API(ReadOnly):
 		keys = tuple(b.__name__ for b in allowed)
 		object.__setattr__(self, '_API__keys', keys)
 		object.__setattr__(self, 'register', Registrar(*allowed))
-		object.__setattr__(self, '_API__plugins', [])
 
 	def __call__(self):
 		"""
 		Finalize the registration, instantiate the plugins.
 		"""
-		for (base, plugins) in self.register:
-			ns = NameSpace(self.__plugin_iter(base, plugins))
+		d = {}
+		def plugin_iter(base, classes):
+			for cls in classes:
+				if cls not in d:
+					d[cls] = cls()
+				plugin = d[cls]
+				yield Proxy(base, plugin)
+
+		for (base, classes) in self.register:
+			ns = NameSpace(plugin_iter(base, classes))
 			assert not hasattr(self, base.__name__)
 			object.__setattr__(self, base.__name__, ns)
-		for plugin in self.__plugins:
+		for plugin in d.values():
 			plugin.finalize(self)
 			assert plugin.api is self
-
-	def __plugin_iter(self, base, plugins):
-		assert issubclass(base.proxy, Proxy)
-		for cls in plugins:
-			plugin = cls()
-			self.__plugins.append(plugin)
-			yield base.proxy(plugin)
 
 	def __iter__(self):
 		for key in self.__keys:
