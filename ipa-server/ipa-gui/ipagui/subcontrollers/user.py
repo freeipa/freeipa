@@ -744,8 +744,7 @@ class UserController(IPAController):
         password = ""
         generator = random.SystemRandom()
         for char in range(8):
-            index = generator.randint(0, len(password_chars) - 1)
-            password += password_chars[index]
+            password += generator.choice(password_chars)
 
         return password
 

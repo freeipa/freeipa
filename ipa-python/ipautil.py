@@ -365,10 +365,9 @@ def parse_generalized_time(timestr):
 
 def ipa_generate_password():
     rndpwd = ''
-    r = random.Random()
+    r = random.SystemRandom()
     for x in range(12):
-#        rndpwd += chr(r.randint(32,126))
-        rndpwd += chr(r.randint(65,90)) #stricter set for testing
+        rndpwd += chr(r.randint(32,126))
     return rndpwd
 
 
