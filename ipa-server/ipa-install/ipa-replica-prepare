@@ -49,6 +49,8 @@ def parse_options():
                       help="PIN for the Directory Server PKCS#12 file")
     parser.add_option("--http_pin", dest="http_pin",
                       help="PIN for the Apache Server PKCS#12 file")
+    parser.add_option("-p", "--password", dest="password", 
+                      help="Directory Manager (existing master) password")
 
     options, args = parser.parse_args(args)
 
@@ -138,13 +140,14 @@ def get_ds_user(ds_dir):
 
     return user
 
-def save_config(dir, realm_name, host_name, ds_user, domain_name):
+def save_config(dir, realm_name, host_name, ds_user, domain_name, dest_host):
     config = SafeConfigParser()
     config.add_section("realm")
     config.set("realm", "realm_name", realm_name)
     config.set("realm", "master_host_name", host_name)
     config.set("realm", "ds_user", ds_user)
     config.set("realm", "domain_name", domain_name)
+    config.set("realm", "destination_host", dest_host)
     fd = open(dir + "/realm_info", "w")
     config.write(fd)
 
@@ -161,6 +164,9 @@ def copy_files(realm_name, dir):
     except Exception, e:
         print "error copying files: " + str(e)
         sys.exit(1)
+
+def get_dirman_password():
+    return installutils.read_password("Directory Manager (existing master)", confirm=False, validate=False)
 
 def main():
     options, args = parse_options()
@@ -190,6 +196,26 @@ def main():
         sys.exit(1)
     ds_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name))
     ds_user = get_ds_user(ds_dir)
+
+    # get the directory manager password
+    dirman_password = options.password
+    if not options.password:
+        try:
+            dirman_password = get_dirman_password()
+        except KeyboardInterrupt:
+            sys.exit(0)
+
+    # Try out the password
+    try:
+        conn = ipaldap.IPAdmin(host_name)
+        conn.do_simple_bind(bindpw=dirman_password)
+        conn.unbind()
+    except ldap.CONNECT_ERROR, e:
+        sys.exit("\nUnable to connect to LDAP server %s" % host_name)
+    except ldap.SERVER_DOWN, e:
+        sys.exit("\nUnable to connect to LDAP server %s" % host_name)
+    except ldap.INVALID_CREDENTIALS, e :
+        sys.exit("\nThe password provided is incorrect for LDAP server %s" % host_name)
 
     print "Preparing replica for %s from %s" % (replica_fqdn, host_name)
 
@@ -241,12 +267,16 @@ def main():
     print "Copying additional files"
     copy_files(realm_name, dir)
     print "Finalizing configuration"
-    save_config(dir, realm_name, host_name, ds_user, domain_name)
+    save_config(dir, realm_name, host_name, ds_user, domain_name, replica_fqdn)
 
-    print "Packaging the replica into /var/lib/ipa/%s" % "replica-info-" + replica_fqdn
-    ipautil.run(["/bin/tar", "cfz", "/var/lib/ipa/replica-info-" + replica_fqdn, "-C", top_dir, "realm_info"])
-    os.chmod("/var/lib/ipa/replica-info-" + replica_fqdn, 0600)
+    replicafile = "/var/lib/ipa/replica-info-" + replica_fqdn
+    encfile = replicafile+".gpg"
 
+    print "Packaging replica information into %s" % encfile
+    ipautil.run(["/bin/tar", "cf", replicafile, "-C", top_dir, "realm_info"])
+    ipautil.encrypt_file(replicafile, encfile, dirman_password, top_dir);
+
+    os.remove(replicafile)
     shutil.rmtree(dir)
 
 try:

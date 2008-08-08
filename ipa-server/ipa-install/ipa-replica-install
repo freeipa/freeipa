@@ -61,10 +61,13 @@ def parse_options():
 def get_dirman_password():
     return installutils.read_password("Directory Manager (existing master)", confirm=False, validate=False)
 
-def expand_info(filename):
+def expand_info(filename, password):
     top_dir = tempfile.mkdtemp("ipa")
+    tarfile = top_dir+"/files.tar"
     dir = top_dir + "/realm_info"
-    ipautil.run(["tar", "xfz", filename, "-C", top_dir])
+    ipautil.decrypt_file(filename, tarfile, password, top_dir)
+    ipautil.run(["tar", "xf", tarfile, "-C", top_dir])
+    os.remove(tarfile)
 
     return top_dir, dir
 
@@ -78,6 +81,7 @@ def read_info(dir, rconfig):
     rconfig.master_host_name = config.get("realm", "master_host_name")
     rconfig.ds_user = config.get("realm", "ds_user")
     rconfig.domain_name = config.get("realm", "domain_name")
+    rconfig.host_name = config.get("realm", "destination_host")
 
 def get_host_name():
     hostname = installutils.get_fqdn()
@@ -179,32 +183,36 @@ def main():
 
     check_dirsrv()
 
-    top_dir, dir = expand_info(filename)
+    # get the directory manager password
+    dirman_password = options.password
+    if not dirman_password:
+        try:
+            dirman_password = get_dirman_password()
+        except KeyboardInterrupt:
+            sys.exit(0)
+
+    try:
+        top_dir, dir = expand_info(filename, dirman_password)
+    except Exception, e:
+        print "ERROR: Failed to decrypt or open the replica file."
+        print "Verify you entered the correct Directory Manager password."
+        sys.exit(1)
 
     config = ReplicaConfig()
     read_info(dir, config)
-    config.host_name = get_host_name()
-    p = filename.split('-')
-    host = '-'.join(p[2:])
-    if host != config.host_name:
+    config.dirman_password = dirman_password
+    host = get_host_name()
+    if config.host_name != host:
         try:
-            print "This replica was created for '%s' but this machine is named '%s'" % (host, config.host_name)
+            print "This replica was created for '%s' but this machine is named '%s'" % (config.host_name, host)
             if not ipautil.user_input("This may cause problems. Continue?", True):
                 sys.exit(0)
+            config.host_name = host
             print ""
         except KeyboardInterrupt:
             sys.exit(0)
     config.repl_password = ipautil.ipa_generate_password()
     config.dir = dir
-
-    # get the directory manager password
-    if not options.password:
-        try:
-            config.dirman_password = get_dirman_password()
-        except KeyboardInterrupt:
-            sys.exit(0)
-    else:
-        config.dirman_password = options.password
 
     # Try out the password
     try:
