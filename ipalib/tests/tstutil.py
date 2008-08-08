@@ -21,6 +21,8 @@
 Utility functions for the unit tests.
 """
 
+import inspect
+
 class ExceptionNotRaised(Exception):
     """
     Exception raised when an *expected* exception is *not* raised during a
@@ -91,9 +93,25 @@ def is_prop(prop):
 
 
 class ClassChecker(object):
+    __cls = None
+    __subcls = None
 
-    def new(self, *args, **kw):
-        return self.cls(*args, **kw)
+    def __get_cls(self):
+        if self.__cls is None:
+            self.__cls = self._cls
+        assert inspect.isclass(self.__cls)
+        return self.__cls
+    cls = property(__get_cls)
 
-    def get_sub(self):
-        raise NotImplementedError('get_sub()')
+    def __get_subcls(self):
+        if self.__subcls is None:
+            self.__subcls = self.get_subcls()
+        assert inspect.isclass(self.__subcls)
+        return self.__subcls
+    subcls = property(__get_subcls)
+
+    def get_subcls(self):
+        raise NotImplementedError(
+            self.__class__.__name__,
+            'get_subcls()'
+        )

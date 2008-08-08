@@ -22,7 +22,56 @@ Unit tests for `ipalib.plugable` module.
 """
 
 from tstutil import raises, getitem, no_set, no_del, read_only
+from tstutil import ClassChecker
 from ipalib import plugable, errors
+
+
+class test_ReadOnly(ClassChecker):
+    """
+    Test the plugable.ReadOnly class
+    """
+    _cls = plugable.ReadOnly
+
+    def test_class(self):
+        assert self.cls.__bases__ == (object,)
+
+    def test_when_unlocked(self):
+        """
+        Test that default state is unlocked, that setting and deleting
+        attributes works.
+        """
+        o = self.cls()
+
+        # Setting:
+        o.hello = 'world'
+        assert o.hello == 'world'
+
+        # Deleting:
+        del o.hello
+        assert not hasattr(o, 'hello')
+
+    def test_when_locked(self):
+        """
+        Test that after __lock__() has been called, setting or deleting an
+        attribute raises AttributeError.
+        """
+        obj = self.cls()
+        obj.__lock__()
+        names = ['not_an_attribute', 'an_attribute']
+        for name in names:
+            no_set(obj, name)
+            no_del(obj, name)
+
+        class some_ro_class(self.cls):
+            def __init__(self):
+                self.an_attribute = 'Hello world!'
+                self.__lock__()
+        obj = some_ro_class()
+        for name in names:
+            no_set(obj, name)
+            no_del(obj, name)
+        assert read_only(obj, 'an_attribute') == 'Hello world!'
+
 
 
 def test_valid_identifier():
@@ -125,23 +174,7 @@ def test_Plugin():
     raises(AssertionError, p.finalize, api)
 
 
-def test_ReadOnly():
-    obj = plugable.ReadOnly()
-    obj.__lock__()
-    names = ['not_an_attribute', 'an_attribute']
-    for name in names:
-        no_set(obj, name)
-        no_del(obj, name)
 
-    class some_ro_class(plugable.ReadOnly):
-        def __init__(self):
-            self.an_attribute = 'Hello world!'
-            self.__lock__()
-    obj = some_ro_class()
-    for name in names:
-        no_set(obj, name)
-        no_del(obj, name)
-    assert read_only(obj, 'an_attribute') == 'Hello world!'
 
 
 def test_Proxy():

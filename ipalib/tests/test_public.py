@@ -21,7 +21,7 @@
 Unit tests for `ipalib.public` module.
 """
 
-from tstutil import raises, getitem, no_set, no_del, read_only
+from tstutil import raises, getitem, no_set, no_del, read_only, ClassChecker
 from ipalib import public, plugable, errors
 
 
@@ -63,27 +63,7 @@ def test_is_rule():
     assert not is_rule(call(None))
 
 
-class ClassChecker(object):
-    __cls = None
-    __subcls = None
 
-    def __get_cls(self):
-        if self.__cls is None:
-            self.__cls = self._cls
-        return self.__cls
-    cls = property(__get_cls)
-
-    def __get_subcls(self):
-        if self.__subcls is None:
-            self.__subcls = self.get_subcls()
-        return self.__subcls
-    subcls = property(__get_subcls)
-
-    def get_subcls(self):
-        raise NotImplementedError(
-            self.__class__.__name__,
-            'get_subcls()'
-        )
 
 
 class test_option(ClassChecker):
