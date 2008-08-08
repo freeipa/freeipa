@@ -144,8 +144,8 @@ class Proxy(ReadOnly):
     	'__base',
     	'__target',
     	'__name_attr',
-    	'__public',
     	'name',
+    	'__public__',
     )
 
     def __init__(self, base, target, name_attr='name'):
@@ -156,26 +156,26 @@ class Proxy(ReadOnly):
     	object.__setattr__(self, '_Proxy__base', base)
     	object.__setattr__(self, '_Proxy__target', target)
     	object.__setattr__(self, '_Proxy__name_attr', name_attr)
-    	object.__setattr__(self, '_Proxy__public', base.__public__)
+    	object.__setattr__(self, '__public__', base.__public__)
     	object.__setattr__(self, 'name', getattr(target, name_attr))
 
-    	# Check __public
-    	assert type(self.__public) is frozenset
+    	# Check __public__
+    	assert type(self.__public__) is frozenset
 
     	# Check name
     	check_identifier(self.name)
 
     def __iter__(self):
-    	for name in sorted(self.__public):
+    	for name in sorted(self.__public__):
     		yield name
 
     def __getitem__(self, key):
-    	if key in self.__public:
+    	if key in self.__public__:
     		return getattr(self.__target, key)
     	raise KeyError('no proxy attribute %r' % key)
 
     def __getattr__(self, name):
-    	if name in self.__public:
+    	if name in self.__public__:
     		return getattr(self.__target, name)
     	raise AttributeError('no proxy attribute %r' % name)
 
