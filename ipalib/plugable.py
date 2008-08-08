@@ -54,6 +54,23 @@ def check_identifier(name):
     	raise errors.NameSpaceError(name, regex)
 
 
+class Abstract(object):
+    __public__ = frozenset()
+
+    @classmethod
+    def implements(cls, arg):
+        assert type(cls.__public__) is frozenset
+        if isinstance(arg, str):
+            return arg in cls.__public__
+        if type(getattr(arg, '__public__', None)) is frozenset:
+            return cls.__public__.issuperset(arg.__public__)
+        if type(arg) is frozenset:
+            return cls.__public__.issuperset(arg)
+        raise TypeError(
+            "must be str, frozenset, or have frozenset '__public__' attribute"
+        )
+
+
 class Plugin(object):
     """
     Base class for all plugins.

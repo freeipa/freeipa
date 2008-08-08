@@ -102,7 +102,7 @@ class option(object):
     def __rules_iter(self):
     	"""
     	Iterates through the attributes in this instance to retrieve the
-    	methods implemented validation rules.
+    	methods implementing validation rules.
     	"""
     	for name in dir(self.__class__):
     		if name.startswith('_'):
@@ -117,6 +117,10 @@ class option(object):
     	"""
     	Returns a default or auto-completed value for this option. If no
     	default is available, this method should return None.
+
+    	All the keywords are passed so it's possible to build an
+    	auto-completed value from other options values, e.g., build 'initials'
+    	from 'givenname' + 'sn'.
     	"""
     	return None
 
@@ -177,11 +181,15 @@ class cmd(plugable.Plugin):
     			self.options.validate(value)
 
     def default(self, **kw):
+        d = {}
     	for opt in self.options:
     		if opt.name not in kw:
     			value = opt.default(**kw)
     			if value is not None:
-    				kw[opt.name] = value
+    				d[opt.name] = value
+    	assert not set(kw).intersection(d)
+    	kw.update(d)
+    	return kw
 
     def __call__(self, **kw):
     	(args, kw) = self.normalize(*args, **kw)

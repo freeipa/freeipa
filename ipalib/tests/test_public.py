@@ -63,13 +63,35 @@ def test_is_rule():
     assert not is_rule(call(None))
 
 
-class test_option():
-    def cls(self):
-    	return public.option
+class ClassChecker(object):
+    __cls = None
+    __subcls = None
 
-    def sub(self):
+    def __get_cls(self):
+        if self.__cls is None:
+            self.__cls = self._cls
+        return self.__cls
+    cls = property(__get_cls)
+
+    def __get_subcls(self):
+        if self.__subcls is None:
+            self.__subcls = self.get_subcls()
+        return self.__subcls
+    subcls = property(__get_subcls)
+
+    def get_subcls(self):
+        raise NotImplementedError(
+            self.__class__.__name__,
+            'get_subcls()'
+        )
+
+
+class test_option(ClassChecker):
+    _cls = public.option
+
+    def get_subcls(self):
     	rule = public.rule
-    	class int_opt(self.cls()):
+    	class int_opt(self.cls):
     		type = int
     		@rule
     		def rule_0(self, value):
@@ -89,13 +111,12 @@ class test_option():
     	"""
     	Perform some tests on the class (not an instance).
     	"""
-    	cls = self.cls()
     	#assert issubclass(cls, plugable.ReadOnly)
-    	assert type(cls.rules) is property
+    	assert type(self.cls.rules) is property
 
     def test_normalize(self):
-    	sub = self.sub()
-    	i = sub()
+        assert 'normalize' in self.cls.__public__
+    	o = self.subcls()
     	# Test with values that can't be converted:
     	nope = (
     		'7.0'
@@ -104,7 +125,7 @@ class test_option():
     		None,
     	)
     	for val in nope:
-    		e = raises(errors.NormalizationError, i.normalize, val)
+    		e = raises(errors.NormalizationError, o.normalize, val)
     		assert isinstance(e, errors.ValidationError)
     		assert e.name == 'int_opt'
     		assert e.value == val
@@ -120,29 +141,36 @@ class test_option():
     		' 7 ',
     	)
     	for val in okay:
-    		assert i.normalize(val) == 7
+    		assert o.normalize(val) == 7
+
+    def test_validate(self):
+    	"""
+    	Test the validate method.
+    	"""
+    	assert 'validate' in self.cls.__public__
+    	o = self.subcls()
+    	o.validate(9)
+    	for i in xrange(3):
+    		e = raises(errors.RuleError, o.validate, i)
+    		assert e.error == 'cannot be %d' % i
+    		assert e.value == i
 
     def test_rules(self):
     	"""
     	Test the rules property.
     	"""
-    	o = self.sub()()
+    	o = self.subcls()
     	assert len(o.rules) == 3
     	def get_rule(i):
     		return getattr(o, 'rule_%d' % i)
     	rules = tuple(get_rule(i) for i in xrange(3))
     	assert o.rules == rules
 
-    def test_validation(self):
-    	"""
-    	Test the validation method.
-    	"""
-    	o = self.sub()()
-    	o.validate(9)
-    	for i in xrange(3):
-    		e = raises(errors.RuleError, o.validate, i)
-    		assert e.error == 'cannot be %d' % i
-    		assert e.value == i
+    def test_default(self):
+        assert 'default' in self.cls.__public__
+        assert self.cls().default() is None
+
+
 
 
 
