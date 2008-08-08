@@ -91,6 +91,15 @@ class ProxyTarget(ReadOnly):
 
 
 class Proxy(ReadOnly):
+    """
+    Allows access to only certain attributes on its target object (a
+    ProxyTarget).
+
+    Think of a proxy as an argreement that "I will have at most these
+    attributes". This is different from (although similar to) an interface,
+    which can be thought of as an agreement that "I will have at least these
+    attributes".
+    """
     __slots__ = (
         '__base',
         '__target',
@@ -100,6 +109,13 @@ class Proxy(ReadOnly):
     )
 
     def __init__(self, base, target, name_attr='name'):
+        """
+        `base` - the class defining the __public__ frozenset of attributes to
+            proxy
+        `target` - the target of the proxy (must be instance of `base`)
+        `name_attr` - the name of the str attribute on `target` to assign
+            to Proxy.name
+        """
         if not inspect.isclass(base):
             raise TypeError('arg1 must be a class, got %r' % base)
         if not isinstance(target, base):
@@ -114,15 +130,26 @@ class Proxy(ReadOnly):
         self.__lock__()
 
     def __iter__(self):
+        """
+        Iterates though the attribute names this proxy is allowing access to.
+        """
         for name in sorted(self.__public__):
             yield name
 
     def __getitem__(self, key):
+        """
+        If this proxy allowes access to an attribute named `key`, return that
+        attrribute.
+        """
         if key in self.__public__:
             return getattr(self.__target, key)
         raise KeyError('no proxy attribute %r' % key)
 
     def __getattr__(self, name):
+        """
+        If this proxy allowes access to an attribute named `name`, return that
+        attrribute.
+        """
         if name in self.__public__:
             return getattr(self.__target, name)
         raise AttributeError('no proxy attribute %r' % name)
