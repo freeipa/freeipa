@@ -118,25 +118,33 @@ class ReadOnly(object):
     """
     Base class for classes with read-only attributes.
     """
-    __slots__ = tuple()
+    __locked = False
+
+    def _lock(self):
+        assert self.__locked is False
+        self.__locked = True
 
     def __setattr__(self, name, value):
     	"""
-    	This raises an AttributeError anytime an attempt is made to set an
-    	attribute.
+    	Raises an AttributeError if ReadOnly._lock() has already been called;
+    	otherwise calls object.__setattr__()
     	"""
-    	raise AttributeError('read-only: cannot set %s.%s' %
-    		(self.__class__.__name__, name)
-    	)
+    	if self.__locked:
+        	raise AttributeError('read-only: cannot set %s.%s' %
+        		(self.__class__.__name__, name)
+        	)
+    	return object.__setattr__(self, name, value)
 
     def __delattr__(self, name):
     	"""
-    	This raises an AttributeError anytime an attempt is made to delete an
-    	attribute.
+    	Raises an AttributeError if ReadOnly._lock() has already been called;
+    	otherwise calls object.__delattr__()
     	"""
-    	raise AttributeError('read-only: cannot del %s.%s' %
-    		(self.__class__.__name__, name)
-    	)
+    	if self.__locked:
+        	raise AttributeError('read-only: cannot del %s.%s' %
+        		(self.__class__.__name__, name)
+        	)
+        return object.__delattr__(self, name)
 
 
 class Proxy(ReadOnly):
@@ -153,17 +161,15 @@ class Proxy(ReadOnly):
     		raise TypeError('arg1 must be a class, got %r' % base)
     	if not isinstance(target, base):
     		raise ValueError('arg2 must be instance of arg1, got %r' % target)
-    	object.__setattr__(self, '_Proxy__base', base)
-    	object.__setattr__(self, '_Proxy__target', target)
-    	object.__setattr__(self, '_Proxy__name_attr', name_attr)
-    	object.__setattr__(self, '__public__', base.__public__)
-    	object.__setattr__(self, 'name', getattr(target, name_attr))
-
-    	# Check __public__
+        self.__base = base
+    	self.__target = target
+    	self.__name_attr = name_attr
+    	self.name = getattr(target, name_attr)
+    	self.__public__ = base.__public__
     	assert type(self.__public__) is frozenset
-
-    	# Check name
     	check_identifier(self.name)
+    	self._lock()
+
 
     def __iter__(self):
     	for name in sorted(self.__public__):
@@ -204,14 +210,15 @@ class NameSpace(ReadOnly):
     	"""
     	NameSpace
     	"""
-    	object.__setattr__(self, '_NameSpace__proxies', tuple(proxies))
-    	object.__setattr__(self, '_NameSpace__d', dict())
+    	self.__proxies = tuple(proxies)
+    	self.__d = dict()
     	for proxy in self.__proxies:
     		assert isinstance(proxy, Proxy)
     		assert proxy.name not in self.__d
     		self.__d[proxy.name] = proxy
     		assert not hasattr(self, proxy.name)
-    		object.__setattr__(self, proxy.name, proxy)
+    		setattr(self, proxy.name, proxy)
+    	self._lock()
 
     def __iter__(self):
     	"""
@@ -338,8 +345,8 @@ class Registrar(object):
 class API(ReadOnly):
     def __init__(self, *allowed):
     	keys = tuple(b.__name__ for b in allowed)
-    	object.__setattr__(self, '_API__keys', keys)
-    	object.__setattr__(self, 'register', Registrar(*allowed))
+        self.register = Registrar(*allowed)
+        self._lock()
 
     def __call__(self):
     	"""
