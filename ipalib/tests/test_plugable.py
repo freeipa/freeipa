@@ -127,7 +127,7 @@ def test_Plugin():
 
 def test_ReadOnly():
     obj = plugable.ReadOnly()
-    obj._lock()
+    obj.__lock__()
     names = ['not_an_attribute', 'an_attribute']
     for name in names:
         no_set(obj, name)
@@ -136,7 +136,7 @@ def test_ReadOnly():
     class some_ro_class(plugable.ReadOnly):
         def __init__(self):
             self.an_attribute = 'Hello world!'
-            self._lock()
+            self.__lock__()
     obj = some_ro_class()
     for name in names:
         no_set(obj, name)

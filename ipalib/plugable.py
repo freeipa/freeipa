@@ -36,6 +36,39 @@ def check_identifier(name):
         raise errors.NameSpaceError(name, regex)
 
 
+class ReadOnly(object):
+    """
+    Base class for classes with read-only attributes.
+    """
+    __locked = False
+
+    def __lock__(self):
+        assert self.__locked is False
+        self.__locked = True
+
+    def __setattr__(self, name, value):
+        """
+        Raises an AttributeError if ReadOnly.__lock__() has already been called;
+        otherwise calls object.__setattr__()
+        """
+        if self.__locked:
+            raise AttributeError('read-only: cannot set %s.%s' %
+                (self.__class__.__name__, name)
+            )
+        return object.__setattr__(self, name, value)
+
+    def __delattr__(self, name):
+        """
+        Raises an AttributeError if ReadOnly.__lock__() has already been called;
+        otherwise calls object.__delattr__()
+        """
+        if self.__locked:
+            raise AttributeError('read-only: cannot del %s.%s' %
+                (self.__class__.__name__, name)
+            )
+        return object.__delattr__(self, name)
+
+
 class Abstract(object):
     __public__ = frozenset()
 
@@ -96,37 +129,7 @@ class Plugin(object):
         )
 
 
-class ReadOnly(object):
-    """
-    Base class for classes with read-only attributes.
-    """
-    __locked = False
 
-    def _lock(self):
-        assert self.__locked is False
-        self.__locked = True
-
-    def __setattr__(self, name, value):
-        """
-        Raises an AttributeError if ReadOnly._lock() has already been called;
-        otherwise calls object.__setattr__()
-        """
-        if self.__locked:
-            raise AttributeError('read-only: cannot set %s.%s' %
-                (self.__class__.__name__, name)
-            )
-        return object.__setattr__(self, name, value)
-
-    def __delattr__(self, name):
-        """
-        Raises an AttributeError if ReadOnly._lock() has already been called;
-        otherwise calls object.__delattr__()
-        """
-        if self.__locked:
-            raise AttributeError('read-only: cannot del %s.%s' %
-                (self.__class__.__name__, name)
-            )
-        return object.__delattr__(self, name)
 
 
 class Proxy(ReadOnly):
@@ -150,7 +153,7 @@ class Proxy(ReadOnly):
         self.__public__ = base.__public__
         assert type(self.__public__) is frozenset
         check_identifier(self.name)
-        self._lock()
+        self.__lock__()
 
 
     def __iter__(self):
@@ -200,7 +203,7 @@ class NameSpace(ReadOnly):
             self.__d[proxy.name] = proxy
             assert not hasattr(self, proxy.name)
             setattr(self, proxy.name, proxy)
-        self._lock()
+        self.__lock__()
 
     def __iter__(self):
         """
@@ -328,7 +331,7 @@ class API(ReadOnly):
     def __init__(self, *allowed):
         keys = tuple(b.__name__ for b in allowed)
         self.register = Registrar(*allowed)
-        self._lock()
+        self.__lock__()
 
     def __call__(self):
         """
