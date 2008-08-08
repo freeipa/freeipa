@@ -26,6 +26,33 @@ from tstutil import ClassChecker
 from ipalib import plugable, errors
 
 
+def test_valid_identifier():
+    """
+    Test the plugable.valid_identifier function.
+    """
+    f = plugable.check_identifier
+    okay = [
+        'user_add',
+        'stuff2junk',
+        'sixty9',
+    ]
+    nope = [
+        '_user_add',
+        '__user_add',
+        'user_add_',
+        'user_add__',
+        '_user_add_',
+        '__user_add__',
+        '60nine',
+    ]
+    for name in okay:
+        f(name)
+    for name in nope:
+        raises(errors.NameSpaceError, f, name)
+    for name in okay:
+        raises(errors.NameSpaceError, f, name.upper())
+
+
 class test_ReadOnly(ClassChecker):
     """
     Test the plugable.ReadOnly class
@@ -34,6 +61,7 @@ class test_ReadOnly(ClassChecker):
 
     def test_class(self):
         assert self.cls.__bases__ == (object,)
+        assert callable(self.cls.__lock__)
 
     def test_when_unlocked(self):
         """
@@ -73,79 +101,64 @@ class test_ReadOnly(ClassChecker):
         assert read_only(obj, 'an_attribute') == 'Hello world!'
 
 
+class test_ProxyTarget(ClassChecker):
+    """
+    Test the plugable.ProxyTarget class.
+    """
+    _cls = plugable.ProxyTarget
 
-def test_valid_identifier():
-    f = plugable.check_identifier
-    okay = [
-        'user_add',
-        'stuff2junk',
-        'sixty9',
-    ]
-    nope = [
-        '_user_add',
-        '__user_add',
-        'user_add_',
-        'user_add__',
-        '_user_add_',
-        '__user_add__',
-        '60nine',
-    ]
-    for name in okay:
-        f(name)
-    for name in nope:
-        raises(errors.NameSpaceError, f, name)
-    for name in okay:
-        raises(errors.NameSpaceError, f, name.upper())
+    def test_class(self):
+        assert self.cls.__bases__ == (plugable.ReadOnly,)
+        assert self.cls.implements(frozenset())
 
+    def test_implements(self):
+        """
+        Test the implements() classmethod
+        """
+        class example(self.cls):
+            __public__ = frozenset((
+                'some_method',
+                'some_property',
+            ))
+        class superset(self.cls):
+            __public__ = frozenset((
+                'some_method',
+                'some_property',
+                'another_property',
+            ))
+        class subset(self.cls):
+            __public__ = frozenset((
+                'some_property',
+            ))
+        class any_object(object):
+            __public__ = frozenset((
+                'some_method',
+                'some_property',
+            ))
 
-def test_Abstract():
-    cls = plugable.Abstract
+        for ex in (example, example()):
+            # Test using str:
+            assert ex.implements('some_method')
+            assert not ex.implements('another_method')
 
-    class example(cls):
-        __public__ = frozenset((
-            'some_method',
-            'some_property',
-        ))
+            # Test using frozenset:
+            assert ex.implements(frozenset(['some_method']))
+            assert not ex.implements(
+                frozenset(['some_method', 'another_method'])
+            )
 
-    # Test using str:
-    assert example.implements('some_method')
-    assert not example.implements('another_method')
+            # Test using another object/class with __public__ frozenset:
+            assert ex.implements(example)
+            assert ex.implements(example())
 
-    # Test using frozenset:
-    assert example.implements(frozenset(['some_method']))
-    assert not example.implements(
-        frozenset(['some_method', 'another_method'])
-    )
+            assert ex.implements(subset)
+            assert not subset.implements(ex)
 
-    # Test using another object/class with __public__ frozenset:
-    assert example.implements(example)
-    assert example().implements(example)
-    assert example.implements(example())
-    assert example().implements(example())
+            assert not ex.implements(superset)
+            assert superset.implements(ex)
 
-    class subset(cls):
-        __public__ = frozenset((
-            'some_property',
-        ))
-    assert example.implements(subset)
-    assert not subset.implements(example)
-
-    class superset(cls):
-        __public__ = frozenset((
-            'some_method',
-            'some_property',
-            'another_property',
-        ))
-    assert not example.implements(superset)
-    assert superset.implements(example)
-
-    class any_object(object):
-        __public__ = frozenset((
-            'some_method',
-            'some_property',
-        ))
-    assert example.implements(any_object)
-    assert example.implements(any_object())
+            assert ex.implements(any_object)
+            assert ex.implements(any_object())
 
 
 def test_Plugin():

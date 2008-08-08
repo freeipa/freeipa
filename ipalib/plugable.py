@@ -43,7 +43,11 @@ class ReadOnly(object):
     __locked = False
 
     def __lock__(self):
-        assert self.__locked is False
+        """
+        Puts this instance into a read-only state, after which attempting to
+        set or delete an attribute will raise AttributeError.
+        """
+        assert self.__locked is False, '__lock__() can only be called once'
         self.__locked = True
 
     def __setattr__(self, name, value):
@@ -69,7 +73,7 @@ class ReadOnly(object):
         return object.__delattr__(self, name)
 
 
-class Abstract(object):
+class ProxyTarget(ReadOnly):
     __public__ = frozenset()
 
     @classmethod
@@ -83,6 +87,58 @@ class Abstract(object):
             return cls.__public__.issuperset(arg)
         raise TypeError(
             "must be str, frozenset, or have frozenset '__public__' attribute"
+        )
+
+
+class Proxy(ReadOnly):
+    __slots__ = (
+        '__base',
+        '__target',
+        '__name_attr',
+        'name',
+        '__public__',
+    )
+
+    def __init__(self, base, target, name_attr='name'):
+        if not inspect.isclass(base):
+            raise TypeError('arg1 must be a class, got %r' % base)
+        if not isinstance(target, base):
+            raise ValueError('arg2 must be instance of arg1, got %r' % target)
+        self.__base = base
+        self.__target = target
+        self.__name_attr = name_attr
+        self.name = getattr(target, name_attr)
+        self.__public__ = base.__public__
+        assert type(self.__public__) is frozenset
+        check_identifier(self.name)
+        self.__lock__()
+
+    def __iter__(self):
+        for name in sorted(self.__public__):
+            yield name
+
+    def __getitem__(self, key):
+        if key in self.__public__:
+            return getattr(self.__target, key)
+        raise KeyError('no proxy attribute %r' % key)
+
+    def __getattr__(self, name):
+        if name in self.__public__:
+            return getattr(self.__target, name)
+        raise AttributeError('no proxy attribute %r' % name)
+
+    def __call__(self, *args, **kw):
+        return self['__call__'](*args, **kw)
+
+    def _clone(self, name_attr):
+        return self.__class__(self.__base, self.__target, name_attr)
+
+    def __repr__(self):
+        return '%s(%s, %r, %r)' % (
+            self.__class__.__name__,
+            self.__base.__name__,
+            self.__target,
+            self.__name_attr,
         )
 
 
@@ -132,57 +188,7 @@ class Plugin(object):
 
 
 
-class Proxy(ReadOnly):
-    __slots__ = (
-        '__base',
-        '__target',
-        '__name_attr',
-        'name',
-        '__public__',
-    )
 
-    def __init__(self, base, target, name_attr='name'):
-        if not inspect.isclass(base):
-            raise TypeError('arg1 must be a class, got %r' % base)
-        if not isinstance(target, base):
-            raise ValueError('arg2 must be instance of arg1, got %r' % target)
-        self.__base = base
-        self.__target = target
-        self.__name_attr = name_attr
-        self.name = getattr(target, name_attr)
-        self.__public__ = base.__public__
-        assert type(self.__public__) is frozenset
-        check_identifier(self.name)
-        self.__lock__()
-
-
-    def __iter__(self):
-        for name in sorted(self.__public__):
-            yield name
-
-    def __getitem__(self, key):
-        if key in self.__public__:
-            return getattr(self.__target, key)
-        raise KeyError('no proxy attribute %r' % key)
-
-    def __getattr__(self, name):
-        if name in self.__public__:
-            return getattr(self.__target, name)
-        raise AttributeError('no proxy attribute %r' % name)
-
-    def __call__(self, *args, **kw):
-        return self['__call__'](*args, **kw)
-
-    def _clone(self, name_attr):
-        return self.__class__(self.__base, self.__target, name_attr)
-
-    def __repr__(self):
-        return '%s(%s, %r, %r)' % (
-            self.__class__.__name__,
-            self.__base.__name__,
-            self.__target,
-            self.__name_attr,
-        )
 
 
 class NameSpace(ReadOnly):
