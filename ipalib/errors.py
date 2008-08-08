@@ -29,44 +29,44 @@ class IPAError(Exception):
     msg = None
 
     def __init__(self, *args, **kw):
-    	self.args = args
-    	self.kw = kw
+        self.args = args
+        self.kw = kw
 
     def __str__(self):
-    	"""
-    	Returns the string representation of this exception.
-    	"""
-    	if self.msg is None:
-    		if len(self.args) == 1:
-    			return unicode(self.args[0])
-    		return unicode(self.args)
-    	if len(self.args) > 0:
-    		return self.msg % self.args
-    	return self.msg % self.kw
+        """
+        Returns the string representation of this exception.
+        """
+        if self.msg is None:
+            if len(self.args) == 1:
+                return unicode(self.args[0])
+            return unicode(self.args)
+        if len(self.args) > 0:
+            return self.msg % self.args
+        return self.msg % self.kw
 
 
 class ValidationError(IPAError):
     msg = 'invalid %r value %r: %s'
 
     def __init__(self, name, value, error):
-    	self.name = name
-    	self.value = value
-    	self.error = error
-    	super(ValidationError, self).__init__(name, value, error)
+        self.name = name
+        self.value = value
+        self.error = error
+        super(ValidationError, self).__init__(name, value, error)
 
 
 class NormalizationError(ValidationError):
     def __init__(self, name, value, type):
-    	self.type = type
-    	super(NormalizationError, self).__init__(name, value,
-    		'not %r' % type
-    	)
+        self.type = type
+        super(NormalizationError, self).__init__(name, value,
+            'not %r' % type
+        )
 
 
 class RuleError(ValidationError):
     def __init__(self, name, value, rule, error):
-    	self.rule = rule
-    	super(RuleError, self).__init__(name, value, error)
+        self.rule = rule
+        super(RuleError, self).__init__(name, value, error)
 
 
 
@@ -93,11 +93,11 @@ class SubclassError(RegistrationError):
     msg = 'plugin %r not subclass of any base in %r'
 
     def __init__(self, cls, allowed):
-    	self.cls = cls
-    	self.allowed = allowed
+        self.cls = cls
+        self.allowed = allowed
 
     def __str__(self):
-    	return self.msg % (self.cls, self.allowed)
+        return self.msg % (self.cls, self.allowed)
 
 
 class DuplicateError(RegistrationError):
@@ -108,10 +108,10 @@ class DuplicateError(RegistrationError):
     msg = '%r at %d was already registered'
 
     def __init__(self, cls):
-    	self.cls = cls
+        self.cls = cls
 
     def __str__(self):
-    	return self.msg % (self.cls, id(self.cls))
+        return self.msg % (self.cls, id(self.cls))
 
 
 class OverrideError(RegistrationError):
@@ -122,11 +122,11 @@ class OverrideError(RegistrationError):
     msg = 'unexpected override of %s.%s with %r (use override=True if intended)'
 
     def __init__(self, base, cls):
-    	self.base = base
-    	self.cls = cls
+        self.base = base
+        self.cls = cls
 
     def __str__(self):
-    	return self.msg % (self.base.__name__, self.cls.__name__, self.cls)
+        return self.msg % (self.base.__name__, self.cls.__name__, self.cls)
 
 
 class MissingOverrideError(RegistrationError):
@@ -137,11 +137,11 @@ class MissingOverrideError(RegistrationError):
     msg = '%s.%s has not been registered, cannot override with %r'
 
     def __init__(self, base, cls):
-    	self.base = base
-    	self.cls = cls
+        self.base = base
+        self.cls = cls
 
     def __str__(self):
-    	return self.msg % (self.base.__name__, self.cls.__name__, self.cls)
+        return self.msg % (self.base.__name__, self.cls.__name__, self.cls)
 
 
 

@@ -33,13 +33,13 @@ def test_rule():
     flag = public.RULE_FLAG
     rule = public.rule
     def my_func():
-    	pass
+        pass
     assert not hasattr(my_func, flag)
     rule(my_func)
     assert getattr(my_func, flag) is True
     @rule
     def my_func2():
-    	pass
+        pass
     assert getattr(my_func2, flag) is True
 
 
@@ -48,14 +48,14 @@ def test_is_rule():
     flag = public.RULE_FLAG
 
     class no_call(object):
-    	def __init__(self, value):
-    		if value is not None:
-    			assert value in (True, False)
-    			setattr(self, flag, value)
+        def __init__(self, value):
+            if value is not None:
+                assert value in (True, False)
+                setattr(self, flag, value)
 
     class call(no_call):
-    	def __call__(self):
-    		pass
+        def __call__(self):
+            pass
 
     assert is_rule(call(True))
     assert not is_rule(no_call(True))
@@ -90,81 +90,81 @@ class test_option(ClassChecker):
     _cls = public.option
 
     def get_subcls(self):
-    	rule = public.rule
-    	class int_opt(self.cls):
-    		type = int
-    		@rule
-    		def rule_0(self, value):
-    			if value == 0:
-    				return 'cannot be 0'
-    		@rule
-    		def rule_1(self, value):
-    			if value == 1:
-    				return 'cannot be 1'
-    		@rule
-    		def rule_2(self, value):
-    			if value == 2:
-    				return 'cannot be 2'
-    	return int_opt
+        rule = public.rule
+        class int_opt(self.cls):
+            type = int
+            @rule
+            def rule_0(self, value):
+                if value == 0:
+                    return 'cannot be 0'
+            @rule
+            def rule_1(self, value):
+                if value == 1:
+                    return 'cannot be 1'
+            @rule
+            def rule_2(self, value):
+                if value == 2:
+                    return 'cannot be 2'
+        return int_opt
 
     def test_class(self):
-    	"""
-    	Perform some tests on the class (not an instance).
-    	"""
-    	#assert issubclass(cls, plugable.ReadOnly)
-    	assert type(self.cls.rules) is property
+        """
+        Perform some tests on the class (not an instance).
+        """
+        #assert issubclass(cls, plugable.ReadOnly)
+        assert type(self.cls.rules) is property
 
     def test_normalize(self):
         assert 'normalize' in self.cls.__public__
-    	o = self.subcls()
-    	# Test with values that can't be converted:
-    	nope = (
-    		'7.0'
-    		'whatever',
-    		object,
-    		None,
-    	)
-    	for val in nope:
-    		e = raises(errors.NormalizationError, o.normalize, val)
-    		assert isinstance(e, errors.ValidationError)
-    		assert e.name == 'int_opt'
-    		assert e.value == val
-    		assert e.error == "not <type 'int'>"
-    		assert e.type is int
-    	# Test with values that can be converted:
-    	okay = (
-    		7,
-    		7.0,
-    		7.2,
-    		7L,
-    		'7',
-    		' 7 ',
-    	)
-    	for val in okay:
-    		assert o.normalize(val) == 7
+        o = self.subcls()
+        # Test with values that can't be converted:
+        nope = (
+            '7.0'
+            'whatever',
+            object,
+            None,
+        )
+        for val in nope:
+            e = raises(errors.NormalizationError, o.normalize, val)
+            assert isinstance(e, errors.ValidationError)
+            assert e.name == 'int_opt'
+            assert e.value == val
+            assert e.error == "not <type 'int'>"
+            assert e.type is int
+        # Test with values that can be converted:
+        okay = (
+            7,
+            7.0,
+            7.2,
+            7L,
+            '7',
+            ' 7 ',
+        )
+        for val in okay:
+            assert o.normalize(val) == 7
 
     def test_validate(self):
-    	"""
-    	Test the validate method.
-    	"""
-    	assert 'validate' in self.cls.__public__
-    	o = self.subcls()
-    	o.validate(9)
-    	for i in xrange(3):
-    		e = raises(errors.RuleError, o.validate, i)
-    		assert e.error == 'cannot be %d' % i
-    		assert e.value == i
+        """
+        Test the validate method.
+        """
+        assert 'validate' in self.cls.__public__
+        o = self.subcls()
+        o.validate(9)
+        for i in xrange(3):
+            e = raises(errors.RuleError, o.validate, i)
+            assert e.error == 'cannot be %d' % i
+            assert e.value == i
 
     def test_rules(self):
-    	"""
-    	Test the rules property.
-    	"""
-    	o = self.subcls()
-    	assert len(o.rules) == 3
-    	def get_rule(i):
-    		return getattr(o, 'rule_%d' % i)
-    	rules = tuple(get_rule(i) for i in xrange(3))
-    	assert o.rules == rules
+        """
+        Test the rules property.
+        """
+        o = self.subcls()
+        assert len(o.rules) == 3
+        def get_rule(i):
+            return getattr(o, 'rule_%d' % i)
+        rules = tuple(get_rule(i) for i in xrange(3))
+        assert o.rules == rules
 
     def test_default(self):
         assert 'default' in self.cls.__public__
@@ -190,10 +190,10 @@ def test_attr():
     assert issubclass(cls, plugable.Plugin)
 
     class api(object):
-    	obj = dict(user='the user obj')
+        obj = dict(user='the user obj')
 
     class user_add(cls):
-    	pass
+        pass
 
     i = user_add()
     assert read_only(i, 'obj_name') == 'user'
@@ -222,11 +222,11 @@ def test_PublicAPI():
     api = cls()
 
     class cmd1(public.cmd):
-    	pass
+        pass
     api.register(cmd1)
 
     class cmd2(public.cmd):
-    	pass
+        pass
     api.register(cmd2)
 
     api()

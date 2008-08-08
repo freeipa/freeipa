@@ -44,249 +44,249 @@ class option(object):
     """
 
     __public__ = frozenset((
-    	'normalize',
-    	'validate',
-    	'default',
-    	'required',
-    	'type',
+        'normalize',
+        'validate',
+        'default',
+        'required',
+        'type',
     ))
     __rules = None
 
     # type = unicode, int, float # Set in subclass
 
     def normalize(self, value):
-    	"""
-    	Returns the normalized form of `value`. If `value` cannot be
-    	normalized, NormalizationError is raised, which is a subclass of
-    	ValidationError.
+        """
+        Returns the normalized form of `value`. If `value` cannot be
+        normalized, NormalizationError is raised, which is a subclass of
+        ValidationError.
 
-    	The base class implementation only does type coercion, but subclasses
-    	might do other normalization (e.g., a unicode option might strip
-    	leading and trailing white-space).
-    	"""
-    	try:
-    		return self.type(value)
-    	except (TypeError, ValueError):
-    		raise errors.NormalizationError(
-    			self.__class__.__name__, value, self.type
-    		)
+        The base class implementation only does type coercion, but subclasses
+        might do other normalization (e.g., a unicode option might strip
+        leading and trailing white-space).
+        """
+        try:
+            return self.type(value)
+        except (TypeError, ValueError):
+            raise errors.NormalizationError(
+                self.__class__.__name__, value, self.type
+            )
 
     def validate(self, value):
-    	"""
-    	Calls each validation rule and if any rule fails, raises RuleError,
-    	which is a subclass of ValidationError.
-    	"""
-    	for rule in self.rules:
-    		msg = rule(value)
-    		if msg is not None:
-    			raise errors.RuleError(
-    				self.__class__.__name__,
-    				value,
-    				rule,
-    				msg,
-    			)
+        """
+        Calls each validation rule and if any rule fails, raises RuleError,
+        which is a subclass of ValidationError.
+        """
+        for rule in self.rules:
+            msg = rule(value)
+            if msg is not None:
+                raise errors.RuleError(
+                    self.__class__.__name__,
+                    value,
+                    rule,
+                    msg,
+                )
 
     def __get_rules(self):
-    	"""
-    	Returns the tuple of rule methods used for input validation. This
-    	tuple is lazily initialized the first time the property is accessed.
-    	"""
-    	if self.__rules is None:
-    		self.__rules = tuple(sorted(
-    			self.__rules_iter(),
-    			key=lambda f: getattr(f, '__name__'),
-    		))
-    	return self.__rules
+        """
+        Returns the tuple of rule methods used for input validation. This
+        tuple is lazily initialized the first time the property is accessed.
+        """
+        if self.__rules is None:
+            self.__rules = tuple(sorted(
+                self.__rules_iter(),
+                key=lambda f: getattr(f, '__name__'),
+            ))
+        return self.__rules
     rules = property(__get_rules)
 
     def __rules_iter(self):
-    	"""
-    	Iterates through the attributes in this instance to retrieve the
-    	methods implementing validation rules.
-    	"""
-    	for name in dir(self.__class__):
-    		if name.startswith('_'):
-    			continue
-    		base_attr = getattr(self.__class__, name)
-    		if is_rule(base_attr):
-    			attr = getattr(self, name)
-    			if is_rule(attr):
-    				yield attr
+        """
+        Iterates through the attributes in this instance to retrieve the
+        methods implementing validation rules.
+        """
+        for name in dir(self.__class__):
+            if name.startswith('_'):
+                continue
+            base_attr = getattr(self.__class__, name)
+            if is_rule(base_attr):
+                attr = getattr(self, name)
+                if is_rule(attr):
+                    yield attr
 
     def default(self, **kw):
-    	"""
-    	Returns a default or auto-completed value for this option. If no
-    	default is available, this method should return None.
+        """
+        Returns a default or auto-completed value for this option. If no
+        default is available, this method should return None.
 
-    	All the keywords are passed so it's possible to build an
-    	auto-completed value from other options values, e.g., build 'initials'
-    	from 'givenname' + 'sn'.
-    	"""
-    	return None
+        All the keywords are passed so it's possible to build an
+        auto-completed value from other options values, e.g., build 'initials'
+        from 'givenname' + 'sn'.
+        """
+        return None
 
 
 class cmd(plugable.Plugin):
     __public__ = frozenset((
-    	'normalize',
-    	'autofill',
-    	'__call__',
-    	'get_doc',
-    	'opt',
+        'normalize',
+        'autofill',
+        '__call__',
+        'get_doc',
+        'opt',
 
     ))
     __opt = None
 
     def get_doc(self, _):
-    	"""
-    	Returns the gettext translated doc-string for this command.
+        """
+        Returns the gettext translated doc-string for this command.
 
-    	For example:
+        For example:
 
-    	>>> def get_doc(self, _):
-    	>>> 	return _('add new user')
-    	"""
-    	raise NotImplementedError('%s.get_doc()' % self.name)
+        >>> def get_doc(self, _):
+        >>>     return _('add new user')
+        """
+        raise NotImplementedError('%s.get_doc()' % self.name)
 
     def get_options(self):
-    	"""
-    	Returns iterable with opt_proxy objects used to create the opt
-    	NameSpace when __get_opt() is called.
-    	"""
-    	raise NotImplementedError('%s.get_options()' % self.name)
+        """
+        Returns iterable with opt_proxy objects used to create the opt
+        NameSpace when __get_opt() is called.
+        """
+        raise NotImplementedError('%s.get_options()' % self.name)
 
     def __get_opt(self):
-    	"""
-    	Returns the NameSpace containing opt_proxy objects.
-    	"""
-    	if self.__opt is None:
-    		self.__opt = plugable.NameSpace(self.get_options())
-    	return self.__opt
+        """
+        Returns the NameSpace containing opt_proxy objects.
+        """
+        if self.__opt is None:
+            self.__opt = plugable.NameSpace(self.get_options())
+        return self.__opt
     opt = property(__get_opt)
 
     def normalize_iter(self, kw):
-    	for (key, value) in kw.items():
-    		if key in self.options:
-    			yield (
-    				key, self.options[key].normalize(value)
-    			)
-    		else:
-    			yield (key, value)
+        for (key, value) in kw.items():
+            if key in self.options:
+                yield (
+                    key, self.options[key].normalize(value)
+                )
+            else:
+                yield (key, value)
 
     def normalize(self, **kw):
-    	return dict(self.normalize_iter(kw))
+        return dict(self.normalize_iter(kw))
 
     def validate(self, **kw):
-    	for (key, value) in kw.items():
-    		if key in self.options:
-    			self.options.validate(value)
+        for (key, value) in kw.items():
+            if key in self.options:
+                self.options.validate(value)
 
     def default(self, **kw):
         d = {}
-    	for opt in self.options:
-    		if opt.name not in kw:
-    			value = opt.default(**kw)
-    			if value is not None:
-    				d[opt.name] = value
-    	assert not set(kw).intersection(d)
-    	kw.update(d)
-    	return kw
+        for opt in self.options:
+            if opt.name not in kw:
+                value = opt.default(**kw)
+                if value is not None:
+                    d[opt.name] = value
+        assert not set(kw).intersection(d)
+        kw.update(d)
+        return kw
 
     def __call__(self, **kw):
-    	(args, kw) = self.normalize(*args, **kw)
-    	(args, kw) = self.autofill(*args, **kw)
-    	self.validate(*args, **kw)
-    	self.execute(*args, **kw)
+        (args, kw) = self.normalize(*args, **kw)
+        (args, kw) = self.autofill(*args, **kw)
+        self.validate(*args, **kw)
+        self.execute(*args, **kw)
 
 
 
 class obj(plugable.Plugin):
     __public__ = frozenset((
-    	'mthd',
-    	'prop',
+        'mthd',
+        'prop',
     ))
     __mthd = None
     __prop = None
 
     def __get_mthd(self):
-    	return self.__mthd
+        return self.__mthd
     mthd = property(__get_mthd)
 
     def __get_prop(self):
-    	return self.__prop
+        return self.__prop
     prop = property(__get_prop)
 
     def finalize(self, api):
-    	super(obj, self).finalize(api)
-    	self.__mthd = self.__create_ns('mthd')
-    	self.__prop = self.__create_ns('prop')
+        super(obj, self).finalize(api)
+        self.__mthd = self.__create_ns('mthd')
+        self.__prop = self.__create_ns('prop')
 
     def __create_ns(self, name):
-    	return plugable.NameSpace(self.__filter(name))
+        return plugable.NameSpace(self.__filter(name))
 
     def __filter(self, name):
-    	for i in getattr(self.api, name):
-    		if i.obj_name == self.name:
-    			yield i._clone('attr_name')
+        for i in getattr(self.api, name):
+            if i.obj_name == self.name:
+                yield i._clone('attr_name')
 
 
 class attr(plugable.Plugin):
     __obj = None
 
     def __init__(self):
-    	m = re.match('^([a-z]+)_([a-z]+)$', self.__class__.__name__)
-    	assert m
-    	self.__obj_name = m.group(1)
-    	self.__attr_name = m.group(2)
+        m = re.match('^([a-z]+)_([a-z]+)$', self.__class__.__name__)
+        assert m
+        self.__obj_name = m.group(1)
+        self.__attr_name = m.group(2)
 
     def __get_obj_name(self):
-    	return self.__obj_name
+        return self.__obj_name
     obj_name = property(__get_obj_name)
 
     def __get_attr_name(self):
-    	return self.__attr_name
+        return self.__attr_name
     attr_name = property(__get_attr_name)
 
     def __get_obj(self):
-    	"""
-    	Returns the obj instance this attribute is associated with, or None
-    	if no association has been set.
-    	"""
-    	return self.__obj
+        """
+        Returns the obj instance this attribute is associated with, or None
+        if no association has been set.
+        """
+        return self.__obj
     obj = property(__get_obj)
 
     def finalize(self, api):
-    	super(attr, self).finalize(api)
-    	self.__obj = api.obj[self.obj_name]
+        super(attr, self).finalize(api)
+        self.__obj = api.obj[self.obj_name]
 
 
 class mthd(attr, cmd):
     __public__ = frozenset((
-    	'obj',
-    	'obj_name',
+        'obj',
+        'obj_name',
     ))
 
 
 class prop(attr):
     __public__ = frozenset((
-    	'obj',
-    	'obj_name',
+        'obj',
+        'obj_name',
     ))
 
     def get_doc(self, _):
-    	return _('prop doc')
+        return _('prop doc')
 
 
 class PublicAPI(plugable.API):
     __max_cmd_len = None
 
     def __init__(self):
-    	super(PublicAPI, self).__init__(cmd, obj, mthd, prop)
+        super(PublicAPI, self).__init__(cmd, obj, mthd, prop)
 
     def __get_max_cmd_len(self):
-    	if self.__max_cmd_len is None:
-    		if not hasattr(self, 'cmd'):
-    			return None
-    		max_cmd_len = max(len(str(cmd)) for cmd in self.cmd)
-    		object.__setattr__(self, '_PublicAPI__max_cmd_len', max_cmd_len)
-    	return self.__max_cmd_len
+        if self.__max_cmd_len is None:
+            if not hasattr(self, 'cmd'):
+                return None
+            max_cmd_len = max(len(str(cmd)) for cmd in self.cmd)
+            object.__setattr__(self, '_PublicAPI__max_cmd_len', max_cmd_len)
+        return self.__max_cmd_len
     max_cmd_len = property(__get_max_cmd_len)

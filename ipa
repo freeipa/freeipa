@@ -38,44 +38,44 @@ def _(msg):
 
 class row(object):
     def __init__(self, tab, c1, c2=None):
-    	assert type(tab) is int
-    	assert type(c1) in (str, int)
-    	assert type(c2) is str or c2 is None
-    	self.tab = tab
-    	self.c1 = c1
-    	self.c2 = c2
+        assert type(tab) is int
+        assert type(c1) in (str, int)
+        assert type(c2) is str or c2 is None
+        self.tab = tab
+        self.c1 = c1
+        self.c2 = c2
 
     def __len__(self):
-    	return len(str(self.c1))
+        return len(str(self.c1))
 
     def pretty_print(self, just):
-    	tab = ' ' * (self.tab * TAB_WIDTH)
-    	if self.c2 is None:
-    		print '%s%s' % (tab, self.c1)
-    	else:
-    		if type(self.c1) is int:
-    			c1 = str(self.c1).rjust(just)
-    		else:
-    			c1 = self.c1.ljust(just)
-    		print '%s%s %s' % (tab, c1,	self.c2)
+        tab = ' ' * (self.tab * TAB_WIDTH)
+        if self.c2 is None:
+            print '%s%s' % (tab, self.c1)
+        else:
+            if type(self.c1) is int:
+                c1 = str(self.c1).rjust(just)
+            else:
+                c1 = self.c1.ljust(just)
+            print '%s%s %s' % (tab, c1,    self.c2)
 
 def pretty_print(rows):
     rows = tuple(rows)
     def get_lengths():
-    	yield 0
-    	for r in rows:
-    		if r.c2 is not None:
-    			yield len(r)
+        yield 0
+        for r in rows:
+            if r.c2 is not None:
+                yield len(r)
     max_len = max(get_lengths())
     for r in rows:
-    	r.pretty_print(max_len)
+        r.pretty_print(max_len)
 
 
 def print_commands():
     print 'Commands:'
     m = api.max_cmd_len
     for cmd in api.cmd:
-    	print '  %s  %s' % (str(cmd).ljust(m), cmd.get_doc(_))
+        print '  %s  %s' % (str(cmd).ljust(m), cmd.get_doc(_))
 
 def print_help(cmd):
     print 'Help on %s' % cmd
@@ -95,53 +95,53 @@ def print_help(cmd):
 
 def print_api():
     def iter_api(tab):
-    	for name in api:
-    		ns = getattr(api, name)
-    		yield row(
-    			tab,
-    			name,
-    			repr(ns),
-    		)
-    		for i in ns:
-    			yield row(
-    				tab + 1,
-    				i.name,
-    				repr(i)
-    			)
+        for name in api:
+            ns = getattr(api, name)
+            yield row(
+                tab,
+                name,
+                repr(ns),
+            )
+            for i in ns:
+                yield row(
+                    tab + 1,
+                    i.name,
+                    repr(i)
+                )
 
     def iter_obj(tab):
-    	for obj in api.obj:
-    		yield row(
-    			tab,
-    			obj.name,
-    			repr(obj),
-    		)
-    		for (n, f) in [('mthd', '.%s()'), ('prop', '.%s')]:
-    			ns = getattr(obj, n)
-    			yield row(
-    				tab + 1,
-    				n,
-    				repr(ns),
-    			)
-    			for attr in ns:
-    				yield row(
-    					tab + 2,
-    					f % attr.name,
-    					repr(attr),
-    				)
+        for obj in api.obj:
+            yield row(
+                tab,
+                obj.name,
+                repr(obj),
+            )
+            for (n, f) in [('mthd', '.%s()'), ('prop', '.%s')]:
+                ns = getattr(obj, n)
+                yield row(
+                    tab + 1,
+                    n,
+                    repr(ns),
+                )
+                for attr in ns:
+                    yield row(
+                        tab + 2,
+                        f % attr.name,
+                        repr(attr),
+                    )
 
     def iter_summary(tab):
-    	for name in api:
-    		ns = getattr(api, name)
-    		yield row(
-    			tab,
-    			len(ns),
-    			name
-    		)
+        for name in api:
+            ns = getattr(api, name)
+            yield row(
+                tab,
+                len(ns),
+                name
+            )
 
     def print_heading(h):
-    	print '\n%s:' % h
-    	print '-' * (len(h) + 1)
+        print '\n%s:' % h
+        print '-' * (len(h) + 1)
 
     tab = 1
     print_heading('API Overview')

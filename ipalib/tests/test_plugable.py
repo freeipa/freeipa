@@ -40,25 +40,25 @@ def test_from_cli():
 def test_valid_identifier():
     f = plugable.check_identifier
     okay = [
-    	'user_add',
-    	'stuff2junk',
-    	'sixty9',
+        'user_add',
+        'stuff2junk',
+        'sixty9',
     ]
     nope = [
-    	'_user_add',
-    	'__user_add',
-    	'user_add_',
-    	'user_add__',
-    	'_user_add_',
-    	'__user_add__',
-    	'60nine',
+        '_user_add',
+        '__user_add',
+        'user_add_',
+        'user_add__',
+        '_user_add_',
+        '__user_add__',
+        '60nine',
     ]
     for name in okay:
-    	f(name)
+        f(name)
     for name in nope:
-    	raises(errors.NameSpaceError, f, name)
+        raises(errors.NameSpaceError, f, name)
     for name in okay:
-    	raises(errors.NameSpaceError, f, name.upper())
+        raises(errors.NameSpaceError, f, name.upper())
 
 
 def test_Abstract():
@@ -126,7 +126,7 @@ def test_Plugin():
     raises(AssertionError, p.finalize, api)
 
     class some_plugin(plugable.Plugin):
-    	pass
+        pass
     p = some_plugin()
     assert read_only(p, 'name') == 'some_plugin'
     assert repr(p) == '%s.some_plugin()' % __name__
@@ -142,17 +142,17 @@ def test_ReadOnly():
     obj._lock()
     names = ['not_an_attribute', 'an_attribute']
     for name in names:
-    	no_set(obj, name)
-    	no_del(obj, name)
+        no_set(obj, name)
+        no_del(obj, name)
 
     class some_ro_class(plugable.ReadOnly):
-    	def __init__(self):
-    	    self.an_attribute = 'Hello world!'
-    	    self._lock()
+        def __init__(self):
+            self.an_attribute = 'Hello world!'
+            self._lock()
     obj = some_ro_class()
     for name in names:
-    	no_set(obj, name)
-    	no_del(obj, name)
+        no_set(obj, name)
+        no_del(obj, name)
     assert read_only(obj, 'an_attribute') == 'Hello world!'
 
 
@@ -162,30 +162,30 @@ def test_Proxy():
 
     # Setup:
     class base(object):
-    	__public__ = frozenset((
-    		'public_0',
-    		'public_1',
-    		'__call__',
-    	))
+        __public__ = frozenset((
+            'public_0',
+            'public_1',
+            '__call__',
+        ))
 
-    	def public_0(self):
-    		return 'public_0'
+        def public_0(self):
+            return 'public_0'
 
-    	def public_1(self):
-    		return 'public_1'
+        def public_1(self):
+            return 'public_1'
 
-    	def __call__(self, caller):
-    		return 'ya called it, %s.' % caller
+        def __call__(self, caller):
+            return 'ya called it, %s.' % caller
 
-    	def private_0(self):
-    		return 'private_0'
+        def private_0(self):
+            return 'private_0'
 
-    	def private_1(self):
-    		return 'private_1'
+        def private_1(self):
+            return 'private_1'
 
     class plugin(base):
-    	name = 'user_add'
-    	attr_name = 'add'
+        name = 'user_add'
+        attr_name = 'add'
 
     # Test that TypeError is raised when base is not a class:
     raises(TypeError, cls, base(), None)
@@ -201,13 +201,13 @@ def test_Proxy():
 
     # Test normal methods:
     for n in xrange(2):
-    	pub = 'public_%d' % n
-    	priv = 'private_%d' % n
-    	assert getattr(i, pub)() == pub
-    	assert getattr(p, pub)() == pub
-    	assert hasattr(p, pub)
-    	assert getattr(i, priv)() == priv
-    	assert not hasattr(p, priv)
+        pub = 'public_%d' % n
+        priv = 'private_%d' % n
+        assert getattr(i, pub)() == pub
+        assert getattr(p, pub)() == pub
+        assert hasattr(p, pub)
+        assert getattr(i, priv)() == priv
+        assert not hasattr(p, priv)
 
     # Test __call__:
     value = 'ya called it, dude.'
@@ -236,23 +236,23 @@ def test_NameSpace():
     assert issubclass(cls, plugable.ReadOnly)
 
     class base(object):
-    	__public__ = frozenset((
-    		'plusplus',
-    	))
+        __public__ = frozenset((
+            'plusplus',
+        ))
 
-    	def plusplus(self, n):
-    		return n + 1
+        def plusplus(self, n):
+            return n + 1
 
     class plugin(base):
-    	def __init__(self, name):
-    		self.name = name
+        def __init__(self, name):
+            self.name = name
 
     def get_name(i):
-    	return 'noun_verb%d' % i
+        return 'noun_verb%d' % i
 
     def get_proxies(n):
-    	for i in xrange(n):
-    		yield plugable.Proxy(base, plugin(get_name(i)))
+        for i in xrange(n):
+            yield plugable.Proxy(base, plugin(get_name(i)))
 
     cnt = 20
     ns = cls(get_proxies(cnt))
@@ -263,20 +263,20 @@ def test_NameSpace():
     # Test __iter__
     i = None
     for (i, proxy) in enumerate(ns):
-    	assert type(proxy) is plugable.Proxy
-    	assert proxy.name == get_name(i)
+        assert type(proxy) is plugable.Proxy
+        assert proxy.name == get_name(i)
     assert i == cnt - 1
 
     # Test __contains__, __getitem__, getattr():
     proxies = frozenset(ns)
     for i in xrange(cnt):
-    	name = get_name(i)
-    	assert name in ns
-    	proxy = ns[name]
-    	assert proxy.name == name
-    	assert type(proxy) is plugable.Proxy
-    	assert proxy in proxies
-    	assert read_only(ns, name) is proxy
+        name = get_name(i)
+        assert name in ns
+        proxy = ns[name]
+        assert proxy.name == name
+        assert type(proxy) is plugable.Proxy
+        assert proxy in proxies
+        assert read_only(ns, name) is proxy
 
     # Test dir():
     assert set(get_name(i) for i in xrange(cnt)).issubset(set(dir(ns)))
@@ -291,27 +291,27 @@ def test_NameSpace():
 
 def test_Registrar():
     class Base1(object):
-    	pass
+        pass
     class Base2(object):
-    	pass
+        pass
     class Base3(object):
-    	pass
+        pass
     class plugin1(Base1):
-    	pass
+        pass
     class plugin2(Base2):
-    	pass
+        pass
     class plugin3(Base3):
-    	pass
+        pass
 
     # Test creation of Registrar:
     r = plugable.Registrar(Base1, Base2)
 
     # Test __hasitem__, __getitem__:
     for base in [Base1, Base2]:
-    	assert base in r
-    	assert base.__name__ in r
-    	assert r[base] == {}
-    	assert r[base.__name__] == {}
+        assert base in r
+        assert base.__name__ in r
+        assert r[base] == {}
+        assert r[base.__name__] == {}
 
 
     # Check that TypeError is raised trying to register something that isn't
@@ -339,9 +339,9 @@ def test_Registrar():
     # name and same base:
     orig1 = plugin1
     class base1_extended(Base1):
-    	pass
+        pass
     class plugin1(base1_extended):
-    	pass
+        pass
     raises(errors.OverrideError, r, plugin1)
 
     # Check that overriding works
@@ -364,40 +364,40 @@ def test_Registrar():
 
     # Setup to test __iter__:
     class plugin1a(Base1):
-    	pass
+        pass
     r(plugin1a)
 
     class plugin1b(Base1):
-    	pass
+        pass
     r(plugin1b)
 
     class plugin2a(Base2):
-    	pass
+        pass
     r(plugin2a)
 
     class plugin2b(Base2):
-    	pass
+        pass
     r(plugin2b)
 
     m = {
-    	'Base1': set([plugin1, plugin1a, plugin1b]),
-    	'Base2': set([plugin2, plugin2a, plugin2b]),
+        'Base1': set([plugin1, plugin1a, plugin1b]),
+        'Base2': set([plugin2, plugin2a, plugin2b]),
     }
 
     # Now test __iter__:
     for (base, plugins) in r:
-    	assert base in [Base1, Base2]
-    	assert set(plugins) == m[base.__name__]
+        assert base in [Base1, Base2]
+        assert set(plugins) == m[base.__name__]
     assert len(list(r)) == 2
 
     # Again test __hasitem__, __getitem__:
     for base in [Base1, Base2]:
-    	assert base in r
-    	assert base.__name__ in r
-    	d = dict((p.__name__, p) for p in m[base.__name__])
-    	assert len(d) == 3
-    	assert r[base] == d
-    	assert r[base.__name__] == d
+        assert base in r
+        assert base.__name__ in r
+        d = dict((p.__name__, p) for p in m[base.__name__])
+        assert len(d) == 3
+        assert r[base] == d
+        assert r[base.__name__] == d
 
 
 def test_API():
@@ -405,20 +405,20 @@ def test_API():
 
     # Setup the test bases, create the API:
     class base0(plugable.Plugin):
-    	__public__ = frozenset((
-    		'method',
-    	))
+        __public__ = frozenset((
+            'method',
+        ))
 
-    	def method(self, n):
-    		return n
+        def method(self, n):
+            return n
 
     class base1(plugable.Plugin):
-    	__public__ = frozenset((
-    		'method',
-    	))
+        __public__ = frozenset((
+            'method',
+        ))
 
-    	def method(self, n):
-    		return n + 1
+        def method(self, n):
+            return n + 1
 
     api = plugable.API(base0, base1)
     r = api.register
@@ -426,48 +426,48 @@ def test_API():
     assert read_only(api, 'register') is r
 
     class base0_plugin0(base0):
-    	pass
+        pass
     r(base0_plugin0)
 
     class base0_plugin1(base0):
-    	pass
+        pass
     r(base0_plugin1)
 
     class base0_plugin2(base0):
-    	pass
+        pass
     r(base0_plugin2)
 
     class base1_plugin0(base1):
-    	pass
+        pass
     r(base1_plugin0)
 
     class base1_plugin1(base1):
-    	pass
+        pass
     r(base1_plugin1)
 
     class base1_plugin2(base1):
-    	pass
+        pass
     r(base1_plugin2)
 
     # Test API instance:
     api() # Calling instance performs finalization
 
     def get_base(b):
-    	return 'base%d' % b
+        return 'base%d' % b
 
     def get_plugin(b, p):
-    	return 'base%d_plugin%d' % (b, p)
+        return 'base%d_plugin%d' % (b, p)
 
     for b in xrange(2):
-    	base_name = get_base(b)
-    	ns = getattr(api, base_name)
-    	assert isinstance(ns, plugable.NameSpace)
-    	assert read_only(api, base_name) is ns
-    	assert len(ns) == 3
-    	for p in xrange(3):
-    		plugin_name = get_plugin(b, p)
-    		proxy = ns[plugin_name]
-    		assert isinstance(proxy, plugable.Proxy)
-    		assert proxy.name == plugin_name
-    		assert read_only(ns, plugin_name) is proxy
-    		assert read_only(proxy, 'method')(7) == 7 + b
+        base_name = get_base(b)
+        ns = getattr(api, base_name)
+        assert isinstance(ns, plugable.NameSpace)
+        assert read_only(api, base_name) is ns
+        assert len(ns) == 3
+        for p in xrange(3):
+            plugin_name = get_plugin(b, p)
+            proxy = ns[plugin_name]
+            assert isinstance(proxy, plugable.Proxy)
+            assert proxy.name == plugin_name
+            assert read_only(ns, plugin_name) is proxy
+            assert read_only(proxy, 'method')(7) == 7 + b

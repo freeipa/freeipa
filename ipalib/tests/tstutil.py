@@ -29,10 +29,10 @@ class ExceptionNotRaised(Exception):
     msg = 'expected %s'
 
     def __init__(self, expected):
-    	self.expected = expected
+        self.expected = expected
 
     def __str__(self):
-    	return self.msg % self.expected.__name__
+        return self.msg % self.expected.__name__
 
 
 def raises(exception, callback, *args, **kw):
@@ -42,11 +42,11 @@ def raises(exception, callback, *args, **kw):
     """
     raised = False
     try:
-    	callback(*args, **kw)
+        callback(*args, **kw)
     except exception, e:
-    	raised = True
+        raised = True
     if not raised:
-    	raise ExceptionNotRaised(exception)
+        raise ExceptionNotRaised(exception)
     return e
 
 
@@ -93,7 +93,7 @@ def is_prop(prop):
 class ClassChecker(object):
 
     def new(self, *args, **kw):
-    	return self.cls(*args, **kw)
+        return self.cls(*args, **kw)
 
     def get_sub(self):
-    	raise NotImplementedError('get_sub()')
+        raise NotImplementedError('get_sub()')
