@@ -13,11 +13,11 @@ clean:
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) -f $(POLICY_MAKEFILE) $@) || exit 1; \
 	done
-	rm -f ipa-server-selinux.spec
-
-maintainer-clean: clean
 
 distclean: clean
+	rm -f ipa-server-selinux.spec
+
+maintainer-clean: distclean
 
 install: all
 	install -d $(POLICY_DIR)

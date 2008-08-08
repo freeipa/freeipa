@@ -1,6 +1,6 @@
 Name:           ipa-radius-server
-Version:        VERSION
-Release:        1%{?dist}
+Version:        __VERSION__
+Release:        __RELEASE__%{?dist}
 Summary:        IPA authentication server - radius plugin
 
 Group:          System Environment/Base

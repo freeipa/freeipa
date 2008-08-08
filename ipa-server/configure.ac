@@ -1,6 +1,7 @@
 AC_PREREQ(2.59)
+m4_include(version.m4)
 AC_INIT([ipa-server],
-        [0.6.0],
+        IPA_VERSION,
         [https://hosted.fedoraproject.org/projects/freeipa/newticket])
 
 AC_CONFIG_SRCDIR([ipaserver/ipaldap.py])

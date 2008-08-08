@@ -1,6 +1,6 @@
 Name:           ipa-admintools
-Version:        VERSION
-Release:        2%{?dist}
+Version:        __VERSION__
+Release:        __RELEASE__%{?dist}
 Summary:        IPA admin tools
 
 Group:          System Environment/Base

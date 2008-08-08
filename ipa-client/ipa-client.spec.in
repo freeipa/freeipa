@@ -1,6 +1,6 @@
 Name:           ipa-client
-Version:        VERSION
-Release:        1%{?dist}
+Version:        __VERSION__
+Release:        __RELEASE__%{?dist}
 Summary:        IPA client
 
 Group:          System Environment/Base

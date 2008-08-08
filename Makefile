@@ -50,19 +50,21 @@ RADIUS_ADMINTOOLS_TARBALL=$(RADIUS_ADMINTOOLS_TARBALL_PREFIX).tgz
 SERV_SELINUX_TARBALL_PREFIX=$(PRJ_PREFIX)-server-selinux-$(IPA_VERSION)
 SERV_SELINUX_TARBALL=$(SERV_SELINUX_TARBALL_PREFIX).tgz
 
+IPA_RPM_RELEASE=$(shell cat RELEASE)
+
 LIBDIR ?= /usr/lib
 
-all: version-update bootstrap-autogen
+all: bootstrap-autogen
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 
-bootstrap-autogen:
+bootstrap-autogen: version-update
 	@echo "Building IPA $(IPA_VERSION)"
 	cd ipa-server; if [ ! -e Makefile ]; then ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 	cd ipa-client; if [ ! -e Makefile ]; then ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
-autogen:
+autogen: version-update
 	@echo "Building IPA $(IPA_VERSION)"
 	cd ipa-server; ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR)
 	cd ipa-client; ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR)
@@ -81,30 +83,41 @@ test:
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 
-version-update:
-	sed s/VERSION/$(IPA_VERSION)/ ipa-server/ipa-server.spec.in \
-		> ipa-server/ipa-server.spec
+release-update:
+	if [ ! -e RELEASE ]; then echo 0 > RELEASE; fi
 
-	sed s/VERSION/$(IPA_VERSION)/ ipa-admintools/ipa-admintools.spec.in \
-		> ipa-admintools/ipa-admintools.spec
+version-update: release-update
+	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
+		ipa-server/ipa-server.spec.in > ipa-server/ipa-server.spec
+	sed -e s/__VERSION__/$(IPA_VERSION)/ ipa-server/version.m4.in \
+		> ipa-server/version.m4
 
-	sed s/VERSION/$(IPA_VERSION)/ ipa-python/ipa-python.spec.in \
-		> ipa-python/ipa-python.spec
+	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
+		ipa-admintools/ipa-admintools.spec.in > ipa-admintools/ipa-admintools.spec
 
-	sed s/VERSION/$(IPA_VERSION)/ ipa-client/ipa-client.spec.in \
-		> ipa-client/ipa-client.spec
+	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
+		ipa-python/ipa-python.spec.in > ipa-python/ipa-python.spec
 
-	sed s/VERSION/$(IPA_VERSION)/ ipa-radius-server/ipa-radius-server.spec.in \
+	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
+		ipa-client/ipa-client.spec.in > ipa-client/ipa-client.spec
+	sed -e s/__VERSION__/$(IPA_VERSION)/ ipa-client/version.m4.in \
+		> ipa-client/version.m4
+
+	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
+		ipa-radius-server/ipa-radius-server.spec.in \
 		> ipa-radius-server/ipa-radius-server.spec
 
-	sed s/VERSION/$(IPA_VERSION)/ ipa-radius-admintools/ipa-radius-admintools.spec.in \
+	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
+		ipa-radius-admintools/ipa-radius-admintools.spec.in \
 		> ipa-radius-admintools/ipa-radius-admintools.spec
 
-	sed s/VERSION/$(IPA_VERSION)/ ipa-server/selinux/ipa-server-selinux.spec.in \
+	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
+		ipa-server/selinux/ipa-server-selinux.spec.in \
 		> ipa-server/selinux/ipa-server-selinux.spec
-	sed s/VERSION/$(IPA_VERSION)/ ipa-python/setup.py.in \
+
+	sed -e s/__VERSION__/$(IPA_VERSION)/ ipa-python/setup.py.in \
 		> ipa-python/setup.py
-	sed s/__VERSION__/$(IPA_VERSION)/ ipa-python/version.py.in \
+	sed -e s/__VERSION__/$(IPA_VERSION)/ ipa-python/version.py.in \
 		> ipa-python/version.py
 	perl -pi -e "s:__NUM_VERSION__:$(IPA_VERSION_MAJOR)$(IPA_VERSION_MINOR)$(IPA_VERSION_RELEASE):" ipa-python/version.py
 
@@ -226,16 +239,16 @@ repodata:
 
 dist: version-update archive tarballs archive-cleanup rpms repodata
 
-local-dist: autogen clean version-update local-archive tarballs archive-cleanup rpms
+local-dist: autogen clean local-archive tarballs archive-cleanup rpms
 
 
-clean:
+clean: version-update
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 	rm -f *~
 
-distclean:
+distclean: version-update
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
@@ -243,6 +256,10 @@ distclean:
 
 maintainer-clean: clean
 	rm -fr rpmbuild dist
+	cd ipa-server/selinux && $(MAKE) maintainer-clean
 	cd ipa-server && $(MAKE) maintainer-clean
 	cd ipa-client && $(MAKE) maintainer-clean
 	cd ipa-python && $(MAKE) maintainer-clean
+	cd ipa-admintools && $(MAKE) maintainer-clean
+	cd ipa-radius-admintools && $(MAKE) maintainer-clean
+	cd ipa-radius-server && $(MAKE) maintainer-clean

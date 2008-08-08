@@ -52,7 +52,7 @@ def setup_package():
     try:
         setup(
             name = "ipa",
-            version = "0.6.0",
+            version = "__VERSION__",
             license = "GPL",
             author = "Karl MacMillan, et.al.",
             author_email = "kmacmill@redhat.com",

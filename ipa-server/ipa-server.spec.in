@@ -1,6 +1,6 @@
 Name:           ipa-server
-Version:        VERSION
-Release:        3%{?dist}
+Version:        __VERSION__
+Release:        __RELEASE__%{?dist}
 Summary:        IPA authentication server
 
 Group:          System Environment/Base

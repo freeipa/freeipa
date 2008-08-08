@@ -74,6 +74,7 @@ MAINTAINERCLEANFILES =		\
 	Makefile.in		\
 	config.h.*		\
 	aclocal.m4		\
+	version.m4		\
 	ipa-client.spec		\
 	py-compile		\
 	$(NULL)

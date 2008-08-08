@@ -14,8 +14,11 @@ install:
 	install -m 755 ipa-findradiusprofile $(SBINDIR)
 
 clean:
-	rm -f *~ *.pyc ipa-radius-admintools.spec
+	rm -f *~ *.pyc
 
 distclean: clean
+	rm -f ipa-radius-admintools.spec
+
+maintainer-clean: distclean
 
 test:

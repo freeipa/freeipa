@@ -35,8 +35,11 @@ install-man:
 	install -m 644
 
 clean:
-	rm -f *~ *.pyc ipa-admintools.spec
+	rm -f *~ *.pyc
 
 distclean: clean
+	rm -f ipa-admintools.spec
+
+maintainer-clean: distclean
 
 test:

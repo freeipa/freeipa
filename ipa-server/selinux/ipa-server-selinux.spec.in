@@ -1,8 +1,8 @@
 %define POLICYCOREUTILSVER 1.33.12-1
 
 Name:           ipa-server-selinux
-Version:        VERSION
-Release:        1%{?dist}
+Version:        __VERSION__
+Release:        __RELEASE__%{?dist}
 Summary:        IPA server SELinux policies
 
 Group:          System Environment/Base
