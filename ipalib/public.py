@@ -38,7 +38,7 @@ def is_rule(obj):
 	return callable(obj) and getattr(obj, RULE_FLAG, False) is True
 
 
-class opt(plugable.ReadOnly):
+class option(object):
 	__public__ = frozenset((
 		'normalize',
 		'validate',
@@ -49,6 +49,14 @@ class opt(plugable.ReadOnly):
 	__rules = None
 
 	def normalize(self, value):
+		"""
+		Normalize an input value. The base class implementation only does
+		type coercion, but subclasses might do other normalization (e.g., a
+		str option might strip leading and trailing white-space).
+
+		If value cannot be normalized, NormalizationError is raised, which
+		is a subclass of ValidationError.
+		"""
 		try:
 			return self.type(value)
 		except (TypeError, ValueError):
@@ -57,16 +65,23 @@ class opt(plugable.ReadOnly):
 			)
 
 	def __get_rules(self):
+		"""
+		Returns the tuple of rule methods used for input validation. This
+		tuple is lazily initialized the first time the property is accessed.
+		"""
 		if self.__rules is None:
-			rules = sorted(
+			self.__rules = tuple(sorted(
 				self.__rules_iter(),
 				key=lambda f: getattr(f, '__name__'),
-			)
-			object.__setattr__(self, '_opt__rules', tuple(rules))
+			))
 		return self.__rules
 	rules = property(__get_rules)
 
 	def __rules_iter(self):
+		"""
+		Iterates through the attributes in this instance to retrieve the
+		methods implemented validation rules.
+		"""
 		for name in dir(self.__class__):
 			if name.startswith('_'):
 				continue
@@ -131,7 +146,29 @@ class cmd(plugable.Plugin):
 		return self.__opt
 	opt = property(__get_opt)
 
-	def __call__(self, *args, **kw):
+
+	def normalize_iter(self, kw):
+		for (key, value) in kw.items():
+			if key in self.options:
+				yield (
+					key, self.options[key].normalize(value)
+				)
+			else:
+				yield (key, value)
+
+	def normalize(self, **kw):
+		return dict(self.normalize_iter(kw))
+
+	def validate(self, **kw):
+		for (key, value) in kw.items():
+			if key in self.options:
+				self.options.validate(value)
+
+
+
+
+
+	def __call__(self, **kw):
 		(args, kw) = self.normalize(*args, **kw)
 		(args, kw) = self.autofill(*args, **kw)
 		self.validate(*args, **kw)

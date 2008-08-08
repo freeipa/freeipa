@@ -63,9 +63,9 @@ def test_is_rule():
 	assert not is_rule(call(None))
 
 
-class test_opt():
+class test_option():
 	def cls(self):
-		return public.opt
+		return public.option
 
 	def sub(self):
 		rule = public.rule
@@ -85,11 +85,20 @@ class test_opt():
 					return 'cannot be 2'
 		return int_opt
 
+	def test_class(self):
+		"""
+		Perform some tests on the class (not an instance).
+		"""
+		cls = self.cls()
+		#assert issubclass(cls, plugable.ReadOnly)
+		assert type(cls.rules) is property
+
 	def test_rules(self):
 		"""
 		Test the rules property.
 		"""
 		o = self.sub()()
+		assert len(o.rules) == 3
 		def get_rule(i):
 			return getattr(o, 'rule_%d' % i)
 		rules = tuple(get_rule(i) for i in xrange(3))
@@ -104,14 +113,6 @@ class test_opt():
 		for i in xrange(3):
 			e = raises(errors.RuleError, o.validate, i)
 			assert e.error == 'cannot be %d' % i
-
-
-
-
-
-	def test_class(self):
-		cls = self.cls()
-		assert issubclass(cls, plugable.ReadOnly)
 
 	def test_normalize(self):
 		sub = self.sub()
