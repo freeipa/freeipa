@@ -93,32 +93,9 @@ class test_option():
 		#assert issubclass(cls, plugable.ReadOnly)
 		assert type(cls.rules) is property
 
-	def test_rules(self):
-		"""
-		Test the rules property.
-		"""
-		o = self.sub()()
-		assert len(o.rules) == 3
-		def get_rule(i):
-			return getattr(o, 'rule_%d' % i)
-		rules = tuple(get_rule(i) for i in xrange(3))
-		assert o.rules == rules
-
-	def test_validation(self):
-		"""
-		Test the validation method.
-		"""
-		o = self.sub()()
-		o.validate(9)
-		for i in xrange(3):
-			e = raises(errors.RuleError, o.validate, i)
-			assert e.error == 'cannot be %d' % i
-
 	def test_normalize(self):
 		sub = self.sub()
-
 		i = sub()
-
 		# Test with values that can't be converted:
 		nope = (
 			'7.0'
@@ -144,6 +121,30 @@ class test_option():
 		)
 		for val in okay:
 			assert i.normalize(val) == 7
+
+	def test_rules(self):
+		"""
+		Test the rules property.
+		"""
+		o = self.sub()()
+		assert len(o.rules) == 3
+		def get_rule(i):
+			return getattr(o, 'rule_%d' % i)
+		rules = tuple(get_rule(i) for i in xrange(3))
+		assert o.rules == rules
+
+	def test_validation(self):
+		"""
+		Test the validation method.
+		"""
+		o = self.sub()()
+		o.validate(9)
+		for i in xrange(3):
+			e = raises(errors.RuleError, o.validate, i)
+			assert e.error == 'cannot be %d' % i
+			assert e.value == i
+
+
 
 def test_cmd():
 	cls = public.cmd

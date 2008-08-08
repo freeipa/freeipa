@@ -39,6 +39,10 @@ def is_rule(obj):
 
 
 class option(object):
+	"""
+	The option class represents a kw argument from a command.
+	"""
+
 	__public__ = frozenset((
 		'normalize',
 		'validate',
@@ -63,6 +67,21 @@ class option(object):
 			raise errors.NormalizationError(
 				self.__class__.__name__, value, self.type
 			)
+
+	def validate(self, value):
+		"""
+		Calls each validation rule and if any rule fails, raises RuleError,
+		which is a subclass of ValidationError.
+		"""
+		for rule in self.rules:
+			msg = rule(value)
+			if msg is not None:
+				raise errors.RuleError(
+					self.__class__.__name__,
+					value,
+					rule,
+					msg,
+				)
 
 	def __get_rules(self):
 		"""
@@ -91,21 +110,12 @@ class option(object):
 				if is_rule(attr):
 					yield attr
 
-	def validate(self, value):
-		for rule in self.rules:
-			msg = rule(value)
-			if msg is not None:
-				raise errors.RuleError(
-					self.__class__.__name__,
-					value,
-					rule,
-					msg,
-				)
-
-
-
-
-
+	def default(self, **kw):
+		"""
+		Returns a default or auto-completed value for this option. If no
+		default is available, this method should return None.
+		"""
+		return None
 
 
 class cmd(plugable.Plugin):
@@ -146,7 +156,6 @@ class cmd(plugable.Plugin):
 		return self.__opt
 	opt = property(__get_opt)
 
-
 	def normalize_iter(self, kw):
 		for (key, value) in kw.items():
 			if key in self.options:
@@ -164,9 +173,12 @@ class cmd(plugable.Plugin):
 			if key in self.options:
 				self.options.validate(value)
 
-
-
-
+	def default(self, **kw):
+		for opt in self.options:
+			if opt.name not in kw:
+				value = opt.default(**kw)
+				if value is not None:
+					kw[opt.name] = value
 
 	def __call__(self, **kw):
 		(args, kw) = self.normalize(*args, **kw)
