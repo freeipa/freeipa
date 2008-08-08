@@ -61,6 +61,56 @@ def test_valid_identifier():
     	raises(errors.NameSpaceError, f, name.upper())
 
 
+def test_Abstract():
+    cls = plugable.Abstract
+
+    class example(cls):
+        __public__ = frozenset((
+            'some_method',
+            'some_property',
+        ))
+
+    # Test using str:
+    assert example.implements('some_method')
+    assert not example.implements('another_method')
+
+    # Test using frozenset:
+    assert example.implements(frozenset(['some_method']))
+    assert not example.implements(
+        frozenset(['some_method', 'another_method'])
+    )
+
+    # Test using another object/class with __public__ frozenset:
+    assert example.implements(example)
+    assert example().implements(example)
+    assert example.implements(example())
+    assert example().implements(example())
+
+    class subset(cls):
+        __public__ = frozenset((
+            'some_property',
+        ))
+    assert example.implements(subset)
+    assert not subset.implements(example)
+
+    class superset(cls):
+        __public__ = frozenset((
+            'some_method',
+            'some_property',
+            'another_property',
+        ))
+    assert not example.implements(superset)
+    assert superset.implements(example)
+
+    class any_object(object):
+        __public__ = frozenset((
+            'some_method',
+            'some_property',
+        ))
+    assert example.implements(any_object)
+    assert example.implements(any_object())
+
+
 def test_Plugin():
     cls = plugable.Plugin
     assert type(cls.name) is property
