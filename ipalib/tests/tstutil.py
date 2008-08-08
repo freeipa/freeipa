@@ -22,78 +22,78 @@ Utility functions for the unit tests.
 """
 
 class ExceptionNotRaised(Exception):
-	"""
-	Exception raised when an *expected* exception is *not* raised during a
-	unit test.
-	"""
-	msg = 'expected %s'
+    """
+    Exception raised when an *expected* exception is *not* raised during a
+    unit test.
+    """
+    msg = 'expected %s'
 
-	def __init__(self, expected):
-		self.expected = expected
+    def __init__(self, expected):
+    	self.expected = expected
 
-	def __str__(self):
-		return self.msg % self.expected.__name__
+    def __str__(self):
+    	return self.msg % self.expected.__name__
 
 
 def raises(exception, callback, *args, **kw):
-	"""
-	Tests that the expected exception is raised; raises ExceptionNotRaised
-	if test fails.
-	"""
-	raised = False
-	try:
-		callback(*args, **kw)
-	except exception, e:
-		raised = True
-	if not raised:
-		raise ExceptionNotRaised(exception)
-	return e
+    """
+    Tests that the expected exception is raised; raises ExceptionNotRaised
+    if test fails.
+    """
+    raised = False
+    try:
+    	callback(*args, **kw)
+    except exception, e:
+    	raised = True
+    if not raised:
+    	raise ExceptionNotRaised(exception)
+    return e
 
 
 def getitem(obj, key):
-	"""
-	Works like getattr but for dictionary interface. Uses this in combination
-	with raises() to test that, for example, KeyError is raised.
-	"""
-	return obj[key]
+    """
+    Works like getattr but for dictionary interface. Uses this in combination
+    with raises() to test that, for example, KeyError is raised.
+    """
+    return obj[key]
 
 
 def no_set(obj, name, value='some_new_obj'):
-	"""
-	Tests that attribute cannot be set.
-	"""
-	raises(AttributeError, setattr, obj, name, value)
+    """
+    Tests that attribute cannot be set.
+    """
+    raises(AttributeError, setattr, obj, name, value)
 
 
 def no_del(obj, name):
-	"""
-	Tests that attribute cannot be deleted.
-	"""
-	raises(AttributeError, delattr, obj, name)
+    """
+    Tests that attribute cannot be deleted.
+    """
+    raises(AttributeError, delattr, obj, name)
 
 
 def read_only(obj, name, value='some_new_obj'):
-	"""
-	Tests that attribute is read-only. Returns attribute.
-	"""
-	# Test that it cannot be set:
-	no_set(obj, name, value)
+    """
+    Tests that attribute is read-only. Returns attribute.
+    """
+    # Test that it cannot be set:
+    no_set(obj, name, value)
 
-	# Test that it cannot be deleted:
-	no_del(obj, name)
+    # Test that it cannot be deleted:
+    no_del(obj, name)
 
-	# Return the attribute
-	return getattr(obj, name)
+    # Return the attribute
+    return getattr(obj, name)
 
 
 def is_prop(prop):
-	return type(prop) is property
+    return type(prop) is property
 
 
 class ClassChecker(object):
 
-	def new(self, *args, **kw):
-		return self.cls(*args, **kw)
+    def new(self, *args, **kw):
+    	return self.cls(*args, **kw)
 
-	def get_sub(self):
-		raise NotImplementedError('get_sub()')
+    def get_sub(self):
+    	raise NotImplementedError('get_sub()')

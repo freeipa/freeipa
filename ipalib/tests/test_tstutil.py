@@ -25,124 +25,124 @@ import tstutil
 
 
 class Prop(object):
-	def __init__(self, *ops):
-		self.__ops = frozenset(ops)
-		self.__prop = 'prop value'
+    def __init__(self, *ops):
+    	self.__ops = frozenset(ops)
+    	self.__prop = 'prop value'
 
-	def __get_prop(self):
-		if 'get' not in self.__ops:
-			raise AttributeError('get prop')
-		return self.__prop
+    def __get_prop(self):
+    	if 'get' not in self.__ops:
+    		raise AttributeError('get prop')
+    	return self.__prop
 
-	def __set_prop(self, value):
-		if 'set' not in self.__ops:
-			raise AttributeError('set prop')
-		self.__prop = value
+    def __set_prop(self, value):
+    	if 'set' not in self.__ops:
+    		raise AttributeError('set prop')
+    	self.__prop = value
 
-	def __del_prop(self):
-		if 'del' not in self.__ops:
-			raise AttributeError('del prop')
-		self.__prop = None
+    def __del_prop(self):
+    	if 'del' not in self.__ops:
+    		raise AttributeError('del prop')
+    	self.__prop = None
 
-	prop = property(__get_prop, __set_prop, __del_prop)
+    prop = property(__get_prop, __set_prop, __del_prop)
 
 
 def test_yes_raised():
-	f = tstutil.raises
+    f = tstutil.raises
 
-	class SomeError(Exception):
-		pass
+    class SomeError(Exception):
+    	pass
 
-	class AnotherError(Exception):
-		pass
+    class AnotherError(Exception):
+    	pass
 
-	def callback1():
-		'raises correct exception'
-		raise SomeError()
+    def callback1():
+    	'raises correct exception'
+    	raise SomeError()
 
-	def callback2():
-		'raises wrong exception'
-		raise AnotherError()
+    def callback2():
+    	'raises wrong exception'
+    	raise AnotherError()
 
-	def callback3():
-		'raises no exception'
+    def callback3():
+    	'raises no exception'
 
-	f(SomeError, callback1)
+    f(SomeError, callback1)
 
-	raised = False
-	try:
-		f(SomeError, callback2)
-	except AnotherError:
-		raised = True
-	assert raised
+    raised = False
+    try:
+    	f(SomeError, callback2)
+    except AnotherError:
+    	raised = True
+    assert raised
 
-	raised = False
-	try:
-		f(SomeError, callback3)
-	except tstutil.ExceptionNotRaised:
-		raised = True
-	assert raised
+    raised = False
+    try:
+    	f(SomeError, callback3)
+    except tstutil.ExceptionNotRaised:
+    	raised = True
+    assert raised
 
 
 def test_no_set():
-	# Tests that it works when prop cannot be set:
-	tstutil.no_set(Prop('get', 'del'), 'prop')
+    # Tests that it works when prop cannot be set:
+    tstutil.no_set(Prop('get', 'del'), 'prop')
 
-	# Tests that ExceptionNotRaised is raised when prop *can* be set:
-	raised = False
-	try:
-		tstutil.no_set(Prop('set'), 'prop')
-	except tstutil.ExceptionNotRaised:
-		raised = True
-	assert raised
+    # Tests that ExceptionNotRaised is raised when prop *can* be set:
+    raised = False
+    try:
+    	tstutil.no_set(Prop('set'), 'prop')
+    except tstutil.ExceptionNotRaised:
+    	raised = True
+    assert raised
 
 
 def test_no_del():
-	# Tests that it works when prop cannot be deleted:
-	tstutil.no_del(Prop('get', 'set'), 'prop')
+    # Tests that it works when prop cannot be deleted:
+    tstutil.no_del(Prop('get', 'set'), 'prop')
 
-	# Tests that ExceptionNotRaised is raised when prop *can* be set:
-	raised = False
-	try:
-		tstutil.no_del(Prop('del'), 'prop')
-	except tstutil.ExceptionNotRaised:
-		raised = True
-	assert raised
+    # Tests that ExceptionNotRaised is raised when prop *can* be set:
+    raised = False
+    try:
+    	tstutil.no_del(Prop('del'), 'prop')
+    except tstutil.ExceptionNotRaised:
+    	raised = True
+    assert raised
 
 
 def test_read_only():
-	# Test that it works when prop is read only:
-	assert tstutil.read_only(Prop('get'), 'prop') == 'prop value'
+    # Test that it works when prop is read only:
+    assert tstutil.read_only(Prop('get'), 'prop') == 'prop value'
 
-	# Test that ExceptionNotRaised is raised when prop can be set:
-	raised = False
-	try:
-		tstutil.read_only(Prop('get', 'set'), 'prop')
-	except tstutil.ExceptionNotRaised:
-		raised = True
-	assert raised
+    # Test that ExceptionNotRaised is raised when prop can be set:
+    raised = False
+    try:
+    	tstutil.read_only(Prop('get', 'set'), 'prop')
+    except tstutil.ExceptionNotRaised:
+    	raised = True
+    assert raised
 
-	# Test that ExceptionNotRaised is raised when prop can be deleted:
-	raised = False
-	try:
-		tstutil.read_only(Prop('get', 'del'), 'prop')
-	except tstutil.ExceptionNotRaised:
-		raised = True
-	assert raised
+    # Test that ExceptionNotRaised is raised when prop can be deleted:
+    raised = False
+    try:
+    	tstutil.read_only(Prop('get', 'del'), 'prop')
+    except tstutil.ExceptionNotRaised:
+    	raised = True
+    assert raised
 
-	# Test that ExceptionNotRaised is raised when prop can be both set and
-	# deleted:
-	raised = False
-	try:
-		tstutil.read_only(Prop('get', 'del'), 'prop')
-	except tstutil.ExceptionNotRaised:
-		raised = True
-	assert raised
+    # Test that ExceptionNotRaised is raised when prop can be both set and
+    # deleted:
+    raised = False
+    try:
+    	tstutil.read_only(Prop('get', 'del'), 'prop')
+    except tstutil.ExceptionNotRaised:
+    	raised = True
+    assert raised
 
-	# Test that AttributeError is raised when prop can't be read:
-	raised = False
-	try:
-		tstutil.read_only(Prop(), 'prop')
-	except AttributeError:
-		raised = True
-	assert raised
+    # Test that AttributeError is raised when prop can't be read:
+    raised = False
+    try:
+    	tstutil.read_only(Prop(), 'prop')
+    except AttributeError:
+    	raised = True
+    assert raised

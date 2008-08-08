@@ -22,128 +22,128 @@ All custom errors raised by `ipalib` package.
 """
 
 class IPAError(Exception):
-	"""
-	Use this base class for your custom IPA errors unless there is a
-	specific reason to subclass from AttributeError, KeyError, etc.
-	"""
-	msg = None
+    """
+    Use this base class for your custom IPA errors unless there is a
+    specific reason to subclass from AttributeError, KeyError, etc.
+    """
+    msg = None
 
-	def __init__(self, *args, **kw):
-		self.args = args
-		self.kw = kw
+    def __init__(self, *args, **kw):
+    	self.args = args
+    	self.kw = kw
 
-	def __str__(self):
-		"""
-		Returns the string representation of this exception.
-		"""
-		if self.msg is None:
-			if len(self.args) == 1:
-				return unicode(self.args[0])
-			return unicode(self.args)
-		if len(self.args) > 0:
-			return self.msg % self.args
-		return self.msg % self.kw
+    def __str__(self):
+    	"""
+    	Returns the string representation of this exception.
+    	"""
+    	if self.msg is None:
+    		if len(self.args) == 1:
+    			return unicode(self.args[0])
+    		return unicode(self.args)
+    	if len(self.args) > 0:
+    		return self.msg % self.args
+    	return self.msg % self.kw
 
 
 class ValidationError(IPAError):
-	msg = 'invalid %r value %r: %s'
+    msg = 'invalid %r value %r: %s'
 
-	def __init__(self, name, value, error):
-		self.name = name
-		self.value = value
-		self.error = error
-		super(ValidationError, self).__init__(name, value, error)
+    def __init__(self, name, value, error):
+    	self.name = name
+    	self.value = value
+    	self.error = error
+    	super(ValidationError, self).__init__(name, value, error)
 
 
 class NormalizationError(ValidationError):
-	def __init__(self, name, value, type):
-		self.type = type
-		super(NormalizationError, self).__init__(name, value,
-			'not %r' % type
-		)
+    def __init__(self, name, value, type):
+    	self.type = type
+    	super(NormalizationError, self).__init__(name, value,
+    		'not %r' % type
+    	)
 
 
 class RuleError(ValidationError):
-	def __init__(self, name, value, rule, error):
-		self.rule = rule
-		super(RuleError, self).__init__(name, value, error)
+    def __init__(self, name, value, rule, error):
+    	self.rule = rule
+    	super(RuleError, self).__init__(name, value, error)
 
 
 
 class SetError(IPAError):
-	msg = 'setting %r, but NameSpace does not allow attribute setting'
+    msg = 'setting %r, but NameSpace does not allow attribute setting'
 
 
 
 class RegistrationError(IPAError):
-	"""
-	Base class for errors that occur during plugin registration.
-	"""
+    """
+    Base class for errors that occur during plugin registration.
+    """
 
 
 class NameSpaceError(RegistrationError):
-	msg = 'name %r does not re.match %r'
+    msg = 'name %r does not re.match %r'
 
 
 class SubclassError(RegistrationError):
-	"""
-	Raised when registering a plugin that is not a subclass of one of the
-	allowed bases.
-	"""
-	msg = 'plugin %r not subclass of any base in %r'
+    """
+    Raised when registering a plugin that is not a subclass of one of the
+    allowed bases.
+    """
+    msg = 'plugin %r not subclass of any base in %r'
 
-	def __init__(self, cls, allowed):
-		self.cls = cls
-		self.allowed = allowed
+    def __init__(self, cls, allowed):
+    	self.cls = cls
+    	self.allowed = allowed
 
-	def __str__(self):
-		return self.msg % (self.cls, self.allowed)
+    def __str__(self):
+    	return self.msg % (self.cls, self.allowed)
 
 
 class DuplicateError(RegistrationError):
-	"""
-	Raised when registering a plugin whose exact class has already been
-	registered.
-	"""
-	msg = '%r at %d was already registered'
+    """
+    Raised when registering a plugin whose exact class has already been
+    registered.
+    """
+    msg = '%r at %d was already registered'
 
-	def __init__(self, cls):
-		self.cls = cls
+    def __init__(self, cls):
+    	self.cls = cls
 
-	def __str__(self):
-		return self.msg % (self.cls, id(self.cls))
+    def __str__(self):
+    	return self.msg % (self.cls, id(self.cls))
 
 
 class OverrideError(RegistrationError):
-	"""
-	Raised when override=False yet registering a plugin that overrides an
-	existing plugin in the same namespace.
-	"""
-	msg = 'unexpected override of %s.%s with %r (use override=True if intended)'
+    """
+    Raised when override=False yet registering a plugin that overrides an
+    existing plugin in the same namespace.
+    """
+    msg = 'unexpected override of %s.%s with %r (use override=True if intended)'
 
-	def __init__(self, base, cls):
-		self.base = base
-		self.cls = cls
+    def __init__(self, base, cls):
+    	self.base = base
+    	self.cls = cls
 
-	def __str__(self):
-		return self.msg % (self.base.__name__, self.cls.__name__, self.cls)
+    def __str__(self):
+    	return self.msg % (self.base.__name__, self.cls.__name__, self.cls)
 
 
 class MissingOverrideError(RegistrationError):
-	"""
-	Raised when override=True yet no preexisting plugin with the same name
-	and base has been registered.
-	"""
-	msg = '%s.%s has not been registered, cannot override with %r'
+    """
+    Raised when override=True yet no preexisting plugin with the same name
+    and base has been registered.
+    """
+    msg = '%s.%s has not been registered, cannot override with %r'
 
-	def __init__(self, base, cls):
-		self.base = base
-		self.cls = cls
+    def __init__(self, base, cls):
+    	self.base = base
+    	self.cls = cls
 
-	def __str__(self):
-		return self.msg % (self.base.__name__, self.cls.__name__, self.cls)
+    def __str__(self):
+    	return self.msg % (self.base.__name__, self.cls.__name__, self.cls)
 
 
 
 class TwiceSetError(IPAError):
-	msg = '%s.%s cannot be set twice'
+    msg = '%s.%s cannot be set twice'
