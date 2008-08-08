@@ -52,14 +52,17 @@ class option(object):
 	))
 	__rules = None
 
+	# type = unicode, int, float # Set in subclass
+
 	def normalize(self, value):
 		"""
-		Normalize an input value. The base class implementation only does
-		type coercion, but subclasses might do other normalization (e.g., a
-		str option might strip leading and trailing white-space).
+		Returns the normalized form of `value`. If `value` cannot be
+		normalized, NormalizationError is raised, which is a subclass of
+		ValidationError.
 
-		If value cannot be normalized, NormalizationError is raised, which
-		is a subclass of ValidationError.
+		The base class implementation only does type coercion, but subclasses
+		might do other normalization (e.g., a unicode option might strip
+		leading and trailing white-space).
 		"""
 		try:
 			return self.type(value)
