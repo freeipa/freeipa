@@ -25,18 +25,6 @@ from tstutil import raises, getitem, no_set, no_del, read_only
 from ipalib import plugable, errors
 
 
-def test_to_cli():
-    f = plugable.to_cli
-    assert f('initialize') == 'initialize'
-    assert f('user_add') == 'user-add'
-
-
-def test_from_cli():
-    f = plugable.from_cli
-    assert f('initialize') == 'initialize'
-    assert f('user-add') == 'user_add'
-
-
 def test_valid_identifier():
     f = plugable.check_identifier
     okay = [

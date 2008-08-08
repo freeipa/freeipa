@@ -26,24 +26,6 @@ import inspect
 import errors
 
 
-def to_cli(name):
-    """
-    Takes a Python identifier and transforms it into form suitable for the
-    Command Line Interface.
-    """
-    assert isinstance(name, str)
-    return name.replace('_', '-')
-
-
-def from_cli(cli_name):
-    """
-    Takes a string from the Command Line Interface and transforms it into a
-    Python identifier.
-    """
-    assert isinstance(cli_name, basestring)
-    return cli_name.replace('-', '_')
-
-
 def check_identifier(name):
     """
     Raises errors.NameSpaceError if `name` is not a valid Python identifier
