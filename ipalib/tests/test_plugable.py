@@ -55,7 +55,7 @@ def test_valid_identifier():
 
 class test_ReadOnly(ClassChecker):
     """
-    Test the plugable.ReadOnly class
+    Test the `ReadOnly` class
     """
     _cls = plugable.ReadOnly
 
@@ -103,17 +103,28 @@ class test_ReadOnly(ClassChecker):
 
 class test_ProxyTarget(ClassChecker):
     """
-    Test the plugable.ProxyTarget class.
+    Test the `ProxyTarget` class.
     """
     _cls = plugable.ProxyTarget
 
     def test_class(self):
         assert self.cls.__bases__ == (plugable.ReadOnly,)
+        assert type(self.cls.name) is property
         assert self.cls.implements(frozenset())
+
+    def test_name(self):
+        """
+        Test the `name` property.
+        """
+        assert read_only(self.cls(), 'name') == 'ProxyTarget'
+
+        class some_subclass(self.cls):
+            pass
+        assert read_only(some_subclass(), 'name') == 'some_subclass'
 
     def test_implements(self):
         """
-        Test the implements() classmethod
+        Test the `implements` classmethod.
         """
         class example(self.cls):
             __public__ = frozenset((

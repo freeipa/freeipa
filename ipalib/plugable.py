@@ -76,6 +76,13 @@ class ReadOnly(object):
 class ProxyTarget(ReadOnly):
     __public__ = frozenset()
 
+    def __get_name(self):
+        """
+        Convenience property to return the class name.
+        """
+        return self.__class__.__name__
+    name = property(__get_name)
+
     @classmethod
     def implements(cls, arg):
         assert type(cls.__public__) is frozenset
