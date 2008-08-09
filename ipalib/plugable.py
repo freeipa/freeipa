@@ -278,13 +278,17 @@ class Plugin(ProxyTarget):
 
 class NameSpace(ReadOnly):
     """
-    A read-only namespace of (key, value) pairs that can be accessed
-    both as instance attributes and as dictionary items.
+    A read-only namespace of Proxy instances. Proxy.name is used to name the
+    attributes pointing to the Proxy instances, which can also be accesses
+    through a dictionary interface, for example:
+
+    >>> assert namespace.my_proxy is namespace['my_proxy'] # True
     """
 
     def __init__(self, proxies):
         """
-        NameSpace
+        `proxies` - an iterable returning the Proxy instances to be contained
+            in this NameSpace.
         """
         self.__proxies = tuple(proxies)
         self.__d = dict()
@@ -299,7 +303,7 @@ class NameSpace(ReadOnly):
     def __iter__(self):
         """
         Iterates through the proxies in this NameSpace in the same order they
-        were passed in the contructor.
+        were passed to the constructor.
         """
         for proxy in self.__proxies:
             yield proxy

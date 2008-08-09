@@ -332,62 +332,69 @@ class test_Plugin(ClassChecker):
         raises(AssertionError, sub.finalize, api)
 
 
-def test_NameSpace():
-    cls = plugable.NameSpace
-    assert issubclass(cls, plugable.ReadOnly)
+class test_NameSpace(ClassChecker):
+    """
+    Tests the `NameSpace` class.
+    """
+    _cls = plugable.NameSpace
 
-    class base(object):
-        __public__ = frozenset((
-            'plusplus',
-        ))
+    def test_class(self):
+        assert self.cls.__bases__ == (plugable.ReadOnly,)
 
-        def plusplus(self, n):
-            return n + 1
+    def test_namespace(self):
+        class base(object):
+            __public__ = frozenset((
+                'plusplus',
+            ))
 
-    class plugin(base):
-        def __init__(self, name):
-            self.name = name
+            def plusplus(self, n):
+                return n + 1
 
-    def get_name(i):
-        return 'noun_verb%d' % i
+        class plugin(base):
+            def __init__(self, name):
+                self.name = name
 
-    def get_proxies(n):
-        for i in xrange(n):
-            yield plugable.Proxy(base, plugin(get_name(i)))
+        def get_name(i):
+            return 'noun_verb%d' % i
 
-    cnt = 20
-    ns = cls(get_proxies(cnt))
+        def get_proxies(n):
+            for i in xrange(n):
+                yield plugable.Proxy(base, plugin(get_name(i)))
 
-    # Test __len__
-    assert len(ns) == cnt
+        cnt = 20
+        ns = self.cls(get_proxies(cnt))
+        assert ns.__islocked__() is True
 
-    # Test __iter__
-    i = None
-    for (i, proxy) in enumerate(ns):
-        assert type(proxy) is plugable.Proxy
-        assert proxy.name == get_name(i)
-    assert i == cnt - 1
+        # Test __len__
+        assert len(ns) == cnt
 
-    # Test __contains__, __getitem__, getattr():
-    proxies = frozenset(ns)
-    for i in xrange(cnt):
-        name = get_name(i)
-        assert name in ns
-        proxy = ns[name]
-        assert proxy.name == name
-        assert type(proxy) is plugable.Proxy
-        assert proxy in proxies
-        assert read_only(ns, name) is proxy
+        # Test __iter__
+        i = None
+        for (i, proxy) in enumerate(ns):
+            assert type(proxy) is plugable.Proxy
+            assert proxy.name == get_name(i)
+        assert i == cnt - 1
 
-    # Test dir():
-    assert set(get_name(i) for i in xrange(cnt)).issubset(set(dir(ns)))
+        # Test __contains__, __getitem__, getattr():
+        proxies = frozenset(ns)
+        for i in xrange(cnt):
+            name = get_name(i)
+            assert name in ns
+            proxy = ns[name]
+            assert proxy.name == name
+            assert type(proxy) is plugable.Proxy
+            assert proxy in proxies
+            assert read_only(ns, name) is proxy
 
-    # Test that KeyError, AttributeError is raised:
-    name = get_name(cnt)
-    assert name not in ns
-    raises(KeyError, getitem, ns, name)
-    raises(AttributeError, getattr, ns, name)
-    no_set(ns, name)
+        # Test dir():
+        assert set(get_name(i) for i in xrange(cnt)).issubset(dir(ns))
+
+        # Test that KeyError, AttributeError is raised:
+        name = get_name(cnt)
+        assert name not in ns
+        raises(KeyError, getitem, ns, name)
+        raises(AttributeError, getattr, ns, name)
+        no_set(ns, name)
 
 
 def test_Registrar():
