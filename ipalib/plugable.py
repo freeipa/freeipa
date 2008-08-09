@@ -176,6 +176,13 @@ class Proxy(ReadOnly):
         self.__lock__()
 
     def implements(self, arg):
+        """
+        Returns True if this proxy implements `arg`. Calls the corresponding
+        classmethod on ProxyTarget.
+
+        Unlike ProxyTarget.implements(), this is not a classmethod as a Proxy
+        only implements anything as an instance.
+        """
         return self.__base.implements(arg)
 
     def __clone__(self, name_attr):
@@ -196,8 +203,8 @@ class Proxy(ReadOnly):
 
     def __getitem__(self, key):
         """
-        If this proxy allowes access to an attribute named `key`, return that
-        attrribute.
+        If this proxy allows access to an attribute named `key`, return that
+        attribute.
         """
         if key in self.__public__:
             return getattr(self.__target, key)
@@ -205,18 +212,25 @@ class Proxy(ReadOnly):
 
     def __getattr__(self, name):
         """
-        If this proxy allowes access to an attribute named `name`, return that
-        attrribute.
+        If this proxy allows access to an attribute named `name`, return that
+        attribute.
         """
         if name in self.__public__:
             return getattr(self.__target, name)
         raise AttributeError('no proxy attribute %r' % name)
 
     def __call__(self, *args, **kw):
+        """
+        Attempts to call target.__call__(); raises KeyError if `__call__` is
+        not an attribute this proxy allows access to.
+        """
         return self['__call__'](*args, **kw)
 
-
     def __repr__(self):
+        """
+        Returns a Python expression that could be used to construct this Proxy
+        instance given the appropriate environment.
+        """
         return '%s(%s, %r, %r)' % (
             self.__class__.__name__,
             self.__base.__name__,
