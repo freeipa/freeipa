@@ -447,6 +447,8 @@ class API(ReadOnly):
             object.__setattr__(self, base.__name__, ns)
         for plugin in d.values():
             plugin.finalize(self)
+            plugin.__lock__()
+            assert plugin.__islocked__() is True
             assert plugin.api is self
 
     def __iter__(self):
