@@ -226,7 +226,7 @@ class obj(plugable.Plugin):
     def __filter(self, name):
         for i in getattr(self.api, name):
             if i.obj_name == self.name:
-                yield i._clone('attr_name')
+                yield i.__clone__('attr_name')
 
 
 class attr(plugable.Plugin):

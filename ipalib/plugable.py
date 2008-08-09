@@ -139,6 +139,14 @@ class Proxy(ReadOnly):
     def implements(self, arg):
         return self.__base.implements(arg)
 
+    def __clone__(self, name_attr):
+        """
+        Returns a Proxy instance identical to this one except the proxy name
+        might be derived from a different attribute on the target. The same
+        base and target will be used.
+        """
+        return self.__class__(self.__base, self.__target, name_attr)
+
     def __iter__(self):
         """
         Iterates (in ascending order) though the attribute names this proxy is
@@ -168,8 +176,6 @@ class Proxy(ReadOnly):
     def __call__(self, *args, **kw):
         return self['__call__'](*args, **kw)
 
-    def _clone(self, name_attr):
-        return self.__class__(self.__base, self.__target, name_attr)
 
     def __repr__(self):
         return '%s(%s, %r, %r)' % (

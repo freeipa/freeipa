@@ -174,12 +174,12 @@ class test_ProxyTarget(ClassChecker):
 
 class test_Proxy(ClassChecker):
     """
-    Test the `Proxy` class.
+    Tests the `Proxy` class.
     """
     _cls = plugable.Proxy
 
     def test_class(self):
-     assert self.cls.__bases__ == (plugable.ReadOnly,)
+        assert self.cls.__bases__ == (plugable.ReadOnly,)
 
     def test_proxy(self):
         # Setup:
@@ -242,19 +242,9 @@ class test_Proxy(ClassChecker):
         p = self.cls(base, i, 'attr_name')
         assert read_only(p, 'name') == 'add'
 
-        # Test _clone():
-        i = plugin()
-        p = self.cls(base, i)
-        assert read_only(p, 'name') == 'user_add'
-        c = p._clone('attr_name')
-        assert isinstance(c, self.cls)
-        assert read_only(c, 'name') == 'add'
-        assert c is not p
-        assert c('whoever') == p('whoever')
-
     def test_implements(self):
         """
-        Test the `implements` method.
+        Tests the `implements` method.
         """
         class base(object):
             __public__ = frozenset()
@@ -275,6 +265,23 @@ class test_Proxy(ClassChecker):
         o = sub()
         p = self.cls(base, o)
         assert p.implements(3) == 10
+
+    def test_clone(self):
+        """
+        Tests the `__clone__` method.
+        """
+        class base(object):
+            __public__ = frozenset()
+        class sub(base):
+            name = 'some_name'
+            label = 'another_name'
+
+        p = self.cls(base, sub())
+        assert read_only(p, 'name') == 'some_name'
+        c = p.__clone__('label')
+        assert isinstance(c, self.cls)
+        assert c is not p
+        assert read_only(c, 'name') == 'another_name'
 
 
 def test_Plugin():
