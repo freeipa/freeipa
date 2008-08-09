@@ -150,8 +150,8 @@ class Proxy(ReadOnly):
         '__base',
         '__target',
         '__name_attr',
-        'name',
         '__public__',
+        'name',
     )
 
     def __init__(self, base, target, name_attr='name'):
@@ -169,9 +169,9 @@ class Proxy(ReadOnly):
         self.__base = base
         self.__target = target
         self.__name_attr = name_attr
-        self.name = getattr(target, name_attr)
         self.__public__ = base.__public__
         assert type(self.__public__) is frozenset
+        self.name = getattr(target, name_attr)
         check_identifier(self.name)
         self.__lock__()
 
@@ -225,8 +225,7 @@ class Proxy(ReadOnly):
         )
 
 
-
-class Plugin(object):
+class Plugin(ProxyTarget):
     """
     Base class for all plugins.
     """
@@ -252,27 +251,15 @@ class Plugin(object):
         assert api is not None, 'finalize() argument cannot be None'
         self.__api = api
 
-    def __get_name(self):
-        """
-        Returns the class name of this instance.
-        """
-        return self.__class__.__name__
-    name = property(__get_name)
-
     def __repr__(self):
         """
-        Returns a fully qualified <module><name> representation of the class.
+        Returns a fully qualified module_name.class_name() representation that
+        could be used to contruct this instance.
         """
         return '%s.%s()' % (
             self.__class__.__module__,
             self.__class__.__name__
         )
-
-
-
-
-
-
 
 
 class NameSpace(ReadOnly):
