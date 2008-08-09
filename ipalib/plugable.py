@@ -45,7 +45,7 @@ class ReadOnly(object):
     class for security purposes.
 
     The point of this class is not to make it impossible to set or delete
-    attributes, but do make it impossible to accidentally do so. The plugins
+    attributes, but to make it impossible to accidentally do so. The plugins
     are not thread-safe: in the server, they are loaded once and the same
     instances will be used to process many requests. Therefore, it is
     imperative that they not set any instance attributes after they have
