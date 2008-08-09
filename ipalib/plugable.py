@@ -268,7 +268,7 @@ class Plugin(ProxyTarget):
     def __repr__(self):
         """
         Returns a fully qualified module_name.class_name() representation that
-        could be used to contruct this instance.
+        could be used to construct this Plugin instance.
         """
         return '%s.%s()' % (
             self.__class__.__module__,

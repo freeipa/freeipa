@@ -296,30 +296,40 @@ class test_Proxy(ClassChecker):
         assert read_only(c, 'name') == 'another_name'
 
 
-def test_Plugin():
-    cls = plugable.Plugin
-    assert type(cls.name) is property
+class test_Plugin(ClassChecker):
+    """
+    Tests the `Plugin` class.
+    """
+    _cls = plugable.Plugin
 
-    api = 'the api instance'
-    p = plugable.Plugin()
-    assert read_only(p, 'name') == 'Plugin'
-    assert repr(p) == '%s.Plugin()' % plugable.__name__
-    assert read_only(p, 'api') is None
-    raises(AssertionError, p.finalize, None)
-    p.finalize(api)
-    assert read_only(p, 'api') is api
-    raises(AssertionError, p.finalize, api)
+    def test_class(self):
+        assert self.cls.__bases__ == (plugable.ProxyTarget,)
+        assert type(self.cls.api) is property
 
-    class some_plugin(plugable.Plugin):
-        pass
-    p = some_plugin()
-    assert read_only(p, 'name') == 'some_plugin'
-    assert repr(p) == '%s.some_plugin()' % __name__
-    assert read_only(p, 'api') is None
-    raises(AssertionError, p.finalize, None)
-    p.finalize(api)
-    assert read_only(p, 'api') is api
-    raises(AssertionError, p.finalize, api)
+    def test_finalize(self):
+        """
+        Tests the `finalize` method.
+        """
+        api = 'the api instance'
+        o = self.cls()
+        assert read_only(o, 'name') == 'Plugin'
+        assert repr(o) == '%s.Plugin()' % plugable.__name__
+        assert read_only(o, 'api') is None
+        raises(AssertionError, o.finalize, None)
+        o.finalize(api)
+        assert read_only(o, 'api') is api
+        raises(AssertionError, o.finalize, api)
+
+        class some_plugin(self.cls):
+            pass
+        sub = some_plugin()
+        assert read_only(sub, 'name') == 'some_plugin'
+        assert repr(sub) == '%s.some_plugin()' % __name__
+        assert read_only(sub, 'api') is None
+        raises(AssertionError, sub.finalize, None)
+        sub.finalize(api)
+        assert read_only(sub, 'api') is api
+        raises(AssertionError, sub.finalize, api)
 
 
 def test_NameSpace():
