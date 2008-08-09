@@ -28,7 +28,7 @@ from ipalib import plugable, errors
 
 def test_valid_identifier():
     """
-    Test the plugable.valid_identifier function.
+    Test the `valid_identifier` function.
     """
     f = plugable.check_identifier
     okay = [
@@ -172,6 +172,111 @@ class test_ProxyTarget(ClassChecker):
             assert ex.implements(any_object())
 
 
+class test_Proxy(ClassChecker):
+    """
+    Test the `Proxy` class.
+    """
+    _cls = plugable.Proxy
+
+    def test_class(self):
+     assert self.cls.__bases__ == (plugable.ReadOnly,)
+
+    def test_proxy(self):
+        # Setup:
+        class base(object):
+            __public__ = frozenset((
+                'public_0',
+                'public_1',
+                '__call__',
+            ))
+
+            def public_0(self):
+                return 'public_0'
+
+            def public_1(self):
+                return 'public_1'
+
+            def __call__(self, caller):
+                return 'ya called it, %s.' % caller
+
+            def private_0(self):
+                return 'private_0'
+
+            def private_1(self):
+                return 'private_1'
+
+        class plugin(base):
+            name = 'user_add'
+            attr_name = 'add'
+
+        # Test that TypeError is raised when base is not a class:
+        raises(TypeError, self.cls, base(), None)
+
+        # Test that ValueError is raised when target is not instance of base:
+        raises(ValueError, self.cls, base, object())
+
+        # Test with correct arguments:
+        i = plugin()
+        p = self.cls(base, i)
+        assert read_only(p, 'name') == 'user_add'
+        assert list(p) == sorted(base.__public__)
+
+        # Test normal methods:
+        for n in xrange(2):
+            pub = 'public_%d' % n
+            priv = 'private_%d' % n
+            assert getattr(i, pub)() == pub
+            assert getattr(p, pub)() == pub
+            assert hasattr(p, pub)
+            assert getattr(i, priv)() == priv
+            assert not hasattr(p, priv)
+
+        # Test __call__:
+        value = 'ya called it, dude.'
+        assert i('dude') == value
+        assert p('dude') == value
+        assert callable(p)
+
+        # Test name_attr='name' kw arg
+        i = plugin()
+        p = self.cls(base, i, 'attr_name')
+        assert read_only(p, 'name') == 'add'
+
+        # Test _clone():
+        i = plugin()
+        p = self.cls(base, i)
+        assert read_only(p, 'name') == 'user_add'
+        c = p._clone('attr_name')
+        assert isinstance(c, self.cls)
+        assert read_only(c, 'name') == 'add'
+        assert c is not p
+        assert c('whoever') == p('whoever')
+
+    def test_implements(self):
+        """
+        Test the `implements` method.
+        """
+        class base(object):
+            __public__ = frozenset()
+            name = 'base'
+            @classmethod
+            def implements(cls, arg):
+                return arg + 7
+
+        class sub(base):
+            @classmethod
+            def implements(cls, arg):
+                """
+                Defined to make sure base.implements() is called, not
+                target.implements()
+                """
+                return arg
+
+        o = sub()
+        p = self.cls(base, o)
+        assert p.implements(3) == 10
+
+
 def test_Plugin():
     cls = plugable.Plugin
     assert type(cls.name) is property
@@ -196,84 +301,6 @@ def test_Plugin():
     p.finalize(api)
     assert read_only(p, 'api') is api
     raises(AssertionError, p.finalize, api)
-
-
-
-
-
-def test_Proxy():
-    cls = plugable.Proxy
-    assert issubclass(cls, plugable.ReadOnly)
-
-    # Setup:
-    class base(object):
-        __public__ = frozenset((
-            'public_0',
-            'public_1',
-            '__call__',
-        ))
-
-        def public_0(self):
-            return 'public_0'
-
-        def public_1(self):
-            return 'public_1'
-
-        def __call__(self, caller):
-            return 'ya called it, %s.' % caller
-
-        def private_0(self):
-            return 'private_0'
-
-        def private_1(self):
-            return 'private_1'
-
-    class plugin(base):
-        name = 'user_add'
-        attr_name = 'add'
-
-    # Test that TypeError is raised when base is not a class:
-    raises(TypeError, cls, base(), None)
-
-    # Test that ValueError is raised when target is not instance of base:
-    raises(ValueError, cls, base, object())
-
-    # Test with correct arguments:
-    i = plugin()
-    p = cls(base, i)
-    assert read_only(p, 'name') == 'user_add'
-    assert list(p) == sorted(base.__public__)
-
-    # Test normal methods:
-    for n in xrange(2):
-        pub = 'public_%d' % n
-        priv = 'private_%d' % n
-        assert getattr(i, pub)() == pub
-        assert getattr(p, pub)() == pub
-        assert hasattr(p, pub)
-        assert getattr(i, priv)() == priv
-        assert not hasattr(p, priv)
-
-    # Test __call__:
-    value = 'ya called it, dude.'
-    assert i('dude') == value
-    assert p('dude') == value
-    assert callable(p)
-
-    # Test name_attr='name' kw arg
-    i = plugin()
-    p = cls(base, i, 'attr_name')
-    assert read_only(p, 'name') == 'add'
-
-    # Test _clone():
-    i = plugin()
-    p = cls(base, i)
-    assert read_only(p, 'name') == 'user_add'
-    c = p._clone('attr_name')
-    assert isinstance(c, cls)
-    assert read_only(c, 'name') == 'add'
-    assert c is not p
-    assert c('whoever') == p('whoever')
 
 
 def test_NameSpace():

@@ -102,7 +102,7 @@ class Proxy(ReadOnly):
     Allows access to only certain attributes on its target object (a
     ProxyTarget).
 
-    Think of a proxy as an argreement that "I will have at most these
+    Think of a proxy as an agreement that "I will have at most these
     attributes". This is different from (although similar to) an interface,
     which can be thought of as an agreement that "I will have at least these
     attributes".
@@ -136,9 +136,13 @@ class Proxy(ReadOnly):
         check_identifier(self.name)
         self.__lock__()
 
+    def implements(self, arg):
+        return self.__base.implements(arg)
+
     def __iter__(self):
         """
-        Iterates though the attribute names this proxy is allowing access to.
+        Iterates (in ascending order) though the attribute names this proxy is
+        allowing access to.
         """
         for name in sorted(self.__public__):
             yield name
@@ -174,6 +178,7 @@ class Proxy(ReadOnly):
             self.__target,
             self.__name_attr,
         )
+
 
 
 class Plugin(object):
