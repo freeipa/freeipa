@@ -62,6 +62,18 @@ class test_ReadOnly(ClassChecker):
     def test_class(self):
         assert self.cls.__bases__ == (object,)
         assert callable(self.cls.__lock__)
+        assert callable(self.cls.__islocked__)
+
+    def test_lock(self):
+        """
+        Tests the `__lock__` and `__islocked__` methods.
+        """
+        o = self.cls()
+        assert o.__islocked__() is False
+        o.__lock__()
+        assert o.__islocked__() is True
+        raises(AssertionError, o.__lock__) # Can only be locked once
+        assert o.__islocked__() is True # This should still be True
 
     def test_when_unlocked(self):
         """

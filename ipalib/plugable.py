@@ -39,6 +39,39 @@ def check_identifier(name):
 class ReadOnly(object):
     """
     Base class for classes with read-only attributes.
+
+    Be forewarned that Python does not offer true read-only user defined
+    classes. In particular, do not rely upon the read-only-ness of this
+    class for security purposes.
+
+    The point of this class is not to make it impossible to set or delete
+    attributes, but do make it impossible to accidentally do so. The plugins
+    are not thread-safe: in the server, they are loaded once and the same
+    instances will be used to process many requests. Therefore, it is
+    imperative that they not set any instance attributes after they have
+    been initialized. This base class enforces that policy.
+
+    For example:
+
+    >>> class givenName(ReadOnly):
+    >>>     def __init__(self):
+    >>>         self.whatever = 'some value' # Hasn't been locked yet
+    >>>         self.__lock__()
+    >>>
+    >>>     def finalize(self, api):
+    >>>         # After the instance has been locked, attributes can still be
+    >>>         # set, but only in a round-about, unconventional way:
+    >>>         object.__setattr__(self, 'api', api)
+    >>>
+    >>>     def normalize(self, value):
+    >>>         # After the instance has been locked, trying to set an
+    >>>         # attribute in the normal way will raise AttributeError.
+    >>>         self.value = value # Not thread safe!
+    >>>         return self.actually_normalize()
+    >>>
+    >>>     def actually_normalize(self):
+    >>>         # Again, this is not thread safe:
+    >>>         return unicode(self.value).strip()
     """
     __locked = False
 
@@ -49,6 +82,12 @@ class ReadOnly(object):
         """
         assert self.__locked is False, '__lock__() can only be called once'
         self.__locked = True
+
+    def __islocked__(self):
+        """
+        Returns True if this instance is locked, False otherwise.
+        """
+        return self.__locked
 
     def __setattr__(self, name, value):
         """
