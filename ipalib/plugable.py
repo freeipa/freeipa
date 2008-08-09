@@ -425,7 +425,7 @@ class Registrar(ReadOnly):
 
 class API(ReadOnly):
     def __init__(self, *allowed):
-        keys = tuple(b.__name__ for b in allowed)
+        self.__keys = tuple(b.__name__ for b in allowed)
         self.register = Registrar(*allowed)
         self.__lock__()
 
