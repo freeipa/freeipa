@@ -332,7 +332,7 @@ class NameSpace(ReadOnly):
         return '%s(<%d proxies>)' % (self.__class__.__name__, len(self))
 
 
-class Registrar(object):
+class Registrar(ReadOnly):
     def __init__(self, *allowed):
         """
         `*allowed` is a list of the base classes plugins can be subclassed
@@ -346,6 +346,7 @@ class Registrar(object):
             assert inspect.isclass(base)
             assert base.__name__ not in self.__d
             self.__d[base.__name__] = {}
+        self.__lock__()
 
     def __findbase(self, cls):
         """
