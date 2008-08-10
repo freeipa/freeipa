@@ -38,7 +38,7 @@ def is_rule(obj):
     return callable(obj) and getattr(obj, RULE_FLAG, False) is True
 
 
-class option(object):
+class option(plugable.Plugin):
     """
     The option class represents a kw argument from a command.
     """

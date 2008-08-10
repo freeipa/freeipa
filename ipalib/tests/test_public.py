@@ -63,10 +63,10 @@ def test_is_rule():
     assert not is_rule(call(None))
 
 
-
-
-
 class test_option(ClassChecker):
+    """
+    Tests the option class.
+    """
     _cls = public.option
 
     def get_subcls(self):
@@ -91,10 +91,13 @@ class test_option(ClassChecker):
         """
         Perform some tests on the class (not an instance).
         """
-        #assert issubclass(cls, plugable.ReadOnly)
+        assert self.cls.__bases__ == (plugable.Plugin,)
         assert type(self.cls.rules) is property
 
     def test_normalize(self):
+        """
+        Tests the `normalize` method.
+        """
         assert 'normalize' in self.cls.__public__
         o = self.subcls()
         # Test with values that can't be converted:
@@ -125,7 +128,7 @@ class test_option(ClassChecker):
 
     def test_validate(self):
         """
-        Test the validate method.
+        Tests the `validate` method.
         """
         assert 'validate' in self.cls.__public__
         o = self.subcls()
@@ -137,7 +140,7 @@ class test_option(ClassChecker):
 
     def test_rules(self):
         """
-        Test the rules property.
+        Tests the `rules` property.
         """
         o = self.subcls()
         assert len(o.rules) == 3
@@ -147,11 +150,11 @@ class test_option(ClassChecker):
         assert o.rules == rules
 
     def test_default(self):
+        """
+        Tests the `default` method.
+        """
         assert 'default' in self.cls.__public__
         assert self.cls().default() is None
-
-
-
 
 
 def test_cmd():
