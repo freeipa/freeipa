@@ -21,6 +21,7 @@
 Unit tests for `ipalib.cli` module.
 """
 
+from tstutil import raises, getitem, no_set, no_del, read_only, ClassChecker
 from ipalib import cli
 
 
@@ -34,3 +35,21 @@ def test_from_cli():
     f = cli.from_cli
     assert f('initialize') == 'initialize'
     assert f('user-add') == 'user_add'
+
+
+class test_CLI(ClassChecker):
+    """
+    Tests the `CLI` class.
+    """
+    _cls = cli.CLI
+
+    def test_class(self):
+        assert type(self.cls.api) is property
+
+    def test_api(self):
+        """
+        Tests the `api` property.
+        """
+        api = 'the plugable.API instance'
+        o = self.cls(api)
+        assert read_only(o, 'api') is api

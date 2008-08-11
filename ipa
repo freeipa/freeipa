@@ -27,6 +27,12 @@ Just proof of concept stuff in here right now.
 
 import sys
 from ipalib.startup import api
+from ipalib.cli import CLI
+
+cli = CLI(api)
+cli.run()
+
+sys.exit()
 
 TAB_WIDTH = 2
 

@@ -267,6 +267,13 @@ class test_cmd(ClassChecker):
             sub.validate(**okay)
             raises(errors.RuleError, sub.validate, **fail)
 
+    def test_execute(self):
+        """
+        Tests the `execute` method.
+        """
+        assert 'execute' in self.cls.__public__ # Public
+
+
 
 def test_obj():
     cls = public.obj

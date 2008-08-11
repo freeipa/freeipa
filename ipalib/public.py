@@ -199,7 +199,7 @@ class cmd(plugable.Plugin):
             if key in self.options:
                 self.options[key].validate(value)
 
-    def execute(self, **kw)
+    def execute(self, **kw):
         pass
 
     def print_n_call(self, method, kw):
@@ -214,8 +214,7 @@ class cmd(plugable.Plugin):
         kw = self.normalize(**kw)
         kw.update(self.default(**kw))
         self.validate(**kw)
-        self.execute(**kw)
-
+        return self.execute(**kw)
 
 
 class obj(plugable.Plugin):
