@@ -170,7 +170,7 @@ class test_cmd(ClassChecker):
             @public.rule
             def my_rule(self, value):
                 if value != self.name:
-                    return 'must equal %s' % name
+                    return 'must equal %r' % self.name
             def default(self, **kw):
                 return kw['default_from']
 
@@ -248,6 +248,24 @@ class test_cmd(ClassChecker):
         sub = self.subcls()
         assert sub.default(**no_fill) == {}
         assert sub.default(**fill) == default
+
+    def test_validate(self):
+        """
+        Tests the `validate` method.
+        """
+        assert 'validate' in self.cls.__public__ # Public
+        sub = self.subcls()
+        for name in ('option0', 'option1'):
+            okay = {
+                name: name,
+                'another_option': 'some value',
+            }
+            fail = {
+                name: 'whatever',
+                'another_option': 'some value',
+            }
+            sub.validate(**okay)
+            raises(errors.RuleError, sub.validate, **fail)
 
 
 def test_obj():

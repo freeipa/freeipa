@@ -46,13 +46,12 @@ class option(plugable.Plugin):
 
     __public__ = frozenset((
         'normalize',
-        'validate',
         'default',
+        'validate',
         'required',
         'type',
     ))
     __rules = None
-
     type = unicode
     required = False
 
@@ -94,10 +93,11 @@ class option(plugable.Plugin):
         tuple is lazily initialized the first time the property is accessed.
         """
         if self.__rules is None:
-            self.__rules = tuple(sorted(
+            rules = tuple(sorted(
                 self.__rules_iter(),
                 key=lambda f: getattr(f, '__name__'),
             ))
+            object.__setattr__(self, '_option__rules', rules)
         return self.__rules
     rules = property(__get_rules)
 
@@ -132,6 +132,7 @@ class cmd(plugable.Plugin):
         'normalize',
         'default',
         'validate',
+        'execute',
         '__call__',
         'get_doc',
         'options',
@@ -196,7 +197,18 @@ class cmd(plugable.Plugin):
     def validate(self, **kw):
         for (key, value) in kw.items():
             if key in self.options:
-                self.options.validate(value)
+                self.options[key].validate(value)
+
+    def execute(self, **kw)
+        pass
+
+    def print_n_call(self, method, kw):
+        print '%s.%s(%s)' % (
+            self.name,
+            method,
+            ' '.join('%s=%r' % (k, v) for (k, v) in kw.items()),
+        )
+        getattr(self, method)(**kw)
 
     def __call__(self, **kw):
         kw = self.normalize(**kw)
