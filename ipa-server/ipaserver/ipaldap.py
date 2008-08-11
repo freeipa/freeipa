@@ -270,7 +270,9 @@ class IPAdmin(SimpleLDAPObject):
             ldap.set_option(ldap.OPT_DEBUG_LEVEL,255)
         if cacert is not None:
             ldap.set_option(ldap.OPT_X_TLS_CACERTFILE,cacert)
+        if bindcert is not None:
             ldap.set_option(ldap.OPT_X_TLS_CERTFILE,bindcert)
+        if bindkey is not None:
             ldap.set_option(ldap.OPT_X_TLS_KEYFILE,bindkey)
 
         self.__wrapmethods()

@@ -30,6 +30,8 @@ from ipaserver import dsinstance, replication, installutils, krbinstance, servic
 from ipaserver import httpinstance, ntpinstance, certs, ipaldap
 from ipa import version
 
+CACERT="/usr/share/ipa/html/ca.crt"
+
 class ReplicaConfig:
     def __init__(self):
         self.realm_name = ""
@@ -122,6 +124,15 @@ def install_krb(config):
                        config.domain_name, config.dirman_password,
                        ldappwd_filename, kpasswd_filename)
 
+def install_ca_cert(config):
+    if ipautil.file_exists(config.dir + "/ca.crt"):
+        try:
+            shutil.copy(config.dir + "/ca.crt", CACERT)
+            os.chmod(CACERT, 0444)
+        except Exception, e:
+            print "error copying files: " + str(e)
+            sys.exit(1)
+
 def install_http(config):
     # if we have a pkcs12 file, create the cert db from
     # that. Otherwise the ds setup will create the CA
@@ -139,8 +150,6 @@ def install_http(config):
         try:
             shutil.copy(config.dir + "/preferences.html", "/usr/share/ipa/html/preferences.html")
             shutil.copy(config.dir + "/configure.jar", "/usr/share/ipa/html/configure.jar")
-            shutil.copy(config.dir + "/ca.crt", "/usr/share/ipa/html/ca.crt")
-            os.chmod("/usr/share/ipa/html/ca.crt", 0444)
         except Exception, e:
             print "error copying files: " + str(e)
             sys.exit(1)
@@ -234,12 +243,14 @@ def main():
     # Configure dirsrv
     ds = install_ds(config)
 
-    repl = replication.ReplicationManager(config.host_name, config.dirman_password)
-    if repl is None:
+    # Install CA cert so that we can do SSL connections with ldap
+    install_ca_cert(config)
+
+    try:
+        repl = replication.ReplicationManager(config.host_name, config.dirman_password)
+        ret = repl.setup_replication(config.master_host_name, config.realm_name)
+    except:
         raise RuntimeError("Unable to connect to LDAP server %s." % config.host_name)
-    ret = repl.setup_replication(config.master_host_name, config.realm_name)
-    if ret is None:
-        raise RuntimeError("Unable to connect to LDAP server %s." % config.master_host_name)
     if ret != 0:
         raise RuntimeError("Failed to start replication")
 

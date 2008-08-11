@@ -24,6 +24,7 @@ from ldap import modlist
 from ipa import ipaerror
 
 DIRMAN_CN = "cn=directory manager"
+CACERT="/usr/share/ipa/html/ca.crt"
 PORT = 636
 TIMEOUT = 120
 
@@ -32,13 +33,9 @@ class ReplicationManager:
     def __init__(self, hostname, dirman_passwd):
         self.hostname = hostname
         self.dirman_passwd = dirman_passwd
-        try:
-            self.conn = ipaldap.IPAdmin(hostname)
-            self.conn.do_simple_bind(bindpw=dirman_passwd)
-        except ldap.CONNECT_ERROR, e:
-            return None
-        except ldap.SERVER_DOWN, e:
-            return None
+
+        self.conn = ipaldap.IPAdmin(hostname, port=PORT, cacert=CACERT)
+        self.conn.do_simple_bind(bindpw=dirman_passwd)
 
         self.repl_man_passwd = dirman_passwd
 
@@ -175,7 +172,7 @@ class ReplicationManager:
             logging.debug("failed to find mappting tree entry for %s" % self.suffix)
             raise e
 
-        return entry        
+        return entry
 
 
     def enable_chain_on_update(self, bename):
@@ -301,13 +298,8 @@ class ReplicationManager:
            - the directory manager password needs to be the same on
              both directories.
         """
-        try:
-            other_conn = ipaldap.IPAdmin(other_hostname)
-            other_conn.do_simple_bind(bindpw=self.dirman_passwd)
-        except ldap.CONNECT_ERROR, e:
-            return None
-        except ldap.SERVER_DOWN, e:
-            return None
+        other_conn = ipaldap.IPAdmin(other_hostname, port=PORT, cacert=CACERT)
+        other_conn.do_simple_bind(bindpw=self.dirman_passwd)
 
         self.suffix = ipaldap.IPAdmin.normalizeDN(dsinstance.realm_to_suffix(realm_name))
 
