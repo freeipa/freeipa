@@ -299,6 +299,10 @@ def test_attr():
     assert read_only(i, 'api') is api
     assert read_only(i, 'obj') == 'the user obj'
 
+    class example_prop0(cls):
+        pass
+    o = example_prop0()
+
 
 class test_mthd(ClassChecker):
     """
@@ -310,6 +314,43 @@ class test_mthd(ClassChecker):
         assert self.cls.__bases__ == (public.attr, public.cmd)
         assert self.cls.implements(public.cmd)
 
+    def get_subcls(self):
+        class option0(public.option):
+            pass
+        class option1(public.option):
+            pass
+        class example_prop0(public.prop):
+            pass
+        class example_prop1(public.prop):
+            pass
+        class example_obj(object):
+            __prop = None
+            def __get_prop(self):
+                if self.__prop is None:
+                    self.__prop = (
+                        plugable.Proxy(public.prop, example_prop0(), 'attr_name'),
+                        plugable.Proxy(public.prop, example_prop1(),  'attr_name'),
+                    )
+                return self.__prop
+            prop = property(__get_prop)
+        class noun_verb(self.cls):
+            option_classes = (option0, option1)
+            obj = example_obj()
+        return noun_verb
+
+    def test_get_options(self):
+        """
+        Tests the `get_options` method.
+        """
+        sub = self.subcls()
+        names = ('option0', 'option1', 'prop0', 'prop1')
+        proxies = tuple(sub.get_options())
+        assert len(proxies) == 4
+        for (i, proxy) in enumerate(proxies):
+            assert proxy.name == names[i]
+            assert isinstance(proxy, plugable.Proxy)
+            assert proxy.implements(public.option)
+
 
 class test_prop(ClassChecker):
     _cls = public.prop
@@ -317,7 +358,6 @@ class test_prop(ClassChecker):
     def test_class(self):
         assert self.cls.__bases__ == (public.attr, public.option)
         assert self.cls.implements(public.option)
-
 
 
 def test_PublicAPI():
