@@ -183,16 +183,15 @@ class cmd(plugable.Plugin):
     def normalize(self, **kw):
         return dict(self.normalize_iter(kw))
 
-    def default(self, **kw):
-        d = {}
-        for opt in self.options:
-            if opt.name not in kw:
-                value = opt.default(**kw)
+    def default_iter(self, kw):
+        for option in self.options:
+            if option.name not in kw:
+                value = option.default(**kw)
                 if value is not None:
-                    d[opt.name] = value
-        assert not set(kw).intersection(d)
-        kw.update(d)
-        return kw
+                    yield(option.name, value)
+
+    def default(self, **kw):
+        return dict(self.default_iter(kw))
 
     def validate(self, **kw):
         for (key, value) in kw.items():
@@ -201,7 +200,7 @@ class cmd(plugable.Plugin):
 
     def __call__(self, **kw):
         kw = self.normalize(**kw)
-        kw = self.default(**kw)
+        kw.update(self.default(**kw))
         self.validate(**kw)
         self.execute(**kw)
 

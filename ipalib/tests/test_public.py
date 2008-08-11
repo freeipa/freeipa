@@ -241,14 +241,13 @@ class test_cmd(ClassChecker):
         fill = dict(
             default_from='the default',
         )
-        filled = dict(
+        default = dict(
             option0='the default',
             option1='the default',
-            default_from='the default',
         )
         sub = self.subcls()
-        assert sub.default(**no_fill) == no_fill
-        assert sub.default(**fill) == filled
+        assert sub.default(**no_fill) == {}
+        assert sub.default(**fill) == default
 
 
 def test_obj():
