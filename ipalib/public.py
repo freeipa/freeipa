@@ -53,7 +53,8 @@ class option(plugable.Plugin):
     ))
     __rules = None
 
-    # type = unicode, int, float # Set in subclass
+    type = unicode
+    required = False
 
     def normalize(self, value):
         """
@@ -132,7 +133,7 @@ class cmd(plugable.Plugin):
         'autofill',
         '__call__',
         'get_doc',
-        'opt',
+        'options',
 
     ))
     __options = None
@@ -156,7 +157,9 @@ class cmd(plugable.Plugin):
         """
         for cls in self.option_classes:
             assert inspect.isclass(cls)
-            yield plugable.Proxy(option, cls())
+            o = cls()
+            o.__lock__()
+            yield plugable.Proxy(option, o)
 
     def __get_options(self):
         """
@@ -164,7 +167,7 @@ class cmd(plugable.Plugin):
         """
         if self.__options is None:
             self.__options = plugable.NameSpace(self.get_options())
-        return self.__opt
+        return self.__options
     options = property(__get_options)
 
     def normalize_iter(self, kw):

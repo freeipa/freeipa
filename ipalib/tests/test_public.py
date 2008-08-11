@@ -164,9 +164,12 @@ class test_cmd(ClassChecker):
     _cls = public.cmd
 
     def get_subcls(self):
-        class option0(public.option):
+        class my_option(public.option):
+            def normalize(self, value):
+                return super(my_option, self).normalize(value).lower()
+        class option0(my_option):
             pass
-        class option1(public.option):
+        class option1(my_option):
             pass
         class example(self.cls):
             option_classes = (option0, option1)
@@ -187,6 +190,36 @@ class test_cmd(ClassChecker):
             assert read_only(proxy, 'name') == 'option%d' % i
             assert proxy.implements(public.option)
         assert i == 1
+
+    def test_options(self):
+        """
+        Tests the `options` property.
+        """
+        assert 'options' in self.cls.__public__ # Public
+        sub = self.subcls()
+        options = sub.options
+        assert type(options) == plugable.NameSpace
+        assert len(options) == 2
+        for name in ('option0', 'option1'):
+            assert name in options
+            proxy = options[name]
+            assert getattr(options, name) is proxy
+            assert isinstance(proxy, plugable.Proxy)
+            assert proxy.name == name
+
+    def test_normalize(self):
+        """
+        Tests the `normalize` method.
+        """
+        assert 'normalize' in self.cls.__public__ # Public
+        kw = dict(
+            option0='OPTION0',
+            option1='OPTION1',
+            option2='option2',
+        )
+        norm = dict((k, v.lower()) for (k, v) in kw.items())
+        sub = self.subcls()
+        assert sub.normalize(**kw) == norm
 
 
 def test_obj():
