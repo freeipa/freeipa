@@ -136,7 +136,6 @@ class cmd(plugable.Plugin):
         '__call__',
         'get_doc',
         'options',
-
     ))
     __options = None
     option_classes = tuple()
@@ -248,6 +247,10 @@ class obj(plugable.Plugin):
 
 
 class attr(plugable.Plugin):
+    __public__ = frozenset((
+        'obj',
+        'obj_name',
+    ))
     __obj = None
 
     def __init__(self):
@@ -278,17 +281,18 @@ class attr(plugable.Plugin):
 
 
 class mthd(attr, cmd):
-    __public__ = frozenset((
-        'obj',
-        'obj_name',
-    ))
+    __public__ = attr.__public__.union(cmd.__public__)
+
+    def get_options(self):
+        for proxy in cmd.get_options(self):
+            yield proxy
+        if self.obj is not None and self.obj.prop is not None:
+            for proxy in self.obj.prop:
+                yield proxy
 
 
-class prop(attr):
-    __public__ = frozenset((
-        'obj',
-        'obj_name',
-    ))
+class prop(attr, option):
+    __public__ = attr.__public__.union(option.__public__)
 
     def get_doc(self, _):
         return _('prop doc')

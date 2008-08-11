@@ -300,15 +300,24 @@ def test_attr():
     assert read_only(i, 'obj') == 'the user obj'
 
 
-def test_mthd():
-    cls = public.mthd
-    assert issubclass(cls, public.attr)
-    assert issubclass(cls, public.cmd)
+class test_mthd(ClassChecker):
+    """
+    Tests the `mthd` class.
+    """
+    _cls = public.mthd
+
+    def test_class(self):
+        assert self.cls.__bases__ == (public.attr, public.cmd)
+        assert self.cls.implements(public.cmd)
 
 
-def test_prop():
-    cls = public.prop
-    assert issubclass(cls, public.attr)
+class test_prop(ClassChecker):
+    _cls = public.prop
+
+    def test_class(self):
+        assert self.cls.__bases__ == (public.attr, public.option)
+        assert self.cls.implements(public.option)
+
 
 
 def test_PublicAPI():
