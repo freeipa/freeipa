@@ -167,6 +167,13 @@ class test_cmd(ClassChecker):
         class my_option(public.option):
             def normalize(self, value):
                 return super(my_option, self).normalize(value).lower()
+            @public.rule
+            def my_rule(self, value):
+                if value != self.name:
+                    return 'must equal %s' % name
+            def default(self, **kw):
+                return kw['default_from']
+
         class option0(my_option):
             pass
         class option1(my_option):
@@ -220,6 +227,28 @@ class test_cmd(ClassChecker):
         norm = dict((k, v.lower()) for (k, v) in kw.items())
         sub = self.subcls()
         assert sub.normalize(**kw) == norm
+
+    def test_default(self):
+        """
+        Tests the `default` method.
+        """
+        assert 'default' in self.cls.__public__ # Public
+        no_fill = dict(
+            option0='value0',
+            option1='value1',
+            whatever='hello world',
+        )
+        fill = dict(
+            default_from='the default',
+        )
+        filled = dict(
+            option0='the default',
+            option1='the default',
+            default_from='the default',
+        )
+        sub = self.subcls()
+        assert sub.default(**no_fill) == no_fill
+        assert sub.default(**fill) == filled
 
 
 def test_obj():

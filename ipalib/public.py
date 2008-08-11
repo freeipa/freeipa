@@ -130,7 +130,8 @@ class option(plugable.Plugin):
 class cmd(plugable.Plugin):
     __public__ = frozenset((
         'normalize',
-        'autofill',
+        'default',
+        'validate',
         '__call__',
         'get_doc',
         'options',
@@ -182,11 +183,6 @@ class cmd(plugable.Plugin):
     def normalize(self, **kw):
         return dict(self.normalize_iter(kw))
 
-    def validate(self, **kw):
-        for (key, value) in kw.items():
-            if key in self.options:
-                self.options.validate(value)
-
     def default(self, **kw):
         d = {}
         for opt in self.options:
@@ -198,11 +194,16 @@ class cmd(plugable.Plugin):
         kw.update(d)
         return kw
 
+    def validate(self, **kw):
+        for (key, value) in kw.items():
+            if key in self.options:
+                self.options.validate(value)
+
     def __call__(self, **kw):
-        (args, kw) = self.normalize(*args, **kw)
-        (args, kw) = self.autofill(*args, **kw)
-        self.validate(*args, **kw)
-        self.execute(*args, **kw)
+        kw = self.normalize(**kw)
+        kw = self.default(**kw)
+        self.validate(**kw)
+        self.execute(**kw)
 
 
 
