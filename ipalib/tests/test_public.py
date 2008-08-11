@@ -157,9 +157,36 @@ class test_option(ClassChecker):
         assert self.cls().default() is None
 
 
-def test_cmd():
-    cls = public.cmd
-    assert issubclass(cls, plugable.Plugin)
+class test_cmd(ClassChecker):
+    """
+    Tests the `cmd` class.
+    """
+    _cls = public.cmd
+
+    def get_subcls(self):
+        class option0(public.option):
+            pass
+        class option1(public.option):
+            pass
+        class example(self.cls):
+            option_classes = (option0, option1)
+        return example
+
+    def test_class(self):
+        assert self.cls.__bases__ == (plugable.Plugin,)
+        assert type(self.cls.options) == property
+
+    def test_get_options(self):
+        """
+        Tests the `get_options` method.
+        """
+        assert list(self.cls().get_options()) == []
+        sub = self.subcls()
+        for (i, proxy) in enumerate(sub.get_options()):
+            assert isinstance(proxy, plugable.Proxy)
+            assert read_only(proxy, 'name') == 'option%d' % i
+            assert proxy.implements(public.option)
+        assert i == 1
 
 
 def test_obj():

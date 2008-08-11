@@ -23,6 +23,7 @@ and UI all use.
 """
 
 import re
+import inspect
 import plugable
 import errors
 
@@ -134,7 +135,8 @@ class cmd(plugable.Plugin):
         'opt',
 
     ))
-    __opt = None
+    __options = None
+    option_classes = tuple()
 
     def get_doc(self, _):
         """
@@ -149,19 +151,21 @@ class cmd(plugable.Plugin):
 
     def get_options(self):
         """
-        Returns iterable with opt_proxy objects used to create the opt
-        NameSpace when __get_opt() is called.
+        Returns iterable with option proxy objects used to create the option
+        NameSpace when __get_option() is called.
         """
-        raise NotImplementedError('%s.get_options()' % self.name)
+        for cls in self.option_classes:
+            assert inspect.isclass(cls)
+            yield plugable.Proxy(option, cls())
 
-    def __get_opt(self):
+    def __get_options(self):
         """
-        Returns the NameSpace containing opt_proxy objects.
+        Returns the NameSpace containing the option proxy objects.
         """
-        if self.__opt is None:
-            self.__opt = plugable.NameSpace(self.get_options())
+        if self.__options is None:
+            self.__options = plugable.NameSpace(self.get_options())
         return self.__opt
-    opt = property(__get_opt)
+    options = property(__get_options)
 
     def normalize_iter(self, kw):
         for (key, value) in kw.items():
