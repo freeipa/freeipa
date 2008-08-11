@@ -24,6 +24,7 @@ Functionality for Command Line Inteface.
 import sys
 import re
 
+
 def to_cli(name):
     """
     Takes a Python identifier and transforms it into form suitable for the
@@ -54,18 +55,23 @@ class CLI(object):
         for cmd in self.api.cmd:
             print to_cli(cmd.name)
 
+    def __contains__(self, key):
+        return from_cli(key) in self.api.cmd
+
+    def __getitem__(self, key):
+        return self.api.cmd[from_cli(key)]
+
     def run(self):
         if len(sys.argv) < 2:
             self.print_commands()
             print 'Usage: ipa COMMAND [OPTIONS]'
             sys.exit(2)
-        return
-        name= sys.argv[1]
-        if name == '_api_':
-            print_api()
-            sys.exit()
-        elif name not in api.cmd:
-            print_commands()
-            print 'ipa: ERROR: unknown command %r' % name
+        cmd = sys.argv[1]
+        if cmd not in self:
+            self.print_commands()
+            print 'ipa: ERROR: unknown command %r' % cmd
             sys.exit(2)
-        api.cmd[name]()
+        self.run_cmd(cmd)
+
+    def run_cmd(self, cmd):
+        print self[cmd]
