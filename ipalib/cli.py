@@ -21,8 +21,9 @@
 Functionality for Command Line Inteface.
 """
 
-import sys
 import re
+import sys
+import optparse
 
 
 def to_cli(name):
@@ -41,6 +42,10 @@ def from_cli(cli_name):
     """
     assert isinstance(cli_name, basestring)
     return cli_name.replace('-', '_')
+
+
+def _(arg):
+    return arg
 
 
 class CLI(object):
@@ -74,4 +79,14 @@ class CLI(object):
         self.run_cmd(cmd)
 
     def run_cmd(self, cmd):
-        print self[cmd]
+        (options, args) = self.build_parser(cmd)
+        print options
+
+    def build_parser(self, cmd):
+        parser = optparse.OptionParser()
+        for option in self[cmd].options:
+            parser.add_option('--%s' % to_cli(option.name),
+                help=option.get_doc(_),
+            )
+
+        (options, args) parser.parse_args()

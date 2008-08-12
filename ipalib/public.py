@@ -45,6 +45,7 @@ class option(plugable.Plugin):
     """
 
     __public__ = frozenset((
+        'get_doc',
         'normalize',
         'default',
         'validate',
@@ -167,7 +168,9 @@ class cmd(plugable.Plugin):
         Returns the NameSpace containing the option proxy objects.
         """
         if self.__options is None:
-            self.__options = plugable.NameSpace(self.get_options())
+            object.__setattr__(self, '_cmd__options',
+                plugable.NameSpace(self.get_options()),
+            )
         return self.__options
     options = property(__get_options)
 

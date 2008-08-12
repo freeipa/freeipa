@@ -60,16 +60,19 @@ api.register(user_find)
 
 
 # Register some properties for the 'user' object:
-class user_firstname(public.prop):
-    pass
-api.register(user_firstname)
+class user_givenname(public.prop):
+    def get_doc(self, _):
+        return _('user first name')
+api.register(user_givenname)
 
-class user_lastname(public.prop):
-    pass
-api.register(user_lastname)
+class user_sn(public.prop):
+    def get_doc(self, _):
+        return _('user last name')
+api.register(user_sn)
 
 class user_login(public.prop):
-    pass
+    def get_doc(self, _):
+        return _('user login')
 api.register(user_login)
 
 
