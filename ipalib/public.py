@@ -208,15 +208,15 @@ class cmd(plugable.Plugin):
         print '%s.%s(%s)' % (
             self.name,
             method,
-            ' '.join('%s=%r' % (k, v) for (k, v) in kw.items()),
+            ', '.join('%s=%r' % (k, v) for (k, v) in kw.items()),
         )
-        getattr(self, method)(**kw)
+        return getattr(self, method)(**kw)
 
     def __call__(self, **kw):
-        kw = self.normalize(**kw)
-        kw.update(self.default(**kw))
-        self.validate(**kw)
-        return self.execute(**kw)
+        kw = self.print_n_call('normalize', kw)
+        kw.update(self.print_n_call('default', kw))
+        self.print_n_call('validate', kw)
+        return self.print_n_call('execute', kw)
 
 
 class obj(plugable.Plugin):

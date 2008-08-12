@@ -76,17 +76,17 @@ class CLI(object):
             self.print_commands()
             print 'ipa: ERROR: unknown command %r' % cmd
             sys.exit(2)
-        self.run_cmd(cmd)
+        self.run_cmd(cmd, sys.argv[2:])
 
-    def run_cmd(self, cmd):
-        (options, args) = self.build_parser(cmd)
-        print options
+    def run_cmd(self, cmd, args):
+        kw = dict(self.parse_kw(args))
+        self[cmd](**kw)
 
-    def build_parser(self, cmd):
-        parser = optparse.OptionParser()
-        for option in self[cmd].options:
-            parser.add_option('--%s' % to_cli(option.name),
-                help=option.get_doc(_),
-            )
-
-        (options, args) parser.parse_args()
+    def parse_kw(self, args):
+        for arg in args:
+            m = re.match(r'^--([a-z][-a-z0-9]*)=(.+)$', arg)
+            if m is not None:
+                yield (
+                    from_cli(m.group(1)),
+                    m.group(2),
+                )
