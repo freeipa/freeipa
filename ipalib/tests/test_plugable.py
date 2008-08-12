@@ -622,3 +622,6 @@ def test_API():
             assert proxy.name == plugin_name
             assert read_only(ns, plugin_name) is proxy
             assert read_only(proxy, 'method')(7) == 7 + b
+
+    # Test that calling finilize again raises AssertionError:
+    raises(AssertionError, api.finalize)

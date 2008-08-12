@@ -480,6 +480,8 @@ class Registrar(ReadOnly):
 
 
 class API(ReadOnly):
+    __finalized = False
+
     def __init__(self, *allowed):
         self.__keys = tuple(b.__name__ for b in allowed)
         self.register = Registrar(*allowed)
@@ -489,6 +491,7 @@ class API(ReadOnly):
         """
         Finalize the registration, instantiate the plugins.
         """
+        assert not self.__finalized, 'finalize() can only be called once'
         d = {}
         def plugin_iter(base, classes):
             for cls in classes:
@@ -506,6 +509,7 @@ class API(ReadOnly):
             plugin.__lock__()
             assert plugin.__islocked__() is True
             assert plugin.api is self
+        object.__setattr__(self, '_API__finalized', True)
 
     def __iter__(self):
         for key in self.__keys:
