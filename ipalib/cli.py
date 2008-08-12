@@ -49,6 +49,8 @@ def _(arg):
 
 
 class CLI(object):
+    __d = None
+
     def __init__(self, api):
         self.__api = api
 
@@ -61,12 +63,23 @@ class CLI(object):
             print to_cli(cmd.name)
 
     def __contains__(self, key):
-        return from_cli(key) in self.api.cmd
+        assert self.__d is not None, 'you must call finalize() first'
+        return key in self.__d
 
     def __getitem__(self, key):
-        return self.api.cmd[from_cli(key)]
+        assert self.__d is not None, 'you must call finalize() first'
+        return self.__d[key]
+
+    def finalize(self):
+        api = self.api
+        api.finalize()
+        def d_iter():
+            for cmd in api.cmd:
+                yield (to_cli(cmd.name), cmd)
+        self.__d = dict(d_iter())
 
     def run(self):
+        self.finalize()
         if len(sys.argv) < 2:
             self.print_commands()
             print 'Usage: ipa COMMAND [OPTIONS]'
