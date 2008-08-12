@@ -135,6 +135,18 @@ class ProxyTarget(ReadOnly):
             "must be str, frozenset, or have frozenset '__public__' attribute"
         )
 
+    @classmethod
+    def implemented_by(cls, arg):
+        if inspect.isclass(arg):
+            subclass = arg
+        else:
+            subclass = arg.__class__
+        assert issubclass(subclass, cls), 'must be subclass of %r' % cls
+        for name in cls.__public__:
+            if not hasattr(subclass, name):
+                return False
+        return True
+
 
 class Proxy(ReadOnly):
     """
