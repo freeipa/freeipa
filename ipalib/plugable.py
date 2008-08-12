@@ -112,42 +112,6 @@ class ReadOnly(object):
         return object.__delattr__(self, name)
 
 
-class ProxyTarget(ReadOnly):
-    __public__ = frozenset()
-
-    def __get_name(self):
-        """
-        Convenience property to return the class name.
-        """
-        return self.__class__.__name__
-    name = property(__get_name)
-
-    @classmethod
-    def implements(cls, arg):
-        assert type(cls.__public__) is frozenset
-        if isinstance(arg, str):
-            return arg in cls.__public__
-        if type(getattr(arg, '__public__', None)) is frozenset:
-            return cls.__public__.issuperset(arg.__public__)
-        if type(arg) is frozenset:
-            return cls.__public__.issuperset(arg)
-        raise TypeError(
-            "must be str, frozenset, or have frozenset '__public__' attribute"
-        )
-
-    @classmethod
-    def implemented_by(cls, arg):
-        if inspect.isclass(arg):
-            subclass = arg
-        else:
-            subclass = arg.__class__
-        assert issubclass(subclass, cls), 'must be subclass of %r' % cls
-        for name in cls.__public__:
-            if not hasattr(subclass, name):
-                return False
-        return True
-
-
 class Proxy(ReadOnly):
     """
     Allows access to only certain attributes on its target object (a
@@ -251,6 +215,86 @@ class Proxy(ReadOnly):
         )
 
 
+class ProxyTarget(ReadOnly):
+    __public__ = frozenset()
+
+    def __get_name(self):
+        """
+        Convenience property to return the class name.
+        """
+        return self.__class__.__name__
+    name = property(__get_name)
+
+    @classmethod
+    def implements(cls, arg):
+        """
+        Returns True if this cls.__public__ frozenset contains `arg`;
+        returns False otherwise.
+
+        There are three different ways this can be called:
+
+        1. With a <type 'str'> argument, e.g.:
+
+        >>> class base(ProxyTarget):
+        >>>     __public__ = frozenset(['some_attr', 'another_attr'])
+        >>> base.implements('some_attr')
+        True
+        >>> base.implements('an_unknown_attribute')
+        False
+
+        2. With a <type 'frozenset'> argument, e.g.:
+
+        >>> base.implements(frozenset(['some_attr']))
+        True
+        >>> base.implements(frozenset(['some_attr', 'an_unknown_attribute']))
+        False
+
+        3. With any object that has a `__public__` attribute that is
+        <type 'frozenset'>, e.g.:
+
+        >>> class whatever(object):
+        >>>     __public__ = frozenset(['another_attr'])
+        >>> base.implements(whatever)
+        True
+
+        Unlike ProxyTarget.implemented_by(), this returns an abstract answer
+        because only the __public__ frozenset is checked... a ProxyTarget
+        need not itself have attributes for all names in __public__
+        (subclasses might provide them).
+        """
+        assert type(cls.__public__) is frozenset
+        if isinstance(arg, str):
+            return arg in cls.__public__
+        if type(getattr(arg, '__public__', None)) is frozenset:
+            return cls.__public__.issuperset(arg.__public__)
+        if type(arg) is frozenset:
+            return cls.__public__.issuperset(arg)
+        raise TypeError(
+            "must be str, frozenset, or have frozenset '__public__' attribute"
+        )
+
+    @classmethod
+    def implemented_by(cls, arg):
+        """
+        Returns True if (1) `arg` is an instance of or subclass of this class,
+        and (2) `arg` (or `arg.__class__` if instance) has an attribute for
+        each name in this class's __public__ frozenset; returns False
+        otherwise.
+
+        Unlike ProxyTarget.implements(), this returns a concrete answer
+        because the attributes of the subclass are checked.
+        """
+        if inspect.isclass(arg):
+            subclass = arg
+        else:
+            subclass = arg.__class__
+        assert issubclass(subclass, cls), 'must be subclass of %r' % cls
+        for name in cls.__public__:
+            if not hasattr(subclass, name):
+                return False
+        return True
+
+
 class Plugin(ProxyTarget):
     """
     Base class for all plugins.
@@ -270,7 +314,7 @@ class Plugin(ProxyTarget):
         """
         After all the plugins are instantiated, the plugable.API calls this
         method, passing itself as the only argument. This is where plugins
-        should check that other plugins they depend upon have actually be
+        should check that other plugins they depend upon have actually been
         loaded.
         """
         assert self.__api is None, 'finalize() can only be called once'
