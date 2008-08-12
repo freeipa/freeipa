@@ -69,10 +69,6 @@ autogen: version-update
 	cd ipa-server; ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR)
 	cd ipa-client; ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR)
 
-configure:
-	cd ipa-server; ./configure --prefix=/usr --sysconfdir=/etc --with-openldap=yes
-	cd ipa-client; ./configure --prefix=/usr --sysconfdir=/etc --with-openldap=yes
-
 install: all
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
