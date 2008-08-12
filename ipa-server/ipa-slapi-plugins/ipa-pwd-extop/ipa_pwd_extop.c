@@ -582,6 +582,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 			 * we have to use a more conservative approach and set the salt
 			 * to be REALMprincipal (the concatenation of REALM and principal
 			 * name without any separator) */
+#if 0
 			if (krbTicketFlags & KTF_REQUIRES_PRE_AUTH) {
 				salt.length = KRB5P_SALT_SIZE;
 				salt.data = malloc(KRB5P_SALT_SIZE);
@@ -598,6 +599,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 					goto enc_error;
 				}
 			} else {
+#endif
 				krberr = krb5_principal2salt(krbctx, princ, &salt);
 				if (krberr) {
 					slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
@@ -605,7 +607,9 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 							krb5_get_error_message(krbctx, krberr));
 					goto enc_error;
 				}
+#if 0
 			}
+#endif
 			break;
 
 		case KRB5_KDB_SALTTYPE_V4:
