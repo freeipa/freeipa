@@ -60,11 +60,6 @@ api.register(user_find)
 
 
 # Register some properties for the 'user' object:
-class user_login(public.prop):
-    def get_doc(self, _):
-        return _('user login')
-api.register(user_login)
-
 class user_givenname(public.prop):
     def get_doc(self, _):
         return _('user first name')
@@ -74,6 +69,17 @@ class user_sn(public.prop):
     def get_doc(self, _):
         return _('user last name')
 api.register(user_sn)
+
+class user_login(public.prop):
+    def get_doc(self, _):
+        return _('user login')
+    def default(self, **kw):
+        givenname = kw.get('givenname', None)
+        sn = kw.get('sn', None)
+        if givenname is None or sn is None:
+            return None
+        return ('%s%s' % (givenname[0], sn)).lower()
+api.register(user_login)
 
 class user_initials(public.prop):
     def get_doc(self, _):

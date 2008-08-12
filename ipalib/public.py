@@ -213,7 +213,7 @@ class cmd(plugable.Plugin):
             ' ' * (tab *2),
             self.name,
             method,
-            ', '.join('%s=%r' % (k, v) for (k, v) in kw.items()),
+            ', '.join('%s=%r' % (k, kw[k]) for k in sorted(kw)),
         )
 
     def __call__(self, **kw):
