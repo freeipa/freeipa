@@ -28,4 +28,4 @@ unnecessary side effects (needed for unit tests, among other things).
 from run import api
 import plugins
 
-api()
+api.finalize()

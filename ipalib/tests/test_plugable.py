@@ -601,7 +601,7 @@ def test_API():
     r(base1_plugin2)
 
     # Test API instance:
-    api() # Calling instance performs finalization
+    api.finalize()
 
     def get_base(b):
         return 'base%d' % b

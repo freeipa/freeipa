@@ -374,4 +374,4 @@ def test_PublicAPI():
         pass
     api.register(cmd2)
 
-    api()
+    api.finalize()

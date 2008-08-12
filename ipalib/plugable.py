@@ -485,7 +485,7 @@ class API(ReadOnly):
         self.register = Registrar(*allowed)
         self.__lock__()
 
-    def __call__(self):
+    def finalize(self):
         """
         Finalize the registration, instantiate the plugins.
         """
