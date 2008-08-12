@@ -53,7 +53,7 @@ class ReadOnly(object):
 
     For example:
 
-    >>> class givenName(ReadOnly):
+    >>> class givenname(ReadOnly):
     >>>     def __init__(self):
     >>>         self.whatever = 'some value' # Hasn't been locked yet
     >>>         self.__lock__()
