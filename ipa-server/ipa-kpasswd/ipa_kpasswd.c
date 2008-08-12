@@ -482,7 +482,7 @@ int ldap_pwd_change(char *client_name, char *realm_name, krb5_data pwd, char **e
 		goto done;
 	}
 
-	ber_printf(ctrl, "{tstON}",
+	ber_printf(ctrl, "{tstO}",
 		   LDAP_TAG_EXOP_MODIFY_PASSWD_ID, userdn,
 		   LDAP_TAG_EXOP_MODIFY_PASSWD_NEW, &newpw);
 

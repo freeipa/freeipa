@@ -54,7 +54,7 @@ IPA is a server for identity, policy, and audit.
 
 %prep
 %setup -q
-./configure --prefix=%{buildroot}/usr --libdir=%{buildroot}/%{_libdir} --sysconfdir=%{buildroot}/etc --localstatedir=%{buildroot}/var --mandir=%{buildroot}/usr/share/man --with-openldap=yes
+./configure --prefix=%{buildroot}/usr --libdir=%{buildroot}/%{_libdir} --sysconfdir=%{buildroot}/etc --localstatedir=%{buildroot}/var --mandir=%{buildroot}/usr/share/man
 
 %build
 
