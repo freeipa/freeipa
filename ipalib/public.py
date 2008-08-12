@@ -184,6 +184,7 @@ class cmd(plugable.Plugin):
                 yield (key, value)
 
     def normalize(self, **kw):
+        self.print_call('normalize', kw)
         return dict(self.normalize_iter(kw))
 
     def default_iter(self, kw):
@@ -194,29 +195,32 @@ class cmd(plugable.Plugin):
                     yield(option.name, value)
 
     def default(self, **kw):
+        self.print_call('default', kw)
         return dict(self.default_iter(kw))
 
     def validate(self, **kw):
+        self.print_call('validate', kw)
         for (key, value) in kw.items():
             if key in self.options:
                 self.options[key].validate(value)
 
     def execute(self, **kw):
+        self.print_call('execute', kw)
         pass
 
-    def print_n_call(self, method, kw):
+    def print_call(self, method, kw):
         print '%s.%s(%s)' % (
             self.name,
             method,
             ', '.join('%s=%r' % (k, v) for (k, v) in kw.items()),
         )
-        return getattr(self, method)(**kw)
 
     def __call__(self, **kw):
-        kw = self.print_n_call('normalize', kw)
-        kw.update(self.print_n_call('default', kw))
-        self.print_n_call('validate', kw)
-        return self.print_n_call('execute', kw)
+        self.print_call('__call__', kw)
+        kw = self.normalize(**kw)
+        kw.update(self.default(**kw))
+        self.validate(**kw)
+        self.execute(**kw)
 
 
 class obj(plugable.Plugin):
