@@ -18,12 +18,10 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Importing this module causes the plugins to be loaded and the API to be
-generated.
+Importing this module causes the plugins to be loaded.
 
-This is not in __init__.py so that importing other IPA modules doesn't cause
-unnecessary side effects (needed for unit tests, among other things).
+This is not in __init__.py so that importing other ipalib or its other
+modules does not cause unnecessary side effects.
 """
 
-from run import api
 import Plugins
