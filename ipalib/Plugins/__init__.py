@@ -21,4 +21,4 @@
 Sub-package containing all internal plugins.
 """
 
-print 'imported Plugins'
+import example

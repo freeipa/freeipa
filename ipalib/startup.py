@@ -21,9 +21,9 @@
 Importing this module causes the plugins to be loaded and the API to be
 generated.
 
-This is not in __init__.py so that imported other IPA modules doesn't cause
+This is not in __init__.py so that importing other IPA modules doesn't cause
 unnecessary side effects (needed for unit tests, among other things).
 """
 
 from run import api
-import plugins
+import Plugins

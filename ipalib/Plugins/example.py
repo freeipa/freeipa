@@ -21,8 +21,9 @@
 Some example plugins.
 """
 
-import public
-from run import api
+
+from ipalib import public
+from ipalib.run import api
 
 
 # Hypothetical functional commands (not associated with any object):
