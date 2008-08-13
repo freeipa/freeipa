@@ -199,9 +199,13 @@ class cmd(plugable.Plugin):
 
     def validate(self, **kw):
         self.print_call('validate', kw, 1)
-        for (key, value) in kw.items():
-            if key in self.options:
-                self.options[key].validate(value)
+        for opt in self.options:
+            value = kw.get(opt.name, None)
+            if value is None:
+                if opt.required:
+                    raise errors.RequirementError(opt.name)
+                continue
+            opt.validate(value)
 
     def execute(self, **kw):
         self.print_call('execute', kw, 1)

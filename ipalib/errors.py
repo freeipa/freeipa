@@ -64,10 +64,22 @@ class NormalizationError(ValidationError):
 
 
 class RuleError(ValidationError):
+    """
+    Raised when a required option was not provided.
+    """
     def __init__(self, name, value, rule, error):
         self.rule = rule
         ValidationError.__init__(self, name, value, error)
 
+
+class RequirementError(ValidationError):
+    """
+    Raised when a required option was not provided.
+    """
+    def __init__(self, name):
+        ValidationError.__init__(self, name, None,
+            'missing required value'
+        )
 
 
 class SetError(IPAError):

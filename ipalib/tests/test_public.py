@@ -177,7 +177,7 @@ class test_cmd(ClassChecker):
         class option0(my_option):
             pass
         class option1(my_option):
-            pass
+            required = True
         class example(self.cls):
             option_classes = (option0, option1)
         return example
@@ -254,25 +254,36 @@ class test_cmd(ClassChecker):
         Tests the `validate` method.
         """
         assert 'validate' in self.cls.__public__ # Public
+
         sub = self.subcls()
-        for name in ('option0', 'option1'):
-            okay = {
-                name: name,
-                'another_option': 'some value',
-            }
-            fail = {
-                name: 'whatever',
-                'another_option': 'some value',
-            }
-            sub.validate(**okay)
-            raises(errors.RuleError, sub.validate, **fail)
+
+        # Check with valid args
+        okay = dict(
+            option0='option0',
+            option1='option1',
+            another_option='some value',
+        )
+        sub.validate(**okay)
+
+        # Check with an invalid arg
+        fail = dict(okay)
+        fail['option0'] = 'whatever'
+        raises(errors.RuleError, sub.validate, **fail)
+
+        # Check with a missing required arg
+        fail = dict(okay)
+        fail.pop('option1')
+        raises(errors.RequirementError, sub.validate, **fail)
+
+        # Check with missing *not* required arg
+        okay.pop('option0')
+        sub.validate(**okay)
 
     def test_execute(self):
         """
         Tests the `execute` method.
         """
         assert 'execute' in self.cls.__public__ # Public
-
 
 
 def test_obj():
