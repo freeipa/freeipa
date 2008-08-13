@@ -63,6 +63,9 @@ class DummyAPI(object):
     def finalize(self):
         pass
 
+    def register(self, *args, **kw):
+        pass
+
 
 
 
