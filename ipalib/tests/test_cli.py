@@ -106,3 +106,19 @@ class test_CLI(ClassChecker):
         assert o.mcl is None
         o.finalize()
         assert o.mcl == 6 # len('cmd_99')
+
+    def test_dict(self):
+        """
+        Tests the `__contains__` and `__getitem__` methods.
+        """
+        cnt = 25
+        api = DummyAPI(cnt)
+        assert len(api.cmd) == cnt
+        o = self.cls(api)
+        o.finalize()
+        for cmd in api.cmd:
+            key = cli.to_cli(cmd.name)
+            assert key in o
+            assert o[key] is cmd
+            assert cmd.name not in o
+            raises(KeyError, getitem, o, cmd.name)
