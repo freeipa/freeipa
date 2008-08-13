@@ -219,7 +219,7 @@ class cmd(plugable.Plugin):
             ', '.join('%s=%r' % (k, kw[k]) for k in sorted(kw)),
         )
 
-    def __call__(self, **kw):
+    def __call__(self, *args, **kw):
         print ''
         self.print_call('__call__', kw)
         kw = self.normalize(**kw)
