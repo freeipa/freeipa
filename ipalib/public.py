@@ -308,16 +308,5 @@ class prop(attr, option):
 
 
 class PublicAPI(plugable.API):
-    __max_cmd_len = None
-
     def __init__(self):
         super(PublicAPI, self).__init__(cmd, obj, mthd, prop)
-
-    def __get_max_cmd_len(self):
-        if self.__max_cmd_len is None:
-            if not hasattr(self, 'cmd'):
-                return None
-            max_cmd_len = max(len(str(cmd)) for cmd in self.cmd)
-            object.__setattr__(self, '_PublicAPI__max_cmd_len', max_cmd_len)
-        return self.__max_cmd_len
-    max_cmd_len = property(__get_max_cmd_len)
