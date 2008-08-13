@@ -97,7 +97,9 @@ class CLI(object):
             sys.exit(2)
         self.run_cmd(cmd, sys.argv[2:])
 
-    def run_cmd(self, cmd, args):
+    def run_cmd(self, cmd, given):
+        print self.parse(given)
+        sys.exit(0)
         kw = dict(self.parse_kw(args))
         self[cmd](**kw)
 
@@ -109,6 +111,18 @@ class CLI(object):
                     from_cli(m.group(1)),
                     m.group(2),
                 )
+
+    def parse(self, given):
+        args = []
+        kw = {}
+        for g in given:
+            m = re.match(r'^--([a-z][-a-z0-9]*)=(.+)$', g)
+            if m:
+                kw[from_cli(m.group(1))] = m.group(2)
+            else:
+                args.append(g)
+        return (args, kw)
+
 
     def __get_mcl(self):
         """

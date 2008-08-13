@@ -98,6 +98,23 @@ class test_CLI(ClassChecker):
         args = tuple('--%s=%s' % (cli.to_cli(k), v) for (k,v) in kw.items())
         assert dict(o.parse_kw(args)) == kw
 
+    def test_parse(self):
+        """
+        Tests the `parse` method.
+        """
+        o = self.cls(None)
+        args = ['hello', 'naughty', 'nurse']
+        kw = dict(
+            first_name='Naughty',
+            last_name='Nurse',
+        )
+        opts = ['--%s=%s' % (k.replace('_', '-'), v) for (k, v) in kw.items()]
+        assert o.parse(args + []) == (args, {})
+        assert o.parse(opts + []) == ([], kw)
+        assert o.parse(args + opts) == (args, kw)
+        assert o.parse(opts + args) == (args, kw)
+
+
     def test_mcl(self):
         """
         Tests the `mcl` (Max Command Length) property .
