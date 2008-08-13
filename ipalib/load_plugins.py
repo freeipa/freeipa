@@ -24,4 +24,4 @@ This is not in __init__.py so that importing other ipalib or its other
 modules does not cause unnecessary side effects.
 """
 
-import Plugins
+import plugins
