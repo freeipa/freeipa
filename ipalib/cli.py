@@ -23,7 +23,7 @@ Functionality for Command Line Inteface.
 
 import re
 import sys
-import optparse
+import public
 
 
 def to_cli(name):
@@ -44,10 +44,6 @@ def from_cli(cli_name):
     return cli_name.replace('-', '_')
 
 
-def _(arg):
-    return arg
-
-
 class CLI(object):
     __d = None
     __mcl = None
@@ -60,8 +56,9 @@ class CLI(object):
     api = property(__get_api)
 
     def print_commands(self):
+        print 'Available Commands:'
         for cmd in self.api.cmd:
-            print ' %s  %s' % (
+            print '  %s  %s' % (
                 to_cli(cmd.name).ljust(self.mcl),
                 cmd.doc,
             )
