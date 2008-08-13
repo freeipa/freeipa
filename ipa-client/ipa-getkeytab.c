@@ -40,6 +40,30 @@
 #include <sasl/sasl.h>
 #include <popt.h>
 
+/* Salt types */
+#define NO_SALT                        -1
+#define KRB5_KDB_SALTTYPE_NORMAL        0
+#define KRB5_KDB_SALTTYPE_V4            1
+#define KRB5_KDB_SALTTYPE_NOREALM       2
+#define KRB5_KDB_SALTTYPE_ONLYREALM     3
+#define KRB5_KDB_SALTTYPE_SPECIAL       4
+#define KRB5_KDB_SALTTYPE_AFS3          5
+
+#define KEYTAB_SET_OID "2.16.840.1.113730.3.8.3.1"
+#define KEYTAB_RET_OID "2.16.840.1.113730.3.8.3.2"
+
+struct krb_key_salt {
+    krb5_enctype enctype;
+    krb5_int32 salttype;
+    krb5_keyblock key;
+    krb5_data salt;
+};
+
+struct keys_container {
+    krb5_int32 nkeys;
+    struct krb_key_salt *ksdata;
+};
+
 static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *sit)
 {
 	sasl_interact_t *in = NULL;
@@ -69,212 +93,393 @@ static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *s
         return ret;
 }
 
-#define KEYTAB_SET_OID "2.16.840.1.113730.3.8.3.1"
-#define KEYTAB_RET_OID "2.16.840.1.113730.3.8.3.2"
-
-/* returns 0 if no enctypes available, >0 if enctypes are available */
-static int get_enctypes(krb5_context krbctx, const char *str,
-			krb5_enctype **ktypes)
+static void free_keys_contents(krb5_context krbctx, struct keys_container *keys)
 {
-	krb5_error_code krberr;
-	krb5_enctype *types;
-	char *p, *tmp, *t;
-	int n, i, j;
+    struct krb_key_salt *ksdata;
+    int i;
 
-	if (str == NULL) {
-		krberr = krb5_get_permitted_enctypes(krbctx, ktypes);
-		if (krberr) {
-			fprintf(stderr, "No system preferred enctypes ?!\n");
-			return 0;
-		}
-		return 1;
-	}
+    ksdata = keys->ksdata;
+    for (i = 0; i < keys->nkeys; i++) {
+        krb5_free_keyblock_contents(krbctx, &ksdata[i].key);
+        krb5_free_data_contents(krbctx, &ksdata[i].salt);
+    }
+    free(ksdata);
 
-	t = tmp = strdup(str);
-	if (!tmp) return 0;
+    keys->ksdata = NULL;
+    keys->nkeys = 0;
+}
 
-	/* count */
+/* Determines Encryption and Salt types,
+ * allocates key_salt data storage,
+ * filters out equivalent encodings,
+ * returns 0 if no enctypes available, >0 if enctypes are available */
+static int prep_ksdata(krb5_context krbctx, const char *str,
+                       struct keys_container *keys)
+{
+    struct krb_key_salt *ksdata;
+    krb5_error_code krberr;
+    int n, i, j, nkeys;
+
+    if (str == NULL) {
+        krb5_enctype *ktypes;
+
+        krberr = krb5_get_permitted_enctypes(krbctx, &ktypes);
+        if (krberr) {
+            fprintf(stderr, "No system preferred enctypes ?!\n");
+            return 0;
+        }
+
+        for (n = 0; ktypes[n]; n++) /* count */ ;
+
+        ksdata = calloc(n + 1, sizeof(struct krb_key_salt));
+        if (NULL == ksdata) {
+            fprintf(stderr, "Out of memory!?\n");
+            return 0;
+        }
+
+        for (i = 0; i < n; i++) {
+            ksdata[i].enctype = ktypes[i];
+            ksdata[i].salttype = KRB5_KDB_SALTTYPE_NORMAL;
+        }
+
+        krb5_free_ktypes(krbctx, ktypes);
+
+        nkeys = i;
+
+    } else {
+        char *tmp, *t, *p, *q;
+
+        t = tmp = strdup(str);
+        if (!tmp) {
+            fprintf(stderr, "Out of memory\n");
+            return 0;
+        }
+
+        /* count */
         n = 0;
-	p = t;
-	while ((p = strchr(t, ','))) {
-		t = p+1;
-		n++;
-	}
-	n++; /* count the last one that is 0 terminated instead */
+        while ((p = strchr(t, ','))) {
+            t = p+1;
+            n++;
+        }
+        n++; /* count the last one that is 0 terminated instead */
 
-	types = calloc(sizeof(krb5_enctype), n+1);
-	if (!types) return 0;
+        /* at the end we will have at most n entries + 1 terminating */
+        ksdata = calloc(n + 1, sizeof(struct krb_key_salt));
+        if (!ksdata) {
+            fprintf(stderr, "Out of memory\n");
+            return 0;
+        }
 
-	for (i = 0, j = 0, t = tmp; i < n; i++) {
-		p = strchr(t, ',');
-		if (p ) *p = '\0';
-		krberr = krb5_string_to_enctype(t, &types[j]);
-		if (krberr != 0) {
-			fprintf(stderr,
-				"Warning unrecognized encryption type: [%s]\n",
-				t);
-		} else {
-			j++;
-		}
-		t = p+1;
-	}
+        for (i = 0, j = 0, t = tmp; i < n; i++) {
 
-	free(tmp);
-	*ktypes = types;
+            p = strchr(t, ',');
+            if (p) *p = '\0';
 
-	return j;
+            q = strchr(t, ':');
+            if (q) *q++ = '\0';
+
+            krberr = krb5_string_to_enctype(t, &ksdata[j].enctype);
+            if (krberr != 0) {
+                fprintf(stderr,
+                        "Warning unrecognized encryption type: [%s]\n", t);
+                t = p+1;
+                continue;
+            }
+            t = p+1;
+
+            if (!q) {
+                ksdata[j].salttype = KRB5_KDB_SALTTYPE_NORMAL;
+                j++;
+                continue;
+            }
+
+            krberr = krb5_string_to_salttype(q, &ksdata[j].salttype);
+            if (krberr != 0) {
+                fprintf(stderr, "Warning unrecognized salt type: [%s]\n", q);
+                continue;
+            }
+
+            j++;
+        }
+
+        nkeys = j;
+
+        free(tmp);
+    }
+
+    /* Check we don't already have a key with a similar encoding,
+     * it would just produce redundant data and this is what the
+     * MIT code do anyway */
+
+    for (i = 0, n = 0; i < nkeys; i++ ) {
+        int similar = 0;
+
+        for (j = 0; j < i; j++) {
+            krberr = krb5_c_enctype_compare(krbctx,
+                                            ksdata[j].enctype,
+                                            ksdata[i].enctype,
+                                            &similar);
+            if (krberr) {
+                free_keys_contents(krbctx, keys);
+                fprintf(stderr, "Enctype comparison failed!\n");
+                return 0;
+            }
+            if (similar &&
+                (ksdata[j].salttype == ksdata[i].salttype)) {
+                break;
+            }
+        }
+        if (j < i) {
+            /* redundant encoding, remove it, and shift others */
+            int x;
+            for (x = i; x < nkeys-1; x++) {
+                ksdata[x].enctype = ksdata[x+1].enctype;
+                ksdata[x].salttype = ksdata[x+1].salttype;
+            }
+            continue;
+        }
+        /* count only confirmed enc/salt tuples */
+        n++;
+    }
+
+    keys->nkeys = n;
+    keys->ksdata = ksdata;
+
+    return n;
 }
 
-static void free_keys(krb5_context krbctx, krb5_keyblock *keys, int num_keys)
+static int create_keys(krb5_context krbctx,
+                       krb5_principal princ,
+                       char *password,
+                       const char *enctypes_string,
+                       struct keys_container *keys)
 {
-	int i;
+    struct krb_key_salt *ksdata;
+    krb5_error_code krberr;
+    krb5_data key_password;
+    krb5_data *realm;
+    int i, j, nkeys;
+    int ret;
 
-	for (i = 0; i < num_keys; i++) {
-		krb5_free_keyblock_contents(krbctx, &keys[i]);
-	}
-	free(keys);
+    ret = prep_ksdata(krbctx, enctypes_string, keys);
+    if (ret == 0) return 0;
+
+    ksdata = keys->ksdata;
+    nkeys = keys->nkeys;
+
+    if (password) {
+        key_password.data = password;
+        key_password.length = strlen(password);
+
+        realm = krb5_princ_realm(krbctx, princ);
+    }
+
+    for (i = 0; i < nkeys; i++) {
+        krb5_data *salt;
+
+        if (!password) {
+            /* cool, random keys */
+            krberr = krb5_c_make_random_key(krbctx,
+                                            ksdata[i].enctype,
+                                            &ksdata[i].key);
+            if (krberr) {
+                fprintf(stderr, "Failed to create random key!\n");
+                return 0;
+            }
+            /* set the salt to NO_SALT as the key was random */
+            ksdata[i].salttype = NO_SALT;
+            continue;
+        }
+
+        /* Make keys using password and required salt */
+        switch (ksdata[i].salttype) {
+        case KRB5_KDB_SALTTYPE_ONLYREALM:
+            krberr = krb5_copy_data(krbctx, realm, &salt);
+            if (krberr) {
+                fprintf(stderr, "Failed to create key!\n");
+                return 0;
+            }
+
+            ksdata[i].salt.length = salt->length;
+            ksdata[i].salt.data = malloc(salt->length);
+            if (!ksdata[i].salt.data) {
+                fprintf(stderr, "Out of memory!\n");
+                return 0;
+            }
+            memcpy(ksdata[i].salt.data, salt->data, salt->length);
+            krb5_free_data(krbctx, salt);
+            break;
+
+        case KRB5_KDB_SALTTYPE_NOREALM:
+            krberr = krb5_principal2salt_norealm(krbctx, princ, &ksdata[i].salt);
+            if (krberr) {
+                fprintf(stderr, "Failed to create key!\n");
+                return 0;
+            }
+            break;
+
+        case KRB5_KDB_SALTTYPE_NORMAL:
+            krberr = krb5_principal2salt(krbctx, princ, &ksdata[i].salt);
+            if (krberr) {
+                fprintf(stderr, "Failed to create key!\n");
+                return 0;
+            }
+            break;
+
+        /* no KRB5_KDB_SALTTYPE_V4, we do not support krb v4 */
+
+        case KRB5_KDB_SALTTYPE_AFS3:
+            /* Comment from MIT sources:
+             * * Why do we do this? Well, the afs_mit_string_to_key
+             * * needs to use strlen, and the realm is not NULL
+             * * terminated....
+             */
+            ksdata[i].salt.data = (char *)malloc(realm->length + 1);
+            if (NULL == ksdata[i].salt.data) {
+                fprintf(stderr, "Out of memory!\n");
+                return 0;
+            }
+            memcpy((char *)ksdata[i].salt.data,
+                   (char *)realm->data, realm->length);
+            ksdata[i].salt.data[realm->length] = '\0';
+            /* AFS uses a special length (UGLY) */
+            ksdata[i].salt.length = SALT_TYPE_AFS_LENGTH;
+            break;
+
+        default:
+            fprintf(stderr, "Bad or unsupported salt type (%d)!\n",
+                ksdata[i].salttype);
+            return 0;
+        }
+
+        krberr = krb5_c_string_to_key(krbctx,
+                                      ksdata[i].enctype,
+                                      &key_password,
+                                      &ksdata[i].salt,
+                                      &ksdata[i].key);
+        if (krberr) {
+            fprintf(stderr, "Failed to create key!\n");
+            return 0;
+        }
+
+        /* set back salt length to real value if AFS3 */
+        if (ksdata[i].salttype == KRB5_KDB_SALTTYPE_AFS3) {
+            ksdata[i].salt.length = realm->length;
+        }
+    }
+
+    return nkeys;
 }
 
-static int create_keys(krb5_context krbctx, krb5_enctype *ktypes,
-			krb5_keyblock **keys)
+static struct berval *create_key_control(struct keys_container *keys,
+                                         const char *principalName)
 {
-	krb5_error_code krberr;
-	krb5_keyblock *key;
-	int i, j, k, max_keys;
+    struct krb_key_salt *ksdata;
+    struct berval *bval;
+    BerElement *be;
+    int ret, i;
 
-	for (i = 0; ktypes[i]; i++) /* count max encodings */ ;
-	max_keys = i;
-	if (!max_keys) {
-		fprintf(stderr, "No enctypes available\n");
-		return 0;
-	}
+    be = ber_alloc_t(LBER_USE_DER);
+    if (!be) {
+        return NULL;
+    }
 
-	key = calloc(max_keys, sizeof(krb5_keyblock));
-	if (!key) {
-		fprintf(stderr, "Out of Memory!\n");
-		return 0;
-	}
+    ret = ber_printf(be, "{s{", principalName);
+    if (ret == -1) {
+        ber_free(be, 1);
+        return NULL;
+    }
 
-	k = 0; /* effective number of keys */
+    ksdata = keys->ksdata;
+    for (i = 0; i < keys->nkeys; i++) {
 
-	for (i = 0; i < max_keys; i++) {
-		krb5_boolean similar;
+        /* we set only the EncryptionKey and salt, no s2kparams */
 
-		/* Check we don't already have a key with a similar encoding,
-		 * it would just produce redundant data and this is what the
-		 * kerberos libs do anyway */
-		similar = 0;
-		for (j = 0; j < i; j++) {
-			krberr = krb5_c_enctype_compare(krbctx, ktypes[i],
-							ktypes[j], &similar);
-			if (krberr) {
-				free_keys(krbctx, key, i);
-				fprintf(stderr, "Enctype comparison failed!\n");
-				return 0;
-			}
-			if (similar) break;
-		}
-		if (similar) continue;
+        ret = ber_printf(be, "{t[{t[i]t[o]}]",
+                 (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0),
+                 (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0),
+                 (ber_int_t)ksdata[i].enctype,
+                 (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 1),
+                 (char *)ksdata[i].key.contents, (ber_len_t)ksdata[i].key.length);
 
-		krberr = krb5_c_make_random_key(krbctx, ktypes[i], &key[k]);
-		if (krberr) {
-			free_keys(krbctx, key, k);
-			fprintf(stderr, "Making random key failed!\n");
-			return 0;
-		}
-		k++;
-	}
+        if (ret == -1) {
+            ber_free(be, 1);
+            return NULL;
+        }
 
-	*keys = key;
-	return k;
+        if (ksdata[i].salttype == NO_SALT) {
+            ret = ber_printf(be, "}");
+            continue;
+        }
+
+        /* we have to pass a salt structure */
+        ret = ber_printf(be, "t[{t[i]t[o]}]}",
+                 (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 1),
+                 (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0),
+                 (ber_int_t)ksdata[i].salttype,
+                 (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 1),
+                 (char *)ksdata[i].salt.data, (ber_len_t)ksdata[i].salt.length);
+
+        if (ret == -1) {
+            ber_free(be, 1);
+            return NULL;
+        }
+    }
+
+    ret = ber_printf(be, "}}");
+    if (ret == -1) {
+        ber_free(be, 1);
+        return NULL;
+    }
+
+    ret = ber_flatten(be, &bval);
+    if (ret == -1) {
+        ber_free(be, 1);
+        return NULL;
+    }
+
+    ber_free(be, 1);
+    return bval;
 }
 
-static struct berval *create_key_control(krb5_keyblock *keys, int num_keys, const char *principalName)
+int filter_keys(krb5_context krbctx, struct keys_container *keys,
+                ber_int_t *enctypes)
 {
-	struct berval *bval;
-	BerElement *be;
-	int ret, i;
+    struct krb_key_salt *ksdata;
+    int i, j, n;
 
-	be = ber_alloc_t(LBER_USE_DER);
-	if (!be) {
-		return NULL;
-	}
+    n = keys->nkeys;
+    ksdata = keys->ksdata;
+    for (i = 0; i < n; i++) {
+        if (ksdata[i].enctype == enctypes[i]) continue;
+        if (enctypes[i] == 0) {
+            /* remove unsupported one */
+            krb5_free_keyblock_contents(krbctx, &ksdata[i].key);
+            krb5_free_data_contents(krbctx, &ksdata[i].salt);
+            for (j = i; j < n-1; j++) {
+                keys[j] = keys[j + 1];
+            }
+            n--;
+            /* new key has been moved to this position, make sure
+             * we do not skip it, by neutralizing next i increment */
+            i--;
+        }
+    }
 
-	ret = ber_printf(be, "{s{", principalName);
-	if (ret == -1) {
-		ber_free(be, 1);
-		return NULL;
-	}
+    if (n == 0) {
+        fprintf(stderr, "No keys accepted by KDC\n");
+        return 0;
+    }
 
-	for (i = 0; i < num_keys; i++) {
-
-		/* we set only the EncryptionKey, no salt or s2kparams */
-		ret = ber_printf(be, "{t[{t[i]t[o]}]}",
-				 (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0),
-				 (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 0),
-				 (ber_int_t)keys[i].enctype,
-				 (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 1),
-				 (char *)keys[i].contents, (ber_len_t)keys[i].length);
-
-		if (ret == -1) {
-			ber_free(be, 1);
-			return NULL;
-		}
-	}
-
-	ret = ber_printf(be, "}}");
-	if (ret == -1) {
-		ber_free(be, 1);
-		return NULL;
-	}
-
-	ret = ber_flatten(be, &bval);
-	if (ret == -1) {
-		ber_free(be, 1);
-		return NULL;
-	}
-
-	ber_free(be, 1);
-	return bval;
+    keys->nkeys = n;
+    return n;
 }
 
-int filter_keys(krb5_context krbctx, krb5_keyblock *keys, int *num_keys, ber_int_t *enctypes)
-{
-	int i, j, k;
-
-	k = *num_keys;
-
-	for (i = 0; i < k; i++) {
-		for (j = 0; enctypes[j]; j++) {
-			if (keys[i].enctype == enctypes[j]) break;
-		}
-		if (enctypes[j] == 0) { /* unsupported one */
-			krb5_free_keyblock_contents(krbctx, &keys[i]);
-			/* remove unsupported one */
-			k--;
-			for (j = i; j < k; j++) {
-				keys[j] = keys[j + 1];
-			}
-			/* new key has been moved to this position, make sure
-			 * we do not skip it, by neutralizing next i increment */
-			i--;
-		}
-	}
-
-	if (k == 0) {
-		return -1;
-	}
-
-	*num_keys = k;
-	return 0;
-}
-
-static int ldap_set_keytab(const char *servername,
+static int ldap_set_keytab(krb5_context krbctx,
+			   const char *servername,
 			   const char *principal_name,
 			   krb5_principal princ,
-			   krb5_keyblock *keys,
-			   int num_keys,
-			   ber_int_t **enctypes)
+			   struct keys_container *keys)
 {
 	int version;
 	LDAP *ld = NULL;
@@ -293,15 +498,15 @@ static int ldap_set_keytab(const char *servername,
 	ber_tag_t rtag;
 	ber_int_t *encs = NULL;
 
-	/* cant' return more than num_keys, sometimes less */
-	encs = calloc(num_keys + 1, sizeof(ber_int_t));
+	/* cant' return more than nkeys, sometimes less */
+	encs = calloc(keys->nkeys + 1, sizeof(ber_int_t));
 	if (!encs) {
 		fprintf(stderr, "Out of Memory!\n");
 		return 0;
 	}
 
 	/* build password change control */
-	control = create_key_control(keys, num_keys, principal_name);
+	control = create_key_control(keys, principal_name);
 	if (!control) {
 		fprintf(stderr, "Failed to create control!\n");
 		goto error_out;
@@ -411,11 +616,13 @@ static int ldap_set_keytab(const char *servername,
 		goto error_out;
 	}
 
-	for (i = 0; i < num_keys; i++) {
+	for (i = 0; i < keys->nkeys; i++) {
 		ret = ber_scanf(sctrl, "{i}", &encs[i]);
 		if (ret == LBER_ERROR) break;
 	}
-	*enctypes = encs;
+
+	ret = filter_keys(krbctx, keys, encs);
+	if (ret == 0) goto error_out;
 
 	if (err) ldap_memfree(err);
 	ber_free(sctrl, 1);
@@ -435,6 +642,44 @@ error_out:
 	return 0;
 }
 
+static char *ask_password(krb5_context krbctx)
+{
+    krb5_prompt ap_prompts[2];
+    krb5_data k5d_pw0;
+    krb5_data k5d_pw1;
+    char pw0[256];
+    char pw1[256];
+    char *password;
+
+    k5d_pw0.length = sizeof(pw0);
+    k5d_pw0.data = pw0;
+    ap_prompts[0].prompt = "New Principal Password";
+    ap_prompts[0].hidden = 1;
+    ap_prompts[0].reply = &k5d_pw0;
+
+    k5d_pw1.length = sizeof(pw1);
+    k5d_pw1.data = pw1;
+    ap_prompts[1].prompt = "Verify Principal Password";
+    ap_prompts[1].hidden = 1;
+    ap_prompts[1].reply = &k5d_pw1;
+
+    krb5_prompter_posix(krbctx, NULL,
+                NULL, NULL,
+                2, ap_prompts);
+
+    if (strcmp(pw0, pw1)) {
+        fprintf(stderr, "Passwords do not match!");
+        return NULL;
+    }
+
+    password = malloc(k5d_pw0.length + 1);
+    if (!password) return NULL;
+    memcpy(password, pw0, k5d_pw0.length);
+    password[k5d_pw0.length] = '\0';
+
+    return password;
+}
+
 int main(int argc, char *argv[])
 {
 	static const char *server = NULL;
@@ -442,6 +687,7 @@ int main(int argc, char *argv[])
 	static const char *keytab = NULL;
 	static const char *enctypes_string = NULL;
 	int quiet = 0;
+	int askpass = 0;
 	int permitted_enctypes = 0;
         struct poptOption options[] = {
 		{ "quiet", 'q', POPT_ARG_NONE, &quiet, 0, "Print as little as possible", "Output only on errors"},
@@ -450,19 +696,19 @@ int main(int argc, char *argv[])
                 { "keytab", 'k', POPT_ARG_STRING, &keytab, 0, "File were to store the keytab information", "Keytab File Name" },
 		{ "enctypes", 'e', POPT_ARG_STRING, &enctypes_string, 0, "Encryption types to request", "Comma separated encryption types list" },
 		{ "permitted-enctypes", 0, POPT_ARG_NONE, &permitted_enctypes, 0, "Show the list of permitted encryption types and exit", "Permitted Encryption Types"},
+		{ "password", 'P', POPT_ARG_NONE, &askpass, 0, "Asks for a non-random password to use for the principal" },
 		{ NULL, 0, POPT_ARG_NONE, NULL, 0, NULL, NULL }
 	};
 	poptContext pc;
 	char *ktname;
+	char *password = NULL;
 	krb5_context krbctx;
 	krb5_ccache ccache;
 	krb5_principal uprinc;
 	krb5_principal sprinc;
 	krb5_error_code krberr;
-	krb5_keyblock *keys = NULL;
-	int num_keys = 0;
 	ber_int_t *enctypes;
-	krb5_enctype *ktypes;
+	struct keys_container keys;
 	krb5_keytab kt;
 	int kvno;
 	int i, ret;
@@ -477,6 +723,7 @@ int main(int argc, char *argv[])
 	ret = poptGetNextOpt(pc);
 	if (ret == -1 && permitted_enctypes &&
 	    !(server || principal || keytab || quiet)) {
+		krb5_enctype *ktypes;
 		char enc[79]; /* fit std terminal or truncate */
 
 		krberr = krb5_get_permitted_enctypes(krbctx, &ktypes);
@@ -493,6 +740,7 @@ int main(int argc, char *argv[])
 			}
 			fprintf(stdout, "%s\n", enc);
 		}
+		krb5_free_ktypes(krbctx, ktypes);
 		exit (0);
 	}
 
@@ -501,6 +749,17 @@ int main(int argc, char *argv[])
 			poptPrintUsage(pc, stderr, 0);
 		}
 		exit(2);
+	}
+
+        if (askpass) {
+		password = ask_password(krbctx);
+		if (!password) {
+			exit(2);
+		}
+	} else if (strchr(enctypes_string, ':')) {
+		if (!quiet) {
+			fprintf(stderr, "Warning: salt types are not honored with randomized passwords (see opt. -P)\n");
+		}
 	}
 
 	ret = asprintf(&ktname, "WRFILE:%s", keytab);
@@ -535,33 +794,22 @@ int main(int argc, char *argv[])
 	}
 
 	/* create key material */
-	ret = get_enctypes(krbctx, enctypes_string, &ktypes);
-	if (ret == 0) {
+	ret = create_keys(krbctx, sprinc, password, enctypes_string, &keys);
+	if (!ret) {
+		fprintf(stderr, "Failed to create key material\n");
 		exit(8);
 	}
-	num_keys = create_keys(krbctx, ktypes, &keys);
-	if (!num_keys) {
-		fprintf(stderr, "Failed to create random key material\n");
-		exit(8);
-	}
-	krb5_free_ktypes(krbctx, ktypes);
 
-	kvno = ldap_set_keytab(server, principal, uprinc, keys, num_keys, &enctypes);
+	kvno = ldap_set_keytab(krbctx, server, principal, uprinc, &keys);
 	if (!kvno) {
 		exit(9);
 	}
 
-	ret = filter_keys(krbctx, keys, &num_keys, enctypes);
-	if (ret == -1) {
-		fprintf(stderr, "No keys accepted by the KDC!\n");
-		exit(10);
-	}
-
-	for (i = 0; i < num_keys; i++) {
+	for (i = 0; i < keys.nkeys; i++) {
 		krb5_keytab_entry kt_entry;
 		memset((char *)&kt_entry, 0, sizeof(kt_entry));
 		kt_entry.principal = sprinc;
-		kt_entry.key = keys[i];
+		kt_entry.key = keys.ksdata[i].key;
 		kt_entry.vno = kvno;
 
 		krberr = krb5_kt_add_entry(krbctx, kt, &kt_entry);
@@ -571,7 +819,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	free_keys(krbctx, keys, num_keys);
+	free_keys_contents(krbctx, &keys);
 
 	krberr = krb5_kt_close(krbctx, kt);
 	if (krberr) {
