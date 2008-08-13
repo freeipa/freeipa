@@ -46,6 +46,11 @@ def from_cli(cli_name):
 
 class help(public.cmd):
     'display help on command'
+    def __call__(self, key):
+        if from_cli(key) not in self.api.cmd:
+            print 'help: no such command %r' % key
+            sys.exit(2)
+        print 'Help on command %r:' % key
 
 
 class CLI(object):
