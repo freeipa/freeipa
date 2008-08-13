@@ -37,6 +37,35 @@ def test_from_cli():
     assert f('user-add') == 'user_add'
 
 
+def get_cmd_name(i):
+    return 'cmd_%d' % i
+
+class DummyCmd(object):
+    def __init__(self, name):
+        self.__name = name
+
+    def __get_name(self):
+        return self.__name
+    name = property(__get_name)
+
+class DummyAPI(object):
+    def __init__(self, cnt):
+        self.__cmd = tuple(self.__cmd_iter(cnt))
+
+    def __get_cmd(self):
+        return self.__cmd
+    cmd = property(__get_cmd)
+
+    def __cmd_iter(self, cnt):
+        for i in xrange(cnt):
+            yield DummyCmd(get_cmd_name(i))
+
+    def finalize(self):
+        pass
+
+
+
+
 class test_CLI(ClassChecker):
     """
     Tests the `CLI` class.
@@ -65,3 +94,15 @@ class test_CLI(ClassChecker):
         )
         args = tuple('--%s=%s' % (cli.to_cli(k), v) for (k,v) in kw.items())
         assert dict(o.parse_kw(args)) == kw
+
+    def test_mcl(self):
+        """
+        Tests the `mcl` (Max Command Length) property .
+        """
+        cnt = 100
+        api = DummyAPI(cnt)
+        len(api.cmd) == cnt
+        o = self.cls(api)
+        assert o.mcl is None
+        o.finalize()
+        assert o.mcl == 6 # len('cmd_99')

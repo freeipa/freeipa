@@ -50,6 +50,7 @@ def _(arg):
 
 class CLI(object):
     __d = None
+    __mcl = None
 
     def __init__(self, api):
         self.__api = api
@@ -103,3 +104,14 @@ class CLI(object):
                     from_cli(m.group(1)),
                     m.group(2),
                 )
+
+    def __get_mcl(self):
+        """
+        Returns the Max Command Length.
+        """
+        if self.__mcl is None:
+            if self.__d is None:
+                return None
+            self.__mcl = max(len(k) for k in self.__d)
+        return self.__mcl
+    mcl = property(__get_mcl)
