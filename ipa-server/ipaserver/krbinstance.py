@@ -250,7 +250,7 @@ class KrbInstance(service.Service):
             print type(e)
             print dir(e)
             raise e
-            
+
         self.conn = conn
 
         entry = ipaldap.Entry("cn=Full Principal,cn=mapping,cn=sasl,cn=config")
@@ -356,7 +356,6 @@ class KrbInstance(service.Service):
         krbMKey.setComponentByPosition(1, MasterKey)
         asn1key = pyasn1.codec.ber.encoder.encode(krbMKey)
 
-        entry = ipaldap.Entry("cn="+self.realm+",cn=kerberos,"+self.suffix)
         dn = "cn="+self.realm+",cn=kerberos,"+self.suffix
         mod = [(ldap.MOD_ADD, 'krbMKey', str(asn1key))]
         try:
