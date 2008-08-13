@@ -44,6 +44,10 @@ def from_cli(cli_name):
     return cli_name.replace('-', '_')
 
 
+class help(public.cmd):
+    'display help on command'
+
+
 class CLI(object):
     __d = None
     __mcl = None
@@ -73,6 +77,7 @@ class CLI(object):
 
     def finalize(self):
         api = self.api
+        api.register(help)
         api.finalize()
         def d_iter():
             for cmd in api.cmd:
