@@ -86,18 +86,6 @@ class test_CLI(ClassChecker):
         o = self.cls(api)
         assert read_only(o, 'api') is api
 
-    def test_parse_kw(self):
-        """
-        Tests the `parse_kw` method.
-        """
-        o = self.cls(None)
-        kw = dict(
-            hello='world',
-            how_are='you',
-        )
-        args = tuple('--%s=%s' % (cli.to_cli(k), v) for (k,v) in kw.items())
-        assert dict(o.parse_kw(args)) == kw
-
     def test_parse(self):
         """
         Tests the `parse` method.
@@ -113,7 +101,6 @@ class test_CLI(ClassChecker):
         assert o.parse(opts + []) == ([], kw)
         assert o.parse(args + opts) == (args, kw)
         assert o.parse(opts + args) == (args, kw)
-
 
     def test_mcl(self):
         """
