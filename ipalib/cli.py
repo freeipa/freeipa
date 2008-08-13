@@ -61,7 +61,10 @@ class CLI(object):
 
     def print_commands(self):
         for cmd in self.api.cmd:
-            print to_cli(cmd.name)
+            print ' %s  %s' % (
+                to_cli(cmd.name).ljust(self.mcl),
+                cmd.get_doc(_),
+            )
 
     def __contains__(self, key):
         assert self.__d is not None, 'you must call finalize() first'
