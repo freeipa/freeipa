@@ -63,7 +63,7 @@ class CLI(object):
         for cmd in self.api.cmd:
             print ' %s  %s' % (
                 to_cli(cmd.name).ljust(self.mcl),
-                cmd.get_doc(_),
+                cmd.doc,
             )
 
     def __contains__(self, key):

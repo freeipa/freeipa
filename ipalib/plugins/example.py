@@ -28,52 +28,43 @@ from ipalib.api import api
 
 # Hypothetical functional commands (not associated with any object):
 class krbtest(public.cmd):
-    def get_doc(self, _):
-        return _('test your Kerberos ticket')
+    'test your Kerberos ticket'
 api.register(krbtest)
 
 class discover(public.cmd):
-    def get_doc(self, _):
-        return _('discover IPA servers on network')
+    'discover IPA servers on network'
 api.register(discover)
 
 
 # Register some methods for the 'user' object:
 class user_add(public.mthd):
-    def get_doc(self, _):
-        return _('add new user')
+    'add new user'
 api.register(user_add)
 
 class user_del(public.mthd):
-    def get_doc(self, _):
-        return _('delete existing user')
+    'delete existing user'
 api.register(user_del)
 
 class user_mod(public.mthd):
-    def get_doc(self, _):
-        return _('edit existing user')
+    'edit existing user'
 api.register(user_mod)
 
 class user_find(public.mthd):
-    def get_doc(self, _):
-        return _('search for users')
+    'search for users'
 api.register(user_find)
 
 
 # Register some properties for the 'user' object:
 class user_givenname(public.prop):
-    def get_doc(self, _):
-        return _('user first name')
+    'user first name'
 api.register(user_givenname)
 
 class user_sn(public.prop):
-    def get_doc(self, _):
-        return _('user last name')
+    'user last name'
 api.register(user_sn)
 
 class user_login(public.prop):
-    def get_doc(self, _):
-        return _('user login')
+    'user login'
     def default(self, **kw):
         givenname = kw.get('givenname', None)
         sn = kw.get('sn', None)
@@ -83,8 +74,7 @@ class user_login(public.prop):
 api.register(user_login)
 
 class user_initials(public.prop):
-    def get_doc(self, _):
-        return _('user initials')
+    'user initials'
     def default(self, **kw):
         givenname = kw.get('givenname', None)
         sn = kw.get('sn', None)
@@ -96,61 +86,50 @@ api.register(user_initials)
 
 # Register some methods for the 'group' object:
 class group_add(public.mthd):
-    def get_doc(self, _):
-        return _('add new group')
+    'add new group'
 api.register(group_add)
 
 class group_del(public.mthd):
-    def get_doc(self, _):
-        return _('delete existing group')
+    'delete existing group'
 api.register(group_del)
 
 class group_mod(public.mthd):
-    def get_doc(self, _):
-        return _('edit existing group')
+    'edit existing group'
 api.register(group_mod)
 
 class group_find(public.mthd):
-    def get_doc(self, _):
-        return _('search for groups')
+    'search for groups'
 api.register(group_find)
 
 
 # Register some methods for the 'service' object
 class service_add(public.mthd):
-    def get_doc(self, _):
-        return _('add new service')
+    'add new service'
 api.register(service_add)
 
 class service_del(public.mthd):
-    def get_doc(self, _):
-        return _('delete existing service')
+    'delete existing service'
 api.register(service_del)
 
 class service_mod(public.mthd):
-    def get_doc(self, _):
-        return _('edit existing service')
+    'edit existing service'
 api.register(service_mod)
 
 class service_find(public.mthd):
-    def get_doc(self, _):
-        return _('search for services')
+    'search for services'
 api.register(service_find)
 
 
 # And to emphasis that the registration order doesn't matter,
 # we'll register the objects last:
 class group(public.obj):
-    def get_doc(self, _):
-        return _('')
+    'group object'
 api.register(group)
 
 class service(public.obj):
-    def get_doc(self, _):
-        return _('')
+    'service object'
 api.register(service)
 
 class user(public.obj):
-    def get_doc(self, _):
-        return _('')
+    'user object'
 api.register(user)

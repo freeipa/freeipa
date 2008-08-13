@@ -128,6 +128,7 @@ class Proxy(ReadOnly):
         '__name_attr',
         '__public__',
         'name',
+        'doc',
     )
 
     def __init__(self, base, target, name_attr='name'):
@@ -146,10 +147,11 @@ class Proxy(ReadOnly):
         self.__target = target
         self.__name_attr = name_attr
         self.__public__ = base.__public__
-        assert type(self.__public__) is frozenset
         self.name = getattr(target, name_attr)
-        check_identifier(self.name)
+        self.doc = target.doc
         self.__lock__()
+        assert type(self.__public__) is frozenset
+        check_identifier(self.name)
 
     def implements(self, arg):
         """
@@ -224,6 +226,13 @@ class ProxyTarget(ReadOnly):
         """
         return self.__class__.__name__
     name = property(__get_name)
+
+    def __get_doc(self):
+        """
+        Convenience property to return the class docstring.
+        """
+        return self.__class__.__doc__
+    doc = property(__get_doc)
 
     @classmethod
     def implements(cls, arg):

@@ -126,7 +126,7 @@ class test_ProxyTarget(ClassChecker):
 
     def test_name(self):
         """
-        Test the `name` property.
+        Tests the `name` property.
         """
         assert read_only(self.cls(), 'name') == 'ProxyTarget'
 
@@ -134,9 +134,17 @@ class test_ProxyTarget(ClassChecker):
             pass
         assert read_only(some_subclass(), 'name') == 'some_subclass'
 
+    def test_doc(self):
+        """
+        Tests the `doc` property.
+        """
+        class some_subclass(self.cls):
+            'here is the doc string'
+        assert read_only(some_subclass(), 'doc') == 'here is the doc string'
+
     def test_implements(self):
         """
-        Test the `implements` classmethod.
+        Tests the `implements` classmethod.
         """
         class example(self.cls):
             __public__ = frozenset((
@@ -263,6 +271,7 @@ class test_Proxy(ClassChecker):
         class plugin(base):
             name = 'user_add'
             attr_name = 'add'
+            doc = 'add a new user'
 
         # Test that TypeError is raised when base is not a class:
         raises(TypeError, self.cls, base(), None)
@@ -273,7 +282,8 @@ class test_Proxy(ClassChecker):
         # Test with correct arguments:
         i = plugin()
         p = self.cls(base, i)
-        assert read_only(p, 'name') == 'user_add'
+        assert read_only(p, 'name') is plugin.name
+        assert read_only(p, 'doc') == plugin.doc
         assert list(p) == sorted(base.__public__)
 
         # Test normal methods:
@@ -304,6 +314,7 @@ class test_Proxy(ClassChecker):
         class base(object):
             __public__ = frozenset()
             name = 'base'
+            doc = 'doc'
             @classmethod
             def implements(cls, arg):
                 return arg + 7
@@ -329,6 +340,7 @@ class test_Proxy(ClassChecker):
             __public__ = frozenset()
         class sub(base):
             name = 'some_name'
+            doc = 'doc'
             label = 'another_name'
 
         p = self.cls(base, sub())
@@ -389,6 +401,7 @@ class test_NameSpace(ClassChecker):
             __public__ = frozenset((
                 'plusplus',
             ))
+            doc = 'doc'
 
             def plusplus(self, n):
                 return n + 1

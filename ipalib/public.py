@@ -45,7 +45,6 @@ class option(plugable.Plugin):
     """
 
     __public__ = frozenset((
-        'get_doc',
         'normalize',
         'default',
         'validate',
