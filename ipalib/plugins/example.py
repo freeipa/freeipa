@@ -23,7 +23,7 @@ Some example plugins.
 
 
 from ipalib import public
-from ipalib.run import api
+from ipalib.api import api
 
 
 # Hypothetical functional commands (not associated with any object):

@@ -26,7 +26,7 @@ Just proof of concept stuff in here right now.
 """
 
 import sys
-from ipalib.run import api
+from ipalib.api import api
 from ipalib.cli import CLI
 import ipalib.load_plugins
 

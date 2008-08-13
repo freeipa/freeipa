@@ -18,8 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Standard run-time instances of importard classes.  This is where plugins
-should access the registration API.
+Standard instances of plugable.API and its subclasses.
 """
 
 import public

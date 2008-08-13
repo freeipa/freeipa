@@ -20,8 +20,11 @@
 """
 Importing this module causes the plugins to be loaded.
 
-This is not in __init__.py so that importing other ipalib or its other
-modules does not cause unnecessary side effects.
+This is not in __init__.py so that importing ipalib or its other sub-modules
+does not cause unnecessary side effects.
+
+Eventually this will also load the out-of tree plugins, but for now it just
+loads the internal plugins.
 """
 
 import plugins
