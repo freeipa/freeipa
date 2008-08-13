@@ -52,13 +52,13 @@ class ValidationError(IPAError):
         self.name = name
         self.value = value
         self.error = error
-        super(ValidationError, self).__init__(name, value, error)
+        IPAError.__init__(self, name, value, error)
 
 
 class NormalizationError(ValidationError):
     def __init__(self, name, value, type):
         self.type = type
-        super(NormalizationError, self).__init__(name, value,
+        ValidationError.__init__(self, name, value,
             'not %r' % type
         )
 
@@ -66,7 +66,7 @@ class NormalizationError(ValidationError):
 class RuleError(ValidationError):
     def __init__(self, name, value, rule, error):
         self.rule = rule
-        super(RuleError, self).__init__(name, value, error)
+        ValidationError.__init__(self, name, value, error)
 
 
 
