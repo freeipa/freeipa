@@ -482,18 +482,18 @@ class test_NameSpace(ClassChecker):
         no_set(ns, name)
 
 
-class test_DictProxy(ClassChecker):
+class test_MagicDict(ClassChecker):
     """
-    Tests the `plugable.DictProxy` class.
+    Tests the `plugable.MagicDict` class.
     """
-    _cls = plugable.DictProxy
+    _cls = plugable.MagicDict
 
     def test_class(self):
         assert self.cls.__bases__ == (plugable.ReadOnly,)
         for non_dict in ('hello', 69, object):
             raises(AssertionError, self.cls, non_dict)
 
-    def test_DictProxy(self):
+    def test_MagicDict(self):
         cnt = 10
         keys = []
         d = dict()
@@ -559,7 +559,7 @@ def test_Registrar():
     for base in [Base1, Base2]:
         assert base.__name__ in r
         dp = r[base.__name__]
-        assert type(dp) is plugable.DictProxy
+        assert type(dp) is plugable.MagicDict
         assert len(dp) == 0
 
     # Check that TypeError is raised trying to register something that isn't
@@ -573,7 +573,7 @@ def test_Registrar():
     # Check that registration works
     r(plugin1)
     dp = r['Base1']
-    assert type(dp) is plugable.DictProxy
+    assert type(dp) is plugable.MagicDict
     assert len(dp) == 1
     assert r.Base1 is dp
     assert dp['plugin1'] is plugin1

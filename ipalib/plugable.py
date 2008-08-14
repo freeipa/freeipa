@@ -492,11 +492,11 @@ class NameSpace(ReadOnly):
         return '%s(<%d members>)' % (self.__class__.__name__, len(self))
 
 
-class DictProxy(ReadOnly):
+class MagicDict(ReadOnly):
     """
     A read-only dict whose items can also be accessed as attributes.
 
-    Although a DictProxy is read-only, the underlying dict can change (and is
+    Although a MagicDict is read-only, the underlying dict can change (and is
     assumed to).
 
     One of these is created for each allowed base in a `Registrar` instance.
@@ -576,7 +576,7 @@ class Registrar(ReadOnly):
                 self.base = base
                 self.name = base.__name__
                 self.sub_d = dict()
-                self.dictproxy = DictProxy(self.sub_d)
+                self.dictproxy = MagicDict(self.sub_d)
                 lock(self)
 
         self.__allowed = allowed
@@ -645,7 +645,7 @@ class Registrar(ReadOnly):
 
     def __getitem__(self, key):
         """
-        Returns the DictProxy for plugins subclassed from the base named ``key``.
+        Returns the MagicDict for plugins subclassed from the base named ``key``.
         """
         if key not in self.__d:
             raise KeyError('no base class named %r' % key)
