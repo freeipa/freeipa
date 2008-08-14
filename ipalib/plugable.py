@@ -102,6 +102,16 @@ class ReadOnly(object):
         return object.__delattr__(self, name)
 
 
+def lock(obj):
+    """
+    Convenience function to lock a `ReadOnly` instance.
+    """
+    assert isinstance(obj, ReadOnly)
+    obj.__lock__()
+    assert obj.__islocked__()
+    return obj
+
+
 class Plugin(ReadOnly):
     """
     Base class for all plugins.
@@ -477,8 +487,7 @@ class DictProxy(ReadOnly):
     Although a DictProxy is read-only, the underlying dict can change (and is
     assumed to).
 
-    One of these is created for each allowed base class in a `Registrar`
-    instance.
+    One of these is created for each allowed base in a `Registrar` instance.
     """
     def __init__(self, d):
         """
@@ -486,8 +495,7 @@ class DictProxy(ReadOnly):
         """
         assert type(d) is dict, '`d` must be %r, got %r' % (dict, type(d))
         self.__d = d
-        self.__lock__()
-        assert self.__islocked__()
+        lock(self)
 
     def __len__(self):
         """
@@ -532,19 +540,44 @@ class DictProxy(ReadOnly):
 
 
 class Registrar(ReadOnly):
+    """
+    Collects plugin classes as they are registered.
+
+    The Registrar does not instantiate plugins... it only implements the
+    override logic and stores the plugins in a namespace per allowed base
+    class.
+
+    The plugins are instantiated when `API.finalize()` is called.
+    """
     def __init__(self, *allowed):
         """
         :param allowed: Base classes from which plugins accepted by this
             Registrar must subclass.
         """
-        self.__allowed = frozenset(allowed)
+
+        class Val(ReadOnly):
+            """
+            Internal class used so that only one mapping is needed.
+            """
+            def __init__(self, base):
+                assert inspect.isclass(base)
+                self.base = base
+                self.name = base.__name__
+                self.sub_d = dict()
+                self.dictproxy = DictProxy(self.sub_d)
+                lock(self)
+
+        self.__allowed = allowed
         self.__d = {}
         self.__registered = set()
         for base in self.__allowed:
-            assert inspect.isclass(base)
-            assert base.__name__ not in self.__d
-            self.__d[base.__name__] = {}
-        self.__lock__()
+            val = Val(base)
+            assert not (
+                val.name in self.__d or hasattr(self, val.name)
+            )
+            self.__d[val.name] = val
+            setattr(self, val.name, val.dictproxy)
+        lock(self)
 
     def __findbases(self, klass):
         """
@@ -580,7 +613,7 @@ class Registrar(ReadOnly):
 
         # Find the base class or raise SubclassError:
         for base in self.__findbases(klass):
-            sub_d = self.__d[base.__name__]
+            sub_d = self.__d[base.__name__].sub_d
 
             # Check override:
             if klass.__name__ in sub_d:
@@ -598,26 +631,19 @@ class Registrar(ReadOnly):
         # The plugin is okay, add to __registered:
         self.__registered.add(klass)
 
-    def __getitem__(self, item):
+    def __getitem__(self, key):
         """
-        Returns a copy of the namespace dict of the base class named
-        ``name``.
+        Returns the DictProxy for plugins subclassed from the base named ``key``.
         """
-        if inspect.isclass(item):
-            if item not in self.__allowed:
-                raise KeyError(repr(item))
-            key = item.__name__
-        else:
-            key = item
-        return dict(self.__d[key])
+        if key not in self.__d:
+            raise KeyError('no base class named %r' % key)
+        return self.__d[key].dictproxy
 
-    def __contains__(self, item):
+    def __contains__(self, key):
         """
-        Returns True if a base class named ``name`` is in this Registrar.
+        Returns True if a base class named ``key`` is in this Registrar.
         """
-        if inspect.isclass(item):
-            return item in self.__allowed
-        return item in self.__d
+        return key in self.__d
 
     def __iter__(self):
         """
@@ -625,7 +651,7 @@ class Registrar(ReadOnly):
         base.
         """
         for base in self.__allowed:
-            sub_d = self.__d[base.__name__]
+            sub_d = self.__d[base.__name__].sub_d
             yield (base, tuple(sub_d[k] for k in sorted(sub_d)))
 
 

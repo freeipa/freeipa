@@ -528,11 +528,10 @@ def test_Registrar():
 
     # Test __hasitem__, __getitem__:
     for base in [Base1, Base2]:
-        assert base in r
         assert base.__name__ in r
-        assert r[base] == {}
-        assert r[base.__name__] == {}
-
+        dp = r[base.__name__]
+        assert type(dp) is plugable.DictProxy
+        assert len(dp) == 0
 
     # Check that TypeError is raised trying to register something that isn't
     # a class:
@@ -544,12 +543,12 @@ def test_Registrar():
 
     # Check that registration works
     r(plugin1)
-    sub_d = r['Base1']
-    assert len(sub_d) == 1
-    assert sub_d['plugin1'] is plugin1
-    # Check that a copy is returned
-    assert sub_d is not r['Base1']
-    assert sub_d == r['Base1']
+    dp = r['Base1']
+    assert type(dp) is plugable.DictProxy
+    assert len(dp) == 1
+    assert r.Base1 is dp
+    assert dp['plugin1'] is plugin1
+    assert dp.plugin1 is plugin1
 
     # Check that DuplicateError is raised trying to register exact class
     # again:
@@ -566,21 +565,19 @@ def test_Registrar():
 
     # Check that overriding works
     r(plugin1, override=True)
-    sub_d = r['Base1']
-    assert len(sub_d) == 1
-    assert sub_d['plugin1'] is plugin1
-    assert sub_d['plugin1'] is not orig1
+    assert len(r.Base1) == 1
+    assert r.Base1.plugin1 is plugin1
+    assert r.Base1.plugin1 is not orig1
 
     # Check that MissingOverrideError is raised trying to override a name
     # not yet registerd:
     raises(errors.MissingOverrideError, r, plugin2, override=True)
 
-    # Check that additional plugin can be registered:
+    # Test that another plugin can be registered:
+    assert len(r.Base2) == 0
     r(plugin2)
-    sub_d = r['Base2']
-    assert len(sub_d) == 1
-    assert sub_d['plugin2'] is plugin2
-
+    assert len(r.Base2) == 1
+    assert r.Base2.plugin2 is plugin2
 
     # Setup to test __iter__:
     class plugin1a(Base1):
@@ -612,12 +609,13 @@ def test_Registrar():
 
     # Again test __hasitem__, __getitem__:
     for base in [Base1, Base2]:
-        assert base in r
         assert base.__name__ in r
-        d = dict((p.__name__, p) for p in m[base.__name__])
-        assert len(d) == 3
-        assert r[base] == d
-        assert r[base.__name__] == d
+        dp = r[base.__name__]
+        assert len(dp) == 3
+        for key in dp:
+            klass = dp[key]
+            assert getattr(dp, key) is klass
+            assert issubclass(klass, base)
 
 
 def test_API():
