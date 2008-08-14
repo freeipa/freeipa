@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Base classes for plugin architecture.
+Generic plugin framework.
 """
 
 import re
@@ -139,7 +139,7 @@ class Plugin(ReadOnly):
 
         There are three different ways this can be called:
 
-        1. With a <type 'str'> argument, e.g.:
+        With a <type 'str'> argument, e.g.:
 
         >>> class base(ProxyTarget):
         >>>     __public__ = frozenset(['some_attr', 'another_attr'])
@@ -148,14 +148,14 @@ class Plugin(ReadOnly):
         >>> base.implements('an_unknown_attribute')
         False
 
-        2. With a <type 'frozenset'> argument, e.g.:
+        With a <type 'frozenset'> argument, e.g.:
 
         >>> base.implements(frozenset(['some_attr']))
         True
         >>> base.implements(frozenset(['some_attr', 'an_unknown_attribute']))
         False
 
-        3. With any object that has a `__public__` attribute that is
+        With any object that has a `__public__` attribute that is
         <type 'frozenset'>, e.g.:
 
         >>> class whatever(object):
@@ -182,12 +182,12 @@ class Plugin(ReadOnly):
     @classmethod
     def implemented_by(cls, arg):
         """
-        Returns True if.
+        Returns True if:
 
             1. ``arg`` is an instance of or subclass of this class, and
 
             2. ``arg`` (or ``arg.__class__`` if instance) has an attribute for
-        each name in this class's ``__public__`` frozenset
+                each name in this class's ``__public__`` frozenset
 
         Otherwise, returns False.
 
@@ -471,7 +471,7 @@ class NameSpace(ReadOnly):
 class Registrar(ReadOnly):
     def __init__(self, *allowed):
         """
-        :param *allowed: Base classes from which plugins accepted by this
+        :param allowed: Base classes from which plugins accepted by this
             Registrar must subclass.
         """
         self.__allowed = frozenset(allowed)

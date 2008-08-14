@@ -18,5 +18,14 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-IPA library.
+The IPA Library.
+
+To learn about the library, you should probably read the code in this order:
+
+    1. Start with the `ipalib.plugable` module
+
+    2. Then read the `ipalib.public` module
+
+Some of the plugin architecture was inspired by ``bzr``, so you might also
+read http://bazaar-vcs.org/WritingPlugins
 """
