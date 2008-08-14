@@ -20,8 +20,10 @@
 import os, stat, subprocess, re
 import sha
 import errno
+import tempfile
 
 from ipa import sysrestore
+from ipa import shutil
 from ipa import ipautil
 
 CA_SERIALNO="/var/lib/ipa/ca_serialno"
@@ -38,8 +40,9 @@ class CertDB(object):
         self.cacert_fname = self.secdir + "/cacert.asc"
         self.pk12_fname = self.secdir + "/cacert.p12"
         self.pin_fname = self.secdir + "/pin.txt"
-        self.certreq_fname = self.secdir + "/tmpcertreq"
-        self.certder_fname = self.secdir + "/tmpcert.der"
+        self.reqdir = tempfile.mkdtemp('', 'ipa-', '/var/lib/ipa')
+        self.certreq_fname = self.reqdir + "/tmpcertreq"
+        self.certder_fname = self.reqdir + "/tmpcert.der"
 
         # Making this a starting value that will generate
         # unique values for the current DB is the
@@ -65,6 +68,9 @@ class CertDB(object):
             self.fstore = fstore
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+
+    def __del__(self):
+        shutil.rmtree(self.reqdir, ignore_errors=True)
 
     def set_serial_from_pkcs12(self):
         """A CA cert was loaded from a PKCS#12 file. Set up our serial file"""
