@@ -364,7 +364,7 @@ class NameSpace(ReadOnly):
 
     The members can be accessed as attributes on the NameSpace instance or
     through a dictionary interface. For example, assuming ``obj`` is a member
-    in the NameSpace instance ``namespace``:
+    in the NameSpace instance ``namespace``, you could do this:
 
     >>> obj is getattr(namespace, obj.name) # As attribute
     True
@@ -477,57 +477,63 @@ class Registrar(ReadOnly):
         self.__allowed = frozenset(allowed)
         self.__d = {}
         self.__registered = set()
-        assert len(self.__allowed) == len(allowed)
         for base in self.__allowed:
             assert inspect.isclass(base)
             assert base.__name__ not in self.__d
             self.__d[base.__name__] = {}
         self.__lock__()
 
-    def __findbase(self, cls):
+    def __findbases(self, klass):
         """
-        If ``cls`` is a subclass of a base in self.__allowed, returns that
-        base; otherwise raises `errors.SubclassError`.
+        Iterates through allowed bases that ``klass`` is a subclass of.
+
+        Raises `errors.SubclassError` if ``klass`` is not a subclass of any
+        allowed base.
+
+        :param klass: The class to find bases for.
         """
-        assert inspect.isclass(cls)
+        assert inspect.isclass(klass)
         found = False
         for base in self.__allowed:
-            if issubclass(cls, base):
+            if issubclass(klass, base):
                 found = True
                 yield base
         if not found:
-            raise errors.SubclassError(cls, self.__allowed)
+            raise errors.SubclassError(klass, self.__allowed)
 
-    def __call__(self, cls, override=False):
+    def __call__(self, klass, override=False):
         """
-        Register the plugin ``cls``.
+        Register the plugin ``klass``.
+
+        :param klass: A subclass of `Plugin` to attempt to register.
+        :param override: If true, override an already registered plugin.
         """
-        if not inspect.isclass(cls):
-            raise TypeError('plugin must be a class: %r'  % cls)
+        if not inspect.isclass(klass):
+            raise TypeError('plugin must be a class: %r'  % klass)
 
         # Raise DuplicateError if this exact class was already registered:
-        if cls in self.__registered:
-            raise errors.DuplicateError(cls)
+        if klass in self.__registered:
+            raise errors.DuplicateError(klass)
 
         # Find the base class or raise SubclassError:
-        for base in self.__findbase(cls):
+        for base in self.__findbases(klass):
             sub_d = self.__d[base.__name__]
 
             # Check override:
-            if cls.__name__ in sub_d:
+            if klass.__name__ in sub_d:
                 # Must use override=True to override:
                 if not override:
-                    raise errors.OverrideError(base, cls)
+                    raise errors.OverrideError(base, klass)
             else:
                 # There was nothing already registered to override:
                 if override:
-                    raise errors.MissingOverrideError(base, cls)
+                    raise errors.MissingOverrideError(base, klass)
 
             # The plugin is okay, add to sub_d:
-            sub_d[cls.__name__] = cls
+            sub_d[klass.__name__] = klass
 
         # The plugin is okay, add to __registered:
-        self.__registered.add(cls)
+        self.__registered.add(klass)
 
     def __getitem__(self, item):
         """
