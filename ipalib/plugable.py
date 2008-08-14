@@ -357,8 +357,10 @@ class Proxy(ReadOnly):
 
 def check_name(name):
     """
-    Raises `errors.NameSpaceError` if ``name`` is not a valid Python identifier
-    suitable for use in a `NameSpace`.
+    Verifies that ``name`` is suitable for a `NameSpace` member name.
+
+    Raises `errors.NameSpaceError` if ``name`` is not a valid Python
+    identifier suitable for use as the name of `NameSpace` member.
 
     :param name: Identifier to test.
     """
@@ -666,6 +668,9 @@ class Registrar(ReadOnly):
 
 
 class API(ReadOnly):
+    """
+    Dynamic API object through which `Plugin` instances are accessed.
+    """
     __finalized = False
 
     def __init__(self, *allowed):
@@ -692,8 +697,7 @@ class API(ReadOnly):
             object.__setattr__(self, base.__name__, ns)
         for plugin in d.values():
             plugin.finalize(self)
-            plugin.__lock__()
-            assert plugin.__islocked__() is True
+            lock(plugin)
             assert plugin.api is self
         object.__setattr__(self, '_API__finalized', True)
 
