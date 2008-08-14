@@ -86,6 +86,155 @@ class test_ReadOnly(ClassChecker):
         assert read_only(obj, 'an_attribute') == 'Hello world!'
 
 
+class test_Plugin(ClassChecker):
+    """
+    Tests the `Plugin` class.
+    """
+    _cls = plugable.Plugin
+
+    def test_class(self):
+        assert self.cls.__bases__ == (plugable.ReadOnly,)
+        assert self.cls.__public__ == frozenset()
+        assert type(self.cls.name) is property
+        assert type(self.cls.doc) is property
+        assert type(self.cls.api) is property
+
+    def test_name(self):
+        """
+        Tests the `name` property.
+        """
+        assert read_only(self.cls(), 'name') == 'Plugin'
+
+        class some_subclass(self.cls):
+            pass
+        assert read_only(some_subclass(), 'name') == 'some_subclass'
+
+    def test_doc(self):
+        """
+        Tests the `doc` property.
+        """
+        class some_subclass(self.cls):
+            'here is the doc string'
+        assert read_only(some_subclass(), 'doc') == 'here is the doc string'
+
+    def test_implements(self):
+        """
+        Tests the `implements` classmethod.
+        """
+        class example(self.cls):
+            __public__ = frozenset((
+                'some_method',
+                'some_property',
+            ))
+        class superset(self.cls):
+            __public__ = frozenset((
+                'some_method',
+                'some_property',
+                'another_property',
+            ))
+        class subset(self.cls):
+            __public__ = frozenset((
+                'some_property',
+            ))
+        class any_object(object):
+            __public__ = frozenset((
+                'some_method',
+                'some_property',
+            ))
+
+        for ex in (example, example()):
+            # Test using str:
+            assert ex.implements('some_method')
+            assert not ex.implements('another_method')
+
+            # Test using frozenset:
+            assert ex.implements(frozenset(['some_method']))
+            assert not ex.implements(
+                frozenset(['some_method', 'another_method'])
+            )
+
+            # Test using another object/class with __public__ frozenset:
+            assert ex.implements(example)
+            assert ex.implements(example())
+
+            assert ex.implements(subset)
+            assert not subset.implements(ex)
+
+            assert not ex.implements(superset)
+            assert superset.implements(ex)
+
+            assert ex.implements(any_object)
+            assert ex.implements(any_object())
+
+    def test_implemented_by(self):
+        """
+        Tests the `implemented_by` classmethod.
+        """
+        class base(self.cls):
+            __public__ = frozenset((
+                'attr0',
+                'attr1',
+                'attr2',
+            ))
+
+        class okay(base):
+            def attr0(self):
+                pass
+            def __get_attr1(self):
+                assert False # Make sure property isn't accesed on instance
+            attr1 = property(__get_attr1)
+            attr2 = 'hello world'
+            another_attr = 'whatever'
+
+        class fail(base):
+            def __init__(self):
+                # Check that class, not instance is inspected:
+                self.attr2 = 'hello world'
+            def attr0(self):
+                pass
+            def __get_attr1(self):
+                assert False # Make sure property isn't accesed on instance
+            attr1 = property(__get_attr1)
+            another_attr = 'whatever'
+
+        # Test that AssertionError is raised trying to pass something not
+        # subclass nor instance of base:
+        raises(AssertionError, base.implemented_by, object)
+
+        # Test on subclass with needed attributes:
+        assert base.implemented_by(okay) is True
+        assert base.implemented_by(okay()) is True
+
+        # Test on subclass *without* needed attributes:
+        assert base.implemented_by(fail) is False
+        assert base.implemented_by(fail()) is False
+
+    def test_finalize(self):
+        """
+        Tests the `finalize` method.
+        """
+        api = 'the api instance'
+        o = self.cls()
+        assert read_only(o, 'name') == 'Plugin'
+        assert repr(o) == '%s.Plugin()' % plugable.__name__
+        assert read_only(o, 'api') is None
+        raises(AssertionError, o.finalize, None)
+        o.finalize(api)
+        assert read_only(o, 'api') is api
+        raises(AssertionError, o.finalize, api)
+
+        class some_plugin(self.cls):
+            pass
+        sub = some_plugin()
+        assert read_only(sub, 'name') == 'some_plugin'
+        assert repr(sub) == '%s.some_plugin()' % __name__
+        assert read_only(sub, 'api') is None
+        raises(AssertionError, sub.finalize, None)
+        sub.finalize(api)
+        assert read_only(sub, 'api') is api
+        raises(AssertionError, sub.finalize, api)
+
+
 class test_Proxy(ClassChecker):
     """
     Tests the `Proxy` class.
@@ -200,164 +349,6 @@ class test_Proxy(ClassChecker):
         assert isinstance(c, self.cls)
         assert c is not p
         assert read_only(c, 'name') == 'another_name'
-
-
-class test_ProxyTarget(ClassChecker):
-    """
-    Test the `ProxyTarget` class.
-    """
-    _cls = plugable.ProxyTarget
-
-    def test_class(self):
-        assert self.cls.__bases__ == (plugable.ReadOnly,)
-        assert type(self.cls.name) is property
-        assert self.cls.implements(frozenset())
-
-    def test_name(self):
-        """
-        Tests the `name` property.
-        """
-        assert read_only(self.cls(), 'name') == 'ProxyTarget'
-
-        class some_subclass(self.cls):
-            pass
-        assert read_only(some_subclass(), 'name') == 'some_subclass'
-
-    def test_doc(self):
-        """
-        Tests the `doc` property.
-        """
-        class some_subclass(self.cls):
-            'here is the doc string'
-        assert read_only(some_subclass(), 'doc') == 'here is the doc string'
-
-    def test_implements(self):
-        """
-        Tests the `implements` classmethod.
-        """
-        class example(self.cls):
-            __public__ = frozenset((
-                'some_method',
-                'some_property',
-            ))
-        class superset(self.cls):
-            __public__ = frozenset((
-                'some_method',
-                'some_property',
-                'another_property',
-            ))
-        class subset(self.cls):
-            __public__ = frozenset((
-                'some_property',
-            ))
-        class any_object(object):
-            __public__ = frozenset((
-                'some_method',
-                'some_property',
-            ))
-
-        for ex in (example, example()):
-            # Test using str:
-            assert ex.implements('some_method')
-            assert not ex.implements('another_method')
-
-            # Test using frozenset:
-            assert ex.implements(frozenset(['some_method']))
-            assert not ex.implements(
-                frozenset(['some_method', 'another_method'])
-            )
-
-            # Test using another object/class with __public__ frozenset:
-            assert ex.implements(example)
-            assert ex.implements(example())
-
-            assert ex.implements(subset)
-            assert not subset.implements(ex)
-
-            assert not ex.implements(superset)
-            assert superset.implements(ex)
-
-            assert ex.implements(any_object)
-            assert ex.implements(any_object())
-
-    def test_implemented_by(self):
-        """
-        Tests the `implemented_by` classmethod.
-        """
-        class base(self.cls):
-            __public__ = frozenset((
-                'attr0',
-                'attr1',
-                'attr2',
-            ))
-
-        class okay(base):
-            def attr0(self):
-                pass
-            def __get_attr1(self):
-                assert False # Make sure property isn't accesed on instance
-            attr1 = property(__get_attr1)
-            attr2 = 'hello world'
-            another_attr = 'whatever'
-
-        class fail(base):
-            def __init__(self):
-                # Check that class, not instance is inspected:
-                self.attr2 = 'hello world'
-            def attr0(self):
-                pass
-            def __get_attr1(self):
-                assert False # Make sure property isn't accesed on instance
-            attr1 = property(__get_attr1)
-            another_attr = 'whatever'
-
-        # Test that AssertionError is raised trying to pass something not
-        # subclass nor instance of base:
-        raises(AssertionError, base.implemented_by, object)
-
-        # Test on subclass with needed attributes:
-        assert base.implemented_by(okay) is True
-        assert base.implemented_by(okay()) is True
-
-        # Test on subclass *without* needed attributes:
-        assert base.implemented_by(fail) is False
-        assert base.implemented_by(fail()) is False
-
-
-class test_Plugin(ClassChecker):
-    """
-    Tests the `Plugin` class.
-    """
-    _cls = plugable.Plugin
-
-    def test_class(self):
-        assert self.cls.__bases__ == (plugable.ProxyTarget,)
-        assert type(self.cls.api) is property
-
-    def test_finalize(self):
-        """
-        Tests the `finalize` method.
-        """
-        api = 'the api instance'
-        o = self.cls()
-        assert read_only(o, 'name') == 'Plugin'
-        assert repr(o) == '%s.Plugin()' % plugable.__name__
-        assert read_only(o, 'api') is None
-        raises(AssertionError, o.finalize, None)
-        o.finalize(api)
-        assert read_only(o, 'api') is api
-        raises(AssertionError, o.finalize, api)
-
-        class some_plugin(self.cls):
-            pass
-        sub = some_plugin()
-        assert read_only(sub, 'name') == 'some_plugin'
-        assert repr(sub) == '%s.some_plugin()' % __name__
-        assert read_only(sub, 'api') is None
-        raises(AssertionError, sub.finalize, None)
-        sub.finalize(api)
-        assert read_only(sub, 'api') is api
-        raises(AssertionError, sub.finalize, api)
 
 
 def test_check_name():
