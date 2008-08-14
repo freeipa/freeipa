@@ -60,6 +60,22 @@ def getitem(obj, key):
     return obj[key]
 
 
+def setitem(obj, key, value):
+    """
+    Works like setattr but for dictionary interface. Uses this in combination
+    with raises() to test that, for example, TypeError is raised.
+    """
+    obj[key] = value
+
+
+def delitem(obj, key):
+    """
+    Works like delattr but for dictionary interface. Uses this in combination
+    with raises() to test that, for example, TypeError is raised.
+    """
+    del obj[key]
+
+
 def no_set(obj, name, value='some_new_obj'):
     """
     Tests that attribute cannot be set.

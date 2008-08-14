@@ -426,8 +426,8 @@ class NameSpace(ReadOnly):
 
     def __contains__(self, name):
         """
-        Returns True if this NameSpace contains a member named ``name``; returns
-        False otherwise.
+        Returns True if instance contains a member named ``name``, otherwise
+        False.
 
         :param name: The name of a potential member
         """
@@ -435,8 +435,10 @@ class NameSpace(ReadOnly):
 
     def __getitem__(self, name):
         """
-        If this NameSpace contains a member named ``name``, returns that member;
-        otherwise raises KeyError.
+        Returns the member named ``name``.
+
+        Raises KeyError if this NameSpace does not contain a member named
+        ``name``.
 
         :param name: The name of member to retrieve
         """
@@ -466,6 +468,66 @@ class NameSpace(ReadOnly):
         this NameSpace instance.
         """
         return '%s(<%d members>)' % (self.__class__.__name__, len(self))
+
+
+class DictProxy(ReadOnly):
+    """
+    A read-only dict whose items can also be accessed as attributes.
+
+    Although a DictProxy is read-only, the underlying dict can change (and is
+    assumed to).
+
+    One of these is created for each allowed base class in a `Registrar`
+    instance.
+    """
+    def __init__(self, d):
+        """
+        :param d: The ``dict`` instance to proxy.
+        """
+        self.__d = d
+        self.__lock__()
+        assert self.__islocked__()
+
+    def __len__(self):
+        """
+        Returns number of items in underlying ``dict``.
+        """
+        return len(self.__d)
+
+    def __iter__(self):
+        """
+        Iterates through keys of underlying ``dict`` in ascending order.
+        """
+        for name in sorted(self.__d):
+            yield name
+
+    def __contains__(self, key):
+        """
+        Returns True if underlying dict contains ``key``, False otherwise.
+
+        :param key: The key to query upon.
+        """
+        return key in self.__d
+
+    def __getitem__(self, key):
+        """
+        Returns value from underlying dict corresponding to ``key``.
+
+        :param key: The key of the value to retrieve.
+        """
+        if key in self.__d:
+            return self.__d[key]
+        raise KeyError('no item at key %r' % key)
+
+    def __getattr__(self, name):
+        """
+        Returns value from underlying dict corresponding to ``name``.
+
+        :param name: The name of the attribute to retrieve.
+        """
+        if name in self.__d:
+            return self.__d[name]
+        raise AttributeError('no attribute %r' % name)
 
 
 class Registrar(ReadOnly):
