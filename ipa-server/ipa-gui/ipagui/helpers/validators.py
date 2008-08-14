@@ -88,6 +88,5 @@ class GoodName(Regex):
     regex = r"^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,30}[a-zA-Z0-9_.$-]?$"
 
     messages = {
-        'invalid': _('Enter only letters, numbers, _ (underscore), - (dash) or 
-$'),
+        'invalid': _('Enter only letters, numbers, _ (underscore), - (dash) or $'),
     }

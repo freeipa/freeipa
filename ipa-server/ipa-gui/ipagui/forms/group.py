@@ -18,7 +18,7 @@
 import turbogears
 from turbogears import validators, widgets
 from tg_expanding_form_widget.tg_expanding_form_widget import ExpandingForm
-from ipagui.helpers import ipahelper
+from ipagui.helpers import ipahelper,validators
 
 class GroupFields(object):
     cn = widgets.TextField(name="cn", label="Name")
@@ -36,7 +36,7 @@ class GroupFields(object):
     dn_to_info_json = widgets.HiddenField(name="dn_to_info_json")
 
 class GroupNewValidator(validators.Schema):
-    cn = GoodName(not_empty=True)
+    cn = validators.GoodName(not_empty=True)
     description = validators.String(not_empty=False)
 
 
@@ -59,7 +59,7 @@ class GroupNewForm(widgets.Form):
 
 
 class GroupEditValidator(validators.Schema):
-    cn = GoodName(not_empty=False)
+    cn = validators.GoodName(not_empty=False)
     gidnumber = validators.Int(not_empty=False)
     description = validators.String(not_empty=False)
 
