@@ -20,11 +20,13 @@
 """
 The IPA Library.
 
-To learn about the library, you should probably read the code in this order:
+To learn about the ``ipalib`` library, you should read the code in this order:
 
-    1. Start with the `ipalib.plugable` module
+    1. Learn about the plugin framework in `ipalib.plugable`
 
-    2. Then read the `ipalib.public` module
+    2. Learn about the public api in `ipalib.public`
+
+    3. Look at some example plugins in `ipalib.plugins.example`
 
 Some of the plugin architecture was inspired by ``bzr``, so you might also
 read http://bazaar-vcs.org/WritingPlugins

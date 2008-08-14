@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Generic plugin framework.
+Implementation of the plugin framework.
 
 The classes in this module make heavy use of Python container emulation. If
 you are unfamiliar with this Python feature, see
