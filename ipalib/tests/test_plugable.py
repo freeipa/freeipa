@@ -461,6 +461,8 @@ class test_DictProxy(ClassChecker):
 
     def test_class(self):
         assert self.cls.__bases__ == (plugable.ReadOnly,)
+        for non_dict in ('hello', 69, object):
+            raises(AssertionError, self.cls, non_dict)
 
     def test_DictProxy(self):
         cnt = 10

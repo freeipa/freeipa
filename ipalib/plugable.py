@@ -484,6 +484,7 @@ class DictProxy(ReadOnly):
         """
         :param d: The ``dict`` instance to proxy.
         """
+        assert type(d) is dict, '`d` must be %r, got %r' % (dict, type(d))
         self.__d = d
         self.__lock__()
         assert self.__islocked__()
