@@ -380,7 +380,7 @@ def test_check_name():
         '60nine',
     ]
     for name in okay:
-        f(name)
+        assert name is f(name)
     for name in nope:
         raises(errors.NameSpaceError, f, name)
     for name in okay:
