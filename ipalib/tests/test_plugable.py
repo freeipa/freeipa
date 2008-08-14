@@ -88,6 +88,35 @@ class test_ReadOnly(ClassChecker):
         assert read_only(obj, 'an_attribute') == 'Hello world!'
 
 
+def test_lock():
+    """
+    Tests the `plugable.lock` function.
+    """
+    f = plugable.lock
+
+    # Test on a ReadOnly instance:
+    o = plugable.ReadOnly()
+    assert not o.__islocked__()
+    assert f(o) is o
+    assert o.__islocked__()
+
+    # Test on something not subclassed from ReadOnly:
+    class not_subclass(object):
+        def __lock__(self):
+            pass
+        def __islocked__(self):
+            return True
+    o = not_subclass()
+    raises(ValueError, f, o)
+
+    # Test that it checks __islocked__():
+    class subclass(plugable.ReadOnly):
+        def __islocked__(self):
+            return False
+    o = subclass()
+    raises(AssertionError, f, o)
+
+
 class test_Plugin(ClassChecker):
     """
     Tests the `plugable.Plugin` class.

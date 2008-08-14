@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Implementation of the plugin framework.
+Plugin framework.
 
 The classes in this module make heavy use of Python container emulation. If
 you are unfamiliar with this Python feature, see
@@ -50,7 +50,7 @@ class ReadOnly(object):
     >>> class givenname(ReadOnly):
     >>>     def __init__(self):
     >>>         self.whatever = 'some value' # Hasn't been locked yet
-    >>>         self.__lock__()
+    >>>         lock(self)
     >>>
     >>>     def finalize(self, api):
     >>>         # After the instance has been locked, attributes can still be
@@ -106,14 +106,20 @@ class ReadOnly(object):
         return object.__delattr__(self, name)
 
 
-def lock(obj):
+def lock(readonly):
     """
-    Convenience function to lock a `ReadOnly` instance.
+    Locks a `ReadOnly` instance.
+
+    This is mostly a convenience function to call `ReadOnly.__lock__()`. It
+    also verifies that the locking worked using `ReadOnly.__islocked__()`
+
+    :param readonly: An instance of the `ReadOnly` class.
     """
-    assert isinstance(obj, ReadOnly)
-    obj.__lock__()
-    assert obj.__islocked__()
-    return obj
+    if not isinstance(readonly, ReadOnly):
+        raise ValueError('not a ReadOnly instance: %r' % readonly)
+    readonly.__lock__()
+    assert readonly.__islocked__(), 'Ouch! The locking failed?'
+    return readonly
 
 
 class Plugin(ReadOnly):
@@ -282,7 +288,7 @@ class Proxy(ReadOnly):
         self.__public__ = base.__public__
         self.name = getattr(target, name_attr)
         self.doc = target.doc
-        self.__lock__()
+        lock(self)
         assert type(self.__public__) is frozenset
 
     def implements(self, arg):
@@ -414,7 +420,7 @@ class NameSpace(ReadOnly):
         """
         self.__d = dict()
         self.__names = tuple(self.__member_iter(members))
-        self.__lock__()
+        lock(self)
         assert set(self.__d) == set(self.__names)
 
     def __member_iter(self, members):
@@ -665,7 +671,7 @@ class API(ReadOnly):
     def __init__(self, *allowed):
         self.__keys = tuple(b.__name__ for b in allowed)
         self.register = Registrar(*allowed)
-        self.__lock__()
+        lock(self)
 
     def finalize(self):
         """
