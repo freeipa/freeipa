@@ -104,8 +104,7 @@ class ReadOnly(object):
 
 class Proxy(ReadOnly):
     """
-    Allows access to only certain attributes on its target object (a
-    ProxyTarget).
+    Allows access to only certain attributes on its target object.
 
     Think of a proxy as an agreement that "I will have at most these
     attributes". This is different from (although similar to) an interface,
@@ -123,16 +122,19 @@ class Proxy(ReadOnly):
 
     def __init__(self, base, target, name_attr='name'):
         """
-        `base` - the class defining the __public__ frozenset of attributes to
-            proxy
-        `target` - the target of the proxy (must be instance of `base`)
-        `name_attr` - the name of the str attribute on `target` to assign
-            to Proxy.name
+        :param base: A subclass of `Plugin`.
+        :param target: An instance ``base`` or a subclass of ``base``.
+        :param name_attr: The name of the attribute on ``target`` from which
+            to derive ``self.name``.
         """
         if not inspect.isclass(base):
-            raise TypeError('arg1 must be a class, got %r' % base)
+            raise TypeError(
+                '`base` must be a class, got %r' % base
+            )
         if not isinstance(target, base):
-            raise ValueError('arg2 must be instance of arg1, got %r' % target)
+            raise ValueError(
+                '`target` must be an instance of `base`, got %r' % target
+            )
         self.__base = base
         self.__target = target
         self.__name_attr = name_attr
