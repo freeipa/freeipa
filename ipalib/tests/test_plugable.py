@@ -28,7 +28,7 @@ from ipalib import plugable, errors
 
 class test_ReadOnly(ClassChecker):
     """
-    Test the `ReadOnly` class
+    Test the `plugable.ReadOnly` class
     """
     _cls = plugable.ReadOnly
 
@@ -39,7 +39,8 @@ class test_ReadOnly(ClassChecker):
 
     def test_lock(self):
         """
-        Tests the `__lock__` and `__islocked__` methods.
+        Tests the `plugable.ReadOnly.__lock__` and
+        `plugable.ReadOnly.__islocked__` methods.
         """
         o = self.cls()
         assert o.__islocked__() is False
@@ -88,7 +89,7 @@ class test_ReadOnly(ClassChecker):
 
 class test_Plugin(ClassChecker):
     """
-    Tests the `Plugin` class.
+    Tests the `plugable.Plugin` class.
     """
     _cls = plugable.Plugin
 
@@ -101,7 +102,7 @@ class test_Plugin(ClassChecker):
 
     def test_name(self):
         """
-        Tests the `name` property.
+        Tests the `plugable.Plugin.name` property.
         """
         assert read_only(self.cls(), 'name') == 'Plugin'
 
@@ -111,7 +112,7 @@ class test_Plugin(ClassChecker):
 
     def test_doc(self):
         """
-        Tests the `doc` property.
+        Tests the `plugable.Plugin.doc` property.
         """
         class some_subclass(self.cls):
             'here is the doc string'
@@ -119,7 +120,7 @@ class test_Plugin(ClassChecker):
 
     def test_implements(self):
         """
-        Tests the `implements` classmethod.
+        Tests the `plugable.Plugin.implements` classmethod.
         """
         class example(self.cls):
             __public__ = frozenset((
@@ -168,7 +169,7 @@ class test_Plugin(ClassChecker):
 
     def test_implemented_by(self):
         """
-        Tests the `implemented_by` classmethod.
+        Tests the `plugable.Plugin.implemented_by` classmethod.
         """
         class base(self.cls):
             __public__ = frozenset((
@@ -211,7 +212,7 @@ class test_Plugin(ClassChecker):
 
     def test_finalize(self):
         """
-        Tests the `finalize` method.
+        Tests the `plugable.Plugin.finalize` method.
         """
         api = 'the api instance'
         o = self.cls()
@@ -237,7 +238,7 @@ class test_Plugin(ClassChecker):
 
 class test_Proxy(ClassChecker):
     """
-    Tests the `Proxy` class.
+    Tests the `plugable.Proxy` class.
     """
     _cls = plugable.Proxy
 
@@ -309,7 +310,7 @@ class test_Proxy(ClassChecker):
 
     def test_implements(self):
         """
-        Tests the `implements` method.
+        Tests the `plugable.Proxy.implements` method.
         """
         class base(object):
             __public__ = frozenset()
@@ -334,7 +335,7 @@ class test_Proxy(ClassChecker):
 
     def test_clone(self):
         """
-        Tests the `__clone__` method.
+        Tests the `plugable.Proxy.__clone__` method.
         """
         class base(object):
             __public__ = frozenset()
@@ -353,7 +354,7 @@ class test_Proxy(ClassChecker):
 
 def test_check_name():
     """
-    Tests the `check_name` function.
+    Tests the `plugable.check_name` function.
     """
     f = plugable.check_name
     okay = [
@@ -380,7 +381,7 @@ def test_check_name():
 
 class test_NameSpace(ClassChecker):
     """
-    Tests the `NameSpace` class.
+    Tests the `plugable.NameSpace` class.
     """
     _cls = plugable.NameSpace
 

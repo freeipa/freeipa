@@ -182,13 +182,19 @@ class Plugin(ReadOnly):
     @classmethod
     def implemented_by(cls, arg):
         """
-        Returns True if (1) `arg` is an instance of or subclass of this class,
-        and (2) `arg` (or `arg.__class__` if instance) has an attribute for
-        each name in this class's __public__ frozenset; returns False
-        otherwise.
+        Returns True if.
 
-        Unlike ProxyTarget.implements(), this returns a concrete answer
-        because the attributes of the subclass are checked.
+            1. ``arg`` is an instance of or subclass of this class, and
+
+            2. ``arg`` (or ``arg.__class__`` if instance) has an attribute for
+        each name in this class's ``__public__`` frozenset
+
+        Otherwise, returns False.
+
+        Unlike `Plugin.implements`, this returns a concrete answer because
+        the attributes of the subclass are checked.
+
+        :param arg: An instance of or subclass of this class.
         """
         if inspect.isclass(arg):
             subclass = arg
@@ -465,8 +471,8 @@ class NameSpace(ReadOnly):
 class Registrar(ReadOnly):
     def __init__(self, *allowed):
         """
-        `*allowed` is a list of the base classes plugins can be subclassed
-        from.
+        :param *allowed: Base classes from which plugins accepted by this
+            Registrar must subclass.
         """
         self.__allowed = frozenset(allowed)
         self.__d = {}
@@ -480,8 +486,8 @@ class Registrar(ReadOnly):
 
     def __findbase(self, cls):
         """
-        If `cls` is a subclass of a base in self.__allowed, returns that
-        base; otherwise raises SubclassError.
+        If ``cls`` is a subclass of a base in self.__allowed, returns that
+        base; otherwise raises `errors.SubclassError`.
         """
         assert inspect.isclass(cls)
         found = False
@@ -494,7 +500,7 @@ class Registrar(ReadOnly):
 
     def __call__(self, cls, override=False):
         """
-        Register the plugin `cls`.
+        Register the plugin ``cls``.
         """
         if not inspect.isclass(cls):
             raise TypeError('plugin must be a class: %r'  % cls)
@@ -525,7 +531,8 @@ class Registrar(ReadOnly):
 
     def __getitem__(self, item):
         """
-        Returns a copy of the namespace dict of the base class named `name`.
+        Returns a copy of the namespace dict of the base class named
+        ``name``.
         """
         if inspect.isclass(item):
             if item not in self.__allowed:
@@ -537,7 +544,7 @@ class Registrar(ReadOnly):
 
     def __contains__(self, item):
         """
-        Returns True if a base class named `name` is in this Registrar.
+        Returns True if a base class named ``name`` is in this Registrar.
         """
         if inspect.isclass(item):
             return item in self.__allowed

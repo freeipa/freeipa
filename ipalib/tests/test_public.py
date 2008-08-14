@@ -65,7 +65,7 @@ def test_is_rule():
 
 class test_option(ClassChecker):
     """
-    Tests the option class.
+    Tests the `public.option` class.
     """
     _cls = public.option
 
@@ -96,7 +96,7 @@ class test_option(ClassChecker):
 
     def test_normalize(self):
         """
-        Tests the `normalize` method.
+        Tests the `public.option.normalize` method.
         """
         assert 'normalize' in self.cls.__public__
         o = self.subcls()
@@ -128,7 +128,7 @@ class test_option(ClassChecker):
 
     def test_validate(self):
         """
-        Tests the `validate` method.
+        Tests the `public.option.validate` method.
         """
         assert 'validate' in self.cls.__public__
         o = self.subcls()
@@ -140,7 +140,7 @@ class test_option(ClassChecker):
 
     def test_rules(self):
         """
-        Tests the `rules` property.
+        Tests the `public.option.rules` property.
         """
         o = self.subcls()
         assert len(o.rules) == 3
@@ -151,7 +151,7 @@ class test_option(ClassChecker):
 
     def test_default(self):
         """
-        Tests the `default` method.
+        Tests the `public.option.default` method.
         """
         assert 'default' in self.cls.__public__
         assert self.cls().default() is None
@@ -159,7 +159,7 @@ class test_option(ClassChecker):
 
 class test_cmd(ClassChecker):
     """
-    Tests the `cmd` class.
+    Tests the `public.cmd` class.
     """
     _cls = public.cmd
 
@@ -188,7 +188,7 @@ class test_cmd(ClassChecker):
 
     def test_get_options(self):
         """
-        Tests the `get_options` method.
+        Tests the `public.cmd.get_options` method.
         """
         assert list(self.cls().get_options()) == []
         sub = self.subcls()
@@ -200,7 +200,7 @@ class test_cmd(ClassChecker):
 
     def test_options(self):
         """
-        Tests the `options` property.
+        Tests the `public.cmd.options` property.
         """
         assert 'options' in self.cls.__public__ # Public
         sub = self.subcls()
@@ -216,7 +216,7 @@ class test_cmd(ClassChecker):
 
     def test_normalize(self):
         """
-        Tests the `normalize` method.
+        Tests the `public.cmd.normalize` method.
         """
         assert 'normalize' in self.cls.__public__ # Public
         kw = dict(
@@ -230,7 +230,7 @@ class test_cmd(ClassChecker):
 
     def test_default(self):
         """
-        Tests the `default` method.
+        Tests the `public.cmd.default` method.
         """
         assert 'default' in self.cls.__public__ # Public
         no_fill = dict(
@@ -251,7 +251,7 @@ class test_cmd(ClassChecker):
 
     def test_validate(self):
         """
-        Tests the `validate` method.
+        Tests the `public.cmd.validate` method.
         """
         assert 'validate' in self.cls.__public__ # Public
 
@@ -281,7 +281,7 @@ class test_cmd(ClassChecker):
 
     def test_execute(self):
         """
-        Tests the `execute` method.
+        Tests the `public.cmd.execute` method.
         """
         assert 'execute' in self.cls.__public__ # Public
 
@@ -317,7 +317,7 @@ def test_attr():
 
 class test_mthd(ClassChecker):
     """
-    Tests the `mthd` class.
+    Tests the `public.mthd` class.
     """
     _cls = public.mthd
 
@@ -351,7 +351,7 @@ class test_mthd(ClassChecker):
 
     def test_get_options(self):
         """
-        Tests the `get_options` method.
+        Tests the `public.mthd.get_options` method.
         """
         sub = self.subcls()
         names = ('option0', 'option1', 'prop0', 'prop1')

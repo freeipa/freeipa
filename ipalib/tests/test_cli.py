@@ -26,12 +26,18 @@ from ipalib import cli, plugable
 
 
 def test_to_cli():
+    """
+    Tests the `cli.to_cli` function.
+    """
     f = cli.to_cli
     assert f('initialize') == 'initialize'
     assert f('user_add') == 'user-add'
 
 
 def test_from_cli():
+    """
+    Tests the `cli.from_cli` function.
+    """
     f = cli.from_cli
     assert f('initialize') == 'initialize'
     assert f('user-add') == 'user_add'
@@ -71,7 +77,7 @@ class DummyAPI(object):
 
 class test_CLI(ClassChecker):
     """
-    Tests the `CLI` class.
+    Tests the `cli.CLI` class.
     """
     _cls = cli.CLI
 
@@ -80,7 +86,7 @@ class test_CLI(ClassChecker):
 
     def test_api(self):
         """
-        Tests the `api` property.
+        Tests the `cli.CLI.api` property.
         """
         api = 'the plugable.API instance'
         o = self.cls(api)
@@ -88,7 +94,7 @@ class test_CLI(ClassChecker):
 
     def test_parse(self):
         """
-        Tests the `parse` method.
+        Tests the `cli.CLI.parse` method.
         """
         o = self.cls(None)
         args = ['hello', 'naughty', 'nurse']
@@ -104,7 +110,7 @@ class test_CLI(ClassChecker):
 
     def test_mcl(self):
         """
-        Tests the `mcl` (Max Command Length) property .
+        Tests the `cli.CLI.mcl` (Max Command Length) property .
         """
         cnt = 100
         api = DummyAPI(cnt)
@@ -116,7 +122,7 @@ class test_CLI(ClassChecker):
 
     def test_dict(self):
         """
-        Tests the `__contains__` and `__getitem__` methods.
+        Tests the `cli.CLI.__contains__` and `cli.CLI.__getitem__` methods.
         """
         cnt = 25
         api = DummyAPI(cnt)
