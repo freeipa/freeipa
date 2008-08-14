@@ -674,7 +674,7 @@ class API(ReadOnly):
     __finalized = False
 
     def __init__(self, *allowed):
-        self.__keys = tuple(b.__name__ for b in allowed)
+        self.__d = dict()
         self.register = Registrar(*allowed)
         lock(self)
 
@@ -683,24 +683,53 @@ class API(ReadOnly):
         Finalize the registration, instantiate the plugins.
         """
         assert not self.__finalized, 'finalize() can only be called once'
-        d = {}
+
+        instances = {}
         def plugin_iter(base, classes):
-            for cls in classes:
-                if cls not in d:
-                    d[cls] = cls()
-                plugin = d[cls]
+            for klass in classes:
+                if klass not in instances:
+                    instances[klass] = klass()
+                plugin = instances[klass]
                 yield Proxy(base, plugin)
 
         for (base, classes) in self.register:
-            ns = NameSpace(plugin_iter(base, classes))
-            assert not hasattr(self, base.__name__)
-            object.__setattr__(self, base.__name__, ns)
-        for plugin in d.values():
+            namespace = NameSpace(plugin_iter(base, classes))
+            name = base.__name__
+            assert not (
+                name in self.__d or hasattr(self, name)
+            )
+            self.__d[name] = namespace
+            object.__setattr__(self, name, namespace)
+
+        for plugin in instances.values():
             plugin.finalize(self)
             lock(plugin)
             assert plugin.api is self
         object.__setattr__(self, '_API__finalized', True)
 
+    def __len__(self):
+        """
+        Returns the number of namespaces in this API.
+        """
+        return len(self.__d)
+
     def __iter__(self):
-        for key in self.__keys:
+        """
+        Iterates through the names of the namespaces in this API.
+        """
+        for key in sorted(self.__d):
             yield key
+
+    def __contains__(self, key):
+        """
+        Returns True if this API contains a `NameSpace` named ``key``.
+        """
+        return key in self.__d
+
+    def __getitem__(self, key):
+        """
+        Returns the `NameSpace` instance named ``key``.
+        """
+        if key in self.__d:
+            return self.__d[key]
+        raise KeyError('API has no NameSpace %r' % key)
