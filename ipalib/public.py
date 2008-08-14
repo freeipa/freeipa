@@ -187,7 +187,7 @@ class cmd(plugable.Plugin):
         return dict(self.normalize_iter(kw))
 
     def default_iter(self, kw):
-        for option in self.options:
+        for option in self.options():
             if option.name not in kw:
                 value = option.default(**kw)
                 if value is not None:
@@ -199,7 +199,7 @@ class cmd(plugable.Plugin):
 
     def validate(self, **kw):
         self.print_call('validate', kw, 1)
-        for opt in self.options:
+        for opt in self.options():
             value = kw.get(opt.name, None)
             if value is None:
                 if opt.required:

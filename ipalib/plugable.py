@@ -26,16 +26,6 @@ import inspect
 import errors
 
 
-def check_identifier(name):
-    """
-    Raises errors.NameSpaceError if `name` is not a valid Python identifier
-    suitable for use in a NameSpace.
-    """
-    regex = r'^[a-z][_a-z0-9]*[a-z0-9]$'
-    if re.match(regex, name) is None:
-        raise errors.NameSpaceError(name, regex)
-
-
 class ReadOnly(object):
     """
     Base class for classes with read-only attributes.
@@ -151,7 +141,6 @@ class Proxy(ReadOnly):
         self.doc = target.doc
         self.__lock__()
         assert type(self.__public__) is frozenset
-        check_identifier(self.name)
 
     def implements(self, arg):
         """
@@ -341,60 +330,132 @@ class Plugin(ProxyTarget):
         )
 
 
+def check_name(name):
+    """
+    Raises errors.NameSpaceError if `name` is not a valid Python identifier
+    suitable for use in a NameSpace.
+    """
+    assert type(name) is str, 'must be %r' % str
+    regex = r'^[a-z][_a-z0-9]*[a-z0-9]$'
+    if re.match(regex, name) is None:
+        raise errors.NameSpaceError(name, regex)
+    return name
+
+
 class NameSpace(ReadOnly):
     """
-    A read-only namespace of Proxy instances. Proxy.name is used to name the
-    attributes pointing to the Proxy instances, which can also be accesses
-    through a dictionary interface, for example:
+    A read-only namespace with handy container behaviours.
 
-    >>> assert namespace.my_proxy is namespace['my_proxy'] # True
+    Each member of a NameSpace instance must have a `name` attribute whose
+    value 1) is unique among the members and 2) passes the check_name()
+    function. Beyond that, no restrictions are placed on the members: they can
+    be classes or instances, and of any type.
+
+    The members can be accessed as attributes on the NameSpace instance or
+    through a dictionary interface. For example, assuming `obj` is a member in
+    the NameSpace instance `namespace`:
+
+    >>> obj is getattr(namespace, obj.name) # As attribute
+    True
+    >>> obj is namespace[obj.name] # As dictionary item
+    True
+
+    Here is a more detailed example:
+
+    >>> class member(object):
+    ...     def __init__(self, i):
+    ...             self.name = 'member_%d' % i
+    ...
+    >>> def get_members(cnt):
+    ...     for i in xrange(cnt):
+    ...             yield member(i)
+    ...
+    >>> namespace = NameSpace(get_members(2))
+    >>> namespace.member_0 is namespace['member_0']
+    True
+    >>> len(namespace) # Returns the number of members in namespace
+    2
+    >>> list(namespace) # As iterable, iterates through the member names
+    ['member_0', 'member_1']
+    >>> list(namespace()) # Calling a NameSpace iterates through the members
+    [<__main__.member object at 0x836710>, <__main__.member object at 0x836750>]
+    >>> 'member_1' in namespace # NameSpace.__contains__()
+    True
     """
 
-    def __init__(self, proxies):
+    def __init__(self, members):
         """
-        `proxies` - an iterable returning the Proxy instances to be contained
-            in this NameSpace.
+        @type members: iterable
+        @param members: An iterable providing the members.
         """
-        self.__proxies = tuple(proxies)
         self.__d = dict()
-        for proxy in self.__proxies:
-            assert isinstance(proxy, Proxy)
-            assert proxy.name not in self.__d
-            self.__d[proxy.name] = proxy
-            assert not hasattr(self, proxy.name)
-            setattr(self, proxy.name, proxy)
+        self.__names = tuple(self.__member_iter(members))
         self.__lock__()
+        assert set(self.__d) == set(self.__names)
 
-    def __iter__(self):
+    def __member_iter(self, members):
         """
-        Iterates through the proxies in this NameSpace in the same order they
-        were passed to the constructor.
+        Helper method used only from __init__().
         """
-        for proxy in self.__proxies:
-            yield proxy
+        for member in members:
+            name = check_name(member.name)
+            assert not (
+                name in self.__d or hasattr(self, name)
+            ), 'already has member named %r' % name
+            self.__d[name] = member
+            setattr(self, name, member)
+            yield name
 
     def __len__(self):
         """
-        Returns number of proxies in this NameSpace.
+        Returns the number of members in this NameSpace.
         """
-        return len(self.__proxies)
+        return len(self.__d)
 
-    def __contains__(self, key):
+    def __contains__(self, name):
         """
-        Returns True if a proxy named `key` is in this NameSpace.
-        """
-        return key in self.__d
+        Returns True if this NameSpace contains a member named `name`; returns
+        False otherwise.
 
-    def __getitem__(self, key):
+        @type name: str
+        @param name: The name of a potential member
         """
-        Returns proxy named `key`; otherwise raises KeyError.
+        return name in self.__d
+
+    def __getitem__(self, name):
         """
-        if key in self.__d:
-            return self.__d[key]
-        raise KeyError('NameSpace has no item for key %r' % key)
+        If this NameSpace contains a member named `name`, returns that member;
+        otherwise raises KeyError.
+
+        @type name: str
+        @param name: The name of member to retrieve
+        """
+        if name in self.__d:
+            return self.__d[name]
+        raise KeyError('NameSpace has no member named %r' % name)
+
+    def __iter__(self):
+        """
+        Iterates through the member names in the same order as the members
+        were passed to the constructor.
+        """
+        for name in self.__names:
+            yield name
+
+    def __call__(self):
+        """
+        Iterates through the members in the same order they were passed to the
+        constructor.
+        """
+        for name in self.__names:
+            yield self.__d[name]
 
     def __repr__(self):
-        return '%s(<%d proxies>)' % (self.__class__.__name__, len(self))
+        """
+        Returns pseudo-valid Python expression that could be used to construct
+        this NameSpace instance.
+        """
+        return '%s(<%d members>)' % (self.__class__.__name__, len(self))
 
 
 class Registrar(ReadOnly):

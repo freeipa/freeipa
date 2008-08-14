@@ -26,11 +26,11 @@ from tstutil import ClassChecker
 from ipalib import plugable, errors
 
 
-def test_valid_identifier():
+def test_check_name():
     """
-    Test the `valid_identifier` function.
+    Tests the `check_name` function.
     """
-    f = plugable.check_identifier
+    f = plugable.check_name
     okay = [
         'user_add',
         'stuff2junk',
@@ -426,13 +426,20 @@ class test_NameSpace(ClassChecker):
 
         # Test __iter__
         i = None
-        for (i, proxy) in enumerate(ns):
+        for (i, key) in enumerate(ns):
+            assert type(key) is str
+            assert key == get_name(i)
+        assert i == cnt - 1
+
+        # Test __call__
+        i = None
+        for (i, proxy) in enumerate(ns()):
             assert type(proxy) is plugable.Proxy
             assert proxy.name == get_name(i)
         assert i == cnt - 1
 
         # Test __contains__, __getitem__, getattr():
-        proxies = frozenset(ns)
+        proxies = frozenset(ns())
         for i in xrange(cnt):
             name = get_name(i)
             assert name in ns

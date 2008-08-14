@@ -65,7 +65,7 @@ class CLI(object):
 
     def print_commands(self):
         print 'Available Commands:'
-        for cmd in self.api.cmd:
+        for cmd in self.api.cmd():
             print '  %s  %s' % (
                 to_cli(cmd.name).ljust(self.mcl),
                 cmd.doc,
@@ -84,7 +84,7 @@ class CLI(object):
         api.register(help)
         api.finalize()
         def d_iter():
-            for cmd in api.cmd:
+            for cmd in api.cmd():
                 yield (to_cli(cmd.name), cmd)
         self.__d = dict(d_iter())
 

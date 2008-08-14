@@ -22,7 +22,7 @@ Unit tests for `ipalib.cli` module.
 """
 
 from tstutil import raises, getitem, no_set, no_del, read_only, ClassChecker
-from ipalib import cli
+from ipalib import cli, plugable
 
 
 def test_to_cli():
@@ -50,7 +50,7 @@ class DummyCmd(object):
 
 class DummyAPI(object):
     def __init__(self, cnt):
-        self.__cmd = tuple(self.__cmd_iter(cnt))
+        self.__cmd = plugable.NameSpace(self.__cmd_iter(cnt))
 
     def __get_cmd(self):
         return self.__cmd
@@ -123,7 +123,7 @@ class test_CLI(ClassChecker):
         assert len(api.cmd) == cnt
         o = self.cls(api)
         o.finalize()
-        for cmd in api.cmd:
+        for cmd in api.cmd():
             key = cli.to_cli(cmd.name)
             assert key in o
             assert o[key] is cmd
