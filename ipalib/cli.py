@@ -40,8 +40,7 @@ def from_cli(cli_name):
     Takes a string from the Command Line Interface and transforms it into a
     Python identifier.
     """
-    assert isinstance(cli_name, basestring)
-    return cli_name.replace('-', '_')
+    return str(cli_name).replace('-', '_')
 
 
 class help(public.cmd):
@@ -100,7 +99,7 @@ class CLI(object):
             self.print_commands()
             print 'ipa: ERROR: unknown command %r' % cmd
             sys.exit(2)
-        self.run_cmd(cmd, sys.argv[2:])
+        self.run_cmd(cmd, (s.decode('utf-8') for s in sys.argv[2:]))
 
     def run_cmd(self, cmd, given):
         (args, kw) = self.parse(given)
