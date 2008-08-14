@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Base classes for plug-in architecture and generative API.
+Base classes for plugin architecture.
 """
 
 import re
@@ -81,8 +81,8 @@ class ReadOnly(object):
 
     def __setattr__(self, name, value):
         """
-        Raises an AttributeError if ReadOnly.__lock__() has already been called;
-        otherwise calls object.__setattr__()
+        Raises an AttributeError if `ReadOnly.__lock__()` has already been
+        called; otherwise calls object.__setattr__().
         """
         if self.__locked:
             raise AttributeError('read-only: cannot set %s.%s' %
@@ -92,8 +92,8 @@ class ReadOnly(object):
 
     def __delattr__(self, name):
         """
-        Raises an AttributeError if ReadOnly.__lock__() has already been called;
-        otherwise calls object.__delattr__()
+        Raises an AttributeError if `ReadOnly.__lock__()` has already been
+        called; otherwise calls object.__delattr__().
         """
         if self.__locked:
             raise AttributeError('read-only: cannot del %s.%s' %
@@ -125,8 +125,8 @@ class Plugin(ReadOnly):
 
     def __get_api(self):
         """
-        Returns the `API` instance passed to `finalize`, or
-        or returns None if `finalize` has not yet been called.
+        Returns the `API` instance passed to `finalize()`, or
+        or returns None if `finalize()` has not yet been called.
         """
         return self.__api
     api = property(__get_api)
@@ -329,12 +329,12 @@ class Proxy(ReadOnly):
         )
 
 
-
-
 def check_name(name):
     """
-    Raises errors.NameSpaceError if `name` is not a valid Python identifier
-    suitable for use in a NameSpace.
+    Raises `errors.NameSpaceError` if ``name`` is not a valid Python identifier
+    suitable for use in a `NameSpace`.
+
+    :param name: Identifier to test.
     """
     assert type(name) is str, 'must be %r' % str
     regex = r'^[a-z][_a-z0-9]*[a-z0-9]$'
@@ -347,14 +347,18 @@ class NameSpace(ReadOnly):
     """
     A read-only namespace with handy container behaviours.
 
-    Each member of a NameSpace instance must have a `name` attribute whose
-    value 1) is unique among the members and 2) passes the check_name()
-    function. Beyond that, no restrictions are placed on the members: they can
-    be classes or instances, and of any type.
+    Each member of a NameSpace instance must have a ``name`` attribute whose
+    value:
+
+        1. Is unique among the members
+        2. Passes the `check_name()` function
+
+    Beyond that, no restrictions are placed on the members: they can be
+    classes or instances, and of any type.
 
     The members can be accessed as attributes on the NameSpace instance or
-    through a dictionary interface. For example, assuming `obj` is a member in
-    the NameSpace instance `namespace`:
+    through a dictionary interface. For example, assuming ``obj`` is a member
+    in the NameSpace instance ``namespace``:
 
     >>> obj is getattr(namespace, obj.name) # As attribute
     True
@@ -386,8 +390,7 @@ class NameSpace(ReadOnly):
 
     def __init__(self, members):
         """
-        @type members: iterable
-        @param members: An iterable providing the members.
+        :param members: An iterable providing the members.
         """
         self.__d = dict()
         self.__names = tuple(self.__member_iter(members))
@@ -396,7 +399,9 @@ class NameSpace(ReadOnly):
 
     def __member_iter(self, members):
         """
-        Helper method used only from __init__().
+        Helper method called only from `NameSpace.__init__()`.
+
+        :param members: Same iterable passed to `NameSpace.__init__()`.
         """
         for member in members:
             name = check_name(member.name)
@@ -415,21 +420,19 @@ class NameSpace(ReadOnly):
 
     def __contains__(self, name):
         """
-        Returns True if this NameSpace contains a member named `name`; returns
+        Returns True if this NameSpace contains a member named ``name``; returns
         False otherwise.
 
-        @type name: str
-        @param name: The name of a potential member
+        :param name: The name of a potential member
         """
         return name in self.__d
 
     def __getitem__(self, name):
         """
-        If this NameSpace contains a member named `name`, returns that member;
+        If this NameSpace contains a member named ``name``, returns that member;
         otherwise raises KeyError.
 
-        @type name: str
-        @param name: The name of member to retrieve
+        :param name: The name of member to retrieve
         """
         if name in self.__d:
             return self.__d[name]
