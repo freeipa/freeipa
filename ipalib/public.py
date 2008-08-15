@@ -160,7 +160,7 @@ class cmd(plugable.Plugin):
             assert inspect.isclass(cls)
             o = cls()
             o.__lock__()
-            yield plugable.Proxy(option, o)
+            yield plugable.PluginProxy(option, o)
 
     def __get_options(self):
         """

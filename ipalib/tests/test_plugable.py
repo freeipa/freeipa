@@ -412,9 +412,9 @@ class test_Plugin(ClassChecker):
 
 class test_Proxy(ClassChecker):
     """
-    Tests the `plugable.Proxy` class.
+    Tests the `plugable.PluginProxy` class.
     """
-    _cls = plugable.Proxy
+    _cls = plugable.PluginProxy
 
     def test_class(self):
         assert self.cls.__bases__ == (plugable.ReadOnly,)
@@ -484,7 +484,7 @@ class test_Proxy(ClassChecker):
 
     def test_implements(self):
         """
-        Tests the `plugable.Proxy.implements` method.
+        Tests the `plugable.PluginProxy.implements` method.
         """
         class base(object):
             __public__ = frozenset()
@@ -509,7 +509,7 @@ class test_Proxy(ClassChecker):
 
     def test_clone(self):
         """
-        Tests the `plugable.Proxy.__clone__` method.
+        Tests the `plugable.PluginProxy.__clone__` method.
         """
         class base(object):
             __public__ = frozenset()
@@ -581,7 +581,7 @@ class test_NameSpace(ClassChecker):
 
         def get_proxies(n):
             for i in xrange(n):
-                yield plugable.Proxy(base, plugin(get_name(i)))
+                yield plugable.PluginProxy(base, plugin(get_name(i)))
 
         cnt = 10
         ns = self.cls(get_proxies(cnt))
@@ -600,7 +600,7 @@ class test_NameSpace(ClassChecker):
         # Test __call__
         i = None
         for (i, proxy) in enumerate(ns()):
-            assert type(proxy) is plugable.Proxy
+            assert type(proxy) is plugable.PluginProxy
             assert proxy.name == get_name(i)
         assert i == cnt - 1
 
@@ -611,7 +611,7 @@ class test_NameSpace(ClassChecker):
             assert name in ns
             proxy = ns[name]
             assert proxy.name == name
-            assert type(proxy) is plugable.Proxy
+            assert type(proxy) is plugable.PluginProxy
             assert proxy in proxies
             assert read_only(ns, name) is proxy
 
@@ -802,7 +802,7 @@ def test_API():
         for p in xrange(3):
             plugin_name = get_plugin(b, p)
             proxy = ns[plugin_name]
-            assert isinstance(proxy, plugable.Proxy)
+            assert isinstance(proxy, plugable.PluginProxy)
             assert proxy.name == plugin_name
             assert read_only(ns, plugin_name) is proxy
             assert read_only(proxy, 'method')(7) == 7 + b

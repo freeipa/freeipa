@@ -193,7 +193,7 @@ class test_cmd(ClassChecker):
         assert list(self.cls().get_options()) == []
         sub = self.subcls()
         for (i, proxy) in enumerate(sub.get_options()):
-            assert isinstance(proxy, plugable.Proxy)
+            assert isinstance(proxy, plugable.PluginProxy)
             assert read_only(proxy, 'name') == 'option%d' % i
             assert proxy.implements(public.option)
         assert i == 1
@@ -211,7 +211,7 @@ class test_cmd(ClassChecker):
             assert name in options
             proxy = options[name]
             assert getattr(options, name) is proxy
-            assert isinstance(proxy, plugable.Proxy)
+            assert isinstance(proxy, plugable.PluginProxy)
             assert proxy.name == name
 
     def test_normalize(self):
@@ -339,8 +339,8 @@ class test_mthd(ClassChecker):
             def __get_prop(self):
                 if self.__prop is None:
                     self.__prop = (
-                        plugable.Proxy(public.prop, example_prop0(), 'attr_name'),
-                        plugable.Proxy(public.prop, example_prop1(),  'attr_name'),
+                        plugable.PluginProxy(public.prop, example_prop0(), 'attr_name'),
+                        plugable.PluginProxy(public.prop, example_prop1(),  'attr_name'),
                     )
                 return self.__prop
             prop = property(__get_prop)
@@ -359,7 +359,7 @@ class test_mthd(ClassChecker):
         assert len(proxies) == 4
         for (i, proxy) in enumerate(proxies):
             assert proxy.name == names[i]
-            assert isinstance(proxy, plugable.Proxy)
+            assert isinstance(proxy, plugable.PluginProxy)
             assert proxy.implements(public.option)
 
 

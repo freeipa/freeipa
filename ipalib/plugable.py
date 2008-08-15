@@ -351,7 +351,7 @@ class Plugin(ReadOnly):
         )
 
 
-class Proxy(ReadOnly):
+class PluginProxy(ReadOnly):
     """
     Allows access to only certain attributes on a `Plugin`.
 
@@ -692,7 +692,7 @@ class API(DictProxy):
                 if klass not in instances:
                     instances[klass] = klass()
                 plugin = instances[klass]
-                yield Proxy(base, plugin)
+                yield PluginProxy(base, plugin)
 
         for (base, classes) in self.register:
             namespace = NameSpace(plugin_iter(base, classes))
