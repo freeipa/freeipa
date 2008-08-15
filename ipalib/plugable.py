@@ -674,7 +674,7 @@ class Registrar(ReadOnly):
             yield (base, tuple(sub_d[k] for k in sorted(sub_d)))
 
 
-class API(ReadOnly):
+class API(DictProxy):
     """
     Dynamic API object through which `Plugin` instances are accessed.
     """
@@ -683,7 +683,7 @@ class API(ReadOnly):
     def __init__(self, *allowed):
         self.__d = dict()
         self.register = Registrar(*allowed)
-        lock(self)
+        super(API, self).__init__(self.__d)
 
     def finalize(self):
         """
@@ -713,30 +713,3 @@ class API(ReadOnly):
             lock(plugin)
             assert plugin.api is self
         object.__setattr__(self, '_API__finalized', True)
-
-    def __len__(self):
-        """
-        Returns the number of namespaces in this API.
-        """
-        return len(self.__d)
-
-    def __iter__(self):
-        """
-        Iterates through the names of the namespaces in this API.
-        """
-        for key in sorted(self.__d):
-            yield key
-
-    def __contains__(self, key):
-        """
-        Returns True if this API contains a `NameSpace` named ``key``.
-        """
-        return key in self.__d
-
-    def __getitem__(self, key):
-        """
-        Returns the `NameSpace` instance named ``key``.
-        """
-        if key in self.__d:
-            return self.__d[key]
-        raise KeyError('API has no NameSpace %r' % key)
