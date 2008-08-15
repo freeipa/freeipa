@@ -643,12 +643,17 @@ def test_Registrar():
     # Test creation of Registrar:
     r = plugable.Registrar(Base1, Base2)
 
+    # Test __iter__:
+    assert list(r) == ['Base1', 'Base2']
+
     # Test __hasitem__, __getitem__:
     for base in [Base1, Base2]:
-        assert base.__name__ in r
-        dp = r[base.__name__]
-        assert type(dp) is plugable.MagicDict
-        assert len(dp) == 0
+        name = base.__name__
+        assert name in r
+        assert r[name] is base
+        magic = getattr(r, name)
+        assert type(magic) is plugable.MagicDict
+        assert len(magic) == 0
 
     # Check that TypeError is raised trying to register something that isn't
     # a class:
@@ -660,12 +665,9 @@ def test_Registrar():
 
     # Check that registration works
     r(plugin1)
-    dp = r['Base1']
-    assert type(dp) is plugable.MagicDict
-    assert len(dp) == 1
-    assert r.Base1 is dp
-    assert dp['plugin1'] is plugin1
-    assert dp.plugin1 is plugin1
+    assert len(r.Base1) == 1
+    assert r.Base1['plugin1'] is plugin1
+    assert r.Base1.plugin1 is plugin1
 
     # Check that DuplicateError is raised trying to register exact class
     # again:
@@ -696,7 +698,7 @@ def test_Registrar():
     assert len(r.Base2) == 1
     assert r.Base2.plugin2 is plugin2
 
-    # Setup to test __iter__:
+    # Setup to test more registration:
     class plugin1a(Base1):
         pass
     r(plugin1a)
@@ -713,25 +715,16 @@ def test_Registrar():
         pass
     r(plugin2b)
 
-    m = {
-        'Base1': set([plugin1, plugin1a, plugin1b]),
-        'Base2': set([plugin2, plugin2a, plugin2b]),
-    }
-
-    # Now test __iter__:
-    for (base, plugins) in r:
-        assert base in [Base1, Base2]
-        assert set(plugins) == m[base.__name__]
-    assert len(list(r)) == 2
-
     # Again test __hasitem__, __getitem__:
     for base in [Base1, Base2]:
-        assert base.__name__ in r
-        dp = r[base.__name__]
-        assert len(dp) == 3
-        for key in dp:
-            klass = dp[key]
-            assert getattr(dp, key) is klass
+        name = base.__name__
+        assert name in r
+        assert r[name] is base
+        magic = getattr(r, name)
+        assert len(magic) == 3
+        for key in magic:
+            klass = magic[key]
+            assert getattr(magic, key) is klass
             assert issubclass(klass, base)
 
 

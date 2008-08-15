@@ -546,7 +546,7 @@ class NameSpace(DictProxy):
         return '%s(<%d members>)' % (self.__class__.__name__, len(self))
 
 
-class Registrar(ReadOnly):
+class Registrar(DictProxy):
     """
     Collects plugin classes as they are registered.
 
@@ -561,30 +561,19 @@ class Registrar(ReadOnly):
         :param allowed: Base classes from which plugins accepted by this
             Registrar must subclass.
         """
-
-        class Val(ReadOnly):
-            """
-            Internal class used so that only one mapping is needed.
-            """
-            def __init__(self, base):
-                assert inspect.isclass(base)
-                self.base = base
-                self.name = base.__name__
-                self.sub_d = dict()
-                self.dictproxy = MagicDict(self.sub_d)
-                lock(self)
-
-        self.__allowed = allowed
-        self.__d = {}
+        self.__allowed = dict((base, {}) for base in allowed)
         self.__registered = set()
-        for base in self.__allowed:
-            val = Val(base)
-            assert not (
-                val.name in self.__d or hasattr(self, val.name)
-            )
-            self.__d[val.name] = val
-            setattr(self, val.name, val.dictproxy)
-        lock(self)
+        super(Registrar, self).__init__(
+            dict(self.__base_iter())
+        )
+
+    def __base_iter(self):
+        for (base, sub_d) in self.__allowed.iteritems():
+            assert inspect.isclass(base)
+            name = base.__name__
+            assert not hasattr(self, name)
+            setattr(self, name, MagicDict(sub_d))
+            yield (name, base)
 
     def __findbases(self, klass):
         """
@@ -597,12 +586,12 @@ class Registrar(ReadOnly):
         """
         assert inspect.isclass(klass)
         found = False
-        for base in self.__allowed:
+        for (base, sub_d) in self.__allowed.iteritems():
             if issubclass(klass, base):
                 found = True
-                yield base
+                yield (base, sub_d)
         if not found:
-            raise errors.SubclassError(klass, self.__allowed)
+            raise errors.SubclassError(klass, self.__allowed.keys())
 
     def __call__(self, klass, override=False):
         """
@@ -619,17 +608,15 @@ class Registrar(ReadOnly):
             raise errors.DuplicateError(klass)
 
         # Find the base class or raise SubclassError:
-        for base in self.__findbases(klass):
-            sub_d = self.__d[base.__name__].sub_d
-
+        for (base, sub_d) in self.__findbases(klass):
             # Check override:
             if klass.__name__ in sub_d:
-                # Must use override=True to override:
                 if not override:
+                    # Must use override=True to override:
                     raise errors.OverrideError(base, klass)
             else:
-                # There was nothing already registered to override:
                 if override:
+                    # There was nothing already registered to override:
                     raise errors.MissingOverrideError(base, klass)
 
             # The plugin is okay, add to sub_d:
@@ -637,29 +624,6 @@ class Registrar(ReadOnly):
 
         # The plugin is okay, add to __registered:
         self.__registered.add(klass)
-
-    def __getitem__(self, key):
-        """
-        Returns the MagicDict for plugins subclassed from the base named ``key``.
-        """
-        if key not in self.__d:
-            raise KeyError('no base class named %r' % key)
-        return self.__d[key].dictproxy
-
-    def __contains__(self, key):
-        """
-        Returns True if a base class named ``key`` is in this Registrar.
-        """
-        return key in self.__d
-
-    def __iter__(self):
-        """
-        Iterates through a (base, registered_plugins) tuple for each allowed
-        base.
-        """
-        for base in self.__allowed:
-            sub_d = self.__d[base.__name__].sub_d
-            yield (base, tuple(sub_d[k] for k in sorted(sub_d)))
 
 
 class API(DictProxy):
@@ -687,16 +651,19 @@ class API(DictProxy):
                 plugin = instances[klass]
                 yield PluginProxy(base, plugin)
 
-        for (base, classes) in self.register:
-            namespace = NameSpace(plugin_iter(base, classes))
-            name = base.__name__
+        for name in self.register:
+            base = self.register[name]
+            magic = getattr(self.register, name)
+            namespace = NameSpace(
+                plugin_iter(base, (magic[k] for k in magic))
+            )
             assert not (
                 name in self.__d or hasattr(self, name)
             )
             self.__d[name] = namespace
             object.__setattr__(self, name, namespace)
 
-        for plugin in instances.values():
+        for plugin in instances.itervalues():
             plugin.finalize(self)
             lock(plugin)
             assert plugin.api is self
