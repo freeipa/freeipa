@@ -40,19 +40,16 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
-def usage():
-    print "ipa-delservice [-v|--verbose] principal"
-    sys.exit(1)
-
 def parse_options():
-    parser = OptionParser()
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
+    usage = "%prog [-v|--verbose] principal"
+    parser = OptionParser(usage=usage)
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Verbose output of the XML-RPC connection")
 
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+    ipa.config.add_standard_options(parser)
+    options, args = parser.parse_args()
+    ipa.config.verify_args(parser, args, "principal")
+    ipa.config.init_config(options)
 
     return options, args
 
@@ -62,21 +59,19 @@ def main():
 
     options, args = parse_options()
 
-    if len(args) != 2:
-        usage()
-    princ_name = args[1]
+    princ_name = args[0]
 
     client = ipaclient.IPAClient(verbose=options.verbose)
 
-    hosts = client.find_service_principal(args[1], sattrs=None)
+    hosts = client.find_service_principal(args[0], sattrs=None)
     counter = hosts[0]
     hosts = hosts[1:]
 
     if counter == 0:
-        print "Service Principal '%s' not found." % args[1]
+        print "Service Principal '%s' not found." % args[0]
         return 2
     if counter != 1:
-        print "An exact match was not found. Found %d principals for %s" % (counter, args[1])
+        print "An exact match was not found. Found %d principals for %s" % (counter, args[0])
         return 2
 
     client.delete_service_principal(hosts[0].dn)

@@ -39,49 +39,43 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
-def usage():
-    print "ipa-delgroup [-v|--verbose] group"
-    sys.exit(1)
-
 def parse_options():
-    parser = OptionParser()
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
+    usage = "%prog [-v|--verbose] group"
+    parser = OptionParser(usage=usage)
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Verbose output of the XML-RPC connection")
 
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+    ipa.config.add_standard_options(parser)
+    options, args = parser.parse_args()
+    ipa.config.verify_args(parser, args, "group")
+    ipa.config.init_config(options)
 
     return options, args
 
 def main():
     options, args = parse_options()
 
-    if options.usage or len(args) != 2:
-        usage()
-
     client = ipaclient.IPAClient(verbose=options.verbose)
-    groups = client.find_groups(args[1], ['cn','description','gidnumber','nsAccountLock'])
+    groups = client.find_groups(args[0], ['cn','description','gidnumber','nsAccountLock'])
 
     counter = groups[0]
-    groups = groups[1:] 
+    groups = groups[1:]
     to_delete = None
 
     for i in range(counter):
         dn_list = ldap.explode_dn(groups[i].dn.lower())
-        if "cn=%s" % args[1].lower() in dn_list:
+        if "cn=%s" % args[0].lower() in dn_list:
             to_delete = groups[i]
 
     if to_delete is None:
-        print "Group '%s' not found." % args[1]
+        print "Group '%s' not found." % args[0]
         return 2
 
     ret = client.delete_group(to_delete.dn)
     if (ret == "Success"):
-        print args[1] + " successfully deleted"
+        print args[0] + " successfully deleted"
     else:
-        print args[1] + " " + ret
+        print args[0] + " " + ret
 
     return 0
 

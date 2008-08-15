@@ -39,13 +39,10 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
-def usage():
-    print "ipa-pwpolicy [--maxlife days] [--minlife hours] [--history number] [--minclasses number] [--minlength number] [-v|--verbose]"
-    print "ipa-pwpolicy --show"
-    sys.exit(1)
-
 def parse_options():
-    parser = OptionParser()
+    usage = "ipa-pwpolicy [--maxlife days] [--minlife hours] [--history number] [--minclasses number] [--minlength number] [-v|--verbose]\n"
+    usage = "ipa-pwpolicy --show"
+    parser = OptionParser(usage=usage, formatter=ipa.config.IPAFormatter())
     parser.add_option("--maxlife", dest="maxlife",
                       help="Max. Password Lifetime (days)")
     parser.add_option("--minlife", dest="minlife",
@@ -63,8 +60,14 @@ def parse_options():
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Verbose output of the XML-RPC connection")
 
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+    ipa.config.add_standard_options(parser)
+    options, args = parser.parse_args()
+
+    if not options.show:
+        if not options.maxlife and not options.minlife and not options.history and not options.minclasses and not options.minlength:
+            parser.error("need at least one option of --maxlife, --minlife, --history, --minclasses or --minlength")
+
+    ipa.config.init_config(options)
 
     return options, args
 
@@ -78,9 +81,6 @@ def show_policy(client):
     print "Password History Size: %s" % policy.getValues('krbpwdhistorylength')
 
 def update_policy(client, options):
-    if not options.maxlife and not options.minlife and not options.history and not options.minclasses and not options.minlength:
-        usage()
-
     current = client.get_password_policy()
 
     new = ipa.entity.Entity(current.toDict())
@@ -113,12 +113,9 @@ def update_policy(client, options):
 def main():
     options, args = parse_options()
 
-    if options.usage:
-        usage()
-
     client = ipaclient.IPAClient(verbose=options.verbose)
 
-    if options.show: 
+    if options.show:
         show_policy(client)
         return 0
 

@@ -44,15 +44,12 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
-def usage():
-    print "ipa-adduser [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] [-s|--shell] [-g|--groups] [-k|krb-principal [-M|mailAddress] [--addattr attribute=value] [--setattr attribute=value] [-v|--verbose] user"
-    sys.exit(1)
-
 def set_add_usage(which):
     print "%s option usage: --%s NAME=VALUE" % (which, which)
 
 def parse_options():
-    parser = OptionParser()
+    usage = "%prog [options] [user]"
+    parser = OptionParser(usage=usage)
     parser.add_option("-c", "--gecos", dest="gecos",
                       help="Set the GECOS field")
     parser.add_option("-d", "--directory", dest="directory",
@@ -73,8 +70,6 @@ def parse_options():
                       help="Set user's Kerberos Principal Name")
     parser.add_option("-M", "--mailAddress", dest="mail",
                       help="Set user's e-mail address")
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Verbose output of the XML-RPC connection")
     parser.add_option("--addattr", dest="addattr",
@@ -84,8 +79,13 @@ def parse_options():
                       help="Set an attribute, dropping any existing values that may exist",
                       action="append")
 
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+    ipa.config.add_standard_options(parser)
+    options, args = parser.parse_args()
+
+    if len(args) > 1:
+        parser.error("too many arguments")
+
+    ipa.config.init_config(options)
 
     return options, args
 
@@ -96,7 +96,7 @@ def main():
     username = ""
     principal = ""
     password = ""
-    mail = "" 
+    mail = ""
     gecos = ""
     directory = ""
     shell = ""
@@ -109,17 +109,14 @@ def main():
     user=ipa.user.User()
     options, args = parse_options()
 
-    if options.usage:
-        usage()
-
-    if len(args) != 2:
+    if len(args) != 1:
         all_interactive = True
 
     if not options.gn:
         givenname = ipautil.user_input("First name", allow_empty = False)
     else:
         givenname = options.gn
-        if (not ipavalidate.String(givenname, notEmpty=True)):
+        if not ipavalidate.String(givenname, notEmpty=True):
             print "Please enter a value"
             return 1
 
@@ -127,14 +124,14 @@ def main():
         lastname = ipautil.user_input("Last name", allow_empty = False)
     else:
         lastname = options.sn
-        if (not ipavalidate.String(lastname, notEmpty=True)):
+        if not ipavalidate.String(lastname, notEmpty=True):
             print "Please enter a value"
             return 1
 
-    if (len(args) != 2):
+    if len(args) != 1:
         username = ipautil.user_input_name("Login name")
     else:
-        username = args[1]
+        username = args[0]
         try:
             ipaadminutil.check_name(username)
         except ValueError, e:
@@ -142,15 +139,15 @@ def main():
             return 1
 
     if options.password_prompt:
-        while (match != True):
+        while match != True:
             password = getpass.getpass("  Password: ")
             confirm = getpass.getpass("  Password (again): ")
-            if (password != confirm):
+            if password != confirm:
                 print "Passwords do not match"
                 match = False
             else:
                 match = True
-                if (len(password) < 1):
+                if len(password) < 1:
                     print "Password cannot be empty"
                     match = False
     else:
@@ -158,7 +155,7 @@ def main():
 
     if options.mail:
         mail = options.mail
-        if (not ipavalidate.Email(mail)):
+        if not ipavalidate.Email(mail):
             print "The email provided seem not a valid email."
             return 1
 

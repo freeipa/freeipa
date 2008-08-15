@@ -39,13 +39,10 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
-def usage():
-    print "ipa-defaultoptions [--maxusername number] [--homedir directory] [--defaultshell shell] [--defaultgroup group] [--emaildomain domain] [--searchtimelimit number] [--searchrecordslimit number] [--usersearch fields] [--groupsearch fields] [-v|--verbose]"
-    print "ipa-defaultoptions --show"
-    sys.exit(1)
-
 def parse_options():
-    parser = OptionParser()
+    usage  = "%prog [options]\n"
+    usage += "%prog --show"
+    parser = OptionParser(usage=usage, formatter=ipa.config.IPAFormatter())
     parser.add_option("--maxusername", dest="maxusername",
                       help="Max. Length of a username")
     parser.add_option("--homedir", dest="homedir",
@@ -66,13 +63,17 @@ def parse_options():
                       help="A comma-separated list of fields to search when searching for groups")
     parser.add_option("--show", dest="show", action="store_true",
                       help="Show the current configuration")
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Verbose output of the XML-RPC connection")
 
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+    ipa.config.add_standard_options(parser)
+    options, args = parser.parse_args()
+    ipa.config.verify_args(parser, args)
+
+    if not options.show and not options.maxusername and not options.homedir and not options.defaultshell and not options.defaultgroup and not options.emaildomain and not options.searchtimelimit and not options.searchrecordslimit and not options.usersearch and not options.groupsearch:
+        parser.error("nothing to do")
+
+    ipa.config.init_config(options)
 
     return options, args
 
@@ -94,9 +95,6 @@ def show_config(client):
     print "Default E-mail Domain: %s" % policy.getValues('ipaDefaultEmailDomain')
 
 def update_policy(client, options):
-    if not options.maxusername and not options.homedir and not options.defaultshell and not options.defaultgroup and not options.emaildomain and not options.searchtimelimit and not options.searchrecordslimit and not options.usersearch and not options.groupsearch:
-        usage()
-
     current = client.get_ipa_config()
 
     new = ipa.entity.Entity(current.toDict())
@@ -139,9 +137,6 @@ def update_policy(client, options):
 
 def main():
     options, args = parse_options()
-
-    if options.usage:
-        usage()
 
     client = ipaclient.IPAClient(verbose=options.verbose)
 

@@ -51,16 +51,13 @@ def parse_options():
                       help="Name of delegation")
     parser.add_option("-t", "--target", dest="target",
                       help="Target group of delegation")
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Verbose output of the XML-RPC connection")
 
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
-
-    if options.usage or len(args) != 1:
-        parser.error("too many arguments")
+    ipa.config.add_standard_options(parser)
+    options, args = parser.parse_args()
+    ipa.config.verify_args(parser, args)
+    ipa.config.init_config(options)
 
     return options, args
 

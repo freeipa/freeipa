@@ -40,18 +40,15 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
-def usage():
-    print "ipa-modgroup [-l|--list]"
-    print "ipa-modgroup [-a|--add] [-r|--remove] [-v|--verbose] user group"
-    print "ipa-modgroup [-g|--groupadd] [-e|--groupdel] [-v|--verbose] group group"
-    print "ipa-modgroup [-d|--desc description STRING] [--addattr attribute=value] [--delattr attribute] [--setattr attribute=value] [-v|--verbose] group"
-    sys.exit(1)
-
 def set_add_usage(which):
     print "%s option usage: --%s NAME=VALUE" % (which, which)
 
 def parse_options():
-    parser = OptionParser()
+    usage  = "%prog [-l|--list]\n"
+    usage += "%prog [-a|--add] [-r|--remove] [-v|--verbose] user group\n"
+    usage += "%prog [-g|--groupadd] [-e|--groupdel] [-v|--verbose] group group\n"
+    usage += "%prog [-d|--desc description STRING] [--addattr attribute=value] [--delattr attribute] [--setattr attribute=value] [-v|--verbose] group"
+    parser = OptionParser(usage=usage, formatter=ipa.config.IPAFormatter())
     parser.add_option("-a", "--add", dest="add", action="store_true",
                       help="Add a user to the group")
     parser.add_option("-r", "--remove", dest="remove", action="store_true",
@@ -60,7 +57,7 @@ def parse_options():
                       help="Add a group to the group")
     parser.add_option("-e", "--groupdel", dest="groupdel", action="store_true",
                       help="Remove a  group from the group")
-    parser.add_option("-d", "--description", dest="desc", 
+    parser.add_option("-d", "--description", dest="desc",
                       help="Modify the description of the group")
     parser.add_option("--addattr", dest="addattr",
                       help="Adds an attribute or values to that attribute, attr=value",
@@ -72,19 +69,27 @@ def parse_options():
                       action="append")
     parser.add_option("-l", "--list", dest="list", action="store_true",
                       help="List common attributes (this is not an exhaustive list)")
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Verbose output of the XML-RPC connection")
 
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+    ipa.config.add_standard_options(parser)
+    options, args = parser.parse_args()
 
     if ((not options.add and not options.remove) and
         (not options.groupadd and not options.groupdel) and
         (not options.desc and not options.addattr and
         not options.delattr and not options.setattr and not options.list)):
-        usage()
+        parser.error("need to specify at least one operation")
+
+    if not options.list:
+        if options.add or options.remove:
+            ipa.config.verify_args(parser, args, "user group")
+        elif options.groupadd or option.groupdel:
+            ipa.config.verify_args(parser, args, "group group")
+        elif options.desc or options.addattr or options.delattr or options.setattr:
+            ipa.config.verify_args(parser, args, "group")
+
+    ipa.config.init_config(options)
 
     return options, args
 
@@ -118,56 +123,49 @@ def main():
             print x
         return 0
 
-    if options.usage:
-        usage()
-    if (options.add or options.remove) and (len(args) != 3):
-        usage()
-    elif ((options.desc or options.addattr or options.delattr or options.setattr) and (len(args) != 2)):
-        usage()
-
     client = ipaclient.IPAClient(verbose=options.verbose)
     if options.add:
-        group = get_group(client, options, args[2])
+        group = get_group(client, options, args[1])
         if group is None:
             return 1
-        users = args[1].split(',')
+        users = args[0].split(',')
         for user in users:
             client.add_user_to_group(user, group.dn)
-            print user + " successfully added to " + args[2]
+            print user + " successfully added to " + args[1]
     elif options.remove:
-        group = get_group(client, options, args[2])
+        group = get_group(client, options, args[1])
         if group is None:
             return 1
-        users = args[1].split(',')
+        users = args[0].split(',')
         for user in users:
             client.remove_user_from_group(user, group.dn)
             print user + " successfully removed"
     elif options.groupadd:
-        group = get_group(client, options, args[2])
+        group = get_group(client, options, args[1])
         if group is None:
             return 1
-        groups = args[1].split(',')
+        groups = args[0].split(',')
         for g in groups:
             tgroup = get_group(client, options, g)
             if tgroup is not None:
                 client.add_group_to_group(tgroup.dn, group.dn)
-                print g + " successfully added to " + args[2]
+                print g + " successfully added to " + args[1]
             else:
                 print "Group %s not found" % g
     elif options.groupdel:
-        group = get_group(client, options, args[2])
+        group = get_group(client, options, args[1])
         if group is None:
             return 1
-        groups = args[1].split(',')
+        groups = args[0].split(',')
         for g in groups:
             tgroup = get_group(client, options, g)
             if tgroup is not None:
                 client.remove_member_from_group(tgroup.dn, group.dn)
-                print g + " successfully removed " + args[2]
+                print g + " successfully removed " + args[1]
             else:
                 print "Group %s not found" % g
     else:
-        group = get_group(client, options, args[1])
+        group = get_group(client, options, args[0])
         if group is None:
             return 1
 
@@ -202,7 +200,7 @@ def main():
                 group.setValue(attr, value)
 
         client.update_group(group)
-        print args[1] + " successfully updated"
+        print args[0] + " successfully updated"
 
     return 0
 

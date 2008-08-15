@@ -46,13 +46,15 @@ def main():
                         help="detailed help information")
     opt_parser.set_usage("Usage: %s [options] Client-IP-Address" % (os.path.basename(sys.argv[0])))
 
-    args = ipa.config.init_config(sys.argv)
-    options, args = opt_parser.parse_args(args)
+    ipa.config.add_standard_options(opt_parser)
+    options, args = opt_parser.parse_args()
 
-    if len(args) < 2:
+    if len(args) < 1:
         opt_parser.error("missing Client-IP-Address")
 
-    ip_addr = args[1]
+    ipa.config.init_config(options)
+
+    ip_addr = args[0]
 
     try:
         ipa_client = ipaclient.IPAClient()

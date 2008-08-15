@@ -43,15 +43,12 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
-def usage():
-    print "ipa-addgroup [-d|--description STRING] [-g|--gid GID]  [--addattr attribute=value] [--setattr attribute=value] [-v|--verbose] group"
-    sys.exit(1)
-
 def set_add_usage(which):
     print "%s option usage: --%s NAME=VALUE" % (which, which)
 
 def parse_options():
-    parser = OptionParser()
+    usage = "%prog [options] [group]"
+    parser = OptionParser(usage=usage)
     parser.add_option("-d", "--description", dest="desc",
                       help="A description of this group")
     parser.add_option("-g", "--gid", dest="gid",
@@ -64,11 +61,14 @@ def parse_options():
     parser.add_option("--setattr", dest="setattr",
                       help="Set an attribute, dropping any existing values that may exist",
                       action="append")
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
 
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+    ipa.config.add_standard_options(parser)
+    options, args = parser.parse_args()
+
+    if len(args) > 1:
+        parser.error("too many arguments")
+
+    ipa.config.init_config(options)
 
     return options, args
 
@@ -79,13 +79,10 @@ def main():
     group=ipa.group.Group()
     options, args = parse_options()
 
-    if options.usage:
-        usage()
-
-    if (len(args) != 2):
+    if len(args) != 1:
         cn = ipautil.user_input_name("Group name")
     else:
-        cn = args[1]
+        cn = args[0]
         try:
             ipaadminutil.check_name(cn)
         except ValueError, e:
@@ -96,7 +93,7 @@ def main():
         desc = ipautil.user_input("Description", allow_empty = False)
     else:
         desc = options.desc
-        if (not ipavalidate.String(desc, notEmpty=True)):
+        if not ipavalidate.String(desc, notEmpty=True):
             print "Please enter a value"
             return 1
 

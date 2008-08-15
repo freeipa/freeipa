@@ -40,19 +40,17 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
-def usage():
-    print "ipa-passwd [-v|--verbose] [user]"
-    sys.exit(1)
-
 def parse_options():
-    parser = OptionParser()
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
+    usage = "ipa-passwd [-v|--verbose] [user]"
+    parser = OptionParser(usage=usage)
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Verbose output of the XML-RPC connection")
 
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+    ipa.config.add_standard_options(parser)
+    options, args = parser.parse_args()
+    if len(args) > 1:
+        parser.error("too many arguments")
+    ipa.config.init_config(options)
 
     return options, args
 
@@ -74,13 +72,10 @@ def main():
 
     options, args = parse_options()
 
-    if options.usage:
-        usage()
-
     krbctx = krbV.default_context()
 
-    if len(args) == 2:
-        username = args[1]
+    if len(args) == 1:
+        username = args[0]
     else:
         principal = get_principal(krbctx)
         if principal is None:

@@ -41,16 +41,13 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
-def usage():
-    print "ipa-moduser [--list]"
-    print "ipa-moduser [-a|--activate] [-c|--gecos STRING] [-d|--directory STRING] [-f|--firstname STRING] [-l|--lastname STRING] [-s|--shell STRING] [--addattr attribute=value] [--delattr attribute] [--setattr attribute=value] [-v|--verbose] user"
-    sys.exit(1)
-
 def set_add_usage(which):
     print "%s option usage: --%s NAME=VALUE" % (which, which)
 
 def parse_options():
-    parser = OptionParser()
+    usage = "%prog --list\n"
+    usage = "%prog [options] user"
+    parser = OptionParser(usage=usage, formatter=ipa.config.IPAFormatter())
     parser.add_option("-a", "--activate", dest="activate", action="store_true",
                       help="Activate the user")
     parser.add_option("-c", "--gecos", dest="gecos",
@@ -75,13 +72,16 @@ def parse_options():
                       help="List common attributes (this is not an exhaustive list)")
     parser.add_option("-M", "--mailAddress", dest="mail",
                       help="Set user's e-mail address")
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Verbose output of the XML-RPC connection")
 
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+    ipa.config.add_standard_options(parser)
+    options, args = parser.parse_args()
+
+    if not options.list:
+        ipa.config.verify_args(parser, args, "user")
+
+    ipa.config.init_config(options)
 
     return options, args
 
@@ -108,10 +108,7 @@ def main():
             print x
         return 0
 
-    if options.usage or len(args) != 2:
-        usage()
-
-    username = args[1]
+    username = args[0]
 
     client = ipaclient.IPAClient(verbose=options.verbose)
     try:
@@ -197,7 +194,7 @@ def main():
             if len(s) != 2:
                 set_add_usage("set")
                 sys.exit(1)
-            (attr,value) = s   
+            (attr,value) = s
             user.setValue(attr, value)
 
     if options.addattr:

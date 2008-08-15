@@ -38,31 +38,25 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
-def usage():
-    print "ipa-deluser [-v|--verbose] user"
-    sys.exit(1)
-
 def parse_options():
-    parser = OptionParser()
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
+    usage = "%prog [-v|--verbose] user"
+    parser = OptionParser(usage=usage)
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Verbose output of the XML-RPC connection")
 
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+    ipa.config.add_standard_options(parser)
+    options, args = parser.parse_args()
+    ipa.config.verify_args(parser, args, "user")
+    ipa.config.init_config(options)
 
     return options, args
 
 def main():
     options, args = parse_options()
 
-    if options.usage or len(args) != 2:
-        usage()
-
     client = ipaclient.IPAClient(verbose=options.verbose)
-    ret = client.delete_user(args[1])
-    print args[1] + " successfully deleted"
+    ret = client.delete_user(args[0])
+    print args[0] + " successfully deleted"
 
     return 0
 

@@ -38,35 +38,29 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
-def usage():
-    print "ipa-lockuser [-u|--unlock] [-v|--verbose] user"
-    sys.exit(1)
-
 def parse_options():
-    parser = OptionParser()
+    usage = "%prog [-u|--unlock] [-v|--verbose] user"
+    parser = OptionParser(usage=usage)
     parser.add_option("-u", "--unlock", action="store_true", dest="unlock",
                       help="Unlock a user's account")
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Verbose output of the XML-RPC connection")
 
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+    ipa.config.add_standard_options(parser)
+    options, args = parser.parse_args()
+    ipa.config.verify_args(parser, args, "user")
+    ipa.config.init_config(options)
 
     return options, args
 
 def main():
     options, args = parse_options()
 
-    if options.usage or len(args) != 2:
-        usage()
-
     msg = "inactivated"
     client = ipaclient.IPAClient(verbose=options.verbose)
     if options.unlock:
         try:
-            ret = client.mark_user_active(args[1])
+            ret = client.mark_user_active(args[0])
             msg = "unlocked"
         except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_EMPTY_MODLIST):
             print "User is already marked active"
@@ -75,13 +69,13 @@ def main():
             raise
     else:
         try:
-            ret = client.mark_user_inactive(args[1])
+            ret = client.mark_user_inactive(args[0])
         except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_EMPTY_MODLIST):
             print "User is already marked inactive"
             return 0
         except:
             raise
-    print args[1] + " successfully %s" % msg
+    print args[0] + " successfully %s" % msg
 
     return 0
 

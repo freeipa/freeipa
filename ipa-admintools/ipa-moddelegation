@@ -45,13 +45,10 @@ error was:
 
 aci_fields = ['*', 'aci']
 
-def usage():
-    print "ipa-moddelegation [-l|--list]"
-    print "ipa-moddelegation [-a|--attributes attr1,attr2,..,attrn] [-s|--source STRING] [-t|--target STRING] [-v|--verbose] name"
-    sys.exit(1)
-
 def parse_options():
-    parser = OptionParser()
+    usage  = "%prog -l|--list\n"
+    usage += "%prog [-a|--attributes attr1,attr2,..,attrn] [-s|--source STRING] [-t|--target STRING] [-v|--verbose] name"
+    parser = OptionParser(usage=usage, formatter=ipa.config.IPAFormatter())
     parser.add_option("-a", "--attributes", dest="attributes",
                       help="The attributes the source group may change in the target group")
     parser.add_option("-l", "--list", dest="list", action="store_true",
@@ -60,13 +57,18 @@ def parse_options():
                       help="The source group name")
     parser.add_option("-t", "--target", dest="target",
                       help="The target group name")
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Verbose output of the XML-RPC connection")
 
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+    ipa.config.add_standard_options(parser)
+    options, args = parser.parse_args()
+
+    if not options.list:
+        if not options.attributes and not options.source and not options.target:
+            parser.error("need at least one option of -a, -s, or -t")
+        ipa.config.verify_args(parser, args, "name")
+
+    ipa.config.init_config(options)
 
     return options, args
 
@@ -82,12 +84,6 @@ def main():
             print x
         return 0
 
-    if options.usage or len(args) != 2:
-        usage()
-
-    if not options.attributes and not options.source and not options.target:
-        usage()
-
     client = ipaclient.IPAClient(verbose=options.verbose)
 
     # first do some sanity checking
@@ -99,7 +95,7 @@ def main():
         groupindex = -1
         if counter == 0:
             print "No entries found for %s" % options.source
-            return 2 
+            return 2
         elif counter == -1:
             print "These results are truncated."
             print "Please refine your search and try again."
@@ -121,7 +117,7 @@ def main():
         groupindex = -1
         if counter == 0:
             print "No entries found for %s" % options.target
-            return 2 
+            return 2
         elif counter == -1:
             print "These results are truncated."
             print "Please refine your search and try again."
@@ -155,7 +151,7 @@ def main():
     for aci_str in aci_str_list:
         try:
             old_aci = ipa.aci.ACI(aci_str)
-            if old_aci.name == args[1]:
+            if old_aci.name == args[0]:
                 acistr = aci_str
                 orig_group = old_aci.source_group
             else:
@@ -165,13 +161,13 @@ def main():
             pass
 
     if acistr is None:
-        print "No delegation %s found." % args[1]
+        print "No delegation %s found." % args[0]
         return 2
 
     old_aci_index = aci_str_list.index(acistr)
 
     new_aci = ipa.aci.ACI()
-    new_aci.name = args[1]
+    new_aci.name = args[0]
     if options.source:
         new_aci.source_group = source_grp[0].dn
     else:
@@ -212,7 +208,7 @@ def main():
             # This is ok, ignore it
             pass
 
-    print "Delegation %s successfully updated" % args[1]
+    print "Delegation %s successfully updated" % args[0]
     return 0
 
 try:

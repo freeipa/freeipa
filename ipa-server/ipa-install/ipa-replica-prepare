@@ -39,8 +39,6 @@ def usage():
 def parse_options():
     parser = OptionParser(version=version.VERSION)
 
-    args = ipa.config.init_config(sys.argv)
-
     parser.add_option("--dirsrv_pkcs12", dest="dirsrv_pkcs12",
                       help="install certificate for the directory server")
     parser.add_option("--http_pkcs12", dest="http_pkcs12",
@@ -52,7 +50,7 @@ def parse_options():
     parser.add_option("-p", "--password", dest="password", 
                       help="Directory Manager (existing master) password")
 
-    options, args = parser.parse_args(args)
+    options, args = parser.parse_args()
 
     # If any of the PKCS#12 options are selected, all are required. Create a
     # list of the options and count it to enforce that all are required without
@@ -62,8 +60,10 @@ def parse_options():
     if cnt > 0 and cnt < 4:
         parser.error("error: All PKCS#12 options are required if any are used.")
 
-    if len(args) != 2:
+    if len(args) != 1:
         parser.error("must provide the fully-qualified name of the replica")
+
+    ipa.config.init_config(options)
 
     return options, args
 
@@ -171,7 +171,7 @@ def get_dirman_password():
 def main():
     options, args = parse_options()
 
-    replica_fqdn = args[1]
+    replica_fqdn = args[0]
 
     if not ipautil.file_exists(certs.CA_SERIALNO) and not options.dirsrv_pin:
         sys.exit("The replica must be created on the primary IPA server.\nIf you installed IPA with your own certificates using PKCS#12 files you must provide PKCS#12 files for any replicas you create as well.")

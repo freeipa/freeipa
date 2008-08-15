@@ -7,7 +7,7 @@
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
 # published by the Free Software Foundation; version 2 only
-#   
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-#   
+#
 import sys
 try:
     from optparse import OptionParser
@@ -43,28 +43,22 @@ error was:
 
 aci_fields = ['*', 'aci']
 
-def usage():
-    print "ipa-deldelgation [-v|--verbose] name"
-    sys.exit(1)
-
 def parse_options():
-    parser = OptionParser()
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
+    usage = "%prog [-v|--verbose] name"
+    parser = OptionParser(usage=usage)
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
                       help="Verbose output of the XML-RPC connection")
 
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+    ipa.config.add_standard_options(parser)
+    options, args = parser.parse_args()
+    ipa.config.verify_args(parser, args, "name")
+    ipa.config.init_config(options)
 
     return options, args
 
 def main():
 
     options, args = parse_options()
-
-    if options.usage or len(args) != 2:
-        usage()
 
     client = ipaclient.IPAClient(verbose=options.verbose)
     aci_entry = client.get_aci_entry(aci_fields)
@@ -80,7 +74,7 @@ def main():
     for aci_str in aci_str_list:
         try:
             aci = ipa.aci.ACI(aci_str)
-            if aci.name == args[1]:
+            if aci.name == args[0]:
                 acistr = aci_str
                 source_group = aci.source_group
             else:
@@ -90,7 +84,7 @@ def main():
             pass
 
     if acistr is None:
-        print "No delegation '%s' found." % args[1]
+        print "No delegation '%s' found." % args[0]
         return 2
 
     old_aci_index = aci_str_list.index(acistr)

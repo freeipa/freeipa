@@ -63,30 +63,38 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
-def usage():
-    print "ipa-change-master-key [-q|--quiet] [-p DM_PASSWORD]"
-    sys.exit(1)
-
 def parse_options():
-    parser = OptionParser()
+    parser = OptionParser("%prog [-q|--quiet] [-p DM_PASSWORD]")
     parser.add_option("-p", "--dm-password", dest="dm_password",
                       help="The Directory Manager password")
     parser.add_option("-q", "--quiet", action="store_true", dest="quiet",
                       help="Keep quiet")
-    parser.add_option("--usage", action="store_true",
-                      help="Program usage")
 
-    args = ipa.config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+    ipa.config.add_standard_options(parser)
+    options, args = parser.parse_args()
+
+    ipa.config.verify_args(parser, args)
+    ipa.config.init_config(options)
 
     return options, args
 
 # We support only des3 encoded stash files for now
 def generate_new_stash_file(file):
 
-    odd_parity_bytes_pool = ['\x01', '\x02', '\x04', '\x07', '\x08', '\x0b', '\r', '\x0e', '\x10', '\x13', '\x15', '\x16', '\x19', '\x1a', '\x1c', '\x1f', ' ', '#', '%', '&', ')', '*', ',', '/', '1', '2', '4', '7', '8', ';', '=', '>', '@', 'C', 'E', 'F', 'I', 'J', 'L', 'O', 'Q', 'R', 'T', 'W', 'X', '[', ']', '^', 'a', 'b', 'd', 'g', 'h', 'k', 'm', 'n', 'p', 's', 'u', 'v', 'y', 'z', '|', '\x7f', '\x80', '\x83', '\x85', '\x86', '\x89', '\x8a', '\x8c', '\x8f', '\x91', '\x92', '\x94', '\x97', '\x98', '\x9b', '\x9d', '\x9e', '\xa1', '\xa2', '\xa4', '\xa7', '\xa8', '\xab', '\xad', '\xae', '\xb0', '\xb3', '\xb5', '\xb6', '\xb9', '\xba', '\xbc', '\xbf', '\xc1', '\xc2', '\xc4', '\xc7', '\xc8', '\xcb', '\xcd', '\xce', '\xd0', '\xd3', '\xd5', '\xd6', '\xd9', '\xda', '\xdc', '\xdf', '\xe0', '\xe3',
-'\xe5', '\xe6', '\xe9', '\xea', '\xec', '\xef', '\xf1', '\xf2', '\xf4', '\xf7',
-'\xf8', '\xfb', '\xfd', '\xfe']
+    odd_parity_bytes_pool = ['\x01', '\x02', '\x04', '\x07', '\x08', '\x0b',
+        '\r', '\x0e', '\x10', '\x13', '\x15', '\x16', '\x19', '\x1a', '\x1c',
+        '\x1f', ' ', '#', '%', '&', ')', '*', ',', '/', '1', '2', '4', '7', '8',
+        ';', '=', '>', '@', 'C', 'E', 'F', 'I', 'J', 'L', 'O', 'Q', 'R', 'T',
+        'W', 'X', '[', ']', '^', 'a', 'b', 'd', 'g', 'h', 'k', 'm', 'n', 'p',
+        's', 'u', 'v', 'y', 'z', '|', '\x7f', '\x80', '\x83', '\x85', '\x86',
+        '\x89', '\x8a', '\x8c', '\x8f', '\x91', '\x92', '\x94', '\x97', '\x98',
+        '\x9b', '\x9d', '\x9e', '\xa1', '\xa2', '\xa4', '\xa7', '\xa8', '\xab',
+        '\xad', '\xae', '\xb0', '\xb3', '\xb5', '\xb6', '\xb9', '\xba', '\xbc',
+        '\xbf', '\xc1', '\xc2', '\xc4', '\xc7', '\xc8', '\xcb', '\xcd', '\xce',
+        '\xd0', '\xd3', '\xd5', '\xd6', '\xd9', '\xda', '\xdc', '\xdf', '\xe0',
+        '\xe3', '\xe5', '\xe6', '\xe9', '\xea', '\xec', '\xef', '\xf1', '\xf2',
+        '\xf4', '\xf7', '\xf8', '\xfb', '\xfd', '\xfe']
+
     pool_len = len(odd_parity_bytes_pool)
     keytype = 16 # des3
     keydata = ""
@@ -134,9 +142,6 @@ def main():
     global password
 
     options, args = parse_options()
-
-    if options.usage:
-        usage()
 
     krbctx = krbV.default_context()
 
