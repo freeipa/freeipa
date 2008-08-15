@@ -24,7 +24,7 @@ To learn about the ``ipalib`` library, you should read the code in this order:
 
     1. Learn about the plugin framework in `ipalib.plugable`
 
-    2. Learn about the public api in `ipalib.public`
+    2. Learn about the public API in `ipalib.public`
 
     3. Look at some example plugins in `ipalib.plugins.example`
 

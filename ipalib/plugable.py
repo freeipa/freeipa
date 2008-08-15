@@ -124,13 +124,17 @@ def lock(readonly):
 
 class SetProxy(ReadOnly):
     """
-    A read-only proxy to an underlying set.
+    A read-only container with set/sequence behaviour.
 
-    Although the underlying set cannot be changed through the SetProxy,
-    the set can change and is expected to (unless the underlying set is a
-    frozen set).
+    This container acts as a proxy to an actual set-like object (a set,
+    frozenset, or dict) that is passed to the constructor. To the extent
+    possible in Python, this underlying set-like object cannot be modified
+    through the SetProxy... which just means you wont do it accidentally.
     """
     def __init__(self, s):
+        """
+        :param s: The target set-like object (a set, frozenset, or dict)
+        """
         allowed = (set, frozenset, dict)
         if type(s) not in allowed:
             raise TypeError('%r not in %r' % (type(s), allowed))
@@ -138,21 +142,43 @@ class SetProxy(ReadOnly):
         lock(self)
 
     def __len__(self):
+        """
+        Returns the number of items in this container.
+        """
         return len(self.__s)
 
     def __iter__(self):
+        """
+        Iterates (in ascending order) through the items (or keys) in this
+        container.
+        """
         for key in sorted(self.__s):
             yield key
 
     def __contains__(self, key):
+        """
+        Returns True if this container contains ``key``, False otherwise.
+
+        :param key: The item (or key) to test for membership.
+        """
         return key in self.__s
 
 
 class DictProxy(SetProxy):
     """
-    A read-only proxy to an underlying dict.
+    A read-only container with mapping behaviour.
+
+    This container acts as a proxy to an actual mapping object (a dict) that
+    is passed to the constructor. To the extent possible in Python, this
+    underlying mapping object cannot be modified through the DictProxy...
+    which just means you wont do it accidentally.
+
+    Also see `SetProxy`.
     """
     def __init__(self, d):
+        """
+        :param d: The target mapping object (a dict)
+        """
         if type(d) is not dict:
             raise TypeError('%r is not %r' % (type(d), dict))
         self.__d = d
@@ -161,28 +187,41 @@ class DictProxy(SetProxy):
     def __getitem__(self, key):
         """
         Returns the value corresponding to ``key``.
+
+        :param key: The key of the value you wish to retrieve.
         """
         return self.__d[key]
 
 
 class MagicDict(DictProxy):
     """
-    A read-only dict whose items can also be accessed as attributes.
+    A read-only mapping container whose values can also be accessed as
+    attributes.
 
-    Although a MagicDict is read-only, the underlying dict can change (and is
-    assumed to).
+    For example, assuming ``magic`` is a MagicDict instance that contains the
+    key ``name``, you could do this:
 
-    One of these is created for each allowed base in a `Registrar` instance.
+    >>> magic[name] is getattr(magic, name)
+    True
+
+    This container acts as a proxy to an actual mapping object (a dict) that
+    is passed to the constructor. To the extent possible in Python, this
+    underlying mapping object cannot be modified through the MagicDict...
+    which just means you wont do it accidentally.
+
+    Also see `DictProxy` and `SetProxy`.
     """
 
     def __getattr__(self, name):
         """
         Returns the value corresponding to ``name``.
+
+        :param name: The name of the attribute you wish to retrieve.
         """
         try:
             return self[name]
         except KeyError:
-            raise AttributeError('no attribute %r' % name)
+            raise AttributeError('no magic attribute %r' % name)
 
 
 class Plugin(ReadOnly):
