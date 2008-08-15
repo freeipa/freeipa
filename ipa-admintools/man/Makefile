@@ -18,7 +18,8 @@ MANFILES=\
 	ipa-moddelegation.1 \
 	ipa-passwd.1 \
 	ipa-pwpolicy.1 \
-	ipa-moduser.1
+	ipa-moduser.1 \
+	ipa-defaultoptions.1
 
 all: ;
 

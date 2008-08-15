@@ -26,6 +26,7 @@ install:
 	install -m 755 ipa-deldelegation $(SBINDIR)
 	install -m 755 ipa-listdelegation $(SBINDIR)
 	install -m 755 ipa-moddelegation $(SBINDIR)
+	install -m 755 ipa-defaultoptions $(SBINDIR)
 
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \

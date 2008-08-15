@@ -676,7 +676,7 @@ class RPCClient:
         """Update the IPA configuration"""
         server = self.setup_server()
         try:
-            result = server.update_ipa_config(oldconfig, newconfig)
+            result = server.update_ipa_config(ipautil.wrap_binary_data(oldconfig), ipautil.wrap_binary_data(newconfig))
         except xmlrpclib.Fault, fault:
             raise ipaerror.gen_exception(fault.faultCode, fault.faultString)
         except socket.error, (value, msg):
