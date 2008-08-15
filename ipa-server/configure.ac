@@ -293,6 +293,7 @@ AC_CONFIG_FILES([
     ipa-slapi-plugins/dna/Makefile
     ipa-slapi-plugins/ipa-memberof/Makefile
     ipa-slapi-plugins/ipa-pwd-extop/Makefile
+    ipa-slapi-plugins/ipa-winsync/Makefile
     xmlrpc-server/Makefile
     xmlrpc-server/test/Makefile
     man/Makefile

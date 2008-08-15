@@ -8,6 +8,7 @@ INCLUDES =							\
 	-DLIBDIR=\""$(libdir)"\" 				\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
+	$(MOZLDAP_CFLAGS)					\
 	$(WARN_CFLAGS)						\
 	$(NULL)
 
@@ -17,14 +18,13 @@ plugin_LTLIBRARIES = 			\
 	$(NULL)
 
 libipa_winsync_la_SOURCES = 		\
-	ipa_winsync.c			\
+	ipa-winsync.c			\
+	ipa-winsync-config.c			\
 	$(NULL)
 
 libipa_winsync_la_LDFLAGS = -avoid-version
 
 #libipa_winsync_la_LIBADD = 		\
-#	$(KRB5_LIBS)			\
-#	$(SSL_LIBS)			\
 #	$(MOZLDAP_LIBS)			\
 #	$(NULL)
 
