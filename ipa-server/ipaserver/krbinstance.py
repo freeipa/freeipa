@@ -48,6 +48,10 @@ import pyasn1.codec.ber.decoder
 import struct
 import base64
 
+KRBMKEY_DENY_ACI = """
+(targetattr = "krbMKey")(version 3.0; acl "No external access"; deny (all) userdn != "ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
+"""
+
 def update_key_val_in_file(filename, key, val):
     if os.path.exists(filename):
         pattern = "^[\s#]*%s\s*=\s*%s\s*" % (re.escape(key), re.escape(val))
@@ -358,7 +362,9 @@ class KrbInstance(service.Service):
 
         entry = ipaldap.Entry("cn="+self.realm+",cn=kerberos,"+self.suffix)
         dn = "cn="+self.realm+",cn=kerberos,"+self.suffix
-        mod = [(ldap.MOD_ADD, 'krbMKey', str(asn1key))]
+        #protect the master key by adding an appropriate deny rule along with the key
+        mod = [(ldap.MOD_ADD, 'aci', ipautil.template_str(KRBMKEY_DENY_ACI, self.sub_dict)),
+               (ldap.MOD_ADD, 'krbMKey', str(asn1key))]
         try:
             self.conn.modify_s(dn, mod)
         except ldap.TYPE_OR_VALUE_EXISTS, e:
