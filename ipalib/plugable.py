@@ -351,7 +351,7 @@ class Plugin(ReadOnly):
         )
 
 
-class PluginProxy(ReadOnly):
+class PluginProxy(SetProxy):
     """
     Allows access to only certain attributes on a `Plugin`.
 
@@ -390,8 +390,8 @@ class PluginProxy(ReadOnly):
         self.__public__ = base.__public__
         self.name = getattr(target, name_attr)
         self.doc = target.doc
-        lock(self)
         assert type(self.__public__) is frozenset
+        super(PluginProxy, self).__init__(self.__public__)
 
     def implements(self, arg):
         """
@@ -411,31 +411,23 @@ class PluginProxy(ReadOnly):
         """
         return self.__class__(self.__base, self.__target, name_attr)
 
-    def __iter__(self):
-        """
-        Iterates (in ascending order) though the attribute names this proxy is
-        allowing access to.
-        """
-        for name in sorted(self.__public__):
-            yield name
-
     def __getitem__(self, key):
         """
-        If this proxy allows access to an attribute named `key`, return that
+        If this proxy allows access to an attribute named ``key``, return that
         attribute.
         """
         if key in self.__public__:
             return getattr(self.__target, key)
-        raise KeyError('no proxy attribute %r' % key)
+        raise KeyError('no public attribute %r' % key)
 
     def __getattr__(self, name):
         """
-        If this proxy allows access to an attribute named `name`, return that
-        attribute.
+        If this proxy allows access to an attribute named ``name``, return
+        that attribute.
         """
         if name in self.__public__:
             return getattr(self.__target, name)
-        raise AttributeError('no proxy attribute %r' % name)
+        raise AttributeError('no public attribute %r' % name)
 
     def __call__(self, *args, **kw):
         """

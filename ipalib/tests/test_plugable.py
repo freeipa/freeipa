@@ -410,14 +410,14 @@ class test_Plugin(ClassChecker):
         raises(AssertionError, sub.finalize, api)
 
 
-class test_Proxy(ClassChecker):
+class test_PluginProxy(ClassChecker):
     """
     Tests the `plugable.PluginProxy` class.
     """
     _cls = plugable.PluginProxy
 
     def test_class(self):
-        assert self.cls.__bases__ == (plugable.ReadOnly,)
+        assert self.cls.__bases__ == (plugable.SetProxy,)
 
     def test_proxy(self):
         # Setup:
