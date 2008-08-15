@@ -3297,7 +3297,6 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     char *dn = NULL;
     Slapi_DN *tmp_dn;
     struct slapi_entry *e = NULL;
-    int free_entry = 0;
     struct ipapwd_operation *pwdop = NULL;
     void *op;
     int is_repl_op, is_pwd_op, is_root, is_krb, is_smb;
@@ -3403,9 +3402,14 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
          *
          slapi_pblock_get( pb, SLAPI_MODIFY_EXISTING_ENTRY, &e);
          */
-        slapi_search_internal_get_entry(tmp_dn, 0, &e, ipapwd_plugin_id);
+        ret = slapi_search_internal_get_entry(tmp_dn, 0, &e, ipapwd_plugin_id);
         slapi_sdn_free(&tmp_dn);
-        free_entry = 1;
+        if (ret != LDAP_SUCCESS) {
+            slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
+                            "Failed tpo retrieve entry?!?\n");
+           rc = LDAP_NO_SUCH_OBJECT;
+           goto done;
+        }
     }
 
     rc = ipapwd_entry_checks(pb, e,
@@ -3703,6 +3707,7 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
     if (!gmtime_r(&(pwdop->pwdata.timeNow), &utctime)) {
         slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
                         "failed to parse current date (buggy gmtime_r ?)\n");
+        slapi_mods_free(&smods);
         return 0;
     }
     strftime(timestr, GENERALIZED_TIME_LENGTH+1,
@@ -3714,6 +3719,7 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
     if (!gmtime_r(&(pwdop->pwdata.expireTime), &utctime)) {
         slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
                         "failed to parse expiration date (buggy gmtime_r ?)\n");
+        slapi_mods_free(&smods);
         return 0;
     }
     strftime(timestr, GENERALIZED_TIME_LENGTH+1,
@@ -3724,6 +3730,19 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
     /* This was a mod operation on an existing entry, make sure we also update
      * the password history based on the entry we saved from the pre-op */
     if (IPAPWD_OP_MOD == pwdop->pwd_op) {
+        Slapi_DN *tmp_dn = slapi_sdn_new_dn_byref(pwdop->pwdata.dn);
+        if (tmp_dn) {
+            ret = slapi_search_internal_get_entry(tmp_dn, 0,
+                                                  &pwdop->pwdata.target,
+                                                  ipapwd_plugin_id);
+            slapi_sdn_free(&tmp_dn);
+            if (ret != LDAP_SUCCESS) {
+                slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
+                                "Failed tpo retrieve entry?!?\n");
+                slapi_mods_free(&smods);
+                return 0;
+            }
+        }
         pwvals = ipapwd_setPasswordHistory(smods, &pwdop->pwdata);
         if (pwvals) {
             slapi_mods_add_mod_values(smods, LDAP_MOD_REPLACE,
