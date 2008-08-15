@@ -28,45 +28,45 @@ from ipalib.api import api
 
 # Hypothetical functional commands (not associated with any object):
 class krbtest(public.cmd):
-    'test your Kerberos ticket'
+    'Test your Kerberos ticket'
 api.register(krbtest)
 
 class discover(public.cmd):
-    'discover IPA servers on network'
+    'Discover IPA servers on network'
 api.register(discover)
 
 
 # Register some methods for the 'user' object:
 class user_add(public.mthd):
-    'add new user'
+    'Add new user'
 api.register(user_add)
 
 class user_del(public.mthd):
-    'delete existing user'
+    'Delete existing user'
 api.register(user_del)
 
 class user_mod(public.mthd):
-    'edit existing user'
+    'Edit existing user'
 api.register(user_mod)
 
 class user_find(public.mthd):
-    'search for users'
+    'Search for users'
 api.register(user_find)
 
 
 # Register some properties for the 'user' object:
 class user_givenname(public.prop):
-    'user first name'
+    'User first name'
     required = True
 api.register(user_givenname)
 
 class user_sn(public.prop):
-    'user last name'
+    'User last name'
     required = True
 api.register(user_sn)
 
 class user_login(public.prop):
-    'user login'
+    'User login'
     required = True
     def default(self, **kw):
         givenname = kw.get('givenname', None)
@@ -77,7 +77,7 @@ class user_login(public.prop):
 api.register(user_login)
 
 class user_initials(public.prop):
-    'user initials'
+    'User initials'
     required = True
     def default(self, **kw):
         givenname = kw.get('givenname', None)
@@ -90,50 +90,50 @@ api.register(user_initials)
 
 # Register some methods for the 'group' object:
 class group_add(public.mthd):
-    'add new group'
+    'Add new group'
 api.register(group_add)
 
 class group_del(public.mthd):
-    'delete existing group'
+    'Delete existing group'
 api.register(group_del)
 
 class group_mod(public.mthd):
-    'edit existing group'
+    'Edit existing group'
 api.register(group_mod)
 
 class group_find(public.mthd):
-    'search for groups'
+    'Search for groups'
 api.register(group_find)
 
 
 # Register some methods for the 'service' object
 class service_add(public.mthd):
-    'add new service'
+    'Add new service'
 api.register(service_add)
 
 class service_del(public.mthd):
-    'delete existing service'
+    'Delete existing service'
 api.register(service_del)
 
 class service_mod(public.mthd):
-    'edit existing service'
+    'Edit existing service'
 api.register(service_mod)
 
 class service_find(public.mthd):
-    'search for services'
+    'Search for services'
 api.register(service_find)
 
 
 # And to emphasis that the registration order doesn't matter,
 # we'll register the objects last:
 class group(public.obj):
-    'group object'
+    'Group object'
 api.register(group)
 
 class service(public.obj):
-    'service object'
+    'Service object'
 api.register(service)
 
 class user(public.obj):
-    'user object'
+    'User object'
 api.register(user)
