@@ -434,7 +434,7 @@ def check_name(name):
     return name
 
 
-class NameSpace(ReadOnly):
+class NameSpace(DictProxy):
     """
     A read-only namespace with handy container behaviours.
 
@@ -483,10 +483,9 @@ class NameSpace(ReadOnly):
         """
         :param members: An iterable providing the members.
         """
-        self.__d = dict()
-        self.__names = tuple(self.__member_iter(members))
-        lock(self)
-        assert set(self.__d) == set(self.__names)
+        super(NameSpace, self).__init__(
+            dict(self.__member_iter(members))
+        )
 
     def __member_iter(self, members):
         """
@@ -496,56 +495,16 @@ class NameSpace(ReadOnly):
         """
         for member in members:
             name = check_name(member.name)
-            assert not (
-                name in self.__d or hasattr(self, name)
-            ), 'already has member named %r' % name
-            self.__d[name] = member
+            assert not hasattr(self, name), 'already has attribute %r' % name
             setattr(self, name, member)
-            yield name
-
-    def __len__(self):
-        """
-        Returns the number of members in this NameSpace.
-        """
-        return len(self.__d)
-
-    def __contains__(self, name):
-        """
-        Returns True if instance contains a member named ``name``, otherwise
-        False.
-
-        :param name: The name of a potential member
-        """
-        return name in self.__d
-
-    def __getitem__(self, name):
-        """
-        Returns the member named ``name``.
-
-        Raises KeyError if this NameSpace does not contain a member named
-        ``name``.
-
-        :param name: The name of member to retrieve
-        """
-        if name in self.__d:
-            return self.__d[name]
-        raise KeyError('NameSpace has no member named %r' % name)
-
-    def __iter__(self):
-        """
-        Iterates through the member names in the same order as the members
-        were passed to the constructor.
-        """
-        for name in self.__names:
-            yield name
+            yield (name, member)
 
     def __call__(self):
         """
-        Iterates through the members in the same order they were passed to the
-        constructor.
+        Iterates through the members of this NameSpace.
         """
-        for name in self.__names:
-            yield self.__d[name]
+        for key in self:
+            yield self[key]
 
     def __repr__(self):
         """
@@ -553,9 +512,6 @@ class NameSpace(ReadOnly):
         this NameSpace instance.
         """
         return '%s(<%d members>)' % (self.__class__.__name__, len(self))
-
-
-
 
 
 class Registrar(ReadOnly):

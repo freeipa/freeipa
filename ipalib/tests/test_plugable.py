@@ -560,7 +560,7 @@ class test_NameSpace(ClassChecker):
     _cls = plugable.NameSpace
 
     def test_class(self):
-        assert self.cls.__bases__ == (plugable.ReadOnly,)
+        assert self.cls.__bases__ == (plugable.DictProxy,)
 
     def test_namespace(self):
         class base(object):
@@ -583,7 +583,7 @@ class test_NameSpace(ClassChecker):
             for i in xrange(n):
                 yield plugable.Proxy(base, plugin(get_name(i)))
 
-        cnt = 20
+        cnt = 10
         ns = self.cls(get_proxies(cnt))
         assert ns.__islocked__() is True
 
