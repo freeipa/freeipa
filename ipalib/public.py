@@ -127,7 +127,7 @@ class option(plugable.Plugin):
         return None
 
 
-class cmd(plugable.Plugin):
+class Command(plugable.Plugin):
     __public__ = frozenset((
         'normalize',
         'default',
@@ -167,7 +167,7 @@ class cmd(plugable.Plugin):
         Returns the NameSpace containing the option proxy objects.
         """
         if self.__options is None:
-            object.__setattr__(self, '_cmd__options',
+            object.__setattr__(self, '_Command__options',
                 plugable.NameSpace(self.get_options()),
             )
         return self.__options
@@ -294,11 +294,11 @@ class attr(plugable.Plugin):
         self.__obj = api.obj[self.obj_name]
 
 
-class mthd(attr, cmd):
-    __public__ = attr.__public__.union(cmd.__public__)
+class mthd(attr, Command):
+    __public__ = attr.__public__.union(Command.__public__)
 
     def get_options(self):
-        for proxy in cmd.get_options(self):
+        for proxy in Command.get_options(self):
             yield proxy
         if self.obj is not None and self.obj.prop is not None:
             for proxy in self.obj.prop():
@@ -314,4 +314,4 @@ class prop(attr, option):
 
 class PublicAPI(plugable.API):
     def __init__(self):
-        super(PublicAPI, self).__init__(cmd, obj, mthd, prop)
+        super(PublicAPI, self).__init__(Command, obj, mthd, prop)

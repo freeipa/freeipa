@@ -46,7 +46,7 @@ def test_from_cli():
 def get_cmd_name(i):
     return 'cmd_%d' % i
 
-class DummyCmd(object):
+class DummyCommand(object):
     def __init__(self, name):
         self.__name = name
 
@@ -60,11 +60,11 @@ class DummyAPI(object):
 
     def __get_cmd(self):
         return self.__cmd
-    cmd = property(__get_cmd)
+    Command = property(__get_cmd)
 
     def __cmd_iter(self, cnt):
         for i in xrange(cnt):
-            yield DummyCmd(get_cmd_name(i))
+            yield DummyCommand(get_cmd_name(i))
 
     def finalize(self):
         pass
@@ -114,7 +114,7 @@ class test_CLI(ClassChecker):
         """
         cnt = 100
         api = DummyAPI(cnt)
-        len(api.cmd) == cnt
+        len(api.Command) == cnt
         o = self.cls(api)
         assert o.mcl is None
         o.finalize()
@@ -126,10 +126,10 @@ class test_CLI(ClassChecker):
         """
         cnt = 25
         api = DummyAPI(cnt)
-        assert len(api.cmd) == cnt
+        assert len(api.Command) == cnt
         o = self.cls(api)
         o.finalize()
-        for cmd in api.cmd():
+        for cmd in api.Command():
             key = cli.to_cli(cmd.name)
             assert key in o
             assert o[key] is cmd

@@ -43,10 +43,10 @@ def from_cli(cli_name):
     return str(cli_name).replace('-', '_')
 
 
-class help(public.cmd):
+class help(public.Command):
     'display help on command'
     def __call__(self, key):
-        if from_cli(key) not in self.api.cmd:
+        if from_cli(key) not in self.api.Command:
             print 'help: no such command %r' % key
             sys.exit(2)
         print 'Help on command %r:' % key
@@ -65,7 +65,7 @@ class CLI(object):
 
     def print_commands(self):
         print 'Available Commands:'
-        for cmd in self.api.cmd():
+        for cmd in self.api.Command():
             print '  %s  %s' % (
                 to_cli(cmd.name).ljust(self.mcl),
                 cmd.doc,
@@ -84,7 +84,7 @@ class CLI(object):
         api.register(help)
         api.finalize()
         def d_iter():
-            for cmd in api.cmd():
+            for cmd in api.Command():
                 yield (to_cli(cmd.name), cmd)
         self.__d = dict(d_iter())
 

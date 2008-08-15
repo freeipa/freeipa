@@ -27,11 +27,11 @@ from ipalib.api import api
 
 
 # Hypothetical functional commands (not associated with any object):
-class krbtest(public.cmd):
+class krbtest(public.Command):
     'Test your Kerberos ticket'
 api.register(krbtest)
 
-class discover(public.cmd):
+class discover(public.Command):
     'Discover IPA servers on network'
 api.register(discover)
 

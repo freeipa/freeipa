@@ -159,9 +159,9 @@ class test_option(ClassChecker):
 
 class test_cmd(ClassChecker):
     """
-    Tests the `public.cmd` class.
+    Tests the `public.Command` class.
     """
-    _cls = public.cmd
+    _cls = public.Command
 
     def get_subcls(self):
         class my_option(public.option):
@@ -188,7 +188,7 @@ class test_cmd(ClassChecker):
 
     def test_get_options(self):
         """
-        Tests the `public.cmd.get_options` method.
+        Tests the `public.Command.get_options` method.
         """
         assert list(self.cls().get_options()) == []
         sub = self.subcls()
@@ -200,7 +200,7 @@ class test_cmd(ClassChecker):
 
     def test_options(self):
         """
-        Tests the `public.cmd.options` property.
+        Tests the `public.Command.options` property.
         """
         assert 'options' in self.cls.__public__ # Public
         sub = self.subcls()
@@ -216,7 +216,7 @@ class test_cmd(ClassChecker):
 
     def test_normalize(self):
         """
-        Tests the `public.cmd.normalize` method.
+        Tests the `public.Command.normalize` method.
         """
         assert 'normalize' in self.cls.__public__ # Public
         kw = dict(
@@ -230,7 +230,7 @@ class test_cmd(ClassChecker):
 
     def test_default(self):
         """
-        Tests the `public.cmd.default` method.
+        Tests the `public.Command.default` method.
         """
         assert 'default' in self.cls.__public__ # Public
         no_fill = dict(
@@ -251,7 +251,7 @@ class test_cmd(ClassChecker):
 
     def test_validate(self):
         """
-        Tests the `public.cmd.validate` method.
+        Tests the `public.Command.validate` method.
         """
         assert 'validate' in self.cls.__public__ # Public
 
@@ -281,7 +281,7 @@ class test_cmd(ClassChecker):
 
     def test_execute(self):
         """
-        Tests the `public.cmd.execute` method.
+        Tests the `public.Command.execute` method.
         """
         assert 'execute' in self.cls.__public__ # Public
 
@@ -322,8 +322,8 @@ class test_mthd(ClassChecker):
     _cls = public.mthd
 
     def test_class(self):
-        assert self.cls.__bases__ == (public.attr, public.cmd)
-        assert self.cls.implements(public.cmd)
+        assert self.cls.__bases__ == (public.attr, public.Command)
+        assert self.cls.implements(public.Command)
 
     def get_subcls(self):
         class option0(public.option):
@@ -338,10 +338,14 @@ class test_mthd(ClassChecker):
             __prop = None
             def __get_prop(self):
                 if self.__prop is None:
-                    self.__prop = (
-                        plugable.PluginProxy(public.prop, example_prop0(), 'attr_name'),
-                        plugable.PluginProxy(public.prop, example_prop1(),  'attr_name'),
-                    )
+                    self.__prop = plugable.NameSpace([
+                        plugable.PluginProxy(
+                            public.prop, example_prop0(), 'attr_name'
+                        ),
+                        plugable.PluginProxy(
+                            public.prop, example_prop1(),  'attr_name'
+                        ),
+                    ])
                 return self.__prop
             prop = property(__get_prop)
         class noun_verb(self.cls):
@@ -377,11 +381,11 @@ def test_PublicAPI():
 
     api = cls()
 
-    class cmd1(public.cmd):
+    class cmd1(public.Command):
         pass
     api.register(cmd1)
 
-    class cmd2(public.cmd):
+    class cmd2(public.Command):
         pass
     api.register(cmd2)
 
