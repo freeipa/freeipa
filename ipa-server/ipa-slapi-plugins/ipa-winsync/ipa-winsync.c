@@ -52,8 +52,9 @@
 
 #include <dirsrv/slapi-plugin.h>
 #include <dirsrv/winsync-plugin.h>
+#include <ipa-winsync.h>
 
-static char *ipa_winsync_plugin_name = "ipa-winsync";
+static char *ipa_winsync_plugin_name = IPA_WINSYNC_PLUGIN_NAME;
 
 /* This is called when a new agreement is created or loaded
    at startup.
@@ -61,15 +62,19 @@ static char *ipa_winsync_plugin_name = "ipa-winsync";
 static void *
 ipa_winsync_agmt_init(const Slapi_DN *ds_subtree, const Slapi_DN *ad_subtree)
 {
+    void *cbdata = NULL;
     slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
                     "--> ipa_winsync_agmt_init [%s] [%s] -- begin\n",
                     slapi_sdn_get_dn(ds_subtree),
                     slapi_sdn_get_dn(ad_subtree));
 
+    /* do the domain specific configuration based on the ds subtree */
+    cbdata = ipa_winsync_config_new_domain(ds_subtree, ad_subtree);
+
     slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
                     "<-- ipa_winsync_agmt_init -- end\n");
 
-    return NULL;
+    return cbdata;
 }
 
 static void
@@ -202,6 +207,8 @@ ipa_winsync_pre_ds_add_user_cb(void *cbdata, const Slapi_Entry *rawentry,
     slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
                     "--> ipa_winsync_pre_ds_add_user_cb -- begin\n");
 
+    /* add the objectclasses to the entry */
+
     slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
                     "<-- ipa_winsync_pre_ds_add_user_cb -- end\n");
 
@@ -239,7 +246,7 @@ ipa_winsync_get_new_ds_user_dn_cb(void *cbdata, const Slapi_Entry *rawentry,
     }
 
     slapi_ch_free_string(new_dn_string);
-    *new_dn_string = PR_smprintf("%s,%s", rdns[0], slapi_sdn_get_dn(ds_suffix));
+    *new_dn_string = slapi_ch_smprintf("%s,%s", rdns[0], slapi_sdn_get_dn(ds_suffix));
     ldap_value_free(rdns);
 
     slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
@@ -304,17 +311,48 @@ ipa_winsync_can_add_entry_to_ad_cb(void *cbdata, const Slapi_Entry *local_entry,
     return 0; /* false - do not allow entries to be added to ad */
 }
 
-/**
- * Plugin identifiers
- */
-static Slapi_PluginDesc ipa_winsync_pdesc = {
-    "ipa-winsync-plugin",
-    PLUGIN_MAGIC_VENDOR_STR,
-    PRODUCTTEXT,
-    "ipa winsync plugin"
-};
+static void
+ipa_winsync_begin_update_cb(void *cbdata, const Slapi_DN *ds_subtree,
+                            const Slapi_DN *ad_subtree, int is_total)
+{
+    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
+                    "--> ipa_winsync_begin_update_cb -- begin\n");
 
-static Slapi_ComponentId *ipa_winsync_plugin_id = NULL;
+    ipa_winsync_config_refresh_domain(cbdata, ds_subtree, ad_subtree);
+
+    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
+                    "<-- ipa_winsync_begin_update_cb -- end\n");
+
+    return;
+}
+
+static void
+ipa_winsync_end_update_cb(void *cbdata, const Slapi_DN *ds_subtree,
+                          const Slapi_DN *ad_subtree, int is_total)
+{
+    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
+                    "--> ipa_winsync_end_update_cb -- begin\n");
+
+    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
+                    "<-- ipa_winsync_end_update_cb -- end\n");
+
+    return;
+}
+
+static void
+ipa_winsync_destroy_agmt_cb(void *cbdata, const Slapi_DN *ds_subtree,
+                            const Slapi_DN *ad_subtree)
+{
+    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
+                    "--> ipa_winsync_destroy_agmt_cb -- begin\n");
+
+    ipa_winsync_config_destroy_domain(cbdata, ds_subtree, ad_subtree);
+    
+    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
+                    "<-- ipa_winsync_destroy_agmt_cb -- end\n");
+
+    return;
+}
 
 static void *ipa_winsync_api[] = {
     NULL, /* reserved for api broker use, must be zero */
@@ -333,12 +371,44 @@ static void *ipa_winsync_api[] = {
     ipa_winsync_get_new_ds_group_dn_cb,
     ipa_winsync_pre_ad_mod_user_mods_cb,
     ipa_winsync_pre_ad_mod_group_mods_cb,
-    ipa_winsync_can_add_entry_to_ad_cb
+    ipa_winsync_can_add_entry_to_ad_cb,
+    ipa_winsync_begin_update_cb,
+    ipa_winsync_end_update_cb,
+    ipa_winsync_destroy_agmt_cb
 };
+
+/**
+ * Plugin identifiers
+ */
+static Slapi_PluginDesc ipa_winsync_pdesc = {
+    "ipa-winsync-plugin",
+    "FreeIPA project",
+    "FreeIPA/1.0",
+    "ipa winsync plugin"
+};
+
+static Slapi_ComponentId *ipa_winsync_plugin_id = NULL;
+
+/*
+** Plugin identity mgmt
+*/
+
+void ipa_winsync_set_plugin_identity(void * identity) 
+{
+	ipa_winsync_plugin_id=identity;
+}
+
+void * ipa_winsync_get_plugin_identity()
+{
+	return ipa_winsync_plugin_id;
+}
 
 static int
 ipa_winsync_plugin_start(Slapi_PBlock *pb)
 {
+	int rc;
+	Slapi_Entry *config_e = NULL; /* entry containing plugin config */
+
     slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
                     "--> ipa_winsync_plugin_start -- begin\n");
 
@@ -348,6 +418,18 @@ ipa_winsync_plugin_start(Slapi_PBlock *pb)
         return -1;
 	}
 	
+    if ( slapi_pblock_get( pb, SLAPI_ADD_ENTRY, &config_e ) != 0 ) {
+		slapi_log_error( SLAPI_LOG_FATAL, ipa_winsync_plugin_name,
+						 "missing config entry\n" );
+		return( -1 );
+    }
+
+    if (( rc = ipa_winsync_config( config_e )) != LDAP_SUCCESS ) {
+		slapi_log_error( SLAPI_LOG_FATAL, ipa_winsync_plugin_name,
+						 "configuration failed (%s)\n", ldap_err2string( rc ));
+		return( -1 );
+    }
+
     slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
                     "<-- ipa_winsync_plugin_start -- end\n");
 	return 0;
@@ -371,6 +453,8 @@ ipa_winsync_plugin_close(Slapi_PBlock *pb)
 */
 int ipa_winsync_plugin_init(Slapi_PBlock *pb)
 {
+    void *plugin_id = NULL;
+
     slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
                     "--> ipa_winsync_plugin_init -- begin\n");
 
@@ -390,11 +474,13 @@ int ipa_winsync_plugin_init(Slapi_PBlock *pb)
 
     /* Retrieve and save the plugin identity to later pass to
        internal operations */
-    if (slapi_pblock_get(pb, SLAPI_PLUGIN_IDENTITY, &ipa_winsync_plugin_id) != 0) {
+    if (slapi_pblock_get(pb, SLAPI_PLUGIN_IDENTITY, &plugin_id) != 0) {
         slapi_log_error(SLAPI_LOG_FATAL, ipa_winsync_plugin_name,
                          "<-- ipa_winsync_plugin_init -- failed to retrieve plugin identity -- end\n");
         return -1;
     }
+
+    ipa_winsync_set_plugin_identity(plugin_id);
 
     slapi_log_error( SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
                      "<-- ipa_winsync_plugin_init -- end\n");
