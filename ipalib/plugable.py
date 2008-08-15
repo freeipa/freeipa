@@ -532,7 +532,8 @@ class NameSpace(DictProxy):
 
     def __call__(self):
         """
-        Iterates through the members of this NameSpace.
+        Iterates (in ascending order by name) through the members in this
+        NameSpace.
         """
         for key in self:
             yield self[key]
