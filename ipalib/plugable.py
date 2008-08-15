@@ -123,6 +123,13 @@ def lock(readonly):
 
 
 class SetProxy(ReadOnly):
+    """
+    A read-only proxy to an underlying set.
+
+    Although the underlying set cannot be changed through the SetProxy,
+    the set can change and is expected to (unless the underlying set is a
+    frozen set).
+    """
     def __init__(self, s):
         allowed = (set, frozenset, dict)
         if type(s) not in allowed:
@@ -142,6 +149,9 @@ class SetProxy(ReadOnly):
 
 
 class DictProxy(SetProxy):
+    """
+    A read-only proxy to an underlying dict.
+    """
     def __init__(self, d):
         if type(d) is not dict:
             raise TypeError('%r is not %r' % (type(d), dict))
@@ -150,9 +160,29 @@ class DictProxy(SetProxy):
 
     def __getitem__(self, key):
         """
-        Returns the value
+        Returns the value corresponding to ``key``.
         """
         return self.__d[key]
+
+
+class MagicDict(DictProxy):
+    """
+    A read-only dict whose items can also be accessed as attributes.
+
+    Although a MagicDict is read-only, the underlying dict can change (and is
+    assumed to).
+
+    One of these is created for each allowed base in a `Registrar` instance.
+    """
+
+    def __getattr__(self, name):
+        """
+        Returns the value corresponding to ``name``.
+        """
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError('no attribute %r' % name)
 
 
 class Plugin(ReadOnly):
@@ -525,63 +555,7 @@ class NameSpace(ReadOnly):
         return '%s(<%d members>)' % (self.__class__.__name__, len(self))
 
 
-class MagicDict(ReadOnly):
-    """
-    A read-only dict whose items can also be accessed as attributes.
 
-    Although a MagicDict is read-only, the underlying dict can change (and is
-    assumed to).
-
-    One of these is created for each allowed base in a `Registrar` instance.
-    """
-    def __init__(self, d):
-        """
-        :param d: The ``dict`` instance to proxy.
-        """
-        assert type(d) is dict, '`d` must be %r, got %r' % (dict, type(d))
-        self.__d = d
-        lock(self)
-
-    def __len__(self):
-        """
-        Returns number of items in underlying ``dict``.
-        """
-        return len(self.__d)
-
-    def __iter__(self):
-        """
-        Iterates through keys of underlying ``dict`` in ascending order.
-        """
-        for name in sorted(self.__d):
-            yield name
-
-    def __contains__(self, key):
-        """
-        Returns True if underlying dict contains ``key``, False otherwise.
-
-        :param key: The key to query upon.
-        """
-        return key in self.__d
-
-    def __getitem__(self, key):
-        """
-        Returns value from underlying dict corresponding to ``key``.
-
-        :param key: The key of the value to retrieve.
-        """
-        if key in self.__d:
-            return self.__d[key]
-        raise KeyError('no item at key %r' % key)
-
-    def __getattr__(self, name):
-        """
-        Returns value from underlying dict corresponding to ``name``.
-
-        :param name: The name of the attribute to retrieve.
-        """
-        if name in self.__d:
-            return self.__d[name]
-        raise AttributeError('no attribute %r' % name)
 
 
 class Registrar(ReadOnly):

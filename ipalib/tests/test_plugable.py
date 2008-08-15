@@ -205,6 +205,62 @@ class test_DictProxy(ClassChecker):
             raises(TypeError, delitem, proxy, key)
 
 
+class test_MagicDict(ClassChecker):
+    """
+    Tests the `plugable.MagicDict` class.
+    """
+    _cls = plugable.MagicDict
+
+    def test_class(self):
+        assert self.cls.__bases__ == (plugable.DictProxy,)
+        for non_dict in ('hello', 69, object):
+            raises(TypeError, self.cls, non_dict)
+
+    def test_MagicDict(self):
+        cnt = 10
+        keys = []
+        d = dict()
+        dictproxy = self.cls(d)
+        for i in xrange(cnt):
+            key = 'key_%d' % i
+            val = 'val_%d' % i
+            keys.append(key)
+
+            # Test thet key does not yet exist
+            assert len(dictproxy) == i
+            assert key not in dictproxy
+            assert not hasattr(dictproxy, key)
+            raises(KeyError, getitem, dictproxy, key)
+            raises(AttributeError, getattr, dictproxy, key)
+
+            # Test that items/attributes cannot be set on dictproxy:
+            raises(TypeError, setitem, dictproxy, key, val)
+            raises(AttributeError, setattr, dictproxy, key, val)
+
+            # Test that additions in d are reflected in dictproxy:
+            d[key] = val
+            assert len(dictproxy) == i + 1
+            assert key in dictproxy
+            assert hasattr(dictproxy, key)
+            assert dictproxy[key] is val
+            assert read_only(dictproxy, key) is val
+
+        # Test __iter__
+        assert list(dictproxy) == keys
+
+        for key in keys:
+            # Test that items cannot be deleted through dictproxy:
+            raises(TypeError, delitem, dictproxy, key)
+            raises(AttributeError, delattr, dictproxy, key)
+
+            # Test that deletions in d are reflected in dictproxy
+            del d[key]
+            assert len(dictproxy) == len(d)
+            assert key not in dictproxy
+            raises(KeyError, getitem, dictproxy, key)
+            raises(AttributeError, getattr, dictproxy, key)
+
+
 class test_Plugin(ClassChecker):
     """
     Tests the `plugable.Plugin` class.
@@ -568,62 +624,6 @@ class test_NameSpace(ClassChecker):
         raises(KeyError, getitem, ns, name)
         raises(AttributeError, getattr, ns, name)
         no_set(ns, name)
-
-
-class test_MagicDict(ClassChecker):
-    """
-    Tests the `plugable.MagicDict` class.
-    """
-    _cls = plugable.MagicDict
-
-    def test_class(self):
-        assert self.cls.__bases__ == (plugable.ReadOnly,)
-        for non_dict in ('hello', 69, object):
-            raises(AssertionError, self.cls, non_dict)
-
-    def test_MagicDict(self):
-        cnt = 10
-        keys = []
-        d = dict()
-        dictproxy = self.cls(d)
-        for i in xrange(cnt):
-            key = 'key_%d' % i
-            val = 'val_%d' % i
-            keys.append(key)
-
-            # Test thet key does not yet exist
-            assert len(dictproxy) == i
-            assert key not in dictproxy
-            assert not hasattr(dictproxy, key)
-            raises(KeyError, getitem, dictproxy, key)
-            raises(AttributeError, getattr, dictproxy, key)
-
-            # Test that items/attributes cannot be set on dictproxy:
-            raises(TypeError, setitem, dictproxy, key, val)
-            raises(AttributeError, setattr, dictproxy, key, val)
-
-            # Test that additions in d are reflected in dictproxy:
-            d[key] = val
-            assert len(dictproxy) == i + 1
-            assert key in dictproxy
-            assert hasattr(dictproxy, key)
-            assert dictproxy[key] is val
-            assert read_only(dictproxy, key) is val
-
-        # Test __iter__
-        assert list(dictproxy) == keys
-
-        for key in keys:
-            # Test that items cannot be deleted through dictproxy:
-            raises(TypeError, delitem, dictproxy, key)
-            raises(AttributeError, delattr, dictproxy, key)
-
-            # Test that deletions in d are reflected in dictproxy
-            del d[key]
-            assert len(dictproxy) == len(d)
-            assert key not in dictproxy
-            raises(KeyError, getitem, dictproxy, key)
-            raises(AttributeError, getattr, dictproxy, key)
 
 
 def test_Registrar():
