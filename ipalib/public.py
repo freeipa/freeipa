@@ -253,9 +253,11 @@ class obj(plugable.Plugin):
         return plugable.NameSpace(self.__filter(name))
 
     def __filter(self, name):
-        for i in getattr(self.api, name):
-            if i.obj_name == self.name:
-                yield i.__clone__('attr_name')
+        namespace = getattr(self.api, name)
+        assert type(namespace) is plugable.NameSpace
+        for proxy in namespace(): # Like dict.itervalues()
+            if proxy.obj_name == self.name:
+                yield proxy.__clone__('attr_name')
 
 
 class attr(plugable.Plugin):
@@ -299,7 +301,7 @@ class mthd(attr, cmd):
         for proxy in cmd.get_options(self):
             yield proxy
         if self.obj is not None and self.obj.prop is not None:
-            for proxy in self.obj.prop:
+            for proxy in self.obj.prop():
                 yield proxy
 
 
