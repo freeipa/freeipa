@@ -192,6 +192,7 @@ class test_DictProxy(ClassChecker):
             # Check initial state
             assert len(proxy) == len(target)
             assert list(proxy) == sorted(target)
+            assert list(proxy()) == [target[k] for k in sorted(target)]
             assert key not in proxy
             raises(KeyError, getitem, proxy, key)
 
@@ -199,6 +200,7 @@ class test_DictProxy(ClassChecker):
             target[key] = val
             assert len(proxy) == len(target)
             assert list(proxy) == sorted(target)
+            assert list(proxy()) == [target[k] for k in sorted(target)]
 
             # Verify TypeError is raised trying to set/del via proxy
             raises(TypeError, setitem, proxy, key, val)

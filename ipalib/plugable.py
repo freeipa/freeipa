@@ -192,6 +192,14 @@ class DictProxy(SetProxy):
         """
         return self.__d[key]
 
+    def __call__(self):
+        """
+        Iterates (in ascending order by key) through the values in this
+        container.
+        """
+        for key in self:
+            yield self.__d[key]
+
 
 class MagicDict(DictProxy):
     """
@@ -529,14 +537,6 @@ class NameSpace(DictProxy):
             assert not hasattr(self, name), 'already has attribute %r' % name
             setattr(self, name, member)
             yield (name, member)
-
-    def __call__(self):
-        """
-        Iterates (in ascending order by name) through the members in this
-        NameSpace.
-        """
-        for key in self:
-            yield self[key]
 
     def __repr__(self):
         """
