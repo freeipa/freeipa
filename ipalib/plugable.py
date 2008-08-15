@@ -122,6 +122,39 @@ def lock(readonly):
     return readonly
 
 
+class SetProxy(ReadOnly):
+    def __init__(self, s):
+        allowed = (set, frozenset, dict)
+        if type(s) not in allowed:
+            raise TypeError('%r not in %r' % (type(s), allowed))
+        self.__s = s
+        lock(self)
+
+    def __len__(self):
+        return len(self.__s)
+
+    def __iter__(self):
+        for key in sorted(self.__s):
+            yield key
+
+    def __contains__(self, key):
+        return key in self.__s
+
+
+class DictProxy(SetProxy):
+    def __init__(self, d):
+        if type(d) is not dict:
+            raise TypeError('%r is not %r' % (type(d), dict))
+        self.__d = d
+        super(DictProxy, self).__init__(d)
+
+    def __getitem__(self, key):
+        """
+        Returns the value
+        """
+        return self.__d[key]
+
+
 class Plugin(ReadOnly):
     """
     Base class for all plugins.

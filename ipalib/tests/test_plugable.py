@@ -117,6 +117,94 @@ def test_lock():
     raises(AssertionError, f, o)
 
 
+class test_SetProxy(ClassChecker):
+    """
+    Tests the `plugable.SetProxy` class.
+    """
+    _cls = plugable.SetProxy
+
+    def test_class(self):
+        assert self.cls.__bases__ == (plugable.ReadOnly,)
+
+    def test_init(self):
+        okay = (set, frozenset, dict)
+        fail = (list, tuple)
+        for t in okay:
+            self.cls(t())
+            raises(TypeError, self.cls, t)
+        for t in fail:
+            raises(TypeError, self.cls, t())
+            raises(TypeError, self.cls, t)
+
+    def test_SetProxy(self):
+        def get_key(i):
+            return 'key_%d' % i
+
+        cnt = 10
+        target = set()
+        proxy = self.cls(target)
+        for i in xrange(cnt):
+            key = get_key(i)
+
+            # Check initial state
+            assert len(proxy) == len(target)
+            assert list(proxy) == sorted(target)
+            assert key not in proxy
+            assert key not in target
+
+            # Add and test again
+            target.add(key)
+            assert len(proxy) == len(target)
+            assert list(proxy) == sorted(target)
+            assert key in proxy
+            assert key in target
+
+
+class test_DictProxy(ClassChecker):
+    """
+    Tests the `plugable.DictProxy` class.
+    """
+    _cls = plugable.DictProxy
+
+    def test_class(self):
+        assert self.cls.__bases__ == (plugable.SetProxy,)
+
+    def test_init(self):
+        self.cls(dict())
+        raises(TypeError, self.cls, dict)
+        fail = (set, frozenset, list, tuple)
+        for t in fail:
+            raises(TypeError, self.cls, t())
+            raises(TypeError, self.cls, t)
+
+    def test_DictProxy(self):
+        def get_kv(i):
+            return (
+                'key_%d' % i,
+                'val_%d' % i,
+            )
+        cnt = 10
+        target = dict()
+        proxy = self.cls(target)
+        for i in xrange(cnt):
+            (key, val) = get_kv(i)
+
+            # Check initial state
+            assert len(proxy) == len(target)
+            assert list(proxy) == sorted(target)
+            assert key not in proxy
+            raises(KeyError, getitem, proxy, key)
+
+            # Add and test again
+            target[key] = val
+            assert len(proxy) == len(target)
+            assert list(proxy) == sorted(target)
+
+            # Verify TypeError is raised trying to set/del via proxy
+            raises(TypeError, setitem, proxy, key, val)
+            raises(TypeError, delitem, proxy, key)
+
+
 class test_Plugin(ClassChecker):
     """
     Tests the `plugable.Plugin` class.
