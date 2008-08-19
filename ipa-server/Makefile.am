@@ -16,6 +16,7 @@ SUBDIRS =			\
 
 sbin_SCRIPTS =			\
 	ipa-upgradeconfig	\
+	ipa-fix-CVE-2008-3274	\
 	$(NULL)
 
 install-exec-local:
