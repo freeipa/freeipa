@@ -330,6 +330,7 @@ class KrbInstance(service.Service):
         try:
             fd = open("/var/kerberos/krb5kdc/.k5."+self.realm, "w")
             fd.write(s)
+            fd.close()
         except os.error, e:
             logging.critical("failed to write stash file")
             raise e

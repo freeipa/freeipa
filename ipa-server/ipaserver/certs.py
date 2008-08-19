@@ -21,9 +21,9 @@ import os, stat, subprocess, re
 import sha
 import errno
 import tempfile
+import shutil
 
 from ipa import sysrestore
-from ipa import shutil
 from ipa import ipautil
 
 CA_SERIALNO="/var/lib/ipa/ca_serialno"
