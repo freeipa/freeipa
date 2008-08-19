@@ -123,6 +123,7 @@ fi
 %{_sbindir}/ipa_kpasswd
 %{_sbindir}/ipa_webgui
 %{_sbindir}/ipa-upgradeconfig
+%{_sbindir}/ipa-fix-CVE-2008-3274
 %attr(755,root,root) %{_initrddir}/ipa_kpasswd
 %attr(755,root,root) %{_initrddir}/ipa_webgui
 
