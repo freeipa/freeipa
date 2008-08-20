@@ -506,6 +506,7 @@ ipa_winsync_config_destroy_domain(
     slapi_entry_free(iwdc->domain_e);
     iwdc->domain_e = NULL;
     slapi_ch_free_string(&iwdc->realm_name);
+    slapi_ch_free_string(&iwdc->homedir_prefix);
     slapi_ch_free((void **)&iwdc);
 
     return;
@@ -749,7 +750,8 @@ ipa_winsync_config_refresh_domain(
     slapi_entry_add_valueset(iwdc->domain_e, "objectclass", new_user_objclasses);
 
     /* set the default gid number */
-    sv = slapi_value_new_string(default_gid);
+    sv = slapi_value_new_string_passin(default_gid);
+    default_gid = NULL; /* passin owns the memory */
     if (!slapi_entry_attr_has_syntax_value(iwdc->domain_e, "gidNumber", sv)) {
         slapi_entry_add_value(iwdc->domain_e,  "gidNumber", sv);
     }
@@ -767,6 +769,7 @@ out:
     slapi_ch_free_string(&default_group_filter);
     slapi_ch_free_string(&default_group_name);
     slapi_ch_free_string(&real_group_filter);
+    slapi_ch_free_string(&default_gid);
 
     if (LDAP_SUCCESS != ret) {
         slapi_ch_free_string(&iwdc->realm_name);
