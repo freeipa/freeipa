@@ -50,9 +50,13 @@
  * objectclasses and attributes, and changing the DN.
  */
 
+#include <slapi-plugin.h>
+#include "winsync-plugin.h"
+/*
 #include <dirsrv/slapi-plugin.h>
 #include <dirsrv/winsync-plugin.h>
-#include <ipa-winsync.h>
+*/
+#include "ipa-winsync.h"
 
 static char *ipa_winsync_plugin_name = IPA_WINSYNC_PLUGIN_NAME;
 
@@ -134,7 +138,7 @@ ipa_winsync_pre_ds_search_all_cb(void *cbdata, const char *agmt_dn,
     /* We only want to grab users from the ds side - no groups */
     slapi_ch_free_string(filter);
     /* maybe use ntUniqueId=* - only get users that have already been
-       synced with AD already - ntUniqueId and ntUserDomainId are
+       synced with AD - ntUniqueId and ntUserDomainId are
        indexed for equality only - need to add presence? */
     *filter = slapi_ch_strdup("(&(objectclass=ntuser)(ntUserDomainId=*))");
 
@@ -204,10 +208,172 @@ static void
 ipa_winsync_pre_ds_add_user_cb(void *cbdata, const Slapi_Entry *rawentry,
                                Slapi_Entry *ad_entry, Slapi_Entry *ds_entry)
 {
+    IPA_WinSync_Domain_Config *ipaconfig = (IPA_WinSync_Domain_Config *)cbdata;
+    Slapi_Attr *attr = NULL;
+    Slapi_Attr *e_attr = NULL;
+    char *type = NULL;
+    PRBool flatten = PR_TRUE;
+    IPA_WinSync_Config *global_ipaconfig = ipa_winsync_get_config();
+
     slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
                     "--> ipa_winsync_pre_ds_add_user_cb -- begin\n");
 
-    /* add the objectclasses to the entry */
+    if (!ipaconfig || !ipaconfig->domain_e || !ipaconfig->realm_name ||
+        !ipaconfig->homedir_prefix) {
+        slapi_log_error(SLAPI_LOG_FATAL, ipa_winsync_plugin_name,
+                        "Error: configuration failure: cannot map Windows "
+                        "entry dn [%s], DS entry dn [%s]\n",
+                        slapi_entry_get_dn_const(ad_entry),
+                        slapi_entry_get_dn_const(ds_entry));
+        return;
+    }
+
+
+    slapi_lock_mutex(global_ipaconfig->lock);
+    flatten = global_ipaconfig->flatten;
+    slapi_unlock_mutex(global_ipaconfig->lock);
+
+    if (flatten) {
+        char **rdns = NULL;
+        int ii;
+        /* grab the ous from the DN and store them in the entry */
+        type = "ou";
+        rdns = ldap_explode_dn(slapi_entry_get_dn_const(ad_entry), 0);
+        for (ii = 0; rdns && rdns[ii]; ++ii) {
+            /* go through the DN looking for ou= rdns */
+            if (!PL_strncasecmp(rdns[ii], "ou=", 3)) {
+                char *val = PL_strchr(rdns[ii], '=');
+                Slapi_Value *sv = NULL;
+                val++;
+                sv = slapi_value_new_string(val);
+                /* entry could already have this value */
+                if (!slapi_entry_attr_has_syntax_value(ds_entry, type, sv)) {
+                    /* attr-value sv not found in ds_entry; add it */
+                    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
+                                    "--> ipa_winsync_pre_ds_add_user_cb -- "
+                                    "adding val for [%s] to new entry [%s]\n",
+                                    type, slapi_entry_get_dn_const(ds_entry));
+
+                    slapi_entry_add_value(ds_entry, type, sv);
+                }
+                slapi_value_free(&sv);
+            }
+        }
+        ldap_value_free(rdns);
+    }
+
+    /* add the objectclasses and attributes to the entry */
+    for (slapi_entry_first_attr(ipaconfig->domain_e, &attr); attr;
+         slapi_entry_next_attr(ipaconfig->domain_e, attr, &attr))
+    {
+        slapi_attr_get_type(attr, &type);
+        if (!type) {
+            continue; /* should never happen */
+        }
+        
+        if (!slapi_entry_attr_find(ds_entry, type, &e_attr) && e_attr) {
+            /* already has attribute - add missing values */
+            Slapi_Value *sv = NULL;
+            int ii = 0;
+            for (ii = slapi_attr_first_value(attr, &sv); ii != -1;
+                 ii = slapi_attr_next_value(attr, ii, &sv))
+            {
+                if (!slapi_entry_attr_has_syntax_value(ds_entry, type, sv)) {
+                    /* attr-value sv not found in ds_entry; add it */
+                    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
+                                    "--> ipa_winsync_pre_ds_add_user_cb -- "
+                                    "adding val for [%s] to new entry [%s]\n",
+                                    type, slapi_entry_get_dn_const(ds_entry));
+
+                    slapi_entry_add_value(ds_entry, type, sv);
+                }
+            }
+        } else { /* attr not found */
+            Slapi_ValueSet *svs = NULL;
+            slapi_attr_get_valueset(attr, &svs); /* makes a copy */
+            slapi_entry_add_valueset(ds_entry, type, svs);
+            slapi_valueset_free(svs); /* free the copy */
+        }
+    }
+
+    /* add other attributes */
+    type = "krbPrincipalName";
+    if (slapi_entry_attr_find(ds_entry, type, &e_attr) || !e_attr) {
+        char *upn = NULL;
+        char *uid = NULL;
+        char *samAccountName = NULL;
+        /* if the ds_entry already has a uid, use that */
+        if ((uid = slapi_entry_attr_get_charptr(ds_entry, "uid"))) {
+            upn = slapi_ch_smprintf("%s@%s", uid, ipaconfig->realm_name);
+            slapi_ch_free_string(&uid);
+        /* otherwise, use the samAccountName from the ad_entry */
+        } else if ((samAccountName =
+                    slapi_entry_attr_get_charptr(ad_entry, "samAccountName"))) {
+            upn = slapi_ch_smprintf("%s@%s", samAccountName, ipaconfig->realm_name);
+            slapi_ch_free_string(&samAccountName);
+        } else { /* fatal error - nothing to use for krbPrincipalName */
+            slapi_log_error(SLAPI_LOG_FATAL, ipa_winsync_plugin_name,
+                            "Error creating %s for realm [%s] for Windows "
+                            "entry dn [%s], DS entry dn [%s] - Windows entry "
+                            "has no samAccountName, and DS entry has no uid.\n",
+                            type, ipaconfig->realm_name,
+                            slapi_entry_get_dn_const(ad_entry),
+                            slapi_entry_get_dn_const(ds_entry));
+        }
+
+        if (upn) {
+            slapi_entry_attr_set_charptr(ds_entry, type, upn);
+            slapi_ch_free_string(&upn);
+        }
+    }
+
+    type = "homeDirectory";
+    if (slapi_entry_attr_find(ds_entry, type, &e_attr) || !e_attr) {
+        char *homeDir = NULL;
+        char *uid = NULL;
+        char *samAccountName = NULL;
+        /* if the ds_entry already has a uid, use that */
+        if ((uid = slapi_entry_attr_get_charptr(ds_entry, "uid"))) {
+            homeDir = slapi_ch_smprintf("%s/%s", ipaconfig->homedir_prefix, uid);
+            slapi_ch_free_string(&uid);
+        /* otherwise, use the samAccountName from the ad_entry */
+        } else if ((samAccountName =
+                    slapi_entry_attr_get_charptr(ad_entry, "samAccountName"))) {
+            homeDir = slapi_ch_smprintf("%s/%s", ipaconfig->homedir_prefix,
+                                        samAccountName);
+            slapi_ch_free_string(&samAccountName);
+        } else { /* fatal error - nothing to use for homeDirectory */
+            slapi_log_error(SLAPI_LOG_FATAL, ipa_winsync_plugin_name,
+                            "Error creating %s for realm [%s] for Windows "
+                            "entry dn [%s], DS entry dn [%s] - Windows entry "
+                            "has no samAccountName, and DS entry has no uid.\n",
+                            type, ipaconfig->realm_name,
+                            slapi_entry_get_dn_const(ad_entry),
+                            slapi_entry_get_dn_const(ds_entry));
+        }
+
+        if (homeDir) {
+            slapi_entry_attr_set_charptr(ds_entry, type, homeDir);
+            slapi_ch_free_string(&homeDir);
+        }
+    }
+
+    /* gecos is not required, but nice to have */
+    type = "gecos";
+    if (slapi_entry_attr_find(ds_entry, type, &e_attr) || !e_attr) {
+        char *cn = NULL;
+        char *displayName = NULL;
+        /* if the ds_entry already has a cn, use that */
+        if ((cn = slapi_entry_attr_get_charptr(ds_entry, "cn"))) {
+            slapi_entry_attr_set_charptr(ds_entry, type, cn);
+            slapi_ch_free_string(&cn);
+        /* otherwise, use the displayName from the ad_entry */
+        } else if ((displayName =
+                    slapi_entry_attr_get_charptr(ad_entry, "displayName"))) {
+            slapi_entry_attr_set_charptr(ds_entry, type, displayName);
+            slapi_ch_free_string(&displayName);
+        }
+    }
 
     slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
                     "<-- ipa_winsync_pre_ds_add_user_cb -- end\n");
@@ -234,10 +400,20 @@ ipa_winsync_get_new_ds_user_dn_cb(void *cbdata, const Slapi_Entry *rawentry,
                                   const Slapi_DN *ds_suffix, const Slapi_DN *ad_suffix)
 {
     char **rdns = NULL;
+    PRBool flatten = PR_TRUE;
+    IPA_WinSync_Config *ipaconfig = ipa_winsync_get_config();
 
     slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
                     "--> ipa_winsync_get_new_ds_user_dn_cb -- old dn [%s] -- begin\n",
                     *new_dn_string);
+
+    slapi_lock_mutex(ipaconfig->lock);
+    flatten = ipaconfig->flatten;
+    slapi_unlock_mutex(ipaconfig->lock);
+
+    if (!flatten) {
+        return;
+    }
 
     rdns = ldap_explode_dn(*new_dn_string, 0);
     if (!rdns || !rdns[0]) {
