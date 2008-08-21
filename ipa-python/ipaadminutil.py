@@ -33,7 +33,10 @@ def select_user(counter, users):
     i = 1
     print "%s entries were found. Which one would you like to display?" % counter
     for ent in users:
-        print "%s: %s (%s)" % (i, ent.getValues('cn'), ent.getValues('uid'))
+        if (ent.getValues('givenname')) is not None:
+            print "%s: %s %s (%s)" % (i, ent.getValues('givenname'), ent.getValues('sn'), ent.getValues('uid'))
+        else:
+            print "%s: %s (%s)" % (i, ent.getValues('sn'), ent.getValues('uid'))
         i += 1
     while True:
         resp = raw_input("Choose one: (1 - %s), 0 for all, q to quit: " % counter)

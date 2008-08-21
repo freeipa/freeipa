@@ -93,7 +93,7 @@ def main():
 
     client = ipaclient.IPAClient(verbose=options.verbose)
     if options.all is None:
-        users = client.find_users(args[1], sattrs=['uid','cn','homeDirectory','loginshell'])
+        users = client.find_users(args[1], sattrs=['uid','givenname','sn','homeDirectory','loginshell'])
     else:
         users = client.find_users(args[1], sattrs=None)
 
@@ -121,6 +121,18 @@ def main():
     for ent in users:
         attr = ent.attrList()
         attr.sort()
+
+        # Always have sn following givenname
+        try:
+            l = attr.index('givenname')
+            try:
+                attr.remove('sn')
+                attr.insert(l+1, 'sn')
+            except ValueError:
+                pass
+        except ValueError:
+            pass
+
         if options.notranslate:
             labels = {}
             for a in attr:
