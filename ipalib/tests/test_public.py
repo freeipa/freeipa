@@ -365,9 +365,9 @@ class test_Method(ClassChecker):
             pass
         class option1(public.option):
             pass
-        class example_prop0(public.prop):
+        class example_prop0(public.Property):
             pass
-        class example_prop1(public.prop):
+        class example_prop1(public.Property):
             pass
         class example_obj(object):
             __prop = None
@@ -375,14 +375,14 @@ class test_Method(ClassChecker):
                 if self.__prop is None:
                     self.__prop = plugable.NameSpace([
                         plugable.PluginProxy(
-                            public.prop, example_prop0(), 'attr_name'
+                            public.Property, example_prop0(), 'attr_name'
                         ),
                         plugable.PluginProxy(
-                            public.prop, example_prop1(),  'attr_name'
+                            public.Property, example_prop1(),  'attr_name'
                         ),
                     ])
                 return self.__prop
-            prop = property(__get_prop)
+            Property = property(__get_prop)
         class noun_verb(self.cls):
             option_classes = (option0, option1)
             obj = example_obj()
@@ -403,7 +403,7 @@ class test_Method(ClassChecker):
 
 
 class test_prop(ClassChecker):
-    _cls = public.prop
+    _cls = public.Property
 
     def test_class(self):
         assert self.cls.__bases__ == (public.attr, public.option)

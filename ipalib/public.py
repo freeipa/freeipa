@@ -252,23 +252,23 @@ class Command(plugable.Plugin):
 class obj(plugable.Plugin):
     __public__ = frozenset((
         'Method',
-        'prop',
+        'Property',
     ))
     __Method = None
-    __prop = None
+    __Property = None
 
     def __get_Method(self):
         return self.__Method
     Method = property(__get_Method)
 
-    def __get_prop(self):
-        return self.__prop
-    prop = property(__get_prop)
+    def __get_Property(self):
+        return self.__Property
+    Property = property(__get_Property)
 
     def finalize(self, api):
         super(obj, self).finalize(api)
         self.__Method = self.__create_ns('Method')
-        self.__prop = self.__create_ns('prop')
+        self.__Property = self.__create_ns('Property')
 
     def __create_ns(self, name):
         return plugable.NameSpace(self.__filter(name))
@@ -321,18 +321,18 @@ class Method(attr, Command):
     def get_options(self):
         for proxy in Command.get_options(self):
             yield proxy
-        if self.obj is not None and self.obj.prop is not None:
-            for proxy in self.obj.prop():
+        if self.obj is not None and self.obj.Property is not None:
+            for proxy in self.obj.Property():
                 yield proxy
 
 
-class prop(attr, option):
+class Property(attr, option):
     __public__ = attr.__public__.union(option.__public__)
 
     def get_doc(self, _):
-        return _('prop doc')
+        return _('Property doc')
 
 
 class PublicAPI(plugable.API):
     def __init__(self):
-        super(PublicAPI, self).__init__(Command, obj, Method, prop)
+        super(PublicAPI, self).__init__(Command, obj, Method, Property)

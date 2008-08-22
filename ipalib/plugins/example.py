@@ -55,17 +55,17 @@ api.register(user_find)
 
 
 # Register some properties for the 'user' object:
-class user_givenname(public.prop):
+class user_givenname(public.Property):
     'User first name'
     required = True
 api.register(user_givenname)
 
-class user_sn(public.prop):
+class user_sn(public.Property):
     'User last name'
     required = True
 api.register(user_sn)
 
-class user_login(public.prop):
+class user_login(public.Property):
     'User login'
     required = True
     def default(self, **kw):
@@ -76,7 +76,7 @@ class user_login(public.prop):
         return ('%s%s' % (givenname[0], sn)).lower()
 api.register(user_login)
 
-class user_initials(public.prop):
+class user_initials(public.Property):
     'User initials'
     required = True
     def default(self, **kw):
