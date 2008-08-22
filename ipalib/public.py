@@ -249,7 +249,7 @@ class Command(plugable.Plugin):
         self.execute(**kw)
 
 
-class obj(plugable.Plugin):
+class Object(plugable.Plugin):
     __public__ = frozenset((
         'Method',
         'Property',
@@ -266,17 +266,17 @@ class obj(plugable.Plugin):
     Property = property(__get_Property)
 
     def finalize(self, api):
-        super(obj, self).finalize(api)
-        self.__Method = self.__create_ns('Method')
-        self.__Property = self.__create_ns('Property')
+        super(Object, self).finalize(api)
+        self.__Method = self.__create_namespace('Method')
+        self.__Property = self.__create_namespace('Property')
 
-    def __create_ns(self, name):
-        return plugable.NameSpace(self.__filter(name))
+    def __create_namespace(self, name):
+        return plugable.NameSpace(self.__filter_members(name))
 
-    def __filter(self, name):
+    def __filter_members(self, name):
         namespace = getattr(self.api, name)
         assert type(namespace) is plugable.NameSpace
-        for proxy in namespace(): # Like dict.itervalues()
+        for proxy in namespace(): # Equivalent to dict.itervalues()
             if proxy.obj_name == self.name:
                 yield proxy.__clone__('attr_name')
 
@@ -312,7 +312,7 @@ class Attribute(plugable.Plugin):
 
     def finalize(self, api):
         super(Attribute, self).finalize(api)
-        self.__obj = api.obj[self.obj_name]
+        self.__obj = api.Object[self.obj_name]
 
 
 class Method(Attribute, Command):
@@ -335,4 +335,4 @@ class Property(Attribute, option):
 
 class PublicAPI(plugable.API):
     def __init__(self):
-        super(PublicAPI, self).__init__(Command, obj, Method, Property)
+        super(PublicAPI, self).__init__(Command, Object, Method, Property)

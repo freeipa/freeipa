@@ -321,10 +321,21 @@ class test_cmd(ClassChecker):
         assert 'execute' in self.cls.__public__ # Public
 
 
-def test_obj():
-    cls = public.obj
-    assert issubclass(cls, plugable.Plugin)
+class test_Object(ClassChecker):
+    """
+    Tests the `public.Object` class.
+    """
+    _cls = public.Object
 
+    def test_class(self):
+        assert self.cls.__bases__ == (plugable.Plugin,)
+        assert type(self.cls.Method) is property
+        assert type(self.cls.Property) is property
+
+    def test_init(self):
+        o = self.cls()
+        assert read_only(o, 'Method') is None
+        assert read_only(o, 'Property') is None
 
 
 class test_Attribute(ClassChecker):
@@ -350,7 +361,7 @@ class test_Attribute(ClassChecker):
     def test_finalize(self):
         user_obj = 'The user public.Object instance'
         class api(object):
-            obj = dict(user=user_obj)
+            Object = dict(user=user_obj)
         class user_add(self.cls):
             pass
         o = user_add()

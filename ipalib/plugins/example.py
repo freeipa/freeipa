@@ -126,14 +126,14 @@ api.register(service_find)
 
 # And to emphasis that the registration order doesn't matter,
 # we'll register the objects last:
-class group(public.obj):
+class group(public.Object):
     'Group object'
 api.register(group)
 
-class service(public.obj):
+class service(public.Object):
     'Service object'
 api.register(service)
 
-class user(public.obj):
+class user(public.Object):
     'User object'
 api.register(user)
