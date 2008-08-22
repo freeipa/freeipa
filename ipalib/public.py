@@ -25,6 +25,7 @@ and UI all use.
 import re
 import inspect
 import plugable
+from plugable import lock
 import errors
 
 
@@ -37,6 +38,26 @@ def rule(obj):
 
 def is_rule(obj):
     return callable(obj) and getattr(obj, RULE_FLAG, False) is True
+
+
+class DefaultFrom(plugable.ReadOnly):
+    def __init__(self, callback, *keys):
+        assert callable(callback), 'not a callable: %r' % callback
+        self.callback = callback
+        self.keys = keys
+        lock(self)
+
+    def __call__(self, **kw):
+        vals = tuple(kw.get(k, None) for k in self.keys)
+        if None in vals:
+            return None
+        try:
+            ret = self.callback(*vals)
+        except Exception:
+            return None
+        if isinstance(ret, basestring):
+            return ret
+        return None
 
 
 class option(plugable.Plugin):

@@ -63,6 +63,41 @@ def test_is_rule():
     assert not is_rule(call(None))
 
 
+class test_DefaltFrom(ClassChecker):
+    """
+    Tests the `public.DefaltFrom` class.
+    """
+    _cls = public.DefaultFrom
+
+    def test_class(self):
+        assert self.cls.__bases__ == (plugable.ReadOnly,)
+
+    def test_init(self):
+        def callback(*args):
+            return args
+        keys = ('givenname', 'sn')
+        o = self.cls(callback, *keys)
+        assert read_only(o, 'callback') is callback
+        assert read_only(o, 'keys') == keys
+
+    def test_call(self):
+        def callback(givenname, sn):
+            return givenname[0] + sn[0]
+        keys = ('givenname', 'sn')
+        o = self.cls(callback, *keys)
+        kw = dict(
+            givenname='John',
+            sn='Public',
+            hello='world',
+        )
+        assert o(**kw) == 'JP'
+        assert o() is None
+        for key in ('givenname', 'sn'):
+            kw_copy = dict(kw)
+            del kw_copy[key]
+            assert o(**kw_copy) is None
+
+
 class test_option(ClassChecker):
     """
     Tests the `public.option` class.
