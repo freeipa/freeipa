@@ -289,7 +289,10 @@ class Attribute(plugable.Plugin):
     __obj = None
 
     def __init__(self):
-        m = re.match('^([a-z][a-z0-9]+)_([a-z][a-z0-9]+)$', self.__class__.__name__)
+        m = re.match(
+            '^([a-z][a-z0-9]+)_([a-z][a-z0-9]+)$',
+            self.__class__.__name__
+        )
         assert m
         self.__obj_name = m.group(1)
         self.__attr_name = m.group(2)

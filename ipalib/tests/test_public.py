@@ -333,9 +333,74 @@ class test_Object(ClassChecker):
         assert type(self.cls.Property) is property
 
     def test_init(self):
+        """
+        Tests the `public.Object.__init__` method.
+        """
         o = self.cls()
         assert read_only(o, 'Method') is None
         assert read_only(o, 'Property') is None
+
+    def test_finalize(self):
+        """
+        Tests the `public.Object.finalize` method.
+        """
+        # Setup for test:
+        class DummyAttribute(object):
+            def __init__(self, obj_name, attr_name, name=None):
+                self.obj_name = obj_name
+                self.attr_name = attr_name
+                if name is None:
+                    self.name = '%s_%s' % (obj_name, attr_name)
+                else:
+                    self.name = name
+            def __clone__(self, attr_name):
+                return self.__class__(
+                    self.obj_name,
+                    self.attr_name,
+                    getattr(self, attr_name)
+                )
+
+        def get_attributes(cnt, format):
+            for name in ['other', 'user', 'another']:
+                for i in xrange(cnt):
+                    yield DummyAttribute(name, format % i)
+
+        cnt = 10
+        formats = dict(
+            Method='method_%d',
+            Property='property_%d',
+        )
+
+        class api(object):
+            Method = plugable.NameSpace(
+                get_attributes(cnt, formats['Method'])
+            )
+            Property = plugable.NameSpace(
+                get_attributes(cnt, formats['Property'])
+            )
+        assert len(api.Method) == cnt * 3
+        assert len(api.Property) == cnt * 3
+
+        class user(self.cls):
+            pass
+
+        # Actually perform test:
+        o = user()
+        o.finalize(api)
+        assert read_only(o, 'api') is api
+        for name in ['Method', 'Property']:
+            namespace = getattr(o, name)
+            assert isinstance(namespace, plugable.NameSpace)
+            assert len(namespace) == cnt
+            f = formats[name]
+            for i in xrange(cnt):
+                attr_name = f % i
+                attr = namespace[attr_name]
+                assert isinstance(attr, DummyAttribute)
+                assert attr is getattr(namespace, attr_name)
+                assert attr.obj_name == 'user'
+                assert attr.attr_name == attr_name
+                assert attr.name == attr_name
 
 
 class test_Attribute(ClassChecker):
