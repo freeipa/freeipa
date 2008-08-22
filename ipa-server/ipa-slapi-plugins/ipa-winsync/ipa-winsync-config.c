@@ -50,12 +50,13 @@
  * objectclasses and attributes, and changing the DN.
  */
 
-/*
-#include <dirsrv/slapi-plugin.h>
-#include <dirsrv/winsync-plugin.h>
-*/
+#ifdef WINSYNC_TEST_IPA
 #include <slapi-plugin.h>
 #include "winsync-plugin.h"
+#else
+#include <dirsrv/slapi-plugin.h>
+#include <dirsrv/winsync-plugin.h>
+#endif
 #include "ipa-winsync.h"
 
 #include <string.h>
