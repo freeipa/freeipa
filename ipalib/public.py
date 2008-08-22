@@ -281,7 +281,7 @@ class obj(plugable.Plugin):
                 yield proxy.__clone__('attr_name')
 
 
-class attr(plugable.Plugin):
+class Attribute(plugable.Plugin):
     __public__ = frozenset((
         'obj',
         'obj_name',
@@ -311,12 +311,12 @@ class attr(plugable.Plugin):
     obj = property(__get_obj)
 
     def finalize(self, api):
-        super(attr, self).finalize(api)
+        super(Attribute, self).finalize(api)
         self.__obj = api.obj[self.obj_name]
 
 
-class Method(attr, Command):
-    __public__ = attr.__public__.union(Command.__public__)
+class Method(Attribute, Command):
+    __public__ = Attribute.__public__.union(Command.__public__)
 
     def get_options(self):
         for proxy in Command.get_options(self):
@@ -326,8 +326,8 @@ class Method(attr, Command):
                 yield proxy
 
 
-class Property(attr, option):
-    __public__ = attr.__public__.union(option.__public__)
+class Property(Attribute, option):
+    __public__ = Attribute.__public__.union(option.__public__)
 
     def get_doc(self, _):
         return _('Property doc')

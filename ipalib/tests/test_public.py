@@ -327,27 +327,38 @@ def test_obj():
 
 
 
-def test_attr():
-    cls = public.attr
-    assert issubclass(cls, plugable.Plugin)
+class test_Attribute(ClassChecker):
+    """
+    Tests the `public.Attribute` class.
+    """
+    _cls = public.Attribute
 
-    class api(object):
-        obj = dict(user='the user obj')
+    def test_class(self):
+        assert self.cls.__bases__ == (plugable.Plugin,)
+        assert type(self.cls.obj) is property
+        assert type(self.cls.obj_name) is property
+        assert type(self.cls.attr_name) is property
 
-    class user_add(cls):
-        pass
+    def test_init(self):
+        class user_add(self.cls):
+            pass
+        o = user_add()
+        assert read_only(o, 'obj') is None
+        assert read_only(o, 'obj_name') == 'user'
+        assert read_only(o, 'attr_name') == 'add'
 
-    i = user_add()
-    assert read_only(i, 'obj_name') == 'user'
-    assert read_only(i, 'attr_name') == 'add'
-    assert read_only(i, 'obj') is None
-    i.finalize(api)
-    assert read_only(i, 'api') is api
-    assert read_only(i, 'obj') == 'the user obj'
-
-    class example_prop0(cls):
-        pass
-    o = example_prop0()
+    def test_finalize(self):
+        user_obj = 'The user public.Object instance'
+        class api(object):
+            obj = dict(user=user_obj)
+        class user_add(self.cls):
+            pass
+        o = user_add()
+        assert read_only(o, 'api') is None
+        assert read_only(o, 'obj') is None
+        o.finalize(api)
+        assert read_only(o, 'api') is api
+        assert read_only(o, 'obj') is user_obj
 
 
 class test_Method(ClassChecker):
@@ -357,7 +368,7 @@ class test_Method(ClassChecker):
     _cls = public.Method
 
     def test_class(self):
-        assert self.cls.__bases__ == (public.attr, public.Command)
+        assert self.cls.__bases__ == (public.Attribute, public.Command)
         assert self.cls.implements(public.Command)
 
     def get_subcls(self):
@@ -406,7 +417,7 @@ class test_prop(ClassChecker):
     _cls = public.Property
 
     def test_class(self):
-        assert self.cls.__bases__ == (public.attr, public.option)
+        assert self.cls.__bases__ == (public.Attribute, public.option)
         assert self.cls.implements(public.option)
 
 
