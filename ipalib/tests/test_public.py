@@ -350,11 +350,11 @@ def test_attr():
     o = example_prop0()
 
 
-class test_mthd(ClassChecker):
+class test_Method(ClassChecker):
     """
-    Tests the `public.mthd` class.
+    Tests the `public.Method` class.
     """
-    _cls = public.mthd
+    _cls = public.Method
 
     def test_class(self):
         assert self.cls.__bases__ == (public.attr, public.Command)
@@ -390,7 +390,7 @@ class test_mthd(ClassChecker):
 
     def test_get_options(self):
         """
-        Tests the `public.mthd.get_options` method.
+        Tests the `public.Method.get_options` method.
         """
         sub = self.subcls()
         names = ('option0', 'option1', 'prop0', 'prop1')

@@ -37,19 +37,19 @@ api.register(discover)
 
 
 # Register some methods for the 'user' object:
-class user_add(public.mthd):
+class user_add(public.Method):
     'Add new user'
 api.register(user_add)
 
-class user_del(public.mthd):
+class user_del(public.Method):
     'Delete existing user'
 api.register(user_del)
 
-class user_mod(public.mthd):
+class user_mod(public.Method):
     'Edit existing user'
 api.register(user_mod)
 
-class user_find(public.mthd):
+class user_find(public.Method):
     'Search for users'
 api.register(user_find)
 
@@ -89,37 +89,37 @@ api.register(user_initials)
 
 
 # Register some methods for the 'group' object:
-class group_add(public.mthd):
+class group_add(public.Method):
     'Add new group'
 api.register(group_add)
 
-class group_del(public.mthd):
+class group_del(public.Method):
     'Delete existing group'
 api.register(group_del)
 
-class group_mod(public.mthd):
+class group_mod(public.Method):
     'Edit existing group'
 api.register(group_mod)
 
-class group_find(public.mthd):
+class group_find(public.Method):
     'Search for groups'
 api.register(group_find)
 
 
 # Register some methods for the 'service' object
-class service_add(public.mthd):
+class service_add(public.Method):
     'Add new service'
 api.register(service_add)
 
-class service_del(public.mthd):
+class service_del(public.Method):
     'Delete existing service'
 api.register(service_del)
 
-class service_mod(public.mthd):
+class service_mod(public.Method):
     'Edit existing service'
 api.register(service_mod)
 
-class service_find(public.mthd):
+class service_find(public.Method):
     'Search for services'
 api.register(service_find)
 

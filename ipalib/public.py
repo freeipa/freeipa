@@ -251,15 +251,15 @@ class Command(plugable.Plugin):
 
 class obj(plugable.Plugin):
     __public__ = frozenset((
-        'mthd',
+        'Method',
         'prop',
     ))
-    __mthd = None
+    __Method = None
     __prop = None
 
-    def __get_mthd(self):
-        return self.__mthd
-    mthd = property(__get_mthd)
+    def __get_Method(self):
+        return self.__Method
+    Method = property(__get_Method)
 
     def __get_prop(self):
         return self.__prop
@@ -267,7 +267,7 @@ class obj(plugable.Plugin):
 
     def finalize(self, api):
         super(obj, self).finalize(api)
-        self.__mthd = self.__create_ns('mthd')
+        self.__Method = self.__create_ns('Method')
         self.__prop = self.__create_ns('prop')
 
     def __create_ns(self, name):
@@ -315,7 +315,7 @@ class attr(plugable.Plugin):
         self.__obj = api.obj[self.obj_name]
 
 
-class mthd(attr, Command):
+class Method(attr, Command):
     __public__ = attr.__public__.union(Command.__public__)
 
     def get_options(self):
@@ -335,4 +335,4 @@ class prop(attr, option):
 
 class PublicAPI(plugable.API):
     def __init__(self):
-        super(PublicAPI, self).__init__(Command, obj, mthd, prop)
+        super(PublicAPI, self).__init__(Command, obj, Method, prop)
