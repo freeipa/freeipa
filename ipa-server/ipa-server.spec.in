@@ -71,7 +71,7 @@ make install
 rm %{buildroot}/%{plugin_dir}/libipa_pwd_extop.la
 rm %{buildroot}/%{plugin_dir}/libipa-memberof-plugin.la
 rm %{buildroot}/%{plugin_dir}/libipa-dna-plugin.la
-rm %{buildroot}/%{plugin_dir}/libipa-winsync.la
+rm %{buildroot}/%{plugin_dir}/libipa_winsync.la
 
 # Some user-modifiable HTML files are provided. Move these to /etc
 # and link back.
@@ -162,7 +162,7 @@ fi
 %attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so
 %attr(755,root,root) %{plugin_dir}/libipa-memberof-plugin.so
 %attr(755,root,root) %{plugin_dir}/libipa-dna-plugin.so
-%attr(755,root,root) %{plugin_dir}/libipa-winsync.so
+%attr(755,root,root) %{plugin_dir}/libipa_winsync.so
 
 %dir %{_localstatedir}/lib/ipa
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
@@ -187,6 +187,7 @@ fi
 - Add ipa-ldap-updater
 - Add updates directory
 - Restart httpd and dirsrv services after upgrade
+- Added WinSync Support - winsync plugin, ipa-replica-manage
 
 * Thu Apr  3 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-1
 - Version bump for release
@@ -284,4 +285,3 @@ fi
 
 * Fri Jul 27 2007 Karl MacMillan <kmacmill@redhat.com> - 0.1.0-1
 - Initial rpm version
-* Wed Aug  1 2007 Rob Crittenden <rcritten@redhat.com> - 0.1.0-2
