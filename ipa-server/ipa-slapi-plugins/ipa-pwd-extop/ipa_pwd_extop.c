@@ -137,26 +137,41 @@ struct ipapwd_encsalt {
 	krb5_int32	salt_type;
 };
 
-struct ipapwd_config {
-	char *realm;
-	krb5_keyblock *kmkey;
-	int num_supp_encsalts;
-	struct ipapwd_encsalt *supp_encsalts;
-	int num_pref_encsalts;
-	struct ipapwd_encsalt *pref_encsalts;
-};
-
 static const char *ipa_realm_dn = NULL;
 
 Slapi_Mutex *ipa_globals = NULL;
-
-static struct ipapwd_config *ipapwd_config = NULL;
 
 static void *ipapwd_plugin_id;
 
 #define IPA_CHANGETYPE_NORMAL 0
 #define IPA_CHANGETYPE_ADMIN 1
 #define IPA_CHANGETYPE_DSMGR 2
+
+struct ipapwd_krbcfg {
+    krb5_context krbctx;
+    char *realm;
+    krb5_keyblock *kmkey;
+    int num_supp_encsalts;
+    struct ipapwd_encsalt *supp_encsalts;
+    int num_pref_encsalts;
+    struct ipapwd_encsalt *pref_encsalts;
+};
+
+static void free_ipapwd_krbcfg(struct ipapwd_krbcfg **cfg)
+{
+    struct ipapwd_krbcfg *c = *cfg;
+
+    if (!c) return;
+
+    krb5_free_default_realm(c->krbctx, c->realm);
+    krb5_free_context(c->krbctx);
+    free(c->kmkey->contents);
+    free(c->kmkey);
+    free(c->supp_encsalts);
+    free(c->pref_encsalts);
+    free(c);
+    *cfg = NULL;
+};
 
 struct ipapwd_data {
 	Slapi_Entry *target;
@@ -212,23 +227,18 @@ static void ipapwd_keyset_free(struct ipapwd_keyset **pkset)
 	*pkset = NULL;
 }
 
-static int filter_keys(struct ipapwd_keyset *kset)
+static int filter_keys(struct ipapwd_krbcfg *krbcfg, struct ipapwd_keyset *kset)
 {
-	struct ipapwd_config *config;
 	int i, j;
 
-	slapi_lock_mutex(ipa_globals);
-	config = ipapwd_config;
-	slapi_unlock_mutex(ipa_globals);
-
 	for (i = 0; i < kset->num_keys; i++) {
-		for (j = 0; j < config->num_supp_encsalts; j++) {
+		for (j = 0; j < krbcfg->num_supp_encsalts; j++) {
 			if (kset->keys[i].ekey->type ==
-					config->supp_encsalts[j].enc_type) {
+					krbcfg->supp_encsalts[j].enc_type) {
 				break;
 			}
 		}
-		if (j == config->num_supp_encsalts) { /* not valid */
+		if (j == krbcfg->num_supp_encsalts) { /* not valid */
 
 			/* free key */
 			if (kset->keys[i].ekey) {
@@ -446,9 +456,10 @@ static inline void encode_int16(unsigned int val, unsigned char *p)
 	p[0] = (val      ) & 0xff;
 }
 
-static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data *data)
+static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
+					struct ipapwd_data *data)
 {
-	struct ipapwd_config *config;
+	krb5_context krbctx;
 	const char *krbPrincipalName;
 	uint32_t krbMaxTicketLife;
 	int kvno, i;
@@ -460,9 +471,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 	krb5_data pwd;
 	struct ipapwd_keyset *kset = NULL;
 
-	slapi_lock_mutex(ipa_globals);
-	config = ipapwd_config;
-	slapi_unlock_mutex(ipa_globals);
+	krbctx = krbcfg->krbctx;
 
 	svals = (Slapi_Value **)calloc(2, sizeof(Slapi_Value *));
 	if (!svals) {
@@ -512,7 +521,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 	/* we also assum mkvno is 0 */
 	kset->mkvno = 0;
 
-	kset->num_keys = config->num_pref_encsalts;
+	kset->num_keys = krbcfg->num_pref_encsalts;
 	kset->keys = calloc(kset->num_keys, sizeof(struct ipapwd_krbkey));
 	if (!kset->keys) {
 		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "malloc failed!\n");
@@ -530,7 +539,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 
 		salt.data = NULL;
 
-		switch (config->pref_encsalts[i].salt_type) {
+		switch (krbcfg->pref_encsalts[i].salt_type) {
 
 		case KRB5_KDB_SALTTYPE_ONLYREALM:
 
@@ -617,12 +626,12 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 
 		default:
 			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
-					"Invalid salt type [%d]\n", config->pref_encsalts[i].salt_type);
+					"Invalid salt type [%d]\n", krbcfg->pref_encsalts[i].salt_type);
 			goto enc_error;
 		}
 
 		/* need to build the key now to manage the AFS salt.length special case */
-		krberr = krb5_c_string_to_key(krbctx, config->pref_encsalts[i].enc_type, &pwd, &salt, &key);
+		krberr = krb5_c_string_to_key(krbctx, krbcfg->pref_encsalts[i].enc_type, &pwd, &salt, &key);
 		if (krberr) {
 			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 					"krb5_c_string_to_key failed [%s]\n",
@@ -634,7 +643,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 			salt.length = strlen(salt.data);
 		}
 
-		krberr = krb5_c_encrypt_length(krbctx, config->kmkey->enctype, key.length, &len);
+		krberr = krb5_c_encrypt_length(krbctx, krbcfg->kmkey->enctype, key.length, &len);
 		if (krberr) {
 			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 					"krb5_c_string_to_key failed [%s]\n",
@@ -660,7 +669,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 		cipher.ciphertext.length = len;
 		cipher.ciphertext.data = (char *)ptr+2;
 
-		krberr = krb5_c_encrypt(krbctx, config->kmkey, 0, 0, &plain, &cipher);
+		krberr = krb5_c_encrypt(krbctx, krbcfg->kmkey, 0, 0, &plain, &cipher);
 		if (krberr) {
 			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 					"krb5_c_encrypt failed [%s]\n",
@@ -680,7 +689,7 @@ static Slapi_Value **encrypt_encode_key(krb5_context krbctx, struct ipapwd_data 
 			goto enc_error;
 		}
 
-		kset->keys[i].salt->type = config->pref_encsalts[i].salt_type;
+		kset->keys[i].salt->type = krbcfg->pref_encsalts[i].salt_type;
 
 		if (salt.length) {
 			kset->keys[i].salt->value.bv_len = salt.length;
@@ -1621,7 +1630,8 @@ static void hexbuf(char *out, const uint8_t *in)
 }
 
 /* Modify the Password attributes of the entry */
-static int ipapwd_SetPassword(struct ipapwd_data *data)
+static int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
+				struct ipapwd_data *data)
 {
 	int ret = 0, i = 0;
 	Slapi_Mods *smods;
@@ -1636,26 +1646,17 @@ static int ipapwd_SetPassword(struct ipapwd_data *data)
 	int ntlm_flags = 0;
 	Slapi_Value *sambaSamAccount;
 
-	krberr = krb5_init_context(&krbctx);
-	if (krberr) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "krb5_init_context failed\n");
-		return LDAP_OPERATIONS_ERROR;
-	}
-
 	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "=> ipapwd_SetPassword\n");
 
 	smods = slapi_mods_new();
 
 	/* generate kerberos keys to be put into krbPrincipalKey */
-	svals = encrypt_encode_key(krbctx, data);
+	svals = encrypt_encode_key(krbcfg, data);
 	if (!svals) {
 		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "key encryption/encoding failed\n");
-		krb5_free_context(krbctx);
 		ret = LDAP_OPERATIONS_ERROR;
 		goto free_and_return;
 	}
-	/* done with it */
-	krb5_free_context(krbctx);
 
 	slapi_mods_add_mod_values(smods, LDAP_MOD_REPLACE, "krbPrincipalKey", svals);
 
@@ -1744,7 +1745,7 @@ free_and_return:
 	return ret;
 }
 
-static int ipapwd_chpwop(Slapi_PBlock *pb)
+static int ipapwd_chpwop(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 {
 	char 		*bindDN = NULL;
 	char		*authmethod = NULL;
@@ -1760,11 +1761,6 @@ static int ipapwd_chpwop(Slapi_PBlock *pb)
 	Slapi_Entry *targetEntry=NULL;
 	char *attrlist[] = {"*", "passwordHistory", NULL };
 	struct ipapwd_data pwdata;
-	struct ipapwd_config *config;
-
-	slapi_lock_mutex(ipa_globals);
-	config = ipapwd_config;
-	slapi_unlock_mutex(ipa_globals);
 
 	/* Get the ber value of the extended operation */
 	slapi_pblock_get(pb, SLAPI_EXT_OP_REQ_VALUE, &extop_value);
@@ -1961,7 +1957,7 @@ parse_req_done:
 		if (bindexp) {
 			/* special case kpasswd and Directory Manager */
 			if ((strncasecmp(bindexp[0], "krbprincipalname=kadmin/changepw@", 33) == 0) &&
-			    (strcasecmp(&(bindexp[0][33]), config->realm) == 0)) {
+			    (strcasecmp(&(bindexp[0][33]), krbcfg->realm) == 0)) {
 				pwdata.changetype = IPA_CHANGETYPE_NORMAL;
 			}
 			if ((strcasecmp(bindexp[0], "cn=Directory Manager") == 0) &&
@@ -1987,7 +1983,7 @@ parse_req_done:
 	}
 
 	/* Now we're ready to set the kerberos key material */
-	ret = ipapwd_SetPassword(&pwdata);
+	ret = ipapwd_SetPassword(krbcfg, &pwdata);
 	if (ret != LDAP_SUCCESS) {
 		/* Failed to modify the password,
 		 * e.g. because insufficient access allowed */
@@ -2025,9 +2021,8 @@ free_and_return:
 }
 
 /* Password Modify Extended operation plugin function */
-static int ipapwd_setkeytab(Slapi_PBlock *pb)
+static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 {
-	struct ipapwd_config *config;
 	char *bindDN = NULL;
 	char *serviceName = NULL;
 	char *errMesg = NULL;
@@ -2058,10 +2053,6 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb)
 	struct tm utctime;
 	char timestr[GENERALIZED_TIME_LENGTH+1];
 	time_t time_now = time(NULL);
-
-	slapi_lock_mutex(ipa_globals);
-	config = ipapwd_config;
-	slapi_unlock_mutex(ipa_globals);
 
 	svals = (Slapi_Value **)calloc(2, sizeof(Slapi_Value *));
 	if (!svals) {
@@ -2321,7 +2312,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb)
 		plain.length = tval.bv_len;
 		plain.data = tval.bv_val;
 
-		krberr = krb5_c_encrypt_length(krbctx, config->kmkey->enctype, plain.length, &klen);
+		krberr = krb5_c_encrypt_length(krbctx, krbcfg->kmkey->enctype, plain.length, &klen);
 		if (krberr) {
 			free(tval.bv_val);
 			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "krb encryption failed!\n");
@@ -2342,7 +2333,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb)
 		cipher.ciphertext.length = klen;
 		cipher.ciphertext.data = (char *)kdata + 2;
 
-		krberr = krb5_c_encrypt(krbctx, config->kmkey, 0, 0, &plain, &cipher);
+		krberr = krb5_c_encrypt(krbctx, krbcfg->kmkey, 0, 0, &plain, &cipher);
 		if (krberr) {
 			free(tval.bv_val);
 			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "krb encryption failed!\n");
@@ -2409,7 +2400,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb)
 	ber = NULL;
 
 	/* filter un-supported encodings */
-	ret = filter_keys(kset);
+	ret = filter_keys(krbcfg, kset);
 	if (ret) {
 		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop",
 				"keyset filtering failed\n");
@@ -2629,168 +2620,182 @@ static int new_ipapwd_encsalt(krb5_context krbctx, const char * const *encsalts,
 	return LDAP_SUCCESS;
 }
 
-static int ipapwd_getConfig(krb5_context krbctx, const char *realm_dn)
+static struct ipapwd_krbcfg *ipapwd_getConfig(const char *realm_dn)
 {
-	struct ipapwd_config *config = NULL;
-	krb5_keyblock *kmkey = NULL;
-	Slapi_Entry *realm_entry = NULL;
-	Slapi_Attr *a;
-	Slapi_Value *v;
-	BerElement *be = NULL;
-	ber_tag_t tag, tmp;
-	ber_int_t ttype;
-	const struct berval *bval;
-	struct berval *mkey = NULL;
-	char **encsalts;
-	int ret;
+    krb5_error_code krberr;
+    struct ipapwd_krbcfg *config = NULL;
+    krb5_keyblock *kmkey = NULL;
+    Slapi_Entry *realm_entry = NULL;
+    Slapi_Attr *a;
+    Slapi_Value *v;
+    BerElement *be = NULL;
+    ber_tag_t tag, tmp;
+    ber_int_t ttype;
+    const struct berval *bval;
+    struct berval *mkey = NULL;
+    char **encsalts;
+    int ret;
 
-	config = malloc(sizeof(struct ipapwd_config));
-	if (!config) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
-				"Out of memory!\n");
-		goto free_and_error;
-	}
-	kmkey = malloc(sizeof(krb5_keyblock));
-	if (!kmkey) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
-				"Out of memory!\n");
-		goto free_and_error;
-	}
-	config->kmkey = kmkey;
+    config = calloc(1, sizeof(struct ipapwd_krbcfg));
+    if (!config) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+                        "Out of memory!\n");
+        goto free_and_error;
+    }
+    kmkey = calloc(1, sizeof(krb5_keyblock));
+    if (!kmkey) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+                        "Out of memory!\n");
+        goto free_and_error;
+    }
+    config->kmkey = kmkey;
 
-	ret = krb5_get_default_realm(krbctx, &config->realm);
-	if (ret) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
-				"Failed to get default realm?!\n");
-		goto free_and_error;
-	}
+    krberr = krb5_init_context(&config->krbctx);
+    if (krberr) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+                        "krb5_init_context failed\n");
+        goto free_and_error;
+    }
 
+    ret = krb5_get_default_realm(config->krbctx, &config->realm);
+    if (ret) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+                        "Failed to get default realm?!\n");
+        goto free_and_error;
+    }
 
-	/* get the Realm Container entry */
-	ret = ipapwd_getEntry(realm_dn, &realm_entry, NULL);
-	if (ret != LDAP_SUCCESS) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
-				"No realm Entry?\n");
-		goto free_and_error;
-	}
+    /* get the Realm Container entry */
+    ret = ipapwd_getEntry(realm_dn, &realm_entry, NULL);
+    if (ret != LDAP_SUCCESS) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+                        "No realm Entry?\n");
+        goto free_and_error;
+    }
 
-	/*** get the Kerberos Master Key ***/
+    /*** get the Kerberos Master Key ***/
 
-	ret = slapi_entry_attr_find(realm_entry, "krbMKey", &a);
-	if (ret == -1) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
-				"No master key??\n");
-		goto free_and_error;
-	}
+    ret = slapi_entry_attr_find(realm_entry, "krbMKey", &a);
+    if (ret == -1) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+                        "No master key??\n");
+        goto free_and_error;
+    }
 
-	/* there should be only one value here */
-	ret = slapi_attr_first_value(a, &v);
-	if (ret == -1) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
-				"No master key values??\n");
-		goto free_and_error;
-	}
+    /* there should be only one value here */
+    ret = slapi_attr_first_value(a, &v);
+    if (ret == -1) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+                        "No master key??\n");
+        goto free_and_error;
+    }
 
-	bval = slapi_value_get_berval(v);
-	if (!bval) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
-				"Error retrieving master key berval\n");
-		goto free_and_error;
-	}
+    bval = slapi_value_get_berval(v);
+    if (!bval) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+                        "Error retrieving master key berval\n");
+        goto free_and_error;
+    }
 
-	be = ber_init(bval);
-	if (!bval) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
-				"ber_init() failed!\n");
-		goto free_and_error;
-	}
+    be = ber_init(bval);
+    if (!bval) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+                        "ber_init() failed!\n");
+        goto free_and_error;
+    }
 
-	tag = ber_scanf(be, "{i{iO}}", &tmp, &ttype, &mkey);
-	if (tag == LBER_ERROR) {
-		slapi_log_error(SLAPI_LOG_TRACE, "ipapwd_start",
-				"Bad Master key encoding ?!\n");
-		goto free_and_error;
-	}
+    tag = ber_scanf(be, "{i{iO}}", &tmp, &ttype, &mkey);
+    if (tag == LBER_ERROR) {
+        slapi_log_error(SLAPI_LOG_TRACE, "ipapwd_getConfig",
+                        "Bad Master key encoding ?!\n");
+        goto free_and_error;
+    }
 
-	kmkey->magic = KV5M_KEYBLOCK;
-	kmkey->enctype = ttype;
-	kmkey->length = mkey->bv_len;
-	kmkey->contents = malloc(mkey->bv_len);
-	if (!kmkey->contents) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
-				"Out of memory!\n");
-		goto free_and_error;
-	}
-	memcpy(kmkey->contents, mkey->bv_val, mkey->bv_len);
-	ber_bvfree(mkey);
-	ber_free(be, 1);
+    kmkey->magic = KV5M_KEYBLOCK;
+    kmkey->enctype = ttype;
+    kmkey->length = mkey->bv_len;
+    kmkey->contents = malloc(mkey->bv_len);
+    if (!kmkey->contents) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+                        "Out of memory!\n");
+        goto free_and_error;
+    }
+    memcpy(kmkey->contents, mkey->bv_val, mkey->bv_len);
+    ber_bvfree(mkey);
+    ber_free(be, 1);
+    mkey = NULL;
+    be = NULL;
 
-	/*** get the Supported Enc/Salt types ***/
+    /*** get the Supported Enc/Salt types ***/
 
-	encsalts = slapi_entry_attr_get_charray(realm_entry, "krbSupportedEncSaltTypes");
-	if (encsalts) {
-		ret = new_ipapwd_encsalt(krbctx, (const char * const *)encsalts,
-					 &config->supp_encsalts,
-					 &config->num_supp_encsalts);
-		slapi_ch_array_free(encsalts);
-	} else {
-		slapi_log_error(SLAPI_LOG_TRACE, "ipapwd_start",
-				"No configured salt types use defaults\n");
-		ret = new_ipapwd_encsalt(krbctx, ipapwd_def_encsalts,
-					 &config->supp_encsalts,
-					 &config->num_supp_encsalts);
-	}
-	if (ret) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
-				"Can't get Supported EncSalt Types\n");
-		goto free_and_error;
-	}
+    encsalts = slapi_entry_attr_get_charray(realm_entry, "krbSupportedEncSaltTypes");
+    if (encsalts) {
+        ret = new_ipapwd_encsalt(config->krbctx,
+                                 (const char * const *)encsalts,
+                                 &config->supp_encsalts,
+                                 &config->num_supp_encsalts);
+        slapi_ch_array_free(encsalts);
+    } else {
+        slapi_log_error(SLAPI_LOG_TRACE, "ipapwd_getConfig",
+                        "No configured salt types use defaults\n");
+        ret = new_ipapwd_encsalt(config->krbctx,
+                                 ipapwd_def_encsalts,
+                                 &config->supp_encsalts,
+                                 &config->num_supp_encsalts);
+    }
+    if (ret) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+                        "Can't get Supported EncSalt Types\n");
+        goto free_and_error;
+    }
 
-	/*** get the Preferred Enc/Salt types ***/
+    /*** get the Preferred Enc/Salt types ***/
 
-	encsalts = slapi_entry_attr_get_charray(realm_entry, "krbDefaultEncSaltTypes");
-	if (encsalts) {
-		ret = new_ipapwd_encsalt(krbctx, (const char * const *)encsalts,
-					 &config->pref_encsalts,
-					 &config->num_pref_encsalts);
-		slapi_ch_array_free(encsalts);
-	} else {
-		slapi_log_error(SLAPI_LOG_TRACE, "ipapwd_start",
-				"No configured salt types use defaults\n");
-		ret = new_ipapwd_encsalt(krbctx, ipapwd_def_encsalts,
-					 &config->pref_encsalts,
-					 &config->num_pref_encsalts);
-	}
-	if (ret) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
-				"Can't get Preferred EncSalt Types\n");
-		goto free_and_error;
-	}
+    encsalts = slapi_entry_attr_get_charray(realm_entry, "krbDefaultEncSaltTypes");
+    if (encsalts) {
+        ret = new_ipapwd_encsalt(config->krbctx,
+                                 (const char * const *)encsalts,
+                                 &config->pref_encsalts,
+                                 &config->num_pref_encsalts);
+        slapi_ch_array_free(encsalts);
+    } else {
+        slapi_log_error(SLAPI_LOG_TRACE, "ipapwd_getConfig",
+                        "No configured salt types use defaults\n");
+        ret = new_ipapwd_encsalt(config->krbctx,
+                                 ipapwd_def_encsalts,
+                                 &config->pref_encsalts,
+                                 &config->num_pref_encsalts);
+    }
+    if (ret) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+                        "Can't get Preferred EncSalt Types\n");
+        goto free_and_error;
+    }
 
-	/*** set config/replace old config ***/
+    slapi_entry_free(realm_entry);
 
-	/* FIXME: free old one in a safe way, use read locks ? */
-	slapi_lock_mutex(ipa_globals);
-	ipapwd_config = config;
-	slapi_unlock_mutex(ipa_globals);
-
-	slapi_entry_free(realm_entry);
-	return LDAP_SUCCESS;
+    return config;
 
 free_and_error:
-	if (mkey) ber_bvfree(mkey);
-	if (be) ber_free(be, 1);
-	free(config->pref_encsalts);
-	free(config->supp_encsalts);
-	free(config->kmkey);
-	free(config);
-	if (realm_entry) slapi_entry_free(realm_entry);
-	return LDAP_OPERATIONS_ERROR;
+    if (mkey) ber_bvfree(mkey);
+    if (be) ber_free(be, 1);
+    if (kmkey) {
+        free(kmkey->contents);
+        free(kmkey);
+    }
+    if (config) {
+        if (config->krbctx) krb5_free_context(config->krbctx);
+        free(config->pref_encsalts);
+        free(config->supp_encsalts);
+        free(config);
+    }
+    if (realm_entry) slapi_entry_free(realm_entry);
+    return NULL;
 }
 
 
 static int ipapwd_extop(Slapi_PBlock *pb)
 {
+  	struct ipapwd_krbcfg *krbcfg = NULL;
 	char *oid = NULL;
 	char *errMesg = NULL;
 	int ret=0, rc=0, sasl_ssf=0, is_ssl=0;
@@ -2823,30 +2828,6 @@ static int ipapwd_extop(Slapi_PBlock *pb)
 	}
 #endif
 
-	/* make sure we have the master key */
-	if (ipapwd_config == NULL) {
-		krb5_context krbctx;
-		krb5_error_code krberr;
-
-		krberr = krb5_init_context(&krbctx);
-		if (krberr) {
-			slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
-					"krb5_init_context failed\n");
-			errMesg = "Fatal Internal Error";
-			rc = LDAP_OPERATIONS_ERROR;
-			goto free_and_return;
-		}
-		ret = ipapwd_getConfig(krbctx, ipa_realm_dn);
-		if (ret != LDAP_SUCCESS) {
-			slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
-					"Error Retrieving Master Key");
-			errMesg = "Fatal Internal Error";
-			rc = LDAP_OPERATIONS_ERROR;
-			goto free_and_return;
-		}
-		krb5_free_context(krbctx);
-	}
-
 	/* Before going any further, we'll make sure that the right extended
 	 * operation plugin has been called: i.e., the OID shipped whithin the
 	 * extended operation request must match this very plugin's OIDs:
@@ -2861,11 +2842,25 @@ static int ipapwd_extop(Slapi_PBlock *pb)
 				"Received extended operation request with OID %s\n", oid);
 	}
 
+	/* get the kerberos context and master key */
+	krbcfg = ipapwd_getConfig(ipa_realm_dn);
+	if (NULL == krbcfg) {
+		slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
+				"Error Retrieving Master Key");
+		errMesg = "Fatal Internal Error";
+		rc = LDAP_OPERATIONS_ERROR;
+		goto free_and_return;
+	}
+
 	if (strcasecmp(oid, EXOP_PASSWD_OID) == 0) {
-		return ipapwd_chpwop(pb);
+		ret = ipapwd_chpwop(pb, krbcfg);
+		free_ipapwd_krbcfg(&krbcfg);
+		return ret;
 	}
 	if (strcasecmp(oid, KEYTAB_SET_OID) == 0) {
-		return ipapwd_setkeytab(pb);
+		ret = ipapwd_setkeytab(pb, krbcfg);
+		free_ipapwd_krbcfg(&krbcfg);
+		return ret;
 	}
 
 	errMesg = "Request OID does not match supported OIDs.\n";
@@ -2939,12 +2934,6 @@ static int ipapwd_start( Slapi_PBlock *pb )
 	slapi_lock_mutex(ipa_globals);
 	ipa_realm_dn = realm_dn;
 	slapi_unlock_mutex(ipa_globals);
-
-	ret = ipapwd_getConfig(krbctx, ipa_realm_dn);
-	if (ret) {
-		slapi_log_error( SLAPI_LOG_PLUGIN, "ipapwd_start", "Couldn't init master key at start delaying ...");
-		ret = LDAP_SUCCESS;
-	}
 
 	krb5_free_context(krbctx);
 	slapi_entry_free(config_entry);
