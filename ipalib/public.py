@@ -60,9 +60,9 @@ class DefaultFrom(plugable.ReadOnly):
         return None
 
 
-class option(plugable.Plugin):
+class Option(plugable.Plugin):
     """
-    The option class represents a kw argument from a command.
+    The Option class represents a kw argument from a `Command`.
     """
 
     __public__ = frozenset((
@@ -118,7 +118,7 @@ class option(plugable.Plugin):
                 self.__rules_iter(),
                 key=lambda f: getattr(f, '__name__'),
             ))
-            object.__setattr__(self, '_option__rules', rules)
+            object.__setattr__(self, '_Option__rules', rules)
         return self.__rules
     rules = property(__get_rules)
 
@@ -138,11 +138,11 @@ class option(plugable.Plugin):
 
     def default(self, **kw):
         """
-        Returns a default or auto-completed value for this option. If no
+        Returns a default or auto-completed value for this Option. If no
         default is available, this method should return None.
 
         All the keywords are passed so it's possible to build an
-        auto-completed value from other options values, e.g., build 'initials'
+        auto-completed value from other Options values, e.g., build 'initials'
         from 'givenname' + 'sn'.
         """
         return None
@@ -181,7 +181,7 @@ class Command(plugable.Plugin):
             assert inspect.isclass(cls)
             o = cls()
             o.__lock__()
-            yield plugable.PluginProxy(option, o)
+            yield plugable.PluginProxy(Option, o)
 
     def __get_options(self):
         """
@@ -329,8 +329,8 @@ class Method(Attribute, Command):
                 yield proxy
 
 
-class Property(Attribute, option):
-    __public__ = Attribute.__public__.union(option.__public__)
+class Property(Attribute, Option):
+    __public__ = Attribute.__public__.union(Option.__public__)
 
     def get_doc(self, _):
         return _('Property doc')

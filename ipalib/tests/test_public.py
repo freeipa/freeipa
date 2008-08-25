@@ -98,11 +98,11 @@ class test_DefaltFrom(ClassChecker):
             assert o(**kw_copy) is None
 
 
-class test_option(ClassChecker):
+class test_Option(ClassChecker):
     """
-    Tests the `public.option` class.
+    Tests the `public.Option` class.
     """
-    _cls = public.option
+    _cls = public.Option
 
     def get_subcls(self):
         rule = public.rule
@@ -131,7 +131,7 @@ class test_option(ClassChecker):
 
     def test_normalize(self):
         """
-        Tests the `public.option.normalize` method.
+        Tests the `public.Option.normalize` method.
         """
         assert 'normalize' in self.cls.__public__
         o = self.subcls()
@@ -163,7 +163,7 @@ class test_option(ClassChecker):
 
     def test_validate(self):
         """
-        Tests the `public.option.validate` method.
+        Tests the `public.Option.validate` method.
         """
         assert 'validate' in self.cls.__public__
         o = self.subcls()
@@ -175,7 +175,7 @@ class test_option(ClassChecker):
 
     def test_rules(self):
         """
-        Tests the `public.option.rules` property.
+        Tests the `public.Option.rules` property.
         """
         o = self.subcls()
         assert len(o.rules) == 3
@@ -186,20 +186,20 @@ class test_option(ClassChecker):
 
     def test_default(self):
         """
-        Tests the `public.option.default` method.
+        Tests the `public.Option.default` method.
         """
         assert 'default' in self.cls.__public__
         assert self.cls().default() is None
 
 
-class test_cmd(ClassChecker):
+class test_Command(ClassChecker):
     """
     Tests the `public.Command` class.
     """
     _cls = public.Command
 
     def get_subcls(self):
-        class my_option(public.option):
+        class my_option(public.Option):
             def normalize(self, value):
                 return super(my_option, self).normalize(value).lower()
             @public.rule
@@ -230,7 +230,7 @@ class test_cmd(ClassChecker):
         for (i, proxy) in enumerate(sub.get_options()):
             assert isinstance(proxy, plugable.PluginProxy)
             assert read_only(proxy, 'name') == 'option%d' % i
-            assert proxy.implements(public.option)
+            assert proxy.implements(public.Option)
         assert i == 1
 
     def test_options(self):
@@ -448,9 +448,9 @@ class test_Method(ClassChecker):
         assert self.cls.implements(public.Command)
 
     def get_subcls(self):
-        class option0(public.option):
+        class option0(public.Option):
             pass
-        class option1(public.option):
+        class option1(public.Option):
             pass
         class example_prop0(public.Property):
             pass
@@ -486,15 +486,15 @@ class test_Method(ClassChecker):
         for (i, proxy) in enumerate(proxies):
             assert proxy.name == names[i]
             assert isinstance(proxy, plugable.PluginProxy)
-            assert proxy.implements(public.option)
+            assert proxy.implements(public.Option)
 
 
 class test_prop(ClassChecker):
     _cls = public.Property
 
     def test_class(self):
-        assert self.cls.__bases__ == (public.Attribute, public.option)
-        assert self.cls.implements(public.option)
+        assert self.cls.__bases__ == (public.Attribute, public.Option)
+        assert self.cls.implements(public.Option)
 
 
 def test_PublicAPI():
