@@ -31,3 +31,13 @@ To learn about the ``ipalib`` library, you should read the code in this order:
 Some of the plugin architecture was inspired by ``bzr``, so you might also
 read http://bazaar-vcs.org/WritingPlugins
 """
+
+import plugable
+import public
+
+api = plugable.API(
+    public.Command,
+    public.Object,
+    public.Method,
+    public.Property,
+)
