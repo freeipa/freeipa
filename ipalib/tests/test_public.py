@@ -190,12 +190,25 @@ class test_Option(ClassChecker):
         rules = tuple(get_rule(i) for i in xrange(3))
         assert o.rules == rules
 
-    def test_default(self):
+    def test_get_default(self):
         """
-        Tests the `public.Option.default` method.
+        Tests the `public.Option.get_default` method.
         """
+        assert 'get_default' in self.cls.__public__
         assert 'default' in self.cls.__public__
-        assert self.cls().default() is None
+        assert 'default_from' in self.cls.__public__
+        assert self.cls().get_default() is None
+        class subclass(self.cls):
+            default = 3
+            default_from = public.DefaultFrom(
+                lambda a,b: a * b,
+                'key0', 'key1'
+            )
+        o = subclass()
+        assert o.get_default() == 3
+        assert o.get_default(key0=2, key1=5) == 10
+        assert o.get_default(key0=7) == 3
+
 
 
 class test_Command(ClassChecker):

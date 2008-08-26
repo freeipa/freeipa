@@ -90,14 +90,19 @@ class Option(plugable.Plugin):
 
     __public__ = frozenset((
         'normalize',
-        'default',
+        'get_default',
         'validate',
-        'required',
         'type',
+        'required',
+        'default',
+        'default_from',
     ))
     __rules = None
     type = unicode
     required = False
+    default = None
+    default_from = None
+
 
     def normalize(self, value):
         """
@@ -159,16 +164,12 @@ class Option(plugable.Plugin):
                 if is_rule(attr):
                     yield attr
 
-    def default(self, **kw):
-        """
-        Returns a default or auto-completed value for this Option. If no
-        default is available, this method should return None.
-
-        All the keywords are passed so it's possible to build an
-        auto-completed value from other Options values, e.g., build 'initials'
-        from 'givenname' + 'sn'.
-        """
-        return None
+    def get_default(self, **kw):
+        if type(self.default_from) is DefaultFrom:
+            default = self.default_from(**kw)
+            if default is not None:
+                return default
+        return self.default
 
 
 class Command(plugable.Plugin):
