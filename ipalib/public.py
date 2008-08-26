@@ -175,7 +175,7 @@ class Option(plugable.Plugin):
 class Command(plugable.Plugin):
     __public__ = frozenset((
         'normalize',
-        'default',
+        'get_default',
         'validate',
         'execute',
         '__call__',
@@ -231,16 +231,16 @@ class Command(plugable.Plugin):
         self.print_call('normalize', kw, 1)
         return dict(self.normalize_iter(kw))
 
-    def default_iter(self, kw):
+    def get_default_iter(self, kw):
         for option in self.options():
             if option.name not in kw:
-                value = option.default(**kw)
+                value = option.get_default(**kw)
                 if value is not None:
                     yield(option.name, value)
 
-    def default(self, **kw):
+    def get_default(self, **kw):
         self.print_call('default', kw, 1)
-        return dict(self.default_iter(kw))
+        return dict(self.get_default_iter(kw))
 
     def validate(self, **kw):
         self.print_call('validate', kw, 1)
@@ -268,7 +268,7 @@ class Command(plugable.Plugin):
         print ''
         self.print_call('__call__', kw)
         kw = self.normalize(**kw)
-        kw.update(self.default(**kw))
+        kw.update(self.get_default(**kw))
         self.validate(**kw)
         self.execute(**kw)
 

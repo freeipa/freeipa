@@ -210,7 +210,6 @@ class test_Option(ClassChecker):
         assert o.get_default(key0=7) == 3
 
 
-
 class test_Command(ClassChecker):
     """
     Tests the `public.Command` class.
@@ -225,8 +224,9 @@ class test_Command(ClassChecker):
             def my_rule(self, value):
                 if value != self.name:
                     return 'must equal %r' % self.name
-            def default(self, **kw):
-                return kw['default_from']
+            default_from = public.DefaultFrom(
+                lambda arg: arg, 'default_from'
+            )
 
         class option0(my_option):
             pass
@@ -282,11 +282,11 @@ class test_Command(ClassChecker):
         sub = self.subcls()
         assert sub.normalize(**kw) == norm
 
-    def test_default(self):
+    def test_get_default(self):
         """
-        Tests the `public.Command.default` method.
+        Tests the `public.Command.get_default` method.
         """
-        assert 'default' in self.cls.__public__ # Public
+        assert 'get_default' in self.cls.__public__ # Public
         no_fill = dict(
             option0='value0',
             option1='value1',
@@ -300,8 +300,8 @@ class test_Command(ClassChecker):
             option1='the default',
         )
         sub = self.subcls()
-        assert sub.default(**no_fill) == {}
-        assert sub.default(**fill) == default
+        assert sub.get_default(**no_fill) == {}
+        assert sub.get_default(**fill) == default
 
     def test_validate(self):
         """
