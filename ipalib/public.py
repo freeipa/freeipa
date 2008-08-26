@@ -334,8 +334,3 @@ class Property(Attribute, Option):
 
     def get_doc(self, _):
         return _('Property doc')
-
-
-class PublicAPI(plugable.API):
-    def __init__(self):
-        super(PublicAPI, self).__init__(Command, Object, Method, Property)

@@ -495,20 +495,3 @@ class test_prop(ClassChecker):
     def test_class(self):
         assert self.cls.__bases__ == (public.Attribute, public.Option)
         assert self.cls.implements(public.Option)
-
-
-def test_PublicAPI():
-    cls = public.PublicAPI
-    assert issubclass(cls, plugable.API)
-
-    api = cls()
-
-    class cmd1(public.Command):
-        pass
-    api.register(cmd1)
-
-    class cmd2(public.Command):
-        pass
-    api.register(cmd2)
-
-    api.finalize()
