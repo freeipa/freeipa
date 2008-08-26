@@ -68,23 +68,19 @@ api.register(user_sn)
 class user_login(public.Property):
     'User login'
     required = True
-    def default(self, **kw):
-        givenname = kw.get('givenname', None)
-        sn = kw.get('sn', None)
-        if givenname is None or sn is None:
-            return None
-        return ('%s%s' % (givenname[0], sn)).lower()
+    default_from = public.DefaultFrom(
+        lambda first, last: (first[0] + last).lower(),
+        'givenname', 'sn'
+    )
 api.register(user_login)
 
 class user_initials(public.Property):
     'User initials'
     required = True
-    def default(self, **kw):
-        givenname = kw.get('givenname', None)
-        sn = kw.get('sn', None)
-        if givenname is None or sn is None:
-            return None
-        return '%s%s' % (givenname[0], sn[0])
+    default_from = public.DefaultFrom(
+        lambda first, last: first[0] + last[0],
+        'givenname', 'sn'
+    )
 api.register(user_initials)
 
 
