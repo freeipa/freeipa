@@ -28,9 +28,6 @@ To learn about the ``ipalib`` library, you should read the code in this order:
 
     3. Look at some example plugins in `ipalib.plugins.example`
 
-Some of the plugin architecture was inspired by ``bzr``, so you might also
-read http://bazaar-vcs.org/WritingPlugins
-
 Here is a short console example on using the plugable API:
 
 >>> from ipalib import api
