@@ -73,6 +73,9 @@ class test_DefaltFrom(ClassChecker):
         assert self.cls.__bases__ == (plugable.ReadOnly,)
 
     def test_init(self):
+        """
+        Tests the `public.DefaultFrom.__init__` method.
+        """
         def callback(*args):
             return args
         keys = ('givenname', 'sn')
@@ -81,6 +84,9 @@ class test_DefaltFrom(ClassChecker):
         assert read_only(o, 'keys') == keys
 
     def test_call(self):
+        """
+        Tests the `public.DefaultFrom.__call__` method.
+        """
         def callback(givenname, sn):
             return givenname[0] + sn[0]
         keys = ('givenname', 'sn')

@@ -41,8 +41,28 @@ def is_rule(obj):
 
 
 class DefaultFrom(plugable.ReadOnly):
+    """
+    Derives a default for one value using other supplied values.
+
+    Here is an example:
+
+    >>> df = DefaultFrom(lambda f, l: f[0] + l[0], 'first', 'last')
+    >>> df(first='John', last='Doe') # Both keys
+    'JD'
+    >>> df() is None # Returns None if any key is missing
+    True
+    >>> df(first='John', middle='Q') is None # Still returns None
+    True
+    """
     def __init__(self, callback, *keys):
+        """
+        :param callback: The callable to call when all ``keys`` are present.
+        :param keys: The keys used to map from keyword to position arguments.
+        """
         assert callable(callback), 'not a callable: %r' % callback
+        assert len(keys) > 0, 'must have at least one key'
+        for key in keys:
+            assert type(key) is str, 'not an str: %r' % key
         self.callback = callback
         self.keys = keys
         lock(self)
