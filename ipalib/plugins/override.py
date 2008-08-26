@@ -18,8 +18,16 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Sub-package containing all internal plugins.
+An example of overriding a plugin.
+
+This example depends upon the order that the plugins/ modules are imported
+in plugins/__init__.py, which will likely change in the near future.
 """
 
-import example
-import override
+from ipalib import public
+from ipalib import api
+
+if 'user_mod' in api.register.Method:
+    class user_mod(api.register.Method.user_mod):
+        '(override) Edit existing user'
+    api.register(user_mod, override=True)
