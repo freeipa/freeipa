@@ -44,7 +44,8 @@ class DefaultFrom(plugable.ReadOnly):
     """
     Derives a default for one value using other supplied values.
 
-    Here is an example:
+    Here is an example that constructs a user's initials from his first
+    and last name:
 
     >>> df = DefaultFrom(lambda f, l: f[0] + l[0], 'first', 'last')
     >>> df(first='John', last='Doe') # Both keys
@@ -68,16 +69,18 @@ class DefaultFrom(plugable.ReadOnly):
         lock(self)
 
     def __call__(self, **kw):
+        """
+        If all keys are present, calls the callback; otherwise returns None.
+
+        :param kw: The keyword arguments.
+        """
         vals = tuple(kw.get(k, None) for k in self.keys)
         if None in vals:
             return None
         try:
-            ret = self.callback(*vals)
+            return self.callback(*vals)
         except Exception:
             return None
-        if isinstance(ret, basestring):
-            return ret
-        return None
 
 
 class Option(plugable.Plugin):
