@@ -25,6 +25,26 @@ from plugable import ReadOnly, lock
 import errors
 
 
+def check_min_max(min_value, max_value, min_name, max_name):
+    assert type(min_name) is str, 'min_name must be an str'
+    assert type(max_name) is str, 'max_name must be an str'
+    for (name, value) in [(min_name, min_value), (max_name, max_value)]:
+        if not (value is None or type(value) is int):
+            raise TypeError(
+                '`%s` must be an int or None, got: %r' % (name, value)
+            )
+    if None not in (min_value, max_value) and min_value >= max_value:
+        d = dict(
+            k0=min_name,
+            v0=min_value,
+            k1=max_name,
+            v1=max_value,
+        )
+        raise ValueError(
+            '%(k1)s > %(k0)s: %(k0)s=%(v0)r, %(k1)s=%(v1)r' % d
+        )
+
+
 class Type(ReadOnly):
     """
     Base class for all IPA types.
@@ -47,16 +67,7 @@ class Int(Type):
     type = int
 
     def __init__(self, min_value=None, max_value=None):
-        args = (min_value, max_value)
-        for arg in args:
-            if not (arg is None or type(arg) is int):
-                raise TypeError('Must be an int or None: %r' % arg)
-        if None not in args and min_value >= max_value:
-            raise ValueError(
-                'min_value not less than max_value: %r, %r' % (
-                    min_value, max_value
-                )
-            )
+        check_min_max(min_value, max_value, 'min_value', 'max_value')
         self.min_value = min_value
         self.max_value = max_value
         lock(self)
@@ -68,22 +79,6 @@ class Int(Type):
             return 'Cannot be smaller than %d' % self.min_value
         if self.max_value is not None and value > self.max_value:
             return 'Cannot be larger than %d' % self.max_value
-
-
-def check_min_max(min_name, min_value, max_name, max_value):
-    assert type(min_name) is str, 'min_name must be an str'
-    assert type(max_name) is str, 'max_name must be an str'
-    for (name, value) in [(min_name, min_value), (max_name, max_value)]:
-        if not (value is None or type(value) is int):
-            raise TypeError(
-                '%s must be an int or None, got: %r' % (name, value)
-            )
-#    if None not in (min_value, max_value) and min_value >= max_value:
-#        raise ValueError(
-#            'min_value not less than max_value: %r, %r' % (
-#                min_value, max_value
-#            )
-#        )
 
 
 class Unicode(Type):

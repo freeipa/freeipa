@@ -30,6 +30,13 @@ def test_check_min_max():
     Tests the `ipa_types.check_min_max` function.
     """
     f = ipa_types.check_min_max
+    okay = [
+            (None, -5),
+            (-20, None),
+            (-20, -5),
+    ]
+    for (l, h) in okay:
+        assert f(l, h, 'low', 'high') is None
     fail_type = [
         '10',
         10.0,
@@ -39,11 +46,18 @@ def test_check_min_max():
         object,
     ]
     for value in fail_type:
-        e = raises(TypeError, f, 'low', value, 'high', None)
-        assert str(e) == 'low must be an int or None, got: %r' % value
-        e = raises(TypeError, f, 'low', None, 'high', value)
-        assert str(e) == 'high must be an int or None, got: %r' % value
-
+        e = raises(TypeError, f, value, None, 'low', 'high')
+        assert str(e) == '`low` must be an int or None, got: %r' % value
+        e = raises(TypeError, f, None, value, 'low', 'high')
+        assert str(e) == '`high` must be an int or None, got: %r' % value
+    fail_value = [
+        (10, 5),
+        (-5, -10),
+        (5, -10),
+    ]
+    for (l, h) in fail_value:
+        e = raises(ValueError, f, l, h, 'low', 'high')
+        assert str(e) == 'high > low: low=%r, high=%r' % (l, h)
 
 
 class test_Type(ClassChecker):
@@ -56,36 +70,52 @@ class test_Type(ClassChecker):
         assert self.cls.__bases__ == (plugable.ReadOnly,)
 
 
-
 class test_Int(ClassChecker):
     _cls = ipa_types.Int
 
+    def test_class(self):
+        assert self.cls.__bases__ == (ipa_types.Type,)
+        assert self.cls.type is int
+
     def test_init(self):
         o = self.cls()
+        assert o.name == 'Int'
         assert o.min_value is None
         assert o.max_value is None
+
         okay = [
             (None, -5),
             (-20, None),
             (-20, -5),
         ]
+        for (l, h) in okay:
+            o = self.cls(min_value=l, max_value=h)
+            assert o.min_value is l
+            assert o.max_value is h
+
         fail_type = [
-            (None, 10L),
-            (5L, None),
-            (None, '10'),
-            ('5', None),
+            '10',
+            10.0,
+            10L,
+            True,
+            False,
+            object,
         ]
+        for value in fail_type:
+            e = raises(TypeError, self.cls, min_value=value)
+            assert str(e) == (
+                '`min_value` must be an int or None, got: %r' % value
+            )
+            e = raises(TypeError, self.cls, max_value=value)
+            assert str(e) == (
+                '`max_value` must be an int or None, got: %r' % value
+            )
+
         fail_value = [
             (10, 5),
             (5, -5),
             (-5, -10),
         ]
-        for (l, h) in okay:
-            o = self.cls(min_value=l, max_value=h)
-            assert o.min_value is l
-            assert o.max_value is h
-        for (l, h) in fail_type:
-            raises(TypeError, self.cls, min_value=l, max_value=h)
         for (l, h) in fail_value:
             raises(ValueError, self.cls, min_value=l, max_value=h)
 
