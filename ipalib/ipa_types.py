@@ -21,6 +21,7 @@
 Type system for coercing and normalizing input values.
 """
 
+import re
 from plugable import ReadOnly, lock
 import errors
 
@@ -31,9 +32,9 @@ def check_min_max(min_value, max_value, min_name, max_name):
     for (name, value) in [(min_name, min_value), (max_name, max_value)]:
         if not (value is None or type(value) is int):
             raise TypeError(
-                '`%s` must be an int or None, got: %r' % (name, value)
+                '%s must be an int or None, got: %r' % (name, value)
             )
-    if None not in (min_value, max_value) and min_value >= max_value:
+    if None not in (min_value, max_value) and min_value > max_value:
         d = dict(
             k0=min_name,
             v0=min_value,
@@ -41,7 +42,7 @@ def check_min_max(min_value, max_value, min_name, max_name):
             v1=max_value,
         )
         raise ValueError(
-            '%(k1)s > %(k0)s: %(k0)s=%(v0)r, %(k1)s=%(v1)r' % d
+            '%(k0)s > %(k1)s: %(k0)s=%(v0)r, %(k1)s=%(v1)r' % d
         )
 
 
@@ -82,17 +83,16 @@ class Int(Type):
 
 
 class Unicode(Type):
-    def __init__(self, min_length=None, max_length=None, pattern=None):
-        integers = (min_length, max_length)
-        for i in integers:
-            if not (i is None or type(i) is int):
-                raise TypeError('Must be an int or None: %r' % i)
-        if None not in integers and min_value >= max_value:
+    def __init__(self, length=None,min_length=None, max_length=None, pattern=None):
+        check_min_max(min_length, max_length, 'min_length', 'max_length')
+        if min_length is not None and min_length < 0:
             raise ValueError(
-                'min_value not less than max_value: %r, %r' % (
-                    min_value, max_value
-                )
+                'min_length must zero or greater, got: %r' % min_length
             )
         self.min_length = min_length
         self.max_length = max_length
         self.pattern = pattern
+        if pattern is None:
+            self.regex = None
+        else:
+            self.regex = re.compile(pattern)

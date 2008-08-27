@@ -47,9 +47,9 @@ def test_check_min_max():
     ]
     for value in fail_type:
         e = raises(TypeError, f, value, None, 'low', 'high')
-        assert str(e) == '`low` must be an int or None, got: %r' % value
+        assert str(e) == 'low must be an int or None, got: %r' % value
         e = raises(TypeError, f, None, value, 'low', 'high')
-        assert str(e) == '`high` must be an int or None, got: %r' % value
+        assert str(e) == 'high must be an int or None, got: %r' % value
     fail_value = [
         (10, 5),
         (-5, -10),
@@ -57,7 +57,7 @@ def test_check_min_max():
     ]
     for (l, h) in fail_value:
         e = raises(ValueError, f, l, h, 'low', 'high')
-        assert str(e) == 'high > low: low=%r, high=%r' % (l, h)
+        assert str(e) == 'low > high: low=%r, high=%r' % (l, h)
 
 
 class test_Type(ClassChecker):
@@ -104,11 +104,11 @@ class test_Int(ClassChecker):
         for value in fail_type:
             e = raises(TypeError, self.cls, min_value=value)
             assert str(e) == (
-                '`min_value` must be an int or None, got: %r' % value
+                'min_value must be an int or None, got: %r' % value
             )
             e = raises(TypeError, self.cls, max_value=value)
             assert str(e) == (
-                '`max_value` must be an int or None, got: %r' % value
+                'max_value must be an int or None, got: %r' % value
             )
 
         fail_value = [
@@ -135,6 +135,15 @@ class test_Unicode(ClassChecker):
 
     def test_init(self):
         o = self.cls()
+        assert o.name == 'Unicode'
         assert o.min_length is None
         assert o.max_length is None
         assert o.pattern is None
+        assert o.regex is None
+
+        okay = (
+            (0, 5, r'(hello|world)'),
+            (8, 8, r'\d{4}'),
+        )
+        for (l, h, pat) in okay:
+            o = self.cls(min_length=l, max_length=h, pattern=pat)
