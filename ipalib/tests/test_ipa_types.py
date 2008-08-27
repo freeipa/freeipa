@@ -117,7 +117,10 @@ class test_Int(ClassChecker):
             (-5, -10),
         ]
         for (l, h) in fail_value:
-            raises(ValueError, self.cls, min_value=l, max_value=h)
+            e = raises(ValueError, self.cls, min_value=l, max_value=h)
+            assert str(e) == (
+                'min_value > max_value: min_value=%d, max_value=%d' % (l, h)
+            )
 
     def test_validate(self):
         o = self.cls(min_value=2, max_value=7)
@@ -141,9 +144,47 @@ class test_Unicode(ClassChecker):
         assert o.pattern is None
         assert o.regex is None
 
+        # Test min_length, max_length:
         okay = (
-            (0, 5, r'(hello|world)'),
-            (8, 8, r'\d{4}'),
+            (0, 1),
+            (8, 8),
         )
-        for (l, h, pat) in okay:
-            o = self.cls(min_length=l, max_length=h, pattern=pat)
+        for (l, h) in okay:
+            o = self.cls(min_length=l, max_length=h)
+            assert o.min_length == l
+            assert o.max_length == h
+
+        fail_type = [
+            '10',
+            10.0,
+            10L,
+            True,
+            False,
+            object,
+        ]
+        for value in fail_type:
+            e = raises(TypeError, self.cls, min_length=value)
+            assert str(e) == (
+                'min_length must be an int or None, got: %r' % value
+            )
+            e = raises(TypeError, self.cls, max_length=value)
+            assert str(e) == (
+                'max_length must be an int or None, got: %r' % value
+            )
+
+        fail_value = [
+            (10, 5),
+            (5, -5),
+            (0, -10),
+        ]
+        for (l, h) in fail_value:
+            e = raises(ValueError, self.cls, min_length=l, max_length=h)
+            assert str(e) == (
+                'min_length > max_length: min_length=%d, max_length=%d' % (l, h)
+            )
+
+        for (key, lower) in [('min_length', 0), ('max_length', 1)]:
+            value = lower - 1
+            kw = {key: value}
+            e = raises(ValueError, self.cls, **kw)
+            assert str(e) == '%s must be >= %d, got: %d' % (key, lower, value)

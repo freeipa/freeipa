@@ -83,11 +83,15 @@ class Int(Type):
 
 
 class Unicode(Type):
-    def __init__(self, length=None,min_length=None, max_length=None, pattern=None):
+    def __init__(self, min_length=None, max_length=None, pattern=None):
         check_min_max(min_length, max_length, 'min_length', 'max_length')
         if min_length is not None and min_length < 0:
-            raise ValueError(
-                'min_length must zero or greater, got: %r' % min_length
+            raise ValueError('min_length must be >= 0, got: %r' % min_length)
+        if max_length is not None and max_length < 1:
+            raise ValueError('max_length must be >= 1, got: %r' % max_length)
+        if not (pattern is None or isinstance(pattern, basestring)):
+            raise TypeError(
+                'pattern must be a basestring or None, got: %r' % pattern
             )
         self.min_length = min_length
         self.max_length = max_length
