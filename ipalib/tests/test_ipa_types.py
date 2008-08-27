@@ -136,9 +136,13 @@ class test_Int(ClassChecker):
 class test_Unicode(ClassChecker):
     _cls = ipa_types.Unicode
 
+    def test_class(self):
+        assert self.cls.__bases__ == (ipa_types.Type,)
+        assert self.cls.type is unicode
+
     def test_init(self):
         o = self.cls()
-        assert o.name == 'Unicode'
+        assert read_only(o, 'name') == 'Unicode'
         assert o.min_length is None
         assert o.max_length is None
         assert o.pattern is None
@@ -219,3 +223,14 @@ class test_Unicode(ClassChecker):
             assert m.group(1) == value
         for value in ('hello beautiful', 'world!'):
             assert o.regex.match(value) is None
+
+    def test_validate(self):
+        pat = '^a_*b$'
+        o = self.cls(min_length=3, max_length=4, pattern=pat)
+        assert o.validate(u'a_b') is None
+        assert o.validate(u'a__b') is None
+        assert o.validate('a_b') == 'Must be a string'
+        assert o.validate(u'ab') == 'Must be at least 3 characters long'
+        assert o.validate(u'a___b') == 'Can be at most 4 characters long'
+        assert o.validate(u'a-b') == 'Must match %r' % pat
+        assert o.validate(u'a--b') == 'Must match %r' % pat

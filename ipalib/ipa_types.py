@@ -83,6 +83,8 @@ class Int(Type):
 
 
 class Unicode(Type):
+    type = unicode
+
     def __init__(self, min_length=None, max_length=None, pattern=None):
         check_min_max(min_length, max_length, 'min_length', 'max_length')
         if min_length is not None and min_length < 0:
@@ -100,3 +102,17 @@ class Unicode(Type):
             self.regex = None
         else:
             self.regex = re.compile(pattern)
+        lock(self)
+
+    def validate(self, value):
+        if type(value) is not self.type:
+            return 'Must be a string'
+
+        if self.regex and self.regex.match(value) is None:
+            return 'Must match %r' % self.pattern
+
+        if self.min_length is not None and len(value) < self.min_length:
+            return 'Must be at least %d characters long' % self.min_length
+
+        if self.max_length is not None and len(value) > self.max_length:
+            return 'Can be at most %d characters long' % self.max_length
