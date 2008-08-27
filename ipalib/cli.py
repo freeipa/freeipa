@@ -23,6 +23,7 @@ Functionality for Command Line Inteface.
 
 import re
 import sys
+import code
 import public
 
 
@@ -44,12 +45,22 @@ def from_cli(cli_name):
 
 
 class help(public.Command):
-    'display help on command'
+    'Display help on command'
     def __call__(self, key):
         if from_cli(key) not in self.api.Command:
             print 'help: no such command %r' % key
             sys.exit(2)
         print 'Help on command %r:' % key
+
+
+class console(public.Command):
+    'Start IPA Interactive Python Console'
+
+    def __call__(self):
+        code.interact(
+            '(Custom IPA Interactive Python Console)',
+            local=dict(api=self.api)
+        )
 
 
 class CLI(object):
@@ -82,6 +93,7 @@ class CLI(object):
     def finalize(self):
         api = self.api
         api.register(help)
+        api.register(console)
         api.finalize()
         def d_iter():
             for cmd in api.Command():
