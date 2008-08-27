@@ -188,3 +188,34 @@ class test_Unicode(ClassChecker):
             kw = {key: value}
             e = raises(ValueError, self.cls, **kw)
             assert str(e) == '%s must be >= %d, got: %d' % (key, lower, value)
+
+        # Test pattern:
+        okay = [
+            '(hello|world)',
+            u'(take the blue pill|take the red pill)',
+        ]
+        for value in okay:
+            o = self.cls(pattern=value)
+            assert o.pattern is value
+            assert o.regex is not None
+
+        fail = [
+            42,
+            True,
+            False,
+            object,
+        ]
+        for value in fail:
+            e = raises(TypeError, self.cls, pattern=value)
+            assert str(e) == (
+                'pattern must be a basestring or None, got: %r' % value
+            )
+
+        # Test regex:
+        pat = '^(hello|world)$'
+        o = self.cls(pattern=pat)
+        for value in ('hello', 'world'):
+            m = o.regex.match(value)
+            assert m.group(1) == value
+        for value in ('hello beautiful', 'world!'):
+            assert o.regex.match(value) is None
