@@ -67,6 +67,7 @@ class RuleError(ValidationError):
     """
     Raised when a required option was not provided.
     """
+    # FIXME: `rule` should really be after `error`
     def __init__(self, name, value, rule, error):
         self.rule = rule
         ValidationError.__init__(self, name, value, error)

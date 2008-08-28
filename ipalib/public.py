@@ -88,6 +88,7 @@ class Option2(plugable.ReadOnly):
     def __init__(self, name, doc, type_, required=False, multivalue=False,
         default=None, default_from=None, normalize=None, rules=tuple()
     ):
+
         self.name = name
         self.doc = doc
         self.type = type_
@@ -101,19 +102,16 @@ class Option2(plugable.ReadOnly):
 
     def validate_scalar(self, value):
         for rule in self.rules:
-            msg = rule(value)
-            if msg is not None:
-                raise errors.RuleError(
-                    self.__class__.__name__,
-                    value,
-                    rule,
-                    msg,
-                )
+            error = rule(value)
+            if error is not None:
+                raise errors.RuleError(self.name, value, rule, error)
 
     def validate(self, value):
         if self.multivalue:
             if type(value) is not tuple:
-                value = (value,)
+                raise TypeError(
+                    'when multivalue, value must be tuple; got %r' % value
+                )
             for v in value:
                 self.validate_scalar(v)
         else:

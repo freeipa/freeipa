@@ -128,7 +128,62 @@ class test_Option2(ClassChecker):
         assert read_only(o, 'default_from') is None
         assert read_only(o, 'rules') == (type_.validate,)
 
+    def test_validate(self):
+        # Constructor arguments
+        name = 'sn'
+        doc = 'User last name'
+        type_ = ipa_types.Unicode()
+        def case_rule(value):
+            if not value.islower():
+                return 'Must be lower case'
+        my_rules = (case_rule,)
 
+        # Some test values:
+        okay = u'whatever'
+        fail_case = u'Whatever'
+        fail_type = 'whatever'
+
+        # Test validate() and validate_scalar() when multivalue=False:
+        o = self.cls(name, doc, type_, rules=my_rules)
+        assert o.rules == (type_.validate, case_rule)
+        for m in [o.validate, o.validate_scalar]:
+            # Test a valid value:
+            m(okay)
+           # Check that RuleError is raised with wrong case:
+            e = raises(errors.RuleError, m, fail_case)
+            assert e.name is name
+            assert e.value is fail_case
+            assert e.error == 'Must be lower case'
+            # Test a RuleError is raise with wrong type:
+            e = raises(errors.RuleError, m, fail_type)
+            assert e.name is name
+            assert e.value is fail_type
+            assert e.error == 'Must be a string'
+
+        # Test validate() when multivalue=True:
+        o = self.cls(name, doc, type_, multivalue=True, rules=my_rules)
+        def check_type_error(value):
+            e = raises(TypeError, o.validate, value)
+            assert str(e) == (
+                'when multivalue, value must be tuple; got %r' % value
+            )
+        # Check a valid value:
+        check_type_error(okay)
+        o.validate((okay,))
+        # Check that RuleError is raised with wrong case:
+        check_type_error(fail_case)
+        for value in [(okay, fail_case), (fail_case, okay)]:
+            e = raises(errors.RuleError, o.validate, value)
+            assert e.name is name
+            assert e.value is fail_case
+            assert e.error == 'Must be lower case'
+        # Test a RuleError is raise with wrong type:
+        check_type_error(fail_type)
+        for value in [(okay, fail_type), (fail_type, okay)]:
+            e = raises(errors.RuleError, o.validate, value)
+            assert e.name is name
+            assert e.value is fail_type
+            assert e.error == 'Must be a string'
 
 
 class test_Option(ClassChecker):
