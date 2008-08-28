@@ -6,10 +6,10 @@ versions="python2.4 python2.5 python2.6"
 
 for name in $versions
 do
-    echo ""
     executable="/usr/bin/$name"
     if [[ -f $executable ]]; then
         echo "[ $name: Starting tests... ]"
+        ((runs += 1))
         if $executable /usr/bin/nosetests
         then
             echo "[ $name: Tests OK ]"
@@ -20,10 +20,12 @@ do
     else
         echo "[ $name: Not found ]"
     fi
+    echo ""
 done
 
 if [ $failures ]; then
-    echo ""
-    echo "[ FAILED under $failures version(s) ]"
+    echo "[ Ran under $runs version(s); FAILED under $failures version(s) ]"
     exit $failures
+else
+    echo "[ Ran under $runs version(s); all OK ]"
 fi
