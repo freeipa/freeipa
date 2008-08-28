@@ -81,6 +81,28 @@ class Type(ReadOnly):
         return self.convert(value)
 
 
+class Bool(Type):
+    def __init__(self, true='Yes', false='No'):
+        if true is None:
+            raise TypeError('`true` cannot be None')
+        if false is None:
+            raise TypeError('`false` cannot be None')
+        if true == false:
+            raise ValueError(
+                'cannot be equal: true=%r, false=%r' % (true, false)
+            )
+        self.true = true
+        self.false = false
+        super(Bool, self).__init__(bool)
+
+    def convert(self, value):
+        if value == self.true:
+            return True
+        if value == self.false:
+            return False
+        return None
+
+
 class Int(Type):
     def __init__(self, min_value=None, max_value=None):
         check_min_max(min_value, max_value, 'min_value', 'max_value')

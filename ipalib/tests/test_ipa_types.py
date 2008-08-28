@@ -88,6 +88,45 @@ class test_Type(ClassChecker):
             assert str(e) == 'not an allowed type: %r' % t
 
 
+class test_Bool(ClassChecker):
+    _cls = ipa_types.Bool
+
+    def test_class(self):
+        assert self.cls.__bases__ == (ipa_types.Type,)
+
+    def test_init(self):
+        o = self.cls()
+        assert o.__islocked__() is True
+        assert read_only(o, 'type') is bool
+        assert read_only(o, 'name') == 'Bool'
+        assert read_only(o, 'true') == 'Yes'
+        assert read_only(o, 'false') == 'No'
+
+        keys = ('true', 'false')
+        val = 'some value'
+        for key in keys:
+            # Check that kwarg sets appropriate attribute:
+            o = self.cls(**{key: val})
+            assert read_only(o, key) is val
+            # Check that None raises TypeError:
+            e = raises(TypeError, self.cls, **{key: None})
+            assert str(e) == '`%s` cannot be None' % key
+
+        # Check that ValueError is raise if true == false:
+        e = raises(ValueError, self.cls, true=1L, false=1.0)
+        assert str(e) == 'cannot be equal: true=1L, false=1.0'
+
+    def test_call(self):
+        o = self.cls()
+        assert o(True) is True
+        assert o('Yes') is True
+        assert o(False) is False
+        assert o('No') is False
+        for value in (0, 1, 'True', 'False', 'yes', 'no'):
+            # value is not be converted, so None is returned
+            assert o(value) is None
+
+
 class test_Int(ClassChecker):
     _cls = ipa_types.Int
 
