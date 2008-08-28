@@ -22,7 +22,7 @@ Unit tests for `ipalib.public` module.
 """
 
 from tstutil import raises, getitem, no_set, no_del, read_only, ClassChecker
-from ipalib import public, plugable, errors
+from ipalib import public, plugable, errors, ipa_types
 
 
 def test_RULE_FLAG():
@@ -102,6 +102,33 @@ class test_DefaltFrom(ClassChecker):
             kw_copy = dict(kw)
             del kw_copy[key]
             assert o(**kw_copy) is None
+
+
+class test_Option2(ClassChecker):
+    """
+    Tests the `public.Option2` class.
+    """
+    _cls = public.Option2
+
+    def test_class(self):
+        assert self.cls.__bases__ == (plugable.ReadOnly,)
+
+    def test_init(self):
+        name = 'sn',
+        doc = 'Last Name',
+        type_ = ipa_types.Unicode()
+        o = self.cls(name, doc, type_)
+        assert o.__islocked__() is True
+        assert read_only(o, 'name') is name
+        assert read_only(o, 'doc') is doc
+        assert read_only(o, 'type') is type_
+        assert read_only(o, 'required') is False
+        assert read_only(o, 'multivalue') is False
+        assert read_only(o, 'default') is None
+        assert read_only(o, 'default_from') is None
+        assert read_only(o, 'rules') == (type_.validate,)
+
+
 
 
 class test_Option(ClassChecker):

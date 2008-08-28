@@ -27,6 +27,7 @@ import inspect
 import plugable
 from plugable import lock
 import errors
+import ipa_types
 
 
 RULE_FLAG = 'validation_rule'
@@ -81,6 +82,42 @@ class DefaultFrom(plugable.ReadOnly):
             return self.callback(*vals)
         except Exception:
             return None
+
+
+class Option2(plugable.ReadOnly):
+    def __init__(self, name, doc, type_, required=False, multivalue=False,
+        default=None, default_from=None, normalize=None, rules=tuple()
+    ):
+        self.name = name
+        self.doc = doc
+        self.type = type_
+        self.required = required
+        self.multivalue = multivalue
+        self.default = default
+        self.default_from = default_from
+        self.__normalize = normalize
+        self.rules = (type_.validate,) + rules
+        lock(self)
+
+    def validate_scalar(self, value):
+        for rule in self.rules:
+            msg = rule(value)
+            if msg is not None:
+                raise errors.RuleError(
+                    self.__class__.__name__,
+                    value,
+                    rule,
+                    msg,
+                )
+
+    def validate(self, value):
+        if self.multivalue:
+            if type(value) is not tuple:
+                value = (value,)
+            for v in value:
+                self.validate_scalar(v)
+        else:
+            self.validate_scalar(value)
 
 
 class Option(plugable.Plugin):
