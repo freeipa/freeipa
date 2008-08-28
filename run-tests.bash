@@ -1,17 +1,29 @@
 #!/bin/bash
 
-# Hackish script to run unit tests under both Python 2.4 and 2.5
+# Script to run nosetests under multiple versions of Python
 
-interpreters="python2.4 python2.5"
+versions="python2.4 python2.5 python2.6"
 
-for name in $interpreters
+for name in $versions
 do
+    echo ""
     executable="/usr/bin/$name"
-    if [[ -f $executable ]]
-    then
-        echo "[ $0: running unit tests under $name ]"
-        $executable /usr/bin/nosetests
+    if [[ -f $executable ]]; then
+        echo "[ $name: Starting tests... ]"
+        if $executable /usr/bin/nosetests
+        then
+            echo "[ $name: Tests OK ]"
+        else
+            echo "[ $name: Tests FAILED ]"
+            ((failures += 1))
+        fi
     else
-        echo "[ $0: $name not found ]"
+        echo "[ $name: Not found ]"
     fi
 done
+
+if [ $failures ]; then
+    echo ""
+    echo "[ FAILED under $failures version(s) ]"
+    exit $failures
+fi
