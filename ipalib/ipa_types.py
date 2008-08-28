@@ -170,4 +170,11 @@ class Enum(Type):
             if type(val) is not type_:
                 raise TypeError('%r: %r is not %r' % (val, type(val), type_))
         self.values = values
+        self.frozenset = frozenset(values)
         super(Enum, self).__init__(type_)
+
+    def validate(self, value):
+        if type(value) is not self.type:
+            return 'Incorrect type'
+        if value not in self.frozenset:
+            return 'Invalid value'

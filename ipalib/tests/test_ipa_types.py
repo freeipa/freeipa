@@ -341,12 +341,13 @@ class test_Enum(ClassChecker):
 
     def test_init(self):
         for t in (unicode, int, float):
-            vals = (t(1),)
-            o = self.cls(*vals)
+            values = (t(1), t(2), t(3))
+            o = self.cls(*values)
             assert o.__islocked__() is True
             assert read_only(o, 'type') is t
             assert read_only(o, 'name') is 'Enum'
-            assert read_only(o, 'values') == vals
+            assert read_only(o, 'values') == values
+            assert read_only(o, 'frozenset') == frozenset(values)
 
         # Check that ValueError is raised when no values are given:
         e = raises(ValueError, self.cls)
@@ -362,3 +363,13 @@ class test_Enum(ClassChecker):
         # type as first:
         e = raises(TypeError, self.cls, u'hello', 'world')
         assert str(e) == '%r: %r is not %r' % ('world', str, unicode)
+
+    def test_validate(self):
+        values = (u'hello', u'naughty', u'nurse')
+        o = self.cls(*values)
+        for value in values:
+            assert o.validate(value) is None
+            assert o.validate(str(value)) == 'Incorrect type'
+        for value in (u'one fish', u'two fish'):
+            assert o.validate(value) == 'Invalid value'
+            assert o.validate(str(value)) == 'Incorrect type'
