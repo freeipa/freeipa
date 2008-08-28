@@ -53,15 +53,25 @@ class Type(ReadOnly):
 
     type = None # Override in base class
 
-    def convert(self, value):
-		return self.type(value)
-
     def __get_name(self):
         """
         Convenience property to return the class name.
         """
         return self.__class__.__name__
     name = property(__get_name)
+
+    def convert(self, value):
+        try:
+            return self.type(value)
+        except (TypeError, ValueError):
+            return None
+
+    def __call__(self, value):
+        if value is None:
+            raise TypeError('value cannot be None')
+        if type(value) is self.type:
+            return value
+        return self.convert(value)
 
 
 class Int(Type):

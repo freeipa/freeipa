@@ -122,6 +122,36 @@ class test_Int(ClassChecker):
                 'min_value > max_value: min_value=%d, max_value=%d' % (l, h)
             )
 
+
+    def test_call(self):
+        o = self.cls()
+
+        # Test calling with None
+        e = raises(TypeError, o, None)
+        assert str(e) == 'value cannot be None'
+
+        # Test with values that can be converted:
+        okay = [
+            3,
+            '3',
+            ' 3 ',
+            3L,
+            3.0,
+        ]
+        for value in okay:
+            assert o(value) == 3
+
+        # Test with values that cannot be converted:
+        fail = [
+            object,
+            '3.0',
+            '3L',
+            'whatever',
+        ]
+        for value in fail:
+            assert o(value) is None
+
+
     def test_validate(self):
         o = self.cls(min_value=2, max_value=7)
         assert o.validate(2) is None
