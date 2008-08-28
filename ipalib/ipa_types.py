@@ -102,6 +102,10 @@ class Bool(Type):
             return False
         return None
 
+    def validate(self, value):
+        if not (value is True or value is False):
+            return 'Must be %r or %r' % (self.true, self.false)
+
 
 class Int(Type):
     def __init__(self, min_value=None, max_value=None):
