@@ -69,6 +69,24 @@ class test_Type(ClassChecker):
     def test_class(self):
         assert self.cls.__bases__ == (plugable.ReadOnly,)
 
+    def test_init(self):
+        okay = (bool, int, float, unicode)
+        for t in okay:
+            o = self.cls(t)
+            assert o.__islocked__() is True
+            assert read_only(o, 'type') is t
+            assert read_only(o, 'name') is 'Type'
+
+        type_errors = (None, True, 8, 8.0, u'hello')
+        for t in type_errors:
+            e = raises(TypeError, self.cls, t)
+            assert str(e) == '%r is not %r' % (type(t), type)
+
+        value_errors = (long, complex, str, tuple, list, dict, set, frozenset)
+        for t in value_errors:
+            e = raises(ValueError, self.cls, t)
+            assert str(e) == 'not an allowed type: %r' % t
+
 
 class test_Int(ClassChecker):
     _cls = ipa_types.Int

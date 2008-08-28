@@ -52,11 +52,11 @@ class Type(ReadOnly):
     """
 
     def __init__(self, type_):
+        if type(type_) is not type:
+            raise TypeError('%r is not %r' % (type(type_), type))
         allowed = (bool, int, float, unicode)
         if type_ not in allowed:
-            raise ValueError(
-                'type_ must be in %r, got %r' % (type_, allowed)
-            )
+            raise ValueError('not an allowed type: %r' % type_)
         self.type = type_
         lock(self)
 
