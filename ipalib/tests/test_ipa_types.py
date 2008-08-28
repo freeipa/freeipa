@@ -331,3 +331,34 @@ class test_Unicode(ClassChecker):
         assert o.validate(u'a___b') == 'Can be at most 4 characters long'
         assert o.validate(u'a-b') == 'Must match %r' % pat
         assert o.validate(u'a--b') == 'Must match %r' % pat
+
+
+class test_Enum(ClassChecker):
+    _cls = ipa_types.Enum
+
+    def test_class(self):
+        assert self.cls.__bases__ == (ipa_types.Type,)
+
+    def test_init(self):
+        for t in (unicode, int, float):
+            vals = (t(1),)
+            o = self.cls(*vals)
+            assert o.__islocked__() is True
+            assert read_only(o, 'type') is t
+            assert read_only(o, 'name') is 'Enum'
+            assert read_only(o, 'values') == vals
+
+        # Check that ValueError is raised when no values are given:
+        e = raises(ValueError, self.cls)
+        assert str(e) == 'Enum requires at least one value'
+
+        # Check that TypeError is raised when type of first value is not
+        # allowed:
+        e = raises(TypeError, self.cls, 'hello')
+        assert str(e) == '%r: %r not unicode, int, nor float' % ('hello', str)
+        #self.cls('hello')
+
+        # Check that TypeError is raised when subsequent values aren't same
+        # type as first:
+        e = raises(TypeError, self.cls, u'hello', 'world')
+        assert str(e) == '%r: %r is not %r' % ('world', str, unicode)

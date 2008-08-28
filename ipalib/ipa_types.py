@@ -155,3 +155,19 @@ class Unicode(Type):
 
         if self.max_length is not None and len(value) > self.max_length:
             return 'Can be at most %d characters long' % self.max_length
+
+
+class Enum(Type):
+    def __init__(self, *values):
+        if len(values) < 1:
+            raise ValueError('%s requires at least one value' % self.name)
+        type_ = type(values[0])
+        if type_ not in (unicode, int, float):
+            raise TypeError(
+                '%r: %r not unicode, int, nor float' % (values[0], type_)
+            )
+        for val in values[1:]:
+            if type(val) is not type_:
+                raise TypeError('%r: %r is not %r' % (val, type(val), type_))
+        self.values = values
+        super(Enum, self).__init__(type_)
