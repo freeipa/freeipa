@@ -75,13 +75,14 @@ class test_Int(ClassChecker):
 
     def test_class(self):
         assert self.cls.__bases__ == (ipa_types.Type,)
-        assert self.cls.type is int
 
     def test_init(self):
         o = self.cls()
-        assert o.name == 'Int'
-        assert o.min_value is None
-        assert o.max_value is None
+        assert o.__islocked__() is True
+        assert read_only(o, 'type') is int
+        assert read_only(o, 'name') == 'Int'
+        assert read_only(o, 'min_value') is None
+        assert read_only(o, 'max_value') is None
 
         okay = [
             (None, -5),
@@ -121,7 +122,6 @@ class test_Int(ClassChecker):
             assert str(e) == (
                 'min_value > max_value: min_value=%d, max_value=%d' % (l, h)
             )
-
 
     def test_call(self):
         o = self.cls()
@@ -168,15 +168,16 @@ class test_Unicode(ClassChecker):
 
     def test_class(self):
         assert self.cls.__bases__ == (ipa_types.Type,)
-        assert self.cls.type is unicode
 
     def test_init(self):
         o = self.cls()
+        assert o.__islocked__() is True
+        assert read_only(o, 'type') is unicode
         assert read_only(o, 'name') == 'Unicode'
-        assert o.min_length is None
-        assert o.max_length is None
-        assert o.pattern is None
-        assert o.regex is None
+        assert read_only(o, 'min_length') is None
+        assert read_only(o, 'max_length') is None
+        assert read_only(o, 'pattern') is None
+        assert read_only(o, 'regex') is None
 
         # Test min_length, max_length:
         okay = (

@@ -51,7 +51,14 @@ class Type(ReadOnly):
     Base class for all IPA types.
     """
 
-    type = None # Override in base class
+    def __init__(self, type_):
+        allowed = (bool, int, float, unicode)
+        if type_ not in allowed:
+            raise ValueError(
+                'type_ must be in %r, got %r' % (type_, allowed)
+            )
+        self.type = type_
+        lock(self)
 
     def __get_name(self):
         """
@@ -75,13 +82,11 @@ class Type(ReadOnly):
 
 
 class Int(Type):
-    type = int
-
     def __init__(self, min_value=None, max_value=None):
         check_min_max(min_value, max_value, 'min_value', 'max_value')
         self.min_value = min_value
         self.max_value = max_value
-        lock(self)
+        super(Int, self).__init__(int)
 
     def validate(self, value):
         if type(value) is not self.type:
@@ -93,8 +98,6 @@ class Int(Type):
 
 
 class Unicode(Type):
-    type = unicode
-
     def __init__(self, min_length=None, max_length=None, pattern=None):
         check_min_max(min_length, max_length, 'min_length', 'max_length')
         if min_length is not None and min_length < 0:
@@ -112,7 +115,7 @@ class Unicode(Type):
             self.regex = None
         else:
             self.regex = re.compile(pattern)
-        lock(self)
+        super(Unicode, self).__init__(unicode)
 
     def validate(self, value):
         if type(value) is not self.type:
