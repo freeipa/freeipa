@@ -24,18 +24,22 @@ All custom errors raised by `ipalib` package.
 
 class IPATypeError(TypeError):
     """
-    TypeError subclass with standard message for easier debugging.
+    A TypeError subclass with with a standard message.
 
     Also has two custom attributes:
 
         ``type`` - The type being tested against.
         ``value`` - The offending value that caused the exception.
+
+    There is no edict that all TypeError should be raised with IPATypeError,
+    but when it fits, use it... it makes the unit tests faster to write and
+    the debugging easier to read.
     """
 
     format = 'need a %r; got %r'
 
     def __init__(self, type_, value):
-        assert type(value) is not type, 'no error: %r, %r' % (type_, value)
+        assert type(value) is not type_, '%r is a %r' % (value, type_)
         self.type = type_
         self.value = value
         TypeError.__init__(self, self.format % (self.type, self.value))

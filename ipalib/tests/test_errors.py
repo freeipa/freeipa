@@ -21,7 +21,7 @@
 Unit tests for `ipalib.errors` module.
 """
 
-from tstutil import raises, getitem, no_set, no_del, read_only, ClassChecker
+from tstutil import raises, ClassChecker
 from ipalib import errors
 
 
@@ -38,9 +38,14 @@ class test_IPATypeError(ClassChecker):
         """
         Tests the `errors.IPATypeError.__init__` method.
         """
-        t = unicode
-        v = 'hello'
-        e = self.cls(t, v)
-        assert e.type is t
-        assert e.value is v
-        assert str(e) == 'need a %r; got %r' % (t, v)
+        type_ = unicode
+        okay = 'hello'
+        e = self.cls(type_, okay)
+        assert e.type is type_
+        assert e.value is okay
+        assert str(e) == 'need a %r; got %r' % (type_, okay)
+
+        # Check that AssertionError is raised when type(value) is type_:
+        fail = u'hello'
+        e = raises(AssertionError, self.cls, type_, fail)
+        assert str(e) == '%r is a %r' % (fail, type_)
