@@ -25,32 +25,104 @@ from tstutil import raises, ClassChecker
 from ipalib import errors
 
 
+type_format = '%s: need a %r; got %r'
+
+def check_TypeError(f, name, type_, value, **kw):
+    e = raises(TypeError, f, name, type_, value, **kw)
+    assert e.name is name
+    assert e.type is type_
+    assert e.value is value
+    assert str(e) == type_format % (name, type_, value)
+
+
 def test_raise_TypeError():
     """
     Tests the `errors.raise_TypeError` function.
     """
     f = errors.raise_TypeError
-    format = '%s: need a %r; got %r'
     name = 'message'
     type_ = unicode
     value = 'Hello.'
-    e = raises(TypeError, f, name, type_, value)
-    assert e.name is name
-    assert e.type is type_
-    assert e.value is value
-    assert str(e) == format % (name, type_, value)
+
+    check_TypeError(f, name, type_, value)
 
     # name not an str:
     fail = 42
     e = raises(AssertionError, f, fail, type_, value)
-    assert str(e) == format % ('name', str, fail)
+    assert str(e) == type_format % ('name', str, fail)
 
     # type_ not a type:
     fail = unicode()
     e = raises(AssertionError, f, name, fail, value)
-    assert str(e) == format % ('type_', type, fail)
+    assert str(e) == type_format % ('type_', type, fail)
 
     # type(value) is type_:
     fail = u'How are you?'
     e = raises(AssertionError, f, name, type_, fail)
     assert str(e) == 'value: %r is a %r' % (fail, type_)
+
+
+def test_check_type():
+    """
+    Tests the `errors.check_type` function.
+    """
+    f = errors.check_type
+    name = 'greeting'
+    value = 'How are you?'
+
+    # Should pass:
+    f(name, str, value)
+    f(name, str, None, allow_None=True)
+
+    # Should raise TypeError
+    check_TypeError(f, name, str, None)
+    check_TypeError(f, name, basestring, value)
+    check_TypeError(f, name, unicode, value)
+
+    # name not an str
+    fail = unicode(name)
+    e = raises(AssertionError, f, fail, str, value)
+    assert str(e) == type_format % ('name', str, fail)
+
+    # type_ not a type:
+    fail = 42
+    e = raises(AssertionError, f, name, fail, value)
+    assert str(e) == type_format % ('type_', type, fail)
+
+    # allow_None not a bool:
+    fail = 0
+    e = raises(AssertionError, f, name, str, value, allow_None=fail)
+    assert str(e) == type_format % ('allow_None', bool, fail)
+
+
+def test_check_isinstance():
+    """
+    Tests the `errors.check_isinstance` function.
+    """
+    f = errors.check_isinstance
+    name = 'greeting'
+    value = 'How are you?'
+
+    # Should pass:
+    f(name, str, value)
+    f(name, basestring, value)
+    f(name, str, None, allow_None=True)
+
+    # Should raise TypeError
+    check_TypeError(f, name, str, None)
+    check_TypeError(f, name, unicode, value)
+
+    # name not an str
+    fail = unicode(name)
+    e = raises(AssertionError, f, fail, str, value)
+    assert str(e) == type_format % ('name', str, fail)
+
+    # type_ not a type:
+    fail = 42
+    e = raises(AssertionError, f, name, fail, value)
+    assert str(e) == type_format % ('type_', type, fail)
+
+    # allow_None not a bool:
+    fail = 0
+    e = raises(AssertionError, f, name, str, value, allow_None=fail)
+    assert str(e) == type_format % ('allow_None', bool, fail)
