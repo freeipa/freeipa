@@ -21,6 +21,26 @@
 All custom errors raised by `ipalib` package.
 """
 
+
+class IPATypeError(TypeError):
+    """
+    TypeError subclass with standard message for easier debugging.
+
+    Also has two custom attributes:
+
+        ``type`` - The type being tested against.
+        ``value`` - The offending value that caused the exception.
+    """
+
+    format = 'need a %r; got %r'
+
+    def __init__(self, type_, value):
+        assert type(value) is not type, 'no error: %r, %r' % (type_, value)
+        self.type = type_
+        self.value = value
+        TypeError.__init__(self, self.format % (self.type, self.value))
+
+
 class IPAError(Exception):
     """
     Use this base class for your custom IPA errors unless there is a
