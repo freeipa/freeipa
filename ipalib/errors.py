@@ -22,40 +22,45 @@ All custom errors raised by `ipalib` package.
 """
 
 
-class IPATypeError(TypeError):
+def raise_TypeError(name, type_, value):
     """
-    A TypeError subclass with a helpful message format.
+    Raises a TypeError with a nicely formatted message and helpful attributes.
 
-    IPATypeError has three custom instance attributes:
+    The TypeError raised will have three custom attributes:
 
-        ``name`` - Name of the argument TypeError is being raised for.
+        ``name`` - The name (identifier) of the argument in question.
 
-        ``type`` - Type that the argument should be.
+        ``type`` - The type expected for the arguement.
 
-        ``value`` - Value (of incorrect type) supplied for the argument.
+        ``value`` - The value (of incorrect type) revieved for argument.
 
-    There is no edict that all TypeError should be raised with IPATypeError,
+    There is no edict that all TypeError should be raised with raise_TypeError,
     but when it fits, use it... it makes the unit tests faster to write and
     the debugging easier to read.
 
     Here is an example:
 
-    >>> raise IPATypeError('islate', bool, '4 AM')
+    >>> raise_TypeError('message', str, u'Hello.')
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
-    IPATypeError: islate: need a <type 'bool'>; got '4 AM'
+      File "/home/jderose/projects/freeipa2/ipalib/errors.py", line 61, in raise_TypeError
+        raise e
+    TypeError: message: need a <type 'str'>; got u'Hello.'
+
+    :param name: The name (identifier) of the argument in question.
+    :param type_: The type expected for the arguement.
+    :param value: The value (of incorrect type) revieved for argument.
     """
 
     format = '%s: need a %r; got %r'
-
-    def __init__(self, name, type_, value):
-        assert type(name) is str, self.format % ('name', str, name)
-        assert type(type_) is type, self.format % ('type_', type, type_)
-        assert type(value) is not type_, 'value: %r is a %r' % (value, type_)
-        self.name = name
-        self.type = type_
-        self.value = value
-        TypeError.__init__(self, self.format % (name, type_, value))
+    assert type(name) is str, format % ('name', str, name)
+    assert type(type_) is type, format % ('type_', type, type_)
+    assert type(value) is not type_, 'value: %r is a %r' % (value, type_)
+    e = TypeError(format % (name, type_, value))
+    setattr(e, 'name', name)
+    setattr(e, 'type', type_)
+    setattr(e, 'value', value)
+    raise e
 
 
 class IPAError(Exception):
