@@ -86,9 +86,7 @@ class DefaultFrom(plugable.ReadOnly):
 
 class Option2(plugable.ReadOnly):
     def __init__(self, name, doc, type_, required=False, multivalue=False,
-        default=None, default_from=None, normalize=None, rules=tuple()
-    ):
-
+            default=None, default_from=None, rules=tuple(), normalize=None):
         self.name = name
         self.doc = doc
         self.type = type_
@@ -100,7 +98,32 @@ class Option2(plugable.ReadOnly):
         self.rules = (type_.validate,) + rules
         lock(self)
 
-    def validate_scalar(self, value):
+    def convert(self, value):
+        if self.multivalue:
+            if type(value) in (tuple, list):
+                return tuple(self.type(v) for v in value)
+            return (self.type(value),)
+        return self.type(value)
+
+    def __normalize_scalar(self, value):
+        if value is None:
+            return None
+        if type(value) is not self.type.type:
+            raise TypeError('need a %r; got %r' % (self.type.type, value))
+        return self.__normalize(value)
+
+    def normalize(self, value):
+        if self.__normalize is None:
+            return value
+        if self.multivalue:
+            if value is None:
+                return None
+            if type(value) is not tuple:
+                raise TypeError('multivalue must be a tuple; got %r' % value)
+            return tuple(self.__normalize_scalar(v) for v in value)
+        return self.__normalize_scalar(value)
+
+    def __validate_scalar(self, value):
         for rule in self.rules:
             error = rule(value)
             if error is not None:
@@ -109,13 +132,11 @@ class Option2(plugable.ReadOnly):
     def validate(self, value):
         if self.multivalue:
             if type(value) is not tuple:
-                raise TypeError(
-                    'when multivalue, value must be tuple; got %r' % value
-                )
+                raise TypeError('multivalue must be a tuple; got %r' % value)
             for v in value:
-                self.validate_scalar(v)
+                self.__validate_scalar(v)
         else:
-            self.validate_scalar(value)
+            self.__validate_scalar(value)
 
 
 class Option(plugable.Plugin):

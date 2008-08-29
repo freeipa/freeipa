@@ -114,6 +114,9 @@ class test_Option2(ClassChecker):
         assert self.cls.__bases__ == (plugable.ReadOnly,)
 
     def test_init(self):
+        """
+        Tests the `public.Option2.__init__` method.
+        """
         name = 'sn',
         doc = 'Last Name',
         type_ = ipa_types.Unicode()
@@ -128,8 +131,82 @@ class test_Option2(ClassChecker):
         assert read_only(o, 'default_from') is None
         assert read_only(o, 'rules') == (type_.validate,)
 
+    def test_convert(self):
+        name = 'sn'
+        doc = 'User last name'
+        type_ = ipa_types.Unicode()
+        class Hello(object):
+            def __unicode__(self):
+                return u'hello'
+        hello = Hello()
+        values = (u'hello', 'hello', hello)
+        # Test when multivalue=False:
+        o = self.cls(name, doc, type_)
+        for value in values:
+            new = o.convert(value)
+            assert new == u'hello'
+            assert type(new) is unicode
+        # Test when multivalue=True:
+        o = self.cls(name, doc, type_, multivalue=True)
+        for value in values:
+            for v in (value, (value,)):
+                new = o.convert(hello)
+                assert new == (u'hello',)
+                assert type(new) is tuple
+
+    def test_normalize(self):
+        """
+        Tests the `public.Option2.validate` method.
+        """
+        name = 'sn'
+        doc = 'User last name'
+        t = ipa_types.Unicode()
+        callback = lambda value: value.lower()
+        orig = u'Hello World'
+        orig_str = str(orig)
+        norm = u'hello world'
+        tup_orig = (orig, norm, u'WONDERFUL!')
+        tup_norm = (norm, norm, u'wonderful!')
+        tup_str = (orig_str, orig)
+        all_values = (None, orig, orig_str, norm, tup_orig, tup_norm, tup_str)
+
+        ## Scenario 1: multivalue=False, normalize=None
+        o = self.cls(name, doc, t)
+        for v in all_values:
+            # When normalize=None, value is returned, no type checking:
+            assert o.normalize(v) is v
+
+        ## Scenario 2: multivalue=False, normalize=callback
+        o = self.cls(name, doc, t, normalize=callback)
+        assert o.normalize(None) is None
+        for v in (orig, norm):
+            assert o.normalize(v) == norm
+        for v in (orig_str, tup_orig, tup_norm, tup_str): # Not unicode
+            e = raises(TypeError, o.normalize, v)
+            assert str(e) == 'need a %r; got %r' % (unicode, v)
+
+        ## Scenario 3: multivalue=True, normalize=None
+        o = self.cls(name, doc, t, multivalue=True)
+        for v in all_values:
+            # When normalize=None, value is returned, no type checking:
+            assert o.normalize(v) is v
+
+        ## Scenario 4: multivalue=True, normalize=callback
+        o = self.cls(name, doc, t, multivalue=True, normalize=callback)
+        assert o.normalize(None) is None
+        for v in (tup_orig, tup_norm):
+            assert o.normalize(v) == tup_norm
+        for v in (orig, orig_str, norm): # Not tuple
+            e = raises(TypeError, o.normalize, v)
+            assert str(e) == 'multivalue must be a tuple; got %r' % v
+        for v in [tup_str, (norm, orig, orig_str)]: # Not unicode
+            e = raises(TypeError, o.normalize, v)
+            assert str(e) == 'need a %r; got %r' % (unicode, orig_str)
+
     def test_validate(self):
-        # Constructor arguments
+        """
+        Tests the `public.Option2.validate` method.
+        """
         name = 'sn'
         doc = 'User last name'
         type_ = ipa_types.Unicode()
@@ -137,36 +214,31 @@ class test_Option2(ClassChecker):
             if not value.islower():
                 return 'Must be lower case'
         my_rules = (case_rule,)
-
-        # Some test values:
         okay = u'whatever'
         fail_case = u'Whatever'
         fail_type = 'whatever'
 
-        # Test validate() and validate_scalar() when multivalue=False:
+        ## Scenario 1: multivalue=False
         o = self.cls(name, doc, type_, rules=my_rules)
         assert o.rules == (type_.validate, case_rule)
-        for m in [o.validate, o.validate_scalar]:
-            # Test a valid value:
-            m(okay)
-           # Check that RuleError is raised with wrong case:
-            e = raises(errors.RuleError, m, fail_case)
-            assert e.name is name
-            assert e.value is fail_case
-            assert e.error == 'Must be lower case'
-            # Test a RuleError is raise with wrong type:
-            e = raises(errors.RuleError, m, fail_type)
-            assert e.name is name
-            assert e.value is fail_type
-            assert e.error == 'Must be a string'
+        # Test a valid value:
+        o.validate(okay)
+        # Check that RuleError is raised with wrong case:
+        e = raises(errors.RuleError, o.validate, fail_case)
+        assert e.name is name
+        assert e.value is fail_case
+        assert e.error == 'Must be lower case'
+        # Test a RuleError is raise with wrong type:
+        e = raises(errors.RuleError, o.validate, fail_type)
+        assert e.name is name
+        assert e.value is fail_type
+        assert e.error == 'Must be a string'
 
-        # Test validate() when multivalue=True:
+        ## Scenario 2: multivalue=True
         o = self.cls(name, doc, type_, multivalue=True, rules=my_rules)
         def check_type_error(value):
             e = raises(TypeError, o.validate, value)
-            assert str(e) == (
-                'when multivalue, value must be tuple; got %r' % value
-            )
+            assert str(e) == 'multivalue must be a tuple; got %r' % value
         # Check a valid value:
         check_type_error(okay)
         o.validate((okay,))
@@ -177,7 +249,7 @@ class test_Option2(ClassChecker):
             assert e.name is name
             assert e.value is fail_case
             assert e.error == 'Must be lower case'
-        # Test a RuleError is raise with wrong type:
+        # Check that RuleError is raise with wrong type:
         check_type_error(fail_type)
         for value in [(okay, fail_type), (fail_type, okay)]:
             e = raises(errors.RuleError, o.validate, value)
