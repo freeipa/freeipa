@@ -24,25 +24,38 @@ All custom errors raised by `ipalib` package.
 
 class IPATypeError(TypeError):
     """
-    A TypeError subclass with with a standard message.
+    A TypeError subclass with a helpful message format.
 
-    Also has two custom attributes:
+    IPATypeError has three custom instance attributes:
 
-        ``type`` - The type being tested against.
-        ``value`` - The offending value that caused the exception.
+        ``name`` - Name of the argument TypeError is being raised for.
+
+        ``type`` - Type that the argument should be.
+
+        ``value`` - Value (of incorrect type) supplied for the argument.
 
     There is no edict that all TypeError should be raised with IPATypeError,
     but when it fits, use it... it makes the unit tests faster to write and
     the debugging easier to read.
+
+    Here is an example:
+
+    >>> raise IPATypeError('islate', bool, '4 AM')
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    IPATypeError: islate: need a <type 'bool'>; got '4 AM'
     """
 
-    format = 'need a %r; got %r'
+    format = '%s: need a %r; got %r'
 
-    def __init__(self, type_, value):
-        assert type(value) is not type_, '%r is a %r' % (value, type_)
+    def __init__(self, name, type_, value):
+        assert type(name) is str, self.format % ('name', str, name)
+        assert type(type_) is type, self.format % ('type_', type, type_)
+        assert type(value) is not type_, 'value: %r is a %r' % (value, type_)
+        self.name = name
         self.type = type_
         self.value = value
-        TypeError.__init__(self, self.format % (self.type, self.value))
+        TypeError.__init__(self, self.format % (name, type_, value))
 
 
 class IPAError(Exception):

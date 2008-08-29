@@ -38,14 +38,27 @@ class test_IPATypeError(ClassChecker):
         """
         Tests the `errors.IPATypeError.__init__` method.
         """
+        format = '%s: need a %r; got %r'
+        name = 'message'
         type_ = unicode
-        okay = 'hello'
-        e = self.cls(type_, okay)
+        value = 'hello world'
+        e = self.cls(name, type_, value)
+        assert e.name is name
         assert e.type is type_
-        assert e.value is okay
-        assert str(e) == 'need a %r; got %r' % (type_, okay)
+        assert e.value is value
+        assert str(e) == format % (name, type_, value)
 
-        # Check that AssertionError is raised when type(value) is type_:
-        fail = u'hello'
-        e = raises(AssertionError, self.cls, type_, fail)
-        assert str(e) == '%r is a %r' % (fail, type_)
+        # name not an str:
+        fail = 42
+        e = raises(AssertionError, self.cls, fail, type_, value)
+        assert str(e) == format % ('name', str, fail)
+
+        # type_ not a type:
+        fail = unicode()
+        e = raises(AssertionError, self.cls, name, fail, value)
+        assert str(e) == format % ('type_', type, fail)
+
+        # type(value) is type_:
+        fail = u'how are you?'
+        e = raises(AssertionError, self.cls, name, type_, fail)
+        assert str(e) == 'value: %r is a %r' % (fail, type_)
