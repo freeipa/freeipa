@@ -10,7 +10,7 @@ do
     if [[ -f $executable ]]; then
         echo "[ $name: Starting tests... ]"
         ((runs += 1))
-        if $executable /usr/bin/nosetests
+        if $executable /usr/bin/nosetests -v
         then
             echo "[ $name: Tests OK ]"
         else
