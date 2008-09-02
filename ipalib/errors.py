@@ -23,17 +23,17 @@ All custom errors raised by `ipalib` package.
 
 TYPE_FORMAT = '%s: need a %r; got %r'
 
-def raise_TypeError(name, type_, value):
+def raise_TypeError(value, type_, name):
     """
     Raises a TypeError with a nicely formatted message and helpful attributes.
 
     The TypeError raised will have three custom attributes:
 
-        ``name`` - The name (identifier) of the argument in question.
+        ``value`` - The value (of incorrect type) passed as argument.
 
         ``type`` - The type expected for the argument.
 
-        ``value`` - The value (of incorrect type) passed as argument.
+        ``name`` - The name (identifier) of the argument in question.
 
     There is no edict that all TypeError should be raised with raise_TypeError,
     but when it fits, use it... it makes the unit tests faster to write and
@@ -48,40 +48,40 @@ def raise_TypeError(name, type_, value):
         raise e
     TypeError: message: need a <type 'str'>; got u'Hello.'
 
-    :param name: The name (identifier) of the argument in question.
+    :param value: The value (of incorrect type) passed as argument.
     :param type_: The type expected for the argument.
-    :param value: The value (of incorrect type) passed argument.
+    :param name: The name (identifier) of the argument in question.
     """
 
-    assert type(name) is str, TYPE_FORMAT % ('name', str, name)
     assert type(type_) is type, TYPE_FORMAT % ('type_', type, type_)
     assert type(value) is not type_, 'value: %r is a %r' % (value, type_)
+    assert type(name) is str, TYPE_FORMAT % ('name', str, name)
     e = TypeError(TYPE_FORMAT % (name, type_, value))
-    setattr(e, 'name', name)
-    setattr(e, 'type', type_)
     setattr(e, 'value', value)
+    setattr(e, 'type', type_)
+    setattr(e, 'name', name)
     raise e
 
 
-def check_type(name, type_, value, allow_None=False):
+def check_type(value, type_, name, allow_None=False):
     assert type(name) is str, TYPE_FORMAT % ('name', str, name)
     assert type(type_) is type, TYPE_FORMAT % ('type_', type, type_)
     assert type(allow_None) is bool, TYPE_FORMAT % ('allow_None', bool, allow_None)
     if value is None and allow_None:
         return
     if type(value) is not type_:
-        raise_TypeError(name, type_, value)
+        raise_TypeError(value, type_, name)
     return value
 
 
-def check_isinstance(name, type_, value, allow_None=False):
-    assert type(name) is str, TYPE_FORMAT % ('name', str, name)
+def check_isinstance(value, type_, name, allow_None=False):
     assert type(type_) is type, TYPE_FORMAT % ('type_', type, type_)
+    assert type(name) is str, TYPE_FORMAT % ('name', str, name)
     assert type(allow_None) is bool, TYPE_FORMAT % ('allow_None', bool, allow_None)
     if value is None and allow_None:
         return
     if not isinstance(value, type_):
-        raise_TypeError(name, type_, value)
+        raise_TypeError(value, type_, name)
     return value
 
 

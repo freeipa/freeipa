@@ -117,8 +117,8 @@ class test_Option2(ClassChecker):
         """
         Tests the `public.Option2.__init__` method.
         """
-        name = 'sn',
-        doc = 'Last Name',
+        name = 'sn'
+        doc = 'Last Name'
         type_ = ipa_types.Unicode()
         o = self.cls(name, doc, type_)
         assert o.__islocked__() is True
