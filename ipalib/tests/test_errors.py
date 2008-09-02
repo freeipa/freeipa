@@ -71,8 +71,8 @@ def test_check_type():
     value = 'How are you?'
 
     # Should pass:
-    f(name, str, value)
-    f(name, str, None, allow_None=True)
+    assert value is f(name, str, value)
+    assert None is f(name, str, None, allow_None=True)
 
     # Should raise TypeError
     check_TypeError(f, name, str, None)
@@ -104,9 +104,9 @@ def test_check_isinstance():
     value = 'How are you?'
 
     # Should pass:
-    f(name, str, value)
-    f(name, basestring, value)
-    f(name, str, None, allow_None=True)
+    assert value is f(name, str, value)
+    assert value is f(name, basestring, value)
+    assert None is f(name, str, None, allow_None=True)
 
     # Should raise TypeError
     check_TypeError(f, name, str, None)

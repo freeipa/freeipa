@@ -71,6 +71,7 @@ def check_type(name, type_, value, allow_None=False):
         return
     if type(value) is not type_:
         raise_TypeError(name, type_, value)
+    return value
 
 
 def check_isinstance(name, type_, value, allow_None=False):
@@ -81,6 +82,7 @@ def check_isinstance(name, type_, value, allow_None=False):
         return
     if not isinstance(value, type_):
         raise_TypeError(name, type_, value)
+    return value
 
 
 class IPAError(Exception):
