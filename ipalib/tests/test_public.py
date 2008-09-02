@@ -304,112 +304,6 @@ class test_Option2(ClassChecker):
         assert o.get_values() == values
 
 
-class test_Option(ClassChecker):
-    """
-    Tests the `public.Option` class.
-    """
-    _cls = public.Option
-
-    def get_subcls(self):
-        rule = public.rule
-        class int_opt(self.cls):
-            type = int
-            @rule
-            def rule_0(self, value):
-                if value == 0:
-                    return 'cannot be 0'
-            @rule
-            def rule_1(self, value):
-                if value == 1:
-                    return 'cannot be 1'
-            @rule
-            def rule_2(self, value):
-                if value == 2:
-                    return 'cannot be 2'
-        return int_opt
-
-    def test_class(self):
-        """
-        Perform some tests on the class (not an instance).
-        """
-        assert self.cls.__bases__ == (plugable.Plugin,)
-        assert type(self.cls.rules) is property
-
-    def test_normalize(self):
-        """
-        Tests the `public.Option.normalize` method.
-        """
-        assert 'normalize' in self.cls.__public__
-        o = self.subcls()
-        # Test with values that can't be converted:
-        nope = (
-            '7.0'
-            'whatever',
-            object,
-            None,
-        )
-        for val in nope:
-            e = raises(errors.NormalizationError, o.normalize, val)
-            assert isinstance(e, errors.ValidationError)
-            assert e.name == 'int_opt'
-            assert e.value == val
-            assert e.error == "not <type 'int'>"
-            assert e.type is int
-        # Test with values that can be converted:
-        okay = (
-            7,
-            7.0,
-            7.2,
-            7L,
-            '7',
-            ' 7 ',
-        )
-        for val in okay:
-            assert o.normalize(val) == 7
-
-    def test_validate(self):
-        """
-        Tests the `public.Option.validate` method.
-        """
-        assert 'validate' in self.cls.__public__
-        o = self.subcls()
-        o.validate(9)
-        for i in xrange(3):
-            e = raises(errors.RuleError, o.validate, i)
-            assert e.error == 'cannot be %d' % i
-            assert e.value == i
-
-    def test_rules(self):
-        """
-        Tests the `public.Option.rules` property.
-        """
-        o = self.subcls()
-        assert len(o.rules) == 3
-        def get_rule(i):
-            return getattr(o, 'rule_%d' % i)
-        rules = tuple(get_rule(i) for i in xrange(3))
-        assert o.rules == rules
-
-    def test_get_default(self):
-        """
-        Tests the `public.Option.get_default` method.
-        """
-        assert 'get_default' in self.cls.__public__
-        assert 'default' in self.cls.__public__
-        assert 'default_from' in self.cls.__public__
-        assert self.cls().get_default() is None
-        class subclass(self.cls):
-            default = 3
-            default_from = public.DefaultFrom(
-                lambda a,b: a * b,
-                'key0', 'key1'
-            )
-        o = subclass()
-        assert o.get_default() == 3
-        assert o.get_default(key0=2, key1=5) == 10
-        assert o.get_default(key0=7) == 3
-
-
 class test_Command(ClassChecker):
     """
     Tests the `public.Command` class.
@@ -708,9 +602,11 @@ class test_Method(ClassChecker):
             assert proxy.implements(public.Option)
 
 
-class test_prop(ClassChecker):
+class test_Property(ClassChecker):
+    """
+    Tests the `public.Property` class.
+    """
     _cls = public.Property
 
     def test_class(self):
-        assert self.cls.__bases__ == (public.Attribute, public.Option)
-        assert self.cls.implements(public.Option)
+        assert self.cls.__bases__ == (public.Attribute,)

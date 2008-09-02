@@ -158,95 +158,6 @@ class Option2(plugable.ReadOnly):
         return tuple()
 
 
-class Option(plugable.Plugin):
-    """
-    The Option class represents a kw argument from a `Command`.
-    """
-
-    __public__ = frozenset((
-        'normalize',
-        'get_default',
-        'validate',
-        'type',
-        'required',
-        'default',
-        'default_from',
-    ))
-    __rules = None
-    type = unicode
-    required = False
-    default = None
-    default_from = None
-
-
-    def normalize(self, value):
-        """
-        Returns the normalized form of `value`. If `value` cannot be
-        normalized, NormalizationError is raised, which is a subclass of
-        ValidationError.
-
-        The base class implementation only does type coercion, but subclasses
-        might do other normalization (e.g., a unicode option might strip
-        leading and trailing white-space).
-        """
-        try:
-            return self.type(value)
-        except (TypeError, ValueError):
-            raise errors.NormalizationError(
-                self.__class__.__name__, value, self.type
-            )
-
-    def validate(self, value):
-        """
-        Calls each validation rule and if any rule fails, raises RuleError,
-        which is a subclass of ValidationError.
-        """
-        for rule in self.rules:
-            msg = rule(value)
-            if msg is not None:
-                raise errors.RuleError(
-                    self.__class__.__name__,
-                    value,
-                    rule,
-                    msg,
-                )
-
-    def __get_rules(self):
-        """
-        Returns the tuple of rule methods used for input validation. This
-        tuple is lazily initialized the first time the property is accessed.
-        """
-        if self.__rules is None:
-            rules = tuple(sorted(
-                self.__rules_iter(),
-                key=lambda f: getattr(f, '__name__'),
-            ))
-            object.__setattr__(self, '_Option__rules', rules)
-        return self.__rules
-    rules = property(__get_rules)
-
-    def __rules_iter(self):
-        """
-        Iterates through the attributes in this instance to retrieve the
-        methods implementing validation rules.
-        """
-        for name in dir(self.__class__):
-            if name.startswith('_'):
-                continue
-            base_attr = getattr(self.__class__, name)
-            if is_rule(base_attr):
-                attr = getattr(self, name)
-                if is_rule(attr):
-                    yield attr
-
-    def get_default(self, **kw):
-        if type(self.default_from) is DefaultFrom:
-            default = self.default_from(**kw)
-            if default is not None:
-                return default
-        return self.default
-
-
 class Command(plugable.Plugin):
     __public__ = frozenset((
         'normalize',
@@ -428,8 +339,37 @@ class Method(Attribute, Command):
                 yield proxy
 
 
-class Property(Attribute, Option):
-    __public__ = Attribute.__public__.union(Option.__public__)
+class Property(Attribute):
+    __public__ = frozenset((
+        'rules',
+        'option',
+        'type',
+    )).union(Attribute.__public__)
 
-    def get_doc(self, _):
-        return _('Property doc')
+    def __get_rules(self):
+        """
+        Returns the tuple of rule methods used for input validation. This
+        tuple is lazily initialized the first time the property is accessed.
+        """
+        if self.__rules is None:
+            rules = tuple(sorted(
+                self.__rules_iter(),
+                key=lambda f: getattr(f, '__name__'),
+            ))
+            object.__setattr__(self, '_Property__rules', rules)
+        return self.__rules
+    rules = property(__get_rules)
+
+    def __rules_iter(self):
+        """
+        Iterates through the attributes in this instance to retrieve the
+        methods implementing validation rules.
+        """
+        for name in dir(self.__class__):
+            if name.startswith('_'):
+                continue
+            base_attr = getattr(self.__class__, name)
+            if is_rule(base_attr):
+                attr = getattr(self, name)
+                if is_rule(attr):
+                    yield attr
