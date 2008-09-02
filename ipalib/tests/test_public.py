@@ -304,7 +304,7 @@ class test_Option(ClassChecker):
         assert o.get_values() == values
 
 
-class dont_Command(ClassChecker):
+class test_Command(ClassChecker):
     """
     Tests the `public.Command` class.
     """
@@ -326,11 +326,6 @@ class dont_Command(ClassChecker):
         normalize = lambda value: value.lower()
         type_ = ipa_types.Unicode()
 
-        class option0(my_option):
-            pass
-        class option1(my_option):
-            required = True
-
         class example(self.cls):
             options = (
                 public.Option('option0', 'Option zero', type_,
@@ -349,7 +344,7 @@ class dont_Command(ClassChecker):
 
     def test_class(self):
         assert self.cls.__bases__ == (plugable.Plugin,)
-        assert type(self.cls.options) == property
+        assert self.cls.options == tuple()
 
     def test_get_options(self):
         """
@@ -357,27 +352,26 @@ class dont_Command(ClassChecker):
         """
         assert list(self.cls().get_options()) == []
         sub = self.subcls()
-        for (i, proxy) in enumerate(sub.get_options()):
-            assert isinstance(proxy, plugable.PluginProxy)
-            assert read_only(proxy, 'name') == 'option%d' % i
-            assert proxy.implements(public.Option)
+        for (i, option) in enumerate(sub.get_options()):
+            assert isinstance(option, public.Option)
+            assert read_only(option, 'name') == 'option%d' % i
         assert i == 1
 
-    def test_options(self):
+    def test_Option(self):
         """
-        Tests the `public.Command.options` property.
+        Tests the `public.Command.Option` property.
         """
-        assert 'options' in self.cls.__public__ # Public
+        assert 'Option' in self.cls.__public__ # Public
         sub = self.subcls()
-        options = sub.options
-        assert type(options) == plugable.NameSpace
-        assert len(options) == 2
+        O = sub.Option
+        assert type(O) is plugable.NameSpace
+        assert len(O) == 2
         for name in ('option0', 'option1'):
-            assert name in options
-            proxy = options[name]
-            assert getattr(options, name) is proxy
-            assert isinstance(proxy, plugable.PluginProxy)
-            assert proxy.name == name
+            assert name in O
+            option = O[name]
+            assert getattr(O, name) is option
+            assert isinstance(option, public.Option)
+            assert option.name == name
 
     def test_normalize(self):
         """
@@ -385,9 +379,9 @@ class dont_Command(ClassChecker):
         """
         assert 'normalize' in self.cls.__public__ # Public
         kw = dict(
-            option0='OPTION0',
-            option1='OPTION1',
-            option2='option2',
+            option0=u'OPTION0',
+            option1=u'OPTION1',
+            option2=u'option2',
         )
         norm = dict((k, v.lower()) for (k, v) in kw.items())
         sub = self.subcls()
@@ -424,8 +418,8 @@ class dont_Command(ClassChecker):
 
         # Check with valid args
         okay = dict(
-            option0='option0',
-            option1='option1',
+            option0=u'option0',
+            option1=u'option1',
             another_option='some value',
         )
         sub.validate(**okay)

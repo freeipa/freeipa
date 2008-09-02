@@ -160,27 +160,15 @@ class Option(plugable.ReadOnly):
 
 class Command(plugable.Plugin):
     __public__ = frozenset((
-        'normalize',
         'get_default',
+        'normalize',
         'validate',
         'execute',
         '__call__',
-        'get_doc',
-        'options',
+        'Option',
     ))
     __Option = None
     options = tuple()
-
-    def get_doc(self, _):
-        """
-        Returns the gettext translated doc-string for this command.
-
-        For example:
-
-        >>> def get_doc(self, _):
-        >>>     return _('add new user')
-        """
-        raise NotImplementedError('%s.get_doc()' % self.name)
 
     def get_options(self):
         return self.options
@@ -196,21 +184,21 @@ class Command(plugable.Plugin):
         return self.__Option
     Option = property(__get_Option)
 
-    def normalize_iter(self, kw):
+    def __normalize_iter(self, kw):
         for (key, value) in kw.items():
-            if key in self.options:
+            if key in self.Option:
                 yield (
-                    key, self.options[key].normalize(value)
+                    key, self.Option[key].normalize(value)
                 )
             else:
                 yield (key, value)
 
     def normalize(self, **kw):
         self.print_call('normalize', kw, 1)
-        return dict(self.normalize_iter(kw))
+        return dict(self.__normalize_iter(kw))
 
-    def get_default_iter(self, kw):
-        for option in self.options():
+    def __get_default_iter(self, kw):
+        for option in self.Option():
             if option.name not in kw:
                 value = option.get_default(**kw)
                 if value is not None:
@@ -218,17 +206,17 @@ class Command(plugable.Plugin):
 
     def get_default(self, **kw):
         self.print_call('default', kw, 1)
-        return dict(self.get_default_iter(kw))
+        return dict(self.__get_default_iter(kw))
 
     def validate(self, **kw):
         self.print_call('validate', kw, 1)
-        for opt in self.options():
-            value = kw.get(opt.name, None)
+        for option in self.Option():
+            value = kw.get(option.name, None)
             if value is None:
-                if opt.required:
-                    raise errors.RequirementError(opt.name)
+                if option.required:
+                    raise errors.RequirementError(option.name)
                 continue
-            opt.validate(value)
+            option.validate(value)
 
     def execute(self, **kw):
         self.print_call('execute', kw, 1)
