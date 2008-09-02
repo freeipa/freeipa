@@ -28,6 +28,7 @@ http://docs.python.org/ref/sequence-types.html
 import re
 import inspect
 import errors
+from errors import check_type, check_isinstance
 
 
 class ReadOnly(object):
@@ -466,7 +467,7 @@ def check_name(name):
 
     :param name: Identifier to test.
     """
-    assert type(name) is str, 'must be %r' % str
+    check_type(name, str, 'name')
     regex = r'^[a-z][_a-z0-9]*[a-z0-9]$'
     if re.match(regex, name) is None:
         raise errors.NameSpaceError(name, regex)

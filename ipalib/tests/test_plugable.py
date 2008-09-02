@@ -549,6 +549,8 @@ def test_check_name():
     ]
     for name in okay:
         assert name is f(name)
+        e = raises(TypeError, f, unicode(name))
+        assert str(e) == errors.TYPE_FORMAT % ('name', str, unicode(name))
     for name in nope:
         raises(errors.NameSpaceError, f, name)
     for name in okay:
