@@ -85,7 +85,7 @@ class DefaultFrom(plugable.ReadOnly):
             return None
 
 
-class Option2(plugable.ReadOnly):
+class Option(plugable.ReadOnly):
     def __init__(self, name, doc, type_,
             required=False,
             multivalue=False,

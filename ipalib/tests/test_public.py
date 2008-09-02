@@ -104,18 +104,18 @@ class test_DefaltFrom(ClassChecker):
             assert o(**kw_copy) is None
 
 
-class test_Option2(ClassChecker):
+class test_Option(ClassChecker):
     """
-    Tests the `public.Option2` class.
+    Tests the `public.Option` class.
     """
-    _cls = public.Option2
+    _cls = public.Option
 
     def test_class(self):
         assert self.cls.__bases__ == (plugable.ReadOnly,)
 
     def test_init(self):
         """
-        Tests the `public.Option2.__init__` method.
+        Tests the `public.Option.__init__` method.
         """
         name = 'sn'
         doc = 'Last Name'
@@ -156,7 +156,7 @@ class test_Option2(ClassChecker):
 
     def test_normalize(self):
         """
-        Tests the `public.Option2.validate` method.
+        Tests the `public.Option.validate` method.
         """
         name = 'sn'
         doc = 'User last name'
@@ -205,7 +205,7 @@ class test_Option2(ClassChecker):
 
     def test_validate(self):
         """
-        Tests the `public.Option2.validate` method.
+        Tests the `public.Option.validate` method.
         """
         name = 'sn'
         doc = 'User last name'
@@ -259,7 +259,7 @@ class test_Option2(ClassChecker):
 
     def test_get_default(self):
         """
-        Tests the `public.Option2.get_default` method.
+        Tests the `public.Option.get_default` method.
         """
         name = 'greeting'
         doc = 'User greeting'
@@ -293,7 +293,7 @@ class test_Option2(ClassChecker):
 
     def test_get_default(self):
         """
-        Tests the `public.Option2.get_values` method.
+        Tests the `public.Option.get_values` method.
         """
         name = 'status'
         doc = 'Account status'
