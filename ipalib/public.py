@@ -168,8 +168,8 @@ class Command(plugable.Plugin):
         'get_doc',
         'options',
     ))
-    __options = None
-    option_classes = tuple()
+    __Option = None
+    options = tuple()
 
     def get_doc(self, _):
         """
@@ -183,26 +183,18 @@ class Command(plugable.Plugin):
         raise NotImplementedError('%s.get_doc()' % self.name)
 
     def get_options(self):
-        """
-        Returns iterable with option proxy objects used to create the option
-        NameSpace when __get_option() is called.
-        """
-        for cls in self.option_classes:
-            assert inspect.isclass(cls)
-            o = cls()
-            o.__lock__()
-            yield plugable.PluginProxy(Option, o)
+        return self.options
 
-    def __get_options(self):
+    def __get_Option(self):
         """
-        Returns the NameSpace containing the option proxy objects.
+        Returns the NameSpace containing the Option instances.
         """
-        if self.__options is None:
-            object.__setattr__(self, '_Command__options',
+        if self.__Option is None:
+            object.__setattr__(self, '_Command__Option',
                 plugable.NameSpace(self.get_options()),
             )
-        return self.__options
-    options = property(__get_options)
+        return self.__Option
+    Option = property(__get_Option)
 
     def normalize_iter(self, kw):
         for (key, value) in kw.items():
@@ -332,11 +324,11 @@ class Method(Attribute, Command):
     __public__ = Attribute.__public__.union(Command.__public__)
 
     def get_options(self):
-        for proxy in Command.get_options(self):
-            yield proxy
+        for option in Command.options:
+            yield option
         if self.obj is not None and self.obj.Property is not None:
             for proxy in self.obj.Property():
-                yield proxy
+                yield proxy.option
 
 
 class Property(Attribute):
@@ -346,19 +338,27 @@ class Property(Attribute):
         'type',
     )).union(Attribute.__public__)
 
-    def __get_rules(self):
-        """
-        Returns the tuple of rule methods used for input validation. This
-        tuple is lazily initialized the first time the property is accessed.
-        """
-        if self.__rules is None:
-            rules = tuple(sorted(
-                self.__rules_iter(),
-                key=lambda f: getattr(f, '__name__'),
-            ))
-            object.__setattr__(self, '_Property__rules', rules)
-        return self.__rules
-    rules = property(__get_rules)
+    type = ipa_types.Unicode()
+    required = False
+    multivalue = False
+    default = None
+    default_from = None
+    normalize = None
+
+    def __init__(self):
+        super(Property, self).__init__()
+        self.rules = tuple(sorted(
+            self.__rules_iter(),
+            key=lambda f: getattr(f, '__name__'),
+        ))
+        self.option = Option(self.attr_name, self.doc, self.type,
+            required=self.required,
+            multivalue=self.multivalue,
+            default=self.default,
+            default_from=self.default_from,
+            rules=self.rules,
+            normalize=self.normalize,
+        )
 
     def __rules_iter(self):
         """

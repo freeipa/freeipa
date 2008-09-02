@@ -304,30 +304,47 @@ class test_Option(ClassChecker):
         assert o.get_values() == values
 
 
-class test_Command(ClassChecker):
+class dont_Command(ClassChecker):
     """
     Tests the `public.Command` class.
     """
     _cls = public.Command
 
     def get_subcls(self):
-        class my_option(public.Option):
-            def normalize(self, value):
-                return super(my_option, self).normalize(value).lower()
-            @public.rule
-            def my_rule(self, value):
+        class Rule(object):
+            def __init__(self, name):
+                self.name = name
+
+            def __call__(self, value):
                 if value != self.name:
                     return 'must equal %r' % self.name
-            default_from = public.DefaultFrom(
-                lambda arg: arg, 'default_from'
-            )
+
+        default_from = public.DefaultFrom(
+                lambda arg: arg,
+                'default_from'
+        )
+        normalize = lambda value: value.lower()
+        type_ = ipa_types.Unicode()
 
         class option0(my_option):
             pass
         class option1(my_option):
             required = True
+
         class example(self.cls):
-            option_classes = (option0, option1)
+            options = (
+                public.Option('option0', 'Option zero', type_,
+                    normalize=normalize,
+                    default_from=default_from,
+                    rules=(Rule('option0'),)
+                ),
+                public.Option('option1', 'Option one', type_,
+                    normalize=normalize,
+                    default_from=default_from,
+                    rules=(Rule('option1'),),
+                    required=True,
+                ),
+            )
         return example
 
     def test_class(self):
@@ -550,7 +567,7 @@ class test_Attribute(ClassChecker):
         assert read_only(o, 'obj') is user_obj
 
 
-class test_Method(ClassChecker):
+class dont_Method(ClassChecker):
     """
     Tests the `public.Method` class.
     """
@@ -608,5 +625,30 @@ class test_Property(ClassChecker):
     """
     _cls = public.Property
 
+    def get_subcls(self):
+        class user_givenname(self.cls):
+            'User first name'
+
+            @public.rule
+            def rule0_lowercase(self, value):
+                if not value.islower():
+                    return 'Must be lowercase'
+        return user_givenname
+
     def test_class(self):
         assert self.cls.__bases__ == (public.Attribute,)
+        assert isinstance(self.cls.type, ipa_types.Unicode)
+        assert self.cls.required is False
+        assert self.cls.multivalue is False
+        assert self.cls.default is None
+        assert self.cls.default_from is None
+        assert self.cls.normalize is None
+
+    def test_init(self):
+        o = self.subcls()
+        assert len(o.rules) == 1
+        assert o.rules[0].__name__ == 'rule0_lowercase'
+        opt = o.option
+        assert isinstance(opt, public.Option)
+        assert opt.name == 'givenname'
+        assert opt.doc == 'User first name'
