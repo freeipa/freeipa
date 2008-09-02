@@ -152,6 +152,11 @@ class Option2(plugable.ReadOnly):
                 return self.convert(default)
         return self.convert(self.default)
 
+    def get_values(self):
+        if self.type.name in ('Enum', 'CallbackEnum'):
+            return self.type.values
+        return tuple()
+
 
 class Option(plugable.Plugin):
     """

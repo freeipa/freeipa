@@ -291,6 +291,18 @@ class test_Option2(ClassChecker):
         assert o.get_default() == (default,)
         assert o.get_default(first='John', last='Doe') == ('Hello, John Doe!',)
 
+    def test_get_default(self):
+        """
+        Tests the `public.Option2.get_values` method.
+        """
+        name = 'status'
+        doc = 'Account status'
+        values = (u'Active', u'Inactive')
+        o = self.cls(name, doc, ipa_types.Unicode())
+        assert o.get_values() == tuple()
+        o = self.cls(name, doc, ipa_types.Enum(*values))
+        assert o.get_values() == values
+
 
 class test_Option(ClassChecker):
     """
