@@ -86,8 +86,13 @@ class DefaultFrom(plugable.ReadOnly):
 
 
 class Option2(plugable.ReadOnly):
-    def __init__(self, name, doc, type_, required=False, multivalue=False,
-            default=None, default_from=None, rules=tuple(), normalize=None):
+    def __init__(self, name, doc, type_,
+            required=False,
+            multivalue=False,
+            default=None,
+            default_from=None,
+            rules=tuple(),
+            normalize=None):
         self.name = check_name(name)
         self.doc = check_type(doc, str, 'doc')
         self.type = check_isinstance(type_, ipa_types.Type, 'type_')
@@ -139,6 +144,13 @@ class Option2(plugable.ReadOnly):
                 self.__validate_scalar(v)
         else:
             self.__validate_scalar(value)
+
+    def get_default(self, **kw):
+        if self.default_from is not None:
+            default = self.default_from(**kw)
+            if default is not None:
+                return self.convert(default)
+        return self.convert(self.default)
 
 
 class Option(plugable.Plugin):

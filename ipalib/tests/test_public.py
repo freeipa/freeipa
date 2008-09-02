@@ -257,6 +257,40 @@ class test_Option2(ClassChecker):
             assert e.value is fail_type
             assert e.error == 'Must be a string'
 
+    def test_get_default(self):
+        """
+        Tests the `public.Option2.get_default` method.
+        """
+        name = 'greeting'
+        doc = 'User greeting'
+        type_ = ipa_types.Unicode()
+        default = u'Hello, world!'
+        default_from = public.DefaultFrom(
+            lambda first, last: u'Hello, %s %s!' % (first, last),
+            'first', 'last'
+        )
+
+        # Scenario 1: multivalue=False
+        o = self.cls(name, doc, type_,
+            default=default,
+            default_from=default_from,
+        )
+        assert o.default is default
+        assert o.default_from is default_from
+        assert o.get_default() == default
+        assert o.get_default(first='John', last='Doe') == 'Hello, John Doe!'
+
+        # Scenario 2: multivalue=True
+        o = self.cls(name, doc, type_,
+            default=default,
+            default_from=default_from,
+            multivalue=True,
+        )
+        assert o.default is default
+        assert o.default_from is default_from
+        assert o.get_default() == (default,)
+        assert o.get_default(first='John', last='Doe') == ('Hello, John Doe!',)
+
 
 class test_Option(ClassChecker):
     """
