@@ -25,8 +25,9 @@ and UI all use.
 import re
 import inspect
 import plugable
-from plugable import lock
+from plugable import lock, check_name
 import errors
+from errors import check_type, check_isinstance
 import ipa_types
 
 
@@ -87,13 +88,14 @@ class DefaultFrom(plugable.ReadOnly):
 class Option2(plugable.ReadOnly):
     def __init__(self, name, doc, type_, required=False, multivalue=False,
             default=None, default_from=None, rules=tuple(), normalize=None):
-        self.name = name
-        self.doc = doc
-        self.type = type_
-        self.required = required
-        self.multivalue = multivalue
+        self.name = check_name(name)
+        self.doc = check_type(doc, str, 'doc')
+        self.type = check_isinstance(type_, ipa_types.Type, 'type_')
+        self.required = check_type(required, bool, 'required')
+        self.multivalue = check_type(multivalue, bool, 'multivalue')
         self.default = default
-        self.default_from = default_from
+        self.default_from = check_type(default_from,
+            DefaultFrom, 'default_from', allow_None=True)
         self.__normalize = normalize
         self.rules = (type_.validate,) + rules
         lock(self)
