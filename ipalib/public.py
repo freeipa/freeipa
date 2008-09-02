@@ -95,7 +95,7 @@ class Option2(plugable.ReadOnly):
         self.multivalue = check_type(multivalue, bool, 'multivalue')
         self.default = default
         self.default_from = check_type(default_from,
-            DefaultFrom, 'default_from', allow_None=True)
+            DefaultFrom, 'default_from', allow_none=True)
         self.__normalize = normalize
         self.rules = (type_.validate,) + rules
         lock(self)

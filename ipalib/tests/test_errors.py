@@ -74,7 +74,7 @@ def test_check_type():
 
     # Should pass:
     assert value is f(value, type_, name)
-    assert None is f(None, type_, name, allow_None=True)
+    assert None is f(None, type_, name, allow_none=True)
 
     # Should raise TypeError
     check_TypeError(f, None, type_, name)
@@ -91,10 +91,10 @@ def test_check_type():
     e = raises(AssertionError, f, value, fail_type, name)
     assert str(e) == type_format % ('type_', type, fail_type)
 
-    # allow_None not a bool:
+    # allow_none not a bool:
     fail_bool = 0
-    e = raises(AssertionError, f, value, type_, name, allow_None=fail_bool)
-    assert str(e) == type_format % ('allow_None', bool, fail_bool)
+    e = raises(AssertionError, f, value, type_, name, allow_none=fail_bool)
+    assert str(e) == type_format % ('allow_none', bool, fail_bool)
 
 
 def test_check_isinstance():
@@ -109,7 +109,7 @@ def test_check_isinstance():
     # Should pass:
     assert value is f(value, type_, name)
     assert value is f(value, basestring, name)
-    assert None is f(None, type_, name, allow_None=True)
+    assert None is f(None, type_, name, allow_none=True)
 
     # Should raise TypeError
     check_TypeError(f, None, type_, name)
@@ -125,7 +125,7 @@ def test_check_isinstance():
     e = raises(AssertionError, f, value, fail_type, name)
     assert str(e) == type_format % ('type_', type, fail_type)
 
-    # allow_None not a bool:
+    # allow_none not a bool:
     fail_bool = 0
-    e = raises(AssertionError, f, value, type_, name, allow_None=fail_bool)
-    assert str(e) == type_format % ('allow_None', bool, fail_bool)
+    e = raises(AssertionError, f, value, type_, name, allow_none=fail_bool)
+    assert str(e) == type_format % ('allow_none', bool, fail_bool)

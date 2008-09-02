@@ -63,22 +63,22 @@ def raise_TypeError(value, type_, name):
     raise e
 
 
-def check_type(value, type_, name, allow_None=False):
+def check_type(value, type_, name, allow_none=False):
     assert type(name) is str, TYPE_FORMAT % ('name', str, name)
     assert type(type_) is type, TYPE_FORMAT % ('type_', type, type_)
-    assert type(allow_None) is bool, TYPE_FORMAT % ('allow_None', bool, allow_None)
-    if value is None and allow_None:
+    assert type(allow_none) is bool, TYPE_FORMAT % ('allow_none', bool, allow_none)
+    if value is None and allow_none:
         return
     if type(value) is not type_:
         raise_TypeError(value, type_, name)
     return value
 
 
-def check_isinstance(value, type_, name, allow_None=False):
+def check_isinstance(value, type_, name, allow_none=False):
     assert type(type_) is type, TYPE_FORMAT % ('type_', type, type_)
     assert type(name) is str, TYPE_FORMAT % ('name', str, name)
-    assert type(allow_None) is bool, TYPE_FORMAT % ('allow_None', bool, allow_None)
-    if value is None and allow_None:
+    assert type(allow_none) is bool, TYPE_FORMAT % ('allow_none', bool, allow_none)
+    if value is None and allow_none:
         return
     if not isinstance(value, type_):
         raise_TypeError(value, type_, name)
