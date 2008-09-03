@@ -160,3 +160,36 @@ class test_IPAError(ClassChecker):
             e = custom_error(*args)
             assert e.args == args
             assert str(e) == f % args
+
+
+class test_ValidationError(ClassChecker):
+    """
+    Tests the `errors.ValidationError` exception.
+    """
+    _cls = errors.ValidationError
+
+    def test_class(self):
+        assert self.cls.__bases__ == (errors.IPAError,)
+
+    def test_init(self):
+        """
+        Tests the `errors.ValidationError.__init__` method.
+        """
+        name = 'login'
+        value = 'Whatever'
+        error = 'Must be lowercase.'
+        for index in (None, 3):
+            e = self.cls(name, value, error, index=index)
+            assert e.name is name
+            assert e.value is value
+            assert e.error is error
+            assert e.index is index
+            assert str(e) == 'invalid %r value %r: %s' % (name, value, error)
+        # Check that index default is None:
+        assert self.cls(name, value, error).index is None
+        # Check non str name raises AssertionError:
+        raises(AssertionError, self.cls, unicode(name), value, error)
+        # Check non int index raises AssertionError:
+        raises(AssertionError, self.cls, name, value, error, index=5.0)
+        # Check negative index raises AssertionError:
+        raises(AssertionError, self.cls, name, value, error, index=-2)

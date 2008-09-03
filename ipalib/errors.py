@@ -119,6 +119,8 @@ class ValidationError(IPAError):
         :param error: The error message describing the failure.
         :param index: If multivalue, index of value in multivalue tuple
         """
+        assert type(name) is str
+        assert index is None or (type(index) is int and index >= 0)
         self.name = name
         self.value = value
         self.error = error
