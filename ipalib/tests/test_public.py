@@ -561,7 +561,7 @@ class test_Attribute(ClassChecker):
         assert read_only(o, 'obj') is user_obj
 
 
-class dont_Method(ClassChecker):
+class test_Method(ClassChecker):
     """
     Tests the `public.Method` class.
     """
@@ -572,14 +572,10 @@ class dont_Method(ClassChecker):
         assert self.cls.implements(public.Command)
 
     def get_subcls(self):
-        class option0(public.Option):
-            pass
-        class option1(public.Option):
-            pass
         class example_prop0(public.Property):
-            pass
+            'Prop zero'
         class example_prop1(public.Property):
-            pass
+            'Prop one'
         class example_obj(object):
             __prop = None
             def __get_prop(self):
@@ -594,8 +590,12 @@ class dont_Method(ClassChecker):
                     ])
                 return self.__prop
             Property = property(__get_prop)
+        type_ = ipa_types.Unicode()
         class noun_verb(self.cls):
-            option_classes = (option0, option1)
+            options= (
+                public.Option('option0', 'Option zero', type_),
+                public.Option('option1', 'Option one', type_),
+            )
             obj = example_obj()
         return noun_verb
 
@@ -605,12 +605,11 @@ class dont_Method(ClassChecker):
         """
         sub = self.subcls()
         names = ('option0', 'option1', 'prop0', 'prop1')
-        proxies = tuple(sub.get_options())
-        assert len(proxies) == 4
-        for (i, proxy) in enumerate(proxies):
-            assert proxy.name == names[i]
-            assert isinstance(proxy, plugable.PluginProxy)
-            assert proxy.implements(public.Option)
+        options = tuple(sub.get_options())
+        assert len(options) == 4
+        for (i, option) in enumerate(options):
+            assert option.name == names[i]
+            assert isinstance(option, public.Option)
 
 
 class test_Property(ClassChecker):

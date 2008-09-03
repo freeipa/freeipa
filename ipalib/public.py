@@ -312,7 +312,7 @@ class Method(Attribute, Command):
     __public__ = Attribute.__public__.union(Command.__public__)
 
     def get_options(self):
-        for option in Command.options:
+        for option in self.options:
             yield option
         if self.obj is not None and self.obj.Property is not None:
             for proxy in self.obj.Property():
