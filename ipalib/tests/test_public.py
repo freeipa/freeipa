@@ -30,6 +30,9 @@ def test_RULE_FLAG():
 
 
 def test_rule():
+    """
+    Tests the `public.rule` function.
+    """
     flag = public.RULE_FLAG
     rule = public.rule
     def my_func():
@@ -44,6 +47,9 @@ def test_rule():
 
 
 def test_is_rule():
+    """
+    Tests the `public.is_rule` function.
+    """
     is_rule = public.is_rule
     flag = public.RULE_FLAG
 
@@ -63,9 +69,9 @@ def test_is_rule():
     assert not is_rule(call(None))
 
 
-class test_DefaltFrom(ClassChecker):
+class test_DefaultFrom(ClassChecker):
     """
-    Tests the `public.DefaltFrom` class.
+    Tests the `public.DefaultFrom` class.
     """
     _cls = public.DefaultFrom
 
@@ -132,6 +138,9 @@ class test_Option(ClassChecker):
         assert read_only(o, 'rules') == (type_.validate,)
 
     def test_convert(self):
+        """
+        Tests the `public.Option.convert` method.
+        """
         name = 'sn'
         doc = 'User last name'
         type_ = ipa_types.Unicode()
@@ -156,7 +165,7 @@ class test_Option(ClassChecker):
 
     def test_normalize(self):
         """
-        Tests the `public.Option.validate` method.
+        Tests the `public.Option.normalize` method.
         """
         name = 'sn'
         doc = 'User last name'
@@ -291,7 +300,7 @@ class test_Option(ClassChecker):
         assert o.get_default() == (default,)
         assert o.get_default(first='John', last='Doe') == ('Hello, John Doe!',)
 
-    def test_get_default(self):
+    def test_get_value(self):
         """
         Tests the `public.Option.get_values` method.
         """
@@ -540,6 +549,9 @@ class test_Attribute(ClassChecker):
         assert type(self.cls.attr_name) is property
 
     def test_init(self):
+        """
+        Tests the `public.Attribute.__init__` method.
+        """
         class user_add(self.cls):
             pass
         o = user_add()
@@ -548,6 +560,9 @@ class test_Attribute(ClassChecker):
         assert read_only(o, 'attr_name') == 'add'
 
     def test_finalize(self):
+        """
+        Tests the `public.Attribute.finalize` method.
+        """
         user_obj = 'The user public.Object instance'
         class api(object):
             Object = dict(user=user_obj)
@@ -638,6 +653,9 @@ class test_Property(ClassChecker):
         assert self.cls.normalize is None
 
     def test_init(self):
+        """
+        Tests the `public.Property.__init__` method.
+        """
         o = self.subcls()
         assert len(o.rules) == 1
         assert o.rules[0].__name__ == 'rule0_lowercase'
