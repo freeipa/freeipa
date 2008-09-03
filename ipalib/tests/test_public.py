@@ -142,27 +142,47 @@ class test_Option(ClassChecker):
         """
         Tests the `public.Option.convert` method.
         """
-        name = 'sn'
-        doc = 'User last name'
-        type_ = ipa_types.Unicode()
-        class Hello(object):
-            def __unicode__(self):
-                return u'hello'
-        hello = Hello()
-        values = (u'hello', 'hello', hello)
-        # Test when multivalue=False:
+        name = 'some_number'
+        doc = 'Some number'
+        type_ = ipa_types.Int()
+        okay = (7, 7L, 7.0, ' 7 ')
+        fail = ('7.0', '7L', 'whatever', object)
+
+        # Scenario 1: multivalue=False
         o = self.cls(name, doc, type_)
-        for value in values:
+        e = raises(TypeError, o.convert, None)
+        assert str(e) == 'value cannot be None'
+        for value in okay:
             new = o.convert(value)
-            assert new == u'hello'
-            assert type(new) is unicode
-        # Test when multivalue=True:
+            assert new == 7
+            assert type(new) is int
+        for value in fail:
+            e = raises(errors.ConversionError, o.convert, value)
+            assert e.name is name
+            assert e.value is value
+            assert e.error is type_.conversion_error
+            assert e.index is None
+
+        # Scenario 2: multivalue=True
         o = self.cls(name, doc, type_, multivalue=True)
-        for value in values:
-            for v in (value, (value,)):
-                new = o.convert(hello)
-                assert new == (u'hello',)
-                assert type(new) is tuple
+        for none in [None, (7, None)]:
+            e = raises(TypeError, o.convert, none)
+            assert str(e) == 'value cannot be None'
+        for value in okay:
+            assert o.convert((value,)) == (7,)
+            assert o.convert([value]) == (7,)
+        assert o.convert(okay) == tuple(int(v) for v in okay)
+        cnt = 5
+        for value in fail:
+            for i in xrange(cnt):
+                others = list(7 for x in xrange(cnt))
+                others[i] = value
+                for v in [tuple(others), list(others)]:
+                    e = raises(errors.ConversionError, o.convert, v)
+                    assert e.name is name
+                    assert e.value is value
+                    assert e.error is type_.conversion_error
+                    assert e.index == i
 
     def test_normalize(self):
         """

@@ -105,13 +105,13 @@ class Option(plugable.ReadOnly):
         self.rules = (type_.validate,) + rules
         lock(self)
 
-    def __convert_scalar(self, value, position=None):
+    def __convert_scalar(self, value, index=None):
         if value is None:
             raise TypeError('value cannot be None')
         converted = self.type(value)
         if converted is None:
             raise errors.ConversionError(
-                self.name, value, self.type, position
+                self.name, value, self.type, index=index
             )
         return converted
 
