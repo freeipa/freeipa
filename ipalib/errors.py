@@ -160,10 +160,6 @@ class RequirementError(ValidationError):
         ValidationError.__init__(self, name, None, 'Required')
 
 
-class SetError(IPAError):
-    msg = 'setting %r, but NameSpace does not allow attribute setting'
-
-
 class RegistrationError(IPAError):
     """
     Base class for errors that occur during plugin registration.
@@ -231,7 +227,3 @@ class MissingOverrideError(RegistrationError):
 
     def __str__(self):
         return self.msg % (self.base.__name__, self.cls.__name__, self.cls)
-
-
-class TwiceSetError(IPAError):
-    msg = '%s.%s cannot be set twice'
