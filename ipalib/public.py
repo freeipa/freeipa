@@ -27,7 +27,7 @@ import inspect
 import plugable
 from plugable import lock, check_name
 import errors
-from errors import check_type, check_isinstance
+from errors import check_type, check_isinstance, raise_TypeError
 import ipa_types
 
 
@@ -105,28 +105,36 @@ class Option(plugable.ReadOnly):
         self.rules = (type_.validate,) + rules
         lock(self)
 
+    def __convert_scalar(self, value, position=None):
+        if value is None:
+            raise TypeError('value cannot be None')
+        converted = self.type(value)
+        if converted is None:
+            raise errors.ConversionError(
+                self.name, value, self.type, position
+            )
+        return converted
+
     def convert(self, value):
         if self.multivalue:
             if type(value) in (tuple, list):
-                return tuple(self.type(v) for v in value)
-            return (self.type(value),)
-        return self.type(value)
+                return tuple(
+                    self.__convert_scalar(v, i) for (i, v) in enumerate(value)
+                )
+            return (self.__convert_scalar(value, 0),) # tuple
+        return self.__convert_scalar(value)
 
     def __normalize_scalar(self, value):
-        if value is None:
-            return None
         if type(value) is not self.type.type:
-            raise TypeError('need a %r; got %r' % (self.type.type, value))
+            raise_TypeError(value, self.type.type, 'value')
         return self.__normalize(value)
 
     def normalize(self, value):
         if self.__normalize is None:
             return value
         if self.multivalue:
-            if value is None:
-                return None
             if type(value) is not tuple:
-                raise TypeError('multivalue must be a tuple; got %r' % value)
+                raise_TypeError(value, tuple, 'value')
             return tuple(self.__normalize_scalar(v) for v in value)
         return self.__normalize_scalar(value)
 
@@ -137,6 +145,10 @@ class Option(plugable.ReadOnly):
                 raise errors.RuleError(self.name, value, rule, error)
 
     def validate(self, value):
+        if value is None and self.required:
+            raise errors.RequirementError(self.name)
+        else:
+            return
         if self.multivalue:
             if type(value) is not tuple:
                 raise TypeError('multivalue must be a tuple; got %r' % value)
@@ -210,13 +222,9 @@ class Command(plugable.Plugin):
 
     def validate(self, **kw):
         self.print_call('validate', kw, 1)
-        for option in self.Option():
-            value = kw.get(option.name, None)
-            if value is None:
-                if option.required:
-                    raise errors.RequirementError(option.name)
-                continue
-            option.validate(value)
+        for (key, value) in kw.iteritems():
+            if key in self.Option:
+                self.Option[key].validate(value)
 
     def execute(self, **kw):
         self.print_call('execute', kw, 1)

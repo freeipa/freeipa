@@ -22,6 +22,7 @@ Unit tests for `ipalib.public` module.
 """
 
 from tstutil import raises, getitem, no_set, no_del, read_only, ClassChecker
+from tstutil import check_TypeError
 from ipalib import public, plugable, errors, ipa_types
 
 
@@ -171,46 +172,41 @@ class test_Option(ClassChecker):
         doc = 'User last name'
         t = ipa_types.Unicode()
         callback = lambda value: value.lower()
-        orig = u'Hello World'
-        orig_str = str(orig)
-        norm = u'hello world'
-        tup_orig = (orig, norm, u'WONDERFUL!')
-        tup_norm = (norm, norm, u'wonderful!')
-        tup_str = (orig_str, orig)
-        all_values = (None, orig, orig_str, norm, tup_orig, tup_norm, tup_str)
+        values = (None, u'Hello', (u'Hello',), 'hello', ['hello'])
 
-        ## Scenario 1: multivalue=False, normalize=None
+        # Scenario 1: multivalue=False, normalize=None
         o = self.cls(name, doc, t)
-        for v in all_values:
+        for v in values:
             # When normalize=None, value is returned, no type checking:
             assert o.normalize(v) is v
 
-        ## Scenario 2: multivalue=False, normalize=callback
+        # Scenario 2: multivalue=False, normalize=callback
         o = self.cls(name, doc, t, normalize=callback)
-        assert o.normalize(None) is None
-        for v in (orig, norm):
-            assert o.normalize(v) == norm
-        for v in (orig_str, tup_orig, tup_norm, tup_str): # Not unicode
+        for v in (u'Hello', u'hello'): # Okay
+            assert o.normalize(v) == u'hello'
+        for v in [None, 'hello', (u'Hello',)]: # Not unicode
             e = raises(TypeError, o.normalize, v)
-            assert str(e) == 'need a %r; got %r' % (unicode, v)
+            assert str(e) == errors.TYPE_FORMAT % ('value', unicode, v)
+            check_TypeError(v, unicode, 'value', o.normalize, v)
 
-        ## Scenario 3: multivalue=True, normalize=None
+        # Scenario 3: multivalue=True, normalize=None
         o = self.cls(name, doc, t, multivalue=True)
-        for v in all_values:
+        for v in values:
             # When normalize=None, value is returned, no type checking:
             assert o.normalize(v) is v
 
-        ## Scenario 4: multivalue=True, normalize=callback
+        # Scenario 4: multivalue=True, normalize=callback
         o = self.cls(name, doc, t, multivalue=True, normalize=callback)
-        assert o.normalize(None) is None
-        for v in (tup_orig, tup_norm):
-            assert o.normalize(v) == tup_norm
-        for v in (orig, orig_str, norm): # Not tuple
+        for value in [(u'Hello',), (u'hello',)]: # Okay
+            assert o.normalize(value) == (u'hello',)
+        for v in (None, u'Hello', [u'hello']): # Not tuple
             e = raises(TypeError, o.normalize, v)
-            assert str(e) == 'multivalue must be a tuple; got %r' % v
-        for v in [tup_str, (norm, orig, orig_str)]: # Not unicode
+            assert str(e) == errors.TYPE_FORMAT % ('value', tuple, v)
+            check_TypeError(v, tuple, 'value', o.normalize, v)
+        for v in [('Hello',), (u'Hello', 'Hello')]: # Non unicode member
             e = raises(TypeError, o.normalize, v)
-            assert str(e) == 'need a %r; got %r' % (unicode, orig_str)
+            assert str(e) == errors.TYPE_FORMAT % ('value', unicode, 'Hello')
+            check_TypeError('Hello', unicode, 'value', o.normalize, v)
 
     def test_validate(self):
         """

@@ -22,6 +22,7 @@ Utility functions for the unit tests.
 """
 
 import inspect
+from ipalib import errors
 
 class ExceptionNotRaised(Exception):
     """
@@ -131,3 +132,16 @@ class ClassChecker(object):
             self.__class__.__name__,
             'get_subcls()'
         )
+
+
+def check_TypeError(value, type_, name, callback, *args, **kw):
+    """
+    Tests a standard TypeError raised with `errors.raise_TypeError`.
+    """
+    e = raises(TypeError, callback, *args, **kw)
+    assert e.value == value
+    assert type(e.value) is type(value)
+    assert e.type is type_
+    assert e.name == name
+    assert type(e.name) is str
+    assert str(e) == errors.TYPE_FORMAT % (name, type_, value)

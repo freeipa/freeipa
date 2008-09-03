@@ -58,6 +58,9 @@ class Type(ReadOnly):
         if type_ not in allowed:
             raise ValueError('not an allowed type: %r' % type_)
         self.type = type_
+        # FIXME: This should be replaced with a more user friendly message
+        # as this is what is returned to the user.
+        self.conversion_error = 'Must be a %r' % self.type
         lock(self)
 
     def __get_name(self):
@@ -72,6 +75,9 @@ class Type(ReadOnly):
             return self.type(value)
         except (TypeError, ValueError):
             return None
+
+    def validate(self, value):
+        pass
 
     def __call__(self, value):
         if value is None:
@@ -101,10 +107,6 @@ class Bool(Type):
         if value == self.false:
             return False
         return None
-
-    def validate(self, value):
-        if not (value is True or value is False):
-            return 'Must be %r or %r' % (self.true, self.false)
 
 
 class Int(Type):

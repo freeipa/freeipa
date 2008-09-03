@@ -119,6 +119,14 @@ class ValidationError(IPAError):
         IPAError.__init__(self, name, value, error)
 
 
+class ConversionError(ValidationError):
+    def __init__(self, name, value, type_, position):
+        self.type = type_
+        self.position = position
+        ValidationError.__init__(self, name, value, type_.conversion_error)
+
+
+
 class NormalizationError(ValidationError):
     def __init__(self, name, value, type):
         self.type = type

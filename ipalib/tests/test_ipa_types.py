@@ -87,6 +87,11 @@ class test_Type(ClassChecker):
             e = raises(ValueError, self.cls, t)
             assert str(e) == 'not an allowed type: %r' % t
 
+    def test_validate(self):
+        o = self.cls(unicode)
+        for value in (None, u'Hello', 'Hello', 42, False):
+            assert o.validate(value) is None
+
 
 class test_Bool(ClassChecker):
     _cls = ipa_types.Bool
@@ -125,15 +130,6 @@ class test_Bool(ClassChecker):
         for value in (0, 1, 'True', 'False', 'yes', 'no'):
             # value is not be converted, so None is returned
             assert o(value) is None
-
-    def test_validate(self):
-        t = 'For sure!'
-        f = 'No way!'
-        o = self.cls(true=t, false=f)
-        assert o.validate(True) is None
-        assert o.validate(False) is None
-        for value in (t, f, 0, 1, 'True', 'False', 'Yes', 'No'):
-            assert o.validate(value) == 'Must be %r or %r' % (t, f)
 
 
 class test_Int(ClassChecker):
