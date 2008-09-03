@@ -138,11 +138,13 @@ class Option(plugable.ReadOnly):
             return tuple(self.__normalize_scalar(v) for v in value)
         return self.__normalize_scalar(value)
 
-    def __validate_scalar(self, value):
+    def __validate_scalar(self, value, index=None):
+        if type(value) is not self.type.type:
+            raise_TypeError(value, self.type.type, 'value')
         for rule in self.rules:
             error = rule(value)
             if error is not None:
-                raise errors.RuleError(self.name, value, rule, error)
+                raise errors.RuleError(self.name, value, error, rule)
 
     def validate(self, value):
         if value is None and self.required:

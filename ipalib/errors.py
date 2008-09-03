@@ -87,32 +87,38 @@ def check_isinstance(value, type_, name, allow_none=False):
 
 class IPAError(Exception):
     """
+    Base class for all custom IPA errors.
+
     Use this base class for your custom IPA errors unless there is a
     specific reason to subclass from AttributeError, KeyError, etc.
     """
-    msg = None
 
-    def __init__(self, *args, **kw):
+    format = None
+
+    def __init__(self, *args):
         self.args = args
-        self.kw = kw
 
     def __str__(self):
         """
         Returns the string representation of this exception.
         """
-        if self.msg is None:
-            if len(self.args) == 1:
-                return unicode(self.args[0])
-            return unicode(self.args)
-        if len(self.args) > 0:
-            return self.msg % self.args
-        return self.msg % self.kw
+        return self.format % self.args
 
 
 class ValidationError(IPAError):
-    msg = 'invalid %r value %r: %s'
+    """
+    Base class for all types of validation errors.
+    """
+
+    format = 'invalid %r value %r: %s'
 
     def __init__(self, name, value, error, index=None):
+        """
+        :param name: The name of the value that failed validation.
+        :param value: The value that failed validation.
+        :param error: The error message describing the failure.
+        :param index: If multivalue, index of value in multivalue tuple
+        """
         self.name = name
         self.value = value
         self.error = error
@@ -138,12 +144,11 @@ class NormalizationError(ValidationError):
 
 class RuleError(ValidationError):
     """
-    Raised when a required option was not provided.
+    Raised when a value fails a validation rule.
     """
-    # FIXME: `rule` should really be after `error`
-    def __init__(self, name, value, rule, error):
-        self.rule = rule
-        ValidationError.__init__(self, name, value, error)
+    def __init__(self, name, value, error, rule, index=None):
+        self.rule_name = rule.__name__
+        ValidationError.__init__(self, name, value, error, index)
 
 
 class RequirementError(ValidationError):

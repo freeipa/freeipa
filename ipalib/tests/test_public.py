@@ -203,7 +203,7 @@ class test_Option(ClassChecker):
         for v in [(fail,), (u'Hello', fail)]: # Non unicode member
             check_TypeError(fail, unicode, 'value', o.normalize, v)
 
-    def test_validate(self):
+    def dont_validate(self):
         """
         Tests the `public.Option.validate` method.
         """
@@ -408,7 +408,7 @@ class test_Command(ClassChecker):
         assert sub.get_default(**no_fill) == {}
         assert sub.get_default(**fill) == default
 
-    def test_validate(self):
+    def dont_validate(self):
         """
         Tests the `public.Command.validate` method.
         """

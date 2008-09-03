@@ -129,3 +129,34 @@ def test_check_isinstance():
     fail_bool = 0
     e = raises(AssertionError, f, value, type_, name, allow_none=fail_bool)
     assert str(e) == type_format % ('allow_none', bool, fail_bool)
+
+
+class test_IPAError(ClassChecker):
+    """
+    Tests the `errors.IPAError` exception.
+    """
+    _cls = errors.IPAError
+
+    def test_class(self):
+        assert self.cls.__bases__ == (Exception,)
+
+    def test_init(self):
+        """
+        Tests the `errors.IPAError.__init__` method.
+        """
+        args = ('one fish', 'two fish')
+        e = self.cls(*args)
+        assert e.args == args
+        assert self.cls().args == tuple()
+
+    def test_str(self):
+        """
+        Tests the `errors.IPAError.__str__` method.
+        """
+        f = 'The %s color is %s.'
+        class custom_error(self.cls):
+            format = f
+        for args in [('sexiest', 'red'), ('most-batman-like', 'black')]:
+            e = custom_error(*args)
+            assert e.args == args
+            assert str(e) == f % args
