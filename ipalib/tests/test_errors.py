@@ -193,3 +193,33 @@ class test_ValidationError(ClassChecker):
         raises(AssertionError, self.cls, name, value, error, index=5.0)
         # Check negative index raises AssertionError:
         raises(AssertionError, self.cls, name, value, error, index=-2)
+
+
+class test_ConversionError(ClassChecker):
+    """
+    Tests the `errors.ConversionError` exception.
+    """
+    _cls = errors.ConversionError
+
+    def test_class(self):
+        assert self.cls.__bases__ == (errors.ValidationError,)
+
+    def test_init(self):
+        """
+        Tests the `errors.ConversionError.__init__` method.
+        """
+        name = 'some_arg'
+        value = '42.0'
+        class type_(object):
+            conversion_error = 'Not an integer'
+        for index in (None, 7):
+            e = self.cls(name, value, type_, index=index)
+            assert e.name is name
+            assert e.value is value
+            assert e.type is type_
+            assert e.error is type_.conversion_error
+            assert e.index is index
+            assert str(e) == 'invalid %r value %r: %s' % (name, value,
+                type_.conversion_error)
+        # Check that index default is None:
+        assert self.cls(name, value, type_).index is None
