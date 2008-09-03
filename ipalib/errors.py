@@ -112,10 +112,11 @@ class IPAError(Exception):
 class ValidationError(IPAError):
     msg = 'invalid %r value %r: %s'
 
-    def __init__(self, name, value, error):
+    def __init__(self, name, value, error, index=None):
         self.name = name
         self.value = value
         self.error = error
+        self.index = index
         IPAError.__init__(self, name, value, error)
 
 
