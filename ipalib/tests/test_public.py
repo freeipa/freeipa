@@ -185,8 +185,6 @@ class test_Option(ClassChecker):
         for v in (u'Hello', u'hello'): # Okay
             assert o.normalize(v) == u'hello'
         for v in [None, 'hello', (u'Hello',)]: # Not unicode
-            e = raises(TypeError, o.normalize, v)
-            assert str(e) == errors.TYPE_FORMAT % ('value', unicode, v)
             check_TypeError(v, unicode, 'value', o.normalize, v)
 
         # Scenario 3: multivalue=True, normalize=None
@@ -200,13 +198,10 @@ class test_Option(ClassChecker):
         for value in [(u'Hello',), (u'hello',)]: # Okay
             assert o.normalize(value) == (u'hello',)
         for v in (None, u'Hello', [u'hello']): # Not tuple
-            e = raises(TypeError, o.normalize, v)
-            assert str(e) == errors.TYPE_FORMAT % ('value', tuple, v)
             check_TypeError(v, tuple, 'value', o.normalize, v)
-        for v in [('Hello',), (u'Hello', 'Hello')]: # Non unicode member
-            e = raises(TypeError, o.normalize, v)
-            assert str(e) == errors.TYPE_FORMAT % ('value', unicode, 'Hello')
-            check_TypeError('Hello', unicode, 'value', o.normalize, v)
+        fail = 'Hello' # Not unicode
+        for v in [(fail,), (u'Hello', fail)]: # Non unicode member
+            check_TypeError(fail, unicode, 'value', o.normalize, v)
 
     def test_validate(self):
         """
