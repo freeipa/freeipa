@@ -140,14 +140,6 @@ class ConversionError(ValidationError):
         )
 
 
-class NormalizationError(ValidationError):
-    def __init__(self, name, value, type):
-        self.type = type
-        ValidationError.__init__(self, name, value,
-            'not %r' % type
-        )
-
-
 class RuleError(ValidationError):
     """
     Raised when a value fails a validation rule.
