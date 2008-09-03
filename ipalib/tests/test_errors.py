@@ -223,3 +223,31 @@ class test_ConversionError(ClassChecker):
                 type_.conversion_error)
         # Check that index default is None:
         assert self.cls(name, value, type_).index is None
+
+
+class test_RuleError(ClassChecker):
+    """
+    Tests the `errors.RuleError` exception.
+    """
+    _cls = errors.RuleError
+
+    def test_class(self):
+        assert self.cls.__bases__ == (errors.ValidationError,)
+
+    def test_init(self):
+        """
+        Tests the `errors.RuleError.__init__` method.
+        """
+        name = 'whatever'
+        value = 'The smallest weird number.'
+        def my_rule(value):
+            return 'Value is bad.'
+        error = my_rule(value)
+        for index in (None, 42):
+            e = self.cls(name, value, error, my_rule, index=index)
+            assert e.name is name
+            assert e.value is value
+            assert e.error is error
+            assert e.rule is my_rule
+        # Check that index default is None:
+        assert self.cls(name, value, error, my_rule).index is None

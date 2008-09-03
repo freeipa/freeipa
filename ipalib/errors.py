@@ -145,8 +145,9 @@ class RuleError(ValidationError):
     Raised when a value fails a validation rule.
     """
     def __init__(self, name, value, error, rule, index=None):
-        self.rule_name = rule.__name__
-        ValidationError.__init__(self, name, value, error, index)
+        assert callable(rule)
+        self.rule = rule
+        ValidationError.__init__(self, name, value, error, index=index)
 
 
 class RequirementError(ValidationError):
@@ -231,7 +232,6 @@ class MissingOverrideError(RegistrationError):
 
     def __str__(self):
         return self.msg % (self.base.__name__, self.cls.__name__, self.cls)
-
 
 
 class TwiceSetError(IPAError):
