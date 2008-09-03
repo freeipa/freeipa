@@ -19,6 +19,8 @@
 
 """
 All custom errors raised by `ipalib` package.
+
+Also includes a few utility functions for raising exceptions.
 """
 
 TYPE_FORMAT = '%s: need a %r; got %r'
@@ -155,14 +157,11 @@ class RequirementError(ValidationError):
     Raised when a required option was not provided.
     """
     def __init__(self, name):
-        ValidationError.__init__(self, name, None,
-            'missing required value'
-        )
+        ValidationError.__init__(self, name, None, 'Required')
 
 
 class SetError(IPAError):
     msg = 'setting %r, but NameSpace does not allow attribute setting'
-
 
 
 class RegistrationError(IPAError):

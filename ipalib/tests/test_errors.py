@@ -251,3 +251,24 @@ class test_RuleError(ClassChecker):
             assert e.rule is my_rule
         # Check that index default is None:
         assert self.cls(name, value, error, my_rule).index is None
+
+
+class test_RequirementError(ClassChecker):
+    """
+    Tests the `errors.RequirementError` exception.
+    """
+    _cls = errors.RequirementError
+
+    def test_class(self):
+        assert self.cls.__bases__ == (errors.ValidationError,)
+
+    def test_init(self):
+        """
+        Tests the `errors.RequirementError.__init__` method.
+        """
+        name = 'givenname'
+        e = self.cls(name)
+        assert e.name is name
+        assert e.value is None
+        assert e.error == 'Required'
+        assert e.index is None
