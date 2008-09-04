@@ -396,6 +396,7 @@ class Application(Command):
 
     __public__ = frozenset((
         'application',
+        'set_application'
     )).union(Command.__public__)
     __application = None
 
@@ -404,7 +405,9 @@ class Application(Command):
         Returns external ``application`` object.
         """
         return self.__application
-    def __set_application(self, application):
+    application = property(__get_application)
+
+    def set_application(self, application):
         """
         Sets the external application object to ``application``.
         """
@@ -418,4 +421,3 @@ class Application(Command):
             )
         object.__setattr__(self, '_Application__application', application)
         assert self.application is application
-    application = property(__get_application, __set_application)

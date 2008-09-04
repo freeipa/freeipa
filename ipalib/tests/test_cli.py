@@ -75,6 +75,7 @@ class DummyAPI(object):
 
 
 
+
 class test_CLI(ClassChecker):
     """
     Tests the `cli.CLI` class.
@@ -117,7 +118,7 @@ class test_CLI(ClassChecker):
         len(api.Command) == cnt
         o = self.cls(api)
         assert o.mcl is None
-        o.finalize()
+        o.build_map()
         assert o.mcl == 6 # len('cmd_99')
 
     def test_dict(self):
@@ -128,7 +129,7 @@ class test_CLI(ClassChecker):
         api = DummyAPI(cnt)
         assert len(api.Command) == cnt
         o = self.cls(api)
-        o.finalize()
+        o.build_map()
         for cmd in api.Command():
             key = cli.to_cli(cmd.name)
             assert key in o

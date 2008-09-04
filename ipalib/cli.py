@@ -44,7 +44,7 @@ def from_cli(cli_name):
     return str(cli_name).replace('-', '_')
 
 
-class help(public.Command):
+class help(public.Application):
     'Display help on command'
     def __call__(self, key):
         if from_cli(key) not in self.api.Command:
@@ -53,7 +53,7 @@ class help(public.Command):
         print 'Help on command %r:' % key
 
 
-class console(public.Command):
+class console(public.Application):
     'Start IPA Interactive Python Console'
 
     def __call__(self):
@@ -95,10 +95,16 @@ class CLI(object):
         api.register(help)
         api.register(console)
         api.finalize()
-        def d_iter():
-            for cmd in api.Command():
-                yield (to_cli(cmd.name), cmd)
-        self.__d = dict(d_iter())
+        for a in api.Application():
+            a.set_application(self)
+        self.build_map()
+
+    def build_map(self):
+        assert self.__d is None
+        self.__d = dict(
+            (c.name.replace('_', '-'), c) for c in self.api.Command()
+        )
+
 
     def run(self):
         self.finalize()

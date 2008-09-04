@@ -707,19 +707,20 @@ class test_Application(ClassChecker):
         Tests the `public.Application.application` property.
         """
         assert 'application' in self.cls.__public__ # Public
+        assert 'set_application' in self.cls.__public__ # Public
         app = 'The external application'
         class example(self.cls):
             'A subclass'
         for o in (self.cls(), example()):
-            assert o.application is None
-            e = raises(TypeError, setattr, o, 'application', None)
+            assert read_only(o, 'application') is None
+            e = raises(TypeError, o.set_application, None)
             assert str(e) == (
                 '%s.application cannot be None' % o.__class__.__name__
             )
-            o.application = app
-            assert o.application is app
-            e = raises(AttributeError, setattr, o, 'application', app)
+            o.set_application(app)
+            assert read_only(o, 'application') is app
+            e = raises(AttributeError, o.set_application, app)
             assert str(e) == (
                 '%s.application can only be set once' % o.__class__.__name__
             )
-            assert o.application is app
+            assert read_only(o, 'application') is app

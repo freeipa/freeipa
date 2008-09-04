@@ -61,4 +61,5 @@ api = plugable.API(
     public.Object,
     public.Method,
     public.Property,
+    public.Application,
 )
