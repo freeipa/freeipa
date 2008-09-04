@@ -24,6 +24,7 @@ Functionality for Command Line Inteface.
 import re
 import sys
 import code
+import optparse
 import public
 
 
@@ -53,9 +54,7 @@ class help(public.Application):
             sys.exit(2)
         cmd = self.application[key]
         print 'Purpose: %s' % cmd.doc
-        if len(cmd.Option) > 0:
-            print '\nOptions:'
-            print ''
+        self.application.build_parser(cmd).print_help()
 
 
 class console(public.Application):
@@ -66,6 +65,25 @@ class console(public.Application):
             '(Custom IPA interactive Python console)',
             local=dict(api=self.api)
         )
+
+
+class KWCollector(object):
+    def __init__(self):
+        object.__setattr__(self, '_KWCollector__d', {})
+
+    def __setattr__(self, name, value):
+        if name in self.__d:
+            v = self.__d[name]
+            if type(v) is tuple:
+                value = v + (value,)
+            else:
+                value = (v, value)
+        self.__d[name] = value
+        object.__setattr__(self, name, value)
+
+    def __todict__(self):
+        return dict(self.__d)
+
 
 
 class CLI(object):
@@ -115,29 +133,39 @@ class CLI(object):
         self.finalize()
         if len(sys.argv) < 2:
             self.print_commands()
-            print 'Usage: ipa COMMAND [OPTIONS]'
+            print 'Usage: ipa COMMAND [ARGS]'
             sys.exit(2)
-        cmd = sys.argv[1]
-        if cmd not in self:
+        key = sys.argv[1]
+        if key not in self:
             self.print_commands()
-            print 'ipa: ERROR: unknown command %r' % cmd
+            print 'ipa: ERROR: unknown command %r' % key
             sys.exit(2)
-        self.run_cmd(cmd, (s.decode('utf-8') for s in sys.argv[2:]))
+        self.run_cmd(
+            self[key],
+            list(s.decode('utf-8') for s in sys.argv[2:])
+        )
 
-    def run_cmd(self, cmd, given):
-        (args, kw) = self.parse(given)
-        self[cmd](*args, **kw)
+    def run_cmd(self, cmd, argv):
+        (args, kw) = self.parse(cmd, argv)
+        cmd(*args, **kw)
 
-    def parse(self, given):
-        args = []
-        kw = {}
-        for g in given:
-            m = re.match(r'^--([a-z][-a-z0-9]*)=(.+)$', g)
-            if m:
-                kw[from_cli(m.group(1))] = m.group(2)
-            else:
-                args.append(g)
-        return (args, kw)
+    def parse(self, cmd, argv):
+        parser = self.build_parser(cmd)
+        (kwc, args) = parser.parse_args(argv, KWCollector())
+        return (args, kwc.__todict__())
+
+    def build_parser(self, cmd):
+        parser = optparse.OptionParser(
+            usage='Usage: %%prog %s' % to_cli(cmd.name),
+        )
+        for option in cmd.Option():
+            parser.add_option('--%s' % to_cli(option.name),
+                metavar=option.type.name.upper(),
+                help=option.doc,
+            )
+        return parser
+
+
 
     def __get_mcl(self):
         """
