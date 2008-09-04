@@ -169,6 +169,10 @@ class Option(plugable.ReadOnly):
             return self.type.values
         return tuple()
 
+    def __call__(self, value, **kw):
+        pass
+
+
 
 class Command(plugable.Plugin):
     __public__ = frozenset((
@@ -178,6 +182,7 @@ class Command(plugable.Plugin):
         'validate',
         'execute',
         '__call__',
+        'smart_option_order',
         'Option',
     ))
     __Option = None
@@ -256,6 +261,17 @@ class Command(plugable.Plugin):
         kw.update(self.get_default(**kw))
         self.validate(**kw)
         self.execute(**kw)
+
+    def smart_option_order(self):
+        def get_key(option):
+            if option.required:
+                if option.default_from is None:
+                    return 0
+                return 1
+            return 2
+        for option in sorted(self.Option(), key=get_key):
+            yield option
+
 
 
 class Object(plugable.Plugin):

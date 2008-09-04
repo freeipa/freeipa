@@ -147,7 +147,31 @@ class CLI(object):
 
     def run_cmd(self, cmd, argv):
         (args, kw) = self.parse(cmd, argv)
+        self.run_interactive(cmd, args, kw)
+
+    def run_interactive(self, cmd, args, kw):
+        for option in cmd.smart_option_order():
+            if option.name not in kw:
+                default = option.get_default(**kw)
+                if default is None:
+                    prompt = '%s: ' % option.name
+                else:
+                    prompt = '%s [%s]: ' % (option.name, default)
+                error = None
+                while True:
+                    if error is not None:
+                        print '>>> %s: %s' % (option.name, error)
+                    value = raw_input(prompt)
+                    if default is not None and len(value) == 0:
+                        value = default
+                    if len(value) == 0:
+                        error = 'Must supply a value'
+                    else:
+                        kw[option.name] = value
+                        break
         cmd(*args, **kw)
+
+
 
     def parse(self, cmd, argv):
         parser = self.build_parser(cmd)
