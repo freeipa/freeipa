@@ -127,15 +127,18 @@ class Option(plugable.ReadOnly):
     def __normalize_scalar(self, value):
         if not isinstance(value, basestring):
             raise_TypeError(value, basestring, 'value')
-        return self.__normalize(value)
+        try:
+            return self.__normalize(value)
+        except Exception:
+            return value
 
     def normalize(self, value):
         if self.__normalize is None:
             return value
         if self.multivalue:
-            if type(value) is not tuple:
-                raise_TypeError(value, tuple, 'value')
-            return tuple(self.__normalize_scalar(v) for v in value)
+            if type(value) in (tuple, list):
+                return tuple(self.__normalize_scalar(v) for v in value)
+            return (self.__normalize_scalar(value),) # tuple
         return self.__normalize_scalar(value)
 
     def __validate_scalar(self, value, index=None):
@@ -170,8 +173,16 @@ class Option(plugable.ReadOnly):
         return tuple()
 
     def __call__(self, value, **kw):
-        pass
-
+        if value in ('', tuple(), []):
+            value = None
+        if value is None:
+            value = self.get_default(**kw)
+        if value is None:
+            if self.required:
+                raise RequirementError(option.name)
+            return None
+        else:
+            pass
 
 
 class Command(plugable.Plugin):

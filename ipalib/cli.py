@@ -26,6 +26,7 @@ import sys
 import code
 import optparse
 import public
+import errors
 
 
 def to_cli(name):
@@ -161,14 +162,14 @@ class CLI(object):
                 while True:
                     if error is not None:
                         print '>>> %s: %s' % (option.name, error)
-                    value = raw_input(prompt)
-                    if default is not None and len(value) == 0:
-                        value = default
-                    if len(value) == 0:
-                        error = 'Must supply a value'
-                    else:
-                        kw[option.name] = value
+                    raw = raw_input(prompt)
+                    try:
+                        value = option(raw)
+                        if value is not None:
+                            kw[option.name] = value
                         break
+                    except errors.ValidationError, e:
+                        error = e.error
         cmd(*args, **kw)
 
 
