@@ -421,7 +421,7 @@ class Application(Command):
     Special commands that only apply to a particular application built atop
     `ipalib` should subclass from ``Application``.
 
-    Because ``Application`` subclasses from `Command', plugins that subclass
+    Because ``Application`` subclasses from `Command`, plugins that subclass
     from ``Application`` with be available in both the ``api.Command`` and
     ``api.Application`` namespaces.
     """
