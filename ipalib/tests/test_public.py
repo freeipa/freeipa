@@ -385,6 +385,25 @@ class test_Command(ClassChecker):
             assert isinstance(option, public.Option)
             assert option.name == name
 
+    def test_convert(self):
+        """
+        Tests the `public.Command.convert` method.
+        """
+        assert 'convert' in self.cls.__public__ # Public
+        kw = dict(
+            option0='option0',
+            option1='option1',
+            whatever=False,
+            also=object,
+        )
+        expected = dict(kw)
+        expected.update(dict(option0=u'option0', option1=u'option1'))
+        o = self.subcls()
+        for (key, value) in o.convert(**kw).iteritems():
+            v = expected[key]
+            assert value == v
+            assert type(value) is type(v)
+
     def test_normalize(self):
         """
         Tests the `public.Command.normalize` method.

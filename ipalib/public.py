@@ -173,6 +173,7 @@ class Option(plugable.ReadOnly):
 class Command(plugable.Plugin):
     __public__ = frozenset((
         'get_default',
+        'convert',
         'normalize',
         'validate',
         'execute',
@@ -195,6 +196,16 @@ class Command(plugable.Plugin):
             )
         return self.__Option
     Option = property(__get_Option)
+
+    def __convert_iter(self, kw):
+        for (key, value) in kw.iteritems():
+            if key in self.Option:
+                yield (key, self.Option[key].convert(value))
+            else:
+                yield (key, value)
+
+    def convert(self, **kw):
+        return dict(self.__convert_iter(kw))
 
     def __normalize_iter(self, kw):
         for (key, value) in kw.items():
