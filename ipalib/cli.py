@@ -99,12 +99,22 @@ class CLI(object):
     api = property(__get_api)
 
     def print_commands(self):
-        print 'Available Commands:'
-        for cmd in self.api.Command():
-            print '  %s  %s' % (
-                to_cli(cmd.name).ljust(self.mcl),
-                cmd.doc,
-            )
+        std = set(self.api.Command) - set(self.api.Application)
+        print '\nStandard IPA commands:'
+        for key in sorted(std):
+            cmd = self.api.Command[key]
+            self.print_cmd(cmd)
+        print '\nSpecial CLI commands:'
+        for cmd in self.api.Application():
+            self.print_cmd(cmd)
+
+    def print_cmd(self, cmd):
+        print '  %s  %s' % (
+            to_cli(cmd.name).ljust(self.mcl),
+            cmd.doc,
+        )
+
+
 
     def __contains__(self, key):
         assert self.__d is not None, 'you must call finalize() first'
@@ -134,7 +144,7 @@ class CLI(object):
         self.finalize()
         if len(sys.argv) < 2:
             self.print_commands()
-            print 'Usage: ipa COMMAND [ARGS]'
+            print '\nUsage: ipa COMMAND'
             sys.exit(2)
         key = sys.argv[1]
         if key not in self:
