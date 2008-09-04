@@ -164,7 +164,10 @@ class Option(plugable.ReadOnly):
         if self.default_from is not None:
             default = self.default_from(**kw)
             if default is not None:
-                return self.convert(default)
+                try:
+                    return self.convert(self.normalize(default))
+                except errors.ValidationError:
+                    return None
         return self.default
 
     def get_values(self):
@@ -179,10 +182,12 @@ class Option(plugable.ReadOnly):
             value = self.get_default(**kw)
         if value is None:
             if self.required:
-                raise RequirementError(option.name)
+                raise errors.RequirementError(self.name)
             return None
         else:
-            pass
+            value = self.convert(self.normalize(value))
+            self.validate(value)
+            return value
 
 
 class Command(plugable.Plugin):

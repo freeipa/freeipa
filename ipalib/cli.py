@@ -164,7 +164,7 @@ class CLI(object):
                         print '>>> %s: %s' % (option.name, error)
                     raw = raw_input(prompt)
                     try:
-                        value = option(raw)
+                        value = option(raw, **kw)
                         if value is not None:
                             kw[option.name] = value
                         break
