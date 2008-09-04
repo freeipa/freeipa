@@ -380,3 +380,42 @@ class Property(Attribute):
                 attr = getattr(self, name)
                 if is_rule(attr):
                     yield attr
+
+
+class Application(Command):
+    """
+    Base class for commands register by an external application.
+
+    Special commands that only apply to a particular application built atop
+    `ipalib` should subclass from ``Application``.
+
+    Because ``Application`` subclasses from `Command', plugins that subclass
+    from ``Application`` with be available in both the ``api.Command`` and
+    ``api.Application`` namespaces.
+    """
+
+    __public__ = frozenset((
+        'application',
+    )).union(Command.__public__)
+    __application = None
+
+    def __get_application(self):
+        """
+        Returns external ``application`` object.
+        """
+        return self.__application
+    def __set_application(self, application):
+        """
+        Sets the external application object to ``application``.
+        """
+        if self.__application is not None:
+            raise AttributeError(
+                '%s.application can only be set once' % self.name
+            )
+        if application is None:
+            raise TypeError(
+                '%s.application cannot be None' % self.name
+            )
+        object.__setattr__(self, '_Application__application', application)
+        assert self.application is application
+    application = property(__get_application, __set_application)
