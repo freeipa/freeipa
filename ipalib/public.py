@@ -125,8 +125,8 @@ class Option(plugable.ReadOnly):
         return self.__convert_scalar(value)
 
     def __normalize_scalar(self, value):
-        if type(value) is not self.type.type:
-            raise_TypeError(value, self.type.type, 'value')
+        if not isinstance(value, basestring):
+            raise_TypeError(value, basestring, 'value')
         return self.__normalize(value)
 
     def normalize(self, value):

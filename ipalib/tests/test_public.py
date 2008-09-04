@@ -202,10 +202,10 @@ class test_Option(ClassChecker):
 
         # Scenario 2: multivalue=False, normalize=callback
         o = self.cls(name, doc, t, normalize=callback)
-        for v in (u'Hello', u'hello'): # Okay
-            assert o.normalize(v) == u'hello'
-        for v in [None, 'hello', (u'Hello',)]: # Not unicode
-            check_TypeError(v, unicode, 'value', o.normalize, v)
+        for v in (u'Hello', u'hello', 'Hello'): # Okay
+            assert o.normalize(v) == 'hello'
+        for v in [None, 42, (u'Hello',)]: # Not basestring
+            check_TypeError(v, basestring, 'value', o.normalize, v)
 
         # Scenario 3: multivalue=True, normalize=None
         o = self.cls(name, doc, t, multivalue=True)
@@ -219,9 +219,9 @@ class test_Option(ClassChecker):
             assert o.normalize(value) == (u'hello',)
         for v in (None, u'Hello', [u'hello']): # Not tuple
             check_TypeError(v, tuple, 'value', o.normalize, v)
-        fail = 'Hello' # Not unicode
+        fail = 42 # Not basestring
         for v in [(fail,), (u'Hello', fail)]: # Non unicode member
-            check_TypeError(fail, unicode, 'value', o.normalize, v)
+            check_TypeError(fail, basestring, 'value', o.normalize, v)
 
     def test_validate(self):
         """
