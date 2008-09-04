@@ -47,7 +47,7 @@ def from_cli(cli_name):
 
 
 class help(public.Application):
-    'Display help on command.'
+    'Display help on a command.'
     def __call__(self, key):
         key = str(key)
         if key not in self.application:
@@ -59,7 +59,7 @@ class help(public.Application):
 
 
 class console(public.Application):
-    'Start the IPA Python console.'
+    'Start the IPA interactive Python console.'
 
     def __call__(self):
         code.interact(

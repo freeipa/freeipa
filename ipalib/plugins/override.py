@@ -28,6 +28,7 @@ from ipalib import public
 from ipalib import api
 
 if 'user_mod' in api.register.Method:
-    class user_mod(api.register.Method.user_mod):
-        '(override) Edit existing user'
+    base = api.register.Method.user_mod
+    class user_mod(base):
+        'Example override, see ipalib/plugins/override.py'
     api.register(user_mod, override=True)

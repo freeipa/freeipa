@@ -28,11 +28,11 @@ from ipalib import api
 
 # Hypothetical functional commands (not associated with any object):
 class krbtest(public.Command):
-    'Test your Kerberos ticket'
+    'Test your Kerberos ticket.'
 api.register(krbtest)
 
 class discover(public.Command):
-    'Discover IPA servers on network'
+    'Discover IPA servers on network.'
 api.register(discover)
 
 
@@ -50,7 +50,7 @@ class user_mod(public.Method):
 api.register(user_mod)
 
 class user_find(public.Method):
-    'Search for existing users.'
+    'Search the users.'
 api.register(user_find)
 
 
@@ -86,37 +86,37 @@ api.register(user_initials)
 
 # Register some methods for the 'group' object:
 class group_add(public.Method):
-    'Add new group'
+    'Add a new group.'
 api.register(group_add)
 
 class group_del(public.Method):
-    'Delete existing group'
+    'Delete an existing group.'
 api.register(group_del)
 
 class group_mod(public.Method):
-    'Edit existing group'
+    'Edit an existing group.'
 api.register(group_mod)
 
 class group_find(public.Method):
-    'Search for groups'
+    'Search the groups.'
 api.register(group_find)
 
 
 # Register some methods for the 'service' object
 class service_add(public.Method):
-    'Add new service'
+    'Add a new service.'
 api.register(service_add)
 
 class service_del(public.Method):
-    'Delete existing service'
+    'Delete an existing service.'
 api.register(service_del)
 
 class service_mod(public.Method):
-    'Edit existing service'
+    'Edit an existing service.'
 api.register(service_mod)
 
 class service_find(public.Method):
-    'Search for services'
+    'Search the services.'
 api.register(service_find)
 
 
