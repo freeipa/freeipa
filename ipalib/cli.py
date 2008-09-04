@@ -107,14 +107,13 @@ class CLI(object):
         print '\nSpecial CLI commands:'
         for cmd in self.api.Application():
             self.print_cmd(cmd)
+        print ''
 
     def print_cmd(self, cmd):
         print '  %s  %s' % (
             to_cli(cmd.name).ljust(self.mcl),
             cmd.doc,
         )
-
-
 
     def __contains__(self, key):
         assert self.__d is not None, 'you must call finalize() first'
@@ -139,12 +138,11 @@ class CLI(object):
             (c.name.replace('_', '-'), c) for c in self.api.Command()
         )
 
-
     def run(self):
         self.finalize()
         if len(sys.argv) < 2:
             self.print_commands()
-            print '\nUsage: ipa COMMAND'
+            print 'Usage: ipa COMMAND'
             sys.exit(2)
         key = sys.argv[1]
         if key not in self:
