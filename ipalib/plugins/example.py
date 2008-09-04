@@ -38,19 +38,19 @@ api.register(discover)
 
 # Register some methods for the 'user' object:
 class user_add(public.Method):
-    'Add new user'
+    'Add a new user.'
 api.register(user_add)
 
 class user_del(public.Method):
-    'Delete existing user'
+    'Delete an existing user.'
 api.register(user_del)
 
 class user_mod(public.Method):
-    'Edit existing user'
+    'Edit an existing user.'
 api.register(user_mod)
 
 class user_find(public.Method):
-    'Search for users'
+    'Search for existing users.'
 api.register(user_find)
 
 

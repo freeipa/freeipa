@@ -45,20 +45,25 @@ def from_cli(cli_name):
 
 
 class help(public.Application):
-    'Display help on command'
+    'Display help on command.'
     def __call__(self, key):
-        if from_cli(key) not in self.api.Command:
+        key = str(key)
+        if key not in self.application:
             print 'help: no such command %r' % key
             sys.exit(2)
-        print 'Help on command %r:' % key
+        cmd = self.application[key]
+        print 'Purpose: %s' % cmd.doc
+        if len(cmd.Option) > 0:
+            print '\nOptions:'
+            print ''
 
 
 class console(public.Application):
-    'Start IPA Interactive Python Console'
+    'Start the IPA Python console.'
 
     def __call__(self):
         code.interact(
-            '(Custom IPA Interactive Python Console)',
+            '(Custom IPA interactive Python console)',
             local=dict(api=self.api)
         )
 
