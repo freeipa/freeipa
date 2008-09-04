@@ -162,7 +162,7 @@ class Option(plugable.ReadOnly):
             default = self.default_from(**kw)
             if default is not None:
                 return self.convert(default)
-        return self.convert(self.default)
+        return self.default
 
     def get_values(self):
         if self.type.name in ('Enum', 'CallbackEnum'):
@@ -208,16 +208,13 @@ class Command(plugable.Plugin):
         return dict(self.__convert_iter(kw))
 
     def __normalize_iter(self, kw):
-        for (key, value) in kw.items():
+        for (key, value) in kw.iteritems():
             if key in self.Option:
-                yield (
-                    key, self.Option[key].normalize(value)
-                )
+                yield (key, self.Option[key].normalize(value))
             else:
                 yield (key, value)
 
     def normalize(self, **kw):
-        self.print_call('normalize', kw, 1)
         return dict(self.__normalize_iter(kw))
 
     def __get_default_iter(self, kw):

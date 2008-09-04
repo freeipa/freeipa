@@ -293,6 +293,7 @@ class test_Option(ClassChecker):
         assert o.get_default(first='John', last='Doe') == 'Hello, John Doe!'
 
         # Scenario 2: multivalue=True
+        default = (default,)
         o = self.cls(name, doc, type_,
             default=default,
             default_from=default_from,
@@ -300,7 +301,7 @@ class test_Option(ClassChecker):
         )
         assert o.default is default
         assert o.default_from is default_from
-        assert o.get_default() == (default,)
+        assert o.get_default() == default
         assert o.get_default(first='John', last='Doe') == ('Hello, John Doe!',)
 
     def test_get_value(self):
