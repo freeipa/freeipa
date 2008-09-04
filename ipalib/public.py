@@ -144,18 +144,16 @@ class Option(plugable.ReadOnly):
         for rule in self.rules:
             error = rule(value)
             if error is not None:
-                raise errors.RuleError(self.name, value, error, rule)
+                raise errors.RuleError(
+                    self.name, value, error, rule, index=index
+                )
 
     def validate(self, value):
-        if value is None and self.required:
-            raise errors.RequirementError(self.name)
-        else:
-            return
         if self.multivalue:
             if type(value) is not tuple:
-                raise TypeError('multivalue must be a tuple; got %r' % value)
-            for v in value:
-                self.__validate_scalar(v)
+                raise_TypeError(value, tuple, 'value')
+            for (i, v) in enumerate(value):
+                self.__validate_scalar(v, i)
         else:
             self.__validate_scalar(value)
 
