@@ -329,7 +329,7 @@ class test_Command(ClassChecker):
 
             def __call__(self, value):
                 if value != self.name:
-                    return 'must equal %r' % self.name
+                    return 'must equal %s' % self.name
 
         default_from = public.DefaultFrom(
                 lambda arg: arg,
@@ -420,7 +420,7 @@ class test_Command(ClassChecker):
         assert sub.get_default(**no_fill) == {}
         assert sub.get_default(**fill) == default
 
-    def dont_validate(self):
+    def test_validate(self):
         """
         Tests the `public.Command.validate` method.
         """
@@ -438,17 +438,21 @@ class test_Command(ClassChecker):
 
         # Check with an invalid arg
         fail = dict(okay)
-        fail['option0'] = 'whatever'
-        raises(errors.RuleError, sub.validate, **fail)
+        fail['option0'] = u'whatever'
+        e = raises(errors.RuleError, sub.validate, **fail)
+        assert e.name == 'option0'
+        assert e.value == u'whatever'
+        assert e.error == 'must equal option0'
+        assert e.rule.__class__.__name__ == 'Rule'
+        assert e.index is None
 
         # Check with a missing required arg
         fail = dict(okay)
         fail.pop('option1')
-        raises(errors.RequirementError, sub.validate, **fail)
-
-        # Check with missing *not* required arg
-        okay.pop('option0')
-        sub.validate(**okay)
+        e = raises(errors.RequirementError, sub.validate, **fail)
+        assert e.name == 'option1'
+        assert e.value is None
+        assert e.index is None
 
     def test_execute(self):
         """

@@ -222,9 +222,12 @@ class Command(plugable.Plugin):
 
     def validate(self, **kw):
         self.print_call('validate', kw, 1)
-        for (key, value) in kw.iteritems():
-            if key in self.Option:
-                self.Option[key].validate(value)
+        for option in self.Option():
+            value = kw.get(option.name, None)
+            if value is not None:
+                option.validate(value)
+            elif option.required:
+                raise errors.RequirementError(option.name)
 
     def execute(self, **kw):
         self.print_call('execute', kw, 1)
