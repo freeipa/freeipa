@@ -393,7 +393,7 @@ class test_Plugin(ClassChecker):
         api = 'the api instance'
         o = self.cls()
         assert read_only(o, 'name') == 'Plugin'
-        assert repr(o) == '%s.Plugin()' % plugable.__name__
+        assert repr(o) == '%s.Plugin' % plugable.__name__
         assert read_only(o, 'api') is None
         raises(AssertionError, o.finalize, None)
         o.finalize(api)
@@ -404,7 +404,7 @@ class test_Plugin(ClassChecker):
             pass
         sub = some_plugin()
         assert read_only(sub, 'name') == 'some_plugin'
-        assert repr(sub) == '%s.some_plugin()' % __name__
+        assert repr(sub) == '%s.some_plugin' % __name__
         assert read_only(sub, 'api') is None
         raises(AssertionError, sub.finalize, None)
         sub.finalize(api)
