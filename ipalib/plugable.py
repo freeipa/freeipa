@@ -354,7 +354,7 @@ class Plugin(ReadOnly):
         Returns a fully qualified module_name.class_name() representation that
         could be used to construct this Plugin instance.
         """
-        return '%s.%s' % (
+        return '%s.%s()' % (
             self.__class__.__module__,
             self.__class__.__name__
         )

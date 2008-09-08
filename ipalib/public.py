@@ -189,6 +189,14 @@ class Option(plugable.ReadOnly):
             self.validate(value)
             return value
 
+    def __repr__(self):
+        return '%s(%r, %r, %s)' % (
+            self.__class__.__name__,
+            self.name,
+            self.doc,
+            self.type.name,
+        )
+
 
 class Command(plugable.Plugin):
     __public__ = frozenset((
