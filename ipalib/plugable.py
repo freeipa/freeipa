@@ -354,7 +354,7 @@ class Plugin(ReadOnly):
         Returns a fully qualified module_name.class_name() representation that
         could be used to construct this Plugin instance.
         """
-        return '%s.%s()' % (
+        return '%s.%s' % (
             self.__class__.__module__,
             self.__class__.__name__
         )
@@ -450,11 +450,10 @@ class PluginProxy(SetProxy):
         Returns a Python expression that could be used to construct this Proxy
         instance given the appropriate environment.
         """
-        return '%s(%s, %r, %r)' % (
+        return '%s(%s, %r)' % (
             self.__class__.__name__,
             self.__base.__name__,
             self.__target,
-            self.__name_attr,
         )
 
 

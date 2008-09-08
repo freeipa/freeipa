@@ -27,6 +27,7 @@ import code
 import optparse
 import public
 import errors
+import plugable
 
 
 def to_cli(name):
@@ -70,6 +71,37 @@ class console(public.Application):
 class print_api(public.Application):
     'Print details on the loaded plugins.'
 
+    def __call__(self):
+        lines = self.__traverse()
+        ml = max(len(l[1]) for l in lines)
+        for line in lines:
+            if line[0] == 0:
+                print ''
+            print '%s%s %r' % (
+                ' ' * line[0],
+                line[1].ljust(ml),
+                line[2],
+            )
+
+    def __traverse(self):
+        lines = []
+        for name in self.api:
+            namespace = self.api[name]
+            self.__traverse_namespace(name, namespace, lines)
+        return lines
+
+    def __traverse_namespace(self, name, namespace, lines, tab=0):
+        lines.append((tab, name, namespace))
+        for member_name in namespace:
+            member = namespace[member_name]
+            lines.append((tab + 1, member_name, member))
+            if not hasattr(member, '__iter__'):
+                continue
+            for n in member:
+                attr = member[n]
+                if isinstance(attr, plugable.NameSpace):
+                    self.__traverse_namespace(n, attr, lines, tab + 2)
+
 
 class KWCollector(object):
     def __init__(self):
@@ -87,7 +119,6 @@ class KWCollector(object):
 
     def __todict__(self):
         return dict(self.__d)
-
 
 
 class CLI(object):
@@ -184,8 +215,6 @@ class CLI(object):
                         error = e.error
         cmd(*args, **kw)
 
-
-
     def parse(self, cmd, argv):
         parser = self.build_parser(cmd)
         (kwc, args) = parser.parse_args(argv, KWCollector())
@@ -201,8 +230,6 @@ class CLI(object):
                 help=option.doc,
             )
         return parser
-
-
 
     def __get_mcl(self):
         """
