@@ -68,7 +68,7 @@ class console(public.Application):
             local=dict(api=self.api)
         )
 
-class print_api(public.Application):
+class show_plugins(public.Application):
     'Print details on the loaded plugins.'
 
     def __call__(self):
@@ -161,7 +161,7 @@ class CLI(object):
         api = self.api
         api.register(help)
         api.register(console)
-        api.register(print_api)
+        api.register(show_plugins)
         api.finalize()
         for a in api.Application():
             a.set_application(self)
