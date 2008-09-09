@@ -62,6 +62,8 @@ class RPCClient:
                         continue
                     else:
                         raise e
+                except GSSError:
+                    continue
 
         return xmlrpclib.ServerProxy(self.server_url(self.server), KerbTransport(), verbose=self.verbose)
     
