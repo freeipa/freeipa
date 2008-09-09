@@ -101,14 +101,16 @@ def update_policy(client, options):
         if options.minlength:
             validate.is_integer(options.minlength, min=0)
             new.setValue('krbpwdminlength', options.minlength)
-    except validate.VdtTypeError, e:
-        print "%s" % str(e)
+    except (validate.VdtTypeError, validate.VdtValueTooSmallError), e:
+        print e
         return 1
-    except validate.VdtValueTooSmallError, e:
-        print "%s" % str(e)
+
+    if int(new.getValue('krbminpwdlife')) > int(new.getValue('krbmaxpwdlife')):
+        print "Maximal length of password life must be greater then the minimal"
         return 1
 
     client.update_password_policy(new)
+    return 0
 
 def main():
     options, args = parse_options()
@@ -119,9 +121,7 @@ def main():
         show_policy(client)
         return 0
 
-    update_policy(client, options)
-
-    return 0
+    return update_policy(client, options)
 
 try:
     if __name__ == "__main__":
