@@ -368,6 +368,14 @@ class test_Command(ClassChecker):
         o = example()
         assert o.get_args() is args
 
+    def test_args(self):
+        """
+        Tests the ``Command.args`` instance attribute.
+        """
+        ns = self.cls().args
+        assert type(ns) is plugable.NameSpace
+        assert len(ns) == 0
+
     def test_get_options(self):
         """
         Tests the `public.Command.get_options` method.

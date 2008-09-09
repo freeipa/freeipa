@@ -214,11 +214,38 @@ class Command(plugable.Plugin):
     options = tuple()
     takes_args = tuple()
 
+    def __init__(self):
+        self.args = plugable.NameSpace(self.__check_args(), sort=False)
+
     def get_args(self):
         return self.takes_args
 
     def get_options(self):
         return self.options
+
+    def __check_args(self):
+        optional = False
+        multivalue = False
+        for arg in self.get_args():
+            if type(arg) is str:
+                arg = Option(arg, '', ipa_types.Unicode(), required=True)
+            elif not isinstance(arg, Option):
+                raise TypeError(
+                    'arg: need %r or %r; got %r' % (str, Option, arg)
+                )
+            if optional and arg.required:
+                raise ValueError(
+                    '%s: required argument after optional' % arg.name
+                )
+            if multivalue:
+                raise ValueError(
+                    '%s: only final argument can be multivalue' % arg.name
+                )
+            if not arg.required:
+                optional = True
+            if arg.multivalue:
+                multivalue = True
+            yield arg
 
     def __get_Option(self):
         """
