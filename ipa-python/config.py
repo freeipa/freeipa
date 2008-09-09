@@ -96,9 +96,8 @@ def __parse_config():
     except:
         pass
     try:
-        if not len(config.default_server):
-            s = p.get("defaults", "server")
-            config.default_server = re.sub("\s+", "", s).split(',')
+        s = p.get("defaults", "server")
+        config.default_server.extend(re.sub("\s+", "", s).split(','))
     except:
         pass
     try:
