@@ -214,6 +214,9 @@ class Command(plugable.Plugin):
     options = tuple()
     takes_args = tuple()
 
+    def get_args(self):
+        return self.takes_args
+
     def get_options(self):
         return self.options
 

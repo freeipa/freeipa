@@ -357,6 +357,17 @@ class test_Command(ClassChecker):
         assert self.cls.__bases__ == (plugable.Plugin,)
         assert self.cls.options == tuple()
 
+    def test_get_args(self):
+        """
+        Tests the `public.Command.get_args` method.
+        """
+        assert list(self.cls().get_args()) == []
+        args = ('login', 'stuff')
+        class example(self.cls):
+            takes_args = args
+        o = example()
+        assert o.get_args() is args
+
     def test_get_options(self):
         """
         Tests the `public.Command.get_options` method.
