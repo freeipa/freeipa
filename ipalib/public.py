@@ -208,9 +208,11 @@ class Command(plugable.Plugin):
         '__call__',
         'smart_option_order',
         'Option',
+        'takes_args',
     ))
     __Option = None
     options = tuple()
+    takes_args = tuple()
 
     def get_options(self):
         return self.options

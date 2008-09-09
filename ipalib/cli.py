@@ -28,6 +28,7 @@ import optparse
 import public
 import errors
 import plugable
+import ipa_types
 
 
 def to_cli(name):
@@ -49,6 +50,14 @@ def from_cli(cli_name):
 
 class help(public.Application):
     'Display help on a command.'
+
+    takes_args = (
+        public.Option('command', 'The doc', ipa_types.Unicode(),
+            required=True,
+            multivalue=True,
+        ),
+    )
+
     def __call__(self, key):
         key = str(key)
         if key not in self.application:
@@ -222,7 +231,7 @@ class CLI(object):
 
     def build_parser(self, cmd):
         parser = optparse.OptionParser(
-            usage='Usage: %%prog %s' % to_cli(cmd.name),
+            usage=self.get_usage(cmd),
         )
         for option in cmd.Option():
             parser.add_option('--%s' % to_cli(option.name),
@@ -230,6 +239,22 @@ class CLI(object):
                 help=option.doc,
             )
         return parser
+
+    def get_usage(self, cmd):
+        return ' '.join(self.get_usage_iter(cmd))
+
+    def get_usage_iter(self, cmd):
+        yield 'Usage: %%prog %s' % to_cli(cmd.name)
+        for arg in cmd.takes_args:
+            name = to_cli(arg.name).upper()
+            if arg.multivalue:
+                name = '%s...' % name
+            if arg.required:
+                yield name
+            else:
+                yield '[%s]' % name
+
+
 
     def __get_mcl(self):
         """
