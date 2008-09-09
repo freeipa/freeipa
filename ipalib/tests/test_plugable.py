@@ -556,6 +556,11 @@ def test_check_name():
     for name in okay:
         raises(errors.NameSpaceError, f, name.upper())
 
+class DummyMember(object):
+    def __init__(self, i):
+        assert type(i) is int
+        self.name = 'member_%02d' % i
+
 
 class test_NameSpace(ClassChecker):
     """
@@ -566,68 +571,46 @@ class test_NameSpace(ClassChecker):
     def test_class(self):
         assert self.cls.__bases__ == (plugable.DictProxy,)
 
-    def test_namespace(self):
-        class base(object):
-            __public__ = frozenset((
-                'plusplus',
-            ))
-            doc = 'doc'
+    def test_init(self):
+        """
+        Tests the `plugable.NameSpace.__init__` method.
+        """
+        o = self.cls(tuple())
+        assert list(o) == []
+        assert list(o()) == []
+        for cnt in (10, 25):
+            members = tuple(DummyMember(cnt - i) for i in xrange(cnt))
+            names = tuple(m.name for m in members)
+            for sort in (True, False):
+                o = self.cls(members, sort=sort)
 
-            def plusplus(self, n):
-                return n + 1
+                # Test __len__:
+                assert len(o) == cnt
 
-        class plugin(base):
-            def __init__(self, name):
-                self.name = name
+                # Test __contains__:
+                for name in names:
+                    assert name in o
+                assert ('member_00') not in o
 
-        def get_name(i):
-            return 'noun_verb%d' % i
+                # Test __iter__, __call__:
+                if sort:
+                    assert tuple(o) == tuple(sorted(names))
+                    assert tuple(o()) == tuple(
+                        sorted(members, key=lambda m: m.name)
+                    )
+                else:
+                    assert tuple(o) == names
+                    assert tuple(o()) == members
 
-        def get_proxies(n):
-            for i in xrange(n):
-                yield plugable.PluginProxy(base, plugin(get_name(i)))
+                # Test __getitem__, getattr:
+                for member in members:
+                    name = member.name
+                    assert o[name] is member
+                    assert read_only(o, name) is member
 
-        cnt = 10
-        ns = self.cls(get_proxies(cnt))
-        assert ns.__islocked__() is True
-
-        # Test __len__
-        assert len(ns) == cnt
-
-        # Test __iter__
-        i = None
-        for (i, key) in enumerate(ns):
-            assert type(key) is str
-            assert key == get_name(i)
-        assert i == cnt - 1
-
-        # Test __call__
-        i = None
-        for (i, proxy) in enumerate(ns()):
-            assert type(proxy) is plugable.PluginProxy
-            assert proxy.name == get_name(i)
-        assert i == cnt - 1
-
-        # Test __contains__, __getitem__, getattr():
-        proxies = frozenset(ns())
-        for i in xrange(cnt):
-            name = get_name(i)
-            assert name in ns
-            proxy = ns[name]
-            assert proxy.name == name
-            assert type(proxy) is plugable.PluginProxy
-            assert proxy in proxies
-            assert read_only(ns, name) is proxy
-
-        # Test dir():
-        assert set(get_name(i) for i in xrange(cnt)).issubset(dir(ns))
-
-        # Test that KeyError, AttributeError is raised:
-        name = get_name(cnt)
-        assert name not in ns
-        raises(KeyError, getitem, ns, name)
-        raises(AttributeError, getattr, ns, name)
-        no_set(ns, name)
+                # Test __repr__:
+                assert repr(o) == \
+                    'NameSpace(<%d members>, sort=%r)' % (cnt, sort)
 
 
 def test_Registrar():

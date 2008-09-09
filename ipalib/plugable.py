@@ -518,32 +518,50 @@ class NameSpace(DictProxy):
     True
     """
 
-    def __init__(self, members):
+    def __init__(self, members, sort=True):
         """
         :param members: An iterable providing the members.
+        :param sort: Whether to sort the members by member name.
         """
+        self.__members = tuple(members)
+        self.__sort = check_type(sort, bool, 'sort')
+        names = (m.name for m in self.__members)
+        if self.__sort:
+            self.__names = tuple(sorted(names))
+        else:
+            self.__names = tuple(names)
         super(NameSpace, self).__init__(
-            dict(self.__member_iter(members))
+            dict(self.__member_iter())
         )
 
-    def __member_iter(self, members):
+    def __member_iter(self):
         """
         Helper method called only from `NameSpace.__init__()`.
-
-        :param members: Same iterable passed to `NameSpace.__init__()`.
         """
-        for member in members:
+        for member in self.__members:
             name = check_name(member.name)
             assert not hasattr(self, name), 'already has attribute %r' % name
             setattr(self, name, member)
             yield (name, member)
 
+    def __iter__(self):
+        """
+        Iterates through member names.
+
+        In this instance was created with ``sort=True``,
+        """
+        for name in self.__names:
+            yield name
+
     def __repr__(self):
         """
-        Returns pseudo-valid Python expression that could be used to construct
-        this NameSpace instance.
+        Returns a pseudo-valid expression that could create this instance.
         """
-        return '%s(<%d members>)' % (self.__class__.__name__, len(self))
+        return '%s(<%d members>, sort=%r)' % (
+            self.__class__.__name__,
+            len(self),
+            self.__sort,
+        )
 
 
 class Registrar(DictProxy):
