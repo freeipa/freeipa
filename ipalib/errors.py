@@ -107,6 +107,19 @@ class IPAError(Exception):
         return self.format % self.args
 
 
+class ArgumentError(IPAError):
+    """
+    Raised when a command is called with wrong number of arguments.
+    """
+
+    format = '%s %s'
+
+    def __init__(self, command, error):
+        self.command = command
+        self.error = error
+        IPAError.__init__(self, command.name, error)
+
+
 class ValidationError(IPAError):
     """
     Base class for all types of validation errors.

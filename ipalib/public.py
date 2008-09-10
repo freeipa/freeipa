@@ -236,6 +236,9 @@ class Command(plugable.Plugin):
     def __init__(self):
         self.args = plugable.NameSpace(self.__check_args(), sort=False)
         self.options = plugable.NameSpace(self.__check_options(), sort=False)
+        self.params = plugable.NameSpace(
+            tuple(self.args()) + tuple(self.options()), sort=False
+        )
 
     def get_args(self):
         return self.takes_args
@@ -346,6 +349,32 @@ class Command(plugable.Plugin):
             return 2
         for option in sorted(self.options(), key=get_key):
             yield option
+
+    def args_to_kw(self, *args):
+        Args = tuple(self.args())
+        if len(args) > len(Args):
+            if len(Args) > 0 and not Args[-1].multivalue:
+                if len(Args) == 1:
+                    error = 'takes at most 1 argument'
+                else:
+                    error = 'takes at most %d arguments' % len(Args)
+                raise errors.ArgumentError(self, error)
+            else:
+                raise errors.ArgumentError(self, 'takes no arguments')
+        MinArgs = sum(int(A.required) for A in Args)
+        if len(args) < MinArgs:
+            if MinArgs == 1:
+                error = 'takes at least 1 argument'
+            else:
+                error = 'takes at least %d arguments' % MinArgs
+            raise errors.ArgumentError(self, error)
+        for (i, Arg) in enumerate(Args):
+            pass
+
+
+
+
+
 
 
 
