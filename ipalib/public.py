@@ -204,13 +204,16 @@ def generate_argument(name):
     """
     if name.endswith('?'):
         kw = dict(required=False, multivalue=False)
+        name = name[:-1]
     elif name.endswith('*'):
         kw = dict(required=False, multivalue=True)
+        name = name[:-1]
     elif name.endswith('+'):
         kw = dict(required=True, multivalue=True)
+        name = name[:-1]
     else:
         kw = dict(required=True, multivalue=False)
-    return Option(name.rstrip('?*+'), ipa_types.Unicode(), **kw)
+    return Option(name, ipa_types.Unicode(), **kw)
 
 
 class Command(plugable.Plugin):
@@ -223,7 +226,7 @@ class Command(plugable.Plugin):
         '__call__',
         'smart_option_order',
         'Option',
-        'takes_args',
+        'args',
     ))
     __Option = None
     options = tuple()
@@ -243,7 +246,7 @@ class Command(plugable.Plugin):
         multivalue = False
         for arg in self.get_args():
             if type(arg) is str:
-                arg = Option(arg, ipa_types.Unicode(), required=True)
+                arg = generate_argument(arg)
             elif not isinstance(arg, Option):
                 raise TypeError(
                     'arg: need %r or %r; got %r' % (str, Option, arg)

@@ -374,6 +374,7 @@ class test_Command(ClassChecker):
     def test_class(self):
         assert self.cls.__bases__ == (plugable.Plugin,)
         assert self.cls.options == tuple()
+        assert self.cls.takes_args == tuple()
 
     def test_get_args(self):
         """
@@ -386,13 +387,34 @@ class test_Command(ClassChecker):
         o = example()
         assert o.get_args() is args
 
+    def __get_instance(self, args=tuple(), options=tuple()):
+        class example(self.cls):
+            takes_args = args
+            takes_options = options
+        return example()
+
     def test_args(self):
         """
         Tests the ``Command.args`` instance attribute.
         """
+        assert 'args' in self.cls.__public__ # Public
         ns = self.cls().args
         assert type(ns) is plugable.NameSpace
         assert len(ns) == 0
+        args = ('destination', 'source?')
+        ns = self.__get_instance(args=args).args
+        assert type(ns) is plugable.NameSpace
+        assert len(ns) == len(args)
+        assert list(ns) == ['destination', 'source']
+        assert type(ns.destination) is public.Option
+        assert ns.destination.required is True
+        assert ns.destination.multivalue is False
+        assert ns.source.required is False
+        assert ns.source.multivalue is False
+
+        # Test type error:
+        e = raises(TypeError, self.__get_instance, args=(u'whatever',))
+        #assert str(e) == 'arg: need %r or %r; got %r' % (str, public.Option,
 
     def test_get_options(self):
         """
