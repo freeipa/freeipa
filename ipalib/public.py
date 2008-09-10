@@ -198,6 +198,21 @@ class Option(plugable.ReadOnly):
         )
 
 
+def generate_argument(name):
+    """
+    Returns an `Option` instance using argument ``name``.
+    """
+    if name.endswith('?'):
+        kw = dict(required=False, multivalue=False)
+    elif name.endswith('*'):
+        kw = dict(required=False, multivalue=True)
+    elif name.endswith('+'):
+        kw = dict(required=True, multivalue=True)
+    else:
+        kw = dict(required=True, multivalue=False)
+    return Option(name.rstrip('?*+'), ipa_types.Unicode(), **kw)
+
+
 class Command(plugable.Plugin):
     __public__ = frozenset((
         'get_default',

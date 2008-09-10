@@ -309,6 +309,30 @@ class test_Option(ClassChecker):
         assert o.get_values() == values
 
 
+def test_generate_argument():
+    """
+    Tests the `public.generate_argument` function.
+    """
+    f = public.generate_argument
+    for name in ['arg', 'arg?', 'arg*', 'arg+']:
+        o = f(name)
+        assert type(o) is public.Option
+        assert type(o.type) is ipa_types.Unicode
+        assert o.name == 'arg'
+    o = f('arg')
+    assert o.required is True
+    assert o.multivalue is False
+    o = f('arg?')
+    assert o.required is False
+    assert o.multivalue is False
+    o = f('arg*')
+    assert o.required is False
+    assert o.multivalue is True
+    o = f('arg+')
+    assert o.required is True
+    assert o.multivalue is True
+
+
 class test_Command(ClassChecker):
     """
     Tests the `public.Command` class.
