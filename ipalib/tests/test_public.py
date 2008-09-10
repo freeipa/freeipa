@@ -125,13 +125,12 @@ class test_Option(ClassChecker):
         Tests the `public.Option.__init__` method.
         """
         name = 'sn'
-        doc = 'Last Name'
         type_ = ipa_types.Unicode()
-        o = self.cls(name, doc, type_)
+        o = self.cls(name, type_)
         assert o.__islocked__() is True
         assert read_only(o, 'name') is name
-        assert read_only(o, 'doc') is doc
         assert read_only(o, 'type') is type_
+        assert read_only(o, 'doc') == ''
         assert read_only(o, 'required') is False
         assert read_only(o, 'multivalue') is False
         assert read_only(o, 'default') is None
@@ -143,13 +142,12 @@ class test_Option(ClassChecker):
         Tests the `public.Option.convert` method.
         """
         name = 'some_number'
-        doc = 'Some number'
         type_ = ipa_types.Int()
         okay = (7, 7L, 7.0, ' 7 ')
         fail = ('7.0', '7L', 'whatever', object)
 
         # Scenario 1: multivalue=False
-        o = self.cls(name, doc, type_)
+        o = self.cls(name, type_)
         e = raises(TypeError, o.convert, None)
         assert str(e) == 'value cannot be None'
         for value in okay:
@@ -164,7 +162,7 @@ class test_Option(ClassChecker):
             assert e.index is None
 
         # Scenario 2: multivalue=True
-        o = self.cls(name, doc, type_, multivalue=True)
+        o = self.cls(name, type_, multivalue=True)
         for none in [None, (7, None)]:
             e = raises(TypeError, o.convert, none)
             assert str(e) == 'value cannot be None'
@@ -189,32 +187,31 @@ class test_Option(ClassChecker):
         Tests the `public.Option.normalize` method.
         """
         name = 'sn'
-        doc = 'User last name'
         t = ipa_types.Unicode()
         callback = lambda value: value.lower()
         values = (None, u'Hello', (u'Hello',), 'hello', ['hello'])
 
         # Scenario 1: multivalue=False, normalize=None
-        o = self.cls(name, doc, t)
+        o = self.cls(name, t)
         for v in values:
             # When normalize=None, value is returned, no type checking:
             assert o.normalize(v) is v
 
         # Scenario 2: multivalue=False, normalize=callback
-        o = self.cls(name, doc, t, normalize=callback)
+        o = self.cls(name, t, normalize=callback)
         for v in (u'Hello', u'hello', 'Hello'): # Okay
             assert o.normalize(v) == 'hello'
         for v in [None, 42, (u'Hello',)]: # Not basestring
             check_TypeError(v, basestring, 'value', o.normalize, v)
 
         # Scenario 3: multivalue=True, normalize=None
-        o = self.cls(name, doc, t, multivalue=True)
+        o = self.cls(name, t, multivalue=True)
         for v in values:
             # When normalize=None, value is returned, no type checking:
             assert o.normalize(v) is v
 
         # Scenario 4: multivalue=True, normalize=callback
-        o = self.cls(name, doc, t, multivalue=True, normalize=callback)
+        o = self.cls(name, t, multivalue=True, normalize=callback)
         for value in [(u'Hello',), (u'hello',), 'Hello', ['Hello']]: # Okay
             assert o.normalize(value) == (u'hello',)
         fail = 42 # Not basestring
@@ -226,7 +223,6 @@ class test_Option(ClassChecker):
         Tests the `public.Option.validate` method.
         """
         name = 'sn'
-        doc = 'User last name'
         type_ = ipa_types.Unicode()
         def case_rule(value):
             if not value.islower():
@@ -237,7 +233,7 @@ class test_Option(ClassChecker):
         fail_type = 'whatever'
 
         # Scenario 1: multivalue=False
-        o = self.cls(name, doc, type_, rules=my_rules)
+        o = self.cls(name, type_, rules=my_rules)
         assert o.rules == (type_.validate, case_rule)
         o.validate(okay)
         e = raises(errors.RuleError, o.validate, fail_case)
@@ -249,7 +245,7 @@ class test_Option(ClassChecker):
         check_TypeError(fail_type, unicode, 'value', o.validate, fail_type)
 
         ## Scenario 2: multivalue=True
-        o = self.cls(name, doc, type_, multivalue=True, rules=my_rules)
+        o = self.cls(name, type_, multivalue=True, rules=my_rules)
         o.validate((okay,))
         cnt = 5
         for i in xrange(cnt):
@@ -272,7 +268,6 @@ class test_Option(ClassChecker):
         Tests the `public.Option.get_default` method.
         """
         name = 'greeting'
-        doc = 'User greeting'
         type_ = ipa_types.Unicode()
         default = u'Hello, world!'
         default_from = public.DefaultFrom(
@@ -281,7 +276,7 @@ class test_Option(ClassChecker):
         )
 
         # Scenario 1: multivalue=False
-        o = self.cls(name, doc, type_,
+        o = self.cls(name, type_,
             default=default,
             default_from=default_from,
         )
@@ -292,7 +287,7 @@ class test_Option(ClassChecker):
 
         # Scenario 2: multivalue=True
         default = (default,)
-        o = self.cls(name, doc, type_,
+        o = self.cls(name, type_,
             default=default,
             default_from=default_from,
             multivalue=True,
@@ -307,11 +302,10 @@ class test_Option(ClassChecker):
         Tests the `public.Option.get_values` method.
         """
         name = 'status'
-        doc = 'Account status'
         values = (u'Active', u'Inactive')
-        o = self.cls(name, doc, ipa_types.Unicode())
+        o = self.cls(name, ipa_types.Unicode())
         assert o.get_values() == tuple()
-        o = self.cls(name, doc, ipa_types.Enum(*values))
+        o = self.cls(name, ipa_types.Enum(*values))
         assert o.get_values() == values
 
 
@@ -339,12 +333,12 @@ class test_Command(ClassChecker):
 
         class example(self.cls):
             options = (
-                public.Option('option0', 'Option zero', type_,
+                public.Option('option0', type_,
                     normalize=normalize,
                     default_from=default_from,
                     rules=(Rule('option0'),)
                 ),
-                public.Option('option1', 'Option one', type_,
+                public.Option('option1', type_,
                     normalize=normalize,
                     default_from=default_from,
                     rules=(Rule('option1'),),
@@ -652,8 +646,8 @@ class test_Method(ClassChecker):
         type_ = ipa_types.Unicode()
         class noun_verb(self.cls):
             options= (
-                public.Option('option0', 'Option zero', type_),
-                public.Option('option1', 'Option one', type_),
+                public.Option('option0', type_),
+                public.Option('option1', type_),
             )
             obj = example_obj()
         return noun_verb

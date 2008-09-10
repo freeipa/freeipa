@@ -52,7 +52,7 @@ class help(public.Application):
     'Display help on a command.'
 
     takes_args = (
-        public.Option('command', 'The doc', ipa_types.Unicode(),
+        public.Option('command', ipa_types.Unicode(),
             required=True,
             multivalue=True,
         ),

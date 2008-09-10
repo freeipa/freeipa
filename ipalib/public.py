@@ -86,7 +86,8 @@ class DefaultFrom(plugable.ReadOnly):
 
 
 class Option(plugable.ReadOnly):
-    def __init__(self, name, doc, type_,
+    def __init__(self, name, type_,
+            doc='',
             required=False,
             multivalue=False,
             default=None,
@@ -190,10 +191,9 @@ class Option(plugable.ReadOnly):
             return value
 
     def __repr__(self):
-        return '%s(%r, %r, %s)' % (
+        return '%s(%r, %s())' % (
             self.__class__.__name__,
             self.name,
-            self.doc,
             self.type.name,
         )
 
@@ -228,7 +228,7 @@ class Command(plugable.Plugin):
         multivalue = False
         for arg in self.get_args():
             if type(arg) is str:
-                arg = Option(arg, '', ipa_types.Unicode(), required=True)
+                arg = Option(arg, ipa_types.Unicode(), required=True)
             elif not isinstance(arg, Option):
                 raise TypeError(
                     'arg: need %r or %r; got %r' % (str, Option, arg)
@@ -430,7 +430,8 @@ class Property(Attribute):
             self.__rules_iter(),
             key=lambda f: getattr(f, '__name__'),
         ))
-        self.option = Option(self.attr_name, self.doc, self.type,
+        self.option = Option(self.attr_name, self.type,
+            doc=self.doc,
             required=self.required,
             multivalue=self.multivalue,
             default=self.default,
