@@ -422,10 +422,18 @@ class test_Command(ClassChecker):
         assert ns.source.required is False
         assert ns.source.multivalue is False
 
-        # Test type error:
+        # Test TypeError:
         e = raises(TypeError, self.__get_instance, args=(u'whatever',))
         assert str(e) == \
             'arg: need %r or %r; got %r' % (str, public.Option, u'whatever')
+
+        # Test ValueError, required after optional:
+        e = raises(ValueError, self.__get_instance, args=('arg1?', 'arg2'))
+        assert str(e) == 'arg2: required argument after optional'
+
+         # Test ValueError, scalar after multivalue:
+        e = raises(ValueError, self.__get_instance, args=('arg1+', 'arg2'))
+        assert str(e) == 'arg2: only final argument can be multivalue'
 
     def test_Option(self):
         """
