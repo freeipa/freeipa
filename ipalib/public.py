@@ -198,9 +198,9 @@ class Option(plugable.ReadOnly):
         )
 
 
-def generate_argument(name):
+def generate_option(name):
     """
-    Returns an `Option` instance using argument ``name``.
+    Returns an `Option` instance by parsing ``name``.
     """
     if name.endswith('?'):
         kw = dict(required=False, multivalue=False)
@@ -248,7 +248,7 @@ class Command(plugable.Plugin):
         multivalue = False
         for arg in self.get_args():
             if type(arg) is str:
-                arg = generate_argument(arg)
+                arg = generate_option(arg)
             elif not isinstance(arg, Option):
                 raise TypeError(
                     'arg: need %r or %r; got %r' % (str, Option, arg)
@@ -270,7 +270,7 @@ class Command(plugable.Plugin):
     def __check_options(self):
         for option in self.get_options():
             if type(option) is str:
-                option = generate_argument(option)
+                option = generate_option(option)
             elif not isinstance(option, Option):
                 raise TypeError(
                     'option: need %r or %r; got %r' % (str, Option, option)
