@@ -551,6 +551,19 @@ class test_Command(ClassChecker):
         assert 'execute' in self.cls.__public__ # Public
 
     def test_args_to_kw(self):
+        o = self.__get_instance(args=('one', 'two?'))
+        assert o.args_to_kw(1) == dict(one=1)
+        assert o.args_to_kw(1, 2) == dict(one=1, two=2)
+
+        o = self.__get_instance(args=('one', 'two*'))
+        assert o.args_to_kw(1) == dict(one=1)
+        assert o.args_to_kw(1, 2) == dict(one=1, two=(2,))
+        assert o.args_to_kw(1, 2, 3) == dict(one=1, two=(2, 3))
+
+        o = self.__get_instance(args=('one', 'two+'))
+        assert o.args_to_kw(1, 2) == dict(one=1, two=(2,))
+        assert o.args_to_kw(1, 2, 3) == dict(one=1, two=(2, 3))
+
         o = self.__get_instance()
         e = raises(errors.ArgumentError, o.args_to_kw, 1)
         assert str(e) == 'example takes no arguments'

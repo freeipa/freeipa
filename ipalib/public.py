@@ -352,15 +352,14 @@ class Command(plugable.Plugin):
 
     def args_to_kw(self, *args):
         Args = tuple(self.args())
-        if len(args) > len(Args):
-            if len(Args) > 0 and not Args[-1].multivalue:
+        if len(Args) == 0 and len(args) > 0:
+            raise errors.ArgumentError(self, 'takes no arguments')
+        if len(args) > len(Args) and not Args[-1].multivalue:
                 if len(Args) == 1:
                     error = 'takes at most 1 argument'
                 else:
                     error = 'takes at most %d arguments' % len(Args)
                 raise errors.ArgumentError(self, error)
-            else:
-                raise errors.ArgumentError(self, 'takes no arguments')
         MinArgs = sum(int(A.required) for A in Args)
         if len(args) < MinArgs:
             if MinArgs == 1:
@@ -368,14 +367,17 @@ class Command(plugable.Plugin):
             else:
                 error = 'takes at least %d arguments' % MinArgs
             raise errors.ArgumentError(self, error)
-        for (i, Arg) in enumerate(Args):
-            pass
+        return dict(self.__args_to_kw_iter(args))
 
-
-
-
-
-
+    def __args_to_kw_iter(self, args):
+		for (i, Arg) in enumerate(self.args()):
+			if len(args) > i:
+				if Arg.multivalue:
+					yield (Arg.name, args[i:])
+				else:
+					yield (Arg.name, args[i])
+			else:
+				assert not Arg.required
 
 
 class Object(plugable.Plugin):
