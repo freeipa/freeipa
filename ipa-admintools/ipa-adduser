@@ -218,7 +218,23 @@ def main():
             user.setValue(attr, value)
 
     client = ipaclient.IPAClient(verbose=options.verbose)
+
+    # get group dns and verify they exist
+    groups_to_add = []
+    if groups:
+        for group in groups.split(','):
+            group_dn = get_group_dn(client, group)
+            if not group_dn:
+                print "group %s doesn't exist" % group
+                return 1
+            groups_to_add.append(group_dn)
+
+    # add the user
     client.add_user(user)
+
+    # add the user to all the groups
+    for group in groups_to_add:
+        client.add_user_to_group(username, group)
 
     # Set the User's password
     if password is not None:
@@ -229,19 +245,20 @@ def main():
             print "%s" % (e.message)
             return 1
 
-    # Add to any groups
-    if groups:
-        add_groups = groups.split(',')
-        for g in add_groups:
-            if g:
-                try:
-                    client.add_user_to_group(username, g)
-                    print "%s added to group %s" % (username, g)
-                except ipa.ipaerror.exception_for(ipa.ipaerror.LDAP_NOT_FOUND):
-                    print "group %s doesn't exist, skipping" % g
-
     print username + " successfully added"
     return 0
+
+def get_group_dn(client, group_name):
+    if not group_name:
+        return None
+
+    found = client.find_groups(group_name)
+    if len(found) < 2:
+        return None
+    for group in found[1:]:
+        if group.cn == group_name:
+            return group.dn
+    return None
 
 try:
     if __name__ == "__main__":
