@@ -456,22 +456,6 @@ class test_Command(ClassChecker):
         assert ns.files.required is False
         assert ns.files.multivalue is True
 
-    def test_Option(self):
-        """
-        Tests the `public.Command.Option` property.
-        """
-        assert 'Option' in self.cls.__public__ # Public
-        sub = self.subcls()
-        O = sub.Option
-        assert type(O) is plugable.NameSpace
-        assert len(O) == 2
-        for name in ('option0', 'option1'):
-            assert name in O
-            option = O[name]
-            assert getattr(O, name) is option
-            assert isinstance(option, public.Option)
-            assert option.name == name
-
     def test_convert(self):
         """
         Tests the `public.Command.convert` method.

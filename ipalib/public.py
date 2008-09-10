@@ -277,21 +277,10 @@ class Command(plugable.Plugin):
                 )
             yield option
 
-    def __get_Option(self):
-        """
-        Returns the NameSpace containing the Option instances.
-        """
-        if self.__Option is None:
-            object.__setattr__(self, '_Command__Option',
-                plugable.NameSpace(self.get_options()),
-            )
-        return self.__Option
-    Option = property(__get_Option)
-
     def __convert_iter(self, kw):
         for (key, value) in kw.iteritems():
-            if key in self.Option:
-                yield (key, self.Option[key].convert(value))
+            if key in self.options:
+                yield (key, self.options[key].convert(value))
             else:
                 yield (key, value)
 
@@ -300,8 +289,8 @@ class Command(plugable.Plugin):
 
     def __normalize_iter(self, kw):
         for (key, value) in kw.iteritems():
-            if key in self.Option:
-                yield (key, self.Option[key].normalize(value))
+            if key in self.options:
+                yield (key, self.options[key].normalize(value))
             else:
                 yield (key, value)
 
@@ -309,7 +298,7 @@ class Command(plugable.Plugin):
         return dict(self.__normalize_iter(kw))
 
     def __get_default_iter(self, kw):
-        for option in self.Option():
+        for option in self.options():
             if option.name not in kw:
                 value = option.get_default(**kw)
                 if value is not None:
@@ -321,7 +310,7 @@ class Command(plugable.Plugin):
 
     def validate(self, **kw):
         self.print_call('validate', kw, 1)
-        for option in self.Option():
+        for option in self.options():
             value = kw.get(option.name, None)
             if value is not None:
                 option.validate(value)
@@ -355,7 +344,7 @@ class Command(plugable.Plugin):
                     return 0
                 return 1
             return 2
-        for option in sorted(self.Option(), key=get_key):
+        for option in sorted(self.options(), key=get_key):
             yield option
 
 

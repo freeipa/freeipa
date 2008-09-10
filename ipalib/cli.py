@@ -228,7 +228,7 @@ class CLI(object):
         parser = optparse.OptionParser(
             usage=self.get_usage(cmd),
         )
-        for option in cmd.Option():
+        for option in cmd.options():
             parser.add_option('--%s' % to_cli(option.name),
                 metavar=option.type.name.upper(),
                 help=option.doc,
