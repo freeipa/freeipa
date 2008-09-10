@@ -356,7 +356,7 @@ class test_Command(ClassChecker):
         type_ = ipa_types.Unicode()
 
         class example(self.cls):
-            options = (
+            takes_options = (
                 public.Option('option0', type_,
                     normalize=normalize,
                     default_from=default_from,
@@ -373,8 +373,17 @@ class test_Command(ClassChecker):
 
     def test_class(self):
         assert self.cls.__bases__ == (plugable.Plugin,)
-        assert self.cls.options == tuple()
+        assert self.cls.takes_options == tuple()
         assert self.cls.takes_args == tuple()
+
+    def __get_instance(self, args=tuple(), options=tuple()):
+        """
+        Helper method used to test args and options.
+        """
+        class example(self.cls):
+            takes_args = args
+            takes_options = options
+        return example()
 
     def test_get_args(self):
         """
@@ -382,16 +391,17 @@ class test_Command(ClassChecker):
         """
         assert list(self.cls().get_args()) == []
         args = ('login', 'stuff')
-        class example(self.cls):
-            takes_args = args
-        o = example()
+        o = self.__get_instance(args=args)
         assert o.get_args() is args
 
-    def __get_instance(self, args=tuple(), options=tuple()):
-        class example(self.cls):
-            takes_args = args
-            takes_options = options
-        return example()
+    def test_get_options(self):
+        """
+        Tests the `public.Command.get_options` method.
+        """
+        assert list(self.cls().get_options()) == []
+        options = ('verbose', 'debug')
+        o = self.__get_instance(options=options)
+        assert o.get_options() is options
 
     def test_args(self):
         """
@@ -414,18 +424,8 @@ class test_Command(ClassChecker):
 
         # Test type error:
         e = raises(TypeError, self.__get_instance, args=(u'whatever',))
-        #assert str(e) == 'arg: need %r or %r; got %r' % (str, public.Option,
-
-    def test_get_options(self):
-        """
-        Tests the `public.Command.get_options` method.
-        """
-        assert list(self.cls().get_options()) == []
-        sub = self.subcls()
-        for (i, option) in enumerate(sub.get_options()):
-            assert isinstance(option, public.Option)
-            assert read_only(option, 'name') == 'option%d' % i
-        assert i == 1
+        assert str(e) == \
+            'arg: need %r or %r; got %r' % (str, public.Option, u'whatever')
 
     def test_Option(self):
         """
@@ -691,7 +691,7 @@ class test_Method(ClassChecker):
             Property = property(__get_prop)
         type_ = ipa_types.Unicode()
         class noun_verb(self.cls):
-            options= (
+            takes_options= (
                 public.Option('option0', type_),
                 public.Option('option1', type_),
             )

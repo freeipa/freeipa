@@ -229,7 +229,7 @@ class Command(plugable.Plugin):
         'args',
     ))
     __Option = None
-    options = tuple()
+    takes_options = tuple()
     takes_args = tuple()
 
     def __init__(self):
@@ -239,7 +239,7 @@ class Command(plugable.Plugin):
         return self.takes_args
 
     def get_options(self):
-        return self.options
+        return self.takes_options
 
     def __check_args(self):
         optional = False
@@ -425,7 +425,7 @@ class Method(Attribute, Command):
         Command.__init__(self)
 
     def get_options(self):
-        for option in self.options:
+        for option in self.takes_options:
             yield option
         if self.obj is not None and self.obj.Property is not None:
             for proxy in self.obj.Property():
