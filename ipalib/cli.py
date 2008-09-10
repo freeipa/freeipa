@@ -31,6 +31,10 @@ import plugable
 import ipa_types
 
 
+def exit_error(error):
+    sys.exit('ipa: ERROR: %s' % error)
+
+
 def to_cli(name):
     """
     Takes a Python identifier and transforms it into form suitable for the
@@ -195,6 +199,10 @@ class CLI(object):
 
     def run_cmd(self, cmd, argv):
         (args, kw) = self.parse(cmd, argv)
+        try:
+            args = cmd.group_args(*args)
+        except errors.ArgumentError, e:
+            exit_error('%s %s' % (to_cli(cmd.name), e.error))
         self.run_interactive(cmd, args, kw)
 
     def run_interactive(self, cmd, args, kw):

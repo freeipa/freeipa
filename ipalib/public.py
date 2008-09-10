@@ -225,9 +225,9 @@ class Command(plugable.Plugin):
         'execute',
         '__call__',
         'smart_option_order',
-        'Option',
         'args',
         'options',
+        'group_args',
     ))
     __Option = None
     takes_options = tuple()
