@@ -550,38 +550,38 @@ class test_Command(ClassChecker):
         """
         assert 'execute' in self.cls.__public__ # Public
 
-    def test_args_to_kw(self):
+    def test_group_args(self):
         o = self.__get_instance(args=('one', 'two?'))
-        assert o.args_to_kw(1) == dict(one=1)
-        assert o.args_to_kw(1, 2) == dict(one=1, two=2)
+        assert o.group_args(1) == (1, None)
+        assert o.group_args(1, 2) == (1, 2)
 
         o = self.__get_instance(args=('one', 'two*'))
-        assert o.args_to_kw(1) == dict(one=1)
-        assert o.args_to_kw(1, 2) == dict(one=1, two=(2,))
-        assert o.args_to_kw(1, 2, 3) == dict(one=1, two=(2, 3))
+        assert o.group_args(1) == (1, None)
+        assert o.group_args(1, 2) == (1, (2,))
+        assert o.group_args(1, 2, 3) == (1, (2, 3))
 
         o = self.__get_instance(args=('one', 'two+'))
-        assert o.args_to_kw(1, 2) == dict(one=1, two=(2,))
-        assert o.args_to_kw(1, 2, 3) == dict(one=1, two=(2, 3))
+        assert o.group_args(1, 2) == (1, (2,))
+        assert o.group_args(1, 2, 3) == (1, (2, 3))
 
         o = self.__get_instance()
-        e = raises(errors.ArgumentError, o.args_to_kw, 1)
+        e = raises(errors.ArgumentError, o.group_args, 1)
         assert str(e) == 'example takes no arguments'
 
         o = self.__get_instance(args=('one?',))
-        e = raises(errors.ArgumentError, o.args_to_kw, 1, 2)
+        e = raises(errors.ArgumentError, o.group_args, 1, 2)
         assert str(e) == 'example takes at most 1 argument'
 
         o = self.__get_instance(args=('one', 'two?'))
-        e = raises(errors.ArgumentError, o.args_to_kw, 1, 2, 3)
+        e = raises(errors.ArgumentError, o.group_args, 1, 2, 3)
         assert str(e) == 'example takes at most 2 arguments'
 
         o = self.__get_instance(args=('one', 'two?'))
-        e = raises(errors.ArgumentError, o.args_to_kw)
+        e = raises(errors.ArgumentError, o.group_args)
         assert str(e) == 'example takes at least 1 argument'
 
         o = self.__get_instance(args=('one', 'two', 'three?'))
-        e = raises(errors.ArgumentError, o.args_to_kw, 1)
+        e = raises(errors.ArgumentError, o.group_args, 1)
         assert str(e) == 'example takes at least 2 arguments'
 
 
