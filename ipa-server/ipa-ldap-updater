@@ -1,0 +1,535 @@
+#!/usr/bin/env python
+# Authors: Rob Crittenden <rcritten@redhat.com>
+#
+# Copyright (C) 2008  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+# Documentation can be found at http://freeipa.org/page/LdapUpdate
+
+# TODO
+# save undo files?
+
+import sys
+try:
+    from optparse import OptionParser
+    from ipaserver import ipaldap
+    from ipa import entity, ipaerror, ipautil, config
+    from ipaserver import installutils
+    import ldap
+    import logging
+    import re
+    import krbV
+    import platform
+    import shlex
+    import time
+    import random
+except ImportError:
+    print >> sys.stderr, """\
+There was a problem importing one of the required Python modules. The
+error was:
+
+    %s
+""" % sys.exc_value
+    sys.exit(1)
+
+# global variable
+sub_dict = {}
+live_run = True
+
+def parse_options():
+    parser = OptionParser("%prog [options] input_file")
+
+    parser.add_option("-d", "--debug", action="store_true", dest="debug",
+                      help="Display debugging information about the update(s)")
+    parser.add_option("-t", "--test", action="store_true", dest="test",
+                      help="Run through the update without changing anything")
+
+    args = config.init_config(sys.argv)
+    options, args = parser.parse_args(args)
+
+    if len(args) != 2:
+        parser.error("missing file operand")
+
+    return options, args
+
+def get_dirman_password(fqdn):
+    """Prompt the user for the Directory Manager password and verify its
+       correctness.
+    """
+    password = installutils.read_password("Directory Manager", confirm=False, validate=False)
+
+    # Try out the password
+    try:
+        conn = ipaldap.IPAdmin(fqdn)
+        conn.do_simple_bind(bindpw=password)
+        conn.unbind()
+    except ldap.CONNECT_ERROR, e:
+        sys.exit("\nUnable to connect to LDAP server %s" % fqdn)
+    except ldap.SERVER_DOWN, e:
+        sys.exit("\nUnable to connect to LDAP server %s" % fqdn)
+    except ldap.INVALID_CREDENTIALS, e :
+        sys.exit("\nThe password provided is incorrect for LDAP server %s" % fqdn)
+
+    return password
+
+def detail_error(detail):
+    """IPA returns two errors back. One a generic one indicating the broad
+       problem and a detailed message back as well which should have come
+       from LDAP. This function will parse that into a human-readable string.
+    """
+    msg = ""
+    desc = detail[0].get('desc')
+    info = detail[0].get('info')
+
+    if desc:
+        msg = desc
+        if info:
+            msg = msg + " " + info
+
+    return msg
+    
+def identify_arch():
+    """On multi-arch systems some libraries may be in /lib64, /usr/lib64, etc.
+       Determine if a suffix is needed based on the current architecture.
+    """
+    arch = platform.platform()
+
+    if arch == "x86_64":
+        return "64"
+    else:
+        return ""
+
+def remove_quotes(line):
+    """Remove leading and trailng double or single quotes"""
+    if line.startswith('"'):
+        line = line[1:]
+    if line.endswith('"'):
+        line = line[:-1]
+    if line.startswith("'"):
+        line = line[1:]
+    if line.endswith("'"):
+        line = line[:-1]
+
+    return line
+
+def parse_values(line):
+    """Parse a comma-separated string into separate values and convert them
+       into a list. This should handle quoted-strings with embedded commas
+    """
+    lexer = shlex.shlex(line)
+    lexer.wordchars = lexer.wordchars + ".()-"
+    l = []
+    v = ""
+    for token in lexer:
+        if token != ',':
+            if v:
+                v = v + " " + token
+            else:
+                v = token
+        else:
+            l.append(remove_quotes(v))
+            v = ""
+
+    l.append(remove_quotes(v))
+
+    return l
+
+def read_file(filename):
+    if filename == '-':
+        fd = sys.stdin
+    else:
+        fd = open(filename)
+    text = fd.readlines()
+    if fd != sys.stdin: fd.close()
+    return text
+
+def entry_to_entity(ent):
+    """Tne Entry class is a bare LDAP entry. The Entity class has a lot more
+       helper functions that we need, so convert to dict and then to Entity.
+    """
+    entry = dict(ent.data)
+    entry['dn'] = ent.dn
+    for key,value in entry.iteritems():
+        if isinstance(value,list) or isinstance(value,tuple):
+            if len(value) == 0:
+                entry[key] = ''
+            elif len(value) == 1:
+                entry[key] = value[0]
+    return entity.Entity(entry)
+
+def parse_update_file(conn, data):
+    """Parse the update file into a dictonary of lists and apply the update
+       for each DN in the file."""
+    global sub_dict
+
+    valid_keywords = ["default", "add", "remove", "only"]
+    update = {}
+    dn = None
+    lcount = 0
+    for line in data:
+        # Strip out \n and extra white space
+        lcount = lcount + 1
+
+        # skip comments and empty lines
+        line = line.rstrip()
+        if line.startswith('#') or line == '': continue
+
+        if line.lower().startswith('dn:'):
+            if dn is not None:
+                update_record(conn, update)
+
+            update = {}
+            dn = line[3:].strip()
+            update['dn'] = ipautil.template_str(dn, sub_dict)
+        else:
+            if dn is None:
+                raise SyntaxError, "dn is not defined in the update"
+
+            if line.startswith(' '):
+                v = d[len(d) - 1]
+                v = v + " " + line.strip()
+                d[len(d) - 1] = v
+                update[index] = d
+                continue
+            line = line.strip()
+            values = line.split(':', 2)
+            if len(values) != 3:
+                raise SyntaxError, "Bad formatting on line %d: %s" % (lcount,line)
+
+            index = values[0].strip().lower()
+
+            if index not in valid_keywords:
+                raise SyntaxError, "Unknown keyword %s" % index
+
+            attr = values[1].strip()
+            value = values[2].strip()
+            value = ipautil.template_str(value, sub_dict)
+
+            new_value = ""
+            if index == "default":
+                new_value = attr + ":" + value
+            else:
+                new_value = index + ":" + attr + ":" + value
+                index = "updates"
+
+            d = update.get(index, [])
+
+            d.append(new_value)
+
+            update[index] = d
+
+    if dn is not None:
+        update_record(conn, update)
+
+    return 
+
+def create_index_task(conn, attribute):
+    """Create a task to update an index for an attribute"""
+    global live_run
+
+    r = random.SystemRandom()
+
+    # Refresh the time to make uniqueness more probable. Add on some
+    # randomness for good measure.
+    sub_dict['TIME'] = int(time.time()) + r.randint(0,10000)
+
+    cn = ipautil.template_str("indextask_$TIME", sub_dict)
+    dn = "cn=%s, cn=index, cn=tasks, cn=config" % cn
+
+    e = ipaldap.Entry(dn)
+
+    e.setValues('objectClass', ['top', 'extensibleObject'])
+    e.setValue('cn', cn)
+    e.setValue('nsInstance', 'userRoot')
+    e.setValues('nsIndexAttribute', attribute)
+    
+    logging.info("Creating task to index attribute: %s", attribute)
+    logging.debug("Task id: %s", dn)
+
+    if live_run:
+        conn.addEntry(e.dn, e.toTupleList())
+
+    return dn
+
+def monitor_index_task(conn, dn):
+    """Give a task DN monitor it and wait until it has completed (or failed)"""
+    global live_run
+
+    if not live_run:
+        # If not doing this live there is nothing to monitor
+        return
+
+    # Pause for a moment to give the task time to be created
+    time.sleep(1)
+
+    attrlist = ['nstaskstatus', 'nstaskexitcode']
+    entry = None
+    done = False
+
+    while not done:
+        try:
+            entry = conn.getEntry(dn, ldap.SCOPE_BASE, "(objectclass=*)", attrlist)
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            logging.error("Task not found: %s", dn)
+            return
+        except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR), e:
+            logging.error("Task lookup failure %s: %s", e, detail_error(e.detail))
+            return
+
+        status = entry.getValue('nstaskstatus')
+        if status is None:
+            # task doesn't have a status yet
+            time.sleep(1)
+            continue
+
+        if status.lower().find("finished") > -1:
+            logging.info("Indexing finished")
+            done = True
+
+        logging.debug("Indexing in progress")
+        time.sleep(1)
+
+    return
+
+def create_default_entry(dn, default):
+    """Create the default entry from the values provided.
+
+       The return type is entity.Entity
+    """
+    entry = ipaldap.Entry(dn)
+
+    if not default:
+        # This means that the entire entry needs to be created with add
+        return entry_to_entity(entry)
+
+    for line in default:
+        # We already do syntax-parsing so this is safe
+        (k, v) = line.split(':',1)
+        e = entry.getValues(k)
+        if e:
+            # multi-valued attribute
+            e = list(e)
+            e.append(v)
+        else:
+            e = v
+        entry.setValues(k, e)
+
+    return entry_to_entity(entry)
+
+def get_entry(conn, dn):
+    """Retrieve an object from LDAP.
+
+       The return type is ipaldap.Entry
+    """
+    searchfilter="objectclass=*"
+    sattrs = ["*"]
+    scope = ldap.SCOPE_BASE
+
+    return conn.getList(dn, scope, searchfilter, sattrs)
+
+def apply_updates(dn, updates, entry):
+    """updates is a list of changes to apply
+       entry is the thing to apply them to
+
+       returns the modified entry
+    """
+    if not updates:
+        return entry
+
+    only = {}
+    for u in updates:
+        # We already do syntax-parsing so this is safe
+        (utype, k, values) = u.split(':',2)
+
+        values = parse_values(values)
+
+        e = entry.getValues(k)
+        if not isinstance(e, list):
+            if e is None:
+                e = []
+            else:
+                e = [e]
+
+        for v in values:
+            if utype == 'remove':
+                logging.debug("remove: '%s' from %s, current value %s", v, k, e)
+                try:
+                    e.remove(v)
+                except ValueError:
+                    logging.warn("remove: '%s' not in %s", v, k)
+                    pass
+                entry.setValues(k, e)
+                logging.debug('remove: updated value %s', e)
+            elif utype == 'add':
+                logging.debug("add: '%s' to %s, current value %s", v, k, e)
+                # Remove it, ignoring errors so we can blindly add it later
+                try:
+                    e.remove(v)
+                except ValueError:
+                    pass
+                e.append(v)
+                logging.debug('add: updated value %s', e)
+                entry.setValues(k, e)
+            elif utype == 'only':
+                logging.debug("only: set %s to '%s', current value %s", k, v, e)
+                if only.get(k):
+                    e.append(v)
+                else:
+                    e = v
+                    only[k] = True
+                entry.setValues(k, e)
+                logging.debug('only: updated value %s', e)
+
+            print_entity(entry)
+
+    return entry
+
+def print_entity(e, message=None):
+    """The entity object currently lacks a str() method"""
+    logging.debug("---------------------------------------------")
+    if message:
+        logging.debug("%s", message)
+    logging.debug("dn: " + e.dn)
+    attr = e.attrList()
+    for a in attr:
+        value = e.getValues(a)
+        if isinstance(value,str):
+            logging.debug(a + ": " + value)
+        else:
+            logging.debug(a + ": ")
+            for l in value:
+                logging.debug("\t" + l)
+
+def update_record(conn, update):
+    global live_run
+
+    found = False
+
+    new_entry = create_default_entry(update.get('dn'),
+                                         update.get('default'))
+
+    try:
+        e = get_entry(conn, new_entry.dn)
+        if len(e) > 1:
+            # we should only ever get back one entry
+            # FIXME, wrong exception type
+            raise SyntaxError, "More than 1 entry returned on a dn search!? %s" % new_entry.dn
+        entry = entry_to_entity(e[0])
+        found = True
+        logging.info("Updating existing entry: %s", entry.dn)
+    except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+        # Doesn't exist, start with the default entry
+        entry = new_entry
+        logging.info("New entry: %s", entry.dn)
+    except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR):
+        # Doesn't exist, start with the default entry
+        entry = new_entry
+        logging.info("New entry, using default value: %s", entry.dn)
+
+    print_entity(entry)
+
+    # Bring this entry up to date
+    entry = apply_updates(entry.dn, update.get('updates'), entry)
+
+    print_entity(entry, "Final value")
+
+    if not found:
+        # New entries get their orig_data set to the entry itself. We want to
+        # empty that so that everything appears new when generating the
+        # modlist
+        # entry.orig_data = {}
+        try:
+            if live_run:
+                conn.addEntry(entry.dn, entry.toTupleList())
+        except Exception, e:
+            logging.error("Add failure %s: %s", e, detail_error(e.detail))
+    else:
+        # Update LDAP
+        try:
+            logging.debug("%s" % conn.generateModList(entry.origDataDict(), entry.toDict()))
+            if live_run:
+                conn.updateEntry(entry.dn, entry.origDataDict(), entry.toDict())
+            logging.info("Done")
+        except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST), e:
+            logging.info("Entry already up-to-date")
+        except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR), e:
+            logging.error("Update failed: %s: %s", e, detail_error(e.detail))
+
+        if ("cn=index" in entry.dn and
+            "cn=userRoot" in entry.dn):
+            id = create_index_task(conn, entry.cn)
+            monitor_index_task(conn, id)
+    return
+
+def main():
+    global sub_dict, live_run
+    loglevel = logging.INFO
+
+    options, args = parse_options()
+    if options.debug:
+        loglevel = logging.DEBUG
+    if options.test:
+        live_run = False
+
+    logging.basicConfig(level=loglevel,
+                        format='%(levelname)s %(message)s')
+
+    try:
+        krbctx = krbV.default_context()
+    except krbV.Krb5Error, e:
+        print "Unable to get default kerberos realm: %s" % e[1]
+        sys.exit(1)
+
+    fqdn = installutils.get_fqdn()
+    if fqdn is None:
+        print "Unable to determine hostname"
+        sys.exit(1)
+
+    domain = ipautil.get_domain_name()
+    libarch = identify_arch()
+    suffix = ipautil.realm_to_suffix(krbctx.default_realm)
+
+    sub_dict = { "REALM" : krbctx.default_realm, "FQDN": fqdn,
+                 "DOMAIN" : domain, "SUFFIX" : suffix,
+                 "LIBARCH" : libarch, "TIME" : int(time.time()) }
+
+    dirman_password = get_dirman_password(fqdn)
+
+    try:
+        data = read_file(args[1])
+    except Exception, e:
+        print e
+        sys.exit(1)
+
+    conn = None
+
+    try:
+        conn = ipaldap.IPAdmin(fqdn)
+        conn.do_simple_bind(bindpw=dirman_password)
+        parse_update_file(conn, data)
+    finally:
+        if conn: conn.unbind()
+
+    return
+
+try:
+    if __name__ == "__main__":
+        sys.exit(main())
+except SystemExit, e:
+    sys.exit(e)
+except KeyboardInterrupt, e:
+    sys.exit(1)

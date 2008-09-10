@@ -124,6 +124,7 @@ fi
 %{_sbindir}/ipa_webgui
 %{_sbindir}/ipa-upgradeconfig
 %{_sbindir}/ipa-fix-CVE-2008-3274
+%{_sbindir}/ipa-ldap-updater
 %attr(755,root,root) %{_initrddir}/ipa_kpasswd
 %attr(755,root,root) %{_initrddir}/ipa_webgui
 
@@ -172,6 +173,9 @@ fi
 %{_mandir}/man1/ipa-server-install.1.gz
 
 %changelog
+* Tue Sep  9 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-4
+- Add ipa-ldap-updater
+
 * Wed Jul 23 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-3
 - Move location of the self-signed CA serial number
 

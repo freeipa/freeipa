@@ -36,6 +36,7 @@ from types import *
 import re
 import xmlrpclib
 import datetime
+from ipa import config
 try:
     from subprocess import CalledProcessError
     class CalledProcessError(subprocess.CalledProcessError):
@@ -52,6 +53,15 @@ except ImportError:
             self.cmd = cmd
         def __str__(self):
             return "Command '%s' returned non-zero exit status %d" % (self.cmd, self.returncode)
+
+def get_domain_name():
+    try:
+        config.init_config()
+        domain_name = config.config.get_domain()
+    except Exception, e:
+        return None
+
+    return domain_name
 
 def realm_to_suffix(realm_name):
     s = realm_name.split(".")

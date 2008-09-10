@@ -19,6 +19,7 @@ import ldap
 import ldif
 import re
 import cStringIO
+import copy
 
 import ipa.ipautil
 
@@ -32,6 +33,13 @@ def utf8_encode_values(values):
         return map(utf8_encode_value, values)
     else:
         return utf8_encode_value(values)
+
+def copy_CIDict(x):
+    """Do a deep copy of a CIDict"""
+    y = {}
+    for key, value in x.iteritems():
+        y[copy.deepcopy(key)] = copy.deepcopy(value)
+    return y
 
 class Entity:
     """This class represents an IPA user.  An LDAP entry consists of a DN
@@ -63,7 +71,7 @@ class Entity:
             self.dn = ''
             self.data = ipa.ipautil.CIDict()
 
-        self.orig_data = ipa.ipautil.CIDict(self.data)
+        self.orig_data = ipa.ipautil.CIDict(copy_CIDict(self.data))
 
     def __nonzero__(self):
         """This allows us to do tests like if entry: returns false if there is no data,
