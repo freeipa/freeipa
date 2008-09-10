@@ -1,0 +1,50 @@
+#
+# Enable the Schema Compatibility plugin provided by slapi-nis.
+#
+# http://slapi-nis.fedorahosted.org/
+#
+dn: cn=Schema Compatibility, cn=plugins, cn=config
+default:objectclass: top
+default:objectclass: nsSlapdPlugin
+default:objectclass: extensibleObject
+default:cn: Schema Compatibility
+default:nsslapd-pluginpath: /usr/lib$LIBARCH/dirsrv/plugins/schemacompat-plugin.so
+default:nsslapd-plugininitfunc: schema_compat_plugin_init
+default:nsslapd-plugintype: object
+default:nsslapd-pluginenabled: on
+default:nsslapd-pluginid: schema-compat-plugin
+default:nsslapd-pluginversion: 0.8
+default:nsslapd-pluginvendor: redhat.com
+default:nsslapd-plugindescription: Schema Compatibility Plugin
+
+dn: cn=users, cn=Schema Compatibility, cn=plugins, cn=config
+default:objectClass: top
+default:objectClass: extensibleObject
+default:cn: users
+default:schema-compat-container-group: cn=compat, $SUFFIX
+default:schema-compat-container-rdn: cn=users
+default:schema-compat-search-base: cn=users, cn=accounts, $SUFFIX
+default:schema-compat-search-filter: objectclass=posixAccount
+default:schema-compat-entry-rdn: uid=%{uid}
+default:schema-compat-entry-attribute: objectclass=posixAccount
+default:schema-compat-entry-attribute: gecos=%{cn}
+default:schema-compat-entry-attribute: cn=%{cn}
+default:schema-compat-entry-attribute: uidNumber=%{uidNumber}
+default:schema-compat-entry-attribute: gidNumber=%{gidNumber}
+default:schema-compat-entry-attribute: loginShell=%{loginShell}
+default:schema-compat-entry-attribute: homeDirectory=%{homeDirectory}
+
+dn: cn=groups, cn=Schema Compatibility, cn=plugins, cn=config
+default:objectClass: top
+default:objectClass: extensibleObject
+default:cn: groups
+default:schema-compat-container-group: cn=compat, $SUFFIX
+default:schema-compat-container-rdn: cn=groups
+default:schema-compat-search-base: cn=groups, cn=accounts, $SUFFIX
+default:schema-compat-search-filter: objectclass=posixGroup
+default:schema-compat-entry-rdn: cn=%{cn}
+default:schema-compat-entry-attribute: objectclass=posixGroup
+default:schema-compat-entry-attribute: gidNumber=%{gidNumber}
+default:schema-compat-entry-attribute: memberUid=%{memberUid}
+default:schema-compat-entry-attribute: memberUid=%deref("member","uid")
+default:schema-compat-entry-attribute: memberUid=%referred("cn=users","memberOf","uid")

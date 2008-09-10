@@ -247,6 +247,7 @@ AC_CONFIG_FILES([
     ipa-gui/ipa_gui.egg-info/Makefile
     ipa-install/Makefile
     ipa-install/share/Makefile
+    ipa-install/updates/Makefile
     ipa-kpasswd/Makefile
     ipaserver/Makefile
     ipa-slapi-plugins/Makefile

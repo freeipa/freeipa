@@ -2,6 +2,7 @@ NULL =
 
 SUBDIRS =			\
 	share			\
+	updates			\
 	$(NULL)
 
 sbin_SCRIPTS =			\

@@ -41,6 +41,7 @@ Requires: python-tgexpandingformwidget
 Requires: acl
 Requires: python-pyasn1
 Requires: libcap
+Requires: slapi-nis
 
 Conflicts: mod_ssl
 
@@ -149,6 +150,8 @@ fi
 %{_usr}/share/ipa/ipaserver/*
 %dir %{_usr}/share/ipa/locales/
 %{_usr}/share/ipa/locales/*
+%dir %{_usr}/share/ipa/updates/
+%{_usr}/share/ipa/updates/*
 
 %dir %{python_sitelib}/ipaserver
 %{python_sitelib}/ipaserver/*.py*
@@ -173,6 +176,9 @@ fi
 %{_mandir}/man1/ipa-server-install.1.gz
 
 %changelog
+* Tue Sep  9 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-5
+- Add updates directory
+
 * Tue Sep  9 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-4
 - Add ipa-ldap-updater
 

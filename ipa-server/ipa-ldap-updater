@@ -50,19 +50,26 @@ error was:
 sub_dict = {}
 live_run = True
 
+class BadSyntax(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
 def parse_options():
-    parser = OptionParser("%prog [options] input_file")
+    parser = OptionParser("%prog [options] input_file(s)")
 
     parser.add_option("-d", "--debug", action="store_true", dest="debug",
                       help="Display debugging information about the update(s)")
     parser.add_option("-t", "--test", action="store_true", dest="test",
                       help="Run through the update without changing anything")
 
-    args = config.init_config(sys.argv)
-    options, args = parser.parse_args(args)
+    config.add_standard_options(parser)
+    options, args = parser.parse_args()
 
-    if len(args) != 2:
+    if len(args) < 1:
         parser.error("missing file operand")
+    config.init_config(options)
 
     return options, args
 
@@ -101,7 +108,7 @@ def detail_error(detail):
             msg = msg + " " + info
 
     return msg
-    
+
 def identify_arch():
     """On multi-arch systems some libraries may be in /lib64, /usr/lib64, etc.
        Determine if a suffix is needed based on the current architecture.
@@ -112,6 +119,14 @@ def identify_arch():
         return "64"
     else:
         return ""
+
+def template_str(s):
+    global sub_dict
+
+    try:
+        return ipautil.template_str(s, sub_dict)
+    except KeyError, e:
+        raise BadSyntax("Unknown template keyword %s" % e)
 
 def remove_quotes(line):
     """Remove leading and trailng double or single quotes"""
@@ -174,8 +189,6 @@ def entry_to_entity(ent):
 def parse_update_file(conn, data):
     """Parse the update file into a dictonary of lists and apply the update
        for each DN in the file."""
-    global sub_dict
-
     valid_keywords = ["default", "add", "remove", "only"]
     update = {}
     dn = None
@@ -194,10 +207,10 @@ def parse_update_file(conn, data):
 
             update = {}
             dn = line[3:].strip()
-            update['dn'] = ipautil.template_str(dn, sub_dict)
+            update['dn'] = template_str(dn)
         else:
             if dn is None:
-                raise SyntaxError, "dn is not defined in the update"
+                raise BadSyntax, "dn is not defined in the update"
 
             if line.startswith(' '):
                 v = d[len(d) - 1]
@@ -208,16 +221,16 @@ def parse_update_file(conn, data):
             line = line.strip()
             values = line.split(':', 2)
             if len(values) != 3:
-                raise SyntaxError, "Bad formatting on line %d: %s" % (lcount,line)
+                raise BadSyntax, "Bad formatting on line %d: %s" % (lcount,line)
 
             index = values[0].strip().lower()
 
             if index not in valid_keywords:
-                raise SyntaxError, "Unknown keyword %s" % index
+                raise BadSyntax, "Unknown keyword %s" % index
 
             attr = values[1].strip()
             value = values[2].strip()
-            value = ipautil.template_str(value, sub_dict)
+            value = template_str(value)
 
             new_value = ""
             if index == "default":
@@ -235,7 +248,7 @@ def parse_update_file(conn, data):
     if dn is not None:
         update_record(conn, update)
 
-    return 
+    return
 
 def create_index_task(conn, attribute):
     """Create a task to update an index for an attribute"""
@@ -247,7 +260,7 @@ def create_index_task(conn, attribute):
     # randomness for good measure.
     sub_dict['TIME'] = int(time.time()) + r.randint(0,10000)
 
-    cn = ipautil.template_str("indextask_$TIME", sub_dict)
+    cn = template_str("indextask_$TIME")
     dn = "cn=%s, cn=index, cn=tasks, cn=config" % cn
 
     e = ipaldap.Entry(dn)
@@ -256,7 +269,7 @@ def create_index_task(conn, attribute):
     e.setValue('cn', cn)
     e.setValue('nsInstance', 'userRoot')
     e.setValues('nsIndexAttribute', attribute)
-    
+
     logging.info("Creating task to index attribute: %s", attribute)
     logging.debug("Task id: %s", dn)
 
@@ -426,8 +439,7 @@ def update_record(conn, update):
         e = get_entry(conn, new_entry.dn)
         if len(e) > 1:
             # we should only ever get back one entry
-            # FIXME, wrong exception type
-            raise SyntaxError, "More than 1 entry returned on a dn search!? %s" % new_entry.dn
+            raise BadSyntax, "More than 1 entry returned on a dn search!? %s" % new_entry.dn
         entry = entry_to_entity(e[0])
         found = True
         logging.info("Updating existing entry: %s", entry.dn)
@@ -509,26 +521,32 @@ def main():
 
     dirman_password = get_dirman_password(fqdn)
 
-    try:
-        data = read_file(args[1])
-    except Exception, e:
-        print e
-        sys.exit(1)
+    for a in args:
+        try:
+            logging.info("Parsing file %s" % a)
+            data = read_file(a)
+        except Exception, e:
+            print e
+            sys.exit(1)
 
-    conn = None
+        conn = None
 
-    try:
-        conn = ipaldap.IPAdmin(fqdn)
-        conn.do_simple_bind(bindpw=dirman_password)
-        parse_update_file(conn, data)
-    finally:
-        if conn: conn.unbind()
+        try:
+            conn = ipaldap.IPAdmin(fqdn)
+            conn.do_simple_bind(bindpw=dirman_password)
+            parse_update_file(conn, data)
+        finally:
+            if conn: conn.unbind()
 
     return
 
 try:
     if __name__ == "__main__":
         sys.exit(main())
+except BadSyntax, e:
+    print "There is a syntax error in this update file:"
+    print "  %s" % e
+    sys.exit(1)
 except SystemExit, e:
     sys.exit(e)
 except KeyboardInterrupt, e:

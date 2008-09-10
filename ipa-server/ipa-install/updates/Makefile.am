@@ -1,0 +1,17 @@
+NULL =
+
+appdir = $(IPA_DATA_DIR)/updates
+app_DATA =				\
+	RFC4876.update			\
+	RFC2307bis.update		\
+	schema_compatibility.update	\
+	nss_ldap.update			\
+	$(NULL)
+
+EXTRA_DIST =				\
+	$(app_DATA)			\
+	$(NULL)
+
+MAINTAINERCLEANFILES =			\
+	*~				\
+	Makefile.in
