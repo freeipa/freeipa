@@ -417,6 +417,7 @@ class test_Command(ClassChecker):
         assert len(ns) == len(args)
         assert list(ns) == ['destination', 'source']
         assert type(ns.destination) is public.Option
+        assert type(ns.source) is public.Option
         assert ns.destination.required is True
         assert ns.destination.multivalue is False
         assert ns.source.required is False
@@ -434,6 +435,26 @@ class test_Command(ClassChecker):
          # Test ValueError, scalar after multivalue:
         e = raises(ValueError, self.__get_instance, args=('arg1+', 'arg2'))
         assert str(e) == 'arg2: only final argument can be multivalue'
+
+    def test_options(self):
+        """
+        Tests the ``Command.options`` instance attribute.
+        """
+        assert 'options' in self.cls.__public__ # Public
+        ns = self.cls().options
+        assert type(ns) is plugable.NameSpace
+        assert len(ns) == 0
+        options = ('target', 'files*')
+        ns = self.__get_instance(options=options).options
+        assert type(ns) is plugable.NameSpace
+        assert len(ns) == len(options)
+        assert list(ns) == ['target', 'files']
+        assert type(ns.target) is public.Option
+        assert type(ns.files) is public.Option
+        assert ns.target.required is True
+        assert ns.target.multivalue is False
+        assert ns.files.required is False
+        assert ns.files.multivalue is True
 
     def test_Option(self):
         """

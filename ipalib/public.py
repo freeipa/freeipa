@@ -227,6 +227,7 @@ class Command(plugable.Plugin):
         'smart_option_order',
         'Option',
         'args',
+        'options',
     ))
     __Option = None
     takes_options = tuple()
@@ -234,6 +235,7 @@ class Command(plugable.Plugin):
 
     def __init__(self):
         self.args = plugable.NameSpace(self.__check_args(), sort=False)
+        self.options = plugable.NameSpace(self.__check_options(), sort=False)
 
     def get_args(self):
         return self.takes_args
@@ -264,6 +266,16 @@ class Command(plugable.Plugin):
             if arg.multivalue:
                 multivalue = True
             yield arg
+
+    def __check_options(self):
+        for option in self.get_options():
+            if type(option) is str:
+                option = generate_argument(option)
+            elif not isinstance(option, Option):
+                raise TypeError(
+                    'option: need %r or %r; got %r' % (str, Option, option)
+                )
+            yield option
 
     def __get_Option(self):
         """
