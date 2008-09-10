@@ -51,12 +51,7 @@ def from_cli(cli_name):
 class help(public.Application):
     'Display help on a command.'
 
-    takes_args = (
-        public.Option('command', ipa_types.Unicode(),
-            required=True,
-            multivalue=True,
-        ),
-    )
+    takes_args = ['command']
 
     def __call__(self, key):
         key = str(key)
@@ -245,7 +240,7 @@ class CLI(object):
 
     def get_usage_iter(self, cmd):
         yield 'Usage: %%prog %s' % to_cli(cmd.name)
-        for arg in cmd.takes_args:
+        for arg in cmd.args():
             name = to_cli(arg.name).upper()
             if arg.multivalue:
                 name = '%s...' % name
@@ -253,8 +248,6 @@ class CLI(object):
                 yield name
             else:
                 yield '[%s]' % name
-
-
 
     def __get_mcl(self):
         """

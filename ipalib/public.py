@@ -420,6 +420,10 @@ class Attribute(plugable.Plugin):
 class Method(Attribute, Command):
     __public__ = Attribute.__public__.union(Command.__public__)
 
+    def __init__(self):
+        Attribute.__init__(self)
+        Command.__init__(self)
+
     def get_options(self):
         for option in self.options:
             yield option
