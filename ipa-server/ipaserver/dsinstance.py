@@ -27,6 +27,7 @@ import os
 import re
 import time
 import tempfile
+import stat
 
 from ipa import ipautil
 
@@ -69,6 +70,10 @@ def erase_ds_instance_data(serverid):
     except:
         pass
     try:
+        shutil.rmtree("/usr/lib64/dirsrv/slapd-%s" % serverid)
+    except:
+        pass
+    try:
         shutil.rmtree("/var/lib/dirsrv/slapd-%s" % serverid)
     except:
         pass
@@ -76,6 +81,10 @@ def erase_ds_instance_data(serverid):
         shutil.rmtree("/var/lock/dirsrv/slapd-%s" % serverid)
     except:
         pass
+#    try:
+#        shutil.rmtree("/var/log/dirsrv/slapd-%s" % serverid)
+#    except:
+#        pass
 
 def check_existing_installation():
     dirs = glob.glob("/etc/dirsrv/slapd-*")
@@ -165,6 +174,7 @@ class DsInstance(service.Service):
         self.step("enabling memberof plugin", self.__add_memberof_module)
         self.step("enabling referential integrity plugin", self.__add_referint_module)
         self.step("enabling distributed numeric assignment plugin", self.__add_dna_module)
+        self.step("enabling winsync plugin", self.__add_winsync_module)
         self.step("configuring uniqueness plugin", self.__set_unique_attrs)
         self.step("creating indices", self.__create_indices)
         self.step("configuring ssl for ds instance", self.__enable_ssl)
@@ -325,6 +335,9 @@ class DsInstance(service.Service):
     def __add_master_entry_first_master(self):
         self.__ldap_mod("master-entry.ldif", self.sub_dict)
 
+    def __add_winsync_module(self):
+        self.__ldap_mod("ipa-winsync-conf.ldif")
+
     def __enable_ssl(self):
         dirname = config_dirname(self.serverid)
         ca = certs.CertDB(dirname)
@@ -421,3 +434,49 @@ class DsInstance(service.Service):
 
         if self.restore_state("running"):
             self.start()
+
+    # we could probably move this function into the service.Service
+    # class - it's very generic - all we need is a way to get an
+    # instance of a particular Service
+    def add_ca_cert(self, cacert_fname, cacert_name=''):
+        """Add a CA certificate to the directory server cert db.  We
+        first have to shut down the directory server in case it has
+        opened the cert db read-only.  Then we use the CertDB class
+        to add the CA cert.  We have to provide a nickname, and we
+        do not use 'CA certificate' since that's the default, so
+        we use 'Imported CA' if none specified.  Then we restart
+        the server."""
+        # first make sure we have a valid cacert_fname
+        try:
+            if not os.access(cacert_fname, os.R_OK):
+                logging.critical("The given CA cert file named [%s] could not be read" %
+                                 cacert_fname)
+                return False
+        except OSError, e:
+            logging.critical("The given CA cert file named [%s] could not be read: %s" %
+                             (cacert_fname, str(e)))
+            return False
+        # ok - ca cert file can be read
+        # shutdown the server
+        running = self.restore_state("running")
+
+        if not running is None:
+            self.stop()
+
+        dirname = config_dirname(realm_to_serverid(self.realm_name))
+        certdb = certs.CertDB(dirname)
+        if not cacert_name or len(cacert_name) == 0:
+            cacert_name = "Imported CA"
+        # we can't pass in the nickname, so we set the instance variable
+        certdb.cacert_name = cacert_name
+        status = True
+        try:
+            certdb.load_cacert(cacert_fname)
+        except CalledProcessError, e:
+            logging.critical("Error importaing CA cert file named [%s]: %s" %
+                             (cacert_fname, str(e)))
+            status = False
+        # restart the directory server
+        self.start()
+
+        return status

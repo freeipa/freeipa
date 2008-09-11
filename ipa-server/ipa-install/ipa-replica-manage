@@ -34,11 +34,21 @@ def parse_options():
     parser.add_option("-p", "--password", dest="dirman_passwd", help="Directory Manager password")
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
                       help="provide additional information")
+    parser.add_option("--port", type="int", dest="port",
+                      help="port number of other server")
+    parser.add_option("--binddn", dest="binddn",
+                      help="Bind DN to use with remote server")
+    parser.add_option("--bindpw", dest="bindpw",
+                      help="Password for Bind DN to use with remote server")
+    parser.add_option("--winsync", dest="winsync", action="store_true", default=False,
+                      help="This is a Windows Sync Agreement")
+    parser.add_option("--cacert", dest="cacert",
+                      help="Full path and filename of CA certificate to use with TLS/SSL to the remote server")
 
     options, args = parser.parse_args()
 
     if not len(args) or not ("list" in args[0] or "add" in args[0] or "del" in args[0] or "init" in args[0] or "synch" in args[0]):
-        parser.error("must provide a comment [list | add | del | init | synch]")
+        parser.error("must provide a command [list | add | del | init | synch]")
 
     return options, args
 
@@ -81,8 +91,26 @@ def del_master(replman, hostname):
     replman.delete_agreement(other_replman.conn)
     other_replman.delete_agreement(replman.conn)
 
-def add_master(replman, hostname):
-    replman.setup_replication(hostname, get_realm_name())
+def add_master(replman, hostname, options):
+    other_args = {}
+    if options.winsync:
+        # these are the parameters required to create a winsync agreement
+        other_args['winsync'] = True
+        if options.port:
+            other_args['port'] = options.port
+        other_args['binddn'] = options.binddn
+        other_args['bindpw'] = options.bindpw
+        other_args['cacert'] = options.cacert
+        # have to install the windows ca cert before doing anything else
+        ds = dsinstance.DsInstance(realm_name = get_realm_name(),
+                                   dm_password = replman.dirman_passwd)
+        if not ds.add_ca_cert(options.cacert):
+            logging.error("Could not load the required CA certificate file [%s] - cannot add winsync agreement" %
+                          options.cacert)
+            sys.exit(1)
+        # have to reconnect replman connection since the directory server was restarted
+        replman = replication.ReplicationManager(replman.hostname, replman.dirman_passwd)
+    replman.setup_replication(hostname, get_realm_name(), **other_args)
 
 def init_master(replman, dirman_passwd, hostname):
     filter = "(&(nsDS5ReplicaHost=%s)(objectclass=nsds5ReplicationAgreement))" % hostname
@@ -133,7 +161,7 @@ def main():
         if len(args) != 2:
             print "must provide hostname of master to add"
             sys.exit(1)
-        add_master(r, args[1])
+        add_master(r, args[1], options)
     elif args[0] == "init":
         if len(args) != 2:
             print "hostname of supplier to initialize from is required."

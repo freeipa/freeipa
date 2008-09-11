@@ -243,6 +243,8 @@ class IPAdmin(SimpleLDAPObject):
                 self.dbdir = os.path.dirname(ent.getValue('nsslapd-directory'))
             except (ldap.INSUFFICIENT_ACCESS, ldap.CONNECT_ERROR):
                 pass # usually means 
+            except ldap.OPERATIONS_ERROR, e:
+                pass # usually means this is Active Directory
             except ldap.LDAPError, e:
                 print "caught exception ", e
                 raise
