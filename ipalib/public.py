@@ -282,8 +282,8 @@ class Command(plugable.Plugin):
 
     def __convert_iter(self, kw):
         for (key, value) in kw.iteritems():
-            if key in self.options:
-                yield (key, self.options[key].convert(value))
+            if key in self.params:
+                yield (key, self.params[key].convert(value))
             else:
                 yield (key, value)
 
@@ -292,8 +292,8 @@ class Command(plugable.Plugin):
 
     def __normalize_iter(self, kw):
         for (key, value) in kw.iteritems():
-            if key in self.options:
-                yield (key, self.options[key].normalize(value))
+            if key in self.params:
+                yield (key, self.params[key].normalize(value))
             else:
                 yield (key, value)
 
@@ -301,11 +301,11 @@ class Command(plugable.Plugin):
         return dict(self.__normalize_iter(kw))
 
     def __get_default_iter(self, kw):
-        for option in self.options():
-            if option.name not in kw:
-                value = option.get_default(**kw)
+        for param in self.params():
+            if param.name not in kw:
+                value = param.get_default(**kw)
                 if value is not None:
-                    yield(option.name, value)
+                    yield(param.name, value)
 
     def get_default(self, **kw):
         self.print_call('default', kw, 1)
@@ -313,12 +313,12 @@ class Command(plugable.Plugin):
 
     def validate(self, **kw):
         self.print_call('validate', kw, 1)
-        for option in self.options():
-            value = kw.get(option.name, None)
+        for param in self.params():
+            value = kw.get(param.name, None)
             if value is not None:
-                option.validate(value)
-            elif option.required:
-                raise errors.RequirementError(option.name)
+                param.validate(value)
+            elif param.required:
+                raise errors.RequirementError(param.name)
 
     def execute(self, **kw):
         self.print_call('execute', kw, 1)
