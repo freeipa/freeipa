@@ -25,11 +25,15 @@ from ipa import ipaerror
 
 DIRMAN_CN = "cn=directory manager"
 CACERT="/usr/share/ipa/html/ca.crt"
+# the default container used by AD for user entries
+WIN_USER_CONTAINER="cn=Users"
+# the default container used by IPA for user entries
+IPA_USER_CONTAINER="cn=users,cn=accounts"
 PORT = 636
 TIMEOUT = 120
-
 class ReplicationManager:
-    """Manage replicatin agreements between DS servers"""
+    """Manage replication agreements between DS servers, and sync
+    agreements with Windows servers"""
     def __init__(self, hostname, dirman_passwd):
         self.hostname = hostname
         self.dirman_passwd = dirman_passwd
@@ -197,6 +201,23 @@ class ReplicationManager:
         chainbe = self.setup_chaining_backend(other_conn)
         self.enable_chain_on_update(chainbe)
 
+    def setup_winsync_agmt(self, entry, **kargs):
+        entry.setValues("objectclass", "nsDSWindowsReplicationAgreement")
+        entry.setValues("nsds7WindowsReplicaSubtree",
+                        kargs.get("win_subtree",
+                                  WIN_USER_CONTAINER + "," + self.suffix))
+        entry.setValues("nsds7DirectoryReplicaSubtree",
+                        kargs.get("ds_subtree",
+                                 IPA_USER_CONTAINER + "," + self.suffix))
+        # for now, just sync users and ignore groups
+        entry.setValues("nsds7NewWinUserSyncEnabled", kargs.get('newwinusers', 'true'))
+        entry.setValues("nsds7NewWinGroupSyncEnabled", kargs.get('newwingroups', 'false'))
+        windomain = ''
+        if kargs.has_key('windomain'):
+            windomain = kargs['windomain']
+        else:
+            windomain = '.'.join(ldap.explode_dn(self.suffix, 1))
+        entry.setValues("nsds7WindowsDomain", windomain)
 
     def agreement_dn(self, conn):
         cn = "meTo%s%d" % (conn.host, PORT)
@@ -204,7 +225,7 @@ class ReplicationManager:
 
         return (cn, dn)
 
-    def setup_agreement(self, a, b):
+    def setup_agreement(self, a, b, **kargs):
         cn, dn = self.agreement_dn(b)
         try:
             a.getEntry(dn, ldap.SCOPE_BASE)
@@ -212,20 +233,27 @@ class ReplicationManager:
         except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
             pass
 
+        iswinsync = kargs.get("winsync", False)
+        repl_man_dn = kargs.get("binddn", self.repl_man_dn)
+        repl_man_passwd = kargs.get("bindpw", self.repl_man_passwd)
+        port = kargs.get("port", PORT)
+
         entry = ipaldap.Entry(dn)
-        entry.setValues('objectclass', "top", "nsds5replicationagreement")
+        entry.setValues('objectclass', "nsds5replicationagreement")
         entry.setValues('cn', cn)
         entry.setValues('nsds5replicahost', b.host)
-        entry.setValues('nsds5replicaport', str(PORT))
+        entry.setValues('nsds5replicaport', str(port))
         entry.setValues('nsds5replicatimeout', str(TIMEOUT))
-        entry.setValues('nsds5replicabinddn', self.repl_man_dn)
-        entry.setValues('nsds5replicacredentials', self.repl_man_passwd)
+        entry.setValues('nsds5replicabinddn', repl_man_dn)
+        entry.setValues('nsds5replicacredentials', repl_man_passwd)
         entry.setValues('nsds5replicabindmethod', 'simple')
         entry.setValues('nsds5replicaroot', self.suffix)
         entry.setValues('nsds5replicaupdateschedule', '0000-2359 0123456')
         entry.setValues('nsds5replicatransportinfo', 'SSL')
         entry.setValues('nsDS5ReplicatedAttributeList', '(objectclass=*) $ EXCLUDE memberOf')
-        entry.setValues('description', "me to %s%d" % (b.host, PORT))
+        entry.setValues('description', "me to %s%d" % (b.host, port))
+        if iswinsync:
+            self.setup_winsync_agmt(entry, **kargs)
 
         a.add_s(entry)
 
@@ -278,9 +306,11 @@ class ReplicationManager:
             done, haserror = self.check_repl_init(conn, agmtdn)
         return haserror
 
-    def start_replication(self, other_conn):
+    def start_replication(self, other_conn, conn=None):
         print "Starting replication, please wait until this has completed."
-        cn, dn = self.agreement_dn(self.conn)
+        if conn == None:
+            conn = self.conn
+        cn, dn = self.agreement_dn(conn)
 
         mod = [(ldap.MOD_ADD, 'nsds5BeginReplicaRefresh', 'start')]
         other_conn.modify_s(dn, mod)
@@ -292,24 +322,40 @@ class ReplicationManager:
         self.local_replica_config(conn, replica_id)
         self.setup_changelog(conn)
 
-    def setup_replication(self, other_hostname, realm_name):
+    def setup_replication(self, other_hostname, realm_name, **kargs):
         """
         NOTES:
            - the directory manager password needs to be the same on
-             both directories.
+             both directories.  Or use the optional binddn and bindpw
         """
-        other_conn = ipaldap.IPAdmin(other_hostname, port=PORT, cacert=CACERT)
-        other_conn.do_simple_bind(bindpw=self.dirman_passwd)
+        iswinsync = kargs.get("winsync", False)
+        oth_port = kargs.get("port", PORT)
+        oth_cacert = kargs.get("cacert", CACERT)
+        oth_binddn = kargs.get("binddn", DIRMAN_CN)
+        oth_bindpw = kargs.get("bindpw", self.dirman_passwd)
+        # note - there appears to be a bug in python-ldap - it does not
+        # allow connections using two different CA certs
+        other_conn = ipaldap.IPAdmin(other_hostname, port=oth_port, cacert=oth_cacert)
+        try:
+            other_conn.do_simple_bind(binddn=oth_binddn, bindpw=oth_bindpw)
+        except Exception, e:
+            if iswinsync:
+                logging.info("Could not validate connection to remote server %s:%d - continuing" %
+                             (other_hostname, oth_port))
+            else:
+                raise e
 
         self.suffix = ipaldap.IPAdmin.normalizeDN(dsinstance.realm_to_suffix(realm_name))
 
         self.basic_replication_setup(self.conn, 1)
-        self.basic_replication_setup(other_conn, 2)
 
-        self.setup_agreement(other_conn, self.conn)
-        self.setup_agreement(self.conn, other_conn)
-
-        return self.start_replication(other_conn)
+        if not iswinsync:
+            self.basic_replication_setup(other_conn, 2)
+            self.setup_agreement(other_conn, self.conn)
+            return self.start_replication(other_conn)
+        else:
+            self.setup_agreement(self.conn, other_conn, **kargs)
+            return self.start_replication(self.conn, other_conn)
 
     def initialize_replication(self, dn, conn):
         mod = [(ldap.MOD_ADD, 'nsds5BeginReplicaRefresh', 'start')]
