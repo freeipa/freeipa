@@ -20,17 +20,36 @@ AC_HEADER_STDC
 AC_SUBST(VERSION)
 
 dnl ---------------------------------------------------------------------------
+dnl - Check for NSPR
+dnl ---------------------------------------------------------------------------
+AC_CHECK_HEADER(nspr4/nspr.h)
+if test "x$ac_cv_header_nspr4_nspr_h" = "xno" ; then
+	AC_MSG_ERROR([Required NSPR header not available (nspr-devel)])
+fi
+
+dnl ---------------------------------------------------------------------------
+dnl - Check for NSS
+dnl ---------------------------------------------------------------------------
+SAVE_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="-I/usr/include/nspr4"
+AC_CHECK_HEADER(nss3/nss.h)
+CPPFLAGS=$SAVE_CPPFLAGS
+if test "x$ac_cv_header_nss3_nss_h" = "xno" ; then
+	AC_MSG_ERROR([Required NSS header not available (nss-devel)])
+fi
+
+dnl ---------------------------------------------------------------------------
 dnl - Check for DS slapi plugin
 dnl ---------------------------------------------------------------------------
 
 # Need to hack CPPFLAGS to be able to correctly detetct slapi-plugin.h
 SAVE_CPPFLAGS=$CPPFLAGS
-CPPFLAGS=-"I/usr/include/nspr4"
+CPPFLAGS="-I/usr/include/nspr4"
 AC_CHECK_HEADER(dirsrv/slapi-plugin.h)
 CPPFLAGS=$SAVE_CPPFLAGS
 
 if test "x$ac_cv_header_dirsrv_slapi_plugin_h" = "xno" ; then
-	AC_MSG_ERROR([Required DS slapi plugin header not available])
+	AC_MSG_ERROR([Required DS slapi plugin header not available (fedora-ds-base-devel)])
 fi
 
 dnl ---------------------------------------------------------------------------
@@ -103,6 +122,17 @@ AC_ARG_WITH(openldap, [  --with-openldap            Use OpenLDAP])
 
 dnl The mozldap libraries are always needed because ipa-slapi-plugins/dna/ 
 dnl will not build against OpenLDAP.
+SAVE_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="-I/usr/include/nspr4 -I/usr/include/nss3"
+AC_CHECK_HEADER(svrcore.h)
+if test "x$ac_cv_header_svrcore_h" = "xno" ; then
+	AC_MSG_ERROR([Required svrcore header not available (svrcore-devel)])
+fi
+CPPFLAGS=$SAVE_CPPFLAGS
+AC_CHECK_HEADER(mozldap/ldap.h)
+if test "x$ac_cv_header_mozldap_ldap_h" = "xno" ; then
+	AC_MSG_ERROR([Required MOZLDAP header not available (mozldap-devel)])
+fi
 PKG_CHECK_MODULES(MOZLDAP, mozldap > 6)
 
 if test x$with_openldap = xyes; then
@@ -166,6 +196,15 @@ AM_PATH_PYTHON(2.3)
 if test "x$PYTHON" = "x" ; then
   AC_MSG_ERROR([Python not found])
 fi
+
+dnl ---------------------------------------------------------------------------
+dnl - Check for TurboGears
+dnl ---------------------------------------------------------------------------
+AC_MSG_NOTICE([Checking for TurboGears])
+AC_CHECK_PROG(tg_found,tg-admin,true,false)
+if test x"${tg_found}" = xfalse ; then
+  AC_MSG_ERROR(tg-admin not found in PATH. Install TurboGears)
+fi	   
 
 dnl ---------------------------------------------------------------------------
 dnl - Set the data install directory since we don't use pkgdatadir
