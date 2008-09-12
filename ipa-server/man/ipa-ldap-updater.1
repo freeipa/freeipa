@@ -1,0 +1,73 @@
+.\" A man page for ipa-ldap-updater
+.\" Copyright (C) 2008 Red Hat, Inc.
+.\" 
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; version 2 only
+.\" 
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\" 
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\" 
+.TH "ipa-ldap-updater" "1" "Sep 12 2008" "freeipa" ""
+.SH "NAME"
+ipa\-ldap\-updater \- Update the IPA LDAP configuration
+.SH "SYNOPSIS"
+ipa\-ldap\-updater [options] input_file(s)
+ipa\-ldap\-updater [options]
+.SH "DESCRIPTION"
+Run with no file arguments, ipa\-ldap\-updater will process all files with the extension .update in /usr/share/ipa/updates.
+
+An update file describes an LDAP entry and a set of operations to be performed on that entry. It can be used to add new entries or modify existing entries. It cannot remove entries, just specific values in a given attribute.
+
+Blank lines and lines beginning with # are ignored.
+
+There are 4 keywords:
+
+    * default: the starting value
+    * add: add a value (or values) to an attribute
+    * remove: remove a value (or values) from an attribute
+    * only: set an attribute to this 
+
+Values is a comma\-separated field so multi\-values may be added at one time. Double or single quotes may be put around individual values that contain embedded commas.
+
+The difference between the default and add keywords is if the DN of the entry exists then default is ignored. So for updating something like schema, which will be under cn=schema, you must always use add (because cn=schema is guaranteed to exist). It will not re\-add the same information again and again.
+
+It alsos provide some things that can be templated such as architecture (for plugin paths), realm and domain name.
+
+The available template variables are:
+
+    * $REALM \- the kerberos realm (EXAMPLE.COM)
+    * $FQDN \- the fully\-qualified domain name of the IPA server being updated (ipa.example.com)
+    * $DOMAIN \- the domain name (example.com)
+    * $SUFFIX \- the IPA LDAP suffix (dc=example,dc=com)
+    * $LIBARCH \- set to 64 on x86_64 systems to be used for plugin paths
+    * $TIME \- an integer representation of current time 
+
+A few rules:
+
+   1. Only one rule per line
+   2. Each line stands alone (e.g. an only followed by an only results in the last only being used)
+   3. adding a value that exists is ok. The request is ignored, duplicate values are not added
+   4. removing a value that doesn't exist is ok. It is simply ignored.
+   5. If a DN doesn't exist it is created from the 'default' entry and all updates are applied
+   6. If a DN does exist the default values are skipped
+   7. Only the first rule on a line is respected 
+.SH "OPTIONS"
+.TP 
+\fB\-d\fR, \fB\-\-debug
+Enable debug logging when more verbose output is needed
+.TP 
+\fB\-t\fR, \fB\-\-test\fR
+Run through the update without changing anything
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred
