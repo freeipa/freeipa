@@ -41,7 +41,7 @@ error was:
 
 def parse_options():
     usage = "ipa-pwpolicy [--maxlife days] [--minlife hours] [--history number] [--minclasses number] [--minlength number] [-v|--verbose]\n"
-    usage = "ipa-pwpolicy --show"
+    usage += "ipa-pwpolicy --show"
     parser = OptionParser(usage=usage, formatter=ipa.config.IPAFormatter())
     parser.add_option("--maxlife", dest="maxlife",
                       help="Max. Password Lifetime (days)")
