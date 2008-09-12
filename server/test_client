@@ -1,0 +1,16 @@
+#!/usr/bin/python
+
+import xmlrpclib
+    
+server = xmlrpclib.ServerProxy("http://localhost:8888/")
+    
+print server.system.listMethods()
+#print server.system.methodHelp("user_add")
+
+user = {'givenname':'Joe', 'sn':'Smith'}
+result = server.user_add(user)
+print "returned %s" % result
+
+user = {'givenname':'Joe', 'sn':'Smith', 'uid':'admin'}
+result = server.user_find(user)
+print "returned %s" % result
