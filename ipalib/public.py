@@ -338,7 +338,7 @@ class Command(plugable.Plugin):
         kw = self.normalize(**kw)
         kw.update(self.get_default(**kw))
         self.validate(**kw)
-        return self.execute(**kw)
+        self.execute(**kw)
 
     def smart_option_order(self):
         def get_key(option):

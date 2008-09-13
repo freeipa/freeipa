@@ -24,8 +24,7 @@ Some example plugins.
 
 from ipalib import public
 from ipalib import api
-from ipalib import servercore
-import ldap
+
 
 # Hypothetical functional commands (not associated with any object):
 class krbtest(public.Command):
@@ -40,10 +39,7 @@ api.register(discover)
 # Register some methods for the 'user' object:
 class user_add(public.Method):
     'Add a new user.'
-    def execute(self, **kw):
-        return 1
 api.register(user_add)
-
 
 class user_del(public.Method):
     'Delete an existing user.'
@@ -55,9 +51,6 @@ api.register(user_mod)
 
 class user_find(public.Method):
     'Search the users.'
-    def execute(self, **kw):
-        result = servercore.get_sub_entry(servercore.basedn, "uid=%s" % kw['uid'], ["*"])
-        return result
 api.register(user_find)
 
 
