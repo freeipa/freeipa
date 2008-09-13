@@ -163,11 +163,17 @@ def standard_logging_setup(log_filename, debug=False):
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
+def get_password(prompt):
+    if os.isatty(sys.stdin.fileno()):
+        return getpass.getpass(prompt)
+    else:
+        return sys.stdin.readline().rstrip()
+
 def read_password(user, confirm=True, validate=True):
     correct = False
     pwd = ""
     while not correct:
-        pwd = getpass.getpass(user + " password: ")
+        pwd = get_password(user + " password: ")
         if not pwd:
             continue
         if validate and len(pwd) < 8:
@@ -176,7 +182,7 @@ def read_password(user, confirm=True, validate=True):
         if not confirm:
             correct = True
             continue
-        pwd_confirm = getpass.getpass("Password (confirm): ")
+        pwd_confirm = get_password("Password (confirm): ")
         if pwd != pwd_confirm:
             print "Password mismatch!"
             print ""
