@@ -333,12 +333,13 @@ class Command(plugable.Plugin):
         )
 
     def __call__(self, *args, **kw):
-        print ''
-        self.print_call('__call__', kw)
+        arg_kw = self.args_to_kw(*args)
+        assert set(arg_kw).intersection(kw) == set()
+        kw.update(arg_kw)
         kw = self.normalize(**kw)
+        kw = self.convert(**kw)
         kw.update(self.get_default(**kw))
         self.validate(**kw)
-        self.execute(**kw)
 
     def smart_option_order(self):
         def get_key(option):
@@ -373,15 +374,29 @@ class Command(plugable.Plugin):
         return tuple(self.__group_args_iter(values, args))
 
     def __group_args_iter(self, values, args):
-		for (i, arg) in enumerate(args):
-			if len(values) > i:
-				if arg.multivalue:
-					yield values[i:]
-				else:
-					yield values[i]
-			else:
-				assert not arg.required
-				yield None
+        for (i, arg) in enumerate(args):
+            if len(values) > i:
+                if arg.multivalue:
+                    yield values[i:]
+                else:
+                    yield values[i]
+            else:
+                assert not arg.required
+                yield None
+
+    def args_to_kw(self, *values):
+        return dict(self.__args_to_kw_iter(values))
+
+    def __args_to_kw_iter(self, values):
+        multivalue = False
+        for (i, arg) in enumerate(self.args()):
+            assert not multivalue
+            if len(values) > i:
+                if arg.multivalue:
+                    multivalue = True
+                    yield (arg.name, values[i:])
+                else:
+                    yield (arg.name, values[i])
 
 
 class Object(plugable.Plugin):
