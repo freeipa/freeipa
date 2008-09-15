@@ -540,6 +540,11 @@ def main():
     else:
         bind.create_sample_bind_zone()
 
+    # Apply any LDAP updates. Needs to be done after the configuration file
+    # is created
+    service.print_msg("Applying LDAP updates")
+    ds.apply_updates()
+
     # Restart ds and krb after configurations have been changed
     service.print_msg("restarting the directory server")
     ds.restart()

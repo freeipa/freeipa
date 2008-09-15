@@ -69,6 +69,8 @@ def parse_options():
                       help="Display debugging information about the update(s)")
     parser.add_option("-t", "--test", action="store_true", dest="test",
                       help="Run through the update without changing anything")
+    parser.add_option("-y", dest="password",
+                      help="File containing the Directory Manager password")
 
     config.add_standard_options(parser)
     options, args = parser.parse_args()
@@ -565,7 +567,12 @@ def main():
                  "DOMAIN" : domain, "SUFFIX" : suffix,
                  "LIBARCH" : libarch, "TIME" : int(time.time()) }
 
-    dirman_password = get_dirman_password(fqdn)
+    dirman_password = ""
+    if options.password:
+        pw = read_file(options.password)
+        dirman_password = pw[0].strip()
+    else:
+        dirman_password = get_dirman_password(fqdn)
 
     files=[]
     if len(args) < 1:
