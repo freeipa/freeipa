@@ -34,6 +34,7 @@ import service
 import installutils
 import certs
 import ipaldap, ldap
+from ipaserver import ldapupdate
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
@@ -305,24 +306,9 @@ class DsInstance(service.Service):
         self.__ldap_mod("memberof-task.ldif", self.sub_dict)
 
     def apply_updates(self):
-        """Run the ipa-ldap-updater tool. Needs to be run after the
-           configuration file /etc/ipa/ipa.conf has been created.
-        """
-        [pw_fd, pw_name] = tempfile.mkstemp()
-        os.write(pw_fd, self.dm_password)
-        os.close(pw_fd)
-
-        try:
-            args = ["/usr/sbin/ipa-ldap-updater",
-                    "-y", pw_name]
-            try:
-                ipautil.run(args)
-                logging.debug("Updates applied")
-            except ipautil.CalledProcessError, e:
-                print "Unable to apply updates", e
-                logging.debug("Unable to apply updates%s" % e)
-        finally:
-            os.remove(pw_name)
+        ld = ldapupdate.LDAPUpdate(dm_password=self.dm_password)
+        files = ld.get_all_files(ldapupdate.UPDATES_DIR)
+        ld.update(files)
 
     def __add_referint_module(self):
         self.__ldap_mod("referint-conf.ldif")
