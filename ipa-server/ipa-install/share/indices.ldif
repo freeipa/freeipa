@@ -64,14 +64,6 @@ changetype: modify
 add: nsIndexType
 nsIndexType:sub
 
-dn: cn=memberof,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-changetype: add
-objectClass:top
-objectClass:nsIndex
-cn:memberof
-nsSystemIndex:false
-nsIndexType:eq
-
 dn: cn=uidnumber,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 changetype: add
 objectClass:top
