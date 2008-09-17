@@ -111,6 +111,8 @@ fi
 if [ "$1" -ge "1" ]; then
     /sbin/service ipa_kpasswd condrestart >/dev/null 2>&1 || :
     /sbin/service ipa_webgui condrestart >/dev/null 2>&1 || :
+    /sbin/service httpd condrestart >/dev/null 2>&1 || :
+    /sbin/service dirsrv condrestart >/dev/null 2>&1 || :
 fi
 
 %files
@@ -177,17 +179,12 @@ fi
 %{_mandir}/man1/ipa-ldap-updater.1.gz
 
 %changelog
-* Tue Sep  9 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-5
-- Add updates directory
-
-* Tue Sep  9 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-4
-- Add ipa-ldap-updater
-
-* Wed Jul 23 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-3
-- Move location of the self-signed CA serial number
-
-* Tue May  5 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-2
+* Wed Sep 17 2008 Rob Crittenden <rcritten@redhat.com> - 1.2.0-0
 - Add ipa-upgradeconfig command and run it at post
+- Move location of the self-signed CA serial number
+- Add ipa-ldap-updater
+- Add updates directory
+- Restart httpd and dirsrv services after upgrade
 
 * Thu Apr  3 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-1
 - Version bump for release
