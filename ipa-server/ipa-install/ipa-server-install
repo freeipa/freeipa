@@ -86,6 +86,9 @@ def parse_options():
                       help="The password of the Directory Server PKCS#12 file")
     parser.add_option("--http_pin", dest="http_pin",
                       help="The password of the Apache Server PKCS#12 file")
+    parser.add_option("--no-host-dns", dest="no_host_dns", action="store_true",
+                      default=False,
+                      help="Do not use DNS for hostname lookup during installation")
 
     options, args = parser.parse_args()
 
@@ -119,7 +122,7 @@ def signal_handler(signum, frame):
             ipaserver.dsinstance.erase_ds_instance_data (ds.serverid)
     sys.exit(1)
 
-def read_host_name(host_default):
+def read_host_name(host_default,no_host_dns=False):
     host_name = ""
 
     print "Enter the fully qualified domain name of the computer"
@@ -134,7 +137,7 @@ def read_host_name(host_default):
         host_name = user_input("Server host name", host_default, allow_empty = False)
         print ""
         try:
-            verify_fqdn(host_name)
+            verify_fqdn(host_name,no_host_dns)
         except Exception, e:
             raise e
         else:
@@ -394,14 +397,14 @@ def main():
 
     if options.unattended:
         try:
-            verify_fqdn(host_default)
+            verify_fqdn(host_default,options.no_host_dns)
         except RuntimeError, e:
             logging.error(str(e) + "\n")
             return 1
 
         host_name = host_default
     else:
-        host_name = read_host_name(host_default)
+        host_name = read_host_name(host_default,options.no_host_dns)
 
     host_name = host_name.lower()
 
