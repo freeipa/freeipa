@@ -271,11 +271,8 @@ def main():
         print "Creation of /etc/ldap.conf: " + str(e)
         return 1
 
-    #Check if kerberos is already configured properly
-    krbctx = krbV.default_context()
-    # If we find our domain assume we are properly configured
-    #(ex. we are configuring the client side of a Master)
-    if not options.on_master and (not krbctx.default_realm == cli_realm or options.force):
+    #If on master assume kerberos is already configured properly.
+    if not options.on_master:
 
         #Configure krb5.conf
         krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
@@ -289,12 +286,12 @@ def main():
 
         #[libdefaults]
         libopts = [{'name':'default_realm', 'type':'option', 'value':cli_realm}]
-        if dnsok and not options.force and not options.on_master:
-            libopts.append({'name':'dns_lookup_realm', 'type':'option', 'value':'true'})
-            libopts.append({'name':'dns_lookup_kdc', 'type':'option', 'value':'true'})
-        else:
+        if not dnsok or options.force:
             libopts.append({'name':'dns_lookup_realm', 'type':'option', 'value':'false'})
             libopts.append({'name':'dns_lookup_kdc', 'type':'option', 'value':'false'})
+        else:
+            libopts.append({'name':'dns_lookup_realm', 'type':'option', 'value':'true'})
+            libopts.append({'name':'dns_lookup_kdc', 'type':'option', 'value':'true'})
         libopts.append({'name':'ticket_lifetime', 'type':'option', 'value':'24h'})
         libopts.append({'name':'forwardable', 'type':'option', 'value':'yes'})
 
