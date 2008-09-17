@@ -86,7 +86,7 @@ class IPAConfig:
 # Global library config
 config = IPAConfig()
 
-def __parse_config():
+def __parse_config(discover_server = True):
     p = ConfigParser.SafeConfigParser()
     p.read("/etc/ipa/ipa.conf")
 
@@ -95,18 +95,19 @@ def __parse_config():
             config.default_realm = p.get("defaults", "realm")
     except:
         pass
-    try:
-        s = p.get("defaults", "server")
-        config.default_server.extend(re.sub("\s+", "", s).split(','))
-    except:
-        pass
+    if discover_server:
+        try:
+            s = p.get("defaults", "server")
+            config.default_server.extend(re.sub("\s+", "", s).split(','))
+        except:
+            pass
     try:
         if not config.default_domain:
             config.default_domain = p.get("defaults", "domain")
     except:
         pass
 
-def __discover_config():
+def __discover_config(discover_server = True):
     rl = 0
     try:
         if not config.default_realm:
@@ -135,14 +136,15 @@ def __discover_config():
 
             config.default_domain = dom_name
 
-        if rl == 0:
-             name = "_ldap._tcp."+config.default_domain+"."
-             rs = ipa.dnsclient.query(name, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
+        if discover_server:
+            if rl == 0:
+                 name = "_ldap._tcp."+config.default_domain+"."
+                 rs = ipa.dnsclient.query(name, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
 
-        for r in rs:
-            if r.dns_type == ipa.dnsclient.DNS_T_SRV:
-                rsrv = r.rdata.server.rstrip(".")
-                config.default_server.append(rsrv)
+            for r in rs:
+                if r.dns_type == ipa.dnsclient.DNS_T_SRV:
+                    rsrv = r.rdata.server.rstrip(".")
+                    config.default_server.append(rsrv)
 
     except:
         pass
@@ -159,8 +161,12 @@ def init_config(options=None):
         if options.server:
             config.default_server.extend(options.server.split(","))
 
-    __parse_config()
-    __discover_config()
+    if len(config.default_server):
+        discover_server = False
+    else:
+        discover_server = True
+    __parse_config(discover_server)
+    __discover_config(discover_server)
 
     # make sure the server list only contains unique items
     new_server = []
