@@ -26,15 +26,12 @@ class PrincipalFields(object):
             label="Service Type",
             options = [
                        ("cifs", "cifs"),
-                       ("dhcp", "dhcp"),
                        ("dns", "dns"),
                        ("host", "host"),
                        ("HTTP", "HTTP"),
                        ("ldap", "ldap"),
                        ("nfs", "nfs"),
-                       ("other", "other"),
-                       ("rpc", "rpc"),
-                       ("snmp", "snmp")
+                       ("other", "other")
                       ],
             attrs=dict(onchange="toggleOther(this.id)"))
     other = widgets.TextField(name="other", label="Other Service", attrs=dict(size=10))
