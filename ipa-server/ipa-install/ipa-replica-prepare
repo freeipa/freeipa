@@ -32,12 +32,9 @@ from ipaserver import dsinstance, installutils, certs, ipaldap
 from ipa import version
 import ldap
 
-def usage():
-    print "ipa-replica-prepate FQDN (e.g. replica.example.com)"
-    sys.exit(1)
-
 def parse_options():
-    parser = OptionParser(version=version.VERSION)
+    usage = "%prog [options] FQDN (e.g. replica.example.com)"
+    parser = OptionParser(usage=usage, version=version.VERSION)
 
     parser.add_option("--dirsrv_pkcs12", dest="dirsrv_pkcs12",
                       help="install certificate for the directory server")
@@ -50,6 +47,7 @@ def parse_options():
     parser.add_option("-p", "--password", dest="password", 
                       help="Directory Manager (existing master) password")
 
+    ipa.config.add_standard_options(parser)
     options, args = parser.parse_args()
 
     # If any of the PKCS#12 options are selected, all are required. Create a
