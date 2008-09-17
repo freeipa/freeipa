@@ -93,19 +93,25 @@ def del_master(replman, hostname):
 
 def add_master(replman, hostname, options):
     other_args = {}
-    if options.winsync:
-        # these are the parameters required to create a winsync agreement
-        other_args['winsync'] = True
-        if options.port:
-            other_args['port'] = options.port
+    if options.port:
+        other_args['port'] = options.port
+    if options.binddn:
         other_args['binddn'] = options.binddn
+    if options.bindpw:
         other_args['bindpw'] = options.bindpw
+    if options.cacert:
         other_args['cacert'] = options.cacert
-        # have to install the windows ca cert before doing anything else
+    if options.winsync:
+        other_args['winsync'] = True
+        if not options.binddn or not options.bindpw or not options.cacert:
+            logging.error("The arguments --binddn, --bindpw, and --cacert are required to create a winsync agreement")
+            sys.exit(1)
+    if options.cacert:
+        # have to install the given CA cert before doing anything else
         ds = dsinstance.DsInstance(realm_name = get_realm_name(),
                                    dm_password = replman.dirman_passwd)
         if not ds.add_ca_cert(options.cacert):
-            logging.error("Could not load the required CA certificate file [%s] - cannot add winsync agreement" %
+            logging.error("Could not load the required CA certificate file [%s]" %
                           options.cacert)
             sys.exit(1)
         # have to reconnect replman connection since the directory server was restarted
