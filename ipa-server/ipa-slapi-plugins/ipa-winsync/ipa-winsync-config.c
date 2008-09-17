@@ -110,7 +110,9 @@ ipa_winsync_config(Slapi_Entry *config_e)
 
     if ( inited ) {
         slapi_log_error( SLAPI_LOG_FATAL, IPA_WINSYNC_PLUGIN_NAME,
-                         "only one PAM pass through plugin instance can be used\n" );
+                         "Error: IPA WinSync plug-in already configured.  "
+                         "Please remove the plugin config entry [%s]\n",
+                         slapi_entry_get_dn_const(config_e));
         return( LDAP_PARAM_ERROR );
     }
 
