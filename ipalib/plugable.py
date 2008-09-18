@@ -473,7 +473,7 @@ def check_name(name):
     return name
 
 
-class NameSpace(DictProxy):
+class NameSpace(ReadOnly):
     """
     A read-only namespace with handy container behaviours.
 
@@ -523,35 +523,68 @@ class NameSpace(DictProxy):
         :param members: An iterable providing the members.
         :param sort: Whether to sort the members by member name.
         """
-        self.__members = tuple(members)
         self.__sort = check_type(sort, bool, 'sort')
-        names = (m.name for m in self.__members)
         if self.__sort:
-            self.__names = tuple(sorted(names))
+            self.__members = tuple(sorted(members, key=lambda m: m.name))
         else:
-            self.__names = tuple(names)
-        super(NameSpace, self).__init__(
-            dict(self.__member_iter())
-        )
-
-    def __member_iter(self):
-        """
-        Helper method called only from `NameSpace.__init__()`.
-        """
+            self.__members = tuple(members)
+        self.__names = tuple(m.name for m in self.__members)
+        self.__map = dict()
         for member in self.__members:
             name = check_name(member.name)
+            assert name not in self.__map, 'already has key %r' % name
+            self.__map[name] = member
             assert not hasattr(self, name), 'already has attribute %r' % name
             setattr(self, name, member)
-            yield (name, member)
+        lock(self)
+
+    def __len__(self):
+        """
+        Returns the number of members.
+        """
+        return len(self.__members)
 
     def __iter__(self):
         """
-        Iterates through member names.
+        Iterates through the member names.
 
-        In this instance was created with ``sort=True``,
+        If this instance was created with ``sort=True``, the names will be in
+        alphabetical order; otherwise the names will be in the same order as
+        the members were passed to the constructor.
         """
         for name in self.__names:
             yield name
+
+    def __call__(self):
+        """
+        Iterates through the members.
+
+        If this instance was created with ``sort=True``, the members will be
+        in alphabetical order by name; otherwise the members will be in the
+        same order as they were passed to the constructor.
+        """
+        for member in self.__members:
+            yield member
+
+    def __contains__(self, name):
+        """
+        Returns True if namespace has a member named ``name``.
+        """
+        return name in self.__map
+
+    def __getitem__(self, spec):
+        """
+        Returns a member by name or index, or returns a slice of members.
+
+        :param spec: The name or index of a member, or a slice object.
+        """
+        if type(spec) is str:
+            return self.__map[spec]
+        if type(spec) in (int, slice):
+            return self.__members[spec]
+        raise TypeError(
+            'spec: must be %r, %r, or %r; got %r' % (str, int, slice, spec)
+        )
 
     def __repr__(self):
         """

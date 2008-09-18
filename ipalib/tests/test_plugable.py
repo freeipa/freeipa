@@ -569,7 +569,7 @@ class test_NameSpace(ClassChecker):
     _cls = plugable.NameSpace
 
     def test_class(self):
-        assert self.cls.__bases__ == (plugable.DictProxy,)
+        assert self.cls.__bases__ == (plugable.ReadOnly,)
 
     def test_init(self):
         """
