@@ -48,6 +48,10 @@ import pyasn1.codec.ber.decoder
 import struct
 import base64
 
+KRBMKEY_DENY_ACI = """
+(targetattr = "krbMKey")(version 3.0; acl "No external access"; deny (all) userdn != "ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
+"""
+
 def update_key_val_in_file(filename, key, val):
     if os.path.exists(filename):
         pattern = "^[\s#]*%s\s*=\s*%s\s*" % (re.escape(key), re.escape(val))
@@ -338,10 +342,6 @@ class KrbInstance(service.Service):
     #add the password extop module
     def __add_pwd_extop_module(self):
         self.__ldap_mod("pwd-extop-conf.ldif")
-
-KRBMKEY_DENY_ACI = """
-(targetattr = "krbMKey")(version 3.0; acl "No external access"; deny (all) userdn != "ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
-"""
 
     def __add_master_key(self):
         #get the Master Key from the stash file
