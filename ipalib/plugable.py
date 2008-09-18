@@ -551,6 +551,8 @@ class NameSpace(ReadOnly):
         If this instance was created with ``sort=True``, the names will be in
         alphabetical order; otherwise the names will be in the same order as
         the members were passed to the constructor.
+
+        This method is like an ordered version of dict.iterkeys().
         """
         for name in self.__names:
             yield name
@@ -562,6 +564,8 @@ class NameSpace(ReadOnly):
         If this instance was created with ``sort=True``, the members will be
         in alphabetical order by name; otherwise the members will be in the
         same order as they were passed to the constructor.
+
+        This method is like an ordered version of dict.itervalues().
         """
         for member in self.__members:
             yield member
