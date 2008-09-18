@@ -40,52 +40,53 @@ class test_ReadOnly(ClassChecker):
 
     def test_lock(self):
         """
-        Tests the `plugable.ReadOnly.__lock__` and
-        `plugable.ReadOnly.__islocked__` methods.
+        Test the `plugable.ReadOnly.__lock__` method.
+        """
+        o = self.cls()
+        assert o._ReadOnly__locked is False
+        o.__lock__()
+        assert o._ReadOnly__locked is True
+        e = raises(AssertionError, o.__lock__) # Can only be locked once
+        assert str(e) == '__lock__() can only be called once'
+        assert o._ReadOnly__locked is True # This should still be True
+
+    def test_lock(self):
+        """
+        Test the `plugable.ReadOnly.__islocked__` method.
         """
         o = self.cls()
         assert o.__islocked__() is False
         o.__lock__()
         assert o.__islocked__() is True
-        raises(AssertionError, o.__lock__) # Can only be locked once
-        assert o.__islocked__() is True # This should still be True
 
-    def test_when_unlocked(self):
+    def test_setattr(self):
         """
-        Test that default state is unlocked, that setting and deleting
-        attributes works.
+        Test the `plugable.ReadOnly.__setattr__` method.
         """
         o = self.cls()
+        o.attr1 = 'Hello, world!'
+        assert o.attr1 == 'Hello, world!'
+        o.__lock__()
+        for name in ('attr1', 'attr2'):
+            e = raises(AttributeError, setattr, o, name, 'whatever')
+            assert str(e) == 'read-only: cannot set ReadOnly.%s' % name
+        assert o.attr1 == 'Hello, world!'
 
-        # Setting:
-        o.hello = 'world'
-        assert o.hello == 'world'
-
-        # Deleting:
-        del o.hello
-        assert not hasattr(o, 'hello')
-
-    def test_when_locked(self):
+    def test_delattr(self):
         """
-        Test that after __lock__() has been called, setting or deleting an
-        attribute raises AttributeError.
+        Test the `plugable.ReadOnly.__delattr__` method.
         """
-        obj = self.cls()
-        obj.__lock__()
-        names = ['not_an_attribute', 'an_attribute']
-        for name in names:
-            no_set(obj, name)
-            no_del(obj, name)
-
-        class some_ro_class(self.cls):
-            def __init__(self):
-                self.an_attribute = 'Hello world!'
-                self.__lock__()
-        obj = some_ro_class()
-        for name in names:
-            no_set(obj, name)
-            no_del(obj, name)
-        assert read_only(obj, 'an_attribute') == 'Hello world!'
+        o = self.cls()
+        o.attr1 = 'Hello, world!'
+        o.attr2 = 'How are you?'
+        assert o.attr1 == 'Hello, world!'
+        assert o.attr2 == 'How are you?'
+        del o.attr1
+        assert not hasattr(o, 'attr1')
+        o.__lock__()
+        e = raises(AttributeError, delattr, o, 'attr2')
+        assert str(e) == 'read-only: cannot del ReadOnly.attr2'
+        assert o.attr2 == 'How are you?'
 
 
 def test_lock():

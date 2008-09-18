@@ -81,7 +81,7 @@ class ReadOnly(object):
 
     def __islocked__(self):
         """
-        Return whether instance is locked.
+        Return True if instance is locked, otherwise False.
         """
         return self.__locked
 
