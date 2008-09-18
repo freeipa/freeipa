@@ -376,7 +376,7 @@ class test_Command(ClassChecker):
         assert self.cls.takes_options == tuple()
         assert self.cls.takes_args == tuple()
 
-    def __get_instance(self, args=tuple(), options=tuple()):
+    def get_instance(self, args=tuple(), options=tuple()):
         """
         Helper method used to test args and options.
         """
@@ -391,7 +391,7 @@ class test_Command(ClassChecker):
         """
         assert list(self.cls().get_args()) == []
         args = ('login', 'stuff')
-        o = self.__get_instance(args=args)
+        o = self.get_instance(args=args)
         assert o.get_args() is args
 
     def test_get_options(self):
@@ -400,7 +400,7 @@ class test_Command(ClassChecker):
         """
         assert list(self.cls().get_options()) == []
         options = ('verbose', 'debug')
-        o = self.__get_instance(options=options)
+        o = self.get_instance(options=options)
         assert o.get_options() is options
 
     def test_args(self):
@@ -412,7 +412,7 @@ class test_Command(ClassChecker):
         assert type(ns) is plugable.NameSpace
         assert len(ns) == 0
         args = ('destination', 'source?')
-        ns = self.__get_instance(args=args).args
+        ns = self.get_instance(args=args).args
         assert type(ns) is plugable.NameSpace
         assert len(ns) == len(args)
         assert list(ns) == ['destination', 'source']
@@ -424,16 +424,16 @@ class test_Command(ClassChecker):
         assert ns.source.multivalue is False
 
         # Test TypeError:
-        e = raises(TypeError, self.__get_instance, args=(u'whatever',))
+        e = raises(TypeError, self.get_instance, args=(u'whatever',))
         assert str(e) == \
             'arg: need %r or %r; got %r' % (str, public.Option, u'whatever')
 
         # Test ValueError, required after optional:
-        e = raises(ValueError, self.__get_instance, args=('arg1?', 'arg2'))
+        e = raises(ValueError, self.get_instance, args=('arg1?', 'arg2'))
         assert str(e) == 'arg2: required argument after optional'
 
          # Test ValueError, scalar after multivalue:
-        e = raises(ValueError, self.__get_instance, args=('arg1+', 'arg2'))
+        e = raises(ValueError, self.get_instance, args=('arg1+', 'arg2'))
         assert str(e) == 'arg2: only final argument can be multivalue'
 
     def test_options(self):
@@ -445,7 +445,7 @@ class test_Command(ClassChecker):
         assert type(ns) is plugable.NameSpace
         assert len(ns) == 0
         options = ('target', 'files*')
-        ns = self.__get_instance(options=options).options
+        ns = self.get_instance(options=options).options
         assert type(ns) is plugable.NameSpace
         assert len(ns) == len(options)
         assert list(ns) == ['target', 'files']
@@ -551,53 +551,66 @@ class test_Command(ClassChecker):
         assert 'execute' in self.cls.__public__ # Public
 
     def test_group_args(self):
-        o = self.__get_instance(args=('one', 'two?'))
+        o = self.get_instance(args=('one', 'two?'))
         assert o.group_args(1) == (1, None)
         assert o.group_args(1, 2) == (1, 2)
 
-        o = self.__get_instance(args=('one', 'two*'))
+        o = self.get_instance(args=('one', 'two*'))
         assert o.group_args(1) == (1, None)
         assert o.group_args(1, 2) == (1, (2,))
         assert o.group_args(1, 2, 3) == (1, (2, 3))
 
-        o = self.__get_instance(args=('one', 'two+'))
+        o = self.get_instance(args=('one', 'two+'))
         assert o.group_args(1, 2) == (1, (2,))
         assert o.group_args(1, 2, 3) == (1, (2, 3))
 
-        o = self.__get_instance()
+        o = self.get_instance()
         e = raises(errors.ArgumentError, o.group_args, 1)
         assert str(e) == 'example takes no arguments'
 
-        o = self.__get_instance(args=('one?',))
+        o = self.get_instance(args=('one?',))
         e = raises(errors.ArgumentError, o.group_args, 1, 2)
         assert str(e) == 'example takes at most 1 argument'
 
-        o = self.__get_instance(args=('one', 'two?'))
+        o = self.get_instance(args=('one', 'two?'))
         e = raises(errors.ArgumentError, o.group_args, 1, 2, 3)
         assert str(e) == 'example takes at most 2 arguments'
 
-        o = self.__get_instance(args=('one', 'two?'))
+        o = self.get_instance(args=('one', 'two?'))
         e = raises(errors.ArgumentError, o.group_args)
         assert str(e) == 'example takes at least 1 argument'
 
-        o = self.__get_instance(args=('one', 'two', 'three?'))
+        o = self.get_instance(args=('one', 'two', 'three?'))
         e = raises(errors.ArgumentError, o.group_args, 1)
         assert str(e) == 'example takes at least 2 arguments'
 
     def test_args_to_kw(self):
-        o = self.__get_instance(args=('one', 'two?'))
+        o = self.get_instance(args=('one', 'two?'))
         assert o.args_to_kw(1) == dict(one=1)
         assert o.args_to_kw(1, 2) == dict(one=1, two=2)
 
-        o = self.__get_instance(args=('one', 'two*'))
+        o = self.get_instance(args=('one', 'two*'))
         assert o.args_to_kw(1) == dict(one=1)
         assert o.args_to_kw(1, 2) == dict(one=1, two=(2,))
         assert o.args_to_kw(1, 2, 3) == dict(one=1, two=(2, 3))
 
-        o = self.__get_instance(args=('one', 'two+'))
+        o = self.get_instance(args=('one', 'two+'))
         assert o.args_to_kw(1) == dict(one=1)
         assert o.args_to_kw(1, 2) == dict(one=1, two=(2,))
         assert o.args_to_kw(1, 2, 3) == dict(one=1, two=(2, 3))
+
+    def test_kw_to_args(self):
+        """
+        Tests the `public.Command.kw_to_arg` method.
+        """
+        o = self.get_instance(args=('one', 'two?'))
+        assert o.kw_to_args() == (None, None)
+        assert o.kw_to_args(whatever='hello') == (None, None)
+        assert o.kw_to_args(one='the one') == ('the one', None)
+        assert o.kw_to_args(two='the two') == (None, 'the two')
+        assert o.kw_to_args(whatever='hello', two='Two', one='One') == \
+            ('One', 'Two')
+
 
 
 class test_Object(ClassChecker):

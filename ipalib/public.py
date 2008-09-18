@@ -397,6 +397,11 @@ class Command(plugable.Plugin):
                     yield (arg.name, values[i:])
                 else:
                     yield (arg.name, values[i])
+            else:
+                break
+
+    def kw_to_args(self, **kw):
+        return tuple(kw.get(name, None) for name in self.args)
 
 
 class Object(plugable.Plugin):
