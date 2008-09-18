@@ -53,6 +53,7 @@ class LDAPUpdate():
         self.live_run = live_run
         self.dm_password = dm_password
         self.conn = None
+        self.modified = False
 
         krbctx = krbV.default_context()
     
@@ -454,6 +455,31 @@ class LDAPUpdate():
                 logging.debug(a + ": ")
                 for l in value:
                     logging.debug("\t" + l)
+    def is_schema_updated(self, s):
+        """Compare the schema in 's' with the current schema in the DS to
+           see if anything has changed. This should account for syntax
+           differences (like added parens that make no difference but are
+           detected as a change by generateModList()).
+
+           This doesn't handle re-ordering of attributes. They are still
+           detected as changes, so foo $ bar != bar $ foo.
+
+           return True if the schema has changed
+           return False if it has not
+        """
+        s = ldap.schema.SubSchema(s)
+        s = s.ldap_entry()
+
+        # Get a fresh copy and convert into a SubSchema
+        n = self.__get_entry("cn=schema")[0]
+        n = dict(n.data)
+        n = ldap.schema.SubSchema(n)
+        n = n.ldap_entry()
+
+        if s == n:
+            return False
+        else:
+            return True
     
     def __update_record(self, update):
         found = False
@@ -498,19 +524,31 @@ class LDAPUpdate():
         else:
             # Update LDAP
             try:
-                logging.debug("%s" % self.conn.generateModList(entry.origDataDict(), entry.toDict()))
-                if self.live_run:
+                updated = False
+                changes = self.conn.generateModList(entry.origDataDict(), entry.toDict())
+                if (entry.dn == "cn=schema"):
+                    updated = self.is_schema_updated(entry.toDict())
+                else:
+                    if len(changes) > 1:
+                        updated = True
+                logging.debug("%s" % changes)
+                if self.live_run and updated:
                     self.conn.updateEntry(entry.dn, entry.origDataDict(), entry.toDict())
                 logging.info("Done")
             except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST), e:
                 logging.info("Entry already up-to-date")
+                updated = False
             except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR), e:
                 logging.error("Update failed: %s: %s", e, self.__detail_error(e.detail))
+                updated = False
     
             if ("cn=index" in entry.dn and
                 "cn=userRoot" in entry.dn):
                 taskid = self.create_index_task(entry.cn)
                 self.monitor_index_task(taskid)
+
+            if updated:
+                self.modified = True
         return
 
     def get_all_files(self, root, recursive=False):
@@ -526,6 +564,8 @@ class LDAPUpdate():
 
     def update(self, files):
         """Execute the update. files is a list of the update files to use.
+
+           returns True if anything was changed, otherwise False
         """
     
         try:
@@ -551,4 +591,4 @@ class LDAPUpdate():
         finally:
             if self.conn: self.conn.unbind()
     
-        return
+        return self.modified

@@ -16,7 +16,7 @@ add:attributeTypes:
      SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
      X-ORIGIN 'RFC2307bis' )
 add:attributeTypes:
-   ( 1.3.6.1.4.1.1.1.1.12 SUP name NAME 'nisDomain'
+   ( 1.3.6.1.4.1.1.1.1.12 NAME 'nisDomain'
      DESC 'NIS domain'
      SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
      X-ORIGIN 'RFC2307bis' )
