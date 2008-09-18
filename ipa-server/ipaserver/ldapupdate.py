@@ -112,9 +112,9 @@ class LDAPUpdate():
            etc.  Determine if a suffix is needed based on the current
            architecture.
         """
-        arch = platform.platform()
+        bits = platform.architecture()[0]
 
-        if arch == "x86_64":
+        if bits == "64bit":
             return "64"
         else:
             return ""
@@ -320,9 +320,8 @@ class LDAPUpdate():
 
         attrlist = ['nstaskstatus', 'nstaskexitcode']
         entry = None
-        done = False
 
-        while not done:
+        while True:
             try:
                 entry = self.conn.getEntry(dn, ldap.SCOPE_BASE, "(objectclass=*)", attrlist)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
@@ -340,7 +339,7 @@ class LDAPUpdate():
 
             if status.lower().find("finished") > -1:
                 logging.info("Indexing finished")
-                done = True
+                break
 
             logging.debug("Indexing in progress")
             time.sleep(1)
