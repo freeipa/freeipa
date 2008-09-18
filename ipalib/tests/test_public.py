@@ -600,6 +600,9 @@ class test_Command(ClassChecker):
         assert str(e) == 'example takes at least 2 arguments'
 
     def test_args_to_kw(self):
+        """
+        Test the `public.Command.args_to_kw` method.
+        """
         o = self.get_instance(args=('one', 'two?'))
         assert o.args_to_kw(1) == dict(one=1)
         assert o.args_to_kw(1, 2) == dict(one=1, two=2)
@@ -614,9 +617,21 @@ class test_Command(ClassChecker):
         assert o.args_to_kw(1, 2) == dict(one=1, two=(2,))
         assert o.args_to_kw(1, 2, 3) == dict(one=1, two=(2, 3))
 
+        o = self.get_instance()
+        e = raises(errors.ArgumentError, o.args_to_kw, 1)
+        assert str(e) == 'example takes no arguments'
+
+        o = self.get_instance(args=('one?',))
+        e = raises(errors.ArgumentError, o.args_to_kw, 1, 2)
+        assert str(e) == 'example takes at most 1 argument'
+
+        o = self.get_instance(args=('one', 'two?'))
+        e = raises(errors.ArgumentError, o.args_to_kw, 1, 2, 3)
+        assert str(e) == 'example takes at most 2 arguments'
+
     def test_kw_to_args(self):
         """
-        Tests the `public.Command.kw_to_arg` method.
+        Tests the `public.Command.kw_to_args` method.
         """
         o = self.get_instance(args=('one', 'two?'))
         assert o.kw_to_args() == (None, None)
@@ -625,7 +640,6 @@ class test_Command(ClassChecker):
         assert o.kw_to_args(two='the two') == (None, 'the two')
         assert o.kw_to_args(whatever='hello', two='Two', one='One') == \
             ('One', 'Two')
-
 
 
 class test_Object(ClassChecker):

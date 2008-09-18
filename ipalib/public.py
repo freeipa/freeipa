@@ -388,6 +388,14 @@ class Command(plugable.Plugin):
                 yield None
 
     def args_to_kw(self, *values):
+        if self.max_args is not None and len(values) > self.max_args:
+            if self.max_args == 0:
+                raise errors.ArgumentError(self, 'takes no arguments')
+            if self.max_args == 1:
+                raise errors.ArgumentError(self, 'takes at most 1 argument')
+            raise errors.ArgumentError(self,
+                'takes at most %d arguments' % len(self.args)
+            )
         return dict(self.__args_to_kw_iter(values))
 
     def __args_to_kw_iter(self, values):
