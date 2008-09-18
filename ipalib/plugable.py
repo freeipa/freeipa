@@ -48,26 +48,25 @@ class ReadOnly(object):
 
     For example:
 
-    >>> class givenname(ReadOnly):
-    >>>     def __init__(self):
-    >>>         self.whatever = 'some value' # Hasn't been locked yet
-    >>>         lock(self)
-    >>>
-    >>>     def finalize(self, api):
-    >>>         # After the instance has been locked, attributes can still be
-    >>>         # set, but only in a round-about, unconventional way:
-    >>>         object.__setattr__(self, 'api', api)
-    >>>
-    >>>     def normalize(self, value):
-    >>>         # After the instance has been locked, trying to set an
-    >>>         # attribute in the normal way will raise AttributeError.
-    >>>         self.value = value # Not thread safe!
-    >>>         return self.actually_normalize()
-    >>>
-    >>>     def actually_normalize(self):
-    >>>         # Again, this is not thread safe:
-    >>>         return unicode(self.value).strip()
+    >>> ro = ReadOnly() # Initially unlocked, can setattr, delattr
+    >>> ro.name = 'John Doe'
+    >>> ro.message = 'Hello, world!'
+    >>> del ro.message
+    >>> ro.__lock__() # Now locked, cannot setattr, delattr
+    >>> ro.message = 'How are you?'
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/home/jderose/projects/freeipa2/ipalib/plugable.py", line 93, in __setattr__
+        (self.__class__.__name__, name)
+    AttributeError: read-only: cannot set ReadOnly.message
+    >>> del ro.name
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/home/jderose/projects/freeipa2/ipalib/plugable.py", line 104, in __delattr__
+        (self.__class__.__name__, name)
+    AttributeError: read-only: cannot del ReadOnly.name
     """
+
     __locked = False
 
     def __lock__(self):
