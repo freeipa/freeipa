@@ -229,12 +229,15 @@ class Command(plugable.Plugin):
         'options',
         'group_args',
     ))
-    __Option = None
     takes_options = tuple()
     takes_args = tuple()
 
     def __init__(self):
         self.args = plugable.NameSpace(self.__check_args(), sort=False)
+        if len(self.args) == 0 or not self.args[-1].multivalue:
+            self.max_args = len(self.args)
+        else:
+            self.max_args = None
         self.options = plugable.NameSpace(self.__check_options(), sort=False)
         self.params = plugable.NameSpace(
             tuple(self.args()) + tuple(self.options()), sort=False

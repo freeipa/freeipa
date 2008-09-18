@@ -371,11 +371,6 @@ class test_Command(ClassChecker):
             )
         return example
 
-    def test_class(self):
-        assert self.cls.__bases__ == (plugable.Plugin,)
-        assert self.cls.takes_options == tuple()
-        assert self.cls.takes_args == tuple()
-
     def get_instance(self, args=tuple(), options=tuple()):
         """
         Helper method used to test args and options.
@@ -384,6 +379,11 @@ class test_Command(ClassChecker):
             takes_args = args
             takes_options = options
         return example()
+
+    def test_class(self):
+        assert self.cls.__bases__ == (plugable.Plugin,)
+        assert self.cls.takes_options == tuple()
+        assert self.cls.takes_args == tuple()
 
     def test_get_args(self):
         """
@@ -435,6 +435,21 @@ class test_Command(ClassChecker):
          # Test ValueError, scalar after multivalue:
         e = raises(ValueError, self.get_instance, args=('arg1+', 'arg2'))
         assert str(e) == 'arg2: only final argument can be multivalue'
+
+    def test_max_args(self):
+        """
+        Test the ``Command.max_args`` instance attribute.
+        """
+        o = self.get_instance()
+        assert o.max_args == 0
+        o = self.get_instance(args=('one?',))
+        assert o.max_args == 1
+        o = self.get_instance(args=('one', 'two?'))
+        assert o.max_args == 2
+        o = self.get_instance(args=('one', 'multi+',))
+        assert o.max_args is None
+        o = self.get_instance(args=('one', 'multi*',))
+        assert o.max_args is None
 
     def test_options(self):
         """
