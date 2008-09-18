@@ -99,9 +99,12 @@ def main():
     else:
         files = args
 
-    ld.update(files)
+    modified = ld.update(files)
 
-    return 0
+    if modified and options.test:
+        return 2
+    else:
+        return 0
 
 try:
     if __name__ == "__main__":
