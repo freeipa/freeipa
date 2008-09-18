@@ -580,9 +580,13 @@ class test_NameSpace(ClassChecker):
         assert list(o()) == []
         for cnt in (10, 25):
             members = tuple(DummyMember(cnt - i) for i in xrange(cnt))
-            names = tuple(m.name for m in members)
             for sort in (True, False):
                 o = self.cls(members, sort=sort)
+                if sort:
+                    ordered = tuple(sorted(members, key=lambda m: m.name))
+                else:
+                    ordered = members
+                names = tuple(m.name for m in ordered)
 
                 # Test __len__:
                 assert len(o) == cnt
@@ -593,20 +597,23 @@ class test_NameSpace(ClassChecker):
                 assert ('member_00') not in o
 
                 # Test __iter__, __call__:
-                if sort:
-                    assert tuple(o) == tuple(sorted(names))
-                    assert tuple(o()) == tuple(
-                        sorted(members, key=lambda m: m.name)
-                    )
-                else:
-                    assert tuple(o) == names
-                    assert tuple(o()) == members
+                assert tuple(o) == names
+                assert tuple(o()) == ordered
 
                 # Test __getitem__, getattr:
-                for member in members:
+                for (i, member) in enumerate(ordered):
+                    assert o[i] is member
                     name = member.name
                     assert o[name] is member
                     assert read_only(o, name) is member
+
+                # Test negative indexes:
+                for i in xrange(1, cnt + 1):
+                    assert o[-i] is ordered[-i]
+
+                # Test slices:
+                assert o[2:cnt-5] == ordered[2:cnt-5]
+                assert o[::3] == ordered[::3]
 
                 # Test __repr__:
                 assert repr(o) == \
