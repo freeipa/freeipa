@@ -71,22 +71,25 @@ class ReadOnly(object):
 
     def __lock__(self):
         """
-        Puts this instance into a read-only state, after which attempting to
-        set or delete an attribute will raise AttributeError.
+        Put this instance into a read-only state.
+
+        After the instance has been locked, attempting to set or delete an
+        attribute will raise AttributeError.
         """
         assert self.__locked is False, '__lock__() can only be called once'
         self.__locked = True
 
     def __islocked__(self):
         """
-        Returns True if this instance is locked, False otherwise.
+        Return whether instance is locked.
         """
         return self.__locked
 
     def __setattr__(self, name, value):
         """
-        Raises an AttributeError if `ReadOnly.__lock__()` has already been
-        called; otherwise calls object.__setattr__().
+        If unlocked, set attribute named ``name`` to ``value``.
+
+        If this instance is locked, AttributeError will be raised.
         """
         if self.__locked:
             raise AttributeError('read-only: cannot set %s.%s' %
@@ -96,8 +99,9 @@ class ReadOnly(object):
 
     def __delattr__(self, name):
         """
-        Raises an AttributeError if `ReadOnly.__lock__()` has already been
-        called; otherwise calls object.__delattr__().
+        If unlocked, delete attribute named ``name``.
+
+        If this instance is locked, AttributeError will be raised.
         """
         if self.__locked:
             raise AttributeError('read-only: cannot del %s.%s' %
