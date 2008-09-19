@@ -227,7 +227,8 @@ class Command(plugable.Plugin):
         'smart_option_order',
         'args',
         'options',
-        'group_args',
+        'args_to_kw',
+        'kw_to_args',
     ))
     takes_options = tuple()
     takes_args = tuple()
@@ -353,39 +354,6 @@ class Command(plugable.Plugin):
             return 2
         for option in sorted(self.options(), key=get_key):
             yield option
-
-    def group_args(self, *values):
-        args = tuple(self.args())
-        if len(args) == 0:
-            if len(values) > 0:
-                raise errors.ArgumentError(self, 'takes no arguments')
-            else:
-                return tuple()
-        if len(values) > len(args) and not args[-1].multivalue:
-            if len(args) == 1:
-                error = 'takes at most 1 argument'
-            else:
-                error = 'takes at most %d arguments' % len(args)
-            raise errors.ArgumentError(self, error)
-        min_args = sum(int(a.required) for a in args)
-        if len(values) < min_args:
-            if min_args == 1:
-                error = 'takes at least 1 argument'
-            else:
-                error = 'takes at least %d arguments' % min_args
-            raise errors.ArgumentError(self, error)
-        return tuple(self.__group_args_iter(values, args))
-
-    def __group_args_iter(self, values, args):
-        for (i, arg) in enumerate(args):
-            if len(values) > i:
-                if arg.multivalue:
-                    yield values[i:]
-                else:
-                    yield values[i]
-            else:
-                assert not arg.required
-                yield None
 
     def args_to_kw(self, *values):
         if self.max_args is not None and len(values) > self.max_args:

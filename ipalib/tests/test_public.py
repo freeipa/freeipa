@@ -565,44 +565,11 @@ class test_Command(ClassChecker):
         """
         assert 'execute' in self.cls.__public__ # Public
 
-    def test_group_args(self):
-        o = self.get_instance(args=('one', 'two?'))
-        assert o.group_args(1) == (1, None)
-        assert o.group_args(1, 2) == (1, 2)
-
-        o = self.get_instance(args=('one', 'two*'))
-        assert o.group_args(1) == (1, None)
-        assert o.group_args(1, 2) == (1, (2,))
-        assert o.group_args(1, 2, 3) == (1, (2, 3))
-
-        o = self.get_instance(args=('one', 'two+'))
-        assert o.group_args(1, 2) == (1, (2,))
-        assert o.group_args(1, 2, 3) == (1, (2, 3))
-
-        o = self.get_instance()
-        e = raises(errors.ArgumentError, o.group_args, 1)
-        assert str(e) == 'example takes no arguments'
-
-        o = self.get_instance(args=('one?',))
-        e = raises(errors.ArgumentError, o.group_args, 1, 2)
-        assert str(e) == 'example takes at most 1 argument'
-
-        o = self.get_instance(args=('one', 'two?'))
-        e = raises(errors.ArgumentError, o.group_args, 1, 2, 3)
-        assert str(e) == 'example takes at most 2 arguments'
-
-        o = self.get_instance(args=('one', 'two?'))
-        e = raises(errors.ArgumentError, o.group_args)
-        assert str(e) == 'example takes at least 1 argument'
-
-        o = self.get_instance(args=('one', 'two', 'three?'))
-        e = raises(errors.ArgumentError, o.group_args, 1)
-        assert str(e) == 'example takes at least 2 arguments'
-
     def test_args_to_kw(self):
         """
         Test the `public.Command.args_to_kw` method.
         """
+        assert 'args_to_kw' in self.cls.__public__ # Public
         o = self.get_instance(args=('one', 'two?'))
         assert o.args_to_kw(1) == dict(one=1)
         assert o.args_to_kw(1, 2) == dict(one=1, two=2)
@@ -633,6 +600,7 @@ class test_Command(ClassChecker):
         """
         Tests the `public.Command.kw_to_args` method.
         """
+        assert 'kw_to_args' in self.cls.__public__ # Public
         o = self.get_instance(args=('one', 'two?'))
         assert o.kw_to_args() == (None, None)
         assert o.kw_to_args(whatever='hello') == (None, None)
