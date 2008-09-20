@@ -43,7 +43,7 @@ class BadSyntax(Exception):
     def __str__(self):
         return repr(self.value)
 
-class LDAPUpdate():
+class LDAPUpdate:
     def __init__(self, dm_password, sub_dict={}, live_run=True):
         """dm_password = Directory Manager password
            sub_dict = substitution dictionary
