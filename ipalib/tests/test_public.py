@@ -378,7 +378,9 @@ class test_Command(ClassChecker):
         class example(self.cls):
             takes_args = args
             takes_options = options
-        return example()
+        o = example()
+        o.finalize(object)
+        return o
 
     def test_class(self):
         assert self.cls.__bases__ == (plugable.Plugin,)
@@ -408,9 +410,11 @@ class test_Command(ClassChecker):
         Tests the ``Command.args`` instance attribute.
         """
         assert 'args' in self.cls.__public__ # Public
-        ns = self.cls().args
-        assert type(ns) is plugable.NameSpace
-        assert len(ns) == 0
+        assert self.cls().args is None
+        o = self.cls()
+        o.finalize(object)
+        assert type(o.args) is plugable.NameSpace
+        assert len(o.args) == 0
         args = ('destination', 'source?')
         ns = self.get_instance(args=args).args
         assert type(ns) is plugable.NameSpace
@@ -456,9 +460,11 @@ class test_Command(ClassChecker):
         Tests the ``Command.options`` instance attribute.
         """
         assert 'options' in self.cls.__public__ # Public
-        ns = self.cls().options
-        assert type(ns) is plugable.NameSpace
-        assert len(ns) == 0
+        assert self.cls().options is None
+        o = self.cls()
+        o.finalize(object)
+        assert type(o.options) is plugable.NameSpace
+        assert len(o.options) == 0
         options = ('target', 'files*')
         ns = self.get_instance(options=options).options
         assert type(ns) is plugable.NameSpace
@@ -485,6 +491,7 @@ class test_Command(ClassChecker):
         expected = dict(kw)
         expected.update(dict(option0=u'option0', option1=u'option1'))
         o = self.subcls()
+        o.finalize(object)
         for (key, value) in o.convert(**kw).iteritems():
             v = expected[key]
             assert value == v
@@ -502,6 +509,7 @@ class test_Command(ClassChecker):
         )
         norm = dict((k, v.lower()) for (k, v) in kw.items())
         sub = self.subcls()
+        sub.finalize(object)
         assert sub.normalize(**kw) == norm
 
     def test_get_default(self):
@@ -522,6 +530,7 @@ class test_Command(ClassChecker):
             option1='the default',
         )
         sub = self.subcls()
+        sub.finalize(object)
         assert sub.get_default(**no_fill) == {}
         assert sub.get_default(**fill) == default
 
@@ -532,6 +541,7 @@ class test_Command(ClassChecker):
         assert 'validate' in self.cls.__public__ # Public
 
         sub = self.subcls()
+        sub.finalize(object)
 
         # Check with valid args
         okay = dict(

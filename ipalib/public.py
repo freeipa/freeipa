@@ -233,8 +233,12 @@ class Command(plugable.Plugin):
     ))
     takes_options = tuple()
     takes_args = tuple()
+    args = None
+    options = None
+    params = None
 
-    def __init__(self):
+    def finalize(self, api):
+        super(Command, self).finalize(api)
         self.args = plugable.NameSpace(self.__check_args(), sort=False)
         if len(self.args) == 0 or not self.args[-1].multivalue:
             self.max_args = len(self.args)
