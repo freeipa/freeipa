@@ -202,6 +202,8 @@ def generate_option(name):
     """
     Returns an `Param` instance by parsing ``name``.
     """
+    if type(name) is Param:
+        return name
     if name.endswith('?'):
         kw = dict(required=False, multivalue=False)
         name = name[:-1]

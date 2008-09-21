@@ -319,6 +319,7 @@ def test_generate_option():
         assert type(o) is public.Param
         assert type(o.type) is ipa_types.Unicode
         assert o.name == 'arg'
+        assert f(o) is o
     o = f('arg')
     assert o.required is True
     assert o.multivalue is False
