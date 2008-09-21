@@ -39,6 +39,15 @@ api.register(discover)
 # Register some methods for the 'user' object:
 class user_add(public.Method):
     'Add a new user.'
+
+    takes_args = ['login']
+
+    takes_options = [
+        'givenname',
+        'sn',
+        'initials',
+    ]
+
 api.register(user_add)
 
 class user_del(public.Method):

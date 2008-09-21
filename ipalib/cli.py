@@ -198,39 +198,42 @@ class CLI(object):
         )
 
     def run_cmd(self, cmd, argv):
-        (args, kw) = self.parse(cmd, argv)
-        try:
-            args = cmd.group_args(*args)
-        except errors.ArgumentError, e:
-            exit_error('%s %s' % (to_cli(cmd.name), e.error))
-        self.run_interactive(cmd, args, kw)
+        kw = self.parse(cmd, argv)
+        self.run_interactive(cmd, kw)
 
-    def run_interactive(self, cmd, args, kw):
-        for option in cmd.smart_option_order():
-            if option.name not in kw:
-                default = option.get_default(**kw)
+    def run_interactive(self, cmd, kw):
+        for param in cmd.params():
+            if param.name not in kw:
+                default = param.get_default(**kw)
                 if default is None:
-                    prompt = '%s: ' % option.name
+                    prompt = '%s: ' % param.name
                 else:
-                    prompt = '%s [%s]: ' % (option.name, default)
+                    prompt = '%s [%s]: ' % (param.name, default)
                 error = None
                 while True:
                     if error is not None:
-                        print '>>> %s: %s' % (option.name, error)
+                        print '>>> %s: %s' % (param.name, error)
                     raw = raw_input(prompt)
                     try:
-                        value = option(raw, **kw)
+                        value = param(raw, **kw)
                         if value is not None:
-                            kw[option.name] = value
+                            kw[param.name] = value
                         break
                     except errors.ValidationError, e:
                         error = e.error
-        cmd(*args, **kw)
+        cmd(**kw)
 
     def parse(self, cmd, argv):
         parser = self.build_parser(cmd)
         (kwc, args) = parser.parse_args(argv, KWCollector())
-        return (args, kwc.__todict__())
+        kw = kwc.__todict__()
+        try:
+            arg_kw = cmd.args_to_kw(*args)
+        except errors.ArgumentError, e:
+            exit_error('%s %s' % (to_cli(cmd.name), e.error))
+        assert set(arg_kw).intersection(kw) == set()
+        kw.update(arg_kw)
+        return kw
 
     def build_parser(self, cmd):
         parser = optparse.OptionParser(
