@@ -309,11 +309,11 @@ class test_Option(ClassChecker):
         assert o.get_values() == values
 
 
-def test_generate_option():
+def test_create_param():
     """
-    Tests the `public.generate_option` function.
+    Test the `public.create_param` function.
     """
-    f = public.generate_option
+    f = public.create_param
     for name in ['arg', 'arg?', 'arg*', 'arg+']:
         o = f(name)
         assert type(o) is public.Param

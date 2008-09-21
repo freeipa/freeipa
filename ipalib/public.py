@@ -198,9 +198,14 @@ class Param(plugable.ReadOnly):
         )
 
 
-def generate_option(name):
+def create_param(name):
     """
-    Returns an `Param` instance by parsing ``name``.
+    Create a `Param` instance from a param name.
+
+    If ``name`` is a `Param` instance, it is returned unchanged.
+
+    If ``name`` is a <type str>, then ``name`` is parsed and a correpsonding
+   `Param` instance is created and returned.
     """
     if type(name) is Param:
         return name
@@ -262,7 +267,7 @@ class Command(plugable.Plugin):
         multivalue = False
         for arg in self.get_args():
             if type(arg) is str:
-                arg = generate_option(arg)
+                arg = create_param(arg)
             elif not isinstance(arg, Param):
                 raise TypeError(
                     'arg: need %r or %r; got %r' % (str, Param, arg)
@@ -284,7 +289,7 @@ class Command(plugable.Plugin):
     def __check_options(self):
         for option in self.get_options():
             if type(option) is str:
-                option = generate_option(option)
+                option = create_param(option)
             elif not isinstance(option, Param):
                 raise TypeError(
                     'option: need %r or %r; got %r' % (str, Param, option)
