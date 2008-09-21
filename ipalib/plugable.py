@@ -340,17 +340,10 @@ class Plugin(ReadOnly):
                 return False
         return True
 
-    def finalize(self, api):
+    def finalize(self):
         """
-        After all the plugins are instantiated, `API` calls this method,
-        passing itself as the only argument. This is where plugins should
-        check that other plugins they depend upon have actually been loaded.
-
-        :param api: An `API` instance.
         """
-        assert self.__api is None, 'finalize() can only be called once'
-        assert api is not None, 'finalize() argument cannot be None'
-        self.__api = api
+        lock(self)
 
     def set_api(self, api):
         """
@@ -730,7 +723,9 @@ class API(DictProxy):
             object.__setattr__(self, name, namespace)
 
         for plugin in instances.itervalues():
-            plugin.finalize(self)
-            lock(plugin)
+            plugin.set_api(self)
             assert plugin.api is self
+
+        for plugin in instances.itervalues():
+            plugin.finalize()
         object.__setattr__(self, '_API__finalized', True)

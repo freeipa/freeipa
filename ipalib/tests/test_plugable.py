@@ -405,26 +405,10 @@ class test_Plugin(ClassChecker):
         """
         Tests the `plugable.Plugin.finalize` method.
         """
-        api = 'the api instance'
         o = self.cls()
-        assert read_only(o, 'name') == 'Plugin'
-        assert repr(o) == '%s.Plugin()' % plugable.__name__
-        assert read_only(o, 'api') is None
-        raises(AssertionError, o.finalize, None)
-        o.finalize(api)
-        assert read_only(o, 'api') is api
-        raises(AssertionError, o.finalize, api)
-
-        class some_plugin(self.cls):
-            pass
-        sub = some_plugin()
-        assert read_only(sub, 'name') == 'some_plugin'
-        assert repr(sub) == '%s.some_plugin()' % __name__
-        assert read_only(sub, 'api') is None
-        raises(AssertionError, sub.finalize, None)
-        sub.finalize(api)
-        assert read_only(sub, 'api') is api
-        raises(AssertionError, sub.finalize, api)
+        assert not o.__islocked__()
+        o.finalize()
+        assert o.__islocked__()
 
 
 class test_PluginProxy(ClassChecker):

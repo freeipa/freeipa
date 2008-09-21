@@ -237,8 +237,7 @@ class Command(plugable.Plugin):
     options = None
     params = None
 
-    def finalize(self, api):
-        super(Command, self).finalize(api)
+    def finalize(self):
         self.args = plugable.NameSpace(self.__check_args(), sort=False)
         if len(self.args) == 0 or not self.args[-1].multivalue:
             self.max_args = len(self.args)
@@ -248,6 +247,7 @@ class Command(plugable.Plugin):
         self.params = plugable.NameSpace(
             tuple(self.args()) + tuple(self.options()), sort=False
         )
+        super(Command, self).finalize()
 
     def get_args(self):
         return self.takes_args
@@ -395,10 +395,11 @@ class Object(plugable.Plugin):
         return self.__Property
     Property = property(__get_Property)
 
-    def finalize(self, api):
-        super(Object, self).finalize(api)
+    def set_api(self, api):
+        super(Object, self).set_api(api)
         self.__Method = self.__create_namespace('Method')
         self.__Property = self.__create_namespace('Property')
+
 
     def __create_namespace(self, name):
         return plugable.NameSpace(self.__filter_members(name))
@@ -443,9 +444,9 @@ class Attribute(plugable.Plugin):
         return self.__obj
     obj = property(__get_obj)
 
-    def finalize(self, api):
-        super(Attribute, self).finalize(api)
+    def set_api(self, api):
         self.__obj = api.Object[self.obj_name]
+        super(Attribute, self).set_api(api)
 
 
 class Method(Attribute, Command):

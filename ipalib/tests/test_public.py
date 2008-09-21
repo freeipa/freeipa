@@ -379,7 +379,7 @@ class test_Command(ClassChecker):
             takes_args = args
             takes_options = options
         o = example()
-        o.finalize(object)
+        o.finalize()
         return o
 
     def test_class(self):
@@ -412,7 +412,7 @@ class test_Command(ClassChecker):
         assert 'args' in self.cls.__public__ # Public
         assert self.cls().args is None
         o = self.cls()
-        o.finalize(object)
+        o.finalize()
         assert type(o.args) is plugable.NameSpace
         assert len(o.args) == 0
         args = ('destination', 'source?')
@@ -462,7 +462,7 @@ class test_Command(ClassChecker):
         assert 'options' in self.cls.__public__ # Public
         assert self.cls().options is None
         o = self.cls()
-        o.finalize(object)
+        o.finalize()
         assert type(o.options) is plugable.NameSpace
         assert len(o.options) == 0
         options = ('target', 'files*')
@@ -491,7 +491,7 @@ class test_Command(ClassChecker):
         expected = dict(kw)
         expected.update(dict(option0=u'option0', option1=u'option1'))
         o = self.subcls()
-        o.finalize(object)
+        o.finalize()
         for (key, value) in o.convert(**kw).iteritems():
             v = expected[key]
             assert value == v
@@ -509,7 +509,7 @@ class test_Command(ClassChecker):
         )
         norm = dict((k, v.lower()) for (k, v) in kw.items())
         sub = self.subcls()
-        sub.finalize(object)
+        sub.finalize()
         assert sub.normalize(**kw) == norm
 
     def test_get_default(self):
@@ -530,7 +530,7 @@ class test_Command(ClassChecker):
             option1='the default',
         )
         sub = self.subcls()
-        sub.finalize(object)
+        sub.finalize()
         assert sub.get_default(**no_fill) == {}
         assert sub.get_default(**fill) == default
 
@@ -541,7 +541,7 @@ class test_Command(ClassChecker):
         assert 'validate' in self.cls.__public__ # Public
 
         sub = self.subcls()
-        sub.finalize(object)
+        sub.finalize()
 
         # Check with valid args
         okay = dict(
@@ -639,9 +639,9 @@ class test_Object(ClassChecker):
         assert read_only(o, 'Method') is None
         assert read_only(o, 'Property') is None
 
-    def test_finalize(self):
+    def test_set_api(self):
         """
-        Tests the `public.Object.finalize` method.
+        Tests the `public.Object.set_api` method.
         """
         # Setup for test:
         class DummyAttribute(object):
@@ -685,7 +685,7 @@ class test_Object(ClassChecker):
 
         # Actually perform test:
         o = user()
-        o.finalize(api)
+        o.set_api(api)
         assert read_only(o, 'api') is api
         for name in ['Method', 'Property']:
             namespace = getattr(o, name)
@@ -725,9 +725,9 @@ class test_Attribute(ClassChecker):
         assert read_only(o, 'obj_name') == 'user'
         assert read_only(o, 'attr_name') == 'add'
 
-    def test_finalize(self):
+    def test_set_api(self):
         """
-        Tests the `public.Attribute.finalize` method.
+        Tests the `public.Attribute.set_api` method.
         """
         user_obj = 'The user public.Object instance'
         class api(object):
@@ -737,7 +737,7 @@ class test_Attribute(ClassChecker):
         o = user_add()
         assert read_only(o, 'api') is None
         assert read_only(o, 'obj') is None
-        o.finalize(api)
+        o.set_api(api)
         assert read_only(o, 'api') is api
         assert read_only(o, 'obj') is user_obj
 
