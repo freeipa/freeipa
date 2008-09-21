@@ -227,6 +227,7 @@ class Command(plugable.Plugin):
         'smart_option_order',
         'args',
         'options',
+        'params',
         'args_to_kw',
         'kw_to_args',
     ))
@@ -337,23 +338,14 @@ class Command(plugable.Plugin):
         )
 
     def __call__(self, *args, **kw):
-        arg_kw = self.args_to_kw(*args)
-        assert set(arg_kw).intersection(kw) == set()
-        kw.update(arg_kw)
+        if len(args) > 0:
+            arg_kw = self.args_to_kw(*args)
+            assert set(arg_kw).intersection(kw) == set()
+            kw.update(arg_kw)
         kw = self.normalize(**kw)
         kw = self.convert(**kw)
         kw.update(self.get_default(**kw))
         self.validate(**kw)
-
-    def smart_option_order(self):
-        def get_key(option):
-            if option.required:
-                if option.default_from is None:
-                    return 0
-                return 1
-            return 2
-        for option in sorted(self.options(), key=get_key):
-            yield option
 
     def args_to_kw(self, *values):
         if self.max_args is not None and len(values) > self.max_args:
@@ -463,8 +455,15 @@ class Method(Attribute, Command):
         for option in self.takes_options:
             yield option
         if self.obj is not None and self.obj.Property is not None:
-            for proxy in self.obj.Property():
-                yield proxy.option
+            def get_key(p):
+                o = p.option
+                if o.required:
+                    if o.default_from is None:
+                        return 0
+                    return 1
+                return 2
+            for prop in sorted(self.obj.Property(), key=get_key):
+                yield prop.option
 
 
 class Property(Attribute):
