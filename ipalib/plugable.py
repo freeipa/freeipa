@@ -352,6 +352,14 @@ class Plugin(ReadOnly):
         assert api is not None, 'finalize() argument cannot be None'
         self.__api = api
 
+    def set_api(self, api):
+        """
+        Set reference to `API` instance.
+        """
+        assert self.__api is None, 'set_api() can only be called once'
+        assert api is not None, 'set_api() argument cannot be None'
+        self.__api = api
+
     def __repr__(self):
         """
         Returns a fully qualified module_name.class_name() representation that

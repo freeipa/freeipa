@@ -387,6 +387,20 @@ class test_Plugin(ClassChecker):
         assert base.implemented_by(fail) is False
         assert base.implemented_by(fail()) is False
 
+    def test_set_api(self):
+        """
+        Tests the `plugable.Plugin.set_api` method.
+        """
+        api = 'the api instance'
+        o = self.cls()
+        assert o.api is None
+        e = raises(AssertionError, o.set_api, None)
+        assert str(e) == 'set_api() argument cannot be None'
+        o.set_api(api)
+        assert o.api is api
+        e = raises(AssertionError, o.set_api, api)
+        assert str(e) == 'set_api() can only be called once'
+
     def test_finalize(self):
         """
         Tests the `plugable.Plugin.finalize` method.
