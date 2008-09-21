@@ -431,7 +431,7 @@ class test_Command(ClassChecker):
         # Test TypeError:
         e = raises(TypeError, self.get_instance, args=(u'whatever',))
         assert str(e) == \
-            'arg: need %r or %r; got %r' % (str, public.Param, u'whatever')
+            'create_param() takes %r or %r; got %r' % (str, public.Param, u'whatever')
 
         # Test ValueError, required after optional:
         e = raises(ValueError, self.get_instance, args=('arg1?', 'arg2'))

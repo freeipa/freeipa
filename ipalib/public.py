@@ -198,28 +198,43 @@ class Param(plugable.ReadOnly):
         )
 
 
-def create_param(name):
+def create_param(spec):
     """
-    Create a `Param` instance from a param name.
+    Create a `Param` instance from a param spec string.
 
-    If ``name`` is a `Param` instance, it is returned unchanged.
+    If ``spec`` is a `Param` instance, ``spec`` is returned unchanged.
 
-    If ``name`` is a <type str>, then ``name`` is parsed and a correpsonding
-   `Param` instance is created and returned.
+    If ``spec`` is an str instance, then ``spec`` is parsed and an
+    appropriate `Param` instance is created and returned.
+
+    The spec string determines the param name, whether the param is required,
+    and whether the param is multivalue according the following syntax:
+
+    name => required=True, multivalue=False
+    name? => required=False, multivalue=False
+    name+ => required=True, multivalue=True
+    name* => required=False, multivalue=True
+
+    :param spec: A spec string or a `Param` instance.
     """
-    if type(name) is Param:
-        return name
-    if name.endswith('?'):
+    if type(spec) is Param:
+        return spec
+    if type(spec) is not str:
+        raise TypeError(
+            'create_param() takes %r or %r; got %r' % (str, Param, spec)
+        )
+    if spec.endswith('?'):
         kw = dict(required=False, multivalue=False)
-        name = name[:-1]
-    elif name.endswith('*'):
+        name = spec[:-1]
+    elif spec.endswith('*'):
         kw = dict(required=False, multivalue=True)
-        name = name[:-1]
-    elif name.endswith('+'):
+        name = spec[:-1]
+    elif spec.endswith('+'):
         kw = dict(required=True, multivalue=True)
-        name = name[:-1]
+        name = spec[:-1]
     else:
         kw = dict(required=True, multivalue=False)
+        name = spec
     return Param(name, ipa_types.Unicode(), **kw)
 
 
@@ -245,12 +260,12 @@ class Command(plugable.Plugin):
     params = None
 
     def finalize(self):
-        self.args = plugable.NameSpace(self.__check_args(), sort=False)
+        self.args = plugable.NameSpace(self.__create_args(), sort=False)
         if len(self.args) == 0 or not self.args[-1].multivalue:
             self.max_args = len(self.args)
         else:
             self.max_args = None
-        self.options = plugable.NameSpace(self.__check_options(), sort=False)
+        self.options = plugable.NameSpace(self.__create_options(), sort=False)
         self.params = plugable.NameSpace(
             tuple(self.args()) + tuple(self.options()), sort=False
         )
@@ -262,16 +277,11 @@ class Command(plugable.Plugin):
     def get_options(self):
         return self.takes_options
 
-    def __check_args(self):
+    def __create_args(self):
         optional = False
         multivalue = False
         for arg in self.get_args():
-            if type(arg) is str:
-                arg = create_param(arg)
-            elif not isinstance(arg, Param):
-                raise TypeError(
-                    'arg: need %r or %r; got %r' % (str, Param, arg)
-                )
+            arg = create_param(arg)
             if optional and arg.required:
                 raise ValueError(
                     '%s: required argument after optional' % arg.name
@@ -286,15 +296,9 @@ class Command(plugable.Plugin):
                 multivalue = True
             yield arg
 
-    def __check_options(self):
+    def __create_options(self):
         for option in self.get_options():
-            if type(option) is str:
-                option = create_param(option)
-            elif not isinstance(option, Param):
-                raise TypeError(
-                    'option: need %r or %r; got %r' % (str, Param, option)
-                )
-            yield option
+            yield create_param(option)
 
     def __convert_iter(self, kw):
         for (key, value) in kw.iteritems():
