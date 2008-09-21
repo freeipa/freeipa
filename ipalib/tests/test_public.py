@@ -113,16 +113,16 @@ class test_DefaultFrom(ClassChecker):
 
 class test_Option(ClassChecker):
     """
-    Tests the `public.Option` class.
+    Tests the `public.Param` class.
     """
-    _cls = public.Option
+    _cls = public.Param
 
     def test_class(self):
         assert self.cls.__bases__ == (plugable.ReadOnly,)
 
     def test_init(self):
         """
-        Tests the `public.Option.__init__` method.
+        Tests the `public.Param.__init__` method.
         """
         name = 'sn'
         type_ = ipa_types.Unicode()
@@ -139,7 +139,7 @@ class test_Option(ClassChecker):
 
     def test_convert(self):
         """
-        Tests the `public.Option.convert` method.
+        Tests the `public.Param.convert` method.
         """
         name = 'some_number'
         type_ = ipa_types.Int()
@@ -184,7 +184,7 @@ class test_Option(ClassChecker):
 
     def test_normalize(self):
         """
-        Tests the `public.Option.normalize` method.
+        Tests the `public.Param.normalize` method.
         """
         name = 'sn'
         t = ipa_types.Unicode()
@@ -220,7 +220,7 @@ class test_Option(ClassChecker):
 
     def test_validate(self):
         """
-        Tests the `public.Option.validate` method.
+        Tests the `public.Param.validate` method.
         """
         name = 'sn'
         type_ = ipa_types.Unicode()
@@ -265,7 +265,7 @@ class test_Option(ClassChecker):
 
     def test_get_default(self):
         """
-        Tests the `public.Option.get_default` method.
+        Tests the `public.Param.get_default` method.
         """
         name = 'greeting'
         type_ = ipa_types.Unicode()
@@ -299,7 +299,7 @@ class test_Option(ClassChecker):
 
     def test_get_value(self):
         """
-        Tests the `public.Option.get_values` method.
+        Tests the `public.Param.get_values` method.
         """
         name = 'status'
         values = (u'Active', u'Inactive')
@@ -316,7 +316,7 @@ def test_generate_option():
     f = public.generate_option
     for name in ['arg', 'arg?', 'arg*', 'arg+']:
         o = f(name)
-        assert type(o) is public.Option
+        assert type(o) is public.Param
         assert type(o.type) is ipa_types.Unicode
         assert o.name == 'arg'
     o = f('arg')
@@ -357,12 +357,12 @@ class test_Command(ClassChecker):
 
         class example(self.cls):
             takes_options = (
-                public.Option('option0', type_,
+                public.Param('option0', type_,
                     normalize=normalize,
                     default_from=default_from,
                     rules=(Rule('option0'),)
                 ),
-                public.Option('option1', type_,
+                public.Param('option1', type_,
                     normalize=normalize,
                     default_from=default_from,
                     rules=(Rule('option1'),),
@@ -420,8 +420,8 @@ class test_Command(ClassChecker):
         assert type(ns) is plugable.NameSpace
         assert len(ns) == len(args)
         assert list(ns) == ['destination', 'source']
-        assert type(ns.destination) is public.Option
-        assert type(ns.source) is public.Option
+        assert type(ns.destination) is public.Param
+        assert type(ns.source) is public.Param
         assert ns.destination.required is True
         assert ns.destination.multivalue is False
         assert ns.source.required is False
@@ -430,7 +430,7 @@ class test_Command(ClassChecker):
         # Test TypeError:
         e = raises(TypeError, self.get_instance, args=(u'whatever',))
         assert str(e) == \
-            'arg: need %r or %r; got %r' % (str, public.Option, u'whatever')
+            'arg: need %r or %r; got %r' % (str, public.Param, u'whatever')
 
         # Test ValueError, required after optional:
         e = raises(ValueError, self.get_instance, args=('arg1?', 'arg2'))
@@ -470,8 +470,8 @@ class test_Command(ClassChecker):
         assert type(ns) is plugable.NameSpace
         assert len(ns) == len(options)
         assert list(ns) == ['target', 'files']
-        assert type(ns.target) is public.Option
-        assert type(ns.files) is public.Option
+        assert type(ns.target) is public.Param
+        assert type(ns.files) is public.Param
         assert ns.target.required is True
         assert ns.target.multivalue is False
         assert ns.files.required is False
@@ -774,8 +774,8 @@ class test_Method(ClassChecker):
         type_ = ipa_types.Unicode()
         class noun_verb(self.cls):
             takes_options= (
-                public.Option('option0', type_),
-                public.Option('option1', type_),
+                public.Param('option0', type_),
+                public.Param('option1', type_),
             )
             obj = example_obj()
         return noun_verb
@@ -790,7 +790,7 @@ class test_Method(ClassChecker):
         assert len(options) == 4
         for (i, option) in enumerate(options):
             assert option.name == names[i]
-            assert isinstance(option, public.Option)
+            assert isinstance(option, public.Param)
 
 
 class test_Property(ClassChecker):
@@ -826,7 +826,7 @@ class test_Property(ClassChecker):
         assert len(o.rules) == 1
         assert o.rules[0].__name__ == 'rule0_lowercase'
         opt = o.option
-        assert isinstance(opt, public.Option)
+        assert isinstance(opt, public.Param)
         assert opt.name == 'givenname'
         assert opt.doc == 'User first name'
 

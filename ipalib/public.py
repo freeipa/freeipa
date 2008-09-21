@@ -85,7 +85,7 @@ class DefaultFrom(plugable.ReadOnly):
             return None
 
 
-class Option(plugable.ReadOnly):
+class Param(plugable.ReadOnly):
     def __init__(self, name, type_,
             doc='',
             required=False,
@@ -200,7 +200,7 @@ class Option(plugable.ReadOnly):
 
 def generate_option(name):
     """
-    Returns an `Option` instance by parsing ``name``.
+    Returns an `Param` instance by parsing ``name``.
     """
     if name.endswith('?'):
         kw = dict(required=False, multivalue=False)
@@ -213,7 +213,7 @@ def generate_option(name):
         name = name[:-1]
     else:
         kw = dict(required=True, multivalue=False)
-    return Option(name, ipa_types.Unicode(), **kw)
+    return Param(name, ipa_types.Unicode(), **kw)
 
 
 class Command(plugable.Plugin):
@@ -261,9 +261,9 @@ class Command(plugable.Plugin):
         for arg in self.get_args():
             if type(arg) is str:
                 arg = generate_option(arg)
-            elif not isinstance(arg, Option):
+            elif not isinstance(arg, Param):
                 raise TypeError(
-                    'arg: need %r or %r; got %r' % (str, Option, arg)
+                    'arg: need %r or %r; got %r' % (str, Param, arg)
                 )
             if optional and arg.required:
                 raise ValueError(
@@ -283,9 +283,9 @@ class Command(plugable.Plugin):
         for option in self.get_options():
             if type(option) is str:
                 option = generate_option(option)
-            elif not isinstance(option, Option):
+            elif not isinstance(option, Param):
                 raise TypeError(
-                    'option: need %r or %r; got %r' % (str, Option, option)
+                    'option: need %r or %r; got %r' % (str, Param, option)
                 )
             yield option
 
@@ -491,7 +491,7 @@ class Property(Attribute):
             self.__rules_iter(),
             key=lambda f: getattr(f, '__name__'),
         ))
-        self.option = Option(self.attr_name, self.type,
+        self.option = Param(self.attr_name, self.type,
             doc=self.doc,
             required=self.required,
             multivalue=self.multivalue,
