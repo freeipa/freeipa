@@ -258,6 +258,7 @@ class Command(plugable.Plugin):
     args = None
     options = None
     params = None
+    can_forward = True
 
     def finalize(self):
         self.args = plugable.NameSpace(self.__create_args(), sort=False)
@@ -328,11 +329,9 @@ class Command(plugable.Plugin):
                     yield(param.name, value)
 
     def get_default(self, **kw):
-        self.print_call('default', kw, 1)
         return dict(self.__get_default_iter(kw))
 
     def validate(self, **kw):
-        self.print_call('validate', kw, 1)
         for param in self.params():
             value = kw.get(param.name, None)
             if value is not None:
@@ -340,17 +339,10 @@ class Command(plugable.Plugin):
             elif param.required:
                 raise errors.RequirementError(param.name)
 
-    def execute(self, **kw):
-        self.print_call('execute', kw, 1)
-        pass
-
-    def print_call(self, method, kw, tab=0):
-        print '%s%s.%s(%s)\n' % (
-            ' ' * (tab *2),
-            self.name,
-            method,
-            ', '.join('%s=%r' % (k, kw[k]) for k in sorted(kw)),
-        )
+    def execute(self, *args, **kw):
+        print '%s.execute():' % self.name
+        print '  args =', args
+        print '  kw =', kw
 
     def __call__(self, *args, **kw):
         if len(args) > 0:
@@ -361,6 +353,8 @@ class Command(plugable.Plugin):
         kw = self.convert(**kw)
         kw.update(self.get_default(**kw))
         self.validate(**kw)
+        args = tuple(kw.pop(name) for name in self.args)
+        self.execute(*args, **kw)
 
     def args_to_kw(self, *values):
         if self.max_args is not None and len(values) > self.max_args:

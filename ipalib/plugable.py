@@ -690,6 +690,7 @@ class API(DictProxy):
     Dynamic API object through which `Plugin` instances are accessed.
     """
     __finalized = False
+    server_context = True
 
     def __init__(self, *allowed):
         self.__d = dict()
