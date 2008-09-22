@@ -702,6 +702,24 @@ class test_Object(ClassChecker):
                 assert attr.attr_name == attr_name
                 assert attr.name == attr_name
 
+    def test_params(self):
+        """
+        Test the ``public.Object.params`` instance attribute.
+        """
+        ns = self.cls().params
+        assert type(ns) is plugable.NameSpace
+        assert len(ns) == 0
+        class example(self.cls):
+            takes_params = ('banana', 'apple')
+        ns = example().params
+        assert type(ns) is plugable.NameSpace
+        assert len(ns) == 2, repr(ns)
+        assert list(ns) == ['banana', 'apple']
+        for p in ns():
+            assert type(p) is public.Param
+            assert p.required is True
+            assert p.multivalue is False
+
 
 class test_Attribute(ClassChecker):
     """

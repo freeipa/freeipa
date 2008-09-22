@@ -394,9 +394,20 @@ class Object(plugable.Plugin):
     __public__ = frozenset((
         'Method',
         'Property',
+        'params'
     ))
     __Method = None
     __Property = None
+    takes_params = tuple()
+
+    def __init__(self):
+        self.params = plugable.NameSpace(
+            (create_param(p) for p in self.takes_params), sort=False
+        )
+
+    def __create_params(self):
+        for param in self.takes_params:
+            yield create_param(param)
 
     def __get_Method(self):
         return self.__Method
@@ -410,7 +421,6 @@ class Object(plugable.Plugin):
         super(Object, self).set_api(api)
         self.__Method = self.__create_namespace('Method')
         self.__Property = self.__create_namespace('Property')
-
 
     def __create_namespace(self, name):
         return plugable.NameSpace(self.__filter_members(name))
