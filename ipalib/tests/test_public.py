@@ -844,10 +844,10 @@ class test_Property(ClassChecker):
         o = self.subcls()
         assert len(o.rules) == 1
         assert o.rules[0].__name__ == 'rule0_lowercase'
-        opt = o.option
-        assert isinstance(opt, public.Param)
-        assert opt.name == 'givenname'
-        assert opt.doc == 'User first name'
+        param = o.param
+        assert isinstance(param, public.Param)
+        assert param.name == 'givenname'
+        assert param.doc == 'User first name'
 
 
 class test_Application(ClassChecker):

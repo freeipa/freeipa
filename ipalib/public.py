@@ -476,20 +476,19 @@ class Method(Attribute, Command):
             yield option
         if self.obj is not None and self.obj.Property is not None:
             def get_key(p):
-                o = p.option
-                if o.required:
-                    if o.default_from is None:
+                if p.param.required:
+                    if p.param.default_from is None:
                         return 0
                     return 1
                 return 2
             for prop in sorted(self.obj.Property(), key=get_key):
-                yield prop.option
+                yield prop.param
 
 
 class Property(Attribute):
     __public__ = frozenset((
         'rules',
-        'option',
+        'param',
         'type',
     )).union(Attribute.__public__)
 
@@ -506,7 +505,7 @@ class Property(Attribute):
             self.__rules_iter(),
             key=lambda f: getattr(f, '__name__'),
         ))
-        self.option = Param(self.attr_name, self.type,
+        self.param = Param(self.attr_name, self.type,
             doc=self.doc,
             required=self.required,
             multivalue=self.multivalue,
