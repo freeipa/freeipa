@@ -517,12 +517,8 @@ class Object(plugable.Plugin):
     ))
     methods = None
     properties = None
+    params = None
     takes_params = tuple()
-
-    def __init__(self):
-        self.params = plugable.NameSpace(
-            (create_param(p) for p in self.takes_params), sort=False
-        )
 
     def __create_params(self):
         for param in self.takes_params:
@@ -532,6 +528,9 @@ class Object(plugable.Plugin):
         super(Object, self).set_api(api)
         self.methods = self.__create_namespace('Method')
         self.properties = self.__create_namespace('Property')
+        self.params = plugable.NameSpace(
+            (create_param(p) for p in self.takes_params), sort=False
+        )
 
     def __create_namespace(self, name):
         return plugable.NameSpace(self.__filter_members(name))

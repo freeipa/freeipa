@@ -754,7 +754,7 @@ class test_Command(ClassChecker):
 
 class test_Object(ClassChecker):
     """
-    Tests the `frontend.Object` class.
+    Test the `frontend.Object` class.
     """
     _cls = frontend.Object
 
@@ -762,19 +762,22 @@ class test_Object(ClassChecker):
         assert self.cls.__bases__ == (plugable.Plugin,)
         assert self.cls.methods is None
         assert self.cls.properties is None
+        assert self.cls.params is None
         assert self.cls.takes_params == tuple()
 
     def test_init(self):
         """
-        Tests the `frontend.Object.__init__` method.
+        Test the `frontend.Object.__init__` method.
         """
         o = self.cls()
         assert o.methods is None
         assert o.properties is None
+        assert o.params is None
+        assert o.properties is None
 
     def test_set_api(self):
         """
-        Tests the `frontend.Object.set_api` method.
+        Test the `frontend.Object.set_api` method.
         """
         # Setup for test:
         class DummyAttribute(object):
@@ -834,16 +837,17 @@ class test_Object(ClassChecker):
                 assert attr.attr_name == attr_name
                 assert attr.name == attr_name
 
-    def test_params(self):
-        """
-        Test the ``frontend.Object.params`` instance attribute.
-        """
-        ns = self.cls().params
+        # Test params instance attribute
+        o = self.cls()
+        o.set_api(api)
+        ns = o.params
         assert type(ns) is plugable.NameSpace
         assert len(ns) == 0
         class example(self.cls):
             takes_params = ('banana', 'apple')
-        ns = example().params
+        o = example()
+        o.set_api(api)
+        ns = o.params
         assert type(ns) is plugable.NameSpace
         assert len(ns) == 2, repr(ns)
         assert list(ns) == ['banana', 'apple']
