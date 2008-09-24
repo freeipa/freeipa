@@ -111,9 +111,9 @@ class test_DefaultFrom(ClassChecker):
             assert o(**kw_copy) is None
 
 
-class test_Option(ClassChecker):
+class test_Param(ClassChecker):
     """
-    Tests the `frontend.Param` class.
+    Test the `frontend.Param` class.
     """
     _cls = frontend.Param
 
@@ -122,7 +122,7 @@ class test_Option(ClassChecker):
 
     def test_init(self):
         """
-        Tests the `frontend.Param.__init__` method.
+        Test the `frontend.Param.__init__` method.
         """
         name = 'sn'
         type_ = ipa_types.Unicode()
@@ -139,7 +139,7 @@ class test_Option(ClassChecker):
 
     def test_convert(self):
         """
-        Tests the `frontend.Param.convert` method.
+        Test the `frontend.Param.convert` method.
         """
         name = 'some_number'
         type_ = ipa_types.Int()
@@ -184,7 +184,7 @@ class test_Option(ClassChecker):
 
     def test_normalize(self):
         """
-        Tests the `frontend.Param.normalize` method.
+        Test the `frontend.Param.normalize` method.
         """
         name = 'sn'
         t = ipa_types.Unicode()
@@ -212,6 +212,8 @@ class test_Option(ClassChecker):
 
         # Scenario 4: multivalue=True, normalize=callback
         o = self.cls(name, t, multivalue=True, normalize=callback)
+        assert o.normalize([]) is None
+        assert o.normalize(tuple()) is None
         for value in [(u'Hello',), (u'hello',), 'Hello', ['Hello']]: # Okay
             assert o.normalize(value) == (u'hello',)
         fail = 42 # Not basestring
