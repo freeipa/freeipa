@@ -504,7 +504,6 @@ class test_Command(ClassChecker):
         kw = dict(
             option0=u'OPTION0',
             option1=u'OPTION1',
-            option2=u'option2',
         )
         norm = dict((k, v.lower()) for (k, v) in kw.items())
         sub = self.subcls()

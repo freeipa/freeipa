@@ -304,15 +304,10 @@ class Command(plugable.Plugin):
             (k, self.params[k].convert(v)) for (k, v) in kw.iteritems()
         )
 
-    def __normalize_iter(self, kw):
-        for (key, value) in kw.iteritems():
-            if key in self.params:
-                yield (key, self.params[key].normalize(value))
-            else:
-                yield (key, value)
-
     def normalize(self, **kw):
-        return dict(self.__normalize_iter(kw))
+        return dict(
+            (k, self.params[k].normalize(v)) for (k, v) in kw.iteritems()
+        )
 
     def __get_default_iter(self, kw):
         for param in self.params():
