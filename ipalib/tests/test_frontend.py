@@ -145,10 +145,12 @@ class test_Param(ClassChecker):
         type_ = ipa_types.Int()
         okay = (7, 7L, 7.0, ' 7 ')
         fail = ('7.0', '7L', 'whatever', object)
+        none = (None, '', u'', tuple(), [])
 
         # Scenario 1: multivalue=False
         o = self.cls(name, type_)
-        assert o.convert(None) is None
+        for n in none:
+            assert o.convert(n) is None
         for value in okay:
             new = o.convert(value)
             assert new == 7
@@ -162,8 +164,8 @@ class test_Param(ClassChecker):
 
         # Scenario 2: multivalue=True
         o = self.cls(name, type_, multivalue=True)
-        for none in (None, tuple(), []):
-            assert o.convert(none) is None
+        for n in none:
+            assert o.convert(n) is None
         for value in okay:
             assert o.convert((value,)) == (7,)
             assert o.convert([value]) == (7,)
@@ -188,6 +190,7 @@ class test_Param(ClassChecker):
         t = ipa_types.Unicode()
         callback = lambda value: value.lower()
         values = (None, u'Hello', (u'Hello',), 'hello', ['hello'])
+        none = (None, '', u'', tuple(), [])
 
         # Scenario 1: multivalue=False, normalize=None
         o = self.cls(name, t)
@@ -201,6 +204,8 @@ class test_Param(ClassChecker):
             assert o.normalize(v) == 'hello'
         for v in [None, 42, (u'Hello',)]: # Not basestring
             assert o.normalize(v) is v
+        for n in none:
+            assert o.normalize(n) is None
 
         # Scenario 3: multivalue=True, normalize=None
         o = self.cls(name, t, multivalue=True)
@@ -215,8 +220,10 @@ class test_Param(ClassChecker):
         for value in [(u'Hello',), (u'hello',), 'Hello', ['Hello']]: # Okay
             assert o.normalize(value) == (u'hello',)
         fail = 42 # Not basestring
-        for v in [[fail], (u'hello', fail)]: # Non unicode member
+        for v in [[fail], (u'hello', fail)]: # Non basestring member
             assert o.normalize(v) == tuple(v)
+        for n in none:
+            assert o.normalize(n) is None
 
     def test_validate(self):
         """

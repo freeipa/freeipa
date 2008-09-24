@@ -106,12 +106,10 @@ class Param(plugable.ReadOnly):
         lock(self)
 
     def __dispatch(self, value, scalar):
-        if value is None:
-            return None
+        if value in (None, '', tuple(), []):
+            return
         if self.multivalue:
             if type(value) in (tuple, list):
-                if len(value) == 0:
-                    return None
                 return tuple(
                     scalar(v, i) for (i, v) in enumerate(value)
                 )
@@ -148,7 +146,7 @@ class Param(plugable.ReadOnly):
 
     def __convert_scalar(self, value, index=None):
         if value is None:
-            return None
+            return
         converted = self.type(value)
         if converted is None:
             raise errors.ConversionError(
@@ -158,7 +156,12 @@ class Param(plugable.ReadOnly):
 
     def convert(self, value):
         """
-        Convert/coerce ``value`` to Python type for this parameter.
+        Convert/coerce ``value`` to Python type for this `Param`.
+
+        If ``value`` can not be converted, ConversionError is raised.
+
+        If ``value`` is None, conversion is not attempted and None is
+        returned.
 
         :param value: A proposed value for this parameter.
         """
