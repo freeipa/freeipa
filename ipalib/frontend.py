@@ -118,10 +118,20 @@ def parse_param_spec(spec):
 
 class Param(plugable.ReadOnly):
     __nones = (None, '', tuple(), [])
+    __default = dict(
+        type=ipa_types.Unicode(),
+        doc='',
+        required=True,
+        multivalue=False,
+        default=None,
+        default_from=None,
+        rules=tuple(),
+        normalize=None
+    )
 
     def __init__(self, name, type_,
             doc='',
-            required=False,
+            required=True,
             multivalue=False,
             default=None,
             default_from=None,

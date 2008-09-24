@@ -143,7 +143,7 @@ class test_Param(ClassChecker):
         assert read_only(o, 'name') is name
         assert read_only(o, 'type') is type_
         assert read_only(o, 'doc') == ''
-        assert read_only(o, 'required') is False
+        assert read_only(o, 'required') is True
         assert read_only(o, 'multivalue') is False
         assert read_only(o, 'default') is None
         assert read_only(o, 'default_from') is None
