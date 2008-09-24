@@ -52,6 +52,23 @@ def from_cli(cli_name):
     return str(cli_name).replace('-', '_')
 
 
+class text_ui(frontend.Application):
+    """
+    Base class for CLI commands with special output needs.
+    """
+
+    def print_dashed(self, string, top=True, bottom=True):
+        dashes = '-' * len(string)
+        if top:
+            print dashes
+        print string
+        if bottom:
+            print dashes
+
+    def print_name(self, **kw):
+        self.print_dashed('%s:' % self.name, **kw)
+
+
 class help(frontend.Application):
     'Display help on a command.'
 
@@ -112,19 +129,24 @@ class namespaces(frontend.Application):
                     self.__traverse_namespace(n, attr, lines, tab + 2)
 
 
-class plugins(frontend.Application):
+class plugins(text_ui):
     """Show all loaded plugins"""
 
     def run(self):
-        print '%s:\n' % self.name
+        self.print_name()
+        first = True
         for p in sorted(self.api.plugins, key=lambda o: o.plugin):
+            if first:
+                first = False
+            else:
+                print ''
             print '  plugin: %s' % p.plugin
             print '  in namespaces: %s' % ', '.join(p.bases)
-            print ''
         if len(self.api.plugins) == 1:
-            print '1 plugin loaded.'
+            s = '1 plugin loaded.'
         else:
-            print '%d plugins loaded.' % len(self.api.plugins)
+            s = '%d plugins loaded.' % len(self.api.plugins)
+        self.print_dashed(s)
 
 
 
