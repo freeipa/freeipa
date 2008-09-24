@@ -760,7 +760,9 @@ class test_Object(ClassChecker):
 
     def test_class(self):
         assert self.cls.__bases__ == (plugable.Plugin,)
-        assert type(self.cls.Property) is property
+        assert self.cls.methods is None
+        assert self.cls.properties is None
+        assert self.cls.takes_params == tuple()
 
     def test_init(self):
         """
@@ -768,7 +770,7 @@ class test_Object(ClassChecker):
         """
         o = self.cls()
         assert o.methods is None
-        assert read_only(o, 'Property') is None
+        assert o.properties is None
 
     def test_set_api(self):
         """
@@ -798,7 +800,7 @@ class test_Object(ClassChecker):
         cnt = 10
         formats = dict(
             methods='method_%d',
-            Property='property_%d',
+            properties='property_%d',
         )
 
         class api(object):
@@ -806,7 +808,7 @@ class test_Object(ClassChecker):
                 get_attributes(cnt, formats['methods'])
             )
             Property = plugable.NameSpace(
-                get_attributes(cnt, formats['Property'])
+                get_attributes(cnt, formats['properties'])
             )
         assert len(api.Method) == cnt * 3
         assert len(api.Property) == cnt * 3
@@ -818,7 +820,7 @@ class test_Object(ClassChecker):
         o = user()
         o.set_api(api)
         assert read_only(o, 'api') is api
-        for name in ['methods', 'Property']:
+        for name in ['methods', 'properties']:
             namespace = getattr(o, name)
             assert isinstance(namespace, plugable.NameSpace)
             assert len(namespace) == cnt
@@ -919,7 +921,7 @@ class test_Method(ClassChecker):
                         ),
                     ])
                 return self.__prop
-            Property = property(__get_prop)
+            properties = property(__get_prop)
         type_ = ipa_types.Unicode()
         class noun_verb(self.cls):
             takes_options= (

@@ -512,11 +512,11 @@ class Command(plugable.Plugin):
 class Object(plugable.Plugin):
     __public__ = frozenset((
         'methods',
-        'Property',
+        'properties',
         'params'
     ))
     methods = None
-    __Property = None
+    properties = None
     takes_params = tuple()
 
     def __init__(self):
@@ -528,15 +528,10 @@ class Object(plugable.Plugin):
         for param in self.takes_params:
             yield create_param(param)
 
-
-    def __get_Property(self):
-        return self.__Property
-    Property = property(__get_Property)
-
     def set_api(self, api):
         super(Object, self).set_api(api)
         self.methods = self.__create_namespace('Method')
-        self.__Property = self.__create_namespace('Property')
+        self.properties = self.__create_namespace('Property')
 
     def __create_namespace(self, name):
         return plugable.NameSpace(self.__filter_members(name))
@@ -596,14 +591,14 @@ class Method(Attribute, Command):
     def get_options(self):
         for option in self.takes_options:
             yield option
-        if self.obj is not None and self.obj.Property is not None:
+        if self.obj is not None and self.obj.properties is not None:
             def get_key(p):
                 if p.param.required:
                     if p.param.default_from is None:
                         return 0
                     return 1
                 return 2
-            for prop in sorted(self.obj.Property(), key=get_key):
+            for prop in sorted(self.obj.properties(), key=get_key):
                 yield prop.param
 
 
