@@ -708,16 +708,47 @@ class API(DictProxy):
         """
         assert not self.__finalized, 'finalize() can only be called once'
 
-        instances = {}
-        def plugin_iter(base, classes):
-            for klass in classes:
-                if klass not in instances:
-                    instances[klass] = klass()
-                plugin = instances[klass]
+        class PluginInstance(object):
+            """
+            Represents a plugin instance.
+            """
+
+            i = 0
+
+            def __init__(self, klass):
+                self.created = self.next()
+                self.klass = klass
+                self.instance = klass()
+                self.bases = []
+
+            @classmethod
+            def next(cls):
+                cls.i += 1
+                return cls.i
+
+        class PluginInfo(ReadOnly):
+            def __init__(self, p):
+                assert isinstance(p, PluginInstance)
+                self.created = p.created
+                self.name = p.klass.__name__
+                self.module = str(p.klass.__module__)
+                self.plugin = '%s.%s' % (self.module, self.name)
+                self.bases = tuple(b.__name__ for b in p.bases)
+                lock(self)
+
+        plugins = {}
+        def plugin_iter(base, subclasses):
+            for klass in subclasses:
+                assert issubclass(klass, base)
+                if klass not in plugins:
+                    plugins[klass] = PluginInstance(klass)
+                p = plugins[klass]
+                assert base not in p.bases
+                p.bases.append(base)
                 if base.__proxy__:
-                    yield PluginProxy(base, plugin)
+                    yield PluginProxy(base, p.instance)
                 else:
-                    yield plugin
+                    yield p.instance
 
         for name in self.register:
             base = self.register[name]
@@ -731,10 +762,14 @@ class API(DictProxy):
             self.__d[name] = namespace
             object.__setattr__(self, name, namespace)
 
-        for plugin in instances.itervalues():
-            plugin.set_api(self)
-            assert plugin.api is self
+        for p in plugins.itervalues():
+            p.instance.set_api(self)
+            assert p.instance.api is self
 
-        for plugin in instances.itervalues():
-            plugin.finalize()
+        for p in plugins.itervalues():
+            p.instance.finalize()
         object.__setattr__(self, '_API__finalized', True)
+        tuple(PluginInfo(p) for p in plugins.itervalues())
+        object.__setattr__(self, 'plugins',
+            tuple(PluginInfo(p) for p in plugins.itervalues())
+        )

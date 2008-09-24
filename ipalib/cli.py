@@ -77,8 +77,8 @@ class console(frontend.Application):
         )
 
 
-class show_plugins(frontend.Application):
-    'Print details on the loaded plugins.'
+class namespaces(frontend.Application):
+    'Show details of plugable namespaces'
 
     def run(self):
         lines = self.__traverse()
@@ -110,6 +110,33 @@ class show_plugins(frontend.Application):
                 attr = member[n]
                 if isinstance(attr, plugable.NameSpace) and len(attr) > 0:
                     self.__traverse_namespace(n, attr, lines, tab + 2)
+
+
+class plugins(frontend.Application):
+    """Show all loaded plugins"""
+
+    def run(self):
+        print '%s:\n' % self.name
+        for p in sorted(self.api.plugins, key=lambda o: o.plugin):
+            print '  plugin: %s' % p.plugin
+            print '  in namespaces: %s' % ', '.join(p.bases)
+            print ''
+        if len(self.api.plugins) == 1:
+            print '1 plugin loaded.'
+        else:
+            print '%d plugins loaded.' % len(self.api.plugins)
+
+
+
+
+
+cli_application_commands = (
+    help,
+    console,
+    namespaces,
+    plugins,
+
+)
 
 
 class KWCollector(object):
@@ -168,9 +195,8 @@ class CLI(object):
 
     def finalize(self):
         api = self.api
-        api.register(help)
-        api.register(console)
-        api.register(show_plugins)
+        for klass in cli_application_commands:
+            api.register(klass)
         api.finalize()
         for a in api.Application():
             a.set_application(self)
