@@ -85,6 +85,8 @@ class DefaultFrom(plugable.ReadOnly):
 
 
 class Param(plugable.ReadOnly):
+    __nones = (None, '', tuple(), [])
+
     def __init__(self, name, type_,
             doc='',
             required=False,
@@ -106,7 +108,10 @@ class Param(plugable.ReadOnly):
         lock(self)
 
     def __dispatch(self, value, scalar):
-        if value in (None, '', tuple(), []):
+        """
+        Helper method used by `normalize` and `convert`.
+        """
+        if value in self.__nones:
             return
         if self.multivalue:
             if type(value) in (tuple, list):
@@ -117,6 +122,11 @@ class Param(plugable.ReadOnly):
         return scalar(value)
 
     def __normalize_scalar(self, value, index=None):
+        """
+        Normalize a scalar value.
+
+        This method is called once with each value in multivalue.
+        """
         if not isinstance(value, basestring):
             return value
         try:
@@ -145,7 +155,12 @@ class Param(plugable.ReadOnly):
         return self.__dispatch(value, self.__normalize_scalar)
 
     def __convert_scalar(self, value, index=None):
-        if value is None:
+        """
+        Convert a scalar value.
+
+        This method is called once with each value in multivalue.
+        """
+        if value in self.__nones:
             return
         converted = self.type(value)
         if converted is None:
@@ -158,7 +173,8 @@ class Param(plugable.ReadOnly):
         """
         Convert/coerce ``value`` to Python type for this `Param`.
 
-        If ``value`` can not be converted, ConversionError is raised.
+        If ``value`` can not be converted, ConversionError is raised, which
+        is as subclass of ValidationError.
 
         If ``value`` is None, conversion is not attempted and None is
         returned.
@@ -168,6 +184,11 @@ class Param(plugable.ReadOnly):
         return self.__dispatch(value, self.__convert_scalar)
 
     def __validate_scalar(self, value, index=None):
+        """
+        Validate a scalar value.
+
+        This method is called once with each value in multivalue.
+        """
         if type(value) is not self.type.type:
             raise_TypeError(value, self.type.type, 'value')
         for rule in self.rules:
@@ -178,6 +199,18 @@ class Param(plugable.ReadOnly):
                 )
 
     def validate(self, value):
+        """
+        Check validity of a value.
+
+        Each validation rule is called in turn and if any returns and error,
+        RuleError is raised, which is a subclass of ValidationError.
+
+        :param value: A proposed value for this parameter.
+        """
+        if value is None:
+            if self.required:
+                raise errors.RequirementError(self.name)
+            return
         if self.multivalue:
             if type(value) is not tuple:
                 raise_TypeError(value, tuple, 'value')
@@ -187,6 +220,22 @@ class Param(plugable.ReadOnly):
             self.__validate_scalar(value)
 
     def get_default(self, **kw):
+        """
+        Return a default value for this parameter.
+
+        If this `Param` instance does not have a default_from() callback, this
+        method always returns the static Param.default instance attribute.
+
+        On the other hand, if this `Param` instance has a default_from()
+        callback, the callback is called and its return value is returned
+        (assuming that value is not None).
+
+        If the default_from() callback returns None, or if an exception is
+        caught when calling the default_from() callback, the static
+        Param.default instance attribute is returned.
+
+        :param kw: Optional keyword arguments to pass to default_from().
+        """
         if self.default_from is not None:
             default = self.default_from(**kw)
             if default is not None:
@@ -202,18 +251,12 @@ class Param(plugable.ReadOnly):
         return tuple()
 
     def __call__(self, value, **kw):
-        if value in ('', tuple(), []):
-            value = None
-        if value is None:
+        if value in self.__nones:
             value = self.get_default(**kw)
-        if value is None:
-            if self.required:
-                raise errors.RequirementError(self.name)
-            return None
         else:
             value = self.convert(self.normalize(value))
-            self.validate(value)
-            return value
+        self.validate(value)
+        return value
 
     def __repr__(self):
         return '%s(%r, %s())' % (
