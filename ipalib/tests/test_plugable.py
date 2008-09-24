@@ -795,3 +795,22 @@ def test_API():
 
     # Test that calling finilize again raises AssertionError:
     raises(AssertionError, api.finalize)
+
+    # Test with base class that doesn't request a proxy
+    class NoProxy(plugable.Plugin):
+        __proxy__ = False
+    api = plugable.API(NoProxy)
+    class plugin0(NoProxy):
+        pass
+    api.register(plugin0)
+    class plugin1(NoProxy):
+        pass
+    api.register(plugin1)
+    api.finalize()
+    names = ['plugin0', 'plugin1']
+    assert list(api.NoProxy) == names
+    for name in names:
+        plugin = api.NoProxy[name]
+        assert getattr(api.NoProxy, name) is plugin
+        assert isinstance(plugin, plugable.Plugin)
+        assert not isinstance(plugin, plugable.PluginProxy)

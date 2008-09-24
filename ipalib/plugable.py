@@ -241,6 +241,7 @@ class Plugin(ReadOnly):
     Base class for all plugins.
     """
     __public__ = frozenset()
+    __proxy__ = True
     __api = None
 
     def __get_name(self):
@@ -709,7 +710,10 @@ class API(DictProxy):
                 if klass not in instances:
                     instances[klass] = klass()
                 plugin = instances[klass]
-                yield PluginProxy(base, plugin)
+                if base.__proxy__:
+                    yield PluginProxy(base, plugin)
+                else:
+                    yield plugin
 
         for name in self.register:
             base = self.register[name]
