@@ -89,6 +89,9 @@ class test_DefaultFrom(ClassChecker):
         o = self.cls(callback, *keys)
         assert read_only(o, 'callback') is callback
         assert read_only(o, 'keys') == keys
+        lam = lambda first, last: first[0] + last
+        o = self.cls(lam)
+        assert read_only(o, 'keys') == ('first', 'last')
 
     def test_call(self):
         """
@@ -109,6 +112,10 @@ class test_DefaultFrom(ClassChecker):
             kw_copy = dict(kw)
             del kw_copy[key]
             assert o(**kw_copy) is None
+        o = self.cls(lambda first, last: first[0] + last)
+        assert o(first='john', last='doe') == 'jdoe'
+        assert o(first='', last='doe') is None
+        assert o(one='john', two='doe') is None
 
 
 def test_parse_param_spec():

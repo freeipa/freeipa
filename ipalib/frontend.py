@@ -61,12 +61,16 @@ class DefaultFrom(plugable.ReadOnly):
         :param callback: The callable to call when all ``keys`` are present.
         :param keys: The keys used to map from keyword to position arguments.
         """
-        assert callable(callback), 'not a callable: %r' % callback
-        assert len(keys) > 0, 'must have at least one key'
-        for key in keys:
-            assert type(key) is str, 'not an str: %r' % key
+        if not callable(callback):
+            raise TypeError('callback must be callable; got %r' % callback)
         self.callback = callback
-        self.keys = keys
+        if len(keys) == 0:
+            self.keys = callback.func_code.co_varnames
+        else:
+            self.keys = keys
+        for key in self.keys:
+            if type(key) is not str:
+                raise_TypeError(key, str, 'keys')
         lock(self)
 
     def __call__(self, **kw):
@@ -77,11 +81,11 @@ class DefaultFrom(plugable.ReadOnly):
         """
         vals = tuple(kw.get(k, None) for k in self.keys)
         if None in vals:
-            return None
+            return
         try:
             return self.callback(*vals)
-        except Exception:
-            return None
+        except StandardError:
+            pass
 
 
 def parse_param_spec(spec):
