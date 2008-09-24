@@ -756,7 +756,7 @@ int main(int argc, char *argv[])
 		if (!password) {
 			exit(2);
 		}
-	} else if (strchr(enctypes_string, ':')) {
+	} else if (enctypes_string && strchr(enctypes_string, ':')) {
 		if (!quiet) {
 			fprintf(stderr, "Warning: salt types are not honored with randomized passwords (see opt. -P)\n");
 		}
