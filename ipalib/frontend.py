@@ -136,28 +136,28 @@ class Param(plugable.ReadOnly):
         primary_key=False,
     )
 
-    def __init__(self, name, type_=ipa_types.Unicode(), **kw):
-        if 'required' not in kw and 'multivalue' not in kw:
+    def __init__(self, name, type_=ipa_types.Unicode(), **override):
+        if not ('required' in override or 'multivalue' in override):
             (name, kw_from_spec) = parse_param_spec(name)
-            kw.update(kw_from_spec)
-        default = dict(self.__default)
-        if not set(default).issuperset(kw):
-            extra = sorted(set(kw) - set(default))
+            override.update(kw_from_spec)
+        kw = dict(self.__default)
+        if not set(kw).issuperset(override):
+            extra = sorted(set(override) - set(kw))
             raise TypeError(
                 'Param.__init__() takes no such kwargs: %s' % ', '.join(extra)
             )
-        default.update(kw)
-        self.__kw = default
+        kw.update(override)
+        self.__kw = kw
         self.name = check_name(name)
         self.type = check_isinstance(type_, ipa_types.Type, 'type_')
         self.doc = self.__check_type(str, 'doc')
         self.required = self.__check_type(bool, 'required')
         self.multivalue = self.__check_type(bool, 'multivalue')
-        self.default = self.__kw['default']
+        self.default = kw['default']
         self.default_from = self.__check_type(DefaultFrom, 'default_from',
             allow_none=True
         )
-        self.__normalize = self.__kw['normalize']
+        self.__normalize = kw['normalize']
         self.rules = self.__check_type(tuple, 'rules')
         self.all_rules = (type_.validate,) + self.rules
         self.primary_key = self.__check_type(bool, 'primary_key')
