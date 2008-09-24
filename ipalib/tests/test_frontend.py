@@ -760,7 +760,6 @@ class test_Object(ClassChecker):
 
     def test_class(self):
         assert self.cls.__bases__ == (plugable.Plugin,)
-        assert type(self.cls.Method) is property
         assert type(self.cls.Property) is property
 
     def test_init(self):
@@ -768,7 +767,7 @@ class test_Object(ClassChecker):
         Tests the `frontend.Object.__init__` method.
         """
         o = self.cls()
-        assert read_only(o, 'Method') is None
+        assert o.methods is None
         assert read_only(o, 'Property') is None
 
     def test_set_api(self):
@@ -798,13 +797,13 @@ class test_Object(ClassChecker):
 
         cnt = 10
         formats = dict(
-            Method='method_%d',
+            methods='method_%d',
             Property='property_%d',
         )
 
         class api(object):
             Method = plugable.NameSpace(
-                get_attributes(cnt, formats['Method'])
+                get_attributes(cnt, formats['methods'])
             )
             Property = plugable.NameSpace(
                 get_attributes(cnt, formats['Property'])
@@ -819,7 +818,7 @@ class test_Object(ClassChecker):
         o = user()
         o.set_api(api)
         assert read_only(o, 'api') is api
-        for name in ['Method', 'Property']:
+        for name in ['methods', 'Property']:
             namespace = getattr(o, name)
             assert isinstance(namespace, plugable.NameSpace)
             assert len(namespace) == cnt

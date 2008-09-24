@@ -511,11 +511,11 @@ class Command(plugable.Plugin):
 
 class Object(plugable.Plugin):
     __public__ = frozenset((
-        'Method',
+        'methods',
         'Property',
         'params'
     ))
-    __Method = None
+    methods = None
     __Property = None
     takes_params = tuple()
 
@@ -528,9 +528,6 @@ class Object(plugable.Plugin):
         for param in self.takes_params:
             yield create_param(param)
 
-    def __get_Method(self):
-        return self.__Method
-    Method = property(__get_Method)
 
     def __get_Property(self):
         return self.__Property
@@ -538,7 +535,7 @@ class Object(plugable.Plugin):
 
     def set_api(self, api):
         super(Object, self).set_api(api)
-        self.__Method = self.__create_namespace('Method')
+        self.methods = self.__create_namespace('Method')
         self.__Property = self.__create_namespace('Property')
 
     def __create_namespace(self, name):
