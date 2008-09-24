@@ -105,6 +105,38 @@ class Param(plugable.ReadOnly):
         self.rules = (type_.validate,) + rules
         lock(self)
 
+    def __normalize_scalar(self, value):
+        if not isinstance(value, basestring):
+            return value
+        try:
+            return self.__normalize(value)
+        except StandardError:
+            return value
+
+    def normalize(self, value):
+        """
+        Normalize ``value`` using normalize callback.
+
+        If this `Param` instance does not have a normalize callback,
+        ``value`` is returned unchanged.
+
+        If this `Param` instance has a normalize callback and ``value`` is
+        a basestring, the normalize callback is called and its return value
+        is returned.
+
+        If ``value`` is not a basestring, or if an exception is caught
+        when calling the normalize callback, ``value`` is returned unchanged.
+
+        :param value: A proposed value for this parameter.
+        """
+        if self.__normalize is None:
+            return value
+        if self.multivalue:
+            if type(value) in (tuple, list):
+                return tuple(self.__normalize_scalar(v) for v in value)
+            return (self.__normalize_scalar(value),) # tuple
+        return self.__normalize_scalar(value)
+
     def __convert_scalar(self, value, index=None):
         if value is None:
             raise TypeError('value cannot be None')
@@ -124,22 +156,7 @@ class Param(plugable.ReadOnly):
             return (self.__convert_scalar(value, 0),) # tuple
         return self.__convert_scalar(value)
 
-    def __normalize_scalar(self, value):
-        if not isinstance(value, basestring):
-            raise_TypeError(value, basestring, 'value')
-        try:
-            return self.__normalize(value)
-        except Exception:
-            return value
 
-    def normalize(self, value):
-        if self.__normalize is None:
-            return value
-        if self.multivalue:
-            if type(value) in (tuple, list):
-                return tuple(self.__normalize_scalar(v) for v in value)
-            return (self.__normalize_scalar(value),) # tuple
-        return self.__normalize_scalar(value)
 
     def __validate_scalar(self, value, index=None):
         if type(value) is not self.type.type:
