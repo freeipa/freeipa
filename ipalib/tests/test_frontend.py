@@ -168,7 +168,12 @@ class test_Param(ClassChecker):
         df = frontend.DefaultFrom(lambda f, l: f + l,
             'first', 'last',
         )
-        assert self.cls(name, default_from=df).default_from == df
+        lam = lambda first, last: first + last
+        for cb in (df, lam):
+            o = self.cls(name, default_from=cb)
+            assert type(o.default_from) is frontend.DefaultFrom
+            assert o.default_from.keys == ('first', 'last')
+            assert o.default_from.callback('butt', 'erfly') == 'butterfly'
         rules = (lambda whatever: 'Not okay!',)
         o = self.cls(name, rules=rules)
         assert o.rules is rules

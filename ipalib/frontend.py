@@ -125,7 +125,7 @@ class Param(plugable.ReadOnly):
     A parameter accepted by a `Command`.
     """
     __nones = (None, '', tuple(), [])
-    __default = dict(
+    __defaults = dict(
         doc='',
         required=True,
         multivalue=False,
@@ -140,7 +140,7 @@ class Param(plugable.ReadOnly):
         if not ('required' in override or 'multivalue' in override):
             (name, kw_from_spec) = parse_param_spec(name)
             override.update(kw_from_spec)
-        kw = dict(self.__default)
+        kw = dict(self.__defaults)
         if not set(kw).issuperset(override):
             extra = sorted(set(override) - set(kw))
             raise TypeError(
@@ -154,7 +154,10 @@ class Param(plugable.ReadOnly):
         self.required = self.__check_type(bool, 'required')
         self.multivalue = self.__check_type(bool, 'multivalue')
         self.default = kw['default']
-        self.default_from = self.__check_type(DefaultFrom, 'default_from',
+        df = kw['default_from']
+        if callable(df) and not isinstance(df, DefaultFrom):
+            df = DefaultFrom(df)
+        self.default_from = check_type(df, DefaultFrom, 'default_from',
             allow_none=True
         )
         self.__normalize = kw['normalize']
