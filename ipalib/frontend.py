@@ -134,8 +134,9 @@ class Param(plugable.ReadOnly):
             kw.update(kw_from_spec)
         default = dict(self.__default)
         if not set(default).issuperset(kw):
+            extra = sorted(set(kw) - set(default))
             raise TypeError(
-                'no such kwargs: %r' % list(set(kw) - set(default))
+                'Param.__init__() takes no such kwargs: %s' % ', '.join(extra)
             )
         default.update(kw)
         self.__kw = default

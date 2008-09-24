@@ -169,6 +169,10 @@ class test_Param(ClassChecker):
         assert o.required is True
         assert o.multivalue is True
 
+        e = raises(TypeError, self.cls, name, whatever=True, another=False)
+        assert str(e) == \
+            'Param.__init__() takes no such kwargs: another, whatever'
+
     def test_convert(self):
         """
         Test the `frontend.Param.convert` method.
