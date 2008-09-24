@@ -521,8 +521,13 @@ class Object(plugable.Plugin):
     takes_params = tuple()
 
     def __create_params(self):
-        for param in self.takes_params:
-            yield create_param(param)
+        props = self.properties.__todict__()
+        for spec in self.takes_params:
+            if type(spec) is str and spec.rstrip('?*+') in props:
+                yield props.pop(spec.rstrip('?*+')).param
+            else:
+                yield create_param(spec)
+
 
     def set_api(self, api):
         super(Object, self).set_api(api)

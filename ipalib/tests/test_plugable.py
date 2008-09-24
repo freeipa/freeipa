@@ -586,6 +586,7 @@ class test_NameSpace(ClassChecker):
                 else:
                     ordered = members
                 names = tuple(m.name for m in ordered)
+                assert o.__todict__() == dict((o.name, o) for o in ordered)
 
                 # Test __len__:
                 assert len(o) == cnt

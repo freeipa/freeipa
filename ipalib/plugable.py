@@ -545,13 +545,13 @@ class NameSpace(ReadOnly):
 
     def __len__(self):
         """
-        Returns the number of members.
+        Return the number of members.
         """
         return len(self.__members)
 
     def __iter__(self):
         """
-        Iterates through the member names.
+        Iterate through the member names.
 
         If this instance was created with ``sort=True``, the names will be in
         alphabetical order; otherwise the names will be in the same order as
@@ -564,7 +564,7 @@ class NameSpace(ReadOnly):
 
     def __call__(self):
         """
-        Iterates through the members.
+        Iterate through the members.
 
         If this instance was created with ``sort=True``, the members will be
         in alphabetical order by name; otherwise the members will be in the
@@ -577,13 +577,13 @@ class NameSpace(ReadOnly):
 
     def __contains__(self, name):
         """
-        Returns True if namespace has a member named ``name``.
+        Return True if namespace has a member named ``name``.
         """
         return name in self.__map
 
     def __getitem__(self, spec):
         """
-        Returns a member by name or index, or returns a slice of members.
+        Return a member by name or index, or returns a slice of members.
 
         :param spec: The name or index of a member, or a slice object.
         """
@@ -597,13 +597,19 @@ class NameSpace(ReadOnly):
 
     def __repr__(self):
         """
-        Returns a pseudo-valid expression that could create this instance.
+        Return a pseudo-valid expression that could create this instance.
         """
         return '%s(<%d members>, sort=%r)' % (
             self.__class__.__name__,
             len(self),
             self.__sort,
         )
+
+    def __todict__(self):
+        """
+        Return a copy of the private dict mapping name to member.
+        """
+        return dict(self.__map)
 
 
 class Registrar(DictProxy):
