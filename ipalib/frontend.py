@@ -322,9 +322,7 @@ class Command(plugable.Plugin):
     def __get_default_iter(self, kw):
         for param in self.params():
             if param.name not in kw:
-                value = param.get_default(**kw)
-                if value is not None:
-                    yield(param.name, value)
+                yield (param.name, param.get_default(**kw))
 
     def get_default(self, **kw):
         return dict(self.__get_default_iter(kw))
@@ -356,7 +354,7 @@ class Command(plugable.Plugin):
         kw = self.convert(**kw)
         kw.update(self.get_default(**kw))
         self.validate(**kw)
-        args = tuple(kw.pop(name, None) for name in self.args)
+        args = tuple(kw.pop(name) for name in self.args)
         return self.run(*args, **kw)
 
     def run(self, *args, **kw):
