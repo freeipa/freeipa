@@ -140,6 +140,8 @@ class test_Param(ClassChecker):
         type_ = ipa_types.Unicode()
         o = self.cls(name, type_)
         assert o.__islocked__() is True
+
+        # Test default values
         assert read_only(o, 'name') is name
         assert read_only(o, 'type') is type_
         assert read_only(o, 'doc') == ''
@@ -149,12 +151,28 @@ class test_Param(ClassChecker):
         assert read_only(o, 'default_from') is None
         assert read_only(o, 'rules') == tuple()
         assert read_only(o, 'all_rules') == (type_.validate,)
+        assert read_only(o, 'primary_key') is False
 
-        # Check default type_:
+        # Test all kw args:
+        assert self.cls(name, doc='the doc').doc == 'the doc'
+        assert self.cls(name, required=False).required is False
+        assert self.cls(name, multivalue=True).multivalue is True
+        assert self.cls(name, default=u'Hello').default == u'Hello'
+        df = frontend.DefaultFrom(lambda f, l: f + l,
+            'first', 'last',
+        )
+        assert self.cls(name, default_from=df).default_from == df
+        rules = (lambda whatever: 'Not okay!',)
+        o = self.cls(name, rules=rules)
+        assert o.rules is rules
+        assert o.all_rules[1:] == rules
+        assert self.cls(name, primary_key=True).primary_key is True
+
+        # Test default type_:
         o = self.cls(name)
         assert isinstance(o.type, ipa_types.Unicode)
 
-        # Check param spec parsing:
+        # Test param spec parsing:
         o = self.cls('name?')
         assert o.name == 'name'
         assert o.required is False

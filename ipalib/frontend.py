@@ -128,7 +128,8 @@ class Param(plugable.ReadOnly):
         default=None,
         default_from=None,
         rules=tuple(),
-        normalize=None
+        normalize=None,
+        primary_key=False,
     )
 
     def __init__(self, name, type_=ipa_types.Unicode(), **kw):
@@ -155,6 +156,7 @@ class Param(plugable.ReadOnly):
         self.__normalize = self.__kw['normalize']
         self.rules = self.__check_type(tuple, 'rules')
         self.all_rules = (type_.validate,) + self.rules
+        self.primary_key = self.__check_type(bool, 'primary_key')
         lock(self)
 
     def __clone__(self, **override):
