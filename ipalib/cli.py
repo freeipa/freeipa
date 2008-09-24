@@ -94,26 +94,46 @@ class console(frontend.Application):
         )
 
 
-class namespaces(frontend.Application):
-    'Show details of plugable namespaces'
 
-    def run(self):
-        lines = self.__traverse()
+class show_api(text_ui):
+    'Show attributes on dynamic API object'
+
+    takes_args = ('namespaces*',)
+
+    def run(self, namespaces):
+        if namespaces is None:
+            names = tuple(self.api)
+        else:
+            for name in namespaces:
+                if name not in self.api:
+                    exit_error('api has no such namespace: %s' % name)
+            names = namespaces
+        lines = self.__traverse(names)
         ml = max(len(l[1]) for l in lines)
+        self.print_name()
+        first = True
         for line in lines:
-            if line[0] == 0:
+            if line[0] == 0 and not first:
                 print ''
+            if first:
+                first = False
             print '%s%s %r' % (
                 ' ' * line[0],
                 line[1].ljust(ml),
                 line[2],
             )
+        if len(lines) == 1:
+            s = '1 attribute shown.'
+        else:
+            s = '%d attributes show.' % len(lines)
+        self.print_dashed(s)
 
-    def __traverse(self):
+
+    def __traverse(self, names):
         lines = []
-        for name in self.api:
+        for name in names:
             namespace = self.api[name]
-            self.__traverse_namespace(name, namespace, lines)
+            self.__traverse_namespace('%s' % name, namespace, lines)
         return lines
 
     def __traverse_namespace(self, name, namespace, lines, tab=0):
@@ -155,7 +175,7 @@ class plugins(text_ui):
 cli_application_commands = (
     help,
     console,
-    namespaces,
+    show_api,
     plugins,
 
 )
@@ -253,6 +273,8 @@ class CLI(object):
     def run_interactive(self, cmd, kw):
         for param in cmd.params():
             if param.name not in kw:
+                if not param.required:
+                    continue
                 default = param.get_default(**kw)
                 if default is None:
                     prompt = '%s: ' % param.name

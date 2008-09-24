@@ -356,7 +356,7 @@ class Command(plugable.Plugin):
         kw = self.convert(**kw)
         kw.update(self.get_default(**kw))
         self.validate(**kw)
-        args = tuple(kw.pop(name) for name in self.args)
+        args = tuple(kw.pop(name, None) for name in self.args)
         return self.run(*args, **kw)
 
     def run(self, *args, **kw):
