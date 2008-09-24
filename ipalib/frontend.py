@@ -299,15 +299,10 @@ class Command(plugable.Plugin):
         for option in self.get_options():
             yield create_param(option)
 
-    def __convert_iter(self, kw):
-        for (key, value) in kw.iteritems():
-            if key in self.params:
-                yield (key, self.params[key].convert(value))
-            else:
-                yield (key, value)
-
     def convert(self, **kw):
-        return dict(self.__convert_iter(kw))
+        return dict(
+            (k, self.params[k].convert(v)) for (k, v) in kw.iteritems()
+        )
 
     def __normalize_iter(self, kw):
         for (key, value) in kw.iteritems():

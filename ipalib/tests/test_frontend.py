@@ -486,8 +486,6 @@ class test_Command(ClassChecker):
         kw = dict(
             option0='option0',
             option1='option1',
-            whatever=False,
-            also=object,
         )
         expected = dict(kw)
         expected.update(dict(option0=u'option0', option1=u'option1'))
