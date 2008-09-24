@@ -691,11 +691,15 @@ class API(DictProxy):
     Dynamic API object through which `Plugin` instances are accessed.
     """
     __finalized = False
-    server_context = True
 
-    def __init__(self, *allowed):
+    def __init__(self, *allowed, **kw):
         self.__d = dict()
         self.register = Registrar(*allowed)
+        default = dict(
+            in_server_context=True,
+        )
+        default.update(kw)
+        self.env = MagicDict(default)
         super(API, self).__init__(self.__d)
 
     def finalize(self):

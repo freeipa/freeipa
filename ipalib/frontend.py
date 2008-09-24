@@ -343,6 +343,11 @@ class Command(plugable.Plugin):
         print '  args =', args
         print '  kw =', kw
 
+    def forward(self, *args, **kw):
+        print '%s.execute():' % self.name
+        print '  args =', args
+        print '  kw =', kw
+
     def __call__(self, *args, **kw):
         if len(args) > 0:
             arg_kw = self.args_to_kw(*args)
@@ -353,7 +358,15 @@ class Command(plugable.Plugin):
         kw.update(self.get_default(**kw))
         self.validate(**kw)
         args = tuple(kw.pop(name) for name in self.args)
-        self.execute(*args, **kw)
+        return self.run(*args, **kw)
+
+    def run(self, *args, **kw):
+        if self.api.env.in_server_context:
+            target = self.execute
+        else:
+            target = self.forward
+        object.__setattr__(self, 'run', target)
+        return target(*args, **kw)
 
     def args_to_kw(self, *values):
         if self.max_args is not None and len(values) > self.max_args:

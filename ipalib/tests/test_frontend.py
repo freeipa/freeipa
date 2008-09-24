@@ -620,6 +620,38 @@ class test_Command(ClassChecker):
         assert o.kw_to_args(whatever='hello', two='Two', one='One') == \
             ('One', 'Two')
 
+    def test_run(self):
+        """
+        Test the `frontend.Command.run` method.
+        """
+        class my_cmd(self.cls):
+            def execute(self, *args, **kw):
+                return ('execute', args, kw)
+
+            def forward(self, *args, **kw):
+                return ('forward', args, kw)
+
+        args = ('Hello,', 'world,')
+        kw = dict(how_are='you', on_this='fine day?')
+
+        # Test in server context:
+        api = plugable.API(self.cls, in_server_context=True)
+        api.finalize()
+        o = my_cmd()
+        o.set_api(api)
+        assert o.run.im_func is self.cls.run.im_func
+        assert ('execute', args, kw) == o.run(*args, **kw)
+        assert o.run.im_func is my_cmd.execute.im_func
+
+        # Test in non-server context
+        api = plugable.API(self.cls, in_server_context=False)
+        api.finalize()
+        o = my_cmd()
+        o.set_api(api)
+        assert o.run.im_func is self.cls.run.im_func
+        assert ('forward', args, kw) == o.run(*args, **kw)
+        assert o.run.im_func is my_cmd.forward.im_func
+
 
 class test_Object(ClassChecker):
     """
