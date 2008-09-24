@@ -18,8 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Base classes for the public plugable.API instance, which the XML-RPC, CLI,
-and UI all use.
+Base classes for all front-end plugins.
 """
 
 import re
