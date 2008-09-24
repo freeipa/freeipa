@@ -105,16 +105,18 @@ class Param(plugable.ReadOnly):
         self.rules = (type_.validate,) + rules
         lock(self)
 
-    def __if_multivalue(self, value, scalar):
+    def __multivalue(self, value, scalar):
         if self.multivalue:
             if type(value) in (tuple, list):
                 if len(value) == 0:
                     return None
-                return tuple(scalar(v) for v in value)
-            return (scalar(value),) # tuple
+                return tuple(
+                    scalar(v, i) for (i, v) in enumerate(value)
+                )
+            return (scalar(value, 0),) # tuple
         return scalar(value)
 
-    def __normalize_scalar(self, value):
+    def __normalize_scalar(self, value, index=None):
         if not isinstance(value, basestring):
             return value
         try:
@@ -140,7 +142,7 @@ class Param(plugable.ReadOnly):
         """
         if self.__normalize is None:
             return value
-        return self.__if_multivalue(value, self.__normalize_scalar)
+        return self.__multivalue(value, self.__normalize_scalar)
 
     def __convert_scalar(self, value, index=None):
         if value is None:
@@ -153,13 +155,7 @@ class Param(plugable.ReadOnly):
         return converted
 
     def convert(self, value):
-        if self.multivalue:
-            if type(value) in (tuple, list):
-                return tuple(
-                    self.__convert_scalar(v, i) for (i, v) in enumerate(value)
-                )
-            return (self.__convert_scalar(value, 0),) # tuple
-        return self.__convert_scalar(value)
+        return self.__multivalue(value, self.__convert_scalar)
 
 
 
