@@ -55,6 +55,7 @@ True
 
 import plugable
 import frontend
+import backend
 
 api = plugable.API(
     frontend.Command,
@@ -62,4 +63,5 @@ api = plugable.API(
     frontend.Method,
     frontend.Property,
     frontend.Application,
+    backend.Backend,
 )
