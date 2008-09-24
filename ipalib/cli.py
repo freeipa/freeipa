@@ -18,14 +18,14 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Functionality for Command Line Inteface.
+Functionality for Command Line Interface.
 """
 
 import re
 import sys
 import code
 import optparse
-import public
+import frontend
 import errors
 import plugable
 import ipa_types
@@ -52,7 +52,7 @@ def from_cli(cli_name):
     return str(cli_name).replace('-', '_')
 
 
-class help(public.Application):
+class help(frontend.Application):
     'Display help on a command.'
 
     takes_args = ['command']
@@ -67,7 +67,7 @@ class help(public.Application):
         self.application.build_parser(cmd).print_help()
 
 
-class console(public.Application):
+class console(frontend.Application):
     'Start the IPA interactive Python console.'
 
     def __call__(self):
@@ -76,7 +76,7 @@ class console(public.Application):
             local=dict(api=self.api)
         )
 
-class show_plugins(public.Application):
+class show_plugins(frontend.Application):
     'Print details on the loaded plugins.'
 
     def __call__(self):

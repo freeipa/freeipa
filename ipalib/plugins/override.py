@@ -24,7 +24,6 @@ This example depends upon the order that the plugins/ modules are imported
 in plugins/__init__.py, which will likely change in the near future.
 """
 
-from ipalib import public
 from ipalib import api
 
 if 'user_mod' in api.register.Method:

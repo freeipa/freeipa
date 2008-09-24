@@ -54,12 +54,12 @@ True
 """
 
 import plugable
-import public
+import frontend
 
 api = plugable.API(
-    public.Command,
-    public.Object,
-    public.Method,
-    public.Property,
-    public.Application,
+    frontend.Command,
+    frontend.Object,
+    frontend.Method,
+    frontend.Property,
+    frontend.Application,
 )

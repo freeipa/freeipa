@@ -22,62 +22,62 @@ Some example plugins.
 """
 
 
-from ipalib import public
+from ipalib import frontend
 from ipalib import api
 
 
 # Hypothetical functional commands (not associated with any object):
-class krbtest(public.Command):
+class krbtest(frontend.Command):
     'Test your Kerberos ticket.'
 api.register(krbtest)
 
-class discover(public.Command):
+class discover(frontend.Command):
     'Discover IPA servers on network.'
 api.register(discover)
 
 
 # Register some methods for the 'user' object:
-class user_add(public.Method):
+class user_add(frontend.Method):
     'Add a new user.'
 api.register(user_add)
 
-class user_del(public.Method):
+class user_del(frontend.Method):
     'Delete an existing user.'
 api.register(user_del)
 
-class user_mod(public.Method):
+class user_mod(frontend.Method):
     'Edit an existing user.'
 api.register(user_mod)
 
-class user_find(public.Method):
+class user_find(frontend.Method):
     'Search the users.'
 api.register(user_find)
 
 
 # Register some properties for the 'user' object:
-class user_givenname(public.Property):
+class user_givenname(frontend.Property):
     'User first name'
     required = True
 api.register(user_givenname)
 
-class user_sn(public.Property):
+class user_sn(frontend.Property):
     'User last name'
     required = True
 api.register(user_sn)
 
-class user_login(public.Property):
+class user_login(frontend.Property):
     'User login'
     required = True
-    default_from = public.DefaultFrom(
+    default_from = frontend.DefaultFrom(
         lambda first, last: (first[0] + last).lower(),
         'givenname', 'sn'
     )
 api.register(user_login)
 
-class user_initials(public.Property):
+class user_initials(frontend.Property):
     'User initials'
     required = True
-    default_from = public.DefaultFrom(
+    default_from = frontend.DefaultFrom(
         lambda first, last: first[0] + last[0],
         'givenname', 'sn'
     )
@@ -85,51 +85,51 @@ api.register(user_initials)
 
 
 # Register some methods for the 'group' object:
-class group_add(public.Method):
+class group_add(frontend.Method):
     'Add a new group.'
 api.register(group_add)
 
-class group_del(public.Method):
+class group_del(frontend.Method):
     'Delete an existing group.'
 api.register(group_del)
 
-class group_mod(public.Method):
+class group_mod(frontend.Method):
     'Edit an existing group.'
 api.register(group_mod)
 
-class group_find(public.Method):
+class group_find(frontend.Method):
     'Search the groups.'
 api.register(group_find)
 
 
 # Register some methods for the 'service' object
-class service_add(public.Method):
+class service_add(frontend.Method):
     'Add a new service.'
 api.register(service_add)
 
-class service_del(public.Method):
+class service_del(frontend.Method):
     'Delete an existing service.'
 api.register(service_del)
 
-class service_mod(public.Method):
+class service_mod(frontend.Method):
     'Edit an existing service.'
 api.register(service_mod)
 
-class service_find(public.Method):
+class service_find(frontend.Method):
     'Search the services.'
 api.register(service_find)
 
 
 # And to emphasis that the registration order doesn't matter,
 # we'll register the objects last:
-class group(public.Object):
+class group(frontend.Object):
     'Group object'
 api.register(group)
 
-class service(public.Object):
+class service(frontend.Object):
     'Service object'
 api.register(service)
 
-class user(public.Object):
+class user(frontend.Object):
     'User object'
 api.register(user)

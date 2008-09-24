@@ -23,19 +23,19 @@ Unit tests for `ipalib.public` module.
 
 from tstutil import raises, getitem, no_set, no_del, read_only, ClassChecker
 from tstutil import check_TypeError
-from ipalib import public, plugable, errors, ipa_types
+from ipalib import frontend, plugable, errors, ipa_types
 
 
 def test_RULE_FLAG():
-    assert public.RULE_FLAG == 'validation_rule'
+    assert frontend.RULE_FLAG == 'validation_rule'
 
 
 def test_rule():
     """
-    Tests the `public.rule` function.
+    Tests the `frontend.rule` function.
     """
-    flag = public.RULE_FLAG
-    rule = public.rule
+    flag = frontend.RULE_FLAG
+    rule = frontend.rule
     def my_func():
         pass
     assert not hasattr(my_func, flag)
@@ -49,10 +49,10 @@ def test_rule():
 
 def test_is_rule():
     """
-    Tests the `public.is_rule` function.
+    Tests the `frontend.is_rule` function.
     """
-    is_rule = public.is_rule
-    flag = public.RULE_FLAG
+    is_rule = frontend.is_rule
+    flag = frontend.RULE_FLAG
 
     class no_call(object):
         def __init__(self, value):
@@ -72,16 +72,16 @@ def test_is_rule():
 
 class test_DefaultFrom(ClassChecker):
     """
-    Tests the `public.DefaultFrom` class.
+    Tests the `frontend.DefaultFrom` class.
     """
-    _cls = public.DefaultFrom
+    _cls = frontend.DefaultFrom
 
     def test_class(self):
         assert self.cls.__bases__ == (plugable.ReadOnly,)
 
     def test_init(self):
         """
-        Tests the `public.DefaultFrom.__init__` method.
+        Tests the `frontend.DefaultFrom.__init__` method.
         """
         def callback(*args):
             return args
@@ -92,7 +92,7 @@ class test_DefaultFrom(ClassChecker):
 
     def test_call(self):
         """
-        Tests the `public.DefaultFrom.__call__` method.
+        Tests the `frontend.DefaultFrom.__call__` method.
         """
         def callback(givenname, sn):
             return givenname[0] + sn[0]
@@ -113,16 +113,16 @@ class test_DefaultFrom(ClassChecker):
 
 class test_Option(ClassChecker):
     """
-    Tests the `public.Param` class.
+    Tests the `frontend.Param` class.
     """
-    _cls = public.Param
+    _cls = frontend.Param
 
     def test_class(self):
         assert self.cls.__bases__ == (plugable.ReadOnly,)
 
     def test_init(self):
         """
-        Tests the `public.Param.__init__` method.
+        Tests the `frontend.Param.__init__` method.
         """
         name = 'sn'
         type_ = ipa_types.Unicode()
@@ -139,7 +139,7 @@ class test_Option(ClassChecker):
 
     def test_convert(self):
         """
-        Tests the `public.Param.convert` method.
+        Tests the `frontend.Param.convert` method.
         """
         name = 'some_number'
         type_ = ipa_types.Int()
@@ -184,7 +184,7 @@ class test_Option(ClassChecker):
 
     def test_normalize(self):
         """
-        Tests the `public.Param.normalize` method.
+        Tests the `frontend.Param.normalize` method.
         """
         name = 'sn'
         t = ipa_types.Unicode()
@@ -220,7 +220,7 @@ class test_Option(ClassChecker):
 
     def test_validate(self):
         """
-        Tests the `public.Param.validate` method.
+        Tests the `frontend.Param.validate` method.
         """
         name = 'sn'
         type_ = ipa_types.Unicode()
@@ -265,12 +265,12 @@ class test_Option(ClassChecker):
 
     def test_get_default(self):
         """
-        Tests the `public.Param.get_default` method.
+        Tests the `frontend.Param.get_default` method.
         """
         name = 'greeting'
         type_ = ipa_types.Unicode()
         default = u'Hello, world!'
-        default_from = public.DefaultFrom(
+        default_from = frontend.DefaultFrom(
             lambda first, last: u'Hello, %s %s!' % (first, last),
             'first', 'last'
         )
@@ -299,7 +299,7 @@ class test_Option(ClassChecker):
 
     def test_get_value(self):
         """
-        Tests the `public.Param.get_values` method.
+        Tests the `frontend.Param.get_values` method.
         """
         name = 'status'
         values = (u'Active', u'Inactive')
@@ -311,12 +311,12 @@ class test_Option(ClassChecker):
 
 def test_create_param():
     """
-    Test the `public.create_param` function.
+    Test the `frontend.create_param` function.
     """
-    f = public.create_param
+    f = frontend.create_param
     for name in ['arg', 'arg?', 'arg*', 'arg+']:
         o = f(name)
-        assert type(o) is public.Param
+        assert type(o) is frontend.Param
         assert type(o.type) is ipa_types.Unicode
         assert o.name == 'arg'
         assert f(o) is o
@@ -336,9 +336,9 @@ def test_create_param():
 
 class test_Command(ClassChecker):
     """
-    Tests the `public.Command` class.
+    Tests the `frontend.Command` class.
     """
-    _cls = public.Command
+    _cls = frontend.Command
 
     def get_subcls(self):
         class Rule(object):
@@ -349,7 +349,7 @@ class test_Command(ClassChecker):
                 if value != self.name:
                     return 'must equal %s' % self.name
 
-        default_from = public.DefaultFrom(
+        default_from = frontend.DefaultFrom(
                 lambda arg: arg,
                 'default_from'
         )
@@ -358,12 +358,12 @@ class test_Command(ClassChecker):
 
         class example(self.cls):
             takes_options = (
-                public.Param('option0', type_,
+                frontend.Param('option0', type_,
                     normalize=normalize,
                     default_from=default_from,
                     rules=(Rule('option0'),)
                 ),
-                public.Param('option1', type_,
+                frontend.Param('option1', type_,
                     normalize=normalize,
                     default_from=default_from,
                     rules=(Rule('option1'),),
@@ -390,7 +390,7 @@ class test_Command(ClassChecker):
 
     def test_get_args(self):
         """
-        Tests the `public.Command.get_args` method.
+        Tests the `frontend.Command.get_args` method.
         """
         assert list(self.cls().get_args()) == []
         args = ('login', 'stuff')
@@ -399,7 +399,7 @@ class test_Command(ClassChecker):
 
     def test_get_options(self):
         """
-        Tests the `public.Command.get_options` method.
+        Tests the `frontend.Command.get_options` method.
         """
         assert list(self.cls().get_options()) == []
         options = ('verbose', 'debug')
@@ -421,8 +421,8 @@ class test_Command(ClassChecker):
         assert type(ns) is plugable.NameSpace
         assert len(ns) == len(args)
         assert list(ns) == ['destination', 'source']
-        assert type(ns.destination) is public.Param
-        assert type(ns.source) is public.Param
+        assert type(ns.destination) is frontend.Param
+        assert type(ns.source) is frontend.Param
         assert ns.destination.required is True
         assert ns.destination.multivalue is False
         assert ns.source.required is False
@@ -431,7 +431,7 @@ class test_Command(ClassChecker):
         # Test TypeError:
         e = raises(TypeError, self.get_instance, args=(u'whatever',))
         assert str(e) == \
-            'create_param() takes %r or %r; got %r' % (str, public.Param, u'whatever')
+            'create_param() takes %r or %r; got %r' % (str, frontend.Param, u'whatever')
 
         # Test ValueError, required after optional:
         e = raises(ValueError, self.get_instance, args=('arg1?', 'arg2'))
@@ -471,8 +471,8 @@ class test_Command(ClassChecker):
         assert type(ns) is plugable.NameSpace
         assert len(ns) == len(options)
         assert list(ns) == ['target', 'files']
-        assert type(ns.target) is public.Param
-        assert type(ns.files) is public.Param
+        assert type(ns.target) is frontend.Param
+        assert type(ns.files) is frontend.Param
         assert ns.target.required is True
         assert ns.target.multivalue is False
         assert ns.files.required is False
@@ -480,7 +480,7 @@ class test_Command(ClassChecker):
 
     def test_convert(self):
         """
-        Tests the `public.Command.convert` method.
+        Tests the `frontend.Command.convert` method.
         """
         assert 'convert' in self.cls.__public__ # Public
         kw = dict(
@@ -500,7 +500,7 @@ class test_Command(ClassChecker):
 
     def test_normalize(self):
         """
-        Tests the `public.Command.normalize` method.
+        Tests the `frontend.Command.normalize` method.
         """
         assert 'normalize' in self.cls.__public__ # Public
         kw = dict(
@@ -515,7 +515,7 @@ class test_Command(ClassChecker):
 
     def test_get_default(self):
         """
-        Tests the `public.Command.get_default` method.
+        Tests the `frontend.Command.get_default` method.
         """
         assert 'get_default' in self.cls.__public__ # Public
         no_fill = dict(
@@ -537,7 +537,7 @@ class test_Command(ClassChecker):
 
     def test_validate(self):
         """
-        Tests the `public.Command.validate` method.
+        Tests the `frontend.Command.validate` method.
         """
         assert 'validate' in self.cls.__public__ # Public
 
@@ -572,13 +572,13 @@ class test_Command(ClassChecker):
 
     def test_execute(self):
         """
-        Tests the `public.Command.execute` method.
+        Tests the `frontend.Command.execute` method.
         """
         assert 'execute' in self.cls.__public__ # Public
 
     def test_args_to_kw(self):
         """
-        Test the `public.Command.args_to_kw` method.
+        Test the `frontend.Command.args_to_kw` method.
         """
         assert 'args_to_kw' in self.cls.__public__ # Public
         o = self.get_instance(args=('one', 'two?'))
@@ -609,7 +609,7 @@ class test_Command(ClassChecker):
 
     def test_kw_to_args(self):
         """
-        Tests the `public.Command.kw_to_args` method.
+        Tests the `frontend.Command.kw_to_args` method.
         """
         assert 'kw_to_args' in self.cls.__public__ # Public
         o = self.get_instance(args=('one', 'two?'))
@@ -623,9 +623,9 @@ class test_Command(ClassChecker):
 
 class test_Object(ClassChecker):
     """
-    Tests the `public.Object` class.
+    Tests the `frontend.Object` class.
     """
-    _cls = public.Object
+    _cls = frontend.Object
 
     def test_class(self):
         assert self.cls.__bases__ == (plugable.Plugin,)
@@ -634,7 +634,7 @@ class test_Object(ClassChecker):
 
     def test_init(self):
         """
-        Tests the `public.Object.__init__` method.
+        Tests the `frontend.Object.__init__` method.
         """
         o = self.cls()
         assert read_only(o, 'Method') is None
@@ -642,7 +642,7 @@ class test_Object(ClassChecker):
 
     def test_set_api(self):
         """
-        Tests the `public.Object.set_api` method.
+        Tests the `frontend.Object.set_api` method.
         """
         # Setup for test:
         class DummyAttribute(object):
@@ -704,7 +704,7 @@ class test_Object(ClassChecker):
 
     def test_params(self):
         """
-        Test the ``public.Object.params`` instance attribute.
+        Test the ``frontend.Object.params`` instance attribute.
         """
         ns = self.cls().params
         assert type(ns) is plugable.NameSpace
@@ -716,16 +716,16 @@ class test_Object(ClassChecker):
         assert len(ns) == 2, repr(ns)
         assert list(ns) == ['banana', 'apple']
         for p in ns():
-            assert type(p) is public.Param
+            assert type(p) is frontend.Param
             assert p.required is True
             assert p.multivalue is False
 
 
 class test_Attribute(ClassChecker):
     """
-    Tests the `public.Attribute` class.
+    Tests the `frontend.Attribute` class.
     """
-    _cls = public.Attribute
+    _cls = frontend.Attribute
 
     def test_class(self):
         assert self.cls.__bases__ == (plugable.Plugin,)
@@ -735,7 +735,7 @@ class test_Attribute(ClassChecker):
 
     def test_init(self):
         """
-        Tests the `public.Attribute.__init__` method.
+        Tests the `frontend.Attribute.__init__` method.
         """
         class user_add(self.cls):
             pass
@@ -746,9 +746,9 @@ class test_Attribute(ClassChecker):
 
     def test_set_api(self):
         """
-        Tests the `public.Attribute.set_api` method.
+        Tests the `frontend.Attribute.set_api` method.
         """
-        user_obj = 'The user public.Object instance'
+        user_obj = 'The user frontend.Object instance'
         class api(object):
             Object = dict(user=user_obj)
         class user_add(self.cls):
@@ -763,18 +763,18 @@ class test_Attribute(ClassChecker):
 
 class test_Method(ClassChecker):
     """
-    Tests the `public.Method` class.
+    Tests the `frontend.Method` class.
     """
-    _cls = public.Method
+    _cls = frontend.Method
 
     def test_class(self):
-        assert self.cls.__bases__ == (public.Attribute, public.Command)
-        assert self.cls.implements(public.Command)
+        assert self.cls.__bases__ == (frontend.Attribute, frontend.Command)
+        assert self.cls.implements(frontend.Command)
 
     def get_subcls(self):
-        class example_prop0(public.Property):
+        class example_prop0(frontend.Property):
             'Prop zero'
-        class example_prop1(public.Property):
+        class example_prop1(frontend.Property):
             'Prop one'
         class example_obj(object):
             __prop = None
@@ -782,10 +782,10 @@ class test_Method(ClassChecker):
                 if self.__prop is None:
                     self.__prop = plugable.NameSpace([
                         plugable.PluginProxy(
-                            public.Property, example_prop0(), 'attr_name'
+                            frontend.Property, example_prop0(), 'attr_name'
                         ),
                         plugable.PluginProxy(
-                            public.Property, example_prop1(),  'attr_name'
+                            frontend.Property, example_prop1(),  'attr_name'
                         ),
                     ])
                 return self.__prop
@@ -793,15 +793,15 @@ class test_Method(ClassChecker):
         type_ = ipa_types.Unicode()
         class noun_verb(self.cls):
             takes_options= (
-                public.Param('option0', type_),
-                public.Param('option1', type_),
+                frontend.Param('option0', type_),
+                frontend.Param('option1', type_),
             )
             obj = example_obj()
         return noun_verb
 
     def test_get_options(self):
         """
-        Tests the `public.Method.get_options` method.
+        Tests the `frontend.Method.get_options` method.
         """
         sub = self.subcls()
         names = ('option0', 'option1', 'prop0', 'prop1')
@@ -809,27 +809,27 @@ class test_Method(ClassChecker):
         assert len(options) == 4
         for (i, option) in enumerate(options):
             assert option.name == names[i]
-            assert isinstance(option, public.Param)
+            assert isinstance(option, frontend.Param)
 
 
 class test_Property(ClassChecker):
     """
-    Tests the `public.Property` class.
+    Tests the `frontend.Property` class.
     """
-    _cls = public.Property
+    _cls = frontend.Property
 
     def get_subcls(self):
         class user_givenname(self.cls):
             'User first name'
 
-            @public.rule
+            @frontend.rule
             def rule0_lowercase(self, value):
                 if not value.islower():
                     return 'Must be lowercase'
         return user_givenname
 
     def test_class(self):
-        assert self.cls.__bases__ == (public.Attribute,)
+        assert self.cls.__bases__ == (frontend.Attribute,)
         assert isinstance(self.cls.type, ipa_types.Unicode)
         assert self.cls.required is False
         assert self.cls.multivalue is False
@@ -839,30 +839,30 @@ class test_Property(ClassChecker):
 
     def test_init(self):
         """
-        Tests the `public.Property.__init__` method.
+        Tests the `frontend.Property.__init__` method.
         """
         o = self.subcls()
         assert len(o.rules) == 1
         assert o.rules[0].__name__ == 'rule0_lowercase'
         param = o.param
-        assert isinstance(param, public.Param)
+        assert isinstance(param, frontend.Param)
         assert param.name == 'givenname'
         assert param.doc == 'User first name'
 
 
 class test_Application(ClassChecker):
     """
-    Tests the `public.Application` class.
+    Tests the `frontend.Application` class.
     """
-    _cls = public.Application
+    _cls = frontend.Application
 
     def test_class(self):
-        assert self.cls.__bases__ == (public.Command,)
+        assert self.cls.__bases__ == (frontend.Command,)
         assert type(self.cls.application) is property
 
     def test_application(self):
         """
-        Tests the `public.Application.application` property.
+        Tests the `frontend.Application.application` property.
         """
         assert 'application' in self.cls.__public__ # Public
         assert 'set_application' in self.cls.__public__ # Public
