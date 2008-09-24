@@ -57,7 +57,7 @@ class help(frontend.Application):
 
     takes_args = ['command']
 
-    def __call__(self, key):
+    def run(self, key):
         key = str(key)
         if key not in self.application:
             print 'help: no such command %r' % key
@@ -70,16 +70,17 @@ class help(frontend.Application):
 class console(frontend.Application):
     'Start the IPA interactive Python console.'
 
-    def __call__(self):
+    def run(self):
         code.interact(
             '(Custom IPA interactive Python console)',
             local=dict(api=self.api)
         )
 
+
 class show_plugins(frontend.Application):
     'Print details on the loaded plugins.'
 
-    def __call__(self):
+    def run(self):
         lines = self.__traverse()
         ml = max(len(l[1]) for l in lines)
         for line in lines:

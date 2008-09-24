@@ -245,7 +245,6 @@ class Command(plugable.Plugin):
         'validate',
         'execute',
         '__call__',
-        'smart_option_order',
         'args',
         'options',
         'params',
