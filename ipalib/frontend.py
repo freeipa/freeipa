@@ -105,7 +105,7 @@ class Param(plugable.ReadOnly):
         self.rules = (type_.validate,) + rules
         lock(self)
 
-    def __multivalue(self, value, scalar):
+    def __dispatch(self, value, scalar):
         if self.multivalue:
             if type(value) in (tuple, list):
                 if len(value) == 0:
@@ -142,7 +142,7 @@ class Param(plugable.ReadOnly):
         """
         if self.__normalize is None:
             return value
-        return self.__multivalue(value, self.__normalize_scalar)
+        return self.__dispatch(value, self.__normalize_scalar)
 
     def __convert_scalar(self, value, index=None):
         if value is None:
@@ -155,7 +155,7 @@ class Param(plugable.ReadOnly):
         return converted
 
     def convert(self, value):
-        return self.__multivalue(value, self.__convert_scalar)
+        return self.__dispatch(value, self.__convert_scalar)
 
 
 
