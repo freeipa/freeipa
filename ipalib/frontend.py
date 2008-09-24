@@ -84,6 +84,38 @@ class DefaultFrom(plugable.ReadOnly):
             return None
 
 
+def parse_param_spec(spec):
+    """
+    Parse param spec to get name, required, and multivalue.
+
+    The ``spec`` string determines the param name, whether the param is
+    required, and whether the param is multivalue according the following
+    syntax:
+
+    name => required=True, multivalue=False
+    name? => required=False, multivalue=False
+    name+ => required=True, multivalue=True
+    name* => required=False, multivalue=True
+
+    :param spec: A spec string.
+    """
+    if type(spec) is not str:
+        raise_TypeError(spec, str, 'spec')
+    if len(spec) < 2:
+        raise ValueError(
+            'param spec must be at least 2 characters; got %r' % spec
+        )
+    _map = {
+        '?': dict(required=False, multivalue=False),
+        '*': dict(required=False, multivalue=True),
+        '+': dict(required=True, multivalue=True),
+    }
+    end = spec[-1]
+    if end in _map:
+        return (spec[:-1], _map[end])
+    return (spec, dict(required=True, multivalue=False))
+
+
 class Param(plugable.ReadOnly):
     __nones = (None, '', tuple(), [])
 

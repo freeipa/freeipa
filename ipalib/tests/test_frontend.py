@@ -111,6 +111,18 @@ class test_DefaultFrom(ClassChecker):
             assert o(**kw_copy) is None
 
 
+def test_parse_param_spec():
+    """
+    Test the `frontend.parse_param_spec` function.
+    """
+    f = frontend.parse_param_spec
+
+    assert f('name') == ('name', dict(required=True, multivalue=False))
+    assert f('name?') == ('name', dict(required=False, multivalue=False))
+    assert f('name*') == ('name', dict(required=False, multivalue=True))
+    assert f('name+') == ('name', dict(required=True, multivalue=True))
+
+
 class test_Param(ClassChecker):
     """
     Test the `frontend.Param` class.
