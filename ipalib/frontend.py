@@ -117,6 +117,9 @@ def parse_param_spec(spec):
 
 
 class Param(plugable.ReadOnly):
+    """
+    A parameter accepted by a `Command`.
+    """
     __nones = (None, '', tuple(), [])
     __default = dict(
         doc='',
@@ -150,8 +153,17 @@ class Param(plugable.ReadOnly):
             allow_none=True
         )
         self.__normalize = self.__kw['normalize']
-        self.rules = (type_.validate,) + self.__kw['rules']
+        self.rules = self.__check_type(tuple, 'rules')
+        self.all_rules = (type_.validate,) + self.rules
         lock(self)
+
+    def __clone__(self, **override):
+        """
+        Return a new `Param` instance similar to this one.
+        """
+        kw = dict(self.__kw)
+        kw.update(override)
+        return self.__class__(self.name, self.type, **kw)
 
     def __check_type(self, type_, name, allow_none=False):
         value = self.__kw[name]

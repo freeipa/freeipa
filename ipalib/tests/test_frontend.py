@@ -147,7 +147,8 @@ class test_Param(ClassChecker):
         assert read_only(o, 'multivalue') is False
         assert read_only(o, 'default') is None
         assert read_only(o, 'default_from') is None
-        assert read_only(o, 'rules') == (type_.validate,)
+        assert read_only(o, 'rules') == tuple()
+        assert read_only(o, 'all_rules') == (type_.validate,)
 
         # Check default type_:
         o = self.cls(name)
@@ -172,6 +173,33 @@ class test_Param(ClassChecker):
         e = raises(TypeError, self.cls, name, whatever=True, another=False)
         assert str(e) == \
             'Param.__init__() takes no such kwargs: another, whatever'
+
+    def test_clone(self):
+        """
+        Test the `frontend.Param.__clone__` method.
+        """
+        def compare(o, kw):
+            for (k, v) in kw.iteritems():
+                assert getattr(o, k) == v, (k, v, getattr(o, k))
+        default = dict(
+            required=False,
+            multivalue=False,
+            default=None,
+            default_from=None,
+            rules=tuple(),
+        )
+        name = 'hair_color?'
+        type_ = ipa_types.Int()
+        o = self.cls(name, type_)
+        compare(o, default)
+
+        override = dict(multivalue=True, default=42)
+        d = dict(default)
+        d.update(override)
+        clone = o.__clone__(**override)
+        assert clone.name == 'hair_color'
+        assert clone.type is o.type
+        compare(clone, d)
 
     def test_convert(self):
         """
@@ -277,7 +305,8 @@ class test_Param(ClassChecker):
 
         # Scenario 1: multivalue=False
         o = self.cls(name, type_, rules=my_rules)
-        assert o.rules == (type_.validate, case_rule)
+        assert o.rules == my_rules
+        assert o.all_rules == (type_.validate, case_rule)
         o.validate(okay)
         e = raises(errors.RuleError, o.validate, fail_case)
         assert e.name is name
