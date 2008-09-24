@@ -149,6 +149,26 @@ class test_Param(ClassChecker):
         assert read_only(o, 'default_from') is None
         assert read_only(o, 'rules') == (type_.validate,)
 
+        # Check default type_:
+        o = self.cls(name)
+        assert isinstance(o.type, ipa_types.Unicode)
+
+        # Check param spec parsing:
+        o = self.cls('name?')
+        assert o.name == 'name'
+        assert o.required is False
+        assert o.multivalue is False
+
+        o = self.cls('name*')
+        assert o.name == 'name'
+        assert o.required is False
+        assert o.multivalue is True
+
+        o = self.cls('name+')
+        assert o.name == 'name'
+        assert o.required is True
+        assert o.multivalue is True
+
     def test_convert(self):
         """
         Test the `frontend.Param.convert` method.

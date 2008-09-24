@@ -119,7 +119,6 @@ def parse_param_spec(spec):
 class Param(plugable.ReadOnly):
     __nones = (None, '', tuple(), [])
     __default = dict(
-        type=ipa_types.Unicode(),
         doc='',
         required=True,
         multivalue=False,
@@ -129,25 +128,37 @@ class Param(plugable.ReadOnly):
         normalize=None
     )
 
-    def __init__(self, name, type_,
-            doc='',
-            required=True,
-            multivalue=False,
-            default=None,
-            default_from=None,
-            rules=tuple(),
-            normalize=None):
+    def __init__(self, name, type_=ipa_types.Unicode(), **kw):
+        if 'required' not in kw and 'multivalue' not in kw:
+            (name, kw_from_spec) = parse_param_spec(name)
+            kw.update(kw_from_spec)
+        default = dict(self.__default)
+        if not set(default).issuperset(kw):
+            raise TypeError(
+                'no such kwargs: %r' % list(set(kw) - set(default))
+            )
+        default.update(kw)
+        self.__kw = default
         self.name = check_name(name)
-        self.doc = check_type(doc, str, 'doc')
         self.type = check_isinstance(type_, ipa_types.Type, 'type_')
-        self.required = check_type(required, bool, 'required')
-        self.multivalue = check_type(multivalue, bool, 'multivalue')
-        self.default = default
-        self.default_from = check_type(default_from,
-            DefaultFrom, 'default_from', allow_none=True)
-        self.__normalize = normalize
-        self.rules = (type_.validate,) + rules
+        self.doc = self.__check_type(str, 'doc')
+        self.required = self.__check_type(bool, 'required')
+        self.multivalue = self.__check_type(bool, 'multivalue')
+        self.default = self.__kw['default']
+        self.default_from = self.__check_type(DefaultFrom, 'default_from',
+            allow_none=True
+        )
+        self.__normalize = self.__kw['normalize']
+        self.rules = (type_.validate,) + self.__kw['rules']
         lock(self)
+
+    def __check_type(self, type_, name, allow_none=False):
+        value = self.__kw[name]
+        return check_type(value, type_, name, allow_none)
+
+    def __check_isinstance(self, type_, name, allow_none=False):
+        value = self.__kw[name]
+        return check_isinstance(value, type_, name, allow_none)
 
     def __dispatch(self, value, scalar):
         """
