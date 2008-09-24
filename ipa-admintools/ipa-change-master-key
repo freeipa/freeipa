@@ -156,6 +156,7 @@ def main():
 
     if os.getuid() != 0:
         print "ERROR: This command must be run as root"
+        sys.exit(1)
 
     print "DANGER: This is a dangerous operation, make sure you backup all your IPA data before running the tool"
     print "This command will restart your Directory and KDC Servers."
