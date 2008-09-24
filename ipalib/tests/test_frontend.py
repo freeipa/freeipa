@@ -148,8 +148,7 @@ class test_Param(ClassChecker):
 
         # Scenario 1: multivalue=False
         o = self.cls(name, type_)
-        e = raises(TypeError, o.convert, None)
-        assert str(e) == 'value cannot be None'
+        assert o.convert(None) is None
         for value in okay:
             new = o.convert(value)
             assert new == 7
@@ -163,10 +162,8 @@ class test_Param(ClassChecker):
 
         # Scenario 2: multivalue=True
         o = self.cls(name, type_, multivalue=True)
-        assert o.convert([]) is None
-        for none in [None, (7, None)]:
-            e = raises(TypeError, o.convert, none)
-            assert str(e) == 'value cannot be None'
+        for none in (None, tuple(), []):
+            assert o.convert(none) is None
         for value in okay:
             assert o.convert((value,)) == (7,)
             assert o.convert([value]) == (7,)
