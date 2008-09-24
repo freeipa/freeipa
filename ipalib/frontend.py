@@ -86,7 +86,7 @@ class DefaultFrom(plugable.ReadOnly):
 
 def parse_param_spec(spec):
     """
-    Parse param spec to get name, required, and multivalue.
+    Parse a param spec into to (name, kw).
 
     The ``spec`` string determines the param name, whether the param is
     required, and whether the param is multivalue according the following
@@ -322,20 +322,14 @@ class Param(plugable.ReadOnly):
 
 def create_param(spec):
     """
-    Create a `Param` instance from a param spec string.
+    Create a `Param` instance from a param spec.
 
     If ``spec`` is a `Param` instance, ``spec`` is returned unchanged.
 
     If ``spec`` is an str instance, then ``spec`` is parsed and an
     appropriate `Param` instance is created and returned.
 
-    The spec string determines the param name, whether the param is required,
-    and whether the param is multivalue according the following syntax:
-
-    name => required=True, multivalue=False
-    name? => required=False, multivalue=False
-    name+ => required=True, multivalue=True
-    name* => required=False, multivalue=True
+    See `parse_param_spec` for the definition of the spec syntax.
 
     :param spec: A spec string or a `Param` instance.
     """
@@ -345,19 +339,7 @@ def create_param(spec):
         raise TypeError(
             'create_param() takes %r or %r; got %r' % (str, Param, spec)
         )
-    if spec.endswith('?'):
-        kw = dict(required=False, multivalue=False)
-        name = spec[:-1]
-    elif spec.endswith('*'):
-        kw = dict(required=False, multivalue=True)
-        name = spec[:-1]
-    elif spec.endswith('+'):
-        kw = dict(required=True, multivalue=True)
-        name = spec[:-1]
-    else:
-        kw = dict(required=True, multivalue=False)
-        name = spec
-    return Param(name, ipa_types.Unicode(), **kw)
+    return Param(spec)
 
 
 class Command(plugable.Plugin):
