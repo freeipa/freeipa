@@ -22,7 +22,23 @@ Unit tests for `ipalib.crud` module.
 """
 
 from tstutil import read_only, raises, ClassChecker
-from ipalib import crud, frontend
+from ipalib import crud, frontend, plugable
+
+def get_api():
+    api = plugable.API(
+        frontend.Object,
+        frontend.Method,
+        frontend.Property,
+    )
+    class user(frontend.Object):
+        takes_params = (
+            'givenname',
+            'sn',
+            frontend.Param('uid', primary_key=True),
+            'initials',
+        )
+    api.register(user)
+    return api
 
 
 class test_Add(ClassChecker):
@@ -34,6 +50,20 @@ class test_Add(ClassChecker):
 
     def test_class(self):
         assert self.cls.__bases__ == (frontend.Method,)
+
+    def test_get_options(self):
+        """
+        Test the `crud.Add.get_options` method.
+        """
+        api = get_api()
+        class user_add(self.cls):
+            pass
+        api.register(user_add)
+        api.finalize()
+        assert list(api.Method.user_add.args) == []
+        assert list(api.Method.user_add.options) == \
+            ['givenname', 'sn', 'uid', 'initials']
+
 
 
 class test_Get(ClassChecker):

@@ -25,7 +25,9 @@ import frontend, errors
 
 
 class Add(frontend.Method):
-    pass
+    def get_options(self):
+        assert 'params' in self.obj, list(self.obj)
+        return self.obj.params()
 
 
 class Get(frontend.Method):

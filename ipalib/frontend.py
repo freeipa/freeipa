@@ -513,7 +513,7 @@ class Object(plugable.Plugin):
     __public__ = frozenset((
         'methods',
         'properties',
-        'params'
+        'params',
         'primary_key',
     ))
     methods = None

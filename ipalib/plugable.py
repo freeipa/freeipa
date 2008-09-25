@@ -432,7 +432,7 @@ class PluginProxy(SetProxy):
         """
         if key in self.__public__:
             return getattr(self.__target, key)
-        raise KeyError('no public attribute %r' % key)
+        raise KeyError('no public attribute %s.%s' % (self.name, key))
 
     def __getattr__(self, name):
         """
@@ -441,7 +441,7 @@ class PluginProxy(SetProxy):
         """
         if name in self.__public__:
             return getattr(self.__target, name)
-        raise AttributeError('no public attribute %r' % name)
+        raise AttributeError('no public attribute %s.%s' % (self.name, name))
 
     def __call__(self, *args, **kw):
         """
