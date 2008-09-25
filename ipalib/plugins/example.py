@@ -23,6 +23,7 @@ Some example plugins.
 
 
 from ipalib import frontend
+from ipalib import crud
 from ipalib.frontend import Param
 from ipalib import api
 
@@ -58,21 +59,25 @@ api.register(discover)
 
 
 # Register some methods for the 'user' object:
-class user_add(frontend.Method):
+class user_add(crud.Add):
     'Add a new user.'
 api.register(user_add)
 
-class user_del(frontend.Method):
+class user_del(crud.Del):
     'Delete an existing user.'
 api.register(user_del)
 
-class user_mod(frontend.Method):
+class user_mod(crud.Mod):
     'Edit an existing user.'
 api.register(user_mod)
 
-class user_find(frontend.Method):
+class user_find(crud.Find):
     'Search the users.'
 api.register(user_find)
+
+class user_show(crud.Get):
+    'Examine an existing user.'
+api.register(user_show)
 
 
 # Register some properties for the 'user' object:
