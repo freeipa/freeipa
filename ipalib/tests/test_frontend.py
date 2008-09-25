@@ -763,6 +763,7 @@ class test_Object(ClassChecker):
         assert self.cls.methods is None
         assert self.cls.properties is None
         assert self.cls.params is None
+        assert self.cls.params_minus_pk is None
         assert self.cls.takes_params == tuple()
 
     def test_init(self):
@@ -773,6 +774,7 @@ class test_Object(ClassChecker):
         assert o.methods is None
         assert o.properties is None
         assert o.params is None
+        assert o.params_minus_pk is None
         assert o.properties is None
 
     def test_set_api(self):
@@ -877,6 +879,7 @@ class test_Object(ClassChecker):
         o = example1()
         o.set_api(api)
         assert o.primary_key is None
+        assert o.params_minus_pk is None
 
         # Test with 1 primary key:
         class example2(self.cls):
@@ -895,6 +898,8 @@ class test_Object(ClassChecker):
         assert pk.name == 'three'
         assert pk.primary_key is True
         assert o.params[2] is o.primary_key
+        assert isinstance(o.params_minus_pk, plugable.NameSpace)
+        assert list(o.params_minus_pk) == ['one', 'two', 'four']
 
         # Test with multiple primary_key:
         class example3(self.cls):

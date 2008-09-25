@@ -515,11 +515,13 @@ class Object(plugable.Plugin):
         'properties',
         'params',
         'primary_key',
+        'params_minus_pk',
     ))
     methods = None
     properties = None
     params = None
     primary_key = None
+    params_minus_pk = None
     takes_params = tuple()
 
     def set_api(self, api):
@@ -543,6 +545,9 @@ class Object(plugable.Plugin):
             )
         if len(pkeys) == 1:
             self.primary_key = pkeys[0]
+            self.params_minus_pk = plugable.NameSpace(
+                filter(lambda p: not p.primary_key, self.params()), sort=False
+            )
 
     def __get_attrs(self, name):
         namespace = getattr(self.api, name)
