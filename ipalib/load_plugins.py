@@ -27,4 +27,47 @@ Eventually this will also load the out-of tree plugins, but for now it just
 loads the internal plugins.
 """
 
-import plugins
+import os
+from os import path
+import imp
+import inspect
+
+
+def load_plugins(src_dir):
+    """
+    Import each Python module found in ``src_dir``.
+    """
+    if not (path.abspath(src_dir) == src_dir and path.isdir(src_dir)):
+        return
+    if path.islink(src_dir):
+        return
+    suffix = '.py'
+    for name in sorted(os.listdir(src_dir)):
+        if not name.endswith(suffix):
+            continue
+        py_file = path.join(src_dir, name)
+        if path.islink(py_file) or not path.isfile(py_file):
+            continue
+        module = name[:-len(suffix)]
+        if module == '__init__':
+            continue
+        imp.load_module(module, *imp.find_module(module, [src_dir]))
+
+
+def load_plugins_subpackage(file_in_package):
+    """
+    Load all Python modules found in a plugins/ subpackage.
+    """
+    package_dir = path.dirname(path.abspath(file_in_package))
+    plugins_dir = path.join(package_dir, 'plugins')
+    load_plugins(plugins_dir)
+
+
+load_plugins_subpackage(__file__)
+try:
+    import ipa_server
+    load_plugins_subpackage(ipa_server.__file__)
+except ImportError:
+    pass
+
+load_plugins(path.expanduser('~/.freeipa'))
