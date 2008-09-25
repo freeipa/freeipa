@@ -514,10 +514,12 @@ class Object(plugable.Plugin):
         'methods',
         'properties',
         'params'
+        'primary_key',
     ))
     methods = None
     properties = None
     params = None
+    primary_key = None
     takes_params = tuple()
 
     def set_api(self, api):
@@ -531,6 +533,16 @@ class Object(plugable.Plugin):
         self.params = plugable.NameSpace(
             self.__get_params(), sort=False
         )
+        pkeys = filter(lambda p: p.primary_key, self.params())
+        if len(pkeys) > 1:
+            raise ValueError(
+                '%s (Object) has multiple primary keys: %s' % (
+                    self.name,
+                    ', '.join(p.name for p in pkeys),
+                )
+            )
+        if len(pkeys) == 1:
+            self.primary_key = pkeys[0]
 
     def __get_attrs(self, name):
         namespace = getattr(self.api, name)

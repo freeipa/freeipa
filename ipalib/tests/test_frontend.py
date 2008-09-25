@@ -858,6 +858,57 @@ class test_Object(ClassChecker):
             assert p.required is True
             assert p.multivalue is False
 
+    def test_primary_key(self):
+        """
+        Test the `frontend.Object.primary_key` attribute.
+        """
+        api = plugable.API(
+            frontend.Method,
+            frontend.Property,
+        )
+        api.finalize()
+
+        # Test with no primary keys:
+        class example1(self.cls):
+            takes_params = (
+                'one',
+                'two',
+            )
+        o = example1()
+        o.set_api(api)
+        assert o.primary_key is None
+
+        # Test with 1 primary key:
+        class example2(self.cls):
+            takes_params = (
+                'one',
+                'two',
+                frontend.Param('three',
+                    primary_key=True,
+                ),
+                'four',
+            )
+        o = example2()
+        o.set_api(api)
+        pk = o.primary_key
+        assert isinstance(pk, frontend.Param)
+        assert pk.name == 'three'
+        assert pk.primary_key is True
+        assert o.params[2] is o.primary_key
+
+        # Test with multiple primary_key:
+        class example3(self.cls):
+            takes_params = (
+                frontend.Param('one', primary_key=True),
+                frontend.Param('two', primary_key=True),
+                'three',
+                frontend.Param('four', primary_key=True),
+            )
+        o = example3()
+        e = raises(ValueError, o.set_api, api)
+        assert str(e) == \
+            'example3 (Object) has multiple primary keys: one, two, four'
+
 
 class test_Attribute(ClassChecker):
     """
