@@ -522,23 +522,24 @@ class Object(plugable.Plugin):
 
     def set_api(self, api):
         super(Object, self).set_api(api)
-        self.methods = self.__create_namespace('Method')
-        self.properties = self.__create_namespace('Property')
+        self.methods = plugable.NameSpace(
+            self.__get_attrs('Method'), sort=False
+        )
+        self.properties = plugable.NameSpace(
+            self.__get_attrs('Property'), sort=False
+        )
         self.params = plugable.NameSpace(
-            self.__create_params(), sort=False
+            self.__get_params(), sort=False
         )
 
-    def __create_namespace(self, name):
-        return plugable.NameSpace(self.__filter_members(name))
-
-    def __filter_members(self, name):
+    def __get_attrs(self, name):
         namespace = getattr(self.api, name)
         assert type(namespace) is plugable.NameSpace
         for proxy in namespace(): # Equivalent to dict.itervalues()
             if proxy.obj_name == self.name:
                 yield proxy.__clone__('attr_name')
 
-    def __create_params(self):
+    def __get_params(self):
         props = self.properties.__todict__()
         for spec in self.takes_params:
             if type(spec) is str:
