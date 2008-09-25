@@ -541,8 +541,13 @@ class Object(plugable.Plugin):
     def __create_params(self):
         props = self.properties.__todict__()
         for spec in self.takes_params:
-            if type(spec) is str and spec.rstrip('?*+') in props:
-                yield props.pop(spec.rstrip('?*+')).param
+            if type(spec) is str:
+                key = spec.rstrip('?*+')
+            else:
+                assert type(spec) is Param
+                key = spec.name
+            if key in props:
+                yield props.pop(key).param
             else:
                 yield create_param(spec)
         def get_key(p):
@@ -602,15 +607,9 @@ class Method(Attribute, Command):
     def get_options(self):
         for option in self.takes_options:
             yield option
-        if self.obj is not None and self.obj.properties is not None:
-            def get_key(p):
-                if p.param.required:
-                    if p.param.default_from is None:
-                        return 0
-                    return 1
-                return 2
-            for prop in sorted(self.obj.properties(), key=get_key):
-                yield prop.param
+        if self.obj is not None and self.obj.params is not None:
+            for param in self.obj.params():
+                yield param
 
 
 class Property(Attribute):

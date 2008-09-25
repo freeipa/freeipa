@@ -23,6 +23,7 @@ Some example plugins.
 
 
 from ipalib import frontend
+from ipalib.frontend import Param
 from ipalib import api
 
 
@@ -55,33 +56,33 @@ api.register(user_find)
 
 
 # Register some properties for the 'user' object:
-class user_givenname(frontend.Property):
-    'User first name'
-    required = True
-api.register(user_givenname)
+#class user_givenname(frontend.Property):
+#    'User first name'
+#    required = True
+#api.register(user_givenname)
 
-class user_sn(frontend.Property):
-    'User last name'
-    required = True
-api.register(user_sn)
+#class user_sn(frontend.Property):
+#    'User last name'
+#    required = True
+#api.register(user_sn)
 
-class user_login(frontend.Property):
-    'User login'
-    required = True
-    default_from = frontend.DefaultFrom(
-        lambda first, last: (first[0] + last).lower(),
-        'givenname', 'sn'
-    )
-api.register(user_login)
+#class user_login(frontend.Property):
+#    'User login'
+#    required = True
+#    default_from = frontend.DefaultFrom(
+#        lambda first, last: (first[0] + last).lower(),
+#        'givenname', 'sn'
+#    )
+#api.register(user_login)
 
-class user_initials(frontend.Property):
-    'User initials'
-    required = True
-    default_from = frontend.DefaultFrom(
-        lambda first, last: first[0] + last[0],
-        'givenname', 'sn'
-    )
-api.register(user_initials)
+#class user_initials(frontend.Property):
+#    'User initials'
+#    required = True
+#    default_from = frontend.DefaultFrom(
+#        lambda first, last: first[0] + last[0],
+#        'givenname', 'sn'
+#    )
+#api.register(user_initials)
 
 
 # Register some methods for the 'group' object:
@@ -132,4 +133,10 @@ api.register(service)
 
 class user(frontend.Object):
     'User object'
+    takes_params = (
+        'givenname',
+        'sn',
+        'uid',
+        'krbprincipalname',
+    )
 api.register(user)

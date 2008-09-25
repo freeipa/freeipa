@@ -910,24 +910,10 @@ class test_Method(ClassChecker):
         assert self.cls.implements(frontend.Command)
 
     def get_subcls(self):
-        class example_prop0(frontend.Property):
-            'Prop zero'
-        class example_prop1(frontend.Property):
-            'Prop one'
         class example_obj(object):
-            __prop = None
-            def __get_prop(self):
-                if self.__prop is None:
-                    self.__prop = plugable.NameSpace([
-                        plugable.PluginProxy(
-                            frontend.Property, example_prop0(), 'attr_name'
-                        ),
-                        plugable.PluginProxy(
-                            frontend.Property, example_prop1(),  'attr_name'
-                        ),
-                    ])
-                return self.__prop
-            properties = property(__get_prop)
+            params = plugable.NameSpace(
+                frontend.create_param(n) for n in ('prop0', 'prop1')
+            )
         type_ = ipa_types.Unicode()
         class noun_verb(self.cls):
             takes_options= (
