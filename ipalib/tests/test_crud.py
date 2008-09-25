@@ -63,6 +63,8 @@ class test_Add(ClassChecker):
         assert list(api.Method.user_add.args) == []
         assert list(api.Method.user_add.options) == \
             ['givenname', 'sn', 'uid', 'initials']
+        for param in api.Method.user_add.options():
+            assert param.required is True
 
 
 class test_Get(ClassChecker):
@@ -120,6 +122,22 @@ class test_Mod(ClassChecker):
 
     def test_class(self):
         assert self.cls.__bases__ == (frontend.Method,)
+
+    def test_options_args(self):
+        """
+        Test `crud.Mod.get_args` and `crud.Mod.get_options` methods.
+        """
+        api = get_api()
+        class user_mod(self.cls):
+            pass
+        api.register(user_mod)
+        api.finalize()
+        assert list(api.Method.user_mod.args) == ['uid']
+        assert api.Method.user_mod.args[0].required is True
+        assert list(api.Method.user_mod.options) == \
+            ['givenname', 'sn', 'initials']
+        for param in api.Method.user_mod.options():
+            assert param.required is False
 
 
 class test_Find(ClassChecker):

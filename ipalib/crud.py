@@ -26,7 +26,6 @@ import frontend, errors
 
 class Add(frontend.Method):
     def get_options(self):
-        assert 'params' in self.obj, list(self.obj)
         return self.obj.params()
 
 
@@ -41,7 +40,13 @@ class Del(frontend.Method):
 
 
 class Mod(frontend.Method):
-    pass
+    def get_args(self):
+        yield self.obj.primary_key
+
+    def get_options(self):
+        for param in self.obj.params_minus_pk():
+            yield param.__clone__(required=False)
+
 
 
 class Find(frontend.Method):
