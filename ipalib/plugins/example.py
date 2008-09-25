@@ -27,6 +27,26 @@ from ipalib.frontend import Param
 from ipalib import api
 
 
+class user(frontend.Object):
+    'User object'
+    takes_params = (
+        'givenname',
+        'sn',
+        Param('uid',
+            primary_key=True,
+            default_from=lambda givenname, sn: givenname[0] + sn,
+            normalize=lambda value: value.lower(),
+        ),
+        Param('krbprincipalname',
+            default_from=lambda uid: '%s@EXAMPLE.COM' % uid,
+        ),
+        Param('homedirectory',
+            default_from=lambda uid: '/home/%s' % uid,
+        )
+    )
+api.register(user)
+
+
 # Hypothetical functional commands (not associated with any object):
 class krbtest(frontend.Command):
     'Test your Kerberos ticket.'
@@ -130,13 +150,3 @@ api.register(group)
 class service(frontend.Object):
     'Service object'
 api.register(service)
-
-class user(frontend.Object):
-    'User object'
-    takes_params = (
-        'givenname',
-        'sn',
-        'uid',
-        'krbprincipalname',
-    )
-api.register(user)
