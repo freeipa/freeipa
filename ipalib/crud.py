@@ -31,11 +31,13 @@ class Add(frontend.Method):
 
 
 class Get(frontend.Method):
-    pass
+    def get_args(self):
+        yield self.obj.primary_key
 
 
 class Del(frontend.Method):
-    pass
+    def get_args(self):
+        yield self.obj.primary_key
 
 
 class Mod(frontend.Method):

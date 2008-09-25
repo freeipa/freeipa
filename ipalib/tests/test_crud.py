@@ -51,9 +51,9 @@ class test_Add(ClassChecker):
     def test_class(self):
         assert self.cls.__bases__ == (frontend.Method,)
 
-    def test_get_options(self):
+    def test_options_args(self):
         """
-        Test the `crud.Add.get_options` method.
+        Test `crud.Add.get_args` and `crud.Add.get_options` methods.
         """
         api = get_api()
         class user_add(self.cls):
@@ -63,7 +63,6 @@ class test_Add(ClassChecker):
         assert list(api.Method.user_add.args) == []
         assert list(api.Method.user_add.options) == \
             ['givenname', 'sn', 'uid', 'initials']
-
 
 
 class test_Get(ClassChecker):
@@ -76,6 +75,18 @@ class test_Get(ClassChecker):
     def test_class(self):
         assert self.cls.__bases__ == (frontend.Method,)
 
+    def test_options_args(self):
+        """
+        Test `crud.Get.get_args` and `crud.Get.get_options` methods.
+        """
+        api = get_api()
+        class user_get(self.cls):
+            pass
+        api.register(user_get)
+        api.finalize()
+        assert list(api.Method.user_get.args) == ['uid']
+        assert list(api.Method.user_get.options) == []
+
 
 class test_Del(ClassChecker):
     """
@@ -86,6 +97,18 @@ class test_Del(ClassChecker):
 
     def test_class(self):
         assert self.cls.__bases__ == (frontend.Method,)
+
+    def test_options_args(self):
+        """
+        Test `crud.Del.get_args` and `crud.Del.get_options` methods.
+        """
+        api = get_api()
+        class user_del(self.cls):
+            pass
+        api.register(user_del)
+        api.finalize()
+        assert list(api.Method.user_del.args) == ['uid']
+        assert list(api.Method.user_del.options) == []
 
 
 class test_Mod(ClassChecker):
