@@ -520,21 +520,12 @@ class Object(plugable.Plugin):
     params = None
     takes_params = tuple()
 
-    def __create_params(self):
-        props = self.properties.__todict__()
-        for spec in self.takes_params:
-            if type(spec) is str and spec.rstrip('?*+') in props:
-                yield props.pop(spec.rstrip('?*+')).param
-            else:
-                yield create_param(spec)
-
-
     def set_api(self, api):
         super(Object, self).set_api(api)
         self.methods = self.__create_namespace('Method')
         self.properties = self.__create_namespace('Property')
         self.params = plugable.NameSpace(
-            (create_param(p) for p in self.takes_params), sort=False
+            self.__create_params(), sort=False
         )
 
     def __create_namespace(self, name):
@@ -546,6 +537,22 @@ class Object(plugable.Plugin):
         for proxy in namespace(): # Equivalent to dict.itervalues()
             if proxy.obj_name == self.name:
                 yield proxy.__clone__('attr_name')
+
+    def __create_params(self):
+        props = self.properties.__todict__()
+        for spec in self.takes_params:
+            if type(spec) is str and spec.rstrip('?*+') in props:
+                yield props.pop(spec.rstrip('?*+')).param
+            else:
+                yield create_param(spec)
+        def get_key(p):
+            if p.param.required:
+                if p.param.default_from is None:
+                    return 0
+                return 1
+            return 2
+        for prop in sorted(props.itervalues(), key=get_key):
+            yield prop.param
 
 
 class Attribute(plugable.Plugin):

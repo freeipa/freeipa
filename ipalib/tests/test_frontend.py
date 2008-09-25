@@ -788,6 +788,8 @@ class test_Object(ClassChecker):
                     self.name = '%s_%s' % (obj_name, attr_name)
                 else:
                     self.name = name
+                self.param = frontend.create_param(attr_name)
+
             def __clone__(self, attr_name):
                 return self.__class__(
                     self.obj_name,
