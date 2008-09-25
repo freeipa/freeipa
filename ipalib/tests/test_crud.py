@@ -149,3 +149,19 @@ class test_Find(ClassChecker):
 
     def test_class(self):
         assert self.cls.__bases__ == (frontend.Method,)
+
+    def test_options_args(self):
+        """
+        Test `crud.Find.get_args` and `crud.Find.get_options` methods.
+        """
+        api = get_api()
+        class user_find(self.cls):
+            pass
+        api.register(user_find)
+        api.finalize()
+        assert list(api.Method.user_find.args) == ['uid']
+        assert api.Method.user_find.args[0].required is True
+        assert list(api.Method.user_find.options) == \
+            ['givenname', 'sn', 'initials']
+        for param in api.Method.user_find.options():
+            assert param.required is False
