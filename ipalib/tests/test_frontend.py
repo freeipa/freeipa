@@ -952,39 +952,27 @@ class test_Attribute(ClassChecker):
 
 class test_Method(ClassChecker):
     """
-    Tests the `frontend.Method` class.
+    Test the `frontend.Method` class.
     """
     _cls = frontend.Method
 
     def test_class(self):
         assert self.cls.__bases__ == (frontend.Attribute, frontend.Command)
         assert self.cls.implements(frontend.Command)
+        assert self.cls.implements(frontend.Attribute)
 
-    def get_subcls(self):
-        class example_obj(object):
-            params = plugable.NameSpace(
-                frontend.create_param(n) for n in ('prop0', 'prop1')
-            )
-        type_ = ipa_types.Unicode()
-        class noun_verb(self.cls):
-            takes_options= (
-                frontend.Param('option0', type_),
-                frontend.Param('option1', type_),
-            )
-            obj = example_obj()
-        return noun_verb
-
-    def test_get_options(self):
+    def test_init(self):
         """
-        Tests the `frontend.Method.get_options` method.
+        Test the `frontend.Method.__init__` method.
         """
-        sub = self.subcls()
-        names = ('option0', 'option1', 'prop0', 'prop1')
-        options = tuple(sub.get_options())
-        assert len(options) == 4
-        for (i, option) in enumerate(options):
-            assert option.name == names[i]
-            assert isinstance(option, frontend.Param)
+        class user_add(self.cls):
+            pass
+        o = user_add()
+        assert o.name == 'user_add'
+        assert o.obj_name == 'user'
+        assert o.attr_name == 'add'
+        assert frontend.Command.implemented_by(o)
+        assert frontend.Attribute.implemented_by(o)
 
 
 class test_Property(ClassChecker):

@@ -617,13 +617,6 @@ class Method(Attribute, Command):
         Attribute.__init__(self)
         Command.__init__(self)
 
-    def get_options(self):
-        for option in self.takes_options:
-            yield option
-        if self.obj is not None and self.obj.params is not None:
-            for param in self.obj.params():
-                yield param
-
 
 class Property(Attribute):
     __public__ = frozenset((
