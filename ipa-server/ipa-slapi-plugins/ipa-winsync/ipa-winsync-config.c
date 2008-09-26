@@ -157,6 +157,29 @@ ipa_winsync_config(Slapi_Entry *config_e)
     return returncode;
 }
 
+static int
+parse_acct_disable(const char *theval)
+{
+    int retval = ACCT_DISABLE_INVALID;
+    if (!theval || !*theval) {
+        return retval;
+    }
+    if (!PL_strcasecmp(theval, IPA_WINSYNC_ACCT_DISABLE_NONE)) {
+        retval = ACCT_DISABLE_NONE;
+    }
+    if (!PL_strcasecmp(theval, IPA_WINSYNC_ACCT_DISABLE_TO_AD)) {
+        retval = ACCT_DISABLE_TO_AD;
+    }
+    if (!PL_strcasecmp(theval, IPA_WINSYNC_ACCT_DISABLE_TO_DS)) {
+        retval = ACCT_DISABLE_TO_DS;
+    }
+    if (!PL_strcasecmp(theval, IPA_WINSYNC_ACCT_DISABLE_BOTH)) {
+        retval = ACCT_DISABLE_BOTH;
+    }
+
+    return retval;
+}
+
 /*
   Validate the pending changes in the e entry.
 */
@@ -167,6 +190,8 @@ ipa_winsync_validate_config (Slapi_PBlock *pb, Slapi_Entry* entryBefore, Slapi_E
     char **attrsvals = NULL;
     int ii;
     Slapi_Attr *testattr = NULL;
+    char *strattr = NULL;
+    int acct_disable;
 
     *returncode = LDAP_UNWILLING_TO_PERFORM; /* be pessimistic */
 
@@ -282,10 +307,56 @@ ipa_winsync_validate_config (Slapi_PBlock *pb, Slapi_Entry* entryBefore, Slapi_E
         slapi_ch_free_string(&oidp);
     }
 
+    /* get account disable sync direction */
+    if (!(strattr = slapi_entry_attr_get_charptr(
+              e, IPA_WINSYNC_ACCT_DISABLE))) {
+        PR_snprintf(returntext, SLAPI_DSE_RETURNTEXT_SIZE,
+                    "Error: no value given for %s",
+                    IPA_WINSYNC_ACCT_DISABLE);
+        goto done2;
+    }
+
+    acct_disable = parse_acct_disable(strattr);
+    if (ACCT_DISABLE_INVALID == acct_disable) {
+        PR_snprintf(returntext, SLAPI_DSE_RETURNTEXT_SIZE,
+                    "Error: invalid value [%s] given for [%s] - valid "
+                    "values are " IPA_WINSYNC_ACCT_DISABLE_NONE
+                    ", " IPA_WINSYNC_ACCT_DISABLE_TO_AD
+                    ", " IPA_WINSYNC_ACCT_DISABLE_TO_DS
+                    ", or " IPA_WINSYNC_ACCT_DISABLE_BOTH,
+                    strattr, IPA_WINSYNC_ACCT_DISABLE);
+        goto done2;
+    }
+
+    /* if using acct disable sync, must have the attributes
+       IPA_WINSYNC_INACTIVATED_FILTER and IPA_WINSYNC_ACTIVATED_FILTER
+    */
+    if (acct_disable != ACCT_DISABLE_NONE) {
+        if (slapi_entry_attr_find(e, IPA_WINSYNC_INACTIVATED_FILTER,
+                                  &testattr) ||
+            (NULL == testattr)) {
+            PR_snprintf(returntext, SLAPI_DSE_RETURNTEXT_SIZE,
+                        "Error: no value given for %s - "
+                        "required for account disable sync",
+                        IPA_WINSYNC_INACTIVATED_FILTER);
+            goto done2;
+        }
+        if (slapi_entry_attr_find(e, IPA_WINSYNC_ACTIVATED_FILTER,
+                                  &testattr) ||
+            (NULL == testattr)) {
+            PR_snprintf(returntext, SLAPI_DSE_RETURNTEXT_SIZE,
+                        "Error: no value given for %s - "
+                        "required for account disable sync",
+                        IPA_WINSYNC_ACTIVATED_FILTER);
+            goto done2;
+        }
+    }
+
     /* success */
     *returncode = LDAP_SUCCESS;
 
 done2:
+    slapi_ch_free_string(&strattr);
     slapi_ch_array_free(attrsvals);
     attrsvals = NULL;
 
@@ -297,8 +368,9 @@ done2:
 }
 
 static int
-ipa_winsync_apply_config (Slapi_PBlock *pb, Slapi_Entry* entryBefore, Slapi_Entry* e, 
-    int *returncode, char *returntext, void *arg)
+ipa_winsync_apply_config (Slapi_PBlock *pb, Slapi_Entry* entryBefore,
+                          Slapi_Entry* e, int *returncode, char *returntext,
+                          void *arg)
 {
     PRBool flatten = PR_TRUE;
     char *realm_filter = NULL;
@@ -308,9 +380,14 @@ ipa_winsync_apply_config (Slapi_PBlock *pb, Slapi_Entry* entryBefore, Slapi_Entr
     char *homedir_prefix_attr = NULL;
     char *default_group_attr = NULL;
     char *default_group_filter = NULL;
+    char *acct_disable = NULL;
+    int acct_disable_int;
+    char *inactivated_filter = NULL;
+    char *activated_filter = NULL;
     char **attrsvals = NULL;
     int ii;
     Slapi_Attr *testattr = NULL;
+    PRBool forceSync = PR_FALSE;
 
     *returncode = LDAP_UNWILLING_TO_PERFORM; /* be pessimistic */
 
@@ -392,6 +469,52 @@ ipa_winsync_apply_config (Slapi_PBlock *pb, Slapi_Entry* entryBefore, Slapi_Entr
                         IPA_WINSYNC_NEW_USER_ATTRS_VALS);
     }
 
+    /* get acct disable sync value */
+    if (!(acct_disable = slapi_entry_attr_get_charptr(
+              e, IPA_WINSYNC_ACCT_DISABLE))) {
+        PR_snprintf(returntext, SLAPI_DSE_RETURNTEXT_SIZE,
+                    "Error: no value given for %s",
+                    IPA_WINSYNC_ACCT_DISABLE);
+        goto done3;
+    }
+
+    acct_disable_int = parse_acct_disable(acct_disable);
+    if (ACCT_DISABLE_INVALID == acct_disable_int) {
+        PR_snprintf(returntext, SLAPI_DSE_RETURNTEXT_SIZE,
+                    "Error: invalid value [%s] given for [%s] - valid "
+                    "values are " IPA_WINSYNC_ACCT_DISABLE_NONE
+                    ", " IPA_WINSYNC_ACCT_DISABLE_TO_AD
+                    ", " IPA_WINSYNC_ACCT_DISABLE_TO_DS
+                    ", or " IPA_WINSYNC_ACCT_DISABLE_BOTH,
+                    acct_disable, IPA_WINSYNC_ACCT_DISABLE);
+        goto done3;
+    }
+
+    if (acct_disable_int != ACCT_DISABLE_NONE) {
+        /* get inactivated group filter */
+        if (!(inactivated_filter = slapi_entry_attr_get_charptr(
+                  e, IPA_WINSYNC_INACTIVATED_FILTER))) {
+            PR_snprintf(returntext, SLAPI_DSE_RETURNTEXT_SIZE,
+                        "Error: no value given for %s - required for account disable sync",
+                        IPA_WINSYNC_INACTIVATED_FILTER);
+            goto done3;
+        }
+        /* get activated group filter */
+        if (!(activated_filter = slapi_entry_attr_get_charptr(
+                  e, IPA_WINSYNC_ACTIVATED_FILTER))) {
+            PR_snprintf(returntext, SLAPI_DSE_RETURNTEXT_SIZE,
+                        "Error: no value given for %s - required for account disable sync",
+                        IPA_WINSYNC_ACTIVATED_FILTER);
+            goto done3;
+        }
+    }
+
+    /* get forceSync value */
+    if (!slapi_entry_attr_find(e, IPA_WINSYNC_FORCE_SYNC, &testattr) &&
+        (NULL != testattr)) {
+        forceSync = slapi_entry_attr_get_bool(e, IPA_WINSYNC_FORCE_SYNC);
+    }
+
     /* if we got here, we have valid values for everything
        set the config entry */
     slapi_lock_mutex(theConfig.lock);
@@ -459,6 +582,14 @@ ipa_winsync_apply_config (Slapi_PBlock *pb, Slapi_Entry* entryBefore, Slapi_Entr
     theConfig.default_group_filter = default_group_filter;
     default_group_filter = NULL;
     theConfig.flatten = flatten;
+    theConfig.acct_disable = parse_acct_disable(acct_disable);
+    slapi_ch_free_string(&theConfig.inactivated_filter);
+    theConfig.inactivated_filter = inactivated_filter;
+    inactivated_filter = NULL;
+    slapi_ch_free_string(&theConfig.activated_filter);
+    theConfig.activated_filter = activated_filter;
+    activated_filter = NULL;
+    theConfig.forceSync = forceSync;
 
     /* success */
     *returncode = LDAP_SUCCESS;
@@ -475,6 +606,9 @@ done3:
     slapi_ch_free_string(&default_group_filter);
     slapi_ch_array_free(attrsvals);
     attrsvals = NULL;
+    slapi_ch_free_string(&acct_disable);
+    slapi_ch_free_string(&inactivated_filter);
+    slapi_ch_free_string(&activated_filter);
 
     if (*returncode != LDAP_SUCCESS) {
         return SLAPI_DSE_CALLBACK_ERROR;
@@ -510,6 +644,8 @@ ipa_winsync_config_destroy_domain(
     iwdc->domain_e = NULL;
     slapi_ch_free_string(&iwdc->realm_name);
     slapi_ch_free_string(&iwdc->homedir_prefix);
+    slapi_ch_free_string(&iwdc->inactivated_group_dn);
+    slapi_ch_free_string(&iwdc->activated_group_dn);
     slapi_ch_free((void **)&iwdc);
 
     return;
@@ -583,7 +719,11 @@ internal_find_entry_get_attr_val(const Slapi_DN *basedn, int scope,
             }
         }
         if (attrval) {
-            *attrval = slapi_entry_attr_get_charptr(entries[0], attrname);
+            if (!strcmp(attrname, "dn")) { /* special - to just get the DN */
+                *attrval = slapi_ch_strdup(slapi_entry_get_dn_const(entries[0]));
+            } else {
+                *attrval = slapi_entry_attr_get_charptr(entries[0], attrname);
+            }
         }
     } else {
         ret = LDAP_NO_SUCH_OBJECT;
@@ -633,6 +773,11 @@ ipa_winsync_config_refresh_domain(
     int search_scope = LDAP_SCOPE_SUBTREE;
     int ret = LDAP_SUCCESS;
     Slapi_Value *sv = NULL;
+    int acct_disable;
+    char *inactivated_filter = NULL;
+    char *activated_filter = NULL;
+    char *inactivated_group_dn = NULL;
+    char *activated_group_dn = NULL;
 
     slapi_lock_mutex(theConfig.lock);
     realm_filter = slapi_ch_strdup(theConfig.realm_filter);
@@ -642,6 +787,11 @@ ipa_winsync_config_refresh_domain(
     homedir_prefix_attr = slapi_ch_strdup(theConfig.homedir_prefix_attr);
     default_group_attr = slapi_ch_strdup(theConfig.default_group_attr);
     default_group_filter = slapi_ch_strdup(theConfig.default_group_filter);
+    acct_disable = theConfig.acct_disable;
+    if (acct_disable != ACCT_DISABLE_NONE) {
+        inactivated_filter = slapi_ch_strdup(theConfig.inactivated_filter);
+        activated_filter = slapi_ch_strdup(theConfig.activated_filter);
+    }
     slapi_unlock_mutex(theConfig.lock);
 
     /* starting at ds_subtree, search for the entry
@@ -737,6 +887,38 @@ ipa_winsync_config_refresh_domain(
         goto out;
     }
 
+    /* If we are syncing account disable, we need to find the groups used
+       to denote active and inactive users e.g.
+       dn: cn=inactivated,cn=account inactivation,cn=accounts,$SUFFIX
+
+       dn: cn=Activated,cn=Account Inactivation,cn=accounts,$SUFFIX
+
+    */
+    if (acct_disable != ACCT_DISABLE_NONE) {
+        ret = internal_find_entry_get_attr_val(config_dn, search_scope,
+                                               inactivated_filter, "dn",
+                                               NULL, &inactivated_group_dn);
+        if (!inactivated_group_dn) {
+            /* error - could not find the inactivated group dn */
+            slapi_log_error(SLAPI_LOG_FATAL, IPA_WINSYNC_PLUGIN_NAME,
+                            "Error: could not find the DN of the inactivated users group "
+                            "ds subtree [%s] filter [%s]\n",
+                            slapi_sdn_get_dn(ds_subtree), inactivated_filter);
+            goto out;
+        }
+        ret = internal_find_entry_get_attr_val(config_dn, search_scope,
+                                               activated_filter, "dn",
+                                               NULL, &activated_group_dn);
+        if (!activated_group_dn) {
+            /* error - could not find the activated group dn */
+            slapi_log_error(SLAPI_LOG_FATAL, IPA_WINSYNC_PLUGIN_NAME,
+                            "Error: could not find the DN of the activated users group "
+                            "ds subtree [%s] filter [%s]\n",
+                            slapi_sdn_get_dn(ds_subtree), activated_filter);
+            goto out;
+        }
+    }
+
     /* ok, we have our values */
     /* first, clear out the old domain config */
     slapi_entry_free(iwdc->domain_e);
@@ -759,7 +941,14 @@ ipa_winsync_config_refresh_domain(
         slapi_entry_add_value(iwdc->domain_e,  "gidNumber", sv);
     }
     slapi_value_free(&sv);
-    
+
+    slapi_ch_free_string(&iwdc->inactivated_group_dn);
+    iwdc->inactivated_group_dn = inactivated_group_dn;
+    inactivated_group_dn = NULL;
+    slapi_ch_free_string(&iwdc->activated_group_dn);
+    iwdc->activated_group_dn = activated_group_dn;
+    activated_group_dn = NULL;
+  
 out:
     slapi_valueset_free(new_user_objclasses);
     slapi_sdn_free(&config_dn);
@@ -773,6 +962,10 @@ out:
     slapi_ch_free_string(&default_group_name);
     slapi_ch_free_string(&real_group_filter);
     slapi_ch_free_string(&default_gid);
+    slapi_ch_free_string(&inactivated_filter);
+    slapi_ch_free_string(&inactivated_group_dn);
+    slapi_ch_free_string(&activated_filter);
+    slapi_ch_free_string(&activated_group_dn);
 
     if (LDAP_SUCCESS != ret) {
         slapi_ch_free_string(&iwdc->realm_name);
