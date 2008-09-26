@@ -22,3 +22,7 @@ ipaWinSyncUserFlatten: true
 ipaWinsyncHomeDirAttr: ipaHomesRootDir
 ipaWinSyncDefaultGroupAttr: ipaDefaultPrimaryGroup
 ipaWinSyncDefaultGroupFilter: (gidNumber=*)(objectclass=posixGroup)
+ipaWinSyncAcctDisable: none
+ipaWinSyncInactivatedFilter: (&(cn=inactivated)(objectclass=groupOfNames))
+ipaWinSyncActivatedFilter: (&(cn=activated)(objectclass=groupOfNames))
+ipaWinSyncForceSync: true
