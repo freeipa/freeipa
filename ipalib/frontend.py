@@ -511,17 +511,22 @@ class Command(plugable.Plugin):
 
 class Object(plugable.Plugin):
     __public__ = frozenset((
+        'backend',
         'methods',
         'properties',
         'params',
         'primary_key',
         'params_minus_pk',
     ))
+    backend = None
     methods = None
     properties = None
     params = None
     primary_key = None
     params_minus_pk = None
+
+    # Can override in subclasses:
+    backend_name = None
     takes_params = tuple()
 
     def set_api(self, api):
@@ -549,8 +554,13 @@ class Object(plugable.Plugin):
                 filter(lambda p: not p.primary_key, self.params()), sort=False
             )
 
+        if 'Backend' in self.api and self.backend_name in self.api.Backend:
+            self.backend = self.api.Backend[self.backend_name]
+
     def __get_attrs(self, name):
-        namespace = getattr(self.api, name)
+        if name not in self.api:
+            return
+        namespace = self.api[name]
         assert type(namespace) is plugable.NameSpace
         for proxy in namespace(): # Equivalent to dict.itervalues()
             if proxy.obj_name == self.name:

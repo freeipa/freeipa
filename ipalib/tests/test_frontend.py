@@ -23,7 +23,7 @@ Unit tests for `ipalib.frontend` module.
 
 from tstutil import raises, getitem, no_set, no_del, read_only, ClassChecker
 from tstutil import check_TypeError
-from ipalib import frontend, plugable, errors, ipa_types
+from ipalib import frontend, backend, plugable, errors, ipa_types
 
 
 def test_RULE_FLAG():
@@ -760,6 +760,7 @@ class test_Object(ClassChecker):
 
     def test_class(self):
         assert self.cls.__bases__ == (plugable.Plugin,)
+        assert self.cls.backend is None
         assert self.cls.methods is None
         assert self.cls.properties is None
         assert self.cls.params is None
@@ -771,6 +772,7 @@ class test_Object(ClassChecker):
         Test the `frontend.Object.__init__` method.
         """
         o = self.cls()
+        assert o.backend is None
         assert o.methods is None
         assert o.properties is None
         assert o.params is None
@@ -810,13 +812,16 @@ class test_Object(ClassChecker):
             properties='property_%d',
         )
 
-        class api(object):
-            Method = plugable.NameSpace(
+
+        _d = dict(
+            Method=plugable.NameSpace(
                 get_attributes(cnt, formats['methods'])
-            )
-            Property = plugable.NameSpace(
+            ),
+            Property=plugable.NameSpace(
                 get_attributes(cnt, formats['properties'])
-            )
+            ),
+        )
+        api = plugable.MagicDict(_d)
         assert len(api.Method) == cnt * 3
         assert len(api.Property) == cnt * 3
 
@@ -913,6 +918,27 @@ class test_Object(ClassChecker):
         e = raises(ValueError, o.set_api, api)
         assert str(e) == \
             'example3 (Object) has multiple primary keys: one, two, four'
+
+    def test_backend(self):
+        """
+        Test the `frontend.Object.backend` attribute.
+        """
+        api = plugable.API(
+            frontend.Object,
+            frontend.Method,
+            frontend.Property,
+            backend.Backend,
+        )
+        class ldap(backend.Backend):
+            whatever = 'It worked!'
+        api.register(ldap)
+        class user(frontend.Object):
+            backend_name = 'ldap'
+        api.register(user)
+        api.finalize()
+        b = api.Object.user.backend
+        assert isinstance(b, ldap)
+        assert b.whatever == 'It worked!'
 
 
 class test_Attribute(ClassChecker):
