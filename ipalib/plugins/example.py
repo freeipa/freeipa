@@ -26,7 +26,8 @@ from ipalib import frontend
 from ipalib import crud
 from ipalib.frontend import Param
 from ipalib import api
-
+from ipalib import servercore
+import ldap
 
 class user(frontend.Object):
     'User object'
@@ -78,6 +79,8 @@ api.register(envtest)
 # Register some methods for the 'user' object:
 class user_add(crud.Add):
     'Add a new user.'
+    def execute(self, *args, **kw):
+        return 1
 api.register(user_add)
 
 class user_del(crud.Del):
@@ -90,6 +93,10 @@ api.register(user_mod)
 
 class user_find(crud.Find):
     'Search the users.'
+    def execute(self, *args, **kw):
+        uid=args[0]
+        result = servercore.get_sub_entry(servercore.basedn, "uid=%s" % uid, ["*"])
+        return result
 api.register(user_find)
 
 class user_show(crud.Get):

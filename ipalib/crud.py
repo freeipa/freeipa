@@ -25,8 +25,12 @@ import frontend, errors
 
 
 class Add(frontend.Method):
+    def get_args(self):
+        yield self.obj.primary_key
+
     def get_options(self):
-        return self.obj.params()
+        for param in self.obj.params_minus_pk():
+            yield param.__clone__(required=False)
 
 
 class Get(frontend.Method):

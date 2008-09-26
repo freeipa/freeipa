@@ -5,12 +5,19 @@ import xmlrpclib
 server = xmlrpclib.ServerProxy("http://localhost:8888/")
     
 print server.system.listMethods()
-#print server.system.methodHelp("user_add")
+print server.system.methodHelp("user_add")
 
-user = {'givenname':'Joe', 'sn':'Smith'}
-result = server.user_add(user)
-print "returned %s" % result
+try:
+    args="admin"
+    kw = {'givenname':'Joe', 'sn':'Smith'}
+    result = server.user_add(args, kw)
+    print "returned %s" % result
+except xmlrpclib.Fault, e:
+    print e.faultString
 
-user = {'givenname':'Joe', 'sn':'Smith', 'uid':'admin'}
-result = server.user_find(user)
-print "returned %s" % result
+try:
+    args="admin"
+    result = server.user_find(args)
+    print "returned %s" % result
+except xmlrpclib.Fault, e:
+    print e.faultString

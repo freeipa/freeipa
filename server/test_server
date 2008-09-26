@@ -12,6 +12,7 @@ import commands
 from ipalib import api, conn
 from ipalib.conn import context
 import ipalib.load_plugins
+import traceback
 
 PORT=8888
 
@@ -43,11 +44,6 @@ class LoggingSimpleXMLRPCRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHa
         Methods beginning with an '_' are considered private and will
         not be called.
         """
-        if (params):
-            (args, kw) = self.parse(*params)
-        else:
-            args = []
-            kw = {}
 
         # this is fine for our test server
         uid = commands.getoutput('/usr/bin/id -u')
@@ -62,11 +58,40 @@ class LoggingSimpleXMLRPCRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHa
                 func = funcs[method]
             except KeyError:
                 raise Exception('method "%s" is not supported' % method)
-            return func(**kw)
+            if len(params) > 1 and isinstance(params[-1], dict):
+                kw = params[-1]
+                params = params[:-1]
+                return func(*params, **kw)
+            else:
+                return func(*params)
         finally:
             # Clean up any per-request data and connections
             for k in context.__dict__.keys():
                 del context.__dict__[k]
+
+    def _marshaled_dispatch(self, data, dispatch_method = None):
+        try:
+            params, method = xmlrpclib.loads(data)
+
+            # generate response
+            if dispatch_method is not None:
+                response = dispatch_method(method, params)
+            else:
+                response = self._dispatch(method, params)
+            # wrap response in a singleton tuple
+            response = (response,)
+            response = xmlrpclib.dumps(response, methodresponse=1)
+        except:
+            # report exception back to client. This is needed to report
+            # tracebacks found in server code.
+            e_class, e = sys.exc_info()[:2]
+            # FIXME, need to get this number from somewhere...
+            faultCode = getattr(e_class,'faultCode',1)
+            tb_str = ''.join(traceback.format_exception(*sys.exc_info()))
+            faultString = tb_str
+            response = xmlrpclib.dumps(xmlrpclib.Fault(faultCode, faultString))
+
+        return response
 
     def do_POST(self):
         clientIP, port = self.client_address
@@ -82,14 +107,16 @@ class LoggingSimpleXMLRPCRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHa
             # Log client request
 	    logger.info('Client request: \n%s\n' % data)
 
-            response = self.server._marshaled_dispatch(
+#            response = self.server._marshaled_dispatch(
+            response = self._marshaled_dispatch(
                     data, getattr(self, '_dispatch', None))
 
 	    # Log server response
             logger.info('Server response: \n%s\n' % response)
-	except:
+	except Exception, e:
             # This should only happen if the module is buggy
             # internal error, report as HTTP server error
+            print e
             self.send_response(500)
             self.end_headers()
         else:
