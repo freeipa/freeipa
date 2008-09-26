@@ -43,23 +43,79 @@ def is_rule(obj):
 
 class DefaultFrom(plugable.ReadOnly):
     """
-    Derives a default for one value using other supplied values.
+    Derive a default value from other supplied values.
 
-    Here is an example that constructs a user's initials from his first
-    and last name:
+    For example, say you wanted to create a default for the user's login from
+    the user's first and last names. It could be implemented like this:
 
-    >>> df = DefaultFrom(lambda f, l: f[0] + l[0], 'first', 'last')
-    >>> df(first='John', last='Doe') # Both keys
-    'JD'
-    >>> df() is None # Returns None if any key is missing
+    >>> login = DefaultFrom(lambda first, last: first[0] + last)
+    >>> login(first='John', last='Doe')
+    'JDoe'
+
+    If you do not explicitly provide keys when you create a DefaultFrom
+    instance, the keys are implicitly derived from your callback by
+    inspecting ``callback.func_code.co_varnames``. The keys are available
+    through the ``DefaultFrom.keys`` instance attribute, like this:
+
+    >>> login.keys
+    ('first', 'last')
+
+    The callback is available through the ``DefaultFrom.callback`` instance
+    attribute, like this:
+
+    >>> login.callback
+    <function <lambda> at 0x7fdd225cd7d0>
+    >>> login.callback.func_code.co_varnames # The keys
+    ('first', 'last')
+
+    The keys can be explicitly provided as optional positional arguments after
+    the callback. For example, this is equivalent to the ``login`` instance
+    above:
+
+    >>> login2 = DefaultFrom(lambda a, b: a[0] + b, 'first', 'last')
+    >>> login2.keys
+    ('first', 'last')
+    >>> login2.callback.func_code.co_varnames # Not the keys
+    ('a', 'b')
+    >>> login2(first='John', last='Doe')
+    'JDoe'
+
+    If any keys are missing when calling your DefaultFrom instance, your
+    callback is not called and None is returned. For example:
+
+    >>> login(first='John', lastname='Doe') is None
     True
-    >>> df(first='John', middle='Q') is None # Still returns None
+    >>> login() is None
     True
+
+    Any additional keys are simply ignored, like this:
+
+    >>> login(last='Doe', first='John', middle='Whatever')
+    'JDoe'
+
+    As above, because `DefaultFrom.__call__` takes only pure keyword
+    arguments, they can be supplied in any order.
+
+    Of course, the callback need not be a lambda expression. This third
+    example is equivalent to both the ``login`` and ``login2`` instances
+    above:
+
+    >>> def get_login(first, last):
+    ...     return first[0] + last
+    ...
+    >>> login3 = DefaultFrom(get_login)
+    >>> login3.keys
+    ('first', 'last')
+    >>> login3.callback.func_code.co_varnames
+    ('first', 'last')
+    >>> login3(first='John', last='Doe')
+    'JDoe'
     """
+
     def __init__(self, callback, *keys):
         """
-        :param callback: The callable to call when all ``keys`` are present.
-        :param keys: The keys used to map from keyword to position arguments.
+        :param callback: The callable to call when all keys are present.
+        :param keys: Optional keys used for source values.
         """
         if not callable(callback):
             raise TypeError('callback must be callable; got %r' % callback)
