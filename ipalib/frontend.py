@@ -152,10 +152,25 @@ def parse_param_spec(spec):
     required, and whether the param is multivalue according the following
     syntax:
 
-    name => required=True, multivalue=False
-    name? => required=False, multivalue=False
-    name+ => required=True, multivalue=True
-    name* => required=False, multivalue=True
+    ======  =====  ========  ==========
+    Spec    Name   Required  Multivalue
+    ======  =====  ========  ==========
+    'var'   'var'  True      False
+    'var?'  'var'  False     False
+    'var*'  'var'  False     True
+    'var+'  'var'  True      True
+    ======  =====  ========  ==========
+
+    For example,
+
+    >>> parse_param_spec('login')
+    ('login', {'required': True, 'multivalue': False})
+    >>> parse_param_spec('gecos?')
+    ('gecos', {'required': False, 'multivalue': False})
+    >>> parse_param_spec('telephone_numbers*')
+    ('telephone_numbers', {'required': False, 'multivalue': True})
+    >>> parse_param_spec('group+')
+    ('group', {'required': True, 'multivalue': True})
 
     :param spec: A spec string.
     """
