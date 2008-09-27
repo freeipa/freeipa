@@ -144,23 +144,24 @@ class test_Param(ClassChecker):
         Test the `frontend.Param.__init__` method.
         """
         name = 'sn'
-        type_ = ipa_types.Unicode()
-        o = self.cls(name, type_)
+        o = self.cls(name)
         assert o.__islocked__() is True
 
         # Test default values
         assert read_only(o, 'name') is name
-        assert read_only(o, 'type') is type_
+        assert isinstance(read_only(o, 'type'), ipa_types.Unicode)
         assert read_only(o, 'doc') == ''
         assert read_only(o, 'required') is True
         assert read_only(o, 'multivalue') is False
         assert read_only(o, 'default') is None
         assert read_only(o, 'default_from') is None
         assert read_only(o, 'rules') == tuple()
-        assert read_only(o, 'all_rules') == (type_.validate,)
+        assert len(read_only(o, 'all_rules')) == 1
         assert read_only(o, 'primary_key') is False
 
         # Test all kw args:
+        t = ipa_types.Int()
+        assert self.cls(name, type=t).type is t
         assert self.cls(name, doc='the doc').doc == 'the doc'
         assert self.cls(name, required=False).required is False
         assert self.cls(name, multivalue=True).multivalue is True
@@ -220,7 +221,7 @@ class test_Param(ClassChecker):
         )
         name = 'hair_color?'
         type_ = ipa_types.Int()
-        o = self.cls(name, type_)
+        o = self.cls(name, type=type_)
         compare(o, default)
 
         override = dict(multivalue=True, default=42)
@@ -242,7 +243,7 @@ class test_Param(ClassChecker):
         none = (None, '', u'', tuple(), [])
 
         # Scenario 1: multivalue=False
-        o = self.cls(name, type_)
+        o = self.cls(name, type=type_)
         for n in none:
             assert o.convert(n) is None
         for value in okay:
@@ -257,7 +258,7 @@ class test_Param(ClassChecker):
             assert e.index is None
 
         # Scenario 2: multivalue=True
-        o = self.cls(name, type_, multivalue=True)
+        o = self.cls(name, type=type_, multivalue=True)
         for n in none:
             assert o.convert(n) is None
         for value in okay:
@@ -281,19 +282,18 @@ class test_Param(ClassChecker):
         Test the `frontend.Param.normalize` method.
         """
         name = 'sn'
-        t = ipa_types.Unicode()
         callback = lambda value: value.lower()
         values = (None, u'Hello', (u'Hello',), 'hello', ['hello'])
         none = (None, '', u'', tuple(), [])
 
         # Scenario 1: multivalue=False, normalize=None
-        o = self.cls(name, t)
+        o = self.cls(name)
         for v in values:
             # When normalize=None, value is returned, no type checking:
             assert o.normalize(v) is v
 
         # Scenario 2: multivalue=False, normalize=callback
-        o = self.cls(name, t, normalize=callback)
+        o = self.cls(name, normalize=callback)
         for v in (u'Hello', u'hello', 'Hello'): # Okay
             assert o.normalize(v) == 'hello'
         for v in [None, 42, (u'Hello',)]: # Not basestring
@@ -302,13 +302,13 @@ class test_Param(ClassChecker):
             assert o.normalize(n) is None
 
         # Scenario 3: multivalue=True, normalize=None
-        o = self.cls(name, t, multivalue=True)
+        o = self.cls(name, multivalue=True)
         for v in values:
             # When normalize=None, value is returned, no type checking:
             assert o.normalize(v) is v
 
         # Scenario 4: multivalue=True, normalize=callback
-        o = self.cls(name, t, multivalue=True, normalize=callback)
+        o = self.cls(name, multivalue=True, normalize=callback)
         assert o.normalize([]) is None
         assert o.normalize(tuple()) is None
         for value in [(u'Hello',), (u'hello',), 'Hello', ['Hello']]: # Okay
@@ -334,7 +334,7 @@ class test_Param(ClassChecker):
         fail_type = 'whatever'
 
         # Scenario 1: multivalue=False
-        o = self.cls(name, type_, rules=my_rules)
+        o = self.cls(name, type=type_, rules=my_rules)
         assert o.rules == my_rules
         assert o.all_rules == (type_.validate, case_rule)
         o.validate(okay)
@@ -347,7 +347,7 @@ class test_Param(ClassChecker):
         check_TypeError(fail_type, unicode, 'value', o.validate, fail_type)
 
         ## Scenario 2: multivalue=True
-        o = self.cls(name, type_, multivalue=True, rules=my_rules)
+        o = self.cls(name, type=type_, multivalue=True, rules=my_rules)
         o.validate((okay,))
         cnt = 5
         for i in xrange(cnt):
@@ -370,7 +370,6 @@ class test_Param(ClassChecker):
         Tests the `frontend.Param.get_default` method.
         """
         name = 'greeting'
-        type_ = ipa_types.Unicode()
         default = u'Hello, world!'
         default_from = frontend.DefaultFrom(
             lambda first, last: u'Hello, %s %s!' % (first, last),
@@ -378,7 +377,7 @@ class test_Param(ClassChecker):
         )
 
         # Scenario 1: multivalue=False
-        o = self.cls(name, type_,
+        o = self.cls(name,
             default=default,
             default_from=default_from,
         )
@@ -389,7 +388,7 @@ class test_Param(ClassChecker):
 
         # Scenario 2: multivalue=True
         default = (default,)
-        o = self.cls(name, type_,
+        o = self.cls(name,
             default=default,
             default_from=default_from,
             multivalue=True,
@@ -405,9 +404,9 @@ class test_Param(ClassChecker):
         """
         name = 'status'
         values = (u'Active', u'Inactive')
-        o = self.cls(name, ipa_types.Unicode())
+        o = self.cls(name, type=ipa_types.Unicode())
         assert o.get_values() == tuple()
-        o = self.cls(name, ipa_types.Enum(*values))
+        o = self.cls(name, type=ipa_types.Enum(*values))
         assert o.get_values() == values
 
 
@@ -456,16 +455,15 @@ class test_Command(ClassChecker):
                 'default_from'
         )
         normalize = lambda value: value.lower()
-        type_ = ipa_types.Unicode()
 
         class example(self.cls):
             takes_options = (
-                frontend.Param('option0', type_,
+                frontend.Param('option0',
                     normalize=normalize,
                     default_from=default_from,
                     rules=(Rule('option0'),)
                 ),
-                frontend.Param('option1', type_,
+                frontend.Param('option1',
                     normalize=normalize,
                     default_from=default_from,
                     rules=(Rule('option1'),),

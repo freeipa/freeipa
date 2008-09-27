@@ -210,6 +210,7 @@ class Param(plugable.ReadOnly):
     """
     __nones = (None, '', tuple(), [])
     __defaults = dict(
+        type=ipa_types.Unicode(),
         doc='',
         required=True,
         multivalue=False,
@@ -220,7 +221,7 @@ class Param(plugable.ReadOnly):
         rules=tuple(),
     )
 
-    def __init__(self, name, type_=ipa_types.Unicode(), **override):
+    def __init__(self, name, **override):
         if not ('required' in override or 'multivalue' in override):
             (name, kw_from_spec) = parse_param_spec(name)
             override.update(kw_from_spec)
@@ -233,7 +234,7 @@ class Param(plugable.ReadOnly):
         kw.update(override)
         self.__kw = kw
         self.name = check_name(name)
-        self.type = check_isinstance(type_, ipa_types.Type, 'type_')
+        self.type = self.__check_isinstance(ipa_types.Type, 'type')
         self.doc = self.__check_type(str, 'doc')
         self.required = self.__check_type(bool, 'required')
         self.multivalue = self.__check_type(bool, 'multivalue')
@@ -246,7 +247,7 @@ class Param(plugable.ReadOnly):
         )
         self.__normalize = kw['normalize']
         self.rules = self.__check_type(tuple, 'rules')
-        self.all_rules = (type_.validate,) + self.rules
+        self.all_rules = (self.type.validate,) + self.rules
         self.primary_key = self.__check_type(bool, 'primary_key')
         lock(self)
 
@@ -256,7 +257,7 @@ class Param(plugable.ReadOnly):
         """
         kw = dict(self.__kw)
         kw.update(override)
-        return self.__class__(self.name, self.type, **kw)
+        return self.__class__(self.name, **kw)
 
     def __check_type(self, type_, name, allow_none=False):
         value = self.__kw[name]
@@ -737,7 +738,8 @@ class Property(Attribute):
             self.__rules_iter(),
             key=lambda f: getattr(f, '__name__'),
         ))
-        self.param = Param(self.attr_name, self.type,
+        self.param = Param(self.attr_name,
+            type=self.type,
             doc=self.doc,
             required=self.required,
             multivalue=self.multivalue,
