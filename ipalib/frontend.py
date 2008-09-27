@@ -194,17 +194,30 @@ def parse_param_spec(spec):
 class Param(plugable.ReadOnly):
     """
     A parameter accepted by a `Command`.
+
+    ============  =================  ==================
+    Keyword       Type               Default
+    ============  =================  ==================
+    type          ipa_type.Type      ipa_type.Unicode()
+    doc           str                ''
+    required      bool               True
+    multivalue    bool               False
+    primary_key   bool               False
+    normalize     callable           None
+    default       same as type.type  None
+    default_from  callable           None
+    ============  =================  ==================
     """
     __nones = (None, '', tuple(), [])
     __defaults = dict(
         doc='',
         required=True,
         multivalue=False,
+        primary_key=False,
+        normalize=None,
         default=None,
         default_from=None,
         rules=tuple(),
-        normalize=None,
-        primary_key=False,
     )
 
     def __init__(self, name, type_=ipa_types.Unicode(), **override):
