@@ -23,7 +23,7 @@ Unit tests for `ipalib.frontend` module.
 
 from tstutil import raises, getitem, no_set, no_del, read_only, ClassChecker
 from tstutil import check_TypeError
-from ipalib import frontend, backend, plugable, errors, ipa_types
+from ipalib import frontend, backend, plugable, errors, ipa_types, config
 
 
 def test_RULE_FLAG():
@@ -732,7 +732,7 @@ class test_Command(ClassChecker):
         kw = dict(how_are='you', on_this='fine day?')
 
         # Test in server context:
-        api = plugable.API(self.cls, in_server_context=True)
+        api = plugable.API(dict(server_context=True), self.cls)
         api.finalize()
         o = my_cmd()
         o.set_api(api)
@@ -741,7 +741,7 @@ class test_Command(ClassChecker):
         assert o.run.im_func is my_cmd.execute.im_func
 
         # Test in non-server context
-        api = plugable.API(self.cls, in_server_context=False)
+        api = plugable.API(dict(server_context=False), self.cls)
         api.finalize()
         o = my_cmd()
         o.set_api(api)
@@ -868,6 +868,7 @@ class test_Object(ClassChecker):
         Test the `frontend.Object.primary_key` attribute.
         """
         api = plugable.API(
+            config.default_environment(),
             frontend.Method,
             frontend.Property,
         )
@@ -922,6 +923,7 @@ class test_Object(ClassChecker):
         Test the `frontend.Object.backend` attribute.
         """
         api = plugable.API(
+            config.default_environment(),
             frontend.Object,
             frontend.Method,
             frontend.Property,

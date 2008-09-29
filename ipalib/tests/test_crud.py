@@ -22,10 +22,11 @@ Unit tests for `ipalib.crud` module.
 """
 
 from tstutil import read_only, raises, ClassChecker
-from ipalib import crud, frontend, plugable
+from ipalib import crud, frontend, plugable, config
 
 def get_api():
     api = plugable.API(
+        config.default_environment(),
         frontend.Object,
         frontend.Method,
         frontend.Property,

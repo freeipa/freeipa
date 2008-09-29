@@ -57,6 +57,23 @@ class discover(frontend.Command):
     'Discover IPA servers on network.'
 api.register(discover)
 
+# Command to get the idea how plugins will interact with api.env
+class envtest(frontend.Command):
+    'Show current environment.'
+    def run(*args, **kw):
+        print ""
+        print "Environment variables:"
+        for var in api.env:
+            val = api.env[var]
+            if var is 'servers':
+                print ""
+                print "  Servers:"
+                for item in api.env.servers:
+                    print "    %s" % item
+                print ""
+            else:
+                print "  %s: %s" % (var, val)
+api.register(envtest)
 
 # Register some methods for the 'user' object:
 class user_add(crud.Add):

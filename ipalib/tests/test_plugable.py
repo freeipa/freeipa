@@ -742,7 +742,7 @@ def test_API():
         def method(self, n):
             return n + 1
 
-    api = plugable.API(base0, base1)
+    api = plugable.API(dict(), base0, base1)
     r = api.register
     assert isinstance(r, plugable.Registrar)
     assert read_only(api, 'register') is r
@@ -800,7 +800,7 @@ def test_API():
     # Test with base class that doesn't request a proxy
     class NoProxy(plugable.Plugin):
         __proxy__ = False
-    api = plugable.API(NoProxy)
+    api = plugable.API(dict(), NoProxy)
     class plugin0(NoProxy):
         pass
     api.register(plugin0)

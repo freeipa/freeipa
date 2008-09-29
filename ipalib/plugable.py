@@ -692,20 +692,45 @@ class Registrar(DictProxy):
         self.__registered.add(klass)
 
 
+class Environment(dict):
+    def __getitem__(self, key):
+        val = super(Environment, self).__getitem__(key)
+        if hasattr(val, 'get_value'):
+            return val.get_value()
+        else:
+            return val
+
+    def __setitem__(self, key, value):
+        if key in self:
+            super_value = super(Environment, self).__getitem__(key)
+
+        if key in self and hasattr(super_value, 'set_value'):
+            super_value.set_value(value)
+        else:
+            super(Environment, self).__setitem__(key, value)
+
+    def __getattr__(self, name):
+        return self[name]
+
+    def __setattr__(self, name, value):
+        self[name] = value
+
+    def update(self, d):
+        assert isinstance(d, dict)
+        for key, value in d.iteritems():
+            self[key] = value
+
+
 class API(DictProxy):
     """
     Dynamic API object through which `Plugin` instances are accessed.
     """
     __finalized = False
 
-    def __init__(self, *allowed, **kw):
+    def __init__(self, default_env, *allowed):
         self.__d = dict()
         self.register = Registrar(*allowed)
-        default = dict(
-            in_server_context=True,
-        )
-        default.update(kw)
-        self.env = MagicDict(default)
+        self.env = Environment(default_env)
         super(API, self).__init__(self.__d)
 
     def finalize(self):

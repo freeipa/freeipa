@@ -58,8 +58,10 @@ True
 import plugable
 import frontend
 import backend
+import config
 
 api = plugable.API(
+    config.default_environment(),
     frontend.Command,
     frontend.Object,
     frontend.Method,

@@ -559,7 +559,7 @@ class Command(plugable.Plugin):
         return self.run(*args, **kw)
 
     def run(self, *args, **kw):
-        if self.api.env.in_server_context:
+        if self.api.env.server_context:
             target = self.execute
         else:
             target = self.forward
