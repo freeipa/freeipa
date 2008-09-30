@@ -21,12 +21,11 @@
 Some example plugins.
 """
 
-
 from ipalib import frontend
 from ipalib import crud
 from ipalib.frontend import Param
 from ipalib import api
-from ipalib import servercore
+from ipa_server import servercore
 import ldap
 
 class user(frontend.Object):

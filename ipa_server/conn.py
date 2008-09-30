@@ -18,12 +18,9 @@
 #
 
 import krbV
-import threading
 import ldap
 import ldap.dn
-from ipalib import ipaldap
-
-context = threading.local()
+import ipaldap
 
 class IPAConn:
     def __init__(self, host, port, krbccache, debug=None):

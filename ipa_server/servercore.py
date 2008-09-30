@@ -21,8 +21,8 @@ import sys
 sys.path.insert(0, ".")
 sys.path.insert(0, "..")
 import ldap
-from ipalib.conn import context
-from ipalib import ipautil
+from ipa_server.context import context
+import ipautil
 
 # temporary
 import krbV

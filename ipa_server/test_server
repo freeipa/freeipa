@@ -9,8 +9,9 @@ import xmlrpclib
 import re
 import threading
 import commands
-from ipalib import api, conn
-from ipalib.conn import context
+from ipalib import api
+import conn
+from ipa_server.servercore import context
 import ipalib.load_plugins
 import traceback
 
@@ -66,8 +67,9 @@ class LoggingSimpleXMLRPCRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHa
                 return func(*params)
         finally:
             # Clean up any per-request data and connections
-            for k in context.__dict__.keys():
-                del context.__dict__[k]
+#            for k in context.__dict__.keys():
+#                del context.__dict__[k]
+            pass
 
     def _marshaled_dispatch(self, data, dispatch_method = None):
         try:

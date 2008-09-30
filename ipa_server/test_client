@@ -1,7 +1,16 @@
 #!/usr/bin/python
 
 import xmlrpclib
+
+def user_find(uid):
+    try:
+        args=uid
+        result = server.user_find(args)
+        print "returned %s" % result
+    except xmlrpclib.Fault, e:
+        print e.faultString
     
+# main
 server = xmlrpclib.ServerProxy("http://localhost:8888/")
     
 print server.system.listMethods()
@@ -15,9 +24,5 @@ try:
 except xmlrpclib.Fault, e:
     print e.faultString
 
-try:
-    args="admin"
-    result = server.user_find(args)
-    print "returned %s" % result
-except xmlrpclib.Fault, e:
-    print e.faultString
+user_find("admin")
+user_find("notfound")
