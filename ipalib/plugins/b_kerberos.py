@@ -18,18 +18,17 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-LDAP backend plugin.
+Kerberos backend.
 
-This wraps the python-ldap bindings.
+This wraps the python-kerberos and python-krbV bindings.
 """
 
 from ipalib import api
 from ipalib.backend import Backend
 
-
-class ldap(Backend):
+class krb(Backend):
     """
-    LDAP backend plugin.
+    Kerberos backend plugin.
     """
 
-api.register(ldap)
+api.register(krb)
