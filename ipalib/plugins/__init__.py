@@ -18,5 +18,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Sub-package containing all internal plugins.
+Sub-package containing all core plugins.
+
+By convention, modules with frontend plugins are named f_*.py and modules
+with backend plugins are named b_*.py.
 """

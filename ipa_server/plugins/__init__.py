@@ -17,7 +17,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Built-in backend plugins.
+Sub-package containing all server plugins.
 
-This package __init__ module should implement no code.
+By convention, modules with frontend plugins are named f_*.py and modules
+with backend plugins are named b_*.py.
 """
