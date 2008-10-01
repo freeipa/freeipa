@@ -166,14 +166,11 @@ parse_acct_disable(const char *theval)
     }
     if (!PL_strcasecmp(theval, IPA_WINSYNC_ACCT_DISABLE_NONE)) {
         retval = ACCT_DISABLE_NONE;
-    }
-    if (!PL_strcasecmp(theval, IPA_WINSYNC_ACCT_DISABLE_TO_AD)) {
+    } else if (!PL_strcasecmp(theval, IPA_WINSYNC_ACCT_DISABLE_TO_AD)) {
         retval = ACCT_DISABLE_TO_AD;
-    }
-    if (!PL_strcasecmp(theval, IPA_WINSYNC_ACCT_DISABLE_TO_DS)) {
+    } else if (!PL_strcasecmp(theval, IPA_WINSYNC_ACCT_DISABLE_TO_DS)) {
         retval = ACCT_DISABLE_TO_DS;
-    }
-    if (!PL_strcasecmp(theval, IPA_WINSYNC_ACCT_DISABLE_BOTH)) {
+    } else if (!PL_strcasecmp(theval, IPA_WINSYNC_ACCT_DISABLE_BOTH)) {
         retval = ACCT_DISABLE_BOTH;
     }
 

@@ -1011,9 +1011,15 @@ sync_acct_disable(
             char *adddn, *deldn;
             const char *dsdn;
             int rc;
+            /* in the case of disabling a user, need to remove that user from
+               the activated group, if in there, and add to the inactivated group
+               however, in the case of enabling a user, we just have to remove
+               the user from the inactivated group, if in there - if the user
+               is not in any group, the user is activated by default
+            */
             if (ad_is_enabled) {
                 /* add user to activated group, delete from inactivated group */
-                adddn = ipaconfig->activated_group_dn;
+                adddn = NULL; /* no group means active by default */
                 deldn = ipaconfig->inactivated_group_dn;
             } else {
                 /* add user to inactivated group, delete from activated group */
@@ -1046,7 +1052,11 @@ sync_acct_disable(
             }
             /* next, add the user to the adddn group - ignore (but log)
                if the user is already in that group */
-            rc = do_group_modify(adddn, "member", LDAP_MOD_ADD, dsdn);
+            if (adddn) {
+                rc = do_group_modify(adddn, "member", LDAP_MOD_ADD, dsdn);
+            } else {
+                rc = LDAP_SUCCESS;
+            }
             if (rc == LDAP_TYPE_OR_VALUE_EXISTS) {
                 /* user already in that group */
                 slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
@@ -1080,18 +1090,20 @@ sync_acct_disable(
                                                   "memberOf", deldn);
                     }
                 }
-                slapi_value_set_string(sv, adddn);
-                if (!slapi_entry_attr_has_syntax_value(ds_entry,
-                                                       "memberOf", sv)) {
-                    if (smods) {
-                        slapi_mods_add_string(smods, LDAP_MOD_ADD,
-                                              "memberOf", adddn);
-                        if (do_modify) {
-                            *do_modify = 1; /* added mods */
+                if (adddn) {
+                    slapi_value_set_string(sv, adddn);
+                    if (!slapi_entry_attr_has_syntax_value(ds_entry,
+                                                           "memberOf", sv)) {
+                        if (smods) {
+                            slapi_mods_add_string(smods, LDAP_MOD_ADD,
+                                                  "memberOf", adddn);
+                            if (do_modify) {
+                                *do_modify = 1; /* added mods */
+                            }
+                        } else if (update_entry) {
+                            slapi_entry_add_string(update_entry,
+                                                   "memberOf", adddn);
                         }
-                    } else if (update_entry) {
-                        slapi_entry_add_string(update_entry,
-                                               "memberOf", adddn);
                     }
                 }
                 slapi_value_free(&sv);
