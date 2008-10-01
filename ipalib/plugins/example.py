@@ -25,8 +25,6 @@ from ipalib import frontend
 from ipalib import crud
 from ipalib.frontend import Param
 from ipalib import api
-from ipa_server import servercore
-import ldap
 
 class user(frontend.Object):
     'User object'

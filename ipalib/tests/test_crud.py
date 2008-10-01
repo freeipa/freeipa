@@ -61,9 +61,9 @@ class test_Add(ClassChecker):
             pass
         api.register(user_add)
         api.finalize()
-        assert list(api.Method.user_add.args) == []
+        assert list(api.Method.user_add.args) == ['uid']
         assert list(api.Method.user_add.options) == \
-            ['givenname', 'sn', 'uid', 'initials']
+            ['givenname', 'sn', 'initials']
         for param in api.Method.user_add.options():
             assert param.required is True
 

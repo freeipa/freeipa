@@ -30,7 +30,7 @@ class Add(frontend.Method):
 
     def get_options(self):
         for param in self.obj.params_minus_pk():
-            yield param.__clone__(required=False)
+            yield param
 
 
 class Get(frontend.Method):
