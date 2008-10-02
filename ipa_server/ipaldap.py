@@ -21,8 +21,6 @@
 import sys
 import os
 import os.path
-import base64
-import urllib
 import socket
 import ldif
 import re
@@ -40,13 +38,13 @@ from ipa_server import ipautil
 sasl_auth = ldap.sasl.sasl({},'GSSAPI')
 
 class Entry:
-    """This class represents an LDAP Entry object.  An LDAP entry consists of a DN
-    and a list of attributes.  Each attribute consists of a name and a list of
-    values.  In python-ldap, entries are returned as a list of 2-tuples.
-    Instance variables:
-    dn - string - the string DN of the entry
-    data - CIDict - case insensitive dict of the attributes and values"""
-
+    """This class represents an LDAP Entry object.  An LDAP entry consists of
+       a DN and a list of attributes.  Each attribute consists of a name and
+       a list of values.  In python-ldap, entries are returned as a list of
+       2-tuples.  Instance variables:
+           dn - string - the string DN of the entry
+           data - CIDict - case insensitive dict of the attributes and values
+    """
     def __init__(self,entrydata):
         """data is the raw data returned from the python-ldap result method, which is
         a search result entry or a reference or None.
@@ -128,8 +126,8 @@ class Entry:
         """Convert the Entry to its LDIF representation"""
         return self.__repr__()
 
-    # the ldif class base64 encodes some attrs which I would rather see in raw form - to
-    # encode specific attrs as base64, add them to the list below
+    # the ldif class base64 encodes some attrs which I would rather see in
+    # raw form - to encode specific attrs as base64, add them to the list below
     ldif.safe_string_re = re.compile('^$')
     base64_attrs = ['nsstate', 'krbprincipalkey', 'krbExtraData']
 
@@ -139,24 +137,29 @@ class Entry:
         # what's all this then?  the unparse method will currently only accept
         # a list or a dict, not a class derived from them.  self.data is a
         # cidict, so unparse barfs on it.  I've filed a bug against python-ldap,
-        # but in the meantime, we have to convert to a plain old dict for printing
-        # I also don't want to see wrapping, so set the line width really high (1000)
+        # but in the meantime, we have to convert to a plain old dict for
+        # printing
+        # I also don't want to see wrapping, so set the line width really high
+        # (1000)
         newdata = {}
         newdata.update(self.data)
         ldif.LDIFWriter(sio,Entry.base64_attrs,1000).unparse(self.dn,newdata)
         return sio.getvalue()
 
 def wrapper(f,name):
-    """This is the method that wraps all of the methods of the superclass.  This seems
-    to need to be an unbound method, that's why it's outside of IPAdmin.  Perhaps there
-    is some way to do this with the new classmethod or staticmethod of 2.4.
-    Basically, we replace every call to a method in SimpleLDAPObject (the superclass
-    of IPAdmin) with a call to inner.  The f argument to wrapper is the bound method
-    of IPAdmin (which is inherited from the superclass).  Bound means that it will implicitly
-    be called with the self argument, it is not in the args list.  name is the name of
-    the method to call.  If name is a method that returns entry objects (e.g. result),
-    we wrap the data returned by an Entry class.  If name is a method that takes an entry
-    argument, we extract the raw data from the entry object to pass in."""
+    """This is the method that wraps all of the methods of the superclass.
+       This seems to need to be an unbound method, that's why it's outside
+       of IPAdmin.  Perhaps there is some way to do this with the new
+       classmethod or staticmethod of 2.4. Basically, we replace every call
+       to a method in SimpleLDAPObject (the superclass of IPAdmin) with a
+       call to inner.  The f argument to wrapper is the bound method of
+       IPAdmin (which is inherited from the superclass).  Bound means that it
+       will implicitly be called with the self argument, it is not in the
+       args list.  name is the name of the method to call.  If name is a
+       method that returns entry objects (e.g. result), we wrap the data
+       returned by an Entry class.  If name is a method that takes an entry
+       argument, we extract the raw data from the entry object to pass in.
+    """
     def inner(*args, **kargs):
         if name == 'result':
             objtype, data = f(*args, **kargs)
@@ -185,74 +188,7 @@ def wrapper(f,name):
             return f(*args, **kargs)
     return inner
 
-class LDIFConn(ldif.LDIFParser):
-    def __init__(
-        self,
-        input_file,
-        ignored_attr_types=None,max_entries=0,process_url_schemes=None
-    ):
-        """
-        See LDIFParser.__init__()
-        
-        Additional Parameters:
-        all_records
-        List instance for storing parsed records
-        """
-        self.dndict = {} # maps dn to Entry
-        self.dnlist = [] # contains entries in order read
-        myfile = input_file
-        if isinstance(input_file,str) or isinstance(input_file,unicode):
-            myfile = open(input_file, "r")
-        ldif.LDIFParser.__init__(self,myfile,ignored_attr_types,max_entries,process_url_schemes)
-        self.parse()
-        if isinstance(input_file,str) or isinstance(input_file,unicode):
-            myfile.close()
-
-    def handle(self,dn,entry):
-        """
-        Append single record to dictionary of all records.
-        """
-        if not dn:
-            dn = ''
-        newentry = Entry((dn, entry))
-        self.dndict[IPAdmin.normalizeDN(dn)] = newentry
-        self.dnlist.append(newentry)
-
-    def get(self,dn):
-        ndn = IPAdmin.normalizeDN(dn)
-        return self.dndict.get(ndn, Entry(None))
-
 class IPAdmin(SimpleLDAPObject):
-
-    def getDseAttr(self,attrname):
-        conffile = self.confdir + '/dse.ldif'
-        dseldif = LDIFConn(conffile)
-        cnconfig = dseldif.get("cn=config")
-        if cnconfig:
-            return cnconfig.getValue(attrname)
-        return None
-    
-    def __initPart2(self):
-        if self.binddn and len(self.binddn) and not hasattr(self,'sroot'):
-            try:
-                ent = self.getEntry('cn=config', ldap.SCOPE_BASE, '(objectclass=*)',
-                                    [ 'nsslapd-instancedir', 'nsslapd-errorlog',
-                                      'nsslapd-certdir', 'nsslapd-schemadir' ])
-                self.errlog = ent.getValue('nsslapd-errorlog')
-                self.confdir = ent.getValue('nsslapd-certdir')
-                if not self.confdir:
-                    self.confdir = ent.getValue('nsslapd-schemadir')
-                    if self.confdir:
-                        self.confdir = os.path.dirname(self.confdir)
-                ent = self.getEntry('cn=config,cn=ldbm database,cn=plugins,cn=config',
-                                    ldap.SCOPE_BASE, '(objectclass=*)',
-                                    [ 'nsslapd-directory' ])
-                self.dbdir = os.path.dirname(ent.getValue('nsslapd-directory'))
-            except (ldap.INSUFFICIENT_ACCESS, ldap.CONNECT_ERROR):
-                pass # usually means 
-            except ldap.LDAPError, e:
-                print "caught exception ", e
-                raise
 
     def __localinit(self):
         """If a CA certificate is provided then it is assumed that we are
@@ -269,10 +205,10 @@ class IPAdmin(SimpleLDAPObject):
 
     def __init__(self,host,port=389,cacert=None,bindcert=None,bindkey=None,proxydn=None,debug=None):
         """We just set our instance variables and wrap the methods - the real
-           work is done in __localinit and __initPart2 - these are separated
-           out this way so that we can call them from places other than
-           instance creation e.g. when we just need to reconnect, not create a
-           new instance"""
+           work is done in __localinit. This is separated out this way so
+           that we can call it from places other than instance creation
+           e.g. when we just need to reconnect
+           """
         if debug and debug.lower() == "on":
             ldap.set_option(ldap.OPT_DEBUG_LEVEL,255)
         if cacert is not None:
@@ -330,7 +266,6 @@ class IPAdmin(SimpleLDAPObject):
         self.binddn = binddn
         self.bindpwd = bindpw
         self.simple_bind_s(binddn, bindpw)
-        self.__initPart2()
 
     def getEntry(self,*args):
         """This wraps the search function.  It is common to just get one entry"""
@@ -578,52 +513,12 @@ class IPAdmin(SimpleLDAPObject):
             if callable(attr):
                 setattr(self, name, wrapper(attr, name))
 
-    def addSchema(self, attr, val):
-        dn = "cn=schema"
-        self.modify_s(dn, [(ldap.MOD_ADD, attr, val)])
-
-    def addAttr(self, *args):
-        return self.addSchema('attributeTypes', args)
-
-    def addObjClass(self, *args):
-        return self.addSchema('objectClasses', args)
-
-    ###########################
-    # Static methods start here
-    ###########################
     def normalizeDN(dn):
         # not great, but will do until we use a newer version of python-ldap
         # that has DN utilities
         ary = ldap.explode_dn(dn.lower())
         return ",".join(ary)
     normalizeDN = staticmethod(normalizeDN)
-
-    def getfqdn(name=''):
-        return socket.getfqdn(name)
-    getfqdn = staticmethod(getfqdn)
-
-    def getdomainname(name=''):
-        fqdn = IPAdmin.getfqdn(name)
-        index = fqdn.find('.')
-        if index >= 0:
-            return fqdn[index+1:]
-        else:
-            return fqdn
-    getdomainname = staticmethod(getdomainname)
-
-    def getdefaultsuffix(name=''):
-        dm = IPAdmin.getdomainname(name)
-        if dm:
-            return "dc=" + dm.replace('.', ', dc=')
-        else:
-            return 'dc=localdomain'
-    getdefaultsuffix = staticmethod(getdefaultsuffix)
-
-    def is_a_dn(dn):
-        """Returns True if the given string is a DN, False otherwise."""
-        return (dn.find("=") > 0)
-    is_a_dn = staticmethod(is_a_dn)
-
 
 def notfound(args):
     """Return a string suitable for displaying as an error when a
