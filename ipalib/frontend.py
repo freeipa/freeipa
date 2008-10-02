@@ -467,7 +467,6 @@ class Command(plugable.Plugin):
     args = None
     options = None
     params = None
-    can_forward = True
 
     def finalize(self):
         self.args = plugable.NameSpace(self.__create_args(), sort=False)
