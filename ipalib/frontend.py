@@ -522,7 +522,7 @@ class Command(plugable.Plugin):
 
     def __get_default_iter(self, kw):
         for param in self.params():
-            if param.name not in kw:
+            if param.required and kw.get(param.name, None) is None:
                 yield (param.name, param.get_default(**kw))
 
     def get_default(self, **kw):
