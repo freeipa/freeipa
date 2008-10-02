@@ -542,9 +542,9 @@ class Command(plugable.Plugin):
         print '  kw =', kw
 
     def forward(self, *args, **kw):
-        print '%s.execute():' % self.name
-        print '  args =', args
-        print '  kw =', kw
+        xmlrpc_client = self.api.Backend.xmlrpc.get_client()
+        return getattr(xmlrpc_client, self.name)(kw, *args)
+
 
     def __call__(self, *args, **kw):
         if len(args) > 0:

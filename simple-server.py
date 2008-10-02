@@ -25,22 +25,22 @@ from ipalib import load_plugins
 
 api.finalize()
 
+class Dispatch(object):
+    def __init__(self, cmd):
+        self.__cmd = cmd
 
-def test_func(*args, **kw):
-    'A test function'
-    print args, kw
-    return '%s, %s' % (repr(args), repr(kw))
+    def __call__(self, *params):
+        if len(params) > 0:
+            kw = params[0]
+        else:
+            kw = {}
+        args = params[1:]
+        return cmd(*args, **kw)
 
-def stuff(first, last):
-    'Do stuff'
-    print first, last
-    return first + last
 
 server = SimpleXMLRPCServer(('localhost', 8080))
 server.register_introspection_functions()
-#server.register_function(test_func)
-#server.register_function(stuff)
 for cmd in api.Command():
-    server.register_function(cmd, cmd.name)
+    server.register_function(Dispatch(cmd), cmd.name)
 
 server.serve_forever()

@@ -87,10 +87,10 @@ api.register(user_mod)
 
 class user_find(crud.Find):
     'Search the users.'
-    def execute(self, *args, **kw):
-        uid=args[0]
-        result = servercore.get_sub_entry(servercore.basedn, "uid=%s" % uid, ["*"])
-        return result
+#    def execute(self, *args, **kw):
+#        uid=args[0]
+#        result = servercore.get_sub_entry(servercore.basedn, "uid=%s" % uid, ["*"])
+#        return result
 api.register(user_find)
 
 
