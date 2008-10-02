@@ -620,6 +620,84 @@ class test_NameSpace(ClassChecker):
                     'NameSpace(<%d members>, sort=%r)' % (cnt, sort)
 
 
+def test_Environment():
+    """
+    Tests the `plugable.Environment` class.
+    """
+    # This has to be the same as iter_cnt
+    control_cnt = 0
+    class prop_class:
+        def __init__(self, val):
+            self._val = val
+        def get_value(self):
+            return self._val
+
+    class iter_class(prop_class):
+        # Increment this for each time iter_class yields
+        iter_cnt = 0
+        def get_value(self):
+            for item in self._val:
+                self.__class__.iter_cnt += 1
+                yield item
+
+    # Tests for basic functionality
+    basic_tests = (
+        ('a', 1),
+        ('b', 'basic_foo'),
+        ('c', ('basic_bar', 'basic_baz')),
+    )
+    # Tests with prop classes
+    prop_tests = (
+        ('d', prop_class(2), 2),
+        ('e', prop_class('prop_foo'), 'prop_foo'),
+        ('f', prop_class(('prop_bar', 'prop_baz')), ('prop_bar', 'prop_baz')),
+    )
+    # Tests with iter classes
+    iter_tests = (
+        ('g', iter_class((3, 4, 5)), (3, 4, 5)),
+        ('h', iter_class(('iter_foo', 'iter_bar', 'iter_baz')),
+                         ('iter_foo', 'iter_bar', 'iter_baz')
+        ),
+    )
+
+    # Set all the values
+    env = plugable.Environment()
+    for name, val in basic_tests:
+        env[name] = val
+    for name, val, dummy in prop_tests:
+        env[name] = val
+    for name, val, dummy in iter_tests:
+        env[name] = val
+
+    # Test if the values are correct
+    for name, val in basic_tests:
+        assert env[name] == val
+    for name, dummy, val in prop_tests:
+        assert env[name] == val
+    # Test if the get_value() function is called only when needed
+    for name, dummy, correct_values in iter_tests:
+        values_in_env = []
+        for val in env[name]:
+            control_cnt += 1
+            assert iter_class.iter_cnt == control_cnt
+            values_in_env.append(val)
+        assert tuple(values_in_env) == correct_values
+
+    # Test __setattr__()
+    env.spam = 'ham'
+    assert env.spam == 'ham'
+
+    # Test if we throw AttributeError exception when trying to overwrite
+    # existing value, or delete it
+    raises(AttributeError, setitem, env, 'a', 1)
+    raises(AttributeError, setattr, env, 'a', 1)
+    raises(AttributeError, delitem, env, 'a')
+    raises(AttributeError, delattr, env, 'a')
+    raises(AttributeError, plugable.Environment.update, env, dict(a=1000))
+    # This should be silently ignored
+    env.update(dict(a=1000), True)
+    assert env.a != 1000
+
 def test_Registrar():
     class Base1(object):
         pass
@@ -722,6 +800,7 @@ def test_Registrar():
             assert issubclass(klass, base)
 
 
+
 def test_API():
     assert issubclass(plugable.API, plugable.ReadOnly)
 
@@ -742,7 +821,7 @@ def test_API():
         def method(self, n):
             return n + 1
 
-    api = plugable.API(dict(), base0, base1)
+    api = plugable.API(base0, base1)
     r = api.register
     assert isinstance(r, plugable.Registrar)
     assert read_only(api, 'register') is r
@@ -800,7 +879,7 @@ def test_API():
     # Test with base class that doesn't request a proxy
     class NoProxy(plugable.Plugin):
         __proxy__ = False
-    api = plugable.API(dict(), NoProxy)
+    api = plugable.API(NoProxy)
     class plugin0(NoProxy):
         pass
     api.register(plugin0)

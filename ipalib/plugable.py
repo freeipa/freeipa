@@ -692,32 +692,50 @@ class Registrar(DictProxy):
         self.__registered.add(klass)
 
 
-class Environment(dict):
+class Environment(object):
+    def __init__(self):
+        object.__setattr__(self, '_Environment__map', {})
+
+    def __setattr__(self, name, value):
+        self[name] = value
+
+    def __getattr__(self, name):
+        return self[name]
+
+    def __delattr__(self, name):
+        del self[name]
+
     def __getitem__(self, key):
-        val = super(Environment, self).__getitem__(key)
+        val = self.__map[key]
         if hasattr(val, 'get_value'):
             return val.get_value()
         else:
             return val
 
     def __setitem__(self, key, value):
-        if key in self:
-            super_value = super(Environment, self).__getitem__(key)
+        if key in self or hasattr(self, key):
+            raise AttributeError('cannot overwrite %s.%s' %
+                        (self.__class__.__name__, key)
+                    )
+        self.__map[key] = value
 
-        if key in self and hasattr(super_value, 'set_value'):
-            super_value.set_value(value)
-        else:
-            super(Environment, self).__setitem__(key, value)
+    def __delitem__(self, key):
+        raise AttributeError('read-only: cannot del %s.%s' %
+            (self.__class__.__name__, key)
+        )
 
-    def __getattr__(self, name):
-        return self[name]
+    def __contains__(self, key):
+        return key in self.__map
 
-    def __setattr__(self, name, value):
-        self[name] = value
+    def __iter__(self):
+        for key in self.__map:
+            yield key
 
-    def update(self, d):
-        assert isinstance(d, dict)
-        for key, value in d.iteritems():
+    def update(self, new_vals, ignore_errors = False):
+        assert type(new_vals) == dict
+        for key, value in new_vals.iteritems():
+            if key in self and ignore_errors:
+                continue
             self[key] = value
 
 
@@ -727,10 +745,10 @@ class API(DictProxy):
     """
     __finalized = False
 
-    def __init__(self, default_env, *allowed):
+    def __init__(self, *allowed):
         self.__d = dict()
         self.register = Registrar(*allowed)
-        self.env = Environment(default_env)
+        self.env = Environment()
         super(API, self).__init__(self.__d)
 
     def finalize(self):

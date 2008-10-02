@@ -55,7 +55,7 @@ def raises(exception, callback, *args, **kw):
 
 def getitem(obj, key):
     """
-    Works like getattr but for dictionary interface. Uses this in combination
+    Works like getattr but for dictionary interface. Use this in combination
     with raises() to test that, for example, KeyError is raised.
     """
     return obj[key]
@@ -63,7 +63,7 @@ def getitem(obj, key):
 
 def setitem(obj, key, value):
     """
-    Works like setattr but for dictionary interface. Uses this in combination
+    Works like setattr but for dictionary interface. Use this in combination
     with raises() to test that, for example, TypeError is raised.
     """
     obj[key] = value
@@ -71,7 +71,7 @@ def setitem(obj, key, value):
 
 def delitem(obj, key):
     """
-    Works like delattr but for dictionary interface. Uses this in combination
+    Works like delattr but for dictionary interface. Use this in combination
     with raises() to test that, for example, TypeError is raised.
     """
     del obj[key]

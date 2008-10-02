@@ -26,11 +26,11 @@ from ipalib import crud, frontend, plugable, config
 
 def get_api():
     api = plugable.API(
-        config.default_environment(),
         frontend.Object,
         frontend.Method,
         frontend.Property,
     )
+    api.env.update(config.generate_env())
     class user(frontend.Object):
         takes_params = (
             'givenname',

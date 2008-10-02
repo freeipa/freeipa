@@ -29,8 +29,7 @@ import frontend
 import errors
 import plugable
 import ipa_types
-
-from ipalib import config
+import config
 
 def exit_error(error):
     sys.exit('ipa: ERROR: %s' % error)
@@ -257,9 +256,7 @@ class CLI(object):
             self.print_commands()
             print 'Usage: ipa COMMAND'
             sys.exit(2)
-        # do parsing here, read the conf
-        conf_dict = config.read_config(self.api.env.conf)
-        self.api.env.update(conf_dict)
+        self.api.env.update(config.generate_env())
         key = sys.argv[1]
         if key not in self:
             self.print_commands()

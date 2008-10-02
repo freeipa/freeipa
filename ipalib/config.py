@@ -17,22 +17,31 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+import types
 
-def default_environment():
+DEFAULT_CONF='/etc/ipa/ipa.conf'
+
+def generate_env(d={}):
     default = dict(
-        conf = '/etc/ipa/ipa.conf',
         server_context = True,
         query_dns = True,
         verbose = False,
-        servers = LazyIter(myservers),
-        realm = LazyProp(myrealm),
-        domain = LazyProp(mydomain),
+        servers = LazyIter(get_servers),
+        realm = LazyProp(get_realm),
+        domain = LazyProp(get_domain),
     )
+    for key, value in d.iteritems():
+        if key in default and type(default[key]) in (LazyIter, LazyProp):
+            default[key].set_value(value)
+        else:
+            default[key] = value
+            
     return default
 
 
 class LazyProp(object):
     def __init__(self, func, value=None):
+        assert isinstance(func, types.FunctionType)
         self._func = func
         self._value = value
 
@@ -40,26 +49,26 @@ class LazyProp(object):
         self._value = value
 
     def get_value(self):
-        if self._value is None:
+        if self._value == None:
             return self._func()
         else:
             return self._value
 
 
-# FIXME: make sure to eliminate duplicates
 class LazyIter(LazyProp):
     def get_value(self):
-        if self._value is not None:
-            if type(self._value) is tuple:
+        if self._value != None:
+            if type(self._value) == tuple:
                 for item in self._value:
                     yield item
             else:
                 yield self._value
         for item in self._func():
-            yield item
+            if not self._value or item not in self._value:
+                yield item
 
 
-def read_config(file):
+def read_config(file=DEFAULT_CONF):
     assert isinstance(file, basestring)
     # open the file and read configuration, return a dict
     # for now, these are here just for testing purposes
@@ -67,18 +76,15 @@ def read_config(file):
 
 
 # these functions are here just to "emulate" dns resolving for now
-def mydomain():
+def get_domain():
     return "ipatest.com"
 
 
-def myrealm():
+def get_realm():
     return "IPATEST.COM"
 
 
-def myservers():
-    # print is here to demonstrate that the querying will occur only when it is
-    # really needed
-    print "Querying DNS"
+def get_servers():
     yield "server.ipatest.com"
     yield "backup.ipatest.com"
     yield "fake.ipatest.com"

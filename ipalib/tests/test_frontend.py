@@ -732,7 +732,8 @@ class test_Command(ClassChecker):
         kw = dict(how_are='you', on_this='fine day?')
 
         # Test in server context:
-        api = plugable.API(dict(server_context=True), self.cls)
+        api = plugable.API(self.cls)
+        api.env.update(dict(server_context=True))
         api.finalize()
         o = my_cmd()
         o.set_api(api)
@@ -741,7 +742,8 @@ class test_Command(ClassChecker):
         assert o.run.im_func is my_cmd.execute.im_func
 
         # Test in non-server context
-        api = plugable.API(dict(server_context=False), self.cls)
+        api = plugable.API(self.cls)
+        api.env.update(dict(server_context=False))
         api.finalize()
         o = my_cmd()
         o.set_api(api)
@@ -868,10 +870,10 @@ class test_Object(ClassChecker):
         Test the `frontend.Object.primary_key` attribute.
         """
         api = plugable.API(
-            config.default_environment(),
             frontend.Method,
             frontend.Property,
         )
+        api.env.update(config.generate_env())
         api.finalize()
 
         # Test with no primary keys:
@@ -923,12 +925,12 @@ class test_Object(ClassChecker):
         Test the `frontend.Object.backend` attribute.
         """
         api = plugable.API(
-            config.default_environment(),
             frontend.Object,
             frontend.Method,
             frontend.Property,
             backend.Backend,
         )
+        api.env.update(config.generate_env())
         class ldap(backend.Backend):
             whatever = 'It worked!'
         api.register(ldap)
