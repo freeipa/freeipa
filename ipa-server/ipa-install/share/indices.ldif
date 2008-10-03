@@ -83,15 +83,11 @@ nsIndexType:eq
 nsMatchingRule: integerOrderingMatch
 
 dn: cn=ntUniqueId,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-objectClass: top
-objectClass: nsIndex
-cn: ntUniqueId
-nsSystemIndex: false
+changetype: modify
+replace: nsIndexType
 nsIndexType: eq,pres
 
 dn: cn=ntUserDomainId,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-objectClass: top
-objectClass: nsIndex
-cn: ntUserDomainId
-nsSystemIndex: false
+changetype: modify
+replace: nsIndexType
 nsIndexType: eq,pres
