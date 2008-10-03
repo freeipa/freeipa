@@ -205,6 +205,9 @@ class CLI(object):
 
     def __init__(self, api):
         self.__api = api
+        self.__all_interactive = False
+        self.__not_interactive = False
+        self.__config = None
 
     def __get_api(self):
         return self.__api
@@ -219,6 +222,7 @@ class CLI(object):
         print '\nSpecial CLI commands:'
         for cmd in self.api.Application():
             self.print_cmd(cmd)
+        print '\nUse the --help option to see all the global options'
         print ''
 
     def print_cmd(self, cmd):
@@ -252,20 +256,21 @@ class CLI(object):
 
     def run(self):
         self.finalize()
-        if len(sys.argv) < 2:
-            self.print_commands()
-            print 'Usage: ipa COMMAND'
-            sys.exit(2)
-        env_dict = config.read_config()
+        (args, env_dict) = self.parse_globals()
+        env_dict.update(config.read_config(self.__config))
         self.api.env.update(config.generate_env(env_dict))
-        key = sys.argv[1]
+        if len(args) < 1:
+            self.print_commands()
+            print 'Usage: ipa [global-options] COMMAND'
+            sys.exit(2)
+        key = args[0]
         if key not in self:
             self.print_commands()
             print 'ipa: ERROR: unknown command %r' % key
             sys.exit(2)
         self.run_cmd(
             self[key],
-            list(s.decode('utf-8') for s in sys.argv[2:])
+            list(s.decode('utf-8') for s in args[1:])
         )
 
     def run_cmd(self, cmd, argv):
@@ -276,7 +281,10 @@ class CLI(object):
         for param in cmd.params():
             if param.name not in kw:
                 if not param.required:
-                    continue
+                    if not self.__all_interactive:
+                        continue
+                elif self.__not_interactive:
+                    exit_error('Not enough arguments given')
                 default = param.get_default(**kw)
                 if default is None:
                     prompt = '%s: ' % param.name
@@ -319,11 +327,46 @@ class CLI(object):
             )
         return parser
 
+    def parse_globals(self, argv=sys.argv[1:]):
+        env_dict = {}
+        parser = optparse.OptionParser()
+        parser.disable_interspersed_args()
+        parser.add_option('-a', dest='interactive', action='store_true',
+                help='Prompt for all missing options interactively')
+        parser.add_option('-n', dest='interactive', action='store_false',
+                help='Don\'t prompt for any options interactively')
+        parser.add_option('-c', dest='config_file',
+                help='Specify different configuration file')
+        parser.add_option('-e', dest='environment',
+                help='Specify or override environment variables')
+        parser.add_option('-v', dest='verbose', action='store_true',
+                help='Verbose output')
+        (options, args) = parser.parse_args(argv)
+
+        if options.interactive == True:
+            self.__all_interactive = True
+        elif options.interactive == False:
+            self.__not_interactive = True
+        if options.config_file:
+            self.__config = options.config_file
+        if options.environment:
+            for a in options.environment.split(','):
+                a = a.split('=', 1)
+                if len(a) < 2:
+                    parser.error('badly specified environment string,'\
+                            'use var1=val1[,var2=val2]..')
+                env_dict[a[0].strip()] = a[1].strip()
+        if options.verbose != None:
+            env_dict.update(verbose=True)
+
+        return (args, env_dict)
+
+
     def get_usage(self, cmd):
         return ' '.join(self.get_usage_iter(cmd))
 
     def get_usage_iter(self, cmd):
-        yield 'Usage: %%prog %s' % to_cli(cmd.name)
+        yield 'Usage: %%prog [global-options] %s' % to_cli(cmd.name)
         for arg in cmd.args():
             name = to_cli(arg.name).upper()
             if arg.multivalue:
