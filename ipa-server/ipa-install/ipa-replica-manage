@@ -50,6 +50,13 @@ def parse_options():
     if not len(args) or not ("list" in args[0] or "add" in args[0] or "del" in args[0] or "init" in args[0] or "synch" in args[0]):
         parser.error("must provide a command [list | add | del | init | synch]")
 
+    # set log level
+    if options.verbose:
+        # if verbose, output events at INFO level if not already
+        mylogger = logging.getLogger()
+        if mylogger.getEffectiveLevel() > logging.INFO:
+            mylogger.setLevel(logging.INFO)
+        # else user has already configured logging externally lower
     return options, args
 
 def get_realm_name():
@@ -114,12 +121,17 @@ def add_master(replman, hostname, options):
             logging.error("Could not load the required CA certificate file [%s]" %
                           options.cacert)
             sys.exit(1)
+        else:
+            logging.info("Added CA certificate %s to certificate database for %s" %
+                         (options.cacert, replman.hostname))
         # have to reconnect replman connection since the directory server was restarted
         replman = replication.ReplicationManager(replman.hostname, replman.dirman_passwd)
+        logging.info("Restarted directory server " + replman.hostname)
     replman.setup_replication(hostname, get_realm_name(), **other_args)
+    logging.info("Added agreement for other host " + hostname)
 
 def init_master(replman, dirman_passwd, hostname):
-    filter = "(&(nsDS5ReplicaHost=%s)(objectclass=nsds5ReplicationAgreement))" % hostname
+    filter = "(&(nsDS5ReplicaHost=%s)(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement)))" % hostname
     entry = replman.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
     if len(entry) == 0:
         logging.error("Unable to find replication agreement for %s" % hostname)
@@ -131,7 +143,7 @@ def init_master(replman, dirman_passwd, hostname):
     ds.init_memberof()
 
 def synch_master(replman, hostname):
-    filter = "(&(nsDS5ReplicaHost=%s)(objectclass=nsds5ReplicationAgreement))" % hostname
+    filter = "(&(nsDS5ReplicaHost=%s)(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement)))" % hostname
     entry = replman.conn.search_s("cn=config", ldap.SCOPE_SUBTREE, filter)
     if len(entry) == 0:
         logging.error("Unable to find replication agreement for %s" % hostname)

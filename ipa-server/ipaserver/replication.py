@@ -50,7 +50,7 @@ class ReplicationManager:
         self.suffix = ""
 
     def find_replication_dns(self, conn):
-        filt = "(objectclass=nsDS5ReplicationAgreement)"
+        filt = "(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement))"
         try:
             ents = conn.search_s("cn=mapping tree,cn=config", ldap.SCOPE_SUBTREE, filt)
         except ldap.NO_SUCH_OBJECT:
@@ -372,5 +372,12 @@ class ReplicationManager:
         # it back.
         if newschedule == schedule:
             newschedule = '2358-2359 1'
+        logging.info("Changing agreement %s schedule to %s to force synch" %
+                     (dn, newschedule))
         mod = [(ldap.MOD_REPLACE, 'nsDS5ReplicaUpdateSchedule', [ newschedule ])]
+        conn.modify_s(dn, mod)
+        time.sleep(1)
+        logging.info("Changing agreement %s to restore original schedule %s" %
+                     (dn, schedule))
+        mod = [(ldap.MOD_REPLACE, 'nsDS5ReplicaUpdateSchedule', [ schedule ])]
         conn.modify_s(dn, mod)
