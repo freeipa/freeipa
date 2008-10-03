@@ -26,9 +26,11 @@ The server will run at http://localhost:8080
 """
 
 from SimpleXMLRPCServer import SimpleXMLRPCServer
+from ipalib.util import xmlrpc_unmarshal
 from ipalib import api
 from ipalib import load_plugins
 
+api.env.server_context = True
 api.finalize()
 
 class Dispatch(object):
@@ -36,15 +38,12 @@ class Dispatch(object):
         self.__cmd = cmd
 
     def __call__(self, *params):
-        if len(params) > 0:
-            kw = params[0]
-        else:
-            kw = {}
-        args = params[1:]
-        return cmd(*args, **kw)
+        print 'dispatch: %s%r' % (self.__cmd.name, params)
+        (args, kw) = xmlrpc_unmarshal(*params)
+        return self.__cmd(*args, **kw)
 
 
-server = SimpleXMLRPCServer(('localhost', 8080))
+server = SimpleXMLRPCServer(('localhost', 8080), allow_none=True)
 server.register_introspection_functions()
 for cmd in api.Command():
     server.register_function(Dispatch(cmd), cmd.name)

@@ -541,8 +541,10 @@ class Command(plugable.Plugin):
         print '  kw =', kw
 
     def forward(self, *args, **kw):
-        xmlrpc_client = self.api.Backend.xmlrpc.get_client()
-        return getattr(xmlrpc_client, self.name)(kw, *args)
+        """
+        Forward call over XML-RPC.
+        """
+        return self.api.Backend.xmlrpc.forward_call(self.name, *args, **kw)
 
 
     def __call__(self, *args, **kw):

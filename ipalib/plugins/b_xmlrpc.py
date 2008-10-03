@@ -25,6 +25,7 @@ Lightwieght XML-RPC client using Python standard library xmlrpclib.
 
 import xmlrpclib
 from ipalib.backend import Backend
+from ipalib.util import xmlrpc_marshal
 from ipalib import api
 
 class xmlrpc(Backend):
@@ -35,5 +36,14 @@ class xmlrpc(Backend):
     def get_client(self):
         # FIXME: The server uri should come from self.api.env.server_uri
         return xmlrpclib.ServerProxy('http://localhost:8080', allow_none=True)
+
+    def forward_call(self, name, *args, **kw):
+        """
+        Forward a call over XML-RPC to an IPA server.
+        """
+        client = self.get_client()
+        command = getattr(client, name)
+        params = xmlrpc_marshal(*args, **kw)
+        return command(*params)
 
 api.register(xmlrpc)

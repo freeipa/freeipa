@@ -23,7 +23,7 @@ DEFAULT_CONF='/etc/ipa/ipa.conf'
 
 def generate_env(d={}):
     default = dict(
-        server_context = True,
+        server_context = False,
         query_dns = True,
         verbose = False,
         servers = LazyIter(get_servers),
@@ -35,7 +35,7 @@ def generate_env(d={}):
             default[key].set_value(value)
         else:
             default[key] = value
-            
+
     return default
 
 
