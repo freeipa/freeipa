@@ -256,7 +256,8 @@ class CLI(object):
             self.print_commands()
             print 'Usage: ipa COMMAND'
             sys.exit(2)
-        self.api.env.update(config.generate_env())
+        env_dict = config.read_config()
+        self.api.env.update(config.generate_env(env_dict))
         key = sys.argv[1]
         if key not in self:
             self.print_commands()
