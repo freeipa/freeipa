@@ -458,10 +458,7 @@ class DsInstance(service.Service):
             return False
         # ok - ca cert file can be read
         # shutdown the server
-        running = self.restore_state("running")
-
-        if not running is None:
-            self.stop()
+        self.stop()
 
         dirname = config_dirname(realm_to_serverid(self.realm_name))
         certdb = certs.CertDB(dirname)
