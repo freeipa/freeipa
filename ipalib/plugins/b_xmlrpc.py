@@ -35,7 +35,7 @@ class xmlrpc(Backend):
 
     def get_client(self):
         # FIXME: The server uri should come from self.api.env.server_uri
-        return xmlrpclib.ServerProxy('http://localhost:8080', allow_none=True)
+        return xmlrpclib.ServerProxy('http://localhost:8888', allow_none=True)
 
     def forward_call(self, name, *args, **kw):
         """
@@ -45,5 +45,6 @@ class xmlrpc(Backend):
         command = getattr(client, name)
         params = xmlrpc_marshal(*args, **kw)
         return command(*params)
+#        return command(*args, **kw)
 
 api.register(xmlrpc)

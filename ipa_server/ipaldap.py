@@ -33,7 +33,8 @@ import struct
 import ldap.sasl
 from ldap.controls import LDAPControl,DecodeControlTuples,EncodeControlTuples
 from ldap.ldapobject import SimpleLDAPObject
-import ipautil
+from ipa_server import ipautil
+
 
 # Global variable to define SASL auth
 sasl_auth = ldap.sasl.sasl({},'GSSAPI')
@@ -108,7 +109,11 @@ class Entry:
         """Convert the attrs and values to a list of 2-tuples.  The first element
         of the tuple is the attribute name.  The second element is either a
         single value or a list of values."""
-        return self.data.items()
+        r = []
+        for i in self.data.iteritems():
+            n = ipautil.utf8_encode_values(i[1])
+            r.append((i[0], n))
+        return r
 
     def __str__(self):
         """Convert the Entry to its LDIF representation"""

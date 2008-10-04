@@ -43,7 +43,7 @@ class Dispatch(object):
         return self.__cmd(*args, **kw)
 
 
-server = SimpleXMLRPCServer(('localhost', 8080), allow_none=True)
+server = SimpleXMLRPCServer(('localhost', 8880), allow_none=True)
 server.register_introspection_functions()
 for cmd in api.Command():
     server.register_function(Dispatch(cmd), cmd.name)

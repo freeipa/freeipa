@@ -31,6 +31,8 @@ krbctx = krbV.default_context()
 realm = krbctx.default_realm
 basedn = ipautil.realm_to_suffix(realm)
 
+DefaultUserContainer = "cn=users,cn=accounts"
+
 def convert_entry(ent):
     entry = dict(ent.data)
     entry['dn'] = ent.dn

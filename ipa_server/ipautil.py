@@ -188,3 +188,14 @@ def get_gsserror(e):
        secondary = e[0][1]
 
     return (primary[0], secondary[0])
+
+def utf8_encode_value(value):
+    if isinstance(value,unicode):
+        return value.encode('utf-8')
+    return value
+
+def utf8_encode_values(values):
+    if isinstance(values,list) or isinstance(values,tuple):
+        return map(utf8_encode_value, values)
+    else:
+        return utf8_encode_value(values)
