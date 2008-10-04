@@ -112,19 +112,35 @@ class user_add(crud.Add):
 
         entry = ipaldap.Entry(dn)
 
+        # Get our configuration
+        config = servercore.get_ipa_config()
+
         # Let us add in some missing attributes
-        # FIXME, get config
-#        if user.get('homedirectory') is None:
-#            user['homedirectory'] = '%s/%s' % (config.get('ipahomesrootdir'), user.get('uid'))
-#            user['homedirectory'] = user['homedirectory'].replace('//', '/')
-#            user['homedirectory'] = user['homedirectory'].rstrip('/')
-#        if user.get('loginshell') is None:
-#            user['loginshell'] = config.get('ipadefaultloginshell')
+        if user.get('homedirectory') is None:
+            user['homedirectory'] = '%s/%s' % (config.get('ipahomesrootdir'), user.get('uid'))
+            user['homedirectory'] = user['homedirectory'].replace('//', '/')
+            user['homedirectory'] = user['homedirectory'].rstrip('/')
+        if user.get('loginshell') is None:
+            user['loginshell'] = config.get('ipadefaultloginshell')
         if user.get('gecos') is None:
             user['gecos'] = user['uid']
 
-        # FIXME: add to default group
-        user['gidNumber'] = "500"
+        # If uidnumber is blank the the FDS dna_plugin will automatically
+        # assign the next value. So we don't have to do anything with it.
+
+        group_dn="cn=%s,%s,%s" % (config.get('ipadefaultprimarygroup'), servercore.DefaultGroupContainer, servercore.basedn)
+        try:
+            default_group = servercore.get_entry_by_dn(group_dn, ['dn','gidNumber'])
+            if default_group:
+                user['gidnumber'] = default_group.get('gidnumber')
+#        except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR), e:
+#            raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, message=None, nested_exception=e.detail)
+#        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+#            # Fake an LDAP error so we can return something useful to the user
+#            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND, "The default group for new users, '%s', cannot be found." % config.get('ipadefaultprimarygroup'))
+        except Exception, e:
+            # FIXME
+            raise e
 
         if user.get('krbprincipalname') is None:
             user['krbprincipalname'] = "%s@%s" % (user.get('uid'), self.realm)
@@ -136,9 +152,8 @@ class user_add(crud.Add):
                                            user.get('sn'))
 
         # some required objectclasses
-        # FIXME
-        # entry.setValues('objectClass', (config.get('ipauserobjectclasses')))
-        entry.setValues('objectClass', ['top', 'person', 'organizationalPerson', 'inetOrgPerson', 'inetUser', 'posixAccount', 'krbPrincipalAux'])
+        entry.setValues('objectClass', (config.get('ipauserobjectclasses')))
+        # entry.setValues('objectClass', ['top', 'person', 'organizationalPerson', 'inetOrgPerson', 'inetUser', 'posixAccount', 'krbPrincipalAux'])
 
         # fill in our new entry with everything sent by the user
         for u in user:
@@ -169,7 +184,7 @@ class user_find(crud.Find):
     def forward(self, *args, **kw):
         result = super(crud.Find, self).forward(*args, **kw)
         for a in result:
-            print a, ": ", res[a]
+            print a, ": ", result[a]
 api.register(user_find)
 
 

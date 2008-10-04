@@ -32,6 +32,8 @@ realm = krbctx.default_realm
 basedn = ipautil.realm_to_suffix(realm)
 
 DefaultUserContainer = "cn=users,cn=accounts"
+DefaultGroupContainer = "cn=groups,cn=accounts"
+DefaultServiceContainer = "cn=services,cn=accounts"
 
 def convert_entry(ent):
     entry = dict(ent.data)
@@ -97,6 +99,16 @@ def get_list (base, searchfilter, sattrs=None):
 
     return map(convert_entry, entries)
 
+# General searches
+
+def get_entry_by_dn (dn, sattrs=None):
+    """Get a specific entry. Return as a dict of values.
+       Multi-valued fields are represented as lists.
+    """
+    searchfilter = "(objectClass=*)"
+#    logging.info("IPA: get_entry_by_dn '%s'" % dn)
+    return get_base_entry(dn, searchfilter, sattrs)
+
 def update_entry (oldentry, newentry):
     """Update an LDAP entry
 
@@ -148,3 +160,14 @@ def get_objectclasses():
         result.append(oc[3].replace("'",""))
 
     return result
+
+def get_ipa_config():
+    """Retrieve the IPA configuration"""
+    searchfilter = "cn=ipaconfig"
+    try:
+        config = get_sub_entry("cn=etc," + basedn, searchfilter)
+    except ldap.NO_SUCH_OBJECT, e:
+        # FIXME
+        raise e
+
+    return config
