@@ -17,7 +17,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+from ConfigParser import SafeConfigParser, ParsingError
 import types
+import os
 
 DEFAULT_CONF='/etc/ipa/ipa.conf'
 
@@ -26,7 +28,8 @@ def generate_env(d={}):
         server_context = False,
         query_dns = True,
         verbose = False,
-        servers = LazyIter(get_servers),
+        interactive = True,
+        server = LazyIter(get_servers),
         realm = LazyProp(get_realm),
         domain = LazyProp(get_domain),
     )
@@ -68,11 +71,33 @@ class LazyIter(LazyProp):
                 yield item
 
 
-def read_config(file=DEFAULT_CONF):
-    assert isinstance(file, basestring)
-    # open the file and read configuration, return a dict
-    # for now, these are here just for testing purposes
-    return dict(servers="server.ipatest.com", realm="IPATEST.COM")
+def read_config(config_file=None):
+    assert config_file == None or isinstance(config_file, (basestring, file))
+
+    parser = SafeConfigParser()
+    if config_file == None:
+        files = [DEFAULT_CONF, os.path.expanduser('~/.ipa.conf')]
+    else:
+        files = [config_file]
+
+    for f in files:
+        try:
+            if isinstance(f, file):
+                parser.readfp(f)
+            else:
+                parser.read(f)
+        except ParsingError:
+            print "Can't read %s" % f
+
+    ret = {}
+    if parser.has_section('defaults'):
+        for name, value in parser.items('defaults'):
+            value = tuple(elem.strip() for elem in value.split(','))
+            if len(value) == 1:
+                value = value[0]
+            ret[name] = value
+
+    return ret
 
 
 # these functions are here just to "emulate" dns resolving for now

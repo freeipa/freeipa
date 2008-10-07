@@ -35,10 +35,10 @@ class envtest(frontend.Command):
         print "Environment variables:"
         for var in api.env:
             val = api.env[var]
-            if var is 'servers':
+            if var is 'server':
                 print ""
                 print "  Servers:"
-                for item in api.env.servers:
+                for item in api.env.server:
                     print "    %s" % item
                 print ""
             else:
