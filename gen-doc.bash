@@ -2,11 +2,10 @@
 
 # Hackish script to generate documentation using epydoc
 
-mod="ipalib"
-d="./$mod-doc"
-f="$d.tar.bz2"
+sources="ipalib ipa_server ipa_webui"
+out="./freeipa2-dev-doc"
 
-init="./$mod/__init__.py"
+init="./ipalib/__init__.py"
 echo "Looking for $init"
 if [[ ! -f $init ]]
 then
@@ -16,19 +15,14 @@ fi
 echo "You appear to be in the project directory"
 
 # Documentation
-if [[ -d $d ]]
+if [[ -d $out ]]
 then
-    echo "Removing old $d directory"
-    rm -r $d
+    echo "Removing old $out directory"
+    rm -r $out
 fi
-echo "Creating documentation in $d"
-epydoc -v --output=$d --docformat=restructuredtext --html --no-frames $mod
-
-# Tarball
-if [[ -f $f ]]
-then
-    echo "Removing old $f file"
-    rm $f
-fi
-echo "Creating tarball $f"
-tar --create --bzip2 --file=$f $d
+echo "Creating documentation in $out"
+epydoc -v --parse-only --html --no-frames \
+    --name=FreeIPA2 \
+    --docformat=restructuredtext \
+    --output=$out \
+    $sources
