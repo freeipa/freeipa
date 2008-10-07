@@ -208,15 +208,33 @@ class user_find(crud.Find):
     'Search the users.'
     def execute(self, *args, **kw):
         uid=args[0]
-        result = servercore.get_sub_entry(servercore.basedn, "uid=%s" % uid, ["*"])
+        result = servercore.find_users(uid, ["*"])
         return result
     def forward(self, *args, **kw):
-        result = super(crud.Find, self).forward(*args, **kw)
-        for a in result:
-            print a, ": ", result[a]
+        users = super(crud.Find, self).forward(*args, **kw)
+        counter = users[0]
+        users = users[1:]
+        if counter == 0:
+            print "No entries found for", args[0]
+            return
+        elif counter == -1:
+            print "These results are truncated."
+            print "Please refine your search and try again."
+
+        for u in users:
+            for a in u.keys():
+                print "%s: %s" % (a, u[a])
 api.register(user_find)
 
 
 class user_show(crud.Get):
     'Examine an existing user.'
+    def execute(self, *args, **kw):
+        uid=args[0]
+        result = servercore.get_user_by_uid(uid, ["*"])
+        return result
+    def forward(self, *args, **kw):
+        result = super(crud.Get, self).forward(*args, **kw)
+        for a in result:
+            print a, ": ", result[a]
 api.register(user_show)
