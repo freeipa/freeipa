@@ -20,22 +20,52 @@
 Controller classes.
 """
 
-from ipalib.plugable import ReadOnly
+import simplejson
+from ipalib.plugable import ReadOnly, lock
 
 
 class Controller(ReadOnly):
-    def __init__(self, cmd, template):
-        self.cmd = cmd
-        self.template = template
+    exposed = True
 
-    def serialize(self, **kw):
+    def __init__(self, template=None):
+        self.template = template
+        lock(self)
+
+    def output_xhtml(self, **kw):
         return self.template.serialize(
             output='xhtml-strict',
-            format='pretty+nice',
+            format='pretty',
             **kw
         )
 
+    def output_json(self, **kw):
+        return simplejson.dumps(kw, sort_keys=True, indent=4)
+
     def __call__(self, **kw):
-        return self.serialize(
-            result=self.cmd(**kw),
-        )
+        json = bool(kw.pop('_format', None) == 'json')
+        result = self.run(**kw)
+        assert type(result) is dict
+        if json or self.template is None:
+            return self.output_json(**result)
+        return self.output_xhtml(**result)
+
+    def run(self, **kw):
+        return {}
+
+
+class Command(Controller):
+    def __init__(self, command, template=None):
+        self.command = command
+        super(Command, self).__init__(template)
+
+    def run(self, **kw):
+        return dict(command=self.command)
+
+
+class Index(Controller):
+    def __init__(self, api, template=None):
+        self.api = api
+        super(Index, self).__init__(template)
+
+    def run(self):
+        return dict(api=self.api)

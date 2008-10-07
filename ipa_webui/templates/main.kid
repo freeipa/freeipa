@@ -2,11 +2,13 @@
 <html xmlns:py="http://purl.org/kid/ns#">
 
 <head>
-    <title>Hello</title>
+    <title>FreeIPA</title>
 </head>
 
 <body>
-    <div>Hello</div>
+    <p py:for="name in api.Command">
+        <a href="${name}" py:content="name"/>
+    </p>
 </body>
 
 </html>

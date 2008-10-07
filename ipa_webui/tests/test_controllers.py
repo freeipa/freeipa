@@ -23,6 +23,7 @@ Test the `ipa_webui.controller` module.
 from ipa_webui import controller
 
 
+
 class test_Controller(object):
     """
     Test the `controller.Controller` class.
@@ -32,15 +33,15 @@ class test_Controller(object):
         """
         Test the `ipa_webui.controller.Controller.__init__()` method.
         """
-        cmd = 'The command.'
+        o = controller.Controller()
+        assert o.template is None
         template = 'The template.'
-        o = controller.Controller(cmd, template)
-        assert o.cmd is cmd
+        o = controller.Controller(template)
         assert o.template is template
 
-    def test_serialize(self):
+    def test_output_xhtml(self):
         """
-        Test the `ipa_webui.controller.Controller.serialize` method.
+        Test the `ipa_webui.controller.Controller.output_xhtml` method.
         """
         class Template(object):
             def __init__(self):
@@ -52,20 +53,18 @@ class test_Controller(object):
                 self.kw = kw
                 return dict(kw)
 
-        d = dict(output='xhtml-strict', format='pretty+nice')
+        d = dict(output='xhtml-strict', format='pretty')
         t = Template()
-        o = controller.Controller(None, t)
-        assert o.serialize() == d
+        o = controller.Controller(t)
+        assert o.output_xhtml() == d
         assert t.calls == 1
 
-    def test_call(self):
+    def test_output_json(self):
         """
-        Test the `ipa_webui.controller.Controller.__call__` method.
+        Test the `ipa_webui.controller.Controller.output_json` method.
         """
-        class Template(object):
-            def serialize(self, **kw):
-                return 'Your login is %s.' % kw['result']
-        def cmd(**kw):
-            return kw['first'][0] + kw['last']
-        o = controller.Controller(cmd, Template())
-        assert o(first='John', last='Doe') == 'Your login is JDoe.'
+        o = controller.Controller()
+        assert o.output_json() == '{}'
+        e = '{\n    "age": 27, \n    "first": "John", \n    "last": "Doe"\n}'
+        j = o.output_json(last='Doe', first='John', age=27)
+        assert j == e

@@ -19,18 +19,29 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-A lightweight test server running using cherrypy.
+A web-UI test server using cherrypy.
 """
 
 from cherrypy import expose, config, quickstart
-from ipa_webui.templates import main
+from ipa_webui.templates import form, main
+from ipa_webui import controller
+from ipalib import api
+from ipalib import load_plugins
+
+
+api.finalize()
+
 
 class root(object):
-    @expose
-    def index(self):
-        return main.serialize(
-            output='xhtml-strict',
-            format='pretty+nice',
-        )
+    index = controller.Index(api, main)
+
+    def __init__(self):
+        for cmd in api.Command():
+            ctr = controller.Command(cmd, form)
+            setattr(self, cmd.name, ctr)
+
+
+
+
 
 quickstart(root())
