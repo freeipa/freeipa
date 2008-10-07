@@ -17,9 +17,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import sys
-sys.path.insert(0, ".")
-sys.path.insert(0, "..")
 import ldap
 from ipa_server.context import context
 import ipautil
@@ -109,6 +106,43 @@ def get_entry_by_dn (dn, sattrs=None):
 #    logging.info("IPA: get_entry_by_dn '%s'" % dn)
     return get_base_entry(dn, searchfilter, sattrs)
 
+# User support
+
+def is_user_unique(uid):
+    """Return True if the uid is unique in the tree, False otherwise."""
+    # FIXME
+#    uid = self.__safe_filter(uid)
+    searchfilter = "(&(uid=%s)(objectclass=posixAccount))" % uid
+
+    try:
+        entry = get_sub_entry("cn=accounts," + basedn, searchfilter, ['dn','uid'])
+        return False
+#    except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+    except Exception:
+        return True
+
+def uid_too_long(uid):
+    """Verify that the new uid is within the limits we set. This is a
+       very narrow test.
+
+       Returns True if it is longer than allowed
+               False otherwise
+    """
+    if not isinstance(uid,basestring) or len(uid) == 0:
+        # It is bad, but not too long
+        return False
+#    logging.debug("IPA: __uid_too_long(%s)" % uid)
+    try:
+        config = get_ipa_config()
+        maxlen = int(config.get('ipamaxusernamelength', 0))
+        if maxlen > 0 and len(uid) > maxlen:
+            return True
+    except Exception, e:
+#        logging.debug("There was a problem " + str(e))
+        pass
+
+    return False
+
 def update_entry (oldentry, newentry):
     """Update an LDAP entry
 
@@ -130,10 +164,14 @@ def update_entry (oldentry, newentry):
     res = context.conn.getConn().updateEntry(moddn, oldentry, newentry)
     return res
 
+def add_entry(entry):
+    """Add a new entry"""
+    return context.conn.getConn().addEntry(entry)
+
 def uniq_list(x):
     """Return a unique list, preserving order and ignoring case"""
     myset = {}
-    return [set.setdefault(e.lower(),e) for e in x if e.lower() not in myset]
+    return [myset.setdefault(e.lower(),e) for e in x if e.lower() not in myset]
 
 def get_schema():
     """Retrieves the current LDAP schema from the LDAP server."""

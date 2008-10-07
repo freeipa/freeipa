@@ -24,6 +24,7 @@ Lightwieght XML-RPC client using Python standard library xmlrpclib.
 """
 
 import xmlrpclib
+import socket
 from ipalib.backend import Backend
 from ipalib.util import xmlrpc_marshal
 from ipalib import api
@@ -44,7 +45,10 @@ class xmlrpc(Backend):
         client = self.get_client()
         command = getattr(client, name)
         params = xmlrpc_marshal(*args, **kw)
-        return command(*params)
-#        return command(*args, **kw)
+        try:
+            return command(*params)
+        except socket.error, e:
+            print e[1]
+            return False
 
 api.register(xmlrpc)

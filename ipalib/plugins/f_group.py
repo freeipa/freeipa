@@ -28,7 +28,6 @@ from ipalib import api
 from ipa_server import servercore
 from ipa_server import ipaldap
 import ldap
-from ipa_server.context import context
 
 
 class group(frontend.Object):
@@ -82,7 +81,7 @@ class group_add(crud.Add):
         for g in group:
             entry.setValues(g, group[g])
 
-        result = context.conn.getConn().addEntry(entry)
+        result = servercore.add_entry(entry)
         return result
 
 

@@ -28,7 +28,6 @@ from ipalib import api
 from ipa_server import servercore
 from ipa_server import ipaldap
 import ldap
-from ipa_server.context import context
 
 # Command to get the idea how plugins will interact with api.env
 class envtest(frontend.Command):
@@ -93,6 +92,13 @@ class user_add(crud.Add):
             raise SyntaxError
 
         user['uid'] = args[0]
+
+        if not servercore.is_user_unique(user['uid']):
+            # FIXME, specific error
+            raise SyntaxError("user already exists")
+        if servercore.uid_too_long(user['uid']):
+            # FIXME, specific error
+            raise SyntaxError("uid is too long")
 
         # dn is set here, not by the user
         try:
@@ -159,8 +165,12 @@ class user_add(crud.Add):
         for u in user:
             entry.setValues(u, user[u])
 
-        result = context.conn.getConn().addEntry(entry)
+        result = servercore.add_entry(entry)
         return result
+    def forward(self, *args, **kw):
+        result = super(crud.Add, self).forward(*args, **kw)
+        if result != False:
+            print result
 
 api.register(user_add)
 
