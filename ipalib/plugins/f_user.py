@@ -170,7 +170,7 @@ class user_add(crud.Add):
     def forward(self, *args, **kw):
         result = super(crud.Add, self).forward(*args, **kw)
         if result != False:
-            print result
+            print "User %s added" % args[0]
 
 api.register(user_add)
 
@@ -182,6 +182,25 @@ api.register(user_del)
 
 class user_mod(crud.Mod):
     'Edit an existing user.'
+    def execute(self, *args, **kw):
+        uid=args[0]
+        result = servercore.get_sub_entry(servercore.basedn, "uid=%s" % uid, ["*"])
+
+        user = kw
+        dn = result.get('dn')
+        del result['dn']
+        entry = ipaldap.Entry((dn, servercore.convert_scalar_values(result)))
+
+        for u in user:
+            entry.setValues(u, user[u])
+
+        result = servercore.update_entry(entry.toDict())
+
+        return result
+    def forward(self, *args, **kw):
+        result = super(crud.Mod, self).forward(*args, **kw)
+        if result != False:
+            print "User %s modified" % args[0]
 api.register(user_mod)
 
 

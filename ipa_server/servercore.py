@@ -121,6 +121,22 @@ def is_user_unique(uid):
     except Exception:
         return True
 
+def get_user_by_uid (uid, sattrs):
+    """Get a specific user's entry. Return as a dict of values.
+       Multi-valued fields are represented as lists.
+    """
+
+    if not isinstance(uid,basestring) or len(uid) == 0:
+        raise SyntaxError("uid is not a string")
+#        raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+    if sattrs is not None and not isinstance(sattrs,list):
+        raise SyntaxError("sattrs is not a list")
+#        raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
+#    logging.info("IPA: get_user_by_uid '%s'" % uid)
+#    uid = self.__safe_filter(uid)
+    searchfilter = "(uid=" + uid + ")"
+    return get_sub_entry("cn=accounts," + basedn, searchfilter, sattrs)
+
 def uid_too_long(uid):
     """Verify that the new uid is within the limits we set. This is a
        very narrow test.
@@ -143,14 +159,18 @@ def uid_too_long(uid):
 
     return False
 
-def update_entry (oldentry, newentry):
+def update_entry (entry):
     """Update an LDAP entry
 
-       oldentry is a dict
-       newentry is a dict
+       entry is a dict
+
+       This refreshes the record from LDAP in order to obtain the list of
+       attributes that has changed.
     """
-    oldentry = convert_scalar_values(oldentry)
-    newentry = convert_scalar_values(newentry)
+    attrs = entry.keys()
+    o = get_base_entry(entry['dn'], "objectclass=*", attrs)
+    oldentry = convert_scalar_values(o)
+    newentry = convert_scalar_values(entry)
 
     # Should be able to get this from either the old or new entry
     # but just in case someone has decided to try changing it, use the
@@ -161,8 +181,7 @@ def update_entry (oldentry, newentry):
         # FIXME: return a missing DN error message
         raise e
 
-    res = context.conn.getConn().updateEntry(moddn, oldentry, newentry)
-    return res
+    return context.conn.getConn().updateEntry(moddn, oldentry, newentry)
 
 def add_entry(entry):
     """Add a new entry"""

@@ -115,6 +115,15 @@ class Entry:
             r.append((i[0], n))
         return r
 
+    def toDict(self):
+        """Convert the attrs and values to a dict. The dict is keyed on the
+        attribute name.  The value is either single value or a list of values."""
+        result = ipautil.CIDict(self.data)
+        for i in result.keys():
+            result[i] = ipautil.utf8_encode_values(result[i])
+        result['dn'] = self.dn
+        return result
+
     def __str__(self):
         """Convert the Entry to its LDIF representation"""
         return self.__repr__()
