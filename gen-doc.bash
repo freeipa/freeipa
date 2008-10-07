@@ -21,8 +21,9 @@ then
     rm -r $out
 fi
 echo "Creating documentation in $out"
-epydoc -v --parse-only --html --no-frames \
-    --name=FreeIPA2 \
+
+epydoc -v --parse-only --html --no-frames --include-log \
+    --name="FreeIPA2 developer documentation" \
     --docformat=restructuredtext \
     --output=$out \
     $sources
