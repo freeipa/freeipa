@@ -24,6 +24,7 @@ Test the `ipalib.crud` module.
 from tests.util import read_only, raises, ClassChecker
 from ipalib import crud, frontend, plugable, config
 
+
 def get_api():
     api = plugable.API(
         frontend.Object,
@@ -44,17 +45,20 @@ def get_api():
 
 class test_Add(ClassChecker):
     """
-    Test the `crud.Add` class.
+    Test the `ipalib.crud.Add` class.
     """
 
     _cls = crud.Add
 
     def test_class(self):
+        """
+        Test the `ipalib.crud.Add` class.
+        """
         assert self.cls.__bases__ == (frontend.Method,)
 
     def test_options_args(self):
         """
-        Test `crud.Add.get_args` and `crud.Add.get_options` methods.
+        Test `ipalib.crud.Add.get_args` and `ipalib.crud.Add.get_options` methods.
         """
         api = get_api()
         class user_add(self.cls):
@@ -70,17 +74,20 @@ class test_Add(ClassChecker):
 
 class test_Get(ClassChecker):
     """
-    Test the `crud.Get` class.
+    Test the `ipalib.crud.Get` class.
     """
 
     _cls = crud.Get
 
     def test_class(self):
+        """
+        Test the `ipalib.crud.Get` class.
+        """
         assert self.cls.__bases__ == (frontend.Method,)
 
     def test_options_args(self):
         """
-        Test `crud.Get.get_args` and `crud.Get.get_options` methods.
+        Test `ipalib.crud.Get.get_args` and `ipalib.crud.Get.get_options` methods.
         """
         api = get_api()
         class user_get(self.cls):
@@ -93,17 +100,20 @@ class test_Get(ClassChecker):
 
 class test_Del(ClassChecker):
     """
-    Test the `crud.Del` class.
+    Test the `ipalib.crud.Del` class.
     """
 
     _cls = crud.Del
 
     def test_class(self):
+        """
+        Test the `ipalib.crud.Del` class.
+        """
         assert self.cls.__bases__ == (frontend.Method,)
 
     def test_options_args(self):
         """
-        Test `crud.Del.get_args` and `crud.Del.get_options` methods.
+        Test `ipalib.crud.Del.get_args` and `ipalib.crud.Del.get_options` methods.
         """
         api = get_api()
         class user_del(self.cls):
@@ -116,17 +126,20 @@ class test_Del(ClassChecker):
 
 class test_Mod(ClassChecker):
     """
-    Test the `crud.Mod` class.
+    Test the `ipalib.crud.Mod` class.
     """
 
     _cls = crud.Mod
 
     def test_class(self):
+        """
+        Test the `ipalib.crud.Mod` class.
+        """
         assert self.cls.__bases__ == (frontend.Method,)
 
     def test_options_args(self):
         """
-        Test `crud.Mod.get_args` and `crud.Mod.get_options` methods.
+        Test `ipalib.crud.Mod.get_args` and `ipalib.crud.Mod.get_options` methods.
         """
         api = get_api()
         class user_mod(self.cls):
@@ -143,17 +156,20 @@ class test_Mod(ClassChecker):
 
 class test_Find(ClassChecker):
     """
-    Test the `crud.Find` class.
+    Test the `ipalib.crud.Find` class.
     """
 
     _cls = crud.Find
 
     def test_class(self):
+        """
+        Test the `ipalib.crud.Find` class.
+        """
         assert self.cls.__bases__ == (frontend.Method,)
 
     def test_options_args(self):
         """
-        Test `crud.Find.get_args` and `crud.Find.get_options` methods.
+        Test `ipalib.crud.Find.get_args` and `ipalib.crud.Find.get_options` methods.
         """
         api = get_api()
         class user_find(self.cls):
