@@ -22,7 +22,7 @@ then
 fi
 echo "Creating documentation in $out"
 
-epydoc -v --parse-only --html --no-frames --include-log \
+epydoc -v --html --no-frames --include-log \
     --name="FreeIPA2 developer documentation" \
     --docformat=restructuredtext \
     --output=$out \
