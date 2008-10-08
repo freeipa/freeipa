@@ -27,7 +27,7 @@ from ipalib import cli, plugable
 
 def test_to_cli():
     """
-    Tests the `cli.to_cli` function.
+    Test the `ipalib.cli.to_cli` function.
     """
     f = cli.to_cli
     assert f('initialize') == 'initialize'
@@ -36,7 +36,7 @@ def test_to_cli():
 
 def test_from_cli():
     """
-    Tests the `cli.from_cli` function.
+    Test the `ipalib.cli.from_cli` function.
     """
     f = cli.from_cli
     assert f('initialize') == 'initialize'
@@ -46,6 +46,7 @@ def test_from_cli():
 def get_cmd_name(i):
     return 'cmd_%d' % i
 
+
 class DummyCommand(object):
     def __init__(self, name):
         self.__name = name
@@ -53,6 +54,7 @@ class DummyCommand(object):
     def __get_name(self):
         return self.__name
     name = property(__get_name)
+
 
 class DummyAPI(object):
     def __init__(self, cnt):
@@ -73,21 +75,21 @@ class DummyAPI(object):
         pass
 
 
-
-
-
 class test_CLI(ClassChecker):
     """
-    Tests the `cli.CLI` class.
+    Test the `ipalib.cli.CLI` class.
     """
     _cls = cli.CLI
 
     def test_class(self):
+        """
+        Test the `ipalib.cli.CLI` class.
+        """
         assert type(self.cls.api) is property
 
     def test_api(self):
         """
-        Tests the `cli.CLI.api` property.
+        Test the `ipalib.cli.CLI.api` property.
         """
         api = 'the plugable.API instance'
         o = self.cls(api)
@@ -95,7 +97,7 @@ class test_CLI(ClassChecker):
 
     def dont_parse(self):
         """
-        Tests the `cli.CLI.parse` method.
+        Test the `ipalib.cli.CLI.parse` method.
         """
         o = self.cls(None)
         args = ['hello', 'naughty', 'nurse']
@@ -111,7 +113,7 @@ class test_CLI(ClassChecker):
 
     def test_mcl(self):
         """
-        Tests the `cli.CLI.mcl` (Max Command Length) property .
+        Test the `ipalib.cli.CLI.mcl` property .
         """
         cnt = 100
         api = DummyAPI(cnt)
@@ -123,7 +125,7 @@ class test_CLI(ClassChecker):
 
     def test_dict(self):
         """
-        Tests the `cli.CLI.__contains__` and `cli.CLI.__getitem__` methods.
+        Test container emulation of `ipalib.cli.CLI` class.
         """
         cnt = 25
         api = DummyAPI(cnt)
