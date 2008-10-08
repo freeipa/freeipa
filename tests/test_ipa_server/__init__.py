@@ -18,5 +18,5 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Unit tests for `ipa_server` package.
+Test the `ipa_server` package.
 """

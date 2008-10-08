@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Utility functions for the unit tests.
+Common utility functions and classes for unit tests.
 """
 
 import inspect
