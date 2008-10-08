@@ -29,18 +29,21 @@ from ipalib import plugable, errors
 
 class test_ReadOnly(ClassChecker):
     """
-    Test the `plugable.ReadOnly` class
+    Test the `ipalib.plugable.ReadOnly` class
     """
     _cls = plugable.ReadOnly
 
     def test_class(self):
+        """
+        Test the `ipalib.plugable.ReadOnly` class
+        """
         assert self.cls.__bases__ == (object,)
         assert callable(self.cls.__lock__)
         assert callable(self.cls.__islocked__)
 
     def test_lock(self):
         """
-        Test the `plugable.ReadOnly.__lock__` method.
+        Test the `ipalib.plugable.ReadOnly.__lock__` method.
         """
         o = self.cls()
         assert o._ReadOnly__locked is False
@@ -52,7 +55,7 @@ class test_ReadOnly(ClassChecker):
 
     def test_lock(self):
         """
-        Test the `plugable.ReadOnly.__islocked__` method.
+        Test the `ipalib.plugable.ReadOnly.__islocked__` method.
         """
         o = self.cls()
         assert o.__islocked__() is False
@@ -61,7 +64,7 @@ class test_ReadOnly(ClassChecker):
 
     def test_setattr(self):
         """
-        Test the `plugable.ReadOnly.__setattr__` method.
+        Test the `ipalib.plugable.ReadOnly.__setattr__` method.
         """
         o = self.cls()
         o.attr1 = 'Hello, world!'
@@ -74,7 +77,7 @@ class test_ReadOnly(ClassChecker):
 
     def test_delattr(self):
         """
-        Test the `plugable.ReadOnly.__delattr__` method.
+        Test the `ipalib.plugable.ReadOnly.__delattr__` method.
         """
         o = self.cls()
         o.attr1 = 'Hello, world!'
@@ -91,7 +94,7 @@ class test_ReadOnly(ClassChecker):
 
 def test_lock():
     """
-    Tests the `plugable.lock` function.
+    Test the `ipalib.plugable.lock` function.
     """
     f = plugable.lock
 
@@ -120,14 +123,20 @@ def test_lock():
 
 class test_SetProxy(ClassChecker):
     """
-    Tests the `plugable.SetProxy` class.
+    Test the `ipalib.plugable.SetProxy` class.
     """
     _cls = plugable.SetProxy
 
     def test_class(self):
+        """
+        Test the `ipalib.plugable.SetProxy` class.
+        """
         assert self.cls.__bases__ == (plugable.ReadOnly,)
 
     def test_init(self):
+        """
+        Test the `ipalib.plugable.SetProxy.__init__` method.
+        """
         okay = (set, frozenset, dict)
         fail = (list, tuple)
         for t in okay:
@@ -138,6 +147,9 @@ class test_SetProxy(ClassChecker):
             raises(TypeError, self.cls, t)
 
     def test_SetProxy(self):
+        """
+        Test container emulation of `ipalib.plugable.SetProxy` class.
+        """
         def get_key(i):
             return 'key_%d' % i
 
@@ -163,14 +175,20 @@ class test_SetProxy(ClassChecker):
 
 class test_DictProxy(ClassChecker):
     """
-    Tests the `plugable.DictProxy` class.
+    Test the `ipalib.plugable.DictProxy` class.
     """
     _cls = plugable.DictProxy
 
     def test_class(self):
+        """
+        Test the `ipalib.plugable.DictProxy` class.
+        """
         assert self.cls.__bases__ == (plugable.SetProxy,)
 
     def test_init(self):
+        """
+        Test the `ipalib.plugable.DictProxy.__init__` method.
+        """
         self.cls(dict())
         raises(TypeError, self.cls, dict)
         fail = (set, frozenset, list, tuple)
@@ -179,6 +197,9 @@ class test_DictProxy(ClassChecker):
             raises(TypeError, self.cls, t)
 
     def test_DictProxy(self):
+        """
+        Test container emulation of `ipalib.plugable.DictProxy` class.
+        """
         def get_kv(i):
             return (
                 'key_%d' % i,
@@ -210,16 +231,22 @@ class test_DictProxy(ClassChecker):
 
 class test_MagicDict(ClassChecker):
     """
-    Tests the `plugable.MagicDict` class.
+    Tests the `ipalib.plugable.MagicDict` class.
     """
     _cls = plugable.MagicDict
 
     def test_class(self):
+        """
+        Tests the `ipalib.plugable.MagicDict` class.
+        """
         assert self.cls.__bases__ == (plugable.DictProxy,)
         for non_dict in ('hello', 69, object):
             raises(TypeError, self.cls, non_dict)
 
     def test_MagicDict(self):
+        """
+        Test container emulation of `ipalib.plugable.MagicDict` class.
+        """
         cnt = 10
         keys = []
         d = dict()
@@ -266,11 +293,14 @@ class test_MagicDict(ClassChecker):
 
 class test_Plugin(ClassChecker):
     """
-    Tests the `plugable.Plugin` class.
+    Test the `ipalib.plugable.Plugin` class.
     """
     _cls = plugable.Plugin
 
     def test_class(self):
+        """
+        Test the `ipalib.plugable.Plugin` class.
+        """
         assert self.cls.__bases__ == (plugable.ReadOnly,)
         assert self.cls.__public__ == frozenset()
         assert type(self.cls.name) is property
@@ -279,7 +309,7 @@ class test_Plugin(ClassChecker):
 
     def test_name(self):
         """
-        Tests the `plugable.Plugin.name` property.
+        Test the `ipalib.plugable.Plugin.name` property.
         """
         assert read_only(self.cls(), 'name') == 'Plugin'
 
@@ -289,7 +319,7 @@ class test_Plugin(ClassChecker):
 
     def test_doc(self):
         """
-        Tests the `plugable.Plugin.doc` property.
+        Test the `ipalib.plugable.Plugin.doc` property.
         """
         class some_subclass(self.cls):
             'here is the doc string'
@@ -297,7 +327,7 @@ class test_Plugin(ClassChecker):
 
     def test_implements(self):
         """
-        Tests the `plugable.Plugin.implements` classmethod.
+        Test the `ipalib.plugable.Plugin.implements` classmethod.
         """
         class example(self.cls):
             __public__ = frozenset((
@@ -346,7 +376,7 @@ class test_Plugin(ClassChecker):
 
     def test_implemented_by(self):
         """
-        Tests the `plugable.Plugin.implemented_by` classmethod.
+        Test the `ipalib.plugable.Plugin.implemented_by` classmethod.
         """
         class base(self.cls):
             __public__ = frozenset((
@@ -389,7 +419,7 @@ class test_Plugin(ClassChecker):
 
     def test_set_api(self):
         """
-        Tests the `plugable.Plugin.set_api` method.
+        Test the `ipalib.plugable.Plugin.set_api` method.
         """
         api = 'the api instance'
         o = self.cls()
@@ -403,7 +433,7 @@ class test_Plugin(ClassChecker):
 
     def test_finalize(self):
         """
-        Tests the `plugable.Plugin.finalize` method.
+        Test the `ipalib.plugable.Plugin.finalize` method.
         """
         o = self.cls()
         assert not o.__islocked__()
@@ -413,14 +443,20 @@ class test_Plugin(ClassChecker):
 
 class test_PluginProxy(ClassChecker):
     """
-    Tests the `plugable.PluginProxy` class.
+    Test the `ipalib.plugable.PluginProxy` class.
     """
     _cls = plugable.PluginProxy
 
     def test_class(self):
+        """
+        Test the `ipalib.plugable.PluginProxy` class.
+        """
         assert self.cls.__bases__ == (plugable.SetProxy,)
 
     def test_proxy(self):
+        """
+        Test proxy behaviour of `ipalib.plugable.PluginProxy` instance.
+        """
         # Setup:
         class base(object):
             __public__ = frozenset((
@@ -485,7 +521,7 @@ class test_PluginProxy(ClassChecker):
 
     def test_implements(self):
         """
-        Tests the `plugable.PluginProxy.implements` method.
+        Test the `ipalib.plugable.PluginProxy.implements` method.
         """
         class base(object):
             __public__ = frozenset()
@@ -510,7 +546,7 @@ class test_PluginProxy(ClassChecker):
 
     def test_clone(self):
         """
-        Tests the `plugable.PluginProxy.__clone__` method.
+        Test the `ipalib.plugable.PluginProxy.__clone__` method.
         """
         class base(object):
             __public__ = frozenset()
@@ -529,7 +565,7 @@ class test_PluginProxy(ClassChecker):
 
 def test_check_name():
     """
-    Tests the `plugable.check_name` function.
+    Test the `ipalib.plugable.check_name` function.
     """
     f = plugable.check_name
     okay = [
@@ -563,16 +599,19 @@ class DummyMember(object):
 
 class test_NameSpace(ClassChecker):
     """
-    Tests the `plugable.NameSpace` class.
+    Test the `ipalib.plugable.NameSpace` class.
     """
     _cls = plugable.NameSpace
 
     def test_class(self):
+        """
+        Test the `ipalib.plugable.NameSpace` class.
+        """
         assert self.cls.__bases__ == (plugable.ReadOnly,)
 
     def test_init(self):
         """
-        Tests the `plugable.NameSpace.__init__` method.
+        Test the `ipalib.plugable.NameSpace.__init__` method.
         """
         o = self.cls(tuple())
         assert list(o) == []
@@ -622,7 +661,7 @@ class test_NameSpace(ClassChecker):
 
 def test_Environment():
     """
-    Tests the `plugable.Environment` class.
+    Test the `ipalib.plugable.Environment` class.
     """
     # This has to be the same as iter_cnt
     control_cnt = 0
@@ -698,7 +737,11 @@ def test_Environment():
     env.update(dict(a=1000), True)
     assert env.a != 1000
 
+
 def test_Registrar():
+    """
+    Test the `ipalib.plugable.Registrar` class
+    """
     class Base1(object):
         pass
     class Base2(object):
@@ -800,8 +843,10 @@ def test_Registrar():
             assert issubclass(klass, base)
 
 
-
 def test_API():
+    """
+    Test the `ipalib.plugable.API` class.
+    """
     assert issubclass(plugable.API, plugable.ReadOnly)
 
     # Setup the test bases, create the API:
