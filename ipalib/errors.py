@@ -43,12 +43,12 @@ def raise_TypeError(value, type_, name):
 
     Here is an example:
 
-    >>> raise_TypeError('message', str, u'Hello.')
+    >>> raise_TypeError(u'Hello, world!', str, 'message')
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
-      File "/home/jderose/projects/freeipa2/ipalib/errors.py", line 61, in raise_TypeError
+      File "ipalib/errors.py", line 65, in raise_TypeError
         raise e
-    TypeError: message: need a <type 'str'>; got u'Hello.'
+    TypeError: message: need a <type 'str'>; got u'Hello, world!'
 
     :param value: The value (of incorrect type) passed as argument.
     :param type_: The type expected for the argument.
