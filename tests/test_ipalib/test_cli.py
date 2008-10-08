@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Unit tests for `ipalib.cli` module.
+Test the `ipalib.cli` module.
 """
 
 from tstutil import raises, getitem, no_set, no_del, read_only, ClassChecker
