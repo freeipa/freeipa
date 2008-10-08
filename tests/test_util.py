@@ -18,10 +18,10 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Test the `tests.tstutil` module.
+Test the `tests.util` module.
 """
 
-import tstutil
+import util
 
 
 class Prop(object):
@@ -48,7 +48,7 @@ class Prop(object):
 
 
 def test_yes_raised():
-    f = tstutil.raises
+    f = util.raises
 
     class SomeError(Exception):
         pass
@@ -79,54 +79,54 @@ def test_yes_raised():
     raised = False
     try:
         f(SomeError, callback3)
-    except tstutil.ExceptionNotRaised:
+    except util.ExceptionNotRaised:
         raised = True
     assert raised
 
 
 def test_no_set():
     # Tests that it works when prop cannot be set:
-    tstutil.no_set(Prop('get', 'del'), 'prop')
+    util.no_set(Prop('get', 'del'), 'prop')
 
     # Tests that ExceptionNotRaised is raised when prop *can* be set:
     raised = False
     try:
-        tstutil.no_set(Prop('set'), 'prop')
-    except tstutil.ExceptionNotRaised:
+        util.no_set(Prop('set'), 'prop')
+    except util.ExceptionNotRaised:
         raised = True
     assert raised
 
 
 def test_no_del():
     # Tests that it works when prop cannot be deleted:
-    tstutil.no_del(Prop('get', 'set'), 'prop')
+    util.no_del(Prop('get', 'set'), 'prop')
 
     # Tests that ExceptionNotRaised is raised when prop *can* be set:
     raised = False
     try:
-        tstutil.no_del(Prop('del'), 'prop')
-    except tstutil.ExceptionNotRaised:
+        util.no_del(Prop('del'), 'prop')
+    except util.ExceptionNotRaised:
         raised = True
     assert raised
 
 
 def test_read_only():
     # Test that it works when prop is read only:
-    assert tstutil.read_only(Prop('get'), 'prop') == 'prop value'
+    assert util.read_only(Prop('get'), 'prop') == 'prop value'
 
     # Test that ExceptionNotRaised is raised when prop can be set:
     raised = False
     try:
-        tstutil.read_only(Prop('get', 'set'), 'prop')
-    except tstutil.ExceptionNotRaised:
+        util.read_only(Prop('get', 'set'), 'prop')
+    except util.ExceptionNotRaised:
         raised = True
     assert raised
 
     # Test that ExceptionNotRaised is raised when prop can be deleted:
     raised = False
     try:
-        tstutil.read_only(Prop('get', 'del'), 'prop')
-    except tstutil.ExceptionNotRaised:
+        util.read_only(Prop('get', 'del'), 'prop')
+    except util.ExceptionNotRaised:
         raised = True
     assert raised
 
@@ -134,15 +134,15 @@ def test_read_only():
     # deleted:
     raised = False
     try:
-        tstutil.read_only(Prop('get', 'del'), 'prop')
-    except tstutil.ExceptionNotRaised:
+        util.read_only(Prop('get', 'del'), 'prop')
+    except util.ExceptionNotRaised:
         raised = True
     assert raised
 
     # Test that AttributeError is raised when prop can't be read:
     raised = False
     try:
-        tstutil.read_only(Prop(), 'prop')
+        util.read_only(Prop(), 'prop')
     except AttributeError:
         raised = True
     assert raised

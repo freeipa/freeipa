@@ -22,7 +22,7 @@ Test the `ipalib.backend` module.
 """
 
 from ipalib import  backend, plugable, errors
-from tests.tstutil import ClassChecker
+from tests.util import ClassChecker
 
 
 class test_Backend(ClassChecker):

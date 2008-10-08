@@ -21,7 +21,7 @@
 Test the `ipalib.ipa_types` module.
 """
 
-from tests.tstutil import raises, getitem, no_set, no_del, read_only, ClassChecker
+from tests.util import raises, getitem, no_set, no_del, read_only, ClassChecker
 from ipalib import ipa_types, errors, plugable
 
 

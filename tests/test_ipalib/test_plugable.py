@@ -21,9 +21,9 @@
 Test the `ipalib.plugable` module.
 """
 
-from tests.tstutil import raises, no_set, no_del, read_only
-from tests.tstutil import getitem, setitem, delitem
-from tests.tstutil import ClassChecker
+from tests.util import raises, no_set, no_del, read_only
+from tests.util import getitem, setitem, delitem
+from tests.util import ClassChecker
 from ipalib import plugable, errors
 
 
