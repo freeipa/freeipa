@@ -38,7 +38,7 @@ def check_TypeError(f, value, type_, name, **kw):
 
 def test_raise_TypeError():
     """
-    Tests the `errors.raise_TypeError` function.
+    Test the `ipalib.errors.raise_TypeError` function.
     """
     f = errors.raise_TypeError
     value = 'Hello.'
@@ -65,7 +65,7 @@ def test_raise_TypeError():
 
 def test_check_type():
     """
-    Tests the `errors.check_type` function.
+    Test the `ipalib.errors.check_type` function.
     """
     f = errors.check_type
     value = 'How are you?'
@@ -99,7 +99,7 @@ def test_check_type():
 
 def test_check_isinstance():
     """
-    Tests the `errors.check_isinstance` function.
+    Test the `ipalib.errors.check_isinstance` function.
     """
     f = errors.check_isinstance
     value = 'How are you?'
@@ -133,16 +133,19 @@ def test_check_isinstance():
 
 class test_IPAError(ClassChecker):
     """
-    Tests the `errors.IPAError` exception.
+    Test the `ipalib.errors.IPAError` exception.
     """
     _cls = errors.IPAError
 
     def test_class(self):
+        """
+        Test the `ipalib.errors.IPAError` exception.
+        """
         assert self.cls.__bases__ == (Exception,)
 
     def test_init(self):
         """
-        Tests the `errors.IPAError.__init__` method.
+        Test the `ipalib.errors.IPAError.__init__` method.
         """
         args = ('one fish', 'two fish')
         e = self.cls(*args)
@@ -151,7 +154,7 @@ class test_IPAError(ClassChecker):
 
     def test_str(self):
         """
-        Tests the `errors.IPAError.__str__` method.
+        Test the `ipalib.errors.IPAError.__str__` method.
         """
         f = 'The %s color is %s.'
         class custom_error(self.cls):
@@ -164,16 +167,19 @@ class test_IPAError(ClassChecker):
 
 class test_ValidationError(ClassChecker):
     """
-    Tests the `errors.ValidationError` exception.
+    Test the `ipalib.errors.ValidationError` exception.
     """
     _cls = errors.ValidationError
 
     def test_class(self):
+        """
+        Test the `ipalib.errors.ValidationError` exception.
+        """
         assert self.cls.__bases__ == (errors.IPAError,)
 
     def test_init(self):
         """
-        Tests the `errors.ValidationError.__init__` method.
+        Test the `ipalib.errors.ValidationError.__init__` method.
         """
         name = 'login'
         value = 'Whatever'
@@ -197,16 +203,19 @@ class test_ValidationError(ClassChecker):
 
 class test_ConversionError(ClassChecker):
     """
-    Tests the `errors.ConversionError` exception.
+    Test the `ipalib.errors.ConversionError` exception.
     """
     _cls = errors.ConversionError
 
     def test_class(self):
+        """
+        Test the `ipalib.errors.ConversionError` exception.
+        """
         assert self.cls.__bases__ == (errors.ValidationError,)
 
     def test_init(self):
         """
-        Tests the `errors.ConversionError.__init__` method.
+        Test the `ipalib.errors.ConversionError.__init__` method.
         """
         name = 'some_arg'
         value = '42.0'
@@ -227,16 +236,19 @@ class test_ConversionError(ClassChecker):
 
 class test_RuleError(ClassChecker):
     """
-    Tests the `errors.RuleError` exception.
+    Test the `ipalib.errors.RuleError` exception.
     """
     _cls = errors.RuleError
 
     def test_class(self):
+        """
+        Test the `ipalib.errors.RuleError` exception.
+        """
         assert self.cls.__bases__ == (errors.ValidationError,)
 
     def test_init(self):
         """
-        Tests the `errors.RuleError.__init__` method.
+        Test the `ipalib.errors.RuleError.__init__` method.
         """
         name = 'whatever'
         value = 'The smallest weird number.'
@@ -255,16 +267,19 @@ class test_RuleError(ClassChecker):
 
 class test_RequirementError(ClassChecker):
     """
-    Tests the `errors.RequirementError` exception.
+    Test the `ipalib.errors.RequirementError` exception.
     """
     _cls = errors.RequirementError
 
     def test_class(self):
+        """
+        Test the `ipalib.errors.RequirementError` exception.
+        """
         assert self.cls.__bases__ == (errors.ValidationError,)
 
     def test_init(self):
         """
-        Tests the `errors.RequirementError.__init__` method.
+        Test the `ipalib.errors.RequirementError.__init__` method.
         """
         name = 'givenname'
         e = self.cls(name)
