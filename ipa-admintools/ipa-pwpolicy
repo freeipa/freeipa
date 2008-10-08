@@ -105,7 +105,7 @@ def update_policy(client, options):
         print e
         return 1
 
-    if int(new.getValue('krbminpwdlife')) > int(new.getValue('krbmaxpwdlife')):
+    if int(new.getValue('krbminpwdlife')) > int(new.getValue('krbmaxpwdlife')) * 24:
         print "Maximum password life must be greater than minimum"
         return 1
 
