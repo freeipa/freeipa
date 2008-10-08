@@ -27,7 +27,7 @@ from ipalib import ipa_types, errors, plugable
 
 def test_check_min_max():
     """
-    Tests the `ipa_types.check_min_max` function.
+    Test the `ipalib.ipa_types.check_min_max` function.
     """
     f = ipa_types.check_min_max
     okay = [
@@ -62,14 +62,20 @@ def test_check_min_max():
 
 class test_Type(ClassChecker):
     """
-    Tests the `ipa_types.Type` class.
+    Test the `ipalib.ipa_types.Type` class.
     """
     _cls = ipa_types.Type
 
     def test_class(self):
+        """
+        Test the `ipalib.ipa_types.Type` class.
+        """
         assert self.cls.__bases__ == (plugable.ReadOnly,)
 
     def test_init(self):
+        """
+        Test the `ipalib.ipa_types.Type.__init__` method.
+        """
         okay = (bool, int, float, unicode)
         for t in okay:
             o = self.cls(t)
@@ -88,18 +94,30 @@ class test_Type(ClassChecker):
             assert str(e) == 'not an allowed type: %r' % t
 
     def test_validate(self):
+        """
+        Test the `ipalib.ipa_types.Type.validate` method.
+        """
         o = self.cls(unicode)
         for value in (None, u'Hello', 'Hello', 42, False):
             assert o.validate(value) is None
 
 
 class test_Bool(ClassChecker):
+    """
+    Test the `ipalib.ipa_types.Bool` class.
+    """
     _cls = ipa_types.Bool
 
     def test_class(self):
+        """
+        Test the `ipalib.ipa_types.Bool` class.
+        """
         assert self.cls.__bases__ == (ipa_types.Type,)
 
     def test_init(self):
+        """
+        Test the `ipalib.ipa_types.Bool.__init__` method.
+        """
         o = self.cls()
         assert o.__islocked__() is True
         assert read_only(o, 'type') is bool
@@ -122,6 +140,9 @@ class test_Bool(ClassChecker):
         assert str(e) == 'cannot be equal: true=1L, false=1.0'
 
     def test_call(self):
+        """
+        Test the `ipalib.ipa_types.Bool.__call__` method.
+        """
         o = self.cls()
         assert o(True) is True
         assert o('Yes') is True
@@ -133,12 +154,21 @@ class test_Bool(ClassChecker):
 
 
 class test_Int(ClassChecker):
+    """
+    Test the `ipalib.ipa_types.Int` class.
+    """
     _cls = ipa_types.Int
 
     def test_class(self):
+        """
+        Test the `ipalib.ipa_types.Int` class.
+        """
         assert self.cls.__bases__ == (ipa_types.Type,)
 
     def test_init(self):
+        """
+        Test the `ipalib.ipa_types.Int.__init__` method.
+        """
         o = self.cls()
         assert o.__islocked__() is True
         assert read_only(o, 'type') is int
@@ -186,6 +216,9 @@ class test_Int(ClassChecker):
             )
 
     def test_call(self):
+        """
+        Test the `ipalib.ipa_types.Int.__call__` method.
+        """
         o = self.cls()
 
         # Test calling with None
@@ -213,8 +246,10 @@ class test_Int(ClassChecker):
         for value in fail:
             assert o(value) is None
 
-
     def test_validate(self):
+        """
+        Test the `ipalib.ipa_types.Int.validate` method.
+        """
         o = self.cls(min_value=2, max_value=7)
         assert o.validate(2) is None
         assert o.validate(5) is None
@@ -226,12 +261,21 @@ class test_Int(ClassChecker):
 
 
 class test_Unicode(ClassChecker):
+    """
+    Test the `ipalib.ipa_types.Unicode` class.
+    """
     _cls = ipa_types.Unicode
 
     def test_class(self):
+        """
+        Test the `ipalib.ipa_types.Unicode` class.
+        """
         assert self.cls.__bases__ == (ipa_types.Type,)
 
     def test_init(self):
+        """
+        Test the `ipalib.ipa_types.Unicode.__init__` method.
+        """
         o = self.cls()
         assert o.__islocked__() is True
         assert read_only(o, 'type') is unicode
@@ -318,6 +362,9 @@ class test_Unicode(ClassChecker):
             assert o.regex.match(value) is None
 
     def test_validate(self):
+        """
+        Test the `ipalib.ipa_types.Unicode.validate` method.
+        """
         pat = '^a_*b$'
         o = self.cls(min_length=3, max_length=4, pattern=pat)
         assert o.validate(u'a_b') is None
@@ -330,12 +377,21 @@ class test_Unicode(ClassChecker):
 
 
 class test_Enum(ClassChecker):
+    """
+    Test the `ipalib.ipa_types.Enum` class.
+    """
     _cls = ipa_types.Enum
 
     def test_class(self):
+        """
+        Test the `ipalib.ipa_types.Enum` class.
+        """
         assert self.cls.__bases__ == (ipa_types.Type,)
 
     def test_init(self):
+        """
+        Test the `ipalib.ipa_types.Enum.__init__` method.
+        """
         for t in (unicode, int, float):
             values = (t(1), t(2), t(3))
             o = self.cls(*values)
@@ -361,6 +417,9 @@ class test_Enum(ClassChecker):
         assert str(e) == '%r: %r is not %r' % ('world', str, unicode)
 
     def test_validate(self):
+        """
+        Test the `ipalib.ipa_types.Enum.validate` method.
+        """
         values = (u'hello', u'naughty', u'nurse')
         o = self.cls(*values)
         for value in values:
