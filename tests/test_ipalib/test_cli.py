@@ -21,7 +21,7 @@
 Test the `ipalib.cli` module.
 """
 
-from tstutil import raises, getitem, no_set, no_del, read_only, ClassChecker
+from tests.tstutil import raises, getitem, no_set, no_del, read_only, ClassChecker
 from ipalib import cli, plugable
 
 

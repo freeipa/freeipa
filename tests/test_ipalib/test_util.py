@@ -21,7 +21,7 @@
 Test the `ipalib.util` module.
 """
 
-from tstutil import raises
+from tests.tstutil import raises
 from ipalib import util
 
 

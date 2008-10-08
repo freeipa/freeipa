@@ -21,8 +21,8 @@
 Test the `ipalib.frontend` module.
 """
 
-from tstutil import raises, getitem, no_set, no_del, read_only, ClassChecker
-from tstutil import check_TypeError
+from tests.tstutil import raises, getitem, no_set, no_del, read_only, ClassChecker
+from tests.tstutil import check_TypeError
 from ipalib import frontend, backend, plugable, errors, ipa_types, config
 
 

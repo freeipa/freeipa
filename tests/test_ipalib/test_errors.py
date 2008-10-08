@@ -21,7 +21,7 @@
 Test the `ipalib.errors` module.
 """
 
-from tstutil import raises, ClassChecker
+from tests.tstutil import raises, ClassChecker
 from ipalib import errors
 
 

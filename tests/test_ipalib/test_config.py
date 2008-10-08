@@ -23,7 +23,7 @@ Test the `ipalib.config` module.
 
 import types
 
-from tstutil import raises
+from tests.tstutil import raises
 from ipalib import config
 
 

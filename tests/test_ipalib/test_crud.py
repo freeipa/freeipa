@@ -21,7 +21,7 @@
 Test the `ipalib.crud` module.
 """
 
-from tstutil import read_only, raises, ClassChecker
+from tests.tstutil import read_only, raises, ClassChecker
 from ipalib import crud, frontend, plugable, config
 
 def get_api():
