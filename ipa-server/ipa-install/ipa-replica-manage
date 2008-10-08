@@ -44,6 +44,8 @@ def parse_options():
                       help="This is a Windows Sync Agreement")
     parser.add_option("--cacert", dest="cacert",
                       help="Full path and filename of CA certificate to use with TLS/SSL to the remote server")
+    parser.add_option("--win-subtree", dest="win_subtree",
+                      help="DN of Windows subtree containing the users you want to sync (default cn=Users,<domain suffix)")
 
     options, args = parser.parse_args()
 
@@ -108,6 +110,8 @@ def add_master(replman, hostname, options):
         other_args['bindpw'] = options.bindpw
     if options.cacert:
         other_args['cacert'] = options.cacert
+    if options.win_subtree:
+        other_args['win_subtree'] = options.win_subtree
     if options.winsync:
         other_args['winsync'] = True
         if not options.binddn or not options.bindpw or not options.cacert:

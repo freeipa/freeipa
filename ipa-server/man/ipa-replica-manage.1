@@ -58,6 +58,9 @@ Password for Bind DN to use with remote server (default is the DM_PASSWORD above
 .TP
 \fB\-\-cacert\fR=\fI/path/to/cacertfile\fR
 Full path and filename of CA certificate to use with TLS/SSL to the remote server - this CA certificate will be installed in the directory server's certificate database
+.TP
+\fB\-\-win-subtree\fR=\fIcn=Users,dc=example,dc=com\fR
+DN of Windows subtree containing the users you want to sync (default cn=Users,<domain suffix> - this is typically what Windows AD uses as the default value) - Be careful to quote this value on the command line
 .SH "EXIT STATUS"
 0 if the command was successful
 
