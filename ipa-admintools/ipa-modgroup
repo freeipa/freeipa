@@ -84,7 +84,7 @@ def parse_options():
     if not options.list:
         if options.add or options.remove:
             ipa.config.verify_args(parser, args, "user group")
-        elif options.groupadd or option.groupdel:
+        elif options.groupadd or options.groupdel:
             ipa.config.verify_args(parser, args, "group group")
         elif options.desc or options.addattr or options.delattr or options.setattr:
             ipa.config.verify_args(parser, args, "group")
