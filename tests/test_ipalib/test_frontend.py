@@ -21,8 +21,8 @@
 Test the `ipalib.frontend` module.
 """
 
-from tests.util import raises, getitem, no_set, no_del, read_only, ClassChecker
-from tests.util import check_TypeError
+from tests.util import raises, getitem, no_set, no_del, read_only
+from tests.util import check_TypeError, ClassChecker
 from ipalib import frontend, backend, plugable, errors, ipa_types, config
 
 
@@ -32,7 +32,7 @@ def test_RULE_FLAG():
 
 def test_rule():
     """
-    Tests the `frontend.rule` function.
+    Test the `ipalib.frontend.rule` function.
     """
     flag = frontend.RULE_FLAG
     rule = frontend.rule
@@ -49,7 +49,7 @@ def test_rule():
 
 def test_is_rule():
     """
-    Tests the `frontend.is_rule` function.
+    Test the `ipalib.frontend.is_rule` function.
     """
     is_rule = frontend.is_rule
     flag = frontend.RULE_FLAG
@@ -72,16 +72,19 @@ def test_is_rule():
 
 class test_DefaultFrom(ClassChecker):
     """
-    Tests the `frontend.DefaultFrom` class.
+    Test the `ipalib.frontend.DefaultFrom` class.
     """
     _cls = frontend.DefaultFrom
 
     def test_class(self):
+        """
+        Test the `ipalib.frontend.DefaultFrom` class.
+        """
         assert self.cls.__bases__ == (plugable.ReadOnly,)
 
     def test_init(self):
         """
-        Tests the `frontend.DefaultFrom.__init__` method.
+        Test the `ipalib.frontend.DefaultFrom.__init__` method.
         """
         def callback(*args):
             return args
@@ -95,7 +98,7 @@ class test_DefaultFrom(ClassChecker):
 
     def test_call(self):
         """
-        Tests the `frontend.DefaultFrom.__call__` method.
+        Test the `ipalib.frontend.DefaultFrom.__call__` method.
         """
         def callback(givenname, sn):
             return givenname[0] + sn[0]
@@ -120,7 +123,7 @@ class test_DefaultFrom(ClassChecker):
 
 def test_parse_param_spec():
     """
-    Test the `frontend.parse_param_spec` function.
+    Test the `ipalib.frontend.parse_param_spec` function.
     """
     f = frontend.parse_param_spec
 
@@ -132,16 +135,19 @@ def test_parse_param_spec():
 
 class test_Param(ClassChecker):
     """
-    Test the `frontend.Param` class.
+    Test the `ipalib.frontend.Param` class.
     """
     _cls = frontend.Param
 
     def test_class(self):
+        """
+        Test the `ipalib.frontend.Param` class.
+        """
         assert self.cls.__bases__ == (plugable.ReadOnly,)
 
     def test_init(self):
         """
-        Test the `frontend.Param.__init__` method.
+        Test the `ipalib.frontend.Param.__init__` method.
         """
         name = 'sn'
         o = self.cls(name)
@@ -207,7 +213,7 @@ class test_Param(ClassChecker):
 
     def test_clone(self):
         """
-        Test the `frontend.Param.__clone__` method.
+        Test the `ipalib.frontend.Param.__clone__` method.
         """
         def compare(o, kw):
             for (k, v) in kw.iteritems():
@@ -234,7 +240,7 @@ class test_Param(ClassChecker):
 
     def test_convert(self):
         """
-        Test the `frontend.Param.convert` method.
+        Test the `ipalib.frontend.Param.convert` method.
         """
         name = 'some_number'
         type_ = ipa_types.Int()
@@ -279,7 +285,7 @@ class test_Param(ClassChecker):
 
     def test_normalize(self):
         """
-        Test the `frontend.Param.normalize` method.
+        Test the `ipalib.frontend.Param.normalize` method.
         """
         name = 'sn'
         callback = lambda value: value.lower()
@@ -321,7 +327,7 @@ class test_Param(ClassChecker):
 
     def test_validate(self):
         """
-        Tests the `frontend.Param.validate` method.
+        Test the `ipalib.frontend.Param.validate` method.
         """
         name = 'sn'
         type_ = ipa_types.Unicode()
@@ -367,7 +373,7 @@ class test_Param(ClassChecker):
 
     def test_get_default(self):
         """
-        Tests the `frontend.Param.get_default` method.
+        Test the `ipalib.frontend.Param.get_default` method.
         """
         name = 'greeting'
         default = u'Hello, world!'
@@ -400,7 +406,7 @@ class test_Param(ClassChecker):
 
     def test_get_value(self):
         """
-        Tests the `frontend.Param.get_values` method.
+        Test the `ipalib.frontend.Param.get_values` method.
         """
         name = 'status'
         values = (u'Active', u'Inactive')
@@ -412,7 +418,7 @@ class test_Param(ClassChecker):
 
 def test_create_param():
     """
-    Test the `frontend.create_param` function.
+    Test the `ipalib.frontend.create_param` function.
     """
     f = frontend.create_param
     for name in ['arg', 'arg?', 'arg*', 'arg+']:
@@ -437,11 +443,15 @@ def test_create_param():
 
 class test_Command(ClassChecker):
     """
-    Tests the `frontend.Command` class.
+    Test the `ipalib.frontend.Command` class.
     """
+
     _cls = frontend.Command
 
     def get_subcls(self):
+        """
+        Return a standard subclass of `ipalib.frontend.Command`.
+        """
         class Rule(object):
             def __init__(self, name):
                 self.name = name
@@ -484,13 +494,16 @@ class test_Command(ClassChecker):
         return o
 
     def test_class(self):
+        """
+        Test the `ipalib.frontend.Command` class.
+        """
         assert self.cls.__bases__ == (plugable.Plugin,)
         assert self.cls.takes_options == tuple()
         assert self.cls.takes_args == tuple()
 
     def test_get_args(self):
         """
-        Tests the `frontend.Command.get_args` method.
+        Test the `ipalib.frontend.Command.get_args` method.
         """
         assert list(self.cls().get_args()) == []
         args = ('login', 'stuff')
@@ -499,7 +512,7 @@ class test_Command(ClassChecker):
 
     def test_get_options(self):
         """
-        Tests the `frontend.Command.get_options` method.
+        Test the `ipalib.frontend.Command.get_options` method.
         """
         assert list(self.cls().get_options()) == []
         options = ('verbose', 'debug')
@@ -508,7 +521,7 @@ class test_Command(ClassChecker):
 
     def test_args(self):
         """
-        Tests the ``Command.args`` instance attribute.
+        Test the ``ipalib.frontend.Command.args`` instance attribute.
         """
         assert 'args' in self.cls.__public__ # Public
         assert self.cls().args is None
@@ -543,7 +556,7 @@ class test_Command(ClassChecker):
 
     def test_max_args(self):
         """
-        Test the ``Command.max_args`` instance attribute.
+        Test the ``ipalib.frontend.Command.max_args`` instance attribute.
         """
         o = self.get_instance()
         assert o.max_args == 0
@@ -558,7 +571,7 @@ class test_Command(ClassChecker):
 
     def test_options(self):
         """
-        Tests the ``Command.options`` instance attribute.
+        Test the ``ipalib.frontend.Command.options`` instance attribute.
         """
         assert 'options' in self.cls.__public__ # Public
         assert self.cls().options is None
@@ -580,7 +593,7 @@ class test_Command(ClassChecker):
 
     def test_convert(self):
         """
-        Tests the `frontend.Command.convert` method.
+        Test the `ipalib.frontend.Command.convert` method.
         """
         assert 'convert' in self.cls.__public__ # Public
         kw = dict(
@@ -598,7 +611,7 @@ class test_Command(ClassChecker):
 
     def test_normalize(self):
         """
-        Tests the `frontend.Command.normalize` method.
+        Test the `ipalib.frontend.Command.normalize` method.
         """
         assert 'normalize' in self.cls.__public__ # Public
         kw = dict(
@@ -612,7 +625,7 @@ class test_Command(ClassChecker):
 
     def test_get_default(self):
         """
-        Tests the `frontend.Command.get_default` method.
+        Test the `ipalib.frontend.Command.get_default` method.
         """
         assert 'get_default' in self.cls.__public__ # Public
         no_fill = dict(
@@ -634,7 +647,7 @@ class test_Command(ClassChecker):
 
     def test_validate(self):
         """
-        Tests the `frontend.Command.validate` method.
+        Test the `ipalib.frontend.Command.validate` method.
         """
         assert 'validate' in self.cls.__public__ # Public
 
@@ -669,13 +682,13 @@ class test_Command(ClassChecker):
 
     def test_execute(self):
         """
-        Tests the `frontend.Command.execute` method.
+        Test the `ipalib.frontend.Command.execute` method.
         """
         assert 'execute' in self.cls.__public__ # Public
 
     def test_args_to_kw(self):
         """
-        Test the `frontend.Command.args_to_kw` method.
+        Test the `ipalib.frontend.Command.args_to_kw` method.
         """
         assert 'args_to_kw' in self.cls.__public__ # Public
         o = self.get_instance(args=('one', 'two?'))
@@ -706,7 +719,7 @@ class test_Command(ClassChecker):
 
     def test_kw_to_args(self):
         """
-        Tests the `frontend.Command.kw_to_args` method.
+        Test the `ipalib.frontend.Command.kw_to_args` method.
         """
         assert 'kw_to_args' in self.cls.__public__ # Public
         o = self.get_instance(args=('one', 'two?'))
@@ -719,7 +732,7 @@ class test_Command(ClassChecker):
 
     def test_run(self):
         """
-        Test the `frontend.Command.run` method.
+        Test the `ipalib.frontend.Command.run` method.
         """
         class my_cmd(self.cls):
             def execute(self, *args, **kw):
@@ -754,11 +767,14 @@ class test_Command(ClassChecker):
 
 class test_Object(ClassChecker):
     """
-    Test the `frontend.Object` class.
+    Test the `ipalib.frontend.Object` class.
     """
     _cls = frontend.Object
 
     def test_class(self):
+        """
+        Test the `ipalib.frontend.Object` class.
+        """
         assert self.cls.__bases__ == (plugable.Plugin,)
         assert self.cls.backend is None
         assert self.cls.methods is None
@@ -769,7 +785,7 @@ class test_Object(ClassChecker):
 
     def test_init(self):
         """
-        Test the `frontend.Object.__init__` method.
+        Test the `ipalib.frontend.Object.__init__` method.
         """
         o = self.cls()
         assert o.backend is None
@@ -781,7 +797,7 @@ class test_Object(ClassChecker):
 
     def test_set_api(self):
         """
-        Test the `frontend.Object.set_api` method.
+        Test the `ipalib.frontend.Object.set_api` method.
         """
         # Setup for test:
         class DummyAttribute(object):
@@ -867,7 +883,7 @@ class test_Object(ClassChecker):
 
     def test_primary_key(self):
         """
-        Test the `frontend.Object.primary_key` attribute.
+        Test the `ipalib.frontend.Object.primary_key` attribute.
         """
         api = plugable.API(
             frontend.Method,
@@ -922,7 +938,7 @@ class test_Object(ClassChecker):
 
     def test_backend(self):
         """
-        Test the `frontend.Object.backend` attribute.
+        Test the `ipalib.frontend.Object.backend` attribute.
         """
         api = plugable.API(
             frontend.Object,
@@ -945,11 +961,14 @@ class test_Object(ClassChecker):
 
 class test_Attribute(ClassChecker):
     """
-    Tests the `frontend.Attribute` class.
+    Test the `ipalib.frontend.Attribute` class.
     """
     _cls = frontend.Attribute
 
     def test_class(self):
+        """
+        Test the `ipalib.frontend.Attribute` class.
+        """
         assert self.cls.__bases__ == (plugable.Plugin,)
         assert type(self.cls.obj) is property
         assert type(self.cls.obj_name) is property
@@ -957,7 +976,7 @@ class test_Attribute(ClassChecker):
 
     def test_init(self):
         """
-        Tests the `frontend.Attribute.__init__` method.
+        Test the `ipalib.frontend.Attribute.__init__` method.
         """
         class user_add(self.cls):
             pass
@@ -968,7 +987,7 @@ class test_Attribute(ClassChecker):
 
     def test_set_api(self):
         """
-        Tests the `frontend.Attribute.set_api` method.
+        Test the `ipalib.frontend.Attribute.set_api` method.
         """
         user_obj = 'The user frontend.Object instance'
         class api(object):
@@ -985,18 +1004,21 @@ class test_Attribute(ClassChecker):
 
 class test_Method(ClassChecker):
     """
-    Test the `frontend.Method` class.
+    Test the `ipalib.frontend.Method` class.
     """
     _cls = frontend.Method
 
     def test_class(self):
+        """
+        Test the `ipalib.frontend.Method` class.
+        """
         assert self.cls.__bases__ == (frontend.Attribute, frontend.Command)
         assert self.cls.implements(frontend.Command)
         assert self.cls.implements(frontend.Attribute)
 
     def test_init(self):
         """
-        Test the `frontend.Method.__init__` method.
+        Test the `ipalib.frontend.Method.__init__` method.
         """
         class user_add(self.cls):
             pass
@@ -1010,11 +1032,14 @@ class test_Method(ClassChecker):
 
 class test_Property(ClassChecker):
     """
-    Tests the `frontend.Property` class.
+    Test the `ipalib.frontend.Property` class.
     """
     _cls = frontend.Property
 
     def get_subcls(self):
+        """
+        Return a standard subclass of `ipalib.frontend.Property`.
+        """
         class user_givenname(self.cls):
             'User first name'
 
@@ -1025,6 +1050,9 @@ class test_Property(ClassChecker):
         return user_givenname
 
     def test_class(self):
+        """
+        Test the `ipalib.frontend.Property` class.
+        """
         assert self.cls.__bases__ == (frontend.Attribute,)
         assert isinstance(self.cls.type, ipa_types.Unicode)
         assert self.cls.required is False
@@ -1035,7 +1063,7 @@ class test_Property(ClassChecker):
 
     def test_init(self):
         """
-        Tests the `frontend.Property.__init__` method.
+        Test the `ipalib.frontend.Property.__init__` method.
         """
         o = self.subcls()
         assert len(o.rules) == 1
@@ -1048,17 +1076,20 @@ class test_Property(ClassChecker):
 
 class test_Application(ClassChecker):
     """
-    Tests the `frontend.Application` class.
+    Test the `ipalib.frontend.Application` class.
     """
     _cls = frontend.Application
 
     def test_class(self):
+        """
+        Test the `ipalib.frontend.Application` class.
+        """
         assert self.cls.__bases__ == (frontend.Command,)
         assert type(self.cls.application) is property
 
     def test_application(self):
         """
-        Tests the `frontend.Application.application` property.
+        Test the `ipalib.frontend.Application.application` property.
         """
         assert 'application' in self.cls.__public__ # Public
         assert 'set_application' in self.cls.__public__ # Public
