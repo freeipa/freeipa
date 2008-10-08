@@ -93,7 +93,7 @@ class user_add(crud.Add):
 
         user['uid'] = args[0]
 
-        if not servercore.is_user_unique(user['uid']):
+        if servercore.user_exists(user['uid']):
             # FIXME, specific error
             raise SyntaxError("user already exists")
         if servercore.uid_too_long(user['uid']):
@@ -177,6 +177,31 @@ api.register(user_add)
 
 class user_del(crud.Del):
     'Delete an existing user.'
+    def execute(self, *args, **kw):
+        """args[0] = uid of the user to remove
+
+           Delete a user. Not to be confused with inactivate_user. This
+           makes the entry go away completely.
+
+           uid is the uid of the user to delete
+
+           The memberOf plugin handles removing the user from any other
+           groups.
+        """
+        uid = args[0]
+        if uid == "admin":
+            raise ipaerror.gen_exception(ipaerror.INPUT_ADMIN_REQUIRED)
+#        logging.info("IPA: delete_user '%s'" % uid)
+        user = servercore.get_user_by_uid(uid, ['dn', 'uid'])
+        if not user:
+            # FIXME, specific error
+            raise SyntaxError("user doesn't exist")
+
+        return servercore.delete_entry(user['dn'])
+    def forward(self, *args, **kw):
+        result = super(crud.Del, self).forward(*args, **kw)
+        if result != False:
+            print "User %s removed" % args[0]
 api.register(user_del)
 
 

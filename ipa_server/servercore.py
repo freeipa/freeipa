@@ -134,9 +134,10 @@ def get_entry_by_dn (dn, sattrs=None):
 
 # User support
 
-def is_user_unique(uid):
-    """Return True if the uid is unique in the tree, False otherwise."""
-    # FIXME
+def user_exists(uid):
+    """Return True if the exists, False otherwise."""
+    # FIXME: fix the filter
+    # FIXME: should accept a container to look in
 #    uid = self.__safe_filter(uid)
     searchfilter = "(&(uid=%s)(objectclass=posixAccount))" % uid
 
@@ -291,6 +292,10 @@ def update_entry (entry):
 def add_entry(entry):
     """Add a new entry"""
     return context.conn.getConn().addEntry(entry)
+
+def delete_entry(dn):
+    """Remove an entry"""
+    return context.conn.getConn().deleteEntry(dn)
 
 def uniq_list(x):
     """Return a unique list, preserving order and ignoring case"""
