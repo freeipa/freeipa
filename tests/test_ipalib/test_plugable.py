@@ -231,13 +231,13 @@ class test_DictProxy(ClassChecker):
 
 class test_MagicDict(ClassChecker):
     """
-    Tests the `ipalib.plugable.MagicDict` class.
+    Test the `ipalib.plugable.MagicDict` class.
     """
     _cls = plugable.MagicDict
 
     def test_class(self):
         """
-        Tests the `ipalib.plugable.MagicDict` class.
+        Test the `ipalib.plugable.MagicDict` class.
         """
         assert self.cls.__bases__ == (plugable.DictProxy,)
         for non_dict in ('hello', 69, object):
