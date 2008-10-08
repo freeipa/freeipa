@@ -29,7 +29,7 @@ from ipalib import config
 
 def test_generate_env():
     """
-    Test the `config.generate_env` function
+    Test the `ipalib.config.generate_env` function.
     """
 
     # Make sure we don't overwrite any properties
@@ -49,7 +49,7 @@ def test_generate_env():
 
 def test_LazyProp():
     """
-    Test the `config.LazyProp` class
+    Test the `ipalib.config.LazyProp` class.
     """
 
     def dummy():
@@ -70,7 +70,7 @@ def test_LazyProp():
 
 def test_LazyIter():
     """
-    Test the `config.LazyIter` class
+    Test the `ipalib.config.LazyIter` class.
     """
 
     def dummy():
@@ -95,7 +95,7 @@ def test_LazyIter():
 
 def test_read_config():
     """
-    Test the `config.read_config` class
+    Test the `ipalib.config.read_config` class.
     """
 
     raises(AssertionError, config.read_config, 1)
