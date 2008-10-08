@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-The IPA Library.
+Package containing core library.
 
 To learn about the ``ipalib`` library, you should read the code in this order:
 

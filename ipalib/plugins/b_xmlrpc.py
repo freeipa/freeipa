@@ -18,9 +18,10 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-XML-RPC client plugin.
+Backend plugin for XML-RPC client.
 
-Lightwieght XML-RPC client using Python standard library xmlrpclib.
+This provides a lightwieght XML-RPC client using Python standard library
+``xmlrpclib`` module.
 """
 
 import xmlrpclib
