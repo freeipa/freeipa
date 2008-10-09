@@ -32,7 +32,7 @@ import ldap.sasl
 from ldap.controls import LDAPControl,DecodeControlTuples,EncodeControlTuples
 from ldap.ldapobject import SimpleLDAPObject
 from ipa_server import ipautil
-
+from ipalib import errors
 
 # Global variable to define SASL auth
 sasl_auth = ldap.sasl.sasl({},'GSSAPI')
@@ -279,12 +279,12 @@ class IPAdmin(SimpleLDAPObject):
             res = self.search(*args)
             objtype, obj = self.result(res)
         except ldap.NO_SUCH_OBJECT, e:
-            raise e
+            raise errors.NotFound, notfound(args)
         except ldap.LDAPError, e:
-            raise e
+            raise errors.DatabaseError, e
 
         if not obj:
-            raise ldap.NO_SUCH_OBJECT
+            raise errors.NotFound, notfound(args)
             
         elif isinstance(obj,Entry):
             return obj
@@ -308,7 +308,7 @@ class IPAdmin(SimpleLDAPObject):
             raise e
 
         if not obj:
-            raise ldap.NO_SUCH_OBJECT
+            raise errors.NotFound, notfound(args)
 
         entries = []
         for s in obj:
@@ -345,7 +345,7 @@ class IPAdmin(SimpleLDAPObject):
             raise e
 
         if not entries:
-            raise ldap.NO_SUCH_OBJECT
+            raise errors.NotFound, notfound(args)
 
         if partial == 1:
             counter = -1
@@ -408,10 +408,9 @@ class IPAdmin(SimpleLDAPObject):
         # it indicates the previous attribute was removed by another
         # update, making the oldentry stale.
         except ldap.NO_SUCH_ATTRIBUTE:
-            # FIXME: better error
-            raise SyntaxError("mid-air collision")
+            raise ipaldap.MidairCollision
         except ldap.LDAPError, e:
-            raise e
+            raise ipaldap.DatabaseError, e
         return True
 
     def generateModList(self, old_entry, new_entry):

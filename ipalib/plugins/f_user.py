@@ -25,6 +25,7 @@ from ipalib import frontend
 from ipalib import crud
 from ipalib.frontend import Param
 from ipalib import api
+from ipalib import errors
 from ipa_server import servercore
 from ipa_server import ipaldap
 import ldap
@@ -32,7 +33,7 @@ import ldap
 # Command to get the idea how plugins will interact with api.env
 class envtest(frontend.Command):
     'Show current environment.'
-    def run(*args, **kw):
+    def run(self, *args, **kw):
         print ""
         print "Environment variables:"
         for var in api.env:
@@ -87,18 +88,12 @@ class user_add(crud.Add):
 
         user = kw
 
-        if not isinstance(user, dict):
-            # FIXME, need proper error
-            raise SyntaxError
-
         user['uid'] = args[0]
 
         if servercore.user_exists(user['uid']):
-            # FIXME, specific error
-            raise SyntaxError("user already exists")
+            raise errors.Duplicate("user already exists")
         if servercore.uid_too_long(user['uid']):
-            # FIXME, specific error
-            raise SyntaxError("uid is too long")
+            raise errors.UsernameTooLong
 
         # dn is set here, not by the user
         try:
@@ -139,17 +134,15 @@ class user_add(crud.Add):
             default_group = servercore.get_entry_by_dn(group_dn, ['dn','gidNumber'])
             if default_group:
                 user['gidnumber'] = default_group.get('gidnumber')
-#        except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR), e:
-#            raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR, message=None, nested_exception=e.detail)
-#        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-#            # Fake an LDAP error so we can return something useful to the user
-#            raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND, "The default group for new users, '%s', cannot be found." % config.get('ipadefaultprimarygroup'))
+        except errors.NotFound:
+            # Fake an LDAP error so we can return something useful to the user
+            raise ipalib.NotFound, "The default group for new users, '%s', cannot be found." % config.get('ipadefaultprimarygroup')
         except Exception, e:
-            # FIXME
+            # catch everything else
             raise e
 
         if user.get('krbprincipalname') is None:
-            user['krbprincipalname'] = "%s@%s" % (user.get('uid'), self.realm)
+            user['krbprincipalname'] = "%s@%s" % (user.get('uid'), servercore.realm)
 
         # FIXME. This is a hack so we can request separate First and Last
         # name in the GUI.
@@ -169,7 +162,7 @@ class user_add(crud.Add):
         return result
     def forward(self, *args, **kw):
         result = super(crud.Add, self).forward(*args, **kw)
-        if result != False:
+        if result:
             print "User %s added" % args[0]
 
 api.register(user_add)
@@ -190,17 +183,18 @@ class user_del(crud.Del):
         """
         uid = args[0]
         if uid == "admin":
-            raise ipaerror.gen_exception(ipaerror.INPUT_ADMIN_REQUIRED)
+            # FIXME: do we still want a "special" user?
+            raise SyntaxError("admin required")
+#            raise ipaerror.gen_exception(ipaerror.INPUT_ADMIN_REQUIRED)
 #        logging.info("IPA: delete_user '%s'" % uid)
         user = servercore.get_user_by_uid(uid, ['dn', 'uid'])
         if not user:
-            # FIXME, specific error
-            raise SyntaxError("user doesn't exist")
+            raise errors.NotFound
 
         return servercore.delete_entry(user['dn'])
     def forward(self, *args, **kw):
         result = super(crud.Del, self).forward(*args, **kw)
-        if result != False:
+        if result:
             print "User %s removed" % args[0]
 api.register(user_del)
 
@@ -224,7 +218,7 @@ class user_mod(crud.Mod):
         return result
     def forward(self, *args, **kw):
         result = super(crud.Mod, self).forward(*args, **kw)
-        if result != False:
+        if result:
             print "User %s modified" % args[0]
 api.register(user_mod)
 
@@ -259,7 +253,11 @@ class user_show(crud.Get):
         result = servercore.get_user_by_uid(uid, ["*"])
         return result
     def forward(self, *args, **kw):
-        result = super(crud.Get, self).forward(*args, **kw)
-        for a in result:
-            print a, ": ", result[a]
+        try:
+            result = super(crud.Get, self).forward(*args, **kw)
+            if not result: return
+            for a in result:
+                print a, ": ", result[a]
+        except errors.NotFound:
+            print "User %s not found" % args[0]
 api.register(user_show)

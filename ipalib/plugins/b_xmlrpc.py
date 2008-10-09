@@ -29,6 +29,7 @@ import socket
 from ipalib.backend import Backend
 from ipalib.util import xmlrpc_marshal
 from ipalib import api
+from ipalib import errors
 
 class xmlrpc(Backend):
     """
@@ -51,5 +52,7 @@ class xmlrpc(Backend):
         except socket.error, e:
             print e[1]
             return False
+        except xmlrpclib.Fault, e:
+            raise errors.convertFault(e)
 
 api.register(xmlrpc)

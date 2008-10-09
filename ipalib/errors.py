@@ -240,3 +240,140 @@ class MissingOverrideError(RegistrationError):
 
     def __str__(self):
         return self.msg % (self.base.__name__, self.cls.__name__, self.cls)
+
+class GenericError(IPAError):
+    """Base class for our custom exceptions"""
+    faultCode = 1000
+    fromFault = False
+    def __str__(self):
+        try:
+            return str(self.args[0]['args'][0])
+        except:
+            try:
+                return str(self.args[0])
+            except:
+                return str(self.__dict__)
+
+class DatabaseError(GenericError):
+    """A database error has occurred"""
+    faultCode = 1001
+
+class MidairCollision(GenericError):
+    """Change collided with another change"""
+    faultCode = 1002
+
+class NotFound(GenericError):
+    """Entry not found"""
+    faultCode = 1003
+
+class Duplicate(GenericError):
+    """This entry already exists"""
+    faultCode = 1004
+
+class MissingDN(GenericError):
+    """The distinguished name (DN) is missing"""
+    faultCode = 1005
+
+class EmptyModlist(GenericError):
+    """No modifications to be performed"""
+    faultCode = 1006
+
+class InputError(GenericError):
+    """Error on input"""
+    faultCode = 1007
+
+class SameGroupError(InputError):
+    """You can't add a group to itself"""
+    faultCode = 1008
+
+class AdminsImmutable(InputError):
+    """The admins group cannot be renamed"""
+    faultCode = 1009
+
+class UsernameTooLong(InputError):
+    """The requested username is too long"""
+    faultCode = 1010
+
+class PrincipalError(GenericError):
+    """There is a problem with the kerberos principal"""
+    faultCode = 1011
+
+class MalformedServicePrincipal(PrincipalError):
+    """The requested service principal is not of the form: service/fully-qualified host name"""
+    faultCode = 1012
+
+class RealmMismatch(PrincipalError):
+    """The realm for the principal does not match the realm for this IPA server"""
+    faultCode = 1013
+
+class PrincipalRequired(PrincipalError):
+    """You cannot remove IPA server service principals"""
+    faultCode = 1014
+
+class InactivationError(GenericError):
+    """This entry cannot be inactivated"""
+    faultCode = 1015
+
+class ConnectionError(GenericError):
+    """Connection to database failed"""
+    faultCode = 1016
+
+class NoCCacheError(GenericError):
+    """No Kerberos credentials cache is available. Connection cannot be made"""
+    faultCode = 1017
+
+class GSSAPIError(GenericError):
+    """GSSAPI Authorization error"""
+    faultCode = 1018
+
+class ServerUnwilling(GenericError):
+    """Account inactivated. Server is unwilling to perform"""
+    faultCode = 1018
+
+class ConfigurationError(GenericError):
+    """A configuration error occurred"""
+    faultCode = 1019
+
+class DefaultGroup(ConfigurationError):
+    """You cannot remove the default users group"""
+    faultCode = 1020
+
+class FunctionDeprecated(GenericError):
+    """Raised by a deprecated function"""
+    faultCode = 2000
+
+def convertFault(fault):
+    """Convert a fault to the corresponding Exception type, if possible"""
+    code = getattr(fault,'faultCode',None)
+    if code is None:
+        return fault
+    for v in globals().values():
+        if type(v) == type(Exception) and issubclass(v,GenericError) and \
+                code == getattr(v,'faultCode',None):
+            ret = v(fault.faultString)
+            ret.fromFault = True
+            return ret
+    #otherwise...
+    return fault
+
+def listFaults():
+    """Return a list of faults
+
+    Returns a list of dictionaries whose keys are:
+        faultCode: the numeric code used in fault conversion
+        name: the name of the exception
+        desc: the description of the exception (docstring)
+    """
+    ret = []
+    for n,v in globals().items():
+        if type(v) == type(Exception) and issubclass(v,GenericError):
+            code = getattr(v,'faultCode',None)
+            if code is None:
+                continue
+            info = {}
+            info['faultCode'] = code
+            info['name'] = n
+            info['desc'] = getattr(v,'__doc__',None)
+            ret.append(info)
+    ret.sort(lambda a,b: cmp(a['faultCode'],b['faultCode']))
+    return ret

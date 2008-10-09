@@ -22,6 +22,7 @@ import string
 import re
 from ipa_server.context import context
 import ipautil
+from ipalib import errors
 
 # temporary
 import krbV
@@ -335,6 +336,6 @@ def get_ipa_config():
         config = get_sub_entry("cn=etc," + basedn, searchfilter)
     except ldap.NO_SUCH_OBJECT, e:
         # FIXME
-        raise e
+        raise errors.NotFound
 
     return config
