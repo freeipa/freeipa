@@ -266,7 +266,7 @@ class NotFound(GenericError):
     """Entry not found"""
     faultCode = 1003
 
-class Duplicate(GenericError):
+class DuplicateEntry(GenericError):
     """This entry already exists"""
     faultCode = 1004
 
@@ -349,7 +349,7 @@ def convertFault(fault):
         return fault
     for v in globals().values():
         if type(v) == type(Exception) and issubclass(v,GenericError) and \
-                code == getattr(v,'faultCode',None):
+            code == getattr(v,'faultCode',None):
             ret = v(fault.faultString)
             ret.fromFault = True
             return ret

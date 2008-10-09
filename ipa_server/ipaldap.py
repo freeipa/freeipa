@@ -365,8 +365,7 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.add_s(*args)
         except ldap.ALREADY_EXISTS, e:
-            # duplicate value
-            raise e
+            raise errors.DuplicateEntry, "Entry already exists"
         except ldap.LDAPError, e:
             raise e
         return True
