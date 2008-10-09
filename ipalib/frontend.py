@@ -449,6 +449,27 @@ def create_param(spec):
 
 
 class Command(plugable.Plugin):
+    """
+    A public IPA atomic operation.
+
+    All plugins that subclass from `Command` will be automatically available
+    as a CLI command and as an XML-RPC method.
+
+    Plugins that subclass from Command are registered in the ``api.Command``
+    namespace. For example:
+
+    >>> api = plugable.API(Command)
+    >>> class my_command(Command):
+    ...     pass
+    ...
+    >>> api.register(my_command)
+    >>> api.finalize()
+    >>> list(api.Command)
+    ['my_command']
+    >>> api.Command.my_command
+    PluginProxy(Command, __main__.my_command())
+    """
+
     __public__ = frozenset((
         'get_default',
         'convert',
@@ -468,25 +489,231 @@ class Command(plugable.Plugin):
     options = None
     params = None
 
+    def __call__(self, *args, **kw):
+        """
+        Perform validation and then execute the command.
+
+        If not in a server context, the call will be forwarded over
+        XML-RPC and the executed an the nearest IPA server.
+        """
+        if len(args) > 0:
+            arg_kw = self.args_to_kw(*args)
+            assert set(arg_kw).intersection(kw) == set()
+            kw.update(arg_kw)
+        kw = self.normalize(**kw)
+        kw = self.convert(**kw)
+        kw.update(self.get_default(**kw))
+        self.validate(**kw)
+        args = tuple(kw.pop(name) for name in self.args)
+        return self.run(*args, **kw)
+
+    def args_to_kw(self, *values):
+        """
+        Map positional into keyword arguments.
+        """
+        if self.max_args is not None and len(values) > self.max_args:
+            if self.max_args == 0:
+                raise errors.ArgumentError(self, 'takes no arguments')
+            if self.max_args == 1:
+                raise errors.ArgumentError(self, 'takes at most 1 argument')
+            raise errors.ArgumentError(self,
+                'takes at most %d arguments' % len(self.args)
+            )
+        return dict(self.__args_to_kw_iter(values))
+
+    def __args_to_kw_iter(self, values):
+        """
+        Generator used by `Command.args_to_kw` method.
+        """
+        multivalue = False
+        for (i, arg) in enumerate(self.args()):
+            assert not multivalue
+            if len(values) > i:
+                if arg.multivalue:
+                    multivalue = True
+                    yield (arg.name, values[i:])
+                else:
+                    yield (arg.name, values[i])
+            else:
+                break
+
+    def kw_to_args(self, **kw):
+        """
+        Map keyword into positional arguments.
+        """
+        return tuple(kw.get(name, None) for name in self.args)
+
+    def normalize(self, **kw):
+        """
+        Return a dictionary of normalized values.
+
+        For example:
+
+        >>> class my_command(Command):
+        ...     takes_options = (
+        ...         Param('first', normalize=lambda value: value.lower()),
+        ...         Param('last'),
+        ...     )
+        ...
+        >>> c = my_command()
+        >>> c.finalize()
+        >>> c.normalize(first='JOHN', last='DOE')
+        {'last': 'DOE', 'first': 'john'}
+        """
+        return dict(
+            (k, self.params[k].normalize(v)) for (k, v) in kw.iteritems()
+        )
+
+    def convert(self, **kw):
+        """
+        Return a dictionary of values converted to correct type.
+
+        >>> from ipalib import ipa_types
+        >>> class my_command(Command):
+        ...     takes_args = (
+        ...         Param('one', type=ipa_types.Int()),
+        ...         'two',
+        ...     )
+        ...
+        >>> c = my_command()
+        >>> c.finalize()
+        >>> c.convert(one=1, two=2)
+        {'two': u'2', 'one': 1}
+        """
+        return dict(
+            (k, self.params[k].convert(v)) for (k, v) in kw.iteritems()
+        )
+
+    def get_default(self, **kw):
+        """
+        Return a dictionary of defaults for all missing required values.
+
+        For example:
+
+        >>> class my_command(Command):
+        ...     takes_args = [Param('color', default='Red')]
+        ...
+        >>> c = my_command()
+        >>> c.finalize()
+        >>> c.get_default()
+        {'color': 'Red'}
+        >>> c.get_default(color='Yellow')
+        {}
+        """
+        return dict(self.__get_default_iter(kw))
+
+    def __get_default_iter(self, kw):
+        """
+        Generator method used by `Command.get_default`.
+        """
+        for param in self.params():
+            if param.required and kw.get(param.name, None) is None:
+                yield (param.name, param.get_default(**kw))
+
+    def validate(self, **kw):
+        """
+        Validate all values.
+
+        If any value fails the validation, `ipalib.errors.ValidationError`
+        (or a subclass thereof) will be raised.
+        """
+        for param in self.params():
+            value = kw.get(param.name, None)
+            if value is not None:
+                param.validate(value)
+            elif param.required:
+                raise errors.RequirementError(param.name)
+
+    def run(self, *args, **kw):
+        """
+        Dispatch to `Command.execute` or `Command.forward`.
+
+        If running in a server context, `Command.execute` is called and the
+        actually work this command performs is executed locally.
+
+        If running in a non-server context, `Command.forward` is called,
+        which forwards this call over XML-RPC to the exact same command
+        on the nearest IPA server and the actual work this command
+        performs is executed remotely.
+        """
+        if self.api.env.server_context:
+            target = self.execute
+        else:
+            target = self.forward
+        object.__setattr__(self, 'run', target)
+        return target(*args, **kw)
+
+    def execute(self, *args, **kw):
+        """
+        Perform the actual work this command does.
+
+        This method should be implemented only against functionality
+        in self.api.Backend.  For example, a hypothetical
+        user_add.execute() might be implemented like this:
+
+        >>> class user_add(Command):
+        ...     def execute(self, **kw):
+        ...         return self.api.Backend.ldap.add(**kw)
+        ...
+        """
+        print '%s.execute():' % self.name
+        print '  args =', args
+        print '  kw =', kw
+
+    def forward(self, *args, **kw):
+        """
+        Forward call over XML-RPC to this same command on server.
+        """
+        return self.api.Backend.xmlrpc.forward_call(self.name, *args, **kw)
+
     def finalize(self):
+        """
+        Finalize plugin initialization.
+
+        This method creates the ``args``, ``options``, and ``params``
+        namespaces.  This is not done in `Command.__init__` because
+        subclasses (like `crud.Add`) might need to access other plugins
+        loaded in self.api to determine what their custom `Command.get_args`
+        and `Command.get_options` methods should yield.
+        """
         self.args = plugable.NameSpace(self.__create_args(), sort=False)
         if len(self.args) == 0 or not self.args[-1].multivalue:
             self.max_args = len(self.args)
         else:
             self.max_args = None
-        self.options = plugable.NameSpace(self.__create_options(), sort=False)
+        self.options = plugable.NameSpace(
+            (create_param(spec) for spec in self.get_options()),
+            sort=False
+        )
         self.params = plugable.NameSpace(
             tuple(self.args()) + tuple(self.options()), sort=False
         )
         super(Command, self).finalize()
 
     def get_args(self):
+        """
+        Return iterable with arguments for Command.args namespace.
+
+        Subclasses can override this to customize how the arguments
+        are determined.  For an example of why this can be useful,
+        see `ipalib.crud.Mod`.
+        """
         return self.takes_args
 
     def get_options(self):
+        """
+        Return iterable with options for Command.options namespace.
+
+        Subclasses can override this to customize how the options
+        are determined.  For an example of why this can be useful,
+        see `ipalib.crud.Mod`.
+        """
         return self.takes_options
 
     def __create_args(self):
+        """
+        Generator used to create args namespace.
+        """
         optional = False
         multivalue = False
         for arg in self.get_args():
@@ -504,95 +731,6 @@ class Command(plugable.Plugin):
             if arg.multivalue:
                 multivalue = True
             yield arg
-
-    def __create_options(self):
-        for option in self.get_options():
-            yield create_param(option)
-
-    def convert(self, **kw):
-        return dict(
-            (k, self.params[k].convert(v)) for (k, v) in kw.iteritems()
-        )
-
-    def normalize(self, **kw):
-        return dict(
-            (k, self.params[k].normalize(v)) for (k, v) in kw.iteritems()
-        )
-
-    def __get_default_iter(self, kw):
-        for param in self.params():
-            if param.required and kw.get(param.name, None) is None:
-                yield (param.name, param.get_default(**kw))
-
-    def get_default(self, **kw):
-        return dict(self.__get_default_iter(kw))
-
-    def validate(self, **kw):
-        for param in self.params():
-            value = kw.get(param.name, None)
-            if value is not None:
-                param.validate(value)
-            elif param.required:
-                raise errors.RequirementError(param.name)
-
-    def execute(self, *args, **kw):
-        print '%s.execute():' % self.name
-        print '  args =', args
-        print '  kw =', kw
-
-    def forward(self, *args, **kw):
-        """
-        Forward call over XML-RPC.
-        """
-        return self.api.Backend.xmlrpc.forward_call(self.name, *args, **kw)
-
-
-    def __call__(self, *args, **kw):
-        if len(args) > 0:
-            arg_kw = self.args_to_kw(*args)
-            assert set(arg_kw).intersection(kw) == set()
-            kw.update(arg_kw)
-        kw = self.normalize(**kw)
-        kw = self.convert(**kw)
-        kw.update(self.get_default(**kw))
-        self.validate(**kw)
-        args = tuple(kw.pop(name) for name in self.args)
-        return self.run(*args, **kw)
-
-    def run(self, *args, **kw):
-        if self.api.env.server_context:
-            target = self.execute
-        else:
-            target = self.forward
-        object.__setattr__(self, 'run', target)
-        return target(*args, **kw)
-
-    def args_to_kw(self, *values):
-        if self.max_args is not None and len(values) > self.max_args:
-            if self.max_args == 0:
-                raise errors.ArgumentError(self, 'takes no arguments')
-            if self.max_args == 1:
-                raise errors.ArgumentError(self, 'takes at most 1 argument')
-            raise errors.ArgumentError(self,
-                'takes at most %d arguments' % len(self.args)
-            )
-        return dict(self.__args_to_kw_iter(values))
-
-    def __args_to_kw_iter(self, values):
-        multivalue = False
-        for (i, arg) in enumerate(self.args()):
-            assert not multivalue
-            if len(values) > i:
-                if arg.multivalue:
-                    multivalue = True
-                    yield (arg.name, values[i:])
-                else:
-                    yield (arg.name, values[i])
-            else:
-                break
-
-    def kw_to_args(self, **kw):
-        return tuple(kw.get(name, None) for name in self.args)
 
 
 class Object(plugable.Plugin):
