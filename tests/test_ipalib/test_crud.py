@@ -30,7 +30,7 @@ class CrudChecker(ClassChecker):
     Class for testing base classes in `ipalib.crud`.
     """
 
-    def get_api(self):
+    def get_api(self, args=tuple(), options={}):
         """
         Return a finalized `ipalib.plugable.API` instance.
         """
@@ -49,7 +49,8 @@ class CrudChecker(ClassChecker):
                 'initials',
             )
         class user_verb(self.cls):
-            pass
+            takes_args = args
+            takes_options = options
         api.register(user)
         api.register(user_verb)
         api.finalize()
@@ -70,6 +71,10 @@ class test_Add(CrudChecker):
         api = self.get_api()
         assert list(api.Method.user_verb.args) == ['uid']
         assert api.Method.user_verb.args.uid.required is True
+        api = self.get_api(args=('extra?',))
+        assert list(api.Method.user_verb.args) == ['uid', 'extra']
+        assert api.Method.user_verb.args.uid.required is True
+        assert api.Method.user_verb.args.extra.required is False
 
     def test_get_options(self):
         """
@@ -80,6 +85,10 @@ class test_Add(CrudChecker):
             ['givenname', 'sn', 'initials']
         for param in api.Method.user_verb.options():
             assert param.required is True
+        api = self.get_api(options=('extra?',))
+        assert list(api.Method.user_verb.options) == \
+            ['givenname', 'sn', 'initials', 'extra']
+        assert api.Method.user_verb.options.extra.required is False
 
 
 class test_Get(CrudChecker):

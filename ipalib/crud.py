@@ -27,10 +27,14 @@ import frontend, errors
 class Add(frontend.Method):
     def get_args(self):
         yield self.obj.primary_key
+        for arg in self.takes_args:
+            yield arg
 
     def get_options(self):
         for param in self.obj.params_minus_pk():
             yield param
+        for option in self.takes_options:
+            yield option
 
 
 class Get(frontend.Method):
