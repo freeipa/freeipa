@@ -656,9 +656,7 @@ class Command(plugable.Plugin):
         ...         return self.api.Backend.ldap.add(**kw)
         ...
         """
-        print '%s.execute():' % self.name
-        print '  args =', args
-        print '  kw =', kw
+        raise NotImplementedError('%s.execute()' % self.name)
 
     def forward(self, *args, **kw):
         """

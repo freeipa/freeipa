@@ -685,6 +685,9 @@ class test_Command(ClassChecker):
         Test the `ipalib.frontend.Command.execute` method.
         """
         assert 'execute' in self.cls.__public__ # Public
+        o = self.cls()
+        e = raises(NotImplementedError, o.execute)
+        assert str(e) == 'Command.execute()'
 
     def test_args_to_kw(self):
         """
