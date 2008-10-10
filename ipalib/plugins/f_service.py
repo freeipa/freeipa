@@ -43,14 +43,9 @@ api.register(service)
 
 class service_add(crud.Add):
     'Add a new service.'
-    """
-    my_params = (
-        Param('force', type=ipa_types.Bool(), default=False),
+    takes_options = (
+        Param('force?', type=ipa_types.Bool(), default=False, doc='Force a service principal name'),
     )
-    def get_options(self):
-        for param in self.my_params:
-            yield param
-    """
     def execute(self, *args, **kw):
         """args[0] = service principal to add
            kw{force} determines whether we continue on errors
