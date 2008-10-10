@@ -40,7 +40,7 @@ class delegation(frontend.Object):
         'target',
         Param('name', primary_key=True)
     )
-api.register(user)
+api.register(delegation)
 
 
 class delegation_add(crud.Add):
