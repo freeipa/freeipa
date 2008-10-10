@@ -133,6 +133,15 @@ def get_entry_by_dn (dn, sattrs=None):
 #    logging.info("IPA: get_entry_by_dn '%s'" % dn)
     return get_base_entry(dn, searchfilter, sattrs)
 
+def get_entry_by_cn (cn, sattrs):
+    """Get a specific entry by cn. Return as a dict of values.
+       Multi-valued fields are represented as lists.
+    """
+#    logging.info("IPA: get_entry_by_cn '%s'" % cn)
+#    cn = self.__safe_filter(cn)
+    searchfilter = "(cn=%s)" % cn 
+    return get_sub_entry("cn=accounts," + basedn, searchfilter, sattrs)
+
 # User support
 
 def user_exists(uid):

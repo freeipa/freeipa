@@ -51,8 +51,13 @@ class xmlrpc(Backend):
             return command(*params)
         except socket.error, e:
             print e[1]
-            return False
         except xmlrpclib.Fault, e:
-            raise errors.convertFault(e)
+            err = errors.convertFault(e)
+            code = getattr(err,'faultCode',None)
+            if code:
+                print "%s: %s" % (code, getattr(err,'__doc__',''))
+            else:
+                raise err
+        return False
 
 api.register(xmlrpc)

@@ -27,6 +27,7 @@ from ipalib.frontend import Param
 from ipalib import api
 from ipa_server import servercore
 from ipa_server import ipaldap
+from ipa_server import ipautil
 import ldap
 
 
@@ -83,13 +84,49 @@ class group_add(crud.Add):
 
         result = servercore.add_entry(entry)
         return result
-
-
+    def forward(self, *args, **kw):
+        result = super(crud.Add, self).forward(*args, **kw)
+        if result:
+            print "Group %s added" % args[0]
 api.register(group_add)
 
 
 class group_del(crud.Del):
     'Delete an existing group.'
+    def execute(self, *args, **kw):
+        """args[0] = dn of the group to remove
+
+           Delete a group
+
+           The memberOf plugin handles removing the group from any other
+           groups.
+        """
+        group_dn = args[0]
+
+        group = servercore.get_entry_by_dn(group_dn, ['dn', 'cn'])
+        if group is None:
+            raise errors.NotFound
+#        logging.info("IPA: delete_group '%s'" % group_dn)
+
+        # We have 2 special groups, don't allow them to be removed
+        # FIXME
+#        if "admins" in group.get('cn') or "editors" in group.get('cn'):
+#            raise ipaerror.gen_exception(ipaerror.CONFIG_REQUIRED_GROUPS)
+
+        # Don't allow the default user group to be removed
+        config=servercore.get_ipa_config()
+        default_group = servercore.get_entry_by_cn(config.get('ipadefaultprimarygroup'), None)
+        if group_dn == default_group.get('dn'):
+            raise errors.DefaultGroup
+
+        return servercore.delete_entry(group_dn)
+    def forward(self, *args, **kw):
+        group = self.api.Command['group_show'](ipautil.utf8_encode_value(args[0]))
+        if not group:
+            print "nothing found"
+            return False
+        a = group.get('dn')
+        result = super(crud.Del, self).forward(a)
 api.register(group_del)
 
 
@@ -113,4 +150,11 @@ api.register(group_find)
 
 class group_show(crud.Get):
     'Examine an existing group.'
+    def execute(self, *args, **kw):
+        cn=args[0]
+        result = servercore.get_sub_entry(servercore.basedn, "cn=%s" % cn, ["*"])
+        return result
+    def forward(self, *args, **kw):
+        result = super(crud.Get, self).forward(*args, **kw)
+        return result
 api.register(group_show)
