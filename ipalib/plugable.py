@@ -738,6 +738,8 @@ class Environment(object):
                 continue
             self[key] = value
 
+    def get(self, name, default=None):
+        return self.__map.get(name, default)
 
 class API(DictProxy):
     """

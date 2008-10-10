@@ -231,6 +231,8 @@ class user_find(crud.Find):
         return result
     def forward(self, *args, **kw):
         users = super(crud.Find, self).forward(*args, **kw)
+        if not users:
+            return
         counter = users[0]
         users = users[1:]
         if counter == 0:

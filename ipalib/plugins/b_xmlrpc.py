@@ -36,15 +36,15 @@ class xmlrpc(Backend):
     Kerberos backend plugin.
     """
 
-    def get_client(self):
+    def get_client(self, verbose=False):
         # FIXME: The server uri should come from self.api.env.server_uri
-        return xmlrpclib.ServerProxy('http://localhost:8888', allow_none=True)
+        return xmlrpclib.ServerProxy('http://localhost:8888', verbose=verbose)
 
     def forward_call(self, name, *args, **kw):
         """
         Forward a call over XML-RPC to an IPA server.
         """
-        client = self.get_client()
+        client = self.get_client(verbose=api.env.get('verbose', False))
         command = getattr(client, name)
         params = xmlrpc_marshal(*args, **kw)
         try:
