@@ -1,0 +1,10 @@
+#
+# Make sure winsync attributes have the correct indexing
+#
+
+dn: cn=ntUniqueId,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only: nsIndexType: eq,pres
+
+dn: cn=ntUserDomainId,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+only: nsIndexType: eq,pres
+

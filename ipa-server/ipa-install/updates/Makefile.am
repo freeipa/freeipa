@@ -6,6 +6,7 @@ app_DATA =				\
 	RFC2307bis.update		\
 	schema_compatibility.update	\
 	nss_ldap.update			\
+	winsync_index.update	\
 	$(NULL)
 
 EXTRA_DIST =				\
