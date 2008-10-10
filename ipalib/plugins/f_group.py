@@ -132,6 +132,25 @@ api.register(group_del)
 
 class group_mod(crud.Mod):
     'Edit an existing group.'
+    def execute(self, *args, **kw):
+        group_cn=args[0]
+        result = servercore.get_entry_by_cn(group_cn, ["*"])
+
+        group = kw
+        dn = result.get('dn')
+        del result['dn']
+        entry = ipaldap.Entry((dn, servercore.convert_scalar_values(result)))
+
+        for g in group:
+            entry.setValues(g, group[g])
+
+        result = servercore.update_entry(entry.toDict())
+
+        return result
+    def forward(self, *args, **kw):
+        result = super(crud.Mod, self).forward(*args, **kw)
+        if result:
+            print "Group %s modified" % args[0]
 api.register(group_mod)
 
 
