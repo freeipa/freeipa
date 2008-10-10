@@ -245,7 +245,6 @@ ipa_winsync_pre_ds_add_user_cb(void *cbdata, const Slapi_Entry *rawentry,
     Slapi_Attr *attr = NULL;
     Slapi_Attr *e_attr = NULL;
     char *type = NULL;
-    PRBool flatten = PR_TRUE;
     IPA_WinSync_Config *global_ipaconfig = ipa_winsync_get_config();
 
     slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
@@ -259,40 +258,6 @@ ipa_winsync_pre_ds_add_user_cb(void *cbdata, const Slapi_Entry *rawentry,
                         slapi_entry_get_dn_const(ad_entry),
                         slapi_entry_get_dn_const(ds_entry));
         return;
-    }
-
-
-    slapi_lock_mutex(global_ipaconfig->lock);
-    flatten = global_ipaconfig->flatten;
-    slapi_unlock_mutex(global_ipaconfig->lock);
-
-    if (flatten) {
-        char **rdns = NULL;
-        int ii;
-        /* grab the ous from the DN and store them in the entry */
-        type = "ou";
-        rdns = ldap_explode_dn(slapi_entry_get_dn_const(ad_entry), 0);
-        for (ii = 0; rdns && rdns[ii]; ++ii) {
-            /* go through the DN looking for ou= rdns */
-            if (!PL_strncasecmp(rdns[ii], "ou=", 3)) {
-                char *val = PL_strchr(rdns[ii], '=');
-                Slapi_Value *sv = NULL;
-                val++;
-                sv = slapi_value_new_string(val);
-                /* entry could already have this value */
-                if (!slapi_entry_attr_has_syntax_value(ds_entry, type, sv)) {
-                    /* attr-value sv not found in ds_entry; add it */
-                    slapi_log_error(SLAPI_LOG_PLUGIN, ipa_winsync_plugin_name,
-                                    "--> ipa_winsync_pre_ds_add_user_cb -- "
-                                    "adding val for [%s] to new entry [%s]\n",
-                                    type, slapi_entry_get_dn_const(ds_entry));
-
-                    slapi_entry_add_value(ds_entry, type, sv);
-                }
-                slapi_value_free(&sv);
-            }
-        }
-        ldap_value_free(rdns);
     }
 
     /* add the objectclasses and attributes to the entry */
