@@ -189,3 +189,54 @@ class test_Find(CrudChecker):
             ['givenname', 'sn', 'initials']
         for param in api.Method.user_verb.options():
             assert param.required is False
+
+
+class test_CrudBackend(ClassChecker):
+    """
+    Test the `ipalib.crud.CrudBackend` class.
+    """
+
+    _cls = crud.CrudBackend
+
+    def get_subcls(self):
+        class ldap(self.cls):
+            pass
+        return ldap
+
+    def check_method(self, name, *args):
+        o = self.cls()
+        e = raises(NotImplementedError, getattr(o, name), *args)
+        assert str(e) == 'CrudBackend.%s()' % name
+        sub = self.subcls()
+        e = raises(NotImplementedError, getattr(sub, name), *args)
+        assert str(e) == 'ldap.%s()' % name
+
+    def test_create(self):
+        """
+        Test the `ipalib.crud.CrudBackend.create` method.
+        """
+        self.check_method('create')
+
+    def test_retrieve(self):
+        """
+        Test the `ipalib.crud.CrudBackend.retrieve` method.
+        """
+        self.check_method('retrieve', 'primary key')
+
+    def test_update(self):
+        """
+        Test the `ipalib.crud.CrudBackend.update` method.
+        """
+        self.check_method('update', 'primary key')
+
+    def test_delete(self):
+        """
+        Test the `ipalib.crud.CrudBackend.delete` method.
+        """
+        self.check_method('delete', 'primary key')
+
+    def test_search(self):
+        """
+        Test the `ipalib.crud.CrudBackend.search` method.
+        """
+        self.check_method('search')
