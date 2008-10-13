@@ -203,7 +203,9 @@ class user_mod(crud.Mod):
     'Edit an existing user.'
     def execute(self, *args, **kw):
         uid=args[0]
-        result = servercore.get_sub_entry(servercore.basedn, "uid=%s" % uid, ["*"])
+
+        # Get the existing user entry
+        result = servercore.get_sub_entry("cn=accounts," + servercore.basedn, "uid=%s" % uid, ["*"])
 
         user = kw
         dn = result.get('dn')
