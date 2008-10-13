@@ -33,7 +33,7 @@ import ldap
 
 
 class pwpolicy_mod(frontend.Command):
-    'Edit an existing user.'
+    'Edit existing password policy.'
     # FIXME, switch to more human-readable names at some point
     takes_options = (
         Param('krbmaxpwdlife?', type=ipa_types.Int(), doc='Max. Password Lifetime (days)'),
