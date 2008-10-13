@@ -26,6 +26,7 @@ from ipalib import crud
 from ipalib.frontend import Param
 from ipalib import api
 from ipalib import errors
+from ipalib import ipa_types
 from ipa_server import servercore
 from ipa_server import ipaldap
 import ldap
@@ -136,7 +137,7 @@ class user_add(crud.Add):
                 user['gidnumber'] = default_group.get('gidnumber')
         except errors.NotFound:
             # Fake an LDAP error so we can return something useful to the user
-            raise ipalib.NotFound, "The default group for new users, '%s', cannot be found." % config.get('ipadefaultprimarygroup')
+            raise errors.NotFound, "The default group for new users, '%s', cannot be found." % config.get('ipadefaultprimarygroup')
         except Exception, e:
             # catch everything else
             raise e
@@ -265,3 +266,34 @@ class user_show(crud.Get):
         except errors.NotFound:
             print "User %s not found" % args[0]
 api.register(user_show)
+
+class user_lock(frontend.Command):
+    'Lock a user account.'
+    takes_args = (
+        Param('uid', primary_key=True),
+    )
+    def execute(self, *args, **kw):
+        uid = args[0]
+        user = servercore.get_user_by_uid(uid, ['dn', 'uid'])
+        return servercore.mark_entry_inactive(user['dn'])
+    def forward(self, *args, **kw):
+        result = super(user_lock, self).forward(*args, **kw)
+        if result:
+            print "User locked"
+api.register(user_lock)
+
+class user_unlock(frontend.Command):
+    'Unlock a user account.'
+    takes_args = (
+        Param('uid', primary_key=True),
+    )
+    def execute(self, *args, **kw):
+        uid = args[0]
+        user = servercore.get_user_by_uid(uid, ['dn', 'uid'])
+        return servercore.mark_entry_active(user['dn'])
+    def forward(self, *args, **kw):
+        result = super(user_unlock, self).forward(*args, **kw)
+        if result:
+            print "User unlocked"
+api.register(user_unlock)
+

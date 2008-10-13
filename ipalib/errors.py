@@ -286,57 +286,73 @@ class SameGroupError(InputError):
     """You can't add a group to itself"""
     faultCode = 1008
 
+class NotGroupMember(InputError):
+    """This entry is not a member of the group"""
+    faultCode = 1009
+
 class AdminsImmutable(InputError):
     """The admins group cannot be renamed"""
-    faultCode = 1009
+    faultCode = 1010
 
 class UsernameTooLong(InputError):
     """The requested username is too long"""
-    faultCode = 1010
+    faultCode = 1011
 
 class PrincipalError(GenericError):
     """There is a problem with the kerberos principal"""
-    faultCode = 1011
+    faultCode = 1012
 
 class MalformedServicePrincipal(PrincipalError):
     """The requested service principal is not of the form: service/fully-qualified host name"""
-    faultCode = 1012
+    faultCode = 1013
 
 class RealmMismatch(PrincipalError):
     """The realm for the principal does not match the realm for this IPA server"""
-    faultCode = 1013
+    faultCode = 1014
 
 class PrincipalRequired(PrincipalError):
     """You cannot remove IPA server service principals"""
-    faultCode = 1014
+    faultCode = 1015
 
 class InactivationError(GenericError):
     """This entry cannot be inactivated"""
-    faultCode = 1015
+    faultCode = 1016
+
+class AlreadyActiveError(InactivationError):
+    """This entry is already locked"""
+    faultCode = 1017
+
+class AlreadyInactiveError(InactivationError):
+    """This entry is already unlocked"""
+    faultCode = 1018
+
+class HasNSAccountLock(InactivationError):
+    """This entry appears to have the nsAccountLock attribute in it so the Class of Service activation/inactivation will not work. You will need to remove the attribute nsAccountLock for this to work."""
+    faultCode = 1019
 
 class ConnectionError(GenericError):
     """Connection to database failed"""
-    faultCode = 1016
+    faultCode = 1020
 
 class NoCCacheError(GenericError):
     """No Kerberos credentials cache is available. Connection cannot be made"""
-    faultCode = 1017
+    faultCode = 1021
 
 class GSSAPIError(GenericError):
     """GSSAPI Authorization error"""
-    faultCode = 1018
+    faultCode = 1022
 
 class ServerUnwilling(GenericError):
     """Account inactivated. Server is unwilling to perform"""
-    faultCode = 1018
+    faultCode = 1023
 
 class ConfigurationError(GenericError):
     """A configuration error occurred"""
-    faultCode = 1019
+    faultCode = 1024
 
 class DefaultGroup(ConfigurationError):
     """You cannot remove the default users group"""
-    faultCode = 1020
+    faultCode = 1025
 
 class FunctionDeprecated(GenericError):
     """Raised by a deprecated function"""
