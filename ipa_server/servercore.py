@@ -21,6 +21,7 @@ import ldap
 import string
 import re
 from ipa_server.context import context
+from ipa_server import ipaldap
 import ipautil
 from ipalib import errors
 
@@ -123,6 +124,37 @@ def get_list (base, searchfilter, sattrs=None):
 
     return map(convert_entry, entries)
 
+def has_nsaccountlock(dn):
+    """Check to see if an entry has the nsaccountlock attribute.
+       This attribute is provided by the Class of Service plugin so
+       doing a search isn't enough. It is provided by the two
+       entries cn=inactivated and cn=activated. So if the entry has
+       the attribute and isn't in either cn=activated or cn=inactivated
+       then the attribute must be in the entry itself.
+
+       Returns True or False
+    """
+    # First get the entry. If it doesn't have nsaccountlock at all we
+    # can exit early.
+    entry = get_entry_by_dn(dn, ['dn', 'nsaccountlock', 'memberof'])
+    if not entry.get('nsaccountlock'):
+        return False
+
+    # Now look to see if they are in activated or inactivated
+    # entry is a member
+    memberof = entry.get('memberof')
+    if isinstance(memberof, basestring):
+        memberof = [memberof]
+    for m in memberof:
+        inactivated = m.find("cn=inactivated")
+        activated = m.find("cn=activated")
+        # if they are in either group that means that the nsaccountlock
+        # value comes from there, otherwise it must be in this entry.
+        if inactivated >= 0 or activated >= 0:
+            return False
+
+    return True
+
 # General searches
 
 def get_entry_by_dn (dn, sattrs=None):
@@ -142,6 +174,14 @@ def get_entry_by_cn (cn, sattrs):
     searchfilter = "(cn=%s)" % cn 
     return get_sub_entry("cn=accounts," + basedn, searchfilter, sattrs)
 
+def get_user_by_uid(uid, sattrs):
+    """Get a specific user's entry."""
+    # FIXME: should accept a container to look in
+#    uid = self.__safe_filter(uid)
+    searchfilter = "(&(uid=%s)(objectclass=posixAccount))" % uid
+
+    return get_sub_entry("cn=accounts," + basedn, searchfilter, sattrs)
+
 # User support
 
 def user_exists(uid):
@@ -152,10 +192,9 @@ def user_exists(uid):
     searchfilter = "(&(uid=%s)(objectclass=posixAccount))" % uid
 
     try:
-        entry = get_sub_entry("cn=accounts," + basedn, searchfilter, ['dn','uid'])
-        return False
-#    except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-    except Exception:
+        get_sub_entry("cn=accounts," + basedn, searchfilter, ['dn','uid'])
+        return True
+    except errors.NotFound:
         return True
 
 def get_user_by_uid (uid, sattrs):
@@ -348,3 +387,139 @@ def get_ipa_config():
         raise errors.NotFound
 
     return config
+
+def mark_entry_active (dn):
+    """Mark an entry as active in LDAP."""
+
+    # This can be tricky. The entry itself can be marked inactive
+    # by being in the inactivated group. It can also be inactivated by
+    # being the member of an inactive group.
+    #
+    # First we try to remove the entry from the inactivated group. Then
+    # if it is still inactive we have to add it to the activated group
+    # which will override the group membership.
+
+    res = ""
+    # First, check the entry status
+    entry = get_entry_by_dn(dn, ['dn', 'nsAccountlock'])
+
+    if entry.get('nsaccountlock', 'false').lower() == "false":
+#        logging.debug("IPA: already active")
+        raise errors.AlreadyActiveError
+
+    if has_nsaccountlock(dn):
+#        logging.debug("IPA: appears to have the nsaccountlock attribute")
+        raise errors.HasNSAccountLock
+
+    group = get_entry_by_cn("inactivated", None)
+    try:
+        remove_member_from_group(entry.get('dn'), group.get('dn'))
+    except errors.NotGroupMember:
+        # Perhaps the user is there as a result of group membership
+        pass
+
+    # Now they aren't a member of inactivated directly, what is the status
+    # now?
+    entry = get_entry_by_dn(dn, ['dn', 'nsAccountlock'])
+
+    if entry.get('nsaccountlock', 'false').lower() == "false":
+        # great, we're done
+#        logging.debug("IPA: removing from inactivated did it.")
+        return res
+
+    # So still inactive, add them to activated
+    group = get_entry_by_cn("activated", None)
+    res = add_member_to_group(dn, group.get('dn'))
+#    logging.debug("IPA: added to activated.")
+
+    return res
+
+def mark_entry_inactive (dn):
+    """Mark an entry as inactive in LDAP."""
+
+    entry = get_entry_by_dn(dn, ['dn', 'nsAccountlock', 'memberOf'])
+
+    if entry.get('nsaccountlock', 'false').lower() == "true":
+#        logging.debug("IPA: already marked as inactive")
+        raise errors.AlreadyInactiveError
+
+    if has_nsaccountlock(dn):
+#        logging.debug("IPA: appears to have the nsaccountlock attribute")
+        raise errors.HasNSAccountLock
+
+    # First see if they are in the activated group as this will override
+    # the our inactivation.
+    group = get_entry_by_cn("activated", None)
+    try:
+        remove_member_from_group(dn, group.get('dn'))
+    except errors.NotGroupMember:
+        # this is fine, they may not be explicitly in this group
+        pass
+
+    # Now add them to inactivated
+    group = get_entry_by_cn("inactivated", None)
+    res = add_member_to_group(dn, group.get('dn'))
+
+    return res
+
+def add_member_to_group(member_dn, group_dn):
+    """Add a member to an existing group."""
+#    logging.info("IPA: add_member_to_group '%s' to '%s'" % (member_dn, group_dn))
+    if member_dn.lower() == group_dn.lower():
+        # You can't add a group to itself
+        raise errors.SameGroupError
+
+    group = get_entry_by_dn(group_dn, None)
+    if group is None:
+        raise errors.NotFound
+
+    # check to make sure member_dn exists
+    member_entry = get_base_entry(member_dn, "(objectClass=*)", ['dn','objectclass'])
+    if not member_entry:
+        raise errors.NotFound
+
+    if group.get('member') is not None:
+        if isinstance(group.get('member'),basestring):
+            group['member'] = [group['member']]
+        group['member'].append(member_dn)
+    else:
+        group['member'] = member_dn
+
+    try:
+        return update_entry(group)
+    except errors.EmptyModlist:
+        raise
+
+def remove_member_from_group(member_dn, group_dn=None):
+    """Remove a member_dn from an existing group."""
+
+    group = get_entry_by_dn(group_dn, None)
+    if group is None:
+        raise errors.NotFound
+    """
+    if group.get('cn') == "admins":
+        member = get_entry_by_dn(member_dn, ['dn','uid'])
+        if member.get('uid') == "admin":
+            raise ipaerror.gen_exception(ipaerror.INPUT_ADMIN_REQUIRED_IN_ADMINS)
+    """
+#    logging.info("IPA: remove_member_from_group '%s' from '%s'" % (member_dn, group_dn))
+
+    if group.get('member') is not None:
+        if isinstance(group.get('member'),basestring):
+            group['member'] = [group['member']]
+        for i in range(len(group['member'])):
+            group['member'][i] = ipaldap.IPAdmin.normalizeDN(group['member'][i])
+        try:
+            group['member'].remove(member_dn)
+        except ValueError:
+            # member is not in the group
+            # FIXME: raise more specific error?
+            raise errors.NotGroupMember
+    else:
+        # Nothing to do if the group has no members
+        raise errors.NotGroupMember
+
+    try:
+        return update_entry(group)
+    except errors.EmptyModlist:
+        raise

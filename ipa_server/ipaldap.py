@@ -396,8 +396,7 @@ class IPAdmin(SimpleLDAPObject):
         modlist = self.generateModList(oldentry, newentry)
 
         if len(modlist) == 0:
-            # FIXME: better error
-            raise SyntaxError("empty modlist")
+            raise errors.EmptyModlist
 
         try:
             if sctrl is not None:
@@ -407,9 +406,9 @@ class IPAdmin(SimpleLDAPObject):
         # it indicates the previous attribute was removed by another
         # update, making the oldentry stale.
         except ldap.NO_SUCH_ATTRIBUTE:
-            raise ipaldap.MidairCollision
+            raise errors.MidairCollision
         except ldap.LDAPError, e:
-            raise ipaldap.DatabaseError, e
+            raise errors.DatabaseError, e
         return True
 
     def generateModList(self, old_entry, new_entry):

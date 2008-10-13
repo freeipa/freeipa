@@ -143,9 +143,9 @@ XMLRPCServer.register_introspection_functions()
 # Get and register all the methods
 api.env.server_context = True
 api.finalize()
-for cmd in api.Method:
+for cmd in api.Command:
     logger.info("registering %s" % cmd)
-    XMLRPCServer.register_function(api.Method[cmd], cmd)
+    XMLRPCServer.register_function(api.Command[cmd], cmd)
 
 funcs = XMLRPCServer.funcs
 
