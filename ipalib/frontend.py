@@ -198,6 +198,7 @@ class Param(plugable.ReadOnly):
     ============  =================  ==================
     Keyword       Type               Default
     ============  =================  ==================
+    cli_name      str                defaults to name
     type          ipa_type.Type      ipa_type.Unicode()
     doc           str                ''
     required      bool               True
@@ -210,6 +211,7 @@ class Param(plugable.ReadOnly):
     """
     __nones = (None, '', tuple(), [])
     __defaults = dict(
+        cli_name=None,
         type=ipa_types.Unicode(),
         doc='',
         required=True,
@@ -226,6 +228,7 @@ class Param(plugable.ReadOnly):
             (name, kw_from_spec) = parse_param_spec(name)
             override.update(kw_from_spec)
         kw = dict(self.__defaults)
+        kw['cli_name'] = name
         if not set(kw).issuperset(override):
             extra = sorted(set(override) - set(kw))
             raise TypeError(
@@ -234,6 +237,7 @@ class Param(plugable.ReadOnly):
         kw.update(override)
         self.__kw = kw
         self.name = check_name(name)
+        self.cli_name = check_name(kw.get('cli_name', name))
         self.type = self.__check_isinstance(ipa_types.Type, 'type')
         self.doc = self.__check_type(str, 'doc')
         self.required = self.__check_type(bool, 'required')

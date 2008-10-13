@@ -155,6 +155,7 @@ class test_Param(ClassChecker):
 
         # Test default values
         assert read_only(o, 'name') is name
+        assert read_only(o, 'cli_name') is name
         assert isinstance(read_only(o, 'type'), ipa_types.Unicode)
         assert read_only(o, 'doc') == ''
         assert read_only(o, 'required') is True
@@ -167,6 +168,7 @@ class test_Param(ClassChecker):
 
         # Test all kw args:
         t = ipa_types.Int()
+        assert self.cls(name, cli_name='last').cli_name == 'last'
         assert self.cls(name, type=t).type is t
         assert self.cls(name, doc='the doc').doc == 'the doc'
         assert self.cls(name, required=False).required is False
