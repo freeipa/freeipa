@@ -55,9 +55,10 @@ class user(frontend.Object):
     User object.
     """
     takes_params = (
-        'givenname',
-        'sn',
+        Param('givenname', cli_name='firstname'),
+        Param('sn', cli_name='lastname'),
         Param('uid',
+            cli_name='user',
             primary_key=True,
             default_from=lambda givenname, sn: givenname[0] + sn,
             normalize=lambda value: value.lower(),
@@ -78,7 +79,7 @@ class user_add(crud.Add):
         """args[0] = uid of the user to add
            kw{container} is the location in the DIT to add the user, not
            required
-           kw otherwise contains all the attributes 
+           kw otherwise contains all the attributes
         """
         # FIXME: ug, really?
         if not kw.get('container'):
@@ -296,4 +297,3 @@ class user_unlock(frontend.Command):
         if result:
             print "User unlocked"
 api.register(user_unlock)
-

@@ -321,7 +321,8 @@ class CLI(object):
             usage=self.get_usage(cmd),
         )
         for option in cmd.options():
-            parser.add_option('--%s' % to_cli(option.name),
+            parser.add_option('--%s' % to_cli(option.cli_name),
+                dest=option.name,
                 metavar=option.type.name.upper(),
                 help=option.doc,
             )
@@ -368,7 +369,7 @@ class CLI(object):
     def get_usage_iter(self, cmd):
         yield 'Usage: %%prog [global-options] %s' % to_cli(cmd.name)
         for arg in cmd.args():
-            name = to_cli(arg.name).upper()
+            name = to_cli(arg.cli_name).upper()
             if arg.multivalue:
                 name = '%s...' % name
             if arg.required:
