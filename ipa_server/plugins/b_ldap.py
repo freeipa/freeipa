@@ -25,7 +25,11 @@ This wraps the python-ldap bindings.
 
 import ldap as _ldap
 from ipalib import api
+from ipalib import errors
 from ipalib.crud import CrudBackend
+from ipa_server import servercore
+from ipa_server import ipaldap
+import ldap
 
 
 class ldap(CrudBackend):
@@ -46,6 +50,18 @@ class ldap(CrudBackend):
         )
 
     def create(self, **kw):
-        return kw
+        if servercore.entry_exists(kw['dn']):
+            raise errors.DuplicateEntry("entry already exists")
+
+        entry = ipaldap.Entry(kw['dn'])
+
+        # dn isn't allowed to be in the entry itself
+        del kw['dn']
+
+        # Fill in our new entry
+        for k in kw:
+            entry.setValues(k, kw[k])
+
+        return servercore.add_entry(entry)
 
 api.register(ldap)

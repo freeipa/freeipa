@@ -8,6 +8,7 @@ import re
 import threading
 import commands
 from ipalib import api
+from ipalib import config
 from ipa_server import conn
 from ipa_server.servercore import context
 import ipalib.load_plugins
@@ -46,19 +47,21 @@ class LoggingSimpleXMLRPCRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHa
         """
 
         # this is fine for our test server
-        uid = commands.getoutput('/usr/bin/id -u')
+        # uid = commands.getoutput('/usr/bin/id -u')
+        uid = "500"
         krbccache = "FILE:/tmp/krb5cc_" + uid
 
         func = None
         try:
-            # FIXME: don't hardcode host and port
-            context.conn = conn.IPAConn("localhost", 389, krbccache)
             try:
                 # check to see if a matching function has been registered
                 func = funcs[method]
             except KeyError:
                 raise Exception('method "%s" is not supported' % method)
             (args, kw) = xmlrpc_unmarshal(*params)
+            # FIXME: don't hardcode host and port
+            context.conn = conn.IPAConn("localhost", 389, krbccache)
+            logger.info("calling %s" % method)
             return func(*args, **kw)
         finally:
             # Clean up any per-request data and connections
@@ -140,9 +143,14 @@ XMLRPCServer = StoppableXMLRPCServer(("",PORT), LoggingSimpleXMLRPCRequestHandle
 
 XMLRPCServer.register_introspection_functions()
 
-# Get and register all the methods
-api.env.server_context = True
 api.finalize()
+
+# Initialize our environment
+env_dict = config.read_config()
+env_dict['server_context'] = True
+api.env.update(config.generate_env(env_dict))
+
+# Get and register all the methods
 for cmd in api.Command:
     logger.info("registering %s" % cmd)
     XMLRPCServer.register_function(api.Command[cmd], cmd)
