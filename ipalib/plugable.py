@@ -693,19 +693,37 @@ class Registrar(DictProxy):
 
 
 class Environment(object):
+    """
+    A mapping object used to store the environment variables.
+    """
+
     def __init__(self):
         object.__setattr__(self, '_Environment__map', {})
 
-    def __setattr__(self, name, value):
-        self[name] = value
-
     def __getattr__(self, name):
+        """
+        Return the attribute named ``name``.
+        """
         return self[name]
 
+    def __setattr__(self, name, value):
+        """
+        Set the attribute named ``name`` to ``value``.
+        """
+        self[name] = value
+
     def __delattr__(self, name):
-        del self[name]
+        """
+        Raise AttributeError (deletion is not allowed).
+        """
+        raise AttributeError('cannot del %s.%s' %
+            (self.__class__.__name__, name)
+        )
 
     def __getitem__(self, key):
+        """
+        Return the value corresponding to ``key``.
+        """
         val = self.__map[key]
         if hasattr(val, 'get_value'):
             return val.get_value()
@@ -713,22 +731,26 @@ class Environment(object):
             return val
 
     def __setitem__(self, key, value):
+        """
+        Set the item at ``key`` to ``value``.
+        """
         if key in self or hasattr(self, key):
             raise AttributeError('cannot overwrite %s.%s' %
                         (self.__class__.__name__, key)
                     )
         self.__map[key] = value
 
-    def __delitem__(self, key):
-        raise AttributeError('read-only: cannot del %s.%s' %
-            (self.__class__.__name__, key)
-        )
-
     def __contains__(self, key):
+        """
+        Return True if instance contains ``key``; otherwise return False.
+        """
         return key in self.__map
 
     def __iter__(self):
-        for key in self.__map:
+        """
+        Iterate through keys in ascending order.
+        """
+        for key in sorted(self.__map):
             yield key
 
     def update(self, new_vals, ignore_errors = False):
