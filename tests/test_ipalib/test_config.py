@@ -37,8 +37,11 @@ def test_generate_env():
         query_dns = False,
         server = ('first', 'second'),
         realm = 'myrealm',
+        # test right conversions
+        server_context = 'off',
     )
     d = config.generate_env(env)
+    assert d['server_context'] == False
     assert d['query_dns'] == False
 
     # Make sure the servers is overwrote properly (that it is still LazyProp)

@@ -25,23 +25,39 @@ DEFAULT_CONF='/etc/ipa/ipa.conf'
 
 def generate_env(d={}):
     default = dict(
-        server_context = True,
-        query_dns = True,
-        verbose = False,
-        interactive = True,
-        server = LazyIter(get_servers),
-        realm = LazyProp(get_realm),
+        basedn = 'dc=example,dc=com',
+        container_user = 'cn=users,cn=accounts',
         domain = LazyProp(get_domain),
-        container_user='cn=users,cn=accounts',
-        basedn='dc=example,dc=com',
+        interactive = True,
+        query_dns = True,
+        realm = LazyProp(get_realm),
+        server_context = True,
+        server = LazyIter(get_servers),
+        verbose = False,
     )
     for key, value in d.iteritems():
-        if key in default and type(default[key]) in (LazyIter, LazyProp):
-            default[key].set_value(value)
+        if key in default:
+            if isinstance(default[key], (LazyIter, LazyProp)):
+                default[key].set_value(value)
+            else:
+                default[key] = convert_val(type(default[key]), value)
         else:
-            default[key] = value
+             default[key] = value
 
     return default
+
+
+# TODO: Add a validation function
+def convert_val(target_type, value):
+    bool_true = ('true', 'yes', 'on')
+    bool_false = ('false', 'no', 'off')
+
+    if target_type == bool and isinstance(value, basestring):
+        if value.lower() in bool_true:
+            return True
+        elif value.lower() in bool_false:
+            return False
+    return target_type(value)
 
 
 class LazyProp(object):
@@ -73,6 +89,8 @@ class LazyIter(LazyProp):
                 yield item
 
 
+# TODO: Make it possible to use var = 'foo, bar' without
+#       turning it into ("'foo", "bar'")
 def read_config(config_file=None):
     assert config_file == None or isinstance(config_file, (basestring, file))
 

@@ -47,6 +47,7 @@ class envtest(frontend.Command):
                 print ""
             else:
                 print "  %s: %s" % (var, val)
+        return {}
 api.register(envtest)
 
 
