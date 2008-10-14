@@ -184,18 +184,13 @@ def get_user_by_uid(uid, sattrs):
 
 # User support
 
-def user_exists(uid):
-    """Return True if the exists, False otherwise."""
-    # FIXME: fix the filter
-    # FIXME: should accept a container to look in
-#    uid = self.__safe_filter(uid)
-    searchfilter = "(&(uid=%s)(objectclass=posixAccount))" % uid
-
+def entry_exists(dn):
+    """Return True if the entry exists, False otherwise."""
     try:
-        get_sub_entry("cn=accounts," + basedn, searchfilter, ['dn','uid'])
+        get_base_entry(dn, "objectclass=*", ['dn','objectclass'])
         return True
     except errors.NotFound:
-        return True
+        return False
 
 def get_user_by_uid (uid, sattrs):
     """Get a specific user's entry. Return as a dict of values.
