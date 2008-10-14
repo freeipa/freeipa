@@ -963,6 +963,20 @@ class test_Object(ClassChecker):
         assert isinstance(b, ldap)
         assert b.whatever == 'It worked!'
 
+    def test_get_dn(self):
+        """
+        Test the `ipalib.frontend.Object.get_dn` method.
+        """
+        assert 'get_dn' in self.cls.__public__ # Public
+        o = self.cls()
+        e = raises(NotImplementedError, o.get_dn, 'primary key')
+        assert str(e) == 'Object.get_dn()'
+        class user(self.cls):
+            pass
+        o = user()
+        e = raises(NotImplementedError, o.get_dn, 'primary key')
+        assert str(e) == 'user.get_dn()'
+
 
 class test_Attribute(ClassChecker):
     """

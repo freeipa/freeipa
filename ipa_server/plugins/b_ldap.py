@@ -23,6 +23,7 @@ Backend plugin for LDAP.
 This wraps the python-ldap bindings.
 """
 
+import ldap as _ldap
 from ipalib import api
 from ipalib.backend import Backend
 
@@ -31,5 +32,7 @@ class ldap(Backend):
     """
     LDAP backend plugin.
     """
+
+    dn = _ldap.dn
 
 api.register(ldap)

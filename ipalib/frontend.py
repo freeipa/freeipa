@@ -750,6 +750,7 @@ class Object(plugable.Plugin):
         'params',
         'primary_key',
         'params_minus_pk',
+        'get_dn',
     ))
     backend = None
     methods = None
@@ -789,6 +790,12 @@ class Object(plugable.Plugin):
 
         if 'Backend' in self.api and self.backend_name in self.api.Backend:
             self.backend = self.api.Backend[self.backend_name]
+
+    def get_dn(self, primary_key):
+        """
+        Construct an LDAP DN from a primary_key.
+        """
+        raise NotImplementedError('%s.get_dn()' % self.name)
 
     def __get_attrs(self, name):
         if name not in self.api:
