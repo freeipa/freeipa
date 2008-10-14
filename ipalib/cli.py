@@ -302,7 +302,7 @@ class CLI(object):
                         break
                     except errors.ValidationError, e:
                         error = e.error
-        cmd(**kw)
+        cmd.output_for_cli(cmd(**kw))
 
     def parse(self, cmd, argv):
         parser = self.build_parser(cmd)

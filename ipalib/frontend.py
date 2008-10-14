@@ -486,6 +486,7 @@ class Command(plugable.Plugin):
         'params',
         'args_to_kw',
         'kw_to_args',
+        'output_for_cli',
     ))
     takes_options = tuple()
     takes_args = tuple()
@@ -740,6 +741,14 @@ class Command(plugable.Plugin):
             if arg.multivalue:
                 multivalue = True
             yield arg
+
+    def output_for_cli(self, ret):
+        """
+        Output result of this command to command line interface.
+        """
+        assert type(ret) is dict, 'base output_for_cli() only works with dict'
+        for key in sorted(ret):
+            print '%s = %r' % (key, ret[key])
 
 
 class Object(plugable.Plugin):

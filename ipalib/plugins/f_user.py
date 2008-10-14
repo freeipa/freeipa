@@ -75,12 +75,26 @@ api.register(user)
 
 class user_add(crud.Add):
     'Add a new user.'
-    def execute(self, *args, **kw):
-        """args[0] = uid of the user to add
-           kw{container} is the location in the DIT to add the user, not
-           required
-           kw otherwise contains all the attributes
+
+    def execute(self, uid, **kw):
         """
+        Execute the user-add operation.
+
+        The dn should not be passed as a keyword argument as it is constructed
+        by this method.
+
+        Returns the entry as it will be created in LDAP.
+
+        :param uid: The login name of the user being added.
+        :param kw: Keyword arguments for the other LDAP attributes.
+        """
+        assert 'uid' not in kw
+        assert 'dn' not in kw
+        kw['uid'] = uid
+        kw['dn'] = self.api.Backend.ldap.get_user_dn(uid)
+
+        return kw
+
         # FIXME: ug, really?
         if not kw.get('container'):
             user_container = servercore.DefaultUserContainer
@@ -162,10 +176,6 @@ class user_add(crud.Add):
 
         result = servercore.add_entry(entry)
         return result
-    def forward(self, *args, **kw):
-        result = super(crud.Add, self).forward(*args, **kw)
-        if result:
-            print "User %s added" % args[0]
 
 api.register(user_add)
 
