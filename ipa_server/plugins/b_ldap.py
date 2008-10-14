@@ -25,10 +25,10 @@ This wraps the python-ldap bindings.
 
 import ldap as _ldap
 from ipalib import api
-from ipalib.backend import Backend
+from ipalib.crud import CrudBackend
 
 
-class ldap(Backend):
+class ldap(CrudBackend):
     """
     LDAP backend plugin.
     """
@@ -44,5 +44,8 @@ class ldap(Backend):
             self.api.env.container_user,
             self.api.env.basedn,
         )
+
+    def create(self, **kw):
+        return kw
 
 api.register(ldap)

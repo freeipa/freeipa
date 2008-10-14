@@ -55,20 +55,36 @@ class user(frontend.Object):
     User object.
     """
     takes_params = (
-        Param('givenname', cli_name='firstname'),
-        Param('sn', cli_name='lastname'),
+        Param('givenname',
+            cli_name='first',
+            doc='User first name',
+        ),
+        Param('sn',
+            cli_name='last',
+            doc='User last name',
+        ),
         Param('uid',
             cli_name='user',
             primary_key=True,
             default_from=lambda givenname, sn: givenname[0] + sn,
             normalize=lambda value: value.lower(),
         ),
-        Param('krbprincipalname',
-            default_from=lambda uid: '%s@EXAMPLE.COM' % uid,
+        Param('gecos',
+            doc='GECOS field',
+            default_from=lambda uid: uid,
         ),
         Param('homedirectory',
+            cli_name='home',
+            doc='Path of user home directory',
             default_from=lambda uid: '/home/%s' % uid,
-        )
+        ),
+        Param('shell',
+            default=u'/bin/sh',
+            doc='Login shell',
+        ),
+        Param('krbprincipalname?', cli_name='principal',
+            default_from=lambda uid: '%s@EXAMPLE.COM' % uid,
+        ),
     )
 api.register(user)
 
@@ -90,21 +106,11 @@ class user_add(crud.Add):
         """
         assert 'uid' not in kw
         assert 'dn' not in kw
+        ldap = self.api.Backend.ldap
         kw['uid'] = uid
-        kw['dn'] = self.api.Backend.ldap.get_user_dn(uid)
+        kw['dn'] = ldap.get_user_dn(uid)
+        return ldap.create(**kw)
 
-        return kw
-
-        # FIXME: ug, really?
-        if not kw.get('container'):
-            user_container = servercore.DefaultUserContainer
-        else:
-            user_container = kw['container']
-            del kw['container']
-
-        user = kw
-
-        user['uid'] = args[0]
 
         if servercore.user_exists(user['uid']):
             raise errors.Duplicate("user already exists")
