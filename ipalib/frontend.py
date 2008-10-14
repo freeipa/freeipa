@@ -687,8 +687,15 @@ class Command(plugable.Plugin):
             (create_param(spec) for spec in self.get_options()),
             sort=False
         )
+        def get_key(p):
+            if p.required:
+                if p.default_from is None:
+                    return 0
+                return 1
+            return 2
         self.params = plugable.NameSpace(
-            tuple(self.args()) + tuple(self.options()), sort=False
+            sorted(tuple(self.args()) + tuple(self.options()), key=get_key),
+            sort=False
         )
         super(Command, self).finalize()
 
