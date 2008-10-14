@@ -35,4 +35,14 @@ class ldap(Backend):
 
     dn = _ldap.dn
 
+    def get_user_dn(self, uid):
+        """
+        Construct user dn from uid.
+        """
+        return 'uid=%s,%s,%s' % (
+            self.dn.escape_dn_chars(uid),
+            self.api.env.container_user,
+            self.api.env.basedn,
+        )
+
 api.register(ldap)

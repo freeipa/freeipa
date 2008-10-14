@@ -25,13 +25,15 @@ DEFAULT_CONF='/etc/ipa/ipa.conf'
 
 def generate_env(d={}):
     default = dict(
-        server_context = False,
+        server_context = True,
         query_dns = True,
         verbose = False,
         interactive = True,
         server = LazyIter(get_servers),
         realm = LazyProp(get_realm),
         domain = LazyProp(get_domain),
+        container_user='cn=users,cn=accounts',
+        basedn='dc=example,dc=com',
     )
     for key, value in d.iteritems():
         if key in default and type(default[key]) in (LazyIter, LazyProp):
