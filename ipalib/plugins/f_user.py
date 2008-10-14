@@ -70,16 +70,17 @@ class user(frontend.Object):
             default_from=lambda givenname, sn: givenname[0] + sn,
             normalize=lambda value: value.lower(),
         ),
-        Param('gecos',
+        Param('gecos?',
             doc='GECOS field',
             default_from=lambda uid: uid,
         ),
-        Param('homedirectory',
+        Param('homedirectory?',
             cli_name='home',
             doc='Path of user home directory',
             default_from=lambda uid: '/home/%s' % uid,
         ),
-        Param('shell',
+        Param('loginshell?',
+            cli_name='shell',
             default=u'/bin/sh',
             doc='Login shell',
         ),
@@ -110,44 +111,22 @@ class user_add(crud.Add):
         ldap = self.api.Backend.ldap
         kw['uid'] = uid
         kw['dn'] = ldap.get_user_dn(uid)
-        return ldap.create(**kw)
 
-
-        if servercore.user_exists(user['uid']):
-            raise errors.Duplicate("user already exists")
-        if servercore.uid_too_long(user['uid']):
+        if servercore.uid_too_long(kw['uid']):
             raise errors.UsernameTooLong
-
-        # dn is set here, not by the user
-        try:
-            del user['dn']
-        except KeyError:
-            pass
-
-        # No need to set empty fields, and they can cause issues when they
-        # get to LDAP, like:
-        #     TypeError: ('expected a string in the list', None)
-        for k in user.keys():
-            if not user[k] or len(user[k]) == 0 or (isinstance(user[k],list) and len(user[k]) == 1 and '' in user[k]):
-                del user[k]
-
-        dn="uid=%s,%s,%s" % (ldap.dn.escape_dn_chars(user['uid']),
-                             user_container,servercore.basedn)
-
-        entry = ipaldap.Entry(dn)
 
         # Get our configuration
         config = servercore.get_ipa_config()
 
         # Let us add in some missing attributes
-        if user.get('homedirectory') is None:
-            user['homedirectory'] = '%s/%s' % (config.get('ipahomesrootdir'), user.get('uid'))
-            user['homedirectory'] = user['homedirectory'].replace('//', '/')
-            user['homedirectory'] = user['homedirectory'].rstrip('/')
-        if user.get('loginshell') is None:
-            user['loginshell'] = config.get('ipadefaultloginshell')
-        if user.get('gecos') is None:
-            user['gecos'] = user['uid']
+        if kw.get('homedirectory') is None:
+            kw['homedirectory'] = '%s/%s' % (config.get('ipahomesrootdir'), kw.get('uid'))
+            kw['homedirectory'] = kw['homedirectory'].replace('//', '/')
+            kw['homedirectory'] = kw['homedirectory'].rstrip('/')
+        if kw.get('loginshell') is None:
+            kw['loginshell'] = config.get('ipadefaultloginshell')
+        if kw.get('gecos') is None:
+            kw['gecos'] = kw['uid']
 
         # If uidnumber is blank the the FDS dna_plugin will automatically
         # assign the next value. So we don't have to do anything with it.
@@ -156,33 +135,27 @@ class user_add(crud.Add):
         try:
             default_group = servercore.get_entry_by_dn(group_dn, ['dn','gidNumber'])
             if default_group:
-                user['gidnumber'] = default_group.get('gidnumber')
+                kw['gidnumber'] = default_group.get('gidnumber')
         except errors.NotFound:
-            # Fake an LDAP error so we can return something useful to the user
-            raise errors.NotFound, "The default group for new users, '%s', cannot be found." % config.get('ipadefaultprimarygroup')
+            # Fake an LDAP error so we can return something useful to the kw
+            raise errors.NotFound, "The default group for new kws, '%s', cannot be found." % config.get('ipadefaultprimarygroup')
         except Exception, e:
             # catch everything else
             raise e
 
-        if user.get('krbprincipalname') is None:
-            user['krbprincipalname'] = "%s@%s" % (user.get('uid'), servercore.realm)
+        if kw.get('krbprincipalname') is None:
+            kw['krbprincipalname'] = "%s@%s" % (kw.get('uid'), servercore.realm)
 
         # FIXME. This is a hack so we can request separate First and Last
         # name in the GUI.
-        if user.get('cn') is None:
-            user['cn'] = "%s %s" % (user.get('givenname'),
-                                           user.get('sn'))
+        if kw.get('cn') is None:
+            kw['cn'] = "%s %s" % (kw.get('givenname'),
+                                           kw.get('sn'))
 
         # some required objectclasses
-        entry.setValues('objectClass', (config.get('ipauserobjectclasses')))
-        # entry.setValues('objectClass', ['top', 'person', 'organizationalPerson', 'inetOrgPerson', 'inetUser', 'posixAccount', 'krbPrincipalAux'])
+        kw['objectClass'] =  config.get('ipauserobjectclasses')
 
-        # fill in our new entry with everything sent by the user
-        for u in user:
-            entry.setValues(u, user[u])
-
-        result = servercore.add_entry(entry)
-        return result
+        return ldap.create(**kw)
 
 api.register(user_add)
 

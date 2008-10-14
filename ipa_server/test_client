@@ -13,16 +13,16 @@ def user_find(uid):
 # main
 server = xmlrpclib.ServerProxy("http://localhost:8888/")
     
-print server.system.listMethods()
-print server.system.methodHelp("user_add")
+#print server.system.listMethods()
+#print server.system.methodHelp("user_add")
 
 try:
-    args="admin"
+    args="jsmith1"
     kw = {'givenname':'Joe', 'sn':'Smith'}
-    result = server.user_add(args, kw)
+    result = server.user_add(kw, args)
     print "returned %s" % result
 except xmlrpclib.Fault, e:
     print e.faultString
 
-user_find("admin")
-user_find("notfound")
+#user_find("admin")
+#user_find("notfound")
