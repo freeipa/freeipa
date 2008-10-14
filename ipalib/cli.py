@@ -287,13 +287,13 @@ class CLI(object):
                     exit_error('Not enough arguments given')
                 default = param.get_default(**kw)
                 if default is None:
-                    prompt = '%s: ' % param.name
+                    prompt = '%s: ' % param.cli_name
                 else:
-                    prompt = '%s [%s]: ' % (param.name, default)
+                    prompt = '%s [%s]: ' % (param.cli_name, default)
                 error = None
                 while True:
                     if error is not None:
-                        print '>>> %s: %s' % (param.name, error)
+                        print '>>> %s: %s' % (param.cli_name, error)
                     raw = raw_input(prompt)
                     try:
                         value = param(raw, **kw)
