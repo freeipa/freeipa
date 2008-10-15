@@ -70,7 +70,7 @@ class CrudBackend(backend.Backend):
     Base class defining generic CRUD backend API.
     """
 
-    def create(self, *kw):
+    def create(self, **kw):
         """
         Create a new entry.
 
@@ -102,7 +102,7 @@ class CrudBackend(backend.Backend):
         """
         raise NotImplementedError('%s.retrieve()' % self.name)
 
-    def update(self, primary_key, *kw):
+    def update(self, primary_key, **kw):
         """
         Update an existing entry.
 
