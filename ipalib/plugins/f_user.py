@@ -110,7 +110,7 @@ class user_add(crud.Add):
         assert 'dn' not in kw
         ldap = self.api.Backend.ldap
         kw['uid'] = uid
-        kw['dn'] = ldap.get_user_dn(uid)
+        kw['dn'] = ldap.make_user_dn(uid)
 
         if servercore.uid_too_long(kw['uid']):
             raise errors.UsernameTooLong
@@ -244,18 +244,23 @@ api.register(user_find)
 
 class user_show(crud.Get):
     'Examine an existing user.'
-    def execute(self, *args, **kw):
-        uid=args[0]
-        result = servercore.get_user_by_uid(uid, ["*"])
-        return result
-    def forward(self, *args, **kw):
-        try:
-            result = super(crud.Get, self).forward(*args, **kw)
-            if not result: return
-            for a in result:
-                print a, ": ", result[a]
-        except errors.NotFound:
-            print "User %s not found" % args[0]
+    def execute(self, uid, **kw):
+        """
+        Execute the user-show operation.
+
+        The dn should not be passed as a keyword argument as it is constructed
+        by this method.
+
+        Returns the entry
+
+        :param uid: The login name of the user to retrieve.
+        :param kw: Not used.
+        """
+        ldap = self.api.Backend.ldap
+        dn = ldap.find_entry_dn("uid", uid, ["*"], "posixAccount")
+        # FIXME: should kw contain the list of attributes?
+        return ldap.retrieve(dn)
+
 api.register(user_show)
 
 class user_lock(frontend.Command):

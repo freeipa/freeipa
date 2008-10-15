@@ -25,8 +25,11 @@ DEFAULT_CONF='/etc/ipa/ipa.conf'
 
 def generate_env(d={}):
     default = dict(
+        container_accounts = 'cn=accounts',
         basedn = 'dc=example,dc=com',
         container_user = 'cn=users,cn=accounts',
+        container_group = 'cn=groups,cn=accounts',
+        container_service = 'cn=services,cn=accounts',
         domain = LazyProp(get_domain),
         interactive = True,
         query_dns = True,
