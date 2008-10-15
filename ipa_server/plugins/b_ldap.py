@@ -48,8 +48,7 @@ class ldap(CrudBackend):
             self.api.env.basedn,
         )
 
-    def find_entry_dn(self, key_attribute, primary_key, attributes=None,
-                      object_type=None):
+    def find_entry_dn(self, key_attribute, primary_key, object_type=None):
         """
         Find an existing entry's dn from an attribute
         """
@@ -73,7 +72,7 @@ class ldap(CrudBackend):
 
         search_base = "%s, %s" % (self.api.env.container_accounts, self.api.env.basedn)
 
-        entry = servercore.get_sub_entry(search_base, filter, attributes)
+        entry = servercore.get_sub_entry(search_base, filter, ['dn', 'objectclass'])
 
         return entry['dn']
 
@@ -94,6 +93,16 @@ class ldap(CrudBackend):
 
     def retrieve(self, dn, attributes=None):
         return servercore.get_entry_by_dn(dn, attributes)
+
+    def update(self, dn, **kw):
+        result = self.retrieve(dn, ["*"])
+
+        entry = ipaldap.Entry((dn, servercore.convert_scalar_values(result)))
+
+        for k in kw:
+            entry.setValues(k, kw[k])
+
+        return servercore.update_entry(entry.toDict())
 
     def delete(self, dn):
         return servercore.delete_entry(dn)

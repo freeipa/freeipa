@@ -205,27 +205,31 @@ api.register(user_del)
 
 class user_mod(crud.Mod):
     'Edit an existing user.'
-    def execute(self, *args, **kw):
-        uid=args[0]
+    def execute(self, uid, **kw):
+        """
+        Execute the user-mod operation.
 
-        # Get the existing user entry
-        result = servercore.get_sub_entry("cn=accounts," + servercore.basedn, "uid=%s" % uid, ["*"])
+        The dn should not be passed as a keyword argument as it is constructed
+        by this method.
 
-        user = kw
-        dn = result.get('dn')
-        del result['dn']
-        entry = ipaldap.Entry((dn, servercore.convert_scalar_values(result)))
+        Returns the entry
 
-        for u in user:
-            entry.setValues(u, user[u])
+        :param uid: The login name of the user to retrieve.
+        :param kw: Keyword arguments for the other LDAP attributes.
+        """
+        assert 'uid' not in kw
+        assert 'dn' not in kw
+        ldap = self.api.Backend.ldap
+        dn = ldap.find_entry_dn("uid", uid, "posixAccount")
+        return ldap.update(dn, **kw)
 
-        result = servercore.update_entry(entry.toDict())
+    def output_for_cli(self, ret):
+        """
+        Output result of this command to command line interface.
+        """
+        if ret:
+            print "User updated"
 
-        return result
-    def forward(self, *args, **kw):
-        result = super(crud.Mod, self).forward(*args, **kw)
-        if result:
-            print "User %s modified" % args[0]
 api.register(user_mod)
 
 
@@ -269,7 +273,7 @@ class user_show(crud.Get):
         :param kw: Not used.
         """
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("uid", uid, ["*"], "posixAccount")
+        dn = ldap.find_entry_dn("uid", uid, "posixAccount")
         # FIXME: should kw contain the list of attributes?
         return ldap.retrieve(dn)
 
