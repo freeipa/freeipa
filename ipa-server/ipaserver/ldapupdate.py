@@ -430,7 +430,7 @@ class LDAPUpdate:
                     if only.get(k):
                         e.append(v)
                     else:
-                        e = v
+                        e = [v]
                         only[k] = True
                     entry.setValues(k, e)
                     logging.debug('only: updated value %s', e)
