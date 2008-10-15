@@ -154,8 +154,6 @@ class user_add(crud.Add):
 
         # some required objectclasses
         kw['objectClass'] =  config.get('ipauserobjectclasses')
-<<<<<<< HEAD:ipalib/plugins/f_user.py
-=======
 
         return ldap.create(**kw)
     def output_for_cli(self, ret):
@@ -288,9 +286,8 @@ class user_lock(frontend.Command):
         uid = args[0]
         user = servercore.get_user_by_uid(uid, ['dn', 'uid'])
         return servercore.mark_entry_inactive(user['dn'])
-    def forward(self, *args, **kw):
-        result = super(user_lock, self).forward(*args, **kw)
-        if result:
+    def output_for_cli(self, ret):
+        if ret:
             print "User locked"
 api.register(user_lock)
 
@@ -303,8 +300,7 @@ class user_unlock(frontend.Command):
         uid = args[0]
         user = servercore.get_user_by_uid(uid, ['dn', 'uid'])
         return servercore.mark_entry_active(user['dn'])
-    def forward(self, *args, **kw):
-        result = super(user_unlock, self).forward(*args, **kw)
-        if result:
+    def output_for_cli(self, ret):
+        if ret:
             print "User unlocked"
 api.register(user_unlock)

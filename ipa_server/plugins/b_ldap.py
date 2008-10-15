@@ -176,8 +176,3 @@ class ldap(CrudBackend):
         return results
 
 api.register(ldap)
-
-    def delete(self, dn):
-        return servercore.delete_entry(dn)
-
-api.register(ldap)
