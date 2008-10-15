@@ -230,85 +230,6 @@ def uid_too_long(uid):
 
     return False
 
-def find_users (criteria, sattrs, sizelimit=-1, timelimit=-1):
-    """Returns a list: counter followed by the results.
-       If the results are truncated, counter will be set to -1."""
-
-    """
-    if not isinstance(criteria,basestring) or len(criteria) == 0:
-        raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
-    if sattrs is not None and not isinstance(sattrs, list):
-        raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
-    if not isinstance(sizelimit,int):
-        raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
-    if not isinstance(timelimit,int):
-        raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
-    """
-
-#    logging.info("IPA: find_users '%s'" % criteria)
-    config = get_ipa_config()
-    if timelimit < 0:
-        timelimit = float(config.get('ipasearchtimelimit'))
-    if sizelimit < 0:
-        sizelimit = int(config.get('ipasearchrecordslimit'))
-
-    # Assume the list of fields to search will come from a central
-    # configuration repository.  A good format for that would be
-    # a comma-separated list of fields
-    search_fields_conf_str = config.get('ipausersearchfields')
-    search_fields = string.split(search_fields_conf_str, ",")
-
-#    criteria = self.__safe_filter(criteria)
-    criteria_words = re.split(r'\s+', criteria)
-    criteria_words = filter(lambda value:value!="", criteria_words)
-    if len(criteria_words) == 0:
-        return [0]
-
-    (exact_match_filter, partial_match_filter) = generate_match_filters(
-            search_fields, criteria_words)
-
-    #
-    # further constrain search to just the objectClass
-    # TODO - need to parameterize this into generate_match_filters,
-    #        and work it into the field-specification search feature
-    #
-    exact_match_filter = "(&(objectClass=person)%s)" % exact_match_filter
-    partial_match_filter = "(&(objectClass=person)%s)" % partial_match_filter
-
-    try:
-        exact_results = context.conn.getConn().getListAsync("cn=accounts," + basedn, ldap.SCOPE_SUBTREE, exact_match_filter, sattrs, 0, None, None, timelimit, sizelimit)
-#    except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-    except Exception:
-        exact_results = [0]
-
-    try:
-        partial_results = context.conn.getConn().getListAsync("cn=accounts," + basedn, ldap.SCOPE_SUBTREE, partial_match_filter, sattrs, 0, None, None, timelimit, sizelimit)
-#    except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-    except Exception:
-        partial_results = [0]
-
-    exact_counter = exact_results[0]
-    partial_counter = partial_results[0]
-
-    exact_results = exact_results[1:]
-    partial_results = partial_results[1:]
-
-    # Remove exact matches from the partial_match list
-    exact_dns = set(map(lambda e: e.dn, exact_results))
-    partial_results = filter(lambda e: e.dn not in exact_dns,
-                             partial_results)
-
-    if (exact_counter == -1) or (partial_counter == -1):
-        counter = -1
-    else:
-        counter = len(exact_results) + len(partial_results)
-
-    users = [counter]
-    for u in exact_results + partial_results:
-        users.append(convert_entry(u))
-
-    return users
-
 def update_entry (entry):
     """Update an LDAP entry
 
@@ -340,6 +261,23 @@ def add_entry(entry):
 def delete_entry(dn):
     """Remove an entry"""
     return context.conn.getConn().deleteEntry(dn)
+
+# FIXME, get time and search limit from cn=ipaconfig
+def search(base, filter, attributes, timelimit=1, sizelimit=3000):
+    """Perform an LDAP query"""
+    try:
+        timelimit = float(timelimit)
+        results = context.conn.getConn().getListAsync(base, ldap.SCOPE_SUBTREE,
+            filter, attributes, 0, None, None, timelimit, sizelimit)
+    except ldap.NO_SUCH_OBJECT:
+        raise errors.NotFound
+
+    counter = results[0]
+    entries = [counter]
+    for r in results[1:]:
+        entries.append(convert_entry(r))
+
+    return entries
 
 def uniq_list(x):
     """Return a unique list, preserving order and ignoring case"""

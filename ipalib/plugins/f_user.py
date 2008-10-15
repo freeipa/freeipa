@@ -237,11 +237,10 @@ api.register(user_mod)
 class user_find(crud.Find):
     'Search the users.'
     def execute(self, *args, **kw):
-        uid=args[0]
-        result = servercore.find_users(uid, ["*"])
-        return result
-    def forward(self, *args, **kw):
-        users = super(crud.Find, self).forward(*args, **kw)
+        ldap = self.api.Backend.ldap
+        kw['uid'] = args[0]
+        return ldap.search(**kw)
+    def output_for_cli(self, users):
         if not users:
             return
         counter = users[0]
