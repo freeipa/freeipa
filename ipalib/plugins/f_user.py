@@ -157,23 +157,30 @@ class user_add(crud.Add):
 
         return ldap.create(**kw)
 
+    def output_for_cli(self, ret):
+        """
+        Output result of this command to command line interface.
+        """
+        if ret:
+            print "User added"
+
 api.register(user_add)
 
 
 class user_del(crud.Del):
     'Delete an existing user.'
-    def execute(self, *args, **kw):
-        """args[0] = uid of the user to remove
-
-           Delete a user. Not to be confused with inactivate_user. This
+    def execute(self, uid, **kw):
+        """Delete a user. Not to be confused with inactivate_user. This
            makes the entry go away completely.
 
            uid is the uid of the user to delete
 
            The memberOf plugin handles removing the user from any other
            groups.
+
+           :param uid: The login name of the user being added.
+           :param kw: Not used.
         """
-        uid = args[0]
         if uid == "admin":
             # FIXME: do we still want a "special" user?
             raise SyntaxError("admin required")
@@ -183,11 +190,16 @@ class user_del(crud.Del):
         if not user:
             raise errors.NotFound
 
-        return servercore.delete_entry(user['dn'])
-    def forward(self, *args, **kw):
-        result = super(crud.Del, self).forward(*args, **kw)
-        if result:
-            print "User %s removed" % args[0]
+        ldap = self.api.Backend.ldap
+        dn = ldap.find_entry_dn("uid", uid, ["*"], "posixAccount")
+        return ldap.delete(dn)
+    def output_for_cli(self, ret):
+        """
+        Output result of this command to command line interface.
+        """
+        if ret:
+            print "User deleted"
+
 api.register(user_del)
 
 
