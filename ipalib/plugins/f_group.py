@@ -38,6 +38,7 @@ class group(frontend.Object):
     takes_params = (
         'description',
         Param('cn',
+            cli_name='name',
             primary_key=True,
             normalize=lambda value: value.lower(),
         )
@@ -47,47 +48,43 @@ api.register(group)
 
 class group_add(crud.Add):
     'Add a new group.'
-    def execute(self, *args, **kw):
-        """args[0] = uid of the group to add
-           kw{container} is the location in the DIT to add the group, not
-           required
-           kw otherwise contains all the attributes 
+
+    def execute(self, cn, **kw):
         """
-        # FIXME: ug, really?
-        if not kw.get('container'):
-            group_container = servercore.DefaultGroupContainer
-        else:
-            group_container = kw['container']
-            del kw['container']
+        Execute the group-add operation.
 
-        group = kw
+        The dn should not be passed as a keyword argument as it is constructed
+        by this method.
 
-        group['cn'] = args[0]
+        Returns the entry as it will be created in LDAP.
+
+        No need to explicitly set gidNumber. The dna_plugin will do this
+        for us if the value isn't provided by the caller.
+
+        :param cn: The name of the group being added.
+        :param kw: Keyword arguments for the other LDAP attributes.
+        """
+        assert 'cn' not in kw
+        assert 'dn' not in kw
+        ldap = self.api.Backend.ldap
+        kw['cn'] = cn
+        kw['dn'] = ldap.make_group_dn(cn)
 
         # Get our configuration
         config = servercore.get_ipa_config()
 
-        dn="cn=%s,%s,%s" % (ldap.dn.escape_dn_chars(group['cn']),
-                            group_container,servercore.basedn)
-
-        entry = ipaldap.Entry(dn)
-
         # some required objectclasses
-        entry.setValues('objectClass', (config.get('ipagroupobjectclasses')))
+        kw['objectClass'] =  config.get('ipagroupobjectclasses')
 
-        # No need to explicitly set gidNumber. The dna_plugin will do this
-        # for us if the value isn't provided by the user.
+        return ldap.create(**kw)
 
-        # fill in our new entry with everything sent by the user
-        for g in group:
-            entry.setValues(g, group[g])
+    def output_for_cli(self, ret):
+        """
+        Output result of this command to command line interface.
+        """
+        if ret:
+            print "Group added"
 
-        result = servercore.add_entry(entry)
-        return result
-    def forward(self, *args, **kw):
-        result = super(crud.Add, self).forward(*args, **kw)
-        if result:
-            print "Group %s added" % args[0]
 api.register(group_add)
 
 

@@ -48,6 +48,16 @@ class ldap(CrudBackend):
             self.api.env.basedn,
         )
 
+    def make_group_dn(self, cn):
+        """
+        Construct user dn from cn.
+        """
+        return 'cn=%s,%s,%s' % (
+            self.dn.escape_dn_chars(cn),
+            self.api.env.container_group,
+            self.api.env.basedn,
+        )
+
     def find_entry_dn(self, key_attribute, primary_key, object_type=None):
         """
         Find an existing entry's dn from an attribute
@@ -113,7 +123,8 @@ class ldap(CrudBackend):
         for k in kw:
             entry.setValues(k, kw[k])
 
-        return servercore.add_entry(entry)
+        servercore.add_entry(entry)
+        return self.retrieve(entry.dn)
 
     def retrieve(self, dn, attributes=None):
         return servercore.get_entry_by_dn(dn, attributes)
@@ -126,7 +137,9 @@ class ldap(CrudBackend):
         for k in kw:
             entry.setValues(k, kw[k])
 
-        return servercore.update_entry(entry.toDict())
+        servercore.update_entry(entry.toDict())
+
+        return self.retrieve(dn)
 
     def delete(self, dn):
         return servercore.delete_entry(dn)
