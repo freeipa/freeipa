@@ -110,7 +110,7 @@ class user_add(crud.Add):
         assert 'dn' not in kw
         ldap = self.api.Backend.ldap
         kw['uid'] = uid
-        kw['dn'] = ldap.get_user_dn(uid)
+        kw['dn'] = ldap.make_user_dn(uid)
 
         if servercore.uid_too_long(kw['uid']):
             raise errors.UsernameTooLong
@@ -154,26 +154,34 @@ class user_add(crud.Add):
 
         # some required objectclasses
         kw['objectClass'] =  config.get('ipauserobjectclasses')
+<<<<<<< HEAD:ipalib/plugins/f_user.py
+=======
 
         return ldap.create(**kw)
+    def output_for_cli(self, ret):
+        """
+        Output result of this command to command line interface.
+        """
+        if ret:
+            print "User added"
 
 api.register(user_add)
 
 
 class user_del(crud.Del):
     'Delete an existing user.'
-    def execute(self, *args, **kw):
-        """args[0] = uid of the user to remove
-
-           Delete a user. Not to be confused with inactivate_user. This
+    def execute(self, uid, **kw):
+        """Delete a user. Not to be confused with inactivate_user. This
            makes the entry go away completely.
 
            uid is the uid of the user to delete
 
            The memberOf plugin handles removing the user from any other
            groups.
+
+           :param uid: The login name of the user being added.
+           :param kw: Not used.
         """
-        uid = args[0]
         if uid == "admin":
             # FIXME: do we still want a "special" user?
             raise SyntaxError("admin required")
@@ -183,37 +191,46 @@ class user_del(crud.Del):
         if not user:
             raise errors.NotFound
 
-        return servercore.delete_entry(user['dn'])
-    def forward(self, *args, **kw):
-        result = super(crud.Del, self).forward(*args, **kw)
-        if result:
-            print "User %s removed" % args[0]
+        ldap = self.api.Backend.ldap
+        dn = ldap.find_entry_dn("uid", uid, ["*"], "posixAccount")
+        return ldap.delete(dn)
+    def output_for_cli(self, ret):
+        """
+        Output result of this command to command line interface.
+        """
+        if ret:
+            print "User deleted"
+
 api.register(user_del)
 
 
 class user_mod(crud.Mod):
     'Edit an existing user.'
-    def execute(self, *args, **kw):
-        uid=args[0]
+    def execute(self, uid, **kw):
+        """
+        Execute the user-mod operation.
 
-        # Get the existing user entry
-        result = servercore.get_sub_entry("cn=accounts," + servercore.basedn, "uid=%s" % uid, ["*"])
+        The dn should not be passed as a keyword argument as it is constructed
+        by this method.
 
-        user = kw
-        dn = result.get('dn')
-        del result['dn']
-        entry = ipaldap.Entry((dn, servercore.convert_scalar_values(result)))
+        Returns the entry
 
-        for u in user:
-            entry.setValues(u, user[u])
+        :param uid: The login name of the user to retrieve.
+        :param kw: Keyword arguments for the other LDAP attributes.
+        """
+        assert 'uid' not in kw
+        assert 'dn' not in kw
+        ldap = self.api.Backend.ldap
+        dn = ldap.find_entry_dn("uid", uid, "posixAccount")
+        return ldap.update(dn, **kw)
 
-        result = servercore.update_entry(entry.toDict())
+    def output_for_cli(self, ret):
+        """
+        Output result of this command to command line interface.
+        """
+        if ret:
+            print "User updated"
 
-        return result
-    def forward(self, *args, **kw):
-        result = super(crud.Mod, self).forward(*args, **kw)
-        if result:
-            print "User %s modified" % args[0]
 api.register(user_mod)
 
 
@@ -244,18 +261,23 @@ api.register(user_find)
 
 class user_show(crud.Get):
     'Examine an existing user.'
-    def execute(self, *args, **kw):
-        uid=args[0]
-        result = servercore.get_user_by_uid(uid, ["*"])
-        return result
-    def forward(self, *args, **kw):
-        try:
-            result = super(crud.Get, self).forward(*args, **kw)
-            if not result: return
-            for a in result:
-                print a, ": ", result[a]
-        except errors.NotFound:
-            print "User %s not found" % args[0]
+    def execute(self, uid, **kw):
+        """
+        Execute the user-show operation.
+
+        The dn should not be passed as a keyword argument as it is constructed
+        by this method.
+
+        Returns the entry
+
+        :param uid: The login name of the user to retrieve.
+        :param kw: Not used.
+        """
+        ldap = self.api.Backend.ldap
+        dn = ldap.find_entry_dn("uid", uid, "posixAccount")
+        # FIXME: should kw contain the list of attributes?
+        return ldap.retrieve(dn)
+
 api.register(user_show)
 
 class user_lock(frontend.Command):

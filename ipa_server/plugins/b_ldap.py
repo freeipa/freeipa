@@ -29,7 +29,6 @@ from ipalib import errors
 from ipalib.crud import CrudBackend
 from ipa_server import servercore
 from ipa_server import ipaldap
-import ldap
 
 
 class ldap(CrudBackend):
@@ -39,7 +38,7 @@ class ldap(CrudBackend):
 
     dn = _ldap.dn
 
-    def get_user_dn(self, uid):
+    def make_user_dn(self, uid):
         """
         Construct user dn from uid.
         """
@@ -48,6 +47,34 @@ class ldap(CrudBackend):
             self.api.env.container_user,
             self.api.env.basedn,
         )
+
+    def find_entry_dn(self, key_attribute, primary_key, object_type=None):
+        """
+        Find an existing entry's dn from an attribute
+        """
+        key_attribute = key_attribute.lower()
+        if not object_type:
+            if key_attribute == "uid": # User
+                filter = "posixAccount"
+            elif key_attribute == "cn": # Group
+                object_type = "posixGroup"
+            elif key_attribute == "krbprincipal": # Service
+                object_type = "krbPrincipal"
+
+        if not object_type:
+            return None
+
+        filter = "(&(%s=%s)(objectclass=%s))" % (
+            key_attribute,
+            self.dn.escape_dn_chars(primary_key),
+            object_type
+        )
+
+        search_base = "%s, %s" % (self.api.env.container_accounts, self.api.env.basedn)
+
+        entry = servercore.get_sub_entry(search_base, filter, ['dn', 'objectclass'])
+
+        return entry['dn']
 
     def create(self, **kw):
         if servercore.entry_exists(kw['dn']):
@@ -63,5 +90,26 @@ class ldap(CrudBackend):
             entry.setValues(k, kw[k])
 
         return servercore.add_entry(entry)
+
+    def retrieve(self, dn, attributes=None):
+        return servercore.get_entry_by_dn(dn, attributes)
+
+    def update(self, dn, **kw):
+        result = self.retrieve(dn, ["*"])
+
+        entry = ipaldap.Entry((dn, servercore.convert_scalar_values(result)))
+
+        for k in kw:
+            entry.setValues(k, kw[k])
+
+        return servercore.update_entry(entry.toDict())
+
+    def delete(self, dn):
+        return servercore.delete_entry(dn)
+
+api.register(ldap)
+
+    def delete(self, dn):
+        return servercore.delete_entry(dn)
 
 api.register(ldap)

@@ -70,7 +70,7 @@ class CrudBackend(backend.Backend):
     Base class defining generic CRUD backend API.
     """
 
-    def create(self, *kw):
+    def create(self, **kw):
         """
         Create a new entry.
 
@@ -87,12 +87,14 @@ class CrudBackend(backend.Backend):
         """
         raise NotImplementedError('%s.create()' % self.name)
 
-    def retrieve(self, primary_key):
+    def retrieve(self, primary_key, attributes):
         """
         Retrieve an existing entry.
 
-        This method should take a single argument, the primary_key of the
-        entry in question.
+        This method should take a two arguments: the primary_key of the
+        entry in question and a list of the attributes to be retrieved.
+        If the list of attributes is None then all non-operational
+        attributes will be returned.
 
         If such an entry exists, this method should return a dict
         representing that entry.  If no such entry exists, this method
@@ -100,7 +102,7 @@ class CrudBackend(backend.Backend):
         """
         raise NotImplementedError('%s.retrieve()' % self.name)
 
-    def update(self, primary_key, *kw):
+    def update(self, primary_key, **kw):
         """
         Update an existing entry.
 
