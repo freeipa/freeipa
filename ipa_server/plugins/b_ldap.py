@@ -58,20 +58,30 @@ class ldap(CrudBackend):
             self.api.env.basedn,
         )
 
+    def get_object_type(self, attribute):
+        """
+        Based on attribute, make an educated guess as to the type of
+        object we're looking for.
+        """
+        object_type = None
+        if attribute == "uid": # User
+            object_type = "person"
+        elif attribute == "cn": # Group
+            object_type = "posixGroup"
+        elif attribute == "krbprincipal": # Service
+            object_type = "krbPrincipal"
+
+        return object_type
+
     def find_entry_dn(self, key_attribute, primary_key, object_type=None):
         """
         Find an existing entry's dn from an attribute
         """
         key_attribute = key_attribute.lower()
         if not object_type:
-            if key_attribute == "uid": # User
-                filter = "posixAccount"
-            elif key_attribute == "cn": # Group
-                object_type = "posixGroup"
-            elif key_attribute == "krbprincipal": # Service
-                object_type = "krbPrincipal"
-            else:
-                return None
+            object_type = self.get_object_type(key_attribute)
+        if not object_type:
+            return None
 
         filter = "(&(%s=%s)(objectclass=%s))" % (
             key_attribute,
@@ -83,7 +93,7 @@ class ldap(CrudBackend):
 
         entry = servercore.get_sub_entry(search_base, filter, ['dn', 'objectclass'])
 
-        return entry['dn']
+        return entry.get('dn')
 
     def get_ipa_config(self):
         """Return a dictionary of the IPA configuration"""

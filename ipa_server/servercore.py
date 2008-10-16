@@ -178,7 +178,7 @@ def get_user_by_uid(uid, sattrs):
     """Get a specific user's entry."""
     # FIXME: should accept a container to look in
 #    uid = self.__safe_filter(uid)
-    searchfilter = "(&(uid=%s)(objectclass=posixAccount))" % uid
+    searchfilter = "(&(uid=%s)(objectclass=person))" % uid
 
     return get_sub_entry("cn=accounts," + basedn, searchfilter, sattrs)
 

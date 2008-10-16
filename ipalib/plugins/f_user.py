@@ -186,7 +186,7 @@ class user_del(crud.Del):
 #        logging.info("IPA: delete_user '%s'" % uid)
 
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("uid", uid, "posixAccount")
+        dn = ldap.find_entry_dn("uid", uid)
         return ldap.delete(dn)
     def output_for_cli(self, ret):
         """
@@ -215,7 +215,7 @@ class user_mod(crud.Mod):
         assert 'uid' not in kw
         assert 'dn' not in kw
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("uid", uid, "posixAccount")
+        dn = ldap.find_entry_dn("uid", uid)
         return ldap.update(dn, **kw)
 
     def output_for_cli(self, ret):
@@ -230,9 +230,20 @@ api.register(user_mod)
 
 class user_find(crud.Find):
     'Search the users.'
-    def execute(self, uid, **kw):
+    def execute(self, term, **kw):
         ldap = self.api.Backend.ldap
-        kw['uid'] = uid
+
+        # Pull the list of searchable attributes out of the configuration.
+        config = ldap.get_ipa_config()
+        search_fields_conf_str = config.get('ipausersearchfields')
+        search_fields = search_fields_conf_str.split(",")
+
+        for s in search_fields:
+            kw[s] = term
+
+        object_type = ldap.get_object_type("uid")
+        if object_type and not kw.get('objectclass'):
+            kw['objectclass'] = ldap.get_object_type("uid")
         return ldap.search(**kw)
     def output_for_cli(self, users):
         if not users:
@@ -267,7 +278,7 @@ class user_show(crud.Get):
         :param kw: Not used.
         """
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("uid", uid, "posixAccount")
+        dn = ldap.find_entry_dn("uid", uid)
         # FIXME: should kw contain the list of attributes to display?
         return ldap.retrieve(dn)
 
@@ -280,7 +291,7 @@ class user_lock(frontend.Command):
     )
     def execute(self, uid, **kw):
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("uid", uid, "posixAccount")
+        dn = ldap.find_entry_dn("uid", uid)
         return ldap.mark_entry_inactive(dn)
     def output_for_cli(self, ret):
         if ret:
@@ -294,7 +305,7 @@ class user_unlock(frontend.Command):
     )
     def execute(self, uid, **kw):
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("uid", uid, "posixAccount")
+        dn = ldap.find_entry_dn("uid", uid)
         return ldap.mark_entry_active(dn)
     def output_for_cli(self, ret):
         if ret:

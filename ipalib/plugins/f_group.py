@@ -155,9 +155,20 @@ api.register(group_mod)
 
 class group_find(crud.Find):
     'Search the groups.'
-    def execute(self, cn, **kw):
+    def execute(self, term, **kw):
         ldap = self.api.Backend.ldap
-        kw['cn'] = cn
+
+        # Pull the list of searchable attributes out of the configuration.
+        config = ldap.get_ipa_config()
+        search_fields_conf_str = config.get('ipagroupsearchfields')
+        search_fields = search_fields_conf_str.split(",")
+
+        for s in search_fields:
+            kw[s] = term
+
+        object_type = ldap.get_object_type("cn")
+        if object_type and not kw.get('objectclass'):
+            kw['objectclass'] = ldap.get_object_type("cn")
         return ldap.search(**kw)
 
     def output_for_cli(self, groups):
