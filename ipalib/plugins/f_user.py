@@ -27,9 +27,6 @@ from ipalib.frontend import Param
 from ipalib import api
 from ipalib import errors
 from ipalib import ipa_types
-from ipa_server import servercore
-from ipa_server import ipaldap
-import ldap
 
 # Command to get the idea how plugins will interact with api.env
 class envtest(frontend.Command):
@@ -112,11 +109,12 @@ class user_add(crud.Add):
         kw['uid'] = uid
         kw['dn'] = ldap.make_user_dn(uid)
 
-        if servercore.uid_too_long(kw['uid']):
-            raise errors.UsernameTooLong
+        # FIXME: enforce this elsewhere
+#        if servercore.uid_too_long(kw['uid']):
+#            raise errors.UsernameTooLong
 
         # Get our configuration
-        config = servercore.get_ipa_config()
+        config = ldap.get_ipa_config()
 
         # Let us add in some missing attributes
         if kw.get('homedirectory') is None:
@@ -131,20 +129,21 @@ class user_add(crud.Add):
         # If uidnumber is blank the the FDS dna_plugin will automatically
         # assign the next value. So we don't have to do anything with it.
 
-        group_dn="cn=%s,%s,%s" % (config.get('ipadefaultprimarygroup'), servercore.DefaultGroupContainer, servercore.basedn)
-        try:
-            default_group = servercore.get_entry_by_dn(group_dn, ['dn','gidNumber'])
-            if default_group:
-                kw['gidnumber'] = default_group.get('gidnumber')
-        except errors.NotFound:
-            # Fake an LDAP error so we can return something useful to the kw
-            raise errors.NotFound, "The default group for new kws, '%s', cannot be found." % config.get('ipadefaultprimarygroup')
-        except Exception, e:
-            # catch everything else
-            raise e
+        if not kw.get('gidnumber'):
+            try:
+                group_dn = ldap.find_entry_dn("cn", config.get('ipadefaultprimarygroup'))
+                default_group = ldap.retrieve(group_dn, ['dn','gidNumber'])
+                if default_group:
+                    kw['gidnumber'] = default_group.get('gidnumber')
+            except errors.NotFound:
+                # Fake an LDAP error so we can return something useful to the kw
+                raise errors.NotFound, "The default group for new kws, '%s', cannot be found." % config.get('ipadefaultprimarygroup')
+            except Exception, e:
+                # catch everything else
+                raise e
 
         if kw.get('krbprincipalname') is None:
-            kw['krbprincipalname'] = "%s@%s" % (kw.get('uid'), servercore.realm)
+            kw['krbprincipalname'] = "%s@%s" % (kw.get('uid'), self.api.env.realm)
 
         # FIXME. This is a hack so we can request separate First and Last
         # name in the GUI.
@@ -185,12 +184,9 @@ class user_del(crud.Del):
             raise SyntaxError("admin required")
 #            raise ipaerror.gen_exception(ipaerror.INPUT_ADMIN_REQUIRED)
 #        logging.info("IPA: delete_user '%s'" % uid)
-        user = servercore.get_user_by_uid(uid, ['dn', 'uid'])
-        if not user:
-            raise errors.NotFound
 
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("uid", uid, ["*"], "posixAccount")
+        dn = ldap.find_entry_dn("uid", uid, "posixAccount")
         return ldap.delete(dn)
     def output_for_cli(self, ret):
         """
@@ -234,9 +230,9 @@ api.register(user_mod)
 
 class user_find(crud.Find):
     'Search the users.'
-    def execute(self, *args, **kw):
+    def execute(self, uid, **kw):
         ldap = self.api.Backend.ldap
-        kw['uid'] = args[0]
+        kw['uid'] = uid
         return ldap.search(**kw)
     def output_for_cli(self, users):
         if not users:
@@ -244,7 +240,7 @@ class user_find(crud.Find):
         counter = users[0]
         users = users[1:]
         if counter == 0:
-            print "No entries found for", args[0]
+            print "No entries found"
             return
         elif counter == -1:
             print "These results are truncated."
@@ -272,7 +268,7 @@ class user_show(crud.Get):
         """
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("uid", uid, "posixAccount")
-        # FIXME: should kw contain the list of attributes?
+        # FIXME: should kw contain the list of attributes to display?
         return ldap.retrieve(dn)
 
 api.register(user_show)
@@ -282,10 +278,10 @@ class user_lock(frontend.Command):
     takes_args = (
         Param('uid', primary_key=True),
     )
-    def execute(self, *args, **kw):
-        uid = args[0]
-        user = servercore.get_user_by_uid(uid, ['dn', 'uid'])
-        return servercore.mark_entry_inactive(user['dn'])
+    def execute(self, uid, **kw):
+        ldap = self.api.Backend.ldap
+        dn = ldap.find_entry_dn("uid", uid, "posixAccount")
+        return ldap.mark_entry_inactive(dn)
     def output_for_cli(self, ret):
         if ret:
             print "User locked"
@@ -296,10 +292,10 @@ class user_unlock(frontend.Command):
     takes_args = (
         Param('uid', primary_key=True),
     )
-    def execute(self, *args, **kw):
-        uid = args[0]
-        user = servercore.get_user_by_uid(uid, ['dn', 'uid'])
-        return servercore.mark_entry_active(user['dn'])
+    def execute(self, uid, **kw):
+        ldap = self.api.Backend.ldap
+        dn = ldap.find_entry_dn("uid", uid, "posixAccount")
+        return ldap.mark_entry_active(dn)
     def output_for_cli(self, ret):
         if ret:
             print "User unlocked"

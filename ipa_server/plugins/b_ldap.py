@@ -85,7 +85,17 @@ class ldap(CrudBackend):
 
         return entry['dn']
 
-    def generate_search_filters(self, **kw):
+    def get_ipa_config(self):
+        """Return a dictionary of the IPA configuration"""
+        return servercore.get_ipa_config()
+
+    def mark_entry_active(self, dn):
+        return servercore.mark_entry_inactive(dn)
+
+    def mark_entry_inactive(self, dn):
+        return servercore.mark_entry_inactive(dn)
+
+    def _generate_search_filters(self, **kw):
         """Generates a search filter based on a list of words and a list
            of fields to search against.
 
@@ -109,6 +119,8 @@ class ldap(CrudBackend):
         partial_match_filter = "(|" + sub_pattern + ")"
 
         return (exact_match_filter, partial_match_filter)
+
+    # The CRUD operations
 
     def create(self, **kw):
         if servercore.entry_exists(kw['dn']):
@@ -148,7 +160,7 @@ class ldap(CrudBackend):
         objectclass = kw.get('objectclass')
         if objectclass:
             del kw['objectclass']
-        (exact_match_filter, partial_match_filter) = self.generate_search_filters(**kw)
+        (exact_match_filter, partial_match_filter) = self._generate_search_filters(**kw)
         if objectclass:
             exact_match_filter = "(&(objectClass=%s)%s)" % (objectclass, exact_match_filter)
             partial_match_filter = "(&(objectClass=%s)%s)" % (objectclass, partial_match_filter)
