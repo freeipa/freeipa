@@ -25,11 +25,12 @@ import re
 import sys
 import code
 import optparse
+
 import frontend
 import errors
 import plugable
 import ipa_types
-import config
+from config import set_default_env, read_config
 
 def exit_error(error):
     sys.exit('ipa: ERROR: %s' % error)
@@ -207,7 +208,6 @@ class CLI(object):
         self.__api = api
         self.__all_interactive = False
         self.__not_interactive = False
-        self.__config = None
 
     def __get_api(self):
         return self.__api
@@ -256,9 +256,8 @@ class CLI(object):
 
     def run(self):
         self.finalize()
-        (args, env_dict) = self.parse_globals()
-        env_dict.update(config.read_config(self.__config))
-        self.api.env.update(config.generate_env(env_dict))
+        set_default_env(self.api.env)
+        args = self.parse_globals()
         if len(args) < 1:
             self.print_commands()
             print 'Usage: ipa [global-options] COMMAND'
@@ -329,7 +328,6 @@ class CLI(object):
         return parser
 
     def parse_globals(self, argv=sys.argv[1:]):
-        env_dict = {}
         parser = optparse.OptionParser()
         parser.disable_interspersed_args()
         parser.add_option('-a', dest='interactive', action='store_true',
@@ -348,20 +346,23 @@ class CLI(object):
             self.__all_interactive = True
         elif options.interactive == False:
             self.__not_interactive = True
-        if options.config_file:
-            self.__config = options.config_file
+        if options.verbose != None:
+            self.api.env.verbose = True
         if options.environment:
+            env_dict = {}
             for a in options.environment.split(','):
                 a = a.split('=', 1)
                 if len(a) < 2:
                     parser.error('badly specified environment string,'\
                             'use var1=val1[,var2=val2]..')
                 env_dict[a[0].strip()] = a[1].strip()
-        if options.verbose != None:
-            env_dict.update(verbose=True)
+            self.api.env.update(env_dict, True)
+        if options.config_file:
+            self.api.env.update(read_config(options.config_file), True)
+        else:
+            self.api.env.update(read_config(), True)
 
-        return (args, env_dict)
-
+        return args
 
     def get_usage(self, cmd):
         return ' '.join(self.get_usage_iter(cmd))

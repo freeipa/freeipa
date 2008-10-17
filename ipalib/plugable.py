@@ -29,6 +29,7 @@ import re
 import inspect
 import errors
 from errors import check_type, check_isinstance
+from config import Environment
 
 
 class ReadOnly(object):
@@ -691,77 +692,6 @@ class Registrar(DictProxy):
         # The plugin is okay, add to __registered:
         self.__registered.add(klass)
 
-
-class Environment(object):
-    """
-    A mapping object used to store the environment variables.
-    """
-
-    def __init__(self):
-        object.__setattr__(self, '_Environment__map', {})
-
-    def __getattr__(self, name):
-        """
-        Return the attribute named ``name``.
-        """
-        return self[name]
-
-    def __setattr__(self, name, value):
-        """
-        Set the attribute named ``name`` to ``value``.
-        """
-        self[name] = value
-
-    def __delattr__(self, name):
-        """
-        Raise AttributeError (deletion is not allowed).
-        """
-        raise AttributeError('cannot del %s.%s' %
-            (self.__class__.__name__, name)
-        )
-
-    def __getitem__(self, key):
-        """
-        Return the value corresponding to ``key``.
-        """
-        val = self.__map[key]
-        if hasattr(val, 'get_value'):
-            return val.get_value()
-        else:
-            return val
-
-    def __setitem__(self, key, value):
-        """
-        Set the item at ``key`` to ``value``.
-        """
-        if key in self or hasattr(self, key):
-            raise AttributeError('cannot overwrite %s.%s' %
-                        (self.__class__.__name__, key)
-                    )
-        self.__map[key] = value
-
-    def __contains__(self, key):
-        """
-        Return True if instance contains ``key``; otherwise return False.
-        """
-        return key in self.__map
-
-    def __iter__(self):
-        """
-        Iterate through keys in ascending order.
-        """
-        for key in sorted(self.__map):
-            yield key
-
-    def update(self, new_vals, ignore_errors = False):
-        assert type(new_vals) == dict
-        for key, value in new_vals.iteritems():
-            if key in self and ignore_errors:
-                continue
-            self[key] = value
-
-    def get(self, name, default=None):
-        return self.__map.get(name, default)
 
 class API(DictProxy):
     """

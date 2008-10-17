@@ -146,9 +146,10 @@ XMLRPCServer.register_introspection_functions()
 api.finalize()
 
 # Initialize our environment
+config.set_default_env(api.env)
 env_dict = config.read_config()
 env_dict['server_context'] = True
-api.env.update(config.generate_env(env_dict))
+api.env.update(env_dict)
 
 # Get and register all the methods
 for cmd in api.Command:

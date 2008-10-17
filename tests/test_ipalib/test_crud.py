@@ -40,7 +40,7 @@ class CrudChecker(ClassChecker):
             frontend.Method,
             frontend.Property,
         )
-        api.env.update(config.generate_env())
+        config.set_default_env(api.env)
         class user(frontend.Object):
             takes_params = (
                 'givenname',

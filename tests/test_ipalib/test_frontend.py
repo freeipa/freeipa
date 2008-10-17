@@ -894,7 +894,7 @@ class test_Object(ClassChecker):
             frontend.Method,
             frontend.Property,
         )
-        api.env.update(config.generate_env())
+        config.set_default_env(api.env)
         api.finalize()
 
         # Test with no primary keys:
@@ -951,7 +951,7 @@ class test_Object(ClassChecker):
             frontend.Property,
             backend.Backend,
         )
-        api.env.update(config.generate_env())
+        config.set_default_env(api.env)
         class ldap(backend.Backend):
             whatever = 'It worked!'
         api.register(ldap)

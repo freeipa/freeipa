@@ -21,74 +21,193 @@ from ConfigParser import SafeConfigParser, ParsingError
 import types
 import os
 
+from errors import check_isinstance, raise_TypeError
+
 DEFAULT_CONF='/etc/ipa/ipa.conf'
 
-def generate_env(d={}):
-    default = dict(
-        container_accounts = 'cn=accounts',
-        basedn = 'dc=example,dc=com',
-        container_user = 'cn=users,cn=accounts',
-        container_group = 'cn=groups,cn=accounts',
-        container_service = 'cn=services,cn=accounts',
-        domain = LazyProp(get_domain),
-        interactive = True,
-        query_dns = True,
-        realm = LazyProp(get_realm),
-        server_context = True,
-        server = LazyIter(get_servers),
-        verbose = False,
-    )
-    for key, value in d.iteritems():
-        if key in default:
-            if isinstance(default[key], (LazyIter, LazyProp)):
-                default[key].set_value(value)
-            else:
-                default[key] = convert_val(type(default[key]), value)
+
+class Environment(object):
+    """
+    A mapping object used to store the environment variables.
+    """
+
+    def __init__(self):
+        object.__setattr__(self, '_Environment__map', {})
+
+    def __getattr__(self, name):
+        """
+        Return the attribute named ``name``.
+        """
+        return self[name]
+
+    def __setattr__(self, name, value):
+        """
+        Set the attribute named ``name`` to ``value``.
+        """
+        self[name] = value
+
+    def __delattr__(self, name):
+        """
+        Raise AttributeError (deletion is not allowed).
+        """
+        raise AttributeError('cannot del %s.%s' %
+            (self.__class__.__name__, name)
+        )
+
+    def __getitem__(self, key):
+        """
+        Return the value corresponding to ``key``.
+        """
+        val = self.__map[key]
+        if hasattr(val, 'get_value'):
+            return val.get_value()
         else:
-             default[key] = value
+            return val
 
-    return default
+    def __setitem__(self, key, value):
+        """
+        Set the item at ``key`` to ``value``.
+        """
+        if key in self or hasattr(self, key):
+            if hasattr(self.__map[key], 'set_value'):
+                self.__map[key].set_value(value)
+            else:
+                raise AttributeError('cannot overwrite %s.%s' %
+                            (self.__class__.__name__, key)
+                )
+        else:
+            self.__map[key] = value
+
+    def __contains__(self, key):
+        """
+        Return True if instance contains ``key``; otherwise return False.
+        """
+        return key in self.__map
+
+    def __iter__(self):
+        """
+        Iterate through keys in ascending order.
+        """
+        for key in sorted(self.__map):
+            yield key
+
+    def update(self, new_vals, ignore_errors = False):
+        assert type(new_vals) == dict
+        for key, value in new_vals.iteritems():
+            if ignore_errors:
+                try:
+                    self[key] = value
+                except (AttributeError, KeyError):
+                    pass
+            else:
+                self[key] = value
+
+    def get(self, name, default=None):
+        return self.__map.get(name, default)
 
 
-# TODO: Add a validation function
-def convert_val(target_type, value):
-    bool_true = ('true', 'yes', 'on')
-    bool_false = ('false', 'no', 'off')
 
-    if target_type == bool and isinstance(value, basestring):
-        if value.lower() in bool_true:
-            return True
-        elif value.lower() in bool_false:
-            return False
-    return target_type(value)
+def set_default_env(env):
+    assert isinstance(env, Environment)
+
+    default = dict(
+        basedn = EnvProp(basestring, 'dc=example,dc=com'),
+        container_accounts = EnvProp(basestring, 'cn=accounts'),
+        container_user = EnvProp(basestring, 'cn=users,cn=accounts'),
+        container_group = EnvProp(basestring, 'cn=groups,cn=accounts'),
+        container_service = EnvProp(basestring, 'cn=services,cn=accounts'),
+        domain = LazyProp(basestring, get_domain),
+        interactive = EnvProp(bool, True),
+        query_dns = EnvProp(bool, True),
+        realm = LazyProp(basestring, get_realm),
+        server_context = EnvProp(bool, True),
+        server = LazyIter(basestring, get_servers),
+        verbose = EnvProp(bool, False),
+    )
+
+    env.update(default)
 
 
-class LazyProp(object):
-    def __init__(self, func, value=None):
-        assert isinstance(func, types.FunctionType)
-        self._func = func
-        self._value = value
-
-    def set_value(self, value):
-        self._value = value
+class EnvProp(object):
+    def __init__(self, type_, default, multi_value=False):
+        if multi_value:
+            if isinstance(default, tuple) and len(default):
+                check_isinstance(default[0], type_, allow_none=True)
+        self._type = type_
+        self._default = default
+        self._value = None
+        self._multi_value = multi_value
 
     def get_value(self):
-        if self._value == None:
-            return self._func()
+        if self._get() != None:
+            return self._get()
         else:
+            raise KeyError, 'Value not set'
+
+    def set_value(self, value):
+        if self._value != None:
+            raise KeyError, 'Value already set'
+        self._value = self._validate(value)
+
+    def _get(self):
+        if self._value != None:
             return self._value
+        elif self._default != None:
+            return self._default
+        else:
+            return None
+
+    def _validate(self, value):
+        if self._multi_value and isinstance(value, tuple):
+            converted = []
+            for val in value:
+                converted.append(self._validate_value(val))
+            return tuple(converted)
+        else:
+            return self._validate_value(value)
+
+    def _validate_value(self, value):
+        bool_true = ('true', 'yes', 'on')
+        bool_false = ('false', 'no', 'off')
+
+        if self._type == bool and isinstance(value, basestring):
+            if value.lower() in bool_true:
+                return True
+            elif value.lower() in bool_false:
+                return False
+            else:
+                raise raise_TypeError(value, bool, 'value')
+        check_isinstance(value, self._type, 'value')
+        return value
+
+
+class LazyProp(EnvProp):
+    def __init__(self, type_, func, default=None, multi_value=False):
+        check_isinstance(func, types.FunctionType, 'func')
+        self._func = func
+        EnvProp.__init__(self, type_, default, multi_value)
+
+    def get_value(self):
+        if self._get() != None:
+            return self._get()
+        else:
+            return self._func()
 
 
 class LazyIter(LazyProp):
+    def __init__(self, type_, func, default=None):
+        LazyProp.__init__(self, type_, func, default, multi_value=True)
+
     def get_value(self):
-        if self._value != None:
-            if type(self._value) == tuple:
-                for item in self._value:
+        val = self._get()
+        if val != None:
+            if type(val) == tuple:
+                for item in val:
                     yield item
             else:
-                yield self._value
+                yield val
         for item in self._func():
-            if not self._value or item not in self._value:
+            if not val or item not in val:
                 yield item
 
 
