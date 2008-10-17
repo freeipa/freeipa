@@ -24,17 +24,7 @@ from ipa_server.context import context
 from ipa_server import ipaldap
 import ipautil
 from ipalib import errors
-
-# temporary
-import krbV
-
-krbctx = krbV.default_context()
-realm = krbctx.default_realm
-basedn = ipautil.realm_to_suffix(realm)
-
-DefaultUserContainer = "cn=users,cn=accounts"
-DefaultGroupContainer = "cn=groups,cn=accounts"
-DefaultServiceContainer = "cn=services,cn=accounts"
+from ipalib import api
 
 def convert_entry(ent):
     entry = dict(ent.data)
@@ -172,7 +162,7 @@ def get_entry_by_cn (cn, sattrs):
 #    logging.info("IPA: get_entry_by_cn '%s'" % cn)
 #    cn = self.__safe_filter(cn)
     searchfilter = "(cn=%s)" % cn 
-    return get_sub_entry("cn=accounts," + basedn, searchfilter, sattrs)
+    return get_sub_entry("cn=accounts," + api.env.basedn, searchfilter, sattrs)
 
 def get_user_by_uid(uid, sattrs):
     """Get a specific user's entry."""
@@ -180,7 +170,7 @@ def get_user_by_uid(uid, sattrs):
 #    uid = self.__safe_filter(uid)
     searchfilter = "(&(uid=%s)(objectclass=person))" % uid
 
-    return get_sub_entry("cn=accounts," + basedn, searchfilter, sattrs)
+    return get_sub_entry("cn=accounts," + api.env.basedn, searchfilter, sattrs)
 
 # User support
 
@@ -206,7 +196,7 @@ def get_user_by_uid (uid, sattrs):
 #    logging.info("IPA: get_user_by_uid '%s'" % uid)
 #    uid = self.__safe_filter(uid)
     searchfilter = "(uid=" + uid + ")"
-    return get_sub_entry("cn=accounts," + basedn, searchfilter, sattrs)
+    return get_sub_entry("cn=accounts," + api.env.basedn, searchfilter, sattrs)
 
 def uid_too_long(uid):
     """Verify that the new uid is within the limits we set. This is a
@@ -314,7 +304,7 @@ def get_ipa_config():
     """Retrieve the IPA configuration"""
     searchfilter = "cn=ipaconfig"
     try:
-        config = get_sub_entry("cn=etc," + basedn, searchfilter)
+        config = get_sub_entry("cn=etc," + api.env.basedn, searchfilter)
     except ldap.NO_SUCH_OBJECT, e:
         # FIXME
         raise errors.NotFound
