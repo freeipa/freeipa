@@ -43,53 +43,9 @@ import ipalib.load_plugins
 from ipalib.util import xmlrpc_unmarshal
 
 import string
-import base64
 
 # Global list of available functions
 gfunctions = {}
-
-#
-# An override so we can base64 encode all outgoing values. 
-# This is set by calling: Marshaller._Marshaller__dump = xmlrpclib_dump
-#
-# Not currently used.
-#
-def xmlrpclib_escape(s, replace = string.replace):
-    """
-    xmlrpclib only handles certain characters. Lets encode the whole
-    blob
-    """
-
-    return base64.encodestring(s)
-
-def xmlrpclib_dump(self, value, write):
-    """
-    xmlrpclib cannot marshal instances of subclasses of built-in
-    types. This function overrides xmlrpclib.Marshaller.__dump so that
-    any value that is an instance of one of its acceptable types is
-    marshalled as that type.
-
-    xmlrpclib also cannot handle invalid 7-bit control characters. See
-    above.
-    """
-
-    # Use our escape function
-    args = [self, value, write]
-    if isinstance(value, (str, unicode)):
-        args.append(xmlrpclib_escape)
-
-    try:
-        # Try for an exact match first
-        f = self.dispatch[type(value)]
-    except KeyError:
-        # Try for an isinstance() match
-        for Type, f in self.dispatch.iteritems():
-            if isinstance(value, Type):
-                f(*args)
-                return
-        raise TypeError, "cannot marshal %s objects" % type(value)
-    else:
-        f(*args)
 
 def register_function(function, name = None):
     if name is None:
@@ -205,34 +161,19 @@ class ModXMLRPCRequestHandler(object):
         return response
 
     def _dispatch(self,method,params):
-        logging.info("functions")
-        for f in self.funcs.keys():
-            logging.info("%s" % f)
-        logging.info( "Environment variables:")
-        for var in api.env:
-            val = api.env[var]
-            if var is 'server':
-                logging.info( "  Servers:")
-                for item in api.env.server:
-                    logging.info("    %s" % item)
-            else:
-                logging.info( "  %s: %s" % (var, val))
         func = self.funcs.get(method,None)
         if func is None:
              raise Fault(1, "Invalid method: %s" % method)
 
+        params = list(ipautil.unwrap_binary_data(params))
         (args, kw) = xmlrpc_unmarshal(*params)
-
-        # FIXME: need to convert binary data somewhere
-        # args = list(ipautil.unwrap_binary_data(params))
 
         ret = func(*args, **kw)
 
         return ipautil.wrap_binary_data(ret)
 
     def multiCall(self, calls):
-        """Execute a multicall.  Execute each method call in the calls list, collecting
-        results and errors, and return those as a list."""
+        """Execute a multicall. Execute each method call in the calls list, collecting results and errors, and return those as a list."""
         results = []
         for call in calls:
             try:
@@ -260,8 +201,13 @@ class ModXMLRPCRequestHandler(object):
             #the keys in self.funcs determine the name of the method as seen over xmlrpc
             #func.__name__ might differ (e.g. for dotted method names)
             args = self._getFuncArgs(func)
+            doc = None
+            try:
+               doc = func.doc
+            except AttributeError:
+               doc = func.__doc__
             funcs.append({'name': name,
-                          'doc': func.__doc__,
+                          'doc': doc,
                           'args': args})
         return funcs
 
@@ -270,27 +216,36 @@ class ModXMLRPCRequestHandler(object):
         return "pong"
 
     def _getFuncArgs(self, func):
-        args = []
-        for x in range(0, func.func_code.co_argcount):
-            if x == 0 and func.func_code.co_varnames[x] == "self":
-                continue
-            # opts is a name we tack on internally. Don't publish it.
-            if func.func_code.co_varnames[x] == "opts":
-                continue
-            if func.func_defaults and func.func_code.co_argcount - x <= len(func.func_defaults):
-                args.append((func.func_code.co_varnames[x], func.func_defaults[x - func.func_code.co_argcount + len(func.func_defaults)]))
-            else:
-                args.append(func.func_code.co_varnames[x])
+        try:
+            # Plugins have this
+            args = list(func.args)
+            args.append("kw")
+        except:
+            # non-plugin functions such as the introspective ones
+            args = []
+            for x in range(0, func.func_code.co_argcount):
+                if x == 0 and func.func_code.co_varnames[x] == "self":
+                    continue
+                # opts is a name we tack on internally. Don't publish it.
+                if func.func_code.co_varnames[x] == "opts":
+                    continue
+                if func.func_defaults and func.func_code.co_argcount - x <= len(func.func_defaults):
+                    args.append((func.func_code.co_varnames[x], func.func_defaults[x - func.func_code.co_argcount + len(func.func_defaults)]))
+                else:
+                    args.append(func.func_code.co_varnames[x])
         return args
 
     def system_listMethods(self):
+        """List all available XML-RPC methods"""
         return self.funcs.keys()
 
     def system_methodSignature(self, method):
+        """signatures are not supported"""
         #it is not possible to autogenerate this data
         return 'signatures not supported'
 
     def system_methodHelp(self, method):
+        """Return help on a specific method"""
         func = self.funcs.get(method)
         if func is None:
             return ""
@@ -301,7 +256,12 @@ class ModXMLRPCRequestHandler(object):
             else:
                 arglist.append('%s=%s' % (arg[0], arg[1]))
         ret = '%s(%s)' % (method, ", ".join(arglist))
-        if func.__doc__:
+        doc = None
+        try:
+           doc = func.doc
+        except AttributeError:
+           doc = func.__doc__
+        if doc:
             ret += "\ndescription: %s" % func.__doc__
         return ret
 
