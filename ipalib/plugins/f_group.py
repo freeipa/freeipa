@@ -168,7 +168,7 @@ class group_find(crud.Find):
 
         object_type = ldap.get_object_type("cn")
         if object_type and not kw.get('objectclass'):
-            kw['objectclass'] = ldap.get_object_type("cn")
+            kw['objectclass'] = object_type
         return ldap.search(**kw)
 
     def output_for_cli(self, groups):

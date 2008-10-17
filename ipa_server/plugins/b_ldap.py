@@ -50,11 +50,21 @@ class ldap(CrudBackend):
 
     def make_group_dn(self, cn):
         """
-        Construct user dn from cn.
+        Construct group dn from cn.
         """
         return 'cn=%s,%s,%s' % (
             self.dn.escape_dn_chars(cn),
             self.api.env.container_group,
+            self.api.env.basedn,
+        )
+
+    def make_service_dn(self, principal):
+        """
+        Construct service principal dn from principal name
+        """
+        return 'krbprincipalname=%s,%s,%s' % (
+            self.dn.escape_dn_chars(principal),
+            self.api.env.container_service,
             self.api.env.basedn,
         )
 
@@ -63,12 +73,13 @@ class ldap(CrudBackend):
         Based on attribute, make an educated guess as to the type of
         object we're looking for.
         """
+        attribute = attribute.lower()
         object_type = None
         if attribute == "uid": # User
             object_type = "person"
         elif attribute == "cn": # Group
             object_type = "posixGroup"
-        elif attribute == "krbprincipal": # Service
+        elif attribute == "krbprincipalname": # Service
             object_type = "krbPrincipal"
 
         return object_type
@@ -168,12 +179,18 @@ class ldap(CrudBackend):
 
     def search(self, **kw):
         objectclass = kw.get('objectclass')
+        sfilter = kw.get('filter')
         if objectclass:
             del kw['objectclass']
+        if sfilter:
+            del kw['filter']
         (exact_match_filter, partial_match_filter) = self._generate_search_filters(**kw)
         if objectclass:
             exact_match_filter = "(&(objectClass=%s)%s)" % (objectclass, exact_match_filter)
             partial_match_filter = "(&(objectClass=%s)%s)" % (objectclass, partial_match_filter)
+        if sfilter:
+            exact_match_filter = "(%s%s)" % (sfilter, exact_match_filter)
+            partial_match_filter = "(%s%s)" % (sfilter, partial_match_filter)
 
         search_base = "%s, %s" % (self.api.env.container_accounts, self.api.env.basedn)
         try:

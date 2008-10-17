@@ -1,5 +1,6 @@
 # Authors:
 #   Jason Gerard DeRose <jderose@redhat.com>
+#   Rob Crittenden <rcritten@redhat.com>
 #
 # Copyright (C) 2008  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -27,9 +28,6 @@ from ipalib.frontend import Param
 from ipalib import api
 from ipalib import errors
 from ipalib import ipa_types
-from ipa_server import servercore
-from ipa_server import ipaldap
-import ldap
 
 class service(frontend.Object):
     """
@@ -46,13 +44,26 @@ class service_add(crud.Add):
     takes_options = (
         Param('force?', type=ipa_types.Bool(), default=False, doc='Force a service principal name'),
     )
-    def execute(self, *args, **kw):
-        """args[0] = service principal to add
-           kw{force} determines whether we continue on errors
+    def execute(self, principal, **kw):
         """
-        force = kw.get('force', False)
+        Execute the service-add operation.
 
-        principal = args[0]
+        The dn should not be passed as a keyword argument as it is constructed
+        by this method.
+
+        Returns the entry as it will be created in LDAP.
+
+        :param principal: The service to be added in the form: service/hostname
+        :param kw: Keyword arguments for the other LDAP attributes.
+        """
+        assert 'krbprincipalname' not in kw
+        ldap = self.api.Backend.ldap
+
+        force = kw.get('force', False)
+        try:
+            del kw['force']
+        except:
+            pass
 
         # Break down the principal into its component parts, which may or
         # may not include the realm.
@@ -64,7 +75,7 @@ class service_add(crud.Add):
         sr = sp[1].split('@')
         if len(sr) == 1:
             hostname = sr[0].lower()
-            realm = servercore.realm
+            realm = self.api.env.realm
         elif len(sr) == 2:
             hostname = sr[0].lower()
             realm = sr[1]
@@ -83,68 +94,104 @@ class service_add(crud.Add):
                 logging.debug("IPA: found %d records for '%s'" % (len(rs), hostname))
         """
 
-        service_container = servercore.DefaultServiceContainer
-
         # At some point we'll support multiple realms
-        if (realm != servercore.realm):
+        if (realm != self.api.env.realm):
             raise errors.RealmMismatch
 
         # Put the principal back together again
         princ_name = service + "/" + hostname + "@" + realm
 
-        dn = "krbprincipalname=%s,%s,%s" % (ldap.dn.escape_dn_chars(princ_name),
-                                            service_container,servercore.basedn)
-        entry = ipaldap.Entry(dn)
+        dn = ldap.make_service_dn(princ_name)
 
-        entry.setValues('objectClass', 'krbPrincipal', 'krbPrincipalAux', 'krbTicketPolicyAux')
-        entry.setValues('krbprincipalname', princ_name)
+        kw['dn'] = dn
+        kw['objectClass'] = ['krbPrincipal', 'krbPrincipalAux', 'krbTicketPolicyAux']
 
-        result = servercore.add_entry(entry)
-        return result
-    def forward(self, *args, **kw):
-        result = super(crud.Add, self).forward(*args, **kw)
-        if result:
-            print "Service %s added" % args[0]
+        return ldap.create(**kw)
+
+    def output_to_cli(self, ret):
+        if ret:
+            print "Service added" 
+
 api.register(service_add)
 
 
 class service_del(crud.Del):
     'Delete an existing service.'
-    def execute(self, *args, **kw):
-        """args[0] = princial to remove
-
-           Delete a service principal.
-
-           principal is the full DN of the entry to delete.
-
-           This should be called with much care.
+    def execute(self, principal, **kw):
         """
-        principal = args[0]
-        return False
-    def forward(self, *args, **kw):
-        result = super(crud.Del, self).forward(*args, **kw)
-        if result:
-            print "Service %s removed" % args[0]
+        Delete a service principal.
+
+        principal is the krbprincipalname of the entry to delete.
+
+        This should be called with much care.
+
+        :param principal: The service to be added in the form: service/hostname
+        :param kw: not used
+        """
+        ldap = self.api.Backend.ldap
+        dn = ldap.find_entry_dn("krbprincipalname", principal)
+        return ldap.delete(dn)
+
+    def output_to_cli(self, ret):
+        if ret:
+            print "Service removed"
+
 api.register(service_del)
 
-
-class service_mod(crud.Mod):
-    'Edit an existing service.'
-api.register(service_mod)
-
+# There is no service-mod. The principal itself contains nothing that
+# is user-changeable
 
 class service_find(crud.Find):
     'Search the existing services.'
+    def execute(self, principal, **kw):
+        ldap = self.api.Backend.ldap
+
+        kw['filter'] = "&(objectclass=krbPrincipalAux)(!(objectClass=person))(!(|(krbprincipalname=kadmin/*)(krbprincipalname=K/M@*)(krbprincipalname=krbtgt/*)))"
+        kw['krbprincipalname'] = principal
+
+        object_type = ldap.get_object_type("krbprincipalname")
+        if object_type and not kw.get('objectclass'):
+            kw['objectclass'] = object_type
+
+        return ldap.search(**kw)
+
+    def output_for_cli(self, services):
+        if not services:
+            return
+
+        counter = services[0]
+        services = services[1:]
+        if counter == 0:
+            print "No entries found"
+            return
+        elif counter == -1:
+            print "These results are truncated."
+            print "Please refine your search and try again."
+
+        for s in services:
+            for a in s.keys():
+                print "%s: %s" % (a, s[a])
+
 api.register(service_find)
 
 
 class service_show(crud.Get):
     'Examine an existing service.'
-    def execute(self, *args, **kw):
-        filter = "(&(objectclass=krbPrincipalAux)(!(objectClass=person))(!(|(krbprincipalname=kadmin/*)(krbprincipalname=K/M@*)(krbprincipalname=krbtgt/*)))(&(|(krbprincipalname=%s))))" % args[0]
-        result = servercore.get_sub_entry(servercore.basedn, filter,  ["*"])
-        return result
-    def forward(self, *args, **kw):
-        result = super(crud.Get, self).forward(*args, **kw)
-        return result
+    def execute(self, principal, **kw):
+        """
+        Execute the service-show operation.
+
+        The dn should not be passed as a keyword argument as it is constructed
+        by this method.
+
+        Returns the entry
+
+        :param principal: The service principal to retrieve
+        :param kw: Not used.
+        """
+        ldap = self.api.Backend.ldap
+        dn = ldap.find_entry_dn("krbprincipalname", principal)
+        # FIXME: should kw contain the list of attributes to display?
+        return ldap.retrieve(dn)
+
 api.register(service_show)
