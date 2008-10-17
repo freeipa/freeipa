@@ -221,7 +221,7 @@ class test_CrudBackend(ClassChecker):
         """
         Test the `ipalib.crud.CrudBackend.retrieve` method.
         """
-        self.check_method('retrieve', 'primary key')
+        self.check_method('retrieve', 'primary key', 'attribute')
 
     def test_update(self):
         """
