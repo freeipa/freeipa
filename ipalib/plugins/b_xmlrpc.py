@@ -1,5 +1,6 @@
 # Authors:
 #   Jason Gerard DeRose <jderose@redhat.com>
+#   Rob Crittenden <rcritten@redhat.com>
 #
 # Copyright (C) 2008  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -26,6 +27,8 @@ This provides a lightwieght XML-RPC client using Python standard library
 
 import xmlrpclib
 import socket
+import httplib
+import kerberos
 from ipalib.backend import Backend
 from ipalib.util import xmlrpc_marshal
 from ipalib import api
@@ -38,7 +41,12 @@ class xmlrpc(Backend):
 
     def get_client(self, verbose=False):
         # FIXME: The server uri should come from self.api.env.server_uri
-        return xmlrpclib.ServerProxy('http://localhost:8888', verbose=verbose)
+        if api.env.get('kerberos'):
+            server = api.env.server.next()
+            if verbose: print "Connecting to %s" % server
+            return xmlrpclib.ServerProxy('https://%s/ipa/xml' % server, transport=KerbTransport(), verbose=verbose)
+        else:
+            return xmlrpclib.ServerProxy('http://localhost:8888', verbose=verbose)
 
     def forward_call(self, name, *args, **kw):
         """
@@ -54,10 +62,41 @@ class xmlrpc(Backend):
         except xmlrpclib.Fault, e:
             err = errors.convertFault(e)
             code = getattr(err,'faultCode',None)
-            if code:
-                print "%s: %s" % (code, getattr(err,'__doc__',''))
-            else:
+            faultString = getattr(err,'faultString',None)
+            if not code:
                 raise err
+            if code < errors.IPA_ERROR_BASE:
+                print "%s: %s" % (code, faultString)
+            else:
+                print "%s: %s" % (code, getattr(err,'__doc__',''))
         return {}
 
 api.register(xmlrpc)
+
+class KerbTransport(xmlrpclib.SafeTransport):
+    """Handles Kerberos Negotiation authentication to an XML-RPC server."""
+
+    def get_host_info(self, host):
+
+        host, extra_headers, x509 = xmlrpclib.Transport.get_host_info(self, host)
+
+        # Set the remote host principal
+        h = host
+        hostinfo = h.split(':')
+        service = "HTTP@" + hostinfo[0]
+
+        try:
+            rc, vc = kerberos.authGSSClientInit(service);
+        except kerberos.GSSError, e:
+            raise kerberos.GSSError(e)
+
+        try:
+            kerberos.authGSSClientStep(vc, "");
+        except kerberos.GSSError, e:
+            raise kerberos.GSSError(e)
+
+        extra_headers = [
+            ("Authorization", "negotiate %s" % kerberos.authGSSClientResponse(vc) )
+            ]
+
+        return host, extra_headers, x509

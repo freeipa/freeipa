@@ -23,6 +23,8 @@ All custom errors raised by `ipalib` package.
 Also includes a few utility functions for raising exceptions.
 """
 
+IPA_ERROR_BASE = 1000
+
 TYPE_FORMAT = '%s: need a %r; got %r'
 
 def raise_TypeError(value, type_, name):
