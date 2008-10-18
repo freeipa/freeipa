@@ -162,6 +162,7 @@ class test_Param(ClassChecker):
         assert read_only(o, 'multivalue') is False
         assert read_only(o, 'default') is None
         assert read_only(o, 'default_from') is None
+        assert read_only(o, 'flags') == frozenset()
         assert read_only(o, 'rules') == tuple()
         assert len(read_only(o, 'all_rules')) == 1
         assert read_only(o, 'primary_key') is False
@@ -183,6 +184,8 @@ class test_Param(ClassChecker):
             assert type(o.default_from) is frontend.DefaultFrom
             assert o.default_from.keys == ('first', 'last')
             assert o.default_from.callback('butt', 'erfly') == 'butterfly'
+        assert self.cls(name, flags=('one', 'two', 'three')).flags == \
+            frozenset(['one', 'two', 'three'])
         rules = (lambda whatever: 'Not okay!',)
         o = self.cls(name, rules=rules)
         assert o.rules is rules

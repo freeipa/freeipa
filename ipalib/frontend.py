@@ -207,6 +207,7 @@ class Param(plugable.ReadOnly):
     normalize     callable           None
     default       same as type.type  None
     default_from  callable           None
+    flags         frozenset          frozenset()
     ============  =================  ==================
     """
     __nones = (None, '', tuple(), [])
@@ -220,6 +221,7 @@ class Param(plugable.ReadOnly):
         normalize=None,
         default=None,
         default_from=None,
+        flags=frozenset(),
         rules=tuple(),
     )
 
@@ -249,6 +251,7 @@ class Param(plugable.ReadOnly):
         self.default_from = check_type(df, DefaultFrom, 'default_from',
             allow_none=True
         )
+        self.flags = frozenset(kw['flags'])
         self.__normalize = kw['normalize']
         self.rules = self.__check_type(tuple, 'rules')
         self.all_rules = (self.type.validate,) + self.rules
