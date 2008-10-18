@@ -36,7 +36,8 @@ class ldap(CrudBackend):
     LDAP backend plugin.
     """
 
-    dn = _ldap.dn
+    def __init__(self):
+        self.dn = _ldap.dn
 
     def make_user_dn(self, uid):
         """
@@ -194,7 +195,7 @@ class ldap(CrudBackend):
 
         search_base = "%s, %s" % (self.api.env.container_accounts, self.api.env.basedn)
         try:
-            exact_results = servercore.search(search_base, 
+            exact_results = servercore.search(search_base,
                     exact_match_filter, ["*"])
         except errors.NotFound:
             exact_results = [0]
