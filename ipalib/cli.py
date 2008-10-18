@@ -301,7 +301,9 @@ class CLI(object):
                         break
                     except errors.ValidationError, e:
                         error = e.error
-        cmd.output_for_cli(cmd(**kw))
+        ret = cmd(**kw)
+        if callable(cmd.output_for_cli):
+            cmd.output_for_cli(ret)
 
     def parse(self, cmd, argv):
         parser = self.build_parser(cmd)

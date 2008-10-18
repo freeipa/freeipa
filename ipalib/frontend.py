@@ -496,6 +496,7 @@ class Command(plugable.Plugin):
     args = None
     options = None
     params = None
+    output_for_cli = None
 
     def __call__(self, *args, **kw):
         """
@@ -744,14 +745,6 @@ class Command(plugable.Plugin):
             if arg.multivalue:
                 multivalue = True
             yield arg
-
-    def output_for_cli(self, ret):
-        """
-        Output result of this command to command line interface.
-        """
-        assert type(ret) is dict, 'base output_for_cli() only works with dict'
-        for key in sorted(ret):
-            print '%s = %r' % (key, ret[key])
 
 
 class Object(plugable.Plugin):
