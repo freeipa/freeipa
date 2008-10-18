@@ -33,9 +33,9 @@ import imp
 import inspect
 
 
-def load_plugins(src_dir):
+def find_modules_in_dir(src_dir):
     """
-    Import each Python module found in ``src_dir``.
+    Iterate through module names found in ``src_dir``.
     """
     if not (path.abspath(src_dir) == src_dir and path.isdir(src_dir)):
         return
@@ -51,23 +51,32 @@ def load_plugins(src_dir):
         module = name[:-len(suffix)]
         if module == '__init__':
             continue
+        yield module
+
+
+def load_plugins_in_dir(src_dir):
+    """
+    Import each Python module found in ``src_dir``.
+    """
+    for module in find_modules_in_dir(src_dir):
         imp.load_module(module, *imp.find_module(module, [src_dir]))
 
 
-def load_plugins_subpackage(file_in_package):
+def import_plugins(name):
     """
-    Load all Python modules found in a plugins/ subpackage.
+    Load all plugins found in standard 'plugins' sub-package.
     """
-    package_dir = path.dirname(path.abspath(file_in_package))
-    plugins_dir = path.join(package_dir, 'plugins')
-    load_plugins(plugins_dir)
+    try:
+        plugins = __import__(name + '.plugins').plugins
+    except ImportError:
+        return
+    src_dir = path.dirname(path.abspath(plugins.__file__))
+    for name in find_modules_in_dir(src_dir):
+        full_name = '%s.%s' % (plugins.__name__, name)
+        __import__(full_name)
 
 
-load_plugins_subpackage(__file__)
-try:
-    import ipa_server
-    load_plugins_subpackage(ipa_server.__file__)
-except ImportError:
-    pass
+for name in ['ipalib', 'ipa_server', 'ipa_not_a_package']:
+    import_plugins(name)
 
-load_plugins(path.expanduser('~/.freeipa'))
+load_plugins_in_dir(path.expanduser('~/.freeipa'))
