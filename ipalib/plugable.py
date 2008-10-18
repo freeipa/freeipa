@@ -57,7 +57,7 @@ class ReadOnly(object):
     >>> ro.message = 'How are you?'
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
-      File "/home/jderose/projects/freeipa2/ipalib/plugable.py", line 93, in __setattr__
+      File ".../ipalib/plugable.py", line 93, in __setattr__
         (self.__class__.__name__, name)
     AttributeError: read-only: cannot set ReadOnly.message
     >>> del ro.name
@@ -113,7 +113,7 @@ class ReadOnly(object):
 
 def lock(readonly):
     """
-    Locks a `ReadOnly` instance.
+    Lock a `ReadOnly` instance.
 
     This is mostly a convenience function to call `ReadOnly.__lock__()`. It
     also verifies that the locking worked using `ReadOnly.__islocked__()`
@@ -148,23 +148,22 @@ class SetProxy(ReadOnly):
 
     def __len__(self):
         """
-        Returns the number of items in this container.
+        Return the number of items in this container.
         """
         return len(self.__s)
 
     def __iter__(self):
         """
-        Iterates (in ascending order) through the items (or keys) in this
-        container.
+        Iterate (in ascending order) through keys.
         """
         for key in sorted(self.__s):
             yield key
 
     def __contains__(self, key):
         """
-        Returns True if this container contains ``key``, False otherwise.
+        Return True if this container contains ``key``.
 
-        :param key: The item (or key) to test for membership.
+        :param key: The key to test for membership.
         """
         return key in self.__s
 
@@ -191,7 +190,7 @@ class DictProxy(SetProxy):
 
     def __getitem__(self, key):
         """
-        Returns the value corresponding to ``key``.
+        Return the value corresponding to ``key``.
 
         :param key: The key of the value you wish to retrieve.
         """
@@ -199,8 +198,7 @@ class DictProxy(SetProxy):
 
     def __call__(self):
         """
-        Iterates (in ascending order by key) through the values in this
-        container.
+        Iterate (in ascending order by key) through values.
         """
         for key in self:
             yield self.__d[key]
@@ -228,7 +226,7 @@ class MagicDict(DictProxy):
 
     def __getattr__(self, name):
         """
-        Returns the value corresponding to ``name``.
+        Return the value corresponding to ``name``.
 
         :param name: The name of the attribute you wish to retrieve.
         """
@@ -262,8 +260,9 @@ class Plugin(ReadOnly):
 
     def __get_api(self):
         """
-        Returns the `API` instance passed to `finalize()`, or
-        or returns None if `finalize()` has not yet been called.
+        Return `API` instance passed to `finalize()`.
+
+        If `finalize()` has not yet been called, None is returned.
         """
         return self.__api
     api = property(__get_api)
@@ -271,7 +270,7 @@ class Plugin(ReadOnly):
     @classmethod
     def implements(cls, arg):
         """
-        Return True if class implements ``arg``.
+        Return True if this class implements ``arg``.
 
         There are three different ways this method can be called:
 
@@ -311,12 +310,14 @@ class Plugin(ReadOnly):
     @classmethod
     def implemented_by(cls, arg):
         """
-        Returns True if:
+        Return True if ``arg`` implements public interface of this class.
 
-            1. ``arg`` is an instance of or subclass of this class, and
+        This classmethod returns True if:
 
-            2. ``arg`` (or ``arg.__class__`` if instance) has an attribute for
-                each name in this class's ``__public__`` frozenset
+        1. ``arg`` is an instance of or subclass of this class, and
+
+        2. ``arg`` (or ``arg.__class__`` if instance) has an attribute for
+           each name in this class's ``__public__`` frozenset.
 
         Otherwise, returns False.
 
@@ -350,8 +351,10 @@ class Plugin(ReadOnly):
 
     def __repr__(self):
         """
-        Returns a fully qualified module_name.class_name() representation that
-        could be used to construct this Plugin instance.
+        Return 'module_name.class_name()' representation.
+
+        This representation could be used to instantiate this Plugin
+        instance given the appropriate environment.
         """
         return '%s.%s()' % (
             self.__class__.__module__,
@@ -361,13 +364,14 @@ class Plugin(ReadOnly):
 
 class PluginProxy(SetProxy):
     """
-    Allows access to only certain attributes on a `Plugin`.
+    Allow access to only certain attributes on a `Plugin`.
 
     Think of a proxy as an agreement that "I will have at most these
     attributes". This is different from (although similar to) an interface,
     which can be thought of as an agreement that "I will have at least these
     attributes".
     """
+
     __slots__ = (
         '__base',
         '__target',
@@ -403,26 +407,33 @@ class PluginProxy(SetProxy):
 
     def implements(self, arg):
         """
-        Returns True if this proxy implements `arg`. Calls the corresponding
-        classmethod on ProxyTarget.
+        Return True if plugin being proxied implements ``arg``.
 
-        Unlike ProxyTarget.implements(), this is not a classmethod as a Proxy
-        only implements anything as an instance.
+        This method simply calls the corresponding `Plugin.implements`
+        classmethod.
+
+        Unlike `Plugin.implements`, this is not a classmethod as a
+        `PluginProxy` can only implement anything as an instance.
         """
         return self.__base.implements(arg)
 
     def __clone__(self, name_attr):
         """
-        Returns a Proxy instance identical to this one except the proxy name
-        might be derived from a different attribute on the target. The same
-        base and target will be used.
+        Return a `PluginProxy` instance similar to this one.
+
+        The new `PluginProxy` returned will be identical to this one except
+        the proxy name might be derived from a different attribute on the
+        target `Plugin`.  The same base and target will be used.
         """
         return self.__class__(self.__base, self.__target, name_attr)
 
     def __getitem__(self, key):
         """
-        If this proxy allows access to an attribute named ``key``, return that
-        attribute.
+        Return attribute named ``key`` on target `Plugin`.
+
+        If this proxy allows access to an attribute named ``key``, that
+        attribute will be returned.  If access is not allowed,
+        KeyError will be raised.
         """
         if key in self.__public__:
             return getattr(self.__target, key)
@@ -430,8 +441,11 @@ class PluginProxy(SetProxy):
 
     def __getattr__(self, name):
         """
-        If this proxy allows access to an attribute named ``name``, return
-        that attribute.
+        Return attribute named ``name`` on target `Plugin`.
+
+        If this proxy allows access to an attribute named ``name``, that
+        attribute will be returned.  If access is not allowed,
+        AttributeError will be raised.
         """
         if name in self.__public__:
             return getattr(self.__target, name)
@@ -439,15 +453,16 @@ class PluginProxy(SetProxy):
 
     def __call__(self, *args, **kw):
         """
-        Attempts to call target.__call__(); raises KeyError if `__call__` is
-        not an attribute this proxy allows access to.
+        Call target `Plugin` and return its return value.
+
+        If `__call__` is not an attribute this proxy allows access to,
+        KeyError is raised.
         """
         return self['__call__'](*args, **kw)
 
     def __repr__(self):
         """
-        Returns a Python expression that could be used to construct this Proxy
-        instance given the appropriate environment.
+        Return a Python expression that could create this instance.
         """
         return '%s(%s, %r)' % (
             self.__class__.__name__,
@@ -458,7 +473,7 @@ class PluginProxy(SetProxy):
 
 def check_name(name):
     """
-    Verifies that ``name`` is suitable for a `NameSpace` member name.
+    Verify that ``name`` is suitable for a `NameSpace` member name.
 
     Raises `errors.NameSpaceError` if ``name`` is not a valid Python
     identifier suitable for use as the name of `NameSpace` member.
