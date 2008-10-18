@@ -38,12 +38,14 @@ from ipalib import errors
 sasl_auth = ldap.sasl.sasl({},'GSSAPI')
 
 class Entry:
-    """This class represents an LDAP Entry object.  An LDAP entry consists of
-       a DN and a list of attributes.  Each attribute consists of a name and
-       a list of values.  In python-ldap, entries are returned as a list of
-       2-tuples.  Instance variables:
-           dn - string - the string DN of the entry
-           data - CIDict - case insensitive dict of the attributes and values
+    """
+    This class represents an LDAP Entry object.  An LDAP entry consists of
+    a DN and a list of attributes.  Each attribute consists of a name and
+    a list of values.  In python-ldap, entries are returned as a list of
+    2-tuples.  Instance variables:
+
+        * dn - string - the string DN of the entry
+        * data - CIDict - case insensitive dict of the attributes and values
     """
     def __init__(self,entrydata):
         """data is the raw data returned from the python-ldap result method, which is
@@ -87,15 +89,21 @@ class Entry:
         """Get the first value for the attribute named name"""
         return self.data.get(name,[None])[0]
 
-    def setValue(self,name,*value):
-        """Value passed in may be a single value, several values, or a single sequence.
-        For example:
-           ent.setValue('name', 'value')
-           ent.setValue('name', 'value1', 'value2', ..., 'valueN')
-           ent.setValue('name', ['value1', 'value2', ..., 'valueN'])
-           ent.setValue('name', ('value1', 'value2', ..., 'valueN'))
-        Since *value is a tuple, we may have to extract a list or tuple from that
-        tuple as in the last two examples above"""
+    def setValue(self, name, *value):
+        """
+        Set a value on this entry.
+
+        The value passed in may be a single value, several values, or a
+        single sequence.  For example:
+
+           * ent.setValue('name', 'value')
+           * ent.setValue('name', 'value1', 'value2', ..., 'valueN')
+           * ent.setValue('name', ['value1', 'value2', ..., 'valueN'])
+           * ent.setValue('name', ('value1', 'value2', ..., 'valueN'))
+
+        Since value is a tuple, we may have to extract a list or tuple from
+        that tuple as in the last two examples above.
+        """
         if isinstance(value[0],list) or isinstance(value[0],tuple):
             self.data[name] = value[0]
         else:
@@ -285,7 +293,7 @@ class IPAdmin(SimpleLDAPObject):
 
         if not obj:
             raise errors.NotFound, notfound(args)
-            
+
         elif isinstance(obj,Entry):
             return obj
         else: # assume list/tuple
@@ -484,7 +492,7 @@ class IPAdmin(SimpleLDAPObject):
 
     def modifyPassword(self,dn,oldpass,newpass):
         """Set the user password using RFC 3062, LDAP Password Modify Extended
-           Operation. This ends up calling the IPA password slapi plugin 
+           Operation. This ends up calling the IPA password slapi plugin
            handler so the Kerberos password gets set properly.
 
            oldpass is not mandatory

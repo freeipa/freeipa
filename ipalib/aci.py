@@ -43,7 +43,7 @@ class ACI:
 
     __actions = ["allow", "deny"]
 
-    __permissions = ["read", "write", "add", "delete", "search", "compare", 
+    __permissions = ["read", "write", "add", "delete", "search", "compare",
                    "selfwrite", "proxy", "all"]
 
     def __init__(self,acistr=None):
@@ -71,9 +71,14 @@ class ACI:
         return self.export_to_string()
 
     def __getattr__(self, name):
-        """Backwards compatibility for the old ACI class.
-           The following extra attributes are available:
-             source_group, dest_group and attrs.
+        """
+        Backward compatibility for the old ACI class.
+
+        The following extra attributes are available:
+
+            - source_group
+            - dest_group
+            - attrs
         """
         if name == 'source_group':
             group = ''
@@ -96,9 +101,13 @@ class ACI:
         raise AttributeError, "object has no attribute '%s'" % name
 
     def __setattr__(self, name, value):
-        """Backwards compatibility for the old ACI class.
-           The following extra attributes are available:
-             source_group, dest_group and attrs.
+        """
+        Backward compatibility for the old ACI class.
+
+        The following extra attributes are available:
+            - source_group
+            - dest_group
+            - attrs
         """
         if name == 'source_group':
             self.__dict__['bindrule'] = 'groupdn="ldap:///%s"' % value
