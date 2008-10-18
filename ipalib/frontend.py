@@ -200,7 +200,7 @@ class Param(plugable.ReadOnly):
     ============  =================  ==================
     cli_name      str                defaults to name
     type          ipa_type.Type      ipa_type.Unicode()
-    doc           str                ''
+    doc           str                ""
     required      bool               True
     multivalue    bool               False
     primary_key   bool               False
@@ -305,6 +305,14 @@ class Param(plugable.ReadOnly):
         """
         Normalize ``value`` using normalize callback.
 
+        For example:
+
+        >>> param = Param('telephone',
+        ...     normalize=lambda value: value.replace('.', '-')
+        ... )
+        >>> param.normalize('800.123.4567')
+        '800-123-4567'
+
         If this `Param` instance does not have a normalize callback,
         ``value`` is returned unchanged.
 
@@ -339,6 +347,14 @@ class Param(plugable.ReadOnly):
     def convert(self, value):
         """
         Convert/coerce ``value`` to Python type for this `Param`.
+
+        For example:
+
+        >>> param = Param('an_int', type=ipa_types.Int())
+        >>> param.convert(7.2)
+        7
+        >>> param.convert(" 7 ")
+        7
 
         If ``value`` can not be converted, ConversionError is raised, which
         is as subclass of ValidationError.
@@ -413,6 +429,12 @@ class Param(plugable.ReadOnly):
         return self.default
 
     def get_values(self):
+        """
+        Return a tuple of possible values.
+
+        For enumerable types, a tuple containing the possible values is
+        returned.  For all other types, an empty tuple is returned.
+        """
         if self.type.name in ('Enum', 'CallbackEnum'):
             return self.type.values
         return tuple()
