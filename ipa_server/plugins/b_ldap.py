@@ -1,4 +1,5 @@
 # Authors:
+#   Rob Crittenden <rcritten@redhat.com>
 #   Jason Gerard DeRose <jderose@redhat.com>
 #
 # Copyright (C) 2008  Red Hat
