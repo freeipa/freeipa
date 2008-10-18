@@ -22,13 +22,11 @@ Package containing core library.
 
 To learn about the ``ipalib`` library, you should read the code in this order:
 
-    1. Learn about the plugin framework in `ipalib.plugable`
+    1. Get the big picture from some actual plugins, like `plugins.f_user`.
 
-    2. Learn about the frontend plugins in `ipalib.frontend`
+    2. Learn about the base classes for frontend plugins in `frontend`.
 
-    3. Learn about the backend plugins in `ipalib.backend`
-
-    4. Look at some example plugins in `ipalib.plugins.example`
+    3. Learn about the core plugin framework in `plugable`.
 
 Here is a short console example on using the plugable API:
 
