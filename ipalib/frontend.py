@@ -63,8 +63,8 @@ class DefaultFrom(plugable.ReadOnly):
     The callback is available through the ``DefaultFrom.callback`` instance
     attribute, like this:
 
-    >>> login.callback
-    <function <lambda> at 0x7fdd225cd7d0>
+    >>> login.callback # doctest:+ELLIPSIS
+    <function <lambda> at 0x...>
     >>> login.callback.func_code.co_varnames # The keys
     ('first', 'last')
 
@@ -473,8 +473,8 @@ class Command(plugable.Plugin):
     >>> api.finalize()
     >>> list(api.Command)
     ['my_command']
-    >>> api.Command.my_command
-    PluginProxy(Command, __main__.my_command())
+    >>> api.Command.my_command # doctest:+ELLIPSIS
+    PluginProxy(Command, ...my_command())
     """
 
     __public__ = frozenset((

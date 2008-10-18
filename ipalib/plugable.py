@@ -208,14 +208,15 @@ class DictProxy(SetProxy):
 
 class MagicDict(DictProxy):
     """
-    A read-only mapping container whose values can also be accessed as
-    attributes.
+    A mapping container whose values can be accessed as attributes.
 
-    For example, assuming ``magic`` is a MagicDict instance that contains the
-    key ``name``, you could do this:
+    For example:
 
-    >>> magic[name] is getattr(magic, name)
-    True
+    >>> magic = MagicDict({'the_key': 'the value'})
+    >>> magic['the_key']
+    'the value'
+    >>> magic.the_key
+    'the value'
 
     This container acts as a proxy to an actual mapping object (a dict) that
     is passed to the constructor. To the extent possible in Python, this
@@ -270,34 +271,26 @@ class Plugin(ReadOnly):
     @classmethod
     def implements(cls, arg):
         """
-        Returns True if this cls.__public__ frozenset contains `arg`;
-        returns False otherwise.
+        Return True if class implements ``arg``.
 
-        There are three different ways this can be called:
+        There are three different ways this method can be called:
 
         With a <type 'str'> argument, e.g.:
 
-        >>> class base(ProxyTarget):
-        >>>     __public__ = frozenset(['some_attr', 'another_attr'])
-        >>> base.implements('some_attr')
+        >>> class base(Plugin):
+        ...     __public__ = frozenset(['attr1', 'attr2'])
+        ...
+        >>> base.implements('attr1')
         True
-        >>> base.implements('an_unknown_attribute')
+        >>> base.implements('attr2')
+        True
+        >>> base.implements('attr3')
         False
 
         With a <type 'frozenset'> argument, e.g.:
 
-        >>> base.implements(frozenset(['some_attr']))
-        True
-        >>> base.implements(frozenset(['some_attr', 'an_unknown_attribute']))
-        False
-
         With any object that has a `__public__` attribute that is
         <type 'frozenset'>, e.g.:
-
-        >>> class whatever(object):
-        >>>     __public__ = frozenset(['another_attr'])
-        >>> base.implements(whatever)
-        True
 
         Unlike ProxyTarget.implemented_by(), this returns an abstract answer
         because only the __public__ frozenset is checked... a ProxyTarget
@@ -493,34 +486,36 @@ class NameSpace(ReadOnly):
     classes or instances, and of any type.
 
     The members can be accessed as attributes on the NameSpace instance or
-    through a dictionary interface. For example, assuming ``obj`` is a member
-    in the NameSpace instance ``namespace``, you could do this:
+    through a dictionary interface. For example:
 
-    >>> obj is getattr(namespace, obj.name) # As attribute
+    >>> class obj(object):
+    ...     name = 'my_obj'
+    ...
+    >>> namespace = NameSpace([obj])
+    >>> obj is getattr(namespace, 'my_obj') # As attribute
     True
-    >>> obj is namespace[obj.name] # As dictionary item
+    >>> obj is namespace['my_obj'] # As dictionary item
     True
 
     Here is a more detailed example:
 
     >>> class member(object):
     ...     def __init__(self, i):
+    ...             self.i = i
     ...             self.name = 'member_%d' % i
+    ...     def __repr__(self):
+    ...             return 'member(%d)' % self.i
     ...
-    >>> def get_members(cnt):
-    ...     for i in xrange(cnt):
-    ...             yield member(i)
-    ...
-    >>> namespace = NameSpace(get_members(2))
+    >>> namespace = NameSpace(member(i) for i in xrange(3))
     >>> namespace.member_0 is namespace['member_0']
     True
     >>> len(namespace) # Returns the number of members in namespace
-    2
+    3
     >>> list(namespace) # As iterable, iterates through the member names
-    ['member_0', 'member_1']
+    ['member_0', 'member_1', 'member_2']
     >>> list(namespace()) # Calling a NameSpace iterates through the members
-    [<__main__.member object at 0x836710>, <__main__.member object at 0x836750>]
-    >>> 'member_1' in namespace # NameSpace.__contains__()
+    [member(0), member(1), member(2)]
+    >>> 'member_1' in namespace # Does namespace contain 'member_1'?
     True
     """
 

@@ -27,30 +27,6 @@ To learn about the ``ipalib`` library, you should read the code in this order:
     2. Learn about the base classes for frontend plugins in `frontend`.
 
     3. Learn about the core plugin framework in `plugable`.
-
-Here is a short console example on using the plugable API:
-
->>> from ipalib import api
->>> list(api.register) # Plugins must subclass from one of these base classes:
-['Command', 'Method', 'Object', 'Property']
->>> 'user_add' in api.register.Command # Has 'user_add' been registered?
-False
->>> import ipalib.load_plugins # This causes all plugins to be loaded
->>> 'user_add' in api.register.Command # Yes, 'user_add' has been registered:
-True
->>> list(api) # API is empty till finalize() is called:
-[]
->>> api.finalize() # Instantiates plugins, builds API namespaces:
->>> list(api) # Lists the namespaces in the API:
-['Command', 'Method', 'Object', 'Property']
->>> 'user_add' in api.Command # Yes, the 'user_add' command exists:
-True
->>> api['Command'] is api.Command # Access as dict item or as attribute:
-True
->>> list(api.Command) # List available commands:
-['discover', 'group_add', 'group_del', 'group_find', 'group_mod', 'krbtest', 'service_add', 'service_del', 'service_find', 'service_mod', 'user_add', 'user_del', 'user_find', 'user_mod']
->>> list(api.Command.user_add) # List public methods for user_add:
-['__call__', 'default', 'execute', 'get_doc', 'normalize', 'options', 'validate']
 """
 
 import plugable
