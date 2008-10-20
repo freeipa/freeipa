@@ -281,6 +281,10 @@ class user_show(crud.Get):
         dn = ldap.find_entry_dn("uid", uid)
         # FIXME: should kw contain the list of attributes to display?
         return ldap.retrieve(dn)
+    def output_for_cli(self, user):
+        if user:
+            for a in user.keys():
+                print "%s: %s" % (a, user[a])
 
 api.register(user_show)
 

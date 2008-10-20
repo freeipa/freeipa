@@ -27,65 +27,92 @@ from ipalib.frontend import Param
 from ipalib import api
 from ipalib import errors
 from ipalib import ipa_types
-from ipa_server import servercore
-from ipa_server import ipaldap
-import ldap
 
 
 class pwpolicy_mod(frontend.Command):
     'Edit existing password policy.'
-    # FIXME, switch to more human-readable names at some point
     takes_options = (
-        Param('krbmaxpwdlife?', type=ipa_types.Int(), doc='Max. Password Lifetime (days)'),
-        Param('krbminpwdlife?', type=ipa_types.Int(), doc='Min. Password Lifetime (hours)'),
-        Param('krbpwdhistorylength?', type=ipa_types.Int(), doc='Password History Size'),
-        Param('krbpwdmindiffchars?', type=ipa_types.Int(), doc='Min. Number of Character Classes'),
-        Param('krbpwdminlength?', type=ipa_types.Int(), doc='Min. Length of Password'),
+        Param('krbmaxpwdlife?',
+            cli_name='maxlife',
+            type=ipa_types.Int(),
+            doc='Max. Password Lifetime (days)'
+        ),
+        Param('krbminpwdlife?',
+            cli_name='minlife',
+            type=ipa_types.Int(),
+            doc='Min. Password Lifetime (hours)'
+        ),
+        Param('krbpwdhistorylength?',
+            cli_name='history',
+            type=ipa_types.Int(),
+            doc='Password History Size'
+        ),
+        Param('krbpwdmindiffchars?',
+            cli_name='minclasses',
+            type=ipa_types.Int(),
+            doc='Min. Number of Character Classes'
+        ),
+        Param('krbpwdminlength?',
+            cli_name='minlength',
+            type=ipa_types.Int(),
+            doc='Min. Length of Password'
+        ),
     )
     def execute(self, *args, **kw):
-        # Get the existing policy entry
-        oldpolicy = servercore.get_entry_by_cn("accounts", None)
+        """
+        Execute the pwpolicy-mod operation.
 
-        # Convert the existing policy into an entry object
-        dn = oldpolicy.get('dn')
-        del oldpolicy['dn']
-        entry = ipaldap.Entry((dn, servercore.convert_scalar_values(oldpolicy)))
+        The dn should not be passed as a keyword argument as it is constructed
+        by this method.
 
-        # FIXME: if the user passed no options should we return something
-        # more than No modifications to be performed?
+        Returns the entry
 
-        policy = kw
+        :param args: This function takes no positional arguments
+        :param kw: Keyword arguments for the other LDAP attributes.
+        """
+        assert 'dn' not in kw
+        ldap = self.api.Backend.ldap
+        dn = ldap.find_entry_dn("cn", "accounts", "krbPwdPolicy")
 
         # The LDAP routines want strings, not ints, so convert a few
         # things. Otherwise it sees a string -> int conversion as a change.
-        for k in policy.iterkeys():
+        for k in kw.iterkeys():
             if k.startswith("krb", 0, 3):
-                policy[k] = str(policy[k])
+                kw[k] = str(kw[k])
 
-        # Convert hours and days to seconds       
-        if policy.get('krbmaxpwdlife'):
-            policy['krbmaxpwdlife'] = str(int(policy.get('krbmaxpwdlife')) * 86400)
-        if policy.get('krbminpwdlife'):
-            policy['krbminpwdlife'] = str(int(policy.get('krbminpwdlife')) * 3600)
-        # Update the values passed-in
-        for p in policy:
-            # Values need to be strings, not integers
-            entry.setValues(p, str(policy[p]))
+        # Convert hours and days to seconds
+        if kw.get('krbmaxpwdlife'):
+            kw['krbmaxpwdlife'] = str(int(kw.get('krbmaxpwdlife')) * 86400)
+        if kw.get('krbminpwdlife'):
+            kw['krbminpwdlife'] = str(int(kw.get('krbminpwdlife')) * 3600)
 
-        result = servercore.update_entry(entry.toDict())
+        return ldap.update(dn, **kw)
 
-        return result
-    def forward(self, *args, **kw):
-        result = super(pwpolicy_mod, self).forward(*args, **kw)
-        if result:
+    def output_for_cli(self, ret):
+        if ret:
             print "Policy modified"
+
 api.register(pwpolicy_mod)
 
 
 class pwpolicy_show(frontend.Command):
     'Retrieve current password policy'
     def execute(self, *args, **kw):
-        policy = servercore.get_entry_by_cn("accounts", None)
+        """
+        Execute the pwpolicy-show operation.
+
+        The dn should not be passed as a keyword argument as it is constructed
+        by this method.
+
+        Returns the entry
+
+        :param args: Not used.
+        :param kw: Not used.
+        """
+        ldap = self.api.Backend.ldap
+        dn = ldap.find_entry_dn("cn", "accounts", "krbPwdPolicy")
+
+        policy = ldap.retrieve(dn)
 
         # convert some values for display purposes
         policy['krbmaxpwdlife'] = str(int(policy.get('krbmaxpwdlife')) / 86400)
@@ -93,8 +120,14 @@ class pwpolicy_show(frontend.Command):
 
         return policy
 
-    def forward(self, *args, **kw):
-        result = super(pwpolicy_show, self).forward(*args, **kw)
-        if not result: return
-        print result
+    def output_for_cli(self, policy):
+        if not policy: return
+
+        print "Password Policy"
+        print "Min. Password Lifetime (hours): %s" % policy.get('krbminpwdlife')
+        print "Max. Password Lifetime (days): %s" % policy.get('krbmaxpwdlife')
+        print "Min. Number of Character Classes: %s" % policy.get('krbpwdmindiffchars')
+        print "Min. Length of Password: %s" % policy.get('krbpwdminlength')
+        print "Password History Size: %s" % policy.get('krbpwdhistorylength')
+
 api.register(pwpolicy_show)
