@@ -93,7 +93,12 @@ def test_Environment():
 
     # Test __setattr__()
     env.spam = 'ham'
+
     assert env.spam == 'ham'
+    assert env['spam'] == 'ham'
+    assert env.get('spam') == 'ham'
+    assert env.get('nonexistent') == None
+    assert env.get('nonexistent', 42) == 42
 
     # Test if we throw AttributeError exception when trying to overwrite
     # existing value, or delete it

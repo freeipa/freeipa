@@ -17,6 +17,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+"""
+Basic configuration management.
+
+This module handles the reading and representation of basic local settings.
+It will also take care of settings that can be discovered by different
+methods, such as DNS.
+"""
+
 from ConfigParser import SafeConfigParser, ParsingError
 import types
 import os
@@ -92,6 +100,12 @@ class Environment(object):
             yield key
 
     def update(self, new_vals, ignore_errors = False):
+        """
+        Update variables using keys and values from ``new_vals``.
+
+        Error will occur if there is an attempt to override variable that was
+        already set, unless``ignore_errors`` is True.
+        """
         assert type(new_vals) == dict
         for key, value in new_vals.iteritems():
             if ignore_errors:
@@ -103,11 +117,19 @@ class Environment(object):
                 self[key] = value
 
     def get(self, name, default=None):
-        return self.__map.get(name, default)
-
+        """
+        Return the value corresponding to ``key``. Defaults to ``default``.
+        """
+        if name in self:
+            return self[name]
+        else:
+            return default
 
 
 def set_default_env(env):
+    """
+    Set default values for ``env``.
+    """
     assert isinstance(env, Environment)
 
     default = dict(
@@ -129,7 +151,15 @@ def set_default_env(env):
 
 
 class EnvProp(object):
+    """
+    Environment set-once property with optional default value.
+    """
     def __init__(self, type_, default, multi_value=False):
+        """
+        :param type_: Type of the property.
+        :param default: Default value.
+        :param multi_value: Allow multiple values.
+        """
         if multi_value:
             if isinstance(default, tuple) and len(default):
                 check_isinstance(default[0], type_, allow_none=True)
@@ -139,17 +169,29 @@ class EnvProp(object):
         self._multi_value = multi_value
 
     def get_value(self):
+        """
+        Return the value if it was set.
+
+        If the value is not set return the default. Otherwise raise an
+        exception.
+        """
         if self._get() != None:
             return self._get()
         else:
             raise KeyError, 'Value not set'
 
     def set_value(self, value):
+        """
+        Set the value.
+        """
         if self._value != None:
             raise KeyError, 'Value already set'
         self._value = self._validate(value)
 
     def _get(self):
+        """
+        Return value, default, or None.
+        """
         if self._value != None:
             return self._value
         elif self._default != None:
@@ -158,6 +200,11 @@ class EnvProp(object):
             return None
 
     def _validate(self, value):
+        """
+        Make sure ``value`` is of the right type. Do conversions if necessary.
+
+        This will also handle multi value.
+        """
         if self._multi_value and isinstance(value, tuple):
             converted = []
             for val in value:
@@ -167,6 +214,9 @@ class EnvProp(object):
             return self._validate_value(value)
 
     def _validate_value(self, value):
+        """
+        Validate and convert a single value.
+        """
         bool_true = ('true', 'yes', 'on')
         bool_false = ('false', 'no', 'off')
 
