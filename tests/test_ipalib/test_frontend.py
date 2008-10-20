@@ -115,10 +115,20 @@ class test_DefaultFrom(ClassChecker):
             kw_copy = dict(kw)
             del kw_copy[key]
             assert o(**kw_copy) is None
+
+        # Test using implied keys:
         o = self.cls(lambda first, last: first[0] + last)
         assert o(first='john', last='doe') == 'jdoe'
         assert o(first='', last='doe') is None
         assert o(one='john', two='doe') is None
+
+        # Test that co_varnames slice is used:
+        def callback2(first, last):
+            letter = first[0]
+            return letter + last
+        o = self.cls(callback2)
+        assert o.keys == ('first', 'last')
+        assert o(first='john', last='doe') == 'jdoe'
 
 
 def test_parse_param_spec():

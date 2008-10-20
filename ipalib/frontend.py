@@ -121,7 +121,8 @@ class DefaultFrom(plugable.ReadOnly):
             raise TypeError('callback must be callable; got %r' % callback)
         self.callback = callback
         if len(keys) == 0:
-            self.keys = callback.func_code.co_varnames
+            fc = callback.func_code
+            self.keys = fc.co_varnames[:fc.co_argcount]
         else:
             self.keys = keys
         for key in self.keys:
