@@ -514,14 +514,14 @@ class NameSpace(ReadOnly):
 
     Here is a more detailed example:
 
-    >>> class member(object):
+    >>> class Member(object):
     ...     def __init__(self, i):
     ...             self.i = i
     ...             self.name = 'member_%d' % i
     ...     def __repr__(self):
-    ...             return 'member(%d)' % self.i
+    ...             return 'Member(%d)' % self.i
     ...
-    >>> namespace = NameSpace(member(i) for i in xrange(3))
+    >>> namespace = NameSpace(Member(i) for i in xrange(3))
     >>> namespace.member_0 is namespace['member_0']
     True
     >>> len(namespace) # Returns the number of members in namespace
@@ -529,7 +529,7 @@ class NameSpace(ReadOnly):
     >>> list(namespace) # As iterable, iterates through the member names
     ['member_0', 'member_1', 'member_2']
     >>> list(namespace()) # Calling a NameSpace iterates through the members
-    [member(0), member(1), member(2)]
+    [Member(0), Member(1), Member(2)]
     >>> 'member_1' in namespace # Does namespace contain 'member_1'?
     True
     """
