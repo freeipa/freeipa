@@ -161,7 +161,7 @@ def get_entry_by_cn (cn, sattrs):
     """
 #    logging.info("IPA: get_entry_by_cn '%s'" % cn)
 #    cn = self.__safe_filter(cn)
-    searchfilter = "(cn=%s)" % cn 
+    searchfilter = "(cn=%s)" % cn
     return get_sub_entry("cn=accounts," + api.env.basedn, searchfilter, sattrs)
 
 def get_user_by_uid(uid, sattrs):
@@ -310,6 +310,9 @@ def get_ipa_config():
         raise errors.NotFound
 
     return config
+
+def modify_password(dn, oldpass, newpass):
+    return context.conn.getConn().modifyPassword(dn, oldpass, newpass)
 
 def mark_entry_active (dn):
     """Mark an entry as active in LDAP."""

@@ -143,6 +143,9 @@ class ldap(CrudBackend):
 
         return (exact_match_filter, partial_match_filter)
 
+    def modify_password(self, dn, **kw):
+        return servercore.modify_password(dn, kw.get('oldpass'), kw.get('newpass'))
+
     # The CRUD operations
 
     def create(self, **kw):
