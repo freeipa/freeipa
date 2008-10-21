@@ -154,23 +154,26 @@ class plugins(text_ui):
     """Show all loaded plugins"""
 
     def run(self):
+        plugins = sorted(self.api.plugins, key=lambda o: o.plugin)
+        return tuple(
+            (p.plugin, p.bases) for p in plugins
+        )
+
+    def output_for_cli(self, result):
         self.print_name()
         first = True
-        for p in sorted(self.api.plugins, key=lambda o: o.plugin):
+        for (plugin, bases) in result:
             if first:
                 first = False
             else:
                 print ''
-            print '  plugin: %s' % p.plugin
-            print '  in namespaces: %s' % ', '.join(p.bases)
-        if len(self.api.plugins) == 1:
+            print '  Plugin: %s' % plugin
+            print '  In namespaces: %s' % ', '.join(bases)
+        if len(result) == 1:
             s = '1 plugin loaded.'
         else:
-            s = '%d plugins loaded.' % len(self.api.plugins)
+            s = '%d plugins loaded.' % len(result)
         self.print_dashed(s)
-
-
-
 
 
 cli_application_commands = (
