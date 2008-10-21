@@ -389,7 +389,9 @@ def mark_entry_inactive (dn):
     return res
 
 def add_member_to_group(member_dn, group_dn):
-    """Add a member to an existing group."""
+    """
+    Add a member to an existing group.
+    """
 #    logging.info("IPA: add_member_to_group '%s' to '%s'" % (member_dn, group_dn))
     if member_dn.lower() == group_dn.lower():
         # You can't add a group to itself
@@ -404,12 +406,12 @@ def add_member_to_group(member_dn, group_dn):
     if not member_entry:
         raise errors.NotFound
 
-    if group.get('member') is not None:
-        if isinstance(group.get('member'),basestring):
-            group['member'] = [group['member']]
-        group['member'].append(member_dn)
-    else:
-        group['member'] = member_dn
+    # Add the new member to the group member attribute
+    members = group.get('member', [])
+    if isinstance(members, basestring):
+        members = [members]
+    members.append(member_dn)
+    group['member'] = members
 
     try:
         return update_entry(group)
@@ -430,20 +432,24 @@ def remove_member_from_group(member_dn, group_dn=None):
     """
 #    logging.info("IPA: remove_member_from_group '%s' from '%s'" % (member_dn, group_dn))
 
-    if group.get('member') is not None:
-        if isinstance(group.get('member'),basestring):
-            group['member'] = [group['member']]
-        for i in range(len(group['member'])):
-            group['member'][i] = ipaldap.IPAdmin.normalizeDN(group['member'][i])
-        try:
-            group['member'].remove(member_dn)
-        except ValueError:
-            # member is not in the group
-            # FIXME: raise more specific error?
-            raise errors.NotGroupMember
-    else:
-        # Nothing to do if the group has no members
+    members = group.get('member', False)
+    if not members:
         raise errors.NotGroupMember
+
+    if isinstance(members,basestring):
+        members = [members]
+    for i in range(len(members)):
+        members[i] = ipaldap.IPAdmin.normalizeDN(members[i])
+    try:
+        members.remove(member_dn)
+    except ValueError:
+        # member is not in the group
+        # FIXME: raise more specific error?
+        raise errors.NotGroupMember
+    except Exception, e:
+        raise e
+
+    group['member'] = members
 
     try:
         return update_entry(group)
