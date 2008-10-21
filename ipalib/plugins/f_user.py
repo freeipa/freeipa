@@ -55,11 +55,11 @@ class user(frontend.Object):
     takes_params = (
         Param('givenname',
             cli_name='first',
-            doc='User first name',
+            doc='User\'s first name',
         ),
         Param('sn',
             cli_name='last',
-            doc='User last name',
+            doc='User\'s last name',
         ),
         Param('uid',
             cli_name='user',
@@ -68,22 +68,40 @@ class user(frontend.Object):
             normalize=lambda value: value.lower(),
         ),
         Param('gecos?',
-            doc='GECOS field',
+            doc='Set the GECOS field',
             default_from=lambda uid: uid,
         ),
         Param('homedirectory?',
             cli_name='home',
-            doc='Path of user home directory',
+            doc='Set the User\'s home directory',
             default_from=lambda uid: '/home/%s' % uid,
         ),
         Param('loginshell?',
             cli_name='shell',
             default=u'/bin/sh',
-            doc='Login shell',
+            doc='Set User\'s Login shell',
         ),
         Param('krbprincipalname?', cli_name='principal',
-            default_from=lambda uid: '%s@EXAMPLE.COM' % uid,
+            doc='Set User\'s Kerberos Principal name',
+            default_from=lambda uid: '%s@%s' % (uid, api.env.realm),
         ),
+        Param('mailaddress?',
+            cli_name='mail',
+            doc='Set User\'s e-mail address',
+        ),
+        Param('userpassword?',
+            cli_name='password',
+            doc='Set User\'s password',
+        ),
+        Param('groups?',
+            doc='Add account to one or more groups (comma-separated)',
+        ),
+        Param('uidnumber?',
+            cli_name='uid',
+            type=ipa_types.Int(),
+            doc='The uid to use for this user. If not included one is automatically set.',
+        ),
+
     )
 api.register(user)
 
@@ -265,6 +283,9 @@ api.register(user_find)
 
 class user_show(crud.Get):
     'Examine an existing user.'
+    takes_options = (
+        Param('all?', type=ipa_types.Bool(), doc='Display all user attributes'),
+    )
     def execute(self, uid, **kw):
         """
         Execute the user-show operation.
@@ -275,12 +296,15 @@ class user_show(crud.Get):
         Returns the entry
 
         :param uid: The login name of the user to retrieve.
-        :param kw: Not used.
+        :param kw: "all" set to True = return all attributes
         """
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("uid", uid)
         # FIXME: should kw contain the list of attributes to display?
-        return ldap.retrieve(dn)
+        if kw.get('all', False):
+            return ldap.retrieve(dn)
+        else:
+            return ldap.retrieve(dn, ['uid','givenname','sn','homeDirectory','loginshell'])
     def output_for_cli(self, user):
         if user:
             for a in user.keys():

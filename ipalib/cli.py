@@ -277,7 +277,10 @@ class CLI(object):
 
     def run_cmd(self, cmd, argv):
         kw = self.parse(cmd, argv)
-        self.run_interactive(cmd, kw)
+        try:
+            self.run_interactive(cmd, kw)
+        except KeyboardInterrupt:
+            return
 
     def run_interactive(self, cmd, kw):
         for param in cmd.params():
@@ -325,11 +328,16 @@ class CLI(object):
             usage=self.get_usage(cmd),
         )
         for option in cmd.options():
-            parser.add_option('--%s' % to_cli(option.cli_name),
+            o = optparse.make_option('--%s' % to_cli(option.cli_name),
                 dest=option.name,
                 metavar=option.type.name.upper(),
                 help=option.doc,
             )
+            if isinstance(option.type, ipa_types.Bool):
+                o.action = 'store_true'
+                o.default = option.default
+                o.type = None
+            parser.add_option(o)
         return parser
 
     def parse_globals(self, argv=sys.argv[1:]):
