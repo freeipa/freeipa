@@ -868,13 +868,13 @@ class Attribute(plugable.Plugin):
     first underscore) is the object name, and rest is the attribute name,
     as this table shows:
 
-    =============  ===========  ==============
-    Class name     Object name  Attribute name
-    =============  ===========  ==============
-    user_add       user         add
-    noun_verb      noun         verb
-    door_open_now  door         open_door
-    =============  ===========  ==============
+    ===============  ===========  ==============
+    Class name       Object name  Attribute name
+    ===============  ===========  ==============
+    noun_verb        noun         verb
+    user_add         user         add
+    user_first_name  user         first_name
+    ===============  ===========  ==============
 
     For example:
 
@@ -941,7 +941,7 @@ class Method(Attribute, Command):
     =============  ===========  ==============
     user_add       user         add
     noun_verb      noun         verb
-    door_open_now  door         open_door
+    door_open_now  door         open_now
     =============  ===========  ==============
 
     There are three different places a method can be accessed.  For example,
