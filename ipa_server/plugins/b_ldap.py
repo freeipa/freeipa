@@ -146,6 +146,24 @@ class ldap(CrudBackend):
     def modify_password(self, dn, **kw):
         return servercore.modify_password(dn, kw.get('oldpass'), kw.get('newpass'))
 
+    def add_member_to_group(self, memberdn, groupdn):
+        """
+        Add a new member to a group.
+
+        :param memberdn: the DN of the member to add
+        :param groupdn: the DN of the group to add a member to
+        """
+        return servercore.add_member_to_group(memberdn, groupdn)
+
+    def remove_member_from_group(self, memberdn, groupdn):
+        """
+        Remove a new member from a group.
+
+        :param memberdn: the DN of the member to remove
+        :param groupdn: the DN of the group to remove a member from
+        """
+        return servercore.remove_member_from_group(memberdn, groupdn)
+
     # The CRUD operations
 
     def create(self, **kw):

@@ -25,7 +25,8 @@ from ipalib import frontend
 from ipalib import crud
 from ipalib.frontend import Param
 from ipalib import api
-from ipa_server import ipautil
+from ipalib import errors
+from ipalib import ipa_types
 
 
 class group(frontend.Object):
@@ -33,7 +34,14 @@ class group(frontend.Object):
     Group object.
     """
     takes_params = (
-        'description',
+        Param('description',
+            doc='A description of this group',
+        ),
+        Param('gidnumber?',
+            cli_name='gid',
+            type=ipa_types.Int(),
+            doc='The gid to use for this group. If not included one is automatically set.',
+        ),
         Param('cn',
             cli_name='name',
             primary_key=True,
@@ -210,4 +218,143 @@ class group_show(crud.Get):
         # FIXME: should kw contain the list of attributes to display?
         return ldap.retrieve(dn)
 
+    def output_for_cli(self, group):
+        if not group:
+            return
+
+        for a in group.keys():
+            print "%s: %s" % (a, group[a])
+
 api.register(group_show)
+
+
+class group_add_member(frontend.Command):
+    'Add a member to a group.'
+    takes_args = (
+        Param('group', primary_key=True),
+    )
+    takes_options = (
+        Param('users?', doc='comma-separated list of users to add'),
+        Param('groups?', doc='comma-separated list of groups to add'),
+    )
+    def execute(self, cn, **kw):
+        """
+        Execute the group-add-member operation.
+
+        Returns the updated group entry
+
+        :param cn: The group name to add new members to.
+        :param kw: groups is a comma-separated list of groups to add
+        :parem kw: users is a comma-separated list of users to add
+        """
+        ldap = self.api.Backend.ldap
+        dn = ldap.find_entry_dn("cn", cn)
+        add_failed = []
+        to_add = []
+        completed = 0
+
+        members = kw.get('groups', '').split(',')
+        for m in members:
+            if not m: continue
+            try:
+                member_dn = ldap.find_entry_dn("cn", m)
+                to_add.append(member_dn)
+            except errors.NotFound:
+                add_failed.append(m)
+                continue
+
+        members = kw.get('users', '').split(',')
+        for m in members:
+            if not m: continue
+            try:
+                member_dn = ldap.find_entry_dn("uid", m)
+                to_add.append(member_dn)
+            except errors.NotFound:
+                add_failed.append(m)
+                continue
+
+        for member_dn in to_add:
+            try:
+                ldap.add_member_to_group(member_dn, dn)
+                completed+=1
+            except:
+                add_failed.append(member_dn)
+
+        return add_failed
+
+    def output_for_cli(self, add_failed):
+        """
+        Output result of this command to command line interface.
+        """
+        if add_failed:
+            print "These entries failed to add to the group:"
+            for a in add_failed:
+                print "\t'%s'" % a
+
+
+api.register(group_add_member)
+
+
+class group_remove_member(frontend.Command):
+    'Remove a member from a group.'
+    takes_args = (
+        Param('group', primary_key=True),
+    )
+    takes_options = (
+        Param('users?', doc='comma-separated list of users to remove'),
+        Param('groups?', doc='comma-separated list of groups to remove'),
+    )
+    def execute(self, cn, **kw):
+        """
+        Execute the group-remove-member operation.
+
+        Returns the members that could not be added
+
+        :param cn: The group name to add new members to.
+        :param kw: groups is a comma-separated list of groups to remove
+        :parem kw: users is a comma-separated list of users to remove
+        """
+        ldap = self.api.Backend.ldap
+        dn = ldap.find_entry_dn("cn", cn)
+        to_remove = []
+        remove_failed = []
+        completed = 0
+
+        members = kw.get('groups', '').split(',')
+        for m in members:
+            if not m: continue
+            try:
+                member_dn = ldap.find_entry_dn("cn", m)
+                to_remove.append(member_dn)
+            except errors.NotFound:
+                remove_failed.append(m)
+                continue
+
+        members = kw.get('users', '').split(',')
+        for m in members:
+            try:
+                member_dn = ldap.find_entry_dn("uid", m,)
+                to_remove.append(member_dn)
+            except errors.NotFound:
+                remove_failed.append(m)
+                continue
+
+        for member_dn in to_remove:
+            try:
+                ldap.remove_member_from_group(member_dn, dn)
+                completed+=1
+            except:
+                remove_failed.append(member_dn)
+
+        return remove_failed
+
+    def output_for_cli(self, remove_failed):
+        """
+        Output result of this command to command line interface.
+        """
+        if remove_failed:
+            print "These entries failed to be removed from the group:"
+            for a in remove_failed:
+                print "\t'%s'" % a
+
+api.register(group_remove_member)
