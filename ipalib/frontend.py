@@ -857,6 +857,40 @@ class Object(plugable.Plugin):
 
 
 class Attribute(plugable.Plugin):
+    """
+    Base class implementing the attribute-to-object association.
+
+    `Attribute` plugins are associated with an `Object` plugin to group
+    a common set of commands that operate on a common set of parameters.
+
+    The association between attribute and object is done using a simple
+    naming convention: the first part of the plugin class name (up to the
+    first underscore) is the object name, and rest is the attribute name,
+    as this table shows:
+
+    =============  ===========  ==============
+    Class name     Object name  Attribute name
+    =============  ===========  ==============
+    user_add       user         add
+    noun_verb      noun         verb
+    door_open_now  door         open_door
+    =============  ===========  ==============
+
+    For example:
+
+    >>> class user_add(Attribute):
+    ...     pass
+    ...
+    >>> instance = user_add()
+    >>> instance.obj_name
+    'user'
+    >>> instance.attr_name
+    'add'
+
+    In practice the `Attribute` class is not used directly, but rather is
+    only the base class for the `Method` and `Property` classes.  Also see
+    the `Object` class.
+    """
     __public__ = frozenset((
         'obj',
         'obj_name',
