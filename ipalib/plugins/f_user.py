@@ -265,6 +265,9 @@ api.register(user_find)
 
 class user_show(crud.Get):
     'Examine an existing user.'
+    takes_options = (
+        Param('all?', type=ipa_types.Bool(), doc='Display all user attributes'),
+    )
     def execute(self, uid, **kw):
         """
         Execute the user-show operation.
@@ -275,12 +278,15 @@ class user_show(crud.Get):
         Returns the entry
 
         :param uid: The login name of the user to retrieve.
-        :param kw: Not used.
+        :param kw: "all" set to True = return all attributes
         """
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("uid", uid)
         # FIXME: should kw contain the list of attributes to display?
-        return ldap.retrieve(dn)
+        if kw.get('all', False):
+            return ldap.retrieve(dn)
+        else:
+            return ldap.retrieve(dn, ['uid','givenname','sn','homeDirectory','loginshell'])
     def output_for_cli(self, user):
         if user:
             for a in user.keys():
