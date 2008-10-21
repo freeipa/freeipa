@@ -277,7 +277,10 @@ class CLI(object):
 
     def run_cmd(self, cmd, argv):
         kw = self.parse(cmd, argv)
-        self.run_interactive(cmd, kw)
+        try:
+            self.run_interactive(cmd, kw)
+        except KeyboardInterrupt:
+            return
 
     def run_interactive(self, cmd, kw):
         for param in cmd.params():
