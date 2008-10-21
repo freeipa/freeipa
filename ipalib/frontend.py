@@ -894,6 +894,68 @@ class Attribute(plugable.Plugin):
 
 
 class Method(Attribute, Command):
+    """
+    A command with an associated object.
+
+    A `Method` plugin must have a corresponding `Object` plugin.  The
+    association between object and method is done through a simple naming
+    convention: the first part of the method name (up to the first under
+    score) is the object name, as the examples in this table show:
+
+    =============  ===========  ==============
+    Method name    Object name  Attribute name
+    =============  ===========  ==============
+    user_add       user         add
+    noun_verb      noun         verb
+    door_open_now  door         open_door
+    =============  ===========  ==============
+
+    There are three different places a method can be accessed.  For example,
+    say you created a `Method` plugin and its corresponding `Object` plugin
+    like this:
+
+    >>> api = plugable.API(Command, Object, Method, Property)
+    >>> class user_add(Method):
+    ...     def run(self):
+    ...             return 'Added the user!'
+    ...
+    >>> class user(Object):
+    ...     pass
+    ...
+    >>> api.register(user_add)
+    >>> api.register(user)
+    >>> api.finalize()
+
+    First, the ``user_add`` plugin can be accessed through the ``api.Method``
+    namespace:
+
+    >>> list(api.Method)
+    ['user_add']
+    >>> api.Method.user_add() # Will call user_add.run()
+    'Added the user!'
+
+    Second, because `Method` is a subclass of `Command`, the ``user_add``
+    plugin can also be accessed through the ``api.Command`` namespace:
+
+    >>> list(api.Command)
+    ['user_add']
+    >>> api.Command.user_add() # Will call user_add.run()
+    'Added the user!'
+
+    And third, ``user_add`` can be accessed as an attribute on the ``user``
+    `Object`:
+
+    >>> list(api.Object)
+    ['user']
+    >>> list(api.Object.user.methods)
+    ['add']
+    >>> api.Object.user.methods.add() # Will call user_add.run()
+    'Added the user!'
+
+    The `Attribute` base class implements the naming convention for the
+    attribute-to-object association.  Also see the `Object` and the
+    `Property` classes.
+    """
     __public__ = Attribute.__public__.union(Command.__public__)
 
     def __init__(self):
