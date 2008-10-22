@@ -26,15 +26,7 @@ from ipalib.frontend import Param
 from ipalib import api
 from ipalib import errors
 from ipalib import ipa_types
-import krbV
-
-def get_current_principal():
-    try:
-        return krbV.default_context().default_ccache().principal().name
-    except krbV.Krb5Error:
-        #TODO: do a kinit
-        print "Unable to get kerberos principal"
-        return None
+from ipalib import util
 
 class passwd(frontend.Command):
     'Edit existing password policy.'
@@ -42,7 +34,7 @@ class passwd(frontend.Command):
         Param('principal',
             cli_name='user',
             primary_key=True,
-            default_from=get_current_principal,
+            default_from=util.get_current_principal,
         ),
     )
     def execute(self, principal, **kw):
