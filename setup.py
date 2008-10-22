@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-# Authors: Jason Gerard DeRose <jderose@redhat.com>
+# Authors:
+#   Jason Gerard DeRose <jderose@redhat.com>
 #
 # Copyright (C) 2008  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -27,13 +28,16 @@ from distutils.core import setup
 setup(
     name='freeipa',
     version='1.99.0',
-    license='GNU GPL 2',
+    license='GPLv2+',
+    url='http://freeipa.org/',
     packages=[
         'ipalib',
         'ipalib.plugins',
         'ipa_server',
         'ipa_server.plugins',
         'ipa_webui',
+        'ipa_webui.templates',
     ],
+    package_data={'ipa_webui.templates': ['*.kid']},
     scripts=['ipa'],
 )

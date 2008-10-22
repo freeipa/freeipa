@@ -1,0 +1,2 @@
+include LICENSE lite-webui.py lite-xmlrpc.py
+graft tests/
