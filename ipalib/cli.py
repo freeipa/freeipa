@@ -270,7 +270,7 @@ class CLI(object):
             self.print_commands()
             print 'ipa: ERROR: unknown command %r' % key
             sys.exit(2)
-        self.run_cmd(
+        return self.run_cmd(
             self[key],
             list(s.decode('utf-8') for s in args[1:])
         )
@@ -280,7 +280,11 @@ class CLI(object):
         try:
             self.run_interactive(cmd, kw)
         except KeyboardInterrupt:
-            return
+            return 0
+        except errors.RuleError, e:
+            print e
+            return 2
+        return 0
 
     def run_interactive(self, cmd, kw):
         for param in cmd.params():
