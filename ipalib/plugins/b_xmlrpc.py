@@ -69,7 +69,7 @@ class xmlrpc(Backend):
                 print "%s: %s" % (code, faultString)
             else:
                 print "%s: %s" % (code, getattr(err,'__doc__',''))
-        return {}
+        return
 
 api.register(xmlrpc)
 

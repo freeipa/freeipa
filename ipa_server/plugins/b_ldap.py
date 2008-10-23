@@ -70,6 +70,16 @@ class ldap(CrudBackend):
             self.api.env.basedn,
         )
 
+    def make_host_dn(self, hostname):
+        """
+        Construct host dn from hostname
+        """
+        return 'cn=%s,%s,%s' % (
+            self.dn.escape_dn_chars(hostname),
+            self.api.env.container_host,
+            self.api.env.basedn,
+        )
+
     def get_object_type(self, attribute):
         """
         Based on attribute, make an educated guess as to the type of

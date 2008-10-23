@@ -20,6 +20,7 @@
 """
 Various utility functions.
 """
+import krbV
 
 def xmlrpc_marshal(*args, **kw):
     """
@@ -39,3 +40,11 @@ def xmlrpc_unmarshal(*params):
     else:
         kw = {}
     return (params[1:], kw)
+
+def get_current_principal():
+    try:
+        return krbV.default_context().default_ccache().principal().name
+    except krbV.Krb5Error:
+        #TODO: do a kinit
+        print "Unable to get kerberos principal"
+        return None

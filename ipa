@@ -25,9 +25,10 @@ Command Line Interface for IPA Administration.
 The CLI functionality is implemented in ipalib/cli.py
 """
 
+import sys
 from ipalib import api
 from ipalib.cli import CLI
 import ipalib.load_plugins
 
 cli = CLI(api)
-cli.run()
+sys.exit(cli.run())
