@@ -47,6 +47,24 @@ class envtest(frontend.Command):
         return {}
 api.register(envtest)
 
+def display_user(user):
+    # FIXME: for now delete dn here. In the future pass in the kw to
+    # output_for_cli()
+    attr = sorted(user.keys())
+    # Always have sn following givenname
+    try:
+        l = attr.index('givenname')
+        attr.remove('sn')
+        attr.insert(l+1, 'sn')
+    except ValueError:
+        pass
+
+    for a in attr:
+        if a != 'dn':
+            print "%s: %s" % (a, user[a])
+
+default_attributes = ['uid','givenname','sn','homeDirectory','loginshell']
+
 
 class user(frontend.Object):
     """
@@ -68,30 +86,30 @@ class user(frontend.Object):
             normalize=lambda value: value.lower(),
         ),
         Param('gecos?',
-            doc='Set the GECOS field',
+            doc='GECOS field',
             default_from=lambda uid: uid,
         ),
         Param('homedirectory?',
             cli_name='home',
-            doc='Set the User\'s home directory',
+            doc='User\'s home directory',
             default_from=lambda uid: '/home/%s' % uid,
         ),
         Param('loginshell?',
             cli_name='shell',
             default=u'/bin/sh',
-            doc='Set User\'s Login shell',
+            doc='User\'s Login shell',
         ),
         Param('krbprincipalname?', cli_name='principal',
-            doc='Set User\'s Kerberos Principal name',
+            doc='User\'s Kerberos Principal name',
             default_from=lambda uid: '%s@%s' % (uid, api.env.realm),
         ),
         Param('mailaddress?',
             cli_name='mail',
-            doc='Set User\'s e-mail address',
+            doc='User\'s e-mail address',
         ),
         Param('userpassword?',
             cli_name='password',
-            doc='Set User\'s password',
+            doc='User\'s password',
         ),
         Param('groups?',
             doc='Add account to one or more groups (comma-separated)',
@@ -248,6 +266,9 @@ api.register(user_mod)
 
 class user_find(crud.Find):
     'Search the users.'
+    takes_options = (
+        Param('all?', type=ipa_types.Bool(), doc='Retrieve all user attributes'),
+    )
     def execute(self, term, **kw):
         ldap = self.api.Backend.ldap
 
@@ -262,6 +283,10 @@ class user_find(crud.Find):
         object_type = ldap.get_object_type("uid")
         if object_type and not kw.get('objectclass'):
             kw['objectclass'] = object_type
+        if kw.get('all', False):
+            kw['attributes'] = ['*']
+        else:
+            kw['attributes'] = default_attributes
         return ldap.search(**kw)
     def output_for_cli(self, users):
         if not users:
@@ -276,15 +301,15 @@ class user_find(crud.Find):
             print "Please refine your search and try again."
 
         for u in users:
-            for a in u.keys():
-                print "%s: %s" % (a, u[a])
+            display_user(u)
+            print ""
 api.register(user_find)
 
 
 class user_show(crud.Get):
     'Examine an existing user.'
     takes_options = (
-        Param('all?', type=ipa_types.Bool(), doc='Display all user attributes'),
+        Param('all?', type=ipa_types.Bool(), doc='Retrieve all user attributes'),
     )
     def execute(self, uid, **kw):
         """
@@ -304,11 +329,10 @@ class user_show(crud.Get):
         if kw.get('all', False):
             return ldap.retrieve(dn)
         else:
-            return ldap.retrieve(dn, ['uid','givenname','sn','homeDirectory','loginshell'])
+            return ldap.retrieve(dn, default_attributes)
     def output_for_cli(self, user):
         if user:
-            for a in user.keys():
-                print "%s: %s" % (a, user[a])
+            display_user(user)
 
 api.register(user_show)
 

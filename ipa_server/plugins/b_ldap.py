@@ -213,6 +213,11 @@ class ldap(CrudBackend):
     def search(self, **kw):
         objectclass = kw.get('objectclass')
         sfilter = kw.get('filter')
+        attributes = kw.get('attributes')
+        if attributes:
+            del kw['attributes']
+        else:
+            attributes = ['*']
         if objectclass:
             del kw['objectclass']
         if sfilter:
@@ -228,13 +233,13 @@ class ldap(CrudBackend):
         search_base = "%s, %s" % (self.api.env.container_accounts, self.api.env.basedn)
         try:
             exact_results = servercore.search(search_base,
-                    exact_match_filter, ["*"])
+                    exact_match_filter, attributes)
         except errors.NotFound:
             exact_results = [0]
 
         try:
             partial_results = servercore.search(search_base,
-                    partial_match_filter, ["*"])
+                    partial_match_filter, attributes)
         except errors.NotFound:
             partial_results = [0]
 

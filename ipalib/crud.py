@@ -63,6 +63,8 @@ class Find(frontend.Method):
     def get_options(self):
         for param in self.obj.params_minus_pk():
             yield param.__clone__(required=False)
+        for option in self.takes_options:
+            yield option
 
 
 class CrudBackend(backend.Backend):
