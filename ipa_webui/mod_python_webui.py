@@ -1,6 +1,5 @@
-#!/usr/bin/python
-
-# Authors: Jason Gerard DeRose <jderose@redhat.com>
+# Authors:
+#   Jason Gerard DeRose <jderose@redhat.com>
 #
 # Copyright (C) 2008  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -19,27 +18,5 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-In-tree Web UI using cherrypy.
+Production Web UI using mod_python.
 """
-
-from cherrypy import expose, config, quickstart
-from ipa_webui.templates import form, main
-from ipa_webui import controller
-from ipalib import api
-from ipalib import load_plugins
-
-
-api.finalize()
-
-
-class root(object):
-    index = controller.Index(api, main)
-
-    def __init__(self):
-        for cmd in api.Command():
-            ctr = controller.Command(cmd, form)
-            setattr(self, cmd.name, ctr)
-
-
-if __name__ == '__main__'
-    quickstart(root())

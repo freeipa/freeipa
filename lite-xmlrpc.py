@@ -15,6 +15,10 @@ import ipalib.load_plugins
 from ipalib.util import xmlrpc_unmarshal
 import traceback
 
+"""
+In-tree XML-RPC server using SimpleXMLRPCServer.
+"""
+
 PORT=8888
 
 class StoppableXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
