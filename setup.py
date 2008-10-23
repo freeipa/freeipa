@@ -38,6 +38,9 @@ setup(
         'ipa_webui',
         'ipa_webui.templates',
     ],
-    package_data={'ipa_webui.templates': ['*.kid']},
+    package_data={
+        'ipa_webui.templates': ['*.kid'],
+        'ipa_webui': ['static/*'],
+    },
     scripts=['ipa'],
 )
