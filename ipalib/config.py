@@ -146,6 +146,8 @@ def set_default_env(env):
         server_context = EnvProp(bool, True),
         server = LazyIter(basestring, get_servers),
         verbose = EnvProp(bool, False),
+        ldaphost = EnvProp(basestring, 'localhost'),
+        ldapport = EnvProp(int, 389),
     )
 
     env.update(default)

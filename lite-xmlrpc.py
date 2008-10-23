@@ -37,6 +37,7 @@ from ipa_server.servercore import context
 import ipalib.load_plugins
 from ipalib.util import xmlrpc_unmarshal
 import traceback
+import krbV
 
 
 PORT=8888
@@ -70,10 +71,7 @@ class LoggingSimpleXMLRPCRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHa
         not be called.
         """
 
-        # this is fine for our test server
-        # uid = commands.getoutput('/usr/bin/id -u')
-        uid = "500"
-        krbccache = "FILE:/tmp/krb5cc_" + uid
+        krbccache =  krbV.default_context().default_ccache().name
 
         func = None
         try:
@@ -84,7 +82,7 @@ class LoggingSimpleXMLRPCRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHa
                 raise Exception('method "%s" is not supported' % method)
             (args, kw) = xmlrpc_unmarshal(*params)
             # FIXME: don't hardcode host and port
-            context.conn = conn.IPAConn("localhost", 389, krbccache)
+            context.conn = conn.IPAConn(api.env.ldaphost, api.env.ldapport, krbccache)
             logger.info("calling %s" % method)
             return func(*args, **kw)
         finally:

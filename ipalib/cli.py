@@ -311,9 +311,25 @@ class CLI(object):
                         break
                     except errors.ValidationError, e:
                         error = e.error
+        if self.api.env.server_context:
+            try:
+                import krbV
+                import ldap
+                from ipa_server import conn
+                from ipa_server.servercore import context
+                krbccache =  krbV.default_context().default_ccache().name
+                context.conn = conn.IPAConn(self.api.env.ldaphost, self.api.env.ldapport, krbccache)
+            except ImportError:
+                print >> sys.stderr, "There was a problem importing a Python module: %s" % sys.exc_value
+                return 2
+            except ldap.LDAPError, e:
+                print >> sys.stderr, "There was a problem connecting to the LDAP server: %s" % e[0].get('desc')
+                return 2
         ret = cmd(**kw)
         if callable(cmd.output_for_cli):
-            cmd.output_for_cli(ret)
+            return cmd.output_for_cli(ret)
+        else:
+            return 0
 
     def parse(self, cmd, argv):
         parser = self.build_parser(cmd)
