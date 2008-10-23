@@ -34,7 +34,10 @@ import time
 import traceback
 import pprint
 from xmlrpclib import Marshaller,loads,dumps,Fault
-from mod_python import apache
+try:
+    from mod_python import apache
+except ImportError:
+    pass
 import logging
 
 import ldap
