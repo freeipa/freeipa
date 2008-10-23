@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # Authors:
 #   Jason Gerard DeRose <jderose@redhat.com>
@@ -20,7 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Command Line Interface for IPA Administration.
+Command Line Interface for IPA administration.
 
 The CLI functionality is implemented in ipalib/cli.py
 """
@@ -30,5 +30,6 @@ from ipalib import api
 from ipalib.cli import CLI
 import ipalib.load_plugins
 
-cli = CLI(api)
-sys.exit(cli.run())
+if __name__ == '__main__':
+    cli = CLI(api)
+    sys.exit(cli.run())

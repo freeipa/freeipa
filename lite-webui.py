@@ -1,6 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
-# Authors: Jason Gerard DeRose <jderose@redhat.com>
+# Authors:
+#   Jason Gerard DeRose <jderose@redhat.com>
 #
 # Copyright (C) 2008  Red Hat
 # see file 'COPYING' for use and warranty information

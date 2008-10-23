@@ -1,5 +1,28 @@
 #!/usr/bin/env python
 
+# Authors:
+#   Rob Crittenden <rcritten@redhat.com>
+#
+# Copyright (C) 2008  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+"""
+In-tree XML-RPC server using SimpleXMLRPCServer.
+"""
+
 import sys
 import SimpleXMLRPCServer
 import logging
@@ -15,9 +38,6 @@ import ipalib.load_plugins
 from ipalib.util import xmlrpc_unmarshal
 import traceback
 
-"""
-In-tree XML-RPC server using SimpleXMLRPCServer.
-"""
 
 PORT=8888
 
@@ -134,37 +154,39 @@ class LoggingSimpleXMLRPCRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHa
             self.wfile.flush()
             self.connection.shutdown(1)
 
-# Set up our logger
-logger = logging.getLogger('xmlrpcserver')
-hdlr = logging.FileHandler('xmlrpcserver.log')
-formatter = logging.Formatter("%(asctime)s  %(levelname)s  %(message)s")
-hdlr.setFormatter(formatter)
-logger.addHandler(hdlr)
-logger.setLevel(logging.INFO)
 
-# Set up the server
-XMLRPCServer = StoppableXMLRPCServer(("",PORT), LoggingSimpleXMLRPCRequestHandler)
+if __name__ == '__main__':
+    # Set up our logger
+    logger = logging.getLogger('xmlrpcserver')
+    hdlr = logging.FileHandler('xmlrpcserver.log')
+    formatter = logging.Formatter("%(asctime)s  %(levelname)s  %(message)s")
+    hdlr.setFormatter(formatter)
+    logger.addHandler(hdlr)
+    logger.setLevel(logging.INFO)
 
-XMLRPCServer.register_introspection_functions()
+    # Set up the server
+    XMLRPCServer = StoppableXMLRPCServer(("",PORT), LoggingSimpleXMLRPCRequestHandler)
 
-api.finalize()
+    XMLRPCServer.register_introspection_functions()
 
-# Initialize our environment
-config.set_default_env(api.env)
-env_dict = config.read_config()
-env_dict['server_context'] = True
-api.env.update(env_dict)
+    api.finalize()
 
-# Get and register all the methods
-for cmd in api.Command:
-    logger.info("registering %s" % cmd)
-    XMLRPCServer.register_function(api.Command[cmd], cmd)
+    # Initialize our environment
+    config.set_default_env(api.env)
+    env_dict = config.read_config()
+    env_dict['server_context'] = True
+    api.env.update(env_dict)
 
-funcs = XMLRPCServer.funcs
+    # Get and register all the methods
+    for cmd in api.Command:
+        logger.info("registering %s" % cmd)
+        XMLRPCServer.register_function(api.Command[cmd], cmd)
 
-print "Listening on port %d" % PORT
-try:
-    XMLRPCServer.serve_forever()
-except KeyboardInterrupt:
-    XMLRPCServer.server_close()
-    print "Server shutdown."
+    funcs = XMLRPCServer.funcs
+
+    print "Listening on port %d" % PORT
+    try:
+        XMLRPCServer.serve_forever()
+    except KeyboardInterrupt:
+        XMLRPCServer.server_close()
+        print "Server shutdown."
