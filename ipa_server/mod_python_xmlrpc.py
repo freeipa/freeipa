@@ -144,8 +144,7 @@ class ModXMLRPCRequestHandler(object):
 #            for e in req.subprocess_env:
 #                logging.debug("IPA: environment %s: %s" % (e, req.subprocess_env[e]))
 
-        # FIXME: don't hardcode server and port
-        context.conn = conn.IPAConn("localhost", 389, krbccache, context.opts.get('ipadebug'))
+        context.conn = conn.IPAConn(api.env.ldaphost, api.env.ldapport, krbccache, context.opts.get('ipadebug'))
 
         start = time.time()
         # generate response
@@ -354,9 +353,10 @@ def load_modules():
     api.finalize()
 
     # Initialize our environment
+    config.set_default_env(api.env)
     env_dict = config.read_config()
     env_dict['server_context'] = True
-    api.env.update(config.generate_env(env_dict))
+    api.env.update(env_dict)
 
     # Get and register all the methods
     for cmd in api.Command:
