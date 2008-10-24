@@ -89,7 +89,7 @@ def check_isinstance(value, type_, name, allow_none=False):
     return value
 
 
-class IPAError(Exception):
+class IPAError(StandardError):
     """
     Base class for all custom IPA errors.
 

@@ -141,7 +141,7 @@ class test_IPAError(ClassChecker):
         """
         Test the `ipalib.errors.IPAError` exception.
         """
-        assert self.cls.__bases__ == (Exception,)
+        assert self.cls.__bases__ == (StandardError,)
 
     def test_init(self):
         """
