@@ -23,8 +23,8 @@ Test the `ipalib.config` module.
 
 import types
 
-from tests.util import raises, setitem, delitem
-#from tests.util import getitem, setitem, delitem
+from tests.util import raises, setitem, delitem, ClassChecker
+from tests.util import getitem, setitem, delitem
 from ipalib import config
 
 
@@ -110,6 +110,124 @@ def test_Environment():
     # This should be silently ignored
     env.update(dict(a=1000), True)
     assert env.a != 1000
+
+
+class test_Env(ClassChecker):
+    """
+    Test the `ipalib.config.Env` class.
+    """
+
+    _cls = config.Env
+
+    def test_init(self):
+        """
+        Test the `ipalib.config.Env.__init__` method.
+        """
+        o = self.cls()
+
+    def test_lock(self):
+        """
+        Test the `ipalib.config.Env.__lock__` method.
+        """
+        o = self.cls()
+        assert o._Env__locked is False
+        o.__lock__()
+        assert o._Env__locked is True
+        e = raises(StandardError, o.__lock__)
+        assert str(e) == 'Env.__lock__() already called'
+
+    def test_getattr(self):
+        """
+        Test the `ipalib.config.Env.__getattr__` method.
+
+        Also tests the `ipalib.config.Env.__getitem__` method.
+        """
+        o = self.cls()
+        value = 'some value'
+        o.key = value
+        assert o.key is value
+        assert o['key'] is value
+        o.call = lambda: 'whatever'
+        assert o.call == 'whatever'
+        assert o['call'] == 'whatever'
+        for name in ('one', 'two'):
+            e = raises(AttributeError, getattr, o, name)
+            assert str(e) == 'Env.%s' % name
+            e = raises(KeyError, getitem, o, name)
+            assert str(e) == repr(name)
+
+    def test_setattr(self):
+        """
+        Test the `ipalib.config.Env.__setattr__` method.
+
+        Also tests the `ipalib.config.Env.__setitem__` method.
+        """
+        items = [
+            ('one', 1),
+            ('two', lambda: 2),
+            ('three', 3),
+            ('four', lambda: 4),
+        ]
+        for setvar in (setattr, setitem):
+            o = self.cls()
+            for (i, (name, value)) in enumerate(items):
+                setvar(o, name, value)
+                assert getattr(o, name) == i + 1
+                assert o[name] == i + 1
+                if callable(value):
+                    assert name not in dir(o)
+                else:
+                    assert name in dir(o)
+                e = raises(AttributeError, setvar, o, name, 42)
+                assert str(e) == 'cannot overwrite Env.%s with 42' % name
+            o = self.cls()
+            o.__lock__()
+            for (name, value) in items:
+                e = raises(AttributeError, setvar, o, name, value)
+                assert str(e) == \
+                    'locked: cannot set Env.%s to %r' % (name, value)
+
+    def test_delattr(self):
+        """
+        Test the `ipalib.config.Env.__delattr__` method.
+
+        This also tests that ``__delitem__`` is not implemented.
+        """
+        o = self.cls()
+        o.one = 1
+        assert o.one == 1
+        for key in ('one', 'two'):
+            e = raises(AttributeError, delattr, o, key)
+            assert str(e) == 'cannot del Env.%s' % key
+            e = raises(AttributeError, delitem, o, key)
+            assert str(e) == '__delitem__'
+
+    def test_contains(self):
+        """
+        Test the `ipalib.config.Env.__contains__` method.
+        """
+        o = self.cls()
+        items = [
+            ('one', 1),
+            ('two', lambda: 2),
+            ('three', 3),
+            ('four', lambda: 4),
+        ]
+        for (key, value) in items:
+            assert key not in o
+            o[key] = value
+            assert key in o
+
+    def test_iter(self):
+        """
+        Test the `ipalib.config.Env.__iter__` method.
+        """
+        o = self.cls()
+        assert list(o) == []
+        keys = ('one', 'two', 'three', 'four', 'five')
+        for key in keys:
+            o[key] = 'the value'
+        assert list(o) == sorted(keys)
 
 
 def test_set_default_env():

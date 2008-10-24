@@ -28,6 +28,7 @@ methods, such as DNS.
 from ConfigParser import SafeConfigParser, ParsingError
 import types
 import os
+import sys
 
 from errors import check_isinstance, raise_TypeError
 
@@ -124,6 +125,92 @@ class Environment(object):
             return self[name]
         else:
             return default
+
+
+class Env(object):
+    """
+    A mapping object used to store the environment variables.
+    """
+
+    __locked = False
+
+    def __init__(self):
+        object.__setattr__(self, '_Env__d', {})
+
+    def __lock__(self):
+        """
+        Prevent further changes to environment.
+        """
+        if self.__locked is True:
+            raise StandardError(
+                '%s.__lock__() already called' % self.__class__.__name__
+            )
+        object.__setattr__(self, '_Env__locked', True)
+
+    def __getattr__(self, name):
+        """
+        Return the attribute named ``name``.
+        """
+        if name in self.__d:
+            return self[name]
+        raise AttributeError('%s.%s' %
+            (self.__class__.__name__, name)
+        )
+
+    def __setattr__(self, name, value):
+        """
+        Set the attribute named ``name`` to ``value``.
+        """
+        self[name] = value
+
+    def __delattr__(self, name):
+        """
+        Raise AttributeError (deletion is not allowed).
+        """
+        raise AttributeError('cannot del %s.%s' %
+            (self.__class__.__name__, name)
+        )
+
+    def __getitem__(self, key):
+        """
+        Return the value corresponding to ``key``.
+        """
+        if key not in self.__d:
+            raise KeyError(key)
+        value = self.__d[key]
+        if callable(value):
+            return value()
+        return value
+
+    def __setitem__(self, key, value):
+        """
+        Set ``key`` to ``value``.
+        """
+        if self.__locked:
+            raise AttributeError('locked: cannot set %s.%s to %r' %
+                (self.__class__.__name__, key, value)
+            )
+        if key in self.__d or hasattr(self, key):
+            raise AttributeError('cannot overwrite %s.%s with %r' %
+                (self.__class__.__name__, key, value)
+            )
+        self.__d[key] = value
+        if not callable(value):
+            assert type(value) in (str, int, bool)
+            object.__setattr__(self, key, value)
+
+    def __contains__(self, key):
+        """
+        Return True if instance contains ``key``; otherwise return False.
+        """
+        return key in self.__d
+
+    def __iter__(self): # Fix
+        """
+        Iterate through keys in ascending order.
+        """
+        for key in sorted(self.__d):
+            yield key
 
 
 def set_default_env(env):
