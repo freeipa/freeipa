@@ -22,9 +22,12 @@ Test the `ipalib.config` module.
 """
 
 import types
-
+import os
+from os import path
+import sys
 from tests.util import raises, setitem, delitem, ClassChecker
 from tests.util import getitem, setitem, delitem
+from tests.util import TempDir
 from ipalib import config
 
 
@@ -112,6 +115,65 @@ def test_Environment():
     assert env.a != 1000
 
 
+# Random base64-encoded data to simulate a misbehaving config file.
+config_bad = """
+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
+"""
+
+# A config file that tries to override some standard vars:
+config_override = """
+[global]
+key0 = var0
+home = /home/sweet/home
+key1 = var1
+site_packages = planet
+key2 = var2
+key3 = var3
+"""
+
+# A config file that test the automatic type conversion
+config_good = """
+[global]
+yes = TRUE
+no = False
+number = 42
+"""
+
+
 class test_Env(ClassChecker):
     """
     Test the `ipalib.config.Env` class.
@@ -124,6 +186,113 @@ class test_Env(ClassChecker):
         Test the `ipalib.config.Env.__init__` method.
         """
         o = self.cls()
+        ipalib = path.dirname(path.abspath(config.__file__))
+        assert o.ipalib == ipalib
+        assert o.site_packages == path.dirname(ipalib)
+        assert o.script == path.abspath(sys.argv[0])
+        assert o.bin == path.dirname(path.abspath(sys.argv[0]))
+        assert o.home == os.environ['HOME']
+        assert o.dot_ipa == path.join(os.environ['HOME'], '.ipa')
+
+    def bootstrap(self, **overrides):
+        o = self.cls()
+        o._bootstrap(**overrides)
+        return o
+
+    def test_bootstrap(self):
+        """
+        Test the `ipalib.config.Env._bootstrap` method.
+        """
+        dot_ipa = path.join(os.environ['HOME'], '.ipa')
+
+        # Test defaults created by _bootstrap():
+        o = self.cls()
+        assert 'in_tree' not in o
+        assert 'context' not in o
+        assert 'conf' not in o
+        o._bootstrap()
+        assert o.in_tree is False
+        assert o.context == 'default'
+        assert o.conf == '/etc/ipa/default.conf'
+
+        # Test overriding values created by _bootstrap()
+        o = self.bootstrap(in_tree='true', context='server')
+        assert o.in_tree is True
+        assert o.context == 'server'
+        assert o.conf == path.join(dot_ipa, 'server.conf')
+        o = self.bootstrap(conf='/my/wacky/whatever.conf')
+        assert o.in_tree is False
+        assert o.context == 'default'
+        assert o.conf == '/my/wacky/whatever.conf'
+
+        # Test various overrides and types conversion
+        kw = dict(
+            yes=True,
+            no=False,
+            num=42,
+            msg='Hello, world!',
+        )
+        override = dict(
+            (k, u' %s ' % v) for (k, v) in kw.items()
+        )
+        o = self.cls()
+        for key in kw:
+            assert key not in o
+        o._bootstrap(**override)
+        for (key, value) in kw.items():
+            assert getattr(o, key) == value
+            assert o[key] == value
+
+    def test_load_config(self):
+        """
+        Test the `ipalib.config.Env._load_config` method.
+        """
+        tmp = TempDir()
+        assert callable(tmp.join)
+
+        # Test a config file that doesn't exist
+        no_exist = tmp.join('no_exist.conf')
+        assert not path.exists(no_exist)
+        o = self.cls()
+        keys = tuple(o)
+        orig = dict((k, o[k]) for k in o)
+        assert o._load_config(no_exist) is None
+        assert tuple(o) == keys
+
+        # Test an empty config file
+        empty = tmp.touch('empty.conf')
+        assert path.isfile(empty)
+        assert o._load_config(empty) is None
+        assert tuple(o) == keys
+
+        # Test a mal-formed config file:
+        bad = tmp.join('bad.conf')
+        open(bad, 'w').write(config_bad)
+        assert path.isfile(bad)
+        assert o._load_config(bad) is None
+        assert tuple(o) == keys
+
+        # Test a valid config file that tries to override
+        override = tmp.join('override.conf')
+        open(override, 'w').write(config_override)
+        assert path.isfile(override)
+        assert o._load_config(override) == (4, 6)
+        for (k, v) in orig.items():
+            assert o[k] is v
+        assert list(o) == sorted(keys + ('key0', 'key1', 'key2', 'key3'))
+        for i in xrange(4):
+            assert o['key%d' % i] == ('var%d' % i)
+        keys = tuple(o)
+
+        # Test a valid config file with type conversion
+        good = tmp.join('good.conf')
+        open(good, 'w').write(config_good)
+        assert path.isfile(good)
+        assert o._load_config(good) == (3, 3)
+        assert list(o) == sorted(keys + ('yes', 'no', 'number'))
+        assert o.yes is True
+        assert o.no is False
+        assert o.number == 42
 
     def test_lock(self):
         """
@@ -186,6 +355,16 @@ class test_Env(ClassChecker):
                 e = raises(AttributeError, setvar, o, name, value)
                 assert str(e) == \
                     'locked: cannot set Env.%s to %r' % (name, value)
+            o = self.cls()
+            setvar(o, 'yes', ' true ')
+            assert o.yes is True
+            setvar(o, 'no', ' false ')
+            assert o.no is False
+            setvar(o, 'msg', u' Hello, world! ')
+            assert o.msg == 'Hello, world!'
+            assert type(o.msg) is str
+            setvar(o, 'num', ' 42 ')
+            assert o.num == 42
 
     def test_delattr(self):
         """
@@ -223,11 +402,11 @@ class test_Env(ClassChecker):
         Test the `ipalib.config.Env.__iter__` method.
         """
         o = self.cls()
-        assert list(o) == []
+        default_keys = tuple(o)
         keys = ('one', 'two', 'three', 'four', 'five')
         for key in keys:
             o[key] = 'the value'
-        assert list(o) == sorted(keys)
+        assert list(o) == sorted(keys + default_keys)
 
 
 def test_set_default_env():

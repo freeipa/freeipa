@@ -25,12 +25,13 @@ It will also take care of settings that can be discovered by different
 methods, such as DNS.
 """
 
-from ConfigParser import SafeConfigParser, ParsingError
+from ConfigParser import SafeConfigParser, ParsingError, RawConfigParser
 import types
 import os
+from os import path
 import sys
-
 from errors import check_isinstance, raise_TypeError
+import constants
 
 DEFAULT_CONF='/etc/ipa/ipa.conf'
 
@@ -136,6 +137,71 @@ class Env(object):
 
     def __init__(self):
         object.__setattr__(self, '_Env__d', {})
+        self.ipalib = path.dirname(path.abspath(__file__))
+        self.site_packages = path.dirname(self.ipalib)
+        self.script = path.abspath(sys.argv[0])
+        self.bin = path.dirname(self.script)
+        self.home = path.abspath(os.environ['HOME'])
+        self.dot_ipa = path.join(self.home, '.ipa')
+
+    def _bootstrap(self, **overrides):
+        """
+        Initialize basic environment.
+
+        This method will initialize only enough environment information to
+        determine whether ipa is running in-tree, what the context is,
+        and the location of the configuration file.
+
+        This method should be called before any plugins are loaded.
+        """
+        for (key, value) in overrides.items():
+            self[key] = value
+        if 'in_tree' not in self:
+            if self.bin == self.site_packages and \
+                    path.isfile(path.join(self.bin, 'setup.py')):
+                self.in_tree = True
+            else:
+                self.in_tree = False
+        if 'context' not in self:
+            self.context = 'default'
+        if 'conf' not in self:
+            name = '%s.conf' % self.context
+            if self.in_tree:
+                self.conf = path.join(self.dot_ipa, name)
+            else:
+                self.conf = path.join('/', 'etc', 'ipa', name)
+
+    def _load_config(self, conf_file):
+        """
+        Merge in values from ``conf_file`` into this `Env`.
+        """
+        section = constants.CONFIG_SECTION
+        if not path.isfile(conf_file):
+            return
+        parser = RawConfigParser()
+        try:
+            parser.read(conf_file)
+        except ParsingError:
+            return
+        if not parser.has_section(section):
+            parser.add_section(section)
+        items = parser.items(section)
+        if len(items) == 0:
+            return
+        i = 0
+        for (key, value) in items:
+            if key not in self:
+                self[key] = value
+                i += 1
+        return (i, len(items))
+
+    def _finalize(self, **defaults):
+        """
+        Finalize and lock environment.
+
+        This method should be called after all plugins have bean loaded and
+        after `plugable.API.finalize()` has been called.
+        """
 
     def __lock__(self):
         """
@@ -186,6 +252,7 @@ class Env(object):
         """
         Set ``key`` to ``value``.
         """
+        # FIXME: the key should be checked with check_name()
         if self.__locked:
             raise AttributeError('locked: cannot set %s.%s to %r' %
                 (self.__class__.__name__, key, value)
@@ -194,10 +261,18 @@ class Env(object):
             raise AttributeError('cannot overwrite %s.%s with %r' %
                 (self.__class__.__name__, key, value)
             )
-        self.__d[key] = value
         if not callable(value):
+            if isinstance(value, basestring):
+                value = str(value.strip())
+                if value.lower() == 'true':
+                    value = True
+                elif value.lower() == 'false':
+                    value = False
+                elif value.isdigit():
+                    value = int(value)
             assert type(value) in (str, int, bool)
             object.__setattr__(self, key, value)
+        self.__d[key] = value
 
     def __contains__(self, key):
         """

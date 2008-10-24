@@ -22,7 +22,50 @@ Common utility functions and classes for unit tests.
 """
 
 import inspect
+import os
+from os import path
+import tempfile
+import shutil
 from ipalib import errors
+
+
+class TempDir(object):
+    def __init__(self):
+        self.__path = tempfile.mkdtemp(prefix='ipa.tests.')
+        assert self.path == self.__path
+
+    def __get_path(self):
+        assert path.abspath(self.__path) == self.__path
+        assert self.__path.startswith('/tmp/ipa.tests.')
+        assert path.isdir(self.__path) and not path.islink(self.__path)
+        return self.__path
+    path = property(__get_path)
+
+    def rmtree(self):
+        shutil.rmtree(self.path)
+        self.__path = None
+
+    def makedirs(self, *parts):
+        d = self.join(*parts)
+        if not path.exists(d):
+            os.makedirs(d)
+        assert path.isdir(d) and not path.islink(d)
+        return d
+
+    def touch(self, *parts):
+        d = self.makedirs(*parts[:-1])
+        f = path.join(d, parts[-1])
+        assert not path.exists(f)
+        open(f, 'w').close()
+        assert path.isfile(f) and not path.islink(f)
+        return f
+
+    def join(self, *parts):
+        return path.join(self.path, *parts)
+
+    def __del__(self):
+        self.rmtree()
+
 
 class ExceptionNotRaised(Exception):
     """
