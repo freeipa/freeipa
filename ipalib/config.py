@@ -137,12 +137,20 @@ class Env(object):
 
     def __init__(self):
         object.__setattr__(self, '_Env__d', {})
+        object.__setattr__(self, '_Env__done', set())
         self.ipalib = path.dirname(path.abspath(__file__))
         self.site_packages = path.dirname(self.ipalib)
         self.script = path.abspath(sys.argv[0])
         self.bin = path.dirname(self.script)
         self.home = path.abspath(os.environ['HOME'])
         self.dot_ipa = path.join(self.home, '.ipa')
+
+    def __do(self, name):
+        if name in self.__done:
+            raise StandardError(
+                '%s.%s() already called' % (self.__class__.__name__, name)
+            )
+        self.__done.add(name)
 
     def _bootstrap(self, **overrides):
         """
@@ -154,6 +162,7 @@ class Env(object):
 
         This method should be called before any plugins are loaded.
         """
+        self.__do('_bootstrap')
         for (key, value) in overrides.items():
             self[key] = value
         if 'in_tree' not in self:

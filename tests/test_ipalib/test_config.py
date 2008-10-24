@@ -197,6 +197,8 @@ class test_Env(ClassChecker):
     def bootstrap(self, **overrides):
         o = self.cls()
         o._bootstrap(**overrides)
+        e = raises(StandardError, o._bootstrap)
+        assert str(e) == 'Env._bootstrap() already called'
         return o
 
     def test_bootstrap(self):
