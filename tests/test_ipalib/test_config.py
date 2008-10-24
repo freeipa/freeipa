@@ -27,7 +27,7 @@ from os import path
 import sys
 from tests.util import raises, setitem, delitem, ClassChecker
 from tests.util import getitem, setitem, delitem
-from tests.util import TempDir
+from tests.util import TempDir, TempHome
 from ipalib import config
 
 
@@ -181,34 +181,42 @@ class test_Env(ClassChecker):
 
     _cls = config.Env
 
+    def new(self):
+        """
+        Set os.environ['HOME'] to a tempdir.
+
+        Returns tuple with new Env instance and the TempHome instance.
+        """
+        home = TempHome()
+        return (self.cls(), home)
+
     def test_init(self):
         """
         Test the `ipalib.config.Env.__init__` method.
         """
-        o = self.cls()
+        (o, home) = self.new()
         ipalib = path.dirname(path.abspath(config.__file__))
         assert o.ipalib == ipalib
         assert o.site_packages == path.dirname(ipalib)
         assert o.script == path.abspath(sys.argv[0])
         assert o.bin == path.dirname(path.abspath(sys.argv[0]))
-        assert o.home == os.environ['HOME']
-        assert o.dot_ipa == path.join(os.environ['HOME'], '.ipa')
+        assert o.home == home.path
+        assert o.dot_ipa == home.join('.ipa')
 
     def bootstrap(self, **overrides):
-        o = self.cls()
+        (o, home) = self.new()
         o._bootstrap(**overrides)
         e = raises(StandardError, o._bootstrap)
         assert str(e) == 'Env._bootstrap() already called'
-        return o
+        return (o, home)
 
     def test_bootstrap(self):
         """
         Test the `ipalib.config.Env._bootstrap` method.
         """
-        dot_ipa = path.join(os.environ['HOME'], '.ipa')
 
         # Test defaults created by _bootstrap():
-        o = self.cls()
+        (o, home) = self.new()
         assert 'in_tree' not in o
         assert 'context' not in o
         assert 'conf' not in o
@@ -218,11 +226,11 @@ class test_Env(ClassChecker):
         assert o.conf == '/etc/ipa/default.conf'
 
         # Test overriding values created by _bootstrap()
-        o = self.bootstrap(in_tree='true', context='server')
+        (o, home) = self.bootstrap(in_tree='true', context='server')
         assert o.in_tree is True
         assert o.context == 'server'
-        assert o.conf == path.join(dot_ipa, 'server.conf')
-        o = self.bootstrap(conf='/my/wacky/whatever.conf')
+        assert o.conf == home.join('.ipa', 'server.conf')
+        (o, home) = self.bootstrap(conf='/my/wacky/whatever.conf')
         assert o.in_tree is False
         assert o.context == 'default'
         assert o.conf == '/my/wacky/whatever.conf'
@@ -237,7 +245,7 @@ class test_Env(ClassChecker):
         override = dict(
             (k, u' %s ' % v) for (k, v) in kw.items()
         )
-        o = self.cls()
+        (o, home) = self.new()
         for key in kw:
             assert key not in o
         o._bootstrap(**override)

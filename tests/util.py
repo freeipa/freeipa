@@ -42,8 +42,9 @@ class TempDir(object):
     path = property(__get_path)
 
     def rmtree(self):
-        shutil.rmtree(self.path)
-        self.__path = None
+        if self.__path is not None:
+            shutil.rmtree(self.path)
+            self.__path = None
 
     def makedirs(self, *parts):
         d = self.join(*parts)
@@ -65,6 +66,17 @@ class TempDir(object):
 
     def __del__(self):
         self.rmtree()
+
+
+class TempHome(TempDir):
+    def __init__(self):
+        super(TempHome, self).__init__()
+        self.__home = os.environ['HOME']
+        os.environ['HOME'] = self.path
+
+    def rmtree(self):
+        os.environ['HOME'] = self.__home
+        super(TempHome, self).rmtree()
 
 
 class ExceptionNotRaised(Exception):
