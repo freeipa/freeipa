@@ -88,7 +88,7 @@ class ldap(CrudBackend):
         attribute = attribute.lower()
         object_type = None
         if attribute == "uid": # User
-            object_type = "person"
+            object_type = "posixAccount"
         elif attribute == "cn": # Group
             object_type = "posixGroup"
         elif attribute == "krbprincipalname": # Service

@@ -110,7 +110,7 @@ class service_add(crud.Add):
 
     def output_to_cli(self, ret):
         if ret:
-            print "Service added" 
+            print "Service added"
 
 api.register(service_add)
 
@@ -146,7 +146,7 @@ class service_find(crud.Find):
     def execute(self, principal, **kw):
         ldap = self.api.Backend.ldap
 
-        kw['filter'] = "&(objectclass=krbPrincipalAux)(!(objectClass=person))(!(|(krbprincipalname=kadmin/*)(krbprincipalname=K/M@*)(krbprincipalname=krbtgt/*)))"
+        kw['filter'] = "&(objectclass=krbPrincipalAux)(!(objectClass=posixAccount))(!(|(krbprincipalname=kadmin/*)(krbprincipalname=K/M@*)(krbprincipalname=krbtgt/*)))"
         kw['krbprincipalname'] = principal
 
         object_type = ldap.get_object_type("krbprincipalname")
@@ -193,5 +193,11 @@ class service_show(crud.Get):
         dn = ldap.find_entry_dn("krbprincipalname", principal)
         # FIXME: should kw contain the list of attributes to display?
         return ldap.retrieve(dn)
+    def output_for_cli(self, service):
+        if not service:
+            return
+
+        for a in service.keys():
+            print "%s: %s" % (a, service[a])
 
 api.register(service_show)

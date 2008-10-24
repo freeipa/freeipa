@@ -103,6 +103,9 @@ class host_add(crud.Add):
         The dn should not be passed as a keyword argument as it is constructed
         by this method.
 
+        If password is set then this is considered a 'bulk' host so we
+        do not create a kerberos service principal.
+
         Returns the entry as it will be created in LDAP.
 
         :param hostname: The name of the host being added.
@@ -110,27 +113,39 @@ class host_add(crud.Add):
         """
         assert 'cn' not in kw
         assert 'dn' not in kw
+        assert 'krbprincipalname' not in kw
         ldap = self.api.Backend.ldap
 
         kw['cn'] = hostname
         kw['serverhostname'] = hostname.split('.',1)[0]
         kw['dn'] = ldap.make_host_dn(hostname)
-        kw['krbPrincipalName'] = "host/%s@%s" % (hostname, self.api.env.realm)
 
         # FIXME: do a DNS lookup to ensure host exists
 
         current = util.get_current_principal()
         if not current:
             raise errors.NotFound('Unable to determine current user')
-        kw['enrolledBy'] = ldap.find_entry_dn("krbPrincipalName", current, "person")
+        kw['enrolledby'] = ldap.find_entry_dn("krbPrincipalName", current, "posixAccount")
 
         # Get our configuration
         config = ldap.get_ipa_config()
 
         # some required objectclasses
         # FIXME: add this attribute to cn=ipaconfig
-        #kw['objectClass'] =  config.get('ipahostobjectclasses')
-        kw['objectClass'] = ['nsHost', 'krbPrincipalAux', 'ipaHost']
+        #kw['objectclass'] =  config.get('ipahostobjectclasses')
+        kw['objectclass'] = ['nsHost', 'ipaHost']
+
+        # Ensure the list of objectclasses is lower-case
+        kw['objectclass'] = map(lambda z: z.lower(), kw.get('objectclass'))
+
+        if not kw.get('userpassword', False):
+            kw['krbprincipalname'] = "host/%s@%s" % (hostname, self.api.env.realm)
+
+            if 'krbprincipalaux' not in kw.get('objectclass'):
+               kw['objectclass'].append('krbprincipalaux')
+        else:
+            if 'krbprincipalaux' in kw.get('objectclass'):
+                kw['objectclass'].remove('krbprincipalaux')
 
         return ldap.create(**kw)
     def output_for_cli(self, ret):

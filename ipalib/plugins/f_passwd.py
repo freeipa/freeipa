@@ -60,7 +60,7 @@ class passwd(frontend.Command):
             else:
                 principal = principal
 
-        dn = ldap.find_entry_dn("krbprincipalname", principal, "person")
+        dn = ldap.find_entry_dn("krbprincipalname", principal, "posixAccount")
 
         # FIXME: we need a way to prompt for passwords using getpass
         kw['newpass'] = "password"
