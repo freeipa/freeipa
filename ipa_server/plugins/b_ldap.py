@@ -106,7 +106,7 @@ class ldap(CrudBackend):
         if not object_type:
             return None
 
-        filter = "(&(%s=%s)(objectclass=%s))" % (
+        search_filter = "(&(%s=%s)(objectclass=%s))" % (
             key_attribute,
             self.dn.escape_dn_chars(primary_key),
             object_type
@@ -114,7 +114,7 @@ class ldap(CrudBackend):
 
         search_base = "%s, %s" % (self.api.env.container_accounts, self.api.env.basedn)
 
-        entry = servercore.get_sub_entry(search_base, filter, ['dn', 'objectclass'])
+        entry = servercore.get_sub_entry(search_base, search_filter, ['dn', 'objectclass'])
 
         return entry.get('dn')
 
