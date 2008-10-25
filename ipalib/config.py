@@ -145,12 +145,19 @@ class Env(object):
         self.home = path.abspath(os.environ['HOME'])
         self.dot_ipa = path.join(self.home, '.ipa')
 
-    def __do(self, name):
+    def __doing(self, name):
         if name in self.__done:
             raise StandardError(
                 '%s.%s() already called' % (self.__class__.__name__, name)
             )
         self.__done.add(name)
+
+    def __do_if_not_done(self, name):
+        if name not in self.__done:
+            getattr(self, name)()
+
+    def _isdone(self, name):
+        return name in self.__done
 
     def _bootstrap(self, **overrides):
         """
@@ -159,10 +166,8 @@ class Env(object):
         This method will initialize only enough environment information to
         determine whether ipa is running in-tree, what the context is,
         and the location of the configuration file.
-
-        This method should be called before any plugins are loaded.
         """
-        self.__do('_bootstrap')
+        self.__doing('_bootstrap')
         for (key, value) in overrides.items():
             self[key] = value
         if 'in_tree' not in self:
@@ -180,7 +185,46 @@ class Env(object):
             else:
                 self.conf = path.join('/', 'etc', 'ipa', name)
 
-    def _load_config(self, conf_file):
+    def _finalize_core(self, **defaults):
+        """
+        Complete initialization of standard IPA environment.
+
+        After this method is called, the all environment variables
+        used by all the built-in plugins will be available.
+
+        This method should be called before loading any plugins. It will
+        automatically call `Env._bootstrap()` if it has not yet been called.
+
+        After this method has finished, the `Env` instance is still writable
+        so that third
+        """
+        self.__doing('_finalize_core')
+        self.__do_if_not_done('_bootstrap')
+        self._merge_config(self.conf)
+        if 'in_server' not in self:
+            self.in_server = (self.context == 'server')
+        if 'log' not in self:
+            name = '%s.log' % self.context
+            if self.in_tree or self.context == 'cli':
+                self.log = path.join(self.dot_ipa, 'log', name)
+            else:
+                self.log = path.join('/', 'var', 'log', 'ipa', name)
+        for (key, value) in defaults.items():
+            if key not in self:
+                self[key] = value
+
+    def _finalize(self):
+        """
+        Finalize and lock environment.
+
+        This method should be called after all plugins have bean loaded and
+        after `plugable.API.finalize()` has been called.
+        """
+        self.__doing('_finalize')
+        self.__do_if_not_done('_finalize_core')
+        self.__lock__()
+
+    def _merge_config(self, conf_file):
         """
         Merge in values from ``conf_file`` into this `Env`.
         """
@@ -203,14 +247,6 @@ class Env(object):
                 self[key] = value
                 i += 1
         return (i, len(items))
-
-    def _finalize(self, **defaults):
-        """
-        Finalize and lock environment.
-
-        This method should be called after all plugins have bean loaded and
-        after `plugable.API.finalize()` has been called.
-        """
 
     def __lock__(self):
         """

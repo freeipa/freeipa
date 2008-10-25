@@ -61,6 +61,14 @@ class TempDir(object):
         assert path.isfile(f) and not path.islink(f)
         return f
 
+    def write(self, content, *parts):
+        d = self.makedirs(*parts[:-1])
+        f = path.join(d, parts[-1])
+        assert not path.exists(f)
+        open(f, 'w').write(content)
+        assert path.isfile(f) and not path.islink(f)
+        return f
+
     def join(self, *parts):
         return path.join(self.path, *parts)
 

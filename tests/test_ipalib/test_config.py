@@ -28,7 +28,7 @@ import sys
 from tests.util import raises, setitem, delitem, ClassChecker
 from tests.util import getitem, setitem, delitem
 from tests.util import TempDir, TempHome
-from ipalib import config
+from ipalib import config, constants
 
 
 def test_Environment():
@@ -157,6 +157,7 @@ WfUu+/mDOAGOjsRo0UkIo+pPl6Rckl7ehuR1INGAj9u0kW2nXvK45YlQp1odukaICSAjgSQWf//Z
 # A config file that tries to override some standard vars:
 config_override = """
 [global]
+
 key0 = var0
 home = /home/sweet/home
 key1 = var1
@@ -165,9 +166,10 @@ key2 = var2
 key3 = var3
 """
 
-# A config file that test the automatic type conversion
+# A config file that tests the automatic type conversion
 config_good = """
 [global]
+
 yes = TRUE
 no = False
 number = 42
@@ -205,7 +207,9 @@ class test_Env(ClassChecker):
 
     def bootstrap(self, **overrides):
         (o, home) = self.new()
+        assert o._isdone('_bootstrap') is False
         o._bootstrap(**overrides)
+        assert o._isdone('_bootstrap') is True
         e = raises(StandardError, o._bootstrap)
         assert str(e) == 'Env._bootstrap() already called'
         return (o, home)
@@ -214,7 +218,6 @@ class test_Env(ClassChecker):
         """
         Test the `ipalib.config.Env._bootstrap` method.
         """
-
         # Test defaults created by _bootstrap():
         (o, home) = self.new()
         assert 'in_tree' not in o
@@ -253,9 +256,110 @@ class test_Env(ClassChecker):
             assert getattr(o, key) == value
             assert o[key] == value
 
-    def test_load_config(self):
+    def finalize_core(self, **defaults):
+        (o, home) = self.new()
+        assert o._isdone('_finalize_core') is False
+        o._finalize_core(**defaults)
+        assert o._isdone('_finalize_core') is True
+        e = raises(StandardError, o._finalize_core)
+        assert str(e) == 'Env._finalize_core() already called'
+        return (o, home)
+
+    def test_finalize_core(self):
         """
-        Test the `ipalib.config.Env._load_config` method.
+        Test the `ipalib.config.Env._finalize_core` method.
+        """
+        # Check that calls cascade up the chain:
+        (o, home) = self.new()
+        assert o._isdone('_bootstrap') is False
+        assert o._isdone('_finalize_core') is False
+        assert o._isdone('_finalize') is False
+        o._finalize_core()
+        assert o._isdone('_bootstrap') is True
+        assert o._isdone('_finalize_core') is True
+        assert o._isdone('_finalize') is False
+
+        # Check that it can't be called twice:
+        e = raises(StandardError, o._finalize_core)
+        assert str(e) == 'Env._finalize_core() already called'
+
+        # Check that _bootstrap() did its job:
+        (o, home) = self.bootstrap()
+        assert 'in_tree' in o
+        assert 'conf' in o
+        assert 'context' in o
+
+        # Check that keys _finalize_core() will set are not set yet:
+        assert 'log' not in o
+        assert 'in_server' not in o
+
+        # Check that _finalize_core() did its job:
+        o._finalize_core()
+        assert 'in_server' in o
+        assert 'log' in o
+        assert o.in_tree is False
+        assert o.context == 'default'
+        assert o.in_server is False
+        assert o.log == '/var/log/ipa/default.log'
+
+        # Check log is in ~/.ipa/log when context='cli'
+        (o, home) = self.bootstrap(context='cli')
+        o._finalize_core()
+        assert o.in_tree is False
+        assert o.log == home.join('.ipa', 'log', 'cli.log')
+
+        # Check **defaults can't set in_server nor log:
+        (o, home) = self.bootstrap(in_server='tRUE')
+        o._finalize_core(in_server=False)
+        assert o.in_server is True
+        (o, home) = self.bootstrap(log='/some/silly/log')
+        o._finalize_core(log='/a/different/log')
+        assert o.log == '/some/silly/log'
+
+        # Test loading config file, plus test some in-tree stuff
+        (o, home) = self.bootstrap(in_tree=True, context='server')
+        for key in ('yes', 'no', 'number'):
+            assert key not in o
+        home.write(config_good, '.ipa', 'server.conf')
+        o._finalize_core()
+        assert o.in_tree is True
+        assert o.context == 'server'
+        assert o.in_server is True
+        assert o.log == home.join('.ipa', 'log', 'server.log')
+        assert o.yes is True
+        assert o.no is False
+        assert o.number == 42
+
+        # Test using DEFAULT_CONFIG:
+        defaults = dict(constants.DEFAULT_CONFIG)
+        (o, home) = self.finalize_core(**defaults)
+        assert list(o) == sorted(defaults)
+        for (key, value) in defaults.items():
+            if value is None:
+                continue
+            assert o[key] is value
+
+    def test_finalize(self):
+        """
+        Test the `ipalib.config.Env._finalize` method.
+        """
+        # Check that calls cascade up the chain:
+        (o, home) = self.new()
+        assert o._isdone('_bootstrap') is False
+        assert o._isdone('_finalize_core') is False
+        assert o._isdone('_finalize') is False
+        o._finalize()
+        assert o._isdone('_bootstrap') is True
+        assert o._isdone('_finalize_core') is True
+        assert o._isdone('_finalize') is True
+
+        # Check that it can't be called twice:
+        e = raises(StandardError, o._finalize)
+        assert str(e) == 'Env._finalize() already called'
+
+    def test_merge_config(self):
+        """
+        Test the `ipalib.config.Env._merge_config` method.
         """
         tmp = TempDir()
         assert callable(tmp.join)
@@ -266,27 +370,27 @@ class test_Env(ClassChecker):
         o = self.cls()
         keys = tuple(o)
         orig = dict((k, o[k]) for k in o)
-        assert o._load_config(no_exist) is None
+        assert o._merge_config(no_exist) is None
         assert tuple(o) == keys
 
         # Test an empty config file
         empty = tmp.touch('empty.conf')
         assert path.isfile(empty)
-        assert o._load_config(empty) is None
+        assert o._merge_config(empty) is None
         assert tuple(o) == keys
 
         # Test a mal-formed config file:
         bad = tmp.join('bad.conf')
         open(bad, 'w').write(config_bad)
         assert path.isfile(bad)
-        assert o._load_config(bad) is None
+        assert o._merge_config(bad) is None
         assert tuple(o) == keys
 
         # Test a valid config file that tries to override
         override = tmp.join('override.conf')
         open(override, 'w').write(config_override)
         assert path.isfile(override)
-        assert o._load_config(override) == (4, 6)
+        assert o._merge_config(override) == (4, 6)
         for (k, v) in orig.items():
             assert o[k] is v
         assert list(o) == sorted(keys + ('key0', 'key1', 'key2', 'key3'))
@@ -298,7 +402,7 @@ class test_Env(ClassChecker):
         good = tmp.join('good.conf')
         open(good, 'w').write(config_good)
         assert path.isfile(good)
-        assert o._load_config(good) == (3, 3)
+        assert o._merge_config(good) == (3, 3)
         assert list(o) == sorted(keys + ('yes', 'no', 'number'))
         assert o.yes is True
         assert o.no is False
