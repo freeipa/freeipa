@@ -170,8 +170,8 @@ key3 = var3
 config_good = """
 [global]
 
-yes = TRUE
-no = False
+yes = tRUE
+no = fALse
 number = 42
 """
 
@@ -356,6 +356,25 @@ class test_Env(ClassChecker):
         # Check that it can't be called twice:
         e = raises(StandardError, o._finalize)
         assert str(e) == 'Env._finalize() already called'
+
+        # Check that _finalize() calls __lock__()
+        (o, home) = self.new()
+        assert o.__islocked__() is False
+        o._finalize()
+        assert o.__islocked__() is True
+        e = raises(StandardError, o.__lock__)
+        assert str(e) == 'Env.__lock__() already called'
+
+        # Check that **lastchance works
+        (o, home) = self.finalize_core()
+        key = 'just_one_more_key'
+        value = 'with one more value'
+        lastchance = {key: value}
+        assert key not in o
+        assert o._isdone('_finalize') is False
+        o._finalize(**lastchance)
+        assert key in o
+        assert o[key] is value
 
     def test_merge_config(self):
         """

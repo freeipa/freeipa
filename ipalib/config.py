@@ -168,7 +168,7 @@ class Env(object):
         and the location of the configuration file.
         """
         self.__doing('_bootstrap')
-        for (key, value) in overrides.items():
+        for (key, value) in overrides.iteritems():
             self[key] = value
         if 'in_tree' not in self:
             if self.bin == self.site_packages and \
@@ -209,11 +209,11 @@ class Env(object):
                 self.log = path.join(self.dot_ipa, 'log', name)
             else:
                 self.log = path.join('/', 'var', 'log', 'ipa', name)
-        for (key, value) in defaults.items():
+        for (key, value) in defaults.iteritems():
             if key not in self:
                 self[key] = value
 
-    def _finalize(self):
+    def _finalize(self, **lastchance):
         """
         Finalize and lock environment.
 
@@ -222,11 +222,14 @@ class Env(object):
         """
         self.__doing('_finalize')
         self.__do_if_not_done('_finalize_core')
+        for (key, value) in lastchance.iteritems():
+            if key not in self:
+                self[key] = value
         self.__lock__()
 
     def _merge_config(self, conf_file):
         """
-        Merge in values from ``conf_file`` into this `Env`.
+        Merge values from ``conf_file`` into this `Env`.
         """
         section = constants.CONFIG_SECTION
         if not path.isfile(conf_file):
@@ -257,6 +260,9 @@ class Env(object):
                 '%s.__lock__() already called' % self.__class__.__name__
             )
         object.__setattr__(self, '_Env__locked', True)
+
+    def __islocked__(self):
+        return self.__locked
 
     def __getattr__(self, name):
         """
