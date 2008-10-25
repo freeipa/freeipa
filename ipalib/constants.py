@@ -1,4 +1,5 @@
 # Authors:
+#   Martin Nagy <mnagy@redhat.com>
 #   Jason Gerard DeRose <jderose@redhat.com>
 #
 # Copyright (C) 2008  Red Hat
@@ -18,7 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Constants centralized in one file.
+All constants centralized in one file.
 """
 
 # The section to read in the config files, i.e. [global]
@@ -26,20 +27,46 @@ CONFIG_SECTION = 'global'
 
 
 # The default configuration for api.env
+# This is a tuple instead of a dict so that it is immutable.
+# To create a dict with this config, just "d = dict(DEFAULT_CONFIG)".
 DEFAULT_CONFIG = (
+    # Domain, realm, basedn:
+    ('domain', 'example.com'),
+    ('realm', 'EXAMPLE.COM'),
+    ('basedn', 'dc=example,dc=com'),
+
+    # LDAP containers:
+    ('container_accounts', 'cn=accounts'),
+    ('container_user', 'cn=users,cn=accounts'),
+    ('container_group', 'cn=groups,cn=accounts'),
+    ('container_service', 'cn=services,cn=accounts'),
+    ('container_host', 'cn=computers,cn=accounts'),
+
+    # Ports, hosts, and URIs:
     ('lite_xmlrpc_port', 8888),
     ('lite_webui_port', 9999),
     ('xmlrpc_uri', 'http://localhost:8888'),
-    ('ldap_uri', ''),
+    ('ldap_uri', 'ldap://localhost:389'),
+    ('ldap_host', 'localhost'),
+    ('ldap_port', 389),
 
+    # Debugging:
     ('verbose', False),
     ('debug', False),
 
+
+    # ********************************************************
+    #  The remaining keys are never set from the values here!
+    # ********************************************************
+    #
     # Env.__init__() or Env._bootstrap() or Env._finalize_core()
     # will have filled in all the keys below by the time DEFAULT_CONFIG
     # is merged in, so the values below are never actually used. They are
-    # listed both to provide a big picture and so DEFAULT_CONFIG contains
-    # the keys that should be present after Env._load_standard is called.
+    # listed both to provide a big picture and also so DEFAULT_CONFIG contains
+    # the keys that should be present after Env._finalize_core() is called.
+    #
+    # The values are all None so if for some reason any of these keys were
+    # set from the values here, an exception will be raised.
 
     # Set in Env.__init__():
     ('ipalib', None), # The directory containing ipalib/__init__.py
