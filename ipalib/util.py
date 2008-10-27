@@ -20,7 +20,11 @@
 """
 Various utility functions.
 """
+
 import krbV
+import os
+from os import path
+import imp
 
 def xmlrpc_marshal(*args, **kw):
     """
@@ -41,6 +45,7 @@ def xmlrpc_unmarshal(*params):
         kw = {}
     return (params[1:], kw)
 
+
 def get_current_principal():
     try:
         return krbV.default_context().default_ccache().principal().name
@@ -48,3 +53,49 @@ def get_current_principal():
         #TODO: do a kinit
         print "Unable to get kerberos principal"
         return None
+
+
+# FIXME: This function has no unit test
+def find_modules_in_dir(src_dir):
+    """
+    Iterate through module names found in ``src_dir``.
+    """
+    if not (path.abspath(src_dir) == src_dir and path.isdir(src_dir)):
+        return
+    if path.islink(src_dir):
+        return
+    suffix = '.py'
+    for name in sorted(os.listdir(src_dir)):
+        if not name.endswith(suffix):
+            continue
+        py_file = path.join(src_dir, name)
+        if path.islink(py_file) or not path.isfile(py_file):
+            continue
+        module = name[:-len(suffix)]
+        if module == '__init__':
+            continue
+        yield module
+
+
+# FIXME: This function has no unit test
+def load_plugins_in_dir(src_dir):
+    """
+    Import each Python module found in ``src_dir``.
+    """
+    for module in find_modules_in_dir(src_dir):
+        imp.load_module(module, *imp.find_module(module, [src_dir]))
+
+
+# FIXME: This function has no unit test
+def import_plugins_subpackage(name):
+    """
+    Import everythig in ``plugins`` sub-package of package named ``name``.
+    """
+    try:
+        plugins = __import__(name + '.plugins').plugins
+    except ImportError:
+        return
+    src_dir = path.dirname(path.abspath(plugins.__file__))
+    for name in find_modules_in_dir(src_dir):
+        full_name = '%s.%s' % (plugins.__name__, name)
+        __import__(full_name)

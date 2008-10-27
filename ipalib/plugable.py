@@ -30,6 +30,7 @@ import inspect
 import errors
 from errors import check_type, check_isinstance
 from config import Environment
+import util
 
 
 class ReadOnly(object):
@@ -744,6 +745,10 @@ class API(DictProxy):
         """
         self.__doing('load_plugins')
         self.__do_if_not_done('bootstrap')
+        if dry_run:
+            return
+        util.import_plugins_subpackage('ipalib')
+        util.import_plugins_subpackage('ipa_server')
 
     def finalize(self):
         """
