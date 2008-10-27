@@ -394,7 +394,8 @@ class CLI(object):
         self.cmd_argv = tuple(args)
 
     def bootstrap(self):
-        pass
+        self.__doing('bootstrap')
+        self.parse_globals()
 
 #        if options.interactive == True:
 #            self.__all_interactive = True

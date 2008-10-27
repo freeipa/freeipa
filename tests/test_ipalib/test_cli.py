@@ -139,3 +139,8 @@ class test_CLI(ClassChecker):
         assert o.cmd_argv == cmd_argv
         e = raises(StandardError, o.parse_globals)
         assert str(e) == 'CLI.parse_globals() already called'
+
+    def test_bootstrap(self):
+        """
+        Test the `ipalib.cli.CLI.bootstrap` method.
+        """
