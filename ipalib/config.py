@@ -203,6 +203,8 @@ class Env(object):
         self.__doing('_finalize_core')
         self.__do_if_not_done('_bootstrap')
         self._merge_config(self.conf)
+        if self.conf_default != self.conf:
+            self._merge_config(self.conf_default)
         if 'in_server' not in self:
             self.in_server = (self.context == 'server')
         if 'log' not in self:

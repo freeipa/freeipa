@@ -175,6 +175,14 @@ no = fALse
 number = 42
 """
 
+# A default config file to make sure it does not overwrite the explicit one
+config_default = """
+[global]
+
+yes = Hello
+not_in_other = foo_bar
+"""
+
 
 class test_Env(ClassChecker):
     """
@@ -328,6 +336,7 @@ class test_Env(ClassChecker):
         for key in ('yes', 'no', 'number'):
             assert key not in o
         home.write(config_good, '.ipa', 'server.conf')
+        home.write(config_default, '.ipa', 'default.conf')
         o._finalize_core()
         assert o.in_tree is True
         assert o.context == 'server'
@@ -336,6 +345,7 @@ class test_Env(ClassChecker):
         assert o.yes is True
         assert o.no is False
         assert o.number == 42
+        assert o.not_in_other == 'foo_bar'
 
         # Test using DEFAULT_CONFIG:
         defaults = dict(constants.DEFAULT_CONFIG)
