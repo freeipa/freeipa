@@ -883,3 +883,16 @@ class test_API(ClassChecker):
         assert o.isdone('bootstrap') is True
         e = raises(StandardError, o.bootstrap)
         assert str(e) == 'API.bootstrap() already called'
+
+    def test_load_plugins(self):
+        """
+        Test the `ipalib.plugable.API.load_plugins` method.
+        """
+        o = self.cls()
+        assert o.isdone('bootstrap') is False
+        assert o.isdone('load_plugins') is False
+        o.load_plugins(dry_run=True)
+        assert o.isdone('bootstrap') is True
+        assert o.isdone('load_plugins') is True
+        e = raises(StandardError, o.load_plugins)
+        assert str(e) == 'API.load_plugins() already called'

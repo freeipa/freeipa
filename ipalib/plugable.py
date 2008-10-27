@@ -735,9 +735,22 @@ class API(DictProxy):
         """
         self.__doing('bootstrap')
 
+    def load_plugins(self, dry_run=False):
+        """
+        Load plugins from all standard locations.
+
+        `API.bootstrap` will automatically be called if it hasn't been
+        already.
+        """
+        self.__doing('load_plugins')
+        self.__do_if_not_done('bootstrap')
+
     def finalize(self):
         """
         Finalize the registration, instantiate the plugins.
+
+        `API.bootstrap` will automatically be called if it hasn't been
+        already.
         """
         self.__doing('finalize')
         self.__do_if_not_done('bootstrap')
