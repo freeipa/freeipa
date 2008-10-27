@@ -76,6 +76,24 @@ class DummyAPI(object):
         pass
 
 
+config_cli = """
+[global]
+
+from_cli_conf = set in cli.conf
+"""
+
+config_default = """
+[global]
+
+from_default_conf = set in default.conf
+
+# Make sure cli.conf is loaded first:
+from_cli_conf = overridden in default.conf
+"""
+
+
+
+
 class test_CLI(ClassChecker):
     """
     Test the `ipalib.cli.CLI` class.
@@ -147,6 +165,7 @@ class test_CLI(ClassChecker):
         """
         Test the `ipalib.cli.CLI.bootstrap` method.
         """
+        # Test with empty argv
         (o, api, home) = self.new()
         keys = tuple(api.env)
         assert api.isdone('bootstrap') is False
@@ -160,3 +179,25 @@ class test_CLI(ClassChecker):
         assert str(e) == 'CLI.bootstrap() already called'
         assert api.env.verbose is False
         assert api.env.context == 'cli'
+        keys = tuple(api.env)
+        added = (
+                'my_key',
+                'whatever',
+                'from_default_conf',
+                'from_cli_conf'
+        )
+        for key in added:
+            assert key not in api.env
+            assert key not in keys
+
+        # Test with a populated argv
+        argv = ['-e', 'my_key=my_val,whatever=Hello']
+        (o, api, home) = self.new(argv)
+        home.write(config_default, '.ipa', 'default.conf')
+        home.write(config_cli, '.ipa', 'cli.conf')
+        o.bootstrap()
+        assert api.env.my_key == 'my_val'
+        assert api.env.whatever == 'Hello'
+        assert api.env.from_default_conf == 'set in default.conf'
+        assert api.env.from_cli_conf == 'set in cli.conf'
+        assert list(api.env) == sorted(keys + added)
