@@ -178,12 +178,14 @@ class Env(object):
                 self.in_tree = False
         if 'context' not in self:
             self.context = 'default'
+        if self.in_tree:
+            base = self.dot_ipa
+        else:
+            base = path.join('/', 'etc', 'ipa')
         if 'conf' not in self:
-            name = '%s.conf' % self.context
-            if self.in_tree:
-                self.conf = path.join(self.dot_ipa, name)
-            else:
-                self.conf = path.join('/', 'etc', 'ipa', name)
+            self.conf = path.join(base, '%s.conf' % self.context)
+        if 'conf_default' not in self:
+            self.conf_default = path.join(base, 'default.conf')
 
     def _finalize_core(self, **defaults):
         """

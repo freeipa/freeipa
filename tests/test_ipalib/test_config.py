@@ -227,6 +227,7 @@ class test_Env(ClassChecker):
         assert o.in_tree is False
         assert o.context == 'default'
         assert o.conf == '/etc/ipa/default.conf'
+        assert o.conf_default == o.conf
 
         # Test overriding values created by _bootstrap()
         (o, home) = self.bootstrap(in_tree='true', context='server')
@@ -237,6 +238,12 @@ class test_Env(ClassChecker):
         assert o.in_tree is False
         assert o.context == 'default'
         assert o.conf == '/my/wacky/whatever.conf'
+        assert o.conf_default == '/etc/ipa/default.conf'
+        (o, home) = self.bootstrap(conf_default='/my/wacky/default.conf')
+        assert o.in_tree is False
+        assert o.context == 'default'
+        assert o.conf == '/etc/ipa/default.conf'
+        assert o.conf_default == '/my/wacky/default.conf'
 
         # Test various overrides and types conversion
         kw = dict(

@@ -79,7 +79,8 @@ DEFAULT_CONFIG = (
     # Set in Env._bootstrap():
     ('in_tree', None), # Whether or not running in-tree (bool)
     ('context', None), # Name of context, default is 'default'
-    ('conf', None), # Path to configuration file
+    ('conf', None), # Path to config file
+    ('conf_default', None), # Path to common default config file
 
     # Set in Env._finalize_core():
     ('in_server', None), # Whether or not running in-server (bool)
