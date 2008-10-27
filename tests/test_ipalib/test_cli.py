@@ -22,6 +22,7 @@ Test the `ipalib.cli` module.
 """
 
 from tests.util import raises, getitem, no_set, no_del, read_only, ClassChecker
+from tests.util import TempHome
 from ipalib import cli, plugable, frontend, backend
 
 
@@ -81,7 +82,8 @@ class test_CLI(ClassChecker):
     """
     _cls = cli.CLI
 
-    def new(self, argv):
+    def new(self, argv=tuple()):
+        home = TempHome()
         api = plugable.API(
             frontend.Command,
             frontend.Object,
@@ -90,17 +92,18 @@ class test_CLI(ClassChecker):
             frontend.Application,
             backend.Backend,
         )
+        api.env.in_tree = True
         o = self.cls(api, argv)
         assert o.api is api
-        return o
+        return (o, api, home)
 
     def test_init(self):
         """
         Test the `ipalib.cli.CLI.__init__` method.
         """
         argv = ['-v', 'user-add', '--first=Jonh', '--last=Doe']
-        o = self.new(argv)
-        assert type(o.api) is plugable.API
+        (o, api, home) = self.new(argv)
+        assert o.api is api
         assert o.argv == tuple(argv)
 
     def test_parse_globals(self):
@@ -108,7 +111,7 @@ class test_CLI(ClassChecker):
         Test the `ipalib.cli.CLI.parse_globals` method.
         """
         # Test with empty argv
-        o = self.new([])
+        (o, api, home) = self.new()
         assert not hasattr(o, 'options')
         assert not hasattr(o, 'cmd_argv')
         assert o.isdone('parse_globals') is False
@@ -125,7 +128,7 @@ class test_CLI(ClassChecker):
         # Test with a populated argv
         argv = ('-a', '-n', '-v', '-c', '/my/config.conf', '-e', 'my_key=my_val')
         cmd_argv = ('user-add', '--first', 'John', '--last', 'Doe')
-        o = self.new(argv + cmd_argv)
+        (o, api, home) = self.new(argv + cmd_argv)
         assert not hasattr(o, 'options')
         assert not hasattr(o, 'cmd_argv')
         assert o.isdone('parse_globals') is False
@@ -144,3 +147,14 @@ class test_CLI(ClassChecker):
         """
         Test the `ipalib.cli.CLI.bootstrap` method.
         """
+        (o, api, home) = self.new()
+        keys = tuple(api.env)
+        assert o.isdone('parse_globals') is False
+        assert o.isdone('bootstrap') is False
+        o.bootstrap()
+        assert o.isdone('parse_globals') is True
+        assert o.isdone('bootstrap') is True
+        e = raises(StandardError, o.bootstrap)
+        assert str(e) == 'CLI.bootstrap() already called'
+        assert api.env.verbose is False
+        assert api.env.context == 'cli'

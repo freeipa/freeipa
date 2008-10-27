@@ -714,7 +714,7 @@ class API(DictProxy):
         self.__d = dict()
         self.__done = set()
         self.register = Registrar(*allowed)
-        self.env = Env
+        self.env = Env()
         super(API, self).__init__(self.__d)
 
     def __doing(self, name):
@@ -736,6 +736,7 @@ class API(DictProxy):
         Initialize environment variables needed by built-in plugins.
         """
         self.__doing('bootstrap')
+        self.env._bootstrap(**overrides)
 
     def load_plugins(self, dry_run=False):
         """

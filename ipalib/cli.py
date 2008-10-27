@@ -396,28 +396,19 @@ class CLI(object):
     def bootstrap(self):
         self.__doing('bootstrap')
         self.parse_globals()
-
-#        if options.interactive == True:
-#            self.__all_interactive = True
-#        elif options.interactive == False:
-#            self.__not_interactive = True
-#        if options.verbose != None:
-#            self.api.env.verbose = True
-#        if options.environment:
-#            env_dict = {}
-#            for a in options.environment.split(','):
-#                a = a.split('=', 1)
-#                if len(a) < 2:
-#                    parser.error('badly specified environment string,'\
-#                            'use var1=val1[,var2=val2]..')
-#                env_dict[a[0].strip()] = a[1].strip()
-#            self.api.env.update(env_dict, True)
-#        if options.config_file:
-#            self.api.env.update(read_config(options.config_file), True)
-#        else:
-#            self.api.env.update(read_config(), True)
-
-#        return args
+        self.api.env.verbose = self.options.verbose
+        if self.options.config_file:
+            self.api.env.conf = self.options.config_file
+        overrides = {}
+        if self.options.environment:
+            for a in self.options.environment.split(','):
+                a = a.split('=', 1)
+                if len(a) < 2:
+                    parser.error('badly specified environment string,'\
+                            'use var1=val1[,var2=val2]..')
+                overrides[a[0].strip()] = a[1].strip()
+        overrides['context'] = 'cli'
+        self.api.bootstrap(**overrides)
 
     def get_usage(self, cmd):
         return ' '.join(self.get_usage_iter(cmd))
