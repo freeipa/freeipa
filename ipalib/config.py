@@ -139,6 +139,7 @@ def set_default_env(env):
         container_group = EnvProp(basestring, 'cn=groups,cn=accounts'),
         container_service = EnvProp(basestring, 'cn=services,cn=accounts'),
         container_host = EnvProp(basestring, 'cn=computers,cn=accounts'),
+        container_hostgroup = EnvProp(basestring, 'cn=hostgroups,cn=accounts'),
         domain = LazyProp(basestring, get_domain),
         interactive = EnvProp(bool, True),
         query_dns = EnvProp(bool, True),

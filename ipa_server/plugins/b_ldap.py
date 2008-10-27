@@ -60,6 +60,16 @@ class ldap(CrudBackend):
             self.api.env.basedn,
         )
 
+    def make_hostgroup_dn(self, cn):
+        """
+        Construct group of hosts dn from cn.
+        """
+        return 'cn=%s,%s,%s' % (
+            self.dn.escape_dn_chars(cn),
+            self.api.env.container_hostgroup,
+            self.api.env.basedn,
+        )
+
     def make_service_dn(self, principal):
         """
         Construct service principal dn from principal name
