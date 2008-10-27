@@ -34,10 +34,11 @@ from ipalib import api
 from ipalib import config
 from ipa_server import conn
 from ipa_server.servercore import context
-import ipalib.load_plugins
 from ipalib.util import xmlrpc_unmarshal
 import traceback
 import krbV
+
+api.load_plugins()
 
 
 PORT=8888

@@ -27,9 +27,8 @@ from cherrypy import expose, config, quickstart
 from ipa_webui.templates import form, main
 from ipa_webui import controller
 from ipalib import api
-from ipalib import load_plugins
 
-
+api.load_plugins()
 api.finalize()
 
 
@@ -42,5 +41,5 @@ class root(object):
             setattr(self, cmd.name, ctr)
 
 
-if __name__ == '__main__'
+if __name__ == '__main__':
     quickstart(root())

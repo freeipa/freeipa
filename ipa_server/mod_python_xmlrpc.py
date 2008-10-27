@@ -46,10 +46,11 @@ from ipalib import config
 from ipa_server import conn
 from ipa_server.servercore import context
 from ipa_server.servercore import ipautil
-import ipalib.load_plugins
 from ipalib.util import xmlrpc_unmarshal
 
 import string
+
+api.load_plugins()
 
 # Global list of available functions
 gfunctions = {}
