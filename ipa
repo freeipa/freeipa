@@ -31,5 +31,7 @@ from ipalib.cli import CLI
 api.load_plugins()
 
 if __name__ == '__main__':
-    cli = CLI(api)
+    cli = CLI(api,
+        (s.decode('utf-8') for s in sys.args[1:])
+    )
     sys.exit(cli.run())

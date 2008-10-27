@@ -84,6 +84,24 @@ class help(frontend.Application):
         print 'Purpose: %s' % cmd.doc
         self.application.build_parser(cmd).print_help()
 
+    def print_commands(self):
+        std = set(self.api.Command) - set(self.api.Application)
+        print '\nStandard IPA commands:'
+        for key in sorted(std):
+            cmd = self.api.Command[key]
+            self.print_cmd(cmd)
+        print '\nSpecial CLI commands:'
+        for cmd in self.api.Application():
+            self.print_cmd(cmd)
+        print '\nUse the --help option to see all the global options'
+        print ''
+
+    def print_cmd(self, cmd):
+        print '  %s  %s' % (
+            to_cli(cmd.name).ljust(self.mcl),
+            cmd.doc,
+        )
+
 
 class console(frontend.Application):
     'Start the IPA interactive Python console.'
@@ -207,32 +225,24 @@ class CLI(object):
     __d = None
     __mcl = None
 
-    def __init__(self, api):
-        self.__api = api
-        self.__all_interactive = False
-        self.__not_interactive = False
+    def __init__(self, api, argv):
+        self.api = api
+        self.argv = tuple(argv)
+        self.__done = set()
 
-    def __get_api(self):
-        return self.__api
-    api = property(__get_api)
+    def __doing(self, name):
+        if name in self.__done:
+            raise StandardError(
+                '%s.%s() already called' % (self.__class__.__name__, name)
+            )
+        self.__done.add(name)
 
-    def print_commands(self):
-        std = set(self.api.Command) - set(self.api.Application)
-        print '\nStandard IPA commands:'
-        for key in sorted(std):
-            cmd = self.api.Command[key]
-            self.print_cmd(cmd)
-        print '\nSpecial CLI commands:'
-        for cmd in self.api.Application():
-            self.print_cmd(cmd)
-        print '\nUse the --help option to see all the global options'
-        print ''
+    def __do_if_not_done(self, name):
+        if name not in self.__done:
+            getattr(self, name)()
 
-    def print_cmd(self, cmd):
-        print '  %s  %s' % (
-            to_cli(cmd.name).ljust(self.mcl),
-            cmd.doc,
-        )
+    def isdone(self, name):
+        return name in self.__done
 
     def __contains__(self, key):
         assert self.__d is not None, 'you must call finalize() first'
@@ -360,10 +370,11 @@ class CLI(object):
             parser.add_option(o)
         return parser
 
-    def parse_globals(self, argv=sys.argv[1:]):
+    def parse_globals(self):
+        self.__doing('parse_globals')
         parser = optparse.OptionParser()
         parser.disable_interspersed_args()
-        parser.add_option('-a', dest='interactive', action='store_true',
+        parser.add_option('-a', dest='prompt_all', action='store_true',
                 help='Prompt for all missing options interactively')
         parser.add_option('-n', dest='interactive', action='store_false',
                 help='Don\'t prompt for any options interactively')
@@ -373,29 +384,39 @@ class CLI(object):
                 help='Specify or override environment variables')
         parser.add_option('-v', dest='verbose', action='store_true',
                 help='Verbose output')
-        (options, args) = parser.parse_args(argv)
+        parser.set_defaults(
+            prompt_all=False,
+            interactive=True,
+            verbose=False,
+        )
+        (options, args) = parser.parse_args(list(self.argv))
+        self.options = options
+        self.cmd_argv = tuple(args)
 
-        if options.interactive == True:
-            self.__all_interactive = True
-        elif options.interactive == False:
-            self.__not_interactive = True
-        if options.verbose != None:
-            self.api.env.verbose = True
-        if options.environment:
-            env_dict = {}
-            for a in options.environment.split(','):
-                a = a.split('=', 1)
-                if len(a) < 2:
-                    parser.error('badly specified environment string,'\
-                            'use var1=val1[,var2=val2]..')
-                env_dict[a[0].strip()] = a[1].strip()
-            self.api.env.update(env_dict, True)
-        if options.config_file:
-            self.api.env.update(read_config(options.config_file), True)
-        else:
-            self.api.env.update(read_config(), True)
+    def bootstrap(self):
+        pass
 
-        return args
+#        if options.interactive == True:
+#            self.__all_interactive = True
+#        elif options.interactive == False:
+#            self.__not_interactive = True
+#        if options.verbose != None:
+#            self.api.env.verbose = True
+#        if options.environment:
+#            env_dict = {}
+#            for a in options.environment.split(','):
+#                a = a.split('=', 1)
+#                if len(a) < 2:
+#                    parser.error('badly specified environment string,'\
+#                            'use var1=val1[,var2=val2]..')
+#                env_dict[a[0].strip()] = a[1].strip()
+#            self.api.env.update(env_dict, True)
+#        if options.config_file:
+#            self.api.env.update(read_config(options.config_file), True)
+#        else:
+#            self.api.env.update(read_config(), True)
+
+#        return args
 
     def get_usage(self, cmd):
         return ' '.join(self.get_usage_iter(cmd))

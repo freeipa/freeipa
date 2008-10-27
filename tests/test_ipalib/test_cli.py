@@ -22,7 +22,7 @@ Test the `ipalib.cli` module.
 """
 
 from tests.util import raises, getitem, no_set, no_del, read_only, ClassChecker
-from ipalib import cli, plugable
+from ipalib import cli, plugable, frontend, backend
 
 
 def test_to_cli():
@@ -81,60 +81,61 @@ class test_CLI(ClassChecker):
     """
     _cls = cli.CLI
 
-    def test_class(self):
-        """
-        Test the `ipalib.cli.CLI` class.
-        """
-        assert type(self.cls.api) is property
-
-    def test_api(self):
-        """
-        Test the `ipalib.cli.CLI.api` property.
-        """
-        api = 'the plugable.API instance'
-        o = self.cls(api)
-        assert read_only(o, 'api') is api
-
-    def dont_parse(self):
-        """
-        Test the `ipalib.cli.CLI.parse` method.
-        """
-        o = self.cls(None)
-        args = ['hello', 'naughty', 'nurse']
-        kw = dict(
-            first_name='Naughty',
-            last_name='Nurse',
+    def new(self, argv):
+        api = plugable.API(
+            frontend.Command,
+            frontend.Object,
+            frontend.Method,
+            frontend.Property,
+            frontend.Application,
+            backend.Backend,
         )
-        opts = ['--%s=%s' % (k.replace('_', '-'), v) for (k, v) in kw.items()]
-        assert o.parse(args + []) == (args, {})
-        assert o.parse(opts + []) == ([], kw)
-        assert o.parse(args + opts) == (args, kw)
-        assert o.parse(opts + args) == (args, kw)
+        o = self.cls(api, argv)
+        assert o.api is api
+        return o
 
-    def test_mcl(self):
+    def test_init(self):
         """
-        Test the `ipalib.cli.CLI.mcl` property .
+        Test the `ipalib.cli.CLI.__init__` method.
         """
-        cnt = 100
-        api = DummyAPI(cnt)
-        len(api.Command) == cnt
-        o = self.cls(api)
-        assert o.mcl is None
-        o.build_map()
-        assert o.mcl == 6 # len('cmd_99')
+        argv = ['-v', 'user-add', '--first=Jonh', '--last=Doe']
+        o = self.new(argv)
+        assert type(o.api) is plugable.API
+        assert o.argv == tuple(argv)
 
-    def test_dict(self):
+    def test_parse_globals(self):
         """
-        Test container emulation of `ipalib.cli.CLI` class.
+        Test the `ipalib.cli.CLI.parse_globals` method.
         """
-        cnt = 25
-        api = DummyAPI(cnt)
-        assert len(api.Command) == cnt
-        o = self.cls(api)
-        o.build_map()
-        for cmd in api.Command():
-            key = cli.to_cli(cmd.name)
-            assert key in o
-            assert o[key] is cmd
-            assert cmd.name not in o
-            raises(KeyError, getitem, o, cmd.name)
+        # Test with empty argv
+        o = self.new([])
+        assert not hasattr(o, 'options')
+        assert not hasattr(o, 'cmd_argv')
+        assert o.isdone('parse_globals') is False
+        o.parse_globals()
+        assert o.isdone('parse_globals') is True
+        assert o.options.interactive is True
+        assert o.options.verbose is False
+        assert o.options.config_file is None
+        assert o.options.environment is None
+        assert o.cmd_argv == tuple()
+        e = raises(StandardError, o.parse_globals)
+        assert str(e) == 'CLI.parse_globals() already called'
+
+        # Test with a populated argv
+        argv = ('-a', '-n', '-v', '-c', '/my/config.conf', '-e', 'my_key=my_val')
+        cmd_argv = ('user-add', '--first', 'John', '--last', 'Doe')
+        o = self.new(argv + cmd_argv)
+        assert not hasattr(o, 'options')
+        assert not hasattr(o, 'cmd_argv')
+        assert o.isdone('parse_globals') is False
+        o.parse_globals()
+        assert o.isdone('parse_globals') is True
+        assert o.options.prompt_all is True
+        assert o.options.interactive is False
+        assert o.options.verbose is True
+        assert o.options.config_file == '/my/config.conf'
+        assert o.options.environment == 'my_key=my_val'
+        assert o.cmd_argv == cmd_argv
+        e = raises(StandardError, o.parse_globals)
+        assert str(e) == 'CLI.parse_globals() already called'
