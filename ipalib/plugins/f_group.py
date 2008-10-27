@@ -135,7 +135,7 @@ class group_mod(crud.Mod):
     'Edit an existing group.'
     def execute(self, cn, **kw):
         """
-        Execute the user-mod operation.
+        Execute the group-mod operation.
 
         The dn should not be passed as a keyword argument as it is constructed
         by this method.
