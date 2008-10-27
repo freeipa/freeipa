@@ -764,7 +764,8 @@ class test_Command(ClassChecker):
 
         # Test in server context:
         api = plugable.API(self.cls)
-        api.env.update(dict(server_context=True))
+        #api.env.update(dict(server_context=True))
+        api.env.in_server = True
         api.finalize()
         o = my_cmd()
         o.set_api(api)
@@ -774,7 +775,8 @@ class test_Command(ClassChecker):
 
         # Test in non-server context
         api = plugable.API(self.cls)
-        api.env.update(dict(server_context=False))
+        #api.env.update(dict(server_context=False))
+        api.env.in_server = False
         api.finalize()
         o = my_cmd()
         o.set_api(api)
@@ -907,7 +909,7 @@ class test_Object(ClassChecker):
             frontend.Method,
             frontend.Property,
         )
-        config.set_default_env(api.env)
+        #config.set_default_env(api.env)
         api.finalize()
 
         # Test with no primary keys:
@@ -964,7 +966,7 @@ class test_Object(ClassChecker):
             frontend.Property,
             backend.Backend,
         )
-        config.set_default_env(api.env)
+        #config.set_default_env(api.env)
         class ldap(backend.Backend):
             whatever = 'It worked!'
         api.register(ldap)

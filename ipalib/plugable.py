@@ -29,7 +29,8 @@ import re
 import inspect
 import errors
 from errors import check_type, check_isinstance
-from config import Environment
+from config import Environment, Env
+import constants
 import util
 
 
@@ -713,7 +714,7 @@ class API(DictProxy):
         self.__d = dict()
         self.__done = set()
         self.register = Registrar(*allowed)
-        self.env = Environment()
+        self.env = Env
         super(API, self).__init__(self.__d)
 
     def __doing(self, name):

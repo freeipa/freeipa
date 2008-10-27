@@ -668,7 +668,7 @@ class Command(plugable.Plugin):
         on the nearest IPA server and the actual work this command
         performs is executed remotely.
         """
-        if self.api.env.server_context:
+        if self.api.env.in_server:
             target = self.execute
         else:
             target = self.forward
