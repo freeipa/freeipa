@@ -149,9 +149,11 @@ class test_CLI(ClassChecker):
         """
         (o, api, home) = self.new()
         keys = tuple(api.env)
+        assert api.isdone('bootstrap') is False
         assert o.isdone('parse_globals') is False
         assert o.isdone('bootstrap') is False
         o.bootstrap()
+        assert api.isdone('bootstrap') is True
         assert o.isdone('parse_globals') is True
         assert o.isdone('bootstrap') is True
         e = raises(StandardError, o.bootstrap)

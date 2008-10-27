@@ -737,6 +737,7 @@ class API(DictProxy):
         """
         self.__doing('bootstrap')
         self.env._bootstrap(**overrides)
+        self.env._finalize_core(**dict(constants.DEFAULT_CONFIG))
 
     def load_plugins(self, dry_run=False):
         """
