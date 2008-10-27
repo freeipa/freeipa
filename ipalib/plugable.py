@@ -707,19 +707,40 @@ class API(DictProxy):
     """
     Dynamic API object through which `Plugin` instances are accessed.
     """
-    __finalized = False
 
     def __init__(self, *allowed):
         self.__d = dict()
+        self.__done = set()
         self.register = Registrar(*allowed)
         self.env = Environment()
         super(API, self).__init__(self.__d)
+
+    def __doing(self, name):
+        if name in self.__done:
+            raise StandardError(
+                '%s.%s() already called' % (self.__class__.__name__, name)
+            )
+        self.__done.add(name)
+
+    def __do_if_not_done(self, name):
+        if name not in self.__done:
+            getattr(self, name)()
+
+    def isdone(self, name):
+        return name in self.__done
+
+    def bootstrap(self, **overrides):
+        """
+        Initialize environment variables needed by built-in plugins.
+        """
+        self.__doing('bootstrap')
 
     def finalize(self):
         """
         Finalize the registration, instantiate the plugins.
         """
-        assert not self.__finalized, 'finalize() can only be called once'
+        self.__doing('finalize')
+        self.__do_if_not_done('bootstrap')
 
         class PluginInstance(object):
             """

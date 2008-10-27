@@ -764,99 +764,122 @@ def test_Registrar():
             assert issubclass(klass, base)
 
 
-def test_API():
+class test_API(ClassChecker):
     """
     Test the `ipalib.plugable.API` class.
     """
-    assert issubclass(plugable.API, plugable.ReadOnly)
 
-    # Setup the test bases, create the API:
-    class base0(plugable.Plugin):
-        __public__ = frozenset((
-            'method',
-        ))
+    _cls = plugable.API
 
-        def method(self, n):
-            return n
+    def test_API(self):
+        """
+        Test the `ipalib.plugable.API` class.
+        """
+        assert issubclass(plugable.API, plugable.ReadOnly)
 
-    class base1(plugable.Plugin):
-        __public__ = frozenset((
-            'method',
-        ))
+        # Setup the test bases, create the API:
+        class base0(plugable.Plugin):
+            __public__ = frozenset((
+                'method',
+            ))
 
-        def method(self, n):
-            return n + 1
+            def method(self, n):
+                return n
 
-    api = plugable.API(base0, base1)
-    r = api.register
-    assert isinstance(r, plugable.Registrar)
-    assert read_only(api, 'register') is r
+        class base1(plugable.Plugin):
+            __public__ = frozenset((
+                'method',
+            ))
 
-    class base0_plugin0(base0):
-        pass
-    r(base0_plugin0)
+            def method(self, n):
+                return n + 1
 
-    class base0_plugin1(base0):
-        pass
-    r(base0_plugin1)
+        api = plugable.API(base0, base1)
+        r = api.register
+        assert isinstance(r, plugable.Registrar)
+        assert read_only(api, 'register') is r
 
-    class base0_plugin2(base0):
-        pass
-    r(base0_plugin2)
+        class base0_plugin0(base0):
+            pass
+        r(base0_plugin0)
 
-    class base1_plugin0(base1):
-        pass
-    r(base1_plugin0)
+        class base0_plugin1(base0):
+            pass
+        r(base0_plugin1)
 
-    class base1_plugin1(base1):
-        pass
-    r(base1_plugin1)
+        class base0_plugin2(base0):
+            pass
+        r(base0_plugin2)
 
-    class base1_plugin2(base1):
-        pass
-    r(base1_plugin2)
+        class base1_plugin0(base1):
+            pass
+        r(base1_plugin0)
 
-    # Test API instance:
-    api.finalize()
+        class base1_plugin1(base1):
+            pass
+        r(base1_plugin1)
 
-    def get_base(b):
-        return 'base%d' % b
+        class base1_plugin2(base1):
+            pass
+        r(base1_plugin2)
 
-    def get_plugin(b, p):
-        return 'base%d_plugin%d' % (b, p)
+        # Test API instance:
+        assert api.isdone('bootstrap') is False
+        assert api.isdone('finalize') is False
+        api.finalize()
+        assert api.isdone('bootstrap') is True
+        assert api.isdone('finalize') is True
 
-    for b in xrange(2):
-        base_name = get_base(b)
-        ns = getattr(api, base_name)
-        assert isinstance(ns, plugable.NameSpace)
-        assert read_only(api, base_name) is ns
-        assert len(ns) == 3
-        for p in xrange(3):
-            plugin_name = get_plugin(b, p)
-            proxy = ns[plugin_name]
-            assert isinstance(proxy, plugable.PluginProxy)
-            assert proxy.name == plugin_name
-            assert read_only(ns, plugin_name) is proxy
-            assert read_only(proxy, 'method')(7) == 7 + b
+        def get_base(b):
+            return 'base%d' % b
 
-    # Test that calling finilize again raises AssertionError:
-    raises(AssertionError, api.finalize)
+        def get_plugin(b, p):
+            return 'base%d_plugin%d' % (b, p)
 
-    # Test with base class that doesn't request a proxy
-    class NoProxy(plugable.Plugin):
-        __proxy__ = False
-    api = plugable.API(NoProxy)
-    class plugin0(NoProxy):
-        pass
-    api.register(plugin0)
-    class plugin1(NoProxy):
-        pass
-    api.register(plugin1)
-    api.finalize()
-    names = ['plugin0', 'plugin1']
-    assert list(api.NoProxy) == names
-    for name in names:
-        plugin = api.NoProxy[name]
-        assert getattr(api.NoProxy, name) is plugin
-        assert isinstance(plugin, plugable.Plugin)
-        assert not isinstance(plugin, plugable.PluginProxy)
+        for b in xrange(2):
+            base_name = get_base(b)
+            ns = getattr(api, base_name)
+            assert isinstance(ns, plugable.NameSpace)
+            assert read_only(api, base_name) is ns
+            assert len(ns) == 3
+            for p in xrange(3):
+                plugin_name = get_plugin(b, p)
+                proxy = ns[plugin_name]
+                assert isinstance(proxy, plugable.PluginProxy)
+                assert proxy.name == plugin_name
+                assert read_only(ns, plugin_name) is proxy
+                assert read_only(proxy, 'method')(7) == 7 + b
+
+        # Test that calling finilize again raises AssertionError:
+        e = raises(StandardError, api.finalize)
+        assert str(e) == 'API.finalize() already called', str(e)
+
+        # Test with base class that doesn't request a proxy
+        class NoProxy(plugable.Plugin):
+            __proxy__ = False
+        api = plugable.API(NoProxy)
+        class plugin0(NoProxy):
+            pass
+        api.register(plugin0)
+        class plugin1(NoProxy):
+            pass
+        api.register(plugin1)
+        api.finalize()
+        names = ['plugin0', 'plugin1']
+        assert list(api.NoProxy) == names
+        for name in names:
+            plugin = api.NoProxy[name]
+            assert getattr(api.NoProxy, name) is plugin
+            assert isinstance(plugin, plugable.Plugin)
+            assert not isinstance(plugin, plugable.PluginProxy)
+
+    def test_bootstrap(self):
+        """
+        Test the `ipalib.plugable.API.bootstrap` method.
+        """
+        o = self.cls()
+        assert o.isdone('bootstrap') is False
+        o.bootstrap()
+        assert o.isdone('bootstrap') is True
+        e = raises(StandardError, o.bootstrap)
+        assert str(e) == 'API.bootstrap() already called'
