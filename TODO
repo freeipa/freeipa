@@ -19,3 +19,7 @@ different default values being used for the same key).
 Package for rpm (.spec file)
 
 Package for apt (debian/ dir)
+
+Migration
+  - Add the IPAService objectclass to existing principals
+  - Move existng host/ principals from cn=services to cn=computers?
