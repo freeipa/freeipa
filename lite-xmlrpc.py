@@ -113,7 +113,7 @@ class LoggingSimpleXMLRPCRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHa
 
     def do_POST(self):
         clientIP, port = self.client_address
-	# Log client IP and Port
+        # Log client IP and Port
         logger.info('Client IP: %s - Port: %s' % (clientIP, port))
         try:
             # get arguments
@@ -123,14 +123,14 @@ class LoggingSimpleXMLRPCRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHa
             params, method = xmlrpclib.loads(data)
 
             # Log client request
-	    logger.info('Client request: \n%s\n' % data)
+            logger.info('Client request: \n%s\n' % data)
 
             response = self._marshaled_dispatch(
                     data, getattr(self, '_dispatch', None))
 
-	    # Log server response
+            # Log server response
             logger.info('Server response: \n%s\n' % response)
-	except Exception, e:
+        except Exception, e:
             # This should only happen if the module is buggy
             # internal error, report as HTTP server error
             print e
