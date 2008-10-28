@@ -38,11 +38,6 @@ from ipalib.util import xmlrpc_unmarshal
 import traceback
 import krbV
 
-api.load_plugins()
-
-
-PORT=8888
-
 class StoppableXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
     """Override of TIME_WAIT"""
     allow_reuse_address = True
@@ -155,37 +150,26 @@ class LoggingSimpleXMLRPCRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHa
 
 
 if __name__ == '__main__':
-    # Set up our logger
-    logger = logging.getLogger('xmlrpcserver')
-    hdlr = logging.FileHandler('xmlrpcserver.log')
-    formatter = logging.Formatter("%(asctime)s  %(levelname)s  %(message)s")
-    hdlr.setFormatter(formatter)
-    logger.addHandler(hdlr)
-    logger.setLevel(logging.INFO)
+    api.bootstrap(context='server', verbose=True)
+    logger = api.logger
 
     # Set up the server
-    XMLRPCServer = StoppableXMLRPCServer(("",PORT), LoggingSimpleXMLRPCRequestHandler)
-
+    XMLRPCServer = StoppableXMLRPCServer(
+        ('', api.env.lite_xmlrpc_port),
+        LoggingSimpleXMLRPCRequestHandler
+    )
     XMLRPCServer.register_introspection_functions()
 
-    api.finalize()
-
-    # Initialize our environment
-    config.set_default_env(api.env)
-    env_dict = config.read_config()
-    env_dict['server_context'] = True
-    api.env.update(env_dict)
-
     # Get and register all the methods
+    api.finalize()
     for cmd in api.Command:
-        logger.info("registering %s" % cmd)
+        logger.debug('registering %s', cmd)
         XMLRPCServer.register_function(api.Command[cmd], cmd)
-
     funcs = XMLRPCServer.funcs
 
-    print "Listening on port %d" % PORT
+    logger.info('Listening on port %d', api.env.lite_xmlrpc_port)
     try:
         XMLRPCServer.serve_forever()
     except KeyboardInterrupt:
         XMLRPCServer.server_close()
-        print "Server shutdown."
+        logger.info('Server shutdown.')

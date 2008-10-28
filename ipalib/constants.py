@@ -89,7 +89,8 @@ DEFAULT_CONFIG = (
 )
 
 
-LOGGING_CONSOLE_FORMAT = ' '.join([
+LOGGING_CONSOLE_FORMAT = ': '.join([
+    '%(name)s',
     '%(levelname)s',
     '%(message)s',
 ])

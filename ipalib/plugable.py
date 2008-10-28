@@ -744,7 +744,7 @@ class API(DictProxy):
             self.env.log,
             self.env.verbose,
         )
-        object.__setattr__(self, 'log', 'logger')
+        object.__setattr__(self, 'logger', logger)
 
     def load_plugins(self):
         """

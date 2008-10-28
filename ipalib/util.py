@@ -114,10 +114,10 @@ def configure_logging(log_file, verbose):
         level -= 10
 
     log = logging.getLogger('ipa')
+    log.setLevel(level)
 
     # Configure console handler
     console = logging.StreamHandler()
-    console.setLevel(level)
     console.setFormatter(logging.Formatter(LOGGING_CONSOLE_FORMAT))
     log.addHandler(console)
 
@@ -130,7 +130,6 @@ def configure_logging(log_file, verbose):
             log.warn('Could not create log_dir %r', log_dir)
             return log
     file_handler = logging.FileHandler(log_file)
-    file_handler.setLevel(level)
     file_handler.setFormatter(logging.Formatter(LOGGING_FILE_FORMAT))
     log.addHandler(file_handler)
 
