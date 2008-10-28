@@ -108,11 +108,6 @@ def configure_logging(log_file, verbose):
     """
     Configure standard logging.
     """
-    # Check that directory log_file is in exists:
-    log_dir = path.dirname(log_file)
-    if not path.isdir(log_dir):
-        os.makedirs(log_dir)
-
     # Set logging level:
     level = logging.INFO
     if verbose:
@@ -127,6 +122,13 @@ def configure_logging(log_file, verbose):
     log.addHandler(console)
 
     # Configure file handler
+    log_dir = path.dirname(log_file)
+    if not path.isdir(log_dir):
+        try:
+            os.makedirs(log_dir)
+        except OSError:
+            log.warn('Could not create log_dir %r', log_dir)
+            return log
     file_handler = logging.FileHandler(log_file)
     file_handler.setLevel(level)
     file_handler.setFormatter(logging.Formatter(LOGGING_FILE_FORMAT))
