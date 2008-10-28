@@ -28,10 +28,9 @@ The CLI functionality is implemented in ipalib/cli.py
 import sys
 from ipalib import api
 from ipalib.cli import CLI
-api.load_plugins()
 
 if __name__ == '__main__':
     cli = CLI(api,
-        (s.decode('utf-8') for s in sys.args[1:])
+        (s.decode('utf-8') for s in sys.argv[1:])
     )
     sys.exit(cli.run())

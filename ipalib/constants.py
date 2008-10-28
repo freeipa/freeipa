@@ -53,6 +53,7 @@ DEFAULT_CONFIG = (
     # Debugging:
     ('verbose', False),
     ('debug', False),
+    ('mode', 'production'),
 
     # ********************************************************
     #  The remaining keys are never set from the values here!

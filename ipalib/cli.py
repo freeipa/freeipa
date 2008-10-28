@@ -218,9 +218,9 @@ class CLI(object):
         self.argv = tuple(argv)
         self.__done = set()
 
-    def run(self):
+    def run(self, init_only=False):
         """
-        Run a command (or attempt to at least).
+        Parse ``argv`` and potentially run a command.
 
         This method requires several initialization steps to be completed
         first, all of which all automatically called with a single call to
@@ -245,7 +245,8 @@ class CLI(object):
         """
         self.__doing('run')
         self.finalize()
-        return
+        if self.api.env.mode == 'unit-test':
+            return
         if len(self.cmd_argv) < 1:
             self.print_commands()
             print 'Usage: ipa [global-options] COMMAND'
@@ -255,10 +256,7 @@ class CLI(object):
             self.print_commands()
             print 'ipa: ERROR: unknown command %r' % key
             sys.exit(2)
-        return self.run_cmd(
-            self[key],
-            list(s.decode('utf-8') for s in args[1:])
-        )
+        return self.run_cmd(self[key])
 
     def finalize(self):
         """
@@ -381,51 +379,38 @@ class CLI(object):
             cmd.doc,
         )
 
-    def isdone(self, name):
-        """
-        Return True in method named ``name`` has already been called.
-        """
-        return name in self.__done
-
-    def __contains__(self, key):
-        assert self.__d is not None, 'you must call finalize() first'
-        return key in self.__d
-
-    def __getitem__(self, key):
-        assert self.__d is not None, 'you must call finalize() first'
-        return self.__d[key]
-
-    def old_finalize(self):
-        api = self.api
-        for klass in cli_application_commands:
-            api.register(klass)
-        api.finalize()
-        for a in api.Application():
-            a.set_application(self)
-        self.build_map()
-
-
-
-
-    def run_cmd(self, cmd, argv):
-        kw = self.parse(cmd, argv)
+    def run_cmd(self, cmd):
+        kw = self.parse(cmd)
+        # If options.interactive, interactively validate params:
+        if self.options.interactive:
+            try:
+                kw = self.prompt_interactively(cmd, kw)
+            except KeyboardInterrupt:
+                return 0
+        # Now run the command
         try:
-            self.run_interactive(cmd, kw)
-        except KeyboardInterrupt:
+            ret = cmd(**kw)
+            if callable(cmd.output_for_cli):
+                cmd.output_for_cli(ret)
             return 0
-        except errors.RuleError, e:
+        except StandardError, e:
             print e
             return 2
-        return 0
 
-    def run_interactive(self, cmd, kw):
+    def prompt_interactively(self, cmd, kw):
+        """
+        Interactively prompt for missing or invalid values.
+
+        By default this method will only prompt for *required* Param that
+        have a missing or invalid value.  However, if
+        ``CLI.options.prompt_all`` is True, this method will prompt for any
+        params that have a missing or required values, even if the param is
+        optional.
+        """
         for param in cmd.params():
             if param.name not in kw:
-                if not param.required:
-                    if not self.__all_interactive:
-                        continue
-                elif self.__not_interactive:
-                    exit_error('Not enough arguments given')
+                if not (param.required or self.options.prompt_all):
+                    continue
                 default = param.get_default(**kw)
                 if default is None:
                     prompt = '%s: ' % param.cli_name
@@ -443,29 +428,34 @@ class CLI(object):
                         break
                     except errors.ValidationError, e:
                         error = e.error
-        if self.api.env.server_context:
-            try:
-                import krbV
-                import ldap
-                from ipa_server import conn
-                from ipa_server.servercore import context
-                krbccache =  krbV.default_context().default_ccache().name
-                context.conn = conn.IPAConn(self.api.env.ldaphost, self.api.env.ldapport, krbccache)
-            except ImportError:
-                print >> sys.stderr, "There was a problem importing a Python module: %s" % sys.exc_value
-                return 2
-            except ldap.LDAPError, e:
-                print >> sys.stderr, "There was a problem connecting to the LDAP server: %s" % e[0].get('desc')
-                return 2
-        ret = cmd(**kw)
-        if callable(cmd.output_for_cli):
-            return cmd.output_for_cli(ret)
-        else:
-            return 0
+        return kw
 
-    def parse(self, cmd, argv):
+# FIXME: This should be done as the plugins are loaded
+#        if self.api.env.server_context:
+#            try:
+#                import krbV
+#                import ldap
+#                from ipa_server import conn
+#                from ipa_server.servercore import context
+#                krbccache =  krbV.default_context().default_ccache().name
+#                context.conn = conn.IPAConn(self.api.env.ldaphost, self.api.env.ldapport, krbccache)
+#            except ImportError:
+#                print >> sys.stderr, "There was a problem importing a Python module: %s" % sys.exc_value
+#                return 2
+#            except ldap.LDAPError, e:
+#                print >> sys.stderr, "There was a problem connecting to the LDAP server: %s" % e[0].get('desc')
+#                return 2
+#        ret = cmd(**kw)
+#        if callable(cmd.output_for_cli):
+#            return cmd.output_for_cli(ret)
+#        else:
+#            return 0
+
+    def parse(self, cmd):
         parser = self.build_parser(cmd)
-        (kwc, args) = parser.parse_args(argv, KWCollector())
+        (kwc, args) = parser.parse_args(
+            list(self.cmd_argv), KWCollector()
+        )
         kw = kwc.__todict__()
         try:
             arg_kw = cmd.args_to_kw(*args)
@@ -492,10 +482,6 @@ class CLI(object):
             parser.add_option(o)
         return parser
 
-
-
-
-
     def get_usage(self, cmd):
         return ' '.join(self.get_usage_iter(cmd))
 
@@ -520,3 +506,17 @@ class CLI(object):
             self.__mcl = max(len(k) for k in self.__d)
         return self.__mcl
     mcl = property(__get_mcl)
+
+    def isdone(self, name):
+        """
+        Return True in method named ``name`` has already been called.
+        """
+        return name in self.__done
+
+    def __contains__(self, key):
+        assert self.__d is not None, 'you must call finalize() first'
+        return key in self.__d
+
+    def __getitem__(self, key):
+        assert self.__d is not None, 'you must call finalize() first'
+        return self.__d[key]

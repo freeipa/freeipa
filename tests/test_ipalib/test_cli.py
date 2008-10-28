@@ -110,6 +110,7 @@ class test_CLI(ClassChecker):
             frontend.Application,
             backend.Backend,
         )
+        api.env.mode = 'unit-test'
         api.env.in_tree = True
         o = self.cls(api, argv)
         assert o.api is api
@@ -134,6 +135,92 @@ class test_CLI(ClassChecker):
         (o, api, home) = self.new(argv)
         assert o.api is api
         assert o.argv == tuple(argv)
+
+    def test_run(self):
+        """
+        Test the `ipalib.cli.CLI.run` method.
+        """
+        self.check_cascade(
+            'run',
+            'finalize',
+            'load_plugins',
+            'bootstrap',
+            'parse_globals'
+        )
+
+    def test_finalize(self):
+        """
+        Test the `ipalib.cli.CLI.finalize` method.
+        """
+        self.check_cascade(
+            'finalize',
+            'load_plugins',
+            'bootstrap',
+            'parse_globals'
+        )
+
+        (o, api, home) = self.new()
+        assert api.isdone('finalize') is False
+        assert 'Command' not in api
+        o.finalize()
+        assert api.isdone('finalize') is True
+        assert list(api.Command) == \
+            sorted(k.__name__ for k in cli.cli_application_commands)
+
+    def test_load_plugins(self):
+        """
+        Test the `ipalib.cli.CLI.load_plugins` method.
+        """
+        self.check_cascade(
+            'load_plugins',
+            'bootstrap',
+            'parse_globals'
+        )
+        (o, api, home) = self.new()
+        assert api.isdone('load_plugins') is False
+        o.load_plugins()
+        assert api.isdone('load_plugins') is True
+
+    def test_bootstrap(self):
+        """
+        Test the `ipalib.cli.CLI.bootstrap` method.
+        """
+        self.check_cascade(
+            'bootstrap',
+            'parse_globals'
+        )
+        # Test with empty argv
+        (o, api, home) = self.new()
+        keys = tuple(api.env)
+        assert api.isdone('bootstrap') is False
+        o.bootstrap()
+        assert api.isdone('bootstrap') is True
+        e = raises(StandardError, o.bootstrap)
+        assert str(e) == 'CLI.bootstrap() already called'
+        assert api.env.verbose is False
+        assert api.env.context == 'cli'
+        keys = tuple(api.env)
+        added = (
+                'my_key',
+                'whatever',
+                'from_default_conf',
+                'from_cli_conf'
+        )
+        for key in added:
+            assert key not in api.env
+            assert key not in keys
+
+        # Test with a populated argv
+        argv = ['-e', 'my_key=my_val,whatever=Hello']
+        (o, api, home) = self.new(argv)
+        home.write(config_default, '.ipa', 'default.conf')
+        home.write(config_cli, '.ipa', 'cli.conf')
+        o.bootstrap()
+        assert api.env.my_key == 'my_val'
+        assert api.env.whatever == 'Hello'
+        assert api.env.from_default_conf == 'set in default.conf'
+        assert api.env.from_cli_conf == 'set in cli.conf'
+        assert list(api.env) == sorted(keys + added)
 
     def test_parse_globals(self):
         """
@@ -171,77 +258,3 @@ class test_CLI(ClassChecker):
         assert o.cmd_argv == cmd_argv
         e = raises(StandardError, o.parse_globals)
         assert str(e) == 'CLI.parse_globals() already called'
-
-    def test_bootstrap(self):
-        """
-        Test the `ipalib.cli.CLI.bootstrap` method.
-        """
-        # Test with empty argv
-        (o, api, home) = self.new()
-        keys = tuple(api.env)
-        assert api.isdone('bootstrap') is False
-        assert o.isdone('parse_globals') is False
-        assert o.isdone('bootstrap') is False
-        o.bootstrap()
-        assert api.isdone('bootstrap') is True
-        assert o.isdone('parse_globals') is True
-        assert o.isdone('bootstrap') is True
-        e = raises(StandardError, o.bootstrap)
-        assert str(e) == 'CLI.bootstrap() already called'
-        assert api.env.verbose is False
-        assert api.env.context == 'cli'
-        keys = tuple(api.env)
-        added = (
-                'my_key',
-                'whatever',
-                'from_default_conf',
-                'from_cli_conf'
-        )
-        for key in added:
-            assert key not in api.env
-            assert key not in keys
-
-        # Test with a populated argv
-        argv = ['-e', 'my_key=my_val,whatever=Hello']
-        (o, api, home) = self.new(argv)
-        home.write(config_default, '.ipa', 'default.conf')
-        home.write(config_cli, '.ipa', 'cli.conf')
-        o.bootstrap()
-        assert api.env.my_key == 'my_val'
-        assert api.env.whatever == 'Hello'
-        assert api.env.from_default_conf == 'set in default.conf'
-        assert api.env.from_cli_conf == 'set in cli.conf'
-        assert list(api.env) == sorted(keys + added)
-
-    def test_load_plugins(self):
-        """
-        Test the `ipalib.cli.CLI.load_plugins` method.
-        """
-        self.check_cascade(
-            'load_plugins',
-            'bootstrap',
-            'parse_globals'
-        )
-        (o, api, home) = self.new()
-        assert api.isdone('load_plugins') is False
-        o.load_plugins()
-        assert api.isdone('load_plugins') is True
-
-    def test_finalize(self):
-        """
-        Test the `ipalib.cli.CLI.finalize` method.
-        """
-        self.check_cascade(
-            'finalize',
-            'load_plugins',
-            'bootstrap',
-            'parse_globals'
-        )
-
-        (o, api, home) = self.new()
-        assert api.isdone('finalize') is False
-        assert 'Command' not in api
-        o.finalize()
-        assert api.isdone('finalize') is True
-        assert list(api.Command) == \
-            sorted(k.__name__ for k in cli.cli_application_commands)
