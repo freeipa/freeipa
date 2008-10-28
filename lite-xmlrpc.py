@@ -61,31 +61,24 @@ class LoggingSimpleXMLRPCRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHa
         return (args, kw)
 
     def _dispatch(self, method, params):
-        """Dispatches the XML-RPC method.
+        """
+        Dispatches the XML-RPC method.
 
         Methods beginning with an '_' are considered private and will
         not be called.
         """
-
+        if method not in funcs:
+            logger.error('no such method %r', method)
+            raise Exception('method "%s" is not supported' % method)
+        func = funcs[method]
         krbccache =  krbV.default_context().default_ccache().name
-
-        func = None
-        try:
-            try:
-                # check to see if a matching function has been registered
-                func = funcs[method]
-            except KeyError:
-                raise Exception('method "%s" is not supported' % method)
-            (args, kw) = xmlrpc_unmarshal(*params)
-            # FIXME: don't hardcode host and port
-            context.conn = conn.IPAConn(api.env.ldaphost, api.env.ldapport, krbccache)
-            logger.info("calling %s" % method)
-            return func(*args, **kw)
-        finally:
-            # Clean up any per-request data and connections
-#            for k in context.__dict__.keys():
-#                del context.__dict__[k]
-            pass
+        context.conn = conn.IPAConn(
+            api.env.ldap_host,
+            api.env.ldap_port,
+            krbccache,
+        )
+        logger.info('calling %s', method)
+        return func(*args, **kw)
 
     def _marshaled_dispatch(self, data, dispatch_method = None):
         try:
