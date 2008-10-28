@@ -36,23 +36,26 @@ from ipalib import errors
 
 class xmlrpc(Backend):
     """
-    Kerberos backend plugin.
+    XML-RPC client backend plugin.
     """
 
-    def get_client(self, verbose=False):
-        # FIXME: The server uri should come from self.api.env.server_uri
-        if api.env.get('kerberos'):
-            server = api.env.server.next()
-            if verbose: print "Connecting to %s" % server
-            return xmlrpclib.ServerProxy('https://%s/ipa/xml' % server, transport=KerbTransport(), verbose=verbose)
-        else:
-            return xmlrpclib.ServerProxy('http://localhost:8888', verbose=verbose)
+    def get_client(self):
+        """
+        Return an xmlrpclib.ServerProxy instance (the client).
+        """
+        uri = self.api.env.xmlrpc_uri
+        if uri.startswith('https://'):
+            return xmlrpclib.ServerProxy(uri,
+                transport=KerbTransport(),
+                verbose=self.api.env.verbose,
+            )
+        return xmlrpclib.ServerProxy(uri, verbose=self.api.env.verbose)
 
     def forward_call(self, name, *args, **kw):
         """
         Forward a call over XML-RPC to an IPA server.
         """
-        client = self.get_client(verbose=api.env.get('verbose', False))
+        client = self.get_client()
         command = getattr(client, name)
         params = xmlrpc_marshal(*args, **kw)
         try:
