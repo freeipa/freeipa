@@ -739,7 +739,7 @@ class API(DictProxy):
         self.env._bootstrap(**overrides)
         self.env._finalize_core(**dict(constants.DEFAULT_CONFIG))
 
-    def load_plugins(self, dry_run=False):
+    def load_plugins(self):
         """
         Load plugins from all standard locations.
 
@@ -748,10 +748,11 @@ class API(DictProxy):
         """
         self.__doing('load_plugins')
         self.__do_if_not_done('bootstrap')
-        if dry_run:
+        if self.env.mode == 'unit_test':
             return
         util.import_plugins_subpackage('ipalib')
-        util.import_plugins_subpackage('ipa_server')
+        if self.env.in_server:
+            util.import_plugins_subpackage('ipa_server')
 
     def finalize(self):
         """

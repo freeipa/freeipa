@@ -774,6 +774,7 @@ class test_API(ClassChecker):
     def new(self, *bases):
         home = TempHome()
         api = self.cls(*bases)
+        api.env.mode = 'unit_test'
         api.env.in_tree = True
         return (api, home)
 
@@ -899,10 +900,10 @@ class test_API(ClassChecker):
         """
         Test the `ipalib.plugable.API.load_plugins` method.
         """
-        o = self.cls()
+        (o, home) = self.new()
         assert o.isdone('bootstrap') is False
         assert o.isdone('load_plugins') is False
-        o.load_plugins(dry_run=True)
+        o.load_plugins()
         assert o.isdone('bootstrap') is True
         assert o.isdone('load_plugins') is True
         e = raises(StandardError, o.load_plugins)

@@ -110,7 +110,7 @@ class test_CLI(ClassChecker):
             frontend.Application,
             backend.Backend,
         )
-        api.env.mode = 'unit-test'
+        api.env.mode = 'unit_test'
         api.env.in_tree = True
         o = self.cls(api, argv)
         assert o.api is api

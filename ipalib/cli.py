@@ -245,7 +245,7 @@ class CLI(object):
         """
         self.__doing('run')
         self.finalize()
-        if self.api.env.mode == 'unit-test':
+        if self.api.env.mode == 'unit_test':
             return
         if len(self.cmd_argv) < 1:
             self.print_commands()
