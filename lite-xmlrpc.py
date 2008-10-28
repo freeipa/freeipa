@@ -78,6 +78,7 @@ class LoggingSimpleXMLRPCRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHa
             krbccache,
         )
         logger.info('calling %s', method)
+        (args, kw) = xmlrpc_unmarshal(*params)
         return func(*args, **kw)
 
     def _marshaled_dispatch(self, data, dispatch_method = None):
@@ -143,7 +144,9 @@ class LoggingSimpleXMLRPCRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHa
 
 
 if __name__ == '__main__':
-    api.bootstrap(context='server', verbose=True)
+    api.bootstrap(context='server')
+    api.load_plugins()
+    api.finalize()
     logger = api.logger
 
     # Set up the server
@@ -154,12 +157,13 @@ if __name__ == '__main__':
     XMLRPCServer.register_introspection_functions()
 
     # Get and register all the methods
-    api.finalize()
+
     for cmd in api.Command:
         logger.debug('registering %s', cmd)
         XMLRPCServer.register_function(api.Command[cmd], cmd)
     funcs = XMLRPCServer.funcs
 
+    logger.info('Logging to file %r', api.env.log)
     logger.info('Listening on port %d', api.env.lite_xmlrpc_port)
     try:
         XMLRPCServer.serve_forever()
