@@ -54,7 +54,6 @@ DEFAULT_CONFIG = (
     ('verbose', False),
     ('debug', False),
 
-
     # ********************************************************
     #  The remaining keys are never set from the values here!
     # ********************************************************

@@ -84,23 +84,7 @@ class help(frontend.Application):
         print 'Purpose: %s' % cmd.doc
         self.application.build_parser(cmd).print_help()
 
-    def print_commands(self):
-        std = set(self.api.Command) - set(self.api.Application)
-        print '\nStandard IPA commands:'
-        for key in sorted(std):
-            cmd = self.api.Command[key]
-            self.print_cmd(cmd)
-        print '\nSpecial CLI commands:'
-        for cmd in self.api.Application():
-            self.print_cmd(cmd)
-        print '\nUse the --help option to see all the global options'
-        print ''
 
-    def print_cmd(self, cmd):
-        print '  %s  %s' % (
-            to_cli(cmd.name).ljust(self.mcl),
-            cmd.doc,
-        )
 
 
 class console(frontend.Application):
@@ -222,6 +206,10 @@ class KWCollector(object):
 
 
 class CLI(object):
+    """
+    All logic for dispatching over command line interface.
+    """
+
     __d = None
     __mcl = None
 
@@ -230,6 +218,144 @@ class CLI(object):
         self.argv = tuple(argv)
         self.__done = set()
 
+    def run(self):
+        """
+        Run a command (or attempt to at least).
+
+        This method requires several initialization steps to be completed
+        first, all of which all automatically called with a single call to
+        `CLI.finalize()`. The initialization steps are broken into separate
+        methods simply to make it easy to write unit tests.
+
+        The initialization involves these steps:
+
+            1. `CLI.parse_globals` parses the global options, which get stored
+               in ``CLI.options``, and stores the remaining args in
+               ``CLI.cmd_argv``.
+
+            2. `CLI.bootstrap` initializes the environment information in
+               ``CLI.api.env``.
+
+            3. `CLI.load_plugins` registers all plugins, including the
+               CLI-specific plugins.
+
+            4. `CLI.finalize` instantiates all plugins and performs the
+               remaining initialization needed to use the `plugable.API`
+               instance.
+        """
+        self.__doing('run')
+        self.finalize()
+        return
+        if len(self.cmd_argv) < 1:
+            self.print_commands()
+            print 'Usage: ipa [global-options] COMMAND'
+            sys.exit(2)
+        key = self.cmd_argv[0]
+        if key not in self:
+            self.print_commands()
+            print 'ipa: ERROR: unknown command %r' % key
+            sys.exit(2)
+        return self.run_cmd(
+            self[key],
+            list(s.decode('utf-8') for s in args[1:])
+        )
+
+    def finalize(self):
+        """
+        Fully initialize ``CLI.api`` `plugable.API` instance.
+
+        This method first calls `CLI.load_plugins` to perform some dependant
+        initialization steps, after which `plugable.API.finalize` is called.
+
+        Finally, the CLI-specific commands are passed a reference to this
+        `CLI` instance by calling `frontend.Application.set_application`.
+        """
+        self.__doing('finalize')
+        self.load_plugins()
+        self.api.finalize()
+        for a in self.api.Application():
+            a.set_application(self)
+        assert self.__d is None
+        self.__d = dict(
+            (c.name.replace('_', '-'), c) for c in self.api.Command()
+        )
+
+    def load_plugins(self):
+        """
+        Load all standard plugins plus the CLI-specific plugins.
+
+        This method first calls `CLI.bootstrap` to preform some dependant
+        initialization steps, after which `plugable.API.load_plugins` is
+        called.
+
+        Finally, all the CLI-specific plugins are registered.
+        """
+        self.__doing('load_plugins')
+        self.bootstrap()
+        self.api.load_plugins()
+        for klass in cli_application_commands:
+            self.api.register(klass)
+
+    def bootstrap(self):
+        """
+        Initialize the ``CLI.api.env`` environment variables.
+
+        This method first calls `CLI.parse_globals` to perform some dependant
+        initialization steps. Then, using environment variables that may have
+        been passed in the global options, the ``overrides`` are constructed
+        and `plugable.API.bootstrap` is called.
+        """
+        self.__doing('bootstrap')
+        self.parse_globals()
+        self.api.env.verbose = self.options.verbose
+        if self.options.config_file:
+            self.api.env.conf = self.options.config_file
+        overrides = {}
+        if self.options.environment:
+            for a in self.options.environment.split(','):
+                a = a.split('=', 1)
+                if len(a) < 2:
+                    parser.error('badly specified environment string,'\
+                            'use var1=val1[,var2=val2]..')
+                overrides[a[0].strip()] = a[1].strip()
+        overrides['context'] = 'cli'
+        self.api.bootstrap(**overrides)
+
+    def parse_globals(self):
+        """
+        Parse out the global options.
+
+        This method parses the global options out of the ``CLI.argv`` instance
+        attribute, after which two new instance attributes are available:
+
+            1. ``CLI.options`` - an ``optparse.Values`` instance containing
+               the global options.
+
+            2. ``CLI.cmd_argv`` - a tuple containing the remainder of
+               ``CLI.argv`` after the global options have been consumed.
+        """
+        self.__doing('parse_globals')
+        parser = optparse.OptionParser()
+        parser.disable_interspersed_args()
+        parser.add_option('-a', dest='prompt_all', action='store_true',
+                help='Prompt for all missing options interactively')
+        parser.add_option('-n', dest='interactive', action='store_false',
+                help='Don\'t prompt for any options interactively')
+        parser.add_option('-c', dest='config_file',
+                help='Specify different configuration file')
+        parser.add_option('-e', dest='environment',
+                help='Specify or override environment variables')
+        parser.add_option('-v', dest='verbose', action='store_true',
+                help='Verbose output')
+        parser.set_defaults(
+            prompt_all=False,
+            interactive=True,
+            verbose=False,
+        )
+        (options, args) = parser.parse_args(list(self.argv))
+        self.options = options
+        self.cmd_argv = tuple(args)
+
     def __doing(self, name):
         if name in self.__done:
             raise StandardError(
@@ -237,11 +363,28 @@ class CLI(object):
             )
         self.__done.add(name)
 
-    def __do_if_not_done(self, name):
-        if name not in self.__done:
-            getattr(self, name)()
+    def print_commands(self):
+        std = set(self.api.Command) - set(self.api.Application)
+        print '\nStandard IPA commands:'
+        for key in sorted(std):
+            cmd = self.api.Command[key]
+            self.print_cmd(cmd)
+        print '\nSpecial CLI commands:'
+        for cmd in self.api.Application():
+            self.print_cmd(cmd)
+        print '\nUse the --help option to see all the global options'
+        print ''
+
+    def print_cmd(self, cmd):
+        print '  %s  %s' % (
+            to_cli(cmd.name).ljust(self.mcl),
+            cmd.doc,
+        )
 
     def isdone(self, name):
+        """
+        Return True in method named ``name`` has already been called.
+        """
         return name in self.__done
 
     def __contains__(self, key):
@@ -252,7 +395,7 @@ class CLI(object):
         assert self.__d is not None, 'you must call finalize() first'
         return self.__d[key]
 
-    def finalize(self):
+    def old_finalize(self):
         api = self.api
         for klass in cli_application_commands:
             api.register(klass)
@@ -261,29 +404,8 @@ class CLI(object):
             a.set_application(self)
         self.build_map()
 
-    def build_map(self):
-        assert self.__d is None
-        self.__d = dict(
-            (c.name.replace('_', '-'), c) for c in self.api.Command()
-        )
 
-    def run(self):
-        self.finalize()
-        set_default_env(self.api.env)
-        args = self.parse_globals()
-        if len(args) < 1:
-            self.print_commands()
-            print 'Usage: ipa [global-options] COMMAND'
-            sys.exit(2)
-        key = args[0]
-        if key not in self:
-            self.print_commands()
-            print 'ipa: ERROR: unknown command %r' % key
-            sys.exit(2)
-        return self.run_cmd(
-            self[key],
-            list(s.decode('utf-8') for s in args[1:])
-        )
+
 
     def run_cmd(self, cmd, argv):
         kw = self.parse(cmd, argv)
@@ -370,45 +492,9 @@ class CLI(object):
             parser.add_option(o)
         return parser
 
-    def parse_globals(self):
-        self.__doing('parse_globals')
-        parser = optparse.OptionParser()
-        parser.disable_interspersed_args()
-        parser.add_option('-a', dest='prompt_all', action='store_true',
-                help='Prompt for all missing options interactively')
-        parser.add_option('-n', dest='interactive', action='store_false',
-                help='Don\'t prompt for any options interactively')
-        parser.add_option('-c', dest='config_file',
-                help='Specify different configuration file')
-        parser.add_option('-e', dest='environment',
-                help='Specify or override environment variables')
-        parser.add_option('-v', dest='verbose', action='store_true',
-                help='Verbose output')
-        parser.set_defaults(
-            prompt_all=False,
-            interactive=True,
-            verbose=False,
-        )
-        (options, args) = parser.parse_args(list(self.argv))
-        self.options = options
-        self.cmd_argv = tuple(args)
 
-    def bootstrap(self):
-        self.__doing('bootstrap')
-        self.parse_globals()
-        self.api.env.verbose = self.options.verbose
-        if self.options.config_file:
-            self.api.env.conf = self.options.config_file
-        overrides = {}
-        if self.options.environment:
-            for a in self.options.environment.split(','):
-                a = a.split('=', 1)
-                if len(a) < 2:
-                    parser.error('badly specified environment string,'\
-                            'use var1=val1[,var2=val2]..')
-                overrides[a[0].strip()] = a[1].strip()
-        overrides['context'] = 'cli'
-        self.api.bootstrap(**overrides)
+
+
 
     def get_usage(self, cmd):
         return ' '.join(self.get_usage_iter(cmd))

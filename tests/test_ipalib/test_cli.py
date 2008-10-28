@@ -115,6 +115,17 @@ class test_CLI(ClassChecker):
         assert o.api is api
         return (o, api, home)
 
+    def check_cascade(self, *names):
+        (o, api, home) = self.new()
+        method = getattr(o, names[0])
+        for name in names:
+            assert o.isdone(name) is False
+        method()
+        for name in names:
+            assert o.isdone(name) is True
+        e = raises(StandardError, method)
+        assert str(e) == 'CLI.%s() already called' % names[0]
+
     def test_init(self):
         """
         Test the `ipalib.cli.CLI.__init__` method.
@@ -201,3 +212,36 @@ class test_CLI(ClassChecker):
         assert api.env.from_default_conf == 'set in default.conf'
         assert api.env.from_cli_conf == 'set in cli.conf'
         assert list(api.env) == sorted(keys + added)
+
+    def test_load_plugins(self):
+        """
+        Test the `ipalib.cli.CLI.load_plugins` method.
+        """
+        self.check_cascade(
+            'load_plugins',
+            'bootstrap',
+            'parse_globals'
+        )
+        (o, api, home) = self.new()
+        assert api.isdone('load_plugins') is False
+        o.load_plugins()
+        assert api.isdone('load_plugins') is True
+
+    def test_finalize(self):
+        """
+        Test the `ipalib.cli.CLI.finalize` method.
+        """
+        self.check_cascade(
+            'finalize',
+            'load_plugins',
+            'bootstrap',
+            'parse_globals'
+        )
+
+        (o, api, home) = self.new()
+        assert api.isdone('finalize') is False
+        assert 'Command' not in api
+        o.finalize()
+        assert api.isdone('finalize') is True
+        assert list(api.Command) == \
+            sorted(k.__name__ for k in cli.cli_application_commands)
