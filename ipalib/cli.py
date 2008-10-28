@@ -97,6 +97,21 @@ class console(frontend.Application):
         )
 
 
+class env(frontend.Application):
+    """
+    Show environment variables.
+    """
+
+    def run(self):
+        return tuple(
+            (key, self.api.env[key]) for key in self.api.env
+        )
+
+    def output_for_cli(self, ret):
+        for (key, value) in ret:
+            print '%s = %r' % (key, value)
+
+
 
 class show_api(text_ui):
     'Show attributes on dynamic API object'
@@ -183,6 +198,7 @@ cli_application_commands = (
     console,
     show_api,
     plugins,
+    env,
 
 )
 
