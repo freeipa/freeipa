@@ -454,7 +454,7 @@ class CLI(object):
     def parse(self, cmd):
         parser = self.build_parser(cmd)
         (kwc, args) = parser.parse_args(
-            list(self.cmd_argv), KWCollector()
+            list(self.cmd_argv[1:]), KWCollector()
         )
         kw = kwc.__todict__()
         try:

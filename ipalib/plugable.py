@@ -738,6 +738,13 @@ class API(DictProxy):
         self.__doing('bootstrap')
         self.env._bootstrap(**overrides)
         self.env._finalize_core(**dict(constants.DEFAULT_CONFIG))
+        if self.env.mode == 'unit_test':
+            return
+        logger = util.configure_logging(
+            self.env.log,
+            self.env.verbose,
+        )
+        object.__setattr__(self, 'log', 'logger')
 
     def load_plugins(self):
         """

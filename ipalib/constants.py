@@ -87,3 +87,19 @@ DEFAULT_CONFIG = (
     ('log', None), # Path to log file
 
 )
+
+
+LOGGING_CONSOLE_FORMAT = ' '.join([
+    '%(levelname)s',
+    '%(message)s',
+])
+
+
+# Tab-delimited format designed to be easily opened in a spreadsheet:
+LOGGING_FILE_FORMAT = ' '.join([
+    '%(created)f',
+    '%(levelname)s',
+    '%(message)r', # Using %r for repr() so message is a single line
+    '%(pathname)s',
+    '%(lineno)d',
+])
