@@ -42,14 +42,13 @@ def update_conf(sub_dict, filename, template_filename):
 def find_hostname():
     """Find the hostname currently configured in ipa-rewrite.conf"""
     filename="/etc/httpd/conf.d/ipa-rewrite.conf"
-    if os.path.exists(filename):
-        pattern = "^[\s#]*.*https:\/\/([A-Za-z0-9\.\-]*)\/.*"
-        p = re.compile(pattern)
-        for line in fileinput.input(filename):
-            if p.search(line):
-                fileinput.close()
-                return p.search(line).group(1)
-        fileinput.close()
+    pattern = "^[\s#]*.*https:\/\/([A-Za-z0-9\.\-]*)\/.*"
+    p = re.compile(pattern)
+    for line in fileinput.input(filename):
+        if p.search(line):
+            fileinput.close()
+            return p.search(line).group(1)
+    fileinput.close()
 
     return None
 
@@ -92,7 +91,11 @@ def main():
         print "Unable to get default kerberos realm: %s" % e[1]
         sys.exit(1)
 
-    fqdn = find_hostname()
+    try:
+        fqdn = find_hostname()
+    except IOError:
+        # ipa-rewrite.conf doesn't exist, nothing to do
+        sys.exit(0)
 
     if fqdn is None:
         print "Unable to determine hostname from ipa-rewrite.conf"
