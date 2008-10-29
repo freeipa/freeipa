@@ -1,0 +1,9 @@
+#
+# Counter used to store the next replica id
+#
+# Start at 3 to avoid conflicts with v1.0 replica ids. The value itself
+# isn't important but each replica needs a unique id.
+dn: cn=replication,cn=etc,$SUFFIX
+add: objectclass: nsDS5Replica
+add: nsDS5ReplicaId: 3
+add: nsDS5ReplicaRoot: '$SUFFIX'

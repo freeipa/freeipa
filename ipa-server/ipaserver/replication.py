@@ -49,6 +49,47 @@ class ReplicationManager:
         self.repl_man_cn = "replication manager"
         self.suffix = ""
 
+    def _get_replica_id(self, conn, master_conn):
+        """
+        Returns the replica ID which is unique for each backend.
+
+        conn is the connection we are trying to get the replica ID for.
+        master_conn is the master we are going to replicate with.
+        """
+        # First see if there is already one set
+        dn = self.replica_dn()
+        try:
+            replica = conn.search_s(dn, ldap.SCOPE_BASE, "objectclass=*")[0]
+            if replica.getValue('nsDS5ReplicaId'):
+                return int(replica.getValue('nsDS5ReplicaId'))
+        except ldap.NO_SUCH_OBJECT:
+            pass
+
+        # Ok, either the entry doesn't exist or the attribute isn't set
+        # so get it from the other master
+        retval = -1
+        dn = "cn=replication, cn=etc, %s" % self.suffix
+        try:
+            replica = master_conn.search_s(dn, ldap.SCOPE_BASE, "objectclass=*")[0]
+            if not replica.getValue('nsDS5ReplicaId'):
+                logging.debug("Unable to retrieve nsDS5ReplicaId from remote server")
+                raise RuntimeError("Unable to retrieve nsDS5ReplicaId from remote server")
+        except ldap.NO_SUCH_OBJECT:
+            logging.debug("Unable to retrieve nsDS5ReplicaId from remote server")
+            raise
+
+        # Now update the value on the master
+        retval = int(replica.getValue('nsDS5ReplicaId'))
+        mod = [(ldap.MOD_REPLACE, 'nsDS5ReplicaId', str(retval + 1))]
+
+        try:
+            master_conn.modify_s(dn, mod)
+        except Exception, e:
+            logging.debug("Problem updating nsDS5ReplicaID %s" % e)
+            raise
+
+        return retval
+
     def find_replication_dns(self, conn):
         filt = "(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement))"
         try:
@@ -347,11 +388,14 @@ class ReplicationManager:
 
         self.suffix = ipaldap.IPAdmin.normalizeDN(dsinstance.realm_to_suffix(realm_name))
 
-        self.basic_replication_setup(self.conn, 1)
+        local_id = self._get_replica_id(self.conn, other_conn)
+        self.basic_replication_setup(self.conn, local_id)
 
         if not iswinsync:
-            self.basic_replication_setup(other_conn, 2)
+            other_id = self._get_replica_id(other_conn, other_conn)
+            self.basic_replication_setup(other_conn, other_id)
             self.setup_agreement(other_conn, self.conn)
+            self.setup_agreement(self.conn, other_conn)
             return self.start_replication(other_conn)
         else:
             self.setup_agreement(self.conn, other_conn, **kargs)

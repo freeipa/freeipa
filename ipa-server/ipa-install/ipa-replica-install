@@ -249,7 +249,8 @@ def main():
     try:
         repl = replication.ReplicationManager(config.host_name, config.dirman_password)
         ret = repl.setup_replication(config.master_host_name, config.realm_name)
-    except:
+    except Exception, e:
+        logging.debug("Connection error: %s" % e)
         raise RuntimeError("Unable to connect to LDAP server %s." % config.host_name)
     if ret != 0:
         raise RuntimeError("Failed to start replication")
