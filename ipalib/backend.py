@@ -23,9 +23,23 @@ Base classes for all backed-end plugins.
 
 import plugable
 
+
 class Backend(plugable.Plugin):
     """
     Base class for all backend plugins.
     """
 
     __proxy__ = False # Backend plugins are not wrapped in a PluginProxy
+
+
+class Context(plugable.Plugin):
+    """
+    Base class for plugable context components.
+    """
+
+    __proxy__ = False # Backend plugins are not wrapped in a PluginProxy
+
+    def get_value(self):
+        raise NotImplementedError(
+            '%s.get_value()' % self.__class__.__name__
+        )

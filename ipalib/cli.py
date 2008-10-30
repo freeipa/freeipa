@@ -331,7 +331,7 @@ class CLI(object):
                 if len(a) < 2:
                     parser.error('badly specified environment string,'\
                             'use var1=val1[,var2=val2]..')
-                overrides[a[0].strip()] = a[1].strip()
+                overrides[str(a[0].strip())] = a[1].strip()
         overrides['context'] = 'cli'
         self.api.bootstrap(**overrides)
 

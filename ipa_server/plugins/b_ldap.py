@@ -25,11 +25,22 @@ This wraps the python-ldap bindings.
 """
 
 import ldap as _ldap
-from ipalib import api
+from ipalib import api, Context
 from ipalib import errors
 from ipalib.crud import CrudBackend
 from ipa_server import servercore
 from ipa_server import ipaldap
+
+
+class conn(Context):
+    """
+    Thread-local LDAP connection.
+    """
+
+    def get_value(self):
+        return 'it worked'
+
+api.register(conn)
 
 
 class ldap(CrudBackend):

@@ -30,15 +30,18 @@ To learn about the ``ipalib`` library, you should read the code in this order:
 """
 
 import plugable
-import frontend
-import backend
-import config
+from backend import Backend, Context
+from frontend import Command, Object, Method, Property, Application
+from ipa_types import Bool, Int, Unicode, Enum
+from frontend import Param, DefaultFrom
 
-api = plugable.API(
-    frontend.Command,
-    frontend.Object,
-    frontend.Method,
-    frontend.Property,
-    frontend.Application,
-    backend.Backend,
-)
+def get_standard_api(unit_test=False):
+    api = plugable.API(
+        Command, Object, Method, Property, Application,
+        Backend, Context,
+    )
+    if unit_test is True:
+        api.env.mode = 'unit_test'
+    return api
+
+api = get_standard_api()

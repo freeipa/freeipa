@@ -22,12 +22,12 @@ Test the `ipalib.backend` module.
 """
 
 from ipalib import  backend, plugable, errors
-from tests.util import ClassChecker
+from tests.util import ClassChecker, raises
 
 
 class test_Backend(ClassChecker):
     """
-    Test the `backend.Backend` class.
+    Test the `ipalib.backend.Backend` class.
     """
 
     _cls = backend.Backend
@@ -35,3 +35,21 @@ class test_Backend(ClassChecker):
     def test_class(self):
         assert self.cls.__bases__ == (plugable.Plugin,)
         assert self.cls.__proxy__ is False
+
+
+class test_Context(ClassChecker):
+    """
+    Test the `ipalib.backend.Context` class.
+    """
+
+    _cls = backend.Context
+
+    def test_get_value(self):
+        """
+        Test the `ipalib.backend.Context.get_value` method.
+        """
+        class Subclass(self.cls):
+            pass
+        o = Subclass()
+        e = raises(NotImplementedError, o.get_value)
+        assert str(e) == 'Subclass.get_value()'
