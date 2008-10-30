@@ -104,13 +104,20 @@ def get_sub_entry (base, searchfilter, sattrs=None):
     """
     return get_entry(base, ldap.SCOPE_SUBTREE, searchfilter, sattrs)
 
-def get_list (base, searchfilter, sattrs=None):
+def get_one_entry (base, searchfilter, sattrs=None):
+    """Get the children of an entry (with a scope of ONE).
+       Return as a list of dict of values.
+       Multi-valued fields are represented as lists.
+    """
+    return get_list(base, searchfilter, sattrs, ldap.SCOPE_ONELEVEL)
+
+def get_list (base, searchfilter, sattrs=None, scope=ldap.SCOPE_SUBTREE):
     """Gets a list of entries. Each is converted to a dict of values.
        Multi-valued fields are represented as lists.
     """
     entries = []
 
-    entries = context.conn.getConn().getList(base, ldap.SCOPE_SUBTREE, searchfilter, sattrs)
+    entries = context.conn.getConn().getList(base, scope, searchfilter, sattrs)
 
     return map(convert_entry, entries)
 
