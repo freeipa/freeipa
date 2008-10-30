@@ -36,6 +36,8 @@ class GroupFields(object):
     dn_to_info_json = widgets.HiddenField(name="dn_to_info_json")
 
 class GroupNewValidator(validators.Schema):
+    filter_extra_fields = True
+    allow_extra_fields = True
     cn = validators.GoodName(not_empty=True)
     description = validators.String(not_empty=False)
 
