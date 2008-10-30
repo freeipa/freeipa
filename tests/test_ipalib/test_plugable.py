@@ -23,7 +23,7 @@ Test the `ipalib.plugable` module.
 
 from tests.util import raises, no_set, no_del, read_only
 from tests.util import getitem, setitem, delitem
-from tests.util import ClassChecker, TempHome
+from tests.util import ClassChecker, get_api
 from ipalib import plugable, errors
 
 
@@ -771,13 +771,6 @@ class test_API(ClassChecker):
 
     _cls = plugable.API
 
-    def new(self, *bases):
-        home = TempHome()
-        api = self.cls(*bases)
-        api.env.mode = 'unit_test'
-        api.env.in_tree = True
-        return (api, home)
-
     def test_API(self):
         """
         Test the `ipalib.plugable.API` class.
@@ -802,6 +795,8 @@ class test_API(ClassChecker):
                 return n + 1
 
         api = plugable.API(base0, base1)
+        api.env.mode = 'unit_test'
+        api.env.in_tree = True
         r = api.register
         assert isinstance(r, plugable.Registrar)
         assert read_only(api, 'register') is r
@@ -884,7 +879,7 @@ class test_API(ClassChecker):
         """
         Test the `ipalib.plugable.API.bootstrap` method.
         """
-        (o, home) = self.new()
+        (o, home) = get_api()
         assert o.env._isdone('_bootstrap') is False
         assert o.env._isdone('_finalize_core') is False
         assert o.isdone('bootstrap') is False
@@ -900,7 +895,7 @@ class test_API(ClassChecker):
         """
         Test the `ipalib.plugable.API.load_plugins` method.
         """
-        (o, home) = self.new()
+        (o, home) = get_api()
         assert o.isdone('bootstrap') is False
         assert o.isdone('load_plugins') is False
         o.load_plugins()

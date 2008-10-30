@@ -21,8 +21,7 @@
 Test the `ipalib.cli` module.
 """
 
-from tests.util import raises, getitem, no_set, no_del, read_only, ClassChecker
-from tests.util import TempHome
+from tests.util import raises, get_api, ClassChecker
 from ipalib import cli, plugable, frontend, backend
 
 
@@ -92,8 +91,6 @@ from_cli_conf = overridden in default.conf
 """
 
 
-
-
 class test_CLI(ClassChecker):
     """
     Test the `ipalib.cli.CLI` class.
@@ -101,17 +98,7 @@ class test_CLI(ClassChecker):
     _cls = cli.CLI
 
     def new(self, argv=tuple()):
-        home = TempHome()
-        api = plugable.API(
-            frontend.Command,
-            frontend.Object,
-            frontend.Method,
-            frontend.Property,
-            frontend.Application,
-            backend.Backend,
-        )
-        api.env.mode = 'unit_test'
-        api.env.in_tree = True
+        (api, home) = get_api()
         o = self.cls(api, argv)
         assert o.api is api
         return (o, api, home)

@@ -26,7 +26,8 @@ import os
 from os import path
 import tempfile
 import shutil
-from ipalib import errors
+import ipalib
+
 
 
 class TempDir(object):
@@ -206,5 +207,21 @@ def check_TypeError(value, type_, name, callback, *args, **kw):
     assert e.type is type_
     assert e.name == name
     assert type(e.name) is str
-    assert str(e) == errors.TYPE_FORMAT % (name, type_, value)
+    assert str(e) == ipalib.errors.TYPE_FORMAT % (name, type_, value)
     return e
+
+
+def get_api(**kw):
+    """
+    Returns (api, home) tuple.
+
+    This function returns a tuple containing an `ipalib.plugable.API`
+    instance and a `TempHome` instance.
+    """
+    home = TempHome()
+    api = ipalib.get_standard_api()
+    api.env.mode = 'unit_test'
+    api.env.in_tree = True
+    for (key, value) in kw.iteritems():
+        api.env[key] = value
+    return (api, home)

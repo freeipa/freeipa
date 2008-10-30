@@ -35,13 +35,11 @@ from frontend import Command, Object, Method, Property, Application
 from ipa_types import Bool, Int, Unicode, Enum
 from frontend import Param, DefaultFrom
 
-def get_standard_api(unit_test=False):
-    api = plugable.API(
+def get_standard_api():
+    return plugable.API(
         Command, Object, Method, Property, Application,
         Backend, Context,
     )
-    if unit_test is True:
-        api.env.mode = 'unit_test'
-    return api
+
 
 api = get_standard_api()
