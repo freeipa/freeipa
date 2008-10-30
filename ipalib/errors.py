@@ -356,6 +356,10 @@ class DefaultGroup(ConfigurationError):
     """You cannot remove the default users group"""
     faultCode = 1025
 
+class HostService(ConfigurationError):
+    """You must enroll a host in order to create a host service"""
+    faultCode = 1026
+
 class FunctionDeprecated(GenericError):
     """Raised by a deprecated function"""
     faultCode = 2000

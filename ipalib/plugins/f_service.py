@@ -72,6 +72,9 @@ class service_add(crud.Add):
             raise errors.MalformedServicePrincipal
         service = sp[0]
 
+        if service.lower() == "host":
+            raise errors.HostService
+
         sr = sp[1].split('@')
         if len(sr) == 1:
             hostname = sr[0].lower()
