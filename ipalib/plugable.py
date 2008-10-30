@@ -723,6 +723,9 @@ class LazyContext(object):
             self.__context.__dict__[name] = value
         return self.__context.__dict__[name]
 
+    def __getitem__(self, key):
+        return self.__getattr__(key)
+
 
 
 class API(DictProxy):
