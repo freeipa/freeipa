@@ -139,6 +139,15 @@ class ldap(CrudBackend):
 
         return entry.get('dn')
 
+    def get_base_entry(self, searchbase, searchfilter, attrs):
+        return servercore.get_base_entry(searchbase, searchfilter, attrs)
+
+    def get_sub_entry(self, searchbase, searchfilter, attrs):
+        return servercore.get_sub_entry(searchbase, searchfilter, attrs)
+
+    def get_one_entry(self, searchbase, searchfilter, attrs):
+        return servercore.get_one_entry(searchbase, searchfilter, attrs)
+
     def get_ipa_config(self):
         """Return a dictionary of the IPA configuration"""
         return servercore.get_ipa_config()
