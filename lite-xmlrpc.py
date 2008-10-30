@@ -147,7 +147,7 @@ if __name__ == '__main__':
     api.bootstrap(context='server')
     api.load_plugins()
     api.finalize()
-    logger = api.logger
+    logger = api.log
 
     # Set up the server
     XMLRPCServer = StoppableXMLRPCServer(

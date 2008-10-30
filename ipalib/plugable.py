@@ -351,6 +351,15 @@ class Plugin(ReadOnly):
         assert self.__api is None, 'set_api() can only be called once'
         assert api is not None, 'set_api() argument cannot be None'
         self.__api = api
+        if not isinstance(api, API):
+            return
+        for name in api:
+            assert not hasattr(self, name)
+            setattr(self, name, api[name])
+        for name in ('env', 'context', 'log'):
+            if hasattr(api, name):
+                assert not hasattr(self, name)
+                setattr(self, name, getattr(api, name))
 
     def __repr__(self):
         """
@@ -768,7 +777,7 @@ class API(DictProxy):
             self.env.log,
             self.env.verbose,
         )
-        object.__setattr__(self, 'logger', logger)
+        object.__setattr__(self, 'log', logger)
 
     def load_plugins(self):
         """
