@@ -1,24 +1,17 @@
-Prompt for password using getpass.
+CLI
+  - Prompt for password using getpass
+  - Passed the param dict to output_for_cli()
+  - Implement a TextUI class and also pass it to output_for_cli()
 
-Add API.finalize_env() method so environment initallization is standardized.
-This method should detect whether running in-tree or not and intelligently
-construct the paths.
+Improve ease of plugin writting
+  - make "from ipalib import *" import everything a plugin writter will need
+  - Finish ipa_types, add Str and Float Types
 
-import all Types, Param, DefaultFrom, and import base classes into
-ipalib.__init__ and add an __all__ list so plugins can safely
-from ipalib import *
-
-Setup logging
-
-Add in-tree default config files for distinct cli, server, and webui contexts
-
-Remove Env.get() have Env return None if no value exists (Env.get() allows
-a bad pattern of default values being detemined by the consumer and possibly
-different default values being used for the same key).
-
-Package for rpm (.spec file)
-
-Package for apt (debian/ dir)
+Packaging
+  - Use setuptools instead of plain distutils
+  - Make setup.py generate dev-docs and run unit tests
+  - Package for rpm (.spec file)
+  - Package for apt (debian/ dir)
 
 Migration
   - Add the IPAService objectclass to existing principals
