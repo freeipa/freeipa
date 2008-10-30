@@ -120,3 +120,7 @@ except SystemExit, e:
     sys.exit(e)
 except KeyboardInterrupt, e:
     sys.exit(1)
+except config.IPAConfigError, e:
+    print "An IPA server to update cannot be found. Has one been configured yet?"
+    print "The error was: %s" % e
+    sys.exit(1)
