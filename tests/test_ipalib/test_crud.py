@@ -21,7 +21,7 @@
 Test the `ipalib.crud` module.
 """
 
-from tests.util import read_only, raises, ClassChecker
+from tests.util import read_only, raises, get_api, ClassChecker
 from ipalib import crud, frontend, plugable, config
 
 
@@ -35,12 +35,7 @@ class CrudChecker(ClassChecker):
         Return a finalized `ipalib.plugable.API` instance.
         """
         assert self.cls.__bases__ == (frontend.Method,)
-        api = plugable.API(
-            frontend.Object,
-            frontend.Method,
-            frontend.Property,
-        )
-        #config.set_default_env(api.env)
+        (api, home) = get_api()
         class user(frontend.Object):
             takes_params = (
                 'givenname',
@@ -135,8 +130,9 @@ class test_Del(CrudChecker):
         Test the `ipalib.crud.Del.get_options` method.
         """
         api = self.get_api()
-        assert list(api.Method.user_verb.options) == []
-        assert len(api.Method.user_verb.options) == 0
+        assert list(api.Method.user_verb.options) == \
+            ['givenname', 'sn', 'initials']
+        assert len(api.Method.user_verb.options) == 3
 
 
 class test_Mod(CrudChecker):
