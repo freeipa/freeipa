@@ -21,7 +21,6 @@
 Various utility functions.
 """
 
-import logging
 import os
 from os import path
 import imp
@@ -102,35 +101,3 @@ def import_plugins_subpackage(name):
     for name in find_modules_in_dir(src_dir):
         full_name = '%s.%s' % (plugins.__name__, name)
         __import__(full_name)
-
-
-def configure_logging(log_file, verbose):
-    """
-    Configure standard logging.
-    """
-    # Set logging level:
-    level = logging.INFO
-    if verbose:
-        level -= 10
-
-    log = logging.getLogger('ipa')
-    log.setLevel(level)
-
-    # Configure console handler
-    console = logging.StreamHandler()
-    console.setFormatter(logging.Formatter(LOGGING_CONSOLE_FORMAT))
-    log.addHandler(console)
-
-    # Configure file handler
-    log_dir = path.dirname(log_file)
-    if not path.isdir(log_dir):
-        try:
-            os.makedirs(log_dir)
-        except OSError:
-            log.warn('Could not create log_dir %r', log_dir)
-            return log
-    file_handler = logging.FileHandler(log_file)
-    file_handler.setFormatter(logging.Formatter(LOGGING_FILE_FORMAT))
-    log.addHandler(file_handler)
-
-    return log

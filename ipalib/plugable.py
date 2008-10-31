@@ -28,10 +28,13 @@ http://docs.python.org/ref/sequence-types.html
 import re
 import inspect
 import threading
+import logging
+import os
+from os import path
 import errors
 from errors import check_type, check_isinstance
 from config import Environment, Env
-import constants
+from constants import LOGGING_FILE_FORMAT, LOGGING_CONSOLE_FORMAT, DEFAULT_CONFIG
 import util
 
 
@@ -766,18 +769,49 @@ class API(DictProxy):
 
     def bootstrap(self, **overrides):
         """
-        Initialize environment variables needed by built-in plugins.
+        Initialize environment variables and logging.
         """
         self.__doing('bootstrap')
         self.env._bootstrap(**overrides)
-        self.env._finalize_core(**dict(constants.DEFAULT_CONFIG))
+        self.env._finalize_core(**dict(DEFAULT_CONFIG))
+        log = logging.getLogger('ipa')
+        object.__setattr__(self, 'log', log)
+        if self.env.debug:
+            log.setLevel(logging.DEBUG)
+        else:
+            log.setLevel(logging.INFO)
+
+        # Add stderr handler:
+        stderr = logging.StreamHandler()
+        stderr.setFormatter(logging.Formatter(LOGGING_CONSOLE_FORMAT))
+        if self.env.debug:
+            level = logging.DEBUG
+        elif self.env.verbose:
+            level = logging.INFO
+        else:
+            level = logging.WARNING
+        stderr.setLevel(level)
+        log.addHandler(stderr)
+
+        # Add file handler:
         if self.env.mode == 'unit_test':
-            return
-        logger = util.configure_logging(
-            self.env.log,
-            self.env.verbose,
-        )
-        object.__setattr__(self, 'log', logger)
+            return # But not if in unit-test mode
+        log_dir = path.dirname(self.env.log)
+        if not path.isdir(log_dir):
+            try:
+                os.makedirs(log_dir)
+            except OSError:
+                log.warn('Could not create log_dir %r', log_dir)
+                return
+        handler = logging.FileHandler(self.env.log)
+        handler.setFormatter(logging.Formatter(LOGGING_FILE_FORMAT))
+        if self.env.debug:
+            level = logging.DEBUG
+        else:
+            level = logging.INFO
+        handler.setLevel(level)
+        log.addHandler(handler)
+
 
     def load_plugins(self):
         """
