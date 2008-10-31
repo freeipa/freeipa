@@ -47,8 +47,6 @@ class Del(frontend.Method):
         yield self.obj.primary_key
 
     def get_options(self):
-        for param in self.obj.params_minus_pk():
-            yield param
         for option in self.takes_options:
             yield option
 

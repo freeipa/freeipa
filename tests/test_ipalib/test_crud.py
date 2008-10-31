@@ -130,9 +130,8 @@ class test_Del(CrudChecker):
         Test the `ipalib.crud.Del.get_options` method.
         """
         api = self.get_api()
-        assert list(api.Method.user_verb.options) == \
-            ['givenname', 'sn', 'initials']
-        assert len(api.Method.user_verb.options) == 3
+        assert list(api.Method.user_verb.options) == []
+        assert len(api.Method.user_verb.options) == 0
 
 
 class test_Mod(CrudChecker):
