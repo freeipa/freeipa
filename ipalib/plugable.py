@@ -802,7 +802,7 @@ class API(DictProxy):
         already.
         """
         self.__doing('finalize')
-        self.__do_if_not_done('bootstrap')
+        self.__do_if_not_done('load_plugins')
 
         class PluginInstance(object):
             """
