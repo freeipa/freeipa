@@ -219,7 +219,7 @@ class user_del(crud.Del):
             # FIXME: do we still want a "special" user?
             raise SyntaxError("admin required")
 #            raise ipaerror.gen_exception(ipaerror.INPUT_ADMIN_REQUIRED)
-#        logging.info("IPA: delete_user '%s'" % uid)
+        self.log.info("IPA: user-del '%s'" % uid)
 
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("uid", uid)

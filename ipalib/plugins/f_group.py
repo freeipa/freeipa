@@ -111,7 +111,7 @@ class group_del(crud.Del):
 
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("cn", cn, "posixGroup")
-#        logging.info("IPA: delete_group '%s'" % dn)
+        self.log.info("IPA: group-del '%s'" % dn)
 
         # Don't allow the default user group to be removed
         config=ldap.get_ipa_config()

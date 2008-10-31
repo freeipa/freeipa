@@ -91,10 +91,10 @@ class service_add(crud.Add):
             fqdn = hostname + "."
             rs = dnsclient.query(fqdn, dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
             if len(rs) == 0:
-                logging.debug("IPA: DNS A record lookup failed for '%s'" % hostname)
+                self.log.debug("IPA: DNS A record lookup failed for '%s'" % hostname)
                 raise ipaerror.gen_exception(ipaerror.INPUT_NOT_DNS_A_RECORD)
             else:
-                logging.debug("IPA: found %d records for '%s'" % (len(rs), hostname))
+                self.log.debug("IPA: found %d records for '%s'" % (len(rs), hostname))
         """
 
         # At some point we'll support multiple realms
