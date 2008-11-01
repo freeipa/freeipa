@@ -22,8 +22,36 @@
 All constants centralized in one file.
 """
 
+
 # The section to read in the config files, i.e. [global]
 CONFIG_SECTION = 'global'
+
+
+# Log format for console output
+LOG_FORMAT_STDERR = ': '.join([
+    '%(name)s',
+    '%(levelname)s',
+    '%(message)s',
+])
+
+
+# Log format for console output when env.dubug is True:
+LOG_FORMAT_STDERR_DEBUG = ' '.join([
+    '%(levelname)s',
+    '%(message)r',
+    '%(lineno)d',
+    '%(filename)s',
+])
+
+
+# Tab-delimited log format for file (easy to opened in a spreadsheet):
+LOG_FORMAT_FILE = ' '.join([
+    '%(created)f',
+    '%(levelname)s',
+    '%(message)r', # Using %r for repr() so message is a single line
+    '%(lineno)d',
+    '%(pathname)s',
+])
 
 
 # The default configuration for api.env
@@ -54,6 +82,11 @@ DEFAULT_CONFIG = (
     ('verbose', False),
     ('debug', False),
     ('mode', 'production'),
+
+    # Logging:
+    ('log_format_stderr', LOG_FORMAT_STDERR),
+    ('log_format_stderr_debug', LOG_FORMAT_STDERR_DEBUG),
+    ('log_format_file', LOG_FORMAT_FILE),
 
     # ********************************************************
     #  The remaining keys are never set from the values here!
@@ -87,20 +120,3 @@ DEFAULT_CONFIG = (
     ('log', None), # Path to log file
 
 )
-
-
-LOGGING_CONSOLE_FORMAT = ': '.join([
-    '%(name)s',
-    '%(levelname)s',
-    '%(message)s',
-])
-
-
-# Tab-delimited format designed to be easily opened in a spreadsheet:
-LOGGING_FILE_FORMAT = ' '.join([
-    '%(created)f',
-    '%(levelname)s',
-    '%(message)r', # Using %r for repr() so message is a single line
-    '%(pathname)s',
-    '%(lineno)d',
-])

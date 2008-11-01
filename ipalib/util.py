@@ -26,7 +26,6 @@ from os import path
 import imp
 import optparse
 import krbV
-from constants import LOGGING_CONSOLE_FORMAT, LOGGING_FILE_FORMAT
 
 
 def xmlrpc_marshal(*args, **kw):

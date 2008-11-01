@@ -35,7 +35,7 @@ from os import path
 import errors
 from errors import check_type, check_isinstance
 from config import Environment, Env
-from constants import LOGGING_FILE_FORMAT, LOGGING_CONSOLE_FORMAT, DEFAULT_CONFIG
+from constants import DEFAULT_CONFIG
 import util
 
 
@@ -785,14 +785,15 @@ class API(DictProxy):
 
         # Add stderr handler:
         stderr = logging.StreamHandler()
-        stderr.setFormatter(logging.Formatter(LOGGING_CONSOLE_FORMAT))
+        format = self.env.log_format_stderr
         if self.env.debug:
-            level = logging.DEBUG
+            format = self.env.log_format_stderr_debug
+            stderr.setLevel(logging.DEBUG)
         elif self.env.verbose:
-            level = logging.INFO
+            stderr.setLevel(logging.INFO)
         else:
-            level = logging.WARNING
-        stderr.setLevel(level)
+            stderr.setLevel(logging.WARNING)
+        stderr.setFormatter(logging.Formatter(format))
         log.addHandler(stderr)
 
         # Add file handler:
@@ -806,12 +807,11 @@ class API(DictProxy):
                 log.warn('Could not create log_dir %r', log_dir)
                 return
         handler = logging.FileHandler(self.env.log)
-        handler.setFormatter(logging.Formatter(LOGGING_FILE_FORMAT))
+        handler.setFormatter(logging.Formatter(self.env.log_format_file))
         if self.env.debug:
-            level = logging.DEBUG
+            handler.setLevel(logging.DEBUG)
         else:
-            level = logging.INFO
-        handler.setLevel(level)
+            handler.setLevel(logging.INFO)
         log.addHandler(handler)
 
     def bootstrap_from_options(self, options=None, context=None):
