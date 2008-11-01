@@ -144,7 +144,7 @@ class LoggingSimpleXMLRPCRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHa
 
 
 if __name__ == '__main__':
-    api.bootstrap(context='server')
+    api.bootstrap_from_options(context='server')
     api.finalize()
     logger = api.log
 

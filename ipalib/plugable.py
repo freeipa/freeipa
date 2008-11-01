@@ -26,6 +26,7 @@ http://docs.python.org/ref/sequence-types.html
 """
 
 import re
+import sys
 import inspect
 import threading
 import logging
@@ -36,6 +37,7 @@ from errors import check_type, check_isinstance
 from config import Environment, Env
 from constants import LOGGING_FILE_FORMAT, LOGGING_CONSOLE_FORMAT, DEFAULT_CONFIG
 import util
+
 
 
 class ReadOnly(object):
@@ -812,6 +814,31 @@ class API(DictProxy):
         handler.setLevel(level)
         log.addHandler(handler)
 
+    def bootstrap_from_options(self, options=None, context=None):
+        if options is None:
+            parser = util.add_global_options()
+            (options, args) = parser.parse_args(
+                list(s.decode('utf-8') for s in sys.argv[1:])
+            )
+        overrides = {}
+        if options.env is not None:
+            assert type(options.env) is list
+            for item in options.env:
+                try:
+                    (key, value) = item.split('=', 1)
+                except ValueError:
+                    # FIXME: this should raise an IPA exception with an
+                    # error code.
+                    # --Jason, 2008-10-31
+                    pass
+                overrides[str(key.strip())] = value.strip()
+        for key in ('conf', 'debug', 'verbose'):
+            value = getattr(options, key, None)
+            if value is not None:
+                overrides[key] = value
+        if context is not None:
+            overrides['context'] = context
+        self.bootstrap(**overrides)
 
     def load_plugins(self):
         """

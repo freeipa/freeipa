@@ -189,7 +189,6 @@ class test_CLI(ClassChecker):
         keys = tuple(api.env)
         added = (
                 'my_key',
-                'whatever',
                 'from_default_conf',
                 'from_cli_conf'
         )
@@ -203,8 +202,7 @@ class test_CLI(ClassChecker):
         home.write(config_default, '.ipa', 'default.conf')
         home.write(config_cli, '.ipa', 'cli.conf')
         o.bootstrap()
-        assert api.env.my_key == 'my_val'
-        assert api.env.whatever == 'Hello'
+        assert api.env.my_key == 'my_val,whatever=Hello'
         assert api.env.from_default_conf == 'set in default.conf'
         assert api.env.from_cli_conf == 'set in cli.conf'
         assert list(api.env) == sorted(keys + added)
@@ -213,22 +211,23 @@ class test_CLI(ClassChecker):
         """
         Test the `ipalib.cli.CLI.parse_globals` method.
         """
-        # Test with empty argv
+        # Test with empty argv:
         (o, api, home) = self.new()
         assert not hasattr(o, 'options')
         assert not hasattr(o, 'cmd_argv')
         assert o.isdone('parse_globals') is False
         o.parse_globals()
         assert o.isdone('parse_globals') is True
+        assert o.options.prompt_all is False
         assert o.options.interactive is True
-        assert o.options.verbose is False
-        assert o.options.config_file is None
-        assert o.options.environment is None
+        assert o.options.verbose is None
+        assert o.options.conf is None
+        assert o.options.env is None
         assert o.cmd_argv == tuple()
         e = raises(StandardError, o.parse_globals)
         assert str(e) == 'CLI.parse_globals() already called'
 
-        # Test with a populated argv
+        # Test with a populated argv:
         argv = ('-a', '-n', '-v', '-c', '/my/config.conf', '-e', 'my_key=my_val')
         cmd_argv = ('user-add', '--first', 'John', '--last', 'Doe')
         (o, api, home) = self.new(argv + cmd_argv)
@@ -240,8 +239,14 @@ class test_CLI(ClassChecker):
         assert o.options.prompt_all is True
         assert o.options.interactive is False
         assert o.options.verbose is True
-        assert o.options.config_file == '/my/config.conf'
-        assert o.options.environment == 'my_key=my_val'
+        assert o.options.conf == '/my/config.conf'
+        assert o.options.env == ['my_key=my_val']
         assert o.cmd_argv == cmd_argv
         e = raises(StandardError, o.parse_globals)
         assert str(e) == 'CLI.parse_globals() already called'
+
+        # Test with multiple -e args:
+        argv = ('-e', 'key1=val1', '-e', 'key2=val2')
+        (o, api, home) = self.new(argv)
+        o.parse_globals()
+        assert o.options.env == ['key1=val1', 'key2=val2']

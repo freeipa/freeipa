@@ -31,6 +31,7 @@ import errors
 import plugable
 import ipa_types
 from config import set_default_env, read_config
+import util
 
 def exit_error(error):
     sys.exit('ipa: ERROR: %s' % error)
@@ -303,19 +304,7 @@ class CLI(object):
         """
         self.__doing('bootstrap')
         self.parse_globals()
-        self.api.env.verbose = self.options.verbose
-        if self.options.config_file:
-            self.api.env.conf = self.options.config_file
-        overrides = {}
-        if self.options.environment:
-            for a in self.options.environment.split(','):
-                a = a.split('=', 1)
-                if len(a) < 2:
-                    parser.error('badly specified environment string,'\
-                            'use var1=val1[,var2=val2]..')
-                overrides[str(a[0].strip())] = a[1].strip()
-        overrides['context'] = 'cli'
-        self.api.bootstrap(**overrides)
+        self.api.bootstrap_from_options(self.options, context='cli')
 
     def parse_globals(self):
         """
@@ -337,17 +326,17 @@ class CLI(object):
                 help='Prompt for all missing options interactively')
         parser.add_option('-n', dest='interactive', action='store_false',
                 help='Don\'t prompt for any options interactively')
-        parser.add_option('-c', dest='config_file',
-                help='Specify different configuration file')
-        parser.add_option('-e', dest='environment',
-                help='Specify or override environment variables')
-        parser.add_option('-v', dest='verbose', action='store_true',
-                help='Verbose output')
+#        parser.add_option('-c', dest='config_file',
+#                help='Specify different configuration file')
+#        parser.add_option('-e', dest='environment',
+#                help='Specify or override environment variables')
+#        parser.add_option('-v', dest='verbose', action='store_true',
+#                help='Verbose output')
         parser.set_defaults(
             prompt_all=False,
             interactive=True,
-            verbose=False,
         )
+        util.add_global_options(parser)
         (options, args) = parser.parse_args(list(self.argv))
         self.options = options
         self.cmd_argv = tuple(args)
