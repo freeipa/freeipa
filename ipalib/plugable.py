@@ -814,7 +814,7 @@ class API(DictProxy):
             handler.setLevel(logging.INFO)
         log.addHandler(handler)
 
-    def bootstrap_from_options(self, options=None, context=None):
+    def bootstrap_with_global_options(self, options=None, context=None):
         if options is None:
             parser = util.add_global_options()
             (options, args) = parser.parse_args(

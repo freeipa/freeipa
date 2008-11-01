@@ -304,7 +304,7 @@ class CLI(object):
         """
         self.__doing('bootstrap')
         self.parse_globals()
-        self.api.bootstrap_from_options(self.options, context='cli')
+        self.api.bootstrap_with_global_options(self.options, context='cli')
 
     def parse_globals(self):
         """
@@ -318,6 +318,9 @@ class CLI(object):
 
             2. ``CLI.cmd_argv`` - a tuple containing the remainder of
                ``CLI.argv`` after the global options have been consumed.
+
+        The common global options are added using the
+        `util.add_global_options` function.
         """
         self.__doing('parse_globals')
         parser = optparse.OptionParser()
@@ -326,12 +329,6 @@ class CLI(object):
                 help='Prompt for all missing options interactively')
         parser.add_option('-n', dest='interactive', action='store_false',
                 help='Don\'t prompt for any options interactively')
-#        parser.add_option('-c', dest='config_file',
-#                help='Specify different configuration file')
-#        parser.add_option('-e', dest='environment',
-#                help='Specify or override environment variables')
-#        parser.add_option('-v', dest='verbose', action='store_true',
-#                help='Verbose output')
         parser.set_defaults(
             prompt_all=False,
             interactive=True,
