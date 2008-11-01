@@ -793,7 +793,7 @@ class API(DictProxy):
             stderr.setLevel(logging.INFO)
         else:
             stderr.setLevel(logging.WARNING)
-        stderr.setFormatter(logging.Formatter(format))
+        stderr.setFormatter(util.LogFormatter(format))
         log.addHandler(stderr)
 
         # Add file handler:
@@ -807,7 +807,7 @@ class API(DictProxy):
                 log.warn('Could not create log_dir %r', log_dir)
                 return
         handler = logging.FileHandler(self.env.log)
-        handler.setFormatter(logging.Formatter(self.env.log_format_file))
+        handler.setFormatter(util.LogFormatter(self.env.log_format_file))
         if self.env.debug:
             handler.setLevel(logging.DEBUG)
         else:

@@ -25,6 +25,8 @@ import os
 from os import path
 import imp
 import optparse
+import logging
+import time
 import krbV
 
 
@@ -122,3 +124,10 @@ def add_global_options(parser=None):
         help='Produce more verbose output',
     )
     return parser
+
+
+class LogFormatter(logging.Formatter):
+    """
+    Log formatter that uses UTC for all timestamps.
+    """
+    converter = time.gmtime

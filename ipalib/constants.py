@@ -45,8 +45,8 @@ LOG_FORMAT_STDERR_DEBUG = ' '.join([
 
 
 # Tab-delimited log format for file (easy to opened in a spreadsheet):
-LOG_FORMAT_FILE = ' '.join([
-    '%(created)f',
+LOG_FORMAT_FILE = '\t'.join([
+    '%(asctime)s',
     '%(levelname)s',
     '%(message)r', # Using %r for repr() so message is a single line
     '%(lineno)d',
