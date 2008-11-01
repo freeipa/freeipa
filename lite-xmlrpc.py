@@ -115,15 +115,19 @@ class LoggingSimpleXMLRPCRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHa
 
             # unmarshal the XML data
             params, method = xmlrpclib.loads(data)
+            logger.info('Call to %s(%s) from %s:%s', method,
+                ', '.join(repr(p) for p in params),
+                clientIP, port
+            )
 
             # Log client request
-            logger.info('Client request: \n%s\n' % data)
+            logger.debug('Client request: \n%s\n' % data)
 
             response = self._marshaled_dispatch(
                     data, getattr(self, '_dispatch', None))
 
             # Log server response
-            logger.info('Server response: \n%s\n' % response)
+            logger.debug('Server response: \n%s\n' % response)
         except Exception, e:
             # This should only happen if the module is buggy
             # internal error, report as HTTP server error
