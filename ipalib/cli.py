@@ -25,6 +25,7 @@ import re
 import sys
 import code
 import optparse
+import socket
 
 import frontend
 import errors
@@ -377,6 +378,9 @@ class CLI(object):
             if callable(cmd.output_for_cli):
                 cmd.output_for_cli(ret)
             return 0
+        except socket.error, e:
+            print e[1]
+            return 1
         except errors.GenericError, err:
             code = getattr(err,'faultCode',None)
             faultString = getattr(err,'faultString',None)

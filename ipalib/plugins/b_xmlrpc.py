@@ -61,7 +61,7 @@ class xmlrpc(Backend):
         try:
             return command(*params)
         except socket.error, e:
-            print e[1]
+            raise
         except xmlrpclib.Fault, e:
             err = errors.convertFault(e)
             raise err
