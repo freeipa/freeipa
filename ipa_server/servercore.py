@@ -159,14 +159,14 @@ def get_entry_by_dn (dn, sattrs=None):
        Multi-valued fields are represented as lists.
     """
     searchfilter = "(objectClass=*)"
-#    logging.info("IPA: get_entry_by_dn '%s'" % dn)
+    api.log.info("IPA: get_entry_by_dn '%s'" % dn)
     return get_base_entry(dn, searchfilter, sattrs)
 
 def get_entry_by_cn (cn, sattrs):
     """Get a specific entry by cn. Return as a dict of values.
        Multi-valued fields are represented as lists.
     """
-#    logging.info("IPA: get_entry_by_cn '%s'" % cn)
+    api.log.info("IPA: get_entry_by_cn '%s'" % cn)
 #    cn = self.__safe_filter(cn)
     searchfilter = "(cn=%s)" % cn
     return get_sub_entry("cn=accounts," + api.env.basedn, searchfilter, sattrs)
@@ -200,7 +200,7 @@ def get_user_by_uid (uid, sattrs):
     if sattrs is not None and not isinstance(sattrs,list):
         raise SyntaxError("sattrs is not a list")
 #        raise ipaerror.gen_exception(ipaerror.INPUT_INVALID_PARAMETER)
-#    logging.info("IPA: get_user_by_uid '%s'" % uid)
+    api.log.info("IPA: get_user_by_uid '%s'" % uid)
 #    uid = self.__safe_filter(uid)
     searchfilter = "(uid=" + uid + ")"
     return get_sub_entry("cn=accounts," + api.env.basedn, searchfilter, sattrs)
@@ -215,14 +215,14 @@ def uid_too_long(uid):
     if not isinstance(uid,basestring) or len(uid) == 0:
         # It is bad, but not too long
         return False
-#    logging.debug("IPA: __uid_too_long(%s)" % uid)
+    api.log.debug("IPA: __uid_too_long(%s)" % uid)
     try:
         config = get_ipa_config()
         maxlen = int(config.get('ipamaxusernamelength', 0))
         if maxlen > 0 and len(uid) > maxlen:
             return True
     except Exception, e:
-#        logging.debug("There was a problem " + str(e))
+        api.log.debug("There was a problem " + str(e))
         pass
 
     return False
@@ -337,11 +337,11 @@ def mark_entry_active (dn):
     entry = get_entry_by_dn(dn, ['dn', 'nsAccountlock'])
 
     if entry.get('nsaccountlock', 'false').lower() == "false":
-#        logging.debug("IPA: already active")
+        api.log.debug("IPA: already active")
         raise errors.AlreadyActiveError
 
     if has_nsaccountlock(dn):
-#        logging.debug("IPA: appears to have the nsaccountlock attribute")
+        api.log.debug("IPA: appears to have the nsaccountlock attribute")
         raise errors.HasNSAccountLock
 
     group = get_entry_by_cn("inactivated", None)
@@ -357,13 +357,13 @@ def mark_entry_active (dn):
 
     if entry.get('nsaccountlock', 'false').lower() == "false":
         # great, we're done
-#        logging.debug("IPA: removing from inactivated did it.")
-        return res
+        api.log.debug("IPA: removing from inactivated did it.")
+        return True
 
     # So still inactive, add them to activated
     group = get_entry_by_cn("activated", None)
     res = add_member_to_group(dn, group.get('dn'))
-#    logging.debug("IPA: added to activated.")
+    api.log.debug("IPA: added to activated.")
 
     return res
 
@@ -373,11 +373,11 @@ def mark_entry_inactive (dn):
     entry = get_entry_by_dn(dn, ['dn', 'nsAccountlock', 'memberOf'])
 
     if entry.get('nsaccountlock', 'false').lower() == "true":
-#        logging.debug("IPA: already marked as inactive")
+        api.log.debug("IPA: already marked as inactive")
         raise errors.AlreadyInactiveError
 
     if has_nsaccountlock(dn):
-#        logging.debug("IPA: appears to have the nsaccountlock attribute")
+        api.log.debug("IPA: appears to have the nsaccountlock attribute")
         raise errors.HasNSAccountLock
 
     # First see if they are in the activated group as this will override
@@ -399,7 +399,7 @@ def add_member_to_group(member_dn, group_dn):
     """
     Add a member to an existing group.
     """
-#    logging.info("IPA: add_member_to_group '%s' to '%s'" % (member_dn, group_dn))
+    api.log.info("IPA: add_member_to_group '%s' to '%s'" % (member_dn, group_dn))
     if member_dn.lower() == group_dn.lower():
         # You can't add a group to itself
         raise errors.SameGroupError
@@ -437,7 +437,7 @@ def remove_member_from_group(member_dn, group_dn=None):
         if member.get('uid') == "admin":
             raise ipaerror.gen_exception(ipaerror.INPUT_ADMIN_REQUIRED_IN_ADMINS)
     """
-#    logging.info("IPA: remove_member_from_group '%s' from '%s'" % (member_dn, group_dn))
+    api.log.info("IPA: remove_member_from_group '%s' from '%s'" % (member_dn, group_dn))
 
     members = group.get('member', False)
     if not members:
