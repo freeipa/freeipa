@@ -127,10 +127,10 @@ class ldap(CrudBackend):
         if not object_type:
             return None
 
-        search_filter = "(&(%s=%s)(objectclass=%s))" % (
+        search_filter = "(&(objectclass=%s)(%s=%s))" % (
+            object_type,
             key_attribute,
-            self.dn.escape_dn_chars(primary_key),
-            object_type
+            self.dn.escape_dn_chars(primary_key)
         )
 
         search_base = "%s, %s" % (self.api.env.container_accounts, self.api.env.basedn)
@@ -153,7 +153,7 @@ class ldap(CrudBackend):
         return servercore.get_ipa_config()
 
     def mark_entry_active(self, dn):
-        return servercore.mark_entry_inactive(dn)
+        return servercore.mark_entry_active(dn)
 
     def mark_entry_inactive(self, dn):
         return servercore.mark_entry_inactive(dn)
