@@ -22,6 +22,7 @@ Test the `ipalib/plugins/f_group` module.
 """
 
 import sys
+from xmlrpc_test import XMLRPC_test
 from ipalib import api
 from ipalib import errors
 from ipalib.cli import CLI
@@ -31,7 +32,7 @@ try:
 except StandardError:
     pass
 
-class test_Group:
+class test_Group(XMLRPC_test):
     """
     Test the `f_group` plugin.
     """
