@@ -64,14 +64,7 @@ class xmlrpc(Backend):
             print e[1]
         except xmlrpclib.Fault, e:
             err = errors.convertFault(e)
-            code = getattr(err,'faultCode',None)
-            faultString = getattr(err,'faultString',None)
-            if not code:
-                raise err
-            if code < errors.IPA_ERROR_BASE:
-                print "%s: %s" % (code, faultString)
-            else:
-                print "%s: %s" % (code, getattr(err,'__doc__',''))
+            raise err
         return
 
 api.register(xmlrpc)

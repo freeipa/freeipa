@@ -377,6 +377,16 @@ class CLI(object):
             if callable(cmd.output_for_cli):
                 cmd.output_for_cli(ret)
             return 0
+        except errors.GenericError, err:
+            code = getattr(err,'faultCode',None)
+            faultString = getattr(err,'faultString',None)
+            if not code:
+                raise err
+            if code < errors.IPA_ERROR_BASE:
+                print "%s: %s" % (code, faultString)
+            else:
+                print "%s: %s" % (code, getattr(err,'__doc__',''))
+            return 1
         except StandardError, e:
             print e
             return 2
