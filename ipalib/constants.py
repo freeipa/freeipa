@@ -69,6 +69,7 @@ DEFAULT_CONFIG = (
     ('container_group', 'cn=groups,cn=accounts'),
     ('container_service', 'cn=services,cn=accounts'),
     ('container_host', 'cn=computers,cn=accounts'),
+    ('container_hostgroup', 'cn=hostgroups,cn=accounts'),
 
     # Ports, hosts, and URIs:
     ('lite_xmlrpc_port', 8888),

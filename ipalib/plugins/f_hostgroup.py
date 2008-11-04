@@ -222,7 +222,8 @@ class hostgroup_add_member(frontend.Command):
         Param('group', primary_key=True),
     )
     takes_options = (
-        Param('groups?', doc='comma-separated list of groups to add'),
+        Param('groups?', doc='comma-separated list of host groups to add'),
+        Param('hosts?', doc='comma-separated list of hosts to add'),
     )
     def execute(self, cn, **kw):
         """
@@ -231,7 +232,8 @@ class hostgroup_add_member(frontend.Command):
         Returns the updated group entry
 
         :param cn: The group name to add new members to.
-        :param kw: groups is a comma-separated list of groups to add
+        :param kw: groups is a comma-separated list of host groups to add
+        :param kw: hosts is a comma-separated list of hosts to add
         """
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("cn", cn, hostgroup_filter)
@@ -244,6 +246,16 @@ class hostgroup_add_member(frontend.Command):
             if not m: continue
             try:
                 member_dn = ldap.find_entry_dn("cn", m, hostgroup_filter)
+                to_add.append(member_dn)
+            except errors.NotFound:
+                add_failed.append(m)
+                continue
+
+        members = kw.get('hosts', '').split(',')
+        for m in members:
+            if not m: continue
+            try:
+                member_dn = ldap.find_entry_dn("cn", m, "ipaHost")
                 to_add.append(member_dn)
             except errors.NotFound:
                 add_failed.append(m)
@@ -278,6 +290,7 @@ class hostgroup_remove_member(frontend.Command):
         Param('group', primary_key=True),
     )
     takes_options = (
+        Param('hosts?', doc='comma-separated list of hosts to add'),
         Param('groups?', doc='comma-separated list of groups to remove'),
     )
     def execute(self, cn, **kw):
@@ -288,6 +301,7 @@ class hostgroup_remove_member(frontend.Command):
 
         :param cn: The group name to add new members to.
         :param kw: groups is a comma-separated list of groups to remove
+        :param kw: hosts is a comma-separated list of hosts to add
         """
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("cn", cn, hostgroup_filter)
@@ -300,6 +314,16 @@ class hostgroup_remove_member(frontend.Command):
             if not m: continue
             try:
                 member_dn = ldap.find_entry_dn("cn", m, hostgroup_filter)
+                to_remove.append(member_dn)
+            except errors.NotFound:
+                remove_failed.append(m)
+                continue
+
+        members = kw.get('hosts', '').split(',')
+        for m in members:
+            if not m: continue
+            try:
+                member_dn = ldap.find_entry_dn("cn", m, "ipaHost")
                 to_remove.append(member_dn)
             except errors.NotFound:
                 remove_failed.append(m)
