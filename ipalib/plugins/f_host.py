@@ -55,6 +55,7 @@ def validate_host(cn):
         return 'Fully-qualified hostname required'
     return None
 
+default_attributes = ['cn','description','localityname','nshostlocation','nshardwareplatform','nsosversion']
 
 class host(frontend.Object):
     """
@@ -213,6 +214,9 @@ api.register(host_mod)
 
 class host_find(crud.Find):
     'Search the hosts.'
+    takes_options = (
+        Param('all?', type=ipa_types.Bool(), doc='Retrieve all attributes'),
+    )
     def get_args(self):
         """
         Override Find.get_args() so we can exclude the validation rules
@@ -233,6 +237,10 @@ class host_find(crud.Find):
 
         # Can't use ldap.get_object_type() since cn is also used for group dns
         kw['objectclass'] = "ipaHost"
+        if kw.get('all', False):
+            kw['attributes'] = ['*']
+        else:
+            kw['attributes'] = default_attributes
         return ldap.search(**kw)
     def output_for_cli(self, hosts):
         if not hosts:
@@ -275,7 +283,7 @@ class host_show(crud.Get):
         if kw.get('all', False):
             return ldap.retrieve(dn)
         else:
-            value = ldap.retrieve(dn, ['cn','description','localityname','nshostlocation','nshardwareplatform','nsosversion'])
+            value = ldap.retrieve(dn, default_attributes)
             del value['dn']
             return value
     def output_for_cli(self, host):
