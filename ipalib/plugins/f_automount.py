@@ -180,7 +180,8 @@ api.register(automount_delmap)
 class automount_delkey(crud.Del):
     'Delete an automount key.'
     takes_options = (
-        Param('key',
+        Param('automountkey',
+            cli_name='key',
             doc='The automount key to remove'),
     )
     def execute(self, mapname, **kw):
@@ -195,7 +196,7 @@ class automount_delkey(crud.Del):
         dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap")
         keys = api.Command['automount_getkeys'](mapname)
         keydn = None
-        keyname = kw.get('key').lower()
+        keyname = kw.get('automountkey').lower()
         if keys:
             for k in keys:
                 if k.get('automountkey').lower() == keyname:
@@ -336,6 +337,10 @@ class automount_findkey(crud.Find):
     takes_options = (
         Param('all?', type=ipa_types.Bool(), doc='Retrieve all attributes'),
     )
+    def get_args(self):
+        return (Param('automountkey',
+                   cli_name='key',
+                   doc='An entry in an automount map'),)
     def execute(self, term, **kw):
         ldap = self.api.Backend.ldap
 
@@ -399,7 +404,8 @@ api.register(automount_showmap)
 class automount_showkey(crud.Get):
     'Examine an existing automount key.'
     takes_options = (
-        Param('key',
+        Param('automountkey',
+            cli_name='key',
             doc='The automount key to display'),
         Param('all?', type=ipa_types.Bool(), doc='Retrieve all attributes'),
     )
@@ -410,13 +416,13 @@ class automount_showkey(crud.Get):
         Returns the entry
 
         :param mapname: The mapname to examine
-        :param kw: "key" the key to retrieve
+        :param kw: "automountkey" the key to retrieve
         :param kw: "all" set to True = return all attributes
         """
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap")
         keys = api.Command['automount_getkeys'](mapname)
-        keyname = kw.get('key').lower()
+        keyname = kw.get('automountkey').lower()
         keydn = None
         if keys:
             for k in keys:
@@ -463,7 +469,12 @@ class automount_getkeys(frontend.Command):
         """
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap")
-        return ldap.get_one_entry(dn, 'objectclass=*', ['automountkey'])
+        try:
+            keys = ldap.get_one_entry(dn, 'objectclass=*', ['automountkey'])
+        except errors.NotFound:
+            keys = []
+
+        return keys
     def output_for_cli(self, keys):
         if keys:
             for k in keys:
