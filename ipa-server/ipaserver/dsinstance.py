@@ -111,7 +111,7 @@ def is_ds_running():
     try:
         (sout, serr) = ipautil.run(["/sbin/service", "dirsrv", "status"])
         if sout.find("is stopped") >= 0:
-            ret = False       
+            ret = False
     except ipautil.CalledProcessError:
         ret = False
     return ret
@@ -469,8 +469,8 @@ class DsInstance(service.Service):
         status = True
         try:
             certdb.load_cacert(cacert_fname)
-        except CalledProcessError, e:
-            logging.critical("Error importaing CA cert file named [%s]: %s" %
+        except ipalib.CalledProcessError, e:
+            logging.critical("Error importing CA cert file named [%s]: %s" %
                              (cacert_fname, str(e)))
             status = False
         # restart the directory server
