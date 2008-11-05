@@ -388,7 +388,11 @@ class ReplicationManager:
 
         self.suffix = ipaldap.IPAdmin.normalizeDN(dsinstance.realm_to_suffix(realm_name))
 
-        local_id = self._get_replica_id(self.conn, other_conn)
+        if not iswinsync:
+            local_id = self._get_replica_id(self.conn, other_conn)
+        else:
+            # there is no other side to get a replica ID from
+            local_id = self._get_replica_id(self.conn, self.conn)
         self.basic_replication_setup(self.conn, local_id)
 
         if not iswinsync:
