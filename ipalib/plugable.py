@@ -32,6 +32,7 @@ import threading
 import logging
 import os
 from os import path
+import subprocess
 import errors
 from errors import check_type, check_isinstance
 from config import Environment, Env
@@ -365,6 +366,16 @@ class Plugin(ReadOnly):
             if hasattr(api, name):
                 assert not hasattr(self, name)
                 setattr(self, name, getattr(api, name))
+
+    def call(self, *args):
+        """
+        Call an external command via ``subprocess.call``.
+
+        Returns the exit status of the call.
+        """
+        if hasattr(self, 'log'):
+            self.log.debug('Calling %r', args)
+        return subprocess.call(args)
 
     def __repr__(self):
         """
