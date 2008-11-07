@@ -202,8 +202,8 @@ class Env(object):
         """
         self.__doing('_finalize_core')
         self.__do_if_not_done('_bootstrap')
-        self._merge_config(self.conf)
-        if self.conf_default != self.conf:
+        if self.__d.get('mode', None) != 'dummy':
+            self._merge_config(self.conf)
             self._merge_config(self.conf_default)
         if 'in_server' not in self:
             self.in_server = (self.context == 'server')
@@ -335,7 +335,13 @@ class Env(object):
         """
         return key in self.__d
 
-    def __iter__(self): # Fix
+    def __len__(self):
+        """
+        Return number of variables currently set.
+        """
+        return len(self.__d)
+
+    def __iter__(self):
         """
         Iterate through keys in ascending order.
         """

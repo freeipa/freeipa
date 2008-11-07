@@ -808,7 +808,7 @@ class API(DictProxy):
         log.addHandler(stderr)
 
         # Add file handler:
-        if self.env.mode == 'unit_test':
+        if self.env.mode in ('dummy', 'unit_test'):
             return # But not if in unit-test mode
         log_dir = path.dirname(self.env.log)
         if not path.isdir(log_dir):
@@ -860,7 +860,7 @@ class API(DictProxy):
         """
         self.__doing('load_plugins')
         self.__do_if_not_done('bootstrap')
-        if self.env.mode == 'unit_test':
+        if self.env.mode in ('dummy', 'unit_test'):
             return
         util.import_plugins_subpackage('ipalib')
         if self.env.in_server:
