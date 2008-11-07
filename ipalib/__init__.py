@@ -368,7 +368,7 @@ Because this is quite useful, we are going to revise our golden rule somewhat:
 Defining arguments and options for your command
 -----------------------------------------------
 
-You can define a command can accept arbitrary arguments and options.
+You can define a command that will accept specific arguments and options.
 For example:
 
 >>> from ipalib import Param
