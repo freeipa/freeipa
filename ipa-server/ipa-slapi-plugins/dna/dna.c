@@ -100,6 +100,9 @@
 
 #define FEATURE_DESC    "IPA Distributed Numeric Assignment"
 #define PLUGIN_DESC     "IPA Distributed Numeric Assignment plugin"
+#define PLUGIN_DESC_INT_PREOP     PLUGIN_DESC " preop internal"
+#define PLUGIN_DESC_POSTOP     PLUGIN_DESC " postop"
+#define PLUGIN_DESC_INT_POSTOP     PLUGIN_DESC " postop internal"
 
 static Slapi_PluginDesc pdesc = { FEATURE_DESC,
     "FreeIPA project", "FreeIPA/1.0",
@@ -131,6 +134,8 @@ static PRRWLock *g_dna_cache_lock;
 static void *_PluginID = NULL;
 static char *_PluginDN = NULL;
 
+static int g_plugin_started = 0;
+
 
 /*
  * new value lock
@@ -145,6 +150,7 @@ static Slapi_Mutex *g_new_value_lock;
 int ipa_dna_init(Slapi_PBlock * pb);
 static int dna_start(Slapi_PBlock * pb);
 static int dna_close(Slapi_PBlock * pb);
+static int dna_internal_preop_init(Slapi_PBlock *pb);
 static int dna_postop_init(Slapi_PBlock * pb);
 
 /**
@@ -265,7 +271,7 @@ int ipa_dna_init(Slapi_PBlock * pb)
 	 * Store the plugin identity for later use.
 	 * Used for internal operations
 	 */
-
+    
     slapi_pblock_get(pb, SLAPI_PLUGIN_IDENTITY, &plugin_identity);
     PR_ASSERT(plugin_identity);
     setPluginID(plugin_identity);
@@ -282,12 +288,21 @@ int ipa_dna_init(Slapi_PBlock * pb)
                          (void *) dna_mod_pre_op) != 0 ||
         slapi_pblock_set(pb, SLAPI_PLUGIN_PRE_ADD_FN,
                          (void *) dna_add_pre_op) != 0 ||
+        /* internal preoperation */
+        slapi_register_plugin("internalpreoperation",  /* op type */
+                              1,        /* Enabled */
+                              "dna_internal_preop_init",   /* this function desc */
+                              dna_internal_preop_init,  /* init func */
+                              PLUGIN_DESC_INT_PREOP,      /* plugin desc */
+                              NULL,     /* ? */
+                              plugin_identity   /* access control */
+        ) ||
         /* the config change checking post op */
         slapi_register_plugin("postoperation",  /* op type */
                               1,        /* Enabled */
-                              "ipa_dna_init",   /* this function desc */
+                              "dna_postop_init",   /* this function desc */
                               dna_postop_init,  /* init func for post op */
-                              PLUGIN_DESC,      /* plugin desc */
+                              PLUGIN_DESC_POSTOP,      /* plugin desc */
                               NULL,     /* ? */
                               plugin_identity   /* access control */
         )
@@ -299,6 +314,26 @@ int ipa_dna_init(Slapi_PBlock * pb)
 
     slapi_log_error(SLAPI_LOG_TRACE, DNA_PLUGIN_SUBSYSTEM,
                     "<-- ipa_dna_init\n");
+    return status;
+}
+
+
+static int
+dna_internal_preop_init(Slapi_PBlock *pb)
+{
+    int status = DNA_SUCCESS;
+
+    if (slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION,
+                         SLAPI_PLUGIN_VERSION_01) != 0 ||
+        slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION,
+                         (void *) &pdesc) != 0 ||
+        slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_PRE_MODIFY_FN,
+                         (void *) dna_mod_pre_op) != 0 ||
+        slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_PRE_ADD_FN,
+                         (void *) dna_add_pre_op) != 0) {
+        status = DNA_FAILURE;
+    }
+
     return status;
 }
 
@@ -339,6 +374,11 @@ static int dna_start(Slapi_PBlock * pb)
 
     slapi_log_error(SLAPI_LOG_TRACE, DNA_PLUGIN_SUBSYSTEM,
                     "--> dna_start\n");
+
+    /* Check if we're already started */
+    if (g_plugin_started) {
+        goto done;
+    }
 
     g_dna_cache_lock = PR_NewRWLock(PR_RWLOCK_RANK_NONE, "dna");
     g_new_value_lock = slapi_new_mutex();
@@ -381,11 +421,13 @@ static int dna_start(Slapi_PBlock * pb)
         return DNA_FAILURE;
     }
 
+    g_plugin_started = 1;
     slapi_log_error(SLAPI_LOG_PLUGIN, DNA_PLUGIN_SUBSYSTEM,
                     "dna: ready for service\n");
     slapi_log_error(SLAPI_LOG_TRACE, DNA_PLUGIN_SUBSYSTEM,
                     "<-- dna_start\n");
 
+done:
     return DNA_SUCCESS;
 }
 
@@ -1151,6 +1193,10 @@ static int dna_pre_op(Slapi_PBlock * pb, int modtype)
 
     slapi_log_error(SLAPI_LOG_TRACE, DNA_PLUGIN_SUBSYSTEM,
                     "--> dna_pre_op\n");
+
+    /* Just bail if we aren't ready to service requests yet. */
+    if (!g_plugin_started)
+        goto bail;
 
     if (0 == (dn = dna_get_dn(pb)))
         goto bail;
