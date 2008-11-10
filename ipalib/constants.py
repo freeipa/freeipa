@@ -115,6 +115,7 @@ DEFAULT_CONFIG = (
     ('context', None), # Name of context, default is 'default'
     ('conf', None), # Path to config file
     ('conf_default', None), # Path to common default config file
+    ('conf_dir', None), # Directory containing config files
 
     # Set in Env._finalize_core():
     ('in_server', None), # Whether or not running in-server (bool)

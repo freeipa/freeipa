@@ -520,7 +520,7 @@ This will typically be called before any plugins are registered.  For example:
 7
 >>> api.bootstrap(in_server=True) # We want to execute, not forward
 >>> len(api.env)
-33
+34
 
 If your plugin requires new environment variables *and* will be included in
 the freeIPA built-in plugins, you should add the defaults for your variables

@@ -186,6 +186,8 @@ class Env(object):
             self.conf = path.join(base, '%s.conf' % self.context)
         if 'conf_default' not in self:
             self.conf_default = path.join(base, 'default.conf')
+        if 'conf_dir' not in self:
+            self.conf_dir = base
 
     def _finalize_core(self, **defaults):
         """
