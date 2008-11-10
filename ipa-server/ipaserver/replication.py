@@ -31,6 +31,10 @@ WIN_USER_CONTAINER="cn=Users"
 IPA_USER_CONTAINER="cn=users,cn=accounts"
 PORT = 636
 TIMEOUT = 120
+
+IPA_REPLICA = 1
+WINSYNC = 2
+
 class ReplicationManager:
     """Manage replication agreements between DS servers, and sync
     agreements with Windows servers"""
@@ -260,14 +264,14 @@ class ReplicationManager:
             windomain = '.'.join(ldap.explode_dn(self.suffix, 1))
         entry.setValues("nsds7WindowsDomain", windomain)
 
-    def agreement_dn(self, conn):
-        cn = "meTo%s%d" % (conn.host, PORT)
+    def agreement_dn(self, hostname, port=PORT):
+        cn = "meTo%s%d" % (hostname, port)
         dn = "cn=%s, %s" % (cn, self.replica_dn())
 
         return (cn, dn)
 
     def setup_agreement(self, a, b, **kargs):
-        cn, dn = self.agreement_dn(b)
+        cn, dn = self.agreement_dn(b.host)
         try:
             a.getEntry(dn, ldap.SCOPE_BASE)
             return
@@ -300,8 +304,8 @@ class ReplicationManager:
 
         entry = a.waitForEntry(entry)
 
-    def delete_agreement(self, other):
-        cn, dn = self.agreement_dn(other)
+    def delete_agreement(self, hostname):
+        cn, dn = self.agreement_dn(hostname)
         return self.conn.deleteEntry(dn)
 
     def check_repl_init(self, conn, agmtdn):
@@ -351,7 +355,7 @@ class ReplicationManager:
         print "Starting replication, please wait until this has completed."
         if conn == None:
             conn = self.conn
-        cn, dn = self.agreement_dn(conn)
+        cn, dn = self.agreement_dn(conn.host)
 
         mod = [(ldap.MOD_ADD, 'nsds5BeginReplicaRefresh', 'start')]
         other_conn.modify_s(dn, mod)
@@ -383,6 +387,7 @@ class ReplicationManager:
             if iswinsync:
                 logging.info("Could not validate connection to remote server %s:%d - continuing" %
                              (other_hostname, oth_port))
+                logging.info("The error was: %s" % e)
             else:
                 raise e
 
@@ -429,3 +434,16 @@ class ReplicationManager:
                      (dn, schedule))
         mod = [(ldap.MOD_REPLACE, 'nsDS5ReplicaUpdateSchedule', [ schedule ])]
         conn.modify_s(dn, mod)
+
+    def get_agreement_type(self, hostname):
+        cn, dn = self.agreement_dn(hostname)
+
+        entry = self.conn.getEntry(dn, ldap.SCOPE_BASE)
+
+        objectclass = entry.getValues("objectclass")
+
+        for o in objectclass:
+            if o.lower() == "nsdswindowsreplicationagreement":
+                return WINSYNC
+
+        return IPA_REPLICA

@@ -93,12 +93,15 @@ def list_masters(replman, verbose):
             print "  last update ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastupdateend))
     
 def del_master(replman, hostname):
-    dirman_passwd = getpass.getpass("Directory Manager password (%s): " % hostname)
-    other_replman = replication.ReplicationManager(hostname, dirman_passwd)
-    other_replman.suffix = get_suffix()
+    t = replman.get_agreement_type(hostname)
 
-    replman.delete_agreement(other_replman.conn)
-    other_replman.delete_agreement(replman.conn)
+    if t == replication.IPA_REPLICA:
+        dirman_passwd = getpass.getpass("Directory Manager password (%s): " % hostname)
+        other_replman = replication.ReplicationManager(hostname, dirman_passwd)
+        other_replman.suffix = get_suffix()
+        other_replman.delete_agreement(replman.conn.host)
+
+    replman.delete_agreement(hostname)
 
 def add_master(replman, hostname, options):
     other_args = {}
