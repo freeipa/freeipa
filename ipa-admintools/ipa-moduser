@@ -204,7 +204,7 @@ def main():
                 set_add_usage("add")
                 sys.exit(1)
             (attr,value) = a
-            cvalue = user.getValue(attr)
+            cvalue = user.getValues(attr)
             if cvalue:
                 if isinstance(cvalue,str):
                     cvalue = [cvalue]
