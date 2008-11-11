@@ -49,15 +49,15 @@ The tutorial examples all have this pattern:
 
     ::
 
-        >>> from ipalib import Command, get_standard_api
-        >>> api = get_standard_api()
+        >>> from ipalib import Command, create_api
+        >>> api = create_api()
         >>> class my_command(Command):
         ...     pass
         ...
         >>> api.register(my_command)
         >>> api.finalize()
 
-In the tutorial we call `get_standard_api()` to create an *example* instance
+In the tutorial we call `create_api()` to create an *example* instance
 of `plugable.API` to work with.  But a real plugin will simply use
 ``ipalib.api``, the standard run-time instance of `plugable.API`.
 
@@ -99,8 +99,8 @@ this class itself (instead of an instance of the class).  To be a command
 plugin, your plugin must subclass from `frontend.Command` (or from a subclass
 thereof).  Here is our first example:
 
->>> from ipalib import Command, get_standard_api
->>> api = get_standard_api()
+>>> from ipalib import Command, create_api
+>>> api = create_api()
 >>> class my_command(Command): # Step 1, define class
 ...     """My example plugin."""
 ...
@@ -137,7 +137,7 @@ implement a ``run()`` method, like this:
 ...     def run(self):
 ...         return 'My run() method was called!'
 ...
->>> api = get_standard_api()
+>>> api = create_api()
 >>> api.register(my_command)
 >>> api.finalize()
 >>> api.Command.my_command() # Call your command
@@ -184,7 +184,7 @@ For example, say you have a command plugin like this:
 If ``my_command`` is loaded in a *client* context, ``forward()`` will be
 called:
 
->>> api = get_standard_api()
+>>> api = create_api()
 >>> api.env.in_server = False # run() will dispatch to forward()
 >>> api.register(my_command)
 >>> api.finalize()
@@ -194,7 +194,7 @@ called:
 On the other hand, if ``my_command`` is loaded in a *server* context,
 ``execute()`` will be called:
 
->>> api = get_standard_api()
+>>> api = create_api()
 >>> api.env.in_server = True # run() will dispatch to execute()
 >>> api.register(my_command)
 >>> api.finalize()
@@ -253,7 +253,7 @@ Here is a simple example:
 ...         """Part of your API."""
 ...         return 'Stuff got done.'
 ...
->>> api = get_standard_api()
+>>> api = create_api()
 >>> api.register(my_backend)
 >>> api.finalize()
 >>> api.Backend.my_backend.do_stuff()
@@ -296,7 +296,7 @@ plugin can also access the ``my_backend`` plugin as simply
 This next example will tie everything together.  First we create our backend
 plugin:
 
->>> api = get_standard_api()
+>>> api = create_api()
 >>> api.env.in_server = True # We want to execute, not forward
 >>> class my_backend(Backend):
 ...     """My example backend plugin."""
@@ -330,7 +330,7 @@ it never tries to access the non-existent backend plugin at
 ``self.Backend.my_backend.``  To emphasize this point, here is one last
 example:
 
->>> api = get_standard_api()
+>>> api = create_api()
 >>> api.env.in_server = False # We want to forward, not execute
 >>> class my_command(Command):
 ...     """My example command plugin."""
@@ -364,7 +364,7 @@ It can be useful to have your ``execute()`` method call other command plugins.
 Among other things, this allows for meta-commands that conveniently call
 several other commands in a single operation.  For example:
 
->>> api = get_standard_api()
+>>> api = create_api()
 >>> api.env.in_server = True # We want to execute, not forward
 >>> class meta_command(Command):
 ...     """My meta-command plugin."""
@@ -416,7 +416,7 @@ For example:
 ...     def execute(self, programmer, **kw):
 ...         return '%s, go write more %s!' % (programmer, kw['stuff'])
 ...
->>> api = get_standard_api()
+>>> api = create_api()
 >>> api.env.in_server = True
 >>> api.register(nudge)
 >>> api.finalize()
@@ -528,7 +528,7 @@ When you create a fresh `plugable.API` instance, its ``env`` attribute is
 likewise a freshly created `config.Env` instance, which will already be
 populated with certain run-time information.  For example:
 
->>> api = get_standard_api()
+>>> api = create_api()
 >>> list(api.env)
 ['bin', 'dot_ipa', 'home', 'ipalib', 'mode', 'script', 'site_packages']
 
@@ -713,7 +713,7 @@ from frontend import Command, Object, Method, Property, Application
 from ipa_types import Bool, Int, Unicode, Enum
 from frontend import Param, DefaultFrom
 
-def get_standard_api(mode='dummy'):
+def create_api(mode='dummy'):
     """
     Return standard `plugable.API` instance.
 
@@ -743,4 +743,4 @@ def get_standard_api(mode='dummy'):
     return api
 
 
-api = get_standard_api(mode=None)
+api = create_api(mode=None)

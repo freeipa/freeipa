@@ -219,7 +219,7 @@ def get_api(**kw):
     instance and a `TempHome` instance.
     """
     home = TempHome()
-    api = ipalib.get_standard_api(mode='unit_test')
+    api = ipalib.create_api(mode='unit_test')
     api.env.in_tree = True
     for (key, value) in kw.iteritems():
         api.env[key] = value
