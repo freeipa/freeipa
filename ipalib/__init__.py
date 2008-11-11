@@ -25,45 +25,32 @@ Package containing core library.
  Tutorial for Plugin Authors
 =============================
 
-This tutorial gives a broad learn-by-doing introduction to writing plugins
-for freeIPA v2.  As not to overwhelm the reader, it does not cover every
-detail, but it does provides enough to get one started and is heavily
-cross-referenced with further documentation that (hopefully) fills in the
-missing details.
+This tutorial will introduce you to writing plugins for freeIPA v2. It does
+not cover every detail, but it provides enough to get you started and is
+heavily cross-referenced with further documentation that (hopefully) fills
+in the missing details.
 
-Where the documentation has left the reader confused, the many built-in
-plugins in `ipalib.plugins` and `ipa_server.plugins` provide real-life
-examples of how to write good plugins.
-
-*Note:*
-
-    This tutorial, along with all the Python docstrings in freeIPA v2,
-    uses the *reStructuredText* markup language.  For documentation on
-    reStructuredText, see:
-
-        http://docutils.sourceforge.net/rst.html
-
-    For documentation on using reStructuredText markup with epydoc, see:
-
-        http://epydoc.sourceforge.net/manual-othermarkup.html
+In addition to this tutorial, the many built-in plugins in `ipalib.plugins`
+and `ipa_server.plugins` provide real-life examples of how to write good
+plugins.
 
 
 ------------------------------------
 First steps: A simple command plugin
 ------------------------------------
 
-Our first example will create the most basic command plugin possible.  A
-command plugin simultaneously adds a new command that can be called through
+Our first example will create the most basic command plugin possible.  This
+command will be seen in the list of command plugins, but it wont be capable
+of actually doing anything yet.
+
+A command plugin simultaneously adds a new command that can be called through
 the command-line ``ipa`` script *and* adds a new XML-RPC method... the two are
 one in the same, simply invoked in different ways.
 
-All plugins must subclass from `plugable.Plugin`, and furthermore, must
-subclass from one of the base classes allowed by the `plugable.API` instance
-returned by the `get_standard_api()` function.
-
-To be a command plugin, your plugin must subclass from `frontend.Command`.
-Creating a basic plugin involves two steps, defining the class and then
-registering the class:
+A freeIPA plugin is a Python class, and when you create a plugin, you register
+this class itself (instead of an instance of the class).  To be a command
+plugin, your plugin must subclass from `frontend.Command` (or from a subclass
+thereof).  Here is our first example:
 
 >>> from ipalib import Command, get_standard_api
 >>> api = get_standard_api()
@@ -72,8 +59,8 @@ registering the class:
 ...
 >>> api.register(my_command) # Step 2, register class
 
-Notice that we are registering the ``my_command`` class itself and not an
-instance thereof.
+Notice that we are registering the ``my_command`` class itself, not an
+instance of ``my_command``.
 
 Until `plugable.API.finalize()` is called, your plugin class has not been
 instantiated nor the does the ``Command`` namespace yet exist.  For example:
@@ -86,8 +73,8 @@ True
 >>> api.Command.my_command.doc
 'My example plugin.'
 
-Notice that your plugin instance in accessed through an attribute named
-'my_command', the same name as your plugin class name.
+Notice that your plugin instance is accessed through an attribute named
+``my_command``, the same name as your plugin class name.
 
 
 ------------------------------
@@ -106,7 +93,7 @@ implement a ``run()`` method, like this:
 >>> api = get_standard_api()
 >>> api.register(my_command)
 >>> api.finalize()
->>> api.Command.my_command() # Call your plugin
+>>> api.Command.my_command() # Call your command
 'My run() method was called!'
 
 When `frontend.Command.__call__()` is called, it first validates any arguments
@@ -619,11 +606,11 @@ like this:
     $ ./ipa plugins
 
 
-----------------
-Learning more...
-----------------
+-----------------------------------
+Learning more about freeIPA plugins
+-----------------------------------
 
-To learn more about writing plugins, you should:
+To learn more about writing freeIPA plugins, you should:
 
     1. Look at some of the built-in plugins, like the frontend plugins in
        `ipalib.plugins.f_user` and the backend plugins in
@@ -632,6 +619,45 @@ To learn more about writing plugins, you should:
     2. Learn about the base classes for frontend plugins in `ipalib.frontend`.
 
     3. Learn about the core plugin framework in `ipalib.plugable`.
+
+Furthermore, the freeIPA plugin architecture was inspired by the Bazaar plugin
+architecture.  Although the two are different enough that learning how to
+write plugins for Bazaar will not particularly help you write plugins for
+freeIPA, some might be interested in the documentation on writing plugins for
+Bazaar, available here:
+
+    http://bazaar-vcs.org/WritingPlugins
+
+If nothing else, we just want to give credit where credit is deserved!
+However, freeIPA does not use any *code* from Bazaar... it merely borrows a
+little inspiration.
+
+
+--------------------------
+A note on docstring markup
+--------------------------
+
+Lastly, a quick note on markup:  All the Python docstrings in freeIPA v2
+(including this tutorial) use the *reStructuredText* markup language.  For
+information on reStructuredText, see:
+
+    http://docutils.sourceforge.net/rst.html
+
+For information on using reStructuredText markup with epydoc, see:
+
+    http://epydoc.sourceforge.net/manual-othermarkup.html
+
+
+--------------------------------------------------
+Next steps: get involved with freeIPA development!
+--------------------------------------------------
+
+The freeIPA team is always interested in feedback and contribution from the
+community.  To get involved with freeIPA, see the *Contribute* page on
+freeIPA.org:
+
+    http://freeipa.org/page/Contribute
+
 '''
 
 import plugable
