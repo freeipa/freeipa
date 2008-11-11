@@ -19,7 +19,7 @@
 
 
 '''
-Package containing core library.
+Package containing the core library.
 
 =============================
  Tutorial for Plugin Authors
@@ -33,6 +33,54 @@ in the missing details.
 In addition to this tutorial, the many built-in plugins in `ipalib.plugins`
 and `ipa_server.plugins` provide real-life examples of how to write good
 plugins.
+
+
+----------------------------
+How this tutorial is written
+----------------------------
+
+The code examples in this tutorial are presented as if entered into a Python
+interactive interpreter session.  As such, when you create a real plugin in
+a source file, a few details will be different (in addition to the fact that
+you will never include the ``>>>`` nor ``...`` at the beginning of each line
+of code).
+
+The tutorial examples all have this pattern:
+
+    ::
+
+        >>> from ipalib import Command, get_standard_api
+        >>> api = get_standard_api()
+        >>> class my_command(Command):
+        ...     pass
+        ...
+        >>> api.register(my_command)
+        >>> api.finalize()
+
+We call `get_standard_api()` to get an *example* instance of `plugable.API`
+to work with.  But a real plugin will use the standard *run-time* instance
+of `plugable.API`, which is available at ``ipalib.api``.
+
+A real plugin will have this pattern:
+
+    ::
+
+        from ipalib import Command, api
+
+        class my_command(Command):
+            pass
+        api.register(my_command)
+
+The differences are that in a real plugin you will use the standard
+``ipalib.api`` instance of `plugable.API` and that you will *not* call
+`plugable.API.finalize()`.  When in doubt, look at some of the built-in
+plugins for guidance, like those in `ipalib.plugins`.
+
+If don't know what the Python *interactive interpreter* is, or are confused
+about what this *Python* is in the first place, then you probably should start
+with the Python tutorial:
+
+    http://docs.python.org/tutorial/index.html
 
 
 ------------------------------------
@@ -67,7 +115,7 @@ instantiated nor the does the ``Command`` namespace yet exist.  For example:
 
 >>> hasattr(api, 'Command')
 False
->>> api.finalize()
+>>> api.finalize() # plugable.API.finalize()
 >>> hasattr(api.Command, 'my_command')
 True
 >>> api.Command.my_command.doc
@@ -561,7 +609,7 @@ terminal, like this:
 
     ::
 
-    $ ./ipa console
+        $ ./ipa console
 
 By default, ``in_server`` is False.  If you want to start the console in a
 server context (so that all the backend plugins are loaded), you can use the
@@ -569,41 +617,41 @@ server context (so that all the backend plugins are loaded), you can use the
 
     ::
 
-    $ ./ipa -e in_server=True console
+        $ ./ipa -e in_server=True console
 
 You can specify multiple environment variables by including the ``-e`` option
 multiple times, like this:
 
     ::
 
-    $ ./ipa -e in_server=True -e mode=dummy console
+        $ ./ipa -e in_server=True -e mode=dummy console
 
 The space after the ``-e`` is optional.  This is equivalent to the above command:
 
     ::
 
-    $ ./ipa -ein_server=True -emode=dummy console
+        $ ./ipa -ein_server=True -emode=dummy console
 
 The ``env`` command will print out the full environment in key=value pairs,
 like this:
 
     ::
 
-    $ ./ipa env
+        $ ./ipa env
 
 If you use the ``--server`` option, it will forward the call to the server
 over XML-RPC and print out what the environment is on the server, like this:
 
     ::
 
-    $ ./ipa env --server
+        $ ./ipa env --server
 
 The ``plugins`` command will show details of all the plugin that are loaded,
 like this:
 
     ::
 
-    $ ./ipa plugins
+        $ ./ipa plugins
 
 
 -----------------------------------
