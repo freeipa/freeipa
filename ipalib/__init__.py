@@ -42,8 +42,8 @@ How this tutorial is written
 The code examples in this tutorial are presented as if entered into a Python
 interactive interpreter session.  As such, when you create a real plugin in
 a source file, a few details will be different (in addition to the fact that
-you will never include the ``>>>`` nor ``...`` at the beginning of each line
-of code).
+you will never include the ``>>>`` nor ``...`` that the interpreter places at
+the beginning of each line of code).
 
 The tutorial examples all have this pattern:
 
@@ -57,9 +57,9 @@ The tutorial examples all have this pattern:
         >>> api.register(my_command)
         >>> api.finalize()
 
-We call `get_standard_api()` to get an *example* instance of `plugable.API`
-to work with.  But a real plugin will use the standard *run-time* instance
-of `plugable.API`, which is available at ``ipalib.api``.
+In the tutorial we call `get_standard_api()` to create an *example* instance
+of `plugable.API` to work with.  But a real plugin will simply use
+``ipalib.api``, the standard run-time instance of `plugable.API`.
 
 A real plugin will have this pattern:
 
@@ -71,8 +71,7 @@ A real plugin will have this pattern:
             pass
         api.register(my_command)
 
-The differences are that in a real plugin you will use the standard
-``ipalib.api`` instance of `plugable.API` and that you will *not* call
+As seen above, also note that in a real plugin you will *not* call
 `plugable.API.finalize()`.  When in doubt, look at some of the built-in
 plugins for guidance, like those in `ipalib.plugins`.
 
