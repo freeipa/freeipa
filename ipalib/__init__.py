@@ -76,9 +76,9 @@ The differences are that in a real plugin you will use the standard
 `plugable.API.finalize()`.  When in doubt, look at some of the built-in
 plugins for guidance, like those in `ipalib.plugins`.
 
-If don't know what the Python *interactive interpreter* is, or are confused
-about what this *Python* is in the first place, then you probably should start
-with the Python tutorial:
+If you don't know what the Python *interactive interpreter* is, or are
+confused about what this *Python* is in the first place, then you probably
+should start with the Python tutorial:
 
     http://docs.python.org/tutorial/index.html
 
