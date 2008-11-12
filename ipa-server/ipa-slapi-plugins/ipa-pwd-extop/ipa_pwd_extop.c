@@ -140,9 +140,9 @@ struct ipapwd_encsalt {
 	krb5_int32	salt_type;
 };
 
-static const char *ipa_realm_dn = NULL;
-
-Slapi_Mutex *ipa_globals = NULL;
+static const char *ipa_realm_dn;
+static const char *ipa_pwd_config_dn;
+static const char *ipa_changepw_principal_dn;
 
 #define IPAPWD_PLUGIN_NAME   "ipa-pwd-extop"
 #define IPAPWD_FEATURE_DESC  "IPA Password Manager"
@@ -169,6 +169,8 @@ struct ipapwd_krbcfg {
     struct ipapwd_encsalt *supp_encsalts;
     int num_pref_encsalts;
     struct ipapwd_encsalt *pref_encsalts;
+    char **passsync_mgrs;
+    int num_passsync_mgrs;
 };
 
 static void free_ipapwd_krbcfg(struct ipapwd_krbcfg **cfg)
@@ -1982,26 +1984,26 @@ parse_req_done:
 	pwdata.timeNow = time(NULL);
 	pwdata.changetype = IPA_CHANGETYPE_NORMAL;
 
+    /*
+     *  (technically strcasecmp to compare DNs is not absolutely correct,
+     *  but it should work for the cases we care about here)
+     */
+
 	/* determine type of password change */
-	if (strcasecmp(dn, bindDN) != 0) {
-		char **bindexp;
+    /* special cases */
+    if ((strcasecmp(dn, bindDN) != 0) &&
+        (strcasecmp(ipa_changepw_principal_dn, bindDN) != 0)) {
+        int i;
 
-		pwdata.changetype = IPA_CHANGETYPE_ADMIN;
+        pwdata.changetype = IPA_CHANGETYPE_ADMIN;
 
-		bindexp = ldap_explode_dn(bindDN, 0);
-		if (bindexp) {
-			/* special case kpasswd and Directory Manager */
-			if ((strncasecmp(bindexp[0], "krbprincipalname=kadmin/changepw@", 33) == 0) &&
-			    (strcasecmp(&(bindexp[0][33]), krbcfg->realm) == 0)) {
-				pwdata.changetype = IPA_CHANGETYPE_NORMAL;
-			}
-			if ((strcasecmp(bindexp[0], "cn=Directory Manager") == 0) &&
-			    bindexp[1] == NULL) {
-				pwdata.changetype = IPA_CHANGETYPE_DSMGR;
-			}
-			ldap_value_free(bindexp);
-		}
-	}
+        for (i = 0; i < krbcfg->num_passsync_mgrs; i++) {
+            if (strcasecmp(krbcfg->passsync_mgrs[i], bindDN) == 0) {
+                pwdata.changetype = IPA_CHANGETYPE_DSMGR;
+                break;
+            }
+        }
+    }
 
 	/* check the policy */
 	ret = ipapwd_CheckPolicy(&pwdata);
@@ -2655,12 +2657,13 @@ static int new_ipapwd_encsalt(krb5_context krbctx, const char * const *encsalts,
 	return LDAP_SUCCESS;
 }
 
-static struct ipapwd_krbcfg *ipapwd_getConfig(const char *realm_dn)
+static struct ipapwd_krbcfg *ipapwd_getConfig(void)
 {
     krb5_error_code krberr;
     struct ipapwd_krbcfg *config = NULL;
     krb5_keyblock *kmkey = NULL;
     Slapi_Entry *realm_entry = NULL;
+    Slapi_Entry *config_entry = NULL;
     Slapi_Attr *a;
     Slapi_Value *v;
     BerElement *be = NULL;
@@ -2669,7 +2672,8 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(const char *realm_dn)
     const struct berval *bval;
     struct berval *mkey = NULL;
     char **encsalts;
-    int ret;
+    char *tmpstr;
+    int i, ret;
 
     config = calloc(1, sizeof(struct ipapwd_krbcfg));
     if (!config) {
@@ -2700,7 +2704,7 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(const char *realm_dn)
     }
 
     /* get the Realm Container entry */
-    ret = ipapwd_getEntry(realm_dn, &realm_entry, NULL);
+    ret = ipapwd_getEntry(ipa_realm_dn, &realm_entry, NULL);
     if (ret != LDAP_SUCCESS) {
         slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
                         "No realm Entry?\n");
@@ -2808,6 +2812,25 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(const char *realm_dn)
 
     slapi_entry_free(realm_entry);
 
+    /* get the Realm Container entry */
+    ret = ipapwd_getEntry(ipa_pwd_config_dn, &config_entry, NULL);
+    if (ret != LDAP_SUCCESS) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+                        "No config Entry? Impossible!\n");
+        goto free_and_error;
+    }
+    config->passsync_mgrs = slapi_entry_attr_get_charray(config_entry, "passSyncManagersDNs");
+    /* now add Directory Manager, it is always added by default */
+    tmpstr = slapi_ch_strdup("cn=Directory Manager");
+    slapi_ch_array_add(&config->passsync_mgrs, tmpstr);
+    if (config->passsync_mgrs == NULL) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+                        "Out of memory!\n");
+        goto free_and_error;
+    }
+    for (i = 0; config->passsync_mgrs[i]; i++) /* count */ ;
+    config->num_passsync_mgrs = i;
+
     return config;
 
 free_and_error:
@@ -2821,6 +2844,7 @@ free_and_error:
         if (config->krbctx) krb5_free_context(config->krbctx);
         free(config->pref_encsalts);
         free(config->supp_encsalts);
+        free(config->passsync_mgrs);
         free(config);
     }
     if (realm_entry) slapi_entry_free(realm_entry);
@@ -2865,7 +2889,7 @@ static int ipapwd_gen_checks(Slapi_PBlock *pb, char **errMesg,
 #endif
 
     /* get the kerberos context and master key */
-    *config = ipapwd_getConfig(ipa_realm_dn);
+    *config = ipapwd_getConfig();
     if (NULL == *config) {
         slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
                         "Error Retrieving Master Key");
@@ -3192,7 +3216,21 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     if (is_root) {
         pwdop->pwdata.changetype = IPA_CHANGETYPE_DSMGR;
     } else {
+        char *binddn;
+        int i;
+
         pwdop->pwdata.changetype = IPA_CHANGETYPE_ADMIN;
+
+        /* Check Bind DN */
+        slapi_pblock_get(pb, SLAPI_CONN_DN, &binddn);
+
+        /* if it is a passsync manager we also need to skip resets */
+        for (i = 0; i < krbcfg->num_passsync_mgrs; i++) {
+            if (strcasecmp(krbcfg->passsync_mgrs[i], binddn) == 0) {
+                pwdop->pwdata.changetype = IPA_CHANGETYPE_DSMGR;
+                break;
+            }
+        }
     }
 
     pwdop->pwdata.dn = slapi_ch_strdup(dn);
@@ -3559,6 +3597,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     } else {
         char *binddn;
         Slapi_DN *bdn, *tdn;
+        int i;
 
         /* Check Bind DN */
         slapi_pblock_get(pb, SLAPI_CONN_DN, &binddn);
@@ -3570,10 +3609,20 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
          * password change immediately as per our IPA policy */
         if (slapi_sdn_compare(bdn, tdn)) {
             pwdop->pwdata.changetype = IPA_CHANGETYPE_ADMIN;
+
+            /* if it is a passsync manager we also need to skip resets */
+            for (i = 0; i < krbcfg->num_passsync_mgrs; i++) {
+                if (strcasecmp(krbcfg->passsync_mgrs[i], binddn) == 0) {
+                    pwdop->pwdata.changetype = IPA_CHANGETYPE_DSMGR;
+                    break;
+                }
+            }
+
         }
 
         slapi_sdn_free(&bdn);
         slapi_sdn_free(&tdn);
+
     }
 
     pwdop->pwdata.dn = slapi_ch_strdup(dn);
@@ -3773,13 +3822,10 @@ static int ipapwd_start( Slapi_PBlock *pb )
 	krb5_context krbctx;
 	krb5_error_code krberr;
 	char *realm;
-	char *realm_dn;
 	char *config_dn;
 	char *partition_dn;
-	Slapi_Entry *config_entry;
+	Slapi_Entry *config_entry = NULL;
 	int ret;
-
-	ipa_globals = slapi_new_mutex();
 
 	krberr = krb5_init_context(&krbctx);
 	if (krberr) {
@@ -3787,49 +3833,60 @@ static int ipapwd_start( Slapi_PBlock *pb )
 		return LDAP_OPERATIONS_ERROR;
 	}
 
-	/*retrieve the master key from the stash file */
 	if (slapi_pblock_get(pb, SLAPI_TARGET_DN, &config_dn) != 0) {
 		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "No config DN?\n");
-		krb5_free_context(krbctx);
-		return LDAP_OPERATIONS_ERROR;
+		ret = LDAP_OPERATIONS_ERROR;
+		goto done;
 	}
 
 	if (ipapwd_getEntry(config_dn, &config_entry, NULL) != LDAP_SUCCESS) {
 		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "No config Entry?\n");
-		krb5_free_context(krbctx);
-		return LDAP_OPERATIONS_ERROR;
+		ret = LDAP_OPERATIONS_ERROR;
+		goto done;
 	}
 
 	partition_dn = slapi_entry_attr_get_charptr(config_entry, "nsslapd-realmtree");
 	if (!partition_dn) {
-		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Missing partition configuration entry (nsslapd-targetSubtree)!\n");
-		krb5_free_context(krbctx);
-		slapi_entry_free(config_entry);
-		return LDAP_OPERATIONS_ERROR;
+		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Missing partition configuration entry (nsslapd-realmTree)!\n");
+		ret = LDAP_OPERATIONS_ERROR;
+		goto done;
 	}
 
 	ret = krb5_get_default_realm(krbctx, &realm);
 	if (ret) {
 		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Failed to get default realm?!\n");
-		krb5_free_context(krbctx);
-		return LDAP_OPERATIONS_ERROR;
+		ret = LDAP_OPERATIONS_ERROR;
+		goto done;
 	}
-	realm_dn = slapi_ch_smprintf("cn=%s,cn=kerberos,%s", realm, partition_dn);
-	if (!realm_dn) {
+	ipa_realm_dn = slapi_ch_smprintf("cn=%s,cn=kerberos,%s", realm, partition_dn);
+	if (!ipa_realm_dn) {
 		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory ?\n");
 		free(realm);
-		krb5_free_context(krbctx);
-		slapi_entry_free(config_entry);
-		return LDAP_OPERATIONS_ERROR;
+		ret = LDAP_OPERATIONS_ERROR;
+		goto done;
 	}
 	free(realm);
 
-	slapi_lock_mutex(ipa_globals);
-	ipa_realm_dn = realm_dn;
-	slapi_unlock_mutex(ipa_globals);
+    ipa_pwd_config_dn = slapi_ch_strdup(config_dn);
+    if (!ipa_pwd_config_dn) {
+        slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory ?\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+    ipa_changepw_principal_dn =
+        slapi_ch_smprintf("krbprincipalname=kadmin/changepw@%s,%s",
+                          realm, ipa_realm_dn);
+    if (!ipa_changepw_principal_dn) {
+        slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory ?\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
 
+    ret = LDAP_SUCCESS;
+
+done:
 	krb5_free_context(krbctx);
-	slapi_entry_free(config_entry);
+	if (config_entry) slapi_entry_free(config_entry);
 	return ret;
 }
 
