@@ -25,6 +25,31 @@ from tests.util import raises, get_api, ClassChecker
 from ipalib import cli, plugable, frontend, backend
 
 
+class test_textui(ClassChecker):
+    _cls = cli.textui
+
+    def test_max_col_width(self):
+        """
+        Test the `ipalib.cli.textui.max_col_width` method.
+        """
+        o = self.cls()
+        e = raises(TypeError, o.max_col_width, 'hello')
+        assert str(e) == 'rows: need %r or %r; got %r' % (list, tuple, 'hello')
+        rows = [
+            'hello',
+            'naughty',
+            'nurse',
+        ]
+        assert o.max_col_width(rows) == len('naughty')
+        rows = (
+            ( 'a',  'bbb',  'ccccc'),
+            ('aa', 'bbbb', 'cccccc'),
+        )
+        assert o.max_col_width(rows, col=0) == 2
+        assert o.max_col_width(rows, col=1) == 4
+        assert o.max_col_width(rows, col=2) == 6
+
+
 def test_to_cli():
     """
     Test the `ipalib.cli.to_cli` function.

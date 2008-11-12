@@ -24,22 +24,11 @@ Misc frontend plugins.
 from ipalib import api, Command, Param, Bool
 
 
-class env_and_context(Command):
-    """
-    Base class for `env` and `context` commands.
-    """
-
-    def run(self, **kw):
-        if kw.get('server', False) and not self.api.env.in_server:
-            return self.forward()
-        return self.execute()
-
-    def output_for_cli(self, ret):
-        for (key, value) in ret:
-            print '%s = %r' % (key, value)
-
-
-class env(env_and_context):
+# FIXME: We should not let env return anything in_server
+# when mode == 'production'.  This would allow an attacker to see the
+# configuration of the server, potentially revealing compromising
+# information.  However, it's damn handy for testing/debugging.
+class env(Command):
     """Show environment variables"""
 
     takes_options = (
@@ -48,26 +37,19 @@ class env(env_and_context):
         ),
     )
 
+    def run(self, **kw):
+        if kw.get('server', False) and not self.api.env.in_server:
+            return self.forward()
+        return self.execute()
+
     def execute(self):
         return tuple(
             (key, self.api.env[key]) for key in self.api.env
         )
 
+    def output_for_cli(self, textui, result, **kw):
+        textui.print_name(self.name)
+        textui.print_keyval(result)
+        textui.print_count(result, '%d variable', '%d variables')
+
 api.register(env)
-
-
-class context(env_and_context):
-    """Show request context"""
-
-    takes_options = (
-        Param('server?', type=Bool(), default=False,
-            doc='Show request context in server',
-        ),
-    )
-
-    def execute(self):
-        return [
-            (key, self.api.context[key]) for key in self.api.Context
-        ]
-
-api.register(context)

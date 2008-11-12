@@ -22,6 +22,8 @@
 All constants centralized in one file.
 """
 
+# Used for a tab (or indentation level) when formatting for CLI:
+CLI_TAB = '  '  # Two spaces
 
 # The section to read in the config files, i.e. [global]
 CONFIG_SECTION = 'global'

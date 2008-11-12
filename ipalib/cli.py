@@ -22,20 +22,20 @@ Functionality for Command Line Interface.
 """
 
 import re
+import textwrap
 import sys
 import code
 import optparse
 import socket
 
 import frontend
+import backend
 import errors
 import plugable
 import ipa_types
 from config import set_default_env, read_config
 import util
-
-def exit_error(error):
-    sys.exit('ipa: ERROR: %s' % error)
+from constants import CLI_TAB
 
 
 def to_cli(name):
@@ -55,21 +55,189 @@ def from_cli(cli_name):
     return str(cli_name).replace('-', '_')
 
 
-class text_ui(frontend.Application):
+class textui(backend.Backend):
     """
-    Base class for CLI commands with special output needs.
+    Backend plugin to nicely format output to stdout.
     """
 
-    def print_dashed(self, string, top=True, bottom=True):
+    def get_tty_width(self):
+        """
+        Return the width (in characters) of output tty.
+
+        If stdout is not a tty, this method will return ``None``.
+        """
+        if sys.stdout.isatty():
+            return 80 # FIXME: we need to return the actual tty width
+
+    def max_col_width(self, rows, col=None):
+        """
+        Return the max width (in characters) of a specified column.
+
+        For example:
+
+        >>> ui = textui()
+        >>> rows = [
+        ...     ('a', 'package'),
+        ...     ('an', 'egg'),
+        ... ]
+        >>> ui.max_col_width(rows, col=0)  # len('an')
+        2
+        >>> ui.max_col_width(rows, col=1)  # len('package')
+        7
+        >>> ui.max_col_width(['a', 'cherry', 'py'])  # len('cherry')
+        6
+        """
+        if type(rows) not in (list, tuple):
+            raise TypeError(
+                'rows: need %r or %r; got %r' % (list, tuple, rows)
+            )
+        if len(rows) == 0:
+            return 0
+        if col is None:
+            return max(len(row) for row in rows)
+        return max(len(row[col]) for row in rows)
+
+    def print_dashed(self, string, above=True, below=True):
+        """
+        Print a string with with a dashed line above and/or below.
+
+        For example:
+
+        >>> ui = textui()
+        >>> ui.print_dashed('Dashed above and below.')
+        -----------------------
+        Dashed above and below.
+        -----------------------
+        >>> ui.print_dashed('Only dashed below.', above=False)
+        Only dashed below.
+        ------------------
+        >>> ui.print_dashed('Only dashed above.', below=False)
+        ------------------
+        Only dashed above.
+        """
         dashes = '-' * len(string)
-        if top:
+        if above:
             print dashes
         print string
-        if bottom:
+        if below:
             print dashes
 
-    def print_name(self, **kw):
-        self.print_dashed('%s:' % self.name, **kw)
+    def print_line(self, text, width=None):
+        """
+        Force printing on a single line, using ellipsis if needed.
+
+        For example:
+
+        >>> ui = textui()
+        >>> ui.print_line('This line can fit!', width=18)
+        This line can fit!
+        >>> ui.print_line('This line wont quite fit!', width=18)
+        This line wont ...
+
+        The above example aside, you normally should not specify the
+        ``width``.  When you don't, it is automatically determined by calling
+        `textui.get_tty_width()`.
+        """
+        if width is None:
+            width = self.get_tty_width()
+        if width is not None and width < len(text):
+            text = text[:width - 3] + '...'
+        print text
+
+    def print_indented(self, text, indent=1):
+        """
+        Print at specified indentation level.
+
+        For example:
+
+        >>> ui = textui()
+        >>> ui.print_indented('One indentation level.')
+          One indentation level.
+        >>> ui.print_indented('Two indentation levels.', indent=2)
+            Two indentation levels.
+        >>> ui.print_indented('No indentation.', indent=0)
+        No indentation.
+        """
+        print (CLI_TAB * indent + text)
+
+    def print_name(self, name):
+        """
+        Print a command name.
+
+        The typical use for this is to mark the start of output from a
+        command.  For example, a hypothetical ``show_status`` command would
+        output something like this:
+
+        >>> ui = textui()
+        >>> ui.print_name('show_status')
+        ------------
+        show-status:
+        ------------
+        """
+        self.print_dashed('%s:' % to_cli(name))
+
+    def print_keyval(self, rows, indent=1):
+        """
+        Print (key = value) pairs, one pair per line.
+
+        For example:
+
+        >>> items = [
+        ...     ('in_server', True),
+        ...     ('mode', 'production'),
+        ... ]
+        >>> ui = textui()
+        >>> ui.print_keyval(items)
+          in_server = True
+          mode = 'production'
+        >>> ui.print_keyval(items, indent=0)
+        in_server = True
+        mode = 'production'
+
+        Also see `textui.print_indented`.
+        """
+        for row in rows:
+            self.print_indented('%s = %r' % row, indent)
+
+    def print_count(self, count, singular, plural=None):
+        """
+        Print a summary count.
+
+        The typical use for this is to print the number of items returned
+        by a command, especially when this return count can vary.  This
+        preferably should be used as a summary and should be the final text
+        a command outputs.
+
+        For example:
+
+        >>> ui = textui()
+        >>> ui.print_count(1, '%d goose', '%d geese')
+        -------
+        1 goose
+        -------
+        >>> ui.print_count(['Don', 'Sue'], 'Found %d user', 'Found %d users')
+        -------------
+        Found 2 users
+        -------------
+
+        If ``count`` is not an integer, it must be a list or tuple, and then
+        ``len(count)`` is used as the count.
+        """
+        if type(count) is not int:
+            assert type(count) in (list, tuple)
+            count = len(count)
+        self.print_dashed(
+            self.choose_number(count, singular, plural)
+        )
+
+    def choose_number(self, n, singular, plural=None):
+        if n == 1 or plural is None:
+            return singular % n
+        return plural % n
+
+
+def exit_error(error):
+    sys.exit('ipa: ERROR: %s' % error)
 
 
 class help(frontend.Application):
@@ -87,10 +255,8 @@ class help(frontend.Application):
         self.application.build_parser(cmd).print_help()
 
 
-
-
 class console(frontend.Application):
-    'Start the IPA interactive Python console.'
+    """Start the IPA interactive Python console."""
 
     def run(self):
         code.interact(
@@ -99,7 +265,7 @@ class console(frontend.Application):
         )
 
 
-class show_api(text_ui):
+class show_api(frontend.Application):
     'Show attributes on dynamic API object'
 
     takes_args = ('namespaces*',)
@@ -153,7 +319,7 @@ class show_api(text_ui):
                     self.__traverse_namespace(n, attr, lines, tab + 2)
 
 
-class plugins(text_ui):
+class plugins(frontend.Application):
     """Show all loaded plugins"""
 
     def run(self):
@@ -162,21 +328,13 @@ class plugins(text_ui):
             (p.plugin, p.bases) for p in plugins
         )
 
-    def output_for_cli(self, result):
-        self.print_name()
-        first = True
+    def output_for_cli(self, textui, result, **kw):
+        textui.print_name(self.name)
         for (plugin, bases) in result:
-            if first:
-                first = False
-            else:
-                print ''
-            print '  Plugin: %s' % plugin
-            print '  In namespaces: %s' % ', '.join(bases)
-        if len(result) == 1:
-            s = '1 plugin loaded.'
-        else:
-            s = '%d plugins loaded.' % len(result)
-        self.print_dashed(s)
+            textui.print_indented(
+                '%s: %s' % (plugin, ', '.join(bases))
+            )
+        textui.print_count(result, '%d plugin loaded', '%s plugins loaded')
 
 
 cli_application_commands = (
@@ -293,6 +451,7 @@ class CLI(object):
         self.api.load_plugins()
         for klass in cli_application_commands:
             self.api.register(klass)
+        self.api.register(textui)
 
     def bootstrap(self):
         """
@@ -376,7 +535,7 @@ class CLI(object):
         try:
             ret = cmd(**kw)
             if callable(cmd.output_for_cli):
-                cmd.output_for_cli(ret)
+                cmd.output_for_cli(self.api.Backend.textui, ret, **kw)
             return 0
         except socket.error, e:
             print e[1]
