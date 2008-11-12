@@ -246,6 +246,43 @@ class ReplicationManager:
         chainbe = self.setup_chaining_backend(other_conn)
         self.enable_chain_on_update(chainbe)
 
+    def add_passsync_user(self, conn, password):
+        pass_dn = "uid=passsync,cn=sysaccounts,cn=etc,%s" % self.suffix
+        print "The user for the Windows PassSync service is %s" % pass_dn
+        try:
+            conn.getEntry(pass_dn, ldap.SCOPE_BASE)
+            print "Windows PassSync entry exists, not resetting password"
+            return
+        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            pass
+
+        # The user doesn't exist, add it
+        entry = ipaldap.Entry(pass_dn)
+        entry.setValues("objectclass", ["account", "simplesecurityobject"])
+        entry.setValues("uid", "passsync")
+        entry.setValues("userPassword", password)
+        conn.add_s(entry)
+
+        # Add it to the list of users allowed to bypass password policy
+        extop_dn = "cn=ipa_pwd_extop,cn=plugins,cn=config"
+        entry = conn.getEntry(extop_dn, ldap.SCOPE_BASE)
+        pass_mgrs = entry.getValues('passSyncManagersDNs')
+        if not pass_mgrs:
+            pass_mgrs = []
+        if not isinstance(pass_mgrs, list):
+            pass_mgrs = [pass_mgrs]
+        pass_mgrs.append(pass_dn)
+        mod = [(ldap.MOD_REPLACE, 'passSyncManagersDNs', pass_mgrs)]
+        conn.modify_s(extop_dn, mod)
+
+        # And finally grant it permission to write passwords
+        mod = [(ldap.MOD_ADD, 'aci',
+            ['(targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Windows PassSync service can write passwords"; allow (write) userdn="ldap:///%s";)' % pass_dn])]
+        try:
+            conn.modify_s(self.suffix, mod)
+        except ldap.TYPE_OR_VALUE_EXISTS:
+            logging.debug("passsync aci already exists in suffix %s on %s" % (self.suffix, conn.host))
+
     def setup_winsync_agmt(self, entry, **kargs):
         entry.setValues("objectclass", "nsDSWindowsReplicationAgreement")
         entry.setValues("nsds7WindowsReplicaSubtree",
@@ -407,6 +444,7 @@ class ReplicationManager:
             self.setup_agreement(self.conn, other_conn)
             return self.start_replication(other_conn)
         else:
+            self.add_passsync_user(self.conn, kargs.get("passsync"))
             self.setup_agreement(self.conn, other_conn, **kargs)
             return self.start_replication(self.conn, other_conn)
 

@@ -46,6 +46,8 @@ def parse_options():
                       help="Full path and filename of CA certificate to use with TLS/SSL to the remote server")
     parser.add_option("--win-subtree", dest="win_subtree",
                       help="DN of Windows subtree containing the users you want to sync (default cn=Users,<domain suffix)")
+    parser.add_option("--passsync", dest="passsync",
+                      help="Password for the Windows PassSync user")
 
     options, args = parser.parse_args()
 
@@ -115,10 +117,12 @@ def add_master(replman, hostname, options):
         other_args['cacert'] = options.cacert
     if options.win_subtree:
         other_args['win_subtree'] = options.win_subtree
+    if options.passsync:
+        other_args['passsync'] = options.passsync
     if options.winsync:
         other_args['winsync'] = True
-        if not options.binddn or not options.bindpw or not options.cacert:
-            logging.error("The arguments --binddn, --bindpw, and --cacert are required to create a winsync agreement")
+        if not options.binddn or not options.bindpw or not options.cacert or not options.passsync:
+            logging.error("The arguments --binddn, --bindpw, --passsync and --cacert are required to create a winsync agreement")
             sys.exit(1)
     if options.cacert:
         # have to install the given CA cert before doing anything else
