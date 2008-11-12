@@ -380,12 +380,53 @@ class ReplicationManager:
 
         return done, hasError
 
+    def check_repl_update(self, conn, agmtdn):
+        done = False
+        hasError = 0
+        attrlist = ['cn', 'nsds5replicaUpdateInProgress',
+                    'nsds5ReplicaLastUpdateStatus', 'nsds5ReplicaLastUpdateStart',
+                    'nsds5ReplicaLastUpdateEnd']
+        entry = conn.getEntry(agmtdn, ldap.SCOPE_BASE, "(objectclass=*)", attrlist)
+        if not entry:
+            print "Error reading status from agreement", agmtdn
+            hasError = 1
+        else:
+            inprogress = entry.nsds5replicaUpdateInProgress
+            status = entry.nsds5ReplicaLastUpdateStatus
+            start = entry.nsds5ReplicaLastUpdateStart
+            end = entry.nsds5ReplicaLastUpdateEnd
+            # incremental update is done if inprogress is false and end >= start
+            done = inprogress and inprogress.lower() == 'false' and start and end and (start <= end)
+            logging.info("Replication Update in progress: %s: status: %s: start: %s: end: %s" %
+                         (inprogress, status, start, end))
+            if not done and status: # check for errors
+                # status will usually be a number followed by a string
+                # number != 0 means error
+                rc, msg = status.split(' ', 1)
+                if rc != '0':
+                    hasError = 1
+                    done = True
+
+        return done, hasError
+
     def wait_for_repl_init(self, conn, agmtdn):
         done = False
         haserror = 0
         while not done and not haserror:
             time.sleep(1)  # give it a few seconds to get going
             done, haserror = self.check_repl_init(conn, agmtdn)
+        return haserror
+
+    def wait_for_repl_update(self, conn, agmtdn, maxtries=600):
+        done = False
+        haserror = 0
+        while not done and not haserror and maxtries > 0:
+            time.sleep(1)  # give it a few seconds to get going
+            done, haserror = self.check_repl_update(conn, agmtdn)
+            maxtries -= 1
+        if maxtries == 0: # too many tries
+            print "Error: timeout: could not determine agreement status: please check your directory server logs for possible errors"
+            haserror = 1
         return haserror
 
     def start_replication(self, other_conn, conn=None):
@@ -446,6 +487,10 @@ class ReplicationManager:
         else:
             self.add_passsync_user(self.conn, kargs.get("passsync"))
             self.setup_agreement(self.conn, other_conn, **kargs)
+            logging.info("Added new sync agreement, waiting for it to become ready . . .")
+            cn, dn = self.agreement_dn(other_hostname)
+            self.wait_for_repl_update(self.conn, dn, 30)
+            logging.info("Agreement is ready, starting replication . . .")
             return self.start_replication(self.conn, other_conn)
 
     def initialize_replication(self, dn, conn):
