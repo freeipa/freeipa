@@ -535,7 +535,8 @@ class CLI(object):
         try:
             ret = cmd(**kw)
             if callable(cmd.output_for_cli):
-                cmd.output_for_cli(self.api.Backend.textui, ret, **kw)
+                (args, options) = cmd.params_2_args_options(kw)
+                cmd.output_for_cli(self.api.Backend.textui, ret, *args, **options)
             return 0
         except socket.error, e:
             print e[1]

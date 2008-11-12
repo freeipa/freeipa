@@ -39,8 +39,8 @@ class env(Command):
         ),
     )
 
-    def run(self, variables, **kw):
-        if kw['server'] and not self.env.in_server:
+    def run(self, variables, **options):
+        if options['server'] and not self.env.in_server:
             return self.forward(variables)
         return self.execute(variables)
 
@@ -56,7 +56,7 @@ class env(Command):
             )
         return tuple(self.find_keys(variables))
 
-    def output_for_cli(self, textui, result, **kw):
+    def output_for_cli(self, textui, result, variables, **options):
         if len(result) == 0:
             return
         textui.print_name(self.name)

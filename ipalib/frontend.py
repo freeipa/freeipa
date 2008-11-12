@@ -511,7 +511,7 @@ class Command(plugable.Plugin):
         'options',
         'params',
         'args_to_kw',
-        'kw_to_args',
+        'params_2_args_options',
         'output_for_cli',
     ))
     takes_options = tuple()
@@ -536,8 +536,8 @@ class Command(plugable.Plugin):
         kw = self.convert(**kw)
         kw.update(self.get_default(**kw))
         self.validate(**kw)
-        args = tuple(kw.pop(name) for name in self.args)
-        return self.run(*args, **kw)
+        (args, options) = self.params_2_args_options(kw)
+        return self.run(*args, **options)
 
     def args_to_kw(self, *values):
         """
@@ -569,11 +569,15 @@ class Command(plugable.Plugin):
             else:
                 break
 
-    def kw_to_args(self, **kw):
+    def params_2_args_options(self, params):
         """
-        Map keyword into positional arguments.
+        Split params into (args, kw).
         """
-        return tuple(kw.get(name, None) for name in self.args)
+        args = tuple(params.get(name, None) for name in self.args)
+        options = dict(
+            (name, params.get(name, None)) for name in self.options
+        )
+        return (args, options)
 
     def normalize(self, **kw):
         """

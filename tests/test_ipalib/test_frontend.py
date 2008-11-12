@@ -735,18 +735,17 @@ class test_Command(ClassChecker):
         e = raises(errors.ArgumentError, o.args_to_kw, 1, 2, 3)
         assert str(e) == 'example takes at most 2 arguments'
 
-    def test_kw_to_args(self):
+    def test_params_2_args_options(self):
         """
-        Test the `ipalib.frontend.Command.kw_to_args` method.
+        Test the `ipalib.frontend.Command.params_2_args_options` method.
         """
-        assert 'kw_to_args' in self.cls.__public__ # Public
-        o = self.get_instance(args=('one', 'two?'))
-        assert o.kw_to_args() == (None, None)
-        assert o.kw_to_args(whatever='hello') == (None, None)
-        assert o.kw_to_args(one='the one') == ('the one', None)
-        assert o.kw_to_args(two='the two') == (None, 'the two')
-        assert o.kw_to_args(whatever='hello', two='Two', one='One') == \
-            ('One', 'Two')
+        assert 'params_2_args_options' in self.cls.__public__ # Public
+        o = self.get_instance(args=['one'], options=['two'])
+        assert o.params_2_args_options({}) == ((None,), dict(two=None))
+        assert o.params_2_args_options(dict(one=1)) == ((1,), dict(two=None))
+        assert o.params_2_args_options(dict(two=2)) == ((None,), dict(two=2))
+        assert o.params_2_args_options(dict(two=2, one=1)) == \
+            ((1,), dict(two=2))
 
     def test_run(self):
         """
