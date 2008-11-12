@@ -639,8 +639,11 @@ class Command(plugable.Plugin):
         Generator method used by `Command.get_default`.
         """
         for param in self.params():
-            if param.required and kw.get(param.name, None) is None:
-                yield (param.name, param.get_default(**kw))
+            if kw.get(param.name, None) is None:
+                if param.required:
+                    yield (param.name, param.get_default(**kw))
+                else:
+                    yield (param.name, None)
 
     def validate(self, **kw):
         """
@@ -694,7 +697,7 @@ class Command(plugable.Plugin):
         """
         Forward call over XML-RPC to this same command on server.
         """
-        return self.api.Backend.xmlrpc.forward_call(self.name, *args, **kw)
+        return self.Backend.xmlrpc.forward_call(self.name, *args, **kw)
 
     def finalize(self):
         """

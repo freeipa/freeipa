@@ -31,23 +31,34 @@ from ipalib import api, Command, Param, Bool
 class env(Command):
     """Show environment variables"""
 
+    takes_args = ('variables*',)
+
     takes_options = (
         Param('server?', type=Bool(), default=False,
             doc='Show environment variables of server',
         ),
     )
 
-    def run(self, **kw):
-        if kw.get('server', False) and not self.api.env.in_server:
-            return self.forward()
-        return self.execute()
+    def run(self, variables, **kw):
+        if kw['server'] and not self.env.in_server:
+            return self.forward(variables)
+        return self.execute(variables)
 
-    def execute(self):
-        return tuple(
-            (key, self.api.env[key]) for key in self.api.env
-        )
+    def find_keys(self, variables):
+        for key in variables:
+            if key in self.env:
+                yield (key, self.env[key])
+
+    def execute(self, variables):
+        if variables is None:
+            return tuple(
+                (key, self.env[key]) for key in self.env
+            )
+        return tuple(self.find_keys(variables))
 
     def output_for_cli(self, textui, result, **kw):
+        if len(result) == 0:
+            return
         textui.print_name(self.name)
         textui.print_keyval(result)
         textui.print_count(result, '%d variable', '%d variables')

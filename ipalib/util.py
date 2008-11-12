@@ -34,6 +34,12 @@ def xmlrpc_marshal(*args, **kw):
     """
     Marshal (args, kw) into ((kw,) + args).
     """
+    kw = dict(
+        filter(lambda item: item[1] is not None, kw.iteritems())
+    )
+    args = tuple(
+        filter(lambda value: value is not None, args)
+    )
     return ((kw,) + args)
 
 

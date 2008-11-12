@@ -43,6 +43,10 @@ class xmlrpc(Backend):
         """
         Return an xmlrpclib.ServerProxy instance (the client).
         """
+        # FIXME: Rob, is there any reason we can't use allow_none=True here?
+        # Are there any reasonably common XML-RPC client implementations
+        # that don't support the <nil/> extension?
+        # See: http://docs.python.org/library/xmlrpclib.html
         uri = self.api.env.xmlrpc_uri
         if uri.startswith('https://'):
             return xmlrpclib.ServerProxy(uri,
