@@ -241,18 +241,40 @@ def exit_error(error):
 
 
 class help(frontend.Application):
-    'Display help on a command.'
+    '''Display help on a command.'''
 
-    takes_args = ['command']
+    takes_args = ['command?']
 
-    def run(self, key):
-        key = str(key)
+    def run(self, command):
+        textui = self.Backend.textui
+        if command is None:
+            self.print_commands()
+            return
+        key = str(command)
         if key not in self.application:
             print 'help: no such command %r' % key
             sys.exit(2)
         cmd = self.application[key]
         print 'Purpose: %s' % cmd.doc
         self.application.build_parser(cmd).print_help()
+
+    def print_commands(self):
+        std = set(self.Command) - set(self.Application)
+        print '\nStandard IPA commands:'
+        for key in sorted(std):
+            cmd = self.api.Command[key]
+            self.print_cmd(cmd)
+        print '\nSpecial CLI commands:'
+        for cmd in self.api.Application():
+            self.print_cmd(cmd)
+        print '\nUse the --help option to see all the global options'
+        print ''
+
+    def print_cmd(self, cmd):
+        print '  %s  %s' % (
+            to_cli(cmd.name).ljust(self.application.mcl),
+            cmd.doc,
+        )
 
 
 class console(frontend.Application):
@@ -406,12 +428,9 @@ class CLI(object):
         if self.api.env.mode == 'unit_test':
             return
         if len(self.cmd_argv) < 1:
-            self.print_commands()
-            print 'Usage: ipa [global-options] COMMAND'
-            sys.exit(2)
+            sys.exit(self.api.Command.help())
         key = self.cmd_argv[0]
         if key not in self:
-            self.print_commands()
             print 'ipa: ERROR: unknown command %r' % key
             sys.exit(2)
         return self.run_cmd(self[key])
@@ -505,23 +524,7 @@ class CLI(object):
             )
         self.__done.add(name)
 
-    def print_commands(self):
-        std = set(self.api.Command) - set(self.api.Application)
-        print '\nStandard IPA commands:'
-        for key in sorted(std):
-            cmd = self.api.Command[key]
-            self.print_cmd(cmd)
-        print '\nSpecial CLI commands:'
-        for cmd in self.api.Application():
-            self.print_cmd(cmd)
-        print '\nUse the --help option to see all the global options'
-        print ''
 
-    def print_cmd(self, cmd):
-        print '  %s  %s' % (
-            to_cli(cmd.name).ljust(self.mcl),
-            cmd.doc,
-        )
 
     def run_cmd(self, cmd):
         kw = self.parse(cmd)
