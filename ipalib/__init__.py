@@ -607,7 +607,7 @@ For example, say we setup a command like this:
 
 Normally when you invoke the ``ipa`` script, `cli.CLI.load_plugins()` will
 register the `cli.textui` backend plugin, but for the sake of our example,
-we  just create an instance here:
+we will just create an instance here:
 
 >>> from ipalib import cli
 >>> textui = cli.textui()  # We'll pass this to output_for_cli()
