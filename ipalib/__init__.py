@@ -572,64 +572,80 @@ signature:
 For example, say we setup a command like this:
 
 >>> class show_items(Command):
+...
+...     takes_args = ['key?']
+...
 ...     takes_options = [Param('reverse', type=Bool(), default=False)]
 ...
-...     def execute(self, **options):
-...         items = [
-...             ('apple', 'fruit'),
-...             ('dog', 'pet'),
+...     def execute(self, key, **options):
+...         items = dict(
+...             fruit='apple',
+...             pet='dog',
+...             city='Berlin',
+...         )
+...         if key in items:
+...             return [(key, items[key])]
+...         return [
+...             (k, items[k]) for k in sorted(items, reverse=options['reverse'])
 ...         ]
-...         if options['reverse']:
-...             items.reverse()
-...         return items
 ...
-...     def output_for_cli(self, textui, result, **options):
-...         textui.print_name(self.name)
-...         textui.print_keyval(result)
-...         format = '%d items'
-...         if options['reverse']:
-...             format += ' (in reverse order)'
-...         textui.print_count(result, format)
+...     def output_for_cli(self, textui, result, key, **options):
+...         if key is not None:
+...             textui.print_keyval(result)
+...         else:
+...             textui.print_name(self.name)
+...             textui.print_keyval(result)
+...             format = '%d items'
+...             if options['reverse']:
+...                 format += ' (in reverse order)'
+...             textui.print_count(result, format)
 ...
 >>> api = create_api()
 >>> api.env.in_server = True  # We want to execute, not forward.
 >>> api.register(show_items)
 >>> api.finalize()
 
-Normally `cli.CLI.load_plugins()` will register the `cli.textui` plugin, but for
-the sake of our example, we'll just create an instance here:
+Normally when you invoke the ``ipa`` script, `cli.CLI.load_plugins()` will
+register the `cli.textui` backend plugin, but for the sake of our example,
+we  just create an instance here:
 
 >>> from ipalib import cli
 >>> textui = cli.textui()  # We'll pass this to output_for_cli()
 
-For what we are concerned with in this example, calling your command through
-the ``ipa`` script basically will do the following:
+Now for what we are concerned with in this example, calling your command
+through the ``ipa`` script basically will do the following:
 
->>> options = dict(reverse=False)
->>> result = api.Command.show_items(**options)
->>> api.Command.show_items.output_for_cli(textui, result, **options)
+>>> result = api.Command.show_items()
+>>> api.Command.show_items.output_for_cli(textui, result, None, reverse=False)
 -----------
 show-items:
 -----------
-  apple = 'fruit'
-  dog = 'pet'
+  city = 'Berlin'
+  fruit = 'apple'
+  pet = 'dog'
 -------
-2 items
+3 items
 -------
 
 Similarly, calling it with ``reverse=True``  would result in the following:
 
->>> options = dict(reverse=True)
->>> result = api.Command.show_items(**options)
->>> api.Command.show_items.output_for_cli(textui, result, **options)
+>>> result = api.Command.show_items(reverse=True)
+>>> api.Command.show_items.output_for_cli(textui, result, None, reverse=True)
 -----------
 show-items:
 -----------
-  dog = 'pet'
-  apple = 'fruit'
+  pet = 'dog'
+  fruit = 'apple'
+  city = 'Berlin'
 --------------------------
-2 items (in reverse order)
+3 items (in reverse order)
 --------------------------
+
+Lastly, providing a ``key`` would result in the following:
+
+>>> result = api.Command.show_items('city')
+>>> api.Command.show_items.output_for_cli(textui, result, 'city', reverse=False)
+  city = 'Berlin'
 
 See the `ipalib.cli.textui` plugin for a description of its methods.
 
