@@ -97,30 +97,16 @@ class textui(backend.Backend):
             return max(len(row) for row in rows)
         return max(len(row[col]) for row in rows)
 
-    def print_dashed(self, string, above=True, below=True):
-        """
-        Print a string with with a dashed line above and/or below.
+    def choose_number(self, n, singular, plural=None):
+        if n == 1 or plural is None:
+            return singular % n
+        return plural % n
 
-        For example:
-
-        >>> ui = textui()
-        >>> ui.print_dashed('Dashed above and below.')
-        -----------------------
-        Dashed above and below.
-        -----------------------
-        >>> ui.print_dashed('Only dashed below.', above=False)
-        Only dashed below.
-        ------------------
-        >>> ui.print_dashed('Only dashed above.', below=False)
-        ------------------
-        Only dashed above.
+    def print_plain(self, string):
         """
-        dashes = '-' * len(string)
-        if above:
-            print dashes
+        Print exactly like ``print`` statement would.
+        """
         print string
-        if below:
-            print dashes
 
     def print_line(self, text, width=None):
         """
@@ -144,6 +130,35 @@ class textui(backend.Backend):
             text = text[:width - 3] + '...'
         print text
 
+    def print_paragraph(self, text, width=None):
+        """
+        Print a paragraph, automatically word-wrapping to tty width.
+
+        For example:
+
+        >>> text = '''
+        ... Python is a dynamic object-oriented programming language that can
+        ... be used for many kinds of software development.
+        ... '''
+        >>> ui = textui()
+        >>> ui.print_paragraph(text, width=45)
+        Python is a dynamic object-oriented
+        programming language that can be used for
+        many kinds of software development.
+
+        The above example aside, you normally should not specify the
+        ``width``.  When you don't, it is automatically determined by calling
+        `textui.get_tty_width()`.
+
+        The word-wrapping is done using the Python ``textwrap`` module.  See:
+
+            http://docs.python.org/library/textwrap.html
+        """
+        if width is None:
+            width = self.get_tty_width()
+        for line in textwrap.wrap(text.strip(), width):
+            print line
+
     def print_indented(self, text, indent=1):
         """
         Print at specified indentation level.
@@ -159,22 +174,6 @@ class textui(backend.Backend):
         No indentation.
         """
         print (CLI_TAB * indent + text)
-
-    def print_name(self, name):
-        """
-        Print a command name.
-
-        The typical use for this is to mark the start of output from a
-        command.  For example, a hypothetical ``show_status`` command would
-        output something like this:
-
-        >>> ui = textui()
-        >>> ui.print_name('show_status')
-        ------------
-        show-status:
-        ------------
-        """
-        self.print_dashed('%s:' % to_cli(name))
 
     def print_keyval(self, rows, indent=1):
         """
@@ -198,6 +197,47 @@ class textui(backend.Backend):
         """
         for row in rows:
             self.print_indented('%s = %r' % row, indent)
+
+    def print_dashed(self, string, above=True, below=True):
+        """
+        Print a string with a dashed line above and/or below.
+
+        For example:
+
+        >>> ui = textui()
+        >>> ui.print_dashed('Dashed above and below.')
+        -----------------------
+        Dashed above and below.
+        -----------------------
+        >>> ui.print_dashed('Only dashed below.', above=False)
+        Only dashed below.
+        ------------------
+        >>> ui.print_dashed('Only dashed above.', below=False)
+        ------------------
+        Only dashed above.
+        """
+        dashes = '-' * len(string)
+        if above:
+            print dashes
+        print string
+        if below:
+            print dashes
+
+    def print_name(self, name):
+        """
+        Print a command name.
+
+        The typical use for this is to mark the start of output from a
+        command.  For example, a hypothetical ``show_status`` command would
+        output something like this:
+
+        >>> ui = textui()
+        >>> ui.print_name('show_status')
+        ------------
+        show-status:
+        ------------
+        """
+        self.print_dashed('%s:' % to_cli(name))
 
     def print_count(self, count, singular, plural=None):
         """
@@ -229,11 +269,6 @@ class textui(backend.Backend):
         self.print_dashed(
             self.choose_number(count, singular, plural)
         )
-
-    def choose_number(self, n, singular, plural=None):
-        if n == 1 or plural is None:
-            return singular % n
-        return plural % n
 
     def prompt(self, label, default=None, get_values=None):
         """
