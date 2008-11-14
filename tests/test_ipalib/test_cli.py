@@ -148,12 +148,12 @@ class test_CLI(ClassChecker):
         assert o.api is api
         assert o.argv == tuple(argv)
 
-    def test_run(self):
+    def test_run_real(self):
         """
-        Test the `ipalib.cli.CLI.run` method.
+        Test the `ipalib.cli.CLI.run_real` method.
         """
         self.check_cascade(
-            'run',
+            'run_real',
             'finalize',
             'load_plugins',
             'bootstrap',

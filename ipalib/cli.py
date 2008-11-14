@@ -236,10 +236,6 @@ class textui(backend.Backend):
         return plural % n
 
 
-def exit_error(error):
-    sys.exit('ipa: ERROR: %s' % error)
-
-
 class help(frontend.Application):
     '''Display help on a command.'''
 
@@ -252,8 +248,7 @@ class help(frontend.Application):
             return
         key = str(command)
         if key not in self.application:
-            print 'help: no such command %r' % key
-            sys.exit(2)
+            raise errors.UnknownHelpError(key)
         cmd = self.application[key]
         print 'Purpose: %s' % cmd.doc
         self.application.build_parser(cmd).print_help()
@@ -398,7 +393,22 @@ class CLI(object):
         self.argv = tuple(argv)
         self.__done = set()
 
-    def run(self, init_only=False):
+    def run(self):
+        """
+        Call `CLI.run_real` in a try/except.
+        """
+        self.bootstrap()
+        try:
+            self.run_real()
+        except KeyboardInterrupt:
+            print ''
+            self.api.log.info('operation aborted')
+            sys.exit()
+        except errors.IPAError, e:
+            self.api.log.error(unicode(e))
+            sys.exit(e.faultCode)
+
+    def run_real(self):
         """
         Parse ``argv`` and potentially run a command.
 
@@ -423,17 +433,42 @@ class CLI(object):
                remaining initialization needed to use the `plugable.API`
                instance.
         """
-        self.__doing('run')
+        self.__doing('run_real')
         self.finalize()
         if self.api.env.mode == 'unit_test':
             return
         if len(self.cmd_argv) < 1:
-            sys.exit(self.api.Command.help())
+            self.api.Command.help()
+            return
         key = self.cmd_argv[0]
         if key not in self:
-            print 'ipa: ERROR: unknown command %r' % key
-            sys.exit(2)
-        return self.run_cmd(self[key])
+            raise errors.UnknownCommandError(key)
+        self.run_cmd(self[key])
+
+        # FIXME: Stuff that might need special handling still:
+#        # Now run the command
+#        try:
+#            ret = cmd(**kw)
+#            if callable(cmd.output_for_cli):
+#                (args, options) = cmd.params_2_args_options(kw)
+#                cmd.output_for_cli(self.api.Backend.textui, ret, *args, **options)
+#            return 0
+#        except socket.error, e:
+#            print e[1]
+#            return 1
+#        except errors.GenericError, err:
+#            code = getattr(err,'faultCode',None)
+#            faultString = getattr(err,'faultString',None)
+#            if not code:
+#                raise err
+#            if code < errors.IPA_ERROR_BASE:
+#                print "%s: %s" % (code, faultString)
+#            else:
+#                print "%s: %s" % (code, getattr(err,'__doc__',''))
+#            return 1
+#        except StandardError, e:
+#            print e
+#            return 2
 
     def finalize(self):
         """
@@ -466,7 +501,8 @@ class CLI(object):
         Finally, all the CLI-specific plugins are registered.
         """
         self.__doing('load_plugins')
-        self.bootstrap()
+        if 'bootstrap' not in self.__done:
+            self.bootstrap()
         self.api.load_plugins()
         for klass in cli_application_commands:
             self.api.register(klass)
@@ -524,39 +560,14 @@ class CLI(object):
             )
         self.__done.add(name)
 
-
-
     def run_cmd(self, cmd):
         kw = self.parse(cmd)
-        # If options.interactive, interactively validate params:
         if self.options.interactive:
-            try:
-                kw = self.prompt_interactively(cmd, kw)
-            except KeyboardInterrupt:
-                return 0
-        # Now run the command
-        try:
-            ret = cmd(**kw)
-            if callable(cmd.output_for_cli):
-                (args, options) = cmd.params_2_args_options(kw)
-                cmd.output_for_cli(self.api.Backend.textui, ret, *args, **options)
-            return 0
-        except socket.error, e:
-            print e[1]
-            return 1
-        except errors.GenericError, err:
-            code = getattr(err,'faultCode',None)
-            faultString = getattr(err,'faultString',None)
-            if not code:
-                raise err
-            if code < errors.IPA_ERROR_BASE:
-                print "%s: %s" % (code, faultString)
-            else:
-                print "%s: %s" % (code, getattr(err,'__doc__',''))
-            return 1
-        except StandardError, e:
-            print e
-            return 2
+            kw = self.prompt_interactively(cmd, kw)
+        result = cmd(**kw)
+        if callable(cmd.output_for_cli):
+            (args, options) = cmd.params_2_args_options(kw)
+            cmd.output_for_cli(self.api.Backend.textui, result, *args, **options)
 
     def prompt_interactively(self, cmd, kw):
         """

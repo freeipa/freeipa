@@ -98,6 +98,7 @@ class IPAError(StandardError):
     """
 
     format = None
+    faultCode = 1
 
     def __init__(self, *args):
         self.args = args
@@ -107,6 +108,16 @@ class IPAError(StandardError):
         Returns the string representation of this exception.
         """
         return self.format % self.args
+
+
+class InvocationError(IPAError):
+    pass
+
+class UnknownCommandError(InvocationError):
+    format = 'unknown command "%s"'
+
+class UnknownHelpError(InvocationError):
+    format = 'no command nor topic "%s"'
 
 
 class ArgumentError(IPAError):
