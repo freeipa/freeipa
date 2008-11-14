@@ -430,6 +430,18 @@ class test_Param(ClassChecker):
         o = self.cls(name, type=ipa_types.Enum(*values))
         assert o.get_values() == values
 
+    def test_repr(self):
+        """
+        Test the `ipalib.frontend.Param.__repr__` method.
+        """
+        for name in ['name', 'name?', 'name*', 'name+']:
+            o = self.cls(name)
+            assert repr(o) == 'Param(%r)' % name
+        o = self.cls('name', required=False)
+        assert repr(o) == "Param('name', required=False)"
+        o = self.cls('name', multivalue=True)
+        assert repr(o) == "Param('name', multivalue=True)"
+
 
 def test_create_param():
     """

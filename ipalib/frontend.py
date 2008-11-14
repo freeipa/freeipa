@@ -228,34 +228,34 @@ class Param(plugable.ReadOnly):
     )
 
     def __init__(self, name, **override):
+        self.__param_spec = name
         self.__override = override
+        self.__kw = dict(self.__defaults)
         if not ('required' in override or 'multivalue' in override):
             (name, kw_from_spec) = parse_param_spec(name)
-            override.update(kw_from_spec)
-        kw = dict(self.__defaults)
-        kw['cli_name'] = name
-        if not set(kw).issuperset(override):
-            extra = sorted(set(override) - set(kw))
+            self.__kw.update(kw_from_spec)
+        self.__kw['cli_name'] = name
+        if not set(self.__kw).issuperset(override):
+            extra = sorted(set(override) - set(self.__kw))
             raise TypeError(
                 'Param.__init__() takes no such kwargs: %s' % ', '.join(extra)
             )
-        kw.update(override)
-        self.__kw = kw
+        self.__kw.update(override)
         self.name = check_name(name)
-        self.cli_name = check_name(kw.get('cli_name', name))
+        self.cli_name = check_name(self.__kw.get('cli_name', name))
         self.type = self.__check_isinstance(ipa_types.Type, 'type')
         self.doc = self.__check_type(str, 'doc')
         self.required = self.__check_type(bool, 'required')
         self.multivalue = self.__check_type(bool, 'multivalue')
-        self.default = kw['default']
-        df = kw['default_from']
+        self.default = self.__kw['default']
+        df = self.__kw['default_from']
         if callable(df) and not isinstance(df, DefaultFrom):
             df = DefaultFrom(df)
         self.default_from = check_type(df, DefaultFrom, 'default_from',
             allow_none=True
         )
-        self.flags = frozenset(kw['flags'])
-        self.__normalize = kw['normalize']
+        self.flags = frozenset(self.__kw['flags'])
+        self.__normalize = self.__kw['normalize']
         self.rules = self.__check_type(tuple, 'rules')
         self.all_rules = (self.type.validate,) + self.rules
         self.primary_key = self.__check_type(bool, 'primary_key')
@@ -454,7 +454,11 @@ class Param(plugable.ReadOnly):
         """
         Return an expresion that could construct this `Param` instance.
         """
-        return make_repr(self.__class__.__name__, self.name, **self.__override)
+        return make_repr(
+            self.__class__.__name__,
+            self.__param_spec,
+            **self.__override
+        )
 
 
 def create_param(spec):

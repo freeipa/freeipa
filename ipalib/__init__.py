@@ -431,11 +431,11 @@ containing a command's arguments and options, respectively, as you can see:
 >>> list(api.Command.nudge.args) # Iterates through argument names
 ['programmer']
 >>> api.Command.nudge.args.programmer
-Param('programmer', Unicode())
+Param('programmer')
 >>> list(api.Command.nudge.options) # Iterates through option names
 ['stuff']
 >>> api.Command.nudge.options.stuff
-Param('stuff', Unicode())
+Param('stuff', default=u'documentation')
 >>> api.Command.nudge.options.stuff.default
 u'documentation'
 
