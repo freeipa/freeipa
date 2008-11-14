@@ -137,3 +137,12 @@ class LogFormatter(logging.Formatter):
     Log formatter that uses UTC for all timestamps.
     """
     converter = time.gmtime
+
+
+def make_repr(name, *args, **kw):
+    """
+    Construct a standard representation of a class instance.
+    """
+    args = [repr(a) for a in args]
+    kw = ['%s=%r' % (k, kw[k]) for k in sorted(kw)]
+    return '%s(%s)' % (name, ', '.join(args + kw))

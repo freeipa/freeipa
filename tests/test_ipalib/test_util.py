@@ -27,7 +27,7 @@ from ipalib import util
 
 def test_xmlrpc_marshal():
     """
-    Test the `util.xmlrpc_marshal` function.
+    Test the `ipalib.util.xmlrpc_marshal` function.
     """
     f = util.xmlrpc_marshal
     assert f() == ({},)
@@ -39,7 +39,7 @@ def test_xmlrpc_marshal():
 
 def test_xmlrpc_unmarshal():
     """
-    Test the `util.xmlrpc_unmarshal` function.
+    Test the `ipalib.util.xmlrpc_unmarshal` function.
     """
     f = util.xmlrpc_unmarshal
     assert f() == (tuple(), {})
@@ -47,3 +47,15 @@ def test_xmlrpc_unmarshal():
     assert f(dict(one=1, two=2)) == (tuple(), dict(one=1, two=2))
     assert f(dict(three=3, four=4), 'one', 'two') == \
         (('one', 'two'), dict(three=3, four=4))
+
+
+def test_make_repr():
+    """
+    Test the `ipalib.util.make_repr` function.
+    """
+    f = util.make_repr
+    assert f('my') == 'my()'
+    assert f('my', True, u'hello') == "my(True, u'hello')"
+    assert f('my', one=1, two='two') == "my(one=1, two='two')"
+    assert f('my', None, 3, dog='animal', apple='fruit') == \
+        "my(None, 3, apple='fruit', dog='animal')"

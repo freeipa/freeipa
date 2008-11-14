@@ -227,6 +227,7 @@ class Param(plugable.ReadOnly):
     )
 
     def __init__(self, name, **override):
+        self.__override = override
         if not ('required' in override or 'multivalue' in override):
             (name, kw_from_spec) = parse_param_spec(name)
             override.update(kw_from_spec)
