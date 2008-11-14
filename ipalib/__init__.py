@@ -496,7 +496,7 @@ transparently forwarded over the network (XML-RPC, JSON).  As such, the return
 values from your command must be usable by the least common denominator.
 
 Your command should return only simple data types and simple data structures,
-the kind that can be represented in an XML-RPC request or in the JSON format.
+the kinds that can be represented in an XML-RPC request or in the JSON format.
 The return values from your command's ``execute()`` method can include only
 the following:
 
@@ -508,8 +508,8 @@ the following:
         These can be ``dict``, ``list``, and ``tuple`` instances.  These
         compound values must contain only the simple scalar values above or
         other simple compound values.  These compound values can also be empty.
-        The ``list`` and ``tuple`` types are equivalent and can be used
-        interchangeably.
+        For our purposes here, the ``list`` and ``tuple`` types are equivalent
+        and can be used interchangeably.
 
 Also note that your ``execute()`` method should not contain any ``print``
 statements or otherwise cause any output on ``sys.stdout``.  Your command can
@@ -526,6 +526,107 @@ To learn more about JSON (Java Script Object Notation), see:
     http://docs.python.org/library/json.html
 
     http://www.json.org/
+
+
+-----------------------------------------
+How your command should output to the CLI
+-----------------------------------------
+
+As noted above, your command should not print anything while in its
+``execute()`` method.  So how does your command format its output when
+called from the ``ipa`` script?
+
+After the `cli.CLI.run_cmd()` method calls your command, it will call your
+command's ``output_for_cli()`` method (if you have implemented one).
+
+If you implement an ``output_for_cli()`` method, it must have the following
+signature:
+
+    ::
+
+        output_for_cli(textui, result, *args, **options)
+
+    textui
+        An object implementing methods for outputting to the console.
+        Currently the `ipalib.cli.textui` plugin is passed, which your method
+        can also access as ``self.Backend.textui``.  However, in case this
+        changes in the future, your method should use the instance passed to
+        it in this first argument.
+
+    result
+        This is the return value from calling your command plugin.  Depending
+        upon how your command is implemented, this is probably the return
+        value from your ``execute()`` method.
+
+    args
+        The arguments your command was called with.  If your command takes no
+        arguments, you can omit this.  You can also explicitly list your
+        arguments rather than using the generic ``*args`` form.
+
+    options
+        The options your command was called with.  If your command takes no
+        options, you can omit this.  If your command takes any options, you
+        must use the ``**options`` form as they will be provided strictly as
+        keyword arguments.
+
+For example, say we setup a command like this:
+
+>>> from ipalib import cli
+>>> class show_items(Command):
+...     takes_options = [Param('reverse', type=Bool(), default=False)]
+...
+...     def execute(self, **options):
+...         items = [
+...             ('apple', 'fruit'),
+...             ('dog', 'pet'),
+...         ]
+...         if options['reverse']:
+...             items.reverse()
+...         return items
+...
+...     def output_for_cli(self, textui, result, **options):
+...         textui.print_name(self.name)
+...         textui.print_keyval(result)
+...         format = '%d items'
+...         if options['reverse']:
+...             format += ' (in reverse order)'
+...         textui.print_count(result, format)
+...
+>>> api = create_api()
+>>> api.env.in_server = True  # We want to execute, not forward.
+>>> api.register(show_items)
+>>> api.finalize()
+>>> textui = cli.textui()  # We'll pass this to output_for_cli()
+
+Calling it through the ``ipa`` script would basically do the following:
+
+>>> options = dict(reverse=False)
+>>> result = api.Command.show_items(**options)
+>>> api.Command.show_items.output_for_cli(textui, result, **options)
+-----------
+show-items:
+-----------
+  apple = 'fruit'
+  dog = 'pet'
+-------
+2 items
+-------
+
+Similarly, calling it with ``reverse=True``  would result in the following:
+
+>>> options = dict(reverse=True)
+>>> result = api.Command.show_items(**options)
+>>> api.Command.show_items.output_for_cli(textui, result, **options)
+-----------
+show-items:
+-----------
+  dog = 'pet'
+  apple = 'fruit'
+--------------------------
+2 items (in reverse order)
+--------------------------
+
+See the `ipalib.cli.textui` plugin for a description of its methods.
 
 
 ------------------------
@@ -550,7 +651,7 @@ For example:
 
 Some basic knowledge of the Python ``logging`` module might be helpful. See:
 
-    http://www.python.org/doc/2.5.2/lib/module-logging.html
+    http://docs.python.org/library/logging.html
 
 The important thing to remember is that your plugin should not configure
 logging itself, but should instead simply use the ``self.log`` logger.
