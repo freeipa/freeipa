@@ -28,6 +28,7 @@ from plugable import lock, check_name
 import errors
 from errors import check_type, check_isinstance, raise_TypeError
 import ipa_types
+from util import make_repr
 
 
 RULE_FLAG = 'validation_rule'
@@ -450,11 +451,10 @@ class Param(plugable.ReadOnly):
         return value
 
     def __repr__(self):
-        return '%s(%r, %s())' % (
-            self.__class__.__name__,
-            self.name,
-            self.type.name,
-        )
+        """
+        Return an expresion that could construct this `Param` instance.
+        """
+        return make_repr(self.__class__.__name__, self.name, **self.__override)
 
 
 def create_param(spec):
