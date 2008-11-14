@@ -53,7 +53,7 @@ def make_automount_dn(mapname):
     import ldap
     return 'automountmapname=%s,%s,%s' % (
         ldap.dn.escape_dn_chars(mapname),
-        api.env.container_accounts,
+        api.env.container_automount,
         api.env.basedn,
     )
 
@@ -133,7 +133,7 @@ class automount_addkey(crud.Add):
         ldap = self.api.Backend.ldap
         # use find_entry_dn instead of make_automap_dn so we can confirm that
         # the map exists
-        map_dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap")
+        map_dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap", api.env.container_automount)
         kw['dn'] = "automountkey=%s,%s" % (kw['automountkey'], map_dn)
 
         kw['objectClass'] = ['automount']
@@ -193,7 +193,7 @@ class automount_delkey(crud.Del):
            :param kw: "key" the key to be removed
         """
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap")
+        dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap", api.env.container_automount)
         keys = api.Command['automount_getkeys'](mapname)
         keydn = None
         keyname = kw.get('automountkey').lower()
@@ -235,7 +235,7 @@ class automount_modmap(crud.Mod):
         assert 'automountmapname' not in kw
         assert 'dn' not in kw
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap")
+        dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap", api.env.container_automount)
         return ldap.update(dn, **kw)
 
     def output_for_cli(self, ret):
@@ -274,7 +274,7 @@ class automount_modkey(crud.Mod):
         keyname = kw.get('automountkey').lower()
         del kw['automountkey']
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap")
+        dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap", api.env.container_automount)
         keys = api.Command['automount_getkeys'](mapname)
         keydn = None
         if keys:
@@ -388,7 +388,7 @@ class automount_showmap(crud.Get):
         :param kw: "all" set to True = return all attributes
         """
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap")
+        dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap", api.env.container_automount)
         # FIXME: should kw contain the list of attributes to display?
         if kw.get('all', False):
             return ldap.retrieve(dn)
@@ -420,7 +420,7 @@ class automount_showkey(crud.Get):
         :param kw: "all" set to True = return all attributes
         """
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap")
+        dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap", api.env.container_automount)
         keys = api.Command['automount_getkeys'](mapname)
         keyname = kw.get('automountkey').lower()
         keydn = None
@@ -468,7 +468,7 @@ class automount_getkeys(frontend.Command):
         :param mapname: Retrieve all keys for this mapname
         """
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap")
+        dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap", api.env.container_automount)
         try:
             keys = ldap.get_one_entry(dn, 'objectclass=*', ['automountkey'])
         except errors.NotFound:

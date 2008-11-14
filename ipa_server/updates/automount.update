@@ -33,3 +33,22 @@ add:objectClasses:
     DESC 'Automount information' SUP top STRUCTURAL
     MUST ( automountKey $ automountInformation ) MAY description
     X-ORIGIN 'RFC 2307bis' )
+
+# Add the default automount entries
+
+dn: cn=automount,$SUFFIX
+add:objectClass: nsContainer
+add:cn: automount
+
+dn: automountmapname=auto.master,cn=automount,$SUFFIX
+add:objectClass: automountMap
+add:automountMapName: auto.master
+
+dn: automountkey=/-,automountmapname=auto.master,cn=automount,$SUFFIX
+add:objectClass: automount
+add:automountKey: '/-'
+add:automountInformation: auto.direct
+
+dn: automountmapname=auto.direct,cn=automount,$SUFFIX
+add:objectClass: automountMap
+add:automountMapName: auto.direct

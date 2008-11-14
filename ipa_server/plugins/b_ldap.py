@@ -117,7 +117,7 @@ class ldap(CrudBackend):
 
         return object_type
 
-    def find_entry_dn(self, key_attribute, primary_key, object_type=None):
+    def find_entry_dn(self, key_attribute, primary_key, object_type=None, base=None):
         """
         Find an existing entry's dn from an attribute
         """
@@ -133,7 +133,10 @@ class ldap(CrudBackend):
             self.dn.escape_dn_chars(primary_key)
         )
 
-        search_base = "%s, %s" % (self.api.env.container_accounts, self.api.env.basedn)
+        if not base:
+            base = self.api.env.container_accounts
+
+        search_base = "%s, %s" % (base, self.api.env.basedn)
 
         entry = servercore.get_sub_entry(search_base, search_filter, ['dn', 'objectclass'])
 
