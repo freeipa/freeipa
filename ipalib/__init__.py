@@ -584,14 +584,14 @@ For example, say we setup a command like this:
 ...             city='Berlin',
 ...         )
 ...         if key in items:
-...             return [(key, items[key])]
+...             return items[key]
 ...         return [
 ...             (k, items[k]) for k in sorted(items, reverse=options['reverse'])
 ...         ]
 ...
 ...     def output_for_cli(self, textui, result, key, **options):
 ...         if key is not None:
-...             textui.print_keyval(result)
+...             textui.print_plain('%s = %r' % (key, result))
 ...         else:
 ...             textui.print_name(self.name)
 ...             textui.print_keyval(result)
@@ -645,7 +645,7 @@ Lastly, providing a ``key`` would result in the following:
 
 >>> result = api.Command.show_items('city')
 >>> api.Command.show_items.output_for_cli(textui, result, 'city', reverse=False)
-  city = 'Berlin'
+city = 'Berlin'
 
 See the `ipalib.cli.textui` plugin for a description of its methods.
 
