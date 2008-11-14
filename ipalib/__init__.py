@@ -528,9 +528,9 @@ To learn more about JSON (Java Script Object Notation), see:
     http://www.json.org/
 
 
------------------------------------------
-How your command should output to the CLI
------------------------------------------
+---------------------------------------
+How your command should print to stdout
+---------------------------------------
 
 As noted above, your command should not print anything while in its
 ``execute()`` method.  So how does your command format its output when
@@ -571,7 +571,6 @@ signature:
 
 For example, say we setup a command like this:
 
->>> from ipalib import cli
 >>> class show_items(Command):
 ...     takes_options = [Param('reverse', type=Bool(), default=False)]
 ...
@@ -596,9 +595,15 @@ For example, say we setup a command like this:
 >>> api.env.in_server = True  # We want to execute, not forward.
 >>> api.register(show_items)
 >>> api.finalize()
+
+Normally `cli.CLI.load_plugins()` will register the `cli.textui` plugin, but for
+the sake of our example, we'll just create an instance here:
+
+>>> from ipalib import cli
 >>> textui = cli.textui()  # We'll pass this to output_for_cli()
 
-Calling it through the ``ipa`` script would basically do the following:
+For what we are concerned with in this example, calling your command through
+the ``ipa`` script basically will do the following:
 
 >>> options = dict(reverse=False)
 >>> result = api.Command.show_items(**options)
