@@ -486,6 +486,48 @@ For the full details on the parameter system, see the
 `frontend.Command` classes.
 
 
+---------------------------------------
+Allowed return values from your command
+---------------------------------------
+
+The return values from your command can be rendered by different user
+interfaces (CLI, web-UI); furthermore, a call to your command can be
+transparently forwarded over the network (XML-RPC, JSON).  As such, the return
+values from your command must be usable by the least common denominator.
+
+Your command should return only simple data types and simple data structures,
+the kind that can be represented in an XML-RPC request or in the JSON format.
+The return values from your command's ``execute()`` method can include only
+the following:
+
+    Simple scalar values:
+        These can be ``str``, ``unicode``, ``int``, and ``float`` instances,
+        plus the ``True``, ``False``, and ``None`` constants.
+
+    Simple compound values:
+        These can be ``dict``, ``list``, and ``tuple`` instances.  These
+        compound values must contain only the simple scalar values above or
+        other simple compound values.  These compound values can also be empty.
+        The ``list`` and ``tuple`` types are equivalent and can be used
+        interchangeably.
+
+Also note that your ``execute()`` method should not contain any ``print``
+statements or otherwise cause any output on ``sys.stdout``.  Your command can
+(and should) produce log messages by using ``self.log`` (see below).
+
+To learn more about XML-RPC (XML Remote Procedure Call), see:
+
+    http://docs.python.org/library/xmlrpclib.html
+
+    http://en.wikipedia.org/wiki/XML-RPC
+
+To learn more about JSON (Java Script Object Notation), see:
+
+    http://docs.python.org/library/json.html
+
+    http://www.json.org/
+
+
 ------------------------
 Logging from your plugin
 ------------------------
