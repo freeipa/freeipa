@@ -235,6 +235,16 @@ class textui(backend.Backend):
             return singular % n
         return plural % n
 
+    def prompt(self, label, default=None, get_values=None):
+        """
+        Prompt user for input.
+        """
+        if default is None:
+            prompt = '%s: ' % label
+        else:
+            prompt = '%s [%s]: ' % (label, default)
+        return raw_input(prompt)
+
 
 class help(frontend.Application):
     '''Display help on a command.'''
@@ -489,6 +499,7 @@ class CLI(object):
         self.__d = dict(
             (c.name.replace('_', '-'), c) for c in self.api.Command()
         )
+        self.textui = self.api.Backend.textui
 
     def load_plugins(self):
         """
@@ -584,15 +595,11 @@ class CLI(object):
                 if not (param.required or self.options.prompt_all):
                     continue
                 default = param.get_default(**kw)
-                if default is None:
-                    prompt = '%s: ' % param.cli_name
-                else:
-                    prompt = '%s [%s]: ' % (param.cli_name, default)
                 error = None
                 while True:
                     if error is not None:
                         print '>>> %s: %s' % (param.cli_name, error)
-                    raw = raw_input(prompt)
+                    raw = self.textui.prompt(param.cli_name, default)
                     try:
                         value = param(raw, **kw)
                         if value is not None:
