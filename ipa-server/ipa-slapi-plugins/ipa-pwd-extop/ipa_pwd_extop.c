@@ -3821,7 +3821,7 @@ static int ipapwd_start( Slapi_PBlock *pb )
 {
 	krb5_context krbctx;
 	krb5_error_code krberr;
-	char *realm;
+	char *realm = NULL;
 	char *config_dn;
 	char *partition_dn;
 	Slapi_Entry *config_entry = NULL;
@@ -3861,11 +3861,9 @@ static int ipapwd_start( Slapi_PBlock *pb )
 	ipa_realm_dn = slapi_ch_smprintf("cn=%s,cn=kerberos,%s", realm, partition_dn);
 	if (!ipa_realm_dn) {
 		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory ?\n");
-		free(realm);
 		ret = LDAP_OPERATIONS_ERROR;
 		goto done;
 	}
-	free(realm);
 
     ipa_pwd_config_dn = slapi_ch_strdup(config_dn);
     if (!ipa_pwd_config_dn) {
@@ -3885,6 +3883,7 @@ static int ipapwd_start( Slapi_PBlock *pb )
     ret = LDAP_SUCCESS;
 
 done:
+	free(realm);
 	krb5_free_context(krbctx);
 	if (config_entry) slapi_entry_free(config_entry);
 	return ret;
