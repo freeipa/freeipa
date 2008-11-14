@@ -110,7 +110,7 @@ Notice that we are registering the ``my_command`` class itself, not an
 instance of ``my_command``.
 
 Until `plugable.API.finalize()` is called, your plugin class has not been
-instantiated nor the does the ``Command`` namespace yet exist.  For example:
+instantiated nor does the ``Command`` namespace yet exist.  For example:
 
 >>> hasattr(api, 'Command')
 False
