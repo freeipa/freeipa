@@ -782,6 +782,37 @@ class Command(plugable.Plugin):
             yield arg
 
 
+class LocalOrRemote(Command):
+    """
+    A command that is explicitly executed locally or remotely.
+
+    This is for commands that makes sense to execute either locally or
+    remotely to return a perhaps different result.  The best example of
+    this is the `ipalib.plugins.f_misc.env` plugin which returns the
+    key/value pairs describing the configuration state: it can be
+    """
+
+    takes_options = (
+        Param('server', type=ipa_types.Bool(), default=False,
+            doc='Forward to server instead of running locally',
+        ),
+    )
+
+    def run(self, *args, **options):
+        """
+        Dispatch to forward() or execute() based on ``server`` option.
+
+        When running in a client context, this command is executed remotely if
+        ``options['server']`` is true; otherwise it is executed locally.
+
+        When running in a server context, this command is always executed
+        locally and the value of ``options['server']`` is ignored.
+        """
+        if options['server'] and not self.env.in_server:
+            return self.forward(*args, **options)
+        return self.execute(*args, **options)
+
+
 class Object(plugable.Plugin):
     __public__ = frozenset((
         'backend',

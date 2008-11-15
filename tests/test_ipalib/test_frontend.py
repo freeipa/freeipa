@@ -22,7 +22,7 @@ Test the `ipalib.frontend` module.
 """
 
 from tests.util import raises, getitem, no_set, no_del, read_only
-from tests.util import check_TypeError, ClassChecker
+from tests.util import check_TypeError, ClassChecker, get_api
 from ipalib import frontend, backend, plugable, errors, ipa_types, config
 
 
@@ -794,6 +794,60 @@ class test_Command(ClassChecker):
         assert o.run.im_func is self.cls.run.im_func
         assert ('forward', args, kw) == o.run(*args, **kw)
         assert o.run.im_func is my_cmd.forward.im_func
+
+
+class test_LocalOrRemote(ClassChecker):
+    """
+    Test the `ipalib.frontend.LocalOrRemote` class.
+    """
+    _cls = frontend.LocalOrRemote
+
+    def test_init(self):
+        """
+        Test the `ipalib.frontend.LocalOrRemote.__init__` method.
+        """
+        o = self.cls()
+        o.finalize()
+        assert list(o.args) == []
+        assert list(o.options) == ['server']
+        op = o.options.server
+        assert op.required is True
+        assert op.default is False
+
+    def test_run(self):
+        """
+        Test the `ipalib.frontend.LocalOrRemote.run` method.
+        """
+        class example(self.cls):
+            takes_args = ['key?']
+
+            def forward(self, *args, **options):
+                return ('forward', args, options)
+
+            def execute(self, *args, **options):
+                return ('execute', args, options)
+
+        # Test when in_server=False:
+        (api, home) = get_api(in_server=False)
+        api.register(example)
+        api.finalize()
+        cmd = api.Command.example
+        assert cmd() == ('execute', (None,), dict(server=False))
+        assert cmd('var') == ('execute', (u'var',), dict(server=False))
+        assert cmd(server=True) == ('forward', (None,), dict(server=True))
+        assert cmd('var', server=True) == \
+            ('forward', (u'var',), dict(server=True))
+
+        # Test when in_server=True (should always call execute):
+        (api, home) = get_api(in_server=True)
+        api.register(example)
+        api.finalize()
+        cmd = api.Command.example
+        assert cmd() == ('execute', (None,), dict(server=False))
+        assert cmd('var') == ('execute', (u'var',), dict(server=False))
+        assert cmd(server=True) == ('execute', (None,), dict(server=True))
+        assert cmd('var', server=True) == \
+            ('execute', (u'var',), dict(server=True))
 
 
 class test_Object(ClassChecker):

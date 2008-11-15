@@ -873,7 +873,8 @@ freeIPA.org:
 
 import plugable
 from backend import Backend, Context
-from frontend import Command, Object, Method, Property, Application
+from frontend import Command, LocalOrRemote, Application
+from frontend import Object, Method, Property
 from ipa_types import Bool, Int, Unicode, Enum
 from frontend import Param, DefaultFrom
 
