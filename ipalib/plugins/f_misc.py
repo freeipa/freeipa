@@ -21,7 +21,9 @@
 Misc frontend plugins.
 """
 
+import re
 from ipalib import api, LocalOrRemote
+
 
 
 # FIXME: We should not let env return anything in_server
@@ -34,16 +36,25 @@ class env(LocalOrRemote):
     takes_args = ('variables*',)
 
     def __find_keys(self, variables):
-        for key in variables:
-            if key in self.env:
-                yield (key, self.env[key])
+        keys = set()
+        for query in variables:
+            if '*' in query:
+                pat = re.compile(query.replace('*', '.*') + '$')
+                for key in self.env:
+                    if pat.match(key):
+                        keys.add(key)
+            elif query in self.env:
+                keys.add(query)
+        return sorted(keys)
 
     def execute(self, variables, **options):
         if variables is None:
-            return tuple(
-                (key, self.env[key]) for key in self.env
-            )
-        return tuple(self.__find_keys(variables))
+            keys = self.env
+        else:
+            keys = self.__find_keys(variables)
+        return tuple(
+            (key, self.env[key]) for key in keys
+        )
 
     def output_for_cli(self, textui, result, variables, **options):
         if len(result) == 0:
@@ -53,6 +64,6 @@ class env(LocalOrRemote):
             return
         textui.print_name(self.name)
         textui.print_keyval(result)
-        textui.print_count(result, '%d variable', '%d variables')
+        textui.print_count(result, '%d variables')
 
 api.register(env)
