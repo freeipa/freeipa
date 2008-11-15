@@ -811,7 +811,7 @@ class test_LocalOrRemote(ClassChecker):
         assert list(o.args) == []
         assert list(o.options) == ['server']
         op = o.options.server
-        assert op.required is True
+        assert op.required is False
         assert op.default is False
 
     def test_run(self):
@@ -832,8 +832,8 @@ class test_LocalOrRemote(ClassChecker):
         api.register(example)
         api.finalize()
         cmd = api.Command.example
-        assert cmd() == ('execute', (None,), dict(server=False))
-        assert cmd('var') == ('execute', (u'var',), dict(server=False))
+        assert cmd() == ('execute', (None,), dict(server=None))
+        assert cmd('var') == ('execute', (u'var',), dict(server=None))
         assert cmd(server=True) == ('forward', (None,), dict(server=True))
         assert cmd('var', server=True) == \
             ('forward', (u'var',), dict(server=True))
@@ -843,8 +843,8 @@ class test_LocalOrRemote(ClassChecker):
         api.register(example)
         api.finalize()
         cmd = api.Command.example
-        assert cmd() == ('execute', (None,), dict(server=False))
-        assert cmd('var') == ('execute', (u'var',), dict(server=False))
+        assert cmd() == ('execute', (None,), dict(server=None))
+        assert cmd('var') == ('execute', (u'var',), dict(server=None))
         assert cmd(server=True) == ('execute', (None,), dict(server=True))
         assert cmd('var', server=True) == \
             ('execute', (u'var',), dict(server=True))

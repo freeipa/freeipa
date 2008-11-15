@@ -793,7 +793,7 @@ class LocalOrRemote(Command):
     """
 
     takes_options = (
-        Param('server', type=ipa_types.Bool(), default=False,
+        Param('server?', type=ipa_types.Bool(), default=False,
             doc='Forward to server instead of running locally',
         ),
     )

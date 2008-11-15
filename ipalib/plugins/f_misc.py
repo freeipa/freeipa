@@ -21,43 +21,35 @@
 Misc frontend plugins.
 """
 
-from ipalib import api, Command, Param, Bool
+from ipalib import api, LocalOrRemote
 
 
 # FIXME: We should not let env return anything in_server
 # when mode == 'production'.  This would allow an attacker to see the
 # configuration of the server, potentially revealing compromising
 # information.  However, it's damn handy for testing/debugging.
-class env(Command):
+class env(LocalOrRemote):
     """Show environment variables"""
 
     takes_args = ('variables*',)
 
-    takes_options = (
-        Param('server?', type=Bool(), default=False,
-            doc='Show environment variables of server',
-        ),
-    )
-
-    def run(self, variables, **options):
-        if options['server'] and not self.env.in_server:
-            return self.forward(variables)
-        return self.execute(variables)
-
-    def find_keys(self, variables):
+    def __find_keys(self, variables):
         for key in variables:
             if key in self.env:
                 yield (key, self.env[key])
 
-    def execute(self, variables):
+    def execute(self, variables, **options):
         if variables is None:
             return tuple(
                 (key, self.env[key]) for key in self.env
             )
-        return tuple(self.find_keys(variables))
+        return tuple(self.__find_keys(variables))
 
     def output_for_cli(self, textui, result, variables, **options):
         if len(result) == 0:
+            return
+        if len(result) == 1:
+            textui.print_keyval(result)
             return
         textui.print_name(self.name)
         textui.print_keyval(result)
