@@ -195,8 +195,8 @@ class textui(backend.Backend):
 
         Also see `textui.print_indented`.
         """
-        for row in rows:
-            self.print_indented('%s = %r' % row, indent)
+        for (key, value) in rows:
+            self.print_indented('%s = %r' % (key, value), indent)
 
     def print_dashed(self, string, above=True, below=True):
         """
