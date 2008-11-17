@@ -198,6 +198,28 @@ class textui(backend.Backend):
         for (key, value) in rows:
             self.print_indented('%s = %r' % (key, value), indent)
 
+    def print_entry(self, entry, indent=1):
+        """
+        Print an ldap entry dict.
+
+        For example:
+
+        >>> entry = dict(sn='Last', givenname='First', uid='flast')
+        >>> ui = textui()
+        >>> ui.print_entry(entry)
+          givenname: 'First'
+          sn: 'Last'
+          uid: 'flast'
+        """
+        assert type(entry) is dict
+        for key in sorted(entry):
+            value = entry[key]
+            if type(value) in (list, tuple):
+                value = ', '.join(repr(v) for v in value)
+            else:
+                value = repr(value)
+            self.print_indented('%s: %s' % (key, value), indent)
+
     def print_dashed(self, string, above=True, below=True):
         """
         Print a string with a dashed line above and/or below.

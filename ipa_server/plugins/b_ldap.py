@@ -209,9 +209,29 @@ class ldap(CrudBackend):
 
     # The CRUD operations
 
+    def strip_none(self, kw):
+        """
+        Remove any None values present in the LDAP attribute dict.
+        """
+        for (key, value) in kw.iteritems():
+            if value is None:
+                continue
+            if type(value) in (list, tuple):
+                value = filter(
+                    lambda v: type(v) in (str, unicode, bool, int, float),
+                    value
+                )
+                if len(value) > 0:
+                    yield (key, value)
+            else:
+                assert type(value) in (str, unicode, bool, int, float)
+                yield (key, value)
+
     def create(self, **kw):
         if servercore.entry_exists(kw['dn']):
             raise errors.DuplicateEntry("entry already exists")
+        kw = dict(self.strip_none(kw))
+
 
         entry = ipaldap.Entry(kw['dn'])
 

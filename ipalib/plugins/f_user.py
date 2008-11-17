@@ -191,18 +191,21 @@ class user_add(crud.Add):
         kw['objectClass'] =  config.get('ipauserobjectclasses')
 
         return ldap.create(**kw)
-    def output_for_cli(self, ret):
+
+    def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "User added"
+        textui.print_name(self.name)
+        textui.print_entry(result)
+        textui.print_dashed('Added user "%s"' % result['uid'])
 
 api.register(user_add)
 
 
 class user_del(crud.Del):
     'Delete an existing user.'
+
     def execute(self, uid, **kw):
         """Delete a user. Not to be confused with inactivate_user. This
            makes the entry go away completely.
@@ -224,12 +227,12 @@ class user_del(crud.Del):
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("uid", uid)
         return ldap.delete(dn)
-    def output_for_cli(self, ret):
+
+    def output_for_cli(self, textui, result, uid):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "User deleted"
+        textui.print_plain('Deleted user "%s"' % uid)
 
 api.register(user_del)
 
@@ -254,12 +257,13 @@ class user_mod(crud.Mod):
         dn = ldap.find_entry_dn("uid", uid)
         return ldap.update(dn, **kw)
 
-    def output_for_cli(self, ret):
+    def output_for_cli(self, textui, result, uid, **options):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "User updated"
+        textui.print_name(self.name)
+        textui.print_entry(result)
+        textui.print_dashed('Updated user "%s"' % result['uid'])
 
 api.register(user_mod)
 
@@ -330,9 +334,10 @@ class user_show(crud.Get):
             return ldap.retrieve(dn)
         else:
             return ldap.retrieve(dn, default_attributes)
-    def output_for_cli(self, user):
-        if user:
-            display_user(user)
+
+    def output_for_cli(self, textui, result, uid, **options):
+        if result:
+            display_user(result)
 
 api.register(user_show)
 
