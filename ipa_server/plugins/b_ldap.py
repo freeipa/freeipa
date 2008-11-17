@@ -252,7 +252,7 @@ class ldap(CrudBackend):
         result = self.retrieve(dn, ["*"])
 
         entry = ipaldap.Entry((dn, servercore.convert_scalar_values(result)))
-
+        kw = dict(self.strip_none(kw))
         for k in kw:
             entry.setValues(k, kw[k])
 

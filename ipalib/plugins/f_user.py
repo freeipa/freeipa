@@ -292,21 +292,26 @@ class user_find(crud.Find):
         else:
             kw['attributes'] = default_attributes
         return ldap.search(**kw)
-    def output_for_cli(self, users):
-        if not users:
-            return
-        counter = users[0]
-        users = users[1:]
-        if counter == 0:
-            print "No entries found"
-            return
-        elif counter == -1:
-            print "These results are truncated."
-            print "Please refine your search and try again."
 
+    def output_for_cli(self, textui, result, uid, **options):
+        counter = result[0]
+        users = result[1:]
+        if counter == 0 or len(users) == 0:
+            textui.print_plain("No entries found")
+            return
+        if len(users) == 1:
+            textui.print_entry(users[0])
+            return
+        textui.print_name(self.name)
         for u in users:
-            display_user(u)
-            print ""
+            textui.print_plain('%(givenname)s %(sn)s:' % u)
+            textui.print_entry(u)
+            textui.print_plain('')
+        if counter == -1:
+            textui.print_plain('These results are truncated.')
+            textui.print_plain('Please refine your search and try again.')
+        textui.print_count(users, '%d users matched')
+
 api.register(user_find)
 
 
