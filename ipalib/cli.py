@@ -381,29 +381,10 @@ class show_api(frontend.Application):
                     self.__traverse_namespace(n, attr, lines, tab + 2)
 
 
-class plugins(frontend.Application):
-    """Show all loaded plugins"""
-
-    def run(self):
-        plugins = sorted(self.api.plugins, key=lambda o: o.plugin)
-        return tuple(
-            (p.plugin, p.bases) for p in plugins
-        )
-
-    def output_for_cli(self, textui, result, **kw):
-        textui.print_name(self.name)
-        for (plugin, bases) in result:
-            textui.print_indented(
-                '%s: %s' % (plugin, ', '.join(bases))
-            )
-        textui.print_count(result, '%d plugin loaded', '%s plugins loaded')
-
-
 cli_application_commands = (
     help,
     console,
     show_api,
-    plugins,
 )
 
 

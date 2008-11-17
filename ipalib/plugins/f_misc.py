@@ -67,3 +67,23 @@ class env(LocalOrRemote):
         textui.print_count(result, '%d variables')
 
 api.register(env)
+
+
+class plugins(LocalOrRemote):
+    """Show all loaded plugins"""
+
+    def execute(self, **options):
+        plugins = sorted(self.api.plugins, key=lambda o: o.plugin)
+        return tuple(
+            (p.plugin, p.bases) for p in plugins
+        )
+
+    def output_for_cli(self, textui, result, **options):
+        textui.print_name(self.name)
+        for (plugin, bases) in result:
+            textui.print_indented(
+                '%s: %s' % (plugin, ', '.join(bases))
+            )
+        textui.print_count(result, '%d plugin loaded', '%s plugins loaded')
+
+api.register(plugins)
