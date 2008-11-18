@@ -693,8 +693,10 @@ class CLI(object):
                 help=option.doc,
             )
             if isinstance(option.type, ipa_types.Bool):
-                o.action = 'store_true'
-                o.default = option.default
+                if option.default is True:
+                    o.action = 'store_false'
+                else:
+                    o.action = 'store_true'
                 o.type = None
             parser.add_option(o)
         return parser

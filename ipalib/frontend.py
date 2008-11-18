@@ -651,6 +651,8 @@ class Command(plugable.Plugin):
             if kw.get(param.name, None) is None:
                 if param.required:
                     yield (param.name, param.get_default(**kw))
+                elif isinstance(param.type, ipa_types.Bool):
+                    yield (param.name, param.default)
                 else:
                     yield (param.name, None)
 
