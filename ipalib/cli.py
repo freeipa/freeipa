@@ -658,11 +658,27 @@ class CLI(object):
     def run_cmd(self, cmd):
         kw = self.parse(cmd)
         if self.options.interactive:
-            kw = self.prompt_interactively(cmd, kw)
+            self.prompt_interactively(cmd, kw)
+        self.prompt_for_passwords(cmd, kw)
         result = cmd(**kw)
         if callable(cmd.output_for_cli):
+            for param in cmd.params():
+                if param.ispassword():
+                    del kw[param.name]
             (args, options) = cmd.params_2_args_options(kw)
             cmd.output_for_cli(self.api.Backend.textui, result, *args, **options)
+
+    def prompt_for_passwords(self, cmd, kw):
+        for param in cmd.params():
+            if 'password' not in param.flags:
+                continue
+            if kw.get(param.name, False) is True or param.name in cmd.args:
+                kw[param.name] = self.textui.prompt_password(
+                    param.cli_name
+                )
+            else:
+                kw.pop(param.name, None)
+        return kw
 
     def prompt_interactively(self, cmd, kw):
         """
@@ -676,12 +692,7 @@ class CLI(object):
         """
         for param in cmd.params():
             if 'password' in param.flags:
-                if kw.get(param.name, False) is True:
-                    kw[param.name] = self.textui.prompt_password(
-                        param.cli_name
-                    )
-                else:
-                    kw.pop(param.name, None)
+                continue
             elif param.name not in kw:
                 if not (param.required or self.options.prompt_all):
                     continue
@@ -760,6 +771,8 @@ class CLI(object):
     def get_usage_iter(self, cmd):
         yield 'Usage: %%prog [global-options] %s' % to_cli(cmd.name)
         for arg in cmd.args():
+            if 'password' in arg.flags:
+                continue
             name = to_cli(arg.cli_name).upper()
             if arg.multivalue:
                 name = '%s...' % name

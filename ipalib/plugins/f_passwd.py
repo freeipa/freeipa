@@ -30,14 +30,17 @@ from ipalib import util
 
 class passwd(frontend.Command):
     'Edit existing password policy.'
+
     takes_args = (
         Param('principal',
             cli_name='user',
             primary_key=True,
             default_from=util.get_current_principal,
         ),
+        Param('password', flags=['password']),
     )
-    def execute(self, principal, **kw):
+
+    def execute(self, principal, password):
         """
         Execute the passwd operation.
 
@@ -49,8 +52,6 @@ class passwd(frontend.Command):
         :param param uid: The login name of the user being updated.
         :param kw: Not used.
         """
-        ldap = self.api.Backend.ldap
-
         if principal.find('@') < 0:
             u = principal.split('@')
             if len(u) > 2 or len(u) == 0:
@@ -59,16 +60,15 @@ class passwd(frontend.Command):
                 principal = principal+"@"+self.api.env.realm
             else:
                 principal = principal
+        dn = self.Backend.ldap.find_entry_dn(
+            "krbprincipalname",
+            principal,
+            "posixAccount"
+        )
+        return self.Backend.ldap.modify_password(dn, newpass=password)
 
-        dn = ldap.find_entry_dn("krbprincipalname", principal, "posixAccount")
-
-        # FIXME: we need a way to prompt for passwords using getpass
-        kw['newpass'] = "password"
-
-        return ldap.modify_password(dn, **kw)
-
-    def output_for_cli(self, ret):
-        if ret:
-            print "Password change successful"
+    def output_for_cli(self, textui, result, principal, password):
+        assert password is None
+        textui.print_plain('Changed password for "%s"' % principal)
 
 api.register(passwd)

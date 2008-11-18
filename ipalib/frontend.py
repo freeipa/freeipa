@@ -261,6 +261,13 @@ class Param(plugable.ReadOnly):
         self.primary_key = self.__check_type(bool, 'primary_key')
         lock(self)
 
+    def ispassword(self):
+        """
+        Return ``True`` is this Param is a password.
+        """
+        # FIXME: add unit test
+        return 'password' in self.flags
+
     def __clone__(self, **override):
         """
         Return a new `Param` instance similar to this one.
