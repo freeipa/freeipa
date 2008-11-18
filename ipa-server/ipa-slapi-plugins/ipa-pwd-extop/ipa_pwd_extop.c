@@ -979,7 +979,7 @@ static int ipapwd_getPolicy(const char *dn, Slapi_Entry *target, Slapi_Entry **e
 	const char *pdn;
 	const Slapi_DN *psdn;
 	Slapi_Backend *be;
-	Slapi_PBlock *pb;
+	Slapi_PBlock *pb = NULL;
 	char *attrs[] = { "krbMaxPwdLife", "krbMinPwdLife",
 			  "krbPwdMinDiffChars", "krbPwdMinLength",
 			  "krbPwdHistoryLength", NULL};
@@ -987,12 +987,18 @@ static int ipapwd_getPolicy(const char *dn, Slapi_Entry *target, Slapi_Entry **e
 	Slapi_Entry *pe = NULL;
 	char **edn;
 	int ret, res, dist, rdnc, scope, i;
-	Slapi_DN *sdn;
-
-	sdn = slapi_sdn_new_dn_byref(dn);
+	Slapi_DN *sdn = NULL;
 
 	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
 			"ipapwd_getPolicy: Searching policy for [%s]\n", dn);
+
+	sdn = slapi_sdn_new_dn_byref(dn);
+	if (sdn == NULL) {
+		slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
+		                "ipapwd_getPolicy: Out of memory on [%s]\n", dn);
+		ret = -1;
+		goto done;
+	}
 
 	krbPwdPolicyReference = slapi_entry_attr_get_charptr(target, "krbPwdPolicyReference");
 	if (krbPwdPolicyReference) {
@@ -1002,6 +1008,12 @@ static int ipapwd_getPolicy(const char *dn, Slapi_Entry *target, Slapi_Entry **e
 		/* Find ancestor base DN */
 		be = slapi_be_select(sdn);
 		psdn = slapi_be_getsuffix(be, 0);
+		if (psdn == NULL) {
+			slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
+			                "ipapwd_getPolicy: Invalid DN [%s]\n", dn);
+			ret = -1;
+			goto done;
+		}
 		pdn = slapi_sdn_get_dn(psdn);
 		scope = LDAP_SCOPE_SUBTREE;
 	}
@@ -1068,6 +1080,7 @@ static int ipapwd_getPolicy(const char *dn, Slapi_Entry *target, Slapi_Entry **e
 		const Slapi_DN *esdn;
 
 		esdn = slapi_entry_get_sdn_const(es[i]);
+        if (esdn == NULL) continue;
 		if (0 == slapi_sdn_compare(esdn, sdn)) {
 			pe = es[i];
 			dist = 0;
@@ -1101,9 +1114,11 @@ static int ipapwd_getPolicy(const char *dn, Slapi_Entry *target, Slapi_Entry **e
 	*e = slapi_entry_dup(pe);
 	ret = 0;
 done:
-	slapi_free_search_results_internal(pb);
-	slapi_pblock_destroy(pb);
-	slapi_sdn_free(&sdn);
+	if (pb) {
+		slapi_free_search_results_internal(pb);
+		slapi_pblock_destroy(pb);
+	}
+	if (sdn) slapi_sdn_free(&sdn);
 	return ret;
 }
 
@@ -2196,6 +2211,13 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	be = slapi_be_select(sdn);
 	slapi_sdn_free(&sdn);
 	bsdn = slapi_be_getsuffix(be, 0);
+	if (bsdn == NULL) {
+		slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
+				"Search for Base DN failed\n");
+		errMesg = "PrincipalName not found.\n";
+		rc = LDAP_NO_SUCH_OBJECT;
+		goto free_and_return;
+	}
 	bdn = slapi_sdn_get_dn(bsdn);
 	scope = LDAP_SCOPE_SUBTREE;
 
@@ -2851,17 +2873,24 @@ free_and_error:
     return NULL;
 }
 
+#define IPAPWD_CHECK_CONN_SECURE    0x00000001
+#define IPAPWD_CHECK_DN             0x00000002
+
 static int ipapwd_gen_checks(Slapi_PBlock *pb, char **errMesg,
                              struct ipapwd_krbcfg **config,
-			     int check_secure_conn)
+                             int check_flags)
 {
     int ret, sasl_ssf, is_ssl;
     int rc = LDAP_SUCCESS;
+    Slapi_Backend *be;
+    const Slapi_DN *psdn;
+    Slapi_DN *sdn;
+    char *dn = NULL;
 
     slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "=> ipapwd_gen_checks\n");
 
 #ifdef LDAP_EXTOP_PASSMOD_CONN_SECURE
-    if (check_secure_conn) {
+    if (check_flags & IPAPWD_CHECK_CONN_SECURE) {
         /* Allow password modify only for SSL/TLS established connections and
          * connections using SASL privacy layers */
         if (slapi_pblock_get(pb, SLAPI_CONN_SASL_SSF, &sasl_ssf) != 0) {
@@ -2888,6 +2917,34 @@ static int ipapwd_gen_checks(Slapi_PBlock *pb, char **errMesg,
     }
 #endif
 
+    if (check_flags & IPAPWD_CHECK_DN) {
+        /* check we have a valid DN in the pblock or just abort */
+        ret = slapi_pblock_get(pb, SLAPI_TARGET_DN, &dn);
+        if (ret) {
+            slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop",
+                            "Tried to change password for an invalid DN [%s]\n",
+                            dn?dn:"<NULL>");
+            *errMesg = "Invalid DN";
+            rc = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+        sdn = slapi_sdn_new_dn_byref(dn);
+        if (!sdn) {
+            *errMesg = "Internal Error";
+            rc = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+        be = slapi_be_select(sdn);
+        slapi_sdn_free(&sdn);
+
+        psdn = slapi_be_getsuffix(be, 0);
+        if (!psdn) {
+            *errMesg = "Invalid DN";
+            rc = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+    }
+
     /* get the kerberos context and master key */
     *config = ipapwd_getConfig();
     if (NULL == *config) {
@@ -2910,7 +2967,7 @@ static int ipapwd_extop(Slapi_PBlock *pb)
 
 	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "=> ipapwd_extop\n");
 
-	rc = ipapwd_gen_checks(pb, &errMesg, &krbcfg, 1);
+	rc = ipapwd_gen_checks(pb, &errMesg, &krbcfg, IPAPWD_CHECK_CONN_SECURE);
 	if (rc) {
 		goto free_and_return;
 	}
@@ -3182,7 +3239,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
         goto done;
     }
 
-    rc = ipapwd_gen_checks(pb, &errMesg, &krbcfg, 0);
+    rc = ipapwd_gen_checks(pb, &errMesg, &krbcfg, IPAPWD_CHECK_DN);
     if (rc) {
         goto done;
     }
@@ -3315,7 +3372,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     char *errMesg = NULL;
     LDAPMod **mods;
     Slapi_Mod *smod, *tmod;
-    Slapi_Mods *smods;
+    Slapi_Mods *smods = NULL;
     char *userpw = NULL;
     char *unhashedpw = NULL;
     char *dn = NULL;
@@ -3337,8 +3394,10 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     }
 
     /* pass through if this is a replicated operation */
-    if (is_repl_op)
-        return 0;
+    if (is_repl_op) {
+        rc = LDAP_SUCCESS;
+        goto done;
+    }
 
     /* grab the mods - we'll put them back later with
      * our modifications appended
@@ -3443,7 +3502,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
         goto done;
     }
 
-    rc = ipapwd_gen_checks(pb, &errMesg, &krbcfg, 0);
+    rc = ipapwd_gen_checks(pb, &errMesg, &krbcfg, IPAPWD_CHECK_DN);
     if (rc) {
         goto done;
     }
@@ -3676,23 +3735,20 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
 done:
     free_ipapwd_krbcfg(&krbcfg);
     slapi_ch_free_string(&userpw); /* just to be sure */
+    slapi_ch_free_string(&unhashedpw); /* we copied it to pwdop  */
     if (e) slapi_entry_free(e); /* this is a copy in this function */
     if (pwdop) pwdop->pwdata.target = NULL;
 
+    /* put back a, possibly modified, set of mods */
+    if (smods) {
+        mods = slapi_mods_get_ldapmods_passout(smods);
+        slapi_pblock_set(pb, SLAPI_MODIFY_MODS, mods);
+    }
+
     if (rc != LDAP_SUCCESS) {
-        slapi_mods_free(&smods);
-        if (!pwdop) {
-            slapi_ch_free_string(&unhashedpw);
-            slapi_ch_free_string(&dn);
-        }
         slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
         return -1;
     }
-
-    /* put back a, possibly modified, set of mods */
-    mods = slapi_mods_get_ldapmods_passout(smods);
-    slapi_pblock_set(pb, SLAPI_MODIFY_MODS, mods);
-    slapi_mods_free(&smods);
 
     return 0;
 }
