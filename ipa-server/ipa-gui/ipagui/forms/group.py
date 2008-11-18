@@ -61,6 +61,8 @@ class GroupNewForm(widgets.Form):
 
 
 class GroupEditValidator(validators.Schema):
+    filter_extra_fields = True
+    allow_extra_fields = True
     cn = validators.GoodName(not_empty=False)
     gidnumber = validators.Int(not_empty=False)
     description = validators.String(not_empty=False)
