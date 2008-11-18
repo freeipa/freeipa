@@ -265,7 +265,6 @@ class Param(plugable.ReadOnly):
         """
         Return ``True`` is this Param is a password.
         """
-        # FIXME: add unit test
         return 'password' in self.flags
 
     def __clone__(self, **override):

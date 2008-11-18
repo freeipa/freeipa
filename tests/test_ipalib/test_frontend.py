@@ -226,6 +226,22 @@ class test_Param(ClassChecker):
         assert str(e) == \
             'Param.__init__() takes no such kwargs: another, whatever'
 
+    def test_ispassword(self):
+        """
+        Test the `ipalib.frontend.Param.ispassword` method.
+        """
+        name = 'userpassword'
+        okay = 'password'
+        nope = ['', 'pass', 'word', 'passwd']
+        for flag in nope:
+            o = self.cls(name, flags=[flag])
+            assert o.ispassword() is False
+            o = self.cls(name, flags=[flag, okay])
+            assert o.ispassword() is True
+        assert self.cls(name).ispassword() is False
+        assert self.cls(name, flags=[okay]).ispassword() is True
+        assert self.cls(name, flags=[okay]+nope).ispassword() is True
+
     def test_clone(self):
         """
         Test the `ipalib.frontend.Param.__clone__` method.
