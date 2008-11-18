@@ -348,28 +348,37 @@ api.register(user_show)
 
 class user_lock(frontend.Command):
     'Lock a user account.'
+
     takes_args = (
         Param('uid', primary_key=True),
     )
+
     def execute(self, uid, **kw):
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("uid", uid)
         return ldap.mark_entry_inactive(dn)
-    def output_for_cli(self, ret):
-        if ret:
-            print "User locked"
+
+    def output_for_cli(self, textui, result, uid):
+        if result:
+            textui.print_plain('Locked user "%s"' % uid)
+
 api.register(user_lock)
+
 
 class user_unlock(frontend.Command):
     'Unlock a user account.'
+
     takes_args = (
         Param('uid', primary_key=True),
     )
+
     def execute(self, uid, **kw):
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("uid", uid)
         return ldap.mark_entry_active(dn)
-    def output_for_cli(self, ret):
-        if ret:
-            print "User unlocked"
+
+    def output_for_cli(self, textui, result, uid):
+        if result:
+            textui.print_plain('Unlocked user "%s"' % uid)
+
 api.register(user_unlock)
