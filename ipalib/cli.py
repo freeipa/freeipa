@@ -24,6 +24,7 @@ Functionality for Command Line Interface.
 import re
 import textwrap
 import sys
+import getpass
 import code
 import optparse
 import socket
@@ -331,6 +332,21 @@ class textui(backend.Backend):
         else:
             prompt = '%s [%s]: ' % (label, default)
         return raw_input(prompt)
+
+    def prompt_password(self, label):
+        """
+        Prompt user for a password.
+        """
+        try:
+            while True:
+                pw1 = getpass.getpass('%s: ' % label)
+                pw2 = getpass.getpass('Enter again to verify: ')
+                if pw1 == pw2:
+                    return pw1
+                print '  ** Passwords do not match. Please enter again. **'
+        except KeyboardInterrupt:
+            print ''
+            print '  ** Cancelled. **'
 
 
 class help(frontend.Application):
@@ -659,7 +675,14 @@ class CLI(object):
         optional.
         """
         for param in cmd.params():
-            if param.name not in kw:
+            if 'password' in param.flags:
+                if kw.get(param.name, False) is True:
+                    kw[param.name] = self.textui.prompt_password(
+                        param.cli_name
+                    )
+                else:
+                    kw.pop(param.name, None)
+            elif param.name not in kw:
                 if not (param.required or self.options.prompt_all):
                     continue
                 default = param.get_default(**kw)
@@ -704,10 +727,7 @@ class CLI(object):
             list(self.cmd_argv[1:]), KWCollector()
         )
         kw = kwc.__todict__()
-        try:
-            arg_kw = cmd.args_to_kw(*args)
-        except errors.ArgumentError, e:
-            exit_error('%s %s' % (to_cli(cmd.name), e.error))
+        arg_kw = cmd.args_to_kw(*args)
         assert set(arg_kw).intersection(kw) == set()
         kw.update(arg_kw)
         return kw
@@ -717,17 +737,20 @@ class CLI(object):
             usage=self.get_usage(cmd),
         )
         for option in cmd.options():
-            o = optparse.make_option('--%s' % to_cli(option.cli_name),
+            kw = dict(
                 dest=option.name,
-                metavar=option.type.name.upper(),
                 help=option.doc,
             )
-            if isinstance(option.type, ipa_types.Bool):
+            if 'password' in option.flags:
+                kw['action'] = 'store_true'
+            elif isinstance(option.type, ipa_types.Bool):
                 if option.default is True:
-                    o.action = 'store_false'
+                    kw['action'] = 'store_false'
                 else:
-                    o.action = 'store_true'
-                o.type = None
+                    kw['action'] = 'store_true'
+            else:
+                kw['metavar'] = metavar=option.type.name.upper()
+            o = optparse.make_option('--%s' % to_cli(option.cli_name), **kw)
             parser.add_option(o)
         return parser
 
