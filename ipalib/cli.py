@@ -220,7 +220,7 @@ class textui(backend.Backend):
                 value = repr(value)
             self.print_indented('%s: %s' % (key, value), indent)
 
-    def print_dashed(self, string, above=True, below=True):
+    def print_dashed(self, string, above=True, below=True, indent=0, dash='-'):
         """
         Print a string with a dashed line above and/or below.
 
@@ -238,12 +238,42 @@ class textui(backend.Backend):
         ------------------
         Only dashed above.
         """
-        dashes = '-' * len(string)
+        assert isinstance(dash, basestring)
+        assert len(dash) == 1
+        dashes = dash * len(string)
         if above:
-            print dashes
-        print string
+            self.print_indented(dashes, indent)
+        self.print_indented(string, indent)
         if below:
-            print dashes
+            self.print_indented(dashes, indent)
+
+    def print_h1(self, text):
+        """
+        Print a primary header at indentation level 0.
+
+        For example:
+
+        >>> ui = textui()
+        >>> ui.print_h1('A primary header')
+        ================
+        A primary header
+        ================
+        """
+        self.print_dashed(text, indent=0, dash='=')
+
+    def print_h2(self, text):
+        """
+        Print a secondary header at indentation level 1.
+
+        For example:
+
+        >>> ui = textui()
+        >>> ui.print_h2('A secondary header')
+          ------------------
+          A secondary header
+          ------------------
+        """
+        self.print_dashed(text, indent=1, dash='-')
 
     def print_name(self, name):
         """
