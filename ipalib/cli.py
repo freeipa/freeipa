@@ -98,6 +98,30 @@ class textui(backend.Backend):
             return max(len(row) for row in rows)
         return max(len(row[col]) for row in rows)
 
+    def __get_encoding(self, stream):
+        assert stream in (sys.stdin, sys.stdout)
+        if stream.encoding is None:
+            if stream.isatty():
+                return sys.getdefaultencoding()
+            return 'UTF-8'
+        return stream.encoding
+
+    def decode(self, str_buffer):
+        """
+        Decode text from stdin.
+        """
+        assert type(str_buffer) is str
+        encoding = self.__get_encoding(sys.stdin)
+        return str_buffer.decode(encoding)
+
+    def encode(self, unicode_text):
+        """
+        Encode text for output to stdout.
+        """
+        assert type(unicode_text) is unicode
+        encoding = self.__get_encoding(sys.stdout)
+        return unicode_text.encode(encoding)
+
     def choose_number(self, n, singular, plural=None):
         if n == 1 or plural is None:
             return singular % n
@@ -327,11 +351,14 @@ class textui(backend.Backend):
         """
         Prompt user for input.
         """
+        # TODO: Add tab completion using readline
         if default is None:
-            prompt = '%s: ' % label
+            prompt = u'%s: ' % label
         else:
-            prompt = '%s [%s]: ' % (label, default)
-        return raw_input(prompt)
+            prompt = u'%s [%s]: ' % (label, default)
+        return self.decode(
+            raw_input(self.encode(prompt))
+        )
 
     def prompt_password(self, label):
         """
@@ -342,7 +369,7 @@ class textui(backend.Backend):
                 pw1 = getpass.getpass('%s: ' % label)
                 pw2 = getpass.getpass('Enter again to verify: ')
                 if pw1 == pw2:
-                    return pw1
+                    return self.decode(pw1)
                 print '  ** Passwords do not match. Please enter again. **'
         except KeyboardInterrupt:
             print ''
