@@ -185,6 +185,7 @@ static void free_ipapwd_krbcfg(struct ipapwd_krbcfg **cfg)
     free(c->kmkey);
     free(c->supp_encsalts);
     free(c->pref_encsalts);
+    slapi_ch_array_free(c->passsync_mgrs);
     free(c);
     *cfg = NULL;
 };
@@ -476,7 +477,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 					struct ipapwd_data *data)
 {
 	krb5_context krbctx;
-	const char *krbPrincipalName;
+	char *krbPrincipalName = NULL;
 	uint32_t krbMaxTicketLife;
 	int kvno, i;
 	int krbTicketFlags;
@@ -756,12 +757,14 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 
 	ipapwd_keyset_free(&kset);
 	krb5_free_principal(krbctx, princ);
+	slapi_ch_free_string(&krbPrincipalName);
 	ber_bvfree(bval);
 	return svals;
 
 enc_error:
 	if (kset) ipapwd_keyset_free(&kset);
 	krb5_free_principal(krbctx, princ);
+	slapi_ch_free_string(&krbPrincipalName);
 	if (bval) ber_bvfree(bval);
 	free(svals);
 	return NULL;
@@ -2863,13 +2866,18 @@ free_and_error:
         free(kmkey);
     }
     if (config) {
-        if (config->krbctx) krb5_free_context(config->krbctx);
+        if (config->krbctx) {
+            if (config->realm)
+                krb5_free_default_realm(config->krbctx, config->realm);
+            krb5_free_context(config->krbctx);
+        }
         free(config->pref_encsalts);
         free(config->supp_encsalts);
-        free(config->passsync_mgrs);
+        slapi_ch_array_free(config->passsync_mgrs);
         free(config);
     }
-    if (realm_entry) slapi_entry_free(realm_entry);
+    slapi_entry_free(config_entry);
+    slapi_entry_free(realm_entry);
     return NULL;
 }
 
@@ -3001,6 +3009,8 @@ static int ipapwd_extop(Slapi_PBlock *pb)
 	rc = LDAP_OPERATIONS_ERROR;
 
 free_and_return:
+	if (krbcfg) free_ipapwd_krbcfg(&krbcfg);
+
 	slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop", errMesg);
 	slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
 
@@ -3317,7 +3327,8 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
             if (ret) {
                 slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
                                 "failed to set encoded values in entry\n");
-	        rc = LDAP_OPERATIONS_ERROR;
+                rc = LDAP_OPERATIONS_ERROR;
+                ipapwd_free_slapi_value_array(&svals);
                 goto done;
             }
 
@@ -3736,6 +3747,7 @@ done:
     if (smods) {
         mods = slapi_mods_get_ldapmods_passout(smods);
         slapi_pblock_set(pb, SLAPI_MODIFY_MODS, mods);
+        slapi_mods_free(&smods);
     }
 
     if (rc != LDAP_SUCCESS) {
