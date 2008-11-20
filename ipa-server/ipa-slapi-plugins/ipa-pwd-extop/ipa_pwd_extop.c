@@ -3045,10 +3045,6 @@ static void ipapwd_op_ext_destructor(void *ext, void *object, void *parent)
     if (pwdop->pwd_op != IPAPWD_OP_NULL) {
         slapi_ch_free_string(&(pwdop->pwdata.dn));
         slapi_ch_free_string(&(pwdop->pwdata.password));
-
-        /* target should never be set, but just in case ... */
-        if (pwdop->pwdata.target)
-            slapi_entry_free(pwdop->pwdata.target);
     }
     slapi_ch_free((void **)&pwdop);
 }
@@ -3340,13 +3336,10 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
         }
     }
 
-    /* we do not know if the entry pointer will still be valid after the op
-     * make sure we do not reference it by mistake later on */
-    pwdop->pwdata.target = NULL;
-
     rc = LDAP_SUCCESS;
 
 done:
+    if (pwdop) pwdop->pwdata.target = NULL;
     free_ipapwd_krbcfg(&krbcfg);
     slapi_ch_free_string(&userpw);
     if (rc != LDAP_SUCCESS) {
@@ -3800,8 +3793,7 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
     if (!gmtime_r(&(pwdop->pwdata.timeNow), &utctime)) {
         slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
                         "failed to parse current date (buggy gmtime_r ?)\n");
-        slapi_mods_free(&smods);
-        return 0;
+        goto done;
     }
     strftime(timestr, GENERALIZED_TIME_LENGTH+1,
              "%Y%m%d%H%M%SZ", &utctime);
@@ -3812,8 +3804,7 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
     if (!gmtime_r(&(pwdop->pwdata.expireTime), &utctime)) {
         slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
                         "failed to parse expiration date (buggy gmtime_r ?)\n");
-        slapi_mods_free(&smods);
-        return 0;
+        goto done;
     }
     strftime(timestr, GENERALIZED_TIME_LENGTH+1,
              "%Y%m%d%H%M%SZ", &utctime);
@@ -3832,8 +3823,7 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
             if (ret != LDAP_SUCCESS) {
                 slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
                                 "Failed tpo retrieve entry?!?\n");
-                slapi_mods_free(&smods);
-                return 0;
+                goto done;
             }
         }
         pwvals = ipapwd_setPasswordHistory(smods, &pwdop->pwdata);
@@ -3848,6 +3838,8 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
         slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
            "Failed to set additional password attributes in the post-op!\n");
 
+done:
+    if (pwdop && pwdop->pwdata.target) slapi_entry_free(pwdop->pwdata.target);
     slapi_mods_free(&smods);
     return 0;
 }
