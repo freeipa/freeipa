@@ -116,7 +116,7 @@ def xmlrpc_unwrap(value, encoding='UTF-8'):
     if isinstance(value, Binary):
         assert type(value.data) is str
         return value.data
-    assert type(value) in (int, float, bool, NoneType)
+    assert type(value) in (unicode, int, float, bool, NoneType)
     return value
 
 

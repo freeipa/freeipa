@@ -21,33 +21,70 @@
 Test the `ipalib.util` module.
 """
 
-from xmlrpclib import Binary
+from xmlrpclib import Binary, dumps, loads
+import struct
 from tests.util import raises
 from ipalib import util
 
 
-def test_xmlrpc_marshal():
-    """
-    Test the `ipalib.util.xmlrpc_marshal` function.
-    """
-    f = util.xmlrpc_marshal
-    assert f() == ({},)
-    assert f('one', 'two') == ({}, 'one', 'two')
-    assert f(one=1, two=2) == (dict(one=1, two=2),)
-    assert f('one', 'two', three=3, four=4) == \
-        (dict(three=3, four=4), 'one', 'two')
+# A string that should have bytes 'x\00' through '\xff':
+BINARY_BYTES = ''.join(struct.pack('B', d) for d in xrange(256))
+assert '\x00' in BINARY_BYTES and '\xff' in BINARY_BYTES
+
+# A UTF-8 encoded str
+UTF8_BYTES = '\xd0\x9f\xd0\xb0\xd0\xb2\xd0\xb5\xd0\xbb'
+
+# The same UTF-8 data decoded (a unicode instance)
+UNICODE_CHARS = u'\u041f\u0430\u0432\u0435\u043b'
+assert UTF8_BYTES.decode('UTF-8') == UNICODE_CHARS
+assert UNICODE_CHARS.encode('UTF-8') == UTF8_BYTES
+assert UTF8_BYTES != UNICODE_CHARS
 
 
-def test_xmlrpc_unmarshal():
+
+def dump_n_load(value):
+    (param, method) = loads(
+        dumps((value,))
+    )
+    return param[0]
+
+
+def round_trip(value):
+    return util.xmlrpc_unwrap(
+        dump_n_load(util.xmlrpc_wrap(value))
+    )
+
+
+def test_round_trip():
     """
-    Test the `ipalib.util.xmlrpc_unmarshal` function.
+    Test `ipalib.util.xmlrpc_wrap` and `ipalib.util.xmlrpc_unwrap`.
+
+    This tests the two functions together with ``xmlrpclib.dumps`` and
+    ``xmlrpclib.loads`` in a full encode/decode round trip.
     """
-    f = util.xmlrpc_unmarshal
-    assert f() == (tuple(), {})
-    assert f({}, 'one', 'two') == (('one', 'two'), {})
-    assert f(dict(one=1, two=2)) == (tuple(), dict(one=1, two=2))
-    assert f(dict(three=3, four=4), 'one', 'two') == \
-        (('one', 'two'), dict(three=3, four=4))
+    # We first test that our assumptions about xmlrpclib module in the Python
+    # standard library are correct:
+    assert dump_n_load(UTF8_BYTES) == UNICODE_CHARS
+    assert dump_n_load(UNICODE_CHARS) == UNICODE_CHARS
+    assert dump_n_load(Binary(BINARY_BYTES)).data == BINARY_BYTES
+    assert isinstance(dump_n_load(Binary(BINARY_BYTES)), Binary)
+    assert type(dump_n_load('hello')) is str
+    assert type(dump_n_load(u'hello')) is str
+
+    # Now we test our wrap and unwrap methods in combination with dumps, loads:
+    # All str should come back str (because they get wrapped in
+    # xmlrpclib.Binary().  All unicode should come back unicode because str
+    # explicity get decoded by util.xmlrpc_unwrap() if they weren't already
+    # decoded by xmlrpclib.loads().
+    assert round_trip(UTF8_BYTES) == UTF8_BYTES
+    assert round_trip(UNICODE_CHARS) == UNICODE_CHARS
+    assert round_trip(BINARY_BYTES) == BINARY_BYTES
+    assert type(round_trip('hello')) is str
+    assert type(round_trip(u'hello')) is unicode
+    compound = [UTF8_BYTES, UNICODE_CHARS, BINARY_BYTES,
+        dict(utf8=UTF8_BYTES, chars=UNICODE_CHARS, data=BINARY_BYTES)
+    ]
+    assert round_trip(compound) == tuple(compound)
 
 
 def test_xmlrpc_wrap():
@@ -73,18 +110,39 @@ def test_xmlrpc_unwrap():
     f = util.xmlrpc_unwrap
     assert f([]) == tuple()
     assert f({}) == dict()
-    utf8_bytes = '\xd0\x9f\xd0\xb0\xd0\xb2\xd0\xb5\xd0\xbb'
-    unicode_chars = u'\u041f\u0430\u0432\u0435\u043b'
-    value = f(Binary(utf8_bytes))
+    value = f(Binary(UTF8_BYTES))
     assert type(value) is str
-    assert value == utf8_bytes
-    value = f(utf8_bytes)
-    assert type(value) is unicode
-    assert value == unicode_chars
-    value = f([True, Binary('hello'), dict(one=1, two=utf8_bytes, three=None)])
-    assert value == (True, 'hello', dict(one=1, two=unicode_chars, three=None))
+    assert value == UTF8_BYTES
+    assert f(UTF8_BYTES) == UNICODE_CHARS
+    assert f(UNICODE_CHARS) == UNICODE_CHARS
+    value = f([True, Binary('hello'), dict(one=1, two=UTF8_BYTES, three=None)])
+    assert value == (True, 'hello', dict(one=1, two=UNICODE_CHARS, three=None))
     assert type(value[1]) is str
     assert type(value[2]['two']) is unicode
+
+
+def test_xmlrpc_marshal():
+    """
+    Test the `ipalib.util.xmlrpc_marshal` function.
+    """
+    f = util.xmlrpc_marshal
+    assert f() == ({},)
+    assert f('one', 'two') == ({}, 'one', 'two')
+    assert f(one=1, two=2) == (dict(one=1, two=2),)
+    assert f('one', 'two', three=3, four=4) == \
+        (dict(three=3, four=4), 'one', 'two')
+
+
+def test_xmlrpc_unmarshal():
+    """
+    Test the `ipalib.util.xmlrpc_unmarshal` function.
+    """
+    f = util.xmlrpc_unmarshal
+    assert f() == (tuple(), {})
+    assert f({}, 'one', 'two') == (('one', 'two'), {})
+    assert f(dict(one=1, two=2)) == (tuple(), dict(one=1, two=2))
+    assert f(dict(three=3, four=4), 'one', 'two') == \
+        (('one', 'two'), dict(three=3, four=4))
 
 
 def test_make_repr():
