@@ -30,6 +30,7 @@ from ipalib import util
 # A string that should have bytes 'x\00' through '\xff':
 BINARY_BYTES = ''.join(struct.pack('B', d) for d in xrange(256))
 assert '\x00' in BINARY_BYTES and '\xff' in BINARY_BYTES
+assert type(BINARY_BYTES) is str and len(BINARY_BYTES) == 256
 
 # A UTF-8 encoded str
 UTF8_BYTES = '\xd0\x9f\xd0\xb0\xd0\xb2\xd0\xb5\xd0\xbb'
@@ -39,7 +40,6 @@ UNICODE_CHARS = u'\u041f\u0430\u0432\u0435\u043b'
 assert UTF8_BYTES.decode('UTF-8') == UNICODE_CHARS
 assert UNICODE_CHARS.encode('UTF-8') == UTF8_BYTES
 assert UTF8_BYTES != UNICODE_CHARS
-
 
 
 def dump_n_load(value):
@@ -59,8 +59,8 @@ def test_round_trip():
     """
     Test `ipalib.util.xmlrpc_wrap` and `ipalib.util.xmlrpc_unwrap`.
 
-    This tests the two functions together with ``xmlrpclib.dumps`` and
-    ``xmlrpclib.loads`` in a full encode/decode round trip.
+    This tests the two functions together with ``xmlrpclib.dumps()`` and
+    ``xmlrpclib.loads()`` in a full encode/dumps/loads/decode round trip.
     """
     # We first test that our assumptions about xmlrpclib module in the Python
     # standard library are correct:
@@ -81,6 +81,8 @@ def test_round_trip():
     assert round_trip(BINARY_BYTES) == BINARY_BYTES
     assert type(round_trip('hello')) is str
     assert type(round_trip(u'hello')) is unicode
+    assert round_trip('') == ''
+    assert round_trip(u'') == u''
     compound = [UTF8_BYTES, UNICODE_CHARS, BINARY_BYTES,
         dict(utf8=UTF8_BYTES, chars=UNICODE_CHARS, data=BINARY_BYTES)
     ]
