@@ -61,6 +61,9 @@ Full path and filename of CA certificate to use with TLS/SSL to the remote serve
 .TP
 \fB\-\-win-subtree\fR=\fIcn=Users,dc=example,dc=com\fR
 DN of Windows subtree containing the users you want to sync (default cn=Users,<domain suffix> - this is typically what Windows AD uses as the default value) - Be careful to quote this value on the command line
+.TP
+\fB\-\-passsync\fR=\fIPASSSYNC_PWD\fR
+Password for the Windows PassSync user.
 .SH "EXIT STATUS"
 0 if the command was successful
 
