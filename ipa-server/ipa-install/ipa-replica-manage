@@ -97,7 +97,7 @@ def list_masters(replman, verbose):
 def del_master(replman, hostname):
     try:
         t = replman.get_agreement_type(hostname)
-    except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+    except ldap.NO_SUCH_OBJECT:
         print "No replication agreement found for %s" % hostname
 
     if t == replication.IPA_REPLICA:
