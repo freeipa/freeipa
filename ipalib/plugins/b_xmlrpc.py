@@ -47,11 +47,10 @@ class xmlrpc(Backend):
         # Are there any reasonably common XML-RPC client implementations
         # that don't support the <nil/> extension?
         # See: http://docs.python.org/library/xmlrpclib.html
-        uri = self.api.env.xmlrpc_uri
+        uri = self.env.xmlrpc_uri
         if uri.startswith('https://'):
             return xmlrpclib.ServerProxy(uri,
                 transport=KerbTransport(),
-                #verbose=self.api.env.verbose,
             )
         return xmlrpclib.ServerProxy(uri)
 

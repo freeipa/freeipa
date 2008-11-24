@@ -1,0 +1,86 @@
+# Authors:
+#   Jason Gerard DeRose <jderose@redhat.com>
+#
+# Copyright (C) 2008  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+"""
+Core RPC functionality.
+"""
+
+from types import NoneType
+from xmlrpclib import Binary
+
+
+def xmlrpc_wrap(value):
+    """
+    Wrap all ``str`` in ``xmlrpclib.Binary``.
+
+    Because ``xmlrpclib.dumps()`` will itself convert all ``unicode`` instances
+    into UTF-8 encoded ``str`` instances, we don't do it here.
+
+    So in total, when encoding data for an XML-RPC request, the following
+    transformations occur:
+
+        * All ``str`` instances are treated as binary data and are wrapped in
+          an ``xmlrpclib.Binary()`` instance.
+
+        * Only ``unicode`` instances are treated as character data. They get
+          converted to UTF-8 encoded ``str`` instances (although as mentioned,
+          not by this function).
+
+    Also see `xmlrpc_unwrap`.
+    """
+    if type(value) in (list, tuple):
+        return tuple(xmlrpc_wrap(v) for v in value)
+    if type(value) is dict:
+        return dict(
+            (k, xmlrpc_wrap(v)) for (k, v) in value.iteritems()
+        )
+    if type(value) is str:
+        return Binary(value)
+    assert type(value) in (unicode, int, float, bool, NoneType)
+    return value
+
+
+def xmlrpc_unwrap(value, encoding='UTF-8'):
+    """
+    Unwrap all ``xmlrpc.Binary``, decode all ``str`` into ``unicode``.
+
+    When decoding data from an XML-RPC request, the following transformations
+    occur:
+
+        * The binary payloads of all ``xmlrpclib.Binary`` instances are
+          returned as ``str`` instances.
+
+        * All ``str`` instances are treated as UTF-8 encoded character data.
+          They are decoded and the resulting ``unicode`` instance is returned.
+
+    Also see `xmlrpc_wrap`.
+    """
+    if type(value) in (list, tuple):
+        return tuple(xmlrpc_unwrap(v, encoding) for v in value)
+    if type(value) is dict:
+        return dict(
+            (k, xmlrpc_unwrap(v, encoding)) for (k, v) in value.iteritems()
+        )
+    if type(value) is str:
+        return value.decode(encoding)
+    if isinstance(value, Binary):
+        assert type(value.data) is str
+        return value.data
+    assert type(value) in (unicode, int, float, bool, NoneType)
+    return value
