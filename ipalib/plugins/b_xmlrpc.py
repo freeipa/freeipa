@@ -51,14 +51,15 @@ class xmlrpc(Backend):
         if uri.startswith('https://'):
             return xmlrpclib.ServerProxy(uri,
                 transport=KerbTransport(),
-                verbose=self.api.env.verbose,
+                #verbose=self.api.env.verbose,
             )
-        return xmlrpclib.ServerProxy(uri, verbose=self.api.env.verbose)
+        return xmlrpclib.ServerProxy(uri)
 
     def forward_call(self, name, *args, **kw):
         """
         Forward a call over XML-RPC to an IPA server.
         """
+        self.info('Forwarding %r call to %r' % (name, self.env.xmlrpc_uri))
         client = self.get_client()
         command = getattr(client, name)
         params = xmlrpc_marshal(*args, **kw)

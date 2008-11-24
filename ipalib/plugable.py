@@ -253,6 +253,11 @@ class Plugin(ReadOnly):
     __proxy__ = True
     __api = None
 
+    def __init__(self):
+        log = logging.getLogger('ipa')
+        for name in ('debug', 'info', 'warning', 'error', 'critical'):
+            setattr(self, name, getattr(log, name))
+
     def __get_name(self):
         """
         Convenience property to return the class name.

@@ -539,6 +539,7 @@ class Command(plugable.Plugin):
         If not in a server context, the call will be forwarded over
         XML-RPC and the executed an the nearest IPA server.
         """
+        self.debug(make_repr(self.name, *args, **kw))
         if len(args) > 0:
             arg_kw = self.args_to_kw(*args)
             assert set(arg_kw).intersection(kw) == set()
@@ -548,7 +549,9 @@ class Command(plugable.Plugin):
         kw.update(self.get_default(**kw))
         self.validate(**kw)
         (args, options) = self.params_2_args_options(kw)
-        return self.run(*args, **options)
+        result = self.run(*args, **options)
+        self.debug('%s result: %r', self.name, result)
+        return result
 
     def args_to_kw(self, *values):
         """
