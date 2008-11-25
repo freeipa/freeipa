@@ -113,8 +113,32 @@ class IPAError(StandardError):
 class InvocationError(IPAError):
     pass
 
+
 class UnknownCommandError(InvocationError):
     format = 'unknown command "%s"'
+
+def _(text):
+    return text
+
+
+class HandledError(StandardError):
+    """
+    Base class for errors that can be raised across a remote procecdure call.
+    """
+    def __init__(self, message=None, **kw):
+        self.kw = kw
+        if message is None:
+            message = self.format % kw
+        StandardError.__init__(self, message)
+
+
+class CommandError(HandledError):
+    format = _('Unknown command %(name)r')
+
+
+class RemoteCommandError(HandledError):
+    format = 'Server at %(uri)r has no command %(command)r'
+
 
 class UnknownHelpError(InvocationError):
     format = 'no command nor topic "%s"'

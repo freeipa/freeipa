@@ -32,10 +32,10 @@ BINARY_BYTES = ''.join(struct.pack('B', d) for d in xrange(256))
 assert '\x00' in BINARY_BYTES and '\xff' in BINARY_BYTES
 assert type(BINARY_BYTES) is str and len(BINARY_BYTES) == 256
 
-# A UTF-8 encoded str
+# A UTF-8 encoded str:
 UTF8_BYTES = '\xd0\x9f\xd0\xb0\xd0\xb2\xd0\xb5\xd0\xbb'
 
-# The same UTF-8 data decoded (a unicode instance)
+# The same UTF-8 data decoded (a unicode instance):
 UNICODE_CHARS = u'\u041f\u0430\u0432\u0435\u043b'
 assert UTF8_BYTES.decode('UTF-8') == UNICODE_CHARS
 assert UNICODE_CHARS.encode('UTF-8') == UTF8_BYTES
@@ -60,7 +60,7 @@ def test_round_trip():
     Test `ipalib.rpc.xmlrpc_wrap` and `ipalib.rpc.xmlrpc_unwrap`.
 
     This tests the two functions together with ``xmlrpclib.dumps()`` and
-    ``xmlrpclib.loads()`` in a full encode/dumps/loads/decode round trip.
+    ``xmlrpclib.loads()`` in a full wrap/dumps/loads/unwrap round trip.
     """
     # We first test that our assumptions about xmlrpclib module in the Python
     # standard library are correct:

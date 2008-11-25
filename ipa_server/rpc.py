@@ -22,11 +22,16 @@ Dispatcher for RPC server.
 """
 
 from ipalib import Backend
+from ipalib.errors import CommandError
 from ipalib.rpc import xmlrpc_wrap, xmlrpc_unwrap
 
 
-class XMLServer(Backend):
+class xmlrpc(Backend):
 
     def dispatch(self, method, params):
-        self.info('Received call to %r', method)
+        assert type(method) is str
+        assert type(params) is tuple
+        self.info('Received RPC call to %r', method)
+        if method not in self.Command:
+            raise CommandError(name=method)
         params = xml_unwrap(params)

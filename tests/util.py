@@ -27,6 +27,7 @@ from os import path
 import tempfile
 import shutil
 import ipalib
+from ipalib.plugable import Plugin
 
 
 
@@ -198,6 +199,11 @@ class ClassChecker(object):
         )
 
 
+
+
+
+
+
 def check_TypeError(value, type_, name, callback, *args, **kw):
     """
     Tests a standard TypeError raised with `errors.raise_TypeError`.
@@ -224,3 +230,54 @@ def get_api(**kw):
     for (key, value) in kw.iteritems():
         api.env[key] = value
     return (api, home)
+
+
+def create_test_api(**kw):
+    """
+    Returns (api, home) tuple.
+
+    This function returns a tuple containing an `ipalib.plugable.API`
+    instance and a `TempHome` instance.
+    """
+    home = TempHome()
+    api = ipalib.create_api(mode='unit_test')
+    api.env.in_tree = True
+    for (key, value) in kw.iteritems():
+        api.env[key] = value
+    return (api, home)
+
+
+class PluginTester(object):
+    __plugin = None
+
+    def __get_plugin(self):
+        if self.__plugin is None:
+            self.__plugin = self._plugin
+        assert issubclass(self.__plugin, Plugin)
+        return self.__plugin
+    plugin = property(__get_plugin)
+
+    def register(self, *plugins, **kw):
+        """
+        Create a testing api and register ``self.plugin``.
+
+        This method returns an (api, home) tuple.
+
+        :param plugins: Additional \*plugins to register.
+        :param kw: Additional \**kw args to pass to `create_test_api`.
+        """
+        (api, home) = create_test_api(**kw)
+        api.register(self.plugin)
+        for p in plugins:
+            api.register(p)
+        return (api, home)
+
+    def finalize(self, *plugins, **kw):
+        (api, home) = self.register(*plugins, **kw)
+        api.finalize()
+        return (api, home)
+
+    def instance(self, namespace, *plugins, **kw):
+        (api, home) = self.finalize(*plugins, **kw)
+        o = api[namespace][self.plugin.__name__]
+        return (o, api, home)
