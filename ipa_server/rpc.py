@@ -18,12 +18,22 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Dispatcher for RPC server.
+Execute an RPC request.
 """
 
+from xmlrpclib import dumps, loads, Fault
 from ipalib import Backend
-from ipalib.errors import CommandError
+from ipalib.errors import HandledError, CommandError
 from ipalib.rpc import xmlrpc_wrap, xmlrpc_unwrap
+
+
+def params_2_args_options(params):
+    assert type(params) is tuple
+    if len(params) == 0:
+        return (tuple(), dict())
+    if type(params[-1]) is dict:
+        return (params[:-1], params[-1])
+    return (params, dict())
 
 
 class xmlrpc(Backend):
@@ -34,4 +44,17 @@ class xmlrpc(Backend):
         self.info('Received RPC call to %r', method)
         if method not in self.Command:
             raise CommandError(name=method)
-        params = xml_unwrap(params)
+        (args, options) = params_2_args_options(xmlrpc_unwrap(params))
+        result = self.Command[method](*args, **options)
+        return (xmlrpc_wrap(result),)
+
+    def execute(self, data, ccache=None, client_ip=None, locale=None):
+        try:
+            (params, method) = loads(data)
+            response = self.dispatch(method, params)
+        except Exception, e:
+            if not isinstance(e, HandledError):
+                e = UnknownError()
+            assert isinstance(e, HandledError)
+            response = Fault(e.code, e.message)
+        return dumps(response)

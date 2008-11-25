@@ -125,6 +125,9 @@ class HandledError(StandardError):
     """
     Base class for errors that can be raised across a remote procecdure call.
     """
+
+    code = 1
+
     def __init__(self, message=None, **kw):
         self.kw = kw
         if message is None:
@@ -132,12 +135,22 @@ class HandledError(StandardError):
         StandardError.__init__(self, message)
 
 
+
+class UnknownError(HandledError):
+    """
+    Raised when the true error is not a handled error.
+    """
+
+    format = _('An unknown internal error has occurred')
+
+
 class CommandError(HandledError):
     format = _('Unknown command %(name)r')
 
 
+
 class RemoteCommandError(HandledError):
-    format = 'Server at %(uri)r has no command %(command)r'
+    format = 'Server at %(uri)r has no command %(name)r'
 
 
 class UnknownHelpError(InvocationError):

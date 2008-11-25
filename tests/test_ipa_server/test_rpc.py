@@ -26,6 +26,20 @@ from ipalib import errors, Command
 from ipa_server import rpc
 
 
+def test_params_2_args_options():
+    """
+    Test the `ipa_server.rpc.params_2_args_options` function.
+    """
+    f = rpc.params_2_args_options
+    args = ('Hello', u'world!')
+    options = dict(one=1, two=u'Two', three='Three')
+    assert f(tuple()) == (tuple(), dict())
+    assert f(args) == (args, dict())
+    assert f((options,)) == (tuple(), options)
+    assert f(args + (options,)) == (args, options)
+    assert f((options,) + args) == ((options,) + args, dict())
+
+
 class test_xmlrpc(PluginTester):
     """
     Test the `ipa_server.rpc.xmlrpc` plugin.
