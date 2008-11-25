@@ -577,11 +577,17 @@ class Command(plugable.Plugin):
             if len(values) > i:
                 if arg.multivalue:
                     multivalue = True
-                    yield (arg.name, values[i:])
+                    if len(values) == i + 1 and type(values[i]) in (list, tuple):
+                        yield (arg.name, values[i])
+                    else:
+                        yield (arg.name, values[i:])
                 else:
                     yield (arg.name, values[i])
             else:
                 break
+
+    def args_options_2_params(self, args, options):
+        pass
 
     def params_2_args_options(self, params):
         """

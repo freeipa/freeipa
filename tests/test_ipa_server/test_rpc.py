@@ -22,6 +22,7 @@ Test the `ipa_server.rpc` module.
 """
 
 from tests.util import create_test_api, raises, PluginTester
+from tests.data import unicode_str
 from ipalib import errors, Command
 from ipa_server import rpc
 
@@ -51,7 +52,25 @@ class test_xmlrpc(PluginTester):
         """
         Test the `ipa_server.rpc.xmlrpc.dispatch` method.
         """
-        (o, api, home) = self.instance('Backend')
-        e = raises(errors.CommandError, o.dispatch, 'example', tuple())
-        assert str(e) == "Unknown command 'example'"
-        assert e.kw['name'] == 'example'
+        (o, api, home) = self.instance('Backend', in_server=True)
+        e = raises(errors.CommandError, o.dispatch, 'echo', tuple())
+        assert str(e) == "Unknown command 'echo'"
+        assert e.kw['name'] == 'echo'
+
+        class echo(Command):
+            takes_args = ['arg1', 'arg2+']
+            takes_options = ['option1?', 'option2?']
+            def execute(self, *args, **options):
+                assert type(args[1]) is tuple
+                return args + (options,)
+
+        (o, api, home) = self.instance('Backend', echo, in_server=True)
+        def call(params):
+            response = o.dispatch('echo', params)
+            assert type(response) is tuple and len(response) == 1
+            return response[0]
+        arg1 = unicode_str
+        arg2 = (u'Hello', unicode_str, u'world!')
+        options = dict(option1=u'How are you?', option2=unicode_str)
+        assert call((arg1, arg2, options)) == (arg1, arg2, options)
+        assert call((arg1,) + arg2 + (options,)) == (arg1, arg2, options)

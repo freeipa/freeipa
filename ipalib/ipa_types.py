@@ -145,6 +145,13 @@ class Unicode(Type):
             self.regex = re.compile(pattern)
         super(Unicode, self).__init__(unicode)
 
+    def convert(self, value):
+        assert type(value) not in (list, tuple)
+        try:
+            return self.type(value)
+        except (TypeError, ValueError):
+            return None
+
     def validate(self, value):
         if type(value) is not self.type:
             return 'Must be a string'
