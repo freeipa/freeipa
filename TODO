@@ -1,3 +1,21 @@
+API chages before January 2009 simi-freeze:
+
+  * Merge Param and Type together so that rather than taking the type as a
+    kwarg, you simply use the Type. For example, instead of:
+        >>> Param('number', type=Int())
+    You would do this:
+        >>> Int('number')
+    The types will correspond to Python 3.0 text/binary disambiguaiton, so we
+    will have Bytes, Str, Int, Float, and Bool.
+
+  * Rename crud Method base classes to standard CRUDS name: Add=>Create,
+    Get=>Retrieve, Mod=>Update, Del=>Delete, Find=>Search.
+
+  * Add a Command.backend convenience attribute that checks if the class
+    uses_backend attribute is sets the Command.backend attribute like this:
+        self.backend = self.Backend[self.uses_backend]
+
+
 CLI
   - Prompt for password using getpass
   - Passed the param dict to output_for_cli()
