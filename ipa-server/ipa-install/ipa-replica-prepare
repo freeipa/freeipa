@@ -155,10 +155,10 @@ def copy_files(realm_name, dir):
     try:
         shutil.copy("/var/kerberos/krb5kdc/ldappwd", dir + "/ldappwd") 
         shutil.copy("/var/kerberos/krb5kdc/kpasswd.keytab", dir + "/kpasswd.keytab") 
+        shutil.copy("/usr/share/ipa/html/ca.crt", dir + "/ca.crt")
         if ipautil.file_exists("/usr/share/ipa/html/preferences.html"):
             shutil.copy("/usr/share/ipa/html/preferences.html", dir + "/preferences.html")
             shutil.copy("/usr/share/ipa/html/configure.jar", dir + "/configure.jar")
-            shutil.copy(config_dir + "/cacert.asc", dir + "/ca.crt")
     except Exception, e:
         print "error copying files: " + str(e)
         sys.exit(1)

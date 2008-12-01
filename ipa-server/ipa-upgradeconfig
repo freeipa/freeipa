@@ -84,12 +84,27 @@ def upgrade(sub_dict, filename, template):
         update_conf(sub_dict, filename, template)
         print "Upgraded %s to version %d" % (filename, new)
 
+def check_certs(realm_name):
+    """Check ca.crt is in the right place, and try to fix if not"""
+    if not os.path.exists("/usr/share/ipa/html/ca.crt"):
+        ca_file = "/etc/dirsrv/slapd-" + ("-".join(realm_name.split("."))) + "/cacert.asc"
+        if os.path.exists(ca_file):
+            shutil.copyfile(ca_file, "/usr/share/ipa/html/ca.crt")
+        else:
+            print "Missing Certification Authority file."
+            print "You should place a copy of the CA certificate in /usr/share/ipa/html/ca.crt"
+
 def main():
     try:
         krbctx = krbV.default_context()
     except krbV.Krb5Error, e:
         print "Unable to get default kerberos realm: %s" % e[1]
         sys.exit(1)
+
+    try:
+        check_certs(krbctx.default_realm)
+    except Error, e:
+        print "Failed to check CA certificate: %s" % e
 
     try:
         fqdn = find_hostname()
