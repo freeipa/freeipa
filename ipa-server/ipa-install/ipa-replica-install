@@ -270,6 +270,10 @@ def main():
     webgui = httpinstance.WebGuiInstance()
     webgui.create_instance()
 
+    # Apply any LDAP updates. Needs to be done after the replica is synced-up
+    service.print_msg("Applying LDAP updates")
+    ds.apply_updates()
+
     service.restart("dirsrv")
     service.restart("krb5kdc")
 
