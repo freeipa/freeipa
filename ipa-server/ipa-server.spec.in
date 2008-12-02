@@ -129,6 +129,7 @@ fi
 %{_sbindir}/ipa-upgradeconfig
 %{_sbindir}/ipa-fix-CVE-2008-3274
 %{_sbindir}/ipa-ldap-updater
+%{_sbindir}/ipa-compat-manage
 %attr(755,root,root) %{_initrddir}/ipa_kpasswd
 %attr(755,root,root) %{_initrddir}/ipa_webgui
 
@@ -179,6 +180,7 @@ fi
 %{_mandir}/man1/ipa-server-certinstall.1.gz
 %{_mandir}/man1/ipa-server-install.1.gz
 %{_mandir}/man1/ipa-ldap-updater.1.gz
+%{_mandir}/man1/ipa-compat-manage.1.gz
 
 %changelog
 * Wed Sep 17 2008 Rob Crittenden <rcritten@redhat.com> - 1.2.0-0
