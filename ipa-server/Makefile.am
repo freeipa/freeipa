@@ -18,6 +18,7 @@ sbin_SCRIPTS =			\
 	ipa-upgradeconfig	\
 	ipa-fix-CVE-2008-3274	\
 	ipa-ldap-updater	\
+	ipa-compat-manage	\
 	$(NULL)
 
 install-exec-local:
