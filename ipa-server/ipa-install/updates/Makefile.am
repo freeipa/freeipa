@@ -4,7 +4,6 @@ appdir = $(IPA_DATA_DIR)/updates
 app_DATA =				\
 	RFC4876.update			\
 	RFC2307bis.update		\
-	schema_compatibility.update	\
 	nss_ldap.update			\
 	winsync_index.update		\
 	replication.update		\

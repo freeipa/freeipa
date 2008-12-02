@@ -27,6 +27,7 @@ app_DATA =				\
 	master-entry.ldif		\
 	memberof-task.ldif		\
 	unique-attributes.ldif		\
+	schema_compat.uldif	\
 	$(NULL)
 
 EXTRA_DIST =				\
