@@ -1,0 +1,11 @@
+#
+# Some nss_ldap implementations will always ask for memberuid so we must
+# have an index for it.
+#
+dn: cn=memberuid,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default:cn=memberuid
+default:ObjectClass: top
+default:ObjectClass: nsIndex
+default:nsSystemIndex: false
+default:nsIndexType: eq,pres
+

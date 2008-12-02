@@ -7,6 +7,7 @@ app_DATA =				\
 	nss_ldap.update			\
 	winsync_index.update		\
 	replication.update		\
+	indices.update		\
 	$(NULL)
 
 EXTRA_DIST =				\
