@@ -3,7 +3,7 @@
 # have an index for it.
 #
 dn: cn=memberuid,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn=memberuid
+default:cn: memberuid
 default:ObjectClass: top
 default:ObjectClass: nsIndex
 default:nsSystemIndex: false
