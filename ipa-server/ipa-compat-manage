@@ -94,46 +94,57 @@ def main():
     else:
         dirman_password = get_dirman_password()
 
-    if args[0] == "enable":
+    try:
         try:
             conn = ipaldap.IPAdmin(installutils.get_fqdn())
             conn.do_simple_bind(bindpw=dirman_password)
-            conn.getEntry("cn=Schema Compatibility,cn=plugins,cn=config",
-                          ldap.SCOPE_BASE, "(objectclass=*)")
-            print "Plugin already Enabled"
-            retval = 2
-        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-            print "Enabling plugin"
-        finally:
-            if conn:
-                conn.unbind()
+        except ldap.LDAPError, e:
+            print "An error occurred while connecting to the server."
+            print "%s" % e[0]['desc']
+            return 1
 
-        if retval == 0:
-            ld = LDAPUpdate(dm_password=dirman_password, sub_dict={})
-            retval = ld.update(files)
+        if args[0] == "enable":
+            try:
+                conn.getEntry("cn=Schema Compatibility,cn=plugins,cn=config",
+                              ldap.SCOPE_BASE, "(objectclass=*)")
+                print "Plugin already Enabled"
+                retval = 2
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                print "Enabling plugin"
+            except ldap.LDAPError, e:
+                print "An error occurred while talking to the server."
+                print "%s" % e[0]['desc']
+                retval = 1
+
             if retval == 0:
-                print "This setting will not take effect until you restart Directory Server."
+                ld = LDAPUpdate(dm_password=dirman_password, sub_dict={})
+                retval = ld.update(files)
+                if retval == 0:
+                    print "This setting will not take effect until you restart Directory Server."
 
-    elif args[0] == "disable":
-        # Make a quick hack foir now, directly delete the entries by name,
-        # In future we should add delete capabilites to LDAPUpdate
-        try:
-            conn = ipaldap.IPAdmin(installutils.get_fqdn())
-            conn.do_simple_bind(bindpw=dirman_password)
-            conn.getEntry("cn=Schema Compatibility,cn=plugins,cn=config",
-                          ldap.SCOPE_BASE, "(objectclass=*)")
-            conn.deleteEntry("cn=groups,cn=Schema Compatibility,cn=plugins,cn=config")
-            conn.deleteEntry("cn=users,cn=Schema Compatibility,cn=plugins,cn=config")
-            conn.deleteEntry("cn=Schema Compatibility,cn=plugins,cn=config")
-        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
-            print "Plugin is already disabled"
-            retval = 2
-        finally:
-            if conn:
-                conn.unbind()
+        elif args[0] == "disable":
+            # Make a quick hack foir now, directly delete the entries by name,
+            # In future we should add delete capabilites to LDAPUpdate
+            try:
+                conn.getEntry("cn=Schema Compatibility,cn=plugins,cn=config",
+                              ldap.SCOPE_BASE, "(objectclass=*)")
+                conn.deleteEntry("cn=groups,cn=Schema Compatibility,cn=plugins,cn=config")
+                conn.deleteEntry("cn=users,cn=Schema Compatibility,cn=plugins,cn=config")
+                conn.deleteEntry("cn=Schema Compatibility,cn=plugins,cn=config")
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                print "Plugin is already disabled"
+                retval = 2
+            except ldap.LDAPError, e:
+                print "An error occurred while talking to the server."
+                print "%s" % e[0]['desc']
+                retval = 1
 
-    else:
-        retval = 1
+        else:
+            retval = 1
+
+    finally:
+        if conn:
+            conn.unbind()
 
     return retval
 
@@ -154,4 +165,7 @@ except KeyboardInterrupt, e:
 except config.IPAConfigError, e:
     print "An IPA server to update cannot be found. Has one been configured yet?"
     print "The error was: %s" % e
+    sys.exit(1)
+except ipaerror, e:
+    print "An error occurred while performing operations: %s" % e
     sys.exit(1)
