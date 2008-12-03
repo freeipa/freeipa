@@ -135,6 +135,7 @@ fi
 
 %dir %{_usr}/share/ipa
 %{_usr}/share/ipa/*.ldif
+%{_usr}/share/ipa/*.uldif
 %{_usr}/share/ipa/*.template
 %dir %{_usr}/share/ipa/html
 %{_usr}/share/ipa/html/ssbrowser.html
