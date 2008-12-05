@@ -89,8 +89,8 @@ def main():
 
     dirman_password = ""
     if options.password:
-        pw = read_file(options.password)
-        dirman_password = pw[0].strip()
+        pw = ipautil.template_file(options.password, [])
+        dirman_password = pw.strip()
     else:
         dirman_password = get_dirman_password()
 
