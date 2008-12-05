@@ -691,7 +691,10 @@ class CLI(object):
         if callable(cmd.output_for_cli):
             for param in cmd.params():
                 if param.ispassword():
-                    del kw[param.name]
+                    try:
+                        del kw[param.name]
+                    except KeyError:
+                        pass
             (args, options) = cmd.params_2_args_options(kw)
             cmd.output_for_cli(self.api.Backend.textui, result, *args, **options)
 

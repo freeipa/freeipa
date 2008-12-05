@@ -30,6 +30,19 @@ from ipalib import ipa_types
 
 hostgroup_filter = "groupofnames)(!(objectclass=posixGroup)"
 
+def get_members(members):
+    """
+    Return a list of members.
+
+    It is possible that the value passed in is None.
+    """
+    if members:
+        members = members.split(',')
+    else:
+        members = []
+
+    return members
+
 class hostgroup(frontend.Object):
     """
     Host Group object.
@@ -241,7 +254,7 @@ class hostgroup_add_member(frontend.Command):
         to_add = []
         completed = 0
 
-        members = kw.get('groups', '').split(',')
+        members = get_members(kw.get('groups', ''))
         for m in members:
             if not m: continue
             try:
@@ -251,7 +264,7 @@ class hostgroup_add_member(frontend.Command):
                 add_failed.append(m)
                 continue
 
-        members = kw.get('hosts', '').split(',')
+        members = get_members(kw.get('hosts', ''))
         for m in members:
             if not m: continue
             try:
@@ -309,7 +322,7 @@ class hostgroup_remove_member(frontend.Command):
         remove_failed = []
         completed = 0
 
-        members = kw.get('groups', '').split(',')
+        members = get_members(kw.get('groups', ''))
         for m in members:
             if not m: continue
             try:
@@ -319,7 +332,7 @@ class hostgroup_remove_member(frontend.Command):
                 remove_failed.append(m)
                 continue
 
-        members = kw.get('hosts', '').split(',')
+        members = get_members(kw.get('hosts', ''))
         for m in members:
             if not m: continue
             try:

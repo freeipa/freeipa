@@ -375,7 +375,7 @@ class IPAdmin(SimpleLDAPObject):
         except ldap.ALREADY_EXISTS, e:
             raise errors.DuplicateEntry, "Entry already exists"
         except ldap.LDAPError, e:
-            raise e
+            raise DatabaseError, e
         return True
 
     def updateRDN(self, dn, newrdn):
@@ -392,7 +392,7 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modrdn_s(dn, newrdn, delold=1)
         except ldap.LDAPError, e:
-            raise e
+            raise DatabaseError, e
         return True
 
     def updateEntry(self,dn,oldentry,newentry):
@@ -474,7 +474,7 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modify_s(dn, modlist)
         except ldap.LDAPError, e:
-             raise e
+             raise DatabaseError, e
         return True
 
     def deleteEntry(self,*args):
@@ -486,8 +486,10 @@ class IPAdmin(SimpleLDAPObject):
             if sctrl is not None:
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.delete_s(*args)
+        except ldap.INSUFFICIENT_ACCESS, e:
+             raise errors.InsufficientAccess, e
         except ldap.LDAPError, e:
-             raise e
+             raise errors.DatabaseError, e
         return True
 
     def modifyPassword(self,dn,oldpass,newpass):

@@ -29,6 +29,19 @@ from ipalib import errors
 from ipalib import ipa_types
 
 
+def get_members(members):
+    """
+    Return a list of members.
+
+    It is possible that the value passed in is None.
+    """
+    if members:
+        members = members.split(',')
+    else:
+        members = []
+
+    return members
+
 class group(frontend.Object):
     """
     Group object.
@@ -83,12 +96,13 @@ class group_add(crud.Add):
 
         return ldap.create(**kw)
 
-    def output_for_cli(self, ret):
+    def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "Group added"
+        textui.print_name(self.name)
+        textui.print_entry(result)
+        textui.print_dashed('Added group "%s"' % result['cn'])
 
 api.register(group_add)
 
@@ -121,12 +135,11 @@ class group_del(crud.Del):
 
         return ldap.delete(dn)
 
-    def output_for_cli(self, ret):
+    def output_for_cli(self, textui, result, cn):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "Group deleted"
+        textui.print_plain("Deleted group %s" % cn)
 
 api.register(group_del)
 
@@ -151,12 +164,12 @@ class group_mod(crud.Mod):
         dn = ldap.find_entry_dn("cn", cn, "posixGroup")
         return ldap.update(dn, **kw)
 
-    def output_for_cli(self, ret):
+    def output_for_cli(self, textui, result, cn, **options):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "Group updated"
+        if result:
+            textui.print_plain("Group updated")
 
 api.register(group_mod)
 
@@ -179,22 +192,24 @@ class group_find(crud.Find):
             kw['objectclass'] = object_type
         return ldap.search(**kw)
 
-    def output_for_cli(self, groups):
-        if not groups:
+    def output_for_cli(self, textui, result, uid, **options):
+        counter = result[0]
+        groups = result[1:]
+        if counter == 0 or len(groups) == 0:
+            textui.print_plain("No entries found")
             return
-
-        counter = groups[0]
-        groups = groups[1:]
-        if counter == 0:
-            print "No entries found"
+        if len(groups) == 1:
+            textui.print_entry(groups[0])
             return
-        elif counter == -1:
-            print "These results are truncated."
-            print "Please refine your search and try again."
+        textui.print_name(self.name)
 
         for g in groups:
-            for a in g.keys():
-                print "%s: %s" % (a, g[a])
+            textui.print_entry(g)
+            textui.print_plain('')
+        if counter == -1:
+            textui.print_plain("These results are truncated.")
+            textui.print_plain("Please refine your search and try again.")
+        textui.print_count(groups, '%d groups matched')
 
 api.register(group_find)
 
@@ -218,12 +233,24 @@ class group_show(crud.Get):
         # FIXME: should kw contain the list of attributes to display?
         return ldap.retrieve(dn)
 
-    def output_for_cli(self, group):
-        if not group:
+    def output_for_cli(self, textui, result, *args, **options):
+        counter = result[0]
+        groups = result[1:]
+        if counter == 0 or len(groups) == 0:
+            textui.print_plain("No entries found")
             return
-
-        for a in group.keys():
-            print "%s: %s" % (a, group[a])
+        if len(groups) == 1:
+            textui.print_entry(groups[0])
+            return
+        textui.print_name(self.name)
+        for u in groups:
+            textui.print_plain('%(givenname)s %(sn)s:' % u)
+            textui.print_entry(u)
+            textui.print_plain('')
+        if counter == -1:
+            textui.print_plain('These results are truncated.')
+            textui.print_plain('Please refine your search and try again.')
+        textui.print_count(groups, '%d groups matched')
 
 api.register(group_show)
 
@@ -253,7 +280,7 @@ class group_add_member(frontend.Command):
         to_add = []
         completed = 0
 
-        members = kw.get('groups', '').split(',')
+        members = get_members(kw.get('groups', ''))
         for m in members:
             if not m: continue
             try:
@@ -263,7 +290,7 @@ class group_add_member(frontend.Command):
                 add_failed.append(m)
                 continue
 
-        members = kw.get('users', '').split(',')
+        members = get_members(kw.get('users', ''))
         for m in members:
             if not m: continue
             try:
@@ -282,11 +309,11 @@ class group_add_member(frontend.Command):
 
         return add_failed
 
-    def output_for_cli(self, add_failed):
+    def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        if add_failed:
+        if result:
             print "These entries failed to add to the group:"
             for a in add_failed:
                 print "\t'%s'" % a
@@ -320,7 +347,7 @@ class group_remove_member(frontend.Command):
         remove_failed = []
         completed = 0
 
-        members = kw.get('groups', '').split(',')
+        members = get_members(kw.get('groups', ''))
         for m in members:
             if not m: continue
             try:
@@ -330,7 +357,7 @@ class group_remove_member(frontend.Command):
                 remove_failed.append(m)
                 continue
 
-        members = kw.get('users', '').split(',')
+        members = get_members(kw.get('users', ''))
         for m in members:
             try:
                 member_dn = ldap.find_entry_dn("uid", m,)
@@ -348,11 +375,11 @@ class group_remove_member(frontend.Command):
 
         return remove_failed
 
-    def output_for_cli(self, remove_failed):
+    def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        if remove_failed:
+        if result:
             print "These entries failed to be removed from the group:"
             for a in remove_failed:
                 print "\t'%s'" % a

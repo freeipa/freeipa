@@ -34,14 +34,14 @@ from ldap import explode_dn
 map_attributes = ['automountMapName', 'description', ]
 key_attributes = ['description', 'automountKey', 'automountInformation']
 
-def display_entry(entry):
+def display_entry(textui, entry):
     # FIXME: for now delete dn here. In the future pass in the kw to
     # output_for_cli()
     attr = sorted(entry.keys())
 
     for a in attr:
         if a != 'dn':
-            print "%s: %s" % (a, entry[a])
+            textui.print_plain("%s: %s" % (a, entry[a]))
 
 def make_automount_dn(mapname):
     """
@@ -96,12 +96,11 @@ class automount_addmap(crud.Add):
         kw['objectClass'] = ['automountMap']
 
         return ldap.create(**kw)
-    def output_for_cli(self, ret):
+    def output_for_cli(self, textui, result, map, **options):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "Automount map added"
+        textui.print_plain("Automount map %s added" % map)
 
 api.register(automount_addmap)
 
@@ -139,12 +138,11 @@ class automount_addkey(crud.Add):
         kw['objectClass'] = ['automount']
 
         return ldap.create(**kw)
-    def output_for_cli(self, ret):
+    def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "Automount key added"
+        textui.print_plain("Automount key added")
 
 api.register(automount_addkey)
 
@@ -161,18 +159,17 @@ class automount_delmap(crud.Del):
            :param kw: Not used.
         """
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap")
+        dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap", api.env.container_automount)
         keys = api.Command['automount_getkeys'](mapname)
         if keys:
             for k in keys:
                 ldap.delete(k.get('dn'))
         return ldap.delete(dn)
-    def output_for_cli(self, ret):
+    def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "Automount map and associated keys deleted"
+        print "Automount map and associated keys deleted"
 
 api.register(automount_delmap)
 
@@ -205,12 +202,11 @@ class automount_delkey(crud.Del):
         if not keydn:
             raise errors.NotFound
         return ldap.delete(keydn)
-    def output_for_cli(self, ret):
+    def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "Automount key deleted"
+        print "Automount key deleted"
 
 api.register(automount_delkey)
 
@@ -238,12 +234,11 @@ class automount_modmap(crud.Mod):
         dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap", api.env.container_automount)
         return ldap.update(dn, **kw)
 
-    def output_for_cli(self, ret):
+    def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "Automount map updated"
+        print "Automount map updated"
 
 api.register(automount_modmap)
 
@@ -286,12 +281,12 @@ class automount_modkey(crud.Mod):
             raise errors.NotFound
         return ldap.update(keydn, **kw)
 
-    def output_for_cli(self, ret):
+    def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "Automount key updated"
+        print "Automount key updated"
+
 api.register(automount_modkey)
 
 
@@ -309,26 +304,27 @@ class automount_findmap(crud.Find):
             kw[s] = term
 
         kw['objectclass'] = 'automountMap'
+        kw['base'] = api.env.container_automount
         if kw.get('all', False):
             kw['attributes'] = ['*']
         else:
             kw['attributes'] = map_attributes
         return ldap.search(**kw)
-    def output_for_cli(self, entries):
-        if not entries:
-            return
-        counter = entries[0]
-        entries = entries[1:]
+
+    def output_for_cli(self, textui, result, *args, **options):
+        counter = result[0]
+        entries = result[1:]
         if counter == 0:
-            print "No entries found"
+            textui.print_plain("No entries found")
             return
         elif counter == -1:
-            print "These results are truncated."
-            print "Please refine your search and try again."
+            textui.print_plain("These results are truncated.")
+            textui.print_plain("Please refine your search and try again.")
 
         for e in entries:
-            display_entry(e)
-            print ""
+            display_entry(textui, e)
+            textui.print_plain("")
+
 api.register(automount_findmap)
 
 
@@ -350,26 +346,26 @@ class automount_findkey(crud.Find):
             kw[s] = term
 
         kw['objectclass'] = 'automount'
+        kw['base'] = api.env.container_automount
         if kw.get('all', False):
             kw['attributes'] = ['*']
         else:
             kw['attributes'] = key_attributes
         return ldap.search(**kw)
-    def output_for_cli(self, entries):
-        if not entries:
-            return
-        counter = entries[0]
-        entries = entries[1:]
+    def output_for_cli(self, textui, result, *args, **options):
+        counter = result[0]
+        entries = result[1:]
         if counter == 0:
-            print "No entries found"
+            textui.print_plain("No entries found")
             return
         elif counter == -1:
-            print "These results are truncated."
-            print "Please refine your search and try again."
+            textui.print_plain("These results are truncated.")
+            textui.print_plain("Please refine your search and try again.")
 
         for e in entries:
-            display_entry(e)
-            print ""
+            display_entry(textui, e)
+            textui.print_plain("")
+
 api.register(automount_findkey)
 
 
@@ -394,9 +390,9 @@ class automount_showmap(crud.Get):
             return ldap.retrieve(dn)
         else:
             return ldap.retrieve(dn, map_attributes)
-    def output_for_cli(self, entry):
-        if entry:
-            display_entry(entry)
+    def output_for_cli(self, textui, result, *args, **options):
+        if result:
+            display_entry(textui, result)
 
 api.register(automount_showmap)
 
@@ -436,7 +432,7 @@ class automount_showkey(crud.Get):
             return ldap.retrieve(keydn)
         else:
             return ldap.retrieve(keydn, key_attributes)
-    def output_for_cli(self, entry):
+    def output_for_cli(self, textui, result, *args, **options):
         # The automount map name associated with this key is available only
         # in the dn. Add it as an attribute to display instead.
         if entry and not entry.get('automountmapname'):
@@ -445,7 +441,7 @@ class automount_showkey(crud.Get):
                 (attr, value) = e.split('=',1)
                 if attr == 'automountmapname':
                     entry['automountmapname'] = value
-            display_entry(entry)
+            display_entry(textui, entry)
 
 api.register(automount_showkey)
 
@@ -475,9 +471,8 @@ class automount_getkeys(frontend.Command):
             keys = []
 
         return keys
-    def output_for_cli(self, keys):
-        if keys:
-            for k in keys:
-                print k.get('automountkey')
+    def output_for_cli(self, textui, result, *args, **options):
+        for k in result:
+            textui.print_plain('%s' % k.get('automountkey'))
 
 api.register(automount_getkeys)

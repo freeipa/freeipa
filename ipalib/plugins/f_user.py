@@ -305,7 +305,9 @@ class user_find(crud.Find):
             return
         textui.print_name(self.name)
         for u in users:
-            textui.print_plain('%(givenname)s %(sn)s:' % u)
+            gn = u.get('givenname', '')
+            sn= u.get('sn', '')
+            textui.print_plain('%s %s:' % (gn, sn))
             textui.print_entry(u)
             textui.print_plain('')
         if counter == -1:

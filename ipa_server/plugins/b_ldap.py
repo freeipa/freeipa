@@ -267,12 +267,15 @@ class ldap(CrudBackend):
         objectclass = kw.get('objectclass')
         sfilter = kw.get('filter')
         attributes = kw.get('attributes')
+        base = kw.get('base')
         if attributes:
             del kw['attributes']
         else:
             attributes = ['*']
         if objectclass:
             del kw['objectclass']
+        if base:
+            del kw['base']
         if sfilter:
             del kw['filter']
         (exact_match_filter, partial_match_filter) = self._generate_search_filters(**kw)
@@ -283,7 +286,10 @@ class ldap(CrudBackend):
             exact_match_filter = "(%s%s)" % (sfilter, exact_match_filter)
             partial_match_filter = "(%s%s)" % (sfilter, partial_match_filter)
 
-        search_base = "%s, %s" % (self.api.env.container_accounts, self.api.env.basedn)
+        if not base:
+            base = self.api.env.container_accounts
+
+        search_base = "%s, %s" % (base, self.api.env.basedn)
         try:
             exact_results = servercore.search(search_base,
                     exact_match_filter, attributes)

@@ -409,6 +409,10 @@ class HostService(ConfigurationError):
     """You must enroll a host in order to create a host service"""
     faultCode = 1026
 
+class InsufficientAccess(GenericError):
+    """You do not have permission to perform this task"""
+    faultCode = 1027
+
 class FunctionDeprecated(GenericError):
     """Raised by a deprecated function"""
     faultCode = 2000
