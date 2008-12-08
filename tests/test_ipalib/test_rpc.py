@@ -26,6 +26,7 @@ import struct
 from tests.util import raises
 from ipalib import rpc
 
+# FIXME: These constants should be imported from tests.data
 
 # A string that should have bytes 'x\00' through '\xff':
 BINARY_BYTES = ''.join(struct.pack('B', d) for d in xrange(256))
@@ -39,7 +40,7 @@ UTF8_BYTES = '\xd0\x9f\xd0\xb0\xd0\xb2\xd0\xb5\xd0\xbb'
 UNICODE_CHARS = u'\u041f\u0430\u0432\u0435\u043b'
 assert UTF8_BYTES.decode('UTF-8') == UNICODE_CHARS
 assert UNICODE_CHARS.encode('UTF-8') == UTF8_BYTES
-assert UTF8_BYTES != UNICODE_CHARS
+
 
 
 def dump_n_load(value):

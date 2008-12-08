@@ -36,4 +36,3 @@ utf8_bytes = '\xd0\x9f\xd0\xb0\xd0\xb2\xd0\xb5\xd0\xbb'
 unicode_str = u'\u041f\u0430\u0432\u0435\u043b'
 assert utf8_bytes.decode('UTF-8') == unicode_str
 assert unicode_str.encode('UTF-8') == utf8_bytes
-assert utf8_bytes != unicode_str
