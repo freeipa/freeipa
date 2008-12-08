@@ -476,3 +476,35 @@ class automount_getkeys(frontend.Command):
             textui.print_plain('%s' % k.get('automountkey'))
 
 api.register(automount_getkeys)
+
+
+class automount_getmaps(frontend.Command):
+    'Retrieve all automount maps'
+    takes_args = (
+        Param('automountmapname?',
+            cli_name='mapname',
+            primary_key=True,
+            doc='A group of related automount objects',
+        ),
+    )
+    def execute(self, mapname, **kw):
+        """
+        Execute the automount-getmaps operation.
+
+        Return a list of all automount maps.
+        """
+
+        ldap = self.api.Backend.ldap
+        base = api.env.container_automount + "," + api.env.basedn
+
+        if not mapname:
+            mapname = "auto.master"
+        search_base = "automountmapname=%s,%s" % (mapname, base)
+        maps = ldap.get_one_entry(search_base, "objectClass=*", ["*"])
+
+        return maps
+    def output_for_cli(self, textui, result, *args, **options):
+        for k in result:
+            textui.print_plain('%s: %s' % (k.get('automountinformation'), k.get('automountkey')))
+
+api.register(automount_getmaps)
