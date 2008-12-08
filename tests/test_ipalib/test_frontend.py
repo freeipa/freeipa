@@ -22,7 +22,7 @@ Test the `ipalib.frontend` module.
 """
 
 from tests.util import raises, getitem, no_set, no_del, read_only
-from tests.util import check_TypeError, ClassChecker, get_api
+from tests.util import check_TypeError, ClassChecker, create_test_api
 from ipalib import frontend, backend, plugable, errors, ipa_types, config
 
 
@@ -790,9 +790,7 @@ class test_Command(ClassChecker):
         kw = dict(how_are='you', on_this='fine day?')
 
         # Test in server context:
-        api = plugable.API(self.cls)
-        #api.env.update(dict(server_context=True))
-        api.env.in_server = True
+        (api, home) = create_test_api(in_server=True)
         api.finalize()
         o = my_cmd()
         o.set_api(api)
@@ -801,9 +799,7 @@ class test_Command(ClassChecker):
         assert o.run.im_func is my_cmd.execute.im_func
 
         # Test in non-server context
-        api = plugable.API(self.cls)
-        #api.env.update(dict(server_context=False))
-        api.env.in_server = False
+        (api, home) = create_test_api(in_server=False)
         api.finalize()
         o = my_cmd()
         o.set_api(api)
@@ -844,7 +840,7 @@ class test_LocalOrRemote(ClassChecker):
                 return ('execute', args, options)
 
         # Test when in_server=False:
-        (api, home) = get_api(in_server=False)
+        (api, home) = create_test_api(in_server=False)
         api.register(example)
         api.finalize()
         cmd = api.Command.example
@@ -855,7 +851,7 @@ class test_LocalOrRemote(ClassChecker):
             ('forward', (u'var',), dict(server=True))
 
         # Test when in_server=True (should always call execute):
-        (api, home) = get_api(in_server=True)
+        (api, home) = create_test_api(in_server=True)
         api.register(example)
         api.finalize()
         cmd = api.Command.example
@@ -986,11 +982,7 @@ class test_Object(ClassChecker):
         """
         Test the `ipalib.frontend.Object.primary_key` attribute.
         """
-        api = plugable.API(
-            frontend.Method,
-            frontend.Property,
-        )
-        #config.set_default_env(api.env)
+        (api, home) = create_test_api()
         api.finalize()
 
         # Test with no primary keys:
@@ -1041,13 +1033,7 @@ class test_Object(ClassChecker):
         """
         Test the `ipalib.frontend.Object.backend` attribute.
         """
-        api = plugable.API(
-            frontend.Object,
-            frontend.Method,
-            frontend.Property,
-            backend.Backend,
-        )
-        #config.set_default_env(api.env)
+        (api, home) = create_test_api()
         class ldap(backend.Backend):
             whatever = 'It worked!'
         api.register(ldap)

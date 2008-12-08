@@ -74,3 +74,7 @@ class test_xmlrpc(PluginTester):
         options = dict(option1=u'How are you?', option2=unicode_str)
         assert call((arg1, arg2, options)) == (arg1, arg2, options)
         assert call((arg1,) + arg2 + (options,)) == (arg1, arg2, options)
+
+
+    def test_execute(self):
+        (o, api, home) = self.instance('Backend', in_server=True)

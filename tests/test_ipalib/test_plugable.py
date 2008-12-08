@@ -23,7 +23,7 @@ Test the `ipalib.plugable` module.
 
 from tests.util import raises, no_set, no_del, read_only
 from tests.util import getitem, setitem, delitem
-from tests.util import ClassChecker, get_api
+from tests.util import ClassChecker, create_test_api
 from ipalib import plugable, errors
 
 
@@ -860,6 +860,7 @@ class test_API(ClassChecker):
         class NoProxy(plugable.Plugin):
             __proxy__ = False
         api = plugable.API(NoProxy)
+        api.env.mode = 'unit_test'
         class plugin0(NoProxy):
             pass
         api.register(plugin0)
@@ -879,7 +880,7 @@ class test_API(ClassChecker):
         """
         Test the `ipalib.plugable.API.bootstrap` method.
         """
-        (o, home) = get_api()
+        (o, home) = create_test_api()
         assert o.env._isdone('_bootstrap') is False
         assert o.env._isdone('_finalize_core') is False
         assert o.isdone('bootstrap') is False
@@ -895,7 +896,7 @@ class test_API(ClassChecker):
         """
         Test the `ipalib.plugable.API.load_plugins` method.
         """
-        (o, home) = get_api()
+        (o, home) = create_test_api()
         assert o.isdone('bootstrap') is False
         assert o.isdone('load_plugins') is False
         o.load_plugins()

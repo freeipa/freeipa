@@ -123,7 +123,7 @@ def _(text):
 
 class HandledError(StandardError):
     """
-    Base class for errors that can be raised across a remote procecdure call.
+    Base class for errors that can be raised across a remote procedure call.
     """
 
     code = 1
@@ -135,7 +135,6 @@ class HandledError(StandardError):
         StandardError.__init__(self, message)
 
 
-
 class UnknownError(HandledError):
     """
     Raised when the true error is not a handled error.
@@ -145,8 +144,10 @@ class UnknownError(HandledError):
 
 
 class CommandError(HandledError):
+    """
+    Raised when an unknown command is called client-side.
+    """
     format = _('Unknown command %(name)r')
-
 
 
 class RemoteCommandError(HandledError):
