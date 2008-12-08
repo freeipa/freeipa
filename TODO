@@ -15,6 +15,14 @@ API chages before January 2009 simi-freeze:
     uses_backend attribute is sets the Command.backend attribute like this:
         self.backend = self.Backend[self.uses_backend]
 
+  * Finish methods on Plugin base class for calling external commands via
+    subprocess.
+
+  * Probably renamed ipa_server package to ipaserver.
+
+  * Add special logging methods to Plugin baseclass for authorization events
+    (escalation, de-escalation, and denial).
+
 
 CLI
   - Prompt for password using getpass
