@@ -435,13 +435,13 @@ class automount_showkey(crud.Get):
     def output_for_cli(self, textui, result, *args, **options):
         # The automount map name associated with this key is available only
         # in the dn. Add it as an attribute to display instead.
-        if entry and not entry.get('automountmapname'):
-            elements = explode_dn(entry.get('dn').lower())
+        if result and not result.get('automountmapname'):
+            elements = explode_dn(result.get('dn').lower())
             for e in elements:
                 (attr, value) = e.split('=',1)
                 if attr == 'automountmapname':
-                    entry['automountmapname'] = value
-            display_entry(textui, entry)
+                    result['automountmapname'] = value
+            display_entry(textui, result)
 
 api.register(automount_showkey)
 
@@ -508,3 +508,52 @@ class automount_getmaps(frontend.Command):
             textui.print_plain('%s: %s' % (k.get('automountinformation'), k.get('automountkey')))
 
 api.register(automount_getmaps)
+
+class automount_addindirectmap(crud.Add):
+    'Add a new automap indirect mount point.'
+    takes_options = (
+        Param('parentmap?',
+            cli_name='parentmap',
+            default='auto.master',
+            doc='The parent map to connect this to. Default: auto.master'),
+        Param('automountkey',
+            cli_name='key',
+            doc='An entry in an automount map'),
+        Param('description?',
+            doc='A description of the automount map'),
+    )
+
+    def execute(self, mapname, **kw):
+        """
+        Execute the automount-addindirectmap operation.
+
+        Returns the key entry as it will be created in LDAP.
+
+        This function creates 2 LDAP entries. It creates an
+        automountmapname entry and an automountkey entry.
+
+        :param mapname: The map name being added.
+        :param kw['parentmap'] is the top-level map to add this to.
+           defaulting to auto.master
+        :param kw['automountkey'] is the mount point
+        :param kw['description'] is a textual description of this map
+        """
+        mapkw = {}
+        if kw.get('description'):
+            mapkw['description'] = kw.get('description')
+        newmap = api.Command['automount_addmap'](mapname, **mapkw)
+
+        keykw = {'automountkey': kw['automountkey'], 'automountinformation': mapname}
+        if kw.get('description'):
+            keykw['description'] = kw.get('description')
+        newkey = api.Command['automount_addkey'](kw['parentmap'], **keykw)
+
+        return newkey
+    def output_for_cli(self, textui, result, map, **options):
+        """
+        Output result of this command to command line interface.
+        """
+        textui.print_plain("Indirect automount map %s added" % map)
+
+api.register(automount_addindirectmap)
+
