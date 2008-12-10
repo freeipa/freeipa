@@ -282,17 +282,18 @@ class user_find(crud.Find):
         search_fields_conf_str = config.get('ipausersearchfields')
         search_fields = search_fields_conf_str.split(",")
 
+        search_kw = {}
         for s in search_fields:
-            kw[s] = term
+            search_kw[s] = term
 
         object_type = ldap.get_object_type("uid")
         if object_type and not kw.get('objectclass'):
-            kw['objectclass'] = object_type
+            search_kw['objectclass'] = object_type
         if kw.get('all', False):
-            kw['attributes'] = ['*']
+            search_kw['attributes'] = ['*']
         else:
-            kw['attributes'] = default_attributes
-        return ldap.search(**kw)
+            search_kw['attributes'] = default_attributes
+        return ldap.search(**search_kw)
 
     def output_for_cli(self, textui, result, uid, **options):
         counter = result[0]

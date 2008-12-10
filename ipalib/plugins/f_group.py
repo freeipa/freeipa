@@ -184,13 +184,14 @@ class group_find(crud.Find):
         search_fields_conf_str = config.get('ipagroupsearchfields')
         search_fields = search_fields_conf_str.split(",")
 
+        search_kw = {}
         for s in search_fields:
-            kw[s] = term
+            search_kw[s] = term
 
         object_type = ldap.get_object_type("cn")
         if object_type and not kw.get('objectclass'):
-            kw['objectclass'] = object_type
-        return ldap.search(**kw)
+            search_kw['objectclass'] = object_type
+        return ldap.search(**search_kw)
 
     def output_for_cli(self, textui, result, uid, **options):
         counter = result[0]

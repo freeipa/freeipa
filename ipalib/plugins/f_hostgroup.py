@@ -169,11 +169,12 @@ class hostgroup_find(crud.Find):
         search_fields_conf_str = config.get('ipagroupsearchfields')
         search_fields = search_fields_conf_str.split(",")
 
+        search_kw = {}
         for s in search_fields:
-            kw[s] = term
+            search_kw[s] = term
 
-        kw['objectclass'] = hostgroup_filter
-        return ldap.search(**kw)
+        search_kw['objectclass'] = hostgroup_filter
+        return ldap.search(**search_kw)
 
     def output_for_cli(self, textui, result, *args, **options):
         counter = result[0]

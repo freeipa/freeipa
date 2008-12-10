@@ -149,14 +149,15 @@ class service_find(crud.Find):
     def execute(self, principal, **kw):
         ldap = self.api.Backend.ldap
 
-        kw['filter'] = "&(objectclass=krbPrincipalAux)(!(objectClass=posixAccount))(!(|(krbprincipalname=kadmin/*)(krbprincipalname=K/M@*)(krbprincipalname=krbtgt/*)))"
-        kw['krbprincipalname'] = principal
+        search_kw = {}
+        search_kw['filter'] = "&(objectclass=krbPrincipalAux)(!(objectClass=posixAccount))(!(|(krbprincipalname=kadmin/*)(krbprincipalname=K/M@*)(krbprincipalname=krbtgt/*)))"
+        search_kw['krbprincipalname'] = principal
 
         object_type = ldap.get_object_type("krbprincipalname")
         if object_type and not kw.get('objectclass'):
-            kw['objectclass'] = object_type
+            search_kw['objectclass'] = object_type
 
-        return ldap.search(**kw)
+        return ldap.search(**search_kw)
 
     def output_for_cli(self, textui, result, *args, **options):
         counter = result[0]

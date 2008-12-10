@@ -229,16 +229,17 @@ class host_find(crud.Find):
         #search_fields = search_fields_conf_str.split(",")
         search_fields = ['cn','serverhostname','description','localityname','nshostlocation','nshardwareplatform','nsosversion']
 
+        search_kw = {}
         for s in search_fields:
-            kw[s] = term
+            search_kw[s] = term
 
         # Can't use ldap.get_object_type() since cn is also used for group dns
-        kw['objectclass'] = "ipaHost"
+        search_kw['objectclass'] = "ipaHost"
         if kw.get('all', False):
-            kw['attributes'] = ['*']
+            search_kw['attributes'] = ['*']
         else:
-            kw['attributes'] = default_attributes
-        return ldap.search(**kw)
+            search_kw['attributes'] = default_attributes
+        return ldap.search(**search_kw)
     def output_for_cli(self, textui, result, *args, **options):
         counter = result[0]
         hosts = result[1:]
