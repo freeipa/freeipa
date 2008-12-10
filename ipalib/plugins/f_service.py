@@ -158,22 +158,20 @@ class service_find(crud.Find):
 
         return ldap.search(**kw)
 
-    def output_for_cli(self, services):
-        if not services:
-            return
-
-        counter = services[0]
-        services = services[1:]
+    def output_for_cli(self, textui, result, *args, **options):
+        counter = result[0]
+        services = result[1:]
         if counter == 0:
-            print "No entries found"
+            textui.print_plain("No entries found")
             return
-        elif counter == -1:
-            print "These results are truncated."
-            print "Please refine your search and try again."
 
         for s in services:
-            for a in s.keys():
-                print "%s: %s" % (a, s[a])
+            textui.print_entry(s)
+
+        if counter == -1:
+            textui.print_plain("These results are truncated.")
+            textui.print_plain("Please refine your search and try again.")
+        textui.print_count(services, '%d services matched')
 
 api.register(service_find)
 
@@ -196,11 +194,7 @@ class service_show(crud.Get):
         dn = ldap.find_entry_dn("krbprincipalname", principal)
         # FIXME: should kw contain the list of attributes to display?
         return ldap.retrieve(dn)
-    def output_for_cli(self, service):
-        if not service:
-            return
-
-        for a in service.keys():
-            print "%s: %s" % (a, service[a])
+    def output_for_cli(self, textui, result, *args, **options):
+        textui.print_entry(result)
 
 api.register(service_show)
