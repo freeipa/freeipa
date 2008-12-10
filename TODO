@@ -23,6 +23,7 @@ API chages before January 2009 simi-freeze:
   * Add special logging methods to Plugin baseclass for authorization events
     (escalation, de-escalation, and denial).
 
+  * Implement gettext service.
 
 CLI
   - Prompt for password using getpass
