@@ -535,7 +535,10 @@ def notfound(args):
     if len(args) > 2:
         searchfilter = args[2]
         try:
+            # Python re doesn't do paren counting so the string could
+            # have a trailing paren "foo)"
             target = re.match(r'\(.*=(.*)\)', searchfilter).group(1)
+            target.replace(")","")
         except:
             target = searchfilter
         return "%s not found" % str(target)
