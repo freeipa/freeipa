@@ -52,8 +52,6 @@ class passwd(frontend.Command):
         :param param uid: The login name of the user being updated.
         :param kw: Not used.
         """
-        import pdb
-        pdb.set_trace()
         if principal.find('@') > 0:
             u = principal.split('@')
             if len(u) > 2:
