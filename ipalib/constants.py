@@ -19,8 +19,12 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-All constants centralized in one file.
+All constants centralised in one file.
 """
+
+# The parameter system treats all these values as None:
+NULLS = (None, '', u'', tuple(), [])
+
 
 # Used for a tab (or indentation level) when formatting for CLI:
 CLI_TAB = '  '  # Two spaces
