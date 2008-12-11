@@ -413,6 +413,10 @@ class InsufficientAccess(GenericError):
     """You do not have permission to perform this task"""
     faultCode = 1027
 
+class InvalidUserPrincipal(GenericError):
+    """Invalid user principal"""
+    faultCode = 1028
+
 class FunctionDeprecated(GenericError):
     """Raised by a deprecated function"""
     faultCode = 2000

@@ -52,14 +52,14 @@ class passwd(frontend.Command):
         :param param uid: The login name of the user being updated.
         :param kw: Not used.
         """
-        if principal.find('@') < 0:
+        import pdb
+        pdb.set_trace()
+        if principal.find('@') > 0:
             u = principal.split('@')
-            if len(u) > 2 or len(u) == 0:
-                print "Invalid user name (%s)" % principal
-            if len(u) == 1:
-                principal = principal+"@"+self.api.env.realm
-            else:
-                principal = principal
+            if len(u) > 2:
+                raise errors.InvalidUserPrincipal, principal
+        else:
+            principal = principal+"@"+self.api.env.realm
         dn = self.Backend.ldap.find_entry_dn(
             "krbprincipalname",
             principal,
