@@ -21,6 +21,7 @@
 Parameter system for command plugins.
 """
 
+from types import NoneType
 from plugable import ReadOnly, lock, check_name
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
 
@@ -178,44 +179,46 @@ class DefaultFrom(ReadOnly):
 
 class Param(ReadOnly):
     """
-    Base class for all IPA types.
+    Base class for all parameters.
     """
 
-    __kwargs = dict(
-        cli_name=(str, None),
-        doc=(str, ''),
-        required=(bool, True),
-        multivalue=(bool, False),
-        primary_key=(bool, False),
-        normalizer=(callable, None),
-        default=(None, None),
-        default_from=(callable, None),
-        flags=(frozenset, frozenset()),
+    kwargs = (
+        ('cli_name', str, None),
+        ('doc', str, ''),
+        ('required', bool, True),
+        ('multivalue', bool, False),
+        ('primary_key', bool, False),
+        ('normalizer', callable, None),
+        ('default_from', callable, None),
+        ('flags', frozenset, frozenset()),
+
+        # The 'default' kwarg gets appended in Param.__init__():
+        # ('default', self.type, None),
     )
 
-    def __init__(self, name, kwargs, **override):
+    # This is a dummy type so that most of the functionality of Param can be
+    # unit tested directly without always creating a subclass; however, real
+    # (direct) subclasses should *always* override this class attribute:
+    type = NoneType  # This isn't very useful in the real world!
+
+    def __init__(self, name, **kw):
+        assert type(self.type) is type
         self.param_spec = name
-        self.__override = dict(override)
-        if not ('required' in override or 'multivalue' in override):
+        self.__kw = dict(kw)
+        if not ('required' in kw or 'multivalue' in kw):
             (name, kw_from_spec) = parse_param_spec(name)
-            override.update(kw_from_spec)
+            kw.update(kw_from_spec)
         self.name = check_name(name)
-        if 'cli_name' not in override:
-            override['cli_name'] = self.name
-        df = override.get('default_from', None)
+        if kw.get('cli_name', None) is None:
+            kw['cli_name'] = self.name
+        df = kw.get('default_from', None)
         if callable(df) and not isinstance(df, DefaultFrom):
-            override['default_from'] = DefaultFrom(df)
-        kwargs = dict(kwargs)
-        assert set(self.__kwargs).intersection(kwargs) == set()
-        kwargs.update(self.__kwargs)
-        for (key, (kind, default)) in kwargs.iteritems():
-            value = override.get(key, default)
-            if value is None:
-                if kind is bool:
-                    raise TypeError(
-                        TYPE_ERROR % (key, bool, value, type(value))
-                    )
-            else:
+            kw['default_from'] = DefaultFrom(df)
+        self.__clonekw = kw
+        self.kwargs += (('default', self.type, None),)
+        for (key, kind, default) in self.kwargs:
+            value = kw.get(key, default)
+            if value is not None:
                 if (
                     type(kind) is type and type(value) is not kind
                     or
@@ -275,7 +278,7 @@ class Param(ReadOnly):
         """
         Normalize a scalar value.
 
-        This method is called once for each value in multivalue.
+        This method is called once for each value in a multivalue.
         """
         if type(value) is not unicode:
             return value
@@ -308,8 +311,6 @@ class Param(ReadOnly):
         )
 
 
-
-
 class Bool(Param):
     """
 
@@ -333,15 +334,27 @@ class Bytes(Param):
 
     """
 
+    type = str
+
+    def __init__(self, name, **kw):
+        kwargs = dict(
+            minlength=(int, None),
+            maxlength=(int, None),
+            length=(int, None),
+            pattern=(str, None),
+        )
+
+
 
 class Str(Param):
     """
 
     """
 
-    def __init__(self, name, **overrides):
-        self.type = unicode
-        super(Str, self).__init__(name, {}, **overrides)
+    type = unicode
+
+    def __init__(self, name, **kw):
+        super(Str, self).__init__(name, **kw)
 
     def _convert_scalar(self, value, index=None):
         if type(value) in (self.type, int, float, bool):

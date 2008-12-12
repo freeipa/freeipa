@@ -92,6 +92,8 @@ def test_parse_param_spec():
     assert f('name?') == ('name', dict(required=False, multivalue=False))
     assert f('name*') == ('name', dict(required=False, multivalue=True))
     assert f('name+') == ('name', dict(required=True, multivalue=True))
+    # Make sure other "funny" endings are treated special:
+    assert f('name^') == ('name^', dict(required=True, multivalue=False))
 
 
 class test_Param(ClassChecker):
@@ -105,70 +107,65 @@ class test_Param(ClassChecker):
         Test the `ipalib.parameter.Param.__init__` method.
         """
         name = 'my_param'
-        o = self.cls(name, {})
+        o = self.cls(name)
+        assert o.name is name
         assert o.__islocked__() is True
 
-        # Test default values:
-        assert o.name is name
+        # Test default kwarg values:
         assert o.cli_name is name
         assert o.doc == ''
         assert o.required is True
         assert o.multivalue is False
         assert o.primary_key is False
         assert o.normalizer is None
-        assert o.default is None
+        #assert o.default is None
         assert o.default_from is None
         assert o.flags == frozenset()
 
         # Test that ValueError is raised when a kwarg from a subclass
         # conflicts with an attribute:
-        kwarg = dict(convert=(callable, None))
-        e = raises(ValueError, self.cls, name, kwarg)
-        assert str(e) == "kwarg 'convert' conflicts with attribute on Param"
         class Subclass(self.cls):
-            pass
-        e = raises(ValueError, Subclass, name, kwarg)
+            kwargs = self.cls.kwargs + (
+                ('convert', callable, None),
+            )
+        e = raises(ValueError, Subclass, name)
         assert str(e) == "kwarg 'convert' conflicts with attribute on Subclass"
 
         # Test type validation of keyword arguments:
-        kwargs = dict(
-            extra1=(bool, True),
-            extra2=(str, 'Hello'),
-            extra3=((int, float), 42),
-            extra4=(callable, lambda whatever: whatever + 7),
-        )
-        # Note: we don't accept None if kind is bool:
-        e = raises(TypeError, self.cls, 'my_param', kwargs, extra1=None)
-        assert str(e) == TYPE_ERROR % ('extra1', bool, None, type(None))
-        for (key, (kind, default)) in kwargs.items():
-            o = self.cls('my_param', kwargs)
+        class Subclass(self.cls):
+            kwargs = self.cls.kwargs + (
+                ('extra1', bool, True),
+                ('extra2', str, 'Hello'),
+                ('extra3', (int, float), 42),
+                ('extra4', callable, lambda whatever: whatever + 7),
+            )
+        o = Subclass('my_param')  # Test with no **kw:
+        for (key, kind, default) in o.kwargs:
             # Test with a type invalid for all:
             value = object()
-            overrides = {key: value}
-            e = raises(TypeError, self.cls, 'my_param', kwargs, **overrides)
+            kw = {key: value}
+            e = raises(TypeError, Subclass, 'my_param', **kw)
             if kind is callable:
                 assert str(e) == CALLABLE_ERROR % (key, value, type(value))
             else:
                 assert str(e) == TYPE_ERROR % (key, kind, value, type(value))
-            if kind is bool:  # See note above
-                continue
+
             # Test with None:
-            overrides = {key: None}
-            o = self.cls('my_param', kwargs, **overrides)
+            kw = {key: None}
+            Subclass('my_param', **kw)
 
     def test_convert_scalar(self):
         """
         Test the `ipalib.parameter.Param._convert_scalar` method.
         """
-        o = self.cls('my_param', {})
+        o = self.cls('my_param')
         e = raises(NotImplementedError, o._convert_scalar, 'some value')
         assert str(e) == 'Param._convert_scalar()'
         class Subclass(self.cls):
             pass
-        o = Subclass('my_param', {})
+        o = Subclass('my_param')
         e = raises(NotImplementedError, o._convert_scalar, 'some value')
         assert str(e) == 'Subclass._convert_scalar()'
-
 
 
 class test_Str(ClassChecker):
