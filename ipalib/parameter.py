@@ -183,9 +183,9 @@ class Param(ReadOnly):
     """
 
     # This is a dummy type so that most of the functionality of Param can be
-    # unit tested directly without always creating a subclass; however, real
-    # (direct) subclasses should *always* override this class attribute:
-    type = NoneType  # This isn't very useful in the real world!
+    # unit tested directly without always creating a subclass; however, a real
+    # (direct) subclass must *always* override this class attribute:
+    type = NoneType  # Ouch, this wont be very useful in the real world!
 
     kwargs = (
         ('cli_name', str, None),
@@ -201,7 +201,7 @@ class Param(ReadOnly):
         # ('default', self.type, None),
     )
 
-    def __init__(self, name, **kw):
+    def __init__(self, name, *rules, **kw):
         # We keep these values to use in __repr__():
         self.param_spec = name
         self.__kw = dict(kw)
@@ -233,10 +233,11 @@ class Param(ReadOnly):
         if callable(df) and not isinstance(df, DefaultFrom):
             kw['default_from'] = DefaultFrom(df)
 
-        # Keep the copy with merged values also to use when cloning:
+        # We keep this copy with merged values also to use when cloning:
         self.__clonekw = kw
 
-        # Perform type validation on kw:
+        # Perform type validation on kw, add in class rules:
+        class_rules = []
         for (key, kind, default) in self.kwargs:
             value = kw.get(key, default)
             if value is not None:
@@ -262,7 +263,20 @@ class Param(ReadOnly):
                     key, self.__class__.__name__)
                 )
             setattr(self, key, value)
+            rule_name = 'rule_%s' % key
+            if value is not None and hasattr(self, rule_name):
+                class_rules.append(getattr(self, rule_name))
         check_name(self.cli_name)
+
+        # Check that all the rules are callable
+        self.rules = tuple(class_rules) + rules
+        for rule in self.rules:
+            if not callable(rule):
+                raise TypeError(
+                    '%s: rules must be callable; got %r' % (self.nice, rule)
+                )
+
+        # And we're done.
         lock(self)
 
     def normalize(self, value):
@@ -400,6 +414,35 @@ class Bytes(Param):
                     '%s: minlength == maxlength; use length=%d instead' % (
                         self.nice, self.minlength)
                 )
+
+    def rule_minlength(self, value):
+        """
+        Check minlength constraint.
+        """
+        if len(value) < self.minlength:
+            return 'Must be at least %(minlength)d bytes long.' % dict(
+                minlength=self.minlength,
+            )
+
+    def rule_maxlength(self, value):
+        """
+        Check maxlength constraint.
+        """
+        if len(value) > self.maxlength:
+            return 'Can be at most %(maxlength)d bytes long.' % dict(
+                maxlength=self.maxlength,
+            )
+
+    def rule_length(self, value):
+        """
+        Check length constraint.
+        """
+        if len(value) != self.length:
+            return 'Must be exactly %(length)d bytes long.' % dict(
+                length=self.length,
+            )
+
+
 
 
 class Str(Bytes):

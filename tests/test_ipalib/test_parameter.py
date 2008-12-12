@@ -92,7 +92,7 @@ def test_parse_param_spec():
     assert f('name?') == ('name', dict(required=False, multivalue=False))
     assert f('name*') == ('name', dict(required=False, multivalue=True))
     assert f('name+') == ('name', dict(required=True, multivalue=True))
-    # Make sure other "funny" endings are treated special:
+    # Make sure other "funny" endings are *not* treated special:
     assert f('name^') == ('name^', dict(required=True, multivalue=False))
 
 
@@ -111,6 +111,9 @@ class test_Param(ClassChecker):
         assert o.name is name
         assert o.__islocked__() is True
 
+        # Test default rules:
+        assert o.rules == tuple()
+
         # Test default kwarg values:
         assert o.cli_name is name
         assert o.doc == ''
@@ -118,7 +121,7 @@ class test_Param(ClassChecker):
         assert o.multivalue is False
         assert o.primary_key is False
         assert o.normalizer is None
-        #assert o.default is None
+        assert o.default is None
         assert o.default_from is None
         assert o.flags == frozenset()
 
@@ -190,6 +193,7 @@ class test_Bytes(ClassChecker):
         """
         o = self.cls('my_bytes')
         assert o.type is str
+        assert o.rules == tuple()
         assert o.minlength is None
         assert o.maxlength is None
         assert o.length is None
@@ -198,6 +202,7 @@ class test_Bytes(ClassChecker):
         # Test mixing length with minlength or maxlength:
         o = self.cls('my_bytes', length=5)
         assert o.length == 5
+        assert len(o.rules) == 1
         permutations = [
             dict(minlength=3),
             dict(maxlength=7),
@@ -205,6 +210,7 @@ class test_Bytes(ClassChecker):
         ]
         for kw in permutations:
             o = self.cls('my_bytes', **kw)
+            assert len(o.rules) == len(kw)
             for (key, value) in kw.iteritems():
                 assert getattr(o, key) == value
             e = raises(ValueError, self.cls, 'my_bytes', length=5, **kw)
