@@ -149,10 +149,11 @@ class test_Param(ClassChecker):
                 assert str(e) == CALLABLE_ERROR % (key, value, type(value))
             else:
                 assert str(e) == TYPE_ERROR % (key, kind, value, type(value))
-
             # Test with None:
             kw = {key: None}
             Subclass('my_param', **kw)
+
+        # Test when using unknown kwargs:
 
     def test_convert_scalar(self):
         """
@@ -168,6 +169,56 @@ class test_Param(ClassChecker):
         assert str(e) == 'Subclass._convert_scalar()'
 
 
+class test_Bytes(ClassChecker):
+    """
+    Test the `ipalib.parameter.Bytes` class.
+    """
+    _cls = parameter.Bytes
+
+    def test_init(self):
+        """
+        Test the `ipalib.parameter.Bytes.__init__` method.
+        """
+        o = self.cls('my_bytes')
+        assert o.type is str
+        assert o.minlength is None
+        assert o.maxlength is None
+        assert o.length is None
+        assert o.pattern is None
+
+        # Test mixing length with minlength or maxlength:
+        o = self.cls('my_bytes', length=5)
+        assert o.length == 5
+        permutations = [
+            dict(minlength=3),
+            dict(maxlength=7),
+            dict(minlength=3, maxlength=7),
+        ]
+        for kw in permutations:
+            o = self.cls('my_bytes', **kw)
+            for (key, value) in kw.iteritems():
+                assert getattr(o, key) == value
+            e = raises(ValueError, self.cls, 'my_bytes', length=5, **kw)
+            assert str(e) == \
+                "Bytes('my_bytes'): cannot mix length with minlength or maxlength"
+
+        # Test when minlength or maxlength are less than 1:
+        e = raises(ValueError, self.cls, 'my_bytes', minlength=0)
+        assert str(e) == "Bytes('my_bytes'): minlength must be >= 1; got 0"
+        e = raises(ValueError, self.cls, 'my_bytes', maxlength=0)
+        assert str(e) == "Bytes('my_bytes'): maxlength must be >= 1; got 0"
+
+        # Test when minlength > maxlength:
+        e = raises(ValueError, self.cls, 'my_bytes', minlength=22, maxlength=15)
+        assert str(e) == \
+            "Bytes('my_bytes'): minlength > maxlength (minlength=22, maxlength=15)"
+
+        # Test when minlength == maxlength
+        e = raises(ValueError, self.cls, 'my_bytes', minlength=7, maxlength=7)
+        assert str(e) == \
+            "Bytes('my_bytes'): minlength == maxlength; use length=7 instead"
+
+
 class test_Str(ClassChecker):
     """
     Test the `ipalib.parameter.Str` class.
@@ -180,6 +231,10 @@ class test_Str(ClassChecker):
         """
         o = self.cls('my_str')
         assert o.type is unicode
+        assert o.minlength is None
+        assert o.maxlength is None
+        assert o.length is None
+        assert o.pattern is None
 
     def test_convert_scalar(self):
         """

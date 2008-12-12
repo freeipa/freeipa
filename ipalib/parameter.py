@@ -203,19 +203,27 @@ class Param(ReadOnly):
 
     def __init__(self, name, **kw):
         assert type(self.type) is type
+        self.kwargs += (('default', self.type, None),)
         self.param_spec = name
         self.__kw = dict(kw)
         if not ('required' in kw or 'multivalue' in kw):
             (name, kw_from_spec) = parse_param_spec(name)
             kw.update(kw_from_spec)
         self.name = check_name(name)
+        self.nice = '%s(%r)' % (self.__class__.__name__, self.name)
+        if not set(t[0] for t in self.kwargs).issuperset(self.__kw):
+            extra = set(kw) - set(t[0] for t in self.kwargs)
+            raise TypeError(
+                '%s: no such kwargs: %s' % (self.nice,
+                    ', '.join(repr(k) for k in sorted(extra))
+                )
+            )
         if kw.get('cli_name', None) is None:
             kw['cli_name'] = self.name
         df = kw.get('default_from', None)
         if callable(df) and not isinstance(df, DefaultFrom):
             kw['default_from'] = DefaultFrom(df)
         self.__clonekw = kw
-        self.kwargs += (('default', self.type, None),)
         for (key, kind, default) in self.kwargs:
             value = kw.get(key, default)
             if value is not None:
@@ -245,13 +253,11 @@ class Param(ReadOnly):
 
         For example:
 
-        >>> param = Str('telephone',
+        >>> param = Param('telephone',
         ...     normalizer=lambda value: value.replace('.', '-')
         ... )
         >>> param.normalize(u'800.123.4567')
         u'800-123-4567'
-
-        (Note that `Str` is a subclass of `Param`.)
 
         If this `Param` instance was created with a normalizer callback and
         ``value`` is a unicode instance, the normalizer callback is called and
@@ -293,8 +299,8 @@ class Param(ReadOnly):
         if self.multivalue:
             if type(value) in (tuple, list):
                 values = filter(
-                    lambda val: val not in NULLS,
-                    (self._convert_scalar(v, i) for (i, v) in enumerate(value))
+                        lambda val: val not in NULLS,
+                        (self._convert_scalar(v, i) for (i, v) in enumerate(value))
                 )
                 if len(values) == 0:
                     return
@@ -336,22 +342,58 @@ class Bytes(Param):
 
     type = str
 
+    kwargs = Param.kwargs + (
+        ('minlength', int, None),
+        ('maxlength', int, None),
+        ('length', int, None),
+        ('pattern', str, None),
+
+    )
+
     def __init__(self, name, **kw):
-        kwargs = dict(
-            minlength=(int, None),
-            maxlength=(int, None),
-            length=(int, None),
-            pattern=(str, None),
-        )
+        super(Bytes, self).__init__(name, **kw)
+
+        if not (
+            self.length is None or
+            (self.minlength is None and self.maxlength is None)
+        ):
+            raise ValueError(
+                '%s: cannot mix length with minlength or maxlength' % self.nice
+            )
+
+        if self.minlength is not None and self.minlength < 1:
+            raise ValueError(
+                '%s: minlength must be >= 1; got %r' % (self.nice, self.minlength)
+            )
+
+        if self.maxlength is not None and self.maxlength < 1:
+            raise ValueError(
+                '%s: maxlength must be >= 1; got %r' % (self.nice, self.maxlength)
+            )
+
+        if None not in (self.minlength, self.maxlength):
+            if self.minlength > self.maxlength:
+                raise ValueError(
+                    '%s: minlength > maxlength (minlength=%r, maxlength=%r)' % (
+                        self.nice, self.minlength, self.maxlength)
+                )
+            elif self.minlength == self.maxlength:
+                raise ValueError(
+                    '%s: minlength == maxlength; use length=%d instead' % (
+                        self.nice, self.minlength)
+                )
 
 
-
-class Str(Param):
+class Str(Bytes):
     """
 
     """
 
     type = unicode
+
+    kwargs = Bytes.kwargs[:-1] + (
+        ('pattern', unicode, None),
+    )
 
     def __init__(self, name, **kw):
         super(Str, self).__init__(name, **kw)
