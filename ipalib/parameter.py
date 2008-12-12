@@ -182,6 +182,11 @@ class Param(ReadOnly):
     Base class for all parameters.
     """
 
+    # This is a dummy type so that most of the functionality of Param can be
+    # unit tested directly without always creating a subclass; however, real
+    # (direct) subclasses should *always* override this class attribute:
+    type = NoneType  # This isn't very useful in the real world!
+
     kwargs = (
         ('cli_name', str, None),
         ('doc', str, ''),
@@ -196,37 +201,50 @@ class Param(ReadOnly):
         # ('default', self.type, None),
     )
 
-    # This is a dummy type so that most of the functionality of Param can be
-    # unit tested directly without always creating a subclass; however, real
-    # (direct) subclasses should *always* override this class attribute:
-    type = NoneType  # This isn't very useful in the real world!
-
     def __init__(self, name, **kw):
-        assert type(self.type) is type
-        self.kwargs += (('default', self.type, None),)
+        # We keep these values to use in __repr__():
         self.param_spec = name
         self.__kw = dict(kw)
+
+        # Merge in kw from parse_param_spec():
         if not ('required' in kw or 'multivalue' in kw):
             (name, kw_from_spec) = parse_param_spec(name)
             kw.update(kw_from_spec)
         self.name = check_name(name)
         self.nice = '%s(%r)' % (self.__class__.__name__, self.name)
+
+        # Add 'default' to self.kwargs and makes sure no unknown kw were given:
+        assert type(self.type) is type
+        self.kwargs += (('default', self.type, None),)
         if not set(t[0] for t in self.kwargs).issuperset(self.__kw):
             extra = set(kw) - set(t[0] for t in self.kwargs)
             raise TypeError(
-                '%s: no such kwargs: %s' % (self.nice,
+                '%s: takes no such kwargs: %s' % (self.nice,
                     ', '.join(repr(k) for k in sorted(extra))
                 )
             )
+
+        # Merge in default for 'cli_name' if not given:
         if kw.get('cli_name', None) is None:
             kw['cli_name'] = self.name
+
+        # Wrap 'default_from' in a DefaultFrom if not already:
         df = kw.get('default_from', None)
         if callable(df) and not isinstance(df, DefaultFrom):
             kw['default_from'] = DefaultFrom(df)
+
+        # Keep the copy with merged values also to use when cloning:
         self.__clonekw = kw
+
+        # Perform type validation on kw:
         for (key, kind, default) in self.kwargs:
             value = kw.get(key, default)
             if value is not None:
+                if kind is frozenset:
+                    if type(value) in (list, tuple):
+                        value = frozenset(value)
+                    elif type(value) is str:
+                        value = frozenset([value])
                 if (
                     type(kind) is type and type(value) is not kind
                     or

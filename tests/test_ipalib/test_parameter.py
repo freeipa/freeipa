@@ -154,6 +154,15 @@ class test_Param(ClassChecker):
             Subclass('my_param', **kw)
 
         # Test when using unknown kwargs:
+        e = raises(TypeError, self.cls, 'my_param',
+            flags=['hello', 'world'],
+            whatever=u'Hooray!',
+        )
+        assert str(e) == \
+            "Param('my_param'): takes no such kwargs: 'whatever'"
+        e = raises(TypeError, self.cls, 'my_param', great='Yes', ape='he is!')
+        assert str(e) == \
+            "Param('my_param'): takes no such kwargs: 'ape', 'great'"
 
     def test_convert_scalar(self):
         """
