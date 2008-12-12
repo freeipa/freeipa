@@ -22,10 +22,65 @@
 Test the `ipalib.parameter` module.
 """
 
-from tests.util import raises, ClassChecker
+from tests.util import raises, ClassChecker, read_only
 from tests.data import binary_bytes, utf8_bytes, unicode_str
 from ipalib import parameter
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR
+
+
+class test_DefaultFrom(ClassChecker):
+    """
+    Test the `ipalib.parameter.DefaultFrom` class.
+    """
+    _cls = parameter.DefaultFrom
+
+    def test_init(self):
+        """
+        Test the `ipalib.parameter.DefaultFrom.__init__` method.
+        """
+        def callback(*args):
+            return args
+        keys = ('givenname', 'sn')
+        o = self.cls(callback, *keys)
+        assert read_only(o, 'callback') is callback
+        assert read_only(o, 'keys') == keys
+        lam = lambda first, last: first[0] + last
+        o = self.cls(lam)
+        assert read_only(o, 'keys') == ('first', 'last')
+
+    def test_call(self):
+        """
+        Test the `ipalib.parameter.DefaultFrom.__call__` method.
+        """
+        def callback(givenname, sn):
+            return givenname[0] + sn[0]
+        keys = ('givenname', 'sn')
+        o = self.cls(callback, *keys)
+        kw = dict(
+            givenname='John',
+            sn='Public',
+            hello='world',
+        )
+        assert o(**kw) == 'JP'
+        assert o() is None
+        for key in ('givenname', 'sn'):
+            kw_copy = dict(kw)
+            del kw_copy[key]
+            assert o(**kw_copy) is None
+
+        # Test using implied keys:
+        o = self.cls(lambda first, last: first[0] + last)
+        assert o(first='john', last='doe') == 'jdoe'
+        assert o(first='', last='doe') is None
+        assert o(one='john', two='doe') is None
+
+        # Test that co_varnames slice is used:
+        def callback2(first, last):
+            letter = first[0]
+            return letter + last
+        o = self.cls(callback2)
+        assert o.keys == ('first', 'last')
+        assert o(first='john', last='doe') == 'jdoe'
 
 
 def test_parse_param_spec():
@@ -51,8 +106,11 @@ class test_Param(ClassChecker):
         """
         name = 'my_param'
         o = self.cls(name, {})
+        assert o.__islocked__() is True
+
+        # Test default values:
         assert o.name is name
-        # assert o.cli_name is name
+        assert o.cli_name is name
         assert o.doc == ''
         assert o.required is True
         assert o.multivalue is False
@@ -61,7 +119,9 @@ class test_Param(ClassChecker):
         assert o.default is None
         assert o.default_from is None
         assert o.flags == frozenset()
-        assert o.__islocked__() is True
+
+        # Test that ValueError is raised when a kwarg from a subclass
+        # conflicts with an attribute:
         kwarg = dict(convert=(callable, None))
         e = raises(ValueError, self.cls, name, kwarg)
         assert str(e) == "kwarg 'convert' conflicts with attribute on Param"
@@ -69,13 +129,15 @@ class test_Param(ClassChecker):
             pass
         e = raises(ValueError, Subclass, name, kwarg)
         assert str(e) == "kwarg 'convert' conflicts with attribute on Subclass"
+
+        # Test type validation of keyword arguments:
         kwargs = dict(
             extra1=(bool, True),
             extra2=(str, 'Hello'),
             extra3=((int, float), 42),
             extra4=(callable, lambda whatever: whatever + 7),
         )
-        # Check that we don't accept None if kind is bool:
+        # Note: we don't accept None if kind is bool:
         e = raises(TypeError, self.cls, 'my_param', kwargs, extra1=None)
         assert str(e) == TYPE_ERROR % ('extra1', bool, None, type(None))
         for (key, (kind, default)) in kwargs.items():
@@ -88,7 +150,7 @@ class test_Param(ClassChecker):
                 assert str(e) == CALLABLE_ERROR % (key, value, type(value))
             else:
                 assert str(e) == TYPE_ERROR % (key, kind, value, type(value))
-            if kind is bool:
+            if kind is bool:  # See note above
                 continue
             # Test with None:
             overrides = {key: None}

@@ -72,6 +72,110 @@ def parse_param_spec(spec):
     return (spec, dict(required=True, multivalue=False))
 
 
+class DefaultFrom(ReadOnly):
+    """
+    Derive a default value from other supplied values.
+
+    For example, say you wanted to create a default for the user's login from
+    the user's first and last names. It could be implemented like this:
+
+    >>> login = DefaultFrom(lambda first, last: first[0] + last)
+    >>> login(first='John', last='Doe')
+    'JDoe'
+
+    If you do not explicitly provide keys when you create a DefaultFrom
+    instance, the keys are implicitly derived from your callback by
+    inspecting ``callback.func_code.co_varnames``. The keys are available
+    through the ``DefaultFrom.keys`` instance attribute, like this:
+
+    >>> login.keys
+    ('first', 'last')
+
+    The callback is available through the ``DefaultFrom.callback`` instance
+    attribute, like this:
+
+    >>> login.callback # doctest:+ELLIPSIS
+    <function <lambda> at 0x...>
+    >>> login.callback.func_code.co_varnames # The keys
+    ('first', 'last')
+
+    The keys can be explicitly provided as optional positional arguments after
+    the callback. For example, this is equivalent to the ``login`` instance
+    above:
+
+    >>> login2 = DefaultFrom(lambda a, b: a[0] + b, 'first', 'last')
+    >>> login2.keys
+    ('first', 'last')
+    >>> login2.callback.func_code.co_varnames # Not the keys
+    ('a', 'b')
+    >>> login2(first='John', last='Doe')
+    'JDoe'
+
+    If any keys are missing when calling your DefaultFrom instance, your
+    callback is not called and None is returned. For example:
+
+    >>> login(first='John', lastname='Doe') is None
+    True
+    >>> login() is None
+    True
+
+    Any additional keys are simply ignored, like this:
+
+    >>> login(last='Doe', first='John', middle='Whatever')
+    'JDoe'
+
+    As above, because `DefaultFrom.__call__` takes only pure keyword
+    arguments, they can be supplied in any order.
+
+    Of course, the callback need not be a lambda expression. This third
+    example is equivalent to both the ``login`` and ``login2`` instances
+    above:
+
+    >>> def get_login(first, last):
+    ...     return first[0] + last
+    ...
+    >>> login3 = DefaultFrom(get_login)
+    >>> login3.keys
+    ('first', 'last')
+    >>> login3.callback.func_code.co_varnames
+    ('first', 'last')
+    >>> login3(first='John', last='Doe')
+    'JDoe'
+    """
+
+    def __init__(self, callback, *keys):
+        """
+        :param callback: The callable to call when all keys are present.
+        :param keys: Optional keys used for source values.
+        """
+        if not callable(callback):
+            raise TypeError('callback must be callable; got %r' % callback)
+        self.callback = callback
+        if len(keys) == 0:
+            fc = callback.func_code
+            self.keys = fc.co_varnames[:fc.co_argcount]
+        else:
+            self.keys = keys
+        for key in self.keys:
+            if type(key) is not str:
+                raise_TypeError(key, str, 'keys')
+        lock(self)
+
+    def __call__(self, **kw):
+        """
+        If all keys are present, calls the callback; otherwise returns None.
+
+        :param kw: The keyword arguments.
+        """
+        vals = tuple(kw.get(k, None) for k in self.keys)
+        if None in vals:
+            return
+        try:
+            return self.callback(*vals)
+        except StandardError:
+            pass
+
+
 class Param(ReadOnly):
     """
     Base class for all IPA types.
@@ -89,14 +193,23 @@ class Param(ReadOnly):
         flags=(frozenset, frozenset()),
     )
 
-    def __init__(self, name, kwargs, **overrides):
+    def __init__(self, name, kwargs, **override):
         self.param_spec = name
+        self.__override = dict(override)
+        if not ('required' in override or 'multivalue' in override):
+            (name, kw_from_spec) = parse_param_spec(name)
+            override.update(kw_from_spec)
         self.name = check_name(name)
+        if 'cli_name' not in override:
+            override['cli_name'] = self.name
+        df = override.get('default_from', None)
+        if callable(df) and not isinstance(df, DefaultFrom):
+            override['default_from'] = DefaultFrom(df)
         kwargs = dict(kwargs)
         assert set(self.__kwargs).intersection(kwargs) == set()
         kwargs.update(self.__kwargs)
         for (key, (kind, default)) in kwargs.iteritems():
-            value = overrides.get(key, default)
+            value = override.get(key, default)
             if value is None:
                 if kind is bool:
                     raise TypeError(
@@ -104,7 +217,8 @@ class Param(ReadOnly):
                     )
             else:
                 if (
-                    type(kind) is type and type(value) is not kind or
+                    type(kind) is type and type(value) is not kind
+                    or
                     type(kind) is tuple and not isinstance(value, kind)
                 ):
                     raise TypeError(
@@ -119,12 +233,35 @@ class Param(ReadOnly):
                     key, self.__class__.__name__)
                 )
             setattr(self, key, value)
+        check_name(self.cli_name)
         lock(self)
 
     def normalize(self, value):
         """
+        Normalize ``value`` using normalizer callback.
+
+        For example:
+
+        >>> param = Str('telephone',
+        ...     normalizer=lambda value: value.replace('.', '-')
+        ... )
+        >>> param.normalize(u'800.123.4567')
+        u'800-123-4567'
+
+        (Note that `Str` is a subclass of `Param`.)
+
+        If this `Param` instance was created with a normalizer callback and
+        ``value`` is a unicode instance, the normalizer callback is called and
+        *its* return value is returned.
+
+        On the other hand, if this `Param` instance was *not* created with a
+        normalizer callback, if ``value`` is *not* a unicode instance, or if an
+        exception is caught when calling the normalizer callback, ``value`` is
+        returned unchanged.
+
+        :param value: A proposed value for this parameter.
         """
-        if self.__normalize is None:
+        if self.normalizer is None:
             return value
         if self.multivalue:
             if type(value) in (tuple, list):
@@ -143,7 +280,7 @@ class Param(ReadOnly):
         if type(value) is not unicode:
             return value
         try:
-            return self.__normalize(value)
+            return self.normalizer(value)
         except StandardError:
             return value
 
