@@ -25,6 +25,7 @@ done
 
 if [ $failures ]; then
     echo "[ Ran under $runs version(s); FAILED under $failures version(s) ]"
+    echo "FAIL!"
     exit $failures
 else
     echo "[ Ran under $runs version(s); all OK ]"

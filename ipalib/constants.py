@@ -26,6 +26,12 @@ All constants centralised in one file.
 NULLS = (None, '', u'', tuple(), [])
 
 
+TYPE_ERROR = '%s: need a %r; got %r (a %r)'
+
+
+CALLABLE_ERROR = '%s: need a callable; got %r (a %r)'
+
+
 # Used for a tab (or indentation level) when formatting for CLI:
 CLI_TAB = '  '  # Two spaces
 

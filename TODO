@@ -25,6 +25,8 @@ API chages before January 2009 simi-freeze:
 
   * Implement gettext service.
 
+  * Add ability to register pre-op, post-op plugins per command.
+
 CLI
   - Prompt for password using getpass
   - Passed the param dict to output_for_cli()

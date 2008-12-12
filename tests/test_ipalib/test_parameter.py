@@ -25,6 +25,7 @@ Test the `ipalib.parameter` module.
 from tests.util import raises, ClassChecker
 from tests.data import binary_bytes, utf8_bytes, unicode_str
 from ipalib import parameter
+from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR
 
 
 def test_parse_param_spec():
@@ -49,22 +50,63 @@ class test_Param(ClassChecker):
         Test the `ipalib.parameter.Param.__init__` method.
         """
         name = 'my_param'
-        o = self.cls(name)
+        o = self.cls(name, {})
         assert o.name is name
+        # assert o.cli_name is name
+        assert o.doc == ''
+        assert o.required is True
+        assert o.multivalue is False
+        assert o.primary_key is False
+        assert o.normalizer is None
+        assert o.default is None
+        assert o.default_from is None
+        assert o.flags == frozenset()
         assert o.__islocked__() is True
+        kwarg = dict(convert=(callable, None))
+        e = raises(ValueError, self.cls, name, kwarg)
+        assert str(e) == "kwarg 'convert' conflicts with attribute on Param"
+        class Subclass(self.cls):
+            pass
+        e = raises(ValueError, Subclass, name, kwarg)
+        assert str(e) == "kwarg 'convert' conflicts with attribute on Subclass"
+        kwargs = dict(
+            extra1=(bool, True),
+            extra2=(str, 'Hello'),
+            extra3=((int, float), 42),
+            extra4=(callable, lambda whatever: whatever + 7),
+        )
+        # Check that we don't accept None if kind is bool:
+        e = raises(TypeError, self.cls, 'my_param', kwargs, extra1=None)
+        assert str(e) == TYPE_ERROR % ('extra1', bool, None, type(None))
+        for (key, (kind, default)) in kwargs.items():
+            o = self.cls('my_param', kwargs)
+            # Test with a type invalid for all:
+            value = object()
+            overrides = {key: value}
+            e = raises(TypeError, self.cls, 'my_param', kwargs, **overrides)
+            if kind is callable:
+                assert str(e) == CALLABLE_ERROR % (key, value, type(value))
+            else:
+                assert str(e) == TYPE_ERROR % (key, kind, value, type(value))
+            if kind is bool:
+                continue
+            # Test with None:
+            overrides = {key: None}
+            o = self.cls('my_param', kwargs, **overrides)
 
     def test_convert_scalar(self):
         """
         Test the `ipalib.parameter.Param._convert_scalar` method.
         """
-        o = self.cls('my_param')
+        o = self.cls('my_param', {})
         e = raises(NotImplementedError, o._convert_scalar, 'some value')
         assert str(e) == 'Param._convert_scalar()'
         class Subclass(self.cls):
             pass
-        o = Subclass('my_param')
+        o = Subclass('my_param', {})
         e = raises(NotImplementedError, o._convert_scalar, 'some value')
         assert str(e) == 'Subclass._convert_scalar()'
+
 
 
 class test_Str(ClassChecker):

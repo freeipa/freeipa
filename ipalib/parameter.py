@@ -22,7 +22,7 @@ Parameter system for command plugins.
 """
 
 from plugable import ReadOnly, lock, check_name
-from constants import NULLS
+from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
 
 
 def parse_param_spec(spec):
@@ -83,15 +83,42 @@ class Param(ReadOnly):
         required=(bool, True),
         multivalue=(bool, False),
         primary_key=(bool, False),
-        normalize=(callable, None),
+        normalizer=(callable, None),
         default=(None, None),
         default_from=(callable, None),
         flags=(frozenset, frozenset()),
     )
 
-    def __init__(self, name, **overrides):
+    def __init__(self, name, kwargs, **overrides):
         self.param_spec = name
         self.name = check_name(name)
+        kwargs = dict(kwargs)
+        assert set(self.__kwargs).intersection(kwargs) == set()
+        kwargs.update(self.__kwargs)
+        for (key, (kind, default)) in kwargs.iteritems():
+            value = overrides.get(key, default)
+            if value is None:
+                if kind is bool:
+                    raise TypeError(
+                        TYPE_ERROR % (key, bool, value, type(value))
+                    )
+            else:
+                if (
+                    type(kind) is type and type(value) is not kind or
+                    type(kind) is tuple and not isinstance(value, kind)
+                ):
+                    raise TypeError(
+                        TYPE_ERROR % (key, kind, value, type(value))
+                    )
+                elif kind is callable and not callable(value):
+                    raise TypeError(
+                        CALLABLE_ERROR % (key, value, type(value))
+                    )
+            if hasattr(self, key):
+                raise ValueError('kwarg %r conflicts with attribute on %s' % (
+                    key, self.__class__.__name__)
+                )
+            setattr(self, key, value)
         lock(self)
 
     def normalize(self, value):
@@ -119,7 +146,6 @@ class Param(ReadOnly):
             return self.__normalize(value)
         except StandardError:
             return value
-
 
     def convert(self, value):
         if value in NULLS:
@@ -178,7 +204,7 @@ class Str(Param):
 
     def __init__(self, name, **overrides):
         self.type = unicode
-        super(Str, self).__init__(name, **overrides)
+        super(Str, self).__init__(name, {}, **overrides)
 
     def _convert_scalar(self, value, index=None):
         if type(value) in (self.type, int, float, bool):
