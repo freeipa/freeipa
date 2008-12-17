@@ -28,6 +28,9 @@ import getpass
 import code
 import optparse
 import socket
+import fcntl
+import termios
+import struct
 
 import frontend
 import backend
@@ -67,8 +70,15 @@ class textui(backend.Backend):
 
         If stdout is not a tty, this method will return ``None``.
         """
+        # /usr/include/asm/termios.h says that struct winsize has four
+        # unsigned shorts, hence the HHHH
         if sys.stdout.isatty():
-            return 80 # FIXME: we need to return the actual tty width
+            try:
+                winsize = fcntl.ioctl(sys.stdout, termios.TIOCGWINSZ,
+                                      struct.pack('HHHH', 0, 0, 0, 0))
+                return struct.unpack('HHHH', winsize)[1]
+            except IOError:
+                return None
 
     def max_col_width(self, rows, col=None):
         """
