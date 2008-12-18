@@ -443,11 +443,11 @@ class show_api(frontend.Application):
         else:
             for name in namespaces:
                 if name not in self.api:
-                    exit_error('api has no such namespace: %s' % name)
+                    raise errors.NoSuchNamespaceError(name)
             names = namespaces
         lines = self.__traverse(names)
         ml = max(len(l[1]) for l in lines)
-        self.print_name()
+        self.Backend.textui.print_name('run')
         first = True
         for line in lines:
             if line[0] == 0 and not first:
@@ -463,7 +463,7 @@ class show_api(frontend.Application):
             s = '1 attribute shown.'
         else:
             s = '%d attributes show.' % len(lines)
-        self.print_dashed(s)
+        self.Backend.textui.print_dashed(s)
 
 
     def __traverse(self, names):

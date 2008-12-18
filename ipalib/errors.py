@@ -117,6 +117,9 @@ class InvocationError(IPAError):
 class UnknownCommandError(InvocationError):
     format = 'unknown command "%s"'
 
+class NoSuchNamespaceError(InvocationError):
+    format = 'api has no such namespace: %s'
+
 def _(text):
     return text
 
