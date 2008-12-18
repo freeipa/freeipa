@@ -21,8 +21,9 @@
 Test the `ipalib.request` module.
 """
 
+import threading
 import locale
-from tests.util import raises
+from tests.util import raises, TempDir
 from ipalib.constants import OVERRIDE_ERROR
 from ipalib import request
 
@@ -54,3 +55,45 @@ def test_set_languages():
     assert c.languages == locale.getdefaultlocale()[:1]
     del c.languages
     assert not hasattr(c, 'languages')
+
+
+def test_create_translation():
+    """
+    Test the `ipalib.request.create_translation` function.
+    """
+    f = request.create_translation
+    c = request.context
+    t = TempDir()
+
+    # Test that StandardError is raised if gettext or ngettext:
+    assert not (hasattr(c, 'gettext') or hasattr(c, 'ngettext'))
+    for name in 'gettext', 'ngettext':
+        setattr(c, name, None)
+        e = raises(StandardError, f, 'ipa', None)
+        assert str(e) == (
+            'create_translation() already called in thread %r' %
+            threading.currentThread().getName()
+        )
+        delattr(c, name)
+
+    # Test using default language:
+    assert not hasattr(c, 'gettext')
+    assert not hasattr(c, 'ngettext')
+    assert not hasattr(c, 'languages')
+    f('ipa', t.path)
+    assert hasattr(c, 'gettext')
+    assert hasattr(c, 'ngettext')
+    assert c.languages == locale.getdefaultlocale()[:1]
+    del c.gettext
+    del c.ngettext
+    del c.languages
+
+    # Test using explicit languages:
+    langs = ('de', 'es')
+    f('ipa', t.path, *langs)
+    assert hasattr(c, 'gettext')
+    assert hasattr(c, 'ngettext')
+    assert c.languages == langs
+    del c.gettext
+    del c.ngettext
+    del c.languages

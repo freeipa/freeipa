@@ -28,13 +28,8 @@ import gettext
 from constants import OVERRIDE_ERROR
 
 
-# Thread-local storage of most per-request contextrmation
+# Thread-local storage of most per-request information
 context = threading.local()
-
-
-# Thread-local storage of gettext.Translations instances (one per gettext
-# domain):
-translations = threading.local()
 
 
 def set_languages(*languages):
@@ -46,3 +41,17 @@ def set_languages(*languages):
         languages = locale.getdefaultlocale()[:1]
     context.languages = languages
     assert type(context.languages) is tuple
+
+
+def create_translation(domain, localedir, *languages):
+    if hasattr(context, 'gettext') or hasattr(context, 'ngettext'):
+        raise StandardError(
+            'create_translation() already called in thread %r' %
+            threading.currentThread().getName()
+        )
+    set_languages(*languages)
+    translation = gettext.translation(domain,
+        localedir=localedir, languages=context.languages, fallback=True
+    )
+    context.gettext = translation.ugettext
+    context.ngettext = translation.ungettext
