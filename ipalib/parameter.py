@@ -211,7 +211,7 @@ class Param(ReadOnly):
             (name, kw_from_spec) = parse_param_spec(name)
             kw.update(kw_from_spec)
         self.name = check_name(name)
-        self.nice = '%s(%r)' % (self.__class__.__name__, self.name)
+        self.nice = '%s(%r)' % (self.__class__.__name__, self.param_spec)
 
         # Add 'default' to self.kwargs and makes sure no unknown kw were given:
         assert type(self.type) is type
@@ -269,8 +269,10 @@ class Param(ReadOnly):
         check_name(self.cli_name)
 
         # Check that all the rules are callable
-        self.rules = tuple(class_rules) + rules
-        for rule in self.rules:
+        self.class_rules = tuple(class_rules)
+        self.rules = rules
+        self.all_rules = self.class_rules + self.rules
+        for rule in self.all_rules:
             if not callable(rule):
                 raise TypeError(
                     '%s: rules must be callable; got %r' % (self.nice, rule)

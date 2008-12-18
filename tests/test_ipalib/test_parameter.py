@@ -108,11 +108,15 @@ class test_Param(ClassChecker):
         """
         name = 'my_param'
         o = self.cls(name)
+        assert o.param_spec is name
         assert o.name is name
+        assert o.nice == "Param('my_param')"
         assert o.__islocked__() is True
 
         # Test default rules:
         assert o.rules == tuple()
+        assert o.class_rules == tuple()
+        assert o.all_rules == tuple()
 
         # Test default kwarg values:
         assert o.cli_name is name
@@ -194,6 +198,8 @@ class test_Bytes(ClassChecker):
         o = self.cls('my_bytes')
         assert o.type is str
         assert o.rules == tuple()
+        assert o.class_rules == tuple()
+        assert o.all_rules == tuple()
         assert o.minlength is None
         assert o.maxlength is None
         assert o.length is None
@@ -202,7 +208,9 @@ class test_Bytes(ClassChecker):
         # Test mixing length with minlength or maxlength:
         o = self.cls('my_bytes', length=5)
         assert o.length == 5
-        assert len(o.rules) == 1
+        assert len(o.class_rules) == 1
+        assert len(o.rules) == 0
+        assert len(o.all_rules) == 1
         permutations = [
             dict(minlength=3),
             dict(maxlength=7),
@@ -210,7 +218,9 @@ class test_Bytes(ClassChecker):
         ]
         for kw in permutations:
             o = self.cls('my_bytes', **kw)
-            assert len(o.rules) == len(kw)
+            assert len(o.class_rules) == len(kw)
+            assert len(o.rules) == 0
+            assert len(o.all_rules) == len(kw)
             for (key, value) in kw.iteritems():
                 assert getattr(o, key) == value
             e = raises(ValueError, self.cls, 'my_bytes', length=5, **kw)
