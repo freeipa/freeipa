@@ -26,53 +26,6 @@ from plugable import ReadOnly, lock, check_name
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
 
 
-def parse_param_spec(spec):
-    """
-    Parse a param spec into to (name, kw).
-
-    The ``spec`` string determines the param name, whether the param is
-    required, and whether the param is multivalue according the following
-    syntax:
-
-    ======  =====  ========  ==========
-    Spec    Name   Required  Multivalue
-    ======  =====  ========  ==========
-    'var'   'var'  True      False
-    'var?'  'var'  False     False
-    'var*'  'var'  False     True
-    'var+'  'var'  True      True
-    ======  =====  ========  ==========
-
-    For example,
-
-    >>> parse_param_spec('login')
-    ('login', {'required': True, 'multivalue': False})
-    >>> parse_param_spec('gecos?')
-    ('gecos', {'required': False, 'multivalue': False})
-    >>> parse_param_spec('telephone_numbers*')
-    ('telephone_numbers', {'required': False, 'multivalue': True})
-    >>> parse_param_spec('group+')
-    ('group', {'required': True, 'multivalue': True})
-
-    :param spec: A spec string.
-    """
-    if type(spec) is not str:
-        raise_TypeError(spec, str, 'spec')
-    if len(spec) < 2:
-        raise ValueError(
-            'param spec must be at least 2 characters; got %r' % spec
-        )
-    _map = {
-        '?': dict(required=False, multivalue=False),
-        '*': dict(required=False, multivalue=True),
-        '+': dict(required=True, multivalue=True),
-    }
-    end = spec[-1]
-    if end in _map:
-        return (spec[:-1], _map[end])
-    return (spec, dict(required=True, multivalue=False))
-
-
 class DefaultFrom(ReadOnly):
     """
     Derive a default value from other supplied values.
@@ -175,6 +128,53 @@ class DefaultFrom(ReadOnly):
             return self.callback(*vals)
         except StandardError:
             pass
+
+
+def parse_param_spec(spec):
+    """
+    Parse a param spec into to (name, kw).
+
+    The ``spec`` string determines the param name, whether the param is
+    required, and whether the param is multivalue according the following
+    syntax:
+
+    ======  =====  ========  ==========
+    Spec    Name   Required  Multivalue
+    ======  =====  ========  ==========
+    'var'   'var'  True      False
+    'var?'  'var'  False     False
+    'var*'  'var'  False     True
+    'var+'  'var'  True      True
+    ======  =====  ========  ==========
+
+    For example,
+
+    >>> parse_param_spec('login')
+    ('login', {'required': True, 'multivalue': False})
+    >>> parse_param_spec('gecos?')
+    ('gecos', {'required': False, 'multivalue': False})
+    >>> parse_param_spec('telephone_numbers*')
+    ('telephone_numbers', {'required': False, 'multivalue': True})
+    >>> parse_param_spec('group+')
+    ('group', {'required': True, 'multivalue': True})
+
+    :param spec: A spec string.
+    """
+    if type(spec) is not str:
+        raise_TypeError(spec, str, 'spec')
+    if len(spec) < 2:
+        raise ValueError(
+            'param spec must be at least 2 characters; got %r' % spec
+        )
+    _map = {
+        '?': dict(required=False, multivalue=False),
+        '*': dict(required=False, multivalue=True),
+        '+': dict(required=True, multivalue=True),
+    }
+    end = spec[-1]
+    if end in _map:
+        return (spec[:-1], _map[end])
+    return (spec, dict(required=True, multivalue=False))
 
 
 class Param(ReadOnly):
