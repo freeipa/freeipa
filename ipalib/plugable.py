@@ -258,7 +258,11 @@ class Plugin(ReadOnly):
         self.name = cls.__name__
         self.module = cls.__module__
         self.fullname = '%s.%s' % (self.module, self.name)
-        self.doc = cls.__doc__
+        self.doc = inspect.getdoc(cls)
+        if self.doc is None:
+            self.summary = '<%s>' % self.fullname
+        else:
+            self.summary = self.doc.split('\n\n', 1)[0]
         log = logging.getLogger('ipa')
         for name in ('debug', 'info', 'warning', 'error', 'critical'):
             setattr(self, name, getattr(log, name))

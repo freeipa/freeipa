@@ -21,6 +21,7 @@
 Test the `ipalib.plugable` module.
 """
 
+import inspect
 from tests.util import raises, no_set, no_del, read_only
 from tests.util import getitem, setitem, delitem
 from tests.util import ClassChecker, create_test_api
@@ -313,7 +314,7 @@ class test_Plugin(ClassChecker):
         assert o.name == 'Plugin'
         assert o.module == 'ipalib.plugable'
         assert o.fullname == 'ipalib.plugable.Plugin'
-        assert o.doc == self.cls.__doc__
+        assert o.doc == inspect.getdoc(self.cls)
         class some_subclass(self.cls):
             """
             Do sub-classy things.
@@ -321,12 +322,20 @@ class test_Plugin(ClassChecker):
             Although it doesn't know how to comport itself and is not for mixed
             company, this class *is* useful as we all need a little sub-class
             now and then.
+
+            One more paragraph.
             """
         o = some_subclass()
         assert o.name == 'some_subclass'
         assert o.module == __name__
         assert o.fullname == '%s.some_subclass' % __name__
-        assert o.doc == some_subclass.__doc__
+        assert o.doc == inspect.getdoc(some_subclass)
+        assert o.summary == 'Do sub-classy things.'
+        class another_subclass(self.cls):
+            pass
+        o = another_subclass()
+        assert o.doc is None
+        assert o.summary == '<%s>' % o.fullname
 
     def test_implements(self):
         """
