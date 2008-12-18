@@ -25,7 +25,7 @@ Test the `ipalib.parameter` module.
 from tests.util import raises, ClassChecker, read_only
 from tests.data import binary_bytes, utf8_bytes, unicode_str
 from ipalib import parameter
-from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR
+from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, NULLS
 
 
 class test_DefaultFrom(ClassChecker):
@@ -170,6 +170,35 @@ class test_Param(ClassChecker):
         e = raises(TypeError, self.cls, 'my_param', great='Yes', ape='he is!')
         assert str(e) == \
             "Param('my_param'): takes no such kwargs: 'ape', 'great'"
+
+    def test_convert(self):
+        """
+        Test the `ipalib.parameter.Param.convert` method.
+        """
+        okay = ('Hello', u'Hello', 0, 4.2, True, False)
+        class Subclass(self.cls):
+            def _convert_scalar(self, value, index=None):
+                return value
+
+        # Test when multivalue=False:
+        o = Subclass('my_param')
+        for value in NULLS:
+            assert o.convert(value) is None
+        for value in okay:
+            assert o.convert(value) is value
+
+        # Test when multivalue=True:
+        o = Subclass('my_param', multivalue=True)
+        for value in NULLS:
+            assert o.convert(value) is None
+        assert o.convert(okay) == okay
+        assert o.convert(NULLS) is None
+        assert o.convert(okay + NULLS) == okay
+        assert o.convert(NULLS + okay) == okay
+        for value in okay:
+            assert o.convert(value) == (value,)
+            assert o.convert([None, value]) == (value,)
+            assert o.convert([value, None]) == (value,)
 
     def test_convert_scalar(self):
         """

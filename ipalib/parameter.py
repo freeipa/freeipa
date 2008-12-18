@@ -309,7 +309,7 @@ class Param(ReadOnly):
         if self.multivalue:
             if type(value) in (tuple, list):
                 return tuple(
-                    self._normalize_scalarS(v) for v in value
+                    self._normalize_scalar(v) for v in value
                 )
             return (self._normalize_scalar(value),)  # Return a tuple
         return self._normalize_scalar(value)
@@ -331,16 +331,16 @@ class Param(ReadOnly):
         if value in NULLS:
             return
         if self.multivalue:
-            if type(value) in (tuple, list):
-                values = filter(
-                        lambda val: val not in NULLS,
-                        (self._convert_scalar(v, i) for (i, v) in enumerate(value))
-                )
-                if len(values) == 0:
-                    return
-                return tuple(values)
-            return (scalar(value, 0),)  # Return a tuple
-        return scalar(value)
+            if type(value) not in (tuple, list):
+                value = (value,)
+            values = filter(
+                    lambda val: val not in NULLS,
+                    (self._convert_scalar(v, i) for (i, v) in enumerate(value))
+            )
+            if len(values) == 0:
+                return
+            return tuple(values)
+        return self._convert_scalar(value)
 
     def _convert_scalar(self, value, index=None):
         """
