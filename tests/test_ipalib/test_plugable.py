@@ -303,19 +303,23 @@ class test_Plugin(ClassChecker):
         """
         assert self.cls.__bases__ == (plugable.ReadOnly,)
         assert self.cls.__public__ == frozenset()
-        assert type(self.cls.name) is property
         assert type(self.cls.doc) is property
         assert type(self.cls.api) is property
 
-    def test_name(self):
+    def test_init(self):
         """
-        Test the `ipalib.plugable.Plugin.name` property.
+        Test the `ipalib.plugable.Plugin.__init__` method.
         """
-        assert read_only(self.cls(), 'name') == 'Plugin'
-
+        o = self.cls()
+        assert o.name == 'Plugin'
+        assert o.module == 'ipalib.plugable'
+        assert o.fullname == 'ipalib.plugable.Plugin'
         class some_subclass(self.cls):
             pass
-        assert read_only(some_subclass(), 'name') == 'some_subclass'
+        o = some_subclass()
+        assert o.name == 'some_subclass'
+        assert o.module == __name__
+        assert o.fullname == '%s.some_subclass' % __name__
 
     def test_doc(self):
         """

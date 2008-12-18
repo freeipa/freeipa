@@ -965,6 +965,7 @@ class Attribute(plugable.Plugin):
         assert m
         self.__obj_name = m.group(1)
         self.__attr_name = m.group(2)
+        super(Attribute, self).__init__()
 
     def __get_obj_name(self):
         return self.__obj_name
@@ -1053,8 +1054,7 @@ class Method(Attribute, Command):
     __public__ = Attribute.__public__.union(Command.__public__)
 
     def __init__(self):
-        Attribute.__init__(self)
-        Command.__init__(self)
+        super(Method, self).__init__()
 
 
 class Property(Attribute):
@@ -1087,6 +1087,7 @@ class Property(Attribute):
             rules=self.rules,
             normalize=self.normalize,
         )
+        super(Property, self).__init__()
 
     def __rules_iter(self):
         """

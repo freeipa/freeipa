@@ -254,16 +254,13 @@ class Plugin(ReadOnly):
     __api = None
 
     def __init__(self):
+        cls = self.__class__
+        self.name = cls.__name__
+        self.module = cls.__module__
+        self.fullname = '%s.%s' % (self.module, self.name)
         log = logging.getLogger('ipa')
         for name in ('debug', 'info', 'warning', 'error', 'critical'):
             setattr(self, name, getattr(log, name))
-
-    def __get_name(self):
-        """
-        Convenience property to return the class name.
-        """
-        return self.__class__.__name__
-    name = property(__get_name)
 
     def __get_doc(self):
         """
