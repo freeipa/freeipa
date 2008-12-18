@@ -24,6 +24,9 @@
 #  from ipa_server.context import context
 #  context.foo = "bar"
 
+# FIXME: This module is depreciated and code should switch to using
+# ipalib.request instead
+
 import threading
 
 context = threading.local()

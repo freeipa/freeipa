@@ -25,12 +25,14 @@ All constants centralised in one file.
 # The parameter system treats all these values as None:
 NULLS = (None, '', u'', tuple(), [])
 
-
+# Standard format for TypeError message:
 TYPE_ERROR = '%s: need a %r; got %r (which is a %r)'
 
-
+# Stardard format for TypeError message when a callable is expected:
 CALLABLE_ERROR = '%s: need a callable; got %r (which is a %r)'
 
+# Standard format for StandardError message when overriding an attribute:
+OVERRIDE_ERROR = 'cannot override %s existing value %r with %r'
 
 # Used for a tab (or indentation level) when formatting for CLI:
 CLI_TAB = '  '  # Two spaces
