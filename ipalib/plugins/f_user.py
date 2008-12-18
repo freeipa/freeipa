@@ -28,24 +28,6 @@ from ipalib import api
 from ipalib import errors
 from ipalib import ipa_types
 
-# Command to get the idea how plugins will interact with api.env
-class envtest(frontend.Command):
-    'Show current environment.'
-    def run(self, *args, **kw):
-        print ""
-        print "Environment variables:"
-        for var in api.env:
-            val = api.env[var]
-            if var is 'server':
-                print ""
-                print "  Servers:"
-                for item in api.env.server:
-                    print "    %s" % item
-                print ""
-            else:
-                print "  %s: %s" % (var, val)
-        return {}
-api.register(envtest)
 
 def display_user(user):
     # FIXME: for now delete dn here. In the future pass in the kw to
