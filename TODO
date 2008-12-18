@@ -35,10 +35,16 @@ API chages before January 2009 simi-freeze:
     textui argument.  Need to decide whether we allow this method to modify
     the return value.
 
-CLI
-  - Prompt for password using getpass
-  - Passed the param dict to output_for_cli()
-  - Implement a TextUI class and also pass it to output_for_cli()
+  * Make Plugin base class parse class docstring into overview and
+    full-description strings (similar to Bazaar).
+
+
+Command Line interface:
+
+  * Finish textui plugin
+
+  * Make possible Enum values self-documenting
+
 
 Improve ease of plugin writting
   - make "from ipalib import *" import everything a plugin writter will need
