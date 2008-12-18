@@ -309,12 +309,12 @@ class Param(ReadOnly):
         if self.multivalue:
             if type(value) in (tuple, list):
                 return tuple(
-                    self.__normalize_scalar(v) for v in value
+                    self._normalize_scalarS(v) for v in value
                 )
-            return (self.__normalize_scalar(value),)  # Return a tuple
-        return self.__normalize_scalar(value)
+            return (self._normalize_scalar(value),)  # Return a tuple
+        return self._normalize_scalar(value)
 
-    def __normalize_scalar(self, value):
+    def _normalize_scalar(self, value):
         """
         Normalize a scalar value.
 
