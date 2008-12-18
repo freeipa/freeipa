@@ -92,8 +92,17 @@ def test_parse_param_spec():
     assert f('name?') == ('name', dict(required=False, multivalue=False))
     assert f('name*') == ('name', dict(required=False, multivalue=True))
     assert f('name+') == ('name', dict(required=True, multivalue=True))
+
     # Make sure other "funny" endings are *not* treated special:
     assert f('name^') == ('name^', dict(required=True, multivalue=False))
+
+    # Test that TypeError is raised if spec isn't an str:
+    e = raises(TypeError, f, u'name?')
+    assert str(e) == TYPE_ERROR % ('spec', str, u'name?', unicode)
+
+    # Test that ValueError is raised if len(spec) < 2:
+    e = raises(ValueError, f, 'n')
+    assert str(e) == "spec must be at least 2 characters; got 'n'"
 
 
 class test_Param(ClassChecker):

@@ -161,10 +161,12 @@ def parse_param_spec(spec):
     :param spec: A spec string.
     """
     if type(spec) is not str:
-        raise_TypeError(spec, str, 'spec')
+        raise TypeError(
+            TYPE_ERROR % ('spec', str, spec, type(spec))
+        )
     if len(spec) < 2:
         raise ValueError(
-            'param spec must be at least 2 characters; got %r' % spec
+            'spec must be at least 2 characters; got %r' % spec
         )
     _map = {
         '?': dict(required=False, multivalue=False),
