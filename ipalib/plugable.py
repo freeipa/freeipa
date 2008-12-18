@@ -258,16 +258,10 @@ class Plugin(ReadOnly):
         self.name = cls.__name__
         self.module = cls.__module__
         self.fullname = '%s.%s' % (self.module, self.name)
+        self.doc = cls.__doc__
         log = logging.getLogger('ipa')
         for name in ('debug', 'info', 'warning', 'error', 'critical'):
             setattr(self, name, getattr(log, name))
-
-    def __get_doc(self):
-        """
-        Convenience property to return the class docstring.
-        """
-        return self.__class__.__doc__
-    doc = property(__get_doc)
 
     def __get_api(self):
         """

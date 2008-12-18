@@ -303,7 +303,6 @@ class test_Plugin(ClassChecker):
         """
         assert self.cls.__bases__ == (plugable.ReadOnly,)
         assert self.cls.__public__ == frozenset()
-        assert type(self.cls.doc) is property
         assert type(self.cls.api) is property
 
     def test_init(self):
@@ -314,20 +313,20 @@ class test_Plugin(ClassChecker):
         assert o.name == 'Plugin'
         assert o.module == 'ipalib.plugable'
         assert o.fullname == 'ipalib.plugable.Plugin'
+        assert o.doc == self.cls.__doc__
         class some_subclass(self.cls):
-            pass
+            """
+            Do sub-classy things.
+
+            Although it doesn't know how to comport itself and is not for mixed
+            company, this class *is* useful as we all need a little sub-class
+            now and then.
+            """
         o = some_subclass()
         assert o.name == 'some_subclass'
         assert o.module == __name__
         assert o.fullname == '%s.some_subclass' % __name__
-
-    def test_doc(self):
-        """
-        Test the `ipalib.plugable.Plugin.doc` property.
-        """
-        class some_subclass(self.cls):
-            'here is the doc string'
-        assert read_only(some_subclass(), 'doc') == 'here is the doc string'
+        assert o.doc == some_subclass.__doc__
 
     def test_implements(self):
         """
