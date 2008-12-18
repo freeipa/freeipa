@@ -24,6 +24,7 @@ Parameter system for command plugins.
 from types import NoneType
 from plugable import ReadOnly, lock, check_name
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
+from util import make_repr
 
 
 class DefaultFrom(ReadOnly):
@@ -286,6 +287,16 @@ class Param(ReadOnly):
 
         # And we're done.
         lock(self)
+
+    def __repr__(self):
+        """
+        Return an expresion that could construct this `Param` instance.
+        """
+        return make_repr(
+            self.__class__.__name__,
+            self.param_spec,
+            **self.__kw
+        )
 
     def normalize(self, value):
         """

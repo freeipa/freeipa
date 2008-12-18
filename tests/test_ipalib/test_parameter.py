@@ -188,6 +188,18 @@ class test_Param(ClassChecker):
         assert str(e) == \
             "Param('my_param'): takes no such kwargs: 'ape', 'great'"
 
+    def test_repr(self):
+        """
+        Test the `ipalib.parameter.Param.__repr__` method.
+        """
+        for name in ['name', 'name?', 'name*', 'name+']:
+            o = self.cls(name)
+            assert repr(o) == 'Param(%r)' % name
+        o = self.cls('name', required=False)
+        assert repr(o) == "Param('name', required=False)"
+        o = self.cls('name', multivalue=True)
+        assert repr(o) == "Param('name', multivalue=True)"
+
     def test_convert(self):
         """
         Test the `ipalib.parameter.Param.convert` method.
