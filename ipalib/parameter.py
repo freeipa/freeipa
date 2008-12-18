@@ -328,14 +328,61 @@ class Param(ReadOnly):
             return value
 
     def convert(self, value):
+        """
+        Convert ``value`` to the Python type required by this parameter.
+
+        For example:
+
+        >>> scalar = Str('my_scalar')
+        >>> scalar.type
+        <type 'unicode'>
+        >>> scalar.convert(43.2)
+        u'43.2'
+
+        (Note that `Str` is a subclass of `Param`.)
+
+        All values in `constants.NULLS` will be converted to None.  For
+        example:
+
+        >>> scalar.convert(u'') is None  # An empty string
+        True
+        >>> scalar.convert([]) is None  # An empty list
+        True
+
+        Likewise, values in `constants.NULLS` will be filtered out of a
+        multivalue parameter.  For example:
+
+        >>> multi = Str('my_multi', multivalue=True)
+        >>> multi.convert([True, '', 17, None, False])
+        (u'True', u'17', u'False')
+        >>> multi.convert([None, u'']) is None  # Filters to an empty list
+        True
+
+        Lastly, multivalue parameters will always return a tuple (well,
+        assuming they don't return None as in the last example above).
+        For example:
+
+        >>> multi.convert(42)  # Called with a scalar value
+        (u'42',)
+        >>> multi.convert([True, False])  # Called with a list value
+        (u'True', u'False')
+
+        Note that how values are converted (and from what types they will be
+        converted) completely depends upon how a subclass implements its
+        `Param._convert_scalar()` method.  For example, see
+        `Str._convert_scalar()`.
+
+        :param value: A proposed value for this parameter.
+        """
         if value in NULLS:
             return
         if self.multivalue:
             if type(value) not in (tuple, list):
                 value = (value,)
-            values = filter(
-                    lambda val: val not in NULLS,
-                    (self._convert_scalar(v, i) for (i, v) in enumerate(value))
+            values = tuple(
+                self._convert_scalar(v, i) for (i, v) in filter(
+                    lambda tup: tup[1] not in NULLS, enumerate(value)
+                )
             )
             if len(values) == 0:
                 return

@@ -297,7 +297,7 @@ class test_Str(ClassChecker):
         o = self.cls('my_str')
         for value in (u'Hello', 42, 1.2, True):
             assert o._convert_scalar(value) == unicode(value)
-        for value in ('Hello', None, [u'42', '42'], dict(hello=u'world')):
+        for value in ('Hello', (None,), [u'42', '42'], dict(hello=u'world')):
             e = raises(TypeError, o._convert_scalar, value)
             assert str(e) == \
                 'Can only implicitly convert int, float, or bool; got %r' % value
