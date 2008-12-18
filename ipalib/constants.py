@@ -29,7 +29,7 @@ NULLS = (None, '', u'', tuple(), [])
 TYPE_ERROR = '%s: need a %r; got %r (which is a %r)'
 
 
-CALLABLE_ERROR = '%s: need a callable; got %r (a %r)'
+CALLABLE_ERROR = '%s: need a callable; got %r (which is a %r)'
 
 
 # Used for a tab (or indentation level) when formatting for CLI:

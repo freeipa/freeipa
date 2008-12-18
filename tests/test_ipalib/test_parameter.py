@@ -48,6 +48,14 @@ class test_DefaultFrom(ClassChecker):
         o = self.cls(lam)
         assert read_only(o, 'keys') == ('first', 'last')
 
+        # Test that TypeError is raised when callback isn't callable:
+        e = raises(TypeError, self.cls, 'whatever')
+        assert str(e) == CALLABLE_ERROR % ('callback', 'whatever', str)
+
+        # Test that TypeError is raised when a key isn't an str:
+        e = raises(TypeError, self.cls, callback, 'givenname', 17)
+        assert str(e) == TYPE_ERROR % ('keys', str, 17, int)
+
     def test_call(self):
         """
         Test the `ipalib.parameter.DefaultFrom.__call__` method.

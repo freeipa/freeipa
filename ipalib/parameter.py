@@ -103,7 +103,9 @@ class DefaultFrom(ReadOnly):
         :param keys: Optional keys used for source values.
         """
         if not callable(callback):
-            raise TypeError('callback must be callable; got %r' % callback)
+            raise TypeError(
+                CALLABLE_ERROR % ('callback', callback, type(callback))
+            )
         self.callback = callback
         if len(keys) == 0:
             fc = callback.func_code
@@ -112,7 +114,9 @@ class DefaultFrom(ReadOnly):
             self.keys = keys
         for key in self.keys:
             if type(key) is not str:
-                raise_TypeError(key, str, 'keys')
+                raise TypeError(
+                    TYPE_ERROR % ('keys', str, key, type(key))
+                )
         lock(self)
 
     def __call__(self, **kw):
