@@ -27,6 +27,14 @@ API chages before January 2009 simi-freeze:
 
   * Add ability to register pre-op, post-op plugins per command.
 
+  * Add ability to have certain args/options only active on either client-side
+    or server-side, and also the same for things like default_from callbacks.
+
+  * Add ability to have a post-processing step that only gets called
+    client-side.  It should have a signature like output_for_cli() minus the
+    textui argument.  Need to decide whether we allow this method to modify
+    the return value.
+
 CLI
   - Prompt for password using getpass
   - Passed the param dict to output_for_cli()
