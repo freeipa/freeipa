@@ -263,7 +263,7 @@ class Param(ReadOnly):
                     key, self.__class__.__name__)
                 )
             setattr(self, key, value)
-            rule_name = 'rule_%s' % key
+            rule_name = '_rule_%s' % key
             if value is not None and hasattr(self, rule_name):
                 class_rules.append(getattr(self, rule_name))
         check_name(self.cli_name)
@@ -417,7 +417,7 @@ class Bytes(Param):
                         self.nice, self.minlength)
                 )
 
-    def rule_minlength(self, value):
+    def _rule_minlength(self, value):
         """
         Check minlength constraint.
         """
@@ -426,7 +426,7 @@ class Bytes(Param):
                 minlength=self.minlength,
             )
 
-    def rule_maxlength(self, value):
+    def _rule_maxlength(self, value):
         """
         Check maxlength constraint.
         """
@@ -435,7 +435,7 @@ class Bytes(Param):
                 maxlength=self.maxlength,
             )
 
-    def rule_length(self, value):
+    def _rule_length(self, value):
         """
         Check length constraint.
         """
