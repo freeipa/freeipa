@@ -386,7 +386,7 @@ class Param(ReadOnly):
             )
             if len(values) == 0:
                 return
-            return tuple(values)
+            return values
         return self._convert_scalar(value)
 
     def _convert_scalar(self, value, index=None):
