@@ -697,13 +697,24 @@ class CLI(object):
         if self.options.interactive:
             self.prompt_interactively(cmd, kw)
         self.prompt_for_passwords(cmd, kw)
+        self.set_defaults(cmd, kw)
         result = cmd(**kw)
         if callable(cmd.output_for_cli):
             for param in cmd.params():
                 if param.ispassword():
-                    del kw[param.name]
+                    try:
+                        del kw[param.name]
+                    except KeyError:
+                        pass
             (args, options) = cmd.params_2_args_options(kw)
             cmd.output_for_cli(self.api.Backend.textui, result, *args, **options)
+
+    def set_defaults(self, cmd, kw):
+        for param in cmd.params():
+            if not kw.get(param.name):
+                value = param.get_default(**kw)
+                if value:
+                    kw[param.name] = value
 
     def prompt_for_passwords(self, cmd, kw):
         for param in cmd.params():

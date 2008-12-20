@@ -30,6 +30,19 @@ from ipalib import ipa_types
 
 hostgroup_filter = "groupofnames)(!(objectclass=posixGroup)"
 
+def get_members(members):
+    """
+    Return a list of members.
+
+    It is possible that the value passed in is None.
+    """
+    if members:
+        members = members.split(',')
+    else:
+        members = []
+
+    return members
+
 class hostgroup(frontend.Object):
     """
     Host Group object.
@@ -80,12 +93,11 @@ class hostgroup_add(crud.Add):
 
         return ldap.create(**kw)
 
-    def output_for_cli(self, ret):
+    def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "Group added"
+        textui.print_plain("Group added")
 
 api.register(hostgroup_add)
 
@@ -107,12 +119,11 @@ class hostgroup_del(crud.Del):
 
         return ldap.delete(dn)
 
-    def output_for_cli(self, ret):
+    def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "Group deleted"
+        textui.print_plain("Group deleted")
 
 api.register(hostgroup_del)
 
@@ -137,12 +148,11 @@ class hostgroup_mod(crud.Mod):
         dn = ldap.find_entry_dn("cn", cn, hostgroup_filter)
         return ldap.update(dn, **kw)
 
-    def output_for_cli(self, ret):
+    def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "Group updated"
+        texui.print_plain("Group updated")
 
 api.register(hostgroup_mod)
 
@@ -159,28 +169,26 @@ class hostgroup_find(crud.Find):
         search_fields_conf_str = config.get('ipagroupsearchfields')
         search_fields = search_fields_conf_str.split(",")
 
+        search_kw = {}
         for s in search_fields:
-            kw[s] = term
+            search_kw[s] = term
 
-        kw['objectclass'] = hostgroup_filter
-        return ldap.search(**kw)
+        search_kw['objectclass'] = hostgroup_filter
+        return ldap.search(**search_kw)
 
-    def output_for_cli(self, groups):
-        if not groups:
-            return
-
-        counter = groups[0]
-        groups = groups[1:]
+    def output_for_cli(self, textui, result, *args, **options):
+        counter = result[0]
+        groups = result[1:]
         if counter == 0:
-            print "No entries found"
+            textui.print_plain("No entries found")
             return
-        elif counter == -1:
-            print "These results are truncated."
-            print "Please refine your search and try again."
 
         for g in groups:
-            for a in g.keys():
-                print "%s: %s" % (a, g[a])
+            textui.print_entry(g)
+
+        if counter == -1:
+            textui.print_plain("These results are truncated.")
+            textui.print_plain("Please refine your search and try again.")
 
 api.register(hostgroup_find)
 
@@ -206,12 +214,8 @@ class hostgroup_show(crud.Get):
         # FIXME: should kw contain the list of attributes to display?
         return ldap.retrieve(dn)
 
-    def output_for_cli(self, group):
-        if not group:
-            return
-
-        for a in group.keys():
-            print "%s: %s" % (a, group[a])
+    def output_for_cli(self, textui, result, *args, **options):
+        textui.print_entry(result)
 
 api.register(hostgroup_show)
 
@@ -241,7 +245,7 @@ class hostgroup_add_member(frontend.Command):
         to_add = []
         completed = 0
 
-        members = kw.get('groups', '').split(',')
+        members = get_members(kw.get('groups', ''))
         for m in members:
             if not m: continue
             try:
@@ -251,7 +255,7 @@ class hostgroup_add_member(frontend.Command):
                 add_failed.append(m)
                 continue
 
-        members = kw.get('hosts', '').split(',')
+        members = get_members(kw.get('hosts', ''))
         for m in members:
             if not m: continue
             try:
@@ -270,16 +274,16 @@ class hostgroup_add_member(frontend.Command):
 
         return add_failed
 
-    def output_for_cli(self, add_failed):
+    def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        if add_failed:
-            print "These entries failed to add to the group:"
-            for a in add_failed:
+        if result:
+            textui.print_plain("These entries failed to add to the group:")
+            for a in result:
                 print "\t'%s'" % a
         else:
-            print "Group membership updated."
+            textui.print_entry("Group membership updated.")
 
 api.register(hostgroup_add_member)
 
@@ -309,7 +313,7 @@ class hostgroup_remove_member(frontend.Command):
         remove_failed = []
         completed = 0
 
-        members = kw.get('groups', '').split(',')
+        members = get_members(kw.get('groups', ''))
         for m in members:
             if not m: continue
             try:
@@ -319,7 +323,7 @@ class hostgroup_remove_member(frontend.Command):
                 remove_failed.append(m)
                 continue
 
-        members = kw.get('hosts', '').split(',')
+        members = get_members(kw.get('hosts', ''))
         for m in members:
             if not m: continue
             try:
@@ -338,15 +342,15 @@ class hostgroup_remove_member(frontend.Command):
 
         return remove_failed
 
-    def output_for_cli(self, remove_failed):
+    def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        if remove_failed:
-            print "These entries failed to be removed from the group:"
-            for a in remove_failed:
+        if result:
+            textui.print_plain("These entries failed to be removed from the group:")
+            for a in result:
                 print "\t'%s'" % a
         else:
-            print "Group membership updated."
+            textui.print_plain("Group membership updated.")
 
 api.register(hostgroup_remove_member)

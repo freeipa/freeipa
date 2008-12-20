@@ -149,12 +149,11 @@ class host_add(crud.Add):
                 kw['objectclass'].remove('krbprincipalaux')
 
         return ldap.create(**kw)
-    def output_for_cli(self, ret):
+    def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "Host added"
+        textui.print_plain("Host added")
 
 api.register(host_add)
 
@@ -172,12 +171,11 @@ class host_del(crud.Del):
         ldap = self.api.Backend.ldap
         dn = get_host(hostname)
         return ldap.delete(dn)
-    def output_for_cli(self, ret):
+    def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "Host deleted"
+        textui.print_plain("Host deleted")
 
 api.register(host_del)
 
@@ -202,12 +200,11 @@ class host_mod(crud.Mod):
         dn = get_host(hostname)
         return ldap.update(dn, **kw)
 
-    def output_for_cli(self, ret):
+    def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        if ret:
-            print "Host updated"
+        textui.print_plain("Host updated")
 
 api.register(host_mod)
 
@@ -232,31 +229,29 @@ class host_find(crud.Find):
         #search_fields = search_fields_conf_str.split(",")
         search_fields = ['cn','serverhostname','description','localityname','nshostlocation','nshardwareplatform','nsosversion']
 
+        search_kw = {}
         for s in search_fields:
-            kw[s] = term
+            search_kw[s] = term
 
         # Can't use ldap.get_object_type() since cn is also used for group dns
-        kw['objectclass'] = "ipaHost"
+        search_kw['objectclass'] = "ipaHost"
         if kw.get('all', False):
-            kw['attributes'] = ['*']
+            search_kw['attributes'] = ['*']
         else:
-            kw['attributes'] = default_attributes
-        return ldap.search(**kw)
-    def output_for_cli(self, hosts):
-        if not hosts:
-            return
-        counter = hosts[0]
-        hosts = hosts[1:]
+            search_kw['attributes'] = default_attributes
+        return ldap.search(**search_kw)
+    def output_for_cli(self, textui, result, *args, **options):
+        counter = result[0]
+        hosts = result[1:]
         if counter == 0:
-            print "No entries found"
+            textui.print_plain("No entries found")
             return
-        elif counter == -1:
-            print "These results are truncated."
-            print "Please refine your search and try again."
 
         for h in hosts:
-            for a in h.keys():
-                print "%s: %s" % (a, h[a])
+            textui.print_entry(h)
+        if counter == -1:
+            textui.print_plain("These results are truncated.")
+            textui.print_plain("Please refine your search and try again.")
 api.register(host_find)
 
 
@@ -286,9 +281,7 @@ class host_show(crud.Get):
             value = ldap.retrieve(dn, default_attributes)
             del value['dn']
             return value
-    def output_for_cli(self, host):
-        if host:
-            for a in host.keys():
-                print "%s: %s" % (a, host[a])
+    def output_for_cli(self, textui, result, *args, **options):
+        textui.print_entry(result)
 
 api.register(host_show)

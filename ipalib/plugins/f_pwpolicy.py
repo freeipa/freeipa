@@ -88,9 +88,8 @@ class pwpolicy_mod(frontend.Command):
 
         return ldap.update(dn, **kw)
 
-    def output_for_cli(self, ret):
-        if ret:
-            print "Policy modified"
+    def output_for_cli(self, textui, result, *args, **options):
+        textui.print_plain("Policy modified")
 
 api.register(pwpolicy_mod)
 
@@ -120,14 +119,12 @@ class pwpolicy_show(frontend.Command):
 
         return policy
 
-    def output_for_cli(self, policy):
-        if not policy: return
-
-        print "Password Policy"
-        print "Min. Password Lifetime (hours): %s" % policy.get('krbminpwdlife')
-        print "Max. Password Lifetime (days): %s" % policy.get('krbmaxpwdlife')
-        print "Min. Number of Character Classes: %s" % policy.get('krbpwdmindiffchars')
-        print "Min. Length of Password: %s" % policy.get('krbpwdminlength')
-        print "Password History Size: %s" % policy.get('krbpwdhistorylength')
+    def output_for_cli(self, textui, result, *args, **options):
+        textui.print_plain("Password Policy")
+        textui.print_plain("Min. Password Lifetime (hours): %s" % result.get('krbminpwdlife'))
+        textui.print_plain("Max. Password Lifetime (days): %s" % result.get('krbmaxpwdlife'))
+        textui.print_plain("Min. Number of Character Classes: %s" % result.get('krbpwdmindiffchars'))
+        textui.print_plain("Min. Length of Password: %s" % result.get('krbpwdminlength'))
+        textui.print_plain("Password History Size: %s" % result.get('krbpwdhistorylength'))
 
 api.register(pwpolicy_show)
