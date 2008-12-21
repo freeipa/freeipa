@@ -38,6 +38,16 @@ API chages before January 2009 simi-freeze:
   * Make Plugin base class parse class docstring into overview and
     full-description strings (similar to Bazaar).
 
+  * Removed depreciated code in config.py.
+
+  * Remove __getattr__() from Env (and probably elsewhere) as in Python 2.4 and
+    2.5 hasattr() will catch KeyboardInterrupt and SystemExit exceptions (BTW,
+    this has been fixed in Python 2.6).
+
+  * Remove support for dynamic environment values from Env... Jason feels this
+    the Env class should be simple and static.  Other mechanisms should be used
+    for retrieving per-request dynamic environment variables.
+
 
 Command Line interface:
 
