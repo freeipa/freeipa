@@ -26,11 +26,11 @@ methods, such as DNS.
 """
 
 from ConfigParser import RawConfigParser, ParsingError
-import types
+from types import NoneType
 import os
 from os import path
 import sys
-import constants
+from constants import CONFIG_SECTION, TYPE_ERROR, OVERRIDE_ERROR
 
 
 
@@ -143,7 +143,6 @@ class Env(object):
         """
         Merge values from ``conf_file`` into this `Env`.
         """
-        section = constants.CONFIG_SECTION
         if not path.isfile(conf_file):
             return
         parser = RawConfigParser()
@@ -151,9 +150,9 @@ class Env(object):
             parser.read(conf_file)
         except ParsingError:
             return
-        if not parser.has_section(section):
-            parser.add_section(section)
-        items = parser.items(section)
+        if not parser.has_section(CONFIG_SECTION):
+            parser.add_section(CONFIG_SECTION)
+        items = parser.items(CONFIG_SECTION)
         if len(items) == 0:
             return
         i = 0
@@ -211,13 +210,16 @@ class Env(object):
             )
         if isinstance(value, basestring):
             value = str(value.strip())
-            if value.lower() == 'true':
-                value = True
-            elif value.lower() == 'false':
-                value = False
+            m = {
+                'True': True,
+                'False': False,
+                'None': None,
+            }
+            if value in m:
+                value = m[value]
             elif value.isdigit():
                 value = int(value)
-        assert type(value) in (str, int, bool)
+        assert type(value) in (str, int, bool, type(NoneType))
         object.__setattr__(self, key, value)
         self.__d[key] = value
 

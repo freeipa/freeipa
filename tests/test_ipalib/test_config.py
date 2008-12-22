@@ -89,8 +89,8 @@ key3 = var3
 config_good = """
 [global]
 
-yes = tRUE
-no = fALse
+yes = True
+no = False
 number = 42
 """
 
@@ -157,7 +157,7 @@ class test_Env(ClassChecker):
         assert o.conf_default == o.conf
 
         # Test overriding values created by _bootstrap()
-        (o, home) = self.bootstrap(in_tree='true', context='server')
+        (o, home) = self.bootstrap(in_tree='True', context='server')
         assert o.in_tree is True
         assert o.context == 'server'
         assert o.conf == home.join('.ipa', 'server.conf')
@@ -243,7 +243,7 @@ class test_Env(ClassChecker):
         assert o.log == home.join('.ipa', 'log', 'cli.log')
 
         # Check **defaults can't set in_server nor log:
-        (o, home) = self.bootstrap(in_server='tRUE')
+        (o, home) = self.bootstrap(in_server='True')
         o._finalize_core(in_server=False)
         assert o.in_server is True
         (o, home) = self.bootstrap(log='/some/silly/log')
@@ -271,9 +271,9 @@ class test_Env(ClassChecker):
         (o, home) = self.finalize_core(**defaults)
         assert list(o) == sorted(defaults)
         for (key, value) in defaults.items():
-            if value is None:
+            if value is object:
                 continue
-            assert o[key] is value
+            assert o[key] is value, value
 
     def test_finalize(self):
         """
@@ -418,9 +418,9 @@ class test_Env(ClassChecker):
                 assert str(e) == \
                     'locked: cannot set Env.%s to %r' % (name, value)
             o = self.cls()
-            setvar(o, 'yes', ' true ')
+            setvar(o, 'yes', ' True ')
             assert o.yes is True
-            setvar(o, 'no', ' false ')
+            setvar(o, 'no', ' False ')
             assert o.no is False
             setvar(o, 'msg', u' Hello, world! ')
             assert o.msg == 'Hello, world!'

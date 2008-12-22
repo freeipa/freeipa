@@ -32,7 +32,7 @@ TYPE_ERROR = '%s: need a %r; got %r (which is a %r)'
 CALLABLE_ERROR = '%s: need a callable; got %r (which is a %r)'
 
 # Standard format for StandardError message when overriding an attribute:
-OVERRIDE_ERROR = 'cannot override %s existing value %r with %r'
+OVERRIDE_ERROR = 'cannot override %s value %r with %r'
 
 # Used for a tab (or indentation level) when formatting for CLI:
 CLI_TAB = '  '  # Two spaces
@@ -112,28 +112,31 @@ DEFAULT_CONFIG = (
     # will have filled in all the keys below by the time DEFAULT_CONFIG
     # is merged in, so the values below are never actually used. They are
     # listed both to provide a big picture and also so DEFAULT_CONFIG contains
-    # the keys that should be present after Env._finalize_core() is called.
+    # at least all the keys that should be present after Env._finalize_core()
+    # is called.
     #
-    # The values are all None so if for some reason any of these keys were
-    # set from the values here, an exception will be raised.
+    # Each environment variable below is sent to ``object``, which just happens
+    # to be an invalid value for an environment variable, so if for some reason
+    # any of these keys were set from the values here, an exception will be
+    # raised.
 
     # Set in Env.__init__():
-    ('ipalib', None), # The directory containing ipalib/__init__.py
-    ('site_packages', None), # The directory contaning ipalib
-    ('script', None), # sys.argv[0]
-    ('bin', None), # The directory containing script
-    ('home', None), # The home directory of user underwhich process is running
-    ('dot_ipa', None), # ~/.ipa directory
+    ('ipalib', object), # The directory containing ipalib/__init__.py
+    ('site_packages', object), # The directory contaning ipalib
+    ('script', object), # sys.argv[0]
+    ('bin', object), # The directory containing script
+    ('home', object), # The home directory of user underwhich process is running
+    ('dot_ipa', object), # ~/.ipa directory
 
     # Set in Env._bootstrap():
-    ('in_tree', None), # Whether or not running in-tree (bool)
-    ('context', None), # Name of context, default is 'default'
-    ('conf', None), # Path to config file
-    ('conf_default', None), # Path to common default config file
-    ('conf_dir', None), # Directory containing config files
+    ('in_tree', object), # Whether or not running in-tree (bool)
+    ('context', object), # Name of context, default is 'default'
+    ('conf', object), # Path to config file
+    ('conf_default', object), # Path to common default config file
+    ('conf_dir', object), # Directory containing config files
 
     # Set in Env._finalize_core():
-    ('in_server', None), # Whether or not running in-server (bool)
-    ('log', None), # Path to log file
+    ('in_server', object), # Whether or not running in-server (bool)
+    ('log', object), # Path to log file
 
 )
