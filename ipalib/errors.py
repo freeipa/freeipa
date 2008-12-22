@@ -124,6 +124,14 @@ def _(text):
     return text
 
 
+class SubprocessError(StandardError):
+    def __init__(self, returncode, argv):
+        self.returncode = returncode
+        self.argv = argv
+        StandardError.__init__(self,
+            'return code %d from %r' % (returncode, argv)
+        )
+
 class HandledError(StandardError):
     """
     Base class for errors that can be raised across a remote procedure call.

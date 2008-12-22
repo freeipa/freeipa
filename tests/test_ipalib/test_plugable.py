@@ -452,6 +452,18 @@ class test_Plugin(ClassChecker):
         o.finalize()
         assert o.__islocked__()
 
+    def test_call(self):
+        """
+        Test the `ipalib.plugable.Plugin.call` method.
+        """
+        o = self.cls()
+        o.call('/bin/true') is None
+        e = raises(errors.SubprocessError, o.call, '/bin/false')
+        assert str(e) == 'return code %d from %r' % (1, ('/bin/false',))
+        assert e.returncode == 1
+        assert e.argv == ('/bin/false',)
+
+
 
 class test_PluginProxy(ClassChecker):
     """

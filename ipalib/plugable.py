@@ -367,15 +367,22 @@ class Plugin(ReadOnly):
                 assert not hasattr(self, name)
                 setattr(self, name, getattr(api, name))
 
-    def call(self, *args):
+    def call(self, executable, *args):
         """
-        Call an external command via ``subprocess.call``.
+        Call ``executable`` with ``args`` using subprocess.call().
 
-        Returns the exit status of the call.
+        If the call exits with a non-zero exit status,
+        `ipalib.errors.SubprocessError` is raised, from which you can retrieve
+        the exit code by checking the SubprocessError.returncode attribute.
+
+        This method does *not* return what ``executable`` sent to stdout... for
+        that, use `Plugin.callread()`.
         """
-        if hasattr(self, 'log'):
-            self.log.debug('Calling %r', args)
-        return subprocess.call(args)
+        argv = (executable,) + args
+        self.debug('Calling %r', argv)
+        returncode = subprocess.call(argv)
+        if returncode != 0:
+            raise errors.SubprocessError(returncode, argv)
 
     def __repr__(self):
         """
