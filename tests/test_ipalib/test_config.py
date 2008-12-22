@@ -374,23 +374,16 @@ class test_Env(ClassChecker):
         e = raises(StandardError, o.__lock__)
         assert str(e) == 'Env.__lock__() already called'
 
-    def test_getattr(self):
+    def test_getitem(self):
         """
-        Test the `ipalib.config.Env.__getattr__` method.
-
-        Also tests the `ipalib.config.Env.__getitem__` method.
+        Test the `ipalib.config.Env.__getitem__` method.
         """
         o = self.cls()
         value = 'some value'
         o.key = value
         assert o.key is value
         assert o['key'] is value
-        o.call = lambda: 'whatever'
-        assert o.call == 'whatever'
-        assert o['call'] == 'whatever'
         for name in ('one', 'two'):
-            e = raises(AttributeError, getattr, o, name)
-            assert str(e) == 'Env.%s' % name
             e = raises(KeyError, getitem, o, name)
             assert str(e) == repr(name)
 
@@ -402,9 +395,9 @@ class test_Env(ClassChecker):
         """
         items = [
             ('one', 1),
-            ('two', lambda: 2),
+            ('two', 2),
             ('three', 3),
-            ('four', lambda: 4),
+            ('four', 4),
         ]
         for setvar in (setattr, setitem):
             o = self.cls()
@@ -457,9 +450,9 @@ class test_Env(ClassChecker):
         o = self.cls()
         items = [
             ('one', 1),
-            ('two', lambda: 2),
+            ('two', 2),
             ('three', 3),
-            ('four', lambda: 4),
+            ('four', 4),
         ]
         for (key, value) in items:
             assert key not in o

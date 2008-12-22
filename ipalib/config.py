@@ -176,16 +176,6 @@ class Env(object):
     def __islocked__(self):
         return self.__locked
 
-    def __getattr__(self, name):
-        """
-        Return the attribute named ``name``.
-        """
-        if name in self.__d:
-            return self[name]
-        raise AttributeError('%s.%s' %
-            (self.__class__.__name__, name)
-        )
-
     def __setattr__(self, name, value):
         """
         Set the attribute named ``name`` to ``value``.
@@ -204,12 +194,7 @@ class Env(object):
         """
         Return the value corresponding to ``key``.
         """
-        if key not in self.__d:
-            raise KeyError(key)
-        value = self.__d[key]
-        if callable(value):
-            return value()
-        return value
+        return self.__d[key]
 
     def __setitem__(self, key, value):
         """
@@ -224,17 +209,16 @@ class Env(object):
             raise AttributeError('cannot overwrite %s.%s with %r' %
                 (self.__class__.__name__, key, value)
             )
-        if not callable(value):
-            if isinstance(value, basestring):
-                value = str(value.strip())
-                if value.lower() == 'true':
-                    value = True
-                elif value.lower() == 'false':
-                    value = False
-                elif value.isdigit():
-                    value = int(value)
-            assert type(value) in (str, int, bool)
-            object.__setattr__(self, key, value)
+        if isinstance(value, basestring):
+            value = str(value.strip())
+            if value.lower() == 'true':
+                value = True
+            elif value.lower() == 'false':
+                value = False
+            elif value.isdigit():
+                value = int(value)
+        assert type(value) in (str, int, bool)
+        object.__setattr__(self, key, value)
         self.__d[key] = value
 
     def __contains__(self, key):
