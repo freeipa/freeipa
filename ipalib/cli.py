@@ -37,7 +37,6 @@ import backend
 import errors
 import plugable
 import ipa_types
-from config import set_default_env, read_config
 import util
 from constants import CLI_TAB
 

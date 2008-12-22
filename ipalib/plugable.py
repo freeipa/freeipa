@@ -35,7 +35,7 @@ from os import path
 import subprocess
 import errors
 from errors import check_type, check_isinstance
-from config import Environment, Env
+from config import Env
 from constants import DEFAULT_CONFIG
 import util
 
