@@ -367,6 +367,7 @@ class Plugin(ReadOnly):
         for name in api:
             assert not hasattr(self, name)
             setattr(self, name, api[name])
+        # FIXME: the 'log' attribute is depreciated.  See Plugin.__init__()
         for name in ('env', 'context', 'log'):
             if hasattr(api, name):
                 assert not hasattr(self, name)
