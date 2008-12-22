@@ -23,11 +23,11 @@ Backend plugin for IPA-RA.
 
 IPA-RA provides an access to CA to issue, retrieve, and revoke certificates.
 IPA-RA plugin provides CA interface via the following methods:
-    check_request_status       to check a certificate request status
+    check_request_status       to check certificate request status
     get_certificate            to retrieve an existing certificate
-    request_certificate        to request a certificate
-    revoke_certificate         to revoke a certificate
-    take_certificate_off_hold  to take a certificate off hold
+    request_certificate        to request certificate
+    revoke_certificate         to revoke certificate
+    take_certificate_off_hold  to take certificate off hold
 """
 
 import os, stat, subprocess
@@ -131,6 +131,9 @@ class ra(Backend):
                     return_values["certificate"] = issued_certificate
                 else:
                     return_values["status"] = "1"
+                revocation_reason = self.__find_substring(stdout, 'header.revocationReason = ', ';')
+                if revocation_reason is not None:
+                    return_values["revocation_reason"] = revocation_reason
             else:
                 return_values["status"] = str(-returncode)
         else:
