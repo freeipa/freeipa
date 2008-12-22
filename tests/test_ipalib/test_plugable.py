@@ -337,6 +337,14 @@ class test_Plugin(ClassChecker):
         assert o.doc is None
         assert o.summary == '<%s>' % o.fullname
 
+        # Test that Plugin makes sure the subclass hasn't defined attributes
+        # whose names conflict with the logger methods set in Plugin.__init__():
+        class check(self.cls):
+            info = 'whatever'
+        e = raises(StandardError, check)
+        assert str(e) == \
+            "check.info attribute ('whatever') conflicts with Plugin logger"
+
     def test_implements(self):
         """
         Test the `ipalib.plugable.Plugin.implements` classmethod.

@@ -1087,7 +1087,6 @@ class Property(Attribute):
             rules=self.rules,
             normalize=self.normalize,
         )
-        super(Property, self).__init__()
 
     def __rules_iter(self):
         """

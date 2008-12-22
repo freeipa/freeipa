@@ -263,8 +263,13 @@ class Plugin(ReadOnly):
             self.summary = '<%s>' % self.fullname
         else:
             self.summary = self.doc.split('\n\n', 1)[0]
-        log = logging.getLogger('ipa')
-        for name in ('debug', 'info', 'warning', 'error', 'critical'):
+        log = logging.getLogger(self.fullname)
+        for name in ('debug', 'info', 'warning', 'error', 'critical', 'exception'):
+            if hasattr(self, name):
+                raise StandardError(
+                    '%s.%s attribute (%r) conflicts with Plugin logger' % (
+                        self.name, name, getattr(self, name))
+                )
             setattr(self, name, getattr(log, name))
 
     def __get_api(self):
