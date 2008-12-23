@@ -42,7 +42,7 @@ class Env(object):
     environment variables.  These variables can be both set *and* retrieved
     either as attributes *or* as dictionary items.
 
-    For example, we can set a variable as an attribute:
+    For example, you can set a variable as an attribute:
 
     >>> env = Env()
     >>> env.attr = 'I was set as an attribute.'
@@ -51,7 +51,7 @@ class Env(object):
     >>> env['attr']  # Also retrieve as a dictionary item
     'I was set as an attribute.'
 
-    Or we can set a variable as a dictionary item:
+    Or you can set a variable as a dictionary item:
 
     >>> env['item'] = 'I was set as a dictionary item.'
     >>> env['item']
@@ -166,7 +166,8 @@ class Env(object):
            process.
 
     However, normally none of the above methods are called directly and instead
-    only `ipalib.plugable.API.bootstrap()` is called.
+    only `plugable.API.bootstrap()` is called, which itself takes care of
+    correctly calling the `Env` bootstrapping methods.
     """
 
     __locked = False
@@ -360,7 +361,7 @@ class Env(object):
 
         After this method finishes, the `Env` instance will be locked and no
         more environment variables can be set.  Aside from unit-tests and
-        example code, normally only one `Env` instance is created, meaning
+        example code, normally only one `Env` instance is created, which means
         no more variables can be set during the remaining life of the process.
         """
         self.__doing('_finalize')
