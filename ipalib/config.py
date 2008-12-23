@@ -165,8 +165,8 @@ class Env(object):
            environment variables can be set during the remaining life of the
            process.
 
-    However, normally none of the above methods are called directly and only
-    `ipalib.plugable.API.bootstrap()` is called instead.
+    However, normally none of the above methods are called directly and instead
+    only `ipalib.plugable.API.bootstrap()` is called.
     """
 
     __locked = False
@@ -280,9 +280,10 @@ class Env(object):
         """
         Initialize basic environment.
 
-        This method will initialize only enough environment information to
-        determine whether ipa is running in-tree, what the context is,
-        and the location of the configuration file.
+        In addition to certain run-time information, this method will
+        initialize only enough environment information to determine whether
+        IPA is running in-tree, what the context is, and the location of the
+        configuration file.
         """
         self.__doing('_bootstrap')
 
@@ -322,11 +323,12 @@ class Env(object):
         After this method is called, the all environment variables
         used by all the built-in plugins will be available.
 
-        This method should be called before loading any plugins. It will
+        This method should be called before loading any plugins.  It will
         automatically call `Env._bootstrap()` if it has not yet been called.
 
         After this method has finished, the `Env` instance is still writable
-        so that third
+        so that 3rd-party plugins can set variables they may require as the
+        plugins are registered.
         """
         self.__doing('_finalize_core')
         self.__do_if_not_done('_bootstrap')
@@ -349,8 +351,17 @@ class Env(object):
         """
         Finalize and lock environment.
 
-        This method should be called after all plugins have bean loaded and
-        after `plugable.API.finalize()` has been called.
+        This method should be called after all plugins have been loaded and
+        after `plugable.API.finalize()` has been called.  This method will
+        automatically call `Env._finalize_core()` if it hasn't been called
+        already, but in normal operation this would result in an exception
+        being raised because the internal default values will not have been
+        merged-in.
+
+        After this method finishes, the `Env` instance will be locked and no
+        more environment variables can be set.  Aside from unit-tests and
+        example code, normally only one `Env` instance is created, meaning
+        no more variables can be set during the remaining life of the process.
         """
         self.__doing('_finalize')
         self.__do_if_not_done('_finalize_core')
