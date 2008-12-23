@@ -28,7 +28,7 @@ import sys
 from tests.util import raises, setitem, delitem, ClassChecker
 from tests.util import getitem, setitem, delitem
 from tests.util import TempDir, TempHome
-from ipalib.constants import TYPE_ERROR, OVERRIDE_ERROR, LOCK_ERROR
+from ipalib.constants import TYPE_ERROR, OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
 from ipalib import config, constants
 
 
@@ -177,7 +177,7 @@ class test_Env(ClassChecker):
         o.__lock__()
         for (name, raw, value) in good_vars:
             e = raises(AttributeError, setattr, o, name, raw)
-            assert str(e) == LOCK_ERROR % ('Env', name, raw)
+            assert str(e) == SET_ERROR % ('Env', name, raw)
 
     def test_setitem(self):
         """
@@ -201,7 +201,35 @@ class test_Env(ClassChecker):
         o.__lock__()
         for (key, raw, value) in good_vars:
             e = raises(AttributeError, o.__setitem__, key, raw)
-            assert str(e) == LOCK_ERROR % ('Env', key, raw)
+            assert str(e) == SET_ERROR % ('Env', key, raw)
+
+    def test_getitem(self):
+        """
+        Test the `ipalib.config.Env.__getitem__` method.
+        """
+        o = self.cls()
+        value = 'some value'
+        o.key = value
+        assert o.key is value
+        assert o['key'] is value
+        for name in ('one', 'two'):
+            e = raises(KeyError, getitem, o, name)
+            assert str(e) == repr(name)
+
+    def test_delattr(self):
+        """
+        Test the `ipalib.config.Env.__delattr__` method.
+
+        This also tests that ``__delitem__`` is not implemented.
+        """
+        o = self.cls()
+        o.one = 1
+        assert o.one == 1
+        for key in ('one', 'two'):
+            e = raises(AttributeError, delattr, o, key)
+            assert str(e) == DEL_ERROR % ('Env', key)
+            e = raises(AttributeError, delitem, o, key)
+            assert str(e) == '__delitem__'
 
     def bootstrap(self, **overrides):
         (o, home) = self.new()
@@ -444,36 +472,6 @@ class test_Env(ClassChecker):
         assert o._Env__locked is True
         e = raises(StandardError, o.__lock__)
         assert str(e) == 'Env.__lock__() already called'
-
-    def test_getitem(self):
-        """
-        Test the `ipalib.config.Env.__getitem__` method.
-        """
-        o = self.cls()
-        value = 'some value'
-        o.key = value
-        assert o.key is value
-        assert o['key'] is value
-        for name in ('one', 'two'):
-            e = raises(KeyError, getitem, o, name)
-            assert str(e) == repr(name)
-
-
-
-    def test_delattr(self):
-        """
-        Test the `ipalib.config.Env.__delattr__` method.
-
-        This also tests that ``__delitem__`` is not implemented.
-        """
-        o = self.cls()
-        o.one = 1
-        assert o.one == 1
-        for key in ('one', 'two'):
-            e = raises(AttributeError, delattr, o, key)
-            assert str(e) == 'cannot del Env.%s' % key
-            e = raises(AttributeError, delitem, o, key)
-            assert str(e) == '__delitem__'
 
     def test_contains(self):
         """

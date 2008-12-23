@@ -36,8 +36,8 @@ OVERRIDE_ERROR = 'cannot override %s.%s value %r with %r'
 
 # Standard format for AttributeError message when a read-only attribute is
 # already locked:
-LOCK_ERROR = 'locked: cannot set %s.%s to %r'
-DEL_ERROR = 'locked: cannot set %s.%s to %r'
+SET_ERROR = 'locked: cannot set %s.%s to %r'
+DEL_ERROR = 'locked: cannot del %s.%s'
 
 # Used for a tab (or indentation level) when formatting for CLI:
 CLI_TAB = '  '  # Two spaces

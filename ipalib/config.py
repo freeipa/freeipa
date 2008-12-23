@@ -31,13 +31,95 @@ import os
 from os import path
 import sys
 from constants import CONFIG_SECTION
-from constants import TYPE_ERROR, OVERRIDE_ERROR, LOCK_ERROR
-
+from constants import TYPE_ERROR, OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
 
 
 class Env(object):
     """
-    A mapping object used to store the environment variables.
+    Store and retrieve environment variables.
+
+    First an foremost, the `Env` class provides a handy container for
+    environment variables.  These variables can be both set and retrieved as
+    either attributes or as dictionary items.
+
+    For example, we can set a variable as an attribute:
+
+    >>> env = Env()
+    >>> env.attr = 'I was set as an attribute.'
+    >>> env.attr  # Retrieve as an attribute
+    'I was set as an attribute.'
+    >>> env['attr']  # Also retrieve as a dictionary item
+    'I was set as an attribute.'
+
+    Or we can set a variable as a dictionary item:
+
+    >>> env['item'] = 'I was set as a dictionary item.'
+    >>> env['item']  # Retrieve as a dictionary item
+    'I was set as a dictionary item.'
+    >>> env.item  # Also retrieve as an attribute
+    'I was set as a dictionary item.'
+
+    The variable values can be ``str`` or ``int`` instances, or the ``True``,
+    ``False``, or ``None`` constants.  When the value provided is an ``str``
+    instance, some limited automatic type conversion is performed, which allows
+    values of specific types to be set easily from configuration files and from
+    command-line options.
+
+    The ``True``, ``False``, and ``None`` constants can be specified with a
+    string that matches what ``repr()`` would return.  For example:
+
+    >>> env.true = 'True'
+    >>> env.true
+    True
+
+    Note that the automatic type conversion is case sensitive.  For example:
+
+    >>> env.false = 'false'  # Doesn't match repr(False)
+    >>> env.false
+    'false'
+
+    If an ``str`` value looks like an integer, it's automatically converted to
+    the ``int`` type.  For example:
+
+    >>> env.lucky = '7'
+    >>> env.lucky
+    7
+
+    Also, leading and trailing white-space is automatically stripped from
+    ``str`` values.  For example:
+
+    >>> env.message = '  Hello!  '  # Surrounded by double spaces
+    >>> env.message
+    'Hello!'
+    >>> env.number = '42 '  # Still converted to an int
+    >>> env.number
+    42
+    >>> env.actually_false = ' False'  # Still matches repr(False)
+    >>> env.actually_false
+    False
+
+    `Env` is set-once, first-one-wins.  Once a variable has been set, trying to
+    override it will raise an ``AttributeError``.  For example:
+
+    >>> env.my_var = 'first'
+    >>> env.my_var = 'second'
+    Traceback (most recent call last):
+      ...
+    AttributeError: cannot override Env.my_var value 'first' with 'second'
+
+    An `Env` instance can also be *locked*, after which no further variables can
+    be set.  Trying to set variables on a locked `Env` instance will also raise
+    an ``AttributeError``.  For example:
+
+    >>> env = Env()
+    >>> env.var1 = 'This will work.'
+    >>> env.__lock__()
+    >>> env.var2 = 'This wont work!'
+    Traceback (most recent call last):
+      ...
+    AttributeError: locked: cannot set Env.var2 to 'This wont work!'
+
+    Finish me!
     """
 
     __locked = False
@@ -67,11 +149,15 @@ class Env(object):
         # FIXME: the key should be checked with check_name()
         if self.__locked:
             raise AttributeError(
-                LOCK_ERROR % (self.__class__.__name__, key, value)
+                SET_ERROR % (self.__class__.__name__, key, value)
             )
         if key in self.__d:
             raise AttributeError(OVERRIDE_ERROR %
                 (self.__class__.__name__, key, self.__d[key], value)
+            )
+        if hasattr(self, key):
+            raise AttributeError(OVERRIDE_ERROR %
+                (self.__class__.__name__, key, getattr(self, key), value)
             )
         if isinstance(value, basestring):
             value = str(value.strip())
@@ -87,6 +173,20 @@ class Env(object):
         assert type(value) in (str, int, bool, NoneType)
         object.__setattr__(self, key, value)
         self.__d[key] = value
+
+    def __getitem__(self, key):
+        """
+        Return the value corresponding to ``key``.
+        """
+        return self.__d[key]
+
+    def __delattr__(self, name):
+        """
+        Raise AttributeError (deletion is never allowed).
+        """
+        raise AttributeError(
+            DEL_ERROR % (self.__class__.__name__, name)
+        )
 
     def __doing(self, name):
         if name in self.__done:
@@ -214,19 +314,7 @@ class Env(object):
 
 
 
-    def __delattr__(self, name):
-        """
-        Raise AttributeError (deletion is not allowed).
-        """
-        raise AttributeError('cannot del %s.%s' %
-            (self.__class__.__name__, name)
-        )
 
-    def __getitem__(self, key):
-        """
-        Return the value corresponding to ``key``.
-        """
-        return self.__d[key]
 
 
 
