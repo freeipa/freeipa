@@ -40,7 +40,7 @@ def test_set_languages():
     assert not hasattr(c, 'languages')
     c.languages = None
     e = raises(StandardError, f, *langs)
-    assert str(e) == OVERRIDE_ERROR % ('context.languages', None, langs)
+    assert str(e) == OVERRIDE_ERROR % ('context', 'languages', None, langs)
     del c.languages
 
     # Test setting the languages:

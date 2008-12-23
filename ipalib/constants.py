@@ -32,7 +32,12 @@ TYPE_ERROR = '%s: need a %r; got %r (which is a %r)'
 CALLABLE_ERROR = '%s: need a callable; got %r (which is a %r)'
 
 # Standard format for StandardError message when overriding an attribute:
-OVERRIDE_ERROR = 'cannot override %s value %r with %r'
+OVERRIDE_ERROR = 'cannot override %s.%s value %r with %r'
+
+# Standard format for AttributeError message when a read-only attribute is
+# already locked:
+LOCK_ERROR = 'locked: cannot set %s.%s to %r'
+DEL_ERROR = 'locked: cannot set %s.%s to %r'
 
 # Used for a tab (or indentation level) when formatting for CLI:
 CLI_TAB = '  '  # Two spaces

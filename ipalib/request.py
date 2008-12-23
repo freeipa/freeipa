@@ -34,8 +34,8 @@ context = threading.local()
 
 def set_languages(*languages):
     if hasattr(context, 'languages'):
-        raise StandardError(
-            OVERRIDE_ERROR % ('context.languages', context.languages, languages)
+        raise StandardError(OVERRIDE_ERROR %
+            ('context', 'languages', context.languages, languages)
         )
     if len(languages) == 0:
         languages = locale.getdefaultlocale()[:1]

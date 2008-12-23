@@ -28,9 +28,32 @@ import sys
 from tests.util import raises, setitem, delitem, ClassChecker
 from tests.util import getitem, setitem, delitem
 from tests.util import TempDir, TempHome
+from ipalib.constants import TYPE_ERROR, OVERRIDE_ERROR, LOCK_ERROR
 from ipalib import config, constants
 
 
+
+# Valid environment variables in (key, raw, value) tuples:
+#    key: the name of the environment variable
+#    raw: the value being set (possibly a string repr)
+#    value: the expected value after the lightweight conversion
+good_vars = (
+    ('a_string', 'Hello world!', 'Hello world!'),
+    ('trailing_whitespace', ' value  ', 'value'),
+    ('an_int', 42, 42),
+    ('int_repr', ' 42 ', 42),
+    ('true', True, True),
+    ('true_repr', ' True ', True),
+    ('false', False, False),
+    ('false_repr', ' False ', False),
+    ('none', None, None),
+    ('none_repr', ' None ', None),
+
+    # These verify that the implied conversion is case-sensitive:
+    ('not_true', ' true ', 'true'),
+    ('not_false', ' false ', 'false'),
+    ('not_none', ' none ', 'none'),
+)
 
 
 
@@ -131,6 +154,54 @@ class test_Env(ClassChecker):
         assert o.bin == path.dirname(path.abspath(sys.argv[0]))
         assert o.home == home.path
         assert o.dot_ipa == home.join('.ipa')
+
+    def test_setattr(self):
+        """
+        Test the `ipalib.config.Env.__setattr__` method.
+        """
+        o = self.cls()
+        for (name, raw, value) in good_vars:
+            # Test setting the value:
+            setattr(o, name, raw)
+            result = getattr(o, name)
+            assert type(result) is type(value)
+            assert result == value
+            assert result is o[name]
+
+            # Test that value cannot be overridden once set:
+            e = raises(AttributeError, setattr, o, name, raw)
+            assert str(e) == OVERRIDE_ERROR % ('Env', name, value, raw)
+
+        # Test that values cannot be set once locked:
+        o = self.cls()
+        o.__lock__()
+        for (name, raw, value) in good_vars:
+            e = raises(AttributeError, setattr, o, name, raw)
+            assert str(e) == LOCK_ERROR % ('Env', name, raw)
+
+    def test_setitem(self):
+        """
+        Test the `ipalib.config.Env.__setitem__` method.
+        """
+        o = self.cls()
+        for (key, raw, value) in good_vars:
+            # Test setting the value:
+            o[key] = raw
+            result = o[key]
+            assert type(result) is type(value)
+            assert result == value
+            assert result is getattr(o, key)
+
+            # Test that value cannot be overridden once set:
+            e = raises(AttributeError, o.__setitem__, key, raw)
+            assert str(e) == OVERRIDE_ERROR % ('Env', key, value, raw)
+
+        # Test that values cannot be set once locked:
+        o = self.cls()
+        o.__lock__()
+        for (key, raw, value) in good_vars:
+            e = raises(AttributeError, o.__setitem__, key, raw)
+            assert str(e) == LOCK_ERROR % ('Env', key, raw)
 
     def bootstrap(self, **overrides):
         (o, home) = self.new()
@@ -387,46 +458,7 @@ class test_Env(ClassChecker):
             e = raises(KeyError, getitem, o, name)
             assert str(e) == repr(name)
 
-    def test_setattr(self):
-        """
-        Test the `ipalib.config.Env.__setattr__` method.
 
-        Also tests the `ipalib.config.Env.__setitem__` method.
-        """
-        items = [
-            ('one', 1),
-            ('two', 2),
-            ('three', 3),
-            ('four', 4),
-        ]
-        for setvar in (setattr, setitem):
-            o = self.cls()
-            for (i, (name, value)) in enumerate(items):
-                setvar(o, name, value)
-                assert getattr(o, name) == i + 1
-                assert o[name] == i + 1
-                if callable(value):
-                    assert name not in dir(o)
-                else:
-                    assert name in dir(o)
-                e = raises(AttributeError, setvar, o, name, 42)
-                assert str(e) == 'cannot overwrite Env.%s with 42' % name
-            o = self.cls()
-            o.__lock__()
-            for (name, value) in items:
-                e = raises(AttributeError, setvar, o, name, value)
-                assert str(e) == \
-                    'locked: cannot set Env.%s to %r' % (name, value)
-            o = self.cls()
-            setvar(o, 'yes', ' True ')
-            assert o.yes is True
-            setvar(o, 'no', ' False ')
-            assert o.no is False
-            setvar(o, 'msg', u' Hello, world! ')
-            assert o.msg == 'Hello, world!'
-            assert type(o.msg) is str
-            setvar(o, 'num', ' 42 ')
-            assert o.num == 42
 
     def test_delattr(self):
         """

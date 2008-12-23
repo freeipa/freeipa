@@ -30,7 +30,8 @@ from types import NoneType
 import os
 from os import path
 import sys
-from constants import CONFIG_SECTION, TYPE_ERROR, OVERRIDE_ERROR
+from constants import CONFIG_SECTION
+from constants import TYPE_ERROR, OVERRIDE_ERROR, LOCK_ERROR
 
 
 
@@ -50,6 +51,42 @@ class Env(object):
         self.bin = path.dirname(self.script)
         self.home = path.abspath(os.environ['HOME'])
         self.dot_ipa = path.join(self.home, '.ipa')
+
+    def __setattr__(self, name, value):
+        """
+        Set the attribute named ``name`` to ``value``.
+
+        This just calls `Env.__setitem__()`.
+        """
+        self[name] = value
+
+    def __setitem__(self, key, value):
+        """
+        Set ``key`` to ``value``.
+        """
+        # FIXME: the key should be checked with check_name()
+        if self.__locked:
+            raise AttributeError(
+                LOCK_ERROR % (self.__class__.__name__, key, value)
+            )
+        if key in self.__d:
+            raise AttributeError(OVERRIDE_ERROR %
+                (self.__class__.__name__, key, self.__d[key], value)
+            )
+        if isinstance(value, basestring):
+            value = str(value.strip())
+            m = {
+                'True': True,
+                'False': False,
+                'None': None,
+            }
+            if value in m:
+                value = m[value]
+            elif value.isdigit():
+                value = int(value)
+        assert type(value) in (str, int, bool, NoneType)
+        object.__setattr__(self, key, value)
+        self.__d[key] = value
 
     def __doing(self, name):
         if name in self.__done:
@@ -175,11 +212,7 @@ class Env(object):
     def __islocked__(self):
         return self.__locked
 
-    def __setattr__(self, name, value):
-        """
-        Set the attribute named ``name`` to ``value``.
-        """
-        self[name] = value
+
 
     def __delattr__(self, name):
         """
@@ -195,33 +228,7 @@ class Env(object):
         """
         return self.__d[key]
 
-    def __setitem__(self, key, value):
-        """
-        Set ``key`` to ``value``.
-        """
-        # FIXME: the key should be checked with check_name()
-        if self.__locked:
-            raise AttributeError('locked: cannot set %s.%s to %r' %
-                (self.__class__.__name__, key, value)
-            )
-        if key in self.__d or hasattr(self, key):
-            raise AttributeError('cannot overwrite %s.%s with %r' %
-                (self.__class__.__name__, key, value)
-            )
-        if isinstance(value, basestring):
-            value = str(value.strip())
-            m = {
-                'True': True,
-                'False': False,
-                'None': None,
-            }
-            if value in m:
-                value = m[value]
-            elif value.isdigit():
-                value = int(value)
-        assert type(value) in (str, int, bool, type(NoneType))
-        object.__setattr__(self, key, value)
-        self.__d[key] = value
+
 
     def __contains__(self, key):
         """
