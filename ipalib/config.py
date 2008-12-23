@@ -39,14 +39,14 @@ class Env(object):
     Store and retrieve environment variables.
 
     First an foremost, the `Env` class provides a handy container for
-    environment variables.  These variables can be both set and retrieved as
-    either attributes or as dictionary items.
+    environment variables.  These variables can be both set *and* retrieved
+    either as attributes *or* as dictionary items.
 
     For example, we can set a variable as an attribute:
 
     >>> env = Env()
     >>> env.attr = 'I was set as an attribute.'
-    >>> env.attr  # Retrieve as an attribute
+    >>> env.attr
     'I was set as an attribute.'
     >>> env['attr']  # Also retrieve as a dictionary item
     'I was set as an attribute.'
@@ -54,7 +54,7 @@ class Env(object):
     Or we can set a variable as a dictionary item:
 
     >>> env['item'] = 'I was set as a dictionary item.'
-    >>> env['item']  # Retrieve as a dictionary item
+    >>> env['item']
     'I was set as a dictionary item.'
     >>> env.item  # Also retrieve as an attribute
     'I was set as a dictionary item.'
@@ -65,11 +65,12 @@ class Env(object):
     values of specific types to be set easily from configuration files or
     command-line options.
 
-    The ``True``, ``False``, and ``None`` constants can be specified with a
-    string that matches what ``repr()`` would return.  For example:
+    So in addition to their actual values, the ``True``, ``False``, and ``None``
+    constants can be specified with an ``str`` equal to what ``repr()`` would
+    return.  For example:
 
     >>> env.true = True
-    >>> env.also_true = 'True'
+    >>> env.also_true = 'True'  # Equal to repr(True)
     >>> env.true
     True
     >>> env.also_true
@@ -77,7 +78,7 @@ class Env(object):
 
     Note that the automatic type conversion is case sensitive.  For example:
 
-    >>> env.false = 'false'  # Doesn't match repr(False)
+    >>> env.false = 'false'  # Not equal to repr(False)!
     >>> env.false
     'false'
 
@@ -88,18 +89,24 @@ class Env(object):
     >>> env.lucky
     7
 
-    Also, leading and trailing white-space is automatically stripped from
-    ``str`` values.  For example:
+    Leading and trailing white-space is automatically stripped from ``str``
+    values.  For example:
 
     >>> env.message = '  Hello!  '  # Surrounded by double spaces
     >>> env.message
     'Hello!'
-    >>> env.number = '42 '  # Still converted to an int
+    >>> env.number = ' 42 '  # Still converted to an int
     >>> env.number
     42
-    >>> env.actually_false = ' False'  # Still matches repr(False)
+    >>> env.actually_false = ' False '  # Still equal to repr(False)
     >>> env.actually_false
     False
+
+    Also, empty ``str`` instances are converted to ``None``.  For example:
+
+    >>> env.empty = ''
+    >>> env.empty is None
+    True
 
     `Env` variables are all set-once (first-one-wins).  Once a variable has been
     set, trying to override it will raise an ``AttributeError``.  For example:
@@ -110,19 +117,56 @@ class Env(object):
       ...
     AttributeError: cannot override Env.date value 'First' with 'Second'
 
-    An `Env` instance can also be *locked*, after which no further variables can
-    be set.  Trying to set variables on a locked `Env` instance will also raise
+    An `Env` instance can be *locked*, after which no further variables can be
+    set.  Trying to set variables on a locked `Env` instance will also raise
     an ``AttributeError``.  For example:
 
     >>> env = Env()
-    >>> env.var1 = 'This will work.'
+    >>> env.okay = 'This will work.'
     >>> env.__lock__()
-    >>> env.var2 = 'This wont work!'
+    >>> env.nope = 'This wont work!'
     Traceback (most recent call last):
       ...
-    AttributeError: locked: cannot set Env.var2 to 'This wont work!'
+    AttributeError: locked: cannot set Env.nope to 'This wont work!'
 
-    Finish me!
+    `Env` instances also provide standard container emulation for membership
+    testing, counting, and iteration.  For example:
+
+    >>> env = Env()
+    >>> 'key1' in env  # Has key1 been set?
+    False
+    >>> env.key1 = 'value 1'
+    >>> 'key1' in env
+    True
+    >>> env.key2 = 'value 2'
+    >>> len(env)  # How many variables have been set?
+    2
+    >>> list(env)  # What variables have been set?
+    ['key1', 'key2']
+
+    Lastly, in addition to all the handy container functionality, the `Env`
+    class provides high-level methods for bootstraping a fresh `Env` instance
+    into one containing all the run-time and configuration information needed
+    by the built-in freeIPA plugins.
+
+    These are the `Env` bootstraping methods, in the order they must be called:
+
+        1. `Env._bootstrap()` - initialize the run-time variables and then
+           merge-in variables specified on the command-line.
+
+        2. `Env._finalize_core()` - merge-in variables from the configuration
+           files and then merge-in variables from the internal defaults, after
+           which at least all the standard variables will be set.  After this
+           method is called, the plugins will be loaded, during which 3rd-party
+           plugins can set additional variables they may need.
+
+        3. `Env._finalize()` - one last chance to merge-in variables and then
+           the instance is locked.  After this method is called, no more
+           environment variables can be set during the remaining life of the
+           process.
+
+    However, normally none of the above methods are called directly and only
+    `ipalib.plugable.API.bootstrap()` is called instead.
     """
 
     __locked = False
@@ -130,6 +174,22 @@ class Env(object):
     def __init__(self):
         object.__setattr__(self, '_Env__d', {})
         object.__setattr__(self, '_Env__done', set())
+
+    def __lock__(self):
+        """
+        Prevent further changes to environment.
+        """
+        if self.__locked is True:
+            raise StandardError(
+                '%s.__lock__() already called' % self.__class__.__name__
+            )
+        object.__setattr__(self, '_Env__locked', True)
+
+    def __islocked__(self):
+        """
+        Return ``True`` if locked.
+        """
+        return self.__locked
 
     def __setattr__(self, name, value):
         """
@@ -152,16 +212,14 @@ class Env(object):
             raise AttributeError(OVERRIDE_ERROR %
                 (self.__class__.__name__, key, self.__d[key], value)
             )
-        if hasattr(self, key):
-            raise AttributeError(OVERRIDE_ERROR %
-                (self.__class__.__name__, key, getattr(self, key), value)
-            )
+        assert not hasattr(self, key)
         if isinstance(value, basestring):
             value = str(value.strip())
             m = {
                 'True': True,
                 'False': False,
                 'None': None,
+                '': None,
             }
             if value in m:
                 value = m[value]
@@ -184,6 +242,25 @@ class Env(object):
         raise AttributeError(
             DEL_ERROR % (self.__class__.__name__, name)
         )
+
+    def __contains__(self, key):
+        """
+        Return True if instance contains ``key``; otherwise return False.
+        """
+        return key in self.__d
+
+    def __len__(self):
+        """
+        Return number of variables currently set.
+        """
+        return len(self.__d)
+
+    def __iter__(self):
+        """
+        Iterate through keys in ascending order.
+        """
+        for key in sorted(self.__d):
+            yield key
 
     def __doing(self, name):
         if name in self.__done:
@@ -304,41 +381,3 @@ class Env(object):
                 self[key] = value
                 i += 1
         return (i, len(items))
-
-    def __lock__(self):
-        """
-        Prevent further changes to environment.
-        """
-        if self.__locked is True:
-            raise StandardError(
-                '%s.__lock__() already called' % self.__class__.__name__
-            )
-        object.__setattr__(self, '_Env__locked', True)
-
-    def __islocked__(self):
-        return self.__locked
-
-
-
-
-
-
-
-    def __contains__(self, key):
-        """
-        Return True if instance contains ``key``; otherwise return False.
-        """
-        return key in self.__d
-
-    def __len__(self):
-        """
-        Return number of variables currently set.
-        """
-        return len(self.__d)
-
-    def __iter__(self):
-        """
-        Iterate through keys in ascending order.
-        """
-        for key in sorted(self.__d):
-            yield key

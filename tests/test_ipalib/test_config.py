@@ -32,7 +32,6 @@ from ipalib.constants import TYPE_ERROR, OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
 from ipalib import config, constants
 
 
-
 # Valid environment variables in (key, raw, value) tuples:
 #    key: the name of the environment variable
 #    raw: the value being set (possibly a string repr)
@@ -48,13 +47,13 @@ good_vars = (
     ('false_repr', ' False ', False),
     ('none', None, None),
     ('none_repr', ' None ', None),
+    ('empty', '', None),
 
     # These verify that the implied conversion is case-sensitive:
     ('not_true', ' true ', 'true'),
     ('not_false', ' false ', 'false'),
     ('not_none', ' none ', 'none'),
 )
-
 
 
 # Random base64-encoded data to simulate a misbehaving config file.
@@ -96,6 +95,7 @@ i1Jmt0+5dfuOLbANB2H6MjzNzc2zv5ji1g2+5/MYnbb+Yh+T0kubUY940UUbUWtRpJN8w1CfebkK
 WfUu+/mDOAGOjsRo0UkIo+pPl6Rckl7ehuR1INGAj9u0kW2nXvK45YlQp1odukaICSAjgSQWf//Z
 """
 
+
 # A config file that tries to override some standard vars:
 config_override = """
 [global]
@@ -108,6 +108,7 @@ key2 = var2
 key3 = var3
 """
 
+
 # A config file that tests the automatic type conversion
 config_good = """
 [global]
@@ -116,6 +117,7 @@ yes = True
 no = False
 number = 42
 """
+
 
 # A default config file to make sure it does not overwrite the explicit one
 config_default = """
@@ -133,23 +135,25 @@ class test_Env(ClassChecker):
 
     _cls = config.Env
 
-    def new(self):
-        """
-        Set os.environ['HOME'] to a tempdir.
-
-        Returns tuple with new Env instance and the TempHome instance.
-        """
-        home = TempHome()
-        return (self.cls(), home)
-
     def test_init(self):
         """
         Test the `ipalib.config.Env.__init__` method.
         """
-        (o, home) = self.new()
+        o = self.cls()
         assert list(o) == []
         assert len(o) == 0
         assert o.__islocked__() is False
+
+    def test_lock(self):
+        """
+        Test the `ipalib.config.Env.__lock__` method.
+        """
+        o = self.cls()
+        assert o._Env__locked is False
+        o.__lock__()
+        assert o._Env__locked is True
+        e = raises(StandardError, o.__lock__)
+        assert str(e) == 'Env.__lock__() already called'
 
     def test_setattr(self):
         """
@@ -227,7 +231,60 @@ class test_Env(ClassChecker):
             e = raises(AttributeError, delitem, o, key)
             assert str(e) == '__delitem__'
 
+    def test_contains(self):
+        """
+        Test the `ipalib.config.Env.__contains__` method.
+        """
+        o = self.cls()
+        items = [
+            ('one', 1),
+            ('two', 2),
+            ('three', 3),
+            ('four', 4),
+        ]
+        for (key, value) in items:
+            assert key not in o
+            o[key] = value
+            assert key in o
+
+    def test_len(self):
+        """
+        Test the `ipalib.config.Env.__len__` method.
+        """
+        o = self.cls()
+        assert len(o) == 0
+        for i in xrange(1, 11):
+            key = 'key%d' % i
+            value = 'value %d' % i
+            o[key] = value
+            assert o[key] is value
+            assert len(o) == i
+
+    def test_iter(self):
+        """
+        Test the `ipalib.config.Env.__iter__` method.
+        """
+        o = self.cls()
+        default_keys = tuple(o)
+        keys = ('one', 'two', 'three', 'four', 'five')
+        for key in keys:
+            o[key] = 'the value'
+        assert list(o) == sorted(keys + default_keys)
+
+    def new(self):
+        """
+        Set os.environ['HOME'] to a tempdir.
+
+        Returns tuple with new Env instance and the TempHome instance.  This
+        helper method is used in testing the bootstrap related methods below.
+        """
+        home = TempHome()
+        return (self.cls(), home)
+
     def bootstrap(self, **overrides):
+        """
+        Helper method used in testing bootstrap related methods below.
+        """
         (o, home) = self.new()
         assert o._isdone('_bootstrap') is False
         o._bootstrap(**overrides)
@@ -290,6 +347,9 @@ class test_Env(ClassChecker):
             assert o[key] == value
 
     def finalize_core(self, **defaults):
+        """
+        Helper method used in testing `Env._finalize_core`.
+        """
         (o, home) = self.new()
         assert o._isdone('_finalize_core') is False
         o._finalize_core(**defaults)
@@ -462,41 +522,3 @@ class test_Env(ClassChecker):
         assert o.yes is True
         assert o.no is False
         assert o.number == 42
-
-    def test_lock(self):
-        """
-        Test the `ipalib.config.Env.__lock__` method.
-        """
-        o = self.cls()
-        assert o._Env__locked is False
-        o.__lock__()
-        assert o._Env__locked is True
-        e = raises(StandardError, o.__lock__)
-        assert str(e) == 'Env.__lock__() already called'
-
-    def test_contains(self):
-        """
-        Test the `ipalib.config.Env.__contains__` method.
-        """
-        o = self.cls()
-        items = [
-            ('one', 1),
-            ('two', 2),
-            ('three', 3),
-            ('four', 4),
-        ]
-        for (key, value) in items:
-            assert key not in o
-            o[key] = value
-            assert key in o
-
-    def test_iter(self):
-        """
-        Test the `ipalib.config.Env.__iter__` method.
-        """
-        o = self.cls()
-        default_keys = tuple(o)
-        keys = ('one', 'two', 'three', 'four', 'five')
-        for key in keys:
-            o[key] = 'the value'
-        assert list(o) == sorted(keys + default_keys)
