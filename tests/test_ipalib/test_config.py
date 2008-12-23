@@ -147,13 +147,9 @@ class test_Env(ClassChecker):
         Test the `ipalib.config.Env.__init__` method.
         """
         (o, home) = self.new()
-        ipalib = path.dirname(path.abspath(config.__file__))
-        assert o.ipalib == ipalib
-        assert o.site_packages == path.dirname(ipalib)
-        assert o.script == path.abspath(sys.argv[0])
-        assert o.bin == path.dirname(path.abspath(sys.argv[0]))
-        assert o.home == home.path
-        assert o.dot_ipa == home.join('.ipa')
+        assert list(o) == []
+        assert len(o) == 0
+        assert o.__islocked__() is False
 
     def test_setattr(self):
         """
@@ -246,10 +242,14 @@ class test_Env(ClassChecker):
         """
         # Test defaults created by _bootstrap():
         (o, home) = self.new()
-        assert 'in_tree' not in o
-        assert 'context' not in o
-        assert 'conf' not in o
         o._bootstrap()
+        ipalib = path.dirname(path.abspath(config.__file__))
+        assert o.ipalib == ipalib
+        assert o.site_packages == path.dirname(ipalib)
+        assert o.script == path.abspath(sys.argv[0])
+        assert o.bin == path.dirname(path.abspath(sys.argv[0]))
+        assert o.home == home.path
+        assert o.dot_ipa == home.join('.ipa')
         assert o.in_tree is False
         assert o.context == 'default'
         assert o.conf == '/etc/ipa/default.conf'
@@ -422,6 +422,7 @@ class test_Env(ClassChecker):
         no_exist = tmp.join('no_exist.conf')
         assert not path.exists(no_exist)
         o = self.cls()
+        o._bootstrap()
         keys = tuple(o)
         orig = dict((k, o[k]) for k in o)
         assert o._merge_config(no_exist) is None

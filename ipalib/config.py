@@ -62,14 +62,17 @@ class Env(object):
     The variable values can be ``str`` or ``int`` instances, or the ``True``,
     ``False``, or ``None`` constants.  When the value provided is an ``str``
     instance, some limited automatic type conversion is performed, which allows
-    values of specific types to be set easily from configuration files and from
+    values of specific types to be set easily from configuration files or
     command-line options.
 
     The ``True``, ``False``, and ``None`` constants can be specified with a
     string that matches what ``repr()`` would return.  For example:
 
-    >>> env.true = 'True'
+    >>> env.true = True
+    >>> env.also_true = 'True'
     >>> env.true
+    True
+    >>> env.also_true
     True
 
     Note that the automatic type conversion is case sensitive.  For example:
@@ -98,14 +101,14 @@ class Env(object):
     >>> env.actually_false
     False
 
-    `Env` is set-once, first-one-wins.  Once a variable has been set, trying to
-    override it will raise an ``AttributeError``.  For example:
+    `Env` variables are all set-once (first-one-wins).  Once a variable has been
+    set, trying to override it will raise an ``AttributeError``.  For example:
 
-    >>> env.my_var = 'first'
-    >>> env.my_var = 'second'
+    >>> env.date = 'First'
+    >>> env.date = 'Second'
     Traceback (most recent call last):
       ...
-    AttributeError: cannot override Env.my_var value 'first' with 'second'
+    AttributeError: cannot override Env.date value 'First' with 'Second'
 
     An `Env` instance can also be *locked*, after which no further variables can
     be set.  Trying to set variables on a locked `Env` instance will also raise
@@ -127,12 +130,6 @@ class Env(object):
     def __init__(self):
         object.__setattr__(self, '_Env__d', {})
         object.__setattr__(self, '_Env__done', set())
-        self.ipalib = path.dirname(path.abspath(__file__))
-        self.site_packages = path.dirname(self.ipalib)
-        self.script = path.abspath(sys.argv[0])
-        self.bin = path.dirname(self.script)
-        self.home = path.abspath(os.environ['HOME'])
-        self.dot_ipa = path.join(self.home, '.ipa')
 
     def __setattr__(self, name, value):
         """
@@ -211,6 +208,15 @@ class Env(object):
         and the location of the configuration file.
         """
         self.__doing('_bootstrap')
+
+        # Set run-time variables:
+        self.ipalib = path.dirname(path.abspath(__file__))
+        self.site_packages = path.dirname(self.ipalib)
+        self.script = path.abspath(sys.argv[0])
+        self.bin = path.dirname(self.script)
+        self.home = path.abspath(os.environ['HOME'])
+        self.dot_ipa = path.join(self.home, '.ipa')
+
         for (key, value) in overrides.iteritems():
             self[key] = value
         if 'in_tree' not in self:

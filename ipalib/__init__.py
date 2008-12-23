@@ -685,40 +685,39 @@ is configured.
 Environment variables
 ---------------------
 
-Plugins access various environment variables and run-time information through
-``self.api.env`` (for convenience, ``self.env`` is equivalent).
+Plugins access configuration variables and run-time information through
+``self.api.env`` (or for convenience, ``self.env`` is equivalent).  This
+attribute is a refences to the `ipalib.config.Env` instance created in
+`plugable.API.__init__()`.
 
-When you create a fresh `plugable.API` instance, its ``env`` attribute is
-likewise a freshly created `config.Env` instance, which will already be
-populated with certain run-time information.  For example:
+After `API.bootstrap()` has been called, the `Env` instance will be populated
+with all the environment information used by the built-in plugins.
+This will be called before any plugins are registered, so plugin authors can
+assume these variables will all exist by the time the module containing their
+plugin (or plugins) is imported.  For example:
 
 >>> api = create_api()
->>> list(api.env)
-['bin', 'dot_ipa', 'home', 'ipalib', 'mode', 'script', 'site_packages']
-
-Here is a quick overview of the run-time information:
-
-=============  ================================  =======================
-Key            Source or example value           Description
-=============  ================================  =======================
-bin            /usr/bin                          Dir. containing script
-dot_ipa        ~/.ipa                            User config directory
-home           os.environ['HOME']                User home dir.
-ipalib         .../site-packages/ipalib          Dir. of ipalib package
-mode           'production' or 'unit_test'       The mode ipalib is in
-script         sys.argv[0]                       Path of script
-site_packages  /usr/lib/python2.5/site-packages  Dir. containing ipalib/
-=============  ================================  =======================
-
-After `plugable.API.bootstrap()` has been called, the env instance will be
-populated with all the environment information used by the built-in plugins.
-This will typically be called before any plugins are registered.  For example:
-
 >>> len(api.env)
-7
+1
 >>> api.bootstrap(in_server=True) # We want to execute, not forward
 >>> len(api.env)
 35
+
+`Env._bootstrap()`, which is called by `API.bootstrap()`, will create several
+run-time variables that connot be overriden in configuration files or through
+command-line options.  Here is an overview of this run-time information:
+
+=============  =============================  =======================
+Key            Example value                  Description
+=============  =============================  =======================
+bin            '/usr/bin'                     Dir. containing script
+dot_ipa        '/home/jderose/.ipa'           User config directory
+home           os.environ['HOME']             User home dir.
+ipalib         '.../site-packages/ipalib'     Dir. of ipalib package
+mode           'unit_test'                    The mode ipalib is in
+script         sys.argv[0]                    Path of script
+site_packages  '.../python2.5/site-packages'  Dir. containing ipalib/
+=============  =============================  =======================
 
 If your plugin requires new environment variables *and* will be included in
 the freeIPA built-in plugins, you should add the defaults for your variables

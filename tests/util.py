@@ -84,10 +84,6 @@ class TempHome(TempDir):
         self.__home = os.environ['HOME']
         os.environ['HOME'] = self.path
 
-    def rmtree(self):
-        os.environ['HOME'] = self.__home
-        super(TempHome, self).rmtree()
-
 
 class ExceptionNotRaised(Exception):
     """
