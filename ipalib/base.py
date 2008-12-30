@@ -43,42 +43,43 @@ class ReadOnly(object):
     For example, before a `ReadOnly` instance is locked, you can set and delete
     its attributes as normal:
 
-        >>> class Person(ReadOnly):
-        ...     pass
-        ...
-        >>> p = Person()
-        >>> p.__islocked__()  # Initially unlocked
-        False
-        >>> p.name = 'John Doe'
-        >>> p.phone = '123-456-7890'
-        >>> del p.phone
+    >>> class Person(ReadOnly):
+    ...     pass
+    ...
+    >>> p = Person()
+    >>> p.__islocked__()  # Initially unlocked
+    False
+    >>> p.name = 'John Doe'
+    >>> p.phone = '123-456-7890'
+    >>> del p.phone
 
     But after an instance is locked, you cannot set its attributes:
 
-        >>> p.__lock__()  # This will lock the instance
-        >>> p.__islocked__()
-        True
-        >>> p.department = 'Engineering'
-        Traceback (most recent call last):
-          ...
-        AttributeError: locked: cannot set Person.department to 'Engineering'
+    >>> p.__lock__()  # This will lock the instance
+    >>> p.__islocked__()
+    True
+    >>> p.department = 'Engineering'
+    Traceback (most recent call last):
+        ...
+    AttributeError: locked: cannot set Person.department to 'Engineering'
 
     Nor can you deleted its attributes:
 
-        >>> del p.name
-        Traceback (most recent call last):
-          ...
-        AttributeError: locked: cannot delete Person.name
+    >>> del p.name
+    Traceback (most recent call last):
+        ...
+    AttributeError: locked: cannot delete Person.name
 
-    However, as noted above, there are still obscure ways in which attributes
-    can be set or deleted on a locked `ReadOnly` instance.  For example:
+    However, as noted at the start, there are still obscure ways in which
+    attributes can be set or deleted on a locked `ReadOnly` instance.  For
+    example:
 
-        >>> object.__setattr__(p, 'department', 'Engineering')
-        >>> p.department
-        'Engineering'
-        >>> object.__delattr__(p, 'name')
-        >>> hasattr(p, 'name')
-        False
+    >>> object.__setattr__(p, 'department', 'Engineering')
+    >>> p.department
+    'Engineering'
+    >>> object.__delattr__(p, 'name')
+    >>> hasattr(p, 'name')
+    False
 
     But again, the point is that a programmer would never employ the above
     techniques as a mere accident.
@@ -139,25 +140,25 @@ def check_name(name):
     This function will raise a ``ValueError`` if ``name`` does not match the
     `constants.NAME_REGEX` regular expression.  For example:
 
-        >>> check_name('MyName')
-        Traceback (most recent call last):
-          ...
-        ValueError: name must match '^[a-z][_a-z0-9]*[a-z0-9]$'; got 'MyName'
+    >>> check_name('MyName')
+    Traceback (most recent call last):
+        ...
+    ValueError: name must match '^[a-z][_a-z0-9]*[a-z0-9]$'; got 'MyName'
 
     Also, this function will raise a ``TypeError`` if ``name`` is not an
     ``str`` instance.  For example:
 
-        >>> check_name(u'name')
-        Traceback (most recent call last):
-          ...
-        TypeError: name: need a <type 'str'>; got u'name' (a <type 'unicode'>)
+    >>> check_name(u'my_name')
+    Traceback (most recent call last):
+        ...
+    TypeError: name: need a <type 'str'>; got u'my_name' (a <type 'unicode'>)
 
     So that `check_name()` can be easily used within an assignment, ``name``
     is returned unchanged if it passes the check.  For example:
 
-        >>> n = check_name('name')
-        >>> n
-        'name'
+    >>> n = check_name('my_name')
+    >>> n
+    'my_name'
 
     :param name: Identifier to test.
     """
