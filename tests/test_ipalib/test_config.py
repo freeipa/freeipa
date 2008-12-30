@@ -510,7 +510,7 @@ class test_Env(ClassChecker):
         # Test an empty config file
         empty = tmp.touch('empty.conf')
         assert path.isfile(empty)
-        assert o._merge_from_file(empty) is None
+        assert o._merge_from_file(empty) == (0, 0)
         assert tuple(o) == keys
 
         # Test a mal-formed config file:

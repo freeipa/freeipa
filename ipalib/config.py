@@ -267,23 +267,27 @@ class Env(object):
 
     def _merge(self, **kw):
         """
-        Merge variables in ``kw`` into environment.
+        Merge variables from ``kw`` into the environment.
 
-        Any variables in ``kw`` that have already been set will be skipped
-        (which means this method will not try to override them).
+        Any variables in ``kw`` that have already been set will be ignored
+        (meaning this method will *not* try to override them, which would raise
+        an exception).
 
-        This method returns a (set, total) tuple contained the number of
-        variables actually set and the number of variables requested to be set.
+        This method returns a ``(num_set, num_total)`` tuple containing first
+        the number of variables that were actually set, and second the total
+        number of variables that were provided.
 
         For example:
 
         >>> env = Env()
-        >>> env._merge(first=1, second=2)
+        >>> env._merge(one=1, two=2)
         (2, 2)
-        >>> env._merge(first=1, third=3)
+        >>> env._merge(one=1, three=3)
         (1, 2)
-        >>> env._merge(first=1, second=2, third=3)
+        >>> env._merge(one=1, two=2, three=3)
         (0, 3)
+
+        Also see `Env._merge_from_file()`.
         """
         i = 0
         for (key, value) in kw.iteritems():
@@ -292,22 +296,35 @@ class Env(object):
                 i += 1
         return (i, len(kw))
 
-    def _merge_from_file(self, conf_file):
+    def _merge_from_file(self, config_file):
         """
-        Merge values from ``conf_file`` into this `Env`.
+        Merge variables from ``config_file`` into the environment.
+
+        Any variables in ``config_file`` that have already been set will be
+        ignored (meaning this method will *not* try to override them, which
+        would raise an exception).
+
+        If ``config_file`` does not exist or is not a regular file, or if there
+        is an error parsing ``config_file``, ``None`` is returned.
+
+        Otherwise this method returns a ``(num_set, num_total)`` tuple
+        containing first the number of variables that were actually set, and
+        second the total number of variables found in ``config_file``.
+
+        Also see `Env._merge()`.
         """
-        if not path.isfile(conf_file):
+        if not path.isfile(config_file):
             return
         parser = RawConfigParser()
         try:
-            parser.read(conf_file)
+            parser.read(config_file)
         except ParsingError:
             return
         if not parser.has_section(CONFIG_SECTION):
             parser.add_section(CONFIG_SECTION)
         items = parser.items(CONFIG_SECTION)
         if len(items) == 0:
-            return
+            return (0, 0)
         i = 0
         for (key, value) in items:
             if key not in self:
@@ -333,10 +350,24 @@ class Env(object):
         """
         Initialize basic environment.
 
-        In addition to certain run-time information, this method will
-        initialize only enough environment information to determine whether
-        IPA is running in-tree, what the context is, and the location of the
-        configuration file.
+        This method will perform the following steps:
+
+            1. Initialize certain run-time variables.  These run-time variables
+               are strictly determined by the external environment the process
+               is running in; they cannot be specified on the command-line nor
+               in the configuration files.
+
+            2. Merge-in the variables in ``overrides`` by calling
+               `Env._merge()`.  The intended use of ``overrides`` is to merge-in
+               variables specified on the command-line.
+
+            3. Intelligently fill-in the ``in_tree``, ``context``, ``conf``,
+               and ``conf_default`` variables if they haven`t been set already.
+
+        Also see `Env._finalize_core()`, the next method in the bootstrap
+        sequence.
+
+        :param overrides: Variables specified via command-line options.
         """
         self.__doing('_bootstrap')
 
@@ -347,9 +378,7 @@ class Env(object):
         self.bin = path.dirname(self.script)
         self.home = path.abspath(os.environ['HOME'])
         self.dot_ipa = path.join(self.home, '.ipa')
-
-        for (key, value) in overrides.iteritems():
-            self[key] = value
+        self._merge(**overrides)
         if 'in_tree' not in self:
             if self.bin == self.site_packages and \
                     path.isfile(path.join(self.bin, 'setup.py')):
@@ -373,15 +402,33 @@ class Env(object):
         """
         Complete initialization of standard IPA environment.
 
-        After this method is called, the all environment variables
-        used by all the built-in plugins will be available.
+        This method will perform the following steps:
 
-        This method should be called before loading any plugins.  It will
-        automatically call `Env._bootstrap()` if it has not yet been called.
+            1. Call `Env._bootstrap()` if it hasn't already been called.
+
+            2. Merge-in variables from the configuration file ``self.conf``
+               (if it exists) by calling `Env._merge_from_file()`.
+
+            3. Merge-in variables from the defaults configuration file
+               ``self.conf_default`` (if it exists) by calling
+               `Env._merge_from_file()`.
+
+            4. Intelligently fill-in the ``in_server`` and ``log`` variables
+               if they haven't already been set.
+
+            5. Merge in the internal defaults by calling `Env._merge()`.  In
+               normal circumstances, these internal defaults will simply be
+               those specified in `constants.DEFAULT_CONFIG`.
+
+        After this method is called, the all environment variables
+        used by all the built-in plugins will be available.  As such, this
+        method should be called *before* any plugins are loaded.
 
         After this method has finished, the `Env` instance is still writable
         so that 3rd-party plugins can set variables they may require as the
         plugins are registered.
+
+        Also see `Env._finalize()`, the final method in the bootstrap sequence.
         """
         self.__doing('_finalize_core')
         self.__do_if_not_done('_bootstrap')
@@ -402,21 +449,23 @@ class Env(object):
         """
         Finalize and lock environment.
 
-        This method should be called after all plugins have been loaded and
-        after `plugable.API.finalize()` has been called.  This method will
-        automatically call `Env._finalize_core()` if it hasn't been called
-        already, but in normal operation this would result in an exception
-        being raised because the internal default values will not have been
-        merged-in.
+        This method will perform the following steps:
 
-        After this method finishes, the `Env` instance will be locked and no
-        more environment variables can be set.  Aside from unit-tests and
-        example code, normally only one `Env` instance is created, which means
-        no more variables can be set during the remaining life of the process.
+            1. Call `Env._finalize_core()` if it hasn't already been called.
+
+            2. Merge-in the variables in ``lastchance`` by calling
+               `Env._merge()`.
+
+            3. Lock this `Env` instance, after which no more environment
+               variables can be set on this instance.  Aside from unit-tests
+               and example code, normally only one `Env` instance is created,
+               which means that after this step, no more variables can be set
+               during the remaining life of the process.
+
+        This method should be called after all plugins have been loaded and
+        after `plugable.API.finalize()` has been called.
         """
         self.__doing('_finalize')
         self.__do_if_not_done('_finalize_core')
-        for (key, value) in lastchance.iteritems():
-            if key not in self:
-                self[key] = value
+        self._merge(**lastchance)
         self.__lock__()
