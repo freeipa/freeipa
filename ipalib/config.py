@@ -334,8 +334,8 @@ class Env(object):
         self.__doing('_finalize_core')
         self.__do_if_not_done('_bootstrap')
         if self.__d.get('mode', None) != 'dummy':
-            self._merge_config(self.conf)
-            self._merge_config(self.conf_default)
+            self._merge_from_file(self.conf)
+            self._merge_from_file(self.conf_default)
         if 'in_server' not in self:
             self.in_server = (self.context == 'server')
         if 'log' not in self:
@@ -371,7 +371,7 @@ class Env(object):
                 self[key] = value
         self.__lock__()
 
-    def _merge_config(self, conf_file):
+    def _merge_from_file(self, conf_file):
         """
         Merge values from ``conf_file`` into this `Env`.
         """

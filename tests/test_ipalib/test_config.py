@@ -471,9 +471,9 @@ class test_Env(ClassChecker):
         assert key in o
         assert o[key] is value
 
-    def test_merge_config(self):
+    def test_merge_from_file(self):
         """
-        Test the `ipalib.config.Env._merge_config` method.
+        Test the `ipalib.config.Env._merge_from_file` method.
         """
         tmp = TempDir()
         assert callable(tmp.join)
@@ -485,27 +485,27 @@ class test_Env(ClassChecker):
         o._bootstrap()
         keys = tuple(o)
         orig = dict((k, o[k]) for k in o)
-        assert o._merge_config(no_exist) is None
+        assert o._merge_from_file(no_exist) is None
         assert tuple(o) == keys
 
         # Test an empty config file
         empty = tmp.touch('empty.conf')
         assert path.isfile(empty)
-        assert o._merge_config(empty) is None
+        assert o._merge_from_file(empty) is None
         assert tuple(o) == keys
 
         # Test a mal-formed config file:
         bad = tmp.join('bad.conf')
         open(bad, 'w').write(config_bad)
         assert path.isfile(bad)
-        assert o._merge_config(bad) is None
+        assert o._merge_from_file(bad) is None
         assert tuple(o) == keys
 
         # Test a valid config file that tries to override
         override = tmp.join('override.conf')
         open(override, 'w').write(config_override)
         assert path.isfile(override)
-        assert o._merge_config(override) == (4, 6)
+        assert o._merge_from_file(override) == (4, 6)
         for (k, v) in orig.items():
             assert o[k] is v
         assert list(o) == sorted(keys + ('key0', 'key1', 'key2', 'key3'))
@@ -517,7 +517,7 @@ class test_Env(ClassChecker):
         good = tmp.join('good.conf')
         open(good, 'w').write(config_good)
         assert path.isfile(good)
-        assert o._merge_config(good) == (3, 3)
+        assert o._merge_from_file(good) == (3, 3)
         assert list(o) == sorted(keys + ('yes', 'no', 'number'))
         assert o.yes is True
         assert o.no is False
