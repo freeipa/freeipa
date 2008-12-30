@@ -392,7 +392,7 @@ class Env(object):
                variables specified on the command-line.
 
             3. Intelligently fill-in the *in_tree*, *context*, *conf*, and
-               *conf_default* variables if they haven`t been set already.
+               *conf_default* variables if they haven't been set already.
 
         Also see `Env._finalize_core()`, the next method in the bootstrap
         sequence.
