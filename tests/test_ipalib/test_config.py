@@ -21,7 +21,6 @@
 Test the `ipalib.config` module.
 """
 
-import types
 import os
 from os import path
 import sys
@@ -29,6 +28,7 @@ from tests.util import raises, setitem, delitem, ClassChecker
 from tests.util import getitem, setitem, delitem
 from tests.util import TempDir, TempHome
 from ipalib.constants import TYPE_ERROR, OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
+from ipalib.constants import NAME_REGEX, NAME_ERROR
 from ipalib import config, constants
 
 
@@ -53,6 +53,13 @@ good_vars = (
     ('not_true', ' true ', 'true'),
     ('not_false', ' false ', 'false'),
     ('not_none', ' none ', 'none'),
+)
+
+
+bad_names = (
+    ('CamelCase', 'value'),
+    ('_leading_underscore', 'value'),
+    ('trailing_underscore_', 'value'),
 )
 
 
@@ -179,6 +186,12 @@ class test_Env(ClassChecker):
             e = raises(AttributeError, setattr, o, name, raw)
             assert str(e) == SET_ERROR % ('Env', name, raw)
 
+        # Test that name is tested with check_name():
+        o = self.cls()
+        for (name, value) in bad_names:
+            e = raises(ValueError, setattr, o, name, value)
+            assert str(e) == NAME_ERROR % (NAME_REGEX, name)
+
     def test_setitem(self):
         """
         Test the `ipalib.config.Env.__setitem__` method.
@@ -202,6 +215,12 @@ class test_Env(ClassChecker):
         for (key, raw, value) in good_vars:
             e = raises(AttributeError, o.__setitem__, key, raw)
             assert str(e) == SET_ERROR % ('Env', key, raw)
+
+        # Test that name is tested with check_name():
+        o = self.cls()
+        for (key, value) in bad_names:
+            e = raises(ValueError, o.__setitem__, key, value)
+            assert str(e) == NAME_ERROR % (NAME_REGEX, key)
 
     def test_getitem(self):
         """

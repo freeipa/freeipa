@@ -30,6 +30,8 @@ from types import NoneType
 import os
 from os import path
 import sys
+
+from base import check_name
 from constants import CONFIG_SECTION
 from constants import TYPE_ERROR, OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
 
@@ -204,11 +206,11 @@ class Env(object):
         """
         Set ``key`` to ``value``.
         """
-        # FIXME: the key should be checked with check_name()
         if self.__locked:
             raise AttributeError(
                 SET_ERROR % (self.__class__.__name__, key, value)
             )
+        check_name(key)
         if key in self.__d:
             raise AttributeError(OVERRIDE_ERROR %
                 (self.__class__.__name__, key, self.__d[key], value)
@@ -262,6 +264,56 @@ class Env(object):
         """
         for key in sorted(self.__d):
             yield key
+
+    def _merge(self, **kw):
+        """
+        Merge variables in ``kw`` into environment.
+
+        Any variables in ``kw`` that have already been set will be skipped
+        (which means this method will not try to override them).
+
+        This method returns a (set, total) tuple contained the number of
+        variables actually set and the number of variables requested to be set.
+
+        For example:
+
+        >>> env = Env()
+        >>> env._merge(first=1, second=2)
+        (2, 2)
+        >>> env._merge(first=1, third=3)
+        (1, 2)
+        >>> env._merge(first=1, second=2, third=3)
+        (0, 3)
+        """
+        i = 0
+        for (key, value) in kw.iteritems():
+            if key not in self:
+                self[key] = value
+                i += 1
+        return (i, len(kw))
+
+    def _merge_from_file(self, conf_file):
+        """
+        Merge values from ``conf_file`` into this `Env`.
+        """
+        if not path.isfile(conf_file):
+            return
+        parser = RawConfigParser()
+        try:
+            parser.read(conf_file)
+        except ParsingError:
+            return
+        if not parser.has_section(CONFIG_SECTION):
+            parser.add_section(CONFIG_SECTION)
+        items = parser.items(CONFIG_SECTION)
+        if len(items) == 0:
+            return
+        i = 0
+        for (key, value) in items:
+            if key not in self:
+                self[key] = value
+                i += 1
+        return (i, len(items))
 
     def __doing(self, name):
         if name in self.__done:
@@ -344,9 +396,7 @@ class Env(object):
                 self.log = path.join(self.dot_ipa, 'log', name)
             else:
                 self.log = path.join('/', 'var', 'log', 'ipa', name)
-        for (key, value) in defaults.iteritems():
-            if key not in self:
-                self[key] = value
+        self._merge(**defaults)
 
     def _finalize(self, **lastchance):
         """
@@ -370,26 +420,3 @@ class Env(object):
             if key not in self:
                 self[key] = value
         self.__lock__()
-
-    def _merge_from_file(self, conf_file):
-        """
-        Merge values from ``conf_file`` into this `Env`.
-        """
-        if not path.isfile(conf_file):
-            return
-        parser = RawConfigParser()
-        try:
-            parser.read(conf_file)
-        except ParsingError:
-            return
-        if not parser.has_section(CONFIG_SECTION):
-            parser.add_section(CONFIG_SECTION)
-        items = parser.items(CONFIG_SECTION)
-        if len(items) == 0:
-            return
-        i = 0
-        for (key, value) in items:
-            if key not in self:
-                self[key] = value
-                i += 1
-        return (i, len(items))

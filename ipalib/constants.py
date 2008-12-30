@@ -25,8 +25,14 @@ All constants centralised in one file.
 # The parameter system treats all these values as None:
 NULLS = (None, '', u'', tuple(), [])
 
+# regular expression NameSpace member names must match:
+NAME_REGEX = r'^[a-z][_a-z0-9]*[a-z0-9]$'
+
+# Format for ValueError raised when name does not match above regex:
+NAME_ERROR = 'name must match %r; got %r'
+
 # Standard format for TypeError message:
-TYPE_ERROR = '%s: need a %r; got %r (which is a %r)'
+TYPE_ERROR = '%s: need a %r; got %r (a %r)'
 
 # Stardard format for TypeError message when a callable is expected:
 CALLABLE_ERROR = '%s: need a callable; got %r (which is a %r)'
@@ -37,7 +43,7 @@ OVERRIDE_ERROR = 'cannot override %s.%s value %r with %r'
 # Standard format for AttributeError message when a read-only attribute is
 # already locked:
 SET_ERROR = 'locked: cannot set %s.%s to %r'
-DEL_ERROR = 'locked: cannot del %s.%s'
+DEL_ERROR = 'locked: cannot delete %s.%s'
 
 # Used for a tab (or indentation level) when formatting for CLI:
 CLI_TAB = '  '  # Two spaces
