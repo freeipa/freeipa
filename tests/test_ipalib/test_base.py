@@ -22,7 +22,7 @@ Test the `ipalib.base` module.
 """
 
 from tests.util import ClassChecker, raises
-from ipalib.constants import NAME_REGEX
+from ipalib.constants import NAME_REGEX, NAME_ERROR
 from ipalib.constants import TYPE_ERROR, SET_ERROR, DEL_ERROR
 from ipalib import base
 
@@ -107,10 +107,9 @@ def test_check_name():
         assert name is f(name)
         e = raises(TypeError, f, unicode(name))
         assert str(e) == TYPE_ERROR % ('name', str, unicode(name), unicode)
-    error = 'name must match %r; got %r'
     for name in nope:
         e = raises(ValueError, f, name)
-        assert str(e) == error % (NAME_REGEX, name)
+        assert str(e) == NAME_ERROR % (NAME_REGEX, name)
     for name in okay:
         e = raises(ValueError, f, name.upper())
-        assert str(e) == error % (NAME_REGEX, name.upper())
+        assert str(e) == NAME_ERROR % (NAME_REGEX, name.upper())

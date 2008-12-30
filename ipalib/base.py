@@ -36,9 +36,10 @@ class ReadOnly(object):
 
     The point of this class is not to make it impossible to set or to delete
     attributes after an instance is locked, but to make it impossible to do so
-    *accidentally*.  Rather than simply telling our programmers something like,
-    "Don't set any attributes on this ``FooBar`` instance because doing so wont
-    be thread-safe", this class gives us a way to enforce it.
+    *accidentally*.  Rather than constantly reminding our programmers of things
+    like, for example, "Don't set any attributes on this ``FooBar`` instance
+    because doing so wont be thread-safe", this class offers a real way to
+    enforce read-only attribute usage.
 
     For example, before a `ReadOnly` instance is locked, you can set and delete
     its attributes as normal:

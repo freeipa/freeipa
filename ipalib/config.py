@@ -18,11 +18,14 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Basic configuration management.
+Process-wide static configuration and environment.
 
-This module handles the reading and representation of basic local settings.
-It will also take care of settings that can be discovered by different
-methods, such as DNS.
+The standard run-time instance of the `Env` class is initialized early in the
+`ipalib` process and is then locked into a read-only state, after which no
+further changes can be made to the environment throughout the remaining life
+of the process.
+
+For the per-request thread-local information, see `ipalib.request`.
 """
 
 from ConfigParser import RawConfigParser, ParsingError
@@ -288,6 +291,8 @@ class Env(object):
         (0, 3)
 
         Also see `Env._merge_from_file()`.
+
+        :param kw: Variables provides as keyword arguments.
         """
         i = 0
         for (key, value) in kw.iteritems():
@@ -311,8 +316,23 @@ class Env(object):
         containing first the number of variables that were actually set, and
         second the total number of variables found in ``config_file``.
 
+        This method will raise a ``ValueError`` if ``config_file`` is not an
+        absolute path.  For example:
+
+        >>> env = Env()
+        >>> env._merge_from_file('my/config.conf')
+        Traceback (most recent call last):
+          ...
+        ValueError: config_file must be an absolute path; got 'my/config.conf'
+
         Also see `Env._merge()`.
+
+        :param config_file: Absolute path of the configuration file to load.
         """
+        if path.abspath(config_file) != config_file:
+            raise ValueError(
+                'config_file must be an absolute path; got %r' % config_file
+            )
         if not path.isfile(config_file):
             return
         parser = RawConfigParser()
@@ -361,8 +381,8 @@ class Env(object):
                `Env._merge()`.  The intended use of ``overrides`` is to merge-in
                variables specified on the command-line.
 
-            3. Intelligently fill-in the ``in_tree``, ``context``, ``conf``,
-               and ``conf_default`` variables if they haven`t been set already.
+            3. Intelligently fill-in the *in_tree*, *context*, *conf*, and
+               *conf_default* variables if they haven`t been set already.
 
         Also see `Env._finalize_core()`, the next method in the bootstrap
         sequence.
@@ -413,22 +433,24 @@ class Env(object):
                ``self.conf_default`` (if it exists) by calling
                `Env._merge_from_file()`.
 
-            4. Intelligently fill-in the ``in_server`` and ``log`` variables
+            4. Intelligently fill-in the *in_server* and *log* variables
                if they haven't already been set.
 
-            5. Merge in the internal defaults by calling `Env._merge()`.  In
-               normal circumstances, these internal defaults will simply be
-               those specified in `constants.DEFAULT_CONFIG`.
+            5. Merge-in the variables in ``defaults`` by calling `Env._merge()`.
+               In normal circumstances ``defaults`` will simply be those
+               specified in `constants.DEFAULT_CONFIG`.
 
-        After this method is called, the all environment variables
-        used by all the built-in plugins will be available.  As such, this
-        method should be called *before* any plugins are loaded.
+        After this method is called, all the environment variables used by all
+        the built-in plugins will be available.  As such, this method should be
+        called *before* any plugins are loaded.
 
         After this method has finished, the `Env` instance is still writable
         so that 3rd-party plugins can set variables they may require as the
         plugins are registered.
 
         Also see `Env._finalize()`, the final method in the bootstrap sequence.
+
+        :param defaults: Internal defaults for all built-in variables.
         """
         self.__doing('_finalize_core')
         self.__do_if_not_done('_bootstrap')
@@ -464,6 +486,8 @@ class Env(object):
 
         This method should be called after all plugins have been loaded and
         after `plugable.API.finalize()` has been called.
+
+        :param lastchance: Any final variables to merge-in before locking.
         """
         self.__doing('_finalize')
         self.__do_if_not_done('_finalize_core')
