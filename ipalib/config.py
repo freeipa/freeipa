@@ -1,5 +1,6 @@
 # Authors:
 #   Martin Nagy <mnagy@redhat.com>
+#   Jason Gerard DeRose <jderose@redhat.com>
 #
 # Copyright (C) 2008  Red Hat
 # see file 'COPYING' for use and warranty information
