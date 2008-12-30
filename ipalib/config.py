@@ -65,10 +65,10 @@ class Env(object):
     >>> env.item  # Also retrieve as an attribute
     'I was set as a dictionary item.'
 
-    The variable values can be ``str`` or ``int`` instances, or the ``True``,
-    ``False``, or ``None`` constants.  When the value provided is an ``str``
-    instance, some limited automatic type conversion is performed, which allows
-    values of specific types to be set easily from configuration files or
+    The variable values can be ``str``, ``int``, or ``float`` instances, or the
+    ``True``, ``False``, or ``None`` constants.  When the value provided is an
+    ``str`` instance, some limited automatic type conversion is performed, which
+    allows values of specific types to be set easily from configuration files or
     command-line options.
 
     So in addition to their actual values, the ``True``, ``False``, and ``None``
@@ -89,11 +89,15 @@ class Env(object):
     'false'
 
     If an ``str`` value looks like an integer, it's automatically converted to
-    the ``int`` type.  For example:
+    the ``int`` type.  Likewise, if an ``str`` value looks like a floating-point
+    number, it's automatically converted to the ``float`` type.  For example:
 
     >>> env.lucky = '7'
     >>> env.lucky
     7
+    >>> env.three_halves = '1.5'
+    >>> env.three_halves
+    1.5
 
     Leading and trailing white-space is automatically stripped from ``str``
     values.  For example:
@@ -232,7 +236,12 @@ class Env(object):
                 value = m[value]
             elif value.isdigit():
                 value = int(value)
-        assert type(value) in (str, int, bool, NoneType)
+            else:
+                try:
+                    value = float(value)
+                except (TypeError, ValueError):
+                    pass
+        assert type(value) in (str, int, float, bool, NoneType)
         object.__setattr__(self, key, value)
         self.__d[key] = value
 

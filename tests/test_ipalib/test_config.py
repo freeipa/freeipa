@@ -1,5 +1,6 @@
 # Authors:
 #   Martin Nagy <mnagy@redhat.com>
+#   Jason Gerard DeRose <jderose@redhat.com>
 #
 # Copyright (C) 2008  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -41,6 +42,8 @@ good_vars = (
     ('trailing_whitespace', ' value  ', 'value'),
     ('an_int', 42, 42),
     ('int_repr', ' 42 ', 42),
+    ('a_float', 3.14, 3.14),
+    ('float_repr', ' 3.14 ', 3.14),
     ('true', True, True),
     ('true_repr', ' True ', True),
     ('false', False, False),
@@ -120,9 +123,12 @@ key3 = var3
 config_good = """
 [global]
 
+string = Hello world!
+null = None
 yes = True
 no = False
 number = 42
+floating = 3.14
 """
 
 
@@ -372,11 +378,15 @@ class test_Env(ClassChecker):
         good = tmp.join('good.conf')
         open(good, 'w').write(config_good)
         assert path.isfile(good)
-        assert o._merge_from_file(good) == (3, 3)
-        assert list(o) == sorted(keys + ('yes', 'no', 'number'))
+        assert o._merge_from_file(good) == (6, 6)
+        added = ('string', 'null', 'yes', 'no', 'number', 'floating')
+        assert list(o) == sorted(keys + added)
+        assert o.string == 'Hello world!'
+        assert o.null is None
         assert o.yes is True
         assert o.no is False
         assert o.number == 42
+        assert o.floating == 3.14
 
     def new(self):
         """
