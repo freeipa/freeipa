@@ -290,6 +290,94 @@ class test_Env(ClassChecker):
             o[key] = 'the value'
         assert list(o) == sorted(keys + default_keys)
 
+    def test_merge(self):
+        """
+        Test the `ipalib.config.Env._merge` method.
+        """
+        group1 = (
+            ('key1', 'value 1'),
+            ('key2', 'value 2'),
+            ('key3', 'value 3'),
+            ('key4', 'value 4'),
+        )
+        group2 = (
+            ('key0', 'Value 0'),
+            ('key2', 'Value 2'),
+            ('key4', 'Value 4'),
+            ('key5', 'Value 5'),
+        )
+        o = self.cls()
+        assert o._merge(**dict(group1)) == (4, 4)
+        assert len(o) == 4
+        assert list(o) == list(key for (key, value) in group1)
+        for (key, value) in group1:
+            assert getattr(o, key) is value
+            assert o[key] is value
+        assert o._merge(**dict(group2)) == (2, 4)
+        assert len(o) == 6
+        expected = dict(group2)
+        expected.update(dict(group1))
+        assert list(o) == sorted(expected)
+        assert expected['key2'] == 'value 2'  # And not 'Value 2'
+        for (key, value) in expected.iteritems():
+            assert getattr(o, key) is value
+            assert o[key] is value
+        assert o._merge(**expected) == (0, 6)
+        assert len(o) == 6
+        assert list(o) == sorted(expected)
+
+    def test_merge_from_file(self):
+        """
+        Test the `ipalib.config.Env._merge_from_file` method.
+        """
+        tmp = TempDir()
+        assert callable(tmp.join)
+
+        # Test a config file that doesn't exist
+        no_exist = tmp.join('no_exist.conf')
+        assert not path.exists(no_exist)
+        o = self.cls()
+        o._bootstrap()
+        keys = tuple(o)
+        orig = dict((k, o[k]) for k in o)
+        assert o._merge_from_file(no_exist) is None
+        assert tuple(o) == keys
+
+        # Test an empty config file
+        empty = tmp.touch('empty.conf')
+        assert path.isfile(empty)
+        assert o._merge_from_file(empty) == (0, 0)
+        assert tuple(o) == keys
+
+        # Test a mal-formed config file:
+        bad = tmp.join('bad.conf')
+        open(bad, 'w').write(config_bad)
+        assert path.isfile(bad)
+        assert o._merge_from_file(bad) is None
+        assert tuple(o) == keys
+
+        # Test a valid config file that tries to override
+        override = tmp.join('override.conf')
+        open(override, 'w').write(config_override)
+        assert path.isfile(override)
+        assert o._merge_from_file(override) == (4, 6)
+        for (k, v) in orig.items():
+            assert o[k] is v
+        assert list(o) == sorted(keys + ('key0', 'key1', 'key2', 'key3'))
+        for i in xrange(4):
+            assert o['key%d' % i] == ('var%d' % i)
+        keys = tuple(o)
+
+        # Test a valid config file with type conversion
+        good = tmp.join('good.conf')
+        open(good, 'w').write(config_good)
+        assert path.isfile(good)
+        assert o._merge_from_file(good) == (3, 3)
+        assert list(o) == sorted(keys + ('yes', 'no', 'number'))
+        assert o.yes is True
+        assert o.no is False
+        assert o.number == 42
+
     def new(self):
         """
         Set os.environ['HOME'] to a tempdir.
@@ -489,55 +577,3 @@ class test_Env(ClassChecker):
         o._finalize(**lastchance)
         assert key in o
         assert o[key] is value
-
-    def test_merge_from_file(self):
-        """
-        Test the `ipalib.config.Env._merge_from_file` method.
-        """
-        tmp = TempDir()
-        assert callable(tmp.join)
-
-        # Test a config file that doesn't exist
-        no_exist = tmp.join('no_exist.conf')
-        assert not path.exists(no_exist)
-        o = self.cls()
-        o._bootstrap()
-        keys = tuple(o)
-        orig = dict((k, o[k]) for k in o)
-        assert o._merge_from_file(no_exist) is None
-        assert tuple(o) == keys
-
-        # Test an empty config file
-        empty = tmp.touch('empty.conf')
-        assert path.isfile(empty)
-        assert o._merge_from_file(empty) == (0, 0)
-        assert tuple(o) == keys
-
-        # Test a mal-formed config file:
-        bad = tmp.join('bad.conf')
-        open(bad, 'w').write(config_bad)
-        assert path.isfile(bad)
-        assert o._merge_from_file(bad) is None
-        assert tuple(o) == keys
-
-        # Test a valid config file that tries to override
-        override = tmp.join('override.conf')
-        open(override, 'w').write(config_override)
-        assert path.isfile(override)
-        assert o._merge_from_file(override) == (4, 6)
-        for (k, v) in orig.items():
-            assert o[k] is v
-        assert list(o) == sorted(keys + ('key0', 'key1', 'key2', 'key3'))
-        for i in xrange(4):
-            assert o['key%d' % i] == ('var%d' % i)
-        keys = tuple(o)
-
-        # Test a valid config file with type conversion
-        good = tmp.join('good.conf')
-        open(good, 'w').write(config_good)
-        assert path.isfile(good)
-        assert o._merge_from_file(good) == (3, 3)
-        assert list(o) == sorted(keys + ('yes', 'no', 'number'))
-        assert o.yes is True
-        assert o.no is False
-        assert o.number == 42
