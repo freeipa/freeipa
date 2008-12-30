@@ -47,8 +47,6 @@ class ReadOnly(object):
     ...     pass
     ...
     >>> p = Person()
-    >>> p.__islocked__()  # Initially unlocked
-    False
     >>> p.name = 'John Doe'
     >>> p.phone = '123-456-7890'
     >>> del p.phone
@@ -56,18 +54,16 @@ class ReadOnly(object):
     But after an instance is locked, you cannot set its attributes:
 
     >>> p.__lock__()  # This will lock the instance
-    >>> p.__islocked__()
-    True
     >>> p.department = 'Engineering'
     Traceback (most recent call last):
-        ...
+      ...
     AttributeError: locked: cannot set Person.department to 'Engineering'
 
     Nor can you deleted its attributes:
 
     >>> del p.name
     Traceback (most recent call last):
-        ...
+      ...
     AttributeError: locked: cannot delete Person.name
 
     However, as noted at the start, there are still obscure ways in which
@@ -82,7 +78,7 @@ class ReadOnly(object):
     False
 
     But again, the point is that a programmer would never employ the above
-    techniques as a mere accident.
+    techniques accidentally.
     """
 
     __locked = False
@@ -142,7 +138,7 @@ def check_name(name):
 
     >>> check_name('MyName')
     Traceback (most recent call last):
-        ...
+      ...
     ValueError: name must match '^[a-z][_a-z0-9]*[a-z0-9]$'; got 'MyName'
 
     Also, this function will raise a ``TypeError`` if ``name`` is not an
@@ -150,7 +146,7 @@ def check_name(name):
 
     >>> check_name(u'my_name')
     Traceback (most recent call last):
-        ...
+      ...
     TypeError: name: need a <type 'str'>; got u'my_name' (a <type 'unicode'>)
 
     So that `check_name()` can be easily used within an assignment, ``name``
