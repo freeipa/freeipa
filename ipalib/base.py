@@ -23,7 +23,7 @@ Low-level functions and abstract base classes.
 
 import re
 from constants import NAME_REGEX, NAME_ERROR
-from constants import TYPE_ERROR, SET_ERROR, DEL_ERROR
+from constants import TYPE_ERROR, SET_ERROR, DEL_ERROR, OVERRIDE_ERROR
 
 
 class ReadOnly(object):
@@ -189,6 +189,10 @@ def check_name(name):
     """
     Verify that ``name`` is suitable for a `NameSpace` member name.
 
+    In short, ``name`` must be a valid lower-case Python identifier that
+    neither starts nor ends with an underscore.  Otherwise an exception is
+    raised.
+
     This function will raise a ``ValueError`` if ``name`` does not match the
     `constants.NAME_REGEX` regular expression.  For example:
 
@@ -223,3 +227,237 @@ def check_name(name):
             NAME_ERROR % (NAME_REGEX, name)
         )
     return name
+
+
+class NameSpace(ReadOnly):
+    """
+    A read-only name-space with handy container behaviours.
+
+    A `NameSpace` instance is an ordered, immutable mapping object whose values
+    can also be accessed as attributes.  A `NameSpace` instance is constructed
+    from an iterable providing its *members*, which are simply arbitrary objects
+    with a ``name`` attribute whose value:
+
+        1. Is unique among the members
+
+        2. Passes the `check_name()` function
+
+    Beyond that, no restrictions are placed on the members: they can be
+    classes or instances, and of any type.
+
+    The members can be accessed as attributes on the `NameSpace` instance or
+    through a dictionary interface.  For example, say we create a `NameSpace`
+    instance from a list containing a single member, like this:
+
+    >>> class my_member(object):
+    ...     name = 'my_name'
+    ...
+    >>> namespace = NameSpace([my_member])
+    >>> namespace
+    NameSpace(<1 member>, sort=True)
+    >>> my_member is namespace.my_name  # As an attribute
+    True
+    >>> my_member is namespace['my_name']  # As dictionary item
+    True
+
+    For a more detailed example, say we create a `NameSpace` instance from a
+    generator like this:
+
+    >>> class Member(object):
+    ...     def __init__(self, i):
+    ...         self.i = i
+    ...         self.name = 'member%d' % i
+    ...     def __repr__(self):
+    ...         return 'Member(%d)' % self.i
+    ...
+    >>> ns = NameSpace(Member(i) for i in xrange(3))
+    >>> ns
+    NameSpace(<3 members>, sort=True)
+
+    As above, the members can be accessed as attributes and as dictionary items:
+
+    >>> ns.member0 is ns['member0']
+    True
+    >>> ns.member1 is ns['member1']
+    True
+    >>> ns.member2 is ns['member2']
+    True
+
+    Members can also be accessed by index and by slice.  For example:
+
+    >>> ns[0]
+    Member(0)
+    >>> ns[-1]
+    Member(2)
+    >>> ns[1:]
+    (Member(1), Member(2))
+
+    (Note that slicing a `NameSpace` returns a ``tuple``.)
+
+    `NameSpace` instances provide standard container emulation for membership
+    testing, counting, and iteration.  For example:
+
+    >>> 'member3' in ns  # Is there a member named 'member3'?
+    False
+    >>> 'member2' in ns  # But there is a member named 'member2'
+    True
+    >>> len(ns)  # The number of members
+    3
+    >>> list(ns)  # Iterate through the member names
+    ['member0', 'member1', 'member2']
+
+    Although not a standard container feature, the `NameSpace.__call__()` method
+    provides a convenient (and efficient) way to iterate through the members,
+    like an ordered version of the ``dict.itervalues()`` method.  For example:
+
+    >>> list(ns[name] for name in ns)  # One way to do it
+    [Member(0), Member(1), Member(2)]
+    >>> list(ns())  # A more efficient, less verbose way to do it
+    [Member(0), Member(1), Member(2)]
+
+    As another convenience, the `NameSpace.__todict__()` method will return copy
+    of the ``dict`` mapping the member names to the members.  For example:
+
+    >>> ns.__todict__()
+    {'member1': Member(1), 'member0': Member(0), 'member2': Member(2)}
+
+
+    `NameSpace.__init__()` locks the instance, so `NameSpace` instances are
+    read-only from the get-go.  For example:
+
+    >>> ns.member3 = Member(3)  # Lets add that missing 'member3'
+    Traceback (most recent call last):
+      ...
+    AttributeError: locked: cannot set NameSpace.member3 to Member(3)
+
+    (For information on the locking protocol, see the `ReadOnly` class, of which
+    `NameSpace` is a subclass.)
+
+    By default the members will be sorted alphabetically by the member name.
+    For example:
+
+    >>> sorted_ns = NameSpace([Member(7), Member(3), Member(5)])
+    >>> sorted_ns
+    NameSpace(<3 members>, sort=True)
+    >>> list(sorted_ns)
+    ['member3', 'member5', 'member7']
+    >>> sorted_ns[0]
+    Member(3)
+
+    But if the instance is created with the ``sort=False`` keyword argument, the
+    original order of the members is preserved.  For example:
+
+    >>> unsorted_ns = NameSpace([Member(7), Member(3), Member(5)], sort=False)
+    >>> unsorted_ns
+    NameSpace(<3 members>, sort=False)
+    >>> list(unsorted_ns)
+    ['member7', 'member3', 'member5']
+    >>> unsorted_ns[0]
+    Member(7)
+
+    The `NameSpace` class is used in many places throughout freeIPA.  For a few
+    examples, see the `plugable.API` and the `frontend.Command` classes.
+    """
+
+    def __init__(self, members, sort=True):
+        """
+        :param members: An iterable providing the members.
+        :param sort: Whether to sort the members by member name.
+        """
+        if type(sort) is not bool:
+            raise TypeError(
+                TYPE_ERROR % ('sort', bool, sort, type(sort))
+            )
+        self.__sort = sort
+        if sort:
+            self.__members = tuple(
+                sorted(members, key=lambda m: m.name)
+            )
+        else:
+            self.__members = tuple(members)
+        self.__names = tuple(m.name for m in self.__members)
+        self.__map = dict()
+        for member in self.__members:
+            name = check_name(member.name)
+            if name in self.__map:
+                raise AttributeError(OVERRIDE_ERROR %
+                    (self.__class__.__name__, name, self.__map[name], member)
+                )
+            assert not hasattr(self, name), 'Ouch! Has attribute %r' % name
+            self.__map[name] = member
+            setattr(self, name, member)
+        lock(self)
+
+    def __len__(self):
+        """
+        Return the number of members.
+        """
+        return len(self.__members)
+
+    def __iter__(self):
+        """
+        Iterate through the member names.
+
+        If this instance was created with ``sort=False``, the names will be in
+        the same order as the members were passed to the constructor; otherwise
+        the names will be in alphabetical order (which is the default).
+
+        This method is like an ordered version of ``dict.iterkeys()``.
+        """
+        for name in self.__names:
+            yield name
+
+    def __call__(self):
+        """
+        Iterate through the members.
+
+        If this instance was created with ``sort=False``, the members will be
+        in the same order as they were passed to the constructor; otherwise the
+        members will be in alphabetical order by name (which is the default).
+
+        This method is like an ordered version of ``dict.itervalues()``.
+        """
+        for member in self.__members:
+            yield member
+
+    def __contains__(self, name):
+        """
+        Return ``True`` if namespace has a member named ``name``.
+        """
+        return name in self.__map
+
+    def __getitem__(self, key):
+        """
+        Return a member by name or index, or return a slice of members.
+
+        :param key: The name or index of a member, or a slice object.
+        """
+        if type(key) is str:
+            return self.__map[key]
+        if type(key) in (int, slice):
+            return self.__members[key]
+        raise TypeError(
+            TYPE_ERROR % ('key', (str, int, slice), key, type(key))
+        )
+
+    def __repr__(self):
+        """
+        Return a pseudo-valid expression that could create this instance.
+        """
+        cnt = len(self)
+        if cnt == 1:
+            m = 'member'
+        else:
+            m = 'members'
+        return '%s(<%d %s>, sort=%r)' % (
+            self.__class__.__name__,
+            cnt,
+            m,
+            self.__sort,
+        )
+
+    def __todict__(self):
+        """
+        Return a copy of the private dict mapping member name to member.
+        """
+        return dict(self.__map)

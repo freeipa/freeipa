@@ -23,7 +23,7 @@ Test the `ipalib.base` module.
 
 from tests.util import ClassChecker, raises
 from ipalib.constants import NAME_REGEX, NAME_ERROR
-from ipalib.constants import TYPE_ERROR, SET_ERROR, DEL_ERROR
+from ipalib.constants import TYPE_ERROR, SET_ERROR, DEL_ERROR, OVERRIDE_ERROR
 from ipalib import base
 
 
@@ -186,3 +186,167 @@ def test_check_name():
     for name in okay:
         e = raises(ValueError, f, name.upper())
         assert str(e) == NAME_ERROR % (NAME_REGEX, name.upper())
+
+
+def membername(i):
+    return 'member%03d' % i
+
+
+class DummyMember(object):
+    def __init__(self, i):
+        self.i = i
+        self.name = membername(i)
+
+
+def gen_members(*indexes):
+    return tuple(DummyMember(i) for i in indexes)
+
+
+class test_NameSpace(ClassChecker):
+    """
+    Test the `ipalib.base.NameSpace` class.
+    """
+    _cls = base.NameSpace
+
+    def new(self, count, sort=True):
+        members = tuple(DummyMember(i) for i in xrange(count, 0, -1))
+        assert len(members) == count
+        o = self.cls(members, sort=sort)
+        return (o, members)
+
+    def test_init(self):
+        """
+        Test the `ipalib.base.NameSpace.__init__` method.
+        """
+        o = self.cls([])
+        assert len(o) == 0
+        assert list(o) == []
+        assert list(o()) == []
+
+        # Test members as attribute and item:
+        for cnt in (3, 42):
+            for sort in (True, False):
+                (o, members) = self.new(cnt, sort=sort)
+                assert len(members) == cnt
+                for m in members:
+                    assert getattr(o, m.name) is m
+                    assert o[m.name] is m
+
+        # Test that TypeError is raised if sort is not a bool:
+        e = raises(TypeError, self.cls, [], sort=None)
+        assert str(e) == TYPE_ERROR % ('sort', bool, None, type(None))
+
+        # Test that AttributeError is raised with duplicate member name:
+        members = gen_members(0, 1, 2, 1, 3)
+        e = raises(AttributeError, self.cls, members)
+        assert str(e) == OVERRIDE_ERROR % (
+            'NameSpace', membername(1), members[1], members[3]
+        )
+
+    def test_len(self):
+        """
+        Test the `ipalib.base.NameSpace.__len__` method.
+        """
+        for count in (5, 18, 127):
+            (o, members) = self.new(count)
+            assert len(o) == count
+            (o, members) = self.new(count, sort=False)
+            assert len(o) == count
+
+    def test_iter(self):
+        """
+        Test the `ipalib.base.NameSpace.__iter__` method.
+        """
+        (o, members) = self.new(25)
+        assert list(o) == sorted(m.name for m in members)
+        (o, members) = self.new(25, sort=False)
+        assert list(o) == list(m.name for m in members)
+
+    def test_call(self):
+        """
+        Test the `ipalib.base.NameSpace.__call__` method.
+        """
+        (o, members) = self.new(25)
+        assert list(o()) == sorted(members, key=lambda m: m.name)
+        (o, members) = self.new(25, sort=False)
+        assert tuple(o()) == members
+
+    def test_contains(self):
+        """
+        Test the `ipalib.base.NameSpace.__contains__` method.
+        """
+        yes = (99, 3, 777)
+        no = (9, 333, 77)
+        for sort in (True, False):
+            members = gen_members(*yes)
+            o = self.cls(members, sort=sort)
+            for i in yes:
+                assert membername(i) in o
+                assert membername(i).upper() not in o
+            for i in no:
+                assert membername(i) not in o
+
+    def test_getitem(self):
+        """
+        Test the `ipalib.base.NameSpace.__getitem__` method.
+        """
+        cnt = 17
+        for sort in (True, False):
+            (o, members) = self.new(cnt, sort=sort)
+            assert len(members) == cnt
+            if sort is True:
+                members = tuple(sorted(members, key=lambda m: m.name))
+
+            # Test str keys:
+            for m in members:
+                assert o[m.name] is m
+            e = raises(KeyError, o.__getitem__, 'nope')
+
+            # Test int indexes:
+            for i in xrange(cnt):
+                assert o[i] is members[i]
+            e = raises(IndexError, o.__getitem__, cnt)
+
+            # Test negative int indexes:
+            for i in xrange(1, cnt + 1):
+                assert o[-i] is members[-i]
+            e = raises(IndexError, o.__getitem__, -(cnt + 1))
+
+            # Test slicing:
+            assert o[3:] == members[3:]
+            assert o[:10] == members[:10]
+            assert o[3:10] == members[3:10]
+            assert o[-9:] == members[-9:]
+            assert o[:-4] == members[:-4]
+            assert o[-9:-4] == members[-9:-4]
+
+            # Test that TypeError is raised with wrong type
+            e = raises(TypeError, o.__getitem__, 3.0)
+            assert str(e) == TYPE_ERROR % ('key', (str, int, slice), 3.0, float)
+
+    def test_repr(self):
+        """
+        Test the `ipalib.base.NameSpace.__repr__` method.
+        """
+        for cnt in (0, 1, 2):
+            for sort in (True, False):
+                (o, members) = self.new(cnt, sort=sort)
+                if cnt == 1:
+                    assert repr(o) == \
+                        'NameSpace(<%d member>, sort=%r)' % (cnt, sort)
+                else:
+                    assert repr(o) == \
+                        'NameSpace(<%d members>, sort=%r)' % (cnt, sort)
+
+    def test_todict(self):
+        """
+        Test the `ipalib.base.NameSpace.__todict__` method.
+        """
+        for cnt in (3, 101):
+            for sort in (True, False):
+                (o, members) = self.new(cnt, sort=sort)
+                d = o.__todict__()
+                assert d == dict((m.name, m) for m in members)
+
+                # Test that a copy is returned:
+                assert o.__todict__() is not d
