@@ -130,6 +130,61 @@ class ReadOnly(object):
         return object.__delattr__(self, name)
 
 
+def lock(instance):
+    """
+    Lock an instance of the `ReadOnly` class or similar.
+
+    This function can be used to lock instances of any class that implements
+    the same locking API as the `ReadOnly` class.  For example, this function
+    can lock instances of the `config.Env` class.
+
+    So that this function can be easily used within an assignment, ``instance``
+    is returned after it is locked.  For example:
+
+    >>> readonly = ReadOnly()
+    >>> readonly is lock(readonly)
+    True
+    >>> readonly.attr = 'This wont work'
+    Traceback (most recent call last):
+      ...
+    AttributeError: locked: cannot set ReadOnly.attr to 'This wont work'
+
+    Also see the `islocked()` function.
+
+    :param instance: The instance of `ReadOnly` (or similar) to lock.
+    """
+    assert instance.__islocked__() is False, 'already locked: %r' % instance
+    instance.__lock__()
+    assert instance.__islocked__() is True, 'failed to lock: %r' % instance
+    return instance
+
+
+def islocked(instance):
+    """
+    Return ``True`` if ``instance`` is locked.
+
+    This function can be used on an instance of the `ReadOnly` class or an
+    instance of any other class implemented the same locking API.
+
+    For example:
+
+    >>> readonly = ReadOnly()
+    >>> islocked(readonly)
+    False
+    >>> readonly.__lock__()
+    >>> islocked(readonly)
+    True
+
+    Also see the `lock()` function.
+
+    :param instance: The instance of `ReadOnly` (or similar) to interrogate.
+    """
+    assert (
+        hasattr(instance, '__lock__') and callable(instance.__lock__)
+    ), 'no __lock__() method: %r' % instance
+    return instance.__islocked__()
+
+
 def check_name(name):
     """
     Verify that ``name`` is suitable for a `NameSpace` member name.

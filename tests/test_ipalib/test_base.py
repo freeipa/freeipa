@@ -84,6 +84,79 @@ class test_ReadOnly(ClassChecker):
         assert o.attr2 == 'How are you?'
 
 
+def test_lock():
+    """
+    Test the `ipalib.base.lock` function
+    """
+    f = base.lock
+
+    # Test with ReadOnly instance:
+    o = base.ReadOnly()
+    assert o.__islocked__() is False
+    assert f(o) is o
+    assert o.__islocked__() is True
+    e = raises(AssertionError, f, o)
+    assert str(e) == 'already locked: %r' % o
+
+    # Test with another class implemented locking protocol:
+    class Lockable(object):
+        __locked = False
+        def __lock__(self):
+            self.__locked = True
+        def __islocked__(self):
+            return self.__locked
+    o = Lockable()
+    assert o.__islocked__() is False
+    assert f(o) is o
+    assert o.__islocked__() is True
+    e = raises(AssertionError, f, o)
+    assert str(e) == 'already locked: %r' % o
+
+    # Test with a class incorrectly implementing the locking protocol:
+    class Broken(object):
+        def __lock__(self):
+            pass
+        def __islocked__(self):
+            return False
+    o = Broken()
+    e = raises(AssertionError, f, o)
+    assert str(e) == 'failed to lock: %r' % o
+
+
+def test_islocked():
+    """
+    Test the `ipalib.base.islocked` function.
+    """
+    f = base.islocked
+
+    # Test with ReadOnly instance:
+    o = base.ReadOnly()
+    assert f(o) is False
+    o.__lock__()
+    assert f(o) is True
+
+    # Test with another class implemented locking protocol:
+    class Lockable(object):
+        __locked = False
+        def __lock__(self):
+            self.__locked = True
+        def __islocked__(self):
+            return self.__locked
+    o = Lockable()
+    assert f(o) is False
+    o.__lock__()
+    assert f(o) is True
+
+    # Test with a class incorrectly implementing the locking protocol:
+    class Broken(object):
+        __lock__ = False
+        def __islocked__(self):
+            return False
+    o = Broken()
+    e = raises(AssertionError, f, o)
+    assert str(e) == 'no __lock__() method: %r' % o
+
+
 def test_check_name():
     """
     Test the `ipalib.base.check_name` function.
