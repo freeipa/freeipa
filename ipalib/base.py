@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Low-level functions and abstract base classes.
+Core functions and classes.
 """
 
 import re
@@ -255,6 +255,10 @@ class NameSpace(ReadOnly):
     >>> namespace = NameSpace([my_member])
     >>> namespace
     NameSpace(<1 member>, sort=True)
+
+    We can then access ``my_member`` both as an attribute and as a dictionary
+    item:
+
     >>> my_member is namespace.my_name  # As an attribute
     True
     >>> my_member is namespace['my_name']  # As dictionary item
@@ -315,19 +319,19 @@ class NameSpace(ReadOnly):
     >>> list(ns())  # A more efficient, less verbose way to do it
     [Member(0), Member(1), Member(2)]
 
-    As another convenience, the `NameSpace.__todict__()` method will return copy
-    of the ``dict`` mapping the member names to the members.  For example:
+    As another convenience, the `NameSpace.__todict__()` method will return a
+    copy of the ``dict`` mapping the member names to the members.  For example:
 
     >>> ns.__todict__()
     {'member1': Member(1), 'member0': Member(0), 'member2': Member(2)}
 
-
-    `NameSpace.__init__()` locks the instance, so `NameSpace` instances are
-    read-only from the get-go.  For example:
+    As `NameSpace.__init__()` locks the instance, `NameSpace` instances are
+    read-only from the get-go.  An ``AttributeError`` is raised if you try to
+    set *any* attribute on a `NameSpace` instance.  For example:
 
     >>> ns.member3 = Member(3)  # Lets add that missing 'member3'
     Traceback (most recent call last):
-      ...
+        ...
     AttributeError: locked: cannot set NameSpace.member3 to Member(3)
 
     (For information on the locking protocol, see the `ReadOnly` class, of which
