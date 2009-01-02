@@ -311,16 +311,18 @@ class NameSpace(ReadOnly):
     ['member0', 'member1', 'member2']
 
     Although not a standard container feature, the `NameSpace.__call__()` method
-    provides a convenient (and efficient) way to iterate through the members,
-    like an ordered version of the ``dict.itervalues()`` method.  For example:
+    provides a convenient (and efficient) way to iterate through the *members*
+    (as opposed to the member names).  Think of it like an ordered version of
+    the ``dict.itervalues()`` method.  For example:
 
     >>> list(ns[name] for name in ns)  # One way to do it
     [Member(0), Member(1), Member(2)]
-    >>> list(ns())  # A more efficient, less verbose way to do it
+    >>> list(ns())  # A more efficient, simpler way to do it
     [Member(0), Member(1), Member(2)]
 
-    As another convenience, the `NameSpace.__todict__()` method will return a
-    copy of the ``dict`` mapping the member names to the members.  For example:
+    Another convenience method is `NameSpace.__todict__()`, which will return
+    a copy of the ``dict`` mapping the member names to the members.
+    For example:
 
     >>> ns.__todict__()
     {'member1': Member(1), 'member0': Member(0), 'member2': Member(2)}
