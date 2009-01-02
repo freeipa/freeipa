@@ -22,9 +22,9 @@ Parameter system for command plugins.
 """
 
 from types import NoneType
+from util import make_repr
 from plugable import ReadOnly, lock, check_name
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
-from util import make_repr
 
 
 class DefaultFrom(ReadOnly):
@@ -38,7 +38,7 @@ class DefaultFrom(ReadOnly):
     >>> login(first='John', last='Doe')
     'JDoe'
 
-    If you do not explicitly provide keys when you create a DefaultFrom
+    If you do not explicitly provide keys when you create a `DefaultFrom`
     instance, the keys are implicitly derived from your callback by
     inspecting ``callback.func_code.co_varnames``. The keys are available
     through the ``DefaultFrom.keys`` instance attribute, like this:
@@ -49,9 +49,9 @@ class DefaultFrom(ReadOnly):
     The callback is available through the ``DefaultFrom.callback`` instance
     attribute, like this:
 
-    >>> login.callback # doctest:+ELLIPSIS
+    >>> login.callback  # doctest:+ELLIPSIS
     <function <lambda> at 0x...>
-    >>> login.callback.func_code.co_varnames # The keys
+    >>> login.callback.func_code.co_varnames  # The keys
     ('first', 'last')
 
     The keys can be explicitly provided as optional positional arguments after
@@ -61,13 +61,13 @@ class DefaultFrom(ReadOnly):
     >>> login2 = DefaultFrom(lambda a, b: a[0] + b, 'first', 'last')
     >>> login2.keys
     ('first', 'last')
-    >>> login2.callback.func_code.co_varnames # Not the keys
+    >>> login2.callback.func_code.co_varnames  # Not the keys
     ('a', 'b')
     >>> login2(first='John', last='Doe')
     'JDoe'
 
-    If any keys are missing when calling your DefaultFrom instance, your
-    callback is not called and None is returned. For example:
+    If any keys are missing when calling your `DefaultFrom` instance, your
+    callback is not called and ``None`` is returned.  For example:
 
     >>> login(first='John', lastname='Doe') is None
     True
@@ -82,7 +82,7 @@ class DefaultFrom(ReadOnly):
     As above, because `DefaultFrom.__call__` takes only pure keyword
     arguments, they can be supplied in any order.
 
-    Of course, the callback need not be a lambda expression. This third
+    Of course, the callback need not be a ``lambda`` expression. This third
     example is equivalent to both the ``login`` and ``login2`` instances
     above:
 
@@ -358,7 +358,7 @@ class Param(ReadOnly):
 
         (Note that `Str` is a subclass of `Param`.)
 
-        All values in `constants.NULLS` will be converted to None.  For
+        All values in `constants.NULLS` will be converted to ``None``.  For
         example:
 
         >>> scalar.convert(u'') is None  # An empty string
@@ -375,9 +375,8 @@ class Param(ReadOnly):
         >>> multi.convert([None, u'']) is None  # Filters to an empty list
         True
 
-        Lastly, multivalue parameters will always return a tuple (well,
-        assuming they don't return None as in the last example above).
-        For example:
+        Lastly, multivalue parameters will always return a ``tuple`` (assuming
+        they don't return ``None`` as in the last example above).  For example:
 
         >>> multi.convert(42)  # Called with a scalar value
         (u'42',)
