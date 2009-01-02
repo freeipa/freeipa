@@ -34,7 +34,6 @@ import os
 from os import path
 import subprocess
 import errors
-from errors import check_type, check_isinstance
 from config import Env
 import util
 from base import ReadOnly, NameSpace, lock, islocked, check_name
