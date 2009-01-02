@@ -65,6 +65,20 @@ class Env(object):
     >>> env.item  # Also retrieve as an attribute
     'I was set as a dictionary item.'
 
+    The variable names must be valid lower-case Python identifiers that neither
+    start nor end with an underscore.  If your variable name doesn't meet these
+    criteria, a ``ValueError`` will be raised when you try to set the variable
+    (compliments of the `base.check_name()` function).  For example:
+
+    >>> env.BadName = 'Wont work as an attribute'
+    Traceback (most recent call last):
+      ...
+    ValueError: name must match '^[a-z][_a-z0-9]*[a-z0-9]$'; got 'BadName'
+    >>> env['BadName'] = 'Also wont work as a dictionary item'
+    Traceback (most recent call last):
+      ...
+    ValueError: name must match '^[a-z][_a-z0-9]*[a-z0-9]$'; got 'BadName'
+
     The variable values can be ``str``, ``int``, or ``float`` instances, or the
     ``True``, ``False``, or ``None`` constants.  When the value provided is an
     ``str`` instance, some limited automatic type conversion is performed, which
