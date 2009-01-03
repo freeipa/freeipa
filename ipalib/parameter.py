@@ -122,7 +122,10 @@ class DefaultFrom(ReadOnly):
 
     def __call__(self, **kw):
         """
-        If all keys are present, calls the callback; otherwise returns None.
+        Call the callback if all keys are present.
+
+        If all keys are present, the callback is called and its return value is
+        returned.  If any keys are missing, ``None`` is returned.
 
         :param kw: The keyword arguments.
         """
