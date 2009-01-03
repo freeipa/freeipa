@@ -46,6 +46,37 @@ class PrivateError(StandardError):
     Base class for exceptions that are *never* returned in an RPC response.
     """
 
+    format = ''
+
+    def __init__(self, **kw):
+        self.message = self.format % kw
+        for (key, value) in kw.iteritems():
+            assert not hasattr(self, key), 'conflicting kwarg %s.%s = %r' % (
+                self.__class__.__name__, key, value,
+            )
+            setattr(self, key, value)
+        StandardError.__init__(self, self.message)
+
+
+class SubprocessError(PrivateError):
+    """
+    Raised when ``subprocess.call()`` returns a non-zero exit status.
+
+    This custom exception is needed because Python 2.4 doesn't have the
+    ``subprocess.CalledProcessError`` exception (which was added in Python 2.5).
+
+    For example:
+
+    >>> e = SubprocessError(returncode=1, argv=('/bin/false',))
+    >>> e.returncode
+    1
+    >>> e.argv
+    ('/bin/false',)
+    >>> str(e)
+    "return code 1 from ('/bin/false',)"
+    """
+    format = 'return code %(returncode)d from %(argv)r'
+
 
 class PublicError(StandardError):
     """
