@@ -416,6 +416,13 @@ class Param(ReadOnly):
             '%s.%s()' % (self.__class__.__name__, '_convert_scalar')
         )
 
+    def validate(self, value):
+        """
+        Check validity of ``value``.
+
+        :param value: A proposed value for this parameter.
+        """
+
 
 class Bool(Param):
     """

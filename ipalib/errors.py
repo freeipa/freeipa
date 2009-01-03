@@ -241,21 +241,6 @@ class RegistrationError(IPAError):
     """
 
 
-class NameSpaceError(RegistrationError):
-    """
-    Raised when name is not a valid Python identifier for use for use as
-    the name of NameSpace member.
-    """
-    msg = 'name %r does not re.match %r'
-
-    def __init__(self, name, regex):
-        self.name = name
-        self.regex = regex
-
-    def __str__(self):
-        return self.msg % (self.name, self.regex)
-
-
 class SubclassError(RegistrationError):
     """
     Raised when registering a plugin that is not a subclass of one of the
