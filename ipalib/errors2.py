@@ -67,15 +67,19 @@ class SubprocessError(PrivateError):
 
     For example:
 
+    >>> raise SubprocessError(returncode=2, argv=('ls', '-lh', '/no-foo/'))
+    Traceback (most recent call last):
+      ...
+    SubprocessError: return code 2 from ('ls', '-lh', '/no-foo/')
+
+    The exit code of the sub-process is available via the ``returncode``
+    instance attribute.  For example:
+
     >>> e = SubprocessError(returncode=1, argv=('/bin/false',))
     >>> e.returncode
     1
-    >>> e.argv
+    >>> e.argv  # argv is also available
     ('/bin/false',)
-    >>> e.message
-    "return code 1 from ('/bin/false',)"
-    >>> str(e)
-    "return code 1 from ('/bin/false',)"
     """
 
     format = 'return code %(returncode)d from %(argv)r'

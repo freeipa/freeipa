@@ -291,9 +291,9 @@ class Plugin(ReadOnly):
         """
         argv = (executable,) + args
         self.debug('Calling %r', argv)
-        returncode = subprocess.call(argv)
-        if returncode != 0:
-            raise errors.SubprocessError(returncode, argv)
+        code = subprocess.call(argv)
+        if code != 0:
+            raise errors2.SubprocessError(returncode=code, argv=argv)
 
     def __repr__(self):
         """
