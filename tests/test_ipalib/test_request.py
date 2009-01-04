@@ -65,9 +65,9 @@ def test_create_translation():
     c = request.context
     t = TempDir()
 
-    # Test that StandardError is raised if gettext or ngettext:
-    assert not (hasattr(c, 'gettext') or hasattr(c, 'ngettext'))
-    for name in 'gettext', 'ngettext':
+    # Test that StandardError is raised if ugettext or ungettext:
+    assert not (hasattr(c, 'ugettext') or hasattr(c, 'ungettext'))
+    for name in ('ugettext', 'ungettext'):
         setattr(c, name, None)
         e = raises(StandardError, f, 'ipa', None)
         assert str(e) == (
@@ -77,23 +77,23 @@ def test_create_translation():
         delattr(c, name)
 
     # Test using default language:
-    assert not hasattr(c, 'gettext')
-    assert not hasattr(c, 'ngettext')
+    assert not hasattr(c, 'ugettext')
+    assert not hasattr(c, 'ungettext')
     assert not hasattr(c, 'languages')
     f('ipa', t.path)
-    assert hasattr(c, 'gettext')
-    assert hasattr(c, 'ngettext')
+    assert hasattr(c, 'ugettext')
+    assert hasattr(c, 'ungettext')
     assert c.languages == locale.getdefaultlocale()[:1]
-    del c.gettext
-    del c.ngettext
+    del c.ugettext
+    del c.ungettext
     del c.languages
 
     # Test using explicit languages:
     langs = ('de', 'es')
     f('ipa', t.path, *langs)
-    assert hasattr(c, 'gettext')
-    assert hasattr(c, 'ngettext')
+    assert hasattr(c, 'ugettext')
+    assert hasattr(c, 'ungettext')
     assert c.languages == langs
-    del c.gettext
-    del c.ngettext
+    del c.ugettext
+    del c.ungettext
     del c.languages

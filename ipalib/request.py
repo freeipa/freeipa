@@ -50,7 +50,7 @@ def set_languages(*languages):
 
 
 def create_translation(domain, localedir, *languages):
-    if hasattr(context, 'gettext') or hasattr(context, 'ngettext'):
+    if hasattr(context, 'ugettext') or hasattr(context, 'ungettext'):
         raise StandardError(
             'create_translation() already called in thread %r' %
             threading.currentThread().getName()
@@ -59,5 +59,5 @@ def create_translation(domain, localedir, *languages):
     translation = gettext.translation(domain,
         localedir=localedir, languages=context.languages, fallback=True
     )
-    context.gettext = translation.ugettext
-    context.ngettext = translation.ungettext
+    context.ugettext = translation.ugettext
+    context.ungettext = translation.ungettext
