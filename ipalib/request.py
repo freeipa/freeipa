@@ -32,10 +32,18 @@ from constants import OVERRIDE_ERROR
 context = threading.local()
 
 
-def _(message):
-    if hasattr(context, 'gettext'):
-        return context.gettext(message)
+def ugettext(message):
+    if hasattr(context, 'ugettext'):
+        return context.ugettext(message)
     return message.decode('UTF-8')
+
+
+def ungettext(singular, plural, n):
+    if hasattr(context, 'ungettext'):
+        return context.ungettext(singular, plural, n)
+    if n == 1:
+        return singular.decode('UTF-8')
+    return plural.decode('UTF-8')
 
 
 def set_languages(*languages):

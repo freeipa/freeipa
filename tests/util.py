@@ -277,3 +277,38 @@ class PluginTester(object):
         (api, home) = self.finalize(*plugins, **kw)
         o = api[namespace][self.plugin.__name__]
         return (o, api, home)
+
+
+class DummyUGettext(object):
+    __called = False
+
+    def __init__(self):
+        self.translation = u'The translation'
+
+    def __call__(self, message):
+        assert type(message) is str
+        assert self.__called is False
+        self.__called = True
+        self.message = message
+        return self.translation
+
+
+class DummyUNGettext(object):
+    __called = False
+
+    def __init__(self):
+        self.translation_singular = u'The singular translation'
+        self.translation_plural = u'The plural translation'
+
+    def __call__(self, singular, plural, n):
+        assert type(singular) is str
+        assert type(plural) is str
+        assert type(n) is int
+        assert self.__called is False
+        self.__called = True
+        self.singular = singular
+        self.plural = plural
+        self.n = n
+        if n == 1:
+            return self.translation_singular
+        return self.translation_plural

@@ -38,7 +38,7 @@ to the caller.
 """
 
 from inspect import isclass
-import request
+from request import ugettext, ungettext
 
 
 class PrivateError(StandardError):
@@ -159,7 +159,7 @@ class PublicError(StandardError):
     def __init__(self, message=None, **kw):
         self.kw = kw
         if message is None:
-            message = self.get_format(request._) % kw
+            message = self.get_format() % kw
         StandardError.__init__(self, message)
 
     def get_format(self, _):
