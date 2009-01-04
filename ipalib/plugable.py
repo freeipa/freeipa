@@ -33,7 +33,6 @@ import logging
 import os
 from os import path
 import subprocess
-import errors
 import errors2
 from config import Env
 import util
@@ -283,7 +282,7 @@ class Plugin(ReadOnly):
         Call ``executable`` with ``args`` using subprocess.call().
 
         If the call exits with a non-zero exit status,
-        `ipalib.errors.SubprocessError` is raised, from which you can retrieve
+        `ipalib.errors2.SubprocessError` is raised, from which you can retrieve
         the exit code by checking the SubprocessError.returncode attribute.
 
         This method does *not* return what ``executable`` sent to stdout... for
@@ -450,10 +449,10 @@ class Registrar(DictProxy):
         """
         Iterates through allowed bases that ``klass`` is a subclass of.
 
-        Raises `errors.SubclassError` if ``klass`` is not a subclass of any
-        allowed base.
+        Raises `errors2.PluginSubclassError` if ``klass`` is not a subclass of
+        any allowed base.
 
-        :param klass: The class to find bases for.
+        :param klass: The plugin class to find bases for.
         """
         assert inspect.isclass(klass)
         found = False
