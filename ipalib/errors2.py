@@ -28,7 +28,9 @@ to the caller.
     =============  ========================================
     900            `PublicError`
     901            `InternalError`
-    902 - 999      *Reserved for future use*
+    902            `RemoteInternalError`
+    903            `VersionError`
+    904 - 999      *Reserved for future use*
     1000 - 1999    `AuthenticationError` and its subclasses
     2000 - 2999    `AuthorizationError` and its subclasses
     3000 - 3999    `InvocationError` and its subclasses
@@ -39,6 +41,7 @@ to the caller.
 
 from inspect import isclass
 from request import ugettext, ungettext
+from constants import TYPE_ERROR
 
 
 class PrivateError(StandardError):
@@ -157,22 +160,89 @@ class PublicError(StandardError):
     code = 900
 
     def __init__(self, message=None, **kw):
-        self.kw = kw
         if message is None:
-            message = self.get_format() % kw
+            message = self.get_format(ugettext) % kw
+            assert type(message) is unicode
+        elif type(message) is not unicode:
+            raise TypeError(
+                TYPE_ERROR % ('message', unicode, message, type(message))
+            )
+        self.message = message
+        for (key, value) in kw.iteritems():
+            assert not hasattr(self, key), 'conflicting kwarg %s.%s = %r' % (
+                self.__class__.__name__, key, value,
+            )
+            setattr(self, key, value)
         StandardError.__init__(self, message)
 
     def get_format(self, _):
         return _('')
 
 
-
 class InternalError(PublicError):
     """
     **901** Used to conceal a non-public exception.
+
+    For example:
+
+    >>> raise InternalError()
+    Traceback (most recent call last):
+      ...
+    InternalError: an internal error has occured
     """
 
     code = 901
+
+    def __init__(self, message=None):
+        """
+        Security issue: ignore any information given to constructor.
+        """
+        PublicError.__init__(self, self.get_format(ugettext))
+
+    def get_format(self, _):
+        return _('an internal error has occured')
+
+
+class RemoteInternalError(PublicError):
+    """
+    **902** Raised when client catches an `InternalError` from server.
+
+    For example:
+
+    >>> raise RemoteInternalError(uri='http://localhost:8888')
+    Traceback (most recent call last):
+      ...
+    RemoteInternalError: an internal error has occured on server 'http://localhost:8888'
+    """
+
+    code = 902
+
+    def get_format(self, _):
+        return _('an internal error has occured on server %(uri)r')
+
+
+class VersionError(PublicError):
+    """
+    **903** Raised when client and server versions are incompatible.
+
+    For example:
+
+    >>> raise VersionError(client='2.0', server='2.1', uri='http://localhost:8888')
+    Traceback (most recent call last):
+      ...
+    VersionError: 2.0 client incompatible with 2.1 server at 'http://localhost:8888'
+
+    """
+
+    code = 903
+
+    def get_format(self, _):
+        return _(
+            '%(client)s client incompatible with %(server)s server at %(uri)r'
+        )
+
+
+
 
 
 
@@ -212,20 +282,37 @@ class InvocationError(PublicError):
 class CommandError(InvocationError):
     """
     **3001** Raised when an unknown command is called.
+
+    For example:
+
+    >>> raise CommandError(name='foobar')
+    Traceback (most recent call last):
+      ...
+    CommandError: unknown command 'foobar'
     """
 
     code = 3001
 
     def get_format(self, _):
-        return _('Unknown command %(name)r')
+        return _('unknown command %(name)r')
 
 
 class RemoteCommandError(InvocationError):
     """
-    **3002** Raised when client receives a `CommandError` from server.
+    **3002** Raised when client catches a `CommandError` from server.
+
+    For example:
+
+    >>> raise RemoteCommandError(name='foobar', uri='http://localhost:8888')
+    Traceback (most recent call last):
+      ...
+    RemoteCommandError: command 'foobar' unknown on server 'http://localhost:8888'
     """
 
     code = 3002
+
+    def get_format(self, _):
+        return _('command %(name)r unknown on server %(uri)r')
 
 
 class ArgumentError(InvocationError):
@@ -254,7 +341,7 @@ class RequirementError(InvocationError):
 
 class ConversionError(InvocationError):
     """
-    **3006** Raised when a parameter value is the wrong type.
+    **3006** Raised when parameter value can't be converted to correct type.
     """
 
     code = 3006
@@ -286,7 +373,7 @@ class ExecutionError(PublicError):
 
 class GenericError(PublicError):
     """
-    **5000** Errors inappropriate for other categories (*5000 - 5999*).
+    **5000** Base class for errors that don't fit elsewhere (*5000 - 5999*).
     """
 
     code = 5000

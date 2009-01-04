@@ -23,14 +23,10 @@ Test the `ipalib.request` module.
 
 import threading
 import locale
-from tests.util import raises, TempDir, DummyUGettext, DummyUNGettext
+from tests.util import raises, assert_equal
+from tests.util import TempDir, DummyUGettext, DummyUNGettext
 from ipalib.constants import OVERRIDE_ERROR
 from ipalib import request
-
-
-def assert_equal(val1, val2):
-    assert type(val1) is type(val2), '%r != %r' % (val1, val2)
-    assert val1 == val2, '%r != %r' % (val1, val2)
 
 
 def test_ugettext():

@@ -23,7 +23,9 @@ Test the `ipalib.error2` module.
 
 import re
 import inspect
+from tests.util import assert_equal, raises, DummyUGettext
 from ipalib import errors2
+from ipalib.constants import TYPE_ERROR
 
 
 class PrivateExceptionTester(object):
@@ -180,6 +182,80 @@ class test_PluginMissingOverrideError(PrivateExceptionTester):
         assert inst.message == str(inst)
 
 
+
+##############################################################################
+# Unit tests for public errors:
+
+class PublicExceptionTester(object):
+    _klass = None
+    __klass = None
+
+    def __get_klass(self):
+        if self.__klass is None:
+            self.__klass = self._klass
+        assert issubclass(self.__klass, StandardError)
+        assert issubclass(self.__klass, errors2.PublicError)
+        assert not issubclass(self.__klass, errors2.PrivateError)
+        assert type(self.__klass.code) is int
+        assert 900 <= self.__klass.code <= 5999
+        return self.__klass
+    klass = property(__get_klass)
+
+    def new(self, message=None, **kw):
+        # Test that TypeError is raised if message isn't unicode:
+        e = raises(TypeError, self.klass, 'The message')
+        assert str(e) == TYPE_ERROR % ('message', unicode, 'The message', str)
+
+        # Test the instance:
+        for (key, value) in kw.iteritems():
+            assert not hasattr(self.klass, key), key
+        inst = self.klass(message=message, **kw)
+        assert isinstance(inst, StandardError)
+        assert isinstance(inst, errors2.PublicError)
+        assert isinstance(inst, self.klass)
+        assert not isinstance(inst, errors2.PrivateError)
+        for (key, value) in kw.iteritems():
+            assert getattr(inst, key) is value
+        assert str(inst) == inst.get_format(lambda m: m) % kw
+        assert inst.message == str(inst)
+        return inst
+
+
+class test_PublicError(PublicExceptionTester):
+    """
+    Test the `ipalib.errors2.PublicError` exception.
+    """
+    _klass = errors2.PublicError
+
+    def test_init(self):
+        """
+        Test the `ipalib.errors2.PublicError.__init__` method.
+        """
+        inst = self.klass(key1='Value 1', key2='Value 2')
+        assert inst.key1 == 'Value 1'
+        assert inst.key2 == 'Value 2'
+        assert str(inst) == ''
+
+        # Test subclass and use of message, get_format():
+        class subclass(self.klass):
+            def get_format(self, _):
+                return _('%(true)r %(text)r %(number)r')
+
+        kw = dict(true=True, text='Hello!', number=18)
+        inst = subclass(**kw)
+        assert inst.true is True
+        assert inst.text is kw['text']
+        assert inst.number is kw['number']
+        assert_equal(inst.message, u'%(true)r %(text)r %(number)r' % kw)
+
+        # Test via PublicExceptionTester.new()
+        inst = self.new(**kw)
+        assert isinstance(inst, self.klass)
+        assert inst.true is True
+        assert inst.text is kw['text']
+        assert inst.number is kw['number']
+
+
 def test_public_errors():
     """
     Test the `ipalib.errors2.public_errors` module variable.
@@ -191,6 +267,10 @@ def test_public_errors():
         assert type(klass.code) is int
         assert 900 <= klass.code <= 5999
         doc = inspect.getdoc(klass)
+        assert doc is not None, 'need class docstring for %s' % klass.__name__
         m = re.match(r'^\*{2}(\d+)\*{2} ', doc)
-        assert m is not None, doc
-        assert int(m.group(1)) == klass.code, klass.__name__
+        assert m is not None, "need '**CODE**' in %s docstring" % klass.__name__
+        code = int(m.group(1))
+        assert code == klass.code, (
+            'docstring=%r but code=%r in %s' % (code, klass.code, klass.__name__)
+        )
