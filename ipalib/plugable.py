@@ -34,6 +34,7 @@ import os
 from os import path
 import subprocess
 import errors
+import errors2
 from config import Env
 import util
 from base import ReadOnly, NameSpace, lock, islocked, check_name
@@ -461,7 +462,9 @@ class Registrar(DictProxy):
                 found = True
                 yield (base, sub_d)
         if not found:
-            raise errors.SubclassError(klass, self.__allowed.keys())
+            raise errors2.PluginSubclassError(
+                plugin=klass, bases=self.__allowed.keys()
+            )
 
     def __call__(self, klass, override=False):
         """
@@ -471,11 +474,11 @@ class Registrar(DictProxy):
         :param override: If true, override an already registered plugin.
         """
         if not inspect.isclass(klass):
-            raise TypeError('plugin must be a class: %r'  % klass)
+            raise TypeError('plugin must be a class; got %r' % klass)
 
         # Raise DuplicateError if this exact class was already registered:
         if klass in self.__registered:
-            raise errors.DuplicateError(klass)
+            raise errors2.PluginDuplicateError(plugin=klass)
 
         # Find the base class or raise SubclassError:
         for (base, sub_d) in self.__findbases(klass):
@@ -483,11 +486,19 @@ class Registrar(DictProxy):
             if klass.__name__ in sub_d:
                 if not override:
                     # Must use override=True to override:
-                    raise errors.OverrideError(base, klass)
+                    raise errors2.PluginOverrideError(
+                        base=base.__name__,
+                        name=klass.__name__,
+                        plugin=klass,
+                    )
             else:
                 if override:
                     # There was nothing already registered to override:
-                    raise errors.MissingOverrideError(base, klass)
+                    raise errors2.PluginMissingOverrideError(
+                        base=base.__name__,
+                        name=klass.__name__,
+                        plugin=klass,
+                    )
 
             # The plugin is okay, add to sub_d:
             sub_d[klass.__name__] = klass

@@ -92,16 +92,92 @@ class test_SubprocessError(PrivateExceptionTester):
     """
     Test the `ipalib.errors2.SubprocessError` exception.
     """
+
     _klass = errors2.SubprocessError
 
     def test_init(self):
         """
         Test the `ipalib.errors2.SubprocessError.__init__` method.
         """
-        inst = self.klass(returncode=1, argv=('/bin/false',))
+        inst = self.new(returncode=1, argv=('/bin/false',))
         assert inst.returncode == 1
         assert inst.argv == ('/bin/false',)
         assert str(inst) == "return code 1 from ('/bin/false',)"
+        assert inst.message == str(inst)
+
+
+class test_PluginSubclassError(PrivateExceptionTester):
+    """
+    Test the `ipalib.errors2.PluginSubclassError` exception.
+    """
+
+    _klass = errors2.PluginSubclassError
+
+    def test_init(self):
+        """
+        Test the `ipalib.errors2.PluginSubclassError.__init__` method.
+        """
+        inst = self.new(plugin='bad', bases=('base1', 'base2'))
+        assert inst.plugin == 'bad'
+        assert inst.bases == ('base1', 'base2')
+        assert str(inst) == \
+            "'bad' not subclass of any base in ('base1', 'base2')"
+        assert inst.message == str(inst)
+
+
+class test_PluginDuplicateError(PrivateExceptionTester):
+    """
+    Test the `ipalib.errors2.PluginDuplicateError` exception.
+    """
+
+    _klass = errors2.PluginDuplicateError
+
+    def test_init(self):
+        """
+        Test the `ipalib.errors2.PluginDuplicateError.__init__` method.
+        """
+        inst = self.new(plugin='my_plugin')
+        assert inst.plugin == 'my_plugin'
+        assert str(inst) == "'my_plugin' was already registered"
+        assert inst.message == str(inst)
+
+
+class test_PluginOverrideError(PrivateExceptionTester):
+    """
+    Test the `ipalib.errors2.PluginOverrideError` exception.
+    """
+
+    _klass = errors2.PluginOverrideError
+
+    def test_init(self):
+        """
+        Test the `ipalib.errors2.PluginOverrideError.__init__` method.
+        """
+        inst = self.new(base='Base', name='cmd', plugin='my_cmd')
+        assert inst.base == 'Base'
+        assert inst.name == 'cmd'
+        assert inst.plugin == 'my_cmd'
+        assert str(inst) == "unexpected override of Base.cmd with 'my_cmd'"
+        assert inst.message == str(inst)
+
+
+class test_PluginMissingOverrideError(PrivateExceptionTester):
+    """
+    Test the `ipalib.errors2.PluginMissingOverrideError` exception.
+    """
+
+    _klass = errors2.PluginMissingOverrideError
+
+    def test_init(self):
+        """
+        Test the `ipalib.errors2.PluginMissingOverrideError.__init__` method.
+        """
+        inst = self.new(base='Base', name='cmd', plugin='my_cmd')
+        assert inst.base == 'Base'
+        assert inst.name == 'cmd'
+        assert inst.plugin == 'my_cmd'
+        assert str(inst) == "Base.cmd not registered, cannot override with 'my_cmd'"
+        assert inst.message == str(inst)
 
 
 def test_public_errors():

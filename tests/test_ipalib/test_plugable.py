@@ -25,7 +25,7 @@ import inspect
 from tests.util import raises, no_set, no_del, read_only
 from tests.util import getitem, setitem, delitem
 from tests.util import ClassChecker, create_test_api
-from ipalib import plugable, errors
+from ipalib import plugable, errors, errors2
 
 
 class test_SetProxy(ClassChecker):
@@ -534,11 +534,14 @@ def test_Registrar():
 
     # Check that TypeError is raised trying to register something that isn't
     # a class:
-    raises(TypeError, r, plugin1())
+    p = plugin1()
+    e = raises(TypeError, r, p)
+    assert str(e) == 'plugin must be a class; got %r' % p
 
     # Check that SubclassError is raised trying to register a class that is
     # not a subclass of an allowed base:
-    raises(errors.SubclassError, r, plugin3)
+    e = raises(errors2.PluginSubclassError, r, plugin3)
+    assert e.plugin is plugin3
 
     # Check that registration works
     r(plugin1)
@@ -548,7 +551,8 @@ def test_Registrar():
 
     # Check that DuplicateError is raised trying to register exact class
     # again:
-    raises(errors.DuplicateError, r, plugin1)
+    e = raises(errors2.PluginDuplicateError, r, plugin1)
+    assert e.plugin is plugin1
 
     # Check that OverrideError is raised trying to register class with same
     # name and same base:
@@ -557,7 +561,10 @@ def test_Registrar():
         pass
     class plugin1(base1_extended):
         pass
-    raises(errors.OverrideError, r, plugin1)
+    e = raises(errors2.PluginOverrideError, r, plugin1)
+    assert e.base == 'Base1'
+    assert e.name == 'plugin1'
+    assert e.plugin is plugin1
 
     # Check that overriding works
     r(plugin1, override=True)
@@ -567,7 +574,10 @@ def test_Registrar():
 
     # Check that MissingOverrideError is raised trying to override a name
     # not yet registerd:
-    raises(errors.MissingOverrideError, r, plugin2, override=True)
+    e = raises(errors2.PluginMissingOverrideError, r, plugin2, override=True)
+    assert e.base == 'Base2'
+    assert e.name == 'plugin2'
+    assert e.plugin is plugin2
 
     # Test that another plugin can be registered:
     assert len(r.Base2) == 0

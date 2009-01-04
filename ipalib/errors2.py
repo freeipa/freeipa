@@ -43,7 +43,7 @@ import request
 
 class PrivateError(StandardError):
     """
-    Base class for exceptions that are *never* returned in an RPC response.
+    Base class for exceptions that are *never* forwarded in an RPC response.
     """
 
     format = ''
@@ -72,15 +72,82 @@ class SubprocessError(PrivateError):
     1
     >>> e.argv
     ('/bin/false',)
+    >>> e.message
+    "return code 1 from ('/bin/false',)"
     >>> str(e)
     "return code 1 from ('/bin/false',)"
     """
+
     format = 'return code %(returncode)d from %(argv)r'
 
 
+class PluginSubclassError(PrivateError):
+    """
+    Raised when a plugin doesn't subclass from an allowed base.
+
+    For example:
+
+    >>> raise PluginSubclassError(plugin='bad', bases=('base1', 'base2'))
+    Traceback (most recent call last):
+      ...
+    PluginSubclassError: 'bad' not subclass of any base in ('base1', 'base2')
+
+    """
+
+    format  = '%(plugin)r not subclass of any base in %(bases)r'
+
+
+class PluginDuplicateError(PrivateError):
+    """
+    Raised when the same plugin class is registered more than once.
+
+    For example:
+
+    >>> raise PluginDuplicateError(plugin='my_plugin')
+    Traceback (most recent call last):
+      ...
+    PluginDuplicateError: 'my_plugin' was already registered
+    """
+
+    format = '%(plugin)r was already registered'
+
+
+class PluginOverrideError(PrivateError):
+    """
+    Raised when a plugin overrides another without using ``override=True``.
+
+    For example:
+
+    >>> raise PluginOverrideError(base='Command', name='env', plugin='my_env')
+    Traceback (most recent call last):
+      ...
+    PluginOverrideError: unexpected override of Command.env with 'my_env'
+    """
+
+    format = 'unexpected override of %(base)s.%(name)s with %(plugin)r'
+
+
+class PluginMissingOverrideError(PrivateError):
+    """
+    Raised when a plugin overrides another that has not been registered.
+
+    For example:
+
+    >>> raise PluginMissingOverrideError(base='Command', name='env', plugin='my_env')
+    Traceback (most recent call last):
+      ...
+    PluginMissingOverrideError: Command.env not registered, cannot override with 'my_env'
+    """
+
+    format = '%(base)s.%(name)s not registered, cannot override with %(plugin)r'
+
+
+
+##############################################################################
+# Public errors:
 class PublicError(StandardError):
     """
-    **900** Base class for exceptions that can be returned in an RPC response.
+    **900** Base class for exceptions that can be forwarded in an RPC response.
     """
 
     code = 900
@@ -96,8 +163,6 @@ class PublicError(StandardError):
 
 
 
-
-
 class InternalError(PublicError):
     """
     **901** Used to conceal a non-public exception.
@@ -108,7 +173,7 @@ class InternalError(PublicError):
 
 
 ##############################################################################
-# 1000 - 1999: Authentication Errors
+# 1000 - 1999: Authentication errors
 class AuthenticationError(PublicError):
     """
     **1000** Base class for authentication errors (*1000 - 1999*).
@@ -119,7 +184,7 @@ class AuthenticationError(PublicError):
 
 
 ##############################################################################
-# 2000 - 2999: Authorization Errors
+# 2000 - 2999: Authorization errors
 class AuthorizationError(PublicError):
     """
     **2000** Base class for authorization errors (*2000 - 2999*).
@@ -130,7 +195,7 @@ class AuthorizationError(PublicError):
 
 
 ##############################################################################
-# 3000 - 3999: Invocation Errors
+# 3000 - 3999: Invocation errors
 
 class InvocationError(PublicError):
     """
@@ -201,7 +266,7 @@ class ValidationError(InvocationError):
 
 
 ##############################################################################
-# 4000 - 4999: Execution Errors
+# 4000 - 4999: Execution errors
 
 class ExecutionError(PublicError):
     """
@@ -213,7 +278,7 @@ class ExecutionError(PublicError):
 
 
 ##############################################################################
-# 5000 - 5999: Generic Errors
+# 5000 - 5999: Generic errors
 
 class GenericError(PublicError):
     """
