@@ -290,8 +290,11 @@ class PluginTester(object):
 class dummy_ugettext(object):
     __called = False
 
-    def __init__(self):
-        self.translation = u'The translation'
+    def __init__(self, translation=None):
+        if translation is None:
+            translation = u'The translation'
+        self.translation = translation
+        assert type(self.translation) is unicode
 
     def __call__(self, message):
         assert type(message) is str
