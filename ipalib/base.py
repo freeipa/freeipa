@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Core functions and classes.
+Foundational classes and functions.
 """
 
 import re
@@ -54,7 +54,11 @@ class ReadOnly(object):
 
     But after an instance is locked, you cannot set its attributes:
 
+    >>> p.__islocked__()  # Is this instance locked?
+    False
     >>> p.__lock__()  # This will lock the instance
+    >>> p.__islocked__()
+    True
     >>> p.department = 'Engineering'
     Traceback (most recent call last):
       ...
@@ -79,7 +83,20 @@ class ReadOnly(object):
     False
 
     But again, the point is that a programmer would never employ the above
-    techniques accidentally.
+    techniques *accidentally*.
+
+    Lastly, this example aside, you should use the `lock()` function rather
+    than the `ReadOnly.__lock__()` method.  And likewise, you should
+    use the `islocked()` function rather than the `ReadOnly.__islocked__()`
+    method.  For example:
+
+    >>> readonly = ReadOnly()
+    >>> islocked(readonly)
+    False
+    >>> lock(readonly) is readonly  # lock() returns the instance
+    True
+    >>> islocked(readonly)
+    True
     """
 
     __locked = False
