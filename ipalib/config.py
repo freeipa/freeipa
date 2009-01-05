@@ -98,8 +98,8 @@ class Env(object):
 
     Note that the automatic type conversion is case sensitive.  For example:
 
-    >>> env.false = 'false'  # Not equal to repr(False)!
-    >>> env.false
+    >>> env.not_false = 'false'  # Not equal to repr(False)!
+    >>> env.not_false
     'false'
 
     If an ``str`` value looks like an integer, it's automatically converted to
@@ -122,8 +122,8 @@ class Env(object):
     >>> env.number = ' 42 '  # Still converted to an int
     >>> env.number
     42
-    >>> env.actually_false = ' False '  # Still equal to repr(False)
-    >>> env.actually_false
+    >>> env.false = ' False '  # Still equal to repr(False)
+    >>> env.false
     False
 
     Also, empty ``str`` instances are converted to ``None``.  For example:
@@ -181,17 +181,18 @@ class Env(object):
         2. `Env._finalize_core()` - merge-in variables from the configuration
            files and then merge-in variables from the internal defaults, after
            which at least all the standard variables will be set.  After this
-           method is called, the plugins will be loaded, during which 3rd-party
-           plugins can set additional variables they may need.
+           method is called, the plugins will be loaded, during which
+           third-party plugins can merge-in defaults for additional variables
+           they use (likely using the `Env._merge()` method).
 
         3. `Env._finalize()` - one last chance to merge-in variables and then
            the instance is locked.  After this method is called, no more
            environment variables can be set during the remaining life of the
            process.
 
-    However, normally none of the above methods are called directly and instead
-    only `plugable.API.bootstrap()` is called, which itself takes care of
-    correctly calling the `Env` bootstrapping methods.
+    However, normally none of these three bootstraping methods are called
+    directly and instead only `plugable.API.bootstrap()` is called, which itself
+    takes care of correctly calling the `Env` bootstrapping methods.
     """
 
     __locked = False
@@ -267,7 +268,16 @@ class Env(object):
 
     def __delattr__(self, name):
         """
-        Raise AttributeError (deletion is never allowed).
+        Raise an ``AttributeError`` (deletion is never allowed).
+
+        For example:
+
+        >>> env = Env()
+        >>> env.name = 'A value'
+        >>> del env.name
+        Traceback (most recent call last):
+          ...
+        AttributeError: locked: cannot delete Env.name
         """
         raise AttributeError(
             DEL_ERROR % (self.__class__.__name__, name)
