@@ -27,10 +27,14 @@ to the caller.
      Error codes                 Exceptions
     =============  ========================================
     900            `PublicError`
-    901            `InternalError`
-    902            `RemoteInternalError`
-    903            `VersionError`
-    904 - 999      *Reserved for future use*
+    901            `VersionError`
+    902            `InternalError`
+    903            `ServerInternalError`
+    904            `CommandError`
+    905            `ServerCommandError`
+    906            `NetworkError`
+    907            `ServerNetworkError`
+    908 - 999      *Reserved for future use*
     1000 - 1999    `AuthenticationError` and its subclasses
     2000 - 2999    `AuthorizationError` and its subclasses
     3000 - 3999    `InvocationError` and its subclasses
@@ -179,9 +183,30 @@ class PublicError(StandardError):
         return _('')
 
 
+class VersionError(PublicError):
+    """
+    **901** Raised when client and server versions are incompatible.
+
+    For example:
+
+    >>> raise VersionError(cver='2.0', sver='2.1', server='https://localhost')
+    Traceback (most recent call last):
+      ...
+    VersionError: 2.0 client incompatible with 2.1 server at 'https://localhost'
+
+    """
+
+    code = 901
+
+    def get_format(self, _):
+        return _(
+            '%(cver)s client incompatible with %(sver)s server at %(server)r'
+        )
+
+
 class InternalError(PublicError):
     """
-    **901** Used to conceal a non-public exception.
+    **902** Raised to conceal a non-public exception.
 
     For example:
 
@@ -191,7 +216,7 @@ class InternalError(PublicError):
     InternalError: an internal error has occured
     """
 
-    code = 901
+    code = 902
 
     def __init__(self, message=None):
         """
@@ -203,47 +228,96 @@ class InternalError(PublicError):
         return _('an internal error has occured')
 
 
-class RemoteInternalError(PublicError):
+class ServerInternalError(PublicError):
     """
-    **902** Raised when client catches an `InternalError` from server.
+    **903** Raised when client catches an `InternalError` from server.
 
     For example:
 
-    >>> raise RemoteInternalError(uri='http://localhost:8888')
+    >>> raise ServerInternalError(server='https://localhost')
     Traceback (most recent call last):
       ...
-    RemoteInternalError: an internal error has occured on server 'http://localhost:8888'
-    """
-
-    code = 902
-
-    def get_format(self, _):
-        return _('an internal error has occured on server %(uri)r')
-
-
-class VersionError(PublicError):
-    """
-    **903** Raised when client and server versions are incompatible.
-
-    For example:
-
-    >>> raise VersionError(client='2.0', server='2.1', uri='http://localhost:8888')
-    Traceback (most recent call last):
-      ...
-    VersionError: 2.0 client incompatible with 2.1 server at 'http://localhost:8888'
-
+    ServerInternalError: an internal error has occured on server at 'https://localhost'
     """
 
     code = 903
 
     def get_format(self, _):
-        return _(
-            '%(client)s client incompatible with %(server)s server at %(uri)r'
-        )
+        return _('an internal error has occured on server at %(server)r')
 
 
+class CommandError(PublicError):
+    """
+    **904** Raised when an unknown command is called.
+
+    For example:
+
+    >>> raise CommandError(name='foobar')
+    Traceback (most recent call last):
+      ...
+    CommandError: unknown command 'foobar'
+    """
+
+    code = 904
+
+    def get_format(self, _):
+        return _('unknown command %(name)r')
 
 
+class ServerCommandError(PublicError):
+    """
+    **905** Raised when client catches a `CommandError` from server.
+
+    For example:
+
+    >>> e = CommandError(name='foobar')
+    >>> raise ServerCommandError(error=e.message, server='https://localhost')
+    Traceback (most recent call last):
+      ...
+    ServerCommandError: error on server 'https://localhost': unknown command 'foobar'
+    """
+
+    code = 905
+
+    def get_format(self, _):
+        return _('error on server %(server)r: %(error)s')
+
+
+class NetworkError(PublicError):
+    """
+    **906** Raised when a network connection cannot be created.
+
+    For example:
+
+    >>> raise NetworkError(uri='ldap://localhost:389')
+    Traceback (most recent call last):
+      ...
+    NetworkError: cannot connect to 'ldap://localhost:389'
+    """
+
+    code = 906
+
+    def get_format(self, _):
+        return _('cannot connect to %(uri)r')
+
+
+class ServerNetworkError(PublicError):
+    """
+    **907** Raised when client catches a `NetworkError` from server.
+
+    For example:
+
+    >>> e = NetworkError(uri='ldap://localhost:389')
+    >>> raise ServerNetworkError(error=e.message, server='https://localhost')
+    Traceback (most recent call last):
+      ...
+    ServerNetworkError: error on server 'https://localhost': cannot connect to 'ldap://localhost:389'
+    """
+
+    code = 907
+
+    def get_format(self, _):
+        return _('error on server %(server)r: %(error)s')
 
 
 ##############################################################################
@@ -279,40 +353,20 @@ class InvocationError(PublicError):
     code = 3000
 
 
-class CommandError(InvocationError):
+class EncodingError(InvocationError):
     """
-    **3001** Raised when an unknown command is called.
-
-    For example:
-
-    >>> raise CommandError(name='foobar')
-    Traceback (most recent call last):
-      ...
-    CommandError: unknown command 'foobar'
+    **3001** Raised when received text is incorrectly encoded.
     """
 
     code = 3001
 
-    def get_format(self, _):
-        return _('unknown command %(name)r')
 
-
-class RemoteCommandError(InvocationError):
+class BinaryEncodingError(InvocationError):
     """
-    **3002** Raised when client catches a `CommandError` from server.
-
-    For example:
-
-    >>> raise RemoteCommandError(name='foobar', uri='http://localhost:8888')
-    Traceback (most recent call last):
-      ...
-    RemoteCommandError: command 'foobar' unknown on server 'http://localhost:8888'
+    **3002** Raised when received binary data is incorrectly encoded.
     """
 
     code = 3002
-
-    def get_format(self, _):
-        return _('command %(name)r unknown on server %(uri)r')
 
 
 class ArgumentError(InvocationError):
