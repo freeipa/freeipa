@@ -20,8 +20,8 @@
 import ldap
 import string
 import re
-from ipa_server.context import context
-from ipa_server import ipaldap
+from ipaserver.context import context
+from ipaserver import ipaldap
 import ipautil
 from ipalib import errors
 from ipalib import api

@@ -21,7 +21,7 @@
 # a new instance to be created in the same thread
 
 # To use:
-#  from ipa_server.context import context
+#  from ipaserver.context import context
 #  context.foo = "bar"
 
 # FIXME: This module is depreciated and code should switch to using

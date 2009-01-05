@@ -763,8 +763,8 @@ class CLI(object):
 #            try:
 #                import krbV
 #                import ldap
-#                from ipa_server import conn
-#                from ipa_server.servercore import context
+#                from ipaserver import conn
+#                from ipaserver.servercore import context
 #                krbccache =  krbV.default_context().default_ccache().name
 #                context.conn = conn.IPAConn(self.api.env.ldaphost, self.api.env.ldapport, krbccache)
 #            except ImportError:

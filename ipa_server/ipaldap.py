@@ -31,7 +31,7 @@ import struct
 import ldap.sasl
 from ldap.controls import LDAPControl,DecodeControlTuples,EncodeControlTuples
 from ldap.ldapobject import SimpleLDAPObject
-from ipa_server import ipautil
+from ipaserver import ipautil
 from ipalib import errors
 
 # Global variable to define SASL auth

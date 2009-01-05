@@ -639,7 +639,7 @@ class API(DictProxy):
             return
         util.import_plugins_subpackage('ipalib')
         if self.env.in_server:
-            util.import_plugins_subpackage('ipa_server')
+            util.import_plugins_subpackage('ipaserver')
 
     def finalize(self):
         """

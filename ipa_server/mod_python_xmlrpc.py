@@ -43,9 +43,9 @@ import logging
 import ldap
 from ipalib import api
 from ipalib import config
-from ipa_server import conn
-from ipa_server.servercore import context
-from ipa_server.servercore import ipautil
+from ipaserver import conn
+from ipaserver.servercore import context
+from ipaserver.servercore import ipautil
 from ipalib.util import xmlrpc_unmarshal
 
 import string

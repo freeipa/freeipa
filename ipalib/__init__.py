@@ -31,7 +31,7 @@ heavily cross-referenced with further documentation that (hopefully) fills
 in the missing details.
 
 In addition to this tutorial, the many built-in plugins in `ipalib.plugins`
-and `ipa_server.plugins` provide real-life examples of how to write good
+and `ipaserver.plugins` provide real-life examples of how to write good
 plugins.
 
 
@@ -227,12 +227,12 @@ There are two types of plugins:
 
     2. *Backend plugins* - These are only loaded in a *server* context and
        only need to be installed on the IPA server.  The built-in backend
-       plugins can be found in `ipa_server.plugins`.
+       plugins can be found in `ipaserver.plugins`.
 
 Backend plugins should provide a set of methods that standardize how IPA
 interacts with some external system or library.  For example, all interaction
 with LDAP is done through the ``ldap`` backend plugin defined in
-`ipa_server.plugins.b_ldap`.  As a good rule of thumb, anytime you need to
+`ipaserver.plugins.b_ldap`.  As a good rule of thumb, anytime you need to
 import some package that is not part of the Python standard library, you
 should probably interact with that package via a corresponding backend
 plugin you implement.
@@ -824,7 +824,7 @@ To learn more about writing freeIPA plugins, you should:
 
     1. Look at some of the built-in plugins, like the frontend plugins in
        `ipalib.plugins.f_user` and the backend plugins in
-       `ipa_server.plugins.b_ldap`.
+       `ipaserver.plugins.b_ldap`.
 
     2. Learn about the base classes for frontend plugins in `ipalib.frontend`.
 

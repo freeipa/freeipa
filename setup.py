@@ -33,8 +33,8 @@ setup(
     packages=[
         'ipalib',
         'ipalib.plugins',
-        'ipa_server',
-        'ipa_server.plugins',
+        'ipaserver',
+        'ipaserver.plugins',
         'ipa_webui',
         'ipa_webui.templates',
     ],

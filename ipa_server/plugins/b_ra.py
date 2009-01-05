@@ -39,8 +39,8 @@ from socket import gethostname
 
 from ipalib import api, Backend
 from ipalib import errors
-from ipa_server import servercore
-from ipa_server import ipaldap
+from ipaserver import servercore
+from ipaserver import ipaldap
 
 
 class ra(Backend):
@@ -195,13 +195,13 @@ class ra(Backend):
         revocationr reasons: 0 - unspecified
                              1 - key compromise
                              2 - ca compromise
-                             3 - affiliation changed 
+                             3 - affiliation changed
                              4 - superseded
                              5 - cessation of operation
-                             6 - certificate hold 
+                             6 - certificate hold
                              7 - value 7 is not used
                              8 - remove from CRL
-                             9 - privilege withdrawn 
+                             9 - privilege withdrawn
                             10 - aa compromise
         see RFC 5280 for more details
         """

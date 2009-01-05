@@ -18,18 +18,18 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Test the `ipa_server.rpc` module.
+Test the `ipaserver.rpc` module.
 """
 
 from tests.util import create_test_api, raises, PluginTester
 from tests.data import unicode_str
 from ipalib import errors, Command
-from ipa_server import rpc
+from ipaserver import rpc
 
 
 def test_params_2_args_options():
     """
-    Test the `ipa_server.rpc.params_2_args_options` function.
+    Test the `ipaserver.rpc.params_2_args_options` function.
     """
     f = rpc.params_2_args_options
     args = ('Hello', u'world!')
@@ -43,14 +43,14 @@ def test_params_2_args_options():
 
 class test_xmlrpc(PluginTester):
     """
-    Test the `ipa_server.rpc.xmlrpc` plugin.
+    Test the `ipaserver.rpc.xmlrpc` plugin.
     """
 
     _plugin = rpc.xmlrpc
 
     def test_dispatch(self):
         """
-        Test the `ipa_server.rpc.xmlrpc.dispatch` method.
+        Test the `ipaserver.rpc.xmlrpc.dispatch` method.
         """
         (o, api, home) = self.instance('Backend', in_server=True)
         e = raises(errors.CommandError, o.dispatch, 'echo', tuple())

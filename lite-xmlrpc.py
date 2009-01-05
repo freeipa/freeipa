@@ -32,8 +32,8 @@ import threading
 import commands
 from ipalib import api
 from ipalib import config
-from ipa_server import conn
-from ipa_server.servercore import context
+from ipaserver import conn
+from ipaserver.servercore import context
 from ipalib.util import xmlrpc_unmarshal
 import traceback
 import krbV

@@ -28,8 +28,8 @@ import ldap as _ldap
 from ipalib import api, Context
 from ipalib import errors
 from ipalib.crud import CrudBackend
-from ipa_server import servercore
-from ipa_server import ipaldap
+from ipaserver import servercore
+from ipaserver import ipaldap
 
 
 class conn(Context):
