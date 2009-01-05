@@ -23,7 +23,7 @@ Test the `ipalib.error2` module.
 
 import re
 import inspect
-from tests.util import assert_equal, raises, DummyUGettext
+from tests.util import assert_equal, raises, dummy_ugettext
 from ipalib import errors2
 from ipalib.constants import TYPE_ERROR
 

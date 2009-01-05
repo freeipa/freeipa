@@ -17,14 +17,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-
 """
 Test the `ipalib.parameter` module.
 """
 
 from tests.util import raises, ClassChecker, read_only
+from tests.util import dummy_ugettext, assert_equal
 from tests.data import binary_bytes, utf8_bytes, unicode_str
-from ipalib import parameter
+from ipalib import parameter, request
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, NULLS
 
 
@@ -137,6 +137,7 @@ class test_Param(ClassChecker):
 
         # Test default kwarg values:
         assert o.cli_name is name
+        assert o.label is None
         assert o.doc == ''
         assert o.required is True
         assert o.multivalue is False
@@ -199,6 +200,50 @@ class test_Param(ClassChecker):
         assert repr(o) == "Param('name', required=False)"
         o = self.cls('name', multivalue=True)
         assert repr(o) == "Param('name', multivalue=True)"
+
+    def test_get_label(self):
+        """
+        Test the `ipalib.parameter.get_label` method.
+        """
+        context = request.context
+        cli_name = 'the_cli_name'
+        message = 'The Label'
+        label = lambda _: _(message)
+        o = self.cls('name', cli_name=cli_name, label=label)
+        assert o.label is label
+
+        ## Scenario 1: label=callable (a lambda form)
+
+        # Test with no context.ugettext:
+        assert not hasattr(context, 'ugettext')
+        assert_equal(o.get_label(), u'The Label')
+
+        # Test with dummy context.ugettext:
+        assert not hasattr(context, 'ugettext')
+        dummy = dummy_ugettext()
+        context.ugettext = dummy
+        assert o.get_label() is dummy.translation
+        assert dummy.message is message
+        del context.ugettext
+
+        ## Scenario 2: label=None
+        o = self.cls('name', cli_name=cli_name)
+        assert o.label is None
+
+        # Test with no context.ugettext:
+        assert not hasattr(context, 'ugettext')
+        assert_equal(o.get_label(), u'the_cli_name')
+
+        # Test with dummy context.ugettext:
+        assert not hasattr(context, 'ugettext')
+        dummy = dummy_ugettext()
+        context.ugettext = dummy
+        assert_equal(o.get_label(), u'the_cli_name')
+        assert not hasattr(dummy, 'message')
+
+        # Cleanup
+        del context.ugettext
+        assert not hasattr(context, 'ugettext')
 
     def test_convert(self):
         """

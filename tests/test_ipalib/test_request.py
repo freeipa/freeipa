@@ -24,7 +24,7 @@ Test the `ipalib.request` module.
 import threading
 import locale
 from tests.util import raises, assert_equal
-from tests.util import TempDir, DummyUGettext, DummyUNGettext
+from tests.util import TempDir, dummy_ugettext, dummy_ungettext
 from ipalib.constants import OVERRIDE_ERROR
 from ipalib import request
 
@@ -43,7 +43,7 @@ def test_ugettext():
 
     # Test with dummy context.ugettext:
     assert not hasattr(context, 'ugettext')
-    dummy = DummyUGettext()
+    dummy = dummy_ugettext()
     context.ugettext = dummy
     assert f(message) is dummy.translation
     assert dummy.message is message
@@ -69,7 +69,7 @@ def test_ungettext():
 
     # Test singular with dummy context.ungettext
     assert not hasattr(context, 'ungettext')
-    dummy = DummyUNGettext()
+    dummy = dummy_ungettext()
     context.ungettext = dummy
     assert f(singular, plural, 1) is dummy.translation_singular
     assert dummy.singular is singular
@@ -80,7 +80,7 @@ def test_ungettext():
 
     # Test plural with dummy context.ungettext
     assert not hasattr(context, 'ungettext')
-    dummy = DummyUNGettext()
+    dummy = dummy_ungettext()
     context.ungettext = dummy
     assert f(singular, plural, 2) is dummy.translation_plural
     assert dummy.singular is singular

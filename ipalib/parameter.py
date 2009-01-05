@@ -23,6 +23,7 @@ Parameter system for command plugins.
 
 from types import NoneType
 from util import make_repr
+from request import ugettext
 from plugable import ReadOnly, lock, check_name
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
 
@@ -199,6 +200,7 @@ class Param(ReadOnly):
 
     kwargs = (
         ('cli_name', str, None),
+        ('label', callable, None),
         ('doc', str, ''),
         ('required', bool, True),
         ('multivalue', bool, False),
@@ -300,6 +302,14 @@ class Param(ReadOnly):
             self.param_spec,
             **self.__kw
         )
+
+    def get_label(self):
+        """
+        Return translated label using `request.ugettext`.
+        """
+        if self.label is None:
+            return self.cli_name.decode('UTF-8')
+        return self.label(ugettext)
 
     def normalize(self, value):
         """

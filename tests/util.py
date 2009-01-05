@@ -287,7 +287,7 @@ class PluginTester(object):
         return (o, api, home)
 
 
-class DummyUGettext(object):
+class dummy_ugettext(object):
     __called = False
 
     def __init__(self):
@@ -301,7 +301,7 @@ class DummyUGettext(object):
         return self.translation
 
 
-class DummyUNGettext(object):
+class dummy_ungettext(object):
     __called = False
 
     def __init__(self):
