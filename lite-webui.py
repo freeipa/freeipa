@@ -24,8 +24,8 @@ In-tree Web UI using cherrypy.
 """
 
 from cherrypy import expose, config, quickstart
-from ipa_webui.templates import form, main
-from ipa_webui import controller
+from ipawebui.templates import form, main
+from ipawebui import controller
 from ipalib import api
 
 api.load_plugins()

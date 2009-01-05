@@ -35,12 +35,12 @@ setup(
         'ipalib.plugins',
         'ipaserver',
         'ipaserver.plugins',
-        'ipa_webui',
-        'ipa_webui.templates',
+        'ipawebui',
+        'ipawebui.templates',
     ],
     package_data={
-        'ipa_webui.templates': ['*.kid'],
-        'ipa_webui': ['static/*'],
+        'ipawebui.templates': ['*.kid'],
+        'ipawebui': ['static/*'],
     },
     scripts=['ipa'],
 )

@@ -17,10 +17,10 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Test the `ipa_webui.controller` module.
+Test the `ipawebui.controller` module.
 """
 
-from ipa_webui import controller
+from ipawebui import controller
 
 
 
@@ -31,7 +31,7 @@ class test_Controller(object):
 
     def test_init(self):
         """
-        Test the `ipa_webui.controller.Controller.__init__()` method.
+        Test the `ipawebui.controller.Controller.__init__()` method.
         """
         o = controller.Controller()
         assert o.template is None
@@ -41,7 +41,7 @@ class test_Controller(object):
 
     def test_output_xhtml(self):
         """
-        Test the `ipa_webui.controller.Controller.output_xhtml` method.
+        Test the `ipawebui.controller.Controller.output_xhtml` method.
         """
         class Template(object):
             def __init__(self):
@@ -61,7 +61,7 @@ class test_Controller(object):
 
     def test_output_json(self):
         """
-        Test the `ipa_webui.controller.Controller.output_json` method.
+        Test the `ipawebui.controller.Controller.output_json` method.
         """
         o = controller.Controller()
         assert o.output_json() == '{}'
