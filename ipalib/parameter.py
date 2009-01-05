@@ -556,3 +556,36 @@ class Str(Bytes):
         raise TypeError(
             'Can only implicitly convert int, float, or bool; got %r' % value
         )
+
+    def _rule_minlength(self, _, name, value):
+        """
+        Check minlength constraint.
+        """
+        assert type(value) is unicode
+        if len(value) < self.minlength:
+            return _('%(name)s must be at least %(minlength)d characters') % dict(
+                name=name,
+                minlength=self.minlength,
+            )
+
+    def _rule_maxlength(self, _, name, value):
+        """
+        Check maxlength constraint.
+        """
+        assert type(value) is unicode
+        if len(value) > self.maxlength:
+            return _('%(name)s can be at most %(maxlength)d characters') % dict(
+                name=name,
+                maxlength=self.maxlength,
+            )
+
+    def _rule_length(self, _, name, value):
+        """
+        Check length constraint.
+        """
+        assert type(value) is unicode
+        if len(value) != self.length:
+            return _('%(name)s must be exactly %(length)d characters') % dict(
+                name=name,
+                length=self.length,
+            )
