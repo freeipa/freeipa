@@ -85,7 +85,7 @@ current block assignments:
 
             - **4001 - 4099**  Open for general execution errors
 
-            - **4100 - 4299**  `LDAPError` and its subclasses
+            - **4100 - 4199**  `LDAPError` and its subclasses
 
             - **4300 - 4999**  *Reserved for future use*
 
@@ -385,7 +385,7 @@ class AuthenticationError(PublicError):
 
 class KerberosError(AuthenticationError):
     """
-    **1100** Base class for Kerberos authorization errors (*1100 - 1199*).
+    **1100** Base class for Kerberos authentication errors (*1100 - 1199*).
     """
 
     code = 1100
@@ -484,7 +484,7 @@ class ValidationError(InvocationError):
 
 class ExecutionError(PublicError):
     """
-    **4000** Base class for execution/operation errors (*4000 - 4999*).
+    **4000** Base class for execution errors (*4000 - 4999*).
     """
 
     code = 4000
@@ -492,7 +492,7 @@ class ExecutionError(PublicError):
 
 class LDAPError(ExecutionError):
     """
-    **4100** Base class for LDAP execution errors (*4100 - 4299*).
+    **4100** Base class for LDAP execution errors (*4100 - 4199*).
     """
 
     code = 4100
