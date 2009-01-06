@@ -18,29 +18,82 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Custom exception classes.
+Custom exception classes (some which are RPC transparent).
 
-Certain errors can be returned in RPC response to relay some error condition
-to the caller.
+`PrivateError` and its subclasses are custom IPA excetions that will *never* be
+forwarded in a Remote Procedure Call (RPC) response.
+
+On the other hand, `PublicError` and its subclasses can be forwarded in an RPC
+response.  These public errors each carry a unique integer error code as well as
+a gettext translated error message (translated a the time the exception is
+raised).  The purpose of the public errors is to relay information about
+*expected* user errors, service availability errors, and so on.  They should
+*never* be used for *unexpected* programmatic or run-time errors.
+
+For security reasons it is *extremely* important that arbitrary exceptions *not*
+be forwarded in an RPC response.  Unexpected exceptions can easily contain
+compromising information in their error messages.  Any time the server catches
+any exception that isn't a `PublicError` subclass, it should raise an
+`InternalError`, which itself always has the same, static error message (and
+therefore cannot be populated with information about the true exception).
+
+The public errors are arranging into five main blocks of error code ranges:
 
     =============  ========================================
      Error codes                 Exceptions
     =============  ========================================
-    900            `PublicError`
-    901            `VersionError`
-    902            `InternalError`
-    903            `ServerInternalError`
-    904            `CommandError`
-    905            `ServerCommandError`
-    906            `NetworkError`
-    907            `ServerNetworkError`
-    908 - 999      *Reserved for future use*
     1000 - 1999    `AuthenticationError` and its subclasses
     2000 - 2999    `AuthorizationError` and its subclasses
     3000 - 3999    `InvocationError` and its subclasses
     4000 - 4999    `ExecutionError` and its subclasses
     5000 - 5999    `GenericError` and its subclasses
     =============  ========================================
+
+Within these five blocks some sub-ranges are already allocated for certain types
+of error messages, while others are reserved for future use.  Here are the
+current block assignments:
+
+    - **900-5999** `PublicError` and its subclasses
+
+        - **901 - 907**  Assigned to special top-level public errors
+
+        - **908 - 999**  *Reserved for future use*
+
+        - **1000 - 1999**  `AuthenticationError` and its subclasses
+
+            - **1001 - 1099**  Open for general authentication errors
+
+            - **1100 - 1199**  `KerberosError` and its subclasses
+
+            - **1200 - 1999**  *Reserved for future use*
+
+        - **2000 - 2999**  `AuthorizationError` and its subclasses
+
+            - **2001 - 2099**  Open for general authorization errors
+
+            - **2100 - 2199**  `ACIError` and its subclasses
+
+            - **2200 - 2999**  *Reserved for future use*
+
+        - **3000 - 3999**  `InvocationError` and its subclasses
+
+            - **3001 - 3099**  Open for general invocation errors
+
+            - **3100 - 3199**  *Reserved for future use*
+
+        - **4000 - 4999**  `ExecutionError` and its subclasses
+
+            - **4001 - 4099**  Open for general execution errors
+
+            - **4100 - 4299**  `LDAPError` and its subclasses
+
+            - **4300 - 4999**  *Reserved for future use*
+
+        - **5000 - 5999**  `GenericError` and its subclasses
+
+            - **5001 - 5099**  Open for generic errors
+
+            - **5100 - 5999**  *Reserved for future use*
 """
 
 from inspect import isclass
@@ -330,6 +383,14 @@ class AuthenticationError(PublicError):
     code = 1000
 
 
+class KerberosError(AuthenticationError):
+    """
+    **1100** Base class for Kerberos authorization errors (*1100 - 1199*).
+    """
+
+    code = 1100
+
+
 
 ##############################################################################
 # 2000 - 2999: Authorization errors
@@ -339,6 +400,14 @@ class AuthorizationError(PublicError):
     """
 
     code = 2000
+
+
+class ACIError(AuthorizationError):
+    """
+    **2100** Base class for ACI authorization errors (*2100 - 2199*).
+    """
+
+    code = 2100
 
 
 
@@ -419,6 +488,14 @@ class ExecutionError(PublicError):
     """
 
     code = 4000
+
+
+class LDAPError(ExecutionError):
+    """
+    **4100** Base class for LDAP execution errors (*4100 - 4299*).
+    """
+
+    code = 4100
 
 
 
