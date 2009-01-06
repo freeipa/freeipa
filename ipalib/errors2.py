@@ -25,7 +25,7 @@ forwarded in a Remote Procedure Call (RPC) response.
 
 On the other hand, `PublicError` and its subclasses can be forwarded in an RPC
 response.  These public errors each carry a unique integer error code as well as
-a gettext translated error message (translated a the time the exception is
+a gettext translated error message (translated at the time the exception is
 raised).  The purpose of the public errors is to relay information about
 *expected* user errors, service availability errors, and so on.  They should
 *never* be used for *unexpected* programmatic or run-time errors.
@@ -214,7 +214,7 @@ class PublicError(StandardError):
     **900** Base class for exceptions that can be forwarded in an RPC response.
     """
 
-    code = 900
+    errno = 900
 
     def __init__(self, message=None, **kw):
         if message is None:
@@ -249,7 +249,7 @@ class VersionError(PublicError):
 
     """
 
-    code = 901
+    errno = 901
 
     def get_format(self, _):
         return _(
@@ -269,7 +269,7 @@ class InternalError(PublicError):
     InternalError: an internal error has occured
     """
 
-    code = 902
+    errno = 902
 
     def __init__(self, message=None):
         """
@@ -293,7 +293,7 @@ class ServerInternalError(PublicError):
     ServerInternalError: an internal error has occured on server at 'https://localhost'
     """
 
-    code = 903
+    errno = 903
 
     def get_format(self, _):
         return _('an internal error has occured on server at %(server)r')
@@ -311,7 +311,7 @@ class CommandError(PublicError):
     CommandError: unknown command 'foobar'
     """
 
-    code = 904
+    errno = 904
 
     def get_format(self, _):
         return _('unknown command %(name)r')
@@ -330,7 +330,7 @@ class ServerCommandError(PublicError):
     ServerCommandError: error on server 'https://localhost': unknown command 'foobar'
     """
 
-    code = 905
+    errno = 905
 
     def get_format(self, _):
         return _('error on server %(server)r: %(error)s')
@@ -348,7 +348,7 @@ class NetworkError(PublicError):
     NetworkError: cannot connect to 'ldap://localhost:389'
     """
 
-    code = 906
+    errno = 906
 
     def get_format(self, _):
         return _('cannot connect to %(uri)r')
@@ -367,7 +367,7 @@ class ServerNetworkError(PublicError):
     ServerNetworkError: error on server 'https://localhost': cannot connect to 'ldap://localhost:389'
     """
 
-    code = 907
+    errno = 907
 
     def get_format(self, _):
         return _('error on server %(server)r: %(error)s')
@@ -380,7 +380,7 @@ class AuthenticationError(PublicError):
     **1000** Base class for authentication errors (*1000 - 1999*).
     """
 
-    code = 1000
+    errno = 1000
 
 
 class KerberosError(AuthenticationError):
@@ -388,7 +388,7 @@ class KerberosError(AuthenticationError):
     **1100** Base class for Kerberos authentication errors (*1100 - 1199*).
     """
 
-    code = 1100
+    errno = 1100
 
 
 
@@ -399,7 +399,7 @@ class AuthorizationError(PublicError):
     **2000** Base class for authorization errors (*2000 - 2999*).
     """
 
-    code = 2000
+    errno = 2000
 
 
 class ACIError(AuthorizationError):
@@ -407,7 +407,7 @@ class ACIError(AuthorizationError):
     **2100** Base class for ACI authorization errors (*2100 - 2199*).
     """
 
-    code = 2100
+    errno = 2100
 
 
 
@@ -419,7 +419,7 @@ class InvocationError(PublicError):
     **3000** Base class for command invocation errors (*3000 - 3999*).
     """
 
-    code = 3000
+    errno = 3000
 
 
 class EncodingError(InvocationError):
@@ -427,7 +427,7 @@ class EncodingError(InvocationError):
     **3001** Raised when received text is incorrectly encoded.
     """
 
-    code = 3001
+    errno = 3001
 
 
 class BinaryEncodingError(InvocationError):
@@ -435,7 +435,7 @@ class BinaryEncodingError(InvocationError):
     **3002** Raised when received binary data is incorrectly encoded.
     """
 
-    code = 3002
+    errno = 3002
 
 
 class ArgumentError(InvocationError):
@@ -443,7 +443,7 @@ class ArgumentError(InvocationError):
     **3003** Raised when a command is called with wrong number of arguments.
     """
 
-    code = 3003
+    errno = 3003
 
 
 class OptionError(InvocationError):
@@ -451,7 +451,7 @@ class OptionError(InvocationError):
     **3004** Raised when a command is called with unknown options.
     """
 
-    code = 3004
+    errno = 3004
 
 
 class RequirementError(InvocationError):
@@ -459,7 +459,7 @@ class RequirementError(InvocationError):
     **3005** Raised when a required parameter is not provided.
     """
 
-    code = 3005
+    errno = 3005
 
 
 class ConversionError(InvocationError):
@@ -467,7 +467,7 @@ class ConversionError(InvocationError):
     **3006** Raised when parameter value can't be converted to correct type.
     """
 
-    code = 3006
+    errno = 3006
 
 
 class ValidationError(InvocationError):
@@ -475,7 +475,7 @@ class ValidationError(InvocationError):
     **3007** Raised when a parameter value fails a validation rule.
     """
 
-    code = 3007
+    errno = 3007
 
 
 
@@ -487,7 +487,7 @@ class ExecutionError(PublicError):
     **4000** Base class for execution errors (*4000 - 4999*).
     """
 
-    code = 4000
+    errno = 4000
 
 
 class LDAPError(ExecutionError):
@@ -495,7 +495,7 @@ class LDAPError(ExecutionError):
     **4100** Base class for LDAP execution errors (*4100 - 4199*).
     """
 
-    code = 4100
+    errno = 4100
 
 
 
@@ -507,7 +507,7 @@ class GenericError(PublicError):
     **5000** Base class for errors that don't fit elsewhere (*5000 - 5999*).
     """
 
-    code = 5000
+    errno = 5000
 
 
 
@@ -522,7 +522,7 @@ def __errors_iter():
             yield value
 
 public_errors = tuple(
-    sorted(__errors_iter(), key=lambda E: E.code)
+    sorted(__errors_iter(), key=lambda E: E.errno)
 )
 
 if __name__ == '__main__':

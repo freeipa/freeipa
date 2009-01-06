@@ -196,8 +196,8 @@ class PublicExceptionTester(object):
         assert issubclass(self.__klass, StandardError)
         assert issubclass(self.__klass, errors2.PublicError)
         assert not issubclass(self.__klass, errors2.PrivateError)
-        assert type(self.__klass.code) is int
-        assert 900 <= self.__klass.code <= 5999
+        assert type(self.__klass.errno) is int
+        assert 900 <= self.__klass.errno <= 5999
         return self.__klass
     klass = property(__get_klass)
 
@@ -264,13 +264,13 @@ def test_public_errors():
         assert issubclass(klass, StandardError)
         assert issubclass(klass, errors2.PublicError)
         assert not issubclass(klass, errors2.PrivateError)
-        assert type(klass.code) is int
-        assert 900 <= klass.code <= 5999
+        assert type(klass.errno) is int
+        assert 900 <= klass.errno <= 5999
         doc = inspect.getdoc(klass)
         assert doc is not None, 'need class docstring for %s' % klass.__name__
         m = re.match(r'^\*{2}(\d+)\*{2} ', doc)
-        assert m is not None, "need '**CODE**' in %s docstring" % klass.__name__
-        code = int(m.group(1))
-        assert code == klass.code, (
-            'docstring=%r but code=%r in %s' % (code, klass.code, klass.__name__)
+        assert m is not None, "need '**ERRNO**' in %s docstring" % klass.__name__
+        errno = int(m.group(1))
+        assert errno == klass.errno, (
+            'docstring=%r but errno=%r in %s' % (errno, klass.errno, klass.__name__)
         )
