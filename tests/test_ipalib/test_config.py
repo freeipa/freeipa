@@ -30,7 +30,7 @@ from tests.util import getitem, setitem, delitem
 from tests.util import TempDir, TempHome
 from ipalib.constants import TYPE_ERROR, OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
 from ipalib.constants import NAME_REGEX, NAME_ERROR
-from ipalib import config, constants
+from ipalib import config, constants, base
 
 
 # Valid environment variables in (key, raw, value) tuples:
@@ -162,11 +162,30 @@ class test_Env(ClassChecker):
         Test the `ipalib.config.Env.__lock__` method.
         """
         o = self.cls()
-        assert o._Env__locked is False
+        assert o.__islocked__() is False
         o.__lock__()
-        assert o._Env__locked is True
+        assert o.__islocked__() is True
         e = raises(StandardError, o.__lock__)
         assert str(e) == 'Env.__lock__() already called'
+
+        # Also test with base.lock() function:
+        o = self.cls()
+        assert o.__islocked__() is False
+        assert base.lock(o) is o
+        assert o.__islocked__() is True
+        e = raises(AssertionError, base.lock, o)
+        assert str(e) == 'already locked: %r' % o
+
+    def test_islocked(self):
+        """
+        Test the `ipalib.config.Env.__islocked__` method.
+        """
+        o = self.cls()
+        assert o.__islocked__() is False
+        assert base.islocked(o) is False
+        o.__lock__()
+        assert o.__islocked__() is True
+        assert base.islocked(o) is True
 
     def test_setattr(self):
         """
