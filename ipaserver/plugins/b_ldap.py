@@ -50,6 +50,7 @@ class ldap(CrudBackend):
 
     def __init__(self):
         self.dn = _ldap.dn
+        super(ldap, self).__init__()
 
     def make_user_dn(self, uid):
         """
