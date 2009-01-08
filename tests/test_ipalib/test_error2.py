@@ -24,7 +24,7 @@ Test the `ipalib.error2` module.
 import re
 import inspect
 from tests.util import assert_equal, raises, dummy_ugettext
-from ipalib import errors2
+from ipalib import errors2, request
 from ipalib.constants import TYPE_ERROR
 
 
@@ -201,23 +201,21 @@ class PublicExceptionTester(object):
         return self.__klass
     klass = property(__get_klass)
 
-    def new(self, message=None, **kw):
+    def new(self, format=None, message=None, **kw):
         # Test that TypeError is raised if message isn't unicode:
-        e = raises(TypeError, self.klass, 'The message')
+        e = raises(TypeError, self.klass, message='The message')
         assert str(e) == TYPE_ERROR % ('message', unicode, 'The message', str)
 
         # Test the instance:
         for (key, value) in kw.iteritems():
             assert not hasattr(self.klass, key), key
-        inst = self.klass(message=message, **kw)
+        inst = self.klass(format=format, message=message, **kw)
         assert isinstance(inst, StandardError)
         assert isinstance(inst, errors2.PublicError)
         assert isinstance(inst, self.klass)
         assert not isinstance(inst, errors2.PrivateError)
         for (key, value) in kw.iteritems():
             assert getattr(inst, key) is value
-        assert str(inst) == inst.get_format(lambda m: m) % kw
-        assert inst.message == str(inst)
         return inst
 
 
@@ -231,35 +229,127 @@ class test_PublicError(PublicExceptionTester):
         """
         Test the `ipalib.errors2.PublicError.__init__` method.
         """
-        inst = self.klass(key1='Value 1', key2='Value 2')
-        assert inst.key1 == 'Value 1'
-        assert inst.key2 == 'Value 2'
-        assert str(inst) == ''
+        context = request.context
+        message = u'The translated, interpolated message'
+        format = 'key=%(key1)r and key2=%(key2)r'
+        uformat = u'Translated key=%(key1)r and key2=%(key2)r'
+        val1 = 'Value 1'
+        val2 = 'Value 2'
+        kw = dict(key1=val1, key2=val2)
 
-        # Test subclass and use of message, get_format():
-        class subclass(self.klass):
-            def get_format(self, _):
-                return _('%(true)r %(text)r %(number)r')
+        assert not hasattr(context, 'ugettext')
 
-        kw = dict(true=True, text='Hello!', number=18)
-        inst = subclass(**kw)
-        assert inst.true is True
-        assert inst.text is kw['text']
-        assert inst.number is kw['number']
-        assert_equal(inst.message, u'%(true)r %(text)r %(number)r' % kw)
+        # Test with format=str, message=None
+        dummy = dummy_ugettext(uformat)
+        context.ugettext = dummy
+        inst = self.klass(format, **kw)
+        assert dummy.message is format  # Means ugettext() called
+        assert inst.format is format
+        assert_equal(inst.message, format % kw)
+        assert_equal(inst.strerror, uformat % kw)
+        assert inst.forwarded is False
+        assert inst.key1 is val1
+        assert inst.key2 is val2
 
+        # Test with format=None, message=unicode
+        dummy = dummy_ugettext(uformat)
+        context.ugettext = dummy
+        inst = self.klass(message=message, **kw)
+        assert not hasattr(dummy, 'message')  # Means ugettext() not called
+        assert inst.format is None
+        assert inst.message is message
+        assert inst.strerror is message
+        assert inst.forwarded is True
+        assert inst.key1 is val1
+        assert inst.key2 is val2
+
+        # Test with format=None, message=str
+        e = raises(TypeError, self.klass, message='the message', **kw)
+        assert str(e) == TYPE_ERROR % ('message', unicode, 'the message', str)
+
+        # Test with format=None, message=None
+        e = raises(ValueError, self.klass, **kw)
+        assert str(e) == \
+            'PublicError.format is None yet format=None, message=None'
+
+
+        ######################################
         # Test via PublicExceptionTester.new()
-        inst = self.new(**kw)
+
+        # Test with format=str, message=None
+        dummy = dummy_ugettext(uformat)
+        context.ugettext = dummy
+        inst = self.new(format, **kw)
         assert isinstance(inst, self.klass)
+        assert dummy.message is format  # Means ugettext() called
+        assert inst.format is format
+        assert_equal(inst.message, format % kw)
+        assert_equal(inst.strerror, uformat % kw)
+        assert inst.forwarded is False
+        assert inst.key1 is val1
+        assert inst.key2 is val2
+
+        # Test with format=None, message=unicode
+        dummy = dummy_ugettext(uformat)
+        context.ugettext = dummy
+        inst = self.new(message=message, **kw)
+        assert isinstance(inst, self.klass)
+        assert not hasattr(dummy, 'message')  # Means ugettext() not called
+        assert inst.format is None
+        assert inst.message is message
+        assert inst.strerror is message
+        assert inst.forwarded is True
+        assert inst.key1 is val1
+        assert inst.key2 is val2
+
+
+        ##################
+        # Test a subclass:
+        class subclass(self.klass):
+            format = '%(true)r %(text)r %(number)r'
+
+        uformat = u'Translated %(true)r %(text)r %(number)r'
+        kw = dict(true=True, text='Hello!', number=18)
+
+        dummy = dummy_ugettext(uformat)
+        context.ugettext = dummy
+
+        # Test with format=str, message=None
+        e = raises(ValueError, subclass, format, **kw)
+        assert str(e) == 'non-generic %r needs format=None; got format=%r' % (
+            'subclass', format)
+
+        # Test with format=None, message=None:
+        inst = subclass(**kw)
+        assert dummy.message is subclass.format  # Means ugettext() called
+        assert inst.format is subclass.format
+        assert_equal(inst.message, subclass.format % kw)
+        assert_equal(inst.strerror, uformat % kw)
+        assert inst.forwarded is False
         assert inst.true is True
         assert inst.text is kw['text']
         assert inst.number is kw['number']
+
+        # Test with format=None, message=unicode:
+        dummy = dummy_ugettext(uformat)
+        context.ugettext = dummy
+        inst = subclass(message=message, **kw)
+        assert not hasattr(dummy, 'message')  # Means ugettext() not called
+        assert inst.format is subclass.format
+        assert inst.message is message
+        assert inst.strerror is message
+        assert inst.forwarded is True
+        assert inst.true is True
+        assert inst.text is kw['text']
+        assert inst.number is kw['number']
+        del context.ugettext
 
 
 def test_public_errors():
     """
     Test the `ipalib.errors2.public_errors` module variable.
     """
+    i = 0
     for klass in errors2.public_errors:
         assert issubclass(klass, StandardError)
         assert issubclass(klass, errors2.PublicError)
@@ -274,3 +364,8 @@ def test_public_errors():
         assert errno == klass.errno, (
             'docstring=%r but errno=%r in %s' % (errno, klass.errno, klass.__name__)
         )
+
+        # Test format
+        if klass.format is not None:
+            assert klass.format is errors2.__messages[i]
+            i += 1

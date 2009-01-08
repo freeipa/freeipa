@@ -209,31 +209,53 @@ class PluginMissingOverrideError(PrivateError):
 
 ##############################################################################
 # Public errors:
+
+__messages = []
+
+def _(message):
+    __messages.append(message)
+    return message
+
+
 class PublicError(StandardError):
     """
     **900** Base class for exceptions that can be forwarded in an RPC response.
     """
 
     errno = 900
+    format = None
 
-    def __init__(self, message=None, **kw):
-        if message is None:
-            message = self.get_format(ugettext) % kw
-            assert type(message) is unicode
-        elif type(message) is not unicode:
-            raise TypeError(
-                TYPE_ERROR % ('message', unicode, message, type(message))
+    def __init__(self, format=None, message=None, **kw):
+        name = self.__class__.__name__
+        if self.format is not None and format is not None:
+            raise ValueError(
+                'non-generic %r needs format=None; got format=%r' % (
+                    name, format)
             )
-        self.message = message
+        if message is None:
+            if self.format is None:
+                if format is None:
+                    raise ValueError(
+                        '%s.format is None yet format=None, message=None' % name
+                    )
+                self.format = format
+            self.forwarded = False
+            self.message = self.format % kw
+            self.strerror = ugettext(self.format) % kw
+        else:
+            if type(message) is not unicode:
+                raise TypeError(
+                    TYPE_ERROR % ('message', unicode, message, type(message))
+                )
+            self.forwarded = True
+            self.message = message
+            self.strerror = message
         for (key, value) in kw.iteritems():
             assert not hasattr(self, key), 'conflicting kwarg %s.%s = %r' % (
-                self.__class__.__name__, key, value,
+                name, key, value,
             )
             setattr(self, key, value)
-        StandardError.__init__(self, message)
-
-    def get_format(self, _):
-        return _('')
+        StandardError.__init__(self, self.message)
 
 
 class VersionError(PublicError):
@@ -250,11 +272,8 @@ class VersionError(PublicError):
     """
 
     errno = 901
+    format = _('%(cver)s client incompatible with %(sver)s server at %(server)r')
 
-    def get_format(self, _):
-        return _(
-            '%(cver)s client incompatible with %(sver)s server at %(server)r'
-        )
 
 
 class InternalError(PublicError):
@@ -270,15 +289,13 @@ class InternalError(PublicError):
     """
 
     errno = 902
+    format = _('an internal error has occured')
 
     def __init__(self, message=None):
         """
         Security issue: ignore any information given to constructor.
         """
-        PublicError.__init__(self, self.get_format(ugettext))
-
-    def get_format(self, _):
-        return _('an internal error has occured')
+        PublicError.__init__(self)
 
 
 class ServerInternalError(PublicError):
@@ -294,9 +311,7 @@ class ServerInternalError(PublicError):
     """
 
     errno = 903
-
-    def get_format(self, _):
-        return _('an internal error has occured on server at %(server)r')
+    format = _('an internal error has occured on server at %(server)r')
 
 
 class CommandError(PublicError):
@@ -312,9 +327,7 @@ class CommandError(PublicError):
     """
 
     errno = 904
-
-    def get_format(self, _):
-        return _('unknown command %(name)r')
+    format = _('unknown command %(name)r')
 
 
 class ServerCommandError(PublicError):
@@ -331,9 +344,7 @@ class ServerCommandError(PublicError):
     """
 
     errno = 905
-
-    def get_format(self, _):
-        return _('error on server %(server)r: %(error)s')
+    format = _('error on server %(server)r: %(error)s')
 
 
 class NetworkError(PublicError):
@@ -349,9 +360,7 @@ class NetworkError(PublicError):
     """
 
     errno = 906
-
-    def get_format(self, _):
-        return _('cannot connect to %(uri)r')
+    format = _('cannot connect to %(uri)r')
 
 
 class ServerNetworkError(PublicError):
@@ -368,9 +377,8 @@ class ServerNetworkError(PublicError):
     """
 
     errno = 907
+    format = _('error on server %(server)r: %(error)s')
 
-    def get_format(self, _):
-        return _('error on server %(server)r: %(error)s')
 
 
 ##############################################################################
