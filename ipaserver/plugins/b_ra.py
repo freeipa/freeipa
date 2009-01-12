@@ -327,7 +327,7 @@ class ra(Backend):
         if certificate_request is not None:
             params = urllib.urlencode({'profileId': 'caServerCert', 'cert_request_type': 'pkcs10', 'requestor_name': 'freeIPA', 'cert_request': self.__generate_ipa_request(), 'xmlOutput': 'true'})
             headers = {"Content-type": "application/x-www-form-urlencoded"}
-            conn = httplib.HTTPConnection(self.ca_host+":"+elf.ca_port)
+            conn = httplib.HTTPConnection(self.ca_host+":"+self.ca_port)
             conn.request("POST", "/ca/ee/ca/profileSubmit", params, headers)
             response = conn.getresponse()
             api.log.debug("IPA-RA: response.status: %d  response.reason: '%s'" % (response.status, response.reason))
@@ -338,7 +338,7 @@ class ra(Backend):
 
     def __get_ca_chain(self):
         headers = {"Content-type": "application/x-www-form-urlencoded"}
-        conn = httplib.HTTPConnection(self.ca_host+":"+elf.ca_port)
+        conn = httplib.HTTPConnection(self.ca_host+":"+self.ca_port)
         conn.request("POST", "/ca/ee/ca/getCertChain", None, headers)
         response = conn.getresponse()
         api.log.debug("IPA-RA: response.status: %d  response.reason: '%s'" % (response.status, response.reason))
