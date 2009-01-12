@@ -25,6 +25,7 @@ from types import NoneType
 from util import make_repr
 from request import ugettext
 from plugable import ReadOnly, lock, check_name
+from errors2 import RequirementError, ValidationError
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
 
 
@@ -207,6 +208,7 @@ class Param(ReadOnly):
         ('primary_key', bool, False),
         ('normalizer', callable, None),
         ('default_from', callable, None),
+        ('create_default', callable, None),
         ('flags', frozenset, frozenset()),
 
         # The 'default' kwarg gets appended in Param.__init__():
@@ -432,6 +434,39 @@ class Param(ReadOnly):
 
         :param value: A proposed value for this parameter.
         """
+        if value is None:
+            if self.required:
+                raise RequirementError(name=self.name)
+            return
+        if self.multivalue:
+            if type(value) is not tuple:
+                raise TypeError(
+                    TYPE_ERROR % ('value', tuple, value, type(value))
+                )
+            if len(value) < 1:
+                raise ValueError('value: empty tuple must be converted to None')
+            for (i, v) in enumerate(value):
+                self._validate_scalar(v, i)
+        else:
+            self._validate_scalar(value)
+
+    def _validate_scalar(self, value, index=None):
+        if type(value) is not self.type:
+            if index is None:
+                name = 'value'
+            else:
+                name = 'value[%d]' % index
+            raise TypeError(
+                TYPE_ERROR % (name, self.type, value, type(value))
+            )
+        if index is not None and type(index) is not int:
+            raise TypeError(
+                TYPE_ERROR % ('index', int, index, type(index))
+            )
+        for rule in self.all_rules:
+            error = rule(ugettext, value)
+            if error is not None:
+                raise ValidationError(name=self.name, error=error, index=index)
 
 
 class Bool(Param):

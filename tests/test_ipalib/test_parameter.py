@@ -21,10 +21,11 @@
 Test the `ipalib.parameter` module.
 """
 
+from types import NoneType
 from tests.util import raises, ClassChecker, read_only
 from tests.util import dummy_ugettext, assert_equal
 from tests.data import binary_bytes, utf8_bytes, unicode_str
-from ipalib import parameter, request
+from ipalib import parameter, request, errors2
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, NULLS
 
 
@@ -113,6 +114,20 @@ def test_parse_param_spec():
     assert str(e) == "spec must be at least 2 characters; got 'n'"
 
 
+class DummyRule(object):
+    def __init__(self, error=None):
+        assert error is None or type(error) is unicode
+        self.error = error
+        self.reset()
+
+    def __call__(self, *args):
+        self.calls.append(args)
+        return self.error
+
+    def reset(self):
+        self.calls = []
+
+
 class test_Param(ClassChecker):
     """
     Test the `ipalib.parameter.Param` class.
@@ -145,6 +160,7 @@ class test_Param(ClassChecker):
         assert o.normalizer is None
         assert o.default is None
         assert o.default_from is None
+        assert o.create_default is None
         assert o.flags == frozenset()
 
         # Test that ValueError is raised when a kwarg from a subclass
@@ -286,6 +302,130 @@ class test_Param(ClassChecker):
         o = Subclass('my_param')
         e = raises(NotImplementedError, o._convert_scalar, 'some value')
         assert str(e) == 'Subclass._convert_scalar()'
+
+    def test_validate(self):
+        """
+        Test the `ipalib.parameter.Param.validate` method.
+        """
+
+        # Test with required=True/False:
+        o = self.cls('my_param')
+        assert o.required is True
+        e = raises(errors2.RequirementError, o.validate, None)
+        assert e.name == 'my_param'
+        o = self.cls('my_param', required=False)
+        assert o.required is False
+        assert o.validate(None) is None
+
+        # Test with multivalue=True:
+        o = self.cls('my_param', multivalue=True)
+        e = raises(TypeError, o.validate, [])
+        assert str(e) == TYPE_ERROR % ('value', tuple, [], list)
+        e = raises(ValueError, o.validate, tuple())
+        assert str(e) == 'value: empty tuple must be converted to None'
+
+        # Test with wrong (scalar) type:
+        e = raises(TypeError, o.validate, (None, None, 42, None))
+        assert str(e) == TYPE_ERROR % ('value[2]', NoneType, 42, int)
+        o = self.cls('my_param')
+        e = raises(TypeError, o.validate, 'Hello')
+        assert str(e) == TYPE_ERROR % ('value', NoneType, 'Hello', str)
+
+        class Example(self.cls):
+            type = int
+
+        # Test with some rules and multivalue=False
+        pass1 = DummyRule()
+        pass2 = DummyRule()
+        fail = DummyRule(u'no good')
+        o = Example('example', pass1, pass2)
+        assert o.multivalue is False
+        assert o.validate(11) is None
+        assert pass1.calls == [(request.ugettext, 11)]
+        assert pass2.calls == [(request.ugettext, 11)]
+        pass1.reset()
+        pass2.reset()
+        o = Example('example', pass1, pass2, fail)
+        e = raises(errors2.ValidationError, o.validate, 42)
+        assert e.name == 'example'
+        assert e.error == u'no good'
+        assert e.index is None
+        assert pass1.calls == [(request.ugettext, 42)]
+        assert pass2.calls == [(request.ugettext, 42)]
+        assert fail.calls == [(request.ugettext, 42)]
+
+        # Test with some rules and multivalue=True
+        pass1 = DummyRule()
+        pass2 = DummyRule()
+        fail = DummyRule(u'this one is not good')
+        o = Example('example', pass1, pass2, multivalue=True)
+        assert o.multivalue is True
+        assert o.validate((3, 9)) is None
+        assert pass1.calls == [
+            (request.ugettext, 3),
+            (request.ugettext, 9),
+        ]
+        assert pass2.calls == [
+            (request.ugettext, 3),
+            (request.ugettext, 9),
+        ]
+        pass1.reset()
+        pass2.reset()
+        o = Example('multi_example', pass1, pass2, fail, multivalue=True)
+        assert o.multivalue is True
+        e = raises(errors2.ValidationError, o.validate, (3, 9))
+        assert e.name == 'multi_example'
+        assert e.error == u'this one is not good'
+        assert e.index == 0
+        assert pass1.calls == [(request.ugettext, 3)]
+        assert pass2.calls == [(request.ugettext, 3)]
+        assert fail.calls == [(request.ugettext, 3)]
+
+    def test_validate_scalar(self):
+        """
+        Test the `ipalib.parameter.Param._validate_scalar` method.
+        """
+        class MyParam(self.cls):
+            type = bool
+        okay = DummyRule()
+        o = MyParam('my_param', okay)
+
+        # Test that TypeError is appropriately raised:
+        e = raises(TypeError, o._validate_scalar, 0)
+        assert str(e) == TYPE_ERROR % ('value', bool, 0, int)
+        e = raises(TypeError, o._validate_scalar, 'Hi', index=4)
+        assert str(e) == TYPE_ERROR % ('value[4]', bool, 'Hi', str)
+        e = raises(TypeError, o._validate_scalar, True, index=3.0)
+        assert str(e) == TYPE_ERROR % ('index', int, 3.0, float)
+
+        # Test with passing rule:
+        assert o._validate_scalar(True, index=None) is None
+        assert o._validate_scalar(False, index=None) is None
+        assert okay.calls == [
+            (request.ugettext, True),
+            (request.ugettext, False),
+        ]
+
+        # Test with a failing rule:
+        okay = DummyRule()
+        fail = DummyRule(u'this describes the error')
+        o = MyParam('my_param', okay, fail)
+        e = raises(errors2.ValidationError, o._validate_scalar, True)
+        assert e.name == 'my_param'
+        assert e.error == u'this describes the error'
+        assert e.index is None
+        e = raises(errors2.ValidationError, o._validate_scalar, False, index=2)
+        assert e.name == 'my_param'
+        assert e.error == u'this describes the error'
+        assert e.index == 2
+        assert okay.calls == [
+            (request.ugettext, True),
+            (request.ugettext, False),
+        ]
+        assert fail.calls == [
+            (request.ugettext, True),
+            (request.ugettext, False),
+        ]
 
 
 class test_Bytes(ClassChecker):

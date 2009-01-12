@@ -465,9 +465,17 @@ class OptionError(InvocationError):
 class RequirementError(InvocationError):
     """
     **3005** Raised when a required parameter is not provided.
+
+    For example:
+
+    >>> raise RequirementError(name='givenname')
+    Traceback (most recent call last):
+      ...
+    RequirementError: 'givenname' is required
     """
 
     errno = 3005
+    format = _('%(name)r is required')
 
 
 class ConversionError(InvocationError):
@@ -481,9 +489,17 @@ class ConversionError(InvocationError):
 class ValidationError(InvocationError):
     """
     **3007** Raised when a parameter value fails a validation rule.
+
+    For example:
+
+    >>> raise ValidationError(name='sn', error='can be at most 128 characters')
+    Traceback (most recent call last):
+      ...
+    ValidationError: invalid 'sn': can be at most 128 characters
     """
 
     errno = 3007
+    format = _('invalid %(name)r: %(error)s')
 
 
 
