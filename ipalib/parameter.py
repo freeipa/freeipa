@@ -142,10 +142,10 @@ class DefaultFrom(ReadOnly):
 
 def parse_param_spec(spec):
     """
-    Parse a param spec into to (name, kw).
+    Parse shorthand ``spec`` into to ``(name, kw)``.
 
-    The ``spec`` string determines the param name, whether the param is
-    required, and whether the param is multivalue according the following
+    The ``spec`` string determines the parameter name, whether the parameter is
+    required, and whether the parameter is multivalue according the following
     syntax:
 
     ======  =====  ========  ==========
@@ -605,11 +605,15 @@ class Int(Param):
 
     """
 
+    type = int
+
 
 class Float(Param):
     """
 
     """
+
+    type = float
 
 
 class Bytes(Param):
@@ -752,3 +756,45 @@ class Str(Bytes):
                 name=name,
                 length=self.length,
             )
+
+
+def create_param(spec):
+    """
+    Create an `Str` instance from the shorthand ``spec``.
+
+    This function allows you to create `Str` parameters (the most common) from
+    a convenient shorthand that defines the parameter name, whether it is
+    required, and whether it is multivalue.  (For a definition shorthand
+    syntax, see the `parse_param_spec()` function.)
+
+    If ``spec`` is an ``str`` instance, it will be used to create a new `Str`
+    parameter, which will be returned.  For example:
+
+    >>> s = create_param('hometown?')
+    >>> s
+    Str('hometown?')
+    >>> (s.name, s.required, s.multivalue)
+    ('hometown', False, False)
+
+    On the other hand, if ``spec`` is already a `Param` instance, it is
+    returned unchanged.  For example:
+
+    >>> b = Bytes('cert')
+    >>> create_param(b) is b
+    True
+
+    As a plugin author, you will not call this function directly (which would
+    be no more convenient than simply creating the `Str` instance).  Instead,
+    `frontend.Command` will call it for you when it evaluates the
+    ``takes_args`` and ``takes_options`` attributes, and `frontend.Object`
+    will call it for you when it evaluates the ``takes_params`` attribute.
+
+    :param spec: A spec string or a `Param` instance.
+    """
+    if isinstance(spec, Param):
+        return spec
+    if type(spec) is not str:
+        raise TypeError(
+            TYPE_ERROR % ('spec', (str, Param), spec, type(spec))
+        )
+    return Str(spec)

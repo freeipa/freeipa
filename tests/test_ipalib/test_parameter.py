@@ -748,3 +748,35 @@ class test_Str(ClassChecker):
             assert dummy.message == \
                 '%(name)s must be exactly %(length)d characters'
             dummy = dummy_ugettext(translation)
+
+
+def test_create_param():
+    """
+    Test the `ipalib.parameter.create_param` function.
+    """
+    f = parameter.create_param
+
+    # Test that Param instances are returned unchanged:
+    params = (
+        parameter.Param('one?'),
+        parameter.Int('two+'),
+        parameter.Str('three*'),
+        parameter.Bytes('four'),
+    )
+    for p in params:
+        assert f(p) is p
+
+    # Test that the spec creates an Str instance:
+    for spec in ('one?', 'two+', 'three*', 'four'):
+        (name, kw) = parameter.parse_param_spec(spec)
+        p = f(spec)
+        assert p.param_spec is spec
+        assert p.name == name
+        assert p.required is kw['required']
+        assert p.multivalue is kw['multivalue']
+
+    # Test that TypeError is raised when spec is neither a Param nor a str:
+    for spec in (u'one', 42, parameter.Param, parameter.Str):
+        e = raises(TypeError, f, spec)
+        assert str(e) == \
+            TYPE_ERROR % ('spec', (str, parameter.Param), spec, type(spec))
