@@ -22,6 +22,7 @@ Test the `ipalib.parameter` module.
 """
 
 from types import NoneType
+from inspect import isclass
 from tests.util import raises, ClassChecker, read_only
 from tests.util import dummy_ugettext, assert_equal
 from tests.data import binary_bytes, utf8_bytes, unicode_str
@@ -315,14 +316,14 @@ class test_Param(ClassChecker):
         """
         Test the `ipalib.parameter.Param._convert_scalar` method.
         """
+        dummy = dummy_ugettext()
+
+        # Test with correct type:
         o = self.cls('my_param')
-        e = raises(NotImplementedError, o._convert_scalar, 'some value')
-        assert str(e) == 'Param._convert_scalar()'
-        class Subclass(self.cls):
-            pass
-        o = Subclass('my_param')
-        e = raises(NotImplementedError, o._convert_scalar, 'some value')
-        assert str(e) == 'Subclass._convert_scalar()'
+        assert o._convert_scalar(None) is None
+        assert dummy.called() is False
+        # Test with incorrect type
+        e = raises(errors2.ConversionError, o._convert_scalar, 'hello', index=17)
 
     def test_validate(self):
         """
@@ -782,3 +783,17 @@ def test_create_param():
         e = raises(TypeError, f, spec)
         assert str(e) == \
             TYPE_ERROR % ('spec', (str, parameter.Param), spec, type(spec))
+
+
+def test_messages():
+    """
+    Test module level message in `ipalib.parameter`.
+    """
+    for name in dir(parameter):
+        if name.startswith('_'):
+            continue
+        attr = getattr(parameter, name)
+        if not (isclass(attr) and issubclass(attr, parameter.Param)):
+            continue
+        assert type(attr.type_error) is str
+        assert attr.type_error in parameter.__messages

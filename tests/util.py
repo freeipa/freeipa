@@ -28,6 +28,7 @@ import tempfile
 import shutil
 import ipalib
 from ipalib.plugable import Plugin
+from ipalib.request import context
 
 
 
@@ -201,6 +202,14 @@ class ClassChecker(object):
             self.__class__.__name__,
             'get_subcls()'
         )
+
+    def tearDown(self):
+        """
+        nose tear-down fixture.
+        """
+        for name in ('ugettext', 'ungettext'):
+            if hasattr(context, name):
+                delattr(context, name)
 
 
 

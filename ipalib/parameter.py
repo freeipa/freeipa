@@ -25,7 +25,7 @@ from types import NoneType
 from util import make_repr
 from request import ugettext
 from plugable import ReadOnly, lock, check_name
-from errors2 import RequirementError, ValidationError
+from errors2 import ConversionError, RequirementError, ValidationError
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
 
 
@@ -189,6 +189,13 @@ def parse_param_spec(spec):
     return (spec, dict(required=True, multivalue=False))
 
 
+__messages = set()
+
+def _(message):
+    __messages.add(message)
+    return message
+
+
 class Param(ReadOnly):
     """
     Base class for all parameters.
@@ -198,6 +205,9 @@ class Param(ReadOnly):
     # unit tested directly without always creating a subclass; however, a real
     # (direct) subclass must *always* override this class attribute:
     type = NoneType  # Ouch, this wont be very useful in the real world!
+
+    # Subclasses should override this with something more specific:
+    type_error = _('incorrect type')
 
     kwargs = (
         ('cli_name', str, None),
@@ -436,10 +446,12 @@ class Param(ReadOnly):
 
     def _convert_scalar(self, value, index=None):
         """
-        Implement in subclass.
+        Convert a single scalar value.
         """
-        raise NotImplementedError(
-            '%s.%s()' % (self.__class__.__name__, '_convert_scalar')
+        if type(value) is self.type:
+            return value
+        raise ConversionError(name=self.name, index=index,
+            error=ugettext(self.type_error),
         )
 
     def validate(self, value):
@@ -602,10 +614,11 @@ class Bool(Param):
 
 class Int(Param):
     """
-
+    A parameter for integer values (stored in Python ``int`` type).
     """
 
     type = int
+    type_error = _('must be an integer')
 
 
 class Float(Param):
@@ -618,7 +631,7 @@ class Float(Param):
 
 class Bytes(Param):
     """
-    A parameter for binary data.
+    A parameter for binary data (stored in Python ``str`` type).
     """
 
     type = str
@@ -664,12 +677,6 @@ class Bytes(Param):
                         self.nice, self.minlength)
                 )
 
-    def _convert_scalar(self, value, index=None):
-        """
-        Implement in subclass.
-        """
-        return value
-
     def _rule_minlength(self, _, value):
         """
         Check minlength constraint.
@@ -703,7 +710,7 @@ class Bytes(Param):
 
 class Str(Bytes):
     """
-    A parameter for character (textual) data.
+    A parameter for character data (stored in Python ``unicode`` type).
     """
 
     type = unicode
@@ -756,8 +763,8 @@ def create_param(spec):
 
     This function allows you to create `Str` parameters (the most common) from
     a convenient shorthand that defines the parameter name, whether it is
-    required, and whether it is multivalue.  (For a definition shorthand
-    syntax, see the `parse_param_spec()` function.)
+    required, and whether it is multivalue.  (For the definition of the
+    shorthand syntax, see the `parse_param_spec()` function.)
 
     If ``spec`` is an ``str`` instance, it will be used to create a new `Str`
     parameter, which will be returned.  For example:

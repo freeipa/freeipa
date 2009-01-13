@@ -481,9 +481,17 @@ class RequirementError(InvocationError):
 class ConversionError(InvocationError):
     """
     **3006** Raised when parameter value can't be converted to correct type.
+
+    For example:
+
+    >>> raise ConversionError(name='age', error='must be an integer')
+    Traceback (most recent call last):
+      ...
+    ConversionError: invalid 'age': must be an integer
     """
 
     errno = 3006
+    format = _('invalid %(name)r: %(error)s')
 
 
 class ValidationError(InvocationError):
