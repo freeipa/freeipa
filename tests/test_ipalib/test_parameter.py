@@ -161,6 +161,7 @@ class test_Param(ClassChecker):
         assert o.default is None
         assert o.default_from is None
         assert o.create_default is None
+        assert o._get_default is None
         assert o.flags == frozenset()
 
         # Test that ValueError is raised when a kwarg from a subclass
@@ -204,6 +205,26 @@ class test_Param(ClassChecker):
         e = raises(TypeError, self.cls, 'my_param', great='Yes', ape='he is!')
         assert str(e) == \
             "Param('my_param'): takes no such kwargs: 'ape', 'great'"
+
+        # Test that ValueError is raised if you provide both default_from and
+        # create_default:
+        e = raises(ValueError, self.cls, 'my_param',
+            default_from=lambda first, last: first[0] + last,
+            create_default=lambda **kw: 'The Default'
+        )
+        assert str(e) == '%s: cannot have both %r and %r' % (
+            "Param('my_param')", 'default_from', 'create_default',
+        )
+
+        # Test that _get_default gets set:
+        call1 = lambda first, last: first[0] + last
+        call2 = lambda **kw: 'The Default'
+        o = self.cls('my_param', default_from=call1)
+        assert o.default_from.callback is call1
+        assert o._get_default is o.default_from
+        o = self.cls('my_param', create_default=call2)
+        assert o.create_default is call2
+        assert o._get_default is call2
 
     def test_repr(self):
         """
@@ -426,6 +447,64 @@ class test_Param(ClassChecker):
             (request.ugettext, True),
             (request.ugettext, False),
         ]
+
+    def test_get_default(self):
+        """
+        Test the `ipalib.parameter.Param._get_default` method.
+        """
+        class PassThrough(object):
+            value = None
+
+            def __call__(self, value):
+                assert self.value is None
+                assert value is not None
+                self.value = value
+                return value
+
+            def reset(self):
+                assert self.value is not None
+                self.value = None
+
+        class Str(self.cls):
+            type = unicode
+
+            def __init__(self, name, **kw):
+                self._convert_scalar = PassThrough()
+                super(Str, self).__init__(name, **kw)
+
+        # Test with only a static default:
+        o = Str('my_str',
+            normalizer=PassThrough(),
+            default=u'Static Default',
+        )
+        assert_equal(o.get_default(), u'Static Default')
+        assert o._convert_scalar.value is None
+        assert o.normalizer.value is None
+
+        # Test with default_from:
+        o = Str('my_str',
+            normalizer=PassThrough(),
+            default=u'Static Default',
+            default_from=lambda first, last: first[0] + last,
+        )
+        assert_equal(o.get_default(), u'Static Default')
+        assert o._convert_scalar.value is None
+        assert o.normalizer.value is None
+        default = o.get_default(first=u'john', last='doe')
+        assert_equal(default, u'jdoe')
+        assert o._convert_scalar.value is default
+        assert o.normalizer.value is default
+
+        # Test with create_default:
+        o = Str('my_str',
+            normalizer=PassThrough(),
+            default=u'Static Default',
+            create_default=lambda **kw: u'The created default',
+        )
+        default = o.get_default(first=u'john', last='doe')
+        assert_equal(default, u'The created default')
+        assert o._convert_scalar.value is default
+        assert o.normalizer.value is default
 
 
 class test_Bytes(ClassChecker):

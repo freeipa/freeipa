@@ -207,7 +207,7 @@ class Param(ReadOnly):
         ('multivalue', bool, False),
         ('primary_key', bool, False),
         ('normalizer', callable, None),
-        ('default_from', callable, None),
+        ('default_from', DefaultFrom, None),
         ('create_default', callable, None),
         ('flags', frozenset, frozenset()),
 
@@ -281,6 +281,20 @@ class Param(ReadOnly):
             if value is not None and hasattr(self, rule_name):
                 class_rules.append(getattr(self, rule_name))
         check_name(self.cli_name)
+
+        # Check that only default_from or create_default was provided:
+        assert not hasattr(self, '_get_default'), self.nice
+        if callable(self.default_from):
+            if callable(self.create_default):
+                raise ValueError(
+                    '%s: cannot have both %r and %r' % (
+                        self.nice, 'default_from', 'create_default')
+                )
+            self._get_default = self.default_from
+        elif callable(self.create_default):
+            self._get_default = self.create_default
+        else:
+            self._get_default = None
 
         # Check that all the rules are callable
         self.class_rules = tuple(class_rules)
@@ -468,6 +482,117 @@ class Param(ReadOnly):
             if error is not None:
                 raise ValidationError(name=self.name, error=error, index=index)
 
+    def get_default(self, **kw):
+        """
+        Return the static default or construct and return a dynamic default.
+
+        (In these examples, we will use the `Str` and `Bytes` classes, which
+        both subclass from `Param`.)
+
+        The *default* static default is ``None``.  For example:
+
+        >>> s = Str('my_str')
+        >>> s.default is None
+        True
+        >>> s.get_default() is None
+        True
+
+        However, you can provide your own static default via the ``default``
+        keyword argument when you create your `Param` instance.  For example:
+
+        >>> s = Str('my_str', default=u'My Static Default')
+        >>> s.default
+        u'My Static Default'
+        >>> s.get_default()
+        u'My Static Default'
+
+        If you need to generate a dynamic default from other supplied parameter
+        values, provide a callback via the ``default_from`` keyword argument.
+        This callback will be automatically wrapped in a `DefaultFrom` instance
+        if it isn't one already (see the `DefaultFrom` class for all the gory
+        details).  For example:
+
+        >>> login = Str('login', default=u'my-static-login-default',
+        ...     default_from=lambda first, last: (first[0] + last).lower(),
+        ... )
+        >>> isinstance(login.default_from, DefaultFrom)
+        True
+        >>> login.default_from.keys
+        ('first', 'last')
+
+        Then when all the keys needed by the `DefaultFrom` instance are present,
+        the dynamic default is constructed and returned.  For example:
+
+        >>> kw = dict(last=u'Doe', first=u'John')
+        >>> login.get_default(**kw)
+        u'jdoe'
+
+        Or if any keys are missing, your *static* default is returned.
+        For example:
+
+        >>> kw = dict(first=u'John', department=u'Engineering')
+        >>> login.get_default(**kw)
+        u'my-static-login-default'
+
+        The second, less common way to construct a dynamic default is to provide
+        a callback via the ``create_default`` keyword argument.  Unlike a
+        ``default_from`` callback, your ``create_default`` callback will not get
+        wrapped in any dispatcher.  Instead, it will be called directly, which
+        means your callback must accept arbitrary keyword arguments, although
+        whether your callback utilises these values is up to your
+        implementation.  For example:
+
+        >>> def make_csr(**kw):
+        ...     print '  make_csr(%r)' % (kw,)  # Note output below
+        ...     return 'Certificate Signing Request'
+        ...
+        >>> csr = Bytes('csr', create_default=make_csr)
+
+        Your ``create_default`` callback will be called with whatever keyword
+        arguments are passed to `Param.get_default()`.  For example:
+
+        >>> kw = dict(arbitrary='Keyword', arguments='Here')
+        >>> csr.get_default(**kw)
+          make_csr({'arguments': 'Here', 'arbitrary': 'Keyword'})
+        'Certificate Signing Request'
+
+        And your ``create_default`` callback is called even if
+        `Param.get_default()` is called with *zero* keyword arguments.
+        For example:
+
+        >>> csr.get_default()
+          make_csr({})
+        'Certificate Signing Request'
+
+        The ``create_default`` callback will most likely be used as a
+        pre-execute hook to perform some special client-side operation.  For
+        example, the ``csr`` parameter above might make a call to
+        ``/usr/bin/openssl``.  However, often a ``create_default`` callback
+        could also be implemented as a ``default_from`` callback.  When this is
+        the case, a ``default_from`` callback should be used as they are more
+        structured and therefore less error-prone.
+
+        The ``default_from`` and ``create_default`` keyword arguments are
+        mutually exclusive.  If you provide both, a ``ValueError`` will be
+        raised.  For example:
+
+        >>> homedir = Str('home',
+        ...     default_from=lambda login: '/home/%s' % login,
+        ...     create_default=lambda **kw: '/lets/use/this',
+        ... )
+        Traceback (most recent call last):
+          ...
+        ValueError: Str('home'): cannot have both 'default_from' and 'create_default'
+        """
+        if self._get_default is not None:
+            default = self._get_default(**kw)
+            if default is not None:
+                try:
+                    return self.convert(self.normalize(default))
+                except StandardError:
+                    pass
+        return self.default
+
 
 class Bool(Param):
     """
@@ -535,6 +660,12 @@ class Bytes(Param):
                         self.nice, self.minlength)
                 )
 
+    def _convert_scalar(self, value, index=None):
+        """
+        Implement in subclass.
+        """
+        return value
+
     def _rule_minlength(self, _, name, value):
         """
         Check minlength constraint.
@@ -581,9 +712,6 @@ class Str(Bytes):
     kwargs = Bytes.kwargs[:-1] + (
         ('pattern', unicode, None),
     )
-
-    def __init__(self, name, **kw):
-        super(Str, self).__init__(name, **kw)
 
     def _convert_scalar(self, value, index=None):
         if type(value) in (self.type, int, float, bool):
