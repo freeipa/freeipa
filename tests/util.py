@@ -297,11 +297,23 @@ class dummy_ugettext(object):
         assert type(self.translation) is unicode
 
     def __call__(self, message):
-        assert type(message) is str
         assert self.__called is False
         self.__called = True
+        assert type(message) is str
+        assert not hasattr(self, 'message')
         self.message = message
+        assert type(self.translation) is unicode
         return self.translation
+
+    def called(self):
+        return self.__called
+
+    def reset(self):
+        assert type(self.translation) is unicode
+        assert type(self.message) is str
+        del self.message
+        assert self.__called is True
+        self.__called = False
 
 
 class dummy_ungettext(object):

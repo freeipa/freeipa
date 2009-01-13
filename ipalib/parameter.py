@@ -618,7 +618,7 @@ class Float(Param):
 
 class Bytes(Param):
     """
-
+    A parameter for binary data.
     """
 
     type = str
@@ -670,45 +670,40 @@ class Bytes(Param):
         """
         return value
 
-    def _rule_minlength(self, _, name, value):
+    def _rule_minlength(self, _, value):
         """
         Check minlength constraint.
         """
         assert type(value) is str
         if len(value) < self.minlength:
-            return _('%(name)s must be at least %(minlength)d bytes') % dict(
-                name=name,
+            return _('must be at least %(minlength)d bytes') % dict(
                 minlength=self.minlength,
             )
 
-    def _rule_maxlength(self, _, name, value):
+    def _rule_maxlength(self, _, value):
         """
         Check maxlength constraint.
         """
         assert type(value) is str
         if len(value) > self.maxlength:
-            return _('%(name)s can be at most %(maxlength)d bytes') % dict(
-                name=name,
+            return _('can be at most %(maxlength)d bytes') % dict(
                 maxlength=self.maxlength,
             )
 
-    def _rule_length(self, _, name, value):
+    def _rule_length(self, _, value):
         """
         Check length constraint.
         """
         assert type(value) is str
         if len(value) != self.length:
-            return _('%(name)s must be exactly %(length)d bytes') % dict(
-                name=name,
+            return _('must be exactly %(length)d bytes') % dict(
                 length=self.length,
             )
 
 
-
-
 class Str(Bytes):
     """
-
+    A parameter for character (textual) data.
     """
 
     type = unicode
@@ -724,36 +719,33 @@ class Str(Bytes):
             'Can only implicitly convert int, float, or bool; got %r' % value
         )
 
-    def _rule_minlength(self, _, name, value):
+    def _rule_minlength(self, _, value):
         """
         Check minlength constraint.
         """
         assert type(value) is unicode
         if len(value) < self.minlength:
-            return _('%(name)s must be at least %(minlength)d characters') % dict(
-                name=name,
+            return _('must be at least %(minlength)d characters') % dict(
                 minlength=self.minlength,
             )
 
-    def _rule_maxlength(self, _, name, value):
+    def _rule_maxlength(self, _, value):
         """
         Check maxlength constraint.
         """
         assert type(value) is unicode
         if len(value) > self.maxlength:
-            return _('%(name)s can be at most %(maxlength)d characters') % dict(
-                name=name,
+            return _('can be at most %(maxlength)d characters') % dict(
                 maxlength=self.maxlength,
             )
 
-    def _rule_length(self, _, name, value):
+    def _rule_length(self, _, value):
         """
         Check length constraint.
         """
         assert type(value) is unicode
         if len(value) != self.length:
-            return _('%(name)s must be exactly %(length)d characters') % dict(
-                name=name,
+            return _('must be exactly %(length)d characters') % dict(
                 length=self.length,
             )
 

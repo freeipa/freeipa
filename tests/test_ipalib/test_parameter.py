@@ -569,78 +569,79 @@ class test_Bytes(ClassChecker):
         """
         Test the `ipalib.parameter.Bytes._rule_minlength` method.
         """
-        name = 'My Bytes'
         o = self.cls('my_bytes', minlength=3)
         assert o.minlength == 3
-        m = o._rule_minlength
-        translation = u'name=%(name)r, minlength=%(minlength)r'
+        rule = o._rule_minlength
+        translation = u'minlength=%(minlength)r'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
         # Test with passing values:
         for value in ('abc', 'four', '12345'):
-            assert m(dummy, name, value) is None
-            assert not hasattr(dummy, 'message')
+            assert rule(dummy, value) is None
+            assert dummy.called() is False
 
-        # Test with a failing value:
-        assert_equal(
-            m(dummy, name, 'ab'),
-            translation % dict(name=name, minlength=3),
-        )
-        assert dummy.message == \
-            '%(name)s must be at least %(minlength)d bytes'
+        # Test with failing values:
+        for value in ('', 'a', '12'):
+            assert_equal(
+                rule(dummy, value),
+                translation % dict(minlength=3)
+            )
+            assert dummy.message == 'must be at least %(minlength)d bytes'
+            assert dummy.called() is True
+            dummy.reset()
 
     def test_rule_maxlength(self):
         """
         Test the `ipalib.parameter.Bytes._rule_maxlength` method.
         """
-        name = 'My Bytes'
         o = self.cls('my_bytes', maxlength=4)
         assert o.maxlength == 4
-        m = o._rule_maxlength
-        translation = u'name=%(name)r, maxlength=%(maxlength)r'
+        rule = o._rule_maxlength
+        translation = u'maxlength=%(maxlength)r'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
         # Test with passing values:
         for value in ('ab', '123', 'four'):
-            assert m(dummy, name, value) is None
-            assert not hasattr(dummy, 'message')
+            assert rule(dummy, value) is None
+            assert dummy.called() is False
 
-        # Test with a failing value:
-        assert_equal(
-            m(dummy, name, '12345'),
-            translation % dict(name=name, maxlength=4),
-        )
-        assert dummy.message == \
-            '%(name)s can be at most %(maxlength)d bytes'
+        # Test with failing values:
+        for value in ('12345', 'sixsix'):
+            assert_equal(
+                rule(dummy, value),
+                translation % dict(maxlength=4)
+            )
+            assert dummy.message == 'can be at most %(maxlength)d bytes'
+            assert dummy.called() is True
+            dummy.reset()
 
     def test_rule_length(self):
         """
         Test the `ipalib.parameter.Bytes._rule_length` method.
         """
-        name = 'My Bytes'
         o = self.cls('my_bytes', length=4)
         assert o.length == 4
-        m = o._rule_length
-        translation = u'name=%(name)r, length=%(length)r'
+        rule = o._rule_length
+        translation = u'length=%(length)r'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
         # Test with passing values:
         for value in ('1234', 'four'):
-            assert m(dummy, name, value) is None
-            assert not hasattr(dummy, 'message')
+            assert rule(dummy, value) is None
+            assert dummy.called() is False
 
         # Test with failing values:
-        for value in ('ab', '123', '12345', 'abcdef'):
+        for value in ('ab', '123', '12345', 'sixsix'):
             assert_equal(
-                m(dummy, name, value),
-                translation % dict(name=name, length=4),
+                rule(dummy, value),
+                translation % dict(length=4),
             )
-            assert dummy.message == \
-                '%(name)s must be exactly %(length)d bytes'
-            dummy = dummy_ugettext(translation)
+            assert dummy.message == 'must be exactly %(length)d bytes'
+            assert dummy.called() is True
+            dummy.reset()
 
 
 class test_Str(ClassChecker):
@@ -676,78 +677,79 @@ class test_Str(ClassChecker):
         """
         Test the `ipalib.parameter.Str._rule_minlength` method.
         """
-        name = 'My Str'
         o = self.cls('my_str', minlength=3)
         assert o.minlength == 3
-        m = o._rule_minlength
-        translation = u'name=%(name)r, minlength=%(minlength)r'
+        rule = o._rule_minlength
+        translation = u'minlength=%(minlength)r'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
         # Test with passing values:
         for value in (u'abc', u'four', u'12345'):
-            assert m(dummy, name, value) is None
-            assert not hasattr(dummy, 'message')
+            assert rule(dummy, value) is None
+            assert dummy.called() is False
 
-        # Test with a failing value:
-        assert_equal(
-            m(dummy, name, u'ab'),
-            translation % dict(name=name, minlength=3),
-        )
-        assert dummy.message == \
-            '%(name)s must be at least %(minlength)d characters'
+        # Test with failing values:
+        for value in (u'', u'a', u'12'):
+            assert_equal(
+                rule(dummy, value),
+                translation % dict(minlength=3)
+            )
+            assert dummy.message == 'must be at least %(minlength)d characters'
+            assert dummy.called() is True
+            dummy.reset()
 
     def test_rule_maxlength(self):
         """
         Test the `ipalib.parameter.Str._rule_maxlength` method.
         """
-        name = 'My Str'
         o = self.cls('my_str', maxlength=4)
         assert o.maxlength == 4
-        m = o._rule_maxlength
-        translation = u'name=%(name)r, maxlength=%(maxlength)r'
+        rule = o._rule_maxlength
+        translation = u'maxlength=%(maxlength)r'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
         # Test with passing values:
         for value in (u'ab', u'123', u'four'):
-            assert m(dummy, name, value) is None
-            assert not hasattr(dummy, 'message')
+            assert rule(dummy, value) is None
+            assert dummy.called() is False
 
-        # Test with a failing value:
-        assert_equal(
-            m(dummy, name, u'12345'),
-            translation % dict(name=name, maxlength=4),
-        )
-        assert dummy.message == \
-            '%(name)s can be at most %(maxlength)d characters'
+        # Test with failing values:
+        for value in (u'12345', u'sixsix'):
+            assert_equal(
+                rule(dummy, value),
+                translation % dict(maxlength=4)
+            )
+            assert dummy.message == 'can be at most %(maxlength)d characters'
+            assert dummy.called() is True
+            dummy.reset()
 
     def test_rule_length(self):
         """
         Test the `ipalib.parameter.Str._rule_length` method.
         """
-        name = 'My Str'
         o = self.cls('my_str', length=4)
         assert o.length == 4
-        m = o._rule_length
-        translation = u'name=%(name)r, length=%(length)r'
+        rule = o._rule_length
+        translation = u'length=%(length)r'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
         # Test with passing values:
         for value in (u'1234', u'four'):
-            assert m(dummy, name, value) is None
-            assert not hasattr(dummy, 'message')
+            assert rule(dummy, value) is None
+            assert dummy.called() is False
 
         # Test with failing values:
-        for value in (u'ab', u'123', u'12345', u'abcdef'):
+        for value in (u'ab', u'123', u'12345', u'sixsix'):
             assert_equal(
-                m(dummy, name, value),
-                translation % dict(name=name, length=4),
+                rule(dummy, value),
+                translation % dict(length=4),
             )
-            assert dummy.message == \
-                '%(name)s must be exactly %(length)d characters'
-            dummy = dummy_ugettext(translation)
+            assert dummy.message == 'must be exactly %(length)d characters'
+            assert dummy.called() is True
+            dummy.reset()
 
 
 def test_create_param():
