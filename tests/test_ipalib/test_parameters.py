@@ -164,6 +164,7 @@ class test_Param(ClassChecker):
         assert o.create_default is None
         assert o._get_default is None
         assert o.autofill is False
+        assert o.query is False
         assert o.flags == frozenset()
 
         # Test that ValueError is raised when a kwarg from a subclass
@@ -366,13 +367,19 @@ class test_Param(ClassChecker):
         Test the `ipalib.parameters.Param.validate` method.
         """
 
-        # Test with required=True/False:
+        # Test in default state (with no rules, no kwarg):
         o = self.cls('my_param')
-        assert o.required is True
         e = raises(errors2.RequirementError, o.validate, None)
         assert e.name == 'my_param'
+
+        # Test with required=False
         o = self.cls('my_param', required=False)
         assert o.required is False
+        assert o.validate(None) is None
+
+        # Test with query=True:
+        o = self.cls('my_param', query=True)
+        assert o.query is True
         assert o.validate(None) is None
 
         # Test with multivalue=True:

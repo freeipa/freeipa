@@ -50,13 +50,14 @@ class Del(frontend.Method):
         for option in self.takes_options:
             yield option
 
+
 class Mod(frontend.Method):
     def get_args(self):
         yield self.obj.primary_key
 
     def get_options(self):
         for param in self.obj.params_minus_pk():
-            yield param.clone(required=False)
+            yield param.clone(required=False, query=True)
         for option in self.takes_options:
             yield option
 
@@ -67,7 +68,7 @@ class Find(frontend.Method):
 
     def get_options(self):
         for param in self.obj.params_minus_pk():
-            yield param.clone(required=False)
+            yield param.clone(required=False, query=True)
         for option in self.takes_options:
             yield option
 

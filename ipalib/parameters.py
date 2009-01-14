@@ -229,6 +229,7 @@ class Param(ReadOnly):
         ('default_from', DefaultFrom, None),
         ('create_default', callable, None),
         ('autofill', bool, False),
+        ('query', bool, False),
         ('flags', frozenset, frozenset()),
 
         # The 'default' kwarg gets appended in Param.__init__():
@@ -489,6 +490,8 @@ class Param(ReadOnly):
 
         :param value: A proposed value for this parameter.
         """
+        if self.query:
+            return
         if value is None:
             if self.required:
                 raise RequirementError(name=self.name)
