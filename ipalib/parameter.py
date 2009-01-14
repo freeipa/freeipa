@@ -329,6 +329,14 @@ class Param(ReadOnly):
             **self.__kw
         )
 
+    def clone(self, **overrides):
+        """
+        Return a new `Param` instance similar to this one.
+        """
+        kw = dict(self.__clonekw)
+        kw.update(overrides)
+        return self.__class__(self.name, **kw)
+
     def get_label(self):
         """
         Return translated label using `request.ugettext`.

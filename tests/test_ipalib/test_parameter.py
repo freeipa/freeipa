@@ -239,6 +239,41 @@ class test_Param(ClassChecker):
         o = self.cls('name', multivalue=True)
         assert repr(o) == "Param('name', multivalue=True)"
 
+    def test_clone(self):
+        """
+        Test the `ipalib.parameter.Param.clone` method.
+        """
+        # Test with the defaults
+        orig = self.cls('my_param')
+        clone = orig.clone()
+        assert clone is not orig
+        assert type(clone) is self.cls
+        assert clone.name is orig.name
+        for (key, kind, default) in self.cls.kwargs:
+            assert getattr(clone, key) is getattr(orig, key)
+
+        # Test with a param spec:
+        orig = self.cls('my_param*')
+        assert orig.param_spec == 'my_param*'
+        clone = orig.clone()
+        assert clone.param_spec == 'my_param'
+        assert clone is not orig
+        assert type(clone) is self.cls
+        for (key, kind, default) in self.cls.kwargs:
+            assert getattr(clone, key) is getattr(orig, key)
+
+        # Test with overrides:
+        orig = self.cls('my_param*')
+        assert orig.required is False
+        assert orig.multivalue is True
+        clone = orig.clone(required=True)
+        assert clone is not orig
+        assert type(clone) is self.cls
+        assert clone.required is True
+        assert clone.multivalue is True
+        assert clone.param_spec == 'my_param'
+        assert clone.name == 'my_param'
+
     def test_get_label(self):
         """
         Test the `ipalib.parameter.get_label` method.
