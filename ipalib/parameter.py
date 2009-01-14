@@ -409,8 +409,8 @@ class Param(ReadOnly):
         multivalue parameter.  For example:
 
         >>> multi = Str('my_multi', multivalue=True)
-        >>> multi.convert([True, '', 17, None, False])
-        (u'True', u'17', u'False')
+        >>> multi.convert([1.5, '', 17, None, u'Hello'])
+        (u'1.5', u'17', u'Hello')
         >>> multi.convert([None, u'']) is None  # Filters to an empty list
         True
 
@@ -419,8 +419,8 @@ class Param(ReadOnly):
 
         >>> multi.convert(42)  # Called with a scalar value
         (u'42',)
-        >>> multi.convert([True, False])  # Called with a list value
-        (u'True', u'False')
+        >>> multi.convert([0, 1])  # Called with a list value
+        (u'0', u'1')
 
         Note that how values are converted (and from what types they will be
         converted) completely depends upon how a subclass implements its
@@ -436,7 +436,7 @@ class Param(ReadOnly):
                 value = (value,)
             values = tuple(
                 self._convert_scalar(v, i) for (i, v) in filter(
-                    lambda tup: tup[1] not in NULLS, enumerate(value)
+                    lambda iv: iv[1] not in NULLS, enumerate(value)
                 )
             )
             if len(values) == 0:
@@ -608,13 +608,13 @@ class Param(ReadOnly):
 
 class Bool(Param):
     """
-
+    A parameter for boolean values (stored in the ``bool`` type).
     """
 
 
 class Int(Param):
     """
-    A parameter for integer values (stored in Python ``int`` type).
+    A parameter for integer values (stored in the ``int`` type).
     """
 
     type = int
@@ -623,7 +623,7 @@ class Int(Param):
 
 class Float(Param):
     """
-
+    A parameter for floating-point values (stored in the ``float`` type).
     """
 
     type = float
@@ -631,7 +631,12 @@ class Float(Param):
 
 class Bytes(Param):
     """
-    A parameter for binary data (stored in Python ``str`` type).
+    A parameter for binary data (stored in the ``str`` type).
+
+    This class is named *Bytes* instead of *Str* so it's aligned with the
+    Python v3 ``(str, unicode) => (bytes, str)`` clean-up.  See:
+
+        http://docs.python.org/3.0/whatsnew/3.0.html
     """
 
     type = str
@@ -710,20 +715,31 @@ class Bytes(Param):
 
 class Str(Bytes):
     """
-    A parameter for character data (stored in Python ``unicode`` type).
+    A parameter for Unicode text (stored in the``unicode`` type).
+
+    This class is named *Str* instead of *Unicode* so it's aligned with the
+    Python v3 ``(str, unicode) => (bytes, str)`` clean-up.  See:
+
+        http://docs.python.org/3.0/whatsnew/3.0.html
     """
 
     type = unicode
+    type_error = _('must be Unicode text')
 
     kwargs = Bytes.kwargs[:-1] + (
         ('pattern', unicode, None),
     )
 
     def _convert_scalar(self, value, index=None):
-        if type(value) in (self.type, int, float, bool):
+        """
+        Convert a single scalar value.
+        """
+        if type(value) is self.type:
+            return value
+        if type(value) in (int, float):
             return self.type(value)
-        raise TypeError(
-            'Can only implicitly convert int, float, or bool; got %r' % value
+        raise ConversionError(name=self.name, index=index,
+            error=ugettext(self.type_error),
         )
 
     def _rule_minlength(self, _, value):

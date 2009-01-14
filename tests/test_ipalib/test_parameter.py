@@ -667,12 +667,18 @@ class test_Str(ClassChecker):
         Test the `ipalib.parameter.Str._convert_scalar` method.
         """
         o = self.cls('my_str')
-        for value in (u'Hello', 42, 1.2, True):
-            assert o._convert_scalar(value) == unicode(value)
-        for value in ('Hello', (None,), [u'42', '42'], dict(hello=u'world')):
-            e = raises(TypeError, o._convert_scalar, value)
-            assert str(e) == \
-                'Can only implicitly convert int, float, or bool; got %r' % value
+        mthd = o._convert_scalar
+        for value in (u'Hello', 42, 1.2):
+            assert mthd(value) == unicode(value)
+        for value in [True, 'Hello', (u'Hello',), [42.3], dict(one=1)]:
+            e = raises(errors2.ConversionError, mthd, value)
+            assert e.name == 'my_str'
+            assert e.index is None
+            assert_equal(e.error, u'must be Unicode text')
+            e = raises(errors2.ConversionError, mthd, value, index=18)
+            assert e.name == 'my_str'
+            assert e.index == 18
+            assert_equal(e.error, u'must be Unicode text')
 
     def test_rule_minlength(self):
         """
