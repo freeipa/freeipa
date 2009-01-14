@@ -632,6 +632,7 @@ class Bool(Param):
     """
 
     type = bool
+    type_error = _('must be True or False')
 
 
 class Flag(Bool):
@@ -645,16 +646,23 @@ class Flag(Bool):
 
     For example:
 
-    >>> Flag('my_flag')
-    Flag('my_flag', autofill=True, default=False)
-    >>> Flag('my_flag', default=True)  # Do this for default of True
-    Flag('my_flag', autofill=True, default=True)
+    >>> flag = Flag('my_flag')
+    >>> (flag.autofill, flag.default)
+    (True, False)
+
+    To have a default value of ``True``, create your `Flag` intance with
+    ``default=True``.  For example:
+
+    >>> flag = Flag('my_flag', default=True)
+    >>> (flag.autofill, flag.default)
+    (True, True)
 
     Also note that creating a `Flag` instance with ``autofill=False`` will have
     no effect.  For example:
 
-    >>> Flag('my_flag', autofill=False)  # autofill will still be True
-    Flag('my_flag', autofill=True, default=False)
+    >>> flag = Flag('my_flag', autofill=False)
+    >>> flag.autofill
+    True
     """
 
     def __init__(self, name, *rules, **kw):
