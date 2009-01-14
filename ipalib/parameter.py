@@ -219,6 +219,7 @@ class Param(ReadOnly):
         ('normalizer', callable, None),
         ('default_from', DefaultFrom, None),
         ('create_default', callable, None),
+        ('autofill', bool, False),
         ('flags', frozenset, frozenset()),
 
         # The 'default' kwarg gets appended in Param.__init__():
@@ -328,6 +329,17 @@ class Param(ReadOnly):
             self.param_spec,
             **self.__kw
         )
+
+    def __call__(self, value, **kw):
+        """
+        One stop shopping.
+        """
+        if value in NULLS:
+            value = self.get_default(**kw)
+        else:
+            value = self.convert(self.normalize(value))
+        self.validate(value)
+        return value
 
     def clone(self, **overrides):
         """
@@ -619,6 +631,20 @@ class Bool(Param):
     A parameter for boolean values (stored in the ``bool`` type).
     """
 
+    type = bool
+
+
+class Flag(Bool):
+    """
+    A boolean parameter that always gets filled in with a default value.
+
+    This `Bool` subclass forces ``autofill=True`` in `Flag.__init__()`.
+    """
+
+    def __init__(self, name, *rules, **kw):
+        kw['autofill'] = True
+        super(Flag, self).__init__(name, *rules, **kw)
+
 
 class Int(Param):
     """
@@ -635,6 +661,7 @@ class Float(Param):
     """
 
     type = float
+    type_error = _('must be a decimal number')
 
 
 class Bytes(Param):
@@ -648,6 +675,7 @@ class Bytes(Param):
     """
 
     type = str
+    type_error = _('must be binary data')
 
     kwargs = Param.kwargs + (
         ('minlength', int, None),
@@ -657,8 +685,8 @@ class Bytes(Param):
 
     )
 
-    def __init__(self, name, **kw):
-        super(Bytes, self).__init__(name, **kw)
+    def __init__(self, name, *rules, **kw):
+        super(Bytes, self).__init__(name, *rules, **kw)
 
         if not (
             self.length is None or

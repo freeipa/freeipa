@@ -163,6 +163,7 @@ class test_Param(ClassChecker):
         assert o.default_from is None
         assert o.create_default is None
         assert o._get_default is None
+        assert o.autofill is False
         assert o.flags == frozenset()
 
         # Test that ValueError is raised when a kwarg from a subclass
@@ -541,6 +542,33 @@ class test_Param(ClassChecker):
         assert_equal(default, u'The created default')
         assert o._convert_scalar.value is default
         assert o.normalizer.value is default
+
+
+class test_Flag(ClassChecker):
+    """
+    Test the `ipalib.parameter.Flag` class.
+    """
+    _cls = parameter.Flag
+
+    def test_init(self):
+        """
+        Test the `ipalib.parameter.Flag.__init__` method.
+        """
+        o = self.cls('my_flag')
+        assert o.type is bool
+        assert isinstance(o, parameter.Bool)
+        assert o.autofill is True
+
+        # Test with autofill=False
+        o = self.cls('my_flag', autofill=False)
+        assert o.autofill is True
+
+        # Test when cloning:
+        orig = self.cls('my_flag')
+        for clone in [orig.clone(), orig.clone(autofill=False)]:
+            assert clone.autofill is True
+            assert clone is not orig
+            assert type(clone) is self.cls
 
 
 class test_Bytes(ClassChecker):
