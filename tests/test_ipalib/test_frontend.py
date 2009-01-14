@@ -23,7 +23,7 @@ Test the `ipalib.frontend` module.
 
 from tests.util import raises, getitem, no_set, no_del, read_only
 from tests.util import check_TypeError, ClassChecker, create_test_api
-from ipalib import frontend, backend, plugable, errors, ipa_types, config
+from ipalib import frontend, backend, plugable, errors, parameters, config
 
 
 def test_RULE_FLAG():

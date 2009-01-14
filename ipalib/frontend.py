@@ -28,6 +28,7 @@ from plugable import lock, check_name
 import errors
 from errors import check_type, check_isinstance, raise_TypeError
 import parameters
+from parameters import create_param
 from util import make_repr
 
 

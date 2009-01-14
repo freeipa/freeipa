@@ -36,7 +36,6 @@ import frontend
 import backend
 import errors
 import plugable
-import ipa_types
 import util
 from constants import CLI_TAB
 
@@ -801,7 +800,7 @@ class CLI(object):
             )
             if 'password' in option.flags:
                 kw['action'] = 'store_true'
-            elif isinstance(option.type, ipa_types.Bool):
+            elif option.type is bool:
                 if option.default is True:
                     kw['action'] = 'store_false'
                 else:
