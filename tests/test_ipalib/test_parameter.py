@@ -554,21 +554,37 @@ class test_Flag(ClassChecker):
         """
         Test the `ipalib.parameter.Flag.__init__` method.
         """
+        # Test with no kwargs:
         o = self.cls('my_flag')
         assert o.type is bool
         assert isinstance(o, parameter.Bool)
         assert o.autofill is True
+        assert o.default is False
 
-        # Test with autofill=False
-        o = self.cls('my_flag', autofill=False)
+        # Test that TypeError is raise if default is not a bool:
+        e = raises(TypeError, self.cls, 'my_flag', default=None)
+        assert str(e) == TYPE_ERROR % ('default', bool, None, NoneType)
+
+        # Test with autofill=False, default=True
+        o = self.cls('my_flag', autofill=False, default=True)
         assert o.autofill is True
+        assert o.default is True
 
         # Test when cloning:
         orig = self.cls('my_flag')
         for clone in [orig.clone(), orig.clone(autofill=False)]:
             assert clone.autofill is True
+            assert clone.default is False
             assert clone is not orig
             assert type(clone) is self.cls
+
+        # Test when cloning with default=True/False
+        orig = self.cls('my_flag')
+        assert orig.clone().default is False
+        assert orig.clone(default=True).default is True
+        orig = self.cls('my_flag', default=True)
+        assert orig.clone().default is True
+        assert orig.clone(default=False).default is False
 
 
 class test_Bytes(ClassChecker):

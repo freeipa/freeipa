@@ -638,11 +638,34 @@ class Flag(Bool):
     """
     A boolean parameter that always gets filled in with a default value.
 
-    This `Bool` subclass forces ``autofill=True`` in `Flag.__init__()`.
+    This `Bool` subclass forces ``autofill=True`` in `Flag.__init__()`.  If no
+    default is provided, it also fills in a default value of ``False``.
+    Lastly, unlike the `Bool` class, the default must be either ``True`` or
+    ``False`` and cannot be ``None``.
+
+    For example:
+
+    >>> Flag('my_flag')
+    Flag('my_flag', autofill=True, default=False)
+    >>> Flag('my_flag', default=True)  # Do this for default of True
+    Flag('my_flag', autofill=True, default=True)
+
+    Also note that creating a `Flag` instance with ``autofill=False`` will have
+    no effect.  For example:
+
+    >>> Flag('my_flag', autofill=False)  # autofill will still be True
+    Flag('my_flag', autofill=True, default=False)
     """
 
     def __init__(self, name, *rules, **kw):
         kw['autofill'] = True
+        if 'default' not in kw:
+            kw['default'] = False
+        if type(kw['default']) is not bool:
+            default = kw['default']
+            raise TypeError(
+                TYPE_ERROR % ('default', bool, default, type(default))
+            )
         super(Flag, self).__init__(name, *rules, **kw)
 
 
@@ -751,7 +774,7 @@ class Bytes(Param):
 
 class Str(Bytes):
     """
-    A parameter for Unicode text (stored in the``unicode`` type).
+    A parameter for Unicode text (stored in the ``unicode`` type).
 
     This class is named *Str* instead of *Unicode* so it's aligned with the
     Python v3 ``(str, unicode) => (bytes, str)`` clean-up.  See:
