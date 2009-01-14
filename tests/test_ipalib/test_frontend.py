@@ -23,8 +23,9 @@ Test the `ipalib.frontend` module.
 
 from tests.util import raises, getitem, no_set, no_del, read_only
 from tests.util import check_TypeError, ClassChecker, create_test_api
+from tests.util import assert_equal
 from ipalib.constants import TYPE_ERROR
-from ipalib import frontend, backend, plugable, errors, parameters, config
+from ipalib import frontend, backend, plugable, errors2, errors, parameters, config
 
 
 def test_RULE_FLAG():
@@ -86,9 +87,9 @@ class test_Command(ClassChecker):
             def __init__(self, name):
                 self.name = name
 
-            def __call__(self, value):
+            def __call__(self, _, value):
                 if value != self.name:
-                    return 'must equal %s' % self.name
+                    return _('must equal %r') % self.name
 
         default_from = parameters.DefaultFrom(
                 lambda arg: arg,
@@ -98,11 +99,11 @@ class test_Command(ClassChecker):
 
         class example(self.cls):
             takes_options = (
-                frontend.Param('option0', Rule('option0'),
+                parameters.Str('option0', Rule('option0'),
                     normalizer=normalizer,
                     default_from=default_from,
                 ),
-                frontend.Param('option1', Rule('option1'),
+                parameters.Str('option1', Rule('option1'),
                     normalizer=normalizer,
                     default_from=default_from,
                 ),
@@ -224,17 +225,13 @@ class test_Command(ClassChecker):
         """
         assert 'convert' in self.cls.__public__ # Public
         kw = dict(
-            option0='option0',
-            option1='option1',
+            option0=u'1.5',
+            option1=u'7',
         )
-        expected = dict(kw)
-        expected.update(dict(option0=u'option0', option1=u'option1'))
         o = self.subcls()
         o.finalize()
         for (key, value) in o.convert(**kw).iteritems():
-            v = expected[key]
-            assert value == v
-            assert type(value) is type(v)
+            assert_equal(unicode(kw[key]), value)
 
     def test_normalize(self):
         """
@@ -266,7 +263,7 @@ class test_Command(ClassChecker):
         sub = self.subcls()
         sub.finalize()
 
-        # Check with valid args
+        # Check with valid values
         okay = dict(
             option0=u'option0',
             option1=u'option1',
@@ -274,13 +271,13 @@ class test_Command(ClassChecker):
         )
         sub.validate(**okay)
 
-        # Check with an invalid arg
+        # Check with an invalid value
         fail = dict(okay)
         fail['option0'] = u'whatever'
-        e = raises(errors.RuleError, sub.validate, **fail)
-        assert e.name == 'option0'
-        assert e.value == u'whatever'
-        assert e.error == 'must equal option0'
+        e = raises(errors2.ValidationError, sub.validate, **fail)
+        assert_equal(e.name, 'option0')
+        assert_equal(e.value, u'whatever')
+        assert_equal(e.error, u"must equal 'option0'")
         assert e.rule.__class__.__name__ == 'Rule'
         assert e.index is None
 

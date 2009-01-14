@@ -56,7 +56,7 @@ class Mod(frontend.Method):
 
     def get_options(self):
         for param in self.obj.params_minus_pk():
-            yield param.__clone__(required=False)
+            yield param.clone(required=False)
         for option in self.takes_options:
             yield option
 
@@ -67,7 +67,7 @@ class Find(frontend.Method):
 
     def get_options(self):
         for param in self.obj.params_minus_pk():
-            yield param.__clone__(required=False)
+            yield param.clone(required=False)
         for option in self.takes_options:
             yield option
 

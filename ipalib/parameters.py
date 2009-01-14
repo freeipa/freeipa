@@ -521,7 +521,13 @@ class Param(ReadOnly):
         for rule in self.all_rules:
             error = rule(ugettext, value)
             if error is not None:
-                raise ValidationError(name=self.name, error=error, index=index)
+                raise ValidationError(
+                    name=self.name,
+                    value=value,
+                    index=index,
+                    error=error,
+                    rule=rule,
+                )
 
     def get_default(self, **kw):
         """
