@@ -23,6 +23,7 @@ Test the `ipalib.frontend` module.
 
 from tests.util import raises, getitem, no_set, no_del, read_only
 from tests.util import check_TypeError, ClassChecker, create_test_api
+from ipalib.constants import TYPE_ERROR
 from ipalib import frontend, backend, plugable, errors, parameters, config
 
 
@@ -89,24 +90,21 @@ class test_Command(ClassChecker):
                 if value != self.name:
                     return 'must equal %s' % self.name
 
-        default_from = frontend.DefaultFrom(
+        default_from = parameters.DefaultFrom(
                 lambda arg: arg,
                 'default_from'
         )
-        normalize = lambda value: value.lower()
+        normalizer = lambda value: value.lower()
 
         class example(self.cls):
             takes_options = (
-                frontend.Param('option0',
-                    normalize=normalize,
+                frontend.Param('option0', Rule('option0'),
+                    normalizer=normalizer,
                     default_from=default_from,
-                    rules=(Rule('option0'),)
                 ),
-                frontend.Param('option1',
-                    normalize=normalize,
+                frontend.Param('option1', Rule('option1'),
+                    normalizer=normalizer,
                     default_from=default_from,
-                    rules=(Rule('option1'),),
-                    required=True,
                 ),
             )
         return example
@@ -163,8 +161,8 @@ class test_Command(ClassChecker):
         assert type(ns) is plugable.NameSpace
         assert len(ns) == len(args)
         assert list(ns) == ['destination', 'source']
-        assert type(ns.destination) is frontend.Param
-        assert type(ns.source) is frontend.Param
+        assert type(ns.destination) is parameters.Str
+        assert type(ns.source) is parameters.Str
         assert ns.destination.required is True
         assert ns.destination.multivalue is False
         assert ns.source.required is False
@@ -172,8 +170,8 @@ class test_Command(ClassChecker):
 
         # Test TypeError:
         e = raises(TypeError, self.get_instance, args=(u'whatever',))
-        assert str(e) == \
-            'create_param() takes %r or %r; got %r' % (str, frontend.Param, u'whatever')
+        assert str(e) == TYPE_ERROR % (
+            'spec', (str, parameters.Param), u'whatever', unicode)
 
         # Test ValueError, required after optional:
         e = raises(ValueError, self.get_instance, args=('arg1?', 'arg2'))
@@ -213,8 +211,8 @@ class test_Command(ClassChecker):
         assert type(ns) is plugable.NameSpace
         assert len(ns) == len(options)
         assert list(ns) == ['target', 'files']
-        assert type(ns.target) is frontend.Param
-        assert type(ns.files) is frontend.Param
+        assert type(ns.target) is parameters.Str
+        assert type(ns.files) is parameters.Str
         assert ns.target.required is True
         assert ns.target.multivalue is False
         assert ns.files.required is False
@@ -257,22 +255,7 @@ class test_Command(ClassChecker):
         Test the `ipalib.frontend.Command.get_default` method.
         """
         assert 'get_default' in self.cls.__public__ # Public
-        no_fill = dict(
-            option0='value0',
-            option1='value1',
-            whatever='hello world',
-        )
-        fill = dict(
-            default_from='the default',
-        )
-        default = dict(
-            option0='the default',
-            option1='the default',
-        )
-        sub = self.subcls()
-        sub.finalize()
-        assert sub.get_default(**no_fill) == {}
-        assert sub.get_default(**fill) == default
+        # FIXME: Add an updated unit tests for get_default()
 
     def test_validate(self):
         """
@@ -431,9 +414,9 @@ class test_LocalOrRemote(ClassChecker):
         api.finalize()
         cmd = api.Command.example
         assert cmd() == ('execute', (None,), dict(server=False))
-        assert cmd('var') == ('execute', (u'var',), dict(server=False))
+        assert cmd(u'var') == ('execute', (u'var',), dict(server=False))
         assert cmd(server=True) == ('forward', (None,), dict(server=True))
-        assert cmd('var', server=True) == \
+        assert cmd(u'var', server=True) == \
             ('forward', (u'var',), dict(server=True))
 
         # Test when in_server=True (should always call execute):
@@ -442,9 +425,9 @@ class test_LocalOrRemote(ClassChecker):
         api.finalize()
         cmd = api.Command.example
         assert cmd() == ('execute', (None,), dict(server=False))
-        assert cmd('var') == ('execute', (u'var',), dict(server=False))
+        assert cmd(u'var') == ('execute', (u'var',), dict(server=False))
         assert cmd(server=True) == ('execute', (None,), dict(server=True))
-        assert cmd('var', server=True) == \
+        assert cmd(u'var', server=True) == \
             ('execute', (u'var',), dict(server=True))
 
 
@@ -560,7 +543,7 @@ class test_Object(ClassChecker):
         assert len(ns) == 2, repr(ns)
         assert list(ns) == ['banana', 'apple']
         for p in ns():
-            assert type(p) is frontend.Param
+            assert type(p) is parameters.Str
             assert p.required is True
             assert p.multivalue is False
 
@@ -587,15 +570,13 @@ class test_Object(ClassChecker):
             takes_params = (
                 'one',
                 'two',
-                frontend.Param('three',
-                    primary_key=True,
-                ),
+                parameters.Str('three', primary_key=True),
                 'four',
             )
         o = example2()
         o.set_api(api)
         pk = o.primary_key
-        assert isinstance(pk, frontend.Param)
+        assert type(pk) is parameters.Str
         assert pk.name == 'three'
         assert pk.primary_key is True
         assert o.params[2] is o.primary_key
@@ -605,10 +586,10 @@ class test_Object(ClassChecker):
         # Test with multiple primary_key:
         class example3(self.cls):
             takes_params = (
-                frontend.Param('one', primary_key=True),
-                frontend.Param('two', primary_key=True),
+                parameters.Str('one', primary_key=True),
+                parameters.Str('two', primary_key=True),
                 'three',
-                frontend.Param('four', primary_key=True),
+                parameters.Str('four', primary_key=True),
             )
         o = example3()
         e = raises(ValueError, o.set_api, api)
@@ -741,12 +722,7 @@ class test_Property(ClassChecker):
         Test the `ipalib.frontend.Property` class.
         """
         assert self.cls.__bases__ == (frontend.Attribute,)
-        assert isinstance(self.cls.type, ipa_types.Unicode)
-        assert self.cls.required is False
-        assert self.cls.multivalue is False
-        assert self.cls.default is None
-        assert self.cls.default_from is None
-        assert self.cls.normalize is None
+        assert self.cls.klass is parameters.Str
 
     def test_init(self):
         """
@@ -756,7 +732,7 @@ class test_Property(ClassChecker):
         assert len(o.rules) == 1
         assert o.rules[0].__name__ == 'rule0_lowercase'
         param = o.param
-        assert isinstance(param, frontend.Param)
+        assert isinstance(param, parameters.Str)
         assert param.name == 'givenname'
         assert param.doc == 'User first name'
 

@@ -28,7 +28,7 @@ from plugable import lock, check_name
 import errors
 from errors import check_type, check_isinstance, raise_TypeError
 import parameters
-from parameters import create_param
+from parameters import create_param, Param
 from util import make_repr
 
 
@@ -217,13 +217,12 @@ class Command(plugable.Plugin):
         Generator method used by `Command.get_default`.
         """
         for param in self.params():
-            if kw.get(param.name, None) is None:
-                if param.required:
-                    yield (param.name, param.get_default(**kw))
-                elif isinstance(param.type, ipa_types.Bool):
-                    yield (param.name, param.default)
-                else:
-                    yield (param.name, None)
+            if param.name in kw:
+                continue
+            if param.required or param.autofill:
+                default = param.get_default(**kw)
+                if default is not None:
+                    yield (param.name, default)
 
     def validate(self, **kw):
         """
@@ -454,7 +453,7 @@ class Object(plugable.Plugin):
             if type(spec) is str:
                 key = spec.rstrip('?*+')
             else:
-                assert type(spec) is Param
+                assert isinstance(spec, Param)
                 key = spec.name
             if key in props:
                 yield props.pop(key).param
@@ -618,29 +617,26 @@ class Property(Attribute):
         'type',
     )).union(Attribute.__public__)
 
-    type = parameters.Str
-    required = False
-    multivalue = False
+    klass = parameters.Str
     default = None
     default_from = None
-    normalize = None
+    normalizer = None
 
     def __init__(self):
         super(Property, self).__init__()
-        self.rules = tuple(sorted(
-            self.__rules_iter(),
-            key=lambda f: getattr(f, '__name__'),
-        ))
-        self.param = Param(self.attr_name,
-            type=self.type,
-            doc=self.doc,
-            required=self.required,
-            multivalue=self.multivalue,
-            default=self.default,
-            default_from=self.default_from,
-            rules=self.rules,
-            normalize=self.normalize,
+        self.rules = tuple(
+            sorted(self.__rules_iter(), key=lambda f: getattr(f, '__name__'))
         )
+        self.kwargs = tuple(
+            sorted(self.__kw_iter(), key=lambda keyvalue: keyvalue[0])
+        )
+        kw = dict(self.kwargs)
+        self.param = self.klass(self.attr_name, *self.rules, **kw)
+
+    def __kw_iter(self):
+        for (key, kind, default) in self.klass.kwargs:
+            if getattr(self, key, None) is not None:
+                yield (key, getattr(self, key))
 
     def __rules_iter(self):
         """
