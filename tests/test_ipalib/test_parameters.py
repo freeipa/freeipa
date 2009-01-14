@@ -587,6 +587,59 @@ class test_Flag(ClassChecker):
         assert orig.clone(default=False).default is False
 
 
+class test_Data(ClassChecker):
+    """
+    Test the `ipalib.parameters.Data` class.
+    """
+    _cls = parameters.Data
+
+    def test_init(self):
+        """
+        Test the `ipalib.parameters.Data.__init__` method.
+        """
+        o = self.cls('my_data')
+        assert o.type is NoneType
+        assert o.rules == tuple()
+        assert o.class_rules == tuple()
+        assert o.all_rules == tuple()
+        assert o.minlength is None
+        assert o.maxlength is None
+        assert o.length is None
+        assert not hasattr(o, 'pattern')
+
+        # Test mixing length with minlength or maxlength:
+        o = self.cls('my_data', length=5)
+        assert o.length == 5
+        permutations = [
+            dict(minlength=3),
+            dict(maxlength=7),
+            dict(minlength=3, maxlength=7),
+        ]
+        for kw in permutations:
+            o = self.cls('my_data', **kw)
+            for (key, value) in kw.iteritems():
+                assert getattr(o, key) == value
+            e = raises(ValueError, self.cls, 'my_data', length=5, **kw)
+            assert str(e) == \
+                "Data('my_data'): cannot mix length with minlength or maxlength"
+
+        # Test when minlength or maxlength are less than 1:
+        e = raises(ValueError, self.cls, 'my_data', minlength=0)
+        assert str(e) == "Data('my_data'): minlength must be >= 1; got 0"
+        e = raises(ValueError, self.cls, 'my_data', maxlength=0)
+        assert str(e) == "Data('my_data'): maxlength must be >= 1; got 0"
+
+        # Test when minlength > maxlength:
+        e = raises(ValueError, self.cls, 'my_data', minlength=22, maxlength=15)
+        assert str(e) == \
+            "Data('my_data'): minlength > maxlength (minlength=22, maxlength=15)"
+
+        # Test when minlength == maxlength
+        e = raises(ValueError, self.cls, 'my_data', minlength=7, maxlength=7)
+        assert str(e) == \
+            "Data('my_data'): minlength == maxlength; use length=7 instead"
+
+
 class test_Bytes(ClassChecker):
     """
     Test the `ipalib.parameters.Bytes` class.

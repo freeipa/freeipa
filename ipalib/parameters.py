@@ -19,6 +19,16 @@
 
 """
 Parameter system for command plugins.
+
+TODO:
+
+  * Change rule call signature to rule(_, value, **kw) so that rules can also
+    validate relative to other parameter values (e.g., login name as it relates
+    to first name and last name)
+
+  * Add the _rule_pattern() methods to `Bytes` and `Str`
+
+  * Add maxvalue, minvalue kwargs and rules to `Int` and `Float`
 """
 
 from types import NoneType
@@ -27,7 +37,6 @@ from request import ugettext
 from plugable import ReadOnly, lock, check_name
 from errors2 import ConversionError, RequirementError, ValidationError
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
-
 
 class DefaultFrom(ReadOnly):
     """
@@ -695,29 +704,23 @@ class Float(Param):
     type_error = _('must be a decimal number')
 
 
-class Bytes(Param):
+class Data(Param):
     """
-    A parameter for binary data (stored in the ``str`` type).
+    Base class for the `Bytes` and `Str` parameters.
 
-    This class is named *Bytes* instead of *Str* so it's aligned with the
-    Python v3 ``(str, unicode) => (bytes, str)`` clean-up.  See:
-
-        http://docs.python.org/3.0/whatsnew/3.0.html
+    Previously `Str` was as subclass of `Bytes`.  Now the common functionality
+    has been split into this base class so that ``isinstance(foo, Bytes)`` wont
+    be ``True`` when ``foo`` is actually an `Str` instance (which is confusing).
     """
-
-    type = str
-    type_error = _('must be binary data')
 
     kwargs = Param.kwargs + (
         ('minlength', int, None),
         ('maxlength', int, None),
         ('length', int, None),
-        ('pattern', str, None),
-
     )
 
     def __init__(self, name, *rules, **kw):
-        super(Bytes, self).__init__(name, *rules, **kw)
+        super(Data, self).__init__(name, *rules, **kw)
 
         if not (
             self.length is None or
@@ -748,6 +751,24 @@ class Bytes(Param):
                     '%s: minlength == maxlength; use length=%d instead' % (
                         self.nice, self.minlength)
                 )
+
+
+class Bytes(Data):
+    """
+    A parameter for binary data (stored in the ``str`` type).
+
+    This class is named *Bytes* instead of *Str* so it's aligned with the
+    Python v3 ``(str, unicode) => (bytes, str)`` clean-up.  See:
+
+        http://docs.python.org/3.0/whatsnew/3.0.html
+    """
+
+    type = str
+    type_error = _('must be binary data')
+
+    kwargs = Data.kwargs + (
+        ('pattern', str, None),
+    )
 
     def _rule_minlength(self, _, value):
         """
@@ -780,7 +801,7 @@ class Bytes(Param):
             )
 
 
-class Str(Bytes):
+class Str(Data):
     """
     A parameter for Unicode text (stored in the ``unicode`` type).
 
@@ -793,7 +814,7 @@ class Str(Bytes):
     type = unicode
     type_error = _('must be Unicode text')
 
-    kwargs = Bytes.kwargs[:-1] + (
+    kwargs = Data.kwargs + (
         ('pattern', unicode, None),
     )
 
