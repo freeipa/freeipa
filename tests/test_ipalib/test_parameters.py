@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Test the `ipalib.parameter` module.
+Test the `ipalib.parameters` module.
 """
 
 from types import NoneType
@@ -26,19 +26,19 @@ from inspect import isclass
 from tests.util import raises, ClassChecker, read_only
 from tests.util import dummy_ugettext, assert_equal
 from tests.data import binary_bytes, utf8_bytes, unicode_str
-from ipalib import parameter, request, errors2
+from ipalib import parameters, request, errors2
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, NULLS
 
 
 class test_DefaultFrom(ClassChecker):
     """
-    Test the `ipalib.parameter.DefaultFrom` class.
+    Test the `ipalib.parameters.DefaultFrom` class.
     """
-    _cls = parameter.DefaultFrom
+    _cls = parameters.DefaultFrom
 
     def test_init(self):
         """
-        Test the `ipalib.parameter.DefaultFrom.__init__` method.
+        Test the `ipalib.parameters.DefaultFrom.__init__` method.
         """
         def callback(*args):
             return args
@@ -60,7 +60,7 @@ class test_DefaultFrom(ClassChecker):
 
     def test_call(self):
         """
-        Test the `ipalib.parameter.DefaultFrom.__call__` method.
+        Test the `ipalib.parameters.DefaultFrom.__call__` method.
         """
         def callback(givenname, sn):
             return givenname[0] + sn[0]
@@ -95,9 +95,9 @@ class test_DefaultFrom(ClassChecker):
 
 def test_parse_param_spec():
     """
-    Test the `ipalib.parameter.parse_param_spec` function.
+    Test the `ipalib.parameters.parse_param_spec` function.
     """
-    f = parameter.parse_param_spec
+    f = parameters.parse_param_spec
     assert f('name') == ('name', dict(required=True, multivalue=False))
     assert f('name?') == ('name', dict(required=False, multivalue=False))
     assert f('name*') == ('name', dict(required=False, multivalue=True))
@@ -131,13 +131,13 @@ class DummyRule(object):
 
 class test_Param(ClassChecker):
     """
-    Test the `ipalib.parameter.Param` class.
+    Test the `ipalib.parameters.Param` class.
     """
-    _cls = parameter.Param
+    _cls = parameters.Param
 
     def test_init(self):
         """
-        Test the `ipalib.parameter.Param.__init__` method.
+        Test the `ipalib.parameters.Param.__init__` method.
         """
         name = 'my_param'
         o = self.cls(name)
@@ -230,7 +230,7 @@ class test_Param(ClassChecker):
 
     def test_repr(self):
         """
-        Test the `ipalib.parameter.Param.__repr__` method.
+        Test the `ipalib.parameters.Param.__repr__` method.
         """
         for name in ['name', 'name?', 'name*', 'name+']:
             o = self.cls(name)
@@ -242,7 +242,7 @@ class test_Param(ClassChecker):
 
     def test_clone(self):
         """
-        Test the `ipalib.parameter.Param.clone` method.
+        Test the `ipalib.parameters.Param.clone` method.
         """
         # Test with the defaults
         orig = self.cls('my_param')
@@ -277,7 +277,7 @@ class test_Param(ClassChecker):
 
     def test_get_label(self):
         """
-        Test the `ipalib.parameter.get_label` method.
+        Test the `ipalib.parameters.get_label` method.
         """
         context = request.context
         cli_name = 'the_cli_name'
@@ -321,7 +321,7 @@ class test_Param(ClassChecker):
 
     def test_convert(self):
         """
-        Test the `ipalib.parameter.Param.convert` method.
+        Test the `ipalib.parameters.Param.convert` method.
         """
         okay = ('Hello', u'Hello', 0, 4.2, True, False)
         class Subclass(self.cls):
@@ -350,7 +350,7 @@ class test_Param(ClassChecker):
 
     def test_convert_scalar(self):
         """
-        Test the `ipalib.parameter.Param._convert_scalar` method.
+        Test the `ipalib.parameters.Param._convert_scalar` method.
         """
         dummy = dummy_ugettext()
 
@@ -363,7 +363,7 @@ class test_Param(ClassChecker):
 
     def test_validate(self):
         """
-        Test the `ipalib.parameter.Param.validate` method.
+        Test the `ipalib.parameters.Param.validate` method.
         """
 
         # Test with required=True/False:
@@ -441,7 +441,7 @@ class test_Param(ClassChecker):
 
     def test_validate_scalar(self):
         """
-        Test the `ipalib.parameter.Param._validate_scalar` method.
+        Test the `ipalib.parameters.Param._validate_scalar` method.
         """
         class MyParam(self.cls):
             type = bool
@@ -487,7 +487,7 @@ class test_Param(ClassChecker):
 
     def test_get_default(self):
         """
-        Test the `ipalib.parameter.Param._get_default` method.
+        Test the `ipalib.parameters.Param._get_default` method.
         """
         class PassThrough(object):
             value = None
@@ -546,18 +546,18 @@ class test_Param(ClassChecker):
 
 class test_Flag(ClassChecker):
     """
-    Test the `ipalib.parameter.Flag` class.
+    Test the `ipalib.parameters.Flag` class.
     """
-    _cls = parameter.Flag
+    _cls = parameters.Flag
 
     def test_init(self):
         """
-        Test the `ipalib.parameter.Flag.__init__` method.
+        Test the `ipalib.parameters.Flag.__init__` method.
         """
         # Test with no kwargs:
         o = self.cls('my_flag')
         assert o.type is bool
-        assert isinstance(o, parameter.Bool)
+        assert isinstance(o, parameters.Bool)
         assert o.autofill is True
         assert o.default is False
 
@@ -589,13 +589,13 @@ class test_Flag(ClassChecker):
 
 class test_Bytes(ClassChecker):
     """
-    Test the `ipalib.parameter.Bytes` class.
+    Test the `ipalib.parameters.Bytes` class.
     """
-    _cls = parameter.Bytes
+    _cls = parameters.Bytes
 
     def test_init(self):
         """
-        Test the `ipalib.parameter.Bytes.__init__` method.
+        Test the `ipalib.parameters.Bytes.__init__` method.
         """
         o = self.cls('my_bytes')
         assert o.type is str
@@ -647,7 +647,7 @@ class test_Bytes(ClassChecker):
 
     def test_rule_minlength(self):
         """
-        Test the `ipalib.parameter.Bytes._rule_minlength` method.
+        Test the `ipalib.parameters.Bytes._rule_minlength` method.
         """
         o = self.cls('my_bytes', minlength=3)
         assert o.minlength == 3
@@ -673,7 +673,7 @@ class test_Bytes(ClassChecker):
 
     def test_rule_maxlength(self):
         """
-        Test the `ipalib.parameter.Bytes._rule_maxlength` method.
+        Test the `ipalib.parameters.Bytes._rule_maxlength` method.
         """
         o = self.cls('my_bytes', maxlength=4)
         assert o.maxlength == 4
@@ -699,7 +699,7 @@ class test_Bytes(ClassChecker):
 
     def test_rule_length(self):
         """
-        Test the `ipalib.parameter.Bytes._rule_length` method.
+        Test the `ipalib.parameters.Bytes._rule_length` method.
         """
         o = self.cls('my_bytes', length=4)
         assert o.length == 4
@@ -726,13 +726,13 @@ class test_Bytes(ClassChecker):
 
 class test_Str(ClassChecker):
     """
-    Test the `ipalib.parameter.Str` class.
+    Test the `ipalib.parameters.Str` class.
     """
-    _cls = parameter.Str
+    _cls = parameters.Str
 
     def test_init(self):
         """
-        Test the `ipalib.parameter.Str.__init__` method.
+        Test the `ipalib.parameters.Str.__init__` method.
         """
         o = self.cls('my_str')
         assert o.type is unicode
@@ -743,7 +743,7 @@ class test_Str(ClassChecker):
 
     def test_convert_scalar(self):
         """
-        Test the `ipalib.parameter.Str._convert_scalar` method.
+        Test the `ipalib.parameters.Str._convert_scalar` method.
         """
         o = self.cls('my_str')
         mthd = o._convert_scalar
@@ -761,7 +761,7 @@ class test_Str(ClassChecker):
 
     def test_rule_minlength(self):
         """
-        Test the `ipalib.parameter.Str._rule_minlength` method.
+        Test the `ipalib.parameters.Str._rule_minlength` method.
         """
         o = self.cls('my_str', minlength=3)
         assert o.minlength == 3
@@ -787,7 +787,7 @@ class test_Str(ClassChecker):
 
     def test_rule_maxlength(self):
         """
-        Test the `ipalib.parameter.Str._rule_maxlength` method.
+        Test the `ipalib.parameters.Str._rule_maxlength` method.
         """
         o = self.cls('my_str', maxlength=4)
         assert o.maxlength == 4
@@ -813,7 +813,7 @@ class test_Str(ClassChecker):
 
     def test_rule_length(self):
         """
-        Test the `ipalib.parameter.Str._rule_length` method.
+        Test the `ipalib.parameters.Str._rule_length` method.
         """
         o = self.cls('my_str', length=4)
         assert o.length == 4
@@ -840,23 +840,23 @@ class test_Str(ClassChecker):
 
 def test_create_param():
     """
-    Test the `ipalib.parameter.create_param` function.
+    Test the `ipalib.parameters.create_param` function.
     """
-    f = parameter.create_param
+    f = parameters.create_param
 
     # Test that Param instances are returned unchanged:
     params = (
-        parameter.Param('one?'),
-        parameter.Int('two+'),
-        parameter.Str('three*'),
-        parameter.Bytes('four'),
+        parameters.Param('one?'),
+        parameters.Int('two+'),
+        parameters.Str('three*'),
+        parameters.Bytes('four'),
     )
     for p in params:
         assert f(p) is p
 
     # Test that the spec creates an Str instance:
     for spec in ('one?', 'two+', 'three*', 'four'):
-        (name, kw) = parameter.parse_param_spec(spec)
+        (name, kw) = parameters.parse_param_spec(spec)
         p = f(spec)
         assert p.param_spec is spec
         assert p.name == name
@@ -864,21 +864,21 @@ def test_create_param():
         assert p.multivalue is kw['multivalue']
 
     # Test that TypeError is raised when spec is neither a Param nor a str:
-    for spec in (u'one', 42, parameter.Param, parameter.Str):
+    for spec in (u'one', 42, parameters.Param, parameters.Str):
         e = raises(TypeError, f, spec)
         assert str(e) == \
-            TYPE_ERROR % ('spec', (str, parameter.Param), spec, type(spec))
+            TYPE_ERROR % ('spec', (str, parameters.Param), spec, type(spec))
 
 
 def test_messages():
     """
-    Test module level message in `ipalib.parameter`.
+    Test module level message in `ipalib.parameters`.
     """
-    for name in dir(parameter):
+    for name in dir(parameters):
         if name.startswith('_'):
             continue
-        attr = getattr(parameter, name)
-        if not (isclass(attr) and issubclass(attr, parameter.Param)):
+        attr = getattr(parameters, name)
+        if not (isclass(attr) and issubclass(attr, parameters.Param)):
             continue
         assert type(attr.type_error) is str
-        assert attr.type_error in parameter.__messages
+        assert attr.type_error in parameters.__messages
