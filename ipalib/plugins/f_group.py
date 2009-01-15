@@ -21,12 +21,9 @@
 Frontend plugins for group (Identity).
 """
 
-from ipalib import frontend
-from ipalib import crud
-from ipalib.frontend import Param
-from ipalib import api
-from ipalib import errors
-from ipalib import ipa_types
+from ipalib import api, crud, errors
+from ipalib import Object, Command  # Plugin base classes
+from ipalib import Str, Int # Parameter types
 
 
 def get_members(members):
@@ -42,24 +39,23 @@ def get_members(members):
 
     return members
 
-class group(frontend.Object):
+class group(Object):
     """
     Group object.
     """
     takes_params = (
-        Param('description',
+        Str('description',
             doc='A description of this group',
         ),
-        Param('gidnumber?',
+        Int('gidnumber?',
             cli_name='gid',
-            type=ipa_types.Int(),
             doc='The gid to use for this group. If not included one is automatically set.',
         ),
-        Param('cn',
+        Str('cn',
             cli_name='name',
             primary_key=True,
-            normalize=lambda value: value.lower(),
-        )
+            normalizer=lambda value: value.lower(),
+        ),
     )
 api.register(group)
 
@@ -256,14 +252,14 @@ class group_show(crud.Get):
 api.register(group_show)
 
 
-class group_add_member(frontend.Command):
+class group_add_member(Command):
     'Add a member to a group.'
     takes_args = (
-        Param('group', primary_key=True),
+        Str('group', primary_key=True),
     )
     takes_options = (
-        Param('users?', doc='comma-separated list of users to add'),
-        Param('groups?', doc='comma-separated list of groups to add'),
+        Str('users?', doc='comma-separated list of users to add'),
+        Str('groups?', doc='comma-separated list of groups to add'),
     )
     def execute(self, cn, **kw):
         """
@@ -323,14 +319,14 @@ class group_add_member(frontend.Command):
 api.register(group_add_member)
 
 
-class group_remove_member(frontend.Command):
+class group_remove_member(Command):
     'Remove a member from a group.'
     takes_args = (
-        Param('group', primary_key=True),
+        Str('group', primary_key=True),
     )
     takes_options = (
-        Param('users?', doc='comma-separated list of users to remove'),
-        Param('groups?', doc='comma-separated list of groups to remove'),
+        Str('users?', doc='comma-separated list of users to remove'),
+        Str('groups?', doc='comma-separated list of groups to remove'),
     )
     def execute(self, cn, **kw):
         """
