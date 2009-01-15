@@ -38,6 +38,7 @@ import errors
 import plugable
 import util
 from constants import CLI_TAB
+from parameters import Password
 
 
 def to_cli(name):
@@ -699,7 +700,7 @@ class CLI(object):
         result = cmd(**kw)
         if callable(cmd.output_for_cli):
             for param in cmd.params():
-                if param.ispassword():
+                if isinstance(param, Password):
                     try:
                         del kw[param.name]
                     except KeyError:
