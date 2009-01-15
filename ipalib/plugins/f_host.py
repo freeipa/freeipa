@@ -206,14 +206,18 @@ api.register(host_mod)
 
 class host_find(crud.Find):
     'Search the hosts.'
+
     takes_options = (
         Flag('all', doc='Retrieve all attributes'),
     )
-    def get_args(self):
-        """
-        Override Find.get_args() so we can exclude the validation rules
-        """
-        yield self.obj.primary_key.__clone__(rules=tuple())
+
+     # FIXME: This should no longer be needed with the Param.query kwarg.
+#    def get_args(self):
+#        """
+#        Override Find.get_args() so we can exclude the validation rules
+#        """
+#        yield self.obj.primary_key.__clone__(rules=tuple())
+
     def execute(self, term, **kw):
         ldap = self.api.Backend.ldap
 

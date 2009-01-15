@@ -58,6 +58,9 @@ CRUD base classes:
     LDAPCreate, etc.  Or other options it to have an LDAPObject base class and
     have the crud Method plugins rely more on their corresponding Object plugin.
 
+  * Update the Retrieve, Update, Delete, and Search classes so that the utilize
+    the new Param.query kwarg (to turn off validation) when cloning params.
+
 
 Existing plugins:
 

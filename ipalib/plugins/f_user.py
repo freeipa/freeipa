@@ -21,12 +21,9 @@
 Frontend plugins for user (Identity).
 """
 
-from ipalib import frontend
-from ipalib import crud
-from ipalib.frontend import Param
-from ipalib import api
-from ipalib import errors
-from ipalib import ipa_types
+from ipalib import api, crud, errors
+from ipalib import Object, Command  # Plugin base classes
+from ipalib import Str, Password, Flag, Int  # Parameter types
 
 
 def display_user(user):
@@ -48,62 +45,62 @@ def display_user(user):
 default_attributes = ['uid','givenname','sn','homeDirectory','loginshell']
 
 
-class user(frontend.Object):
+class user(Object):
     """
     User object.
     """
+
     takes_params = (
-        Param('givenname',
+        Str('givenname',
             cli_name='first',
-            doc='User\'s first name',
+            doc="User's first name",
         ),
-        Param('sn',
+        Str('sn',
             cli_name='last',
-            doc='User\'s last name',
+            doc="User's last name",
         ),
-        Param('uid',
+        Str('uid',
             cli_name='user',
             primary_key=True,
             default_from=lambda givenname, sn: givenname[0] + sn,
-            normalize=lambda value: value.lower(),
+            normalizer=lambda value: value.lower(),
         ),
-        Param('gecos?',
+        Str('gecos?',
             doc='GECOS field',
             default_from=lambda uid: uid,
         ),
-        Param('homedirectory?',
+        Str('homedirectory?',
             cli_name='home',
-            doc='User\'s home directory',
+            doc="User's home directory",
             default_from=lambda uid: '/home/%s' % uid,
         ),
-        Param('loginshell?',
+        Str('loginshell?',
             cli_name='shell',
             default=u'/bin/sh',
-            doc='User\'s Login shell',
+            doc="User's Login shell",
         ),
-        Param('krbprincipalname?', cli_name='principal',
-            doc='User\'s Kerberos Principal name',
+        Str('krbprincipalname?',
+            cli_name='principal',
+            doc="User's Kerberos Principal name",
             default_from=lambda uid: '%s@%s' % (uid, api.env.realm),
         ),
-        Param('mailaddress?',
-            cli_name='mail',
-            doc='User\'s e-mail address',
+        Str('mailaddress?',
+            cli_name='email',
+            doc="User's e-mail address",
         ),
-        Param('userpassword?',
+        Password('userpassword?',
             cli_name='password',
             doc="Set user's password",
-            flags=['password'],
         ),
-        Param('groups?',
+        Str('groups?',
             doc='Add account to one or more groups (comma-separated)',
         ),
-        Param('uidnumber?',
+        Int('uidnumber?',
             cli_name='uid',
-            type=ipa_types.Int(),
             doc='The uid to use for this user. If not included one is automatically set.',
         ),
-
     )
+
 api.register(user)
 
 
@@ -254,7 +251,7 @@ api.register(user_mod)
 class user_find(crud.Find):
     'Search the users.'
     takes_options = (
-        Param('all?', type=ipa_types.Bool(), doc='Retrieve all user attributes'),
+        Flag('all', doc='Retrieve all user attributes'),
     )
     def execute(self, term, **kw):
         ldap = self.api.Backend.ldap
@@ -304,7 +301,7 @@ api.register(user_find)
 class user_show(crud.Get):
     'Examine an existing user.'
     takes_options = (
-        Param('all?', type=ipa_types.Bool(), doc='Retrieve all user attributes'),
+        Flag('all', doc='Retrieve all user attributes'),
     )
     def execute(self, uid, **kw):
         """
@@ -332,11 +329,11 @@ class user_show(crud.Get):
 
 api.register(user_show)
 
-class user_lock(frontend.Command):
+class user_lock(Command):
     'Lock a user account.'
 
     takes_args = (
-        Param('uid', primary_key=True),
+        Str('uid', primary_key=True),
     )
 
     def execute(self, uid, **kw):
@@ -351,11 +348,11 @@ class user_lock(frontend.Command):
 api.register(user_lock)
 
 
-class user_unlock(frontend.Command):
+class user_unlock(Command):
     'Unlock a user account.'
 
     takes_args = (
-        Param('uid', primary_key=True),
+        Str('uid', primary_key=True),
     )
 
     def execute(self, uid, **kw):
