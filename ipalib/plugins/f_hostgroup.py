@@ -21,12 +21,10 @@
 Frontend plugins for groups of hosts
 """
 
-from ipalib import frontend
-from ipalib import crud
-from ipalib.frontend import Param
-from ipalib import api
-from ipalib import errors
-from ipalib import ipa_types
+from ipalib import api, crud, errors
+from ipalib import Object, Command  # Plugin base classes
+from ipalib import Str  # Parameter types
+
 
 hostgroup_filter = "groupofnames)(!(objectclass=posixGroup)"
 
@@ -43,18 +41,18 @@ def get_members(members):
 
     return members
 
-class hostgroup(frontend.Object):
+class hostgroup(Object):
     """
     Host Group object.
     """
     takes_params = (
-        Param('description',
+        Str('description',
             doc='A description of this group',
         ),
-        Param('cn',
+        Str('cn',
             cli_name='name',
             primary_key=True,
-            normalize=lambda value: value.lower(),
+            normalizer=lambda value: value.lower(),
         )
     )
 api.register(hostgroup)
@@ -220,14 +218,14 @@ class hostgroup_show(crud.Get):
 api.register(hostgroup_show)
 
 
-class hostgroup_add_member(frontend.Command):
+class hostgroup_add_member(Command):
     'Add a member to a group.'
     takes_args = (
-        Param('group', primary_key=True),
+        Str('group', primary_key=True),
     )
     takes_options = (
-        Param('groups?', doc='comma-separated list of host groups to add'),
-        Param('hosts?', doc='comma-separated list of hosts to add'),
+        Str('groups?', doc='comma-separated list of host groups to add'),
+        Str('hosts?', doc='comma-separated list of hosts to add'),
     )
     def execute(self, cn, **kw):
         """
@@ -288,14 +286,14 @@ class hostgroup_add_member(frontend.Command):
 api.register(hostgroup_add_member)
 
 
-class hostgroup_remove_member(frontend.Command):
+class hostgroup_remove_member(Command):
     'Remove a member from a group.'
     takes_args = (
-        Param('group', primary_key=True),
+        Str('group', primary_key=True),
     )
     takes_options = (
-        Param('hosts?', doc='comma-separated list of hosts to add'),
-        Param('groups?', doc='comma-separated list of groups to remove'),
+        Str('hosts?', doc='comma-separated list of hosts to add'),
+        Str('groups?', doc='comma-separated list of groups to remove'),
     )
     def execute(self, cn, **kw):
         """
