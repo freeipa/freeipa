@@ -49,6 +49,12 @@ API chages before January 2009 simi-freeze:
     for retrieving per-request dynamic environment variables.
 
 
+CRUD base classes:
+
+  * The Retrieve method should add in the common Flag('all') option for
+    retrieving all attributes.
+
+
 Command Line interface:
 
   * Finish textui plugin

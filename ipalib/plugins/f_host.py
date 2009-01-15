@@ -21,13 +21,9 @@
 Frontend plugins for host/machine Identity.
 """
 
-from ipalib import frontend
-from ipalib import crud
-from ipalib import util
-from ipalib.frontend import Param
-from ipalib import api
-from ipalib import errors
-from ipalib import ipa_types
+from ipalib import api, crud, errors
+from ipalib import Object  # Plugin base class
+from ipalib import Str, Flag  # Parameter types
 
 
 def get_host(hostname):
@@ -57,37 +53,36 @@ def validate_host(cn):
 
 default_attributes = ['cn','description','localityname','nshostlocation','nshardwareplatform','nsosversion']
 
-class host(frontend.Object):
+class host(Object):
     """
     Host object.
     """
     takes_params = (
-        Param('cn',
+        Str('cn', validate_host,
             cli_name='hostname',
             primary_key=True,
-            normalize=lambda value: value.lower(),
-            rules=(validate_host,)
+            normalizer=lambda value: value.lower(),
         ),
-        Param('description?',
+        Str('description?',
             doc='Description of the host',
         ),
-        Param('localityname?',
+        Str('localityname?',
             cli_name='locality',
             doc='Locality of this host (Baltimore, MD)',
         ),
-        Param('nshostlocation?',
+        Str('nshostlocation?',
             cli_name='location',
             doc='Location of this host (e.g. Lab 2)',
         ),
-        Param('nshardwareplatform?',
+        Str('nshardwareplatform?',
             cli_name='platform',
             doc='Hardware platform of this host (e.g. Lenovo T61)',
         ),
-        Param('nsosversion?',
+        Str('nsosversion?',
             cli_name='os',
             doc='Operating System and version on this host (e.g. Fedora 9)',
         ),
-        Param('userpassword?',
+        Str('userpassword?',
             cli_name='password',
             doc='Set a password to be used in bulk enrollment',
         ),
@@ -212,7 +207,7 @@ api.register(host_mod)
 class host_find(crud.Find):
     'Search the hosts.'
     takes_options = (
-        Param('all?', type=ipa_types.Bool(), doc='Retrieve all attributes'),
+        Flag('all', doc='Retrieve all attributes'),
     )
     def get_args(self):
         """
@@ -258,7 +253,7 @@ api.register(host_find)
 class host_show(crud.Get):
     'Examine an existing host.'
     takes_options = (
-        Param('all?', type=ipa_types.Bool(), doc='Display all host attributes'),
+        Flag('all', doc='Display all host attributes'),
     )
     def execute(self, hostname, **kw):
         """
