@@ -21,40 +21,32 @@
 Frontend plugins for password policy.
 """
 
-from ipalib import frontend
-from ipalib import crud
-from ipalib.frontend import Param
 from ipalib import api
-from ipalib import errors
-from ipalib import ipa_types
+from ipalib import Command  # Plugin base classes
+from ipalib import Int  # Parameter types
 
 
-class pwpolicy_mod(frontend.Command):
+class pwpolicy_mod(Command):
     'Edit existing password policy.'
     takes_options = (
-        Param('krbmaxpwdlife?',
+        Int('krbmaxpwdlife?',
             cli_name='maxlife',
-            type=ipa_types.Int(),
             doc='Max. Password Lifetime (days)'
         ),
-        Param('krbminpwdlife?',
+        Int('krbminpwdlife?',
             cli_name='minlife',
-            type=ipa_types.Int(),
             doc='Min. Password Lifetime (hours)'
         ),
-        Param('krbpwdhistorylength?',
+        Int('krbpwdhistorylength?',
             cli_name='history',
-            type=ipa_types.Int(),
             doc='Password History Size'
         ),
-        Param('krbpwdmindiffchars?',
+        Int('krbpwdmindiffchars?',
             cli_name='minclasses',
-            type=ipa_types.Int(),
             doc='Min. Number of Character Classes'
         ),
-        Param('krbpwdminlength?',
+        Int('krbpwdminlength?',
             cli_name='minlength',
-            type=ipa_types.Int(),
             doc='Min. Length of Password'
         ),
     )
@@ -94,7 +86,7 @@ class pwpolicy_mod(frontend.Command):
 api.register(pwpolicy_mod)
 
 
-class pwpolicy_show(frontend.Command):
+class pwpolicy_show(Command):
     'Retrieve current password policy'
     def execute(self, *args, **kw):
         """
