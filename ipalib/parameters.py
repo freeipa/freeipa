@@ -490,6 +490,7 @@ class Param(ReadOnly):
 
         :param value: A proposed value for this parameter.
         """
+        # FIXME: this should be after 'if value is None:'
         if self.query:
             return
         if value is None:
@@ -695,7 +696,28 @@ class Flag(Bool):
         super(Flag, self).__init__(name, *rules, **kw)
 
 
-class Int(Param):
+class Number(Param):
+    """
+    Base class for the `Int` and `Float` parameters.
+    """
+
+    def _convert_scalar(self, value, index=None):
+        """
+        Convert a single scalar value.
+        """
+        if type(value) is self.type:
+            return value
+        if type(value) in (unicode, int, float):
+            try:
+                return self.type(value)
+            except ValueError:
+                pass
+        raise ConversionError(name=self.name, index=index,
+            error=ugettext(self.type_error),
+        )
+
+
+class Int(Number):
     """
     A parameter for integer values (stored in the ``int`` type).
     """
@@ -704,7 +726,7 @@ class Int(Param):
     type_error = _('must be an integer')
 
 
-class Float(Param):
+class Float(Number):
     """
     A parameter for floating-point values (stored in the ``float`` type).
     """

@@ -27,8 +27,7 @@ import plugable
 from plugable import lock, check_name
 import errors
 from errors import check_type, check_isinstance, raise_TypeError
-import parameters
-from parameters import create_param, Param
+from parameters import create_param, Param, Str, Flag
 from util import make_repr
 
 
@@ -53,7 +52,8 @@ class Command(plugable.Plugin):
     Plugins that subclass from Command are registered in the ``api.Command``
     namespace. For example:
 
-    >>> api = plugable.API(Command)
+    >>> from ipalib import create_api
+    >>> api = create_api()
     >>> class my_command(Command):
     ...     pass
     ...
@@ -161,14 +161,14 @@ class Command(plugable.Plugin):
 
         >>> class my_command(Command):
         ...     takes_options = (
-        ...         Param('first', normalize=lambda value: value.lower()),
+        ...         Param('first', normalizer=lambda value: value.lower()),
         ...         Param('last'),
         ...     )
         ...
         >>> c = my_command()
         >>> c.finalize()
-        >>> c.normalize(first='JOHN', last='DOE')
-        {'last': 'DOE', 'first': 'john'}
+        >>> c.normalize(first=u'JOHN', last=u'DOE')
+        {'last': u'DOE', 'first': u'john'}
         """
         return dict(
             (k, self.params[k].normalize(v)) for (k, v) in kw.iteritems()
@@ -178,10 +178,10 @@ class Command(plugable.Plugin):
         """
         Return a dictionary of values converted to correct type.
 
-        >>> from ipalib import ipa_types
+        >>> from ipalib import Int
         >>> class my_command(Command):
         ...     takes_args = (
-        ...         Param('one', type=ipa_types.Int()),
+        ...         Int('one'),
         ...         'two',
         ...     )
         ...
@@ -200,14 +200,15 @@ class Command(plugable.Plugin):
 
         For example:
 
+        >>> from ipalib import Str
         >>> class my_command(Command):
-        ...     takes_args = [Param('color', default='Red')]
+        ...     takes_args = [Str('color', default=u'Red')]
         ...
         >>> c = my_command()
         >>> c.finalize()
         >>> c.get_default()
-        {'color': 'Red'}
-        >>> c.get_default(color='Yellow')
+        {'color': u'Red'}
+        >>> c.get_default(color=u'Yellow')
         {}
         """
         return dict(self.__get_default_iter(kw))
@@ -363,7 +364,7 @@ class LocalOrRemote(Command):
     """
 
     takes_options = (
-        parameters.Flag('server?',
+        Flag('server?',
             doc='Forward to server instead of running locally',
         ),
     )
@@ -562,7 +563,8 @@ class Method(Attribute, Command):
     say you created a `Method` plugin and its corresponding `Object` plugin
     like this:
 
-    >>> api = plugable.API(Command, Object, Method, Property)
+    >>> from ipalib import create_api
+    >>> api = create_api()
     >>> class user_add(Method):
     ...     def run(self):
     ...             return 'Added the user!'
@@ -617,7 +619,7 @@ class Property(Attribute):
         'type',
     )).union(Attribute.__public__)
 
-    klass = parameters.Str
+    klass = Str
     default = None
     default_from = None
     normalizer = None

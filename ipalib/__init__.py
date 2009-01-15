@@ -405,13 +405,13 @@ Defining arguments and options for your command
 You can define a command that will accept specific arguments and options.
 For example:
 
->>> from ipalib import Param
+>>> from ipalib import Str
 >>> class nudge(Command):
 ...     """Takes one argument, one option"""
 ...
 ...     takes_args = ['programmer']
 ...
-...     takes_options = [Param('stuff', default=u'documentation')]
+...     takes_options = [Str('stuff', default=u'documentation')]
 ...
 ...     def execute(self, programmer, **kw):
 ...         return '%s, go write more %s!' % (programmer, kw['stuff'])
@@ -420,9 +420,9 @@ For example:
 >>> api.env.in_server = True
 >>> api.register(nudge)
 >>> api.finalize()
->>> api.Command.nudge('Jason')
+>>> api.Command.nudge(u'Jason')
 u'Jason, go write more documentation!'
->>> api.Command.nudge('Jason', stuff='unit tests')
+>>> api.Command.nudge(u'Jason', stuff=u'unit tests')
 u'Jason, go write more unit tests!'
 
 The ``args`` and ``options`` attributes are `plugable.NameSpace` instances
@@ -431,11 +431,11 @@ containing a command's arguments and options, respectively, as you can see:
 >>> list(api.Command.nudge.args) # Iterates through argument names
 ['programmer']
 >>> api.Command.nudge.args.programmer
-Param('programmer')
+Str('programmer')
 >>> list(api.Command.nudge.options) # Iterates through option names
 ['stuff']
 >>> api.Command.nudge.options.stuff
-Param('stuff', default=u'documentation')
+Str('stuff', default=u'documentation')
 >>> api.Command.nudge.options.stuff.default
 u'documentation'
 
@@ -451,7 +451,7 @@ NameSpace(<2 members>, sort=False)
 When calling a command, its positional arguments can also be provided as
 keyword arguments, and in any order.  For example:
 
->>> api.Command.nudge(stuff='lines of code', programmer='Jason')
+>>> api.Command.nudge(stuff=u'lines of code', programmer=u'Jason')
 u'Jason, go write more lines of code!'
 
 When a command plugin is called, the values supplied for its parameters are
@@ -465,20 +465,20 @@ here is a quick teaser:
 ...     takes_options = [
 ...         'first',
 ...         'last',
-...         Param('nick',
-...             normalize=lambda value: value.lower(),
+...         Str('nick',
+...             normalizer=lambda value: value.lower(),
 ...             default_from=lambda first, last: first[0] + last,
 ...         ),
-...         Param('points', type=Int(), default=0),
+...         Int('points', default=0),
 ...     ]
 ...
 >>> cp = create_player()
 >>> cp.finalize()
->>> cp.convert(points=" 1000  ")
+>>> cp.convert(points=u' 1000  ')
 {'points': 1000}
 >>> cp.normalize(nick=u'NickName')
 {'nick': u'nickname'}
->>> cp.get_default(first='Jason', last='DeRose')
+>>> cp.get_default(first=u'Jason', last=u'DeRose')
 {'nick': u'jderose', 'points': 0}
 
 For the full details on the parameter system, see the
@@ -575,7 +575,7 @@ For example, say we setup a command like this:
 ...
 ...     takes_args = ['key?']
 ...
-...     takes_options = [Param('reverse', type=Bool(), default=False)]
+...     takes_options = [Flag('reverse')]
 ...
 ...     def execute(self, key, **options):
 ...         items = dict(
@@ -643,7 +643,7 @@ show-items:
 
 Lastly, providing a ``key`` would result in the following:
 
->>> result = api.Command.show_items('city')
+>>> result = api.Command.show_items(u'city')
 >>> api.Command.show_items.output_for_cli(textui, result, 'city', reverse=False)
 city = 'Berlin'
 
