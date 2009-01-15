@@ -22,27 +22,30 @@
 Frontend plugins for service (Identity).
 """
 
-from ipalib import frontend
-from ipalib import crud
-from ipalib.frontend import Param
-from ipalib import api
-from ipalib import errors
-from ipalib import ipa_types
+from ipalib import api, crud, errors
+from ipalib import Object  # Plugin base classes
+from ipalib import Str, Flag # Parameter types
 
-class service(frontend.Object):
+
+class service(Object):
     """
     Service object.
     """
     takes_params = (
-        Param('principal', primary_key=True),
+        Str('principal', primary_key=True),
     )
 api.register(service)
 
 
 class service_add(crud.Add):
-    'Add a new service.'
+    """
+    Add a new service.
+    """
+
     takes_options = (
-        Param('force?', type=ipa_types.Bool(), default=False, doc='Force a service principal name'),
+        Flag('force',
+            doc='Force a service principal name',
+        ),
     )
     def execute(self, principal, **kw):
         """
