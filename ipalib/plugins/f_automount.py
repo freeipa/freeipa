@@ -23,13 +23,9 @@ Frontend plugins for automount.
 RFC 2707bis http://www.padl.com/~lukeh/rfc2307bis.txt
 """
 
-from ipalib import frontend
-from ipalib import crud
-from ipalib.frontend import Param
-from ipalib import api
-from ipalib import errors
-from ipalib import ipa_types
 from ldap import explode_dn
+from ipalib import crud, errors
+from ipalib import api, Str, Flag, Object, Command
 
 map_attributes = ['automountMapName', 'description', ]
 key_attributes = ['description', 'automountKey', 'automountInformation']
@@ -57,12 +53,12 @@ def make_automount_dn(mapname):
         api.env.basedn,
     )
 
-class automount(frontend.Object):
+class automount(Object):
     """
     Automount object.
     """
     takes_params = (
-        Param('automountmapname',
+        Str('automountmapname',
             cli_name='mapname',
             primary_key=True,
             doc='A group of related automount objects',
@@ -73,8 +69,9 @@ api.register(automount)
 
 class automount_addmap(crud.Add):
     'Add a new automount map.'
+
     takes_options = (
-        Param('description?',
+        Str('description?',
             doc='A description of the automount map'),
     )
 
@@ -96,6 +93,7 @@ class automount_addmap(crud.Add):
         kw['objectClass'] = ['automountMap']
 
         return ldap.create(**kw)
+
     def output_for_cli(self, textui, result, map, **options):
         """
         Output result of this command to command line interface.
@@ -108,13 +106,13 @@ api.register(automount_addmap)
 class automount_addkey(crud.Add):
     'Add a new automount key.'
     takes_options = (
-        Param('automountkey',
+        Str('automountkey',
             cli_name='key',
             doc='An entry in an automount map'),
-        Param('automountinformation',
+        Str('automountinformation',
             cli_name='info',
             doc='Mount information for this key'),
-        Param('description?',
+        Str('description?',
             doc='A description of the mount'),
     )
 
@@ -138,6 +136,7 @@ class automount_addkey(crud.Add):
         kw['objectClass'] = ['automount']
 
         return ldap.create(**kw)
+
     def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
@@ -177,7 +176,7 @@ api.register(automount_delmap)
 class automount_delkey(crud.Del):
     'Delete an automount key.'
     takes_options = (
-        Param('automountkey',
+        Str('automountkey',
             cli_name='key',
             doc='The automount key to remove'),
     )
@@ -213,7 +212,7 @@ api.register(automount_delkey)
 class automount_modmap(crud.Mod):
     'Edit an existing automount map.'
     takes_options = (
-        Param('description?',
+        Str('description?',
             doc='A description of the automount map'),
     )
     def execute(self, mapname, **kw):
@@ -246,13 +245,13 @@ api.register(automount_modmap)
 class automount_modkey(crud.Mod):
     'Edit an existing automount key.'
     takes_options = (
-        Param('automountkey',
+        Str('automountkey',
             cli_name='key',
             doc='An entry in an automount map'),
-        Param('automountinformation?',
+        Str('automountinformation?',
             cli_name='info',
             doc='Mount information for this key'),
-        Param('description?',
+        Str('description?',
             doc='A description of the automount map'),
     )
     def execute(self, mapname, **kw):
@@ -293,7 +292,7 @@ api.register(automount_modkey)
 class automount_findmap(crud.Find):
     'Search automount maps.'
     takes_options = (
-        Param('all?', type=ipa_types.Bool(), doc='Retrieve all attributes'),
+        Flag('all', doc='Retrieve all attributes'),
     )
     def execute(self, term, **kw):
         ldap = self.api.Backend.ldap
@@ -331,10 +330,10 @@ api.register(automount_findmap)
 class automount_findkey(crud.Find):
     'Search automount keys.'
     takes_options = (
-        Param('all?', type=ipa_types.Bool(), doc='Retrieve all attributes'),
+        Flag('all?', doc='Retrieve all attributes'),
     )
     def get_args(self):
-        return (Param('automountkey',
+        return (Str('automountkey',
                    cli_name='key',
                    doc='An entry in an automount map'),)
     def execute(self, term, **kw):
@@ -372,7 +371,7 @@ api.register(automount_findkey)
 class automount_showmap(crud.Get):
     'Examine an existing automount map.'
     takes_options = (
-        Param('all?', type=ipa_types.Bool(), doc='Retrieve all attributes'),
+        Flag('all?', doc='Retrieve all attributes'),
     )
     def execute(self, mapname, **kw):
         """
@@ -400,10 +399,10 @@ api.register(automount_showmap)
 class automount_showkey(crud.Get):
     'Examine an existing automount key.'
     takes_options = (
-        Param('automountkey',
+        Str('automountkey',
             cli_name='key',
             doc='The automount key to display'),
-        Param('all?', type=ipa_types.Bool(), doc='Retrieve all attributes'),
+        Flag('all?', doc='Retrieve all attributes'),
     )
     def execute(self, mapname, **kw):
         """
@@ -446,10 +445,10 @@ class automount_showkey(crud.Get):
 api.register(automount_showkey)
 
 
-class automount_getkeys(frontend.Command):
+class automount_getkeys(Command):
     'Retrieve all keys for an automount map.'
     takes_args = (
-        Param('automountmapname',
+        Str('automountmapname',
             cli_name='mapname',
             primary_key=True,
             doc='A group of related automount objects',
@@ -478,10 +477,10 @@ class automount_getkeys(frontend.Command):
 api.register(automount_getkeys)
 
 
-class automount_getmaps(frontend.Command):
+class automount_getmaps(Command):
     'Retrieve all automount maps'
     takes_args = (
-        Param('automountmapname?',
+        Str('automountmapname?',
             cli_name='mapname',
             primary_key=True,
             doc='A group of related automount objects',
@@ -510,17 +509,23 @@ class automount_getmaps(frontend.Command):
 api.register(automount_getmaps)
 
 class automount_addindirectmap(crud.Add):
-    'Add a new automap indirect mount point.'
+    """
+    Add a new automap indirect mount point.
+    """
+
     takes_options = (
-        Param('parentmap?',
+        Str('parentmap?',
             cli_name='parentmap',
-            default='auto.master',
-            doc='The parent map to connect this to. Default: auto.master'),
-        Param('automountkey',
+            default=u'auto.master',
+            doc='The parent map to connect this to.',
+        ),
+        Str('automountkey',
             cli_name='key',
-            doc='An entry in an automount map'),
-        Param('description?',
-            doc='A description of the automount map'),
+            doc='An entry in an automount map',
+        ),
+        Str('description?',
+            doc='A description of the automount map',
+        ),
     )
 
     def execute(self, mapname, **kw):
@@ -556,4 +561,3 @@ class automount_addindirectmap(crud.Add):
         textui.print_plain("Indirect automount map %s added" % map)
 
 api.register(automount_addindirectmap)
-
