@@ -874,7 +874,7 @@ import plugable
 from backend import Backend, Context
 from frontend import Command, LocalOrRemote, Application
 from frontend import Object, Method, Property
-from parameters import DefaultFrom, Bool, Flag, Int, Float, Bytes, Str
+from parameters import DefaultFrom, Bool, Flag, Int, Float, Bytes, Str, Password
 
 
 def create_api(mode='dummy'):

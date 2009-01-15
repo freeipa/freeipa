@@ -892,6 +892,12 @@ class Str(Data):
             )
 
 
+class Password(Str):
+    """
+    A parameter for passwords (stored in the ``unicode`` type).
+    """
+
+
 def create_param(spec):
     """
     Create an `Str` instance from the shorthand ``spec``.

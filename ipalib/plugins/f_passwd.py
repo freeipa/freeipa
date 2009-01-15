@@ -21,23 +21,21 @@
 Frontend plugins for password changes.
 """
 
-from ipalib import frontend
-from ipalib.frontend import Param
-from ipalib import api
-from ipalib import errors
-from ipalib import ipa_types
-from ipalib import util
+from ipalib import api, errors, util
+from ipalib import Command  # Plugin base classes
+from ipalib import Str, Password  # Parameter types
 
-class passwd(frontend.Command):
+
+class passwd(Command):
     'Edit existing password policy.'
 
     takes_args = (
-        Param('principal',
+        Str('principal',
             cli_name='user',
             primary_key=True,
             default_from=util.get_current_principal,
         ),
-        Param('password', flags=['password']),
+        Password('password'),
     )
 
     def execute(self, principal, password):

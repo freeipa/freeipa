@@ -23,7 +23,7 @@ Frontend plugins for group (Identity).
 
 from ipalib import api, crud, errors
 from ipalib import Object, Command  # Plugin base classes
-from ipalib import Str, Int # Parameter types
+from ipalib import Str, Int  # Parameter types
 
 
 def get_members(members):
