@@ -22,8 +22,7 @@
 Frontend plugins for IPA-RA PKI operations.
 """
 
-from ipalib import api, Command, Param
-from ipalib import cli
+from ipalib import api, Command, Str, Int
 
 
 class request_certificate(Command):
@@ -31,7 +30,7 @@ class request_certificate(Command):
 
     takes_args = ['csr']
 
-    takes_options = [Param('request_type?', default='pkcs10')]
+    takes_options = [Str('request_type?', default=u'pkcs10')]
 
     def execute(self, csr, **options):
         return self.Backend.ra.request_certificate(csr, **options)
@@ -85,7 +84,8 @@ class revoke_certificate(Command):
 
     takes_args = ['serial_number']
 
-    takes_options = [Param('revocation_reason?', default=0)]
+    # FIXME: The default is 0.  Is this really an Int param?
+    takes_options = [Int('revocation_reason?', default=0)]
 
 
     def execute(self, serial_number, **options):
@@ -115,5 +115,3 @@ class take_certificate_off_hold(Command):
             textui.print_plain('Failed to take a revoked certificate off hold.')
 
 api.register(take_certificate_off_hold)
-
-
