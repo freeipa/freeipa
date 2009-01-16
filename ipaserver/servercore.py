@@ -227,16 +227,19 @@ def uid_too_long(uid):
 
     return False
 
-def update_entry (entry):
+def update_entry (entry, remove_keys=[]):
     """Update an LDAP entry
 
        entry is a dict
+       remove_keys is a list of attributes to remove from this entry
 
        This refreshes the record from LDAP in order to obtain the list of
-       attributes that has changed.
+       attributes that has changed. It only retrieves the attributes that
+       are in the update so attributes aren't inadvertantly lost.
     """
+    assert type(remove_keys) is list
     attrs = entry.keys()
-    o = get_base_entry(entry['dn'], "objectclass=*", attrs)
+    o = get_base_entry(entry['dn'], "objectclass=*", attrs + remove_keys)
     oldentry = convert_scalar_values(o)
     newentry = convert_scalar_values(entry)
 
@@ -395,7 +398,7 @@ def mark_entry_inactive (dn):
 
     return res
 
-def add_member_to_group(member_dn, group_dn):
+def add_member_to_group(member_dn, group_dn, memberattr='member'):
     """
     Add a member to an existing group.
     """
@@ -414,18 +417,18 @@ def add_member_to_group(member_dn, group_dn):
         raise errors.NotFound
 
     # Add the new member to the group member attribute
-    members = group.get('member', [])
+    members = group.get(memberattr, [])
     if isinstance(members, basestring):
         members = [members]
     members.append(member_dn)
-    group['member'] = members
+    group[memberattr] = members
 
     try:
         return update_entry(group)
     except errors.EmptyModlist:
         raise
 
-def remove_member_from_group(member_dn, group_dn=None):
+def remove_member_from_group(member_dn, group_dn, memberattr='member'):
     """Remove a member_dn from an existing group."""
 
     group = get_entry_by_dn(group_dn, None)
@@ -439,7 +442,7 @@ def remove_member_from_group(member_dn, group_dn=None):
     """
     api.log.info("IPA: remove_member_from_group '%s' from '%s'" % (member_dn, group_dn))
 
-    members = group.get('member', False)
+    members = group.get(memberattr, False)
     if not members:
         raise errors.NotGroupMember
 
@@ -456,7 +459,7 @@ def remove_member_from_group(member_dn, group_dn=None):
     except Exception, e:
         raise e
 
-    group['member'] = members
+    group[memberattr] = members
 
     try:
         return update_entry(group)

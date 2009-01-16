@@ -190,23 +190,23 @@ class ldap(CrudBackend):
     def modify_password(self, dn, **kw):
         return servercore.modify_password(dn, kw.get('oldpass'), kw.get('newpass'))
 
-    def add_member_to_group(self, memberdn, groupdn):
+    def add_member_to_group(self, memberdn, groupdn, memberattr='member'):
         """
         Add a new member to a group.
 
         :param memberdn: the DN of the member to add
         :param groupdn: the DN of the group to add a member to
         """
-        return servercore.add_member_to_group(memberdn, groupdn)
+        return servercore.add_member_to_group(memberdn, groupdn, memberattr)
 
-    def remove_member_from_group(self, memberdn, groupdn):
+    def remove_member_from_group(self, memberdn, groupdn, memberattr='member'):
         """
         Remove a new member from a group.
 
         :param memberdn: the DN of the member to remove
         :param groupdn: the DN of the group to remove a member from
         """
-        return servercore.remove_member_from_group(memberdn, groupdn)
+        return servercore.remove_member_from_group(memberdn, groupdn, memberattr)
 
     # The CRUD operations
 
@@ -226,6 +226,7 @@ class ldap(CrudBackend):
                     yield (key, value)
             else:
                 assert type(value) in (str, unicode, bool, int, float)
+                yield (key, value)
                 yield (key, value)
 
     def create(self, **kw):
@@ -251,13 +252,18 @@ class ldap(CrudBackend):
 
     def update(self, dn, **kw):
         result = self.retrieve(dn, ["*"])
+        start_keys = kw.keys()
 
         entry = ipaldap.Entry((dn, servercore.convert_scalar_values(result)))
         kw = dict(self.strip_none(kw))
         for k in kw:
             entry.setValues(k, kw[k])
 
-        servercore.update_entry(entry.toDict())
+        remove_keys = list(set(start_keys) - set(kw.keys()))
+        for k in remove_keys:
+            entry.delAttr(k)
+
+        servercore.update_entry(entry.toDict(), remove_keys)
 
         return self.retrieve(dn)
 
