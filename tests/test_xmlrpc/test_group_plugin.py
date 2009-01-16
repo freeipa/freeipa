@@ -52,6 +52,15 @@ class test_Group(XMLRPC_test):
 
     def test_add2(self):
         """
+        Test the `xmlrpc.group_add` method duplicate detection.
+        """
+        try:
+            res = api.Command['group_add'](**self.kw)
+        except errors.DuplicateEntry:
+            pass
+
+    def test_add2(self):
+        """
         Test the `xmlrpc.group_add` method.
         """
         self.kw['cn'] = self.cn2
@@ -68,6 +77,16 @@ class test_Group(XMLRPC_test):
         kw['groups'] = self.cn2
         res = api.Command['group_add_member'](self.cn, **kw)
         assert res == []
+
+    def test_add_member2(self):
+        """
+        Test the `xmlrpc.group_add_member` with a non-existent member
+        """
+        kw={}
+        kw['groups'] = "notfound"
+        res = api.Command['group_add_member'](self.cn, **kw)
+        # an error isn't thrown, the list of failed members is returned
+        assert res != []
 
     def test_doshow(self):
         """
@@ -117,6 +136,16 @@ class test_Group(XMLRPC_test):
         res = api.Command['group_show'](self.cn)
         assert res
         assert res.get('member','') == ''
+
+    def test_remove_member2(self):
+        """
+        Test the `xmlrpc.group_remove_member` method with non-member
+        """
+        kw={}
+        kw['groups'] = "notfound"
+        # an error isn't thrown, the list of failed members is returned
+        res = api.Command['group_remove_member'](self.cn, **kw)
+        assert res != []
 
     def test_remove_x(self):
         """
