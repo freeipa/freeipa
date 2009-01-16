@@ -281,7 +281,7 @@ class hostgroup_add_member(Command):
             for a in result:
                 print "\t'%s'" % a
         else:
-            textui.print_entry("Group membership updated.")
+            textui.print_plain("Group membership updated.")
 
 api.register(hostgroup_add_member)
 
