@@ -24,14 +24,14 @@ Test the `ipaserver.rpc` module.
 from tests.util import create_test_api, raises, PluginTester
 from tests.data import unicode_str
 from ipalib import errors, Command
-from ipaserver import rpc
+from ipaserver import rpcserver
 
 
 def test_params_2_args_options():
     """
-    Test the `ipaserver.rpc.params_2_args_options` function.
+    Test the `ipaserver.rpcserver.params_2_args_options` function.
     """
-    f = rpc.params_2_args_options
+    f = rpcserver.params_2_args_options
     args = ('Hello', u'world!')
     options = dict(one=1, two=u'Two', three='Three')
     assert f(tuple()) == (tuple(), dict())
@@ -43,14 +43,14 @@ def test_params_2_args_options():
 
 class test_xmlrpc(PluginTester):
     """
-    Test the `ipaserver.rpc.xmlrpc` plugin.
+    Test the `ipaserver.rpcserver.xmlrpc` plugin.
     """
 
-    _plugin = rpc.xmlrpc
+    _plugin = rpcserver.xmlrpc
 
     def test_dispatch(self):
         """
-        Test the `ipaserver.rpc.xmlrpc.dispatch` method.
+        Test the `ipaserver.rpcserver.xmlrpc.dispatch` method.
         """
         (o, api, home) = self.instance('Backend', in_server=True)
         e = raises(errors.CommandError, o.dispatch, 'echo', tuple())
