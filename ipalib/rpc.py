@@ -22,10 +22,10 @@ Core RPC functionality.
 """
 
 from types import NoneType
-from xmlrpclib import Binary
+from xmlrpclib import Binary, Fault, dumps, loads
 
 
-def xmlrpc_wrap(value):
+def xml_wrap(value):
     """
     Wrap all ``str`` in ``xmlrpclib.Binary``.
 
@@ -42,13 +42,13 @@ def xmlrpc_wrap(value):
           converted to UTF-8 encoded ``str`` instances (although as mentioned,
           not by this function).
 
-    Also see `xmlrpc_unwrap`.
+    Also see `xml_unwrap`.
     """
     if type(value) in (list, tuple):
-        return tuple(xmlrpc_wrap(v) for v in value)
+        return tuple(xml_wrap(v) for v in value)
     if type(value) is dict:
         return dict(
-            (k, xmlrpc_wrap(v)) for (k, v) in value.iteritems()
+            (k, xml_wrap(v)) for (k, v) in value.iteritems()
         )
     if type(value) is str:
         return Binary(value)
@@ -56,7 +56,7 @@ def xmlrpc_wrap(value):
     return value
 
 
-def xmlrpc_unwrap(value, encoding='UTF-8'):
+def xml_unwrap(value, encoding='UTF-8'):
     """
     Unwrap all ``xmlrpc.Binary``, decode all ``str`` into ``unicode``.
 
@@ -69,13 +69,13 @@ def xmlrpc_unwrap(value, encoding='UTF-8'):
         * All ``str`` instances are treated as UTF-8 encoded character data.
           They are decoded and the resulting ``unicode`` instance is returned.
 
-    Also see `xmlrpc_wrap`.
+    Also see `xml_wrap`.
     """
     if type(value) in (list, tuple):
-        return tuple(xmlrpc_unwrap(v, encoding) for v in value)
+        return tuple(xml_unwrap(v, encoding) for v in value)
     if type(value) is dict:
         return dict(
-            (k, xmlrpc_unwrap(v, encoding)) for (k, v) in value.iteritems()
+            (k, xml_unwrap(v, encoding)) for (k, v) in value.iteritems()
         )
     if type(value) is str:
         return value.decode(encoding)
@@ -84,3 +84,21 @@ def xmlrpc_unwrap(value, encoding='UTF-8'):
         return value.data
     assert type(value) in (unicode, int, float, bool, NoneType)
     return value
+
+
+def xml_dumps(params, methodname=None, methodresponse=False, encoding='UTF-8'):
+    if type(params) is tuple:
+        params = xml_wrap(params)
+    else:
+        assert isinstance(params, Fault)
+    return dumps(params,
+        methodname=methodname,
+        methodresponse=methodresponse,
+        encoding=encoding,
+        allow_none=True,
+    )
+
+
+def xml_loads(data):
+    (params, method) = loads(data)
+    return (xml_unwrap(params), method)

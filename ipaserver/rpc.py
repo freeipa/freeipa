@@ -24,7 +24,7 @@ Execute an RPC request.
 from xmlrpclib import dumps, loads, Fault
 from ipalib import Backend
 from ipalib.errors import HandledError, CommandError
-from ipalib.rpc import xmlrpc_wrap, xmlrpc_unwrap
+from ipalib.rpc import xml_wrap, xml_unwrap
 
 
 def params_2_args_options(params):
@@ -44,9 +44,9 @@ class xmlrpc(Backend):
         self.info('Received RPC call to %r', method)
         if method not in self.Command:
             raise CommandError(name=method)
-        (args, options) = params_2_args_options(xmlrpc_unwrap(params))
+        (args, options) = params_2_args_options(xml_unwrap(params))
         result = self.Command[method](*args, **options)
-        return (xmlrpc_wrap(result),)
+        return (xml_wrap(result),)
 
     def execute(self, data, ccache=None, client_ip=None, locale=None):
         try:

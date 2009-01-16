@@ -21,64 +21,68 @@
 Test the `ipalib.rpc` module.
 """
 
-from xmlrpclib import Binary, dumps, loads
-from tests.util import raises
+from xmlrpclib import Binary, Fault, dumps, loads
+from tests.util import raises, assert_equal
 from tests.data import binary_bytes, utf8_bytes, unicode_str
 from ipalib import rpc
 
 
 def dump_n_load(value):
     (param, method) = loads(
-        dumps((value,))
+        dumps((value,), allow_none=True)
     )
     return param[0]
 
 
 def round_trip(value):
-    return rpc.xmlrpc_unwrap(
-        dump_n_load(rpc.xmlrpc_wrap(value))
+    return rpc.xml_unwrap(
+        dump_n_load(rpc.xml_wrap(value))
     )
 
 
 def test_round_trip():
     """
-    Test `ipalib.rpc.xmlrpc_wrap` and `ipalib.rpc.xmlrpc_unwrap`.
+    Test `ipalib.rpc.xml_wrap` and `ipalib.rpc.xml_unwrap`.
 
     This tests the two functions together with ``xmlrpclib.dumps()`` and
     ``xmlrpclib.loads()`` in a full wrap/dumps/loads/unwrap round trip.
     """
     # We first test that our assumptions about xmlrpclib module in the Python
     # standard library are correct:
-    assert dump_n_load(utf8_bytes) == unicode_str
-    assert dump_n_load(unicode_str) == unicode_str
-    assert dump_n_load(Binary(binary_bytes)).data == binary_bytes
+    assert_equal(dump_n_load(utf8_bytes), unicode_str)
+    assert_equal(dump_n_load(unicode_str), unicode_str)
+    assert_equal(dump_n_load(Binary(binary_bytes)).data, binary_bytes)
     assert isinstance(dump_n_load(Binary(binary_bytes)), Binary)
     assert type(dump_n_load('hello')) is str
     assert type(dump_n_load(u'hello')) is str
+    assert_equal(dump_n_load(''), '')
+    assert_equal(dump_n_load(u''), '')
+    assert dump_n_load(None) is None
 
     # Now we test our wrap and unwrap methods in combination with dumps, loads:
     # All str should come back str (because they get wrapped in
     # xmlrpclib.Binary().  All unicode should come back unicode because str
-    # explicity get decoded by rpc.xmlrpc_unwrap() if they weren't already
+    # explicity get decoded by rpc.xml_unwrap() if they weren't already
     # decoded by xmlrpclib.loads().
-    assert round_trip(utf8_bytes) == utf8_bytes
-    assert round_trip(unicode_str) == unicode_str
-    assert round_trip(binary_bytes) == binary_bytes
+    assert_equal(round_trip(utf8_bytes), utf8_bytes)
+    assert_equal(round_trip(unicode_str), unicode_str)
+    assert_equal(round_trip(binary_bytes), binary_bytes)
     assert type(round_trip('hello')) is str
     assert type(round_trip(u'hello')) is unicode
-    assert round_trip('') == ''
-    assert round_trip(u'') == u''
-    compound = [utf8_bytes, unicode_str, binary_bytes,
+    assert_equal(round_trip(''), '')
+    assert_equal(round_trip(u''), u'')
+    assert round_trip(None) is None
+    compound = [utf8_bytes, None, binary_bytes, (None, unicode_str),
         dict(utf8=utf8_bytes, chars=unicode_str, data=binary_bytes)
     ]
     assert round_trip(compound) == tuple(compound)
 
 
-def test_xmlrpc_wrap():
+def test_xml_wrap():
     """
-    Test the `ipalib.rpc.xmlrpc_wrap` function.
+    Test the `ipalib.rpc.xml_wrap` function.
     """
-    f = rpc.xmlrpc_wrap
+    f = rpc.xml_wrap
     assert f([]) == tuple()
     assert f({}) == dict()
     b = f('hello')
@@ -90,11 +94,11 @@ def test_xmlrpc_wrap():
     value = f([dict(one=False, two=u'hello'), None, 'hello'])
 
 
-def test_xmlrpc_unwrap():
+def test_xml_unwrap():
     """
-    Test the `ipalib.rpc.xmlrpc_unwrap` function.
+    Test the `ipalib.rpc.xml_unwrap` function.
     """
-    f = rpc.xmlrpc_unwrap
+    f = rpc.xml_unwrap
     assert f([]) == tuple()
     assert f({}) == dict()
     value = f(Binary(utf8_bytes))
@@ -106,3 +110,63 @@ def test_xmlrpc_unwrap():
     assert value == (True, 'hello', dict(one=1, two=unicode_str, three=None))
     assert type(value[1]) is str
     assert type(value[2]['two']) is unicode
+
+
+def test_xml_dumps():
+    """
+    Test the `ipalib.rpc.xml_dumps` function.
+    """
+    f = rpc.xml_dumps
+    params = (binary_bytes, utf8_bytes, unicode_str, None)
+
+    # Test serializing an RPC request:
+    data = f(params, 'the_method')
+    (p, m) = loads(data)
+    assert_equal(m, u'the_method')
+    assert type(p) is tuple
+    assert rpc.xml_unwrap(p) == params
+
+    # Test serializing an RPC response:
+    data = f((params,), methodresponse=True)
+    (tup, m) = loads(data)
+    assert m is None
+    assert len(tup) == 1
+    assert type(tup) is tuple
+    assert rpc.xml_unwrap(tup[0]) == params
+
+    # Test serializing an RPC response containing a Fault:
+    fault = Fault(69, unicode_str)
+    data = f(fault, methodresponse=True)
+    e = raises(Fault, loads, data)
+    assert e.faultCode == 69
+    assert_equal(e.faultString, unicode_str)
+
+
+def test_xml_loads():
+    """
+    Test the `ipalib.rpc.xml_loads` function.
+    """
+    f = rpc.xml_loads
+    params = (binary_bytes, utf8_bytes, unicode_str, None)
+    wrapped = rpc.xml_wrap(params)
+
+    # Test un-serializing an RPC request:
+    data = dumps(wrapped, 'the_method', allow_none=True)
+    (p, m) = f(data)
+    assert_equal(m, u'the_method')
+    assert_equal(p, params)
+
+    # Test un-serializing an RPC response:
+    data = dumps((wrapped,), methodresponse=True, allow_none=True)
+    (tup, m) = f(data)
+    assert m is None
+    assert len(tup) == 1
+    assert type(tup) is tuple
+    assert_equal(tup[0], params)
+
+    # Test un-serializing an RPC response containing a Fault:
+    fault = Fault(69, unicode_str)
+    data = dumps(fault, methodresponse=True, allow_none=True)
+    e = raises(Fault, f, data)
+    assert e.faultCode == 69
+    assert_equal(e.faultString, unicode_str)
