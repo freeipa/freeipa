@@ -877,6 +877,11 @@ from frontend import Object, Method, Property
 from parameters import DefaultFrom, Bool, Flag, Int, Float, Bytes, Str, Password
 from parameters import BytesEnum, StrEnum
 
+try:
+    import uuid
+except ImportError:
+    import ipauuid as uuid
+
 def create_api(mode='dummy'):
     """
     Return standard `plugable.API` instance.
