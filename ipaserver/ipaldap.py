@@ -111,6 +111,13 @@ class Entry:
 
     setValues = setValue
 
+    def delAttr(self, name):
+        """
+        Entirely remove an attribute of this entry.
+        """
+        if self.hasAttr(name):
+            del self.data[name]
+
     def toTupleList(self):
         """Convert the attrs and values to a list of 2-tuples.  The first element
         of the tuple is the attribute name.  The second element is either a
@@ -375,7 +382,7 @@ class IPAdmin(SimpleLDAPObject):
         except ldap.ALREADY_EXISTS, e:
             raise errors.DuplicateEntry, "Entry already exists"
         except ldap.LDAPError, e:
-            raise DatabaseError, e
+            raise errors.DatabaseError, e
         return True
 
     def updateRDN(self, dn, newrdn):
@@ -392,7 +399,7 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modrdn_s(dn, newrdn, delold=1)
         except ldap.LDAPError, e:
-            raise DatabaseError, e
+            raise errors.DatabaseError, e
         return True
 
     def updateEntry(self,dn,oldentry,newentry):
@@ -474,7 +481,7 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modify_s(dn, modlist)
         except ldap.LDAPError, e:
-             raise DatabaseError, e
+             raise errors.DatabaseError, e
         return True
 
     def deleteEntry(self,*args):
