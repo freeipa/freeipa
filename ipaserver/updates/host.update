@@ -18,5 +18,8 @@ add: objectClasses:
     AUXILIARY 
     MAY ( userPassword $ ipaClientVersion $ enrolledBy) 
     X-ORIGIN 'IPA v2' )
-
-
+add: objectClasses:
+  ( 2.5.6.21 NAME 'pkiUser'
+   SUP top AUXILIARY
+   MAY ( userCertificate )
+   X-ORIGIN 'RFC 2587' )
