@@ -23,7 +23,7 @@ Test the `ipaserver.rpc` module.
 
 from tests.util import create_test_api, raises, PluginTester
 from tests.data import unicode_str
-from ipalib import errors, Command
+from ipalib import errors2, Command
 from ipaserver import rpcserver
 
 
@@ -41,21 +41,20 @@ def test_params_2_args_options():
     assert f((options,) + args) == ((options,) + args, dict())
 
 
-class test_xmlrpc(PluginTester):
+class test_xmlserver(PluginTester):
     """
-    Test the `ipaserver.rpcserver.xmlrpc` plugin.
+    Test the `ipaserver.rpcserver.xmlserver` plugin.
     """
 
-    _plugin = rpcserver.xmlrpc
+    _plugin = rpcserver.xmlserver
 
     def test_dispatch(self):
         """
-        Test the `ipaserver.rpcserver.xmlrpc.dispatch` method.
+        Test the `ipaserver.rpcserver.xmlserver.dispatch` method.
         """
         (o, api, home) = self.instance('Backend', in_server=True)
-        e = raises(errors.CommandError, o.dispatch, 'echo', tuple())
-        assert str(e) == "Unknown command 'echo'"
-        assert e.kw['name'] == 'echo'
+        e = raises(errors2.CommandError, o.dispatch, 'echo', tuple())
+        assert e.name == 'echo'
 
         class echo(Command):
             takes_args = ['arg1', 'arg2+']

@@ -18,13 +18,13 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Execute an RPC request.
+RPC server.
 """
 
-from xmlrpclib import dumps, loads, Fault
+from xmlrpclib import Fault
 from ipalib import Backend
-from ipalib.errors import HandledError, CommandError
-from ipalib.rpc import xml_wrap, xml_unwrap
+from ipalib.errors2 import PublicError, InternalError, CommandError
+from ipalib.rpc import xml_dumps, xml_loads
 
 
 def params_2_args_options(params):
@@ -36,25 +36,28 @@ def params_2_args_options(params):
     return (params, dict())
 
 
-class xmlrpc(Backend):
+class xmlserver(Backend):
+    """
+    Execution backend for XML-RPC server.
+    """
 
     def dispatch(self, method, params):
         assert type(method) is str
         assert type(params) is tuple
-        self.info('Received RPC call to %r', method)
+        self.debug('Received RPC call to %r', method)
         if method not in self.Command:
             raise CommandError(name=method)
-        (args, options) = params_2_args_options(xml_unwrap(params))
+        (args, options) = params_2_args_options(params)
         result = self.Command[method](*args, **options)
-        return (xml_wrap(result),)
+        return (result,)  # Must wrap XML-RPC response in a tuple singleton
 
-    def execute(self, data, ccache=None, client_ip=None, locale=None):
+    def execute(self, data, ccache=None, client_ip=None, languages=None):
         try:
-            (params, method) = loads(data)
+            (params, method) = xml_loads(data)
             response = self.dispatch(method, params)
         except Exception, e:
-            if not isinstance(e, HandledError):
-                e = UnknownError()
-            assert isinstance(e, HandledError)
-            response = Fault(e.code, e.message)
+            if not isinstance(e, PublicError):
+                e = InternalError()
+            assert isinstance(e, PublicError)
+            response = Fault(e.errno, e.strerror)
         return dumps(response)
