@@ -807,7 +807,7 @@ class CLI(object):
                 else:
                     kw['action'] = 'store_true'
             else:
-                kw['metavar'] = metavar=option.type.name.upper()
+                kw['metavar'] = metavar=option.__class__.__name__.upper()
             o = optparse.make_option('--%s' % to_cli(option.cli_name), **kw)
             parser.add_option(o)
         return parser

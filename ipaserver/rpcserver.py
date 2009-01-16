@@ -53,7 +53,11 @@ class xmlserver(Backend):
         result = self.Command[method](*args, **options)
         return (result,)  # Must wrap XML-RPC response in a tuple singleton
 
-    def execute(self, data, ccache=None, client_ip=None, languages=None):
+    def execute(self, data, ccache=None, client_version=None,
+            client_ip=None, languages=None):
+        """
+        Execute the XML-RPC request in contained in ``data``.
+        """
         try:
             (params, method) = xml_loads(data)
             response = self.dispatch(method, params)
