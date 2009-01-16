@@ -21,7 +21,7 @@
 Frontend plugins for host/machine Identity.
 """
 
-from ipalib import api, crud, errors
+from ipalib import api, crud, errors, util
 from ipalib import Object  # Plugin base class
 from ipalib import Str, Flag  # Parameter types
 
@@ -42,7 +42,7 @@ def get_host(hostname):
         dn = ldap.find_entry_dn("serverhostname", hostname, "ipaHost")
     return dn
 
-def validate_host(cn):
+def validate_host(ugettext, cn):
     """
     Require at least one dot in the hostname (to support localhost.localdomain)
     """
@@ -129,7 +129,7 @@ class host_add(crud.Add):
         # some required objectclasses
         # FIXME: add this attribute to cn=ipaconfig
         #kw['objectclass'] =  config.get('ipahostobjectclasses')
-        kw['objectclass'] = ['nsHost', 'ipaHost']
+        kw['objectclass'] = ['nsHost', 'ipaHost', 'pkiUser']
 
         # Ensure the list of objectclasses is lower-case
         kw['objectclass'] = map(lambda z: z.lower(), kw.get('objectclass'))
