@@ -18,13 +18,15 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Shared RPC client/server functionality.
+RPC client and shared RPC client/server functionality.
 
 This module adds some additional functionality on top of the ``xmlrpclib``
 module in the Python standard library.  For documentation on the
 ``xmlrpclib`` module, see:
 
     http://docs.python.org/library/xmlrpclib.html
+
+Also see the `ipaserver.rpcserver` module.
 """
 
 from types import NoneType
@@ -130,7 +132,7 @@ def xml_dumps(params, methodname=None, methodresponse=False, encoding='UTF-8'):
 
 def xml_loads(data):
     """
-    Decode the XML-RPC packet in ``data``, transparently unwrapped its params.
+    Decode the XML-RPC packet in ``data``, transparently unwrapping its params.
 
     This function will decode the XML-RPC packet in ``data`` using
     ``xmlrpclib.loads()`` (from the Python standard library).  If ``data``

@@ -19,6 +19,8 @@
 
 """
 RPC server.
+
+Also see the `ipalib.rpc` module.
 """
 
 from xmlrpclib import Fault
