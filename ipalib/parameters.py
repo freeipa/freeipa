@@ -934,6 +934,16 @@ class BytesEnum(Enum):
 class StrEnum(Enum):
     """
     Enumerable for Unicode text (stored in the ``unicode`` type).
+
+    For example:
+
+    >>> enum = StrEnum('my_enum', values=(u'One', u'Two', u'Three'))
+    >>> enum.validate(u'Two') is None
+    True
+    >>> enum.validate(u'Four')
+    Traceback (most recent call last):
+      ...
+    ValidationError: invalid 'my_enum': must be one of (u'One', u'Two', u'Three')
     """
 
     type = unicode
