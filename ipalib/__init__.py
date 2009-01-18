@@ -875,7 +875,7 @@ from backend import Backend, Context
 from frontend import Command, LocalOrRemote, Application
 from frontend import Object, Method, Property
 from parameters import DefaultFrom, Bool, Flag, Int, Float, Bytes, Str, Password
-
+from parameters import BytesEnum, StrEnum
 
 def create_api(mode='dummy'):
     """

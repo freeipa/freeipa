@@ -898,6 +898,47 @@ class Password(Str):
     """
 
 
+class Enum(Param):
+    """
+    Base class for parameters with enumerable values.
+    """
+
+    kwargs = Param.kwargs + (
+        ('values', tuple, tuple()),
+    )
+
+    def __init__(self, name, *rules, **kw):
+        super(Enum, self).__init__(name, *rules, **kw)
+        for (i, v) in enumerate(self.values):
+            if type(v) is not self.type:
+                n = '%s values[%d]' % (self.nice, i)
+                raise TypeError(
+                    TYPE_ERROR % (n, self.type, v, type(v))
+                )
+
+    def _rule_values(self, _, value, **kw):
+        if value not in self.values:
+            return _('must be one of %(values)r') % dict(
+                values=self.values,
+            )
+
+
+class BytesEnum(Enum):
+    """
+    Enumerable for binary data (stored in the ``str`` type).
+    """
+
+    type = unicode
+
+
+class StrEnum(Enum):
+    """
+    Enumerable for Unicode text (stored in the ``unicode`` type).
+    """
+
+    type = unicode
+
+
 def create_param(spec):
     """
     Create an `Str` instance from the shorthand ``spec``.

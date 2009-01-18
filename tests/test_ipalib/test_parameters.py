@@ -898,6 +898,55 @@ class test_Str(ClassChecker):
             dummy.reset()
 
 
+class test_StrEnum(ClassChecker):
+    """
+    Test the `ipalib.parameters.StrEnum` class.
+    """
+    _cls = parameters.StrEnum
+
+    def test_init(self):
+        """
+        Test the `ipalib.parameters.StrEnum.__init__` method.
+        """
+        values = (u'Hello', u'naughty', u'nurse!')
+        o = self.cls('my_strenum', values=values)
+        assert o.type is unicode
+        assert o.values is values
+        assert o.class_rules == (o._rule_values,)
+        assert o.rules == tuple()
+        assert o.all_rules == (o._rule_values,)
+
+        badvalues = (u'Hello', 'naughty', u'nurse!')
+        e = raises(TypeError, self.cls, 'my_enum', values=badvalues)
+        assert str(e) == TYPE_ERROR % (
+            "StrEnum('my_enum') values[1]", unicode, 'naughty', str
+        )
+
+    def test_rules_values(self):
+        """
+        Test the `ipalib.parameters.StrEnum._rule_values` method.
+        """
+        values = (u'Hello', u'naughty', u'nurse!')
+        o = self.cls('my_enum', values=values)
+        rule = o._rule_values
+        translation = u'values=%(values)s'
+        dummy = dummy_ugettext(translation)
+
+        # Test with passing values:
+        for v in values:
+            assert rule(dummy, v) is None
+            assert dummy.called() is False
+
+        # Test with failing values:
+        for val in (u'Howdy', u'quiet', u'library!'):
+            assert_equal(
+                rule(dummy, val),
+                translation % dict(values=values),
+            )
+            assert_equal(dummy.message, 'must be one of %(values)r')
+            dummy.reset()
+
+
 def test_create_param():
     """
     Test the `ipalib.parameters.create_param` function.
