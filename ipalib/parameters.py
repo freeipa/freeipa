@@ -490,12 +490,11 @@ class Param(ReadOnly):
 
         :param value: A proposed value for this parameter.
         """
-        # FIXME: this should be after 'if value is None:'
-        if self.query:
-            return
         if value is None:
             if self.required:
                 raise RequirementError(name=self.name)
+            return
+        if self.query:
             return
         if self.multivalue:
             if type(value) is not tuple:

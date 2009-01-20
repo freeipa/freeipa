@@ -380,7 +380,8 @@ class test_Param(ClassChecker):
         # Test with query=True:
         o = self.cls('my_param', query=True)
         assert o.query is True
-        assert o.validate(None) is None
+        e = raises(errors2.RequirementError, o.validate, None)
+        assert_equal(e.name, 'my_param')
 
         # Test with multivalue=True:
         o = self.cls('my_param', multivalue=True)
