@@ -44,8 +44,6 @@ class xmlserver(Backend):
     """
 
     def dispatch(self, method, params):
-        assert type(method) is str
-        assert type(params) is tuple
         self.debug('Received RPC call to %r', method)
         if method not in self.Command:
             raise CommandError(name=method)

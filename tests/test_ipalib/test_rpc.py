@@ -21,10 +21,16 @@
 Test the `ipalib.rpc` module.
 """
 
+import threading
 from xmlrpclib import Binary, Fault, dumps, loads
-from tests.util import raises, assert_equal
+from tests.util import raises, assert_equal, PluginTester, DummyClass
 from tests.data import binary_bytes, utf8_bytes, unicode_str
-from ipalib import rpc
+from ipalib.frontend import Command
+from ipalib.request import context
+from ipalib import rpc, errors2
+
+
+std_compound = (binary_bytes, utf8_bytes, unicode_str)
 
 
 def dump_n_load(value):
@@ -170,3 +176,74 @@ def test_xml_loads():
     e = raises(Fault, f, data)
     assert e.faultCode == 69
     assert_equal(e.faultString, unicode_str)
+
+
+class test_xmlclient(PluginTester):
+    """
+    Test the `ipalib.rpc.xmlclient` plugin.
+    """
+    _plugin = rpc.xmlclient
+
+    def test_forward(self):
+        """
+        Test the `ipalib.rpc.xmlclient.forward` method.
+        """
+        class user_add(Command):
+            pass
+
+        # Test that ValueError is raised when forwarding a command that is not
+        # in api.Command:
+        (o, api, home) = self.instance('Backend', in_server=False)
+        e = raises(ValueError, o.forward, 'user_add')
+        assert str(e) == '%s.forward(): %r not in api.Command' % (
+            'xmlclient', 'user_add'
+        )
+
+        # Test that StandardError is raised when context.xmlconn does not exist:
+        (o, api, home) = self.instance('Backend', user_add, in_server=False)
+        e = raises(StandardError, o.forward, 'user_add')
+        assert str(e) == '%s.forward(%r): need context.xmlconn in thread %r' % (
+            'xmlclient', 'user_add', threading.currentThread().getName()
+        )
+
+        args = (binary_bytes, utf8_bytes, unicode_str)
+        kw = dict(one=binary_bytes, two=utf8_bytes, three=unicode_str)
+        params = args + (kw,)
+        result = (unicode_str, binary_bytes, utf8_bytes)
+        context.xmlconn = DummyClass(
+            (
+                'user_add',
+                (rpc.xml_wrap(params),),
+                {},
+                rpc.xml_wrap(result),
+            ),
+            (
+                'user_add',
+                (rpc.xml_wrap(params),),
+                {},
+                Fault(3005, u"'four' is required"),  # RequirementError
+            ),
+            (
+                'user_add',
+                (rpc.xml_wrap(params),),
+                {},
+                Fault(700, u'no such error'),  # There is no error 700
+            ),
+
+        )
+
+        # Test with a successful return value:
+        assert o.forward('user_add', *args, **kw) == result
+
+        # Test with an errno the client knows:
+        e = raises(errors2.RequirementError, o.forward, 'user_add', *args, **kw)
+        assert_equal(e.message, u"'four' is required")
+
+        # Test with an errno the client doesn't know
+        e = raises(errors2.UnknownError, o.forward, 'user_add', *args, **kw)
+        assert_equal(e.code, 700)
+        assert_equal(e.error, u'no such error')
+
+        assert context.xmlconn._calledall() is True
+
+        del context.xmlconn

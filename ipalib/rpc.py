@@ -30,7 +30,11 @@ Also see the `ipaserver.rpcserver` module.
 """
 
 from types import NoneType
+import threading
 from xmlrpclib import Binary, Fault, dumps, loads
+from ipalib.backend import Backend
+from ipalib.errors2 import public_errors, PublicError, UnknownError
+from ipalib.request import context
 
 
 def xml_wrap(value):
@@ -155,3 +159,49 @@ def xml_loads(data):
     """
     (params, method) = loads(data)
     return (xml_unwrap(params), method)
+
+
+class xmlclient(Backend):
+    """
+    Forwarding backend for XML-RPC client.
+    """
+
+    def __init__(self):
+        super(xmlclient, self).__init__()
+        self.__errors = dict((e.errno, e) for e in public_errors)
+
+    def forward(self, name, *args, **kw):
+        """
+        Forward call to command named ``name`` over XML-RPC.
+
+        This method will encode and forward an XML-RPC request, and will then
+        decode and return the corresponding XML-RPC response.
+
+        :param command: The name of the command being forwarded.
+        :param args: Positional arguments to pass to remote command.
+        :param kw: Keyword arguments to pass to remote command.
+        """
+        if name not in self.Command:
+            raise ValueError(
+                '%s.forward(): %r not in api.Command' % (self.name, name)
+            )
+        if not hasattr(context, 'xmlconn'):
+            raise StandardError(
+                '%s.forward(%r): need context.xmlconn in thread %r' % (
+                    self.name, name, threading.currentThread().getName()
+                )
+            )
+        command = getattr(context.xmlconn, name)
+        params = args + (kw,)
+        try:
+            response = command(xml_wrap(params))
+            return xml_unwrap(response)
+        except Fault, e:
+            if e.faultCode in self.__errors:
+                error = self.__errors[e.faultCode]
+                raise error(message=e.faultString)
+            raise UnknownError(
+                code=e.faultCode,
+                error=e.faultString,
+                server=self.env.xmlrpc_uri,
+            )

@@ -344,3 +344,48 @@ class dummy_ungettext(object):
         if n == 1:
             return self.translation_singular
         return self.translation_plural
+
+
+class DummyMethod(object):
+    def __init__(self, callback, name):
+        self.__callback = callback
+        self.__name = name
+
+    def __call__(self, *args, **kw):
+        return self.__callback(self.__name, args, kw)
+
+
+class DummyClass(object):
+    def __init__(self, *calls):
+        self.__calls = calls
+        self.__i = 0
+        for (name, args, kw, result) in calls:
+            method = DummyMethod(self.__process, name)
+            setattr(self, name, method)
+
+    def __process(self, name_, args_, kw_):
+        if self.__i >= len(self.__calls):
+            raise AssertionError(
+                'extra call: %s, %r, %r' % (name, args, kw)
+            )
+        (name, args, kw, result) = self.__calls[self.__i]
+        self.__i += 1
+        i = self.__i
+        if name_ != name:
+            raise AssertionError(
+                'call %d should be to method %r; got %r' % (i, name, name_)
+            )
+        if args_ != args:
+            raise AssertionError(
+                'call %d to %r should have args %r; got %r' % (i, name, args, args_)
+            )
+        if kw_ != kw:
+            raise AssertionError(
+                'call %d to %r should have kw %r, got %r' % (i, name, kw, kw_)
+            )
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    def _calledall(self):
+        return self.__i == len(self.__calls)

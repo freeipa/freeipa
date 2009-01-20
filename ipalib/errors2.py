@@ -275,10 +275,27 @@ class VersionError(PublicError):
     format = _('%(cver)s client incompatible with %(sver)s server at %(server)r')
 
 
+class UnknownError(PublicError):
+    """
+    **902** Raised when client does not know error it caught from server.
+
+    For example:
+
+    >>> raise UnknownError(code=57, server='localhost', error=u'a new error')
+    ...
+    Traceback (most recent call last):
+      ...
+    UnknownError: unknown error 57 from localhost: a new error
+
+    """
+
+    errno = 902
+    format = _('unknown error %(code)d from %(server)s: %(error)s')
+
 
 class InternalError(PublicError):
     """
-    **902** Raised to conceal a non-public exception.
+    **903** Raised to conceal a non-public exception.
 
     For example:
 
@@ -288,7 +305,7 @@ class InternalError(PublicError):
     InternalError: an internal error has occured
     """
 
-    errno = 902
+    errno = 903
     format = _('an internal error has occured')
 
     def __init__(self, message=None):
@@ -300,7 +317,7 @@ class InternalError(PublicError):
 
 class ServerInternalError(PublicError):
     """
-    **903** Raised when client catches an `InternalError` from server.
+    **904** Raised when client catches an `InternalError` from server.
 
     For example:
 
@@ -310,13 +327,13 @@ class ServerInternalError(PublicError):
     ServerInternalError: an internal error has occured on server at 'https://localhost'
     """
 
-    errno = 903
+    errno = 904
     format = _('an internal error has occured on server at %(server)r')
 
 
 class CommandError(PublicError):
     """
-    **904** Raised when an unknown command is called.
+    **905** Raised when an unknown command is called.
 
     For example:
 
@@ -326,13 +343,13 @@ class CommandError(PublicError):
     CommandError: unknown command 'foobar'
     """
 
-    errno = 904
+    errno = 905
     format = _('unknown command %(name)r')
 
 
 class ServerCommandError(PublicError):
     """
-    **905** Raised when client catches a `CommandError` from server.
+    **906** Raised when client catches a `CommandError` from server.
 
     For example:
 
@@ -343,13 +360,13 @@ class ServerCommandError(PublicError):
     ServerCommandError: error on server 'https://localhost': unknown command 'foobar'
     """
 
-    errno = 905
+    errno = 906
     format = _('error on server %(server)r: %(error)s')
 
 
 class NetworkError(PublicError):
     """
-    **906** Raised when a network connection cannot be created.
+    **907** Raised when a network connection cannot be created.
 
     For example:
 
@@ -359,13 +376,13 @@ class NetworkError(PublicError):
     NetworkError: cannot connect to 'ldap://localhost:389'
     """
 
-    errno = 906
+    errno = 907
     format = _('cannot connect to %(uri)r')
 
 
 class ServerNetworkError(PublicError):
     """
-    **907** Raised when client catches a `NetworkError` from server.
+    **908** Raised when client catches a `NetworkError` from server.
 
     For example:
 
@@ -376,7 +393,7 @@ class ServerNetworkError(PublicError):
     ServerNetworkError: error on server 'https://localhost': cannot connect to 'ldap://localhost:389'
     """
 
-    errno = 907
+    errno = 908
     format = _('error on server %(server)r: %(error)s')
 
 
