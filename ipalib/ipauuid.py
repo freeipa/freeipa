@@ -17,16 +17,16 @@ Typical usage:
     UUID('...')
 
     # make a UUID using an MD5 hash of a namespace UUID and a name
-    >>> uuid.uuid3(uuid.NAMESPACE_DNS, 'python.org')  #doctest: +ELLIPSIS
-    UUID('...')
+    >>> uuid.uuid3(uuid.NAMESPACE_DNS, 'python.org')
+    UUID('6fa459ea-ee8a-3ca4-894e-db77e160355e')
 
     # make a random UUID
     >>> uuid.uuid4()  #doctest: +ELLIPSIS
     UUID('...')
 
     # make a UUID using a SHA-1 hash of a namespace UUID and a name
-    >>> uuid.uuid5(uuid.NAMESPACE_DNS, 'python.org')  #doctest: +ELLIPSIS
-    UUID('...')
+    >>> uuid.uuid5(uuid.NAMESPACE_DNS, 'python.org')
+    UUID('886313e1-3b8a-5372-9b90-0c9aee199e5d')
 
     # make a UUID from a string of hex digits (braces and hyphens ignored)
     >>> x = uuid.UUID('{00010203-0405-0607-0809-0a0b0c0d0e0f}')
