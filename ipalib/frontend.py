@@ -312,23 +312,33 @@ class Command(plugable.Plugin):
 
     def get_args(self):
         """
-        Return iterable with arguments for Command.args namespace.
+        Iterate through parameters for ``Command.args`` namespace.
 
         Subclasses can override this to customize how the arguments
         are determined.  For an example of why this can be useful,
         see `ipalib.crud.Mod`.
         """
-        return self.takes_args
+        if callable(self.takes_args):
+            args = self.takes_args()
+        else:
+            args = self.takes_args
+        for arg in args:
+            yield arg
 
     def get_options(self):
         """
-        Return iterable with options for Command.options namespace.
+        Iterate through parameters for ``Command.options`` namespace.
 
         Subclasses can override this to customize how the options
         are determined.  For an example of why this can be useful,
         see `ipalib.crud.Mod`.
         """
-        return self.takes_options
+        if callable(self.takes_options):
+            options = self.takes_options()
+        else:
+            options = self.takes_options
+        for option in options:
+            yield option
 
     def __create_args(self):
         """

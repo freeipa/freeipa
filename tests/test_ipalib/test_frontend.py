@@ -136,7 +136,7 @@ class test_Command(ClassChecker):
         assert list(self.cls().get_args()) == []
         args = ('login', 'stuff')
         o = self.get_instance(args=args)
-        assert o.get_args() is args
+        assert tuple(o.get_args()) == args
 
     def test_get_options(self):
         """
@@ -145,7 +145,7 @@ class test_Command(ClassChecker):
         assert list(self.cls().get_options()) == []
         options = ('verbose', 'debug')
         o = self.get_instance(options=options)
-        assert o.get_options() is options
+        assert tuple(o.get_options()) == options
 
     def test_args(self):
         """
