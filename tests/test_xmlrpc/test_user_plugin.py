@@ -54,6 +54,15 @@ class test_User(XMLRPC_test):
         assert res.get('uid','') == self.uid
         assert res.get('homedirectory','') == self.home
 
+    def test_add2(self):
+        """
+        Test the `xmlrpc.user_add` method duplicate detection.
+        """
+        try:
+            res = api.Command['user_add'](**self.kw)
+        except errors.DuplicateEntry:
+            pass
+
     def test_doshow(self):
         """
         Test the `xmlrpc.user_show` method.
