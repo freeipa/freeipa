@@ -329,14 +329,61 @@ class test_Command(ClassChecker):
         e = raises(errors.ArgumentError, o.args_to_kw, 1, 2, 3)
         assert str(e) == 'example takes at most 2 arguments'
 
+    def test_args_options_2_params(self):
+        """
+        Test the `ipalib.frontend.Command.args_options_2_params` method.
+        """
+        assert 'args_options_2_params' in self.cls.__public__ # Public
+
+        # Test that ZeroArgumentError is raised:
+        o = self.get_instance()
+        e = raises(errors2.ZeroArgumentError, o.args_options_2_params, 1)
+        assert e.name == 'example'
+
+        # Test that MaxArgumentError is raised (count=1)
+        o = self.get_instance(args=('one?',))
+        e = raises(errors2.MaxArgumentError, o.args_options_2_params, 1, 2)
+        assert e.name == 'example'
+        assert e.count == 1
+        assert str(e) == "command 'example' takes at most 1 argument"
+
+        # Test that MaxArgumentError is raised (count=2)
+        o = self.get_instance(args=('one', 'two?'))
+        e = raises(errors2.MaxArgumentError, o.args_options_2_params, 1, 2, 3)
+        assert e.name == 'example'
+        assert e.count == 2
+        assert str(e) == "command 'example' takes at most 2 arguments"
+
+        # Test that OverlapError is raised:
+        o = self.get_instance(args=('one', 'two'), options=('three', 'four'))
+        e = raises(errors2.OverlapError, o.args_options_2_params,
+            1, 2, three=3, two=2, four=4, one=1)
+        assert e.names == ['one', 'two']
+
+        # Test the permutations:
+        o = self.get_instance(args=('one', 'two*'), options=('three', 'four'))
+        mthd = o.args_options_2_params
+        assert mthd() == dict()
+        assert mthd(1) == dict(one=1)
+        assert mthd(1, 2) == dict(one=1, two=(2,))
+        assert mthd(1, 21, 22, 23) == dict(one=1, two=(21, 22, 23))
+        assert mthd(1, (21, 22, 23)) == dict(one=1, two=(21, 22, 23))
+        assert mthd(three=3, four=4) == dict(three=3, four=4)
+        assert mthd(three=3, four=4, one=1, two=2) == \
+            dict(one=1, two=2, three=3, four=4)
+        assert mthd(1, 21, 22, 23, three=3, four=4) == \
+            dict(one=1, two=(21, 22, 23), three=3, four=4)
+        assert mthd(1, (21, 22, 23), three=3, four=4) == \
+            dict(one=1, two=(21, 22, 23), three=3, four=4)
+
     def test_params_2_args_options(self):
         """
         Test the `ipalib.frontend.Command.params_2_args_options` method.
         """
         assert 'params_2_args_options' in self.cls.__public__ # Public
         o = self.get_instance(args=['one'], options=['two'])
-        assert o.params_2_args_options({}) == ((None,), dict(two=None))
-        assert o.params_2_args_options(dict(one=1)) == ((1,), dict(two=None))
+        assert o.params_2_args_options({}) == ((None,), {})
+        assert o.params_2_args_options(dict(one=1)) == ((1,), {})
         assert o.params_2_args_options(dict(two=2)) == ((None,), dict(two=2))
         assert o.params_2_args_options(dict(two=2, one=1)) == \
             ((1,), dict(two=2))

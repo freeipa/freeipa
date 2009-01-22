@@ -30,6 +30,9 @@ from errors import check_type, check_isinstance, raise_TypeError
 from parameters import create_param, Param, Str, Flag
 from util import make_repr
 
+from errors2 import ZeroArgumentError, MaxArgumentError, OverlapError
+from constants import TYPE_ERROR
+
 
 RULE_FLAG = 'validation_rule'
 
@@ -77,6 +80,7 @@ class Command(plugable.Plugin):
         'params',
         'args_to_kw',
         'params_2_args_options',
+        'args_options_2_params',
         'output_for_cli',
     ))
     takes_options = tuple()
@@ -140,18 +144,56 @@ class Command(plugable.Plugin):
             else:
                 break
 
-    def args_options_2_params(self, args, options):
-        pass
+    def args_options_2_params(self, *args, **options):
+        """
+        Merge (args, options) into params.
+        """
+        if self.max_args is not None and len(args) > self.max_args:
+            if self.max_args == 0:
+                raise ZeroArgumentError(name=self.name)
+            raise MaxArgumentError(name=self.name, count=self.max_args)
+        params = dict(self.__options_2_params(options))
+        if len(args) > 0:
+            arg_kw = dict(self.__args_2_params(args))
+            intersection = set(arg_kw).intersection(params)
+            if len(intersection) > 0:
+                raise OverlapError(names=sorted(intersection))
+            params.update(arg_kw)
+        return params
+
+    def __args_2_params(self, values):
+        multivalue = False
+        for (i, arg) in enumerate(self.args()):
+            assert not multivalue
+            if len(values) > i:
+                if arg.multivalue:
+                    multivalue = True
+                    if len(values) == i + 1 and type(values[i]) in (list, tuple):
+                        yield (arg.name, values[i])
+                    else:
+                        yield (arg.name, values[i:])
+                else:
+                    yield (arg.name, values[i])
+            else:
+                break
+
+    def __options_2_params(self, options):
+        for name in self.params:
+            if name in options:
+                yield (name, options[name])
 
     def params_2_args_options(self, params):
         """
         Split params into (args, kw).
         """
         args = tuple(params.get(name, None) for name in self.args)
-        options = dict(
-            (name, params.get(name, None)) for name in self.options
-        )
+        options = dict(self.__params_2_options(params))
         return (args, options)
+
+    def __params_2_options(self, params):
+        for name in self.options:
+            if name in params:
+                yield(name, params[name])
 
     def normalize(self, **kw):
         """

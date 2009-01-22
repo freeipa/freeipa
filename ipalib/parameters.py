@@ -231,6 +231,7 @@ class Param(ReadOnly):
         ('autofill', bool, False),
         ('query', bool, False),
         ('attribute', bool, False),
+        ('limit_to', frozenset, None),
         ('flags', frozenset, frozenset()),
 
         # The 'default' kwarg gets appended in Param.__init__():

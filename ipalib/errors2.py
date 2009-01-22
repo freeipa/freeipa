@@ -463,25 +463,75 @@ class BinaryEncodingError(InvocationError):
     errno = 3002
 
 
-class ArgumentError(InvocationError):
+class ZeroArgumentError(InvocationError):
     """
-    **3003** Raised when a command is called with wrong number of arguments.
+    **3003** Raised when a command is called with arguments but takes none.
+
+    For example:
+
+    >>> raise ZeroArgumentError(name='ping')
+    Traceback (most recent call last):
+      ...
+    ZeroArgumentError: command 'ping' takes no arguments
     """
 
     errno = 3003
+    format = _('command %(name)r takes no arguments')
 
 
-class OptionError(InvocationError):
+class MaxArgumentError(InvocationError):
     """
-    **3004** Raised when a command is called with unknown options.
+    **3004** Raised when a command is called with too many arguments.
+
+    For example:
+
+    >>> raise MaxArgumentError(name='user_add', count=2)
+    Traceback (most recent call last):
+      ...
+    MaxArgumentError: command 'user_add' takes at most 2 arguments
     """
 
     errno = 3004
 
+    def __init__(self, message=None, **kw):
+        if message is None:
+            format = ungettext(
+                'command %(name)r takes at most %(count)d argument',
+                'command %(name)r takes at most %(count)d arguments',
+                kw['count']
+            )
+        else:
+            format = None
+        InvocationError.__init__(self, format, message, **kw)
+
+
+class OptionError(InvocationError):
+    """
+    **3005** Raised when a command is called with unknown options.
+    """
+
+    errno = 3005
+
+
+class OverlapError(InvocationError):
+    """
+    **3006** Raised when arguments and options overlap.
+
+    For example:
+
+    >>> raise OverlapError(names=['givenname', 'login'])
+    Traceback (most recent call last):
+      ...
+    OverlapError: overlapping arguments and options: ['givenname', 'login']
+    """
+
+    errno = 3006
+    format = _('overlapping arguments and options: %(names)r')
+
 
 class RequirementError(InvocationError):
     """
-    **3005** Raised when a required parameter is not provided.
+    **3007** Raised when a required parameter is not provided.
 
     For example:
 
@@ -491,13 +541,13 @@ class RequirementError(InvocationError):
     RequirementError: 'givenname' is required
     """
 
-    errno = 3005
+    errno = 3007
     format = _('%(name)r is required')
 
 
 class ConversionError(InvocationError):
     """
-    **3006** Raised when parameter value can't be converted to correct type.
+    **3008** Raised when parameter value can't be converted to correct type.
 
     For example:
 
@@ -507,13 +557,13 @@ class ConversionError(InvocationError):
     ConversionError: invalid 'age': must be an integer
     """
 
-    errno = 3006
+    errno = 3008
     format = _('invalid %(name)r: %(error)s')
 
 
 class ValidationError(InvocationError):
     """
-    **3007** Raised when a parameter value fails a validation rule.
+    **3009** Raised when a parameter value fails a validation rule.
 
     For example:
 
@@ -523,7 +573,7 @@ class ValidationError(InvocationError):
     ValidationError: invalid 'sn': can be at most 128 characters
     """
 
-    errno = 3007
+    errno = 3009
     format = _('invalid %(name)r: %(error)s')
 
 

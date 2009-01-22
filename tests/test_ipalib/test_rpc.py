@@ -221,7 +221,7 @@ class test_xmlclient(PluginTester):
                 'user_add',
                 (rpc.xml_wrap(params),),
                 {},
-                Fault(3005, u"'four' is required"),  # RequirementError
+                Fault(3007, u"'four' is required"),  # RequirementError
             ),
             (
                 'user_add',

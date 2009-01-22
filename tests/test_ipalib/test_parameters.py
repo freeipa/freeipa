@@ -165,6 +165,8 @@ class test_Param(ClassChecker):
         assert o._get_default is None
         assert o.autofill is False
         assert o.query is False
+        assert o.attribute is False
+        assert o.limit_to is None
         assert o.flags == frozenset()
 
         # Test that ValueError is raised when a kwarg from a subclass
