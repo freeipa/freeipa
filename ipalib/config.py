@@ -34,6 +34,7 @@ from types import NoneType
 import os
 from os import path
 import sys
+from socket import gethostname
 
 from base import check_name
 from constants import CONFIG_SECTION
@@ -426,6 +427,7 @@ class Env(object):
         self.__doing('_bootstrap')
 
         # Set run-time variables:
+        self.host = gethostname()
         self.ipalib = path.dirname(path.abspath(__file__))
         self.site_packages = path.dirname(self.ipalib)
         self.script = path.abspath(sys.argv[0])
@@ -499,6 +501,8 @@ class Env(object):
                 self.log = path.join(self.dot_ipa, 'log', name)
             else:
                 self.log = path.join('/', 'var', 'log', 'ipa', name)
+        if 'ca_host' not in self:
+            self.ca_host = self.host
         self._merge(**defaults)
 
     def _finalize(self, **lastchance):

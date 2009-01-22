@@ -99,6 +99,11 @@ DEFAULT_CONFIG = (
     ('debug', False),
     ('mode', 'production'),
 
+    # CA plugin:
+    ('ca_host', object),  # Set in Env._finalize_core()
+    ('ca_port', 9180),
+    ('ca_ssl_port', 9443),
+
     # ********************************************************
     #  The remaining keys are never set from the values here!
     # ********************************************************
@@ -116,6 +121,7 @@ DEFAULT_CONFIG = (
     # raised.
 
     # Set in Env.__init__():
+    ('host', object),
     ('ipalib', object), # The directory containing ipalib/__init__.py
     ('site_packages', object), # The directory contaning ipalib
     ('script', object), # sys.argv[0]

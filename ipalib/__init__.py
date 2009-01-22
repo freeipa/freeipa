@@ -701,7 +701,7 @@ plugin (or plugins) is imported.  For example:
 1
 >>> api.bootstrap(in_server=True) # We want to execute, not forward
 >>> len(api.env)
-32
+36
 
 `Env._bootstrap()`, which is called by `API.bootstrap()`, will create several
 run-time variables that connot be overriden in configuration files or through
