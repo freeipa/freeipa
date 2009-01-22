@@ -230,6 +230,7 @@ class Param(ReadOnly):
         ('create_default', callable, None),
         ('autofill', bool, False),
         ('query', bool, False),
+        ('attribute', bool, False),
         ('flags', frozenset, frozenset()),
 
         # The 'default' kwarg gets appended in Param.__init__():
@@ -791,6 +792,8 @@ class Bytes(Data):
     Python v3 ``(str, unicode) => (bytes, str)`` clean-up.  See:
 
         http://docs.python.org/3.0/whatsnew/3.0.html
+
+    Also see the `Str` parameter.
     """
 
     type = str
@@ -839,6 +842,8 @@ class Str(Data):
     Python v3 ``(str, unicode) => (bytes, str)`` clean-up.  See:
 
         http://docs.python.org/3.0/whatsnew/3.0.html
+
+    Also see the `Bytes` parameter.
     """
 
     type = unicode

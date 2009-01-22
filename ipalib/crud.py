@@ -73,6 +73,55 @@ class Find(frontend.Method):
             yield option
 
 
+class Create(frontend.Method):
+    """
+    Create a new entry.
+    """
+
+
+class PKQuery(frontend.Method):
+    """
+    Base class for `Retrieve`, `Update`, and `Delete`.
+    """
+
+    def get_args(self):
+        yield self.obj.primary_key.clone(query=True, multivalue=True)
+
+
+class Retrieve(PKQuery):
+    """
+    Retrieve an entry by its primary key.
+    """
+
+
+class Update(PKQuery):
+    """
+    Update one or more attributes on an entry.
+    """
+
+    def get_options(self):
+        if self.extra_options_first:
+            for option in super(Update, self).get_options():
+                yield option
+        for option in self.obj.params_minus_pk():
+            yield option.clone(required=False)
+        if not self.extra_options_first:
+            for option in super(Update, self).get_options():
+                yield option
+
+
+class Delete(PKQuery):
+    """
+    Delete one or more entries.
+    """
+
+
+class Search(frontend.Method):
+    """
+    Retrieve all entries that match a given search criteria.
+    """
+
+
 class CrudBackend(backend.Backend):
     """
     Base class defining generic CRUD backend API.

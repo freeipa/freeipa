@@ -617,6 +617,8 @@ class Method(Attribute, Command):
     `Property` classes.
     """
     __public__ = Attribute.__public__.union(Command.__public__)
+    extra_options_first = False
+    extra_args_first = False
 
     def __init__(self):
         super(Method, self).__init__()

@@ -874,8 +874,10 @@ import plugable
 from backend import Backend, Context
 from frontend import Command, LocalOrRemote, Application
 from frontend import Object, Method, Property
+from crud import Create, Retrieve, Update, Delete, Search
 from parameters import DefaultFrom, Bool, Flag, Int, Float, Bytes, Str, Password
 from parameters import BytesEnum, StrEnum
+
 
 try:
     import uuid
