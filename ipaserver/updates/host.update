@@ -1,0 +1,25 @@
+#
+# Schema for IPA Hosts
+#
+dn: cn=schema
+add: attributeTypes:
+  ( 2.16.840.1.113730.3.8.3.10  NAME 'ipaClientVersion' 
+    DESC 'Text string describing client version of the IPA software installed' 
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+    X-ORIGIN 'IPA v2' )
+  
+add: attributeTypes:
+  ( 2.16.840.1.113730.3.8.3.11  NAME 'enrolledBy' 
+    DESC 'DN of administrator who performed manual enrollment of the host' 
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.12  
+    X-ORIGIN 'IPA v2' )
+add: objectClasses:
+  ( 2.16.840.1.113730.3.8.4.2 NAME 'ipaHost' 
+    AUXILIARY 
+    MAY ( userPassword $ ipaClientVersion $ enrolledBy) 
+    X-ORIGIN 'IPA v2' )
+add: objectClasses:
+  ( 2.5.6.21 NAME 'pkiUser'
+   SUP top AUXILIARY
+   MAY ( userCertificate )
+   X-ORIGIN 'RFC 2587' )

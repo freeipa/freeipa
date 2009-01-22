@@ -1,0 +1,4 @@
+include LICENSE TODO lite-webui.py lite-xmlrpc.py
+graft tests/
+graft ipawebui/static/
+include ipawebui/templates/*.kid

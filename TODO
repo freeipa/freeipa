@@ -1,0 +1,97 @@
+API chages before January 2009 simi-freeze:
+
+  * Merge Param and Type together so that rather than taking the type as a
+    kwarg, you simply use the Type. For example, instead of:
+        >>> Param('number', type=Int())
+    You would do this:
+        >>> Int('number')
+    The types will correspond to Python 3.0 text/binary disambiguaiton, so we
+    will have Bytes, Str, Int, Float, and Bool.
+
+  * Rename crud Method base classes to standard CRUDS name: Add=>Create,
+    Get=>Retrieve, Mod=>Update, Del=>Delete, Find=>Search.
+
+  * Add a Command.backend convenience attribute that checks if the class
+    uses_backend attribute is sets the Command.backend attribute like this:
+        self.backend = self.Backend[self.uses_backend]
+
+  * Finish methods on Plugin base class for calling external commands via
+    subprocess.
+
+  * Probably renamed ipa_server package to ipaserver.
+
+  * Add special logging methods to Plugin baseclass for authorization events
+    (escalation, de-escalation, and denial).
+
+  * Implement gettext service.
+
+  * Add ability to register pre-op, post-op plugins per command.
+
+  * Add ability to have certain args/options only active on either client-side
+    or server-side, and also the same for things like default_from callbacks.
+
+  * Add ability to have a post-processing step that only gets called
+    client-side.  It should have a signature like output_for_cli() minus the
+    textui argument.  Need to decide whether we allow this method to modify
+    the return value.
+
+  * Make Plugin base class parse class docstring into overview and
+    full-description strings (similar to Bazaar).
+
+  * Removed depreciated code in config.py.
+
+  * Remove __getattr__() from Env (and probably elsewhere) as in Python 2.4 and
+    2.5 hasattr() will catch KeyboardInterrupt and SystemExit exceptions (BTW,
+    this has been fixed in Python 2.6).
+
+  * Remove support for dynamic environment values from Env... Jason feels this
+    the Env class should be simple and static.  Other mechanisms should be used
+    for retrieving per-request dynamic environment variables.
+
+
+CRUD base classes:
+
+  * The Retrieve method should add in the common Flag('all') option for
+    retrieving all attributes.
+
+  * We probably need some LDAP centric crud method base classes, like
+    LDAPCreate, etc.  Or other options it to have an LDAPObject base class and
+    have the crud Method plugins rely more on their corresponding Object plugin.
+
+  * Update the Retrieve, Update, Delete, and Search classes so that the utilize
+    the new Param.query kwarg (to turn off validation) when cloning params.
+
+
+Existing plugins:
+
+  * Many existing plugins that are doing crud-type operations aren't using the
+    Object + Method way of defining their parameters, and are therefore defining
+    the exact same parameter several times in a module.  This should be fixed
+    one way or another... if there are deficiencies in the crud base classes,
+    they need to be improved.
+
+
+Command Line interface:
+
+  * Finish textui plugin
+
+  * Make possible Enum values self-documenting
+
+  * All "comma-separated list of..." parameters should really be changed to
+    multivalue and have a flag that tells the CLI whether a multivalue should
+    be parsed as comma-separated.
+
+
+Improve ease of plugin writting
+  - make "from ipalib import *" import everything a plugin writter will need
+  - Finish ipa_types, add Str and Float Types
+
+Packaging
+  - Use setuptools instead of plain distutils
+  - Make setup.py generate dev-docs and run unit tests
+  - Package for rpm (.spec file)
+  - Package for apt (debian/ dir)
+
+Migration
+  - Add the IPAService objectclass to existing principals
+  - Move existng host/ principals from cn=services to cn=computers?

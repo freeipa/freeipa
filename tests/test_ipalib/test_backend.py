@@ -1,0 +1,55 @@
+# Authors:
+#   Jason Gerard DeRose <jderose@redhat.com>
+#
+# Copyright (C) 2008  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+"""
+Test the `ipalib.backend` module.
+"""
+
+from ipalib import  backend, plugable, errors
+from tests.util import ClassChecker, raises
+
+
+class test_Backend(ClassChecker):
+    """
+    Test the `ipalib.backend.Backend` class.
+    """
+
+    _cls = backend.Backend
+
+    def test_class(self):
+        assert self.cls.__bases__ == (plugable.Plugin,)
+        assert self.cls.__proxy__ is False
+
+
+class test_Context(ClassChecker):
+    """
+    Test the `ipalib.backend.Context` class.
+    """
+
+    _cls = backend.Context
+
+    def test_get_value(self):
+        """
+        Test the `ipalib.backend.Context.get_value` method.
+        """
+        class Subclass(self.cls):
+            pass
+        o = Subclass()
+        e = raises(NotImplementedError, o.get_value)
+        assert str(e) == 'Subclass.get_value()'
