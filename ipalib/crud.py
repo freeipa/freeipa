@@ -85,7 +85,7 @@ class PKQuery(frontend.Method):
     """
 
     def get_args(self):
-        yield self.obj.primary_key.clone(query=True, multivalue=True)
+        yield self.obj.primary_key.clone(query=True)
 
 
 class Retrieve(PKQuery):

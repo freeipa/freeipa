@@ -27,7 +27,7 @@ import plugable
 from plugable import lock, check_name
 import errors
 from errors import check_type, check_isinstance, raise_TypeError
-from parameters import create_param, Param, Str, Flag
+from parameters import create_param, Param, Str, Flag, Password
 from util import make_repr
 
 from errors2 import ZeroArgumentError, MaxArgumentError, OverlapError
@@ -102,6 +102,7 @@ class Command(plugable.Plugin):
         params.update(self.get_default(**params))
         self.validate(**params)
         (args, options) = self.params_2_args_options(**params)
+        self.debug(make_repr(self.name, *args, **options))
         result = self.run(*args, **options)
         self.debug('%s result: %r', self.name, result)
         return result
@@ -446,6 +447,18 @@ class Object(plugable.Plugin):
 
         if 'Backend' in self.api and self.backend_name in self.api.Backend:
             self.backend = self.api.Backend[self.backend_name]
+
+    def params_minus(self, *names):
+        """
+        Yield all Param whose name is not in ``names``.
+        """
+        if len(names) == 1 and not isinstance(names[0], (Param, str)):
+            names = names[0]
+        minus = frozenset(names)
+        for param in self.params():
+            if param.name in minus or param in minus:
+                continue
+            yield param
 
     def get_dn(self, primary_key):
         """

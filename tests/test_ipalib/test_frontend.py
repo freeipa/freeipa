@@ -25,6 +25,7 @@ from tests.util import raises, getitem, no_set, no_del, read_only
 from tests.util import check_TypeError, ClassChecker, create_test_api
 from tests.util import assert_equal
 from ipalib.constants import TYPE_ERROR
+from ipalib.base import NameSpace
 from ipalib import frontend, backend, plugable, errors2, errors, parameters, config
 
 
@@ -637,6 +638,25 @@ class test_Object(ClassChecker):
         o = user()
         e = raises(NotImplementedError, o.get_dn, 'primary key')
         assert str(e) == 'user.get_dn()'
+
+    def test_params_minus(self):
+        """
+        Test the `ipalib.frontend.Object.params_minus` method.
+        """
+        class example(self.cls):
+            takes_params = ('one', 'two', 'three', 'four')
+        o = example()
+        (api, home) = create_test_api()
+        o.set_api(api)
+        p = o.params
+        assert tuple(o.params_minus()) == tuple(p())
+        assert tuple(o.params_minus([])) == tuple(p())
+        assert tuple(o.params_minus('two', 'three')) == (p.one, p.four)
+        assert tuple(o.params_minus(['two', 'three'])) == (p.one, p.four)
+        assert tuple(o.params_minus(p.two, p.three)) == (p.one, p.four)
+        assert tuple(o.params_minus([p.two, p.three])) == (p.one, p.four)
+        ns = NameSpace([p.two, p.three])
+        assert tuple(o.params_minus(ns)) == (p.one, p.four)
 
 
 class test_Attribute(ClassChecker):

@@ -37,7 +37,7 @@ import errors2
 from config import Env
 import util
 from base import ReadOnly, NameSpace, lock, islocked, check_name
-from constants import DEFAULT_CONFIG
+from constants import DEFAULT_CONFIG, FORMAT_STDERR, FORMAT_FILE
 
 
 class SetProxy(ReadOnly):
@@ -562,7 +562,7 @@ class API(DictProxy):
         self.__doing('bootstrap')
         self.env._bootstrap(**overrides)
         self.env._finalize_core(**dict(DEFAULT_CONFIG))
-        log = logging.getLogger('ipa')
+        log = logging.getLogger()
         object.__setattr__(self, 'log', log)
         if self.env.debug:
             log.setLevel(logging.DEBUG)
@@ -571,20 +571,18 @@ class API(DictProxy):
 
         # Add stderr handler:
         stderr = logging.StreamHandler()
-        format = self.env.log_format_stderr
         if self.env.debug:
-            format = self.env.log_format_stderr_debug
             stderr.setLevel(logging.DEBUG)
         elif self.env.verbose:
             stderr.setLevel(logging.INFO)
         else:
             stderr.setLevel(logging.WARNING)
-        stderr.setFormatter(util.LogFormatter(format))
+        stderr.setFormatter(util.LogFormatter(FORMAT_STDERR))
         log.addHandler(stderr)
 
         # Add file handler:
         if self.env.mode in ('dummy', 'unit_test'):
-            return # But not if in unit-test mode
+            return  # But not if in unit-test mode
         log_dir = path.dirname(self.env.log)
         if not path.isdir(log_dir):
             try:
@@ -593,7 +591,7 @@ class API(DictProxy):
                 log.warn('Could not create log_dir %r', log_dir)
                 return
         handler = logging.FileHandler(self.env.log)
-        handler.setFormatter(util.LogFormatter(self.env.log_format_file))
+        handler.setFormatter(util.LogFormatter(FORMAT_FILE))
         if self.env.debug:
             handler.setLevel(logging.DEBUG)
         else:

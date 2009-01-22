@@ -183,10 +183,10 @@ class user_add(crud.Add):
 api.register(user_add)
 
 
-class user_del(crud.Del):
+class user_del(crud.Delete):
     'Delete an existing user.'
 
-    def execute(self, uid, **kw):
+    def execute(self, uid):
         """Delete a user. Not to be confused with inactivate_user. This
            makes the entry go away completely.
 

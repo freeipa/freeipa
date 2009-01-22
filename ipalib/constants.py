@@ -51,31 +51,20 @@ CLI_TAB = '  '  # Two spaces
 # The section to read in the config files, i.e. [global]
 CONFIG_SECTION = 'global'
 
-
-# Log format for console output
-LOG_FORMAT_STDERR = ': '.join([
-    '%(name)s',
+# Log format for stderr:
+FORMAT_STDERR = ': '.join([
+    'ipa',
     '%(levelname)s',
     '%(message)s',
 ])
 
-
-# Log format for console output when env.dubug is True:
-LOG_FORMAT_STDERR_DEBUG = ' '.join([
-    '%(levelname)s',
-    '%(message)r',
-    '%(lineno)d',
-    '%(filename)s',
-])
-
-
-# Tab-delimited log format for file (easy to opened in a spreadsheet):
-LOG_FORMAT_FILE = '\t'.join([
-    '%(asctime)s',
+# Log format for log file:
+FORMAT_FILE = '\t'.join([
+    '%(created)f',
     '%(levelname)s',
     '%(message)r', # Using %r for repr() so message is a single line
-    '%(lineno)d',
-    '%(pathname)s',
+    '%(process)d',
+    '%(threadName)s',
 ])
 
 
@@ -109,11 +98,6 @@ DEFAULT_CONFIG = (
     ('verbose', False),
     ('debug', False),
     ('mode', 'production'),
-
-    # Logging:
-    ('log_format_stderr', LOG_FORMAT_STDERR),
-    ('log_format_stderr_debug', LOG_FORMAT_STDERR_DEBUG),
-    ('log_format_file', LOG_FORMAT_FILE),
 
     # ********************************************************
     #  The remaining keys are never set from the values here!
