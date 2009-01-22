@@ -35,6 +35,7 @@ import struct
 import frontend
 import backend
 import errors
+import errors2
 import plugable
 import util
 from constants import CLI_TAB
@@ -534,9 +535,9 @@ class CLI(object):
             print ''
             self.api.log.info('operation aborted')
             sys.exit()
-        except errors.IPAError, e:
-            self.api.log.error(unicode(e))
-            sys.exit(e.faultCode)
+        except errors2.PublicError, e:
+            self.api.log.error(e.strerror)
+            sys.exit(e.errno)
 
     def run_real(self):
         """
@@ -620,6 +621,8 @@ class CLI(object):
             (c.name.replace('_', '-'), c) for c in self.api.Command()
         )
         self.textui = self.api.Backend.textui
+        if self.api.env.in_server is False and 'xmlclient' in self.api.Backend:
+            self.api.Backend.xmlclient.connect()
 
     def load_plugins(self):
         """

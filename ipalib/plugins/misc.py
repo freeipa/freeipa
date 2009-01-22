@@ -22,7 +22,7 @@ Misc frontend plugins.
 """
 
 import re
-from ipalib import api, LocalOrRemote
+from ipalib import api, LocalOrRemote, Bytes
 
 
 

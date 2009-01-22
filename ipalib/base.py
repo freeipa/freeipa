@@ -455,7 +455,7 @@ class NameSpace(ReadOnly):
 
         :param key: The name or index of a member, or a slice object.
         """
-        if type(key) is str:
+        if isinstance(key, basestring):
             return self.__map[key]
         if type(key) in (int, slice):
             return self.__members[key]

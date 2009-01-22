@@ -171,11 +171,13 @@ def test_xml_loads():
     assert_equal(tup[0], params)
 
     # Test un-serializing an RPC response containing a Fault:
-    fault = Fault(69, unicode_str)
-    data = dumps(fault, methodresponse=True, allow_none=True)
-    e = raises(Fault, f, data)
-    assert e.faultCode == 69
-    assert_equal(e.faultString, unicode_str)
+    for error in (unicode_str, u'hello'):
+        fault = Fault(69, error)
+        data = dumps(fault, methodresponse=True, allow_none=True, encoding='UTF-8')
+        e = raises(Fault, f, data)
+        assert e.faultCode == 69
+        assert_equal(e.faultString, error)
+        assert type(e.faultString) is unicode
 
 
 class test_xmlclient(PluginTester):
@@ -227,19 +229,19 @@ class test_xmlclient(PluginTester):
         context.xmlconn = DummyClass(
             (
                 'user_add',
-                (rpc.xml_wrap(params),),
+                rpc.xml_wrap(params),
                 {},
                 rpc.xml_wrap(result),
             ),
             (
                 'user_add',
-                (rpc.xml_wrap(params),),
+                rpc.xml_wrap(params),
                 {},
                 Fault(3007, u"'four' is required"),  # RequirementError
             ),
             (
                 'user_add',
-                (rpc.xml_wrap(params),),
+                rpc.xml_wrap(params),
                 {},
                 Fault(700, u'no such error'),  # There is no error 700
             ),

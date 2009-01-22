@@ -135,8 +135,13 @@ def xml_dumps(params, methodname=None, methodresponse=False, encoding='UTF-8'):
         allow_none=True,
     )
 
+def decode_fault(e, encoding='UTF-8'):
+    assert isinstance(e, Fault)
+    if type(e.faultString) is str:
+        return Fault(e.faultCode, e.faultString.decode(encoding))
+    return e
 
-def xml_loads(data):
+def xml_loads(data, encoding='UTF-8'):
     """
     Decode the XML-RPC packet in ``data``, transparently unwrapping its params.
 
@@ -159,8 +164,11 @@ def xml_loads(data):
 
     :param data: The XML-RPC packet to decode.
     """
-    (params, method) = loads(data)
-    return (xml_unwrap(params), method)
+    try:
+        (params, method) = loads(data)
+        return (xml_unwrap(params), method)
+    except Fault, e:
+        raise decode_fault(e)
 
 
 class KerbTransport(SafeTransport):
@@ -211,8 +219,8 @@ class xmlclient(Backend):
                 )
             )
         conn = ServerProxy(self.env.xmlrpc_uri,
-            transport=KerbTransport(),
             allow_none=True,
+            encoding='UTF-8',
         )
         setattr(context, self.connection_name, conn)
 
@@ -243,9 +251,10 @@ class xmlclient(Backend):
         command = getattr(context.xmlconn, name)
         params = args + (kw,)
         try:
-            response = command(xml_wrap(params))
+            response = command(*xml_wrap(params))
             return xml_unwrap(response)
         except Fault, e:
+            e = decode_fault(e)
             self.debug('Caught fault %d from server %s: %s', e.faultCode,
                 self.env.xmlrpc_uri, e.faultString)
             if e.faultCode in self.__errors:

@@ -378,7 +378,6 @@ class test_Command(ClassChecker):
         o.set_api(api)
         assert o.run.im_func is self.cls.run.im_func
         assert ('execute', args, kw) == o.run(*args, **kw)
-        assert o.run.im_func is my_cmd.execute.im_func
 
         # Test in non-server context
         (api, home) = create_test_api(in_server=False)
@@ -387,7 +386,6 @@ class test_Command(ClassChecker):
         o.set_api(api)
         assert o.run.im_func is self.cls.run.im_func
         assert ('forward', args, kw) == o.run(*args, **kw)
-        assert o.run.im_func is my_cmd.forward.im_func
 
 
 class test_LocalOrRemote(ClassChecker):

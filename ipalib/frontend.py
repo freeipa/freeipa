@@ -96,14 +96,14 @@ class Command(plugable.Plugin):
         If not in a server context, the call will be forwarded over
         XML-RPC and the executed an the nearest IPA server.
         """
-        self.debug(make_repr(self.name, *args, **options))
         params = self.args_options_2_params(*args, **options)
         params = self.normalize(**params)
         params = self.convert(**params)
         params.update(self.get_default(**params))
         self.validate(**params)
         (args, options) = self.params_2_args_options(**params)
-        self.debug(make_repr(self.name, *args, **options))
+        # FIXME: don't log passords!
+        self.info(make_repr(self.name, *args, **options))
         result = self.run(*args, **options)
         self.debug('%s result: %r', self.name, result)
         return result
@@ -200,6 +200,11 @@ class Command(plugable.Plugin):
             (k, self.params[k].convert(v)) for (k, v) in kw.iteritems()
         )
 
+    def __convert_iter(self, kw):
+        for param in self.params():
+            if kw.get(param.name, None) is None:
+                continue
+
     def get_default(self, **kw):
         """
         Return a dictionary of defaults for all missing required values.
@@ -245,7 +250,7 @@ class Command(plugable.Plugin):
             elif param.required:
                 raise errors.RequirementError(param.name)
 
-    def run(self, *args, **kw):
+    def run(self, *args, **options):
         """
         Dispatch to `Command.execute` or `Command.forward`.
 
@@ -258,11 +263,8 @@ class Command(plugable.Plugin):
         performs is executed remotely.
         """
         if self.api.env.in_server:
-            target = self.execute
-        else:
-            target = self.forward
-        object.__setattr__(self, 'run', target)
-        return target(*args, **kw)
+            return self.execute(*args, **options)
+        return self.forward(*args, **options)
 
     def execute(self, *args, **kw):
         """
@@ -283,7 +285,7 @@ class Command(plugable.Plugin):
         """
         Forward call over XML-RPC to this same command on server.
         """
-        return self.Backend.xmlrpc.forward_call(self.name, *args, **kw)
+        return self.Backend.xmlclient.forward(self.name, *args, **kw)
 
     def finalize(self):
         """

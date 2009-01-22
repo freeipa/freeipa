@@ -335,6 +335,7 @@ class test_Param(ClassChecker):
         o = Subclass('my_param')
         for value in NULLS:
             assert o.convert(value) is None
+        assert o.convert(None) is None
         for value in okay:
             assert o.convert(value) is value
 
@@ -821,6 +822,7 @@ class test_Str(ClassChecker):
             assert e.name == 'my_str'
             assert e.index == 18
             assert_equal(e.error, u'must be Unicode text')
+        assert o.convert(None) is None
 
     def test_rule_minlength(self):
         """

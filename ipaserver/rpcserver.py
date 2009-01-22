@@ -27,6 +27,7 @@ from xmlrpclib import Fault
 from ipalib import Backend
 from ipalib.errors2 import PublicError, InternalError, CommandError
 from ipalib.rpc import xml_dumps, xml_loads
+from ipalib.util import make_repr
 
 
 def params_2_args_options(params):
@@ -47,21 +48,26 @@ class xmlserver(Backend):
         self.debug('Received RPC call to %r', method)
         if method not in self.Command:
             raise CommandError(name=method)
+        self.info('params = %r', params)
         (args, options) = params_2_args_options(params)
+        self.info('args = %r', args)
+        self.info('options = %r', options)
+        self.debug(make_repr(method, *args, **options))
         result = self.Command[method](*args, **options)
         return (result,)  # Must wrap XML-RPC response in a tuple singleton
 
-    def execute(self, data, ccache=None, client_version=None,
-            client_ip=None, languages=None):
+    def execute(self, data):
         """
         Execute the XML-RPC request in contained in ``data``.
         """
         try:
             (params, method) = xml_loads(data)
             response = self.dispatch(method, params)
+            print 'okay'
         except Exception, e:
             if not isinstance(e, PublicError):
                 e = InternalError()
             assert isinstance(e, PublicError)
+            self.debug('Returning %r exception', e.__class__.__name__)
             response = Fault(e.errno, e.strerror)
-        return dumps(response)
+        return xml_dumps(response, methodresponse=True)
