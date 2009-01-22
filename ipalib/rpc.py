@@ -1,5 +1,6 @@
 # Authors:
 #   Jason Gerard DeRose <jderose@redhat.com>
+#   Rob Crittenden <rcritten@redhat.com>
 #
 # Copyright (C) 2008  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -31,7 +32,8 @@ Also see the `ipaserver.rpcserver` module.
 
 from types import NoneType
 import threading
-from xmlrpclib import Binary, Fault, dumps, loads
+from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy, SafeTransport
+import kerberos
 from ipalib.backend import Backend
 from ipalib.errors2 import public_errors, PublicError, UnknownError
 from ipalib.request import context
@@ -161,14 +163,61 @@ def xml_loads(data):
     return (xml_unwrap(params), method)
 
 
+class KerbTransport(SafeTransport):
+    """
+    Handles Kerberos Negotiation authentication to an XML-RPC server.
+    """
+
+    def get_host_info(self, host):
+
+        (host, extra_headers, x509) = SafeTransport.get_host_info(self, host)
+
+        # Set the remote host principal
+        service = "HTTP@" + host.split(':')[0]
+
+        try:
+            (rc, vc) = kerberos.authGSSClientInit(service)
+        except kerberos.GSSError, e:
+            raise e  # FIXME: raise a PublicError
+
+        try:
+            kerberos.authGSSClientStep(vc, "")
+        except kerberos.GSSError, e:
+            raise e  # FIXME: raise a PublicError
+
+        extra_headers += [
+            ('Authorization', 'negotiate %s' % kerberos.authGSSClientResponse(vc))
+        ]
+
+        return (host, extra_headers, x509)
+
+
 class xmlclient(Backend):
     """
     Forwarding backend for XML-RPC client.
     """
 
+    connection_name = 'xmlconn'
+
     def __init__(self):
         super(xmlclient, self).__init__()
         self.__errors = dict((e.errno, e) for e in public_errors)
+
+    def connect(self, ccache=None, user=None, password=None):
+        if hasattr(context, self.connection_name):
+            raise StandardError(
+                '%s.connect(): context.%s already exists in thread %r' % (
+                    self.name, self.connection_name, threading.currentThread().getName()
+                )
+            )
+        conn = ServerProxy(self.env.xmlrpc_uri,
+            transport=KerbTransport(),
+            allow_none=True,
+        )
+        setattr(context, self.connection_name, conn)
+
+    def get_connection(self):
+        return getattr(context, self.connection_name)
 
     def forward(self, name, *args, **kw):
         """
@@ -197,6 +246,8 @@ class xmlclient(Backend):
             response = command(xml_wrap(params))
             return xml_unwrap(response)
         except Fault, e:
+            self.debug('Caught fault %d from server %s: %s', e.faultCode,
+                self.env.xmlrpc_uri, e.faultString)
             if e.faultCode in self.__errors:
                 error = self.__errors[e.faultCode]
                 raise error(message=e.faultString)

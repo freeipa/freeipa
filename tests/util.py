@@ -295,6 +295,13 @@ class PluginTester(object):
         o = api[namespace][self.plugin.__name__]
         return (o, api, home)
 
+    def tearDown(self):
+        """
+        nose tear-down fixture.
+        """
+        for name in context.__dict__.keys():
+            delattr(context, name)
+
 
 class dummy_ugettext(object):
     __called = False

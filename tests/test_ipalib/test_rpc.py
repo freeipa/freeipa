@@ -22,7 +22,7 @@ Test the `ipalib.rpc` module.
 """
 
 import threading
-from xmlrpclib import Binary, Fault, dumps, loads
+from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy
 from tests.util import raises, assert_equal, PluginTester, DummyClass
 from tests.data import binary_bytes, utf8_bytes, unicode_str
 from ipalib.frontend import Command
@@ -183,6 +183,20 @@ class test_xmlclient(PluginTester):
     Test the `ipalib.rpc.xmlclient` plugin.
     """
     _plugin = rpc.xmlclient
+
+    def test_connect(self):
+        (o, api, home) = self.instance('Backend', in_server=False)
+
+        # Test that StandardError is raised if conntext.xmlconn already exists:
+        context.xmlconn = 'The xmlrpclib.ServerProxy instance'
+        e = raises(StandardError, o.connect)
+        assert str(e) == '%s.connect(): context.%s already exists in thread %r' % (
+            'xmlclient', 'xmlconn', threading.currentThread().getName()
+        )
+
+        del context.xmlconn
+        o.connect()
+        assert isinstance(context.xmlconn, ServerProxy)
 
     def test_forward(self):
         """
