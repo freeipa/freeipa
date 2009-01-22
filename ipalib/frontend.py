@@ -96,6 +96,7 @@ class Command(plugable.Plugin):
         If not in a server context, the call will be forwarded over
         XML-RPC and the executed an the nearest IPA server.
         """
+        self.debug(make_repr(self.name, *args, **options))
         params = self.args_options_2_params(*args, **options)
         params = self.normalize(**params)
         params = self.convert(**params)

@@ -696,7 +696,6 @@ class CLI(object):
         if self.options.interactive:
             self.prompt_interactively(cmd, kw)
         self.prompt_for_passwords(cmd, kw)
-        self.set_defaults(cmd, kw)
         result = cmd(**kw)
         if callable(cmd.output_for_cli):
             for param in cmd.params():
@@ -708,16 +707,9 @@ class CLI(object):
             (args, options) = cmd.params_2_args_options(**kw)
             cmd.output_for_cli(self.api.Backend.textui, result, *args, **options)
 
-    def set_defaults(self, cmd, kw):
-        for param in cmd.params():
-            if not kw.get(param.name):
-                value = param.get_default(**kw)
-                if value:
-                    kw[param.name] = value
-
     def prompt_for_passwords(self, cmd, kw):
         for param in cmd.params():
-            if 'password' not in param.flags:
+            if not isinstance(param, Password):
                 continue
             if kw.get(param.name, False) is True or param.name in cmd.args:
                 kw[param.name] = self.textui.prompt_password(
@@ -738,11 +730,12 @@ class CLI(object):
         optional.
         """
         for param in cmd.params():
-            if 'password' in param.flags:
+            if isinstance(param, Password):
                 continue
             elif param.name not in kw:
-                if not (param.required or self.options.prompt_all):
+                if not param.required and not self.options.prompt_all:
                     continue
+                print 'prompting for %r' % param.name
                 default = param.get_default(**kw)
                 error = None
                 while True:
@@ -757,6 +750,7 @@ class CLI(object):
                     except errors.ValidationError, e:
                         error = e.error
         return kw
+
 
 # FIXME: This should be done as the plugins are loaded
 #        if self.api.env.server_context:

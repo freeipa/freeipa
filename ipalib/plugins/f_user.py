@@ -217,7 +217,7 @@ class user_del(crud.Delete):
 api.register(user_del)
 
 
-class user_mod(crud.Mod):
+class user_mod(crud.Update):
     'Edit an existing user.'
     def execute(self, uid, **kw):
         """
