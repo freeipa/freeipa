@@ -298,37 +298,6 @@ class test_Command(ClassChecker):
         e = raises(NotImplementedError, o.execute)
         assert str(e) == 'Command.execute()'
 
-    def test_args_to_kw(self):
-        """
-        Test the `ipalib.frontend.Command.args_to_kw` method.
-        """
-        assert 'args_to_kw' in self.cls.__public__ # Public
-        o = self.get_instance(args=('one', 'two?'))
-        assert o.args_to_kw(1) == dict(one=1)
-        assert o.args_to_kw(1, 2) == dict(one=1, two=2)
-
-        o = self.get_instance(args=('one', 'two*'))
-        assert o.args_to_kw(1) == dict(one=1)
-        assert o.args_to_kw(1, 2) == dict(one=1, two=(2,))
-        assert o.args_to_kw(1, 2, 3) == dict(one=1, two=(2, 3))
-
-        o = self.get_instance(args=('one', 'two+'))
-        assert o.args_to_kw(1) == dict(one=1)
-        assert o.args_to_kw(1, 2) == dict(one=1, two=(2,))
-        assert o.args_to_kw(1, 2, 3) == dict(one=1, two=(2, 3))
-
-        o = self.get_instance()
-        e = raises(errors.ArgumentError, o.args_to_kw, 1)
-        assert str(e) == 'example takes no arguments'
-
-        o = self.get_instance(args=('one?',))
-        e = raises(errors.ArgumentError, o.args_to_kw, 1, 2)
-        assert str(e) == 'example takes at most 1 argument'
-
-        o = self.get_instance(args=('one', 'two?'))
-        e = raises(errors.ArgumentError, o.args_to_kw, 1, 2, 3)
-        assert str(e) == 'example takes at most 2 arguments'
-
     def test_args_options_2_params(self):
         """
         Test the `ipalib.frontend.Command.args_options_2_params` method.
@@ -382,11 +351,10 @@ class test_Command(ClassChecker):
         """
         assert 'params_2_args_options' in self.cls.__public__ # Public
         o = self.get_instance(args=['one'], options=['two'])
-        assert o.params_2_args_options({}) == ((None,), {})
-        assert o.params_2_args_options(dict(one=1)) == ((1,), {})
-        assert o.params_2_args_options(dict(two=2)) == ((None,), dict(two=2))
-        assert o.params_2_args_options(dict(two=2, one=1)) == \
-            ((1,), dict(two=2))
+        assert o.params_2_args_options() == ((None,), {})
+        assert o.params_2_args_options(one=1) == ((1,), {})
+        assert o.params_2_args_options(two=2) == ((None,), dict(two=2))
+        assert o.params_2_args_options(two=2, one=1) == ((1,), dict(two=2))
 
     def test_run(self):
         """

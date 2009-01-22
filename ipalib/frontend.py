@@ -78,7 +78,6 @@ class Command(plugable.Plugin):
         'args',
         'options',
         'params',
-        'args_to_kw',
         'params_2_args_options',
         'args_options_2_params',
         'output_for_cli',
@@ -90,59 +89,22 @@ class Command(plugable.Plugin):
     params = None
     output_for_cli = None
 
-    def __call__(self, *args, **kw):
+    def __call__(self, *args, **options):
         """
         Perform validation and then execute the command.
 
         If not in a server context, the call will be forwarded over
         XML-RPC and the executed an the nearest IPA server.
         """
-        self.debug(make_repr(self.name, *args, **kw))
-        if len(args) > 0:
-            arg_kw = self.args_to_kw(*args)
-            assert set(arg_kw).intersection(kw) == set()
-            kw.update(arg_kw)
-        kw = self.normalize(**kw)
-        kw = self.convert(**kw)
-        kw.update(self.get_default(**kw))
-        self.validate(**kw)
-        (args, options) = self.params_2_args_options(kw)
+        params = self.args_options_2_params(*args, **options)
+        params = self.normalize(**params)
+        params = self.convert(**params)
+        params.update(self.get_default(**params))
+        self.validate(**params)
+        (args, options) = self.params_2_args_options(**params)
         result = self.run(*args, **options)
         self.debug('%s result: %r', self.name, result)
         return result
-
-    def args_to_kw(self, *values):
-        """
-        Map positional into keyword arguments.
-        """
-        if self.max_args is not None and len(values) > self.max_args:
-            if self.max_args == 0:
-                raise errors.ArgumentError(self, 'takes no arguments')
-            if self.max_args == 1:
-                raise errors.ArgumentError(self, 'takes at most 1 argument')
-            raise errors.ArgumentError(self,
-                'takes at most %d arguments' % len(self.args)
-            )
-        return dict(self.__args_to_kw_iter(values))
-
-    def __args_to_kw_iter(self, values):
-        """
-        Generator used by `Command.args_to_kw` method.
-        """
-        multivalue = False
-        for (i, arg) in enumerate(self.args()):
-            assert not multivalue
-            if len(values) > i:
-                if arg.multivalue:
-                    multivalue = True
-                    if len(values) == i + 1 and type(values[i]) in (list, tuple):
-                        yield (arg.name, values[i])
-                    else:
-                        yield (arg.name, values[i:])
-                else:
-                    yield (arg.name, values[i])
-            else:
-                break
 
     def args_options_2_params(self, *args, **options):
         """
@@ -182,9 +144,9 @@ class Command(plugable.Plugin):
             if name in options:
                 yield (name, options[name])
 
-    def params_2_args_options(self, params):
+    def params_2_args_options(self, **params):
         """
-        Split params into (args, kw).
+        Split params into (args, options).
         """
         args = tuple(params.get(name, None) for name in self.args)
         options = dict(self.__params_2_options(params))

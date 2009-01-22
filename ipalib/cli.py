@@ -705,7 +705,7 @@ class CLI(object):
                         del kw[param.name]
                     except KeyError:
                         pass
-            (args, options) = cmd.params_2_args_options(kw)
+            (args, options) = cmd.params_2_args_options(**kw)
             cmd.output_for_cli(self.api.Backend.textui, result, *args, **options)
 
     def set_defaults(self, cmd, kw):
@@ -784,11 +784,8 @@ class CLI(object):
         (kwc, args) = parser.parse_args(
             list(self.cmd_argv[1:]), KWCollector()
         )
-        kw = kwc.__todict__()
-        arg_kw = cmd.args_to_kw(*args)
-        assert set(arg_kw).intersection(kw) == set()
-        kw.update(arg_kw)
-        return kw
+        options = kwc.__todict__()
+        return cmd.args_options_2_params(*args, **options)
 
     def build_parser(self, cmd):
         parser = optparse.OptionParser(
