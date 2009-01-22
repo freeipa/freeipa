@@ -19,7 +19,4 @@
 
 """
 Sub-package containing all core plugins.
-
-By convention, modules with frontend plugins are named f_*.py and modules
-with backend plugins are named b_*.py.
 """
