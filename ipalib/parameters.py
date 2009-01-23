@@ -359,6 +359,26 @@ class Param(ReadOnly):
         return value
 
     def safe_value(self, value):
+        """
+        Return a value safe for logging.
+
+        This is used so that passwords don't get logged.  If this is a
+        `Password` instance and ``value`` is not ``None``, a constant
+        ``u'********'`` is returned.  For example:
+
+        >>> p = Password('my_password')
+        >>> p.safe_value(u'This is my password')
+        u'********'
+        >>> p.safe_value(None) is None
+        True
+
+        If this is not a `Password` instance, ``value`` is returned unchanged.
+        For example:
+
+        >>> s = Str('my_str')
+        >>> s.safe_value(u'Some arbitrary value')
+        u'Some arbitrary value'
+        """
         if self.password and value is not None:
             return u'********'
         return value

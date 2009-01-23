@@ -98,7 +98,7 @@ class Command(plugable.Plugin):
         """
         params = self.args_options_2_params(*args, **options)
         self.info(
-            '%s(%s)', self.name, ', '.join(self.__repr_iter(params))
+            '%s(%s)', self.name, ', '.join(self._repr_iter(**params))
         )
         params = self.normalize(**params)
         params = self.convert(**params)
@@ -109,10 +109,28 @@ class Command(plugable.Plugin):
         self.debug('result from %s(): %r', self.name, result)
         return result
 
-    def __repr_iter(self, params):
+    def _repr_iter(self, **params):
+        """
+        Iterate through ``repr()`` of *safe* values of args and options.
+
+        This method uses `parameters.Param.safe_value()` to mask passwords when
+        logging.  Logging the exact call is extremely useful, but we obviously
+        don't want to log the cleartext password.
+
+        For example:
+
+        >>> class my_cmd(Command):
+        ...     takes_args = ('login',)
+        ...     takes_options=(Password('passwd'),)
+        ...
+        >>> c = my_cmd()
+        >>> c.finalize()
+        >>> list(c._repr_iter(login=u'Okay.', passwd=u'Private!'))
+        ["u'Okay.'", "passwd=u'********'"]
+        """
         for arg in self.args():
             value = params.get(arg.name, None)
-            yield '%r' % (arg.safe_value(value),)
+            yield repr(arg.safe_value(value))
         for option in self.options():
             if option.name not in params:
                 continue

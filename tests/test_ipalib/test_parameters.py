@@ -144,6 +144,7 @@ class test_Param(ClassChecker):
         assert o.param_spec is name
         assert o.name is name
         assert o.nice == "Param('my_param')"
+        assert o.password is False
         assert o.__islocked__() is True
 
         # Test default rules:
@@ -243,6 +244,20 @@ class test_Param(ClassChecker):
         o = self.cls('name', multivalue=True)
         assert repr(o) == "Param('name', multivalue=True)"
 
+    def test_safe_value(self):
+        """
+        Test the `ipalib.parameters.Param.safe_value` method.
+        """
+        values = (unicode_str, binary_bytes, utf8_bytes)
+        o = self.cls('my_param')
+        for value in values:
+            assert o.safe_value(value) is value
+        assert o.safe_value(None) is None
+        p = parameters.Password('my_passwd')
+        for value in values:
+            assert_equal(p.safe_value(value), u'********')
+        assert p.safe_value(None) is None
+
     def test_clone(self):
         """
         Test the `ipalib.parameters.Param.clone` method.
@@ -326,7 +341,7 @@ class test_Param(ClassChecker):
         """
         Test the `ipalib.parameters.Param.convert` method.
         """
-        okay = ('Hello', u'Hello', 0, 4.2, True, False)
+        okay = ('Hello', u'Hello', 0, 4.2, True, False, unicode_str)
         class Subclass(self.cls):
             def _convert_scalar(self, value, index=None):
                 return value
@@ -610,6 +625,7 @@ class test_Data(ClassChecker):
         """
         o = self.cls('my_data')
         assert o.type is NoneType
+        assert o.password is False
         assert o.rules == tuple()
         assert o.class_rules == tuple()
         assert o.all_rules == tuple()
@@ -663,6 +679,7 @@ class test_Bytes(ClassChecker):
         """
         o = self.cls('my_bytes')
         assert o.type is str
+        assert o.password is False
         assert o.rules == tuple()
         assert o.class_rules == tuple()
         assert o.all_rules == tuple()
@@ -800,6 +817,7 @@ class test_Str(ClassChecker):
         """
         o = self.cls('my_str')
         assert o.type is unicode
+        assert o.password is False
         assert o.minlength is None
         assert o.maxlength is None
         assert o.length is None
@@ -811,9 +829,10 @@ class test_Str(ClassChecker):
         """
         o = self.cls('my_str')
         mthd = o._convert_scalar
-        for value in (u'Hello', 42, 1.2):
+        for value in (u'Hello', 42, 1.2, unicode_str):
             assert mthd(value) == unicode(value)
-        for value in [True, 'Hello', (u'Hello',), [42.3], dict(one=1)]:
+        bad = [True, 'Hello', (u'Hello',), [42.3], dict(one=1), utf8_bytes]
+        for value in bad:
             e = raises(errors2.ConversionError, mthd, value)
             assert e.name == 'my_str'
             assert e.index is None
@@ -901,6 +920,25 @@ class test_Str(ClassChecker):
             assert dummy.message == 'must be exactly %(length)d characters'
             assert dummy.called() is True
             dummy.reset()
+
+
+class test_Password(ClassChecker):
+    """
+    Test the `ipalib.parameters.Password` class.
+    """
+    _cls = parameters.Password
+
+    def test_init(self):
+        """
+        Test the `ipalib.parameters.Password.__init__` method.
+        """
+        o = self.cls('my_password')
+        assert o.type is unicode
+        assert o.minlength is None
+        assert o.maxlength is None
+        assert o.length is None
+        assert o.pattern is None
+        assert o.password is True
 
 
 class test_StrEnum(ClassChecker):
