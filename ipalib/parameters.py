@@ -243,6 +243,11 @@ class Param(ReadOnly):
         self.param_spec = name
         self.__kw = dict(kw)
 
+        if isinstance(self, Password):
+            self.password = True
+        else:
+            self.password = False
+
         # Merge in kw from parse_param_spec():
         if not ('required' in kw or 'multivalue' in kw):
             (name, kw_from_spec) = parse_param_spec(name)
@@ -354,7 +359,7 @@ class Param(ReadOnly):
         return value
 
     def safe_value(self, value):
-        if isinstance(self, Password) and value is not None:
+        if self.password and value is not None:
             return u'********'
         return value
 

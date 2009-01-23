@@ -702,17 +702,14 @@ class CLI(object):
         result = cmd(**kw)
         if callable(cmd.output_for_cli):
             for param in cmd.params():
-                if isinstance(param, Password):
-                    try:
-                        del kw[param.name]
-                    except KeyError:
-                        pass
+                if param.password and param.name in kw:
+                    del kw[param.name]
             (args, options) = cmd.params_2_args_options(**kw)
             cmd.output_for_cli(self.api.Backend.textui, result, *args, **options)
 
     def prompt_for_passwords(self, cmd, kw):
         for param in cmd.params():
-            if not isinstance(param, Password):
+            if not param.password:
                 continue
             if kw.get(param.name, False) is True or param.name in cmd.args:
                 kw[param.name] = self.textui.prompt_password(
@@ -733,12 +730,11 @@ class CLI(object):
         optional.
         """
         for param in cmd.params():
-            if isinstance(param, Password):
+            if param.password or param.autofill:
                 continue
             elif param.name not in kw:
                 if not param.required and not self.options.prompt_all:
                     continue
-                print 'prompting for %r' % param.name
                 default = param.get_default(**kw)
                 error = None
                 while True:
@@ -803,7 +799,7 @@ class CLI(object):
                 dest=option.name,
                 help=option.doc,
             )
-            if 'password' in option.flags:
+            if option.password:
                 kw['action'] = 'store_true'
             elif option.type is bool:
                 if option.default is True:
@@ -822,7 +818,7 @@ class CLI(object):
     def get_usage_iter(self, cmd):
         yield 'Usage: %%prog [global-options] %s' % to_cli(cmd.name)
         for arg in cmd.args():
-            if 'password' in arg.flags:
+            if arg.password:
                 continue
             name = to_cli(arg.cli_name).upper()
             if arg.multivalue:
