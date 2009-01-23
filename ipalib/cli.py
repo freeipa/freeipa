@@ -36,9 +36,10 @@ import frontend
 import backend
 import plugable
 import util
-from errors2 import PublicError, CommandError, HelpError
+from errors2 import PublicError, CommandError, HelpError, InternalError
 from constants import CLI_TAB
 from parameters import Password, Bytes
+from request import ugettext as _
 
 
 def to_cli(name):
@@ -357,6 +358,9 @@ class textui(backend.Backend):
             self.choose_number(count, singular, plural)
         )
 
+    def print_error(self, text):
+        print '  ** %s **' % text
+
     def prompt(self, label, default=None, get_values=None):
         """
         Prompt user for input.
@@ -377,13 +381,15 @@ class textui(backend.Backend):
         try:
             while True:
                 pw1 = getpass.getpass('%s: ' % label)
-                pw2 = getpass.getpass('Enter again to verify: ')
+                pw2 = getpass.getpass(
+                    _('Enter %(label)s again to verify: ') % dict(label=label)
+                )
                 if pw1 == pw2:
                     return self.decode(pw1)
-                print '  ** Passwords do not match. Please enter again. **'
+                self.print_error( _('Passwords do not match!'))
         except KeyboardInterrupt:
             print ''
-            print '  ** Cancelled. **'
+            self.print_error(_('Cancelled.'))
 
 
 class help(frontend.Application):
@@ -538,6 +544,11 @@ class CLI(object):
         except PublicError, e:
             self.api.log.error(e.strerror)
             sys.exit(e.errno)
+        except Exception, e:
+            self.api.log.exception('%s: %s', e.__class__.__name__, str(e))
+            e = InternalError()
+            self.api.log.error(e.strerror)
+            sys.exit(e.errno)
 
     def run_real(self):
         """
@@ -575,31 +586,6 @@ class CLI(object):
         if key not in self:
             raise CommandError(name=key)
         self.run_cmd(self[key])
-
-        # FIXME: Stuff that might need special handling still:
-#        # Now run the command
-#        try:
-#            ret = cmd(**kw)
-#            if callable(cmd.output_for_cli):
-#                (args, options) = cmd.params_2_args_options(kw)
-#                cmd.output_for_cli(self.api.Backend.textui, ret, *args, **options)
-#            return 0
-#        except socket.error, e:
-#            print e[1]
-#            return 1
-#        except errors.GenericError, err:
-#            code = getattr(err,'faultCode',None)
-#            faultString = getattr(err,'faultString',None)
-#            if not code:
-#                raise err
-#            if code < errors.IPA_ERROR_BASE:
-#                print "%s: %s" % (code, faultString)
-#            else:
-#                print "%s: %s" % (code, getattr(err,'__doc__',''))
-#            return 1
-#        except StandardError, e:
-#            print e
-#            return 2
 
     def finalize(self):
         """
@@ -750,28 +736,6 @@ class CLI(object):
                         error = e.error
         return kw
 
-
-# FIXME: This should be done as the plugins are loaded
-#        if self.api.env.server_context:
-#            try:
-#                import krbV
-#                import ldap
-#                from ipaserver import conn
-#                from ipaserver.servercore import context
-#                krbccache =  krbV.default_context().default_ccache().name
-#                context.conn = conn.IPAConn(self.api.env.ldaphost, self.api.env.ldapport, krbccache)
-#            except ImportError:
-#                print >> sys.stderr, "There was a problem importing a Python module: %s" % sys.exc_value
-#                return 2
-#            except ldap.LDAPError, e:
-#                print >> sys.stderr, "There was a problem connecting to the LDAP server: %s" % e[0].get('desc')
-#                return 2
-#        ret = cmd(**kw)
-#        if callable(cmd.output_for_cli):
-#            return cmd.output_for_cli(ret)
-#        else:
-#            return 0
-
     def parse(self, cmd):
         parser = self.build_parser(cmd)
         (kwc, args) = parser.parse_args(
@@ -779,9 +743,12 @@ class CLI(object):
         )
         options = kwc.__todict__()
         kw = cmd.args_options_2_params(*args, **options)
-        return dict(self.params_iter(cmd, kw))
+        return dict(self.parse_iter(cmd, kw))
 
-    def params_iter(self, cmd, kw):
+    def parse_iter(self, cmd, kw):
+        """
+        Decode param values if appropriate.
+        """
         for (key, value) in kw.iteritems():
             param = cmd.params[key]
             if isinstance(param, Bytes):
