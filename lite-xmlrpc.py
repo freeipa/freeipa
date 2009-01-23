@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/env python
 
 # Authors:
 #   Jason Gerard DeRose <jderose@redhat.com>
