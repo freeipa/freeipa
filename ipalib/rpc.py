@@ -207,7 +207,9 @@ class KerbTransport(SafeTransport):
 
 class xmlclient(Backend):
     """
-    Forwarding backend for XML-RPC client.
+    Forwarding backend plugin for XML-RPC client.
+
+    Also see the `ipaserver.rpcserver.xmlserver` plugin.
     """
 
     connection_name = 'xmlconn'

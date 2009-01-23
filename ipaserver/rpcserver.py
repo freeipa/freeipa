@@ -41,7 +41,9 @@ def params_2_args_options(params):
 
 class xmlserver(Backend):
     """
-    Execution backend for XML-RPC server.
+    Execution backend plugin for XML-RPC server.
+
+    Also see the `ipalib.rpc.xmlclient` plugin.
     """
 
     def dispatch(self, method, params):

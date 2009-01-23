@@ -25,8 +25,6 @@ import re
 import inspect
 import plugable
 from plugable import lock, check_name
-import errors
-from errors import check_type, check_isinstance, raise_TypeError
 from parameters import create_param, Param, Str, Flag, Password
 from util import make_repr
 
@@ -272,7 +270,7 @@ class Command(plugable.Plugin):
         """
         Validate all values.
 
-        If any value fails the validation, `ipalib.errors.ValidationError`
+        If any value fails the validation, `ipalib.errors2.ValidationError`
         (or a subclass thereof) will be raised.
         """
         for param in self.params():
