@@ -98,11 +98,14 @@ class Command(plugable.Plugin):
         """
         params = self.args_options_2_params(*args, **options)
         self.info(
-            '%s(%s)', self.name, ', '.join(self._repr_iter(**params))
+            'raw: %s(%s)', self.name, ', '.join(self._repr_iter(**params))
         )
         params = self.normalize(**params)
         params = self.convert(**params)
         params.update(self.get_default(**params))
+        self.info(
+            'processed: %s(%s)', self.name, ', '.join(self._repr_iter(**params))
+        )
         self.validate(**params)
         (args, options) = self.params_2_args_options(**params)
         result = self.run(*args, **options)

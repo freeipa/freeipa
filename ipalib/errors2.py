@@ -410,6 +410,23 @@ class KerberosError(AuthenticationError):
     errno = 1100
 
 
+class ServiceError(KerberosError):
+    """
+    **1101** Raised when service is not found in Kerberos DB.
+
+    For example:
+
+    >>> raise ServiceError(service='HTTP@localhost')
+    Traceback (most recent call last):
+      ...
+    ServiceError: Service 'HTTP@localhost' not found in Kerberos database
+
+    """
+
+    errno = 1101
+    format = _('Service %(service)r not found in Kerberos database')
+
+
 
 ##############################################################################
 # 2000 - 2999: Authorization errors

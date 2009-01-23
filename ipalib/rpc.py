@@ -37,6 +37,7 @@ from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy, SafeTransport
 import kerberos
 from ipalib.backend import Backend
 from ipalib.errors2 import public_errors, PublicError, UnknownError, NetworkError
+from ipalib import errors2
 from ipalib.request import context
 
 
@@ -178,7 +179,6 @@ class KerbTransport(SafeTransport):
     """
 
     def get_host_info(self, host):
-
         (host, extra_headers, x509) = SafeTransport.get_host_info(self, host)
 
         # Set the remote host principal
@@ -192,7 +192,11 @@ class KerbTransport(SafeTransport):
         try:
             kerberos.authGSSClientStep(vc, "")
         except kerberos.GSSError, e:
-            raise e  # FIXME: raise a PublicError
+            (major, minor) = e.args
+            if minor[1] == -1765328377:
+                raise errors2.ServiceError(service=service)
+            else:
+                raise e
 
         extra_headers += [
             ('Authorization', 'negotiate %s' % kerberos.authGSSClientResponse(vc))
@@ -220,6 +224,7 @@ class xmlclient(Backend):
                 )
             )
         conn = ServerProxy(self.env.xmlrpc_uri,
+            transport=KerbTransport(),
             allow_none=True,
             encoding='UTF-8',
         )
