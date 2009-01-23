@@ -48,32 +48,5 @@ class test_xmlserver(PluginTester):
 
     _plugin = rpcserver.xmlserver
 
-    def test_dispatch(self):
-        """
-        Test the `ipaserver.rpcserver.xmlserver.dispatch` method.
-        """
-        (o, api, home) = self.instance('Backend', in_server=True)
-        e = raises(errors2.CommandError, o.dispatch, 'echo', tuple())
-        assert e.name == 'echo'
-
-        class echo(Command):
-            takes_args = ['arg1', 'arg2+']
-            takes_options = ['option1?', 'option2?']
-            def execute(self, *args, **options):
-                assert type(args[1]) is tuple
-                return args + (options,)
-
-        (o, api, home) = self.instance('Backend', echo, in_server=True)
-        def call(params):
-            response = o.dispatch('echo', params)
-            assert type(response) is tuple and len(response) == 1
-            return response[0]
-        arg1 = unicode_str
-        arg2 = (u'Hello', unicode_str, u'world!')
-        options = dict(option1=u'How are you?', option2=unicode_str)
-        assert call((arg1, arg2, options)) == (arg1, arg2, options)
-        assert call((arg1,) + arg2 + (options,)) == (arg1, arg2, options)
-
-
-    def test_execute(self):
+    def test_marshaled_dispatch(self):
         (o, api, home) = self.instance('Backend', in_server=True)

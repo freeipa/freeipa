@@ -226,7 +226,7 @@ class xmlclient(Backend):
                 )
             )
         conn = ServerProxy(self.env.xmlrpc_uri,
-            transport=KerbTransport(),
+            #transport=KerbTransport(),
             allow_none=True,
             encoding='UTF-8',
         )

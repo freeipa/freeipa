@@ -24,7 +24,7 @@ Also see the `ipalib.rpc` module.
 """
 
 from xmlrpclib import Fault
-from ipalib import Backend
+from ipalib.backend import Executioner
 from ipalib.errors2 import PublicError, InternalError, CommandError
 from ipalib.rpc import xml_dumps, xml_loads
 from ipalib.util import make_repr
@@ -39,36 +39,22 @@ def params_2_args_options(params):
     return (params, dict())
 
 
-class xmlserver(Backend):
+class xmlserver(Executioner):
     """
     Execution backend plugin for XML-RPC server.
 
     Also see the `ipalib.rpc.xmlclient` plugin.
     """
 
-    def dispatch(self, method, params):
-        self.debug('Received RPC call to %r', method)
-        if method not in self.Command:
-            raise CommandError(name=method)
-        (args, options) = params_2_args_options(params)
-        result = self.Command[method](*args, **options)
-        return (result,)  # Must wrap XML-RPC response in a tuple singleton
-
-    def execute(self, data):
+    def marshaled_dispatch(self, data):
         """
         Execute the XML-RPC request in contained in ``data``.
         """
         try:
-            (params, method) = xml_loads(data)
-            response = self.dispatch(method, params)
-            print 'okay'
-        except Exception, e:
-            if not isinstance(e, PublicError):
-                self.exception(
-                    '%s: %s', e.__class__.__name__, str(e)
-                )
-                e = InternalError()
-            assert isinstance(e, PublicError)
-            self.info('%s: %s', e.__class__.__name__, str(e))
+            (params, name) = xml_loads(data)
+            (args, options) = params_2_args_options(params)
+            response = (self.execute(name, *args, **options),)
+        except PublicError, e:
+            self.info('response: %s: %s', e.__class__.__name__, str(e))
             response = Fault(e.errno, e.strerror)
         return xml_dumps(response, methodresponse=True)

@@ -50,9 +50,9 @@ class Server(SimpleXMLRPCServer):
 
     def _marshaled_dispatch(self, data, dispatch_method=None):
         """
-        Use `ipaserver.rpcserver.xmlserver.execute()` to do the real work.
+        Use `ipaserver.rpcserver.xmlserver.marshaled_dispatch()`.
         """
-        return api.Backend.xmlserver.execute(data)
+        return api.Backend.xmlserver.marshaled_dispatch(data)
 
 
 kw = dict(logRequests=False)
