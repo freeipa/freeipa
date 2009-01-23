@@ -207,9 +207,9 @@ class ClassChecker(object):
         """
         nose tear-down fixture.
         """
-        for name in ('ugettext', 'ungettext'):
-            if hasattr(context, name):
-                delattr(context, name)
+        for name in context.__dict__.keys():
+            delattr(context, name)
+
 
 
 

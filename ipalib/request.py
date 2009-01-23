@@ -25,11 +25,44 @@ Per-request thread-local data.
 import threading
 import locale
 import gettext
+from base import ReadOnly, lock
 from constants import OVERRIDE_ERROR
 
 
 # Thread-local storage of most per-request information
 context = threading.local()
+
+
+class Connection(ReadOnly):
+    """
+    Base class for connection objects stored on `request.context`.
+    """
+
+    def __init__(self, *args, **kw):
+        self.conn = self.create(*args, **kw)
+        lock(self)
+
+    def create(self, *args, **kw):
+        """
+        Create and return the connection (implement in subclass).
+        """
+        raise NotImplementedError('%s.create()' % self.__class__.__name__)
+
+    def close(self):
+        """
+        Close the connection (implement in subclass).
+        """
+        raise NotImplementedError('%s.close()' % self.__class__.__name__)
+
+
+def destroy_context():
+    """
+    Delete all attributes on thread-local `request.context`.
+    """
+    for (name, value) in context.__dict__.items():
+        if isinstance(value, Connection):
+            value.close()
+        delattr(context, name)
 
 
 def ugettext(message):

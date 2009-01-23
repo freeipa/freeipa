@@ -21,7 +21,10 @@
 Base classes for all backed-end plugins.
 """
 
+import threading
 import plugable
+from errors2 import PublicError, InternalError, CommandError
+from request import context, Connection, destroy_context
 
 
 class Backend(plugable.Plugin):
@@ -29,7 +32,70 @@ class Backend(plugable.Plugin):
     Base class for all backend plugins.
     """
 
-    __proxy__ = False # Backend plugins are not wrapped in a PluginProxy
+    __proxy__ = False  # Backend plugins are not wrapped in a PluginProxy
+
+
+class Connectible(Backend):
+    # Override in subclass:
+    connection_klass = None
+
+    def connect(self, *args, **kw):
+        """
+        Create thread-local connection.
+        """
+        if hasattr(context, self.name):
+            raise StandardError(
+                "connection 'context.%s' already exists in thread %r" % (
+                    self.name, threading.currentThread().getName()
+                )
+            )
+        if not issubclass(self.connection_klass, Connection):
+            raise ValueError(
+                '%s.connection_klass must be a request.Connection subclass' % self.name
+            )
+        conn = self.connection_klass(*args, **kw)
+        setattr(context, self.name, conn)
+        assert self.conn is conn.conn
+
+    def isconnected(self):
+        """
+        Return ``True`` if thread-local connection on `request.context` exists.
+        """
+        return hasattr(context, self.name)
+
+    def __get_conn(self):
+        """
+        Return thread-local connection.
+        """
+        if not hasattr(context, self.name):
+            raise AttributeError('no context.%s in thread %r' % (
+                self.name, threading.currentThread().getName())
+            )
+        return getattr(context, self.name).conn
+    conn = property(__get_conn)
+
+
+class Executioner(Backend):
+
+    def execute(self, name, *args, **options):
+        error = None
+        try:
+            if name not in self.Command:
+                raise CommandError(name=name)
+            result = self.Command[name](*args, **options)
+        except PublicError, e:
+            error = e
+        except StandardError, e:
+            self.exception(
+                'non-public: %s: %s', e.__class__.__name__, str(e)
+            )
+            error = InternalError()
+        destroy_context()
+        if error is None:
+            return result
+        assert isinstance(error, PublicError)
+        raise error
+
 
 
 class Context(plugable.Plugin):
