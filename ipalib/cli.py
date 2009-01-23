@@ -110,19 +110,19 @@ class textui(backend.Backend):
     def __get_encoding(self, stream):
         assert stream in (sys.stdin, sys.stdout)
         if stream.encoding is None:
-            if stream.isatty():
-                return sys.getdefaultencoding()
             return 'UTF-8'
         return stream.encoding
 
-    def decode(self, str_buffer):
+    def decode(self, value):
         """
         Decode text from stdin.
         """
-        if type(str_buffer) is str:
+        if type(value) is str:
             encoding = self.__get_encoding(sys.stdin)
-            return str_buffer.decode(encoding)
-        return str_buffer
+            return value.decode(encoding)
+        elif type(value) in (list, tuple):
+            return tuple(self.decode(v) for v in value)
+        return value
 
     def encode(self, unicode_text):
         """
