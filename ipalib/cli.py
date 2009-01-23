@@ -34,12 +34,11 @@ import struct
 
 import frontend
 import backend
-import errors
-import errors2
 import plugable
 import util
+from errors2 import PublicError, CommandError
 from constants import CLI_TAB
-from parameters import Password
+from parameters import Password, Bytes
 
 
 def to_cli(name):
@@ -120,9 +119,10 @@ class textui(backend.Backend):
         """
         Decode text from stdin.
         """
-        assert type(str_buffer) is str
-        encoding = self.__get_encoding(sys.stdin)
-        return str_buffer.decode(encoding)
+        if type(str_buffer) is str:
+            encoding = self.__get_encoding(sys.stdin)
+            return str_buffer.decode(encoding)
+        return str_buffer
 
     def encode(self, unicode_text):
         """
@@ -535,7 +535,7 @@ class CLI(object):
             print ''
             self.api.log.info('operation aborted')
             sys.exit()
-        except errors2.PublicError, e:
+        except PublicError, e:
             self.api.log.error(e.strerror)
             sys.exit(e.errno)
 
@@ -573,7 +573,7 @@ class CLI(object):
             return
         key = self.cmd_argv[0]
         if key not in self:
-            raise errors.UnknownCommandError(key)
+            raise CommandError(name=key)
         self.run_cmd(self[key])
 
         # FIXME: Stuff that might need special handling still:
@@ -782,7 +782,17 @@ class CLI(object):
             list(self.cmd_argv[1:]), KWCollector()
         )
         options = kwc.__todict__()
-        return cmd.args_options_2_params(*args, **options)
+        kw = cmd.args_options_2_params(*args, **options)
+        return dict(self.params_iter(cmd, kw))
+
+    def params_iter(self, cmd, kw):
+        for (key, value) in kw.iteritems():
+            param = cmd.params[key]
+            if isinstance(param, Bytes):
+                yield (key, value)
+            else:
+                yield (key, self.textui.decode(value))
+
 
     def build_parser(self, cmd):
         parser = optparse.OptionParser(

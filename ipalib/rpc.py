@@ -32,10 +32,11 @@ Also see the `ipaserver.rpcserver` module.
 
 from types import NoneType
 import threading
+import socket
 from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy, SafeTransport
 import kerberos
 from ipalib.backend import Backend
-from ipalib.errors2 import public_errors, PublicError, UnknownError
+from ipalib.errors2 import public_errors, PublicError, UnknownError, NetworkError
 from ipalib.request import context
 
 
@@ -265,3 +266,5 @@ class xmlclient(Backend):
                 error=e.faultString,
                 server=self.env.xmlrpc_uri,
             )
+        except socket.error, e:
+            raise NetworkError(uri=self.env.xmlrpc_uri, error=e.args[1])

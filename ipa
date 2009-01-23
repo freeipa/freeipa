@@ -30,12 +30,5 @@ from ipalib import api
 from ipalib.cli import CLI
 
 if __name__ == '__main__':
-    # If we can't explicitly determin the encoding, we assume UTF-8:
-    if sys.stdin.encoding is None:
-        encoding = 'UTF-8'
-    else:
-        encoding = sys.stdin.encoding
-    cli = CLI(api,
-        (s.decode(encoding) for s in sys.argv[1:])
-    )
+    cli = CLI(api, sys.argv[1:])
     sys.exit(cli.run())

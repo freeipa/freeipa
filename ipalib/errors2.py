@@ -370,27 +370,19 @@ class NetworkError(PublicError):
 
     For example:
 
-    >>> raise NetworkError(uri='ldap://localhost:389')
+    >>> raise NetworkError(uri='ldap://localhost:389', error='Connection refused')
     Traceback (most recent call last):
       ...
-    NetworkError: cannot connect to 'ldap://localhost:389'
+    NetworkError: cannot connect to 'ldap://localhost:389': Connection refused
     """
 
     errno = 907
-    format = _('cannot connect to %(uri)r')
+    format = _('cannot connect to %(uri)r: %(error)s')
 
 
 class ServerNetworkError(PublicError):
     """
     **908** Raised when client catches a `NetworkError` from server.
-
-    For example:
-
-    >>> e = NetworkError(uri='ldap://localhost:389')
-    >>> raise ServerNetworkError(error=e.message, server='https://localhost')
-    Traceback (most recent call last):
-      ...
-    ServerNetworkError: error on server 'https://localhost': cannot connect to 'ldap://localhost:389'
     """
 
     errno = 908

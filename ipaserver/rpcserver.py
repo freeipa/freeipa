@@ -66,8 +66,11 @@ class xmlserver(Backend):
             print 'okay'
         except Exception, e:
             if not isinstance(e, PublicError):
+                self.exception(
+                    '%s: %s', e.__class__.__name__, str(e)
+                )
                 e = InternalError()
             assert isinstance(e, PublicError)
-            self.debug('Returning %r exception', e.__class__.__name__)
+            self.info('%s: %s', e.__class__.__name__, str(e))
             response = Fault(e.errno, e.strerror)
         return xml_dumps(response, methodresponse=True)

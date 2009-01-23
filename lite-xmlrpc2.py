@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python2.4
 
 # Authors:
 #   Jason Gerard DeRose <jderose@redhat.com>
@@ -23,7 +23,8 @@
 In-tree XML-RPC server using SimpleXMLRPCServer.
 """
 
-from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
+import sys
+from SimpleXMLRPCServer import SimpleXMLRPCServer
 from ipalib import api
 
 api.bootstrap_with_global_options(context='server')
@@ -31,24 +32,41 @@ api.finalize()
 
 
 class Instance(object):
+    """
+    Just used for `Instance._listMethods()`.
+    """
+
     def _listMethods(self):
+        """
+        Provides list of names for ``system.listMethods``.
+        """
         return list(api.Command)
 
 
 class Server(SimpleXMLRPCServer):
+    """
+    Custom server implementing `Server._marshaled_dispatch()`.
+    """
+
     def _marshaled_dispatch(self, data, dispatch_method=None):
+        """
+        Use `ipaserver.rpcserver.xmlserver.execute()` to do the real work.
+        """
         return api.Backend.xmlserver.execute(data)
 
 
-address = ('', api.env.lite_xmlrpc_port)
-server = Server(address,
-    logRequests=False,
-    allow_none=True,
-    encoding='UTF-8',
-)
+kw = dict(logRequests=False)
+if sys.version_info[:2] != (2, 4):
+    kw.update(dict(encoding='UTF-8', allow_none=True))
+server = Server(('', api.env.lite_xmlrpc_port), **kw)
+api.log.info('Logging to file %r', api.env.log)
+api.log.info('Listening on port %d', api.env.lite_xmlrpc_port)
 server.register_introspection_functions()
 server.register_instance(Instance())
+
 try:
     server.serve_forever()
 except KeyboardInterrupt:
-    api.log.info('Server stopped')
+    api.log.info('KeyboardInterrupt: shutting down server...')
+    server.server_close()
+    api.log.info('Server shutdown.')
