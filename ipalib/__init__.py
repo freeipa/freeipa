@@ -871,7 +871,7 @@ freeIPA.org:
 '''
 
 import plugable
-from backend import Backend, Context
+from backend import Backend
 from frontend import Command, LocalOrRemote, Application
 from frontend import Object, Method, Property
 from crud import Create, Retrieve, Update, Delete, Search
@@ -902,12 +902,9 @@ def create_api(mode='dummy'):
         - `frontend.Application`
 
         - `backend.Backend`
-
-        - `backend.Context`
     """
     api = plugable.API(
-        Command, Object, Method, Property, Application,
-        Backend, Context,
+        Command, Object, Method, Property, Application, Backend
     )
     if mode is not None:
         api.env.mode = mode

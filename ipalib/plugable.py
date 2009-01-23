@@ -506,28 +506,6 @@ class Registrar(DictProxy):
         self.__registered.add(klass)
 
 
-class LazyContext(object):
-    """
-    On-demand creation of thread-local context attributes.
-    """
-
-    def __init__(self, api):
-        self.__api = api
-        self.__context = threading.local()
-
-    def __getattr__(self, name):
-        if name not in self.__context.__dict__:
-            if name not in self.__api.Context:
-                raise AttributeError('no Context plugin for %r' % name)
-            value = self.__api.Context[name].get_value()
-            self.__context.__dict__[name] = value
-        return self.__context.__dict__[name]
-
-    def __getitem__(self, key):
-        return self.__getattr__(key)
-
-
-
 class API(DictProxy):
     """
     Dynamic API object through which `Plugin` instances are accessed.
@@ -538,7 +516,6 @@ class API(DictProxy):
         self.__done = set()
         self.register = Registrar(*allowed)
         self.env = Env()
-        self.context = LazyContext(self)
         super(API, self).__init__(self.__d)
 
     def __doing(self, name):

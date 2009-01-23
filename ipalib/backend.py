@@ -95,17 +95,3 @@ class Executioner(Backend):
             return result
         assert isinstance(error, PublicError)
         raise error
-
-
-
-class Context(plugable.Plugin):
-    """
-    Base class for plugable context components.
-    """
-
-    __proxy__ = False # Backend plugins are not wrapped in a PluginProxy
-
-    def get_value(self):
-        raise NotImplementedError(
-            '%s.get_value()' % self.__class__.__name__
-        )

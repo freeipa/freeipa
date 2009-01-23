@@ -210,21 +210,3 @@ class test_Executioner(ClassChecker):
         e = raises(errors2.InternalError, o.execute, 'bad')
         assert conn.closed is True  # Make sure destroy_context() was called
         assert context.__dict__.keys() == []
-
-
-class test_Context(ClassChecker):
-    """
-    Test the `ipalib.backend.Context` class.
-    """
-
-    _cls = backend.Context
-
-    def test_get_value(self):
-        """
-        Test the `ipalib.backend.Context.get_value` method.
-        """
-        class Subclass(self.cls):
-            pass
-        o = Subclass()
-        e = raises(NotImplementedError, o.get_value)
-        assert str(e) == 'Subclass.get_value()'
