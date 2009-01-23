@@ -97,16 +97,27 @@ class Command(plugable.Plugin):
         XML-RPC and the executed an the nearest IPA server.
         """
         params = self.args_options_2_params(*args, **options)
+        self.info(
+            '%s(%s)', self.name, ', '.join(self.__repr_iter(params))
+        )
         params = self.normalize(**params)
         params = self.convert(**params)
         params.update(self.get_default(**params))
         self.validate(**params)
         (args, options) = self.params_2_args_options(**params)
-        # FIXME: don't log passords!
-        self.info(make_repr(self.name, *args, **options))
         result = self.run(*args, **options)
-        self.debug('%s result: %r', self.name, result)
+        self.debug('result from %s(): %r', self.name, result)
         return result
+
+    def __repr_iter(self, params):
+        for arg in self.args():
+            value = params.get(arg.name, None)
+            yield '%r' % (arg.safe_value(value),)
+        for option in self.options():
+            if option.name not in params:
+                continue
+            value = params[option.name]
+            yield '%s=%r' % (option.name, option.safe_value(value))
 
     def args_options_2_params(self, *args, **options):
         """
@@ -245,10 +256,7 @@ class Command(plugable.Plugin):
         """
         for param in self.params():
             value = kw.get(param.name, None)
-            if value is not None:
-                param.validate(value)
-            elif param.required:
-                raise errors.RequirementError(param.name)
+            param.validate(value)
 
     def run(self, *args, **options):
         """

@@ -353,6 +353,11 @@ class Param(ReadOnly):
         self.validate(value)
         return value
 
+    def safe_value(self, value):
+        if isinstance(self, Password) and value is not None:
+            return u'********'
+        return value
+
     def clone(self, **overrides):
         """
         Return a new `Param` instance similar to this one.

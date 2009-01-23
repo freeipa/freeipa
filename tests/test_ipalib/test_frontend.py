@@ -285,10 +285,8 @@ class test_Command(ClassChecker):
         # Check with a missing required arg
         fail = dict(okay)
         fail.pop('option1')
-        e = raises(errors.RequirementError, sub.validate, **fail)
+        e = raises(errors2.RequirementError, sub.validate, **fail)
         assert e.name == 'option1'
-        assert e.value is None
-        assert e.index is None
 
     def test_execute(self):
         """

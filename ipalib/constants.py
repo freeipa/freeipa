@@ -61,10 +61,10 @@ FORMAT_STDERR = ': '.join([
 # Log format for log file:
 FORMAT_FILE = '\t'.join([
     '%(created)f',
-    '%(levelname)s',
-    '%(message)r', # Using %r for repr() so message is a single line
     '%(process)d',
     '%(threadName)s',
+    '%(levelname)s',
+    '%(message)r', # Using %r for repr() so message is a single line
 ])
 
 

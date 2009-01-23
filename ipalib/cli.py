@@ -36,7 +36,7 @@ import frontend
 import backend
 import plugable
 import util
-from errors2 import PublicError, CommandError
+from errors2 import PublicError, CommandError, HelpError
 from constants import CLI_TAB
 from parameters import Password, Bytes
 
@@ -398,7 +398,7 @@ class help(frontend.Application):
             return
         key = str(command)
         if key not in self.application:
-            raise errors.UnknownHelpError(key)
+            raise HelpError(topic=key)
         cmd = self.application[key]
         print 'Purpose: %s' % cmd.doc
         self.application.build_parser(cmd).print_help()

@@ -48,11 +48,7 @@ class xmlserver(Backend):
         self.debug('Received RPC call to %r', method)
         if method not in self.Command:
             raise CommandError(name=method)
-        self.info('params = %r', params)
         (args, options) = params_2_args_options(params)
-        self.info('args = %r', args)
-        self.info('options = %r', options)
-        self.debug(make_repr(method, *args, **options))
         result = self.Command[method](*args, **options)
         return (result,)  # Must wrap XML-RPC response in a tuple singleton
 

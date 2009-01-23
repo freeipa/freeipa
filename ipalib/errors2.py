@@ -85,7 +85,9 @@ current block assignments:
 
             - **4001 - 4099**  Open for general execution errors
 
-            - **4100 - 4199**  `LDAPError` and its subclasses
+            - **4100 - 4199**  `BuiltinError` and its subclasses
+
+            - **4200 - 4299**  `LDAPError` and its subclasses
 
             - **4300 - 4999**  *Reserved for future use*
 
@@ -581,12 +583,36 @@ class ExecutionError(PublicError):
     errno = 4000
 
 
-class LDAPError(ExecutionError):
+class BuiltinError(ExecutionError):
     """
-    **4100** Base class for LDAP execution errors (*4100 - 4199*).
+    **4100** Base class for builtin execution errors (*4100 - 4199*).
     """
 
     errno = 4100
+
+
+class HelpError(BuiltinError):
+    """
+    **4101** Raised when requesting help for an unknown topic.
+
+    For example:
+
+    >>> raise HelpError(topic='newfeature')
+    Traceback (most recent call last):
+      ...
+    HelpError: no command nor help topic 'newfeature'
+    """
+
+    errno = 4101
+    format = _('no command nor help topic %(topic)r')
+
+
+class LDAPError(ExecutionError):
+    """
+    **4200** Base class for LDAP execution errors (*4200 - 4299*).
+    """
+
+    errno = 4200
 
 
 
