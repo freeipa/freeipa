@@ -42,17 +42,12 @@ class test_Backend(ClassChecker):
         assert self.cls.__proxy__ is False
 
 
-class DummyConnection(Connection):
+class Disconnect(object):
+    called = False
 
-    def create(self, *args, **kw):
-        self.args = args
-        self.kw = kw
-        self.closed = False
-        return 'The connection'
-
-    def close(self):
-        assert self.closed is False
-        object.__setattr__(self, 'closed', True)
+    def __call__(self):
+        assert self.called is False
+        self.called = True
 
 
 class test_Connectible(ClassChecker):
@@ -66,37 +61,70 @@ class test_Connectible(ClassChecker):
         """
         Test the `ipalib.backend.Connectible.connect` method.
         """
-        # Test that TypeError is raised when connection_klass isn't a
-        # Connection subclass:
-        class bad(self.cls):
-            connection_klass = base.ReadOnly
-        o = bad()
-        m = '%s.connection_klass must be a request.Connection subclass'
-        e = raises(ValueError, o.connect)
-        assert str(e) == m % 'bad'
-
         # Test that connection is created:
         class example(self.cls):
-            connection_klass = DummyConnection
+            def create_connection(self, *args, **kw):
+                object.__setattr__(self, 'args', args)
+                object.__setattr__(self, 'kw', kw)
+                return 'The connection.'
         o = example()
         args = ('Arg1', 'Arg2', 'Arg3')
         kw = dict(key1='Val1', key2='Val2', key3='Val3')
         assert not hasattr(context, 'example')
         assert o.connect(*args, **kw) is None
         conn = context.example
-        assert type(conn) is DummyConnection
-        assert conn.args == args
-        assert conn.kw == kw
-        assert conn.conn == 'The connection'
+        assert type(conn) is Connection
+        assert o.args == args
+        assert o.kw == kw
+        assert conn.conn == 'The connection.'
+        assert conn.disconnect == o.disconnect
 
         # Test that StandardError is raised if already connected:
-        m = "connection 'context.%s' already exists in thread %r"
+        m = "connect: 'context.%s' already exists in thread %r"
         e = raises(StandardError, o.connect, *args, **kw)
         assert str(e) == m % ('example', threading.currentThread().getName())
 
         # Double check that it works after deleting context.example:
         del context.example
         assert o.connect(*args, **kw) is None
+
+    def test_create_connection(self):
+        """
+        Test the `ipalib.backend.Connectible.create_connection` method.
+        """
+        class example(self.cls):
+            pass
+        for klass in (self.cls, example):
+            o = klass()
+            e = raises(NotImplementedError, o.create_connection)
+            assert str(e) == '%s.create_connection()' % klass.__name__
+
+    def test_disconnect(self):
+        """
+        Test the `ipalib.backend.Connectible.disconnect` method.
+        """
+        class example(self.cls):
+            destroy_connection = Disconnect()
+        o = example()
+
+        m = "disconnect: 'context.%s' does not exist in thread %r"
+        e = raises(StandardError, o.disconnect)
+        assert str(e) == m % ('example', threading.currentThread().getName())
+
+        context.example = 'The connection.'
+        assert o.disconnect() is None
+        assert example.destroy_connection.called is True
+
+    def test_destroy_connection(self):
+        """
+        Test the `ipalib.backend.Connectible.destroy_connection` method.
+        """
+        class example(self.cls):
+            pass
+        for klass in (self.cls, example):
+            o = klass()
+            e = raises(NotImplementedError, o.destroy_connection)
+            assert str(e) == '%s.destroy_connection()' % klass.__name__
 
     def test_isconnected(self):
         """
@@ -107,7 +135,7 @@ class test_Connectible(ClassChecker):
         for klass in (self.cls, example):
             o = klass()
             assert o.isconnected() is False
-            conn = DummyConnection()
+            conn = 'whatever'
             setattr(context, klass.__name__, conn)
             assert o.isconnected() is True
             delattr(context, klass.__name__)
@@ -125,7 +153,7 @@ class test_Connectible(ClassChecker):
             assert str(e) == msg % (
                 klass.__name__, threading.currentThread().getName()
             )
-            conn = DummyConnection()
+            conn = Connection('The connection.', Disconnect())
             setattr(context, klass.__name__, conn)
             assert o.conn is conn.conn
             delattr(context, klass.__name__)
@@ -170,11 +198,11 @@ class test_Executioner(ClassChecker):
         o.finalize()
 
         # Test that CommandError is raised:
-        conn = DummyConnection()
+        conn = Connection('The connection.', Disconnect())
         context.someconn = conn
         e = raises(errors2.CommandError, o.execute, 'nope')
         assert e.name == 'nope'
-        assert conn.closed is True  # Make sure destroy_context() was called
+        assert conn.disconnect.called is True  # Make sure destroy_context() was called
         assert context.__dict__.keys() == []
 
         # Test with echo command:
@@ -183,30 +211,30 @@ class test_Executioner(ClassChecker):
         args = (arg1,) + arg2
         options = dict(option1=u'How are you?', option2=unicode_str)
 
-        conn = DummyConnection()
+        conn = Connection('The connection.', Disconnect())
         context.someconn = conn
         assert o.execute('echo', arg1, arg2, **options) == (arg1, arg2, options)
-        assert conn.closed is True  # Make sure destroy_context() was called
+        assert conn.disconnect.called is True  # Make sure destroy_context() was called
         assert context.__dict__.keys() == []
 
-        conn = DummyConnection()
+        conn = Connection('The connection.', Disconnect())
         context.someconn = conn
         assert o.execute('echo', *args, **options) == (arg1, arg2, options)
-        assert conn.closed is True  # Make sure destroy_context() was called
+        assert conn.disconnect.called is True  # Make sure destroy_context() was called
         assert context.__dict__.keys() == []
 
         # Test with good command:
-        conn = DummyConnection()
+        conn = Connection('The connection.', Disconnect())
         context.someconn = conn
         e = raises(errors2.ValidationError, o.execute, 'good')
         assert e.name == 'nurse'
         assert e.error == u'Not naughty!'
-        assert conn.closed is True  # Make sure destroy_context() was called
+        assert conn.disconnect.called is True  # Make sure destroy_context() was called
         assert context.__dict__.keys() == []
 
         # Test with bad command:
-        conn = DummyConnection()
+        conn = Connection('The connection.', Disconnect())
         context.someconn = conn
         e = raises(errors2.InternalError, o.execute, 'bad')
-        assert conn.closed is True  # Make sure destroy_context() was called
+        assert conn.disconnect.called is True  # Make sure destroy_context() was called
         assert context.__dict__.keys() == []

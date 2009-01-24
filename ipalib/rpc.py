@@ -35,7 +35,7 @@ import threading
 import socket
 from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy, SafeTransport
 import kerberos
-from ipalib.backend import Backend
+from ipalib.backend import Connectible
 from ipalib.errors2 import public_errors, PublicError, UnknownError, NetworkError
 from ipalib import errors2
 from ipalib.request import context
@@ -205,35 +205,26 @@ class KerbTransport(SafeTransport):
         return (host, extra_headers, x509)
 
 
-class xmlclient(Backend):
+class xmlclient(Connectible):
     """
     Forwarding backend plugin for XML-RPC client.
 
     Also see the `ipaserver.rpcserver.xmlserver` plugin.
     """
 
-    connection_name = 'xmlconn'
-
     def __init__(self):
         super(xmlclient, self).__init__()
         self.__errors = dict((e.errno, e) for e in public_errors)
 
-    def connect(self, ccache=None, user=None, password=None):
-        if hasattr(context, self.connection_name):
-            raise StandardError(
-                '%s.connect(): context.%s already exists in thread %r' % (
-                    self.name, self.connection_name, threading.currentThread().getName()
-                )
-            )
-        conn = ServerProxy(self.env.xmlrpc_uri,
+    def create_connection(self, ccache=None):
+        return ServerProxy(self.env.xmlrpc_uri,
             #transport=KerbTransport(),
             allow_none=True,
             encoding='UTF-8',
         )
-        setattr(context, self.connection_name, conn)
 
-    def get_connection(self):
-        return getattr(context, self.connection_name)
+    def destroy_connection(self):
+        pass
 
     def forward(self, name, *args, **kw):
         """
@@ -250,13 +241,7 @@ class xmlclient(Backend):
             raise ValueError(
                 '%s.forward(): %r not in api.Command' % (self.name, name)
             )
-        if not hasattr(context, 'xmlconn'):
-            raise StandardError(
-                '%s.forward(%r): need context.xmlconn in thread %r' % (
-                    self.name, name, threading.currentThread().getName()
-                )
-            )
-        command = getattr(context.xmlconn, name)
+        command = getattr(self.conn, name)
         params = args + (kw,)
         try:
             response = command(*xml_wrap(params))

@@ -26,7 +26,7 @@ import threading
 import locale
 import gettext
 from base import ReadOnly, lock
-from constants import OVERRIDE_ERROR
+from constants import OVERRIDE_ERROR, CALLABLE_ERROR
 
 
 # Thread-local storage of most per-request information
@@ -38,21 +38,14 @@ class Connection(ReadOnly):
     Base class for connection objects stored on `request.context`.
     """
 
-    def __init__(self, *args, **kw):
-        self.conn = self.create(*args, **kw)
+    def __init__(self, conn, disconnect):
+        self.conn = conn
+        if not callable(disconnect):
+            raise TypeError(
+               CALLABLE_ERROR % ('disconnect', disconnect, type(disconnect))
+            )
+        self.disconnect = disconnect
         lock(self)
-
-    def create(self, *args, **kw):
-        """
-        Create and return the connection (implement in subclass).
-        """
-        raise NotImplementedError('%s.create()' % self.__class__.__name__)
-
-    def close(self):
-        """
-        Close the connection (implement in subclass).
-        """
-        raise NotImplementedError('%s.close()' % self.__class__.__name__)
 
 
 def destroy_context():
@@ -61,7 +54,7 @@ def destroy_context():
     """
     for (name, value) in context.__dict__.items():
         if isinstance(value, Connection):
-            value.close()
+            value.disconnect()
         delattr(context, name)
 
 

@@ -26,7 +26,7 @@ from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy
 from tests.util import raises, assert_equal, PluginTester, DummyClass
 from tests.data import binary_bytes, utf8_bytes, unicode_str
 from ipalib.frontend import Command
-from ipalib.request import context
+from ipalib.request import context, Connection
 from ipalib import rpc, errors2
 
 
@@ -186,20 +186,6 @@ class test_xmlclient(PluginTester):
     """
     _plugin = rpc.xmlclient
 
-    def test_connect(self):
-        (o, api, home) = self.instance('Backend', in_server=False)
-
-        # Test that StandardError is raised if conntext.xmlconn already exists:
-        context.xmlconn = 'The xmlrpclib.ServerProxy instance'
-        e = raises(StandardError, o.connect)
-        assert str(e) == '%s.connect(): context.%s already exists in thread %r' % (
-            'xmlclient', 'xmlconn', threading.currentThread().getName()
-        )
-
-        del context.xmlconn
-        o.connect()
-        assert isinstance(context.xmlconn, ServerProxy)
-
     def test_forward(self):
         """
         Test the `ipalib.rpc.xmlclient.forward` method.
@@ -215,18 +201,12 @@ class test_xmlclient(PluginTester):
             'xmlclient', 'user_add'
         )
 
-        # Test that StandardError is raised when context.xmlconn does not exist:
         (o, api, home) = self.instance('Backend', user_add, in_server=False)
-        e = raises(StandardError, o.forward, 'user_add')
-        assert str(e) == '%s.forward(%r): need context.xmlconn in thread %r' % (
-            'xmlclient', 'user_add', threading.currentThread().getName()
-        )
-
         args = (binary_bytes, utf8_bytes, unicode_str)
         kw = dict(one=binary_bytes, two=utf8_bytes, three=unicode_str)
         params = args + (kw,)
         result = (unicode_str, binary_bytes, utf8_bytes)
-        context.xmlconn = DummyClass(
+        conn = DummyClass(
             (
                 'user_add',
                 rpc.xml_wrap(params),
@@ -247,6 +227,7 @@ class test_xmlclient(PluginTester):
             ),
 
         )
+        context.xmlclient = Connection(conn, lambda: None)
 
         # Test with a successful return value:
         assert o.forward('user_add', *args, **kw) == result
@@ -260,6 +241,4 @@ class test_xmlclient(PluginTester):
         assert_equal(e.code, 700)
         assert_equal(e.error, u'no such error')
 
-        assert context.xmlconn._calledall() is True
-
-        del context.xmlconn
+        assert context.xmlclient.conn._calledall() is True

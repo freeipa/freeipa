@@ -36,26 +36,36 @@ class Backend(plugable.Plugin):
 
 
 class Connectible(Backend):
-    # Override in subclass:
-    connection_klass = None
-
     def connect(self, *args, **kw):
         """
         Create thread-local connection.
         """
         if hasattr(context, self.name):
             raise StandardError(
-                "connection 'context.%s' already exists in thread %r" % (
+                "connect: 'context.%s' already exists in thread %r" % (
                     self.name, threading.currentThread().getName()
                 )
             )
-        if not issubclass(self.connection_klass, Connection):
-            raise ValueError(
-                '%s.connection_klass must be a request.Connection subclass' % self.name
+        conn = self.create_connection(*args, **kw)
+        setattr(context, self.name, Connection(conn, self.disconnect))
+        assert self.conn is conn
+        self.info('Created connection context.%s' % self.name)
+
+    def create_connection(self, *args, **kw):
+        raise NotImplementedError('%s.create_connection()' % self.name)
+
+    def disconnect(self):
+        if not hasattr(context, self.name):
+            raise StandardError(
+                "disconnect: 'context.%s' does not exist in thread %r" % (
+                    self.name, threading.currentThread().getName()
+                )
             )
-        conn = self.connection_klass(*args, **kw)
-        setattr(context, self.name, conn)
-        assert self.conn is conn.conn
+        self.destroy_connection()
+        self.info('Destroyed connection context.%s' % self.name)
+
+    def destroy_connection(self):
+        raise NotImplementedError('%s.destroy_connection()' % self.name)
 
     def isconnected(self):
         """
