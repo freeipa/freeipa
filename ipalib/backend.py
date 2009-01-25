@@ -36,6 +36,14 @@ class Backend(plugable.Plugin):
 
 
 class Connectible(Backend):
+    """
+    Base class for backend plugins that create connections.
+
+    In addition to the nicety of providing a standard connection API, all
+    backend plugins that create connections should use this base class so that
+    `request.destroy_context()` can properly close all open connections.
+    """
+
     def connect(self, *args, **kw):
         """
         Create thread-local connection.
