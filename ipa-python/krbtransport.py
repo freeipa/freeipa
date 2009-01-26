@@ -34,7 +34,10 @@ class KerbTransport(xmlrpclib.SafeTransport):
         service = "HTTP@" + hostinfo[0]
 
         try:
-            rc, vc = kerberos.authGSSClientInit(service);
+            rc, vc = kerberos.authGSSClientInit(service,
+                                                kerberos.GSS_C_DELEG_FLAG |
+                                                kerberos.GSS_C_MUTUAL_FLAG |
+                                                kerberos.GSS_C_SEQUENCE_FLAG)
         except kerberos.GSSError, e:
             raise kerberos.GSSError(e)
 
