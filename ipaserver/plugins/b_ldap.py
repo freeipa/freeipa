@@ -41,6 +41,12 @@ class ldap(CrudBackend):
         self.dn = _ldap.dn
         super(ldap, self).__init__()
 
+    def create_connection(self, ccache=None):
+        return 'The LDAP connection.'
+
+    def destroy_connection(self):
+        pass
+
     def make_user_dn(self, uid):
         """
         Construct user dn from uid.

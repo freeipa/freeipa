@@ -95,6 +95,13 @@ class Connectible(Backend):
 
 class Executioner(Backend):
 
+
+    def create_context(self, ccache=None, client_ip=None):
+        if self.env.in_server:
+            self.Backend.ldap.connect(ccache=ccache)
+        else:
+            self.Backend.xmlclient.connect(ccache=ccache)
+
     def execute(self, name, *args, **options):
         error = None
         try:

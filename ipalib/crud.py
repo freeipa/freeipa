@@ -122,7 +122,7 @@ class Search(frontend.Method):
     """
 
 
-class CrudBackend(backend.Backend):
+class CrudBackend(backend.Connectible):
     """
     Base class defining generic CRUD backend API.
     """

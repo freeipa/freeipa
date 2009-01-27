@@ -392,40 +392,43 @@ class textui(backend.Backend):
             self.print_error(_('Cancelled.'))
 
 
-class help(frontend.Application):
-    '''Display help on a command.'''
+class help(frontend.Command):
+    """
+    Display help for a command or topic.
+    """
 
-    takes_args = ['command?']
+    takes_args = [Bytes('command?')]
 
-    def run(self, command):
+    def finalize(self):
+        self.__topics = dict(
+            (to_cli(c.name), c) for c in self.Command()
+        )
+        super(help, self).finalize()
+
+    def run(self, key):
         textui = self.Backend.textui
-        if command is None:
+        if key is None:
             self.print_commands()
             return
-        key = str(command)
-        if key not in self.application:
+        name = from_cli(key)
+        if name not in self.Command:
             raise HelpError(topic=key)
         cmd = self.application[key]
         print 'Purpose: %s' % cmd.doc
         self.application.build_parser(cmd).print_help()
 
     def print_commands(self):
-        std = set(self.Command) - set(self.Application)
-        print '\nStandard IPA commands:'
-        for key in sorted(std):
-            cmd = self.api.Command[key]
-            self.print_cmd(cmd)
-        print '\nSpecial CLI commands:'
-        for cmd in self.api.Application():
-            self.print_cmd(cmd)
+        mcl = self.get_mcl()
+        for cmd in self.api.Command():
+            print '  %s  %s' % (
+                to_cli(cmd.name).ljust(mcl),
+                cmd.doc,
+            )
         print '\nUse the --help option to see all the global options'
         print ''
 
-    def print_cmd(self, cmd):
-        print '  %s  %s' % (
-            to_cli(cmd.name).ljust(self.application.mcl),
-            cmd.doc,
-        )
+    def get_mcl(self):
+        return max(len(k) for k in self.Command)
 
 
 class console(frontend.Application):
@@ -499,22 +502,26 @@ cli_application_commands = (
 )
 
 
-class KWCollector(object):
-    def __init__(self):
-        object.__setattr__(self, '_KWCollector__d', {})
+class Collector(object):
+    def __init__(self, **extra):
+        object.__setattr__(self, '_Collector__options', {})
+        object.__setattr__(self, '_Collector__extra', frozenset(extra))
+        for (key, value) in extra.iteritems():
+            object.__setattr__(self, key, value)
 
     def __setattr__(self, name, value):
-        if name in self.__d:
-            v = self.__d[name]
-            if type(v) is tuple:
-                value = v + (value,)
-            else:
-                value = (v, value)
-        self.__d[name] = value
+        if name not in self.__extra:
+            if name in self.__options:
+                v = self.__options[name]
+                if type(v) is tuple:
+                    value = v + (value,)
+                else:
+                    value = (v, value)
+            self.__options[name] = value
         object.__setattr__(self, name, value)
 
     def __todict__(self):
-        return dict(self.__d)
+        return dict(self.__options)
 
 
 class CLI(object):
@@ -819,3 +826,146 @@ class CLI(object):
     def __getitem__(self, key):
         assert self.__d is not None, 'you must call finalize() first'
         return self.__d[key]
+
+
+class cli(backend.Executioner):
+    """
+    Backend plugin for executing from command line interface.
+    """
+
+    def run(self, argv):
+        if len(argv) == 0:
+            self.Command.help()
+            return
+        (key, argv) = (argv[0], argv[1:])
+        cmd = self.get_command(key)
+        (kw, collector) = self.parse(cmd, argv)
+        if collector._interactive:
+            self.prompt_interactively(cmd, kw, collector)
+        self.create_context()
+
+    def prompt_interactively(self, cmd, kw, collector):
+        """
+        Interactively prompt for missing or invalid values.
+
+        By default this method will only prompt for *required* Param that
+        have a missing or invalid value.  However, if
+        ``CLI.options.prompt_all`` is True, this method will prompt for any
+        params that have a missing or required values, even if the param is
+        optional.
+        """
+        for param in cmd.params():
+            if param.password or param.autofill:
+                continue
+            elif param.name not in kw:
+                if not param.required and not collector._prompt_all:
+                    continue
+                default = param.get_default(**kw)
+                error = None
+                while True:
+                    if error is not None:
+                        print '>>> %s: %s' % (param.cli_name, error)
+                    raw = self.Backend.textui.prompt(param.cli_name, default)
+                    try:
+                        value = param(raw, **kw)
+                        if value is not None:
+                            kw[param.name] = value
+                        break
+                    except errors.ValidationError, e:
+                        error = e.error
+
+    def get_command(self, key):
+        name = from_cli(key)
+        if name not in self.Command:
+            raise CommandError(name=key)
+        return self.Command[name]
+
+    def parse(self, cmd, argv):
+        parser = self.build_parser(cmd)
+        (collector, args) = parser.parse_args(argv,
+            Collector(_prompt_all=False, interactive=True)
+        )
+        options = collector.__todict__()
+        kw = cmd.args_options_2_params(*args, **options)
+        return (dict(self.parse_iter(cmd, kw)), collector)
+
+    # FIXME: Move decoding to Command, use same regardless of request source
+    def parse_iter(self, cmd, kw):
+        """
+        Decode param values if appropriate.
+        """
+        for (key, value) in kw.iteritems():
+            param = cmd.params[key]
+            if isinstance(param, Bytes):
+                yield (key, value)
+            else:
+                yield (key, self.Backend.textui.decode(value))
+
+    def build_parser(self, cmd):
+        parser = optparse.OptionParser(
+            usage=' '.join(self.usage_iter(cmd))
+        )
+        if len(cmd.params) > 0:
+            parser.add_option('-a', dest='_prompt_all', action='store_true',
+                    help='Prompt for all values interactively')
+            parser.add_option('-n', dest='_interactive', action='store_false',
+                    help="Don\'t prompt for any values interactively")
+        for option in cmd.options():
+            kw = dict(
+                dest=option.name,
+                help=option.doc,
+            )
+            if option.password:
+                kw['action'] = 'store_true'
+            elif option.type is bool:
+                if option.default is True:
+                    kw['action'] = 'store_false'
+                else:
+                    kw['action'] = 'store_true'
+            else:
+                kw['metavar'] = metavar=option.__class__.__name__.upper()
+            o = optparse.make_option('--%s' % to_cli(option.cli_name), **kw)
+            parser.add_option(o)
+        return parser
+
+    def usage_iter(self, cmd):
+        yield 'Usage: %%prog [global-options] %s' % to_cli(cmd.name)
+        for arg in cmd.args():
+            if arg.password:
+                continue
+            name = to_cli(arg.cli_name).upper()
+            if arg.multivalue:
+                name = '%s...' % name
+            if arg.required:
+                yield name
+            else:
+                yield '[%s]' % name
+
+
+cli_plugins = (
+    cli,
+    textui,
+    help,
+)
+
+
+def run(api):
+    try:
+        argv = api.bootstrap_with_global_options(context='cli')
+        for klass in cli_plugins:
+            api.register(klass)
+        api.load_plugins()
+        api.finalize()
+        api.Backend.cli.run(sys.argv[1:])
+        sys.exit()
+    except KeyboardInterrupt:
+        print ''
+        api.log.info('operation aborted')
+        sys.exit()
+    except PublicError, e:
+        error = e
+    except Exception, e:
+        api.log.exception('%s: %s', e.__class__.__name__, str(e))
+        error = InternalError()
+    api.log.error(error.strerror)
+    sys.exit(error.errno)

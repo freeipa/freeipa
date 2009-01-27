@@ -26,9 +26,7 @@ The CLI functionality is implemented in ipalib/cli.py
 """
 
 import sys
-from ipalib import api
-from ipalib.cli import CLI
+from ipalib import api, cli
 
 if __name__ == '__main__':
-    cli = CLI(api, sys.argv[1:])
-    sys.exit(cli.run())
+    cli.run(api)

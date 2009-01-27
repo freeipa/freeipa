@@ -120,6 +120,7 @@ def add_global_options(parser=None):
     """
     if parser is None:
         parser = optparse.OptionParser()
+        parser.disable_interspersed_args()
     parser.add_option('-e', dest='env', metavar='KEY=VAL', action='append',
         help='Set environment variable KEY to VAL',
     )

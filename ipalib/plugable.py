@@ -33,6 +33,7 @@ import logging
 import os
 from os import path
 import subprocess
+import optparse
 import errors2
 from config import Env
 import util
@@ -575,12 +576,37 @@ class API(DictProxy):
             handler.setLevel(logging.INFO)
         log.addHandler(handler)
 
-    def bootstrap_with_global_options(self, options=None, context=None):
-        if options is None:
-            parser = util.add_global_options()
-            (options, args) = parser.parse_args(
-                list(s.decode('utf-8') for s in sys.argv[1:])
+    def add_global_options(self, parser=None, context=None):
+        """
+        Add global options to an optparse.OptionParser instance.
+        """
+        if parser is None:
+            parser = optparse.OptionParser()
+            parser.disable_interspersed_args()
+        parser.add_option('-e', dest='env', metavar='KEY=VAL', action='append',
+            help='Set environment variable KEY to VAL',
+        )
+        parser.add_option('-c', dest='conf', metavar='FILE',
+            help='Load configuration from FILE',
+        )
+        parser.add_option('-d', '--debug', action='store_true',
+            help='Produce full debuging output',
+        )
+        parser.add_option('-v', '--verbose', action='store_true',
+            help='Produce more verbose output',
+        )
+        if context == 'cli':
+            parser.add_option('-a', '--prompt-all', action='store_true',
+                help='Prompt for all values interactively'
             )
+            parser.add_option('-n', '--no-prompt', action='store_false',
+                help="Don\'t prompt for values interactively"
+            )
+        return parser
+
+    def bootstrap_with_global_options(self, parser=None, context=None):
+        parser = self.add_global_options(parser, context)
+        (options, args) = parser.parse_args()
         overrides = {}
         if options.env is not None:
             assert type(options.env) is list
@@ -600,6 +626,7 @@ class API(DictProxy):
         if context is not None:
             overrides['context'] = context
         self.bootstrap(**overrides)
+        return args
 
     def load_plugins(self):
         """
@@ -686,6 +713,7 @@ class API(DictProxy):
 
         for p in plugins.itervalues():
             p.instance.finalize()
+            assert islocked(p.instance) is True
         object.__setattr__(self, '_API__finalized', True)
         tuple(PluginInfo(p) for p in plugins.itervalues())
         object.__setattr__(self, 'plugins',
