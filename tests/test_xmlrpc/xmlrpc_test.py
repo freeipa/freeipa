@@ -26,7 +26,6 @@ import socket
 import nose
 from ipalib import api
 from ipalib import errors
-from ipalib.cli import CLI
 
 try:
     api.finalize()

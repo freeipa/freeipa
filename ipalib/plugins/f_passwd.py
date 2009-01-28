@@ -30,12 +30,13 @@ class passwd(Command):
     'Edit existing password policy.'
 
     takes_args = (
-        Str('principal',
+        Password('password'),
+        Str('principal?',
             cli_name='user',
             primary_key=True,
+            autofill=True,
             default_from=util.get_current_principal,
         ),
-        Password('password'),
     )
 
     def execute(self, principal, password):

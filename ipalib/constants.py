@@ -104,6 +104,10 @@ DEFAULT_CONFIG = (
     ('ca_port', 9180),
     ('ca_ssl_port', 9443),
 
+    # Special CLI:
+    ('prompt_all', False),
+    ('interactive', True),
+
     # ********************************************************
     #  The remaining keys are never set from the values here!
     # ********************************************************

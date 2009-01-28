@@ -25,7 +25,6 @@ import sys
 from xmlrpc_test import XMLRPC_test
 from ipalib import api
 from ipalib import errors
-from ipalib.cli import CLI
 
 try:
     api.finalize()
@@ -240,4 +239,3 @@ class test_Indirect(XMLRPC_test):
             pass
         else:
             assert False
-

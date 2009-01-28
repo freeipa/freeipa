@@ -576,7 +576,7 @@ class API(DictProxy):
             handler.setLevel(logging.INFO)
         log.addHandler(handler)
 
-    def add_global_options(self, parser=None, context=None):
+    def build_global_parser(self, parser=None, context=None):
         """
         Add global options to an optparse.OptionParser instance.
         """
@@ -597,15 +597,16 @@ class API(DictProxy):
         )
         if context == 'cli':
             parser.add_option('-a', '--prompt-all', action='store_true',
-                help='Prompt for all values interactively'
+                help='Prompt for ALL values (even if optional)'
             )
             parser.add_option('-n', '--no-prompt', action='store_false',
-                help="Don\'t prompt for values interactively"
+                dest='interactive',
+                help='Prompt for NO values (even if required)'
             )
         return parser
 
     def bootstrap_with_global_options(self, parser=None, context=None):
-        parser = self.add_global_options(parser, context)
+        parser = self.build_global_parser(parser, context)
         (options, args) = parser.parse_args()
         overrides = {}
         if options.env is not None:
@@ -619,7 +620,7 @@ class API(DictProxy):
                     # --Jason, 2008-10-31
                     pass
                 overrides[str(key.strip())] = value.strip()
-        for key in ('conf', 'debug', 'verbose'):
+        for key in ('conf', 'debug', 'verbose', 'prompt_all', 'interactive'):
             value = getattr(options, key, None)
             if value is not None:
                 overrides[key] = value
