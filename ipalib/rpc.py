@@ -217,11 +217,10 @@ class xmlclient(Connectible):
         self.__errors = dict((e.errno, e) for e in public_errors)
 
     def create_connection(self, ccache=None):
-        return ServerProxy(self.env.xmlrpc_uri,
-            #transport=KerbTransport(),
-            allow_none=True,
-            encoding='UTF-8',
-        )
+        kw = dict(allow_none=True, encoding='UTF-8')
+        if self.env.xmlrpc_uri.startswith('https://'):
+            kw['transport'] = KerbTransport()
+        return ServerProxy(self.env.xmlrpc_uri, **kw)
 
     def destroy_connection(self):
         pass
@@ -241,6 +240,7 @@ class xmlclient(Connectible):
             raise ValueError(
                 '%s.forward(): %r not in api.Command' % (self.name, name)
             )
+        self.info('Forwarding %r to %r', name, self.env.xmlrpc_uri)
         command = getattr(self.conn, name)
         params = args + (kw,)
         try:

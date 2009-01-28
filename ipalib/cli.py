@@ -406,7 +406,7 @@ class help(frontend.Command):
         super(help, self).finalize()
 
     def run(self, key):
-        textui = self.Backend.textui
+
         if key is None:
             self.print_commands()
             return
@@ -529,25 +529,22 @@ class cli(backend.Executioner):
         if len(argv) == 0:
             self.Command.help()
             return
+        self.create_context()
         (key, argv) = (argv[0], argv[1:])
-        cmd = self.get_command(key)
+        name = from_cli(key)
+        if name not in self.Command:
+            raise CommandError(name=key)
+        cmd = self.Command[name]
         kw = self.parse(cmd, argv)
         if self.env.interactive:
             self.prompt_interactively(cmd, kw)
-        self.create_context()
-        result = cmd(**kw)
+        result = self.execute(name, **kw)
         if callable(cmd.output_for_cli):
             for param in cmd.params():
                 if param.password and param.name in kw:
                     del kw[param.name]
             (args, options) = cmd.params_2_args_options(**kw)
             cmd.output_for_cli(self.api.Backend.textui, result, *args, **options)
-
-    def get_command(self, key):
-        name = from_cli(key)
-        if name not in self.Command:
-            raise CommandError(name=key)
-        return self.Command[name]
 
     def parse(self, cmd, argv):
         parser = self.build_parser(cmd)

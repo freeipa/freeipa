@@ -28,8 +28,8 @@ import ldap as _ldap
 from ipalib import api
 from ipalib import errors
 from ipalib.crud import CrudBackend
-from ipaserver import servercore
-from ipaserver import ipaldap
+from ipaserver import servercore, ipaldap
+import krbV
 
 
 class ldap(CrudBackend):
@@ -41,11 +41,16 @@ class ldap(CrudBackend):
         self.dn = _ldap.dn
         super(ldap, self).__init__()
 
-    def create_connection(self, ccache=None):
-        return 'The LDAP connection.'
+    def create_connection(self, ccache):
+        conn = ipaldap.IPAdmin(self.env.ldap_host, self.env.ldap_port)
+        principle = krbV.CCache(
+            name=ccache, context=krbV.default_context()
+        ).principal().name
+        conn.set_krbccache(ccache, principle)
+        return conn
 
     def destroy_connection(self):
-        pass
+        self.conn.unbind_s()
 
     def make_user_dn(self, uid):
         """

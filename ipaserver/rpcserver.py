@@ -46,11 +46,12 @@ class xmlserver(Executioner):
     Also see the `ipalib.rpc.xmlclient` plugin.
     """
 
-    def marshaled_dispatch(self, data):
+    def marshaled_dispatch(self, data, ccache):
         """
         Execute the XML-RPC request in contained in ``data``.
         """
         try:
+            self.create_context(ccache=ccache)
             (params, name) = xml_loads(data)
             (args, options) = params_2_args_options(params)
             response = (self.execute(name, *args, **options),)

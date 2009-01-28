@@ -20,7 +20,7 @@
 import ldap
 import string
 import re
-from ipaserver.context import context
+from ipalib.request import context
 from ipaserver import ipaldap
 import ipautil
 from ipalib import errors
@@ -86,7 +86,7 @@ def get_entry (base, scope, searchfilter, sattrs=None):
     """
     ent=""
 
-    ent = context.conn.getConn().getEntry(base, scope, searchfilter, sattrs)
+    ent = context.ldap.conn.getEntry(base, scope, searchfilter, sattrs)
 
     return convert_entry(ent)
 
@@ -117,7 +117,7 @@ def get_list (base, searchfilter, sattrs=None, scope=ldap.SCOPE_SUBTREE):
     """
     entries = []
 
-    entries = context.conn.getConn().getList(base, scope, searchfilter, sattrs)
+    entries = context.ldap.conn.getList(base, scope, searchfilter, sattrs)
 
     return map(convert_entry, entries)
 
@@ -252,22 +252,22 @@ def update_entry (entry, remove_keys=[]):
         # FIXME: return a missing DN error message
         raise e
 
-    return context.conn.getConn().updateEntry(moddn, oldentry, newentry)
+    return context.ldap.conn.updateEntry(moddn, oldentry, newentry)
 
 def add_entry(entry):
     """Add a new entry"""
-    return context.conn.getConn().addEntry(entry)
+    return context.ldap.conn.addEntry(entry)
 
 def delete_entry(dn):
     """Remove an entry"""
-    return context.conn.getConn().deleteEntry(dn)
+    return context.ldap.conn.deleteEntry(dn)
 
 # FIXME, get time and search limit from cn=ipaconfig
 def search(base, filter, attributes, timelimit=1, sizelimit=3000):
     """Perform an LDAP query"""
     try:
         timelimit = float(timelimit)
-        results = context.conn.getConn().getListAsync(base, ldap.SCOPE_SUBTREE,
+        results = context.ldap.conn.getListAsync(base, ldap.SCOPE_SUBTREE,
             filter, attributes, 0, None, None, timelimit, sizelimit)
     except ldap.NO_SUCH_OBJECT:
         raise errors.NotFound
@@ -322,7 +322,7 @@ def get_ipa_config():
     return config
 
 def modify_password(dn, oldpass, newpass):
-    return context.conn.getConn().modifyPassword(dn, oldpass, newpass)
+    return context.ldap.conn.modifyPassword(dn, oldpass, newpass)
 
 def mark_entry_active (dn):
     """Mark an entry as active in LDAP."""

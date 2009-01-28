@@ -338,7 +338,7 @@ class ra(Backend):
 
     def __get_ca_chain(self):
         headers = {"Content-type": "application/x-www-form-urlencoded"}
-        conn = httplib.HTTPConnection(self.ca_host+":"+self.ca_port)
+        conn = httplib.HTTPConnection(self.ca_host, self.ca_port)
         conn.request("POST", "/ca/ee/ca/getCertChain", None, headers)
         response = conn.getresponse()
         api.log.debug("IPA-RA: response.status: %d  response.reason: '%s'" % (response.status, response.reason))

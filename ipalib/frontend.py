@@ -95,14 +95,14 @@ class Command(plugable.Plugin):
         XML-RPC and the executed an the nearest IPA server.
         """
         params = self.args_options_2_params(*args, **options)
-        self.info(
+        self.debug(
             'raw: %s(%s)', self.name, ', '.join(self._repr_iter(**params))
         )
         params = self.normalize(**params)
         params = self.convert(**params)
         params.update(self.get_default(**params))
         self.info(
-            'processed: %s(%s)', self.name, ', '.join(self._repr_iter(**params))
+            '%s(%s)', self.name, ', '.join(self._repr_iter(**params))
         )
         self.validate(**params)
         (args, options) = self.params_2_args_options(**params)

@@ -25,10 +25,8 @@ In-tree XML-RPC server using SimpleXMLRPCServer.
 
 import sys
 from SimpleXMLRPCServer import SimpleXMLRPCServer
+import krbV
 from ipalib import api
-
-api.bootstrap_with_global_options(context='server')
-api.finalize()
 
 
 class Instance(object):
@@ -52,13 +50,22 @@ class Server(SimpleXMLRPCServer):
         """
         Use `ipaserver.rpcserver.xmlserver.marshaled_dispatch()`.
         """
-        return api.Backend.xmlserver.marshaled_dispatch(data)
+        try:
+            ccache=krbV.default_context().default_ccache().name
+            return api.Backend.xmlserver.marshaled_dispatch(data, ccache)
+        except Exception, e:
+            api.log.exception('Error caught by lite-xmlrpc.py...')
+            raise e
 
+
+api.bootstrap_with_global_options(context='server')
+api.finalize()
 
 kw = dict(logRequests=False)
 if sys.version_info[:2] != (2, 4):
     kw.update(dict(encoding='UTF-8', allow_none=True))
 server = Server(('', api.env.lite_xmlrpc_port), **kw)
+
 api.log.info('Logging to file %r', api.env.log)
 api.log.info('Listening on port %d', api.env.lite_xmlrpc_port)
 server.register_introspection_functions()
