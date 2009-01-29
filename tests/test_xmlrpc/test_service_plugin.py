@@ -24,15 +24,15 @@ Test the `ipalib/plugins/f_service` module.
 import sys
 from xmlrpc_test import XMLRPC_test
 from ipalib import api
-from ipalib import errors
+from ipalib import errors2
 
 
 class test_Service(XMLRPC_test):
     """
     Test the `f_service` plugin.
     """
-    principal='HTTP/ipatest.%s@%s' % (api.env.domain, api.env.realm)
-    hostprincipal='host/ipatest.%s@%s' % (api.env.domain, api.env.realm)
+    principal=u'HTTP/ipatest.%s@%s' % (api.env.domain, api.env.realm)
+    hostprincipal=u'host/ipatest.%s@%s' % (api.env.domain, api.env.realm)
     kw={'principal':principal}
 
     def test_add(self):
@@ -60,7 +60,7 @@ class test_Service(XMLRPC_test):
         """
         Test adding a malformed principal ('foo').
         """
-        kw={'principal':'foo'}
+        kw={'principal': u'foo'}
         try:
             res = api.Command['service_add'](**kw)
         except errors2.MalformedServicePrincipal:
@@ -72,7 +72,7 @@ class test_Service(XMLRPC_test):
         """
         Test adding a malformed principal ('HTTP/foo@FOO.NET').
         """
-        kw={'principal':'HTTP/foo@FOO.NET'}
+        kw={'principal': u'HTTP/foo@FOO.NET'}
         try:
             res = api.Command['service_add'](**kw)
         except errors2.RealmMismatch:

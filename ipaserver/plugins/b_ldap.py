@@ -26,7 +26,7 @@ This wraps the python-ldap bindings.
 
 import ldap as _ldap
 from ipalib import api
-from ipalib import errors
+from ipalib import errors2
 from ipalib.crud import CrudBackend
 from ipaserver import servercore, ipaldap
 import krbV

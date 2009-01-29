@@ -31,9 +31,9 @@ class test_Host(XMLRPC_test):
     """
     Test the `f_host` plugin.
     """
-    cn='ipaexample.%s' % api.env.domain
-    description='Test host'
-    localityname='Undisclosed location'
+    cn = api.env.host.decode('UTF-8')
+    description = u'Test host'
+    localityname = u'Undisclosed location'
     kw={'cn': cn, 'description': description, 'localityname': localityname}
 
     def test_add(self):
@@ -41,10 +41,10 @@ class test_Host(XMLRPC_test):
         Test the `xmlrpc.host_add` method.
         """
         res = api.Command['host_add'](**self.kw)
-        assert res
-        assert res.get('description','') == self.description
-        assert res.get('cn','') == self.cn
-        assert res.get('l','') == self.localityname
+        assert type(res) is dict
+        assert res['description'] == self.description
+        assert res['cn'] == self.cn
+        assert res['l'] == self.localityname
 
     def test_doshow_all(self):
         """
@@ -95,7 +95,7 @@ class test_Host(XMLRPC_test):
         """
         Test the `xmlrpc.host_mod` method.
         """
-        newdesc='Updated host'
+        newdesc = u'Updated host'
         modkw={'cn': self.cn, 'description': newdesc}
         res = api.Command['host_mod'](**modkw)
         assert res

@@ -31,13 +31,13 @@ class test_Host(XMLRPC_test):
     """
     Test the `f_hostgroup` plugin.
     """
-    cn='testgroup'
-    description='Test host group'
+    cn=u'testgroup'
+    description=u'Test host group'
     kw={'cn': cn, 'description': description}
 
-    host_cn='ipaexample.%s' % api.env.domain
-    host_description='Test host'
-    host_localityname='Undisclosed location'
+    host_cn = api.env.host.decode('UTF-8')
+    host_description = u'Test host'
+    host_localityname = u'Undisclosed location'
 
     def test_add(self):
         """
@@ -83,7 +83,7 @@ class test_Host(XMLRPC_test):
         """
         res = api.Command['hostgroup_find'](self.cn)
         assert res
-        assert len(res) == 2
+        assert len(res) == 2, res
         assert res[1].get('description','') == self.description
         assert res[1].get('cn','') == self.cn
         assert res[1].get('member','').startswith('cn=%s' % self.host_cn)
@@ -92,7 +92,7 @@ class test_Host(XMLRPC_test):
         """
         Test the `xmlrpc.hostgroup_mod` method.
         """
-        newdesc='Updated host group'
+        newdesc=u'Updated host group'
         modkw={'cn': self.cn, 'description': newdesc}
         res = api.Command['hostgroup_mod'](**modkw)
         assert res

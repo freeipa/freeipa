@@ -24,16 +24,16 @@ Test the `ipalib/plugins/f_group` module.
 import sys
 from xmlrpc_test import XMLRPC_test
 from ipalib import api
-from ipalib import errors
+from ipalib import errors2
 
 
 class test_Group(XMLRPC_test):
     """
     Test the `f_group` plugin.
     """
-    cn='testgroup'
-    cn2='testgroup2'
-    description='This is a test'
+    cn = u'testgroup'
+    cn2 = u'testgroup2'
+    description = u'This is a test'
     kw={'description':description,'cn':cn}
 
     def test_add(self):
@@ -109,7 +109,7 @@ class test_Group(XMLRPC_test):
         """
         modkw = self.kw
         modkw['cn'] = self.cn
-        modkw['description'] = 'New description'
+        modkw['description'] = u'New description'
         res = api.Command['group_mod'](**modkw)
         assert res
         assert res.get('description','') == 'New description'

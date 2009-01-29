@@ -24,7 +24,7 @@ Test the `ipalib/plugins/f_netgroup` module.
 import sys
 from xmlrpc_test import XMLRPC_test
 from ipalib import api
-from ipalib import errors
+from ipalib import errors2
 
 
 def is_member_of(members, candidate):
@@ -41,27 +41,27 @@ class test_Netgroup(XMLRPC_test):
     """
     Test the `f_netgroup` plugin.
     """
-    ng_cn='ng1'
-    ng_description='Netgroup'
+    ng_cn=u'ng1'
+    ng_description=u'Netgroup'
     ng_kw={'cn': ng_cn, 'description': ng_description}
 
-    host_cn='ipaexample.%s' % api.env.domain
-    host_description='Test host'
-    host_localityname='Undisclosed location'
+    host_cn = api.env.host.decode('UTF-8')
+    host_description=u'Test host'
+    host_localityname=u'Undisclosed location'
     host_kw={'cn': host_cn, 'description': host_description, 'localityname': host_localityname}
 
-    hg_cn='ng1'
-    hg_description='Netgroup'
+    hg_cn=u'ng1'
+    hg_description=u'Netgroup'
     hg_kw={'cn': hg_cn, 'description': hg_description}
 
-    user_uid='jexample'
-    user_givenname='Jim'
-    user_sn='Example'
-    user_home='/home/%s' % user_uid
+    user_uid=u'jexample'
+    user_givenname=u'Jim'
+    user_sn=u'Example'
+    user_home=u'/home/%s' % user_uid
     user_kw={'givenname':user_givenname,'sn':user_sn,'uid':user_uid,'homedirectory':user_home}
 
-    group_cn='testgroup'
-    group_description='This is a test'
+    group_cn = u'testgroup'
+    group_description = u'This is a test'
     group_kw={'description':group_description,'cn':group_cn}
 
     def test_add(self):
@@ -87,7 +87,7 @@ class test_Netgroup(XMLRPC_test):
         # Add a hostgroup
         res = api.Command['hostgroup_add'](**self.hg_kw)
         assert res
-        assert res.get('description','') == self.hg_description
+        assert res.get('description', '') == self.hg_description
         assert res.get('cn','') == self.hg_cn
 
         # Add a user
@@ -155,7 +155,7 @@ class test_Netgroup(XMLRPC_test):
         Test adding external hosts
         """
         kw={}
-        kw['hosts'] = "nosuchhost"
+        kw['hosts'] = u"nosuchhost"
         res = api.Command['netgroup_add_member'](self.ng_cn, **kw)
         assert res == tuple()
         res = api.Command['netgroup_show'](self.ng_cn)
@@ -179,9 +179,9 @@ class test_Netgroup(XMLRPC_test):
         """
         Test the `xmlrpc.hostgroup_find` method.
         """
-        res = api.Command['netgroup_find'](self.ng_cn)
+        res = api.Command.netgroup_find(self.ng_cn)
         assert res
-        assert len(res) == 2
+        assert len(res) == 2, repr(res)
         assert res[1].get('description','') == self.ng_description
         assert res[1].get('cn','') == self.ng_cn
 
@@ -189,7 +189,7 @@ class test_Netgroup(XMLRPC_test):
         """
         Test the `xmlrpc.hostgroup_mod` method.
         """
-        newdesc='Updated host group'
+        newdesc=u'Updated host group'
         modkw={'cn': self.ng_cn, 'description': newdesc}
         res = api.Command['netgroup_mod'](**modkw)
         assert res

@@ -270,7 +270,7 @@ def search(base, filter, attributes, timelimit=1, sizelimit=3000):
         results = context.ldap.conn.getListAsync(base, ldap.SCOPE_SUBTREE,
             filter, attributes, 0, None, None, timelimit, sizelimit)
     except ldap.NO_SUCH_OBJECT:
-        raise errors2.NotFound
+        raise errors2.NotFound()
 
     counter = results[0]
     entries = [counter]
@@ -317,7 +317,7 @@ def get_ipa_config():
         config = get_sub_entry("cn=etc," + api.env.basedn, searchfilter)
     except ldap.NO_SUCH_OBJECT, e:
         # FIXME
-        raise errors2.NotFound
+        raise errors2.NotFound()
 
     return config
 
@@ -409,12 +409,12 @@ def add_member_to_group(member_dn, group_dn, memberattr='member'):
 
     group = get_entry_by_dn(group_dn, None)
     if group is None:
-        raise errors2.NotFound
+        raise errors2.NotFound()
 
     # check to make sure member_dn exists
     member_entry = get_base_entry(member_dn, "(objectClass=*)", ['dn','objectclass'])
     if not member_entry:
-        raise errors2.NotFound
+        raise errors2.NotFound()
 
     # Add the new member to the group member attribute
     members = group.get(memberattr, [])
@@ -433,7 +433,7 @@ def remove_member_from_group(member_dn, group_dn, memberattr='member'):
 
     group = get_entry_by_dn(group_dn, None)
     if group is None:
-        raise errors2.NotFound
+        raise errors2.NotFound()
     """
     if group.get('cn') == "admins":
         member = get_entry_by_dn(member_dn, ['dn','uid'])

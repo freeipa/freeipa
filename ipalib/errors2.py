@@ -605,15 +605,15 @@ class NotFound(ExecutionError):
 
     For example:
 
-    >>> raise NotFound(msg='Entry not found')
+    >>> raise NotFound()
     Traceback (most recent call last):
       ...
-    NotFound: Entry not found
+    NotFound: entry not found
 
     """
 
     errno = 4001
-    format = _('%(msg)s')
+    format = _('entry not found')
 
 class DuplicateEntry(ExecutionError):
     """

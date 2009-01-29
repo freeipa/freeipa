@@ -24,18 +24,18 @@ Test the `ipalib/plugins/f_user` module.
 import sys
 from xmlrpc_test import XMLRPC_test
 from ipalib import api
-from ipalib import errors
+from ipalib import errors2
 
 
 class test_User(XMLRPC_test):
     """
     Test the `f_user` plugin.
     """
-    uid='jexample'
-    givenname='Jim'
-    sn='Example'
-    home='/home/%s' % uid
-    principalname='%s@%s' % (uid, api.env.realm)
+    uid=u'jexample'
+    givenname=u'Jim'
+    sn=u'Example'
+    home=u'/home/%s' % uid
+    principalname=u'%s@%s' % (uid, api.env.realm)
     kw={'givenname':givenname,'sn':sn,'uid':uid,'homedirectory':home}
 
     def test_add(self):
@@ -117,7 +117,7 @@ class test_User(XMLRPC_test):
         Test the `xmlrpc.user_mod` method.
         """
         modkw = self.kw
-        modkw['givenname'] = 'Finkle'
+        modkw['givenname'] = u'Finkle'
         res = api.Command['user_mod'](**modkw)
         assert res
         assert res.get('givenname','') == 'Finkle'
@@ -126,7 +126,7 @@ class test_User(XMLRPC_test):
         # Ok, double-check that it was changed
         res = api.Command['user_show'](self.uid)
         assert res
-        assert res.get('givenname','') == 'Finkle'
+        assert res.get('givenname','') == u'Finkle'
         assert res.get('sn','') == self.sn
         assert res.get('uid','') == self.uid
 
