@@ -21,8 +21,7 @@
 Base classes for standard CRUD operations.
 """
 
-import backend, frontend, errors
-
+import backend, frontend
 
 class Add(frontend.Method):
     def get_args(self):
@@ -78,6 +77,19 @@ class Create(frontend.Method):
     Create a new entry.
     """
 
+    def get_args(self):
+        yield self.obj.primary_key
+
+    def get_options(self):
+        if self.extra_options_first:
+            for option in super(Create, self).get_options():
+                yield option
+        for option in self.obj.params_minus(self.args):
+            yield option
+        if not self.extra_options_first:
+            for option in super(Create, self).get_options():
+                yield option
+
 
 class PKQuery(frontend.Method):
     """
@@ -86,6 +98,7 @@ class PKQuery(frontend.Method):
 
     def get_args(self):
         yield self.obj.primary_key.clone(query=True)
+
 
 
 class Retrieve(PKQuery):
@@ -120,6 +133,18 @@ class Search(frontend.Method):
     """
     Retrieve all entries that match a given search criteria.
     """
+
+    takes_args = 'criteria?'
+
+    def get_options(self):
+        if self.extra_options_first:
+            for option in super(Search, self).get_options():
+                yield option
+        for option in self.obj.params_minus(self.args):
+            yield option.clone(query=True, required=False)
+        if not self.extra_options_first:
+            for option in super(Search, self).get_options():
+                yield option
 
 
 class CrudBackend(backend.Connectible):

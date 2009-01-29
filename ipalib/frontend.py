@@ -345,6 +345,14 @@ class Command(plugable.Plugin):
         )
         super(Command, self).finalize()
 
+    def _get_takes(self, name):
+        attr = getattr(self, name)
+        if isinstance(attr, (Param, str)):
+            return (attr,)
+        if callable(attr):
+            return attr()
+        return attr
+
     def get_args(self):
         """
         Iterate through parameters for ``Command.args`` namespace.
@@ -353,11 +361,7 @@ class Command(plugable.Plugin):
         are determined.  For an example of why this can be useful,
         see `ipalib.crud.Mod`.
         """
-        if callable(self.takes_args):
-            args = self.takes_args()
-        else:
-            args = self.takes_args
-        for arg in args:
+        for arg in self._get_takes('takes_args'):
             yield arg
 
     def get_options(self):
@@ -368,11 +372,7 @@ class Command(plugable.Plugin):
         are determined.  For an example of why this can be useful,
         see `ipalib.crud.Mod`.
         """
-        if callable(self.takes_options):
-            options = self.takes_options()
-        else:
-            options = self.takes_options
-        for option in options:
+        for option in self._get_takes('takes_options'):
             yield option
 
     def __create_args(self):
@@ -437,6 +437,7 @@ class Object(plugable.Plugin):
         'params',
         'primary_key',
         'params_minus_pk',
+        'params_minus',
         'get_dn',
     ))
     backend = None

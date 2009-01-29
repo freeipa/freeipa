@@ -61,6 +61,7 @@ class user(Object):
         ),
         Str('uid',
             cli_name='user',
+            doc="User's login name",
             primary_key=True,
             default_from=lambda givenname, sn: givenname[0] + sn,
             normalizer=lambda value: value.lower(),
@@ -107,8 +108,10 @@ class user(Object):
 api.register(user)
 
 
-class user_add(crud.Add):
-    'Add a new user.'
+class user_add(crud.Create):
+    """
+    Add a new user.
+    """
 
     def execute(self, uid, **kw):
         """
@@ -251,11 +254,15 @@ class user_mod(crud.Update):
 api.register(user_mod)
 
 
-class user_find(crud.Find):
-    'Search the users.'
+class user_find(crud.Search):
+    """
+    Search for users.
+    """
+
     takes_options = (
         Flag('all', doc='Retrieve all user attributes'),
     )
+
     def execute(self, term, **kw):
         ldap = self.api.Backend.ldap
 
@@ -301,7 +308,7 @@ class user_find(crud.Find):
 api.register(user_find)
 
 
-class user_show(crud.Get):
+class user_show(crud.Retrieve):
     'Examine an existing user.'
     takes_options = (
         Flag('all', doc='Retrieve all user attributes'),
