@@ -82,6 +82,16 @@ class ldap(CrudBackend):
             self.api.env.basedn,
         )
 
+    def make_taskgroup_dn(self, cn):
+        """
+        Construct group of tasks dn from cn.
+        """
+        return 'cn=%s,%s,%s' % (
+            self.dn.escape_dn_chars(cn),
+            self.api.env.container_taskgroup,
+            self.api.env.basedn,
+        )
+
     def make_service_dn(self, principal):
         """
         Construct service principal dn from principal name
@@ -227,13 +237,11 @@ class ldap(CrudBackend):
             else:
                 assert type(value) in (str, unicode, bool, int, float)
                 yield (key, value)
-                yield (key, value)
 
     def create(self, **kw):
         if servercore.entry_exists(kw['dn']):
-            raise errors.DuplicateEntry("entry already exists")
+            raise errors2.DuplicateEntry
         kw = dict(self.strip_none(kw))
-
 
         entry = ipaldap.Entry(kw['dn'])
 
@@ -251,19 +259,20 @@ class ldap(CrudBackend):
         return servercore.get_entry_by_dn(dn, attributes)
 
     def update(self, dn, **kw):
-        result = self.retrieve(dn, ["*"])
-        start_keys = kw.keys()
+        result = self.retrieve(dn, ["*"] + kw.keys())
 
         entry = ipaldap.Entry((dn, servercore.convert_scalar_values(result)))
+        start_keys = kw.keys()
         kw = dict(self.strip_none(kw))
+        end_keys = kw.keys()
+        removed_keys = list(set(start_keys) - set(end_keys))
         for k in kw:
             entry.setValues(k, kw[k])
 
-        remove_keys = list(set(start_keys) - set(kw.keys()))
-        for k in remove_keys:
+        for k in removed_keys:
             entry.delAttr(k)
 
-        servercore.update_entry(entry.toDict(), remove_keys)
+        servercore.update_entry(entry.toDict(), removed_keys)
 
         return self.retrieve(dn)
 
@@ -300,13 +309,13 @@ class ldap(CrudBackend):
         try:
             exact_results = servercore.search(search_base,
                     exact_match_filter, attributes)
-        except errors.NotFound:
+        except errors2.NotFound:
             exact_results = [0]
 
         try:
             partial_results = servercore.search(search_base,
                     partial_match_filter, attributes)
-        except errors.NotFound:
+        except errors2.NotFound:
             partial_results = [0]
 
         exact_counter = exact_results[0]

@@ -21,7 +21,7 @@
 Frontend plugins for group (Identity).
 """
 
-from ipalib import api, crud, errors
+from ipalib import api, crud, errors, errors2
 from ipalib import Object, Command  # Plugin base classes
 from ipalib import Str, Int  # Parameter types
 
@@ -283,7 +283,7 @@ class group_add_member(Command):
             try:
                 member_dn = ldap.find_entry_dn("cn", m)
                 to_add.append(member_dn)
-            except errors.NotFound:
+            except errors2.NotFound:
                 add_failed.append(m)
                 continue
 
@@ -293,7 +293,7 @@ class group_add_member(Command):
             try:
                 member_dn = ldap.find_entry_dn("uid", m)
                 to_add.append(member_dn)
-            except errors.NotFound:
+            except errors2.NotFound:
                 add_failed.append(m)
                 continue
 
@@ -350,7 +350,7 @@ class group_remove_member(Command):
             try:
                 member_dn = ldap.find_entry_dn("cn", m)
                 to_remove.append(member_dn)
-            except errors.NotFound:
+            except errors2.NotFound:
                 remove_failed.append(m)
                 continue
 
@@ -359,7 +359,7 @@ class group_remove_member(Command):
             try:
                 member_dn = ldap.find_entry_dn("uid", m,)
                 to_remove.append(member_dn)
-            except errors.NotFound:
+            except errors2.NotFound:
                 remove_failed.append(m)
                 continue
 

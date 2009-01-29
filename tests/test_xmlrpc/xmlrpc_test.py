@@ -25,7 +25,7 @@ import sys
 import socket
 import nose
 from ipalib import api, request
-from ipalib import errors, errors2
+from ipalib import errors2
 
 
 class XMLRPC_test(object):
@@ -40,7 +40,7 @@ class XMLRPC_test(object):
             res = api.Command['user_show'](u'notfound')
         except errors2.NetworkError:
             raise nose.SkipTest()
-        except errors.NotFound:
+        except errors2.NotFound:
             pass
 
     def tearDown(self):

@@ -599,6 +599,85 @@ class ExecutionError(PublicError):
 
     errno = 4000
 
+class NotFound(ExecutionError):
+    """
+    **4001** Raised when an entry is not found.
+
+    For example:
+
+    >>> raise NotFound(msg='Entry not found')
+    Traceback (most recent call last):
+      ...
+    NotFound: Entry not found
+
+    """
+
+    errno = 4001
+    format = _('%(msg)s')
+
+class DuplicateEntry(ExecutionError):
+    """
+    **4002** Raised when an entry already exists.
+
+    For example:
+
+    >>> raise DuplicateEntry
+    Traceback (most recent call last):
+      ...
+    DuplicateEntry: This entry already exists
+
+    """
+
+    errno = 4002
+    format = _('This entry already exists')
+
+class HostService(ExecutionError):
+    """
+    **4003** Raised when a host service principal is requested
+
+    For example:
+
+    >>> raise HostService
+    Traceback (most recent call last):
+      ...
+    HostService: You must enroll a host in order to create a host service
+
+    """
+
+    errno = 4003
+    format = _('You must enroll a host in order to create a host service')
+
+class MalformedServicePrincipal(ExecutionError):
+    """
+    **4004** Raised when a service principal is not of the form: service/fully-qualified host name
+
+    For example:
+
+    >>> raise MalformedServicePrincipal
+    Traceback (most recent call last):
+      ...
+    MalformedServicePrincipal: Service principal is not of the form: service/fully-qualified host name
+
+    """
+
+    errno = 4004
+    format = _('Service principal is not of the form: service/fully-qualified host name')
+
+class RealmMismatch(ExecutionError):
+    """
+    **4005** Raised when the requested realm does not match the IPA realm
+
+    For example:
+
+    >>> raise RealmMismatch
+    Traceback (most recent call last):
+      ...
+    RealmMismatch: The realm for the principal does not match the realm for this IPA server
+
+    """
+
+    errno = 4005
+    format = _('The realm for the principal does not match the realm for this IPA server')
 
 class BuiltinError(ExecutionError):
     """

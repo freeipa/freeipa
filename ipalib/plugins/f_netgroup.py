@@ -21,7 +21,7 @@
 Frontend plugin for netgroups.
 """
 
-from ipalib import api, crud, errors
+from ipalib import api, crud, errors2
 from ipalib import Object, Command  # Plugin base classes
 from ipalib import Str  # Parameter types
 from ipalib import uuid
@@ -53,7 +53,7 @@ def find_members(ldap, failed, members, attribute, filter=None):
         try:
             member_dn = ldap.find_entry_dn(attribute, m, filter)
             found.append(member_dn)
-        except errors.NotFound:
+        except errors2.NotFound:
             failed.append(m)
             continue
 

@@ -65,7 +65,7 @@ class test_Host(XMLRPC_test):
         kw={}
         kw['hosts'] = self.host_cn
         res = api.Command['hostgroup_add_member'](self.cn, **kw)
-        assert res == []
+        assert res == tuple()
 
     def test_doshow(self):
         """
@@ -111,7 +111,7 @@ class test_Host(XMLRPC_test):
         kw={}
         kw['hosts'] = self.host_cn
         res = api.Command['hostgroup_remove_member'](self.cn, **kw)
-        assert res == []
+        assert res == tuple()
 
     def test_remove(self):
         """
@@ -123,7 +123,7 @@ class test_Host(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['hostgroup_show'](self.cn)
-        except errors.NotFound:
+        except errors2.NotFound:
             pass
         else:
             assert False
@@ -138,7 +138,7 @@ class test_Host(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['host_show'](self.host_cn)
-        except errors.NotFound:
+        except errors2.NotFound:
             pass
         else:
             assert False

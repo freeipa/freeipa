@@ -320,14 +320,6 @@ class MidairCollision(GenericError):
     """Change collided with another change"""
     faultCode = 1002
 
-class NotFound(GenericError):
-    """Entry not found"""
-    faultCode = 1003
-
-class DuplicateEntry(GenericError):
-    """This entry already exists"""
-    faultCode = 1004
-
 class MissingDN(GenericError):
     """The distinguished name (DN) is missing"""
     faultCode = 1005
@@ -359,14 +351,6 @@ class UsernameTooLong(InputError):
 class PrincipalError(GenericError):
     """There is a problem with the kerberos principal"""
     faultCode = 1012
-
-class MalformedServicePrincipal(PrincipalError):
-    """The requested service principal is not of the form: service/fully-qualified host name"""
-    faultCode = 1013
-
-class RealmMismatch(PrincipalError):
-    """The realm for the principal does not match the realm for this IPA server"""
-    faultCode = 1014
 
 class PrincipalRequired(PrincipalError):
     """You cannot remove IPA server service principals"""
@@ -411,10 +395,6 @@ class ConfigurationError(GenericError):
 class DefaultGroup(ConfigurationError):
     """You cannot remove the default users group"""
     faultCode = 1025
-
-class HostService(ConfigurationError):
-    """You must enroll a host in order to create a host service"""
-    faultCode = 1026
 
 class InsufficientAccess(GenericError):
     """You do not have permission to perform this task"""

@@ -55,7 +55,7 @@ class test_User(XMLRPC_test):
         """
         try:
             res = api.Command['user_add'](**self.kw)
-        except errors.DuplicateEntry:
+        except errors2.DuplicateEntry:
             pass
 
     def test_doshow(self):
@@ -140,7 +140,7 @@ class test_User(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['user_show'](self.uid)
-        except errors.NotFound:
+        except errors2.NotFound:
             pass
         else:
             assert False

@@ -28,6 +28,8 @@ from ipalib import errors
 
 
 def is_member_of(members, candidate):
+    if isinstance(members, tuple):
+        members = list(members)
     if not isinstance(members, list):
         members = [members]
     for m in members:
@@ -107,22 +109,22 @@ class test_Netgroup(XMLRPC_test):
         kw={}
         kw['hosts'] = self.host_cn
         res = api.Command['netgroup_add_member'](self.ng_cn, **kw)
-        assert res == []
+        assert res == tuple()
 
         kw={}
         kw['hostgroups'] = self.hg_cn
         res = api.Command['netgroup_add_member'](self.ng_cn, **kw)
-        assert res == []
+        assert res == tuple()
 
         kw={}
         kw['users'] = self.user_uid
         res = api.Command['netgroup_add_member'](self.ng_cn, **kw)
-        assert res == []
+        assert res == tuple()
 
         kw={}
         kw['groups'] = self.group_cn
         res = api.Command['netgroup_add_member'](self.ng_cn, **kw)
-        assert res == []
+        assert res == tuple()
 
     def test_addmembers2(self):
         """
@@ -155,7 +157,7 @@ class test_Netgroup(XMLRPC_test):
         kw={}
         kw['hosts'] = "nosuchhost"
         res = api.Command['netgroup_add_member'](self.ng_cn, **kw)
-        assert res == []
+        assert res == tuple()
         res = api.Command['netgroup_show'](self.ng_cn)
         assert res
         assert is_member_of(res.get('externalhost',[]), kw['hosts'])
@@ -206,22 +208,22 @@ class test_Netgroup(XMLRPC_test):
         kw={}
         kw['hosts'] = self.host_cn
         res = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
-        assert res == []
+        assert res == tuple()
 
         kw={}
         kw['hostgroups'] = self.hg_cn
         res = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
-        assert res == []
+        assert res == tuple()
 
         kw={}
         kw['users'] = self.user_uid
         res = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
-        assert res == []
+        assert res == tuple()
 
         kw={}
         kw['groups'] = self.group_cn
         res = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
-        assert res == []
+        assert res == tuple()
 
     def test_member_remove2(self):
         """
@@ -257,7 +259,7 @@ class test_Netgroup(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['netgroup_show'](self.ng_cn)
-        except errors.NotFound:
+        except errors2.NotFound:
             pass
         else:
             assert False
@@ -273,7 +275,7 @@ class test_Netgroup(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['host_show'](self.host_cn)
-        except errors.NotFound:
+        except errors2.NotFound:
             pass
         else:
             assert False
@@ -285,7 +287,7 @@ class test_Netgroup(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['hostgroup_show'](self.hg_cn)
-        except errors.NotFound:
+        except errors2.NotFound:
             pass
         else:
             assert False
@@ -297,7 +299,7 @@ class test_Netgroup(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['user_show'](self.user_uid)
-        except errors.NotFound:
+        except errors2.NotFound:
             pass
         else:
             assert False
@@ -309,7 +311,7 @@ class test_Netgroup(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['group_show'](self.group_cn)
-        except errors.NotFound:
+        except errors2.NotFound:
             pass
         else:
             assert False

@@ -24,7 +24,7 @@ RFC 2707bis http://www.padl.com/~lukeh/rfc2307bis.txt
 """
 
 from ldap import explode_dn
-from ipalib import crud, errors
+from ipalib import crud, errors2
 from ipalib import api, Str, Flag, Object, Command
 
 map_attributes = ['automountMapName', 'description', ]
@@ -199,7 +199,7 @@ class automount_delkey(crud.Del):
                     keydn = k.get('dn')
                     break
         if not keydn:
-            raise errors.NotFound
+            raise errors2.NotFound(msg='Entry not found')
         return ldap.delete(keydn)
     def output_for_cli(self, textui, result, *args, **options):
         """
@@ -277,7 +277,7 @@ class automount_modkey(crud.Mod):
                     keydn = k.get('dn')
                     break
         if not keydn:
-            raise errors.NotFound
+            raise errors2.NotFound(msg='Entry not found')
         return ldap.update(keydn, **kw)
 
     def output_for_cli(self, textui, result, *args, **options):
@@ -425,7 +425,7 @@ class automount_showkey(crud.Get):
                     keydn = k.get('dn')
                     break
         if not keydn:
-            raise errors.NotFound
+            raise errors2.NotFound(msg='Entry not found')
         # FIXME: should kw contain the list of attributes to display?
         if kw.get('all', False):
             return ldap.retrieve(keydn)
@@ -466,7 +466,7 @@ class automount_getkeys(Command):
         dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap", api.env.container_automount)
         try:
             keys = ldap.get_one_entry(dn, 'objectclass=*', ['automountkey'])
-        except errors.NotFound:
+        except errors2.NotFound:
             keys = []
 
         return keys

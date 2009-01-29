@@ -117,7 +117,7 @@ class test_Host(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['host_show'](self.cn)
-        except errors.NotFound:
+        except errors2.NotFound:
             pass
         else:
             assert False

@@ -25,7 +25,6 @@ from ipalib import frontend
 from ipalib import crud
 from ipalib.frontend import Param
 from ipalib import api
-from ipalib import errors
 
 class delegation(frontend.Object):
     """

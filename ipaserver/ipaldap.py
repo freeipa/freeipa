@@ -32,7 +32,7 @@ import ldap.sasl
 from ldap.controls import LDAPControl,DecodeControlTuples,EncodeControlTuples
 from ldap.ldapobject import SimpleLDAPObject
 from ipaserver import ipautil
-from ipalib import errors
+from ipalib import errors, errors2
 
 # Global variable to define SASL auth
 sasl_auth = ldap.sasl.sasl({},'GSSAPI')
@@ -294,12 +294,12 @@ class IPAdmin(SimpleLDAPObject):
             res = self.search(*args)
             objtype, obj = self.result(res)
         except ldap.NO_SUCH_OBJECT, e:
-            raise errors.NotFound, notfound(args)
+            raise errors2.NotFound(msg=notfound(args))
         except ldap.LDAPError, e:
             raise errors.DatabaseError, e
 
         if not obj:
-            raise errors.NotFound, notfound(args)
+            raise errors2.NotFound(msg=notfound(args))
 
         elif isinstance(obj,Entry):
             return obj
@@ -323,7 +323,7 @@ class IPAdmin(SimpleLDAPObject):
             raise e
 
         if not obj:
-            raise errors.NotFound, notfound(args)
+            raise errors2.NotFound(msg=notfound(args))
 
         entries = []
         for s in obj:
@@ -360,7 +360,7 @@ class IPAdmin(SimpleLDAPObject):
             raise e
 
         if not entries:
-            raise errors.NotFound, notfound(args)
+            raise errors2.NotFound(msg=notfound(args))
 
         if partial == 1:
             counter = -1
@@ -380,7 +380,7 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.add_s(*args)
         except ldap.ALREADY_EXISTS, e:
-            raise errors.DuplicateEntry, "Entry already exists"
+            raise errors2.DuplicateEntry
         except ldap.LDAPError, e:
             raise errors.DatabaseError, e
         return True

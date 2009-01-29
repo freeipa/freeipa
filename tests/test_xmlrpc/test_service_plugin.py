@@ -45,12 +45,37 @@ class test_Service(XMLRPC_test):
 
     def test_add_host(self):
         """
-        Test adding a host principal using `xmlrpc.service_add` method.
+        Test adding a host principal using `xmlrpc.service_add`. Host
+        services are not allowed.
         """
         kw={'principal':self.hostprincipal}
         try:
             res = api.Command['service_add'](**kw)
-        except errors.HostService:
+        except errors2.HostService:
+            pass
+        else:
+            assert False
+
+    def test_add_malformed1(self):
+        """
+        Test adding a malformed principal ('foo').
+        """
+        kw={'principal':'foo'}
+        try:
+            res = api.Command['service_add'](**kw)
+        except errors2.MalformedServicePrincipal:
+            pass
+        else:
+            assert False
+
+    def test_add_wrongrealm(self):
+        """
+        Test adding a malformed principal ('HTTP/foo@FOO.NET').
+        """
+        kw={'principal':'HTTP/foo@FOO.NET'}
+        try:
+            res = api.Command['service_add'](**kw)
+        except errors2.RealmMismatch:
             pass
         else:
             assert False
@@ -82,7 +107,7 @@ class test_Service(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['service_show'](self.principal)
-        except errors.NotFound:
+        except errors2.NotFound:
             pass
         else:
             assert False

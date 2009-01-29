@@ -51,10 +51,10 @@ class test_Group(XMLRPC_test):
         """
         try:
             res = api.Command['group_add'](**self.kw)
-        except errors.DuplicateEntry:
+        except errors2.DuplicateEntry:
             pass
 
-    def test_add2(self):
+    def test_add3(self):
         """
         Test the `xmlrpc.group_add` method.
         """
@@ -71,7 +71,7 @@ class test_Group(XMLRPC_test):
         kw={}
         kw['groups'] = self.cn2
         res = api.Command['group_add_member'](self.cn, **kw)
-        assert res == []
+        assert res == tuple()
 
     def test_add_member2(self):
         """
@@ -152,7 +152,7 @@ class test_Group(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['group_show'](self.cn)
-        except errors.NotFound:
+        except errors2.NotFound:
             pass
         else:
             assert False
@@ -167,7 +167,7 @@ class test_Group(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['group_show'](self.cn2)
-        except errors.NotFound:
+        except errors2.NotFound:
             pass
         else:
             assert False
