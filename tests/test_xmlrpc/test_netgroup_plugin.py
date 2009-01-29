@@ -26,10 +26,6 @@ from xmlrpc_test import XMLRPC_test
 from ipalib import api
 from ipalib import errors
 
-try:
-    api.finalize()
-except StandardError:
-    pass
 
 def is_member_of(members, candidate):
     if not isinstance(members, list):

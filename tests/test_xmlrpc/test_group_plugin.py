@@ -26,10 +26,6 @@ from xmlrpc_test import XMLRPC_test
 from ipalib import api
 from ipalib import errors
 
-try:
-    api.finalize()
-except StandardError:
-    pass
 
 class test_Group(XMLRPC_test):
     """

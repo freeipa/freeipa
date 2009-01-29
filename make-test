@@ -2,6 +2,7 @@
 
 # Script to run nosetests under multiple versions of Python
 
+export IPA_UNIT_TEST_MODE="cli_test"
 versions="python2.4 python2.5 python2.6"
 
 for name in $versions

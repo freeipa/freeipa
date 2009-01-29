@@ -870,6 +870,7 @@ freeIPA.org:
 
 '''
 
+import os
 import plugable
 from backend import Backend
 from frontend import Command, LocalOrRemote, Application
@@ -908,7 +909,11 @@ def create_api(mode='dummy'):
     )
     if mode is not None:
         api.env.mode = mode
+    assert mode != 'production'
     return api
 
-
 api = create_api(mode=None)
+
+if os.environ.get('IPA_UNIT_TEST_MODE', None) == 'cli_test':
+    api.bootstrap(context='cli', in_server=False)
+    api.finalize()

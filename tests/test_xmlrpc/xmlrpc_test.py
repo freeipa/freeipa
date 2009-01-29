@@ -24,26 +24,27 @@ Base class for all XML-RPC tests
 import sys
 import socket
 import nose
-from ipalib import api
-from ipalib import errors
+from ipalib import api, request
+from ipalib import errors, errors2
 
-try:
-    api.finalize()
-except StandardError:
-    pass
 
-class XMLRPC_test:
+class XMLRPC_test(object):
     """
     Base class for all XML-RPC plugin tests
     """
 
     def setUp(self):
-        # FIXME: changing Plugin.name from a property to an instance attribute
-        # somehow broke this.
-        raise nose.SkipTest
         try:
-            res = api.Command['user_show']('notfound')
-        except socket.error:
-            raise nose.SkipTest
+            if not api.Backend.xmlclient.isconnected():
+                api.Backend.xmlclient.connect()
+            res = api.Command['user_show'](u'notfound')
+        except errors2.NetworkError:
+            raise nose.SkipTest()
         except errors.NotFound:
             pass
+
+    def tearDown(self):
+        """
+        nose tear-down fixture.
+        """
+        request.destroy_context()
