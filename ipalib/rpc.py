@@ -198,7 +198,7 @@ class KerbTransport(SafeTransport):
             else:
                 raise e
 
-        extra_headers += [
+        extra_headers = [
             ('Authorization', 'negotiate %s' % kerberos.authGSSClientResponse(vc))
         ]
 
@@ -240,7 +240,7 @@ class xmlclient(Connectible):
             raise ValueError(
                 '%s.forward(): %r not in api.Command' % (self.name, name)
             )
-        self.info('Forwarding %r to %r', name, self.env.xmlrpc_uri)
+        self.info('Forwarding %r to server %r', name, self.env.xmlrpc_uri)
         command = getattr(self.conn, name)
         params = args + (kw,)
         try:
