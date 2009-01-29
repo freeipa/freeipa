@@ -1,6 +1,0 @@
-
-    [turbogears.identity.provider]
-    proxyprovider = ipagui.proxyprovider:ProxyIdentityProvider
-    [turbogears.visit.manager]
-    proxyvisit = ipagui.proxyvisit:ProxyVisitManager
-    
