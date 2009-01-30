@@ -879,11 +879,18 @@ from crud import Create, Retrieve, Update, Delete, Search
 from parameters import DefaultFrom, Bool, Flag, Int, Float, Bytes, Str, Password
 from parameters import BytesEnum, StrEnum
 
-
 try:
     import uuid
 except ImportError:
     import ipauuid as uuid
+
+
+version_info = (2, 0, 0, 'alpha', 0)
+if version_info[3] == 'final':
+    __version__ = '%d.%d.%d' % version_info[:3]
+else:
+    __version__ = '%d.%d.%d.%s.%d' % version_info
+
 
 def create_api(mode='dummy'):
     """
