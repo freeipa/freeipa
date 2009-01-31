@@ -23,11 +23,12 @@
 Python-level packaging using distutils.
 """
 
-from distutils.core import setup
+from setuptools import setup
+import ipalib
 
 setup(
     name='freeipa',
-    version='1.99.1',
+    version=ipalib.__version__,
     license='GPLv2+',
     url='http://freeipa.org/',
     packages=[

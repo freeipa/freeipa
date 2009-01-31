@@ -137,11 +137,13 @@ def xml_dumps(params, methodname=None, methodresponse=False, encoding='UTF-8'):
         allow_none=True,
     )
 
+
 def decode_fault(e, encoding='UTF-8'):
     assert isinstance(e, Fault)
     if type(e.faultString) is str:
         return Fault(e.faultCode, e.faultString.decode(encoding))
     return e
+
 
 def xml_loads(data, encoding='UTF-8'):
     """

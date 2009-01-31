@@ -55,20 +55,20 @@ class xmlserver(Executioner):
         super(xmlserver, self).finalize()
 
     def listMethods(self, *params):
-        return tuple(name.encode('UTF-8') for name in self.Command)
+        return tuple(name.decode('UTF-8') for name in self.Command)
 
     def methodSignature(self, *params):
-        return 'methodSignature not supported'
+        return u'methodSignature not implemented'
 
     def methodHelp(self, *params):
-        return 'methodHelp not supported'
+        return u'methodHelp not implemented'
 
     def marshaled_dispatch(self, data, ccache):
         """
-        Execute the XML-RPC request in contained in ``data``.
+        Execute the XML-RPC request contained in ``data``.
         """
         try:
-            #self.create_context(ccache=ccache)
+            self.create_context(ccache=ccache)
             (params, name) = xml_loads(data)
             if name in self.__system:
                 response = (self.__system[name](*params),)

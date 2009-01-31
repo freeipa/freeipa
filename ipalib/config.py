@@ -433,7 +433,6 @@ class Env(object):
         self.script = path.abspath(sys.argv[0])
         self.bin = path.dirname(self.script)
         self.home = os.environ.get('HOME', None)
-        self.etc = path.join('/', 'etc', 'ipa')
         self.dot_ipa = self._join('home', '.ipa')
         self._merge(**overrides)
         if 'in_tree' not in self:

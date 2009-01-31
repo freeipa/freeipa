@@ -25,6 +25,8 @@
 
 """
 Production XML-RPC server using mod_python.
+
+This module is depreciated.  See the `ipaserver.xmlrpc()` function.
 """
 
 import sys
