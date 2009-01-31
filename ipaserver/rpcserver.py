@@ -46,15 +46,35 @@ class xmlserver(Executioner):
     Also see the `ipalib.rpc.xmlclient` plugin.
     """
 
+    def finalize(self):
+        self.__system = {
+            'system.listMethods': self.listMethods,
+            'system.methodSignature': self.methodSignature,
+            'system.methodHelp': self.methodHelp,
+        }
+        super(xmlserver, self).finalize()
+
+    def listMethods(self, *params):
+        return tuple(name.encode('UTF-8') for name in self.Command)
+
+    def methodSignature(self, *params):
+        return 'methodSignature not supported'
+
+    def methodHelp(self, *params):
+        return 'methodHelp not supported'
+
     def marshaled_dispatch(self, data, ccache):
         """
         Execute the XML-RPC request in contained in ``data``.
         """
         try:
-            self.create_context(ccache=ccache)
+            #self.create_context(ccache=ccache)
             (params, name) = xml_loads(data)
-            (args, options) = params_2_args_options(params)
-            response = (self.execute(name, *args, **options),)
+            if name in self.__system:
+                response = (self.__system[name](*params),)
+            else:
+                (args, options) = params_2_args_options(params)
+                response = (self.execute(name, *args, **options),)
         except PublicError, e:
             self.info('response: %s: %s', e.__class__.__name__, str(e))
             response = Fault(e.errno, e.strerror)

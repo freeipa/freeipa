@@ -561,6 +561,8 @@ class API(DictProxy):
         # Add file handler:
         if self.env.mode in ('dummy', 'unit_test'):
             return  # But not if in unit-test mode
+        if self.env.log is None:
+            return
         log_dir = path.dirname(self.env.log)
         if not path.isdir(log_dir):
             try:

@@ -432,8 +432,9 @@ class Env(object):
         self.site_packages = path.dirname(self.ipalib)
         self.script = path.abspath(sys.argv[0])
         self.bin = path.dirname(self.script)
-        self.home = path.abspath(os.environ['HOME'])
-        self.dot_ipa = path.join(self.home, '.ipa')
+        self.home = os.environ.get('HOME', None)
+        self.etc = path.join('/', 'etc', 'ipa')
+        self.dot_ipa = self._join('home', '.ipa')
         self._merge(**overrides)
         if 'in_tree' not in self:
             if self.bin == self.site_packages and \
@@ -453,6 +454,10 @@ class Env(object):
             self.conf_default = path.join(base, 'default.conf')
         if 'conf_dir' not in self:
             self.conf_dir = base
+
+    def _join(self, key, *parts):
+        if key in self and self[key] is not None:
+            return path.join(self[key], *parts)
 
     def _finalize_core(self, **defaults):
         """

@@ -20,3 +20,31 @@
 """
 Package containing server backend.
 """
+
+from xmlrpclib import dumps, Fault
+from ipalib import api
+
+try:
+    from mod_python import apache
+    api.bootstrap(context='server', log=None, debug=True)
+    api.finalize()
+except ImportError:
+    pass
+
+
+def xmlrpc(req):
+    if req.method != 'POST':
+        req.allow_methods(['POST'], 1)
+        return apache.HTTP_METHOD_NOT_ALLOWED
+
+    if apache.mpm_query(apache.AP_MPMQ_IS_THREADED):
+        response = dumps(
+            Fault(3, 'Apache must use the forked model'), methodresponse=True
+        )
+    else:
+        response = api.Backend.xmlserver.marshaled_dispatch(req.read(), None)
+
+    req.content_type = 'text/xml'
+    req.set_content_length(len(response))
+    req.write(response)
+    return apache.OK

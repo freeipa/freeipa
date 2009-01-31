@@ -67,6 +67,7 @@ class ra(Backend):
             self.__create_nss_db()
             self.__import_ca_chain()
             self.__request_ipa_certificate(self.__generate_ipa_request())
+        assert False
         super(ra, self).__init__()
 
 
@@ -404,4 +405,4 @@ class ra(Backend):
         # api.log.debug("IPA-RA: stderr: '%s'" % stderr)
         return (p.returncode, stdout, stderr)
 
-api.register(ra)
+#api.register(ra)

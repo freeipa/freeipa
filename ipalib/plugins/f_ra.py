@@ -41,7 +41,7 @@ class request_certificate(Command):
         else:
             textui.print_plain('Failed to submit a certificate request.')
 
-api.register(request_certificate)
+#api.register(request_certificate)
 
 
 class get_certificate(Command):
@@ -58,7 +58,7 @@ class get_certificate(Command):
         else:
             textui.print_plain('Failed to obtain a certificate.')
 
-api.register(get_certificate)
+#api.register(get_certificate)
 
 
 class check_request_status(Command):
@@ -76,7 +76,7 @@ class check_request_status(Command):
         else:
             textui.print_plain('Failed to retrieve a request status.')
 
-api.register(check_request_status)
+#api.register(check_request_status)
 
 
 class revoke_certificate(Command):
@@ -97,7 +97,7 @@ class revoke_certificate(Command):
         else:
             textui.print_plain('Failed to revoke a certificate.')
 
-api.register(revoke_certificate)
+#api.register(revoke_certificate)
 
 
 class take_certificate_off_hold(Command):
@@ -114,4 +114,4 @@ class take_certificate_off_hold(Command):
         else:
             textui.print_plain('Failed to take a revoked certificate off hold.')
 
-api.register(take_certificate_off_hold)
+#api.register(take_certificate_off_hold)

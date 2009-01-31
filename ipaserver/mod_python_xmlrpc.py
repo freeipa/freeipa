@@ -29,29 +29,21 @@ Production XML-RPC server using mod_python.
 
 import sys
 import os
-
-
 import time
 import traceback
 import pprint
-from xmlrpclib import Marshaller,loads,dumps,Fault
+import logging
+import string
+from ipalib import api
+
+# We only initialize api when actually running under mod_python:
 try:
     from mod_python import apache
+    api.bootstrap(context='server', in_server=True, log=None)
+    api.finalize()
 except ImportError:
     pass
-import logging
 
-import ldap
-from ipalib import api
-from ipalib import config
-from ipaserver import conn
-from ipaserver.servercore import context
-from ipaserver.servercore import ipautil
-from ipalib.util import xmlrpc_unmarshal
-
-import string
-
-api.load_plugins()
 
 # Global list of available functions
 gfunctions = {}
@@ -116,57 +108,14 @@ class ModXMLRPCRequestHandler(object):
 
         context.opts['remoteuser'] = req.user
 
-        if req.subprocess_env.get("KRB5CCNAME") is not None:
-            krbccache = req.subprocess_env.get("KRB5CCNAME")
-        else:
-            response = dumps(Fault(5, "Did not receive Kerberos credentials."))
-            return response
-
-        debuglevel = logging.INFO
-        if pythonopts.get("IPADebug"):
-            context.opts['ipadebug'] = pythonopts.get("IPADebug").lower()
-
-            if context.opts['ipadebug'] == "on":
-                debuglevel = logging.DEBUG
-
-        if not context.opts.get('ipadebug'):
-            context.opts['ipadebug'] = "off"
-
-        logging.basicConfig(level=debuglevel,
-            format='[%(asctime)s] [%(levelname)s] %(message)s',
-                datefmt='%a %b %d %H:%M:%S %Y',
-                stream=sys.stderr)
-
-        logging.info("Interpreter: %s" % req.interpreter)
-
-
-#        if opts['ipadebug'] == "on":
-#            for o in opts:
-#                logging.debug("IPA: setting option %s: %s" % (o, opts[o]))
-#            for e in req.subprocess_env:
-#                logging.debug("IPA: environment %s: %s" % (e, req.subprocess_env[e]))
-
-        context.conn = conn.IPAConn(api.env.ldaphost, api.env.ldapport, krbccache, context.opts.get('ipadebug'))
-
-        start = time.time()
-        # generate response
         try:
-            response = self._dispatch(method, params)
-            # wrap response in a singleton tuple
-            response = (response,)
-            response = dumps(response, methodresponse=1, allow_none=1)
-        except Fault, e:
-            response = dumps(Fault(e.faultCode, e.faultString))
-        except:
-            self.traceback = True
-            # report exception back to server
-            e_class, e = sys.exc_info()[:2]
-            faultCode = getattr(e_class,'faultCode',1)
-            tb_str = ''.join(traceback.format_exception(*sys.exc_info()))
-            faultString = tb_str
-            response = dumps(Fault(faultCode, faultString))
-
-        return response
+            ccache = req.subprocess_env.get('KRB5CCNAME')
+            return api.Backend.xmlserver.marshaled_dispatch(data, ccache)
+        except Exception, e:
+            api.log.exception(
+                'mod_python_xmlrpc: caught error in _marshaled_dispatch()'
+            )
+            raise e
 
     def _dispatch(self,method,params):
         func = self.funcs.get(method,None)
@@ -347,22 +296,7 @@ def load_modules():
        PythonHandler ipaxmlrpc
     """
 
-    # setup up the logger with a DEBUG level. It may get reset to INFO
-    # once we start processing requests. We don't have access to the
-    # Apache configuration yet.
-    setup_logger(logging.DEBUG)
-
-    api.finalize()
-
-    # Initialize our environment
-    config.set_default_env(api.env)
-    env_dict = config.read_config()
-    env_dict['server_context'] = True
-    api.env.update(env_dict)
-
     # Get and register all the methods
     for cmd in api.Command:
         logging.debug("registering XML-RPC call %s" % cmd)
         register_function(api.Command[cmd], cmd)
-
-    return

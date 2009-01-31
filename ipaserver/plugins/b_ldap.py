@@ -42,6 +42,8 @@ class ldap(CrudBackend):
         super(ldap, self).__init__()
 
     def create_connection(self, ccache):
+        if ccache is None:
+            raise errors2.CCacheError()
         conn = ipaldap.IPAdmin(self.env.ldap_host, self.env.ldap_port)
         principle = krbV.CCache(
             name=ccache, context=krbV.default_context()

@@ -410,9 +410,26 @@ class KerberosError(AuthenticationError):
     errno = 1100
 
 
+class CCacheError(KerberosError):
+    """
+    **1101** Raised when sever does not recieve Kerberose credentials.
+
+    For example:
+
+    >>> raise CCacheError()
+    Traceback (most recent call last):
+      ...
+    CCacheError: did not receive Kerberos credentials
+
+    """
+
+    errno = 1101
+    format = _('did not receive Kerberos credentials')
+
+
 class ServiceError(KerberosError):
     """
-    **1101** Raised when service is not found in Kerberos DB.
+    **1102** Raised when service is not found in Kerberos DB.
 
     For example:
 
@@ -420,10 +437,9 @@ class ServiceError(KerberosError):
     Traceback (most recent call last):
       ...
     ServiceError: Service 'HTTP@localhost' not found in Kerberos database
-
     """
 
-    errno = 1101
+    errno = 1102
     format = _('Service %(service)r not found in Kerberos database')
 
 
