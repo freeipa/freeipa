@@ -85,6 +85,13 @@ DEFAULT_CONFIG = (
     ('container_host', 'cn=computers,cn=accounts'),
     ('container_hostgroup', 'cn=hostgroups,cn=accounts'),
     ('container_automount', 'cn=automount'),
+    ('container_policies', 'cn=policies'),
+    ('container_configs', 'cn=configs,cn=policies'),
+    ('container_roles', 'cn=roles,cn=policies'),
+    ('container_applications', 'cn=applications,cn=configs,cn=policies'),
+    ('container_policygroups', 'cn=policygroups,cn=configs,cn=policies'),
+    ('container_policylinks', 'cn=policylinks,cn=configs,cn=policies'),
+
 
     # Ports, hosts, and URIs:
     ('lite_xmlrpc_port', 8888),
