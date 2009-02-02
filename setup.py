@@ -36,6 +36,7 @@ setup(
         'ipalib.plugins',
         'ipaserver',
         'ipaserver.plugins',
+        'ipaserver.install',
         'ipawebui',
         'ipawebui.templates',
     ],

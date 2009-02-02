@@ -16,7 +16,7 @@ man1_MANS = 				\
 man8_MANS =				\
 	ipactl.8			\
 	ipa_kpasswd.8			\
-	ipa_webgui.8
+        $(NULL)
 
 install-data-hook:
 	@for i in $(man1_MANS) ; do gzip -f $(DESTDIR)$(man1dir)/$$i ; done

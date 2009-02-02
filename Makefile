@@ -1,6 +1,6 @@
 include VERSION
 
-SUBDIRS=ipa-server ipa-admintools ipa-python ipa-client ipa-radius-server ipa-radius-admintools
+SUBDIRS=daemons install ipa-python ipa-client ipa-radius-server ipa-radius-admintools
 
 PRJ_PREFIX=ipa
 
@@ -29,47 +29,31 @@ endif # rc
 endif # pre
 endif # ipa_version
 
-SERV_TARBALL_PREFIX=$(PRJ_PREFIX)-server-$(IPA_VERSION)
-SERV_TARBALL=$(SERV_TARBALL_PREFIX).tgz
-
-ADMIN_TARBALL_PREFIX=$(PRJ_PREFIX)-admintools-$(IPA_VERSION)
-ADMIN_TARBALL=$(ADMIN_TARBALL_PREFIX).tgz
-
-PYTHON_TARBALL_PREFIX=$(PRJ_PREFIX)-python-$(IPA_VERSION)
-PYTHON_TARBALL=$(PYTHON_TARBALL_PREFIX).tgz
-
-CLI_TARBALL_PREFIX=$(PRJ_PREFIX)-client-$(IPA_VERSION)
-CLI_TARBALL=$(CLI_TARBALL_PREFIX).tgz
-
-RADIUS_SERVER_TARBALL_PREFIX=$(PRJ_PREFIX)-radius-server-$(IPA_VERSION)
-RADIUS_SERVER_TARBALL=$(RADIUS_SERVER_TARBALL_PREFIX).tgz
-
-RADIUS_ADMINTOOLS_TARBALL_PREFIX=$(PRJ_PREFIX)-radius-admintools-$(IPA_VERSION)
-RADIUS_ADMINTOOLS_TARBALL=$(RADIUS_ADMINTOOLS_TARBALL_PREFIX).tgz
-
-SERV_SELINUX_TARBALL_PREFIX=$(PRJ_PREFIX)-server-selinux-$(IPA_VERSION)
-SERV_SELINUX_TARBALL=$(SERV_SELINUX_TARBALL_PREFIX).tgz
+TARBALL_PREFIX=freeipa-$(IPA_VERSION)
+TARBALL=$(TARBALL_PREFIX).tar.gz
 
 IPA_RPM_RELEASE=$(shell cat RELEASE)
 
 LIBDIR ?= /usr/lib
 
-all: bootstrap-autogen
+all: bootstrap-autogen server
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 
 bootstrap-autogen: version-update
 	@echo "Building IPA $(IPA_VERSION)"
-	cd ipa-server; if [ ! -e Makefile ]; then ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
+	cd daemons; if [ ! -e Makefile ]; then ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
+	cd install; if [ ! -e Makefile ]; then ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 	cd ipa-client; if [ ! -e Makefile ]; then ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
 autogen: version-update
 	@echo "Building IPA $(IPA_VERSION)"
-	cd ipa-server; ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR)
+	cd daemons; ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
+	cd install; ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 	cd ipa-client; ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR)
 
-install: all
+install: all server-install
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
@@ -84,32 +68,9 @@ release-update:
 
 version-update: release-update
 	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
-		ipa-server/ipa-server.spec.in > ipa-server/ipa-server.spec
-	sed -e s/__VERSION__/$(IPA_VERSION)/ ipa-server/version.m4.in \
-		> ipa-server/version.m4
-
-	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
-		ipa-admintools/ipa-admintools.spec.in > ipa-admintools/ipa-admintools.spec
-
-	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
-		ipa-python/ipa-python.spec.in > ipa-python/ipa-python.spec
-
-	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
-		ipa-client/ipa-client.spec.in > ipa-client/ipa-client.spec
-	sed -e s/__VERSION__/$(IPA_VERSION)/ ipa-client/version.m4.in \
-		> ipa-client/version.m4
-
-	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
-		ipa-radius-server/ipa-radius-server.spec.in \
-		> ipa-radius-server/ipa-radius-server.spec
-
-	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
-		ipa-radius-admintools/ipa-radius-admintools.spec.in \
-		> ipa-radius-admintools/ipa-radius-admintools.spec
-
-	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
-		ipa-server/selinux/ipa-server-selinux.spec.in \
-		> ipa-server/selinux/ipa-server-selinux.spec
+		ipa.spec.in > ipa.spec
+	sed -e s/__VERSION__/$(IPA_VERSION)/ version.m4.in \
+		> version.m4
 
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipa-python/setup.py.in \
 		> ipa-python/setup.py
@@ -117,63 +78,40 @@ version-update: release-update
 		> ipa-python/version.py
 	perl -pi -e "s:__NUM_VERSION__:$(IPA_VERSION_MAJOR)$(IPA_VERSION_MINOR)$(IPA_VERSION_RELEASE):" ipa-python/version.py
 
+	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
+		ipa-client/ipa-client.spec.in > ipa-client/ipa-client.spec
+	sed -e s/__VERSION__/$(IPA_VERSION)/ ipa-client/version.m4.in \
+		> ipa-client/version.m4
+
+server:
+	python setup.py build
+
+server-install: server
+	 if [ "$(DESTDIR)" = "" ]; then \
+		python setup.py install; \
+	else \
+		python setup.py install --root $(DESTDIR); \
+	fi
+
 archive:
 	-mkdir -p dist
 	git archive --format=tar --prefix=ipa/ $(TARGET) | (cd dist && tar xf -)
 
 local-archive:
-	-mkdir -p dist/ipa
-	@for subdir in $(SUBDIRS); do \
-		cp -pr $$subdir dist/ipa/.; \
-	done
+	-mkdir -p dist/$(TARBALL_PREFIX)
+	rsync -a --exclude=dist --exclude=.git --exclude=build --exclude=rpmbuild . dist/$(TARBALL_PREFIX)
 
 archive-cleanup:
-	rm -fr dist/ipa
+	rm -fr dist/freeipa
 
-tarballs:
+tarballs: local-archive
 	-mkdir -p dist/sources
-
-        # ipa-server
-	mv dist/ipa/ipa-server dist/$(SERV_TARBALL_PREFIX)
-	rm -f dist/sources/$(SERV_TARBALL)
-	cd dist/$(SERV_TARBALL_PREFIX); ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
-	cd dist; tar cfz sources/$(SERV_TARBALL) $(SERV_TARBALL_PREFIX)
-	rm -fr dist/$(SERV_TARBALL_PREFIX)
-
-        # ipa-admintools
-	mv dist/ipa/ipa-admintools dist/$(ADMIN_TARBALL_PREFIX)
-	rm -f dist/sources/$(ADMIN_TARBALL)
-	cd dist; tar cfz sources/$(ADMIN_TARBALL) $(ADMIN_TARBALL_PREFIX)
-	rm -fr dist/$(ADMIN_TARBALL_PREFIX)
-
-        # ipa-python
-	mv dist/ipa/ipa-python dist/$(PYTHON_TARBALL_PREFIX)
-	rm -f dist/sources/$(PYTHON_TARBALL)
-	cd dist; tar cfz sources/$(PYTHON_TARBALL) $(PYTHON_TARBALL_PREFIX)
-	rm -fr dist/$(PYTHON_TARBALL_PREFIX)
-
-        # ipa-client
-	mv dist/ipa/ipa-client dist/$(CLI_TARBALL_PREFIX)
-	rm -f dist/sources/$(CLI_TARBALL)
-	cd dist/$(CLI_TARBALL_PREFIX); ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
-	cd dist; tar cfz sources/$(CLI_TARBALL) $(CLI_TARBALL_PREFIX)
-	rm -fr dist/$(CLI_TARBALL_PREFIX)
-
-        # ipa-radius-server
-	mv dist/ipa/ipa-radius-server dist/$(RADIUS_SERVER_TARBALL_PREFIX)
-	rm -f dist/sources/$(RADIUS_SERVER_TARBALL)
-	cd dist; tar cfz sources/$(RADIUS_SERVER_TARBALL) $(RADIUS_SERVER_TARBALL_PREFIX)
-	rm -fr dist/$(RADIUS_SERVER_TARBALL_PREFIX)
-
-        # ipa-radius-admintools
-	mv dist/ipa/ipa-radius-admintools dist/$(RADIUS_ADMINTOOLS_TARBALL_PREFIX)
-	rm -f dist/sources/$(RADIUS_ADMINTOOLS_TARBALL)
-	cd dist; tar cfz sources/$(RADIUS_ADMINTOOLS_TARBALL) $(RADIUS_ADMINTOOLS_TARBALL_PREFIX)
-	rm -fr dist/$(RADIUS_ADMINTOOLS_TARBALL_PREFIX)
-
-	# ipa-server/selinux
-	cp dist/sources/$(SERV_TARBALL) dist/sources/$(SERV_SELINUX_TARBALL)
-
+	# tar up clean sources
+	cd dist/$(TARBALL_PREFIX)/ipa-client; ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
+	cd dist/$(TARBALL_PREFIX)/daemons; ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
+	cd dist/$(TARBALL_PREFIX)/install; ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
+	cd dist; tar cfz sources/$(TARBALL) $(TARBALL_PREFIX)
+	rm -rf dist/$(TARBALL_PREFIX)
 
 rpmroot:
 	mkdir -p $(RPMBUILD)/BUILD
@@ -186,49 +124,11 @@ rpmdistdir:
 	mkdir -p dist/rpms
 	mkdir -p dist/srpms
 
-rpm-ipa-server:
-	cp dist/sources/$(SERV_TARBALL) $(RPMBUILD)/SOURCES/.
-	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa-server/ipa-server.spec
-	cp rpmbuild/RPMS/*/$(PRJ_PREFIX)-server-$(IPA_VERSION)-*.rpm dist/rpms/
-	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-server-$(IPA_VERSION)-*.src.rpm dist/srpms/
-
-rpm-ipa-admin:
-	cp dist/sources/$(ADMIN_TARBALL) $(RPMBUILD)/SOURCES/.
-	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa-admintools/ipa-admintools.spec
-	cp rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-admintools-$(IPA_VERSION)-*.rpm dist/rpms/
-	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-admintools-$(IPA_VERSION)-*.src.rpm dist/srpms/
-
-rpm-ipa-python:
-	cp dist/sources/$(PYTHON_TARBALL) $(RPMBUILD)/SOURCES/.
-	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa-python/ipa-python.spec
-	cp rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-python-$(IPA_VERSION)-*.rpm dist/rpms/
-	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-python-$(IPA_VERSION)-*.src.rpm dist/srpms/
-
-rpm-ipa-client:
-	cp dist/sources/$(CLI_TARBALL) $(RPMBUILD)/SOURCES/.
-	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa-client/ipa-client.spec
-	cp rpmbuild/RPMS/*/$(PRJ_PREFIX)-client-$(IPA_VERSION)-*.rpm dist/rpms/
-	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-client-$(IPA_VERSION)-*.src.rpm dist/srpms/
-
-rpm-ipa-radius-server:
-	cp dist/sources/$(RADIUS_SERVER_TARBALL) $(RPMBUILD)/SOURCES/.
-	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa-radius-server/ipa-radius-server.spec
-	cp rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-radius-server-$(IPA_VERSION)-*.rpm dist/rpms/
-	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-radius-server-$(IPA_VERSION)-*.src.rpm dist/srpms/
-
-rpm-ipa-radius-admintools:
-	cp dist/sources/$(RADIUS_ADMINTOOLS_TARBALL) $(RPMBUILD)/SOURCES/.
-	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa-radius-admintools/ipa-radius-admintools.spec
-	cp rpmbuild/RPMS/noarch/$(PRJ_PREFIX)-radius-admintools-$(IPA_VERSION)-*.rpm dist/rpms/
-	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-radius-admintools-$(IPA_VERSION)-*.src.rpm dist/srpms/
-
-rpm-ipa-server-selinux:
-	cp dist/sources/$(SERV_SELINUX_TARBALL) $(RPMBUILD)/SOURCES/.
-	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa-server/selinux/ipa-server-selinux.spec
-	cp rpmbuild/RPMS/*/$(PRJ_PREFIX)-server-selinux-$(IPA_VERSION)-*.rpm dist/rpms/
-	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-server-selinux-$(IPA_VERSION)-*.src.rpm dist/srpms/
-
-rpms: rpmroot rpmdistdir rpm-ipa-server rpm-ipa-admin rpm-ipa-python rpm-ipa-client rpm-ipa-radius-server rpm-ipa-radius-admintools rpm-ipa-server-selinux
+rpms: rpmroot rpmdistdir version-update tarballs
+	cp dist/sources/$(TARBALL) $(RPMBUILD)/SOURCES/.
+	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa.spec
+	cp rpmbuild/RPMS/*/$(PRJ_PREFIX)-*-$(IPA_VERSION)-*.rpm dist/rpms/
+	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-$(IPA_VERSION)-*.src.rpm dist/srpms/
 
 repodata:
 	-createrepo -p dist
@@ -248,14 +148,16 @@ distclean: version-update
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
-	rm -fr rpmbuild dist
+	rm -fr rpmbuild dist build
 
 maintainer-clean: clean
-	rm -fr rpmbuild dist
-	cd ipa-server/selinux && $(MAKE) maintainer-clean
-	cd ipa-server && $(MAKE) maintainer-clean
+	rm -fr rpmbuild dist build
+	cd selinux && $(MAKE) maintainer-clean
+	cd daemons && $(MAKE) maintainer-clean
+	cd install && $(MAKE) maintainer-clean
 	cd ipa-client && $(MAKE) maintainer-clean
 	cd ipa-python && $(MAKE) maintainer-clean
-	cd ipa-admintools && $(MAKE) maintainer-clean
 	cd ipa-radius-admintools && $(MAKE) maintainer-clean
 	cd ipa-radius-server && $(MAKE) maintainer-clean
+	rm -f version.m4
+	rm -f ipa.spec

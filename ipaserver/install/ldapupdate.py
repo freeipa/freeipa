@@ -25,7 +25,7 @@
 UPDATES_DIR="/usr/share/ipa/updates/"
 
 import sys
-from ipaserver import ipaldap, installutils
+from ipaserver.install import ipaldap, installutils
 from ipa import entity, ipaerror, ipautil
 import ldap
 import logging

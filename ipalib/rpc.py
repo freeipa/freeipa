@@ -187,7 +187,10 @@ class KerbTransport(SafeTransport):
         service = "HTTP@" + host.split(':')[0]
 
         try:
-            (rc, vc) = kerberos.authGSSClientInit(service)
+            (rc, vc) = kerberos.authGSSClientInit(service,
+                                                kerberos.GSS_C_DELEG_FLAG |
+                                                kerberos.GSS_C_MUTUAL_FLAG |
+                                                kerberos.GSS_C_SEQUENCE_FLAG)
         except kerberos.GSSError, e:
             raise e  # FIXME: raise a PublicError
 

@@ -1,9 +1,8 @@
 NULL =
 
-SUBDIRS =			\
-	share			\
-	updates			\
-	$(NULL)
+SUBDIRS = 			\
+        man			\
+        $(NULL)
 
 sbin_SCRIPTS =			\
 	ipa-server-install	\
@@ -12,6 +11,10 @@ sbin_SCRIPTS =			\
 	ipa-replica-manage	\
  	ipa-server-certinstall  \
 	ipactl			\
+	ipa-compat-manage	\
+	ipa-fix-CVE-2008-3274	\
+	ipa-ldap-updater	\
+	ipa-upgradeconfig	\
 	$(NULL)
 
 EXTRA_DIST =			\

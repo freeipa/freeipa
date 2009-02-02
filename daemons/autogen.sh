@@ -179,6 +179,9 @@ do_cmd() {
     $@
 }
 
+# I don't want autotools dictating what files I have
+touch NEWS README AUTHORS ChangeLog
+
 do_cmd $LIBTOOLIZE $LIBTOOLIZE_FLAGS
 
 do_cmd $ACLOCAL $ACLOCAL_FLAGS
@@ -188,6 +191,9 @@ do_cmd $AUTOHEADER
 do_cmd $AUTOMAKE $AUTOMAKE_FLAGS
 
 do_cmd $AUTOCONF
+
+# I don't want autotools dictating what files I have
+touch NEWS README AUTHORS ChangeLog
 
 cd $ORIGDIR || exit 1
 

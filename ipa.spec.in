@@ -1,0 +1,637 @@
+%define httpd_conf /etc/httpd/conf.d
+%define plugin_dir %{_libdir}/dirsrv/plugins
+%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+%{!?python_sitearch: %define python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
+%define POLICYCOREUTILSVER 1.33.12-1
+
+Name:           ipa
+Version:        __VERSION__
+Release:        __RELEASE__%{?dist}
+Summary:        The Identity, Policy and Audit system
+
+Group:          System Environment/Base
+License:        GPLv2
+URL:            http://www.freeipa.org/
+Source0:        freeipa-%{version}.tar.gz
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+BuildRequires:  fedora-ds-base-devel >= 1.1.3
+BuildRequires:  mozldap-devel
+BuildRequires:  svrcore-devel
+BuildRequires:  nspr-devel
+BuildRequires:  openssl-devel
+BuildRequires:  openldap-devel
+BuildRequires:  e2fsprogs-devel
+BuildRequires:  krb5-devel
+BuildRequires:  nss-devel
+BuildRequires:  libcap-devel
+BuildRequires:  python-devel
+BuildRequires:  autoconf
+BuildRequires:  automake
+BuildRequires:  libtool
+BuildRequires:  popt-devel
+BuildRequires:  /usr/share/selinux/devel/Makefile
+BuildRequires:  m4
+BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
+BuildRequires:  TurboGears
+
+%description
+IPA is an integrated solution to provide centrally managed Identity (machine,
+user, virtual machines, groups, authentication credentials), Policy
+(configuration settings, access control information) and Audit (events,
+logs, analysis thereof).
+
+%package server
+Summary: The IPA authentication server
+Group: System Environment/Base
+Requires: %{name}-python = %{version}-%{release}
+Requires: %{name}-client = %{version}-%{release}
+Requires: %{name}-admintools = %{version}-%{release}
+Requires(post): %{name}-server-selinux = %{version}-%{release}
+Requires: fedora-ds-base >= 1.1.3
+Requires: openldap-clients
+Requires: nss
+Requires: nss-tools
+%{?fc8:Requires: krb5-server >= 1.6.2-11}
+%if 0%{?fedora} >= 9
+Requires: krb5-server
+%endif
+Requires: krb5-server-ldap
+Requires: cyrus-sasl-gssapi
+Requires: ntp
+Requires: httpd
+Requires: mod_python
+Requires: mod_auth_kerb
+%{?fc8:Requires: mod_nss >= 1.0.7-2}
+%{?fc9:Requires: mod_nss >= 1.0.7-5}
+%{?fc10:Requires: mod_nss >= 1.0.7-4}
+%if 0%{?fedora} >= 10
+Requires: mod_nss
+%endif
+Requires: python-ldap
+Requires: python-krbV
+Requires: TurboGears
+Requires: python-tgexpandingformwidget
+Requires: acl
+Requires: python-pyasn1
+Requires: libcap
+%{?fc8:Requires: selinux-policy >= 3.0.8-117}
+%{?fc9:Requires: selinux-policy >= 3.3.1-99}
+%{?fc10:Requires: selinux-policy >= 3.5.13-11}
+%if 0%{?fedora} >= 10
+Requires: selinux-policy
+%endif
+Requires(post): selinux-policy-base
+Requires: slapi-nis
+Conflicts: mod_ssl
+
+%description server
+IPA is an integrated solution to provide centrally managed Identity (machine,
+user, virtual machines, groups, authentication credentials), Policy
+(configuration settings, access control information) and Audit (events,
+logs, analysis thereof). If you are installing an IPA server you need
+to install this package (in other words, most people should NOT install
+this package).
+
+
+%package server-selinux
+Summary: SELinux rules for ipa-server daemons
+Group: System Environment/Base
+Requires: %{name}-server = %{version}-%{release}
+Requires(pre): policycoreutils >= %{POLICYCOREUTILSVER} libsemanage
+
+%description server-selinux
+IPA is an integrated solution to provide centrally managed Identity (machine,
+user, virtual machines, groups, authentication credentials), Policy
+(configuration settings, access control information) and Audit (events,
+logs, analysis thereof). This package provides SELinux rules for the
+daemons included in ipa-server
+
+
+%package client
+Summary: IPA authentication for use on clients
+Group: System Environment/Base
+Requires: %{name}-python = %{version}-%{release}
+Requires: python-ldap
+Requires: python-krbV
+Requires: cyrus-sasl-gssapi
+Requires: ntp
+Requires: krb5-workstation
+Requires: krb5-libs
+Requires: authconfig
+Requires: pam_krb5
+Requires: nss_ldap
+
+%description client
+IPA is an integrated solution to provide centrally managed Identity (machine,
+user, virtual machines, groups, authentication credentials), Policy
+(configuration settings, access control information) and Audit (events,
+logs, analysis thereof). If your network uses IPA for authentication,
+this package should be installed on every client machine.
+
+
+%package admintools
+Summary: IPA administrative tools
+Group: System Environment/Base
+Requires: %{name}-python = %{version}-%{release}
+Requires: python-krbV
+Requires: python-ldap
+Requires: python-configobj
+
+%description admintools
+IPA is an integrated solution to provide centrally managed Identity (machine,
+user, virtual machines, groups, authentication credentials), Policy
+(configuration settings, access control information) and Audit (events,
+logs, analysis thereof). This package provides command-line tools for
+IPA administrators.
+
+%package python
+Summary: Python libraries used by IPA
+Group: System Environment/Libraries
+%{?fc8:Requires: python-kerberos >= 1.0}
+%if 0%{?fedora} >= 9
+Requires: python-kerberos >= 1.1-3
+%endif
+Requires: authconfig
+Requires: gnupg
+
+%description python
+IPA is an integrated solution to provide centrally managed Identity (machine,
+user, virtual machines, groups, authentication credentials), Policy
+(configuration settings, access control information) and Audit (events,
+logs, analysis thereof). If you are using IPA you need to install this
+package.
+
+%package radius-server
+Summary: IPA authentication server - radius plugin
+Group: System Environment/Base
+Requires: freeradius
+Requires: freeradius-ldap
+Requires: %{name}-python = %{version}-%{release}
+
+%description radius-server
+IPA is an integrated solution to provide centrally managed Identity (machine,
+user, virtual machines, groups, authentication credentials), Policy
+(configuration settings, access control information) and Audit (events,
+logs, analysis thereof). This plugin enables radius support.
+
+%package radius-admintools
+Summary: IPA authentication server - radius administration tools
+Group: System Environment/Base
+Requires: %{name}-python = %{version}-%{release}
+Requires: %{name}-admintools = %{version}-%{release}
+Requires: python-krbV
+
+%description radius-admintools
+IPA is an integrated solution to provide centrally managed Identity (machine,
+user, virtual machines, groups, authentication credentials), Policy
+(configuration settings, access control information) and Audit (events,
+logs, analysis thereof). This package provides command-line tools for
+administering radius authentication settings in IPA.
+
+
+%prep
+%setup -n freeipa-%{version} -q
+
+%build
+export CFLAGS="$CFLAGS %{optflags}"
+export CPPFLAGS="$CPPFLAGS %{optflags}"
+make version-update
+cd ipa-client; ./autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
+cd daemons; ./autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
+cd install; ./autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
+
+make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} version-update all
+cd selinux
+# This isn't multi-process make capable yet
+make all
+
+%install
+rm -rf %{buildroot}
+make install DESTDIR=%{buildroot}
+cd selinux
+make install DESTDIR=%{buildroot}
+
+# Remove .la files from libtool - we don't want to package
+# these files
+rm %{buildroot}/%{plugin_dir}/libipa_pwd_extop.la
+rm %{buildroot}/%{plugin_dir}/libipa-memberof-plugin.la
+rm %{buildroot}/%{plugin_dir}/libipa-dna-plugin.la
+rm %{buildroot}/%{plugin_dir}/libipa_winsync.la
+
+# Some user-modifiable HTML files are provided. Move these to /etc
+# and link back.
+mkdir -p %{buildroot}/%{_sysconfdir}/ipa/html
+mkdir -p %{buildroot}/%{_localstatedir}/cache/ipa/sysrestore
+mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
+#mv %{buildroot}/%{_usr}/share/ipa/html/ssbrowser.html %{buildroot}/%{_sysconfdir}/ipa/html
+#mv %{buildroot}/%{_usr}/share/ipa/html/unauthorized.html %{buildroot}/%{_sysconfdir}/ipa/html
+mkdir %{buildroot}%{_usr}/share/ipa/html/
+ln -s ../../../..%{_sysconfdir}/ipa/html/ssbrowser.html \
+    %{buildroot}%{_usr}/share/ipa/html/ssbrowser.html
+ln -s ../../../..%{_sysconfdir}/ipa/html/unauthorized.html \
+    %{buildroot}%{_usr}/share/ipa/html/unauthorized.html
+ln -s ../../../..%{python_sitelib}/ipaserver/mod_python_xmlrpc.py \
+    %{buildroot}%{_usr}/share/ipa/ipaserver/mod_python_xmlrpc.py
+
+%clean
+rm -rf %{buildroot}
+
+%post server
+if [ $1 = 1 ]; then
+    /sbin/chkconfig --add ipa_kpasswd
+fi
+if [ -e /usr/share/ipa/serial ]; then
+    mv /usr/share/ipa/serial /var/lib/ipa/ca_serialno
+fi
+/bin/touch /var/log/ipa_error.log
+/bin/chown apache /var/log/ipa_error.log
+/bin/chmod 600 /var/log/ipa_error.log
+restorecon /var/log/ipa_error.log
+/usr/sbin/ipa-upgradeconfig || :
+if [ -e /etc/httpd/conf.d/ipa.conf ]; then
+    echo ""
+    echo "Run /usr/sbin/ipa-ldap-updater to complete the upgrade process."
+    echo ""
+fi
+
+%preun server
+if [ $1 = 0 ]; then
+    /sbin/chkconfig --del ipa_kpasswd
+    /sbin/service ipa_kpasswd stop >/dev/null 2>&1 || :
+fi
+
+%postun server
+if [ "$1" -ge "1" ]; then
+    /sbin/service ipa_kpasswd condrestart >/dev/null 2>&1 || :
+    /sbin/service httpd condrestart >/dev/null 2>&1 || :
+    /sbin/service dirsrv condrestart >/dev/null 2>&1 || :
+fi
+
+%pre server-selinux
+if [ -s /etc/selinux/config ]; then
+       . %{_sysconfdir}/selinux/config
+       FILE_CONTEXT=%{_sysconfdir}/selinux/targeted/contexts/files/file_contexts
+       if [ "${SELINUXTYPE}" == targeted -a -f ${FILE_CONTEXT} ]; then \
+               cp -f ${FILE_CONTEXT} ${FILE_CONTEXT}.%{name}
+       fi
+fi
+
+%post server-selinux
+semodule -s targeted -i /usr/share/selinux/targeted/ipa_webgui.pp /usr/share/selinux/targeted/ipa_kpasswd.pp
+. %{_sysconfdir}/selinux/config
+FILE_CONTEXT=%{_sysconfdir}/selinux/targeted/contexts/files/file_contexts
+selinuxenabled
+if [ $? == 0  -a "${SELINUXTYPE}" == targeted -a -f ${FILE_CONTEXT}.%{name} ]; then
+       fixfiles -C ${FILE_CONTEXT}.%{name} restore
+       rm -f ${FILE_CONTEXT}.%name
+fi
+
+%preun server-selinux
+if [ $1 = 0 ]; then
+if [ -s /etc/selinux/config ]; then
+       . %{_sysconfdir}/selinux/config
+       FILE_CONTEXT=%{_sysconfdir}/selinux/targeted/contexts/files/file_contexts
+       if [ "${SELINUXTYPE}" == targeted -a -f ${FILE_CONTEXT} ]; then \
+               cp -f ${FILE_CONTEXT} ${FILE_CONTEXT}.%{name}
+       fi
+fi
+fi
+
+%postun server-selinux
+if [ $1 = 0 ]; then
+semodule -s targeted -r ipa_webgui ipa_kpasswd
+. %{_sysconfdir}/selinux/config
+FILE_CONTEXT=%{_sysconfdir}/selinux/targeted/contexts/files/file_contexts
+selinuxenabled
+if [ $? == 0  -a "${SELINUXTYPE}" == targeted -a -f ${FILE_CONTEXT}.%{name} ]; then
+       fixfiles -C ${FILE_CONTEXT}.%{name} restore
+       rm -f ${FILE_CONTEXT}.%name
+fi
+fi
+
+
+%files server
+%doc LICENSE README
+%defattr(-,root,root,-)
+%{_sbindir}/ipa-server-install
+%{_sbindir}/ipa-replica-install
+%{_sbindir}/ipa-replica-prepare
+%{_sbindir}/ipa-replica-manage
+%{_sbindir}/ipa-server-certinstall
+%{_sbindir}/ipa_kpasswd
+%{_sbindir}/ipactl
+%{_sbindir}/ipa-upgradeconfig
+%attr(755,root,root) %{_initrddir}/ipa_kpasswd
+%{_bindir}/ipa
+%{python_sitelib}/ipalib/*
+%{python_sitelib}/ipaserver/*
+%{python_sitelib}/ipawebui/*
+%{python_sitelib}/*.egg-info
+%dir %{_usr}/share/ipa
+%{_usr}/share/ipa/*.ldif
+%{_usr}/share/ipa/*.uldif
+%{_usr}/share/ipa/*.template
+%dir %{_usr}/share/ipa/html
+%{_usr}/share/ipa/html/ssbrowser.html
+%{_usr}/share/ipa/html/unauthorized.html
+%dir %{_sysconfdir}/ipa
+%dir %{_sysconfdir}/ipa/html
+%config(noreplace) %{_sysconfdir}/ipa/html/ssbrowser.html
+%config(noreplace) %{_sysconfdir}/ipa/html/unauthorized.html
+%{_usr}/share/ipa/ipa.conf
+%{_usr}/share/ipa/ipa-rewrite.conf
+%dir %{_usr}/share/ipa/ipaserver
+%{_usr}/share/ipa/ipaserver/*
+%dir %{_usr}/share/ipa/updates/
+%{_usr}/share/ipa/updates/*
+%attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so
+%attr(755,root,root) %{plugin_dir}/libipa-memberof-plugin.so
+%attr(755,root,root) %{plugin_dir}/libipa-dna-plugin.so
+%attr(755,root,root) %{plugin_dir}/libipa_winsync.so
+%dir %{_localstatedir}/lib/ipa
+%attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
+%dir %{_localstatedir}/cache/ipa
+%attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
+%attr(700,root,root) %dir %{_localstatedir}/cache/ipa/kpasswd
+%{_mandir}/man1/ipa-replica-install.1.gz
+%{_mandir}/man1/ipa-replica-manage.1.gz
+%{_mandir}/man1/ipa-replica-prepare.1.gz
+%{_mandir}/man1/ipa-server-certinstall.1.gz
+%{_mandir}/man1/ipa-server-install.1.gz
+%{_mandir}/man8/ipa_kpasswd.8.gz
+%{_mandir}/man8/ipactl.8.gz
+%{_mandir}/man1/ipa-compat-manage.1.gz
+%{_mandir}/man1/ipa-ldap-updater.1.gz
+
+%files server-selinux
+%{_usr}/share/selinux/targeted/ipa_webgui.pp
+%{_usr}/share/selinux/targeted/ipa_kpasswd.pp
+
+%files client
+%doc LICENSE README
+%{_sbindir}/ipa-client-install
+%{_sbindir}/ipa-getkeytab
+%dir %{_usr}/share/ipa
+%dir %{_usr}/share/ipa/ipaclient
+%dir %{_localstatedir}/lib/ipa-client
+%dir %{_localstatedir}/lib/ipa-client/sysrestore
+%{_usr}/share/ipa/ipaclient/ipa.cfg
+%{_usr}/share/ipa/ipaclient/ipa.js
+%dir %{python_sitelib}/ipaclient
+%{python_sitelib}/ipaclient/*.py*
+%{_mandir}/man1/ipa-getkeytab.1.gz
+%{_mandir}/man1/ipa-client-install.1.gz
+
+%files admintools
+%doc LICENSE README
+%defattr(-,root,root,-)
+#%{_sbindir}/ipa-adddelegation
+#%{_sbindir}/ipa-addgroup
+#%{_sbindir}/ipa-addservice
+#%{_sbindir}/ipa-adduser
+#%{_sbindir}/ipa-defaultoptions
+#%{_sbindir}/ipa-deldelegation
+#%{_sbindir}/ipa-delgroup
+#%{_sbindir}/ipa-delservice
+#%{_sbindir}/ipa-deluser
+#%{_sbindir}/ipa-findgroup
+#%{_sbindir}/ipa-findservice
+#%{_sbindir}/ipa-finduser
+#%{_sbindir}/ipa-listdelegation
+#%{_sbindir}/ipa-lockuser
+#%{_sbindir}/ipa-modgroup
+#%{_sbindir}/ipa-moddelegation
+#%{_sbindir}/ipa-passwd
+#%{_sbindir}/ipa-moduser
+#%{_sbindir}/ipa-pwpolicy
+#%{_sbindir}/ipa-change-master-key
+%{_sbindir}/ipa-fix-CVE-2008-3274
+%{_sbindir}/ipa-ldap-updater
+%{_sbindir}/ipa-compat-manage
+#%{_mandir}/man1/ipa-adddelegation.1.gz
+#%{_mandir}/man1/ipa-addgroup.1.gz
+#%{_mandir}/man1/ipa-addservice.1.gz
+#%{_mandir}/man1/ipa-adduser.1.gz
+#%{_mandir}/man1/ipa-defaultoptions.1.gz
+#%{_mandir}/man1/ipa-deldelegation.1.gz
+#%{_mandir}/man1/ipa-delgroup.1.gz
+#%{_mandir}/man1/ipa-delservice.1.gz
+#%{_mandir}/man1/ipa-deluser.1.gz
+#%{_mandir}/man1/ipa-findgroup.1.gz
+#%{_mandir}/man1/ipa-findservice.1.gz
+#%{_mandir}/man1/ipa-finduser.1.gz
+#%{_mandir}/man1/ipa-modgroup.1.gz
+#%{_mandir}/man1/ipa-listdelegation.1.gz
+#%{_mandir}/man1/ipa-lockuser.1.gz
+#%{_mandir}/man1/ipa-moddelegation.1.gz
+#%{_mandir}/man1/ipa-passwd.1.gz
+#%{_mandir}/man1/ipa-moduser.1.gz
+#%{_mandir}/man1/ipa-pwpolicy.1.gz
+#%{_mandir}/man1/ipa-ldap-updater.1.gz
+#%{_mandir}/man1/ipa-compat-manage.1.gz
+
+%files python
+%doc LICENSE README
+%defattr(-,root,root,-)
+%dir %{python_sitelib}/ipa
+%{python_sitelib}/ipa/*.py*
+%if 0%{?fedora} >= 9
+%{python_sitelib}/ipa-*.egg-info
+%endif
+%config(noreplace) %{_sysconfdir}/ipa/ipa.conf
+
+%files radius-server
+%doc LICENSE README
+%{_sbindir}/ipa-radius-install
+%{_usr}/share/ipa/ipaserver/plugins/*
+%dir %{_usr}/share/ipa/plugins
+%{_usr}/share/ipa/plugins/radius.radiusd.conf.template
+
+%files radius-admintools
+%doc LICENSE README
+%{_sbindir}/ipa-addradiusclient
+%{_sbindir}/ipa-addradiusprofile
+%{_sbindir}/ipa-delradiusclient
+%{_sbindir}/ipa-delradiusprofile
+%{_sbindir}/ipa-findradiusclient
+%{_sbindir}/ipa-findradiusprofile
+%{_sbindir}/ipa-modradiusclient
+%{_sbindir}/ipa-modradiusprofile
+
+%changelog
+* Sat Jan 17 2009 Tomas Mraz <tmraz@redhat.com> - 1.2.1-3
+- rebuild with new openssl
+
+* Fri Dec 19 2008 Dan Walsh <dwalsh@redhat.com> - 1.2.1-2
+- Fix SELinux code
+
+* Mon Dec 15 2008 Simo Sorce <ssorce@redhat.com> - 1.2.1-1
+- Fix breakage caused by python-kerberos update to 1.1
+
+* Fri Dec 5 2008 Simo Sorce <ssorce@redhat.com> - 1.2.1-0
+- New upstream release 1.2.1
+
+* Sat Nov 29 2008 Ignacio Vazquez-Abrams <ivazqueznet+rpm@gmail.com> - 1.2.0-4
+- Rebuild for Python 2.6
+
+* Fri Nov 14 2008 Simo Sorce <ssorce@redhat.com> - 1.2.0-3
+- Respin after the tarball has been re-released upstream
+  New hash is 506c9c92dcaf9f227cba5030e999f177
+
+* Thu Nov 13 2008 Simo Sorce <ssorce@redhat.com> - 1.2.0-2
+- Conditionally restart also dirsrv and httpd when upgrading
+
+* Wed Oct 29 2008 Rob Crittenden <rcritten@redhat.com> - 1.2.0-1
+- Update to upstream version 1.2.0
+- Set fedora-ds-base minimum version to 1.1.3 for winsync header
+- Set the minimum version for SELinux policy
+- Remove references to Fedora 7
+
+* Wed Jul 23 2008 Simo Sorce <ssorce@redhat.com> - 1.1.0-3
+- Fix for CVE-2008-3274
+- Fix segfault in ipa-kpasswd in case getifaddrs returns a NULL interface
+- Add fix for bug #453185
+- Rebuild against openldap libraries, mozldap ones do not work properly
+- TurboGears is currently broken in rawhide. Added patch to not build
+  the UI locales and removed them from the ipa-server files section.
+
+* Wed Jun 18 2008 Rob Crittenden <rcritten@redhat.com> - 1.1.0-2
+- Add call to /usr/sbin/upgradeconfig to post install
+
+* Wed Jun 11 2008 Rob Crittenden <rcritten@redhat.com> - 1.1.0-1
+- Update to upstream version 1.1.0
+- Patch for indexing memberof attribute
+- Patch for indexing uidnumber and gidnumber
+- Patch to change DNA default values for replicas
+- Patch to fix uninitialized variable in ipa-getkeytab
+
+* Fri May 16 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-5
+- Set fedora-ds-base minimum version to 1.1.0.1-4 and mod_nss minimum
+  version to 1.0.7-4 so we pick up the NSS fixes.
+- Add selinux-policy-base(post) to Requires (446496)
+
+* Tue Apr 29 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-4
+- Add missing entry for /var/cache/ipa/kpasswd (444624)
+- Added patch to fix permissions problems with the Apache NSS database.
+- Added patch to fix problem with DNS querying where the query could be
+  returned as the answer.
+- Fix spec error where patch1 was in the wrong section
+
+* Fri Apr 25 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-3
+- Added patch to fix problem reported by ldapmodify
+
+* Fri Apr 25 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-2
+- Fix Requires for krb5-server that was missing for Fedora versions > 9
+- Remove quotes around test for fedora version to package egg-info
+
+* Fri Apr 18 2008 Rob Crittenden <rcritten@redhat.com> - 1.0.0-1
+- Update to upstream version 1.0.0
+
+* Tue Mar 18 2008 Rob Crittenden <rcritten@redhat.com> 0.99-12
+- Pull upstream changelog 722
+- Add Conflicts mod_ssl (435360)
+
+* Thu Feb 29 2008 Rob Crittenden <rcritten@redhat.com> 0.99-11
+- Pull upstream changelog 698
+- Fix ownership of /var/log/ipa_error.log during install (435119)
+- Add pwpolicy command and man page
+
+* Thu Feb 21 2008 Rob Crittenden <rcritten@redhat.com> 0.99-10
+- Pull upstream changelog 678
+- Add new subpackage, ipa-server-selinux
+- Add Requires: authconfig to ipa-python (bz #433747)
+- Package i18n files
+
+* Mon Feb 18 2008 Rob Crittenden <rcritten@redhat.com> 0.99-9
+- Pull upstream changelog 641
+- Require minimum version of krb5-server on F-7 and F-8
+- Package some new files
+
+* Thu Jan 31 2008 Rob Crittenden <rcritten@redhat.com> 0.99-8
+- Marked with wrong license. IPA is GPLv2.
+
+* Tue Jan 29 2008 Rob Crittenden <rcritten@redhat.com> 0.99-7
+- Ensure that /etc/ipa exists before moving user-modifiable html files there
+- Put html files into /etc/ipa/html instead of /etc/ipa
+
+* Tue Jan 29 2008 Rob Crittenden <rcritten@redhat.com> 0.99-6
+- Pull upstream changelog 608 which renamed several files
+
+* Thu Jan 24 2008 Rob Crittenden <rcritten@redhat.com> 0.99-5
+- package the sessions dir /var/cache/ipa/sessions
+- Pull upstream changelog 597
+
+* Thu Jan 24 2008 Rob Crittenden <rcritten@redhat.com> 0.99-4
+- Updated upstream pull (596) to fix bug in ipa_webgui that was causing the
+  UI to not start.
+
+* Thu Jan 24 2008 Rob Crittenden <rcritten@redhat.com> 0.99-3
+- Included LICENSE and README in all packages for documentation
+- Move user-modifiable content to /etc/ipa and linked back to 
+  /usr/share/ipa/html
+- Changed some references to /usr to the {_usr} macro and /etc
+  to {_sysconfdir}
+- Added popt-devel to BuildRequires for Fedora 8 and higher and
+  popt for Fedora 7
+- Package the egg-info for Fedora 9 and higher for ipa-python
+
+* Tue Jan 22 2008 Rob Crittenden <rcritten@redhat.com> 0.99-2
+- Added auto* BuildRequires
+
+* Mon Jan 21 2008 Rob Crittenden <rcritten@redhat.com> 0.99-1
+- Unified spec file
+
+* Thu Jan 17 2008 Rob Crittenden <rcritten@redhat.com> - 0.6.0-2
+- Fixed License in specfile
+- Include files from /usr/lib/python*/site-packages/ipaserver
+
+* Fri Dec 21 2007 Karl MacMillan <kmacmill@redhat.com> - 0.6.0-1
+- Version bump for release
+
+* Wed Nov 21 2007 Karl MacMillan <kmacmill@mentalrootkit.com> - 0.5.0-1
+- Preverse mode on ipa-keytab-util
+- Version bump for relase and rpm name change
+
+* Thu Nov 15 2007 Rob Crittenden <rcritten@redhat.com> - 0.4.1-2
+- Broke invididual Requires and BuildRequires onto separate lines and
+  reordered them
+- Added python-tgexpandingformwidget as a dependency
+- Require at least fedora-ds-base 1.1
+
+* Thu Nov  1 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.1-1
+- Version bump for release
+
+* Wed Oct 31 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.0-6
+- Add dep for freeipa-admintools and acl
+
+* Wed Oct 24 2007 Rob Crittenden <rcritten@redhat.com> - 0.4.0-5
+- Add dependency for python-krbV
+
+* Fri Oct 19 2007 Rob Crittenden <rcritten@redhat.com> - 0.4.0-4
+- Require mod_nss-1.0.7-2 for mod_proxy fixes
+
+* Thu Oct 18 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.0-3
+- Convert to autotools-based build
+
+* Tue Sep 25 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.0-2
+  
+* Fri Sep 7 2007 Karl MacMillan <kmacmill@redhat.com> - 0.3.0-1
+- Added support for libipa-dna-plugin
+
+* Fri Aug 10 2007 Karl MacMillan <kmacmill@redhat.com> - 0.2.0-1
+- Added support for ipa_kpasswd and ipa_pwd_extop
+
+* Mon Aug  5 2007 Rob Crittenden <rcritten@redhat.com> - 0.1.0-3
+- Abstracted client class to work directly or over RPC
+
+* Wed Aug  1 2007 Rob Crittenden <rcritten@redhat.com> - 0.1.0-2
+- Add mod_auth_kerb and cyrus-sasl-gssapi to Requires
+- Remove references to admin server in ipa-server-setupssl
+- Generate a client certificate for the XML-RPC server to connect to LDAP with
+- Create a keytab for Apache
+- Create an ldif with a test user
+- Provide a certmap.conf for doing SSL client authentication
+
+* Fri Jul 27 2007 Karl MacMillan <kmacmill@redhat.com> - 0.1.0-1
+- Initial rpm version

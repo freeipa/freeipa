@@ -35,7 +35,7 @@ import service
 import installutils
 import certs
 import ipaldap, ldap
-from ipaserver import ldapupdate
+from ipaserver.install import ldapupdate
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"

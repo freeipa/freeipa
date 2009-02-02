@@ -37,15 +37,15 @@ import glob
 import traceback
 from optparse import OptionParser
 
-import ipaserver.dsinstance
-import ipaserver.krbinstance
-import ipaserver.bindinstance
-import ipaserver.httpinstance
-import ipaserver.ntpinstance
+from ipaserver.install import dsinstance
+from ipaserver.install import krbinstance
+from ipaserver.install import bindinstance
+from ipaserver.install import httpinstance
+from ipaserver.install import ntpinstance
 
-from ipaserver import service
+from ipaserver.install import service
 from ipa import version
-from ipaserver.installutils import *
+from ipaserver.install.installutils import *
 
 from ipa import sysrestore
 from ipa.ipautil import *
@@ -119,7 +119,7 @@ def signal_handler(signum, frame):
         print "Removing configuration for %s instance" % ds.serverid
         ds.stop()
         if ds.serverid:
-            ipaserver.dsinstance.erase_ds_instance_data (ds.serverid)
+            dsinstance.erase_ds_instance_data (ds.serverid)
     sys.exit(1)
 
 def read_host_name(host_default,no_host_dns=False):
@@ -269,7 +269,7 @@ def read_admin_password():
     return admin_password
 
 def check_dirsrv(unattended):
-    serverids = ipaserver.dsinstance.check_existing_installation()
+    serverids = dsinstance.check_existing_installation()
     if serverids:
         print ""
         print "An existing Directory Server has been detected."
@@ -285,9 +285,9 @@ def check_dirsrv(unattended):
             pass
 
         for serverid in serverids:
-            ipaserver.dsinstance.erase_ds_instance_data(serverid)
+            dsinstance.erase_ds_instance_data(serverid)
 
-    (ds_unsecure, ds_secure) = ipaserver.dsinstance.check_ports()
+    (ds_unsecure, ds_secure) = dsinstance.check_ports()
     if not ds_unsecure or not ds_secure:
         print "IPA requires ports 389 and 636 for the Directory Server."
         print "These are currently in use:"
@@ -305,12 +305,11 @@ def uninstall():
         print "ipa-client-install returned: " + str(e)
         pass
 
-    ipaserver.ntpinstance.NTPInstance(fstore).uninstall()
-    ipaserver.bindinstance.BindInstance(fstore).uninstall()
-    ipaserver.httpinstance.WebGuiInstance().uninstall()
-    ipaserver.httpinstance.HTTPInstance(fstore).uninstall()
-    ipaserver.krbinstance.KrbInstance(fstore).uninstall()
-    ipaserver.dsinstance.DsInstance().uninstall()
+    ntpinstance.NTPInstance(fstore).uninstall()
+    bindinstance.BindInstance(fstore).uninstall()
+    httpinstance.HTTPInstance(fstore).uninstall()
+    krbinstance.KrbInstance(fstore).uninstall()
+    dsinstance.DsInstance().uninstall()
     fstore.restore_all_files()
     return 0
 
@@ -487,7 +486,7 @@ def main():
 
     # Configure ntpd
     if options.conf_ntp:
-        ntp = ipaserver.ntpinstance.NTPInstance(fstore)
+        ntp = ntpinstance.NTPInstance(fstore)
         ntp.create_instance()
 
     if options.dirsrv_pin:
@@ -496,7 +495,7 @@ def main():
         os.close(pw_fd)
 
     # Create a directory server instance
-    ds = ipaserver.dsinstance.DsInstance()
+    ds = dsinstance.DsInstance()
     if options.dirsrv_pkcs12:
         pkcs12_info = (options.dirsrv_pkcs12, pw_name)
         ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info)
@@ -505,7 +504,7 @@ def main():
         ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password)
 
     # Create a kerberos instance
-    krb = ipaserver.krbinstance.KrbInstance(fstore)
+    krb = krbinstance.KrbInstance(fstore)
     krb.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, master_password)
 
     # Create a HTTP instance
@@ -515,7 +514,7 @@ def main():
         os.write(pw_fd, options.http_pin)
         os.close(pw_fd)
 
-    http = ipaserver.httpinstance.HTTPInstance(fstore)
+    http = httpinstance.HTTPInstance(fstore)
     if options.http_pkcs12:
         pkcs12_info = (options.http_pkcs12, pw_name)
         http.create_instance(realm_name, host_name, domain_name, autoconfig=False, pkcs12_info=pkcs12_info)
@@ -532,11 +531,7 @@ def main():
     fd.write("domain=" + domain_name + "\n")
     fd.close()
 
-    # Create a Web Gui instance
-    webgui = ipaserver.httpinstance.WebGuiInstance()
-    webgui.create_instance()
-
-    bind = ipaserver.bindinstance.BindInstance(fstore)
+    bind = bindinstance.BindInstance(fstore)
     bind.setup(host_name, ip_address, realm_name, domain_name)
     if options.setup_bind:
         bind.create_instance()
@@ -594,8 +589,8 @@ def main():
 
     print ""
     if not options.dirsrv_pkcs12:
-        print "Be sure to back up the CA certificate stored in " + ipaserver.dsinstance.config_dirname(ds.serverid) + "cacert.p12"
-        print "The password for this file is in " + ipaserver.dsinstance.config_dirname(ds.serverid) + "pwdfile.txt"
+        print "Be sure to back up the CA certificate stored in " + dsinstance.config_dirname(ds.serverid) + "cacert.p12"
+        print "The password for this file is in " + dsinstance.config_dirname(ds.serverid) + "pwdfile.txt"
     else:
         print "In order for Firefox autoconfiguration to work you will need to"
         print "use a SSL signing certificate. See the IPA documentation for more details."

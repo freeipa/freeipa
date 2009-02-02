@@ -46,7 +46,6 @@ try:
 except ImportError:
     pass
 
-
 # Global list of available functions
 gfunctions = {}
 
