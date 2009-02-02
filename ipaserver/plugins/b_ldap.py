@@ -114,6 +114,83 @@ class ldap(CrudBackend):
             self.api.env.basedn,
         )
 
+    def make_application_dn(self, appname):
+        """
+        Construct application dn from cn.
+        """
+        return 'cn=%s,%s,%s' % (
+            self.dn.escape_dn_chars(appname),
+            self.api.env.container_applications,
+            self.api.env.basedn,
+        )
+
+    def make_policytemplate_dn(self, appname, uuid):
+        """
+        Construct policytemplate dn from appname
+        """
+        return 'ipaUniqueID=%s,%s' % (
+            self.dn.escape_dn_chars(uuid),
+            self.make_application_dn(appname),
+        )
+
+    def make_role_application_dn(self, appname):
+        """
+        Construct application role container from appname
+        """
+        return 'cn=%s,%s,%s' % (
+            self.dn.escape_dn_chars(appname),
+            self.api.env.container_roles,
+            self.api.env.basedn,
+        )
+
+    def make_role_policytemplate_dn(self, appname, uuid):
+        """
+        Construct policytemplate dn from uuid and appname
+        """
+        return 'ipaUniqueID=%s,cn=templates,%s' % (
+            self.dn.escape_dn_chars(uuid),
+            self.make_role_application_dn(appname),
+        )
+
+    def make_policygroup_dn(self, uuid):
+        """
+        Construct policygroup dn from uuid
+        """
+        return 'ipaUniqueID=%s,%s,%s' % (
+            self.dn.escape_dn_chars(uuid),
+            self.api.env.container_policygroups,
+            self.api.env.basedn,
+        )
+
+    def make_policy_dn(self, uuid, polgroup_uuid):
+        """
+        Construct policy dn from uuid of policy and its policygroup
+        """
+        return 'ipaUniqueID=%s,%s' % (
+            self.dn.escape_dn_chars(uuid),
+            self.make_policygroup_dn(polgroup_uuid),
+        )
+
+    def make_policy_blob_dn(self, blob_uuid, policy_uuid, polgroup_uuid):
+        """
+        Construct policy blob dn from uuids of its policy and policygroup
+        objects
+        """
+        return 'ipaUniqueID=%s,%s' % (
+            self.dn.escape_dn_chars(blob_uuid),
+            self.make_policy_dn(policy_uuid, polgroup_uuid),
+        )
+
+    def make_policylink_dn(self, uuid):
+        """
+        Construct policy link dn from uuid
+        """
+        return 'ipaUniqueID=%s,%s,%s' % (
+            self.dn.escape_dn_chars(uuid),
+            self.api.env.container_policylinks,
+            self.api.env.basedn,
+        )
+
     def get_object_type(self, attribute):
         """
         Based on attribute, make an educated guess as to the type of
