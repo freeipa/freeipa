@@ -24,18 +24,18 @@ Test the `ipalib/plugins/f_automount' module.
 import sys
 from xmlrpc_test import XMLRPC_test
 from ipalib import api
-from ipalib import errors
+from ipalib import errors2
 
 
 class test_Service(XMLRPC_test):
     """
     Test the `f_automount` plugin.
     """
-    mapname='testmap'
-    keyname='testkey'
-    keyname2='secondkey'
-    description='description of map'
-    info='ro'
+    mapname=u'testmap'
+    keyname=u'testkey'
+    keyname2=u'secondkey'
+    description=u'description of map'
+    info=u'ro'
     map_kw={'automountmapname': mapname, 'description': description}
     key_kw={'automountmapname': mapname, 'automountkey': keyname, 'automountinformation': info}
     key_kw2={'automountmapname': mapname, 'automountkey': keyname2, 'automountinformation': info}
@@ -116,8 +116,8 @@ class test_Service(XMLRPC_test):
         """
         Test the `xmlrpc.automount_modkey` method.
         """
-        self.key_kw['automountinformation'] = 'rw'
-        self.key_kw['description'] = 'new description'
+        self.key_kw['automountinformation'] = u'rw'
+        self.key_kw['description'] = u'new description'
         res = api.Command['automount_modkey'](**self.key_kw)
         assert res
         assert res.get('automountkey','') == self.keyname
@@ -128,11 +128,11 @@ class test_Service(XMLRPC_test):
         """
         Test the `xmlrpc.automount_modmap` method.
         """
-        self.map_kw['description'] = 'new description'
+        self.map_kw['description'] = u'new description'
         res = api.Command['automount_modmap'](**self.map_kw)
         assert res
         assert res.get('automountmapname','') == self.mapname
-        assert res.get('description','') == 'new description'
+        assert res.get('description','') == u'new description'
 
     def test_remove1key(self):
         """
@@ -182,10 +182,10 @@ class test_Indirect(XMLRPC_test):
     """
     Test the `f_automount` plugin Indirect map function.
     """
-    mapname='auto.home'
-    keyname='/home'
-    parentmap='auto.master'
-    description='Home directories'
+    mapname=u'auto.home'
+    keyname=u'/home'
+    parentmap=u'auto.master'
+    description=u'Home directories'
     map_kw={'automountkey': keyname, 'parentmap': parentmap, 'description': description}
 
     def test_add_indirect(self):

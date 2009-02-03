@@ -24,7 +24,7 @@ Test the `ipalib/plugins/f_hostgroup` module.
 import sys
 from xmlrpc_test import XMLRPC_test
 from ipalib import api
-from ipalib import errors
+from ipalib import errors2
 
 
 class test_Host(XMLRPC_test):
@@ -35,7 +35,7 @@ class test_Host(XMLRPC_test):
     description=u'Test host group'
     kw={'cn': cn, 'description': description}
 
-    host_cn = api.env.host.decode('UTF-8')
+    host_cn = u'ipatesthost.%s' % api.env.domain
     host_description = u'Test host'
     host_localityname = u'Undisclosed location'
 

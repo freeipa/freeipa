@@ -75,8 +75,8 @@ class test_User(XMLRPC_test):
         """
         Test the `xmlrpc.user_find` method with all attributes.
         """
-        kw={'uid':self.uid, 'all': True}
-        res = api.Command['user_find'](**kw)
+        kw={'all': True}
+        res = api.Command['user_find'](self.uid, **kw)
         assert res
         assert len(res) == 2
         assert res[1].get('givenname','') == self.givenname

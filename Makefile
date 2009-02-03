@@ -59,9 +59,7 @@ install: all server-install
 	done
 
 test:
-	@for subdir in $(SUBDIRS); do \
-		(cd $$subdir && $(MAKE) $@) || exit 1; \
-	done
+	./make-test
 
 release-update:
 	if [ ! -e RELEASE ]; then echo 0 > RELEASE; fi

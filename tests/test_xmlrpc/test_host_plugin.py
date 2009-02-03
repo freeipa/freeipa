@@ -24,14 +24,14 @@ Test the `ipalib/plugins/f_host` module.
 import sys
 from xmlrpc_test import XMLRPC_test
 from ipalib import api
-from ipalib import errors
+from ipalib import errors2
 
 
 class test_Host(XMLRPC_test):
     """
     Test the `f_host` plugin.
     """
-    cn = api.env.host.decode('UTF-8')
+    cn = u'ipatesthost.%s' % api.env.domain
     description = u'Test host'
     localityname = u'Undisclosed location'
     kw={'cn': cn, 'description': description, 'localityname': localityname}

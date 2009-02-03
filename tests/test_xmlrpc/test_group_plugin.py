@@ -78,7 +78,7 @@ class test_Group(XMLRPC_test):
         Test the `xmlrpc.group_add_member` with a non-existent member
         """
         kw={}
-        kw['groups'] = "notfound"
+        kw['groups'] = u"notfound"
         res = api.Command['group_add_member'](self.cn, **kw)
         # an error isn't thrown, the list of failed members is returned
         assert res != []
@@ -137,7 +137,7 @@ class test_Group(XMLRPC_test):
         Test the `xmlrpc.group_remove_member` method with non-member
         """
         kw={}
-        kw['groups'] = "notfound"
+        kw['groups'] = u"notfound"
         # an error isn't thrown, the list of failed members is returned
         res = api.Command['group_remove_member'](self.cn, **kw)
         assert res != []

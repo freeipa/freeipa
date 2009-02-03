@@ -26,7 +26,20 @@ import socket
 import nose
 from ipalib import api, request
 from ipalib import errors2
+from ipalib import errors
 
+# Initialize the API. We do this here so that one can run the tests
+# individually instead of at the top-level. If API.bootstrap()
+# has already been called we continue gracefully. Other errors will be
+# raised.
+try:
+    api.bootstrap(context='cli')
+    api.finalize()
+except StandardError, e:
+    if str(e) == "API.bootstrap() already called":
+        pass
+    else:
+        raise e
 
 class XMLRPC_test(object):
     """
