@@ -2,7 +2,7 @@
 # Run this to generate all the initial makefiles, etc.
 set -e
 
-PACKAGE=freeipa-client
+PACKAGE=freeipa
 
 LIBTOOLIZE=${LIBTOOLIZE-libtoolize}
 LIBTOOLIZE_FLAGS="--copy --force"
@@ -26,12 +26,13 @@ ARGV0=$0
 
 # Allow invocation from a separate build directory; in that case, we change
 # to the source directory to run the auto*, then change back before running configure
-srcdir=`dirname $ARGV0`
-test -z "$srcdir" && srcdir=.
+#srcdir=`dirname $ARGV0`
+#test -z "$srcdir" && srcdir=.
+srcdir="."
 
-ORIGDIR=`pwd`
+#ORIGDIR=`pwd`
 
-cd $srcdir
+#cd $srcdir
 
 # Usage:
 #     compare_versions MIN_VERSION ACTUAL_VERSION
@@ -179,6 +180,13 @@ do_cmd() {
     $@
 }
 
+# I don't want a tool telling me what files I need to have
+remauto=0
+if [ ! -e AUTHORS ]; then
+    touch AUTHORS ChangeLog NEWS README
+    remauto=1
+fi
+
 do_cmd $LIBTOOLIZE $LIBTOOLIZE_FLAGS
 
 do_cmd $ACLOCAL $ACLOCAL_FLAGS
@@ -189,7 +197,11 @@ do_cmd $AUTOMAKE $AUTOMAKE_FLAGS
 
 do_cmd $AUTOCONF
 
-cd $ORIGDIR || exit 1
+if [ $remauto -eq 1 ]; then
+    rm -f AUTHORS ChangeLog NEWS README
+fi
+
+#cd $ORIGDIR || exit 1
 
 rm -f config.cache
 
