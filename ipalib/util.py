@@ -150,3 +150,8 @@ def make_repr(name, *args, **kw):
     args = [repr(a) for a in args]
     kw = ['%s=%r' % (k, kw[k]) for k in sorted(kw)]
     return '%s(%s)' % (name, ', '.join(args + kw))
+
+def realm_to_suffix(realm_name):
+    s = realm_name.split(".")
+    terms = ["dc=" + x.lower() for x in s]
+    return ",".join(terms)

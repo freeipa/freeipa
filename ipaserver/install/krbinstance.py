@@ -35,8 +35,9 @@ import installutils
 from ipa import sysrestore
 from ipa import ipautil
 from ipa import ipaerror
+from ipalib import util
 
-import ipaldap
+from ipaserver import ipaldap
 
 import ldap
 from ldap import LDAPError
@@ -104,7 +105,7 @@ class KrbInstance(service.Service):
         self.host = host_name.split(".")[0]
         self.ip = socket.gethostbyname(host_name)
         self.domain = domain_name
-        self.suffix = ipautil.realm_to_suffix(self.realm)
+        self.suffix = util.realm_to_suffix(self.realm)
         self.kdc_password = ipautil.ipa_generate_password()
         self.admin_password = admin_password
 

@@ -25,8 +25,10 @@
 UPDATES_DIR="/usr/share/ipa/updates/"
 
 import sys
-from ipaserver.install import ipaldap, installutils
+from ipaserver.install import installutils
+from ipaserver import ipaldap
 from ipa import entity, ipaerror, ipautil
+from ipalib import util
 import ldap
 import logging
 import krbV
@@ -56,14 +58,14 @@ class LDAPUpdate:
         self.modified = False
 
         krbctx = krbV.default_context()
-    
+
         fqdn = installutils.get_fqdn()
         if fqdn is None:
             raise RuntimeError("Unable to determine hostname")
-    
+
         domain = ipautil.get_domain_name()
         libarch = self.__identify_arch()
-        suffix = ipautil.realm_to_suffix(krbctx.default_realm)
+        suffix = util.realm_to_suffix(krbctx.default_realm)
 
         if not self.sub_dict.get("REALM"):
             self.sub_dict["REALM"] = krbctx.default_realm
@@ -324,7 +326,7 @@ class LDAPUpdate:
         while True:
             try:
                 entry = self.conn.getEntry(dn, ldap.SCOPE_BASE, "(objectclass=*)", attrlist)
-            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            except ldap.NO_SUCH_OBJECT:
                 logging.error("Task not found: %s", dn)
                 return
             except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR), e:
@@ -434,11 +436,11 @@ class LDAPUpdate:
                         only[k] = True
                     entry.setValues(k, e)
                     logging.debug('only: updated value %s', e)
-    
+
                 self.print_entity(entry)
-    
+
         return entry
-    
+
     def print_entity(self, e, message=None):
         """The entity object currently lacks a str() method"""
         logging.debug("---------------------------------------------")
@@ -479,13 +481,13 @@ class LDAPUpdate:
             return False
         else:
             return True
-    
+
     def __update_record(self, update):
         found = False
-    
+
         new_entry = self.__create_default_entry(update.get('dn'),
                                                 update.get('default'))
-    
+
         try:
             e = self.__get_entry(new_entry.dn)
             if len(e) > 1:
@@ -494,7 +496,7 @@ class LDAPUpdate:
             entry = self.__entry_to_entity(e[0])
             found = True
             logging.info("Updating existing entry: %s", entry.dn)
-        except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+        except ldap.NO_SUCH_OBJECT:
             # Doesn't exist, start with the default entry
             entry = new_entry
             logging.info("New entry: %s", entry.dn)
@@ -502,14 +504,14 @@ class LDAPUpdate:
             # Doesn't exist, start with the default entry
             entry = new_entry
             logging.info("New entry, using default value: %s", entry.dn)
-    
+
         self.print_entity(entry)
-    
+
         # Bring this entry up to date
         entry = self.__apply_updates(update.get('updates'), entry)
-    
+
         self.print_entity(entry, "Final value")
-    
+
         if not found:
             # New entries get their orig_data set to the entry itself. We want to
             # empty that so that everything appears new when generating the
@@ -540,7 +542,7 @@ class LDAPUpdate:
             except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR), e:
                 logging.error("Update failed: %s: %s", e, self.__detail_error(e.detail))
                 updated = False
-    
+
             if ("cn=index" in entry.dn and
                 "cn=userRoot" in entry.dn):
                 taskid = self.create_index_task(entry.cn)
@@ -566,7 +568,7 @@ class LDAPUpdate:
 
            returns True if anything was changed, otherwise False
         """
-    
+
         try:
             self.conn = ipaldap.IPAdmin(self.sub_dict['FQDN'])
             self.conn.do_simple_bind(bindpw=self.dm_password)
@@ -579,9 +581,9 @@ class LDAPUpdate:
                 except Exception, e:
                     print e
                     sys.exit(1)
-    
+
                 (all_updates, dn_list) = self.parse_update_file(data, all_updates, dn_list)
-    
+
             sortedkeys = dn_list.keys()
             sortedkeys.sort()
             for k in sortedkeys:
@@ -589,5 +591,5 @@ class LDAPUpdate:
                     self.__update_record(all_updates[dn])
         finally:
             if self.conn: self.conn.unbind()
-    
+
         return self.modified

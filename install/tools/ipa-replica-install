@@ -26,8 +26,9 @@ import ldap
 
 from ipa import ipautil
 
-from ipaserver import dsinstance, replication, installutils, krbinstance, service
-from ipaserver import httpinstance, ntpinstance, certs, ipaldap
+from ipaserver.install import dsinstance, replication, installutils, krbinstance, service
+from ipaserver.install import httpinstance, ntpinstance, certs
+from ipaserver import ipaldap
 from ipa import version
 
 CACERT="/usr/share/ipa/html/ca.crt"
@@ -265,10 +266,6 @@ def main():
     fd.write("realm=" + config.realm_name + "\n")
     fd.write("domain=" + config.domain_name + "\n")
     fd.close()
-
-    # Create a Web Gui instance
-    webgui = httpinstance.WebGuiInstance()
-    webgui.create_instance()
 
     # Apply any LDAP updates. Needs to be done after the replica is synced-up
     service.print_msg("Applying LDAP updates")

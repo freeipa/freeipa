@@ -34,16 +34,13 @@ from ipa import ipautil
 import service
 import installutils
 import certs
-import ipaldap, ldap
+import ldap
+from ipaserver import ipaldap
 from ipaserver.install import ldapupdate
+from ipalib import util
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
-
-def realm_to_suffix(realm_name):
-    s = realm_name.split(".")
-    terms = ["dc=" + x.lower() for x in s]
-    return ",".join(terms)
 
 def find_server_root():
     if ipautil.dir_exists(SERVER_ROOT_64):
@@ -152,7 +149,7 @@ class DsInstance(service.Service):
         self.pkcs12_info = None
         self.ds_user = None
         if realm_name:
-            self.suffix = realm_to_suffix(self.realm_name)
+            self.suffix = util.realm_to_suffix(self.realm_name)
             self.__setup_sub_dict()
         else:
             self.suffix = None
@@ -161,7 +158,7 @@ class DsInstance(service.Service):
         self.ds_user = ds_user
         self.realm_name = realm_name.upper()
         self.serverid = realm_to_serverid(self.realm_name)
-        self.suffix = realm_to_suffix(self.realm_name)
+        self.suffix = util.realm_to_suffix(self.realm_name)
         self.host_name = host_name
         self.dm_password = dm_password
         self.domain = domain_name

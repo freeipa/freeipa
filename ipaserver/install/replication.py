@@ -19,9 +19,12 @@
 
 import time, logging
 
-import ipaldap, ldap, dsinstance
+import ldap
+from ipaserver.install import dsinstance
+from ipaserver import ipaldap
 from ldap import modlist
 from ipa import ipaerror
+from ipalib import util
 
 DIRMAN_CN = "cn=directory manager"
 CACERT="/usr/share/ipa/html/ca.crt"
@@ -469,7 +472,7 @@ class ReplicationManager:
             else:
                 raise e
 
-        self.suffix = ipaldap.IPAdmin.normalizeDN(dsinstance.realm_to_suffix(realm_name))
+        self.suffix = ipaldap.IPAdmin.normalizeDN(util.realm_to_suffix(realm_name))
 
         if not iswinsync:
             local_id = self._get_replica_id(self.conn, other_conn)

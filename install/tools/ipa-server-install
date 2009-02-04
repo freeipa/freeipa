@@ -49,6 +49,7 @@ from ipaserver.install.installutils import *
 
 from ipa import sysrestore
 from ipa.ipautil import *
+from ipalib import util
 
 pw_name = None
 
@@ -529,6 +530,16 @@ def main():
     fd.write("server=" + host_name + "\n")
     fd.write("realm=" + realm_name + "\n")
     fd.write("domain=" + domain_name + "\n")
+    fd.close()
+
+    # Create the management framework config file
+    fstore.backup_file("/etc/ipa/default.conf")
+    fd = open("/etc/ipa/default.conf", "w")
+    fd.write("[global]\n")
+    fd.write("basedn=" + util.realm_to_suffix(realm_name) + "\n")
+    fd.write("realm=" + realm_name + "\n")
+    fd.write("domain=" + domain_name + "\n")
+    fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % host_name)
     fd.close()
 
     bind = bindinstance.BindInstance(fstore)

@@ -28,7 +28,8 @@ from optparse import OptionParser
 
 import ipa.config
 from ipa import ipautil
-from ipaserver import dsinstance, installutils, certs, ipaldap
+from ipaserver.install import dsinstance, installutils, certs
+from ipaserver import ipaldap
 from ipa import version
 import ldap
 
