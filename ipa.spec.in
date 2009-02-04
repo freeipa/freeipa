@@ -33,7 +33,7 @@ BuildRequires:  popt-devel
 BuildRequires:  /usr/share/selinux/devel/Makefile
 BuildRequires:  m4
 BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
-BuildRequires:  TurboGears
+BuildRequires:  python-cherrypy
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -70,8 +70,7 @@ Requires: mod_nss
 %endif
 Requires: python-ldap
 Requires: python-krbV
-Requires: TurboGears
-Requires: python-tgexpandingformwidget
+Requires: python-cherrypy
 Requires: acl
 Requires: python-pyasn1
 Requires: libcap
@@ -323,7 +322,6 @@ fi
 %{_sbindir}/ipactl
 %{_sbindir}/ipa-upgradeconfig
 %attr(755,root,root) %{_initrddir}/ipa_kpasswd
-%{_bindir}/ipa
 %{python_sitelib}/ipalib/*
 %{python_sitelib}/ipaserver/*
 %{python_sitelib}/ipawebui/*
@@ -386,50 +384,10 @@ fi
 %files admintools
 %doc LICENSE README
 %defattr(-,root,root,-)
-#%{_sbindir}/ipa-adddelegation
-#%{_sbindir}/ipa-addgroup
-#%{_sbindir}/ipa-addservice
-#%{_sbindir}/ipa-adduser
-#%{_sbindir}/ipa-defaultoptions
-#%{_sbindir}/ipa-deldelegation
-#%{_sbindir}/ipa-delgroup
-#%{_sbindir}/ipa-delservice
-#%{_sbindir}/ipa-deluser
-#%{_sbindir}/ipa-findgroup
-#%{_sbindir}/ipa-findservice
-#%{_sbindir}/ipa-finduser
-#%{_sbindir}/ipa-listdelegation
-#%{_sbindir}/ipa-lockuser
-#%{_sbindir}/ipa-modgroup
-#%{_sbindir}/ipa-moddelegation
-#%{_sbindir}/ipa-passwd
-#%{_sbindir}/ipa-moduser
-#%{_sbindir}/ipa-pwpolicy
-#%{_sbindir}/ipa-change-master-key
+%{_bindir}/ipa
 %{_sbindir}/ipa-fix-CVE-2008-3274
 %{_sbindir}/ipa-ldap-updater
 %{_sbindir}/ipa-compat-manage
-#%{_mandir}/man1/ipa-adddelegation.1.gz
-#%{_mandir}/man1/ipa-addgroup.1.gz
-#%{_mandir}/man1/ipa-addservice.1.gz
-#%{_mandir}/man1/ipa-adduser.1.gz
-#%{_mandir}/man1/ipa-defaultoptions.1.gz
-#%{_mandir}/man1/ipa-deldelegation.1.gz
-#%{_mandir}/man1/ipa-delgroup.1.gz
-#%{_mandir}/man1/ipa-delservice.1.gz
-#%{_mandir}/man1/ipa-deluser.1.gz
-#%{_mandir}/man1/ipa-findgroup.1.gz
-#%{_mandir}/man1/ipa-findservice.1.gz
-#%{_mandir}/man1/ipa-finduser.1.gz
-#%{_mandir}/man1/ipa-modgroup.1.gz
-#%{_mandir}/man1/ipa-listdelegation.1.gz
-#%{_mandir}/man1/ipa-lockuser.1.gz
-#%{_mandir}/man1/ipa-moddelegation.1.gz
-#%{_mandir}/man1/ipa-passwd.1.gz
-#%{_mandir}/man1/ipa-moduser.1.gz
-#%{_mandir}/man1/ipa-pwpolicy.1.gz
-#%{_mandir}/man1/ipa-ldap-updater.1.gz
-#%{_mandir}/man1/ipa-compat-manage.1.gz
 
 %files python
 %doc LICENSE README
@@ -460,6 +418,9 @@ fi
 %{_sbindir}/ipa-modradiusprofile
 
 %changelog
+* Tue Feb  3 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-1
+- Replace TurboGears requirement with python-cherrypy
+
 * Sat Jan 17 2009 Tomas Mraz <tmraz@redhat.com> - 1.2.1-3
 - rebuild with new openssl
 
