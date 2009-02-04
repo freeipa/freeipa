@@ -4,7 +4,6 @@ AC_INIT([ipa-server],
         IPA_VERSION,
         [https://hosted.fedoraproject.org/projects/freeipa/newticket])
 
-#AC_CONFIG_SRCDIR([ipaserver/ipaldap.py])
 AC_CONFIG_HEADERS([config.h])
 
 AM_INIT_AUTOMAKE
