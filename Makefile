@@ -122,6 +122,7 @@ rpms: rpmroot rpmdistdir version-update tarballs
 	rpmbuild --define "_topdir $(RPMBUILD)" -ba ipa.spec
 	cp rpmbuild/RPMS/*/$(PRJ_PREFIX)-*-$(IPA_VERSION)-*.rpm dist/rpms/
 	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-$(IPA_VERSION)-*.src.rpm dist/srpms/
+	rm -rf rpmbuild
 
 repodata:
 	-createrepo -p dist
