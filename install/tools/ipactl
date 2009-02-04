@@ -26,12 +26,10 @@ function start() {
     /sbin/service ntpd start
     /sbin/service krb5kdc start
     /sbin/service ipa_kpasswd start
-    /sbin/service ipa_webgui start
     /sbin/service httpd start
 }
 
 function stop() {
-    /sbin/service ipa_webgui stop
     /sbin/service ipa_kpasswd stop
     /sbin/service httpd stop
     /sbin/service krb5kdc stop
