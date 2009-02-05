@@ -2,12 +2,15 @@ NULL =
 
 appdir = $(IPA_DATA_DIR)/updates
 app_DATA =				\
-	RFC4876.update			\
-	RFC2307bis.update		\
+	automount.update		\
+	groupofhosts.update		\
+	host.update			\
+	indices.update			\
 	nss_ldap.update			\
-	winsync_index.update		\
 	replication.update		\
-	indices.update		\
+	RFC2307bis.update		\
+	RFC4876.update			\
+	winsync_index.update		\
 	$(NULL)
 
 EXTRA_DIST =				\
