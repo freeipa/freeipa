@@ -19,18 +19,22 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Frontend plugins for IPA-RA PKI operations.
+Command plugins for IPA-RA certificate operations.
 """
 
 from ipalib import api, Command, Str, Int
 
 
-class request_certificate(Command):
-    """ Submit a certificate request. """
+class cert_request(Command):
+    """
+    Submit a certificate singing request.
+    """
 
-    takes_args = ['csr']
+    takes_args = ('csr',)
 
-    takes_options = [Str('request_type?', default=u'pkcs10')]
+    takes_options = (
+        Str('request_type?', default=u'pkcs10', autofill=True),
+    )
 
     def execute(self, csr, **options):
         return self.Backend.ra.request_certificate(csr, **options)
@@ -41,28 +45,13 @@ class request_certificate(Command):
         else:
             textui.print_plain('Failed to submit a certificate request.')
 
-#api.register(request_certificate)
+api.register(cert_request)
 
 
-class get_certificate(Command):
-    """ Retrieve an existing certificate. """
-
-    takes_args = ['serial_number']
-
-    def execute(self, serial_number, **options):
-        return self.Backend.ra.get_certificate(serial_number)
-
-    def output_for_cli(self, textui, result, *args, **options):
-        if isinstance(result, dict) and len(result) > 0:
-            textui.print_entry(result, 0)
-        else:
-            textui.print_plain('Failed to obtain a certificate.')
-
-#api.register(get_certificate)
-
-
-class check_request_status(Command):
-    """  Check a request status. """
+class cert_status(Command):
+    """
+    Check status of a certificate signing request.
+    """
 
     takes_args = ['request_id']
 
@@ -76,11 +65,32 @@ class check_request_status(Command):
         else:
             textui.print_plain('Failed to retrieve a request status.')
 
-#api.register(check_request_status)
+api.register(cert_status)
 
 
-class revoke_certificate(Command):
-    """ Revoke a certificate. """
+class cert_get(Command):
+    """
+    Retrieve an existing certificate.
+    """
+
+    takes_args = ['serial_number']
+
+    def execute(self, serial_number):
+        return self.Backend.ra.get_certificate(serial_number)
+
+    def output_for_cli(self, textui, result, *args, **options):
+        if isinstance(result, dict) and len(result) > 0:
+            textui.print_entry(result, 0)
+        else:
+            textui.print_plain('Failed to obtain a certificate.')
+
+api.register(cert_get)
+
+
+class cert_revoke(Command):
+    """
+    Revoke a certificate.
+    """
 
     takes_args = ['serial_number']
 
@@ -97,11 +107,13 @@ class revoke_certificate(Command):
         else:
             textui.print_plain('Failed to revoke a certificate.')
 
-#api.register(revoke_certificate)
+api.register(cert_revoke)
 
 
-class take_certificate_off_hold(Command):
-    """ Take a revoked certificate off hold. """
+class cert_remove_hold(Command):
+    """
+    Take a revoked certificate off hold.
+    """
 
     takes_args = ['serial_number']
 
@@ -114,4 +126,4 @@ class take_certificate_off_hold(Command):
         else:
             textui.print_plain('Failed to take a revoked certificate off hold.')
 
-#api.register(take_certificate_off_hold)
+api.register(cert_remove_hold)
