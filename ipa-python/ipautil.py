@@ -30,7 +30,6 @@ import stat
 import shutil
 
 from ipa import ipavalidate
-from ipa import ipaadminutil
 from types import *
 
 import re
@@ -446,11 +445,11 @@ def ipa_generate_password():
 
 def format_list(items, quote=None, page_width=80):
     '''Format a list of items formatting them so they wrap to fit the
-    available width. The items will be sorted. 
+    available width. The items will be sorted.
 
     The items may optionally be quoted. The quote parameter may either be
     a string, in which case it is added before and after the item. Or the
-    quote parameter may be a pair (either a tuple or list). In this case 
+    quote parameter may be a pair (either a tuple or list). In this case
     quote[0] is left hand quote and quote[1] is the right hand quote.
     '''
     left_quote = right_quote = ''
@@ -501,8 +500,8 @@ def parse_key_value_pairs(input):
 
     Example: The string
 
-    arg0 = '' arg1 = 1 arg2='two' arg3 = "three's a crowd" arg4 = "this is a \" quote" 
-    
+    arg0 = '' arg1 = 1 arg2='two' arg3 = "three's a crowd" arg4 = "this is a \" quote"
+
     will produce
 
     arg0=   arg1=1
@@ -562,7 +561,7 @@ def user_input(prompt, default = None, allow_empty = True):
             ret = raw_input("%s: " % prompt)
             if allow_empty or ret.strip():
                 return ret
-                
+
     if isinstance(default, basestring):
         while True:
             ret = raw_input("%s [%s]: " % (prompt, default))
@@ -595,16 +594,6 @@ def user_input(prompt, default = None, allow_empty = True):
             else:
                 return ret
 
-def user_input_email(prompt, default = None, allow_empty = False):
-    if default != None and allow_empty:
-        prompt += " (enter \"none\" for empty)"
-    while True:
-        ret = user_input(prompt, default, allow_empty)
-        if allow_empty and ret.lower() == "none":
-            return ""
-        if ipavalidate.Email(ret, not allow_empty):
-            return ret.strip()
-
 def user_input_plain(prompt, default = None, allow_empty = True, allow_spaces = True):
     while True:
         ret = user_input(prompt, default, allow_empty)
@@ -620,15 +609,6 @@ def user_input_path(prompt, default = None, allow_empty = True):
             return ""
         if ipavalidate.Path(ret, not allow_empty):
             return ret
-
-def user_input_name(prompt, default = None):
-    while True:
-        ret = user_input(prompt, default, False)
-        try:
-            ipaadminutil.check_name(ret)
-            return ret
-        except ValueError, e:
-            print prompt + " " + str(e)
 
 class AttributeValueCompleter:
     '''
@@ -722,7 +702,7 @@ class AttributeValueCompleter:
         # Restore previous state
         readline.set_completer_delims(self.prev_completer_delims)
         readline.set_completer(self.prev_completer)
-        
+
     def parse_input(self):
         '''We are looking for 3 tokens: <lhs,op,rhs>
         Extract as much of each token as possible.
@@ -918,7 +898,7 @@ class ItemCompleter:
         # Restore previous state
         readline.set_completer_delims(self.prev_completer_delims)
         readline.set_completer(self.prev_completer)
-        
+
     def get_item_completions(self, text):
         if text:
             self.completions = [lhs for lhs in self.items if lhs.startswith(text)]
@@ -940,7 +920,7 @@ class ItemCompleter:
 
     def read_input(self, prompt, initial_input=None):
         items = []
-        
+
         self.initial_input = initial_input
         try:
             if initial_input is None:

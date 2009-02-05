@@ -23,9 +23,10 @@ import sys
 try:
     from optparse import OptionParser
     from ipaserver import ipaldap
-    from ipa import entity, ipaerror, ipautil, config
-    from ipaserver import installutils
-    from ipaserver.ldapupdate import LDAPUpdate, BadSyntax, UPDATES_DIR
+    from ipa import entity, ipautil, config
+    from ipaserver.install import installutils
+    from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax, UPDATES_DIR
+    from ipalib import errors, errors2
     import ldap
     import logging
     import re
@@ -109,7 +110,7 @@ def main():
                               ldap.SCOPE_BASE, "(objectclass=*)")
                 print "Plugin already Enabled"
                 retval = 2
-            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            except errors2.NotFound:
                 print "Enabling plugin"
             except ldap.LDAPError, e:
                 print "An error occurred while talking to the server."
@@ -131,7 +132,7 @@ def main():
                 conn.deleteEntry("cn=groups,cn=Schema Compatibility,cn=plugins,cn=config")
                 conn.deleteEntry("cn=users,cn=Schema Compatibility,cn=plugins,cn=config")
                 conn.deleteEntry("cn=Schema Compatibility,cn=plugins,cn=config")
-            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+            except errors2.NotFound:
                 print "Plugin is already disabled"
                 retval = 2
             except ldap.LDAPError, e:
@@ -166,6 +167,6 @@ except config.IPAConfigError, e:
     print "An IPA server to update cannot be found. Has one been configured yet?"
     print "The error was: %s" % e
     sys.exit(1)
-except ipaerror, e:
+except ldap.LDAPError, e:
     print "An error occurred while performing operations: %s" % e
     sys.exit(1)

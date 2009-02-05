@@ -27,8 +27,9 @@ UPDATES_DIR="/usr/share/ipa/updates/"
 import sys
 from ipaserver.install import installutils
 from ipaserver import ipaldap
-from ipa import entity, ipaerror, ipautil
+from ipa import entity, ipautil
 from ipalib import util
+from ipalib import errors, errors2
 import ldap
 import logging
 import krbV
@@ -326,10 +327,10 @@ class LDAPUpdate:
         while True:
             try:
                 entry = self.conn.getEntry(dn, ldap.SCOPE_BASE, "(objectclass=*)", attrlist)
-            except ldap.NO_SUCH_OBJECT:
+            except errors2.NotFound:
                 logging.error("Task not found: %s", dn)
                 return
-            except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR), e:
+            except errors.DatabaseError, e:
                 logging.error("Task lookup failure %s: %s", e, self.__detail_error(e.detail))
                 return
 
@@ -496,11 +497,11 @@ class LDAPUpdate:
             entry = self.__entry_to_entity(e[0])
             found = True
             logging.info("Updating existing entry: %s", entry.dn)
-        except ldap.NO_SUCH_OBJECT:
+        except errors2.NotFound:
             # Doesn't exist, start with the default entry
             entry = new_entry
             logging.info("New entry: %s", entry.dn)
-        except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR):
+        except errors.DatabaseError:
             # Doesn't exist, start with the default entry
             entry = new_entry
             logging.info("New entry, using default value: %s", entry.dn)
@@ -536,10 +537,10 @@ class LDAPUpdate:
                 if self.live_run and updated:
                     self.conn.updateEntry(entry.dn, entry.origDataDict(), entry.toDict())
                 logging.info("Done")
-            except ipaerror.exception_for(ipaerror.LDAP_EMPTY_MODLIST), e:
+            except errors.EmptyModlist:
                 logging.info("Entry already up-to-date")
                 updated = False
-            except ipaerror.exception_for(ipaerror.LDAP_DATABASE_ERROR), e:
+            except errors.DatabaseError, e:
                 logging.error("Update failed: %s: %s", e, self.__detail_error(e.detail))
                 updated = False
 

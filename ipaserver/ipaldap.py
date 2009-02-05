@@ -320,7 +320,7 @@ class IPAdmin(SimpleLDAPObject):
             # Too many results returned by search
             raise e
         except ldap.LDAPError, e:
-            raise e
+            raise errors.DatabaseError, e
 
         if not obj:
             raise errors2.NotFound(msg=notfound(args))
@@ -357,7 +357,7 @@ class IPAdmin(SimpleLDAPObject):
                 ldap.TIMELIMIT_EXCEEDED), e:
             partial = 1
         except ldap.LDAPError, e:
-            raise e
+            raise errors.DatabaseError, e
 
         if not entries:
             raise errors2.NotFound(msg=notfound(args))
@@ -514,7 +514,7 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.passwd_s(dn, oldpass, newpass)
         except ldap.LDAPError, e:
-            raise e
+            raise errors.DatabaseError, e
         return True
 
     def __wrapmethods(self):
