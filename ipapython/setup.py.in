@@ -51,7 +51,7 @@ def setup_package():
 
     try:
         setup(
-            name = "ipa",
+            name = "ipapython",
             version = "__VERSION__",
             license = "GPL",
             author = "Karl MacMillan, et.al.",
@@ -64,8 +64,8 @@ def setup_package():
             download_url = "http://www.freeipa.org/page/Downloads",
             classifiers=filter(None, CLASSIFIERS.split('\n')),
             platforms = ["Linux", "Solaris", "Unix"],
-            package_dir = {'ipa': ''},
-            packages = [ "ipa" ],
+            package_dir = {'ipapython': ''},
+            packages = [ "ipapython" ],
             data_files = [('/etc/ipa', ['ipa.conf'])]
         )
     finally:

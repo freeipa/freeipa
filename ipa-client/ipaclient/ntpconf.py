@@ -17,7 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from ipa.ipautil import *
+from ipapython.ipautil import *
 import shutil
 
 ntp_conf = """# Permit time synchronization with our time source, but do not
@@ -28,7 +28,7 @@ restrict -6 default kod nomodify notrap nopeer noquery
 # Permit all access over the loopback interface.  This could
 # be tightened as well, but to do so would effect some of
 # the administrative functions.
-restrict 127.0.0.1 
+restrict 127.0.0.1
 restrict -6 ::1
 
 # Hosts on local network are less restricted.
@@ -46,9 +46,9 @@ server $SERVER
 #manycastclient 239.255.254.254 key 42	# manycast client
 
 # Undisciplined Local Clock. This is a fake driver intended for backup
-# and when no outside source of synchronized time is available. 
+# and when no outside source of synchronized time is available.
 server	127.127.1.0	# local clock
-#fudge	127.127.1.0 stratum 10	
+#fudge	127.127.1.0 stratum 10
 
 # Drift file.  Put this in a directory which the daemon can write to.
 # No symbolic links allowed, either, since the daemon updates the file
@@ -57,7 +57,7 @@ server	127.127.1.0	# local clock
 driftfile /var/lib/ntp/drift
 
 # Key file containing the keys and key identifiers used when operating
-# with symmetric key cryptography. 
+# with symmetric key cryptography.
 keys /etc/ntp/keys
 
 # Specify the key identifiers which are trusted.

@@ -27,7 +27,7 @@ import traceback
 
 import krbV, ldap, getpass
 
-from ipa.ipautil import user_input
+from ipapython.ipautil import user_input
 from ipaserver import certs, dsinstance, httpinstance, ipaldap, installutils
 
 def get_realm_name():

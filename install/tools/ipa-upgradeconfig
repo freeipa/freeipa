@@ -4,7 +4,7 @@
 
 import sys
 try:
-    from ipa import ipautil
+    from ipapython import ipautil
     import krbV
     import re
     import os

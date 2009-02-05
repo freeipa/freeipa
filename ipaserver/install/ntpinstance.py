@@ -21,8 +21,8 @@ import shutil
 import logging
 
 import service
-from ipa import sysrestore
-from ipa import ipautil
+from ipapython import sysrestore
+from ipapython import ipautil
 
 class NTPInstance(service.Service):
     def __init__(self, fstore=None):

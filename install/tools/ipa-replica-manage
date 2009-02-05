@@ -22,9 +22,9 @@ import sys
 import getpass, ldap, re, krbV
 import traceback, logging
 
-from ipa import ipautil
+from ipapython import ipautil
 from ipaserver import replication, ipaldap, dsinstance, installutils
-from ipa import version
+from ipapython import version
 
 def parse_options():
     from optparse import OptionParser

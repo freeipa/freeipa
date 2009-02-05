@@ -23,7 +23,7 @@ import sys
 try:
     from optparse import OptionParser
     from ipaserver import ipaldap
-    from ipa import entity, ipautil, config
+    from ipapython import entity, ipautil, config
     from ipaserver.install import installutils
     from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax, UPDATES_DIR
     from ipalib import errors, errors2

@@ -29,8 +29,8 @@ import time
 import struct
 import fcntl
 
-from ipa import ipautil
-from ipa import dnsclient
+from ipapython import ipautil
+from ipapython import dnsclient
 
 def get_fqdn():
     fqdn = ""

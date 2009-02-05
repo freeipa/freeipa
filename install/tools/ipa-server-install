@@ -44,11 +44,11 @@ from ipaserver.install import httpinstance
 from ipaserver.install import ntpinstance
 
 from ipaserver.install import service
-from ipa import version
+from ipapython import version
 from ipaserver.install.installutils import *
 
-from ipa import sysrestore
-from ipa.ipautil import *
+from ipapython import sysrestore
+from ipapython.ipautil import *
 from ipalib import util
 
 pw_name = None

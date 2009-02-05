@@ -23,8 +23,8 @@ import errno
 import tempfile
 import shutil
 
-from ipa import sysrestore
-from ipa import ipautil
+from ipapython import sysrestore
+from ipapython import ipautil
 
 CA_SERIALNO="/var/lib/ipa/ca_serialno"
 

@@ -32,8 +32,8 @@ import shutil
 
 import service
 import installutils
-from ipa import sysrestore
-from ipa import ipautil
+from ipapython import sysrestore
+from ipapython import ipautil
 from ipalib import util
 from ipalib import errors2
 

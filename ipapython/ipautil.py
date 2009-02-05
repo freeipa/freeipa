@@ -29,13 +29,13 @@ import os, sys, traceback, readline
 import stat
 import shutil
 
-from ipa import ipavalidate
+from ipapython import ipavalidate
 from types import *
 
 import re
 import xmlrpclib
 import datetime
-from ipa import config
+from ipapython import config
 try:
     from subprocess import CalledProcessError
     class CalledProcessError(subprocess.CalledProcessError):

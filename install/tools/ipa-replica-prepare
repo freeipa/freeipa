@@ -26,11 +26,11 @@ from ConfigParser import SafeConfigParser
 import krbV
 from optparse import OptionParser
 
-import ipa.config
-from ipa import ipautil
+import ipapython.config
+from ipapython import ipautil
 from ipaserver.install import dsinstance, installutils, certs
 from ipaserver import ipaldap
-from ipa import version
+from ipapython import version
 import ldap
 
 def parse_options():
@@ -48,7 +48,7 @@ def parse_options():
     parser.add_option("-p", "--password", dest="password", 
                       help="Directory Manager (existing master) password")
 
-    ipa.config.add_standard_options(parser)
+    ipapython.config.add_standard_options(parser)
     options, args = parser.parse_args()
 
     # If any of the PKCS#12 options are selected, all are required. Create a
@@ -62,7 +62,7 @@ def parse_options():
     if len(args) != 1:
         parser.error("must provide the fully-qualified name of the replica")
 
-    ipa.config.init_config(options)
+    ipapython.config.init_config(options)
 
     return options, args
 
@@ -85,8 +85,8 @@ def get_realm_name():
 
 def get_domain_name():
     try:
-        ipa.config.init_config()
-        domain_name = ipa.config.config.get_domain()
+        ipapython.config.init_config()
+        domain_name = ipapython.config.config.get_domain()
     except Exception, e:
         return None
 

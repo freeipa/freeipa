@@ -24,9 +24,9 @@ import ldap
 import getpass
 import ldap.filter
 
-from ipa import ipautil
-from ipa.entity import Entity
-import ipa.ipavalidate as ipavalidate
+from ipapython import ipautil
+from ipapython.entity import Entity
+import ipapython.ipavalidate as ipavalidate
 
 
 __all__ = [
@@ -110,7 +110,7 @@ class RadiusProfile(Entity):
 
     def __init2__(self):
         pass
-        
+
 
 #------------------------------------------------------------------------------
 

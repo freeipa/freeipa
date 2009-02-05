@@ -32,7 +32,7 @@ import ConfigParser
 import random
 import string
 
-from ipa import ipautil
+from ipapython import ipautil
 
 SYSRESTORE_PATH = "/tmp"
 SYSRESTORE_INDEXFILE = "sysrestore.index"

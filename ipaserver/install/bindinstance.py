@@ -25,8 +25,8 @@ import socket
 import logging
 
 import service
-from ipa import sysrestore
-from ipa import ipautil
+from ipapython import sysrestore
+from ipapython import ipautil
 
 def check_inst():
     # So far this file is always present in both RHEL5 and Fedora if all the necessary

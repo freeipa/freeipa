@@ -29,7 +29,7 @@ import time
 import tempfile
 import stat
 
-from ipa import ipautil
+from ipapython import ipautil
 
 import service
 import installutils

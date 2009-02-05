@@ -18,8 +18,8 @@
 #
 
 import logging, sys
-from ipa import sysrestore
-from ipa import ipautil
+from ipapython import sysrestore
+from ipapython import ipautil
 
 
 def stop(service_name):

@@ -32,8 +32,8 @@ import service
 import certs
 import dsinstance
 import installutils
-from ipa import sysrestore
-from ipa import ipautil
+from ipapython import sysrestore
+from ipapython import ipautil
 
 HTTPD_DIR = "/etc/httpd"
 SSL_CONF = HTTPD_DIR + "/conf.d/ssl.conf"

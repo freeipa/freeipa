@@ -392,10 +392,10 @@ fi
 %files python
 %doc LICENSE README
 %defattr(-,root,root,-)
-%dir %{python_sitelib}/ipa
-%{python_sitelib}/ipa/*.py*
+%dir %{python_sitelib}/ipapython
+%{python_sitelib}/ipapython/*.py*
 %if 0%{?fedora} >= 9
-%{python_sitelib}/ipa-*.egg-info
+%{python_sitelib}/ipapython-*.egg-info
 %endif
 %config(noreplace) %{_sysconfdir}/ipa/ipa.conf
 

@@ -24,12 +24,12 @@ import tempfile, os, pwd, traceback, logging, shutil
 from ConfigParser import SafeConfigParser
 import ldap
 
-from ipa import ipautil
+from ipapython import ipautil
 
 from ipaserver.install import dsinstance, replication, installutils, krbinstance, service
 from ipaserver.install import httpinstance, ntpinstance, certs
 from ipaserver import ipaldap
-from ipa import version
+from ipapython import version
 
 CACERT="/usr/share/ipa/html/ca.crt"
 

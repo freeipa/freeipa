@@ -22,7 +22,7 @@ from optparse import OptionParser, IndentedHelpFormatter
 
 import krbV
 import socket
-import ipa.dnsclient
+import ipapython.dnsclient
 import re
 
 class IPAConfigError(Exception):
@@ -120,7 +120,7 @@ def __discover_config(discover_server = True):
             #try once with REALM -> domain
             dom_name = config.default_realm.lower()
             name = "_ldap._tcp."+dom_name+"."
-            rs = ipa.dnsclient.query(name, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
+            rs = ipapython.dnsclient.query(name, ipapython.dnsclient.DNS_C_IN, ipapython.dnsclient.DNS_T_SRV)
             rl = len(rs)
             if rl == 0:
                 #try cycling on domain components of FQDN
@@ -131,7 +131,7 @@ def __discover_config(discover_server = True):
                      return False
                 dom_name = dom_name[tok+1:]
                 name = "_ldap._tcp." + dom_name + "."
-                rs = ipa.dnsclient.query(name, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
+                rs = ipapython.dnsclient.query(name, ipapython.dnsclient.DNS_C_IN, ipapython.dnsclient.DNS_T_SRV)
                 rl = len(rs)
 
             config.default_domain = dom_name
@@ -139,10 +139,10 @@ def __discover_config(discover_server = True):
         if discover_server:
             if rl == 0:
                  name = "_ldap._tcp."+config.default_domain+"."
-                 rs = ipa.dnsclient.query(name, ipa.dnsclient.DNS_C_IN, ipa.dnsclient.DNS_T_SRV)
+                 rs = ipapython.dnsclient.query(name, ipapython.dnsclient.DNS_C_IN, ipapython.dnsclient.DNS_T_SRV)
 
             for r in rs:
-                if r.dns_type == ipa.dnsclient.DNS_T_SRV:
+                if r.dns_type == ipapython.dnsclient.DNS_T_SRV:
                     rsrv = r.rdata.server.rstrip(".")
                     config.default_server.append(rsrv)
 

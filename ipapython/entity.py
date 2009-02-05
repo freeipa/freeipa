@@ -21,7 +21,7 @@ import re
 import cStringIO
 import copy
 
-import ipa.ipautil
+import ipapython.ipautil
 
 def utf8_encode_value(value):
     if isinstance(value,unicode):
@@ -59,19 +59,19 @@ class Entity:
         if entrydata:
             if isinstance(entrydata,tuple):
                 self.dn = entrydata[0]
-                self.data = ipa.ipautil.CIDict(entrydata[1])
+                self.data = ipapython.ipautil.CIDict(entrydata[1])
             elif isinstance(entrydata,str) or isinstance(entrydata,unicode):
                 self.dn = entrydata
-                self.data = ipa.ipautil.CIDict()
+                self.data = ipapython.ipautil.CIDict()
             elif isinstance(entrydata,dict):
                 self.dn = entrydata['dn']
                 del entrydata['dn']
-                self.data = ipa.ipautil.CIDict(entrydata)
+                self.data = ipapython.ipautil.CIDict(entrydata)
         else:
             self.dn = ''
-            self.data = ipa.ipautil.CIDict()
+            self.data = ipapython.ipautil.CIDict()
 
-        self.orig_data = ipa.ipautil.CIDict(copy_CIDict(self.data))
+        self.orig_data = ipapython.ipautil.CIDict(copy_CIDict(self.data))
 
     def __nonzero__(self):
         """This allows us to do tests like if entry: returns false if there is no data,
@@ -148,7 +148,7 @@ class Entity:
         v = self.getValues(name)
         if v:
             self.delValue(name)
-           
+
         return
 
     def delValue(self,name):
@@ -165,7 +165,7 @@ class Entity:
     def toDict(self):
         """Convert the attrs and values to a dict. The dict is keyed on the
         attribute name.  The value is either single value or a list of values."""
-        result = ipa.ipautil.CIDict(self.data)
+        result = ipapython.ipautil.CIDict(self.data)
         result['dn'] = self.dn
         return result
 
@@ -175,7 +175,7 @@ class Entity:
 
     def origDataDict(self):
         """Returns a dict of the original values of the user.  Used for updates."""
-        result = ipa.ipautil.CIDict(self.orig_data)
+        result = ipapython.ipautil.CIDict(self.orig_data)
         result['dn'] = self.dn
         return result
 

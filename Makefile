@@ -1,6 +1,6 @@
 include VERSION
 
-SUBDIRS=daemons install ipa-python ipa-client ipa-radius-server ipa-radius-admintools
+SUBDIRS=daemons install ipapython ipa-client ipa-radius-server ipa-radius-admintools
 
 PRJ_PREFIX=ipa
 
@@ -64,11 +64,11 @@ version-update: release-update
 	sed -e s/__VERSION__/$(IPA_VERSION)/ version.m4.in \
 		> version.m4
 
-	sed -e s/__VERSION__/$(IPA_VERSION)/ ipa-python/setup.py.in \
-		> ipa-python/setup.py
-	sed -e s/__VERSION__/$(IPA_VERSION)/ ipa-python/version.py.in \
-		> ipa-python/version.py
-	perl -pi -e "s:__NUM_VERSION__:$(IPA_VERSION_MAJOR)$(IPA_VERSION_MINOR)$(IPA_VERSION_RELEASE):" ipa-python/version.py
+	sed -e s/__VERSION__/$(IPA_VERSION)/ ipapython/setup.py.in \
+		> ipapython/setup.py
+	sed -e s/__VERSION__/$(IPA_VERSION)/ ipapython/version.py.in \
+		> ipapython/version.py
+	perl -pi -e "s:__NUM_VERSION__:$(IPA_VERSION_MAJOR)$(IPA_VERSION_MINOR)$(IPA_VERSION_RELEASE):" ipapython/version.py
 
 	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
 		ipa-client/ipa-client.spec.in > ipa-client/ipa-client.spec
@@ -150,7 +150,7 @@ maintainer-clean: clean
 	cd daemons && $(MAKE) maintainer-clean
 	cd install && $(MAKE) maintainer-clean
 	cd ipa-client && $(MAKE) maintainer-clean
-	cd ipa-python && $(MAKE) maintainer-clean
+	cd ipapython && $(MAKE) maintainer-clean
 	cd ipa-radius-admintools && $(MAKE) maintainer-clean
 	cd ipa-radius-server && $(MAKE) maintainer-clean
 	rm -f version.m4

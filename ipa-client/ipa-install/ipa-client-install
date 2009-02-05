@@ -30,9 +30,9 @@ try:
     import ipaclient.ipadiscovery
     import ipaclient.ipachangeconf
     import ipaclient.ntpconf
-    from ipa.ipautil import run, user_input
-    from ipa import sysrestore
-    from ipa import version
+    from ipapython.ipautil import run, user_input
+    from ipapython import sysrestore
+    from ipapython import version
 except ImportError:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
