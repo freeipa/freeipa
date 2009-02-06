@@ -25,30 +25,6 @@ from tests.util import raises
 from ipalib import util
 
 
-def test_xmlrpc_marshal():
-    """
-    Test the `ipalib.util.xmlrpc_marshal` function.
-    """
-    f = util.xmlrpc_marshal
-    assert f() == ({},)
-    assert f('one', 'two') == ({}, 'one', 'two')
-    assert f(one=1, two=2) == (dict(one=1, two=2),)
-    assert f('one', 'two', three=3, four=4) == \
-        (dict(three=3, four=4), 'one', 'two')
-
-
-def test_xmlrpc_unmarshal():
-    """
-    Test the `ipalib.util.xmlrpc_unmarshal` function.
-    """
-    f = util.xmlrpc_unmarshal
-    assert f() == (tuple(), {})
-    assert f({}, 'one', 'two') == (('one', 'two'), {})
-    assert f(dict(one=1, two=2)) == (tuple(), dict(one=1, two=2))
-    assert f(dict(three=3, four=4), 'one', 'two') == \
-        (('one', 'two'), dict(three=3, four=4))
-
-
 def test_make_repr():
     """
     Test the `ipalib.util.make_repr` function.

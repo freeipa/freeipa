@@ -32,33 +32,6 @@ from xmlrpclib import Binary
 import krbV
 
 
-
-def xmlrpc_marshal(*args, **kw):
-    """
-    Marshal (args, kw) into ((kw,) + args).
-    """
-    kw = dict(
-        filter(lambda item: item[1] is not None, kw.iteritems())
-    )
-    args = tuple(
-        filter(lambda value: value is not None, args)
-    )
-    return ((kw,) + args)
-
-
-def xmlrpc_unmarshal(*params):
-    """
-    Unmarshal (params) into (args, kw).
-    """
-    if len(params) > 0:
-        kw = params[0]
-        if type(kw) is not dict:
-            raise TypeError('first xmlrpc argument must be dict')
-    else:
-        kw = {}
-    return (params[1:], kw)
-
-
 def get_current_principal():
     try:
         return krbV.default_context().default_ccache().principal().name
