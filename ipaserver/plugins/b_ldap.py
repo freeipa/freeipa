@@ -199,6 +199,12 @@ class ldap(CrudBackend):
 
         return (exact_match_filter, partial_match_filter)
 
+    def _get_scope(self, scope_str):
+        scope_dict = {'one'     : _ldap.SCOPE_ONELEVEL,
+                      'subtree' : _ldap.SCOPE_SUBTREE,
+                      'base'    : _ldap.SCOPE_BASE }
+        return scope_dict.get(scope_str, _ldap.SCOPE_BASE)
+
     def modify_password(self, dn, **kw):
         return servercore.modify_password(dn, kw.get('oldpass'), kw.get('newpass'))
 
@@ -286,6 +292,7 @@ class ldap(CrudBackend):
         sfilter = kw.get('filter')
         attributes = kw.get('attributes')
         base = kw.get('base')
+        scope = kw.get('scope')
         if attributes:
             del kw['attributes']
         else:
@@ -296,6 +303,8 @@ class ldap(CrudBackend):
             del kw['base']
         if sfilter:
             del kw['filter']
+        if scope:
+            del kw['scope']
         (exact_match_filter, partial_match_filter) = self._generate_search_filters(**kw)
         if objectclass:
             exact_match_filter = "(&(objectClass=%s)%s)" % (objectclass, exact_match_filter)
@@ -304,19 +313,21 @@ class ldap(CrudBackend):
             exact_match_filter = "(%s%s)" % (sfilter, exact_match_filter)
             partial_match_filter = "(%s%s)" % (sfilter, partial_match_filter)
 
+        search_scope = self._get_scope(scope)
+
         if not base:
             base = self.api.env.container_accounts
 
         search_base = "%s, %s" % (base, self.api.env.basedn)
         try:
             exact_results = servercore.search(search_base,
-                    exact_match_filter, attributes)
+                    exact_match_filter, attributes, scope=search_scope)
         except errors2.NotFound:
             exact_results = [0]
 
         try:
             partial_results = servercore.search(search_base,
-                    partial_match_filter, attributes)
+                    partial_match_filter, attributes, scope=search_scope)
         except errors2.NotFound:
             partial_results = [0]
 

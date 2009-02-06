@@ -263,11 +263,11 @@ def delete_entry(dn):
     return context.ldap.conn.deleteEntry(dn)
 
 # FIXME, get time and search limit from cn=ipaconfig
-def search(base, filter, attributes, timelimit=1, sizelimit=3000):
+def search(base, filter, attributes, timelimit=1, sizelimit=3000, scope=ldap.SCOPE_SUBTREE):
     """Perform an LDAP query"""
     try:
         timelimit = float(timelimit)
-        results = context.ldap.conn.getListAsync(base, ldap.SCOPE_SUBTREE,
+        results = context.ldap.conn.getListAsync(base, scope,
             filter, attributes, 0, None, None, timelimit, sizelimit)
     except ldap.NO_SUCH_OBJECT:
         raise errors2.NotFound()
