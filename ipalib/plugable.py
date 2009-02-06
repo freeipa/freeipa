@@ -568,9 +568,13 @@ class API(DictProxy):
             try:
                 os.makedirs(log_dir)
             except OSError:
-                log.warn('Could not create log_dir %r', log_dir)
+                log.error('Could not create log_dir %r', log_dir)
                 return
-        handler = logging.FileHandler(self.env.log)
+        try:
+            handler = logging.FileHandler(self.env.log)
+        except IOError, e:
+            log.error('Cannot open log file %r: %s', self.env.log, e.strerror)
+            return
         handler.setFormatter(util.LogFormatter(FORMAT_FILE))
         if self.env.debug:
             handler.setLevel(logging.DEBUG)

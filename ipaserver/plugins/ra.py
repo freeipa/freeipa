@@ -34,66 +34,75 @@ import os, stat, subprocess
 import array
 import errno
 import binascii
-import httplib, urllib
+from httplib import HTTPConnection
+from urllib import urlencode
 from socket import gethostname
 
 from ipalib import api, Backend
-from ipalib import errors
+from ipalib.errors2 import NetworkError
 from ipaserver import servercore
 from ipaserver import ipaldap
 
 
 class ra(Backend):
-
-
+    """
+    Request Authority backend plugin.
+    """
     def __init__(self):
         self.sec_dir = api.env.dot_ipa + os.sep + 'alias'
         self.pwd_file = self.sec_dir + os.sep + '.pwd'
         self.noise_file = self.sec_dir + os.sep + '.noise'
-
-        self.ca_host = None
-        self.ca_port = None
-        self.ca_ssl_port = None
-
-        self.__get_ca_location()
-
         self.ipa_key_size = "2048"
         self.ipa_certificate_nickname = "ipaCert"
         self.ca_certificate_nickname = "caCert"
+        super(ra, self).__init__()
 
+    def configure(self):
         if not os.path.isdir(self.sec_dir):
             os.mkdir(self.sec_dir)
             self.__create_pwd_file()
             self.__create_nss_db()
             self.__import_ca_chain()
             self.__request_ipa_certificate(self.__generate_ipa_request())
-        assert False
-        super(ra, self).__init__()
 
+    def request(self, method, **kw):
+        """
+        Perform an HTTP request to CA server.
+        """
+        # FIXME: should '/ca/ee/ca/%s' be hardcoded, or should it be in Env?
+        url = '/ca/ee/ca/%s' % method
+        self.debug('request: %s:%s%s', self.env.ca_host, self.env.ca_port, url)
+        conn = HTTPConnection(self.env.ca_host, self.env.ca_port)
+        conn.request('POST', url,
+            body=urlencode(kw),
+            headers={'Content-type': 'application/x-www-form-urlencoded'},
+        )
+        response = conn.getresponse()
+        self.debug('%s response status, reason: %s %s',
+            response.status, response.reason)
+        return response
 
     def check_request_status(self, request_id=None):
         """
         Check certificate request status
         :param request_id: request ID
         """
-        self.log.debug("IPA-RA: check_request_status")
+        self.debug('IPA-RA: check_request_status')
         return_values = {}
         if request_id is not None:
-            params = urllib.urlencode({'requestId':  request_id, 'xmlOutput': 'true'})
-            headers = {"Content-type": "application/x-www-form-urlencoded"}
-            conn = httplib.HTTPConnection(self.ca_host, self.ca_port)
-            conn.request("POST", "/ca/ee/ca/checkRequest", params, headers)
-            response = conn.getresponse()
-            api.log.debug("IPA-RA:  response.status: %d  response.reason: %s" % (response.status, response.reason))
+            response = self.request('checkRequest',
+                requestId=request_id,
+                xmlOutput='true',
+            )
             data = response.read()
             conn.close()
-            self.log.debug(data)
+            self.debug(data)
             if data is not None:
                 request_status = self.__find_substring(data, 'header.status = "', '"')
                 if request_status is not None:
                     return_values["status"] = "0"
                     return_values["request_status"] = request_status
-                    self.log.debug("IPA-RA: request_status: '%s'" % request_status)
+                    self.debug("IPA-RA: request_status: '%s'" % request_status)
                     serial_number = self.__find_substring(data, 'record.serialNumber="', '"')
                     if serial_number is not None:
                         return_values["serial_number"] = "0x"+serial_number
@@ -115,21 +124,21 @@ class ra(Backend):
         Retrieve an existing certificate
         :param serial_number: certificate serial number
         """
-        self.log.debug("IPA-RA: get_certificate")
+        self.debug('IPA-RA: get_certificate')
         issued_certificate = None
         return_values = {}
         if serial_number is not None:
-            request_info = ("serialNumber=%s" % serial_number)
-            self.log.debug("request_info: '%s'" % request_info)
-            returncode, stdout, stderr = self.__run_sslget(["-e", request_info, "-r", "/ca/agent/ca/displayBySerial", self.ca_host+":"+str(self.ca_ssl_port)])
-            self.log.debug("IPA-RA: returncode: %d" % returncode)
+            request_info = 'serialNumber=%s' % serial_number
+            self.debug('request_info: %r', request_info)
+            returncode, stdout, stderr = self.__run_sslget(["-e", request_info, "-r", "/ca/agent/ca/displayBySerial", self.env.ca_host+":"+str(self.env.ca_ssl_port)])
+            self.debug("IPA-RA: returncode: %d" % returncode)
             if (returncode == 0):
                 issued_certificate = self.__find_substring(stdout, 'header.certChainBase64 = "', '"')
                 if issued_certificate is not None:
                     return_values["status"] = "0"
                     issued_certificate = issued_certificate.replace("\\r", "")
                     issued_certificate = issued_certificate.replace("\\n", "")
-                    self.log.debug("IPA-RA: issued_certificate: '%s'" % issued_certificate)
+                    self.debug("IPA-RA: issued_certificate: '%s'" % issued_certificate)
                     return_values["certificate"] = issued_certificate
                 else:
                     return_values["status"] = "1"
@@ -149,7 +158,7 @@ class ra(Backend):
         :param certificate_request: certificate request
         :param request_type: request type
         """
-        self.log.debug("IPA-RA: request_certificate")
+        self.debug("IPA-RA: request_certificate")
         certificate = None
         return_values = {}
         if request_type is None:
@@ -158,27 +167,27 @@ class ra(Backend):
             request = urllib.quote(certificate_request)
             request_info = "profileId=caRAserverCert&cert_request_type="+request_type+"&cert_request="+request+"&xmlOutput=true"
             returncode, stdout, stderr = self.__run_sslget(["-e", request_info, "-r", "/ca/ee/ca/profileSubmit", self.ca_host+":"+str(self.ca_ssl_port)])
-            self.log.debug("IPA-RA: returncode: %d" % returncode)
+            self.debug("IPA-RA: returncode: %d" % returncode)
             if (returncode == 0):
                 status = self.__find_substring(stdout, "<Status>", "</Status>")
                 if status is not None:
-                    self.log.debug ("status=%s" % status)
+                    self.debug ("status=%s" % status)
                     return_values["status"] = status
                 request_id = self.__find_substring(stdout, "<Id>", "</Id>")
                 if request_id is not None:
-                    self.log.debug ("request_id=%s" % request_id)
+                    self.debug ("request_id=%s" % request_id)
                     return_values["request_id"] = request_id
                 serial_number = self.__find_substring(stdout, "<serialno>", "</serialno>")
                 if serial_number is not None:
-                    self.log.debug ("serial_number=%s" % serial_number)
+                    self.debug ("serial_number=%s" % serial_number)
                     return_values["serial_number"] = ("0x%s" % serial_number)
                 subject = self.__find_substring(stdout, "<SubjectDN>", "</SubjectDN>")
                 if subject is not None:
-                    self.log.debug ("subject=%s" % subject)
+                    self.debug ("subject=%s" % subject)
                     return_values["subject"] = subject
                 certificate = self.__find_substring(stdout, "<b64>", "</b64>")
                 if certificate is not None:
-                    self.log.debug ("certificate=%s" % certificate)
+                    self.debug ("certificate=%s" % certificate)
                     return_values["certificate"] = certificate
                 if return_values.has_key("status") is False:
                     return_values["status"] = "2"
@@ -208,7 +217,7 @@ class ra(Backend):
         see RFC 5280 for more details
         """
         return_values = {}
-        self.log.debug("IPA-RA: revoke_certificate")
+        self.debug("IPA-RA: revoke_certificate")
         if revocation_reason is None:
             revocation_reason = 0
         if serial_number is not None:
@@ -218,7 +227,7 @@ class ra(Backend):
                 revocation_reason = str(revocation_reason)
             request_info = "op=revoke&revocationReason="+revocation_reason+"&revokeAll=(certRecordId%3D"+serial_number+")&totalRecordCount=1"
             returncode, stdout, stderr = self.__run_sslget(["-e", request_info, "-r", "/ca/agent/ca/doRevoke", self.ca_host+":"+str(self.ca_ssl_port)])
-            api.log.debug("IPA-RA: returncode: %d" % returncode)
+            self.debug("IPA-RA: returncode: %d" % returncode)
             if (returncode == 0):
                 return_values["status"] = "0"
                 if (stdout.find('revoked = "yes"') > -1):
@@ -238,13 +247,13 @@ class ra(Backend):
         :param serial_number: certificate serial number
         """
         return_values = {}
-        self.log.debug("IPA-RA: revoke_certificate")
+        self.debug("IPA-RA: revoke_certificate")
         if serial_number is not None:
             if isinstance(serial_number, int):
                 serial_number = str(serial_number)
             request_info = "serialNumber="+serial_number
             returncode, stdout, stderr = self.__run_sslget(["-e", request_info, "-r", "/ca/agent/ca/doUnrevoke", self.ca_host+":"+str(self.ca_ssl_port)])
-            api.log.debug("IPA-RA: returncode: %d" % returncode)
+            self.debug("IPA-RA: returncode: %d" % returncode)
             if (returncode == 0):
                 if (stdout.find('unrevoked = "yes"') > -1):
                     return_values["taken_off_hold"] = True
@@ -270,41 +279,6 @@ class ra(Backend):
                 sub_str = sub_str[:k4]
         return sub_str
 
-
-    def __get_ca_location(self):
-        if 'ca_host' in api.env:
-            api.log.debug("ca_host configuration found")
-            if api.env.ca_host is not None:
-                self.ca_host = api.env.ca_host
-        else:
-            api.log.debug("ca_host configuration not found")
-        # if CA is not hosted with IPA on the same system and there is no configuration support for 'api.env.ca_host', then set ca_host below
-        # self.ca_host = "example.com"
-        if self.ca_host is None:
-            self.ca_host = gethostname()
-        api.log.debug("ca_host: %s" % self.ca_host)
-
-        if 'ca_ssl_port' in api.env:
-            api.log.debug("ca_ssl_port configuration found")
-            if api.env.ca_ssl_port is not None:
-                self.ca_ssl_port = api.env.ca_ssl_port
-        else:
-            api.log.debug("ca_ssl_port configuration not found")
-        if self.ca_ssl_port is None:
-            self.ca_ssl_port = 9443
-        api.log.debug("ca_ssl_port: %d" % self.ca_ssl_port)
-
-        if 'ca_port' in api.env:
-            api.log.debug("ca_port configuration found")
-            if api.env.ca_port is not None:
-                self.ca_port = api.env.ca_port
-        else:
-            api.log.debug("ca_port configuration not found")
-        if self.ca_port is None:
-            self.ca_port = 9080
-        api.log.debug("ca_port: %d" % self.ca_port)
-
-
     def __generate_ipa_request(self):
         certificate_request = None
         if not os.path.isfile(self.noise_file):
@@ -313,51 +287,51 @@ class ra(Backend):
         if os.path.isfile(self.noise_file):
             os.unlink(self.noise_file)
         if (returncode == 0):
-            api.log.info("IPA-RA: IPA certificate request generated")
+            self.info("IPA-RA: IPA certificate request generated")
             certificate_request = self.__find_substring(stdout, "-----BEGIN NEW CERTIFICATE REQUEST-----", "-----END NEW CERTIFICATE REQUEST-----")
             if certificate_request is not None:
-                api.log.debug("certificate_request=%s" % certificate_request)
+                self.debug("certificate_request=%s" % certificate_request)
             else:
-                api.log.warn("IPA-RA: Error parsing certificate request." % returncode)
+                self.warning("IPA-RA: Error parsing certificate request." % returncode)
         else:
-            api.log.warn("IPA-RA: Error (%d) generating IPA certificate request." % returncode)
+            self.warning("IPA-RA: Error (%d) generating IPA certificate request." % returncode)
         return certificate_request
 
     def __request_ipa_certificate(self, certificate_request=None):
         ipa_certificate = None
         if certificate_request is not None:
-            params = urllib.urlencode({'profileId': 'caServerCert', 'cert_request_type': 'pkcs10', 'requestor_name': 'freeIPA', 'cert_request': self.__generate_ipa_request(), 'xmlOutput': 'true'})
-            headers = {"Content-type": "application/x-www-form-urlencoded"}
-            conn = httplib.HTTPConnection(self.ca_host+":"+self.ca_port)
-            conn.request("POST", "/ca/ee/ca/profileSubmit", params, headers)
-            response = conn.getresponse()
-            api.log.debug("IPA-RA: response.status: %d  response.reason: '%s'" % (response.status, response.reason))
+            response = self.request('profileSubmit',
+                profileId='caServerCert',
+                cert_request_type='pkcs10',
+                requestor_name='freeIPA',
+                cert_request=self.__generate_ipa_request(),
+                xmlOutput='true',
+            )
+            self.debug("IPA-RA: response.status: %d  response.reason: '%s'" % (response.status, response.reason))
             data = response.read()
             conn.close()
-            api.log.info("IPA-RA: IPA certificate request submitted to CA: %s" % data)
+            self.info("IPA-RA: IPA certificate request submitted to CA: %s" % data)
         return ipa_certificate
 
     def __get_ca_chain(self):
-        headers = {"Content-type": "application/x-www-form-urlencoded"}
-        conn = httplib.HTTPConnection(self.ca_host, self.ca_port)
-        conn.request("POST", "/ca/ee/ca/getCertChain", None, headers)
-        response = conn.getresponse()
-        api.log.debug("IPA-RA: response.status: %d  response.reason: '%s'" % (response.status, response.reason))
+        response = self.request('getCertChain')
+        self.debug('response.status: %r', response.status)
+        self.debug('response.reason: %r', response.reason)
         data = response.read()
-        conn.close()
         certificate_chain = self.__find_substring(data, "<ChainBase64>", "</ChainBase64>")
-        if certificate_chain is not None:
-            api.log.info(("IPA-RA: CA chain obtained from CA: %s" % certificate_chain))
+        if certificate_chain is None:
+            self.warning('IPA-RA: Error parsing certificate chain')
         else:
-            api.log.warn("IPA-RA: Error parsing certificate chain.")
+            self.info('IPA-RA: CA chain obtained from CA: %s', certificate_chain)
         return certificate_chain
 
     def __import_ca_chain(self):
         returncode, stdout, stderr = self.__run_certutil(["-A", "-t", "CT,C,C", "-n", self.ca_certificate_nickname, "-a"], self.__get_ca_chain())
         if (returncode == 0):
-            api.log.info("IPA-RA: CA chain imported to IPA's NSS DB")
+            self.info("IPA-RA: CA chain imported to IPA's NSS DB")
         else:
-            api.log.warn("IPA-RA: Error (%d) importing CA chain to IPA's NSS DB." % returncode)
+            self.error("IPA-RA: Error (%d) importing CA chain to IPA's NSS DB",
+                returncode)
 
     def __create_noise_file(self):
         noise = array.array('B', os.urandom(128))
@@ -375,9 +349,9 @@ class ra(Backend):
     def __create_nss_db(self):
         returncode, stdout, stderr = self.__run_certutil(["-N"])
         if (returncode == 0):
-            api.log.info("IPA-RA: NSS DB created")
+            self.info("IPA-RA: NSS DB created")
         else:
-            api.log.warn("IPA-RA: Error (%d) creating NSS DB." % returncode)
+            self.warning("IPA-RA: Error (%d) creating NSS DB." % returncode)
 
     """
     sslget and certutil utilities are used only till Python-NSS completion.
@@ -400,9 +374,9 @@ class ra(Backend):
             p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
             stdout,stderr = p.communicate()
 
-        api.log.debug("IPA-RA: returncode: %d  args: '%s'" % (p.returncode, ' '.join(args)))
-        # api.log.debug("IPA-RA: stdout: '%s'" % stdout)
-        # api.log.debug("IPA-RA: stderr: '%s'" % stderr)
+        self.debug("IPA-RA: returncode: %d  args: '%s'" % (p.returncode, ' '.join(args)))
+        # self.debug("IPA-RA: stdout: '%s'" % stdout)
+        # self.debug("IPA-RA: stderr: '%s'" % stderr)
         return (p.returncode, stdout, stderr)
 
-#api.register(ra)
+api.register(ra)
