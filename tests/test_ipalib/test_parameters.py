@@ -21,6 +21,7 @@
 Test the `ipalib.parameters` module.
 """
 
+import re
 from types import NoneType
 from inspect import isclass
 from tests.util import raises, ClassChecker, read_only
@@ -632,7 +633,7 @@ class test_Data(ClassChecker):
         assert o.minlength is None
         assert o.maxlength is None
         assert o.length is None
-        assert not hasattr(o, 'pattern')
+        assert o.pattern is None
 
         # Test mixing length with minlength or maxlength:
         o = self.cls('my_data', length=5)
@@ -687,6 +688,7 @@ class test_Bytes(ClassChecker):
         assert o.maxlength is None
         assert o.length is None
         assert o.pattern is None
+        assert o.re is None
 
         # Test mixing length with minlength or maxlength:
         o = self.cls('my_bytes', length=5)
@@ -804,6 +806,39 @@ class test_Bytes(ClassChecker):
             assert dummy.called() is True
             dummy.reset()
 
+    def test_rule_pattern(self):
+        """
+        Test the `ipalib.parameters.Bytes._rule_pattern` method.
+        """
+        # Test our assumptions about Python re module and Unicode:
+        pat = '\w+$'
+        r = re.compile(pat)
+        assert r.match('Hello_World') is not None
+        assert r.match(utf8_bytes) is None
+        assert r.match(binary_bytes) is None
+
+        # Create instance:
+        o = self.cls('my_bytes', pattern=pat)
+        assert o.pattern is pat
+        rule = o._rule_pattern
+        translation = u'pattern=%(pattern)r'
+        dummy = dummy_ugettext(translation)
+
+        # Test with passing values:
+        for value in ('HELLO', 'hello', 'Hello_World'):
+            assert rule(dummy, value) is None
+            assert dummy.called() is False
+
+        # Test with failing values:
+        for value in ('Hello!', 'Hello World', utf8_bytes, binary_bytes):
+            assert_equal(
+                rule(dummy, value),
+                translation % dict(pattern=pat),
+            )
+            assert_equal(dummy.message, 'must match pattern "%(pattern)s"')
+            assert dummy.called() is True
+            dummy.reset()
+
 
 class test_Str(ClassChecker):
     """
@@ -918,6 +953,39 @@ class test_Str(ClassChecker):
                 translation % dict(length=4),
             )
             assert dummy.message == 'must be exactly %(length)d characters'
+            assert dummy.called() is True
+            dummy.reset()
+
+    def test_rule_pattern(self):
+        """
+        Test the `ipalib.parameters.Str._rule_pattern` method.
+        """
+        # Test our assumptions about Python re module and Unicode:
+        pat = '\w{5}$'
+        r1 = re.compile(pat)
+        r2 = re.compile(pat, re.UNICODE)
+        assert r1.match(unicode_str) is None
+        assert r2.match(unicode_str) is not None
+
+        # Create instance:
+        o = self.cls('my_str', pattern=pat)
+        assert o.pattern is pat
+        rule = o._rule_pattern
+        translation = u'pattern=%(pattern)r'
+        dummy = dummy_ugettext(translation)
+
+        # Test with passing values:
+        for value in (u'HELLO', u'hello', unicode_str):
+            assert rule(dummy, value) is None
+            assert dummy.called() is False
+
+        # Test with failing values:
+        for value in (u'H LLO', u'***lo', unicode_str + unicode_str):
+            assert_equal(
+                rule(dummy, value),
+                translation % dict(pattern=pat),
+            )
+            assert_equal(dummy.message, 'must match pattern "%(pattern)s"')
             assert dummy.called() is True
             dummy.reset()
 

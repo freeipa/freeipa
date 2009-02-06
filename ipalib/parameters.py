@@ -31,12 +31,14 @@ TODO:
   * Add maxvalue, minvalue kwargs and rules to `Int` and `Float`
 """
 
+import re
 from types import NoneType
 from util import make_repr
 from request import ugettext
 from plugable import ReadOnly, lock, check_name
 from errors2 import ConversionError, RequirementError, ValidationError
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
+
 
 class DefaultFrom(ReadOnly):
     """
@@ -779,6 +781,7 @@ class Data(Param):
         ('minlength', int, None),
         ('maxlength', int, None),
         ('length', int, None),
+        ('pattern', (basestring,), None),
     )
 
     def __init__(self, name, *rules, **kw):
@@ -814,6 +817,16 @@ class Data(Param):
                         self.nice, self.minlength)
                 )
 
+    def _rule_pattern(self, _, value):
+        """
+        Check pattern (regex) contraint.
+        """
+        assert type(value) is self.type
+        if self.re.match(value) is None:
+            return _('must match pattern "%(pattern)s"') % dict(
+                pattern=self.pattern,
+            )
+
 
 class Bytes(Data):
     """
@@ -830,9 +843,12 @@ class Bytes(Data):
     type = str
     type_error = _('must be binary data')
 
-    kwargs = Data.kwargs + (
-        ('pattern', str, None),
-    )
+    def __init__(self, name, *rules, **kw):
+        if kw.get('pattern', None) is None:
+            self.re = None
+        else:
+            self.re = re.compile(kw['pattern'])
+        super(Bytes, self).__init__(name, *rules, **kw)
 
     def _rule_minlength(self, _, value):
         """
@@ -880,9 +896,12 @@ class Str(Data):
     type = unicode
     type_error = _('must be Unicode text')
 
-    kwargs = Data.kwargs + (
-        ('pattern', unicode, None),
-    )
+    def __init__(self, name, *rules, **kw):
+        if kw.get('pattern', None) is None:
+            self.re = None
+        else:
+            self.re = re.compile(kw['pattern'], re.UNICODE)
+        super(Str, self).__init__(name, *rules, **kw)
 
     def _convert_scalar(self, value, index=None):
         """
