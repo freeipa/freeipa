@@ -34,6 +34,7 @@ class GroupFields(object):
     group_orig = widgets.HiddenField(name="group_orig")
     member_data = widgets.HiddenField(name="member_data")
     dn_to_info_json = widgets.HiddenField(name="dn_to_info_json")
+    dn = widgets.HiddenField(name="dn")
 
 class GroupNewValidator(validators.Schema):
     filter_extra_fields = True
@@ -78,7 +79,8 @@ class GroupEditForm(widgets.Form):
     hidden_fields = [
       GroupFields.editprotected_hidden,
       GroupFields.group_orig, GroupFields.member_data,
-      GroupFields.dn_to_info_json
+      GroupFields.dn_to_info_json,
+      GroupFields.dn
     ]
 
     validator = GroupEditValidator()
