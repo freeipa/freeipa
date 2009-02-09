@@ -35,7 +35,7 @@ import array
 import errno
 import binascii
 from httplib import HTTPConnection
-from urllib import urlencode
+from urllib import urlencode, quote
 from socket import gethostname
 
 from ipalib import api, Backend
@@ -95,7 +95,6 @@ class ra(Backend):
                 xmlOutput='true',
             )
             data = response.read()
-            conn.close()
             self.debug(data)
             if data is not None:
                 request_status = self.__find_substring(data, 'header.status = "', '"')
@@ -164,7 +163,7 @@ class ra(Backend):
         if request_type is None:
             request_type="pkcs10"
         if certificate_request is not None:
-            request = urllib.quote(certificate_request)
+            request = quote(certificate_request)
             request_info = "profileId=caRAserverCert&cert_request_type="+request_type+"&cert_request="+request+"&xmlOutput=true"
             returncode, stdout, stderr = self.__run_sslget(["-e", request_info, "-r", "/ca/ee/ca/profileSubmit", self.ca_host+":"+str(self.ca_ssl_port)])
             self.debug("IPA-RA: returncode: %d" % returncode)
@@ -309,7 +308,6 @@ class ra(Backend):
             )
             self.debug("IPA-RA: response.status: %d  response.reason: '%s'" % (response.status, response.reason))
             data = response.read()
-            conn.close()
             self.info("IPA-RA: IPA certificate request submitted to CA: %s" % data)
         return ipa_certificate
 
