@@ -22,7 +22,7 @@ sys.path.insert(0, ".")
 
 import unittest
 
-import ipavalidate
+from ipapython import ipavalidate
 
 class TestValidate(unittest.TestCase):
     def setUp(self):

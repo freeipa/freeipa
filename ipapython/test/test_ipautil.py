@@ -23,7 +23,7 @@ sys.path.insert(0, ".")
 import unittest
 import datetime
 
-import ipautil
+from ipapython import ipautil
 
 
 class TestCIDict(unittest.TestCase):
