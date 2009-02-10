@@ -154,7 +154,9 @@ class ra(Backend):
             '-r', url,  # url
             '%s:%d' % (self.env.ca_host, self.env.ca_ssl_port),
         ]
-        return self.__run(argv)
+        (returncode, stdout, stderr) = self.__run(argv)
+        self.debug('sslget response %s', stdout)
+        return (returncode, stdout, stderr)
 
     def get_certificate(self, serial_number=None):
         """
@@ -167,6 +169,7 @@ class ra(Backend):
         (returncode, stdout, stderr) = self._sslget(
             '/ca/agent/ca/displayBySerial',
             serialNumber=serial_number,
+            xmlOutput='true',
         )
         self.debug("IPA-RA: returncode: %d" % returncode)
         response = {}
@@ -191,55 +194,49 @@ class ra(Backend):
             response['status'] = str(-returncode)
         return response
 
-    def request_certificate(self, certificate_request=None, request_type="pkcs10"):
+    def request_certificate(self, csr, request_type='pkcs10'):
         """
-        Submit certificate request
-        :param certificate_request: certificate request
-        :param request_type: request type
+        Submit certificate signing request.
+
+        :param csr: The certificate signing request.
+        :param request_type: The request type (defaults to ``'pkcs10'``).
         """
         self.debug("IPA-RA: request_certificate")
         certificate = None
+        (returncode, stdout, stderr) = self._sslget(
+            '/ca/ee/ca/profileSubmit',
+            profileId='caRAserverCert',
+            cert_request_type=request_type,
+            cert_request=csr,
+            xmlOutput='true',
+        )
         return_values = {}
-        if request_type is None:
-            request_type="pkcs10"
-        if certificate_request is not None:
-            request = quote(certificate_request)
-            request_info = "profileId=caRAserverCert&cert_request_type="+request_type+"&cert_request="+request+"&xmlOutput=true"
-            (returncode, stdout, stderr) = self.__run_sslget([
-                '-e',
-                request_info,
-                '-r',
-                '/ca/ee/ca/profileSubmit',
-                '%s:%d' % (self.env.ca_host, self.env.ca_ssl_port),
-            ])
-            self.debug("IPA-RA: returncode: %d" % returncode)
-            if (returncode == 0):
-                status = self.__find_substring(stdout, "<Status>", "</Status>")
-                if status is not None:
-                    self.debug ("status=%s" % status)
-                    return_values["status"] = status
-                request_id = self.__find_substring(stdout, "<Id>", "</Id>")
-                if request_id is not None:
-                    self.debug ("request_id=%s" % request_id)
-                    return_values["request_id"] = request_id
-                serial_number = self.__find_substring(stdout, "<serialno>", "</serialno>")
-                if serial_number is not None:
-                    self.debug ("serial_number=%s" % serial_number)
-                    return_values["serial_number"] = ("0x%s" % serial_number)
-                subject = self.__find_substring(stdout, "<SubjectDN>", "</SubjectDN>")
-                if subject is not None:
-                    self.debug ("subject=%s" % subject)
-                    return_values["subject"] = subject
-                certificate = self.__find_substring(stdout, "<b64>", "</b64>")
-                if certificate is not None:
-                    self.debug ("certificate=%s" % certificate)
-                    return_values["certificate"] = certificate
-                if return_values.has_key("status") is False:
-                    return_values["status"] = "2"
-            else:
-                return_values["status"] = str(-returncode)
+        self.debug("IPA-RA: returncode: %d" % returncode)
+        if (returncode == 0):
+            status = self.__find_substring(stdout, "<Status>", "</Status>")
+            if status is not None:
+                self.debug ("status=%s" % status)
+                return_values["status"] = status
+            request_id = self.__find_substring(stdout, "<Id>", "</Id>")
+            if request_id is not None:
+                self.debug ("request_id=%s" % request_id)
+                return_values["request_id"] = request_id
+            serial_number = self.__find_substring(stdout, "<serialno>", "</serialno>")
+            if serial_number is not None:
+                self.debug ("serial_number=%s" % serial_number)
+                return_values["serial_number"] = ("0x%s" % serial_number)
+            subject = self.__find_substring(stdout, "<SubjectDN>", "</SubjectDN>")
+            if subject is not None:
+                self.debug ("subject=%s" % subject)
+                return_values["subject"] = subject
+            certificate = self.__find_substring(stdout, "<b64>", "</b64>")
+            if certificate is not None:
+                self.debug ("certificate=%s" % certificate)
+                return_values["certificate"] = certificate
+            if return_values.has_key("status") is False:
+                return_values["status"] = "2"
         else:
-            return_values["status"] = "1"
+            return_values["status"] = str(-returncode)
         return return_values
 
 
