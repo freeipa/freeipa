@@ -37,6 +37,7 @@ import binascii
 from httplib import HTTPConnection
 from urllib import urlencode, quote
 from socket import gethostname
+import socket
 
 from ipalib import api, Backend
 from ipalib.errors2 import NetworkError
@@ -65,37 +66,47 @@ class ra(Backend):
             self.__import_ca_chain()
             self.__request_ipa_certificate(self.__generate_ipa_request())
 
-    def request(self, method, **kw):
+    def _request(self, method, **kw):
         """
         Perform an HTTP request to CA server.
         """
         # FIXME: should '/ca/ee/ca/%s' be hardcoded, or should it be in Env?
         url = '/ca/ee/ca/%s' % method
-        self.debug('request: %s:%s%s', self.env.ca_host, self.env.ca_port, url)
+        self.info('CA request: %s:%s%s',
+            self.env.ca_host, self.env.ca_port, url)
         conn = HTTPConnection(self.env.ca_host, self.env.ca_port)
-        conn.request('POST', url,
-            body=urlencode(kw),
-            headers={'Content-type': 'application/x-www-form-urlencoded'},
-        )
+        try:
+            conn.request('POST', url,
+                body=urlencode(kw),
+                headers={'Content-type': 'application/x-www-form-urlencoded'},
+            )
+        except socket.error, e:
+            raise NetworkError(
+                uri='http://%s:%d' % (self.env.ca_host, self.env.ca_port),
+                error=e.args[1],
+            )
         response = conn.getresponse()
-        self.debug('%s response status, reason: %s %s',
-            response.status, response.reason)
-        return response
+        (status, reason) = (response.status, response.reason)
+        data = response.read()
+        conn.close()
+        self.debug('CA response status: %r', status)
+        self.debug('CA response reason: %r', reason)
+        self.debug('CA response data: %r', data)
+        return (status, reason, data)
 
-    def check_request_status(self, request_id=None):
+    def check_request_status(self, request_id):
         """
-        Check certificate request status
+        Check status of a certificate signing request.
+
         :param request_id: request ID
         """
         self.debug('IPA-RA: check_request_status')
         return_values = {}
         if request_id is not None:
-            response = self.request('checkRequest',
+            (s, r, data) = self._request('checkRequest',
                 requestId=request_id,
                 xmlOutput='true',
             )
-            data = response.read()
-            self.debug(data)
             if data is not None:
                 request_status = self.__find_substring(data, 'header.status = "', '"')
                 if request_status is not None:
@@ -116,7 +127,6 @@ class ra(Backend):
         else:
             return_values["status"] = "1"
         return return_values
-
 
     def get_certificate(self, serial_number=None):
         """
@@ -150,7 +160,6 @@ class ra(Backend):
             return_values["status"] = "1"
         return return_values
 
-
     def request_certificate(self, certificate_request=None, request_type="pkcs10"):
         """
         Submit certificate request
@@ -165,7 +174,13 @@ class ra(Backend):
         if certificate_request is not None:
             request = quote(certificate_request)
             request_info = "profileId=caRAserverCert&cert_request_type="+request_type+"&cert_request="+request+"&xmlOutput=true"
-            returncode, stdout, stderr = self.__run_sslget(["-e", request_info, "-r", "/ca/ee/ca/profileSubmit", self.ca_host+":"+str(self.ca_ssl_port)])
+            (returncode, stdout, stderr) = self.__run_sslget([
+                '-e',
+                request_info,
+                '-r',
+                '/ca/ee/ca/profileSubmit',
+                '%s:%d' % (self.env.ca_host, self.env.ca_ssl_port),
+            ])
             self.debug("IPA-RA: returncode: %d" % returncode)
             if (returncode == 0):
                 status = self.__find_substring(stdout, "<Status>", "</Status>")
@@ -225,7 +240,13 @@ class ra(Backend):
             if isinstance(revocation_reason, int):
                 revocation_reason = str(revocation_reason)
             request_info = "op=revoke&revocationReason="+revocation_reason+"&revokeAll=(certRecordId%3D"+serial_number+")&totalRecordCount=1"
-            returncode, stdout, stderr = self.__run_sslget(["-e", request_info, "-r", "/ca/agent/ca/doRevoke", self.ca_host+":"+str(self.ca_ssl_port)])
+            (returncode, stdout, stderr) = self.__run_sslget([
+                '-e',
+                request_info,
+                '-r',
+                '/ca/agent/ca/doRevoke',
+                '%s:%d' % (self.env.ca_host, self.env.ca_ssl_port),
+            ])
             self.debug("IPA-RA: returncode: %d" % returncode)
             if (returncode == 0):
                 return_values["status"] = "0"
@@ -251,7 +272,13 @@ class ra(Backend):
             if isinstance(serial_number, int):
                 serial_number = str(serial_number)
             request_info = "serialNumber="+serial_number
-            returncode, stdout, stderr = self.__run_sslget(["-e", request_info, "-r", "/ca/agent/ca/doUnrevoke", self.ca_host+":"+str(self.ca_ssl_port)])
+            (returncode, stdout, stderr) = self.__run_sslget([
+                '-e',
+                request_info,
+                '-r',
+                '/ca/agent/ca/doUnrevoke',
+                '%s:%d' % (self.env.ca_host, self.env.ca_ssl_port),
+            ])
             self.debug("IPA-RA: returncode: %d" % returncode)
             if (returncode == 0):
                 if (stdout.find('unrevoked = "yes"') > -1):
@@ -324,7 +351,17 @@ class ra(Backend):
         return certificate_chain
 
     def __import_ca_chain(self):
-        returncode, stdout, stderr = self.__run_certutil(["-A", "-t", "CT,C,C", "-n", self.ca_certificate_nickname, "-a"], self.__get_ca_chain())
+        (returncode, stdout, stderr) = self.__run_certutil(
+            [
+                '-A',
+                '-t',
+                'CT,C,C',
+                '-n',
+                self.ca_certificate_nickname,
+                '-a',
+            ],
+            stdin=self.__get_ca_chain(),
+        )
         if (returncode == 0):
             self.info("IPA-RA: CA chain imported to IPA's NSS DB")
         else:

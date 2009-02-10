@@ -33,7 +33,7 @@ class cert_request(Command):
     takes_args = ('csr',)
 
     takes_options = (
-        Str('request_type?', default=u'pkcs10', autofill=True),
+        Str('request_type', default=u'pkcs10', autofill=True),
     )
 
     def execute(self, csr, **options):
