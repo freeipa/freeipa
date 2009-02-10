@@ -2,10 +2,12 @@ NULL =
 
 appdir = $(IPA_DATA_DIR)
 app_DATA =				\
+	05rfc2247.ldif			\
 	60kerberos.ldif			\
 	60samba.ldif			\
 	60radius.ldif			\
 	60ipaconfig.ldif		\
+	60basev2.ldif			\
 	bootstrap-template.ldif		\
 	default-aci.ldif		\
 	default-keytypes.ldif		\

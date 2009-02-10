@@ -266,6 +266,12 @@ class DsInstance(service.Service):
                         schema_dirname(self.serverid) + "60radius.ldif")
         shutil.copyfile(ipautil.SHARE_DIR + "60ipaconfig.ldif",
                         schema_dirname(self.serverid) + "60ipaconfig.ldif")
+        shutil.copyfile(ipautil.SHARE_DIR + "60basev2.ldif",
+                        schema_dirname(self.serverid) + "60basev2.ldif")
+        shutil.move(schema_dirname(self.serverid) + "05rfc2247.ldif",
+                        schema_dirname(self.serverid) + "05rfc2247.ldif.old")
+        shutil.copyfile(ipautil.SHARE_DIR + "05rfc2247.ldif",
+                        schema_dirname(self.serverid) + "05rfc2247.ldif")
 
     def __restart_instance(self):
         try:
