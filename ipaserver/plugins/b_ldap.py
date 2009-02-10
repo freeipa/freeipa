@@ -203,7 +203,7 @@ class ldap(CrudBackend):
         scope_dict = {'one'     : _ldap.SCOPE_ONELEVEL,
                       'subtree' : _ldap.SCOPE_SUBTREE,
                       'base'    : _ldap.SCOPE_BASE }
-        return scope_dict.get(scope_str, _ldap.SCOPE_BASE)
+        return scope_dict.get(scope_str, _ldap.SCOPE_SUBTREE)
 
     def modify_password(self, dn, **kw):
         return servercore.modify_password(dn, kw.get('oldpass'), kw.get('newpass'))
