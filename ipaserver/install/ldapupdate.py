@@ -93,23 +93,6 @@ class LDAPUpdate:
         except ldap.INVALID_CREDENTIALS, e :
             raise RuntimeError("The password provided is incorrect for LDAP server %s" % fqdn)
 
-    def __detail_error(self, detail):
-        """IPA returns two errors back. One a generic one indicating the broad
-           problem and a detailed message back as well which should have come
-           from LDAP. This function will parse that into a human-readable
-           string.
-        """
-        msg = ""
-        desc = detail[0].get('desc')
-        info = detail[0].get('info')
-
-        if desc:
-            msg = desc
-            if info:
-                msg = msg + " " + info
-
-        return msg
-
     def __identify_arch(self):
         """On multi-arch systems some libraries may be in /lib64, /usr/lib64,
            etc.  Determine if a suffix is needed based on the current
@@ -331,7 +314,7 @@ class LDAPUpdate:
                 logging.error("Task not found: %s", dn)
                 return
             except errors.DatabaseError, e:
-                logging.error("Task lookup failure %s: %s", e, self.__detail_error(e.detail))
+                logging.error("Task lookup failure %s", e)
                 return
 
             status = entry.getValue('nstaskstatus')
@@ -522,7 +505,7 @@ class LDAPUpdate:
                 if self.live_run:
                     self.conn.addEntry(entry.dn, entry.toTupleList())
             except Exception, e:
-                logging.error("Add failure %s: %s", e, self.__detail_error(e.detail))
+                logging.error("Add failure %s", e)
         else:
             # Update LDAP
             try:
@@ -541,7 +524,7 @@ class LDAPUpdate:
                 logging.info("Entry already up-to-date")
                 updated = False
             except errors.DatabaseError, e:
-                logging.error("Update failed: %s: %s", e, self.__detail_error(e.detail))
+                logging.error("Update failed: %s", e)
                 updated = False
 
             if ("cn=index" in entry.dn and
