@@ -115,6 +115,9 @@ DEFAULT_CONFIG = (
     ('prompt_all', False),
     ('interactive', True),
 
+    # Enable certain optional plugins:
+    ('enable_ra', False),
+
     # ********************************************************
     #  The remaining keys are never set from the values here!
     # ********************************************************

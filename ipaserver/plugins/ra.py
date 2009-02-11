@@ -418,4 +418,5 @@ class ra(Backend):
         # self.debug("IPA-RA: stderr: '%s'" % stderr)
         return (p.returncode, stdout, stderr)
 
-api.register(ra)
+if api.env.enable_ra:
+    api.register(ra)
