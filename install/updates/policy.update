@@ -1,0 +1,44 @@
+# bootstrap the policy DIT structure
+
+dn: cn=policies,$SUFFIX
+add: objectclass: nsContainer
+add: objectclass: ipaContainer
+add: cn: policies
+add: description: Root of the policy related sub tree
+
+dn: cn=configs,cn=policies,$SUFFIX
+add: objectclass: nsContainer
+add: objectclass: ipaContainer
+add: cn: configs
+add: description: Root of the sub tree that holds configuration policies for different applications
+
+dn: cn=applications,cn=configs,cn=policies,$SUFFIX
+add: objectclass: nsContainer
+add: objectclass: ipaContainer
+add: cn: applications
+add: description: Root of the tree that hold all definitions of the supported applications
+
+dn: cn=Shell Applications,cn=applications,cn=configs,cn=policies,$SUFFIX
+add: objectclass: nsContainer
+add: objectclass: ipaContainer
+add: cn: Shell Applications
+add: description: Shell Applications - special application that holds templates for actions
+
+dn: cn=roles,cn=policies,$SUFFIX
+add: objectclass: nsContainer
+add: objectclass: ipaContainer
+add: cn: roles
+add: description: Root of the sub tree that holds role management data
+
+dn: cn=policygroups,cn=configs,cn=policies,$SUFFIX
+add: objectclass: ipaContainer
+add: objectclass: ipaOrderedContainer
+add: cn: policygroups
+add: description: Sub tree to hold policy groups
+
+dn: cn=policylinks,cn=configs,cn=policies,$SUFFIX
+add: objectclass: ipaContainer
+add: objectclass: ipaOrderedContainer
+add: cn: policylinks
+add: description: Sub tree to hold policy links
+

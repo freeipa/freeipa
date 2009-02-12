@@ -10,6 +10,7 @@ app_DATA =				\
 	RFC2307bis.update		\
 	RFC4876.update			\
 	netgroups.update		\
+	policy.update			\
 	winsync_index.update		\
 	$(NULL)
 

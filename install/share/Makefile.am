@@ -8,6 +8,7 @@ app_DATA =				\
 	60radius.ldif			\
 	60ipaconfig.ldif		\
 	60basev2.ldif			\
+	60policyv2.ldif			\
 	bootstrap-template.ldif		\
 	default-aci.ldif		\
 	default-keytypes.ldif		\
