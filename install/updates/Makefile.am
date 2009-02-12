@@ -4,12 +4,12 @@ appdir = $(IPA_DATA_DIR)/updates
 app_DATA =				\
 	automount.update		\
 	groupofhosts.update		\
-	host.update			\
 	indices.update			\
 	nss_ldap.update			\
 	replication.update		\
 	RFC2307bis.update		\
 	RFC4876.update			\
+	netgroups.update		\
 	winsync_index.update		\
 	$(NULL)
 
