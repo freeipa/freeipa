@@ -646,9 +646,43 @@ class API(DictProxy):
         self.__do_if_not_done('bootstrap')
         if self.env.mode in ('dummy', 'unit_test'):
             return
-        util.import_plugins_subpackage('ipalib')
+        self.import_plugins('ipalib')
         if self.env.in_server:
-            util.import_plugins_subpackage('ipaserver')
+            self.import_plugins('ipaserver')
+
+    # FIXME: This method has no unit test
+    def import_plugins(self, package):
+        """
+        Import modules in ``plugins`` sub-package of ``package``.
+        """
+        subpackage = '%s.plugins' % package
+        try:
+            parent = __import__(package)
+            plugins = __import__(subpackage).plugins
+        except ImportError, e:
+            self.log.error(
+                'cannot import plugins sub-package %s: %s', subpackage, e
+            )
+            raise e
+        parent_dir = path.dirname(path.abspath(parent.__file__))
+        plugins_dir = path.dirname(path.abspath(plugins.__file__))
+        if parent_dir == plugins_dir:
+            raise errors2.PluginsPackageError(
+                name=subpackage, file=plugins.__file__
+            )
+        self.log.debug('importing all plugin modules in %r...', plugins_dir)
+        for (name, pyfile) in util.find_modules_in_dir(plugins_dir):
+            fullname = '%s.%s' % (subpackage, name)
+            self.log.debug('importing plugin module %r', pyfile)
+            try:
+                __import__(fullname)
+            except errors2.SkipPluginModule, e:
+                self.log.info(
+                    'skipping plugin module %s: %s', fullname, e.reason
+                )
+            except StandardError, e:
+                self.log.error('could not load plugin module %r', pyfile)
+                raise e
 
     def finalize(self):
         """

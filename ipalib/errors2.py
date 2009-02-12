@@ -208,6 +208,21 @@ class PluginMissingOverrideError(PrivateError):
     format = '%(base)s.%(name)s not registered, cannot override with %(plugin)r'
 
 
+class SkipPluginModule(PrivateError):
+    """
+    Raised to abort the loading of a plugin module.
+    """
+
+    format = '%(reason)s'
+
+
+class PluginsPackageError(PrivateError):
+    """
+    Raised when ``package.plugins`` is a module instead of a sub-package.
+    """
+
+    format = '%(name)s must be sub-package, not module: %(file)r'
+
 
 ##############################################################################
 # Public errors:

@@ -64,7 +64,7 @@ FORMAT_FILE = '\t'.join([
     '%(process)d',
     '%(threadName)s',
     '%(levelname)s',
-    '%(message)r', # Using %r for repr() so message is a single line
+    '%(message)s',
 ])
 
 

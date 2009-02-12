@@ -31,6 +31,11 @@ certificates via the following methods:
     * `ra.take_certificate_off_hold()` - take a certificate off hold.
 """
 
+from ipalib import api, SkipPluginModule
+
+if api.env.enable_ra is not True:
+    raise SkipPluginModule(reason='env.enable_ra=%r' % (api.env.enable_ra,))
+
 import os, stat, subprocess
 import array
 import errno
@@ -40,7 +45,7 @@ from urllib import urlencode, quote
 from socket import gethostname
 import socket
 
-from ipalib import api, Backend
+from ipalib import Backend
 from ipalib.errors2 import NetworkError
 from ipaserver import servercore
 from ipaserver import ipaldap
@@ -418,5 +423,4 @@ class ra(Backend):
         # self.debug("IPA-RA: stderr: '%s'" % stderr)
         return (p.returncode, stdout, stderr)
 
-if api.env.enable_ra:
-    api.register(ra)
+api.register(ra)

@@ -54,13 +54,13 @@ def find_modules_in_dir(src_dir):
     for name in sorted(os.listdir(src_dir)):
         if not name.endswith(suffix):
             continue
-        py_file = path.join(src_dir, name)
-        if path.islink(py_file) or not path.isfile(py_file):
+        pyfile = path.join(src_dir, name)
+        if path.islink(pyfile) or not path.isfile(pyfile):
             continue
         module = name[:-len(suffix)]
         if module == '__init__':
             continue
-        yield module
+        yield (module, pyfile)
 
 
 # FIXME: This function has no unit test
