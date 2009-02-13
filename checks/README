@@ -1,3 +1,3 @@
 This directory is for integration tests that require a live backend (LDAP,
 Certificate Server, etc.).  It's named "checks" so nose wont discover tests
-here
+here.

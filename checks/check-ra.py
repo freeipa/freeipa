@@ -1,5 +1,21 @@
 #!/usr/bin/python
 
+"""
+This tests the api.Backend.ra plugin against a test CA server awnuk has runnig.
+It's only accessible from inside the Red Hat firewall.  Obviously this needs
+work so the community can also run this test, but it's a start.
+
+Also, awnuk had to help me register the IPA instance I'm running with his
+server.  I don't exactly remember the steps, so ping him for help.
+
+    --jderose 2009-02-13
+"""
+
+from os import path
+import sys
+parent = path.dirname(path.dirname(path.abspath(__file__)))
+sys.path.append(parent)
+
 from base64 import b64encode, b64decode
 from ipalib import api
 
@@ -22,7 +38,13 @@ xFnXZKkvsT3GjfIe/k687TMG3paTFtKkis+u7z0v6355uJzLpQ==
 
 csr = 'MIIBlDCB/gIBADBVMR0wGwYDVQQKExRVc2Vyc3lzUmVkaGF0LURvbWFpbjEQMA4GA1UECxMHcGtpLWlwYTEiMCAGA1UEAxMZSVBBLVN1YnN5c3RlbS1DZXJ0aWZpY2F0ZTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA3Qmpr81WxbnISmyyhc2ShiPzUvWIrCg5FgJ1QrBl7CRe62Wl/YYiV/DbuMoex1ec7zKfgfSFVFU9/2iwj7Du0sZdXYJNQPdj9yLdPk2tyxdgJuHLdxI0SNgaEFyvmIMP/X9vQN9H5w0/PyrJQscOxc6tbTcYL0ZSSylLQ+diaQECAwEAA'
 
-api.bootstrap(in_server=True, debug=True)
+api.bootstrap(
+    in_server=True,
+    enable_ra=True,
+    ca_host='a-f8.sjc.redhat.com',
+    debug=True,
+    in_tree=True,
+)
 api.finalize()
 ra = api.Backend.ra
 
