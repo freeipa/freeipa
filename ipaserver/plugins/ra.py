@@ -32,10 +32,9 @@ certificates via the following methods:
 """
 
 from ipalib import api, SkipPluginModule
-
 if api.env.enable_ra is not True:
-    raise SkipPluginModule(reason='env.enable_ra=%r' % (api.env.enable_ra,))
-
+    # In this case, abort loading this plugin module...
+    raise SkipPluginModule(reason='env.enable_ra is not True')
 import os, stat, subprocess
 import array
 import errno
@@ -44,7 +43,6 @@ from httplib import HTTPConnection
 from urllib import urlencode, quote
 from socket import gethostname
 import socket
-
 from ipalib import Backend
 from ipalib.errors2 import NetworkError
 from ipaserver import servercore

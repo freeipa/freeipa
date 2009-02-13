@@ -23,13 +23,11 @@ Command plugins for IPA-RA certificate operations.
 """
 
 from ipalib import api, SkipPluginModule
-
 if api.env.enable_ra is not True:
-    raise SkipPluginModule(reason='env.enable_ra=%r' % (api.env.enable_ra,))
-
+    # In this case, abort loading this plugin module...
+    raise SkipPluginModule(reason='env.enable_ra is not True')
 from ipalib import Command, Str, Int
 
-assert False
 
 class cert_request(Command):
     """
