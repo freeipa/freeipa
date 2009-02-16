@@ -608,6 +608,7 @@ class automount_addindirectmap(crud.Add):
         Str('parentmap?',
             cli_name='parentmap',
             default=u'auto.master',
+            autofill=True,
             doc='The parent map to connect this to.',
         ),
         Str('automountkey',

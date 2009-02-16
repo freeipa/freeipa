@@ -235,3 +235,61 @@ class test_Indirect(XMLRPC_test):
             pass
         else:
             assert False
+
+class test_IndirectNoParent(XMLRPC_test):
+    """
+    Test the `automount` plugin Indirect map function.
+    """
+    mapname=u'auto.home'
+    keyname=u'/home'
+    parentmap=u'auto.master'
+    description=u'Home directories'
+    map_kw={'automountkey': keyname, 'description': description}
+
+    def test_add_indirect(self):
+        """
+        Test adding an indirect map with default parent.
+        """
+        res = api.Command['automount_addindirectmap'](self.mapname, **self.map_kw)
+        assert res
+        assert res.get('automountinformation','') == self.mapname
+
+    def test_doshowkey(self):
+        """
+        Test the `xmlrpc.automount_showkey` method with default parent.
+        """
+        showkey_kw={'automountmapname': self.parentmap, 'automountkey': self.keyname}
+        res = api.Command['automount_showkey'](**showkey_kw)
+        assert res
+        assert res.get('automountkey','') == self.keyname
+
+    def test_remove_key(self):
+        """
+        Remove the indirect key /home
+        """
+        delkey_kw={'automountmapname': self.parentmap, 'automountkey': self.keyname}
+        res = api.Command['automount_delkey'](**delkey_kw)
+        assert res == True
+
+        # Verify that it is gone
+        try:
+            res = api.Command['automount_showkey'](**delkey_kw)
+        except errors2.NotFound:
+            pass
+        else:
+            assert False
+
+    def test_remove_map(self):
+        """
+        Remove the indirect map for auto.home
+        """
+        res = api.Command['automount_delmap'](self.mapname)
+        assert res == True
+
+        # Verify that it is gone
+        try:
+            res = api.Command['automount_showmap'](self.mapname)
+        except errors2.NotFound:
+            pass
+        else:
+            assert False
