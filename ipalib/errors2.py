@@ -710,6 +710,22 @@ class RealmMismatch(ExecutionError):
     errno = 4005
     format = _('The realm for the principal does not match the realm for this IPA server')
 
+class RequiresRoot(ExecutionError):
+    """
+    **4006** Raised when a command requires the unix super-user to run
+
+    For example:
+
+    >>> raise RequiresRoot
+    Traceback (most recent call last):
+      ...
+    RequiresRoot: This command requires root access
+
+    """
+
+    errno = 4006
+    format = _('This command requires root access')
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).
