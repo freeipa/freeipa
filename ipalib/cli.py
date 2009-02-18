@@ -251,10 +251,10 @@ class textui(backend.Backend):
         for key in sorted(entry):
             value = entry[key]
             if type(value) in (list, tuple):
-                value = ', '.join(repr(v) for v in value)
+                for v in value:
+                    self.print_indented('%s: %s' % (key, repr(v)), indent)
             else:
-                value = repr(value)
-            self.print_indented('%s: %s' % (key, value), indent)
+                self.print_indented('%s: %s' % (key, repr(value)), indent)
 
     def print_dashed(self, string, above=True, below=True, indent=0, dash='-'):
         """
