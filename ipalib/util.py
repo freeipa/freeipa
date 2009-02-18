@@ -30,6 +30,7 @@ import time
 from types import NoneType
 from xmlrpclib import Binary
 import krbV
+import socket
 
 
 def get_current_principal():
@@ -40,6 +41,16 @@ def get_current_principal():
         print "Unable to get kerberos principal"
         return None
 
+def get_fqdn():
+    fqdn = ""
+    try:
+        fqdn = socket.getfqdn()
+    except:
+        try:
+            fqdn = socket.gethostname()
+        except:
+            fqdn = ""
+    return fqdn
 
 # FIXME: This function has no unit test
 def find_modules_in_dir(src_dir):
