@@ -130,6 +130,7 @@ class user_add(crud.Create):
         ldap = self.api.Backend.ldap
         kw['uid'] = uid
         kw['dn'] = ldap.make_user_dn(uid)
+        default_group = None
 
         # FIXME: enforce this elsewhere
 #        if servercore.uid_too_long(kw['uid']):
@@ -154,12 +155,12 @@ class user_add(crud.Create):
         if not kw.get('gidnumber'):
             try:
                 group_dn = ldap.find_entry_dn("cn", config.get('ipadefaultprimarygroup'))
-                default_group = ldap.retrieve(group_dn, ['dn','gidNumber'])
+                default_group = ldap.retrieve(group_dn, ['cn', 'dn','gidNumber'])
                 if default_group:
                     kw['gidnumber'] = default_group.get('gidnumber')
             except errors2.NotFound:
                 # Fake an LDAP error so we can return something useful to the kw
-                raise errors2.NotFound, "The default group for new kws, '%s', cannot be found." % config.get('ipadefaultprimarygroup')
+                raise errors2.NotFound, "The default group for new users, '%s', cannot be found." % config.get('ipadefaultprimarygroup')
             except Exception, e:
                 # catch everything else
                 raise e
@@ -176,7 +177,13 @@ class user_add(crud.Create):
         # some required objectclasses
         kw['objectClass'] =  config.get('ipauserobjectclasses')
 
-        return ldap.create(**kw)
+        new_user = ldap.create(**kw)
+
+        if default_group:
+            groupkw = {'users':kw.get('uid')}
+            api.Command['group_add_member'](default_group['cn'].decode('UTF-8'), **groupkw)
+
+        return new_user
 
     def output_for_cli(self, textui, result, *args, **options):
         """
@@ -334,8 +341,7 @@ class user_show(crud.Retrieve):
             return ldap.retrieve(dn, default_attributes)
 
     def output_for_cli(self, textui, result, uid, **options):
-        if result:
-            display_user(result)
+        display_user(result)
 
 api.register(user_show)
 
