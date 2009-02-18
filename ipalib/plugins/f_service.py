@@ -26,6 +26,7 @@ from ipalib import api, crud, errors2
 from ipalib import Object  # Plugin base classes
 from ipalib import Str, Flag # Parameter types
 
+default_attributes = ['krbprincipalname']
 
 class service(Object):
     """
@@ -149,6 +150,9 @@ api.register(service_del)
 
 class service_find(crud.Find):
     'Search the existing services.'
+    takes_options = (
+        Flag('all', doc='Retrieve all attributes'),
+    )
     def execute(self, principal, **kw):
         ldap = self.api.Backend.ldap
 
@@ -159,6 +163,11 @@ class service_find(crud.Find):
         object_type = ldap.get_object_type("krbprincipalname")
         if object_type and not kw.get('objectclass'):
             search_kw['objectclass'] = object_type
+
+        if kw.get('all', False):
+            search_kw['attributes'] = ['*']
+        else:
+            search_kw['attributes'] = default_attributes
 
         return ldap.search(**search_kw)
 
@@ -182,6 +191,9 @@ api.register(service_find)
 
 class service_show(crud.Get):
     'Examine an existing service.'
+    takes_options = (
+        Flag('all', doc='Display all service attributes'),
+    )
     def execute(self, principal, **kw):
         """
         Execute the service-show operation.
@@ -197,7 +209,13 @@ class service_show(crud.Get):
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("krbprincipalname", principal)
         # FIXME: should kw contain the list of attributes to display?
-        return ldap.retrieve(dn)
+        if kw.get('all', False):
+            return ldap.retrieve(dn)
+        else:
+            value = ldap.retrieve(dn, default_attributes)
+            del value['dn']
+            return value
+
     def output_for_cli(self, textui, result, *args, **options):
         textui.print_entry(result)
 

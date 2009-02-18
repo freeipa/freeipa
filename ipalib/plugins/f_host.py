@@ -139,6 +139,7 @@ class host_add(crud.Add):
 
             if 'krbprincipalaux' not in kw.get('objectclass'):
                kw['objectclass'].append('krbprincipalaux')
+               kw['objectclass'].append('krbprincipal')
         else:
             if 'krbprincipalaux' in kw.get('objectclass'):
                 kw['objectclass'].remove('krbprincipalaux')

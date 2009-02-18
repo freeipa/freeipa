@@ -23,7 +23,7 @@ Frontend plugins for group (Identity).
 
 from ipalib import api, crud, errors, errors2
 from ipalib import Object, Command  # Plugin base classes
-from ipalib import Str, Int  # Parameter types
+from ipalib import Str, Int, Flag  # Parameter types
 
 
 def get_members(members):
@@ -38,6 +38,8 @@ def get_members(members):
         members = []
 
     return members
+
+default_attributes = ['cn','description','gidnumber', 'member']
 
 class group(Object):
     """
@@ -213,6 +215,9 @@ api.register(group_find)
 
 class group_show(crud.Get):
     'Examine an existing group.'
+    takes_options = (
+        Flag('all', doc='Retrieve all attributes'),
+    )
     def execute(self, cn, **kw):
         """
         Execute the group-show operation.
@@ -227,27 +232,15 @@ class group_show(crud.Get):
         """
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("cn", cn, "posixGroup")
+
         # FIXME: should kw contain the list of attributes to display?
-        return ldap.retrieve(dn)
+        if kw.get('all', False):
+            return ldap.retrieve(dn)
+        else:
+            return ldap.retrieve(dn, default_attributes)
 
     def output_for_cli(self, textui, result, *args, **options):
-        counter = result[0]
-        groups = result[1:]
-        if counter == 0 or len(groups) == 0:
-            textui.print_plain("No entries found")
-            return
-        if len(groups) == 1:
-            textui.print_entry(groups[0])
-            return
-        textui.print_name(self.name)
-        for u in groups:
-            textui.print_plain('%(givenname)s %(sn)s:' % u)
-            textui.print_entry(u)
-            textui.print_plain('')
-        if counter == -1:
-            textui.print_plain('These results are truncated.')
-            textui.print_plain('Please refine your search and try again.')
-        textui.print_count(groups, '%d groups matched')
+        textui.print_entry(result)
 
 api.register(group_show)
 
