@@ -374,6 +374,9 @@ def main():
         print "Caching of users/groups will not be available after reboot"
         pass
 
+    # Get the CA certificate
+    run(["/usr/bin/wget", "-O", "/etc/ipa/ca.crt", "http://%s/ipa/config/ca.crt" % cli_server])
+
     print "Client configuration complete."
 
     return 0

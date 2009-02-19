@@ -33,12 +33,15 @@ Also see the `ipaserver.rpcserver` module.
 from types import NoneType
 import threading
 import socket
-from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy, SafeTransport
+import os
+from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy, Transport
 import kerberos
 from ipalib.backend import Connectible
 from ipalib.errors2 import public_errors, PublicError, UnknownError, NetworkError
 from ipalib import errors2
 from ipalib.request import context
+from OpenSSL import SSL
+import httplib
 
 
 def xml_wrap(value):
@@ -175,13 +178,134 @@ def xml_loads(data, encoding='UTF-8'):
         raise decode_fault(e)
 
 
-class KerbTransport(SafeTransport):
+class SSLTransport(Transport):
+    """Handles an HTTPS transaction to an XML-RPC server."""
+
+    def make_connection(self, host):
+        host, extra_headers, x509 = self.get_host_info(host)
+        return SSLSocket(host, None, **(x509 or {}))
+
+
+class SSLFile(httplib.SSLFile):
+    """
+    Override the _read method so we can handle PyOpenSSL errors
+    gracefully.
+    """
+    def _read(self):
+        buf = ''
+        while True:
+            try:
+                buf = self._ssl.read(self._bufsize)
+            except SSL.ZeroReturnError:
+                # Nothing more to be read
+                break
+            except SSL.SysCallError, e:
+                print "SSL exception", e.args
+                break
+            except SSL.WantWriteError:
+                break
+            except SSL.WantReadError:
+                break
+            except socket.error, err:
+                if err[0] == errno.EINTR:
+                    continue
+                if err[0] == errno.EBADF:
+                    # XXX socket was closed?
+                    break
+                raise
+            else:
+                break
+        return buf
+
+
+class FakeSocket(httplib.FakeSocket):
+    """
+    Override this class so we can end up using our own SSLFile
+    implementation.
+    """
+    def makefile(self, mode, bufsize=None):
+        if mode != 'r' and mode != 'rb':
+            raise httplib.UnimplementedFileMode()
+        return SSLFile(self._shared, self._ssl, bufsize)
+
+
+class SSLConnection(httplib.HTTPConnection):
+    """
+    Use OpenSSL as the SSL provider instead of the built-in python SSL
+    support. The built-in SSL client doesn't do CA validation.
+
+    By default we will attempt to load the ca-bundle.crt and our own
+    IPA CA for validation purposes. To add an additional CA to verify
+    against set the x509['ca_file'] to the path of the CA PEM file in
+    KerbTransport.get_host_info
+    """
+    default_port = httplib.HTTPSConnection.default_port
+
+    def verify_callback(self, conn, cert, errnum, depth, ok):
+        """
+        Verify callback. If we get here then the certificate is ok.
+        """
+        return ok
+
+    def __init__(self, host, port=None, key_file=None, cert_file=None,
+                 ca_file=None, strict=None):
+        httplib.HTTPConnection.__init__(self, host, port, strict)
+        self.key_file = key_file
+        self.cert_file = cert_file
+        self.ca_file = ca_file
+
+    def connect(self):
+        ctx = SSL.Context(SSL.SSLv23_METHOD)
+        ctx.set_verify(SSL.VERIFY_PEER, self.verify_callback)
+        if self.key_file:
+            ctx.use_privatekey_file (self.key_file)
+        if self.cert_file:
+            ctx.use_certificate_file(self.cert_file)
+        if os.path.exists("/etc/pki/tls/certs/ca-bundle.crt"):
+            ctx.load_verify_locations("/etc/pki/tls/certs/ca-bundle.crt")
+        if os.path.exists("/etc/ipa/ca.crt"):
+            ctx.load_verify_locations("/etc/ipa/ca.crt")
+        if self.ca_file is not None and os.path.exists(self.ca_file):
+            ctx.load_verify_locations(self.ca_file)
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        ssl = SSL.Connection(ctx, sock)
+        ssl.connect((self.host, self.port))
+        ssl.do_handshake()
+        self.sock = FakeSocket(sock, ssl)
+
+
+class SSLSocket(httplib.HTTP):
+    """
+    This is more or less equivalent to the httplib.HTTPS class, we juse
+    use our own connection provider.
+    """
+    _connection_class = SSLConnection
+
+    def __init__(self, host='', port=None, key_file=None, cert_file=None,
+                 ca_file=None, strict=None):
+        # provide a default host, pass the X509 cert info
+
+        # urf. compensate for bad input.
+        if port == 0:
+            port = None
+        self._setup(self._connection_class(host, port, key_file,
+                                           cert_file, ca_file, strict))
+
+        # we never actually use these for anything, but we keep them
+        # here for compatibility with post-1.5.2 CVS.
+        self.key_file = key_file
+        self.cert_file = cert_file
+        self.ca_file = ca_file
+
+
+class KerbTransport(SSLTransport):
     """
     Handles Kerberos Negotiation authentication to an XML-RPC server.
     """
 
     def get_host_info(self, host):
-        (host, extra_headers, x509) = SafeTransport.get_host_info(self, host)
+        (host, extra_headers, x509) = SSLTransport.get_host_info(self, host)
 
         # Set the remote host principal
         service = "HTTP@" + host.split(':')[0]
