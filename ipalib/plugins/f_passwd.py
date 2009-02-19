@@ -54,7 +54,7 @@ class passwd(Command):
         if principal.find('@') > 0:
             u = principal.split('@')
             if len(u) > 2:
-                raise errors.InvalidUserPrincipal, principal
+                raise errors.InvalidUserPrincipal(principal)
         else:
             principal = principal+"@"+self.api.env.realm
         dn = self.Backend.ldap.find_entry_dn(
