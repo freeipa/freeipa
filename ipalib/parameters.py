@@ -259,7 +259,10 @@ class Param(ReadOnly):
 
         # Add 'default' to self.kwargs and makes sure no unknown kw were given:
         assert type(self.type) is type
-        self.kwargs += (('default', self.type, None),)
+        if kw.get('multivalue', True):
+            self.kwargs += (('default', tuple, None),)
+        else:
+            self.kwargs += (('default', self.type, None),)
         if not set(t[0] for t in self.kwargs).issuperset(self.__kw):
             extra = set(kw) - set(t[0] for t in self.kwargs)
             raise TypeError(
