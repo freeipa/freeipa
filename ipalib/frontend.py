@@ -176,6 +176,21 @@ class Command(plugable.Plugin):
             if name in options:
                 yield (name, options[name])
 
+    def args_options_2_entry(self, *args, **options):
+        """
+        Creates a LDAP entry from attributes in args and options.
+        """
+        kw = self.args_options_2_params(*args, **options)
+        return dict(self.__attributes_2_entry(kw))
+
+    def __attributes_2_entry(self, kw):
+        for name in self.params:
+            if self.params[name].attribute and name in kw:
+                if type(kw[name]) is tuple:
+                    yield (name, [str(value) for value in kw[name]])
+                else:
+                    yield (name, str(kw[name]))
+
     def params_2_args_options(self, **params):
         """
         Split params into (args, options).

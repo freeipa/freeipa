@@ -78,14 +78,14 @@ class Create(frontend.Method):
     """
 
     def get_args(self):
-        yield self.obj.primary_key
+        yield self.obj.primary_key.clone(attribute=True)
 
     def get_options(self):
         if self.extra_options_first:
             for option in super(Create, self).get_options():
                 yield option
         for option in self.obj.params_minus(self.args):
-            yield option
+            yield option.clone(attribute=True)
         if not self.extra_options_first:
             for option in super(Create, self).get_options():
                 yield option
@@ -97,7 +97,7 @@ class PKQuery(frontend.Method):
     """
 
     def get_args(self):
-        yield self.obj.primary_key.clone(query=True)
+        yield self.obj.primary_key.clone(attribute=True, query=True)
 
 
 
@@ -117,7 +117,7 @@ class Update(PKQuery):
             for option in super(Update, self).get_options():
                 yield option
         for option in self.obj.params_minus_pk():
-            yield option.clone(required=False)
+            yield option.clone(attribute=True, required=False)
         if not self.extra_options_first:
             for option in super(Update, self).get_options():
                 yield option
@@ -141,7 +141,7 @@ class Search(frontend.Method):
             for option in super(Search, self).get_options():
                 yield option
         for option in self.obj.params_minus(self.args):
-            yield option.clone(query=True, required=False)
+            yield option.clone(attribute=True, query=True, required=False)
         if not self.extra_options_first:
             for option in super(Search, self).get_options():
                 yield option
