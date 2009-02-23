@@ -34,6 +34,8 @@ BuildRequires:  /usr/share/selinux/devel/Makefile
 BuildRequires:  m4
 BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
 BuildRequires:  python-cherrypy
+BuildRequires:  python-setuptools
+BuildRequires:  python-krbV
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
