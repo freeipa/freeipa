@@ -28,7 +28,6 @@ from ipalib.constants import TYPE_ERROR
 from ipalib.base import NameSpace
 from ipalib import frontend, backend, plugable, errors2, errors, parameters, config
 
-
 def test_RULE_FLAG():
     assert frontend.RULE_FLAG == 'validation_rule'
 
@@ -343,6 +342,38 @@ class test_Command(ClassChecker):
             dict(one=1, two=(21, 22, 23), three=3, four=4)
         assert mthd(1, (21, 22, 23), three=3, four=4) == \
             dict(one=1, two=(21, 22, 23), three=3, four=4)
+
+    def test_args_options_2_entry(self):
+        """
+        Test `ipalib.frontend.Command.args_options_2_entry` method.
+        """
+        class my_cmd(self.cls):
+            takes_args = (
+                parameters.Str('one', attribute=True),
+                parameters.Str('two', attribute=False),
+            )
+            takes_options = (
+                parameters.Str('three', attribute=True, multivalue=True),
+                parameters.Str('four', attribute=True, multivalue=False),
+            )
+
+            def run(self, *args, **kw):
+                return self.args_options_2_entry(*args, **kw)
+
+        args = ('one', 'two')
+        kw = dict(three=('three1', 'three2'), four='four')
+
+        o = my_cmd()
+        o.finalize()
+        e = o.run(*args, **kw)
+        assert type(e) is dict
+        assert 'one' in e
+        assert 'two' not in e
+        assert 'three' in e
+        assert 'four' in e
+        assert e['one'] == 'one'
+        assert e['three'] == ['three1', 'three2']
+        assert e['four'] == 'four'
 
     def test_params_2_args_options(self):
         """
