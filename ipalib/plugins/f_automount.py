@@ -21,6 +21,68 @@
 Frontend plugins for automount.
 
 RFC 2707bis http://www.padl.com/~lukeh/rfc2307bis.txt
+
+A few notes on automount:
+- It was a design decision to not support different maps by location
+- The default parent when adding an indirect map is auto.master
+- This uses the short format for automount maps instead of the
+  URL format. Support for ldap as a map source in nsswitch.conf was added
+  in autofs version 4.1.3-197.  Any version prior to that is not expected
+  to work.
+
+As an example, the following automount files:
+
+auto.master:
+/-	auto.direct
+/mnt	auto.mnt
+
+auto.mnt:
+stuff -ro,soft,rsize=8192,wsize=8192 nfs.example.com:/vol/archive/stuff
+
+are equivalent to the following LDAP entries:
+
+# auto.master, automount, example.com
+dn: automountmapname=auto.master,cn=automount,dc=example,dc=com
+objectClass: automountMap
+objectClass: top
+automountMapName: auto.master
+
+# auto.direct, automount, example.com
+dn: automountmapname=auto.direct,cn=automount,dc=example,dc=com
+objectClass: automountMap
+objectClass: top
+automountMapName: auto.direct
+
+# /-, auto.master, automount, example.com
+dn: automountkey=/-,automountmapname=auto.master,cn=automount,dc=example,dc=co
+ m
+objectClass: automount
+objectClass: top
+automountKey: /-
+automountInformation: auto.direct
+
+# auto.mnt, automount, example.com
+dn: automountmapname=auto.mnt,cn=automount,dc=example,dc=com
+objectClass: automountMap
+objectClass: top
+automountMapName: auto.mnt
+
+# /mnt, auto.master, automount, example.com
+dn: automountkey=/mnt,automountmapname=auto.master,cn=automount,dc=example,dc=
+ com
+objectClass: automount
+objectClass: top
+automountKey: /mnt
+automountInformation: auto.mnt
+
+# stuff, auto.mnt, automount, example.com
+dn: automountkey=stuff,automountmapname=auto.mnt,cn=automount,dc=example,dc=com
+objectClass: automount
+objectClass: top
+automountKey: stuff
+automountInformation: -ro,soft,rsize=8192,wsize=8192 nfs.example.com:/vol/arch
+ ive/stuff
+
 """
 
 from ldap import explode_dn
@@ -52,6 +114,23 @@ def make_automount_dn(mapname):
         api.env.container_automount,
         api.env.basedn,
     )
+
+
+def make_ldap_map(ldapuri, mapname):
+    """
+    Convert a map name into an LDAP name.
+
+    Note: This is unused currently. This would return map names as a
+    quasi ldap URL which will work with older autofs clients. We are
+    not currently supporting them.
+    """
+    if not ldapuri:
+        return mapname
+    if mapname.find('ldap:') >= 0:
+        return mapname
+
+    return 'ldap:%s:%s' % (api.env.host, make_automount_dn(mapname))
+
 
 class automount(Object):
     """
@@ -128,10 +207,13 @@ class automount_addkey(crud.Add):
         assert 'automountmapname' not in kw
         assert 'dn' not in kw
         ldap = self.api.Backend.ldap
+        config = ldap.get_ipa_config()
         # use find_entry_dn instead of make_automap_dn so we can confirm that
         # the map exists
         map_dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap", api.env.container_automount)
         kw['dn'] = "automountkey=%s,%s" % (kw['automountkey'], map_dn)
+
+        kw['automountinformation'] = make_ldap_map(config.get('automountldapuri', False), kw['automountinformation'])
 
         kw['objectClass'] = ['automount']
 
@@ -159,10 +241,20 @@ class automount_delmap(crud.Del):
         """
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap", api.env.container_automount)
+
+        # First remove all the keys for this map so we don't leave orphans
         keys = api.Command['automount_getkeys'](mapname)
-        if keys:
-            for k in keys:
+        for k in keys:
                 ldap.delete(k.get('dn'))
+
+        # Now remove the parental connection
+        try:
+            infodn = ldap.find_entry_dn("automountinformation", mapname, "automount", api.env.container_automount)
+            ldap.delete(infodn)
+        except errors2.NotFound:
+            # direct maps may not have this
+            pass
+
         return ldap.delete(dn)
     def output_for_cli(self, textui, result, *args, **options):
         """
@@ -465,7 +557,7 @@ class automount_getkeys(Command):
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap", api.env.container_automount)
         try:
-            keys = ldap.get_one_entry(dn, 'objectclass=*', ['automountkey'])
+            keys = ldap.get_one_entry(dn, 'objectclass=*', ['*'])
         except errors2.NotFound:
             keys = []
 
@@ -484,6 +576,7 @@ class automount_getmaps(Command):
             cli_name='mapname',
             primary_key=True,
             doc='A group of related automount objects',
+            default=u'auto.master',
         ),
     )
     def execute(self, mapname, **kw):
@@ -496,8 +589,6 @@ class automount_getmaps(Command):
         ldap = self.api.Backend.ldap
         base = api.env.container_automount + "," + api.env.basedn
 
-        if not mapname:
-            mapname = "auto.master"
         search_base = "automountmapname=%s,%s" % (mapname, base)
         maps = ldap.get_one_entry(search_base, "objectClass=*", ["*"])
 
@@ -561,3 +652,40 @@ class automount_addindirectmap(crud.Add):
         textui.print_plain("Indirect automount map %s added" % map)
 
 api.register(automount_addindirectmap)
+
+
+class automount_tofiles(Command):
+    'Generate the automount maps as they would be in the filesystem'
+    def execute(self, **kw):
+        """
+        Execute the automount-getmaps operation.
+
+        Return a list of all automount maps.
+        """
+
+        ldap = self.api.Backend.ldap
+        base = api.env.container_automount + "," + api.env.basedn
+
+        search_base = "automountmapname=auto.master,%s" % base
+        maps = ldap.get_one_entry(search_base, "objectClass=autoMount", ["*"])
+
+        mapkeys = {}
+        for m in maps:
+            keys = api.Command['automount_getkeys'](m.get('automountinformation').decode('UTF-8'))
+            mapkeys[m.get('automountinformation')] = keys
+
+        return maps, mapkeys
+    def output_for_cli(self, textui, result, **options):
+        maps = result[0]
+        keys = result[1]
+        textui.print_plain("/etc/auto.master:")
+        for m in maps:
+            textui.print_plain('%s\t/etc/%s' % (m.get('automountkey'), m.get('automountinformation')))
+        for m in maps:
+            textui.print_plain('---------------------------')
+            textui.print_plain('/etc/%s:' % m.get('automountinformation'))
+            mapkeys = keys.get(m.get('automountinformation'))
+            for k in mapkeys:
+                textui.print_plain('%s\t%s' % (k.get('automountkey'), k.get('automountinformation')))
+
+api.register(automount_tofiles)
