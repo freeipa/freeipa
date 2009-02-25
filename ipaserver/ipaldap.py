@@ -381,6 +381,12 @@ class IPAdmin(SimpleLDAPObject):
             self.add_s(*args)
         except ldap.ALREADY_EXISTS, e:
             raise errors2.DuplicateEntry
+        except ldap.CONSTRAINT_VIOLATION, e:
+            # This error gets thrown by the uniqueness plugin
+            if e.args[0].get('info','') == 'Another entry with the same attribute value already exists':
+                raise errors2.DuplicateEntry
+            else:
+                raise errors.DatabaseError, e
         except ldap.LDAPError, e:
             raise errors.DatabaseError, e
         return True

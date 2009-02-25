@@ -16,6 +16,24 @@ nsslapd-pluginVersion: 1.1.0
 nsslapd-pluginVendor: Fedora Project
 nsslapd-pluginDescription: Enforce unique attribute values
 
+dn: cn=netgroup uniqueness,cn=plugins,cn=config
+changetype: add
+objectClass: top
+objectClass: nsSlapdPlugin
+objectClass: extensibleObject
+cn: netgroup uniqueness
+nsslapd-pluginPath: libattr-unique-plugin
+nsslapd-pluginInitfunc: NSUniqueAttr_Init
+nsslapd-pluginType: preoperation
+nsslapd-pluginEnabled: on
+nsslapd-pluginarg0: cn
+nsslapd-pluginarg1: cn=ng,cn=alt,$SUFFIX
+nsslapd-plugin-depends-on-type: database
+nsslapd-pluginId: NSUniqueAttr
+nsslapd-pluginVersion: 1.1.0
+nsslapd-pluginVendor: Fedora Project
+nsslapd-pluginDescription: Enforce unique attribute values
+
 #dn: cn=uid uniqueness,cn=plugins,cn=config
 #objectClass: top
 #objectClass: nsSlapdPlugin

@@ -43,7 +43,7 @@ def get_members(members):
 
     return members
 
-def find_members(ldap, failed, members, attribute, filter=None):
+def find_members(ldap, failed, members, attribute, filter=None, base=None):
     """
     Return 2 lists: one a list of DNs found, one a list of errors
     """
@@ -51,7 +51,7 @@ def find_members(ldap, failed, members, attribute, filter=None):
     for m in members:
         if not m: continue
         try:
-            member_dn = ldap.find_entry_dn(attribute, m, filter)
+            member_dn = ldap.find_entry_dn(attribute, m, filter, base)
             found.append(member_dn)
         except errors2.NotFound:
             failed.append(m)
@@ -315,6 +315,7 @@ class netgroup_add_member(Command):
         Str('hostgroups?', doc='comma-separated list of host groups to add'),
         Str('users?', doc='comma-separated list of users to add'),
         Str('groups?', doc='comma-separated list of groups to add'),
+        Str('netgroups?', doc='comma-separated list of netgroups to add'),
     )
 
     def execute(self, cn, **kw):
@@ -327,7 +328,8 @@ class netgroup_add_member(Command):
         :param kw: hosts is a comma-separated list of hosts to add
         :param kw: hostgroups is a comma-separated list of host groups to add
         :param kw: users is a comma-separated list of users to add
-        :param kw: groups is a comma-separated list of host to add
+        :param kw: groups is a comma-separated list of groups to add
+        :param kw: netgroups is a comma-separated list of netgroups to add
         """
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("cn", cn, netgroup_filter, netgroup_base)
@@ -366,6 +368,15 @@ class netgroup_add_member(Command):
         (completed, failed) = add_members(ldap, completed, to_add, dn, 'memberuser')
         add_failed+=failed
 
+        # Netgroups
+        members = get_members(kw.get('netgroups', ''))
+        (to_add, add_failed) = find_members(ldap, add_failed, members, "cn", netgroup_filter, netgroup_base)
+        (completed, failed) = add_members(ldap, completed, to_add, dn, 'member')
+        add_failed+=failed
+
+        if completed == 0 and len(add_failed) == 0:
+            return 0
+
         return add_failed
 
     def output_for_cli(self, textui, result, *args, **options):
@@ -377,7 +388,10 @@ class netgroup_add_member(Command):
             for a in result:
                 print "\t'%s'" % a
         else:
-            textui.print_plain("netgroup membership updated.")
+            if not type(result) in (list, tuple) and result == 0:
+                textui.print_plain("nothing to do.")
+            else:
+                textui.print_plain("netgroup membership updated.")
 
 api.register(netgroup_add_member)
 
@@ -395,6 +409,7 @@ class netgroup_remove_member(Command):
         Str('hostgroups?', doc='comma-separated list of groups to remove'),
         Str('users?', doc='comma-separated list of users to remove'),
         Str('groups?', doc='comma-separated list of groups to remove'),
+        Str('netgroups?', doc='comma-separated list of netgroups to add'),
     )
     def execute(self, cn, **kw):
         """
@@ -406,7 +421,8 @@ class netgroup_remove_member(Command):
         :param kw: hosts is a comma-separated list of hosts to remove
         :param kw: hostgroups is a comma-separated list of host groups to remove
         :param kw: users is a comma-separated list of users to remove
-        :param kw: groups is a comma-separated list of host to remove
+        :param kw: groups is a comma-separated list of groups to remove
+        :param kw: netgroups is a comma-separated list of netgroups to add
         """
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("cn", cn, netgroup_filter, netgroup_base)
@@ -443,6 +459,12 @@ class netgroup_remove_member(Command):
         members = get_members(kw.get('groups', ''))
         (to_remove, remove_failed) = find_members(ldap, remove_failed, members, "cn", "posixGroup")
         (completed, failed) = remove_members(ldap, completed, to_remove, dn, 'memberuser')
+        remove_failed+=failed
+
+        # Netgroups
+        members = get_members(kw.get('netgroups', ''))
+        (to_add, remove_failed) = find_members(ldap, remove_failed, members, "cn", netgroup_filter, netgroup_base)
+        (completed, failed) = remove_members(ldap, completed, to_remove, dn, 'member')
         remove_failed+=failed
 
         return remove_failed
