@@ -611,26 +611,28 @@ class cli(backend.Executioner):
         params that have a missing values, even if the param is optional.
         """
         for param in cmd.params():
-            if param.password:
-                if kw.get(param.name, False) is True or param.name in cmd.args:
-                    kw[param.name] = \
-                        self.Backend.textui.prompt_password(param.cli_name)
-            elif param.autofill or param.name in kw:
-                continue
-            elif param.required or self.env.prompt_all:
-                default = param.get_default(**kw)
-                error = None
-                while True:
-                    if error is not None:
-                        print '>>> %s: %s' % (param.cli_name, error)
-                    raw = self.Backend.textui.prompt(param.cli_name, default)
-                    try:
-                        value = param(raw, **kw)
-                        if value is not None:
-                            kw[param.name] = value
-                        break
-                    except errors.ValidationError, e:
-                        error = e.error
+            if param.password and (
+                kw.get(param.name, False) is True or param.name in cmd.args
+            ):
+                kw[param.name] = \
+                    self.Backend.textui.prompt_password(param.cli_name)
+            elif param.name not in kw:
+                if param.autofill:
+                    kw[param.name] = param.get_default(**kw)
+                elif param.required or self.env.prompt_all:
+                    default = param.get_default(**kw)
+                    error = None
+                    while True:
+                        if error is not None:
+                            print '>>> %s: %s' % (param.cli_name, error)
+                        raw = self.Backend.textui.prompt(param.cli_name, default)
+                        try:
+                            value = param(raw, **kw)
+                            if value is not None:
+                                kw[param.name] = value
+                            break
+                        except errors.ValidationError, e:
+                            error = e.error
 
 
 cli_plugins = (
