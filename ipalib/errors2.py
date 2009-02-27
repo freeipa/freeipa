@@ -726,6 +726,22 @@ class RequiresRoot(ExecutionError):
     errno = 4006
     format = _('This command requires root access')
 
+class AlreadyPosixGroup(ExecutionError):
+    """
+    **4007** Raised when a group is already a posix group
+
+    For example:
+
+    >>> raise AlreadyPosixGroup
+    Traceback (most recent call last):
+      ...
+    AlreadyPosixGroup: This is already a posix group
+
+    """
+
+    errno = 4007
+    format = _('This is already a posix group')
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).

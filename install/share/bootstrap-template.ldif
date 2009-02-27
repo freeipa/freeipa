@@ -145,8 +145,8 @@ ipaMaxUsernameLength: 8
 ipaPwdExpAdvNotify: 4
 ipaGroupObjectClasses: top
 ipaGroupObjectClasses: groupofnames
-ipaGroupObjectClasses: posixGroup
-ipaGroupObjectClasses: inetUser
+ipaGroupObjectClasses: nestedGroup
+ipaGroupObjectClasses: ipaUserGroup
 ipaUserObjectClasses: top
 ipaUserObjectClasses: person
 ipaUserObjectClasses: organizationalPerson

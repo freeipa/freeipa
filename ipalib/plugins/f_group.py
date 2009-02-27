@@ -48,15 +48,18 @@ class group(Object):
     takes_params = (
         Str('description',
             doc='A description of this group',
+            attribute=True,
         ),
         Int('gidnumber?',
             cli_name='gid',
             doc='The gid to use for this group. If not included one is automatically set.',
+            attribute=True,
         ),
         Str('cn',
             cli_name='name',
             primary_key=True,
             normalizer=lambda value: value.lower(),
+            attribute=True,
         ),
     )
 api.register(group)
@@ -64,6 +67,12 @@ api.register(group)
 
 class group_add(crud.Add):
     'Add a new group.'
+    takes_options = (
+        Flag('posix',
+             doc='Create as a posix group',
+             attribute=False,
+        ),
+    )
 
     def execute(self, cn, **kw):
         """
@@ -83,16 +92,18 @@ class group_add(crud.Add):
         assert 'cn' not in kw
         assert 'dn' not in kw
         ldap = self.api.Backend.ldap
-        kw['cn'] = cn
-        kw['dn'] = ldap.make_group_dn(cn)
+        entry = self.args_options_2_entry(cn, **kw)
+        entry['dn'] = ldap.make_group_dn(cn)
 
         # Get our configuration
         config = ldap.get_ipa_config()
 
         # some required objectclasses
-        kw['objectClass'] =  config.get('ipagroupobjectclasses')
+        entry['objectClass'] = config.get('ipagroupobjectclasses')
+        if kw.get('posix'):
+            entry['objectClass'].append('posixGroup')
 
-        return ldap.create(**kw)
+        return ldap.create(**entry)
 
     def output_for_cli(self, textui, result, *args, **options):
         """
@@ -122,14 +133,17 @@ class group_del(crud.Del):
 #            raise ipaerror.gen_exception(ipaerror.CONFIG_REQUIRED_GROUPS)
 
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("cn", cn, "posixGroup")
+        dn = ldap.find_entry_dn("cn", cn, "ipaUserGroup")
         self.log.info("IPA: group-del '%s'" % dn)
 
         # Don't allow the default user group to be removed
-        config=ldap.get_ipa_config()
-        default_group = ldap.find_entry_dn("cn", config.get('ipadefaultprimarygroup'), "posixGroup")
-        if dn == default_group:
-            raise errors.DefaultGroup
+        try:
+            config=ldap.get_ipa_config()
+            default_group = ldap.find_entry_dn("cn", config.get('ipadefaultprimarygroup'), "ipaUserGroup")
+            if dn == default_group:
+                raise errors.DefaultGroup
+        except errors2.NotFound:
+            pass
 
         return ldap.delete(dn)
 
@@ -144,6 +158,12 @@ api.register(group_del)
 
 class group_mod(crud.Mod):
     'Edit an existing group.'
+    takes_options = (
+        Flag('posix',
+             doc='Make this group a posix group',
+             attribute=False,
+        ),
+    )
     def execute(self, cn, **kw):
         """
         Execute the group-mod operation.
@@ -159,7 +179,27 @@ class group_mod(crud.Mod):
         assert 'cn' not in kw
         assert 'dn' not in kw
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("cn", cn, "posixGroup")
+        dn = ldap.find_entry_dn("cn", cn, "ipaUserGroup")
+
+        # Are we promoting a non-posix group into a posix one? We just
+        # need to add the posixGroup objectclass to the list and the
+        # DNA plugin will handle assigning a new gidNumber for us.
+        if kw.get('posix'):
+            groupkw = {'all': True}
+            oldgroup = api.Command['group_show'](cn, **groupkw)
+            if oldgroup.get('gidnumber'):
+                raise errors2.AlreadyPosixGroup
+            else:
+                oldgroup['objectclass'].append('posixgroup')
+                kw['objectclass'] = oldgroup['objectclass']
+
+        if kw.has_key('posix'):
+            del kw['posix']
+
+        if isinstance(kw.get('gidnumber',''), int):
+            # python-ldap wants this as a string
+            kw['gidnumber'] = str(kw['gidnumber'])
+
         return ldap.update(dn, **kw)
 
     def output_for_cli(self, textui, result, cn, **options):
@@ -231,7 +271,7 @@ class group_show(crud.Get):
         :param kw: Not used.
         """
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("cn", cn, "posixGroup")
+        dn = ldap.find_entry_dn("cn", cn, "ipaUserGroup")
 
         # FIXME: should kw contain the list of attributes to display?
         if kw.get('all', False):

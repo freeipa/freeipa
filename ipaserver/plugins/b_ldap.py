@@ -202,7 +202,7 @@ class ldap(CrudBackend):
         if attribute == "uid": # User
             object_type = "posixAccount"
         elif attribute == "cn": # Group
-            object_type = "posixGroup"
+            object_type = "ipaUserGroup"
         elif attribute == "krbprincipalname": # Service
             object_type = "krbPrincipal"
 
