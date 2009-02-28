@@ -28,7 +28,7 @@ from ipalib import uuid
 
 netgroup_base = "cn=ng, cn=alt"
 netgroup_filter = "ipaNISNetgroup"
-hostgroup_filter = "groupofnames)(!(objectclass=posixGroup)"
+hostgroup_filter = "groupofnames)(!(objectclass=ipaUserGroup)"
 
 def get_members(members):
     """
@@ -364,7 +364,7 @@ class netgroup_add_member(Command):
 
         # Groups
         members = get_members(kw.get('groups', ''))
-        (to_add, add_failed) = find_members(ldap, add_failed, members, "cn", "posixGroup")
+        (to_add, add_failed) = find_members(ldap, add_failed, members, "cn", "ipaUserGroup")
         (completed, failed) = add_members(ldap, completed, to_add, dn, 'memberuser')
         add_failed+=failed
 
@@ -457,13 +457,13 @@ class netgroup_remove_member(Command):
 
         # Groups
         members = get_members(kw.get('groups', ''))
-        (to_remove, remove_failed) = find_members(ldap, remove_failed, members, "cn", "posixGroup")
+        (to_remove, remove_failed) = find_members(ldap, remove_failed, members, "cn", "ipaUserGroup")
         (completed, failed) = remove_members(ldap, completed, to_remove, dn, 'memberuser')
         remove_failed+=failed
 
         # Netgroups
         members = get_members(kw.get('netgroups', ''))
-        (to_add, remove_failed) = find_members(ldap, remove_failed, members, "cn", netgroup_filter, netgroup_base)
+        (to_remove, remove_failed) = find_members(ldap, remove_failed, members, "cn", netgroup_filter, netgroup_base)
         (completed, failed) = remove_members(ldap, completed, to_remove, dn, 'member')
         remove_failed+=failed
 
