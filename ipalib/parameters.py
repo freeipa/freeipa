@@ -27,8 +27,6 @@ TODO:
     to first name and last name)
 
   * Add the _rule_pattern() methods to `Bytes` and `Str`
-
-  * Add maxvalue, minvalue kwargs and rules to `Int` and `Float`
 """
 
 import re
@@ -761,6 +759,39 @@ class Int(Number):
     type = int
     type_error = _('must be an integer')
 
+    kwargs = Param.kwargs + (
+        ('minvalue', int, None),
+        ('maxvalue', int, None),
+    )
+
+    def __init__(self, name, *rules, **kw):
+        super(Number, self).__init__(name, *rules, **kw)
+
+        if (self.minvalue > self.maxvalue) and (self.minvalue is not None and self.maxvalue is not None):
+            raise ValueError(
+                '%s: minvalue > maxvalue (minvalue=%r, maxvalue=%r)' % (
+                    self.nice, self.minvalue, self.maxvalue)
+            )
+
+    def _rule_minvalue(self, _, value):
+        """
+        Check min constraint.
+        """
+        assert type(value) is int
+        if value < self.minvalue:
+            return _('must be at least %(minvalue)d') % dict(
+                minvalue=self.minvalue,
+            )
+
+    def _rule_maxvalue(self, _, value):
+        """
+        Check max constraint.
+        """
+        assert type(value) is int
+        if value > self.maxvalue:
+            return _('can be at most %(maxvalue)d') % dict(
+                maxvalue=self.maxvalue,
+            )
 
 class Float(Number):
     """
@@ -769,6 +800,40 @@ class Float(Number):
 
     type = float
     type_error = _('must be a decimal number')
+
+    kwargs = Param.kwargs + (
+        ('minvalue', float, None),
+        ('maxvalue', float, None),
+    )
+
+    def __init__(self, name, *rules, **kw):
+        super(Number, self).__init__(name, *rules, **kw)
+
+        if (self.minvalue > self.maxvalue) and (self.minvalue is not None and self.maxvalue is not None):
+            raise ValueError(
+                '%s: minvalue > maxvalue (minvalue=%r, maxvalue=%r)' % (
+                    self.nice, self.minvalue, self.maxvalue)
+            )
+
+    def _rule_minvalue(self, _, value):
+        """
+        Check min constraint.
+        """
+        assert type(value) is float
+        if value < self.minvalue:
+            return _('must be at least %(minvalue)f') % dict(
+                minvalue=self.minvalue,
+            )
+
+    def _rule_maxvalue(self, _, value):
+        """
+        Check max constraint.
+        """
+        assert type(value) is float
+        if value > self.maxvalue:
+            return _('can be at most %(maxvalue)f') % dict(
+                maxvalue=self.maxvalue,
+            )
 
 
 class Data(Param):

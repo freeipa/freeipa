@@ -1058,6 +1058,174 @@ class test_StrEnum(ClassChecker):
             dummy.reset()
 
 
+class test_Number(ClassChecker):
+    """
+    Test the `ipalib.parameters.Number` class.
+    """
+    _cls = parameters.Number
+
+    def test_init(self):
+        """
+        Test the `ipalib.parameters.Number.__init__` method.
+        """
+        o = self.cls('my_number')
+        assert o.type is NoneType
+        assert o.password is False
+        assert o.rules == tuple()
+        assert o.class_rules == tuple()
+        assert o.all_rules == tuple()
+
+
+
+class test_Int(ClassChecker):
+    """
+    Test the `ipalib.parameters.Int` class.
+    """
+    _cls = parameters.Int
+
+    def test_init(self):
+        """
+        Test the `ipalib.parameters.Int.__init__` method.
+        """
+        # Test with no kwargs:
+        o = self.cls('my_number')
+        assert o.type is int
+        assert isinstance(o, parameters.Int)
+        assert o.minvalue is None
+        assert o.maxvalue is None
+
+        # Test when min > max:
+        e = raises(ValueError, self.cls, 'my_number', minvalue=22, maxvalue=15)
+        assert str(e) == \
+            "Int('my_number'): minvalue > maxvalue (minvalue=22, maxvalue=15)"
+
+    def test_rule_minvalue(self):
+        """
+        Test the `ipalib.parameters.Int._rule_minvalue` method.
+        """
+        o = self.cls('my_number', minvalue=3)
+        assert o.minvalue == 3
+        rule = o._rule_minvalue
+        translation = u'minvalue=%(minvalue)r'
+        dummy = dummy_ugettext(translation)
+        assert dummy.translation is translation
+
+        # Test with passing values:
+        for value in (4, 99, 1001):
+            assert rule(dummy, value) is None
+            assert dummy.called() is False
+
+        # Test with failing values:
+        for value in (-1, 0, 2):
+            assert_equal(
+                rule(dummy, value),
+                translation % dict(minvalue=3)
+            )
+            assert dummy.message == 'must be at least %(minvalue)d'
+            assert dummy.called() is True
+            dummy.reset()
+
+    def test_rule_maxvalue(self):
+        """
+        Test the `ipalib.parameters.Int._rule_maxvalue` method.
+        """
+        o = self.cls('my_number', maxvalue=4)
+        assert o.maxvalue == 4
+        rule = o._rule_maxvalue
+        translation = u'maxvalue=%(maxvalue)r'
+        dummy = dummy_ugettext(translation)
+        assert dummy.translation is translation
+
+        # Test with passing values:
+        for value in (-1, 0, 4):
+            assert rule(dummy, value) is None
+            assert dummy.called() is False
+
+        # Test with failing values:
+        for value in (5, 99, 1009):
+            assert_equal(
+                rule(dummy, value),
+                translation % dict(maxvalue=4)
+            )
+            assert dummy.message == 'can be at most %(maxvalue)d'
+            assert dummy.called() is True
+            dummy.reset()
+
+class test_Float(ClassChecker):
+    """
+    Test the `ipalib.parameters.Float` class.
+    """
+    _cls = parameters.Float
+
+    def test_init(self):
+        """
+        Test the `ipalib.parameters.Float.__init__` method.
+        """
+        # Test with no kwargs:
+        o = self.cls('my_number')
+        assert o.type is float
+        assert isinstance(o, parameters.Float)
+        assert o.minvalue is None
+        assert o.maxvalue is None
+
+        # Test when min > max:
+        e = raises(ValueError, self.cls, 'my_number', minvalue=22.5, maxvalue=15.1)
+        assert str(e) == \
+            "Float('my_number'): minvalue > maxvalue (minvalue=22.5, maxvalue=15.1)"
+
+    def test_rule_minvalue(self):
+        """
+        Test the `ipalib.parameters.Float._rule_minvalue` method.
+        """
+        o = self.cls('my_number', minvalue=3.1)
+        assert o.minvalue == 3.1
+        rule = o._rule_minvalue
+        translation = u'minvalue=%(minvalue)r'
+        dummy = dummy_ugettext(translation)
+        assert dummy.translation is translation
+
+        # Test with passing values:
+        for value in (3.2, 99.0):
+            assert rule(dummy, value) is None
+            assert dummy.called() is False
+
+        # Test with failing values:
+        for value in (-1.2, 0.0, 3.0):
+            assert_equal(
+                rule(dummy, value),
+                translation % dict(minvalue=3.1)
+            )
+            assert dummy.message == 'must be at least %(minvalue)f'
+            assert dummy.called() is True
+            dummy.reset()
+
+    def test_rule_maxvalue(self):
+        """
+        Test the `ipalib.parameters.Float._rule_maxvalue` method.
+        """
+        o = self.cls('my_number', maxvalue=4.7)
+        assert o.maxvalue == 4.7
+        rule = o._rule_maxvalue
+        translation = u'maxvalue=%(maxvalue)r'
+        dummy = dummy_ugettext(translation)
+        assert dummy.translation is translation
+
+        # Test with passing values:
+        for value in (-1.0, 0.1, 4.2):
+            assert rule(dummy, value) is None
+            assert dummy.called() is False
+
+        # Test with failing values:
+        for value in (5.3, 99.9):
+            assert_equal(
+                rule(dummy, value),
+                translation % dict(maxvalue=4.7)
+            )
+            assert dummy.message == 'can be at most %(maxvalue)f'
+            assert dummy.called() is True
+            dummy.reset()
+
+
 def test_create_param():
     """
     Test the `ipalib.parameters.create_param` function.
