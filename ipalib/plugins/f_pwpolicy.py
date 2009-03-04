@@ -31,23 +31,28 @@ class pwpolicy_mod(Command):
     takes_options = (
         Int('krbmaxpwdlife?',
             cli_name='maxlife',
-            doc='Max. Password Lifetime (days)'
+            doc='Max. Password Lifetime (days)',
+            minvalue=0,
         ),
         Int('krbminpwdlife?',
             cli_name='minlife',
-            doc='Min. Password Lifetime (hours)'
+            doc='Min. Password Lifetime (hours)',
+            minvalue=0,
         ),
         Int('krbpwdhistorylength?',
             cli_name='history',
-            doc='Password History Size'
+            doc='Password History Size',
+            minvalue=0,
         ),
         Int('krbpwdmindiffchars?',
             cli_name='minclasses',
-            doc='Min. Number of Character Classes'
+            doc='Min. Number of Character Classes',
+            minvalue=0,
         ),
         Int('krbpwdminlength?',
             cli_name='minlength',
-            doc='Min. Length of Password'
+            doc='Min. Length of Password',
+            minvalue=0,
         ),
     )
     def execute(self, *args, **kw):
@@ -69,7 +74,7 @@ class pwpolicy_mod(Command):
         # The LDAP routines want strings, not ints, so convert a few
         # things. Otherwise it sees a string -> int conversion as a change.
         for k in kw.iterkeys():
-            if k.startswith("krb", 0, 3):
+            if k.startswith("krb", 0, 3) and type(kw[k]) is int:
                 kw[k] = str(kw[k])
 
         # Convert hours and days to seconds
