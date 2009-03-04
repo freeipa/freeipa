@@ -1,6 +1,7 @@
 include VERSION
 
-SUBDIRS=daemons install ipapython ipa-client ipa-radius-server ipa-radius-admintools
+SUBDIRS=daemons install ipapython ipa-client
+RADIUSDIRS=ipa-radius-server ipa-radius-admintools
 
 PRJ_PREFIX=ipa
 
@@ -41,6 +42,11 @@ all: bootstrap-autogen server
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 
+radius:
+	@for subdir in $(RADIUSDIRS); do \
+		(cd $$subdir && $(MAKE) all) || exit 1; \
+	done
+
 bootstrap-autogen: version-update
 	@echo "Building IPA $(IPA_VERSION)"
 	cd daemons; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
@@ -50,6 +56,11 @@ bootstrap-autogen: version-update
 install: all server-install
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
+	done
+
+radius-install: radius install
+	@for subdir in $(RADIUSDIRS); do \
+		(cd $$subdir && $(MAKE) install) || exit 1; \
 	done
 
 test:
@@ -99,7 +110,6 @@ archive-cleanup:
 tarballs: local-archive
 	-mkdir -p dist/sources
 	# tar up clean sources
-	ls dist/$(TARBALL_PREFIX)    
 	cd dist/$(TARBALL_PREFIX)/ipa-client; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
 	cd dist/$(TARBALL_PREFIX)/daemons; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
 	cd dist/$(TARBALL_PREFIX)/install; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean

@@ -3,6 +3,8 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 %{!?python_sitearch: %define python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
 %define POLICYCOREUTILSVER 1.33.12-1
+# Define WITH_RADIUS to build the radius packages
+%define WITH_RADIUS 0
 
 Name:           ipa
 Version:        __VERSION__
@@ -165,6 +167,7 @@ user, virtual machines, groups, authentication credentials), Policy
 logs, analysis thereof). If you are using IPA you need to install this
 package.
 
+%if %{WITH_RADIUS}
 %package radius-server
 Summary: IPA authentication server - radius plugin
 Group: System Environment/Base
@@ -191,6 +194,7 @@ user, virtual machines, groups, authentication credentials), Policy
 (configuration settings, access control information) and Audit (events,
 logs, analysis thereof). This package provides command-line tools for
 administering radius authentication settings in IPA.
+%endif
 
 
 %prep
@@ -200,6 +204,8 @@ administering radius authentication settings in IPA.
 export CFLAGS="$CFLAGS %{optflags}"
 export CPPFLAGS="$CPPFLAGS %{optflags}"
 make version-update
+touch daemons/NEWS daemons/README daemons/AUTHORS daemons/ChangeLog
+touch install/NEWS install/README install/AUTHORS install/ChangeLog
 cd ipa-client; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
 cd daemons; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
 cd install; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
@@ -227,15 +233,11 @@ rm %{buildroot}/%{plugin_dir}/libipa_winsync.la
 mkdir -p %{buildroot}/%{_sysconfdir}/ipa/html
 mkdir -p %{buildroot}/%{_localstatedir}/cache/ipa/sysrestore
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
-#mv %{buildroot}/%{_usr}/share/ipa/html/ssbrowser.html %{buildroot}/%{_sysconfdir}/ipa/html
-#mv %{buildroot}/%{_usr}/share/ipa/html/unauthorized.html %{buildroot}/%{_sysconfdir}/ipa/html
 mkdir %{buildroot}%{_usr}/share/ipa/html/
 ln -s ../../../..%{_sysconfdir}/ipa/html/ssbrowser.html \
     %{buildroot}%{_usr}/share/ipa/html/ssbrowser.html
 ln -s ../../../..%{_sysconfdir}/ipa/html/unauthorized.html \
     %{buildroot}%{_usr}/share/ipa/html/unauthorized.html
-ln -s ../../../..%{python_sitelib}/ipaserver/mod_python_xmlrpc.py \
-    %{buildroot}%{_usr}/share/ipa/ipaserver/mod_python_xmlrpc.py
 
 %clean
 rm -rf %{buildroot}
@@ -343,8 +345,8 @@ fi
 %config(noreplace) %{_sysconfdir}/ipa/html/unauthorized.html
 %{_usr}/share/ipa/ipa.conf
 %{_usr}/share/ipa/ipa-rewrite.conf
-%dir %{_usr}/share/ipa/ipaserver
-%{_usr}/share/ipa/ipaserver/*
+#%dir %{_usr}/share/ipa/ipaserver
+#%{_usr}/share/ipa/ipaserver/*
 %dir %{_usr}/share/ipa/updates/
 %{_usr}/share/ipa/updates/*
 %attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so
@@ -403,9 +405,9 @@ fi
 %endif
 %config(noreplace) %{_sysconfdir}/ipa/ipa.conf
 
+%if %{WITH_RADIUS}
 %files radius-server
 %doc LICENSE README
-%{_sbindir}/ipa-radius-install
 %{_usr}/share/ipa/ipaserver/plugins/*
 %dir %{_usr}/share/ipa/plugins
 %{_usr}/share/ipa/plugins/radius.radiusd.conf.template
@@ -420,8 +422,13 @@ fi
 %{_sbindir}/ipa-findradiusprofile
 %{_sbindir}/ipa-modradiusclient
 %{_sbindir}/ipa-modradiusprofile
+%endif
 
 %changelog
+* Thu Mar  4 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-2
+- Build radius separately
+- Fix a few minor issues
+
 * Tue Feb  3 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-1
 - Replace TurboGears requirement with python-cherrypy
 
