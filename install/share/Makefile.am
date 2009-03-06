@@ -17,6 +17,7 @@ app_DATA =				\
 	bind.named.conf.template	\
 	bind.zone.db.template		\
 	certmap.conf.template		\
+	dna-conf.ldif			\
 	kdc.conf.template		\
 	krb5.conf.template		\
 	krb5.ini.template		\

@@ -115,6 +115,8 @@ dn: cn=ipausers,cn=groups,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
+objectClass: nestedGroup
+objectClass: ipaUserGroup
 objectClass: posixGroup
 gidNumber: 1002
 description: Default group for all users
