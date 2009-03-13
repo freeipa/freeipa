@@ -192,6 +192,15 @@ class test_Executioner(ClassChecker):
                 raise ValueError('This is private.')
         api.register(bad)
 
+        class with_name(Command):
+            """
+            Test that a kwarg named 'name' can be used.
+            """
+            takes_options=['name']
+            def execute(self, **options):
+                return options['name'].upper()
+        api.register(with_name)
+
         api.finalize()
         o = self.cls()
         o.set_api(api)
@@ -238,3 +247,8 @@ class test_Executioner(ClassChecker):
         e = raises(errors2.InternalError, o.execute, 'bad')
         assert conn.disconnect.called is True  # Make sure destroy_context() was called
         assert context.__dict__.keys() == []
+
+        # Test with option 'name':
+        conn = Connection('The connection.', Disconnect())
+        context.someconn = conn
+        assert o.execute('with_name', name=u'test') == u'TEST'

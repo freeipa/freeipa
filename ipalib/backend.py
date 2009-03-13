@@ -102,12 +102,12 @@ class Executioner(Backend):
         else:
             self.Backend.xmlclient.connect()
 
-    def execute(self, name, *args, **options):
+    def execute(self, _name, *args, **options):
         error = None
         try:
-            if name not in self.Command:
-                raise CommandError(name=name)
-            result = self.Command[name](*args, **options)
+            if _name not in self.Command:
+                raise CommandError(name=_name)
+            result = self.Command[_name](*args, **options)
         except PublicError, e:
             error = e
         except StandardError, e:
