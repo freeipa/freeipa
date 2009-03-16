@@ -81,6 +81,9 @@ Command Line interface:
     multivalue and have a flag that tells the CLI whether a multivalue should
     be parsed as comma-separated.
 
+  * Add a file option so an argument may be read from a file. This is needed
+    for cert-request to pass along the CSR.
+
 
 Improve ease of plugin writting
   - make "from ipalib import *" import everything a plugin writter will need
