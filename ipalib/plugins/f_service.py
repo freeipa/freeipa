@@ -116,8 +116,7 @@ class service_add(crud.Add):
         return ldap.create(**kw)
 
     def output_to_cli(self, ret):
-        if ret:
-            print "Service added"
+        textui.print_plain("Service added")
 
 api.register(service_add)
 
@@ -140,8 +139,7 @@ class service_del(crud.Del):
         return ldap.delete(dn)
 
     def output_to_cli(self, ret):
-        if ret:
-            print "Service removed"
+        textui.print_plain("Service removed")
 
 api.register(service_del)
 

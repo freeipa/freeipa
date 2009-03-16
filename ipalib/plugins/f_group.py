@@ -411,7 +411,7 @@ class group_remove_member(Command):
         """
         if result:
             print "These entries failed to be removed from the group:"
-            for a in remove_failed:
+            for a in result:
                 print "\t'%s'" % a
 
 api.register(group_remove_member)
