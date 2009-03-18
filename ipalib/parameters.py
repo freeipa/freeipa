@@ -36,6 +36,7 @@ from request import ugettext
 from plugable import ReadOnly, lock, check_name
 from errors2 import ConversionError, RequirementError, ValidationError
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
+import csv
 
 
 class DefaultFrom(ReadOnly):
@@ -1070,6 +1071,55 @@ class StrEnum(Enum):
 
     type = unicode
 
+
+class List(Param):
+    """
+    Base class for parameters as a list of values. The input is a delimited
+    string.
+    """
+    type = tuple
+
+    kwargs = Param.kwargs + (
+        ('separator', str, ','),
+        ('skipspace', bool, True),
+    )
+
+    # The following 2 functions were taken from the Python
+    # documentation at http://docs.python.org/library/csv.html
+    def __utf_8_encoder(self, unicode_csv_data):
+        for line in unicode_csv_data:
+            yield line.encode('utf-8')
+
+    def __unicode_csv_reader(self, unicode_csv_data, dialect=csv.excel, **kwargs):
+        # csv.py doesn't do Unicode; encode temporarily as UTF-8:
+        csv_reader = csv.reader(self.__utf_8_encoder(unicode_csv_data),
+                                dialect=dialect, delimiter=self.separator,
+                                skipinitialspace=self.skipspace,
+                                **kwargs)
+        for row in csv_reader:
+            # decode UTF-8 back to Unicode, cell by cell:
+            yield [unicode(cell, 'utf-8') for cell in row]
+
+    def __init__(self, name, *rules, **kw):
+        (name, kw_from_spec) = parse_param_spec(name)
+        kw.update(kw_from_spec)
+        kw.update(multivalue=True)
+        super(List, self).__init__(name, *rules, **kw)
+
+    def normalize(self, value):
+        if not isinstance(value, tuple):
+            reader = self.__unicode_csv_reader([value])
+            value = []
+            for row in reader:
+                value = value + row
+            value = tuple(value)
+        return super(List, self).normalize(value)
+
+    def _convert_scalar(self, value, index=None):
+        return value
+
+    def _validate_scalar(self, value, index=None):
+        return
 
 def create_param(spec):
     """

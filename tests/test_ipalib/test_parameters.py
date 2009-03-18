@@ -1226,6 +1226,65 @@ class test_Float(ClassChecker):
             dummy.reset()
 
 
+class test_List(ClassChecker):
+    """
+    Test the `ipalib.parameters.List` class.
+    """
+    _cls = parameters.List
+
+    def test_init(self):
+        """
+        Test the `ipalib.parameters.List.__init__` method.
+        """
+        # Test with no kwargs:
+        o = self.cls('my_list')
+        assert o.type is tuple
+        assert isinstance(o, parameters.List)
+        assert o.multivalue is True
+        assert o.skipspace is True
+
+    def test_normalize(self):
+        """
+        Test the `ipalib.parameters.List.normalize` method.
+        """
+        o = self.cls('my_list')
+        n = o.normalize('a,b')
+        assert type(n) is tuple
+        assert len(n) is 2
+
+        n = o.normalize('bar,   "hi, there",foo')
+        assert type(n) is tuple
+        assert len(n) is 3
+
+    def test_normalize_separator(self):
+        """
+        Test the `ipalib.parameters.List.normalize` method with a separator.
+        """
+        o = self.cls('my_list', separator='|')
+
+        n = o.normalize('a')
+        assert type(n) is tuple
+        assert len(n) is 1
+
+        n = o.normalize('a|b')
+        assert type(n) is tuple
+        assert len(n) is 2
+
+    def test_normalize_skipspace(self):
+        """
+        Test the `ipalib.parameters.List.normalize` method without skipping spaces.
+        """
+        o = self.cls('my_list', skipspace=False)
+
+        n = o.normalize('a')
+        assert type(n) is tuple
+        assert len(n) is 1
+
+        n = o.normalize('a, "b,c", d')
+        assert type(n) is tuple
+        # the output w/o skipspace is ['a',' "b','c"',' d']
+        assert len(n) is 4
+
 def test_create_param():
     """
     Test the `ipalib.parameters.create_param` function.
