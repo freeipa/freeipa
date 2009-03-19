@@ -169,7 +169,7 @@ class automount_addmap(crud.Add):
         kw['automountmapname'] = mapname
         kw['dn'] = make_automount_dn(mapname)
 
-        kw['objectClass'] = ['automountMap']
+        kw['objectclass'] = ['automountMap']
 
         return ldap.create(**kw)
 
@@ -215,7 +215,7 @@ class automount_addkey(crud.Add):
 
         kw['automountinformation'] = make_ldap_map(config.get('automountldapuri', False), kw['automountinformation'])
 
-        kw['objectClass'] = ['automount']
+        kw['objectclass'] = ['automount']
 
         return ldap.create(**kw)
 
