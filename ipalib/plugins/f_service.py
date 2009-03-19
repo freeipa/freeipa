@@ -111,7 +111,7 @@ class service_add(crud.Add):
         dn = ldap.make_service_dn(princ_name)
 
         kw['dn'] = dn
-        kw['objectClass'] = ['krbPrincipal', 'krbPrincipalAux', 'krbTicketPolicyAux']
+        kw['objectclass'] = ['krbPrincipal', 'krbPrincipalAux', 'krbTicketPolicyAux']
 
         return ldap.create(**kw)
 
