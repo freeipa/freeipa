@@ -1,0 +1,5 @@
+# Add the rolegroup container
+
+dn: cn=rolegroups,cn=accounts,$SUFFIX
+add:objectClass: nsContainer
+add:cn: rolegroups
