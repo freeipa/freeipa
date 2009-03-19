@@ -33,12 +33,13 @@ class test_Group(XMLRPC_test):
     """
     cn = u'testgroup'
     cn2 = u'testgroup2'
+    cnposix = u'posixgroup'
     description = u'This is a test'
     kw={'description':description,'cn':cn}
 
     def test_add(self):
         """
-        Test the `xmlrpc.group_add` method.
+        Test the `xmlrpc.group_add` method: testgroup.
         """
         res = api.Command['group_add'](**self.kw)
         assert res
@@ -56,13 +57,26 @@ class test_Group(XMLRPC_test):
 
     def test_add3(self):
         """
-        Test the `xmlrpc.group_add` method.
+        Test the `xmlrpc.group_add` method: testgroup2.
         """
         self.kw['cn'] = self.cn2
         res = api.Command['group_add'](**self.kw)
         assert res
         assert res.get('description','') == self.description
         assert res.get('cn','') == self.cn2
+
+    def test_addposix(self):
+        """
+        Test the `xmlrpc.group_add` method: posixgroup
+        """
+        posixkw = {}
+        posixkw['cn'] = self.cnposix
+        posixkw['description'] = self.description
+        posixkw['posix'] = True
+        res = api.Command['group_add'](**posixkw)
+        assert res
+        assert res.get('description','') == self.description
+        assert res.get('cn','') == self.cnposix
 
     def test_add_member(self):
         """
@@ -93,6 +107,16 @@ class test_Group(XMLRPC_test):
         assert res.get('cn','') == self.cn
         assert res.get('member','').startswith('cn=%s' % self.cn2)
 
+    def test_doshowposix(self):
+        """
+        Test the `xmlrpc.group_show` method for a posix group.
+        """
+        res = api.Command['group_show'](self.cnposix)
+        assert res
+        assert res.get('description','') == self.description
+        assert res.get('cn','') == self.cnposix
+        assert res.get('gidnumber',None)
+
     def test_find(self):
         """
         Test the `xmlrpc.group_find` method.
@@ -120,6 +144,25 @@ class test_Group(XMLRPC_test):
         assert res.get('description','') == 'New description'
         assert res.get('cn','') == self.cn
 
+    def test_mod2(self):
+        """
+        Test the `xmlrpc.group_mod` method, promote a posix group
+        """
+        modkw = self.kw
+        modkw['cn'] = self.cn
+        modkw['posix'] = True
+        res = api.Command['group_mod'](**modkw)
+        assert res
+        assert res.get('description','') == 'New description'
+        assert res.get('gidnumber','')
+
+        # Ok, double-check that it was changed
+        res = api.Command['group_show'](self.cn)
+        assert res
+        assert res.get('description','') == 'New description'
+        assert res.get('cn','') == self.cn
+        assert res.get('gidnumber','')
+
     def test_remove_member(self):
         """
         Test the `xmlrpc.group_remove_member` method.
@@ -144,7 +187,7 @@ class test_Group(XMLRPC_test):
 
     def test_remove_x(self):
         """
-        Test the `xmlrpc.group_del` method.
+        Test the `xmlrpc.group_del` method: testgroup.
         """
         res = api.Command['group_del'](self.cn)
         assert res == True
@@ -159,7 +202,7 @@ class test_Group(XMLRPC_test):
 
     def test_remove_x2(self):
         """
-        Test the `xmlrpc.group_del` method.
+        Test the `xmlrpc.group_del` method: testgroup2.
         """
         res = api.Command['group_del'](self.cn2)
         assert res == True
@@ -167,6 +210,21 @@ class test_Group(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['group_show'](self.cn2)
+        except errors2.NotFound:
+            pass
+        else:
+            assert False
+
+    def test_remove_x3(self):
+        """
+        Test the `xmlrpc.group_del` method: posixgroup.
+        """
+        res = api.Command['group_del'](self.cnposix)
+        assert res == True
+
+        # Verify that it is gone
+        try:
+            res = api.Command['group_show'](self.cnposix)
         except errors2.NotFound:
             pass
         else:
