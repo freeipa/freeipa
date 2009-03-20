@@ -11,7 +11,8 @@ app_DATA =				\
 	RFC4876.update			\
 	netgroups.update		\
 	policy.update			\
-	taskgroups.update		\
+	rolegroup.update		\
+	taskgroup.update		\
 	winsync_index.update		\
 	$(NULL)
 
