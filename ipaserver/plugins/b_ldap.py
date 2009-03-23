@@ -371,6 +371,7 @@ class ldap(CrudBackend):
         attributes = kw.get('attributes')
         base = kw.get('base')
         scope = kw.get('scope')
+        exactonly = kw.get('exactonly', None)
         if attributes:
             del kw['attributes']
         else:
@@ -383,6 +384,8 @@ class ldap(CrudBackend):
             del kw['filter']
         if scope:
             del kw['scope']
+        if exactonly is not None:
+            del kw['exactonly']
         (exact_match_filter, partial_match_filter) = self._generate_search_filters(**kw)
         if objectclass:
             exact_match_filter = "(&(objectClass=%s)%s)" % (objectclass, exact_match_filter)
@@ -403,10 +406,13 @@ class ldap(CrudBackend):
         except errors2.NotFound:
             exact_results = [0]
 
-        try:
-            partial_results = servercore.search(search_base,
-                    partial_match_filter, attributes, scope=search_scope)
-        except errors2.NotFound:
+        if not exactonly:
+            try:
+                partial_results = servercore.search(search_base,
+                        partial_match_filter, attributes, scope=search_scope)
+            except errors2.NotFound:
+                partial_results = [0]
+        else:
             partial_results = [0]
 
         exact_counter = exact_results[0]
