@@ -1,0 +1,124 @@
+# Add the default roles 
+
+dn: cn=helpdesk,cn=rolegroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: helpdesk
+add:description: Helpdesk
+
+dn: cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: useradmin
+add:description: User Administrators
+
+dn: cn=groupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: groupadmin
+add:description: Group Administrators
+
+dn: cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: hostadmin
+add:description: Host Administrators
+
+dn: cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: delegationadmin
+add:description: Role administration
+
+dn: cn=serviceadmin,cn=rolegroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: serviceadmin
+add:description: Service Administrators
+
+dn: cn=automountadmin,cn=rolegroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: automountadmin
+add:description: Automount Administrators
+
+dn: cn=netgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: netgroupadmin
+add:description: Netgroups Administrators
+
+dn: cn=useradmins,cn=rolegroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:objectClass: nestedgroup
+add:cn: useradmins
+add:description: User Administrators
+
+# Add the taskgroups referenced by the ACIs for user administration
+
+dn: cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: nsContainer
+add:objectClass: top
+add:cn: taskgroups
+
+dn: cn=addusers,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: addusers
+add:description: Add Users
+add:member:"cn=useradmins,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=change_password,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: change_password
+add:description: Change a user password
+add:member:"cn=useradmins,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=add_user_to_default_group,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: add_user_to_default_group
+add:description: Add user to default group
+add:member:"cn=useradmins,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=removeusers,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: removeusers
+add:description: Remove Users
+add:member:"cn=useradmins,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=modifyusers,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: modifyusers
+add:description: Modify Users
+add:member:"cn=useradmins,cn=rolegroups,cn=accounts,$SUFFIX"
+
+# Add the ACIs that grant these permissions for user administration
+
+dn: $SUFFIX
+add:aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version
+  3.0;acl "Add Users";allow (add) groupdn = "ldap:///cn=addusers,cn=taskgroups
+ ,cn=accounts,$SUFFIX";)
+add:aci: (targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || samb
+ aNTPassword || passwordHistory")(version 3.0;acl "change_password";allow (wri
+ te) groupdn = "ldap:///cn=change_password,cn=taskgroups,cn=accounts,$SUFFIX
+ ";)
+add:aci: (targetattr = "member")(target = "ldap:///cn=ipausers,cn=groups,cn=accoun
+ ts,$SUFFIX")(version 3.0;acl "Add user to default group";allow (wri
+ te) groupdn = "ldap:///cn=add_user_to_default_group,cn=taskgroups,cn=accounts
+ ,$SUFFIX";)
+add:aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version
+  3.0;acl "Remove Users";allow (delete) groupdn = "ldap:///cn=removeusers,cn=t
+ askgroups,cn=accounts,$SUFFIX";)
+add:aci: (targetattr = "givenName || sn || cn || displayName || title || initials 
+ || loginShell || gecos || homePhone || mobile || pager || facsimileTelephoneN
+ umber || telephoneNumber || street || roomNumber || l || st || postalCode || 
+ manager || secretary || description || carLicense || labeledURI || inetUserHT
+ TPURL || seeAlso || employeeType || businessCategory || ou")(target = "ldap:/
+ //uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Modify User
+ s";allow (write) groupdn = "ldap:///cn=modifyusers,cn=taskgroups,$SUFFIX";)
+

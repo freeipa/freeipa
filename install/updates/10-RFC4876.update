@@ -135,12 +135,12 @@ add:objectClasses:
      SUP top STRUCTURAL
      DESC 'Abstraction of a base configuration for a DUA'
      MUST ( cn )
-     MAY ( defaultServerList $ preferredServerList $
-           defaultSearchBase $ defaultSearchScope $
-           searchTimeLimit $ bindTimeLimit $
-           credentialLevel $ authenticationMethod $
-           followReferrals $ dereferenceAliases $
-           serviceSearchDescriptor $ serviceCredentialLevel $
-           serviceAuthenticationMethod $ objectclassMap $
-           attributeMap $ profileTTL ) 
+     MAY ( defaultServerList $$ preferredServerList $$
+           defaultSearchBase $$ defaultSearchScope $$
+           searchTimeLimit $$ bindTimeLimit $$
+           credentialLevel $$ authenticationMethod $$
+           followReferrals $$ dereferenceAliases $$
+           serviceSearchDescriptor $$ serviceCredentialLevel $$
+           serviceAuthenticationMethod $$ objectclassMap $$
+           attributeMap $$ profileTTL ) 
      X-ORIGIN 'RFC4876' )

@@ -47,8 +47,8 @@ add:attributeTypes:
 add:objectClasses:
    ( 1.3.6.1.1.1.2.14 NAME 'nisKeyObject'
      DESC 'nisKeyObject' SUP top
-     MUST ( cn $ nisPublickey $ nisSecretkey )
-     MAY ( uidNumber $ description ) )
+     MUST ( cn $$ nisPublickey $$ nisSecretkey )
+     MAY ( uidNumber $$ description ) )
 add:objectClasses:
    ( 1.3.1.6.1.1.1.2.15 NAME 'nisDomainObject'
      DESC 'nisDomainObject' SUP top AUXILIARY
@@ -57,9 +57,9 @@ add:objectClasses:
    ( 2.16.840.1.113730.3.2.4 NAME 'mailGroup'
      DESC 'mailGroup' SUP top
      MUST ( mail )
-     MAY ( cn $ mgrpRFC822MailMember ) )
+     MAY ( cn $$ mgrpRFC822MailMember ) )
 add:objectClasses:
    ( 1.3.6.1.4.1.42.2.27.1.2.6 NAME 'nisNetId'
      DESC 'nisNetId' SUP top
      MUST ( cn )
-     MAY ( nisNetIdUser $ nisNetIdGroup $ nisNetIdHost ) )
+     MAY ( nisNetIdUser $$ nisNetIdGroup $$ nisNetIdHost ) )

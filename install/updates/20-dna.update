@@ -1,0 +1,3 @@
+# Enable the DNA plugin
+dn: cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
+only:nsslapd-pluginEnabled: on

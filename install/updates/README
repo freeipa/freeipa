@@ -1,0 +1,8 @@
+The update files are sorted before being processed because there are
+cases where order matters (such as getting schema added first, creating
+parent entries, etc).
+
+10 - 20: Schema
+20 - 30: FDS Configuration, new indices
+30 - 40: Structual elements of the DIT
+40 - 50: Pre-loaded data
