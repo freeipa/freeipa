@@ -170,7 +170,6 @@ class DsInstance(service.Service):
         self.step("adding default schema", self.__add_default_schemas)
         self.step("enabling memberof plugin", self.__add_memberof_module)
         self.step("enabling referential integrity plugin", self.__add_referint_module)
-        self.step("enabling distributed numeric assignment plugin", self.__add_dna_module)
         self.step("enabling winsync plugin", self.__add_winsync_module)
         self.step("configuring uniqueness plugin", self.__set_unique_attrs)
         self.step("creating indices", self.__create_indices)
@@ -327,9 +326,6 @@ class DsInstance(service.Service):
 
     def __add_referint_module(self):
         self.__ldap_mod("referint-conf.ldif")
-
-    def __add_dna_module(self):
-        self.__ldap_mod("dna-conf.ldif")
 
     def __set_unique_attrs(self):
         self.__ldap_mod("unique-attributes.ldif", self.sub_dict)
