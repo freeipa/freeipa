@@ -38,7 +38,7 @@ api.register(hostgroup)
 
 class hostgroup_add(basegroup_add):
     'Add a new hostgroup.'
-    base_classes = ["top", "groupofnames", "ipaHostGroup"]
+    base_classes = ("top", "groupofnames", "ipaHostGroup")
 
 api.register(hostgroup_add)
 

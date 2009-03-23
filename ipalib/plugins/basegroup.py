@@ -27,7 +27,7 @@ from ipalib import Str, Int, Flag, List  # Parameter types
 from ldap.dn import escape_dn_chars
 
 
-default_attributes = ['cn','description','member','memberof']
+default_attributes = ('cn','description','member','memberof')
 default_class = "groupofnames"
 
 
@@ -88,7 +88,7 @@ class BaseGroup(Object):
 class basegroup_add(crud.Add):
     'Add a new group.'
 
-    base_classes = ["top", default_class]
+    base_classes = ("top", default_class)
 
     def execute(self, cn, **kw):
         """
@@ -214,7 +214,7 @@ class basegroup_find(crud.Find):
 
         return ldap.search(**search_kw)
 
-    def output_for_cli(self, textui, result, uid, **options):
+    def output_for_cli(self, textui, result, criteria, **options):
         counter = result[0]
         groups = result[1:]
         if counter == 0 or len(groups) == 0:

@@ -38,6 +38,7 @@ api.register(rolegroup)
 
 class rolegroup_add(basegroup_add):
     'Add a new rolegroup.'
+    base_classes = ("top", "groupofnames", "nestedgroup")
 
 api.register(rolegroup_add)
 
