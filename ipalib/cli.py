@@ -248,6 +248,9 @@ class textui(backend.Backend):
           uid: 'flast'
         """
         assert type(entry) is dict
+        if entry.get('dn'):
+            self.print_indented('dn: %s' % (repr(entry['dn'])), indent)
+            del entry['dn']
         for key in sorted(entry):
             value = entry[key]
             if type(value) in (list, tuple):
