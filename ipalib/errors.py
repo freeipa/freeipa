@@ -396,10 +396,6 @@ class DefaultGroup(ConfigurationError):
     """You cannot remove the default users group"""
     faultCode = 1025
 
-class InsufficientAccess(GenericError):
-    """You do not have permission to perform this task"""
-    faultCode = 1027
-
 class InvalidUserPrincipal(GenericError):
     """Invalid user principal"""
     faultCode = 1028

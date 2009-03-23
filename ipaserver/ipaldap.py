@@ -387,6 +387,8 @@ class IPAdmin(SimpleLDAPObject):
                 raise errors2.DuplicateEntry
             else:
                 raise errors.DatabaseError, e
+        except ldap.INSUFFICIENT_ACCESS, e:
+            raise errors2.ACIError(info=e.args[0].get('info',''))
         except ldap.LDAPError, e:
             raise errors.DatabaseError, e
         return True
@@ -428,6 +430,8 @@ class IPAdmin(SimpleLDAPObject):
         # update, making the oldentry stale.
         except ldap.NO_SUCH_ATTRIBUTE:
             raise errors.MidairCollision
+        except ldap.INSUFFICIENT_ACCESS, e:
+            raise errors2.ACIError(info=e.args[0].get('info',''))
         except ldap.LDAPError, e:
             raise errors.DatabaseError, e
         return True
@@ -500,7 +504,7 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.delete_s(*args)
         except ldap.INSUFFICIENT_ACCESS, e:
-             raise errors.InsufficientAccess, e
+            raise errors2.ACIError(info=e.args[0].get('info',''))
         except ldap.LDAPError, e:
              raise errors.DatabaseError, e
         return True
