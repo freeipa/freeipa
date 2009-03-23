@@ -24,7 +24,7 @@ Frontend plugins for taskgroups.
 from ipalib import api
 from ipalib.plugins.basegroup import *
 
-display_attributes = ['cn','description', 'member', 'memberof']
+display_attributes = ('cn','description', 'member', 'memberof')
 container_taskgroup = "cn=taskgroups,cn=accounts"
 container_rolegroup = "cn=rolegroups,cn=accounts"
 
@@ -70,6 +70,40 @@ class taskgroup_show(basegroup_show):
     container = container_taskgroup
 
 api.register(taskgroup_show)
+
+
+class taskgroup_showall(Command):
+    'List all taskgroups.'
+    default_attributes = display_attributes
+    container = container_taskgroup
+    takes_args = ()
+
+    def execute(self, **kw):
+        ldap = self.api.Backend.ldap
+
+        search_kw = {"cn": "*"}
+        search_kw['objectclass'] = "groupofnames"
+        search_kw['base'] = self.container
+        search_kw['exactonly'] = True
+        search_kw['attributes'] = ['cn', 'description']
+
+        return ldap.search(**search_kw)
+
+    def output_for_cli(self, textui, result, **options):
+        counter = result[0]
+        groups = result[1:]
+        if counter == 0 or len(groups) == 0:
+            textui.print_plain("No entries found")
+            return
+        for g in groups:
+            textui.print_entry(g)
+            textui.print_plain('')
+        if counter == -1:
+            textui.print_plain("These results are truncated.")
+            textui.print_plain("Please refine your search and try again.")
+        textui.print_count(groups, '%d groups matched')
+
+api.register(taskgroup_showall)
 
 
 class taskgroup_add_member(basegroup_add_member):
