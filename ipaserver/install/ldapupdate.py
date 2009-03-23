@@ -228,9 +228,10 @@ class LDAPUpdate:
                 if dn is None:
                     raise BadSyntax, "dn is not defined in the update"
 
+                line = self.__template_str(line)
                 if line.startswith(' '):
                     v = d[len(d) - 1]
-                    v = v + " " + line.strip()
+                    v = v + line[1:]
                     d[len(d) - 1] = v
                     update[index] = d
                     continue
@@ -246,7 +247,6 @@ class LDAPUpdate:
 
                 attr = values[1].strip()
                 value = values[2].strip()
-                value = self.__template_str(value)
 
                 new_value = ""
                 if index == "default":
@@ -514,9 +514,10 @@ class LDAPUpdate:
                 if (entry.dn == "cn=schema"):
                     updated = self.is_schema_updated(entry.toDict())
                 else:
-                    if len(changes) > 1:
+                    if len(changes) >= 1:
                         updated = True
                 logging.debug("%s" % changes)
+                logging.debug("Live %d, updated %d" % (self.live_run, updated))
                 if self.live_run and updated:
                     self.conn.updateEntry(entry.dn, entry.origDataDict(), entry.toDict())
                 logging.info("Done")
@@ -545,6 +546,7 @@ class LDAPUpdate:
                     f.append(os.path.join(path, name))
             if not recursive:
                 break
+        f.sort()
         return f
 
     def update(self, files):
