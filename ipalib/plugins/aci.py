@@ -23,8 +23,14 @@ Frontend plugins for managing DS ACIs
 
 from ipalib import api, crud, errors2
 from ipalib import Object, Command  # Plugin base classes
-from ipalib import Str, Flag, Int  # Parameter types
+from ipalib import Str, Flag, Int, StrEnum  # Parameter types
 from ipalib.aci import ACI
+
+type_map = {
+    'user': 'ldap:///uid=*,%s,%s' % (api.env.container_user, api.env.basedn),
+    'group': 'ldap:///cn=*,%s,%s' % (api.env.container_group, api.env.basedn),
+    'host': 'ldap:///cn=*,%s,%s' % (api.env.container_host, api.env.basedn)
+}
 
 def make_aci(current, aciname, kw):
     try:
@@ -39,12 +45,25 @@ def make_aci(current, aciname, kw):
     a.permissions = kw['permissions'].replace(' ','').split(',')
     a.set_bindrule("groupdn = \"ldap:///%s\"" % taskgroup['dn'])
     if kw.get('attrs', None):
-        a.set_target_attr(kw['attrs'].split())
-    if kw.get('type', None):
-        a.set_target_attr(kw['attrs'].split())
+        a.set_target_attr(kw['attrs'].split(','))
     if kw.get('memberof', None):
         group = api.Command['group_show'](kw['memberof'])
         a.set_target_filter("memberOf=%s" % group['dn'].decode('UTF-8'))
+    if kw.get('type', None):
+        target = type_map[kw.get('type')]
+        a.set_target(target)
+    if kw.get('targetgroup', None):
+        # Purposely no try here so we'll raise a NotFound
+        group = api.Command['group_show'](kw.get('targetgroup'))
+        target = "ldap:///%s" % group.get('dn')
+        a.set_target(target)
+    if kw.get('subtree',None):
+        # See if the subtree is a full URI
+        target = kw.get('subtree')
+        if not target.startswith("ldap:///"):
+            target = "ldap:///" + target
+        a.set_target(target)
+
     return a
 
 def search_by_name(acis, aciname):
@@ -169,14 +188,16 @@ class aci(Object):
         Str('taskgroup',
             doc='Name of taskgroup this ACI grants access to',
         ),
-        Str('permissions',
-            doc='Permissions to grant: read, write',
+        StrEnum('permissions',
+            doc='Permissions to grant: read, write, add, delete, selfwrite, all',
+            values=(u'read', u'write', u'add', u'delete', u'selfwrite', u'all')
         ),
         Str('attrs?',
             doc='Comma-separated list of attributes',
         ),
-        Str('type?',
+        StrEnum('type?',
             doc='type of IPA object: user, group, host',
+            values=(u'user', u'group')
         ),
         Str('memberof?',
             doc='member of a group',
@@ -186,6 +207,9 @@ class aci(Object):
         ),
         Str('subtree?',
             doc='A subtree to apply the ACI to',
+        ),
+        Str('targetgroup?',
+            doc='Apply the ACI to a specific group',
         ),
     )
 api.register(aci)
@@ -247,7 +271,7 @@ class aci_del(crud.Delete):
         currentaci = ldap.retrieve(self.api.env.basedn, ['aci'])
         acilist = currentaci.get('aci')
         a = search_by_name(acilist, aciname)
-        i = acilist.index(str(a))
+        i = acilist.index(a)
         del acilist[i]
 
         kwupdate = {'aci': acilist}
