@@ -24,6 +24,12 @@ add:objectClass: groupofnames
 add:cn: hostadmin
 add:description: Host Administrators
 
+dn: cn=hostgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: hostgroupadmin
+add:description: Host Group Administrators
+
 dn: cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX
 add:objectClass: top
 add:objectClass: groupofnames
@@ -48,13 +54,6 @@ add:objectClass: groupofnames
 add:cn: netgroupadmin
 add:description: Netgroups Administrators
 
-dn: cn=useradmins,cn=rolegroups,cn=accounts,$SUFFIX
-add:objectClass: top
-add:objectClass: groupofnames
-add:objectClass: nestedgroup
-add:cn: useradmins
-add:description: User Administrators
-
 # Add the taskgroups referenced by the ACIs for user administration
 
 dn: cn=taskgroups,cn=accounts,$SUFFIX
@@ -67,35 +66,35 @@ add:objectClass: top
 add:objectClass: groupofnames
 add:cn: addusers
 add:description: Add Users
-add:member:"cn=useradmins,cn=rolegroups,cn=accounts,$SUFFIX"
+add:member:"cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX"
 
 dn: cn=change_password,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
 add:objectClass: groupofnames
 add:cn: change_password
 add:description: Change a user password
-add:member:"cn=useradmins,cn=rolegroups,cn=accounts,$SUFFIX"
+add:member:"cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX"
 
 dn: cn=add_user_to_default_group,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
 add:objectClass: groupofnames
 add:cn: add_user_to_default_group
 add:description: Add user to default group
-add:member:"cn=useradmins,cn=rolegroups,cn=accounts,$SUFFIX"
+add:member:"cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX"
 
 dn: cn=removeusers,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
 add:objectClass: groupofnames
 add:cn: removeusers
 add:description: Remove Users
-add:member:"cn=useradmins,cn=rolegroups,cn=accounts,$SUFFIX"
+add:member:"cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX"
 
 dn: cn=modifyusers,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
 add:objectClass: groupofnames
 add:cn: modifyusers
 add:description: Modify Users
-add:member:"cn=useradmins,cn=rolegroups,cn=accounts,$SUFFIX"
+add:member:"cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX"
 
 # Add the ACIs that grant these permissions for user administration
 
@@ -120,5 +119,304 @@ add:aci: (targetattr = "givenName || sn || cn || displayName || title || initial
  manager || secretary || description || carLicense || labeledURI || inetUserHT
  TPURL || seeAlso || employeeType || businessCategory || ou")(target = "ldap:/
  //uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Modify User
- s";allow (write) groupdn = "ldap:///cn=modifyusers,cn=taskgroups,$SUFFIX";)
+ s";allow (write) groupdn = "ldap:///cn=modifyusers,cn=taskgroups,cn=accounts,
+ $SUFFIX";)
 
+# Add the taskgroups referenced by the ACIs for group administration
+
+dn: cn=addgroups,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: addgroups
+add:description: Add Groups
+add:member:"cn=groupadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=removegroups,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: removegroups
+add:description: Remove Groups
+add:member:"cn=groupadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=modifygroups,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: modifygroups
+add:description: Modify Groups
+add:member:"cn=groupadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=modifygroupmembership,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: modifygroupmembership
+add:description: Modify Group membership
+add:member:"cn=groupadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+# Add the ACIs that grant these permissions for group administration
+
+dn: $SUFFIX
+add:aci: (target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version
+  3.0;acl "Add Groups";allow (add) groupdn = "ldap:///cn=addgroups,cn=taskgroups
+ ,cn=accounts,$SUFFIX";)
+add:aci: (targetattr = "member")(target = "ldap:///cn=*,cn=groups,cn=accoun
+ ts,$SUFFIX")(version 3.0;acl "Modify group membership";allow (wri
+ te) groupdn = "ldap:///cn=modifygroupmembership,cn=taskgroups,cn=accounts
+ ,$SUFFIX";)
+add:aci: (target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version
+  3.0;acl "Remove Groups";allow (delete) groupdn = "ldap:///cn=removegroups,cn=t
+ askgroups,cn=accounts,$SUFFIX";)
+# we need objectclass and gidnumber in modify so a non-posix group can be
+# promoted
+add:aci: (targetattr = "cn || description || gidnumber || objectclass")(target
+  = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Group
+ s";allow (write) groupdn = "ldap:///cn=modifygroups,cn=taskgroups,cn=accounts,
+ $SUFFIX";)
+
+# Add the taskgroups referenced by the ACIs for host administration
+
+dn: cn=addhosts,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: addhosts
+add:description: Add Hosts
+add:member:"cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=removehosts,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: removehosts
+add:description: Remove Hosts
+add:member:"cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=modifyhosts,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: modifyhosts
+add:description: Modify Hosts
+add:member:"cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+# Add the ACIs that grant these permissions for host administration
+
+dn: $SUFFIX
+add:aci: (target = "ldap:///cn=*,cn=computers,cn=accounts,$SUFFIX")(version
+  3.0;acl "Add Hosts";allow (add) groupdn = "ldap:///cn=addhosts,cn=taskgroups
+ ,cn=accounts,$SUFFIX";)
+add:aci: (target = "ldap:///cn=*,cn=computers,cn=accounts,$SUFFIX")(version
+  3.0;acl "Remove Hosts";allow (delete) groupdn = "ldap:///cn=removehosts,cn=
+ taskgroups,cn=accounts,$SUFFIX";)
+add:aci: (targetattr = "cn || description || locality || location || platform
+ || os")(target = "ldap:///cn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;
+ acl "Modify Hosts";allow (write) groupdn = "ldap:///cn=modifyhosts,
+ cn=taskgroups,cn=accounts,$SUFFIX";)
+
+# Add the taskgroups referenced by the ACIs for hostgroup administration
+
+dn: cn=addhostgroups,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: addhostgroups
+add:description: Add Host Groups
+add:member:"cn=hostgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=removehostgroups,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: removehostgroups
+add:description: Remove Host Groups
+add:member:"cn=hostgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=modifyhostgroups,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: modifyhostgroups
+add:description: Modify Host Groups
+add:member:"cn=hostgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=modifyhostgroupmembership,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: modifyhostgroupmembership
+add:description: Modify Host Group membership
+add:member:"cn=hostgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+# Add the ACIs that grant these permissions for hostgroup administration
+
+dn: $SUFFIX
+add:aci: (target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version
+  3.0;acl "Add Hosts";allow (add) groupdn = "ldap:///cn=addhostgroups,cn=
+ taskgroups,cn=accounts,$SUFFIX";)
+add:aci: (target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version
+  3.0;acl "Remove Hosts";allow (delete) groupdn = "ldap:///cn=
+ removehostgroups,cn=taskgroups,cn=accounts,$SUFFIX";)
+add:aci: (targetattr = "cn || description")(target = "ldap:///cn=*,cn=
+ hostgroups,cn=accounts,$SUFFIX")(version 3.0; acl "Modify Hosts";allow
+  (write) groupdn = "ldap:///cn=modifyhostgroups,cn=taskgroups,
+ cn=accounts,$SUFFIX";)
+add:aci: (targetattr = "member")(target = "ldap:///cn=*,cn=hostgroups,cn=accoun
+ ts,$SUFFIX")(version 3.0;acl "Modify host group membership";allow (wri
+ te) groupdn = "ldap:///cn=modifyhostgroupmembership,cn=taskgroups,cn=accounts
+ ,$SUFFIX";)
+
+# Add the taskgroups referenced by the ACIs for service administration
+
+dn: cn=addservices,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: addservices
+add:description: Add Services
+add:member:"cn=serviceadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=removeservices,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: removeservices
+add:description: Remove Services
+add:member:"cn=serviceadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+# Add the ACIs that grant these permissions for service administration
+
+dn: $SUFFIX
+add:aci: (target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,
+ $SUFFIX")(version 3.0;acl "Add Services";allow (add) groupdn = "ldap:///cn
+ =addservices,cn=taskgroups,cn=accounts,$SUFFIX";)
+add:aci: (target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,
+ $SUFFIX")(version 3.0;acl "Remove Services";allow (delete) groupdn = "ldap
+ :///cn=removeservices,cn=taskgroups,cn=accounts,$SUFFIX";)
+
+# Add the taskgroups referenced by the ACIs for delegation administration
+# This just lets one manage taskgroup membership and create and delete roles
+
+dn: cn=addroles,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: addhrole
+add:description: Add Roles
+add:member:"cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=removeroles,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: removeroles
+add:description: Remove Roles
+add:member:"cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=modifyroles,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: modifyroles
+add:description: Modify Roles
+add:member:"cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=modifyrolegroupmembership,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: modifyrolegroupmembership
+add:description: Modify Role Group membership
+add:member:"cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=modifytaskgroupmembership,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: modifytaskgroupmembership
+add:description: Modify Task Group membership
+add:member:"cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+# Add the ACIs that grant these permissions for delegation administration
+
+dn: $SUFFIX
+add:aci: (target = "ldap:///cn=*,cn=rolegroups,cn=accounts,$SUFFIX")(version
+  3.0;acl "Add Roles";allow (add) groupdn = "ldap:///cn=addroles,cn=taskgroups
+ ,cn=accounts,$SUFFIX";)
+add:aci: (target = "ldap:///cn=*,cn=rolegroups,cn=accounts,$SUFFIX")(version
+  3.0;acl "Remove Roles";allow (delete) groupdn = "ldap:///cn=removeroles,cn=
+ taskgroups,cn=accounts,$SUFFIX";)
+add:aci: (targetattr = "cn || description")(target = "ldap:///cn=*,cn=rolegro
+ ups,cn=accounts,$SUFFIX")(version 3.0; acl "Modify Roles";allow (write) grou
+ pdn = "ldap:///cn=modifyroles,cn=taskgroups,cn=accounts,$SUFFIX";)
+add:aci: (targetattr = "member")(target = "ldap:///cn=*,cn=rolegroups,cn=accoun
+ ts,$SUFFIX")(version 3.0;acl "Modify role group membership";allow (wri
+ te) groupdn = "ldap:///cn=modifyrolegroupmembership,cn=taskgroups,cn=accounts
+ ,$SUFFIX";)
+add:aci: (targetattr = "member")(target = "ldap:///cn=*,cn=taskgroups,cn=accoun
+ ts,$SUFFIX")(version 3.0;acl "Modify task group membership";allow (wri
+ te) groupdn = "ldap:///cn=modifytaskgroupmembership,cn=taskgroups,cn=accounts
+ ,$SUFFIX";)
+
+# Add the taskgroups referenced by the ACIs for automount administration
+
+dn: cn=addautomount,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: addautomount
+add:description: Add Automount maps/keys
+add:member:"cn=automountadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=removeautomount,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: removeautomount
+add:description: Remove Automount maps/keys
+add:member:"cn=automountadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+# Add the ACIs that grant these permissions for service administration
+
+dn: $SUFFIX
+add:aci: (target = "ldap:///automountmapname=*,cn=automount,
+ $SUFFIX")(version 3.0;acl "Add automount maps";allow (add) groupdn = "ldap
+ :///cn=addautomount,cn=taskgroups,cn=accounts,$SUFFIX";)
+add:aci: (target = "ldap:///automountmapname=*,cn=automount,
+ $SUFFIX")(version 3.0;acl "Remove automount maps";allow (delete) groupdn =
+  "ldap:///cn=removeautomount,cn=taskgroups,cn=accounts,$SUFFIX";)
+add:aci: (target = "ldap:///automountkey=*,automountmapname=*,cn=automount,
+ $SUFFIX")(version 3.0;acl "Add automount keys";allow (add) groupdn = "ldap
+ :///cn=addautomount,cn=taskgroups,cn=accounts,$SUFFIX";)
+add:aci: (target = "ldap:///automountkey=*,automountmapname=*,cn=automount,
+ $SUFFIX")(version 3.0;acl "Remove automount keys";allow (delete) groupdn =
+  "ldap:///cn=removeautomount,cn=taskgroups,cn=accounts,$SUFFIX";)
+
+# Add the taskgroups referenced by the ACIs for netgroup administration
+
+dn: cn=addnetgroups,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: addnetgroups
+add:description: Add netgroups
+add:member:"cn=netgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=removenetgroups,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: removenetgroups
+add:description: Remove netgroups
+add:member:"cn=netgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=modifynetgroups,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: modifynetgroups
+add:description: Modify netgroups
+add:member:"cn=netgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+dn: cn=modifynetgroupmembership,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: modifynetgroupmembership
+add:description: Modify netgroup membership
+add:member:"cn=netgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+# Add the ACIs that grant these permissions for netgroup administration
+
+dn: $SUFFIX
+add:aci: (target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version
+  3.0;acl "Add netgroups";allow (add) groupdn = "ldap:///cn=addnetgroups,cn=
+ taskgroups,cn=accounts,$SUFFIX";)
+add:aci: (target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version
+  3.0;acl "Remove netgroups";allow (delete) groupdn = "ldap:///cn=
+ removenetgroups,cn=taskgroups,cn=accounts,$SUFFIX";)
+add:aci: (targetattr = "description")(target = "ldap:///ipauniqueid=*,cn=ng,
+ cn=alt,$SUFFIX")(version 3.0; acl "Modify netgroups";allow (write) groupdn 
+ = "ldap:///cn=modifynetgroups,cn=taskgroups,cn=accounts,$SUFFIX";)
+add:aci: (targetattr = "memberhost || externalhost || memberuser || member")
+ (target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version 3.0;acl "Mo
+ dify netgroup membership";allow (write) groupdn = "ldap:///cn=modifynetgrou
+ pmembership,cn=taskgroups,cn=accounts,$SUFFIX";)
