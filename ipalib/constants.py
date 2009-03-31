@@ -91,7 +91,7 @@ DEFAULT_CONFIG = (
     ('container_applications', 'cn=applications,cn=configs,cn=policies'),
     ('container_policygroups', 'cn=policygroups,cn=configs,cn=policies'),
     ('container_policylinks', 'cn=policylinks,cn=configs,cn=policies'),
-
+    ('container_hbac', 'cn=hbac'),
 
     # Ports, hosts, and URIs:
     ('lite_xmlrpc_port', 8888),
