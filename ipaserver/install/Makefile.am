@@ -4,6 +4,7 @@ appdir = $(pythondir)/ipaserver
 app_PYTHON = 			\
 	__init__.py		\
 	bindinstance.py		\
+	cainstance.py		\
 	dsinstance.py		\
 	ipaldap.py		\
 	krbinstance.py		\

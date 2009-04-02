@@ -69,6 +69,8 @@ def parse_options():
                       help="admin user kerberos password")
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="print debugging information")
+    parser.add_option("", "--ca", dest="ca", action="store_true",
+                      default=False, help="Configure a CA instance")
     parser.add_option("--hostname", dest="host_name", help="fully qualified name of server")
     parser.add_option("--ip-address", dest="ip_address", help="Master Server IP Address")
     parser.add_option("--setup-bind", dest="setup_bind", action="store_true",
@@ -298,7 +300,7 @@ def check_dirsrv(unattended):
             print "\t636"
         sys.exit(1)
 
-def uninstall():
+def uninstall(ca = False):
     try:
         run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--uninstall"])
     except Exception, e:
@@ -307,6 +309,14 @@ def uninstall():
         pass
 
     ntpinstance.NTPInstance(fstore).uninstall()
+    if ca:
+        try:
+            from ipaserver.install import cainstance
+        except ImportError:
+            print >> sys.stderr, "Import failed: %s" % sys.exc_value
+            sys.exit(1)
+        cainstance.CADSInstance().uninstall()
+        cainstance.CAInstance().uninstall()
     bindinstance.BindInstance(fstore).uninstall()
     httpinstance.HTTPInstance(fstore).uninstall()
     krbinstance.KrbInstance(fstore).uninstall()
@@ -345,7 +355,7 @@ def main():
                 print "Aborting uninstall operation."
                 sys.exit(1)
 
-        return uninstall()
+        return uninstall(options.ca)
 
     print "=============================================================================="
     print "This program will setup the FreeIPA Server."
@@ -495,12 +505,26 @@ def main():
         os.write(pw_fd, options.dirsrv_pin)
         os.close(pw_fd)
 
+    if options.ca:
+        try:
+            from ipaserver.install import cainstance
+        except ImportError:
+            print >> sys.stderr, "Import failed: %s" % sys.exc_value
+            sys.exit(1)
+
+        cs = cainstance.CADSInstance()
+        cs.create_instance("dirsrv", realm_name, host_name, domain_name, dm_password)
+        ca = cainstance.CAInstance()
+        ca.configure_instance("pkiuser", host_name, dm_password, dm_password)
+
     # Create a directory server instance
     ds = dsinstance.DsInstance()
     if options.dirsrv_pkcs12:
         pkcs12_info = (options.dirsrv_pkcs12, pw_name)
-        ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info)
-        os.remove(pw_name)
+        try:
+            ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info)
+        finally:
+            os.remove(pw_name)
     else:
         ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password)
 
@@ -540,6 +564,8 @@ def main():
     fd.write("realm=" + realm_name + "\n")
     fd.write("domain=" + domain_name + "\n")
     fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % host_name)
+    if options.ca:
+        fd.write("enable_ra=True\n")
     fd.close()
 
     bind = bindinstance.BindInstance(fstore)

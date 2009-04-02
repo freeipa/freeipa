@@ -22,19 +22,19 @@ from ipapython import sysrestore
 from ipapython import ipautil
 
 
-def stop(service_name):
-    ipautil.run(["/sbin/service", service_name, "stop"])
+def stop(service_name, instance_name=""):
+    ipautil.run(["/sbin/service", service_name, "stop", instance_name])
 
-def start(service_name):
-    ipautil.run(["/sbin/service", service_name, "start"])
+def start(service_name, instance_name=""):
+    ipautil.run(["/sbin/service", service_name, "start", instance_name])
 
-def restart(service_name):
-    ipautil.run(["/sbin/service", service_name, "restart"])
+def restart(service_name, instance_name=""):
+    ipautil.run(["/sbin/service", service_name, "restart", instance_name])
 
-def is_running(service_name):
+def is_running(service_name, instance_name=""):
     ret = True
     try:
-        ipautil.run(["/sbin/service", service_name, "status"])
+        ipautil.run(["/sbin/service", service_name, "status", instance_name])
     except ipautil.CalledProcessError:
         ret = False
     return ret
@@ -91,14 +91,14 @@ class Service:
     def set_output(self, fd):
         self.output_fd = fd
 
-    def stop(self):
-        stop(self.service_name)
+    def stop(self, instance_name=""):
+        stop(self.service_name, instance_name)
 
-    def start(self):
-        start(self.service_name)
+    def start(self, instance_name=""):
+        start(self.service_name, instance_name)
 
-    def restart(self):
-        restart(self.service_name)
+    def restart(self, instance_name=""):
+        restart(self.service_name, instance_name)
 
     def is_running(self):
         return is_running(self.service_name)

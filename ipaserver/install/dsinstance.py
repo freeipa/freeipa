@@ -248,7 +248,7 @@ class DsInstance(service.Service):
             logging.critical("failed to restart ds instance %s" % e)
         logging.debug("restarting ds instance")
         try:
-            self.restart()
+            self.restart(self.serverid)
             logging.debug("done restarting ds instance")
         except ipautil.CalledProcessError, e:
             print "failed to restart ds instance", e
@@ -276,7 +276,7 @@ class DsInstance(service.Service):
 
     def __restart_instance(self):
         try:
-            self.restart()
+            self.restart(self.serverid)
             if not is_ds_running():
                 logging.critical("Failed to restart the directory server. See the installation log for details.")
                 sys.exit(1)

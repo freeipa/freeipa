@@ -55,7 +55,10 @@ class ra(Backend):
     Request Authority backend plugin.
     """
     def __init__(self):
-        self.sec_dir = api.env.dot_ipa + os.sep + 'alias'
+        if api.env.home:
+            self.sec_dir = api.env.dot_ipa + os.sep + 'alias'
+        else:
+            self.sec_dir = "/etc/ipa/ra" + os.sep + 'alias'
         self.pwd_file = self.sec_dir + os.sep + '.pwd'
         self.noise_file = self.sec_dir + os.sep + '.noise'
         self.ipa_key_size = "2048"
