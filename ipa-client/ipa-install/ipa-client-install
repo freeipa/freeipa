@@ -221,17 +221,18 @@ def main():
         opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
                 {'name':'empty', 'type':'empty'}]
 
-        #[defaults]
-        defopts = [{'name':'server', 'type':'option', 'value':cli_server},
+        #[global]
+        defopts = [{'name':'basedn', 'type':'option', 'value':cli_basedn},
                    {'name':'realm', 'type':'option', 'value':cli_realm},
-                   {'name':'domain', 'type':'option', 'value':cli_domain}]
+                   {'name':'domain', 'type':'option', 'value':cli_domain},
+                   {'name':'xmlrpc_uri', 'type':'option', 'value':'https://%s/ipa/xml' % cli_server}]
 
-        opts.append({'name':'defaults', 'type':'section', 'value':defopts})
+        opts.append({'name':'global', 'type':'section', 'value':defopts})
         opts.append({'name':'empty', 'type':'empty'})
 
-        fstore.backup_file("/etc/ipa/ipa.conf")
-        ipaconf.newConf("/etc/ipa/ipa.conf", opts)
-        print "Created /etc/ipa/ipa.conf"
+        fstore.backup_file("/etc/ipa/default.conf")
+        ipaconf.newConf("/etc/ipa/default.conf", opts)
+        print "Created /etc/ipa/default.conf"
 
 
     # Configure ldap.conf
