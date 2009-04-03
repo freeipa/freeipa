@@ -24,6 +24,7 @@ Frontend plugins for host/machine Identity.
 from ipalib import api, crud, errors2, util
 from ipalib import Object  # Plugin base class
 from ipalib import Str, Flag  # Parameter types
+import sys, os, platform
 
 
 def get_host(hostname):
@@ -53,6 +54,19 @@ def validate_host(ugettext, cn):
 
 default_attributes = ['cn','description','localityname','nshostlocation','nshardwareplatform','nsosversion']
 
+def determine_os():
+    (sysname, nodename, release, version, machine) = os.uname()
+    if sys.platform == "linux2":
+        # something like fedora 9 Sulpher
+        return unicode(" ".join(platform.dist()))
+    else:
+        # on Solaris this will be: 'SunOS 5.10'
+        return unicode(sysname + " " + release)
+
+def determine_platform():
+    (sysname, nodename, release, version, machine) = os.uname()
+    return unicode(machine)
+
 class host(Object):
     """
     Host object.
@@ -77,10 +91,14 @@ class host(Object):
         Str('nshardwareplatform?',
             cli_name='platform',
             doc='Hardware platform of this host (e.g. Lenovo T61)',
+            default=determine_platform(),
+            autofill=True,
         ),
         Str('nsosversion?',
             cli_name='os',
             doc='Operating System and version on this host (e.g. Fedora 9)',
+            default=determine_os(),
+            autofill=True,
         ),
         Str('userpassword?',
             cli_name='password',
