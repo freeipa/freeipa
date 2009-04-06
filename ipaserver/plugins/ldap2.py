@@ -49,23 +49,20 @@ from ipalib.crud import CrudBackend
 
 # attribute syntax to python type mapping, 'SYNTAX OID': type
 # everything not in this dict is considered human readable unicode
-# instead of using the whole OID, we can just use the last number
-# for standard syntaxes
-# FIXME: if we're going to use non-standard syntaxes, this needs to change
 _syntax_mapping = {
-    '1': str,  # ACI Item
-    '4': str,  # Audio
-    '5': str,  # Binary
-    '7': bool, # Boolean
-    '8': str,  # Certificate
-    '9': str,  # Certificate List
-    '10': str, # Certificate Pair
-    '23': str, # Fax
-    '27': int, # Integer
-    '28': str, # JPEG
-    '40': str, # OctetString (same as Binary)
-    '49': str, # Supported Algorithm
-    '51': str, # Teletext Terminal Identifier (not sure about this one)
+    '1.3.6.1.4.1.1466.115.121.1.1': str,  # ACI item
+    '1.3.6.1.4.1.1466.115.121.1.4': str,  # Audio
+    '1.3.6.1.4.1.1466.115.121.1.5': str,  # Binary
+    '1.3.6.1.4.1.1466.115.121.1.7': str, # Boolean
+    '1.3.6.1.4.1.1466.115.121.1.8': str,  # Certificate
+    '1.3.6.1.4.1.1466.115.121.1.9': str,  # Certificate List
+    '1.3.6.1.4.1.1466.115.121.1.10': str, # Certificate Pair
+    '1.3.6.1.4.1.1466.115.121.1.23': str, # Fax
+    '1.3.6.1.4.1.1466.115.121.1.27': str, # Integer, might not fit into int
+    '1.3.6.1.4.1.1466.115.121.1.28': str, # JPEG
+    '1.3.6.1.4.1.1466.115.121.1.40': str, # OctetString (same as Binary)
+    '1.3.6.1.4.1.1466.115.121.1.49': str, # Supported Algorithm
+    '1.3.6.1.4.1.1466.115.121.1.51': str, # Teletext Terminal Identifier
 }
 
 # used to identify the Uniqueness plugin error message
@@ -73,14 +70,14 @@ _uniqueness_plugin_error = 'Another entry with the same attribute value already 
 
 
 # utility function, builds LDAP URL string
-def get_ldap_url(host, port, using_cacert=False):
+def _get_url(host, port, using_cacert=False):
     if using_cacert:
         return 'ldaps://%s:%d' % (host, port)
     return 'ldap://%s:%d' % (host, port)
 
 # retrieves LDAP schema from server
-def load_schema(host, port):
-    url = get_ldap_url(host, port)
+def _load_schema(host, port):
+    url = _get_url(host, port)
 
     try:
         conn = _ldap.initialize(url)
@@ -101,7 +98,7 @@ def load_schema(host, port):
 
 
 # cache schema when importing module
-_schema = load_schema(api.env.ldap_host, api.env.ldap_port)
+_schema = _load_schema(api.env.ldap_host, api.env.ldap_port)
 
 # ldap backend class
 class ldap2(CrudBackend):
@@ -127,7 +124,7 @@ class ldap2(CrudBackend):
 
     def __str__(self):
         using_cacert = bool(_ldap.get_option(_ldap.OPT_X_TLS_CACERTFILE))
-        return get_ldap_url(self._host, self._port, using_cacert)
+        return _get_url(self._host, self._port, using_cacert)
 
     # encoding values from unicode to utf-8 strings for the ldap bindings
 
@@ -163,8 +160,7 @@ class ldap2(CrudBackend):
         for (k, v) in entry_attrs.iteritems():
             attr = self._schema.get_obj(_ldap.schema.AttributeType, k)
             if attr:
-                index = attr.syntax.rindex('.') + 1
-                attr_type = _syntax_mapping.get(attr.syntax[index:], unicode)
+                attr_type = _syntax_mapping.get(attr.syntax, unicode)
                 if attr_type is unicode:
                     entry_attrs[k] = self._decode_values(v)
                 elif isinstance(v, (list, tuple)):
@@ -198,7 +194,7 @@ class ldap2(CrudBackend):
 
         # if we don't have this server's schema cached, do it now
         if self._host != api.env.ldap_host or self._port != api.env.ldap_port:
-            self._schema = load_schema(self._host, self._port)
+            self._schema = _load_schema(self._host, self._port)
 
         if tls_cacertfile is not None:
             _ldap.set_option(_ldap.OPT_X_TLS_CACERTFILE, tls_cacertfile)
