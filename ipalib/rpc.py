@@ -34,15 +34,24 @@ from types import NoneType
 import threading
 import socket
 import os
+import errno
 from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy, Transport
 import kerberos
 from ipalib.backend import Connectible
 from ipalib.errors2 import public_errors, PublicError, UnknownError, NetworkError
 from ipalib import errors2
 from ipalib.request import context
+from ipapython import ipautil
 from OpenSSL import SSL
 import httplib
 
+# Some Kerberos error definitions from krb5.h
+KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN = (-1765328377L)
+KRB5KRB_AP_ERR_TKT_EXPIRED      = (-1765328352L)
+KRB5_FCC_PERM                   = (-1765328190L)
+KRB5_FCC_NOFILE                 = (-1765328189L)
+KRB5_CC_FORMAT                  = (-1765328185L)
+KRB5_REALM_CANT_RESOLVE         = (-1765328164L)
 
 def xml_wrap(value):
     """
@@ -304,6 +313,23 @@ class KerbTransport(SSLTransport):
     Handles Kerberos Negotiation authentication to an XML-RPC server.
     """
 
+    def _handle_exception(self, e, service=None):
+        (major, minor) = ipautil.get_gsserror(e)
+        if minor[1] == KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN:
+            raise errors2.ServiceError(service=service)
+        elif minor[1] == KRB5_FCC_NOFILE:
+            raise errors2.NoCCacheError()
+        elif minor[1] == KRB5KRB_AP_ERR_TKT_EXPIRED:
+            raise errors2.TicketExpired()
+        elif minor[1] == KRB5_FCC_PERM:
+            raise errors2.BadCCachePerms()
+        elif minor[1] == KRB5_CC_FORMAT:
+            raise errors2.BadCCacheFormat()
+        elif minor[1] == KRB5_REALM_CANT_RESOLVE:
+            raise errors2.CannotResolveKDC()
+        else:
+            raise errors2.KerberosError(major=major, minor=minor)
+
     def get_host_info(self, host):
         (host, extra_headers, x509) = SSLTransport.get_host_info(self, host)
 
@@ -316,16 +342,12 @@ class KerbTransport(SSLTransport):
                                                 kerberos.GSS_C_MUTUAL_FLAG |
                                                 kerberos.GSS_C_SEQUENCE_FLAG)
         except kerberos.GSSError, e:
-            raise e  # FIXME: raise a PublicError
+            self._handle_exception(e)
 
         try:
             kerberos.authGSSClientStep(vc, "")
         except kerberos.GSSError, e:
-            (major, minor) = e.args
-            if minor[1] == -1765328377:
-                raise errors2.ServiceError(service=service)
-            else:
-                raise e
+            self._handle_exception(e, service=service)
 
         extra_headers = [
             ('Authorization', 'negotiate %s' % kerberos.authGSSClientResponse(vc))

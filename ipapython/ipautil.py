@@ -956,14 +956,16 @@ class ItemCompleter:
         return items
 
 def get_gsserror(e):
-    """A GSSError exception looks differently in python 2.4 than it does
-       in python 2.5, deal with it."""
+    """
+    A GSSError exception looks differently in python 2.4 than it does
+    in python 2.5. Deal with it.
+    """
 
     try:
-       primary = e[0]
-       secondary = e[1]
+       major = e[0]
+       minor = e[1]
     except:
-       primary = e[0][0]
-       secondary = e[0][1]
+       major = e[0][0]
+       minor = e[0][1]
 
-    return (primary[0], secondary[0])
+    return (major, minor)

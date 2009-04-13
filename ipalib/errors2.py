@@ -458,6 +458,85 @@ class ServiceError(KerberosError):
     format = _('Service %(service)r not found in Kerberos database')
 
 
+class NoCCacheError(KerberosError):
+    """
+    **1103** Raised when a client attempts to use Kerberos without a ccache.
+
+    For example:
+
+    >>> raise NoCCacheError()
+    Traceback (most recent call last):
+      ...
+    NoCCacheError: No credentials cache found
+    """
+
+    errno = 1103
+    format = _('No credentials cache found')
+
+
+class TicketExpired(KerberosError):
+    """
+    **1104** Raised when a client attempts to use an expired ticket
+
+    For example:
+
+    >>> raise TicketExpired()
+    Traceback (most recent call last):
+      ...
+    TicketExpired: Ticket expired
+    """
+
+    errno = 1104
+    format = _('Ticket expired')
+
+
+class BadCCachePerms(KerberosError):
+    """
+    **1105** Raised when a client has bad permissions on their ccache
+
+    For example:
+
+    >>> raise BadCCachePerms()
+    Traceback (most recent call last):
+      ...
+    BadCCachePerms: Credentials cache permissions incorrect
+    """
+
+    errno = 1105
+    format = _('Credentials cache permissions incorrect')
+
+
+class BadCCacheFormat(KerberosError):
+    """
+    **1106** Raised when a client has a misformated ccache
+
+    For example:
+
+    >>> raise BadCCacheFormat()
+    Traceback (most recent call last):
+      ...
+    BadCCacheFormat: Bad format in credentials cache
+    """
+
+    errno = 1106
+    format = _('Bad format in credentials cache')
+
+
+class CannotResolveKDC(KerberosError):
+    """
+    **1107** Raised when the KDC can't be resolved
+
+    For example:
+
+    >>> raise CannotResolveKDC()
+    Traceback (most recent call last):
+      ...
+    CannotResolveKDC: Cannot resolve KDC for requested realm
+    """
+
+    errno = 1107
+    format = _('Cannot resolve KDC for requested realm')
+
 
 ##############################################################################
 # 2000 - 2999: Authorization errors
