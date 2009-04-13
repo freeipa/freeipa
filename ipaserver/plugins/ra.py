@@ -1,6 +1,7 @@
 # Authors:
 #   Andrew Wnuk <awnuk@redhat.com>
 #   Jason Gerard DeRose <jderose@redhat.com>
+#   Rob Crittenden <rcritten@@redhat.com>
 #
 # Copyright (C) 2009  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -48,6 +49,10 @@ from ipalib.errors2 import NetworkError
 from ipaserver import servercore
 from ipaserver import ipaldap
 from ipalib.constants import TYPE_ERROR
+from ipapython import nsslib
+import nss.nss as nss
+import nss.ssl as ssl
+from nss.error import NSPRError
 
 
 class ra(Backend):
@@ -57,22 +62,18 @@ class ra(Backend):
     def __init__(self):
         if api.env.home:
             self.sec_dir = api.env.dot_ipa + os.sep + 'alias'
+            self.pwd_file = self.sec_dir + os.sep + '.pwd'
         else:
-            self.sec_dir = "/etc/ipa/ra" + os.sep + 'alias'
-        self.pwd_file = self.sec_dir + os.sep + '.pwd'
+            self.sec_dir = "/etc/httpd/alias"
+            self.pwd_file = "/etc/httpd/alias/pwdfile.txt"
         self.noise_file = self.sec_dir + os.sep + '.noise'
         self.ipa_key_size = "2048"
         self.ipa_certificate_nickname = "ipaCert"
         self.ca_certificate_nickname = "caCert"
+        f = open(self.pwd_file, "r")
+        self.password = f.readline()
+        f.close()
         super(ra, self).__init__()
-
-    def configure(self):
-        if not os.path.isdir(self.sec_dir):
-            os.mkdir(self.sec_dir)
-            self.__create_pwd_file()
-            self.__create_nss_db()
-            self.__import_ca_chain()
-            self.__request_ipa_certificate(self.__generate_ipa_request())
 
     def _request(self, url, **kw):
         """
@@ -104,7 +105,7 @@ class ra(Backend):
 
     def _sslget(self, url, **kw):
         """
-        Perform an HTTPS request using the ``sslget`` command.
+        Perform an HTTPS request
 
         :param url: The URL to post to.
         :param kw: Keyword arguments to encode into POST body.
@@ -122,11 +123,21 @@ class ra(Backend):
             '-r', url,  # url
             '%s:%d' % (self.env.ca_host, self.env.ca_ssl_port),
         ]
-        (returncode, stdout, stderr) = self.__run(argv)
-        self.debug('sslget returncode %r', returncode)
-        self.debug('sslget stderr %s', stderr)
-        self.debug('sslget stdout %s', stdout)
-        return (returncode, stdout, stderr)
+        headers = {"Content-type": "application/x-www-form-urlencoded",
+                   "Accept": "text/plain"}
+        conn = nsslib.NSSConnection(self.env.ca_host, self.env.ca_ssl_port, dbdir=self.sec_dir)
+        conn.sslsock.set_client_auth_data_callback(nsslib.client_auth_data_callback, self.ipa_certificate_nickname, self.password, nss.get_default_certdb())
+        conn.set_debuglevel(10)
+        conn.request("POST", url, post, headers)
+        res = conn.getresponse()
+        (status, reason) = (res.status, res.reason)
+        data = res.read()
+        conn.close()
+
+        self.debug('sslget status %r', status)
+        self.debug('sslget reason %s', reason)
+        self.debug('sslget output %s', data)
+        return (status, reason, data)
 
     def check_request_status(self, request_id):
         """
@@ -174,13 +185,13 @@ class ra(Backend):
         """
         self.debug('%s.get_certificate()', self.fullname)
         issued_certificate = None
-        (returncode, stdout, stderr) = self._sslget(
+        (status, reason, stdout) = self._sslget(
             '/ca/agent/ca/displayBySerial',
             serialNumber=serial_number,
             xmlOutput='true',
         )
         response = {}
-        if (returncode == 0):
+        if (status == 200):
             issued_certificate = self.__find_substring(
                 stdout, 'header.certChainBase64 = "', '"'
             )
@@ -198,7 +209,7 @@ class ra(Backend):
             if revocation_reason is not None:
                 response['revocation_reason'] = revocation_reason
         else:
-            response['status'] = str(-returncode)
+            response['status'] = str(status)
         return response
 
     def request_certificate(self, csr, request_type='pkcs10'):
@@ -210,14 +221,14 @@ class ra(Backend):
         """
         self.debug('%s.request_certificate()', self.fullname)
         certificate = None
-        (returncode, stdout, stderr) = self._sslget('/ca/ee/ca/profileSubmit',
+        (status, reason, stdout) = self._sslget('/ca/ee/ca/profileSubmit',
             profileId='caRAserverCert',
             cert_request_type=request_type,
             cert_request=csr,
             xmlOutput='true',
         )
         response = {}
-        if (returncode == 0):
+        if (status == 200):
             status = self.__find_substring(stdout, "<Status>", "</Status>")
             if status is not None:
                 response["status"] = status
@@ -236,7 +247,7 @@ class ra(Backend):
             if response.has_key("status") is False:
                 response["status"] = "2"
         else:
-            response["status"] = str(-returncode)
+            response["status"] = str(status)
         return response
 
     def revoke_certificate(self, serial_number, revocation_reason=0):
@@ -269,20 +280,20 @@ class ra(Backend):
                 type(revocation_reason)
             )
         response = {}
-        (returncode, stdout, stderr) = self._sslget('/ca/agent/ca/doRevoke',
+        (status, reason, stdout) = self._sslget('/ca/agent/ca/doRevoke',
             op='revoke',
             revocationReason=revocation_reason,
             revokeAll='(certRecordId=%s)' % serial_number,
             totalRecordCount=1,
         )
-        if returncode == 0:
+        if status == 200:
             response['status'] = '0'
             if (stdout.find('revoked = "yes"') > -1):
                 response['revoked'] = True
             else:
                 response['revoked'] = False
         else:
-            response['status'] = str(-returncode)
+            response['status'] = str(status)
         return response
 
     def take_certificate_off_hold(self, serial_number):
@@ -293,16 +304,16 @@ class ra(Backend):
         """
         response = {}
         self.debug('%s.take_certificate_off_hold()', self.fullname)
-        (returncode, stdout, stderr) = self._sslget('/ca/agent/ca/doUnrevoke',
+        (status, reason, stdout) = self._sslget('/ca/agent/ca/doUnrevoke',
             serialNumber=serial_number,
         )
-        if (returncode == 0):
+        if (status == 0):
             if (stdout.find('unrevoked = "yes"') > -1):
                 response['taken_off_hold'] = True
             else:
                 response['taken_off_hold'] = False
         else:
-            response['status'] = str(-returncode)
+            response['status'] = str(status)
         return response
 
     def __find_substring(self, str, str1, str2):
@@ -317,111 +328,5 @@ class ra(Backend):
             if (k3 > 0 and k4 > -1 and k3 > k4):
                 sub_str = sub_str[:k4]
         return sub_str
-
-    def __generate_ipa_request(self):
-        certificate_request = None
-        if not os.path.isfile(self.noise_file):
-            self.__create_noise_file()
-        returncode, stdout, stderr = self.__run_certutil(["-R", "-k", "rsa", "-g", self.ipa_key_size, "-s", "CN=IPA-Subsystem-Certificate,OU=pki-ipa,O=UsersysRedhat-Domain", "-z", self.noise_file, "-a"])
-        if os.path.isfile(self.noise_file):
-            os.unlink(self.noise_file)
-        if (returncode == 0):
-            self.info("IPA-RA: IPA certificate request generated")
-            certificate_request = self.__find_substring(stdout, "-----BEGIN NEW CERTIFICATE REQUEST-----", "-----END NEW CERTIFICATE REQUEST-----")
-            if certificate_request is not None:
-                self.debug("certificate_request=%s" % certificate_request)
-            else:
-                self.warning("IPA-RA: Error parsing certificate request." % returncode)
-        else:
-            self.warning("IPA-RA: Error (%d) generating IPA certificate request." % returncode)
-        return certificate_request
-
-    def __request_ipa_certificate(self, certificate_request=None):
-        ipa_certificate = None
-        if certificate_request is not None:
-            response = self.request('profileSubmit',
-                profileId='caServerCert',
-                cert_request_type='pkcs10',
-                requestor_name='freeIPA',
-                cert_request=self.__generate_ipa_request(),
-                xmlOutput='true',
-            )
-            self.debug("IPA-RA: response.status: %d  response.reason: '%s'" % (response.status, response.reason))
-            data = response.read()
-            self.info("IPA-RA: IPA certificate request submitted to CA: %s" % data)
-        return ipa_certificate
-
-    def __get_ca_chain(self):
-        response = self.request('getCertChain')
-        self.debug('response.status: %r', response.status)
-        self.debug('response.reason: %r', response.reason)
-        data = response.read()
-        certificate_chain = self.__find_substring(data, "<ChainBase64>", "</ChainBase64>")
-        if certificate_chain is None:
-            self.warning('IPA-RA: Error parsing certificate chain')
-        else:
-            self.info('IPA-RA: CA chain obtained from CA: %s', certificate_chain)
-        return certificate_chain
-
-    def __import_ca_chain(self):
-        (returncode, stdout, stderr) = self.__run_certutil(
-            [
-                '-A',
-                '-t',
-                'CT,C,C',
-                '-n',
-                self.ca_certificate_nickname,
-                '-a',
-            ],
-            stdin=self.__get_ca_chain(),
-        )
-        if (returncode == 0):
-            self.info("IPA-RA: CA chain imported to IPA's NSS DB")
-        else:
-            self.error("IPA-RA: Error (%d) importing CA chain to IPA's NSS DB",
-                returncode)
-
-    def __create_noise_file(self):
-        noise = array.array('B', os.urandom(128))
-        f = open(self.noise_file, "wb")
-        noise.tofile(f)
-        f.close()
-
-    def __create_pwd_file(self):
-        hex_str = binascii.hexlify(os.urandom(10))
-        print "urandom: %s" % hex_str
-        f = os.open(self.pwd_file, os.O_CREAT | os.O_RDWR)
-        os.write(f, hex_str)
-        os.close(f)
-
-    def __create_nss_db(self):
-        returncode, stdout, stderr = self.__run_certutil(["-N"])
-        if (returncode == 0):
-            self.info("IPA-RA: NSS DB created")
-        else:
-            self.warning("IPA-RA: Error (%d) creating NSS DB." % returncode)
-
-    """
-    sslget and certutil utilities are used only till Python-NSS completion.
-    """
-
-
-    def __run_certutil(self, args, stdin=None):
-        new_args = ["/usr/bin/certutil", "-d", self.sec_dir, "-f", self.pwd_file]
-        new_args = new_args + args
-        return self.__run(new_args, stdin)
-
-    def __run(self, args, stdin=None):
-        if stdin:
-            p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
-            stdout,stderr = p.communicate(stdin)
-        else:
-            p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
-            stdout,stderr = p.communicate()
-
-        self.debug("IPA-RA: returncode: %d  args: '%s'" % (p.returncode, ' '.join(args)))
-        # self.debug("IPA-RA: stdout: '%s'" % stdout)
-        # self.debug("IPA-RA: stderr: '%s'" % stderr)
-        return (p.returncode, stdout, stderr)
 
 api.register(ra)
