@@ -59,21 +59,25 @@ class HTTPInstance(service.Service):
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
-    def create_instance(self, realm, fqdn, domain_name, autoconfig=True, pkcs12_info=None):
+    def create_instance(self, realm, fqdn, domain_name, autoconfig=True, pkcs12_info=None, self_signed_ca=False):
         self.fqdn = fqdn
         self.realm = realm
         self.domain = domain_name
         self.pkcs12_info = pkcs12_info
+        self.self_signed_ca = self_signed_ca
         self.sub_dict = { "REALM" : realm, "FQDN": fqdn, "DOMAIN" : self.domain }
 
         self.step("disabling mod_ssl in httpd", self.__disable_mod_ssl)
         self.step("Setting mod_nss port to 443", self.__set_mod_nss_port)
+        if not self_signed_ca:
+            self.step("Setting mod_nss password file", self.__set_mod_nss_passwordfile)
         self.step("Adding URL rewriting rules", self.__add_include)
         self.step("configuring httpd", self.__configure_http)
         self.step("creating a keytab for httpd", self.__create_http_keytab)
         self.step("Setting up ssl", self.__setup_ssl)
         if autoconfig:
             self.step("Setting up browser autoconfig", self.__setup_autoconfig)
+        self.step("publish CA cert", self.__publish_ca_cert)
         self.step("configuring SELinux for httpd", self.__selinux_config)
         self.step("restarting httpd", self.__start)
         self.step("configuring httpd to start on boot", self.__enable)
@@ -148,17 +152,23 @@ class HTTPInstance(service.Service):
     def __set_mod_nss_nickname(self, nickname):
         installutils.set_directive(NSS_CONF, 'NSSNickname', nickname)
 
+    def __set_mod_nss_passwordfile(self):
+        installutils.set_directive(NSS_CONF, 'NSSPassPhraseDialog', 'file:/etc/httpd/conf/password.conf')
+
     def __add_include(self):
         """This should run after __set_mod_nss_port so is already backed up"""
         if installutils.update_file(NSS_CONF, '</VirtualHost>', 'Include conf.d/ipa-rewrite.conf\n</VirtualHost>') != 0:
             print "Adding Include conf.d/ipa-rewrite to %s failed." % NSS_CONF
 
     def __setup_ssl(self):
-        ds_ca = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(self.realm)))
-        ca = certs.CertDB(NSS_DIR)
+        if self.self_signed_ca:
+            ca_db = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(self.realm)))
+        else:
+            ca_db = certs.CertDB(NSS_DIR, host_name=self.fqdn)
+        db = certs.CertDB(NSS_DIR)
         if self.pkcs12_info:
-            ca.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1], passwd="")
-            server_certs = ca.find_server_certs()
+            db.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1], passwd="")
+            server_certs = db.find_server_certs()
             if len(server_certs) == 0:
                 raise RuntimeError("Could not find a suitable server cert in import in %s" % pkcs12_info[0])
 
@@ -167,9 +177,13 @@ class HTTPInstance(service.Service):
 
             self.__set_mod_nss_nickname(nickname)
         else:
-            ca.create_from_cacert(ds_ca.cacert_fname)
-            ca.create_server_cert("Server-Cert", "cn=%s,ou=Apache Web Server" % self.fqdn, ds_ca)
-            ca.create_signing_cert("Signing-Cert", "cn=%s,ou=Signing Certificate,o=Identity Policy Audit" % self.fqdn, ds_ca)
+            if self.self_signed_ca:
+                db.create_from_cacert(ca_db.cacert_fname)
+                db.create_server_cert("Server-Cert", "cn=%s,ou=Apache Web Server" % self.fqdn, ca_db)
+                db.create_signing_cert("Signing-Cert", "cn=%s,ou=Signing Certificate,o=Identity Policy Audit" % self.fqdn, ca_db)
+            else:
+                db.create_server_cert("Server-Cert", "CN=%s,OU=ipa-pki,O=IPA" % self.fqdn, ca_db)
+                db.create_password_conf()
 
         # Fix the database permissions
         os.chmod(NSS_DIR + "/cert8.db", 0640)
@@ -182,26 +196,37 @@ class HTTPInstance(service.Service):
         os.chown(NSS_DIR + "/secmod.db", 0, pent.pw_gid )
 
     def __setup_autoconfig(self):
+        # FIXME. Need to issue the self-signed cert from the CA as well.
+        #        A special profile is needed from the CS team to do this.
+        if not self.self_signed_ca:
+            return
         prefs_txt = ipautil.template_file(ipautil.SHARE_DIR + "preferences.html.template", self.sub_dict)
         prefs_fd = open("/usr/share/ipa/html/preferences.html", "w")
         prefs_fd.write(prefs_txt)
         prefs_fd.close()
 
         # The signing cert is generated in __setup_ssl
-        ds_ca = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(self.realm)))
-        ca = certs.CertDB(NSS_DIR)
-
-        # Publish the CA certificate
-        shutil.copy(ds_ca.cacert_fname, "/usr/share/ipa/html/ca.crt")
-        os.chmod("/usr/share/ipa/html/ca.crt", 0444)
+        if self.self_signed_ca:
+            ca_db = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(self.realm)))
+        else:
+            ca_db = certs.CertDB(NSS_DIR)
+        db = certs.CertDB(NSS_DIR)
 
         tmpdir = tempfile.mkdtemp(prefix = "tmp-")
         shutil.copy("/usr/share/ipa/html/preferences.html", tmpdir)
-        ca.run_signtool(["-k", "Signing-Cert",
+        db.run_signtool(["-k", "Signing-Cert",
                          "-Z", "/usr/share/ipa/html/configure.jar",
                          "-e", ".html",
                          tmpdir])
         shutil.rmtree(tmpdir)
+
+    def __publish_ca_cert(self):
+        if self.self_signed_ca:
+            ca_db = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(self.realm)))
+        else:
+            ca_db = certs.CertDB(NSS_DIR)
+        shutil.copy(ca_db.cacert_fname, "/usr/share/ipa/html/ca.crt")
+        os.chmod("/usr/share/ipa/html/ca.crt", 0444)
 
     def uninstall(self):
         running = self.restore_state("running")

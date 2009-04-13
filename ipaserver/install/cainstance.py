@@ -34,11 +34,6 @@ import shutil
 import httplib
 import urllib
 import xml.dom.minidom
-import getopt
-import urlparse
-import getpass
-import socket
-import errno
 
 from nss.error import NSPRError
 import nss.nss as nss
@@ -309,7 +304,7 @@ class CADSInstance(service.Service):
             if not dsinstance.is_ds_running():
                 logging.critical("Failed to restart the directory server. See the installation log for details.")
                 sys.exit(1)
-        except Exception, e:
+        except Exception:
             # TODO: roll back here?
             logging.critical("Failed to restart the directory server. See the installation log for details.")
 
@@ -341,6 +336,18 @@ class CADSInstance(service.Service):
 
 
 class CAInstance(service.Service):
+    """
+    In the self-signed case (all done in certs.py) the CA exists in the DS
+    database. When using a dogtag CA the DS database contains just the
+    server cert for DS. The mod_nss database will contain the RA agent
+    cert that will be used to do authenticated requests against dogtag.
+
+    This is done because we use python-nss and will inherit the opened
+    NSS database in mod_python. In nsslib.py we do an nssinit but this will
+    return success if the database is already initialized. It doesn't care
+    if the database is different or not.
+    """
+
     def __init__(self):
         service.Service.__init__(self, "pki-ca")
         self.pki_user = None
@@ -348,10 +355,14 @@ class CAInstance(service.Service):
         self.admin_password = None
         self.host_name = None
 
+        # The same database is used for mod_nss because the NSS context
+        # will already have been initialized by Apache by the time
+        # mod_python wants to do things.
+        self.canickname = "CA certificate"
         self.basedn = "o=ipaca"
         self.ca_agent_db = tempfile.mkdtemp(prefix = "tmp-")
-        self.ra_agent_db = "/etc/ipa/ra/alias"
-        self.ra_agent_pwd = self.ra_agent_db + "/.pwd"
+        self.ra_agent_db = "/etc/httpd/alias"
+        self.ra_agent_pwd = self.ra_agent_db + "/pwdfile.txt"
         self.ds_port = DEFAULT_DSPORT
         self.domain_name = "IPA"
         self.server_root = "/var/lib"
@@ -368,6 +379,8 @@ class CAInstance(service.Service):
         self.admin_password = admin_password
         self.ds_port = ds_port
 
+        if not ipautil.dir_exists("/var/lib/pki-ca"):
+            self.step("creating pki-ca instance", self.create_instance)
         self.step("creating certificate server user", self.__create_ca_user)
         self.step("configuring certificate server instance", self.__configure_instance)
         self.step("creating CA agent PKCS#12 file in /root", self.__create_ca_agent_pkcs12)
@@ -381,6 +394,33 @@ class CAInstance(service.Service):
         self.step("restarting certificate server", self.__restart_instance)
 
         self.start_creation("Configuring certificate server:")
+
+    def create_instance(self):
+        """
+        If for some reason the instance doesn't exist, create a new one."
+
+        These values come from /usr/share/pki/ca/setup/postinstall
+        """
+        PKI_INSTANCE_NAME="pki-ca"
+        AGENT_SECURE_PORT="9443"
+        EE_SECURE_PORT="9444"
+        ADMIN_SECURE_PORT="9445"
+        UNSECURE_PORT="9180"
+        TOMCAT_SERVER_PORT="9701"
+
+        args = ['/usr/bin/pkicreate',
+                '-pki_instance_root', '/var/lib',
+                '-pki_instance_name', PKI_INSTANCE_NAME,
+                '-subsystem_type', 'ca',
+                '-agent_secure_port', AGENT_SECURE_PORT,
+                '-ee_secure_port', EE_SECURE_PORT,
+                '-admin_secure_port', ADMIN_SECURE_PORT,
+                '-unsecure_port', UNSECURE_PORT,
+                '-tomcat_server_port', TOMCAT_SERVER_PORT,
+                '-redirect', 'conf=/etc/pki-ca',
+                '-redirect', 'logs=/var/log/pki-ca',
+        ]
+        ipautil.run(args)
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
@@ -500,7 +540,7 @@ class CAInstance(service.Service):
     def __restart_instance(self):
         try:
             self.restart()
-        except Exception, e:
+        except Exception:
             # TODO: roll back here?
             logging.critical("Failed to restart the certificate server. See the installation log for details.")
 
@@ -526,35 +566,43 @@ class CAInstance(service.Service):
             os.remove(admin_name)
 
         # Retrieve the certificate request so we can get the values needed
-        # to issue a certificate.
-        conn = nsslib.NSSConnection(self.host_name,9443,dbdir=self.ca_agent_db)
-        conn.sslsock.set_client_auth_data_callback(client_auth_data_callback, "ipa-ca-agent", self.admin_password, nss.get_default_certdb())
-        conn.set_debuglevel(0)
-        conn.request("GET", "/ca/agent/ca/profileReview?requestId=7")
-        res = conn.getresponse()
-        data = res.read()
-        if res.status != 200:
-            raise RuntimeError("Unable to retrieve certificate request from CA")
+        # to issue a certificate. Use sslget here because this is a
+        # temporary database and nsslib doesn't currently support gracefully
+        # opening and closing an NSS database. This would leave the installer
+        # process stuck using this database during the entire cycle. We need
+        # to use the final RA agent database when issuing certs for DS and
+        # mod_nss.
+        args = [
+            '/usr/bin/sslget',
+            '-n', 'ipa-ca-agent',
+            '-p', self.admin_password,
+            '-d', self.ca_agent_db,
+            '-r', '/ca/agent/ca/profileReview?requestId=7',
+            '%s:%d' % (self.host_name, 9443),
+        ]
+        (stdout, stderr) = ipautil.run(args)
 
-        data = data.split('\r\n')
+        data = stdout.split('\r\n')
         params = get_defList(data)
         params['requestId'] = find_substring(data, "requestId")
         params['op'] = 'approve'
         params['submit'] = 'submit'
         params['requestNotes'] = ''
         params = urllib.urlencode(params)
-        headers = {"Content-type": "application/x-www-form-urlencoded",
-                   "Accept": "text/plain"}
 
         # Now issue the RA certificate.
-        conn.request("POST", "/ca/agent/ca/profileProcess", params, headers)
-        res = conn.getresponse()
-        data = res.read()
-        conn.close()
-        if res.status != 200:
-            raise RuntimeError("Unable to issue RA certificate")
+        args = [
+            '/usr/bin/sslget',
+            '-n', 'ipa-ca-agent',
+            '-p', self.admin_password,
+            '-d', self.ca_agent_db,
+            '-e', params,
+            '-r', '/ca/agent/ca/profileProcess',
+            '%s:%d' % (self.host_name, 9443),
+        ]
+        (stdout, stderr) = ipautil.run(args)
 
-        data = data.split('\r\n')
+        data = stdout.split('\r\n')
         outputList = get_outputList(data)
 
         self.ra_cert = outputList['b64_cert']
@@ -562,7 +610,7 @@ class CAInstance(service.Service):
         self.ra_cert = self.ra_cert.replace('-----BEGIN CERTIFICATE-----','')
         self.ra_cert = self.ra_cert.replace('-----END CERTIFICATE-----','')
 
-        # Add the new RA cert to the database in /etc/ipa/ra
+        # Add the new RA cert to the database in /etc/httpd/alias
         (agent_fd, agent_name) = tempfile.mkstemp()
         os.write(agent_fd, self.ra_cert)
         os.close(agent_fd)
@@ -618,8 +666,10 @@ class CAInstance(service.Service):
 
     def __create_ra_agent_db(self):
         if ipautil.file_exists(self.ra_agent_db + "/cert8.db"):
-            # FIXME, use proper exception
-            raise ValueError("The RA Agent database already exists: %s" % self.ra_agent_db)
+            ipautil.backup_file(self.ra_agent_db + "/cert8.db")
+            ipautil.backup_file(self.ra_agent_db + "/key3.db")
+            ipautil.backup_file(self.ra_agent_db + "/secmod.db")
+            ipautil.backup_file(self.ra_agent_db + "/pwdfile.txt")
 
         if not ipautil.dir_exists(self.ra_agent_db):
             os.mkdir(self.ra_agent_db)
@@ -647,9 +697,8 @@ class CAInstance(service.Service):
 
             return chain
         else:
-            # FIXME: raise proper exception
             conn.close()
-            raise ValueError("Unable to retrieve CA chain")
+            raise RuntimeError("Unable to retrieve CA chain")
 
     def __create_ca_agent_pkcs12(self):
         (pwd_fd, pwd_name) = tempfile.mkstemp()
@@ -672,7 +721,7 @@ class CAInstance(service.Service):
         os.close(chain_fd)
         try:
             self.__run_certutil(
-                ['-A', '-t', 'CT,C,C', '-n', 'caCert', '-a',
+                ['-A', '-t', 'CT,C,C', '-n', self.canickname, '-a',
                  '-i', chain_name]
             )
         finally:
@@ -709,13 +758,14 @@ class CAInstance(service.Service):
         res = conn.getresponse()
         if res.status == 200:
             data = res.read()
+            # FIXME: pull the requestId out so of the response so it isn't
+            # later hard-coded at 7
 #            print data
 
             conn.close()
         else:
             conn.close()
-            # FIXME: raise proper exception
-            raise ValueError("Unable to submit RA cert request")
+            raise RuntimeError("Unable to submit RA cert request")
 
     def __fix_ra_perms(self):
         os.chmod(self.ra_agent_db + "/cert8.db", 0640)
@@ -731,7 +781,7 @@ class CAInstance(service.Service):
     def uninstall(self):
         try:
             ipautil.run(["/usr/bin/pkiremove", "-pki_instance_root=/var/lib",
-                         "-pki_instance_name=pki-ca", "-force"])
+                         "-pki_instance_name=pki-ca", "--force"])
         except ipautil.CalledProcessError, e:
             logging.critical("failed to uninstall CA instance %s" % e)
 

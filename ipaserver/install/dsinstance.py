@@ -154,7 +154,7 @@ class DsInstance(service.Service):
         else:
             self.suffix = None
 
-    def create_instance(self, ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info=None):
+    def create_instance(self, ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info=None, self_signed_ca=False):
         self.ds_user = ds_user
         self.realm_name = realm_name.upper()
         self.serverid = realm_to_serverid(self.realm_name)
@@ -163,6 +163,7 @@ class DsInstance(service.Service):
         self.dm_password = dm_password
         self.domain = domain_name
         self.pkcs12_info = pkcs12_info
+        self.self_signed_ca = self_signed_ca
         self.__setup_sub_dict()
 
         self.step("creating directory server user", self.__create_ds_user)
@@ -341,19 +342,26 @@ class DsInstance(service.Service):
 
     def __enable_ssl(self):
         dirname = config_dirname(self.serverid)
-        ca = certs.CertDB(dirname)
+        dsdb = certs.CertDB(dirname)
         if self.pkcs12_info:
-            ca.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1])
-            server_certs = ca.find_server_certs()
+            dsdb.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1])
+            server_certs = dsdb.find_server_certs()
             if len(server_certs) == 0:
                 raise RuntimeError("Could not find a suitable server cert in import in %s" % pkcs12_info[0])
 
             # We only handle one server cert
             nickname = server_certs[0][0]
         else:
-            ca.create_self_signed()
-            ca.create_server_cert("Server-Cert", "cn=%s,ou=Fedora Directory Server" % self.host_name)
             nickname = "Server-Cert"
+            if self.self_signed_ca:
+                dsdb.create_self_signed()
+                dsdb.create_server_cert("Server-Cert", "cn=%s,ou=Fedora Directory Server" % self.host_name)
+            else:
+                cadb = certs.CertDB("/etc/httpd/alias", host_name=self.host_name)
+                cadb.export_ca_cert(cadb.cacert_name, False)
+                dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
+                dsdb.create_server_cert("Server-Cert", "CN=%s,OU=pki-ipa,O=IPA" % self.host_name, cadb)
+                dsdb.create_pin_file()
 
         conn = ipaldap.IPAdmin("127.0.0.1")
         conn.simple_bind_s("cn=directory manager", self.dm_password)

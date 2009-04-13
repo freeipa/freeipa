@@ -42,6 +42,7 @@ from ipaserver.install import krbinstance
 from ipaserver.install import bindinstance
 from ipaserver.install import httpinstance
 from ipaserver.install import ntpinstance
+from ipaserver.install import certs
 
 from ipaserver.install import service
 from ipapython import version
@@ -512,6 +513,12 @@ def main():
             print >> sys.stderr, "Import failed: %s" % sys.exc_value
             sys.exit(1)
 
+        # Clean up any previous self-signed CA that may exist
+        try:
+            os.remove(certs.CA_SERIALNO)
+        except:
+            pass
+
         cs = cainstance.CADSInstance()
         cs.create_instance("dirsrv", realm_name, host_name, domain_name, dm_password)
         ca = cainstance.CAInstance()
@@ -526,7 +533,7 @@ def main():
         finally:
             os.remove(pw_name)
     else:
-        ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password)
+        ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, self_signed_ca=not options.ca)
 
     # Create a kerberos instance
     krb = krbinstance.KrbInstance(fstore)
@@ -545,7 +552,7 @@ def main():
         http.create_instance(realm_name, host_name, domain_name, autoconfig=False, pkcs12_info=pkcs12_info)
         os.remove(pw_name)
     else:
-        http.create_instance(realm_name, host_name, domain_name, autoconfig=True)
+        http.create_instance(realm_name, host_name, domain_name, autoconfig=True, self_signed_ca=not options.ca)
 
     # Create the config file
     fstore.backup_file("/etc/ipa/ipa.conf")
