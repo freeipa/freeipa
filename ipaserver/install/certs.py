@@ -23,8 +23,10 @@ import errno
 import tempfile
 import shutil
 import logging
+import httplib
 import urllib
 import xml.dom.minidom
+import pwd
 
 from ipapython import nsslib
 from ipapython import sysrestore
@@ -165,8 +167,12 @@ class CertDB(object):
 
         return str(self.cur_serial)
 
-    def set_perms(self, fname, write=False):
-        os.chown(fname, self.uid, self.gid)
+    def set_perms(self, fname, write=False, uid=None):
+        if uid:
+            pent = pwd.getpwnam(uid)
+            os.chown(fname, pent.pw_uid, pent.pw_gid)
+        else:
+            os.chown(fname, self.uid, self.gid)
         perms = stat.S_IRUSR
         if write:
             perms |= stat.S_IWUSR
@@ -181,7 +187,13 @@ class CertDB(object):
         return ipautil.run(new_args, stdin)
 
     def run_signtool(self, args, stdin=None):
-        new_args = ["/usr/bin/signtool", "-d", self.secdir]
+        if not self.self_signed_ca:
+            f = open(self.passwd_fname, "r")
+            password = f.readline()
+            f.close()
+            new_args = ["/usr/bin/signtool", "-d", self.secdir, "-p", password]
+        else:
+            new_args = ["/usr/bin/signtool", "-d", self.secdir]
         new_args = new_args + args
         ipautil.run(new_args, stdin)
 
@@ -233,7 +245,7 @@ class CertDB(object):
         self.run_certutil(["-L", "-n", nickname,
                            "-a",
                            "-o", self.cacert_fname])
-        self.set_perms(self.cacert_fname)
+        os.chmod(self.cacert_fname, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
         if create_pkcs12:
             ipautil.backup_file(self.pk12_fname)
             ipautil.run(["/usr/bin/pk12util", "-d", self.secdir,
@@ -286,11 +298,11 @@ class CertDB(object):
         os.unlink(self.certreq_fname)
         os.unlink(self.certder_fname)
 
-    def create_signing_cert(self, nickname, name, other_certdb=None):
+    def create_signing_cert(self, nickname, subject, other_certdb=None):
         cdb = other_certdb
         if not cdb:
             cdb = self
-        self.request_cert(name)
+        self.request_cert(subject)
         cdb.issue_signing_cert(self.certreq_fname, self.certder_fname)
         self.add_cert(self.certder_fname, nickname)
         os.unlink(self.certreq_fname)
@@ -365,8 +377,8 @@ class CertDB(object):
             headers = {"Content-type": "application/x-www-form-urlencoded",
                        "Accept": "text/plain"}
 
-            # Send the CSR request to the CA
-            f = open(self.passwd_fname)
+            # Send the request to the CA
+            f = open(self.passwd_fname, "r")
             password = f.readline()
             f.close()
             conn = nsslib.NSSConnection(self.host_name, 9444, dbdir=self.secdir)
@@ -385,6 +397,7 @@ class CertDB(object):
             item_node = doc.getElementsByTagName("b64")
             cert = item_node[0].childNodes[0].data
             doc.unlink()
+            conn.close()
 
             # Write the certificate to a file. It will be imported in a later
             # step.
@@ -395,34 +408,87 @@ class CertDB(object):
         return
 
     def issue_signing_cert(self, certreq_fname, cert_fname):
-        p = subprocess.Popen(["/usr/bin/certutil",
-                              "-d", self.secdir,
-                              "-C", "-c", self.cacert_name,
-                              "-i", certreq_fname,
-                              "-o", cert_fname,
-                              "-m", self.next_serial(),
-                              "-v", self.valid_months,
-                              "-f", self.passwd_fname,
-                              "-1", "-5"],
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE)
+        if self.self_signed_ca:
+            p = subprocess.Popen(["/usr/bin/certutil",
+                                  "-d", self.secdir,
+                                  "-C", "-c", self.cacert_name,
+                                  "-i", certreq_fname,
+                                  "-o", cert_fname,
+                                  "-m", self.next_serial(),
+                                  "-v", self.valid_months,
+                                  "-f", self.passwd_fname,
+                                  "-1", "-5"],
+                                 stdin=subprocess.PIPE,
+                                 stdout=subprocess.PIPE)
 
-        # Bah - this sucks, but I guess it isn't possible to fully
-        # control this with command line arguments.
-        #
-        # What this is requesting is:
-        #  -1 (Create key usage extension)
-        #     0 - Digital Signature
-        #     5 - Cert signing key
-        #     9 - done
-        #     n - not critical
-        #
-        #  -5 (Create netscape cert type extension)
-        #     3 - Object Signing
-        #     9 - done
-        #     n - not critical
-        p.stdin.write("0\n5\n9\nn\n3\n9\nn\n")
-        p.wait()
+            # Bah - this sucks, but I guess it isn't possible to fully
+            # control this with command line arguments.
+            #
+            # What this is requesting is:
+            #  -1 (Create key usage extension)
+            #     0 - Digital Signature
+            #     5 - Cert signing key
+            #     9 - done
+            #     n - not critical
+            #
+            #  -5 (Create netscape cert type extension)
+            #     3 - Object Signing
+            #     9 - done
+            #     n - not critical
+            p.stdin.write("0\n5\n9\nn\n3\n9\nn\n")
+            p.wait()
+        else:
+            if self.host_name is None:
+                raise RuntimeError("CA Host is not set.")
+
+            f = open(certreq_fname, "r")
+            csr = f.readlines()
+            f.close()
+            csr = "".join(csr)
+
+            # We just want the CSR bits, make sure there is no thing else
+            s = csr.find("-----BEGIN NEW CERTIFICATE REQUEST-----")
+            e = csr.find("-----END NEW CERTIFICATE REQUEST-----")
+            if e > 0:
+                e = e + 37
+            if s >= 0:
+                csr = csr[s:]
+
+            params = urllib.urlencode({'profileId': 'caJarSigningCert',
+                    'cert_request_type': 'pkcs10',
+                    'requestor_name': 'IPA Installer',
+                    'cert_request': csr,
+                    'xmlOutput': 'true'})
+            headers = {"Content-type": "application/x-www-form-urlencoded",
+                       "Accept": "text/plain"}
+
+            # Send the request to the CA
+            f = open(self.passwd_fname, "r")
+            password = f.readline()
+            f.close()
+            conn = nsslib.NSSConnection(self.host_name, 9444, dbdir=self.secdir)
+            conn.sslsock.set_client_auth_data_callback(client_auth_data_callback, "ipaCert", password, nss.get_default_certdb())
+            conn.set_debuglevel(0)
+
+            conn.request("POST", "/ca/ee/ca/profileSubmit", params, headers)
+            res = conn.getresponse()
+            data = res.read()
+            conn.close()
+            if res.status != 200:
+                raise RuntimeError("Unable to submit cert request")
+
+            # The result is an XML blob. Pull the certificate out of that
+            doc = xml.dom.minidom.parseString(data)
+            item_node = doc.getElementsByTagName("b64")
+            cert = item_node[0].childNodes[0].data
+            doc.unlink()
+            conn.close()
+
+            f = open(cert_fname, "w")
+            f.write(cert)
+            f.close()
+
+        return
 
     def add_cert(self, cert_fname, nickname):
         args = ["-A", "-n", nickname,
@@ -440,9 +506,10 @@ class CertDB(object):
         ipautil.backup_file(self.pin_fname)
         f = open(self.pin_fname, "w")
         f.write("Internal (Software) Token:")
-        pwd = open(self.passwd_fname)
-        f.write(pwd.read())
+        pwdfile = open(self.passwd_fname)
+        f.write(pwdfile.read())
         f.close()
+        pwdfile.close()
         self.set_perms(self.pin_fname)
 
     def create_password_conf(self):
@@ -452,9 +519,11 @@ class CertDB(object):
         ipautil.backup_file(self.pwd_conf)
         f = open(self.pwd_conf, "w")
         f.write("internal:")
-        pwd = open(self.passwd_fname)
-        f.write(pwd.read())
+        pwdfile = open(self.passwd_fname)
+        f.write(pwdfile.read())
         f.close()
+        pwdfile.close()
+        self.set_perms(self.pwd_conf, uid="apache")
 
     def find_root_cert(self, nickname):
         p = subprocess.Popen(["/usr/bin/certutil", "-d", self.secdir,

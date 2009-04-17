@@ -10,6 +10,7 @@ app_DATA =				\
 	60basev2.ldif			\
 	60policyv2.ldif			\
 	bootstrap-template.ldif		\
+	caJarSigningCert.cfg.template	\
 	default-aci.ldif		\
 	default-keytypes.ldif		\
 	kerberos.ldif			\

@@ -34,6 +34,7 @@ import shutil
 import httplib
 import urllib
 import xml.dom.minidom
+import stat
 
 from nss.error import NSPRError
 import nss.nss as nss
@@ -44,7 +45,6 @@ from ipapython import nsslib
 from ipaserver.install import service
 from ipaserver.install import installutils
 from ipaserver import ipaldap
-from ipaserver.install import ldapupdate
 from ipaserver.install import dsinstance
 from ipalib import util
 
@@ -368,6 +368,7 @@ class CAInstance(service.Service):
         self.server_root = "/var/lib"
         self.secure_port = 9444
         self.ra_cert = None
+        self.requestId = None
 
     def __del__(self):
         shutil.rmtree(self.ca_agent_db, ignore_errors=True)
@@ -390,6 +391,7 @@ class CAInstance(service.Service):
         self.step("issuing RA agent certificate", self.__issue_ra_cert)
         self.step("adding RA agent as a trusted user", self.__configure_ra)
         self.step("fixing RA database permissions", self.__fix_ra_perms)
+        self.step("setting up signing cert profile", self.__setup_sign_profile)
         self.step("configuring certificate server to start on boot", self.__enable)
         self.step("restarting certificate server", self.__restart_instance)
 
@@ -540,7 +542,7 @@ class CAInstance(service.Service):
     def __restart_instance(self):
         try:
             self.restart()
-        except Exception:
+        except Exception, e:
             # TODO: roll back here?
             logging.critical("Failed to restart the certificate server. See the installation log for details.")
 
@@ -577,9 +579,10 @@ class CAInstance(service.Service):
             '-n', 'ipa-ca-agent',
             '-p', self.admin_password,
             '-d', self.ca_agent_db,
-            '-r', '/ca/agent/ca/profileReview?requestId=7',
+            '-r', '/ca/agent/ca/profileReview?requestId=%s' % self.requestId,
             '%s:%d' % (self.host_name, 9443),
         ]
+        logging.debug("running sslget %s" % args)
         (stdout, stderr) = ipautil.run(args)
 
         data = stdout.split('\r\n')
@@ -589,6 +592,8 @@ class CAInstance(service.Service):
         params['submit'] = 'submit'
         params['requestNotes'] = ''
         params = urllib.urlencode(params)
+        headers = {"Content-type": "application/x-www-form-urlencoded",
+                   "Accept": "text/plain"}
 
         # Now issue the RA certificate.
         args = [
@@ -600,6 +605,7 @@ class CAInstance(service.Service):
             '-r', '/ca/agent/ca/profileProcess',
             '%s:%d' % (self.host_name, 9443),
         ]
+        logging.debug("running sslget %s" % args)
         (stdout, stderr) = ipautil.run(args)
 
         data = stdout.split('\r\n')
@@ -679,6 +685,7 @@ class CAInstance(service.Service):
         f = os.open(self.ra_agent_pwd, os.O_CREAT | os.O_RDWR)
         os.write(f, hex_str)
         os.close(f)
+        os.chmod(self.ra_agent_pwd, stat.S_IRUSR)
 
         stdout, stderr = self.__run_certutil(["-N"])
 
@@ -758,11 +765,14 @@ class CAInstance(service.Service):
         res = conn.getresponse()
         if res.status == 200:
             data = res.read()
-            # FIXME: pull the requestId out so of the response so it isn't
-            # later hard-coded at 7
-#            print data
-
             conn.close()
+            doc = xml.dom.minidom.parseString(data)
+            item_node = doc.getElementsByTagName("RequestId")
+            self.requestId = item_node[0].childNodes[0].data
+            doc.unlink()
+            self.requestId = self.requestId.strip()
+            if self.requestId is None:
+                raise RuntimeError("Unable to determine RA certificate requestId")
         else:
             conn.close()
             raise RuntimeError("Unable to submit RA cert request")
@@ -777,6 +787,22 @@ class CAInstance(service.Service):
         os.chown(self.ra_agent_db + "/key3.db", 0, pent.pw_gid )
         os.chown(self.ra_agent_db + "/secmod.db", 0, pent.pw_gid )
         os.chown(self.ra_agent_pwd, 0, pent.pw_gid)
+
+    def __setup_sign_profile(self):
+        caconfig = "/var/lib/pki-ca/conf/CS.cfg"
+
+        if not ipautil.file_exists('/var/lib/pki-ca/profiles/ca/caJarSigningCert.cfg'):
+            profile = ipautil.template_file(ipautil.SHARE_DIR + "caJarSigningCert.cfg.template", {})
+            fd = open("/var/lib/pki-ca/profiles/ca/caJarSigningCert.cfg", "w")
+            fd.write(profile)
+            fd.close()
+
+        profilelist = installutils.get_directive(caconfig, "profile.list", separator="=")
+        if profilelist.find('caJarSigningCert') < 0:
+            profilelist = profilelist + ',caJarSigningCert'
+            installutils.set_directive(caconfig, 'profile.list', profilelist, quotes=False, separator='=')
+            installutils.set_directive(caconfig, 'profile.caJarSigningCert.class_id', 'caEnrollImpl', quotes=False, separator='=')
+            installutils.set_directive(caconfig, 'profile.caJarSigningCert.config', '/var/lib/pki-ca/profiles/ca/caJarSigningCert.cfg', quotes=False, separator='=')
 
     def uninstall(self):
         try:

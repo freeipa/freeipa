@@ -183,6 +183,7 @@ class HTTPInstance(service.Service):
                 db.create_signing_cert("Signing-Cert", "cn=%s,ou=Signing Certificate,o=Identity Policy Audit" % self.fqdn, ca_db)
             else:
                 db.create_server_cert("Server-Cert", "CN=%s,OU=ipa-pki,O=IPA" % self.fqdn, ca_db)
+                db.create_signing_cert("Signing-Cert", "CN=Object Signing Cert,OU=ipa-pki,O=IPA", ca_db)
                 db.create_password_conf()
 
         # Fix the database permissions
@@ -196,20 +197,12 @@ class HTTPInstance(service.Service):
         os.chown(NSS_DIR + "/secmod.db", 0, pent.pw_gid )
 
     def __setup_autoconfig(self):
-        # FIXME. Need to issue the self-signed cert from the CA as well.
-        #        A special profile is needed from the CS team to do this.
-        if not self.self_signed_ca:
-            return
         prefs_txt = ipautil.template_file(ipautil.SHARE_DIR + "preferences.html.template", self.sub_dict)
         prefs_fd = open("/usr/share/ipa/html/preferences.html", "w")
         prefs_fd.write(prefs_txt)
         prefs_fd.close()
 
         # The signing cert is generated in __setup_ssl
-        if self.self_signed_ca:
-            ca_db = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(self.realm)))
-        else:
-            ca_db = certs.CertDB(NSS_DIR)
         db = certs.CertDB(NSS_DIR)
 
         tmpdir = tempfile.mkdtemp(prefix = "tmp-")

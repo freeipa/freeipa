@@ -210,23 +210,48 @@ def update_file(filename, orig, subst):
         print "File %s doesn't exist." % filename
         return 1
 
-def set_directive(filename, directive, value):
+def set_directive(filename, directive, value, quotes=True, separator=' '):
     """Set a name/value pair directive in a configuration file.
 
        This has only been tested with nss.conf
     """
+    valueset = False
     fd = open(filename)
     file = []
     for line in fd:
         if directive in line:
-            file.append('%s "%s"\n' % (directive, value))
+            valueset = True
+            if quotes:
+                file.append('%s%s"%s"\n' % (directive, separator, value))
+            else:
+                file.append('%s%s%s\n' % (directive, separator, value))
         else:
             file.append(line)
     fd.close()
+    if not valueset:
+        if quotes:
+            file.append('%s%s"%s"\n' % (directive, separator, value))
+        else:
+            file.append('%s%s%s\n' % (directive, separator, value))
 
     fd = open(filename, "w")
     fd.write("".join(file))
     fd.close()
+
+def get_directive(filename, directive, strip_quotes=True, separator=' '):
+    """
+    A rather inefficient way to get a configuration directive.
+    """
+    fd = open(filename, "r")
+    for line in fd:
+        if directive in line:
+            line = line.strip()
+            result = line.split(separator, 1)[1]
+            result = result.strip('"')
+            fd.close()
+            return result
+    fd.close()
+    return None
 
 def kadmin(command):
     ipautil.run(["/usr/kerberos/sbin/kadmin.local", "-q", command])
