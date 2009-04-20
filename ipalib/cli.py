@@ -36,8 +36,7 @@ import frontend
 import backend
 import plugable
 import util
-from errors2 import PublicError, CommandError, HelpError, InternalError
-import errors
+from errors2 import PublicError, CommandError, HelpError, InternalError, NoSuchNamespaceError, ValidationError
 from constants import CLI_TAB
 from parameters import Password, Bytes
 from request import ugettext as _
@@ -456,7 +455,7 @@ class show_api(frontend.Application):
         else:
             for name in namespaces:
                 if name not in self.api:
-                    raise errors.NoSuchNamespaceError(name)
+                    raise NoSuchNamespaceError(name=name)
             names = namespaces
         lines = self.__traverse(names)
         ml = max(len(l[1]) for l in lines)
@@ -477,7 +476,6 @@ class show_api(frontend.Application):
         else:
             s = '%d attributes show.' % len(lines)
         self.Backend.textui.print_dashed(s)
-
 
     def __traverse(self, names):
         lines = []
@@ -635,7 +633,7 @@ class cli(backend.Executioner):
                             if value is not None:
                                 kw[param.name] = value
                             break
-                        except errors.ValidationError, e:
+                        except ValidationError, e:
                             error = e.error
 
 

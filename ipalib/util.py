@@ -22,24 +22,21 @@ Various utility functions.
 """
 
 import os
-from os import path
 import imp
 import optparse
 import logging
 import time
-from types import NoneType
-from xmlrpclib import Binary
 import krbV
 import socket
+from ipalib import errors2
 
 
 def get_current_principal():
     try:
-        return krbV.default_context().default_ccache().principal().name
+        return unicode(krbV.default_context().default_ccache().principal().name)
     except krbV.Krb5Error:
-        #TODO: do a kinit
-        print "Unable to get kerberos principal"
-        return None
+        #TODO: do a kinit?
+        raise errors2.CCacheError()
 
 def get_fqdn():
     fqdn = ""
@@ -57,16 +54,16 @@ def find_modules_in_dir(src_dir):
     """
     Iterate through module names found in ``src_dir``.
     """
-    if not (path.abspath(src_dir) == src_dir and path.isdir(src_dir)):
+    if not (os.path.abspath(src_dir) == src_dir and os.path.isdir(src_dir)):
         return
-    if path.islink(src_dir):
+    if os.path.islink(src_dir):
         return
     suffix = '.py'
     for name in sorted(os.listdir(src_dir)):
         if not name.endswith(suffix):
             continue
-        pyfile = path.join(src_dir, name)
-        if path.islink(pyfile) or not path.isfile(pyfile):
+        pyfile = os.path.join(src_dir, name)
+        if os.path.islink(pyfile) or not os.path.isfile(pyfile):
             continue
         module = name[:-len(suffix)]
         if module == '__init__':
@@ -92,7 +89,7 @@ def import_plugins_subpackage(name):
         plugins = __import__(name + '.plugins').plugins
     except ImportError:
         return
-    src_dir = path.dirname(path.abspath(plugins.__file__))
+    src_dir = os.path.dirname(os.path.abspath(plugins.__file__))
     for name in find_modules_in_dir(src_dir):
         full_name = '%s.%s' % (plugins.__name__, name)
         __import__(full_name)

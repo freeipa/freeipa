@@ -44,7 +44,7 @@ from ldap.controls import LDAPControl
 from ldap.ldapobject import SimpleLDAPObject
 
 from ipalib import api
-from ipalib import errors, errors2
+from ipalib import errors2
 from ipalib.crud import CrudBackend
 
 # attribute syntax to python type mapping, 'SYNTAX OID': type
@@ -87,7 +87,7 @@ def _load_schema(host, port):
         conn.unbind_s()
     except _ldap.LDAPError, e:
         # TODO: raise a more appropriate exception
-        raise errors.DatabaseError
+        self.__handle_errors(e, **{})
     except IndexError:
         # no 'cn=schema' entry in LDAP? some servers use 'cn=subschema'
         # TODO: DS uses 'cn=schema', support for other server?
@@ -167,6 +167,51 @@ class ldap2(CrudBackend):
                     entry_attrs[k] = map(attr_type, v)
                 else:
                     entry_attrs[k] = attr_type(v)
+
+    def __handle_errors(self, e, **kw):
+        """
+        Centralize error handling in one place.
+
+        e is the error to be raised
+        **kw is an exception-specific list of options
+        """
+        if not isinstance(e,ldap.TIMEOUT):
+            desc = e.args[0]['desc'].strip()
+            info = e.args[0].get('info','').strip()
+        else:
+            desc = ''
+            info = ''
+
+        try:
+            # re-raise the error so we can handle it
+            raise e
+        except _ldap.NO_SUCH_OBJECT, e:
+            # args = kw.get('args', '')
+            # raise errors2.NotFound(msg=notfound(args))
+            raise errors2.NotFound()
+        except _ldap.ALREADY_EXISTS, e:
+            raise errors2.DuplicateEntry()
+        except _ldap.CONSTRAINT_VIOLATION, e:
+            # This error gets thrown by the uniqueness plugin
+            if info == 'Another entry with the same attribute value already exists':
+                raise errors2.DuplicateEntry()
+            else:
+                raise errors2.DatabaseError(desc=desc,info=info)
+        except _ldap.INSUFFICIENT_ACCESS, e:
+            raise errors2.ACIError(info=info)
+        except _ldap.NO_SUCH_ATTRIBUTE:
+            # this is raised when a 'delete' attribute isn't found.
+            # it indicates the previous attribute was removed by another
+            # update, making the oldentry stale.
+            raise errors2.MidairCollision()
+        except _ldap.ADMINLIMIT_EXCEEDED, e:
+            raise errors2.LimitsExceeded()
+        except _ldap.SIZELIMIT_EXCEEDED, e:
+            raise errors2.LimitsExceeded()
+        except _ldap.TIMELIMIT_EXCEEDED, e:
+            raise errors2.LimitsExceeded()
+        except _ldap.LDAPError, e:
+            raise errors2.DatabaseError(desc=desc,info=info)
 
     def create_connection(self, host=None, port=None, ccache=None,
             bind_dn='', bind_pw='', debug_level=255,
@@ -291,15 +336,8 @@ class ldap2(CrudBackend):
         # pass arguments to python-ldap
         try:
             self.conn.add_s(dn, list(entry_attrs_copy.iteritems()))
-        except _ldap.ALREADY_EXISTS, e:
-            raise errors2.DuplicateEntry
-        except _ldap.CONSTRAINT_VIOLATION, e:
-            if e.args[0].get('info', '') == _uniqueness_plugin_error:
-                raise errors2.DuplicateEntry
-            else:
-                raise errors.DatabaseError, e
         except _ldap.LDAPError, e:
-            raise errors.DatabaseError, e
+            self.__handle_errors(e, **{})
 
     # generating filters for find_entry
     # some examples:
@@ -403,7 +441,7 @@ class ldap2(CrudBackend):
                 _ldap.SIZELIMIT_EXCEEDED), e:
             raise e
         except _ldap.LDAPError, e:
-            raise errors.DatabaseError, e 
+            self.__handle_errors(e, **{})
         if not res:
             raise errors2.NotFound()
 
@@ -450,7 +488,7 @@ class ldap2(CrudBackend):
         try:
             self.conn.rename_s(dn, new_rdn, delold=int(del_old))
         except _ldap.LDAPError, e:
-            raise errors.DatabaseError, e
+            self.__handle_errors(e, **{})
 
     def _generate_modlist(self, dn, entry_attrs):
         # get original entry
@@ -500,15 +538,13 @@ class ldap2(CrudBackend):
         # generate modlist
         modlist = self._generate_modlist(dn, entry_attrs_copy)
         if not modlist:
-            raise errors.EmptyModlist
+            raise errors2.EmptyModlist()
 
         # pass arguments to python-ldap
         try:
             self.conn.modify_s(dn, modlist)
-        except _ldap.NO_SUCH_ATTRIBUTE:
-            raise errors.MidairCollision
         except _ldap.LDAPError, e:
-            raise errors.DatabaseError, e
+            self.__handle_errors(e, **{})
 
     def delete_entry(self, dn):
         """Delete entry."""
@@ -519,10 +555,8 @@ class ldap2(CrudBackend):
         # pass arguments to python-ldap
         try:
             self.conn.delete_s(dn)
-        except _ldap.INSUFFICIENT_ACCESS, e:
-            raise errors.InsuficientAccess, e
         except _ldap.LDAPError, e:
-            raise errors.DatabaseError, e
+            self.__handle_errors(e, **{})
 
     def modify_password(self, dn, old_pass, new_pass):
         """Set user password."""
@@ -536,7 +570,7 @@ class ldap2(CrudBackend):
         try:
             self.passwd_s(dn, odl_pass, new_pass)
         except _ldap.LDAPError, e:
-            raise errors.DatabaseError, e
+            self.__handle_errors(e, **{})
 
     def add_entry_to_group(self, dn, group_dn, member_attr='member'):
         """Add entry to group."""
@@ -545,7 +579,7 @@ class ldap2(CrudBackend):
         group_dn = self.normalize_dn(group_dn)
         # check if we're not trying to add group into itself
         if dn == group_dn:
-            raise errors.SameGroupError
+            raise errors2.SameGroupError()
         # check if the entry exists
         (dn, entry_attrs) = self.get_entry(dn, ['objectClass'])
 
@@ -575,7 +609,7 @@ class ldap2(CrudBackend):
         try:
             members.remove(dn)
         except ValueError:
-            raise errors.NotGroupMember
+            raise errors2.NotGroupMember()
         group_entry_attrs[member_attr] = members
 
         # update group entry
@@ -592,11 +626,11 @@ class ldap2(CrudBackend):
         account_lock_attr = account_lock_attr[0].lower()
         if active:
             if account_lock_attr == 'false':
-                raise errors.AlreadyActiveError
+                raise errors2.AlreadyActive()
         else:
             if account_lock_attr == 'true':
-                raise errors.AlreadyInactiveError
-        
+                raise errors2.AlreadyInactive()
+
         # check if nsAccountLock attribute is in the entry itself
         is_member = False
         member_of_attr = entry_attrs.get('memberOf', [])
@@ -605,7 +639,7 @@ class ldap2(CrudBackend):
                 is_member = True
                 break
         if not is_member and entry_attrs.has_key('nsAccountLock'):
-            raise errors.HasNSAccountLock
+            raise errors2.HasNSAccountLock()
 
         activated_filter = '(cn=activated)'
         inactivated_filter = '(cn=inactivated)'
@@ -619,7 +653,7 @@ class ldap2(CrudBackend):
         (group_dn, group_entry_attrs) = entries[0]
         try:
             self.remove_entry_from_group(dn, group_dn)
-        except errors.NotGroupMember:
+        except errors2.NotGroupMember:
             pass
 
         # add the entry to the activated/inactivated group if necessary 
@@ -638,11 +672,11 @@ class ldap2(CrudBackend):
         (group_dn, group_entry_attrs) = entries[0]
         try:
             self.add_entry_to_group(dn, group_dn)
-        except errors.EmptyModlist:
+        except errors2.EmptyModlist:
             if active:
-                raise errors.AlreadyActiveError
+                raise errors2.AlreadyActive()
             else:
-                raise errors.AlreadyInactiveError
+                raise errors2.AlreadyInactive()
 
     def activate_entry(self, dn):
         """Mark entry active."""

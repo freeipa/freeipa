@@ -25,7 +25,7 @@ import inspect
 from tests.util import raises, no_set, no_del, read_only
 from tests.util import getitem, setitem, delitem
 from tests.util import ClassChecker, create_test_api
-from ipalib import plugable, errors, errors2
+from ipalib import plugable, errors2
 
 
 class test_SetProxy(ClassChecker):

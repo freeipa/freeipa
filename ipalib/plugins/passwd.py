@@ -21,7 +21,7 @@
 Frontend plugins for password changes.
 """
 
-from ipalib import api, errors, util
+from ipalib import api, errors2, util
 from ipalib import Command  # Plugin base classes
 from ipalib import Str, Password  # Parameter types
 
@@ -30,13 +30,13 @@ class passwd(Command):
     'Edit existing password policy.'
 
     takes_args = (
-        Password('password'),
-        Str('principal?',
+        Str('principal',
             cli_name='user',
             primary_key=True,
             autofill=True,
-            default_from=util.get_current_principal,
+            create_default=lambda **kw: util.get_current_principal(),
         ),
+        Password('password'),
     )
 
     def execute(self, principal, password):
@@ -48,13 +48,13 @@ class passwd(Command):
 
         Returns the entry
 
-        :param param uid: The login name of the user being updated.
-        :param kw: Not used.
+        :param principal: The login name or principal of the user
+        :param password: the new password
         """
         if principal.find('@') > 0:
             u = principal.split('@')
             if len(u) > 2:
-                raise errors.InvalidUserPrincipal(principal)
+                raise errors2.MalformedUserPrincipal(principal=principal)
         else:
             principal = principal+"@"+self.api.env.realm
         dn = self.Backend.ldap.find_entry_dn(

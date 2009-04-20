@@ -21,7 +21,7 @@
 Base plugin for groups.
 """
 
-from ipalib import api, crud, errors, errors2
+from ipalib import api, crud, errors2
 from ipalib import Object, Command  # Plugin base classes
 from ipalib import Str, Int, Flag, List  # Parameter types
 from ldap.dn import escape_dn_chars

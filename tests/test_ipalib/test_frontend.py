@@ -26,7 +26,7 @@ from tests.util import check_TypeError, ClassChecker, create_test_api
 from tests.util import assert_equal
 from ipalib.constants import TYPE_ERROR
 from ipalib.base import NameSpace
-from ipalib import frontend, backend, plugable, errors2, errors, parameters, config
+from ipalib import frontend, backend, plugable, errors2, parameters, config
 
 def test_RULE_FLAG():
     assert frontend.RULE_FLAG == 'validation_rule'

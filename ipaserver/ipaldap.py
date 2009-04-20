@@ -32,7 +32,7 @@ import ldap.sasl
 from ldap.controls import LDAPControl,DecodeControlTuples,EncodeControlTuples
 from ldap.ldapobject import SimpleLDAPObject
 from ipaserver import ipautil
-from ipalib import errors, errors2
+from ipalib import errors2
 
 # Global variable to define SASL auth
 sasl_auth = ldap.sasl.sasl({},'GSSAPI')
@@ -264,6 +264,50 @@ class IPAdmin(SimpleLDAPObject):
 
         return sctrl
 
+    def __handle_errors(self, e, **kw):
+        """
+        Centralize error handling in one place.
+
+        e is the error to be raised
+        **kw is an exception-specific list of options
+        """
+        if not isinstance(e,ldap.TIMEOUT):
+            desc = e.args[0]['desc'].strip()
+            info = e.args[0].get('info','').strip()
+        else:
+            desc = ''
+            info = ''
+
+        try:
+            # re-raise the error so we can handle it
+            raise e
+        except ldap.NO_SUCH_OBJECT, e:
+            args = kw.get('args', '')
+            raise errors2.NotFound(msg=notfound(args))
+        except ldap.ALREADY_EXISTS, e:
+            raise errors2.DuplicateEntry()
+        except ldap.CONSTRAINT_VIOLATION, e:
+            # This error gets thrown by the uniqueness plugin
+            if info == 'Another entry with the same attribute value already exists':
+                raise errors2.DuplicateEntry()
+            else:
+                raise errors2.DatabaseError(desc=desc,info=info)
+        except ldap.INSUFFICIENT_ACCESS, e:
+            raise errors2.ACIError(info=info)
+        except ldap.NO_SUCH_ATTRIBUTE:
+            # this is raised when a 'delete' attribute isn't found.
+            # it indicates the previous attribute was removed by another
+            # update, making the oldentry stale.
+            raise errors2.MidairCollision()
+        except ldap.ADMINLIMIT_EXCEEDED, e:
+            raise errors2.LimitsExceeded()
+        except ldap.SIZELIMIT_EXCEEDED, e:
+            raise errors2.LimitsExceeded()
+        except ldap.TIMELIMIT_EXCEEDED, e:
+            raise errors2.LimitsExceeded()
+        except ldap.LDAPError, e:
+            raise errors2.DatabaseError(desc=desc,info=info)
+
     def toLDAPURL(self):
         return "ldap://%s:%d/" % (self.host,self.port)
 
@@ -271,11 +315,14 @@ class IPAdmin(SimpleLDAPObject):
         self.proxydn = proxydn
 
     def set_krbccache(self, krbccache, principal):
-        if krbccache is not None:
-            os.environ["KRB5CCNAME"] = krbccache
-            self.sasl_interactive_bind_s("", sasl_auth)
-            self.principal = principal
-        self.proxydn = None
+        try:
+            if krbccache is not None:
+                os.environ["KRB5CCNAME"] = krbccache
+                self.sasl_interactive_bind_s("", sasl_auth)
+                self.principal = principal
+            self.proxydn = None
+        except ldap.LDAPError, e:
+            self.__handle_errors(e, **{})
 
     def do_simple_bind(self, binddn="cn=directory manager", bindpw=""):
         self.binddn = binddn
@@ -293,10 +340,9 @@ class IPAdmin(SimpleLDAPObject):
         try:
             res = self.search(*args)
             objtype, obj = self.result(res)
-        except ldap.NO_SUCH_OBJECT, e:
-            raise errors2.NotFound(msg=notfound(args))
         except ldap.LDAPError, e:
-            raise errors.DatabaseError, e
+            kw = {'args': args}
+            self.__handle_errors(e, **kw)
 
         if not obj:
             raise errors2.NotFound(msg=notfound(args))
@@ -316,11 +362,9 @@ class IPAdmin(SimpleLDAPObject):
         try:
             res = self.search(*args)
             objtype, obj = self.result(res)
-        except (ldap.ADMINLIMIT_EXCEEDED, ldap.SIZELIMIT_EXCEEDED), e:
-            # Too many results returned by search
-            raise e
         except ldap.LDAPError, e:
-            raise errors.DatabaseError, e
+            kw = {'args': args}
+            self.__handle_errors(e, **kw)
 
         if not obj:
             raise errors2.NotFound(msg=notfound(args))
@@ -357,7 +401,8 @@ class IPAdmin(SimpleLDAPObject):
                 ldap.TIMELIMIT_EXCEEDED), e:
             partial = 1
         except ldap.LDAPError, e:
-            raise errors.DatabaseError, e
+            kw = {'args': args}
+            self.__handle_errors(e, **kw)
 
         if not entries:
             raise errors2.NotFound(msg=notfound(args))
@@ -379,18 +424,9 @@ class IPAdmin(SimpleLDAPObject):
             if sctrl is not None:
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.add_s(*args)
-        except ldap.ALREADY_EXISTS, e:
-            raise errors2.DuplicateEntry
-        except ldap.CONSTRAINT_VIOLATION, e:
-            # This error gets thrown by the uniqueness plugin
-            if e.args[0].get('info','') == 'Another entry with the same attribute value already exists':
-                raise errors2.DuplicateEntry
-            else:
-                raise errors.DatabaseError, e
-        except ldap.INSUFFICIENT_ACCESS, e:
-            raise errors2.ACIError(info=e.args[0].get('info',''))
         except ldap.LDAPError, e:
-            raise errors.DatabaseError, e
+            kw = {'args': args}
+            self.__handle_errors(e, **kw)
         return True
 
     def updateRDN(self, dn, newrdn):
@@ -407,7 +443,8 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modrdn_s(dn, newrdn, delold=1)
         except ldap.LDAPError, e:
-            raise errors.DatabaseError, e
+            kw = {'args': args}
+            self.__handle_errors(e, **kw)
         return True
 
     def updateEntry(self,dn,oldentry,newentry):
@@ -425,15 +462,9 @@ class IPAdmin(SimpleLDAPObject):
             if sctrl is not None:
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modify_s(dn, modlist)
-        # this is raised when a 'delete' attribute isn't found.
-        # it indicates the previous attribute was removed by another
-        # update, making the oldentry stale.
-        except ldap.NO_SUCH_ATTRIBUTE:
-            raise errors.MidairCollision
-        except ldap.INSUFFICIENT_ACCESS, e:
-            raise errors2.ACIError(info=e.args[0].get('info',''))
         except ldap.LDAPError, e:
-            raise errors.DatabaseError, e
+            kw = {'args': args}
+            self.__handle_errors(e, **kw)
         return True
 
     def generateModList(self, old_entry, new_entry):
@@ -491,7 +522,8 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modify_s(dn, modlist)
         except ldap.LDAPError, e:
-             raise errors.DatabaseError, e
+            kw = {'args': args}
+            self.__handle_errors(e, **kw)
         return True
 
     def deleteEntry(self,*args):
@@ -503,10 +535,9 @@ class IPAdmin(SimpleLDAPObject):
             if sctrl is not None:
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.delete_s(*args)
-        except ldap.INSUFFICIENT_ACCESS, e:
-            raise errors2.ACIError(info=e.args[0].get('info',''))
         except ldap.LDAPError, e:
-             raise errors.DatabaseError, e
+            kw = {'args': args}
+            self.__handle_errors(e, **kw)
         return True
 
     def modifyPassword(self,dn,oldpass,newpass):
@@ -524,7 +555,8 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.passwd_s(dn, oldpass, newpass)
         except ldap.LDAPError, e:
-            raise errors.DatabaseError, e
+            kw = {'args': args}
+            self.__handle_errors(e, **kw)
         return True
 
     def __wrapmethods(self):

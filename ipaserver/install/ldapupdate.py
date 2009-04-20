@@ -29,7 +29,7 @@ from ipaserver.install import installutils
 from ipaserver import ipaldap
 from ipapython import entity, ipautil
 from ipalib import util
-from ipalib import errors, errors2
+from ipalib import errors2
 import ldap
 import logging
 import krbV
@@ -310,10 +310,10 @@ class LDAPUpdate:
         while True:
             try:
                 entry = self.conn.getEntry(dn, ldap.SCOPE_BASE, "(objectclass=*)", attrlist)
-            except errors2.NotFound:
+            except errors2.NotFound, e:
                 logging.error("Task not found: %s", dn)
                 return
-            except errors.DatabaseError, e:
+            except errors2.DatabaseError, e:
                 logging.error("Task lookup failure %s", e)
                 return
 
@@ -484,7 +484,7 @@ class LDAPUpdate:
             # Doesn't exist, start with the default entry
             entry = new_entry
             logging.info("New entry: %s", entry.dn)
-        except errors.DatabaseError:
+        except errors2.DatabaseError:
             # Doesn't exist, start with the default entry
             entry = new_entry
             logging.info("New entry, using default value: %s", entry.dn)
@@ -521,10 +521,10 @@ class LDAPUpdate:
                 if self.live_run and updated:
                     self.conn.updateEntry(entry.dn, entry.origDataDict(), entry.toDict())
                 logging.info("Done")
-            except errors.EmptyModlist:
+            except errors2.EmptyModlist:
                 logging.info("Entry already up-to-date")
                 updated = False
-            except errors.DatabaseError, e:
+            except errors2.DatabaseError, e:
                 logging.error("Update failed: %s", e)
                 updated = False
 

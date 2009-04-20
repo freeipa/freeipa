@@ -26,7 +26,6 @@ import socket
 import nose
 from ipalib import api, request
 from ipalib import errors2
-from ipalib import errors
 
 # Initialize the API. We do this here so that one can run the tests
 # individually instead of at the top-level. If API.bootstrap()

@@ -699,6 +699,21 @@ class ValidationError(InvocationError):
     format = _('invalid %(name)r: %(error)s')
 
 
+class NoSuchNamespaceError(InvocationError):
+    """
+    **3010** Raised when an unknown namespace is requested.
+
+    For example:
+
+    >>> raise NoSuchNamespaceError(name='Plugins')
+    Traceback (most recent call last):
+      ...
+    NoSuchNamespaceError: api has no such namespace: Plugins
+    """
+
+    errno = 3010
+    format = _('api has no such namespace: %(name)r')
+
 
 ##############################################################################
 # 4000 - 4999: Execution errors
@@ -822,6 +837,102 @@ class AlreadyPosixGroup(ExecutionError):
     errno = 4007
     format = _('This is already a posix group')
 
+class MalformedUserPrincipal(ExecutionError):
+    """
+    **4008** Raised when a user principal is not of the form: user@REALM
+
+    For example:
+
+    >>> raise MalformedUserPrincipal(principal=jsmith@@EXAMPLE.COM)
+    Traceback (most recent call last):
+      ...
+    MalformedUserPrincipal: Principal is not of the form user@REALM: jsmith@@EXAMPLE.COM
+
+    """
+
+    errno = 4008
+    format = _('Principal is not of the form user@REALM: %(principal)r')
+
+class AlreadyActive(ExecutionError):
+    """
+    **4009** Raised when an entry is made active that is already active
+
+    For example:
+
+    >>> raise AlreadyActive()
+    Traceback (most recent call last):
+      ...
+    AlreadyActive: This entry is already unlocked
+
+    """
+
+    errno = 4009
+    format = _('This entry is already unlocked')
+
+class AlreadyInactive(ExecutionError):
+    """
+    **4010** Raised when an entry is made inactive that is already inactive
+
+    For example:
+
+    >>> raise AlreadyInactive()
+    Traceback (most recent call last):
+      ...
+    AlreadyInactive: This entry is already locked
+
+    """
+
+    errno = 4010
+    format = _('This entry is already locked')
+
+class HasNSAccountLock(ExecutionError):
+    """
+    **4011** Raised when an entry has the nsAccountLock attribute set
+
+    For example:
+
+    >>> raise HasNSAccountLock()
+    Traceback (most recent call last):
+      ...
+    HasNSAccountLock: This entry has nsAccountLock set, it cannot be locked or unlocked
+
+    """
+
+    errno = 4011
+    format = _('This entry has nsAccountLock set, it cannot be locked or unlocked')
+
+class NotGroupMember(ExecutionError):
+    """
+    **4012** Raised when a non-member is attempted to be removed from a group
+
+    For example:
+
+    >>> raise NotGroupMember()
+    Traceback (most recent call last):
+      ...
+    NotGroupMember: This entry is not a member of the group
+
+    """
+
+    errno = 4012
+    format = _('This entry is not a member of the group')
+
+class RecursiveGroup(ExecutionError):
+    """
+    **4013** Raised when a group is added as a member of itself
+
+    For example:
+
+    >>> raise RecursiveGroup()
+    Traceback (most recent call last):
+      ...
+    RecursiveGroup: A group may not be a member of itself
+
+    """
+
+    errno = 4013
+    format = _('A group may not be a member of itself')
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).
@@ -853,6 +964,69 @@ class LDAPError(ExecutionError):
 
     errno = 4200
 
+
+class MidairCollision(ExecutionError):
+    """
+    **4201** Raised when a change collides with another change
+
+    For example:
+
+    >>> raise MidairCollision()
+    Traceback (most recent call last):
+      ...
+    MidairCollision: change collided with another change
+    """
+
+    errno = 4201
+    format = _('change collided with another change')
+
+
+class EmptyModlist(ExecutionError):
+    """
+    **4202** Raised when an LDAP update makes no changes
+
+    For example:
+
+    >>> raise EmptyModlist()
+    Traceback (most recent call last):
+      ...
+    EmptyModlist: no modifications to be performed
+    """
+
+    errno = 4202
+    format = _('no modifications to be performed')
+
+
+class DatabaseError(ExecutionError):
+    """
+    **4203** Raised when an LDAP error is not otherwise handled
+
+    For example:
+
+    >>> raise DatabaseError(desc="Can't contact LDAP server", info="")
+    Traceback (most recent call last):
+      ...
+    DatabaseError: Can't contact LDAP server:
+    """
+
+    errno = 4203
+    format = _('%(desc)r:%(info)r')
+
+
+class LimitsExceeded(ExecutionError):
+    """
+    **4204** Raised when search limits are exceeded.
+
+    For example:
+
+    >>> raise LimitsExceeded()
+    Traceback (most recent call last):
+      ...
+    LimitsExceeded: limits exceeded for this query
+    """
+
+    errno = 4204
+    format = _('limits exceeded for this query')
 
 
 ##############################################################################

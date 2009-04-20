@@ -26,7 +26,7 @@ try:
     from ipapython import entity, ipautil, config
     from ipaserver.install import installutils
     from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax, UPDATES_DIR
-    from ipalib import errors, errors2
+    from ipalib import errors2
     import ldap
     import logging
     import re

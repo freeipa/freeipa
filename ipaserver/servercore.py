@@ -23,7 +23,7 @@ import re
 from ipalib.request import context
 from ipaserver import ipaldap
 import ipautil
-from ipalib import errors, errors2
+from ipalib import errors2
 from ipalib import api
 
 def convert_entry(ent):
@@ -341,16 +341,16 @@ def mark_entry_active (dn):
 
     if entry.get('nsaccountlock', 'false').lower() == "false":
         api.log.debug("IPA: already active")
-        raise errors.AlreadyActiveError
+        raise errors2.AlreadyActive()
 
     if has_nsaccountlock(dn):
         api.log.debug("IPA: appears to have the nsaccountlock attribute")
-        raise errors.HasNSAccountLock
+        raise errors2.HasNSAccountLock()
 
     group = get_entry_by_cn("inactivated", None)
     try:
         remove_member_from_group(entry.get('dn'), group.get('dn'))
-    except errors.NotGroupMember:
+    except errors2.NotGroupMember:
         # Perhaps the user is there as a result of group membership
         pass
 
@@ -377,18 +377,18 @@ def mark_entry_inactive (dn):
 
     if entry.get('nsaccountlock', 'false').lower() == "true":
         api.log.debug("IPA: already marked as inactive")
-        raise errors.AlreadyInactiveError
+        raise errors2.AlreadyInactive()
 
     if has_nsaccountlock(dn):
         api.log.debug("IPA: appears to have the nsaccountlock attribute")
-        raise errors.HasNSAccountLock
+        raise errors2.HasNSAccountLock()
 
     # First see if they are in the activated group as this will override
     # the our inactivation.
     group = get_entry_by_cn("activated", None)
     try:
         remove_member_from_group(dn, group.get('dn'))
-    except errors.NotGroupMember:
+    except errors2.NotGroupMember:
         # this is fine, they may not be explicitly in this group
         pass
 
@@ -405,7 +405,7 @@ def add_member_to_group(member_dn, group_dn, memberattr='member'):
     api.log.info("IPA: add_member_to_group '%s' to '%s'" % (member_dn, group_dn))
     if member_dn.lower() == group_dn.lower():
         # You can't add a group to itself
-        raise errors.SameGroupError
+        raise errors2.RecursiveGroup()
 
     group = get_entry_by_dn(group_dn, None)
     if group is None:
@@ -423,10 +423,7 @@ def add_member_to_group(member_dn, group_dn, memberattr='member'):
     members.append(member_dn)
     group[memberattr] = members
 
-    try:
-        return update_entry(group)
-    except errors.EmptyModlist:
-        raise
+    return update_entry(group)
 
 def remove_member_from_group(member_dn, group_dn, memberattr='member'):
     """Remove a member_dn from an existing group."""
@@ -444,7 +441,7 @@ def remove_member_from_group(member_dn, group_dn, memberattr='member'):
 
     members = group.get(memberattr, False)
     if not members:
-        raise errors.NotGroupMember
+        raise errors2.NotGroupMember()
 
     if isinstance(members,basestring):
         members = [members]
@@ -453,15 +450,10 @@ def remove_member_from_group(member_dn, group_dn, memberattr='member'):
     try:
         members.remove(member_dn)
     except ValueError:
-        # member is not in the group
-        # FIXME: raise more specific error?
-        raise errors.NotGroupMember
+        raise errors2.NotGroupMember()
     except Exception, e:
         raise e
 
     group[memberattr] = members
 
-    try:
-        return update_entry(group)
-    except errors.EmptyModlist:
-        raise
+    return update_entry(group)
