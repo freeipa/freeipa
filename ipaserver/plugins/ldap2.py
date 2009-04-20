@@ -107,7 +107,7 @@ class ldap2(CrudBackend):
     MATCH_ANY = '|'   # (|(filter1)(filter2))
     MATCH_ALL = '&'   # (&(filter1)(filter2))
     MATCH_NONE = '!'  # (!(filter1)(filter2))
-    
+
     # search scope for find_entries()
     SCOPE_BASE = _ldap.SCOPE_BASE
     SCOPE_ONELEVEL = _ldap.SCOPE_ONELEVEL
@@ -120,7 +120,7 @@ class ldap2(CrudBackend):
         super(ldap2, self).__init__()
 
     def __del__(self):
-        self.disconnect() 
+        self.disconnect()
 
     def __str__(self):
         using_cacert = bool(_ldap.get_option(_ldap.OPT_X_TLS_CACERTFILE))
@@ -130,7 +130,7 @@ class ldap2(CrudBackend):
 
     def _encode_value(self, value):
         if isinstance(value, unicode):
-            return value.encode('utf-8') 
+            return value.encode('utf-8')
         if value is None:
             return None
         if not isinstance(value, (bool, int, float, long, str)):
@@ -144,7 +144,7 @@ class ldap2(CrudBackend):
 
     def _encode_entry_attrs(self, entry_attrs):
         for (k, v) in entry_attrs.iteritems():
-            entry_attrs[k] = self._encode_values(v)        
+            entry_attrs[k] = self._encode_values(v)
 
     # decoding values from the ldap bindings to the appropriate type
 
@@ -262,7 +262,7 @@ class ldap2(CrudBackend):
     def destroy_connection(self):
         """Disconnect from LDAP server."""
         self.conn.unbind_s()
- 
+
     # DN manipulation
     # DN's could be generated for example like this:
     # def execute(...):
@@ -276,7 +276,7 @@ class ldap2(CrudBackend):
     def normalize_dn(self, dn):
         """
         Normalize distinguished name.
-        
+
         Note: You don't have to normalize DN's before passing them to
               ldap2 methods. It's done internally for you.
         """
@@ -456,7 +456,7 @@ class ldap2(CrudBackend):
     def get_entry(self, dn, attrs_list=None):
         """
         Get entry (dn, entry_attrs) by dn.
-        
+
         Keyword arguments:
         attrs_list - list of attributes to return, all if None (default None)
         """
@@ -492,7 +492,7 @@ class ldap2(CrudBackend):
 
     def _generate_modlist(self, dn, entry_attrs):
         # get original entry
-        (dn, entry_attrs_old) = self.get_entry(dn) 
+        (dn, entry_attrs_old) = self.get_entry(dn)
         # get_entry returns a decoded entry, encode it back
         # we could call search_s directly, but this saves a lot of code at
         # the expense of a little bit of performace
@@ -526,7 +526,7 @@ class ldap2(CrudBackend):
     def update_entry(self, dn, entry_attrs):
         """
         Update entry's attributes.
-        
+
         An attribute value set to None deletes all current values.
         """
         # encode/normalize arguments
@@ -620,7 +620,7 @@ class ldap2(CrudBackend):
         assert isinstance(active, bool)
         # get the entry in question
         (dn, entry_attrs) = self.get_entry(dn, ['nsAccountLock', 'memberOf'])
-        
+
         # check nsAccountLock attribute
         account_lock_attr = entry_attrs.get('nsAccountLock', ['false'])
         account_lock_attr = account_lock_attr[0].lower()
@@ -656,7 +656,7 @@ class ldap2(CrudBackend):
         except errors2.NotGroupMember:
             pass
 
-        # add the entry to the activated/inactivated group if necessary 
+        # add the entry to the activated/inactivated group if necessary
         if active:
             (dn, entry_attrs) = self.get_entry(dn, ['nsAccountLock'])
 
@@ -725,7 +725,7 @@ class ldap2(CrudBackend):
     def delete(self, primary_key):
         """
         Delete entry by primary_key (DN).
-        
+
         Extends CrudBackend.delete.
         """
         self.delete_entry(primary_key)
