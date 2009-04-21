@@ -234,6 +234,27 @@ class textui(backend.Backend):
         for (key, value) in rows:
             self.print_indented('%s = %r' % (key, value), indent)
 
+    def print_attribute(self, attr, value, indent=1):
+        """
+        Print an ldap attribute.
+
+        For example:
+
+        >>> attr = 'dn'
+        >>> ui = textui()
+        >>> ui.print_attribute(attr, u'dc=example,dc=com')
+          dn: dc=example,dc=com
+        >>> attr = 'objectClass'
+        >>> ui.print_attribute(attr, [u'top', u'someClass'])
+          objectClass: top
+          objectClass: someClass
+        """
+        assert isinstance(attr, basestring)
+        if not isinstance(value, (list, tuple)):
+            value = [value]
+        for v in value:
+            self.print_indented('%s: %s' % (attr, v), indent)
+
     def print_entry(self, entry, indent=1):
         """
         Print an ldap entry dict.
@@ -249,15 +270,10 @@ class textui(backend.Backend):
         """
         assert type(entry) is dict
         if entry.get('dn'):
-            self.print_indented('dn: %s' % (repr(entry['dn'])), indent)
+            self.print_attribute('dn', entry['dn'], indent)
             del entry['dn']
         for key in sorted(entry):
-            value = entry[key]
-            if type(value) in (list, tuple):
-                for v in value:
-                    self.print_indented('%s: %s' % (key, repr(v)), indent)
-            else:
-                self.print_indented('%s: %s' % (key, repr(value)), indent)
+            self.print_attribute(key, entry[key], indent)
 
     def print_dashed(self, string, above=True, below=True, indent=0, dash='-'):
         """
