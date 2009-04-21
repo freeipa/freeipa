@@ -92,6 +92,7 @@ DEFAULT_CONFIG = (
     ('container_policygroups', 'cn=policygroups,cn=configs,cn=policies'),
     ('container_policylinks', 'cn=policylinks,cn=configs,cn=policies'),
     ('container_hbac', 'cn=hbac'),
+    ('container_dns', 'cn=dns'),
 
     # Ports, hosts, and URIs:
     ('lite_xmlrpc_port', 8888),
@@ -105,6 +106,7 @@ DEFAULT_CONFIG = (
     ('verbose', False),
     ('debug', False),
     ('mode', 'production'),
+    ('use_ldap2', False),
 
     # CA plugin:
     ('ca_host', object),  # Set in Env._finalize_core()
