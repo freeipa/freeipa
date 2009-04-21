@@ -386,20 +386,26 @@ class ldap(CrudBackend):
             del kw['scope']
         if exactonly is not None:
             del kw['exactonly']
-        (exact_match_filter, partial_match_filter) = self._generate_search_filters(**kw)
+        if kw:
+            (exact_match_filter, partial_match_filter) = self._generate_search_filters(**kw)
+        else:
+            (exact_match_filter, partial_match_filter) = ('', '')
         if objectclass:
-            exact_match_filter = "(&(objectClass=%s)%s)" % (objectclass, exact_match_filter)
-            partial_match_filter = "(&(objectClass=%s)%s)" % (objectclass, partial_match_filter)
+            exact_match_filter = '(&(objectClass=%s)%s)' % (objectclass, exact_match_filter)
+            partial_match_filter = '(&(objectClass=%s)%s)' % (objectclass, partial_match_filter)
+        else:
+            exact_match_filter = '(&(objectClass=*)%s)' % exact_match_filter
+            partial_match_filter = '(&(objectClass=*)%s)' % partial_match_filter
         if sfilter:
-            exact_match_filter = "(%s%s)" % (sfilter, exact_match_filter)
-            partial_match_filter = "(%s%s)" % (sfilter, partial_match_filter)
+            exact_match_filter = '(%s%s)' % (sfilter, exact_match_filter)
+            partial_match_filter = '(%s%s)' % (sfilter, partial_match_filter)
 
         search_scope = self._get_scope(scope)
 
         if not base:
             base = self.api.env.container_accounts
 
-        search_base = "%s, %s" % (base, self.api.env.basedn)
+        search_base = '%s,%s' % (base, self.api.env.basedn)
         try:
             exact_results = servercore.search(search_base,
                     exact_match_filter, attributes, scope=search_scope)
