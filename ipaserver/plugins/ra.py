@@ -53,7 +53,14 @@ from ipapython import nsslib
 import nss.nss as nss
 import nss.ssl as ssl
 from nss.error import NSPRError
+import xml.dom.minidom
 
+def get_xml_value(doc, tagname):
+    try:
+        item_node = doc.getElementsByTagName(tagname)
+        return item_node[0].childNodes[0].data
+    except IndexError:
+        return None
 
 class ra(Backend):
     """
@@ -71,7 +78,7 @@ class ra(Backend):
         self.ipa_certificate_nickname = "ipaCert"
         self.ca_certificate_nickname = "caCert"
         f = open(self.pwd_file, "r")
-        self.password = f.readline()
+        self.password = f.readline().strip()
         f.close()
         super(ra, self).__init__()
 
@@ -229,23 +236,27 @@ class ra(Backend):
         )
         response = {}
         if (status == 200):
-            status = self.__find_substring(stdout, "<Status>", "</Status>")
+            doc = xml.dom.minidom.parseString(stdout)
+
+            status = get_xml_value(doc, "Status")
             if status is not None:
                 response["status"] = status
-            request_id = self.__find_substring(stdout, "<Id>", "</Id>")
+            request_id = get_xml_value(doc, "Id")
             if request_id is not None:
                 response["request_id"] = request_id
-            serial_number = self.__find_substring(stdout, "<serialno>", "</serialno>")
+            serial_number = get_xml_value(doc, "serialno")
             if serial_number is not None:
                 response["serial_number"] = ("0x%s" % serial_number)
-            subject = self.__find_substring(stdout, "<SubjectDN>", "</SubjectDN>")
+            subject = get_xml_value(doc, "SubjectDN")
             if subject is not None:
                 response["subject"] = subject
-            certificate = self.__find_substring(stdout, "<b64>", "</b64>")
+            certificate = get_xml_value(doc, "b64")
             if certificate is not None:
                 response["certificate"] = certificate
             if response.has_key("status") is False:
                 response["status"] = "2"
+
+            doc.unlink()
         else:
             response["status"] = str(status)
         return response
