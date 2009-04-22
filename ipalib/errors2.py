@@ -933,6 +933,22 @@ class RecursiveGroup(ExecutionError):
     errno = 4013
     format = _('A group may not be a member of itself')
 
+class AlreadyGroupMember(ExecutionError):
+    """
+    **4014** Raised when a member is attempted to be re-added to a group
+
+    For example:
+
+    >>> raise AlreadyGroupMember()
+    Traceback (most recent call last):
+      ...
+    AlreadyGroupMember: This entry is already a member of the group
+
+    """
+
+    errno = 4014
+    format = _('This entry is already a member of the group')
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).
