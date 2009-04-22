@@ -607,9 +607,10 @@ class ldap2(CrudBackend):
         group_entry_attrs[member_attr] = members
 
         # update group entry
-        # FIXME: raise something like AlreadyGroupMember on EmptyModlist
-        #        or add a check if dn is already in `member_attr` attribute
-        self.update_entry(group_dn, group_entry_attrs)
+        try:
+            self.update_entry(group_dn, group_entry_attrs)
+        except errors2.EmptyModlist:
+            raise errors2.AlreadyGroupMember()
 
     def remove_entry_from_group(self, dn, group_dn, member_attr='member'):
         """Remove entry from group."""
