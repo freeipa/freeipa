@@ -84,6 +84,9 @@ Command Line interface:
   * Add a file option so an argument may be read from a file. This is needed
     for cert-request to pass along the CSR.
 
+  * Replace RequiresRoot() with more fine-grained control based on the
+    files that need to be read/written
+
 
 Improve ease of plugin writting
   - make "from ipalib import *" import everything a plugin writter will need

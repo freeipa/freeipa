@@ -28,7 +28,7 @@ from plugable import lock, check_name
 from parameters import create_param, Param, Str, Flag, Password
 from util import make_repr
 
-from errors import ZeroArgumentError, MaxArgumentError, OverlapError
+from errors import ZeroArgumentError, MaxArgumentError, OverlapError, RequiresRoot
 from constants import TYPE_ERROR
 
 
