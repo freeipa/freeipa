@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Machine join
+join a machine to the IPA domain
 """
 
 from ipalib import api, util
@@ -39,7 +39,7 @@ import shutil
 def get_realm():
     krbctx = krbV.default_context()
 
-    return krbctx.default_realm
+    return unicode(krbctx.default_realm)
 
 def validate_host(ugettext, cn):
     """
@@ -53,19 +53,23 @@ def validate_host(ugettext, cn):
 class join(Command):
     """Join an IPA domain"""
 
+    requires_root = True
+
     takes_args = (
         Str('cn',
             validate_host,
             cli_name='hostname',
             doc="The hostname to register as",
-            default_from=util.get_fqdn,
+            create_default=lambda **kw: unicode(util.get_fqdn()),
+            autofill=True,
             #normalizer=lamda value: value.lower(),
         ),
     )
     takes_options= (
         Str('realm',
             doc="The IPA realm",
-            default_from=get_realm,
+            create_default=lambda **kw: get_realm(),
+            autofill=True,
         ),
     )
 
@@ -90,30 +94,39 @@ class join(Command):
 
         return api.Command['host_add'](hostname)
 
-    def output_for_cli(self, textui, result, variables, **options):
-        textui.print_plain(result)
+    def output_for_cli(self, textui, result, args, **options):
+        textui.print_plain("Welcome to the %s realm" % options['realm'])
+        textui.print_plain("Your keytab is in %s" % result.get('keytab'))
+        if result.get('pkcs12'):
+            textui.print_plain("An X.509 server certificate is in %s" % result.get('pkcs12'))
 
     def run(self, *args, **options):
         """
         Dispatch to forward() and execute() to do work locally and on the
         server.
         """
-        if not self.env.in_server:
-#            if os.getegid() != 0:
-#                raise errors.RequiresRoot
-            result = self.forward(*args, **options)
-        else:
+        if self.env.in_server:
             return self.execute(*args, **options)
 
-        self.__get_keytab(result['krbprincipalname'])
-        import pdb
-        pdb.set_trace()
-        return "Welcome to the %s realm" % options['realm']
+        # This forward will call the server-side portion of join
+        result = self.forward(*args, **options)
 
-    def __get_keytab(self, principal, stdin=None):
+        self._get_keytab(result['krbprincipalname'])
+        self._generate_server_cert(args)
+        result['keytab'] = '/tmp/kt'
+        self._set_perms('/tmp/kt')
+        if ipautil.file_exists('/tmp/server.p12'):
+            self._set_perms('/tmp/server.p12')
+        result['pkcs12'] = '/tmp/server.p12'
+        return result
+
+    def _set_perms(self, filename):
+        os.chown(filename, 0, 0)
+        os.chmod(filename,  stat.S_IRUSR)
+
+    def _get_keytab(self, principal, stdin=None):
         args = ["/usr/sbin/ipa-getkeytab", "-s", self.env.host, "-p", principal,"-k", "/tmp/kt"]
         return ipautil.run(args, stdin)
-
     def _generate_server_cert(self, hostname):
         subject = "CN=%s,OU=pki-ipa,O=IPA" % hostname
         cdb = certdb.CertDB(secdir=None, temporary=True)
