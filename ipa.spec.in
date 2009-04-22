@@ -159,6 +159,7 @@ Requires: python-kerberos >= 1.1-3
 Requires: authconfig
 Requires: gnupg
 Requires: pyOpenSSL
+Requires: python-nss
 
 %description python
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -423,6 +424,9 @@ fi
 %endif
 
 %changelog
+* Wed Apr 22 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-4
+- Add Requires: python-nss to ipa-python sub-package
+
 * Thu Mar  5 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-3
 - Remove the IPA DNA plugin, use the DS one
 
