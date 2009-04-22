@@ -73,6 +73,52 @@ _uniqueness_plugin_error = 'Another entry with the same attribute value already 
 _sasl_auth = _ldap_sasl.sasl({}, 'GSSAPI')
 
 
+# universal LDAPError handler
+def _handle_errors(self, e, **kw):
+    """
+    Centralize error handling in one place.
+
+    e is the error to be raised
+    **kw is an exception-specific list of options
+    """
+    if not isinstance(e, ldap.TIMEOUT):
+        desc = e.args[0]['desc'].strip()
+        info = e.args[0].get('info', '').strip()
+    else:
+        desc = ''
+        info = ''
+
+    try:
+        # re-raise the error so we can handle it
+        raise e
+    except _ldap.NO_SUCH_OBJECT, e:
+        # args = kw.get('args', '')
+        # raise errors2.NotFound(msg=notfound(args))
+        raise errors2.NotFound()
+    except _ldap.ALREADY_EXISTS, e:
+        raise errors2.DuplicateEntry()
+    except _ldap.CONSTRAINT_VIOLATION, e:
+        # This error gets thrown by the uniqueness plugin
+        if info == 'Another entry with the same attribute value already exists':
+            raise errors2.DuplicateEntry()
+        else:
+            raise errors2.DatabaseError(desc=desc, info=info)
+    except _ldap.INSUFFICIENT_ACCESS, e:
+        raise errors2.ACIError(info=info)
+    except _ldap.NO_SUCH_ATTRIBUTE:
+        # this is raised when a 'delete' attribute isn't found.
+        # it indicates the previous attribute was removed by another
+        # update, making the oldentry stale.
+        raise errors2.MidairCollision()
+    except _ldap.ADMINLIMIT_EXCEEDED, e:
+        raise errors2.LimitsExceeded()
+    except _ldap.SIZELIMIT_EXCEEDED, e:
+        raise errors2.LimitsExceeded()
+    except _ldap.TIMELIMIT_EXCEEDED, e:
+        raise errors2.LimitsExceeded()
+    except _ldap.LDAPError, e:
+        raise errors2.DatabaseError(desc=desc, info=info)
+
 # utility function, builds LDAP URL string
 def _get_url(host, port, using_cacert=False):
     if using_cacert:
@@ -91,7 +137,7 @@ def _load_schema(host, port):
         conn.unbind_s()
     except _ldap.LDAPError, e:
         # TODO: raise a more appropriate exception
-        self.__handle_errors(e, **{})
+        _handle_errors(e, **{})
     except IndexError:
         # no 'cn=schema' entry in LDAP? some servers use 'cn=subschema'
         # TODO: DS uses 'cn=schema', support for other server?
@@ -171,51 +217,6 @@ class ldap2(CrudBackend):
                     entry_attrs[k] = map(attr_type, v)
                 else:
                     entry_attrs[k] = attr_type(v)
-
-    def __handle_errors(self, e, **kw):
-        """
-        Centralize error handling in one place.
-
-        e is the error to be raised
-        **kw is an exception-specific list of options
-        """
-        if not isinstance(e,ldap.TIMEOUT):
-            desc = e.args[0]['desc'].strip()
-            info = e.args[0].get('info','').strip()
-        else:
-            desc = ''
-            info = ''
-
-        try:
-            # re-raise the error so we can handle it
-            raise e
-        except _ldap.NO_SUCH_OBJECT, e:
-            # args = kw.get('args', '')
-            # raise errors2.NotFound(msg=notfound(args))
-            raise errors2.NotFound()
-        except _ldap.ALREADY_EXISTS, e:
-            raise errors2.DuplicateEntry()
-        except _ldap.CONSTRAINT_VIOLATION, e:
-            # This error gets thrown by the uniqueness plugin
-            if info == 'Another entry with the same attribute value already exists':
-                raise errors2.DuplicateEntry()
-            else:
-                raise errors2.DatabaseError(desc=desc,info=info)
-        except _ldap.INSUFFICIENT_ACCESS, e:
-            raise errors2.ACIError(info=info)
-        except _ldap.NO_SUCH_ATTRIBUTE:
-            # this is raised when a 'delete' attribute isn't found.
-            # it indicates the previous attribute was removed by another
-            # update, making the oldentry stale.
-            raise errors2.MidairCollision()
-        except _ldap.ADMINLIMIT_EXCEEDED, e:
-            raise errors2.LimitsExceeded()
-        except _ldap.SIZELIMIT_EXCEEDED, e:
-            raise errors2.LimitsExceeded()
-        except _ldap.TIMELIMIT_EXCEEDED, e:
-            raise errors2.LimitsExceeded()
-        except _ldap.LDAPError, e:
-            raise errors2.DatabaseError(desc=desc,info=info)
 
     def create_connection(self, host=None, port=None, ccache=None,
             bind_dn='', bind_pw='', debug_level=255,
@@ -341,7 +342,7 @@ class ldap2(CrudBackend):
         try:
             self.conn.add_s(dn, list(entry_attrs_copy.iteritems()))
         except _ldap.LDAPError, e:
-            self.__handle_errors(e, **{})
+            _handle_errors(e, **{})
 
     # generating filters for find_entry
     # some examples:
@@ -455,7 +456,7 @@ class ldap2(CrudBackend):
                 _ldap.SIZELIMIT_EXCEEDED), e:
             raise e
         except _ldap.LDAPError, e:
-            self.__handle_errors(e, **{})
+            _handle_errors(e, **{})
         if not res:
             raise errors2.NotFound()
 
@@ -502,7 +503,7 @@ class ldap2(CrudBackend):
         try:
             self.conn.rename_s(dn, new_rdn, delold=int(del_old))
         except _ldap.LDAPError, e:
-            self.__handle_errors(e, **{})
+            _handle_errors(e, **{})
 
     def _generate_modlist(self, dn, entry_attrs):
         # get original entry
@@ -558,7 +559,7 @@ class ldap2(CrudBackend):
         try:
             self.conn.modify_s(dn, modlist)
         except _ldap.LDAPError, e:
-            self.__handle_errors(e, **{})
+            _handle_errors(e, **{})
 
     def delete_entry(self, dn):
         """Delete entry."""
@@ -570,7 +571,7 @@ class ldap2(CrudBackend):
         try:
             self.conn.delete_s(dn)
         except _ldap.LDAPError, e:
-            self.__handle_errors(e, **{})
+            _handle_errors(e, **{})
 
     def modify_password(self, dn, old_pass, new_pass):
         """Set user password."""
@@ -584,7 +585,7 @@ class ldap2(CrudBackend):
         try:
             self.passwd_s(dn, odl_pass, new_pass)
         except _ldap.LDAPError, e:
-            self.__handle_errors(e, **{})
+            _handle_errors(e, **{})
 
     def add_entry_to_group(self, dn, group_dn, member_attr='member'):
         """Add entry to group."""
