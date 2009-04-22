@@ -26,6 +26,15 @@ from ipalib import Command, Str, Int
 from ipalib import errors
 import krbV
 import os, subprocess
+from ipapython import ipautil
+from ipapython import certdb
+from ipapython import dogtag
+import tempfile
+import sha
+import httplib
+import xml.dom.minidom
+import stat
+import shutil
 
 def get_realm():
     krbctx = krbV.default_context()
@@ -103,14 +112,43 @@ class join(Command):
 
     def __get_keytab(self, principal, stdin=None):
         args = ["/usr/sbin/ipa-getkeytab", "-s", self.env.host, "-p", principal,"-k", "/tmp/kt"]
-        return self.__run(args, stdin)
+        return ipautil.run(args, stdin)
 
-    def __run(self, args, stdin=None):
-        if stdin:
-            p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
-            stdout,stderr = p.communicate(stdin)
+    def _generate_server_cert(self, hostname):
+        subject = "CN=%s,OU=pki-ipa,O=IPA" % hostname
+        cdb = certdb.CertDB(secdir=None, temporary=True)
+
+        csr = cdb.generate_csr(subject, keysize=1024)
+
+        # Request a cert
+        try:
+            result = api.Command['cert_request'](unicode(csr), **{})
+        except KeyError:
+            return "Certificates are not supported"
+
+        # Load the cert into our temporary database
+        if result.get('certificate', False):
+            cert_file = cdb.secdir + "/cert.txt"
+            f = open(cert_file, "w")
+            f.write(result.get('certificate'))
+            f.close()
+
+            cdb.add_certificate(cert_file, "Server-Cert", is_ca=False)
+
+            ca_chain = dogtag.get_ca_certchain()
+
+            ca_file = cdb.secdir + "/ca.txt"
+            f = open(ca_file, "w")
+            f.write(ca_chain)
+            f.close()
+
+            cdb.add_certificate(ca_file, "caCert", is_ca=True)
+
+            result = cdb.create_pkcs12("/tmp/server.p12", "Server-Cert")
         else:
-            p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
-            stdout,stderr = p.communicate()
+            # Raise some error?
+            pass
+
+        return result
 
 api.register(join)
