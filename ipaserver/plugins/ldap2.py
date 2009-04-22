@@ -40,6 +40,7 @@ import string
 import krbV
 import ldap as _ldap
 import ldap.filter as _ldap_filter
+import ldap.sasl as _ldap_sasl
 from ldap.controls import LDAPControl
 from ldap.ldapobject import SimpleLDAPObject
 
@@ -67,6 +68,9 @@ _syntax_mapping = {
 
 # used to identify the Uniqueness plugin error message
 _uniqueness_plugin_error = 'Another entry with the same attribute value already exists'
+
+# SASL authentication mechanism
+_sasl_auth = _ldap_sasl.sasl({}, 'GSSAPI')
 
 
 # utility function, builds LDAP URL string
@@ -371,31 +375,37 @@ class ldap2(CrudBackend):
             flt = '%s)' % flt
         return flt
 
-    def make_filter_from_attr(self, attr, value, rules='|'):
+    def make_filter_from_attr(self, attr, value, rules='|', exact=True):
         """
         Make filter for ldap2.find_entries from attribute.
 
         Keyword arguments:
         rules -- see ldap2.make_filter
+        exact -- boolean, True - make filter as (attr=value)
+                          False - make filter as (attr=*value*)
         """
         if isinstance(value, (list, tuple)):
             flts = []
             for v in value:
-                flts.append(self.make_filter_from_attr(attr, v, rules))
+                flts.append(self.make_filter_from_attr(attr, v, rules, exact))
             return self.combine_filters(flts, rules)
         else:
             value = _ldap_filter.escape_filter_chars(value)
             attr = self._encode_value(attr)
             value = self._encode_value(value)
-            return '(%s=%s)' % (attr, value)
+            if exact:
+                return '(%s=%s)' % (attr, value)
+            return '(%s=*%s*)' % (attr, value)
 
-    def make_filter(self, entry_attrs, attrs_list=None, rules='|'):
+    def make_filter(self, entry_attrs, attrs_list=None, rules='|', exact=True):
         """
         Make filter for ldap2.find_entries from entry attributes.
 
         Keyword arguments:
         attrs_list -- list of attributes to use, all if None (default None)
         rules -- specifies how to determine a match (default ldap2.MATCH_ANY)
+        exact -- boolean, True - make filter as (attr=value)
+                          False - make filter as (attr=*value*)
 
         rules can be one of the following:
         ldap2.MATCH_NONE - match entries that do not match any attribute
@@ -405,12 +415,16 @@ class ldap2(CrudBackend):
         flts = []
         if attrs_list is None:
             for (k, v) in entry_attrs.iteritems():
-                flts.append(self.make_filter_from_attr(k, v, rules))
+                flts.append(
+                    self.make_filter_from_attr(k, v, rules, exact)
+                )
         else:
             for a in attrs_list:
                 value = entry_attrs.get(a, None)
                 if value is not None:
-                    flts.append(self.make_filter_from_attr(a, value, rules))
+                    flts.append(
+                        self.make_filter_from_attr(a, value, rules, exact)
+                    )
         return self.combine_filters(flts, rules)
 
     def find_entries(self, filter, attrs_list=None, base_dn='',
