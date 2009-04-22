@@ -35,6 +35,7 @@ import httplib
 import urllib
 import xml.dom.minidom
 import stat
+from ipapython import dogtag
 
 from nss.error import NSPRError
 import nss.nss as nss
@@ -690,21 +691,9 @@ class CAInstance(service.Service):
         stdout, stderr = self.__run_certutil(["-N"])
 
     def __get_ca_chain(self):
-        conn = httplib.HTTPConnection(self.host_name, 9180)
-        conn.request("GET", "/ca/ee/ca/getCertChain")
-        res = conn.getresponse()
-        if res.status == 200:
-            data = res.read()
-
-            doc = xml.dom.minidom.parseString(data)
-            item_node = doc.getElementsByTagName("ChainBase64")
-            chain = item_node[0].childNodes[0].data
-            doc.unlink()
-            conn.close()
-
-            return chain
-        else:
-            conn.close()
+        try:
+            return dogtag.get_ca_certchain()
+        except:
             raise RuntimeError("Unable to retrieve CA chain")
 
     def __create_ca_agent_pkcs12(self):
