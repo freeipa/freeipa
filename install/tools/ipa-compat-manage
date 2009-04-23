@@ -26,7 +26,7 @@ try:
     from ipapython import entity, ipautil, config
     from ipaserver.install import installutils
     from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax, UPDATES_DIR
-    from ipalib import errors2
+    from ipalib import errors
     import ldap
     import logging
     import re
@@ -110,7 +110,7 @@ def main():
                               ldap.SCOPE_BASE, "(objectclass=*)")
                 print "Plugin already Enabled"
                 retval = 2
-            except errors2.NotFound:
+            except errors.NotFound:
                 print "Enabling plugin"
             except ldap.LDAPError, e:
                 print "An error occurred while talking to the server."
@@ -132,7 +132,7 @@ def main():
                 conn.deleteEntry("cn=groups,cn=Schema Compatibility,cn=plugins,cn=config")
                 conn.deleteEntry("cn=users,cn=Schema Compatibility,cn=plugins,cn=config")
                 conn.deleteEntry("cn=Schema Compatibility,cn=plugins,cn=config")
-            except errors2.NotFound:
+            except errors.NotFound:
                 print "Plugin is already disabled"
                 retval = 2
             except ldap.LDAPError, e:

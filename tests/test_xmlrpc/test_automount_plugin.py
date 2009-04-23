@@ -24,7 +24,7 @@ Test the `ipalib/plugins/f_automount' module.
 import sys
 from xmlrpc_test import XMLRPC_test
 from ipalib import api
-from ipalib import errors2
+from ipalib import errors
 
 
 class test_Service(XMLRPC_test):
@@ -70,7 +70,7 @@ class test_Service(XMLRPC_test):
         """
         try:
             res = api.Command['automount_addkey'](**self.key_kw)
-        except errors2.DuplicateEntry:
+        except errors.DuplicateEntry:
             pass
         else:
             assert False
@@ -145,7 +145,7 @@ class test_Service(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['automount_showkey'](**delkey_kw)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False
@@ -160,7 +160,7 @@ class test_Service(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['automount_showmap'](self.mapname)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False
@@ -173,7 +173,7 @@ class test_Service(XMLRPC_test):
         key_kw={'automountmapname': self.mapname, 'automountkey': self.keyname2}
         try:
             res = api.Command['automount_showkey'](**key_kw)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False
@@ -216,7 +216,7 @@ class test_Indirect(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['automount_showkey'](**delkey_kw)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False
@@ -231,7 +231,7 @@ class test_Indirect(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['automount_showmap'](self.mapname)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False
@@ -274,7 +274,7 @@ class test_IndirectNoParent(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['automount_showkey'](**delkey_kw)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False
@@ -289,7 +289,7 @@ class test_IndirectNoParent(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['automount_showmap'](self.mapname)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False

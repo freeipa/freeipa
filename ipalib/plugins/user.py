@@ -21,7 +21,7 @@
 Frontend plugins for user (Identity).
 """
 
-from ipalib import api, crud, errors2
+from ipalib import api, crud, errors
 from ipalib import Object, Command  # Plugin base classes
 from ipalib import Str, Password, Flag, Int  # Parameter types
 
@@ -158,9 +158,9 @@ class user_add(crud.Create):
                 default_group = ldap.retrieve(group_dn, ['cn', 'dn','gidNumber'])
                 if default_group:
                     kw['gidnumber'] = default_group.get('gidnumber')
-            except errors2.NotFound:
+            except errors.NotFound:
                 # Fake an LDAP error so we can return something useful to the kw
-                raise errors2.NotFound("The default group for new users, '%s', cannot be found." % config.get('ipadefaultprimarygroup'))
+                raise errors.NotFound("The default group for new users, '%s', cannot be found." % config.get('ipadefaultprimarygroup'))
             except Exception, e:
                 # catch everything else
                 raise e

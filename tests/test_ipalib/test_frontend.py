@@ -26,7 +26,7 @@ from tests.util import check_TypeError, ClassChecker, create_test_api
 from tests.util import assert_equal
 from ipalib.constants import TYPE_ERROR
 from ipalib.base import NameSpace
-from ipalib import frontend, backend, plugable, errors2, parameters, config
+from ipalib import frontend, backend, plugable, errors, parameters, config
 
 def test_RULE_FLAG():
     assert frontend.RULE_FLAG == 'validation_rule'
@@ -274,7 +274,7 @@ class test_Command(ClassChecker):
         # Check with an invalid value
         fail = dict(okay)
         fail['option0'] = u'whatever'
-        e = raises(errors2.ValidationError, sub.validate, **fail)
+        e = raises(errors.ValidationError, sub.validate, **fail)
         assert_equal(e.name, 'option0')
         assert_equal(e.value, u'whatever')
         assert_equal(e.error, u"must equal 'option0'")
@@ -284,7 +284,7 @@ class test_Command(ClassChecker):
         # Check with a missing required arg
         fail = dict(okay)
         fail.pop('option1')
-        e = raises(errors2.RequirementError, sub.validate, **fail)
+        e = raises(errors.RequirementError, sub.validate, **fail)
         assert e.name == 'option1'
 
     def test_execute(self):
@@ -304,26 +304,26 @@ class test_Command(ClassChecker):
 
         # Test that ZeroArgumentError is raised:
         o = self.get_instance()
-        e = raises(errors2.ZeroArgumentError, o.args_options_2_params, 1)
+        e = raises(errors.ZeroArgumentError, o.args_options_2_params, 1)
         assert e.name == 'example'
 
         # Test that MaxArgumentError is raised (count=1)
         o = self.get_instance(args=('one?',))
-        e = raises(errors2.MaxArgumentError, o.args_options_2_params, 1, 2)
+        e = raises(errors.MaxArgumentError, o.args_options_2_params, 1, 2)
         assert e.name == 'example'
         assert e.count == 1
         assert str(e) == "command 'example' takes at most 1 argument"
 
         # Test that MaxArgumentError is raised (count=2)
         o = self.get_instance(args=('one', 'two?'))
-        e = raises(errors2.MaxArgumentError, o.args_options_2_params, 1, 2, 3)
+        e = raises(errors.MaxArgumentError, o.args_options_2_params, 1, 2, 3)
         assert e.name == 'example'
         assert e.count == 2
         assert str(e) == "command 'example' takes at most 2 arguments"
 
         # Test that OverlapError is raised:
         o = self.get_instance(args=('one', 'two'), options=('three', 'four'))
-        e = raises(errors2.OverlapError, o.args_options_2_params,
+        e = raises(errors.OverlapError, o.args_options_2_params,
             1, 2, three=3, two=2, four=4, one=1)
         assert e.names == ['one', 'two']
 

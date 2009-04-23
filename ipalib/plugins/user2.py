@@ -21,7 +21,7 @@
 Users (Identity)
 """
 
-from ipalib import api, crud, errors2
+from ipalib import api, crud, errors
 from ipalib import Command, Object
 from ipalib import Flag, Int, Password, Str
 
@@ -146,9 +146,9 @@ class user2_create(crud.Create):
         # try to retrieve the group's gidNumber
         try:
             (group_dn, group_attrs) = ldap.get_entry(group_dn, ['gidNumber'])
-        except errors2.NotFound:
+        except errors.NotFound:
             error_msg = 'Default group for new users not found.'
-            raise errors2.NotFound(error_msg)
+            raise errors.NotFound(error_msg)
         # fill default group's gidNumber
         entry_attrs['gidnumber'] = group_attrs['gidNumber']
 
@@ -184,7 +184,7 @@ class user2_delete(crud.Delete):
 
         if uid == 'admin':
             # FIXME: add a specific exception for this?
-            raise errors2.ExecutionError('Cannot delete user "admin".')
+            raise errors.ExecutionError('Cannot delete user "admin".')
 
         # build entry DN
         rdn = ldap.make_rdn_from_attr('uid', uid)
@@ -276,7 +276,7 @@ class user2_find(crud.Search):
             entries = ldap.find_entries(
                 filter, attrs_list, _container_dn, ldap.SCOPE_ONELEVEL
             )
-        except errors2.NotFound:
+        except errors.NotFound:
             entries = tuple()
 
         return entries
@@ -355,7 +355,7 @@ class user2_lock(Command):
         # lock!
         try:
             ldap.deactivate_entry(dn)
-        except errors2.AlreadyInactive:
+        except errors.AlreadyInactive:
             pass
 
         # return something positive
@@ -391,7 +391,7 @@ class user2_unlock(Command):
         # unlock!
         try:
             ldap.activate_entry(dn)
-        except errors2.AlreadyActive:
+        except errors.AlreadyActive:
             pass
 
         # return something positive

@@ -23,7 +23,7 @@ import re
 from ipalib.request import context
 from ipaserver import ipaldap
 import ipautil
-from ipalib import errors2
+from ipalib import errors
 from ipalib import api
 
 def convert_entry(ent):
@@ -186,7 +186,7 @@ def entry_exists(dn):
     try:
         get_base_entry(dn, "objectclass=*", ['dn','objectclass'])
         return True
-    except errors2.NotFound:
+    except errors.NotFound:
         return False
 
 def get_user_by_uid (uid, sattrs):
@@ -270,7 +270,7 @@ def search(base, filter, attributes, timelimit=1, sizelimit=3000, scope=ldap.SCO
         results = context.ldap.conn.getListAsync(base, scope,
             filter, attributes, 0, None, None, timelimit, sizelimit)
     except ldap.NO_SUCH_OBJECT:
-        raise errors2.NotFound()
+        raise errors.NotFound()
 
     counter = results[0]
     entries = [counter]
@@ -317,7 +317,7 @@ def get_ipa_config():
         config = get_sub_entry("cn=etc," + api.env.basedn, searchfilter)
     except ldap.NO_SUCH_OBJECT, e:
         # FIXME
-        raise errors2.NotFound()
+        raise errors.NotFound()
 
     return config
 
@@ -341,16 +341,16 @@ def mark_entry_active (dn):
 
     if entry.get('nsaccountlock', 'false').lower() == "false":
         api.log.debug("IPA: already active")
-        raise errors2.AlreadyActive()
+        raise errors.AlreadyActive()
 
     if has_nsaccountlock(dn):
         api.log.debug("IPA: appears to have the nsaccountlock attribute")
-        raise errors2.HasNSAccountLock()
+        raise errors.HasNSAccountLock()
 
     group = get_entry_by_cn("inactivated", None)
     try:
         remove_member_from_group(entry.get('dn'), group.get('dn'))
-    except errors2.NotGroupMember:
+    except errors.NotGroupMember:
         # Perhaps the user is there as a result of group membership
         pass
 
@@ -377,18 +377,18 @@ def mark_entry_inactive (dn):
 
     if entry.get('nsaccountlock', 'false').lower() == "true":
         api.log.debug("IPA: already marked as inactive")
-        raise errors2.AlreadyInactive()
+        raise errors.AlreadyInactive()
 
     if has_nsaccountlock(dn):
         api.log.debug("IPA: appears to have the nsaccountlock attribute")
-        raise errors2.HasNSAccountLock()
+        raise errors.HasNSAccountLock()
 
     # First see if they are in the activated group as this will override
     # the our inactivation.
     group = get_entry_by_cn("activated", None)
     try:
         remove_member_from_group(dn, group.get('dn'))
-    except errors2.NotGroupMember:
+    except errors.NotGroupMember:
         # this is fine, they may not be explicitly in this group
         pass
 
@@ -405,16 +405,16 @@ def add_member_to_group(member_dn, group_dn, memberattr='member'):
     api.log.info("IPA: add_member_to_group '%s' to '%s'" % (member_dn, group_dn))
     if member_dn.lower() == group_dn.lower():
         # You can't add a group to itself
-        raise errors2.RecursiveGroup()
+        raise errors.RecursiveGroup()
 
     group = get_entry_by_dn(group_dn, None)
     if group is None:
-        raise errors2.NotFound()
+        raise errors.NotFound()
 
     # check to make sure member_dn exists
     member_entry = get_base_entry(member_dn, "(objectClass=*)", ['dn','objectclass'])
     if not member_entry:
-        raise errors2.NotFound()
+        raise errors.NotFound()
 
     # Add the new member to the group member attribute
     members = group.get(memberattr, [])
@@ -430,7 +430,7 @@ def remove_member_from_group(member_dn, group_dn, memberattr='member'):
 
     group = get_entry_by_dn(group_dn, None)
     if group is None:
-        raise errors2.NotFound()
+        raise errors.NotFound()
     """
     if group.get('cn') == "admins":
         member = get_entry_by_dn(member_dn, ['dn','uid'])
@@ -441,7 +441,7 @@ def remove_member_from_group(member_dn, group_dn, memberattr='member'):
 
     members = group.get(memberattr, False)
     if not members:
-        raise errors2.NotGroupMember()
+        raise errors.NotGroupMember()
 
     if isinstance(members,basestring):
         members = [members]
@@ -450,7 +450,7 @@ def remove_member_from_group(member_dn, group_dn, memberattr='member'):
     try:
         members.remove(member_dn)
     except ValueError:
-        raise errors2.NotGroupMember()
+        raise errors.NotGroupMember()
     except Exception, e:
         raise e
 

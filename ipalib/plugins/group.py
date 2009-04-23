@@ -119,7 +119,7 @@ class group_del(basegroup_del):
             default_group = ldap.find_entry_dn("cn", config.get('ipadefaultprimarygroup'), self.filter_class)
             if dn == default_group:
                 raise errors.DefaultGroup
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
 
         return super(group_del, self).execute(cn, **kw)
@@ -160,7 +160,7 @@ class group_mod(basegroup_mod):
             groupkw = {'all': True}
             oldgroup = api.Command['group_show'](cn, **groupkw)
             if oldgroup.get('gidnumber'):
-                raise errors2.AlreadyPosixGroup
+                raise errors.AlreadyPosixGroup
             else:
                 oldgroup['objectclass'].append('posixgroup')
                 kw['objectclass'] = oldgroup['objectclass']

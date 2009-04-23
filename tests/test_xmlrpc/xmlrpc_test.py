@@ -25,7 +25,7 @@ import sys
 import socket
 import nose
 from ipalib import api, request
-from ipalib import errors2
+from ipalib import errors
 
 # Initialize the API. We do this here so that one can run the tests
 # individually instead of at the top-level. If API.bootstrap()
@@ -50,9 +50,9 @@ class XMLRPC_test(object):
             if not api.Backend.xmlclient.isconnected():
                 api.Backend.xmlclient.connect()
             res = api.Command['user_show'](u'notfound')
-        except errors2.NetworkError:
+        except errors.NetworkError:
             raise nose.SkipTest()
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
 
     def tearDown(self):

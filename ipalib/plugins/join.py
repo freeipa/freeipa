@@ -23,7 +23,7 @@ Machine join
 
 from ipalib import api, util
 from ipalib import Command, Str, Int
-from ipalib import errors2
+from ipalib import errors
 import krbV
 import os, subprocess
 
@@ -74,10 +74,10 @@ class join(Command):
 
         try:
             host = api.Command['host_show'](hostname)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
-            raise errors2.DuplicateEntry
+            raise errors.DuplicateEntry
 
         return api.Command['host_add'](hostname)
 
@@ -91,7 +91,7 @@ class join(Command):
         """
         if not self.env.in_server:
 #            if os.getegid() != 0:
-#                raise errors2.RequiresRoot
+#                raise errors.RequiresRoot
             result = self.forward(*args, **options)
         else:
             return self.execute(*args, **options)

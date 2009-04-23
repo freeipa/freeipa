@@ -34,7 +34,7 @@ import os
 from os import path
 import subprocess
 import optparse
-import errors2
+import errors
 from config import Env
 import util
 from base import ReadOnly, NameSpace, lock, islocked, check_name
@@ -283,7 +283,7 @@ class Plugin(ReadOnly):
         Call ``executable`` with ``args`` using subprocess.call().
 
         If the call exits with a non-zero exit status,
-        `ipalib.errors2.SubprocessError` is raised, from which you can retrieve
+        `ipalib.errors.SubprocessError` is raised, from which you can retrieve
         the exit code by checking the SubprocessError.returncode attribute.
 
         This method does *not* return what ``executable`` sent to stdout... for
@@ -293,7 +293,7 @@ class Plugin(ReadOnly):
         self.debug('Calling %r', argv)
         code = subprocess.call(argv)
         if code != 0:
-            raise errors2.SubprocessError(returncode=code, argv=argv)
+            raise errors.SubprocessError(returncode=code, argv=argv)
 
     def __repr__(self):
         """
@@ -450,7 +450,7 @@ class Registrar(DictProxy):
         """
         Iterates through allowed bases that ``klass`` is a subclass of.
 
-        Raises `errors2.PluginSubclassError` if ``klass`` is not a subclass of
+        Raises `errors.PluginSubclassError` if ``klass`` is not a subclass of
         any allowed base.
 
         :param klass: The plugin class to find bases for.
@@ -462,7 +462,7 @@ class Registrar(DictProxy):
                 found = True
                 yield (base, sub_d)
         if not found:
-            raise errors2.PluginSubclassError(
+            raise errors.PluginSubclassError(
                 plugin=klass, bases=self.__allowed.keys()
             )
 
@@ -478,7 +478,7 @@ class Registrar(DictProxy):
 
         # Raise DuplicateError if this exact class was already registered:
         if klass in self.__registered:
-            raise errors2.PluginDuplicateError(plugin=klass)
+            raise errors.PluginDuplicateError(plugin=klass)
 
         # Find the base class or raise SubclassError:
         for (base, sub_d) in self.__findbases(klass):
@@ -486,7 +486,7 @@ class Registrar(DictProxy):
             if klass.__name__ in sub_d:
                 if not override:
                     # Must use override=True to override:
-                    raise errors2.PluginOverrideError(
+                    raise errors.PluginOverrideError(
                         base=base.__name__,
                         name=klass.__name__,
                         plugin=klass,
@@ -494,7 +494,7 @@ class Registrar(DictProxy):
             else:
                 if override:
                     # There was nothing already registered to override:
-                    raise errors2.PluginMissingOverrideError(
+                    raise errors.PluginMissingOverrideError(
                         base=base.__name__,
                         name=klass.__name__,
                         plugin=klass,
@@ -667,7 +667,7 @@ class API(DictProxy):
         parent_dir = path.dirname(path.abspath(parent.__file__))
         plugins_dir = path.dirname(path.abspath(plugins.__file__))
         if parent_dir == plugins_dir:
-            raise errors2.PluginsPackageError(
+            raise errors.PluginsPackageError(
                 name=subpackage, file=plugins.__file__
             )
         self.log.debug('importing all plugin modules in %r...', plugins_dir)
@@ -676,7 +676,7 @@ class API(DictProxy):
             self.log.debug('importing plugin module %r', pyfile)
             try:
                 __import__(fullname)
-            except errors2.SkipPluginModule, e:
+            except errors.SkipPluginModule, e:
                 self.log.info(
                     'skipping plugin module %s: %s', fullname, e.reason
                 )

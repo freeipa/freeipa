@@ -26,7 +26,7 @@ from tests.util import ClassChecker, raises, create_test_api
 from tests.data import unicode_str
 from ipalib.request import context, Connection
 from ipalib.frontend import Command
-from ipalib import  backend, plugable, errors2, base
+from ipalib import  backend, plugable, errors, base
 
 
 
@@ -181,7 +181,7 @@ class test_Executioner(ClassChecker):
 
         class good(Command):
             def execute(self):
-                raise errors2.ValidationError(
+                raise errors.ValidationError(
                     name='nurse',
                     error=u'Not naughty!',
                 )
@@ -209,7 +209,7 @@ class test_Executioner(ClassChecker):
         # Test that CommandError is raised:
         conn = Connection('The connection.', Disconnect())
         context.someconn = conn
-        e = raises(errors2.CommandError, o.execute, 'nope')
+        e = raises(errors.CommandError, o.execute, 'nope')
         assert e.name == 'nope'
         assert conn.disconnect.called is True  # Make sure destroy_context() was called
         assert context.__dict__.keys() == []
@@ -235,7 +235,7 @@ class test_Executioner(ClassChecker):
         # Test with good command:
         conn = Connection('The connection.', Disconnect())
         context.someconn = conn
-        e = raises(errors2.ValidationError, o.execute, 'good')
+        e = raises(errors.ValidationError, o.execute, 'good')
         assert e.name == 'nurse'
         assert e.error == u'Not naughty!'
         assert conn.disconnect.called is True  # Make sure destroy_context() was called
@@ -244,7 +244,7 @@ class test_Executioner(ClassChecker):
         # Test with bad command:
         conn = Connection('The connection.', Disconnect())
         context.someconn = conn
-        e = raises(errors2.InternalError, o.execute, 'bad')
+        e = raises(errors.InternalError, o.execute, 'bad')
         assert conn.disconnect.called is True  # Make sure destroy_context() was called
         assert context.__dict__.keys() == []
 

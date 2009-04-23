@@ -25,7 +25,7 @@ import inspect
 from tests.util import raises, no_set, no_del, read_only
 from tests.util import getitem, setitem, delitem
 from tests.util import ClassChecker, create_test_api
-from ipalib import plugable, errors2
+from ipalib import plugable, errors
 
 
 class test_SetProxy(ClassChecker):
@@ -372,7 +372,7 @@ class test_Plugin(ClassChecker):
         """
         o = self.cls()
         o.call('/bin/true') is None
-        e = raises(errors2.SubprocessError, o.call, '/bin/false')
+        e = raises(errors.SubprocessError, o.call, '/bin/false')
         assert e.returncode == 1
         assert e.argv == ('/bin/false',)
 
@@ -539,7 +539,7 @@ def test_Registrar():
 
     # Check that SubclassError is raised trying to register a class that is
     # not a subclass of an allowed base:
-    e = raises(errors2.PluginSubclassError, r, plugin3)
+    e = raises(errors.PluginSubclassError, r, plugin3)
     assert e.plugin is plugin3
 
     # Check that registration works
@@ -550,7 +550,7 @@ def test_Registrar():
 
     # Check that DuplicateError is raised trying to register exact class
     # again:
-    e = raises(errors2.PluginDuplicateError, r, plugin1)
+    e = raises(errors.PluginDuplicateError, r, plugin1)
     assert e.plugin is plugin1
 
     # Check that OverrideError is raised trying to register class with same
@@ -560,7 +560,7 @@ def test_Registrar():
         pass
     class plugin1(base1_extended):
         pass
-    e = raises(errors2.PluginOverrideError, r, plugin1)
+    e = raises(errors.PluginOverrideError, r, plugin1)
     assert e.base == 'Base1'
     assert e.name == 'plugin1'
     assert e.plugin is plugin1
@@ -573,7 +573,7 @@ def test_Registrar():
 
     # Check that MissingOverrideError is raised trying to override a name
     # not yet registerd:
-    e = raises(errors2.PluginMissingOverrideError, r, plugin2, override=True)
+    e = raises(errors.PluginMissingOverrideError, r, plugin2, override=True)
     assert e.base == 'Base2'
     assert e.name == 'plugin2'
     assert e.plugin is plugin2

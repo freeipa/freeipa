@@ -86,7 +86,7 @@ automountInformation: -ro,soft,rsize=8192,wsize=8192 nfs.example.com:/vol/arch
 """
 
 from ldap import explode_dn
-from ipalib import crud, errors2
+from ipalib import crud, errors
 from ipalib import api, Str, Flag, Object, Command
 
 map_attributes = ['automountMapName', 'description', ]
@@ -251,7 +251,7 @@ class automount_delmap(crud.Del):
         try:
             infodn = ldap.find_entry_dn("automountinformation", mapname, "automount", api.env.container_automount)
             ldap.delete(infodn)
-        except errors2.NotFound:
+        except errors.NotFound:
             # direct maps may not have this
             pass
 
@@ -291,7 +291,7 @@ class automount_delkey(crud.Del):
                     keydn = k.get('dn')
                     break
         if not keydn:
-            raise errors2.NotFound(msg='Entry not found')
+            raise errors.NotFound(msg='Entry not found')
         return ldap.delete(keydn)
     def output_for_cli(self, textui, result, *args, **options):
         """
@@ -369,7 +369,7 @@ class automount_modkey(crud.Mod):
                     keydn = k.get('dn')
                     break
         if not keydn:
-            raise errors2.NotFound(msg='Entry not found')
+            raise errors.NotFound(msg='Entry not found')
         return ldap.update(keydn, **kw)
 
     def output_for_cli(self, textui, result, *args, **options):
@@ -517,7 +517,7 @@ class automount_showkey(crud.Get):
                     keydn = k.get('dn')
                     break
         if not keydn:
-            raise errors2.NotFound(msg='Entry not found')
+            raise errors.NotFound(msg='Entry not found')
         # FIXME: should kw contain the list of attributes to display?
         if kw.get('all', False):
             return ldap.retrieve(keydn)
@@ -558,7 +558,7 @@ class automount_getkeys(Command):
         dn = ldap.find_entry_dn("automountmapname", mapname, "automountmap", api.env.container_automount)
         try:
             keys = ldap.get_one_entry(dn, 'objectclass=*', ['*'])
-        except errors2.NotFound:
+        except errors.NotFound:
             keys = []
 
         return keys

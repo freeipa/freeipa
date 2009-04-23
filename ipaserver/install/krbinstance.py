@@ -35,7 +35,7 @@ import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipalib import util
-from ipalib import errors2
+from ipalib import errors
 
 from ipaserver import ipaldap
 
@@ -322,7 +322,7 @@ class KrbInstance(service.Service):
     def __write_stash_from_ds(self):
         try:
             entry = self.conn.getEntry("cn=%s, cn=kerberos, %s" % (self.realm, self.suffix), ldap.SCOPE_SUBTREE)
-        except errors2.NotFound:
+        except errors.NotFound:
             logging.critical("Could not find master key in DS")
             raise e
 

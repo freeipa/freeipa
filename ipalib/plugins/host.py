@@ -21,7 +21,7 @@
 Frontend plugins for host/machine Identity.
 """
 
-from ipalib import api, crud, errors2, util
+from ipalib import api, crud, errors, util
 from ipalib import Object  # Plugin base class
 from ipalib import Str, Flag  # Parameter types
 import sys, os, platform
@@ -39,7 +39,7 @@ def get_host(hostname):
         hostname = hostname[:-1]
     try:
         dn = ldap.find_entry_dn("cn", hostname, "ipaHost")
-    except errors2.NotFound:
+    except errors.NotFound:
         dn = ldap.find_entry_dn("serverhostname", hostname, "ipaHost")
     return dn
 
@@ -138,7 +138,7 @@ class host_add(crud.Add):
 
         current = util.get_current_principal()
         if not current:
-            raise errors2.NotFound('Unable to determine current user')
+            raise errors.NotFound('Unable to determine current user')
         kw['enrolledby'] = ldap.find_entry_dn("krbPrincipalName", current, "posixAccount")
 
         # Get our configuration

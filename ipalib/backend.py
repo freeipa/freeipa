@@ -23,7 +23,7 @@ Base classes for all backed-end plugins.
 
 import threading
 import plugable
-from errors2 import PublicError, InternalError, CommandError
+from errors import PublicError, InternalError, CommandError
 from request import context, Connection, destroy_context
 
 

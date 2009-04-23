@@ -36,7 +36,7 @@ import frontend
 import backend
 import plugable
 import util
-from errors2 import PublicError, CommandError, HelpError, InternalError, NoSuchNamespaceError, ValidationError
+from errors import PublicError, CommandError, HelpError, InternalError, NoSuchNamespaceError, ValidationError
 from constants import CLI_TAB
 from parameters import Password, Bytes
 from request import ugettext as _

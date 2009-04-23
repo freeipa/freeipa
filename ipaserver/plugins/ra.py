@@ -45,7 +45,7 @@ from urllib import urlencode, quote
 from socket import gethostname
 import socket
 from ipalib import Backend
-from ipalib.errors2 import NetworkError
+from ipalib.errors import NetworkError
 from ipaserver import servercore
 from ipaserver import ipaldap
 from ipalib.constants import TYPE_ERROR

@@ -32,7 +32,7 @@ import ldap.sasl
 from ldap.controls import LDAPControl,DecodeControlTuples,EncodeControlTuples
 from ldap.ldapobject import SimpleLDAPObject
 from ipaserver import ipautil
-from ipalib import errors2
+from ipalib import errors
 
 # Global variable to define SASL auth
 sasl_auth = ldap.sasl.sasl({},'GSSAPI')
@@ -283,30 +283,30 @@ class IPAdmin(SimpleLDAPObject):
             raise e
         except ldap.NO_SUCH_OBJECT, e:
             args = kw.get('args', '')
-            raise errors2.NotFound(msg=notfound(args))
+            raise errors.NotFound(msg=notfound(args))
         except ldap.ALREADY_EXISTS, e:
-            raise errors2.DuplicateEntry()
+            raise errors.DuplicateEntry()
         except ldap.CONSTRAINT_VIOLATION, e:
             # This error gets thrown by the uniqueness plugin
             if info == 'Another entry with the same attribute value already exists':
-                raise errors2.DuplicateEntry()
+                raise errors.DuplicateEntry()
             else:
-                raise errors2.DatabaseError(desc=desc,info=info)
+                raise errors.DatabaseError(desc=desc,info=info)
         except ldap.INSUFFICIENT_ACCESS, e:
-            raise errors2.ACIError(info=info)
+            raise errors.ACIError(info=info)
         except ldap.NO_SUCH_ATTRIBUTE:
             # this is raised when a 'delete' attribute isn't found.
             # it indicates the previous attribute was removed by another
             # update, making the oldentry stale.
-            raise errors2.MidairCollision()
+            raise errors.MidairCollision()
         except ldap.ADMINLIMIT_EXCEEDED, e:
-            raise errors2.LimitsExceeded()
+            raise errors.LimitsExceeded()
         except ldap.SIZELIMIT_EXCEEDED, e:
-            raise errors2.LimitsExceeded()
+            raise errors.LimitsExceeded()
         except ldap.TIMELIMIT_EXCEEDED, e:
-            raise errors2.LimitsExceeded()
+            raise errors.LimitsExceeded()
         except ldap.LDAPError, e:
-            raise errors2.DatabaseError(desc=desc,info=info)
+            raise errors.DatabaseError(desc=desc,info=info)
 
     def toLDAPURL(self):
         return "ldap://%s:%d/" % (self.host,self.port)
@@ -345,7 +345,7 @@ class IPAdmin(SimpleLDAPObject):
             self.__handle_errors(e, **kw)
 
         if not obj:
-            raise errors2.NotFound(msg=notfound(args))
+            raise errors.NotFound(msg=notfound(args))
 
         elif isinstance(obj,Entry):
             return obj
@@ -367,7 +367,7 @@ class IPAdmin(SimpleLDAPObject):
             self.__handle_errors(e, **kw)
 
         if not obj:
-            raise errors2.NotFound(msg=notfound(args))
+            raise errors.NotFound(msg=notfound(args))
 
         entries = []
         for s in obj:
@@ -405,7 +405,7 @@ class IPAdmin(SimpleLDAPObject):
             self.__handle_errors(e, **kw)
 
         if not entries:
-            raise errors2.NotFound(msg=notfound(args))
+            raise errors.NotFound(msg=notfound(args))
 
         if partial == 1:
             counter = -1

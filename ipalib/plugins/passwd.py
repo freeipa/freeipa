@@ -21,7 +21,7 @@
 Frontend plugins for password changes.
 """
 
-from ipalib import api, errors2, util
+from ipalib import api, errors, util
 from ipalib import Command  # Plugin base classes
 from ipalib import Str, Password  # Parameter types
 
@@ -54,7 +54,7 @@ class passwd(Command):
         if principal.find('@') > 0:
             u = principal.split('@')
             if len(u) > 2:
-                raise errors2.MalformedUserPrincipal(principal=principal)
+                raise errors.MalformedUserPrincipal(principal=principal)
         else:
             principal = principal+"@"+self.api.env.realm
         dn = self.Backend.ldap.find_entry_dn(

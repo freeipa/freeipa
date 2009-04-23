@@ -23,7 +23,7 @@ Test the `ipaserver.rpc` module.
 
 from tests.util import create_test_api, raises, PluginTester
 from tests.data import unicode_str
-from ipalib import errors2, Command
+from ipalib import errors, Command
 from ipaserver import rpcserver
 
 

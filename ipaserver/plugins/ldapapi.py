@@ -27,7 +27,7 @@ This wraps the python-ldap bindings.
 import ldap as _ldap
 import ldap.dn
 from ipalib import api
-from ipalib import errors2
+from ipalib import errors
 from ipalib.crud import CrudBackend
 from ipaserver import servercore, ipaldap
 import krbV
@@ -44,7 +44,7 @@ class ldap(CrudBackend):
 
     def create_connection(self, ccache):
         if ccache is None:
-            raise errors2.CCacheError()
+            raise errors.CCacheError()
         conn = ipaldap.IPAdmin(self.env.ldap_host, self.env.ldap_port)
         principle = krbV.CCache(
             name=ccache, context=krbV.default_context()
@@ -326,7 +326,7 @@ class ldap(CrudBackend):
 
     def create(self, **kw):
         if servercore.entry_exists(kw['dn']):
-            raise errors2.DuplicateEntry
+            raise errors.DuplicateEntry
         kw = dict(self.strip_none(kw))
 
         entry = ipaldap.Entry(kw['dn'])
@@ -409,14 +409,14 @@ class ldap(CrudBackend):
         try:
             exact_results = servercore.search(search_base,
                     exact_match_filter, attributes, scope=search_scope)
-        except errors2.NotFound:
+        except errors.NotFound:
             exact_results = [0]
 
         if not exactonly:
             try:
                 partial_results = servercore.search(search_base,
                         partial_match_filter, attributes, scope=search_scope)
-            except errors2.NotFound:
+            except errors.NotFound:
                 partial_results = [0]
         else:
             partial_results = [0]

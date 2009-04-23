@@ -24,7 +24,7 @@ Test the `ipalib/plugins/f_netgroup` module.
 import sys
 from xmlrpc_test import XMLRPC_test
 from ipalib import api
-from ipalib import errors2
+from ipalib import errors
 
 
 def is_member_of(members, candidate):
@@ -259,7 +259,7 @@ class test_Netgroup(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['netgroup_show'](self.ng_cn)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False
@@ -275,7 +275,7 @@ class test_Netgroup(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['host_show'](self.host_cn)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False
@@ -287,7 +287,7 @@ class test_Netgroup(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['hostgroup_show'](self.hg_cn)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False
@@ -299,7 +299,7 @@ class test_Netgroup(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['user_show'](self.user_uid)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False
@@ -311,7 +311,7 @@ class test_Netgroup(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['group_show'](self.group_cn)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False

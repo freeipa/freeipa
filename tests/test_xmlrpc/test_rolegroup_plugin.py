@@ -24,7 +24,7 @@ Test the `ipalib/plugins/rolegroup` module.
 import sys
 from xmlrpc_test import XMLRPC_test
 from ipalib import api
-from ipalib import errors2
+from ipalib import errors
 
 
 class test_Rolegroup(XMLRPC_test):
@@ -122,7 +122,7 @@ class test_Rolegroup(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['rolegroup_show'](self.cn)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False
@@ -137,7 +137,7 @@ class test_Rolegroup(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['group_show'](self.rolegroup_cn)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False

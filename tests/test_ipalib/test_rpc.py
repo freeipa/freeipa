@@ -27,7 +27,7 @@ from tests.util import raises, assert_equal, PluginTester, DummyClass
 from tests.data import binary_bytes, utf8_bytes, unicode_str
 from ipalib.frontend import Command
 from ipalib.request import context, Connection
-from ipalib import rpc, errors2
+from ipalib import rpc, errors
 
 
 std_compound = (binary_bytes, utf8_bytes, unicode_str)
@@ -233,11 +233,11 @@ class test_xmlclient(PluginTester):
         assert o.forward('user_add', *args, **kw) == result
 
         # Test with an errno the client knows:
-        e = raises(errors2.RequirementError, o.forward, 'user_add', *args, **kw)
+        e = raises(errors.RequirementError, o.forward, 'user_add', *args, **kw)
         assert_equal(e.message, u"'four' is required")
 
         # Test with an errno the client doesn't know
-        e = raises(errors2.UnknownError, o.forward, 'user_add', *args, **kw)
+        e = raises(errors.UnknownError, o.forward, 'user_add', *args, **kw)
         assert_equal(e.code, 700)
         assert_equal(e.error, u'no such error')
 

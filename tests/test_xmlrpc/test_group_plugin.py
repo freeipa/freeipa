@@ -24,7 +24,7 @@ Test the `ipalib/plugins/f_group` module.
 import sys
 from xmlrpc_test import XMLRPC_test
 from ipalib import api
-from ipalib import errors2
+from ipalib import errors
 
 
 class test_Group(XMLRPC_test):
@@ -52,7 +52,7 @@ class test_Group(XMLRPC_test):
         """
         try:
             res = api.Command['group_add'](**self.kw)
-        except errors2.DuplicateEntry:
+        except errors.DuplicateEntry:
             pass
 
     def test_add3(self):
@@ -195,7 +195,7 @@ class test_Group(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['group_show'](self.cn)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False
@@ -210,7 +210,7 @@ class test_Group(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['group_show'](self.cn2)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False
@@ -225,7 +225,7 @@ class test_Group(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['group_show'](self.cnposix)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False

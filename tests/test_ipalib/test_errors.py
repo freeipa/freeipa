@@ -18,13 +18,13 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Test the `ipalib.error2` module.
+Test the `ipalib.errors` module.
 """
 
 import re
 import inspect
 from tests.util import assert_equal, raises, dummy_ugettext
-from ipalib import errors2, request
+from ipalib import errors, request
 from ipalib.constants import TYPE_ERROR
 
 
@@ -36,8 +36,8 @@ class PrivateExceptionTester(object):
         if self.__klass is None:
             self.__klass = self._klass
         assert issubclass(self.__klass, StandardError)
-        assert issubclass(self.__klass, errors2.PrivateError)
-        assert not issubclass(self.__klass, errors2.PublicError)
+        assert issubclass(self.__klass, errors.PrivateError)
+        assert not issubclass(self.__klass, errors.PublicError)
         return self.__klass
     klass = property(__get_klass)
 
@@ -46,9 +46,9 @@ class PrivateExceptionTester(object):
             assert not hasattr(self.klass, key), key
         inst = self.klass(**kw)
         assert isinstance(inst, StandardError)
-        assert isinstance(inst, errors2.PrivateError)
+        assert isinstance(inst, errors.PrivateError)
         assert isinstance(inst, self.klass)
-        assert not isinstance(inst, errors2.PublicError)
+        assert not isinstance(inst, errors.PublicError)
         for (key, value) in kw.iteritems():
             assert getattr(inst, key) is value
         assert str(inst) == self.klass.format % kw
@@ -58,13 +58,13 @@ class PrivateExceptionTester(object):
 
 class test_PrivateError(PrivateExceptionTester):
     """
-    Test the `ipalib.errors2.PrivateError` exception.
+    Test the `ipalib.errors.PrivateError` exception.
     """
-    _klass = errors2.PrivateError
+    _klass = errors.PrivateError
 
     def test_init(self):
         """
-        Test the `ipalib.errors2.PrivateError.__init__` method.
+        Test the `ipalib.errors.PrivateError.__init__` method.
         """
         inst = self.klass(key1='Value 1', key2='Value 2')
         assert inst.key1 == 'Value 1'
@@ -92,14 +92,14 @@ class test_PrivateError(PrivateExceptionTester):
 
 class test_SubprocessError(PrivateExceptionTester):
     """
-    Test the `ipalib.errors2.SubprocessError` exception.
+    Test the `ipalib.errors.SubprocessError` exception.
     """
 
-    _klass = errors2.SubprocessError
+    _klass = errors.SubprocessError
 
     def test_init(self):
         """
-        Test the `ipalib.errors2.SubprocessError.__init__` method.
+        Test the `ipalib.errors.SubprocessError.__init__` method.
         """
         inst = self.new(returncode=1, argv=('/bin/false',))
         assert inst.returncode == 1
@@ -110,14 +110,14 @@ class test_SubprocessError(PrivateExceptionTester):
 
 class test_PluginSubclassError(PrivateExceptionTester):
     """
-    Test the `ipalib.errors2.PluginSubclassError` exception.
+    Test the `ipalib.errors.PluginSubclassError` exception.
     """
 
-    _klass = errors2.PluginSubclassError
+    _klass = errors.PluginSubclassError
 
     def test_init(self):
         """
-        Test the `ipalib.errors2.PluginSubclassError.__init__` method.
+        Test the `ipalib.errors.PluginSubclassError.__init__` method.
         """
         inst = self.new(plugin='bad', bases=('base1', 'base2'))
         assert inst.plugin == 'bad'
@@ -129,14 +129,14 @@ class test_PluginSubclassError(PrivateExceptionTester):
 
 class test_PluginDuplicateError(PrivateExceptionTester):
     """
-    Test the `ipalib.errors2.PluginDuplicateError` exception.
+    Test the `ipalib.errors.PluginDuplicateError` exception.
     """
 
-    _klass = errors2.PluginDuplicateError
+    _klass = errors.PluginDuplicateError
 
     def test_init(self):
         """
-        Test the `ipalib.errors2.PluginDuplicateError.__init__` method.
+        Test the `ipalib.errors.PluginDuplicateError.__init__` method.
         """
         inst = self.new(plugin='my_plugin')
         assert inst.plugin == 'my_plugin'
@@ -146,14 +146,14 @@ class test_PluginDuplicateError(PrivateExceptionTester):
 
 class test_PluginOverrideError(PrivateExceptionTester):
     """
-    Test the `ipalib.errors2.PluginOverrideError` exception.
+    Test the `ipalib.errors.PluginOverrideError` exception.
     """
 
-    _klass = errors2.PluginOverrideError
+    _klass = errors.PluginOverrideError
 
     def test_init(self):
         """
-        Test the `ipalib.errors2.PluginOverrideError.__init__` method.
+        Test the `ipalib.errors.PluginOverrideError.__init__` method.
         """
         inst = self.new(base='Base', name='cmd', plugin='my_cmd')
         assert inst.base == 'Base'
@@ -165,14 +165,14 @@ class test_PluginOverrideError(PrivateExceptionTester):
 
 class test_PluginMissingOverrideError(PrivateExceptionTester):
     """
-    Test the `ipalib.errors2.PluginMissingOverrideError` exception.
+    Test the `ipalib.errors.PluginMissingOverrideError` exception.
     """
 
-    _klass = errors2.PluginMissingOverrideError
+    _klass = errors.PluginMissingOverrideError
 
     def test_init(self):
         """
-        Test the `ipalib.errors2.PluginMissingOverrideError.__init__` method.
+        Test the `ipalib.errors.PluginMissingOverrideError.__init__` method.
         """
         inst = self.new(base='Base', name='cmd', plugin='my_cmd')
         assert inst.base == 'Base'
@@ -194,8 +194,8 @@ class PublicExceptionTester(object):
         if self.__klass is None:
             self.__klass = self._klass
         assert issubclass(self.__klass, StandardError)
-        assert issubclass(self.__klass, errors2.PublicError)
-        assert not issubclass(self.__klass, errors2.PrivateError)
+        assert issubclass(self.__klass, errors.PublicError)
+        assert not issubclass(self.__klass, errors.PrivateError)
         assert type(self.__klass.errno) is int
         assert 900 <= self.__klass.errno <= 5999
         return self.__klass
@@ -211,9 +211,9 @@ class PublicExceptionTester(object):
             assert not hasattr(self.klass, key), key
         inst = self.klass(format=format, message=message, **kw)
         assert isinstance(inst, StandardError)
-        assert isinstance(inst, errors2.PublicError)
+        assert isinstance(inst, errors.PublicError)
         assert isinstance(inst, self.klass)
-        assert not isinstance(inst, errors2.PrivateError)
+        assert not isinstance(inst, errors.PrivateError)
         for (key, value) in kw.iteritems():
             assert getattr(inst, key) is value
         return inst
@@ -221,13 +221,13 @@ class PublicExceptionTester(object):
 
 class test_PublicError(PublicExceptionTester):
     """
-    Test the `ipalib.errors2.PublicError` exception.
+    Test the `ipalib.errors.PublicError` exception.
     """
-    _klass = errors2.PublicError
+    _klass = errors.PublicError
 
     def test_init(self):
         """
-        Test the `ipalib.errors2.PublicError.__init__` method.
+        Test the `ipalib.errors.PublicError.__init__` method.
         """
         context = request.context
         message = u'The translated, interpolated message'
@@ -347,13 +347,13 @@ class test_PublicError(PublicExceptionTester):
 
 def test_public_errors():
     """
-    Test the `ipalib.errors2.public_errors` module variable.
+    Test the `ipalib.errors.public_errors` module variable.
     """
     i = 0
-    for klass in errors2.public_errors:
+    for klass in errors.public_errors:
         assert issubclass(klass, StandardError)
-        assert issubclass(klass, errors2.PublicError)
-        assert not issubclass(klass, errors2.PrivateError)
+        assert issubclass(klass, errors.PublicError)
+        assert not issubclass(klass, errors.PrivateError)
         assert type(klass.errno) is int
         assert 900 <= klass.errno <= 5999
         doc = inspect.getdoc(klass)
@@ -367,5 +367,5 @@ def test_public_errors():
 
         # Test format
         if klass.format is not None:
-            assert klass.format is errors2.__messages[i]
+            assert klass.format is errors.__messages[i]
             i += 1

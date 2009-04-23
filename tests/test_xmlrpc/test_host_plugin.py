@@ -24,7 +24,7 @@ Test the `ipalib/plugins/f_host` module.
 import sys
 from xmlrpc_test import XMLRPC_test
 from ipalib import api
-from ipalib import errors2
+from ipalib import errors
 
 
 class test_Host(XMLRPC_test):
@@ -117,7 +117,7 @@ class test_Host(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['host_show'](self.cn)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False

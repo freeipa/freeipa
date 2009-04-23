@@ -21,7 +21,7 @@
 Frontend plugins for managing DS ACIs
 """
 
-from ipalib import api, crud, errors2
+from ipalib import api, crud, errors
 from ipalib import Object, Command  # Plugin base classes
 from ipalib import Str, Flag, Int, StrEnum  # Parameter types
 from ipalib.aci import ACI
@@ -35,7 +35,7 @@ type_map = {
 def make_aci(current, aciname, kw):
     try:
         taskgroup = api.Command['taskgroup_show'](kw['taskgroup'])
-    except errors2.NotFound:
+    except errors.NotFound:
         # The task group doesn't exist, let's be helpful and add it
         tgkw = {'description':aciname}
         taskgroup = api.Command['taskgroup_add'](kw['taskgroup'], **tgkw)
@@ -81,7 +81,7 @@ def search_by_name(acis, aciname):
             # FIXME: need to log syntax errors, ignore for now
             pass
 
-    raise errors2.NotFound()
+    raise errors.NotFound()
 
 def search_by_attr(acis, attrlist):
     """
@@ -105,7 +105,7 @@ def search_by_attr(acis, attrlist):
     if results:
         return results
 
-    raise errors2.NotFound()
+    raise errors.NotFound()
 
 def search_by_taskgroup(acis, tgdn):
     """
@@ -126,7 +126,7 @@ def search_by_taskgroup(acis, tgdn):
     if results:
         return results
 
-    raise errors2.NotFound()
+    raise errors.NotFound()
 
 def search_by_perm(acis, permlist):
     """
@@ -148,7 +148,7 @@ def search_by_perm(acis, permlist):
     if results:
         return results
 
-    raise errors2.NotFound()
+    raise errors.NotFound()
 
 def search_by_memberof(acis, memberoffilter):
     """
@@ -174,7 +174,7 @@ def search_by_memberof(acis, memberoffilter):
     if results:
         return results
 
-    raise errors2.NotFound()
+    raise errors.NotFound()
 
 class aci(Object):
     """
@@ -241,7 +241,7 @@ class aci_add(crud.Create):
             try:
                 b = ACI(a)
                 if newaci.isequal(b):
-                    raise errors2.DuplicateEntry()
+                    raise errors.DuplicateEntry()
             except SyntaxError:
                 pass
         acilist.append(str(newaci))
@@ -318,7 +318,7 @@ class aci_find(crud.Search):
                 results = [a]
                 if kw.get('and'):
                     currentaci = results
-            except errors2.NotFound:
+            except errors.NotFound:
                 if kw.get('and'):
                     results = []
                     currentaci = []
@@ -335,7 +335,7 @@ class aci_find(crud.Search):
                     currentaci = results
                 else:
                     results = results + a
-            except errors2.NotFound:
+            except errors.NotFound:
                 if kw.get('and'):
                     results = []
                     currentaci = []
@@ -345,7 +345,7 @@ class aci_find(crud.Search):
         if kw.get('taskgroup'):
             try:
                 tg = api.Command['taskgroup_show'](kw.get('taskgroup'))
-            except errors2.NotFound:
+            except errors.NotFound:
                 # FIXME, need more precise error
                 raise
             try:
@@ -355,7 +355,7 @@ class aci_find(crud.Search):
                     currentaci = results
                 else:
                     results = results + a
-            except errors2.NotFound:
+            except errors.NotFound:
                 if kw.get('and'):
                     results = []
                     currentaci = []
@@ -372,7 +372,7 @@ class aci_find(crud.Search):
                     currentaci = results
                 else:
                     results = results + a
-            except errors2.NotFound:
+            except errors.NotFound:
                 if kw.get('and'):
                     results = []
                     currentaci = []
@@ -387,7 +387,7 @@ class aci_find(crud.Search):
                 results = results + a
                 if kw.get('and'):
                     currentaci = results
-            except errors2.NotFound:
+            except errors.NotFound:
                 if kw.get('and'):
                     results = []
                     currentaci = []

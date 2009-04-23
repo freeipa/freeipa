@@ -878,7 +878,7 @@ from frontend import Object, Method, Property
 from crud import Create, Retrieve, Update, Delete, Search
 from parameters import DefaultFrom, Bool, Flag, Int, Float, Bytes, Str, Password,List
 from parameters import BytesEnum, StrEnum
-from errors2 import SkipPluginModule
+from errors import SkipPluginModule
 
 try:
     import uuid

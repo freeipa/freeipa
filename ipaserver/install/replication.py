@@ -24,7 +24,7 @@ from ipaserver.install import dsinstance
 from ipaserver import ipaldap
 from ldap import modlist
 from ipalib import util
-from ipalib import errors2
+from ipalib import errors
 
 DIRMAN_CN = "cn=directory manager"
 CACERT="/usr/share/ipa/html/ca.crt"
@@ -148,7 +148,7 @@ class ReplicationManager:
             conn.getEntry(dn, ldap.SCOPE_BASE)
             # replication is already configured
             return
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
 
         replica_type = self.get_replica_type()
@@ -220,7 +220,7 @@ class ReplicationManager:
         try:
             entry = self.conn.getEntry("cn=mapping tree,cn=config", ldap.SCOPE_ONELEVEL,
                                        "(cn=\"%s\")" % (self.suffix))
-        except errors2.NotFound, e:
+        except errors.NotFound, e:
             logging.debug("failed to find mappting tree entry for %s" % self.suffix)
             raise e
 
@@ -256,7 +256,7 @@ class ReplicationManager:
             conn.getEntry(pass_dn, ldap.SCOPE_BASE)
             print "Windows PassSync entry exists, not resetting password"
             return
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
 
         # The user doesn't exist, add it
@@ -315,7 +315,7 @@ class ReplicationManager:
         try:
             a.getEntry(dn, ldap.SCOPE_BASE)
             return
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
 
         iswinsync = kargs.get("winsync", False)

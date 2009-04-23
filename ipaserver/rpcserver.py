@@ -25,7 +25,7 @@ Also see the `ipalib.rpc` module.
 
 from xmlrpclib import Fault
 from ipalib.backend import Executioner
-from ipalib.errors2 import PublicError, InternalError, CommandError
+from ipalib.errors import PublicError, InternalError, CommandError
 from ipalib.rpc import xml_dumps, xml_loads
 from ipalib.util import make_repr
 

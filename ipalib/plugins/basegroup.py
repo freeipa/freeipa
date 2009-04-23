@@ -21,7 +21,7 @@
 Base plugin for groups.
 """
 
-from ipalib import api, crud, errors2
+from ipalib import api, crud, errors
 from ipalib import Object, Command  # Plugin base classes
 from ipalib import Str, Int, Flag, List  # Parameter types
 from ldap.dn import escape_dn_chars
@@ -50,7 +50,7 @@ def find_members(ldap, failed, members, attribute, filter=None, base=None):
         try:
             member_dn = ldap.find_entry_dn(attribute, m, filter, base)
             found.append(member_dn)
-        except errors2.NotFound:
+        except errors.NotFound:
             failed.append(m)
 
     return found, failed

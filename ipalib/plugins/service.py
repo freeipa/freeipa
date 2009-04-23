@@ -22,7 +22,7 @@
 Frontend plugins for service (Identity).
 """
 
-from ipalib import api, crud, errors2
+from ipalib import api, crud, errors
 from ipalib import Object  # Plugin base classes
 from ipalib import Str, Flag # Parameter types
 
@@ -73,11 +73,11 @@ class service_add(crud.Add):
         # may not include the realm.
         sp = principal.split('/')
         if len(sp) != 2:
-            raise errors2.MalformedServicePrincipal
+            raise errors.MalformedServicePrincipal
         service = sp[0]
 
         if service.lower() == "host":
-            raise errors2.HostService
+            raise errors.HostService
 
         sr = sp[1].split('@')
         if len(sr) == 1:
@@ -87,7 +87,7 @@ class service_add(crud.Add):
             hostname = sr[0].lower()
             realm = sr[1]
         else:
-            raise errors2.MalformedServicePrincipal
+            raise errors.MalformedServicePrincipal
 
         """
         FIXME once DNS client is done
@@ -103,7 +103,7 @@ class service_add(crud.Add):
 
         # At some point we'll support multiple realms
         if (realm != self.api.env.realm):
-            raise errors2.RealmMismatch
+            raise errors.RealmMismatch
 
         # Put the principal back together again
         princ_name = service + "/" + hostname + "@" + realm

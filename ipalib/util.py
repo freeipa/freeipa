@@ -28,7 +28,7 @@ import logging
 import time
 import krbV
 import socket
-from ipalib import errors2
+from ipalib import errors
 
 
 def get_current_principal():
@@ -36,7 +36,7 @@ def get_current_principal():
         return unicode(krbV.default_context().default_ccache().principal().name)
     except krbV.Krb5Error:
         #TODO: do a kinit?
-        raise errors2.CCacheError()
+        raise errors.CCacheError()
 
 def get_fqdn():
     fqdn = ""

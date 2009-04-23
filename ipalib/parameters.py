@@ -34,7 +34,7 @@ from types import NoneType
 from util import make_repr
 from request import ugettext
 from plugable import ReadOnly, lock, check_name
-from errors2 import ConversionError, RequirementError, ValidationError
+from errors import ConversionError, RequirementError, ValidationError
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
 import csv
 

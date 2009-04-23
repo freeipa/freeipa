@@ -24,7 +24,7 @@ Test the `ipalib/plugins/f_user` module.
 import sys
 from xmlrpc_test import XMLRPC_test
 from ipalib import api
-from ipalib import errors2
+from ipalib import errors
 
 
 class test_User(XMLRPC_test):
@@ -55,7 +55,7 @@ class test_User(XMLRPC_test):
         """
         try:
             res = api.Command['user_add'](**self.kw)
-        except errors2.DuplicateEntry:
+        except errors.DuplicateEntry:
             pass
 
     def test_doshow(self):
@@ -140,7 +140,7 @@ class test_User(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['user_show'](self.uid)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False

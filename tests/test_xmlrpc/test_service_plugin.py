@@ -24,7 +24,7 @@ Test the `ipalib/plugins/f_service` module.
 import sys
 from xmlrpc_test import XMLRPC_test
 from ipalib import api
-from ipalib import errors2
+from ipalib import errors
 
 
 class test_Service(XMLRPC_test):
@@ -51,7 +51,7 @@ class test_Service(XMLRPC_test):
         kw={'principal':self.hostprincipal}
         try:
             res = api.Command['service_add'](**kw)
-        except errors2.HostService:
+        except errors.HostService:
             pass
         else:
             assert False
@@ -63,7 +63,7 @@ class test_Service(XMLRPC_test):
         kw={'principal': u'foo'}
         try:
             res = api.Command['service_add'](**kw)
-        except errors2.MalformedServicePrincipal:
+        except errors.MalformedServicePrincipal:
             pass
         else:
             assert False
@@ -75,7 +75,7 @@ class test_Service(XMLRPC_test):
         kw={'principal': u'HTTP/foo@FOO.NET'}
         try:
             res = api.Command['service_add'](**kw)
-        except errors2.RealmMismatch:
+        except errors.RealmMismatch:
             pass
         else:
             assert False
@@ -107,7 +107,7 @@ class test_Service(XMLRPC_test):
         # Verify that it is gone
         try:
             res = api.Command['service_show'](self.principal)
-        except errors2.NotFound:
+        except errors.NotFound:
             pass
         else:
             assert False

@@ -27,7 +27,7 @@ from inspect import isclass
 from tests.util import raises, ClassChecker, read_only
 from tests.util import dummy_ugettext, assert_equal
 from tests.data import binary_bytes, utf8_bytes, unicode_str
-from ipalib import parameters, request, errors2
+from ipalib import parameters, request, errors
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, NULLS
 
 
@@ -379,7 +379,7 @@ class test_Param(ClassChecker):
         assert o._convert_scalar(None) is None
         assert dummy.called() is False
         # Test with incorrect type
-        e = raises(errors2.ConversionError, o._convert_scalar, 'hello', index=17)
+        e = raises(errors.ConversionError, o._convert_scalar, 'hello', index=17)
 
     def test_validate(self):
         """
@@ -388,7 +388,7 @@ class test_Param(ClassChecker):
 
         # Test in default state (with no rules, no kwarg):
         o = self.cls('my_param')
-        e = raises(errors2.RequirementError, o.validate, None)
+        e = raises(errors.RequirementError, o.validate, None)
         assert e.name == 'my_param'
 
         # Test with required=False
@@ -399,7 +399,7 @@ class test_Param(ClassChecker):
         # Test with query=True:
         o = self.cls('my_param', query=True)
         assert o.query is True
-        e = raises(errors2.RequirementError, o.validate, None)
+        e = raises(errors.RequirementError, o.validate, None)
         assert_equal(e.name, 'my_param')
 
         # Test with multivalue=True:
@@ -431,7 +431,7 @@ class test_Param(ClassChecker):
         pass1.reset()
         pass2.reset()
         o = Example('example', pass1, pass2, fail)
-        e = raises(errors2.ValidationError, o.validate, 42)
+        e = raises(errors.ValidationError, o.validate, 42)
         assert e.name == 'example'
         assert e.error == u'no good'
         assert e.index is None
@@ -458,7 +458,7 @@ class test_Param(ClassChecker):
         pass2.reset()
         o = Example('multi_example', pass1, pass2, fail, multivalue=True)
         assert o.multivalue is True
-        e = raises(errors2.ValidationError, o.validate, (3, 9))
+        e = raises(errors.ValidationError, o.validate, (3, 9))
         assert e.name == 'multi_example'
         assert e.error == u'this one is not good'
         assert e.index == 0
@@ -495,11 +495,11 @@ class test_Param(ClassChecker):
         okay = DummyRule()
         fail = DummyRule(u'this describes the error')
         o = MyParam('my_param', okay, fail)
-        e = raises(errors2.ValidationError, o._validate_scalar, True)
+        e = raises(errors.ValidationError, o._validate_scalar, True)
         assert e.name == 'my_param'
         assert e.error == u'this describes the error'
         assert e.index is None
-        e = raises(errors2.ValidationError, o._validate_scalar, False, index=2)
+        e = raises(errors.ValidationError, o._validate_scalar, False, index=2)
         assert e.name == 'my_param'
         assert e.error == u'this describes the error'
         assert e.index == 2
@@ -868,11 +868,11 @@ class test_Str(ClassChecker):
             assert mthd(value) == unicode(value)
         bad = [True, 'Hello', (u'Hello',), [42.3], dict(one=1), utf8_bytes]
         for value in bad:
-            e = raises(errors2.ConversionError, mthd, value)
+            e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
             assert e.index is None
             assert_equal(e.error, u'must be Unicode text')
-            e = raises(errors2.ConversionError, mthd, value, index=18)
+            e = raises(errors.ConversionError, mthd, value, index=18)
             assert e.name == 'my_str'
             assert e.index == 18
             assert_equal(e.error, u'must be Unicode text')

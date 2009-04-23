@@ -38,8 +38,8 @@ import errno
 from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy, Transport
 import kerberos
 from ipalib.backend import Connectible
-from ipalib.errors2 import public_errors, PublicError, UnknownError, NetworkError
-from ipalib import errors2
+from ipalib.errors import public_errors, PublicError, UnknownError, NetworkError
+from ipalib import errors
 from ipalib.request import context
 from ipapython import ipautil
 from OpenSSL import SSL
@@ -316,19 +316,19 @@ class KerbTransport(SSLTransport):
     def _handle_exception(self, e, service=None):
         (major, minor) = ipautil.get_gsserror(e)
         if minor[1] == KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN:
-            raise errors2.ServiceError(service=service)
+            raise errors.ServiceError(service=service)
         elif minor[1] == KRB5_FCC_NOFILE:
-            raise errors2.NoCCacheError()
+            raise errors.NoCCacheError()
         elif minor[1] == KRB5KRB_AP_ERR_TKT_EXPIRED:
-            raise errors2.TicketExpired()
+            raise errors.TicketExpired()
         elif minor[1] == KRB5_FCC_PERM:
-            raise errors2.BadCCachePerms()
+            raise errors.BadCCachePerms()
         elif minor[1] == KRB5_CC_FORMAT:
-            raise errors2.BadCCacheFormat()
+            raise errors.BadCCacheFormat()
         elif minor[1] == KRB5_REALM_CANT_RESOLVE:
-            raise errors2.CannotResolveKDC()
+            raise errors.CannotResolveKDC()
         else:
-            raise errors2.KerberosError(major=major, minor=minor)
+            raise errors.KerberosError(major=major, minor=minor)
 
     def get_host_info(self, host):
         (host, extra_headers, x509) = SSLTransport.get_host_info(self, host)
