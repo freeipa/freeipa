@@ -420,3 +420,18 @@ add:aci: (targetattr = "memberhost || externalhost || memberuser || member")
  (target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version 3.0;acl "Mo
  dify netgroup membership";allow (write) groupdn = "ldap:///cn=modifynetgrou
  pmembership,cn=taskgroups,cn=accounts,$SUFFIX";)
+
+# Taskgroup for retrieving host keytabs
+dn: cn=manage_host_keytab,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: manage_host_keytab
+add:description: Manage host keytab
+add:member:"cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX"
+
+# Add the ACI needed to do host keytab admin
+add:aci: (targetattr = "krbPrincipalKey")(target = "ldap:///cn=*,
+  cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Manage host keytab";
+  allow (write) groupdn = "ldap:///cn=manage_host_keytab,cn=taskgroups,
+  cn=accounts,$SUFFIX";)
+
