@@ -74,14 +74,14 @@ _sasl_auth = _ldap_sasl.sasl({}, 'GSSAPI')
 
 
 # universal LDAPError handler
-def _handle_errors(self, e, **kw):
+def _handle_errors(e, **kw):
     """
     Centralize error handling in one place.
 
     e is the error to be raised
     **kw is an exception-specific list of options
     """
-    if not isinstance(e, ldap.TIMEOUT):
+    if not isinstance(e, _ldap.TIMEOUT):
         desc = e.args[0]['desc'].strip()
         info = e.args[0].get('info', '').strip()
     else:
@@ -372,6 +372,7 @@ class ldap2(CrudBackend):
         rules -- see ldap2.make_filter
         """
         assert isinstance(filters, (list, tuple))
+        filters = [f for f in filters if f]
         if len(filters) > 1:
             flt = '(%s' % rules
         else:
@@ -400,13 +401,14 @@ class ldap2(CrudBackend):
             for v in value:
                 flts.append(self.make_filter_from_attr(attr, v, rules, exact))
             return self.combine_filters(flts, rules)
-        else:
+        elif value is not None:
+            value = self._encode_value(value)
             value = _ldap_filter.escape_filter_chars(value)
             attr = self._encode_value(attr)
-            value = self._encode_value(value)
             if exact:
                 return '(%s=%s)' % (attr, value)
             return '(%s=*%s*)' % (attr, value)
+        return ''
 
     def make_filter(self, entry_attrs, attrs_list=None, rules='|', exact=True):
         """
@@ -453,7 +455,10 @@ class ldap2(CrudBackend):
         """
         # encode/normalize arguments
         base_dn = self.normalize_dn(base_dn)
-        filter = self._encode_value(filter)
+        if filter:
+            filter = self._encode_value(filter)
+        else:
+            filter = '(objectClass=*)'
         if attrs_list is not None:
             attrs_list = self._encode_values(attrs_list)
         base_dn = self._encode_value(base_dn)
@@ -485,8 +490,7 @@ class ldap2(CrudBackend):
         Keyword arguments:
         attrs_list - list of attributes to return, all if None (default None)
         """
-        filter = '(objectClass=*)'
-        return self.find_entries(filter, attrs_list, dn, self.SCOPE_BASE)[0]
+        return self.find_entries(None, attrs_list, dn, self.SCOPE_BASE)[0]
 
     def get_ipa_config(self):
         """Returns the IPA configuration entry (dn, entry_attrs)."""
@@ -525,7 +529,7 @@ class ldap2(CrudBackend):
 
         # make a copy of the original entry's attribute dict with all
         # attribute names converted to lowercase
-        old = dict([(k.lower(), v) for (k, v) in entry_attrs_old.iteritems()])
+        old = dict((k.lower(), v) for (k, v) in entry_attrs_old.iteritems())
 
         # generate modlist, we don't want any MOD_REPLACE operations
         # to handle simultaneous updates better
