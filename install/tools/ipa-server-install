@@ -391,7 +391,7 @@ def main():
 
     # check bind packages are installed
     if options.setup_bind:
-        if not ipaserver.bindinstance.check_inst():
+        if not bindinstance.check_inst():
             print "--setup-bind was specified but bind is not installed on the system"
             print "Please install bind and restart the setup program"
             return 1
