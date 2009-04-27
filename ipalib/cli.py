@@ -418,36 +418,93 @@ class help(frontend.Command):
 
     takes_args = [Bytes('command?')]
 
+    _PLUGIN_BASE_MODULE = 'ipalib.plugins'
+
+    def _get_command_module(self, cmd_plugin_proxy):
+        """
+        Return bare module name where command represented by PluginProxy
+        instance is defined. Return None if command isn't defined in
+        a plugin module (we consider these commands to be builtins).
+        """
+        # get representation in the form of 'base_module.bare_module.command()'
+        r = repr(cmd_plugin_proxy)
+        # skip base module part and the following dot
+        start = r.find(self._PLUGIN_BASE_MODULE)
+        if start == -1:
+            # command module isn't a plugin module, it's a builtin
+            return None
+        start += len(self._PLUGIN_BASE_MODULE) + 1
+        # parse bare module name
+        end = r.find('.', start)
+        return r[start:end]
+
     def finalize(self):
-        self.__topics = dict(
-            (to_cli(c.name), c) for c in self.Command()
+        # {plugin_module: [mcl, commands]}
+        self._topics = {}
+        # [builtin_commands]
+        self._builtins = []
+
+        # build help topics
+        for c in self.Command():
+            topic = self._get_command_module(c)
+            if topic:
+                self._topics.setdefault(topic, [0]).append(c)
+                # compute maximum length of command in topic
+                mcl = max((self._topics[topic][0], len(c.name)))
+                self._topics[topic][0] = mcl
+            else:
+                self._builtins.append(c)
+
+        # compute maximum topic length
+        self._mtl = max(
+            len(s) for s in (self._topics.keys() + self._builtins)
         )
+
         super(help, self).finalize()
 
     def run(self, key):
-
         if key is None:
-            self.print_commands()
+            self.print_topics()
             return
         name = from_cli(key)
-        if name not in self.Command:
-            raise HelpError(topic=key)
-        cmd = self.Command[name]
-        print 'Purpose: %s' % cmd.doc
-        self.Backend.cli.build_parser(cmd).print_help()
+        if name in self._topics:
+            self.print_commands(name)
+        elif name in self.Command:
+            cmd = self.Command[name]
+            print 'Purpose: %s' % cmd.doc
+            self.Backend.cli.build_parser(cmd).print_help()
+        else:
+            raise HelpError(topic=name)
 
-    def print_commands(self):
-        mcl = self.get_mcl()
-        for cmd in self.api.Command():
-            print '  %s  %s' % (
-                to_cli(cmd.name).ljust(mcl),
-                cmd.doc,
-            )
-        print '\nUse the --help option to see all the global options'
+    def print_topics(self):
+        topics = sorted(self._topics.keys())
+
+        print 'Usage: ipa [global-options] COMMAND ...'
         print ''
+        print 'Built-in commands:'
+        for c in self._builtins:
+            doc = (c.doc or '').strip().split('\n', 1)[0]
+            print '  %s  %s' % (to_cli(c.name).ljust(self._mtl), c.doc)
+        print ''
+        print 'Help topics:'
+        for t in topics:
+            m = '%s.%s' % (self._PLUGIN_BASE_MODULE, t)
+            doc = (sys.modules[m].__doc__ or '').strip().split('\n', 1)[0]
+            print '  %s  %s' % (to_cli(t).ljust(self._mtl), doc)
+        print ''
+        print 'Try `ipa --help` for a list of global options.'
 
-    def get_mcl(self):
-        return max(len(k) for k in self.Command)
+    def print_commands(self, topic):
+        mcl = self._topics[topic][0]
+        commands = self._topics[topic][1:]
+        m = '%s.%s' % (self._PLUGIN_BASE_MODULE, topic)
+        doc = (sys.modules[m].__doc__ or '').strip()
+
+        print doc
+        print ''
+        print 'Related commands:'
+        for c in commands:
+            print '  %s  %s' % (to_cli(c.name).ljust(mcl), c.doc)
 
 
 class console(frontend.Application):
