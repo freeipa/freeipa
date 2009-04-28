@@ -120,18 +120,15 @@ def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, subject):
         ca.export_pkcs12(pkcs12_fname, passwd_fname, "Server-Cert")
     except ipautil.CalledProcessError, e:
         print "error exporting CA certificate: " + str(e)
-        try:
-            os.unlink(pkcs12_fname)
-            os.unlink(passwd_fname)
-        except:
-            pass
+        remove_file(pkcs12_fname)
+        remove_file(passwd_fname)
 
-    os.unlink(dir + "/cert8.db")
-    os.unlink(dir + "/key3.db")
-    os.unlink(dir + "/secmod.db")
-    os.unlink(dir + "/noise.txt")
+    remove_file(dir + "/cert8.db")
+    remove_file(dir + "/key3.db")
+    remove_file(dir + "/secmod.db")
+    remove_file(dir + "/noise.txt")
     if ipautil.file_exists(passwd_fname + ".orig"):
-        os.unlink(passwd_fname + ".orig")
+        remove_file(passwd_fname + ".orig")
 
 def get_ds_user(ds_dir):
     uid = os.stat(ds_dir).st_uid
@@ -149,6 +146,13 @@ def save_config(dir, realm_name, host_name, ds_user, domain_name, dest_host):
     config.set("realm", "destination_host", dest_host)
     fd = open(dir + "/realm_info", "w")
     config.write(fd)
+
+def remove_file(fname, ignore_errors=True):
+    try:
+        os.remove(fname)
+    except OSError, e:
+        if not ignore_errors:
+            raise e
 
 def copy_files(realm_name, dir):
     config_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name))
@@ -275,7 +279,7 @@ def main():
     ipautil.run(["/bin/tar", "cf", replicafile, "-C", top_dir, "realm_info"])
     ipautil.encrypt_file(replicafile, encfile, dirman_password, top_dir);
 
-    os.remove(replicafile)
+    remove_file(replicafile)
     shutil.rmtree(dir)
 
 try:

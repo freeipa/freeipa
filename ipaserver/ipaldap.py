@@ -27,6 +27,7 @@ import re
 import string
 import ldap
 import cStringIO
+import time
 import struct
 import ldap.sasl
 from ldap.controls import LDAPControl,DecodeControlTuples,EncodeControlTuples
@@ -243,6 +244,20 @@ class IPAdmin(SimpleLDAPObject):
         self.suffixes = {}
         self.__localinit()
 
+    def __lateinit(self):
+        """
+        This is executed after the connection is bound to fill in some useful
+        values.
+        """
+        try:
+            ent = self.getEntry('cn=config,cn=ldbm database,cn=plugins,cn=config',
+                                ldap.SCOPE_BASE, '(objectclass=*)',
+                                [ 'nsslapd-directory' ])
+
+            self.dbdir = os.path.dirname(ent.getValue('nsslapd-directory'))
+        except ldap.LDAPError, e:
+            self.__handle_errors(e, **{})
+
     def __str__(self):
         return self.host + ":" + str(self.port)
 
@@ -328,6 +343,7 @@ class IPAdmin(SimpleLDAPObject):
         self.binddn = binddn
         self.bindpwd = bindpw
         self.simple_bind_s(binddn, bindpw)
+        self.__lateinit()
 
     def getEntry(self,*args):
         """This wraps the search function.  It is common to just get one entry"""
@@ -568,6 +584,48 @@ class IPAdmin(SimpleLDAPObject):
             attr = getattr(self, name)
             if callable(attr):
                 setattr(self, name, wrapper(attr, name))
+
+    def waitForEntry(self, dn, timeout=7200, attr='', quiet=True):
+        scope = ldap.SCOPE_BASE
+        filter = "(objectclass=*)"
+        attrlist = []
+        if attr:
+            filter = "(%s=*)" % attr
+            attrlist.append(attr)
+        timeout += int(time.time())
+
+        if isinstance(dn,Entry):
+            dn = dn.dn
+
+        # wait for entry and/or attr to show up
+        if not quiet:
+            sys.stdout.write("Waiting for %s %s:%s " % (self,dn,attr))
+            sys.stdout.flush()
+        entry = None
+        while not entry and int(time.time()) < timeout:
+            try:
+                entry = self.getEntry(dn, scope, filter, attrlist)
+            except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
+                pass # found entry, but no attr
+            except ldap.NO_SUCH_OBJECT:
+                pass # no entry yet
+            except ldap.LDAPError, e: # badness
+                print "\nError reading entry", dn, e
+                break
+            if not entry:
+                if not quiet:
+                    sys.stdout.write(".")
+                    sys.stdout.flush()
+                time.sleep(1)
+
+        if not entry and int(time.time()) > timeout:
+            print "\nwaitForEntry timeout for %s for %s" % (self,dn)
+        elif entry and not quiet:
+            print "\nThe waited for entry is:", entry
+        elif not entry:
+            print "\nError: could not read entry %s from %s" % (dn,self)
+
+        return entry
 
     def normalizeDN(dn):
         # not great, but will do until we use a newer version of python-ldap

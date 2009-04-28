@@ -30,6 +30,7 @@ from ipaserver.install import dsinstance, replication, installutils, krbinstance
 from ipaserver.install import httpinstance, ntpinstance, certs
 from ipaserver import ipaldap
 from ipapython import version
+from ipalib import util
 
 CACERT="/usr/share/ipa/html/ca.crt"
 
@@ -144,7 +145,7 @@ def install_http(config):
                        config.dir + "/http_pin.txt")
 
     http = httpinstance.HTTPInstance()
-    http.create_instance(config.realm_name, config.host_name, config.domain_name, False, pkcs12_info)
+    http.create_instance(config.realm_name, config.host_name, config.domain_name, False, pkcs12_info, self_signed_ca=True)
 
     # Now copy the autoconfiguration files
     if ipautil.file_exists(config.dir + "/preferences.html"):
@@ -265,6 +266,18 @@ def main():
     fd.write("server=" + config.host_name + "\n")
     fd.write("realm=" + config.realm_name + "\n")
     fd.write("domain=" + config.domain_name + "\n")
+    fd.close()
+
+    # Create the management framework config file
+    fd = open("/etc/ipa/default.conf", "w")
+    fd.write("[global]\n")
+    fd.write("basedn=" + util.realm_to_suffix(config.realm_name) + "\n")
+    fd.write("realm=" + config.realm_name + "\n")
+    fd.write("domain=" + config.domain_name + "\n")
+    fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % config.host_name)
+    # FIXME: detect when we are installing a cloned CA
+    if False:
+        fd.write("enable_ra=True\n")
     fd.close()
 
     # Apply any LDAP updates. Needs to be done after the replica is synced-up
