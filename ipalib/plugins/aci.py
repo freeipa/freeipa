@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Frontend plugins for managing DS ACIs
+Front-end plugins for managing DS ACIs
 """
 
 from ipalib import api, crud, errors
