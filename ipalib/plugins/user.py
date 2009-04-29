@@ -85,7 +85,7 @@ class user(Object):
             doc="User's Kerberos Principal name",
             default_from=lambda uid: '%s@%s' % (uid, api.env.realm),
         ),
-        Str('mailaddress?',
+        Str('mail?',
             cli_name='email',
             doc="User's e-mail address",
         ),
