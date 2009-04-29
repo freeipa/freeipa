@@ -34,6 +34,22 @@ class netgroup(BaseGroup):
     netgroup object.
     """
     container=container_netgroup
+    takes_params = (
+        Str('description',
+            doc='A description of this group',
+            attribute=True,
+        ),
+        Str('cn',
+            cli_name='name',
+            primary_key=True,
+            normalizer=lambda value: value.lower(),
+            attribute=True,
+        ),
+        Str('nisdomainname',
+            doc='The NIS domain name',
+            attribute=True,
+        ),
+    )
 
 api.register(netgroup)
 
