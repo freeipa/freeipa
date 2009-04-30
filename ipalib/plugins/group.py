@@ -81,11 +81,11 @@ class group_add(basegroup_add):
 
         # some required objectclasses
         kw['objectclass'] = config.get('ipagroupobjectclasses')
-        if kw.get('posix'):
+        if kw.get('posix') or kw.get('gidnumber'):
             kw['objectclass'].append('posixGroup')
-            del kw['posix']
+            if kw.has_key('posix'):
+                del kw['posix']
 
-#        return ldap.create(**entry)
         return super(group_add, self).execute(cn, **kw)
 
 api.register(group_add)
@@ -152,20 +152,28 @@ class group_mod(basegroup_mod):
         """
         assert 'cn' not in kw
         assert 'dn' not in kw
+        oldgroup = None
+
+        if kw.has_key('gidnumber') or kw.get('posix'):
+            groupkw = {'all': True}
+            oldgroup = api.Command['group_show'](cn, **groupkw)
 
         # Are we promoting a non-posix group into a posix one? We just
         # need to add the posixGroup objectclass to the list and the
         # DNA plugin will handle assigning a new gidNumber for us.
         if kw.get('posix'):
-            groupkw = {'all': True}
-            oldgroup = api.Command['group_show'](cn, **groupkw)
             if oldgroup.get('gidnumber'):
                 raise errors.AlreadyPosixGroup
             else:
                 oldgroup['objectclass'].append('posixgroup')
                 kw['objectclass'] = oldgroup['objectclass']
 
+        if kw.has_key('gidnumber') and not oldgroup.has_key('gidnumber'):
+            oldgroup['objectclass'].append('posixgroup')
+            kw['objectclass'] = oldgroup['objectclass']
+
         if kw.has_key('posix'):
+            # we want this gone whether it is True or False
             del kw['posix']
 
         if isinstance(kw.get('gidnumber',''), int):
