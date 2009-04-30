@@ -318,6 +318,16 @@ class ldap2(CrudBackend):
         parent_dn = self.normalize_dn(parent_dn)
         return u'%s,%s' % (rdn, parent_dn)
 
+    def make_dn_from_attr(self, attr, value, parent_dn=''):
+        """
+        Make distinguished name from attribute.
+
+        Keyword arguments:
+        parent_dn -- DN of the parent entry (default '')
+        """
+        rdn = self.make_rdn_from_attr(attr, value)
+        return self.make_dn_from_rdn(rdn, parent_dn)
+
     def make_dn(self, entry_attrs, primary_key='cn', parent_dn=''):
         """
         Make distinguished name from entry attributes.
