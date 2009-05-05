@@ -1,55 +1,40 @@
-API chages before January 2009 simi-freeze:
+General ipalib/ipaserver improvements
+-------------------------------------
 
-  * Merge Param and Type together so that rather than taking the type as a
-    kwarg, you simply use the Type. For example, instead of:
-        >>> Param('number', type=Int())
-    You would do this:
-        >>> Int('number')
-    The types will correspond to Python 3.0 text/binary disambiguaiton, so we
-    will have Bytes, Str, Int, Float, and Bool.
-
-  * Rename crud Method base classes to standard CRUDS name: Add=>Create,
-    Get=>Retrieve, Mod=>Update, Del=>Delete, Find=>Search.
+  * Port any commands still using old crud base classes to new crud base
+    classes, and then remove old crud base classes.
 
   * Add a Command.backend convenience attribute that checks if the class
     uses_backend attribute is sets the Command.backend attribute like this:
         self.backend = self.Backend[self.uses_backend]
 
-  * Finish methods on Plugin base class for calling external commands via
-    subprocess.
-
-  * Probably renamed ipa_server package to ipaserver.
+  * Possibly generalize current Plugin.call() method (makes subprocess calls).
+    Probably should renamed this so it's not confused with Command.execute()...
+    maybe Plugin.subprocess_call()?.
 
   * Add special logging methods to Plugin baseclass for authorization events
-    (escalation, de-escalation, and denial).
+    (escalation, de-escalation, and denial)... need to talk to John about this.
 
-  * Implement gettext service.
+  * Implement remaining missing features for full gettext service.
 
   * Add ability to register pre-op, post-op plugins per command.
 
-  * Add ability to have certain args/options only active on either client-side
-    or server-side, and also the same for things like default_from callbacks.
+  * Change Command so it filters args/options according to the Param.limit_to
+    kwarg (used to restrict certain params only to client or only to server).
 
   * Add ability to have a post-processing step that only gets called
     client-side.  It should have a signature like output_for_cli() minus the
     textui argument.  Need to decide whether we allow this method to modify
-    the return value.
+    the return value.  (Use case still isn't very defined.)
 
-  * Make Plugin base class parse class docstring into overview and
-    full-description strings (similar to Bazaar).
+  * Improve CLI help to take advantange of the fact that command docstrings are
+    now split into summary and details.
 
-  * Removed depreciated code in config.py.
-
-  * Remove __getattr__() from Env (and probably elsewhere) as in Python 2.4 and
-    2.5 hasattr() will catch KeyboardInterrupt and SystemExit exceptions (BTW,
-    this has been fixed in Python 2.6).
-
-  * Remove support for dynamic environment values from Env... Jason feels this
-    the Env class should be simple and static.  Other mechanisms should be used
-    for retrieving per-request dynamic environment variables.
+  * Remove remaining __getattr__() use in ipalib.plugable.
 
 
-CRUD base classes:
+CRUD base classes
+-----------------
 
   * The Retrieve method should add in the common Flag('all') option for
     retrieving all attributes.
@@ -58,11 +43,9 @@ CRUD base classes:
     LDAPCreate, etc.  Or other options it to have an LDAPObject base class and
     have the crud Method plugins rely more on their corresponding Object plugin.
 
-  * Update the Retrieve, Update, Delete, and Search classes so that the utilize
-    the new Param.query kwarg (to turn off validation) when cloning params.
 
-
-Existing plugins:
+Existing plugins
+----------------
 
   * Many existing plugins that are doing crud-type operations aren't using the
     Object + Method way of defining their parameters, and are therefore defining
@@ -71,33 +54,40 @@ Existing plugins:
     they need to be improved.
 
 
-Command Line interface:
+Command Line interface
+----------------------
 
-  * Finish textui plugin
+  * Further enhance textui plugin
 
-  * Make possible Enum values self-documenting
+  * Make possible Enum values self-documenting... this might require writing our
+    own replacement for optparse.  The isn't way to make optparse deal with the
+    global options the way Jason would like, so that's another motivation.
 
   * All "comma-separated list of..." parameters should really be changed to
     multivalue and have a flag that tells the CLI whether a multivalue should
-    be parsed as comma-separated.
+    be parsed as comma-separated.  The List type currently satisfy this, but it
+    would be nice to have a comma-separated multivalue of any type.
 
-  * Add a file option so an argument may be read from a file. This is needed
-    for cert-request to pass along the CSR.
+  * Add a File param type so an argument may be read from a file.  This is
+    needed for cert-request to pass along the CSR.
 
   * Replace RequiresRoot() with more fine-grained control based on the
     files that need to be read/written
 
 
-Improve ease of plugin writting
-  - make "from ipalib import *" import everything a plugin writter will need
-  - Finish ipa_types, add Str and Float Types
-
 Packaging
-  - Use setuptools instead of plain distutils
-  - Make setup.py generate dev-docs and run unit tests
-  - Package for rpm (.spec file)
-  - Package for apt (debian/ dir)
+---------
+
+  * Use setuptools instead of plain distutils
+
+  * Make setup.py generate dev-docs and run unit tests
+
+  * Package for deb/apt (debian/ dir)
+
 
 Migration
-  - Add the IPAService objectclass to existing principals
-  - Move existng host/ principals from cn=services to cn=computers?
+---------
+
+  * Add the IPAService objectclass to existing principals
+
+  * Move existng host/ principals from cn=services to cn=computers?
