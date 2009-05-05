@@ -24,7 +24,7 @@ import sha
 import shutil
 import os
 
-class CertDB():
+class CertDB(object):
     """
     To be used for temporary NSS databases only. If temporary is set then
     this willcompletely remove the database it is working on when the
