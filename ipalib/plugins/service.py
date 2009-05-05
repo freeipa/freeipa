@@ -24,16 +24,71 @@ Frontend plugins for service (Identity).
 
 from ipalib import api, crud, errors
 from ipalib import Object  # Plugin base classes
-from ipalib import Str, Flag # Parameter types
+from ipalib import Str, Flag, Bytes # Parameter types
+import base64
 
-default_attributes = ['krbprincipalname']
+default_attributes = ['krbprincipalname', 'usercertificate']
+
+def validate_principal(ugettext, principal):
+    # Break down the principal into its component parts, which may or
+    # may not include the realm.
+    sp = principal.split('/')
+    if len(sp) != 2:
+        raise errors.MalformedServicePrincipal(reason="missing service")
+
+    sr = sp[1].split('@')
+    if len(sr) > 2:
+        raise errors.MalformedServicePrincipal(reason="unable to determine realm")
+
+    if len(sr) == 2:
+        realm = sr[1].upper()
+
+        # At some point we'll support multiple realms
+        if (realm != api.env.realm):
+            raise errors.RealmMismatch()
+
+def normalize_principal(principal):
+    # The principal is already validated when it gets here
+    sp = principal.split('/')
+    service = sp[0]
+
+    sr = sp[1].split('@')
+    if len(sr) == 1:
+        hostname = sr[0].lower()
+        realm = api.env.realm
+    elif len(sr) == 2:
+        hostname = sr[0].lower()
+        realm = sr[1].upper()
+
+    # Put the principal back together again
+    principal = service + "/" + hostname + "@" + realm
+
+    return unicode(principal)
+
+def validate_certificate(ugettext, cert):
+    """
+    For now just verify that it is properly base64-encoded.
+    """
+    try:
+        base64.b64decode(cert)
+    except Exception, e:
+        raise errors.Base64DecodeError(reason=str(e))
 
 class service(Object):
     """
     Service object.
     """
     takes_params = (
-        Str('principal', primary_key=True),
+        Str('principal',
+            validate_principal,
+            primary_key=True,
+            normalizer=lambda value: normalize_principal(value),
+        ),
+        Bytes('usercertificate?',
+            validate_certificate,
+            cli_name='certificate',
+            doc='Base-64 encoded server certificate',
+        ),
     )
 api.register(service)
 
@@ -45,7 +100,7 @@ class service_add(crud.Add):
 
     takes_options = (
         Flag('force',
-            doc='Force a service principal name',
+            doc='Force a service principal name even if not found in DNS',
         ),
     )
     def execute(self, principal, **kw):
@@ -69,25 +124,11 @@ class service_add(crud.Add):
         except:
             pass
 
-        # Break down the principal into its component parts, which may or
-        # may not include the realm.
         sp = principal.split('/')
-        if len(sp) != 2:
-            raise errors.MalformedServicePrincipal
         service = sp[0]
 
         if service.lower() == "host":
-            raise errors.HostService
-
-        sr = sp[1].split('@')
-        if len(sr) == 1:
-            hostname = sr[0].lower()
-            realm = self.api.env.realm
-        elif len(sr) == 2:
-            hostname = sr[0].lower()
-            realm = sr[1]
-        else:
-            raise errors.MalformedServicePrincipal
+            raise errors.HostService()
 
         """
         FIXME once DNS client is done
@@ -101,22 +142,21 @@ class service_add(crud.Add):
                 self.log.debug("IPA: found %d records for '%s'" % (len(rs), hostname))
         """
 
-        # At some point we'll support multiple realms
-        if (realm != self.api.env.realm):
-            raise errors.RealmMismatch
+        # FIXME, should be in a normalizer. Need to fix normalizers to work
+        # on non-unicode data
+        if kw.get('usercertificate'):
+            kw['usercertificate'] = base64.b64decode(kw['usercertificate'])
 
-        # Put the principal back together again
-        princ_name = service + "/" + hostname + "@" + realm
-
-        dn = ldap.make_service_dn(princ_name)
+        dn = ldap.make_service_dn(principal)
 
         kw['dn'] = dn
-        kw['objectclass'] = ['krbPrincipal', 'krbPrincipalAux', 'krbTicketPolicyAux']
+        kw['objectclass'] = ['krbPrincipal', 'krbPrincipalAux', 'krbTicketPolicyAux', 'ipaService', 'pkiUser']
 
         return ldap.create(**kw)
 
-    def output_to_cli(self, ret):
+    def output_for_cli(self, textui, result, *args, **options):
         textui.print_plain("Service added")
+        textui.print_entry(result)
 
 api.register(service_add)
 
@@ -135,7 +175,7 @@ class service_del(crud.Del):
         :param kw: not used
         """
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("krbprincipalname", principal)
+        dn = ldap.find_entry_dn("krbprincipalname", principal, object_type="ipaService")
         return ldap.delete(dn)
 
     def output_to_cli(self, ret):
@@ -143,10 +183,33 @@ class service_del(crud.Del):
 
 api.register(service_del)
 
-# There is no service-mod. The principal itself contains nothing that
-# is user-changeable
+class service_mod(crud.Update):
+    'Update an existing service.'
 
-class service_find(crud.Find):
+    def execute(self, principal, **kw):
+        ldap = self.api.Backend.ldap
+        dn = ldap.find_entry_dn("krbprincipalname", principal, object_type="ipaService")
+
+        entry = ldap.retrieve(dn)
+        if entry.get('usercertificate') and kw.get('usercertificate'):
+            # FIXME, what to do here? Do we revoke the old cert?
+            raise errors.GenericError(format='entry already has a certificate')
+
+        # FIXME, should be in a normalizer. Need to fix normalizers to work
+        # on non-unicode data.
+        if kw.get('usercertificate'):
+            kw['usercertificate'] = base64.b64decode(kw['usercertificate'])
+
+        return ldap.update(dn, **kw)
+
+    def output_to_cli(self, ret):
+        textui.print_plain("Service updated")
+        textui.print_entry(result)
+
+api.register(service_mod)
+
+
+class service_find(crud.Search):
     'Search the existing services.'
     takes_options = (
         Flag('all', doc='Retrieve all attributes'),
@@ -155,7 +218,7 @@ class service_find(crud.Find):
         ldap = self.api.Backend.ldap
 
         search_kw = {}
-        search_kw['filter'] = "&(objectclass=krbPrincipalAux)(!(objectClass=posixAccount))(!(|(krbprincipalname=kadmin/*)(krbprincipalname=K/M@*)(krbprincipalname=krbtgt/*)))"
+        search_kw['filter'] = "&(objectclass=ipaService)(!(objectClass=posixAccount))(!(|(krbprincipalname=kadmin/*)(krbprincipalname=K/M@*)(krbprincipalname=krbtgt/*)))"
         search_kw['krbprincipalname'] = principal
 
         object_type = ldap.get_object_type("krbprincipalname")
@@ -205,14 +268,12 @@ class service_show(crud.Get):
         :param kw: Not used.
         """
         ldap = self.api.Backend.ldap
-        dn = ldap.find_entry_dn("krbprincipalname", principal)
+        dn = ldap.find_entry_dn("krbprincipalname", principal, object_type="ipaService")
         # FIXME: should kw contain the list of attributes to display?
         if kw.get('all', False):
             return ldap.retrieve(dn)
         else:
-            value = ldap.retrieve(dn, default_attributes)
-            del value['dn']
-            return value
+            return ldap.retrieve(dn, default_attributes)
 
     def output_for_cli(self, textui, result, *args, **options):
         textui.print_entry(result)
