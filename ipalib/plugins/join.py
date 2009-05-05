@@ -27,12 +27,8 @@ from ipalib import errors
 import krbV
 import os, subprocess
 from ipapython import ipautil
-from ipapython import certdb
-from ipapython import dogtag
 import tempfile
 import sha
-import httplib
-import xml.dom.minidom
 import stat
 import shutil
 
@@ -97,8 +93,6 @@ class join(Command):
     def output_for_cli(self, textui, result, args, **options):
         textui.print_plain("Welcome to the %s realm" % options['realm'])
         textui.print_plain("Your keytab is in %s" % result.get('keytab'))
-        if result.get('pkcs12'):
-            textui.print_plain("An X.509 server certificate is in %s" % result.get('pkcs12'))
 
     def run(self, *args, **options):
         """
@@ -112,56 +106,11 @@ class join(Command):
         result = self.forward(*args, **options)
 
         self._get_keytab(result['krbprincipalname'])
-        self._generate_server_cert(args)
-        result['keytab'] = '/tmp/kt'
-        self._set_perms('/tmp/kt')
-        if ipautil.file_exists('/tmp/server.p12'):
-            self._set_perms('/tmp/server.p12')
-        result['pkcs12'] = '/tmp/server.p12'
+        result['keytab'] = '/etc/krb5.keytab'
         return result
-
-    def _set_perms(self, filename):
-        os.chown(filename, 0, 0)
-        os.chmod(filename,  stat.S_IRUSR)
 
     def _get_keytab(self, principal, stdin=None):
-        args = ["/usr/sbin/ipa-getkeytab", "-s", self.env.host, "-p", principal,"-k", "/tmp/kt"]
+        args = ["/usr/sbin/ipa-getkeytab", "-s", self.env.host, "-p", principal,"-k", "/etc/krb5.keytab"]
         return ipautil.run(args, stdin)
-    def _generate_server_cert(self, hostname):
-        subject = "CN=%s,OU=pki-ipa,O=IPA" % hostname
-        cdb = certdb.CertDB(secdir=None, temporary=True)
-
-        csr = cdb.generate_csr(subject, keysize=1024)
-
-        # Request a cert
-        try:
-            result = api.Command['cert_request'](unicode(csr), **{})
-        except KeyError:
-            return "Certificates are not supported"
-
-        # Load the cert into our temporary database
-        if result.get('certificate', False):
-            cert_file = cdb.secdir + "/cert.txt"
-            f = open(cert_file, "w")
-            f.write(result.get('certificate'))
-            f.close()
-
-            cdb.add_certificate(cert_file, "Server-Cert", is_ca=False)
-
-            ca_chain = dogtag.get_ca_certchain()
-
-            ca_file = cdb.secdir + "/ca.txt"
-            f = open(ca_file, "w")
-            f.write(ca_chain)
-            f.close()
-
-            cdb.add_certificate(ca_file, "caCert", is_ca=True)
-
-            result = cdb.create_pkcs12("/tmp/server.p12", "Server-Cert")
-        else:
-            # Raise some error?
-            pass
-
-        return result
 
 api.register(join)
