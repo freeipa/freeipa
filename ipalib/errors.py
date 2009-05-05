@@ -779,15 +779,15 @@ class MalformedServicePrincipal(ExecutionError):
 
     For example:
 
-    >>> raise MalformedServicePrincipal
+    >>> raise MalformedServicePrincipal(reason="missing service")
     Traceback (most recent call last):
       ...
-    MalformedServicePrincipal: Service principal is not of the form: service/fully-qualified host name
+    MalformedServicePrincipal: Service principal is not of the form: service/fully-qualified host name: missing service
 
     """
 
     errno = 4004
-    format = _('Service principal is not of the form: service/fully-qualified host name')
+    format = _('Service principal is not of the form: service/fully-qualified host name: %(reason)r')
 
 class RealmMismatch(ExecutionError):
     """
@@ -948,6 +948,22 @@ class AlreadyGroupMember(ExecutionError):
 
     errno = 4014
     format = _('This entry is already a member of the group')
+
+class Base64DecodeError(ExecutionError):
+    """
+    **4015** Raised when a base64-encoded blob cannot decoded
+
+    For example:
+
+    >>> raise Base64DecodeError(reason="Incorrect padding")
+    Traceback (most recent call last):
+      ...
+    Base64DecodeError: Base64 decoding failed: Incorrect padding
+
+    """
+
+    errno = 4015
+    format = _('Base64 decoding failed: %(reason)r')
 
 class BuiltinError(ExecutionError):
     """
