@@ -43,7 +43,7 @@ class test_Netgroup(XMLRPC_test):
     """
     ng_cn=u'ng1'
     ng_description=u'Netgroup'
-    ng_kw={'cn': ng_cn, 'description': ng_description}
+    ng_kw={'cn': ng_cn, 'description': ng_description, 'nisdomainname': u'example.com'}
 
     host_cn = u'ipatesthost.%s' % api.env.domain
     host_description=u'Test host'
