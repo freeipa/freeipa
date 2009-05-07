@@ -30,8 +30,9 @@ app_DATA =				\
 	dna-posix.ldif			\
 	master-entry.ldif		\
 	memberof-task.ldif		\
+	nis.uldif			\
 	unique-attributes.ldif		\
-	schema_compat.uldif	\
+	schema_compat.uldif		\
 	$(NULL)
 
 EXTRA_DIST =				\

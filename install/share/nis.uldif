@@ -1,0 +1,74 @@
+dn: cn=NIS Server, cn=plugins, cn=config
+default:objectclass: top
+default:objectclass: nsSlapdPlugin
+default:objectclass: extensibleObject
+default:cn: NIS Server
+default:nsslapd-pluginpath: /usr/lib$LIBARCH/dirsrv/plugins/nisserver-plugin.so
+default:nsslapd-plugininitfunc: nis_plugin_init
+default:nsslapd-plugintype: object
+default:nsslapd-pluginenabled: on
+default:nsslapd-pluginid: nis-server
+default:nsslapd-pluginversion: 0.10
+default:nsslapd-pluginvendor: redhat.com
+default:nsslapd-plugindescription: NIS Server Plugin
+default:nis-tcp-wrappers-name: nis-server
+
+dn: nis-domain=$DOMAIN+nis-map=passwd.byname, cn=NIS Server, cn=plugins, cn=config
+default:objectclass: top
+default:objectclass: extensibleObject
+default:nis-domain: $DOMAIN
+default:nis-map: passwd.byname
+default:nis-base: cn=users, cn=accounts, $SUFFIX
+default:nis-secure: no
+
+dn: nis-domain=$DOMAIN+nis-map=passwd.byuid, cn=NIS Server, cn=plugins, cn=config
+default:objectclass: top
+default:objectclass: extensibleObject
+default:nis-domain: $DOMAIN
+default:nis-map: passwd.byuid
+default:nis-base: cn=users, cn=accounts, $SUFFIX
+default:nis-secure: no
+
+dn: nis-domain=$DOMAIN+nis-map=group.byname, cn=NIS Server, cn=plugins, cn=config
+default:objectclass: top
+default:objectclass: extensibleObject
+default:nis-domain: $DOMAIN
+default:nis-map: group.byname
+default:nis-base: cn=groups, cn=accounts, $SUFFIX
+default:nis-secure: no
+
+dn: nis-domain=$DOMAIN+nis-map=group.bygid, cn=NIS Server, cn=plugins, cn=config
+default:objectclass: top
+default:objectclass: extensibleObject
+default:nis-domain: $DOMAIN
+default:nis-map: group.bygid
+default:nis-base: cn=groups, cn=accounts, $SUFFIX
+default:nis-secure: no
+
+dn: nis-domain=$DOMAIN+nis-map=group.upg, cn=NIS Server, cn=plugins, cn=config
+default:objectclass: top
+default:objectclass: extensibleObject
+default:nis-domain: $DOMAIN
+default:nis-map: group.upg
+default:nis-base: cn=users, cn=accounts, $SUFFIX
+default:nis-filter: (objectclass=posixAccount)
+default:nis-key-format: %{uid}
+default:nis-value-format: %{uid}:*:%{gidNumber}:%{uid}
+default:nis-secure: no
+default:nis-disallowed-chars: :,
+
+dn: nis-domain=$DOMAIN+nis-map=netid.byname, cn=NIS Server, cn=plugins, cn=config
+default:objectclass: top
+default:objectclass: extensibleObject
+default:nis-domain: $DOMAIN
+default:nis-map: netid.byname
+default:nis-base: cn=users, cn=accounts, $SUFFIX
+default:nis-secure: no
+
+dn: nis-domain=$DOMAIN+nis-map=netgroup, cn=NIS Server, cn=plugins, cn=config
+default:objectclass: top
+default:objectclass: extensibleObject
+default:nis-domain: $DOMAIN
+default:nis-map: netgroup
+default:nis-base: cn=ng, cn=compat, cn=accounts, $SUFFIX
+default:nis-secure: no

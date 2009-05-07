@@ -1,0 +1,186 @@
+#!/usr/bin/env python
+# Authors: Rob Crittenden <rcritten@redhat.com>
+# Authors: Simo Sorce <ssorce@redhat.com>
+#
+# Copyright (C) 2009  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+import sys
+try:
+    from optparse import OptionParser
+    from ipaserver import ipaldap
+    from ipapython import entity, ipautil, config
+    from ipaserver.install import installutils
+    from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax, UPDATES_DIR
+    from ipalib import errors
+    import ldap
+    import logging
+except ImportError:
+    print >> sys.stderr, """\
+There was a problem importing one of the required Python modules. The
+error was:
+
+    %s
+""" % sys.exc_value
+    sys.exit(1)
+
+nis_config_dn = "cn=NIS Server, cn=plugins, cn=config"
+
+def parse_options():
+    usage = "%prog [options] <enable|disable>\n"
+    usage += "%prog [options]\n"
+    parser = OptionParser(usage=usage, formatter=config.IPAFormatter())
+
+    parser.add_option("-d", "--debug", action="store_true", dest="debug",
+                      help="Display debugging information about the update(s)")
+    parser.add_option("-y", dest="password",
+                      help="File containing the Directory Manager password")
+
+    config.add_standard_options(parser)
+    options, args = parser.parse_args()
+
+    config.init_config(options)
+
+    return options, args
+
+def get_dirman_password():
+    """Prompt the user for the Directory Manager password and verify its
+       correctness.
+    """
+    password = installutils.read_password("Directory Manager", confirm=False, validate=False)
+
+    return password
+
+def get_nis_config(conn):
+    entry = None
+    try:
+        entry = conn.getEntry(nis_config_dn, ldap.SCOPE_BASE, "(objectclass=*)")
+    except errors.NotFound:
+        pass
+    except ldap.LDAPError, e:
+        raise e
+
+    return entry
+
+def main():
+    retval = 0
+    loglevel = logging.NOTSET
+    files=['/usr/share/ipa/nis.uldif']
+
+    options, args = parse_options()
+    if options.debug:
+        loglevel = logging.DEBUG
+
+    if len(args) != 1:
+        print "You must specify one action, either enable or disable"
+        sys.exit(1)
+    elif args[0] != "enable" and args[0] != "disable":
+        print "Unrecognized action [" + args[0] + "]"
+        sys.exit(1)
+
+    logging.basicConfig(level=loglevel,
+                        format='%(levelname)s %(message)s')
+
+    dirman_password = ""
+    if options.password:
+        pw = ipautil.template_file(options.password, [])
+        dirman_password = pw.strip()
+    else:
+        dirman_password = get_dirman_password()
+
+    try:
+        try:
+            conn = ipaldap.IPAdmin(installutils.get_fqdn())
+            conn.do_simple_bind(bindpw=dirman_password)
+        except ldap.LDAPError, e:
+            print "An error occurred while connecting to the server."
+            print "%s" % e[0]['desc']
+            return 1
+
+        if args[0] == "enable":
+            entry = None
+            try:
+                entry = get_nis_config(conn)
+            except ldap.LDAPError, e:
+                print "An error occurred while talking to the server."
+                print "%s" % e[0]['desc']
+                retval = 1
+
+            if entry is None:
+                print "Enabling plugin"
+
+                if entry is None:
+                    # Load the plugin configuration
+                    ld = LDAPUpdate(dm_password=dirman_password, sub_dict={})
+                    retval = ld.update(files)
+            else:
+                if entry.getValue('nsslapd-pluginenabled').lower() == "off":
+                    # Already configured, just enable the plugin
+                    print "Enabling plugin"
+                    mod = [(ldap.MOD_REPLACE, "nsslapd-pluginenabled", "on")]
+
+                    conn.modify_s(nis_config_dn, mod)
+                else:
+                    print "Plugin already Enabled"
+                    retval = 2
+
+        elif args[0] == "disable":
+            try:
+                mod = [(ldap.MOD_REPLACE, "nsslapd-pluginenabled", "off")]
+
+                conn.modify_s(nis_config_dn, mod)
+            except errors.NotFound:
+                print "Plugin is already disabled"
+                retval = 2
+            except ldap.LDAPError, e:
+                print "An error occurred while talking to the server."
+                print "%s" % e[0]['desc']
+                retval = 1
+
+        else:
+            retval = 1
+
+        if retval == 0:
+            print "This setting will not take effect until you restart Directory Server."
+
+    finally:
+        if conn:
+            conn.unbind()
+
+    return retval
+
+try:
+    if __name__ == "__main__":
+        sys.exit(main())
+except BadSyntax, e:
+    print "There is a syntax error in this update file:"
+    print "  %s" % e
+    sys.exit(1)
+except RuntimeError, e:
+    print "%s" % e
+    sys.exit(1)
+except SystemExit, e:
+    sys.exit(e)
+except KeyboardInterrupt, e:
+    sys.exit(1)
+except config.IPAConfigError, e:
+    print "An IPA server to update cannot be found. Has one been configured yet?"
+    print "The error was: %s" % e
+    sys.exit(1)
+except ldap.LDAPError, e:
+    print "An error occurred while performing operations: %s" % e
+    sys.exit(1)

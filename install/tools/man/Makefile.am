@@ -10,8 +10,9 @@ man1_MANS = 				\
 	ipa-replica-prepare.1		\
 	ipa-server-certinstall.1	\
 	ipa-server-install.1		\
-	ipa-ldap-updater.1			\
-	ipa-compat-manage.1
+	ipa-ldap-updater.1		\
+	ipa-compat-manage.1		\
+	ipa-nis-manage.1
 
 man8_MANS =				\
 	ipactl.8			\

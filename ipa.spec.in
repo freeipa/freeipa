@@ -85,7 +85,7 @@ Requires: libcap
 Requires: selinux-policy
 %endif
 Requires(post): selinux-policy-base
-Requires: slapi-nis
+Requires: slapi-nis >= 0.14
 Conflicts: mod_ssl
 
 %description server
@@ -365,6 +365,7 @@ fi
 %{_mandir}/man8/ipa_kpasswd.8.gz
 %{_mandir}/man8/ipactl.8.gz
 %{_mandir}/man1/ipa-compat-manage.1.gz
+%{_mandir}/man1/ipa-nis-manage.1.gz
 %{_mandir}/man1/ipa-ldap-updater.1.gz
 
 %files server-selinux
@@ -393,6 +394,7 @@ fi
 %{_sbindir}/ipa-fix-CVE-2008-3274
 %{_sbindir}/ipa-ldap-updater
 %{_sbindir}/ipa-compat-manage
+%{_sbindir}/ipa-nis-manage
 
 %files python
 %doc LICENSE README
@@ -424,6 +426,9 @@ fi
 %endif
 
 %changelog
+* Thu May  6 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-5
+- Set 0.14 as minimum version for slapi-nis
+
 * Wed Apr 22 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-4
 - Add Requires: python-nss to ipa-python sub-package
 
