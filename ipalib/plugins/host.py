@@ -140,7 +140,7 @@ class host_add(crud.Add):
 
         current = util.get_current_principal()
         if not current:
-            raise errors.NotFound('Unable to determine current user')
+            raise errors.NotFound(reason='Unable to determine current user')
         kw['enrolledby'] = ldap.find_entry_dn("krbPrincipalName", current, "posixAccount")
 
         # Get our configuration
@@ -186,6 +186,17 @@ class host_del(crud.Del):
         """
         ldap = self.api.Backend.ldap
         dn = get_host(hostname)
+
+        # Remove all service records for this host
+        services=api.Command['service_find'](hostname, **{})
+
+        counter = services[0]
+        services = services[1:]
+        if counter > 0:
+            for s in services:
+                principal = s.get('krbprincipalname').decode('UTF-8')
+                api.Command['service_del'](principal, **{})
+
         return ldap.delete(dn)
     def output_for_cli(self, textui, result, *args, **options):
         """

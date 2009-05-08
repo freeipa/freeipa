@@ -26,19 +26,28 @@ from ipalib import api, crud, errors
 from ipalib import Object  # Plugin base classes
 from ipalib import Str, Flag, Bytes # Parameter types
 import base64
+from OpenSSL import crypto
 
 default_attributes = ['krbprincipalname', 'usercertificate']
 
 def validate_principal(ugettext, principal):
+    (service, hostname, principal) = split_principal(principal)
+
+def split_principal(principal):
+    service = hostname = realm = None
+
     # Break down the principal into its component parts, which may or
     # may not include the realm.
     sp = principal.split('/')
     if len(sp) != 2:
         raise errors.MalformedServicePrincipal(reason="missing service")
 
+    service = sp[0]
     sr = sp[1].split('@')
     if len(sr) > 2:
         raise errors.MalformedServicePrincipal(reason="unable to determine realm")
+
+    hostname = sr[0].lower()
 
     if len(sr) == 2:
         realm = sr[1].upper()
@@ -46,19 +55,15 @@ def validate_principal(ugettext, principal):
         # At some point we'll support multiple realms
         if (realm != api.env.realm):
             raise errors.RealmMismatch()
+    else:
+        realm = api.env.realm
+
+    # Note that realm may be None.
+    return (service, hostname, realm)
 
 def normalize_principal(principal):
     # The principal is already validated when it gets here
-    sp = principal.split('/')
-    service = sp[0]
-
-    sr = sp[1].split('@')
-    if len(sr) == 1:
-        hostname = sr[0].lower()
-        realm = api.env.realm
-    elif len(sr) == 2:
-        hostname = sr[0].lower()
-        realm = sr[1].upper()
+    (service, hostname, realm) = split_principal(principal)
 
     # Put the principal back together again
     principal = service + "/" + hostname + "@" + realm
@@ -124,10 +129,9 @@ class service_add(crud.Add):
         except:
             pass
 
-        sp = principal.split('/')
-        service = sp[0]
+        (service, hostname, realm) = split_principal(principal)
 
-        if service.lower() == "host":
+        if service.lower() == "host" and not force:
             raise errors.HostService()
 
         """
@@ -176,6 +180,12 @@ class service_del(crud.Del):
         """
         ldap = self.api.Backend.ldap
         dn = ldap.find_entry_dn("krbprincipalname", principal, object_type="ipaService")
+        entry = ldap.retrieve(dn)
+        if entry.has_key('usercertificate'):
+            cert = entry.get('usercertificate')
+            x509 = crypto.load_certificate(crypto.FILETYPE_ASN1, cert)
+            serial = str(x509.get_serial_number())
+            api.Command['cert_revoke'](unicode(serial, ), **{'revocation_reason': 5})
         return ldap.delete(dn)
 
     def output_to_cli(self, ret):
