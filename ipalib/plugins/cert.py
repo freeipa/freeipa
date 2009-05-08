@@ -151,7 +151,14 @@ class cert_revoke(Command):
     takes_args = ['serial_number']
 
     # FIXME: The default is 0.  Is this really an Int param?
-    takes_options = [Int('revocation_reason?', default=0)]
+    takes_options = (
+        Int('revocation_reason?',
+            doc='Reason for revoking the certificate (0-10)',
+            minvalue=0,
+            maxvalue=10,
+            default=0,
+        ),
+    )
 
 
     def execute(self, serial_number, **kw):
