@@ -81,7 +81,7 @@ def search_by_name(acis, aciname):
             # FIXME: need to log syntax errors, ignore for now
             pass
 
-    raise errors.NotFound()
+    raise errors.NotFound(reason="Unable to find aci %s" % aciname)
 
 def search_by_attr(acis, attrlist):
     """
@@ -105,7 +105,7 @@ def search_by_attr(acis, attrlist):
     if results:
         return results
 
-    raise errors.NotFound()
+    raise errors.NotFound(reason="Unable to find any ACIs with attribute %s" % ",".join(attrlist))
 
 def search_by_taskgroup(acis, tgdn):
     """
@@ -126,7 +126,7 @@ def search_by_taskgroup(acis, tgdn):
     if results:
         return results
 
-    raise errors.NotFound()
+    raise errors.NotFound(reason="taskgroup %s not found" % tgdn)
 
 def search_by_perm(acis, permlist):
     """
@@ -148,7 +148,7 @@ def search_by_perm(acis, permlist):
     if results:
         return results
 
-    raise errors.NotFound()
+    raise errors.NotFound(reason="No ACIs with permissions %s found" % ",".join(permlist))
 
 def search_by_memberof(acis, memberoffilter):
     """
@@ -174,7 +174,7 @@ def search_by_memberof(acis, memberoffilter):
     if results:
         return results
 
-    raise errors.NotFound()
+    raise errors.NotFound(reason="Nothing found for %s" % memberoffilter)
 
 class aci(Object):
     """

@@ -298,7 +298,7 @@ class IPAdmin(SimpleLDAPObject):
             raise e
         except ldap.NO_SUCH_OBJECT, e:
             args = kw.get('args', '')
-            raise errors.NotFound(msg=notfound(args))
+            raise errors.NotFound(reason=notfound(args))
         except ldap.ALREADY_EXISTS, e:
             raise errors.DuplicateEntry()
         except ldap.CONSTRAINT_VIOLATION, e:
@@ -361,7 +361,7 @@ class IPAdmin(SimpleLDAPObject):
             self.__handle_errors(e, **kw)
 
         if not obj:
-            raise errors.NotFound(msg=notfound(args))
+            raise errors.NotFound(reason=notfound(args))
 
         elif isinstance(obj,Entry):
             return obj
@@ -383,7 +383,7 @@ class IPAdmin(SimpleLDAPObject):
             self.__handle_errors(e, **kw)
 
         if not obj:
-            raise errors.NotFound(msg=notfound(args))
+            raise errors.NotFound(reason=notfound(args))
 
         entries = []
         for s in obj:
@@ -421,7 +421,7 @@ class IPAdmin(SimpleLDAPObject):
             self.__handle_errors(e, **kw)
 
         if not entries:
-            raise errors.NotFound(msg=notfound(args))
+            raise errors.NotFound(reason=notfound(args))
 
         if partial == 1:
             counter = -1

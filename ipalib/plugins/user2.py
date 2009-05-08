@@ -148,7 +148,7 @@ class user2_create(crud.Create):
             (group_dn, group_attrs) = ldap.get_entry(group_dn, ['gidNumber'])
         except errors.NotFound:
             error_msg = 'Default group for new users not found.'
-            raise errors.NotFound(error_msg)
+            raise errors.NotFound(reason=error_msg)
         # fill default group's gidNumber
         entry_attrs['gidnumber'] = group_attrs['gidNumber']
 

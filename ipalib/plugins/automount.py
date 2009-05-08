@@ -291,7 +291,7 @@ class automount_delkey(crud.Del):
                     keydn = k.get('dn')
                     break
         if not keydn:
-            raise errors.NotFound(msg='Entry not found')
+            raise errors.NotFound(reason='Removing keys failed. key %s not found' % keyname)
         return ldap.delete(keydn)
     def output_for_cli(self, textui, result, *args, **options):
         """
@@ -369,7 +369,7 @@ class automount_modkey(crud.Mod):
                     keydn = k.get('dn')
                     break
         if not keydn:
-            raise errors.NotFound(msg='Entry not found')
+            raise errors.NotFound(reason='Update failed, unable to find key %s' % keyname)
         return ldap.update(keydn, **kw)
 
     def output_for_cli(self, textui, result, *args, **options):
@@ -517,7 +517,7 @@ class automount_showkey(crud.Get):
                     keydn = k.get('dn')
                     break
         if not keydn:
-            raise errors.NotFound(msg='Entry not found')
+            raise errors.NotFound(reason='Unable to find key %s' % keyname)
         # FIXME: should kw contain the list of attributes to display?
         if kw.get('all', False):
             return ldap.retrieve(keydn)

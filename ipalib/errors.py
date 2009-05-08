@@ -739,7 +739,7 @@ class NotFound(ExecutionError):
     """
 
     errno = 4001
-    format = _('entry not found')
+    format = _('%(reason)r')
 
 class DuplicateEntry(ExecutionError):
     """

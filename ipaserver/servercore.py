@@ -270,7 +270,7 @@ def search(base, filter, attributes, timelimit=1, sizelimit=3000, scope=ldap.SCO
         results = context.ldap.conn.getListAsync(base, scope,
             filter, attributes, 0, None, None, timelimit, sizelimit)
     except ldap.NO_SUCH_OBJECT:
-        raise errors.NotFound()
+        raise errors.NotFound(reason=filter)
 
     counter = results[0]
     entries = [counter]
@@ -315,9 +315,9 @@ def get_ipa_config():
     searchfilter = "cn=ipaconfig"
     try:
         config = get_sub_entry("cn=etc," + api.env.basedn, searchfilter)
-    except ldap.NO_SUCH_OBJECT, e:
+    except ldap.NO_SUCH_OBJECT:
         # FIXME
-        raise errors.NotFound()
+        raise errors.NotFound(reason="IPA configuration cannot be loaded")
 
     return config
 
@@ -409,12 +409,12 @@ def add_member_to_group(member_dn, group_dn, memberattr='member'):
 
     group = get_entry_by_dn(group_dn, None)
     if group is None:
-        raise errors.NotFound()
+        raise errors.NotFound(reason="cannot find group %s" % group_dn)
 
     # check to make sure member_dn exists
     member_entry = get_base_entry(member_dn, "(objectClass=*)", ['dn','objectclass'])
     if not member_entry:
-        raise errors.NotFound()
+        raise errors.NotFound(reason="cannot find member %s" % member_dn)
 
     # Add the new member to the group member attribute
     members = group.get(memberattr, [])
@@ -430,7 +430,7 @@ def remove_member_from_group(member_dn, group_dn, memberattr='member'):
 
     group = get_entry_by_dn(group_dn, None)
     if group is None:
-        raise errors.NotFound()
+        raise errors.NotFound(reason="cannot find group %s" % group_dn)
     """
     if group.get('cn') == "admins":
         member = get_entry_by_dn(member_dn, ['dn','uid'])

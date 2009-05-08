@@ -160,7 +160,7 @@ class user_add(crud.Create):
                     kw['gidnumber'] = default_group.get('gidnumber')
             except errors.NotFound:
                 # Fake an LDAP error so we can return something useful to the kw
-                raise errors.NotFound("The default group for new users, '%s', cannot be found." % config.get('ipadefaultprimarygroup'))
+                raise errors.NotFound(reason="The default group for new users, '%s', cannot be found." % config.get('ipadefaultprimarygroup'))
             except Exception, e:
                 # catch everything else
                 raise e

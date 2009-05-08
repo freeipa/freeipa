@@ -597,7 +597,7 @@ class dns2_del_rr(Command):
         try:
             attr_value.remove(data)
         except ValueError:
-            raise errors.NotFound(message=u'resource record not found')
+            raise errors.NotFound(reason=u'resource record not found')
 
         # check if it's worth to keep this entry in LDAP
         if 'idnsZone' not in entry_attrs['objectclass']:
