@@ -124,36 +124,36 @@ DEFAULT_CONFIG = (
     #  The remaining keys are never set from the values here!
     # ********************************************************
     #
-    # Env.__init__() or Env._bootstrap() or Env._finalize_core()
-    # will have filled in all the keys below by the time DEFAULT_CONFIG
-    # is merged in, so the values below are never actually used. They are
-    # listed both to provide a big picture and also so DEFAULT_CONFIG contains
-    # at least all the keys that should be present after Env._finalize_core()
-    # is called.
+    # Env._bootstrap() or Env._finalize_core() will have filled in all the keys
+    # below by the time DEFAULT_CONFIG is merged in, so the values below are
+    # never actually used.  They are listed both to provide a big picture and
+    # also so DEFAULT_CONFIG contains at least all the keys that should be
+    # present after Env._finalize_core() is called.
     #
     # Each environment variable below is sent to ``object``, which just happens
     # to be an invalid value for an environment variable, so if for some reason
     # any of these keys were set from the values here, an exception will be
     # raised.
 
-    # Set in Env.__init__():
+    # Non-overridable vars set in Env._bootstrap():
     ('host', object),
-    ('ipalib', object), # The directory containing ipalib/__init__.py
-    ('site_packages', object), # The directory contaning ipalib
-    ('script', object), # sys.argv[0]
-    ('bin', object), # The directory containing script
-    ('home', object), # The home directory of user underwhich process is running
-    ('dot_ipa', object), # ~/.ipa directory
+    ('ipalib', object),  # The directory containing ipalib/__init__.py
+    ('site_packages', object),  # The directory contaning ipalib
+    ('script', object),  # sys.argv[0]
+    ('bin', object),  # The directory containing the script
+    ('home', object),  # $HOME
 
-    # Set in Env._bootstrap():
-    ('in_tree', object), # Whether or not running in-tree (bool)
-    ('context', object), # Name of context, default is 'default'
-    ('conf', object), # Path to config file
-    ('conf_default', object), # Path to common default config file
-    ('conf_dir', object), # Directory containing config files
+    # Vars set in Env._bootstrap():
+    ('in_tree', object),  # Whether or not running in-tree (bool)
+    ('dot_ipa', object),  # ~/.ipa directory
+    ('context', object),  # Name of context, default is 'default'
+    ('confdir', object),  # Directory containing config files
+    ('conf', object),  # File containing context specific config
+    ('conf_default', object),  # File containing context independent config
 
     # Set in Env._finalize_core():
-    ('in_server', object), # Whether or not running in-server (bool)
-    ('log', object), # Path to log file
+    ('in_server', object),  # Whether or not running in-server (bool)
+    ('logdir', object),  # Directory containing log files
+    ('log', object),  # Path to context specific log file
 
 )

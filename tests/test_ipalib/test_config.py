@@ -25,6 +25,7 @@ Test the `ipalib.config` module.
 import os
 from os import path
 import sys
+import socket
 from tests.util import raises, setitem, delitem, ClassChecker
 from tests.util import getitem, setitem, delitem
 from tests.util import TempDir, TempHome
@@ -407,7 +408,7 @@ class test_Env(ClassChecker):
         assert o.number == 42
         assert o.floating == 3.14
 
-    def new(self):
+    def new(self, in_tree=False):
         """
         Set os.environ['HOME'] to a tempdir.
 
@@ -415,7 +416,10 @@ class test_Env(ClassChecker):
         helper method is used in testing the bootstrap related methods below.
         """
         home = TempHome()
-        return (self.cls(), home)
+        o = self.cls()
+        if in_tree:
+            o.in_tree = True
+        return (o, home)
 
     def bootstrap(self, **overrides):
         """
@@ -437,6 +441,7 @@ class test_Env(ClassChecker):
         (o, home) = self.new()
         o._bootstrap()
         ipalib = path.dirname(path.abspath(config.__file__))
+        assert o.host == socket.gethostname()
         assert o.ipalib == ipalib
         assert o.site_packages == path.dirname(ipalib)
         assert o.script == path.abspath(sys.argv[0])
@@ -445,6 +450,7 @@ class test_Env(ClassChecker):
         assert o.dot_ipa == home.join('.ipa')
         assert o.in_tree is False
         assert o.context == 'default'
+        assert o.confdir == '/etc/ipa'
         assert o.conf == '/etc/ipa/default.conf'
         assert o.conf_default == o.conf
 
@@ -482,68 +488,61 @@ class test_Env(ClassChecker):
             assert getattr(o, key) == value
             assert o[key] == value
 
-    def finalize_core(self, **defaults):
+    def finalize_core(self, ctx, **defaults):
         """
         Helper method used in testing `Env._finalize_core`.
         """
-        (o, home) = self.new()
+        # We must force in_tree=True so we don't load possible config files in
+        # /etc/ipa/, whose contents could break this test:
+        (o, home) = self.new(in_tree=True)
+        if ctx:
+            o.context = ctx
+
+        # Check that calls cascade down the chain:
+        set_here = ('in_server', 'logdir', 'log')
+        assert o._isdone('_bootstrap') is False
         assert o._isdone('_finalize_core') is False
+        assert o._isdone('_finalize') is False
+        for key in set_here:
+            assert key not in o
         o._finalize_core(**defaults)
+        assert o._isdone('_bootstrap') is True
         assert o._isdone('_finalize_core') is True
+        assert o._isdone('_finalize') is False  # Should not cascade
+        for key in set_here:
+            assert key in o
+
+        # Check that it can't be called twice:
         e = raises(StandardError, o._finalize_core)
         assert str(e) == 'Env._finalize_core() already called'
+
         return (o, home)
 
     def test_finalize_core(self):
         """
         Test the `ipalib.config.Env._finalize_core` method.
         """
-        # Check that calls cascade up the chain:
-        (o, home) = self.new()
-        assert o._isdone('_bootstrap') is False
-        assert o._isdone('_finalize_core') is False
-        assert o._isdone('_finalize') is False
-        o._finalize_core()
-        assert o._isdone('_bootstrap') is True
-        assert o._isdone('_finalize_core') is True
-        assert o._isdone('_finalize') is False
-
-        # Check that it can't be called twice:
-        e = raises(StandardError, o._finalize_core)
-        assert str(e) == 'Env._finalize_core() already called'
-
-        # Check that _bootstrap() did its job:
-        (o, home) = self.bootstrap()
-        assert 'in_tree' in o
-        assert 'conf' in o
-        assert 'context' in o
-
-        # Check that keys _finalize_core() will set are not set yet:
-        assert 'log' not in o
-        assert 'in_server' not in o
-
-        # Check that _finalize_core() did its job:
-        o._finalize_core()
-        assert 'in_server' in o
-        assert 'log' in o
-        assert o.in_tree is False
-        assert o.context == 'default'
+        # Test that correct defaults are generated:
+        (o, home) = self.finalize_core(None)
         assert o.in_server is False
-        assert o.log == '/var/log/ipa/default.log'
+        assert o.logdir == home.join('.ipa', 'log')
+        assert o.log == home.join('.ipa', 'log', 'default.log')
 
-        # Check log is in ~/.ipa/log when context='cli'
-        (o, home) = self.bootstrap(context='cli')
-        o._finalize_core()
-        assert o.in_tree is False
-        assert o.log == home.join('.ipa', 'log', 'cli.log')
-
-        # Check **defaults can't set in_server nor log:
-        (o, home) = self.bootstrap(in_server='True')
-        o._finalize_core(in_server=False)
+        # Test with context='server'
+        (o, home) = self.finalize_core('server')
         assert o.in_server is True
-        (o, home) = self.bootstrap(log='/some/silly/log')
-        o._finalize_core(log='/a/different/log')
-        assert o.log == '/some/silly/log'
+        assert o.logdir == home.join('.ipa', 'log')
+        assert o.log == home.join('.ipa', 'log', 'server.log')
+
+        # Test that **defaults can't set in_server, logdir, nor log:
+        (o, home) = self.finalize_core(None,
+            in_server='IN_SERVER',
+            logdir='LOGDIR',
+            log='LOG',
+        )
+        assert o.in_server is False
+        assert o.logdir == home.join('.ipa', 'log')
+        assert o.log == home.join('.ipa', 'log', 'default.log')
 
         # Test loading config file, plus test some in-tree stuff
         (o, home) = self.bootstrap(in_tree=True, context='server')
@@ -555,6 +554,7 @@ class test_Env(ClassChecker):
         assert o.in_tree is True
         assert o.context == 'server'
         assert o.in_server is True
+        assert o.logdir == home.join('.ipa', 'log')
         assert o.log == home.join('.ipa', 'log', 'server.log')
         assert o.yes is True
         assert o.no is False
@@ -563,19 +563,19 @@ class test_Env(ClassChecker):
 
         # Test using DEFAULT_CONFIG:
         defaults = dict(constants.DEFAULT_CONFIG)
-        (o, home) = self.finalize_core(**defaults)
+        (o, home) = self.finalize_core(None, **defaults)
         assert list(o) == sorted(defaults)
         for (key, value) in defaults.items():
             if value is object:
                 continue
-            assert o[key] is value, value
+            assert o[key] == value, '%r is %r; should be %r' % (key, o[key], value)
 
     def test_finalize(self):
         """
         Test the `ipalib.config.Env._finalize` method.
         """
         # Check that calls cascade up the chain:
-        (o, home) = self.new()
+        (o, home) = self.new(in_tree=True)
         assert o._isdone('_bootstrap') is False
         assert o._isdone('_finalize_core') is False
         assert o._isdone('_finalize') is False
@@ -589,7 +589,7 @@ class test_Env(ClassChecker):
         assert str(e) == 'Env._finalize() already called'
 
         # Check that _finalize() calls __lock__()
-        (o, home) = self.new()
+        (o, home) = self.new(in_tree=True)
         assert o.__islocked__() is False
         o._finalize()
         assert o.__islocked__() is True
@@ -597,7 +597,7 @@ class test_Env(ClassChecker):
         assert str(e) == 'Env.__lock__() already called'
 
         # Check that **lastchance works
-        (o, home) = self.finalize_core()
+        (o, home) = self.finalize_core(None)
         key = 'just_one_more_key'
         value = 'with one more value'
         lastchance = {key: value}

@@ -31,14 +31,6 @@ from ipalib import errors
 # individually instead of at the top-level. If API.bootstrap()
 # has already been called we continue gracefully. Other errors will be
 # raised.
-try:
-    api.bootstrap(context='cli')
-    api.finalize()
-except StandardError, e:
-    if str(e) == "API.bootstrap() already called":
-        pass
-    else:
-        raise e
 
 class XMLRPC_test(object):
     """

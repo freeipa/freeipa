@@ -923,5 +923,5 @@ def create_api(mode='dummy'):
 api = create_api(mode=None)
 
 if os.environ.get('IPA_UNIT_TEST_MODE', None) == 'cli_test':
-    api.bootstrap(context='cli', in_server=False)
+    api.bootstrap(context='cli', in_server=False, in_tree=True)
     api.finalize()

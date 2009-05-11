@@ -387,6 +387,20 @@ class Env(object):
                 i += 1
         return (i, len(items))
 
+    def _join(self, key, *parts):
+        """
+        Append path components in ``parts`` to base path ``self[key]``.
+
+        For example:
+
+        >>> env = Env()
+        >>> env.home = '/people/joe'
+        >>> env._join('home', 'Music', 'favourites')
+        '/people/joe/Music/favourites'
+        """
+        if key in self and self[key] is not None:
+            return path.join(self[key], *parts)
+
     def __doing(self, name):
         if name in self.__done:
             raise StandardError(
@@ -426,37 +440,49 @@ class Env(object):
         """
         self.__doing('_bootstrap')
 
-        # Set run-time variables:
+        # Set run-time variables (cannot be overridden):
         self.host = gethostname()
         self.ipalib = path.dirname(path.abspath(__file__))
         self.site_packages = path.dirname(self.ipalib)
         self.script = path.abspath(sys.argv[0])
         self.bin = path.dirname(self.script)
         self.home = os.environ.get('HOME', None)
-        self.dot_ipa = self._join('home', '.ipa')
+
+        # Merge in overrides:
         self._merge(**overrides)
+
+        # Determine if running in source tree:
         if 'in_tree' not in self:
-            if self.bin == self.site_packages and \
-                    path.isfile(path.join(self.bin, 'setup.py')):
+            if (
+                self.bin == self.site_packages
+                and path.isfile(path.join(self.bin, 'setup.py'))
+            ):
                 self.in_tree = True
             else:
                 self.in_tree = False
+
+        # Set dot_ipa:
+        if 'dot_ipa' not in self:
+            self.dot_ipa = self._join('home', '.ipa')
+
+        # Set context
         if 'context' not in self:
             self.context = 'default'
-        if self.in_tree:
-            base = self.dot_ipa
-        else:
-            base = path.join('/', 'etc', 'ipa')
-        if 'conf' not in self:
-            self.conf = path.join(base, '%s.conf' % self.context)
-        if 'conf_default' not in self:
-            self.conf_default = path.join(base, 'default.conf')
-        if 'conf_dir' not in self:
-            self.conf_dir = base
 
-    def _join(self, key, *parts):
-        if key in self and self[key] is not None:
-            return path.join(self[key], *parts)
+        # Set confdir:
+        if 'confdir' not in self:
+            if self.in_tree:
+                self.confdir = self.dot_ipa
+            else:
+                self.confdir = path.join('/', 'etc', 'ipa')
+
+        # Set conf (config file for this context):
+        if 'conf' not in self:
+            self.conf = self._join('confdir', '%s.conf' % self.context)
+
+        # Set conf_default (default base config used in all contexts):
+        if 'conf_default' not in self:
+            self.conf_default = self._join('confdir', 'default.conf')
 
     def _finalize_core(self, **defaults):
         """
@@ -473,8 +499,8 @@ class Env(object):
                ``self.conf_default`` (if it exists) by calling
                `Env._merge_from_file()`.
 
-            4. Intelligently fill-in the *in_server* and *log* variables
-               if they haven't already been set.
+            4. Intelligently fill-in the *in_server* , *logdir*, and *log*
+               variables if they haven't already been set.
 
             5. Merge-in the variables in ``defaults`` by calling `Env._merge()`.
                In normal circumstances ``defaults`` will simply be those
@@ -494,17 +520,28 @@ class Env(object):
         """
         self.__doing('_finalize_core')
         self.__do_if_not_done('_bootstrap')
+
+        # Merge in context config file and then default config file:
         if self.__d.get('mode', None) != 'dummy':
             self._merge_from_file(self.conf)
             self._merge_from_file(self.conf_default)
+
+        # Determine if in_server:
         if 'in_server' not in self:
             self.in_server = (self.context == 'server')
-        if 'log' not in self:
-            name = '%s.log' % self.context
-            if self.in_tree or self.context == 'cli':
-                self.log = path.join(self.dot_ipa, 'log', name)
+
+        # Set logdir:
+        if 'logdir' not in self:
+            if self.in_tree or not self.in_server:
+                self.logdir = self._join('dot_ipa', 'log')
             else:
-                self.log = path.join('/', 'var', 'log', 'ipa', name)
+                self.logdir = path.join('/', 'var', 'log', 'ipa')
+
+        # Set log file:
+        if 'log' not in self:
+            self.log = self._join('logdir', '%s.log' % self.context)
+
+        # FIXME: move into ca plugin
         if 'ca_host' not in self:
             self.ca_host = self.host
         self._merge(**defaults)
