@@ -647,7 +647,7 @@ class CAInstance(service.Service):
         ('cn', "ipara"),
         ('usertype', "agentType"),
         ('userstate', "1"),
-        ('userCertificate;binary', decoded),
+        ('userCertificate', decoded),
         ('description', '2;7;CN=Certificate Authority,O=%s;CN=RA Subsystem Certificate,OU=pki-ipa,O=%s' % (self.domain_name, self.domain_name)),]
 
         ld.add_s(entry_dn, entry)
