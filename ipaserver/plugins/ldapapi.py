@@ -46,10 +46,10 @@ class ldap(CrudBackend):
         if ccache is None:
             raise errors.CCacheError()
         conn = ipaldap.IPAdmin(self.env.ldap_host, self.env.ldap_port)
-        principle = krbV.CCache(
+        principal = krbV.CCache(
             name=ccache, context=krbV.default_context()
         ).principal().name
-        conn.set_krbccache(ccache, principle)
+        conn.set_krbccache(ccache, principal)
         return conn
 
     def destroy_connection(self):
@@ -442,5 +442,10 @@ class ldap(CrudBackend):
             results.append(r)
 
         return results
+
+    def get_effective_rights(self, dn, attrs=None):
+        binddn = self.find_entry_dn("krbprincipalname", self.conn.principal, "posixAccount")
+
+        return servercore.get_effective_rights(binddn, dn, attrs)
 
 api.register(ldap)

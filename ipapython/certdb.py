@@ -120,7 +120,7 @@ class CertDB(object):
         else:
             trust_flag="u,u,u"
 
-        # Generate a CSR
+        # Import a certificate from an ASCII file
         args = ["-A",
                 "-n", nickname,
                 "-t", trust_flag,
