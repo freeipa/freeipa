@@ -83,7 +83,7 @@ class KrbInstance(service.Service):
         self.ds_user = None
         self.fqdn = None
         self.realm = None
-	self.domain = None
+        self.domain = None
         self.host = None
         self.admin_password = None
         self.master_password = None
@@ -108,6 +108,7 @@ class KrbInstance(service.Service):
         self.suffix = util.realm_to_suffix(self.realm)
         self.kdc_password = ipautil.ipa_generate_password()
         self.admin_password = admin_password
+        self.dm_password = admin_password
 
         self.__setup_sub_dict()
 
@@ -212,27 +213,6 @@ class KrbInstance(service.Service):
                              HOST=self.host,
                              REALM=self.realm)
 
-    def __ldap_mod(self, ldif):
-        txt = ipautil.template_file(ipautil.SHARE_DIR + ldif, self.sub_dict)
-        fd = ipautil.write_tmp_file(txt)
-
-        [pw_fd, pw_name] = tempfile.mkstemp()
-        os.write(pw_fd, self.admin_password)
-        os.close(pw_fd)
-
-        args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv",
-                "-D", "cn=Directory Manager", "-y", pw_name, "-f", fd.name]
-
-        try:
-            try:
-                ipautil.run(args)
-            except ipautil.CalledProcessError, e:
-                logging.critical("Failed to load %s: %s" % (ldif, str(e)))
-        finally:
-            os.remove(pw_name)
-
-        fd.close()
-
     def __configure_sasl_mappings(self):
         # we need to remove any existing SASL mappings in the directory as otherwise they
         # they may conflict. There is no way to define the order they are used in atm.
@@ -285,13 +265,13 @@ class KrbInstance(service.Service):
             raise e
 
     def __add_krb_entries(self):
-        self.__ldap_mod("kerberos.ldif")
+        self._ldap_mod("kerberos.ldif", self.sub_dict)
 
     def __add_default_acis(self):
-        self.__ldap_mod("default-aci.ldif")
+        self._ldap_mod("default-aci.ldif", self.sub_dict)
 
     def __add_default_keytypes(self):
-        self.__ldap_mod("default-keytypes.ldif")
+        self._ldap_mod("default-keytypes.ldif", self.sub_dict)
 
     def __create_replica_instance(self):
         self.__create_instance(replica=True)
@@ -342,7 +322,7 @@ class KrbInstance(service.Service):
 
     #add the password extop module
     def __add_pwd_extop_module(self):
-        self.__ldap_mod("pwd-extop-conf.ldif")
+        self._ldap_mod("pwd-extop-conf.ldif", self.sub_dict)
 
     def __add_master_key(self):
         #get the Master Key from the stash file

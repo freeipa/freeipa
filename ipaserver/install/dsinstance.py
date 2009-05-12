@@ -139,9 +139,8 @@ info: IPA V1.0
 
 class DsInstance(service.Service):
     def __init__(self, realm_name=None, domain_name=None, dm_password=None):
-        service.Service.__init__(self, "dirsrv")
+        service.Service.__init__(self, "dirsrv", dm_password=dm_password)
         self.realm_name = realm_name
-        self.dm_password = dm_password
         self.sub_dict = None
         self.domain = domain_name
         self.serverid = None
@@ -287,38 +286,11 @@ class DsInstance(service.Service):
             # TODO: roll back here?
             logging.critical("Failed to restart the directory server. See the installation log for details.")
 
-    def __ldap_mod(self, ldif, sub_dict = None):
-        fd = None
-        path = ipautil.SHARE_DIR + ldif
-
-        if not sub_dict is None:
-            txt = ipautil.template_file(path, sub_dict)
-            fd = ipautil.write_tmp_file(txt)
-            path = fd.name
-
-        [pw_fd, pw_name] = tempfile.mkstemp()
-        os.write(pw_fd, self.dm_password)
-        os.close(pw_fd)
-
-        args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv",
-                "-D", "cn=Directory Manager", "-y", pw_name, "-f", path]
-
-        try:
-            try:
-                ipautil.run(args)
-            except ipautil.CalledProcessError, e:
-                logging.critical("Failed to load %s: %s" % (ldif, str(e)))
-        finally:
-            os.remove(pw_name)
-
-        if not fd is None:
-            fd.close()
-
     def __add_memberof_module(self):
-        self.__ldap_mod("memberof-conf.ldif")
+        self._ldap_mod("memberof-conf.ldif")
 
     def init_memberof(self):
-        self.__ldap_mod("memberof-task.ldif", self.sub_dict)
+        self._ldap_mod("memberof-task.ldif", self.sub_dict)
 
     def apply_updates(self):
         ld = ldapupdate.LDAPUpdate(dm_password=self.dm_password)
@@ -326,19 +298,19 @@ class DsInstance(service.Service):
         ld.update(files)
 
     def __add_referint_module(self):
-        self.__ldap_mod("referint-conf.ldif")
+        self._ldap_mod("referint-conf.ldif")
 
     def __set_unique_attrs(self):
-        self.__ldap_mod("unique-attributes.ldif", self.sub_dict)
+        self._ldap_mod("unique-attributes.ldif", self.sub_dict)
 
     def __config_uidgid_gen_first_master(self):
-        self.__ldap_mod("dna-posix.ldif", self.sub_dict)
+        self._ldap_mod("dna-posix.ldif", self.sub_dict)
 
     def __add_master_entry_first_master(self):
-        self.__ldap_mod("master-entry.ldif", self.sub_dict)
+        self._ldap_mod("master-entry.ldif", self.sub_dict)
 
     def __add_winsync_module(self):
-        self.__ldap_mod("ipa-winsync-conf.ldif")
+        self._ldap_mod("ipa-winsync-conf.ldif")
 
     def __enable_ssl(self):
         dirname = config_dirname(self.serverid)
@@ -391,10 +363,10 @@ class DsInstance(service.Service):
         conn.unbind()
 
     def __add_default_layout(self):
-        self.__ldap_mod("bootstrap-template.ldif", self.sub_dict)
+        self._ldap_mod("bootstrap-template.ldif", self.sub_dict)
 
     def __create_indices(self):
-        self.__ldap_mod("indices.ldif")
+        self._ldap_mod("indices.ldif")
 
     def __certmap_conf(self):
         shutil.copyfile(ipautil.SHARE_DIR + "certmap.conf.template",

@@ -78,15 +78,45 @@ def print_msg(message, output_fd=sys.stdout):
 
 
 class Service:
-    def __init__(self, service_name, sstore=None):
+    def __init__(self, service_name, sstore=None, dm_password=None):
         self.service_name = service_name
         self.steps = []
         self.output_fd = sys.stdout
+        self.dm_password = dm_password
 
         if sstore:
             self.sstore = sstore
         else:
             self.sstore = sysrestore.StateFile('/var/lib/ipa/sysrestore')
+
+    def _ldap_mod(self, ldif, sub_dict = None):
+        assert self.dm_password is not None
+
+        fd = None
+        path = ipautil.SHARE_DIR + ldif
+
+        if sub_dict is not None:
+            txt = ipautil.template_file(path, sub_dict)
+            fd = ipautil.write_tmp_file(txt)
+            path = fd.name
+
+        [pw_fd, pw_name] = tempfile.mkstemp()
+        os.write(pw_fd, self.dm_password)
+        os.close(pw_fd)
+
+        args = ["/usr/bin/ldapmodify", "-h", "127.0.0.1", "-xv",
+                "-D", "cn=Directory Manager", "-y", pw_name, "-f", path]
+
+        try:
+            try:
+                ipautil.run(args)
+            except ipautil.CalledProcessError, e:
+                logging.critical("Failed to load %s: %s" % (ldif, str(e)))
+        finally:
+            os.remove(pw_name)
+
+        if fd is not None:
+            fd.close()
 
     def set_output(self, fd):
         self.output_fd = fd
