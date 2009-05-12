@@ -29,6 +29,7 @@ _container_dn = api.env.container_group
 _default_attributes = ['cn', 'description', 'gidNumber', 'member', 'memberOf']
 _default_class = 'ipaUserGroup'
 
+
 class group2(basegroup2):
     """
     Group object.
@@ -177,6 +178,10 @@ class group2_find(basegroup2_find):
     container = _container_dn
     filter_class = _default_class
 
+    def execute(self, cn, **kw):
+        assert self.api.env.use_ldap2, 'use_ldap2 is False'
+        return super(group2_find, self).execute(cn, **kw)
+
 api.register(group2_find)
 
 
@@ -187,21 +192,35 @@ class group2_show(basegroup2_show):
     default_attributes = _default_attributes
     container = _container_dn
 
+    def execute(self, cn, **kw):
+        assert self.api.env.use_ldap2, 'use_ldap2 is False'
+        return super(group2_show, self).execute(cn, **kw)
+
 api.register(group2_show)
 
 
 class group2_add_member(basegroup2_add_member):
     """
-    Add member to group.
+    Add members to group.
     """
     container = _container_dn
+
+    def execute(self, cn, **kw):
+        assert self.api.env.use_ldap2, 'use_ldap2 is False'
+        return super(group2_add_member, self).execute(cn, **kw)
 
 api.register(group2_add_member)
 
 
 class group2_del_member(basegroup2_del_member):
-    'Remove a member from a group.'
+    """
+    Remove members from group.
+    """
     container = _container_dn
+
+    def execute(self, cn, **kw):
+        assert self.api.env.use_ldap2, 'use_ldap2 is False'
+        return super(group2_del_member, self).execute(cn, **kw)
 
 api.register(group2_del_member)
 

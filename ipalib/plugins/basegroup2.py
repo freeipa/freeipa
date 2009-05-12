@@ -27,7 +27,7 @@ from ipalib import Command, Object
 from ipalib import Flag, Int, List, Str
 
 _default_attributes = ['cn', 'description', 'member', 'memberOf']
-_default_class = 'groupofnames'
+_default_class = 'groupOfNames'
 
 
 def get_dn_by_attr(ldap, attr, value, object_class, parent_dn=''):
@@ -141,7 +141,7 @@ class basegroup2_create(crud.Create):
     """
     Create new group.
     """
-    base_classes = ("top", _default_class)
+    base_classes = ('top', _default_class)
 
     def execute(self, cn, **kw):
         """
@@ -405,7 +405,8 @@ class basegroup2_add_member(Command):
         """
         Execute the group-add-member operation.
 
-        Returns the updated group entry
+        Returns a tuple containing the number of members added
+        and the updated entry.
 
         :param cn: The group name to add new members to.
         :param kw: groups is a comma-separated list of groups to add
@@ -415,19 +416,18 @@ class basegroup2_add_member(Command):
         assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
-        add_failed = []
         to_add = []
+        add_failed = []
         completed = 0
-        total = 0
 
         members = kw.get('groups', [])
         (to_add, add_failed) = find_members(
-            ldap, add_failed, members, 'cn', 'ipaUserGroup', self.container
+            ldap, add_failed, members, 'cn', 'ipaUserGroup',
+            self.api.env.container_group
         )
         (completed, add_failed) = add_members(
-            ldap, completed, to_add, add_failed, dn, "member"
+            ldap, completed, to_add, add_failed, dn, 'member'
         )
-        total += completed
 
         members = kw.get('users', [])
         (to_add, add_failed) = find_members(
@@ -437,9 +437,8 @@ class basegroup2_add_member(Command):
         (completed, add_failed) = add_members(
             ldap, completed, to_add, add_failed, dn, 'member'
         )
-        total += completed
 
-        return (total, ldap.get_entry(dn, self.default_attributes))
+        return (completed, ldap.get_entry(dn, self.default_attributes))
 
     def output_for_cli(self, textui, result, *args, **options):
         """
@@ -481,9 +480,10 @@ class basegroup2_del_member(Command):
 
     def execute(self, cn, **kw):
         """
-        Execute the group-remove-member operation.
+        Execute the group-del-member operation.
 
-        Returns the members that could not be added
+        Returns a tuple containing the number of members removed
+        and the updated entry.
 
         :param cn: The group name to add new members to.
         :param kw: groups is a comma-separated list of groups to remove
@@ -496,16 +496,15 @@ class basegroup2_del_member(Command):
         to_remove = []
         remove_failed = []
         completed = 0
-        total = 0
 
         members = kw.get('groups', [])
         (to_remove, remove_failed) = find_members(
-            ldap, remove_failed, members, 'cn', 'ipaUserGroup', self.container
+            ldap, remove_failed, members, 'cn', 'ipaUserGroup',
+            self.api.env.container_group
         )
         (completed, remove_failed) = del_members(
             ldap, completed, to_remove, remove_failed, dn, 'member'
         )
-        total += completed
 
         members = kw.get('users', [])
         (to_remove, remove_failed) = find_members(
@@ -515,9 +514,8 @@ class basegroup2_del_member(Command):
         (completed, remove_failed) = del_members(
             ldap, completed, to_remove, remove_failed, dn, 'member'
         )
-        total += completed
 
-        return (total, ldap.get_entry(dn, self.default_attributes))
+        return (completed, ldap.get_entry(dn, self.default_attributes))
 
     def output_for_cli(self, textui, result, *args, **options):
         """
