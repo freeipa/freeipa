@@ -1,10 +1,4 @@
 options {
-	/* make named use port 53 for the source of all queries, to allow
-	 * firewalls to block all ports except 53:
-	 */
-	query-source    port 53;
-	query-source-v6 port 53;
-
 	// Put files that named is allowed to write in the data/ directory:
 	directory "/var/named"; // the default
 	dump-file               "data/cache_dump.db";
@@ -34,8 +28,9 @@ zone "." IN {
 
 include "/etc/named.rfc1912.zones";
 
-zone "$DOMAIN" {
-	type master;
-	file "$DOMAIN.zone.db";
+dynamic-db "ipa" {
+	library "ldap.so";
+	arg "uri ldap://$FQDN";
+	arg "base cn=dns, $SUFFIX";
+	arg "auth_method none";
 };
-

@@ -1,0 +1,93 @@
+dn: cn=dns,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: dns
+
+dn: idnsName=$DOMAIN,cn=dns,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: idnsZone
+objectClass: idnsRecord
+idnsName: $DOMAIN
+idnsZoneActive: True
+idnsAllowDynUpdate: True
+idnsUpdatePolicy: grant $REALM krb5-self * A;
+idnsSOAmName: $HOST.$DOMAIN.
+idnsSOArName: root.$HOST.$DOMAIN.
+idnsSOAserial: 1
+idnsSOArefresh: 10800
+idnsSOAretry: 900
+idnsSOAexpire: 604800
+idnsSOAminimum: 86400
+NSRecord: $HOST
+
+dn: idnsName=$HOST,idnsName=$DOMAIN,cn=dns,$SUFFIX
+changetype: add
+objectClass: idnsRecord
+objectClass: top
+idnsName: $HOST
+ARecord: $IP
+
+dn: idnsName=_ldap._tcp,idnsName=$DOMAIN,cn=dns,$SUFFIX
+changetype: add
+objectClass: idnsRecord
+objectClass: top
+idnsName: _ldap._tcp
+SRVRecord: 0 100 389 $HOST
+
+dn: idnsName=_kerberos,idnsName=$DOMAIN,cn=dns,$SUFFIX
+changetype: add
+objectClass: idnsRecord
+objectClass: top
+idnsName: _kerberos
+TXTRecord: $REALM
+
+dn: idnsName=_kerberos._tcp,idnsName=$DOMAIN,cn=dns,$SUFFIX
+changetype: add
+objectClass: idnsRecord
+objectClass: top
+idnsName: _kerberos._tcp
+SRVRecord: 0 100 88 $HOST
+
+dn: idnsName=_kerberos._udp,idnsName=$DOMAIN,cn=dns,$SUFFIX
+changetype: add
+objectClass: idnsRecord
+objectClass: top
+idnsName: _kerberos._udp
+SRVRecord: 0 100 88 $HOST
+
+dn: idnsName=_kerberos-master._tcp,idnsName=$DOMAIN,cn=dns,$SUFFIX
+changetype: add
+objectClass: idnsRecord
+objectClass: top
+idnsName: _kerberos-master._tcp
+SRVRecord: 0 100 88 $HOST
+
+dn: idnsName=_kerberos-master._udp,idnsName=$DOMAIN,cn=dns,$SUFFIX
+changetype: add
+objectClass: idnsRecord
+objectClass: top
+idnsName: _kerberos-master._udp
+SRVRecord: 0 100 88 $HOST
+
+dn: idnsName=_kpasswd._tcp,idnsName=$DOMAIN,cn=dns,$SUFFIX
+changetype: add
+objectClass: idnsRecord
+objectClass: top
+idnsName: _kpasswd._tcp
+SRVRecord: 0 100 464 $HOST
+
+dn: idnsName=_kpasswd._udp,idnsName=$DOMAIN,cn=dns,$SUFFIX
+changetype: add
+objectClass: idnsRecord
+objectClass: top
+idnsName: _kpasswd._udp
+SRVRecord: 0 100 464 $HOST
+
+dn: idnsName=_ntp._udp,idnsName=$DOMAIN,cn=dns,$SUFFIX
+changetype: add
+objectClass: idnsRecord
+objectClass: top
+idnsName: _ntp._udp
+SRVRecord: 0 100 123 $HOST

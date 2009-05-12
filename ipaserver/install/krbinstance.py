@@ -19,7 +19,6 @@
 
 import subprocess
 import string
-import tempfile
 import shutil
 import logging
 import fileinput

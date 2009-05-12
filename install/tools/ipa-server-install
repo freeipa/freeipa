@@ -236,7 +236,7 @@ def read_realm_name(domain_name, unattended):
     print "The kerberos protocol requires a Realm name to be defined."
     print "This is typically the domain name converted to uppercase."
     print ""
-    
+
     if unattended:
         return domain_name.upper()
     realm_name = user_input("Please provide a realm name", domain_name.upper())
@@ -392,8 +392,9 @@ def main():
     # check bind packages are installed
     if options.setup_bind:
         if not bindinstance.check_inst():
-            print "--setup-bind was specified but bind is not installed on the system"
-            print "Please install bind and restart the setup program"
+            print "--setup-bind was specified but bind or the BIND LDAP plug-in"
+            print "is not installed on the system"
+            print "Please install bind and the LDAP plug-in and restart the setup program"
             return 1
 
     # check the hostname is correctly configured, it must be as the kldap
@@ -575,7 +576,8 @@ def main():
         fd.write("enable_ra=True\n")
     fd.close()
 
-    bind = bindinstance.BindInstance(fstore)
+    # Create a BIND instance
+    bind = bindinstance.BindInstance(fstore, dm_password)
     bind.setup(host_name, ip_address, realm_name, domain_name)
     if options.setup_bind:
         bind.create_instance()

@@ -18,6 +18,8 @@
 #
 
 import logging, sys
+import os
+import tempfile
 from ipapython import sysrestore
 from ipapython import ipautil
 

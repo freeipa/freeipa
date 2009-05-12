@@ -26,7 +26,6 @@ import sys
 import os
 import re
 import time
-import tempfile
 import stat
 
 from ipapython import ipautil

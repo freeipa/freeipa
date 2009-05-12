@@ -27,20 +27,26 @@ import logging
 import service
 from ipapython import sysrestore
 from ipapython import ipautil
+from ipalib import util
 
 def check_inst():
     # So far this file is always present in both RHEL5 and Fedora if all the necessary
     # bind packages are installed (RHEL5 requires also the pkg: caching-nameserver)
     if not os.path.exists('/etc/named.rfc1912.zones'):
-         return False
+        return False
+
+    # Also check for the LDAP BIND plug-in
+    if not os.path.exists('/usr/lib/bind/ldap.so') and \
+       not os.path.exists('/usr/lib64/bind/ldap.so'):
+        return False
 
     return True
 
 class BindInstance(service.Service):
-    def __init__(self, fstore=None):
-        service.Service.__init__(self, "named")
+    def __init__(self, fstore=None, dm_password=None):
+        service.Service.__init__(self, "named", dm_password=dm_password)
         self.fqdn = None
-	self.domain = None
+        self.domain = None
         self.host = None
         self.ip_address = None
         self.realm = None
@@ -57,6 +63,7 @@ class BindInstance(service.Service):
         self.realm = realm_name
         self.domain = domain_name
         self.host = fqdn.split(".")[0]
+        self.suffix = util.realm_to_suffix(self.realm)
 
         self.__setup_sub_dict()
 
@@ -99,15 +106,12 @@ class BindInstance(service.Service):
                              IP=self.ip_address,
                              DOMAIN=self.domain,
                              HOST=self.host,
-                             REALM=self.realm)
+                             REALM=self.realm,
+                             SUFFIX=self.suffix)
 
     def __setup_zone(self):
         self.backup_state("domain", self.domain)
-        zone_txt = ipautil.template_file(ipautil.SHARE_DIR + "bind.zone.db.template", self.sub_dict)
-        self.fstore.backup_file('/var/named/'+self.domain+'.zone.db')
-        zone_fd = open('/var/named/'+self.domain+'.zone.db', 'w')
-        zone_fd.write(zone_txt)
-        zone_fd.close()
+        self._ldap_mod("dns.ldif", self.sub_dict)
 
     def __setup_named_conf(self):
         self.fstore.backup_file('/etc/named.conf')
@@ -134,13 +138,6 @@ class BindInstance(service.Service):
 
         if not running is None:
             self.stop()
-
-	if not domain is None:
-            try:
-                self.fstore.restore_file(os.path.join ("/var/named/", domain + ".zone.db"))
-            except ValueError, error:
-                logging.debug(error)
-                pass
 
         for f in ["/etc/named.conf", "/etc/resolv.conf"]:
             try:
