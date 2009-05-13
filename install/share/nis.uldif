@@ -70,5 +70,20 @@ default:objectclass: top
 default:objectclass: extensibleObject
 default:nis-domain: $DOMAIN
 default:nis-map: netgroup
-default:nis-base: cn=ng, cn=compat, cn=accounts, $SUFFIX
+default:nis-base: cn=ng, cn=compat, $SUFFIX
 default:nis-secure: no
+
+dn: cn=ng,cn=Schema Compatibility,cn=plugins,cn=config
+add:objectClass: top
+add:objectClass: extensibleObject
+add:cn: ng
+add:schema-compat-container-group: 'cn=compat, $SUFFIX'
+add:schema-compat-container-rdn: cn=ng
+add:schema-compat-check-access: yes
+add:schema-compat-search-base: 'cn=ng,cn=alt,$SUFFIX'
+add:schema-compat-search-filter: !(cn=ng)
+add:schema-compat-entry-rdn: cn=%{cn}
+add:schema-compat-entry-attribute: objectclass=nisNetgroup
+add:schema-compat-entry-attribute: 'memberNisNetgroup=%deref_r("member","cn")'
+add:schema-compat-entry-attribute: 'memberNisNetgroup=%referred_r("cn=ng","memberOf","cn")'
+add:schema-compat-entry-attribute: 'nisNetgroupTriple=(%link("%collect(\"%{externalHost}\",\"%deref(\\\"memberHost\\\",\\\"fqdn\\\")\",\"%deref_r(\\\"member\\\",\\\"fqdn\\\")\",\"%deref_r(\\\"memberHost\\\",\\\"member\\\",\\\"fqdn\\\")\")","-",",","%collect(\"%deref(\\\"memberUser\\\",\\\"uid\\\")\",\"%deref_r(\\\"member\\\",\\\"uid\\\")\",\"%deref_r(\\\"memberUser\\\",\\\"member\\\",\\\"uid\\\")\")","-"),%{nisDomainName:-})'
