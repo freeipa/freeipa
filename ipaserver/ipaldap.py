@@ -297,7 +297,7 @@ class IPAdmin(SimpleLDAPObject):
             # re-raise the error so we can handle it
             raise e
         except ldap.NO_SUCH_OBJECT, e:
-            args = kw.get('args', '')
+            args = kw.get('args', ["entry not found"])
             raise errors.NotFound(reason=notfound(args))
         except ldap.ALREADY_EXISTS, e:
             raise errors.DuplicateEntry()
@@ -459,8 +459,7 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modrdn_s(dn, newrdn, delold=1)
         except ldap.LDAPError, e:
-            kw = {'args': args}
-            self.__handle_errors(e, **kw)
+            self.__handle_errors(e, **{})
         return True
 
     def updateEntry(self,dn,oldentry,newentry):
@@ -479,8 +478,7 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modify_s(dn, modlist)
         except ldap.LDAPError, e:
-            kw = {'args': args}
-            self.__handle_errors(e, **kw)
+            self.__handle_errors(e, **{})
         return True
 
     def generateModList(self, old_entry, new_entry):
@@ -538,8 +536,7 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.modify_s(dn, modlist)
         except ldap.LDAPError, e:
-            kw = {'args': args}
-            self.__handle_errors(e, **kw)
+            self.__handle_errors(e, **{})
         return True
 
     def deleteEntry(self,*args):
@@ -571,8 +568,7 @@ class IPAdmin(SimpleLDAPObject):
                 self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
             self.passwd_s(dn, oldpass, newpass)
         except ldap.LDAPError, e:
-            kw = {'args': args}
-            self.__handle_errors(e, **kw)
+            self.__handle_errors(e, **{})
         return True
 
     def __wrapmethods(self):
