@@ -84,6 +84,8 @@ DEFAULT_CONFIG = (
     ('container_service', 'cn=services,cn=accounts'),
     ('container_host', 'cn=computers,cn=accounts'),
     ('container_hostgroup', 'cn=hostgroups,cn=accounts'),
+    ('container_rolegroup', 'cn=rolegroups,cn=accounts'),
+    ('container_taskgroup', 'cn=taskgroups,cn=accounts'),
     ('container_automount', 'cn=automount'),
     ('container_policies', 'cn=policies'),
     ('container_configs', 'cn=configs,cn=policies'),
@@ -91,6 +93,7 @@ DEFAULT_CONFIG = (
     ('container_applications', 'cn=applications,cn=configs,cn=policies'),
     ('container_policygroups', 'cn=policygroups,cn=configs,cn=policies'),
     ('container_policylinks', 'cn=policylinks,cn=configs,cn=policies'),
+    ('container_netgroup', 'cn=ng,cn=alt'),
     ('container_hbac', 'cn=hbac'),
     ('container_dns', 'cn=dns'),
 
