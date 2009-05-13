@@ -40,21 +40,21 @@ def get_host(hostname):
     if hostname.endswith('.'):
         hostname = hostname[:-1]
     try:
-        dn = ldap.find_entry_dn("cn", hostname, "ipaHost")
+        dn = ldap.find_entry_dn("fqdn", hostname, "ipaHost")
     except errors.NotFound:
         dn = ldap.find_entry_dn("serverhostname", hostname, "ipaHost")
     return dn
 
-def validate_host(ugettext, cn):
+def validate_host(ugettext, fqdn):
     """
     Require at least one dot in the hostname (to support localhost.localdomain)
     """
-    dots = len(cn.split('.'))
+    dots = len(fqdn.split('.'))
     if dots < 2:
         return 'Fully-qualified hostname required'
     return None
 
-default_attributes = ['cn','description','localityname','nshostlocation','nshardwareplatform','nsosversion']
+default_attributes = ['fqdn','description','localityname','nshostlocation','nshardwareplatform','nsosversion']
 
 def determine_os():
     (sysname, nodename, release, version, machine) = os.uname()
@@ -74,7 +74,7 @@ class host(Object):
     Host object.
     """
     takes_params = (
-        Str('cn', validate_host,
+        Str('fqdn', validate_host,
             cli_name='hostname',
             primary_key=True,
             normalizer=lambda value: value.lower(),
@@ -127,11 +127,13 @@ class host_add(crud.Add):
         :param hostname: The name of the host being added.
         :param kw: Keyword arguments for the other LDAP attributes.
         """
+        assert 'fqdn' not in kw
         assert 'cn' not in kw
         assert 'dn' not in kw
         assert 'krbprincipalname' not in kw
         ldap = self.api.Backend.ldap
 
+        kw['fqdn'] = hostname
         kw['cn'] = hostname
         kw['serverhostname'] = hostname.split('.',1)[0]
         kw['dn'] = ldap.make_host_dn(hostname)
@@ -221,7 +223,7 @@ class host_mod(crud.Mod):
         :param hostname: The name of the host to retrieve.
         :param kw: Keyword arguments for the other LDAP attributes.
         """
-        assert 'cn' not in kw
+        assert 'fqdn' not in kw
         assert 'dn' not in kw
         ldap = self.api.Backend.ldap
         dn = get_host(hostname)
@@ -258,13 +260,12 @@ class host_find(crud.Find):
         # FIXME: add this attribute to cn=ipaconfig
         #search_fields_conf_str = config.get('ipahostsearchfields')
         #search_fields = search_fields_conf_str.split(",")
-        search_fields = ['cn','serverhostname','description','localityname','nshostlocation','nshardwareplatform','nsosversion']
+        search_fields = ['fqdn','serverhostname','description','localityname','nshostlocation','nshardwareplatform','nsosversion']
 
         search_kw = {}
         for s in search_fields:
             search_kw[s] = term
 
-        # Can't use ldap.get_object_type() since cn is also used for group dns
         search_kw['objectclass'] = "ipaHost"
         if kw.get('all', False):
             search_kw['attributes'] = ['*']

@@ -109,7 +109,7 @@ class ldap(CrudBackend):
         """
         Construct host dn from hostname
         """
-        return 'cn=%s,%s,%s' % (
+        return 'fqdn=%s,%s,%s' % (
             self.dn.escape_dn_chars(hostname),
             self.api.env.container_host,
             self.api.env.basedn,

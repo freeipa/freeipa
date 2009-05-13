@@ -35,7 +35,7 @@ class test_Host(XMLRPC_test):
     description=u'Test host group'
     kw={'cn': cn, 'description': description}
 
-    host_cn = u'ipatesthost.%s' % api.env.domain
+    host_fqdn = u'ipatesthost.%s' % api.env.domain
     host_description = u'Test host'
     host_localityname = u'Undisclosed location'
 
@@ -52,18 +52,18 @@ class test_Host(XMLRPC_test):
         """
         Add a host to test add/remove member.
         """
-        kw={'cn': self.host_cn, 'description': self.host_description, 'localityname': self.host_localityname}
+        kw={'fqdn': self.host_fqdn, 'description': self.host_description, 'localityname': self.host_localityname}
         res = api.Command['host_add'](**kw)
         assert res
         assert res.get('description','') == self.host_description
-        assert res.get('cn','') == self.host_cn
+        assert res.get('fqdn','') == self.host_fqdn
 
     def test_addmember(self):
         """
         Test the `xmlrpc.hostgroup_add_member` method.
         """
         kw={}
-        kw['hosts'] = self.host_cn
+        kw['hosts'] = self.host_fqdn
         res = api.Command['hostgroup_add_member'](self.cn, **kw)
         assert res == tuple()
 
@@ -75,7 +75,7 @@ class test_Host(XMLRPC_test):
         assert res
         assert res.get('description','') == self.description
         assert res.get('cn','') == self.cn
-        assert res.get('member','').startswith('cn=%s' % self.host_cn)
+        assert res.get('member','').startswith('fqdn=%s' % self.host_fqdn)
 
     def test_find(self):
         """
@@ -86,7 +86,7 @@ class test_Host(XMLRPC_test):
         assert len(res) == 2, res
         assert res[1].get('description','') == self.description
         assert res[1].get('cn','') == self.cn
-        assert res[1].get('member','').startswith('cn=%s' % self.host_cn)
+        assert res[1].get('member','').startswith('fqdn=%s' % self.host_fqdn)
 
     def test_mod(self):
         """
@@ -109,7 +109,7 @@ class test_Host(XMLRPC_test):
         Test the `xmlrpc.hostgroup_remove_member` method.
         """
         kw={}
-        kw['hosts'] = self.host_cn
+        kw['hosts'] = self.host_fqdn
         res = api.Command['hostgroup_remove_member'](self.cn, **kw)
         assert res == tuple()
 
@@ -132,12 +132,12 @@ class test_Host(XMLRPC_test):
         """
         Test the `xmlrpc.host_del` method.
         """
-        res = api.Command['host_del'](self.host_cn)
+        res = api.Command['host_del'](self.host_fqdn)
         assert res == True
 
         # Verify that it is gone
         try:
-            res = api.Command['host_show'](self.host_cn)
+            res = api.Command['host_show'](self.host_fqdn)
         except errors.NotFound:
             pass
         else:

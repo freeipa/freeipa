@@ -45,10 +45,10 @@ class test_Netgroup(XMLRPC_test):
     ng_description=u'Netgroup'
     ng_kw={'cn': ng_cn, 'description': ng_description, 'nisdomainname': u'example.com'}
 
-    host_cn = u'ipatesthost.%s' % api.env.domain
+    host_fqdn = u'ipatesthost.%s' % api.env.domain
     host_description=u'Test host'
     host_localityname=u'Undisclosed location'
-    host_kw={'cn': host_cn, 'description': host_description, 'localityname': host_localityname}
+    host_kw={'fqdn': host_fqdn, 'description': host_description, 'localityname': host_localityname}
 
     hg_cn=u'ng1'
     hg_description=u'Netgroup'
@@ -82,7 +82,7 @@ class test_Netgroup(XMLRPC_test):
         res = api.Command['host_add'](**self.host_kw)
         assert res
         assert res.get('description','') == self.host_description
-        assert res.get('cn','') == self.host_cn
+        assert res.get('fqdn','') == self.host_fqdn
 
         # Add a hostgroup
         res = api.Command['hostgroup_add'](**self.hg_kw)
@@ -107,7 +107,7 @@ class test_Netgroup(XMLRPC_test):
         Test the `xmlrpc.netgroup_add_member` method.
         """
         kw={}
-        kw['hosts'] = self.host_cn
+        kw['hosts'] = self.host_fqdn
         res = api.Command['netgroup_add_member'](self.ng_cn, **kw)
         assert res == tuple()
 
@@ -131,9 +131,9 @@ class test_Netgroup(XMLRPC_test):
         Test the `xmlrpc.netgroup_add_member` method again to test dupes.
         """
         kw={}
-        kw['hosts'] = self.host_cn
+        kw['hosts'] = self.host_fqdn
         res = api.Command['netgroup_add_member'](self.ng_cn, **kw)
-        assert is_member_of(res, 'cn=%s' % self.host_cn)
+        assert is_member_of(res, 'fqdn=%s' % self.host_fqdn)
 
         kw={}
         kw['hostgroups'] = self.hg_cn
@@ -170,7 +170,7 @@ class test_Netgroup(XMLRPC_test):
         assert res
         assert res.get('description','') == self.ng_description
         assert res.get('cn','') == self.ng_cn
-        assert is_member_of(res.get('memberhost',[]), 'cn=%s' % self.host_cn)
+        assert is_member_of(res.get('memberhost',[]), 'fqdn=%s' % self.host_fqdn)
         assert is_member_of(res.get('memberhost',[]), 'cn=%s' % self.hg_cn)
         assert is_member_of(res.get('memberuser',[]), 'uid=%s' % self.user_uid)
         assert is_member_of(res.get('memberuser',[]), 'cn=%s' % self.group_cn)
@@ -206,7 +206,7 @@ class test_Netgroup(XMLRPC_test):
         Test the `xmlrpc.hostgroup_remove_member` method.
         """
         kw={}
-        kw['hosts'] = self.host_cn
+        kw['hosts'] = self.host_fqdn
         res = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
         assert res == tuple()
 
@@ -230,9 +230,9 @@ class test_Netgroup(XMLRPC_test):
         Test the `xmlrpc.netgroup_remove_member` method again to test not found.
         """
         kw={}
-        kw['hosts'] = self.host_cn
+        kw['hosts'] = self.host_fqdn
         res = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
-        assert is_member_of(res, 'cn=%s' % self.host_cn)
+        assert is_member_of(res, 'fqdn=%s' % self.host_fqdn)
 
         kw={}
         kw['hostgroups'] = self.hg_cn
@@ -269,12 +269,12 @@ class test_Netgroup(XMLRPC_test):
         Remove the test data we added
         """
         # Remove the host
-        res = api.Command['host_del'](self.host_cn)
+        res = api.Command['host_del'](self.host_fqdn)
         assert res == True
 
         # Verify that it is gone
         try:
-            res = api.Command['host_show'](self.host_cn)
+            res = api.Command['host_show'](self.host_fqdn)
         except errors.NotFound:
             pass
         else:

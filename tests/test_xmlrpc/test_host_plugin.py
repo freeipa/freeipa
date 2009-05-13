@@ -31,10 +31,10 @@ class test_Host(XMLRPC_test):
     """
     Test the `f_host` plugin.
     """
-    cn = u'ipatesthost.%s' % api.env.domain
+    fqdn = u'ipatesthost.%s' % api.env.domain
     description = u'Test host'
     localityname = u'Undisclosed location'
-    kw={'cn': cn, 'description': description, 'localityname': localityname}
+    kw={'fqdn': fqdn, 'description': description, 'localityname': localityname}
 
     def test_add(self):
         """
@@ -43,52 +43,52 @@ class test_Host(XMLRPC_test):
         res = api.Command['host_add'](**self.kw)
         assert type(res) is dict
         assert res['description'] == self.description
-        assert res['cn'] == self.cn
+        assert res['fqdn'] == self.fqdn
         assert res['l'] == self.localityname
 
     def test_doshow_all(self):
         """
         Test the `xmlrpc.host_show` method with all attributes.
         """
-        kw={'cn':self.cn, 'all': True}
+        kw={'fqdn':self.fqdn, 'all': True}
         res = api.Command['host_show'](**kw)
         assert res
         assert res.get('description','') == self.description
-        assert res.get('cn','') == self.cn
+        assert res.get('fqdn','') == self.fqdn
         assert res.get('l','') == self.localityname
 
     def test_doshow_minimal(self):
         """
         Test the `xmlrpc.host_show` method with default attributes.
         """
-        kw={'cn':self.cn}
+        kw={'fqdn':self.fqdn}
         res = api.Command['host_show'](**kw)
         assert res
         assert res.get('description','') == self.description
-        assert res.get('cn','') == self.cn
+        assert res.get('fqdn','') == self.fqdn
         assert res.get('localityname','') == self.localityname
 
     def test_find_all(self):
         """
         Test the `xmlrpc.host_find` method with all attributes.
         """
-        kw={'cn':self.cn, 'all': True}
+        kw={'fqdn':self.fqdn, 'all': True}
         res = api.Command['host_find'](**kw)
         assert res
         assert len(res) == 2
         assert res[1].get('description','') == self.description
-        assert res[1].get('cn','') == self.cn
+        assert res[1].get('fqdn','') == self.fqdn
         assert res[1].get('l','') == self.localityname
 
     def test_find_minimal(self):
         """
         Test the `xmlrpc.host_find` method with default attributes.
         """
-        res = api.Command['host_find'](self.cn)
+        res = api.Command['host_find'](self.fqdn)
         assert res
         assert len(res) == 2
         assert res[1].get('description','') == self.description
-        assert res[1].get('cn','') == self.cn
+        assert res[1].get('fqdn','') == self.fqdn
         assert res[1].get('localityname','') == self.localityname
 
     def test_mod(self):
@@ -96,27 +96,27 @@ class test_Host(XMLRPC_test):
         Test the `xmlrpc.host_mod` method.
         """
         newdesc = u'Updated host'
-        modkw={'cn': self.cn, 'description': newdesc}
+        modkw={'fqdn': self.fqdn, 'description': newdesc}
         res = api.Command['host_mod'](**modkw)
         assert res
         assert res.get('description','') == newdesc
 
         # Ok, double-check that it was changed
-        res = api.Command['host_show'](self.cn)
+        res = api.Command['host_show'](self.fqdn)
         assert res
         assert res.get('description','') == newdesc
-        assert res.get('cn','') == self.cn
+        assert res.get('fqdn','') == self.fqdn
 
     def test_remove(self):
         """
         Test the `xmlrpc.host_del` method.
         """
-        res = api.Command['host_del'](self.cn)
+        res = api.Command['host_del'](self.fqdn)
         assert res == True
 
         # Verify that it is gone
         try:
-            res = api.Command['host_show'](self.cn)
+            res = api.Command['host_show'](self.fqdn)
         except errors.NotFound:
             pass
         else:
