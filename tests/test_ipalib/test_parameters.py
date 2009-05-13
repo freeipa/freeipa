@@ -27,7 +27,7 @@ from inspect import isclass
 from tests.util import raises, ClassChecker, read_only
 from tests.util import dummy_ugettext, assert_equal
 from tests.data import binary_bytes, utf8_bytes, unicode_str
-from ipalib import parameters, request, errors
+from ipalib import parameters, request, errors, config
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, NULLS
 
 
@@ -168,7 +168,8 @@ class test_Param(ClassChecker):
         assert o.autofill is False
         assert o.query is False
         assert o.attribute is False
-        assert o.limit_to is None
+        assert o.include is None
+        assert o.exclude is None
         assert o.flags == frozenset()
 
         # Test that ValueError is raised when a kwarg from a subclass
@@ -223,6 +224,18 @@ class test_Param(ClassChecker):
             "Param('my_param')", 'default_from', 'create_default',
         )
 
+        # Test that ValueError is raised if you provide both include and
+        # exclude:
+        e = raises(ValueError, self.cls, 'my_param',
+            include=['server', 'foo'],
+            exclude=['client', 'bar'],
+        )
+        assert str(e) == '%s: cannot have both %s=%r and %s=%r' % (
+            "Param('my_param')",
+            'include', frozenset(['server', 'foo']),
+            'exclude', frozenset(['client', 'bar']),
+        )
+
         # Test that _get_default gets set:
         call1 = lambda first, last: first[0] + last
         call2 = lambda **kw: 'The Default'
@@ -244,6 +257,28 @@ class test_Param(ClassChecker):
         assert repr(o) == "Param('name', required=False)"
         o = self.cls('name', multivalue=True)
         assert repr(o) == "Param('name', multivalue=True)"
+
+    def test_use_in_context(self):
+        """
+        Test the `ipalib.parameters.Param.use_in_context` method.
+        """
+        set1 = ('one', 'two', 'three')
+        set2 = ('four', 'five', 'six')
+        param1 = self.cls('param1')
+        param2 = self.cls('param2', include=set1)
+        param3 = self.cls('param3', exclude=set2)
+        for context in set1:
+            env = config.Env()
+            env.context = context
+            assert param1.use_in_context(env) is True, context
+            assert param2.use_in_context(env) is True, context
+            assert param3.use_in_context(env) is True, context
+        for context in set2:
+            env = config.Env()
+            env.context = context
+            assert param1.use_in_context(env) is True, context
+            assert param2.use_in_context(env) is False, context
+            assert param3.use_in_context(env) is False, context
 
     def test_safe_value(self):
         """

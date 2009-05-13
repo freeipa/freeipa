@@ -232,7 +232,8 @@ class Param(ReadOnly):
         ('autofill', bool, False),
         ('query', bool, False),
         ('attribute', bool, False),
-        ('limit_to', frozenset, None),
+        ('include', frozenset, None),
+        ('exclude', frozenset, None),
         ('flags', frozenset, frozenset()),
 
         # The 'default' kwarg gets appended in Param.__init__():
@@ -328,6 +329,16 @@ class Param(ReadOnly):
         else:
             self._get_default = None
 
+        # Check that only 'include' or 'exclude' was provided:
+        if None not in (self.include, self.exclude):
+            raise ValueError(
+                '%s: cannot have both %s=%r and %s=%r' % (
+                    self.nice,
+                    'include', self.include,
+                    'exclude', self.exclude,
+                )
+            )
+
         # Check that all the rules are callable
         self.class_rules = tuple(class_rules)
         self.rules = rules
@@ -345,11 +356,17 @@ class Param(ReadOnly):
         """
         Return an expresion that could construct this `Param` instance.
         """
-        return make_repr(
+        return '%s(%s)' % (
             self.__class__.__name__,
-            self.param_spec,
-            **self.__kw
+            ', '.join(self.__repr_iter())
         )
+
+    def __repr_iter(self):
+        yield repr(self.param_spec)
+        for rule in self.rules:
+            yield rule.__name__
+        for key in sorted(self.__kw):
+            yield '%s=%r' % (key, self.__kw[key])
 
     def __call__(self, value, **kw):
         """
@@ -361,6 +378,33 @@ class Param(ReadOnly):
             value = self.convert(self.normalize(value))
         self.validate(value)
         return value
+
+    def use_in_context(self, env):
+        """
+        Return ``True`` if this param should be used in ``env.context``.
+
+        For example:
+
+        >>> from ipalib.config import Env
+        >>> server = Env()
+        >>> server.context = 'server'
+        >>> client = Env()
+        >>> client.context = 'client'
+        >>> param = Param('my_param', include=['server', 'webui'])
+        >>> param.use_in_context(server)
+        True
+        >>> param.use_in_context(client)
+        False
+
+        So that a subclass can add additional logic basic on other environment
+        variables, the `config.Env` instance is passed in rather than just the
+        value of ``env.context``.
+        """
+        if self.include is not None:
+            return (env.context in self.include)
+        if self.exclude is not None:
+            return (env.context not in self.exclude)
+        return True
 
     def safe_value(self, value):
         """

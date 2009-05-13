@@ -25,7 +25,7 @@ import re
 import inspect
 import plugable
 from plugable import lock, check_name
-from parameters import create_param, Param, Str, Flag, Password
+from parameters import create_param, parse_param_spec, Param, Str, Flag, Password
 from util import make_repr
 
 from errors import ZeroArgumentError, MaxArgumentError, OverlapError, RequiresRoot
@@ -41,6 +41,111 @@ def rule(obj):
 
 def is_rule(obj):
     return callable(obj) and getattr(obj, RULE_FLAG, False) is True
+
+
+class UsesParams(plugable.Plugin):
+    """
+    Base class for plugins that use param namespaces.
+    """
+
+    def _get_params_iterable(self, name):
+        """
+        Return an iterable of params defined by the attribute named ``name``.
+
+        A sequence of params can be defined one of three ways: as a ``tuple``;
+        as a callable that returns an iterable; or as a param spec (a `Param` or
+        ``str`` instance).  This method returns a uniform iterable regardless of
+        how the param sequence was defined.
+
+        For example, when defined with a tuple:
+
+        >>> class ByTuple(UsesParams):
+        ...     takes_args = (Param('foo'), Param('bar'))
+        ...
+        >>> by_tuple = ByTuple()
+        >>> list(by_tuple._get_params_iterable('takes_args'))
+        [Param('foo'), Param('bar')]
+
+        Or you can define your param sequence with a callable when you need to
+        reference attributes on your plugin instance (for validation rules,
+        etc.).  For example:
+
+        >>> class ByCallable(UsesParams):
+        ...     def takes_args(self):
+        ...         yield Param('foo', self.validate_foo)
+        ...         yield Param('bar', self.validate_bar)
+        ...
+        ...     def validate_foo(self, _, value, **kw):
+        ...         if value != 'Foo':
+        ...             return _("must be 'Foo'")
+        ...
+        ...     def validate_bar(self, _, value, **kw):
+        ...         if value != 'Bar':
+        ...             return _("must be 'Bar'")
+        ...
+        >>> by_callable = ByCallable()
+        >>> list(by_callable._get_params_iterable('takes_args'))
+        [Param('foo', validate_foo), Param('bar', validate_bar)]
+
+        Lastly, as a convenience for when a param sequence contains a single
+        param, your defining attribute may a param spec (either a `Param`
+        or an ``str`` instance).  For example:
+
+        >>> class BySpec(UsesParams):
+        ...     takes_args = Param('foo')
+        ...     takes_options = 'bar?'
+        ...
+        >>> by_spec = BySpec()
+        >>> list(by_spec._get_params_iterable('takes_args'))
+        [Param('foo')]
+        >>> list(by_spec._get_params_iterable('takes_options'))
+        ['bar?']
+
+        For information on how an ``str`` param spec is interpreted, see the
+        `create_param()` and `parse_param_spec()` functions in the
+        `ipalib.parameters` module.
+
+        Also see `UsesParams._filter_params_by_context()`.
+        """
+        attr = getattr(self, name)
+        if isinstance(attr, (Param, str)):
+            return (attr,)
+        if callable(attr):
+            return attr()
+        return attr
+
+    def _filter_params_by_context(self, name, env=None):
+        """
+        Filter params on attribute named ``name`` by environment ``env``.
+
+        For example:
+
+        >>> from ipalib.config import Env
+        >>> class Example(UsesParams):
+        ...     takes_args = (
+        ...         Str('foo_only', include=['foo']),
+        ...         Str('not_bar', exclude=['bar']),
+        ...         'both',
+        ...     )
+        ...
+        >>> eg = Example()
+        >>> foo = Env(context='foo')
+        >>> bar = Env(context='bar')
+        >>> another = Env(context='another')
+        >>> (foo.context, bar.context, another.context)
+        ('foo', 'bar', 'another')
+        >>> list(eg._filter_params_by_context('takes_args', foo))
+        [Str('foo_only', include=['foo']), Str('not_bar', exclude=['bar']), Str('both')]
+        >>> list(eg._filter_params_by_context('takes_args', bar))
+        [Str('both')]
+        >>> list(eg._filter_params_by_context('takes_args', another))
+        [Str('not_bar', exclude=['bar']), Str('both')]
+        """
+        env = getattr(self, 'env', env)
+        for spec in self._get_params_iterable(name):
+            param = create_param(spec)
+            if env is None or param.use_in_context(env):
+                yield param
 
 
 class Command(plugable.Plugin):

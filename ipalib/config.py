@@ -198,9 +198,11 @@ class Env(object):
 
     __locked = False
 
-    def __init__(self):
+    def __init__(self, **initialize):
         object.__setattr__(self, '_Env__d', {})
         object.__setattr__(self, '_Env__done', set())
+        if initialize:
+            self._merge(**initialize)
 
     def __lock__(self):
         """
