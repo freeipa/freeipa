@@ -34,11 +34,11 @@ import ldap
 import logging
 import krbV
 import platform
-import shlex
 import time
 import random
 import os
 import fnmatch
+import csv
 
 class BadSyntax(Exception):
     def __init__(self, value):
@@ -86,12 +86,29 @@ class LDAPUpdate:
             conn = ipaldap.IPAdmin(fqdn)
             conn.do_simple_bind(bindpw=self.dm_password)
             conn.unbind()
-        except ldap.CONNECT_ERROR, e:
+        except ldap.CONNECT_ERROR:
             raise RuntimeError("Unable to connect to LDAP server %s" % fqdn)
-        except ldap.SERVER_DOWN, e:
+        except ldap.SERVER_DOWN:
             raise RuntimeError("Unable to connect to LDAP server %s" % fqdn)
-        except ldap.INVALID_CREDENTIALS, e :
+        except ldap.INVALID_CREDENTIALS:
             raise RuntimeError("The password provided is incorrect for LDAP server %s" % fqdn)
+
+    # The following 2 functions were taken from the Python
+    # documentation at http://docs.python.org/library/csv.html
+    def __utf_8_encoder(self, unicode_csv_data):
+        for line in unicode_csv_data:
+            yield line.encode('utf-8')
+
+    def __unicode_csv_reader(self, unicode_csv_data, quote_char="'", dialect=csv.excel, **kwargs):
+        # csv.py doesn't do Unicode; encode temporarily as UTF-8:
+        csv_reader = csv.reader(self.__utf_8_encoder(unicode_csv_data),
+                                dialect=dialect, delimiter=',',
+                                quotechar=quote_char,
+                                skipinitialspace=True,
+                                **kwargs)
+        for row in csv_reader:
+            # decode UTF-8 back to Unicode, cell by cell:
+            yield [unicode(cell, 'utf-8') for cell in row]
 
     def __identify_arch(self):
         """On multi-arch systems some libraries may be in /lib64, /usr/lib64,
@@ -111,40 +128,19 @@ class LDAPUpdate:
         except KeyError, e:
             raise BadSyntax("Unknown template keyword %s" % e)
 
-    def __remove_quotes(self, line):
-        """Remove leading and trailng double or single quotes"""
-        if line.startswith('"'):
-            line = line[1:]
-        if line.endswith('"'):
-            line = line[:-1]
-        if line.startswith("'"):
-            line = line[1:]
-        if line.endswith("'"):
-            line = line[:-1]
-
-        return line
-
     def __parse_values(self, line):
         """Parse a comma-separated string into separate values and convert them
            into a list. This should handle quoted-strings with embedded commas
         """
-        lexer = shlex.shlex(line)
-        lexer.wordchars = lexer.wordchars + ".()-"
-        l = []
-        v = ""
-        for token in lexer:
-            if token != ',':
-                if v:
-                    v = v + " " + token
-                else:
-                    v = token
-            else:
-                l.append(self.__remove_quotes(v))
-                v = ""
-
-        l.append(self.__remove_quotes(v))
-
-        return l
+        if   line[0] == "'":
+            quote_char = "'"
+        else:
+            quote_char = '"'
+        reader = self.__unicode_csv_reader([line], quote_char)
+        value = []
+        for row in reader:
+            value = value + row
+        return value
 
     def read_file(self, filename):
         if filename == '-':
