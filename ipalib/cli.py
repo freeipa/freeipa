@@ -264,9 +264,9 @@ class textui(backend.Backend):
         >>> entry = dict(sn='Last', givenname='First', uid='flast')
         >>> ui = textui()
         >>> ui.print_entry(entry)
-          givenname: 'First'
-          sn: 'Last'
-          uid: 'flast'
+          givenname: First
+          sn: Last
+          uid: flast
         """
         assert type(entry) is dict
         if entry.get('dn'):

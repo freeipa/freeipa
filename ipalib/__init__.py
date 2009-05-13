@@ -601,7 +601,7 @@ For example, say we setup a command like this:
 ...             textui.print_count(result, format)
 ...
 >>> api = create_api()
->>> api.env.in_server = True  # We want to execute, not forward.
+>>> api.bootstrap(in_server=True)  # We want to execute, not forward
 >>> api.register(show_items)
 >>> api.finalize()
 
@@ -694,14 +694,7 @@ After `API.bootstrap()` has been called, the `Env` instance will be populated
 with all the environment information used by the built-in plugins.
 This will be called before any plugins are registered, so plugin authors can
 assume these variables will all exist by the time the module containing their
-plugin (or plugins) is imported.  For example:
-
->>> api = create_api()
->>> len(api.env)
-1
->>> api.bootstrap(in_server=True) # We want to execute, not forward
->>> len(api.env)
-39
+plugin (or plugins) is imported.
 
 `Env._bootstrap()`, which is called by `API.bootstrap()`, will create several
 run-time variables that connot be overriden in configuration files or through
@@ -747,8 +740,10 @@ For example:
 ...     """Print message of the day."""
 ...
 ...     def execute(self):
-...         return self.env.message_of_the_day
+...         return self.env.message
 ...
+>>> api = create_api()
+>>> api.bootstrap(in_server=True, message='Hello, world!')
 >>> api.register(motd)
 >>> api.finalize()
 >>> api.Command.motd()

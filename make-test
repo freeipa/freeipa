@@ -11,7 +11,7 @@ do
     if [[ -f $executable ]]; then
         echo "[ $name: Starting tests... ]"
         ((runs += 1))
-        if $executable /usr/bin/nosetests -v #--with-doctest
+        if $executable /usr/bin/nosetests -v --with-doctest --exclude="plugins"
         then
             echo "[ $name: Tests OK ]"
         else

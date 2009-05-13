@@ -708,7 +708,7 @@ class NoSuchNamespaceError(InvocationError):
     >>> raise NoSuchNamespaceError(name='Plugins')
     Traceback (most recent call last):
       ...
-    NoSuchNamespaceError: api has no such namespace: Plugins
+    NoSuchNamespaceError: api has no such namespace: 'Plugins'
     """
 
     errno = 3010
@@ -779,7 +779,7 @@ class MalformedServicePrincipal(ExecutionError):
 
     For example:
 
-    >>> raise MalformedServicePrincipal(reason="missing service")
+    >>> raise MalformedServicePrincipal(reason='missing service')
     Traceback (most recent call last):
       ...
     MalformedServicePrincipal: Service principal is not of the form: service/fully-qualified host name: missing service
@@ -787,7 +787,7 @@ class MalformedServicePrincipal(ExecutionError):
     """
 
     errno = 4004
-    format = _('Service principal is not of the form: service/fully-qualified host name: %(reason)r')
+    format = _('Service principal is not of the form: service/fully-qualified host name: %(reason)s')
 
 class RealmMismatch(ExecutionError):
     """
@@ -843,10 +843,10 @@ class MalformedUserPrincipal(ExecutionError):
 
     For example:
 
-    >>> raise MalformedUserPrincipal(principal=jsmith@@EXAMPLE.COM)
+    >>> raise MalformedUserPrincipal(principal='jsmith@@EXAMPLE.COM')
     Traceback (most recent call last):
       ...
-    MalformedUserPrincipal: Principal is not of the form user@REALM: jsmith@@EXAMPLE.COM
+    MalformedUserPrincipal: Principal is not of the form user@REALM: 'jsmith@@EXAMPLE.COM'
 
     """
 
@@ -955,7 +955,7 @@ class Base64DecodeError(ExecutionError):
 
     For example:
 
-    >>> raise Base64DecodeError(reason="Incorrect padding")
+    >>> raise Base64DecodeError(reason='Incorrect padding')
     Traceback (most recent call last):
       ...
     Base64DecodeError: Base64 decoding failed: Incorrect padding
@@ -963,7 +963,7 @@ class Base64DecodeError(ExecutionError):
     """
 
     errno = 4015
-    format = _('Base64 decoding failed: %(reason)r')
+    format = _('Base64 decoding failed: %(reason)s')
 
 class BuiltinError(ExecutionError):
     """
@@ -1035,14 +1035,14 @@ class DatabaseError(ExecutionError):
 
     For example:
 
-    >>> raise DatabaseError(desc="Can't contact LDAP server", info="")
+    >>> raise DatabaseError(desc="Can't contact LDAP server", info='')
     Traceback (most recent call last):
       ...
     DatabaseError: Can't contact LDAP server:
     """
 
     errno = 4203
-    format = _('%(desc)r:%(info)r')
+    format = _('%(desc)s:%(info)s')
 
 
 class LimitsExceeded(ExecutionError):
