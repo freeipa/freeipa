@@ -239,6 +239,10 @@ ln -s ../../../..%{_sysconfdir}/ipa/html/ssbrowser.html \
 ln -s ../../../..%{_sysconfdir}/ipa/html/unauthorized.html \
     %{buildroot}%{_usr}/share/ipa/html/unauthorized.html
 
+# So we can own our Apache configuration
+/bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/ipa/ipa.conf
+/bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/ipa/ipa-rewrite.conf
+
 %clean
 rm -rf %{buildroot}
 
@@ -343,6 +347,8 @@ fi
 %dir %{_sysconfdir}/ipa/html
 %config(noreplace) %{_sysconfdir}/ipa/html/ssbrowser.html
 %config(noreplace) %{_sysconfdir}/ipa/html/unauthorized.html
+%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ipa.conf
+%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ipa-rewrite.conf
 %{_usr}/share/ipa/ipa.conf
 %{_usr}/share/ipa/ipa-rewrite.conf
 #%dir %{_usr}/share/ipa/ipaserver
