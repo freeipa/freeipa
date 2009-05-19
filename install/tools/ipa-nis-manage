@@ -80,6 +80,7 @@ def main():
     retval = 0
     loglevel = logging.NOTSET
     files=['/usr/share/ipa/nis.uldif']
+    servicemsg = ""
 
     options, args = parse_options()
     if options.debug:
@@ -120,6 +121,19 @@ def main():
                 print "%s" % e[0]['desc']
                 retval = 1
 
+            # Enable either the portmap or rpcbind service
+            try:
+                ipautil.run(["/sbin/chkconfig", "portmap", "on"])
+                servicemsg = "portmap"
+            except ipautil.CalledProcessError, e:
+                if e.returncode == 1:
+                    try:
+                        ipautil.run(["/sbin/chkconfig", "rpcbind", "on"])
+                        servicemsg = "rpcbind"
+                    except ipautil.CalledProcessError, e:
+                        print "Unable to enable either portmap or rpcbind"
+                        retval = 3
+
             if entry is None:
                 print "Enabling plugin"
 
@@ -156,6 +170,9 @@ def main():
 
         if retval == 0:
             print "This setting will not take effect until you restart Directory Server."
+
+            if args[0] == "enable":
+                print "The %s service may need to be started." % servicemsg
 
     finally:
         if conn:
