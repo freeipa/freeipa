@@ -731,15 +731,15 @@ class NotFound(ExecutionError):
 
     For example:
 
-    >>> raise NotFound()
+    >>> raise NotFound(reason='no such user')
     Traceback (most recent call last):
       ...
-    NotFound: entry not found
+    NotFound: no such user
 
     """
 
     errno = 4001
-    format = _('%(reason)r')
+    format = _('%(reason)s')
 
 class DuplicateEntry(ExecutionError):
     """
