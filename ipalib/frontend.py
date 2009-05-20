@@ -23,8 +23,8 @@ Base classes for all front-end plugins.
 
 import re
 import inspect
-import plugable
-from plugable import lock, check_name
+from base import lock, check_name, NameSpace
+from plugable import Plugin
 from parameters import create_param, parse_param_spec, Param, Str, Flag, Password
 from util import make_repr
 
@@ -43,12 +43,162 @@ def is_rule(obj):
     return callable(obj) and getattr(obj, RULE_FLAG, False) is True
 
 
-class UsesParams(plugable.Plugin):
+class HasParam(Plugin):
     """
-    Base class for plugins that use param namespaces.
+    Base class for plugins that have `Param` `NameSpace` attributes.
+
+    Subclasses of `HasParam` will on one or more attributes store `NameSpace`
+    instances containing zero or more `Param` instances.  These parameters might
+    describe, for example, the arguments and options a command takes, or the
+    attributes an LDAP entry can include, or whatever else the subclass sees
+    fit.
+
+    Although the interface a subclass must implement is very simple, it must
+    conform to a specific naming convention: if you want a namespace
+    ``SubClass.foo``, you must define a ``Subclass.takes_foo`` attribute and a
+    ``SubCLass.get_foo()`` method, and you may optionally define a
+    ``SubClass.check_foo()`` method.
+
+
+    A quick big-picture example
+    ===========================
+
+    Say you want the ``options`` instance attribute on your subclass to be a
+    `Param` `NameSpace`... then according to the enforced naming convention,
+    your subclass must define a ``takes_options`` attribute and a
+    ``get_options()`` method.  For example:
+
+    >>> from ipalib import Str, Int
+    >>> class Example(HasParam):
+    ...
+    ...     options = None  # This will be replaced with your namespace
+    ...
+    ...     takes_options = (Str('one'), Int('two'))
+    ...
+    ...     def get_options(self):
+    ...         return self._get_param_iterable('options')
+    ...
+    >>> eg = Example()
+
+    The ``Example.takes_options`` attribute is a ``tuple`` defining the
+    parameters you want your ``Example.options`` namespace to contain.  Your
+    ``Example.takes_options`` attribute will be accessed via
+    `HasParam._get_param_iterable()`, which, among other things, enforces the
+    ``('takes_' + name)`` naming convention.  For example:
+
+    >>> eg._get_param_iterable('options')
+    (Str('one'), Int('two'))
+
+    The ``Example.get_options()`` method simply returns
+    ``Example.takes_options`` by calling `HasParam._get_param_iterable()`.  Your
+    ``Example.get_options()`` method will be called via
+    `HasParam._filter_param_by_context()`, which, among other things, enforces
+    the ``('get_' + name)`` naming convention.  For example:
+
+    >>> list(eg._filter_param_by_context('options'))
+    [Str('one'), Int('two')]
+
+    At this point, the ``eg.options`` instance attribute is still ``None``:
+
+    >>> eg.options is None
+    True
+
+    `HasParam._create_param_namespace()` will create the ``eg.options``
+    namespace from the parameters yielded by
+    `HasParam._filter_param_by_context()`.  For example:
+
+    >>> eg._create_param_namespace('options')
+    >>> eg.options
+    NameSpace(<2 members>, sort=False)
+    >>> list(eg.options)  # Like dict.__iter__()
+    ['one', 'two']
+
+    Your subclass can optionally define a ``check_options()`` method to perform
+    sanity checks.  If it exists, the ``check_options()`` method is called by
+    `HasParam._create_param_namespace()` with a single value, the `NameSpace`
+    instance it created.  For example:
+
+    >>> class Example2(Example):
+    ...
+    ...     def check_options(self, namespace):
+    ...         for param in namespace():  # Like dict.itervalues()
+    ...             if param.name == 'three':
+    ...                 raise ValueError("I dislike the param 'three'")
+    ...         print '  ** Looks good! **'  # Note output below
+    ...
+    >>> eg = Example2()
+    >>> eg._create_param_namespace('options')
+      ** Looks good! **
+    >>> eg.options
+    NameSpace(<2 members>, sort=False)
+
+    However, if we subclass again and add a `Param` named ``'three'``:
+
+    >>> class Example3(Example2):
+    ...
+    ...     takes_options = (Str('one'), Int('two'), Str('three'))
+    ...
+    >>> eg = Example3()
+    >>> eg._create_param_namespace('options')
+    Traceback (most recent call last):
+      ...
+    ValueError: I dislike the param 'three'
+    >>> eg.options is None  # eg.options was not set
+    True
+
+
+    The Devil and the details
+    =========================
+
+    In the above example, ``takes_options`` is a ``tuple``, but it can also be
+    a param spec (see `create_param()`), or a callable that returns an iterable
+    containing one or more param spec.  Regardless of how ``takes_options`` is
+    defined, `HasParam._get_param_iterable()` will return a uniform iterable,
+    conveniently hiding the details.
+
+    The above example uses the simplest ``get_options()`` method possible, but
+    you could instead implement a ``get_options()`` method that would, for
+    example, produce (or withhold) certain parameters based on the whether
+    certain plugins are loaded.
+
+    Think of ``takes_options`` as declarative, a simple definition of *what*
+    parameters should be included in the namespace.  You should only implement
+    a ``takes_options()`` method if a `Param` must reference attributes on your
+    plugin instance (for example, for validation rules); you should not use a
+    ``takes_options()`` method to filter the parameters or add any other
+    procedural behaviour.
+
+    On the other hand, think of the ``get_options()`` method as imperative, a
+    procedure for *how* the parameters should be created and filtered.  In the
+    example above the *how* just returns the *what* unchanged, but arbitrary
+    logic can be implemented in the ``get_options()`` method.  For example, you
+    might filter certain parameters from ``takes_options`` base on some
+    criteria, or you might insert additional parameters provided by other
+    plugins.
+
+    The typical use case for using ``get_options()`` this way is to procedurally
+    generate the arguments and options for all the CRUD commands operating on a
+    specific LDAP object: the `Object` plugin defines the possible LDAP entry
+    attributes (as `Param`), and then the CRUD commands intelligently build
+    their ``args`` and ``options`` namespaces based on which attribute is the
+    primary key.  In this way new LDAP attributes (aka parameters) can be added
+    to the single point of definition (the `Object` plugin), and all the
+    corresponding CRUD commands pick up these new parameters without requiring
+    modification.  For an example of how this is done, see the
+    `ipalib.crud.Create` base class.
+
+    However, there is one type of filtering you should not implement in your
+    ``get_options()`` method, because it's already provided at a higher level:
+    you should not filter parameters based on the value of ``api.env.context``
+    nor (preferably) on any values in ``api.env``.
+    `HasParam._filter_param_by_context()` already does this by calling
+    `Param.use_in_context()` for each parameter.  Although the base
+    `Param.use_in_context()` implementation makes a decision solely on the value
+    of ``api.env.context``, subclasses can override this with implementations
+    that consider arbitrary ``api.env`` values.
     """
 
-    def _get_params_iterable(self, name):
+    def _get_param_iterable(self, name):
         """
         Return an iterable of params defined by the attribute named ``name``.
 
@@ -59,18 +209,18 @@ class UsesParams(plugable.Plugin):
 
         For example, when defined with a tuple:
 
-        >>> class ByTuple(UsesParams):
+        >>> class ByTuple(HasParam):
         ...     takes_args = (Param('foo'), Param('bar'))
         ...
         >>> by_tuple = ByTuple()
-        >>> list(by_tuple._get_params_iterable('takes_args'))
+        >>> list(by_tuple._get_param_iterable('args'))
         [Param('foo'), Param('bar')]
 
         Or you can define your param sequence with a callable when you need to
         reference attributes on your plugin instance (for validation rules,
         etc.).  For example:
 
-        >>> class ByCallable(UsesParams):
+        >>> class ByCallable(HasParam):
         ...     def takes_args(self):
         ...         yield Param('foo', self.validate_foo)
         ...         yield Param('bar', self.validate_bar)
@@ -84,49 +234,63 @@ class UsesParams(plugable.Plugin):
         ...             return _("must be 'Bar'")
         ...
         >>> by_callable = ByCallable()
-        >>> list(by_callable._get_params_iterable('takes_args'))
+        >>> list(by_callable._get_param_iterable('args'))
         [Param('foo', validate_foo), Param('bar', validate_bar)]
 
         Lastly, as a convenience for when a param sequence contains a single
         param, your defining attribute may a param spec (either a `Param`
         or an ``str`` instance).  For example:
 
-        >>> class BySpec(UsesParams):
+        >>> class BySpec(HasParam):
         ...     takes_args = Param('foo')
         ...     takes_options = 'bar?'
         ...
         >>> by_spec = BySpec()
-        >>> list(by_spec._get_params_iterable('takes_args'))
+        >>> list(by_spec._get_param_iterable('args'))
         [Param('foo')]
-        >>> list(by_spec._get_params_iterable('takes_options'))
+        >>> list(by_spec._get_param_iterable('options'))
         ['bar?']
 
         For information on how an ``str`` param spec is interpreted, see the
         `create_param()` and `parse_param_spec()` functions in the
         `ipalib.parameters` module.
 
-        Also see `UsesParams._filter_params_by_context()`.
+        Also see `HasParam._filter_param_by_context()`.
         """
-        attr = getattr(self, name)
-        if isinstance(attr, (Param, str)):
-            return (attr,)
-        if callable(attr):
-            return attr()
-        return attr
+        takes_name = 'takes_' + name
+        takes = getattr(self, takes_name, None)
+        if type(takes) is tuple:
+            return takes
+        if isinstance(takes, (Param, str)):
+            return (takes,)
+        if callable(takes):
+            return takes()
+        if takes is None:
+            return tuple()
+        raise TypeError(
+            '%s.%s must be a tuple, callable, or spec; got %r' % (
+                self.name, takes_name, takes
+            )
+        )
 
-    def _filter_params_by_context(self, name, env=None):
+    def _filter_param_by_context(self, name, env=None):
         """
         Filter params on attribute named ``name`` by environment ``env``.
 
         For example:
 
         >>> from ipalib.config import Env
-        >>> class Example(UsesParams):
+        >>> class Example(HasParam):
+        ...
         ...     takes_args = (
         ...         Str('foo_only', include=['foo']),
         ...         Str('not_bar', exclude=['bar']),
         ...         'both',
         ...     )
+        ...
+        ...     def get_args(self):
+        ...         return self._get_param_iterable('args')
+        ...
         ...
         >>> eg = Example()
         >>> foo = Env(context='foo')
@@ -134,21 +298,41 @@ class UsesParams(plugable.Plugin):
         >>> another = Env(context='another')
         >>> (foo.context, bar.context, another.context)
         ('foo', 'bar', 'another')
-        >>> list(eg._filter_params_by_context('takes_args', foo))
+        >>> list(eg._filter_param_by_context('args', foo))
         [Str('foo_only', include=['foo']), Str('not_bar', exclude=['bar']), Str('both')]
-        >>> list(eg._filter_params_by_context('takes_args', bar))
+        >>> list(eg._filter_param_by_context('args', bar))
         [Str('both')]
-        >>> list(eg._filter_params_by_context('takes_args', another))
+        >>> list(eg._filter_param_by_context('args', another))
         [Str('not_bar', exclude=['bar']), Str('both')]
         """
         env = getattr(self, 'env', env)
-        for spec in self._get_params_iterable(name):
+        get_name = 'get_' + name
+        if not hasattr(self, get_name):
+            raise NotImplementedError(
+                '%s.%s()' % (self.name, get_name)
+            )
+        get = getattr(self, get_name)
+        if not callable(get):
+            raise TypeError(
+                '%s.%s must be a callable; got %r' % (self.name, get_name, get)
+            )
+        for spec in get():
             param = create_param(spec)
             if env is None or param.use_in_context(env):
                 yield param
 
+    def _create_param_namespace(self, name, env=None):
+        namespace = NameSpace(
+            self._filter_param_by_context(name, env),
+            sort=False
+        )
+        check = getattr(self, 'check_' + name, None)
+        if callable(check):
+            check(namespace)
+        setattr(self, name, namespace)
 
-class Command(plugable.Plugin):
+
+class Command(HasParam):
     """
     A public IPA atomic operation.
 
@@ -372,7 +556,7 @@ class Command(plugable.Plugin):
 
         >>> from ipalib import Str
         >>> class my_command(Command):
-        ...     takes_args = [Str('color', default=u'Red')]
+        ...     takes_args = Str('color', default=u'Red')
         ...
         >>> c = my_command()
         >>> c.finalize()
@@ -453,65 +637,46 @@ class Command(plugable.Plugin):
         loaded in self.api to determine what their custom `Command.get_args`
         and `Command.get_options` methods should yield.
         """
-        self.args = plugable.NameSpace(self.__create_args(), sort=False)
+        self._create_param_namespace('args')
         if len(self.args) == 0 or not self.args[-1].multivalue:
             self.max_args = len(self.args)
         else:
             self.max_args = None
-        self.options = plugable.NameSpace(
-            (create_param(spec) for spec in self.get_options()),
-            sort=False
-        )
+        self._create_param_namespace('options')
         def get_key(p):
             if p.required:
                 if p.default_from is None:
                     return 0
                 return 1
             return 2
-        self.params = plugable.NameSpace(
+        self.params = NameSpace(
             sorted(tuple(self.args()) + tuple(self.options()), key=get_key),
             sort=False
         )
         super(Command, self).finalize()
 
-    def _get_takes(self, name):
-        attr = getattr(self, name)
-        if isinstance(attr, (Param, str)):
-            return (attr,)
-        if callable(attr):
-            return attr()
-        return attr
-
     def get_args(self):
         """
         Iterate through parameters for ``Command.args`` namespace.
 
-        Subclasses can override this to customize how the arguments
-        are determined.  For an example of why this can be useful,
-        see `ipalib.crud.Mod`.
+        This method gets called by `HasParam._create_param_namespace()`.
+
+        Subclasses can override this to customize how the arguments are
+        determined.  For an example of why this can be useful, see the
+        `ipalib.crud.Create` subclass.
         """
-        for arg in self._get_takes('takes_args'):
+        for arg in self._get_param_iterable('args'):
             yield arg
 
-    def get_options(self):
+    def check_args(self, args):
         """
-        Iterate through parameters for ``Command.options`` namespace.
+        Sanity test for args namespace.
 
-        Subclasses can override this to customize how the options
-        are determined.  For an example of why this can be useful,
-        see `ipalib.crud.Mod`.
-        """
-        for option in self._get_takes('takes_options'):
-            yield option
-
-    def __create_args(self):
-        """
-        Generator used to create args namespace.
+        This method gets called by `HasParam._create_param_namespace()`.
         """
         optional = False
         multivalue = False
-        for arg in self.get_args():
-            arg = create_param(arg)
+        for arg in args():
             if optional and arg.required:
                 raise ValueError(
                     '%s: required argument after optional' % arg.name
@@ -524,7 +689,19 @@ class Command(plugable.Plugin):
                 optional = True
             if arg.multivalue:
                 multivalue = True
-            yield arg
+
+    def get_options(self):
+        """
+        Iterate through parameters for ``Command.options`` namespace.
+
+        This method gets called by `HasParam._create_param_namespace()`.
+
+        Subclasses can override this to customize how the arguments are
+        determined.  For an example of why this can be useful, see the
+        `ipalib.crud.Create` subclass.
+        """
+        for option in self._get_param_iterable('options'):
+            yield option
 
 
 class LocalOrRemote(Command):
@@ -558,7 +735,7 @@ class LocalOrRemote(Command):
         return self.execute(*args, **options)
 
 
-class Object(plugable.Plugin):
+class Object(HasParam):
     __public__ = frozenset((
         'backend',
         'methods',
@@ -582,15 +759,13 @@ class Object(plugable.Plugin):
 
     def set_api(self, api):
         super(Object, self).set_api(api)
-        self.methods = plugable.NameSpace(
+        self.methods = NameSpace(
             self.__get_attrs('Method'), sort=False
         )
-        self.properties = plugable.NameSpace(
+        self.properties = NameSpace(
             self.__get_attrs('Property'), sort=False
         )
-        self.params = plugable.NameSpace(
-            self.__get_params(), sort=False
-        )
+        self._create_param_namespace('params')
         pkeys = filter(lambda p: p.primary_key, self.params())
         if len(pkeys) > 1:
             raise ValueError(
@@ -601,7 +776,7 @@ class Object(plugable.Plugin):
             )
         if len(pkeys) == 1:
             self.primary_key = pkeys[0]
-            self.params_minus_pk = plugable.NameSpace(
+            self.params_minus_pk = NameSpace(
                 filter(lambda p: not p.primary_key, self.params()), sort=False
             )
 
@@ -630,14 +805,17 @@ class Object(plugable.Plugin):
         if name not in self.api:
             return
         namespace = self.api[name]
-        assert type(namespace) is plugable.NameSpace
+        assert type(namespace) is NameSpace
         for proxy in namespace(): # Equivalent to dict.itervalues()
             if proxy.obj_name == self.name:
                 yield proxy.__clone__('attr_name')
 
-    def __get_params(self):
+    def get_params(self):
+        """
+        This method gets called by `HasParam._create_param_namespace()`.
+        """
         props = self.properties.__todict__()
-        for spec in self.takes_params:
+        for spec in self._get_param_iterable('params'):
             if type(spec) is str:
                 key = spec.rstrip('?*+')
             else:
@@ -657,7 +835,7 @@ class Object(plugable.Plugin):
             yield prop.param
 
 
-class Attribute(plugable.Plugin):
+class Attribute(Plugin):
     """
     Base class implementing the attribute-to-object association.
 

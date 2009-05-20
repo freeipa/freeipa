@@ -30,7 +30,7 @@ class CrudChecker(ClassChecker):
     Class for testing base classes in `ipalib.crud`.
     """
 
-    def get_api(self, args=tuple(), options={}):
+    def get_api(self, args=tuple(), options=tuple()):
         """
         Return a finalized `ipalib.plugable.API` instance.
         """

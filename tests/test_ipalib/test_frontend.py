@@ -72,6 +72,105 @@ def test_is_rule():
     assert not is_rule(call(None))
 
 
+class test_HasParam(ClassChecker):
+    """
+    Test the `ipalib.frontend.Command` class.
+    """
+
+    _cls = frontend.HasParam
+
+    def test_get_param_iterable(self):
+        """
+        Test the `ipalib.frontend.HasParam._get_param_iterable` method.
+        """
+        class WithTuple(self.cls):
+            takes_stuff = ('one', 'two')
+        o = WithTuple()
+        assert o._get_param_iterable('stuff') is WithTuple.takes_stuff
+
+        junk = ('three', 'four')
+        class WithCallable(self.cls):
+            def takes_stuff(self):
+                return junk
+        o = WithCallable()
+        assert o._get_param_iterable('stuff') is junk
+
+        class WithParam(self.cls):
+            takes_stuff = parameters.Str('five')
+        o = WithParam()
+        assert o._get_param_iterable('stuff') == (WithParam.takes_stuff,)
+
+        class WithStr(self.cls):
+            takes_stuff = 'six'
+        o = WithStr()
+        assert o._get_param_iterable('stuff') == ('six',)
+
+        class Wrong(self.cls):
+            takes_stuff = ['seven', 'eight']
+        o = Wrong()
+        e = raises(TypeError, o._get_param_iterable, 'stuff')
+        assert str(e) == '%s.%s must be a tuple, callable, or spec; got %r' % (
+            'Wrong', 'takes_stuff', Wrong.takes_stuff
+        )
+
+    def test_filter_param_by_context(self):
+        """
+        Test the `ipalib.frontend.HasParam._filter_param_by_context` method.
+        """
+        class Example(self.cls):
+            def get_stuff(self):
+                return (
+                    'one',  # Make sure create_param() is called for each spec
+                    'two',
+                    parameters.Str('three', include='cli'),
+                    parameters.Str('four', exclude='server'),
+                    parameters.Str('five', exclude=['whatever', 'cli']),
+                )
+        o = Example()
+
+        # Test when env is None:
+        params = list(o._filter_param_by_context('stuff'))
+        assert list(p.name for p in params) == [
+            'one', 'two', 'three', 'four', 'five'
+        ]
+        for p in params:
+            assert type(p) is parameters.Str
+
+        # Test when env.context == 'cli':
+        cli = config.Env(context='cli')
+        assert cli.context == 'cli'
+        params = list(o._filter_param_by_context('stuff', cli))
+        assert list(p.name for p in params) == ['one', 'two', 'three', 'four']
+        for p in params:
+            assert type(p) is parameters.Str
+
+        # Test when env.context == 'server'
+        server = config.Env(context='server')
+        assert server.context == 'server'
+        params = list(o._filter_param_by_context('stuff', server))
+        assert list(p.name for p in params) == ['one', 'two', 'five']
+        for p in params:
+            assert type(p) is parameters.Str
+
+        # Test with no get_stuff:
+        class Missing(self.cls):
+            pass
+        o = Missing()
+        gen = o._filter_param_by_context('stuff')
+        e = raises(NotImplementedError, list, gen)
+        assert str(e) == 'Missing.get_stuff()'
+
+        # Test when get_stuff is not callable:
+        class NotCallable(self.cls):
+            get_stuff = ('one', 'two')
+        o = NotCallable()
+        gen = o._filter_param_by_context('stuff')
+        e = raises(TypeError, list, gen)
+        assert str(e) == '%s.%s must be a callable; got %r' % (
+            'NotCallable', 'get_stuff', NotCallable.get_stuff
+        )
+
+
 class test_Command(ClassChecker):
     """
     Test the `ipalib.frontend.Command` class.
@@ -125,7 +224,6 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command` class.
         """
-        assert self.cls.__bases__ == (plugable.Plugin,)
         assert self.cls.takes_options == tuple()
         assert self.cls.takes_args == tuple()
 
@@ -380,7 +478,7 @@ class test_Command(ClassChecker):
         Test the `ipalib.frontend.Command.params_2_args_options` method.
         """
         assert 'params_2_args_options' in self.cls.__public__ # Public
-        o = self.get_instance(args=['one'], options=['two'])
+        o = self.get_instance(args='one', options='two')
         assert o.params_2_args_options() == ((None,), {})
         assert o.params_2_args_options(one=1) == ((1,), {})
         assert o.params_2_args_options(two=2) == ((None,), dict(two=2))
@@ -440,7 +538,7 @@ class test_LocalOrRemote(ClassChecker):
         Test the `ipalib.frontend.LocalOrRemote.run` method.
         """
         class example(self.cls):
-            takes_args = ['key?']
+            takes_args = 'key?'
 
             def forward(self, *args, **options):
                 return ('forward', args, options)
@@ -481,7 +579,6 @@ class test_Object(ClassChecker):
         """
         Test the `ipalib.frontend.Object` class.
         """
-        assert self.cls.__bases__ == (plugable.Plugin,)
         assert self.cls.backend is None
         assert self.cls.methods is None
         assert self.cls.properties is None

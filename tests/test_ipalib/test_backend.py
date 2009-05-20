@@ -172,8 +172,8 @@ class test_Executioner(ClassChecker):
         (api, home) = create_test_api(in_server=True)
 
         class echo(Command):
-            takes_args = ['arg1', 'arg2+']
-            takes_options = ['option1?', 'option2?']
+            takes_args = ('arg1', 'arg2+')
+            takes_options = ('option1?', 'option2?')
             def execute(self, *args, **options):
                 assert type(args[1]) is tuple
                 return args + (options,)
@@ -196,7 +196,7 @@ class test_Executioner(ClassChecker):
             """
             Test that a kwarg named 'name' can be used.
             """
-            takes_options=['name']
+            takes_options = 'name'
             def execute(self, **options):
                 return options['name'].upper()
         api.register(with_name)

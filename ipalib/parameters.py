@@ -381,24 +381,54 @@ class Param(ReadOnly):
 
     def use_in_context(self, env):
         """
-        Return ``True`` if this param should be used in ``env.context``.
+        Return ``True`` if this parameter should be used in ``env.context``.
 
-        For example:
+        If a parameter is created with niether the ``include`` nor the
+        ``exclude`` kwarg, this method will always return ``True``.  For
+        example:
 
         >>> from ipalib.config import Env
-        >>> server = Env()
-        >>> server.context = 'server'
-        >>> client = Env()
-        >>> client.context = 'client'
-        >>> param = Param('my_param', include=['server', 'webui'])
-        >>> param.use_in_context(server)
+        >>> param = Param('my_param')
+        >>> param.use_in_context(Env(context='foo'))
         True
-        >>> param.use_in_context(client)
+        >>> param.use_in_context(Env(context='bar'))
+        True
+
+        If a parameter is created with an ``include`` kwarg, this method will
+        only return ``True`` if ``env.context`` is in ``include``.  For example:
+
+        >>> param = Param('my_param', include=['foo', 'whatever'])
+        >>> param.include
+        frozenset(['foo', 'whatever'])
+        >>> param.use_in_context(Env(context='foo'))
+        True
+        >>> param.use_in_context(Env(context='bar'))
         False
 
-        So that a subclass can add additional logic basic on other environment
-        variables, the `config.Env` instance is passed in rather than just the
-        value of ``env.context``.
+        If a paremeter is created with an ``exclude`` kwarg, this method will
+        only return ``True`` if ``env.context`` is not in ``exclude``.  For
+        example:
+
+        >>> param = Param('my_param', exclude=['foo', 'whatever'])
+        >>> param.exclude
+        frozenset(['foo', 'whatever'])
+        >>> param.use_in_context(Env(context='foo'))
+        False
+        >>> param.use_in_context(Env(context='bar'))
+        True
+
+        Note that the ``include`` and ``exclude`` kwargs are mutually exclusive
+        and that at most one can be suppelied to `Param.__init__()`.  For
+        example:
+
+        >>> param = Param('nope', include=['foo'], exclude=['bar'])
+        Traceback (most recent call last):
+          ...
+        ValueError: Param('nope'): cannot have both include=frozenset(['foo']) and exclude=frozenset(['bar'])
+
+        So that subclasses can add additional logic based on other environment
+        variables, the entire `config.Env` instance is passed in rather than
+        just the value of ``env.context``.
         """
         if self.include is not None:
             return (env.context in self.include)

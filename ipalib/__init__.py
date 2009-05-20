@@ -409,9 +409,9 @@ For example:
 >>> class nudge(Command):
 ...     """Takes one argument, one option"""
 ...
-...     takes_args = ['programmer']
+...     takes_args = ('programmer',)
 ...
-...     takes_options = [Str('stuff', default=u'documentation')]
+...     takes_options = (Str('stuff', default=u'documentation'))
 ...
 ...     def execute(self, programmer, **kw):
 ...         return '%s, go write more %s!' % (programmer, kw['stuff'])
@@ -462,7 +462,7 @@ here is a quick teaser:
 
 >>> from ipalib import Int
 >>> class create_player(Command):
-...     takes_options = [
+...     takes_options = (
 ...         'first',
 ...         'last',
 ...         Str('nick',
@@ -470,7 +470,7 @@ here is a quick teaser:
 ...             default_from=lambda first, last: first[0] + last,
 ...         ),
 ...         Int('points', default=0),
-...     ]
+...     )
 ...
 >>> cp = create_player()
 >>> cp.finalize()
@@ -573,9 +573,9 @@ For example, say we setup a command like this:
 
 >>> class show_items(Command):
 ...
-...     takes_args = ['key?']
+...     takes_args = ('key?',)
 ...
-...     takes_options = [Flag('reverse')]
+...     takes_options = (Flag('reverse'),)
 ...
 ...     def execute(self, key, **options):
 ...         items = dict(
@@ -660,7 +660,7 @@ For example:
 
 >>> class paint_house(Command):
 ...
-...     takes_args = ['color']
+...     takes_args = 'color'
 ...
 ...     def execute(self, color):
 ...         """Uses self.log.error()"""
