@@ -965,6 +965,22 @@ class Base64DecodeError(ExecutionError):
     errno = 4015
     format = _('Base64 decoding failed: %(reason)s')
 
+class RemoteRetrieveError(ExecutionError):
+    """
+    **4016** Raised when retrieving data from a remote server fails
+
+    For example:
+
+    >>> raise RemoteRetrieveError(reason="Error: Failed to get certificate chain.")
+    Traceback (most recent call last):
+      ...
+    RemoteRetrieveError: Error: Failed to get certificate chain.
+
+    """
+
+    errno = 4016
+    format = _('%(reason)s')
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).

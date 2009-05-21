@@ -17,7 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from ipalib import api
+from ipalib import api, errors
 import httplib
 import xml.dom.minidom
 
@@ -31,11 +31,20 @@ def get_ca_certchain():
     res = conn.getresponse()
     if res.status == 200:
         data = res.read()
-
-        doc = xml.dom.minidom.parseString(data)
-        item_node = doc.getElementsByTagName("ChainBase64")
-        chain = item_node[0].childNodes[0].data
-        doc.unlink()
         conn.close()
+        try:
+            doc = xml.dom.minidom.parseString(data)
+            try:
+                item_node = doc.getElementsByTagName("ChainBase64")
+                chain = item_node[0].childNodes[0].data
+            except IndexError:
+                try:
+                    item_node = doc.getElementsByTagName("Error")
+                    reason = item_node[0].childNodes[0].data
+                    raise errors.RemoteRetrieveError(reason=reason)
+                except:
+                    raise errors.RemoteRetrieveError(reason="Retrieving CA cert chain failed")
+        finally:
+            doc.unlink()
 
     return chain
