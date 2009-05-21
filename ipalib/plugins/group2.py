@@ -159,8 +159,9 @@ class group2_mod(basegroup2_mod):
         if kw['posix'] or 'gidnumber' in kw:
             dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
             (dn, entry_attrs) = ldap.get_entry(dn, ['objectClass'])
-            if kw['posix'] and 'posixGroup' in entry_attrs['objectClass']:
-                raise errors.AlreadyPosixGroup()
+            if 'posixGroup' in entry_attrs['objectClass']:
+                if kw['posix'] in entry_attrs['objectClass']:
+                    raise errors.AlreadyPosixGroup()
             else:
                 entry_attrs['objectClass'].append('posixGroup')
                 kw['objectclass'] = entry_attrs['objectClass']
