@@ -420,9 +420,18 @@ class AuthenticationError(PublicError):
 class KerberosError(AuthenticationError):
     """
     **1100** Base class for Kerberos authentication errors (*1100 - 1199*).
+
+    For example:
+
+    >>> raise KerberosError(major='Unspecified GSS failure.  Minor code may provide more information', minor='No credentials cache found')
+    Traceback (most recent call last):
+      ...
+    KerberosError: Kerberos error: Unspecified GSS failure.  Minor code may provide more information/No credentials cache found
+
     """
 
     errno = 1100
+    format= _('Kerberos error: %(major)s/%(minor)s')
 
 
 class CCacheError(KerberosError):
