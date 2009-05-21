@@ -85,7 +85,7 @@ Requires: libcap
 Requires: selinux-policy
 %endif
 Requires(post): selinux-policy-base
-Requires: slapi-nis >= 0.14
+Requires: slapi-nis >= 0.15
 Conflicts: mod_ssl
 
 %description server
@@ -332,7 +332,6 @@ fi
 %{_sbindir}/ipactl
 %{_sbindir}/ipa-upgradeconfig
 %attr(755,root,root) %{_initrddir}/ipa_kpasswd
-%{python_sitelib}/ipalib/*
 %{python_sitelib}/ipaserver/*
 %{python_sitelib}/ipawebui/*
 %{python_sitelib}/*.egg-info
@@ -407,6 +406,7 @@ fi
 %defattr(-,root,root,-)
 %dir %{python_sitelib}/ipapython
 %{python_sitelib}/ipapython/*.py*
+%{python_sitelib}/ipalib/*
 %if 0%{?fedora} >= 9
 %{python_sitelib}/ipapython-*.egg-info
 %endif
@@ -432,6 +432,10 @@ fi
 %endif
 
 %changelog
+* Thu May 21 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-6
+- Move ipalib to ipa-python subpackage
+- Bump minimum version of slapi-nis to 0.15
+
 * Thu May  6 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-5
 - Set 0.14 as minimum version for slapi-nis
 
