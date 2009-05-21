@@ -109,7 +109,7 @@ class cert_status(Command):
     Check status of a certificate signing request.
     """
 
-    takes_args = ['request_id']
+    takes_args = ('request_id')
 
 
     def execute(self, request_id, **kw):
@@ -129,7 +129,7 @@ class cert_get(Command):
     Retrieve an existing certificate.
     """
 
-    takes_args = ['serial_number']
+    takes_args = ('serial_number')
 
     def execute(self, serial_number):
         return self.Backend.ra.get_certificate(serial_number)
@@ -148,7 +148,7 @@ class cert_revoke(Command):
     Revoke a certificate.
     """
 
-    takes_args = ['serial_number']
+    takes_args = ('serial_number')
 
     # FIXME: The default is 0.  Is this really an Int param?
     takes_options = (
@@ -178,7 +178,7 @@ class cert_remove_hold(Command):
     Take a revoked certificate off hold.
     """
 
-    takes_args = ['serial_number']
+    takes_args = ('serial_number')
 
     def execute(self, serial_number, **kw):
         return self.Backend.ra.take_certificate_off_hold(serial_number)

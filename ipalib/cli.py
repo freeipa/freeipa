@@ -428,7 +428,7 @@ class help(frontend.Command):
     Display help for a command or topic.
     """
 
-    takes_args = [Bytes('command?')]
+    takes_args = (Bytes('command?'),)
 
     _PLUGIN_BASE_MODULE = 'ipalib.plugins'
 
