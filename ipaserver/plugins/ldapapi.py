@@ -284,7 +284,7 @@ class ldap(CrudBackend):
         return scope_dict.get(scope_str, _ldap.SCOPE_SUBTREE)
 
     def modify_password(self, dn, **kw):
-        return servercore.modify_password(dn, kw.get('oldpass'), kw.get('newpass'))
+        return servercore.modify_password(dn, kw.get('oldpass', ''), kw.get('newpass'))
 
     def add_member_to_group(self, memberdn, groupdn, memberattr='member'):
         """
