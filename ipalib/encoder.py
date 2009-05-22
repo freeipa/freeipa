@@ -17,16 +17,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
-This module provides the Encoder base class, that adds encoding/decoding
-capabilities to classes extending it. It also defines a set of decorators
-designed to automagically encode method arguments and decode their return
-values.
+Encoding capabilities.
 """
 
-class Encoder(object):
+class EncoderSettings(object):
     """
-    Base class implementing encoding python scalar types to strings
-    and vise-versa.
+    Container for encoder settings.
     """
     encode_to = 'utf-8'
     encode_none = False
@@ -46,9 +42,23 @@ class Encoder(object):
     decode_dict_vals_table_keygen = staticmethod(lambda x: x)
     decode_postprocessor = staticmethod(lambda x: x)
 
+
+class Encoder(object):
+    """
+    Base class implementing encoding of python scalar types to strings
+    and vise-versa.
+    """
+
+    encoder_settings = EncoderSettings()
+
+    def __init__(self):
+        # each instance should have its own settings
+        self.encoder_settings = EncoderSettings()
+
     def _decode_dict_val(self, key, val):
-        f = self.decode_dict_vals_table.get(
-            self.decode_dict_vals_table_keygen(key), self.decode
+        f = self.encoder_settings.decode_dict_vals_table.get(
+            self.encoder_settings.decode_dict_vals_table_keygen(key, val),
+            self.decode
         )
         return f(val)
 
@@ -61,38 +71,42 @@ class Encoder(object):
         Returns an encoded copy of 'var'.
         """
         if isinstance(var, basestring):
-            return self.encode_postprocessor(var.encode(self.encode_to))
+            return self.encoder_settings.encode_postprocessor(
+                var.encode(self.encoder_settings.encode_to)
+            )
         elif isinstance(var, (bool, float, int, long)):
-            return self.encode_postprocessor(str(var).encode(self.encode_to))
+            return self.encoder_settings.encode_postprocessor(
+                str(var).encode(self.encoder_settings.encode_to)
+            )
         elif isinstance(var, list):
             return [self.encode(m) for m in var]
         elif isinstance(var, tuple):
-            return tuple(self.encode(m) for m in var)
+            return list(self.encode(m) for m in var)
         elif isinstance(var, dict):
-            if self.encode_dict_keys:
+            if self.encoder_settings.encode_dict_keys:
                 dct = dict()
-                if not self.encode_dict_keys_postprocess:
-                    tmp = self.encode_postprocessor
-                    self.encode_postprocessor = lambda x: x
+                if not self.encoder_settings.encode_dict_keys_postprocess:
+                    tmp = self.encoder_settings.encode_postprocessor
+                    self.encoder_settings.encode_postprocessor = lambda x: x
                 for (k, v) in var.iteritems():
                     dct[self.encode(k)] = v
-                if not self.encode_dict_keys_postprocess:
-                    self.encode_postprocessor = tmp
+                if not self.encoder_settings.encode_dict_keys_postprocess:
+                    self.encoder_settings.encode_postprocessor = tmp
             else:
                 dct = dict(var)
-            if self.encode_dict_vals:
-                if not self.encode_dict_vals_postprocess:
-                    tmp = self.encode_postprocessor
-                    self.encode_postprocessor = lambda x: x
+            if self.encoder_settings.encode_dict_vals:
+                if not self.encoder_settings.encode_dict_vals_postprocess:
+                    tmp = self.encoder_settings.encode_postprocessor
+                    self.encoder_settings.encode_postprocessor = lambda x: x
                 for (k, v) in dct.iteritems():
                     dct[k] = self.encode(v)
-                if not self.encode_dict_vals_postprocess:
-                    self.encode_postprocessor = tmp
+                if not self.encoder_settings.encode_dict_vals_postprocess:
+                    self.encoder_settings.encode_postprocessor = tmp
             return dct
         elif var is None:
-            if self.encode_none:
-                return self.encode_postprocessor(
-                    str(var).encode(self.encode_to)
+            if self.encoder_settings.encode_none:
+                return self.encoder_settings.encode_postprocessor(
+                    str(var).encode(self.encoder_settings.encode_to)
                 )
             return None
         raise TypeError('python built-in type expected, got \'%s\'', type(var))
@@ -109,38 +123,40 @@ class Encoder(object):
         Returns a decoded copy of 'var'.
         """
         if isinstance(var, basestring):
-            return self.decode_postprocessor(var.decode(self.decode_from))
+            return self.encoder_settings.decode_postprocessor(
+                var.decode(self.encoder_settings.decode_from)
+            )
         elif isinstance(var, (bool, float, int, long)):
-            return self.decode_postprocessor(unicode(var))
+            return self.encoder_settings.decode_postprocessor(unicode(var))
         elif isinstance(var, list):
             return [self.decode(m) for m in var]
         elif isinstance(var, tuple):
-            return tuple(self.decode(m) for m in var)
+            return list(self.decode(m) for m in var)
         elif isinstance(var, dict):
-            if self.decode_dict_keys:
+            if self.encoder_settings.decode_dict_keys:
                 dct = dict()
-                if not self.decode_dict_keys_postprocess:
-                    tmp = self.decode_postprocessor
-                    self.decode_postprocessor = lambda x: x
+                if not self.encoder_settings.decode_dict_keys_postprocess:
+                    tmp = self.encoder_settings.decode_postprocessor
+                    self.encoder_settings.decode_postprocessor = lambda x: x
                 for (k, v) in var.iteritems():
                     dct[self.decode(k)] = v
-                if not self.decode_dict_keys_postprocess:
-                    self.decode_postprocessor = tmp
+                if not self.encoder_settings.decode_dict_keys_postprocess:
+                    self.encoder_settings.decode_postprocessor = tmp
             else:
                 dct = dict(var)
-            if self.decode_dict_vals:
-                if not self.decode_dict_vals_postprocess:
-                    tmp = self.decode_postprocessor
-                    self.decode_postprocessor = lambda x: x
+            if self.encoder_settings.decode_dict_vals:
+                if not self.encoder_settings.decode_dict_vals_postprocess:
+                    tmp = self.encoder_settings.decode_postprocessor
+                    self.encoder_settings.decode_postprocessor = lambda x: x
                 for (k, v) in dct.iteritems():
                     dct[k] = self._decode_dict_val(k, v)
-                if not self.decode_dict_vals_postprocess:
-                    self.decode_postprocessor = tmp
+                if not self.encoder_settings.decode_dict_vals_postprocess:
+                    self.encoder_settings.decode_postprocessor = tmp
             return dct
         elif var is None:
-            if self.decode_none:
-                return self.decode_postprocessor(
-                    str(var).decode(self.decode_from)
+            if self.encoder_settings.decode_none:
+                return self.encoder_settings.decode_postprocessor(
+                    str(var).decode(self.encoder_settings.decode_from)
                 )
             return None
         raise TypeError('python built-in type expected, got \'%s\'', type(var))
@@ -148,22 +164,6 @@ class Encoder(object):
 ## ENCODER METHOD DECORATORS
 
 def encode_args(*outer_args):
-    """
-    Encode arguments of the decorated method specified by their sequence
-    number or name for keyword arguments.
-
-    Example:
-    class some_class_that_needs_encoding_capabilities(Encoder):
-        ...
-        @encode_args(1, 3, 'name'):
-        def some_method(
-            self, encode_this, dont_encode_this, encode_this_too, **kwargs
-        ):
-            # if there's going to be a 'name' kwargs it will be encoded
-        ...
-
-    This is an Encoder method decorator.
-    """
     def decorate(f):
         def new_f(*args, **kwargs):
             assert isinstance(args[0], Encoder), \
@@ -171,9 +171,11 @@ def encode_args(*outer_args):
             new_args = list(args)
             for a in outer_args:
                 if isinstance(a, int):
-                    new_args[a] = args[0].encode(args[a])
-                elif isinstance(a, basestring) and a in kwargs:
-                    kwargs[a] = args[0].encode(kwargs[a])
+                    if a < len(args):
+                        new_args[a] = args[0].encode(args[a])
+                elif isinstance(a, basestring):
+                    if a in kwargs:
+                        kwargs[a] = args[0].encode(kwargs[a])
                 else:
                     raise TypeError(
                         'encode_args takes a list of ints and basestrings'
@@ -185,20 +187,6 @@ def encode_args(*outer_args):
 
 
 def decode_retval():
-    """
-    Decode the return value of the decorated method.
-
-    Example:
-    class some_class_that_needs_encoding_capabilities(Encoder):
-        ...
-        @decode_retval():
-        def some_method(self):
-            ...
-            return this_will_be_decoded
-        ...
-
-    This is an Encoder method decorator AND IT HAS TO BE CALLED (use "()")!
-    """
     def decorate(f):
         def new_f(*args, **kwargs):
             assert isinstance(args[0], Encoder), \
