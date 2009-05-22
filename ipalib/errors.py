@@ -319,11 +319,11 @@ class InternalError(PublicError):
     >>> raise InternalError()
     Traceback (most recent call last):
       ...
-    InternalError: an internal error has occured
+    InternalError: an internal error has occurred
     """
 
     errno = 903
-    format = _('an internal error has occured')
+    format = _('an internal error has occurred')
 
     def __init__(self, message=None):
         """
@@ -341,11 +341,11 @@ class ServerInternalError(PublicError):
     >>> raise ServerInternalError(server='https://localhost')
     Traceback (most recent call last):
       ...
-    ServerInternalError: an internal error has occured on server at 'https://localhost'
+    ServerInternalError: an internal error has occurred on server at 'https://localhost'
     """
 
     errno = 904
-    format = _('an internal error has occured on server at %(server)r')
+    format = _('an internal error has occurred on server at %(server)r')
 
 
 class CommandError(PublicError):
