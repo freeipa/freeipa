@@ -27,9 +27,9 @@ from ipalib import uuid
 
 _container_dn = 'cn=ng,cn=alt'
 _default_attributes = [
-    'cn', 'description', 'member', 'memberUser', 'memberHost','externalHost'
+    'cn', 'description', 'member', 'memberUser', 'memberhost','externalhost'
 ]
-_default_class = 'ipaNISNetgroup'
+_default_class = 'ipanisnetgroup'
 
 
 class netgroup2(basegroup2):
@@ -70,11 +70,11 @@ class netgroup2_create(basegroup2_create):
         ldap = self.api.Backend.ldap2
 
         entry_attrs = self.args_options_2_entry(cn, **kw)
-        entry_attrs['ipaUniqueID'] = str(uuid.uuid1())
-        entry_attrs['objectClass'] = ['top', 'ipaAssociation', _default_class]
+        entry_attrs['ipauniqueid'] = str(uuid.uuid1())
+        entry_attrs['objectclass'] = ['top', 'ipaassociation', _default_class]
         entry_attrs.setdefault('nisdomainname', self.api.env.domain)
 
-        dn = ldap.make_dn(entry_attrs, 'ipaUniqueID', _container_dn)
+        dn = ldap.make_dn(entry_attrs, 'ipauniqueid', _container_dn)
 
         ldap.add_entry(dn, entry_attrs)
 
@@ -165,8 +165,8 @@ class netgroup2_add_member(basegroup2_add_member):
 
     def _add_external(self, ldap, completed, members, group_dn):
         add_failed = []
-        entry_attrs = ldap.get_entry(group_dn, ['externalHost'])
-        external_hosts = entry_attrs.get('externalHost', [])
+        entry_attrs = ldap.get_entry(group_dn, ['externalhost'])
+        external_hosts = entry_attrs.get('externalhost', [])
 
         for m in members:
             m = m.lower()
@@ -177,7 +177,7 @@ class netgroup2_add_member(basegroup2_add_member):
                 add_failed.append(m)
 
         try:
-            ldap.update_entry(group_dn, **{'externalHost': external_hosts})
+            ldap.update_entry(group_dn, **{'externalhost': external_hosts})
         except errors.EmptyModlist:
             pass
 
@@ -205,7 +205,7 @@ class netgroup2_add_member(basegroup2_add_member):
 
         members = kw.get('groups', [])
         (to_add, add_failed) = find_members(
-            ldap, add_failed, members, 'cn', 'ipaUserGroup',
+            ldap, add_failed, members, 'cn', 'ipausergroup',
             self.api.env.container_group
         )
         (completed, add_failed) = add_members(
@@ -214,7 +214,7 @@ class netgroup2_add_member(basegroup2_add_member):
 
         members = kw.get('users', [])
         (to_add, add_failed) = find_members(
-            ldap, add_failed, members, 'uid', 'posixAccount',
+            ldap, add_failed, members, 'uid', 'posixaccount',
             self.api.env.container_user
         )
         (completed, add_failed) = add_members(
@@ -223,7 +223,7 @@ class netgroup2_add_member(basegroup2_add_member):
 
         members = kw.get('hosts', [])
         (to_add, add_failed) = find_members(
-            ldap, add_failed, members, 'cn', 'ipaHost',
+            ldap, add_failed, members, 'cn', 'ipahost',
             self.api.env.container_host
         )
 
@@ -238,7 +238,7 @@ class netgroup2_add_member(basegroup2_add_member):
 
         members = kw.get('hostgroups', [])
         (to_add, add_failed) = find_members(
-            ldap, add_failed, members, 'cn', 'ipaHostGroup',
+            ldap, add_failed, members, 'cn', 'ipahostgroup',
             self.api.env.container_hostgroup
         )
         (completed, add_failed) = add_members(
@@ -284,8 +284,8 @@ class netgroup2_del_member(basegroup2_del_member):
 
     def _del_external(self, ldap, completed, members, group_dn):
         rem_failed = []
-        entry_attrs = ldap.get_entry(group_dn, ['externalHost'])
-        external_hosts = entry_attrs.get('externalHost', [])
+        entry_attrs = ldap.get_entry(group_dn, ['externalhost'])
+        external_hosts = entry_attrs.get('externalhost', [])
 
         for m in members:
             m = m.lower()
@@ -296,7 +296,7 @@ class netgroup2_del_member(basegroup2_del_member):
                 rem_failed.append(m)
 
         try:
-            ldap.update_entry(group_dn, **{'externalHost': external_hosts})
+            ldap.update_entry(group_dn, **{'externalhost': external_hosts})
         except errors.EmptyModlist:
             pass
 
@@ -324,7 +324,7 @@ class netgroup2_del_member(basegroup2_del_member):
 
         members = kw.get('groups', [])
         (to_rem, rem_failed) = find_members(
-            ldap, rem_failed, members, 'cn', 'ipaUserGroup',
+            ldap, rem_failed, members, 'cn', 'ipausergroup',
             self.api.env.container_group
         )
         (completed, rem_failed) = del_members(
@@ -333,7 +333,7 @@ class netgroup2_del_member(basegroup2_del_member):
 
         members = kw.get('users', [])
         (to_rem, rem_failed) = find_members(
-            ldap, rem_failed, members, 'uid', 'posixAccount',
+            ldap, rem_failed, members, 'uid', 'posixaccount',
             self.api.env.container_user
         )
         (completed, rem_failed) = del_members(
@@ -342,7 +342,7 @@ class netgroup2_del_member(basegroup2_del_member):
 
         members = kw.get('hosts', [])
         (to_rem, rem_failed) = find_members(
-            ldap, rem_failed, members, 'cn', 'ipaHost',
+            ldap, rem_failed, members, 'cn', 'ipahost',
             self.api.env.container_host
         )
 
@@ -357,7 +357,7 @@ class netgroup2_del_member(basegroup2_del_member):
 
         members = kw.get('hostgroups', [])
         (to_rem, rem_failed) = find_members(
-            ldap, rem_failed, members, 'cn', 'ipaHostGroup',
+            ldap, rem_failed, members, 'cn', 'ipahostgroup',
             self.api.env.container_hostgroup
         )
         (completed, rem_failed) = del_members(

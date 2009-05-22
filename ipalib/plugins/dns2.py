@@ -95,7 +95,7 @@ _zone_default_attributes = [
 
 # build zone dn
 def _get_zone_dn(ldap, idnsname):
-    rdn = ldap.make_rdn_from_attr('idnsName', idnsname)
+    rdn = ldap.make_rdn_from_attr('idnsname', idnsname)
     return ldap.make_dn_from_rdn(rdn, _zone_container_dn)
 
 # build dn for entry with record
@@ -103,7 +103,7 @@ def _get_record_dn(ldap, zone, idnsname):
     parent_dn = _get_zone_dn(ldap, zone)
     if idnsname == '@' or idnsname == zone:
         return parent_dn
-    rdn = ldap.make_rdn_from_attr('idnsName', idnsname)
+    rdn = ldap.make_rdn_from_attr('idnsname', idnsname)
     return ldap.make_dn_from_rdn(rdn, parent_dn)
 
 
@@ -182,7 +182,7 @@ class dns2_create(crud.Create):
         dn = _get_zone_dn(ldap, idnsname)
 
         # fill in required attributes
-        entry_attrs['objectclass'] = ['top', 'idnsRecord', 'idnsZone']
+        entry_attrs['objectclass'] = ['top', 'idnsrecord', 'idnszone']
         entry_attrs['idnszoneactive'] = True
 
         # fill default values, build SOA serial from current date
@@ -299,7 +299,7 @@ class dns2_find(crud.Search):
         ldap = self.api.Backend.ldap2
 
         # build search filter
-        filter = ldap.make_filter_from_attr('idnsName', term, exact=False)
+        filter = ldap.make_filter_from_attr('idnsname', term, exact=False)
 
         # select attributes we want to retrieve
         if options['all']:
@@ -505,7 +505,7 @@ class dns2_add_rr(Command):
                 )
 
                 # fill in required attributes
-                entry_attrs['objectclass'] = ['top', 'idnsRecord']
+                entry_attrs['objectclass'] = ['top', 'idnsrecord']
 
                 # fill in the record
                 entry_attrs[attr] = data
@@ -600,7 +600,7 @@ class dns2_del_rr(Command):
             raise errors.NotFound(reason=u'resource record not found')
 
         # check if it's worth to keep this entry in LDAP
-        if 'idnsZone' not in entry_attrs['objectclass']:
+        if 'idnszone' not in entry_attrs['objectclass']:
             # get a list of all meaningful record attributes
             record_attrs = []
             for (k, v) in entry_attrs.iteritems():

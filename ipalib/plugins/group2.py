@@ -26,8 +26,8 @@ from ipalib import api
 from ipalib.plugins.basegroup2 import *
 
 _container_dn = api.env.container_group
-_default_attributes = ['cn', 'description', 'gidNumber', 'member', 'memberOf']
-_default_class = 'ipaUserGroup'
+_default_attributes = ['cn', 'description', 'gidnumber', 'member', 'memberof']
+_default_class = 'ipausergroup'
 
 
 class group2(basegroup2):
@@ -79,9 +79,9 @@ class group2_create(basegroup2_create):
 
         config = ldap.get_ipa_config()[1]
 
-        kw['objectclass'] = config.get('ipaGroupObjectClasses')
+        kw['objectclass'] = config.get('ipagroupobjectclasses')
         if kw['posix'] or 'gidnumber' in kw:
-            kw['objectclass'].append('posixGroup')
+            kw['objectclass'].append('posixgroup')
 
         return super(group2_create, self).execute(cn, **kw)
 
@@ -112,7 +112,7 @@ class group2_delete(basegroup2_delete):
         # Don't allow the default user group to be removed
         try:
             config = ldap.get_ipa_config()[1]
-            def_group_cn = config.get('ipaDefaultPrimaryGroup')
+            def_group_cn = config.get('ipadefaultprimarygroup')
             def_group_dn = get_dn_by_attr(
                 ldap, 'cn', def_group_cn, self.filter_class, self.container
             )
@@ -158,13 +158,13 @@ class group2_mod(basegroup2_mod):
 
         if kw['posix'] or 'gidnumber' in kw:
             dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
-            (dn, entry_attrs) = ldap.get_entry(dn, ['objectClass'])
-            if 'posixGroup' in entry_attrs['objectClass']:
-                if kw['posix'] in entry_attrs['objectClass']:
+            (dn, entry_attrs) = ldap.get_entry(dn, ['objectclass'])
+            if 'posixgroup' in entry_attrs['objectclass']:
+                if kw['posix'] in entry_attrs['objectclass']:
                     raise errors.AlreadyPosixGroup()
             else:
-                entry_attrs['objectClass'].append('posixGroup')
-                kw['objectclass'] = entry_attrs['objectClass']
+                entry_attrs['objectclass'].append('posixgroup')
+                kw['objectclass'] = entry_attrs['objectclass']
 
         return super(group2_mod, self).execute(cn, **kw)
 

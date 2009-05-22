@@ -30,7 +30,7 @@ _container_dn = api.env.container_user
 
 # attributes displayed by default
 _default_attributes = [
-    'uid', 'givenName', 'sn', 'homeDirectory', 'loginShell'
+    'uid', 'givenname', 'sn', 'homedirectory', 'loginshell'
 ]
 
 
@@ -115,11 +115,11 @@ class user2_create(crud.Create):
         config = ldap.get_ipa_config()[1]
 
         # fill in required attributes
-        entry_attrs['objectclass'] = config.get('ipaUserObjectClasses')
+        entry_attrs['objectclass'] = config.get('ipauserobjectclasses')
 
         # fill default values
         # uidNumber gets filled automatically by the DS dna_plugin
-        entry_attrs.setdefault('loginshell', config.get('ipaDefaultLoginShell'))
+        entry_attrs.setdefault('loginshell', config.get('ipadefaultloginshell'))
         entry_attrs.setdefault('gecos', uid)
         entry_attrs.setdefault(
             'krbprincipalname', '%s@%s' % (uid, self.api.env.realm)
@@ -130,7 +130,7 @@ class user2_create(crud.Create):
         )
         if 'homedirectory' not in entry_attrs:
             # get home's root directory from config
-            homes_root = config.get('ipaHomesRootDir', '/home')[0]
+            homes_root = config.get('ipahomesrootdir', '/home')[0]
             # build user's home directory based on his uid
             home_dir = '%s/%s' % (homes_root, uid)
             home_dir = home_dir.replace('//', '/').rstrip('/')
@@ -138,19 +138,19 @@ class user2_create(crud.Create):
 
         # we're adding new users to a default group, get it's DN and gidNumber
         # get default group name from config
-        def_primary_group = config.get('ipaDefaultPrimaryGroup')
+        def_primary_group = config.get('ipadefaultprimarygroup')
         # build the group's DN
         group_parent_dn = self.api.env.container_group
         group_rdn = ldap.make_rdn_from_attr('cn', def_primary_group)
         group_dn = ldap.make_dn_from_rdn(group_rdn, group_parent_dn)
         # try to retrieve the group's gidNumber
         try:
-            (group_dn, group_attrs) = ldap.get_entry(group_dn, ['gidNumber'])
+            (group_dn, group_attrs) = ldap.get_entry(group_dn, ['gidnumber'])
         except errors.NotFound:
             error_msg = 'Default group for new users not found.'
             raise errors.NotFound(reason=error_msg)
         # fill default group's gidNumber
-        entry_attrs['gidnumber'] = group_attrs['gidNumber']
+        entry_attrs['gidnumber'] = group_attrs['gidnumber']
 
         # create user entry
         ldap.add_entry(dn, entry_attrs)
@@ -256,12 +256,13 @@ class user2_find(crud.Search):
 
         # get list of search fields from config
         config = ldap.get_ipa_config()[1]
-        search_fields = config.get('ipaUserSearchFields')[0].split(',')
+        search_fields = config.get('ipausersearchfields')[0].split(',')
 
         # look for term in all search fields
-        search_kw = {}
-        for f in search_fields:
-            search_kw[f] = '%s' % term
+        search_kw = self.args_options_2_entry(**options)
+        if term:
+            for f in search_fields:
+                search_kw[f] = '%s' % term
         # build search filter
         filter = ldap.make_filter(search_kw, exact=False)
 
@@ -295,7 +296,7 @@ class user2_find(crud.Search):
 api.register(user2_find)
 
 
-class user2_show(crud.Search):
+class user2_show(crud.Retrieve):
     """
     Display user.
     """

@@ -26,14 +26,14 @@ from ipalib import api, crud, errors
 from ipalib import Command, Object
 from ipalib import Flag, Int, List, Str
 
-_default_attributes = ['cn', 'description', 'member', 'memberOf']
-_default_class = 'groupOfNames'
+_default_attributes = ['cn', 'description', 'member', 'memberof']
+_default_class = 'groupofnames'
 
 
 def get_dn_by_attr(ldap, attr, value, object_class, parent_dn=''):
     search_kw = {}
     search_kw[attr] = value
-    search_kw['objectClass'] = object_class
+    search_kw['objectclass'] = object_class
     filter = ldap.make_filter(search_kw, rules=ldap.MATCH_ALL)
     (dn, entry_attrs) = ldap.find_entries(filter, [''], base_dn=parent_dn)[0]
     return dn
@@ -283,15 +283,15 @@ class basegroup2_find(crud.Search):
         assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
-        search_kw = self.args_options_2_entry(*tuple(), **kw)
+        search_kw = self.args_options_2_entry(**kw)
         if self.filter_class:
-            search_kw['objectClass'] = self.filter_class
+            search_kw['objectclass'] = self.filter_class
         filter = ldap.make_filter(search_kw, rules=ldap.MATCH_ALL)
         if term:
             if not self.searchfields:
                 # Pull the list of searchable attributes out of the IPA config.
                 conf = ldap.get_ipa_config()[1]
-                search_fields = conf.get('ipaGroupSearchFields')[0].split(',')
+                search_fields = conf.get('ipagroupsearchfields')[0].split(',')
             else:
                 search_fields = self.searchfields
 
@@ -422,7 +422,7 @@ class basegroup2_add_member(Command):
 
         members = kw.get('groups', [])
         (to_add, add_failed) = find_members(
-            ldap, add_failed, members, 'cn', 'ipaUserGroup',
+            ldap, add_failed, members, 'cn', 'ipausergroup',
             self.api.env.container_group
         )
         (completed, add_failed) = add_members(
@@ -431,7 +431,7 @@ class basegroup2_add_member(Command):
 
         members = kw.get('users', [])
         (to_add, add_failed) = find_members(
-            ldap, add_failed, members, 'uid', 'posixAccount',
+            ldap, add_failed, members, 'uid', 'posixaccount',
             self.api.env.container_user
         )
         (completed, add_failed) = add_members(
@@ -499,7 +499,7 @@ class basegroup2_del_member(Command):
 
         members = kw.get('groups', [])
         (to_remove, remove_failed) = find_members(
-            ldap, remove_failed, members, 'cn', 'ipaUserGroup',
+            ldap, remove_failed, members, 'cn', 'ipausergroup',
             self.api.env.container_group
         )
         (completed, remove_failed) = del_members(
@@ -508,7 +508,7 @@ class basegroup2_del_member(Command):
 
         members = kw.get('users', [])
         (to_remove, remove_failed) = find_members(
-            ldap, remove_failed, members, 'uid', 'posixAccount',
+            ldap, remove_failed, members, 'uid', 'posixaccount',
             self.api.env.container_user
         )
         (completed, remove_failed) = del_members(
