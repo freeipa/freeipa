@@ -44,9 +44,9 @@ import ldap.sasl as _ldap_sasl
 from ldap.controls import LDAPControl
 from ldap.ldapobject import SimpleLDAPObject
 
-from ipalib import api
-from ipalib import errors
+from ipalib import api, errors
 from ipalib.crud import CrudBackend
+from ipalib.encoder import Encoder, encode_args, decode_retval
 
 # attribute syntax to python type mapping, 'SYNTAX OID': type
 # everything not in this dict is considered human readable unicode
@@ -66,12 +66,8 @@ _syntax_mapping = {
     '1.3.6.1.4.1.1466.115.121.1.51': str, # Teletext Terminal Identifier
 }
 
-# used to identify the Uniqueness plugin error message
-_uniqueness_plugin_error = 'Another entry with the same attribute value already exists'
-
 # SASL authentication mechanism
 _sasl_auth = _ldap_sasl.sasl({}, 'GSSAPI')
-
 
 # universal LDAPError handler
 def _handle_errors(e, **kw):
@@ -146,12 +142,15 @@ def _load_schema(host, port):
 
     return _ldap.schema.SubSchema(schema_entry[1])
 
-
 # cache schema when importing module
 _schema = _load_schema(api.env.ldap_host, api.env.ldap_port)
 
+def _get_syntax(attr, value):
+    api.Backend.ldap2._schema.get_obj(_ldap.schema.AttributeType, attr)
+
+
 # ldap backend class
-class ldap2(CrudBackend):
+class ldap2(CrudBackend, Encoder):
 
     # rules for generating filters from entries
     MATCH_ANY = '|'   # (|(filter1)(filter2))
@@ -164,10 +163,17 @@ class ldap2(CrudBackend):
     SCOPE_SUBTREE = _ldap.SCOPE_SUBTREE
 
     def __init__(self):
+        Encoder.__init__(self)
+        self.encoder_settings.encode_dict_keys = True
+        self.encoder_settings.decode_dict_keys = True
+        self.encoder_settings.decode_dict_vals_postprocess = False
+        self.encoder_settings.decode_dict_vals_table = _syntax_mapping
+        self.encoder_settings.decode_dict_vals_table_keygen = _get_syntax
+        self.encoder_settings.decode_postprocessor = lambda x: string.lower(x)
         self._host = api.env.ldap_host
         self._port = api.env.ldap_port
         self._schema = _schema
-        super(ldap2, self).__init__()
+        CrudBackend.__init__(self)
 
     def __del__(self):
         self.disconnect()
@@ -176,48 +182,7 @@ class ldap2(CrudBackend):
         using_cacert = bool(_ldap.get_option(_ldap.OPT_X_TLS_CACERTFILE))
         return _get_url(self._host, self._port, using_cacert)
 
-    # encoding values from unicode to utf-8 strings for the ldap bindings
-
-    def _encode_value(self, value):
-        if isinstance(value, unicode):
-            return value.encode('utf-8')
-        if value is None:
-            return None
-        if not isinstance(value, (bool, int, float, long, str)):
-            raise TypeError('scalar value expected, got %s' % (value,))
-        return str(value)
-
-    def _encode_values(self, values):
-        if isinstance(values, (list, tuple)):
-            return map(self._encode_value, values)
-        return self._encode_value(values)
-
-    def _encode_entry_attrs(self, entry_attrs):
-        for (k, v) in entry_attrs.iteritems():
-            entry_attrs[k] = self._encode_values(v)
-
-    # decoding values from the ldap bindings to the appropriate type
-
-    def _decode_value(self, value):
-        return value.decode('utf-8')
-
-    def _decode_values(self, values):
-        if isinstance(values, (list, tuple)):
-            return map(self._decode_value, values)
-        return self._decode_value(values)
-
-    def _decode_entry_attrs(self, entry_attrs):
-        for (k, v) in entry_attrs.iteritems():
-            attr = self._schema.get_obj(_ldap.schema.AttributeType, k)
-            if attr:
-                attr_type = _syntax_mapping.get(attr.syntax, unicode)
-                if attr_type is unicode:
-                    entry_attrs[k] = self._decode_values(v)
-                elif isinstance(v, (list, tuple)):
-                    entry_attrs[k] = map(attr_type, v)
-                else:
-                    entry_attrs[k] = attr_type(v)
-
+    @encode_args(3, 4, 'bind_dn', 'bind_pw')
     def create_connection(self, host=None, port=None, ccache=None,
             bind_dn='', bind_pw='', debug_level=255,
             tls_cacertfile=None, tls_certfile=None, tls_keyfile=None):
@@ -259,24 +224,12 @@ class ldap2(CrudBackend):
             conn.sasl_interactive_bind_s('', _sasl_auth)
         else:
             # no kerberos ccache, use simple bind
-            bind_dn = self._encode_value(bind_dn)
-            bind_pw = self._encode_value(bind_pw)
             conn.simple_bind_s(bind_dn, bind_pw)
         return conn
 
     def destroy_connection(self):
         """Disconnect from LDAP server."""
         self.conn.unbind_s()
-
-    # DN manipulation
-    # DN's could be generated for example like this:
-    # def execute(...):
-    #     ldap = self.backend.ldap2
-    #     entry_attrs = self.args_options_2_entry(*args, *options)
-    #     parent = ldap.get_container_rdn('accounts')
-    #     dn = ldap.make_dn(entry_attrs, self.obj.primary_key, parent)
-    #     # add entry with generated dn
-    #     ldap.add_entry(dn, entry_attrs)
 
     def normalize_dn(self, dn):
         """
@@ -287,9 +240,9 @@ class ldap2(CrudBackend):
         """
         rdns = _ldap.dn.explode_dn(dn.lower())
         if rdns:
-            dn = u','.join(rdns)
+            dn = ','.join(rdns)
             if not dn.endswith(self.api.env.basedn):
-                dn = u'%s,%s' % (dn, self.api.env.basedn)
+                dn = '%s,%s' % (dn, self.api.env.basedn)
             return dn
         return self.api.env.basedn
 
@@ -306,7 +259,7 @@ class ldap2(CrudBackend):
             value = value[0]
         attr = _ldap.dn.escape_dn_chars(attr)
         value = _ldap.dn.escape_dn_chars(value)
-        return u'%s=%s' % (attr, value)
+        return '%s=%s' % (attr, value)
 
     def make_dn_from_rdn(self, rdn, parent_dn=''):
         """
@@ -316,7 +269,7 @@ class ldap2(CrudBackend):
         parent_dn -- DN of the parent entry (default '')
         """
         parent_dn = self.normalize_dn(parent_dn)
-        return u'%s,%s' % (rdn, parent_dn)
+        return '%s,%s' % (rdn, parent_dn)
 
     def make_dn_from_attr(self, attr, value, parent_dn=''):
         """
@@ -340,17 +293,12 @@ class ldap2(CrudBackend):
         rdn = self.make_rdn_from_attr(primary_key, entry_attrs[primary_key])
         return self.make_dn_from_rdn(rdn, parent_dn)
 
+    @encode_args(1, 2)
     def add_entry(self, dn, entry_attrs):
         """Create a new entry."""
-        # encode/normalize arguments
         dn = self.normalize_dn(dn)
-        dn = self._encode_value(dn)
-        entry_attrs_copy = dict(entry_attrs)
-        self._encode_entry_attrs(entry_attrs_copy)
-
-        # pass arguments to python-ldap
         try:
-            self.conn.add_s(dn, list(entry_attrs_copy.iteritems()))
+            self.conn.add_s(dn, list(entry_attrs.iteritems()))
         except _ldap.LDAPError, e:
             _handle_errors(e, **{})
 
@@ -387,6 +335,7 @@ class ldap2(CrudBackend):
             flt = '%s)' % flt
         return flt
 
+    @encode_args(1, 2)
     def make_filter_from_attr(self, attr, value, rules='|', exact=True):
         """
         Make filter for ldap2.find_entries from attribute.
@@ -402,9 +351,7 @@ class ldap2(CrudBackend):
                 flts.append(self.make_filter_from_attr(attr, v, rules, exact))
             return self.combine_filters(flts, rules)
         elif value is not None:
-            value = self._encode_value(value)
             value = _ldap_filter.escape_filter_chars(value)
-            attr = self._encode_value(attr)
             if exact:
                 return '(%s=%s)' % (attr, value)
             return '(%s=*%s*)' % (attr, value)
@@ -440,6 +387,8 @@ class ldap2(CrudBackend):
                     )
         return self.combine_filters(flts, rules)
 
+    @encode_args(1, 2, 3)
+    @decode_retval()
     def find_entries(self, filter, attrs_list=None, base_dn='',
             scope=_ldap.SCOPE_SUBTREE, time_limit=1, size_limit=3000):
         """
@@ -453,15 +402,9 @@ class ldap2(CrudBackend):
         time_limit -- time limit in seconds (default 1)
         size_limit -- size (number of entries returned) limit (default 3000)
         """
-        # encode/normalize arguments
         base_dn = self.normalize_dn(base_dn)
-        if filter:
-            filter = self._encode_value(filter)
-        else:
+        if not filter:
             filter = '(objectClass=*)'
-        if attrs_list is not None:
-            attrs_list = self._encode_values(attrs_list)
-        base_dn = self._encode_value(base_dn)
 
         # pass arguments to python-ldap
         try:
@@ -474,12 +417,6 @@ class ldap2(CrudBackend):
             _handle_errors(e, **{})
         if not res:
             raise errors.NotFound()
-
-        # decode results
-        for i in xrange(len(res)):
-            dn = self._decode_value(res[i][0])
-            self._decode_entry_attrs(res[i][1])
-            res[i] = (dn, res[i][1])
 
         return res
 
@@ -501,6 +438,7 @@ class ldap2(CrudBackend):
         """Returns a copy of the current LDAP schema."""
         return copy.deepcopy(self._schema)
 
+    @encode_args(1, 2)
     def update_entry_rdn(self, dn, new_rdn, del_old=True):
         """
         Update entry's relative distinguished name.
@@ -508,12 +446,7 @@ class ldap2(CrudBackend):
         Keyword arguments:
         del_old -- delete old RDN value (default True)
         """
-        # encode/normalize arguments
         dn = self.normalize_dn(dn)
-        dn = self._encode_value(dn)
-        new_rdn = self._encode_value(new_rdn)
-
-        # pass arguments to python-ldap
         try:
             self.conn.rename_s(dn, new_rdn, delold=int(del_old))
         except _ldap.LDAPError, e:
@@ -525,7 +458,7 @@ class ldap2(CrudBackend):
         # get_entry returns a decoded entry, encode it back
         # we could call search_s directly, but this saves a lot of code at
         # the expense of a little bit of performace
-        self._encode_entry_attrs(entry_attrs_old)
+        entry_attrs_old = self.encode(entry_attrs_old)
 
         # make a copy of the original entry's attribute dict with all
         # attribute names converted to lowercase
@@ -552,20 +485,17 @@ class ldap2(CrudBackend):
 
         return modlist
 
+    @encode_args(1, 2)
     def update_entry(self, dn, entry_attrs):
         """
         Update entry's attributes.
 
         An attribute value set to None deletes all current values.
         """
-        # encode/normalize arguments
         dn = self.normalize_dn(dn)
-        dn = self._encode_value(dn)
-        entry_attrs_copy = dict(entry_attrs)
-        self._encode_entry_attrs(entry_attrs_copy)
 
         # generate modlist
-        modlist = self._generate_modlist(dn, entry_attrs_copy)
+        modlist = self._generate_modlist(dn, entry_attrs)
         if not modlist:
             raise errors.EmptyModlist()
 
@@ -575,32 +505,25 @@ class ldap2(CrudBackend):
         except _ldap.LDAPError, e:
             _handle_errors(e, **{})
 
+    @encode_args(1)
     def delete_entry(self, dn):
         """Delete entry."""
-        # encode/normalize arguments
         dn = self.normalize_dn(dn)
-        dn = self._encode_value(dn)
-
-        # pass arguments to python-ldap
         try:
             self.conn.delete_s(dn)
         except _ldap.LDAPError, e:
             _handle_errors(e, **{})
 
+    @encode_args(1, 2, 3)
     def modify_password(self, dn, old_pass, new_pass):
         """Set user password."""
-        # encode/normalize arguments
         dn = self.normalize_dn(dn)
-        dn = self._encode_value(dn)
-        old_pass = self._encode_value(old_pass)
-        new_pass = self._encode_value(new_pass)
-
-        # pass arguments to python-ldap
         try:
             self.passwd_s(dn, odl_pass, new_pass)
         except _ldap.LDAPError, e:
             _handle_errors(e, **{})
 
+    @encode_args(1, 2, 3)
     def add_entry_to_group(self, dn, group_dn, member_attr='member'):
         """Add entry to group."""
         # encode/normalize arguments
@@ -610,7 +533,7 @@ class ldap2(CrudBackend):
         if dn == group_dn:
             raise errors.SameGroupError()
         # check if the entry exists
-        (dn, entry_attrs) = self.get_entry(dn, ['objectClass'])
+        (dn, entry_attrs) = self.get_entry(dn, ['objectclass'])
 
         # get group entry
         (group_dn, group_entry_attrs) = self.get_entry(group_dn)
@@ -626,6 +549,7 @@ class ldap2(CrudBackend):
         except errors.EmptyModlist:
             raise errors.AlreadyGroupMember()
 
+    @encode_args(1, 2, 3)
     def remove_entry_from_group(self, dn, group_dn, member_attr='member'):
         """Remove entry from group."""
         # encode/normalize arguments
@@ -645,14 +569,16 @@ class ldap2(CrudBackend):
         # update group entry
         self.update_entry(group_dn, group_entry_attrs)
 
+    @encode_args(1)
     def set_entry_active(self, dn, active):
         """Mark entry active/inactive."""
         assert isinstance(active, bool)
+        dn = self.normalize_dn(dn)
         # get the entry in question
-        (dn, entry_attrs) = self.get_entry(dn, ['nsAccountLock', 'memberOf'])
+        (dn, entry_attrs) = self.get_entry(dn, ['nsaccountlock', 'memberof'])
 
         # check nsAccountLock attribute
-        account_lock_attr = entry_attrs.get('nsAccountLock', ['false'])
+        account_lock_attr = entry_attrs.get('nsaccountlock', ['false'])
         account_lock_attr = account_lock_attr[0].lower()
         if active:
             if account_lock_attr == 'false':
@@ -663,12 +589,12 @@ class ldap2(CrudBackend):
 
         # check if nsAccountLock attribute is in the entry itself
         is_member = False
-        member_of_attr = entry_attrs.get('memberOf', [])
+        member_of_attr = entry_attrs.get('memberof', [])
         for m in member_of_attr:
             if m.find('cn=activated') >= 0 or m.find('cn=inactivated') >=0:
                 is_member = True
                 break
-        if not is_member and entry_attrs.has_key('nsAccountLock'):
+        if not is_member and entry_attrs.has_key('nsaccountlock'):
             raise errors.HasNSAccountLock()
 
         activated_filter = '(cn=activated)'
@@ -688,10 +614,10 @@ class ldap2(CrudBackend):
 
         # add the entry to the activated/inactivated group if necessary
         if active:
-            (dn, entry_attrs) = self.get_entry(dn, ['nsAccountLock'])
+            (dn, entry_attrs) = self.get_entry(dn, ['nsaccountlock'])
 
             # check if we still need to add entry to the activated group
-            account_lock_attr = entry_attrs.get('nsAccountLock', ['false'])
+            account_lock_attr = entry_attrs.get('nsaccountlock', ['false'])
             account_lock_attr = account_lock_attr[0].lower()
             if account_lock_attr == 'false':
                 return  # we don't
