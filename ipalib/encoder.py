@@ -39,7 +39,7 @@ class EncoderSettings(object):
     decode_dict_vals = True
     decode_dict_vals_postprocess = True
     decode_dict_vals_table = dict()
-    decode_dict_vals_table_keygen = staticmethod(lambda x: x)
+    decode_dict_vals_table_keygen = staticmethod(lambda x, y: x)
     decode_postprocessor = staticmethod(lambda x: x)
 
 
@@ -81,7 +81,7 @@ class Encoder(object):
         elif isinstance(var, list):
             return [self.encode(m) for m in var]
         elif isinstance(var, tuple):
-            return list(self.encode(m) for m in var)
+            return tuple(self.encode(m) for m in var)
         elif isinstance(var, dict):
             if self.encoder_settings.encode_dict_keys:
                 dct = dict()
@@ -131,7 +131,7 @@ class Encoder(object):
         elif isinstance(var, list):
             return [self.decode(m) for m in var]
         elif isinstance(var, tuple):
-            return list(self.decode(m) for m in var)
+            return tuple(self.decode(m) for m in var)
         elif isinstance(var, dict):
             if self.encoder_settings.decode_dict_keys:
                 dct = dict()

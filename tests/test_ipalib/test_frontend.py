@@ -461,7 +461,10 @@ class test_Command(ClassChecker):
         args = ('one', 'two')
         kw = dict(three=('three1', 'three2'), four='four')
 
+        (api, home) = create_test_api()
+        api.finalize()
         o = my_cmd()
+        o.set_api(api)
         o.finalize()
         e = o.run(*args, **kw)
         assert type(e) is dict
