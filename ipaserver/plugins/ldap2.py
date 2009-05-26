@@ -327,9 +327,7 @@ class ldap2(CrudBackend, Encoder):
             flt = ''
         for f in filters:
             if not f.startswith('('):
-                f = '(%s' % f
-            if not f.endswith(')'):
-                f = '%s)' % f
+                f = '(%s)' % f
             flt = '%s%s' % (flt, f)
         if len(filters) > 1:
             flt = '%s)' % flt
@@ -352,9 +350,11 @@ class ldap2(CrudBackend, Encoder):
             return self.combine_filters(flts, rules)
         elif value is not None:
             value = _ldap_filter.escape_filter_chars(value)
-            if exact:
-                return '(%s=%s)' % (attr, value)
-            return '(%s=*%s*)' % (attr, value)
+            if not exact:
+                value = '*%s*' % value
+            if rules == self.MATCH_NONE:
+                return '(!(%s=%s))' % (attr, value)
+            return '(%s=%s)' % (attr, value)
         return ''
 
     def make_filter(self, entry_attrs, attrs_list=None, rules='|', exact=True):
@@ -419,6 +419,19 @@ class ldap2(CrudBackend, Encoder):
             raise errors.NotFound()
 
         return res
+
+    def find_entry_by_attr(self, attr, value, object_class, attrs_list=None,
+            base_dn=''):
+        """
+        Find entry (dn, entry_attrs) by attribute and object class.
+
+        Keyword arguments:
+        attrs_list - list of attributes to return, all if None (default None)
+        base_dn - dn of the entry at which to start the search (default '')
+        """
+        search_kw = {attr: value, 'objectClass': object_class}
+        filter = self.make_filter(search_kw, rules=self.MATCH_ALL)
+        return self.find_entries(filter, attrs_list, base_dn)
 
     def get_entry(self, dn, attrs_list=None):
         """
