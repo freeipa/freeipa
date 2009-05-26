@@ -393,31 +393,23 @@ class textui(backend.Backend):
             raw_input(self.encode(prompt))
         )
 
-    def read_password(self, label):
-        """
-        Read a password either by prompting the user or from stdin depending
-        on whether there is a tty.
-
-        This will let you do something like: echo -e "foo\nfoo\n" | ipa passwd
-        """
-        if sys.stdin.isatty():
-            return getpass.getpass(label)
-        else:
-            return sys.stdin.readline().strip()
-
     def prompt_password(self, label):
         """
-        Prompt user for a password.
+        Prompt user for a password or read it in via stdin depending
+        on whether there is a tty or not.
         """
         try:
-            while True:
-                pw1 = self.read_password('%s: ' % label)
-                pw2 = self.read_password(
-                    _('Enter %(label)s again to verify: ') % dict(label=label)
-                )
-                if pw1 == pw2:
-                    return self.decode(pw1)
-                self.print_error( _('Passwords do not match!'))
+            if sys.stdin.isatty():
+                while True:
+                    pw1 = getpass.getpass('%s: ' % label)
+                    pw2 = getpass.getpass(
+                        _('Enter %(label)s again to verify: ') % dict(label=label)
+                    )
+                    if pw1 == pw2:
+                        return self.decode(pw1)
+                    self.print_error( _('Passwords do not match!'))
+            else:
+                return self.decode(sys.stdin.readline().strip())
         except KeyboardInterrupt:
             print ''
             self.print_error(_('Cancelled.'))
