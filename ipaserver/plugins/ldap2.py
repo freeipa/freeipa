@@ -238,7 +238,7 @@ class ldap2(CrudBackend, Encoder):
         Note: You don't have to normalize DN's before passing them to
               ldap2 methods. It's done internally for you.
         """
-        rdns = _ldap.dn.explode_dn(dn.lower())
+        rdns = _ldap.dn.explode_dn(dn)
         if rdns:
             dn = ','.join(rdns)
             if not dn.endswith(self.api.env.basedn):
