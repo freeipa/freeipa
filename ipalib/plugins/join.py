@@ -79,7 +79,6 @@ class join(Command):
         :param kw: Keyword arguments for the other attributes.
         """
         assert 'cn' not in kw
-        ldap = self.api.Backend.ldap
 
         try:
             host = api.Command['host_show'](hostname)
