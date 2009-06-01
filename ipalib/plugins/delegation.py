@@ -16,49 +16,78 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-
 """
-Frontend plugins for delegations.
+Delegations
 """
 
-from ipalib import frontend
-from ipalib import crud
-from ipalib.frontend import Param
+from ipalib import api, crud
+from ipalib import Object
+from ipalib import Str
 from ipalib import api
 
-class delegation(frontend.Object):
+class delegation(Object):
     """
     Delegation object.
     """
     takes_params = (
-        'attributes',
-        'source',
-        'target',
-        Param('name', primary_key=True)
+        Str('name',
+            cli_name='name',
+            doc='name',
+            primary_key=True
+        ),
+        List('attributes',
+            cli_name='attributes',
+            doc='comma-separated list of attributes',
+        ),
+        Str('source',
+            cli_name='source',
+            doc='source',
+        ),
+        Str('target',
+            cli_name='target',
+            doc='target',
+        ),
     )
+
 api.register(delegation)
 
 
-class delegation_add(crud.Add):
-    'Add a new delegation.'
+class delegation_create(crud.Create):
+    """
+    Create delegation.
+    """
+
 api.register(delegation_add)
 
 
-class delegation_del(crud.Del):
-    'Delete an existing delegation.'
-api.register(delegation_del)
+class delegation_delete(crud.Delete):
+    """
+    Delete delegation.
+    """
+
+api.register(delegation_delete)
 
 
-class delegation_mod(crud.Mod):
-    'Edit an existing delegation.'
+class delegation_mod(crud.Update):
+    """
+    Modify delegation.
+    """
+
 api.register(delegation_mod)
 
 
-class delegation_find(crud.Find):
-    'Search for a delegation.'
+class delegation_find(crud.Search):
+    """
+    Search for delegations.
+    """
+
 api.register(delegation_find)
 
 
-class delegation_show(crud.Get):
-    'Examine an existing delegation.'
+class delegation_show(crud.Retrieve):
+    """
+    Display delegation.
+    """
+
 api.register(delegation_show)
+
