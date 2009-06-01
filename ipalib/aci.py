@@ -24,13 +24,13 @@ import ldap
 # The Python re module doesn't do nested parenthesis
 
 # Break the ACI into 3 pieces: target, name, permissions/bind_rules
-ACIPat = re.compile(r'\s*(\(.*\)+)\s*\(version\s+3.0\s*;\s*acl\s+\"(.*)\"\s*;\s*(.*);\)')
+ACIPat = re.compile(r'\s*(\([^\)]*\)+)\s*\(version\s+3.0\s*;\s*acl\s+\"([^\"]*)\"\s*;\s*([^;]*);\s*\)', re.UNICODE)
 
 # Break the permissions/bind_rules out
-PermPat = re.compile(r'(\w+)\s*\((.*)\)\s+(.*)')
+PermPat = re.compile(r'(\w+)\s*\((.*)\)\s+(.*)', re.UNICODE)
 
 # Break the bind rule out
-BindPat = re.compile(r'([a-zA-Z0-9;\.]+)\s*(\!?=)\s*(.*)')
+BindPat = re.compile(r'([a-zA-Z0-9;\.]+)\s*(\!?=)\s*(.*)', re.UNICODE)
 
 # Don't allow arbitrary attributes to be set in our __setattr__ implementation.
 OBJECTATTRS = ["name", "orig_acistr", "target", "action", "permissions",
@@ -96,7 +96,7 @@ class ACI:
         return s
 
     def _parse_target(self, aci):
-        lexer = shlex.shlex(aci)
+        lexer = shlex.shlex(aci.encode('utf-8'))
         lexer.wordchars = lexer.wordchars + "."
 
         l = []
@@ -212,7 +212,7 @@ class ACI:
         returns True if equal, False if not.
         """
         try:
-            if self.name != b.name:
+            if self.name.lower() != b.name.lower():
                 return False
 
             if set(self.permissions) != set(b.permissions):
