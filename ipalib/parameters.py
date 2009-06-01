@@ -251,9 +251,11 @@ class Param(ReadOnly):
             self.password = False
 
         # Merge in kw from parse_param_spec():
-        if not ('required' in kw or 'multivalue' in kw):
-            (name, kw_from_spec) = parse_param_spec(name)
-            kw.update(kw_from_spec)
+        (name, kw_from_spec) = parse_param_spec(name)
+        if not 'required' in kw:
+            kw['required'] = kw_from_spec['required']
+        if not 'multivalue' in kw:
+            kw['multivalue'] = kw_from_spec['multivalue']
         self.name = check_name(name)
         self.nice = '%s(%r)' % (self.__class__.__name__, self.param_spec)
 
@@ -1175,9 +1177,7 @@ class List(Param):
             yield [unicode(cell, 'utf-8') for cell in row]
 
     def __init__(self, name, *rules, **kw):
-        (name, kw_from_spec) = parse_param_spec(name)
-        kw.update(kw_from_spec)
-        kw.update(multivalue=True)
+        kw['multivalue'] = True
         super(List, self).__init__(name, *rules, **kw)
 
     def normalize(self, value):
@@ -1235,3 +1235,4 @@ def create_param(spec):
             TYPE_ERROR % ('spec', (str, Param), spec, type(spec))
         )
     return Str(spec)
+
