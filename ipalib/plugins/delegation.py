@@ -22,7 +22,7 @@ Delegations
 
 from ipalib import api, crud
 from ipalib import Object
-from ipalib import Str
+from ipalib import Str, List
 from ipalib import api
 
 class delegation(Object):
@@ -57,7 +57,7 @@ class delegation_create(crud.Create):
     Create delegation.
     """
 
-api.register(delegation_add)
+api.register(delegation_create)
 
 
 class delegation_delete(crud.Delete):
