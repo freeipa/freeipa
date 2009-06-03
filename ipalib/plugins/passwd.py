@@ -27,7 +27,7 @@ from ipalib import Str, Password  # Parameter types
 
 
 class passwd(Command):
-    'Edit existing password policy.'
+    'Change a user password.'
 
     takes_args = (
         Str('principal',
