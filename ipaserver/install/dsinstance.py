@@ -176,6 +176,7 @@ class DsInstance(service.Service):
         self.step("configuring certmap.conf", self.__certmap_conf)
         self.step("restarting directory server", self.__restart_instance)
         self.step("adding default layout", self.__add_default_layout)
+        self.step("adding delegation layout", self.__add_delegation_layout)
         self.step("configuring Posix uid/gid generation as first master",
                   self.__config_uidgid_gen_first_master)
         self.step("adding master entry as first master",
@@ -363,6 +364,9 @@ class DsInstance(service.Service):
 
     def __add_default_layout(self):
         self._ldap_mod("bootstrap-template.ldif", self.sub_dict)
+
+    def __add_delegation_layout(self):
+        self._ldap_mod("delegation.ldif", self.sub_dict)
 
     def __create_indices(self):
         self._ldap_mod("indices.ldif")

@@ -3,6 +3,7 @@ changetype: add
 objectClass: nsContainer
 objectClass: top
 cn: dns
+aci: (targetfilter = "(objectClass=idnsRecord)")(targetattr != "aci")(version 3.0; acl "DNS Servers Updates"; allow (add,write,delete) groupdn = "ldap:///cn=update_dns,cn=taskgroups,cn=accounts,$SUFFIX";)
 
 dn: idnsName=$DOMAIN,cn=dns,$SUFFIX
 changetype: add

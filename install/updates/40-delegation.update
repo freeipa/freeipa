@@ -54,6 +54,18 @@ add:objectClass: groupofnames
 add:cn: netgroupadmin
 add:description: Netgroups Administrators
 
+dn: cn=dnsadmin,cn=rolegroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: dnsadmin
+add:description: DNS Administrators
+
+dn: cn=dnsserver,cn=rolegroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: dnsserver
+add:description: DNS Servers
+
 # Add the taskgroups referenced by the ACIs for user administration
 
 dn: cn=taskgroups,cn=accounts,$SUFFIX
@@ -436,3 +448,11 @@ add:aci: '(targetattr = "krbPrincipalKey")(target = "ldap:///cn=*,
   allow (write) groupdn = "ldap:///cn=manage_host_keytab,cn=taskgroups,
   cn=accounts,$SUFFIX";)'
 
+# Taskgroup for updating the DNS entries
+dn: cn=update_dns,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: manage_host_keytab
+add:description: Updates DNS
+add:member:'cn=dnsadmin,cn=rolegroups,cn=accounts,$SUFFIX'
+add:member:'cn=dnsserver,cn=rolegroups,cn=accounts,$SUFFIX'

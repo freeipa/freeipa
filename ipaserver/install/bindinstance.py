@@ -21,10 +21,14 @@ import string
 import tempfile
 import shutil
 import os
+import pwd
 import socket
 import logging
 
+import installutils
+import ldap
 import service
+from ipaserver import ipaldap
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipalib import util
@@ -45,6 +49,7 @@ def check_inst():
 class BindInstance(service.Service):
     def __init__(self, fstore=None, dm_password=None):
         service.Service.__init__(self, "named", dm_password=dm_password)
+        self.named_user = None
         self.fqdn = None
         self.domain = None
         self.host = None
@@ -57,7 +62,8 @@ class BindInstance(service.Service):
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
-    def setup(self, fqdn, ip_address, realm_name, domain_name):
+    def setup(self, fqdn, ip_address, realm_name, domain_name, named_user="named"):
+        self.named_user = named_user
         self.fqdn = fqdn
         self.ip_address = ip_address
         self.realm = realm_name
@@ -81,7 +87,11 @@ class BindInstance(service.Service):
         except:
             pass
 
+        # FIXME: this need to be split off, as only the first server can do
+        # this operation
         self.step("Setting up our zone", self.__setup_zone)
+
+        self.step("Setting up kerberos principal", self.__setup_principal)
         self.step("Setting up named.conf", self.__setup_named_conf)
 
         self.step("restarting named", self.__start)
@@ -112,6 +122,52 @@ class BindInstance(service.Service):
     def __setup_zone(self):
         self.backup_state("domain", self.domain)
         self._ldap_mod("dns.ldif", self.sub_dict)
+
+    def __setup_principal(self):
+        dns_principal = "DNS/" + self.fqdn + "@" + self.realm
+        installutils.kadmin_addprinc(dns_principal)
+
+        # Store the keytab on disk
+        self.fstore.backup_file("/etc/named.keytab")
+        installutils.create_keytab("/etc/named.keytab", dns_principal)
+
+        # Make sure access is strictly reserved to the named user
+        pent = pwd.getpwnam(self.named_user)
+        os.chown("/etc/named.keytab", pent.pw_uid, pent.pw_gid)
+        os.chmod("/etc/named.keytab", 0400)
+
+        # modify the principal so that it is marked as an ipa service so that
+        # it can host the memberof attribute, then also add it to the
+        # dnsserver role group, this way the DNS is allowed to perform
+        # DNS Updates
+        conn = None
+
+        try:
+            conn = ipaldap.IPAdmin("127.0.0.1")
+            conn.simple_bind_s("cn=directory manager", self.dm_password)
+        except Exception, e:
+            logging.critical("Could not connect to the Directory Server on %s" % self.fqdn)
+            raise e
+
+        dns_princ_dn = "krbprincipalname=%s,cn=%s,cn=kerberos,%s" % (dns_principal, self.realm, self.suffix)
+        mod = [(ldap.MOD_ADD, 'objectClass', 'ipaService')]
+
+        try:
+            conn.modify_s(dns_princ_dn, mod)
+        except Exception, e:
+            logging.critical("Could not modify principal's %s entry" % dns_principal)
+            raise e
+
+        dns_group = "cn=dnsserver,cn=rolegroups,cn=accounts,%s" % self.suffix
+        mod = [(ldap.MOD_ADD, 'member', dns_princ_dn)]
+
+        try:
+            conn.modify_s(dns_group, mod)
+        except Exception, e:
+            logging.critical("Could not modify principal's %s entry" % dns_principal)
+            raise e
+
+        conn.unbind()
 
     def __setup_named_conf(self):
         self.fstore.backup_file('/etc/named.conf')

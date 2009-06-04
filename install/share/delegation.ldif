@@ -1,0 +1,348 @@
+dn: cn=rolegroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: rolegroups
+
+dn: cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: taskgroups
+
+# Add the default roles
+dn: cn=helpdesk,cn=rolegroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: helpdesk
+description: Helpdesk
+
+dn: cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: useradmin
+description: User Administrators
+
+dn: cn=groupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: groupadmin
+description: Group Administrators
+
+dn: cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: hostadmin
+description: Host Administrators
+
+dn: cn=hostgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: hostgroupadmin
+description: Host Group Administrators
+
+dn: cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: delegationadmin
+description: Role administration
+
+dn: cn=serviceadmin,cn=rolegroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: serviceadmin
+description: Service Administrators
+
+dn: cn=automountadmin,cn=rolegroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: automountadmin
+description: Automount Administrators
+
+dn: cn=netgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: netgroupadmin
+description: Netgroups Administrators
+
+dn: cn=dnsadmin,cn=rolegroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: dnsadmin
+description: DNS Administrators
+
+dn: cn=dnsserver,cn=rolegroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: dnsserver
+description: DNS Servers
+
+dn: cn=addusers,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: addusers
+description: Add Users
+member: cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=change_password,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: change_password
+description: Change a user password
+member: cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=add_user_to_default_group,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: add_user_to_default_group
+description: Add user to default group
+member: cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=removeusers,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: removeusers
+description: Remove Users
+member: cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=modifyusers,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: modifyusers
+description: Modify Users
+member: cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+# Add the taskgroups referenced by the ACIs for group administration
+dn: cn=addgroups,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: addgroups
+description: Add Groups
+member: cn=groupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=removegroups,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: removegroups
+description: Remove Groups
+member: cn=groupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=modifygroups,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: modifygroups
+description: Modify Groups
+member: cn=groupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=modifygroupmembership,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: modifygroupmembership
+description: Modify Group membership
+member: cn=groupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+# Add the taskgroups referenced by the ACIs for host administration
+dn: cn=addhosts,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: addhosts
+description: Add Hosts
+member: cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=removehosts,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: removehosts
+description: Remove Hosts
+member: cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=modifyhosts,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: modifyhosts
+description: Modify Hosts
+member: cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+# Add the taskgroups referenced by the ACIs for hostgroup administration
+dn: cn=addhostgroups,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: addhostgroups
+description: Add Host Groups
+member: cn=hostgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=removehostgroups,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: removehostgroups
+description: Remove Host Groups
+member: cn=hostgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=modifyhostgroups,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: modifyhostgroups
+description: Modify Host Groups
+member: cn=hostgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=modifyhostgroupmembership,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: modifyhostgroupmembership
+description: Modify Host Group membership
+member: cn=hostgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+# Add the taskgroups referenced by the ACIs for service administration
+dn: cn=addservices,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: addservices
+description: Add Services
+member: cn=serviceadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=removeservices,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: removeservices
+description: Remove Services
+member: cn=serviceadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+# Add the taskgroups referenced by the ACIs for delegation administration
+# This just lets one manage taskgroup membership and create and delete roles
+dn: cn=addroles,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: addhrole
+description: Add Roles
+member: cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=removeroles,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: removeroles
+description: Remove Roles
+member: cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=modifyroles,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: modifyroles
+description: Modify Roles
+member: cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=modifyrolegroupmembership,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: modifyrolegroupmembership
+description: Modify Role Group membership
+member: cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=modifytaskgroupmembership,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: modifytaskgroupmembership
+description: Modify Task Group membership
+member: cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+# Add the taskgroups referenced by the ACIs for automount administration
+dn: cn=addautomount,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: addautomount
+description: Add Automount maps/keys
+member: cn=automountadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=removeautomount,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: removeautomount
+description: Remove Automount maps/keys
+member: cn=automountadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+# Add the taskgroups referenced by the ACIs for netgroup administration
+dn: cn=addnetgroups,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: addnetgroups
+description: Add netgroups
+member: cn=netgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=removenetgroups,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: removenetgroups
+description: Remove netgroups
+member: cn=netgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=modifynetgroups,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: modifynetgroups
+description: Modify netgroups
+member: cn=netgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+dn: cn=modifynetgroupmembership,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: modifynetgroupmembership
+description: Modify netgroup membership
+member: cn=netgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+# Taskgroup for retrieving host keytabs
+dn: cn=manage_host_keytab,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: manage_host_keytab
+description: Manage host keytab
+member: cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX
+
+# Taskgroup for updating the DNS entries
+dn: cn=update_dns,cn=taskgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+cn: manage_host_keytab
+description: Updates DNS
+member: cn=dnsadmin,cn=rolegroups,cn=accounts,$SUFFIX
+member: cn=dnsserver,cn=rolegroups,cn=accounts,$SUFFIX

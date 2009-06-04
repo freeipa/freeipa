@@ -13,6 +13,7 @@ app_DATA =				\
 	caJarSigningCert.cfg.template	\
 	default-aci.ldif		\
 	default-keytypes.ldif		\
+	delegation.ldif		\
 	dns.ldif			\
 	kerberos.ldif			\
 	indices.ldif			\
