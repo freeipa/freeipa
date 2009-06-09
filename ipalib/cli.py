@@ -36,7 +36,7 @@ import frontend
 import backend
 import plugable
 import util
-from errors import PublicError, CommandError, HelpError, InternalError, NoSuchNamespaceError, ValidationError
+from errors import PublicError, CommandError, HelpError, InternalError, NoSuchNamespaceError, ValidationError, NotFound
 from constants import CLI_TAB
 from parameters import Password, Bytes
 from request import ugettext as _
@@ -440,6 +440,9 @@ class textui(backend.Backend):
             return -1
 
         counter = len(entries)
+        if counter == 0:
+            raise NotFound(reason="No matching entries found")
+
         i = 1
         for e in entries:
             # There is no guarantee that all attrs are in any given
@@ -690,7 +693,11 @@ class cli(backend.Executioner):
                     if param.password and param.name in kw:
                         del kw[param.name]
                 (args, options) = cmd.params_2_args_options(**kw)
-                cmd.output_for_cli(self.api.Backend.textui, result, *args, **options)
+                rv = cmd.output_for_cli(self.api.Backend.textui, result, *args, **options)
+                if rv:
+                    return rv
+                else:
+                    return 0
         finally:
             self.destroy_context()
 
@@ -799,7 +806,7 @@ def run(api):
             api.register(klass)
         api.load_plugins()
         api.finalize()
-        api.Backend.cli.run(argv)
+        sys.exit(api.Backend.cli.run(argv))
     except KeyboardInterrupt:
         print ''
         api.log.info('operation aborted')
@@ -811,4 +818,4 @@ def run(api):
     if error is not None:
         assert isinstance(error, PublicError)
         api.log.error(error.strerror)
-        sys.exit(error.errno)
+        sys.exit(error.rval)

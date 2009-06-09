@@ -240,6 +240,7 @@ class PublicError(StandardError):
     """
 
     errno = 900
+    rval = 1
     format = None
 
     def __init__(self, format=None, message=None, **kw):
@@ -748,6 +749,7 @@ class NotFound(ExecutionError):
     """
 
     errno = 4001
+    rval = 2
     format = _('%(reason)s')
 
 class DuplicateEntry(ExecutionError):
