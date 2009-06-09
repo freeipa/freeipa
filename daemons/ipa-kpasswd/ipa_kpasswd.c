@@ -181,7 +181,8 @@ static int get_krb5_ticket(char *tmp_file)
 	krb5_principal kprincpw;
 	krb5_creds my_creds;
 	krb5_get_init_creds_opt options;
-	int krberr, ret;
+	krb5_error_code krberr;
+	int ret;
 
 	krberr = krb5_init_context(&context);
 	if (krberr) {
@@ -255,7 +256,7 @@ static int get_krb5_ticket(char *tmp_file)
 		goto done;
 	}
 
-	krb5_cc_initialize(context, ccache, kprincpw);
+	krberr = krb5_cc_initialize(context, ccache, kprincpw);
 	if (krberr) {
 		syslog(LOG_ERR, "Failed to init ccache: %s",
 			krb5_get_error_message(context, krberr));
