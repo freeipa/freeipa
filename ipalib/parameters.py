@@ -226,6 +226,7 @@ class Param(ReadOnly):
         ('required', bool, True),
         ('multivalue', bool, False),
         ('primary_key', bool, False),
+        ('parent_key', bool, False),
         ('normalizer', callable, None),
         ('default_from', DefaultFrom, None),
         ('create_default', callable, None),
