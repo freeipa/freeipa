@@ -795,9 +795,9 @@ class Object(HasParam):
                 continue
             yield param
 
-    def get_dn(self, primary_key):
+    def get_dn(self, *args, **kwargs):
         """
-        Construct an LDAP DN from a primary_key.
+        Construct an LDAP DN.
         """
         raise NotImplementedError('%s.get_dn()' % self.name)
 
@@ -878,7 +878,7 @@ class Attribute(Plugin):
 
     def __init__(self):
         m = re.match(
-            '^([a-z][a-z0-9]+)_([a-z][a-z0-9]+)$',
+            '^([a-z][a-z0-9]+)_([a-z][a-z0-9]+(?:_[a-z][a-z0-9]+)*)$',
             self.__class__.__name__
         )
         assert m
