@@ -25,11 +25,6 @@ Backend plugin for LDAP.
 # of virtually any type. Each method passing these values to the python-ldap
 # binding encodes them into the appropriate representation. This applies to
 # everything except the CrudBackend methods, where dn is part of the entry dict.
-#
-# TODO: review raised exceptions
-#       consider using CIDicts for entry_attrs for convenience
-#       cleanup & polishing
-#       write some documention
 
 import copy
 import os
@@ -54,7 +49,7 @@ _syntax_mapping = {
     '1.3.6.1.4.1.1466.115.121.1.1': str,  # ACI item
     '1.3.6.1.4.1.1466.115.121.1.4': str,  # Audio
     '1.3.6.1.4.1.1466.115.121.1.5': str,  # Binary
-    '1.3.6.1.4.1.1466.115.121.1.7': str, # Boolean
+    '1.3.6.1.4.1.1466.115.121.1.7': str,  # Boolean
     '1.3.6.1.4.1.1466.115.121.1.8': str,  # Certificate
     '1.3.6.1.4.1.1466.115.121.1.9': str,  # Certificate List
     '1.3.6.1.4.1.1466.115.121.1.10': str, # Certificate Pair
@@ -90,7 +85,7 @@ def _handle_errors(e, **kw):
     except _ldap.NO_SUCH_OBJECT, e:
         # args = kw.get('args', '')
         # raise errors.NotFound(msg=notfound(args))
-        raise errors.NotFound()
+        raise errors.NotFound(reason='no such entry')
     except _ldap.ALREADY_EXISTS, e:
         raise errors.DuplicateEntry()
     except _ldap.CONSTRAINT_VIOLATION, e:
@@ -416,7 +411,7 @@ class ldap2(CrudBackend, Encoder):
         except _ldap.LDAPError, e:
             _handle_errors(e, **{})
         if not res:
-            raise errors.NotFound()
+            raise errors.NotFound(reason='no such entry')
 
         return res
 
@@ -431,7 +426,7 @@ class ldap2(CrudBackend, Encoder):
         """
         search_kw = {attr: value, 'objectClass': object_class}
         filter = self.make_filter(search_kw, rules=self.MATCH_ALL)
-        return self.find_entries(filter, attrs_list, base_dn)
+        return self.find_entries(filter, attrs_list, base_dn)[0]
 
     def get_entry(self, dn, attrs_list=None):
         """
@@ -472,22 +467,17 @@ class ldap2(CrudBackend, Encoder):
         # we could call search_s directly, but this saves a lot of code at
         # the expense of a little bit of performace
         entry_attrs_old = self.encode(entry_attrs_old)
-
-        # make a copy of the original entry's attribute dict with all
-        # attribute names converted to lowercase
-        old = dict((k.lower(), v) for (k, v) in entry_attrs_old.iteritems())
-
         # generate modlist, we don't want any MOD_REPLACE operations
         # to handle simultaneous updates better
         modlist = []
         for (k, v) in entry_attrs.iteritems():
-            old_v = set(old.get(k.lower(), []))
             if v is None:
-                modlist.append((_ldap.MOD_DELETE, k, list(old_v)))
+                modlist.append((_ldap.MOD_DELETE, k, None))
             else:
                 if not isinstance(v, (list, tuple)):
                     v = [v]
                 v = set(filter(lambda value: value is not None, v))
+                old_v = set(entry_attrs_old.get(k.lower(), []))
 
                 adds = list(v.difference(old_v))
                 if adds:
@@ -528,11 +518,11 @@ class ldap2(CrudBackend, Encoder):
             _handle_errors(e, **{})
 
     @encode_args(1, 2, 3)
-    def modify_password(self, dn, old_pass, new_pass):
+    def modify_password(self, dn, new_pass, old_pass=''):
         """Set user password."""
         dn = self.normalize_dn(dn)
         try:
-            self.passwd_s(dn, odl_pass, new_pass)
+            self.passwd_s(dn, old_pass, new_pass)
         except _ldap.LDAPError, e:
             _handle_errors(e, **{})
 
