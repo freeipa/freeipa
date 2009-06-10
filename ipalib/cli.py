@@ -739,7 +739,10 @@ class cli(backend.Executioner):
                     kw['action'] = 'store_true'
             else:
                 kw['metavar'] = metavar=option.__class__.__name__.upper()
-            o = optparse.make_option('--%s' % to_cli(option.cli_name), **kw)
+            if option.cli_short_name:
+                o = optparse.make_option('-%s' % option.cli_short_name, '--%s' % to_cli(option.cli_name), **kw)
+            else:
+                o = optparse.make_option('--%s' % to_cli(option.cli_name), **kw)
             parser.add_option(o)
         return parser
 

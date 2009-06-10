@@ -221,6 +221,7 @@ class Param(ReadOnly):
 
     kwargs = (
         ('cli_name', str, None),
+        ('cli_short_name', str, None),
         ('label', callable, None),
         ('doc', str, ''),
         ('required', bool, True),
@@ -259,6 +260,13 @@ class Param(ReadOnly):
             kw['multivalue'] = kw_from_spec['multivalue']
         self.name = check_name(name)
         self.nice = '%s(%r)' % (self.__class__.__name__, self.param_spec)
+
+        if 'cli_short_name' in kw:
+            if len(kw['cli_short_name']) != 1:
+                raise TypeError(
+                    '%s: cli_short_name can only be a single character: %s'
+                    % (self.nice, kw['cli_short_name'])
+                )
 
         # Add 'default' to self.kwargs and makes sure no unknown kw were given:
         assert type(self.type) is type
