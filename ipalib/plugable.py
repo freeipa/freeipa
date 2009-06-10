@@ -345,7 +345,10 @@ class PluginProxy(SetProxy):
         self.__base = base
         self.__target = target
         self.__name_attr = name_attr
-        self.__public__ = base.__public__
+        if hasattr(type(target), '__public__'):
+            self.__public__ = type(target).__public__
+        else:
+            self.__public__ = base.__public__
         self.name = getattr(target, name_attr)
         self.doc = target.doc
         assert type(self.__public__) is frozenset
