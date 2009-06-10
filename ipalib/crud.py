@@ -16,12 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-
 """
 Base classes for standard CRUD operations.
 """
 
-import backend, frontend
+import backend, frontend, parameters
 
 class Add(frontend.Method):
     def get_args(self):
@@ -122,7 +121,6 @@ class Update(PKQuery):
             for option in super(Update, self).get_options():
                 yield option
 
-
 class Delete(PKQuery):
     """
     Delete one or more entries.
@@ -134,7 +132,8 @@ class Search(frontend.Method):
     Retrieve all entries that match a given search criteria.
     """
 
-    takes_args = 'criteria?'
+    def get_args(self):
+        yield parameters.Str('criteria?')
 
     def get_options(self):
         if self.extra_options_first:
@@ -223,3 +222,4 @@ class CrudBackend(backend.Connectible):
         this method should return an empty iterable.
         """
         raise NotImplementedError('%s.search()' % self.name)
+
