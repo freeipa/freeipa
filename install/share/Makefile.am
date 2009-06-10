@@ -9,6 +9,7 @@ app_DATA =				\
 	60ipaconfig.ldif		\
 	60basev2.ldif			\
 	60policyv2.ldif			\
+	anonymous-vlv.ldif		\
 	bootstrap-template.ldif		\
 	caJarSigningCert.cfg.template	\
 	default-aci.ldif		\

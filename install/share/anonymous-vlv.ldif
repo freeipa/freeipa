@@ -1,0 +1,9 @@
+# Needed to enable automount browsing on Solaris
+dn: oid=2.16.840.1.113730.3.4.9,cn=features,cn=config 
+changetype: modify
+add: aci
+aci: (targetattr !="aci")\
+ (version 3.0; acl "VLV Request Control"; allow (compare,read,search) \
+ userdn = "ldap:///anyone"; )
+
+
