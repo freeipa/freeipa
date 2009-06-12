@@ -475,16 +475,21 @@ class help(frontend.Command):
         super(help, self).finalize()
 
     def run(self, key):
-        if key is None:
+        name = from_cli(key)
+        if key is None or name == "topics":
             self.print_topics()
             return
-        name = from_cli(key)
         if name in self._topics:
             self.print_commands(name)
         elif name in self.Command:
             cmd = self.Command[name]
             print 'Purpose: %s' % cmd.doc
             self.Backend.cli.build_parser(cmd).print_help()
+        elif name == "commands":
+            mcl = max(len(s) for s in (self.Command))
+            for cname in self.Command:
+                cmd = self.Command[cname]
+                print '%s  %s' % (to_cli(cmd.name).ljust(mcl), cmd.doc)
         else:
             raise HelpError(topic=name)
 
