@@ -48,7 +48,7 @@ def find_members(ldap, failed, members, attr, object_class, parent_dn=''):
         if not m: continue
         try:
             (member_dn, entry_attrs) = ldap.find_entry_by_attr(
-                attr, m, object_classs, parent_dn
+                attr, m, object_class, parent_dn
             )
             found.append(member_dn)
         except errors.NotFound:
