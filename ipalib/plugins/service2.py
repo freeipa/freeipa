@@ -292,21 +292,30 @@ class service2_find(crud.Search):
             attrs_list = _default_attributes
 
         try:
-            entries = ldap.find_entries(filter, attrs_list, _container_dn)
+            (entries, truncated) = ldap.find_entries(
+                filter, attrs_list, _container_dn
+            )
         except errors.NotFound:
-            entries = tuple()
+            (entries, truncated) = (tuple(), False)
 
         return entries
 
     def output_for_cli(self, textui, result, principal, **options):
+        (entries, truncated) = result
+
         textui.print_name(self.name)
-        for (dn, entry_attrs) in result:
+        for (dn, entry_attrs) in entries:
             textui.print_attribute('dn', dn)
             textui.print_entry(entry_attrs)
             textui.print_plain('')
         textui.print_count(
             len(result), '%i service matched.', '%i services matched.'
         )
+        if truncated:
+            textui.print_dashed('These results are truncated.', below=False)
+            textui.print_dashed(
+                'Please refine your search and try again.', above=False
+            )
 
 api.register(service2_find)
 

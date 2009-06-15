@@ -228,9 +228,11 @@ class dns2_delete(crud.Delete):
 
         # retrieve all subentries of zone - records
         try:
-            entries = ldap.find_entries(None, [''], dn, ldap.SCOPE_ONELEVEL)
+            (entries, truncated) = ldap.find_entries(
+                None, [''], dn, ldap.SCOPE_ONELEVEL
+            )
         except errors.NotFound:
-            entries = tuple()
+            (entries, truncated) = (tuple(), False)
 
         # kill'em all, records first
         for e in entries:
@@ -309,24 +311,30 @@ class dns2_find(crud.Search):
 
         # get matching entries
         try:
-            entries = ldap.find_entries(
+            (entries, truncated) = ldap.find_entries(
                 filter, attrs_list, _zone_container_dn, ldap.SCOPE_ONELEVEL
             )
         except errors.NotFound:
-            entries = tuple()
+            (entries, truncated) = (tuple(), False)
 
         return entries
 
     def output_for_cli(self, textui, result, term, **options):
+        (entries, truncated) = result
+
         textui.print_name(self.name)
-        for e in result:
-            (dn, entry_attrs) = e
+        for (dn, entry_attrs) in entries:
             textui.print_attribute('dn', dn)
             textui.print_entry(entry_attrs)
             textui.print_plain('')
         textui.print_count(
             len(result), '%i DNS zone matched.', '%i DNS zones matched.'
         )
+        if truncated:
+            textui.print_dashed('These results are truncated.', below=False)
+            textui.print_dashed(
+                'Please refine your search and try again.', above=False
+            )
 
 api.register(dns2_find)
 
@@ -716,9 +724,11 @@ class dns2_find_rr(Command):
 
         # get matching entries
         try:
-            entries = ldap.find_entries(filter, attrs_list, base_dn)
+            (entries, truncated) = ldap.find_entries(
+                filter, attrs_list, base_dn
+            )
         except errors.NotFound:
-            entries = tuple()
+            (entries, truncated) = (tuple(), False)
 
         # if the user is looking for a certain record type, don't display
         # entries that do not contain it
@@ -730,12 +740,13 @@ class dns2_find_rr(Command):
                     related_entries.append(e)
             entries = related_entries
 
-        return entries
+        return (entries, truncated)
 
     def output_for_cli(self, textui, result, zone, term, **options):
+        (entries, truncated) = result
+
         textui.print_name(self.name)
-        for e in result:
-            (dn, entry_attrs) = e
+        for (dn, entry_attrs) in entries:
             textui.print_attribute('dn', dn)
             textui.print_entry(entry_attrs)
             textui.print_plain('')
@@ -743,6 +754,11 @@ class dns2_find_rr(Command):
             len(result), '%i DNS resource record matched.',
             '%i DNS resource records matched.'
         )
+        if truncated:
+            textui.print_dashed('These results are truncated.', below=False)
+            textui.print_dashed(
+                'Please refine your search and try again.', above=False
+            )
 
 api.register(dns2_find_rr)
 

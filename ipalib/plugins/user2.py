@@ -274,24 +274,30 @@ class user2_find(crud.Search):
 
         # get matching entries
         try:
-            entries = ldap.find_entries(
+            (entries, truncated) = ldap.find_entries(
                 filter, attrs_list, _container_dn, ldap.SCOPE_ONELEVEL
             )
         except errors.NotFound:
-            entries = tuple()
+            (entries, truncated) = (tuple(), False)
 
-        return entries
+        return (entries, truncated)
 
     def output_for_cli(self, textui, result, term, **options):
+        (entries, truncated) = result
+
         textui.print_name(self.name)
-        for e in result:
-            (dn, entry_attrs) = e
+        for (dn, entry_attrs) in entries:
             textui.print_attribute('dn', dn)
             textui.print_entry(entry_attrs)
             textui.print_plain('')
         textui.print_count(
             len(result), '%i user matched.', '%i users matched.'
         )
+        if truncated:
+            textui.print_dashed('These results are truncated.', below=False)
+            textui.print_dashed(
+                'Please refine your search and try again.', above=False
+            )
 
 api.register(user2_find)
 

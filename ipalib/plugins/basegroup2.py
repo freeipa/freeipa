@@ -30,14 +30,6 @@ _default_attributes = ['cn', 'description', 'member', 'memberof']
 _default_class = 'groupofnames'
 
 
-def get_dn_by_attr(ldap, attr, value, object_class, parent_dn=''):
-    search_kw = {}
-    search_kw[attr] = value
-    search_kw['objectclass'] = object_class
-    filter = ldap.make_filter(search_kw, rules=ldap.MATCH_ALL)
-    (dn, entry_attrs) = ldap.find_entries(filter, [''], base_dn=parent_dn)[0]
-    return dn
-
 def find_members(ldap, failed, members, attr, object_class, parent_dn=''):
     """
     Search for a list of members to operate on.
@@ -55,7 +47,9 @@ def find_members(ldap, failed, members, attr, object_class, parent_dn=''):
     for m in members:
         if not m: continue
         try:
-            member_dn = get_dn_by_attr(ldap, attr, m, object_class, parent_dn)
+            (member_dn, entry_attrs) = ldap.find_entry_by_attr(
+                attr, m, object_classs, parent_dn
+            )
             found.append(member_dn)
         except errors.NotFound:
             failed.append(m)
@@ -203,7 +197,10 @@ class basegroup2_delete(crud.Delete):
         assert self.container
         assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
-        dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
+
+        (dn, entry_attrs) = ldap.find_entry_by_attr(
+            'cn', cn, self.filter_class, self.container
+        )
 
         ldap.delete_entry(dn)
 
@@ -242,7 +239,10 @@ class basegroup2_mod(crud.Update):
         assert self.filter_class
         assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
-        dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
+
+        (dn, entry_attrs) = ldap.find_entry_by_attr(
+            'cn', cn, self.filter_class, self.container_dn
+        )
 
         entry_attrs = self.args_options_2_entry(cn, **kw)
         if 'objectclass' in kw:
@@ -311,22 +311,30 @@ class basegroup2_find(crud.Search):
         parent_dn = self.container or ''
 
         try:
-            entries = ldap.find_entries(filter, attrs_list, parent_dn)
+            (entries, truncated) = ldap.find_entries(
+                filter, attrs_list, parent_dn
+            )
         except errors.NotFound:
-            entries = tuple()
+            (entries, truncated) = (tuple(), False)
 
-        return entries
+        return (entries, truncated)
 
     def output_for_cli(self, textui, result, criteria, **options):
+        (entries, truncated) = result
+
         textui.print_name(self.name)
-        for e in result:
-            (dn, entry_attrs) = e
+        for (dn, entry_attrs) in entries:
             textui.print_attribute('dn', dn)
             textui.print_entry(entry_attrs)
             textui.print_plain('')
         textui.print_count(
             len(result), '%i group matched.', '%i groups matched.'
         )
+        if truncated:
+            textui.print_dashed('These results are truncated.', below=False)
+            textui.print_dashed(
+                'Please refine your search and try again.', above=False
+            )
 
 
 class basegroup2_show(crud.Retrieve):
@@ -358,7 +366,10 @@ class basegroup2_show(crud.Retrieve):
         assert self.container
         assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
-        dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
+
+        (dn, entry_attrs) = ldap.find_entry_by_attr(
+            'cn', cn, self.filter_class, self.container
+        )
 
         if kw['all']:
             attrs_list = ['*']
@@ -415,10 +426,13 @@ class basegroup2_add_member(Command):
         assert self.container
         assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
-        dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
         to_add = []
         add_failed = []
         completed = 0
+
+        (dn, entry_attrs) = ldap.find_entry_by_attrs(
+            'cn', cn, self.filter_class, self.container
+        )
 
         members = kw.get('groups', [])
         (to_add, add_failed) = find_members(
@@ -492,10 +506,13 @@ class basegroup2_del_member(Command):
         assert self.container
         assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
-        dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
         to_remove = []
         remove_failed = []
         completed = 0
+
+        (dn, entry_attrs) = ldap.find_entry_by_attrs(
+            'cn', cn, self.filter_class, self.container
+        )
 
         members = kw.get('groups', [])
         (to_remove, remove_failed) = find_members(
