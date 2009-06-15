@@ -388,7 +388,8 @@ class ldap2(CrudBackend, Encoder):
             scope=_ldap.SCOPE_SUBTREE, time_limit=1, size_limit=3000):
         """
         Return a list of entries [(dn, entry_attrs)] matching specified
-        search parameters.
+        search parameters followed by truncated flag. If the truncated flag is
+        True, search hit a server limit and its results are incomplete.
 
         Keyword arguments:
         attrs_list -- list of attributes to return, all if None (default None)
@@ -400,20 +401,30 @@ class ldap2(CrudBackend, Encoder):
         base_dn = self.normalize_dn(base_dn)
         if not filter:
             filter = '(objectClass=*)'
+        res = []
+        truncated = False
 
         # pass arguments to python-ldap
         try:
-            res = self.conn.search_ext_s(base_dn, scope, filter, attrs_list,
-                    timeout=time_limit, sizelimit=size_limit)
+            id = self.conn.search_ext(
+                base_dn, scope, filter, attrs_list, timeout=time_limit,
+                sizelimit=size_limit
+            )
+            while True:
+                (objtype, res_list) = self.conn.result(id, 0)
+                if not res_list:
+                    break
+                res.append(res_list[0])
         except (_ldap.ADMINLIMIT_EXCEEDED, _ldap.TIMELIMIT_EXCEEDED,
                 _ldap.SIZELIMIT_EXCEEDED), e:
-            raise e
+            truncated = True
         except _ldap.LDAPError, e:
             _handle_errors(e, **{})
+
         if not res:
             raise errors.NotFound(reason='no such entry')
 
-        return res
+        return (res, truncated)
 
     def find_entry_by_attr(self, attr, value, object_class, attrs_list=None,
             base_dn=''):
@@ -426,7 +437,7 @@ class ldap2(CrudBackend, Encoder):
         """
         search_kw = {attr: value, 'objectClass': object_class}
         filter = self.make_filter(search_kw, rules=self.MATCH_ALL)
-        return self.find_entries(filter, attrs_list, base_dn)[0]
+        return self.find_entries(filter, attrs_list, base_dn)[0][0]
 
     def get_entry(self, dn, attrs_list=None):
         """
@@ -435,12 +446,12 @@ class ldap2(CrudBackend, Encoder):
         Keyword arguments:
         attrs_list - list of attributes to return, all if None (default None)
         """
-        return self.find_entries(None, attrs_list, dn, self.SCOPE_BASE)[0]
+        return self.find_entries(None, attrs_list, dn, self.SCOPE_BASE)[0][0]
 
     def get_ipa_config(self):
         """Returns the IPA configuration entry (dn, entry_attrs)."""
         filter = '(cn=ipaConfig)'
-        return self.find_entries(filter, None, 'cn=etc', self.SCOPE_ONELEVEL)[0]
+        return self.find_entries(filter, None, 'cn=etc', self.SCOPE_ONELEVEL)[0][0]
 
     def get_schema(self):
         """Returns a copy of the current LDAP schema."""
@@ -606,9 +617,9 @@ class ldap2(CrudBackend, Encoder):
 
         # try to remove the entry from activated/inactivated group
         if active:
-            entries = self.find_entries(inactivated_filter, [], parent_rdn)
+            entries = self.find_entries(inactivated_filter, [], parent_rdn)[0]
         else:
-            entries = self.find_entries(activated_filter, [], parent_rdn)
+            entries = self.find_entries(activated_filter, [], parent_rdn)[0]
         (group_dn, group_entry_attrs) = entries[0]
         try:
             self.remove_entry_from_group(dn, group_dn)
@@ -625,9 +636,9 @@ class ldap2(CrudBackend, Encoder):
             if account_lock_attr == 'false':
                 return  # we don't
 
-            entries = self.find_entries(activated_filter, [], parent_rdn)
+            entries = self.find_entries(activated_filter, [], parent_rdn)[0]
         else:
-            entries = self.find_entries(inactivated_filter, [], parent_rdn)
+            entries = self.find_entries(inactivated_filter, [], parent_rdn)[0]
         (group_dn, group_entry_attrs) = entries[0]
         try:
             self.add_entry_to_group(dn, group_dn)
@@ -719,12 +730,16 @@ class ldap2(CrudBackend, Encoder):
 
         # find entries and normalize the output for CRUD
         output = []
-        entries = self.find_entries(filter, attrs_list, base_dn, scope)
+        (entries, truncated) = self.find_entries(
+            filter, attrs_list, base_dn, scope
+        )
         for (dn, entry_attrs) in entries:
             entry_attrs['dn'] = [dn]
             output.append(entry_attrs)
 
-        return output
+        if truncated:
+            return (-1, output)
+        return (len(output), output)
 
 api.register(ldap2)
 

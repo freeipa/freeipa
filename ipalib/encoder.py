@@ -127,7 +127,7 @@ class Encoder(object):
                 var.decode(self.encoder_settings.decode_from)
             )
         elif isinstance(var, (bool, float, int, long)):
-            return self.encoder_settings.decode_postprocessor(unicode(var))
+            return var
         elif isinstance(var, list):
             return [self.decode(m) for m in var]
         elif isinstance(var, tuple):
