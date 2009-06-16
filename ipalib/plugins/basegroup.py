@@ -131,7 +131,7 @@ class basegroup(Object):
         return ldap.make_dn_from_attr('cn', cn, self.container)
 
 
-class basegroup_create(crud.Create):
+class basegroup_add(crud.Create):
     """
     Create new group.
     """
@@ -176,7 +176,7 @@ class basegroup_create(crud.Create):
         textui.print_dashed('Created group "%s".' % cn)
 
 
-class basegroup_delete(crud.Delete):
+class basegroup_del(crud.Delete):
     """
     Delete group.
     """

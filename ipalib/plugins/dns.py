@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
-Domain Name System (DNS) Plugin
+Domain Name System (DNS) plugin
 
 Implements a set of commands useful for manipulating DNS records used by
 the BIND LDAP plugin.
@@ -165,7 +165,7 @@ class dns(Object):
 api.register(dns)
 
 
-class dns_create(crud.Create):
+class dns_add(crud.Create):
     """
     Create new DNS zone/SOA record.
     """
@@ -207,10 +207,10 @@ class dns_create(crud.Create):
         textui.print_entry(entry_attrs)
         textui.print_dashed('Created DNS zone "%s".' % idnsname)
 
-api.register(dns_create)
+api.register(dns_add)
 
 
-class dns_delete(crud.Delete):
+class dns_del(crud.Delete):
     """
     Delete existing DNS zone/SOA record.
     """
@@ -244,7 +244,7 @@ class dns_delete(crud.Delete):
         textui.print_name(self.name)
         textui.print_dashed('Deleted DNS zone "%s".' % args[0])
 
-api.register(dns_delete)
+api.register(dns_del)
 
 
 class dns_mod(crud.Update):

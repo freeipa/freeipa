@@ -52,20 +52,20 @@ class delegation(Object):
 api.register(delegation)
 
 
-class delegation_create(crud.Create):
+class delegation_add(crud.Create):
     """
     Create delegation.
     """
 
-api.register(delegation_create)
+api.register(delegation_add)
 
 
-class delegation_delete(crud.Delete):
+class delegation_del(crud.Delete):
     """
     Delete delegation.
     """
 
-api.register(delegation_delete)
+api.register(delegation_del)
 
 
 class delegation_mod(crud.Update):

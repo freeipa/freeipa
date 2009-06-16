@@ -122,7 +122,7 @@ class host(Object):
 api.register(host)
 
 
-class host_create(crud.Create):
+class host_add(crud.Create):
     """
     Create new host.
     """
@@ -192,10 +192,10 @@ class host_create(crud.Create):
         textui.print_entry(entry_attrs)
         textui.print_dashed('Created host "%s".' % hostname)
 
-api.register(host_create)
+api.register(host_add)
 
 
-class host_delete(crud.Delete):
+class host_del(crud.Delete):
     """
     Delete host.
     """
@@ -215,7 +215,7 @@ class host_delete(crud.Delete):
         services = api.Command['service2_find'](hostname)
         for (dn, entry_attrs) in services:
             principal = entry_attrs['krbprincipalname']
-            api.Command['service2_delete'](principal)
+            api.Command['service2_del'](principal)
 
         ldap.delete_entry(dn)
 
@@ -228,7 +228,7 @@ class host_delete(crud.Delete):
         textui.print_name(self.name)
         textui.print_dashed('Deleted host "%s".' % hostname)
 
-api.register(host_delete)
+api.register(host_del)
 
 
 class host_mod(crud.Update):

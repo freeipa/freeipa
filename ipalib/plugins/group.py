@@ -19,7 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Groups of users.
+Groups of users
 """
 
 from ipalib import api
@@ -46,7 +46,7 @@ class group(basegroup):
 api.register(group)
 
 
-class group_create(basegroup_create):
+class group_add(basegroup_add):
     """
     Create new group.
     """
@@ -82,12 +82,12 @@ class group_create(basegroup_create):
         if kw['posix'] or 'gidnumber' in kw:
             kw['objectclass'].append('posixgroup')
 
-        return super(group_create, self).execute(cn, **kw)
+        return super(group_add, self).execute(cn, **kw)
 
-api.register(group_create)
+api.register(group_add)
 
 
-class group_delete(basegroup_delete):
+class group_del(basegroup_del):
     """
     Delete group.
     """
@@ -119,9 +119,9 @@ class group_delete(basegroup_delete):
         except errors.NotFound:
             pass
 
-        return super(group_delete, self).execute(cn, **kw)
+        return super(group_del, self).execute(cn, **kw)
 
-api.register(group_delete)
+api.register(group_del)
 
 
 class group_mod(basegroup_mod):

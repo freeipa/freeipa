@@ -95,7 +95,7 @@ class user(Object):
 api.register(user)
 
 
-class user_create(crud.Create):
+class user_add(crud.Create):
     """
     Create new user.
     """
@@ -169,10 +169,10 @@ class user_create(crud.Create):
         textui.print_entry(entry_attrs)
         textui.print_dashed('Created user "%s".' % uid)
 
-api.register(user_create)
+api.register(user_add)
 
 
-class user_delete(crud.Delete):
+class user_del(crud.Delete):
     """
     Delete user.
     """
@@ -201,7 +201,7 @@ class user_delete(crud.Delete):
         textui.print_name(self.name)
         textui.print_dashed('Deleted user "%s".' % uid)
 
-api.register(user_delete)
+api.register(user_del)
 
 
 class user_mod(crud.Update):

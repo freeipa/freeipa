@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Netgroups.
+Netgroups
 """
 
 from ipalib import api
@@ -41,7 +41,7 @@ class netgroup(basegroup):
 api.register(netgroup)
 
 
-class netgroup_create(basegroup_create):
+class netgroup_add(basegroup_add):
     """
     Create new netgroup.
     """
@@ -79,10 +79,10 @@ class netgroup_create(basegroup_create):
 
         return ldap.get_entry(dn, _default_attributes)
 
-api.register(netgroup_create)
+api.register(netgroup_add)
 
 
-class netgroup_delete(basegroup_delete):
+class netgroup_del(basegroup_del):
     """
     Delete netgroup.
     """
@@ -90,9 +90,9 @@ class netgroup_delete(basegroup_delete):
     filter_class = _default_class
 
     def execute(self, cn, **kw):
-        return super(netgroup_delete, self).execute(cn, **kw)
+        return super(netgroup_del, self).execute(cn, **kw)
 
-api.register(netgroup_delete)
+api.register(netgroup_del)
 
 
 class netgroup_mod(basegroup_mod):

@@ -102,7 +102,7 @@ class service(Object):
 api.register(service)
 
 
-class service_create(crud.Create):
+class service_add(crud.Create):
     """
     Add new service.
     """
@@ -168,10 +168,10 @@ class service_create(crud.Create):
         textui.print_entry(entry_attrs)
         textui.print_dashed('Created service "%s".' % principal)
 
-api.register(service_create)
+api.register(service_add)
 
 
-class service_delete(crud.Delete):
+class service_del(crud.Delete):
     """
     Delete an existing service.
     """
@@ -206,7 +206,7 @@ class service_delete(crud.Delete):
         textui.print_name(self.name)
         textui.print_dashed('Deleted service "%s".' % principal)
 
-api.register(service_delete)
+api.register(service_del)
 
 
 class service_mod(crud.Update):

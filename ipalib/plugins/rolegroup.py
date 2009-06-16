@@ -39,28 +39,28 @@ class rolegroup(basegroup):
 api.register(rolegroup)
 
 
-class rolegroup_create(basegroup_create):
+class rolegroup_add(basegroup_add):
     """
     Create new rolegroup.
     """
-    base_classes = basegroup_create.base_classes + (_default_class, )
+    base_classes = basegroup_add.base_classes + (_default_class, )
 
     def execute(self, cn, **kw):
-        return super(rolegroup_create, self).execute(cn, **kw)
+        return super(rolegroup_add, self).execute(cn, **kw)
 
-api.register(rolegroup_create)
+api.register(rolegroup_add)
 
 
-class rolegroup_delete(basegroup_delete):
+class rolegroup_del(basegroup_del):
     """
     Delete rolegroup.
     """
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(rolegroup_delete, self).execute(cn, **kw)
+        return super(rolegroup_del, self).execute(cn, **kw)
 
-api.register(rolegroup_delete)
+api.register(rolegroup_del)
 
 
 class rolegroup_mod(basegroup_mod):

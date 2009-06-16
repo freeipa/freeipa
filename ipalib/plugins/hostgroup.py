@@ -38,28 +38,28 @@ class hostgroup(basegroup):
 api.register(hostgroup)
 
 
-class hostgroup_create(basegroup_create):
+class hostgroup_add(basegroup_add):
     """
     Create a new hostgroup.
     """
-    base_classes = basegroup_create.base_classes + (_default_class, )
+    base_classes = basegroup_add.base_classes + (_default_class, )
 
     def execute(self, cn, **kw):
-        return super(hostgroup_create, self).execute(cn, **kw)
+        return super(hostgroup_add, self).execute(cn, **kw)
 
-api.register(hostgroup_create)
+api.register(hostgroup_add)
 
 
-class hostgroup_delete(basegroup_delete):
+class hostgroup_del(basegroup_del):
     """
     Delete an existing hostgroup.
     """
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(hostgroup_delete, self).execute(cn, **kw)
+        return super(hostgroup_del, self).execute(cn, **kw)
 
-api.register(hostgroup_delete)
+api.register(hostgroup_del)
 
 
 class hostgroup_mod(basegroup_mod):

@@ -43,7 +43,7 @@ def _make_aci(current, aciname, kw):
     except errors.NotFound:
         # The task group doesn't exist, let's be helpful and add it
         tgkw = {'description': aciname}
-        (dn, entry_attrs) = api.Command['taskgroup2_create'](
+        (dn, entry_attrs) = api.Command['taskgroup2_add'](
             kw['taskgroup'], **tgkw
         )
 
@@ -151,7 +151,7 @@ class aci(Object):
 api.register(aci)
 
 
-class aci_create(crud.Create):
+class aci_add(crud.Create):
     """
     Create new ACI.
     """
@@ -188,10 +188,10 @@ class aci_create(crud.Create):
         textui.print_plain(result)
         textui.print_dashed('Created ACI "%s".' % aciname)
 
-api.register(aci_create)
+api.register(aci_add)
 
 
-class aci_delete(crud.Delete):
+class aci_del(crud.Delete):
     """
     Delete ACI.
     """
@@ -228,7 +228,7 @@ class aci_delete(crud.Delete):
         textui.print_name(self.name)
         textui.print_plain('Deleted ACI "%s".' % aciname)
 
-api.register(aci_delete)
+api.register(aci_del)
 
 
 class aci_mod(crud.Update):
@@ -252,9 +252,9 @@ class aci_mod(crud.Update):
         if 'memberof' not in kw and 'filter' not in kw:
             kw['filter'] = aci.target['targetfilter']['expression']
 
-        self.api.Command['aci_delete'](aciname)
+        self.api.Command['aci_del'](aciname)
 
-        return self.api.Command['aci_create'](aciname, **kw)
+        return self.api.Command['aci_add'](aciname, **kw)
 
     def output_for_cli(self, textui, result, aciname, **options):
         textui.print_name(self.name)

@@ -37,21 +37,21 @@ class taskgroup(basegroup):
 api.register(taskgroup)
 
 
-class taskgroup_create(basegroup_create):
+class taskgroup_add(basegroup_add):
     """
     Create new taskgroup.
     """
 
-api.register(taskgroup_create)
+api.register(taskgroup_add)
 
 
-class taskgroup_delete(basegroup_delete):
+class taskgroup_del(basegroup_del):
     """
     Delete taskgroup.
     """
     container = _container_dn
 
-api.register(taskgroup_delete)
+api.register(taskgroup_del)
 
 
 class taskgroup_mod(basegroup_mod):
