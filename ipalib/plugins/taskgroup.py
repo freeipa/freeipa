@@ -23,12 +23,12 @@ Taskgroups
 """
 
 from ipalib import api
-from ipalib.plugins.basegroup2 import *
+from ipalib.plugins.basegroup import *
 
 _container_dn = api.env.container_taskgroup
 _default_attributes = ['cn', 'description', 'member', 'memberOf']
 
-class taskgroup(basegroup2):
+class taskgroup(basegroup):
     """
     Taskgroup object.
     """
@@ -37,7 +37,7 @@ class taskgroup(basegroup2):
 api.register(taskgroup)
 
 
-class taskgroup_create(basegroup2_create):
+class taskgroup_create(basegroup_create):
     """
     Create new taskgroup.
     """
@@ -45,7 +45,7 @@ class taskgroup_create(basegroup2_create):
 api.register(taskgroup_create)
 
 
-class taskgroup_delete(basegroup2_delete):
+class taskgroup_delete(basegroup_delete):
     """
     Delete taskgroup.
     """
@@ -54,7 +54,7 @@ class taskgroup_delete(basegroup2_delete):
 api.register(taskgroup_delete)
 
 
-class taskgroup_mod(basegroup2_mod):
+class taskgroup_mod(basegroup_mod):
     """
     Edit taskgroup.
     """
@@ -63,7 +63,7 @@ class taskgroup_mod(basegroup2_mod):
 api.register(taskgroup_mod)
 
 
-class taskgroup_find(basegroup2_find):
+class taskgroup_find(basegroup_find):
     """
     Search for taskgroups.
     """
@@ -72,7 +72,7 @@ class taskgroup_find(basegroup2_find):
 api.register(taskgroup_find)
 
 
-class taskgroup_show(basegroup2_show):
+class taskgroup_show(basegroup_show):
     """
     Display taskgroup.
     """
@@ -82,12 +82,12 @@ class taskgroup_show(basegroup2_show):
 api.register(taskgroup_show)
 
 
-class taskgroup_add_member(basegroup2_add_member):
+class taskgroup_add_member(basegroup_add_member):
     """
     Add member to taskgroup.
     """
     container = _container_dn
-    takes_options = basegroup2_add_member.takes_options + (
+    takes_options = basegroup_add_member.takes_options + (
         List('rolegroups?',
             cli_name='rolegroups',
             doc='comma-separated list of role groups to add'
@@ -144,12 +144,12 @@ class taskgroup_add_member(basegroup2_add_member):
 api.register(taskgroup_add_member)
 
 
-class taskgroup_del_member(basegroup2_del_member):
+class taskgroup_del_member(basegroup_del_member):
     """
     Remove member from taskgroup.
     """
     container = _container_dn
-    takes_options = basegroup2_del_member.takes_options + (
+    takes_options = basegroup_del_member.takes_options + (
         List('rolegroups?',
             cli_name='rolegroups',
             doc='comma-separated list of role groups to remove'
