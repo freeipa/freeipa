@@ -115,7 +115,6 @@ class config2_mod(Command):
         :param kw: Keyword arguments for the other LDAP attributes.
         """
         assert 'dn' not in options
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         (dn, entry_attrs) = ldap.get_ipa_config()
@@ -163,7 +162,6 @@ class config2_show(Command):
         :param args: Not used.
         :param kw: Not used.
         """
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         return ldap.get_ipa_config()
 

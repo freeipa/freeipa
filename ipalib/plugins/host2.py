@@ -145,7 +145,6 @@ class host2_create(crud.Create):
         assert 'cn' not in kw
         assert 'dn' not in kw
         assert 'krbprincipalname' not in kw
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         entry_attrs = self.args_options_2_entry(hostname, **kw)
@@ -209,7 +208,6 @@ class host2_delete(crud.Delete):
         :param hostname: The name of the host being removed.
         :param kw: Not used.
         """
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         dn = get_host(ldap, hostname)
 
@@ -251,7 +249,6 @@ class host2_mod(crud.Update):
         """
         assert 'fqdn' not in kw
         assert 'dn' not in kw
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         dn = get_host(ldap, hostname)
 
@@ -290,7 +287,6 @@ class host2_find(crud.Search):
     )
 
     def execute(self, term, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         search_kw = self.args_options_2_entry(**kw)
@@ -358,7 +354,6 @@ class host2_show(crud.Retrieve):
         :param hostname: The login name of the host to retrieve.
         :param kw: "all" set to True = return all attributes
         """
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         dn = get_host(ldap, hostname)
 

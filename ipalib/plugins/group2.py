@@ -74,7 +74,6 @@ class group2_create(basegroup2_create):
         """
         assert 'cn' not in kw
         assert 'dn' not in kw
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         config = ldap.get_ipa_config()[1]
@@ -105,7 +104,6 @@ class group2_delete(basegroup2_delete):
         :param cn: The name of the group being removed
         :param kw: Unused
         """
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
 
@@ -153,7 +151,6 @@ class group2_mod(basegroup2_mod):
         """
         assert 'cn' not in kw
         assert 'dn' not in kw
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         if kw['posix'] or 'gidnumber' in kw:
@@ -180,7 +177,6 @@ class group2_find(basegroup2_find):
     filter_class = _default_class
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(group2_find, self).execute(cn, **kw)
 
 api.register(group2_find)
@@ -194,7 +190,6 @@ class group2_show(basegroup2_show):
     container = _container_dn
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(group2_show, self).execute(cn, **kw)
 
 api.register(group2_show)
@@ -207,7 +202,6 @@ class group2_add_member(basegroup2_add_member):
     container = _container_dn
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(group2_add_member, self).execute(cn, **kw)
 
 api.register(group2_add_member)
@@ -220,7 +214,6 @@ class group2_del_member(basegroup2_del_member):
     container = _container_dn
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(group2_del_member, self).execute(cn, **kw)
 
 api.register(group2_del_member)

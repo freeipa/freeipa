@@ -106,7 +106,6 @@ class taskgroup2_add_member(basegroup2_add_member):
         :param kw: rolegroups is a comma-separated list of rolegroups to add
         """
         assert self.container
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
         to_add = []
@@ -169,7 +168,6 @@ class taskgroup2_del_member(basegroup2_del_member):
         :param kw: rolegroups is a comma-separated list of rolegroups to remove
         """
         assert self.container
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
         to_remove = []

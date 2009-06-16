@@ -45,7 +45,6 @@ class hostgroup2_create(basegroup2_create):
     base_classes = basegroup2_create.base_classes + (_default_class, )
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(hostgroup2_create, self).execute(cn, **kw)
 
 api.register(hostgroup2_create)
@@ -58,7 +57,6 @@ class hostgroup2_delete(basegroup2_delete):
     container = _container_dn
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(hostgroup2_delete, self).execute(cn, **kw)
 
 api.register(hostgroup2_delete)
@@ -71,7 +69,6 @@ class hostgroup2_mod(basegroup2_mod):
     container = _container_dn
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(hostgroup2_mod, self).execute(cn, **kw)
 
 api.register(hostgroup2_mod)
@@ -84,7 +81,6 @@ class hostgroup2_find(basegroup2_find):
     container = _container_dn
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(hostgroup2_find, self).execute(cn, **kw)
 
 api.register(hostgroup2_find)
@@ -97,7 +93,6 @@ class hostgroup2_show(basegroup2_show):
     container = _container_dn
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(hostgroup2_show, self).execute(cn, **kw)
 
 api.register(hostgroup2_show)
@@ -136,7 +131,6 @@ class hostgroup2_add_member(basegroup2_add_member):
         :parem kw: users is a comma-separated list of users to add
         """
         assert self.container
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
         to_add = []
@@ -207,7 +201,6 @@ class hostgroup2_del_member(basegroup2_del_member):
         :parem kw: users is a comma-separated list of users to remove
         """
         assert self.container
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
         to_remove = []

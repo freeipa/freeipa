@@ -66,7 +66,6 @@ class netgroup2_create(basegroup2_create):
         """
         assert 'cn' not in kw
         assert 'dn' not in kw
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         entry_attrs = self.args_options_2_entry(cn, **kw)
@@ -91,7 +90,6 @@ class netgroup2_delete(basegroup2_delete):
     filter_class = _default_class
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(netgroup2_delete, self).execute(cn, **kw)
 
 api.register(netgroup2_delete)
@@ -105,7 +103,6 @@ class netgroup2_mod(basegroup2_mod):
     filter_class = _default_class
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(netgroup2_mod, self).execute(cn, **kw)
 
 api.register(netgroup2_mod)
@@ -119,7 +116,6 @@ class netgroup2_find(basegroup2_find):
     filter_class = _default_class
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(netgroup2_find, self).execute(cn, **kw)
 
 api.register(netgroup2_find)
@@ -134,7 +130,6 @@ class netgroup2_show(basegroup2_show):
     container = _container_dn
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(netgroup2_show, self).execute(cn, **kw)
 
 api.register(netgroup2_show)
@@ -196,7 +191,6 @@ class netgroup2_add_member(basegroup2_add_member):
         :param kw: hostgroups is a comma-separated list of hostgroups to add
         """
         assert self.container
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
         to_add = []
@@ -315,7 +309,6 @@ class netgroup2_del_member(basegroup2_del_member):
         :param kw: hostgroups is a comma-separated list of hostgroups to remove
         """
         assert self.container
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
         to_rem = []

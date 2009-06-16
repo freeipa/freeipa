@@ -151,7 +151,6 @@ class basegroup2_create(crud.Create):
         """
         assert 'cn' not in kw
         assert 'dn' not in kw
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         entry_attrs = self.args_options_2_entry(cn, **kw)
         dn = self.obj.get_dn(ldap, cn)
@@ -195,7 +194,6 @@ class basegroup2_delete(crud.Delete):
         :param kw: Unused
         """
         assert self.container
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         (dn, entry_attrs) = ldap.find_entry_by_attr(
@@ -237,7 +235,6 @@ class basegroup2_mod(crud.Update):
         assert 'dn' not in kw
         assert self.container
         assert self.filter_class
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         (dn, entry_attrs) = ldap.find_entry_by_attr(
@@ -280,7 +277,6 @@ class basegroup2_find(crud.Search):
     )
 
     def execute(self, term, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         search_kw = self.args_options_2_entry(**kw)
@@ -364,7 +360,6 @@ class basegroup2_show(crud.Retrieve):
         :param kw: Not used.
         """
         assert self.container
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         (dn, entry_attrs) = ldap.find_entry_by_attr(
@@ -424,7 +419,6 @@ class basegroup2_add_member(Command):
         :param kw: users is a comma-separated list of users to add
         """
         assert self.container
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         to_add = []
         add_failed = []
@@ -504,7 +498,6 @@ class basegroup2_del_member(Command):
         :param kw: users is a comma-separated list of users to remove
         """
         assert self.container
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         to_remove = []
         remove_failed = []

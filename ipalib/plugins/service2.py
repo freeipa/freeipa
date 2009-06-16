@@ -124,7 +124,6 @@ class service2_create(crud.Create):
         :param kw: Keyword arguments for the other LDAP attributes.
         """
         assert 'krbprincipalname' not in kw
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         # FIXME: should be in a normalizer. Need to fix normalizers to work
         # on non-unicode data
@@ -187,7 +186,6 @@ class service2_delete(crud.Delete):
         :param principal: The service to be added in the form: service/hostname
         :param kw: not used
         """
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         (dn, entry_attrs) = ldap.find_entry_by_attr(
@@ -216,7 +214,6 @@ class service2_mod(crud.Update):
     Modify service.
     """
     def execute(self, principal, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap
         # FIXME, should be in a normalizer. Need to fix normalizers to work
         # on non-unicode data.
@@ -261,7 +258,6 @@ class service2_find(crud.Search):
     )
 
     def execute(self, term, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         # lisp style!
@@ -342,7 +338,6 @@ class service2_show(crud.Retrieve):
         :param principal: The service principal to retrieve
         :param kw: Not used.
         """
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         dn = ldap.make_dn_from_attr(

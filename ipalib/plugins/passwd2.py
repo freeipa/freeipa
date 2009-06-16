@@ -52,7 +52,6 @@ class passwd2(Command):
         :param principal: The login name or principal of the user
         :param password: the new password
         """
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         if principal.find('@') != -1:

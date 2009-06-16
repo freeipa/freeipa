@@ -165,7 +165,6 @@ class aci2_create(crud.Create):
         :param kw: Keyword arguments for the other LDAP attributes.
         """
         assert 'aciname' not in kw
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         newaci = _make_aci(None, aciname, kw)
@@ -204,7 +203,6 @@ class aci2_delete(crud.Delete):
         :param kw: unused
         """
         assert 'aciname' not in kw
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         (dn, entry_attrs) = ldap.get_entry(self.api.env.basedn, ['aci'])
@@ -238,7 +236,6 @@ class aci2_mod(crud.Update):
     Modify ACI.
     """
     def execute(self, aciname, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
  
         (dn, entry_attrs) = ldap.get_entry(self.api.env.basedn, ['aci'])
@@ -272,7 +269,6 @@ class aci2_find(crud.Search):
     Search for ACIs.
     """
     def execute(self, term, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         (dn, entry_attrs) = ldap.get_entry(self.api.env.basedn, ['aci'])
@@ -374,7 +370,6 @@ class aci2_show(crud.Retrieve):
         :param uid: The login name of the user to retrieve.
         :param kw: unused
         """
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         (dn, entry_attrs) = ldap.get_entry(self.api.env.basedn, ['aci'])

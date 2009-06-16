@@ -101,7 +101,6 @@ class user2_create(crud.Create):
     """
 
     def execute(self, *args, **options):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         uid = args[0]
 
@@ -179,7 +178,6 @@ class user2_delete(crud.Delete):
     """
 
     def execute(self, uid):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         if uid == 'admin':
@@ -212,7 +210,6 @@ class user2_mod(crud.Update):
     """
 
     def execute(self, uid, **options):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         # build entry attributes, don't include uid!
@@ -251,7 +248,6 @@ class user2_find(crud.Search):
     )
 
     def execute(self, term, **options):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         # get list of search fields from config
@@ -314,7 +310,6 @@ class user2_show(crud.Retrieve):
     )
 
     def execute(self, uid, **options):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         # build entry DN
@@ -352,7 +347,6 @@ class user2_lock(Command):
     )
 
     def execute(self, uid):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         # build entry DN
@@ -388,7 +382,6 @@ class user2_unlock(Command):
     )
 
     def execute(self, uid):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         # build entry DN

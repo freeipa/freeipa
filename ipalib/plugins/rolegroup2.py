@@ -46,7 +46,6 @@ class rolegroup2_create(basegroup2_create):
     base_classes = basegroup2_create.base_classes + (_default_class, )
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(rolegroup2_create, self).execute(cn, **kw)
 
 api.register(rolegroup2_create)
@@ -59,7 +58,6 @@ class rolegroup2_delete(basegroup2_delete):
     container = _container_dn
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(rolegroup2_delete, self).execute(cn, **kw)
 
 api.register(rolegroup2_delete)
@@ -72,7 +70,6 @@ class rolegroup2_mod(basegroup2_mod):
     container = _container_dn
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(rolegroup2_mod, self).execute(cn, **kw)
 
 api.register(rolegroup2_mod)
@@ -85,7 +82,6 @@ class rolegroup2_find(basegroup2_find):
     container = _container_dn
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(rolegroup2_find, self).execute(cn, **kw)
 
 api.register(rolegroup2_find)
@@ -99,7 +95,6 @@ class rolegroup2_show(basegroup2_show):
     container = _container_dn
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(rolegroup2_show, self).execute(cn, **kw)
 
 api.register(rolegroup2_show)
@@ -112,7 +107,6 @@ class rolegroup2_add_member(basegroup2_add_member):
     container = _container_dn
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(rolegroup2_add_member, self).execute(cn, **kw)
 
 api.register(rolegroup2_add_member)
@@ -125,7 +119,6 @@ class rolegroup2_del_member(basegroup2_del_member):
     container = _container_dn
 
     def execute(self, cn, **kw):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         return super(rolegroup2_del_member, self).execute(cn, **kw)
 
 api.register(rolegroup2_del_member)

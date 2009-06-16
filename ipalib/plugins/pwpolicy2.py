@@ -84,7 +84,6 @@ class pwpolicy2_mod(Command):
 
     def execute(self, *args, **options):
         assert 'dn' not in options
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         entry_attrs = self.args_options_2_entry(*args, **options)
@@ -127,7 +126,6 @@ class pwpolicy2_show(Command):
     Display password policy.
     """
     def execute(self, *args, **options):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         dn = self.api.env.container_accounts

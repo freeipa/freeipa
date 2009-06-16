@@ -171,7 +171,6 @@ class dns2_create(crud.Create):
     """
 
     def execute(self, *args, **options):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.Backend.ldap2
         idnsname = args[0]
 
@@ -217,7 +216,6 @@ class dns2_delete(crud.Delete):
     """
 
     def execute(self, *args, **options):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         idnsname = args[0]
 
@@ -255,7 +253,6 @@ class dns2_mod(crud.Update):
     """
 
     def execute(self, *args, **options):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         idnsname = args[0]
 
@@ -297,7 +294,6 @@ class dns2_find(crud.Search):
     )
 
     def execute(self, term, **options):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         # build search filter
@@ -351,7 +347,6 @@ class dns2_show(crud.Retrieve):
     )
 
     def execute(self, idnsname, **options):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         # build entry DN
@@ -389,7 +384,6 @@ class dns2_enable(Command):
     )
 
     def execute(self, zone):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         # build entry DN
@@ -425,7 +419,6 @@ class dns2_disable(Command):
     )
 
     def execute(self, zone):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
 
         # build entry DN
@@ -490,7 +483,6 @@ class dns2_add_rr(Command):
     )
 
     def execute(self, zone, idnsname, type, data, **options):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         attr = '%srecord' % type
 
@@ -585,7 +577,6 @@ class dns2_del_rr(Command):
     )
 
     def execute(self, zone, idnsname, type, data):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         attr = '%srecord' % type
 
@@ -677,7 +668,6 @@ class dns2_find_rr(Command):
     )
 
     def execute(self, zone, term, **options):
-        assert self.api.env.use_ldap2, 'use_ldap2 is False'
         ldap = self.api.Backend.ldap2
         if 'type' in options:
             attr = '%srecord' % options['type']
