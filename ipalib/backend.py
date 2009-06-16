@@ -98,10 +98,7 @@ class Executioner(Backend):
 
     def create_context(self, ccache=None, client_ip=None):
         if self.env.in_server:
-            if self.api.env.use_ldap2:
-                self.Backend.ldap2.connect(ccache=ccache)
-            else:
-                self.Backend.ldap.connect(ccache)
+            self.Backend.ldap2.connect(ccache=ccache)
         else:
             self.Backend.xmlclient.connect()
 
