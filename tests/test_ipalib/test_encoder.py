@@ -113,7 +113,7 @@ class test_Encoder(ClassChecker):
         expected = [u'1', [u'1', u'2', u'3']]
         assert_equal(o.decode(['1', ['1', '2', '3']]), expected)
         # tuples
-        expected = (_test_str_d, '1')
+        expected = (_test_str_d, 1)
         assert_equal(o.decode((_test_str_e, 1)), expected)
         expected = (u'1', (u'1', u'2', u'3'))
         assert_equal(o.decode(('1', ('1', '2', '3'))), expected)
