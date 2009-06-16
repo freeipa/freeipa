@@ -473,21 +473,13 @@ class Command(HasParam):
         return dict(self.__attributes_2_entry(kw))
 
     def __attributes_2_entry(self, kw):
-        if self.api.env.use_ldap2:
-            for name in self.params:
-                if self.params[name].attribute and name in kw:
-                    value = kw[name]
-                    if isinstance(value, tuple):
-                        yield (name, [v for v in value])
-                    else:
-                        yield (name, kw[name])
-        else:
-            for name in self.params:
-                if self.params[name].attribute and name in kw:
-                    if type(kw[name]) is tuple:
-                        yield (name, [str(value) for value in kw[name]])
-                    else:
-                        yield (name, str(kw[name]))
+        for name in self.params:
+            if self.params[name].attribute and name in kw:
+                value = kw[name]
+                if isinstance(value, tuple):
+                    yield (name, [v for v in value])
+                else:
+                    yield (name, kw[name])
 
     def params_2_args_options(self, **params):
         """

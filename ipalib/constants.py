@@ -109,7 +109,6 @@ DEFAULT_CONFIG = (
     ('verbose', False),
     ('debug', False),
     ('mode', 'production'),
-    ('use_ldap2', False),
 
     # CA plugin:
     ('ca_host', object),  # Set in Env._finalize_core()
