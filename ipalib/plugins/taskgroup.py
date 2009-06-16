@@ -28,61 +28,61 @@ from ipalib.plugins.basegroup2 import *
 _container_dn = api.env.container_taskgroup
 _default_attributes = ['cn', 'description', 'member', 'memberOf']
 
-class taskgroup2(basegroup2):
+class taskgroup(basegroup2):
     """
     Taskgroup object.
     """
     container = _container_dn
 
-api.register(taskgroup2)
+api.register(taskgroup)
 
 
-class taskgroup2_create(basegroup2_create):
+class taskgroup_create(basegroup2_create):
     """
     Create new taskgroup.
     """
 
-api.register(taskgroup2_create)
+api.register(taskgroup_create)
 
 
-class taskgroup2_delete(basegroup2_delete):
+class taskgroup_delete(basegroup2_delete):
     """
     Delete taskgroup.
     """
     container = _container_dn
 
-api.register(taskgroup2_delete)
+api.register(taskgroup_delete)
 
 
-class taskgroup2_mod(basegroup2_mod):
+class taskgroup_mod(basegroup2_mod):
     """
     Edit taskgroup.
     """
     container = _container_dn
 
-api.register(taskgroup2_mod)
+api.register(taskgroup_mod)
 
 
-class taskgroup2_find(basegroup2_find):
+class taskgroup_find(basegroup2_find):
     """
     Search for taskgroups.
     """
     container = _container_dn
 
-api.register(taskgroup2_find)
+api.register(taskgroup_find)
 
 
-class taskgroup2_show(basegroup2_show):
+class taskgroup_show(basegroup2_show):
     """
     Display taskgroup.
     """
     default_attributes = _default_attributes
     container = _container_dn
 
-api.register(taskgroup2_show)
+api.register(taskgroup_show)
 
 
-class taskgroup2_add_member(basegroup2_add_member):
+class taskgroup_add_member(basegroup2_add_member):
     """
     Add member to taskgroup.
     """
@@ -141,10 +141,10 @@ class taskgroup2_add_member(basegroup2_add_member):
 
         return (completed, ldap.get_entry(dn, _default_attributes))
 
-api.register(taskgroup2_add_member)
+api.register(taskgroup_add_member)
 
 
-class taskgroup2_del_member(basegroup2_del_member):
+class taskgroup_del_member(basegroup2_del_member):
     """
     Remove member from taskgroup.
     """
@@ -203,5 +203,5 @@ class taskgroup2_del_member(basegroup2_del_member):
 
         return (completed, ldap.get_entry(dn, _default_attributes))
 
-api.register(taskgroup2_del_member)
+api.register(taskgroup_del_member)
 

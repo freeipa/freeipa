@@ -101,7 +101,7 @@ def _normalize_permissions(permissions):
     return ','.join(valid_permissions)
 
 
-class aci2(Object):
+class aci(Object):
     """
     ACI object.
     """
@@ -148,10 +148,10 @@ class aci2(Object):
         ),
     )
 
-api.register(aci2)
+api.register(aci)
 
 
-class aci2_create(crud.Create):
+class aci_create(crud.Create):
     """
     Create new ACI.
     """
@@ -188,10 +188,10 @@ class aci2_create(crud.Create):
         textui.print_plain(result)
         textui.print_dashed('Created ACI "%s".' % aciname)
 
-api.register(aci2_create)
+api.register(aci_create)
 
 
-class aci2_delete(crud.Delete):
+class aci_delete(crud.Delete):
     """
     Delete ACI.
     """
@@ -228,10 +228,10 @@ class aci2_delete(crud.Delete):
         textui.print_name(self.name)
         textui.print_plain('Deleted ACI "%s".' % aciname)
 
-api.register(aci2_delete)
+api.register(aci_delete)
 
 
-class aci2_mod(crud.Update):
+class aci_mod(crud.Update):
     """
     Modify ACI.
     """
@@ -252,19 +252,19 @@ class aci2_mod(crud.Update):
         if 'memberof' not in kw and 'filter' not in kw:
             kw['filter'] = aci.target['targetfilter']['expression']
 
-        self.api.Command['aci2_delete'](aciname)
+        self.api.Command['aci_delete'](aciname)
 
-        return self.api.Command['aci2_create'](aciname, **kw)
+        return self.api.Command['aci_create'](aciname, **kw)
 
     def output_for_cli(self, textui, result, aciname, **options):
         textui.print_name(self.name)
         textui.print_plain(result)
         textui.print_dashed('Modified ACI "%s".' % aciname)
 
-api.register(aci2_mod)
+api.register(aci_mod)
 
 
-class aci2_find(crud.Search):
+class aci_find(crud.Search):
     """
     Search for ACIs.
     """
@@ -354,10 +354,10 @@ class aci2_find(crud.Search):
             len(result), '%i ACI matched.', '%i ACIs matched.'
         )
 
-api.register(aci2_find)
+api.register(aci_find)
 
 
-class aci2_show(crud.Retrieve):
+class aci_show(crud.Retrieve):
     """
     Display ACI.
     """
@@ -382,5 +382,5 @@ class aci2_show(crud.Retrieve):
         textui.print_name(self.name)
         textui.print_plain(result)
 
-api.register(aci2_show)
+api.register(aci_show)
 

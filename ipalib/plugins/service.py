@@ -82,7 +82,7 @@ def validate_certificate(ugettext, cert):
         raise errors.Base64DecodeError(reason=str(e))
 
 
-class service2(Object):
+class service(Object):
     """
     Service object.
     """
@@ -99,10 +99,10 @@ class service2(Object):
         ),
     )
 
-api.register(service2)
+api.register(service)
 
 
-class service2_create(crud.Create):
+class service_create(crud.Create):
     """
     Add new service.
     """
@@ -168,10 +168,10 @@ class service2_create(crud.Create):
         textui.print_entry(entry_attrs)
         textui.print_dashed('Created service "%s".' % principal)
 
-api.register(service2_create)
+api.register(service_create)
 
 
-class service2_delete(crud.Delete):
+class service_delete(crud.Delete):
     """
     Delete an existing service.
     """
@@ -206,10 +206,10 @@ class service2_delete(crud.Delete):
         textui.print_name(self.name)
         textui.print_dashed('Deleted service "%s".' % principal)
 
-api.register(service2_delete)
+api.register(service_delete)
 
 
-class service2_mod(crud.Update):
+class service_mod(crud.Update):
     """
     Modify service.
     """
@@ -244,10 +244,10 @@ class service2_mod(crud.Update):
         textui.print_entry(entry_attrs)
         textui.print_dashed('Modified service "%s".' % principal)
 
-api.register(service2_mod)
+api.register(service_mod)
 
 
-class service2_find(crud.Search):
+class service_find(crud.Search):
     """
     Search for services.
     """
@@ -313,10 +313,10 @@ class service2_find(crud.Search):
                 'Please refine your search and try again.', above=False
             )
 
-api.register(service2_find)
+api.register(service_find)
 
 
-class service2_show(crud.Retrieve):
+class service_show(crud.Retrieve):
     """
     Display service.
     """
@@ -358,5 +358,5 @@ class service2_show(crud.Retrieve):
         textui.print_attribute('dn', dn)
         textui.print_entry(entry_attrs)
 
-api.register(service2_show)
+api.register(service_show)
 

@@ -23,30 +23,30 @@ Groups of users.
 """
 
 from ipalib import api
-from ipalib.plugins.basegroup2 import *
+from ipalib.plugins.basegroup import *
 
 _container_dn = api.env.container_group
 _default_attributes = ['cn', 'description', 'gidnumber', 'member', 'memberof']
 _default_class = 'ipausergroup'
 
 
-class group2(basegroup2):
+class group(basegroup):
     """
     Group object.
     """
     container = _container_dn
 
-    takes_params = basegroup2.takes_params + (
+    takes_params = basegroup.takes_params + (
         Int('gidnumber?',
             cli_name='gid',
             doc='GID (use this option to set it manually)',
         ),
     )
 
-api.register(group2)
+api.register(group)
 
 
-class group2_create(basegroup2_create):
+class group_create(basegroup_create):
     """
     Create new group.
     """
@@ -82,12 +82,12 @@ class group2_create(basegroup2_create):
         if kw['posix'] or 'gidnumber' in kw:
             kw['objectclass'].append('posixgroup')
 
-        return super(group2_create, self).execute(cn, **kw)
+        return super(group_create, self).execute(cn, **kw)
 
-api.register(group2_create)
+api.register(group_create)
 
 
-class group2_delete(basegroup2_delete):
+class group_delete(basegroup_delete):
     """
     Delete group.
     """
@@ -119,12 +119,12 @@ class group2_delete(basegroup2_delete):
         except errors.NotFound:
             pass
 
-        return super(group2_delete, self).execute(cn, **kw)
+        return super(group_delete, self).execute(cn, **kw)
 
-api.register(group2_delete)
+api.register(group_delete)
 
 
-class group2_mod(basegroup2_mod):
+class group_mod(basegroup_mod):
     """
     Modify group.
     """
@@ -163,12 +163,12 @@ class group2_mod(basegroup2_mod):
                 entry_attrs['objectclass'].append('posixgroup')
                 kw['objectclass'] = entry_attrs['objectclass']
 
-        return super(group2_mod, self).execute(cn, **kw)
+        return super(group_mod, self).execute(cn, **kw)
 
-api.register(group2_mod)
+api.register(group_mod)
 
 
-class group2_find(basegroup2_find):
+class group_find(basegroup_find):
     """
     Search for groups.
     """
@@ -177,12 +177,12 @@ class group2_find(basegroup2_find):
     filter_class = _default_class
 
     def execute(self, cn, **kw):
-        return super(group2_find, self).execute(cn, **kw)
+        return super(group_find, self).execute(cn, **kw)
 
-api.register(group2_find)
+api.register(group_find)
 
 
-class group2_show(basegroup2_show):
+class group_show(basegroup_show):
     """
     Display group.
     """
@@ -190,31 +190,31 @@ class group2_show(basegroup2_show):
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(group2_show, self).execute(cn, **kw)
+        return super(group_show, self).execute(cn, **kw)
 
-api.register(group2_show)
+api.register(group_show)
 
 
-class group2_add_member(basegroup2_add_member):
+class group_add_member(basegroup_add_member):
     """
     Add members to group.
     """
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(group2_add_member, self).execute(cn, **kw)
+        return super(group_add_member, self).execute(cn, **kw)
 
-api.register(group2_add_member)
+api.register(group_add_member)
 
 
-class group2_del_member(basegroup2_del_member):
+class group_del_member(basegroup_del_member):
     """
     Remove members from group.
     """
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(group2_del_member, self).execute(cn, **kw)
+        return super(group_del_member, self).execute(cn, **kw)
 
-api.register(group2_del_member)
+api.register(group_del_member)
 

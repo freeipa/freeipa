@@ -34,7 +34,7 @@ _default_attributes = [
 ]
 
 
-class user2(Object):
+class user(Object):
     """
     User object.
     """
@@ -92,10 +92,10 @@ class user2(Object):
         ),
     )
 
-api.register(user2)
+api.register(user)
 
 
-class user2_create(crud.Create):
+class user_create(crud.Create):
     """
     Create new user.
     """
@@ -169,10 +169,10 @@ class user2_create(crud.Create):
         textui.print_entry(entry_attrs)
         textui.print_dashed('Created user "%s".' % uid)
 
-api.register(user2_create)
+api.register(user_create)
 
 
-class user2_delete(crud.Delete):
+class user_delete(crud.Delete):
     """
     Delete user.
     """
@@ -201,10 +201,10 @@ class user2_delete(crud.Delete):
         textui.print_name(self.name)
         textui.print_dashed('Deleted user "%s".' % uid)
 
-api.register(user2_delete)
+api.register(user_delete)
 
 
-class user2_mod(crud.Update):
+class user_mod(crud.Update):
     """
     Modify user.
     """
@@ -233,10 +233,10 @@ class user2_mod(crud.Update):
         textui.print_entry(entry_attrs)
         textui.print_dashed('Modified user "%s".' % uid)
 
-api.register(user2_mod)
+api.register(user_mod)
 
 
-class user2_find(crud.Search):
+class user_find(crud.Search):
     """
     Search for users.
     """
@@ -295,10 +295,10 @@ class user2_find(crud.Search):
                 'Please refine your search and try again.', above=False
             )
 
-api.register(user2_find)
+api.register(user_find)
 
 
-class user2_show(crud.Retrieve):
+class user_show(crud.Retrieve):
     """
     Display user.
     """
@@ -331,10 +331,10 @@ class user2_show(crud.Retrieve):
         textui.print_attribute('dn', dn)
         textui.print_entry(entry_attrs)
 
-api.register(user2_show)
+api.register(user_show)
 
 
-class user2_lock(Command):
+class user_lock(Command):
     """
     Lock user account.
     """
@@ -366,10 +366,10 @@ class user2_lock(Command):
         textui.print_name(self.name)
         textui.print_dashed('Locked user "%s".' % uid)
 
-api.register(user2_lock)
+api.register(user_lock)
 
 
-class user2_unlock(Command):
+class user_unlock(Command):
     """
     Unlock user account.
     """
@@ -401,5 +401,5 @@ class user2_unlock(Command):
         textui.print_name(self.name)
         textui.print_dashed('Unlocked user "%s".' % uid)
 
-api.register(user2_unlock)
+api.register(user_unlock)
 

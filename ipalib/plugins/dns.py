@@ -25,34 +25,34 @@ the BIND LDAP plugin.
 EXAMPLES:
 
  Add new zone;
-   ipa dns2-create example.com nameserver.example.com admin@example.com
+   ipa dns-create example.com nameserver.example.com admin@example.com
 
  Add second nameserver for example.com:
-   ipa dns2-add-rr example.com @ NS nameserver2.example.com
+   ipa dns-add-rr example.com @ NS nameserver2.example.com
 
  Delete previously added nameserver from example.com:
-   ipa dns2-del-rr example.com @ NS nameserver2.example.com
+   ipa dns-del-rr example.com @ NS nameserver2.example.com
 
  Add new A record for www.example.com: (random IP)
-   ipa dns2-add-rr example.com www A 80.142.15.2
+   ipa dns-add-rr example.com www A 80.142.15.2
 
  Show zone example.com:
-   ipa dns2-show example.com
+   ipa dns-show example.com
 
  Find zone with 'example' in it's domain name:
-   ipa dns2-find example
+   ipa dns-find example
 
  Find records for resources with 'www' in their name in zone example.com:
-   ipa dns2-find-rr example.com www
+   ipa dns-find-rr example.com www
 
  Find A records for resource www in zone example.com
-   ipa dns2-find-rr example.com --resource www --type A
+   ipa dns-find-rr example.com --resource www --type A
 
  Show records for resource www in zone example.com
-   ipa dns2-show-rr example.com www
+   ipa dns-show-rr example.com www
 
  Delete zone example.com with all resource records:
-   ipa dns2-delete example.com
+   ipa dns-delete example.com
 """
 
 # A few notes about the LDAP schema to make this plugin more understandable:
@@ -107,7 +107,7 @@ def _get_record_dn(ldap, zone, idnsname):
     return ldap.make_dn_from_rdn(rdn, parent_dn)
 
 
-class dns2(Object):
+class dns(Object):
     """DNS zone/SOA record object."""
 
     takes_params = (
@@ -162,10 +162,10 @@ class dns2(Object):
         ),
     )
 
-api.register(dns2)
+api.register(dns)
 
 
-class dns2_create(crud.Create):
+class dns_create(crud.Create):
     """
     Create new DNS zone/SOA record.
     """
@@ -207,10 +207,10 @@ class dns2_create(crud.Create):
         textui.print_entry(entry_attrs)
         textui.print_dashed('Created DNS zone "%s".' % idnsname)
 
-api.register(dns2_create)
+api.register(dns_create)
 
 
-class dns2_delete(crud.Delete):
+class dns_delete(crud.Delete):
     """
     Delete existing DNS zone/SOA record.
     """
@@ -244,10 +244,10 @@ class dns2_delete(crud.Delete):
         textui.print_name(self.name)
         textui.print_dashed('Deleted DNS zone "%s".' % args[0])
 
-api.register(dns2_delete)
+api.register(dns_delete)
 
 
-class dns2_mod(crud.Update):
+class dns_mod(crud.Update):
     """
     Modify DNS zone/SOA record.
     """
@@ -279,10 +279,10 @@ class dns2_mod(crud.Update):
         textui.print_entry(entry_attrs)
         textui.print_dashed('Modified DNS zone "%s".' % idnsname)
 
-api.register(dns2_mod)
+api.register(dns_mod)
 
 
-class dns2_find(crud.Search):
+class dns_find(crud.Search):
     """
     Search for DNS zones/SOA records.
     """
@@ -332,10 +332,10 @@ class dns2_find(crud.Search):
                 'Please refine your search and try again.', above=False
             )
 
-api.register(dns2_find)
+api.register(dns_find)
 
 
-class dns2_show(crud.Retrieve):
+class dns_show(crud.Retrieve):
     """
     Display DNS zone/SOA record.
     """
@@ -367,10 +367,10 @@ class dns2_show(crud.Retrieve):
         textui.print_attribute('dn', dn)
         textui.print_entry(entry_attrs)
 
-api.register(dns2_show)
+api.register(dns_show)
 
 
-class dns2_enable(Command):
+class dns_enable(Command):
     """
     Activate DNS zone.
     """
@@ -402,10 +402,10 @@ class dns2_enable(Command):
         textui.print_name(self.name)
         textui.print_dashed('Activated DNS zone "%s".' % zone)
 
-api.register(dns2_enable)
+api.register(dns_enable)
 
 
-class dns2_disable(Command):
+class dns_disable(Command):
     """
     Deactivate DNS zone.
     """
@@ -437,10 +437,10 @@ class dns2_disable(Command):
         textui.print_name(self.name)
         textui.print_dashed('Deactivated DNS zone "%s".' % zone)
 
-api.register(dns2_disable)
+api.register(dns_disable)
 
 
-class dns2_add_rr(Command):
+class dns_add_rr(Command):
     """
     Add new DNS resource record.
     """
@@ -545,10 +545,10 @@ class dns2_add_rr(Command):
         textui.print_entry(entry_attrs)
         textui.print_dashed('Added DNS resource record %s.' % output)
 
-api.register(dns2_add_rr)
+api.register(dns_add_rr)
 
 
-class dns2_del_rr(Command):
+class dns_del_rr(Command):
     """
     Delete DNS resource record.
     """
@@ -627,10 +627,10 @@ class dns2_del_rr(Command):
             textui.print_entry(entry_attrs)
         textui.print_dashed('Deleted DNS resource record %s' % output)
 
-api.register(dns2_del_rr)
+api.register(dns_del_rr)
 
 
-class dns2_find_rr(Command):
+class dns_find_rr(Command):
     """
     Search for DNS resource records.
     """
@@ -750,10 +750,10 @@ class dns2_find_rr(Command):
                 'Please refine your search and try again.', above=False
             )
 
-api.register(dns2_find_rr)
+api.register(dns_find_rr)
 
 
-class dns2_show_rr(Command):
+class dns_show_rr(Command):
     """
     Show existing DNS resource records.
     """
@@ -799,5 +799,5 @@ class dns2_show_rr(Command):
         textui.print_attribute('dn', dn)
         textui.print_entry(entry_attrs)
 
-api.register(dns2_show_rr)
+api.register(dns_show_rr)
 

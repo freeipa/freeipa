@@ -45,7 +45,7 @@ def _convert_time_for_output(entry_attrs):
         )
 
 
-class pwpolicy2_mod(Command):
+class pwpolicy_mod(Command):
     """
     Modify password policy.
     """
@@ -118,10 +118,10 @@ class pwpolicy2_mod(Command):
                 textui.print_attribute(v, entry_attrs[k])
         textui.print_dashed('Modified password policy.')
 
-api.register(pwpolicy2_mod)
+api.register(pwpolicy_mod)
 
 
-class pwpolicy2_show(Command):
+class pwpolicy_show(Command):
     """
     Display password policy.
     """
@@ -144,5 +144,5 @@ class pwpolicy2_show(Command):
             if k in entry_attrs:
                 textui.print_attribute(v, entry_attrs[k])
 
-api.register(pwpolicy2_show)
+api.register(pwpolicy_show)
 

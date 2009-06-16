@@ -104,7 +104,7 @@ def del_members(ldap, completed, members, rem_failed, group_dn, memberattr):
     return (completed, rem_failed)
 
 
-class basegroup2(Object):
+class basegroup(Object):
     """
     Basic Group object.
     """
@@ -131,7 +131,7 @@ class basegroup2(Object):
         return ldap.make_dn_from_attr('cn', cn, self.container)
 
 
-class basegroup2_create(crud.Create):
+class basegroup_create(crud.Create):
     """
     Create new group.
     """
@@ -176,7 +176,7 @@ class basegroup2_create(crud.Create):
         textui.print_dashed('Created group "%s".' % cn)
 
 
-class basegroup2_delete(crud.Delete):
+class basegroup_delete(crud.Delete):
     """
     Delete group.
     """
@@ -212,7 +212,7 @@ class basegroup2_delete(crud.Delete):
         textui.print_dashed('Deleted group "%s"' % cn)
 
 
-class basegroup2_mod(crud.Update):
+class basegroup_mod(crud.Update):
     """
     Modify group.
     """
@@ -261,7 +261,7 @@ class basegroup2_mod(crud.Update):
         textui.print_dashed('Modified group "%s"' % cn)
 
 
-class basegroup2_find(crud.Search):
+class basegroup_find(crud.Search):
     """
     Search for groups.
     """
@@ -333,7 +333,7 @@ class basegroup2_find(crud.Search):
             )
 
 
-class basegroup2_show(crud.Retrieve):
+class basegroup_show(crud.Retrieve):
     """
     Display group.
     """
@@ -381,7 +381,7 @@ class basegroup2_show(crud.Retrieve):
         textui.print_entry(entry_attrs)
 
 
-class basegroup2_add_member(Command):
+class basegroup_add_member(Command):
     """
     Add members to group.
     """
@@ -460,7 +460,7 @@ class basegroup2_add_member(Command):
         textui.print_count(total, '%i member added.', '%i members added.')
 
 
-class basegroup2_del_member(Command):
+class basegroup_del_member(Command):
     """
     Remove members from group.
     """

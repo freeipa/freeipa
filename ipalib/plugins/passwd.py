@@ -25,7 +25,7 @@ from ipalib import Command
 from ipalib import Str, Password
 
 
-class passwd2(Command):
+class passwd(Command):
     """
     Change user password.
     """
@@ -74,5 +74,5 @@ class passwd2(Command):
         textui.print_name(self.name)
         textui.print_dashed('Changed password for "%s."' % principal)
 
-api.register(passwd2)
+api.register(passwd)
 

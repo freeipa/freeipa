@@ -77,7 +77,7 @@ def determine_platform():
     return unicode(machine)
 
 
-class host2(Object):
+class host(Object):
     """
     Host object.
     """
@@ -119,10 +119,10 @@ class host2(Object):
         ),
     )
 
-api.register(host2)
+api.register(host)
 
 
-class host2_create(crud.Create):
+class host_create(crud.Create):
     """
     Create new host.
     """
@@ -192,10 +192,10 @@ class host2_create(crud.Create):
         textui.print_entry(entry_attrs)
         textui.print_dashed('Created host "%s".' % hostname)
 
-api.register(host2_create)
+api.register(host_create)
 
 
-class host2_delete(crud.Delete):
+class host_delete(crud.Delete):
     """
     Delete host.
     """
@@ -228,10 +228,10 @@ class host2_delete(crud.Delete):
         textui.print_name(self.name)
         textui.print_dashed('Deleted host "%s".' % hostname)
 
-api.register(host2_delete)
+api.register(host_delete)
 
 
-class host2_mod(crud.Update):
+class host_mod(crud.Update):
     """
     Modify host.
     """
@@ -272,10 +272,10 @@ class host2_mod(crud.Update):
         textui.print_entry(entry_attrs)
         textui.print_dashed('Modified host "%s".' % hostname)
 
-api.register(host2_mod)
+api.register(host_mod)
 
 
-class host2_find(crud.Search):
+class host_find(crud.Search):
     """
     Search for hosts.
     """
@@ -329,10 +329,10 @@ class host2_find(crud.Search):
                 'Please refine your search and try again.', above=False
             )
 
-api.register(host2_find)
+api.register(host_find)
 
 
-class host2_show(crud.Retrieve):
+class host_show(crud.Retrieve):
     """
     Display host.
     """
@@ -371,5 +371,5 @@ class host2_show(crud.Retrieve):
         textui.print_attribute('dn', dn)
         textui.print_entry(entry_attrs)
 
-api.register(host2_show)
+api.register(host_show)
 

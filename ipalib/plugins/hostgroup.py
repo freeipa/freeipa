@@ -22,83 +22,83 @@ Groups of hosts.
 """
 
 from ipalib import api
-from ipalib.plugins.basegroup2 import *
+from ipalib.plugins.basegroup import *
 
 _container_dn = api.env.container_hostgroup
 _default_attributes = ['cn', 'description', 'member', 'memberof']
 _default_class = 'ipahostgroup'
 
 
-class hostgroup2(basegroup2):
+class hostgroup(basegroup):
     """
     Hostgroup object.
     """
     container = _container_dn
 
-api.register(hostgroup2)
+api.register(hostgroup)
 
 
-class hostgroup2_create(basegroup2_create):
+class hostgroup_create(basegroup_create):
     """
     Create a new hostgroup.
     """
-    base_classes = basegroup2_create.base_classes + (_default_class, )
+    base_classes = basegroup_create.base_classes + (_default_class, )
 
     def execute(self, cn, **kw):
-        return super(hostgroup2_create, self).execute(cn, **kw)
+        return super(hostgroup_create, self).execute(cn, **kw)
 
-api.register(hostgroup2_create)
+api.register(hostgroup_create)
 
 
-class hostgroup2_delete(basegroup2_delete):
+class hostgroup_delete(basegroup_delete):
     """
     Delete an existing hostgroup.
     """
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(hostgroup2_delete, self).execute(cn, **kw)
+        return super(hostgroup_delete, self).execute(cn, **kw)
 
-api.register(hostgroup2_delete)
+api.register(hostgroup_delete)
 
 
-class hostgroup2_mod(basegroup2_mod):
+class hostgroup_mod(basegroup_mod):
     """
     Edit an existing hostgroup.
     """
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(hostgroup2_mod, self).execute(cn, **kw)
+        return super(hostgroup_mod, self).execute(cn, **kw)
 
-api.register(hostgroup2_mod)
+api.register(hostgroup_mod)
 
 
-class hostgroup2_find(basegroup2_find):
+class hostgroup_find(basegroup_find):
     """
     Search the groups.
     """
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(hostgroup2_find, self).execute(cn, **kw)
+        return super(hostgroup_find, self).execute(cn, **kw)
 
-api.register(hostgroup2_find)
+api.register(hostgroup_find)
 
 
-class hostgroup2_show(basegroup2_show):
+class hostgroup_show(basegroup_show):
     """
     Examine an existing hostgroup.
     """
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(hostgroup2_show, self).execute(cn, **kw)
+        return super(hostgroup_show, self).execute(cn, **kw)
 
-api.register(hostgroup2_show)
+api.register(hostgroup_show)
 
 
-class hostgroup2_add_member(basegroup2_add_member):
+class hostgroup_add_member(basegroup_add_member):
     """
     Add members to hostgroup.
     """
@@ -166,10 +166,10 @@ class hostgroup2_add_member(basegroup2_add_member):
 
         return (completed, ldap.get_entry(dn, self.default_attributes))
 
-api.register(hostgroup2_add_member)
+api.register(hostgroup_add_member)
 
 
-class hostgroup2_del_member(basegroup2_del_member):
+class hostgroup_del_member(basegroup_del_member):
     """
     Remove members from hostgroup.
     """
@@ -236,5 +236,5 @@ class hostgroup2_del_member(basegroup2_del_member):
 
         return (completed, ldap.get_entry(dn, _default_attributes))
 
-api.register(hostgroup2_del_member)
+api.register(hostgroup_del_member)
 

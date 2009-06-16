@@ -22,7 +22,7 @@ Netgroups.
 """
 
 from ipalib import api
-from ipalib.plugins.basegroup2 import *
+from ipalib.plugins.basegroup import *
 from ipalib import uuid
 
 _container_dn = 'cn=ng,cn=alt'
@@ -32,16 +32,16 @@ _default_attributes = [
 _default_class = 'ipanisnetgroup'
 
 
-class netgroup2(basegroup2):
+class netgroup(basegroup):
     """
     Netgroup object.
     """
     container = _container_dn
 
-api.register(netgroup2)
+api.register(netgroup)
 
 
-class netgroup2_create(basegroup2_create):
+class netgroup_create(basegroup_create):
     """
     Create new netgroup.
     """
@@ -79,10 +79,10 @@ class netgroup2_create(basegroup2_create):
 
         return ldap.get_entry(dn, _default_attributes)
 
-api.register(netgroup2_create)
+api.register(netgroup_create)
 
 
-class netgroup2_delete(basegroup2_delete):
+class netgroup_delete(basegroup_delete):
     """
     Delete netgroup.
     """
@@ -90,12 +90,12 @@ class netgroup2_delete(basegroup2_delete):
     filter_class = _default_class
 
     def execute(self, cn, **kw):
-        return super(netgroup2_delete, self).execute(cn, **kw)
+        return super(netgroup_delete, self).execute(cn, **kw)
 
-api.register(netgroup2_delete)
+api.register(netgroup_delete)
 
 
-class netgroup2_mod(basegroup2_mod):
+class netgroup_mod(basegroup_mod):
     """
     Edit an existing netgroup.
     """
@@ -103,12 +103,12 @@ class netgroup2_mod(basegroup2_mod):
     filter_class = _default_class
 
     def execute(self, cn, **kw):
-        return super(netgroup2_mod, self).execute(cn, **kw)
+        return super(netgroup_mod, self).execute(cn, **kw)
 
-api.register(netgroup2_mod)
+api.register(netgroup_mod)
 
 
-class netgroup2_find(basegroup2_find):
+class netgroup_find(basegroup_find):
     """
     Search the groups.
     """
@@ -116,12 +116,12 @@ class netgroup2_find(basegroup2_find):
     filter_class = _default_class
 
     def execute(self, cn, **kw):
-        return super(netgroup2_find, self).execute(cn, **kw)
+        return super(netgroup_find, self).execute(cn, **kw)
 
-api.register(netgroup2_find)
+api.register(netgroup_find)
 
 
-class netgroup2_show(basegroup2_show):
+class netgroup_show(basegroup_show):
     """
     Display netgroup.
     """
@@ -130,12 +130,12 @@ class netgroup2_show(basegroup2_show):
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(netgroup2_show, self).execute(cn, **kw)
+        return super(netgroup_show, self).execute(cn, **kw)
 
-api.register(netgroup2_show)
+api.register(netgroup_show)
 
 
-class netgroup2_add_member(basegroup2_add_member):
+class netgroup_add_member(basegroup_add_member):
     """
     Add members to netgroup.
     """
@@ -143,7 +143,7 @@ class netgroup2_add_member(basegroup2_add_member):
     container = _container_dn
     filter_class = _default_class
 
-    takes_options = basegroup2_add_member.takes_options + (
+    takes_options = basegroup_add_member.takes_options + (
         List('hosts?',
             cli_name='hosts',
             doc='comma-separated list of hosts to add'
@@ -250,10 +250,10 @@ class netgroup2_add_member(basegroup2_add_member):
 
         return (completed, ldap.get_entry(dn, _default_attributes))
 
-api.register(netgroup2_add_member)
+api.register(netgroup_add_member)
 
 
-class netgroup2_del_member(basegroup2_del_member):
+class netgroup_del_member(basegroup_del_member):
     """
     Remove a member from a netgroup.
     """
@@ -261,7 +261,7 @@ class netgroup2_del_member(basegroup2_del_member):
     container = _container_dn
     filter_class = _default_class
 
-    takes_options = basegroup2_del_member.takes_options + (
+    takes_options = basegroup_del_member.takes_options + (
         List('hosts?',
             cli_name='hosts',
             doc='comma-separated list of hosts to remove'
@@ -368,5 +368,5 @@ class netgroup2_del_member(basegroup2_del_member):
 
         return (completed, ldap.get_entry(dn, _default_attributes))
 
-api.register(netgroup2_del_member)
+api.register(netgroup_del_member)
 

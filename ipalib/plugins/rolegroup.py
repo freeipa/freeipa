@@ -23,71 +23,71 @@ Groups of roles
 """
 
 from ipalib import api
-from ipalib.plugins.basegroup2 import *
+from ipalib.plugins.basegroup import *
 
 _container_dn = api.env.container_rolegroup
 _default_attributes = ['cn', 'description', 'member', 'memberOf']
 _default_class = 'nestedGroup'
 
 
-class rolegroup2(basegroup2):
+class rolegroup(basegroup):
     """
     Rolegroup object.
     """
     container = _container_dn
 
-api.register(rolegroup2)
+api.register(rolegroup)
 
 
-class rolegroup2_create(basegroup2_create):
+class rolegroup_create(basegroup_create):
     """
     Create new rolegroup.
     """
-    base_classes = basegroup2_create.base_classes + (_default_class, )
+    base_classes = basegroup_create.base_classes + (_default_class, )
 
     def execute(self, cn, **kw):
-        return super(rolegroup2_create, self).execute(cn, **kw)
+        return super(rolegroup_create, self).execute(cn, **kw)
 
-api.register(rolegroup2_create)
+api.register(rolegroup_create)
 
 
-class rolegroup2_delete(basegroup2_delete):
+class rolegroup_delete(basegroup_delete):
     """
     Delete rolegroup.
     """
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(rolegroup2_delete, self).execute(cn, **kw)
+        return super(rolegroup_delete, self).execute(cn, **kw)
 
-api.register(rolegroup2_delete)
+api.register(rolegroup_delete)
 
 
-class rolegroup2_mod(basegroup2_mod):
+class rolegroup_mod(basegroup_mod):
     """
     Edit rolegroup.
     """
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(rolegroup2_mod, self).execute(cn, **kw)
+        return super(rolegroup_mod, self).execute(cn, **kw)
 
-api.register(rolegroup2_mod)
+api.register(rolegroup_mod)
 
 
-class rolegroup2_find(basegroup2_find):
+class rolegroup_find(basegroup_find):
     """
     Search for rolegroups.
     """
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(rolegroup2_find, self).execute(cn, **kw)
+        return super(rolegroup_find, self).execute(cn, **kw)
 
-api.register(rolegroup2_find)
+api.register(rolegroup_find)
 
 
-class rolegroup2_show(basegroup2_show):
+class rolegroup_show(basegroup_show):
     """
     Display rolegroup.
     """
@@ -95,31 +95,31 @@ class rolegroup2_show(basegroup2_show):
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(rolegroup2_show, self).execute(cn, **kw)
+        return super(rolegroup_show, self).execute(cn, **kw)
 
-api.register(rolegroup2_show)
+api.register(rolegroup_show)
 
 
-class rolegroup2_add_member(basegroup2_add_member):
+class rolegroup_add_member(basegroup_add_member):
     """
     Add member to rolegroup.
     """
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(rolegroup2_add_member, self).execute(cn, **kw)
+        return super(rolegroup_add_member, self).execute(cn, **kw)
 
-api.register(rolegroup2_add_member)
+api.register(rolegroup_add_member)
 
 
-class rolegroup2_del_member(basegroup2_del_member):
+class rolegroup_del_member(basegroup_del_member):
     """
     Remove member from rolegroup.
     """
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(rolegroup2_del_member, self).execute(cn, **kw)
+        return super(rolegroup_del_member, self).execute(cn, **kw)
 
-api.register(rolegroup2_del_member)
+api.register(rolegroup_del_member)
 
