@@ -61,8 +61,8 @@ class passwd(Command):
         else:
             principal = '%s@%s' % (principal, self.api.env.realm)
 
-        dn = ldap.find_entry_by_attr(
-            'krbprincipalname', principal, 'posixaccount'
+        (dn, entry_attrs) = ldap.find_entry_by_attr(
+            'krbprincipalname', principal, 'posixaccount', ['']
         )
 
         ldap.modify_password(dn, password)

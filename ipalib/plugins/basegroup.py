@@ -48,7 +48,7 @@ def find_members(ldap, failed, members, attr, object_class, parent_dn=''):
         if not m: continue
         try:
             (member_dn, entry_attrs) = ldap.find_entry_by_attr(
-                attr, m, object_class, parent_dn
+                attr, m, object_class, [''], parent_dn
             )
             found.append(member_dn)
         except errors.NotFound:
@@ -197,7 +197,7 @@ class basegroup_del(crud.Delete):
         ldap = self.api.Backend.ldap2
 
         (dn, entry_attrs) = ldap.find_entry_by_attr(
-            'cn', cn, self.filter_class, self.container
+            'cn', cn, self.filter_class, [''], self.container
         )
 
         ldap.delete_entry(dn)
@@ -238,7 +238,7 @@ class basegroup_mod(crud.Update):
         ldap = self.api.Backend.ldap2
 
         (dn, entry_attrs) = ldap.find_entry_by_attr(
-            'cn', cn, self.filter_class, self.container_dn
+            'cn', cn, self.filter_class, [''], self.container_dn
         )
 
         entry_attrs = self.args_options_2_entry(cn, **kw)
@@ -362,16 +362,14 @@ class basegroup_show(crud.Retrieve):
         assert self.container
         ldap = self.api.Backend.ldap2
 
-        (dn, entry_attrs) = ldap.find_entry_by_attr(
-            'cn', cn, self.filter_class, self.container
-        )
-
         if kw['all']:
             attrs_list = ['*']
         else:
             attrs_list = self.default_attributes
 
-        return ldap.get_entry(dn, attrs_list)
+        return ldap.find_entry_by_attr(
+            'cn', cn, self.filter_class, attrs_list, self.container
+        )
 
     def output_for_cli(self, textui, result, *args, **options):
         (dn, entry_attrs) = result
@@ -424,8 +422,8 @@ class basegroup_add_member(Command):
         add_failed = []
         completed = 0
 
-        (dn, entry_attrs) = ldap.find_entry_by_attrs(
-            'cn', cn, self.filter_class, self.container
+        (dn, entry_attrs) = ldap.find_entry_by_attr(
+            'cn', cn, self.filter_class, [''], self.container
         )
 
         members = kw.get('groups', [])
@@ -503,8 +501,8 @@ class basegroup_del_member(Command):
         remove_failed = []
         completed = 0
 
-        (dn, entry_attrs) = ldap.find_entry_by_attrs(
-            'cn', cn, self.filter_class, self.container
+        (dn, entry_attrs) = ldap.find_entry_by_attr(
+            'cn', cn, self.filter_class, [''], self.container
         )
 
         members = kw.get('groups', [])
