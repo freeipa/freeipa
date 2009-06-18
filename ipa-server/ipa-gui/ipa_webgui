@@ -17,6 +17,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+__requires__ = 'TurboGears'
+
 import os, sys, pwd, grp
 from optparse import OptionParser
 import traceback
@@ -175,7 +177,10 @@ def main():
     # Shut down the logging set up here so that CherryPy logging can take
     # over. TurboGears configuration errors will not be caught.
     if not foreground:
-        logging.shutdown()
+       l = logging.getLogger()
+       for h in logging.root.handlers:
+           l.removeHandler(h)
+
 
     # Load the config - look for a local file first for development
     # and then the system config file
