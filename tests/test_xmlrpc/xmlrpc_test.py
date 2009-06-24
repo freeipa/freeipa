@@ -27,6 +27,17 @@ import nose
 from ipalib import api, request
 from ipalib import errors
 
+
+def assert_attr_equal(entry_attrs, attr, value):
+    assert value in entry_attrs.get(attr, [])
+
+def assert_is_member(entry_attrs, value, member_attr='member'):
+    for m in entry_attrs[member_attr]:
+        if m.startswith(value):
+            return
+    assert False
+
+
 # Initialize the API. We do this here so that one can run the tests
 # individually instead of at the top-level. If API.bootstrap()
 # has already been called we continue gracefully. Other errors will be
@@ -52,3 +63,4 @@ class XMLRPC_test(object):
         nose tear-down fixture.
         """
         request.destroy_context()
+
