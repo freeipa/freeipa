@@ -105,14 +105,16 @@ class group_del(basegroup_del):
         :param kw: Unused
         """
         ldap = self.api.Backend.ldap2
-        dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
+        (dn, entry_attrs) = ldap.find_entry_by_attr(
+            'cn', cn, self.filter_class, [''], self.container
+        )
 
         # Don't allow the default user group to be removed
         try:
             config = ldap.get_ipa_config()[1]
             def_group_cn = config.get('ipadefaultprimarygroup')
-            def_group_dn = get_dn_by_attr(
-                ldap, 'cn', def_group_cn, self.filter_class, self.container
+            (def_group_dn, entry_attrs) = ldap.find_entry_by_attr(
+                'cn', def_group_cn, self.filter_class, [''], self.container
             )
             if dn == def_group_dn:
                 raise errors.DefaultGroup()
@@ -154,8 +156,9 @@ class group_mod(basegroup_mod):
         ldap = self.api.Backend.ldap2
 
         if kw['posix'] or 'gidnumber' in kw:
-            dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
-            (dn, entry_attrs) = ldap.get_entry(dn, ['objectclass'])
+            (dn, entry_attrs) = ldap.find_entry_by_attr(
+                'cn', cn, self.filter_class, ['objectclass'], self.container
+            )
             if 'posixgroup' in entry_attrs['objectclass']:
                 if kw['posix'] in entry_attrs['objectclass']:
                     raise errors.AlreadyPosixGroup()
@@ -176,8 +179,8 @@ class group_find(basegroup_find):
     container = _container_dn
     filter_class = _default_class
 
-    def execute(self, cn, **kw):
-        return super(group_find, self).execute(cn, **kw)
+    def execute(self, term, **kw):
+        return super(group_find, self).execute(term, **kw)
 
 api.register(group_find)
 

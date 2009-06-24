@@ -107,7 +107,9 @@ class taskgroup_add_member(basegroup_add_member):
         """
         assert self.container
         ldap = self.api.Backend.ldap2
-        dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
+        (dn, entry_attrs) = ldap.find_entry_by_attr(
+            'cn', cn, self.filter_class, [''], self.container
+        )
         to_add = []
         add_failed = []
         completed = 0
@@ -133,7 +135,7 @@ class taskgroup_add_member(basegroup_add_member):
         members = kw.get('rolegroups', [])
         (to_add, add_failed) = find_members(
             ldap, add_failed, members, 'cn', self.filter_class,
-            self.api.env.container_rolegroups
+            self.api.env.container_rolegroup
         )
         (completed, add_failed) = add_members(
             ldap, completed, to_add, add_failed, dn, 'member'
@@ -169,7 +171,9 @@ class taskgroup_del_member(basegroup_del_member):
         """
         assert self.container
         ldap = self.api.Backend.ldap2
-        dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
+        (dn, entry_attrs) = ldap.find_entry_by_attr(
+            'cn', cn, self.filter_class, [''], self.container
+        )
         to_remove = []
         remove_failed = []
         completed = 0
@@ -195,7 +199,7 @@ class taskgroup_del_member(basegroup_del_member):
         members = kw.get('rolegroups', [])
         (to_remove, remove_failed) = find_members(
             ldap, remove_failed, members, 'cn', self.filter_class,
-            self.api.env.container_rolegroups
+            self.api.env.container_rolegroup
         )
         (completed, remove_failed) = del_members(
             ldap, completed, to_remove, remove_failed, dn, 'member'

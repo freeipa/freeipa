@@ -238,7 +238,7 @@ class basegroup_mod(crud.Update):
         ldap = self.api.Backend.ldap2
 
         (dn, entry_attrs) = ldap.find_entry_by_attr(
-            'cn', cn, self.filter_class, [''], self.container_dn
+            'cn', cn, self.filter_class, [''], self.container
         )
 
         entry_attrs = self.args_options_2_entry(cn, **kw)

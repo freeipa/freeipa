@@ -277,7 +277,7 @@ class LDAPDelete(crud.Delete):
                     None, [''], dn, ldap.SCOPE_ONELEVEL
                 )
             except errors.NotFound:
-                pass
+                break
             else:
                 for (dn_, entry_attrs) in subentries:
                     ldap.delete_entry(dn_)
@@ -367,7 +367,7 @@ class LDAPSearch(crud.Search):
         except errors.NotFound:
             (entries, truncated) = (tuple(), False)
 
-        self.post_callback(self, ldap, entries, *args, **options)
+        self.post_callback(self, ldap, entries, truncated, *args, **options)
 
         return (entries, truncated)
 
@@ -393,6 +393,6 @@ class LDAPSearch(crud.Search):
     def pre_callback(self, ldap, filter, attrs_list, base_dn, *args, **options):
         return filter
 
-    def post_callback(self, ldap, entries, *args, **options):
+    def post_callback(self, ldap, entries, truncated, *args, **options):
         pass
 

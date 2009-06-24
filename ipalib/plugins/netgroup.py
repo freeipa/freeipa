@@ -115,8 +115,8 @@ class netgroup_find(basegroup_find):
     container = _container_dn
     filter_class = _default_class
 
-    def execute(self, cn, **kw):
-        return super(netgroup_find, self).execute(cn, **kw)
+    def execute(self, term, **kw):
+        return super(netgroup_find, self).execute(term, **kw)
 
 api.register(netgroup_find)
 
@@ -160,7 +160,7 @@ class netgroup_add_member(basegroup_add_member):
 
     def _add_external(self, ldap, completed, members, group_dn):
         add_failed = []
-        entry_attrs = ldap.get_entry(group_dn, ['externalhost'])
+        (dn, entry_attrs) = ldap.get_entry(group_dn, ['externalhost'])
         external_hosts = entry_attrs.get('externalhost', [])
 
         for m in members:
@@ -172,7 +172,7 @@ class netgroup_add_member(basegroup_add_member):
                 add_failed.append(m)
 
         try:
-            ldap.update_entry(group_dn, **{'externalhost': external_hosts})
+            ldap.update_entry(group_dn, {'externalhost': external_hosts})
         except errors.EmptyModlist:
             pass
 
@@ -192,7 +192,9 @@ class netgroup_add_member(basegroup_add_member):
         """
         assert self.container
         ldap = self.api.Backend.ldap2
-        dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
+        (dn, entry_attrs) = ldap.find_entry_by_attr(
+            'cn', cn, self.filter_class, [''], self.container
+        )
         to_add = []
         add_failed = []
         completed = 0
@@ -215,6 +217,7 @@ class netgroup_add_member(basegroup_add_member):
             ldap, completed, to_add, add_failed, dn, 'member'
         )
 
+        add_failed = []
         members = kw.get('hosts', [])
         (to_add, add_failed) = find_members(
             ldap, add_failed, members, 'cn', 'ipahost',
@@ -278,7 +281,7 @@ class netgroup_del_member(basegroup_del_member):
 
     def _del_external(self, ldap, completed, members, group_dn):
         rem_failed = []
-        entry_attrs = ldap.get_entry(group_dn, ['externalhost'])
+        (dn, entry_attrs) = ldap.get_entry(group_dn, ['externalhost'])
         external_hosts = entry_attrs.get('externalhost', [])
 
         for m in members:
@@ -290,7 +293,7 @@ class netgroup_del_member(basegroup_del_member):
                 rem_failed.append(m)
 
         try:
-            ldap.update_entry(group_dn, **{'externalhost': external_hosts})
+            ldap.update_entry(group_dn, {'externalhost': external_hosts})
         except errors.EmptyModlist:
             pass
 
@@ -310,7 +313,9 @@ class netgroup_del_member(basegroup_del_member):
         """
         assert self.container
         ldap = self.api.Backend.ldap2
-        dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
+        (dn, entry_attrs) = ldap.find_entry_by_attr(
+            'cn', cn, self.filter_class, [''], self.container
+        )
         to_rem = []
         rem_failed = []
         completed = 0

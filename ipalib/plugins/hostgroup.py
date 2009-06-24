@@ -80,8 +80,8 @@ class hostgroup_find(basegroup_find):
     """
     container = _container_dn
 
-    def execute(self, cn, **kw):
-        return super(hostgroup_find, self).execute(cn, **kw)
+    def execute(self, term, **kw):
+        return super(hostgroup_find, self).execute(term, **kw)
 
 api.register(hostgroup_find)
 
@@ -132,7 +132,9 @@ class hostgroup_add_member(basegroup_add_member):
         """
         assert self.container
         ldap = self.api.Backend.ldap2
-        dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
+        (dn, entry_attrs) = ldap.find_entry_by_attr(
+            'cn', cn, self.filter_class, [''], self.container
+        )
         to_add = []
         add_failed = []
         completed = 0
@@ -202,7 +204,9 @@ class hostgroup_del_member(basegroup_del_member):
         """
         assert self.container
         ldap = self.api.Backend.ldap2
-        dn = get_dn_by_attr(ldap, 'cn', cn, self.filter_class, self.container)
+        (dn, entry_attrs) = ldap.find_entry_by_attr(
+            'cn', cn, self.filter_class, [''], self.container
+        )
         to_remove = []
         remove_failed = []
         completed = 0

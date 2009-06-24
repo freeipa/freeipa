@@ -212,10 +212,10 @@ class host_del(crud.Delete):
         dn = get_host(ldap, hostname)
 
         # Remove all service records for this host
-        services = api.Command['service2_find'](hostname)
+        (services, truncated) = api.Command['service_find'](hostname)
         for (dn, entry_attrs) in services:
             principal = entry_attrs['krbprincipalname']
-            api.Command['service2_del'](principal)
+            api.Command['service_del'](principal)
 
         ldap.delete_entry(dn)
 
@@ -298,6 +298,10 @@ class host_find(crud.Search):
             search_kw[a] = term
         term_filter = ldap.make_filter(search_kw, exact=False)
 
+        filter = ldap.combine_filters(
+            (filter, term_filter), rules=ldap.MATCH_ALL
+        )
+
         if kw['all']:
             attrs_list = ['*']
         else:
@@ -310,7 +314,7 @@ class host_find(crud.Search):
         except errors.NotFound:
             (entries, truncated) = (tuple(), False)
 
-        return entries
+        return (entries, truncated)
 
     def output_for_cli(self, textui, result, term, **options):
         (entries, truncated) = result
