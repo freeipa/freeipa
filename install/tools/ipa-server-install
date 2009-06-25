@@ -74,8 +74,11 @@ def parse_options():
                       default=False, help="Configure a CA instance")
     parser.add_option("--hostname", dest="host_name", help="fully qualified name of server")
     parser.add_option("--ip-address", dest="ip_address", help="Master Server IP Address")
-    parser.add_option("--setup-bind", dest="setup_bind", action="store_true",
+    # FIXME: Remove this option
+    parser.add_option("--setup-bind", dest="setup_dns", action="store_true",
                       default=False, help="configure bind with our zone file")
+    parser.add_option("--setup-dns", dest="setup_dns", action="store_true",
+                      default=False, help="configure bind with our zone")
     parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
                       default=False, help="unattended installation never prompts the user")
     parser.add_option("", "--uninstall", dest="uninstall", action="store_true",
@@ -368,7 +371,7 @@ def main():
     print "  * Create and configure a Kerberos Key Distribution Center (KDC)"
     print "  * Configure Apache (httpd)"
     print "  * Configure TurboGears"
-    if options.setup_bind:
+    if options.setup_dns:
         print "  * Configure DNS (bind)"
     if not options.conf_ntp:
         print ""
@@ -390,9 +393,9 @@ def main():
     admin_password = ""
 
     # check bind packages are installed
-    if options.setup_bind:
+    if options.setup_dns:
         if not bindinstance.check_inst():
-            print "--setup-bind was specified but bind or the BIND LDAP plug-in"
+            print "--setup-dns was specified but bind or the BIND LDAP plug-in"
             print "is not installed on the system"
             print "Please install bind and the LDAP plug-in and restart the setup program"
             return 1
@@ -442,7 +445,7 @@ def main():
             return 1
 
     if options.ip_address and options.ip_address != ip:
-        if options.setup_bind:
+        if options.setup_dns:
             ip = options.ip_address
         else:
             print "Error: the hostname resolves to an IP address that is different"
@@ -579,7 +582,7 @@ def main():
     # Create a BIND instance
     bind = bindinstance.BindInstance(fstore, dm_password)
     bind.setup(host_name, ip_address, realm_name, domain_name)
-    if options.setup_bind:
+    if options.setup_dns:
         bind.create_instance()
     else:
         bind.create_sample_bind_zone()
@@ -616,11 +619,11 @@ def main():
     print "\t\t  * 80, 443: HTTP/HTTPS"
     print "\t\t  * 389, 636: LDAP/LDAPS"
     print "\t\t  * 88, 464: kerberos"
-    if options.setup_bind:
+    if options.setup_dns:
         print "\t\t  * 53: bind"
     print "\t\tUDP Ports:"
     print "\t\t  * 88, 464: kerberos"
-    if options.setup_bind:
+    if options.setup_dns:
         print "\t\t  * 53: bind"
     if options.conf_ntp:
         print "\t\t  * 123: ntp"
