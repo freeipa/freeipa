@@ -93,10 +93,7 @@ class BindInstance(service.Service):
         except:
             pass
 
-        # FIXME: this need to be split off, as only the first server can do
-        # this operation
-        self.step("Setting up our zone", self.__setup_zone)
-        self.step("setting up reverse zone", self.__setup_reverse_zone)
+        self.__add_zone_steps()
 
         self.step("setting up kerberos principal", self.__setup_principal)
         self.step("setting up named.conf", self.__setup_named_conf)
@@ -106,6 +103,39 @@ class BindInstance(service.Service):
 
         self.step("changing resolv.conf to point to ourselves", self.__setup_resolv_conf)
         self.start_creation("Configuring named:")
+
+    def __add_zone_steps(self):
+        """
+        Add steps necessary to add records and zones, if they don't exist
+        already.
+        """
+
+        def object_exists(dn):
+            """
+            Test whether the given object exists in LDAP.
+            """
+            try:
+                server.search_ext_s(dn, ldap.SCOPE_BASE)
+            except ldap.NO_SUCH_OBJECT:
+                return False
+            else:
+                return True
+
+        zone_dn = "idnsName=%s,cn=dns,%s" % (self.domain, self.suffix)
+        reverse_zone_dn = "idnsName=%s.in-addr.arpa,cn=dns,%s" % (self.reverse_subnet, self.suffix)
+
+        server = ldap.initialize("ldap://" + self.fqdn)
+        server.simple_bind_s()
+        if object_exists(zone_dn):
+            pass # TODO: Add dns records to the zone
+        else:
+            self.step("setting up our zone", self.__setup_zone)
+        if object_exists(reverse_zone_dn):
+            pass # TODO: Add dns records to the reverse zone
+        else:
+            self.step("setting up reverse zone", self.__setup_reverse_zone)
+
+        server.unbind_s()
 
     def __start(self):
         try:

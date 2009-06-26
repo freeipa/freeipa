@@ -19,6 +19,7 @@
 #
 
 import sys
+import socket
 
 import tempfile, os, pwd, traceback, logging, shutil
 from ConfigParser import SafeConfigParser
@@ -27,12 +28,15 @@ import ldap
 from ipapython import ipautil
 
 from ipaserver.install import dsinstance, replication, installutils, krbinstance, service
-from ipaserver.install import httpinstance, ntpinstance, certs
+from ipaserver.install import bindinstance, httpinstance, ntpinstance, certs
 from ipaserver import ipaldap
 from ipapython import version
 from ipalib import util
 
 CACERT="/usr/share/ipa/html/ca.crt"
+
+class HostnameLocalhost(Exception):
+    pass
 
 class ReplicaConfig:
     def __init__(self):
@@ -54,6 +58,8 @@ def parse_options():
                       default=False, help="gather extra debugging information")
     parser.add_option("-p", "--password", dest="password", 
                       help="Directory Manager (existing master) password")
+    parser.add_option("--setup-dns", dest="setup_dns", action="store_true",
+                      default=False, help="configure bind with our zone")
 
     options, args = parser.parse_args()
 
@@ -96,6 +102,14 @@ def get_host_name():
         sys.exit(1)
 
     return hostname
+
+def resolve_host(host_name):
+    ip = socket.gethostbyname(host_name)
+
+    if ip == "127.0.0.1" or ip == "::1":
+        raise HostnameLocalhost
+
+    return ip
 
 def set_owner(config, dir):
     pw = pwd.getpwnam(config.ds_user)
@@ -175,6 +189,12 @@ def install_http(config):
             print "error copying files: " + str(e)
             sys.exit(1)
 
+def install_bind(config):
+    bind = bindinstance.BindInstance(dm_password=config.dirman_password)
+    ip_address = resolve_host(config.host_name)
+    bind.setup(config.host_name, ip_address, config.realm_name, config.domain_name)
+    bind.create_instance()
+
 def check_dirsrv():
     serverids = dsinstance.check_existing_installation()
     if serverids:
@@ -204,6 +224,13 @@ def check_dirsrv():
             print "\t636"
         sys.exit(1)
 
+def check_bind():
+    if not bindinstance.check_inst():
+        print "--setup-dns was specified but bind or the BIND LDAP plug-in"
+        print "is not installed on the system"
+        print "Please install bind and the LDAP plug-in and restart the setup program"
+        sys.exit(1)
+
 def main():
     options, filename = parse_options()
     installutils.standard_logging_setup("/var/log/ipareplica-install.log", options.debug)
@@ -211,6 +238,8 @@ def main():
     if not ipautil.file_exists(filename):
         sys.exit("Replica file %s does not exist" % filename)
 
+    if options.setup_dns:
+        check_bind()
     check_dirsrv()
 
     # get the directory manager password
@@ -281,6 +310,8 @@ def main():
 
     install_krb(config)
     install_http(config)
+    if options.setup_dns:
+        install_bind(config)
     if CA:
         CA.import_ra_cert(dir + "/ra.p12")
         CA.fix_ra_perms()
@@ -330,6 +361,14 @@ try:
     sys.exit(0)
 except SystemExit, e:
     sys.exit(e)
+except socket.error, (errno, errstr):
+    print errstr
+except HostnameLocalhost:
+    print "The hostname resolves to the localhost address (127.0.0.1/::1)"
+    print "Please change your /etc/hosts file so that the hostname"
+    print "resolves to the ip address of your network interface."
+    print ""
+    print "Please fix your /etc/hosts file and restart the setup program"
 except Exception, e:
     print "creation of replica failed: %s" % str(e)
     message = str(e)
