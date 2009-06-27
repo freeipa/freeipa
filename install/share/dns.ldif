@@ -14,8 +14,8 @@ idnsName: $DOMAIN
 idnsZoneActive: TRUE
 idnsAllowDynUpdate: TRUE
 idnsUpdatePolicy: grant $REALM krb5-self * A;
-idnsSOAmName: $HOST.$DOMAIN.
-idnsSOArName: root.$HOST.$DOMAIN.
+idnsSOAmName: $FQDN.
+idnsSOArName: root.$FQDN.
 idnsSOAserial: 1
 idnsSOArefresh: 10800
 idnsSOAretry: 900

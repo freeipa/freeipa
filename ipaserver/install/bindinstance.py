@@ -71,6 +71,12 @@ class BindInstance(service.Service):
         self.host = fqdn.split(".")[0]
         self.suffix = util.realm_to_suffix(self.realm)
 
+        tmp = ip_address.split(".")
+        tmp.reverse()
+        
+        self.reverse_host = tmp.pop(0)
+        self.reverse_subnet = ".".join(tmp)
+
         self.__setup_sub_dict()
 
     def create_sample_bind_zone(self):
@@ -90,15 +96,16 @@ class BindInstance(service.Service):
         # FIXME: this need to be split off, as only the first server can do
         # this operation
         self.step("Setting up our zone", self.__setup_zone)
+        self.step("setting up reverse zone", self.__setup_reverse_zone)
 
-        self.step("Setting up kerberos principal", self.__setup_principal)
-        self.step("Setting up named.conf", self.__setup_named_conf)
+        self.step("setting up kerberos principal", self.__setup_principal)
+        self.step("setting up named.conf", self.__setup_named_conf)
 
         self.step("restarting named", self.__start)
         self.step("configuring named to start on boot", self.__enable)
 
-        self.step("Changing resolv.conf to point to ourselves", self.__setup_resolv_conf)
-        self.start_creation("Configuring bind:")
+        self.step("changing resolv.conf to point to ourselves", self.__setup_resolv_conf)
+        self.start_creation("Configuring named:")
 
     def __start(self):
         try:
@@ -117,11 +124,16 @@ class BindInstance(service.Service):
                              DOMAIN=self.domain,
                              HOST=self.host,
                              REALM=self.realm,
-                             SUFFIX=self.suffix)
+                             SUFFIX=self.suffix,
+                             REVERSE_HOST=self.reverse_host,
+                             REVERSE_SUBNET=self.reverse_subnet)
 
     def __setup_zone(self):
         self.backup_state("domain", self.domain)
         self._ldap_mod("dns.ldif", self.sub_dict)
+
+    def __setup_reverse_zone(self):
+        self._ldap_mod("dns_reverse.ldif", self.sub_dict)
 
     def __setup_principal(self):
         dns_principal = "DNS/" + self.fqdn + "@" + self.realm

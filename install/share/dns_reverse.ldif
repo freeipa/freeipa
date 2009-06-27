@@ -1,0 +1,24 @@
+dn: idnsName=$REVERSE_SUBNET.in-addr.arpa,cn=dns,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: idnsZone
+objectClass: idnsRecord
+idnsName: $REVERSE_SUBNET.in-addr.arpa
+idnsZoneActive: TRUE
+idnsAllowDynUpdate: TRUE
+idnsUpdatePolicy: grant $REALM krb5-subdomain $REVERSE_SUBNET.in-addr.arpa. PTR;
+idnsSOAmName: $FQDN.
+idnsSOArName: root.$FQDN.
+idnsSOAserial: 1
+idnsSOArefresh: 10800
+idnsSOAretry: 900
+idnsSOAexpire: 604800
+idnsSOAminimum: 86400
+NSRecord: $FQDN.
+
+dn: idnsName=$REVERSE_HOST,idnsName=$REVERSE_SUBNET.in-addr.arpa,cn=dns,$SUFFIX
+changetype: add
+objectClass: idnsRecord
+objectClass: top
+idnsName: $REVERSE_HOST
+PTRRecord: $FQDN.
