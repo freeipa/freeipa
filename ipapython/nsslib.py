@@ -27,6 +27,13 @@ import nss.io as io
 import nss.nss as nss
 import nss.ssl as ssl
 
+try:
+    from httplib import SSLFile
+    from httplib import FakeSocket
+except ImportError:
+    from ipapython.ipasslfile import SSLFile
+    from ipapython.ipasslfile import FakeSocket
+
 def client_auth_data_callback(ca_names, chosen_nickname, password, certdb):
     cert = None
     if chosen_nickname:
@@ -49,7 +56,7 @@ def client_auth_data_callback(ca_names, chosen_nickname, password, certdb):
                 return False
         return False
 
-class SSLFile(httplib.SSLFile):
+class SSLFile(SSLFile):
     """
     Override the _read method so we can use the NSS recv method.
     """
@@ -64,7 +71,7 @@ class SSLFile(httplib.SSLFile):
                 break
         return buf
 
-class NSSFakeSocket(httplib.FakeSocket):
+class NSSFakeSocket(FakeSocket):
     def makefile(self, mode, bufsize=None):
         if mode != 'r' and mode != 'rb':
             raise httplib.UnimplementedFileMode()

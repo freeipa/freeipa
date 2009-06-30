@@ -45,6 +45,13 @@ from ipapython import ipautil
 from OpenSSL import SSL
 import httplib
 
+try:
+    from httplib import SSLFile
+    from httplib import FakeSocket
+except ImportError:
+    from ipapython.ipasslfile import SSLFile
+    from ipapython.ipasslfile import FakeSocket
+
 # Some Kerberos error definitions from krb5.h
 KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN = (-1765328377L)
 KRB5KRB_AP_ERR_TKT_EXPIRED      = (-1765328352L)
@@ -195,7 +202,7 @@ class SSLTransport(Transport):
         return SSLSocket(host, None, **(x509 or {}))
 
 
-class SSLFile(httplib.SSLFile):
+class SSLFile(SSLFile):
     """
     Override the _read method so we can handle PyOpenSSL errors
     gracefully.
@@ -227,7 +234,7 @@ class SSLFile(httplib.SSLFile):
         return buf
 
 
-class FakeSocket(httplib.FakeSocket):
+class FakeSocket(FakeSocket):
     """
     Override this class so we can end up using our own SSLFile
     implementation.
