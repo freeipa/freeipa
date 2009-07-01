@@ -1,0 +1,8 @@
+## <summary></summary>
+
+ifdef(`userdom_dontaudit_search_admin_dir', `', ` dnl
+interface(`userdom_dontaudit_search_admin_dir', `
+    userdom_dontaudit_search_sysadm_home_dirs($1)
+')
+')
+
