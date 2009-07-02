@@ -63,7 +63,7 @@ class test_rolegroup(XMLRPC_test):
         """
         kw = {}
         kw['groups'] = self.rolegroup_cn
-        (total, res) = api.Command['rolegroup_add_member'](self.cn, **kw)
+        (total, failed, res) = api.Command['rolegroup_add_member'](self.cn, **kw)
         assert total == 1
 
     def test_4_rolegroup_show(self):
@@ -108,7 +108,7 @@ class test_rolegroup(XMLRPC_test):
         """
         kw = {}
         kw['groups'] = self.rolegroup_cn
-        (total, res) = api.Command['rolegroup_del_member'](self.cn, **kw)
+        (total, failed, res) = api.Command['rolegroup_del_member'](self.cn, **kw)
         assert total == 1
 
     def test_8_rolegroup_del(self):

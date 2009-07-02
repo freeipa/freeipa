@@ -77,7 +77,7 @@ class test_taskgroup(XMLRPC_test):
         kw = {}
         kw['groups'] = self.taskgroup_cn
         kw['rolegroups'] = self.rolegroup_cn
-        (total, res) = api.Command['taskgroup_add_member'](self.cn, **kw)
+        (total, failed, res) = api.Command['taskgroup_add_member'](self.cn, **kw)
         assert total == 2
 
     def test_5_taskgroup_show(self):
@@ -124,7 +124,7 @@ class test_taskgroup(XMLRPC_test):
         """
         kw = {}
         kw['groups'] = self.taskgroup_cn
-        (total, res) = api.Command['taskgroup_del_member'](self.cn, **kw)
+        (total, failed, res) = api.Command['taskgroup_del_member'](self.cn, **kw)
         assert total == 1
 
     def test_9_taskgroup_del(self):

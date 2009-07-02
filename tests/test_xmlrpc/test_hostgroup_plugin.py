@@ -64,7 +64,7 @@ class test_hostgroup(XMLRPC_test):
         """
         kw = {}
         kw['hosts'] = self.host_fqdn
-        (total, res) = api.Command['hostgroup_add_member'](self.cn, **kw)
+        (total, failed, res) = api.Command['hostgroup_add_member'](self.cn, **kw)
         assert res[1].get('member', []) != []
 
     def test_4_hostgroup_show(self):
@@ -107,7 +107,7 @@ class test_hostgroup(XMLRPC_test):
         """
         kw = {}
         kw['hosts'] = self.host_fqdn
-        (total, res) = api.Command['hostgroup_del_member'](self.cn, **kw)
+        (total, failed, res) = api.Command['hostgroup_del_member'](self.cn, **kw)
         assert res
         assert res[1].get('member', []) == []
 

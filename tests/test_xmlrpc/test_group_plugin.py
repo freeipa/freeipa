@@ -71,7 +71,7 @@ class test_group(XMLRPC_test):
         """
         kw = {}
         kw['groups'] = self.cn2
-        (total, res) = api.Command['group_add_member'](self.cn, **kw)
+        (total, failed, res) = api.Command['group_add_member'](self.cn, **kw)
         assert total == 1
 
     def test_4_group_add_member(self):
@@ -80,8 +80,9 @@ class test_group(XMLRPC_test):
         """
         kw = {}
         kw['groups'] = u'notfound'
-        (total, res) = api.Command['group_add_member'](self.cn, **kw)
+        (total, failed, res) = api.Command['group_add_member'](self.cn, **kw)
         assert total == 0
+        assert 'notfound' in failed
 
     def test_5_group_show(self):
         """
@@ -141,7 +142,7 @@ class test_group(XMLRPC_test):
         """
         kw = {}
         kw['groups'] = self.cn2
-        (total, res) = api.Command['group_del_member'](self.cn, **kw)
+        (total, failed, res) = api.Command['group_del_member'](self.cn, **kw)
         assert res
         assert total == 1
 
@@ -152,8 +153,9 @@ class test_group(XMLRPC_test):
         kw = {}
         kw['groups'] = u'notfound'
         # an error isn't thrown, the list of failed members is returned
-        (total, res) = api.Command['group_del_member'](self.cn, **kw)
+        (total, failed, res) = api.Command['group_del_member'](self.cn, **kw)
         assert total == 0
+        assert 'notfound' in failed
 
     def test_b_group_del(self):
         """

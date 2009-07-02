@@ -97,25 +97,25 @@ class test_netgroup(XMLRPC_test):
         """
         kw = {}
         kw['hosts'] = self.host_fqdn
-        (total, res) = api.Command['netgroup_add_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_add_member'](self.ng_cn, **kw)
         assert total == 1
         assert_is_member(res[1], 'fqdn=%s' % self.host_fqdn)
 
         kw = {}
         kw['hostgroups'] = self.hg_cn
-        (total, res) = api.Command['netgroup_add_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_add_member'](self.ng_cn, **kw)
         assert total == 1
         assert_is_member(res[1], 'cn=%s' % self.hg_cn)
 
         kw = {}
         kw['users'] = self.user_uid
-        (total, res) = api.Command['netgroup_add_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_add_member'](self.ng_cn, **kw)
         assert total == 1
         assert_is_member(res[1], 'uid=%s' % self.user_uid)
 
         kw = {}
         kw['groups'] = self.group_cn
-        (total, res) = api.Command['netgroup_add_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_add_member'](self.ng_cn, **kw)
         assert total == 1
         assert_is_member(res[1], 'cn=%s' % self.group_cn)
 
@@ -125,23 +125,27 @@ class test_netgroup(XMLRPC_test):
         """
         kw = {}
         kw['hosts'] = self.host_fqdn
-        (total, res) = api.Command['netgroup_add_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_add_member'](self.ng_cn, **kw)
         assert total == 0
+        assert self.host_fqdn in failed
 
         kw = {}
         kw['hostgroups'] = self.hg_cn
-        (total, res) = api.Command['netgroup_add_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_add_member'](self.ng_cn, **kw)
         assert total == 0
+        assert self.hg_cn in failed
 
         kw = {}
         kw['users'] = self.user_uid
-        res = api.Command['netgroup_add_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_add_member'](self.ng_cn, **kw)
         assert total == 0
+        assert self.user_uid in failed
 
         kw = {}
         kw['groups'] = self.group_cn
-        res = api.Command['netgroup_add_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_add_member'](self.ng_cn, **kw)
         assert total == 0
+        assert self.group_cn in failed
 
     def test_5_netgroup_add_member(self):
         """
@@ -149,7 +153,7 @@ class test_netgroup(XMLRPC_test):
         """
         kw = {}
         kw['hosts'] = u'nosuchhost'
-        (total, res) = api.Command['netgroup_add_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_add_member'](self.ng_cn, **kw)
         assert total == 1
 
         (dn, res) = api.Command['netgroup_show'](self.ng_cn)
@@ -200,22 +204,22 @@ class test_netgroup(XMLRPC_test):
         """
         kw = {}
         kw['hosts'] = self.host_fqdn
-        (total, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
         assert total == 1
 
         kw = {}
         kw['hostgroups'] = self.hg_cn
-        (total, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
         assert total == 1
 
         kw = {}
         kw['users'] = self.user_uid
-        (total, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
         assert total == 1
 
         kw = {}
         kw['groups'] = self.group_cn
-        (total, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
         assert total == 1
 
     def test_a_netgroup_del_member(self):
@@ -224,24 +228,28 @@ class test_netgroup(XMLRPC_test):
         """
         kw = {}
         kw['hosts'] = self.host_fqdn
-        (total, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
         assert total == 0
+        assert self.host_fqdn in failed
 
         kw = {}
         kw['hostgroups'] = self.hg_cn
-        (total, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
         assert total == 0
+        assert self.hg_cn in failed
 
         kw = {}
         kw['users'] = self.user_uid
         (dn, res) = api.Command['netgroup_show'](self.ng_cn, all=True)
-        (total, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
         assert total == 0
+        assert self.user_uid in failed
 
         kw = {}
         kw['groups'] = self.group_cn
-        (total, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
         assert total == 0
+        assert self.group_cn in failed
 
     def test_b_netgroup_del(self):
         """
