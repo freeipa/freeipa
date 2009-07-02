@@ -305,7 +305,7 @@ class service_find(crud.Search):
             textui.print_entry(entry_attrs)
             textui.print_plain('')
         textui.print_count(
-            len(result), '%i service matched.', '%i services matched.'
+            len(entries), '%i service matched.', '%i services matched.'
         )
         if truncated:
             textui.print_dashed('These results are truncated.', below=False)

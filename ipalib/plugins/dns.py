@@ -324,7 +324,7 @@ class dns_find(crud.Search):
             textui.print_entry(entry_attrs)
             textui.print_plain('')
         textui.print_count(
-            len(result), '%i DNS zone matched.', '%i DNS zones matched.'
+            len(entries), '%i DNS zone matched.', '%i DNS zones matched.'
         )
         if truncated:
             textui.print_dashed('These results are truncated.', below=False)
@@ -741,7 +741,7 @@ class dns_find_rr(Command):
             textui.print_entry(entry_attrs)
             textui.print_plain('')
         textui.print_count(
-            len(result), '%i DNS resource record matched.',
+            len(entries), '%i DNS resource record matched.',
             '%i DNS resource records matched.'
         )
         if truncated:

@@ -329,7 +329,7 @@ class host_find(crud.Search):
             textui.print_entry(entry_attrs)
             textui.print_plain('')
         textui.print_count(
-            len(result), '%i host matched.', '%i hosts matched.'
+            len(entries), '%i host matched.', '%i hosts matched.'
         )
         if truncated:
             textui.print_dashed('These results are truncated.', below=False)

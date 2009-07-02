@@ -287,7 +287,7 @@ class user_find(crud.Search):
             textui.print_entry(entry_attrs)
             textui.print_plain('')
         textui.print_count(
-            len(result), '%i user matched.', '%i users matched.'
+            len(entries), '%i user matched.', '%i users matched.'
         )
         if truncated:
             textui.print_dashed('These results are truncated.', below=False)
