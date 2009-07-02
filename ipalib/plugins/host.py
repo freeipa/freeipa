@@ -28,6 +28,7 @@ import sys
 from ipalib import api, crud, errors, util
 from ipalib import Object
 from ipalib import Str, Flag
+from ipalib.plugins.service import split_principal
 
 _container_dn = api.env.container_host
 _default_attributes = [
@@ -210,12 +211,15 @@ class host_del(crud.Delete):
         """
         ldap = self.api.Backend.ldap2
         dn = get_host(ldap, hostname)
+        hostname = hostname.lower()
 
         # Remove all service records for this host
         (services, truncated) = api.Command['service_find'](hostname)
-        for (dn, entry_attrs) in services:
-            principal = entry_attrs['krbprincipalname']
-            api.Command['service_del'](principal)
+        for (dn_, entry_attrs) in services:
+            principal = entry_attrs['krbprincipalname'][0]
+            (service, hostname_, realm) = split_principal(principal)
+            if hostname_.lower() == hostname:
+                api.Command['service_del'](principal)
 
         ldap.delete_entry(dn)
 
