@@ -39,11 +39,11 @@ _valid_permissions_values = [
 
 def _make_aci(current, aciname, kw):
     try:
-        (dn, entry_attrs) = api.Command['taskgroup2_show'](kw['taskgroup'])
+        (dn, entry_attrs) = api.Command['taskgroup_show'](kw['taskgroup'])
     except errors.NotFound:
         # The task group doesn't exist, let's be helpful and add it
         tgkw = {'description': aciname}
-        (dn, entry_attrs) = api.Command['taskgroup2_add'](
+        (dn, entry_attrs) = api.Command['taskgroup_add'](
             kw['taskgroup'], **tgkw
         )
 
@@ -54,7 +54,7 @@ def _make_aci(current, aciname, kw):
     if 'attrs' in kw:
         a.set_target_attr(kw['attrs'])
     if 'memberof' in kw:
-        (dn, entry_attrs) = api.Command['group2_show'](kw['memberof'])
+        (dn, entry_attrs) = api.Command['group_show'](kw['memberof'])
         a.set_target_filter('memberOf=%s' % dn)
     if 'filter' in kw:
         a.set_target_filter(kw['filter'])
@@ -63,7 +63,7 @@ def _make_aci(current, aciname, kw):
         a.set_target(target)
     if 'targetgroup' in kw:
         # Purposely no try here so we'll raise a NotFound
-        (dn, entry_attrs) = api.Command['group2_show'](kw['targetgroup'])
+        (dn, entry_attrs) = api.Command['group_show'](kw['targetgroup'])
         target = 'ldap:///%s' % dn
         a.set_target(target)
     if 'subtree' in kw:
@@ -303,7 +303,7 @@ class aci_find(crud.Search):
 
         if 'taskgroup' in kw:
             try:
-                (dn, entry_attrs) = self.api.Command['taskgroup2_show'](
+                (dn, entry_attrs) = self.api.Command['taskgroup_show'](
                     kw['taskgroup']
                 )
             except errors.NotFound:
@@ -324,7 +324,7 @@ class aci_find(crud.Search):
 
         if 'memberof' in kw:
             try:
-                (dn, entry_attrs) = self.api.Command['group2_show'](
+                (dn, entry_attrs) = self.api.Command['group_show'](
                     kw['memberof']
                 )
             except errors.NotFound:

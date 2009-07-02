@@ -47,7 +47,7 @@ _options = {
 }
 
 
-class config2_mod(Command):
+class config_mod(Command):
     """
     Modify IPA configuration options.
     """
@@ -142,7 +142,7 @@ class config2_mod(Command):
             textui.print_plain('')
         textui.print_dashed('Modified IPA configuration options.')
 
-api.register(config2_mod)
+api.register(config_mod)
 
 
 class config2_show(Command):
