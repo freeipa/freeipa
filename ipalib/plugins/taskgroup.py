@@ -111,7 +111,7 @@ class taskgroup_add_member(basegroup_add_member):
             'cn', cn, self.filter_class, [''], self.container
         )
         to_add = []
-        add_failed = []
+        add_failed = {}
         completed = 0
 
         members = kw.get('groups', [])
@@ -141,7 +141,9 @@ class taskgroup_add_member(basegroup_add_member):
             ldap, completed, to_add, add_failed, dn, 'member'
         )
 
-        return (completed, ldap.get_entry(dn, _default_attributes))
+        return (
+            completed, add_failed, ldap.get_entry(dn, _default_attributes)
+        )
 
 api.register(taskgroup_add_member)
 
@@ -175,37 +177,39 @@ class taskgroup_del_member(basegroup_del_member):
             'cn', cn, self.filter_class, [''], self.container
         )
         to_remove = []
-        remove_failed = []
+        rem_failed = {}
         completed = 0
 
         members = kw.get('groups', [])
-        (to_remove, remove_failed) = find_members(
-            ldap, remove_failed, members, 'cn', 'ipaUserGroup',
+        (to_remove, rem_failed) = find_members(
+            ldap, rem_failed, members, 'cn', 'ipaUserGroup',
             self.api.env.container_group
         )
-        (completed, remove_failed) = del_members(
-            ldap, completed, to_remove, remove_failed, dn, 'member'
+        (completed, rem_failed) = del_members(
+            ldap, completed, to_remove, rem_failed, dn, 'member'
         )
 
         members = kw.get('hosts', [])
-        (to_remove, remove_failed) = find_members(
-            ldap, remove_failed, members, 'cn', 'ipaHost',
+        (to_remove, rem_failed) = find_members(
+            ldap, rem_failed, members, 'cn', 'ipaHost',
             self.api.env.container_host
         )
-        (completed, remove_failed) = del_members(
-            ldap, completed, to_remove, remove_failed, dn, 'member'
+        (completed, rem_failed) = del_members(
+            ldap, completed, to_remove, rem_failed, dn, 'member'
         )
 
         members = kw.get('rolegroups', [])
-        (to_remove, remove_failed) = find_members(
-            ldap, remove_failed, members, 'cn', self.filter_class,
+        (to_remove, rem_failed) = find_members(
+            ldap, rem_failed, members, 'cn', self.filter_class,
             self.api.env.container_rolegroup
         )
-        (completed, remove_failed) = del_members(
-            ldap, completed, to_remove, remove_failed, dn, 'member'
+        (completed, rem_failed) = del_members(
+            ldap, completed, to_remove, rem_failed, dn, 'member'
         )
 
-        return (completed, ldap.get_entry(dn, _default_attributes))
+        return (
+            completed, rem_failed, ldap.get_entry(dn, _default_attributes)
+        )
 
 api.register(taskgroup_del_member)
 

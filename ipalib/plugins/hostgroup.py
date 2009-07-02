@@ -136,7 +136,7 @@ class hostgroup_add_member(basegroup_add_member):
             'cn', cn, self.filter_class, [''], self.container
         )
         to_add = []
-        add_failed = []
+        add_failed = {}
         completed = 0
 
         members = kw.get('groups', [])
@@ -166,7 +166,9 @@ class hostgroup_add_member(basegroup_add_member):
             ldap, completed, to_add, add_failed, dn, 'member'
         )
 
-        return (completed, ldap.get_entry(dn, self.default_attributes))
+        return (
+            completed, add_failed, ldap.get_entry(dn, self.default_attributes)
+        )
 
 api.register(hostgroup_add_member)
 
@@ -208,37 +210,39 @@ class hostgroup_del_member(basegroup_del_member):
             'cn', cn, self.filter_class, [''], self.container
         )
         to_remove = []
-        remove_failed = []
+        rem_failed = {}
         completed = 0
 
         members = kw.get('groups', [])
-        (to_remove, remove_failed) = find_members(
-            ldap, remove_failed, members, 'cn', 'ipausergroup',
+        (to_remove, rem_failed) = find_members(
+            ldap, rem_failed, members, 'cn', 'ipausergroup',
             self.api.env.container_group
         )
-        (completed, remove_failed) = del_members(
-            ldap, completed, to_remove, remove_failed, dn, 'member'
+        (completed, rem_failed) = del_members(
+            ldap, completed, to_remove, rem_failed, dn, 'member'
         )
 
         members = kw.get('hosts', [])
-        (to_remove, remove_failed) = find_members(
-            ldap, remove_failed, members, 'cn', 'ipahost',
+        (to_remove, rem_failed) = find_members(
+            ldap, rem_failed, members, 'cn', 'ipahost',
             self.api.env.container_host
         )
-        (completed, remove_failed) = del_members(
-            ldap, completed, to_remove, remove_failed, dn, 'member'
+        (completed, rem_failed) = del_members(
+            ldap, completed, to_remove, rem_failed, dn, 'member'
         )
 
         members = kw.get('hostgroups', [])
-        (to_remove, remove_failed) = find_members(
-            ldap, remove_failed, members, 'cn', 'ipahostgroup',
+        (to_remove, rem_failed) = find_members(
+            ldap, rem_failed, members, 'cn', 'ipahostgroup',
             self.api.env.container_hostgroup
         )
-        (completed, remove_failed) = del_members(
-            ldap, completed, to_remove, remove_failed, dn, 'member'
+        (completed, rem_failed) = del_members(
+            ldap, completed, to_remove, rem_failed, dn, 'member'
         )
 
-        return (completed, ldap.get_entry(dn, _default_attributes))
+        return (
+            completed, rem_failed, ldap.get_entry(dn, _default_attributes)
+        )
 
 api.register(hostgroup_del_member)
 

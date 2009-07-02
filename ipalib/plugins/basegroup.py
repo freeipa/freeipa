@@ -43,20 +43,21 @@ def find_members(ldap, failed, members, attr, object_class, parent_dn=''):
     :param object_class: type of entry we're looking for
     :param parent_dn: base DN for the search
     """
-    found = []
+    found = {}
     for m in members:
-        if not m: continue
+        if not m:
+            continue
         try:
             (member_dn, entry_attrs) = ldap.find_entry_by_attr(
                 attr, m, object_class, [''], parent_dn
             )
-            found.append(member_dn)
-        except errors.NotFound:
-            failed.append(m)
+            found[m] = member_dn
+        except errors.NotFound, e:
+            failed[m] = 'ERROR: %s' % e.message
 
     return (found, failed)
 
-def add_members(ldap, completed, members, add_failed, group_dn, memberattr):
+def add_members(ldap, completed, members, add_failed, group_dn, member_attr):
     """
     Add members to a group.
 
@@ -67,20 +68,20 @@ def add_members(ldap, completed, members, add_failed, group_dn, memberattr):
     :param members: list of member DNs to add
     :param add_failed: members who failed to be added
     :param dn: DN of group to add members to
-    :param membetattr: The attribute where members are stored
+    :param membet_attr: The attribute where members are stored
     """
-    for member_dn in members:
+    for (m, member_dn) in members.iteritems():
         if not member_dn:
             continue
         try:
-            ldap.add_entry_to_group(member_dn, group_dn, memberattr)
+            ldap.add_entry_to_group(member_dn, group_dn, member_attr)
             completed += 1
-        except:
-            add_failed.append(member_dn)
+        except Exception, e:
+            add_failed[m] = 'ERROR: %s' % e.message
 
     return (completed, add_failed)
 
-def del_members(ldap, completed, members, rem_failed, group_dn, memberattr):
+def del_members(ldap, completed, members, rem_failed, group_dn, member_attr):
     """
     Remove members from group.
 
@@ -91,15 +92,16 @@ def del_members(ldap, completed, members, rem_failed, group_dn, memberattr):
     :param members: list of member DNs to remove
     :param remove_failed: members who failed to be removed
     :param dn: DN of group to remove members from
-    :param membetattr: The attribute where members are stored
+    :param membet_attr: The attribute where members are stored
     """
-    for member_dn in members:
-        if not member_dn: continue
+    for (m, member_dn) in members.iteritems():
+        if not member_dn:
+            continue
         try:
-            ldap.remove_entry_from_group(member_dn, group_dn, memberattr)
+            ldap.remove_entry_from_group(member_dn, group_dn, member_attr)
             completed += 1
-        except:
-            rem_failed.append(member_dn)
+        except Exception, e:
+            rem_failed[m] = 'ERROR: %s' % e.message
 
     return (completed, rem_failed)
 
@@ -324,7 +326,7 @@ class basegroup_find(crud.Search):
             textui.print_entry(entry_attrs)
             textui.print_plain('')
         textui.print_count(
-            len(result), '%i group matched.', '%i groups matched.'
+            len(entries), '%i group matched.', '%i groups matched.'
         )
         if truncated:
             textui.print_dashed('These results are truncated.', below=False)
@@ -419,7 +421,7 @@ class basegroup_add_member(Command):
         assert self.container
         ldap = self.api.Backend.ldap2
         to_add = []
-        add_failed = []
+        add_failed = {}
         completed = 0
 
         (dn, entry_attrs) = ldap.find_entry_by_attr(
@@ -444,14 +446,17 @@ class basegroup_add_member(Command):
             ldap, completed, to_add, add_failed, dn, 'member'
         )
 
-        return (completed, ldap.get_entry(dn, self.default_attributes))
+        return (
+            completed, add_failed, ldap.get_entry(dn, self.default_attributes)
+        )
 
     def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        (total, (dn, entry_attrs)) = result
+        (total, failed, (dn, entry_attrs)) = result
 
+        textui.print_entry(failed, indent=0)
         textui.print_name(self.name)
         textui.print_attribute('dn', dn)
         textui.print_entry(entry_attrs)
@@ -498,7 +503,7 @@ class basegroup_del_member(Command):
         assert self.container
         ldap = self.api.Backend.ldap2
         to_remove = []
-        remove_failed = []
+        rem_failed = {}
         completed = 0
 
         (dn, entry_attrs) = ldap.find_entry_by_attr(
@@ -506,33 +511,38 @@ class basegroup_del_member(Command):
         )
 
         members = kw.get('groups', [])
-        (to_remove, remove_failed) = find_members(
-            ldap, remove_failed, members, 'cn', 'ipausergroup',
+        (to_remove, rem_failed) = find_members(
+            ldap, rem_failed, members, 'cn', 'ipausergroup',
             self.api.env.container_group
         )
-        (completed, remove_failed) = del_members(
-            ldap, completed, to_remove, remove_failed, dn, 'member'
+        (completed, rem_failed) = del_members(
+            ldap, completed, to_remove, rem_failed, dn, 'member'
         )
 
         members = kw.get('users', [])
-        (to_remove, remove_failed) = find_members(
-            ldap, remove_failed, members, 'uid', 'posixaccount',
+        (to_remove, rem_failed) = find_members(
+            ldap, rem_failed, members, 'uid', 'posixaccount',
             self.api.env.container_user
         )
-        (completed, remove_failed) = del_members(
-            ldap, completed, to_remove, remove_failed, dn, 'member'
+        (completed, rem_failed) = del_members(
+            ldap, completed, to_remove, rem_failed, dn, 'member'
         )
 
-        return (completed, ldap.get_entry(dn, self.default_attributes))
+        return (
+            completed, rem_failed, ldap.get_entry(dn, self.default_attributes)
+        )
 
     def output_for_cli(self, textui, result, *args, **options):
         """
         Output result of this command to command line interface.
         """
-        (total, (dn, entry_attrs)) = result
+        (total, failed, (dn, entry_attrs)) = result
 
+        textui.print_entry(failed, indent=0)
         textui.print_name(self.name)
         textui.print_attribute('dn', dn)
+
         textui.print_entry(entry_attrs)
+
         textui.print_count(total, '%i member removed.', '%i members removed.')
 

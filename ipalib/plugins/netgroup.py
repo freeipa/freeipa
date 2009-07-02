@@ -21,7 +21,7 @@
 Netgroups
 """
 
-from ipalib import api
+from ipalib import api, errors
 from ipalib.plugins.basegroup import *
 from ipalib import uuid
 
@@ -159,17 +159,18 @@ class netgroup_add_member(basegroup_add_member):
     )
 
     def _add_external(self, ldap, completed, members, group_dn):
-        add_failed = []
+        add_failed = {}
         (dn, entry_attrs) = ldap.get_entry(group_dn, ['externalhost'])
         external_hosts = entry_attrs.get('externalhost', [])
+        e = errors.AlreadyGroupMember()
 
-        for m in members:
+        for m in members.keys():
             m = m.lower()
             if m not in external_hosts:
                 external_hosts.append(m)
                 completed += 1
             else:
-                add_failed.append(m)
+                add_failed[m] = 'ERROR: %s' % e.message
 
         try:
             ldap.update_entry(group_dn, {'externalhost': external_hosts})
@@ -196,7 +197,7 @@ class netgroup_add_member(basegroup_add_member):
             'cn', cn, self.filter_class, [''], self.container
         )
         to_add = []
-        add_failed = []
+        add_failed = {}
         completed = 0
 
         members = kw.get('groups', [])
@@ -217,17 +218,20 @@ class netgroup_add_member(basegroup_add_member):
             ldap, completed, to_add, add_failed, dn, 'member'
         )
 
-        add_failed = []
+        hosts_failed = {}
         members = kw.get('hosts', [])
-        (to_add, add_failed) = find_members(
-            ldap, add_failed, members, 'cn', 'ipahost',
+        (to_add, hosts_failed) = find_members(
+            ldap, hosts_failed, members, 'cn', 'ipahost',
             self.api.env.container_host
         )
 
         # If a host is not found we'll consider it an externalHost. It will
         # be up to the user to handle typos
-        if add_failed:
-            (completed, add_failed) = self._add_external(ldap, completed, add_failed, dn)
+        if hosts_failed:
+            (completed, hosts_failed) = self._add_external(
+                ldap, completed, hosts_failed, dn
+            )
+            add_failed.update(hosts_failed)
 
         (completed, add_failed) = add_members(
             ldap, completed, to_add, add_failed, dn, 'member'
@@ -251,7 +255,9 @@ class netgroup_add_member(basegroup_add_member):
             ldap, completed, to_add, add_failed, dn, 'member'
         )
 
-        return (completed, ldap.get_entry(dn, _default_attributes))
+        return (
+            completed, add_failed, ldap.get_entry(dn, _default_attributes)
+        )
 
 api.register(netgroup_add_member)
 
@@ -280,17 +286,18 @@ class netgroup_del_member(basegroup_del_member):
     )
 
     def _del_external(self, ldap, completed, members, group_dn):
-        rem_failed = []
+        rem_failed = {}
         (dn, entry_attrs) = ldap.get_entry(group_dn, ['externalhost'])
         external_hosts = entry_attrs.get('externalhost', [])
+        e = errors.NotGroupMember()
 
-        for m in members:
+        for m in members.keys():
             m = m.lower()
             if m in external_hosts:
                 external_hosts.remove(m)
                 completed += 1
             else:
-                rem_failed.append(m)
+                rem_failed[m] = 'ERROR: %s' % e.message
 
         try:
             ldap.update_entry(group_dn, {'externalhost': external_hosts})
@@ -317,7 +324,7 @@ class netgroup_del_member(basegroup_del_member):
             'cn', cn, self.filter_class, [''], self.container
         )
         to_rem = []
-        rem_failed = []
+        rem_failed = {}
         completed = 0
 
         members = kw.get('groups', [])
@@ -338,16 +345,20 @@ class netgroup_del_member(basegroup_del_member):
             ldap, completed, to_rem, rem_failed, dn, 'member'
         )
 
+        hosts_failed = {}
         members = kw.get('hosts', [])
-        (to_rem, rem_failed) = find_members(
-            ldap, rem_failed, members, 'cn', 'ipahost',
+        (to_rem, hosts_failed) = find_members(
+            ldap, hosts_failed, members, 'cn', 'ipahost',
             self.api.env.container_host
         )
 
         # If a host is not found we'll consider it an externalHost. It will
         # be up to the user to handle typos
-        if rem_failed:
-            (completed, rem_failed) = self._del_external(ldap, completed, rem_failed, dn)
+        if hosts_failed:
+            (completed, hosts_failed) = self._del_external(
+                ldap, completed, hosts_failed, dn
+            )
+            rem_failed.update(hosts_failed)
 
         (completed, rem_failed) = del_members(
             ldap, completed, to_rem, rem_failed, dn, 'member'
@@ -371,7 +382,9 @@ class netgroup_del_member(basegroup_del_member):
             ldap, completed, to_rem, rem_failed, dn, 'member'
         )
 
-        return (completed, ldap.get_entry(dn, _default_attributes))
+        return (
+            completed, rem_failed, ldap.get_entry(dn, _default_attributes)
+        )
 
 api.register(netgroup_del_member)
 
