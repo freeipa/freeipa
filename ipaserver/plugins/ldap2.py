@@ -561,7 +561,7 @@ class ldap2(CrudBackend, Encoder):
         """Set user password."""
         dn = self.normalize_dn(dn)
         try:
-            self.passwd_s(dn, old_pass, new_pass)
+            self.conn.passwd_s(dn, old_pass, new_pass)
         except _ldap.LDAPError, e:
             _handle_errors(e, **{})
 
@@ -575,10 +575,10 @@ class ldap2(CrudBackend, Encoder):
         if dn == group_dn:
             raise errors.SameGroupError()
         # check if the entry exists
-        (dn, entry_attrs) = self.get_entry(dn, ['objectclass'])
+        (dn, entry_attrs) = self.get_entry(dn, ['objectclass'], [''])
 
         # get group entry
-        (group_dn, group_entry_attrs) = self.get_entry(group_dn)
+        (group_dn, group_entry_attrs) = self.get_entry(group_dn, [member_attr])
 
         # add dn to group entry's `member_attr` attribute
         members = group_entry_attrs.get(member_attr, [])
@@ -598,7 +598,7 @@ class ldap2(CrudBackend, Encoder):
         dn = self.normalize_dn(dn)
 
         # get group entry
-        (group_dn, group_entry_attrs) = self.get_entry(group_dn)
+        (group_dn, group_entry_attrs) = self.get_entry(group_dn, [member_attr])
 
         # remove dn from group entry's `member_attr` attribute
         members = group_entry_attrs.get(member_attr, [])
