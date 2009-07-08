@@ -168,14 +168,14 @@ class ldap2(CrudBackend, Encoder):
         self._host = api.env.ldap_host
         self._port = api.env.ldap_port
         self._schema = _schema
+        self._ssl = False
         CrudBackend.__init__(self)
 
     def __del__(self):
         self.disconnect()
 
     def __str__(self):
-        using_cacert = bool(_ldap.get_option(_ldap.OPT_X_TLS_CACERTFILE))
-        return _get_url(self._host, self._port, using_cacert)
+        return _get_url(self._host, self._port, self._ssl)
 
     @encode_args(3, 4, 'bind_dn', 'bind_pw')
     def create_connection(self, host=None, port=None, ccache=None,
@@ -208,8 +208,10 @@ class ldap2(CrudBackend, Encoder):
 
         if tls_cacertfile is not None:
             _ldap.set_option(_ldap.OPT_X_TLS_CACERTFILE, tls_cacertfile)
+            self._ssl = True
         if tls_certfile is not None:
             _ldap.set_option(_ldap.OPT_X_TLS_CERTFILE, tls_certfile)
+            self._ssl = True
         if tls_keyfile is not None:
             _ldap.set_option(_ldap.OPT_X_TLS_KEYFILE, tls_keyfile)
 
