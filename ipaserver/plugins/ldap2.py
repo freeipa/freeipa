@@ -38,6 +38,8 @@ import ldap.filter as _ldap_filter
 import ldap.sasl as _ldap_sasl
 from ldap.controls import LDAPControl
 from ldap.ldapobject import SimpleLDAPObject
+# for backward compatibility
+from ldap.functions import explode_dn
 
 from ipalib import api, errors
 from ipalib.crud import CrudBackend
@@ -235,7 +237,7 @@ class ldap2(CrudBackend, Encoder):
         Note: You don't have to normalize DN's before passing them to
               ldap2 methods. It's done internally for you.
         """
-        rdns = _ldap.dn.explode_dn(dn)
+        rdns = explode_dn(dn)
         if rdns:
             dn = ','.join(rdns)
             if not dn.endswith(self.api.env.basedn):
@@ -577,7 +579,7 @@ class ldap2(CrudBackend, Encoder):
         if dn == group_dn:
             raise errors.SameGroupError()
         # check if the entry exists
-        (dn, entry_attrs) = self.get_entry(dn, ['objectclass'], [''])
+        (dn, entry_attrs) = self.get_entry(dn, ['objectclass'])
 
         # get group entry
         (group_dn, group_entry_attrs) = self.get_entry(group_dn, [member_attr])
