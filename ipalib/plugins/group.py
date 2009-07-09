@@ -210,14 +210,14 @@ class group_add_member(basegroup_add_member):
 api.register(group_add_member)
 
 
-class group_del_member(basegroup_del_member):
+class group_remove_member(basegroup_remove_member):
     """
     Remove members from group.
     """
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(group_del_member, self).execute(cn, **kw)
+        return super(group_remove_member, self).execute(cn, **kw)
 
-api.register(group_del_member)
+api.register(group_remove_member)
 

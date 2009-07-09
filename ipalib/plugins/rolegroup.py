@@ -112,14 +112,14 @@ class rolegroup_add_member(basegroup_add_member):
 api.register(rolegroup_add_member)
 
 
-class rolegroup_del_member(basegroup_del_member):
+class rolegroup_remove_member(basegroup_remove_member):
     """
     Remove member from rolegroup.
     """
     container = _container_dn
 
     def execute(self, cn, **kw):
-        return super(rolegroup_del_member, self).execute(cn, **kw)
+        return super(rolegroup_remove_member, self).execute(cn, **kw)
 
-api.register(rolegroup_del_member)
+api.register(rolegroup_remove_member)
 

@@ -173,7 +173,7 @@ class hostgroup_add_member(basegroup_add_member):
 api.register(hostgroup_add_member)
 
 
-class hostgroup_del_member(basegroup_del_member):
+class hostgroup_remove_member(basegroup_remove_member):
     """
     Remove members from hostgroup.
     """
@@ -196,7 +196,7 @@ class hostgroup_del_member(basegroup_del_member):
 
     def execute(self, cn, **kw):
         """
-        Execute the group-del-member operation.
+        Execute the group-remove-member operation.
 
         Returns a tuple containing the number of members removed
         and the updated entry.
@@ -244,5 +244,5 @@ class hostgroup_del_member(basegroup_del_member):
             completed, rem_failed, ldap.get_entry(dn, _default_attributes)
         )
 
-api.register(hostgroup_del_member)
+api.register(hostgroup_remove_member)
 

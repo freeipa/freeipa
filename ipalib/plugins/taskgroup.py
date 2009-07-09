@@ -148,12 +148,12 @@ class taskgroup_add_member(basegroup_add_member):
 api.register(taskgroup_add_member)
 
 
-class taskgroup_del_member(basegroup_del_member):
+class taskgroup_remove_member(basegroup_remove_member):
     """
     Remove member from taskgroup.
     """
     container = _container_dn
-    takes_options = basegroup_del_member.takes_options + (
+    takes_options = basegroup_remove_member.takes_options + (
         List('rolegroups?',
             cli_name='rolegroups',
             doc='comma-separated list of role groups to remove'
@@ -211,5 +211,5 @@ class taskgroup_del_member(basegroup_del_member):
             completed, rem_failed, ldap.get_entry(dn, _default_attributes)
         )
 
-api.register(taskgroup_del_member)
+api.register(taskgroup_remove_member)
 

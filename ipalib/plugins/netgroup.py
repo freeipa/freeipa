@@ -262,7 +262,7 @@ class netgroup_add_member(basegroup_add_member):
 api.register(netgroup_add_member)
 
 
-class netgroup_del_member(basegroup_del_member):
+class netgroup_remove_member(basegroup_remove_member):
     """
     Remove a member from a netgroup.
     """
@@ -270,7 +270,7 @@ class netgroup_del_member(basegroup_del_member):
     container = _container_dn
     filter_class = _default_class
 
-    takes_options = basegroup_del_member.takes_options + (
+    takes_options = basegroup_remove_member.takes_options + (
         List('hosts?',
             cli_name='hosts',
             doc='comma-separated list of hosts to remove'
@@ -386,5 +386,5 @@ class netgroup_del_member(basegroup_del_member):
             completed, rem_failed, ldap.get_entry(dn, _default_attributes)
         )
 
-api.register(netgroup_del_member)
+api.register(netgroup_remove_member)
 

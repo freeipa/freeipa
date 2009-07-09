@@ -463,7 +463,7 @@ class basegroup_add_member(Command):
         textui.print_count(total, '%i member added.', '%i members added.')
 
 
-class basegroup_del_member(Command):
+class basegroup_remove_member(Command):
     """
     Remove members from group.
     """
@@ -491,7 +491,7 @@ class basegroup_del_member(Command):
 
     def execute(self, cn, **kw):
         """
-        Execute the group-del-member operation.
+        Execute the group-remove-member operation.
 
         Returns a tuple containing the number of members removed
         and the updated entry.
