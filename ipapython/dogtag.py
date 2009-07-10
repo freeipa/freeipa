@@ -21,12 +21,14 @@ from ipalib import api, errors
 import httplib
 import xml.dom.minidom
 
-def get_ca_certchain():
+def get_ca_certchain(ca_host=None):
     """
     Retrieve the CA Certificate chain from the configured Dogtag server.
     """
+    if ca_host is None:
+        ca_host = api.env.ca_host
     chain = None
-    conn = httplib.HTTPConnection(api.env.ca_host, 9180)
+    conn = httplib.HTTPConnection(ca_host, 9180)
     conn.request("GET", "/ca/ee/ca/getCertChain")
     res = conn.getresponse()
     if res.status == 200:
@@ -42,8 +44,8 @@ def get_ca_certchain():
                     item_node = doc.getElementsByTagName("Error")
                     reason = item_node[0].childNodes[0].data
                     raise errors.RemoteRetrieveError(reason=reason)
-                except:
-                    raise errors.RemoteRetrieveError(reason="Retrieving CA cert chain failed")
+                except Exception, e:
+                    raise errors.RemoteRetrieveError(reason="Retrieving CA cert chain failed: %s" % str(e))
         finally:
             doc.unlink()
 

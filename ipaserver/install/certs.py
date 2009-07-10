@@ -37,6 +37,20 @@ import nss.nss as nss
 
 CA_SERIALNO="/var/lib/ipa/ca_serialno"
 
+def ipa_self_signed():
+    """
+    Determine if the current IPA CA is self-signed or using another CA
+
+    Note that this doesn't distinguish between dogtag and being provided
+    PKCS#12 files from another CA.
+
+    A server is self-signed if /var/lib/ipa/ca_serialno exists
+    """
+    if ipautil.file_exists(CA_SERIALNO):
+        return True
+    else:
+        return False
+
 def client_auth_data_callback(ca_names, chosen_nickname, password, certdb):
     cert = None
     if chosen_nickname:
@@ -79,10 +93,12 @@ class CertDB(object):
         self.certder_fname = self.reqdir + "/tmpcert.der"
         self.host_name = host_name
 
-        if ipautil.file_exists(CA_SERIALNO):
-            self.self_signed_ca = True
+        self.self_signed_ca = ipa_self_signed()
+
+        if self.self_signed_ca:
+            self.subject_format = "CN=%s,ou=test-ipa,O=IPA"
         else:
-            self.self_signed_ca = False
+            self.subject_format = "CN=%s,OU=pki-ipa,O=IPA"
 
         # Making this a starting value that will generate
         # unique values for the current DB is the
@@ -222,6 +238,42 @@ class CertDB(object):
                            "-f", self.passwd_fname])
         self.set_perms(self.passwd_fname, write=True)
 
+    def list_certs(self):
+        """
+        Return a tuple of tuples containing (nickname, trust)
+        """
+        p = subprocess.Popen(["/usr/bin/certutil", "-d", self.secdir,
+                              "-L"], stdout=subprocess.PIPE)
+
+        certs = p.stdout.read()
+        certs = certs.split("\n")
+
+        # FIXME, this relies on NSS never changing the formatting of certutil
+        certlist = []
+        for cert in certs:
+            nickname = cert[0:61]
+            trust = cert[61:]
+            if re.match(r'\w+,\w+,\w+', trust):
+                certlist.append((nickname.strip(), trust))
+
+        return tuple(certlist)
+
+    def has_nickname(self, nickname):
+        """
+        Returns True if nickname exists in the certdb, False otherwise.
+
+        This could also be done directly with:
+            certutil -L -d -n <nickname> ...
+        """
+
+        certs = self.list_certs()
+
+        for cert in certs:
+            if nickname == cert[0]:
+                return True
+
+        return False
+
     def create_ca_cert(self):
         # Generate the encryption key
         self.run_certutil(["-G", "-z", self.noise_fname, "-f", self.passwd_fname])
@@ -279,7 +331,7 @@ class CertDB(object):
 
         raise RuntimeError("Unable to find serial number")
 
-    def create_server_cert(self, nickname, subject, other_certdb=None):
+    def create_server_cert(self, nickname, hostname, other_certdb=None, subject=None):
         """
         other_certdb can mean one of two things, depending on the context.
 
@@ -288,20 +340,26 @@ class CertDB(object):
 
         If we are using a dogtag CA then it contains the RA agent key
         that will issue our cert.
+
+        You can override the certificate Subject by specifying a subject.
         """
         cdb = other_certdb
         if not cdb:
             cdb = self
+        if subject is None:
+            subject=self.subject_format % hostname
         (out, err) = self.request_cert(subject)
         cdb.issue_server_cert(self.certreq_fname, self.certder_fname)
         self.add_cert(self.certder_fname, nickname)
         os.unlink(self.certreq_fname)
         os.unlink(self.certder_fname)
 
-    def create_signing_cert(self, nickname, subject, other_certdb=None):
+    def create_signing_cert(self, nickname, hostname, other_certdb=None, subject=None):
         cdb = other_certdb
         if not cdb:
             cdb = self
+        if subject is None:
+            subject=self.subject_format % hostname
         self.request_cert(subject)
         cdb.issue_signing_cert(self.certreq_fname, self.certder_fname)
         self.add_cert(self.certder_fname, nickname)
@@ -625,6 +683,9 @@ class CertDB(object):
            pkcs12_pwd_fname: the file containing the pin for the PKCS#12 file
            nickname: the nickname/friendly-name of the cert we are loading
            passwd: The password to use for the new NSS database we are creating
+
+           The global CA may be added as well in case it wasn't included in the
+           PKCS#12 file. Extra certs won't hurt in any case.
         """
         self.create_noise_file()
         self.create_passwd_file(passwd)
@@ -638,6 +699,15 @@ class CertDB(object):
         nickname = server_certs[0][0]
 
         self.cacert_name = self.find_root_cert(nickname)
+
+        # The point here is to list the cert chain to determine which CA
+        # to trust. If we get the same nickname back as our server cert
+        # go ahead and try to pull in the CA in case it either wasn't in the
+        # PKCS#12 file we loaded or isn't showing in the chain from
+        # certutil -O (bug #509132)
+        if self.cacert_name == nickname:
+            self.cacert_name="CA certificate"
+            self.load_cacert("/usr/share/ipa/html/ca.crt")
         self.trust_root_cert(nickname)
         self.create_pin_file()
         self.export_ca_cert(self.cacert_name, False)

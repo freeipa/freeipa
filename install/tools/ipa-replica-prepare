@@ -28,7 +28,7 @@ from optparse import OptionParser
 
 import ipapython.config
 from ipapython import ipautil
-from ipaserver.install import dsinstance, installutils, certs
+from ipaserver.install import dsinstance, installutils, certs, httpinstance
 from ipaserver import ipaldap
 from ipapython import version
 import ldap
@@ -98,28 +98,37 @@ def check_ipa_configuration(realm_name):
         logging.error("could not find directory instance: %s" % config_dir)
         sys.exit(1)
 
-def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, subject):
+def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, hostname):
     """realm is the kerberos realm for the IPA server.
        ds_dir is the location of the master DS we are creating a replica for.
        dir is the location of the files for the replica we are creating.
        passwd_fname is the file containing the PKCS#12 password
        fname is the filename of the PKCS#12 file for this cert (minus the .p12).
-       subject is the subject of the certificate we are creating
+       hostname is the FQDN of the server we're creating a cert for.
+
+       The subject is handled by certs.CertDB:create_server_cert()
     """
     try:
-        ds_ca = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name)))
-        ca = certs.CertDB(dir)
-        ca.create_from_cacert(ds_ca.cacert_fname)
-        ca.create_server_cert("Server-Cert", subject, ds_ca)
+        self_signed = certs.ipa_self_signed()
+
+        db = certs.CertDB(dir)
+        db.create_passwd_file()
+        db.create_certdbs()
+        if self_signed:
+            ca_db = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name)))
+            db.create_from_cacert(ca_db.cacert_fname)
+        else:
+            ca_db = certs.CertDB(httpinstance.NSS_DIR, host_name=get_host_name())
+        db.create_server_cert("Server-Cert", hostname, ca_db)
     except Exception, e:
         raise e
 
     pkcs12_fname = dir + "/" + fname + ".p12"
 
     try:
-        ca.export_pkcs12(pkcs12_fname, passwd_fname, "Server-Cert")
+        db.export_pkcs12(pkcs12_fname, passwd_fname, "Server-Cert")
     except ipautil.CalledProcessError, e:
-        print "error exporting CA certificate: " + str(e)
+        print "error exporting Server certificate: " + str(e)
         remove_file(pkcs12_fname)
         remove_file(passwd_fname)
 
@@ -129,6 +138,32 @@ def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, subject):
     remove_file(dir + "/noise.txt")
     if ipautil.file_exists(passwd_fname + ".orig"):
         remove_file(passwd_fname + ".orig")
+
+def export_ra_pkcs12(dir, dm_password):
+    """
+       dir is the location of the files for the replica we are creating.
+       dm_password is the Directory Manager password
+
+       If this install is using dogtag/RHCS then export the RA certificate.
+    """
+    if certs.ipa_self_signed():
+        return
+
+    (agent_fd, agent_name) = tempfile.mkstemp()
+    os.write(agent_fd, dm_password)
+    os.close(agent_fd)
+
+    try:
+        try:
+            db = certs.CertDB(httpinstance.NSS_DIR, host_name=get_host_name())
+
+            if db.has_nickname("ipaCert"):
+                pkcs12_fname = "%s/ra.p12" % dir
+                db.export_pkcs12(pkcs12_fname, agent_name, "ipaCert")
+        except Exception, e:
+            raise e
+    finally:
+        os.remove(agent_name)
 
 def get_ds_user(ds_dir):
     uid = os.stat(ds_dir).st_uid
@@ -176,7 +211,8 @@ def main():
 
     replica_fqdn = args[0]
 
-    if not ipautil.file_exists(certs.CA_SERIALNO) and not options.dirsrv_pin:
+    # FIXME: need more robust way to determine if dogtag is configured
+    if not certs.ipa_self_signed() and not ipautil.file_exists("/var/lib/pki-ca") and not options.dirsrv_pin:
         sys.exit("The replica must be created on the primary IPA server.\nIf you installed IPA with your own certificates using PKCS#12 files you must provide PKCS#12 files for any replicas you create as well.")
 
     print "Determining current realm name"
@@ -244,8 +280,18 @@ def main():
             print "Copy failed %s" %  e
             sys.exit(1)
     else:
+        try:
+            if not certs.ipa_self_signed():
+                # FIXME, need option for location of CA backup
+                if ipautil.file_exists("/root/tmp-ca.p12"):
+                    shutil.copy("/root/tmp-ca.p12", dir + "/ca.p12")
+                else:
+                    raise RuntimeError("Root CA PKCS#12 not found in /root/tmp-ca.p12")
+        except IOError, e:
+            print "Copy failed %s" %  e
+            sys.exit(1)
         print "Creating SSL certificate for the Directory Server"
-        export_certdb(realm_name, ds_dir, dir, passwd_fname, "dscert", "cn=%s,ou=Fedora Directory Server" % replica_fqdn)
+        export_certdb(realm_name, ds_dir, dir, passwd_fname, "dscert", replica_fqdn)
 
     if options.http_pin:
         passwd = options.http_pin
@@ -266,7 +312,9 @@ def main():
             sys.exit(1)
     else:
         print "Creating SSL certificate for the Web Server"
-        export_certdb(realm_name, ds_dir, dir, passwd_fname, "httpcert", "cn=%s,ou=Apache Web Server" % replica_fqdn)
+        export_certdb(realm_name, ds_dir, dir, passwd_fname, "httpcert", replica_fqdn)
+        print "Exporting RA certificate"
+        export_ra_pkcs12(dir, dirman_password)
     print "Copying additional files"
     copy_files(realm_name, dir)
     print "Finalizing configuration"

@@ -327,12 +327,12 @@ class DsInstance(service.Service):
             nickname = "Server-Cert"
             if self.self_signed_ca:
                 dsdb.create_self_signed()
-                dsdb.create_server_cert("Server-Cert", "cn=%s,ou=Fedora Directory Server" % self.host_name)
+                dsdb.create_server_cert("Server-Cert", self.host_name)
             else:
                 cadb = certs.CertDB("/etc/httpd/alias", host_name=self.host_name)
                 cadb.export_ca_cert(cadb.cacert_name, False)
                 dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
-                dsdb.create_server_cert("Server-Cert", "CN=%s,OU=pki-ipa,O=IPA" % self.host_name, cadb)
+                dsdb.create_server_cert("Server-Cert", self.host_name, cadb)
                 dsdb.create_pin_file()
 
         conn = ipaldap.IPAdmin("127.0.0.1")

@@ -51,6 +51,14 @@ from ipalib import util
 
 DEFAULT_DSPORT=7389
 
+# These values come from /usr/share/pki/ca/setup/postinstall
+PKI_INSTANCE_NAME="pki-ca"
+AGENT_SECURE_PORT=9443
+EE_SECURE_PORT=9444
+ADMIN_SECURE_PORT=9445
+UNSECURE_PORT=9180
+TOMCAT_SERVER_PORT=9701
+
 # We need to reset the template because the CA uses the regular boot
 # information
 INF_TEMPLATE = """
@@ -88,13 +96,12 @@ def get_preop_pin(instance_root, instance_name):
 
     return preop_pin
 
-def export_pkcs12(output_file, output_passwd, nickname, cert_database,
+def import_pkcs12(input_file, input_passwd, cert_database,
                   cert_passwd):
     ipautil.run(["/usr/bin/pk12util", "-d", cert_database,
-                 "-o", output_file,
-                 "-n", nickname,
+                 "-i", input_file,
                  "-k", cert_passwd,
-                 "-w", output_passwd])
+                 "-w", input_passwd])
 
 def client_auth_data_callback(ca_names, chosen_nickname, password, certdb):
     cert = None
@@ -147,7 +154,7 @@ def get_defList(data):
     """
     Return a dictionary of defList name/value pairs.
 
-    A certificate signing request is specfied as a series of these.
+    A certificate signing request is specified as a series of these.
     """
     varname = None
     value = None
@@ -215,6 +222,7 @@ class CADSInstance(service.Service):
         self.pkcs12_info = None
         self.ds_user = None
         self.ds_port = None
+        self.master_host = None
         if realm_name:
             self.suffix = util.realm_to_suffix(self.realm_name)
             self.__setup_sub_dict()
@@ -351,10 +359,13 @@ class CAInstance(service.Service):
 
     def __init__(self):
         service.Service.__init__(self, "pki-ca")
-        self.pki_user = None
+        self.pki_user = "pkiuser"
         self.dm_password = None
         self.admin_password = None
         self.host_name = None
+        self.pkcs12_info = None
+        self.clone = False
+        self.external = False
 
         # The same database is used for mod_nss because the NSS context
         # will already have been initialized by Apache by the time
@@ -367,31 +378,36 @@ class CAInstance(service.Service):
         self.ds_port = DEFAULT_DSPORT
         self.domain_name = "IPA"
         self.server_root = "/var/lib"
-        self.secure_port = 9444
         self.ra_cert = None
         self.requestId = None
 
     def __del__(self):
         shutil.rmtree(self.ca_agent_db, ignore_errors=True)
 
-    def configure_instance(self, pki_user, host_name, dm_password, admin_password, ds_port=DEFAULT_DSPORT):
+    def configure_instance(self, pki_user, host_name, dm_password, admin_password, ds_port=DEFAULT_DSPORT, pkcs12_info=None, master_host=None):
         self.pki_user = pki_user
         self.host_name = host_name
         self.dm_password = dm_password
         self.admin_password = admin_password
         self.ds_port = ds_port
+        self.pkcs12_info = pkcs12_info
+        if self.pkcs12_info is not None:
+            self.clone = True
+        self.master_host = master_host
 
         if not ipautil.dir_exists("/var/lib/pki-ca"):
             self.step("creating pki-ca instance", self.create_instance)
         self.step("creating certificate server user", self.__create_ca_user)
         self.step("configuring certificate server instance", self.__configure_instance)
-        self.step("creating CA agent PKCS#12 file in /root", self.__create_ca_agent_pkcs12)
+        if not self.clone:
+            self.step("creating CA agent PKCS#12 file in /root", self.__create_ca_agent_pkcs12)
         self.step("creating RA agent certificate database", self.__create_ra_agent_db)
         self.step("importing CA chain to RA certificate database", self.__import_ca_chain)
-        self.step("requesting RA certificate from CA", self.__request_ra_certificate)
-        self.step("issuing RA agent certificate", self.__issue_ra_cert)
-        self.step("adding RA agent as a trusted user", self.__configure_ra)
-        self.step("fixing RA database permissions", self.__fix_ra_perms)
+        if not self.clone:
+            self.step("requesting RA certificate from CA", self.__request_ra_certificate)
+            self.step("issuing RA agent certificate", self.__issue_ra_cert)
+            self.step("adding RA agent as a trusted user", self.__configure_ra)
+        self.step("fixing RA database permissions", self.fix_ra_perms)
         self.step("setting up signing cert profile", self.__setup_sign_profile)
         self.step("configuring certificate server to start on boot", self.__enable)
         self.step("restarting certificate server", self.__restart_instance)
@@ -401,29 +417,34 @@ class CAInstance(service.Service):
     def create_instance(self):
         """
         If for some reason the instance doesn't exist, create a new one."
-
-        These values come from /usr/share/pki/ca/setup/postinstall
         """
-        PKI_INSTANCE_NAME="pki-ca"
-        AGENT_SECURE_PORT="9443"
-        EE_SECURE_PORT="9444"
-        ADMIN_SECURE_PORT="9445"
-        UNSECURE_PORT="9180"
-        TOMCAT_SERVER_PORT="9701"
 
         args = ['/usr/bin/pkicreate',
                 '-pki_instance_root', '/var/lib',
                 '-pki_instance_name', PKI_INSTANCE_NAME,
                 '-subsystem_type', 'ca',
-                '-agent_secure_port', AGENT_SECURE_PORT,
-                '-ee_secure_port', EE_SECURE_PORT,
-                '-admin_secure_port', ADMIN_SECURE_PORT,
-                '-unsecure_port', UNSECURE_PORT,
-                '-tomcat_server_port', TOMCAT_SERVER_PORT,
+                '-agent_secure_port', str(AGENT_SECURE_PORT),
+                '-ee_secure_port', str(EE_SECURE_PORT),
+                '-admin_secure_port', str(ADMIN_SECURE_PORT),
+                '-unsecure_port', str(UNSECURE_PORT),
+                '-tomcat_server_port', str(TOMCAT_SERVER_PORT),
                 '-redirect', 'conf=/etc/pki-ca',
                 '-redirect', 'logs=/var/log/pki-ca',
         ]
         ipautil.run(args)
+
+        # Turn off Nonces
+        if installutils.update_file('/var/lib/pki-ca/conf/CS.cfg', 'ca.enableNonces=true', 'ca.enableNonces=false') != 0:
+            raise RuntimeError("Disabling nonces failed")
+        pent = pwd.getpwnam(self.pki_user)
+        os.chown('/var/lib/pki-ca/conf/CS.cfg', pent.pw_uid, pent.pw_gid )
+
+        logging.debug("restarting ca instance")
+        try:
+            self.restart()
+            logging.debug("done restarting ca instance")
+        except ipautil.CalledProcessError, e:
+            print "failed to restart ca instance", e
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
@@ -455,7 +476,7 @@ class CAInstance(service.Service):
         try:
             args = ["/usr/bin/perl", "/usr/bin/pkisilent",  "ConfigureCA",
                     "-cs_hostname", self.host_name,
-                    "-cs_port", str(self.secure_port),
+                    "-cs_port", str(ADMIN_SECURE_PORT),
                     "-client_certdb_dir", self.ca_agent_db,
                     "-client_certdb_pwd", self.admin_password,
                     "-preop_pin" , preop_pin,
@@ -484,10 +505,9 @@ class CAInstance(service.Service):
                     "-ca_server_cert_subject_name", "CN=" + self.host_name + ",O=" + self.domain_name,
                     "-ca_audit_signing_cert_subject_name", "\"CN=CA Audit Signing Certificate,O=" + self.domain_name + "\"",
                     "-ca_sign_cert_subject_name", "\"CN=Certificate Authority,O=" + self.domain_name + "\"" ]
-#            if (options.external):
-#                pass
-#                args.append("-external")
-#                args.append("true")
+            if (self.external):
+                args.append("-external")
+                args.append("true")
 #                args.append("-ext_csr_file")
 #                args.append(ext_csr_file)
 #                if (options.cacertfile):
@@ -496,39 +516,51 @@ class CAInstance(service.Service):
 #                if (options.cacertchainfile):
 #                    args.append("-ext_ca_cert_chain_file")
 #                    args.append(options.cacertchainfile)
-#            else:
-#                args.append("-external")
-#                args.append("false")
-#            if (options.clone):
-#                pass
-#                args.append("-clone")
-#                args.append("true")
-#                args.append("-clone_p12_file")
-#                args.append(options.clonefile)
-#                args.append("-clone_p12_password")
-#                args.append(options.clonepasswd)
-#                args.append("-clone_uri")
-#                args.append(options.cloneURI)
-#                args.append("-sd_hostname")
-#                args.append(options.sd_hostname)
-#                args.append("-sd_ssl_port")
-#                args.append(options.sd_ssl_port)
-#                args.append("-sd_admin_name")
-#                args.append(options.sd_admin_name)
-#                args.append("-sd_admin_password")
-#                args.append(options.sd_admin_password)
-#            else:
-#                args.append("-clone")
-#                args.append("false")
-
-            # FIXME
-            args.append("-external")
-            args.append("false")
-            args.append("-clone")
-            args.append("false")
+            else:
+                args.append("-external")
+                args.append("false")
+            if (self.clone):
+                """sd = security domain -->  all CS systems get registered to
+                   a security domain. This is set to the hostname and port of
+                   the master CA.
+                """
+                # The install wizard expects the file to be here.
+                cafile = self.pkcs12_info[0]
+                shutil.copy(cafile, "/var/lib/pki-ca/alias/ca.p12")
+                pent = pwd.getpwnam(self.pki_user)
+                os.chown("/var/lib/pki-ca/alias/ca.p12", pent.pw_uid, pent.pw_gid )
+                args.append("-clone")
+                args.append("true")
+                args.append("-clone_p12_file")
+                args.append("ca.p12")
+                args.append("-clone_p12_password")
+                args.append(self.dm_password)
+                args.append("-sd_hostname")
+                args.append(self.master_host)
+                args.append("-sd_admin_port")
+                args.append(str(ADMIN_SECURE_PORT))
+                args.append("-sd_admin_name")
+                args.append("admin")
+                args.append("-sd_admin_password")
+                args.append(self.admin_password)
+            else:
+                args.append("-clone")
+                args.append("false")
 
             logging.debug(args)
             ipautil.run(args)
+
+            # pkisilent doesn't return 1 on error so look at the output of
+            # /sbin/service pki-ca status. It will tell us if the instance
+            # still needs to be configured.
+            (stdout, stderr) = ipautil.run(["/sbin/service", "pki-ca", "status"])
+            try:
+                stdout.index("CONFIGURED!")
+                raise RuntimeError("pkisilent failed to configure instance.")
+            except ValueError:
+                # This is raised because the string doesn't exist, we're done
+                pass
+
             logging.debug("completed creating ca instance")
         except ipautil.CalledProcessError, e:
             logging.critical("failed to restart ca instance %s" % e)
@@ -581,7 +613,7 @@ class CAInstance(service.Service):
             '-p', self.admin_password,
             '-d', self.ca_agent_db,
             '-r', '/ca/agent/ca/profileReview?requestId=%s' % self.requestId,
-            '%s:%d' % (self.host_name, 9443),
+            '%s:%d' % (self.host_name, AGENT_SECURE_PORT),
         ]
         logging.debug("running sslget %s" % args)
         (stdout, stderr) = ipautil.run(args)
@@ -604,7 +636,7 @@ class CAInstance(service.Service):
             '-d', self.ca_agent_db,
             '-e', params,
             '-r', '/ca/agent/ca/profileProcess',
-            '%s:%d' % (self.host_name, 9443),
+            '%s:%d' % (self.host_name, AGENT_SECURE_PORT),
         ]
         logging.debug("running sslget %s" % args)
         (stdout, stderr) = ipautil.run(args)
@@ -626,6 +658,22 @@ class CAInstance(service.Service):
                 ['-A', '-t', 'u,u,u', '-n', 'ipaCert', '-a',
                  '-i', agent_name]
             )
+        finally:
+            os.remove(agent_name)
+
+    def import_ra_cert(self, rafile):
+        """
+        Cloned RAs will use the same RA agent cert as the master so we
+        need to import from a PKCS#12 file.
+
+        Used when setting up replication
+        """
+        # Add the new RA cert to the database in /etc/httpd/alias
+        (agent_fd, agent_name) = tempfile.mkstemp()
+        os.write(agent_fd, self.dm_password)
+        os.close(agent_fd)
+        try:
+            import_pkcs12(rafile, agent_name, self.ra_agent_db, self.ra_agent_pwd)
         finally:
             os.remove(agent_name)
 
@@ -692,9 +740,9 @@ class CAInstance(service.Service):
 
     def __get_ca_chain(self):
         try:
-            return dogtag.get_ca_certchain()
-        except:
-            raise RuntimeError("Unable to retrieve CA chain")
+            return dogtag.get_ca_certchain(ca_host=self.host_name)
+        except Exception, e:
+            raise RuntimeError("Unable to retrieve CA chain: %s" % str(e))
 
     def __create_ca_agent_pkcs12(self):
         (pwd_fd, pwd_name) = tempfile.mkstemp()
@@ -766,7 +814,7 @@ class CAInstance(service.Service):
             conn.close()
             raise RuntimeError("Unable to submit RA cert request")
 
-    def __fix_ra_perms(self):
+    def fix_ra_perms(self):
         os.chmod(self.ra_agent_db + "/cert8.db", 0640)
         os.chmod(self.ra_agent_db + "/key3.db", 0640)
         os.chmod(self.ra_agent_db + "/secmod.db", 0640)
@@ -775,23 +823,13 @@ class CAInstance(service.Service):
         os.chown(self.ra_agent_db + "/cert8.db", 0, pent.pw_gid )
         os.chown(self.ra_agent_db + "/key3.db", 0, pent.pw_gid )
         os.chown(self.ra_agent_db + "/secmod.db", 0, pent.pw_gid )
-        os.chown(self.ra_agent_pwd, 0, pent.pw_gid)
+        os.chown(self.ra_agent_pwd, pent.pw_uid, pent.pw_gid)
 
     def __setup_sign_profile(self):
         caconfig = "/var/lib/pki-ca/conf/CS.cfg"
 
-        if not ipautil.file_exists('/var/lib/pki-ca/profiles/ca/caJarSigningCert.cfg'):
-            profile = ipautil.template_file(ipautil.SHARE_DIR + "caJarSigningCert.cfg.template", {})
-            fd = open("/var/lib/pki-ca/profiles/ca/caJarSigningCert.cfg", "w")
-            fd.write(profile)
-            fd.close()
-
-        profilelist = installutils.get_directive(caconfig, "profile.list", separator="=")
-        if profilelist.find('caJarSigningCert') < 0:
-            profilelist = profilelist + ',caJarSigningCert'
-            installutils.set_directive(caconfig, 'profile.list', profilelist, quotes=False, separator='=')
-            installutils.set_directive(caconfig, 'profile.caJarSigningCert.class_id', 'caEnrollImpl', quotes=False, separator='=')
-            installutils.set_directive(caconfig, 'profile.caJarSigningCert.config', '/var/lib/pki-ca/profiles/ca/caJarSigningCert.cfg', quotes=False, separator='=')
+        # Tell the profile to automatically issue certs for RAs
+        installutils.set_directive('/var/lib/pki-ca/profiles/ca/caJarSigningCert.cfg', 'auth.instance_id', 'raCertAuth', quotes=False, separator='=')
 
     def uninstall(self):
         try:
@@ -803,6 +841,6 @@ class CAInstance(service.Service):
 if __name__ == "__main__":
     installutils.standard_logging_setup("install.log", False)
     cs = CADSInstance()
-    cs.create_instance("dirsrv", "GREYOAK.COM", "catest.greyoak.com", "greyoak.com", "password")
+    cs.create_instance("dirsrv", "EXAMPLE.COM", "catest.example.com", "example.com", "password")
     ca = CAInstance()
-    ca.configure_instance("pkiuser", "catest.greyoak.com", "password", "password")
+    ca.configure_instance("pkiuser", "catest.example.com", "password", "password")

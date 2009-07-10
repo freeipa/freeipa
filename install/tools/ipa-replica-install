@@ -101,6 +101,25 @@ def set_owner(config, dir):
     pw = pwd.getpwnam(config.ds_user)
     os.chown(dir, pw.pw_uid, pw.pw_gid)
 
+def install_ca(config):
+    cafile = config.dir + "/ca.p12"
+    if not ipautil.file_exists(cafile):
+        return None
+
+    try:
+        from ipaserver.install import cainstance
+    except ImportError:
+        print >> sys.stderr, "Import failed: %s" % sys.exc_value
+        sys.exit(1)
+
+    cs = cainstance.CADSInstance()
+    cs.create_instance(config.ds_user, config.realm_name, config.host_name, config.domain_name, config.dirman_password)
+
+    ca = cainstance.CAInstance()
+    ca.configure_instance("pkiuser", config.host_name, config.dirman_password, config.dirman_password, pkcs12_info=(cafile,), master_host=config.master_host_name)
+
+    return ca
+
 def install_ds(config):
     dsinstance.check_existing_installation()
     dsinstance.check_ports()
@@ -237,16 +256,19 @@ def main():
     except ldap.INVALID_CREDENTIALS, e :
         sys.exit("\nThe password provided is incorrect for LDAP server %s" % config.master_host_name)
 
+    # Install CA cert so that we can do SSL connections with ldap
+    install_ca_cert(config)
+
     # Configure ntpd
     if options.conf_ntp:
         ntp = ntpinstance.NTPInstance()
         ntp.create_instance()
 
+    # Configure the CA if necessary
+    CA = install_ca(config)
+
     # Configure dirsrv
     ds = install_ds(config)
-
-    # Install CA cert so that we can do SSL connections with ldap
-    install_ca_cert(config)
 
     try:
         repl = replication.ReplicationManager(config.host_name, config.dirman_password)
@@ -259,6 +281,10 @@ def main():
 
     install_krb(config)
     install_http(config)
+    if CA:
+        CA.import_ra_cert(dir + "/ra.p12")
+        CA.fix_ra_perms()
+        service.restart("httpd")
 
     # Create the config file
     fd = open("/etc/ipa/ipa.conf", "w")
@@ -275,8 +301,7 @@ def main():
     fd.write("realm=" + config.realm_name + "\n")
     fd.write("domain=" + config.domain_name + "\n")
     fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % config.host_name)
-    # FIXME: detect when we are installing a cloned CA
-    if False:
+    if ipautil.file_exists(config.dir + "/ca.p12"):
         fd.write("enable_ra=True\n")
     fd.close()
 

@@ -114,7 +114,7 @@ DEFAULT_CONFIG = (
     # CA plugin:
     ('ca_host', object),  # Set in Env._finalize_core()
     ('ca_port', 9180),
-    ('ca_ssl_port', 9444),
+    ('ca_ssl_port', 9443),
 
     # Special CLI:
     ('prompt_all', False),

@@ -179,11 +179,11 @@ class HTTPInstance(service.Service):
         else:
             if self.self_signed_ca:
                 db.create_from_cacert(ca_db.cacert_fname)
-                db.create_server_cert("Server-Cert", "cn=%s,ou=Apache Web Server" % self.fqdn, ca_db)
-                db.create_signing_cert("Signing-Cert", "cn=%s,ou=Signing Certificate,o=Identity Policy Audit" % self.fqdn, ca_db)
+                db.create_server_cert("Server-Cert", self.fqdn, ca_db)
+                db.create_signing_cert("Signing-Cert", "Object Signing Cert", ca_db)
             else:
-                db.create_server_cert("Server-Cert", "CN=%s,OU=ipa-pki,O=IPA" % self.fqdn, ca_db)
-                db.create_signing_cert("Signing-Cert", "CN=Object Signing Cert,OU=ipa-pki,O=IPA", ca_db)
+                db.create_server_cert("Server-Cert", self.fqdn, ca_db)
+                db.create_signing_cert("Signing-Cert", "Object Signing Cert", ca_db)
                 db.create_password_conf()
 
         # Fix the database permissions
