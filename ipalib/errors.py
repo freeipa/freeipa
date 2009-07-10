@@ -563,7 +563,7 @@ class ACIError(AuthorizationError):
     """
 
     errno = 2100
-    format = _('Insufficient access: %(info)r')
+    format = _('Insufficient access: %(info)s')
 
 
 

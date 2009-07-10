@@ -28,6 +28,7 @@ if api.env.enable_ra is not True:
     raise SkipPluginModule(reason='env.enable_ra is not True')
 from ipalib import Command, Str, Int, Bytes, Flag
 from ipalib import errors
+from ipalib.plugins.virtual import *
 import base64
 
 def validate_csr(ugettext, csr):
@@ -40,12 +41,13 @@ def validate_csr(ugettext, csr):
         raise errors.Base64DecodeError(reason=str(e))
 
 
-class cert_request(Command):
+class cert_request(VirtualCommand):
     """
     Submit a certificate singing request.
     """
 
     takes_args = (Str('csr', validate_csr),)
+    operation="request certificate"
 
     takes_options = (
         Str('principal',
@@ -63,6 +65,7 @@ class cert_request(Command):
     )
 
     def execute(self, csr, **kw):
+        super(cert_request, self).execute()
         skw = {"all": True}
         principal = kw.get('principal')
         add = kw.get('add')
@@ -104,15 +107,17 @@ class cert_request(Command):
 api.register(cert_request)
 
 
-class cert_status(Command):
+class cert_status(VirtualCommand):
     """
     Check status of a certificate signing request.
     """
 
     takes_args = ('request_id')
+    operation = "certificate status"
 
 
     def execute(self, request_id, **kw):
+        super(cert_status, self).execute()
         return self.Backend.ra.check_request_status(request_id)
 
     def output_for_cli(self, textui, result, *args, **kw):
@@ -124,14 +129,16 @@ class cert_status(Command):
 api.register(cert_status)
 
 
-class cert_get(Command):
+class cert_get(VirtualCommand):
     """
     Retrieve an existing certificate.
     """
 
     takes_args = ('serial_number')
+    operation="retrieve certificate"
 
     def execute(self, serial_number):
+        super(cert_get, self).execute()
         return self.Backend.ra.get_certificate(serial_number)
 
     def output_for_cli(self, textui, result, *args, **kw):
@@ -143,12 +150,13 @@ class cert_get(Command):
 api.register(cert_get)
 
 
-class cert_revoke(Command):
+class cert_revoke(VirtualCommand):
     """
     Revoke a certificate.
     """
 
     takes_args = ('serial_number')
+    operation = "revoke certificate"
 
     # FIXME: The default is 0.  Is this really an Int param?
     takes_options = (
@@ -162,6 +170,7 @@ class cert_revoke(Command):
 
 
     def execute(self, serial_number, **kw):
+        super(cert_revoke, self).execute()
         return self.Backend.ra.revoke_certificate(serial_number, **kw)
 
     def output_for_cli(self, textui, result, *args, **kw):
@@ -173,14 +182,16 @@ class cert_revoke(Command):
 api.register(cert_revoke)
 
 
-class cert_remove_hold(Command):
+class cert_remove_hold(VirtualCommand):
     """
     Take a revoked certificate off hold.
     """
 
     takes_args = ('serial_number')
+    operation = "certificate remove hold"
 
     def execute(self, serial_number, **kw):
+        super(cert_remove_hold, self).execute()
         return self.Backend.ra.take_certificate_off_hold(serial_number)
 
     def output_for_cli(self, textui, result, *args, **kw):

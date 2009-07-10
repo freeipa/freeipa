@@ -66,6 +66,12 @@ add:objectClass: groupofnames
 add:cn: dnsserver
 add:description: DNS Servers
 
+dn: cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: certadmin
+add:description: Certificate Administrators
+
 # Add the taskgroups referenced by the ACIs for user administration
 
 dn: cn=taskgroups,cn=accounts,$SUFFIX
@@ -456,3 +462,136 @@ add:cn: manage_host_keytab
 add:description: Updates DNS
 add:member:'cn=dnsadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 add:member:'cn=dnsserver,cn=rolegroups,cn=accounts,$SUFFIX'
+
+# Create virtual operations entry. This is used to control access to
+# operations that don't rely on LDAP directly.
+dn: cn=virtual operations,$SUFFIX
+add:objectClass: top
+add:objectClass: nsContainer
+add:cn: virtual operations
+
+# Retrieve Certificate virtual op
+dn: cn=retrieve certificate,cn=virtual operations,$SUFFIX
+add:objectClass: top
+add:objectClass: nsContainer
+add:cn: retrieve certificate
+
+# Taskgroup for retrieving certs
+dn: cn=retrieve_certs,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: retrieve_certs
+add:description: Retrieve SSL Certificates
+add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
+
+dn: $SUFFIX
+add: aci: '(targetattr = "objectClass")(target =
+ "ldap:///cn=retrieve certificate,cn=virtual operations,
+ $SUFFIX" )(version 3.0 ; acl "Retrieve Certificates from the
+  CA" ; allow (write) groupdn = "ldap:///cn=retrieve_certs,cn=taskgroups,
+ cn=accounts,dc=greyoak,dc=com";)'
+
+# Request Certificate virtual op
+dn: cn=request certificate,cn=virtual operations,$SUFFIX
+add:objectClass: top
+add:objectClass: nsContainer
+add:cn: request certificate
+
+# Taskgroup for requesting certs
+dn: cn=request_certs,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: reqeust_certs
+add:description: Request a SSL Certificate
+add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
+
+dn: $SUFFIX
+add: aci: '(targetattr = "objectClass")(target =
+ "ldap:///cn=request certificate,cn=virtual operations,
+ $SUFFIX" )(version 3.0 ; acl "Request Certificates from the
+  CA" ; allow (write) groupdn = "ldap:///cn=request_certs,cn=taskgroups,
+ cn=accounts,dc=greyoak,dc=com";)'
+
+# Certificate Status virtual op
+dn: cn=certificate status,cn=virtual operations,$SUFFIX
+add:objectClass: top
+add:objectClass: nsContainer
+add:cn: certificate status
+
+# Taskgroup for requesting certs
+dn: cn=certificate_status,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: reqeust_certs
+add:description: Status of cert request
+add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
+
+dn: $SUFFIX
+add: aci: '(targetattr = "objectClass")(target =
+ "ldap:///cn=certificate status,cn=virtual operations,
+ $SUFFIX" )(version 3.0 ; acl "Get Certificates status from the
+  CA" ; allow (write) groupdn = "ldap:///cn=certificate_status,
+ cn=taskgroups,cn=accounts,dc=greyoak,dc=com";)'
+
+# Revoke Certificate virtual op
+dn: cn=revoke certificate,cn=virtual operations,$SUFFIX
+add:objectClass: top
+add:objectClass: nsContainer
+add:cn: revoke certificate
+
+# Taskgroup for requesting certs
+dn: cn=revoke_certificate,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: reqeust_certs
+add:description: Revoke Certificate
+add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
+
+dn: $SUFFIX
+add: aci: '(targetattr = "objectClass")(target =
+ "ldap:///cn=revoke certificate,cn=virtual operations,
+ $SUFFIX" )(version 3.0 ; acl "Revoke Certificate"
+  ; allow (write) groupdn = "ldap:///cn=revoke_certificate,
+ cn=taskgroups,cn=accounts,dc=greyoak,dc=com";)'
+
+# Revoke Certificate virtual op
+dn: cn=revoke certificate,cn=virtual operations,$SUFFIX
+add:objectClass: top
+add:objectClass: nsContainer
+add:cn: revoke certificate
+
+# Taskgroup for requesting certs
+dn: cn=revoke_certificate,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: reqeust_certs
+add:description: Revoke Certificate
+add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
+
+dn: $SUFFIX
+add: aci: '(targetattr = "objectClass")(target =
+ "ldap:///cn=revoke certificate,cn=virtual operations,
+ $SUFFIX" )(version 3.0 ; acl "Revoke Certificate"
+  ; allow (write) groupdn = "ldap:///cn=revoke_certificate,
+ cn=taskgroups,cn=accounts,dc=greyoak,dc=com";)'
+
+# Certificate Remove Hold virtual op
+dn: cn=certificate remove hold,cn=virtual operations,$SUFFIX
+add:objectClass: top
+add:objectClass: nsContainer
+add:cn: certificate remove hold
+
+# Taskgroup for requesting certs
+dn: cn=certificate_remove_hold,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: reqeust_certs
+add:description: Certificate Remove Hold
+add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
+
+dn: $SUFFIX
+add: aci: '(targetattr = "objectClass")(target =
+ "ldap:///cn=certificate remove hold,cn=virtual operations,
+ $SUFFIX" )(version 3.0 ; acl "Certificate Remove Hold"
+  ; allow (write) groupdn = "ldap:///cn=certificate_remove_hold,
+ cn=taskgroups,cn=accounts,dc=greyoak,dc=com";)'

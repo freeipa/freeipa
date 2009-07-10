@@ -96,6 +96,7 @@ DEFAULT_CONFIG = (
     ('container_netgroup', 'cn=ng,cn=alt'),
     ('container_hbac', 'cn=hbac'),
     ('container_dns', 'cn=dns'),
+    ('container_virtual', 'cn=virtual operations'),
 
     # Ports, hosts, and URIs:
     ('lite_xmlrpc_port', 8888),
