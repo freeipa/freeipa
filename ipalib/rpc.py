@@ -35,7 +35,7 @@ import threading
 import socket
 import os
 import errno
-from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy, Transport
+from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy, Transport, ProtocolError
 import kerberos
 from ipalib.backend import Connectible
 from ipalib.errors import public_errors, PublicError, UnknownError, NetworkError
@@ -418,3 +418,5 @@ class xmlclient(Connectible):
             )
         except socket.error, e:
             raise NetworkError(uri=self.env.xmlrpc_uri, error=e.args[1])
+        except ProtocolError, e:
+            raise NetworkError(uri=self.env.xmlrpc_uri, error=e.errmsg)
