@@ -422,6 +422,59 @@ class textui(backend.Backend):
             print ''
             self.print_error(_('Cancelled.'))
 
+    def select_entry(self, entries, format, attrs, display_count=True):
+        """
+        Display a list of lines in with formatting defined in ``format``.
+        ``attrs`` is a list of attributes in the format.
+
+        Prompt user for a selection and return the value (index of
+        ``entries`` -1).
+
+        If only one entry is provided then always return 0.
+
+        Return: 0..n for the index of the selected entry
+                -1 if all entries should be displayed
+                -2 to quit, no entries to be displayed
+        """
+        if not self.env.interactive or not sys.stdout.isatty():
+            return -1
+
+        counter = len(entries)
+        i = 1
+        for e in entries:
+            # There is no guarantee that all attrs are in any given
+            # entry
+            d = {}
+            for a in attrs:
+                d[a] = e.get(a, '')
+            self.print_line("%d: %s" % (i, format % d))
+            i = i + 1
+
+        if display_count:
+            self.print_count(entries, 'Found %d match', 'Found %d matches')
+
+        while True:
+            try:
+                resp = self.prompt("Choose one: (1 - %s), a for all, q to quit" % counter)
+            except EOFError:
+                return -2
+
+            if resp.lower() == "q":
+                return -2
+            if resp.lower() == "a":
+                return -1
+            try:
+                selection = int(resp) - 1
+                if (selection >= 0 and selection < counter):
+                    break
+            except:
+                # fall through to the error msg
+                pass
+
+            self.print_line("Please enter a number between 1 and %s" % counter)
+
+        self.print_line('')
+        return selection
 
 class help(frontend.Command):
     """
@@ -630,13 +683,16 @@ class cli(backend.Executioner):
         kw = self.parse(cmd, argv)
         if self.env.interactive:
             self.prompt_interactively(cmd, kw)
-        result = self.execute(name, **kw)
-        if callable(cmd.output_for_cli):
-            for param in cmd.params():
-                if param.password and param.name in kw:
-                    del kw[param.name]
-            (args, options) = cmd.params_2_args_options(**kw)
-            cmd.output_for_cli(self.api.Backend.textui, result, *args, **options)
+        try:
+            result = self.execute(name, **kw)
+            if callable(cmd.output_for_cli):
+                for param in cmd.params():
+                    if param.password and param.name in kw:
+                        del kw[param.name]
+                (args, options) = cmd.params_2_args_options(**kw)
+                cmd.output_for_cli(self.api.Backend.textui, result, *args, **options)
+        finally:
+            self.destroy_context()
 
     def parse(self, cmd, argv):
         parser = self.build_parser(cmd)

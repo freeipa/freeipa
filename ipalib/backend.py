@@ -102,6 +102,9 @@ class Executioner(Backend):
         else:
             self.Backend.xmlclient.connect()
 
+    def destroy_context(self):
+        destroy_context()
+
     def execute(self, _name, *args, **options):
         error = None
         try:
@@ -115,7 +118,6 @@ class Executioner(Backend):
                 'non-public: %s: %s', e.__class__.__name__, str(e)
             )
             error = InternalError()
-        destroy_context()
         if error is None:
             return result
         assert isinstance(error, PublicError)
