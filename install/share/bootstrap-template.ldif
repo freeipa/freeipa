@@ -62,9 +62,9 @@ dn: uid=admin,cn=users,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: person
-objectClass: posixAccount
-objectClass: KrbPrincipalAux
-objectClass: inetUser
+objectClass: posixaccount
+objectClass: krbprincipalaux
+objectClass: inetuser
 uid: admin
 krbPrincipalName: admin@$REALM
 cn: Administrator
@@ -104,7 +104,7 @@ dn: cn=admins,cn=groups,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
-objectClass: posixGroup
+objectClass: posixgroup
 cn: admins
 description: Account administrators group
 gidNumber: 1001
@@ -115,9 +115,9 @@ dn: cn=ipausers,cn=groups,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
-objectClass: nestedGroup
-objectClass: ipaUserGroup
-objectClass: posixGroup
+objectClass: nestedgroup
+objectClass: ipausergroup
+objectClass: posixgroup
 gidNumber: 1002
 description: Default group for all users
 cn: ipausers
@@ -126,7 +126,7 @@ dn: cn=editors,cn=groups,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: groupofnames
-objectClass: posixGroup
+objectClass: posixgroup
 gidNumber: 1003
 description: Limited admins who can edit other users
 cn: editors
@@ -136,7 +136,7 @@ changetype: add
 objectClass: nsContainer
 objectClass: top
 objectClass: ipaGuiConfig
-ipaUserSearchFields: uid,givenName,sn,telephoneNumber,ou,title
+ipaUserSearchFields: uid,givenname,sn,telephonenumber,ou,title
 ipaGroupSearchFields: cn,description
 ipaSearchTimeLimit: 2
 ipaSearchRecordsLimit: 0
@@ -147,15 +147,15 @@ ipaMaxUsernameLength: 8
 ipaPwdExpAdvNotify: 4
 ipaGroupObjectClasses: top
 ipaGroupObjectClasses: groupofnames
-ipaGroupObjectClasses: nestedGroup
-ipaGroupObjectClasses: ipaUserGroup
+ipaGroupObjectClasses: nestedgroup
+ipaGroupObjectClasses: ipausergroup
 ipaUserObjectClasses: top
 ipaUserObjectClasses: person
-ipaUserObjectClasses: organizationalPerson
-ipaUserObjectClasses: inetOrgPerson
-ipaUserObjectClasses: inetUser
-ipaUserObjectClasses: posixAccount
-ipaUserObjectClasses: krbPrincipalAux
+ipaUserObjectClasses: organizationalperson
+ipaUserObjectClasses: inetorgperson
+ipaUserObjectClasses: inetuser
+ipaUserObjectClasses: posixaccount
+ipaUserObjectClasses: krbprincipalaux
 ipaUserObjectClasses: radiusprofile
 ipaDefaultEmailDomain: $DOMAIN
 
