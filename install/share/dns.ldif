@@ -11,8 +11,8 @@ objectClass: top
 objectClass: idnsZone
 objectClass: idnsRecord
 idnsName: $DOMAIN
-idnsZoneActive: True
-idnsAllowDynUpdate: True
+idnsZoneActive: TRUE
+idnsAllowDynUpdate: TRUE
 idnsUpdatePolicy: grant $REALM krb5-self * A;
 idnsSOAmName: $HOST.$DOMAIN.
 idnsSOArName: root.$HOST.$DOMAIN.
