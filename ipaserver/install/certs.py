@@ -23,7 +23,6 @@ import errno
 import tempfile
 import shutil
 import logging
-import httplib
 import urllib
 import xml.dom.minidom
 import pwd
@@ -590,15 +589,28 @@ class CertDB(object):
         chain = p.stdout.read()
         chain = chain.split("\n")
 
-        root_nickname = re.match('\ *"(.*)".*', chain[0]).groups()[0]
+        root_nickname = re.match('\ *"(.*)" \[.*', chain[0]).groups()[0]
+
+        # Try to work around a change in the F-11 certutil where untrusted
+        # CA's are not shown in the chain. This will make a default IPA
+        # server installable.
+        if root_nickname is None and self.self_signed_ca:
+            return self.cacert_name
 
         return root_nickname
 
     def trust_root_cert(self, nickname):
         root_nickname = self.find_root_cert(nickname)
 
-        self.run_certutil(["-M", "-n", root_nickname,
-                           "-t", "CT,CT,"])
+        if root_nickname is None:
+            logging.debug("Unable to identify root certificate to trust. Continueing but things are likely to fail.")
+            return
+
+        if root_nickname[:7] == "Builtin":
+            logging.debug("No need to add trust for built-in root CA's, skipping %s" % root_nickname)
+        else:
+            self.run_certutil(["-M", "-n", root_nickname,
+                               "-t", "CT,CT,"])
 
     def find_server_certs(self):
         p = subprocess.Popen(["/usr/bin/certutil", "-d", self.secdir,
