@@ -18,7 +18,6 @@
 #
 
 import os, stat, subprocess, re
-import sha
 import errno
 import tempfile
 import shutil
@@ -33,6 +32,13 @@ from ipapython import ipautil
 
 from nss.error import NSPRError
 import nss.nss as nss
+
+# The sha module is deprecated in Python 2.6, replaced by hashlib. Try
+# that first and fall back to sha.sha if it isn't available.
+try:
+    from hashlib import sha256 as sha
+except ImportError:
+    from sha import sha
 
 CA_SERIALNO="/var/lib/ipa/ca_serialno"
 
@@ -194,7 +200,7 @@ class CertDB(object):
         os.chmod(fname, perms)
 
     def gen_password(self):
-        return sha.sha(ipautil.ipa_generate_password()).hexdigest()
+        return sha(ipautil.ipa_generate_password()).hexdigest()
 
     def run_certutil(self, args, stdin=None):
         new_args = ["/usr/bin/certutil", "-d", self.secdir]
