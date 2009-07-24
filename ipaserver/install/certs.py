@@ -605,9 +605,42 @@ class CertDB(object):
 
         return root_nickname
 
-    def trust_root_cert(self, nickname):
-        root_nickname = self.find_root_cert(nickname)
+     def find_root_cert_from_pkcs12(self, pkcs12_fname, passwd_fname=None):
+         """Given a PKCS#12 file, try to find any certificates that do
+            not have a key. The assumption is that these are the root CAs.
+         """
+         args = ["/usr/bin/pk12util", "-d", self.secdir,
+                 "-l", pkcs12_fname,
+                 "-k", passwd_fname]
+         if passwd_fname:
+             args = args + ["-w", passwd_fname]
+         try:
+             (stdout, stderr) = ipautil.run(args)
+         except ipautil.CalledProcessError, e:
+             if e.returncode == 17:
+                 raise RuntimeError("incorrect password")
+             else:
+                 raise RuntimeError("unknown error using pkcs#12 file")
 
+         lines = stdout.split('\n')
+
+         # A simple state machine.
+         # 1 = looking for "Certificate:"
+         # 2 = looking for the Friendly name (nickname)
+         nicknames = []
+         state = 1
+         for line in lines:
+             if state == 2:
+                 m = re.match("\W+Friendly Name: (.*)", line)
+                 if m:
+                     nicknames.append( m.groups(0)[0])
+                     state = 1
+             if line == "Certificate:":
+                 state = 2
+
+         return nicknames
+
+    def trust_root_cert(self, root_nickname):
         if root_nickname is None:
             logging.debug("Unable to identify root certificate to trust. Continueing but things are likely to fail.")
             return
@@ -716,17 +749,14 @@ class CertDB(object):
         # We only handle one server cert
         nickname = server_certs[0][0]
 
-        self.cacert_name = self.find_root_cert(nickname)
+        ca_names = self.find_root_cert_from_pkcs12(pkcs12_fname, pkcs12_pwd_fname)
+        if len(ca_names) == 0:
+            raise RuntimeError("Could not find a CA cert in %s" % pkcs12_fname)
 
-        # The point here is to list the cert chain to determine which CA
-        # to trust. If we get the same nickname back as our server cert
-        # go ahead and try to pull in the CA in case it either wasn't in the
-        # PKCS#12 file we loaded or isn't showing in the chain from
-        # certutil -O (bug #509132)
-        if self.cacert_name == nickname:
-            self.cacert_name="CA certificate"
-            self.load_cacert("/usr/share/ipa/html/ca.crt")
-        self.trust_root_cert(nickname)
+        self.cacert_name = ca_names[0]
+        for nickname in ca_names:
+            self.trust_root_cert(nickname)
+
         self.create_pin_file()
         self.export_ca_cert(self.cacert_name, False)
         self.self_signed_ca=False

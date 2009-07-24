@@ -172,6 +172,7 @@ class HTTPInstance(service.Service):
             if len(server_certs) == 0:
                 raise RuntimeError("Could not find a suitable server cert in import in %s" % pkcs12_info[0])
 
+            db.create_password_conf()
             # We only handle one server cert
             nickname = server_certs[0][0]
 
