@@ -605,40 +605,40 @@ class CertDB(object):
 
         return root_nickname
 
-     def find_root_cert_from_pkcs12(self, pkcs12_fname, passwd_fname=None):
-         """Given a PKCS#12 file, try to find any certificates that do
-            not have a key. The assumption is that these are the root CAs.
-         """
-         args = ["/usr/bin/pk12util", "-d", self.secdir,
-                 "-l", pkcs12_fname,
-                 "-k", passwd_fname]
-         if passwd_fname:
-             args = args + ["-w", passwd_fname]
-         try:
-             (stdout, stderr) = ipautil.run(args)
-         except ipautil.CalledProcessError, e:
-             if e.returncode == 17:
-                 raise RuntimeError("incorrect password")
-             else:
-                 raise RuntimeError("unknown error using pkcs#12 file")
+    def find_root_cert_from_pkcs12(self, pkcs12_fname, passwd_fname=None):
+        """Given a PKCS#12 file, try to find any certificates that do
+           not have a key. The assumption is that these are the root CAs.
+        """
+        args = ["/usr/bin/pk12util", "-d", self.secdir,
+                "-l", pkcs12_fname,
+                "-k", passwd_fname]
+        if passwd_fname:
+            args = args + ["-w", passwd_fname]
+        try:
+            (stdout, stderr) = ipautil.run(args)
+        except ipautil.CalledProcessError, e:
+            if e.returncode == 17:
+                raise RuntimeError("incorrect password")
+            else:
+                raise RuntimeError("unknown error using pkcs#12 file")
 
-         lines = stdout.split('\n')
+        lines = stdout.split('\n')
 
-         # A simple state machine.
-         # 1 = looking for "Certificate:"
-         # 2 = looking for the Friendly name (nickname)
-         nicknames = []
-         state = 1
-         for line in lines:
-             if state == 2:
-                 m = re.match("\W+Friendly Name: (.*)", line)
-                 if m:
-                     nicknames.append( m.groups(0)[0])
-                     state = 1
-             if line == "Certificate:":
-                 state = 2
+        # A simple state machine.
+        # 1 = looking for "Certificate:"
+        # 2 = looking for the Friendly name (nickname)
+        nicknames = []
+        state = 1
+        for line in lines:
+            if state == 2:
+                m = re.match("\W+Friendly Name: (.*)", line)
+                if m:
+                    nicknames.append( m.groups(0)[0])
+                    state = 1
+            if line == "Certificate:":
+                state = 2
 
-         return nicknames
+        return nicknames
 
     def trust_root_cert(self, root_nickname):
         if root_nickname is None:
