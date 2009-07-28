@@ -162,17 +162,25 @@ class CertDB(object):
         self.set_perms(self.passwd_fname, write=True)
 
     def create_ca_cert(self):
-        # Generate the encryption key
-        self.run_certutil(["-G", "-z", self.noise_fname, "-f", self.passwd_fname])
-        # Generate the self-signed cert
-        self.run_certutil(["-S", "-n", self.cacert_name,
-                           "-s", "cn=IPA Test Certificate Authority",
-                           "-x",
-                           "-t", "CT,,C",
-                           "-m", self.next_serial(),
-                           "-v", self.valid_months,
-                           "-z", self.noise_fname,
-                           "-f", self.passwd_fname])
+        p = subprocess.Popen(["/usr/bin/certutil",
+                              "-d", self.secdir,
+                              "-S", "-n", self.cacert_name,
+                              "-s", "cn=IPA Test Certificate Authority",
+                              "-x",
+                              "-t", "CT,,C",
+                              "-2",
+                              "-m", self.next_serial(),
+                              "-v", self.valid_months,
+                              "-z", self.noise_fname,
+                              "-f", self.passwd_fname],
+                               stdin=subprocess.PIPE,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+        # Is this a CA certificate [y/N]?  y
+        # Enter the path length constraint, enter to skip [<0 for unlimited pat
+        # Is this a critical extension [y/N]? y
+        p.stdin.write("y\n\n7\n")
+        p.wait()
 
     def export_ca_cert(self, nickname, create_pkcs12=False):
         """create_pkcs12 tells us whether we should create a PKCS#12 file
