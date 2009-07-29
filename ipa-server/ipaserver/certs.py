@@ -18,13 +18,20 @@
 #
 
 import os, stat, subprocess, re
-import sha
 import errno
 import tempfile
 import shutil
+import logging
 
 from ipa import sysrestore
 from ipa import ipautil
+
+# The sha module is deprecated in Python 2.6, replaced by hashlib. Try
+# that first and fall back to sha.sha if it isn't available.
+try:
+    from hashlib import sha256 as sha
+except ImportError:
+    from sha import sha
 
 CA_SERIALNO="/var/lib/ipa/ca_serialno"
 
@@ -118,7 +125,7 @@ class CertDB(object):
         os.chmod(fname, perms)
 
     def gen_password(self):
-        return sha.sha(ipautil.ipa_generate_password()).hexdigest()
+        return sha(ipautil.ipa_generate_password()).hexdigest()
 
     def run_certutil(self, args, stdin=None):
         new_args = ["/usr/bin/certutil", "-d", self.secdir]
@@ -311,15 +318,55 @@ class CertDB(object):
         chain = p.stdout.read()
         chain = chain.split("\n")
 
-        root_nickname = re.match('\ *"(.*)".*', chain[0]).groups()[0]
+        root_nickname = re.match('\ *"(.*)" \[.*', chain[0]).groups()[0]
 
         return root_nickname
 
-    def trust_root_cert(self, nickname):
-        root_nickname = self.find_root_cert(nickname)
+    def find_root_cert_from_pkcs12(self, pkcs12_fname, passwd_fname=None):
+        """Given a PKCS#12 file, try to find any certificates that do
+           not have a key. The assumption is that these are the root CAs.
+        """
+        args = ["/usr/bin/pk12util", "-d", self.secdir,
+                "-l", pkcs12_fname,
+                "-k", passwd_fname]
+        if passwd_fname:
+            args = args + ["-w", passwd_fname]
+        try:
+            (stdout, stderr) = ipautil.run(args)
+        except ipautil.CalledProcessError, e:
+            if e.returncode == 17:
+                raise RuntimeError("incorrect password")
+            else:
+                raise RuntimeError("unknown error using pkcs#12 file")
 
-        self.run_certutil(["-M", "-n", root_nickname,
-                           "-t", "CT,CT,"])
+        lines = stdout.split('\n')
+
+        # A simple state machine.
+        # 1 = looking for "Certificate:"
+        # 2 = looking for the Friendly name (nickname)
+        nicknames = []
+        state = 1
+        for line in lines:
+            if state == 2:
+                m = re.match("\W+Friendly Name: (.*)", line)
+                if m:
+                    nicknames.append( m.groups(0)[0])
+                    state = 1
+            if line == "Certificate:":
+                state = 2
+
+        return nicknames
+
+    def trust_root_cert(self, root_nickname):
+         if root_nickname is None:
+             logging.debug("Unable to identify root certificate to trust. Continuing but things are likely to fail.")
+             return
+
+         if root_nickname[:7] == "Builtin":
+             logging.debug("No need to add trust for built-in root CA's, skipping %s" % root_nickname)
+         else:
+             self.run_certutil(["-M", "-n", root_nickname,
+                                "-t", "CT,CT,"])
 
     def find_server_certs(self):
         p = subprocess.Popen(["/usr/bin/certutil", "-d", self.secdir,
@@ -399,8 +446,14 @@ class CertDB(object):
         # We only handle one server cert
         nickname = server_certs[0][0]
 
-        self.cacert_name = self.find_root_cert(nickname)
-        self.trust_root_cert(nickname)
+        ca_names = self.find_root_cert_from_pkcs12(pkcs12_fname, pkcs12_pwd_fname)
+        if len(ca_names) == 0:
+            raise RuntimeError("Could not find a CA cert in %s" % pkcs12_fname)
+
+        self.cacert_name = ca_names[0]
+        for nickname in ca_names:
+            self.trust_root_cert(nickname)
+
         self.create_pin_file()
         self.export_ca_cert(self.cacert_name, False)
 
