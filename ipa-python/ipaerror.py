@@ -27,7 +27,7 @@ class IPAError(exceptions.Exception):
            detail is an optional exception that provides more detail about the
            error."""
         self.code = code
-        self.message = message
+        self.msg = message
         # Fill this in as an empty LDAP error message so we don't have a lot
         # of "if e.detail ..." everywhere
         if detail is None:
@@ -36,10 +36,10 @@ class IPAError(exceptions.Exception):
         self.detail = detail
 
     def __str__(self):
-        return self.message
+        return self.msg
 
     def __repr__(self):
-        repr = "%d: %s" % (self.code, self.message)
+        repr = "%d: %s" % (self.code, self.msg)
         if self.detail:
             repr += "\n%s" % str(self.detail)
         return repr

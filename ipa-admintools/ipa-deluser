@@ -80,7 +80,7 @@ except xmlrpclib.ProtocolError, e:
     print "Unable to connect to IPA server: %s" % (e.errmsg)
     sys.exit(1)
 except ipa.ipaerror.IPAError, e:
-    print "%s" % (e.message)
+    print "%s" % (e.msg)
     sys.exit(1)
 except socket.error, e:
     print e[1]
