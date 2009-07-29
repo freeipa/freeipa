@@ -21,10 +21,7 @@
 import sys
 import os
 import os.path
-import popen2
 import base64
-import urllib
-import urllib2
 import socket
 import ldif
 import re
@@ -32,7 +29,6 @@ import string
 import ldap
 import cStringIO
 import time
-import operator
 import struct
 import ldap.sasl
 from ldap.controls import LDAPControl,DecodeControlTuples,EncodeControlTuples
@@ -149,18 +145,18 @@ def wrapper(f,name):
     argument, we extract the raw data from the entry object to pass in."""
     def inner(*args, **kargs):
         if name == 'result':
-            type, data = f(*args, **kargs)
+            result_type, data = f(*args, **kargs)
             # data is either a 2-tuple or a list of 2-tuples
             # print data
             if data:
                 if isinstance(data,tuple):
-                    return type, Entry(data)
+                    return result_type, Entry(data)
                 elif isinstance(data,list):
-                    return type, [Entry(x) for x in data]
+                    return result_type, [Entry(x) for x in data]
                 else:
                     raise TypeError, "unknown data type %s returned by result" % type(data)
             else:
-                return type, data
+                return result_type, data
         elif name.startswith('add'):
             # the first arg is self
             # the second and third arg are the dn and the data to send
@@ -249,7 +245,7 @@ class IPAdmin(SimpleLDAPObject):
                 print "caught exception ", e
                 raise
 
-    def __localinit__(self):
+    def __localinit(self):
         """If a CA certificate is provided then it is assumed that we are
            doing SSL client authentication with proxy auth.
 
@@ -264,7 +260,7 @@ class IPAdmin(SimpleLDAPObject):
 
     def __init__(self,host,port=389,cacert=None,bindcert=None,bindkey=None,proxydn=None,debug=None):
         """We just set our instance variables and wrap the methods - the real
-           work is done in __localinit__ and __initPart2 - these are separated
+           work is done in __localinit and __initPart2 - these are separated
            out this way so that we can call them from places other than
            instance creation e.g. when we just need to reconnect, not create a
            new instance"""
@@ -285,19 +281,17 @@ class IPAdmin(SimpleLDAPObject):
         self.bindkey = bindkey
         self.proxydn = proxydn
         self.suffixes = {}
-        self.__localinit__()
+        self.__localinit()
 
     def __str__(self):
         return self.host + ":" + str(self.port)
 
-    def __get_server_controls__(self):
+    def __get_server_controls(self):
         """Create the proxy user server control. The control has the form
         0x04 = Octet String
         4|0x80 sets the length of the string length field at 4 bytes
         the struct() gets us the length in bytes of string self.proxydn
         self.proxydn is the proxy dn to send"""
-
-        import sys
 
         if self.proxydn is not None:
             proxydn = chr(0x04) + chr(4|0x80) + struct.pack('l', socket.htonl(len(self.proxydn))) + self.proxydn;
@@ -332,14 +326,14 @@ class IPAdmin(SimpleLDAPObject):
     def getEntry(self,*args):
         """This wraps the search function.  It is common to just get one entry"""
 
-        sctrl = self.__get_server_controls__()
+        sctrl = self.__get_server_controls()
 
         if sctrl is not None:
             self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
 
         try:
             res = self.search(*args)
-            type, obj = self.result(res)
+            result_type, obj = self.result(res)
         except ldap.NO_SUCH_OBJECT:
             raise ipaerror.gen_exception(ipaerror.LDAP_NOT_FOUND,
                     notfound(args))
@@ -357,13 +351,13 @@ class IPAdmin(SimpleLDAPObject):
     def getList(self,*args):
         """This wraps the search function to find all users."""
 
-        sctrl = self.__get_server_controls__()
+        sctrl = self.__get_server_controls()
         if sctrl is not None:
             self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
 
         try:
             res = self.search(*args)
-            type, obj = self.result(res)
+            result_type, obj = self.result(res)
         except (ldap.ADMINLIMIT_EXCEEDED, ldap.SIZELIMIT_EXCEEDED), e:
             raise ipaerror.gen_exception(ipaerror.LDAP_DATABASE_ERROR,
                     "Too many results returned by search", e)
@@ -388,7 +382,7 @@ class IPAdmin(SimpleLDAPObject):
            If the results are truncated, counter will be set to -1.
            """
 
-        sctrl = self.__get_server_controls__()
+        sctrl = self.__get_server_controls()
         if sctrl is not None:
             self.set_option(ldap.OPT_SERVER_CONTROLS, sctrl)
 
@@ -397,11 +391,11 @@ class IPAdmin(SimpleLDAPObject):
 
         try:
             msgid = self.search_ext(*args)
-            type, result_list = self.result(msgid, 0)
+            result_type, result_list = self.result(msgid, 0)
             while result_list:
                 for result in result_list:
                     entries.append(result)
-                type, result_list = self.result(msgid, 0)
+                result_type, result_list = self.result(msgid, 0)
         except (ldap.ADMINLIMIT_EXCEEDED, ldap.SIZELIMIT_EXCEEDED,
                 ldap.TIMELIMIT_EXCEEDED), e:
             partial = 1
@@ -423,7 +417,7 @@ class IPAdmin(SimpleLDAPObject):
         """This wraps the add function. It assumes that the entry is already
            populated with all of the desired objectclasses and attributes"""
 
-        sctrl = self.__get_server_controls__()
+        sctrl = self.__get_server_controls()
 
         try:
             if sctrl is not None:
@@ -438,7 +432,7 @@ class IPAdmin(SimpleLDAPObject):
     def updateRDN(self, dn, newrdn):
         """Wrap the modrdn function."""
 
-        sctrl = self.__get_server_controls__()
+        sctrl = self.__get_server_controls()
 
         if dn == newrdn:
             # no need to report an error
@@ -456,7 +450,7 @@ class IPAdmin(SimpleLDAPObject):
         """This wraps the mod function. It assumes that the entry is already
            populated with all of the desired objectclasses and attributes"""
 
-        sctrl = self.__get_server_controls__()
+        sctrl = self.__get_server_controls()
 
         modlist = self.generateModList(olduser, newuser)
 
@@ -516,10 +510,10 @@ class IPAdmin(SimpleLDAPObject):
            has_key defines whether the entry already has nsAccountlock
            set so we can determine which type of mod operation to run."""
 
-        sctrl = self.__get_server_controls__()
+        sctrl = self.__get_server_controls()
         modlist=[]
 
-        if has_key == True:
+        if has_key:
             operation = ldap.MOD_REPLACE
         else:
             operation = ldap.MOD_ADD
@@ -537,7 +531,7 @@ class IPAdmin(SimpleLDAPObject):
     def deleteEntry(self,*args):
         """This wraps the delete function. Use with caution."""
 
-        sctrl = self.__get_server_controls__()
+        sctrl = self.__get_server_controls()
 
         try:
             if sctrl is not None:
@@ -555,7 +549,7 @@ class IPAdmin(SimpleLDAPObject):
            oldpass is not mandatory
         """
 
-        sctrl = self.__get_server_controls__()
+        sctrl = self.__get_server_controls()
 
         try:
             if sctrl is not None:
@@ -598,10 +592,10 @@ class IPAdmin(SimpleLDAPObject):
 
     def waitForEntry(self, dn, timeout=7200, attr='', quiet=True):
         scope = ldap.SCOPE_BASE
-        filter = "(objectclass=*)"
+        sfilter = "(objectclass=*)"
         attrlist = []
         if attr:
-            filter = "(%s=*)" % attr
+            sfilter = "(%s=*)" % attr
             attrlist.append(attr)
         timeout += int(time.time())
 
@@ -615,7 +609,7 @@ class IPAdmin(SimpleLDAPObject):
         entry = None
         while not entry and int(time.time()) < timeout:
             try:
-                entry = self.getEntry(dn, scope, filter, attrlist)
+                entry = self.getEntry(dn, scope, sfilter, attrlist)
             except ipaerror.exception_for(ipaerror.LDAP_NOT_FOUND):
                 pass # found entry, but no attr
             except ldap.NO_SUCH_OBJECT:
@@ -691,11 +685,11 @@ def notfound(args):
 
        This just returns whatever is after the equals sign"""
     if len(args) > 2:
-        filter = args[2]
+        sfilter = args[2]
         try:
-            target = re.match(r'\(.*=(.*)\)', filter).group(1)
+            target = re.match(r'\(.*=(.*)\)', sfilter).group(1)
         except:
-            target = filter
+            target = sfilter
         return "%s not found" % str(target)
     else:
         return args[0]
