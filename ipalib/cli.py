@@ -251,11 +251,13 @@ class textui(backend.Backend):
         """
         assert isinstance(attr, basestring)
         if not isinstance(value, (list, tuple)):
-            value = [value]
-        for v in value:
-            self.print_indented('%s: %s' % (attr, v), indent)
+            # single-value attribute
+            self.print_indented('%s: %s' % (attr, value), indent)
+        else:
+            # multi-value attribute
+            self.print_indented('%s: %s' % (attr, ', '.join(value)), indent)
 
-    def print_entry(self, entry, indent=1):
+    def print_entry(self, entry, indent=1, attr_map={}, attr_order=['dn']):
         """
         Print an ldap entry dict.
 
@@ -268,12 +270,22 @@ class textui(backend.Backend):
           sn: Last
           uid: flast
         """
-        assert type(entry) is dict
-        if entry.get('dn'):
-            self.print_attribute('dn', entry['dn'], indent)
-            del entry['dn']
-        for key in sorted(entry):
-            self.print_attribute(key, entry[key], indent)
+        assert isinstance(entry, dict)
+        assert isinstance(attr_map, dict)
+        assert isinstance(attr_order, (list, tuple))
+
+        def print_attr(a):
+            if attr in attr_map:
+                self.print_attribute(attr_map[attr], entry[attr], indent)
+            else:
+                self.print_attribute(attr, entry[attr], indent)
+
+        for attr in attr_order:
+            if attr in entry:
+                print_attr(attr)
+                del entry[attr]
+        for attr in sorted(entry):
+            print_attr(attr)
 
     def print_dashed(self, string, above=True, below=True, indent=0, dash='-'):
         """
