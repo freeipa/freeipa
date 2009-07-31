@@ -21,8 +21,9 @@ Base classes for LDAP plugins.
 """
 
 from ipalib import crud, errors
-from ipalib import Object
-from ipalib import Flag, Str
+from ipalib import Command, Method, Object
+from ipalib import Flag, List, Str
+from ipalib.cli import to_cli, from_cli
 from ipalib.base import NameSpace
 
 
@@ -48,6 +49,13 @@ class LDAPObject(Object):
         'object_class',
         'object_class_config',
         'default_attributes',
+        'hidden_attributes',
+        'attribute_names',
+        'attribute_order',
+        'attribute_members',
+        'get_primary_key_from_dn',
+        'convert_attribute_members',
+        'print_entry',
     ))
     parent_key = None
 
@@ -60,6 +68,10 @@ class LDAPObject(Object):
     object_class = ['top']
     object_class_config = None
     default_attributes = ['']
+    hidden_attributes = ['objectclass', 'aci']
+    attribute_names = {}
+    attribute_order = []
+    attribute_members = {}
 
     def set_api(self, api):
         super(LDAPObject, self).set_api(api)
@@ -80,18 +92,54 @@ class LDAPObject(Object):
                 ),
                 sort=False
             )
+        elif self.params_minus_pk is None:
+            self.params_minus_pk = self.params
 
     def get_dn(self, *keys, **kwargs):
         if len(keys) > 1:
             parent_dn = self.backend.make_dn_from_attr(
                 self.parent_key.name, keys[0], self.container_dn
             )
-            return self.backend.make_dn_from_attr(
-                self.primary_key.name, keys[1], parent_dn
-            )
+        else:
+            parent_dn = self.container_dn
         return self.backend.make_dn_from_attr(
-            self.primary_key.name, keys[0], self.container_dn
+            self.primary_key.name, keys[-1], parent_dn
         )
+
+    def get_primary_key_from_dn(self, dn):
+        return dn[len(self.primary_key.name) + 1:dn.find(',')]
+
+    def convert_attribute_members(self, entry_attrs):
+        for attr in self.attribute_members:
+            for member in entry_attrs.setdefault(attr, []):
+                for ldap_obj_name in self.attribute_members[attr]:
+                    ldap_obj = self.api.Object[ldap_obj_name]
+                    if member.find(ldap_obj.container_dn) > 0:
+                        new_attr = 'member %s' % ldap_obj.object_name_plural
+                        entry_attrs.setdefault(new_attr, []).append(
+                            ldap_obj.get_primary_key_from_dn(member)
+                        )
+            del entry_attrs[attr]
+
+    def print_entry(self, textui, entry, *keys, **options):
+        if options.get('raw', False):
+            textui.print_attribute('dn', entry[0])
+            textui.print_entry(entry[1], attr_order=self.attribute_order)
+        else:
+            if self.primary_key:
+                textui.print_attribute(
+                    self.object_name.capitalize(), keys[-1], indent=0
+                )
+            else:
+                textui.print_plain(self.object_name.capitalize())
+            entry_attrs = entry[1]
+            for a in self.hidden_attributes:
+                if a in entry_attrs:
+                    del entry_attrs[a]
+            textui.print_entry(
+                entry_attrs, attr_map=self.attribute_names,
+                attr_order=self.attribute_order
+            )
 
 
 class LDAPCreate(crud.Create):
@@ -101,7 +149,8 @@ class LDAPCreate(crud.Create):
     def get_args(self):
         if self.obj.parent_key:
             yield self.obj.parent_key.clone(query=True)
-        yield self.obj.primary_key.clone(attribute=True)
+        if self.obj.primary_key:
+            yield self.obj.primary_key.clone(attribute=True)
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
@@ -125,14 +174,12 @@ class LDAPCreate(crud.Create):
 
         dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
 
+        self.obj.convert_attribute_members(entry_attrs)
         return (dn, entry_attrs)
 
     def output_for_cli(self, textui, entry, *keys, **options):
-        (dn, entry_attrs) = entry
-
         textui.print_name(self.name)
-        textui.print_attribute('dn', dn)
-        textui.print_entry(entry_attrs)
+        self.obj.print_entry(textui, entry, *keys, **options)
         if len(keys) > 1:
             textui.print_dashed(
                 'Created %s "%s" in %s "%s".' % (
@@ -140,10 +187,12 @@ class LDAPCreate(crud.Create):
                     keys[0]
                 )
             )
-        else:
+        elif len(keys) == 1:
             textui.print_dashed(
                 'Created %s "%s".' % (self.obj.object_name, keys[0])
             )
+        else:
+            textui.print_dashed('Created %s.' % self.obj.object_name)
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         return dn
@@ -152,7 +201,18 @@ class LDAPCreate(crud.Create):
         return dn
 
 
-class LDAPRetrieve(crud.Retrieve):
+class LDAPQuery(crud.PKQuery):
+    """
+    Base class for commands that need to retrieve an existing entry.
+    """
+    def get_args(self):
+        if self.obj.parent_key:
+            yield self.obj.parent_key.clone(query=True)
+        if self.obj.primary_key:
+            yield self.obj.primary_key.clone(attribute=True, query=True)
+
+
+class LDAPRetrieve(LDAPQuery):
     """
     Retrieve an LDAP entry.
     """
@@ -162,11 +222,6 @@ class LDAPRetrieve(crud.Retrieve):
             doc='retrieve all attributes',
         ),
     )
-
-    def get_args(self):
-        if self.obj.parent_key:
-            yield self.obj.parent_key.clone(query=True)
-        yield self.obj.primary_key.clone(attribute=True, query=True)
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
@@ -184,14 +239,12 @@ class LDAPRetrieve(crud.Retrieve):
 
         dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
 
+        self.obj.convert_attribute_members(entry_attrs)
         return (dn, entry_attrs)
 
     def output_for_cli(self, textui, entry, *keys, **options):
-        (dn, entry_attrs) = entry
-
         textui.print_name(self.name)
-        textui.print_attribute('dn', dn)
-        textui.print_entry(entry_attrs)
+        self.obj.print_entry(textui, entry, *keys, **options)
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
         return dn
@@ -200,15 +253,10 @@ class LDAPRetrieve(crud.Retrieve):
         return dn
 
 
-class LDAPUpdate(crud.Update):
+class LDAPUpdate(LDAPQuery, crud.Update):
     """
     Update an LDAP entry.
     """
-    def get_args(self):
-        if self.obj.parent_key:
-            yield self.obj.parent_key.clone(query=True)
-        yield self.obj.primary_key.clone(attribute=True, query=True)
-
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
@@ -227,14 +275,12 @@ class LDAPUpdate(crud.Update):
 
         dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
 
+        self.obj.convert_attribute_members(entry_attrs)
         return (dn, entry_attrs)
 
     def output_for_cli(self, textui, entry, *keys, **options):
-        (dn, entry_attrs) = entry
-
         textui.print_name(self.name)
-        textui.print_attribute('dn', dn)
-        textui.print_entry(entry_attrs)
+        self.obj.print_entry(textui, entry, *keys, **options)
         if len(keys) > 1:
             textui.print_dashed(
                 'Modified %s "%s" in %s "%s".' % (
@@ -242,10 +288,12 @@ class LDAPUpdate(crud.Update):
                     keys[0]
                 )
             )
-        else:
+        elif len(keys) == 1:
             textui.print_dashed(
                 'Modified %s "%s".' % (self.obj.object_name, keys[0])
             )
+        else:
+            textui.print_dashed('Modified %s.' % self.obj.object_name)
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         return dn
@@ -254,15 +302,10 @@ class LDAPUpdate(crud.Update):
         return dn
 
 
-class LDAPDelete(crud.Delete):
+class LDAPDelete(LDAPQuery):
     """
     Delete an LDAP entry and all of its direct subentries.
     """
-    def get_args(self):
-        if self.obj.parent_key:
-            yield self.obj.parent_key.clone(query=True)
-        yield self.obj.primary_key.clone(attribute=True, query=True)
-
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
@@ -297,16 +340,166 @@ class LDAPDelete(crud.Delete):
                     keys[0]
                 )
             )
-        else:
+        elif len(keys) == 1:
             textui.print_dashed(
                 'Deleted %s "%s".' % (self.obj.object_name, keys[0])
             )
+        else:
+            textui.print_dashed('Deleted %s.' % self.obj.object_name)
 
     def pre_callback(self, ldap, dn, *keys, **options):
         return dn
 
     def post_callback(self, ldap, dn, *keys, **options):
         return True
+
+
+class LDAPModMember(LDAPQuery):
+    """
+    Base class for member manipulation.
+    """
+    member_param_doc = 'comma-separated list of %s'
+    member_count_out = ('%i member processed.', '%i members processed.')
+
+    def get_options(self):
+        for attr in self.obj.attribute_members:
+            for ldap_obj_name in self.obj.attribute_members[attr]:
+                ldap_obj = self.api.Object[ldap_obj_name]
+                name = to_cli(ldap_obj_name)
+                doc = self.member_param_doc % ldap_obj.object_name_plural
+                yield List('%s?' % name, cli_name='%ss' % name, doc=doc)
+
+    def get_member_dns(self, **options):
+        dns = {}
+        failed = {}
+        for attr in self.obj.attribute_members:
+            dns[attr] = {}
+            failed[attr] = {}
+            for ldap_obj_name in self.obj.attribute_members[attr]:
+                dns[attr][ldap_obj_name] = []
+                failed[attr][ldap_obj_name] = []
+                for name in options.get(to_cli(ldap_obj_name), []):
+                    if not name:
+                        continue
+                    ldap_obj = self.api.Object[ldap_obj_name]
+                    try:
+                        dns[attr][ldap_obj_name].append(ldap_obj.get_dn(name))
+                    except errors.PublicError:
+                        failed[attr][ldap_obj_name].append(name)
+        return (dns, failed)
+
+    def output_for_cli(self, textui, result, *keys, **options):
+        (completed, failed, entry) = result
+
+        for (attr, objs) in failed.iteritems():
+            for ldap_obj_name in objs:
+                if failed[attr][ldap_obj_name]:
+                    failed_string = ','.join(failed[attr][ldap_obj_name])
+                    textui.print_plain('%ss failed: %s' % (
+                            to_cli(ldap_obj_name), failed_string
+                        )
+                    )
+        textui.print_name(self.name)
+        self.obj.print_entry(textui, entry, *keys, **options)
+        textui.print_count(
+            completed, self.member_count_out[0], self.member_count_out[1]
+        )
+
+
+class LDAPAddMember(LDAPModMember):
+    """
+    Add other LDAP entries to members.
+    """
+    member_param_doc = 'comma-separated list of %s to add'
+    member_count_out = ('%i member added.', '%i members added.')
+
+    def execute(self, *keys, **options):
+        ldap = self.obj.backend
+
+        (member_dns, failed) = self.get_member_dns(**options)
+
+        dn = self.obj.get_dn(*keys, **options)
+
+        dn = self.pre_callback(ldap, dn, member_dns, failed, *keys, **options)
+
+        completed = 0
+        for (attr, objs) in member_dns.iteritems():
+            for ldap_obj_name in objs:
+                for m_dn in member_dns[attr][ldap_obj_name]:
+                    if not m_dn:
+                        continue
+                    try:
+                        ldap.add_entry_to_group(m_dn, dn, attr)
+                    except errors.PublicError:
+                        ldap_obj = self.api.Object[ldap_obj_name]
+                        failed[attr][ldap_obj_name].append(
+                            ldap_obj.get_primary_key_from_dn(m_dn)
+                        )
+                    else:
+                        completed += 1
+
+        (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+
+        (completed, dn) = self.post_callback(
+            ldap, completed, failed, dn, entry_attrs, *keys, **options
+        )
+
+        self.obj.convert_attribute_members(entry_attrs)
+        return (completed, failed, (dn, entry_attrs))
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        return dn
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        return (completed, failed)
+
+
+class LDAPRemoveMember(LDAPModMember):
+    """
+    Remove LDAP entries from members.
+    """
+    member_param_doc = 'comma-separated list of %s to remove'
+    member_count_out = ('%i member removed.', '%i members removed.')
+
+    def execute(self, *keys, **options):
+        ldap = self.obj.backend
+
+        (member_dns, failed) = self.get_member_dns(**options)
+
+        dn = self.obj.get_dn(*keys, **options)
+
+        dn = self.pre_callback(ldap, dn, members_dns, failed, *keys, **options)
+
+        completed = 0
+        for (attr, objs) in member_dns.iteritems():
+            for ldap_obj_name in objs:
+                for m_dn in member_dns[attr][ldap_obj_name]:
+                    if not m_dn:
+                        continue
+                    try:
+                        ldap.remove_entry_from_group(m_dn, dn, attr)
+                    except errors.PublicError:
+                        ldap_obj = self.api.Object[ldap_obj_name]
+                        failed[attr][ldap_obj_name].append(
+                            ldap_obj.get_primary_key_from_dn(m_dn)
+                        )
+                    else:
+                        completed += 1
+
+        (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+
+        (completed, dn) = self.post_callback(
+            ldap, completed, failed, dn, entry_attrs, *keys, **options
+        )
+
+        self.obj.convert_attribute_members(entry_attrs)
+        return (completed, add_failed, (dn, entry_attrs))
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        return dn
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        return (completed, dn)
 
 
 class LDAPSearch(crud.Search):
@@ -328,14 +521,13 @@ class LDAPSearch(crud.Search):
     def execute(self, *args, **options):
         ldap = self.obj.backend
 
-        base_dn = self.obj.container_dn
+        term = args[-1]
         if self.obj.parent_key:
             base_dn = ldap.make_dn_from_attr(
                 self.obj.parent_key.name, args[0], base_dn
             )
-            term = args[1]
         else:
-            term = args[0]
+            base_dn = self.obj.container_dn
 
         search_kw = self.args_options_2_entry(**options)
 
@@ -362,22 +554,25 @@ class LDAPSearch(crud.Search):
 
         try:
             (entries, truncated) = ldap.find_entries(
-                filter, attrs_list, base_dn
+                filter, attrs_list, base_dn, scope=ldap.SCOPE_ONELEVEL
             )
         except errors.NotFound:
             (entries, truncated) = (tuple(), False)
 
         self.post_callback(self, ldap, entries, truncated, *args, **options)
 
+        for i in xrange(len(entries)):
+            dn = self.obj.get_primary_key_from_dn(entries[i][0])
+            self.obj.convert_attribute_members(entries[i][1])
+            entries[i] = (dn, entries[i][1])
         return (entries, truncated)
 
     def output_for_cli(self, textui, result, *args, **options):
         (entries, truncated) = result
 
         textui.print_name(self.name)
-        for (dn, entry_attrs) in entries:
-            textui.print_attribute('dn', dn)
-            textui.print_entry(entry_attrs)
+        for e in entries:
+            self.obj.print_entry(textui, e, e[0], **options)
             textui.print_plain('')
         textui.print_count(
             len(entries),
@@ -389,6 +584,9 @@ class LDAPSearch(crud.Search):
             textui.print_dashed(
                 'Please refine your search and try again.', above=False
             )
+        elif len(entries) == 0:
+            # nothing was found, return error code 1
+            return 1
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, *args, **options):
         return filter
