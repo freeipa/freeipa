@@ -143,7 +143,8 @@ def _load_schema(host, port):
 _schema = _load_schema(api.env.ldap_host, api.env.ldap_port)
 
 def _get_syntax(attr, value):
-    api.Backend.ldap2._schema.get_obj(_ldap.schema.AttributeType, attr)
+    schema = api.Backend.ldap2._schema
+    return schema.get_obj(_ldap.schema.AttributeType, attr).syntax
 
 
 # ldap backend class
@@ -569,20 +570,17 @@ class ldap2(CrudBackend, Encoder):
         except _ldap.LDAPError, e:
             _handle_errors(e, **{})
 
-    @encode_args(1, 2, 3)
     def add_entry_to_group(self, dn, group_dn, member_attr='member'):
         """Add entry to group."""
-        # encode/normalize arguments
-        dn = self.normalize_dn(dn)
-        group_dn = self.normalize_dn(group_dn)
-        # check if we're not trying to add group into itself
-        if dn == group_dn:
-            raise errors.SameGroupError()
         # check if the entry exists
         (dn, entry_attrs) = self.get_entry(dn, ['objectclass'])
 
         # get group entry
         (group_dn, group_entry_attrs) = self.get_entry(group_dn, [member_attr])
+
+        # check if we're not trying to add group into itself
+        if dn == group_dn:
+            raise errors.SameGroupError()
 
         # add dn to group entry's `member_attr` attribute
         members = group_entry_attrs.get(member_attr, [])
@@ -595,12 +593,8 @@ class ldap2(CrudBackend, Encoder):
         except errors.EmptyModlist:
             raise errors.AlreadyGroupMember()
 
-    @encode_args(1, 2, 3)
     def remove_entry_from_group(self, dn, group_dn, member_attr='member'):
         """Remove entry from group."""
-        # encode/normalize arguments
-        dn = self.normalize_dn(dn)
-
         # get group entry
         (group_dn, group_entry_attrs) = self.get_entry(group_dn, [member_attr])
 
@@ -615,11 +609,9 @@ class ldap2(CrudBackend, Encoder):
         # update group entry
         self.update_entry(group_dn, group_entry_attrs)
 
-    @encode_args(1)
     def set_entry_active(self, dn, active):
         """Mark entry active/inactive."""
         assert isinstance(active, bool)
-        dn = self.normalize_dn(dn)
         # get the entry in question
         (dn, entry_attrs) = self.get_entry(dn, ['nsaccountlock', 'memberof'])
 
@@ -692,7 +684,7 @@ class ldap2(CrudBackend, Encoder):
 
     def _get_normalized_entry_for_crud(self, dn, attrs_list=None):
         (dn, entry_attrs) = self.get_entry(dn, attrs_list)
-        entry_attrs['dn'] = [dn]
+        entry_attrs['dn'] = dn
         return entry_attrs
 
     def create(self, **kw):
