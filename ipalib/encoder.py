@@ -57,10 +57,11 @@ class Encoder(object):
 
     def _decode_dict_val(self, key, val):
         f = self.encoder_settings.decode_dict_vals_table.get(
-            self.encoder_settings.decode_dict_vals_table_keygen(key, val),
-            self.decode
+            self.encoder_settings.decode_dict_vals_table_keygen(key, val)
         )
-        return f(val)
+        if f:
+            return val
+        return self.decode(val)
 
     def encode(self, var):
         """
@@ -70,7 +71,9 @@ class Encoder(object):
 
         Returns an encoded copy of 'var'.
         """
-        if isinstance(var, basestring):
+        if isinstance(var, str):
+            return var
+        elif isinstance(var, unicode):
             return self.encoder_settings.encode_postprocessor(
                 var.encode(self.encoder_settings.encode_to)
             )
@@ -122,7 +125,9 @@ class Encoder(object):
 
         Returns a decoded copy of 'var'.
         """
-        if isinstance(var, basestring):
+        if isinstance(var, unicode):
+            return var
+        elif isinstance(var, str):
             return self.encoder_settings.decode_postprocessor(
                 var.decode(self.encoder_settings.decode_from)
             )
