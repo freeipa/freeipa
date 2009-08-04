@@ -261,13 +261,6 @@ class Param(ReadOnly):
         self.name = check_name(name)
         self.nice = '%s(%r)' % (self.__class__.__name__, self.param_spec)
 
-        if 'cli_short_name' in kw:
-            if len(kw['cli_short_name']) != 1:
-                raise TypeError(
-                    '%s: cli_short_name can only be a single character: %s'
-                    % (self.nice, kw['cli_short_name'])
-                )
-
         # Add 'default' to self.kwargs and makes sure no unknown kw were given:
         assert type(self.type) is type
         if kw.get('multivalue', True):
@@ -359,6 +352,13 @@ class Param(ReadOnly):
                 raise TypeError(
                     '%s: rules must be callable; got %r' % (self.nice, rule)
                 )
+
+        # Check that cli_short_name is only 1 character long:
+        if not (self.cli_short_name is None or len(self.cli_short_name) == 1):
+            raise ValueError(
+                '%s: cli_short_name can only be a single character: %s' % (
+                    self.nice, self.cli_short_name)
+            )
 
         # And we're done.
         lock(self)
@@ -1244,4 +1244,3 @@ def create_param(spec):
             TYPE_ERROR % ('spec', (str, Param), spec, type(spec))
         )
     return Str(spec)
-

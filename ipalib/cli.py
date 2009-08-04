@@ -246,8 +246,7 @@ class textui(backend.Backend):
           dn: dc=example,dc=com
         >>> attr = 'objectClass'
         >>> ui.print_attribute(attr, [u'top', u'someClass'])
-          objectClass: top
-          objectClass: someClass
+          objectClass: top, someClass
         """
         assert isinstance(attr, basestring)
         if not isinstance(value, (list, tuple)):
