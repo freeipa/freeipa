@@ -109,7 +109,9 @@ class LDAPObject(Object):
     def get_primary_key_from_dn(self, dn):
         return dn[len(self.primary_key.name) + 1:dn.find(',')]
 
-    def convert_attribute_members(self, entry_attrs):
+    def convert_attribute_members(self, entry_attrs, *keys, **options):
+        if options.get('raw', False):
+            return
         for attr in self.attribute_members:
             for member in entry_attrs.setdefault(attr, []):
                 for ldap_obj_name in self.attribute_members[attr]:
@@ -146,6 +148,13 @@ class LDAPCreate(crud.Create):
     """
     Create a new entry in LDAP.
     """
+    takes_options = (
+        Flag('raw',
+            cli_name='raw',
+            doc='print entries as they are stored in LDAP',
+        ),
+    )
+
     def get_args(self):
         if self.obj.parent_key:
             yield self.obj.parent_key.clone(query=True)
@@ -174,7 +183,7 @@ class LDAPCreate(crud.Create):
 
         dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
 
-        self.obj.convert_attribute_members(entry_attrs)
+        self.obj.convert_attribute_members(entry_attrs, *keys, **options)
         return (dn, entry_attrs)
 
     def output_for_cli(self, textui, entry, *keys, **options):
@@ -217,6 +226,10 @@ class LDAPRetrieve(LDAPQuery):
     Retrieve an LDAP entry.
     """
     takes_options = (
+        Flag('raw',
+            cli_name='raw',
+            doc='print entries as they are stored in LDAP',
+        ),
         Flag('all',
             cli_name='all',
             doc='retrieve all attributes',
@@ -239,7 +252,7 @@ class LDAPRetrieve(LDAPQuery):
 
         dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
 
-        self.obj.convert_attribute_members(entry_attrs)
+        self.obj.convert_attribute_members(entry_attrs, *keys, **options)
         return (dn, entry_attrs)
 
     def output_for_cli(self, textui, entry, *keys, **options):
@@ -257,6 +270,13 @@ class LDAPUpdate(LDAPQuery, crud.Update):
     """
     Update an LDAP entry.
     """
+    takes_options = (
+        Flag('raw',
+            cli_name='raw',
+            doc='print entries as they are stored in LDAP',
+        ),
+    )
+
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
@@ -275,7 +295,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
         dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
 
-        self.obj.convert_attribute_members(entry_attrs)
+        self.obj.convert_attribute_members(entry_attrs, *keys, **options)
         return (dn, entry_attrs)
 
     def output_for_cli(self, textui, entry, *keys, **options):
@@ -361,6 +381,13 @@ class LDAPModMember(LDAPQuery):
     member_param_doc = 'comma-separated list of %s'
     member_count_out = ('%i member processed.', '%i members processed.')
 
+    takes_options = (
+        Flag('raw',
+            cli_name='raw',
+            doc='print entries as they are stored in LDAP',
+        ),
+    )
+
     def get_options(self):
         for attr in self.obj.attribute_members:
             for ldap_obj_name in self.obj.attribute_members[attr]:
@@ -444,7 +471,7 @@ class LDAPAddMember(LDAPModMember):
             ldap, completed, failed, dn, entry_attrs, *keys, **options
         )
 
-        self.obj.convert_attribute_members(entry_attrs)
+        self.obj.convert_attribute_members(entry_attrs, *keys, **options)
         return (completed, failed, (dn, entry_attrs))
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
@@ -492,7 +519,7 @@ class LDAPRemoveMember(LDAPModMember):
             ldap, completed, failed, dn, entry_attrs, *keys, **options
         )
 
-        self.obj.convert_attribute_members(entry_attrs)
+        self.obj.convert_attribute_members(entry_attrs, *keys, **options)
         return (completed, add_failed, (dn, entry_attrs))
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
@@ -507,6 +534,10 @@ class LDAPSearch(crud.Search):
     Retrieve all LDAP entries matching the given criteria.
     """
     takes_options = (
+        Flag('raw',
+            cli_name='raw',
+            doc='print entries as they are stored in LDAP',
+        ),
         Flag('all',
             cli_name='all',
             doc='retrieve all attributes',
@@ -561,10 +592,13 @@ class LDAPSearch(crud.Search):
 
         self.post_callback(self, ldap, entries, truncated, *args, **options)
 
-        for i in xrange(len(entries)):
-            dn = self.obj.get_primary_key_from_dn(entries[i][0])
-            self.obj.convert_attribute_members(entries[i][1])
-            entries[i] = (dn, entries[i][1])
+        if options.get('raw', False):
+            for i in xrange(len(entries)):
+                dn = self.obj.get_primary_key_from_dn(entries[i][0])
+                self.obj.convert_attribute_members(
+                    entries[i][1], *keys, **options
+                )
+                entries[i] = (dn, entries[i][1])
         return (entries, truncated)
 
     def output_for_cli(self, textui, result, *args, **options):
