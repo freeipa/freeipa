@@ -308,118 +308,6 @@ class Plugin(ReadOnly):
         )
 
 
-class PluginProxy(SetProxy):
-    """
-    Allow access to only certain attributes on a `Plugin`.
-
-    Think of a proxy as an agreement that "I will have at most these
-    attributes". This is different from (although similar to) an interface,
-    which can be thought of as an agreement that "I will have at least these
-    attributes".
-    """
-
-    __slots__ = (
-        '__base',
-        '__target',
-        '__name_attr',
-        '__public__',
-        'name',
-        'doc',
-    )
-
-    def __init__(self, base, target, name_attr='name'):
-        """
-        :param base: A subclass of `Plugin`.
-        :param target: An instance ``base`` or a subclass of ``base``.
-        :param name_attr: The name of the attribute on ``target`` from which
-            to derive ``self.name``.
-        """
-        if not inspect.isclass(base):
-            raise TypeError(
-                '`base` must be a class, got %r' % base
-            )
-        if not isinstance(target, base):
-            raise ValueError(
-                '`target` must be an instance of `base`, got %r' % target
-            )
-        self.__base = base
-        self.__target = target
-        self.__name_attr = name_attr
-        if hasattr(type(target), '__public__'):
-            self.__public__ = type(target).__public__
-        else:
-            self.__public__ = base.__public__
-        self.name = getattr(target, name_attr)
-        self.doc = target.doc
-        assert type(self.__public__) is frozenset
-        super(PluginProxy, self).__init__(self.__public__)
-
-    def implements(self, arg):
-        """
-        Return True if plugin being proxied implements ``arg``.
-
-        This method simply calls the corresponding `Plugin.implements`
-        classmethod.
-
-        Unlike `Plugin.implements`, this is not a classmethod as a
-        `PluginProxy` can only implement anything as an instance.
-        """
-        return self.__base.implements(arg)
-
-    def __clone__(self, name_attr):
-        """
-        Return a `PluginProxy` instance similar to this one.
-
-        The new `PluginProxy` returned will be identical to this one except
-        the proxy name might be derived from a different attribute on the
-        target `Plugin`.  The same base and target will be used.
-        """
-        return self.__class__(self.__base, self.__target, name_attr)
-
-    def __getitem__(self, key):
-        """
-        Return attribute named ``key`` on target `Plugin`.
-
-        If this proxy allows access to an attribute named ``key``, that
-        attribute will be returned.  If access is not allowed,
-        KeyError will be raised.
-        """
-        if key in self.__public__:
-            return getattr(self.__target, key)
-        raise KeyError('no public attribute %s.%s' % (self.name, key))
-
-    def __getattr__(self, name):
-        """
-        Return attribute named ``name`` on target `Plugin`.
-
-        If this proxy allows access to an attribute named ``name``, that
-        attribute will be returned.  If access is not allowed,
-        AttributeError will be raised.
-        """
-        if name in self.__public__:
-            return getattr(self.__target, name)
-        raise AttributeError('no public attribute %s.%s' % (self.name, name))
-
-    def __call__(self, *args, **kw):
-        """
-        Call target `Plugin` and return its return value.
-
-        If `__call__` is not an attribute this proxy allows access to,
-        KeyError is raised.
-        """
-        return self['__call__'](*args, **kw)
-
-    def __repr__(self):
-        """
-        Return a Python expression that could create this instance.
-        """
-        return '%s(%s, %r)' % (
-            self.__class__.__name__,
-            self.__base.__name__,
-            self.__target,
-        )
-
-
 class Registrar(DictProxy):
     """
     Collects plugin classes as they are registered.
@@ -734,10 +622,7 @@ class API(DictProxy):
                 p = plugins[klass]
                 assert base not in p.bases
                 p.bases.append(base)
-                if base.__proxy__:
-                    yield PluginProxy(base, p.instance)
-                else:
-                    yield p.instance
+                yield p.instance
 
         for name in self.register:
             base = self.register[name]

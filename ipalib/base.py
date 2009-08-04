@@ -382,7 +382,7 @@ class NameSpace(ReadOnly):
     examples, see the `plugable.API` and the `frontend.Command` classes.
     """
 
-    def __init__(self, members, sort=True):
+    def __init__(self, members, sort=True, name_attr='name'):
         """
         :param members: An iterable providing the members.
         :param sort: Whether to sort the members by member name.
@@ -394,14 +394,14 @@ class NameSpace(ReadOnly):
         self.__sort = sort
         if sort:
             self.__members = tuple(
-                sorted(members, key=lambda m: m.name)
+                sorted(members, key=lambda m: getattr(m, name_attr))
             )
         else:
             self.__members = tuple(members)
-        self.__names = tuple(m.name for m in self.__members)
+        self.__names = tuple(getattr(m, name_attr) for m in self.__members)
         self.__map = dict()
         for member in self.__members:
-            name = check_name(member.name)
+            name = check_name(getattr(member,  name_attr))
             if name in self.__map:
                 raise AttributeError(OVERRIDE_ERROR %
                     (self.__class__.__name__, name, self.__map[name], member)

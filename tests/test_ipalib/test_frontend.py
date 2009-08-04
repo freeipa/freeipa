@@ -666,7 +666,7 @@ class test_Object(ClassChecker):
                 assert attr is getattr(namespace, attr_name)
                 assert attr.obj_name == 'user'
                 assert attr.attr_name == attr_name
-                assert attr.name == attr_name
+                assert attr.name == '%s_%s' % ('user', attr_name)
 
         # Test params instance attribute
         o = self.cls()

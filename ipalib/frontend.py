@@ -352,7 +352,7 @@ class Command(HasParam):
     >>> list(api.Command)
     ['my_command']
     >>> api.Command.my_command # doctest:+ELLIPSIS
-    PluginProxy(Command, ...my_command())
+    ipalib.frontend.my_command()
     """
 
     __public__ = frozenset((
@@ -752,10 +752,10 @@ class Object(HasParam):
     def set_api(self, api):
         super(Object, self).set_api(api)
         self.methods = NameSpace(
-            self.__get_attrs('Method'), sort=False
+            self.__get_attrs('Method'), sort=False, name_attr='attr_name'
         )
         self.properties = NameSpace(
-            self.__get_attrs('Property'), sort=False
+            self.__get_attrs('Property'), sort=False, name_attr='attr_name'
         )
         self._create_param_namespace('params')
         pkeys = filter(lambda p: p.primary_key, self.params())
@@ -798,9 +798,9 @@ class Object(HasParam):
             return
         namespace = self.api[name]
         assert type(namespace) is NameSpace
-        for proxy in namespace(): # Equivalent to dict.itervalues()
-            if proxy.obj_name == self.name:
-                yield proxy.__clone__('attr_name')
+        for plugin in namespace(): # Equivalent to dict.itervalues()
+            if plugin.obj_name == self.name:
+                yield plugin
 
     def get_params(self):
         """

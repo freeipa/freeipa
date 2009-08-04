@@ -239,9 +239,7 @@ plugin you implement.
 
 Backend plugins are much more free-form than command plugins.  Aside from a
 few reserved attribute names, you can define arbitrary public methods on your
-backend plugin (in contrast, frontend plugins get wrapped in a
-`plugable.PluginProxy`, which allow access to only specific attributes on the
-frontend plugin).
+backend plugin.
 
 Here is a simple example:
 

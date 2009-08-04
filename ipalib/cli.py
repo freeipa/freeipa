@@ -491,12 +491,15 @@ class help(frontend.Command):
 
     _PLUGIN_BASE_MODULE = 'ipalib.plugins'
 
-    def _get_command_module(self, cmd_plugin_proxy):
+    def _get_command_module(self, module):
         """
-        Return bare module name where command represented by PluginProxy
-        instance is defined. Return None if command isn't defined in
-        a plugin module (we consider these commands to be builtins).
+        Return last part of ``module`` name, or ``None`` if module is this file.
+
+        For example:
         """
+        if module == __name__:
+            return
+        return module.split('.')[-1]
         # get representation in the form of 'base_module.bare_module.command()'
         r = repr(cmd_plugin_proxy)
         # skip base module part and the following dot
@@ -517,7 +520,7 @@ class help(frontend.Command):
 
         # build help topics
         for c in self.Command():
-            topic = self._get_command_module(c)
+            topic = self._get_command_module(c.module)
             if topic:
                 self._topics.setdefault(topic, [0]).append(c)
                 # compute maximum length of command in topic
@@ -528,7 +531,7 @@ class help(frontend.Command):
 
         # compute maximum topic length
         self._mtl = max(
-            len(s) for s in (self._topics.keys() + self._builtins)
+            len(s) for s in (self._topics.keys() + [c.name for c in self._builtins])
         )
 
         super(help, self).finalize()
