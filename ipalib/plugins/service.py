@@ -28,6 +28,7 @@ from OpenSSL import crypto
 from ipalib import api, crud, errors
 from ipalib import Object
 from ipalib import Str, Flag, Bytes
+from ipalib import uuid
 
 _container_dn = api.env.container_service
 _default_attributes = ['krbprincipalname', 'usercertificate']
@@ -152,8 +153,9 @@ class service_add(crud.Create):
         entry_attrs = self.args_options_2_entry(principal, **kw)
         entry_attrs['objectclass'] = [
             'krbprincipal', 'krbprincipalaux', 'krbticketpolicyaux',
-            'ipaservice', 'pkiuser'
+            'ipaobject', 'ipaservice', 'pkiuser'
         ]
+        entry_attrs['ipauniqueid'] = str(uuid.uuid1())
         dn = ldap.make_dn(entry_attrs, 'krbprincipalname', _container_dn)
 
         ldap.add_entry(dn, entry_attrs)

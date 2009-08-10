@@ -149,6 +149,7 @@ ipaGroupObjectClasses: top
 ipaGroupObjectClasses: groupofnames
 ipaGroupObjectClasses: nestedgroup
 ipaGroupObjectClasses: ipausergroup
+ipaGroupObjectClasses: ipaobject
 ipaUserObjectClasses: top
 ipaUserObjectClasses: person
 ipaUserObjectClasses: organizationalperson
@@ -157,6 +158,7 @@ ipaUserObjectClasses: inetuser
 ipaUserObjectClasses: posixaccount
 ipaUserObjectClasses: krbprincipalaux
 ipaUserObjectClasses: radiusprofile
+ipaUserObjectClasses: ipaobject
 ipaDefaultEmailDomain: $DOMAIN
 
 dn: cn=account inactivation,cn=accounts,$SUFFIX

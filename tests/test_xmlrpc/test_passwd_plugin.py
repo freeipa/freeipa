@@ -47,6 +47,7 @@ class test_passwd(XMLRPC_test):
         assert_attr_equal(res, 'sn', self.sn)
         assert_attr_equal(res, 'uid', self.uid)
         assert_attr_equal(res, 'homedirectory', self.home)
+        assert_attr_equal(res, 'objectclass', 'ipaobject')
 
     def test_2_set_passwd(self):
         """

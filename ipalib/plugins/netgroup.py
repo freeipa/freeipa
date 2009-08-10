@@ -69,9 +69,9 @@ class netgroup_add(basegroup_add):
         ldap = self.api.Backend.ldap2
 
         entry_attrs = self.args_options_2_entry(cn, **kw)
-        entry_attrs['ipauniqueid'] = str(uuid.uuid1())
-        entry_attrs['objectclass'] = ['top', 'ipaassociation', _default_class]
+        entry_attrs['objectclass'] = ['top', 'ipaobject', 'ipaassociation', _default_class]
         entry_attrs.setdefault('nisdomainname', self.api.env.domain)
+        entry_attrs['ipauniqueid'] = str(uuid.uuid1())
 
         dn = ldap.make_dn(entry_attrs, 'ipauniqueid', _container_dn)
 

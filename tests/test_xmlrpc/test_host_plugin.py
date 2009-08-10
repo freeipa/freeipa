@@ -45,6 +45,7 @@ class test_host(XMLRPC_test):
         assert_attr_equal(res, 'description', self.description)
         assert_attr_equal(res, 'fqdn', self.fqdn)
         assert_attr_equal(res, 'localityname', self.localityname)
+        assert_attr_equal(res, 'objectclass', 'ipaobject')
 
     def test_2_host_show(self):
         """

@@ -29,6 +29,7 @@ from ipalib import api, crud, errors, util
 from ipalib import Object
 from ipalib import Str, Flag
 from ipalib.plugins.service import split_principal
+from ipalib import uuid
 
 _container_dn = api.env.container_host
 _default_attributes = [
@@ -166,7 +167,7 @@ class host_add(crud.Create):
         # FIXME: add this attribute to cn=ipaconfig
         # config = ldap.get_ipa_config()[1]
         # kw['objectclass'] =  config.get('ipahostobjectclasses')
-        entry_attrs['objectclass'] = ['nshost', 'ipahost', 'pkiuser']
+        entry_attrs['objectclass'] = ['ipaobject', 'nshost', 'ipahost', 'pkiuser']
 
         if 'userpassword' not in entry_attrs:
             entry_attrs['krbprincipalname'] = 'host/%s@%s' % (
@@ -177,6 +178,8 @@ class host_add(crud.Create):
                 entry_attrs['objectclass'].append('krbprincipal')
         elif 'krbprincipalaux' in entry_attrs['objectclass']:
             entry_attrs['objectclass'].remove('krbprincipalaux')
+
+        entry_attrs['ipauniqueid'] = str(uuid.uuid1())
 
         ldap.add_entry(dn, entry_attrs)
 

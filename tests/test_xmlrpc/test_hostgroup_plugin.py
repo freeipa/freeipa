@@ -47,6 +47,7 @@ class test_hostgroup(XMLRPC_test):
         assert res
         assert_attr_equal(res, 'description', self.description)
         assert_attr_equal(res, 'cn', self.cn)
+        assert_attr_equal(res, 'objectclass', 'ipaobject')
 
     def test_2_host_add(self):
         """
@@ -101,13 +102,13 @@ class test_hostgroup(XMLRPC_test):
         assert_attr_equal(res, 'description', newdesc)
         assert_attr_equal(res, 'cn', self.cn)
 
-    def test_7_hostgroup_del_member(self):
+    def test_7_hostgroup_remove_member(self):
         """
-        Test the `xmlrpc.hostgroup_del_member` method.
+        Test the `xmlrpc.hostgroup_remove_member` method.
         """
         kw = {}
         kw['hosts'] = self.host_fqdn
-        (total, failed, res) = api.Command['hostgroup_del_member'](self.cn, **kw)
+        (total, failed, res) = api.Command['hostgroup_remove_member'](self.cn, **kw)
         assert res
         assert res[1].get('member', []) == []
 

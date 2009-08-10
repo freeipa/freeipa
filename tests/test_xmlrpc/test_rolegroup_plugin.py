@@ -46,6 +46,7 @@ class test_rolegroup(XMLRPC_test):
         assert res
         assert_attr_equal(res, 'description', self.description)
         assert_attr_equal(res, 'cn', self.cn)
+        assert_attr_equal(res, 'objectclass', 'ipaobject')
 
     def test_2_add_group(self):
         """
@@ -102,13 +103,13 @@ class test_rolegroup(XMLRPC_test):
         assert_attr_equal(res, 'description', newdesc)
         assert_attr_equal(res, 'cn', self.cn)
 
-    def test_7_rolegroup_del_member(self):
+    def test_7_rolegroup_remove_member(self):
         """
-        Test the `xmlrpc.rolegroup_del_member` method.
+        Test the `xmlrpc.rolegroup_remove_member` method.
         """
         kw = {}
         kw['groups'] = self.rolegroup_cn
-        (total, failed, res) = api.Command['rolegroup_del_member'](self.cn, **kw)
+        (total, failed, res) = api.Command['rolegroup_remove_member'](self.cn, **kw)
         assert total == 1
 
     def test_8_rolegroup_del(self):

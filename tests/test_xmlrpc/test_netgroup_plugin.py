@@ -164,7 +164,7 @@ class test_netgroup(XMLRPC_test):
         """
         Test the `xmlrpc.netgroup_show` method.
         """
-        (dn, res) = api.Command['netgroup_show'](self.ng_cn)
+        (dn, res) = api.Command['netgroup_show'](self.ng_cn, all=True)
         assert res
         assert_attr_equal(res, 'description', self.ng_description)
         assert_attr_equal(res, 'cn', self.ng_cn)
@@ -172,6 +172,7 @@ class test_netgroup(XMLRPC_test):
         assert_is_member(res, 'cn=%s' % self.hg_cn)
         assert_is_member(res, 'uid=%s' % self.user_uid)
         assert_is_member(res, 'cn=%s' % self.group_cn)
+        assert_attr_equal(res, 'objectclass', 'ipaobject')
 
     def test_7_netgroup_find(self):
         """
@@ -198,56 +199,56 @@ class test_netgroup(XMLRPC_test):
         assert_attr_equal(res, 'description', newdesc)
         assert_attr_equal(res, 'cn', self.ng_cn)
 
-    def test_9_netgroup_del_member(self):
+    def test_9_netgroup_remove_member(self):
         """
-        Test the `xmlrpc.hostgroup_del_member` method.
+        Test the `xmlrpc.hostgroup_remove_member` method.
         """
         kw = {}
         kw['hosts'] = self.host_fqdn
-        (total, failed, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
         assert total == 1
 
         kw = {}
         kw['hostgroups'] = self.hg_cn
-        (total, failed, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
         assert total == 1
 
         kw = {}
         kw['users'] = self.user_uid
-        (total, failed, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
         assert total == 1
 
         kw = {}
         kw['groups'] = self.group_cn
-        (total, failed, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
         assert total == 1
 
-    def test_a_netgroup_del_member(self):
+    def test_a_netgroup_remove_member(self):
         """
-        Test the `xmlrpc.netgroup_del_member` method again to test not found.
+        Test the `xmlrpc.netgroup_remove_member` method again to test not found.
         """
         kw = {}
         kw['hosts'] = self.host_fqdn
-        (total, failed, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
         assert total == 0
         assert self.host_fqdn in failed
 
         kw = {}
         kw['hostgroups'] = self.hg_cn
-        (total, failed, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
         assert total == 0
         assert self.hg_cn in failed
 
         kw = {}
         kw['users'] = self.user_uid
         (dn, res) = api.Command['netgroup_show'](self.ng_cn, all=True)
-        (total, failed, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
         assert total == 0
         assert self.user_uid in failed
 
         kw = {}
         kw['groups'] = self.group_cn
-        (total, failed, res) = api.Command['netgroup_del_member'](self.ng_cn, **kw)
+        (total, failed, res) = api.Command['netgroup_remove_member'](self.ng_cn, **kw)
         assert total == 0
         assert self.group_cn in failed
 

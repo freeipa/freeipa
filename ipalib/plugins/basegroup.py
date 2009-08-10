@@ -25,6 +25,7 @@ Base plugin for groups.
 from ipalib import api, crud, errors
 from ipalib import Command, Object
 from ipalib import Flag, Int, List, Str
+from ipalib import uuid
 
 _default_attributes = ['cn', 'description', 'member', 'memberof']
 _default_class = 'groupofnames'
@@ -137,7 +138,7 @@ class basegroup_add(crud.Create):
     """
     Create new group.
     """
-    base_classes = ('top', _default_class)
+    base_classes = ('top', 'ipaobject', _default_class)
 
     def execute(self, cn, **kw):
         """
@@ -161,6 +162,8 @@ class basegroup_add(crud.Create):
             entry_attrs['objectclass'] = kw['objectclass']
         else:
             entry_attrs['objectclass'] = self.base_classes
+
+        entry_attrs['ipauniqueid'] = str(uuid.uuid1())
 
         ldap.add_entry(dn, entry_attrs)
 

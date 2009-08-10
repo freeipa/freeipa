@@ -49,6 +49,7 @@ class test_taskgroup(XMLRPC_test):
         assert res
         assert_attr_equal(res, 'description', self.description)
         assert_attr_equal(res, 'cn', self.cn)
+        assert_attr_equal(res, 'objectclass', 'ipaobject')
 
     def test_2_add_rolegroup(self):
         """
@@ -124,7 +125,7 @@ class test_taskgroup(XMLRPC_test):
         """
         kw = {}
         kw['groups'] = self.taskgroup_cn
-        (total, failed, res) = api.Command['taskgroup_del_member'](self.cn, **kw)
+        (total, failed, res) = api.Command['taskgroup_remove_member'](self.cn, **kw)
         assert total == 1
 
     def test_9_taskgroup_del(self):

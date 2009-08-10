@@ -24,6 +24,7 @@ Users (Identity)
 from ipalib import api, crud, errors
 from ipalib import Command, Object
 from ipalib import Flag, Int, Password, Str
+from ipalib import uuid
 
 # parent DN
 _container_dn = api.env.container_user
@@ -150,6 +151,8 @@ class user_add(crud.Create):
             raise errors.NotFound(reason=error_msg)
         # fill default group's gidNumber
         entry_attrs['gidnumber'] = group_attrs['gidnumber']
+
+        entry_attrs['ipauniqueid'] = str(uuid.uuid1())
 
         # create user entry
         ldap.add_entry(dn, entry_attrs)

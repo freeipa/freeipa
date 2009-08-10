@@ -42,6 +42,7 @@ class test_service(XMLRPC_test):
         (dn, res) = api.Command['service_add'](**self.kw)
         assert res
         assert_attr_equal(res, 'krbprincipalname', self.principal)
+        assert_attr_equal(res, 'objectclass', 'ipaobject')
 
     def test_2_service_add(self):
         """

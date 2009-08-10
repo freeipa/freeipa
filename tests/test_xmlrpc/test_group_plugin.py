@@ -45,6 +45,7 @@ class test_group(XMLRPC_test):
         assert res
         assert_attr_equal(res, 'description', self.description)
         assert_attr_equal(res, 'cn', self.cn)
+        assert_attr_equal(res, 'objectclass', 'ipaobject')
 
     def test_2_group_add(self):
         """
@@ -136,24 +137,24 @@ class test_group(XMLRPC_test):
         assert_attr_equal(res, 'cn', self.cn)
         assert res.get('gidnumber', '')
 
-    def test_9_group_del_member(self):
+    def test_9_group_remove_member(self):
         """
-        Test the `xmlrpc.group_del_member` method.
+        Test the `xmlrpc.group_remove_member` method.
         """
         kw = {}
         kw['groups'] = self.cn2
-        (total, failed, res) = api.Command['group_del_member'](self.cn, **kw)
+        (total, failed, res) = api.Command['group_remove_member'](self.cn, **kw)
         assert res
         assert total == 1
 
-    def test_a_group_del_member(self):
+    def test_a_group_remove_member(self):
         """
-        Test the `xmlrpc.group_del_member` method with non-member
+        Test the `xmlrpc.group_remove_member` method with non-member
         """
         kw = {}
         kw['groups'] = u'notfound'
         # an error isn't thrown, the list of failed members is returned
-        (total, failed, res) = api.Command['group_del_member'](self.cn, **kw)
+        (total, failed, res) = api.Command['group_remove_member'](self.cn, **kw)
         assert total == 0
         assert 'notfound' in failed
 
