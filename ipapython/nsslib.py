@@ -20,7 +20,6 @@
 import httplib
 import getpass
 import socket
-import errno
 
 from nss.error import NSPRError
 import nss.io as io

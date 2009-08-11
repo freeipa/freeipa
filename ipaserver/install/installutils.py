@@ -25,7 +25,6 @@ import os
 import re
 import fileinput
 import sys
-import time
 import struct
 import fcntl
 
@@ -217,28 +216,28 @@ def set_directive(filename, directive, value, quotes=True, separator=' '):
     """
     valueset = False
     fd = open(filename)
-    file = []
+    newfile = []
     for line in fd:
         if directive in line:
             valueset = True
             if quotes:
-                file.append('%s%s"%s"\n' % (directive, separator, value))
+                newfile.append('%s%s"%s"\n' % (directive, separator, value))
             else:
-                file.append('%s%s%s\n' % (directive, separator, value))
+                newfile.append('%s%s%s\n' % (directive, separator, value))
         else:
-            file.append(line)
+            newfile.append(line)
     fd.close()
     if not valueset:
         if quotes:
-            file.append('%s%s"%s"\n' % (directive, separator, value))
+            newfile.append('%s%s"%s"\n' % (directive, separator, value))
         else:
-            file.append('%s%s%s\n' % (directive, separator, value))
+            newfile.append('%s%s%s\n' % (directive, separator, value))
 
     fd = open(filename, "w")
-    fd.write("".join(file))
+    fd.write("".join(newfile))
     fd.close()
 
-def get_directive(filename, directive, strip_quotes=True, separator=' '):
+def get_directive(filename, directive, separator=' '):
     """
     A rather inefficient way to get a configuration directive.
     """

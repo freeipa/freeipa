@@ -57,7 +57,7 @@ def get_domain_name():
     try:
         config.init_config()
         domain_name = config.config.get_domain()
-    except Exception, e:
+    except Exception:
         return None
 
     return domain_name
@@ -362,13 +362,13 @@ class GeneralizedTimeZone(datetime.tzinfo):
         if self.houroffset < 0:
             self.minoffset *= -1
 
-    def utcoffset(self, dt):
+    def utcoffset(self):
         return datetime.timedelta(hours=self.houroffset, minutes=self.minoffset)
 
-    def dst(self, dt):
+    def dst(self):
         return datetime.timedelta(0)
 
-    def tzname(self, dt):
+    def tzname(self):
         return self.name
 
 
@@ -748,7 +748,7 @@ class AttributeValueCompleter:
             return self.default_value.get(self.lhs, None)
         elif default_value_type is FunctionType:
             return self.default_value(self.lhs)
-        elif default_value_type is StringsType:
+        elif default_value_type is StringType:
             return self.default_value
         else:
             return None
@@ -759,7 +759,7 @@ class AttributeValueCompleter:
         else:
             self.completions = self.lhs_names
 
-    def complete(self, text, state):
+    def complete(self, state):
         self.line_buffer= readline.get_line_buffer()
         self.parse_input()
         if not self.lhs_complete:
@@ -905,7 +905,7 @@ class ItemCompleter:
         else:
             self.completions = self.items
 
-    def complete(self, text, state):
+    def complete(self, state):
         self.line_buffer= readline.get_line_buffer()
         if state == 0:
             beg = readline.get_begidx()

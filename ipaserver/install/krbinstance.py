@@ -17,8 +17,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import subprocess
-import string
 import shutil
 import logging
 import fileinput
@@ -27,7 +25,6 @@ import sys
 import os
 import pwd
 import socket
-import shutil
 
 import service
 import installutils
@@ -46,7 +43,6 @@ from pyasn1.type import univ, namedtype
 import pyasn1.codec.ber.encoder
 import pyasn1.codec.ber.decoder
 import struct
-import base64
 
 KRBMKEY_DENY_ACI = """
 (targetattr = "krbMKey")(version 3.0; acl "No external access"; deny (all) userdn != "ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
@@ -225,7 +221,7 @@ class KrbInstance(service.Service):
             msgid = self.conn.search("cn=mapping,cn=sasl,cn=config", ldap.SCOPE_ONELEVEL, "(objectclass=nsSaslMapping)")
             res = self.conn.result(msgid)
             for r in res[1]:
-                mid = self.conn.delete_s(r[0])
+                self.conn.delete_s(r[0])
         #except LDAPError, e:
         #    logging.critical("Error during SASL mapping removal: %s" % str(e))
         except Exception, e:
@@ -301,7 +297,7 @@ class KrbInstance(service.Service):
     def __write_stash_from_ds(self):
         try:
             entry = self.conn.getEntry("cn=%s, cn=kerberos, %s" % (self.realm, self.suffix), ldap.SCOPE_SUBTREE)
-        except errors.NotFound:
+        except errors.NotFound, e:
             logging.critical("Could not find master key in DS")
             raise e
 

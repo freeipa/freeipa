@@ -27,11 +27,11 @@ from ipalib import util
 from ipalib import errors
 
 DIRMAN_CN = "cn=directory manager"
-CACERT="/usr/share/ipa/html/ca.crt"
+CACERT = "/usr/share/ipa/html/ca.crt"
 # the default container used by AD for user entries
-WIN_USER_CONTAINER="cn=Users"
+WIN_USER_CONTAINER = "cn=Users"
 # the default container used by IPA for user entries
-IPA_USER_CONTAINER="cn=users,cn=accounts"
+IPA_USER_CONTAINER = "cn=users,cn=accounts"
 PORT = 636
 TIMEOUT = 120
 
@@ -351,9 +351,11 @@ class ReplicationManager:
     def check_repl_init(self, conn, agmtdn):
         done = False
         hasError = 0
-        attrlist = ['cn', 'nsds5BeginReplicaRefresh', 'nsds5replicaUpdateInProgress',
-					'nsds5ReplicaLastInitStatus', 'nsds5ReplicaLastInitStart',
-				    'nsds5ReplicaLastInitEnd']
+        attrlist = ['cn', 'nsds5BeginReplicaRefresh',
+                    'nsds5replicaUpdateInProgress',
+                    'nsds5ReplicaLastInitStatus',
+                    'nsds5ReplicaLastInitStart',
+                    'nsds5ReplicaLastInitEnd']
         entry = conn.getEntry(agmtdn, ldap.SCOPE_BASE, "(objectclass=*)", attrlist)
         if not entry:
             print "Error reading status from agreement", agmtdn

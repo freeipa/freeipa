@@ -15,6 +15,10 @@
 # the reference counting and SharedSocketClient provides an constructor
 # and close() method that call incref() and decref() correctly.
 
+import socket
+import errno
+from httplib import UnimplementedFileMode
+
 class SharedSocket:
     def __init__(self, sock):
         self.sock = sock
@@ -91,13 +95,13 @@ class SSLFile(SharedSocketClient):
                 break
             L.append(s)
             avail += len(s)
-        all = "".join(L)
+        alldata = "".join(L)
         if size is None:
             self._buf = ''
-            return all
+            return alldata
         else:
-            self._buf = all[size:]
-            return all[:size]
+            self._buf = alldata[size:]
+            return alldata[:size]
 
     def readline(self):
         L = [self._buf]
@@ -114,25 +118,25 @@ class SSLFile(SharedSocketClient):
             # loop exited because there is no more data
             return "".join(L)
         else:
-            all = "".join(L)
+            alldata = "".join(L)
             # XXX could do enough bookkeeping not to do a 2nd search
-            i = all.find("\n") + 1
-            line = all[:i]
-            self._buf = all[i:]
+            i = alldata.find("\n") + 1
+            line = alldata[:i]
+            self._buf = alldata[i:]
             return line
 
     def readlines(self, sizehint=0):
         total = 0
-        list = []
+        inlist = []
         while True:
             line = self.readline()
             if not line:
                 break
-            list.append(line)
+            inlist.append(line)
             total += len(line)
             if sizehint and total >= sizehint:
                 break
-        return list
+        return inlist
 
     def fileno(self):
         return self._sock.fileno()

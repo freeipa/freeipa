@@ -17,12 +17,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import string
 import tempfile
-import shutil
 import os
 import pwd
-import socket
 import logging
 
 import installutils
@@ -73,7 +70,7 @@ class BindInstance(service.Service):
 
         tmp = ip_address.split(".")
         tmp.reverse()
-        
+
         self.reverse_host = tmp.pop(0)
         self.reverse_subnet = ".".join(tmp)
 
@@ -232,7 +229,6 @@ class BindInstance(service.Service):
     def uninstall(self):
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
-        domain = self.restore_state("domain")
 
         if not running is None:
             self.stop()

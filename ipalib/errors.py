@@ -992,6 +992,22 @@ class RemoteRetrieveError(ExecutionError):
     errno = 4016
     format = _('%(reason)s')
 
+class SameGroupError(ExecutionError):
+    """
+    **4017** Raised when adding a group as a member of itself
+
+    For example:
+
+    >>> raise SameGroupError()
+    Traceback (most recent call last):
+      ...
+    SameGroupError: A group may not be added as a member of itself
+
+    """
+
+    errno = 4017
+    format = _('A group may not be added as a member of itself')
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).

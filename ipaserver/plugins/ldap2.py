@@ -28,16 +28,12 @@ Backend plugin for LDAP.
 
 import copy
 import os
-import re
 import socket
 import string
 
-import krbV
 import ldap as _ldap
 import ldap.filter as _ldap_filter
 import ldap.sasl as _ldap_sasl
-from ldap.controls import LDAPControl
-from ldap.ldapobject import SimpleLDAPObject
 # for backward compatibility
 from ldap.functions import explode_dn
 

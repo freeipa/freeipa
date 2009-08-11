@@ -575,7 +575,7 @@ class CAInstance(service.Service):
     def __restart_instance(self):
         try:
             self.restart()
-        except Exception, e:
+        except Exception:
             # TODO: roll back here?
             logging.critical("Failed to restart the certificate server. See the installation log for details.")
 
@@ -625,8 +625,6 @@ class CAInstance(service.Service):
         params['submit'] = 'submit'
         params['requestNotes'] = ''
         params = urllib.urlencode(params)
-        headers = {"Content-type": "application/x-www-form-urlencoded",
-                   "Accept": "text/plain"}
 
         # Now issue the RA certificate.
         args = [
@@ -826,8 +824,6 @@ class CAInstance(service.Service):
         os.chown(self.ra_agent_pwd, pent.pw_uid, pent.pw_gid)
 
     def __setup_sign_profile(self):
-        caconfig = "/var/lib/pki-ca/conf/CS.cfg"
-
         # Tell the profile to automatically issue certs for RAs
         installutils.set_directive('/var/lib/pki-ca/profiles/ca/caJarSigningCert.cfg', 'auth.instance_id', 'raCertAuth', quotes=False, separator='=')
 

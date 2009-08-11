@@ -17,11 +17,13 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import string
 import xmlrpclib
 import re
 
 def realm_to_suffix(realm_name):
+    """
+    Convert a kerberos realm into the IPA suffix.
+    """
     s = realm_name.split(".")
     terms = ["dc=" + x.lower() for x in s]
     return ",".join(terms)
@@ -37,32 +39,32 @@ class CIDict(dict):
     If you extend UserDict, isinstance(foo, dict) returns false.
     """
 
-    def __init__(self,default=None):
+    def __init__(self, default=None):
         super(CIDict, self).__init__()
         self._keys = {}
         self.update(default or {})
 
-    def __getitem__(self,key):
-        return super(CIDict,self).__getitem__(string.lower(key))
+    def __getitem__(self, key):
+        return super(CIDict, self).__getitem__(key.lower())
 
-    def __setitem__(self,key,value):
-        lower_key = string.lower(key)
+    def __setitem__(self, key, value):
+        lower_key = key.lower()
         self._keys[lower_key] = key
-        return super(CIDict,self).__setitem__(string.lower(key),value)
+        return super(CIDict, self).__setitem__(lower_key, value)
 
-    def __delitem__(self,key):
-        lower_key = string.lower(key)
+    def __delitem__(self, key):
+        lower_key = key.lower()
         del self._keys[lower_key]
-        return super(CIDict,self).__delitem__(string.lower(key))
+        return super(CIDict, self).__delitem__(key.lower())
 
-    def update(self,dict):
+    def update(self, dict):
         for key in dict.keys():
             self[key] = dict[key]
 
-    def has_key(self,key):
-        return super(CIDict, self).has_key(string.lower(key))
+    def has_key(self, key):
+        return super(CIDict, self).has_key(key.lower())
 
-    def get(self,key,failobj=None):
+    def get(self, key, failobj=None):
         try:
             return self[key]
         except KeyError:
@@ -74,7 +76,7 @@ class CIDict(dict):
     def items(self):
         result = []
         for k in self._keys.values():
-            result.append((k,self[k]))
+            result.append((k, self[k]))
         return result
 
     def copy(self):
@@ -89,7 +91,7 @@ class CIDict(dict):
     def iterkeys(self):
         return self.copy().iterkeys()
 
-    def setdefault(self,key,value=None):
+    def setdefault(self, key, value=None):
         try:
             return self[key]
         except KeyError:
@@ -107,11 +109,11 @@ class CIDict(dict):
             raise
 
     def popitem(self):
-        (lower_key,value) = super(CIDict,self).popitem()
+        (lower_key, value) = super(CIDict, self).popitem()
         key = self._keys[lower_key]
         del self._keys[lower_key]
 
-        return (key,value)
+        return (key, value)
 
 
 #
@@ -127,10 +129,10 @@ SAFE_STRING_PATTERN = '(^(\000|\n|\r| |:|<)|[\000\n\r\200-\377]+|[ ]+$)'
 safe_string_re = re.compile(SAFE_STRING_PATTERN)
 
 def needs_base64(s):
-  """
-  returns 1 if s has to be base-64 encoded because of special chars
-  """
-  return not safe_string_re.search(s) is None
+    """
+    returns 1 if s has to be base-64 encoded because of special chars
+    """
+    return not safe_string_re.search(s) is None
 
 
 def wrap_binary_data(data):
@@ -148,7 +150,7 @@ def wrap_binary_data(data):
         return retval
     elif isinstance(data, dict):
         retval = {}
-        for (k,v) in data.iteritems():
+        for (k, v) in data.iteritems():
             retval[k] = wrap_binary_data(v)
         return retval
     else:
@@ -170,7 +172,7 @@ def unwrap_binary_data(data):
         return retval
     elif isinstance(data, dict):
         retval = {}
-        for (k,v) in data.iteritems():
+        for (k, v) in data.iteritems():
             retval[k] = unwrap_binary_data(v)
         return retval
     else:
@@ -181,21 +183,21 @@ def get_gsserror(e):
        in python 2.5, deal with it."""
 
     try:
-       primary = e[0]
-       secondary = e[1]
-    except:
-       primary = e[0][0]
-       secondary = e[0][1]
+        primary = e[0]
+        secondary = e[1]
+    except Exception:
+        primary = e[0][0]
+        secondary = e[0][1]
 
     return (primary[0], secondary[0])
 
 def utf8_encode_value(value):
-    if isinstance(value,unicode):
+    if isinstance(value, unicode):
         return value.encode('utf-8')
     return value
 
 def utf8_encode_values(values):
-    if isinstance(values,list) or isinstance(values,tuple):
+    if isinstance(values, list) or isinstance(values, tuple):
         return map(utf8_encode_value, values)
     else:
         return utf8_encode_value(values)

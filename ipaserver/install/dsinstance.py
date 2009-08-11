@@ -26,7 +26,6 @@ import sys
 import os
 import re
 import time
-import stat
 
 from ipapython import ipautil
 
@@ -36,7 +35,7 @@ import certs
 import ldap
 from ipaserver import ipaldap
 from ipaserver.install import ldapupdate
-from ipalib import util
+from ipalib import util, errors
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
@@ -319,7 +318,7 @@ class DsInstance(service.Service):
             dsdb.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1])
             server_certs = dsdb.find_server_certs()
             if len(server_certs) == 0:
-                raise RuntimeError("Could not find a suitable server cert in import in %s" % pkcs12_info[0])
+                raise RuntimeError("Could not find a suitable server cert in import in %s" % self.pkcs12_info[0])
 
             # We only handle one server cert
             nickname = server_certs[0][0]
@@ -453,7 +452,7 @@ class DsInstance(service.Service):
         status = True
         try:
             certdb.load_cacert(cacert_fname)
-        except ipalib.CalledProcessError, e:
+        except errors.CalledProcessError, e:
             logging.critical("Error importing CA cert file named [%s]: %s" %
                              (cacert_fname, str(e)))
             status = False

@@ -25,7 +25,6 @@
 
 import os
 import os.path
-import errno
 import shutil
 import logging
 import ConfigParser
@@ -110,13 +109,13 @@ class FileStore:
             logging.debug("  -> Not backing up - '%s' doesn't exist", path)
             return
 
-        (reldir, file) = os.path.split(path)
+        (reldir, backupfile) = os.path.split(path)
 
         filename = ""
         for i in range(8):
             h = "%02x" % self.random.randint(0,255)
             filename += h
-        filename += "-"+file
+        filename += "-"+backupfile
 
         backup_path = os.path.join(self._path, filename)
         if os.path.exists(backup_path):

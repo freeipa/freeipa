@@ -19,13 +19,9 @@
 
 import os
 import os.path
-import subprocess
-import string
 import tempfile
 import logging
 import pwd
-import fileinput
-import sys
 import shutil
 
 import service
@@ -105,8 +101,8 @@ class HTTPInstance(service.Service):
         if selinux:
             try:
                 # returns e.g. "httpd_can_network_connect --> off"
-                (stdout, stderr) = ipautils.run(["/usr/sbin/getsebool",
-                                                 "httpd_can_network_connect"])
+                (stdout, stderr) = ipautil.run(["/usr/sbin/getsebool",
+                                                "httpd_can_network_connect"])
                 self.backup_state("httpd_can_network_connect", stdout.split()[2])
             except:
                 pass
@@ -170,7 +166,7 @@ class HTTPInstance(service.Service):
             db.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1], passwd="")
             server_certs = db.find_server_certs()
             if len(server_certs) == 0:
-                raise RuntimeError("Could not find a suitable server cert in import in %s" % pkcs12_info[0])
+                raise RuntimeError("Could not find a suitable server cert in import in %s" % self.pkcs12_info[0])
 
             db.create_password_conf()
             # We only handle one server cert

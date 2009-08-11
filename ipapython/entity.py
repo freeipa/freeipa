@@ -15,10 +15,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import ldap
-import ldif
-import re
-import cStringIO
 import copy
 
 import ipapython.ipautil
