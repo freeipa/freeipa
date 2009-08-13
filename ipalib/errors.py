@@ -1008,6 +1008,22 @@ class SameGroupError(ExecutionError):
     errno = 4017
     format = _('A group may not be added as a member of itself')
 
+class DefaultGroupError(ExecutionError):
+    """
+    **4018** Raised when removing the default user group
+
+    For example:
+
+    >>> raise DefaultGroupError()
+    Traceback (most recent call last):
+      ...
+    DefaultGroupError: The default users group cannot be removed
+
+    """
+
+    errno = 4018
+    format = _('The default users group cannot be removed')
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).

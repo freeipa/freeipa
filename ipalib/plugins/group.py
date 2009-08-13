@@ -117,7 +117,7 @@ class group_del(basegroup_del):
                 'cn', def_group_cn, self.filter_class, [''], self.container
             )
             if dn == def_group_dn:
-                raise errors.DefaultGroup()
+                raise errors.DefaultGroupError()
         except errors.NotFound:
             pass
 

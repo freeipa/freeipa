@@ -268,7 +268,7 @@ def extract_group_cns(aci_list, client):
                     try:
                         group = client.get_entry_by_dn(dn, ['cn'])
                         group_dn_to_cn[dn] = group.getValue('cn')
-                    except ipaerror.IPAError, e:
+                    except Exception:
                         group_dn_to_cn[dn] = 'unknown'
 
     return group_dn_to_cn

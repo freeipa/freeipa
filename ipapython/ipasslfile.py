@@ -17,7 +17,9 @@
 
 import socket
 import errno
-from httplib import UnimplementedFileMode
+from httplib import UnimplementedFileMode, HTTPException
+
+error = HTTPException
 
 class SharedSocket:
     def __init__(self, sock):

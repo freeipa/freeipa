@@ -600,16 +600,6 @@ def user_input_plain(prompt, default = None, allow_empty = True, allow_spaces = 
         if ipavalidate.Plain(ret, not allow_empty, allow_spaces):
             return ret
 
-def user_input_path(prompt, default = None, allow_empty = True):
-    if default != None and allow_empty:
-        prompt += " (enter \"none\" for empty)"
-    while True:
-        ret = user_input(prompt, default, allow_empty)
-        if allow_empty and ret.lower() == "none":
-            return ""
-        if ipavalidate.Path(ret, not allow_empty):
-            return ret
-
 class AttributeValueCompleter:
     '''
     Gets input from the user in the form "lhs operator rhs"

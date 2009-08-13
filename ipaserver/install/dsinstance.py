@@ -452,7 +452,7 @@ class DsInstance(service.Service):
         status = True
         try:
             certdb.load_cacert(cacert_fname)
-        except errors.CalledProcessError, e:
+        except ipautil.CalledProcessError, e:
             logging.critical("Error importing CA cert file named [%s]: %s" %
                              (cacert_fname, str(e)))
             status = False

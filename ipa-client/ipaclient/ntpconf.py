@@ -17,7 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from ipapython.ipautil import *
+from ipapython import ipautil
 import shutil
 
 ntp_conf = """# Permit time synchronization with our time source, but do not
@@ -84,7 +84,7 @@ def config_ntp(server_fqdn, fstore = None):
     sub_dict = { }
     sub_dict["SERVER"] = server_fqdn
 
-    nc = template_str(ntp_conf, sub_dict)
+    nc = ipautil.template_str(ntp_conf, sub_dict)
 
     if fstore:
         fstore.backup_file("/etc/ntp.conf")
@@ -105,7 +105,7 @@ def config_ntp(server_fqdn, fstore = None):
     fd.close()
 
     # Set the ntpd to start on boot
-    run(["/sbin/chkconfig", "ntpd", "on"])
+    ipautil.run(["/sbin/chkconfig", "ntpd", "on"])
 
     # Restart ntpd
-    run(["/sbin/service", "ntpd", "restart"])
+    ipautil.run(["/sbin/service", "ntpd", "restart"])
