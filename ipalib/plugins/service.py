@@ -215,21 +215,20 @@ class service_mod(crud.Update):
     """
     Modify service.
     """
-    def execute(self, principal, **kw):
-        ldap = self.api.Backend.ldap
+    def execute(self, principal, **options):
+        ldap = self.api.Backend.ldap2
         # FIXME, should be in a normalizer. Need to fix normalizers to work
         # on non-unicode data.
-        if kw.get('usercertificate'):
-            kw['usercertificate'] = base64.b64decode(kw['usercertificate'])
+        if options.get('usercertificate'):
+            options['usercertificate'] = base64.b64decode(options['usercertificate'])
 
-        dn = ldap.make_dn(entry_attrs, 'krbprincipalname', _container_dn)
+        entry_attrs = self.args_options_2_entry(*tuple(), **options)
+        dn = ldap.make_dn_from_attr('krbprincipalname', principal, _container_dn)
 
         (dn, old_entry_attrs) = ldap.get_entry(dn)
-        if 'usercertificate' in old_entry_attrs and 'usercerficate' in kw:
+        if 'usercertificate' in old_entry_attrs and 'usercerficate' in options:
             # FIXME, what to do here? Do we revoke the old cert?
             raise errors.GenericError(format='entry already has a certificate')
-
-        entry_attrs = self.args_options_to_entry(principal, **kw)
 
         try:
             ldap.update_entry(dn, entry_attrs)

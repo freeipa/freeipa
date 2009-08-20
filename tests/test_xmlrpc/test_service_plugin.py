@@ -97,7 +97,17 @@ class test_service(XMLRPC_test):
         assert res
         assert_attr_equal(res[0][1], 'krbprincipalname', self.principal)
 
-    def test_7_service_del(self):
+    def test_7_service_mod(self):
+        """
+        Test the `xmlrpc.service_mod` method.
+        """
+        modkw = self.kw
+        modkw['usercertificate'] = 'QmluYXJ5IGNlcnRpZmljYXRl'
+        (dn, res) = api.Command['service_mod'](**modkw)
+        assert res
+        assert_attr_equal(res, 'usercertificate', 'Binary certificate')
+
+    def test_8_service_del(self):
         """
         Test the `xmlrpc.service_del` method.
         """
