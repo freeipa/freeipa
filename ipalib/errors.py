@@ -111,13 +111,13 @@ class PrivateError(StandardError):
     format = ''
 
     def __init__(self, **kw):
-        self.message = self.format % kw
+        self.msg = self.format % kw
         for (key, value) in kw.iteritems():
             assert not hasattr(self, key), 'conflicting kwarg %s.%s = %r' % (
                 self.__class__.__name__, key, value,
             )
             setattr(self, key, value)
-        StandardError.__init__(self, self.message)
+        StandardError.__init__(self, self.msg)
 
 
 class SubprocessError(PrivateError):
@@ -258,7 +258,7 @@ class PublicError(StandardError):
                     )
                 self.format = format
             self.forwarded = False
-            self.message = self.format % kw
+            self.msg = self.format % kw
             self.strerror = ugettext(self.format) % kw
         else:
             if type(message) is not unicode:
@@ -266,14 +266,14 @@ class PublicError(StandardError):
                     TYPE_ERROR % ('message', unicode, message, type(message))
                 )
             self.forwarded = True
-            self.message = message
+            self.msg = message
             self.strerror = message
         for (key, value) in kw.iteritems():
             assert not hasattr(self, key), 'conflicting kwarg %s.%s = %r' % (
                 name, key, value,
             )
             setattr(self, key, value)
-        StandardError.__init__(self, self.message)
+        StandardError.__init__(self, self.msg)
 
 
 class VersionError(PublicError):
