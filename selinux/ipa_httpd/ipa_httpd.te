@@ -1,0 +1,16 @@
+module ipa_httpd 1.0;
+
+require {
+        type pki_ca_var_lib_t;
+        type httpd_t;
+        class lnk_file { read getattr };
+        class dir { read search open getattr };
+        class file { getattr read open execute };
+}
+
+# Let Apache read the directories within the certificate authority
+# so it can read the published CRLs.
+allow httpd_t pki_ca_var_lib_t:dir { read search open getattr };
+allow httpd_t pki_ca_var_lib_t:file { read getattr open };
+allow httpd_t pki_ca_var_lib_t:lnk_file { read getattr };
+

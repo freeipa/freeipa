@@ -409,6 +409,7 @@ class CAInstance(service.Service):
             self.step("adding RA agent as a trusted user", self.__configure_ra)
         self.step("fixing RA database permissions", self.fix_ra_perms)
         self.step("setting up signing cert profile", self.__setup_sign_profile)
+        self.step("set up CRL publishing", self.__enable_crl_publish)
         self.step("configuring certificate server to start on boot", self.__enable)
         self.step("restarting certificate server", self.__restart_instance)
 
@@ -826,6 +827,51 @@ class CAInstance(service.Service):
     def __setup_sign_profile(self):
         # Tell the profile to automatically issue certs for RAs
         installutils.set_directive('/var/lib/pki-ca/profiles/ca/caJarSigningCert.cfg', 'auth.instance_id', 'raCertAuth', quotes=False, separator='=')
+
+    def __enable_crl_publish(self):
+        """
+        Enable file-based CRL publishing and disable LDAP publishing.
+
+        http://www.redhat.com/docs/manuals/cert-system/8.0/admin/html/Setting_up_Publishing.html
+        """
+        caconfig = "/var/lib/pki-ca/conf/CS.cfg"
+
+        publishdir='/var/lib/pki-ca/publish'
+        os.mkdir(publishdir)
+        os.chmod(publishdir, 0755)
+        pent = pwd.getpwnam(self.pki_user)
+        os.chown(publishdir, pent.pw_uid, pent.pw_gid )
+
+
+        # Enable file publishing, disable LDAP
+        installutils.set_directive(caconfig, 'ca.publish.enable', 'true', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'ca.publish.ldappublish.enable', 'false', quotes=False, separator='=')
+
+        # Create the file publisher, der only, not b64
+        installutils.set_directive(caconfig, 'ca.publish.publisher.impl.FileBasedPublisher.class','com.netscape.cms.publish.publishers.FileBasedPublisher', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.crlLinkExt', 'bin', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.directory', publishdir, quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.latestCrlLink', 'true', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.pluginName', 'FileBasedPublisher', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.timeStamp', 'LocalTime', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.zipCRLs', 'false', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.zipLevel', '9', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.Filename.b64', 'false', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.Filename.der', 'true', quotes=False, separator='=')
+
+        # The publishing rule
+        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.enable', 'true', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.mapper', 'NoMap', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.pluginName', 'Rule', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.predicate=', '', quotes=False, separator='')
+        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.publisher', 'FileBaseCRLPublisher', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.type', 'crl', quotes=False, separator='=')
+
+        # Now disable LDAP publishing
+        installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapCaCertRule.enable', 'false', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapCrlRule.enable', 'false', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapUserCertRule.enable', 'false', quotes=False, separator='=')
+        installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapXCertRule.enable', 'false', quotes=False, separator='=')
 
     def uninstall(self):
         try:
