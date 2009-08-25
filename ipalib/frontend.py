@@ -771,6 +771,8 @@ class Object(HasParam):
             self.params_minus_pk = NameSpace(
                 filter(lambda p: not p.primary_key, self.params()), sort=False
             )
+        else:
+            self.params_minus_pk = self.params
 
         if 'Backend' in self.api and self.backend_name in self.api.Backend:
             self.backend = self.api.Backend[self.backend_name]
