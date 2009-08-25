@@ -227,7 +227,6 @@ class Param(ReadOnly):
         ('required', bool, True),
         ('multivalue', bool, False),
         ('primary_key', bool, False),
-        ('parent_key', bool, False),
         ('normalizer', callable, None),
         ('default_from', DefaultFrom, None),
         ('create_default', callable, None),
@@ -631,12 +630,10 @@ class Param(ReadOnly):
 
     def _validate_scalar(self, value, index=None):
         if type(value) is not self.type:
-            if index is None:
-                name = 'value'
-            else:
-                name = 'value[%d]' % index
-            raise TypeError(
-                TYPE_ERROR % (name, self.type, value, type(value))
+            raise ValidationError(name=self.name,
+                error='need a %r; got %r (a %r)' % (
+                    self.type, value, type(value)
+                )
             )
         if index is not None and type(index) is not int:
             raise TypeError(
