@@ -89,27 +89,120 @@ from ipalib import Object, Command
 from ipalib import Flag, Str
 from ipalib.plugins.baseldap import *
 
-_map_container_dn = api.env.container_automount
 
-_map_default_attributes = ['automountmapname', 'description']
-_key_default_attributes = [
-    'automountkey', 'automountinformation', 'description'
-]
+class automountlocation(LDAPObject):
+    """
+    Location container for automount maps.
+    """
+    container_dn = api.env.container_automount
+    object_name = 'automount location'
+    object_name_plural = 'automount locations'
+    object_class = ['nscontainer']
+    default_attributes = ['cn']
+    attribute_names = {
+        'cn': 'name',
+    }
+
+    takes_params = (
+        Str('cn',
+            cli_name='location',
+            doc='automount location name',
+            primary_key=True,
+        ),
+    )
+
+api.register(automountlocation)
+
+
+class automountlocation_add(LDAPCreate):
+    """
+    Create new automount location.
+    """
+
+api.register(automountlocation_add)
+
+
+class automountlocation_del(LDAPDelete):
+    """
+    Delete automount location.
+    """
+
+api.register(automountlocation_del)
+
+
+class automountlocation_find(LDAPSearch):
+    """
+    Search for automount locations.
+    """
+
+api.register(automountlocation_find)
+
+
+class automountlocation_tofiles(LDAPQuery):
+    """
+    Generate automount files for a specific location.
+    """
+    def execute(self, *args, **options):
+        ldap = self.obj.backend
+
+        maps = []
+        (maps, truncated) = self.api.Command['automountkey_find'](
+            cn=args[0], automountmapname=u'auto.master'
+        )
+        # TODO: handle truncated results
+        #       ?use ldap.find_entries instead of automountkey_find?
+
+        keys = {}
+        for (dn, m) in maps:
+            info = m['automountinformation'][0]
+            (keys[info], truncated) = self.api.Command['automountkey_find'](
+                cn=args[0], automountmapname=info
+            )
+            # TODO: handle truncated results, same as above
+
+        return (maps, keys)
+
+    def output_for_cli(self, textui, result, *keys, **options):
+        (maps, keys) = result
+
+        textui.print_plain('/etc/auto.master:')
+        for (dn, m) in maps:
+            textui.print_plain(
+                '%s\t/etc/%s' % (
+                    m['automountkey'][0], m['automountinformation'][0]
+                )
+            )
+        for (dn, m) in maps:
+            info = m['automountinformation'][0]
+            textui.print_plain('---------------------------')
+            textui.print_plain('/etc/%s:' % info)
+            for (dn, k) in keys[info]:
+                textui.print_plain(
+                    '%s\t%s' % (
+                        k['automountkey'][0], k['automountinformation'][0]
+                    )
+                )
+
+api.register(automountlocation_tofiles)
 
 
 class automountmap(LDAPObject):
     """
     Automount map object.
     """
-    container_dn = _map_container_dn
+    parent_object = 'automountlocation'
+    container_dn = api.env.container_automount
     object_name = 'automount map'
     object_name_plural = 'automount maps'
     object_class = ['automountmap']
-    default_attributes = _map_default_attributes
+    default_attributes = ['automountmapname', 'description']
+    attribute_names = {
+        'automountmapname': 'name',
+    }
 
     takes_params = (
         Str('automountmapname',
-            cli_name='name',
+            cli_name='map',
             primary_key=True,
             doc='automount map name',
         ),
@@ -177,19 +270,21 @@ class automountkey(LDAPObject):
     """
     Automount key object.
     """
-    container_dn = _map_container_dn
+    parent_object = 'automountmap'
+    container_dn = api.env.container_automount
     object_name = 'automount key'
     object_name_plural = 'automount keys'
-    parent_object_name = 'map'
     object_class = ['automount']
-    default_attributes = _key_default_attributes
+    default_attributes = [
+        'automountkey', 'automountinformation', 'description'
+    ]
+    attribute_names = {
+        'automountkey': 'key',
+        'automountinformation': 'mount information',
+    }
+    attribute_order = ['automountkey', 'automountinformation']
 
     takes_params = (
-        Str('automountmapname',
-            cli_name='map',
-            doc='name of automount map grouping related keys',
-            parent_key=True,
-        ),
         Str('automountkey',
             cli_name='key',
             doc='key name',
@@ -214,6 +309,34 @@ class automountkey_add(LDAPCreate):
     """
 
 api.register(automountkey_add)
+
+
+class automountmap_add_indirect(LDAPCreate):
+    """
+    Create new indirect mount point.
+    """
+    takes_options = (
+        Str('key',
+            cli_name='mount',
+            doc='mount point',
+        ),
+        Str('parentmap?',
+            cli_name='parentmap',
+            doc='name of parent automount map (default: auto.master)',
+            default=u'auto.master',
+            autofill=True,
+        ),
+    )
+
+    def execute(self, *keys, **options):
+        result = self.api.Command['automountmap_add'](*keys, **options)
+        options['automountinformation'] = keys[1]
+        self.api.Command['automountkey_add'](
+            keys[0], options['parentmap'], options['key'], **options
+        )
+        return result
+
+api.register(automountmap_add_indirect)
 
 
 class automountkey_del(LDAPDelete):
@@ -246,79 +369,4 @@ class automountkey_show(LDAPRetrieve):
     """
 
 api.register(automountkey_show)
-
-
-class automountmap_add_indirect(LDAPCreate):
-    """
-    Create new indirect mount point.
-    """
-    takes_options = (
-        Str('key',
-            cli_name='key',
-            doc='key name (mount point)',
-        ),
-        Str('parentmap?',
-            cli_name='parentmap',
-            doc='name of parent automount map to connect this map to',
-            default=u'auto.master',
-            autofill=True,
-        ),
-    )
-
-    def execute(self, map, **options):
-        self.api.Command['automountmap_add'](map, **options)
-        options['automountinformation'] = map
-        return self.api.Command['automountkey_add'](
-            options['parentmap'], options['key'], **options
-        )
-
-api.register(automountmap_add_indirect)
-
-
-class automount_tofiles(Command):
-    """
-    Generate the automount maps as they would be in the filesystem.
-    """
-    def execute(self):
-        ldap = self.api.Backend.ldap2
-
-        maps = []
-        (maps, truncated) = self.api.Command['automountkey-find'](
-            automountmapname=u'auto.master'
-        )
-        # TODO: handle truncated results
-        #       it will probably require direct calls to the ldap backend
-
-        keys = {}
-        for (dn, m) in maps:
-            info = m['automountinformation'][0]
-            (keys[info], truncated) = self.api.Command['automountkey_find'](
-                automountmapname=info
-            )
-            # TODO: handle truncated results
-
-        return (maps, keys)
-
-    def output_for_cli(self, textui, result, **options):
-        (maps, keys) = result
-
-        textui.print_plain('/etc/auto.master:')
-        for (dn, m) in maps:
-            textui.print_plain(
-                '%s\t/etc/%s' % (
-                    m['automountkey'][0], m['automountinformation'][0]
-                )
-            )
-        for (dn, m) in maps:
-            info = m['automountinformation'][0]
-            textui.print_plain('---------------------------')
-            textui.print_plain('/etc/%s:' % info)
-            for (dn, k) in keys[info]:
-                textui.print_plain(
-                    '%s\t%s' % (
-                        k['automountkey'][0], k['automountinformation'][0]
-                    )
-                )
-
-api.register(automount_tofiles)
 
