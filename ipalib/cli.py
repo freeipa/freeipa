@@ -234,7 +234,7 @@ class textui(backend.Backend):
         for (key, value) in rows:
             self.print_indented('%s = %r' % (key, value), indent)
 
-    def print_attribute(self, attr, value, indent=1):
+    def print_attribute(self, attr, value, indent=1, one_value_per_line=True):
         """
         Print an ldap attribute.
 
@@ -254,9 +254,28 @@ class textui(backend.Backend):
             self.print_indented('%s: %s' % (attr, value), indent)
         else:
             # multi-value attribute
-            self.print_indented('%s: %s' % (attr, ', '.join(value)), indent)
+            if one_value_per_line:
+                for v in value:
+                    self.print_indented('%s: %s' % (attr, v), indent)
+            else:
+                text = ', '.join(value)
+                line_len = self.get_tty_width()
+                if line_len:
+                    s_indent = '%s%s' % (
+                        CLI_TAB * indent, ' ' * (len(attr) + 2)
+                    )
+                    line_len -= len(s_indent)
+                    text = textwrap.wrap(
+                        text, line_len, break_long_words=False
+                    )
+                else:
+                    text = [text]
+                self.print_indented('%s: %s' % (attr, text[0]), indent)
+                for line in text[1:]:
+                    self.print_plain('%s%s' % (s_indent, line))
 
-    def print_entry(self, entry, indent=1, attr_map={}, attr_order=['dn']):
+    def print_entry(self, entry, indent=1, attr_map={}, attr_order=['dn'],
+            one_value_per_line=True):
         """
         Print an ldap entry dict.
 
@@ -275,9 +294,13 @@ class textui(backend.Backend):
 
         def print_attr(a):
             if attr in attr_map:
-                self.print_attribute(attr_map[attr], entry[attr], indent)
+                self.print_attribute(
+                    attr_map[attr], entry[attr], indent, one_value_per_line
+                )
             else:
-                self.print_attribute(attr, entry[attr], indent)
+                self.print_attribute(
+                    attr, entry[attr], indent, one_value_per_line
+                )
 
         for attr in attr_order:
             if attr in entry:
