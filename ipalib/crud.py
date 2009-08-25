@@ -22,54 +22,6 @@ Base classes for standard CRUD operations.
 
 import backend, frontend, parameters
 
-class Add(frontend.Method):
-    def get_args(self):
-        yield self.obj.primary_key
-        for arg in self.takes_args:
-            yield arg
-
-    def get_options(self):
-        for param in self.obj.params_minus_pk():
-            yield param
-        for option in self.takes_options:
-            yield option
-
-
-class Get(frontend.Method):
-    def get_args(self):
-        yield self.obj.primary_key
-
-
-class Del(frontend.Method):
-    def get_args(self):
-        yield self.obj.primary_key
-
-    def get_options(self):
-        for option in self.takes_options:
-            yield option
-
-
-class Mod(frontend.Method):
-    def get_args(self):
-        yield self.obj.primary_key
-
-    def get_options(self):
-        for param in self.obj.params_minus_pk():
-            yield param.clone(required=False, query=True)
-        for option in self.takes_options:
-            yield option
-
-
-class Find(frontend.Method):
-    def get_args(self):
-        yield self.obj.primary_key
-
-    def get_options(self):
-        for param in self.obj.params_minus_pk():
-            yield param.clone(required=False, query=True)
-        for option in self.takes_options:
-            yield option
-
 
 class Create(frontend.Method):
     """
