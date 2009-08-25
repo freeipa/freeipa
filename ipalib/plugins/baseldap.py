@@ -20,86 +20,35 @@
 Base classes for LDAP plugins.
 """
 
-from ipalib import crud, errors
+from ipalib import crud, errors, uuid
 from ipalib import Command, Method, Object
 from ipalib import Flag, List, Str
-from ipalib.cli import to_cli, from_cli
 from ipalib.base import NameSpace
+from ipalib.cli import to_cli, from_cli
 
 
 class LDAPObject(Object):
     """
     Object representing a LDAP entry.
     """
-    __public__ = frozenset((
-        'backend',
-        'methods',
-        'properties',
-        'params',
-        'primary_key',
-        'parent_key',
-        'params_minus_pk',
-        'params_minus',
-        'get_dn',
-
-        'container_dn',
-        'object_name',
-        'object_name_plural',
-        'parent_object_name',
-        'object_class',
-        'object_class_config',
-        'default_attributes',
-        'hidden_attributes',
-        'attribute_names',
-        'attribute_order',
-        'attribute_members',
-        'get_primary_key_from_dn',
-        'convert_attribute_members',
-        'print_entry',
-    ))
-    parent_key = None
-
     backend_name = 'ldap2'
 
+    parent_object = ''
     container_dn = ''
     object_name = 'entry'
     object_name_plural = 'entries'
-    parent_object_name = ''
-    object_class = ['top']
+    object_class = []
     object_class_config = None
-    default_attributes = ['']
+    default_attributes = []
     hidden_attributes = ['objectclass', 'aci']
+    uuid_attribute = ''
     attribute_names = {}
     attribute_order = []
     attribute_members = {}
 
-    def set_api(self, api):
-        super(LDAPObject, self).set_api(api)
-        parent_keys = filter(lambda p: p.parent_key, self.params())
-        if len(parent_keys) > 1:
-            raise ValueError(
-                '%s (LDAPObject) has multiple parent keys: %s' % (
-                    self.name,
-                    ', '.join(p.name for p in parent_keys),
-                )
-            )
-        if len(parent_keys) == 1:
-            self.parent_key = parent_keys[0]
-            self.params_minus_pk = NameSpace(
-                filter(
-                    lambda p: not p.primary_key and not p.parent_key,
-                    self.params()
-                ),
-                sort=False
-            )
-        elif self.params_minus_pk is None:
-            self.params_minus_pk = self.params
-
     def get_dn(self, *keys, **kwargs):
-        if len(keys) > 1:
-            parent_dn = self.backend.make_dn_from_attr(
-                self.parent_key.name, keys[0], self.container_dn
-            )
+        if self.parent_object:
+            parent_dn = self.api.Object[self.parent_object].get_dn(*keys[:-1])
         else:
             parent_dn = self.container_dn
         return self.backend.make_dn_from_attr(
@@ -109,6 +58,14 @@ class LDAPObject(Object):
     def get_primary_key_from_dn(self, dn):
         return dn[len(self.primary_key.name) + 1:dn.find(',')]
 
+    def get_ancestor_primary_keys(self):
+        if self.parent_object:
+            parent_obj = self.api.Object[self.parent_object]
+            for key in parent_obj.get_ancestor_primary_keys():
+                yield key
+            if parent_obj.primary_key:
+                yield parent_obj.primary_key.clone(query=True)
+
     def convert_attribute_members(self, entry_attrs, *keys, **options):
         if options.get('raw', False):
             return
@@ -117,7 +74,7 @@ class LDAPObject(Object):
                 for ldap_obj_name in self.attribute_members[attr]:
                     ldap_obj = self.api.Object[ldap_obj_name]
                     if member.find(ldap_obj.container_dn) > 0:
-                        new_attr = 'member %s' % ldap_obj.object_name_plural
+                        new_attr = '%s %s' % (attr, ldap_obj.object_name_plural)
                         entry_attrs.setdefault(new_attr, []).append(
                             ldap_obj.get_primary_key_from_dn(member)
                         )
@@ -140,7 +97,7 @@ class LDAPObject(Object):
                     del entry_attrs[a]
             textui.print_entry(
                 entry_attrs, attr_map=self.attribute_names,
-                attr_order=self.attribute_order
+                attr_order=self.attribute_order, one_value_per_line=False
             )
 
 
@@ -156,8 +113,8 @@ class LDAPCreate(crud.Create):
     )
 
     def get_args(self):
-        if self.obj.parent_key:
-            yield self.obj.parent_key.clone(query=True)
+        for key in self.obj.get_ancestor_primary_keys():
+            yield key
         if self.obj.primary_key:
             yield self.obj.primary_key.clone(attribute=True)
 
@@ -174,6 +131,9 @@ class LDAPCreate(crud.Create):
             entry_attrs['objectclass'] = config.get(
                 self.obj.object_class_config, entry_attrs['objectclass']
             )
+
+        if self.obj.uuid_attribute:
+            entry_attrs[self.obj.uuid_attribute] = str(uuid.uuid1())
 
         dn = self.pre_callback(ldap, dn, entry_attrs, *keys, **options)
 
@@ -192,8 +152,9 @@ class LDAPCreate(crud.Create):
         if len(keys) > 1:
             textui.print_dashed(
                 'Created %s "%s" in %s "%s".' % (
-                    self.obj.object_name, keys[1], self.obj.parent_object_name,
-                    keys[0]
+                    self.obj.object_name, keys[-1],
+                    self.api.Object[self.obj.parent_object].object_name,
+                    keys[-2]
                 )
             )
         elif len(keys) == 1:
@@ -215,8 +176,8 @@ class LDAPQuery(crud.PKQuery):
     Base class for commands that need to retrieve an existing entry.
     """
     def get_args(self):
-        if self.obj.parent_key:
-            yield self.obj.parent_key.clone(query=True)
+        for key in self.obj.get_ancestor_primary_keys():
+            yield key
         if self.obj.primary_key:
             yield self.obj.primary_key.clone(attribute=True, query=True)
 
@@ -304,8 +265,9 @@ class LDAPUpdate(LDAPQuery, crud.Update):
         if len(keys) > 1:
             textui.print_dashed(
                 'Modified %s "%s" in %s "%s".' % (
-                    self.obj.object_name, keys[1], self.obj.parent_object_name,
-                    keys[0]
+                    self.obj.object_name, keys[-1],
+                    self.api.Object[self.obj.parent_object].object_name,
+                    keys[-2]
                 )
             )
         elif len(keys) == 1:
@@ -333,19 +295,21 @@ class LDAPDelete(LDAPQuery):
 
         dn = self.pre_callback(ldap, dn, *keys, **options)
 
-        truncated = True
-        while truncated:
-            try:
-                (subentries, truncated) = ldap.find_entries(
-                    None, [''], dn, ldap.SCOPE_ONELEVEL
-                )
-            except errors.NotFound:
-                break
-            else:
-                for (dn_, entry_attrs) in subentries:
-                    ldap.delete_entry(dn_)
+        def delete_subtree(base_dn):
+            truncated = True
+            while truncated:
+                try:
+                    (subentries, truncated) = ldap.find_entries(
+                        None, [''], base_dn, ldap.SCOPE_ONELEVEL
+                    )
+                except errors.NotFound:
+                    break
+                else:
+                    for (dn_, entry_attrs) in subentries:
+                        delete_subtree(dn_)
+            ldap.delete_entry(base_dn)
 
-        ldap.delete_entry(dn)
+        delete_subtree(dn)
 
         result = self.post_callback(ldap, dn, *keys, **options)
 
@@ -356,8 +320,9 @@ class LDAPDelete(LDAPQuery):
         if len(keys) > 1:
             textui.print_dashed(
                 'Deleted %s "%s" in %s "%s".' % (
-                    self.obj.object_name, keys[1], self.obj.parent_object_name,
-                    keys[0]
+                    self.obj.object_name, keys[-1],
+                    self.api.Object[self.obj.parent_object].object_name,
+                    keys[-2]
                 )
             )
         elif len(keys) == 1:
@@ -378,6 +343,7 @@ class LDAPModMember(LDAPQuery):
     """
     Base class for member manipulation.
     """
+    member_attributes = ['member']
     member_param_doc = 'comma-separated list of %s'
     member_count_out = ('%i member processed.', '%i members processed.')
 
@@ -389,7 +355,7 @@ class LDAPModMember(LDAPQuery):
     )
 
     def get_options(self):
-        for attr in self.obj.attribute_members:
+        for attr in self.member_attributes:
             for ldap_obj_name in self.obj.attribute_members[attr]:
                 ldap_obj = self.api.Object[ldap_obj_name]
                 name = to_cli(ldap_obj_name)
@@ -399,7 +365,7 @@ class LDAPModMember(LDAPQuery):
     def get_member_dns(self, **options):
         dns = {}
         failed = {}
-        for attr in self.obj.attribute_members:
+        for attr in self.member_attributes:
             dns[attr] = {}
             failed[attr] = {}
             for ldap_obj_name in self.obj.attribute_members[attr]:
@@ -465,7 +431,7 @@ class LDAPAddMember(LDAPModMember):
                     else:
                         completed += 1
 
-        (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        (dn, entry_attrs) = ldap.get_entry(dn, member_dns.keys())
 
         (completed, dn) = self.post_callback(
             ldap, completed, failed, dn, entry_attrs, *keys, **options
@@ -495,7 +461,7 @@ class LDAPRemoveMember(LDAPModMember):
 
         dn = self.obj.get_dn(*keys, **options)
 
-        dn = self.pre_callback(ldap, dn, members_dns, failed, *keys, **options)
+        dn = self.pre_callback(ldap, dn, member_dns, failed, *keys, **options)
 
         completed = 0
         for (attr, objs) in member_dns.iteritems():
@@ -513,14 +479,14 @@ class LDAPRemoveMember(LDAPModMember):
                     else:
                         completed += 1
 
-        (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        (dn, entry_attrs) = ldap.get_entry(dn, member_dns.keys())
 
         (completed, dn) = self.post_callback(
             ldap, completed, failed, dn, entry_attrs, *keys, **options
         )
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
-        return (completed, add_failed, (dn, entry_attrs))
+        return (completed, failed, (dn, entry_attrs))
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         return dn
@@ -545,18 +511,27 @@ class LDAPSearch(crud.Search):
     )
 
     def get_args(self):
-        if self.obj.parent_key:
-            yield self.obj.parent_key.clone(query=True)
+        for key in self.obj.get_ancestor_primary_keys():
+            yield key
         yield Str('criteria?')
+
+    def get_options(self):
+        for option in super(LDAPSearch, self).get_options():
+            yield option
+        if self.obj.uuid_attribute:
+            yield Str('%s?' % self.obj.uuid_attribute,
+                cli_name='uuid',
+                doc='unique identifier',
+                attribute=True,
+                query=True,
+            )
 
     def execute(self, *args, **options):
         ldap = self.obj.backend
 
         term = args[-1]
-        if self.obj.parent_key:
-            base_dn = ldap.make_dn_from_attr(
-                self.obj.parent_key.name, args[0], base_dn
-            )
+        if self.obj.parent_object:
+            base_dn = self.api.Object[self.obj.parent_object].get_dn(*args[:-1])
         else:
             base_dn = self.obj.container_dn
 
@@ -592,11 +567,11 @@ class LDAPSearch(crud.Search):
 
         self.post_callback(self, ldap, entries, truncated, *args, **options)
 
-        if options.get('raw', False):
+        if not options.get('raw', False):
             for i in xrange(len(entries)):
                 dn = self.obj.get_primary_key_from_dn(entries[i][0])
                 self.obj.convert_attribute_members(
-                    entries[i][1], *keys, **options
+                    entries[i][1], *args, **options
                 )
                 entries[i] = (dn, entries[i][1])
         return (entries, truncated)
