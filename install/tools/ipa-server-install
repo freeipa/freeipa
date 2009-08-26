@@ -575,6 +575,7 @@ def main():
     fd.write("realm=" + realm_name + "\n")
     fd.write("domain=" + domain_name + "\n")
     fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % host_name)
+    fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(realm_name))
     if options.ca:
         fd.write("enable_ra=True\n")
     fd.close()

@@ -115,9 +115,7 @@ def _get_url(host, port, using_cacert=False):
     return 'ldap://%s:%d' % (host, port)
 
 # retrieves LDAP schema from server
-def _load_schema(host, port):
-    url = _get_url(host, port)
-
+def _load_schema(url):
     try:
         conn = _ldap.initialize(url)
         # assume anonymous access is enabled
@@ -136,7 +134,7 @@ def _load_schema(host, port):
     return _ldap.schema.SubSchema(schema_entry[1])
 
 # cache schema when importing module
-_schema = _load_schema(api.env.ldap_host, api.env.ldap_port)
+_schema = _load_schema(api.env.ldap_uri)
 
 def _get_syntax(attr, value):
     schema = api.Backend.ldap2._schema
@@ -164,28 +162,25 @@ class ldap2(CrudBackend, Encoder):
         self.encoder_settings.decode_dict_vals_table = _syntax_mapping
         self.encoder_settings.decode_dict_vals_table_keygen = _get_syntax
         self.encoder_settings.decode_postprocessor = lambda x: string.lower(x)
-        self._host = api.env.ldap_host
-        self._port = api.env.ldap_port
+        self._ldapuri = api.env.ldap_uri
         self._schema = _schema
-        self._ssl = False
         CrudBackend.__init__(self)
 
     def __del__(self):
         self.disconnect()
 
     def __str__(self):
-        return _get_url(self._host, self._port, self._ssl)
+        return self._ldapuri
 
     @encode_args(3, 4, 'bind_dn', 'bind_pw')
-    def create_connection(self, host=None, port=None, ccache=None,
+    def create_connection(self, ldapuri=None, ccache=None,
             bind_dn='', bind_pw='', debug_level=255,
             tls_cacertfile=None, tls_certfile=None, tls_keyfile=None):
         """
         Connect to LDAP server.
 
         Keyword arguments:
-        host -- hostname or IP of the server.
-        port -- port number
+        ldapuri -- the LDAP server to connect to
         ccache -- Kerberos V5 ccache name
         bind_dn -- dn used to bind to the server
         bind_pw -- password used to bind to the server
@@ -196,25 +191,21 @@ class ldap2(CrudBackend, Encoder):
 
         Extends backend.Connectible.create_connection.
         """
-        if host is not None:
-            self._host = host
-        if port is not None:
-            self._port = port
+        if ldapuri is not None:
+            self._ldapuri = ldapuri
 
         # if we don't have this server's schema cached, do it now
-        if self._host != api.env.ldap_host or self._port != api.env.ldap_port:
-            self._schema = _load_schema(self._host, self._port)
+        if self._ldapuri != api.env.ldap_uri:
+            self._schema = _load_schema(self._ldapuri)
 
         if tls_cacertfile is not None:
             _ldap.set_option(_ldap.OPT_X_TLS_CACERTFILE, tls_cacertfile)
-            self._ssl = True
         if tls_certfile is not None:
             _ldap.set_option(_ldap.OPT_X_TLS_CERTFILE, tls_certfile)
-            self._ssl = True
         if tls_keyfile is not None:
             _ldap.set_option(_ldap.OPT_X_TLS_KEYFILE, tls_keyfile)
 
-        conn = _ldap.initialize(str(self))
+        conn = _ldap.initialize(self._ldapuri)
         if ccache is not None:
             os.environ['KRB5CCNAME'] = ccache
             conn.sasl_interactive_bind_s('', _sasl_auth)

@@ -103,8 +103,6 @@ DEFAULT_CONFIG = (
     ('lite_webui_port', 9999),
     ('xmlrpc_uri', 'http://localhost:8888'),
     ('ldap_uri', 'ldap://localhost:389'),
-    ('ldap_host', 'localhost'),
-    ('ldap_port', 389),
 
     # Debugging:
     ('verbose', False),

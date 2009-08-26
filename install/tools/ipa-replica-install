@@ -332,6 +332,7 @@ def main():
     fd.write("realm=" + config.realm_name + "\n")
     fd.write("domain=" + config.domain_name + "\n")
     fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % config.host_name)
+    fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(realm_name))
     if ipautil.file_exists(config.dir + "/ca.p12"):
         fd.write("enable_ra=True\n")
     fd.close()

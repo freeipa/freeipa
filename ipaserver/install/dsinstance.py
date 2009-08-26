@@ -169,6 +169,7 @@ class DsInstance(service.Service):
         self.step("enabling memberof plugin", self.__add_memberof_module)
         self.step("enabling referential integrity plugin", self.__add_referint_module)
         self.step("enabling winsync plugin", self.__add_winsync_module)
+        self.step("enabling ldapi", self.__enable_ldapi)
         self.step("configuring uniqueness plugin", self.__set_unique_attrs)
         self.step("creating indices", self.__create_indices)
         self.step("configuring ssl for ds instance", self.__enable_ssl)
@@ -373,6 +374,9 @@ class DsInstance(service.Service):
     def __certmap_conf(self):
         shutil.copyfile(ipautil.SHARE_DIR + "certmap.conf.template",
                         config_dirname(self.serverid) + "certmap.conf")
+
+    def __enable_ldapi(self):
+        self._ldap_mod("ldapi.ldif", self.sub_dict)
 
     def change_admin_password(self, password):
         logging.debug("Changing admin password")

@@ -1,0 +1,6 @@
+# Enable the ldapi listener
+dn: cn=config
+changetype: modify
+replace: nsslapd-ldapilisten
+nsslapd-ldapilisten: on
+
