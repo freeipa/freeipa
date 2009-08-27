@@ -1,5 +1,6 @@
 # Authors:
 #   Rob Crittenden <rcritten@redhat.com>
+#   Pavel Zuna <pzuna@redhat.com>
 #
 # Copyright (C) 2009  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -16,375 +17,181 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-
 """
 Netgroups
 """
 
 from ipalib import api, errors
-from ipalib.plugins.basegroup import *
-from ipalib import uuid
-
-_container_dn = 'cn=ng,cn=alt'
-_default_attributes = [
-    'cn', 'description', 'member', 'memberUser', 'memberhost','externalhost'
-]
-_default_class = 'ipanisnetgroup'
+from ipalib.plugins.baseldap import *
 
 
-class netgroup(basegroup):
+class netgroup(LDAPObject):
     """
     Netgroup object.
     """
-    container = _container_dn
+    container_dn = api.env.container_netgroup
+    object_name = 'netgroup'
+    object_name_plural = 'netgroups'
+    object_class = ['ipaobject', 'ipaassociation', 'ipanisnetgroup']
+    default_attributes = ['cn', 'description', 'memberof']
+    uuid_attribute = 'ipauniqueid'
+    attribute_names = {
+        'cn': 'name',
+        'member user': 'member users',
+        'member group': 'member groups',
+        'member host': 'member hosts',
+        'member hostgroup': 'member hostgroups',
+        'member netgroup': 'member netgroups',
+        'memberof netgroup': 'member of netgroups',
+        'externalhost': 'external hosts',
+    }
+    attribute_members = {
+        'member': ['user', 'group', 'host', 'hostgroup', 'netgroup'],
+        'memberof': ['netgroup'],
+        'externalhost': [],
+    }
 
-api.register(netgroup)
-
-
-class netgroup_add(basegroup_add):
-    """
-    Create new netgroup.
-    """
-    takes_options = (
+    takes_params = (
+        Str('cn',
+            cli_name='name',
+            doc='netgroup name',
+            primary_key=True,
+            normalizer=lambda value: value.lower(),
+        ),
+        Str('description',
+            cli_name='desc',
+            doc='netgroup description',
+        ),
         Str('nisdomainname?',
             cli_name='nisdomain',
             doc='NIS domain name',
         ),
     )
 
-    def execute(self, cn, **kw):
-        """
-        Execute the netgroup-add operation.
+    def get_dn(self, *keys, **kwargs):
+        try:
+            (dn, entry_attrs) = self.backend.find_entry_by_attr(
+                self.primary_key.name, keys[-1], self.object_class, [''],
+                self.container_dn
+            )
+        except errors.NotFound:
+            dn = super(netgroup, self).get_dn(*keys, **kwargs)
+        return dn
 
-        The dn should not be passed as a keyword argument as it is constructed
-        by this method.
+    def get_primary_key_from_dn(self, dn):
+        pkey = self.primary_key.name
+        (dn, entry_attrs) = self.backend.get_entry(dn, [pkey])
+        return entry_attrs.get(pkey, '')
 
-        Returns the entry as it will be created in LDAP.
+api.register(netgroup)
 
-        :param cn: The name of the netgroup
-        :param kw: Keyword arguments for the other LDAP attributes.
-        """
-        assert 'cn' not in kw
-        assert 'dn' not in kw
-        ldap = self.api.Backend.ldap2
 
-        entry_attrs = self.args_options_2_entry(cn, **kw)
-        entry_attrs['objectclass'] = ['top', 'ipaobject', 'ipaassociation', _default_class]
+class netgroup_add(LDAPCreate):
+    """
+    Create new netgroup.
+    """
+    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        if not dn.startswith('cn='):
+            msg = 'netgroup with name "%s" already exists' % keys[-1]
+            raise errors.DuplicateEntry(message=msg)
         entry_attrs.setdefault('nisdomainname', self.api.env.domain)
-        entry_attrs['ipauniqueid'] = str(uuid.uuid1())
-
-        dn = ldap.make_dn(entry_attrs, 'ipauniqueid', _container_dn)
-
-        ldap.add_entry(dn, entry_attrs)
-
-        return ldap.get_entry(dn, _default_attributes)
+        dn = ldap.make_dn(
+            entry_attrs, self.obj.uuid_attribute, self.obj.container_dn
+        )
+        return dn
 
 api.register(netgroup_add)
 
 
-class netgroup_del(basegroup_del):
+class netgroup_del(LDAPDelete):
     """
     Delete netgroup.
     """
-    container = _container_dn
-    filter_class = _default_class
-
-    def execute(self, cn, **kw):
-        return super(netgroup_del, self).execute(cn, **kw)
 
 api.register(netgroup_del)
 
 
-class netgroup_mod(basegroup_mod):
+class netgroup_mod(LDAPUpdate):
     """
-    Edit an existing netgroup.
+    Modify netgroup.
     """
-    container = _container_dn
-    filter_class = _default_class
-
-    def execute(self, cn, **kw):
-        return super(netgroup_mod, self).execute(cn, **kw)
 
 api.register(netgroup_mod)
 
 
-class netgroup_find(basegroup_find):
+class netgroup_find(LDAPSearch):
     """
     Search the groups.
     """
-    container = _container_dn
-    filter_class = _default_class
-
-    def execute(self, term, **kw):
-        return super(netgroup_find, self).execute(term, **kw)
 
 api.register(netgroup_find)
 
 
-class netgroup_show(basegroup_show):
+class netgroup_show(LDAPRetrieve):
     """
     Display netgroup.
     """
-    filter_class = _default_class
-    default_attributes = _default_attributes
-    container = _container_dn
-
-    def execute(self, cn, **kw):
-        return super(netgroup_show, self).execute(cn, **kw)
 
 api.register(netgroup_show)
 
 
-class netgroup_add_member(basegroup_add_member):
+class netgroup_add_member(LDAPAddMember):
     """
     Add members to netgroup.
     """
-    default_attributes = _default_attributes
-    container = _container_dn
-    filter_class = _default_class
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        if 'member' in failed and 'host' in failed['member']:
+            (dn, entry_attrs_) = ldap.get_entry(dn, ['externalhost'])
+            members = entry_attrs.get('member', [])
+            external_hosts = entry_attrs_.get('externalhost', [])
+            failed_hosts = []
+            completed_external = 0
+            for host in failed['member']['host']:
+                host = host.lower()
+                host_dn = self.api.Object['host'].get_dn(host)
+                if host not in external_hosts and host_dn not in members:
+                    external_hosts.append(host)
+                    completed_external += 1
+                else:
+                    failed_hosts.append(host)
+            if completed_external:
+                try:
+                    ldap.update_entry(dn, {'externalhost': external_hosts})
+                except errors.EmptyModlist:
+                    pass
+                failed['member']['host'] = failed_hosts
+                entry_attrs['externalhost'] = external_hosts
+        return (completed + completed_external, dn)
 
-    takes_options = basegroup_add_member.takes_options + (
-        List('hosts?',
-            cli_name='hosts',
-            doc='comma-separated list of hosts to add'
-        ),
-        List('hostgroups?',
-            cli_name='hostgroups',
-            doc='comma-separated list of host groups to add'
-        ),
-        List('netgroups?',
-            cli_name='netgroups',
-            doc='comma-separated list of netgroups to add'
-        ),
-    )
-
-    def _add_external(self, ldap, completed, members, group_dn):
-        add_failed = {}
-        (dn, entry_attrs) = ldap.get_entry(group_dn, ['externalhost'])
-        external_hosts = entry_attrs.get('externalhost', [])
-        e = errors.AlreadyGroupMember()
-
-        for m in members.keys():
-            m = m.lower()
-            if m not in external_hosts:
-                external_hosts.append(m)
-                completed += 1
-            else:
-                add_failed[m] = 'ERROR: %s' % e.message
-
-        try:
-            ldap.update_entry(group_dn, {'externalhost': external_hosts})
-        except errors.EmptyModlist:
-            pass
-
-        return (completed, add_failed)
-
-    def execute(self, cn, **kw):
-        """
-        Execute the group-add-member operation.
-
-        Returns a tuple containing the number of members added
-        and the updated entry.
-
-        :param cn: The group name to add new members to.
-        :param kw: groups is a comma-separated list of groups to add
-        :param kw: users is a comma-separated list of users to add
-        :param kw: hostgroups is a comma-separated list of hostgroups to add
-        """
-        assert self.container
-        ldap = self.api.Backend.ldap2
-        (dn, entry_attrs) = ldap.find_entry_by_attr(
-            'cn', cn, self.filter_class, [''], self.container
-        )
-        to_add = []
-        add_failed = {}
-        completed = 0
-
-        members = kw.get('groups', [])
-        (to_add, add_failed) = find_members(
-            ldap, add_failed, members, 'cn', 'ipausergroup',
-            self.api.env.container_group
-        )
-        (completed, add_failed) = add_members(
-            ldap, completed, to_add, add_failed, dn, 'member'
-        )
-
-        members = kw.get('users', [])
-        (to_add, add_failed) = find_members(
-            ldap, add_failed, members, 'uid', 'posixaccount',
-            self.api.env.container_user
-        )
-        (completed, add_failed) = add_members(
-            ldap, completed, to_add, add_failed, dn, 'member'
-        )
-
-        hosts_failed = {}
-        members = kw.get('hosts', [])
-        (to_add, hosts_failed) = find_members(
-            ldap, hosts_failed, members, 'cn', 'ipahost',
-            self.api.env.container_host
-        )
-
-        # If a host is not found we'll consider it an externalHost. It will
-        # be up to the user to handle typos
-        if hosts_failed:
-            (completed, hosts_failed) = self._add_external(
-                ldap, completed, hosts_failed, dn
-            )
-            add_failed.update(hosts_failed)
-
-        (completed, add_failed) = add_members(
-            ldap, completed, to_add, add_failed, dn, 'member'
-        )
-
-        members = kw.get('hostgroups', [])
-        (to_add, add_failed) = find_members(
-            ldap, add_failed, members, 'cn', 'ipahostgroup',
-            self.api.env.container_hostgroup
-        )
-        (completed, add_failed) = add_members(
-            ldap, completed, to_add, add_failed, dn, 'member'
-        )
-
-        members = kw.get('netgroups', [])
-        (to_add, add_failed) = find_members(
-            ldap, add_failed, members, 'cn', _default_class,
-            _container_dn
-        )
-        (completed, add_failed) = add_members(
-            ldap, completed, to_add, add_failed, dn, 'member'
-        )
-
-        return (
-            completed, add_failed, ldap.get_entry(dn, _default_attributes)
-        )
 
 api.register(netgroup_add_member)
 
 
-class netgroup_remove_member(basegroup_remove_member):
+class netgroup_remove_member(LDAPRemoveMember):
     """
-    Remove a member from a netgroup.
+    Remove members from netgroup.
     """
-    default_attributes = _default_attributes
-    container = _container_dn
-    filter_class = _default_class
-
-    takes_options = basegroup_remove_member.takes_options + (
-        List('hosts?',
-            cli_name='hosts',
-            doc='comma-separated list of hosts to remove'
-        ),
-        List('hostgroups?',
-            cli_name='hostgroups',
-            doc='comma-separated list of host groups to remove'
-        ),
-        List('netgroups?',
-            cli_name='netgroups',
-            doc='comma-separated list of netgroups to remove'
-        ),
-    )
-
-    def _del_external(self, ldap, completed, members, group_dn):
-        rem_failed = {}
-        (dn, entry_attrs) = ldap.get_entry(group_dn, ['externalhost'])
-        external_hosts = entry_attrs.get('externalhost', [])
-        e = errors.NotGroupMember()
-
-        for m in members.keys():
-            m = m.lower()
-            if m in external_hosts:
-                external_hosts.remove(m)
-                completed += 1
-            else:
-                rem_failed[m] = 'ERROR: %s' % e.message
-
-        try:
-            ldap.update_entry(group_dn, {'externalhost': external_hosts})
-        except errors.EmptyModlist:
-            pass
-
-        return (completed, rem_failed)
-
-    def execute(self, cn, **kw):
-        """
-        Execute the group-remove-member operation.
-
-        Returns a tuple containing the number of members removed
-        and the updated entry.
-
-        :param cn: The group name to remove new members to.
-        :param kw: groups is a comma-separated list of groups to remove
-        :param kw: users is a comma-separated list of users to remove
-        :param kw: hostgroups is a comma-separated list of hostgroups to remove
-        """
-        assert self.container
-        ldap = self.api.Backend.ldap2
-        (dn, entry_attrs) = ldap.find_entry_by_attr(
-            'cn', cn, self.filter_class, [''], self.container
-        )
-        to_rem = []
-        rem_failed = {}
-        completed = 0
-
-        members = kw.get('groups', [])
-        (to_rem, rem_failed) = find_members(
-            ldap, rem_failed, members, 'cn', 'ipausergroup',
-            self.api.env.container_group
-        )
-        (completed, rem_failed) = del_members(
-            ldap, completed, to_rem, rem_failed, dn, 'member'
-        )
-
-        members = kw.get('users', [])
-        (to_rem, rem_failed) = find_members(
-            ldap, rem_failed, members, 'uid', 'posixaccount',
-            self.api.env.container_user
-        )
-        (completed, rem_failed) = del_members(
-            ldap, completed, to_rem, rem_failed, dn, 'member'
-        )
-
-        hosts_failed = {}
-        members = kw.get('hosts', [])
-        (to_rem, hosts_failed) = find_members(
-            ldap, hosts_failed, members, 'cn', 'ipahost',
-            self.api.env.container_host
-        )
-
-        # If a host is not found we'll consider it an externalHost. It will
-        # be up to the user to handle typos
-        if hosts_failed:
-            (completed, hosts_failed) = self._del_external(
-                ldap, completed, hosts_failed, dn
-            )
-            rem_failed.update(hosts_failed)
-
-        (completed, rem_failed) = del_members(
-            ldap, completed, to_rem, rem_failed, dn, 'member'
-        )
-
-        members = kw.get('hostgroups', [])
-        (to_rem, rem_failed) = find_members(
-            ldap, rem_failed, members, 'cn', 'ipahostgroup',
-            self.api.env.container_hostgroup
-        )
-        (completed, rem_failed) = del_members(
-            ldap, completed, to_rem, rem_failed, dn, 'member'
-        )
-
-        members = kw.get('netgroups', [])
-        (to_rem, rem_failed) = find_members(
-            ldap, rem_failed, members, 'cn', _default_class,
-            _container_dn
-        )
-        (completed, rem_failed) = del_members(
-            ldap, completed, to_rem, rem_failed, dn, 'member'
-        )
-
-        return (
-            completed, rem_failed, ldap.get_entry(dn, _default_attributes)
-        )
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        if 'member' in failed and 'host' in failed['member']:
+            (dn, entry_attrs) = ldap.get_entry(dn, ['externalhost'])
+            external_hosts = entry_attrs.get('externalhost', [])
+            failed_hosts = []
+            completed_external = 0
+            for host in failed['member']['host']:
+                host = host.lower()
+                if host in external_hosts:
+                    external_hosts.remove(host)
+                    completed_external += 1
+                else:
+                    failed_hosts.append(host)
+            if completed_external:
+                try:
+                    ldap.update_entry(dn, {'externalhost': external_hosts})
+                except errors.EmptyModlist:
+                    pass
+                failed['member']['host'] = failed_hosts
+                entry_attrs['externalhost'] = external_hosts
+        return (completed + completed_external, dn)
 
 api.register(netgroup_remove_member)
 
