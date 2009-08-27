@@ -82,9 +82,7 @@ class test_hostgroup(XMLRPC_test):
         Test the `xmlrpc.hostgroup_find` method.
         """
         (res, truncated) = api.Command['hostgroup_find'](cn=self.cn, raw=True)
-        print res
-        print '%r' % res
-        assert res, '%r' % res
+        assert res
         assert_attr_equal(res[0][1], 'description', self.description)
         assert_attr_equal(res[0][1], 'cn', self.cn)
 
