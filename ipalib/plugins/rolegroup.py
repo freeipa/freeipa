@@ -17,109 +17,104 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-
 """
-Groups of roles
+Rolegroups
 """
 
 from ipalib import api
-from ipalib.plugins.basegroup import *
-
-_container_dn = api.env.container_rolegroup
-_default_attributes = ['cn', 'description', 'member', 'memberOf']
-_default_class = 'nestedGroup'
+from ipalib import Str
+from ipalib.plugins.baseldap import *
 
 
-class rolegroup(basegroup):
+class rolegroup(LDAPObject):
     """
     Rolegroup object.
     """
-    container = _container_dn
+    container_dn = api.env.container_rolegroup
+    object_name = 'rolegroup'
+    object_name_plural = 'rolegroups'
+    object_class = ['ipaobject', 'groupofnames', 'nestedgroup']
+    default_attributes = ['cn', 'description', 'member', 'memberof']
+    uuid_attribute = 'ipauniqueid'
+    attribute_names = {
+        'cn': 'name',
+        'member user': 'member users',
+        'member group': 'member groups',
+        'memberof taskgroup': 'member of taskgroup',
+    }
+    attribute_members = {
+        'member': ['user', 'group'],
+        'memberof': ['taskgroup'],
+    }
+
+    takes_params = (
+        Str('cn',
+            cli_name='name',
+            doc='group name',
+            primary_key=True,
+            normalizer=lambda value: value.lower(),
+        ),
+        Str('description',
+            cli_name='desc',
+            doc='A description of this group',
+        ),
+    )
 
 api.register(rolegroup)
 
 
-class rolegroup_add(basegroup_add):
+class rolegroup_add(LDAPCreate):
     """
     Create new rolegroup.
     """
-    base_classes = basegroup_add.base_classes + (_default_class, )
-
-    def execute(self, cn, **kw):
-        return super(rolegroup_add, self).execute(cn, **kw)
 
 api.register(rolegroup_add)
 
 
-class rolegroup_del(basegroup_del):
+class rolegroup_del(LDAPDelete):
     """
     Delete rolegroup.
     """
-    container = _container_dn
-
-    def execute(self, cn, **kw):
-        return super(rolegroup_del, self).execute(cn, **kw)
 
 api.register(rolegroup_del)
 
 
-class rolegroup_mod(basegroup_mod):
+class rolegroup_mod(LDAPUpdate):
     """
     Edit rolegroup.
     """
-    container = _container_dn
-
-    def execute(self, cn, **kw):
-        return super(rolegroup_mod, self).execute(cn, **kw)
 
 api.register(rolegroup_mod)
 
 
-class rolegroup_find(basegroup_find):
+class rolegroup_find(LDAPSearch):
     """
     Search for rolegroups.
     """
-    container = _container_dn
-
-    def execute(self, cn, **kw):
-        return super(rolegroup_find, self).execute(cn, **kw)
 
 api.register(rolegroup_find)
 
 
-class rolegroup_show(basegroup_show):
+class rolegroup_show(LDAPRetrieve):
     """
     Display rolegroup.
     """
-    default_attributes = _default_attributes
-    container = _container_dn
-
-    def execute(self, cn, **kw):
-        return super(rolegroup_show, self).execute(cn, **kw)
-
+ 
 api.register(rolegroup_show)
 
 
-class rolegroup_add_member(basegroup_add_member):
+class rolegroup_add_member(LDAPAddMember):
     """
     Add member to rolegroup.
     """
-    container = _container_dn
-
-    def execute(self, cn, **kw):
-        return super(rolegroup_add_member, self).execute(cn, **kw)
 
 api.register(rolegroup_add_member)
 
 
-class rolegroup_remove_member(basegroup_remove_member):
+class rolegroup_remove_member(LDAPRemoveMember):
     """
     Remove member from rolegroup.
     """
-    container = _container_dn
-
-    def execute(self, cn, **kw):
-        return super(rolegroup_remove_member, self).execute(cn, **kw)
 
 api.register(rolegroup_remove_member)
 
