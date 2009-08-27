@@ -68,7 +68,15 @@ def realm_to_suffix(realm_name):
     return ",".join(terms)
 
 def template_str(txt, vars):
-    return string.Template(txt).substitute(vars)
+    val = string.Template(txt).substitute(vars)
+
+    # eval() is a special string one can insert into a template to have the
+    # Python interpreter evaluate the string. This is intended to allow
+    # math to be performed in templates.
+    pattern = re.compile('(eval\s*\(([^()]*)\))')
+    val = pattern.sub(lambda x: str(eval(x.group(2))), val)
+
+    return val
 
 def template_file(infilename, vars):
     txt = open(infilename).read()

@@ -6,7 +6,7 @@ objectclass: top
 objectclass: extensibleObject
 cn: Posix Accounts
 dnaType: uidNumber
-dnaNextValue: 1100
+dnaNextValue: eval($UIDSTART+1)
 dnaInterval: 1
 dnaMaxValue: 1000000000
 dnaMagicRegen: 999
@@ -21,7 +21,7 @@ objectclass: top
 objectclass: extensibleObject
 cn: Posix Groups
 dnaType: gidNumber
-dnaNextValue: 1100
+dnaNextValue: eval($GIDSTART+3)
 dnaInterval: 1
 dnaMaxValue: 1000000000
 dnaMagicRegen: 999

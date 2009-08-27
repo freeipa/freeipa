@@ -151,7 +151,7 @@ class DsInstance(service.Service):
         else:
             self.suffix = None
 
-    def create_instance(self, ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info=None, self_signed_ca=False):
+    def create_instance(self, ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info=None, self_signed_ca=False, uidstart=1100, gidstart=1100):
         self.ds_user = ds_user
         self.realm_name = realm_name.upper()
         self.serverid = realm_to_serverid(self.realm_name)
@@ -161,6 +161,8 @@ class DsInstance(service.Service):
         self.domain = domain_name
         self.pkcs12_info = pkcs12_info
         self.self_signed_ca = self_signed_ca
+        self.uidstart = uidstart
+        self.gidstart = gidstart
         self.__setup_sub_dict()
 
         self.step("creating directory server user", self.__create_ds_user)
@@ -198,7 +200,8 @@ class DsInstance(service.Service):
                              PASSWORD=self.dm_password, SUFFIX=self.suffix.lower(),
                              REALM=self.realm_name, USER=self.ds_user,
                              SERVER_ROOT=server_root, DOMAIN=self.domain,
-                             TIME=int(time.time()))
+                             TIME=int(time.time()), UIDSTART=self.uidstart,
+                             GIDSTART=self.gidstart)
 
     def __create_ds_user(self):
         user_exists = True

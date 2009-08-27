@@ -69,8 +69,8 @@ uid: admin
 krbPrincipalName: admin@$REALM
 cn: Administrator
 sn: Administrator
-uidNumber: 999
-gidNumber: 1001
+uidNumber: $UIDSTART
+gidNumber: $GIDSTART
 homeDirectory: /home/admin
 loginShell: /bin/bash
 gecos: Administrator
@@ -107,7 +107,7 @@ objectClass: groupofnames
 objectClass: posixgroup
 cn: admins
 description: Account administrators group
-gidNumber: 1001
+gidNumber: $GIDSTART
 member: uid=admin,cn=users,cn=accounts,$SUFFIX
 nsAccountLock: False
 
@@ -118,7 +118,7 @@ objectClass: groupofnames
 objectClass: nestedgroup
 objectClass: ipausergroup
 objectClass: posixgroup
-gidNumber: 1002
+gidNumber: eval($GIDSTART+1)
 description: Default group for all users
 cn: ipausers
 
@@ -127,7 +127,7 @@ changetype: add
 objectClass: top
 objectClass: groupofnames
 objectClass: posixgroup
-gidNumber: 1003
+gidNumber: eval($GIDSTART+2)
 description: Limited admins who can edit other users
 cn: editors
 

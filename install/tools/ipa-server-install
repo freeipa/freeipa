@@ -36,6 +36,7 @@ import shutil
 import glob
 import traceback
 from optparse import OptionParser
+import random
 
 from ipaserver.install import dsinstance
 from ipaserver.install import krbinstance
@@ -54,7 +55,11 @@ from ipalib import util
 
 pw_name = None
 
+# Used to determine the the highest possible uid/gid
+MAXINT_32BIT = 2147483648
+
 def parse_options():
+    namespace = random.randint(1000000, (MAXINT_32BIT - 1000000))
     parser = OptionParser(version=version.VERSION)
     parser.add_option("-u", "--user", dest="ds_user",
                       help="ds user")
@@ -97,6 +102,10 @@ def parse_options():
                       default=False,
                       help="Do not use DNS for hostname lookup during installation")
 
+    parser.add_option("--uidstart", dest="uidstart", default=namespace, type=int,
+                      help="The starting uid value (default random)")
+    parser.add_option("--gidstart", dest="gidstart", default=namespace, type=int,
+                      help="The starting gid value (default random)")
     options, args = parser.parse_args()
 
     if options.uninstall:
@@ -537,7 +546,7 @@ def main():
         finally:
             os.remove(pw_name)
     else:
-        ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, self_signed_ca=not options.ca)
+        ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, self_signed_ca=not options.ca, uidstart=options.uidstart, gidstart=options.gidstart)
 
     # Create a kerberos instance
     krb = krbinstance.KrbInstance(fstore)
