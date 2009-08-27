@@ -118,6 +118,10 @@ class automountlocation_add(LDAPCreate):
     """
     Create new automount location.
     """
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        # create auto.master for the new location
+        self.api.Command['automountmap_add'](keys[-1], u'auto.master')
+        return dn
 
 api.register(automountlocation_add)
 
@@ -128,6 +132,14 @@ class automountlocation_del(LDAPDelete):
     """
 
 api.register(automountlocation_del)
+
+
+class automountlocation_show(LDAPRetrieve):
+    """
+    Display automount location.
+    """
+
+api.register(automountlocation_show)
 
 
 class automountlocation_find(LDAPSearch):
