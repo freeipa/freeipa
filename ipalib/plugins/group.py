@@ -17,26 +17,52 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-
 """
 Groups of users
 """
 
 from ipalib import api
-from ipalib.plugins.basegroup import *
-
-_container_dn = api.env.container_group
-_default_attributes = ['cn', 'description', 'gidnumber', 'member', 'memberof']
-_default_class = 'ipausergroup'
+from ipalib import Int, Str
+from ipalib.plugins.baseldap import *
 
 
-class group(basegroup):
+class group(LDAPObject):
     """
     Group object.
     """
-    container = _container_dn
+    container_dn = api.env.container_group
+    object_name = 'group'
+    object_name_plural = 'groups'
+    object_class = ['ipausergroup']
+    object_class_config = 'ipagroupobjectclasses'
+    default_attributes = ['cn', 'description', 'gidnumber', 'memberof']
+    uuid_attribute = 'ipauniqueid'
+    attribute_names = {
+        'cn': 'name',
+        'gidnumber': 'group id',
+        'member user': 'member users',
+        'member group': 'member groups',
+        'memberof group': 'member of groups',
+        'memberof netgroup': 'member of netgroups',
+        'memberof rolegroup': 'member of rolegroup',
+        'memberof taskgroup': 'member of taskgroup',
+    }
+    attribute_members = {
+        'member': ['user', 'group'],
+        'memberof': ['group', 'netgroup', 'rolegroup', 'taskgroup'],
+    }
 
-    takes_params = basegroup.takes_params + (
+    takes_params = (
+        Str('cn',
+            cli_name='name',
+            doc='group name',
+            primary_key=True,
+            normalizer=lambda value: value.lower(),
+        ),
+        Str('description',
+            cli_name='desc',
+            doc='group description',
+        ),
         Int('gidnumber?',
             cli_name='gid',
             doc='GID (use this option to set it manually)',
@@ -46,178 +72,93 @@ class group(basegroup):
 api.register(group)
 
 
-class group_add(basegroup_add):
+class group_add(LDAPCreate):
     """
     Create new group.
     """
-    takes_options = (
+    takes_options = LDAPCreate.takes_options + (
         Flag('posix',
              cli_name='posix',
              doc='create as posix group?',
         ),
     )
 
-    def execute(self, cn, **kw):
-        """
-        Execute the group-add operation.
-
-        The dn should not be passed as a keyword argument as it is constructed
-        by this method.
-
-        Returns the entry as it will be created in LDAP.
-
-        No need to explicitly set gidNumber. The dna_plugin will do this
-        for us if the value isn't provided by the caller.
-
-        :param cn: The name of the group being added.
-        :param kw: Keyword arguments for the other LDAP attributes.
-        """
-        assert 'cn' not in kw
-        assert 'dn' not in kw
-        ldap = self.api.Backend.ldap2
-
-        config = ldap.get_ipa_config()[1]
-
-        kw['objectclass'] = config.get('ipagroupobjectclasses')
-        if kw['posix'] or 'gidnumber' in kw:
-            kw['objectclass'].append('posixgroup')
-
-        return super(group_add, self).execute(cn, **kw)
+    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        if options['posix'] or 'gidnumber' in options:
+            options['objectclass'].append('posixgroup')
+        return dn
 
 api.register(group_add)
 
 
-class group_del(basegroup_del):
+class group_del(LDAPDelete):
     """
     Delete group.
     """
-    container = _container_dn
-    filter_class = _default_class
-
-    def execute(self, cn, **kw):
-        """
-        Delete a group
-
-        The memberOf plugin handles removing the group from any other
-        groups.
-
-        :param cn: The name of the group being removed
-        :param kw: Unused
-        """
-        ldap = self.api.Backend.ldap2
-        (dn, entry_attrs) = ldap.find_entry_by_attr(
-            'cn', cn, self.filter_class, [''], self.container
-        )
-
-        # Don't allow the default user group to be removed
-        try:
-            config = ldap.get_ipa_config()[1]
-            def_group_cn = config.get('ipadefaultprimarygroup')
-            (def_group_dn, entry_attrs) = ldap.find_entry_by_attr(
-                'cn', def_group_cn, self.filter_class, [''], self.container
-            )
-            if dn == def_group_dn:
-                raise errors.DefaultGroupError()
-        except errors.NotFound:
-            pass
-
-        return super(group_del, self).execute(cn, **kw)
+    def pre_callback(self, ldap, dn, *keys, **options):
+        config = ldap.get_ipa_config()[1]
+        def_primary_group = config.get('ipadefaultprimarygroup', '')
+        def_primary_group_dn = group_dn = self.obj.get_dn(def_primary_group)
+        if dn == def_primary_group_dn:
+            raise errors.DefaultGroup()
+        return dn
 
 api.register(group_del)
 
 
-class group_mod(basegroup_mod):
+class group_mod(LDAPUpdate):
     """
     Modify group.
     """
-    container = _container_dn
-    filter_class = _default_class
-
-    takes_options = (
+    takes_options = LDAPUpdate.takes_options + (
         Flag('posix',
              cli_name='posix',
              doc='change to posix group',
         ),
     )
-    def execute(self, cn, **kw):
-        """
-        Execute the group-mod operation.
 
-        The dn should not be passed as a keyword argument as it is constructed
-        by this method.
-
-        Returns the entry
-
-        :param cn: The name of the group to update.
-        :param kw: Keyword arguments for the other LDAP attributes.
-        """
-        assert 'cn' not in kw
-        assert 'dn' not in kw
-        ldap = self.api.Backend.ldap2
-
-        if kw['posix'] or 'gidnumber' in kw:
-            (dn, entry_attrs) = ldap.find_entry_by_attr(
-                'cn', cn, self.filter_class, ['objectclass'], self.container
-            )
-            if 'posixgroup' in entry_attrs['objectclass']:
-                if kw['posix'] in entry_attrs['objectclass']:
+    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        if options['posix'] or 'gidnumber' in options:
+            (dn, old_entry_attrs) = ldap.get_entry(dn, ['objectclass'])
+            if 'posixgroup' in old_entry_attrs['objectclass']:
+                if options['posix']:
                     raise errors.AlreadyPosixGroup()
             else:
-                entry_attrs['objectclass'].append('posixgroup')
-                kw['objectclass'] = entry_attrs['objectclass']
-
-        return super(group_mod, self).execute(cn, **kw)
+                old_entry_attrs['objectclass'].append('posixgroup')
+                entry_attrs['objectclass'] = old_entry_attrs['objectclass']
+        return dn
 
 api.register(group_mod)
 
 
-class group_find(basegroup_find):
+class group_find(LDAPSearch):
     """
     Search for groups.
     """
-    default_attributes = _default_attributes
-    container = _container_dn
-    filter_class = _default_class
-
-    def execute(self, term, **kw):
-        return super(group_find, self).execute(term, **kw)
 
 api.register(group_find)
 
 
-class group_show(basegroup_show):
+class group_show(LDAPRetrieve):
     """
     Display group.
     """
-    default_attributes = _default_attributes
-    container = _container_dn
-
-    def execute(self, cn, **kw):
-        return super(group_show, self).execute(cn, **kw)
 
 api.register(group_show)
 
 
-class group_add_member(basegroup_add_member):
+class group_add_member(LDAPAddMember):
     """
     Add members to group.
     """
-    container = _container_dn
-
-    def execute(self, cn, **kw):
-        return super(group_add_member, self).execute(cn, **kw)
 
 api.register(group_add_member)
 
 
-class group_remove_member(basegroup_remove_member):
+class group_remove_member(LDAPRemoveMember):
     """
     Remove members from group.
     """
-    container = _container_dn
-
-    def execute(self, cn, **kw):
-        return super(group_remove_member, self).execute(cn, **kw)
 
 api.register(group_remove_member)
 
