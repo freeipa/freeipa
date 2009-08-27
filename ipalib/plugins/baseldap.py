@@ -74,7 +74,7 @@ class LDAPObject(Object):
                 for ldap_obj_name in self.attribute_members[attr]:
                     ldap_obj = self.api.Object[ldap_obj_name]
                     if member.find(ldap_obj.container_dn) > 0:
-                        new_attr = '%s %s' % (attr, ldap_obj.object_name_plural)
+                        new_attr = '%s %s' % (attr, ldap_obj.object_name)
                         entry_attrs.setdefault(new_attr, []).append(
                             ldap_obj.get_primary_key_from_dn(member)
                         )
@@ -223,7 +223,7 @@ class LDAPRetrieve(LDAPQuery):
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
         return dn
 
-    def post_callback(self, ldap, dn, attrs_list, *keys, **options):
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         return dn
 
 
@@ -236,6 +236,10 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             cli_name='raw',
             doc='print entries as they are stored in LDAP',
         ),
+        Flag('all',
+            cli_name='all',
+            doc='retrieve all attributes',
+        ),
     )
 
     def execute(self, *keys, **options):
@@ -245,14 +249,19 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
         entry_attrs = self.args_options_2_entry(**options)
 
-        dn = self.pre_callback(ldap, dn, entry_attrs, *keys, **options)
+        if options['all']:
+            attrs_list = ['*']
+        else:
+            attrs_list = entry_attrs.keys()
+
+        dn = self.pre_callback(ldap, dn, entry_attrs, attrs_list, *keys, **options)
 
         try:
             ldap.update_entry(dn, entry_attrs)
         except errors.EmptyModlist:
             pass
 
-        (dn, entry_attrs) = ldap.get_entry(dn, entry_attrs.keys())
+        (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
 
         dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
 
@@ -277,7 +286,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
         else:
             textui.print_dashed('Modified %s.' % self.obj.object_name)
 
-    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -355,6 +364,8 @@ class LDAPModMember(LDAPQuery):
     )
 
     def get_options(self):
+        for option in super(LDAPModMember, self).get_options():
+            yield option
         for attr in self.member_attributes:
             for ldap_obj_name in self.obj.attribute_members[attr]:
                 ldap_obj = self.api.Object[ldap_obj_name]
@@ -444,7 +455,7 @@ class LDAPAddMember(LDAPModMember):
         return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
-        return (completed, failed)
+        return (completed, dn)
 
 
 class LDAPRemoveMember(LDAPModMember):
