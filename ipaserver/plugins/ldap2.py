@@ -144,6 +144,10 @@ def _get_syntax(attr, value):
 # ldap backend class
 class ldap2(CrudBackend, Encoder):
 
+    # attributes in this list cannot be deleted by update_entry
+    # only MOD_REPLACE operations are generated for them
+    force_replace_on_update_attrs = ['uidnumber', 'gidnumber']
+
     # rules for generating filters from entries
     MATCH_ANY = '|'   # (|(filter1)(filter2))
     MATCH_ALL = '&'   # (&(filter1)(filter2))
@@ -512,10 +516,14 @@ class ldap2(CrudBackend, Encoder):
 
                 adds = list(v.difference(old_v))
                 if adds:
-                    modlist.append((_ldap.MOD_ADD, k, adds))
+                    if k in self.force_replace_on_update_attrs:
+                        modlist.append((_ldap.MOD_REPLACE, k, adds))
+                    else:
+                        modlist.append((_ldap.MOD_ADD, k, adds))
                 rems = list(old_v.difference(v))
                 if rems:
-                    modlist.append((_ldap.MOD_DELETE, k, rems))
+                    if k not in self.force_replace_on_update_attrs:
+                        modlist.append((_ldap.MOD_DELETE, k, rems))
 
         return modlist
 
