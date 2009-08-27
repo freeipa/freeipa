@@ -703,7 +703,6 @@ class test_Object(ClassChecker):
         o = example1()
         o.set_api(api)
         assert o.primary_key is None
-        assert o.params_minus_pk is None
 
         # Test with 1 primary key:
         class example2(self.cls):

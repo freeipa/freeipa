@@ -34,7 +34,7 @@ class test_host(XMLRPC_test):
     fqdn = u'ipatesthost.%s' % api.env.domain
     description = u'Test host'
     localityname = u'Undisclosed location'
-    kw = {'fqdn': fqdn, 'description': description, 'localityname': localityname}
+    kw = {'fqdn': fqdn, 'description': description, 'localityname': localityname, 'raw': True}
 
     def test_1_host_add(self):
         """
@@ -51,8 +51,10 @@ class test_host(XMLRPC_test):
         """
         Test the `xmlrpc.host_show` method with all attributes.
         """
-        kw = {'fqdn': self.fqdn, 'all': True}
+        kw = {'fqdn': self.fqdn, 'all': True, 'raw': True}
         (dn, res) = api.Command['host_show'](**kw)
+        print res
+        print '%r' % res
         assert res
         assert_attr_equal(res, 'description', self.description)
         assert_attr_equal(res, 'fqdn', self.fqdn)
@@ -62,7 +64,7 @@ class test_host(XMLRPC_test):
         """
         Test the `xmlrpc.host_show` method with default attributes.
         """
-        kw = {'fqdn': self.fqdn}
+        kw = {'fqdn': self.fqdn, 'raw': True}
         (dn, res) = api.Command['host_show'](**kw)
         assert res
         assert_attr_equal(res, 'description', self.description)
@@ -73,7 +75,7 @@ class test_host(XMLRPC_test):
         """
         Test the `xmlrpc.host_find` method with all attributes.
         """
-        kw = {'fqdn': self.fqdn, 'all': True}
+        kw = {'fqdn': self.fqdn, 'all': True, 'raw': True}
         (res, truncated) = api.Command['host_find'](**kw)
         assert res
         assert_attr_equal(res[0][1], 'description', self.description)
@@ -84,7 +86,7 @@ class test_host(XMLRPC_test):
         """
         Test the `xmlrpc.host_find` method with default attributes.
         """
-        (res, truncated) = api.Command['host_find'](self.fqdn)
+        (res, truncated) = api.Command['host_find'](self.fqdn, raw=True)
         assert res
         assert_attr_equal(res[0][1], 'description', self.description)
         assert_attr_equal(res[0][1], 'fqdn', self.fqdn)
@@ -95,13 +97,13 @@ class test_host(XMLRPC_test):
         Test the `xmlrpc.host_mod` method.
         """
         newdesc = u'Updated host'
-        modkw = {'fqdn': self.fqdn, 'description': newdesc}
+        modkw = {'fqdn': self.fqdn, 'description': newdesc, 'raw': True}
         (dn, res) = api.Command['host_mod'](**modkw)
         assert res
         assert_attr_equal(res, 'description', newdesc)
 
         # Ok, double-check that it was changed
-        (dn, res) = api.Command['host_show'](self.fqdn)
+        (dn, res) = api.Command['host_show'](self.fqdn, raw=True)
         assert res
         assert_attr_equal(res, 'description', newdesc)
         assert_attr_equal(res, 'fqdn', self.fqdn)

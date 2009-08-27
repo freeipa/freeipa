@@ -29,6 +29,7 @@ from tests.util import dummy_ugettext, assert_equal
 from tests.data import binary_bytes, utf8_bytes, unicode_str
 from ipalib import parameters, request, errors, config
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, NULLS
+from ipalib.errors import ValidationError
 
 
 class test_DefaultFrom(ClassChecker):
@@ -445,11 +446,11 @@ class test_Param(ClassChecker):
         assert str(e) == 'value: empty tuple must be converted to None'
 
         # Test with wrong (scalar) type:
-        e = raises(TypeError, o.validate, (None, None, 42, None))
-        assert str(e) == TYPE_ERROR % ('value[2]', NoneType, 42, int)
+        e = raises(ValidationError, o.validate, (None, None, 42, None))
+        assert str(e) == 'invalid %s' % (TYPE_ERROR % ('\'my_param\'', NoneType, 42, int))
         o = self.cls('my_param')
-        e = raises(TypeError, o.validate, 'Hello')
-        assert str(e) == TYPE_ERROR % ('value', NoneType, 'Hello', str)
+        e = raises(ValidationError, o.validate, 'Hello')
+        assert str(e) == 'invalid %s' % (TYPE_ERROR % ('\'my_param\'', NoneType, 'Hello', str))
 
         class Example(self.cls):
             type = int
@@ -511,10 +512,10 @@ class test_Param(ClassChecker):
         o = MyParam('my_param', okay)
 
         # Test that TypeError is appropriately raised:
-        e = raises(TypeError, o._validate_scalar, 0)
-        assert str(e) == TYPE_ERROR % ('value', bool, 0, int)
-        e = raises(TypeError, o._validate_scalar, 'Hi', index=4)
-        assert str(e) == TYPE_ERROR % ('value[4]', bool, 'Hi', str)
+        e = raises(ValidationError, o._validate_scalar, 0)
+        assert str(e) == 'invalid %s' % (TYPE_ERROR % ('\'my_param\'', bool, 0, int))
+        e = raises(ValidationError, o._validate_scalar, 'Hi', index=4)
+        assert str(e) == 'invalid %s' % (TYPE_ERROR % ('\'my_param\'', bool, 'Hi', str))
         e = raises(TypeError, o._validate_scalar, True, index=3.0)
         assert str(e) == TYPE_ERROR % ('index', int, 3.0, float)
 

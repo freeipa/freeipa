@@ -35,7 +35,7 @@ class test_group(XMLRPC_test):
     cn2 = u'testgroup2'
     cnposix = u'posixgroup'
     description = u'This is a test'
-    kw = {'description': description, 'cn': cn}
+    kw = {'description': description, 'cn': cn, 'raw': True}
 
     def test_1_group_add(self):
         """
@@ -70,26 +70,28 @@ class test_group(XMLRPC_test):
         """
         Test the `xmlrpc.group_add_member` method.
         """
-        kw = {}
-        kw['groups'] = self.cn2
+        kw = {'raw': True}
+        kw['group'] = self.cn2
         (total, failed, res) = api.Command['group_add_member'](self.cn, **kw)
-        assert total == 1
+        assert total == 1, '%r %r %r' % (total, failed, res)
 
     def test_4_group_add_member(self):
         """
         Test the `xmlrpc.group_add_member` with a non-existent member
         """
-        kw = {}
-        kw['groups'] = u'notfound'
+        kw = {'raw': True}
+        kw['group'] = u'notfound'
         (total, failed, res) = api.Command['group_add_member'](self.cn, **kw)
         assert total == 0
-        assert 'notfound' in failed
+        assert 'member' in failed
+        assert 'group' in failed['member']
+        assert 'notfound' in failed['member']['group']
 
     def test_5_group_show(self):
         """
         Test the `xmlrpc.group_show` method.
         """
-        (dn, res) = api.Command['group_show'](self.cn)
+        (dn, res) = api.Command['group_show'](self.cn, raw=True)
         assert res
         assert_attr_equal(res, 'description', self.description)
         assert_attr_equal(res, 'cn', self.cn)
@@ -98,7 +100,7 @@ class test_group(XMLRPC_test):
         """
         Test the `xmlrpc.group_find` method.
         """
-        (res, truncated) = api.Command['group_find'](cn=self.cn)
+        (res, truncated) = api.Command['group_find'](cn=self.cn, raw=True)
         assert res
         assert_attr_equal(res[0][1], 'description', self.description)
         assert_attr_equal(res[0][1], 'cn', self.cn)
@@ -126,12 +128,14 @@ class test_group(XMLRPC_test):
         modkw = self.kw
         modkw['cn'] = self.cn
         modkw['posix'] = True
+        modkw['all'] = True
+        modkw['raw'] = True
         (dn, res) = api.Command['group_mod'](**modkw)
         assert res
         assert_attr_equal(res, 'description', 'New description')
         assert_attr_equal(res, 'cn', self.cn)
         # Ok, double-check that it was changed
-        (dn, res) = api.Command['group_show'](self.cn, all=True)
+        (dn, res) = api.Command['group_show'](self.cn, all=True, raw=True)
         assert res
         assert_attr_equal(res, 'description', 'New description')
         assert_attr_equal(res, 'cn', self.cn)
@@ -141,8 +145,8 @@ class test_group(XMLRPC_test):
         """
         Test the `xmlrpc.group_remove_member` method.
         """
-        kw = {}
-        kw['groups'] = self.cn2
+        kw = {'raw': True}
+        kw['group'] = self.cn2
         (total, failed, res) = api.Command['group_remove_member'](self.cn, **kw)
         assert res
         assert total == 1
@@ -151,12 +155,14 @@ class test_group(XMLRPC_test):
         """
         Test the `xmlrpc.group_remove_member` method with non-member
         """
-        kw = {}
-        kw['groups'] = u'notfound'
+        kw = {'raw': True}
+        kw['group'] = u'notfound'
         # an error isn't thrown, the list of failed members is returned
         (total, failed, res) = api.Command['group_remove_member'](self.cn, **kw)
         assert total == 0
-        assert 'notfound' in failed
+        assert 'member' in failed
+        assert 'group' in failed['member']
+        assert 'notfound' in failed['member']['group']
 
     def test_b_group_del(self):
         """

@@ -33,7 +33,7 @@ class test_hostgroup(XMLRPC_test):
     """
     cn = u'testgroup'
     description = u'Test host group'
-    kw = {'cn': cn, 'description': description}
+    kw = {'cn': cn, 'description': description, 'raw': True}
 
     host_fqdn = u'ipatesthost.%s' % api.env.domain
     host_description = u'Test host'
@@ -53,7 +53,7 @@ class test_hostgroup(XMLRPC_test):
         """
         Add a host to test add/remove member.
         """
-        kw = {'fqdn': self.host_fqdn, 'description': self.host_description, 'localityname': self.host_localityname}
+        kw = {'fqdn': self.host_fqdn, 'description': self.host_description, 'localityname': self.host_localityname, 'raw': True}
         (dn, res) = api.Command['host_add'](**kw)
         assert res
         assert_attr_equal(res, 'description', self.host_description)
@@ -63,16 +63,16 @@ class test_hostgroup(XMLRPC_test):
         """
         Test the `xmlrpc.hostgroup_add_member` method.
         """
-        kw = {}
-        kw['hosts'] = self.host_fqdn
+        kw = {'raw': True}
+        kw['host'] = self.host_fqdn
         (total, failed, res) = api.Command['hostgroup_add_member'](self.cn, **kw)
-        assert res[1].get('member', []) != []
+        assert res[1].get('member', []) != [], '%r %r %r' % (total, failed, res)
 
     def test_4_hostgroup_show(self):
         """
         Test the `xmlrpc.hostgroup_show` method.
         """
-        (dn, res) = api.Command['hostgroup_show'](self.cn)
+        (dn, res) = api.Command['hostgroup_show'](self.cn, raw=True)
         assert res
         assert_attr_equal(res, 'description', self.description)
         assert_attr_equal(res, 'cn', self.cn)
@@ -81,8 +81,10 @@ class test_hostgroup(XMLRPC_test):
         """
         Test the `xmlrpc.hostgroup_find` method.
         """
-        (res, truncated) = api.Command['hostgroup_find'](cn=self.cn)
-        assert res
+        (res, truncated) = api.Command['hostgroup_find'](cn=self.cn, raw=True)
+        print res
+        print '%r' % res
+        assert res, '%r' % res
         assert_attr_equal(res[0][1], 'description', self.description)
         assert_attr_equal(res[0][1], 'cn', self.cn)
 
@@ -91,13 +93,13 @@ class test_hostgroup(XMLRPC_test):
         Test the `xmlrpc.hostgroup_mod` method.
         """
         newdesc = u'Updated host group'
-        modkw = {'cn': self.cn, 'description': newdesc}
+        modkw = {'cn': self.cn, 'description': newdesc, 'raw': True}
         (dn, res) = api.Command['hostgroup_mod'](**modkw)
         assert res
         assert_attr_equal(res, 'description', newdesc)
 
         # Ok, double-check that it was changed
-        (dn, res) = api.Command['hostgroup_show'](self.cn)
+        (dn, res) = api.Command['hostgroup_show'](self.cn, raw=True)
         assert res
         assert_attr_equal(res, 'description', newdesc)
         assert_attr_equal(res, 'cn', self.cn)
@@ -106,8 +108,8 @@ class test_hostgroup(XMLRPC_test):
         """
         Test the `xmlrpc.hostgroup_remove_member` method.
         """
-        kw = {}
-        kw['hosts'] = self.host_fqdn
+        kw = {'raw': True}
+        kw['host'] = self.host_fqdn
         (total, failed, res) = api.Command['hostgroup_remove_member'](self.cn, **kw)
         assert res
         assert res[1].get('member', []) == []

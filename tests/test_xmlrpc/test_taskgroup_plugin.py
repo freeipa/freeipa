@@ -33,7 +33,7 @@ class test_taskgroup(XMLRPC_test):
     """
     cn = u'testgroup'
     description = u'Test task group'
-    kw = {'cn': cn, 'description': description}
+    kw = {'cn': cn, 'description': description, 'raw': True}
 
     taskgroup_cn = u'ipatestgroup'
     taskgroup_description = u'Test group for taskgroups'
@@ -55,7 +55,7 @@ class test_taskgroup(XMLRPC_test):
         """
         Add a rolegroup to test add/remove member.
         """
-        kw={'cn': self.rolegroup_cn, 'description': self.rolegroup_description}
+        kw={'cn': self.rolegroup_cn, 'description': self.rolegroup_description, 'raw': True}
         (dn, res) = api.Command['rolegroup_add'](**kw)
         assert res
         assert_attr_equal(res, 'description', self.rolegroup_description)
@@ -65,7 +65,7 @@ class test_taskgroup(XMLRPC_test):
         """
         Add a group to test add/remove member.
         """
-        kw = {'cn': self.taskgroup_cn, 'description': self.taskgroup_description}
+        kw = {'cn': self.taskgroup_cn, 'description': self.taskgroup_description, 'raw': True}
         (dn, res) = api.Command['group_add'](**kw)
         assert res
         assert_attr_equal(res, 'description', self.taskgroup_description)
@@ -76,8 +76,8 @@ class test_taskgroup(XMLRPC_test):
         Test the `xmlrpc.taskgroup_add_member` method.
         """
         kw = {}
-        kw['groups'] = self.taskgroup_cn
-        kw['rolegroups'] = self.rolegroup_cn
+        kw['group'] = self.taskgroup_cn
+        kw['rolegroup'] = self.rolegroup_cn
         (total, failed, res) = api.Command['taskgroup_add_member'](self.cn, **kw)
         assert total == 2
 
@@ -85,7 +85,7 @@ class test_taskgroup(XMLRPC_test):
         """
         Test the `xmlrpc.taskgroup_show` method.
         """
-        (dn, res) = api.Command['taskgroup_show'](self.cn, all=True)
+        (dn, res) = api.Command['taskgroup_show'](self.cn, all=True, raw=True)
         assert res
         assert_attr_equal(res, 'description', self.description)
         assert_attr_equal(res, 'cn', self.cn)
@@ -96,7 +96,7 @@ class test_taskgroup(XMLRPC_test):
         """
         Test the `xmlrpc.taskgroup_find` method.
         """
-        (res, truncated) = api.Command['taskgroup_find'](self.cn)
+        (res, truncated) = api.Command['taskgroup_find'](self.cn, all=True, raw=True)
         assert res
         assert_attr_equal(res[0][1], 'description', self.description)
         assert_attr_equal(res[0][1], 'cn', self.cn)
@@ -108,13 +108,13 @@ class test_taskgroup(XMLRPC_test):
         Test the `xmlrpc.taskgroup_mod` method.
         """
         newdesc = u'Updated task group'
-        modkw = {'cn': self.cn, 'description': newdesc}
+        modkw = {'cn': self.cn, 'description': newdesc, 'raw': True}
         (dn, res) = api.Command['taskgroup_mod'](**modkw)
         assert res
         assert_attr_equal(res, 'description', newdesc)
 
         # Ok, double-check that it was changed
-        (dn, res) = api.Command['taskgroup_show'](self.cn)
+        (dn, res) = api.Command['taskgroup_show'](self.cn, raw=True)
         assert res
         assert_attr_equal(res, 'description', newdesc)
         assert_attr_equal(res, 'cn', self.cn)
@@ -124,7 +124,7 @@ class test_taskgroup(XMLRPC_test):
         Test the `xmlrpc.taskgroup_remove_member` method.
         """
         kw = {}
-        kw['groups'] = self.taskgroup_cn
+        kw['group'] = self.taskgroup_cn
         (total, failed, res) = api.Command['taskgroup_remove_member'](self.cn, **kw)
         assert total == 1
 
