@@ -873,10 +873,9 @@ from parameters import DefaultFrom, Bool, Flag, Int, Float, Bytes, Str, Password
 from parameters import BytesEnum, StrEnum
 from errors import SkipPluginModule
 
-try:
-    import uuid
-except ImportError:
-    import ipauuid as uuid
+# We can't import the python uuid since it includes ctypes which makes
+# httpd throw up when run in in mod_python due to SELinux issues
+import ipauuid as uuid
 
 
 version_info = (2, 0, 0, 'alpha', 0)

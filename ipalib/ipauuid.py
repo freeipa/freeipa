@@ -1,5 +1,9 @@
 # This is a backport of the Python2.5 uuid module.
 
+# IMPORTANT NOTE: All references to ctypes are commented out because
+#                 ctypes does all sorts of strange things that makes
+#                 it not work in httpd with SELinux enabled.
+
 r"""UUID objects (universally unique identifiers) according to RFC 4122.
 
 This module provides immutable UUID objects (class UUID) and the functions
@@ -356,6 +360,7 @@ def _ipconfig_getnode():
     """Get the hardware address on Windows by running ipconfig.exe."""
     import os, re
     dirs = ['', r'c:\windows\system32', r'c:\winnt\system32']
+    """
     try:
         import ctypes
         buffer = ctypes.create_string_buffer(300)
@@ -363,6 +368,7 @@ def _ipconfig_getnode():
         dirs.insert(0, buffer.value.decode('mbcs'))
     except:
         pass
+    """
     for dir in dirs:
         try:
             pipe = os.popen(os.path.join(dir, 'ipconfig') + ' /all')
@@ -406,6 +412,7 @@ def _netbios_getnode():
 
 # If ctypes is available, use it to find system routines for UUID generation.
 _uuid_generate_random = _uuid_generate_time = _UuidCreate = None
+"""
 try:
     import ctypes, ctypes.util
     _buffer = ctypes.create_string_buffer(16)
@@ -438,6 +445,7 @@ try:
                           getattr(lib, 'UuidCreate', None))
 except:
     pass
+"""
 
 def _unixdll_getnode():
     """Get the hardware address on Unix using ctypes."""

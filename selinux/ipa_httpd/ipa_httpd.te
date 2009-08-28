@@ -1,22 +1,16 @@
 module ipa_httpd 1.0;
 
 require {
-        type pki_ca_var_lib_t;
         type httpd_t;
         type initrc_t;
-        class lnk_file { read getattr };
-        class dir { read search open getattr };
-        class file { getattr read open execute };
-        class sock_file { write };
+        type var_run_t;
+        type krb5kdc_t;
+        class sock_file write;
         class unix_stream_socket connectto;
 }
 
-# Let Apache read the directories within the certificate authority
-# so it can read the published CRLs.
-allow httpd_t pki_ca_var_lib_t:dir { read search open getattr };
-allow httpd_t pki_ca_var_lib_t:file { read getattr open };
-allow httpd_t pki_ca_var_lib_t:lnk_file { read getattr };
-
-# Let Apache talk to DS over ldapi
-allow httpd_t var_run_t:sock_file { write };
+# Let Apache and the KDC talk to DS over ldapi
+allow httpd_t var_run_t:sock_file write;
 allow httpd_t initrc_t:unix_stream_socket connectto;
+allow krb5kdc_t var_run_t:sock_file write;
+allow krb5kdc_t initrc_t:unix_stream_socket connectto;
