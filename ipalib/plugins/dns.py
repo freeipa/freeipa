@@ -313,7 +313,7 @@ class dns_find(crud.Search):
         except errors.NotFound:
             (entries, truncated) = (tuple(), False)
 
-        return entries
+        return (entries, truncated)
 
     def output_for_cli(self, textui, result, term, **options):
         (entries, truncated) = result
