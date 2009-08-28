@@ -314,6 +314,10 @@ class ldap2(CrudBackend, Encoder):
     def add_entry(self, dn, entry_attrs):
         """Create a new entry."""
         dn = self.normalize_dn(dn)
+        # remove all None values, python-ldap hates'em
+        entry_attrs = dict(
+            (k, v) for (k, v) in entry_attrs.iteritems() if v is not None
+        )
         try:
             self.conn.add_s(dn, list(entry_attrs.iteritems()))
         except _ldap.LDAPError, e:
