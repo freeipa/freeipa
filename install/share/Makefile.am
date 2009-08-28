@@ -37,6 +37,7 @@ app_DATA =				\
 	nis.uldif			\
 	unique-attributes.ldif		\
 	schema_compat.uldif		\
+	ldapi.ldif			\
 	$(NULL)
 
 EXTRA_DIST =				\
