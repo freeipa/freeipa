@@ -161,25 +161,38 @@ class CertDB(object):
                            "-f", self.passwd_fname])
         self.set_perms(self.passwd_fname, write=True)
 
-    def create_ca_cert(self):
-        p = subprocess.Popen(["/usr/bin/certutil",
-                              "-d", self.secdir,
-                              "-S", "-n", self.cacert_name,
-                              "-s", "cn=IPA Test Certificate Authority",
-                              "-x",
-                              "-t", "CT,,C",
-                              "-2",
-                              "-m", self.next_serial(),
-                              "-v", self.valid_months,
-                              "-z", self.noise_fname,
-                              "-f", self.passwd_fname],
-                               stdin=subprocess.PIPE,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+    def create_ca_cert(self, regen=False):
+        args = ["/usr/bin/certutil",
+                "-d", self.secdir,
+                "-S", "-n", self.cacert_name,
+                "-s", "cn=IPA Test Certificate Authority",
+                "-x",
+                "-t", "CT,,C",
+                "-1",
+                "-2",
+                "-m", self.next_serial(),
+                "-v", self.valid_months,
+                "-z", self.noise_fname,
+                "-f", self.passwd_fname,
+        ]
+        if regen:
+            args.append("-k")
+            args.append(self.cacert_name)
+        p = subprocess.Popen(args,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        # Create key usage extension
+        # 0 - Digital Signature
+        # 1 - Non-repudiation
+        # 5 - Cert signing key
+        # Is this a critical extension [y/N]? y
+        p.stdin.write("0\n1\n5\n9\ny\n")
+        # Create basic constraint extension
         # Is this a CA certificate [y/N]?  y
         # Enter the path length constraint, enter to skip [<0 for unlimited pat
         # Is this a critical extension [y/N]? y
-        p.stdin.write("y\n\n7\n")
+        p.stdin.write("y\n\ny\n")
         p.wait()
 
     def export_ca_cert(self, nickname, create_pkcs12=False):
