@@ -52,6 +52,7 @@ class BindInstance(service.Service):
         self.host = None
         self.ip_address = None
         self.realm = None
+        self.forwarders = None
         self.sub_dict = None
 
         if fstore:
@@ -59,12 +60,13 @@ class BindInstance(service.Service):
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
-    def setup(self, fqdn, ip_address, realm_name, domain_name, named_user="named"):
+    def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, named_user="named"):
         self.named_user = named_user
         self.fqdn = fqdn
         self.ip_address = ip_address
         self.realm = realm_name
         self.domain = domain_name
+        self.forwarders = forwarders
         self.host = fqdn.split(".")[0]
         self.suffix = util.realm_to_suffix(self.realm)
 
@@ -146,11 +148,20 @@ class BindInstance(service.Service):
         self.chkconfig_on()
 
     def __setup_sub_dict(self):
+        if self.forwarders:
+            fwds = "\n"
+            for forwarder in self.forwarders:
+                fwds += "\t\t%s;\n" % forwarder
+            fwds += "\t"
+        else:
+            fwds = " "
+
         self.sub_dict = dict(FQDN=self.fqdn,
                              IP=self.ip_address,
                              DOMAIN=self.domain,
                              HOST=self.host,
                              REALM=self.realm,
+                             FORWARDERS=fwds,
                              SUFFIX=self.suffix,
                              REVERSE_HOST=self.reverse_host,
                              REVERSE_SUBNET=self.reverse_subnet)

@@ -5,6 +5,9 @@ options {
 	statistics-file		"data/named_stats.txt";
 	memstatistics-file	"data/named_mem_stats.txt";
 
+	forward first;
+	forwarders {$FORWARDERS};
+
 	tkey-gssapi-credential "DNS/$FQDN";
 	tkey-domain "$REALM";
 };

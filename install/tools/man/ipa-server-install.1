@@ -56,8 +56,18 @@ The IP address of this server
 An unattended installation that will never prompt for user input
 .TP
 \fB\-\-setup\-dns\fR
-Generate a DNS zone if it does not exist already and configure the DNS server
+Generate a DNS zone if it does not exist already and configure the DNS server.
+This option requires that you either specify at least one DNS forwarder through
+the \fB\-\-forwarder\fR option or use the \fB\-\-no\-forwarders\fR option.
 .TP 
+\fB\-\-forwarder\fR=\fIIP_ADDRESS\fR
+Add a DNS forwarder to the DNS configuration. You can use this option multiple
+times to specify more forwarders, but at least one must be provided, unless
+the \fB\-\-no\-forwarders\fR option is specified.
+.TP
+\fB\-\-no\-forwarders\fR
+Do not add any DNS forwarders. Root DNS servers will be used instead.
+.TP
 \fB\-n\fR, \fB\-\-no\-ntp\fR
 Do not configure NTP
 \fB\-U\fR, \fB\-\-uninstall\fR

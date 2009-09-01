@@ -84,6 +84,10 @@ def parse_options():
                       default=False, help="configure bind with our zone file")
     parser.add_option("--setup-dns", dest="setup_dns", action="store_true",
                       default=False, help="configure bind with our zone")
+    parser.add_option("--forwarder", dest="forwarders", action="append",
+                      help="Add a DNS forwarder")
+    parser.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
+                      default=False, help="Do not add any DNS forwarders, use root servers instead")
     parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
                       default=False, help="unattended installation never prompts the user")
     parser.add_option("", "--uninstall", dest="uninstall", action="store_true",
@@ -108,6 +112,14 @@ def parse_options():
                       help="The starting gid value (default random)")
     options, args = parser.parse_args()
 
+    if not options.setup_dns:
+        if options.forwarders:
+            parser.error("You cannot specify a --forwarder option without the --setup-dns option")
+        if options.no_forwarders:
+            parser.error("You cannot specify a --no-forwarders option without the --setup-dns option")
+    elif options.forwarders and options.no_forwarders:
+        parser.error("You cannot specify a --forwarder option together with --no-forwarders")
+
     if options.uninstall:
         if (options.ds_user or options.realm_name or
             options.dm_password or options.admin_password or
@@ -117,6 +129,9 @@ def parse_options():
         if (not options.ds_user or not options.realm_name or
             not options.dm_password or not options.admin_password):
             parser.error("error: In unattended mode you need to provide at least -u, -r, -p and -a options")
+        if options.setup_dns:
+            if not options.forwarders and not options.no_forwarders:
+                parser.error("You must specify at least one --forwarder option or --no-forwarders option")
 
     # If any of the PKCS#12 options are selected, all are required. Create a
     # list of the options and count it to enforce that all are required without
@@ -209,6 +224,27 @@ def read_ip_address(host_name):
         hosts_fd.close()
 
         return ip
+
+def read_dns_forwarders():
+    addrs = []
+    while True:
+        ip = user_input("Enter IP address for a DNS forwarder (empty to stop)", allow_empty=True)
+
+        if not ip:
+            break
+        if ip == "127.0.0.1" or ip == "::1":
+            print "You cannot use localhost as a DNS forwarder"
+            continue
+        if not verify_ip_address(ip):
+            continue
+
+        print "DNS forwarder %s added" % ip
+        addrs.append(ip)
+
+    if not addrs:
+        print "No DNS forwarders configured"
+
+    return addrs
 
 def read_ds_user():
     print "The server must run as a specific user in a specific group."
@@ -504,6 +540,14 @@ def main():
     else:
         admin_password = options.admin_password
 
+    if options.setup_dns:
+        if options.no_forwarders:
+            dns_forwarders = ()
+        elif options.forwarders:
+            dns_forwarders = options.forwarders
+        else:
+            dns_forwarders = read_dns_forwarders()
+
     if not options.unattended:
         print ""
         print "The following operations may take some minutes to complete."
@@ -591,7 +635,7 @@ def main():
 
     # Create a BIND instance
     bind = bindinstance.BindInstance(fstore, dm_password)
-    bind.setup(host_name, ip_address, realm_name, domain_name)
+    bind.setup(host_name, ip_address, realm_name, domain_name, dns_forwarders)
     if options.setup_dns:
         bind.create_instance()
     else:
