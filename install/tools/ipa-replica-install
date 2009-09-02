@@ -31,7 +31,7 @@ from ipaserver.install import dsinstance, replication, installutils, krbinstance
 from ipaserver.install import bindinstance, httpinstance, ntpinstance, certs
 from ipaserver import ipaldap
 from ipapython import version
-from ipalib import util
+from ipalib import api, util
 
 CACERT="/usr/share/ipa/html/ca.crt"
 
@@ -343,6 +343,12 @@ def main():
     service.restart("krb5kdc")
 
     if options.setup_dns:
+        # First bootstrap the plug-in framework
+        api.bootstrap(in_server=True)
+        api.finalize()
+        api.Backend.ldap2.connect(bind_dn="cn=Directory Manager",
+                                  bind_pw=config.dirman_password)
+
         install_bind(config, options)
 
     # Call client install script

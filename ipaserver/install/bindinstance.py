@@ -28,7 +28,7 @@ import service
 from ipaserver import ipaldap
 from ipapython import sysrestore
 from ipapython import ipautil
-from ipalib import util
+from ipalib import api, util
 
 def check_inst():
     # So far this file is always present in both RHEL5 and Fedora if all the necessary
@@ -122,15 +122,19 @@ class BindInstance(service.Service):
 
         zone_dn = "idnsName=%s,cn=dns,%s" % (self.domain, self.suffix)
         reverse_zone_dn = "idnsName=%s.in-addr.arpa,cn=dns,%s" % (self.reverse_subnet, self.suffix)
+        a_rr_dn = "idnsName=%s,%s" % (self.host, zone_dn)
+        ptr_rr_dn = "idnsName=%s,%s" % (self.reverse_host, reverse_zone_dn)
 
         server = ldap.initialize("ldap://" + self.fqdn)
         server.simple_bind_s()
         if object_exists(zone_dn):
-            pass # TODO: Add dns records to the zone
+            if not object_exists(a_rr_dn):
+                self.step("adding our A record", self.__setup_a_record)
         else:
             self.step("setting up our zone", self.__setup_zone)
         if object_exists(reverse_zone_dn):
-            pass # TODO: Add dns records to the reverse zone
+            if not object_exists(ptr_rr_dn):
+                self.step("adding our PTR record", self.__setup_ptr_record)
         else:
             self.step("setting up reverse zone", self.__setup_reverse_zone)
 
@@ -172,6 +176,15 @@ class BindInstance(service.Service):
 
     def __setup_reverse_zone(self):
         self._ldap_mod("dns_reverse.ldif", self.sub_dict)
+
+    def __setup_a_record(self):
+        api.Command.dns_add_rr(unicode(self.domain), unicode(self.host),
+                               u'A', unicode(self.ip_address))
+
+    def __setup_ptr_record(self):
+        api.Command.dns_add_rr(unicode(self.reverse_subnet + ".in-addr.arpa"),
+                               unicode(self.reverse_host), u'PTR',
+                               unicode(self.host))
 
     def __setup_principal(self):
         dns_principal = "DNS/" + self.fqdn + "@" + self.realm

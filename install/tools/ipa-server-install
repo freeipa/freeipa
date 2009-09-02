@@ -51,7 +51,7 @@ from ipaserver.install.installutils import *
 
 from ipapython import sysrestore
 from ipapython.ipautil import *
-from ipalib import util
+from ipalib import api, util
 
 pw_name = None
 
@@ -646,6 +646,11 @@ def main():
     bind = bindinstance.BindInstance(fstore, dm_password)
     bind.setup(host_name, ip_address, realm_name, domain_name, dns_forwarders)
     if options.setup_dns:
+        # First bootstrap the plug-in framework
+        api.bootstrap(in_server=True)
+        api.finalize()
+        api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dm_password)
+
         bind.create_instance()
     else:
         bind.create_sample_bind_zone()
