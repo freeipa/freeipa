@@ -79,9 +79,6 @@ def parse_options():
                       default=False, help="Configure a CA instance")
     parser.add_option("--hostname", dest="host_name", help="fully qualified name of server")
     parser.add_option("--ip-address", dest="ip_address", help="Master Server IP Address")
-    # FIXME: Remove this option
-    parser.add_option("--setup-bind", dest="setup_dns", action="store_true",
-                      default=False, help="configure bind with our zone file")
     parser.add_option("--setup-dns", dest="setup_dns", action="store_true",
                       default=False, help="configure bind with our zone")
     parser.add_option("--forwarder", dest="forwarders", action="append",
