@@ -83,6 +83,11 @@ ln -s ../../../..%{_sysconfdir}/ipa/html/ssbrowser.html \
 ln -s ../../../..%{_sysconfdir}/ipa/html/unauthorized.html \
     %{buildroot}%{_usr}/share/ipa/html/unauthorized.html
 
+# So we can own our Apache configuration
+mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/httpd/conf.d
+/bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/ipa.conf
+/bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
+
 %clean
 rm -rf %{buildroot}
 
@@ -140,6 +145,8 @@ fi
 %dir %{_usr}/share/ipa/html
 %{_usr}/share/ipa/html/ssbrowser.html
 %{_usr}/share/ipa/html/unauthorized.html
+%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa.conf
+%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 %dir %{_sysconfdir}/ipa
 %dir %{_sysconfdir}/ipa/html
 %config(noreplace) %{_sysconfdir}/ipa/html/ssbrowser.html
@@ -184,6 +191,9 @@ fi
 %{_mandir}/man1/ipa-compat-manage.1.gz
 
 %changelog
+* Wed Sep  2 2009 Rob Crittenden <rcritten@redhat.com> - 1.2.2-0
+- Own /etc/httpd/conf.d/ipa-*.conf as config files
+
 * Wed Sep 17 2008 Rob Crittenden <rcritten@redhat.com> - 1.2.0-0
 - Add ipa-upgradeconfig command and run it at post
 - Move location of the self-signed CA serial number
