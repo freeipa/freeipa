@@ -310,8 +310,6 @@ def main():
 
     install_krb(config)
     install_http(config)
-    if options.setup_dns:
-        install_bind(config)
     if CA:
         CA.import_ra_cert(dir + "/ra.p12")
         CA.fix_ra_perms()
@@ -343,6 +341,9 @@ def main():
 
     service.restart("dirsrv")
     service.restart("krb5kdc")
+
+    if options.setup_dns:
+        install_bind(config, options)
 
     # Call client install script
     try:

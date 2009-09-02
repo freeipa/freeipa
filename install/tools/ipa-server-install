@@ -633,14 +633,6 @@ def main():
         fd.write("enable_ra=True\n")
     fd.close()
 
-    # Create a BIND instance
-    bind = bindinstance.BindInstance(fstore, dm_password)
-    bind.setup(host_name, ip_address, realm_name, domain_name, dns_forwarders)
-    if options.setup_dns:
-        bind.create_instance()
-    else:
-        bind.create_sample_bind_zone()
-
     # Apply any LDAP updates. Needs to be done after the configuration file
     # is created
     service.print_msg("Applying LDAP updates")
@@ -652,6 +644,14 @@ def main():
 
     service.print_msg("restarting the KDC")
     krb.restart()
+
+    # Create a BIND instance
+    bind = bindinstance.BindInstance(fstore, dm_password)
+    bind.setup(host_name, ip_address, realm_name, domain_name, dns_forwarders)
+    if options.setup_dns:
+        bind.create_instance()
+    else:
+        bind.create_sample_bind_zone()
 
     # Set the admin user kerberos password
     ds.change_admin_password(admin_password)
