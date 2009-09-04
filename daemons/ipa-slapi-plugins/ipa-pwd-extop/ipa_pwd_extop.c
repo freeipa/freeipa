@@ -140,6 +140,9 @@ struct ipapwd_encsalt {
 	krb5_int32	salt_type;
 };
 
+/* base DN of IPA realm tree */
+static const char *ipa_realm_tree;
+/* dn of Kerberos realm entry */
 static const char *ipa_realm_dn;
 static const char *ipa_pwd_config_dn;
 static const char *ipa_changepw_principal_dn;
@@ -1410,7 +1413,7 @@ static int ipapwd_CheckPolicy(struct ipapwd_data *data)
 		/* FIXME: *else* report an error ? */
 	} else {
 		slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
-			"Warning: Last Password Change Time is not available");
+			"Warning: Last Password Change Time is not available\n");
 	}
 
 	/* Check min age */
@@ -3234,9 +3237,219 @@ done:
     return rc;
 }
 
+/* PRE BIND Operation:
+ * Used for password migration from DS to IPA.
+ * Gets the clean text password, authenticates the user and generates
+ * a kerberos key if missing.
+ * Person to blame if anything blows up: Pavel Zuna <pzuna@redhat.com>
+ */
+static int ipapwd_pre_bind(Slapi_PBlock *pb)
+{
+    struct ipapwd_krbcfg *krbcfg = NULL;
+    struct ipapwd_data pwdata;
+    struct berval *credentials; /* bind credentials */
+    Slapi_Entry *entry = NULL;
+    Slapi_Value **pwd_values = NULL; /* values of userPassword attribute */
+    Slapi_Value *value = NULL;
+    Slapi_Attr *attr = NULL;
+    struct tm expire_tm;
+    time_t expire_time;
+    char *errMesg = "Internal operations error\n"; /* error message */
+    char *expire = NULL; /* passwordExpirationTime attribute value */
+    char *dn = NULL; /* bind DN */
+    int method; /* authentication method */
+    int ret = 0;
+
+    slapi_log_error(SLAPI_LOG_TRACE, IPAPWD_PLUGIN_NAME,
+                    "=> ipapwd_pre_bind\n");
+
+    /* get BIND parameters */
+    ret |= slapi_pblock_get(pb, SLAPI_BIND_TARGET, &dn);
+    ret |= slapi_pblock_get(pb, SLAPI_BIND_METHOD, &method);
+    ret |= slapi_pblock_get(pb, SLAPI_BIND_CREDENTIALS, &credentials);
+    if (ret) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_pre_bind",
+                        "slapi_pblock_get failed!?\n");
+        goto done;
+    }
+
+    /* we're only interested in simple authentication */
+    if (method != LDAP_AUTH_SIMPLE)
+        goto done;
+
+    /* list of attributes to retrieve */
+    const char *attrs_list[] = {SLAPI_USERPWD_ATTR, "krbprincipalkey", "uid",
+                                "krbprincipalname", "objectclass",
+                                "passwordexpirationtime",  "passwordhistory",
+                                NULL};
+
+    /* retrieve user entry */
+    ret = ipapwd_getEntry(dn, &entry, (char **) attrs_list);
+    if (ret) {
+        slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
+                        "failed to retrieve user entry: %s\n", dn);
+        goto done;
+    }
+
+    /* check the krbPrincipalName attribute is present */
+    ret = slapi_entry_attr_find(entry, "krbprincipalname", &attr);
+    if (ret) {
+        slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
+                        "no krbPrincipalName in user entry: %s\n", dn);
+        goto done;
+    }
+
+    /* check the krbPrincipalKey attribute is NOT present */
+    ret = slapi_entry_attr_find(entry, "krbprincipalkey", &attr);
+    if (!ret) {
+        slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
+                        "kerberos key already present in user entry: %s\n", dn);
+        goto done;
+    }
+
+    /* retrieve userPassword attribute */
+    ret = slapi_entry_attr_find(entry, SLAPI_USERPWD_ATTR, &attr);
+    if (ret) {
+        slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
+                        "no " SLAPI_USERPWD_ATTR " in user entry: %s\n", dn);
+        goto done;
+    }
+
+    /* get the number of userPassword values and allocate enough memory */
+    slapi_attr_get_numvalues(attr, &ret);
+    ret = (ret + 1) * sizeof (Slapi_Value *);
+    pwd_values = (Slapi_Value **) slapi_ch_malloc(ret);
+    if (!pwd_values) {
+        /* probably not required: should terminate the server anyway */
+        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
+                        "out of memory!?\n");
+        goto done;
+    }
+    /* zero-fill the allocated memory; we need the array ending with NULL */
+    memset(pwd_values, 0, ret);
+
+    /* retrieve userPassword values */
+    ret = slapi_attr_first_value(attr, &value);
+    while (ret != -1) {
+        pwd_values[ret] = value;
+        ret = slapi_attr_next_value(attr, ret, &value);
+    }
+
+    /* check if BIND password and userPassword match */
+    value = slapi_value_new_berval(credentials);
+    ret = slapi_pw_find_sv(pwd_values, value);
+
+    /* free before checking ret; we might not get a chance later */
+    slapi_ch_free((void **) &pwd_values);
+    slapi_value_free(&value);
+
+    if (ret) {
+        slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
+                        "invalid BIND password for user entry: %s\n", dn);
+        goto done;
+    }
+
+    /* general checks */
+    ret = ipapwd_gen_checks(pb, &errMesg, &krbcfg, IPAPWD_CHECK_DN);
+    if (ret) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_pre_bind",
+                        "ipapwd_gen_checks failed: %s", errMesg);
+        goto done;
+    }
+
+    /* delete userPassword - a new one will be generated later */
+    /* this is needed, otherwise ipapwd_CheckPolicy will think
+     * we're changing the password to its previous value
+     * and force a password change on next login  */
+    ret = slapi_entry_attr_delete(entry, SLAPI_USERPWD_ATTR);
+    if (ret) {
+        slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
+                        "failed to delete " SLAPI_USERPWD_ATTR "\n");
+        goto done;
+    }
+
+    /* prepare data for kerberos key generation */
+    memset(&pwdata, 0, sizeof (pwdata));
+    pwdata.dn = dn;
+    pwdata.target = entry;
+    pwdata.password = credentials->bv_val;
+    pwdata.timeNow = time(NULL);
+    pwdata.changetype = IPA_CHANGETYPE_NORMAL;
+
+    /* keep password expiration time from DS, if possible */
+    expire = slapi_entry_attr_get_charptr(entry, "passwordexpirationtime");
+    if (expire) {
+        memset(&expire_tm, 0, sizeof (expire_tm));
+        if (strptime(expire, "%Y%m%d%H%M%SZ", &expire_tm))
+            pwdata.expireTime = mktime(&expire_tm);
+    }
+
+    /* check password policy */
+    ret = ipapwd_CheckPolicy(&pwdata);
+    if (ret) {
+        /* Password fails to meet IPA password policy,
+         * force user to change his password next time he logs in. */
+        slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
+                        "password policy check failed on user entry: %s"
+                        " (force password change on next login)\n", dn);
+        pwdata.expireTime = time(NULL);
+    }
+
+    /* generate kerberos keys */
+    ret = ipapwd_SetPassword(krbcfg, &pwdata);
+    if (ret) {
+        slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
+                        "failed to set kerberos key for user entry: %s\n", dn);
+        goto done;
+    }
+
+    slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
+                    "kerberos key generated for user entry: %s\n", dn);
+
+done:
+    slapi_ch_free_string(&expire);
+    if (entry)
+        slapi_entry_free(entry);
+    free_ipapwd_krbcfg(&krbcfg);
+
+    return 0;
+}
+
+char *ipapwd_getIpaConfigAttr(const char *attr)
+{
+    /* check if migrtion is enabled */
+    Slapi_Entry *entry = NULL;
+    const char *attrs_list[] = {attr, 0};
+    char *value = NULL;
+    char *dn = NULL;
+    int ret;
+
+    dn = slapi_ch_smprintf("cn=ipaconfig,cn=etc,%s", ipa_realm_tree);
+    if (!dn) {
+        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
+                        "Out of memory ?\n");
+        goto done;
+    }
+
+    ret = ipapwd_getEntry(dn, &entry, (char **) attrs_list);
+    if (ret) {
+        slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
+                        "failed to retrieve config entry: %s\n", dn);
+        goto done;
+    }
+
+    value = slapi_entry_attr_get_charptr(entry, attr);
+
+done:
+    slapi_entry_free(entry);
+    slapi_ch_free_string(&dn);
+    return value;
+}
+
 /* PRE ADD Operation:
  * Gets the clean text password (fail the operation if the password came
- * pre-hashed, unless this is a replicated operation).
+ * pre-hashed, unless this is a replicated operation or migration mode is
+ * enabled).
  * Check user is authorized to add it otherwise just returns, operation will
  * fail later anyway.
  * Run a password policy check.
@@ -3302,7 +3515,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
 
             /* unhashed#user#password doesn't always contain the clear text
              * password, therefore we need to check if its value isn't the same
-             * as userPassword, to make sure */
+             * as userPassword to make sure */
             if (!userpw || (0 == strcmp(userpw, userpw_clear))) {
                 rc = LDAP_CONSTRAINT_VIOLATION;
             }
@@ -3311,9 +3524,22 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
             slapi_ch_free_string(&userpw_clear);
 
             if (rc) {
-                /* we don't have access to the clear text password,
-                 * let the operation continue, but don't generate keys */
-                return 0;
+                /* we don't have access to the clear text password;
+                 * let it slide if migration is enabled, but don't
+                 * generate kerberos keys */
+                char *enabled = ipapwd_getIpaConfigAttr("ipamigrationenabled");
+                if (NULL == enabled) {
+                    slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
+                                    "no ipaMigrationEnabled in config;"
+                                    " assuming FALSE\n");
+                } else if (0 == strcmp(enabled, "TRUE")) {
+                    return 0;
+                }
+
+                slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
+                                "pre-hashed passwords are not valid\n");
+                errMesg = "pre-hashed passwords are not valid\n";
+                goto done;
             }
         }
     }
@@ -3850,7 +4076,7 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
     int ret;
 
     slapi_log_error(SLAPI_LOG_TRACE, IPAPWD_PLUGIN_NAME,
-                    "=> ipapwd_post_add\n");
+                    "=> ipapwd_post_op\n");
 
     /* time to get the operation handler */
     ret = slapi_pblock_get(pb, SLAPI_OPERATION, &op);
@@ -3959,11 +4185,10 @@ Slapi_Filter *ipapwd_string2filter(char *strfilter)
 /* Init data structs */
 static int ipapwd_start( Slapi_PBlock *pb )
 {
-	krb5_context krbctx;
+	krb5_context krbctx = NULL;
 	krb5_error_code krberr;
 	char *realm = NULL;
 	char *config_dn;
-	char *partition_dn;
 	Slapi_Entry *config_entry = NULL;
 	int ret;
 
@@ -3985,8 +4210,8 @@ static int ipapwd_start( Slapi_PBlock *pb )
 		goto done;
 	}
 
-	partition_dn = slapi_entry_attr_get_charptr(config_entry, "nsslapd-realmtree");
-	if (!partition_dn) {
+	ipa_realm_tree = slapi_entry_attr_get_charptr(config_entry, "nsslapd-realmtree");
+	if (!ipa_realm_tree) {
 		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Missing partition configuration entry (nsslapd-realmTree)!\n");
 		ret = LDAP_OPERATIONS_ERROR;
 		goto done;
@@ -3998,7 +4223,7 @@ static int ipapwd_start( Slapi_PBlock *pb )
 		ret = LDAP_OPERATIONS_ERROR;
 		goto done;
 	}
-	ipa_realm_dn = slapi_ch_smprintf("cn=%s,cn=kerberos,%s", realm, partition_dn);
+	ipa_realm_dn = slapi_ch_smprintf("cn=%s,cn=kerberos,%s", realm, ipa_realm_tree);
 	if (!ipa_realm_dn) {
 		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory ?\n");
 		ret = LDAP_OPERATIONS_ERROR;
@@ -4067,6 +4292,7 @@ static int ipapwd_pre_init(Slapi_PBlock *pb)
 
     ret = slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *)&pdesc);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_PRE_BIND_FN, (void *)ipapwd_pre_bind);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_PRE_ADD_FN, (void *)ipapwd_pre_add);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_PRE_MODIFY_FN, (void *)ipapwd_pre_mod);
 

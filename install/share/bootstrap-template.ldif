@@ -170,6 +170,7 @@ ipaUserObjectClasses: krbticketpolicyaux
 ipaUserObjectClasses: radiusprofile
 ipaUserObjectClasses: ipaobject
 ipaDefaultEmailDomain: $DOMAIN
+ipaMigrationEnabled: FALSE
 
 dn: cn=account inactivation,cn=accounts,$SUFFIX
 changetype: add
