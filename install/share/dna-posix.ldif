@@ -8,7 +8,7 @@ cn: Posix Accounts
 dnaType: uidNumber
 dnaNextValue: eval($UIDSTART+1)
 dnaInterval: 1
-dnaMaxValue: 1000000000
+dnaMaxValue: eval($UIDSTART+100000)
 dnaMagicRegen: 999
 dnaFilter: (objectclass=posixAccount)
 dnaScope: $SUFFIX
@@ -23,7 +23,7 @@ cn: Posix Groups
 dnaType: gidNumber
 dnaNextValue: eval($GIDSTART+3)
 dnaInterval: 1
-dnaMaxValue: 1000000000
+dnaMaxValue: eval($GIDSTART+100000)
 dnaMagicRegen: 999
 dnaFilter: (objectclass=posixGroup)
 dnaScope: $SUFFIX
