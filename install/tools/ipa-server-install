@@ -544,6 +544,8 @@ def main():
             dns_forwarders = options.forwarders
         else:
             dns_forwarders = read_dns_forwarders()
+    else:
+        dns_forwarders = ()
 
     if not options.unattended:
         print ""
