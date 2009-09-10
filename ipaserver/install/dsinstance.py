@@ -35,7 +35,8 @@ import certs
 import ldap
 from ipaserver import ipaldap
 from ipaserver.install import ldapupdate
-from ipalib import util, errors
+from ipaserver.install import httpinstance
+from ipalib import util
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
@@ -328,12 +329,15 @@ class DsInstance(service.Service):
             nickname = server_certs[0][0]
         else:
             nickname = "Server-Cert"
+            cadb = certs.CertDB(httpinstance.NSS_DIR, host_name=self.host_name)
             if self.self_signed_ca:
-                dsdb.create_self_signed()
-                dsdb.create_server_cert("Server-Cert", self.host_name)
+                cadb.create_self_signed()
+                dsdb.create_from_cacert(cadb.cacert_fname)
+                dsdb.create_server_cert("Server-Cert", self.host_name, cadb)
+                dsdb.create_pin_file()
             else:
-                cadb = certs.CertDB("/etc/httpd/alias", host_name=self.host_name)
-                cadb.export_ca_cert(cadb.cacert_name, False)
+                # FIXME, need to set this nickname in the RA plugin
+                cadb.export_ca_cert('ipaCert', False)
                 dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
                 dsdb.create_server_cert("Server-Cert", self.host_name, cadb)
                 dsdb.create_pin_file()

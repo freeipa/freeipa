@@ -36,6 +36,7 @@ import urllib
 import xml.dom.minidom
 import stat
 from ipapython import dogtag
+import subprocess
 
 from nss.error import NSPRError
 import nss.nss as nss
@@ -73,6 +74,23 @@ Suffix=   $SUFFIX
 RootDN=   cn=Directory Manager
 RootDNPwd= $PASSWORD
 """
+
+def check_inst():
+    """
+    Validate that the appropriate dogtag/RHCS packages have been installed.
+    """
+
+    # Check for a couple of binaries we need
+    if not os.path.exists('/usr/bin/pkicreate'):
+        return False
+    if not os.path.exists('/usr/bin/pkisilent'):
+        return False
+
+    # This is the template tomcat file for a CA
+    if not os.path.exists('/usr/share/pki/ca/conf/server.xml'):
+        return False
+
+    return True
 
 def get_preop_pin(instance_root, instance_name):
     preop_pin = None
@@ -355,6 +373,11 @@ class CAInstance(service.Service):
     NSS database in mod_python. In nsslib.py we do an nssinit but this will
     return success if the database is already initialized. It doesn't care
     if the database is different or not.
+
+    external is a state machine:
+       0 = not an externally signed CA
+       1 = generating CSR to be signed
+       2 = have signed cert, continue installation
     """
 
     def __init__(self):
@@ -365,7 +388,11 @@ class CAInstance(service.Service):
         self.host_name = None
         self.pkcs12_info = None
         self.clone = False
-        self.external = False
+        # for external CAs
+        self.external = 0
+        self.csr_file = None
+        self.cert_file = None
+        self.cert_chain_file = None
 
         # The same database is used for mod_nss because the NSS context
         # will already have been initialized by Apache by the time
@@ -384,7 +411,20 @@ class CAInstance(service.Service):
     def __del__(self):
         shutil.rmtree(self.ca_agent_db, ignore_errors=True)
 
-    def configure_instance(self, pki_user, host_name, dm_password, admin_password, ds_port=DEFAULT_DSPORT, pkcs12_info=None, master_host=None):
+    def configure_instance(self, pki_user, host_name, dm_password,
+                           admin_password, ds_port=DEFAULT_DSPORT,
+                           pkcs12_info=None, master_host=None, csr_file=None,
+                           cert_file=None, cert_chain_file=None):
+        """Create a CA instance. This may involve creating the pki-ca instance
+           dogtag instance.
+
+           To create a clone, pass in pkcs12_info.
+
+           Creating a CA with an external signer is a 2-step process. In
+           step 1 we generate a CSR. In step 2 we are given the cert and
+           chain and actually proceed to create the CA. For step 1 set
+           csr_file. For step 2 set cert_file and cert_chain_file.
+        """
         self.pki_user = pki_user
         self.host_name = host_name
         self.dm_password = dm_password
@@ -395,23 +435,36 @@ class CAInstance(service.Service):
             self.clone = True
         self.master_host = master_host
 
+        # Determine if we are installing as an externally-signed CA and
+        # what stage we're in.
+        if csr_file is not None:
+            self.csr_file=csr_file
+            self.external=1
+        elif cert_file is not None:
+            self.cert_file=cert_file
+            self.cert_chain_file=cert_chain_file
+            self.external=2
+
         if not ipautil.dir_exists("/var/lib/pki-ca"):
             self.step("creating pki-ca instance", self.create_instance)
         self.step("creating certificate server user", self.__create_ca_user)
         self.step("configuring certificate server instance", self.__configure_instance)
-        if not self.clone:
-            self.step("creating CA agent PKCS#12 file in /root", self.__create_ca_agent_pkcs12)
-        self.step("creating RA agent certificate database", self.__create_ra_agent_db)
-        self.step("importing CA chain to RA certificate database", self.__import_ca_chain)
-        if not self.clone:
-            self.step("requesting RA certificate from CA", self.__request_ra_certificate)
-            self.step("issuing RA agent certificate", self.__issue_ra_cert)
-            self.step("adding RA agent as a trusted user", self.__configure_ra)
-        self.step("fixing RA database permissions", self.fix_ra_perms)
-        self.step("setting up signing cert profile", self.__setup_sign_profile)
-        self.step("set up CRL publishing", self.__enable_crl_publish)
-        self.step("configuring certificate server to start on boot", self.__enable)
-        self.step("restarting certificate server", self.__restart_instance)
+        # Step 1 of external is getting a CSR so we don't need to do these
+        # steps until we get a cert back from the external CA.
+        if self.external != 1:
+            if not self.clone:
+                self.step("creating CA agent PKCS#12 file in /root", self.__create_ca_agent_pkcs12)
+            self.step("creating RA agent certificate database", self.__create_ra_agent_db)
+            self.step("importing CA chain to RA certificate database", self.__import_ca_chain)
+            if not self.clone:
+                self.step("requesting RA certificate from CA", self.__request_ra_certificate)
+                self.step("issuing RA agent certificate", self.__issue_ra_cert)
+                self.step("adding RA agent as a trusted user", self.__configure_ra)
+            self.step("fixing RA database permissions", self.fix_ra_perms)
+            self.step("setting up signing cert profile", self.__setup_sign_profile)
+            self.step("set up CRL publishing", self.__enable_crl_publish)
+            self.step("configuring certificate server to start on boot", self.__enable)
+            self.step("restarting certificate server", self.__restart_instance)
 
         self.start_creation("Configuring certificate server:")
 
@@ -433,19 +486,6 @@ class CAInstance(service.Service):
                 '-redirect', 'logs=/var/log/pki-ca',
         ]
         ipautil.run(args)
-
-        # Turn off Nonces
-        if installutils.update_file('/var/lib/pki-ca/conf/CS.cfg', 'ca.enableNonces=true', 'ca.enableNonces=false') != 0:
-            raise RuntimeError("Disabling nonces failed")
-        pent = pwd.getpwnam(self.pki_user)
-        os.chown('/var/lib/pki-ca/conf/CS.cfg', pent.pw_uid, pent.pw_gid )
-
-        logging.debug("restarting ca instance")
-        try:
-            self.restart()
-            logging.debug("done restarting ca instance")
-        except ipautil.CalledProcessError, e:
-            print "failed to restart ca instance", e
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
@@ -470,7 +510,18 @@ class CAInstance(service.Service):
         self.backup_state("user_exists", user_exists)
 
     def __configure_instance(self):
-#--skipcreate -u pkiuser -g pkiuser -p password -a password -d --hostname `hostname` -n IPA
+        # Turn off Nonces
+        if installutils.update_file('/var/lib/pki-ca/conf/CS.cfg', 'ca.enableNonces=true', 'ca.enableNonces=false') != 0:
+            raise RuntimeError("Disabling nonces failed")
+        pent = pwd.getpwnam(self.pki_user)
+        os.chown('/var/lib/pki-ca/conf/CS.cfg', pent.pw_uid, pent.pw_gid )
+
+        logging.debug("restarting ca instance")
+        try:
+            self.restart()
+            logging.debug("done restarting ca instance")
+        except ipautil.CalledProcessError, e:
+            print "failed to restart ca instance", e
 
         preop_pin = get_preop_pin(self.server_root, self.service_name)
 
@@ -506,17 +557,18 @@ class CAInstance(service.Service):
                     "-ca_server_cert_subject_name", "CN=" + self.host_name + ",O=" + self.domain_name,
                     "-ca_audit_signing_cert_subject_name", "\"CN=CA Audit Signing Certificate,O=" + self.domain_name + "\"",
                     "-ca_sign_cert_subject_name", "\"CN=Certificate Authority,O=" + self.domain_name + "\"" ]
-            if (self.external):
+            if self.external == 1:
                 args.append("-external")
                 args.append("true")
-#                args.append("-ext_csr_file")
-#                args.append(ext_csr_file)
-#                if (options.cacertfile):
-#                    args.append("-ext_ca_cert_file")
-#                    args.append(options.cacertfile)
-#                if (options.cacertchainfile):
-#                    args.append("-ext_ca_cert_chain_file")
-#                    args.append(options.cacertchainfile)
+                args.append("-ext_csr_file")
+                args.append(self.csr_file)
+            elif self.external == 2:
+                args.append("-external")
+                args.append("true")
+                args.append("-ext_ca_cert_file")
+                args.append(self.cert_file)
+                args.append("-ext_ca_cert_chain_file")
+                args.append(self.cert_chain_file)
             else:
                 args.append("-external")
                 args.append("false")
@@ -550,6 +602,10 @@ class CAInstance(service.Service):
 
             logging.debug(args)
             ipautil.run(args)
+
+            if self.external == 1:
+                print "The next step is to get %s signed by your CA and re-run ipa-server-install" % self.csr_file
+                sys.exit(0)
 
             # pkisilent doesn't return 1 on error so look at the output of
             # /sbin/service pki-ca status. It will tell us if the instance
@@ -593,11 +649,28 @@ class CAInstance(service.Service):
         os.write(admin_fd, self.admin_password)
         os.close(admin_fd)
 
+        # Look thru the cert chain to get all the certs we need to add
+        # trust for
+        p = subprocess.Popen(["/usr/bin/certutil", "-d", self.ca_agent_db,
+                              "-O", "-n", "ipa-ca-agent"], stdout=subprocess.PIPE)
+
+        chain = p.stdout.read()
+        chain = chain.split("\n")
+
+        root_nickname=[]
+        for i in xrange(len(chain)):
+            m = re.match('\ *"(.*)" \[.*', chain[i])
+            if m:
+                nick = m.groups(0)[0]
+                if nick != "ipa-ca-agent" and nick[:7] != "Builtin":
+                    root_nickname.append(m.groups()[0])
+
         try:
-            self.__run_certutil(
-                ['-M', '-t', 'CT,C,C', '-n',
-                 'Certificate Authority - %s' % self.domain_name
-                 ], database=self.ca_agent_db, pwd_file=self.admin_password)
+            for nick in root_nickname:
+                self.__run_certutil(
+                    ['-M', '-t', 'CT,C,C', '-n',
+                     nick],
+                     database=self.ca_agent_db, pwd_file=self.admin_password)
         finally:
             os.remove(admin_name)
 
@@ -695,7 +768,7 @@ class CAInstance(service.Service):
         ('usertype', "agentType"),
         ('userstate', "1"),
         ('userCertificate', decoded),
-        ('description', '2;7;CN=Certificate Authority,O=%s;CN=RA Subsystem Certificate,OU=pki-ipa,O=%s' % (self.domain_name, self.domain_name)),]
+        ('description', '2;%s;CN=Certificate Authority,O=%s;CN=RA Subsystem Certificate,OU=pki-ipa,O=%s' % (str(self.requestId), self.domain_name, self.domain_name)),]
 
         ld.add_s(entry_dn, entry)
 
@@ -759,16 +832,48 @@ class CAInstance(service.Service):
 
     def __import_ca_chain(self):
         chain = self.__get_ca_chain()
-        (chain_fd, chain_name) = tempfile.mkstemp()
-        os.write(chain_fd, chain)
-        os.close(chain_fd)
-        try:
-            self.__run_certutil(
-                ['-A', '-t', 'CT,C,C', '-n', self.canickname, '-a',
-                 '-i', chain_name]
-            )
-        finally:
-            os.remove(chain_name)
+
+        # If this chain contains multiple certs then certutil will only import
+        # the first one. So we have to pull them all out and import them
+        # separately. Unfortunately no NSS tool can do this so we have to
+        # use openssl.
+
+        # Convert to DER because the chain comes back as one long string which
+        # makes openssl throw up.
+        data = base64.b64decode(chain)
+
+        (certs, stderr) = ipautil.run(["/usr/bin/openssl",
+             "pkcs7",
+             "-inform",
+             "DER",
+             "-print_certs",
+             ], stdin=data)
+
+        # Ok, now we have all the certificates in certs, walk thru it
+        # and pull out each certificate and add it to our database
+
+        st = 1
+        en = 0
+        subid = 0
+        while st > 0:
+            st = certs.find('-----BEGIN', en)
+            en = certs.find('-----END', en+1)
+            if st > 0:
+                try:
+                    (chain_fd, chain_name) = tempfile.mkstemp()
+                    os.write(chain_fd, certs[st:en+25])
+                    os.close(chain_fd)
+                    if subid == 0:
+                        nick = self.canickname
+                    else:
+                        nick = "%s sub %d" % (self.canickname, subid)
+                    self.__run_certutil(
+                        ['-A', '-t', 'CT,C,C', '-n', nick, '-a',
+                         '-i', chain_name]
+                    )
+                finally:
+                    os.remove(chain_name)
+                    subid = subid + 1
 
     def __request_ra_certificate(self):
         # Create a noise file for generating our private key

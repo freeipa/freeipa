@@ -65,8 +65,7 @@ class HTTPInstance(service.Service):
 
         self.step("disabling mod_ssl in httpd", self.__disable_mod_ssl)
         self.step("Setting mod_nss port to 443", self.__set_mod_nss_port)
-        if not self_signed_ca:
-            self.step("Setting mod_nss password file", self.__set_mod_nss_passwordfile)
+        self.step("Setting mod_nss password file", self.__set_mod_nss_passwordfile)
         self.step("Adding URL rewriting rules", self.__add_include)
         self.step("configuring httpd", self.__configure_http)
         self.step("creating a keytab for httpd", self.__create_http_keytab)
@@ -158,7 +157,7 @@ class HTTPInstance(service.Service):
 
     def __setup_ssl(self):
         if self.self_signed_ca:
-            ca_db = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(self.realm)))
+            ca_db = certs.CertDB(NSS_DIR)
         else:
             ca_db = certs.CertDB(NSS_DIR, host_name=self.fqdn)
         db = certs.CertDB(NSS_DIR)
@@ -176,6 +175,7 @@ class HTTPInstance(service.Service):
         else:
             if self.self_signed_ca:
                 db.create_from_cacert(ca_db.cacert_fname)
+                db.create_password_conf()
                 db.create_server_cert("Server-Cert", self.fqdn, ca_db)
                 db.create_signing_cert("Signing-Cert", "Object Signing Cert", ca_db)
             else:
@@ -184,14 +184,27 @@ class HTTPInstance(service.Service):
                 db.create_password_conf()
 
         # Fix the database permissions
-        os.chmod(NSS_DIR + "/cert8.db", 0640)
-        os.chmod(NSS_DIR + "/key3.db", 0640)
-        os.chmod(NSS_DIR + "/secmod.db", 0640)
+        os.chmod(NSS_DIR + "/cert8.db", 0660)
+        os.chmod(NSS_DIR + "/key3.db", 0660)
+        os.chmod(NSS_DIR + "/secmod.db", 0660)
+        os.chmod(NSS_DIR + "/pwdfile.txt", 0660)
 
         pent = pwd.getpwnam("apache")
         os.chown(NSS_DIR + "/cert8.db", 0, pent.pw_gid )
         os.chown(NSS_DIR + "/key3.db", 0, pent.pw_gid )
         os.chown(NSS_DIR + "/secmod.db", 0, pent.pw_gid )
+        os.chown(NSS_DIR + "/pwdfile.txt", 0, pent.pw_gid )
+
+        # Fix SELinux permissions on the database
+        ipautil.run(["/sbin/restorecon", NSS_DIR + "/cert8.db"])
+        ipautil.run(["/sbin/restorecon", NSS_DIR + "/key3.db"])
+
+        # In case this got generated as part of the install, reset the
+        # context
+        if ipautil.file_exists(certs.CA_SERIALNO):
+            ipautil.run(["/sbin/restorecon", certs.CA_SERIALNO])
+            os.chown(certs.CA_SERIALNO, 0, pent.pw_gid)
+            os.chmod(certs.CA_SERIALNO, 0664)
 
     def __setup_autoconfig(self):
         prefs_txt = ipautil.template_file(ipautil.SHARE_DIR + "preferences.html.template", self.sub_dict)
@@ -202,19 +215,20 @@ class HTTPInstance(service.Service):
         # The signing cert is generated in __setup_ssl
         db = certs.CertDB(NSS_DIR)
 
+        pwdfile = open(db.passwd_fname)
+        pwd = pwdfile.read()
+        pwdfile.close()
+
         tmpdir = tempfile.mkdtemp(prefix = "tmp-")
         shutil.copy("/usr/share/ipa/html/preferences.html", tmpdir)
         db.run_signtool(["-k", "Signing-Cert",
                          "-Z", "/usr/share/ipa/html/configure.jar",
-                         "-e", ".html",
+                         "-e", ".html", "-p", pwd,
                          tmpdir])
         shutil.rmtree(tmpdir)
 
     def __publish_ca_cert(self):
-        if self.self_signed_ca:
-            ca_db = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(self.realm)))
-        else:
-            ca_db = certs.CertDB(NSS_DIR)
+        ca_db = certs.CertDB(NSS_DIR)
         shutil.copy(ca_db.cacert_fname, "/usr/share/ipa/html/ca.crt")
         os.chmod("/usr/share/ipa/html/ca.crt", 0444)
 

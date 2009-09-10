@@ -30,6 +30,24 @@ from ipalib import Command, Str, Int, Bytes, Flag
 from ipalib import errors
 from ipalib.plugins.virtual import *
 import base64
+from OpenSSL import crypto
+
+def get_serial(certificate):
+    """
+    Given a certificate, return the serial number in that cert
+
+    In theory there should be only one cert per object so even if we get
+    passed in a list/tuple only return the first one.
+    """
+    if type(certificate) in (list, tuple):
+        certificate = certificate[0]
+    try:
+        x509 = crypto.load_certificate(crypto.FILETYPE_ASN1, certificate)
+        serial = str(x509.get_serial_number())
+    except crypto.Error:
+        raise errors.GenericError(format='Unable to decode certificate in entry')
+
+    return serial
 
 def validate_csr(ugettext, csr):
     """
@@ -76,14 +94,14 @@ class cert_request(VirtualCommand):
         # See if the service exists and punt if it doesn't and we aren't
         # going to add it
         try:
-            service = api.Command['service_show'](principal, **skw)
-            if service.get('usercertificate'):
+            (dn, service) = api.Command['service_show'](principal, **skw)
+            if 'usercertificate' in service:
                 # FIXME, what to do here? Do we revoke the old cert?
-                raise errors.GenericError(format='entry already has a certificate')
+                raise errors.GenericError(format='entry already has a certificate, serial number %s' % get_serial(service['usercertificate']))
 
         except errors.NotFound, e:
             if not add:
-                raise e
+                raise errors.NotFound(reason="The service principal for this request doesn't exist.")
 
         # Request the certificate
         result = self.Backend.ra.request_certificate(csr, **kw)
@@ -103,6 +121,33 @@ class cert_request(VirtualCommand):
             textui.print_entry(result, 0)
         else:
             textui.print_plain('Failed to submit a certificate request.')
+
+    def run(self, *args, **options):
+        """
+        Dispatch to forward() and execute() to do work locally and on the
+        server.
+        """
+        if self.env.in_server:
+            return self.execute(*args, **options)
+
+        # Client-side code
+        csr = args[0]
+        if csr[:7] == "file://":
+            file = csr[7:]
+            try:
+                f = open(file, "r")
+                csr = f.readlines()
+                f.close()
+            except IOError, err:
+                raise errors.ValidationError(name='csr', error=err[1])
+            csr = "".join(csr)
+            # We just want the CSR bits, make sure there is nothing else
+            s = csr.find("-----BEGIN NEW CERTIFICATE REQUEST-----")
+            e = csr.find("-----END NEW CERTIFICATE REQUEST-----")
+            if s >= 0:
+                csr = csr[s+40:e]
+        csr = csr.decode('UTF-8')
+        return self.forward(csr, **options)
 
 api.register(cert_request)
 

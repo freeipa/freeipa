@@ -20,39 +20,22 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Backend plugin for IPA-RA.
-
-The `ra` plugin provides access to the CA to issue, retrieve, and revoke
-certificates via the following methods:
-
-    * `ra.check_request_status()` - check certificate request status.
-    * `ra.get_certificate()` - retrieve an existing certificate.
-    * `ra.request_certificate()` - request a new certificate.
-    * `ra.revoke_certificate()` - revoke a certificate.
-    * `ra.take_certificate_off_hold()` - take a certificate off hold.
+Backend plugin for RA using Dogtag.
 """
 
 from ipalib import api, SkipPluginModule
-if api.env.enable_ra is not True:
+if api.env.ra_plugin != 'dogtag':
     # In this case, abort loading this plugin module...
-    raise SkipPluginModule(reason='env.enable_ra is not True')
-import os, stat, subprocess
-import array
-import errno
-import binascii
+    raise SkipPluginModule(reason='dogtag not selected as RA plugin')
+import os
 from httplib import HTTPConnection
-from urllib import urlencode, quote
-from socket import gethostname
+from urllib import urlencode
+from ipaserver.plugins import rabase
 import socket
-from ipalib import Backend
 from ipalib.errors import NetworkError
-from ipaserver import servercore
-from ipaserver import ipaldap
 from ipalib.constants import TYPE_ERROR
 from ipapython import nsslib
 import nss.nss as nss
-import nss.ssl as ssl
-from nss.error import NSPRError
 import xml.dom.minidom
 
 def get_xml_value(doc, tagname):
@@ -62,7 +45,7 @@ def get_xml_value(doc, tagname):
     except IndexError:
         return None
 
-class ra(Backend):
+class ra(rabase.rabase):
     """
     Request Authority backend plugin.
     """
@@ -110,29 +93,20 @@ class ra(Backend):
         self.debug('request data %s', data)
         return (status, reason, data)
 
-    def _sslget(self, url, **kw):
+    def _sslget(self, url, port, **kw):
         """
         Perform an HTTPS request
 
         :param url: The URL to post to.
         :param kw: Keyword arguments to encode into POST body.
         """
-        uri = 'https://%s:%d%s' % (self.env.ca_host, self.env.ca_ssl_port, url)
+        uri = 'https://%s:%d%s' % (self.env.ca_host, port, url)
         post = urlencode(kw)
         self.info('sslget %r', uri)
         self.debug('sslget post %r', post)
-        argv = [
-            '/usr/bin/sslget',
-            '-n', self.ipa_certificate_nickname,  # nickname
-            '-w', self.pwd_file,  # pwfile
-            '-d', self.sec_dir,  # dbdir
-            '-e', post,  # post
-            '-r', url,  # url
-            '%s:%d' % (self.env.ca_host, self.env.ca_ssl_port),
-        ]
         headers = {"Content-type": "application/x-www-form-urlencoded",
                    "Accept": "text/plain"}
-        conn = nsslib.NSSConnection(self.env.ca_host, self.env.ca_ssl_port, dbdir=self.sec_dir)
+        conn = nsslib.NSSConnection(self.env.ca_host, port, dbdir=self.sec_dir)
         conn.sslsock.set_client_auth_data_callback(nsslib.client_auth_data_callback, self.ipa_certificate_nickname, self.password, nss.get_default_certdb())
         conn.set_debuglevel(10)
         conn.request("POST", url, post, headers)
@@ -194,6 +168,7 @@ class ra(Backend):
         issued_certificate = None
         (status, reason, stdout) = self._sslget(
             '/ca/agent/ca/displayBySerial',
+            self.env.ca_agent_port,
             serialNumber=serial_number,
             xmlOutput='true',
         )
@@ -229,6 +204,7 @@ class ra(Backend):
         self.debug('%s.request_certificate()', self.fullname)
         certificate = None
         (status, reason, stdout) = self._sslget('/ca/ee/ca/profileSubmit',
+            self.env.ca_ee_port,
             profileId='caRAserverCert',
             cert_request_type=request_type,
             cert_request=csr,
@@ -292,6 +268,7 @@ class ra(Backend):
             )
         response = {}
         (status, reason, stdout) = self._sslget('/ca/agent/ca/doRevoke',
+            self.env.ca_agent_port,
             op='revoke',
             revocationReason=revocation_reason,
             revokeAll='(certRecordId=%s)' % serial_number,
@@ -316,6 +293,7 @@ class ra(Backend):
         response = {}
         self.debug('%s.take_certificate_off_hold()', self.fullname)
         (status, reason, stdout) = self._sslget('/ca/agent/ca/doUnrevoke',
+            self.env.ca_agent_port,
             serialNumber=serial_number,
         )
         if (status == 0):

@@ -112,7 +112,8 @@ DEFAULT_CONFIG = (
     # CA plugin:
     ('ca_host', object),  # Set in Env._finalize_core()
     ('ca_port', 9180),
-    ('ca_ssl_port', 9443),
+    ('ca_agent_port', 9443),
+    ('ca_ee_port', 9444),
 
     # Special CLI:
     ('prompt_all', False),
@@ -120,6 +121,7 @@ DEFAULT_CONFIG = (
 
     # Enable certain optional plugins:
     ('enable_ra', False),
+    ('ra_plugin', 'selfsign'),
 
     # ********************************************************
     #  The remaining keys are never set from the values here!

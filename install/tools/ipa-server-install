@@ -52,6 +52,7 @@ from ipaserver.install.installutils import *
 from ipapython import sysrestore
 from ipapython.ipautil import *
 from ipalib import api, util
+from ipalib.constants import DEFAULT_CONFIG
 
 pw_name = None
 
@@ -77,6 +78,12 @@ def parse_options():
                       default=False, help="print debugging information")
     parser.add_option("", "--ca", dest="ca", action="store_true",
                       default=False, help="Configure a CA instance")
+    parser.add_option("", "--external-ca", dest="external_ca", action="store_true",
+                      default=False, help="Generate a CSR to be signed by an external CA")
+    parser.add_option("", "--external_cert_file", dest="external_cert_file",
+                      help="File containing PKCS#10 certificate")
+    parser.add_option("", "--external_ca_file", dest="external_ca_file",
+                      help="File containing PKCS#10 of the external CA chain")
     parser.add_option("--hostname", dest="host_name", help="fully qualified name of server")
     parser.add_option("--ip-address", dest="ip_address", help="Master Server IP Address")
     parser.add_option("--setup-dns", dest="setup_dns", action="store_true",
@@ -137,6 +144,17 @@ def parse_options():
     cnt = pkcs12.count(None)
     if cnt > 0 and cnt < 4:
         parser.error("error: All PKCS#12 options are required if any are used.")
+
+    if (options.external_cert_file or options.external_ca_file) and not options.ca:
+        parser.error("error: --ca required to use the external CA options.")
+
+    if ((options.external_cert_file and not options.external_ca_file) or
+       (not options.external_cert_file and options.external_ca_file)):
+        parser.error("error: if either external option is used, both are required.")
+
+    if options.external_ca and not options.ca:
+        # Go ahead and be nice and fix things up
+        options.ca = True
 
     return options
 
@@ -384,6 +402,14 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
+    # Just initialize the environment. This is so the installer can have
+    # access to the plugin environment
+    api.env._bootstrap()
+    default_config = dict(DEFAULT_CONFIG)
+    if options.ca:
+        default_config['ra_plugin'] = 'dogtag'
+    api.env._finalize_core(**default_config)
+
     if options.uninstall:
         standard_logging_setup("/var/log/ipaserver-uninstall.log", options.debug)
     else:
@@ -423,7 +449,8 @@ def main():
     print "To accept the default shown in brackets, press the Enter key."
     print ""
 
-    check_dirsrv(options.unattended)
+    if not options.external_ca:
+        check_dirsrv(options.unattended)
 
     ds_user = ""
     realm_name = ""
@@ -440,6 +467,18 @@ def main():
             print "--setup-dns was specified but bind or the BIND LDAP plug-in"
             print "is not installed on the system"
             print "Please install bind and the LDAP plug-in and restart the setup program"
+            return 1
+
+    if options.ca:
+        try:
+            from ipaserver.install import cainstance
+        except ImportError:
+            print >> sys.stderr, "Import failed: %s" % sys.exc_value
+            sys.exit(1)
+        if not cainstance.check_inst():
+            print "--ca was specified but the dogtag certificate server"
+            print "is not installed on the system"
+            print "Please install dogtag and restart the setup program"
             return 1
 
     # check the hostname is correctly configured, it must be as the kldap
@@ -551,11 +590,7 @@ def main():
         print ""
         print "The following operations may take some minutes to complete."
         print "Please wait until the prompt is returned."
-
-    # Configure ntpd
-    if options.conf_ntp:
-        ntp = ntpinstance.NTPInstance(fstore)
-        ntp.create_instance()
+        print ""
 
     if options.dirsrv_pin:
         [pw_fd, pw_name] = tempfile.mkstemp()
@@ -575,10 +610,38 @@ def main():
         except:
             pass
 
-        cs = cainstance.CADSInstance()
-        cs.create_instance(ds_user, realm_name, host_name, domain_name, dm_password)
+        # Figure out what state we're in. See cainstance.py for more info on
+        # the 3 states.
+        external = 0
+        if options.external_ca:
+            external = 1
+        if external and ipautil.file_exists("/root/ipa.csr"):
+            external = 2
+            if options.external_cert_file is None or options.external_ca_file is None:
+                print "You have a CA signing request for this server (/root/ipa.csr), you need to include --external_cert_file and --external_ca_file"
+                sys.exit(1);
+        if external and options.external_cert_file and not ipautil.file_exists(options.external_cert_file):
+            print "%s does not exist" % options.external_cert_file
+            sys.exit(1);
+        if external and options.external_ca_file and not ipautil.file_exists(options.external_ca_file):
+            print "%s does not exist" % options.external_ca_file
+            sys.exit(1);
+
+        if options.external_cert_file is None:
+            cs = cainstance.CADSInstance()
+            cs.create_instance(ds_user, realm_name, host_name, domain_name, dm_password)
         ca = cainstance.CAInstance()
-        ca.configure_instance("pkiuser", host_name, dm_password, dm_password)
+        if external == 0:
+            ca.configure_instance("pkiuser", host_name, dm_password, dm_password)
+        elif external == 1:
+            ca.configure_instance("pkiuser", host_name, dm_password, dm_password, csr_file="/root/ipa.csr")
+        else:
+            ca.configure_instance("pkiuser", host_name, dm_password, dm_password, cert_file=options.external_cert_file, cert_chain_file=options.external_ca_file)
+
+    # Configure ntpd
+    if options.conf_ntp:
+        ntp = ntpinstance.NTPInstance(fstore)
+        ntp.create_instance()
 
     # Create a directory server instance
     ds = dsinstance.DsInstance()
@@ -628,8 +691,9 @@ def main():
     fd.write("domain=" + domain_name + "\n")
     fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % host_name)
     fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(realm_name))
+    fd.write("enable_ra=True\n")
     if options.ca:
-        fd.write("enable_ra=True\n")
+        fd.write("ra_plugin=dogtag\n")
     fd.close()
 
     # Apply any LDAP updates. Needs to be done after the configuration file

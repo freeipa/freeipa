@@ -31,6 +31,8 @@ from ipapython import ipautil
 from ipaserver.install import dsinstance, installutils, certs, httpinstance
 from ipaserver import ipaldap
 from ipapython import version
+from ipalib.constants import DEFAULT_CONFIG
+from ipalib import api
 import ldap
 
 def parse_options():
@@ -113,12 +115,13 @@ def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, hostname):
 
         db = certs.CertDB(dir)
         db.create_passwd_file()
-        db.create_certdbs()
-        if self_signed:
-            ca_db = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name)))
-            db.create_from_cacert(ca_db.cacert_fname)
-        else:
-            ca_db = certs.CertDB(httpinstance.NSS_DIR, host_name=get_host_name())
+#        if self_signed:
+#            ca_db = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name)))
+#            db.create_from_cacert(ca_db.cacert_fname)
+#        else:
+#            ca_db = certs.CertDB(httpinstance.NSS_DIR, host_name=get_host_name())
+        ca_db = certs.CertDB(httpinstance.NSS_DIR, host_name=get_host_name())
+        db.create_from_cacert(ca_db.cacert_fname)
         db.create_server_cert("Server-Cert", hostname, ca_db)
     except Exception, e:
         raise e
@@ -211,8 +214,12 @@ def main():
 
     replica_fqdn = args[0]
 
-    # FIXME: need more robust way to determine if dogtag is configured
-    if not certs.ipa_self_signed() and not ipautil.file_exists("/var/lib/pki-ca") and not options.dirsrv_pin:
+    # Just initialize the environment. This is so the installer can have
+    # access to the plugin environment
+    api.env._bootstrap()
+    api.env._finalize_core(**dict(DEFAULT_CONFIG))
+
+    if not certs.ipa_self_signed() and not ipautil.file_exists("/var/lib/pki-ca/conf/CS.cfg") and not options.dirsrv_pin:
         sys.exit("The replica must be created on the primary IPA server.\nIf you installed IPA with your own certificates using PKCS#12 files you must provide PKCS#12 files for any replicas you create as well.")
 
     print "Determining current realm name"

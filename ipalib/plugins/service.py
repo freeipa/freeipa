@@ -33,6 +33,17 @@ from ipalib import uuid
 _container_dn = api.env.container_service
 _default_attributes = ['krbprincipalname', 'usercertificate']
 
+def get_serial(certificate):
+    """
+    Given a certificate, return the serial number in that cert
+    """
+    try:
+        x509 = crypto.load_certificate(crypto.FILETYPE_ASN1, certificate)
+        serial = str(x509.get_serial_number())
+    except crypto.Error:
+        raise errors.GenericError(format='Unable to decode certificate in entry')
+
+    return serial
 
 def split_principal(principal):
     service = hostname = realm = None
@@ -194,10 +205,8 @@ class service_del(crud.Delete):
             'krbprincipalname', principal, 'ipaservice'
         )
 
-        if 'usercerfificate' in entry_attrs:
-            cert = entry_attrs['usercertificate']
-            x509 = crypto.load_certificate(crypto.FILETYPE_ASN1, cert)
-            serial = str(x509.get_serial_number())
+        if 'usercertificate' in entry_attrs:
+            serial = get_serial(entry_attrs['usercertificate'])
             api.Command['cert_revoke'](unicode(serial), revocation_reason=5)
 
         ldap.delete_entry(dn)
@@ -226,9 +235,9 @@ class service_mod(crud.Update):
         dn = ldap.make_dn_from_attr('krbprincipalname', principal, _container_dn)
 
         (dn, old_entry_attrs) = ldap.get_entry(dn)
-        if 'usercertificate' in old_entry_attrs and 'usercerficate' in options:
+        if 'usercertificate' in old_entry_attrs and 'usercertificate' in options:
             # FIXME, what to do here? Do we revoke the old cert?
-            raise errors.GenericError(format='entry already has a certificate')
+            raise errors.GenericError(format='entry already has a certificate, serial number %s' % get_serial(old_entry_attrs['usercertificate']))
 
         try:
             ldap.update_entry(dn, entry_attrs)

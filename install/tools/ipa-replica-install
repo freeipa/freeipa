@@ -32,6 +32,7 @@ from ipaserver.install import bindinstance, httpinstance, ntpinstance, certs
 from ipaserver import ipaldap
 from ipapython import version
 from ipalib import api, util
+from ipalib.constants import DEFAULT_CONFIG
 
 CACERT="/usr/share/ipa/html/ca.crt"
 
@@ -130,7 +131,17 @@ def set_owner(config, dir):
     os.chown(dir, pw.pw_uid, pw.pw_gid)
 
 def install_ca(config):
+    # FIXME, need to pass along the CA plugin to use
     cafile = config.dir + "/ca.p12"
+
+    # Just initialize the environment. This is so the installer can have
+    # access to the plugin environment
+    api.env._bootstrap()
+    default_config = dict(DEFAULT_CONFIG)
+    if ipautil.file_exists(cafile):
+        default_config['ra_plugin'] = 'dogtag'
+    api.env._finalize_core(**default_config)
+
     if not ipautil.file_exists(cafile):
         return None
 
@@ -138,6 +149,12 @@ def install_ca(config):
         from ipaserver.install import cainstance
     except ImportError:
         print >> sys.stderr, "Import failed: %s" % sys.exc_value
+        sys.exit(1)
+
+    if not cainstance.check_inst():
+        print "A CA was specified but the dogtag certificate server"
+        print "is not installed on the system"
+        print "Please install dogtag and restart the setup program"
         sys.exit(1)
 
     cs = cainstance.CADSInstance()
@@ -348,9 +365,10 @@ def main():
     fd.write("realm=" + config.realm_name + "\n")
     fd.write("domain=" + config.domain_name + "\n")
     fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % config.host_name)
-    fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(realm_name))
+    fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(config.realm_name))
     if ipautil.file_exists(config.dir + "/ca.p12"):
         fd.write("enable_ra=True\n")
+        fd.write("ra_plugin=dogtag\n")
     fd.close()
 
     # Apply any LDAP updates. Needs to be done after the replica is synced-up
