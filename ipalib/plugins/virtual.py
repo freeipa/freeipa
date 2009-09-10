@@ -49,7 +49,7 @@ class VirtualCommand(Command):
         if self.operation is None:
             raise errors.ACIError(info='operation not defined')
 
-        ldap = self.api.Backend.ldap
+        ldap = self.api.Backend.ldap2
         self.log.info("IPA: virtual verify %s" % self.operation)
 
         operationdn = "cn=%s,%s,%s" % (self.operation, self.api.env.container_virtual, self.api.env.basedn)
@@ -65,9 +65,9 @@ class VirtualCommand(Command):
         except errors.ACIError, e:
             self.log.debug("%s" % str(e))
             raise errors.ACIError(info='not allowed to perform this command')
-        except errors.DatabaseError:
+        except errors.ObjectclassViolation:
             return
         except Exception, e:
             # Something unexpected happened. Log it and deny access to be safe.
-            self.log.info("Virtual verify failed: %s" % str(e))
+            self.log.info("Virtual verify failed: %s %s" % (type(e), str(e)))
             raise errors.ACIError(info='not allowed to perform this command')

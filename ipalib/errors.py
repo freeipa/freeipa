@@ -1119,6 +1119,21 @@ class LimitsExceeded(ExecutionError):
     errno = 4204
     format = _('limits exceeded for this query')
 
+class ObjectclassViolation(ExecutionError):
+    """
+    **4205** Raised when an entry is missing a required attribute or objectclass
+
+    For example:
+
+    >>> raise ObjectclassViolation(info='attribute "krbPrincipalName" not allowed')
+    Traceback (most recent call last):
+      ...
+    ObjectclassViolation: attribute "krbPrincipalName" not allowed
+    """
+
+    errno = 4205
+    format = _('%(info)s')
+
 
 ##############################################################################
 # 5000 - 5999: Generic errors
