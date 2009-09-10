@@ -378,6 +378,7 @@ class xmlclient(Connectible):
         kw = dict(allow_none=True, encoding='UTF-8')
         if self.env.xmlrpc_uri.startswith('https://'):
             kw['transport'] = KerbTransport()
+        kw['verbose'] = False
         return ServerProxy(self.env.xmlrpc_uri, **kw)
 
     def destroy_connection(self):
