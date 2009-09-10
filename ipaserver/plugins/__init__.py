@@ -18,7 +18,4 @@
 
 """
 Sub-package containing all server plugins.
-
-By convention, modules with frontend plugins are named f_*.py and modules
-with backend plugins are named b_*.py.
 """
