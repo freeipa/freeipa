@@ -122,7 +122,7 @@ class LDAPUpdate:
         else:
             return ""
 
-    def __template_str(self, s):
+    def _template_str(self, s):
         try:
             return ipautil.template_str(s, self.sub_dict)
         except KeyError, e:
@@ -199,7 +199,7 @@ class LDAPUpdate:
     def parse_update_file(self, data, all_updates, dn_list):
         """Parse the update file into a dictonary of lists and apply the update
            for each DN in the file."""
-        valid_keywords = ["default", "add", "remove", "only"]
+        valid_keywords = ["default", "add", "remove", "only", "deleteentry"]
         update = {}
         d = ""
         index = ""
@@ -219,12 +219,12 @@ class LDAPUpdate:
 
                 update = {}
                 dn = line[3:].strip()
-                update['dn'] = self.__template_str(dn)
+                update['dn'] = self._template_str(dn)
             else:
                 if dn is None:
                     raise BadSyntax, "dn is not defined in the update"
 
-                line = self.__template_str(line)
+                line = self._template_str(line)
                 if line.startswith(' '):
                     v = d[len(d) - 1]
                     v = v + line[1:]
@@ -271,7 +271,7 @@ class LDAPUpdate:
         # randomness for good measure.
         self.sub_dict['TIME'] = int(time.time()) + r.randint(0,10000)
 
-        cn = self.__template_str("indextask_$TIME")
+        cn = self._template_str("indextask_$TIME")
         dn = "cn=%s, cn=index, cn=tasks, cn=config" % cn
 
         e = ipaldap.Entry(dn)
@@ -368,7 +368,7 @@ class LDAPUpdate:
         """updates is a list of changes to apply
            entry is the thing to apply them to
 
-           returns the modified entry
+           Returns the modified entry
         """
         if not updates:
             return entry
@@ -416,6 +416,9 @@ class LDAPUpdate:
                         only[k] = True
                     entry.setValues(k, e)
                     logging.debug('only: updated value %s', e)
+                elif utype == 'deleteentry':
+                    # skip this update type, it occurs in  __delete_entries()
+                    return None
 
                 self.print_entity(entry)
 
@@ -436,6 +439,7 @@ class LDAPUpdate:
                 logging.debug(a + ": ")
                 for l in value:
                     logging.debug("\t" + l)
+
     def is_schema_updated(self, s):
         """Compare the schema in 's' with the current schema in the DS to
            see if anything has changed. This should account for syntax
@@ -489,6 +493,9 @@ class LDAPUpdate:
 
         # Bring this entry up to date
         entry = self.__apply_updates(update.get('updates'), entry)
+        if entry is None:
+            # It might be None if it is just deleting an entry
+            return
 
         self.print_entity(entry, "Final value")
 
@@ -500,6 +507,7 @@ class LDAPUpdate:
             try:
                 if self.live_run:
                     self.conn.addEntry(entry.dn, entry.toTupleList())
+                self.modified = True
             except Exception, e:
                 logging.error("Add failure %s", e)
         else:
@@ -531,6 +539,34 @@ class LDAPUpdate:
 
             if updated:
                 self.modified = True
+        return
+
+    def __delete_record(self, updates):
+        """
+        Run through all the updates again looking for any that should be
+        deleted.
+
+        This must use a reversed list so that the longest entries are
+        considered first so we don't end up trying to delete a parent
+        and child in the wrong order.
+        """
+        dn = updates['dn']
+        updates = updates['updates']
+        for u in updates:
+            # We already do syntax-parsing so this is safe
+            (utype, k, values) = u.split(':',2)
+
+            if utype == 'deleteentry':
+                try:
+                   if self.live_run:
+                       self.conn.deleteEntry(dn)
+                   self.modified = True
+                except errors.NotFound, e:
+                    logging.info("Deleting non-existant entry %s", e)
+                    self.modified = True
+                except errors.DatabaseError, e:
+                    logging.error("Delete failed: %s", e)
+
         return
 
     def get_all_files(self, root, recursive=False):
@@ -566,11 +602,18 @@ class LDAPUpdate:
 
                 (all_updates, dn_list) = self.parse_update_file(data, all_updates, dn_list)
 
+            # For adds and updates we want to apply updates from shortest
+            # to greatest length of the DN. For deletes we want the reverse.
             sortedkeys = dn_list.keys()
             sortedkeys.sort()
             for k in sortedkeys:
                 for dn in dn_list[k]:
                     self.__update_record(all_updates[dn])
+
+            sortedkeys.reverse()
+            for k in sortedkeys:
+                for dn in dn_list[k]:
+                    self.__delete_record(all_updates[dn])
         finally:
             if self.conn: self.conn.unbind()
 
