@@ -260,6 +260,7 @@ AC_CONFIG_FILES([
     Makefile
     ipa-kpasswd/Makefile
     ipa-slapi-plugins/Makefile
+    ipa-slapi-plugins/ipa-enrollment/Makefile
     ipa-slapi-plugins/ipa-memberof/Makefile
     ipa-slapi-plugins/ipa-pwd-extop/Makefile
     ipa-slapi-plugins/ipa-winsync/Makefile

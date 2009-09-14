@@ -479,6 +479,8 @@ static int ldap_set_keytab(krb5_context krbctx,
 			   const char *servername,
 			   const char *principal_name,
 			   krb5_principal princ,
+			   const char *binddn,
+			   const char *bindpw,
 			   struct keys_container *keys)
 {
 	int version;
@@ -513,7 +515,20 @@ static int ldap_set_keytab(krb5_context krbctx,
 	}
 
 	/* TODO: support referrals ? */
-	ld = ldap_init(servername, 389);
+	if (binddn) {
+		int ssl = LDAP_OPT_X_TLS_HARD;;
+		if (ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTFILE, "/etc/ipa/ca.crt") != LDAP_OPT_SUCCESS) {
+			goto error_out;
+		}
+
+		ld = ldap_init(servername, 636);
+		if (ldap_set_option(ld, LDAP_OPT_X_TLS, &ssl) != LDAP_OPT_SUCCESS) {
+			goto error_out;
+		}
+	} else {
+		ld = ldap_init(servername, 389);
+	}
+
 	if(ld == NULL) {
 		fprintf(stderr, "Unable to initialize ldap library!\n");
 		goto error_out;
@@ -526,14 +541,22 @@ static int ldap_set_keytab(krb5_context krbctx,
 		goto error_out;
 	}
 
-	ret = ldap_sasl_interactive_bind_s(ld,
-					   NULL, "GSSAPI",
-					   NULL, NULL,
-					   LDAP_SASL_QUIET,
-					   ldap_sasl_interact, princ);
-	if (ret != LDAP_SUCCESS) {
-		fprintf(stderr, "SASL Bind failed!\n");
-		goto error_out;
+	if (binddn) {
+		ret = ldap_bind_s(ld, binddn, bindpw, LDAP_AUTH_SIMPLE);
+		if (ret != LDAP_SUCCESS) {
+			fprintf(stderr, "Simple bind failed\n");
+			goto error_out;
+		}
+	} else {
+		ret = ldap_sasl_interactive_bind_s(ld,
+						   NULL, "GSSAPI",
+						   NULL, NULL,
+						   LDAP_SASL_QUIET,
+						   ldap_sasl_interact, princ);
+		if (ret != LDAP_SUCCESS) {
+			fprintf(stderr, "SASL Bind failed!\n");
+			goto error_out;
+		}
 	}
 
 	/* find base dn */
@@ -686,6 +709,8 @@ int main(int argc, char *argv[])
 	static const char *principal = NULL;
 	static const char *keytab = NULL;
 	static const char *enctypes_string = NULL;
+	static const char *binddn = NULL;
+	static const char *bindpw = NULL;
 	int quiet = 0;
 	int askpass = 0;
 	int permitted_enctypes = 0;
@@ -697,6 +722,8 @@ int main(int argc, char *argv[])
 		{ "enctypes", 'e', POPT_ARG_STRING, &enctypes_string, 0, "Encryption types to request", "Comma separated encryption types list" },
 		{ "permitted-enctypes", 0, POPT_ARG_NONE, &permitted_enctypes, 0, "Show the list of permitted encryption types and exit", "Permitted Encryption Types"},
 		{ "password", 'P', POPT_ARG_NONE, &askpass, 0, "Asks for a non-random password to use for the principal" },
+		{ "binddn", 'D', POPT_ARG_STRING, &binddn, 0, "LDAP DN", "DN to bind as if not using kerberos" },
+		{ "bindpw", 'w', POPT_ARG_STRING, &bindpw, 0, "LDAP password", "password to use if not using kerberos" },
 		{ NULL, 0, POPT_ARG_NONE, NULL, 0, NULL, NULL }
 	};
 	poptContext pc;
@@ -751,6 +778,13 @@ int main(int argc, char *argv[])
 		exit(2);
 	}
 
+	if (NULL!=binddn && NULL==bindpw) {
+		fprintf(stderr, "Bind password required when using a bind DN.\n");
+		if (!quiet)
+			poptPrintUsage(pc, stderr, 0);
+		exit(10);
+	}
+
         if (askpass) {
 		password = ask_password(krbctx);
 		if (!password) {
@@ -773,6 +807,7 @@ int main(int argc, char *argv[])
 		exit(4);
 	}
 
+	if (NULL == bindpw) {
 	krberr = krb5_cc_default(krbctx, &ccache);
 	if (krberr) {
 		fprintf(stderr, "Kerberos Credential Cache not found\n"
@@ -785,6 +820,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Kerberos User Principal not found\n"
 				"Do you have a valid Credential Cache?\n");
 		exit(6);
+	}
 	}
 
 	krberr = krb5_kt_resolve(krbctx, ktname, &kt);
@@ -800,7 +836,7 @@ int main(int argc, char *argv[])
 		exit(8);
 	}
 
-	kvno = ldap_set_keytab(krbctx, server, principal, uprinc, &keys);
+	kvno = ldap_set_keytab(krbctx, server, principal, uprinc, binddn, bindpw, &keys);
 	if (!kvno) {
 		exit(9);
 	}

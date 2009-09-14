@@ -207,7 +207,7 @@ export CPPFLAGS="$CPPFLAGS %{optflags}"
 make version-update
 touch daemons/NEWS daemons/README daemons/AUTHORS daemons/ChangeLog
 touch install/NEWS install/README install/AUTHORS install/ChangeLog
-cd ipa-client; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
+cd ipa-client; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir} --with-openldap; cd ..
 cd daemons; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
 cd install; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
 
@@ -225,6 +225,7 @@ make install DESTDIR=%{buildroot}
 # Remove .la files from libtool - we don't want to package
 # these files
 rm %{buildroot}/%{plugin_dir}/libipa_pwd_extop.la
+rm %{buildroot}/%{plugin_dir}/libipa_enrollment_extop.la
 rm %{buildroot}/%{plugin_dir}/libipa-memberof-plugin.la
 rm %{buildroot}/%{plugin_dir}/libipa_winsync.la
 
@@ -355,6 +356,7 @@ fi
 %dir %{_usr}/share/ipa/updates/
 %{_usr}/share/ipa/updates/*
 %attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so
+%attr(755,root,root) %{plugin_dir}/libipa_enrollment_extop.so
 %attr(755,root,root) %{plugin_dir}/libipa-memberof-plugin.so
 %attr(755,root,root) %{plugin_dir}/libipa_winsync.so
 %dir %{_localstatedir}/lib/ipa
@@ -382,6 +384,7 @@ fi
 %doc LICENSE README
 %{_sbindir}/ipa-client-install
 %{_sbindir}/ipa-getkeytab
+%{_sbindir}/ipa-join
 %dir %{_usr}/share/ipa
 %dir %{_usr}/share/ipa/ipaclient
 %dir %{_localstatedir}/lib/ipa-client

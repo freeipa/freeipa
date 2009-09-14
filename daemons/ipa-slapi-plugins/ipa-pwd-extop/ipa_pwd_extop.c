@@ -2088,6 +2088,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	Slapi_Entry *targetEntry=NULL;
 	struct berval *bval = NULL;
 	Slapi_Value **svals = NULL;
+	Slapi_Value **evals = NULL;
 	const char *bdn;
 	const Slapi_DN *bsdn;
 	Slapi_DN *sdn;
@@ -2095,7 +2096,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	Slapi_Entry **es = NULL;
 	int scope, res;
 	char *filter;
-	char *attrlist[] = {"krbPrincipalKey", "krbLastPwdChange", NULL };
+	char *attrlist[] = {"krbPrincipalKey", "krbLastPwdChange", "userPassword", "krbPrincipalName", "enrolledBy", NULL };
 	krb5_context krbctx = NULL;
 	krb5_principal krbname = NULL;
 	krb5_error_code krberr;
@@ -2108,6 +2109,8 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	struct tm utctime;
 	char timestr[GENERALIZED_TIME_LENGTH+1];
 	time_t time_now = time(NULL);
+	char *pw = NULL;
+	char *krbPrincipalName = NULL;
 
 	svals = (Slapi_Value **)calloc(2, sizeof(Slapi_Value *));
 	if (!svals) {
@@ -2522,6 +2525,31 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 
 	slapi_mods_add_mod_values(smods, LDAP_MOD_REPLACE, "krbPrincipalKey", svals);
 
+	/* If we are creating a keytab for a host service attempt to remove
+	 * the userPassword attribute if it exists
+	*/
+	pw = slapi_entry_attr_get_charptr(targetEntry, "userPassword");
+	krbPrincipalName = slapi_entry_attr_get_charptr(targetEntry, "krbPrincipalName");
+	if ((strncmp(krbPrincipalName, "host/", 5) == 0)) {
+		char * krbLastPwdChange = slapi_entry_attr_get_charptr(targetEntry, "krbLastPwdChange");
+		char * enrolledBy = slapi_entry_attr_get_charptr(targetEntry, "enrolledBy");
+		if (NULL == enrolledBy) {
+			evals = (Slapi_Value **)calloc(2, sizeof(Slapi_Value *));
+			evals[0] = slapi_value_new_string(bindDN);
+			slapi_mods_add_mod_values(smods, LDAP_MOD_ADD, "enrolledBy", evals);
+		} else {
+			slapi_ch_free_string(&enrolledBy);
+		}
+		if ((NULL != pw) && (NULL == krbLastPwdChange)) {
+			slapi_mods_add_mod_values(smods, LDAP_MOD_DELETE, "userPassword", NULL);
+			slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
+					"Removing userPassword from host entry\n");
+			slapi_ch_free_string(&pw);
+		}
+		slapi_ch_free_string(&krbLastPwdChange);
+	}
+	slapi_ch_free_string(&krbPrincipalName);
+
 	/* commit changes */
 	ret = ipapwd_apply_mods(slapi_entry_get_dn_const(targetEntry), smods);
 
@@ -2603,10 +2631,18 @@ free_and_return:
 		}
 		free(svals);
 	}
+	if (evals) {
+		for (i = 0; evals[i]; i++) {
+			slapi_value_free(&evals[i]);
+		}
+		free(evals);
+	}
 
 	if (krbname) krb5_free_principal(krbctx, krbname);
 	if (krbctx) krb5_free_context(krbctx);
 
+        if (rc == LDAP_SUCCESS)
+            errMesg = NULL;
 	slapi_log_error(SLAPI_LOG_PLUGIN, "ipa_pwd_extop", errMesg ? errMesg : "success");
 	slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
 
@@ -2938,6 +2974,8 @@ static int ipapwd_gen_checks(Slapi_PBlock *pb, char **errMesg,
         }
         sdn = slapi_sdn_new_dn_byref(dn);
         if (!sdn) {
+            slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
+                            "Unable to convert dn to sdn %s", dn?dn:"<NULL>");
             *errMesg = "Internal Error";
             rc = LDAP_OPERATIONS_ERROR;
             goto done;

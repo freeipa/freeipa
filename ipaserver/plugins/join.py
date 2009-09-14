@@ -67,6 +67,14 @@ class join(Command):
             create_default=lambda **kw: get_realm(),
             autofill=True,
         ),
+        Str('nshardwareplatform?',
+            cli_name='platform',
+            doc='Hardware platform of the host (e.g. Lenovo T61)',
+        ),
+        Str('nsosversion?',
+            cli_name='os',
+            doc='Operating System and version of the host (e.g. Fedora 9)',
+        ),
     )
 
     def execute(self, hostname, **kw):
@@ -79,37 +87,34 @@ class join(Command):
         :param kw: Keyword arguments for the other attributes.
         """
         assert 'cn' not in kw
+        ldap = self.api.Backend.ldap2
 
+        host = None
         try:
-            host = api.Command['host_show'](hostname)
-        except errors.NotFound:
-            pass
-        else:
-            raise errors.DuplicateEntry
+            # First see if the host exists
+            kw = {'fqdn': hostname, 'all': True}
+            (dn, attrs_list) = api.Command['host_show'](**kw)
 
-        return api.Command['host_add'](hostname)
+            # If no principal name is set yet we need to try to add
+            # one.
+            if 'krbprincipalname' not in attrs_list:
+                service = "host/%s@%s" % (hostname, api.env.realm)
+                (d, a) = api.Command['host_mod'](hostname, krbprincipalname=service)
+
+            # It exists, can we write the password attributes?
+            allowed = ldap.can_write(dn, 'krblastpwdchange')
+            if not allowed:
+                raise errors.ACIError(info="Insufficient 'write' privilege to the 'krbLastPwdChange' attribute of entry '%s'." % dn)
+
+            kw = {'fqdn': hostname, 'all': True}
+            (dn, attrs_list) = api.Command['host_show'](**kw)
+        except errors.NotFound:
+            (dn, attrs_list) = api.Command['host_add'](hostname)
+
+        return (dn, attrs_list)
 
     def output_for_cli(self, textui, result, args, **options):
         textui.print_plain("Welcome to the %s realm" % options['realm'])
         textui.print_plain("Your keytab is in %s" % result.get('keytab'))
-
-    def run(self, *args, **options):
-        """
-        Dispatch to forward() and execute() to do work locally and on the
-        server.
-        """
-        if self.env.in_server:
-            return self.execute(*args, **options)
-
-        # This forward will call the server-side portion of join
-        result = self.forward(*args, **options)
-
-        self._get_keytab(result['krbprincipalname'])
-        result['keytab'] = '/etc/krb5.keytab'
-        return result
-
-    def _get_keytab(self, principal, stdin=None):
-        args = ["/usr/sbin/ipa-getkeytab", "-s", self.env.host, "-p", principal,"-k", "/etc/krb5.keytab"]
-        return ipautil.run(args, stdin)
 
 api.register(join)

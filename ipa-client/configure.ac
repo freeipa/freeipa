@@ -157,6 +157,30 @@ if test "x$PYTHON" = "x" ; then
 fi
 
 dnl ---------------------------------------------------------------------------
+dnl - Check for CURL
+dnl ---------------------------------------------------------------------------
+
+CURL_LIBS=
+AC_CHECK_HEADER(curl/curl.h)
+AC_CHECK_LIB(curl, curl_easy_init, [CURL_LIBS="-lcurl"])
+if test "x$CURL_LIBS" = "x" ; then
+  AC_MSG_ERROR([curl not found])
+fi
+AC_SUBST(CURL_LIBS)
+
+dnl ---------------------------------------------------------------------------
+dnl - Check for XMLRPC-C
+dnl ---------------------------------------------------------------------------
+
+XMLRPC_LIBS=
+AC_CHECK_HEADER(xmlrpc-c/base.h)
+AC_CHECK_LIB(xmlrpc_client, xmlrpc_client_init2, [XMLRPC_LIBS="-lxmlrpc -lxmlrpc_client -lxmlrpc_util"])
+if test "x$XMLRPC_LIBS" = "x" ; then
+  AC_MSG_ERROR([xmlrpc-c not found])
+fi
+AC_SUBST(XMLRPC_LIBS)
+
+dnl ---------------------------------------------------------------------------
 dnl - Set the data install directory since we don't use pkgdatadir
 dnl ---------------------------------------------------------------------------
 

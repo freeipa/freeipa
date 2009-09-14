@@ -225,6 +225,7 @@ def main():
         defopts = [{'name':'basedn', 'type':'option', 'value':cli_basedn},
                    {'name':'realm', 'type':'option', 'value':cli_realm},
                    {'name':'domain', 'type':'option', 'value':cli_domain},
+                   {'name':'server', 'type':'option', 'value':cli_server},
                    {'name':'xmlrpc_uri', 'type':'option', 'value':'https://%s/ipa/xml' % cli_server}]
 
         opts.append({'name':'global', 'type':'section', 'value':defopts})

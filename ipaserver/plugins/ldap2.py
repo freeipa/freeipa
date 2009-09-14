@@ -31,15 +31,18 @@ import os
 import socket
 import string
 
+import krbV
 import ldap as _ldap
 import ldap.filter as _ldap_filter
 import ldap.sasl as _ldap_sasl
+from ldap.controls import LDAPControl
 # for backward compatibility
 from ldap.functions import explode_dn
 
 from ipalib import api, errors
 from ipalib.crud import CrudBackend
 from ipalib.encoder import Encoder, encode_args, decode_retval
+from ipalib.request import context
 
 # attribute syntax to python type mapping, 'SYNTAX OID': type
 # everything not in this dict is considered human readable unicode
@@ -140,7 +143,11 @@ _schema = _load_schema(api.env.ldap_uri)
 
 def _get_syntax(attr, value):
     schema = api.Backend.ldap2._schema
-    return schema.get_obj(_ldap.schema.AttributeType, attr).syntax
+    obj = schema.get_obj(_ldap.schema.AttributeType, attr)
+    if obj is not None:
+        return obj.syntax
+    else:
+        return None
 
 
 # ldap backend class
@@ -215,6 +222,9 @@ class ldap2(CrudBackend, Encoder):
         if ccache is not None:
             os.environ['KRB5CCNAME'] = ccache
             conn.sasl_interactive_bind_s('', _sasl_auth)
+            principal = krbV.CCache(name=ccache,
+                        context=krbV.default_context()).principal().name
+            setattr(context, "principal", principal)
         else:
             # no kerberos ccache, use simple bind
             conn.simple_bind_s(bind_dn, bind_pw)
@@ -484,6 +494,36 @@ class ldap2(CrudBackend, Encoder):
     def get_schema(self):
         """Returns a copy of the current LDAP schema."""
         return copy.deepcopy(self._schema)
+
+    @encode_args(1, 2)
+    def get_effective_rights(self, dn, entry_attrs):
+        """Returns the rights the currently bound user has for the given DN.
+
+           Returns 2 attributes, the attributeLevelRights for the given list of
+           attributes and the entryLevelRights for the entry itself.
+        """
+        principal = getattr(context, 'principal')
+        (binddn, attrs) = self.find_entry_by_attr("krbprincipalname", principal, "posixAccount")
+        sctrl = [LDAPControl("1.3.6.1.4.1.42.2.27.9.5.2", True, "dn: " + binddn.encode('UTF-8'))]
+        self.conn.set_option(_ldap.OPT_SERVER_CONTROLS, sctrl)
+        (dn, attrs) = self.get_entry(dn, entry_attrs)
+        # remove the control so subsequent operations don't include GER
+        self.conn.set_option(_ldap.OPT_SERVER_CONTROLS, [])
+        return (dn, attrs)
+
+    @encode_args(1, 2)
+    def can_write(self, dn, attr):
+        """Returns True/False if the currently bound user has write permissions
+           on the attribute. This only operates on a single attribute at a time.
+        """
+        (dn, attrs) = self.get_effective_rights(dn, [attr])
+        if 'attributelevelrights' in attrs:
+            attr_rights = attrs.get('attributelevelrights')[0].decode('UTF-8')
+            (attr, rights) = attr_rights.split(':')
+            if 'w' in rights:
+                return True
+
+        return False
 
     @encode_args(1, 2)
     def update_entry_rdn(self, dn, new_rdn, del_old=True):

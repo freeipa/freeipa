@@ -21,13 +21,9 @@
 Hosts/Machines (Identity)
 """
 
-import platform
-import os
-import sys
-
 from ipalib import api, crud, errors, util
 from ipalib import Object
-from ipalib import Str, Flag
+from ipalib import Str, Flag, List
 from ipalib.plugins.service import split_principal
 from ipalib import uuid
 
@@ -59,25 +55,6 @@ def validate_host(ugettext, fqdn):
         return 'Fully-qualified hostname required'
     return None
 
-def determine_os():
-    """
-    Return OS name (e.g. redhat 10 Cambridge).
-    """
-    (sysname, nodename, release, version, machine) = os.uname()
-    if sys.platform == 'linux2':
-        # something like 'fedora 9 Sulpher'
-        return unicode(' '.join(platform.dist()))
-    else:
-        # on Solaris this will be: 'SunOS 5.10'
-        return unicode(sysname + ' ' + release)
-
-def determine_platform():
-    """
-    Return platform name (e.g. i686).
-    """
-    (sysname, nodename, release, version, machine) = os.uname()
-    return unicode(machine)
-
 
 class host(Object):
     """
@@ -106,14 +83,10 @@ class host(Object):
         Str('nshardwareplatform?',
             cli_name='platform',
             doc='Hardware platform of the host (e.g. Lenovo T61)',
-            default=determine_platform(),
-            autofill=True,
         ),
         Str('nsosversion?',
             cli_name='os',
             doc='Operating System and version of the host (e.g. Fedora 9)',
-            default=determine_os(),
-            autofill=True,
         ),
         Str('userpassword?',
             cli_name='password',
@@ -156,13 +129,6 @@ class host_add(crud.Create):
         dn = ldap.make_dn(entry_attrs, 'fqdn', _container_dn)
 
         # FIXME: do a DNS lookup to ensure host exists
-
-        current = util.get_current_principal()
-        if not current:
-            raise errors.NotFound(reason='Unable to determine current user')
-        entry_attrs['enrolledby'] = ldap.find_entry_by_attr(
-            'krbprincipalname', current, 'posixAccount'
-        )[0]
 
         # FIXME: add this attribute to cn=ipaconfig
         # config = ldap.get_ipa_config()[1]
@@ -242,6 +208,15 @@ class host_mod(crud.Update):
     """
     Modify host.
     """
+
+    takes_options = (
+        Str('krbprincipalname?',
+            cli_name='principalname',
+            doc='Kerberos principal name for this host',
+            attribute=True
+        ),
+    )
+
     def execute(self, hostname, **kw):
         """
         Execute the host-mod operation.
@@ -260,6 +235,14 @@ class host_mod(crud.Update):
         dn = get_host(ldap, hostname)
 
         entry_attrs = self.args_options_2_entry(**kw)
+
+        # Once a principal name is set it cannot be changed
+        if 'krbprincipalname' in entry_attrs:
+            (d, e) = api.Command['host_show'](hostname, all=True)
+            if 'krbprincipalname' in e:
+                raise errors.ACIError(info='Principal name already set, it is unchangeable.')
+            entry_attrs['objectclass'] = e['objectclass']
+            entry_attrs['objectclass'].append('krbprincipalaux')
 
         try:
             ldap.update_entry(dn, entry_attrs)
@@ -349,7 +332,11 @@ class host_show(crud.Retrieve):
     """
     takes_options = (
         Flag('all',
+            cli_short_name='a',
             doc='Retrieve all attributes'
+        ),
+        List('attrs?',
+            doc='comma-separated list of attributes to display'
         ),
     )
 
@@ -371,7 +358,10 @@ class host_show(crud.Retrieve):
         if kw['all']:
             attrs_list = ['*']
         else:
-            attrs_list = _default_attributes
+            if 'attrs' in kw:
+                attrs_list = kw['attrs']
+            else:
+                attrs_list = _default_attributes
 
         return ldap.get_entry(dn, attrs_list)
 
@@ -383,4 +373,3 @@ class host_show(crud.Retrieve):
         textui.print_entry(entry_attrs)
 
 api.register(host_show)
-

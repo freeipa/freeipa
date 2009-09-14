@@ -222,8 +222,9 @@ add:aci: '(target = "ldap:///cn=*,cn=computers,cn=accounts,$SUFFIX")(version
 add:aci: '(target = "ldap:///cn=*,cn=computers,cn=accounts,$SUFFIX")(version
   3.0;acl "Remove Hosts";allow (delete) groupdn = "ldap:///cn=removehosts,cn=
  taskgroups,cn=accounts,$SUFFIX";)'
-add:aci: '(targetattr = "cn || description || locality || location || platform
- || os")(target = "ldap:///cn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;
+add:aci: '(targetattr = "cn || description || l || location ||
+ nshardwareplatform || nsosversion")
+ (target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;
  acl "Modify Hosts";allow (write) groupdn = "ldap:///cn=modifyhosts,
  cn=taskgroups,cn=accounts,$SUFFIX";)'
 
@@ -449,16 +450,36 @@ add:member:'cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 # Add the ACI needed to do host keytab admin
 dn: $SUFFIX
-add:aci: '(targetattr = "krbPrincipalKey")(target = "ldap:///cn=*,
-  cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Manage host keytab";
+add:aci: '(targetattr = "krbPrincipalKey || krbLastPwdChange")
+  (target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")
+  (version 3.0;acl "Manage host keytab";
   allow (write) groupdn = "ldap:///cn=manage_host_keytab,cn=taskgroups,
+  cn=accounts,$SUFFIX";)'
+
+# Taskgroup for enrolling hosts. Note that this also requires
+# manage_host_keytab access
+dn: cn=enroll_host,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: groupofnames
+add:cn: enroll_host
+add:description: Enroll a host
+add:member:'cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX'
+
+# Add the ACI needed to do host enrollment. When this occurs we
+# set the krbPrincipalName, add krbPrincipalAux to objectClass and
+# set enrolledBy to whoever ran join.
+dn: $SUFFIX
+add:aci: '(targetattr = "krbPrincipalName || enrolledBy || objectClass")
+  (target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")
+  (version 3.0;acl "Enroll a host";
+  allow (write) groupdn = "ldap:///cn=enroll_host,cn=taskgroups,
   cn=accounts,$SUFFIX";)'
 
 # Taskgroup for updating the DNS entries
 dn: cn=update_dns,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
 add:objectClass: groupofnames
-add:cn: manage_host_keytab
+add:cn: update_sn
 add:description: Updates DNS
 add:member:'cn=dnsadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 add:member:'cn=dnsserver,cn=rolegroups,cn=accounts,$SUFFIX'
