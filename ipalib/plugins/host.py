@@ -21,31 +21,15 @@
 Hosts/Machines (Identity)
 """
 
-from ipalib import api, crud, errors, util
-from ipalib import Object
-from ipalib import Str, Flag, List
+import platform
+import os
+import sys
+
+from ipalib import api, errors, util
+from ipalib import Str, Flag
+from ipalib.plugins.baseldap import *
 from ipalib.plugins.service import split_principal
-from ipalib import uuid
 
-_container_dn = api.env.container_host
-_default_attributes = [
-    'fqdn', 'description', 'localityname', 'nshostlocation',
-    'nshardwareplatform', 'nsosversion'
-]
-
-
-def get_host(ldap, hostname):
-    """
-    Try to get the hostname as fully-qualified first, then fall back to
-    just a host name search.
-    """
-    if hostname.endswith('.'):
-        hostname = hostname[:-1]
-    try:
-        dn = ldap.find_entry_by_attr('fqdn', hostname, 'ipaHost')[0]
-    except errors.NotFound:
-        dn = ldap.find_entry_by_attr('serverhostname', hostname, 'ipaHost')[0]
-    return dn
 
 def validate_host(ugettext, fqdn):
     """
@@ -56,13 +40,36 @@ def validate_host(ugettext, fqdn):
     return None
 
 
-class host(Object):
+class host(LDAPObject):
     """
     Host object.
     """
+    container_dn = api.env.container_host
+    object_name = 'host'
+    object_name_plural = 'hosts'
+    object_class = ['ipaobject', 'nshost', 'ipahost', 'pkiuser']
+    # object_class_config = 'ipahostobjectclasses'
+    default_attributes = [
+        'fqdn', 'description', 'localityname', 'nshostlocation',
+        'nshardwareplatform', 'nsosversion'
+    ]
+    uuid_attribute = 'ipauniqueid'
+    attribute_names = {
+        'cn': 'name',
+        'fqdn': 'hostname',
+        'localityname': 'locality',
+        'nshostlocation': 'location',
+        'nshardwareplatform': 'platform',
+        'nsosversion': 'operating system',
+        'serverhostname': 'server hostname',
+        'enrolledby user': 'enrolled by',
+        'krbprincipalname': 'kerberos principal',
+    }
+    attribute_members = {
+        'enrolledby': ['user'],
+    }
+
     takes_params = (
-        # FIXME: All Object params get cloned with query=True in the new
-        #        CRUD base classes, so there's no validation going on
         Str('fqdn', validate_host,
             cli_name='hostname',
             doc='Hostname',
@@ -70,6 +77,7 @@ class host(Object):
             normalizer=lambda value: value.lower(),
         ),
         Str('description?',
+            cli_name='desc',
             doc='Description of the host',
         ),
         Str('localityname?',
@@ -94,282 +102,112 @@ class host(Object):
         ),
     )
 
+    def get_dn(self, *keys, **options):
+        if keys[-1].endswith('.'):
+            keys[-1] = keys[-1][:-1]
+        dn = super(host, self).get_dn(*keys, **options)
+        try:
+            self.backend.get_entry(dn, [''])
+        except errors.NotFound:
+            try:
+                (dn, entry_attrs) = self.backend.find_entry_by_attr(
+                    'serverhostname', keys[-1], self.object_class, [''],
+                    self.container_dn
+                )
+            except errors.NotFound:
+                pass
+        return dn
+
 api.register(host)
 
 
-class host_add(crud.Create):
+class host_add(LDAPCreate):
     """
     Create new host.
     """
-    def execute(self, hostname, **kw):
-        """
-        Execute the host-add operation.
-
-        The dn should not be passed as a keyword argument as it is constructed
-        by this method.
-
-        If password is set then this is considered a 'bulk' host so we
-        do not create a kerberos service principal.
-
-        Returns the entry as it will be created in LDAP.
-
-        :param hostname: The name of the host being added.
-        :param kw: Keyword arguments for the other LDAP attributes.
-        """
-        assert 'fqdn' not in kw
-        assert 'cn' not in kw
-        assert 'dn' not in kw
-        assert 'krbprincipalname' not in kw
-        ldap = self.api.Backend.ldap2
-
-        entry_attrs = self.args_options_2_entry(hostname, **kw)
-        entry_attrs['cn'] = hostname
-        entry_attrs['serverhostname'] = hostname.split('.', 1)[0]
-
-        dn = ldap.make_dn(entry_attrs, 'fqdn', _container_dn)
-
-        # FIXME: do a DNS lookup to ensure host exists
-
-        # FIXME: add this attribute to cn=ipaconfig
-        # config = ldap.get_ipa_config()[1]
-        # kw['objectclass'] =  config.get('ipahostobjectclasses')
-        entry_attrs['objectclass'] = ['ipaobject', 'nshost', 'ipahost', 'pkiuser']
-
+    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        entry_attrs['cn'] = keys[-1]
+        entry_attrs['serverhostname'] = keys[-1].split('.', 1)[0]
+        # FIXME: do DNS lookup to ensure host exists
         if 'userpassword' not in entry_attrs:
             entry_attrs['krbprincipalname'] = 'host/%s@%s' % (
-                hostname, self.api.env.realm
+                keys[-1], self.api.env.realm
             )
             if 'krbprincipalaux' not in entry_attrs['objectclass']:
                 entry_attrs['objectclass'].append('krbprincipalaux')
                 entry_attrs['objectclass'].append('krbprincipal')
         elif 'krbprincipalaux' in entry_attrs['objectclass']:
             entry_attrs['objectclass'].remove('krbprincipalaux')
-
-        entry_attrs['ipauniqueid'] = str(uuid.uuid1())
-
-        ldap.add_entry(dn, entry_attrs)
-
-        return ldap.get_entry(dn, entry_attrs.keys())
-
-    def output_for_cli(self, textui, result, hostname, **options):
-        """
-        Output result of this command to command line interface.
-        """
-        (dn, entry_attrs) = result
-
-        textui.print_name(self.name)
-        textui.print_attribute('dn', dn)
-        textui.print_entry(entry_attrs)
-        textui.print_dashed('Created host "%s".' % hostname)
+        return dn
 
 api.register(host_add)
 
 
-class host_del(crud.Delete):
+class host_del(LDAPDelete):
     """
     Delete host.
     """
-    def execute(self, hostname, **kw):
-        """
-        Delete a host.
-
-        hostname is the name of the host to delete
-
-        :param hostname: The name of the host being removed.
-        :param kw: Not used.
-        """
-        ldap = self.api.Backend.ldap2
-        dn = get_host(ldap, hostname)
-        hostname = hostname.lower()
-
+    def pre_callback(self, ldap, dn, *keys, **options):
         # Remove all service records for this host
-        (services, truncated) = api.Command['service_find'](hostname)
-        for (dn_, entry_attrs) in services:
-            principal = entry_attrs['krbprincipalname'][0]
-            (service, hostname_, realm) = split_principal(principal)
-            if hostname_.lower() == hostname:
-                api.Command['service_del'](principal)
-
-        ldap.delete_entry(dn)
-
-        return True
-
-    def output_for_cli(self, textui, result, hostname, **options):
-        """
-        Output result of this command to command line interface.
-        """
-        textui.print_name(self.name)
-        textui.print_dashed('Deleted host "%s".' % hostname)
+        truncated = True
+        while truncated:
+            try:
+                (services, truncated) = api.Command['service_find'](keys[-1])
+            except errors.NotFound:
+                break
+            else:
+                for (dn_, entry_attrs) in services:
+                    principal = entry_attrs['krbprincipalname'][0]
+                    (service, hostname, realm) = split_principal(principal)
+                    if hostname.lower() == keys[-1]:
+                        api.Command['service_del'](principal)
+        return dn
 
 api.register(host_del)
 
 
-class host_mod(crud.Update):
+class host_mod(LDAPUpdate):
     """
     Modify host.
     """
-
-    takes_options = (
+    takes_options = LDAPUpdate.takes_options + (
         Str('krbprincipalname?',
             cli_name='principalname',
             doc='Kerberos principal name for this host',
-            attribute=True
+            attribute=True,
         ),
     )
 
-    def execute(self, hostname, **kw):
-        """
-        Execute the host-mod operation.
-
-        The dn should not be passed as a keyword argument as it is constructed
-        by this method.
-
-        Returns the entry
-
-        :param hostname: The name of the host to retrieve.
-        :param kw: Keyword arguments for the other LDAP attributes.
-        """
-        assert 'fqdn' not in kw
-        assert 'dn' not in kw
-        ldap = self.api.Backend.ldap2
-        dn = get_host(ldap, hostname)
-
-        entry_attrs = self.args_options_2_entry(**kw)
-
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         # Once a principal name is set it cannot be changed
         if 'krbprincipalname' in entry_attrs:
-            (d, e) = api.Command['host_show'](hostname, all=True)
-            if 'krbprincipalname' in e:
-                raise errors.ACIError(info='Principal name already set, it is unchangeable.')
-            entry_attrs['objectclass'] = e['objectclass']
-            entry_attrs['objectclass'].append('krbprincipalaux')
-
-        try:
-            ldap.update_entry(dn, entry_attrs)
-        except errors.EmptyModlist:
-            pass
-
-        return ldap.get_entry(dn, entry_attrs.keys())
-
-    def output_for_cli(self, textui, result, hostname, **options):
-        """
-        Output result of this command to command line interface.
-        """
-        (dn, entry_attrs) = result
-
-        textui.print_name(self.name)
-        textui.print_attribute('dn', dn)
-        textui.print_entry(entry_attrs)
-        textui.print_dashed('Modified host "%s".' % hostname)
+            (dn, entry_attrs_old) = ldap.get_entry(
+                dn, ['objectclass', 'krbprincipalname']
+            )
+            if 'krbprincipalname' in entry_attrs_old:
+                msg = 'Principal name already set, it is unchangeable.'
+                raise errors.ACIError(info=msg)
+            obj_classes = entry_attrs_old['objectclass']
+            if 'krbprincipalaux' not in obj_classes:
+                obj_classes.append('krbprincipalaux')
+                entry_attrs['objectclass'] = obj_classes
+        return dn
 
 api.register(host_mod)
 
 
-class host_find(crud.Search):
+class host_find(LDAPSearch):
     """
     Search for hosts.
     """
 
-    takes_options = (
-        Flag('all',
-            doc='Retrieve all attributes'
-        ),
-    )
-
-    def execute(self, term, **kw):
-        ldap = self.api.Backend.ldap2
-
-        search_kw = self.args_options_2_entry(**kw)
-        search_kw['objectclass'] = 'ipaHost'
-        filter = ldap.make_filter(search_kw, rules=ldap.MATCH_ALL)
-
-        search_kw = {}
-        for a in _default_attributes:
-            search_kw[a] = term
-        term_filter = ldap.make_filter(search_kw, exact=False)
-
-        filter = ldap.combine_filters(
-            (filter, term_filter), rules=ldap.MATCH_ALL
-        )
-
-        if kw['all']:
-            attrs_list = ['*']
-        else:
-            attrs_list = _default_attributes
-
-        try:
-            (entries, truncated) = ldap.find_entries(
-                filter, attrs_list, _container_dn
-            )
-        except errors.NotFound:
-            (entries, truncated) = (tuple(), False)
-
-        return (entries, truncated)
-
-    def output_for_cli(self, textui, result, term, **options):
-        (entries, truncated) = result
-
-        textui.print_name(self.name)
-        for (dn, entry_attrs) in entries:
-            textui.print_attribute('dn', dn)
-            textui.print_entry(entry_attrs)
-            textui.print_plain('')
-        textui.print_count(
-            len(entries), '%i host matched.', '%i hosts matched.'
-        )
-        if truncated:
-            textui.print_dashed('These results are truncated.', below=False)
-            textui.print_dashed(
-                'Please refine your search and try again.', above=False
-            )
-
 api.register(host_find)
 
 
-class host_show(crud.Retrieve):
+class host_show(LDAPRetrieve):
     """
     Display host.
     """
-    takes_options = (
-        Flag('all',
-            cli_short_name='a',
-            doc='Retrieve all attributes'
-        ),
-        List('attrs?',
-            doc='comma-separated list of attributes to display'
-        ),
-    )
-
-    def execute(self, hostname, **kw):
-        """
-        Execute the host-show operation.
-
-        The dn should not be passed as a keyword argument as it is constructed
-        by this method.
-
-        Returns the entry
-
-        :param hostname: The login name of the host to retrieve.
-        :param kw: "all" set to True = return all attributes
-        """
-        ldap = self.api.Backend.ldap2
-        dn = get_host(ldap, hostname)
-
-        if kw['all']:
-            attrs_list = ['*']
-        else:
-            if 'attrs' in kw:
-                attrs_list = kw['attrs']
-            else:
-                attrs_list = _default_attributes
-
-        return ldap.get_entry(dn, attrs_list)
-
-    def output_for_cli(self, textui, result, *args, **options):
-        (dn, entry_attrs) = result
-
-        textui.print_name(self.name)
-        textui.print_attribute('dn', dn)
-        textui.print_entry(entry_attrs)
 
 api.register(host_show)
+
