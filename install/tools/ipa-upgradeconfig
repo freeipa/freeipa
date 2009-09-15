@@ -1,6 +1,27 @@
 #!/usr/bin/python
 #
-# Upgrade configuration files to a newer template.
+# Authors:
+#   Rob Crittenden <rcritten@redhat.com>
+#
+# Copyright (C) 2009  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+"""
+Upgrade configuration files to a newer template.
+"""
 
 import sys
 try:
@@ -42,6 +63,10 @@ def update_conf(sub_dict, filename, template_filename):
 def find_hostname():
     """Find the hostname currently configured in ipa-rewrite.conf"""
     filename="/etc/httpd/conf.d/ipa-rewrite.conf"
+
+    if not ipautil.file_exists(filename):
+        return None
+
     pattern = "^[\s#]*.*https:\/\/([A-Za-z0-9\.\-]*)\/.*"
     p = re.compile(pattern)
     for line in fileinput.input(filename):
@@ -50,7 +75,7 @@ def find_hostname():
             return p.search(line).group(1)
     fileinput.close()
 
-    return None
+    raise RuntimeError("Unable to determine the fully qualified hostname from %s" % filename)
 
 def find_version(filename):
     """Find the version of a configuration file"""
@@ -84,10 +109,10 @@ def upgrade(sub_dict, filename, template):
         update_conf(sub_dict, filename, template)
         print "Upgraded %s to version %d" % (filename, new)
 
-def check_certs(realm_name):
+def check_certs():
     """Check ca.crt is in the right place, and try to fix if not"""
     if not os.path.exists("/usr/share/ipa/html/ca.crt"):
-        ca_file = "/etc/dirsrv/slapd-" + ("-".join(realm_name.split("."))) + "/cacert.asc"
+        ca_file = "/etc/httpd/alias/cacert.asc"
         if os.path.exists(ca_file):
             shutil.copyfile(ca_file, "/usr/share/ipa/html/ca.crt")
         else:
@@ -95,26 +120,26 @@ def check_certs(realm_name):
             print "You should place a copy of the CA certificate in /usr/share/ipa/html/ca.crt"
 
 def main():
+    """
+    Get some basics about the system. If getting those basics fail then
+    this is likely because the machine isn't currently an IPA server so
+    exit gracefully.
+    """
+
     try:
         krbctx = krbV.default_context()
     except krbV.Krb5Error, e:
-        print "Unable to get default kerberos realm: %s" % e[1]
-        sys.exit(1)
+        # Unable to get default kerberos realm
+        sys.exit(0)
 
-    try:
-        check_certs(krbctx.default_realm)
-    except Error, e:
-        print "Failed to check CA certificate: %s" % e
-
-    try:
-        fqdn = find_hostname()
-    except IOError:
+    fqdn = find_hostname()
+    if fqdn is None:
         # ipa-rewrite.conf doesn't exist, nothing to do
         sys.exit(0)
 
-    if fqdn is None:
-        print "Unable to determine hostname from ipa-rewrite.conf"
-        sys.exit(1)
+    # Ok, we are an IPA server, do the additional tests
+
+    check_certs()
 
     sub_dict = { "REALM" : krbctx.default_realm, "FQDN": fqdn }
 
