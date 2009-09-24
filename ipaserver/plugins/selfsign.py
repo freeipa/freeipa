@@ -121,6 +121,6 @@ class ra(rabase.rabase):
         s = s + 27
         cert = cert[s:e]
 
-        return {'status':0, 'subject': subject, 'certificate':cert, 'serial': "0x%x" % serial}
+        return {'status':0, 'subject': subject, 'certificate':cert, 'serial_number': "0x%x" % serial}
 
 api.register(ra)
