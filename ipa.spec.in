@@ -38,6 +38,7 @@ BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
 BuildRequires:  python-cherrypy
 BuildRequires:  python-setuptools
 BuildRequires:  python-krbV
+BuildRequires:  xmlrpc-c-devel
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
