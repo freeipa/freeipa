@@ -39,6 +39,8 @@ from ldap.controls import LDAPControl
 # for backward compatibility
 from ldap.functions import explode_dn
 
+import krbV
+
 from ipalib import api, errors
 from ipalib.crud import CrudBackend
 from ipalib.encoder import Encoder, encode_args, decode_retval
@@ -547,7 +549,7 @@ class ldap2(CrudBackend, Encoder):
 
     def _generate_modlist(self, dn, entry_attrs):
         # get original entry
-        (dn, entry_attrs_old) = self.get_entry(dn)
+        (dn, entry_attrs_old) = self.get_entry(dn, ['*', 'aci'])
         # get_entry returns a decoded entry, encode it back
         # we could call search_s directly, but this saves a lot of code at
         # the expense of a little bit of performace

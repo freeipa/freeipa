@@ -19,12 +19,50 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
 Directory Server Access Control Instructions (ACIs)
+
+ACI's are used to allow or deny access to information. This module is
+currently designed to allow, not deny, access, primarily write access.
+
+The primary use of this plugin is to create low-level permission sets
+to allow a group to write or update entries or a set of attributes. This
+may include adding or removing entries as well. These groups are called
+taskgroups. These low-level permissions can be combined into roles
+that grant broader access. These roles are another type of group, rolegroups.
+
+For example, if you have taskgroups that allow adding and modifying users you
+could create a rolegroup, useradmin. You would assign users to the useradmin
+rolegroup to allow them to do the operations defined by the taskgroups.
+
+You can create ACIs that delegate permission so users in
+group A can write attributes on group B.
+
+The type option is a map that applies to all entries in the users, groups or
+host location. It is primarily designed to be used when granting add
+permissions (to write new entries).
+
+For a more thorough description of access controls see
+http://www.redhat.com/docs/manuals/dir-server/ag/8.0/Managing_Access_Control.html
+
+EXAMPLES:
+
+ Add an ACI so the group 'secretaries' can update the address on any user:
+   ipa aci-add --attrs=streetAddress --memberof=ipausers --group=secretaries --permissions=write "Secretaries write addresses"
+
+ Show the new ACI:
+   ipa aci-show "Secretaries write addresses"
+
+ Add an ACI that allows members of the 'addusers' taskgroup to add new users:
+   ipa aci-add --type=user --taskgroup=addusers --permissions=add "Add new users"
+
+The show command will show the raw DS ACI.
+
 """
 
 from ipalib import api, crud, errors
 from ipalib import Object, Command
 from ipalib import Flag, Int, List, Str, StrEnum
 from ipalib.aci import ACI
+import logging
 
 _type_map = {
     'user': 'ldap:///uid=*,%s,%s' % (api.env.container_user, api.env.basedn),
@@ -38,14 +76,43 @@ _valid_permissions_values = [
 
 
 def _make_aci(current, aciname, kw):
-    try:
-        (dn, entry_attrs) = api.Command['taskgroup_show'](kw['taskgroup'])
-    except errors.NotFound:
-        # The task group doesn't exist, let's be helpful and add it
-        tgkw = {'description': aciname}
-        (dn, entry_attrs) = api.Command['taskgroup_add'](
-            kw['taskgroup'], **tgkw
-        )
+    # Do some quick and dirty validation
+    t1 = 'type' in kw
+    t2 = 'filter' in kw
+    t3 = 'subtree' in kw
+    t4 = 'targetgroup' in kw
+    t5 = 'attrs' in kw
+    t6 = 'memberof' in kw
+    if t1 + t2 + t3 + t4 > 1:
+        raise errors.ValidationError(name='target', error='type, filter, subtree and targetgroup are mutually exclusive')
+
+    if t1 + t2 + t3 + t4 + t5 + t6 == 0:
+        raise errors.ValidationError(name='target', error='at least one of: type, filter, subtree, targetgroup, attrs or memberof are required')
+
+    group = 'group' in kw
+    taskgroup = 'taskgroup' in kw
+    if group + taskgroup > 1:
+        raise errors.ValidationError(name='target', error='group and taskgroup are mutually exclusive')
+    elif group + taskgroup == 0:
+        raise errors.ValidationError(name='target', error='One of group or taskgroup is required')
+
+    # Grab the dn of the group we're granting access to. This group may be a
+    # taskgroup or a user group.
+    if taskgroup:
+        try:
+            (dn, entry_attrs) = api.Command['taskgroup_show'](kw['taskgroup'])
+        except errors.NotFound:
+            # The task group doesn't exist, let's be helpful and add it
+            tgkw = {'description': aciname}
+            (dn, entry_attrs) = api.Command['taskgroup_add'](
+                kw['taskgroup'], **tgkw
+            )
+    elif group:
+        # Not so friendly with groups. This will raise
+        try:
+            (dn, entry_attrs) = api.Command['group_show'](kw['group'])
+        except errors.NotFound:
+            raise errors.NotFound(reason="Group '%s' does not exist" % kw['group'])
 
     a = ACI(current)
     a.name = aciname
@@ -81,15 +148,14 @@ def _convert_strings_to_acis(acistrs):
         try:
             acis.append(ACI(a))
         except SyntaxError, e:
-            # FIXME: need to log syntax errors, ignore for now
-            pass
+            logging.warn("Failed to parse: %s" % a)
     return acis
 
 def _find_aci_by_name(acis, aciname):
     for a in acis:
         if a.name.lower() == aciname.lower():
             return a
-    raise errors.NotFound('ACI with name "%s" not found' % aciname)
+    raise errors.NotFound(reason='ACI with name "%s" not found' % aciname)
 
 def _normalize_permissions(permissions):
     valid_permissions = []
@@ -111,9 +177,13 @@ class aci(Object):
             doc='name',
             primary_key=True,
         ),
-        Str('taskgroup',
+        Str('taskgroup?',
             cli_name='taskgroup',
             doc='taskgroup ACI grants access to',
+        ),
+        Str('group?',
+            cli_name='group',
+            doc='user group ACI grants access to',
         ),
         List('permissions',
             cli_name='permissions',
@@ -177,13 +247,16 @@ class aci_add(crud.Create):
                 raise errors.DuplicateEntry()
 
         newaci_str = str(newaci)
-        entry_attrs['acis'].append(newaci_str)
+        entry_attrs['aci'].append(newaci_str)
 
         ldap.update_entry(dn, entry_attrs)
 
         return newaci_str
 
     def output_for_cli(self, textui, result, aciname, **options):
+        """
+        Display the newly created ACI and a success message.
+        """
         textui.print_name(self.name)
         textui.print_plain(result)
         textui.print_dashed('Created ACI "%s".' % aciname)
@@ -211,7 +284,8 @@ class aci_del(crud.Delete):
         acis = _convert_strings_to_acis(acistrs)
         aci = _find_aci_by_name(acis, aciname)
         for a in acistrs:
-            if aci.isequal(a):
+            candidate = ACI(a)
+            if aci.isequal(candidate):
                 acistrs.remove(a)
                 break
 
@@ -237,7 +311,7 @@ class aci_mod(crud.Update):
     """
     def execute(self, aciname, **kw):
         ldap = self.api.Backend.ldap2
- 
+
         (dn, entry_attrs) = ldap.get_entry(self.api.env.basedn, ['aci'])
 
         acis = _convert_strings_to_acis(entry_attrs.get('aci', []))
@@ -257,6 +331,9 @@ class aci_mod(crud.Update):
         return self.api.Command['aci_add'](aciname, **kw)
 
     def output_for_cli(self, textui, result, aciname, **options):
+        """
+        Display the updated ACI and a success message.
+        """
         textui.print_name(self.name)
         textui.print_plain(result)
         textui.print_dashed('Modified ACI "%s".' % aciname)
@@ -267,6 +344,22 @@ api.register(aci_mod)
 class aci_find(crud.Search):
     """
     Search for ACIs.
+
+    Returns a list of ACIs
+
+    EXAMPLES:
+
+     To find all ACIs that apply directly to members of the group ipausers:
+       ipa aci-find --memberof=ipausers
+
+     To find all ACIs that grant add access:
+       ipa aci-find --permissions=add
+
+    Note that the find command only looks for the given text in the set of
+    ACIs, it does not evaluate the ACIs to see if something would apply.
+    For example, searching on memberof=ipausers will find all ACIs that
+    have ipausers as a memberof. There may be other ACIs that apply to
+    members of that group indirectly.
     """
     def execute(self, term, **kw):
         ldap = self.api.Backend.ldap2
@@ -333,8 +426,8 @@ class aci_find(crud.Search):
                 memberof_filter = '(memberOf=%s)' % dn
                 for a in acis:
                     if 'targetfilter' in a.target:
-                        filter = a.target['targetfilter']['expression']
-                        if filter != memberof_filter:
+                        targetfilter = a.target['targetfilter']['expression']
+                        if targetfilter != memberof_filter:
                             results.remove(a)
                     else:
                         results.remove(a)
@@ -346,6 +439,9 @@ class aci_find(crud.Search):
         return [str(aci) for aci in results]
 
     def output_for_cli(self, textui, result, term, **options):
+        """
+        Display the search results
+        """
         textui.print_name(self.name)
         for aci in result:
             textui.print_plain(aci)
@@ -359,7 +455,7 @@ api.register(aci_find)
 
 class aci_show(crud.Retrieve):
     """
-    Display ACI.
+    Display a single ACI given an ACI name.
     """
     def execute(self, aciname, **kw):
         """
@@ -379,8 +475,10 @@ class aci_show(crud.Retrieve):
         return str(_find_aci_by_name(acis, aciname))
 
     def output_for_cli(self, textui, result, aciname, **options):
+        """
+        Display the requested ACI
+        """
         textui.print_name(self.name)
         textui.print_plain(result)
 
 api.register(aci_show)
-

@@ -24,7 +24,7 @@ import ldap
 # The Python re module doesn't do nested parenthesis
 
 # Break the ACI into 3 pieces: target, name, permissions/bind_rules
-ACIPat = re.compile(r'\s*(\([^\)]*\)+)\s*\(version\s+3.0\s*;\s*acl\s+\"([^\"]*)\"\s*;\s*([^;]*);\s*\)', re.UNICODE)
+ACIPat = re.compile(r'\(version\s+3.0\s*;\s*acl\s+\"([^\"]*)\"\s*;\s*([^;]*);\s*\)', re.UNICODE)
 
 # Break the permissions/bind_rules out
 PermPat = re.compile(r'(\w+)\s*\((.*)\)\s+(.*)', re.UNICODE)
@@ -32,9 +32,6 @@ PermPat = re.compile(r'(\w+)\s*\((.*)\)\s+(.*)', re.UNICODE)
 # Break the bind rule out
 BindPat = re.compile(r'([a-zA-Z0-9;\.]+)\s*(\!?=)\s*(.*)', re.UNICODE)
 
-# Don't allow arbitrary attributes to be set in our __setattr__ implementation.
-OBJECTATTRS = ["name", "orig_acistr", "target", "action", "permissions",
-                   "bindrule"]
 ACTIONS = ["allow", "deny"]
 
 PERMISSIONS = ["read", "write", "add", "delete", "search", "compare",
@@ -76,7 +73,7 @@ class ACI:
         aci = ""
         for t in self.target:
             op = self.target[t]['operator']
-            if isinstance(self.target[t]['expression'], list):
+            if type(self.target[t]['expression']) in (tuple, list):
                 target = ""
                 for l in self.target[t]['expression']:
                     target = target + l + " || "
@@ -132,14 +129,17 @@ class ACI:
                 self.target[var]['expression'] = val
 
     def _parse_acistr(self, acistr):
-        acimatch = ACIPat.match(acistr)
-        if not acimatch or len(acimatch.groups()) < 3:
-            raise SyntaxError, "malformed ACI"
-        self._parse_target(acimatch.group(1))
-        self.name = acimatch.group(2)
-        bindperms = PermPat.match(acimatch.group(3))
+        vstart = acistr.find('version')
+        if vstart < 0:
+            raise SyntaxError, "malformed ACI, unable to find version %s" % acistr
+        acimatch = ACIPat.match(acistr[vstart-1:])
+        if not acimatch or len(acimatch.groups()) < 2:
+            raise SyntaxError, "malformed ACI, match for version and bind rule failed %s" % acistr
+        self._parse_target(acistr[:vstart-1])
+        self.name = acimatch.group(1)
+        bindperms = PermPat.match(acimatch.group(2))
         if not bindperms or len(bindperms.groups()) < 3:
-            raise SyntaxError, "malformed ACI"
+            raise SyntaxError, "malformed ACI, permissions match failed %s" % acistr
         self.action = bindperms.group(1)
         self.permissions = bindperms.group(2).replace(' ','').split(',')
         self.set_bindrule(bindperms.group(3))
@@ -150,7 +150,7 @@ class ACI:
 
            returns True if valid
         """
-        if not isinstance(self.permissions, list):
+        if not type(self.permissions) in (tuple, list):
             raise SyntaxError, "permissions must be a list"
         for p in self.permissions:
             if not p.lower() in PERMISSIONS:
@@ -175,7 +175,7 @@ class ACI:
         self.target['targetfilter']['operator'] = operator
 
     def set_target_attr(self, attr, operator="="):
-        if not isinstance(attr, list):
+        if not type(attr) in (tuple, list):
             attr = [attr]
         self.target['targetattr'] = {}
         self.target['targetattr']['expression'] = attr
@@ -211,6 +211,7 @@ class ACI:
 
         returns True if equal, False if not.
         """
+        assert isinstance(b, ACI)
         try:
             if self.name.lower() != b.name.lower():
                 return False
@@ -319,4 +320,7 @@ if __name__ == '__main__':
     print a.isequal(b)
 
     a = ACI('(targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey")(version 3.0; acl "Enable Anonymous access"; allow (read, search, compare) userdn = "ldap:///anyone";)')
+    print a
+
+    a = ACI('(targetfilter = "(|(objectClass=person)(objectClass=krbPrincipalAux)(objectClass=posixAccount)(objectClass=groupOfNames)(objectClass=posixGroup))")(targetattr != "aci || userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Account Admins can manage Users and Groups"; allow (add, delete, read, write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,dc=greyoak,dc=com";)')
     print a
