@@ -32,7 +32,6 @@ from ipaserver.install import bindinstance, httpinstance, ntpinstance, certs
 from ipaserver import ipaldap
 from ipapython import version
 from ipalib import api, util
-from ipalib.constants import DEFAULT_CONFIG
 
 CACERT="/usr/share/ipa/html/ca.crt"
 
@@ -133,14 +132,6 @@ def set_owner(config, dir):
 def install_ca(config):
     # FIXME, need to pass along the CA plugin to use
     cafile = config.dir + "/ca.p12"
-
-    # Just initialize the environment. This is so the installer can have
-    # access to the plugin environment
-    api.env._bootstrap()
-    default_config = dict(DEFAULT_CONFIG)
-    if ipautil.file_exists(cafile):
-        default_config['ra_plugin'] = 'dogtag'
-    api.env._finalize_core(**default_config)
 
     if not ipautil.file_exists(cafile):
         return None
@@ -320,6 +311,14 @@ def main():
     except ldap.INVALID_CREDENTIALS, e :
         sys.exit("\nThe password provided is incorrect for LDAP server %s" % config.master_host_name)
 
+    if ipautil.file_exists(config.dir + "/ca.p12"):
+        ca_type = 'dogtag'
+    else:
+        ca_type = 'selfsign'
+
+    api.bootstrap(in_server=True, ra_plugin=ca_type)
+    api.finalize()
+
     # Install CA cert so that we can do SSL connections with ldap
     install_ca_cert(config)
 
@@ -379,9 +378,6 @@ def main():
     service.restart("krb5kdc")
 
     if options.setup_dns:
-        # First bootstrap the plug-in framework
-        api.bootstrap(in_server=True)
-        api.finalize()
         api.Backend.ldap2.connect(bind_dn="cn=Directory Manager",
                                   bind_pw=config.dirman_password)
 

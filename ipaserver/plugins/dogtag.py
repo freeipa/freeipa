@@ -60,9 +60,12 @@ class ra(rabase.rabase):
         self.ipa_key_size = "2048"
         self.ipa_certificate_nickname = "ipaCert"
         self.ca_certificate_nickname = "caCert"
-        f = open(self.pwd_file, "r")
-        self.password = f.readline().strip()
-        f.close()
+        try:
+            f = open(self.pwd_file, "r")
+            self.password = f.readline().strip()
+            f.close()
+        except IOError:
+            self.password = ''
         super(ra, self).__init__()
 
     def _request(self, url, **kw):

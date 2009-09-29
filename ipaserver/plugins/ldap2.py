@@ -121,12 +121,15 @@ def _get_url(host, port, using_cacert=False):
 
 # retrieves LDAP schema from server
 def _load_schema(url):
+    global _schema
     try:
         conn = _ldap.initialize(url)
         # assume anonymous access is enabled
         conn.simple_bind_s('', '')
         schema_entry = conn.search_s('cn=schema', _ldap.SCOPE_BASE)[0]
         conn.unbind_s()
+    except _ldap.SERVER_DOWN:
+        return None
     except _ldap.LDAPError, e:
         # TODO: raise a more appropriate exception
         _handle_errors(e, **{})
@@ -142,8 +145,9 @@ def _load_schema(url):
 _schema = _load_schema(api.env.ldap_uri)
 
 def _get_syntax(attr, value):
-    schema = api.Backend.ldap2._schema
-    obj = schema.get_obj(_ldap.schema.AttributeType, attr)
+    global _schema
+
+    obj = _schema.get_obj(_ldap.schema.AttributeType, attr)
     if obj is not None:
         return obj.syntax
     else:
@@ -176,7 +180,6 @@ class ldap2(CrudBackend, Encoder):
         self.encoder_settings.decode_dict_vals_table_keygen = _get_syntax
         self.encoder_settings.decode_postprocessor = lambda x: string.lower(x)
         self._ldapuri = api.env.ldap_uri
-        self._schema = _schema
         CrudBackend.__init__(self)
 
     def __del__(self):
@@ -204,12 +207,13 @@ class ldap2(CrudBackend, Encoder):
 
         Extends backend.Connectible.create_connection.
         """
+        global _schema
         if ldapuri is not None:
             self._ldapuri = ldapuri
 
         # if we don't have this server's schema cached, do it now
-        if self._ldapuri != api.env.ldap_uri:
-            self._schema = _load_schema(self._ldapuri)
+        if self._ldapuri != api.env.ldap_uri or _schema is None:
+            _schema = _load_schema(self._ldapuri)
 
         if tls_cacertfile is not None:
             _ldap.set_option(_ldap.OPT_X_TLS_CACERTFILE, tls_cacertfile)
@@ -304,9 +308,10 @@ class ldap2(CrudBackend, Encoder):
         preferred_names -- list of preferred synomyms or None for defaults
                            (default None)
         """
+        global _schema
         if preferred_names:
             for n in preferred_names:
-                attr = self._schema.get_obj(_ldap.schema.AttributeType, n)
+                attr = _schema.get_obj(_ldap.schema.AttributeType, n)
                 synonyms = [v.lower() for v in attr.names]
                 synonyms.remove(n)
                 for s in synonyms:
@@ -315,7 +320,7 @@ class ldap2(CrudBackend, Encoder):
                         del entry_attrs[s]
         else:
             for (k, v) in entry_attrs.items():
-                attr = self._schema.get_obj(_ldap.schema.AttributeType, k)
+                attr = _schema.get_obj(_ldap.schema.AttributeType, k)
                 synonyms = [v.lower() for v in attr.names]
                 preferred_name = synonyms[0]
                 if k in synonyms[1:]:
@@ -492,8 +497,9 @@ class ldap2(CrudBackend, Encoder):
         return self.find_entries(filter, None, 'cn=etc', self.SCOPE_ONELEVEL)[0][0]
 
     def get_schema(self):
+        global _schema
         """Returns a copy of the current LDAP schema."""
-        return copy.deepcopy(self._schema)
+        return copy.deepcopy(_schema)
 
     @encode_args(1, 2)
     def get_effective_rights(self, dn, entry_attrs):

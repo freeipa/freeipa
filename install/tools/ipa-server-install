@@ -52,7 +52,6 @@ from ipaserver.install.installutils import *
 from ipapython import sysrestore
 from ipapython.ipautil import *
 from ipalib import api, util
-from ipalib.constants import DEFAULT_CONFIG
 
 pw_name = None
 
@@ -402,14 +401,6 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
-    # Just initialize the environment. This is so the installer can have
-    # access to the plugin environment
-    api.env._bootstrap()
-    default_config = dict(DEFAULT_CONFIG)
-    if options.ca:
-        default_config['ra_plugin'] = 'dogtag'
-    api.env._finalize_core(**default_config)
-
     if options.uninstall:
         standard_logging_setup("/var/log/ipaserver-uninstall.log", options.debug)
     else:
@@ -418,6 +409,14 @@ def main():
 
     global fstore
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+
+    if options.ca:
+        ca_type = 'dogtag'
+    else:
+        ca_type = 'selfsign'
+
+    api.bootstrap(in_server=True, ra_plugin=ca_type)
+    api.finalize()
 
     if options.uninstall:
         if not options.unattended:
@@ -712,9 +711,6 @@ def main():
     bind = bindinstance.BindInstance(fstore, dm_password)
     bind.setup(host_name, ip_address, realm_name, domain_name, dns_forwarders)
     if options.setup_dns:
-        # First bootstrap the plug-in framework
-        api.bootstrap(in_server=True)
-        api.finalize()
         api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dm_password)
 
         bind.create_instance()
