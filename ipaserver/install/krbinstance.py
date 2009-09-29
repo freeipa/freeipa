@@ -247,9 +247,9 @@ class KrbInstance(service.Service):
         entry = ipaldap.Entry("cn=Name Only,cn=mapping,cn=sasl,cn=config")
         entry.setValues("objectclass", "top", "nsSaslMapping")
         entry.setValues("cn", "Name Only")
-        entry.setValues("nsSaslMapRegexString", '\(.*\)')
+        entry.setValues("nsSaslMapRegexString", '^[^:@]+$')
         entry.setValues("nsSaslMapBaseDNTemplate", self.suffix)
-        entry.setValues("nsSaslMapFilterTemplate", '(krbPrincipalName=\\1@%s)' % self.realm)
+        entry.setValues("nsSaslMapFilterTemplate", '(krbPrincipalName=&@%s)' % self.realm)
 
         try:
             self.conn.add_s(entry)
