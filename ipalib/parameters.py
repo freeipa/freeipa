@@ -1201,6 +1201,172 @@ class List(Param):
     def _validate_scalar(self, value, index=None):
         return
 
+
+class GeneralizedTime(Str):
+    """
+    Generalized time parameter type.
+
+    Accepts values conforming to generalizedTime as defined in RFC 4517
+    section 3.3.13 without time zone information.
+    """
+    def _check_HHMM(self, t):
+        if len(t) != 4:
+            raise ValueError('HHMM must be exactly 4 characters long')
+        if not t.isnumeric():
+            raise ValueError('HHMM non-numeric')
+        hh = int(t[0:2])
+        if hh < 0 or hh > 23:
+            raise ValueError('HH out of range')
+        mm = int(t[2:4])
+        if mm < 0 or mm > 59:
+            raise ValueError('MM out of range')
+ 
+    def _check_dotw(self, t):
+        if t.isnumeric():
+            value = int(t)
+            if value < 1 or value > 7:
+                raise ValueError('day of the week out of range')
+        elif t not in ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'):
+            raise ValueError('invalid day of the week')
+
+    def _check_dotm(self, t, month_num=1, year=4):
+        if not t.isnumeric():
+            raise ValueError('day of the month non-numeric')
+        value = int(t)
+        if month_num in (1, 3, 5, 7, 8, 10, 12):
+            if value < 1 or value > 31:
+                raise ValueError('day of the month out of range')
+        elif month_num in (4, 6, 9, 11):
+            if value < 1 or value > 30:
+                raise ValueError('day of the month out of range')
+        elif month_num == 2:
+            if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0):
+                if value < 1 or value > 29:
+                    raise ValueError('day of the month out of range')
+            else:
+                if value < 1 or value > 28:
+                    raise ValueError('day of the month out of range')
+
+    def _check_wotm(self, t):
+        if not t.isnumeric():
+            raise ValueError('week of the month non-numeric')
+        value = int(t)
+        if value < 1 or value > 4:
+            raise ValueError('week of the month out of range')
+
+    def _check_woty(self, t):
+        if not t.isnumeric():
+            raise ValueError('week of the year non-numeric')
+        value = int(t)
+        if value < 1 or value > 52:
+            raise ValueError('week of the year out of range')
+
+    def _check_month_num(self, t):
+        if not t.isnumeric():
+            raise ValueError('month number non-numeric')
+        value = int(t)
+        if value < 1 or value > 12:
+            raise ValueError('month number out of range') 
+
+    def _check_interval(self, t, check_func):
+        intervals = t.split(',')
+        for i in intervals:
+            if not i:
+                raise ValueError('invalid time range')
+            values = i.split('-')
+            if len(values) > 2:
+                raise ValueError('invalid time range')
+            for v in values:
+                check_func(v)
+            if len(values) == 2:
+                if int(v[0]) > int(v[1]):
+                    raise ValueError('invalid time range')
+
+    def _check_W_spec(self, ts, index):
+        if ts[index] != 'day':
+            raise ValueError('invalid week specifier')
+        index += 1
+        self._check_interval(ts[index], self._check_dotw)
+        return index
+
+    def _check_M_spec(self, ts, index):
+        if ts[index] == 'week':
+            self._check_interval(ts[index + 1], self._check_wotm)
+            index = self._check_W_spec(ts, index + 2)
+        elif ts[index] == 'day':
+            index += 1
+            self._check_interval(ts[index], self._check_dotm)
+        else:
+            raise ValueError('invalid month specifier')
+        return index
+
+    def _check_Y_spec(self, ts, index):
+        if ts[index] == 'month':
+            index += 1
+            self._check_interval(ts[index], self._check_month_num)
+            month_num = int(ts[index])
+            index = self._check_M_spec(ts, index + 1, month_num)
+        elif ts[index] == 'week':
+            self._check_interval(ts[index + 1], self._check_woty)
+            index = self._check_W_spec(ts, index + 2)
+        elif ts[index] == 'day':
+            index += 1
+            self._check_interval(ts[index], self._check_doty)
+        else:
+            raise ValueError('invalid year specifier')
+        return index
+
+    def _check_generalized(self, t):
+        if len(t) not in (10, 12, 14):
+            raise ValueError('incomplete generalized time')
+        if not t.isnumeric():
+            raise ValueError('generalized time non-numeric')
+        # don't check year value, with time travel and all :)
+        self._check_month_num(t[4:6])
+        year_num = int(t[0:4])
+        month_num = int(t[4:6])
+        self._check_dotm(t[6:8], month_num, year_num)
+        if len(t) >= 12:
+            self._check_HHMM(t[8:12])
+        else:
+            self._check_HHMM('%s00' % t[8:10])
+        if len(t) == 14:
+            s = int(t[12:14])
+            if s < 0 or s > 60:
+                raise ValueError('seconds out of range')
+
+    def _check(self, time):
+        ts = time.split()
+        if ts[0] == 'absolute':
+            self._check_generalized(ts[1])
+            if ts[2] != '~':
+                raise ValueError('invalid time range separator')
+            self._check_generalized(ts[3])
+            if int(ts[1]) >= int(ts[3]):
+                raise ValueError('invalid generalized time range')
+        elif ts[0] == 'periodic':
+            if ts[1] == 'yearly':
+                index = self._check_Y_spec(ts, 2)
+            elif ts[1] == 'monthly':
+                index = self._check_M_spec(ts, 2)
+            elif ts[1] == 'daily':
+                index = 1
+            self._check_interval(ts[index + 1], self._check_HHMM)
+        else:
+            raise ValueError('time neither absolute or periodic')
+
+    def _rule_required(self, _, value):
+        try:
+            self._check(value)
+        except ValueError, e:
+            raise ValidationError(name=self.cli_name, error=e.message)
+        except IndexError:
+            raise ValidationError(
+                name=self.cli_name, errors='incomplete time value'
+            )
+        return None 
+
+
 def create_param(spec):
     """
     Create an `Str` instance from the shorthand ``spec``.

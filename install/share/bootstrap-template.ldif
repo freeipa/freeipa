@@ -34,6 +34,12 @@ objectClass: top
 objectClass: nsContainer
 cn: computers
 
+dn: cn=hbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: hbac
+
 dn: cn=etc,$SUFFIX
 changetype: add
 objectClass: nsContainer
