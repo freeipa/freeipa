@@ -974,6 +974,30 @@ done:
 	return ret;
 }
 
+/* Easier handling for virtual attributes. You must call pwd_values_free()
+ * to free memory allocated here. It must be called before
+ * slapi_free_search_results_internal(entries) or
+ * slapi_pblock_destroy(pb)
+ */
+static int
+pwd_get_values(const Slapi_Entry *ent, const char *attrname,
+				Slapi_ValueSet** results, char** actual_type_name,
+				int *buffer_flags)
+{
+    int flags=0;
+    int type_name_disposition = 0;
+
+	int ret = slapi_vattr_values_get((Slapi_Entry *)ent, (char *)attrname, results, &type_name_disposition, actual_type_name, flags, buffer_flags);
+
+	return ret;
+}
+
+static void
+pwd_values_free(Slapi_ValueSet** results, char** actual_type_name, int buffer_flags)
+{
+	slapi_vattr_values_free(results, actual_type_name, buffer_flags);
+}
+
 /* searches the directory and finds the policy closest to the DN */
 /* return 0 on success, -1 on error or if no policy is found */
 static int ipapwd_getPolicy(const char *dn, Slapi_Entry *target, Slapi_Entry **e)
@@ -991,6 +1015,9 @@ static int ipapwd_getPolicy(const char *dn, Slapi_Entry *target, Slapi_Entry **e
 	char **edn;
 	int ret, res, dist, rdnc, scope, i;
 	Slapi_DN *sdn = NULL;
+	int buffer_flags=0;
+	Slapi_ValueSet* results = NULL;
+	char* actual_type_name = NULL;
 
 	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
 			"ipapwd_getPolicy: Searching policy for [%s]\n", dn);
@@ -1003,10 +1030,15 @@ static int ipapwd_getPolicy(const char *dn, Slapi_Entry *target, Slapi_Entry **e
 		goto done;
 	}
 
-	krbPwdPolicyReference = slapi_entry_attr_get_charptr(target, "krbPwdPolicyReference");
-	if (krbPwdPolicyReference) {
+	pwd_get_values(target, "krbPwdPolicyReference", &results, &actual_type_name, &buffer_flags);
+	if (results) {
+		Slapi_Value *sv;
+		slapi_valueset_first_value(results, &sv);
+		krbPwdPolicyReference = slapi_value_get_string(sv);
 		pdn = krbPwdPolicyReference;
 		scope = LDAP_SCOPE_BASE;
+		slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
+		                "ipapwd_getPolicy: using policy reference: %s\n", pdn);
 	} else {
 		/* Find ancestor base DN */
 		be = slapi_be_select(sdn);
@@ -1117,6 +1149,9 @@ static int ipapwd_getPolicy(const char *dn, Slapi_Entry *target, Slapi_Entry **e
 	*e = slapi_entry_dup(pe);
 	ret = 0;
 done:
+	if (results) {
+		pwd_values_free(&results, &actual_type_name, buffer_flags);
+	}
 	if (pb) {
 		slapi_free_search_results_internal(pb);
 		slapi_pblock_destroy(pb);
@@ -1597,7 +1632,7 @@ no_policy:
 
 	if (pwdCharLen < krbPwdMinLength) {
 		slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop",
-			"ipapwd_checkPassword: Password too short\n");
+			"ipapwd_checkPassword: Password too short (%d < %d)\n", pwdCharLen, krbPwdMinLength);
 		return IPAPWD_POLICY_ERROR | LDAP_PWPOLICY_PWDTOOSHORT;
 	}
 

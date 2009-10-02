@@ -204,3 +204,16 @@ dn: cn=Activated,cn=Account Inactivation,cn=accounts,$SUFFIX
 changetype: add
 objectclass: top
 objectclass: groupofnames
+
+# templates for this cos definition are managed by the pwpolicy plugin
+dn: cn=Password Policy,cn=accounts,$SUFFIX
+changetype: add
+description: Password Policy based on group membership
+objectClass: top
+objectClass: ldapsubentry
+objectClass: cosSuperDefinition
+objectClass: cosClassicDefinition
+cosTemplateDn: cn=cosTemplates,cn=accounts,$SUFFIX
+cosAttribute: krbPwdPolicyReference
+cosSpecifier: memberOf
+

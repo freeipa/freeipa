@@ -1,0 +1,169 @@
+# Authors:
+#   Rob Crittenden <rcritten@redhat.com>
+#
+# Copyright (C) 2009  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+"""
+Test the `ipalib/plugins/pwpolicy.py` module.
+"""
+
+import sys
+from xmlrpc_test import XMLRPC_test, assert_attr_equal
+from ipalib import api
+from ipalib import errors
+
+
+class test_pwpolicy(XMLRPC_test):
+    """
+    Test the `pwpolicy` plugin.
+    """
+    group = u'testgroup1'
+    group2 = u'testgroup2'
+    user = u'testuser1'
+    kw = {'group': group, 'cospriority': 1, 'krbminpwdlife': 30, 'krbmaxpwdlife': 40, 'krbpwdhistorylength': 5, 'krbpwdminlength': 6 }
+    kw2 = {'group': group2, 'cospriority': 2, 'krbminpwdlife': 40, 'krbmaxpwdlife': 60, 'krbpwdhistorylength': 8, 'krbpwdminlength': 9 }
+
+    def test_1_pwpolicy_add(self):
+        """
+        Test adding a per-group policy using the `xmlrpc.pwpolicy_add` method.
+        """
+        # First set up a group and user that will use this policy
+        (groupdn, res) = api.Command['group_add'](self.group, description=u'pwpolicy test group')
+        (userdn, res) = api.Command['user_add'](self.user, givenname=u'Test', sn=u'User')
+        (total, failed, res) = api.Command['group_add_member'](self.group, users=self.user)
+
+        (dn, res) = api.Command['pwpolicy_add'](**self.kw)
+        assert res
+        assert_attr_equal(res, 'krbminpwdlife', '30')
+        assert_attr_equal(res, 'krbmaxpwdlife', '40')
+        assert_attr_equal(res, 'krbpwdhistorylength', '5')
+        assert_attr_equal(res, 'krbpwdminlength', '6')
+
+    def test_2_pwpolicy_add(self):
+        """
+        Add a policy that already exists
+        """
+        try:
+            api.Command['pwpolicy_add'](**self.kw)
+        except errors.DuplicateEntry:
+            pass
+        else:
+            assert False
+
+    def test_3_pwpolicy_add(self):
+        """
+        Test adding another per-group policy using the `xmlrpc.pwpolicy_add` method.
+        """
+        (groupdn, res) = api.Command['group_add'](self.group2, description=u'pwpolicy test group 2')
+        (dn, res) = api.Command['pwpolicy_add'](**self.kw2)
+        assert res
+        assert_attr_equal(res, 'krbminpwdlife', '40')
+        assert_attr_equal(res, 'krbmaxpwdlife', '60')
+        assert_attr_equal(res, 'krbpwdhistorylength', '8')
+        assert_attr_equal(res, 'krbpwdminlength', '9')
+
+    def test_4_pwpolicy_add(self):
+        """
+        Add a pwpolicy for a non-existant group
+        """
+        try:
+            api.Command['pwpolicy_add'](group=u'nopwpolicy',cospriority=1,krbminpwdlife=1)
+        except errors.NotFound:
+            pass
+        else:
+            assert False
+
+    def test_5_pwpolicy_show(self):
+        """
+        Test the `xmlrpc.pwpolicy_show` method with global policy.
+        """
+        (dn, res) = api.Command['pwpolicy_show']()
+        assert res
+
+        # Note that this assumes an unchanged global policy
+        assert_attr_equal(res, 'krbminpwdlife', '1')
+        assert_attr_equal(res, 'krbmaxpwdlife', '90')
+        assert_attr_equal(res, 'krbpwdhistorylength', '0')
+        assert_attr_equal(res, 'krbpwdminlength', '8')
+
+    def test_6_pwpolicy_show(self):
+        """
+        Test the `xmlrpc.pwpolicy_show` method.
+        """
+        (dn, res) = api.Command['pwpolicy_show'](group=self.group)
+        assert res
+        assert_attr_equal(res, 'krbminpwdlife', '30')
+        assert_attr_equal(res, 'krbmaxpwdlife', '40')
+        assert_attr_equal(res, 'krbpwdhistorylength', '5')
+        assert_attr_equal(res, 'krbpwdminlength', '6')
+
+    def test_7_pwpolicy_mod(self):
+        """
+        Test the `xmlrpc.pwpolicy_mod` method for global policy.
+        """
+        (dn, res) = api.Command['pwpolicy_mod'](krbminpwdlife=50)
+        assert res
+        assert_attr_equal(res, 'krbminpwdlife', '50')
+
+        # Great, now change it back
+        (dn, res) = api.Command['pwpolicy_mod'](krbminpwdlife=1)
+        assert res
+        assert_attr_equal(res, 'krbminpwdlife', '1')
+
+    def test_8_pwpolicy_mod(self):
+        """
+        Test the `xmlrpc.pwpolicy_mod` method.
+        """
+        (dn, res) = api.Command['pwpolicy_mod'](group=self.group, krbminpwdlife=50)
+        assert res
+        assert_attr_equal(res, 'krbminpwdlife', '50')
+
+    def test_9_pwpolicy_del(self):
+        """
+        Test the `xmlrpc.pwpolicy_del` method.
+        """
+        res = api.Command['pwpolicy_del'](group=self.group)
+        assert res == True
+
+        # Verify that it is gone
+        try:
+            api.Command['pwpolicy_show'](group=self.group)
+        except errors.NotFound:
+            pass
+        else:
+            assert False
+
+        # Remove the groups we created
+        res = api.Command['group_del'](self.group)
+        res = api.Command['group_del'](self.group2)
+
+        # Remove the user we created
+        res = api.Command['user_del'](self.user)
+
+    def test_a_pwpolicy_del(self):
+        """
+        Remove the second test policy with `xmlrpc.pwpolicy_del`.
+        """
+        res = api.Command['pwpolicy_del'](group=self.group2)
+        assert res == True
+
+        # Verify that it is gone
+        try:
+            api.Command['pwpolicy_show'](group=self.group2)
+        except errors.NotFound:
+            pass
+        else:
+            assert False
