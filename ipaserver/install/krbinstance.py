@@ -44,9 +44,7 @@ import pyasn1.codec.ber.encoder
 import pyasn1.codec.ber.decoder
 import struct
 
-KRBMKEY_DENY_ACI = """
-(targetattr = "krbMKey")(version 3.0; acl "No external access"; deny (all) userdn != "ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
-"""
+KRBMKEY_DENY_ACI = '(targetattr = "krbMKey")(version 3.0; acl "No external access"; deny (read,write,search,compare) userdn != "ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)'
 
 def update_key_val_in_file(filename, key, val):
     if os.path.exists(filename):
