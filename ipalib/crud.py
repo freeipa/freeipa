@@ -29,7 +29,8 @@ class Create(frontend.Method):
     """
 
     def get_args(self):
-        yield self.obj.primary_key.clone(attribute=True)
+        if self.obj.primary_key:
+            yield self.obj.primary_key.clone(attribute=True)
 
     def get_options(self):
         if self.extra_options_first:
@@ -48,7 +49,8 @@ class PKQuery(frontend.Method):
     """
 
     def get_args(self):
-        yield self.obj.primary_key.clone(attribute=True, query=True)
+        if self.obj.primary_key:
+            yield self.obj.primary_key.clone(attribute=True, query=True)
 
 
 
