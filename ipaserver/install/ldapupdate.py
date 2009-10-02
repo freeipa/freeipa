@@ -551,7 +551,7 @@ class LDAPUpdate:
         and child in the wrong order.
         """
         dn = updates['dn']
-        updates = updates['updates']
+        updates = updates.get('updates', [])
         for u in updates:
             # We already do syntax-parsing so this is safe
             (utype, k, values) = u.split(':',2)
