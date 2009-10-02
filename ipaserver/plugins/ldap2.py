@@ -330,9 +330,10 @@ class ldap2(CrudBackend, Encoder):
                     del entry_attrs[k]
 
     @encode_args(1, 2)
-    def add_entry(self, dn, entry_attrs):
+    def add_entry(self, dn, entry_attrs, normalize=True):
         """Create a new entry."""
-        dn = self.normalize_dn(dn)
+        if normalize:
+            dn = self.normalize_dn(dn)
         # remove all None values, python-ldap hates'em
         entry_attrs = dict(
             (k, v) for (k, v) in entry_attrs.iteritems() if v is not None
@@ -602,9 +603,10 @@ class ldap2(CrudBackend, Encoder):
             _handle_errors(e, **{})
 
     @encode_args(1)
-    def delete_entry(self, dn):
+    def delete_entry(self, dn, normalize=True):
         """Delete entry."""
-        dn = self.normalize_dn(dn)
+        if normalize:
+            dn = self.normalize_dn(dn)
         try:
             self.conn.delete_s(dn)
         except _ldap.LDAPError, e:
