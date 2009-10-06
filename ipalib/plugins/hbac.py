@@ -96,7 +96,10 @@ class hbac(LDAPObject):
     def get_primary_key_from_dn(self, dn):
         pkey = self.primary_key.name
         (dn, entry_attrs) = self.backend.get_entry(dn, [pkey])
-        return entry_attrs.get(pkey, '')
+        try:
+            return entry_attrs[pkey][0]
+        except (KeyError, IndexError):
+            return ''
 
 api.register(hbac)
 
