@@ -173,6 +173,11 @@ connect_ldap(const char *hostname, const char *binddn, const char *bindpw) {
     int ssl = LDAP_OPT_X_TLS_HARD;
     int version = LDAP_VERSION3;
     int ret;
+    int ldapdebug = 0;
+    if (debug) {
+        ldapdebug=2;
+        ret = ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, &ldapdebug);
+    }
 
     if (ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTFILE, CAFILE) != LDAP_OPT_SUCCESS)
         goto fail;
@@ -191,15 +196,20 @@ connect_ldap(const char *hostname, const char *binddn, const char *bindpw) {
 
     ret = ldap_bind_s(ld, binddn, bindpw, LDAP_AUTH_SIMPLE);
     if (ret != LDAP_SUCCESS) {
+        int err;
+
+        ldap_get_option(ld, LDAP_OPT_RESULT_CODE, &err);
         if (debug)
-            fprintf(stderr, "Bind failed\n");
+            fprintf(stderr, "Bind failed: %s\n", ldap_err2string(err));
         goto fail;
     }
 
     return ld;
 
 fail:
-    ldap_unbind_ext(ld, NULL, NULL);
+    if (ld != NULL) {
+        ldap_unbind_ext(ld, NULL, NULL);
+    }
     return NULL;
 }
 
@@ -210,7 +220,7 @@ get_root_dn(const char *ipaserver, char **ldap_base)
     char *root_attrs[] = {"namingContexts", NULL};
     LDAPMessage *entry, *res = NULL;
     struct berval **ncvals;
-    int ret, rval;
+    int ret, rval = 0;
 
     ld = connect_ldap(ipaserver, NULL, NULL);
     if (!ld) {
@@ -225,6 +235,7 @@ get_root_dn(const char *ipaserver, char **ldap_base)
     if (ret != LDAP_SUCCESS) {
         fprintf(stderr, "Search for %s on rootdse failed with error %d",
                 root_attrs[0], ret);
+        rval = 1;
         goto done;
     }
 
@@ -232,8 +243,9 @@ get_root_dn(const char *ipaserver, char **ldap_base)
     entry = ldap_first_entry(ld, res);
     ncvals = ldap_get_values_len(ld, entry, root_attrs[0]);
     if (!ncvals) {
-            fprintf(stderr, "No values for %s", root_attrs[0]);
-            goto done;
+        fprintf(stderr, "No values for %s", root_attrs[0]);
+        rval = 1;
+        goto done;
     }
 
     *ldap_base = strdup(ncvals[0]->bv_val);
@@ -242,7 +254,9 @@ get_root_dn(const char *ipaserver, char **ldap_base)
 
 done:
     if (res) ldap_msgfree(res);
-    ldap_unbind_ext(ld, NULL, NULL);
+    if (ld != NULL) {
+        ldap_unbind_ext(ld, NULL, NULL);
+    }
 
     return rval;
 }
@@ -284,10 +298,15 @@ join_ldap(const char *ipaserver, const char *hostname, const char ** binddn, con
 
     *binddn = NULL;
 
-    get_root_dn(ipaserver, &ldap_base);
+    if (get_root_dn(ipaserver, &ldap_base) != 0) {
+        fprintf(stderr, "Unable to determine root DN of %s\n", ipaserver);
+        rval = 1;
+        goto done;
+    }
 
     ld = connect_ldap(ipaserver, NULL, NULL);
     if (!ld) {
+        fprintf(stderr, "Unable to make an LDAP connection to %s\n", ipaserver);
         rval = 1;
         goto done;
     }
@@ -328,7 +347,9 @@ join_ldap(const char *ipaserver, const char *hostname, const char ** binddn, con
 
     ldap_value_free_len(ncvals);
     ldap_msgfree(result);
-    ldap_unbind_ext(ld, NULL, NULL);
+    if (ld != NULL) {
+        ldap_unbind_ext(ld, NULL, NULL);
+    }
 
     /* Now rebind as the host */
     ld = connect_ldap(ipaserver, *binddn, bindpw);
@@ -359,7 +380,9 @@ ldap_done:
     free(filter);
     free(search_base);
     free(ldap_base);
-    ldap_unbind_ext(ld, NULL, NULL);
+    if (ld != NULL) {
+        ldap_unbind_ext(ld, NULL, NULL);
+    }
 
 done:
     if (valresult) ber_bvfree(valresult);
@@ -389,6 +412,8 @@ join_krb5(const char *ipaserver, const char *hostname, const char **hostdn, cons
     uname(&uinfo);
 
     xmlrpc_env_init(&env);
+
+    xmlrpc_client_setup_global_const(&env);
 
 #if 1
     asprintf(&url, "https://%s:443/ipa/xml", ipaserver);
