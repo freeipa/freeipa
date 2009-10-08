@@ -6,7 +6,8 @@ NULL =
 
 man_MANS = 				\
 		ipa-getkeytab.1		\
-		ipa-client-install.1
+		ipa-client-install.1	\
+		ipa-join.1
 	
 install-data-hook:
 	@for i in $(man_MANS) ; do gzip -f $(DESTDIR)$(man1dir)/$$i ; done

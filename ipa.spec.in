@@ -398,6 +398,7 @@ fi
 %{python_sitelib}/ipaclient/*.py*
 %{_mandir}/man1/ipa-getkeytab.1.gz
 %{_mandir}/man1/ipa-client-install.1.gz
+%{_mandir}/man1/ipa-join.1.gz
 
 %files admintools
 %doc LICENSE README
