@@ -85,7 +85,7 @@ class group_add(LDAPCreate):
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if options['posix'] or 'gidnumber' in options:
-            options['objectclass'].append('posixgroup')
+            entry_attrs['objectclass'].append('posixgroup')
         return dn
 
 api.register(group_add)
