@@ -216,10 +216,10 @@ add:member:'cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 # Add the ACIs that grant these permissions for host administration
 
 dn: $SUFFIX
-add:aci: '(target = "ldap:///cn=*,cn=computers,cn=accounts,$SUFFIX")(version
+add:aci: '(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version
   3.0;acl "Add Hosts";allow (add) groupdn = "ldap:///cn=addhosts,cn=taskgroups
  ,cn=accounts,$SUFFIX";)'
-add:aci: '(target = "ldap:///cn=*,cn=computers,cn=accounts,$SUFFIX")(version
+add:aci: '(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version
   3.0;acl "Remove Hosts";allow (delete) groupdn = "ldap:///cn=removehosts,cn=
  taskgroups,cn=accounts,$SUFFIX";)'
 add:aci: '(targetattr = "cn || description || l || location ||
