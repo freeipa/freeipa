@@ -34,6 +34,7 @@ app_DATA =				\
 	dna-posix.ldif			\
 	master-entry.ldif		\
 	memberof-task.ldif		\
+	memberof-conf.ldif		\
 	nis.uldif			\
 	unique-attributes.ldif		\
 	schema_compat.uldif		\

@@ -227,7 +227,6 @@ make install DESTDIR=%{buildroot}
 # these files
 rm %{buildroot}/%{plugin_dir}/libipa_pwd_extop.la
 rm %{buildroot}/%{plugin_dir}/libipa_enrollment_extop.la
-rm %{buildroot}/%{plugin_dir}/libipa-memberof-plugin.la
 rm %{buildroot}/%{plugin_dir}/libipa_winsync.la
 
 # Some user-modifiable HTML files are provided. Move these to /etc
@@ -362,7 +361,6 @@ fi
 %{_usr}/share/ipa/updates/*
 %attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so
 %attr(755,root,root) %{plugin_dir}/libipa_enrollment_extop.so
-%attr(755,root,root) %{plugin_dir}/libipa-memberof-plugin.so
 %attr(755,root,root) %{plugin_dir}/libipa_winsync.so
 %dir %{_localstatedir}/lib/ipa
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
