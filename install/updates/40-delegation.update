@@ -2,73 +2,73 @@
 
 dn: cn=helpdesk,cn=rolegroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: helpdesk
 add:description: Helpdesk
 
 dn: cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: useradmin
 add:description: User Administrators
 
 dn: cn=groupadmin,cn=rolegroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: groupadmin
 add:description: Group Administrators
 
 dn: cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: hostadmin
 add:description: Host Administrators
 
 dn: cn=hostgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: hostgroupadmin
 add:description: Host Group Administrators
 
 dn: cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: delegationadmin
 add:description: Role administration
 
 dn: cn=serviceadmin,cn=rolegroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: serviceadmin
 add:description: Service Administrators
 
 dn: cn=automountadmin,cn=rolegroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: automountadmin
 add:description: Automount Administrators
 
 dn: cn=netgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: netgroupadmin
 add:description: Netgroups Administrators
 
 dn: cn=dnsadmin,cn=rolegroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: dnsadmin
 add:description: DNS Administrators
 
 dn: cn=dnsserver,cn=rolegroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: dnsserver
 add:description: DNS Servers
 
 dn: cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: certadmin
 add:description: Certificate Administrators
 
@@ -81,35 +81,35 @@ add:cn: taskgroups
 
 dn: cn=addusers,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: addusers
 add:description: Add Users
 add:member:'cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=change_password,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: change_password
 add:description: Change a user password
 add:member:'cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=add_user_to_default_group,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: add_user_to_default_group
 add:description: Add user to default group
 add:member:'cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=removeusers,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: removeusers
 add:description: Remove Users
 add:member:'cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=modifyusers,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: modifyusers
 add:description: Modify Users
 add:member:'cn=useradmin,cn=rolegroups,cn=accounts,$SUFFIX'
@@ -144,28 +144,28 @@ add:aci: '(targetattr = "givenName || sn || cn || displayName || title || initia
 
 dn: cn=addgroups,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: addgroups
 add:description: Add Groups
 add:member:'cn=groupadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=removegroups,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: removegroups
 add:description: Remove Groups
 add:member:'cn=groupadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=modifygroups,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: modifygroups
 add:description: Modify Groups
 add:member:'cn=groupadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=modifygroupmembership,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: modifygroupmembership
 add:description: Modify Group membership
 add:member:'cn=groupadmin,cn=rolegroups,cn=accounts,$SUFFIX'
@@ -194,21 +194,21 @@ add:aci: '(targetattr = "cn || description || gidnumber || objectclass")(target
 
 dn: cn=addhosts,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: addhosts
 add:description: Add Hosts
 add:member:'cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=removehosts,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: removehosts
 add:description: Remove Hosts
 add:member:'cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=modifyhosts,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: modifyhosts
 add:description: Modify Hosts
 add:member:'cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX'
@@ -232,28 +232,28 @@ add:aci: '(targetattr = "cn || description || l || location ||
 
 dn: cn=addhostgroups,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: addhostgroups
 add:description: Add Host Groups
 add:member:'cn=hostgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=removehostgroups,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: removehostgroups
 add:description: Remove Host Groups
 add:member:'cn=hostgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=modifyhostgroups,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: modifyhostgroups
 add:description: Modify Host Groups
 add:member:'cn=hostgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=modifyhostgroupmembership,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: modifyhostgroupmembership
 add:description: Modify Host Group membership
 add:member:'cn=hostgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX'
@@ -280,14 +280,14 @@ add:aci: '(targetattr = "member")(target = "ldap:///cn=*,cn=hostgroups,cn=accoun
 
 dn: cn=addservices,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: addservices
 add:description: Add Services
 add:member:'cn=serviceadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=removeservices,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: removeservices
 add:description: Remove Services
 add:member:'cn=serviceadmin,cn=rolegroups,cn=accounts,$SUFFIX'
@@ -307,35 +307,35 @@ add:aci: '(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,
 
 dn: cn=addroles,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: addhrole
 add:description: Add Roles
 add:member:'cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=removeroles,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: removeroles
 add:description: Remove Roles
 add:member:'cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=modifyroles,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: modifyroles
 add:description: Modify Roles
 add:member:'cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=modifyrolegroupmembership,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: modifyrolegroupmembership
 add:description: Modify Role Group membership
 add:member:'cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=modifytaskgroupmembership,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: modifytaskgroupmembership
 add:description: Modify Task Group membership
 add:member:'cn=delegationadmin,cn=rolegroups,cn=accounts,$SUFFIX'
@@ -365,14 +365,14 @@ add:aci: '(targetattr = "member")(target = "ldap:///cn=*,cn=taskgroups,cn=accoun
 
 dn: cn=addautomount,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: addautomount
 add:description: Add Automount maps/keys
 add:member:'cn=automountadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=removeautomount,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: removeautomount
 add:description: Remove Automount maps/keys
 add:member:'cn=automountadmin,cn=rolegroups,cn=accounts,$SUFFIX'
@@ -397,28 +397,28 @@ add:aci: '(target = "ldap:///automountkey=*,automountmapname=*,cn=automount,
 
 dn: cn=addnetgroups,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: addnetgroups
 add:description: Add netgroups
 add:member:'cn=netgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=removenetgroups,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: removenetgroups
 add:description: Remove netgroups
 add:member:'cn=netgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=modifynetgroups,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: modifynetgroups
 add:description: Modify netgroups
 add:member:'cn=netgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: cn=modifynetgroupmembership,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: modifynetgroupmembership
 add:description: Modify netgroup membership
 add:member:'cn=netgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX'
@@ -443,7 +443,7 @@ add:aci: '(targetattr = "memberhost || externalhost || memberuser || member")
 # Taskgroup for retrieving host keytabs
 dn: cn=manage_host_keytab,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: manage_host_keytab
 add:description: Manage host keytab
 add:member:'cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX'
@@ -460,7 +460,7 @@ add:aci: '(targetattr = "krbPrincipalKey || krbLastPwdChange")
 # manage_host_keytab access
 dn: cn=enroll_host,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: enroll_host
 add:description: Enroll a host
 add:member:'cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX'
@@ -478,7 +478,7 @@ add:aci: '(targetattr = "krbPrincipalName || enrolledBy || objectClass")
 # Taskgroup for updating the DNS entries
 dn: cn=update_dns,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: update_sn
 add:description: Updates DNS
 add:member:'cn=dnsadmin,cn=rolegroups,cn=accounts,$SUFFIX'
@@ -500,7 +500,7 @@ add:cn: retrieve certificate
 # Taskgroup for retrieving certs
 dn: cn=retrieve_certs,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: retrieve_certs
 add:description: Retrieve SSL Certificates
 add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
@@ -521,7 +521,7 @@ add:cn: request certificate
 # Taskgroup for requesting certs
 dn: cn=request_certs,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: reqeust_certs
 add:description: Request a SSL Certificate
 add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
@@ -542,7 +542,7 @@ add:cn: certificate status
 # Taskgroup for requesting certs
 dn: cn=certificate_status,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: reqeust_certs
 add:description: Status of cert request
 add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
@@ -563,7 +563,7 @@ add:cn: revoke certificate
 # Taskgroup for requesting certs
 dn: cn=revoke_certificate,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: reqeust_certs
 add:description: Revoke Certificate
 add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
@@ -584,7 +584,7 @@ add:cn: revoke certificate
 # Taskgroup for requesting certs
 dn: cn=revoke_certificate,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: reqeust_certs
 add:description: Revoke Certificate
 add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
@@ -605,7 +605,7 @@ add:cn: certificate remove hold
 # Taskgroup for requesting certs
 dn: cn=certificate_remove_hold,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
-add:objectClass: groupofnames
+add:objectClass: nestedgroup
 add:cn: reqeust_certs
 add:description: Certificate Remove Hold
 add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
