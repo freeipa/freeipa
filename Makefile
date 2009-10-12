@@ -2,6 +2,7 @@ include VERSION
 
 SUBDIRS=daemons install ipapython ipa-client
 RADIUSDIRS=ipa-radius-server ipa-radius-admintools
+CLIENTDIRS=ipapython ipa-client
 
 PRJ_PREFIX=ipa
 
@@ -42,21 +43,38 @@ all: bootstrap-autogen server
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 
+client: client-autogen
+	@for subdir in $(CLIENTDIRS); do \
+		(cd $$subdir && $(MAKE) all) || exit 1; \
+	done
+
 radius:
 	@for subdir in $(RADIUSDIRS); do \
 		(cd $$subdir && $(MAKE) all) || exit 1; \
 	done
 
-bootstrap-autogen: version-update
+bootstrap-autogen: version-update client-autogen
 	@echo "Building IPA $(IPA_VERSION)"
 	cd daemons; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 	cd install; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
+
+client-autogen: version-update
 	cd ipa-client; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR) --with-openldap; fi
 
 install: all server-install
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
+
+client-install: client
+	@for subdir in $(CLIENTDIRS); do \
+		(cd $$subdir && $(MAKE) install) || exit 1; \
+	done
+	if [ "$(DESTDIR)" = "" ]; then \
+		python setup-client.py install; \
+	else \
+		python setup-client.py install --root $(DESTDIR); \
+	fi
 
 radius-install: radius install
 	@for subdir in $(RADIUSDIRS); do \
@@ -90,7 +108,7 @@ server:
 	python setup.py build
 
 server-install: server
-	 if [ "$(DESTDIR)" = "" ]; then \
+	if [ "$(DESTDIR)" = "" ]; then \
 		python setup.py install; \
 	else \
 		python setup.py install --root $(DESTDIR); \
@@ -134,6 +152,13 @@ rpms: rpmroot rpmdistdir version-update tarballs
 	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-$(IPA_VERSION)-*.src.rpm dist/srpms/
 	rm -rf rpmbuild
 
+client-rpms: rpmroot rpmdistdir version-update tarballs
+	cp dist/sources/$(TARBALL) $(RPMBUILD)/SOURCES/.
+	rpmbuild --define "_topdir $(RPMBUILD)" --define "ONLY_CLIENT 1" -ba ipa.spec
+	cp rpmbuild/RPMS/*/$(PRJ_PREFIX)-*-$(IPA_VERSION)-*.rpm dist/rpms/
+	cp rpmbuild/SRPMS/$(PRJ_PREFIX)-$(IPA_VERSION)-*.src.rpm dist/srpms/
+	rm -rf rpmbuild
+
 srpms: rpmroot rpmdistdir version-update tarballs
 	cp dist/sources/$(TARBALL) $(RPMBUILD)/SOURCES/.
 	rpmbuild --define "_topdir $(RPMBUILD)" -bs ipa.spec
@@ -156,10 +181,14 @@ clean: version-update
 	rm -f *~
 
 distclean: version-update
+	touch daemons/NEWS daemons/README daemons/AUTHORS daemons/ChangeLog
+	touch install/NEWS install/README install/AUTHORS install/ChangeLog
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 	rm -fr rpmbuild dist build
+	rm -f daemons/NEWS daemons/README daemons/AUTHORS daemons/ChangeLog
+	rm -f install/NEWS install/README install/AUTHORS install/ChangeLog
 
 maintainer-clean: clean
 	rm -fr rpmbuild dist build

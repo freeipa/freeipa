@@ -1,10 +1,14 @@
+# Define ONLY_CLIENT to only make the ipa-client and ipa-python subpackages
+%{!?ONLY_CLIENT:%define ONLY_CLIENT 0}
+
+# Define WITH_RADIUS to build the radius packages
+%define WITH_RADIUS 0
+
 %define httpd_conf /etc/httpd/conf.d
 %define plugin_dir %{_libdir}/dirsrv/plugins
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 %{!?python_sitearch: %define python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
 %define POLICYCOREUTILSVER 1.33.12-1
-# Define WITH_RADIUS to build the radius packages
-%define WITH_RADIUS 0
 
 Name:           ipa
 Version:        __VERSION__
@@ -17,6 +21,7 @@ URL:            http://www.freeipa.org/
 Source0:        freeipa-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
+%if ! %{ONLY_CLIENT}
 BuildRequires:  fedora-ds-base-devel >= 1.1.3
 BuildRequires:  mozldap-devel
 BuildRequires:  svrcore-devel
@@ -38,6 +43,8 @@ BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
 BuildRequires:  python-setuptools
 BuildRequires:  python-krbV
 BuildRequires:  xmlrpc-c-devel
+BuildRequires:  libcurl-devel
+%endif
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -45,6 +52,7 @@ user, virtual machines, groups, authentication credentials), Policy
 (configuration settings, access control information) and Audit (events,
 logs, analysis thereof).
 
+%if ! %{ONLY_CLIENT}
 %package server
 Summary: The IPA authentication server
 Group: System Environment/Base
@@ -110,6 +118,7 @@ user, virtual machines, groups, authentication credentials), Policy
 (configuration settings, access control information) and Audit (events,
 logs, analysis thereof). This package provides SELinux rules for the
 daemons included in ipa-server
+%endif
 
 
 %package client
@@ -126,6 +135,8 @@ Requires: authconfig
 Requires: pam_krb5
 Requires: nss_ldap
 Requires: wget
+Requires: xmlrpc-c
+Requires: libcurl
 
 %description client
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -135,6 +146,7 @@ logs, analysis thereof). If your network uses IPA for authentication,
 this package should be installed on every client machine.
 
 
+%if ! %{ONLY_CLIENT}
 %package admintools
 Summary: IPA administrative tools
 Group: System Environment/Base
@@ -149,6 +161,7 @@ user, virtual machines, groups, authentication credentials), Policy
 (configuration settings, access control information) and Audit (events,
 logs, analysis thereof). This package provides command-line tools for
 IPA administrators.
+%endif
 
 %package python
 Summary: Python libraries used by IPA
@@ -206,23 +219,36 @@ administering radius authentication settings in IPA.
 export CFLAGS="$CFLAGS %{optflags}"
 export CPPFLAGS="$CPPFLAGS %{optflags}"
 make version-update
+%if ! %{ONLY_CLIENT}
 touch daemons/NEWS daemons/README daemons/AUTHORS daemons/ChangeLog
 touch install/NEWS install/README install/AUTHORS install/ChangeLog
+%endif
 cd ipa-client; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir} --with-openldap; cd ..
+%if ! %{ONLY_CLIENT}
 cd daemons; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
 cd install; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
+%endif
 
+%if ! %{ONLY_CLIENT}
 make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} version-update all
 cd selinux
 # This isn't multi-process make capable yet
 make all
+%else
+make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} version-update client
+%endif
 
 %install
 rm -rf %{buildroot}
+%if ! %{ONLY_CLIENT}
 make install DESTDIR=%{buildroot}
 cd selinux
 make install DESTDIR=%{buildroot}
+%else
+make client-install DESTDIR=%{buildroot}
+%endif
 
+%if ! %{ONLY_CLIENT}
 # Remove .la files from libtool - we don't want to package
 # these files
 rm %{buildroot}/%{plugin_dir}/libipa_pwd_extop.la
@@ -233,7 +259,6 @@ rm %{buildroot}/%{plugin_dir}/libipa_winsync.la
 # and link back.
 mkdir -p %{buildroot}/%{_sysconfdir}/ipa/html
 mkdir -p %{buildroot}/%{_localstatedir}/cache/ipa/sysrestore
-mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
 mkdir %{buildroot}%{_usr}/share/ipa/html/
 ln -s ../../../..%{_sysconfdir}/ipa/html/ssbrowser.html \
     %{buildroot}%{_usr}/share/ipa/html/ssbrowser.html
@@ -246,10 +271,13 @@ mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/
 /bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/ipa/ipa.conf
 /bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/ipa.conf
 /bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
+%endif
+mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
 
 %clean
 rm -rf %{buildroot}
 
+%if ! %{ONLY_CLIENT}
 %post server
 if [ $1 = 1 ]; then
     /sbin/chkconfig --add ipa_kpasswd
@@ -322,8 +350,10 @@ if [ $? == 0  -a "${SELINUXTYPE}" == targeted -a -f ${FILE_CONTEXT}.%{name} ]; t
        rm -f ${FILE_CONTEXT}.%name
 fi
 fi
+%endif
 
 
+%if ! %{ONLY_CLIENT}
 %files server
 %doc LICENSE README
 %defattr(-,root,root,-)
@@ -338,7 +368,6 @@ fi
 %attr(755,root,root) %{_initrddir}/ipa_kpasswd
 %{python_sitelib}/ipaserver/*
 %{python_sitelib}/ipawebui/*
-%{python_sitelib}/*.egg-info
 %dir %{_usr}/share/ipa
 %{_usr}/share/ipa/*.ldif
 %{_usr}/share/ipa/*.uldif
@@ -382,6 +411,7 @@ fi
 %{_usr}/share/selinux/targeted/ipa_webgui.pp
 %{_usr}/share/selinux/targeted/ipa_kpasswd.pp
 %{_usr}/share/selinux/targeted/ipa_httpd.pp
+%endif
 
 %files client
 %doc LICENSE README
@@ -400,6 +430,7 @@ fi
 %{_mandir}/man1/ipa-client-install.1.gz
 %{_mandir}/man1/ipa-join.1.gz
 
+%if ! %{ONLY_CLIENT}
 %files admintools
 %doc LICENSE README
 %defattr(-,root,root,-)
@@ -408,6 +439,7 @@ fi
 %{_sbindir}/ipa-ldap-updater
 %{_sbindir}/ipa-compat-manage
 %{_sbindir}/ipa-nis-manage
+%endif
 
 %files python
 %doc LICENSE README
@@ -417,6 +449,7 @@ fi
 %{python_sitelib}/ipalib/*
 %if 0%{?fedora} >= 9
 %{python_sitelib}/ipapython-*.egg-info
+%{python_sitelib}/freeipa-*.egg-info
 %endif
 %config(noreplace) %{_sysconfdir}/ipa/ipa.conf
 
