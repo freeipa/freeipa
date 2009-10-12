@@ -34,7 +34,7 @@ from types import NoneType
 import os
 from os import path
 import sys
-from socket import gethostname
+from socket import getfqdn
 
 from base import check_name
 from constants import CONFIG_SECTION
@@ -443,7 +443,7 @@ class Env(object):
         self.__doing('_bootstrap')
 
         # Set run-time variables (cannot be overridden):
-        self.host = gethostname()
+        self.host = getfqdn()
         self.ipalib = path.dirname(path.abspath(__file__))
         self.site_packages = path.dirname(self.ipalib)
         self.script = path.abspath(sys.argv[0])
