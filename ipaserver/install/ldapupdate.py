@@ -265,6 +265,9 @@ class LDAPUpdate:
     def create_index_task(self, attribute):
         """Create a task to update an index for an attribute"""
 
+        # Sleep a bit to ensure previous operations are complete
+        time.sleep(5)
+
         r = random.SystemRandom()
 
         # Refresh the time to make uniqueness more probable. Add on some
