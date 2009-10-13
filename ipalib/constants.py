@@ -99,10 +99,22 @@ DEFAULT_CONFIG = (
     ('container_virtual', 'cn=virtual operations'),
 
     # Ports, hosts, and URIs:
-    ('lite_xmlrpc_port', 8888),
-    ('lite_webui_port', 9999),
-    ('xmlrpc_uri', 'http://localhost:8888'),
+    # FIXME: let's renamed xmlrpc_uri to rpc_xml_uri
+    ('xmlrpc_uri', 'http://localhost:8888/ipa/xml'),
+    ('rpc_json_uri', 'http://localhost:8888/ipa/json'),
     ('ldap_uri', 'ldap://localhost:389'),
+
+    # Web Application mount points
+    ('mount_ipa', '/ipa/'),
+    ('mount_xmlserver', 'xml'),
+    ('mount_jsonserver', 'json'),
+    ('mount_webui', 'ui/'),
+    ('mount_webui_assets', '_/'),
+
+    # WebUI stuff:
+    ('webui_prod', True),
+    ('webui_assets_dir', None),
+    ('webui_assets_dburi', None),
 
     # Debugging:
     ('verbose', False),

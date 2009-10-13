@@ -28,12 +28,7 @@ from ipalib import api
 from ipalib.backend import Backend
 import krbV
 
-
-# FIXME: Is it safe to assume the Kerberos library is using UTF-8 for the
-# principal and realm?  If not, how do we query the Kerberos library to find
-# the encoding it's using?
 ENCODING = 'UTF-8'
-FS_ENCODING = (sys.getfilesystemencoding() or sys.getdefaultencoding())
 
 
 class krb(Backend):
@@ -61,7 +56,7 @@ class krb(Backend):
         """
         Return the ``krbV.CCache`` for the ``ccname`` credential ccache.
         """
-        return krbV.CCache(ccname.encode(FS_ENCODING))
+        return krbV.CCache(ccname)
 
     def __get_principal(self, ccname):
         """
@@ -78,7 +73,7 @@ class krb(Backend):
         This cannot return anything meaningful if used in the server as a
         request is processed.
         """
-        return self.__default_ccache().name.decode(FS_ENCODING)
+        return self.__default_ccache().name
 
     def default_principal(self):
         """

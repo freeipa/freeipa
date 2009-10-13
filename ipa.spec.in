@@ -35,7 +35,6 @@ BuildRequires:  popt-devel
 BuildRequires:  /usr/share/selinux/devel/Makefile
 BuildRequires:  m4
 BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
-BuildRequires:  python-cherrypy
 BuildRequires:  python-setuptools
 BuildRequires:  python-krbV
 BuildRequires:  xmlrpc-c-devel
@@ -75,7 +74,8 @@ Requires: mod_nss
 %endif
 Requires: python-ldap
 Requires: python-krbV
-Requires: python-cherrypy
+Requires: python-assets
+Requires: python-wehjit
 Requires: acl
 Requires: python-pyasn1
 Requires: libcap
@@ -440,6 +440,10 @@ fi
 %endif
 
 %changelog
+* Mon Oct 12 2009 Jason Gerard DeRose <jderose@redhat.com> - 1.99-8
+- Removed python-cherrypy from BuildRequires and Requires
+- Added Requires python-assets, python-wehjit
+
 * Mon Aug 24 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-7
 - Added httpd SELinux policy so CRLs can be read
 

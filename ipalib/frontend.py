@@ -375,6 +375,7 @@ class Command(HasParam):
     options = None
     params = None
     output_for_cli = None
+    obj = None
 
     def __call__(self, *args, **options):
         """

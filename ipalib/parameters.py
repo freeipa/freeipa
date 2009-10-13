@@ -132,6 +132,13 @@ class DefaultFrom(ReadOnly):
                 )
         lock(self)
 
+    def __repr__(self):
+        args = (self.callback.__name__,) + tuple(repr(k) for k in self.keys)
+        return '%s(%s)' % (
+            self.__class__.__name__,
+            ', '.join(args)
+        )
+
     def __call__(self, **kw):
         """
         Call the callback if all keys are present.
@@ -376,7 +383,12 @@ class Param(ReadOnly):
         for rule in self.rules:
             yield rule.__name__
         for key in sorted(self.__kw):
-            yield '%s=%r' % (key, self.__kw[key])
+            value = self.__kw[key]
+            if callable(value) and hasattr(value, '__name__'):
+                value = value.__name__
+            else:
+                value = repr(value)
+            yield '%s=%s' % (key, value)
 
     def __call__(self, value, **kw):
         """
@@ -388,6 +400,16 @@ class Param(ReadOnly):
             value = self.convert(self.normalize(value))
         self.validate(value)
         return value
+
+    def kw(self):
+        """
+        Iterate through ``(key,value)`` for all kwargs passed to constructor.
+        """
+        for key in sorted(self.__kw):
+            value = self.__kw[key]
+            if callable(value) and hasattr(value, '__name__'):
+                value = value.__name__
+            yield (key, value)
 
     def use_in_context(self, env):
         """
@@ -769,6 +791,27 @@ class Bool(Param):
 
     type = bool
     type_error = _('must be True or False')
+
+    # FIXME: This my quick hack to get some UI stuff working, change these defaults
+    #   --jderose 2009-08-28
+    kwargs = Param.kwargs + (
+        ('truths', frozenset, frozenset([1, u'1', u'True'])),
+        ('falsehoods', frozenset, frozenset([0, u'0', u'False'])),
+    )
+
+    def _convert_scalar(self, value, index=None):
+        """
+        Convert a single scalar value.
+        """
+        if type(value) is self.type:
+            return value
+        if value in self.truths:
+            return True
+        if value in self.falsehoods:
+            return False
+        raise ConversionError(name=self.name, index=index,
+            error=ugettext(self.type_error),
+        )
 
 
 class Flag(Bool):
@@ -1220,7 +1263,7 @@ class GeneralizedTime(Str):
         mm = int(t[2:4])
         if mm < 0 or mm > 59:
             raise ValueError('MM out of range')
- 
+
     def _check_dotw(self, t):
         if t.isnumeric():
             value = int(t)
@@ -1266,7 +1309,7 @@ class GeneralizedTime(Str):
             raise ValueError('month number non-numeric')
         value = int(t)
         if value < 1 or value > 12:
-            raise ValueError('month number out of range') 
+            raise ValueError('month number out of range')
 
     def _check_interval(self, t, check_func):
         intervals = t.split(',')
@@ -1364,7 +1407,7 @@ class GeneralizedTime(Str):
             raise ValidationError(
                 name=self.cli_name, errors='incomplete time value'
             )
-        return None 
+        return None
 
 
 def create_param(spec):

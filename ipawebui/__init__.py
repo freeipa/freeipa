@@ -17,8 +17,40 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Package containing web-based UI components.
+IPA web UI.
 """
 
-import kid
-kid.enable_import()
+from controllers import JSON
+from engine import Engine
+from widgets import create_widgets
+
+from assetslib import Assets
+from wehjit import Application
+
+
+def join_url(base, url):
+    if url.startswith('/'):
+        return url
+    return base + url
+
+
+def create_wsgi_app(api):
+    baseurl = api.env.mount_ipa
+    assets = Assets(
+        url=join_url(baseurl, api.env.mount_webui_assets),
+        dir=api.env.webui_assets_dir,
+        prod=api.env.webui_prod,
+    )
+    app = Application(
+        url=join_url(baseurl, api.env.mount_webui),
+        assets=assets,
+        widgets=create_widgets(),
+        prod=api.env.webui_prod,
+    )
+
+    engine = Engine(api, app)
+    engine.build()
+
+    app.finalize()
+
+    return app

@@ -23,7 +23,7 @@
 Python-level packaging using distutils.
 """
 
-from setuptools import setup
+from distutils.core import setup
 import ipalib
 
 setup(
@@ -38,11 +38,6 @@ setup(
         'ipaserver.plugins',
         'ipaserver.install',
         'ipawebui',
-        'ipawebui.templates',
     ],
-    package_data={
-        'ipawebui.templates': ['*.kid'],
-        'ipawebui': ['static/*'],
-    },
     scripts=['ipa'],
 )

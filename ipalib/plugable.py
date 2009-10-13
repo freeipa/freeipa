@@ -524,7 +524,7 @@ class API(DictProxy):
         if context is not None:
             overrides['context'] = context
         self.bootstrap(**overrides)
-        return args
+        return (options, args)
 
     def load_plugins(self):
         """

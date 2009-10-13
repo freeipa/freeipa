@@ -25,5 +25,6 @@ XML-RPC client plugin.
 from ipalib import api
 
 if 'in_server' in api.env and api.env.in_server is True:
-    from ipaserver.rpcserver import xmlserver
+    from ipaserver.rpcserver import xmlserver, jsonserver
     api.register(xmlserver)
+    api.register(jsonserver)

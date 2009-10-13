@@ -836,7 +836,7 @@ cli_plugins = (
 def run(api):
     error = None
     try:
-        argv = api.bootstrap_with_global_options(context='cli')
+        (options, argv) = api.bootstrap_with_global_options(context='cli')
         for klass in cli_plugins:
             api.register(klass)
         api.load_plugins()

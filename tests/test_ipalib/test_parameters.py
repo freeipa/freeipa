@@ -60,6 +60,27 @@ class test_DefaultFrom(ClassChecker):
         e = raises(TypeError, self.cls, callback, 'givenname', 17)
         assert str(e) == TYPE_ERROR % ('keys', str, 17, int)
 
+    def test_repr(self):
+        """
+        Test the `ipalib.parameters.DefaultFrom.__repr__` method.
+        """
+        def stuff(one, two):
+            pass
+
+        o = self.cls(stuff)
+        assert repr(o) == "DefaultFrom(stuff, 'one', 'two')"
+
+        o = self.cls(stuff, 'aye', 'bee', 'see')
+        assert repr(o) == "DefaultFrom(stuff, 'aye', 'bee', 'see')"
+
+        cb = lambda first, last: first[0] + last
+
+        o = self.cls(cb)
+        assert repr(o) == "DefaultFrom(<lambda>, 'first', 'last')"
+
+        o = self.cls(cb, 'aye', 'bee', 'see')
+        assert repr(o) == "DefaultFrom(<lambda>, 'aye', 'bee', 'see')"
+
     def test_call(self):
         """
         Test the `ipalib.parameters.DefaultFrom.__call__` method.

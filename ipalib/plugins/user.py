@@ -70,15 +70,15 @@ class user(LDAPObject):
     takes_params = (
         Str('givenname',
             cli_name='first',
-            doc='first name',
+            doc='First name',
         ),
         Str('sn',
             cli_name='last',
-            doc='last name',
+            doc='Last name',
         ),
         Str('uid',
             cli_name='user',
-            doc='login name',
+            doc='Login name',
             primary_key=True,
             default_from=lambda givenname, sn: givenname[0] + sn,
             normalizer=lambda value: value.lower(),
@@ -90,7 +90,7 @@ class user(LDAPObject):
         ),
         Str('homedirectory?',
             cli_name='homedir',
-            doc='home directory',
+            doc='Home directory',
             default_from=lambda uid: '/home/%s' % uid,
         ),
         Str('loginshell?',
@@ -251,4 +251,3 @@ class user_unlock(LDAPQuery):
         textui.print_dashed('Unlocked user "%s".' % keys[-1])
 
 api.register(user_unlock)
-

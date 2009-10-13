@@ -45,20 +45,21 @@ class env(LocalOrRemote):
                         keys.add(key)
             elif query in self.env:
                 keys.add(query)
-        return sorted(keys)
+        return keys
 
     def execute(self, variables, **options):
         if variables is None:
             keys = self.env
         else:
             keys = self.__find_keys(variables)
-        return tuple(
+        return dict(
             (key, self.env[key]) for key in keys
         )
 
     def output_for_cli(self, textui, result, variables, **options):
         if len(result) == 0:
             return
+        result = tuple((k, result[k]) for k in sorted(result))
         if len(result) == 1:
             textui.print_keyval(result)
             return

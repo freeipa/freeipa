@@ -112,6 +112,7 @@ class PrivateError(StandardError):
 
     def __init__(self, **kw):
         self.msg = self.format % kw
+        self.kw = kw
         for (key, value) in kw.iteritems():
             assert not hasattr(self, key), 'conflicting kwarg %s.%s = %r' % (
                 self.__class__.__name__, key, value,
@@ -244,6 +245,7 @@ class PublicError(StandardError):
     format = None
 
     def __init__(self, format=None, message=None, **kw):
+        self.kw = kw
         name = self.__class__.__name__
         if self.format is not None and format is not None:
             raise ValueError(
@@ -405,6 +407,15 @@ class ServerNetworkError(PublicError):
 
     errno = 908
     format = _('error on server %(server)r: %(error)s')
+
+
+class JSONError(PublicError):
+    """
+    **909** Raised when server recieved a malformed JSON-RPC request.
+    """
+
+    errno = 909
+    format = _('Invalid JSON-RPC request: %(error)s')
 
 
 
