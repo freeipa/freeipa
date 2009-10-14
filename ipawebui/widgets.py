@@ -58,6 +58,11 @@ class IPAPlugins(base.Container):
     </td>
     </tr>
 
+    <tr class="${row.next()}">
+    <td>base(s)</td>
+    <td py:content="', '.join(p.bases)" />
+    </tr>
+
     <tr py:if="p.doc" class="${row.next()}">
     <td>docstring</td>
     <td><pre py:content="p.doc" /></td>
