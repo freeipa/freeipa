@@ -23,7 +23,6 @@ Various utility functions.
 
 import os
 import imp
-import optparse
 import logging
 import time
 import krbV
@@ -93,28 +92,6 @@ def import_plugins_subpackage(name):
     for name in find_modules_in_dir(src_dir):
         full_name = '%s.%s' % (plugins.__name__, name)
         __import__(full_name)
-
-
-def add_global_options(parser=None):
-    """
-    Add global options to an optparse.OptionParser instance.
-    """
-    if parser is None:
-        parser = optparse.OptionParser()
-        parser.disable_interspersed_args()
-    parser.add_option('-e', dest='env', metavar='KEY=VAL', action='append',
-        help='Set environment variable KEY to VAL',
-    )
-    parser.add_option('-c', dest='conf', metavar='FILE',
-        help='Load configuration from FILE',
-    )
-    parser.add_option('-d', '--debug', action='store_true',
-        help='Produce full debuging output',
-    )
-    parser.add_option('-v', '--verbose', action='store_true',
-        help='Produce more verbose output',
-    )
-    return parser
 
 
 class LogFormatter(logging.Formatter):

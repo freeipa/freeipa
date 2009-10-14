@@ -612,7 +612,7 @@ class help(frontend.Command):
             print '  %s  %s' % (to_cli(c.name).ljust(mcl), c.doc)
 
 
-class console(frontend.Application):
+class console(frontend.Command):
     """Start the IPA interactive Python console."""
 
     def run(self):
@@ -622,7 +622,7 @@ class console(frontend.Application):
         )
 
 
-class show_api(frontend.Application):
+class show_api(frontend.Command):
     'Show attributes on dynamic API object'
 
     takes_args = ('namespaces*',)
