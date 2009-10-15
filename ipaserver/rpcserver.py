@@ -103,25 +103,26 @@ class WSGIExecutioner(Executioner):
         error = None
         _id = None
         try:
-            self.create_context(ccache=environ.get('KRB5CCNAME'))
-            if (
-                environ.get('CONTENT_TYPE', '').startswith(self.content_type)
-                and environ['REQUEST_METHOD'] == 'POST'
-            ):
-                data = read_input(environ)
-                (name, args, options, _id) = self.unmarshal(data)
-            else:
-                (name, args, options, _id) = self.simple_unmarshal(environ)
-            if name not in self.Command:
-                raise CommandError(name=name)
-            result = self.Command[name](*args, **options)
-        except PublicError, e:
-            error = e
-        except StandardError, e:
-            self.exception(
-                'non-public: %s: %s', e.__class__.__name__, str(e)
-            )
-            error = InternalError()
+            try:
+                self.create_context(ccache=environ.get('KRB5CCNAME'))
+                if (
+                    environ.get('CONTENT_TYPE', '').startswith(self.content_type)
+                    and environ['REQUEST_METHOD'] == 'POST'
+                ):
+                    data = read_input(environ)
+                    (name, args, options, _id) = self.unmarshal(data)
+                else:
+                    (name, args, options, _id) = self.simple_unmarshal(environ)
+                if name not in self.Command:
+                    raise CommandError(name=name)
+                result = self.Command[name](*args, **options)
+            except PublicError, e:
+                error = e
+            except StandardError, e:
+                self.exception(
+                    'non-public: %s: %s', e.__class__.__name__, str(e)
+                )
+                error = InternalError()
         finally:
             destroy_context()
         return self.marshal(result, error, _id)
