@@ -736,6 +736,15 @@ class NoSuchNamespaceError(InvocationError):
     format = _('api has no such namespace: %(name)r')
 
 
+class PasswordMismatch(InvocationError):
+    """
+    **3011** Raise when password and password confirmation don't match.
+    """
+
+    errno = 3011
+    format = _('Passwords do not match')
+
+
 ##############################################################################
 # 4000 - 4999: Execution errors
 

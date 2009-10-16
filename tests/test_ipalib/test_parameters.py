@@ -1065,6 +1065,17 @@ class test_Password(ClassChecker):
         assert o.pattern is None
         assert o.password is True
 
+    def test_convert_scalar(self):
+        """
+        Test the `ipalib.parameters.Password._convert_scalar` method.
+        """
+        o = self.cls('my_password')
+        e = raises(errors.PasswordMismatch, o._convert_scalar, [u'one', u'two'])
+        assert e.name == 'my_password'
+        assert e.index is None
+        assert o._convert_scalar([u'one', u'one']) == u'one'
+        assert o._convert_scalar(u'one') == u'one'
+
 
 class test_StrEnum(ClassChecker):
     """

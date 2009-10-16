@@ -35,6 +35,7 @@ from util import make_repr
 from request import ugettext
 from plugable import ReadOnly, lock, check_name
 from errors import ConversionError, RequirementError, ValidationError
+from errors import PasswordMismatch
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
 import csv
 
@@ -1144,6 +1145,14 @@ class Password(Str):
     """
     A parameter for passwords (stored in the ``unicode`` type).
     """
+
+    def _convert_scalar(self, value, index=None):
+        if isinstance(value, (tuple, list)) and len(value) == 2:
+            (p1, p2) = value
+            if p1 != p2:
+                raise PasswordMismatch(name=self.name, index=index)
+            value = p1
+        return super(Password, self)._convert_scalar(value, index)
 
 
 class Enum(Param):
