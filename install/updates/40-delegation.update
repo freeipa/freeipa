@@ -510,7 +510,7 @@ add: aci: '(targetattr = "objectClass")(target =
  "ldap:///cn=retrieve certificate,cn=virtual operations,
  $SUFFIX" )(version 3.0 ; acl "Retrieve Certificates from the
   CA" ; allow (write) groupdn = "ldap:///cn=retrieve_certs,cn=taskgroups,
- cn=accounts,dc=greyoak,dc=com";)'
+ cn=accounts,$SUFFIX";)'
 
 # Request Certificate virtual op
 dn: cn=request certificate,cn=virtual operations,$SUFFIX
@@ -531,7 +531,7 @@ add: aci: '(targetattr = "objectClass")(target =
  "ldap:///cn=request certificate,cn=virtual operations,
  $SUFFIX" )(version 3.0 ; acl "Request Certificates from the
   CA" ; allow (write) groupdn = "ldap:///cn=request_certs,cn=taskgroups,
- cn=accounts,dc=greyoak,dc=com";)'
+ cn=accounts,$SUFFIX";)'
 
 # Certificate Status virtual op
 dn: cn=certificate status,cn=virtual operations,$SUFFIX
@@ -552,7 +552,7 @@ add: aci: '(targetattr = "objectClass")(target =
  "ldap:///cn=certificate status,cn=virtual operations,
  $SUFFIX" )(version 3.0 ; acl "Get Certificates status from the
   CA" ; allow (write) groupdn = "ldap:///cn=certificate_status,
- cn=taskgroups,cn=accounts,dc=greyoak,dc=com";)'
+ cn=taskgroups,cn=accounts,$SUFFIX";)'
 
 # Revoke Certificate virtual op
 dn: cn=revoke certificate,cn=virtual operations,$SUFFIX
@@ -573,7 +573,7 @@ add: aci: '(targetattr = "objectClass")(target =
  "ldap:///cn=revoke certificate,cn=virtual operations,
  $SUFFIX" )(version 3.0 ; acl "Revoke Certificate"
   ; allow (write) groupdn = "ldap:///cn=revoke_certificate,
- cn=taskgroups,cn=accounts,dc=greyoak,dc=com";)'
+ cn=taskgroups,cn=accounts,$SUFFIX";)'
 
 # Revoke Certificate virtual op
 dn: cn=revoke certificate,cn=virtual operations,$SUFFIX
@@ -594,7 +594,7 @@ add: aci: '(targetattr = "objectClass")(target =
  "ldap:///cn=revoke certificate,cn=virtual operations,
  $SUFFIX" )(version 3.0 ; acl "Revoke Certificate"
   ; allow (write) groupdn = "ldap:///cn=revoke_certificate,
- cn=taskgroups,cn=accounts,dc=greyoak,dc=com";)'
+ cn=taskgroups,cn=accounts,$SUFFIX";)'
 
 # Certificate Remove Hold virtual op
 dn: cn=certificate remove hold,cn=virtual operations,$SUFFIX
@@ -615,4 +615,4 @@ add: aci: '(targetattr = "objectClass")(target =
  "ldap:///cn=certificate remove hold,cn=virtual operations,
  $SUFFIX" )(version 3.0 ; acl "Certificate Remove Hold"
   ; allow (write) groupdn = "ldap:///cn=certificate_remove_hold,
- cn=taskgroups,cn=accounts,dc=greyoak,dc=com";)'
+ cn=taskgroups,cn=accounts,$SUFFIX";)'
