@@ -23,7 +23,7 @@ RPC server.
 Also see the `ipalib.rpc` module.
 """
 
-from urlparse import parse_qs
+from cgi import parse_qs
 from xmlrpclib import Fault
 from ipalib.backend import Executioner
 from ipalib.errors import PublicError, InternalError, CommandError, JSONError
