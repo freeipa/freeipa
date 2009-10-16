@@ -21,7 +21,7 @@ Controllers.
 """
 
 from wehjit import util
-import json
+from ipalib.compat import json
 
 
 class JSON(object):

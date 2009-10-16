@@ -30,7 +30,7 @@ from ipalib.errors import PublicError, InternalError, CommandError, JSONError
 from ipalib.request import context, Connection, destroy_context
 from ipalib.rpc import xml_dumps, xml_loads
 from ipalib.util import make_repr
-import json
+from ipalib.compat import json
 
 
 def read_input(environ):

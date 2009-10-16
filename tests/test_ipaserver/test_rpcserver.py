@@ -25,7 +25,7 @@ from tests.util import create_test_api, raises, PluginTester
 from tests.data import unicode_str
 from ipalib import errors, Command
 from ipaserver import rpcserver
-import json
+from ipalib.compat import json
 
 
 def test_params_2_args_options():
