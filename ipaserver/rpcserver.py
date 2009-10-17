@@ -98,7 +98,7 @@ class WSGIExecutioner(Executioner):
             self.url = self.env.mount_ipa + url
         super(WSGIExecutioner, self).finalize()
 
-    def execute(self, environ):
+    def wsgi_execute(self, environ):
         result = None
         error = None
         _id = None
@@ -138,7 +138,7 @@ class WSGIExecutioner(Executioner):
         """
         try:
             status = '200 OK'
-            response = self.execute(environ)
+            response = self.wsgi_execute(environ)
             headers = [('Content-Type', self.content_type + '; charset=utf-8')]
         except StandardError, e:
             self.exception('%s.__call__():', self.name)
