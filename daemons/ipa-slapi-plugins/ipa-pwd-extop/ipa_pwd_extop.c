@@ -3296,17 +3296,24 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
             slapi_ch_free_string(&userpw);
             userpw = tmp;
         } else if (slapi_is_encoded(userpw)) {
+            /* check if we have access to the unhashed user password */
+            char *userpw_clear =
+                slapi_entry_attr_get_charptr(e, "unhashed#user#password");
+
+            /* unhashed#user#password doesn't always contain the clear text
+             * password, therefore we need to check if its value isn't the same
+             * as userPassword, to make sure */
+            if (!userpw || (0 == strcmp(userpw, userpw_clear))) {
+                rc = LDAP_CONSTRAINT_VIOLATION;
+            }
 
             slapi_ch_free_string(&userpw);
+            slapi_ch_free_string(&userpw_clear);
 
-            /* check if we have access to the unhashed user password */
-            userpw = slapi_entry_attr_get_charptr(e, "unhashed#user#password");
-            if (!userpw) {
-                slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
-                                "Pre-Encoded passwords are not valid\n");
-                errMesg = "Pre-Encoded passwords are not valid\n";
-                rc = LDAP_CONSTRAINT_VIOLATION;
-                goto done;
+            if (rc) {
+                /* we don't have access to the clear text password,
+                 * let the operation continue, but don't generate keys */
+                return 0;
             }
         }
     }
