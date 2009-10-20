@@ -534,6 +534,43 @@ class ldap2(CrudBackend, Encoder):
 
         return False
 
+    #
+    # Entry-level effective rights
+    #
+    # a - Add
+    # d - Delete
+    # n - Rename the DN
+    # v - View the entry
+    #
+
+    @encode_args(1)
+    def can_delete(self, dn):
+        """Returns True/False if the currently bound user has delete permissions
+           on the entry.
+        """
+        (dn, attrs) = self.get_effective_rights(dn, ["*"])
+        import pdb
+        pdb.set_trace()
+        if 'entrylevelrights' in attrs:
+            entry_rights = attrs['entrylevelrights'][0].decode('UTF-8')
+            if 'd' in entry_rights:
+                return True
+
+        return False
+
+    @encode_args(1)
+    def can_add(self, dn):
+        """Returns True/False if the currently bound user has add permissions
+           on the entry.
+        """
+        (dn, attrs) = self.get_effective_rights(dn, ["*"])
+        if 'entrylevelrights' in attrs:
+            entry_rights = attrs['entrylevelrights'][0].decode('UTF-8')
+            if 'a' in entry_rights:
+                return True
+
+        return False
+
     @encode_args(1, 2)
     def update_entry_rdn(self, dn, new_rdn, del_old=True):
         """
