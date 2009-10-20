@@ -54,6 +54,7 @@ def xmlrpc(req):
         response = api.Backend.xmlserver.marshaled_dispatch(
             req.read(),
             req.subprocess_env.get('KRB5CCNAME'),
+            req.connection.remote_ip
         )
 
     req.content_type = 'text/xml'

@@ -40,34 +40,27 @@ class VirtualCommand(Command):
     """
     operation = None
 
-    def execute(self, *args, **kw):
+    def check_access(self, operation=None):
         """
-        Perform the LDAP query to determine authorization.
+        Perform an LDAP query to determine authorization.
 
-        This should be executed via super() before any actual work is done.
+        This should be executed before any actual work is done.
         """
-        if self.operation is None:
+        if self.operation is None and operation is None:
             raise errors.ACIError(info='operation not defined')
 
+        if operation is None:
+            operation = self.operation
+
         ldap = self.api.Backend.ldap2
-        self.log.info("IPA: virtual verify %s" % self.operation)
+        self.log.info("IPA: virtual verify %s" % operation)
 
-        operationdn = "cn=%s,%s,%s" % (self.operation, self.api.env.container_virtual, self.api.env.basedn)
+        operationdn = "cn=%s,%s,%s" % (operation, self.api.env.container_virtual, self.api.env.basedn)
 
-        # By adding this unknown objectclass we do several things.
-        # DS checks ACIs before the objectclass so we can test for ACI
-        # errors to know if we have rights. If we do have rights then the
-        # update will fail anyway with a Database error because of an
-        # unknown objectclass, so we can catch that gracefully as well.
         try:
-            updatekw = {'objectclass': ['somerandomunknownclass']}
-            ldap.update(operationdn, **updatekw)
-        except errors.ACIError, e:
-            self.log.debug("%s" % str(e))
-            raise errors.ACIError(info='not allowed to perform this command')
-        except errors.ObjectclassViolation:
-            return
-        except Exception, e:
-            # Something unexpected happened. Log it and deny access to be safe.
-            self.log.info("Virtual verify failed: %s %s" % (type(e), str(e)))
-            raise errors.ACIError(info='not allowed to perform this command')
+            if not ldap.can_write(operationdn, "objectclass"):
+                raise errors.ACIError(info='not allowed to perform this command')
+        except errors.NotFound:
+            raise errors.ACIError(info='No such virtual command')
+
+        return True

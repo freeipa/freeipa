@@ -181,12 +181,12 @@ class xmlserver(WSGIExecutioner):
     def methodHelp(self, *params):
         return u'methodHelp not implemented'
 
-    def marshaled_dispatch(self, data, ccache):
+    def marshaled_dispatch(self, data, ccache, client_ip):
         """
         Execute the XML-RPC request contained in ``data``.
         """
         try:
-            self.create_context(ccache=ccache)
+            self.create_context(ccache=ccache, client_ip=client_ip)
             (params, name) = xml_loads(data)
             if name in self.__system:
                 response = (self.__system[name](*params),)

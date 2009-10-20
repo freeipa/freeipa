@@ -292,6 +292,13 @@ add:cn: removeservices
 add:description: Remove Services
 add:member:'cn=serviceadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
+dn: cn=modifyservices,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: nestedgroup
+add:cn: modifyservices
+add:description: Modify Services
+add:member:'cn=serviceadmin,cn=rolegroups,cn=accounts,$SUFFIX'
+
 # Add the ACIs that grant these permissions for service administration
 
 dn: $SUFFIX
@@ -301,6 +308,10 @@ add:aci: '(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,
 add:aci: '(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,
  $SUFFIX")(version 3.0;acl "Remove Services";allow (delete) groupdn = "ldap
  :///cn=removeservices,cn=taskgroups,cn=accounts,$SUFFIX";)'
+add:aci: '(targetattr = "userCertificate")(target = "ldap:///krbprincipal
+ name=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Services"
+ ;allow (write) groupdn = "ldap:///cn=modifyservices,cn=taskgroups,cn=acco
+ unts,$SUFFIX";)'
 
 # Add the taskgroups referenced by the ACIs for delegation administration
 # This just lets one manage taskgroup membership and create and delete roles
@@ -522,7 +533,7 @@ add:cn: request certificate
 dn: cn=request_certs,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
 add:objectClass: nestedgroup
-add:cn: reqeust_certs
+add:cn: request_certs
 add:description: Request a SSL Certificate
 add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
@@ -532,6 +543,27 @@ add: aci: '(targetattr = "objectClass")(target =
  $SUFFIX" )(version 3.0 ; acl "Request Certificates from the
   CA" ; allow (write) groupdn = "ldap:///cn=request_certs,cn=taskgroups,
  cn=accounts,$SUFFIX";)'
+
+# Request Certificate from different host virtual op
+dn: cn=request certificate different host,cn=virtual operations,$SUFFIX
+add:objectClass: top
+add:objectClass: nsContainer
+add:cn: request certificate different host
+
+# Taskgroup for requesting certs from a different host
+dn: cn=request_cert_different_host,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: nestedgroup
+add:cn: request_cert_different_host
+add:description: Request a SSL Certificate from a different host
+add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
+
+dn: $SUFFIX
+add: aci: '(targetattr = "objectClass")(target =
+ "ldap:///cn=request certificate different host,cn=virtual operations,
+ $SUFFIX" )(version 3.0 ; acl "Request Certificates from a
+  different host" ; allow (write) groupdn = "ldap:///cn=request_cert
+ _different_host,cn=taskgroups,cn=accounts,$SUFFIX";)'
 
 # Certificate Status virtual op
 dn: cn=certificate status,cn=virtual operations,$SUFFIX
@@ -543,7 +575,7 @@ add:cn: certificate status
 dn: cn=certificate_status,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
 add:objectClass: nestedgroup
-add:cn: reqeust_certs
+add:cn: certificate_status
 add:description: Status of cert request
 add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
@@ -564,7 +596,7 @@ add:cn: revoke certificate
 dn: cn=revoke_certificate,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
 add:objectClass: nestedgroup
-add:cn: reqeust_certs
+add:cn: revoke_certificate
 add:description: Revoke Certificate
 add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
@@ -585,7 +617,7 @@ add:cn: revoke certificate
 dn: cn=revoke_certificate,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
 add:objectClass: nestedgroup
-add:cn: reqeust_certs
+add:cn: revoke_certificate
 add:description: Revoke Certificate
 add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
@@ -606,7 +638,7 @@ add:cn: certificate remove hold
 dn: cn=certificate_remove_hold,cn=taskgroups,cn=accounts,$SUFFIX
 add:objectClass: top
 add:objectClass: nestedgroup
-add:cn: reqeust_certs
+add:cn: certificate_remove_hold
 add:description: Certificate Remove Hold
 add:member:'cn=certadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 

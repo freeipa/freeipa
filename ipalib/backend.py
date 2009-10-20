@@ -97,10 +97,15 @@ class Executioner(Backend):
 
 
     def create_context(self, ccache=None, client_ip=None):
+        """
+        client_ip: The IP address of the remote client.
+        """
         if self.env.in_server:
             self.Backend.ldap2.connect(ccache=ccache)
         else:
             self.Backend.xmlclient.connect()
+        if client_ip is not None:
+            setattr(context, "client_ip", client_ip)
 
     def destroy_context(self):
         destroy_context()
