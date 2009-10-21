@@ -33,7 +33,7 @@ class taskgroup(LDAPObject):
     object_name = 'taskgroup'
     object_name_plural = 'taskgroups'
     object_class = ['ipaobject', 'groupofnames']
-    default_attributes = ['cn', 'description', 'memberof']
+    default_attributes = ['cn', 'description', 'member', 'memberof']
     uuid_attribute = 'ipauniqueid'
     attribute_names = {
         'cn': 'name',

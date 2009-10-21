@@ -33,7 +33,7 @@ class netgroup(LDAPObject):
     object_name = 'netgroup'
     object_name_plural = 'netgroups'
     object_class = ['ipaobject', 'ipaassociation', 'ipanisnetgroup']
-    default_attributes = ['cn', 'description', 'memberof']
+    default_attributes = ['cn', 'description', 'member', 'memberof']
     uuid_attribute = 'ipauniqueid'
     attribute_names = {
         'cn': 'name',

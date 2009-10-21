@@ -35,7 +35,9 @@ class group(LDAPObject):
     object_name_plural = 'groups'
     object_class = ['ipausergroup']
     object_class_config = 'ipagroupobjectclasses'
-    default_attributes = ['cn', 'description', 'gidnumber', 'memberof']
+    default_attributes = [
+        'cn', 'description', 'gidnumber', 'member', 'memberof'
+    ]
     uuid_attribute = 'ipauniqueid'
     attribute_names = {
         'cn': 'name',
