@@ -145,7 +145,7 @@ class cert_request(VirtualCommand):
         if rhost is None:
             raise errors.ACIError(info='DNS lookup on client failed for IP %s' % client_ip)
 
-        client_hostname = rhost.rdata.ptrdname
+        client_hostname = rhost.rdata.ptrdname[:-1]
         if subject_host.lower() != client_hostname.lower():
              self.log.debug("IPA: hostname in subject of request '%s' does not match requesting hostname '%s'" % (subject_host, client_hostname))
              self.check_access(operation="request certificate different host")
