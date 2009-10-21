@@ -410,12 +410,15 @@ def main():
     global fstore
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
-    if options.ca:
-        ca_type = 'dogtag'
+    if options.uninstall:
+        api.bootstrap(in_server=True)
     else:
-        ca_type = 'selfsign'
+        if options.ca:
+            ca_type = 'dogtag'
+        else:
+            ca_type = 'selfsign'
 
-    api.bootstrap(in_server=True, ra_plugin=ca_type)
+        api.bootstrap(in_server=True, ra_plugin=ca_type)
     api.finalize()
 
     if options.uninstall:
@@ -426,7 +429,7 @@ def main():
                 print "Aborting uninstall operation."
                 sys.exit(1)
 
-        return uninstall(options.ca)
+        return uninstall(not certs.ipa_self_signed())
 
     print "=============================================================================="
     print "This program will setup the FreeIPA Server."
