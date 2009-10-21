@@ -141,6 +141,11 @@ class service_add(LDAPCreate):
         if service.lower() == 'host' and not options['force']:
             raise errors.HostService()
 
+        try:
+            (hostdn, hostentry) = api.Command['host_show'](hostname, **{})
+        except errors.NotFound:
+            raise errors.NotFound(reason="The host '%s' does not exist to add a service to." % hostname)
+
         cert = entry_attrs.get('usercertificate')
         if cert:
             # FIXME: should be in a normalizer: need to fix normalizers
