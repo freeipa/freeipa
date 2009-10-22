@@ -263,7 +263,7 @@ class textui(backend.Backend):
             else:
                 text = ', '.join(value)
                 line_len = self.get_tty_width()
-                if line_len:
+                if line_len and text:
                     s_indent = '%s%s' % (
                         CLI_TAB * indent, ' ' * (len(attr) + 2)
                     )
