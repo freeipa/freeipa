@@ -336,7 +336,7 @@ class ldap2(CrudBackend, Encoder):
             dn = self.normalize_dn(dn)
         # remove all None values, python-ldap hates'em
         entry_attrs = dict(
-            (k, v) for (k, v) in entry_attrs.iteritems() if v is not None
+            (k, v) for (k, v) in entry_attrs.iteritems() if v
         )
         try:
             self.conn.add_s(dn, list(entry_attrs.iteritems()))
