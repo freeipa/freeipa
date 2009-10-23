@@ -22,17 +22,14 @@ Joining an IPA domain
 """
 
 from ipalib import api, util
-from ipalib import Command, Str, Int
+from ipalib import Command, Str
 from ipalib import errors
 import krbV
-import os, subprocess
-from ipapython import ipautil
-import tempfile
-import sha
-import stat
-import shutil
 
 def get_realm():
+    """
+    Returns the default kerberos realm configured for this server.
+    """
     krbctx = krbV.default_context()
 
     return unicode(krbctx.default_realm)
@@ -48,8 +45,6 @@ def validate_host(ugettext, cn):
 
 class join(Command):
     """Join an IPA domain"""
-
-    requires_root = True
 
     takes_args = (
         Str('cn',
@@ -112,9 +107,5 @@ class join(Command):
             (dn, attrs_list) = api.Command['host_add'](hostname)
 
         return (dn, attrs_list)
-
-    def output_for_cli(self, textui, result, args, **options):
-        textui.print_plain("Welcome to the %s realm" % options['realm'])
-        textui.print_plain("Your keytab is in %s" % result.get('keytab'))
 
 api.register(join)
