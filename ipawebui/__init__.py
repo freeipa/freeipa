@@ -20,6 +20,9 @@
 IPA web UI.
 """
 
+from ipalib.backend import Executioner
+from ipalib.request import destroy_context
+from ipaserver.rpcserver import extract_query
 from controllers import JSON
 from engine import Engine
 from widgets import create_widgets
@@ -34,20 +37,36 @@ def join_url(base, url):
     return base + url
 
 
-def create_wsgi_app(api):
-    baseurl = api.env.mount_ipa
-    assets = Assets(
-        url=join_url(baseurl, api.env.mount_webui_assets),
-        dir=api.env.webui_assets_dir,
-        prod=api.env.webui_prod,
-    )
-    app = Application(
-        url=join_url(baseurl, api.env.mount_webui),
-        assets=assets,
-        widgets=create_widgets(),
-        prod=api.env.webui_prod,
-    )
+class WebUI(Application):
+    def __init__(self, api):
+        self.api = api
+        self.session = api.Backend.session
+        baseurl = api.env.mount_ipa
+        assets = Assets(
+            url=join_url(baseurl, api.env.mount_webui_assets),
+            dir=api.env.webui_assets_dir,
+            prod=api.env.webui_prod,
+        )
+        super(WebUI, self).__init__(
+            url=join_url(baseurl, api.env.mount_webui),
+            assets=assets,
+            widgets=create_widgets(),
+            prod=api.env.webui_prod,
+        )
 
+    def __call__(self, environ, start_response):
+        self.session.create_context(ccache=environ.get('KRB5CCNAME'))
+        try:
+            query = extract_query(environ)
+            print query
+            response = super(WebUI, self).__call__(environ, start_response)
+        finally:
+            destroy_context()
+        return response
+
+
+def create_wsgi_app(api):
+    app = WebUI(api)
     engine = Engine(api, app)
     engine.build()
 

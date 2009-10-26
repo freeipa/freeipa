@@ -155,6 +155,11 @@ class WSGIExecutioner(Executioner):
         raise NotImplementedError('%s.marshal()' % self.fullname)
 
 
+
+class session(Executioner):
+    pass
+
+
 class xmlserver(WSGIExecutioner):
     """
     Execution backend plugin for XML-RPC server.

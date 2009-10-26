@@ -109,6 +109,7 @@ class LDAPCreate(crud.Create):
         Flag('raw',
             cli_name='raw',
             doc='print entries as they are stored in LDAP',
+            exclude='webui',
         ),
     )
 
@@ -613,4 +614,3 @@ class LDAPSearch(crud.Search):
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         pass
-

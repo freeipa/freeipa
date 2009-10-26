@@ -26,5 +26,10 @@ from ipalib import api
 
 if 'in_server' in api.env and api.env.in_server is True:
     from ipaserver.rpcserver import xmlserver, jsonserver
+    from ipalib.backend import Executioner
     api.register(xmlserver)
     api.register(jsonserver)
+
+    class session(Executioner):
+        pass
+    api.register(session)

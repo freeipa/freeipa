@@ -86,15 +86,11 @@ class Engine(object):
             )
 
     def build(self):
-        for cmd in self.api.Command():
+        for cmd in self.api.Object.user.methods():
             self.pages[cmd.name] = self.build_page(cmd)
         for page in self.pages.itervalues():
             page.menu.label = 'Users'
             self.add_object_menuitems(page.menu, 'user')
-
-            menu = page.new('Menu', label='Groups')
-            page.menuset.add(menu)
-            self.add_object_menuitems(menu, 'group')
 
         # Add in the info pages:
         page = self.app.new('PageApp', id='api', title='api')
@@ -143,6 +139,8 @@ class Engine(object):
         table = self.app.new('FieldTable')
         page.view.add(table)
         for param in cmd.params():
+            if param.exclude and 'webui' in param.exclude:
+                continue
             field = self.param_mapper(param, cmd)
             table.add(field)
 
