@@ -307,33 +307,6 @@ class ldap2(CrudBackend, Encoder):
         rdn = self.make_rdn_from_attr(primary_key, entry_attrs[primary_key])
         return self.make_dn_from_rdn(rdn, parent_dn)
 
-    def convert_attr_synonyms(self, entry_attrs, preferred_names=None):
-        """
-        Convert attribute names in entry_attrs to preferred synonyms.
-
-        Keyword arguments:
-        preferred_names -- list of preferred synomyms or None for defaults
-                           (default None)
-        """
-        global _schema
-        if preferred_names:
-            for n in preferred_names:
-                attr = _schema.get_obj(_ldap.schema.AttributeType, n)
-                synonyms = [v.lower() for v in attr.names]
-                synonyms.remove(n)
-                for s in synonyms:
-                    if s in entry_attrs:
-                        entry_attrs[n] = entry_attrs[s]
-                        del entry_attrs[s]
-        else:
-            for (k, v) in entry_attrs.items():
-                attr = _schema.get_obj(_ldap.schema.AttributeType, k)
-                synonyms = [v.lower() for v in attr.names]
-                preferred_name = synonyms[0]
-                if k in synonyms[1:]:
-                    entry_attrs[preferred_name] = v
-                    del entry_attrs[k]
-
     @encode_args(1, 2)
     def add_entry(self, dn, entry_attrs, normalize=True):
         """Create a new entry."""
@@ -590,13 +563,11 @@ class ldap2(CrudBackend, Encoder):
 
     def _generate_modlist(self, dn, entry_attrs):
         # get original entry
-        (dn, entry_attrs_old) = self.get_entry(dn, ['*', 'aci'])
+        (dn, entry_attrs_old) = self.get_entry(dn, entry_attrs.keys())
         # get_entry returns a decoded entry, encode it back
         # we could call search_s directly, but this saves a lot of code at
         # the expense of a little bit of performace
         entry_attrs_old = self.encode(entry_attrs_old)
-        # we also need to make sure that attribute names match
-        self.convert_attr_synonyms(entry_attrs_old, entry_attrs.keys())
         # generate modlist, we don't want any MOD_REPLACE operations
         # to handle simultaneous updates better
         modlist = []
