@@ -33,9 +33,8 @@ class rolegroup(LDAPObject):
     container_dn = api.env.container_rolegroup
     object_name = 'rolegroup'
     object_name_plural = 'rolegroups'
-    object_class = ['ipaobject', 'groupofnames', 'nestedgroup']
+    object_class = ['groupofnames', 'nestedgroup']
     default_attributes = ['cn', 'description', 'member', 'memberof']
-    uuid_attribute = 'ipauniqueid'
     attribute_names = {
         'cn': 'name',
         'member user': 'member users',

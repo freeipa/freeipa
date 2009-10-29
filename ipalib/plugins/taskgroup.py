@@ -32,9 +32,8 @@ class taskgroup(LDAPObject):
     container_dn = api.env.container_taskgroup
     object_name = 'taskgroup'
     object_name_plural = 'taskgroups'
-    object_class = ['ipaobject', 'groupofnames']
+    object_class = ['groupofnames']
     default_attributes = ['cn', 'description', 'member', 'memberof']
-    uuid_attribute = 'ipauniqueid'
     attribute_names = {
         'cn': 'name',
         'member user': 'member users',
