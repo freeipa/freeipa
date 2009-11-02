@@ -53,10 +53,13 @@ from ipapython import sysrestore
 from ipapython.ipautil import *
 from ipalib import api, util
 
+import ipawebui
+
 pw_name = None
 
 # Used to determine the the highest possible uid/gid
 MAXINT_32BIT = 2147483648
+ASSETS_DIR = '/var/cache/ipa/assets'
 
 def parse_options():
     namespace = random.randint(1000000, (MAXINT_32BIT - 1000000))
@@ -387,6 +390,15 @@ def uninstall(ca = False):
     fstore.restore_all_files()
     return 0
 
+
+def render_assets():
+    """
+    Render CSS and JavaScript assets.
+    """
+    ui = ipawebui.create_wsgi_app(api)
+    ui.render_assets()
+
+
 def main():
     global ds
     global pw_name
@@ -410,15 +422,17 @@ def main():
     global fstore
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
-    if options.uninstall:
-        api.bootstrap(in_server=True)
-    else:
-        if options.ca:
-            ca_type = 'dogtag'
-        else:
-            ca_type = 'selfsign'
 
-        api.bootstrap(in_server=True, ra_plugin=ca_type)
+    cfg = dict(
+        in_server=True,
+        webui_assets_dir=ASSETS_DIR,
+    )
+    if not options.uninstall:
+        if options.ca:
+            cfg['ra_plugin'] = 'dogtag'
+        else:
+            cfg['ra_plugin'] = 'selfsign'
+    api.bootstrap(**cfg)
     api.finalize()
 
     if options.uninstall:
@@ -440,7 +454,7 @@ def main():
     print "  * Create and configure an instance of Directory Server"
     print "  * Create and configure a Kerberos Key Distribution Center (KDC)"
     print "  * Configure Apache (httpd)"
-    print "  * Configure TurboGears"
+    print "  * Render web UI JavaScript and CSS assets"
     if options.setup_dns:
         print "  * Configure DNS (bind)"
     if not options.conf_ntp:
@@ -660,6 +674,9 @@ def main():
     krb = krbinstance.KrbInstance(fstore)
     krb.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, master_password)
 
+   # Render webui assets:
+    render_assets()
+
     # Create a HTTP instance
 
     if options.http_pin:
@@ -696,6 +713,7 @@ def main():
     fd.write("enable_ra=True\n")
     if options.ca:
         fd.write("ra_plugin=dogtag\n")
+    fd.write('webui_assets_dir=' + ASSETS_DIR + '\n')
     fd.close()
 
     # Apply any LDAP updates. Needs to be done after the configuration file

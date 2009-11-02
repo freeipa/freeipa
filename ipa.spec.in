@@ -395,6 +395,7 @@ fi
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
 %dir %{_localstatedir}/cache/ipa
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
+%attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/assets
 %attr(700,root,root) %dir %{_localstatedir}/cache/ipa/kpasswd
 %{_mandir}/man1/ipa-replica-install.1.gz
 %{_mandir}/man1/ipa-replica-manage.1.gz

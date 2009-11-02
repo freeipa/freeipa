@@ -39,10 +39,11 @@ except ImportError:
     pass
 
 
-
-# This module is from paste:
+# START code from paste
+# Red Hat does not hold the copyright to the following code.  The following code
+# is from paste:
 #   http://pythonpaste.org/
-# Which in turn was based on Robert Brewer's:
+# Which in turn was based on Robert Brewer's modpython_gateway:
 #   http://projects.amor.org/misc/svn/modpython_gateway.py
 
 class InputWrapper(object):
@@ -185,7 +186,7 @@ class Handler(object):
             self.started = True
         self.request.write(data)
 
-# END module from paste
+# END code from paste
 
 
 def adapter(req, app):

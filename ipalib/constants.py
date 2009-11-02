@@ -109,12 +109,11 @@ DEFAULT_CONFIG = (
     ('mount_xmlserver', 'xml'),
     ('mount_jsonserver', 'json'),
     ('mount_webui', 'ui/'),
-    ('mount_webui_assets', '_/'),
+    ('mount_webui_assets', '/ipa-assets/'),
 
     # WebUI stuff:
     ('webui_prod', True),
     ('webui_assets_dir', None),
-    ('webui_assets_dburi', None),
 
     # Debugging:
     ('verbose', False),
