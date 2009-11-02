@@ -41,7 +41,7 @@ class hbac(LDAPObject):
     attribute_names = {
         'cn': 'name',
         'accessruletype': 'type',
-        'ipaenabledflag': 'status',
+        'ipaenabledflag': 'enabled',
         'servicename': 'service',
         'ipauniqueid': 'unique id',
         'memberuser user': 'affected users',
@@ -113,7 +113,7 @@ class hbac_add(LDAPCreate):
             msg = 'HBAC rule with name "%s" already exists' % keys[-1]
             raise errors.DuplicateEntry(message=msg)
         # HBAC rules are enabled by default 
-        entry_attrs['ipaenabledflag'] = 'enabled'
+        entry_attrs['ipaenabledflag'] = 'TRUE'
         return ldap.make_dn(
             entry_attrs, self.obj.uuid_attribute, self.obj.container_dn
         )
@@ -161,7 +161,7 @@ class hbac_enable(LDAPQuery):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(cn)
-        entry_attrs = {'ipaenabledflag': 'enabled'}
+        entry_attrs = {'ipaenabledflag': 'TRUE'}
 
         try:
             ldap.update_entry(dn, entry_attrs)
@@ -185,7 +185,7 @@ class hbac_disable(LDAPQuery):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(cn)
-        entry_attrs = {'ipaenabledflag': 'disabled'}
+        entry_attrs = {'ipaenabledflag': 'FALSE'}
 
         try:
             ldap.update_entry(dn, entry_attrs)
