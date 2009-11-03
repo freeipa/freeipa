@@ -319,7 +319,7 @@ if [ -s /etc/selinux/config ]; then
 fi
 
 %post server-selinux
-semodule -s targeted -i /usr/share/selinux/targeted/ipa_webgui.pp /usr/share/selinux/targeted/ipa_kpasswd.pp /usr/share/selinux/targeted/ipa_httpd.pp
+semodule -s targeted -i /usr/share/selinux/targeted/ipa_kpasswd.pp /usr/share/selinux/targeted/ipa_httpd.pp
 . %{_sysconfdir}/selinux/config
 FILE_CONTEXT=%{_sysconfdir}/selinux/targeted/contexts/files/file_contexts
 selinuxenabled
@@ -341,7 +341,7 @@ fi
 
 %postun server-selinux
 if [ $1 = 0 ]; then
-semodule -s targeted -r ipa_webgui ipa_kpasswd ipa_httpd
+semodule -s targeted -r ipa_kpasswd ipa_httpd
 . %{_sysconfdir}/selinux/config
 FILE_CONTEXT=%{_sysconfdir}/selinux/targeted/contexts/files/file_contexts
 selinuxenabled
@@ -409,7 +409,6 @@ fi
 %{_mandir}/man1/ipa-ldap-updater.1.gz
 
 %files server-selinux
-%{_usr}/share/selinux/targeted/ipa_webgui.pp
 %{_usr}/share/selinux/targeted/ipa_kpasswd.pp
 %{_usr}/share/selinux/targeted/ipa_httpd.pp
 %endif
@@ -474,6 +473,9 @@ fi
 %endif
 
 %changelog
+* Tue Nov  3 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-9
+- Remove ipa_webgui, its functions rolled into ipa_httpd
+
 * Mon Oct 12 2009 Jason Gerard DeRose <jderose@redhat.com> - 1.99-8
 - Removed python-cherrypy from BuildRequires and Requires
 - Added Requires python-assets, python-wehjit

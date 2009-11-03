@@ -1,4 +1,4 @@
-SUBDIRS = ipa_webgui ipa_kpasswd ipa_httpd
+SUBDIRS = ipa_kpasswd ipa_httpd
 POLICY_MAKEFILE = /usr/share/selinux/devel/Makefile
 POLICY_DIR = $(DESTDIR)/usr/share/selinux/targeted
 
@@ -21,9 +21,8 @@ maintainer-clean: distclean
 
 install: all
 	install -d $(POLICY_DIR)
-	install -m 644 ipa_webgui/ipa_webgui.pp $(POLICY_DIR)
 	install -m 644 ipa_kpasswd/ipa_kpasswd.pp $(POLICY_DIR)
 	install -m 644 ipa_httpd/ipa_httpd.pp $(POLICY_DIR)
 
 load:
-	/usr/sbin/semodule -i ipa_webgui/ipa_webgui.pp ipa_kpasswd/ipa_kpasswd.pp ipa_httpd/ipa_httpd.pp
+	/usr/sbin/semodule -i ipa_kpasswd/ipa_kpasswd.pp ipa_httpd/ipa_httpd.pp

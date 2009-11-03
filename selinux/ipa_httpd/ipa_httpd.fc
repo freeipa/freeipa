@@ -1,0 +1,5 @@
+#
+# /var
+#
+/var/cache/ipa/sessions(/.*)?  gen_context(system_u:object_r:httpd_sys_content_t,s0)
+/var/cache/ipa/assets(/.*)?  gen_context(system_u:object_r:httpd_sys_content_t,s0)

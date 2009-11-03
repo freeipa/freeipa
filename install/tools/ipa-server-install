@@ -674,7 +674,8 @@ def main():
     krb = krbinstance.KrbInstance(fstore)
     krb.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, master_password)
 
-   # Render webui assets:
+    # Render webui assets:
+    ipautil.run(["/sbin/restorecon", ASSETS_DIR])
     render_assets()
 
     # Create a HTTP instance
@@ -691,6 +692,7 @@ def main():
         os.remove(pw_name)
     else:
         http.create_instance(realm_name, host_name, domain_name, autoconfig=True, self_signed_ca=not options.ca)
+    ipautil.run(["/sbin/restorecon", "/var/cache/ipa/sessions"])
 
     # Create the config file
     fstore.backup_file("/etc/ipa/ipa.conf")
