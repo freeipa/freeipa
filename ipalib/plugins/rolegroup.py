@@ -40,10 +40,12 @@ class rolegroup(LDAPObject):
         'cn': 'name',
         'member user': 'member users',
         'member group': 'member groups',
+        'member host': 'member hosts',
+        'member hostgroup': 'member hostgroups',
         'memberof taskgroup': 'member of taskgroup',
     }
     attribute_members = {
-        'member': ['user', 'group'],
+        'member': ['user', 'group', 'host', 'hostgroup'],
         'memberof': ['taskgroup'],
     }
 
@@ -99,7 +101,7 @@ class rolegroup_show(LDAPRetrieve):
     """
     Display rolegroup.
     """
- 
+
 api.register(rolegroup_show)
 
 

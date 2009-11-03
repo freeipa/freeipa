@@ -36,3 +36,10 @@ dn: cn=services,cn=accounts,$SUFFIX
 changetype: modify
 add: aci
 aci: (targetattr="krbPrincipalName || krbUPEnabled || krbPrincipalKey || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData")(version 3.0; acl "KDC System Account"; allow (read, search, compare, write) userdn="ldap:///uid=kdc,cn=sysaccounts,cn=etc,$SUFFIX";)
+
+# Define which hosts can edit services
+dn: cn=services,cn=accounts,$SUFFIX
+changetype: modify
+add: aci
+aci: (targetattr=userCertificate)(version 3.0; aci "Hosts can modify service userCertificate"; allow(write) userattr = "parent[0,1].managedby#USERDN";)
+

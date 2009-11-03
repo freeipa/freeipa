@@ -103,12 +103,16 @@ class service(LDAPObject):
         'krbprincipal', 'krbprincipalaux', 'krbticketpolicyaux', 'ipaobject',
         'ipaservice', 'pkiuser'
     ]
-    default_attributes = ['krbprincipalname', 'usercertificate']
+    default_attributes = ['krbprincipalname', 'usercertificate', 'managedby']
     uuid_attribute = 'ipauniqueid'
     attribute_names = {
         'krbprincipalname': 'kerberos principal',
         'usercertificate': 'user certificate',
         'ipauniqueid': 'unique identifier',
+        'managedby': 'managed by',
+    }
+    attribute_members = {
+        'managedby': ['host'],
     }
 
     takes_params = (
@@ -131,6 +135,7 @@ class service_add(LDAPCreate):
     """
     Add new service.
     """
+    member_attributes = ['managedby']
     takes_options = (
         Flag('force',
             doc='force principal name even if not in DNS',
@@ -176,6 +181,7 @@ class service_del(LDAPDelete):
     """
     Delete an existing service.
     """
+    member_attributes = ['managedby']
     def pre_callback(self, ldap, dn, *keys, **options):
         if self.api.env.enable_ra:
             (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
@@ -192,6 +198,7 @@ class service_mod(LDAPUpdate):
     """
     Modify service.
     """
+    member_attributes = ['managedby']
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         cert = entry_attrs.get('usercertificate')
         if cert:
@@ -213,6 +220,7 @@ class service_find(LDAPSearch):
     """
     Search for services.
     """
+    member_attributes = ['managedby']
     def pre_callback(self, ldap, filter, attrs_list, base_dn, *args, **options):
         # lisp style!
         custom_filter = '(&(objectclass=ipaService)' \
@@ -233,6 +241,24 @@ class service_show(LDAPRetrieve):
     """
     Display service.
     """
+    member_attributes = ['managedby']
 
 api.register(service_show)
+
+class service_add_host(LDAPAddMember):
+    """
+    Add members to service.
+    """
+    member_attributes = ['managedby']
+
+api.register(service_add_host)
+
+
+class service_remove_host(LDAPRemoveMember):
+    """
+    Remove members from service.
+    """
+    member_attributes = ['managedby']
+
+api.register(service_remove_host)
 

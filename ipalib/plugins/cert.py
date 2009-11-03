@@ -102,6 +102,7 @@ class cert_request(VirtualCommand):
     )
 
     def execute(self, csr, **kw):
+        ldap = self.api.Backend.ldap2
         skw = {"all": True}
         principal = kw.get('principal')
         add = kw.get('add')
@@ -121,35 +122,6 @@ class cert_request(VirtualCommand):
         if subject_host.lower() != hostname.lower():
             raise errors.ACIError(info="hostname in subject of request '%s' does not match principal hostname '%s'" % (subject_host, hostname))
 
-        # Get the IP address of the machine that submitted the request. We
-        # will compare this to the subjectname of the CSR.
-        client_ip = getattr(context, 'client_ip')
-        rhost = None
-        if client_ip not in (None, ''):
-            rev = client_ip.split('.')
-            if len(rev) == 0:
-                rev = client_ip.split(':')
-                rev.reverse()
-                addr = "%s.in-addr.arpa." % ".".join(rev)
-            else:
-                rev.reverse()
-                addr = "%s.in-addr.arpa." % ".".join(rev)
-            rs = dnsclient.query(addr, dnsclient.DNS_C_IN, dnsclient.DNS_T_PTR)
-            if len(rs) == 0:
-                raise errors.ACIError(info='DNS lookup on client failed for IP %s' % client_ip)
-            for rsn in rs:
-                if rsn.dns_type == dnsclient.DNS_T_PTR:
-                    rhost = rsn
-                    break
-
-        if rhost is None:
-            raise errors.ACIError(info='DNS lookup on client failed for IP %s' % client_ip)
-
-        client_hostname = rhost.rdata.ptrdname[:-1]
-        if subject_host.lower() != client_hostname.lower():
-             self.log.debug("IPA: hostname in subject of request '%s' does not match requesting hostname '%s'" % (subject_host, client_hostname))
-             self.check_access(operation="request certificate different host")
-
         # See if the service exists and punt if it doesn't and we aren't
         # going to add it
         try:
@@ -157,24 +129,23 @@ class cert_request(VirtualCommand):
             if 'usercertificate' in service:
                 # FIXME, what to do here? Do we revoke the old cert?
                 raise errors.GenericError(format='entry already has a certificate, serial number %s' % get_serial(service['usercertificate']))
-            if not can_write(dn, "usercertificate"):
-                raise errors.ACIError(info='You need to be a member of the serviceadmin role to update services')
-
         except errors.NotFound, e:
             if not add:
                 raise errors.NotFound(reason="The service principal for this request doesn't exist.")
+            try:
+                (dn, service) = api.Command['service_add'](principal, **{})
+            except errors.ACIError:
+                raise errors.ACIError(info='You need to be a member of the serviceadmin role to add services')
+
+        # We got this far so the service entry exists, can we write it?
+        if not ldap.can_write(dn, "usercertificate"):
+            raise errors.ACIError(info="Insufficient 'write' privilege to the 'userCertificate' attribute of entry '%s'." % dn)
 
         # Request the certificate
         result = self.Backend.ra.request_certificate(csr, **kw)
 
-        # Success? Then add it to the service entry. We know that it
-        # either exists or we should add it.
-        if result.get('status') == '0':
-            if service is None:
-                try:
-                    service = api.Command['service_add'](principal, **{})
-                except errors.ACIError:
-                    raise errors.ACIError(info='You need to be a member of the serviceadmin role to add services')
+        # Success? Then add it to the service entry.
+        if result.get('status') == 0:
             skw = {"usercertificate": str(result.get('certificate'))}
             api.Command['service_mod'](principal, **skw)
 

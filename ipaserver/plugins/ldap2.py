@@ -512,7 +512,7 @@ class ldap2(CrudBackend, Encoder):
            attributes and the entryLevelRights for the entry itself.
         """
         principal = getattr(context, 'principal')
-        (binddn, attrs) = self.find_entry_by_attr("krbprincipalname", principal, "posixAccount")
+        (binddn, attrs) = self.find_entry_by_attr("krbprincipalname", principal, "krbPrincipalAux")
         sctrl = [LDAPControl("1.3.6.1.4.1.42.2.27.9.5.2", True, "dn: " + binddn.encode('UTF-8'))]
         self.conn.set_option(_ldap.OPT_SERVER_CONTROLS, sctrl)
         (dn, attrs) = self.get_entry(dn, entry_attrs)
