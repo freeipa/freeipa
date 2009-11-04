@@ -20,12 +20,35 @@
 Base classes for LDAP plugins.
 """
 
+import re
 from ipalib import crud, errors, uuid
 from ipalib import Command, Method, Object
 from ipalib import Flag, List, Str
 from ipalib.base import NameSpace
 from ipalib.cli import to_cli, from_cli
 
+
+def validate_add_attribute(ugettext, attr):
+    validate_attribute(ugettext, 'addattr', attr)
+
+def validate_set_attribute(ugettext, attr):
+    validate_attribute(ugettext, 'setattr', attr)
+
+def validate_attribute(ugettext, name, attr):
+    m = re.match("\s*(.*?)\s*=\s*(.*?)\s*$", attr)
+    if not m or len(m.groups()) != 2:
+        raise errors.ValidationError(name=name, error='Invalid format. Should be name=value')
+
+def get_attributes(attrs):
+    """
+    Given a list of values in the form name=value, return a list of name.
+    """
+    attrlist=[]
+    for attr in attrs:
+        m = re.match("\s*(.*?)\s*=\s*(.*?)\s*$", attr)
+        attrlist.append(str(m.group(1)).lower())
+
+    return attrlist
 
 class LDAPObject(Object):
     """
@@ -109,6 +132,16 @@ class LDAPCreate(crud.Create):
         Flag('raw',
             cli_name='raw',
             doc='print entries as they are stored in LDAP',
+            exclude='webui',
+        ),
+        Str('addattr*', validate_add_attribute,
+            cli_name='addattr',
+            doc='Add an attribute/value pair. Format is attr=value',
+            exclude='webui',
+        ),
+        Str('setattr*', validate_set_attribute,
+            cli_name='setattr',
+            doc='Set an attribute to an name/value pair. Format is attr=value',
             exclude='webui',
         ),
     )
@@ -241,6 +274,16 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             cli_name='all',
             doc='retrieve all attributes',
         ),
+        Str('addattr*', validate_add_attribute,
+            cli_name='addattr',
+            doc='Add an attribute/value pair. Format is attr=value',
+            exclude='webui',
+        ),
+        Str('setattr*', validate_set_attribute,
+            cli_name='setattr',
+            doc='Set an attribute to an name/value pair. Format is attr=value',
+            exclude='webui',
+        ),
     )
 
     def execute(self, *keys, **options):
@@ -256,6 +299,24 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             attrs_list = entry_attrs.keys()
 
         dn = self.pre_callback(ldap, dn, entry_attrs, attrs_list, *keys, **options)
+
+        """
+        Some special handling is needed because we need to update the
+        values here rather than letting ldap.update_entry() do the work. We
+        have to do the work of adding new values to an existing attribute
+        because if we pass just what is addded only the new values get
+        set.
+        """
+        if 'addattr' in options:
+            (dn, old_entry) = ldap.get_entry(dn, attrs_list)
+            attrlist = get_attributes(options['addattr'])
+            for attr in attrlist:
+                if attr in old_entry:
+                    if type(entry_attrs[attr]) in (tuple,list):
+                        entry_attrs[attr] = old_entry[attr] + entry_attrs[attr]
+                    else:
+                        old_entry[attr].append(entry_attrs[attr])
+                        entry_attrs[attr] = old_entry[attr]
 
         try:
             ldap.update_entry(dn, entry_attrs)

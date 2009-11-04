@@ -473,6 +473,34 @@ class Command(HasParam):
         kw = self.args_options_2_params(*args, **options)
         return dict(self.__attributes_2_entry(kw))
 
+    def __convert_2_dict(self, attrs, append=True):
+        """
+        Convert a string in the form of name/value pairs into
+        a dictionary. The incoming attribute may be a string or
+        a list.
+
+        Any attribute found that is also a param is silently dropped.
+
+        append controls whether this returns a list of values or a single
+        value.
+        """
+        newdict = {}
+        if not type(attrs) in (list, tuple):
+            attrs = [attrs]
+        for a in attrs:
+            m = re.match("\s*(.*?)\s*=\s*(.*?)\s*$", a)
+            attr = str(m.group(1)).lower()
+            value = m.group(2)
+            if len(value) == 0:
+                # None means "delete this attribute"
+                value = None
+            if attr not in self.params:
+                if append and attr in newdict:
+                    newdict[attr].append(value)
+                else:
+                    newdict[attr] = [value]
+        return newdict
+
     def __attributes_2_entry(self, kw):
         for name in self.params:
             if self.params[name].attribute and name in kw:
@@ -481,6 +509,23 @@ class Command(HasParam):
                     yield (name, [v for v in value])
                 else:
                     yield (name, kw[name])
+
+        adddict = {}
+        if 'setattr' in kw:
+            adddict = self.__convert_2_dict(kw['setattr'], append=False)
+
+        if 'addattr' in kw:
+            adddict.update(self.__convert_2_dict(kw['addattr']))
+
+        for name in adddict:
+            value = adddict[name]
+            if isinstance(value, list):
+                if len(value) == 1:
+                    yield (name, value[0])
+                else:
+                    yield (name, [v for v in value])
+            else:
+                yield (name, value)
 
     def params_2_args_options(self, **params):
         """
