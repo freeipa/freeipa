@@ -923,7 +923,7 @@ class test_Str(ClassChecker):
         mthd = o._convert_scalar
         for value in (u'Hello', 42, 1.2, unicode_str):
             assert mthd(value) == unicode(value)
-        bad = [True, 'Hello', (u'Hello',), [42.3], dict(one=1), utf8_bytes]
+        bad = [True, 'Hello', dict(one=1), utf8_bytes]
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
@@ -933,6 +933,12 @@ class test_Str(ClassChecker):
             assert e.name == 'my_str'
             assert e.index == 18
             assert_equal(e.error, u'must be Unicode text')
+        bad = [(u'Hello',), [42.3]]
+        for value in bad:
+            e = raises(errors.ConversionError, mthd, value)
+            assert e.name == 'my_str'
+            assert e.index is None
+            assert_equal(e.error, u'Only one value is allowed')
         assert o.convert(None) is None
 
     def test_rule_minlength(self):

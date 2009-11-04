@@ -227,6 +227,9 @@ class Param(ReadOnly):
     # Subclasses should override this with something more specific:
     type_error = _('incorrect type')
 
+    # _convert_scalar operates only on scalar values
+    scalar_error = _('Only one value is allowed')
+
     kwargs = (
         ('cli_name', str, None),
         ('cli_short_name', str, None),
@@ -810,6 +813,9 @@ class Bool(Param):
             return True
         if value in self.falsehoods:
             return False
+        if type(value) in (tuple, list):
+            raise ConversionError(name=self.name, index=index,
+            error=ugettext(self.scalar_error))
         raise ConversionError(name=self.name, index=index,
             error=ugettext(self.type_error),
         )
@@ -873,6 +879,9 @@ class Number(Param):
                 return self.type(value)
             except ValueError:
                 pass
+        if type(value) in (tuple, list):
+            raise ConversionError(name=self.name, index=index,
+            error=ugettext(self.scalar_error))
         raise ConversionError(name=self.name, index=index,
             error=ugettext(self.type_error),
         )
@@ -1106,6 +1115,9 @@ class Str(Data):
             return value
         if type(value) in (int, float):
             return self.type(value)
+        if type(value) in (tuple, list):
+            raise ConversionError(name=self.name, index=index,
+            error=ugettext(self.scalar_error))
         raise ConversionError(name=self.name, index=index,
             error=ugettext(self.type_error),
         )
