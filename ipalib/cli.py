@@ -38,7 +38,7 @@ import plugable
 import util
 from errors import PublicError, CommandError, HelpError, InternalError, NoSuchNamespaceError, ValidationError, NotFound
 from constants import CLI_TAB
-from parameters import Password, Bytes
+from parameters import Password, Bytes, File
 from request import ugettext as _
 
 
@@ -718,6 +718,7 @@ class cli(backend.Executioner):
         kw = self.parse(cmd, argv)
         if self.env.interactive:
             self.prompt_interactively(cmd, kw)
+        self.load_files(cmd, kw)
         try:
             result = self.execute(name, **kw)
             if callable(cmd.output_for_cli):
@@ -823,6 +824,38 @@ class cli(backend.Executioner):
                             break
                         except ValidationError, e:
                             error = e.error
+
+    def load_files(self, cmd, kw):
+        """
+        Load files from File parameters.
+
+        This has to be done after all required parameters have been read
+        (i.e. after prompt_interactively has or would have been called)
+        AND before they are passed to the command. This is because:
+        1) we need to be sure no more files are going to be added
+        2) we load files from the machine where the command was executed
+        3) the webUI will use a different way of loading files
+        """
+        for p in cmd.params():
+            if isinstance(p, File):
+                if p.name in kw:
+                    try:
+                        f = open(kw[p.name], 'r')
+                        raw = f.read()
+                        f.close()
+                    except IOError, e:
+                        raise ValidationError(
+                            name=to_cli(p.cli_name),
+                            error='%s: %s:' % (kw[p.name], e[1])
+                        )
+                elif p.stdin_if_missing:
+                    try:
+                        raw = sys.stdin.read()
+                    except IOError, e:
+                        raise ValidationErro(
+                            name=to_cli(p.cli_name), error=e[1]
+                        )
+                kw[p.name] = self.Backend.textui.decode(raw)
 
 
 cli_plugins = (

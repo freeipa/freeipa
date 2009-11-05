@@ -870,7 +870,7 @@ from frontend import Command, LocalOrRemote
 from frontend import Object, Method, Property
 from crud import Create, Retrieve, Update, Delete, Search
 from parameters import DefaultFrom, Bool, Flag, Int, Float, Bytes, Str, Password,List
-from parameters import BytesEnum, StrEnum, GeneralizedTime
+from parameters import BytesEnum, StrEnum, GeneralizedTime, File
 from errors import SkipPluginModule
 
 # We can't import the python uuid since it includes ctypes which makes
