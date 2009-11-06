@@ -26,7 +26,7 @@ from ipalib import api, SkipPluginModule
 if api.env.enable_ra is not True:
     # In this case, abort loading this plugin module...
     raise SkipPluginModule(reason='env.enable_ra is not True')
-from ipalib import Command, Str, Int, Bytes, Flag
+from ipalib import Command, Str, Int, Bytes, Flag, File
 from ipalib import errors
 from ipalib.plugins.virtual import *
 from ipalib.plugins.service import split_principal
@@ -83,7 +83,11 @@ class cert_request(VirtualCommand):
     Submit a certificate signing request.
     """
 
-    takes_args = (Str('csr', validate_csr),)
+    takes_args = (
+        File('csr', validate_csr,
+            cli_name='csr_file',
+        ),
+    )
     operation="request certificate"
 
     takes_options = (
@@ -109,6 +113,12 @@ class cert_request(VirtualCommand):
         del kw['principal']
         del kw['add']
         service = None
+
+        # We just want the CSR bits, make sure there is nothing else
+        s = csr.find("-----BEGIN NEW CERTIFICATE REQUEST-----")
+        e = csr.find("-----END NEW CERTIFICATE REQUEST-----")
+        if s >= 0:
+            csr = csr[s+40:e]
 
         # Can this user request certs?
         self.check_access()
@@ -156,33 +166,6 @@ class cert_request(VirtualCommand):
             textui.print_entry(result, 0)
         else:
             textui.print_plain('Failed to submit a certificate request.')
-
-    def run(self, *args, **options):
-        """
-        Dispatch to forward() and execute() to do work locally and on the
-        server.
-        """
-        if self.env.in_server:
-            return self.execute(*args, **options)
-
-        # Client-side code
-        csr = args[0]
-        if csr[:7] == "file://":
-            file = csr[7:]
-            try:
-                f = open(file, "r")
-                csr = f.readlines()
-                f.close()
-            except IOError, err:
-                raise errors.ValidationError(name='csr', error=err[1])
-            csr = "".join(csr)
-            # We just want the CSR bits, make sure there is nothing else
-            s = csr.find("-----BEGIN NEW CERTIFICATE REQUEST-----")
-            e = csr.find("-----END NEW CERTIFICATE REQUEST-----")
-            if s >= 0:
-                csr = csr[s+40:e]
-        csr = csr.decode('UTF-8')
-        return self.forward(csr, **options)
 
 api.register(cert_request)
 
