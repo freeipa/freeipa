@@ -28,7 +28,9 @@ import service
 from ipaserver import ipaldap
 from ipapython import sysrestore
 from ipapython import ipautil
-from ipalib import api, util
+
+import ipalib
+from ipalib import api, util, errors
 
 def check_inst(unattended):
     # So far this file is always present in both RHEL5 and Fedora if all the necessary
@@ -50,6 +52,57 @@ def check_inst(unattended):
         return ipautil.user_input(msg, False)
 
     return True
+
+def get_reverse_zone(ip_address):
+    tmp = ip_address.split(".")
+    tmp.reverse()
+    name = tmp.pop(0)
+    zone = ".".join(tmp) + ".in-addr.arpa" 
+
+    return zone, name
+
+def add_zone(name, update_policy=None):
+    if not update_policy:
+        update_policy = "grant %s krb5-self * A;" % api.env.realm
+
+    try:
+        api.Command.dns_add(unicode(name),
+                            idnssoamname=unicode(api.env.host),
+                            idnsallowdynupdate=True,
+                            idnsupdatepolicy=unicode(update_policy))
+    except (errors.DuplicateEntry, errors.EmptyModlist):
+        pass
+
+    add_rr(name, "@", "NS", api.env.host+".")
+
+    return name
+
+def add_reverze_zone(ip_address, update_policy=None):
+    zone, name = get_reverse_zone(ip_address)
+    if not update_policy:
+        update_policy = "grant %s krb5-subdomain %s. PTR;" % (api.env.realm, zone)
+    try:
+        api.Command.dns_add(unicode(zone),
+                            idnssoamname=unicode(api.env.host),
+                            idnsallowdynupdate=True,
+                            idnsupdatepolicy=unicode(update_policy))
+    except (errors.DuplicateEntry, errors.EmptyModlist):
+        pass
+
+    add_rr(zone, "@", "NS", api.env.host)
+
+    return zone
+
+def add_rr(zone, name, type, rdata):
+    try:
+        api.Command.dns_add_rr(unicode(zone), unicode(name),
+                               unicode(type), unicode(rdata))
+    except (errors.DuplicateEntry, errors.EmptyModlist):
+        pass
+
+def add_ptr_rr(ip_address, fqdn):
+    zone, name = get_reverse_zone(ip_address)
+    add_rr(zone, name, "PTR", fqdn+".")
 
 class BindInstance(service.Service):
     def __init__(self, fstore=None, dm_password=None):
@@ -101,6 +154,8 @@ class BindInstance(service.Service):
             pass
 
         self.__add_zone_steps()
+        self.step("setting up our zone", self.__setup_zone)
+        self.step("setting up reverse zone", self.__setup_reverse_zone)
 
         self.step("setting up kerberos principal", self.__setup_principal)
         self.step("setting up named.conf", self.__setup_named_conf)
@@ -113,8 +168,7 @@ class BindInstance(service.Service):
 
     def __add_zone_steps(self):
         """
-        Add steps necessary to add records and zones, if they don't exist
-        already.
+        Add a DNS container if it doesn't exist.
         """
 
         def object_exists(dn):
@@ -128,23 +182,11 @@ class BindInstance(service.Service):
             else:
                 return True
 
-        zone_dn = "idnsName=%s,cn=dns,%s" % (self.domain, self.suffix)
-        reverse_zone_dn = "idnsName=%s.in-addr.arpa,cn=dns,%s" % (self.reverse_subnet, self.suffix)
-        a_rr_dn = "idnsName=%s,%s" % (self.host, zone_dn)
-        ptr_rr_dn = "idnsName=%s,%s" % (self.reverse_host, reverse_zone_dn)
-
         server = ldap.initialize("ldap://" + self.fqdn)
         server.simple_bind_s()
-        if object_exists(zone_dn):
-            if not object_exists(a_rr_dn):
-                self.step("adding our A record", self.__setup_a_record)
-        else:
-            self.step("setting up our zone", self.__setup_zone)
-        if object_exists(reverse_zone_dn):
-            if not object_exists(ptr_rr_dn):
-                self.step("adding our PTR record", self.__setup_ptr_record)
-        else:
-            self.step("setting up reverse zone", self.__setup_reverse_zone)
+
+        if not object_exists("cn=dns,%s" % self.suffix):
+            self.step("adding DNS container", self.__setup_dns_container)
 
         server.unbind_s()
 
@@ -174,25 +216,32 @@ class BindInstance(service.Service):
                              HOST=self.host,
                              REALM=self.realm,
                              FORWARDERS=fwds,
-                             SUFFIX=self.suffix,
-                             REVERSE_HOST=self.reverse_host,
-                             REVERSE_SUBNET=self.reverse_subnet)
+                             SUFFIX=self.suffix)
 
-    def __setup_zone(self):
-        self.backup_state("domain", self.domain)
+    def __setup_dns_container(self):
         self._ldap_mod("dns.ldif", self.sub_dict)
 
+    def __setup_zone(self):
+        resource_records = (
+            (self.host, "A", self.ip_address),
+            ("_ldap._tcp", "SRV", "0 100 389 %s" % self.host),
+            ("_kerberos", "TXT", self.realm),
+            ("_kerberos._tcp", "SRV", "0 100 88 %s" % self.host),
+            ("_kerberos._udp", "SRV", "0 100 88 %s" % self.host),
+            ("_kerberos-master._tcp", "SRV", "0 100 88 %s" % self.host),
+            ("_kerberos-master._udp", "SRV", "0 100 88 %s" % self.host),
+            ("_kpasswd._tcp", "SRV", "0 100 464 %s" % self.host),
+            ("_kpasswd._udp", "SRV", "0 100 464 %s" % self.host),
+        )
+
+        zone = add_zone(self.domain)
+        for (host, type, rdata) in resource_records:
+            add_rr(zone, host, type, rdata)
+        add_rr(zone, "_ntp._udp", "SRV", "0 100 123 "+self.host)
+
     def __setup_reverse_zone(self):
-        self._ldap_mod("dns_reverse.ldif", self.sub_dict)
-
-    def __setup_a_record(self):
-        api.Command.dns_add_rr(unicode(self.domain), unicode(self.host),
-                               u'A', unicode(self.ip_address))
-
-    def __setup_ptr_record(self):
-        api.Command.dns_add_rr(unicode(self.reverse_subnet + ".in-addr.arpa"),
-                               unicode(self.reverse_host), u'PTR',
-                               unicode(self.host))
+        add_reverze_zone(self.ip_address)
+        add_ptr_rr(self.ip_address, self.fqdn)
 
     def __setup_principal(self):
         dns_principal = "DNS/" + self.fqdn + "@" + self.realm

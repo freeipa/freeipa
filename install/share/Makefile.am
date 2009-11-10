@@ -16,7 +16,6 @@ app_DATA =				\
 	default-keytypes.ldif		\
 	delegation.ldif			\
 	dns.ldif			\
-	dns_reverse.ldif		\
 	kerberos.ldif			\
 	indices.ldif			\
 	bind.named.conf.template	\
