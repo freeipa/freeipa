@@ -121,7 +121,7 @@ class BindInstance(service.Service):
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
-    def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, named_user="named"):
+    def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, ntp, named_user="named"):
         self.named_user = named_user
         self.fqdn = fqdn
         self.ip_address = ip_address
@@ -130,6 +130,7 @@ class BindInstance(service.Service):
         self.forwarders = forwarders
         self.host = fqdn.split(".")[0]
         self.suffix = util.realm_to_suffix(self.realm)
+        self.ntp = ntp
 
         tmp = ip_address.split(".")
         tmp.reverse()
@@ -210,13 +211,20 @@ class BindInstance(service.Service):
         else:
             fwds = " "
 
+        if self.ntp:
+            optional_ntp =  "\n;ntp server\n"
+            optional_ntp += "_ntp._udp\t\tIN SRV 0 100 123\t%s""" % self.host
+        else:
+            optional_ntp = ""
+
         self.sub_dict = dict(FQDN=self.fqdn,
                              IP=self.ip_address,
                              DOMAIN=self.domain,
                              HOST=self.host,
                              REALM=self.realm,
                              FORWARDERS=fwds,
-                             SUFFIX=self.suffix)
+                             SUFFIX=self.suffix,
+                             OPTIONAL_NTP=optional_ntp)
 
     def __setup_dns_container(self):
         self._ldap_mod("dns.ldif", self.sub_dict)
@@ -237,7 +245,8 @@ class BindInstance(service.Service):
         zone = add_zone(self.domain)
         for (host, type, rdata) in resource_records:
             add_rr(zone, host, type, rdata)
-        add_rr(zone, "_ntp._udp", "SRV", "0 100 123 "+self.host)
+        if self.ntp:
+            add_rr(zone, "_ntp._udp", "SRV", "0 100 123 "+self.host)
 
     def __setup_reverse_zone(self):
         add_reverze_zone(self.ip_address)

@@ -219,7 +219,8 @@ def install_bind(config, options):
         forwarders = ()
     bind = bindinstance.BindInstance(dm_password=config.dirman_password)
     ip_address = resolve_host(config.host_name)
-    bind.setup(config.host_name, ip_address, config.realm_name, config.domain_name, forwarders)
+    bind.setup(config.host_name, ip_address, config.realm_name,
+               config.domain_name, forwarders, options.conf_ntp)
     bind.create_instance()
 
 def check_dirsrv():

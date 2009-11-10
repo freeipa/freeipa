@@ -808,7 +808,7 @@ def main():
 
     # Create a BIND instance
     bind = bindinstance.BindInstance(fstore, dm_password)
-    bind.setup(host_name, ip_address, realm_name, domain_name, dns_forwarders)
+    bind.setup(host_name, ip_address, realm_name, domain_name, dns_forwarders, options.conf_ntp)
     if options.setup_dns:
         api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dm_password)
 
