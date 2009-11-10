@@ -25,7 +25,7 @@ the BIND LDAP plugin.
 EXAMPLES:
 
  Add new zone;
-   ipa dns-create example.com nameserver.example.com admin@example.com
+   ipa dns-add example.com nameserver.example.com admin@example.com
 
  Add second nameserver for example.com:
    ipa dns-add-rr example.com @ NS nameserver2.example.com
@@ -159,6 +159,10 @@ class dns(Object):
         Flag('idnsallowdynupdate',
             cli_name='allow_dynupdate',
             doc='allow dynamic update?',
+        ),
+        Str('idnsupdatepolicy?',
+            cli_name='update_policy',
+            doc='BIND update policy',
         ),
     )
 
