@@ -224,7 +224,7 @@ get_root_dn(const char *ipaserver, char **ldap_base)
 
     ld = connect_ldap(ipaserver, NULL, NULL);
     if (!ld) {
-        rval = 1;
+        rval = 14;
         goto done;
     }
 
@@ -235,7 +235,7 @@ get_root_dn(const char *ipaserver, char **ldap_base)
     if (ret != LDAP_SUCCESS) {
         fprintf(stderr, "Search for %s on rootdse failed with error %d",
                 root_attrs[0], ret);
-        rval = 1;
+        rval = 14;
         goto done;
     }
 
@@ -244,7 +244,7 @@ get_root_dn(const char *ipaserver, char **ldap_base)
     ncvals = ldap_get_values_len(ld, entry, root_attrs[0]);
     if (!ncvals) {
         fprintf(stderr, "No values for %s", root_attrs[0]);
-        rval = 1;
+        rval = 14;
         goto done;
     }
 
@@ -300,14 +300,14 @@ join_ldap(const char *ipaserver, const char *hostname, const char ** binddn, con
 
     if (get_root_dn(ipaserver, &ldap_base) != 0) {
         fprintf(stderr, "Unable to determine root DN of %s\n", ipaserver);
-        rval = 1;
+        rval = 14;
         goto done;
     }
 
     ld = connect_ldap(ipaserver, NULL, NULL);
     if (!ld) {
         fprintf(stderr, "Unable to make an LDAP connection to %s\n", ipaserver);
-        rval = 1;
+        rval = 14;
         goto done;
     }
     /* Search for the entry. */
@@ -320,18 +320,18 @@ join_ldap(const char *ipaserver, const char *hostname, const char ** binddn, con
          filter, attrs, 0, NULL, NULL, LDAP_NO_LIMIT,
          LDAP_NO_LIMIT, &result)) != LDAP_SUCCESS) {
         fprintf(stderr, "ldap_search_ext_s: %s\n", ldap_err2string(ret));
-        rval = 1;
+        rval = 14;
         goto ldap_done;
     }
     e = ldap_first_entry(ld, result);
     if (!e) {
         fprintf(stderr, "Unable to find host '%s'\n", hostname);
-        rval = 1;
+        rval = 14;
         goto ldap_done;
     }
     if ((*binddn = ldap_get_dn(ld, e)) == NULL) {
         fprintf(stderr, "Unable to get binddn for host '%s'\n", hostname);
-        rval = 1;
+        rval = 14;
         goto ldap_done;
     }
     ncvals = ldap_get_values_len(ld, e, attrs[0]);
@@ -354,11 +354,13 @@ join_ldap(const char *ipaserver, const char *hostname, const char ** binddn, con
     /* Now rebind as the host */
     ld = connect_ldap(ipaserver, *binddn, bindpw);
     if (!ld) {
-        if (has_principal)
+        if (has_principal) {
             fprintf(stderr, "Host is already joined.\n");
-        else
+            rval = 13;
+        } else {
             fprintf(stderr, "Incorrect password.\n");
-        rval = 1;
+            rval = 15;
+        }
         goto done;
     }
 
@@ -633,6 +635,12 @@ cleanup:
     return rval;
 }
 
+/*
+ * Note, an intention with return values is so that this is compatible with
+ * ipa-getkeytab. This is so based on the return value you can distinguish
+ * between errors common between the two (no kerbeors ccache) and those
+ * unique (host already added).
+ */
 int
 main(int argc, char **argv) {
     static const char *hostname = NULL;
@@ -656,7 +664,7 @@ main(int argc, char **argv) {
         if (!quiet) {
             poptPrintUsage(pc, stderr, 0);
         }
-        exit(1);
+        exit(2);
     }
     poptFreeContext(pc);
     if (debug)
