@@ -67,7 +67,7 @@ import logging
 _type_map = {
     'user': 'ldap:///uid=*,%s,%s' % (api.env.container_user, api.env.basedn),
     'group': 'ldap:///cn=*,%s,%s' % (api.env.container_group, api.env.basedn),
-    'host': 'ldap:///cn=*,%s,%s' % (api.env.container_host, api.env.basedn)
+    'host': 'ldap:///fqdn=*,%s,%s' % (api.env.container_host, api.env.basedn)
 }
 
 _valid_permissions_values = [
