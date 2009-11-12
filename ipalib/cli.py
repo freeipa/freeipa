@@ -852,7 +852,7 @@ class cli(backend.Executioner):
                     try:
                         raw = sys.stdin.read()
                     except IOError, e:
-                        raise ValidationErro(
+                        raise ValidationError(
                             name=to_cli(p.cli_name), error=e[1]
                         )
                 kw[p.name] = self.Backend.textui.decode(raw)
