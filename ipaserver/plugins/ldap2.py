@@ -99,6 +99,8 @@ def _handle_errors(e, **kw):
             raise errors.DatabaseError(desc=desc, info=info)
     except _ldap.INSUFFICIENT_ACCESS, e:
         raise errors.ACIError(info=info)
+    except _ldap.INVALID_CREDENTIALS, e:
+        raise errors.ACIError(info="%s %s" % (info, desc))
     except _ldap.NO_SUCH_ATTRIBUTE:
         # this is raised when a 'delete' attribute isn't found.
         # it indicates the previous attribute was removed by another
@@ -226,11 +228,14 @@ class ldap2(CrudBackend, Encoder):
 
         conn = _ldap.initialize(self._ldapuri)
         if ccache is not None:
-            os.environ['KRB5CCNAME'] = ccache
-            conn.sasl_interactive_bind_s('', _sasl_auth)
-            principal = krbV.CCache(name=ccache,
-                        context=krbV.default_context()).principal().name
-            setattr(context, "principal", principal)
+            try:
+                os.environ['KRB5CCNAME'] = ccache
+                conn.sasl_interactive_bind_s('', _sasl_auth)
+                principal = krbV.CCache(name=ccache,
+                            context=krbV.default_context()).principal().name
+                setattr(context, "principal", principal)
+            except _ldap.LDAPError, e:
+                _handle_errors(e, **{})
         else:
             # no kerberos ccache, use simple bind
             conn.simple_bind_s(bind_dn, bind_pw)
@@ -549,8 +554,6 @@ class ldap2(CrudBackend, Encoder):
            on the entry.
         """
         (dn, attrs) = self.get_effective_rights(dn, ["*"])
-        import pdb
-        pdb.set_trace()
         if 'entrylevelrights' in attrs:
             entry_rights = attrs['entrylevelrights'][0].decode('UTF-8')
             if 'd' in entry_rights:
