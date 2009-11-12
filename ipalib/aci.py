@@ -129,7 +129,7 @@ class ACI:
                 self.target[var]['expression'] = val
 
     def _parse_acistr(self, acistr):
-        vstart = acistr.find('version')
+        vstart = acistr.find('version 3.0')
         if vstart < 0:
             raise SyntaxError, "malformed ACI, unable to find version %s" % acistr
         acimatch = ACIPat.match(acistr[vstart-1:])
@@ -231,10 +231,10 @@ class ACI:
             if self.target.get('targetfilter',{}).get('operator') != b.target.get('targetfilter',{}).get('operator'):
                 return False
 
-            if set(self.target.get('targetattr',{}).get('expression')) != set(b.target.get('targetattr',{}).get('expression')):
+            if set(self.target.get('targetattr', {}).get('expression', ())) != set(b.target.get('targetattr',{}).get('expression', ())):
                 return False
-            if self.target.get('targetattr',{}).get('operator') != b.target.get('targetattr',{}).get('operator'):
-                return False
+                if self.target.get('targetattr',{}).get('operator') != b.target.get('targetattr',{}).get('operator'):
+                    return False
 
             if self.target.get('target',{}).get('expression') != b.target.get('target',{}).get('expression'):
                 return False
