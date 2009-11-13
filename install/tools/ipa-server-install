@@ -541,10 +541,8 @@ def main():
 
     # check bind packages are installed
     if options.setup_dns:
-        if not bindinstance.check_inst():
-            print "--setup-dns was specified but bind or the BIND LDAP plug-in"
-            print "is not installed on the system"
-            print "Please install bind and the LDAP plug-in and restart the setup program"
+        if not bindinstance.check_inst(options.unattended):
+            print "Aborting installation"
             return 1
 
     if options.ca:

@@ -251,10 +251,8 @@ def check_dirsrv():
         sys.exit(1)
 
 def check_bind():
-    if not bindinstance.check_inst():
-        print "--setup-dns was specified but bind or the BIND LDAP plug-in"
-        print "is not installed on the system"
-        print "Please install bind and the LDAP plug-in and restart the setup program"
+    if not bindinstance.check_inst(unattended=True):
+        print "Aborting installation"
         sys.exit(1)
 
 def main():

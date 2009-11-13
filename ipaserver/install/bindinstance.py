@@ -30,16 +30,24 @@ from ipapython import sysrestore
 from ipapython import ipautil
 from ipalib import api, util
 
-def check_inst():
+def check_inst(unattended):
     # So far this file is always present in both RHEL5 and Fedora if all the necessary
     # bind packages are installed (RHEL5 requires also the pkg: caching-nameserver)
     if not os.path.exists('/etc/named.rfc1912.zones'):
+        print "BIND was not found on this system"
+        print "Please install the bind package and start the installation again"
         return False
 
     # Also check for the LDAP BIND plug-in
     if not os.path.exists('/usr/lib/bind/ldap.so') and \
        not os.path.exists('/usr/lib64/bind/ldap.so'):
+        print "The BIND LDAP plug-in was not found on this system"
+        print "Please install the bind-dyndb-ldap package and start the installation again"
         return False
+
+    if not unattended and os.path.exists('/etc/named.conf'):
+        msg = "Existing BIND configuration detected, overwrite?"
+        return ipautil.user_input(msg, False)
 
     return True
 
