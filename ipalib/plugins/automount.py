@@ -327,7 +327,7 @@ class automountmap_add_indirect(LDAPCreate):
     """
     Create new indirect mount point.
     """
-    takes_options = (
+    takes_options = LDAPCreate.takes_options + (
         Str('key',
             cli_name='mount',
             doc='mount point',
