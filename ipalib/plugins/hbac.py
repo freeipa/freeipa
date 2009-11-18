@@ -21,7 +21,7 @@ Host based access control
 """
 
 from ipalib import api, errors
-from ipalib import GeneralizedTime, Password, Str, StrEnum
+from ipalib import AccessTime, Password, Str, StrEnum
 from ipalib.plugins.baseldap import *
 
 class hbac(LDAPObject):
@@ -222,7 +222,7 @@ class hbac_add_accesstime(LDAPQuery):
     Add access time to HBAC rule.
     """
     takes_options = (
-        GeneralizedTime('accesstime',
+        AccessTime('accesstime',
             cli_name='time',
             doc='access time',
         ),
@@ -260,7 +260,7 @@ class hbac_remove_accesstime(LDAPQuery):
     Remove access time to HBAC rule.
     """
     takes_options = (
-        GeneralizedTime('accesstime?',
+        AccessTime('accesstime?',
             cli_name='time',
             doc='access time',
         ),

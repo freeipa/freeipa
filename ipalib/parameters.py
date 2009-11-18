@@ -1309,9 +1309,9 @@ class File(Str):
     )
 
 
-class GeneralizedTime(Str):
+class AccessTime(Str):
     """
-    Generalized time parameter type.
+    Access time parameter type.
 
     Accepts values conforming to generalizedTime as defined in RFC 4517
     section 3.3.13 without time zone information.
@@ -1427,7 +1427,7 @@ class GeneralizedTime(Str):
         if len(t) not in (10, 12, 14):
             raise ValueError('incomplete generalized time')
         if not t.isnumeric():
-            raise ValueError('generalized time non-numeric')
+            raise ValueError('time non-numeric')
         # don't check year value, with time travel and all :)
         self._check_month_num(t[4:6])
         year_num = int(t[0:4])
@@ -1450,7 +1450,7 @@ class GeneralizedTime(Str):
                 raise ValueError('invalid time range separator')
             self._check_generalized(ts[3])
             if int(ts[1]) >= int(ts[3]):
-                raise ValueError('invalid generalized time range')
+                raise ValueError('invalid time range')
         elif ts[0] == 'periodic':
             if ts[1] == 'yearly':
                 index = self._check_Y_spec(ts, 2)
