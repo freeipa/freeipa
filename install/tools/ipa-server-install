@@ -36,6 +36,7 @@ import shutil
 import glob
 import traceback
 from optparse import OptionParser
+from ConfigParser import RawConfigParser
 import random
 
 from ipaserver.install import dsinstance
@@ -169,6 +170,59 @@ def signal_handler(signum, frame):
         if ds.serverid:
             dsinstance.erase_ds_instance_data (ds.serverid)
     sys.exit(1)
+
+ANSWER_CACHE = "/root/.ipa_cache"
+
+def read_cache():
+    """
+    Returns a dict of cached answers or None if no cache file exists.
+    """
+    if not ipautil.file_exists(ANSWER_CACHE):
+        return {}
+
+    optdict={}
+    parser = RawConfigParser()
+    try:
+        fp = open(ANSWER_CACHE, "r")
+        parser.readfp(fp)
+        optlist = parser.items('options')
+        fp.close()
+
+        # this is one-use only
+        os.remove(ANSWER_CACHE)
+    except IOError, e:
+        raise RuntimeError("Unable to determine serial number: %s" % str(e))
+
+    for opt in optlist:
+        optdict[opt[0]] = opt[1]
+        if optdict[opt[0]] == 'None':
+            optdict[opt[0]] = None
+
+    # These are the only ones that may be overridden
+    if 'external_ca_file' in optdict:
+        del optdict['external_ca_file']
+    if 'external_cert_file' in optdict:
+        del optdict['external_cert_file']
+
+    return optdict
+
+def write_cache(options):
+    """
+    Takes a dict as input and writes a cached file of answers
+    """
+
+    # convert the options instance into a dict
+    optdict = eval(str(options))
+    parser = RawConfigParser()
+    try:
+        fp = open(ANSWER_CACHE, "w")
+        parser.add_section('options')
+        for opt in optdict:
+            parser.set('options', opt, optdict[opt])
+        parser.write(fp)
+        fp.close()
+    except IOError, e:
+        raise RuntimeError("Unable to cache command-line options %s" % str(e))
 
 def read_host_name(host_default,no_host_dns=False):
     host_name = ""
@@ -388,6 +442,10 @@ def uninstall(ca = False):
     krbinstance.KrbInstance(fstore).uninstall()
     dsinstance.DsInstance().uninstall()
     fstore.restore_all_files()
+    try:
+        os.remove(ANSWER_CACHE)
+    except Exception:
+        pass
     return 0
 
 
@@ -444,6 +502,9 @@ def main():
                 sys.exit(1)
 
         return uninstall(not certs.ipa_self_signed())
+
+    # This will override any settings passed in on the cmdline
+    options._update_loose(read_cache())
 
     print "=============================================================================="
     print "This program will setup the FreeIPA Server."
@@ -614,12 +675,6 @@ def main():
         os.close(pw_fd)
 
     if options.ca:
-        try:
-            from ipaserver.install import cainstance
-        except ImportError:
-            print >> sys.stderr, "Import failed: %s" % sys.exc_value
-            sys.exit(1)
-
         # Clean up any previous self-signed CA that may exist
         try:
             os.remove(certs.CA_SERIALNO)
@@ -650,6 +705,7 @@ def main():
         if external == 0:
             ca.configure_instance("pkiuser", host_name, dm_password, dm_password)
         elif external == 1:
+            write_cache(options)
             ca.configure_instance("pkiuser", host_name, dm_password, dm_password, csr_file="/root/ipa.csr")
         else:
             ca.configure_instance("pkiuser", host_name, dm_password, dm_password, cert_file=options.external_cert_file, cert_chain_file=options.external_ca_file)
