@@ -73,9 +73,25 @@ class hbac(LDAPObject):
             cli_name='service',
             doc='name of service the rule applies to (e.g. ssh)',
         ),
-        GeneralizedTime('accesstime?',
+        # FIXME: {user,host,sourcehost}categories should expand in the future
+        StrEnum('usercategory?',
+            cli_name='usercat',
+            doc='user category the rule applies to',
+            values=(u'all', ),
+        ),
+        StrEnum('hostcategory?',
+            cli_name='hostcat',
+            doc='host category the rule applies to',
+            values=(u'all', ),
+        ),
+        StrEnum('sourcehostcategory?',
+            cli_name='srchostcat',
+            doc='source host category the rule applies to',
+            values=(u'all', ),
+        ),
+        AccessTime('accesstime?',
             cli_name='time',
-            doc='access time in generalizedTime format (RFC 4517)',
+            doc='access time',
         ),
         Str('description?',
             cli_name='desc',
@@ -199,6 +215,82 @@ class hbac_disable(LDAPQuery):
         textui.print_dashed('Disabled HBAC rule "%s".' % cn)
 
 api.register(hbac_disable)
+
+
+class hbac_add_accesstime(LDAPQuery):
+    """
+    Add access time to HBAC rule.
+    """
+    takes_options = (
+        GeneralizedTime('accesstime',
+            cli_name='time',
+            doc='access time',
+        ),
+    )
+
+    def execute(self, cn, **options):
+        ldap = self.obj.backend
+
+        dn = self.obj.get_dn(cn)
+
+        (dn, entry_attrs) = ldap.get_entry(dn, ['accesstime'])
+        entry_attrs.setdefault('accesstime', []).append(
+            options['accesstime']
+        )
+        try:
+            ldap.update_entry(dn, entry_attrs)
+        except errors.EmptyModlist:
+            pass
+
+        return True
+
+    def output_for_cli(self, textui, result, cn, **options):
+        textui.print_name(self.name)
+        textui.print_dashed(
+            'Added access time "%s" to HBAC rule "%s"' % (
+                options['accesstime'], cn
+            )
+        )
+
+api.register(hbac_add_accesstime)
+
+
+class hbac_remove_accesstime(LDAPQuery):
+    """
+    Remove access time to HBAC rule.
+    """
+    takes_options = (
+        GeneralizedTime('accesstime?',
+            cli_name='time',
+            doc='access time',
+        ),
+    )
+
+    def execute(self, cn, **options):
+        ldap = self.obj.backend
+
+        dn = self.obj.get_dn(cn)
+
+        (dn, entry_attrs) = ldap.get_entry(dn, ['accesstime'])
+        try:
+            entry_attrs.setdefault('accesstime', []).remove(
+                options['accesstime']
+            )
+            ldap.update_entry(dn, entry_attrs)
+        except (ValueError, errors.EmptyModlist):
+            pass
+
+        return True
+
+    def output_for_cli(self, textui, result, cn, **options):
+        textui.print_name(self.name)
+        textui.print_dashed(
+            'Removed access time "%s" from HBAC rule "%s"' % (
+                options['accesstime'], cn
+            )
+        )
+
+api.register(hbac_remove_accesstime)
 
 
 class hbac_add_user(LDAPAddMember):

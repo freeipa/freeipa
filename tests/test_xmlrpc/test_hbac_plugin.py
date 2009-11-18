@@ -34,6 +34,7 @@ class test_hbac(XMLRPC_test):
     rule_type_fail = u'value not allowed'
     rule_service = u'ssh'
     rule_time = u'absolute 20081010000000 ~ 20081015120000'
+    rule_time2 = u'absolute 20081010000000 ~ 20081016120000'
     # wrong time, has 30th day in February in first date
     rule_time_fail = u'absolute 20080230000000 ~ 20081015120000'
     rule_desc = u'description'
@@ -59,8 +60,8 @@ class test_hbac(XMLRPC_test):
         assert_attr_equal(res, 'cn', self.rule_name)
         assert_attr_equal(res, 'accessruletype', self.rule_type)
         assert_attr_equal(res, 'servicename', self.rule_service)
-        assert_attr_equal(res, 'ipaenabledflag', 'enabled')
         assert_attr_equal(res, 'accesstime', self.rule_time)
+        assert_attr_equal(res, 'ipaenabledflag', 'TRUE')
         assert_attr_equal(res, 'description', self.rule_desc)
 
     def test_1_hbac_add(self):
@@ -85,8 +86,8 @@ class test_hbac(XMLRPC_test):
         assert_attr_equal(res, 'cn', self.rule_name)
         assert_attr_equal(res, 'accessruletype', self.rule_type)
         assert_attr_equal(res, 'servicename', self.rule_service)
-        assert_attr_equal(res, 'ipaenabledflag', 'enabled')
         assert_attr_equal(res, 'accesstime', self.rule_time)
+        assert_attr_equal(res, 'ipaenabledflag', 'TRUE')
         assert_attr_equal(res, 'description', self.rule_desc)
 
     def test_3_hbac_mod(self):
@@ -99,25 +100,23 @@ class test_hbac(XMLRPC_test):
         assert res
         assert_attr_equal(res, 'description', self.rule_desc_mod)
 
-    def test_4_hbac_mod(self):
+    def test_4_hbac_add_accesstime(self):
         """
-        Test setting invalid type of HBAC rule using `xmlrpc.hbac_mod`.
+        Test adding access time to HBAC rule using `xmlrpc.hbac_add_accesstime`.
         """
-        try:
-            (dn, res) = api.Command['hbac_mod'](
-                self.rule_name, accessruletype=self.rule_type_fail
-            )
-        except errors.ValidationError:
-            pass
-        else:
-            assert False
+        (dn, res) = api.Command['hbac_add_accesstime'](
+            self.rule_name, accesstime=self.rule_time2
+        )
+        assert res
+        assert_attr_equal(res, 'accesstime', self.rule_time);
+        assert_attr_equal(res, 'accesstime', self.rule_time2);
 
-    def test_5_hbac_mod(self):
+    def test_5_hbac_add_accesstime(self):
         """
-        Test setting invalid time in HBAC rule using `xmlrpc.hbac_mod`.
+        Test adding invalid access time to HBAC rule using `xmlrpc.hbac_add_accesstime`.
         """
         try:
-            (dn, res) = api.Command['hbac_mod'](
+            api.Command['hbac_add_accesstime'](
                 self.rule_name, accesstime=self.rule_time_fail
             )
         except errors.ValidationError:
