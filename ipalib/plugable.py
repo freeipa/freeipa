@@ -503,6 +503,13 @@ class API(DictProxy):
                 dest='interactive',
                 help='Prompt for NO values (even if required)'
             )
+        topics = optparse.OptionGroup(parser, "Available help topics",
+                    "ipa help topics")
+        cmds = optparse.OptionGroup(parser, "Available commands",
+                    "ipa help commands")
+        parser.add_option_group(topics)
+        parser.add_option_group(cmds)
+
         return parser
 
     def bootstrap_with_global_options(self, parser=None, context=None):
