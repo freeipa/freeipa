@@ -836,8 +836,8 @@ def main():
 
     print ""
     if not options.dirsrv_pkcs12:
-        print "Be sure to back up the CA certificate stored in " + dsinstance.config_dirname(ds.serverid) + "cacert.p12"
-        print "The password for this file is in " + dsinstance.config_dirname(ds.serverid) + "pwdfile.txt"
+        print "Be sure to back up the CA certificate stored in /etc/httpd/alias/cacert.p12"
+        print "The password for this file is in /etc/httpd/alias/pwdfile.txt"
     else:
         print "In order for Firefox autoconfiguration to work you will need to"
         print "use a SSL signing certificate. See the IPA documentation for more details."

@@ -340,7 +340,7 @@ class DsInstance(service.Service):
             cadb = certs.CertDB(httpinstance.NSS_DIR, host_name=self.host_name)
             if self.self_signed_ca:
                 cadb.create_self_signed()
-                dsdb.create_from_cacert(cadb.cacert_fname)
+                dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
                 dsdb.create_server_cert("Server-Cert", self.host_name, cadb)
                 dsdb.create_pin_file()
             else:
