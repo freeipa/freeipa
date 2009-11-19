@@ -390,7 +390,7 @@ class NetworkError(PublicError):
 
     For example:
 
-    >>> raise NetworkError(uri='ldap://localhost:389', error='Connection refused')
+    >>> raise NetworkError(uri='ldap://localhost:389', error=u'Connection refused')
     Traceback (most recent call last):
       ...
     NetworkError: cannot connect to 'ldap://localhost:389': Connection refused
@@ -694,7 +694,7 @@ class ConversionError(InvocationError):
 
     For example:
 
-    >>> raise ConversionError(name='age', error='must be an integer')
+    >>> raise ConversionError(name='age', error=u'must be an integer')
     Traceback (most recent call last):
       ...
     ConversionError: invalid 'age': must be an integer
@@ -710,7 +710,7 @@ class ValidationError(InvocationError):
 
     For example:
 
-    >>> raise ValidationError(name='sn', error='can be at most 128 characters')
+    >>> raise ValidationError(name='sn', error=u'can be at most 128 characters')
     Traceback (most recent call last):
       ...
     ValidationError: invalid 'sn': can be at most 128 characters
