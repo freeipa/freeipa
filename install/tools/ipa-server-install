@@ -484,6 +484,7 @@ def main():
     cfg = dict(
         in_server=True,
         webui_assets_dir=ASSETS_DIR,
+        debug=options.debug
     )
     if not options.uninstall:
         if options.ca:
