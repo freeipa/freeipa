@@ -66,7 +66,7 @@ class rabase(Backend):
 
         :param serial_number: certificate serial number
         """
-        raise errors.NotImplementedError(name='%s.check_request_status' % self.name)
+        raise errors.NotImplementedError(name='%s.get_certificate' % self.name)
 
     def request_certificate(self, csr, request_type='pkcs10'):
         """
@@ -75,7 +75,7 @@ class rabase(Backend):
         :param csr: The certificate signing request.
         :param request_type: The request type (defaults to ``'pkcs10'``).
         """
-        raise errors.NotImplementedError(name='%s.check_request_status' % self.name)
+        raise errors.NotImplementedError(name='%s.request_certificate' % self.name)
 
     def revoke_certificate(self, serial_number, revocation_reason=0):
         """
@@ -101,7 +101,7 @@ class rabase(Backend):
         :param serial_number: Certificate serial number.
         :param revocation_reason: Integer code of revocation reason.
         """
-        raise errors.NotImplementedError(name='%s.check_request_status' % self.name)
+        raise errors.NotImplementedError(name='%s.revoke_certificate' % self.name)
 
     def take_certificate_off_hold(self, serial_number):
         """
@@ -109,5 +109,5 @@ class rabase(Backend):
 
         :param serial_number: Certificate serial number.
         """
-        raise errors.NotImplementedError('%s.check_request_status' % self.name)
+        raise errors.NotImplementedError('%s.take_certificate_off_hold' % self.name)
 
