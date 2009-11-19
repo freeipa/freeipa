@@ -97,8 +97,9 @@ def run(args, stdin=None):
         p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         stdout,stderr = p.communicate()
 
-    logging.info(stdout)
-    logging.info(stderr)
+    logging.info('args=%s' % ' '.join(args))
+    logging.info('stdout=%s' % stdout)
+    logging.info('stderr=%s' % stderr)
 
     if p.returncode != 0:
         raise CalledProcessError(p.returncode, ' '.join(args))
