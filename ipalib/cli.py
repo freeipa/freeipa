@@ -577,7 +577,7 @@ class help(frontend.Command):
             mcl = max(len(s) for s in (self.Command))
             for cname in self.Command:
                 cmd = self.Command[cname]
-                print '%s  %s' % (to_cli(cmd.name).ljust(mcl), cmd.doc)
+                print '%s  %s' % (to_cli(cmd.name).ljust(mcl), cmd.summary)
         else:
             raise HelpError(topic=name)
 
@@ -588,8 +588,7 @@ class help(frontend.Command):
         print ''
         print 'Built-in commands:'
         for c in self._builtins:
-            doc = (c.doc or '').strip().split('\n', 1)[0]
-            print '  %s  %s' % (to_cli(c.name).ljust(self._mtl), c.doc)
+            print '  %s  %s' % (to_cli(c.name).ljust(self._mtl), c.summary)
         print ''
         print 'Help topics:'
         for t in topics:
@@ -609,7 +608,7 @@ class help(frontend.Command):
         print ''
         print 'Related commands:'
         for c in commands:
-            print '  %s  %s' % (to_cli(c.name).ljust(mcl), c.doc)
+            print '  %s  %s' % (to_cli(c.name).ljust(mcl), c.summary)
 
 
 class console(frontend.Command):
