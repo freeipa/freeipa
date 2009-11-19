@@ -26,6 +26,8 @@ try:
     import krbV
     import socket
     import logging
+    import tempfile
+    import getpass
     from optparse import OptionParser
     import ipaclient.ipadiscovery
     import ipaclient.ipachangeconf
@@ -58,6 +60,13 @@ def parse_options():
     parser.add_option("--ntp-server", dest="ntp_server", help="ntp server to use")
     parser.add_option("-N", "--no-ntp", action="store_false",
                       help="do not configure ntp", default=True, dest="conf_ntp")
+    parser.add_option("-w", "--password", dest="password",
+                      help="password to join the IPA realm"),
+    parser.add_option("-W", dest="prompt_password", action="store_true",
+                      default=False,
+                      help="Prompt for a password to join the IPA realm"),
+    parser.add_option("-p", "--principal", dest="principal",
+                      help="principal to use to join the IPA realm"),
     parser.add_option("--on-master", dest="on_master", action="store_true",
                       help="use this option when run on a master", default=False)
     parser.add_option("", "--uninstall", dest="uninstall", action="store_true",
@@ -108,10 +117,17 @@ def uninstall(options):
         print "Failed to remove krb5/ldap configuration. " +str(e)
         sys.exit(1)
 
+    print "Removing Kerberos service principals from /etc/krb5.keytab"
     try:
         run(["/sbin/service", "nscd", "restart"])
     except:
         print "Failed to restart start the NSCD daemon"
+
+    try:
+        ctx = krbV.default_context()
+        run(["/usr/sbin/ipa-rmkeytab", "-k", "/etc/krb5.keytab", "-r", ctx.default_realm])
+    except:
+        print "Failed to clean up /etc/krb5.keytab"
 
     if not options.unattended:
         print "The original nsswitch.conf configuration has been restored."
@@ -123,6 +139,137 @@ def uninstall(options):
                 except Exception, e:
                     print "Reboot command failed to exceute. " + str(e)
                     sys.exit(1)
+
+def configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server):
+    ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+    ipaconf.setOptionAssignment(" = ")
+    ipaconf.setSectionNameDelimiters(("[","]"))
+
+    opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
+            {'name':'empty', 'type':'empty'}]
+
+    #[global]
+    defopts = [{'name':'basedn', 'type':'option', 'value':cli_basedn},
+               {'name':'realm', 'type':'option', 'value':cli_realm},
+               {'name':'domain', 'type':'option', 'value':cli_domain},
+               {'name':'server', 'type':'option', 'value':cli_server},
+               {'name':'xmlrpc_uri', 'type':'option', 'value':'https://%s/ipa/xml' % cli_server}]
+
+    opts.append({'name':'global', 'type':'section', 'value':defopts})
+    opts.append({'name':'empty', 'type':'empty'})
+
+    fstore.backup_file("/etc/ipa/default.conf")
+    ipaconf.newConf("/etc/ipa/default.conf", opts)
+
+    return 0
+
+def configure_ldap_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options):
+    ldapconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+    ldapconf.setOptionAssignment(" ")
+
+    opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
+            {'name':'empty', 'type':'empty'},
+            {'name':'ldap_version', 'type':'option', 'value':'3'},
+            {'name':'base', 'type':'option', 'value':cli_basedn},
+            {'name':'empty', 'type':'empty'},
+            {'name':'nss_base_passwd', 'type':'option', 'value':'cn=users,cn=accounts,'+cli_basedn+'?sub'},
+            {'name':'nss_base_group', 'type':'option', 'value':'cn=groups,cn=accounts,'+cli_basedn+'?sub'},
+            {'name':'nss_schema', 'type':'option', 'value':'rfc2307bis'},
+            {'name':'nss_map_attribute', 'type':'option', 'value':'uniqueMember member'},
+            {'name':'nss_initgroups_ignoreusers', 'type':'option', 'value':'root,dirsrv'},
+            {'name':'empty', 'type':'empty'},
+            {'name':'nss_reconnect_maxsleeptime', 'type':'option', 'value':'8'},
+            {'name':'nss_reconnect_sleeptime', 'type':'option', 'value':'1'},
+            {'name':'bind_timelimit', 'type':'option', 'value':'5'},
+            {'name':'timelimit', 'type':'option', 'value':'15'},
+            {'name':'empty', 'type':'empty'}]
+    if not dnsok or options.force or options.on_master:
+        if options.on_master:
+            opts.append({'name':'uri', 'type':'option', 'value':'ldap://localhost'})
+        else:
+            opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+cli_server})
+    else:
+        opts.append({'name':'nss_srv_domain', 'type':'option', 'value':cli_domain})
+
+    opts.append({'name':'empty', 'type':'empty'})
+    try:
+        fstore.backup_file("/etc/ldap.conf")
+        ldapconf.newConf("/etc/ldap.conf", opts)
+    except Exception, e:
+        print "Creation of /etc/ldap.conf: " + str(e)
+        return 1
+
+    return 0
+
+def hardcode_ldap_server(cli_server):
+    """
+    DNS Discovery didn't return a valid IPA server, hardcode a value into
+    the file instead.
+    """
+    ldapconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+    ldapconf.setOptionAssignment(" ")
+
+    opts = [{'name':'uri', 'type':'option', 'action':'set', 'value':'ldap://'+cli_server},
+            {'name':'empty', 'type':'empty'}]
+
+    # Errors raised by this should be caught by the caller
+    ldapconf.changeConf("/etc/ldap.conf", opts)
+
+    return
+
+def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options, filename):
+
+    krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+    krbconf.setOptionAssignment(" = ")
+    krbconf.setSectionNameDelimiters(("[","]"))
+    krbconf.setSubSectionDelimiters(("{","}"))
+    krbconf.setIndent(("","  ","    "))
+
+    opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
+            {'name':'empty', 'type':'empty'}]
+
+    #[libdefaults]
+    libopts = [{'name':'default_realm', 'type':'option', 'value':cli_realm}]
+    if not dnsok or options.force:
+        libopts.append({'name':'dns_lookup_realm', 'type':'option', 'value':'false'})
+        libopts.append({'name':'dns_lookup_kdc', 'type':'option', 'value':'false'})
+    else:
+        libopts.append({'name':'dns_lookup_realm', 'type':'option', 'value':'true'})
+        libopts.append({'name':'dns_lookup_kdc', 'type':'option', 'value':'true'})
+    libopts.append({'name':'ticket_lifetime', 'type':'option', 'value':'24h'})
+    libopts.append({'name':'forwardable', 'type':'option', 'value':'yes'})
+
+    opts.append({'name':'libdefaults', 'type':'section', 'value':libopts})
+    opts.append({'name':'empty', 'type':'empty'})
+
+    #the following are necessary only if DNS discovery does not work
+    if not dnsok or options.force:
+        #[realms]
+        kropts =[{'name':'kdc', 'type':'option', 'value':cli_server+':88'},
+                 {'name':'admin_server', 'type':'option', 'value':cli_server+':749'},
+                 {'name':'default_domain', 'type':'option', 'value':cli_domain}]
+        ropts = [{'name':cli_realm, 'type':'subsection', 'value':kropts}]
+        opts.append({'name':'realms', 'type':'section', 'value':ropts})
+        opts.append({'name':'empty', 'type':'empty'})
+
+    #[domain_realm]
+    dropts = [{'name':'.'+cli_domain, 'type':'option', 'value':cli_realm},
+              {'name':cli_domain, 'type':'option', 'value':cli_realm}]
+    opts.append({'name':'domain_realm', 'type':'section', 'value':dropts})
+    opts.append({'name':'empty', 'type':'empty'})
+
+    #[appdefaults]
+    pamopts = [{'name':'debug', 'type':'option', 'value':'false'},
+               {'name':'ticket_lifetime', 'type':'option', 'value':'36000'},
+               {'name':'renew_lifetime', 'type':'option', 'value':'36000'},
+               {'name':'forwardable', 'type':'option', 'value':'true'},
+               {'name':'krb4_convert', 'type':'option', 'value':'false'}]
+    appopts = [{'name':'pam', 'type':'subsection', 'value':pamopts}]
+    opts.append({'name':'appdefaults', 'type':'section', 'value':appopts})
+
+    krbconf.newConf(filename, opts);
+
+    return 0
 
 def main():
     options = parse_options()
@@ -139,6 +286,10 @@ def main():
     cli_server = None
     cli_realm = None
     cli_basedn = None
+
+    if options.unattended and (options.password is None and options.principal is None and options.prompt_password is False) and not options.on_master:
+        print "One of password and principal are required."
+        return 1
 
     # Create the discovery instance
     ds = ipaclient.ipadiscovery.IPADiscovery()
@@ -212,124 +363,74 @@ def main():
     if not options.unattended and not user_input("Continue to configure the system with these values?", False):
         return 1
 
+    if not options.unattended:
+        if options.principal is None and options.password is None and options.prompt_password is False:
+            options.principal = user_input("Principal", allow_empty=False)
+
+    if not options.on_master:
+        # First test out the kerberos configuration
+        try:
+            (krb_fd, krb_name) = tempfile.mkstemp()
+            os.close(krb_fd)
+            if configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options, krb_name):
+                print "Test kerberos configuration failed"
+                return 1
+            os.environ['KRB5_CONFIG'] = krb_name
+            join_args = ["/usr/sbin/ipa-join"]
+            if options.principal is not None:
+                principal = options.principal
+                if principal.find('@') == -1:
+                    principal = '%s@%s' % (principal, cli_realm)
+                print "Password for %s: " % principal,
+                sys.stdout.flush()
+                (stderr, stdout, returncode) = run(["/usr/kerberos/bin/kinit", principal], raiseonerr=False)
+                print ""
+                if returncode != 0:
+                    print stdout
+                    return 1
+            elif options.password:
+                join_args.append("-w")
+                join_args.append(options.password)
+            elif options.prompt_password:
+                password = getpass.getpass("Password: ")
+                join_args.append("-w")
+                join_args.append(password)
+
+            # Now join the domain
+            (stdout, stderr, returncode) = run(join_args, raiseonerr=False)
+
+            if returncode != 0:
+                print "Joining realm failed: %s" % stderr,
+                if not options.force:
+                    return 1
+                print "  Use ipa-getkeytab to obtain a host principal for this server."
+        finally:
+            if options.principal is not None:
+                (stderr, stdout, returncode) = run(["/usr/kerberos/bin/kdestroy"], raiseonerr=False)
+            del os.environ['KRB5_CONFIG']
+            os.remove(krb_name)
+            os.remove(krb_name + ".ipabkp")
+
     # Configure ipa.conf
     if not options.on_master:
-        ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
-        ipaconf.setOptionAssignment(" = ")
-        ipaconf.setSectionNameDelimiters(("[","]"))
-
-        opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
-                {'name':'empty', 'type':'empty'}]
-
-        #[global]
-        defopts = [{'name':'basedn', 'type':'option', 'value':cli_basedn},
-                   {'name':'realm', 'type':'option', 'value':cli_realm},
-                   {'name':'domain', 'type':'option', 'value':cli_domain},
-                   {'name':'server', 'type':'option', 'value':cli_server},
-                   {'name':'xmlrpc_uri', 'type':'option', 'value':'https://%s/ipa/xml' % cli_server}]
-
-        opts.append({'name':'global', 'type':'section', 'value':defopts})
-        opts.append({'name':'empty', 'type':'empty'})
-
-        fstore.backup_file("/etc/ipa/default.conf")
-        ipaconf.newConf("/etc/ipa/default.conf", opts)
+        configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server)
         print "Created /etc/ipa/default.conf"
 
-
     # Configure ldap.conf
-    ldapconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
-    ldapconf.setOptionAssignment(" ")
-
-    opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
-            {'name':'empty', 'type':'empty'},
-            {'name':'ldap_version', 'type':'option', 'value':'3'},
-            {'name':'base', 'type':'option', 'value':cli_basedn},
-            {'name':'empty', 'type':'empty'},
-            {'name':'nss_base_passwd', 'type':'option', 'value':'cn=users,cn=accounts,'+cli_basedn+'?sub'},
-            {'name':'nss_base_group', 'type':'option', 'value':'cn=groups,cn=accounts,'+cli_basedn+'?sub'},
-            {'name':'nss_schema', 'type':'option', 'value':'rfc2307bis'},
-            {'name':'nss_map_attribute', 'type':'option', 'value':'uniqueMember member'},
-            {'name':'nss_initgroups_ignoreusers', 'type':'option', 'value':'root,dirsrv'},
-            {'name':'empty', 'type':'empty'},
-            {'name':'nss_reconnect_maxsleeptime', 'type':'option', 'value':'8'},
-            {'name':'nss_reconnect_sleeptime', 'type':'option', 'value':'1'},
-            {'name':'bind_timelimit', 'type':'option', 'value':'5'},
-            {'name':'timelimit', 'type':'option', 'value':'15'},
-            {'name':'empty', 'type':'empty'}]
-    if not dnsok or options.force or options.on_master:
-        if options.on_master:
-            opts.append({'name':'uri', 'type':'option', 'value':'ldap://localhost'})
-        else:
-            opts.append({'name':'uri', 'type':'option', 'value':'ldap://'+cli_server})
-    else:
-        opts.append({'name':'nss_srv_domain', 'type':'option', 'value':cli_domain})
-
-    opts.append({'name':'empty', 'type':'empty'})
-    try:
-        fstore.backup_file("/etc/ldap.conf")
-        ldapconf.newConf("/etc/ldap.conf", opts)
-        print "Configured /etc/ldap.conf"
-    except Exception, e:
-        print "Creation of /etc/ldap.conf: " + str(e)
+    if configure_ldap_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options):
         return 1
+    print "Configured /etc/ldap.conf"
 
-    #If on master assume kerberos is already configured properly.
+    # If on master assume kerberos is already configured properly.
     if not options.on_master:
-
-        #Configure krb5.conf
-        krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
-        krbconf.setOptionAssignment(" = ")
-        krbconf.setSectionNameDelimiters(("[","]"))
-        krbconf.setSubSectionDelimiters(("{","}"))
-        krbconf.setIndent(("","  ","    "))
-
-        opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
-                {'name':'empty', 'type':'empty'}]
-
-        #[libdefaults]
-        libopts = [{'name':'default_realm', 'type':'option', 'value':cli_realm}]
-        if not dnsok or options.force:
-            libopts.append({'name':'dns_lookup_realm', 'type':'option', 'value':'false'})
-            libopts.append({'name':'dns_lookup_kdc', 'type':'option', 'value':'false'})
-        else:
-            libopts.append({'name':'dns_lookup_realm', 'type':'option', 'value':'true'})
-            libopts.append({'name':'dns_lookup_kdc', 'type':'option', 'value':'true'})
-        libopts.append({'name':'ticket_lifetime', 'type':'option', 'value':'24h'})
-        libopts.append({'name':'forwardable', 'type':'option', 'value':'yes'})
-
-        opts.append({'name':'libdefaults', 'type':'section', 'value':libopts})
-        opts.append({'name':'empty', 'type':'empty'})
-
-	#the following are necessary only if DNS discovery does not work
-        if not dnsok or options.force:
-            #[realms]
-            kropts =[{'name':'kdc', 'type':'option', 'value':cli_server+':88'},
-                     {'name':'admin_server', 'type':'option', 'value':cli_server+':749'},
-                     {'name':'default_domain', 'type':'option', 'value':cli_domain}]
-            ropts = [{'name':cli_realm, 'type':'subsection', 'value':kropts}]
-            opts.append({'name':'realms', 'type':'section', 'value':ropts})
-            opts.append({'name':'empty', 'type':'empty'})
-
-        #[domain_realm]
-        dropts = [{'name':'.'+cli_domain, 'type':'option', 'value':cli_realm},
-                  {'name':cli_domain, 'type':'option', 'value':cli_realm}]
-        opts.append({'name':'domain_realm', 'type':'section', 'value':dropts})
-        opts.append({'name':'empty', 'type':'empty'})
-
-        #[appdefaults]
-        pamopts = [{'name':'debug', 'type':'option', 'value':'false'},
-                   {'name':'ticket_lifetime', 'type':'option', 'value':'36000'},
-                   {'name':'renew_lifetime', 'type':'option', 'value':'36000'},
-                   {'name':'forwardable', 'type':'option', 'value':'true'},
-                   {'name':'krb4_convert', 'type':'option', 'value':'false'}]
-        appopts = [{'name':'pam', 'type':'subsection', 'value':pamopts}]
-        opts.append({'name':'appdefaults', 'type':'section', 'value':appopts})
-
+        # Configure krb5.conf
         fstore.backup_file("/etc/krb5.conf")
-        krbconf.newConf("/etc/krb5.conf", opts);
+        if configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options, "/etc/krb5.conf"):
+            return 1
+
         print "Configured /etc/krb5.conf for IPA realm " + cli_realm
 
-    #Modify nsswitch to add nss_ldap
+    # Modify nsswitch to add nss_ldap
     run(["/usr/sbin/authconfig", "--enableldap", "--update"])
     print "LDAP enabled"
 
@@ -341,10 +442,8 @@ def main():
             print "nss_ldap is not able to use DNS discovery!"
             print "Changing configuration to use hardcoded server name: " +cli_server
 
-            opts = [{'name':'uri', 'type':'option', 'action':'set', 'value':'ldap://'+cli_server},
-                    {'name':'empty', 'type':'empty'}]
             try:
-                ldapconf.changeConf("/etc/ldap.conf", opts)
+                hardcode_ldap_server(cli_server)
             except Exception, e:
                 print "Adding hardcoded server name to /etc/ldap.conf failed: " + str(e)
                 return 1
