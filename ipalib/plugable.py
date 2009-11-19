@@ -582,7 +582,8 @@ class API(DictProxy):
                     'skipping plugin module %s: %s', fullname, e.reason
                 )
             except StandardError, e:
-                self.log.error('could not load plugin module %r', pyfile)
+                import traceback
+                self.log.error('could not load plugin module %r\n%s', pyfile, traceback.format_exc())
                 raise e
 
     def finalize(self):
