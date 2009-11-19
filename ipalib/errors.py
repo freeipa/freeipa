@@ -89,7 +89,9 @@ current block assignments:
 
             - **4200 - 4299**  `LDAPError` and its subclasses
 
-            - **4300 - 4999**  *Reserved for future use*
+            - **4300 - 4399**  `CertificateError` and its subclasses
+
+            - **4400 - 4999**  *Reserved for future use*
 
         - **5000 - 5999**  `GenericError` and its subclasses
 
@@ -1153,6 +1155,31 @@ class ObjectclassViolation(ExecutionError):
 
     errno = 4205
     format = _('%(info)s')
+
+
+class CertificateError(ExecutionError):
+    """
+    **4300** Base class for Certificate execution errors (*4300 - 4399*).
+    """
+
+    errno = 4300
+
+
+class CertificateOperationError(ExecutionError):
+    """
+    **4301** Raised when a certificate operation cannot be completed
+
+    For example:
+
+    >>> raise CertificateOperationError(error=u'bad serial number')
+    Traceback (most recent call last):
+      ...
+    CertificateOperationError: Certificate operation cannot be completed: bad serial number
+
+    """
+
+    errno = 4301
+    format = _('Certificate operation cannot be completed: %(error)s')
 
 
 ##############################################################################
