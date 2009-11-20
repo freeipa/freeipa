@@ -22,6 +22,7 @@ Test the `ipalib.parameters` module.
 """
 
 import re
+import sys
 from types import NoneType
 from inspect import isclass
 from tests.util import raises, ClassChecker, read_only
@@ -1224,6 +1225,32 @@ class test_Int(ClassChecker):
             assert dummy.message == 'can be at most %(maxvalue)d'
             assert dummy.called() is True
             dummy.reset()
+
+    def test_convert_scalar(self):
+        """
+        Test the `ipalib.parameters.Int._convert_scalar` method.
+        Assure radix prefixes work, str objects fail,
+        floats (native & string) are truncated,
+        large magnitude values are promoted to long,
+        empty strings & invalid numerical representations fail
+        """
+        o = self.cls('my_number')
+        # Assure invalid inputs raise error
+        for bad in ['hello', u'hello', True, None, '10', u'', u'.']:
+            e = raises(errors.ConversionError, o._convert_scalar, bad)
+            assert e.name == 'my_number'
+            assert e.index is None
+        # Assure large magnatude values are handled correctly
+        assert type(o._convert_scalar(sys.maxint*2)) == long
+        assert o._convert_scalar(sys.maxint*2) == sys.maxint*2
+        assert o._convert_scalar(unicode(sys.maxint*2)) == sys.maxint*2
+        assert o._convert_scalar(long(16)) == 16
+        # Assure normal conversions produce expected result
+        assert o._convert_scalar(u'16.99') == 16
+        assert o._convert_scalar(16.99)    == 16
+        assert o._convert_scalar(u'16')    == 16
+        assert o._convert_scalar(u'0x10')  == 16
+        assert o._convert_scalar(u'020')   == 16
 
 class test_Float(ClassChecker):
     """
