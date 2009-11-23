@@ -131,11 +131,11 @@ def parse_options():
         if (options.ds_user or options.realm_name or
             options.dm_password or options.admin_password or
             options.master_password):
-            parser.error("error: In uninstall mode, -u, r, -p and -P options are not allowed")
+            parser.error("In uninstall mode, -u, r, -p and -P options are not allowed")
     elif options.unattended:
         if (not options.ds_user or not options.realm_name or
             not options.dm_password or not options.admin_password):
-            parser.error("error: In unattended mode you need to provide at least -u, -r, -p and -a options")
+            parser.error("In unattended mode you need to provide at least -u, -r, -p and -a options")
         if options.setup_dns:
             if not options.forwarders and not options.no_forwarders:
                 parser.error("You must specify at least one --forwarder option or --no-forwarders option")
@@ -146,14 +146,14 @@ def parse_options():
     pkcs12 = [options.dirsrv_pkcs12, options.http_pkcs12, options.dirsrv_pin, options.http_pin]
     cnt = pkcs12.count(None)
     if cnt > 0 and cnt < 4:
-        parser.error("error: All PKCS#12 options are required if any are used.")
+        parser.error("All PKCS#12 options are required if any are used.")
 
     if (options.external_cert_file or options.external_ca_file) and not options.ca:
-        parser.error("error: --ca required to use the external CA options.")
+        parser.error("--ca required to use the external CA options.")
 
     if ((options.external_cert_file and not options.external_ca_file) or
        (not options.external_cert_file and options.external_ca_file)):
-        parser.error("error: if either external option is used, both are required.")
+        parser.error("if either external option is used, both are required.")
 
     if options.external_ca and not options.ca:
         # Go ahead and be nice and fix things up

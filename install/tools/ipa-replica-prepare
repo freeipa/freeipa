@@ -59,7 +59,7 @@ def parse_options():
     pkcs12 = [options.dirsrv_pkcs12, options.http_pkcs12, options.dirsrv_pin, options.http_pin]
     cnt = pkcs12.count(None)
     if cnt > 0 and cnt < 4:
-        parser.error("error: All PKCS#12 options are required if any are used.")
+        parser.error("All PKCS#12 options are required if any are used.")
 
     if len(args) != 1:
         parser.error("must provide the fully-qualified name of the replica")
