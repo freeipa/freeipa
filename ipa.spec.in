@@ -245,6 +245,7 @@ rm -rf %{buildroot}
 make install DESTDIR=%{buildroot}
 cd selinux
 make install DESTDIR=%{buildroot}
+cd ..
 %else
 make client-install DESTDIR=%{buildroot}
 %endif
@@ -274,6 +275,11 @@ mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/
 /bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 %endif
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
+
+%if ! %{ONLY_CLIENT}
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/bash_completion.d
+install -pm 644 contrib/completion/ipa.bash_completion $RPM_BUILD_ROOT%{_sysconfdir}/bash_completion.d/ipa
+%endif
 
 %clean
 rm -rf %{buildroot}
@@ -440,6 +446,7 @@ fi
 %{_sbindir}/ipa-ldap-updater
 %{_sbindir}/ipa-compat-manage
 %{_sbindir}/ipa-nis-manage
+%{_sysconfdir}/bash_completion.d
 %endif
 
 %files python
@@ -474,6 +481,10 @@ fi
 %endif
 
 %changelog
+* Fri Nov 13 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-10
+- Add bash completion script and own /etc/bash_completion.d in case it
+  doesn't already exist
+
 * Tue Nov  3 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-9
 - Remove ipa_webgui, its functions rolled into ipa_httpd
 
