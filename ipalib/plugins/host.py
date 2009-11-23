@@ -62,15 +62,21 @@ class host(LDAPObject):
         'cn': 'name',
         'fqdn': 'hostname',
         'localityname': 'locality',
+        'l': 'locality',
         'nshostlocation': 'location',
         'nshardwareplatform': 'platform',
         'nsosversion': 'operating system',
         'serverhostname': 'server hostname',
         'enrolledby user': 'enrolled by',
         'krbprincipalname': 'kerberos principal',
+        'ipauniqueid': 'unique identifier',
+        'memberof hostgroup': 'member of hostgroups',
+        'memberof netgroup': 'member of netgroups',
+        'memberof rolegroup': 'member of rolegroups',
     }
     attribute_members = {
         'enrolledby': ['user'],
+        'memberof': ['hostgroup', 'netgroup', 'rolegroup'],
     }
 
     takes_params = (
