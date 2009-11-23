@@ -145,14 +145,14 @@ def port_available(port):
 
     return rv
 
-def standard_logging_setup(log_filename, debug=False):
+def standard_logging_setup(log_filename, debug=False, filemode='w'):
     old_umask = os.umask(077)
     # Always log everything (i.e., DEBUG) to the log
     # file.
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s %(message)s',
                         filename=log_filename,
-                        filemode='w')
+                        filemode=filemode)
     os.umask(old_umask)
 
     console = logging.StreamHandler()
