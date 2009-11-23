@@ -95,7 +95,7 @@ class NSSConnection(httplib.HTTPConnection):
         if not dbdir:
             raise RuntimeError("dbdir is required")
 
-        ssl.nssinit(dbdir)
+        nss.nss_init(dbdir)
         ssl.set_domestic_policy()
         nss.set_password_callback(self.password_callback)
 
