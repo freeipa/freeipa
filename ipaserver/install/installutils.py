@@ -117,6 +117,59 @@ def verify_fqdn(host_name,no_host_dns=False):
     if forward != reverse:
         raise RuntimeError("The DNS forward record %s does not match the reverse address %s" % (forward, reverse))
 
+def verify_ip_address(ip):
+    is_ok = True
+    try:
+        socket.inet_pton(socket.AF_INET, ip)
+    except:
+        try:
+            socket.inet_pton(socket.AF_INET6, ip)
+        except:
+            print "Unable to verify IP address"
+            is_ok = False
+    return is_ok
+
+def read_ip_address(host_name, fstore):
+    while True:
+        ip = ipautil.user_input("Please provide the IP address to be used for this host name", allow_empty = False)
+
+        if ip == "127.0.0.1" or ip == "::1":
+            print "The IPA Server can't use localhost as a valid IP"
+            continue
+
+        if verify_ip_address(ip):
+            break
+
+    print "Adding ["+ip+" "+host_name+"] to your /etc/hosts file"
+    fstore.backup_file("/etc/hosts")
+    hosts_fd = open('/etc/hosts', 'r+')
+    hosts_fd.seek(0, 2)
+    hosts_fd.write(ip+'\t'+host_name+' '+host_name.split('.')[0]+'\n')
+    hosts_fd.close()
+
+    return ip
+
+def read_dns_forwarders():
+    addrs = []
+    while True:
+        ip = ipautil.user_input("Enter IP address for a DNS forwarder (empty to stop)", allow_empty=True)
+
+        if not ip:
+            break
+        if ip == "127.0.0.1" or ip == "::1":
+            print "You cannot use localhost as a DNS forwarder"
+            continue
+        if not verify_ip_address(ip):
+            continue
+
+        print "DNS forwarder %s added" % ip
+        addrs.append(ip)
+
+    if not addrs:
+        print "No DNS forwarders configured"
+
+    return addrs
+
 def port_available(port):
     """Try to bind to a port on the wildcard host
        Return 1 if the port is available
