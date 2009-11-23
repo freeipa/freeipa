@@ -27,7 +27,8 @@ import krbV
 from optparse import OptionParser
 
 from ipapython import ipautil
-from ipaserver.install import dsinstance, installutils, certs, httpinstance
+from ipaserver.install import bindinstance, dsinstance, installutils, certs, httpinstance
+from ipaserver.install.bindinstance import add_zone, add_reverze_zone, add_rr, add_ptr_rr
 from ipaserver import ipaldap
 from ipapython import version
 from ipalib import api
@@ -48,6 +49,8 @@ def parse_options():
                       help="PIN for the Apache Server PKCS#12 file")
     parser.add_option("-p", "--password", dest="password", 
                       help="Directory Manager (existing master) password")
+    parser.add_option("--ip-address", dest="ip_address",
+                      help="Add A and PTR records of the future replica")
 
     options, args = parser.parse_args()
 
@@ -206,6 +209,11 @@ def main():
     api.bootstrap(in_server=True)
     api.finalize()
 
+    if options.ip_address:
+        if not bindinstance.dns_container_exists(api.env.host, api.env.realm):
+            print "You can't add a DNS record because DNS is not set up."
+            sys.exit(1)
+
     if not certs.ipa_self_signed() and not ipautil.file_exists("/var/lib/pki-ca/conf/CS.cfg") and not options.dirsrv_pin:
         sys.exit("The replica must be created on the primary IPA server.\nIf you installed IPA with your own certificates using PKCS#12 files you must provide PKCS#12 files for any replicas you create as well.")
 
@@ -313,6 +321,19 @@ def main():
 
     remove_file(replicafile)
     shutil.rmtree(dir)
+
+    if options.ip_address:
+        print "Adding DNS records for %s" % replica_fqdn
+        api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dirman_password)
+
+        domain = replica_fqdn.split(".")
+        name = domain.pop(0)
+        domain = ".".join(domain)
+
+        zone = add_zone(domain)
+        add_rr(zone, name, "A", options.ip_address)
+        add_reverze_zone(options.ip_address)
+        add_ptr_rr(options.ip_address, replica_fqdn)
 
 try:
     if not os.geteuid()==0:
