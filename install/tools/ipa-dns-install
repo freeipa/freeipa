@@ -1,0 +1,184 @@
+#! /usr/bin/python -E
+# Authors: Martin Nagy <mnagy@redhat.com>
+# Based on ipa-server-install by Karl MacMillan <kmacmillan@mentalrootkit.com>
+#
+# Copyright (C) 2007 - 2009  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; version 2 only
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+from optparse import OptionParser
+import traceback
+
+from ipaserver import ipaldap
+from ipaserver.install import bindinstance, ntpinstance
+from ipaserver.install.installutils import *
+from ipapython import version
+from ipapython import ipautil, sysrestore
+from ipalib import api, util
+import ldap
+
+def parse_options():
+    parser = OptionParser(version=version.VERSION)
+    parser.add_option("-p", "--ds-password", dest="dm_password",
+                      help="admin password")
+    parser.add_option("-d", "--debug", dest="debug", action="store_true",
+                      default=False, help="print debugging information")
+    parser.add_option("--ip-address", dest="ip_address", help="Master Server IP Address")
+    parser.add_option("--forwarder", dest="forwarders", action="append",
+                      help="Add a DNS forwarder")
+    parser.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
+                      default=False, help="Do not add any DNS forwarders, use root servers instead")
+    parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
+                      default=False, help="unattended installation never prompts the user")
+
+    options, args = parser.parse_args()
+
+    if options.forwarders and options.no_forwarders:
+        parser.error("You cannot specify a --forwarder option together with --no-forwarders")
+
+    if options.unattended:
+        if not options.dm_password:
+            parser.error("In unattended mode you need to provide at least the -p option")
+        if not options.forwarders and not options.no_forwarders:
+            parser.error("You must specify at least one --forwarder option or --no-forwarders option")
+
+    return options
+
+def resolve_host(host_name):
+    ip = None
+    try:
+        ip = socket.gethostbyname(host_name)
+
+        if ip == "127.0.0.1" or ip == "::1":
+            print "The hostname resolves to the localhost address (127.0.0.1/::1)"
+            print "Please change your /etc/hosts file so that the hostname"
+            print "resolves to the ip address of your network interface."
+            print ""
+            print "Please fix your /etc/hosts file and restart the setup program"
+            return None
+
+    except:
+        print "Unable to lookup the IP address of the provided host"
+    return ip
+
+def main():
+    options = parse_options()
+
+    if os.getegid() != 0:
+        print "Must be root to setup server"
+        return 1
+
+    standard_logging_setup("/var/log/ipaserver-install.log", options.debug, filemode='a')
+    print "\nThe log file for this installation can be found in /var/log/ipaserver-install.log"
+
+    global fstore
+    fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+
+    print "=============================================================================="
+    print "This program will setup DNS for the FreeIPA Server."
+    print ""
+    print "This includes:"
+    print "  * Configure DNS (bind)"
+    print ""
+    print "To accept the default shown in brackets, press the Enter key."
+    print ""
+
+    # Check bind packages are installed
+    if not bindinstance.check_inst(options.unattended):
+        print "Aborting installation"
+        return 1
+
+    # Initialize the ipalib api
+    cfg = dict(
+        in_server=True,
+        debug=options.debug,
+    )
+    api.bootstrap(**cfg)
+    api.finalize()
+
+    # Check we have a public IP that is associated with the hostname
+    if options.ip_address:
+        ip_address = options.ip_address
+    else:
+        ip_address = resolve_host(api.env.host)
+    if not ip_address or not verify_ip_address(ip_address):
+        if options.unattended:
+            print "Unable to resolve IP address for host name"
+            return 1
+        else:
+            ip_address = read_ip_address(api.env.host, fstore)
+
+    if options.no_forwarders:
+        dns_forwarders = ()
+    elif options.forwarders:
+        dns_forwarders = options.forwarders
+    else:
+        dns_forwarders = read_dns_forwarders()
+
+    if not options.dm_password:
+        dm_password = read_password("Directory Manager", confirm=False, validate=False)
+    else:
+        dm_password = options.dm_password
+
+    # Try out the password
+    try:
+        conn = ipaldap.IPAdmin(api.env.host)
+        conn.do_simple_bind(bindpw=dm_password)
+        conn.unbind()
+    except (ldap.CONNECT_ERROR, ldap.SERVER_DOWN), e:
+        sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
+    except ldap.INVALID_CREDENTIALS, e :
+        sys.exit("\nThe password provided is incorrect for LDAP server %s" % api.env.host)
+
+    conf_ntp = ntpinstance.NTPInstance(fstore).is_enabled()
+
+    if not options.unattended:
+        print ""
+        print "The following operations may take some minutes to complete."
+        print "Please wait until the prompt is returned."
+        print ""
+
+    # Create a BIND instance
+    bind = bindinstance.BindInstance(fstore, dm_password)
+    bind.setup(api.env.host, ip_address, api.env.realm, api.env.domain, dns_forwarders, conf_ntp)
+    api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dm_password)
+    bind.create_instance()
+
+    print "=============================================================================="
+    print "Setup complete"
+    print ""
+    print "\tYou must make sure these network ports are open:"
+    print "\t\tTCP Ports:"
+    print "\t\t  * 53: bind"
+    print "\t\tUDP Ports:"
+    print "\t\t  * 53: bind"
+
+    return 0
+
+try:
+    sys.exit(main())
+except SystemExit, e:
+    sys.exit(e)
+except KeyboardInterrupt:
+    print "Installation cancelled."
+except Exception, e:
+    message = "Unexpected error - see ipaserver-install.log for details:\n %s" % str(e)
+    print message
+    message = str(e)
+    for str in traceback.format_tb(sys.exc_info()[2]):
+        message = message + "\n" + str
+    logging.debug(message)
+    sys.exit(1)

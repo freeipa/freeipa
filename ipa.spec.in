@@ -366,6 +366,7 @@ fi
 %files server
 %doc LICENSE README
 %defattr(-,root,root,-)
+%{_sbindir}/ipa-dns-install
 %{_sbindir}/ipa-server-install
 %{_sbindir}/ipa-replica-install
 %{_sbindir}/ipa-replica-prepare
