@@ -87,7 +87,7 @@ def get_reverse_zone(ip_address):
 
     return zone, name
 
-def add_zone(name, update_policy=None):
+def add_zone(name, update_policy=None, dns_backup=None):
     if not update_policy:
         update_policy = "grant %s krb5-self * A;" % api.env.realm
 
@@ -99,11 +99,11 @@ def add_zone(name, update_policy=None):
     except (errors.DuplicateEntry, errors.EmptyModlist):
         pass
 
-    add_rr(name, "@", "NS", api.env.host+".")
+    add_rr(name, "@", "NS", api.env.host+".", dns_backup)
 
     return name
 
-def add_reverze_zone(ip_address, update_policy=None):
+def add_reverze_zone(ip_address, update_policy=None, dns_backup=None):
     zone, name = get_reverse_zone(ip_address)
     if not update_policy:
         update_policy = "grant %s krb5-subdomain %s. PTR;" % (api.env.realm, zone)
@@ -115,24 +115,75 @@ def add_reverze_zone(ip_address, update_policy=None):
     except (errors.DuplicateEntry, errors.EmptyModlist):
         pass
 
-    add_rr(zone, "@", "NS", api.env.host)
+    add_rr(zone, "@", "NS", api.env.host, dns_backup)
 
     return zone
 
-def add_rr(zone, name, type, rdata):
+def add_rr(zone, name, type, rdata, dns_backup=None):
     try:
         api.Command.dns_add_rr(unicode(zone), unicode(name),
                                unicode(type), unicode(rdata))
     except (errors.DuplicateEntry, errors.EmptyModlist):
         pass
+    if dns_backup:
+        dns_backup.add(zone, type, name, rdata)
 
-def add_ptr_rr(ip_address, fqdn):
+def add_ptr_rr(ip_address, fqdn, dns_backup=None):
     zone, name = get_reverse_zone(ip_address)
-    add_rr(zone, name, "PTR", fqdn+".")
+    add_rr(zone, name, "PTR", fqdn+".", dns_backup)
+
+
+class DnsBackup(object):
+    def __init__(self, service):
+        self.service = service
+        self.zones = {}
+
+    def add(self, zone, record_type, host, rdata):
+        """
+        Backup a DNS record in the file store so it can later be removed.
+        """
+        if zone not in self.zones:
+            zone_id = len(self.zones)
+            self.zones[zone] = (zone_id, 0)
+            self.service.backup_state("dns_zone_%s" % zone_id, zone)
+
+        (zone_id, record_id) = self.zones[zone]
+        self.service.backup_state("dns_record_%s_%s" % (zone_id, record_id),
+                                  "%s %s %s" % (record_type, host, rdata))
+        self.zones[zone] = (zone_id, record_id + 1)
+
+    def clear_records(self, have_ldap):
+        """
+        Remove all records from the file store. If we are connected to
+        ldap, we will also remove them there.
+        """
+        i = 0
+        while True:
+            zone = self.service.restore_state("dns_zone_%s" % i)
+            if not zone:
+                return
+
+            j = 0
+            while True:
+                dns_record = self.service.restore_state("dns_record_%s_%s" % (i, j))
+                if not dns_record:
+                    break
+                if have_ldap:
+                    type, host, rdata = dns_record.split(" ", 2)
+                    try:
+                        api.Command.dns_del_rr(unicode(zone), unicode(host),
+                                               unicode(type), unicode(rdata))
+                    except:
+                        pass
+                j += 1
+
+            i += 1
+
 
 class BindInstance(service.Service):
     def __init__(self, fstore=None, dm_password=None):
         service.Service.__init__(self, "named", dm_password=dm_password)
+        self.dns_backup = DnsBackup(self)
         self.named_user = None
         self.fqdn = None
         self.domain = None
@@ -246,14 +297,18 @@ class BindInstance(service.Service):
             ("_kpasswd._udp", "SRV", "0 100 464 %s" % self.host),
         )
 
-        zone = add_zone(self.domain)
+        zone = add_zone(self.domain, dns_backup=self.dns_backup)
+
         for (host, type, rdata) in resource_records:
-            add_rr(zone, host, type, rdata)
+            if type == "SRV":
+                add_rr(zone, host, type, rdata, self.dns_backup)
+            else:
+                add_rr(zone, host, type, rdata)
         if self.ntp:
-            add_rr(zone, "_ntp._udp", "SRV", "0 100 123 "+self.host)
+            add_rr(zone, "_ntp._udp", "SRV", "0 100 123 %s" % self.host)
 
     def __setup_reverse_zone(self):
-        add_reverze_zone(self.ip_address)
+        add_reverze_zone(self.ip_address, dns_backup=self.dns_backup)
         add_ptr_rr(self.ip_address, self.fqdn)
 
     def __setup_principal(self):
@@ -324,6 +379,8 @@ class BindInstance(service.Service):
     def uninstall(self):
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
+
+        self.dns_backup.clear_records(api.Backend.ldap2.isconnected())
 
         if not running is None:
             self.stop()
