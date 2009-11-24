@@ -787,6 +787,10 @@ def main():
     service.print_msg("restarting the KDC")
     krb.restart()
 
+    # Restart httpd to pick up the new IPA configuration
+    service.print_msg("restarting the web server")
+    http.restart()
+
     # Create a BIND instance
     bind = bindinstance.BindInstance(fstore, dm_password)
     bind.setup(host_name, ip_address, realm_name, domain_name, dns_forwarders)

@@ -23,11 +23,10 @@ Services (Identity)
 """
 import base64
 
-from OpenSSL import crypto
-
 from ipalib import api, errors
 from ipalib import Str, Flag, Bytes
 from ipalib.plugins.baseldap import *
+from ipalib import x509
 
 
 def get_serial(certificate):
@@ -35,8 +34,7 @@ def get_serial(certificate):
     Given a certificate, return the serial number in that cert.
     """
     try:
-        x509 = crypto.load_certificate(crypto.FILETYPE_ASN1, certificate)
-        serial = str(x509.get_serial_number())
+        serial = str(x509.get_serial_number(certificate))
     except crypto.Error:
         raise errors.GenericError(
             format='Unable to decode certificate in entry'
@@ -247,7 +245,7 @@ api.register(service_show)
 
 class service_add_host(LDAPAddMember):
     """
-    Add members to service.
+    Add hosts that can manage this service.
     """
     member_attributes = ['managedby']
 
@@ -256,7 +254,7 @@ api.register(service_add_host)
 
 class service_remove_host(LDAPRemoveMember):
     """
-    Remove members from service.
+    Remove hosts that can manage this service.
     """
     member_attributes = ['managedby']
 

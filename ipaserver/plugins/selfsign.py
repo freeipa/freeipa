@@ -36,12 +36,13 @@ if api.env.ra_plugin != 'selfsign':
     raise SkipPluginModule(reason='selfsign is not selected as RA plugin, it is %s' % api.env.ra_plugin)
 from ipalib import Backend
 from ipalib import errors
+from ipalib import x509
 import subprocess
 import os
 from ipaserver.plugins import rabase
 from ipaserver.install import certs
 import tempfile
-from OpenSSL import crypto
+from pyasn1 import error
 
 class ra(rabase.rabase):
     """
@@ -56,6 +57,15 @@ class ra(rabase.rabase):
         :param request_type: The request type (defaults to ``'pkcs10'``).
         """
         (csr_fd, csr_name) = tempfile.mkstemp()
+
+        # certutil wants the CSR to have have a header and footer. Add one
+        # if it isn't there.
+        s = csr.find('-----BEGIN NEW CERTIFICATE REQUEST-----')
+        if s == -1:
+            s = csr.find('-----BEGIN CERTIFICATE REQUEST-----')
+            if s == -1:
+                csr = '-----BEGIN NEW CERTIFICATE REQUEST-----\n' + csr + \
+                      '-----END NEW CERTIFICATE REQUEST-----\n'
         os.write(csr_fd, csr)
         os.close(csr_fd)
         (cert_fd, cert_name) = tempfile.mkstemp()
@@ -101,16 +111,15 @@ class ra(rabase.rabase):
 
         try:
             # Grab the subject, reverse it, combine it and return it
-            x509 = crypto.load_certificate(crypto.FILETYPE_PEM, cert)
-            sub = x509.get_subject().get_components()
+            sub = list(x509.get_subject_components(cert))
             sub.reverse()
             subject = ""
             for s in sub:
                 subject = subject + "%s=%s," % (s[0], s[1])
             subject = subject[:-1]
 
-            serial = x509.get_serial_number()
-        except crypto.Error, e:
+            serial = x509.get_serial_number(cert)
+        except error.PyAsn1Error, e:
             raise errors.GenericError(format='Unable to decode certificate in entry: %s' % str(e))
 
         # To make it look like dogtag return just the base64 data.
