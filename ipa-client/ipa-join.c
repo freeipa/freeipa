@@ -504,7 +504,7 @@ cleanup_xmlrpc:
 }
 
 static int
-join(const char *hostname, const char *bindpw, const char *keytab, int quiet)
+join(const char *server, const char *hostname, const char *bindpw, const char *keytab, int quiet)
 {
     int rval;
     pid_t childpid = 0;
@@ -522,11 +522,13 @@ join(const char *hostname, const char *bindpw, const char *keytab, int quiet)
     krb5_error_code krberr;
 
     conf_data = read_config_file(IPA_CONFIG);
-    if ((ipaserver = getIPAserver(conf_data)) == NULL) {
+    if (server) {
+        ipaserver = strdup(server);
+    } else if ((ipaserver = getIPAserver(conf_data)) == NULL) {
         fprintf(stderr, "Unable to determine IPA server from %s\n", IPA_CONFIG);
         exit(1);
     }
-#if 1
+#if 0
     if ((iparealm = getIPArealm(conf_data)) == NULL) {
         fprintf(stderr, "Unable to determine IPA realm from %s\n", IPA_CONFIG);
         exit(1);
@@ -644,6 +646,7 @@ cleanup:
 int
 main(int argc, char **argv) {
     static const char *hostname = NULL;
+    static const char *server = NULL;
     static const char *keytab = NULL;
     static const char *bindpw = NULL;
     int quiet = 0;
@@ -651,6 +654,7 @@ main(int argc, char **argv) {
             { "debug", 'd', POPT_ARG_NONE, &debug, 0, "Print the raw XML-RPC output", "XML-RPC debugging Output"},
             { "quiet", 'q', POPT_ARG_NONE, &quiet, 0, "Print as little as possible", "Output only on errors"},
             { "hostname", 'h', POPT_ARG_STRING, &hostname, 0, "Use this hostname instead of the node name", "Host Name" },
+            { "server", 's', POPT_ARG_STRING, &server, 0, "IPA Server to use", "IPA Server Name" },
             { "keytab", 'k', POPT_ARG_STRING, &keytab, 0, "File were to store the keytab information", "Keytab File Name" },
             { "bindpw", 'w', POPT_ARG_STRING, &bindpw, 0, "LDAP password", "password to use if not using kerberos" },
             { NULL, 0, POPT_ARG_NONE, NULL, 0, NULL, NULL }
@@ -675,7 +679,7 @@ main(int argc, char **argv) {
 
     ret = check_perms(keytab);
     if (ret == 0)
-        ret = join(hostname, bindpw, keytab, quiet);
+        ret = join(server, hostname, bindpw, keytab, quiet);
 
     exit(ret);
 }

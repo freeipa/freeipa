@@ -376,7 +376,7 @@ def main():
                 print "Test kerberos configuration failed"
                 return 1
             os.environ['KRB5_CONFIG'] = krb_name
-            join_args = ["/usr/sbin/ipa-join"]
+            join_args = ["/usr/sbin/ipa-join", "-s", cli_server]
             if options.principal is not None:
                 principal = options.principal
                 if principal.find('@') == -1:
