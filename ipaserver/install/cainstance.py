@@ -462,6 +462,7 @@ class CAInstance(service.Service):
                 self.step("adding RA agent as a trusted user", self.__configure_ra)
             self.step("fixing RA database permissions", self.fix_ra_perms)
             self.step("setting up signing cert profile", self.__setup_sign_profile)
+            self.step("install SELinux policy", self.__setup_selinux)
             self.step("set up CRL publishing", self.__enable_crl_publish)
             self.step("configuring certificate server to start on boot", self.__enable)
             self.step("restarting certificate server", self.__restart_instance)
@@ -979,12 +980,37 @@ class CAInstance(service.Service):
         installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapUserCertRule.enable', 'false', quotes=False, separator='=')
         installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapXCertRule.enable', 'false', quotes=False, separator='=')
 
+        ipautil.run(["/sbin/restorecon", publishdir])
+
+    def __setup_selinux(self):
+        """
+        This policy should probably be defined by dogtag but it grants
+        dogtag the ability to read/write cert_t files for CRL publishing.
+        """
+
+        # Start by checking to see if policy is already installed.
+        (stdout, stderr) = ipautils.run(["/usr/sbin/semodule", "-l"])
+
+        # Ok, so stdout is a huge string of the output. Look through that
+        # for our policy
+        policy = stdout.find('ipa_dogtag')
+        if policy >= 0:
+            # Already loaded
+            return
+
+        ipautil.run(["/usr/sbin/semodule", "-i", "/usr/share/selinux/targeted/ipa_dogtag.pp"])
+
     def uninstall(self):
         try:
             ipautil.run(["/usr/bin/pkiremove", "-pki_instance_root=/var/lib",
                          "-pki_instance_name=pki-ca", "--force"])
         except ipautil.CalledProcessError, e:
             logging.critical("failed to uninstall CA instance %s" % e)
+
+        try:
+            ipautil.run(["/usr/sbin/semodule", "-r", "ipa_dogtag"])
+        except ipautil.CalledProcessError, e:
+            pass
 
 if __name__ == "__main__":
     installutils.standard_logging_setup("install.log", False)

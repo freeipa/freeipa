@@ -1,0 +1,1 @@
+/var/lib/pki-ca/publish(/.*)?	gen_context(system_u:object_r:cert_t,s0)

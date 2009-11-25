@@ -418,6 +418,7 @@ fi
 %files server-selinux
 %{_usr}/share/selinux/targeted/ipa_kpasswd.pp
 %{_usr}/share/selinux/targeted/ipa_httpd.pp
+%{_usr}/share/selinux/targeted/ipa_dogtag.pp
 %endif
 
 %files client

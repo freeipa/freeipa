@@ -1,0 +1,29 @@
+module ipa_dogtag 1.2;
+
+require {
+	type httpd_t;
+	type cert_t;
+	type pki_ca_t;
+	class dir write;
+	class dir add_name;
+	class dir remove_name;
+	class file create;
+	class file write;
+	class file rename;
+	class lnk_file create;
+	class lnk_file rename;
+}
+
+# Let dogtag write to cert_t directories
+allow pki_ca_t cert_t:dir write;
+allow pki_ca_t cert_t:dir add_name;
+allow pki_ca_t cert_t:dir remove_name;
+
+# Let dogtag write cert_t files
+allow pki_ca_t cert_t:file create;
+allow pki_ca_t cert_t:file write;
+allow pki_ca_t cert_t:file rename;
+
+# Let dogtag manage cert_t symbolic links
+allow pki_ca_t cert_t:lnk_file create;
+allow pki_ca_t cert_t:lnk_file rename;
