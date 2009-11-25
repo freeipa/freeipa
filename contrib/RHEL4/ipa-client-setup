@@ -269,14 +269,14 @@ def main():
     opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
             {'name':'empty', 'type':'empty'}]
 
-    #[defaults]
-    defopts = [{'name':'server', 'type':'option', 'value':ipasrv.getServerName()},
+    #[global]
+    defopts = [{'name':'xmlrpc_uri', 'type':'option', 'value':'https://%s/ipa/xml' % ipasrv.getServerName()},
              {'name':'realm', 'type':'option', 'value':ipasrv.getRealmName()}]
 
-    opts.append({'name':'defaults', 'type':'section', 'value':defopts})
+    opts.append({'name':'global', 'type':'section', 'value':defopts})
     opts.append({'name':'empty', 'type':'empty'})
 
-    ipaconf.newConf("/etc/ipa/ipa.conf", opts)
+    ipaconf.newConf("/etc/ipa/default.conf", opts)
 
     # Configure ldap.conf
     ldapconf = ipachangeconf.IPAChangeConf("IPA Installer")

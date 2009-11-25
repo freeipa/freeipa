@@ -751,15 +751,6 @@ def main():
         http.create_instance(realm_name, host_name, domain_name, autoconfig=True, self_signed_ca=not options.ca)
     ipautil.run(["/sbin/restorecon", "/var/cache/ipa/sessions"])
 
-    # Create the config file
-    fstore.backup_file("/etc/ipa/ipa.conf")
-    fd = open("/etc/ipa/ipa.conf", "w")
-    fd.write("[defaults]\n")
-    fd.write("server=" + host_name + "\n")
-    fd.write("realm=" + realm_name + "\n")
-    fd.write("domain=" + domain_name + "\n")
-    fd.close()
-
     # Create the management framework config file
     fstore.backup_file("/etc/ipa/default.conf")
     fd = open("/etc/ipa/default.conf", "w")

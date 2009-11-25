@@ -24,6 +24,7 @@ import krbV
 import socket
 import ipapython.dnsclient
 import re
+import urlparse
 
 class IPAConfigError(Exception):
     def __init__(self, msg=''):
@@ -88,22 +89,23 @@ config = IPAConfig()
 
 def __parse_config(discover_server = True):
     p = ConfigParser.SafeConfigParser()
-    p.read("/etc/ipa/ipa.conf")
+    p.read("/etc/ipa/default.conf")
 
     try:
         if not config.default_realm:
-            config.default_realm = p.get("defaults", "realm")
+            config.default_realm = p.get("global", "realm")
     except:
         pass
     if discover_server:
         try:
-            s = p.get("defaults", "server")
-            config.default_server.extend(re.sub("\s+", "", s).split(','))
+            s = p.get("global", "xmlrpc_uri")
+            server = urlparse.urlsplit(s)
+            config.default_server.extend(server.netloc)
         except:
             pass
     try:
         if not config.default_domain:
-            config.default_domain = p.get("defaults", "domain")
+            config.default_domain = p.get("global", "domain")
     except:
         pass
 
@@ -128,7 +130,7 @@ def __discover_config(discover_server = True):
             while rl == 0:
                 tok = dom_name.find(".")
                 if tok == -1:
-                     return False
+                    return False
                 dom_name = dom_name[tok+1:]
                 name = "_ldap._tcp." + dom_name + "."
                 rs = ipapython.dnsclient.query(name, ipapython.dnsclient.DNS_C_IN, ipapython.dnsclient.DNS_T_SRV)
@@ -138,8 +140,8 @@ def __discover_config(discover_server = True):
 
         if discover_server:
             if rl == 0:
-                 name = "_ldap._tcp."+config.default_domain+"."
-                 rs = ipapython.dnsclient.query(name, ipapython.dnsclient.DNS_C_IN, ipapython.dnsclient.DNS_T_SRV)
+                name = "_ldap._tcp."+config.default_domain+"."
+                rs = ipapython.dnsclient.query(name, ipapython.dnsclient.DNS_C_IN, ipapython.dnsclient.DNS_T_SRV)
 
             for r in rs:
                 if r.dns_type == ipapython.dnsclient.DNS_T_SRV:
@@ -176,8 +178,8 @@ def init_config(options=None):
     config.default_server = new_server
 
     if not config.default_realm:
-        raise IPAConfigError("IPA realm not found in DNS, in the config file (/etc/ipa/ipa.conf) or on the command line.")
+        raise IPAConfigError("IPA realm not found in DNS, in the config file (/etc/ipa/default.conf) or on the command line.")
     if not config.default_server:
-        raise IPAConfigError("IPA server not found in DNS, in the config file (/etc/ipa/ipa.conf) or on the command line.")
+        raise IPAConfigError("IPA server not found in DNS, in the config file (/etc/ipa/default.conf) or on the command line.")
     if not config.default_domain:
-        raise IPAConfigError("IPA domain not found in the config file (/etc/ipa/ipa.conf) or on the command line.")
+        raise IPAConfigError("IPA domain not found in the config file (/etc/ipa/default.conf) or on the command line.")

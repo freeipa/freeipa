@@ -66,7 +66,6 @@ def setup_package():
             platforms = ["Linux", "Solaris", "Unix"],
             package_dir = {'ipapython': ''},
             packages = [ "ipapython" ],
-            data_files = [('/etc/ipa', ['ipa.conf'])]
         )
     finally:
         del sys.path[0]

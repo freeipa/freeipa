@@ -270,7 +270,7 @@ ln -s ../../../..%{_sysconfdir}/ipa/html/unauthorized.html \
 # So we can own our Apache configuration
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/ipa/
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/
-/bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/ipa/ipa.conf
+/bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/ipa/default.conf
 /bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/ipa.conf
 /bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 %endif
@@ -386,7 +386,7 @@ fi
 %dir %{_sysconfdir}/ipa/html
 %config(noreplace) %{_sysconfdir}/ipa/html/ssbrowser.html
 %config(noreplace) %{_sysconfdir}/ipa/html/unauthorized.html
-%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ipa.conf
+%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa.conf
 %{_usr}/share/ipa/ipa.conf
@@ -460,7 +460,7 @@ fi
 %{python_sitelib}/ipapython-*.egg-info
 %{python_sitelib}/freeipa-*.egg-info
 %endif
-%config(noreplace) %{_sysconfdir}/ipa/ipa.conf
+%config(noreplace) %{_sysconfdir}/ipa/default.conf
 
 %if %{WITH_RADIUS}
 %files radius-server
@@ -482,6 +482,9 @@ fi
 %endif
 
 %changelog
+* Wed Nov 25 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-11
+- Remove v1-style /etc/ipa/ipa.conf, replacing with /etc/ipa/default.conf
+
 * Fri Nov 13 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-10
 - Add bash completion script and own /etc/bash_completion.d in case it
   doesn't already exist

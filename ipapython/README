@@ -5,7 +5,7 @@ A brief overview:
 
 config.py - identify the IPA server domain and realm. It uses dnsclient to
             try to detect this information first and will fall back to
-            /etc/ipa/ipa.conf if that fails.
+            /etc/ipa/default.conf if that fails.
 dnsclient.py - find IPA information via DNS
 
 ipautil.py - helper functions

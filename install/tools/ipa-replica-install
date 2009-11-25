@@ -349,14 +349,6 @@ def main():
         CA.fix_ra_perms()
         service.restart("httpd")
 
-    # Create the config file
-    fd = open("/etc/ipa/ipa.conf", "w")
-    fd.write("[defaults]\n")
-    fd.write("server=" + config.host_name + "\n")
-    fd.write("realm=" + config.realm_name + "\n")
-    fd.write("domain=" + config.domain_name + "\n")
-    fd.close()
-
     # Create the management framework config file
     fd = open("/etc/ipa/default.conf", "w")
     fd.write("[global]\n")
