@@ -32,8 +32,9 @@ include "/etc/named.rfc1912.zones";
 
 dynamic-db "ipa" {
 	library "ldap.so";
-	arg "uri ldap://$FQDN";
+	arg "uri ldapi://%2fvar%2frun%2fslapd-$SERVER_ID.socket";
 	arg "base cn=dns, $SUFFIX";
+	arg "fake_mname $FQDN";
 	arg "auth_method sasl";
 	arg "sasl_mech GSSAPI";
 	arg "sasl_user DNS/$FQDN";

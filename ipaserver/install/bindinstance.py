@@ -26,6 +26,7 @@ import installutils
 import ldap
 import service
 from ipaserver import ipaldap
+from ipaserver.install.dsinstance import realm_to_serverid
 from ipapython import sysrestore
 from ipapython import ipautil
 
@@ -222,6 +223,7 @@ class BindInstance(service.Service):
                              DOMAIN=self.domain,
                              HOST=self.host,
                              REALM=self.realm,
+                             SERVER_ID=realm_to_serverid(self.realm),
                              FORWARDERS=fwds,
                              SUFFIX=self.suffix,
                              OPTIONAL_NTP=optional_ntp)
