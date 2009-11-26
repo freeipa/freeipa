@@ -764,7 +764,7 @@ class cli(backend.Executioner):
             )
             if option.password and self.env.interactive:
                 kw['action'] = 'store_true'
-            elif option.type is bool:
+            elif option.type is bool and option.autofill:
                 if option.default is True:
                     kw['action'] = 'store_false'
                 else:

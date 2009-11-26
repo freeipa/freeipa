@@ -799,8 +799,8 @@ class Bool(Param):
     # FIXME: This my quick hack to get some UI stuff working, change these defaults
     #   --jderose 2009-08-28
     kwargs = Param.kwargs + (
-        ('truths', frozenset, frozenset([1, u'1', u'True'])),
-        ('falsehoods', frozenset, frozenset([0, u'0', u'False'])),
+        ('truths', frozenset, frozenset([1, u'1', u'true'])),
+        ('falsehoods', frozenset, frozenset([0, u'0', u'false'])),
     )
 
     def _convert_scalar(self, value, index=None):
@@ -809,6 +809,8 @@ class Bool(Param):
         """
         if type(value) is self.type:
             return value
+        if isinstance(value, basestring):
+            value = value.lower()
         if value in self.truths:
             return True
         if value in self.falsehoods:
