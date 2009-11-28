@@ -182,7 +182,10 @@ class dns_add(crud.Create):
 
         # fill in required attributes
         entry_attrs['objectclass'] = ['top', 'idnsrecord', 'idnszone']
-        entry_attrs['idnszoneactive'] = True
+        entry_attrs['idnszoneactive'] = 'TRUE'
+        entry_attrs['idnsallowdynupdate'] = str(
+            entry_attrs['idnsallowdynupdate']
+        ).upper()
 
         # fill default values, build SOA serial from current date
         soa_serial = int('%s01' % time.strftime('%Y%d%m'))
@@ -258,6 +261,9 @@ class dns_mod(crud.Update):
 
         # build entry attributes, don't include idnsname!
         entry_attrs = self.args_options_2_entry(*tuple(), **options)
+        entry_attrs['idnsallowdynupdate'] = str(
+            entry_attrs['idnsallowdynupdate']
+        ).upper()
 
         # build entry DN
         dn = _get_zone_dn(ldap, idnsname)
@@ -391,7 +397,7 @@ class dns_enable(Command):
 
         # activate!
         try:
-            ldap.update_entry(dn, {'idnszoneactive': True})
+            ldap.update_entry(dn, {'idnszoneactive': 'TRUE'})
         except errors.EmptyModlist:
             pass
 
@@ -426,7 +432,7 @@ class dns_disable(Command):
 
         # deactivate!
         try:
-            ldap.update_entry(dn, {'idnszoneactive': False})
+            ldap.update_entry(dn, {'idnszoneactive': 'FALSE'})
         except errors.EmptyModlist:
             pass
 
