@@ -22,7 +22,7 @@ IPA configuration
 """
 
 from ipalib import api
-from ipalib import Int, Str
+from ipalib import Bool, Int, Str
 from ipalib.plugins.baseldap import *
 
 
@@ -35,6 +35,7 @@ class config(LDAPObject):
         'ipamaxusernamelength', 'ipahomesrootdir', 'ipadefaultloginshell',
         'ipadefaultprimarygroup', 'ipadefaultdomain', 'ipasearchtimelimit',
         'ipasearchrecordslimit', 'ipausersearchfields', 'ipagroupsearchfields',
+        'ipamigrationenabled',
     ]
     attribute_names = {
         'ipamaxusernamelength': 'maximum username length',
@@ -46,6 +47,7 @@ class config(LDAPObject):
         'ipasearchrecordslimit': 'result count limit for search queries',
         'ipausersearchfields': 'search fields for users',
         'ipagroupsearchfields': 'search fields for groups',
+        'ipamigrationenabled': 'enable migration mode',
     }
 
     takes_params = (
@@ -88,6 +90,10 @@ class config(LDAPObject):
             cli_name='groupsearch',
             doc='A comma-separated list of fields to search when searching for groups',
         ),
+        Bool('ipamigrationenabled?',
+            cli_name='enable_migration',
+            doc='Enabled migration mode',
+        ),
     )
 
     def get_dn(self, *keys, **kwargs):
@@ -100,6 +106,13 @@ class config_mod(LDAPUpdate):
     """
     Modify configuration options.
     """
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        if 'ipamigrationenabled' in entry_attrs:
+            if entry_attrs['ipamigrationenabled']:
+                entry_attrs['ipamigrationenabled'] = 'TRUE'
+            else:
+                entry_attrs['ipamigrationenabled'] = 'FALSE'
+        return dn
 
 api.register(config_mod)
 
