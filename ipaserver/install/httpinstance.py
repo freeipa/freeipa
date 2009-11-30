@@ -100,7 +100,7 @@ class HTTPInstance(service.Service):
         if selinux:
             try:
                 # returns e.g. "httpd_can_network_connect --> off"
-                (stdout, stderr) = ipautil.run(["/usr/sbin/getsebool",
+                (stdout, stderr, returncode) = ipautil.run(["/usr/sbin/getsebool",
                                                 "httpd_can_network_connect"])
                 self.backup_state("httpd_can_network_connect", stdout.split()[2])
             except:

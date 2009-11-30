@@ -382,7 +382,7 @@ class CertDB(object):
         root_nicknames = self.find_root_cert(nickname)
         fd = open(self.cacert_fname, "w")
         for root in root_nicknames:
-            (cert, stderr) = self.run_certutil(["-L", "-n", root, "-a"])
+            (cert, stderr, returncode) = self.run_certutil(["-L", "-n", root, "-a"])
             fd.write(cert)
         fd.close()
         os.chmod(self.cacert_fname, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
@@ -424,13 +424,13 @@ class CertDB(object):
     def get_cert_from_db(self, nickname):
         try:
             args = ["-L", "-n", nickname, "-a"]
-            (cert, err) = self.run_certutil(args)
+            (cert, err, returncode) = self.run_certutil(args)
             return cert
         except ipautil.CalledProcessError:
             return ''
 
     def find_cacert_serial(self):
-        (out,err) = self.run_certutil(["-L", "-n", self.cacert_name])
+        (out, err, returncode) = self.run_certutil(["-L", "-n", self.cacert_name])
         data = out.split('\n')
         for line in data:
             x = re.match(r'\s+Serial Number: (\d+) .*', line)
@@ -485,7 +485,7 @@ class CertDB(object):
                 "-f", self.passwd_fname]
         if not self.self_signed_ca:
             args.append("-a")
-        (stdout, stderr) = self.run_certutil(args)
+        (stdout, stderr, returncode) = self.run_certutil(args)
         os.remove(self.noise_fname)
 
         return (stdout, stderr)
@@ -746,7 +746,7 @@ class CertDB(object):
         if passwd_fname:
             args = args + ["-w", passwd_fname]
         try:
-            (stdout, stderr) = ipautil.run(args)
+            (stdout, stderr, returncode) = ipautil.run(args)
         except ipautil.CalledProcessError, e:
             if e.returncode == 17:
                 raise RuntimeError("incorrect password")

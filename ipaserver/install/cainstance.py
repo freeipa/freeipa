@@ -612,7 +612,7 @@ class CAInstance(service.Service):
             # pkisilent doesn't return 1 on error so look at the output of
             # /sbin/service pki-ca status. It will tell us if the instance
             # still needs to be configured.
-            (stdout, stderr) = ipautil.run(["/sbin/service", "pki-ca", "status"])
+            (stdout, stderr, returncode) = ipautil.run(["/sbin/service", "pki-ca", "status"])
             try:
                 stdout.index("CONFIGURED!")
                 raise RuntimeError("pkisilent failed to configure instance.")
@@ -640,7 +640,7 @@ class CAInstance(service.Service):
 
     def __get_agent_cert(self, nickname):
         args = ["/usr/bin/certutil", "-L", "-d", self.ca_agent_db, "-n", nickname, "-a"]
-        (out, err) = ipautil.run(args)
+        (out, err, returncode) = ipautil.run(args)
         out = out.replace('-----BEGIN CERTIFICATE-----', '')
         out = out.replace('-----END CERTIFICATE-----', '')
         return out
@@ -692,7 +692,7 @@ class CAInstance(service.Service):
             '%s:%d' % (self.host_name, AGENT_SECURE_PORT),
         ]
         logging.debug("running sslget %s" % args)
-        (stdout, stderr) = ipautil.run(args)
+        (stdout, stderr, returncode) = ipautil.run(args)
 
         data = stdout.split('\r\n')
         params = get_defList(data)
@@ -713,7 +713,7 @@ class CAInstance(service.Service):
             '%s:%d' % (self.host_name, AGENT_SECURE_PORT),
         ]
         logging.debug("running sslget %s" % args)
-        (stdout, stderr) = ipautil.run(args)
+        (stdout, stderr, returncode) = ipautil.run(args)
 
         data = stdout.split('\r\n')
         outputList = get_outputList(data)
@@ -844,7 +844,7 @@ class CAInstance(service.Service):
         # makes openssl throw up.
         data = base64.b64decode(chain)
 
-        (certs, stderr) = ipautil.run(["/usr/bin/openssl",
+        (certs, stderr, returncode) = ipautil.run(["/usr/bin/openssl",
              "pkcs7",
              "-inform",
              "DER",
@@ -989,7 +989,7 @@ class CAInstance(service.Service):
         """
 
         # Start by checking to see if policy is already installed.
-        (stdout, stderr) = ipautils.run(["/usr/sbin/semodule", "-l"])
+        (stdout, stderr, returncode) = ipautil.run(["/usr/sbin/semodule", "-l"])
 
         # Ok, so stdout is a huge string of the output. Look through that
         # for our policy

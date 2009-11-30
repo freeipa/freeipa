@@ -105,7 +105,7 @@ def is_ds_running():
     """
     ret = True
     try:
-        (sout, serr) = ipautil.run(["/sbin/service", "dirsrv", "status"])
+        (sout, serr, rcode) = ipautil.run(["/sbin/service", "dirsrv", "status"])
         if sout.find("is stopped") >= 0:
             ret = False
     except ipautil.CalledProcessError:

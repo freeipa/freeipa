@@ -89,7 +89,7 @@ def write_tmp_file(txt):
 
     return fd
 
-def run(args, stdin=None):
+def run(args, stdin=None, raiseonerr=True):
     if stdin:
         p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         stdout,stderr = p.communicate(stdin)
@@ -101,10 +101,10 @@ def run(args, stdin=None):
     logging.info('stdout=%s' % stdout)
     logging.info('stderr=%s' % stderr)
 
-    if p.returncode != 0:
+    if p.returncode != 0 and raiseonerr:
         raise CalledProcessError(p.returncode, ' '.join(args))
 
-    return (stdout, stderr)
+    return (stdout, stderr, p.returncode)
 
 def file_exists(filename):
     try:
