@@ -177,15 +177,11 @@ class IPADiscovery:
             return []
 
         except LDAPError, err:
-            #no good
-            try:
-                if type(err.message) == dict:
-                    for (k, v) in err.message.iteritems():
-                        logging.error("LDAP Error: %s" % v )
-                else:
-                    logging.error("LDAP Error: "+err.message)
-            except AttributeError:
-                logging.error("LDAP Error: "+str(err))
+            if not isinstance(err, ldap.TIMEOUT):
+                logging.error("LDAP Error: %s: %s" %
+                   (err.args[0]['desc'], err.args[0].get('info', '')))
+            else:
+                logging.error("LDAP Error: timeout")
             return []
 
 
