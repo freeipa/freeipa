@@ -111,6 +111,7 @@ changetype: add
 objectClass: top
 objectClass: groupofnames
 objectClass: posixgroup
+objectClass: ipausergroup
 cn: admins
 description: Account administrators group
 gidNumber: $GIDSTART
@@ -133,6 +134,7 @@ changetype: add
 objectClass: top
 objectClass: groupofnames
 objectClass: posixgroup
+objectClass: ipausergroup
 gidNumber: eval($GIDSTART+2)
 description: Limited admins who can edit other users
 cn: editors
