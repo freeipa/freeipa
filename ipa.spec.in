@@ -85,7 +85,7 @@ Requires: python-krbV
 Requires: python-assets
 Requires: python-wehjit
 Requires: acl
-Requires: python-pyasn1
+Requires: python-pyasn1 >= 0.0.9a
 Requires: libcap
 %{?fc8:Requires: selinux-policy >= 3.0.8-117}
 %{?fc9:Requires: selinux-policy >= 3.3.1-99}
@@ -482,6 +482,10 @@ fi
 %endif
 
 %changelog
+* Tue Dec  1 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-12
+- Set minimum of python-pyasn1 to 0.0.9a so we have support for the ASN.1
+  Any type
+
 * Wed Nov 25 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-11
 - Remove v1-style /etc/ipa/ipa.conf, replacing with /etc/ipa/default.conf
 
