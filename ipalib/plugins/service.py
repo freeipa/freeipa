@@ -27,15 +27,18 @@ from ipalib import api, errors
 from ipalib import Str, Flag, Bytes
 from ipalib.plugins.baseldap import *
 from ipalib import x509
+from pyasn1.error import PyAsn1Error
 
 
 def get_serial(certificate):
     """
     Given a certificate, return the serial number in that cert.
     """
+    if type(certificate) in (list, tuple):
+        certificate = certificate[0]
     try:
-        serial = str(x509.get_serial_number(certificate))
-    except crypto.Error:
+        serial = str(x509.get_serial_number(certificate, type=x509.DER))
+    except PyAsn1Error:
         raise errors.GenericError(
             format='Unable to decode certificate in entry'
         )
@@ -186,7 +189,11 @@ class service_del(LDAPDelete):
             cert = entry_attrs.get('usercertificate')
             if cert:
                 serial = unicode(get_serial(cert))
-                self.api.Command['cert_revoke'](serial, revocation_reason=5)
+                try:
+                    self.api.Command['cert_revoke'](serial, revocation_reason=5)
+                except errors.NotImplementedError:
+                    # selfsign CA doesn't do revocation
+                    pass
         return dn
 
 api.register(service_del)

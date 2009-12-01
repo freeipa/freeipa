@@ -746,6 +746,14 @@ class PasswordMismatch(InvocationError):
     errno = 3011
     format = _('Passwords do not match')
 
+class NotImplementedError(InvocationError):
+    """
+    **3012** Raise when a function hasn't been implemented.
+    """
+
+    errno = 3012
+    format = _('Command not implemented')
+
 
 ##############################################################################
 # 4000 - 4999: Execution errors
