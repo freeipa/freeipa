@@ -133,7 +133,7 @@ objectClass: top
 objectClass: domain
 objectClass: pilotObject
 dc: $BASEDC
-info: IPA V1.0
+info: IPA V2.0
 """
 
 class DsInstance(service.Service):
