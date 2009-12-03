@@ -499,18 +499,12 @@ def main():
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
 
+    # Configuration for ipalib, we will bootstrap and finalize later, after
+    # we are sure we have the configuration file ready.
     cfg = dict(
         in_server=True,
-        webui_assets_dir=ASSETS_DIR,
         debug=options.debug
     )
-    if not options.uninstall:
-        if options.ca:
-            cfg['ra_plugin'] = 'dogtag'
-        else:
-            cfg['ra_plugin'] = 'selfsign'
-    api.bootstrap(**cfg)
-    api.finalize()
 
     if options.uninstall:
         if not options.unattended:
@@ -520,6 +514,8 @@ def main():
                 print "Aborting uninstall operation."
                 sys.exit(1)
 
+        api.bootstrap(**cfg)
+        api.finalize()
         return uninstall(not certs.ipa_self_signed() or options.ca)
 
     # This will override any settings passed in on the cmdline
@@ -680,6 +676,24 @@ def main():
     else:
         dns_forwarders = ()
 
+    # Create the management framework config file and finalize api
+    fstore.backup_file("/etc/ipa/default.conf")
+    fd = open("/etc/ipa/default.conf", "w")
+    fd.write("[global]\n")
+    fd.write("basedn=" + util.realm_to_suffix(realm_name) + "\n")
+    fd.write("realm=" + realm_name + "\n")
+    fd.write("domain=" + domain_name + "\n")
+    fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % host_name)
+    fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(realm_name))
+    fd.write("enable_ra=True\n")
+    if options.ca:
+        fd.write("ra_plugin=dogtag\n")
+    fd.write('webui_assets_dir=' + ASSETS_DIR + '\n')
+    fd.close()
+
+    api.bootstrap(**cfg)
+    api.finalize()
+
     if not options.unattended:
         print ""
         print "The following operations may take some minutes to complete."
@@ -770,21 +784,6 @@ def main():
     else:
         http.create_instance(realm_name, host_name, domain_name, dm_password, autoconfig=True, self_signed_ca=not options.ca, subject_base=options.subject)
     ipautil.run(["/sbin/restorecon", "/var/cache/ipa/sessions"])
-
-    # Create the management framework config file
-    fstore.backup_file("/etc/ipa/default.conf")
-    fd = open("/etc/ipa/default.conf", "w")
-    fd.write("[global]\n")
-    fd.write("basedn=" + util.realm_to_suffix(realm_name) + "\n")
-    fd.write("realm=" + realm_name + "\n")
-    fd.write("domain=" + domain_name + "\n")
-    fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % host_name)
-    fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(realm_name))
-    fd.write("enable_ra=True\n")
-    if options.ca:
-        fd.write("ra_plugin=dogtag\n")
-    fd.write('webui_assets_dir=' + ASSETS_DIR + '\n')
-    fd.close()
 
     set_subject_in_config(host_name, dm_password, util.realm_to_suffix(realm_name), options.subject)
     if options.ca:
