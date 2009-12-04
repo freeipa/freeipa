@@ -377,6 +377,8 @@ def main():
                 return 1
             os.environ['KRB5_CONFIG'] = krb_name
             join_args = ["/usr/sbin/ipa-join", "-s", cli_server]
+            if options.debug:
+                join_args.append("-d")
             if options.principal is not None:
                 principal = options.principal
                 if principal.find('@') == -1:
