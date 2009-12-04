@@ -6,6 +6,7 @@ NULL =
 
 man_MANS = 				\
 		ipa-getkeytab.1		\
+		ipa-rmkeytab.1		\
 		ipa-client-install.1	\
 		ipa-join.1
 	

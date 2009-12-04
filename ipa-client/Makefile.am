@@ -22,6 +22,7 @@ INCLUDES =							\
 
 sbin_PROGRAMS =			\
 	ipa-getkeytab		\
+	ipa-rmkeytab		\
 	ipa-join		\
 	$(NULL)
 
@@ -34,6 +35,15 @@ ipa_getkeytab_LDADD = 		\
 	$(OPENLDAP_LIBS)	\
 	$(MOZLDAP_LIBS)		\
 	$(SASL_LIBS)		\
+	$(POPT_LIBS)		\
+	$(NULL)
+
+ipa_rmkeytab_SOURCES =		\
+	ipa-rmkeytab.c		\
+	$(NULL)
+
+ipa_rmkeytab_LDADD = 		\
+	$(KRB5_LIBS)		\
 	$(POPT_LIBS)		\
 	$(NULL)
 

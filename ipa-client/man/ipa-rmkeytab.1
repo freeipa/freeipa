@@ -1,0 +1,90 @@
+.\" A man page for ipa-rmkeytab
+.\" Copyright (C) 2009 Red Hat, Inc.
+.\"
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; version 2 only
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\"
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\"
+.\"
+.TH "ipa-rmkeytab" "1" "Oct 30 2009" "freeipa" ""
+.SH "NAME"
+ipa\-rmkeytab \- Remove a kerberos principal from a keytab
+.SH "SYNOPSIS"
+ipa\-rmkeytab [ \fB\-p\fR principal\-name ] [ \fB\-k\fR keytab\-file ] [ \fB\-r\fR realm ] [ \fB\-d\fR ]
+
+.SH "DESCRIPTION"
+Removes a kerberos principal from a \fIkeytab\fR.
+
+Kerberos keytabs are used for services (like sshd) to
+perform kerberos authentication. A keytab is a file
+with one or more secrets (or keys) for a kerberos
+principal.
+
+A kerberos service principal is a kerberos identity
+that can be used for authentication. Service principals
+contain the name of the service, the hostname of the
+server, and the realm name.
+
+ipa\-rmkeytab provides two ways to remove principals.
+A specific principal can be removed or all principals for all
+principals for a given realm can be removed.
+
+All encryption types and versions of a principal are removed.
+
+The realm may be included when removing a specific principal but
+it is not required.
+
+\fBNOTE:\fR removing a principal from the keytab does not affect
+the Kerberos principal stored in the IPA server. It merely removes
+the entry from the local keytab.
+.SH "OPTIONS"
+.TP
+\fB\-p principal\-name\fR
+The non\-realm part of the full principal name.
+.TP
+\fB\-k keytab\-file\fR
+The keytab file where to append the new key (will be
+created if it does not exist).
+.TP
+\fB\-r realm\fR
+A realm to remove all principals for.
+.TP
+\fB\-d\fR
+Debug mode. Additional information is displayed.
+.SH "EXAMPLES"
+Remove the NFS service principal on the host foo.example.com from /tmp/nfs.keytab.
+
+   # ipa\-rmkeytab \-p nfs/foo.example.com \-k /tmp/nfs.keytab
+
+Remove the ldap service principal onthe host foo.example.com from /etc/krb5.keytab.
+
+   # ipa\-rmkeytab \-p ldap/foo.example.com \-k /tmp/ldap.keytab
+
+Remove all principals for the realm EXAMPLE.COM.
+
+  # ipa\-rmkeytab \-r EXAMPLE.COM \-k /tmp/ldap.keytab
+.SH "EXIT STATUS"
+The exit status is 0 on success, nonzero on error.
+
+1 Kerberos initialization failed
+
+2 Memory allocation error
+
+3 Unable to open keytab
+
+4 Unable to parse the principal name
+
+5 Principal name not found in keytab
+
+6 Unable to remove principal from keytab

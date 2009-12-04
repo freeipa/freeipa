@@ -425,6 +425,7 @@ fi
 %doc LICENSE README
 %{_sbindir}/ipa-client-install
 %{_sbindir}/ipa-getkeytab
+%{_sbindir}/ipa-rmkeytab
 %{_sbindir}/ipa-join
 %dir %{_usr}/share/ipa
 %dir %{_usr}/share/ipa/ipaclient
@@ -435,6 +436,7 @@ fi
 %dir %{python_sitelib}/ipaclient
 %{python_sitelib}/ipaclient/*.py*
 %{_mandir}/man1/ipa-getkeytab.1.gz
+%{_mandir}/man1/ipa-rmkeytab.1.gz
 %{_mandir}/man1/ipa-client-install.1.gz
 %{_mandir}/man1/ipa-join.1.gz
 
@@ -482,6 +484,9 @@ fi
 %endif
 
 %changelog
+* Fri Dec  4 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-13
+- Add ipa-rmkeytab tool
+
 * Tue Dec  1 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-12
 - Set minimum of python-pyasn1 to 0.0.9a so we have support for the ASN.1
   Any type
