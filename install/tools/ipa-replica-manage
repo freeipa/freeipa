@@ -36,6 +36,8 @@ def parse_options():
     parser.add_option("-p", "--password", dest="dirman_passwd", help="Directory Manager password")
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
                       help="provide additional information")
+    parser.add_option("-f", "--force", dest="force", action="store_true", default=False,
+                      help="ignore some types of errors")
     parser.add_option("--port", type="int", dest="port",
                       help="port number of other server")
     parser.add_option("--binddn", dest="binddn",
@@ -96,7 +98,7 @@ def list_masters(replman, verbose):
             print "  last update status: %s" % entry.nsds5replicalastupdatestatus
             print "  last update ended: %s" % str(ipautil.parse_generalized_time(entry.nsds5replicalastupdateend))
     
-def del_master(replman, hostname):
+def del_master(replman, hostname, force=False):
     try:
         t = replman.get_agreement_type(hostname)
     except ldap.NO_SUCH_OBJECT:
@@ -104,9 +106,15 @@ def del_master(replman, hostname):
 
     if t == replication.IPA_REPLICA:
         dirman_passwd = getpass.getpass("Directory Manager password (%s): " % hostname)
-        other_replman = replication.ReplicationManager(hostname, dirman_passwd)
-        other_replman.suffix = get_suffix()
-        other_replman.delete_agreement(replman.conn.host)
+        try:
+            other_replman = replication.ReplicationManager(hostname, dirman_passwd)
+            other_replman.suffix = get_suffix()
+            other_replman.delete_agreement(replman.conn.host)
+        except Exception, e:
+            if force:
+                print "Unable to remove agreement on %s: %s" % (hostname, str(e))
+            else:
+                raise e
 
     replman.delete_agreement(hostname)
 
@@ -190,7 +198,7 @@ def main():
         if len(args) != 2:
             print "must provide hostname of master to delete"
             sys.exit(1)
-        del_master(r, args[1])
+        del_master(r, args[1], options.force)
     elif args[0] == "add":
         if len(args) != 2:
             print "must provide hostname of master to add"
