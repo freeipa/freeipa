@@ -810,7 +810,7 @@ class CAInstance(service.Service):
         os.close(f)
         os.chmod(self.ra_agent_pwd, stat.S_IRUSR)
 
-        stdout, stderr = self.__run_certutil(["-N"])
+        (stdout, stderr, returncode)  = self.__run_certutil(["-N"])
 
     def __get_ca_chain(self):
         try:
@@ -886,7 +886,7 @@ class CAInstance(service.Service):
 
         # Generate our CSR. The result gets put into stdout
         try:
-            (stdout, stderr) = self.__run_certutil(["-R", "-k", "rsa", "-g", "2048", "-s", "CN=RA Subsystem Certificate,OU=pki-ipa,O=%s" % self.domain_name, "-z", noise_name, "-a"])
+            (stdout, stderr, returncode) = self.__run_certutil(["-R", "-k", "rsa", "-g", "2048", "-s", "CN=RA Subsystem Certificate,OU=pki-ipa,O=%s" % self.domain_name, "-z", noise_name, "-a"])
         finally:
             os.remove(noise_name)
 

@@ -729,6 +729,10 @@ def main():
     krb = krbinstance.KrbInstance(fstore)
     krb.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, master_password)
 
+    # The DS instance is created before the keytab, add the SSL cert we
+    # generated
+    ds.add_cert_to_service()
+
     # Render webui assets:
     ipautil.run(["/sbin/restorecon", ASSETS_DIR])
     render_assets()
@@ -743,10 +747,10 @@ def main():
     http = httpinstance.HTTPInstance(fstore)
     if options.http_pkcs12:
         pkcs12_info = (options.http_pkcs12, pw_name)
-        http.create_instance(realm_name, host_name, domain_name, autoconfig=False, pkcs12_info=pkcs12_info)
+        http.create_instance(realm_name, host_name, domain_name, dm_password, autoconfig=False, pkcs12_info=pkcs12_info)
         os.remove(pw_name)
     else:
-        http.create_instance(realm_name, host_name, domain_name, autoconfig=True, self_signed_ca=not options.ca)
+        http.create_instance(realm_name, host_name, domain_name, dm_password, autoconfig=True, self_signed_ca=not options.ca)
     ipautil.run(["/sbin/restorecon", "/var/cache/ipa/sessions"])
 
     # Create the management framework config file

@@ -146,6 +146,7 @@ class DsInstance(service.Service):
         self.host_name = None
         self.pkcs12_info = None
         self.ds_user = None
+        self.dercert = None
         if realm_name:
             self.suffix = util.realm_to_suffix(self.realm_name)
             self.__setup_sub_dict()
@@ -164,6 +165,7 @@ class DsInstance(service.Service):
         self.self_signed_ca = self_signed_ca
         self.uidstart = uidstart
         self.gidstart = gidstart
+        self.principal = "ldap/%s@%s" % (self.host_name, self.realm_name)
         self.__setup_sub_dict()
 
         self.step("creating directory server user", self.__create_ds_user)
@@ -203,7 +205,7 @@ class DsInstance(service.Service):
                              REALM=self.realm_name, USER=self.ds_user,
                              SERVER_ROOT=server_root, DOMAIN=self.domain,
                              TIME=int(time.time()), UIDSTART=self.uidstart,
-                             GIDSTART=self.gidstart)
+                             GIDSTART=self.gidstart, HOST=self.host_name)
 
     def __create_ds_user(self):
         user_exists = True
@@ -335,19 +337,20 @@ class DsInstance(service.Service):
 
             # We only handle one server cert
             nickname = server_certs[0][0]
+            self.dercert = dsdb.get_cert_from_db(nickname)
         else:
             nickname = "Server-Cert"
             cadb = certs.CertDB(httpinstance.NSS_DIR, host_name=self.host_name)
             if self.self_signed_ca:
                 cadb.create_self_signed()
                 dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
-                dsdb.create_server_cert("Server-Cert", self.host_name, cadb)
+                self.dercert = dsdb.create_server_cert("Server-Cert", self.host_name, cadb)
                 dsdb.create_pin_file()
             else:
                 # FIXME, need to set this nickname in the RA plugin
                 cadb.export_ca_cert('ipaCert', False)
                 dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
-                dsdb.create_server_cert("Server-Cert", self.host_name, cadb)
+                self.dercert = dsdb.create_server_cert("Server-Cert", self.host_name, cadb)
                 dsdb.create_pin_file()
 
         conn = ipaldap.IPAdmin("127.0.0.1")

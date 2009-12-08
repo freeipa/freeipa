@@ -26,6 +26,7 @@ import urllib
 import xml.dom.minidom
 import pwd
 import fcntl
+import base64
 
 from ipapython import nsslib
 from ipapython import sysrestore
@@ -459,8 +460,19 @@ class CertDB(object):
         (out, err) = self.request_cert(subject)
         cdb.issue_server_cert(self.certreq_fname, self.certder_fname)
         self.add_cert(self.certder_fname, nickname)
+        fd = open(self.certder_fname, "r")
+        dercert = fd.read()
+        fd.close()
+
         os.unlink(self.certreq_fname)
         os.unlink(self.certder_fname)
+
+        # On the off-chance the certificate is base64-encoded
+        try:
+            dercert = base64.b64decode(dercert)
+        except:
+            pass
+        return dercert
 
     def create_signing_cert(self, nickname, hostname, other_certdb=None, subject=None):
         cdb = other_certdb

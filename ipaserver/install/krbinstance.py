@@ -32,6 +32,7 @@ from ipapython import sysrestore
 from ipapython import ipautil
 from ipalib import util
 from ipalib import errors
+from ipalib import uuid
 
 from ipaserver import ipaldap
 
@@ -90,6 +91,40 @@ class KrbInstance(service.Service):
             self.fstore = fstore
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+
+    def move_service_to_host(self, principal):
+        """
+        Used to move a host/ service principal created by kadmin.local from
+        cn=kerberos to reside under the host entry.
+        """
+        conn = None
+
+        service_dn = "krbprincipalname=%s,cn=%s,cn=kerberos,%s" % (principal, self.realm, self.suffix)
+        try:
+            conn = ipaldap.IPAdmin("127.0.0.1")
+            conn.simple_bind_s("cn=directory manager", self.admin_password)
+        except Exception, e:
+            logging.critical("Could not connect to the Directory Server on %s" % self.fqdn)
+            raise e
+        service_entry = conn.getEntry(service_dn, ldap.SCOPE_BASE)
+        conn.deleteEntry(service_dn)
+
+        # Create a host entry for this master
+        host_dn = "fqdn=%s,cn=computers,cn=accounts,%s" % (self.fqdn, self.suffix)
+        host_entry = ipaldap.Entry(host_dn)
+        host_entry.setValues('objectclass', ['top', 'ipaobject', 'nshost', 'ipahost', 'pkiuser', 'krbprincipalaux', 'krbprincipal', 'krbticketpolicyaux'])
+        host_entry.setValue('krbextradata', service_entry.getValue('krbextradata'))
+        host_entry.setValue('krblastpwdchange', service_entry.getValue('krblastpwdchange'))
+        host_entry.setValue('krbpasswordexpiration', service_entry.getValue('krbpasswordexpiration'))
+        host_entry.setValue('krbprincipalname', service_entry.getValue('krbprincipalname'))
+        host_entry.setValue('krbticketflags', service_entry.getValue('krbticketflags'))
+        host_entry.setValue('krbprincipalkey', service_entry.getValue('krbprincipalkey'))
+        host_entry.setValue('serverhostname', self.fqdn.split('.',1)[0])
+        host_entry.setValue('cn', self.fqdn)
+        host_entry.setValue('fqdn', self.fqdn)
+        host_entry.setValue('ipauniqueid', str(uuid.uuid1()))
+        conn.addEntry(host_entry)
+        conn.unbind()
 
     def __common_setup(self, ds_user, realm_name, host_name, domain_name, admin_password):
         self.ds_user = ds_user
@@ -404,6 +439,7 @@ class KrbInstance(service.Service):
     def __create_ds_keytab(self):
         ldap_principal = "ldap/" + self.fqdn + "@" + self.realm
         installutils.kadmin_addprinc(ldap_principal)
+        self.move_service(ldap_principal)
 
         self.fstore.backup_file("/etc/dirsrv/ds.keytab")
         installutils.create_keytab("/etc/dirsrv/ds.keytab", ldap_principal)
@@ -423,6 +459,8 @@ class KrbInstance(service.Service):
         # Make sure access is strictly reserved to root only for now
         os.chown("/etc/krb5.keytab", 0, 0)
         os.chmod("/etc/krb5.keytab", 0600)
+
+        self.move_service_to_host(host_principal)
 
     def __export_kadmin_changepw_keytab(self):
         installutils.kadmin_modprinc("kadmin/changepw", "+requires_preauth")

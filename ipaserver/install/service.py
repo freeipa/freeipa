@@ -22,6 +22,10 @@ import os
 import tempfile
 from ipapython import sysrestore
 from ipapython import ipautil
+from ipalib import uuid, errors
+import ldap
+from ipaserver import ipaldap
+import base64
 
 
 def stop(service_name, instance_name=""):
@@ -98,6 +102,7 @@ class Service:
         path = ipautil.SHARE_DIR + ldif
 
         if sub_dict is not None:
+            sub_dict['UUID'] = str(uuid.uuid1())
             txt = ipautil.template_file(path, sub_dict)
             fd = ipautil.write_tmp_file(txt)
             path = fd.name
@@ -119,6 +124,61 @@ class Service:
 
         if fd is not None:
             fd.close()
+
+    def move_service(self, principal):
+        """
+        Used to move a principal entry created by kadmin.local from
+        cn=kerberos to cn=services
+        """
+        dn = "krbprincipalname=%s,cn=%s,cn=kerberos,%s" % (principal, self.realm, self.suffix)
+        try:
+            conn = ipaldap.IPAdmin("127.0.0.1")
+            conn.simple_bind_s("cn=directory manager", self.dm_password)
+        except Exception, e:
+            logging.critical("Could not connect to the Directory Server on %s: %s" % (self.fqdn, str(e)))
+            raise e
+        try:
+            entry = conn.getEntry(dn, ldap.SCOPE_BASE)
+        except errors.NotFound:
+            # There is no service in the wrong location, nothing to do.
+            # This can happen when installing a replica
+            conn.unbind()
+            return
+        newdn = "krbprincipalname=%s,cn=services,cn=accounts,%s" % (principal, self.suffix)
+        conn.deleteEntry(dn)
+        entry.dn = newdn
+        classes = entry.getValues("objectclass")
+        classes = classes + ["ipaobject", "ipaservice", "pkiuser"]
+        entry.setValues("objectclass", list(set(classes)))
+        entry.setValue("ipauniqueid", str(uuid.uuid1()))
+        conn.addEntry(entry)
+        conn.unbind()
+        return newdn
+
+    def add_cert_to_service(self):
+        """
+        Add a certificate to a service
+
+        This should be passed in DER format but we'll be nice and convert
+        a base64-encoded cert if needed.
+        """
+        try:
+            self.dercert = base64.b64decode(self.dercert)
+        except Exception:
+            pass
+        dn = "krbprincipalname=%s,cn=services,cn=accounts,%s" % (self.principal, self.suffix)
+        try:
+            conn = ipaldap.IPAdmin("127.0.0.1")
+            conn.simple_bind_s("cn=directory manager", self.dm_password)
+        except Exception, e:
+            logging.critical("Could not connect to the Directory Server on %s: %s" % (self.fqdn, str(e)))
+            raise e
+        mod = [(ldap.MOD_ADD, 'userCertificate', self.dercert)]
+        try:
+            conn.modify_s(dn, mod)
+        except Exception, e:
+            logging.critical("Could not add certificate to service %s entry: %s" % (self.principal, str(e)))
+        conn.unbind()
 
     def set_output(self, fd):
         self.output_fd = fd

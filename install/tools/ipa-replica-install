@@ -200,7 +200,7 @@ def install_http(config):
                        config.dir + "/http_pin.txt")
 
     http = httpinstance.HTTPInstance()
-    http.create_instance(config.realm_name, config.host_name, config.domain_name, False, pkcs12_info, self_signed_ca=True)
+    http.create_instance(config.realm_name, config.host_name, config.domain_name, config.dirman_password, False, pkcs12_info, self_signed_ca=True)
 
     # Now copy the autoconfiguration files
     if ipautil.file_exists(config.dir + "/preferences.html"):
@@ -346,6 +346,10 @@ def main():
         CA.import_ra_cert(dir + "/ra.p12")
         CA.fix_ra_perms()
         service.restart("httpd")
+
+    # The DS instance is created before the keytab, add the SSL cert we
+    # generated
+    ds.add_cert_to_service()
 
     # Create the management framework config file
     fd = open("/etc/ipa/default.conf", "w")

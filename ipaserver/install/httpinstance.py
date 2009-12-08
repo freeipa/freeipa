@@ -30,6 +30,7 @@ import dsinstance
 import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
+from ipalib import util
 
 HTTPD_DIR = "/etc/httpd"
 SSL_CONF = HTTPD_DIR + "/conf.d/ssl.conf"
@@ -55,12 +56,16 @@ class HTTPInstance(service.Service):
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
-    def create_instance(self, realm, fqdn, domain_name, autoconfig=True, pkcs12_info=None, self_signed_ca=False):
+    def create_instance(self, realm, fqdn, domain_name, dm_password=None, autoconfig=True, pkcs12_info=None, self_signed_ca=False):
         self.fqdn = fqdn
         self.realm = realm
         self.domain = domain_name
+        self.dm_password = dm_password
+        self.suffix = util.realm_to_suffix(self.realm)
         self.pkcs12_info = pkcs12_info
         self.self_signed_ca = self_signed_ca
+        self.principal = "HTTP/%s@%s" % (self.fqdn, self.realm)
+        self.dercert = None
         self.sub_dict = { "REALM" : realm, "FQDN": fqdn, "DOMAIN" : self.domain }
 
         self.step("disabling mod_ssl in httpd", self.__disable_mod_ssl)
@@ -68,11 +73,11 @@ class HTTPInstance(service.Service):
         self.step("Setting mod_nss password file", self.__set_mod_nss_passwordfile)
         self.step("Adding URL rewriting rules", self.__add_include)
         self.step("configuring httpd", self.__configure_http)
-        self.step("creating a keytab for httpd", self.__create_http_keytab)
         self.step("Setting up ssl", self.__setup_ssl)
         if autoconfig:
             self.step("Setting up browser autoconfig", self.__setup_autoconfig)
         self.step("publish CA cert", self.__publish_ca_cert)
+        self.step("creating a keytab for httpd", self.__create_http_keytab)
         self.step("configuring SELinux for httpd", self.__selinux_config)
         self.step("restarting httpd", self.__start)
         self.step("configuring httpd to start on boot", self.__enable)
@@ -117,6 +122,8 @@ class HTTPInstance(service.Service):
         http_principal = "HTTP/" + self.fqdn + "@" + self.realm
         installutils.kadmin_addprinc(http_principal)
         installutils.create_keytab("/etc/httpd/conf/ipa.keytab", http_principal)
+        self.move_service(http_principal)
+        self.add_cert_to_service()
 
         pent = pwd.getpwnam("apache")
         os.chown("/etc/httpd/conf/ipa.keytab", pent.pw_uid, pent.pw_gid)
@@ -170,16 +177,17 @@ class HTTPInstance(service.Service):
             db.create_password_conf()
             # We only handle one server cert
             nickname = server_certs[0][0]
+            self.dercert = db.get_cert_from_db(nickname)
 
             self.__set_mod_nss_nickname(nickname)
         else:
             if self.self_signed_ca:
                 db.create_from_cacert(ca_db.cacert_fname)
                 db.create_password_conf()
-                db.create_server_cert("Server-Cert", self.fqdn, ca_db)
+                self.dercert = db.create_server_cert("Server-Cert", self.fqdn, ca_db)
                 db.create_signing_cert("Signing-Cert", "Object Signing Cert", ca_db)
             else:
-                db.create_server_cert("Server-Cert", self.fqdn, ca_db)
+                self.dercert = db.create_server_cert("Server-Cert", self.fqdn, ca_db)
                 db.create_signing_cert("Signing-Cert", "Object Signing Cert", ca_db)
                 db.create_password_conf()
 

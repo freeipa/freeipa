@@ -28,7 +28,7 @@ import sys
 from ipaserver.install import installutils
 from ipaserver import ipaldap
 from ipapython import entity, ipautil
-from ipalib import util
+from ipalib import util, uuid
 from ipalib import errors
 import ldap
 import logging
@@ -124,6 +124,7 @@ class LDAPUpdate:
 
     def _template_str(self, s):
         try:
+            self.sub_dict["UUID"] = str(uuid.uuid1())
             return ipautil.template_str(s, self.sub_dict)
         except KeyError, e:
             raise BadSyntax("Unknown template keyword %s" % e)

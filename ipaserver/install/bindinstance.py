@@ -201,6 +201,7 @@ class BindInstance(service.Service):
         # Store the keytab on disk
         self.fstore.backup_file("/etc/named.keytab")
         installutils.create_keytab("/etc/named.keytab", dns_principal)
+        dns_principal = self.move_service(dns_principal)
 
         # Make sure access is strictly reserved to the named user
         pent = pwd.getpwnam(self.named_user)
@@ -220,17 +221,8 @@ class BindInstance(service.Service):
             logging.critical("Could not connect to the Directory Server on %s" % self.fqdn)
             raise e
 
-        dns_princ_dn = "krbprincipalname=%s,cn=%s,cn=kerberos,%s" % (dns_principal, self.realm, self.suffix)
-        mod = [(ldap.MOD_ADD, 'objectClass', 'ipaService')]
-
-        try:
-            conn.modify_s(dns_princ_dn, mod)
-        except Exception, e:
-            logging.critical("Could not modify principal's %s entry" % dns_principal)
-            raise e
-
         dns_group = "cn=dnsserver,cn=rolegroups,cn=accounts,%s" % self.suffix
-        mod = [(ldap.MOD_ADD, 'member', dns_princ_dn)]
+        mod = [(ldap.MOD_ADD, 'member', dns_principal)]
 
         try:
             conn.modify_s(dns_group, mod)
