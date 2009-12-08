@@ -1,5 +1,6 @@
 # Authors:
 #   Rob Crittenden <rcritten@@redhat.com>
+#   John Dennis <jdennis@redhat.com>
 #
 # Copyright (C) 2009  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -43,6 +44,7 @@ from ipaserver.plugins import rabase
 from ipaserver.install import certs
 import tempfile
 from pyasn1 import error
+from ipalib.request import ugettext as _
 
 class ra(rabase.rabase):
     """
@@ -51,13 +53,32 @@ class ra(rabase.rabase):
 
     def request_certificate(self, csr, request_type='pkcs10'):
         """
-        Submit certificate signing request.
-
         :param csr: The certificate signing request.
         :param request_type: The request type (defaults to ``'pkcs10'``).
-        """
-        (csr_fd, csr_name) = tempfile.mkstemp()
 
+        Submit certificate signing request.
+
+        The command returns a dict with these possible key/value pairs.
+        Some key/value pairs may be absent.
+
+        +---------------+---------------+---------------+
+        |result name    |result type    |comments       |
+        +===============+===============+===============+
+        |serial_number  |unicode [1]_   |               |
+        +---------------+---------------+---------------+
+        |certificate    |unicode [2]_   |               |
+        +---------------+---------------+---------------+
+        |request_id     |unicode        |               |
+        +---------------+---------------+---------------+
+        |subject        |unicode        |               |
+        +---------------+---------------+---------------+
+
+        .. [1] Passed through XMLRPC as decimal string. Can convert to
+               optimal integer type (int or long) via int(serial_number)
+
+        .. [2] Base64 encoded
+
+        """
         # certutil wants the CSR to have have a header and footer. Add one
         # if it isn't there.
         s = csr.find('-----BEGIN NEW CERTIFICATE REQUEST-----')
@@ -66,12 +87,47 @@ class ra(rabase.rabase):
             if s == -1:
                 csr = '-----BEGIN NEW CERTIFICATE REQUEST-----\n' + csr + \
                       '-----END NEW CERTIFICATE REQUEST-----\n'
-        os.write(csr_fd, csr)
-        os.close(csr_fd)
-        (cert_fd, cert_name) = tempfile.mkstemp()
-        os.close(cert_fd)
 
-        serialno = certs.next_serial(self.serial_file)
+        try:
+            (csr_fd, csr_name) = tempfile.mkstemp()
+            os.write(csr_fd, csr)
+            os.close(csr_fd)
+        except Exception, e:
+            try:
+                os.remove(csr_name)
+            except:
+                pass
+            self.log.error('unable to create temporary csr file: %s' % e)
+            raise errors.CertificateOperationError(error=_('file operation'))
+
+        try:
+            (cert_fd, cert_name) = tempfile.mkstemp()
+            os.close(cert_fd)
+        except Exception, e:
+            try:
+                os.remove(csr_name)
+            except:
+                pass
+            try:
+                os.remove(cert_name)
+            except:
+                pass
+            self.log.error('unable to create temporary certificate file: %s' % e)
+            raise errors.CertificateOperationError(error=_('file operation'))
+
+        try:
+            serialno = certs.next_serial(self.serial_file)
+        except Exception, e:
+            try:
+                os.remove(csr_name)
+            except:
+                pass
+            try:
+                os.remove(cert_name)
+            except:
+                pass
+            self.log.error('next_serial() failed: %s' % e)
+            raise errors.CertificateOperationError(error=_('cannot obtain next serial number'))
 
         try:
             args = [
@@ -97,17 +153,31 @@ class ra(rabase.rabase):
             p.stdin.write("0\n9\nn\n")
             p.stdin.write("1\n9\nn\n")
             (stdout, stderr) = p.communicate()
+            status = p.returncode
             self.log.debug("stdout = %s" % stdout)
             self.log.debug("stderr = %s" % stderr)
+            if status != 0:
+                try:
+                    os.remove(cert_name)
+                except:
+                    pass
+                self.log.error('certutil failed: %s' % stderr)
+                raise errors.CertificateOperationError(error=_('certutil failure'))
         finally:
-            os.remove(csr_name)
+            try:
+                os.remove(csr_name)
+            except:
+                pass
 
         try:
             cert_fd = open(cert_name)
             cert = cert_fd.read()
             cert_fd.close()
         finally:
-            os.remove(cert_name)
+            try:
+                os.remove(cert_name)
+            except:
+                pass
 
         try:
             # Grab the subject, reverse it, combine it and return it
@@ -120,7 +190,8 @@ class ra(rabase.rabase):
 
             serial = x509.get_serial_number(cert)
         except error.PyAsn1Error, e:
-            raise errors.GenericError(format='Unable to decode certificate in entry: %s' % str(e))
+            self.log.error('Unable to decode certificate in entry: %s' % str(e))
+            raise errors.CertificateOperationError(error='Unable to decode certificate in entry: %s' % str(e))
 
         # To make it look like dogtag return just the base64 data.
         cert = cert.replace('\n','')
@@ -130,6 +201,11 @@ class ra(rabase.rabase):
         s = s + 27
         cert = cert[s:e]
 
-        return {'status':0, 'subject': subject, 'certificate':cert, 'serial_number': "0x%x" % serial}
+        cmd_result = {}
+        cmd_result['serial_number'] = unicode(serial) # convert long to decimal unicode string
+        cmd_result['certificate']   = unicode(cert)
+        cmd_result['subject']       = unicode(subject)
+
+        return cmd_result
 
 api.register(ra)

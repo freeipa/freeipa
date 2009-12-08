@@ -1,6 +1,7 @@
 # Authors:
 #   Andrew Wnuk <awnuk@redhat.com>
 #   Jason Gerard DeRose <jderose@redhat.com>
+#   John Dennis <jdennis@redhat.com>
 #
 # Copyright (C) 2009  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -38,10 +39,12 @@ from ipapython import dnsclient
 from pyasn1.error import PyAsn1Error
 import logging
 import traceback
+from ipalib.request import ugettext as _
 
 def get_serial(certificate):
     """
     Given a certificate, return the serial number in that cert
+    as a Python long object.
 
     In theory there should be only one cert per object so even if we get
     passed in a list/tuple only return the first one.
@@ -49,9 +52,9 @@ def get_serial(certificate):
     if type(certificate) in (list, tuple):
         certificate = certificate[0]
     try:
-        serial = str(x509.get_serial_number(certificate))
+        serial = x509.get_serial_number(certificate)
     except PyAsn1Error:
-        raise errors.GenericError(format='Unable to decode certificate in entry')
+        raise errors.CertificateOperationError(error=_('Unable to decode certificate in entry'))
 
     return serial
 
@@ -69,7 +72,7 @@ def get_csr_hostname(csr):
         # The ASN.1 decoding errors tend to be long and involved and the
         # last bit is generally not interesting. We need the whole traceback.
         logging.error('Unable to decode CSR\n%s', traceback.format_exc())
-        raise errors.GenericError(format='Failure decoding Certificate Signing Request')
+        raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request'))
 
     return None
 
@@ -83,7 +86,7 @@ def get_subjectaltname(csr):
         # The ASN.1 decoding errors tend to be long and involved and the
         # last bit is generally not interesting. We need the whole traceback.
         logging.error('Unable to decode CSR\n%s', traceback.format_exc())
-        raise errors.GenericError(format='Failure decoding Certificate Signing Request')
+        raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request'))
     return request.get_subjectaltname()
 
 def validate_csr(ugettext, csr):
@@ -100,9 +103,9 @@ def validate_csr(ugettext, csr):
     except TypeError, e:
         raise errors.Base64DecodeError(reason=str(e))
     except PyAsn1Error:
-        raise errors.GenericError(format='Failure decoding Certificate Signing Request')
+        raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request'))
     except Exception, e:
-        raise errors.GenericError(format='Failure decoding Certificate Signing Request: %s' % str(e))
+        raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request: %s') % str(e))
 
 
 class cert_request(VirtualCommand):
@@ -170,7 +173,7 @@ class cert_request(VirtualCommand):
             (dn, service) = api.Command['service_show'](principal, all=True, raw=True)
             if 'usercertificate' in service:
                 # FIXME, what to do here? Do we revoke the old cert?
-                raise errors.GenericError(format='entry already has a certificate, serial number %s' % get_serial(base64.b64encode(service['usercertificate'][0])))
+                raise errors.CertificateOperationError(error=_('entry already has a certificate, serial number %s') % get_serial(base64.b64encode(service['usercertificate'][0])))
         except errors.NotFound, e:
             if not add:
                 raise errors.NotFound(reason="The service principal for this request doesn't exist.")
@@ -213,7 +216,7 @@ class cert_request(VirtualCommand):
         if isinstance(result, dict) and len(result) > 0:
             textui.print_entry(result, 0)
         else:
-            textui.print_plain('Failed to submit a certificate request.')
+            textui.print_plain(_('Failed to submit a certificate request.'))
 
 api.register(cert_request)
 
@@ -235,7 +238,7 @@ class cert_status(VirtualCommand):
         if isinstance(result, dict) and len(result) > 0:
             textui.print_entry(result, 0)
         else:
-            textui.print_plain('Failed to retrieve a request status.')
+            textui.print_plain(_('Failed to retrieve a request status.'))
 
 api.register(cert_status)
 
@@ -245,7 +248,8 @@ class cert_get(VirtualCommand):
     Retrieve an existing certificate.
     """
 
-    takes_args = ('serial_number')
+    takes_args = (Str('serial_number',
+                      doc='serial number in decimal or if prefixed with 0x in hexadecimal'))
     operation="retrieve certificate"
 
     def execute(self, serial_number):
@@ -256,7 +260,7 @@ class cert_get(VirtualCommand):
         if isinstance(result, dict) and len(result) > 0:
             textui.print_entry(result, 0)
         else:
-            textui.print_plain('Failed to obtain a certificate.')
+            textui.print_plain(_('Failed to obtain a certificate.'))
 
 api.register(cert_get)
 
@@ -266,7 +270,8 @@ class cert_revoke(VirtualCommand):
     Revoke a certificate.
     """
 
-    takes_args = ('serial_number')
+    takes_args = (Str('serial_number',
+                      doc='serial number in decimal or if prefixed with 0x in hexadecimal'))
     operation = "revoke certificate"
 
     # FIXME: The default is 0.  Is this really an Int param?
@@ -288,7 +293,7 @@ class cert_revoke(VirtualCommand):
         if isinstance(result, dict) and len(result) > 0:
             textui.print_entry(result, 0)
         else:
-            textui.print_plain('Failed to revoke a certificate.')
+            textui.print_plain(_('Failed to revoke a certificate.'))
 
 api.register(cert_revoke)
 
@@ -298,7 +303,8 @@ class cert_remove_hold(VirtualCommand):
     Take a revoked certificate off hold.
     """
 
-    takes_args = ('serial_number')
+    takes_args = (Str('serial_number',
+                      doc='serial number in decimal or if prefixed with 0x in hexadecimal'))
     operation = "certificate remove hold"
 
     def execute(self, serial_number, **kw):
@@ -309,6 +315,6 @@ class cert_remove_hold(VirtualCommand):
         if isinstance(result, dict) and len(result) > 0:
             textui.print_entry(result, 0)
         else:
-            textui.print_plain('Failed to take a revoked certificate off hold.')
+            textui.print_plain(_('Failed to take a revoked certificate off hold.'))
 
 api.register(cert_remove_hold)

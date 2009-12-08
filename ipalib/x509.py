@@ -188,8 +188,9 @@ class Certificate(univ.Sequence):
         return info.getComponentByName('subject')
 
     def get_serial_number(self):
+        'return the serial number as a Python long object'
         info = self.getComponentByName('tbsCertificate')
-        return info.getComponentByName('serialNumber')
+        return long(info.getComponentByName('serialNumber'))
 
 # end of ASN.1 data structures
 
@@ -230,9 +231,7 @@ def get_subject_components(certificate, type=PEM):
 
 def get_serial_number(certificate, type=PEM):
     """
-    Return the serial number of a certificate.
-
-    Returns an integer
+    Return the serial number of a certificate as a Python long object.
     """
     x509cert = load_certificate(certificate, type)
     return x509cert.get_serial_number()

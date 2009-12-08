@@ -32,12 +32,13 @@ from pyasn1.error import PyAsn1Error
 
 def get_serial(certificate):
     """
-    Given a certificate, return the serial number in that cert.
+    Given a certificate, return the serial number in that
+    cert as a Python long object.
     """
     if type(certificate) in (list, tuple):
         certificate = certificate[0]
     try:
-        serial = str(x509.get_serial_number(certificate, type=x509.DER))
+        serial = x509.get_serial_number(certificate, type=x509.DER)
     except PyAsn1Error:
         raise errors.GenericError(
             format='Unable to decode certificate in entry'
