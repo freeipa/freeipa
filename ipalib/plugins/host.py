@@ -29,6 +29,7 @@ from ipalib import api, errors, util
 from ipalib import Str, Flag
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.service import split_principal
+from ipalib import _, ngettext
 
 
 def validate_host(ugettext, fqdn):
@@ -72,32 +73,38 @@ class host(LDAPObject):
     takes_params = (
         Str('fqdn', validate_host,
             cli_name='hostname',
-            doc='Hostname',
+            label='Hostname',
             primary_key=True,
             normalizer=lambda value: value.lower(),
         ),
         Str('description?',
             cli_name='desc',
+            label='Description',
             doc='Description of the host',
         ),
         Str('localityname?',
             cli_name='locality',
+            label='Locality',
             doc='Locality of the host (Baltimore, MD)',
         ),
         Str('nshostlocation?',
             cli_name='location',
+            label='Location',
             doc='Location of the host (e.g. Lab 2)',
         ),
         Str('nshardwareplatform?',
             cli_name='platform',
+            label='Platform',
             doc='Hardware platform of the host (e.g. Lenovo T61)',
         ),
         Str('nsosversion?',
             cli_name='os',
+            label='Operating system',
             doc='Operating System and version of the host (e.g. Fedora 9)',
         ),
         Str('userpassword?',
             cli_name='password',
+            label='User password',
             doc='Password used in bulk enrollment',
         ),
     )
@@ -125,6 +132,9 @@ class host_add(LDAPCreate):
     """
     Create new host.
     """
+
+    msg_summary = _('Added host "%(value)s"')
+
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         entry_attrs['cn'] = keys[-1]
         entry_attrs['serverhostname'] = keys[-1].split('.', 1)[0]
@@ -147,16 +157,21 @@ class host_del(LDAPDelete):
     """
     Delete host.
     """
+
+    msg_summary = _('Deleted host "%(value)s"')
+
     def pre_callback(self, ldap, dn, *keys, **options):
         # Remove all service records for this host
         truncated = True
         while truncated:
             try:
-                (services, truncated) = api.Command['service_find'](keys[-1])
+                ret = api.Command['service_find'](keys[-1])
+                truncated = ret['truncated']
+                services = ret['result']
             except errors.NotFound:
                 break
             else:
-                for (dn_, entry_attrs) in services:
+                for entry_attrs in services:
                     principal = entry_attrs['krbprincipalname'][0]
                     (service, hostname, realm) = split_principal(principal)
                     if hostname.lower() == keys[-1]:
@@ -170,6 +185,9 @@ class host_mod(LDAPUpdate):
     """
     Modify host.
     """
+
+    msg_summary = _('Modified host "%(value)s"')
+
     takes_options = LDAPUpdate.takes_options + (
         Str('krbprincipalname?',
             cli_name='principalname',
@@ -201,6 +219,10 @@ class host_find(LDAPSearch):
     Search for hosts.
     """
 
+    msg_summary = ngettext(
+        '%(count)d host matched', '%(count)d hosts matched'
+    )
+
 api.register(host_find)
 
 
@@ -210,4 +232,3 @@ class host_show(LDAPRetrieve):
     """
 
 api.register(host_show)
-

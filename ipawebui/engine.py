@@ -1,6 +1,6 @@
 # Authors: Jason Gerard DeRose <jderose@redhat.com>
 #
-# Copyright (C) 2008  Red Hat
+# Copyright (C) 2009  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@ Engine to map ipalib plugins to wehjit widgets.
 """
 
 from controllers import Command
+from ipalib import crud
 
 class ParamMapper(object):
     def __init__(self, api, app):
@@ -28,7 +29,7 @@ class ParamMapper(object):
         self._app = app
         self.__methods = dict()
         for name in dir(self):
-            if name.startswith('_') or name.endswith('_'):
+            if name.startswith('_'):
                 continue
             attr = getattr(self, name)
             if not callable(attr):
@@ -40,13 +41,12 @@ class ParamMapper(object):
         if key in self.__methods:
             method = self.__methods[key]
         else:
-            #raise Warning('No ParamMapper for %r' % key)
             method = self.Str
         return method(param, cmd)
 
     def Str(self, param, cmd):
         return self._app.new('TextRow',
-            label=param.cli_name,
+            label=param.label,
             name=param.name,
             required=param.required,
             value=param.default,
@@ -61,7 +61,7 @@ class ParamMapper(object):
     def Flag(self, param, cmd):
         return self._app.new('SelectRow',
             name=param.name,
-            label=param.cli_name,
+            label=param.label,
         )
 
 
@@ -128,23 +128,43 @@ class Engine(object):
         return page
 
     def build_page(self, cmd):
-        page = self.app.new('PageApp',
+        page = self.app.new('PageCmd',
+            cmd=cmd,
             id=cmd.name,
             title=cmd.summary.rstrip('.'),
         )
-        #page.form.action = self.app.url + '__json__'
-        page.actions.add(
-            self.app.new('Submit')
+        page.form.action = page.url
+        page.form.method = 'GET'
+        page.form.add(
+            self.app.new('Hidden', name='__mode__', value='output')
         )
+        page.notification = self.app.new('Notification')
+        page.view.add(page.notification)
+        page.prompt = self.make_prompt(cmd)
+        page.show = self.make_show(cmd)
+        self.conditional('input', page.actions, self.app.new('Submit'))
+        self.conditional('input', page.view, page.prompt)
+        self.conditional('output', page.view, page.show)
+        return page
+
+    def conditional(self, mode, parent, *children):
+        conditional = self.app.new('Conditional', mode=mode)
+        conditional.add(*children)
+        parent.add(conditional)
+
+    def make_prompt(self, cmd):
         table = self.app.new('FieldTable')
-        page.view.add(table)
-        for param in cmd.params():
+        for param in self._iter_params(cmd.params):
+            table.add(
+                self.param_mapper(param, cmd)
+            )
+        return table
+
+    def make_show(self, cmd):
+        return self.app.new('Output')
+
+    def _iter_params(self, namespace):
+        for param in namespace():
             if param.exclude and 'webui' in param.exclude:
                 continue
-            field = self.param_mapper(param, cmd)
-            table.add(field)
-
-        page.form.action = '/'.join([self.jsonurl, cmd.name])
-
-
-        return page
+            yield param

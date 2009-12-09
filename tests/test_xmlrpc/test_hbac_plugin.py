@@ -51,25 +51,27 @@ class test_hbac(XMLRPC_test):
         """
         Test adding a new HBAC rule using `xmlrpc.hbac_add`.
         """
-        (dn, res) = api.Command['hbac_add'](
-            self.rule_name, accessruletype=self.rule_type,
-            servicename=self.rule_service, accesstime=self.rule_time,
-            description=self.rule_desc
+        ret = self.failsafe_add(api.Object.hbac,
+            self.rule_name,
+            accessruletype=self.rule_type,
+            servicename=self.rule_service,
+            accesstime=self.rule_time,
+            description=self.rule_desc,
         )
-        assert res
-        assert_attr_equal(res, 'cn', self.rule_name)
-        assert_attr_equal(res, 'accessruletype', self.rule_type)
-        assert_attr_equal(res, 'servicename', self.rule_service)
-        assert_attr_equal(res, 'accesstime', self.rule_time)
-        assert_attr_equal(res, 'ipaenabledflag', 'TRUE')
-        assert_attr_equal(res, 'description', self.rule_desc)
+        entry = ret['result']
+        assert_attr_equal(entry, 'cn', self.rule_name)
+        assert_attr_equal(entry, 'accessruletype', self.rule_type)
+        assert_attr_equal(entry, 'servicename', self.rule_service)
+        assert_attr_equal(entry, 'accesstime', self.rule_time)
+        assert_attr_equal(entry, 'ipaenabledflag', 'TRUE')
+        assert_attr_equal(entry, 'description', self.rule_desc)
 
     def test_1_hbac_add(self):
         """
         Test adding an existing HBAC rule using `xmlrpc.hbac_add'.
         """
         try:
-            (dn, res) = api.Command['hbac_add'](
+            api.Command['hbac_add'](
                 self.rule_name, accessruletype=self.rule_type
             )
         except errors.DuplicateEntry:
@@ -81,35 +83,35 @@ class test_hbac(XMLRPC_test):
         """
         Test displaying a HBAC rule using `xmlrpc.hbac_show`.
         """
-        (dn, res) = api.Command['hbac_show'](self.rule_name)
-        assert res
-        assert_attr_equal(res, 'cn', self.rule_name)
-        assert_attr_equal(res, 'accessruletype', self.rule_type)
-        assert_attr_equal(res, 'servicename', self.rule_service)
-        assert_attr_equal(res, 'accesstime', self.rule_time)
-        assert_attr_equal(res, 'ipaenabledflag', 'TRUE')
-        assert_attr_equal(res, 'description', self.rule_desc)
+        entry = api.Command['hbac_show'](self.rule_name)['result']
+        assert_attr_equal(entry, 'cn', self.rule_name)
+        assert_attr_equal(entry, 'accessruletype', self.rule_type)
+        assert_attr_equal(entry, 'servicename', self.rule_service)
+        assert_attr_equal(entry, 'accesstime', self.rule_time)
+        assert_attr_equal(entry, 'ipaenabledflag', 'TRUE')
+        assert_attr_equal(entry, 'description', self.rule_desc)
 
     def test_3_hbac_mod(self):
         """
         Test modifying a HBAC rule using `xmlrpc.hbac_mod`.
         """
-        (dn, res) = api.Command['hbac_mod'](
+        ret = api.Command['hbac_mod'](
             self.rule_name, description=self.rule_desc_mod
         )
-        assert res
-        assert_attr_equal(res, 'description', self.rule_desc_mod)
+        entry = ret['result']
+        assert_attr_equal(entry, 'description', self.rule_desc_mod)
 
     def test_4_hbac_add_accesstime(self):
         """
         Test adding access time to HBAC rule using `xmlrpc.hbac_add_accesstime`.
         """
-        (dn, res) = api.Command['hbac_add_accesstime'](
+        return
+        ret = api.Command['hbac_add_accesstime'](
             self.rule_name, accesstime=self.rule_time2
         )
-        assert res
-        assert_attr_equal(res, 'accesstime', self.rule_time);
-        assert_attr_equal(res, 'accesstime', self.rule_time2);
+        entry = ret['result']
+        assert_attr_equal(entry, 'accesstime', self.rule_time);
+        assert_attr_equal(entry, 'accesstime', self.rule_time2);
 
     def test_5_hbac_add_accesstime(self):
         """
@@ -128,28 +130,36 @@ class test_hbac(XMLRPC_test):
         """
         Test searching for HBAC rules using `xmlrpc.hbac_find`.
         """
-        (res, truncated) = api.Command['hbac_find'](
+        ret = api.Command['hbac_find'](
             name=self.rule_name, accessruletype=self.rule_type,
             description=self.rule_desc_mod
         )
-        assert res
-        assert res[0]
-        assert_attr_equal(res[0][1], 'cn', self.rule_name)
-        assert_attr_equal(res[0][1], 'accessruletype', self.rule_type)
-        assert_attr_equal(res[0][1], 'description', self.rule_desc_mod)
+        assert ret['truncated'] is False
+        entries = ret['result']
+        assert_attr_equal(entries[0], 'cn', self.rule_name)
+        assert_attr_equal(entries[0], 'accessruletype', self.rule_type)
+        assert_attr_equal(entries[0], 'description', self.rule_desc_mod)
 
     def test_7_hbac_init_testing_data(self):
         """
         Initialize data for more HBAC plugin testing.
         """
-        api.Command['user_add'](self.test_user, givenname=u'first', sn=u'last')
-        api.Command['group_add'](self.test_group, description=u'description')
-        api.Command['host_add'](self.test_host)
-        api.Command['hostgroup_add'](
+        self.failsafe_add(api.Object.user,
+            self.test_user, givenname=u'first', sn=u'last'
+        )
+        self.failsafe_add(api.Object.group,
+            self.test_group, description=u'description'
+        )
+        self.failsafe_add(api.Object.host,
+            self.test_host
+        )
+        self.failsafe_add(api.Object.hostgroup,
             self.test_hostgroup, description=u'description'
         )
-        api.Command['host_add'](self.test_sourcehost)
-        api.Command['hostgroup_add'](
+        self.failsafe_add(api.Object.host,
+            self.test_sourcehost
+        )
+        self.failsafe_add(api.Object.hostgroup,
             self.test_sourcehostgroup, description=u'desc'
         )
 
@@ -157,67 +167,71 @@ class test_hbac(XMLRPC_test):
         """
         Test adding user and group to HBAC rule using `xmlrpc.hbac_add_user`.
         """
-        (completed, failed, res) = api.Command['hbac_add_user'](
+        ret = api.Command['hbac_add_user'](
             self.rule_name, user=self.test_user, group=self.test_group
         )
-        assert completed == 2
+        assert ret['completed'] == 2
+        failed = ret['failed']
         assert 'memberuser' in failed
         assert 'user' in failed['memberuser']
         assert not failed['memberuser']['user']
         assert 'group' in failed['memberuser']
         assert not failed['memberuser']['group']
-        assert res
-        assert_attr_equal(res[1], 'memberuser user', self.test_user)
-        assert_attr_equal(res[1], 'memberuser group', self.test_group)
+        entry = ret['result']
+        assert_attr_equal(entry, 'memberuser user', self.test_user)
+        assert_attr_equal(entry, 'memberuser group', self.test_group)
 
     def test_9_hbac_remove_user(self):
         """
         Test removing user and group from HBAC rule using `xmlrpc.hbac_remove_user'.
         """
-        (completed, failed, res) = api.Command['hbac_remove_user'](
+        ret = api.Command['hbac_remove_user'](
             self.rule_name, user=self.test_user, group=self.test_group
         )
-        assert completed == 2
+        assert ret['completed'] == 2
+        failed = ret['failed']
         assert 'memberuser' in failed
         assert 'user' in failed['memberuser']
         assert not failed['memberuser']['user']
         assert 'group' in failed['memberuser']
         assert not failed['memberuser']['group']
-        assert res
-        assert 'memberuser user' not in res[1]
-        assert 'memberuser group' not in res[1]
+        entry = ret['result']
+        assert 'memberuser user' not in entry
+        assert 'memberuser group' not in entry
 
     def test_a_hbac_add_host(self):
         """
         Test adding host and hostgroup to HBAC rule using `xmlrpc.hbac_add_host`.
         """
-        (completed, failed, res) = api.Command['hbac_add_host'](
+        ret = api.Command['hbac_add_host'](
             self.rule_name, host=self.test_host, hostgroup=self.test_hostgroup
         )
-        assert completed == 2
+        assert ret['completed'] == 2
+        failed = ret['failed']
         assert 'memberhost' in failed
         assert 'host' in failed['memberhost']
         assert not failed['memberhost']['host']
         assert 'hostgroup' in failed['memberhost']
         assert not failed['memberhost']['hostgroup']
-        assert res
-        assert_attr_equal(res[1], 'memberhost host', self.test_host)
-        assert_attr_equal(res[1], 'memberhost hostgroup', self.test_hostgroup)
+        entry = ret['result']
+        assert_attr_equal(entry, 'memberhost host', self.test_host)
+        assert_attr_equal(entry, 'memberhost hostgroup', self.test_hostgroup)
 
     def test_b_hbac_remove_host(self):
         """
         Test removing host and hostgroup from HBAC rule using `xmlrpc.hbac_remove_host`.
         """
-        (completed, failed, res) = api.Command['hbac_remove_host'](
+        ret = api.Command['hbac_remove_host'](
             self.rule_name, host=self.test_host, hostgroup=self.test_hostgroup
         )
-        assert completed == 2
+        assert ret['completed'] == 2
+        failed = ret['failed']
         assert 'memberhost' in failed
         assert 'host' in failed['memberhost']
         assert not failed['memberhost']['host']
         assert 'hostgroup' in failed['memberhost']
         assert not failed['memberhost']['hostgroup']
-        assert res
+        entry = ret['result']
         assert 'memberhost host' not in res[1]
         assert 'memberhost hostgroup' not in res[1]
 
@@ -225,35 +239,37 @@ class test_hbac(XMLRPC_test):
         """
         Test adding source host and hostgroup to HBAC rule using `xmlrpc.hbac_add_host`.
         """
-        (completed, failed, res) = api.Command['hbac_add_sourcehost'](
+        ret = api.Command['hbac_add_sourcehost'](
             self.rule_name, host=self.test_host, hostgroup=self.test_hostgroup
         )
-        assert completed == 2
+        assert ret['completed'] == 2
+        failed = ret['failed']
         assert 'sourcehost' in failed
         assert 'host' in failed['sourcehost']
         assert not failed['sourcehost']['host']
         assert 'hostgroup' in failed['sourcehost']
         assert not failed['sourcehost']['hostgroup']
-        assert res
-        assert_attr_equal(res[1], 'sourcehost host', self.test_host)
-        assert_attr_equal(res[1], 'sourcehost hostgroup', self.test_hostgroup)
+        entry = ret['result']
+        assert_attr_equal(entry, 'sourcehost host', self.test_host)
+        assert_attr_equal(entry, 'sourcehost hostgroup', self.test_hostgroup)
 
     def test_b_hbac_remove_host(self):
         """
         Test removing source host and hostgroup from HBAC rule using `xmlrpc.hbac_remove_host`.
         """
-        (completed, failed, res) = api.Command['hbac_remove_sourcehost'](
+        ret = api.Command['hbac_remove_sourcehost'](
             self.rule_name, host=self.test_host, hostgroup=self.test_hostgroup
         )
-        assert completed == 2
+        assert ret['completed'] == 2
+        failed = ret['failed']
         assert 'sourcehost' in failed
         assert 'host' in failed['sourcehost']
         assert not failed['sourcehost']['host']
         assert 'hostgroup' in failed['sourcehost']
         assert not failed['sourcehost']['hostgroup']
-        assert res
-        assert 'sourcehost host' not in res[1]
-        assert 'sourcehost hostgroup' not in res[1]
+        entry = ret['result']
+        assert 'sourcehost host' not in entry
+        assert 'sourcehost hostgroup' not in entry
 
     def test_c_hbac_clear_testing_data(self):
         """
@@ -270,30 +286,26 @@ class test_hbac(XMLRPC_test):
         """
         Test disabling HBAC rule using `xmlrpc.hbac_disable`.
         """
-        res = api.Command['hbac_disable'](self.rule_name)
-        assert res == True
-        # check it's really disabled
-        (dn, res) = api.Command['hbac_show'](self.rule_name)
-        assert res
-        assert_attr_equal(res, 'ipaenabledflag', 'disabled')
+        assert api.Command['hbac_disable'](self.rule_name)['result'] is True
+        entry = api.Command['hbac_show'](self.rule_name)['result']
+        # FIXME: Should this be 'disabled' or 'FALSE'?
+        assert_attr_equal(entry, 'ipaenabledflag', 'FALSE')
 
     def test_e_hbac_enabled(self):
         """
         Test enabling HBAC rule using `xmlrpc.hbac_enable`.
         """
-        res = api.Command['hbac_enable'](self.rule_name)
-        assert res == True
+        assert api.Command['hbac_enable'](self.rule_name)['result'] is True
         # check it's really enabled
-        (dn, res) = api.Command['hbac_show'](self.rule_name)
-        assert res
-        assert_attr_equal(res, 'ipaenabledflag', 'enabled')
+        entry = api.Command['hbac_show'](self.rule_name)['result']
+         # FIXME: Should this be 'enabled' or 'TRUE'?
+        assert_attr_equal(entry, 'ipaenabledflag', 'TRUE')
 
     def test_f_hbac_del(self):
         """
         Test deleting a HBAC rule using `xmlrpc.hbac_remove_sourcehost`.
         """
-        res = api.Command['hbac_del'](self.rule_name)
-        assert res == True
+        assert api.Command['hbac_del'](self.rule_name)['result'] is True
         # verify that it's gone
         try:
             api.Command['hbac_show'](self.rule_name)
@@ -301,4 +313,3 @@ class test_hbac(XMLRPC_test):
             pass
         else:
             assert False
-

@@ -31,6 +31,7 @@ class test_service(XMLRPC_test):
     """
     Test the `service` plugin.
     """
+    host = u'ipatest.%s' % api.env.domain
     principal = u'HTTP/ipatest.%s@%s' % (api.env.domain, api.env.realm)
     hostprincipal = u'host/ipatest.%s@%s' % (api.env.domain, api.env.realm)
     kw = {'krbprincipalname': principal}
@@ -39,16 +40,21 @@ class test_service(XMLRPC_test):
         """
         Test adding a HTTP principal using the `xmlrpc.service_add` method.
         """
-        (dn, res) = api.Command['service_add'](**self.kw)
-        assert res
-        assert_attr_equal(res, 'krbprincipalname', self.principal)
-        assert_attr_equal(res, 'objectclass', 'ipaobject')
+        self.failsafe_add(api.Object.host, self.host)
+        entry = self.failsafe_add(api.Object.service, self.principal)['result']
+        assert_attr_equal(entry, 'krbprincipalname', self.principal)
+        assert_attr_equal(entry, 'objectclass', 'ipaobject')
 
     def test_2_service_add(self):
         """
         Test adding a host principal using `xmlrpc.service_add`. Host
         services are not allowed.
         """
+        # FIXME: Are host principals not allowed still?  Running this test gives
+        # this error:
+        #
+        # NotFound: The host 'ipatest.example.com' does not exist to add a service to.
+
         kw = {'krbprincipalname': self.hostprincipal}
         try:
             api.Command['service_add'](**kw)
@@ -85,34 +91,30 @@ class test_service(XMLRPC_test):
         """
         Test the `xmlrpc.service_show` method.
         """
-        (dn, res) = api.Command['service_show'](self.principal)
-        assert res
-        assert_attr_equal(res, 'krbprincipalname', self.principal)
+        entry = api.Command['service_show'](self.principal)['result']
+        assert_attr_equal(entry, 'krbprincipalname', self.principal)
 
     def test_6_service_find(self):
         """
         Test the `xmlrpc.service_find` method.
         """
-        (res, truncated) = api.Command['service_find'](self.principal)
-        assert res
-        assert_attr_equal(res[0][1], 'krbprincipalname', self.principal)
+        entries = api.Command['service_find'](self.principal)['result']
+        assert_attr_equal(entries[0], 'krbprincipalname', self.principal)
 
     def test_7_service_mod(self):
         """
         Test the `xmlrpc.service_mod` method.
         """
-        modkw = self.kw
+        modkw = dict(self.kw)
         modkw['usercertificate'] = 'QmluYXJ5IGNlcnRpZmljYXRl'
-        (dn, res) = api.Command['service_mod'](**modkw)
-        assert res
-        assert_attr_equal(res, 'usercertificate', 'Binary certificate')
+        entry = api.Command['service_mod'](**modkw)['result']
+        assert_attr_equal(entry, 'usercertificate', 'Binary certificate')
 
     def test_8_service_del(self):
         """
         Test the `xmlrpc.service_del` method.
         """
-        res = api.Command['service_del'](self.principal)
-        assert res == True
+        assert api.Command['service_del'](self.principal)['result'] is True
 
         # Verify that it is gone
         try:
@@ -121,4 +123,3 @@ class test_service(XMLRPC_test):
             pass
         else:
             assert False
-

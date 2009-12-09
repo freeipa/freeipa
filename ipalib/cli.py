@@ -312,6 +312,37 @@ class textui(backend.Backend):
         for attr in sorted(entry):
             print_attr(attr)
 
+    def print_entries(self, entries, params=None, format='%s: %s', indent=1):
+        assert isinstance(entries, (list, tuple))
+        first = True
+        for entry in entries:
+            if not first:
+                print ''
+            first = False
+            self.print_entry(entry, params, format, indent)
+
+    def print_entry(self, entry, params=None, format='%s: %s', indent=1):
+        """
+        """
+        if isinstance(entry, (list, tuple)):
+            entry = dict(entry)
+        assert isinstance(entry, dict)
+        if params:
+            order = list(params)
+            labels = dict((p.name, p.label) for p in params())
+        else:
+            order = sorted(entry)
+            labels = dict((k, k) for k in order)
+        for key in order:
+            if key not in entry:
+                continue
+            label = labels[key]
+            value = entry[key]
+            if isinstance(value, (list, tuple)):
+                value = ', '.join(value)
+            self.print_indented(format % (label, value), indent)
+
+
     def print_dashed(self, string, above=True, below=True, indent=0, dash='-'):
         """
         Print a string with a dashed line above and/or below.
@@ -383,6 +414,23 @@ class textui(backend.Backend):
         """
         self.print_dashed('%s:' % to_cli(name))
 
+    def print_header(self, msg, output):
+        self.print_dashed(msg % output)
+
+    def print_summary(self, msg):
+        """
+        Print a summary at the end of a comand's output.
+
+        For example:
+
+        >>> ui = textui()
+        >>> ui.print_summary('Added user "jdoe"')
+        -----------------
+        Added user "jdoe"
+        -----------------
+        """
+        self.print_dashed(msg)
+
     def print_count(self, count, singular, plural=None):
         """
         Print a summary count.
@@ -408,7 +456,7 @@ class textui(backend.Backend):
         ``len(count)`` is used as the count.
         """
         if type(count) is not int:
-            assert type(count) in (list, tuple)
+            assert type(count) in (list, tuple, dict)
             count = len(count)
         self.print_dashed(
             self.choose_number(count, singular, plural)
@@ -515,6 +563,8 @@ class help(frontend.Command):
 
     takes_args = (Bytes('command?'),)
 
+    has_output = tuple()
+
     _PLUGIN_BASE_MODULE = 'ipalib.plugins'
 
     def _get_command_module(self, module):
@@ -613,6 +663,8 @@ class help(frontend.Command):
 
 class console(frontend.Command):
     """Start the IPA interactive Python console."""
+
+    has_output = tuple()
 
     def run(self):
         code.interact(
@@ -814,8 +866,8 @@ class cli(backend.Executioner):
                     error = None
                     while True:
                         if error is not None:
-                            print '>>> %s: %s' % (param.cli_name, error)
-                        raw = self.Backend.textui.prompt(param.cli_name, default)
+                            print '>>> %s: %s' % (param.label, error)
+                        raw = self.Backend.textui.prompt(param.label, default)
                         try:
                             value = param(raw, **kw)
                             if value is not None:

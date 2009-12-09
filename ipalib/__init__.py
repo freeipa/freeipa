@@ -135,13 +135,13 @@ implement a ``run()`` method, like this:
 ...     """My example plugin with run()."""
 ...
 ...     def run(self):
-...         return 'My run() method was called!'
+...         return dict(result='My run() method was called!')
 ...
 >>> api = create_api()
 >>> api.register(my_command)
 >>> api.finalize()
 >>> api.Command.my_command() # Call your command
-'My run() method was called!'
+{'result': 'My run() method was called!'}
 
 When `frontend.Command.__call__()` is called, it first validates any arguments
 and options your command plugin takes (if any) and then calls its ``run()``
@@ -175,10 +175,14 @@ For example, say you have a command plugin like this:
 ...     """Forwarding vs. execution."""
 ...
 ...     def forward(self):
-...         return 'in_server=%r; forward() was called.' % self.env.in_server
+...         return dict(
+...             result='forward(): in_server=%r' % self.env.in_server
+...         )
 ...
 ...     def execute(self):
-...         return 'in_server=%r; execute() was called.' % self.env.in_server
+...         return dict(
+...             result='execute(): in_server=%r' % self.env.in_server
+...         )
 ...
 
 If ``my_command`` is loaded in a *client* context, ``forward()`` will be
@@ -189,7 +193,7 @@ called:
 >>> api.register(my_command)
 >>> api.finalize()
 >>> api.Command.my_command() # Call your command plugin
-'in_server=False; forward() was called.'
+{'result': 'forward(): in_server=False'}
 
 On the other hand, if ``my_command`` is loaded in a *server* context,
 ``execute()`` will be called:
@@ -199,7 +203,7 @@ On the other hand, if ``my_command`` is loaded in a *server* context,
 >>> api.register(my_command)
 >>> api.finalize()
 >>> api.Command.my_command() # Call your command plugin
-'in_server=True; execute() was called.'
+{'result': 'execute(): in_server=True'}
 
 Normally there should be no reason to override `frontend.Command.forward()`,
 but, as above, it can be done for demonstration purposes.  In contrast, there
@@ -312,7 +316,7 @@ Second, we have our frontend plugin, the command:
 ...
 ...     def execute(self):
 ...         """Implemented against Backend.my_backend"""
-...         return self.Backend.my_backend.do_stuff()
+...         return dict(result=self.Backend.my_backend.do_stuff())
 ...
 >>> api.register(my_command)
 
@@ -321,7 +325,7 @@ Lastly, we call ``api.finalize()`` and see what happens when we call
 
 >>> api.finalize()
 >>> api.Command.my_command()
-'my_backend.do_stuff() indeed did do stuff!'
+{'result': 'my_backend.do_stuff() indeed did do stuff!'}
 
 When not in a server context, ``my_command.execute()`` never gets called, so
 it never tries to access the non-existent backend plugin at
@@ -335,10 +339,10 @@ example:
 ...
 ...     def execute(self):
 ...         """Same as above."""
-...         return self.Backend.my_backend.do_stuff()
+...         return dict(result=self.Backend.my_backend.do_stuff())
 ...
 ...     def forward(self):
-...         return 'Just my_command.forward() getting called here.'
+...         return dict(result='Just my_command.forward() getting called here.')
 ...
 >>> api.register(my_command)
 >>> api.finalize()
@@ -351,7 +355,7 @@ False
 And yet we can call ``my_command()``:
 
 >>> api.Command.my_command()
-'Just my_command.forward() getting called here.'
+{'result': 'Just my_command.forward() getting called here.'}
 
 
 ----------------------------------------
@@ -369,24 +373,25 @@ several other commands in a single operation.  For example:
 ...
 ...     def execute(self):
 ...         """Calls command_1(), command_2()"""
-...         return '%s; %s.' % (
-...             self.Command.command_1(),
-...             self.Command.command_2()
+...         msg = '%s; %s.' % (
+...             self.Command.command_1()['result'],
+...             self.Command.command_2()['result'],
 ...         )
+...         return dict(result=msg)
 >>> class command_1(Command):
 ...     def execute(self):
-...         return 'command_1.execute() called'
+...         return dict(result='command_1.execute() called')
 ...
 >>> class command_2(Command):
 ...     def execute(self):
-...         return 'command_2.execute() called'
+...         return dict(result='command_2.execute() called')
 ...
 >>> api.register(meta_command)
 >>> api.register(command_1)
 >>> api.register(command_2)
 >>> api.finalize()
 >>> api.Command.meta_command()
-'command_1.execute() called; command_2.execute() called.'
+{'result': 'command_1.execute() called; command_2.execute() called.'}
 
 Because this is quite useful, we are going to revise our golden rule somewhat:
 
@@ -412,16 +417,18 @@ For example:
 ...     takes_options = (Str('stuff', default=u'documentation'))
 ...
 ...     def execute(self, programmer, **kw):
-...         return '%s, go write more %s!' % (programmer, kw['stuff'])
+...         return dict(
+...             result='%s, go write more %s!' % (programmer, kw['stuff'])
+...         )
 ...
 >>> api = create_api()
 >>> api.env.in_server = True
 >>> api.register(nudge)
 >>> api.finalize()
 >>> api.Command.nudge(u'Jason')
-u'Jason, go write more documentation!'
+{'result': u'Jason, go write more documentation!'}
 >>> api.Command.nudge(u'Jason', stuff=u'unit tests')
-u'Jason, go write more unit tests!'
+{'result': u'Jason, go write more unit tests!'}
 
 The ``args`` and ``options`` attributes are `plugable.NameSpace` instances
 containing a command's arguments and options, respectively, as you can see:
@@ -450,7 +457,7 @@ When calling a command, its positional arguments can also be provided as
 keyword arguments, and in any order.  For example:
 
 >>> api.Command.nudge(stuff=u'lines of code', programmer=u'Jason')
-u'Jason, go write more lines of code!'
+{'result': u'Jason, go write more lines of code!'}
 
 When a command plugin is called, the values supplied for its parameters are
 put through a sophisticated processing pipeline that includes steps for
@@ -582,12 +589,14 @@ For example, say we setup a command like this:
 ...             city='Berlin',
 ...         )
 ...         if key in items:
-...             return items[key]
-...         return [
+...             return dict(result=items[key])
+...         items = [
 ...             (k, items[k]) for k in sorted(items, reverse=options['reverse'])
 ...         ]
+...         return dict(result=items)
 ...
 ...     def output_for_cli(self, textui, result, key, **options):
+...         result = result['result']
 ...         if key is not None:
 ...             textui.print_plain('%s = %r' % (key, result))
 ...         else:
@@ -738,14 +747,14 @@ For example:
 ...     """Print message of the day."""
 ...
 ...     def execute(self):
-...         return self.env.message
+...         return dict(result=self.env.message)
 ...
 >>> api = create_api()
 >>> api.bootstrap(in_server=True, message='Hello, world!')
 >>> api.register(motd)
 >>> api.finalize()
 >>> api.Command.motd()
-'Hello, world!'
+{'result': 'Hello, world!'}
 
 Also see the `plugable.API.bootstrap_with_global_options()` method.
 
@@ -872,6 +881,7 @@ from crud import Create, Retrieve, Update, Delete, Search
 from parameters import DefaultFrom, Bool, Flag, Int, Float, Bytes, Str, Password,List
 from parameters import BytesEnum, StrEnum, AccessTime, File
 from errors import SkipPluginModule
+from text import _, gettext, ngettext
 
 # We can't import the python uuid since it includes ctypes which makes
 # httpd throw up when run in in mod_python due to SELinux issues

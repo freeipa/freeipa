@@ -24,6 +24,7 @@ Groups of users
 from ipalib import api
 from ipalib import Int, Str
 from ipalib.plugins.baseldap import *
+from ipalib import _, ngettext
 
 
 class group(LDAPObject):
@@ -57,16 +58,18 @@ class group(LDAPObject):
     takes_params = (
         Str('cn',
             cli_name='name',
-            doc='group name',
+            label='Group name',
             primary_key=True,
             normalizer=lambda value: value.lower(),
         ),
         Str('description',
             cli_name='desc',
-            doc='group description',
+            label='Description',
+            doc='Group description',
         ),
         Int('gidnumber?',
             cli_name='gid',
+            label='GID',
             doc='GID (use this option to set it manually)',
         ),
     )
@@ -78,6 +81,9 @@ class group_add(LDAPCreate):
     """
     Create new group.
     """
+
+    msg_summary = _('Added group "%(value)s"')
+
     takes_options = LDAPCreate.takes_options + (
         Flag('posix',
              cli_name='posix',
@@ -90,6 +96,7 @@ class group_add(LDAPCreate):
             entry_attrs['objectclass'].append('posixgroup')
         return dn
 
+
 api.register(group_add)
 
 
@@ -97,6 +104,9 @@ class group_del(LDAPDelete):
     """
     Delete group.
     """
+
+    msg_summary = _('Deleted group "%(value)s"')
+
     def pre_callback(self, ldap, dn, *keys, **options):
         config = ldap.get_ipa_config()[1]
         def_primary_group = config.get('ipadefaultprimarygroup', '')
@@ -112,6 +122,9 @@ class group_mod(LDAPUpdate):
     """
     Modify group.
     """
+
+    msg_summary = _('Modified group "%(value)s"')
+
     takes_options = LDAPUpdate.takes_options + (
         Flag('posix',
              cli_name='posix',
@@ -138,6 +151,10 @@ class group_find(LDAPSearch):
     Search for groups.
     """
 
+    msg_summary = ngettext(
+        '%(count)d group matched', '%(count)d groups matched', 0
+    )
+
 api.register(group_find)
 
 
@@ -163,4 +180,3 @@ class group_remove_member(LDAPRemoveMember):
     """
 
 api.register(group_remove_member)
-

@@ -22,6 +22,7 @@ Test the `tests.util` module.
 """
 
 import util
+from util import raises, TYPE, VALUE, LEN, KEYS
 
 
 class Prop(object):
@@ -45,6 +46,136 @@ class Prop(object):
         self.__prop = None
 
     prop = property(__get_prop, __set_prop, __del_prop)
+
+
+def test_assert_deepequal():
+    f = util.assert_deepequal
+
+    # Test with good scalar values:
+    f(u'hello', u'hello', 'foo')
+    f(18, 18, 'foo')
+
+    # Test with bad scalar values:
+    e = raises(AssertionError, f, u'hello', u'world', 'foo')
+    assert str(e) == VALUE % (
+        'foo', u'hello', u'world', tuple()
+    )
+
+    e = raises(AssertionError, f, 'hello', u'hello', 'foo')
+    assert str(e) == TYPE % (
+        'foo', str, unicode, 'hello', u'hello', tuple()
+    )
+
+    e = raises(AssertionError, f, 18, 18.0, 'foo')
+    assert str(e) == TYPE % (
+        'foo', int, float, 18, 18.0, tuple()
+    )
+
+    # Test with good compound values:
+    a = [
+        u'hello',
+        dict(naughty=u'nurse'),
+        18,
+    ]
+    b = [
+        u'hello',
+        dict(naughty=u'nurse'),
+        18,
+    ]
+    f(a, b)
+
+    # Test with bad compound values:
+    b = [
+        'hello',
+        dict(naughty=u'nurse'),
+        18,
+    ]
+    e = raises(AssertionError, f, a, b, 'foo')
+    assert str(e) == TYPE % (
+        'foo', unicode, str, u'hello', 'hello', (0,)
+    )
+
+    b = [
+        u'hello',
+        dict(naughty='nurse'),
+        18,
+    ]
+    e = raises(AssertionError, f, a, b, 'foo')
+    assert str(e) == TYPE % (
+        'foo', unicode, str, u'nurse', 'nurse', (1, 'naughty')
+    )
+
+    b = [
+        u'hello',
+        dict(naughty=u'nurse'),
+        18.0,
+    ]
+    e = raises(AssertionError, f, a, b, 'foo')
+    assert str(e) == TYPE % (
+        'foo', int, float, 18, 18.0, (2,)
+    )
+
+    # List length mismatch
+    b = [
+        u'hello',
+        dict(naughty=u'nurse'),
+        18,
+        19
+    ]
+    e = raises(AssertionError, f, a, b, 'foo')
+    assert str(e) == LEN % (
+        'foo', 3, 4, a, b, tuple()
+    )
+
+    b = [
+        dict(naughty=u'nurse'),
+        18,
+    ]
+    e = raises(AssertionError, f, a, b, 'foo')
+    assert str(e) == LEN % (
+        'foo', 3, 2, a, b, tuple()
+    )
+
+    # Dict keys mismatch:
+
+    # Missing
+    b = [
+        u'hello',
+        dict(),
+        18,
+    ]
+    e = raises(AssertionError, f, a, b, 'foo')
+    assert str(e) == KEYS % ('foo',
+        ['naughty'], [],
+        dict(naughty=u'nurse'), dict(),
+        (1,)
+    )
+
+    # Extra
+    b = [
+        u'hello',
+        dict(naughty=u'nurse', barely=u'legal'),
+        18,
+    ]
+    e = raises(AssertionError, f, a, b, 'foo')
+    assert str(e) == KEYS % ('foo',
+        [], ['barely'],
+        dict(naughty=u'nurse'), dict(naughty=u'nurse', barely=u'legal'),
+        (1,)
+    )
+
+    # Missing + Extra
+    b = [
+        u'hello',
+        dict(barely=u'legal'),
+        18,
+    ]
+    e = raises(AssertionError, f, a, b, 'foo')
+    assert str(e) == KEYS % ('foo',
+        ['naughty'], ['barely'],
+        dict(naughty=u'nurse'), dict(barely=u'legal'),
+        (1,)
+    )
 
 
 def test_yes_raised():

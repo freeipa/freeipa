@@ -176,7 +176,7 @@ class test_Executioner(ClassChecker):
             takes_options = ('option1?', 'option2?')
             def execute(self, *args, **options):
                 assert type(args[1]) is tuple
-                return args + (options,)
+                return dict(result=args + (options,))
         api.register(echo)
 
         class good(Command):
@@ -198,7 +198,7 @@ class test_Executioner(ClassChecker):
             """
             takes_options = 'name'
             def execute(self, **options):
-                return options['name'].upper()
+                return dict(result=options['name'].upper())
         api.register(with_name)
 
         api.finalize()
@@ -222,13 +222,17 @@ class test_Executioner(ClassChecker):
 
         conn = Connection('The connection.', Disconnect())
         context.someconn = conn
-        assert o.execute('echo', arg1, arg2, **options) == (arg1, arg2, options)
+        assert o.execute('echo', arg1, arg2, **options) == dict(
+            result=(arg1, arg2, options)
+        )
         assert conn.disconnect.called is True  # Make sure destroy_context() was called
         assert context.__dict__.keys() == []
 
         conn = Connection('The connection.', Disconnect())
         context.someconn = conn
-        assert o.execute('echo', *args, **options) == (arg1, arg2, options)
+        assert o.execute('echo', *args, **options) == dict(
+            result=(arg1, arg2, options)
+        )
         assert conn.disconnect.called is True  # Make sure destroy_context() was called
         assert context.__dict__.keys() == []
 
@@ -251,4 +255,4 @@ class test_Executioner(ClassChecker):
         # Test with option 'name':
         conn = Connection('The connection.', Disconnect())
         context.someconn = conn
-        assert o.execute('with_name', name=u'test') == u'TEST'
+        assert o.execute('with_name', name=u'test') == dict(result=u'TEST')

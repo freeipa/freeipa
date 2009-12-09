@@ -41,16 +41,19 @@ class test_pwpolicy(XMLRPC_test):
         Test adding a per-group policy using the `xmlrpc.pwpolicy_add` method.
         """
         # First set up a group and user that will use this policy
-        (groupdn, res) = api.Command['group_add'](self.group, description=u'pwpolicy test group')
-        (userdn, res) = api.Command['user_add'](self.user, givenname=u'Test', sn=u'User')
-        (total, failed, res) = api.Command['group_add_member'](self.group, users=self.user)
+        self.failsafe_add(
+            api.Object.group, self.group, description=u'pwpolicy test group',
+        )
+        self.failsafe_add(
+            api.Object.user, self.user, givenname=u'Test', sn=u'User'
+        )
+        api.Command.group_add_member(self.group, users=self.user)
 
-        (dn, res) = api.Command['pwpolicy_add'](**self.kw)
-        assert res
-        assert_attr_equal(res, 'krbminpwdlife', '30')
-        assert_attr_equal(res, 'krbmaxpwdlife', '40')
-        assert_attr_equal(res, 'krbpwdhistorylength', '5')
-        assert_attr_equal(res, 'krbpwdminlength', '6')
+        entry = api.Command['pwpolicy_add'](**self.kw)['result']
+        assert_attr_equal(entry, 'krbminpwdlife', '30')
+        assert_attr_equal(entry, 'krbmaxpwdlife', '40')
+        assert_attr_equal(entry, 'krbpwdhistorylength', '5')
+        assert_attr_equal(entry, 'krbpwdminlength', '6')
 
     def test_2_pwpolicy_add(self):
         """
@@ -67,13 +70,14 @@ class test_pwpolicy(XMLRPC_test):
         """
         Test adding another per-group policy using the `xmlrpc.pwpolicy_add` method.
         """
-        (groupdn, res) = api.Command['group_add'](self.group2, description=u'pwpolicy test group 2')
-        (dn, res) = api.Command['pwpolicy_add'](**self.kw2)
-        assert res
-        assert_attr_equal(res, 'krbminpwdlife', '40')
-        assert_attr_equal(res, 'krbmaxpwdlife', '60')
-        assert_attr_equal(res, 'krbpwdhistorylength', '8')
-        assert_attr_equal(res, 'krbpwdminlength', '9')
+        self.failsafe_add(
+            api.Object.group, self.group2, description=u'pwpolicy test group 2'
+        )
+        entry = api.Command['pwpolicy_add'](**self.kw2)['result']
+        assert_attr_equal(entry, 'krbminpwdlife', '40')
+        assert_attr_equal(entry, 'krbmaxpwdlife', '60')
+        assert_attr_equal(entry, 'krbpwdhistorylength', '8')
+        assert_attr_equal(entry, 'krbpwdminlength', '9')
 
     def test_4_pwpolicy_add(self):
         """
@@ -90,54 +94,46 @@ class test_pwpolicy(XMLRPC_test):
         """
         Test the `xmlrpc.pwpolicy_show` method with global policy.
         """
-        (dn, res) = api.Command['pwpolicy_show']()
-        assert res
-
+        entry = api.Command['pwpolicy_show']()['result']
         # Note that this assumes an unchanged global policy
-        assert_attr_equal(res, 'krbminpwdlife', '1')
-        assert_attr_equal(res, 'krbmaxpwdlife', '90')
-        assert_attr_equal(res, 'krbpwdhistorylength', '0')
-        assert_attr_equal(res, 'krbpwdminlength', '8')
+        assert_attr_equal(entry, 'krbminpwdlife', '1')
+        assert_attr_equal(entry, 'krbmaxpwdlife', '90')
+        assert_attr_equal(entry, 'krbpwdhistorylength', '0')
+        assert_attr_equal(entry, 'krbpwdminlength', '8')
 
     def test_6_pwpolicy_show(self):
         """
         Test the `xmlrpc.pwpolicy_show` method.
         """
-        (dn, res) = api.Command['pwpolicy_show'](group=self.group)
-        assert res
-        assert_attr_equal(res, 'krbminpwdlife', '30')
-        assert_attr_equal(res, 'krbmaxpwdlife', '40')
-        assert_attr_equal(res, 'krbpwdhistorylength', '5')
-        assert_attr_equal(res, 'krbpwdminlength', '6')
+        entry = api.Command['pwpolicy_show'](group=self.group)['result']
+        assert_attr_equal(entry, 'krbminpwdlife', '30')
+        assert_attr_equal(entry, 'krbmaxpwdlife', '40')
+        assert_attr_equal(entry, 'krbpwdhistorylength', '5')
+        assert_attr_equal(entry, 'krbpwdminlength', '6')
 
     def test_7_pwpolicy_mod(self):
         """
         Test the `xmlrpc.pwpolicy_mod` method for global policy.
         """
-        (dn, res) = api.Command['pwpolicy_mod'](krbminpwdlife=50)
-        assert res
-        assert_attr_equal(res, 'krbminpwdlife', '50')
+        entry = api.Command['pwpolicy_mod'](krbminpwdlife=50)['result']
+        assert_attr_equal(entry, 'krbminpwdlife', '50')
 
         # Great, now change it back
-        (dn, res) = api.Command['pwpolicy_mod'](krbminpwdlife=1)
-        assert res
-        assert_attr_equal(res, 'krbminpwdlife', '1')
+        entry = api.Command['pwpolicy_mod'](krbminpwdlife=1)['result']
+        assert_attr_equal(entry, 'krbminpwdlife', '1')
 
     def test_8_pwpolicy_mod(self):
         """
         Test the `xmlrpc.pwpolicy_mod` method.
         """
-        (dn, res) = api.Command['pwpolicy_mod'](group=self.group, krbminpwdlife=50)
-        assert res
-        assert_attr_equal(res, 'krbminpwdlife', '50')
+        entry = api.Command['pwpolicy_mod'](group=self.group, krbminpwdlife=50)['result']
+        assert_attr_equal(entry, 'krbminpwdlife', '50')
 
     def test_9_pwpolicy_del(self):
         """
         Test the `xmlrpc.pwpolicy_del` method.
         """
-        res = api.Command['pwpolicy_del'](group=self.group)
-        assert res == True
-
+        assert api.Command['pwpolicy_del'](group=self.group)['result'] is True
         # Verify that it is gone
         try:
             api.Command['pwpolicy_show'](group=self.group)
@@ -147,18 +143,17 @@ class test_pwpolicy(XMLRPC_test):
             assert False
 
         # Remove the groups we created
-        res = api.Command['group_del'](self.group)
-        res = api.Command['group_del'](self.group2)
+        api.Command['group_del'](self.group)
+        api.Command['group_del'](self.group2)
 
         # Remove the user we created
-        res = api.Command['user_del'](self.user)
+        api.Command['user_del'](self.user)
 
     def test_a_pwpolicy_del(self):
         """
         Remove the second test policy with `xmlrpc.pwpolicy_del`.
         """
-        res = api.Command['pwpolicy_del'](group=self.group2)
-        assert res == True
+        assert api.Command['pwpolicy_del'](group=self.group2)['result'] is True
 
         # Verify that it is gone
         try:

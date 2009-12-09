@@ -22,18 +22,39 @@ Misc plugins
 """
 
 import re
-from ipalib import api, LocalOrRemote
-
-
+from ipalib import api, LocalOrRemote, _, ngettext
+from ipalib.output import Output, summary
 
 # FIXME: We should not let env return anything in_server
 # when mode == 'production'.  This would allow an attacker to see the
 # configuration of the server, potentially revealing compromising
 # information.  However, it's damn handy for testing/debugging.
+
+
 class env(LocalOrRemote):
     """Show environment variables"""
 
-    takes_args = ('variables*',)
+    msg_summary = _('%(count)d variables')
+
+    takes_args = (
+        'variables*',
+    )
+
+    has_output = (
+        Output('result',
+            type=dict,
+            doc='Dictionary mapping variable name to value',
+        ),
+        Output('total',
+            type=int,
+            doc='Total number of variables env (>= count)',
+        ),
+        Output('count',
+            type=int,
+            doc='Number of variables returned (<= total)',
+        ),
+        summary,
+    )
 
     def __find_keys(self, variables):
         keys = set()
@@ -52,20 +73,18 @@ class env(LocalOrRemote):
             keys = self.env
         else:
             keys = self.__find_keys(variables)
-        return dict(
-            (key, self.env[key]) for key in keys
+        ret = dict(
+            result=dict(
+                (key, self.env[key]) for key in keys
+            ),
+            count=len(keys),
+            total=len(self.env),
         )
-
-    def output_for_cli(self, textui, result, variables, **options):
-        if len(result) == 0:
-            return
-        result = tuple((k, result[k]) for k in sorted(result))
-        if len(result) == 1:
-            textui.print_keyval(result)
-            return
-        textui.print_name(self.name)
-        textui.print_keyval(result)
-        textui.print_count(result, '%d variables')
+        if len(keys) > 1:
+            ret['summary'] = self.msg_summary % ret
+        else:
+            ret['summary'] = None
+        return ret
 
 api.register(env)
 
@@ -73,18 +92,26 @@ api.register(env)
 class plugins(LocalOrRemote):
     """Show all loaded plugins"""
 
+    msg_summary = ngettext(
+        '%(count)d plugin loaded', '%(count)d plugins loaded'
+    )
+
+    has_output = (
+        Output('result', dict, 'Dictionary mapping plugin names to bases'),
+        Output('count',
+            type=int,
+            doc='Number of plugins loaded',
+        ),
+        summary,
+    )
+
     def execute(self, **options):
         plugins = sorted(self.api.plugins, key=lambda o: o.plugin)
-        return tuple(
-            (p.plugin, p.bases) for p in plugins
+        return dict(
+            result=dict(
+                (p.plugin, p.bases) for p in plugins
+            ),
+            count=len(plugins),
         )
-
-    def output_for_cli(self, textui, result, **options):
-        textui.print_name(self.name)
-        for (plugin, bases) in result:
-            textui.print_indented(
-                '%s: %s' % (plugin, ', '.join(bases))
-            )
-        textui.print_count(result, '%d plugin loaded', '%s plugins loaded')
 
 api.register(plugins)

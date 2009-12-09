@@ -108,6 +108,88 @@ def assert_equal(val1, val2):
     assert val1 == val2, '%r != %r' % (val1, val2)
 
 
+VALUE = """assert_deepequal: expected != got.
+  %s
+  expected = %r
+  got = %r
+  path = %r"""
+
+TYPE = """assert_deepequal: type(expected) is not type(got).
+  %s
+  type(expected) = %r
+  type(got) = %r
+  expected = %r
+  got = %r
+  path = %r"""
+
+LEN = """assert_deepequal: list length mismatch.
+  %s
+  len(expected) = %r
+  len(got) = %r
+  expected = %r
+  got = %r
+  path = %r"""
+
+KEYS = """assert_deepequal: dict keys mismatch.
+  %s
+  missing keys = %r
+  extra keys = %r
+  expected = %r
+  got = %r
+  path = %r"""
+
+
+def assert_deepequal(expected, got, src='', stack=tuple()):
+    """
+    Recursively check for type and equality.
+
+    If the tests fails, it will raise an ``AssertionError`` with detailed
+    information, including the path to the offending value.  For example:
+
+    >>> expected = [u'hello', dict(naughty=u'nurse')]
+    >>> got = [u'hello', dict(naughty='nurse')]
+    >>> expected == got
+    True
+    >>> assert_deepequal(expected, got)
+    Traceback (most recent call last):
+      ...
+    AssertionError: assert_deepequal: type(expected) is not type(got):
+      type(expected) = <type 'unicode'>
+      type(got) = <type 'str'>
+      expected = u'nurse'
+      got = 'nurse'
+      path = (1, 'naughty')
+    """
+    if type(expected) is not type(got):
+        raise AssertionError(
+            TYPE % (src, type(expected), type(got), expected, got, stack)
+        )
+    if isinstance(expected, (list, tuple)):
+        if len(expected) != len(got):
+            raise AssertionError(
+                LEN % (src, len(expected), len(got), expected, got, stack)
+            )
+        for (i, e_sub) in enumerate(expected):
+            g_sub = got[i]
+            assert_deepequal(e_sub, g_sub, src, stack + (i,))
+    elif isinstance(expected, dict):
+        missing = set(expected).difference(got)
+        extra = set(got).difference(expected)
+        if missing or extra:
+            raise AssertionError(KEYS % (
+                    src, sorted(missing), sorted(extra), expected, got, stack
+                )
+            )
+        for key in sorted(expected):
+            e_sub = expected[key]
+            g_sub = got[key]
+            assert_deepequal(e_sub, g_sub, src, stack + (key,))
+    if expected != got:
+        raise AssertionError(
+            VALUE % (src, expected, got, stack)
+        )
+
+
 def raises(exception, callback, *args, **kw):
     """
     Tests that the expected exception is raised; raises ExceptionNotRaised

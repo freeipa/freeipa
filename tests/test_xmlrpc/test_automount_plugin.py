@@ -46,15 +46,17 @@ class test_automount(XMLRPC_test):
         """
         Test adding a location `xmlrpc.automountlocation_add` method.
         """
-        (dn, res) = api.Command['automountlocation_add'](**self.loc_kw)
-        assert res
-        assert_attr_equal(res, 'cn', self.locname)
+        ret = self.failsafe_add(
+            api.Object.automountlocation, self.locname
+        )
+        entry = ret['result']
+        assert_attr_equal(entry, 'cn', self.locname)
 
     def test_1_automountmap_add(self):
         """
         Test adding a map `xmlrpc.automountmap_add` method.
         """
-        (dn, res) = api.Command['automountmap_add'](**self.map_kw)
+        res = api.Command['automountmap_add'](**self.map_kw)['result']
         assert res
         assert_attr_equal(res, 'automountmapname', self.mapname)
 
@@ -62,7 +64,7 @@ class test_automount(XMLRPC_test):
         """
         Test adding a key using `xmlrpc.automountkey_add` method.
         """
-        (dn, res) = api.Command['automountkey_add'](**self.key_kw2)
+        res = api.Command['automountkey_add'](**self.key_kw2)['result']
         assert res
         assert_attr_equal(res, 'automountkey', self.keyname2)
 
@@ -70,7 +72,7 @@ class test_automount(XMLRPC_test):
         """
         Test adding a key using `xmlrpc.automountkey_add` method.
         """
-        (dn, res) = api.Command['automountkey_add'](**self.key_kw)
+        res = api.Command['automountkey_add'](**self.key_kw)['result']
         assert res
         assert_attr_equal(res, 'automountkey', self.keyname)
 
@@ -89,7 +91,7 @@ class test_automount(XMLRPC_test):
         """
         Test the `xmlrpc.automountmap_show` method.
         """
-        (dn, res) = api.Command['automountmap_show'](self.locname, self.mapname, raw=True)
+        res = api.Command['automountmap_show'](self.locname, self.mapname, raw=True)['result']
         assert res
         assert_attr_equal(res, 'automountmapname', self.mapname)
 
@@ -97,16 +99,15 @@ class test_automount(XMLRPC_test):
         """
         Test the `xmlrpc.automountmap_find` method.
         """
-        (res, truncated) = api.Command['automountmap_find'](self.locname, self.mapname, raw=True)
-        assert res
-        assert_attr_equal(res[0][1], 'automountmapname', self.mapname)
+        res = api.Command['automountmap_find'](self.locname, self.mapname, raw=True)['result']
+        assert_attr_equal(res[0], 'automountmapname', self.mapname)
 
     def test_7_automountkey_show(self):
         """
         Test the `xmlrpc.automountkey_show` method.
         """
         showkey_kw={'cn': self.locname, 'automountmapname': self.mapname, 'automountkey': self.keyname, 'raw': True}
-        (dn, res) = api.Command['automountkey_show'](**showkey_kw)
+        res = api.Command['automountkey_show'](**showkey_kw)['result']
         assert res
         assert_attr_equal(res, 'automountkey', self.keyname)
         assert_attr_equal(res, 'automountinformation', self.info)
@@ -115,11 +116,11 @@ class test_automount(XMLRPC_test):
         """
         Test the `xmlrpc.automountkey_find` method.
         """
-        (res, truncated) = api.Command['automountkey_find'](self.locname, self.mapname, raw=True)
+        res = api.Command['automountkey_find'](self.locname, self.mapname, raw=True)['result']
         assert res
         assert len(res) == 2
-        assert_attr_equal(res[1][1], 'automountkey', self.keyname)
-        assert_attr_equal(res[1][1], 'automountinformation', self.info)
+        assert_attr_equal(res[1], 'automountkey', self.keyname)
+        assert_attr_equal(res[1], 'automountinformation', self.info)
 
     def test_9_automountkey_mod(self):
         """
@@ -127,7 +128,7 @@ class test_automount(XMLRPC_test):
         """
         self.key_kw['automountinformation'] = u'rw'
         self.key_kw['description'] = u'new description'
-        (dn, res) = api.Command['automountkey_mod'](**self.key_kw)
+        res = api.Command['automountkey_mod'](**self.key_kw)['result']
         assert res
         assert_attr_equal(res, 'automountinformation', 'rw')
         assert_attr_equal(res, 'description', 'new description')
@@ -137,7 +138,7 @@ class test_automount(XMLRPC_test):
         Test the `xmlrpc.automountmap_mod` method.
         """
         self.map_kw['description'] = u'new description'
-        (dn, res) = api.Command['automountmap_mod'](**self.map_kw)
+        res = api.Command['automountmap_mod'](**self.map_kw)['result']
         assert res
         assert_attr_equal(res, 'description', 'new description')
 
@@ -146,7 +147,7 @@ class test_automount(XMLRPC_test):
         Test the `xmlrpc.automountkey_del` method.
         """
         delkey_kw={'cn': self.locname, 'automountmapname': self.mapname, 'automountkey': self.keyname, 'raw': True}
-        res = api.Command['automountkey_del'](**delkey_kw)
+        res = api.Command['automountkey_del'](**delkey_kw)['result']
         assert res == True
 
         # Verify that it is gone
@@ -161,7 +162,7 @@ class test_automount(XMLRPC_test):
         """
         Test the `xmlrpc.automountlocation_del` method.
         """
-        res = api.Command['automountlocation_del'](self.locname)
+        res = api.Command['automountlocation_del'](self.locname)['result']
         assert res == True
 
         # Verify that it is gone
@@ -201,7 +202,7 @@ class test_automount_indirect(XMLRPC_test):
         """
         Test adding a location.
         """
-        (dn, res) = api.Command['automountlocation_add'](self.locname, raw=True)
+        res = api.Command['automountlocation_add'](self.locname, raw=True)['result']
         assert res
         assert_attr_equal(res, 'cn', self.locname)
 
@@ -209,7 +210,7 @@ class test_automount_indirect(XMLRPC_test):
         """
         Test adding an indirect map.
         """
-        (dn, res) = api.Command['automountmap_add_indirect'](self.locname, self.mapname, **self.map_kw)
+        res = api.Command['automountmap_add_indirect'](self.locname, self.mapname, **self.map_kw)['result']
         assert res
         assert_attr_equal(res, 'automountmapname', self.mapname)
 
@@ -217,7 +218,7 @@ class test_automount_indirect(XMLRPC_test):
         """
         Test the `xmlrpc.automountmap_show` method.
         """
-        (dn, res) = api.Command['automountkey_show'](self.locname, self.parentmap, self.keyname, raw=True)
+        res = api.Command['automountkey_show'](self.locname, self.parentmap, self.keyname, raw=True)['result']
         assert res
         assert_attr_equal(res, 'automountkey', self.keyname)
 
@@ -226,7 +227,7 @@ class test_automount_indirect(XMLRPC_test):
         Remove the indirect key /home.
         """
         delkey_kw = {'cn': self.locname, 'automountmapname': self.parentmap, 'automountkey': self.keyname}
-        res = api.Command['automountkey_del'](**delkey_kw)
+        res = api.Command['automountkey_del'](**delkey_kw)['result']
         assert res == True
 
         # Verify that it is gone
@@ -241,7 +242,7 @@ class test_automount_indirect(XMLRPC_test):
         """
         Remove the indirect map for auto.home.
         """
-        res = api.Command['automountmap_del'](self.locname, self.mapname)
+        res = api.Command['automountmap_del'](self.locname, self.mapname)['result']
         assert res == True
 
         # Verify that it is gone
@@ -256,7 +257,7 @@ class test_automount_indirect(XMLRPC_test):
         """
         Remove the location.
         """
-        res = api.Command['automountlocation_del'](self.locname)
+        res = api.Command['automountlocation_del'](self.locname)['result']
         assert res == True
 
         # Verity that it is gone
@@ -283,16 +284,15 @@ class test_automount_indirect_no_parent(XMLRPC_test):
         """
         Test adding a location.
         """
-        (dn, res) = api.Command['automountlocation_add'](self.locname, raw=True)
+        res = api.Command['automountlocation_add'](self.locname, raw=True)['result']
         assert res
         assert_attr_equal(res, 'cn', self.locname)
-
 
     def test_1_automountmap_add_indirect(self):
         """
         Test adding an indirect map with default parent.
         """
-        (dn, res) = api.Command['automountmap_add_indirect'](self.locname, self.mapname, **self.map_kw)
+        res = api.Command['automountmap_add_indirect'](self.locname, self.mapname, **self.map_kw)['result']
         assert res
         assert_attr_equal(res, 'automountmapname', self.mapname)
 
@@ -301,7 +301,7 @@ class test_automount_indirect_no_parent(XMLRPC_test):
         Test the `xmlrpc.automountkey_show` method with default parent.
         """
         showkey_kw = {'cn': self.locname, 'automountmapname': self.parentmap, 'automountkey': self.keyname, 'raw': True}
-        (dn, res) = api.Command['automountkey_show'](**showkey_kw)
+        res = api.Command['automountkey_show'](**showkey_kw)['result']
         assert res
         assert_attr_equal(res, 'automountkey', self.keyname)
 
@@ -310,7 +310,7 @@ class test_automount_indirect_no_parent(XMLRPC_test):
         Remove the indirect key /home.
         """
         delkey_kw={'cn': self.locname, 'automountmapname': self.parentmap, 'automountkey': self.keyname}
-        res = api.Command['automountkey_del'](**delkey_kw)
+        res = api.Command['automountkey_del'](**delkey_kw)['result']
         assert res == True
 
         # Verify that it is gone
@@ -325,7 +325,7 @@ class test_automount_indirect_no_parent(XMLRPC_test):
         """
         Remove the indirect map for auto.home.
         """
-        res = api.Command['automountmap_del'](self.locname, self.mapname)
+        res = api.Command['automountmap_del'](self.locname, self.mapname)['result']
         assert res == True
 
         # Verify that it is gone
@@ -340,7 +340,7 @@ class test_automount_indirect_no_parent(XMLRPC_test):
         """
         Remove the location.
         """
-        res = api.Command['automountlocation_del'](self.locname)
+        res = api.Command['automountlocation_del'](self.locname)['result']
         assert res == True
 
         # Verity that it is gone
@@ -350,4 +350,3 @@ class test_automount_indirect_no_parent(XMLRPC_test):
             pass
         else:
             assert False
-

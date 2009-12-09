@@ -149,7 +149,7 @@ class service_add(LDAPCreate):
             raise errors.HostService()
 
         try:
-            (hostdn, hostentry) = api.Command['host_show'](hostname, **{})
+            api.Command['host_show'](hostname)
         except errors.NotFound:
             raise errors.NotFound(reason="The host '%s' does not exist to add a service to." % hostname)
 
@@ -267,4 +267,3 @@ class service_remove_host(LDAPRemoveMember):
     member_attributes = ['managedby']
 
 api.register(service_remove_host)
-

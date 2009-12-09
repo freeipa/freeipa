@@ -1,6 +1,6 @@
 # Authors: Jason Gerard DeRose <jderose@redhat.com>
 #
-# Copyright (C) 2008  Red Hat
+# Copyright (C) 2009  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or
@@ -21,9 +21,10 @@ Custom IPA widgets.
 """
 
 from textwrap import dedent
-from wehjit import Collection, base, freeze
+from wehjit import Collection, base, freeze, builtins
 from wehjit.util import Alternator
 from wehjit import Static, Dynamic, StaticProp, DynamicProp
+from ipaserver.rpcserver import extract_query
 
 
 class IPAPlugins(base.Container):
@@ -189,6 +190,14 @@ class Command(base.Widget):
     <td py:content="repr(option)" />
     </tr>
 
+    <tr py:if="plugin.output" class="${row.next()}">
+    <th colspan="2" py:content="'output (%d)' % len(plugin.output)" />
+    </tr>
+    <tr py:for="param in plugin.output()" class="${row.next()}">
+    <td py:content="param.name"/>
+    <td py:content="repr(param)" />
+    </tr>
+
     </table>
     """
 
@@ -211,12 +220,177 @@ class Object(base.Widget):
     <th colspan="2" py:content="'params (%d)' % len(plugin.params)" />
     </tr>
     <tr py:for="param in plugin.params()" class="${row.next()}">
-    <td py:content="param.name"/>
+    <td>${"param.name"}:</td>
     <td py:content="repr(param)" />
     </tr>
 
     </table>
     """
+
+
+
+class Conditional(base.Container):
+
+    mode = Static('mode', default='input')
+
+    @DynamicProp
+    def page_mode(self):
+        if self.page is None:
+            return
+        return self.page.mode
+
+    xml = """
+    <div
+        xmlns:py="http://genshi.edgewall.org/"
+        py:if="mode == page_mode"
+        py:strip="True"
+    >
+    <child py:for="child in children" py:replace="child.generate()" />
+    </div>
+    """
+
+
+class Output(base.Widget):
+    """
+    Shows attributes form an LDAP entry.
+    """
+
+    order = Dynamic('order')
+    labels = Dynamic('labels')
+    result = Dynamic('result')
+
+    xml = """
+    <div
+        xmlns:py="http://genshi.edgewall.org/"
+        class="${klass}"
+        id="${id}"
+    >
+    <table py:if="isinstance(result, dict)">
+    <tr py:for="key in order" py:if="key in result">
+    <th py:content="labels[key]" />
+    <td py:content="result[key]" />
+    </tr>
+    </table>
+
+    <table
+        py:if="isinstance(result, (list, tuple)) and len(result) > 0"
+    >
+    <tr>
+    <th
+        py:for="key in order"
+        py:if="key in result[0]"
+        py:content="labels[key]"
+    />
+    </tr>
+    <tr py:for="entry in result">
+    <td
+        py:for="key in order"
+        py:if="key in result[0]"
+        py:content="entry[key]"
+    />
+    </tr>
+    </table>
+    </div>
+    """
+
+    style = (
+        ('table', (
+            ('empty-cells', 'show'),
+            ('border-collapse', 'collapse'),
+        )),
+
+        ('th', (
+            ('text-align', 'right'),
+            ('padding', '.25em 0.5em'),
+            ('line-height', '%(height_bar)s'),
+            ('vertical-align', 'top'),
+        )),
+
+        ('td', (
+            ('padding', '.25em'),
+            ('vertical-align', 'top'),
+            ('text-align', 'left'),
+            ('line-height', '%(height_bar)s'),
+        )),
+    )
+
+
+class Hidden(base.Field):
+    xml = """
+    <input
+        xmlns:py="http://genshi.edgewall.org/"
+        type="hidden"
+        name="${name}"
+    />
+    """
+
+
+class Notification(base.Widget):
+    message = Dynamic('message')
+    error = Dynamic('error', default=False)
+
+    @property
+    def extra_css_classes(self):
+        if self.error:
+            yield 'error'
+        else:
+            yield 'okay'
+
+    xml = """
+    <p
+        xmlns:py="http://genshi.edgewall.org/"
+        class="${klass}"
+        id="${id}"
+        py:if="message"
+        py:content="message"
+    />
+    """
+
+    style = (
+        ('', (
+            ('font-weight', 'bold'),
+            ('-moz-border-radius', '100%%'),
+            ('background-color', '#eee'),
+            ('border', '2px solid #966'),
+            ('padding', '0.5em'),
+            ('text-align', 'center'),
+        )),
+    )
+
+
+class PageCmd(builtins.PageApp):
+    cmd = Static('cmd')
+    mode = Dynamic('mode', default='input')
+
+    def controller(self, environ):
+        query = extract_query(environ)
+        self.mode = query.pop('__mode__', 'input')
+        if self.mode == 'input':
+            return
+        soft = self.cmd.soft_validate(query)
+        errors = soft['errors']
+        values = soft['values']
+        if errors:
+            self.mode = 'input'
+            for key in self.form:
+                if key in errors:
+                    self.form[key].error = errors[key]
+                if key in values:
+                    self.form[key].value = values[key]
+            return
+        output = self.cmd(**query)
+        if isinstance(output, dict) and 'summary' in output:
+            self.notification.message = output['summary']
+        params = self.cmd.output_params
+        if params:
+            order = list(params)
+            labels = dict((p.name, p.label) for p in params())
+        else:
+            order = sorted(entry)
+            labels = dict((k, k) for k in order)
+        self.show.order = order
+        self.show.labels = labels
+        self.show.result = output.get('result')
 
 
 def create_widgets():
@@ -227,6 +401,12 @@ def create_widgets():
     widgets.register(IPAPlugins)
     widgets.register(Command)
     widgets.register(Object)
+    widgets.register(Conditional)
+    widgets.register(Output)
+    widgets.register(Hidden)
+    widgets.register(Notification)
+
+    widgets.register(PageCmd)
 
 
     freeze(widgets)

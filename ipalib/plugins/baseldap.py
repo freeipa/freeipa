@@ -26,6 +26,7 @@ from ipalib import Command, Method, Object
 from ipalib import Flag, List, Str
 from ipalib.base import NameSpace
 from ipalib.cli import to_cli, from_cli
+from ipalib import output
 
 
 def validate_add_attribute(ugettext, attr):
@@ -178,9 +179,12 @@ class LDAPCreate(crud.Create):
         dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
-        return (dn, entry_attrs)
+        return dict(
+            result=entry_attrs,
+            value=keys[0],
+        )
 
-    def output_for_cli(self, textui, entry, *keys, **options):
+    def dont_output_for_cli(self, textui, entry, *keys, **options):
         textui.print_name(self.name)
         self.obj.print_entry(textui, entry, *keys, **options)
         if len(keys) > 1:
@@ -220,6 +224,7 @@ class LDAPRetrieve(LDAPQuery):
     """
     Retrieve an LDAP entry.
     """
+
     takes_options = (
         Flag('raw',
             cli_name='raw',
@@ -230,6 +235,8 @@ class LDAPRetrieve(LDAPQuery):
             doc='retrieve all attributes',
         ),
     )
+
+    has_output = output.standard_entry
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
@@ -248,9 +255,14 @@ class LDAPRetrieve(LDAPQuery):
         dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
-        return (dn, entry_attrs)
+        entry_attrs['dn'] = dn
+        return dict(
+            result=entry_attrs,
+            value=keys[0],
+        )
 
-    def output_for_cli(self, textui, entry, *keys, **options):
+
+    def dont_output_for_cli(self, textui, entry, *keys, **options):
         textui.print_name(self.name)
         self.obj.print_entry(textui, entry, *keys, **options)
 
@@ -328,9 +340,12 @@ class LDAPUpdate(LDAPQuery, crud.Update):
         dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
-        return (dn, entry_attrs)
+        return dict(
+            result=entry_attrs,
+            value=keys[0],
+        )
 
-    def output_for_cli(self, textui, entry, *keys, **options):
+    def dont_output_for_cli(self, textui, entry, *keys, **options):
         textui.print_name(self.name)
         self.obj.print_entry(textui, entry, *keys, **options)
         if len(keys) > 1:
@@ -359,6 +374,8 @@ class LDAPDelete(LDAPQuery):
     """
     Delete an LDAP entry and all of its direct subentries.
     """
+    has_output = output.standard_delete
+
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
@@ -384,9 +401,13 @@ class LDAPDelete(LDAPQuery):
 
         result = self.post_callback(ldap, dn, *keys, **options)
 
-        return result
+        return dict(
+            result=result,
+            value=keys[0],
+        )
 
-    def output_for_cli(self, textui, result, *keys, **options):
+
+    def dont_output_for_cli(self, textui, result, *keys, **options):
         textui.print_name(self.name)
         if len(keys) > 1:
             textui.print_dashed(
@@ -454,7 +475,7 @@ class LDAPModMember(LDAPQuery):
                         failed[attr][ldap_obj_name].append(name)
         return (dns, failed)
 
-    def output_for_cli(self, textui, result, *keys, **options):
+    def dont_output_for_cli(self, textui, result, *keys, **options):
         (completed, failed, entry) = result
 
         for (attr, objs) in failed.iteritems():
@@ -478,6 +499,19 @@ class LDAPAddMember(LDAPModMember):
     """
     member_param_doc = 'comma-separated list of %s to add'
     member_count_out = ('%i member added.', '%i members added.')
+
+    has_output = (
+        output.Entry('result'),
+        output.Output('completed',
+            type=int,
+            doc='Number of members added',
+        ),
+        output.Output('failed',
+            type=dict,
+            doc='Members that could not be added',
+        ),
+    )
+
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
@@ -511,7 +545,11 @@ class LDAPAddMember(LDAPModMember):
         )
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
-        return (completed, failed, (dn, entry_attrs))
+        return dict(
+            completed=completed,
+            failed=failed,
+            result=entry_attrs,
+        )
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         return dn
@@ -526,6 +564,18 @@ class LDAPRemoveMember(LDAPModMember):
     """
     member_param_doc = 'comma-separated list of %s to remove'
     member_count_out = ('%i member removed.', '%i members removed.')
+
+    has_output = (
+        output.Entry('result'),
+        output.Output('completed',
+            type=int,
+            doc='Number of members removed',
+        ),
+        output.Output('failed',
+            type=dict,
+            doc='Members that could not be removed',
+        ),
+    )
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
@@ -559,7 +609,11 @@ class LDAPRemoveMember(LDAPModMember):
         )
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
-        return (completed, failed, (dn, entry_attrs))
+        return dict(
+            completed=completed,
+            failed=failed,
+            result=entry_attrs,
+        )
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         return dn
@@ -647,9 +701,18 @@ class LDAPSearch(crud.Search):
                     entries[i][1], *args, **options
                 )
                 entries[i] = (dn, entries[i][1])
-        return (entries, truncated)
 
-    def output_for_cli(self, textui, result, *args, **options):
+        entries = tuple(e for (dn, e) in entries)
+
+        return dict(
+            result=entries,
+            count=len(entries),
+            truncated=truncated,
+        )
+
+
+
+    def dont_output_for_cli(self, textui, result, *args, **options):
         (entries, truncated) = result
 
         textui.print_name(self.name)

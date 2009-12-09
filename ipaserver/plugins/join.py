@@ -72,6 +72,9 @@ class join(Command):
         ),
     )
 
+    has_output = tuple()
+    use_output_validation = False
+
     def execute(self, hostname, **kw):
         """
         Execute the machine join operation.

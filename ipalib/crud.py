@@ -20,13 +20,15 @@
 Base classes for standard CRUD operations.
 """
 
-import backend, frontend, parameters
+import backend, frontend, parameters, output
 
 
 class Create(frontend.Method):
     """
     Create a new entry.
     """
+
+    has_output = output.standard_entry
 
     def get_args(self):
         if self.obj.primary_key:
@@ -53,17 +55,20 @@ class PKQuery(frontend.Method):
             yield self.obj.primary_key.clone(attribute=True, query=True)
 
 
-
 class Retrieve(PKQuery):
     """
     Retrieve an entry by its primary key.
     """
+
+    has_output = output.standard_entry
 
 
 class Update(PKQuery):
     """
     Update one or more attributes on an entry.
     """
+
+    has_output = output.standard_entry
 
     def get_options(self):
         if self.extra_options_first:
@@ -75,16 +80,21 @@ class Update(PKQuery):
             for option in super(Update, self).get_options():
                 yield option
 
+
 class Delete(PKQuery):
     """
     Delete one or more entries.
     """
+
+    has_output = output.standard_delete
 
 
 class Search(frontend.Method):
     """
     Retrieve all entries that match a given search criteria.
     """
+
+    has_output = output.standard_list_of_entries
 
     def get_args(self):
         yield parameters.Str('criteria?')
@@ -176,4 +186,3 @@ class CrudBackend(backend.Connectible):
         this method should return an empty iterable.
         """
         raise NotImplementedError('%s.search()' % self.name)
-

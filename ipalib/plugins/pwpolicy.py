@@ -25,6 +25,7 @@ Password policy
 from ipalib import api, crud, errors
 from ipalib import Command, Object
 from ipalib import Int, Str
+from ipalib import output
 from ldap.functions import explode_dn
 
 _fields = {
@@ -54,6 +55,7 @@ def _convert_time_on_input(entry_attrs):
     if 'krbminpwdlife' in entry_attrs:
         entry_attrs['krbminpwdlife'] = entry_attrs['krbminpwdlife'] * 3600
 
+
 def make_cos_entry(group, cospriority=None):
     """
     Make the CoS dn and entry for this group.
@@ -64,9 +66,10 @@ def make_cos_entry(group, cospriority=None):
     """
 
     try:
-        (groupdn, group_attrs) = api.Command['group_show'](group)
+        entry = api.Command['group_show'](group)['result']
     except errors.NotFound:
         raise errors.NotFound(reason="group '%s' does not exist" % group)
+    groupdn = entry['dn']
 
     cos_entry = {}
     if cospriority:
@@ -75,6 +78,7 @@ def make_cos_entry(group, cospriority=None):
     cos_dn = 'cn=\"%s\", cn=cosTemplates, cn=accounts, %s' % (groupdn, api.env.basedn)
 
     return (cos_dn, cos_entry)
+
 
 def make_policy_entry(group_cn, policy_entry):
     """
@@ -97,6 +101,7 @@ def make_policy_entry(group_cn, policy_entry):
     policy_entry['cn'] = group_cn
 
     return (policy_dn, policy_entry)
+
 
 class pwpolicy(Object):
     """
@@ -138,6 +143,7 @@ class pwpolicy(Object):
 
 api.register(pwpolicy)
 
+
 class pwpolicy_add(crud.Create):
     """
     Create a new password policy associated with a group.
@@ -150,6 +156,7 @@ class pwpolicy_add(crud.Create):
         ),
         Int('cospriority',
             cli_name='priority',
+            label='Priority',
             doc='Priority of the policy. Higher number equals higher priority',
             minvalue=0,
             attribute=True,
@@ -182,21 +189,11 @@ class pwpolicy_add(crud.Create):
 
         _convert_time_for_output(entry_attrs)
 
-        return (dn, entry_attrs)
-
-    def output_for_cli(self, textui, result, *args, **options):
-#        textui.print_name(self.name)
-#        textui.print_dashed("Added policy for '%s'." % options['group'])
-        (dn, entry_attrs) = result
-
-        textui.print_name(self.name)
-        textui.print_plain('Password policy:')
-        for (k, v) in _fields.iteritems():
-            if k in entry_attrs:
-                textui.print_attribute(v, entry_attrs[k])
-        textui.print_dashed('Modified password policy.')
+        entry_attrs['dn'] = dn
+        return dict(result=entry_attrs, value=group_cn)
 
 api.register(pwpolicy_add)
+
 
 class pwpolicy_mod(crud.Update):
     """
@@ -213,6 +210,10 @@ class pwpolicy_mod(crud.Update):
             minvalue=0,
             attribute=True,
         ),
+    )
+
+    has_output = (
+        output.Entry('result'),
     )
 
     def execute(self, *args, **options):
@@ -235,24 +236,16 @@ class pwpolicy_mod(crud.Update):
 
         _convert_time_for_output(entry_attrs)
 
-        return (dn, entry_attrs)
-
-    def output_for_cli(self, textui, result, *args, **options):
-        (dn, entry_attrs) = result
-
-        textui.print_name(self.name)
-        textui.print_plain('Password policy:')
-        for (k, v) in _fields.iteritems():
-            if k in entry_attrs:
-                textui.print_attribute(v, entry_attrs[k])
-        textui.print_dashed('Modified password policy.')
+        return dict(result=entry_attrs)
 
 api.register(pwpolicy_mod)
+
 
 class pwpolicy_del(crud.Delete):
     """
     Delete a group password policy.
     """
+
     takes_options = (
         Str('group',
             doc='Group to remove policy from',
@@ -278,12 +271,10 @@ class pwpolicy_del(crud.Delete):
 
         ldap.delete_entry(policy_dn, normalize=False)
         ldap.delete_entry(cos_dn, normalize=False)
-
-        return True
-
-    def output_for_cli(self, textui, result, *args, **options):
-        textui.print_name(self.name)
-        textui.print_dashed('Deleted policy "%s".' % options['group'])
+        return dict(
+            result=True,
+            value=group_cn,
+        )
 
 api.register(pwpolicy_del)
 
@@ -292,6 +283,7 @@ class pwpolicy_show(Command):
     """
     Display password policy.
     """
+
     takes_options = (
         Str('group?',
             doc='Group to display policy',
@@ -300,6 +292,7 @@ class pwpolicy_show(Command):
             doc='Display policy applied to a given user',
         ),
     )
+
     def execute(self, *args, **options):
         ldap = self.api.Backend.ldap2
 
@@ -333,16 +326,6 @@ class pwpolicy_show(Command):
                 entry_attrs['group'] = 'global'
         _convert_time_for_output(entry_attrs)
 
-        return (dn, entry_attrs)
-
-    def output_for_cli(self, textui, result, *args, **options):
-        (dn, entry_attrs) = result
-
-        textui.print_name(self.name)
-        textui.print_plain('Password policy:')
-        for (k, v) in _fields.iteritems():
-            if k in entry_attrs:
-                textui.print_attribute(v, entry_attrs[k])
+        return dict(result=entry_attrs)
 
 api.register(pwpolicy_show)
-

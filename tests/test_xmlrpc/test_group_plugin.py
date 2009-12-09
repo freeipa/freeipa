@@ -23,174 +23,376 @@ Test the `ipalib/plugins/group.py` module.
 
 import sys
 from xmlrpc_test import XMLRPC_test, assert_attr_equal
-from ipalib import api
-from ipalib import errors
+from ipalib import api, errors
+from xmlrpc_test import Declarative
 
 
-class test_group(XMLRPC_test):
-    """
-    Test the `group` plugin.
-    """
-    cn = u'testgroup'
-    cn2 = u'testgroup2'
-    cnposix = u'posixgroup'
-    description = u'This is a test'
-    kw = {'description': description, 'cn': cn, 'raw': True}
+group_objectclass = (
+    u'top',
+    u'groupofnames',
+    u'nestedgroup',
+    u'ipausergroup',
+    u'ipaobject',
+)
 
-    def test_1_group_add(self):
-        """
-        Test the `xmlrpc.group_add` method: testgroup.
-        """
-        (dn, res) = api.Command['group_add'](**self.kw)
-        assert res
-        assert_attr_equal(res, 'description', self.description)
-        assert_attr_equal(res, 'cn', self.cn)
-        assert_attr_equal(res, 'objectclass', 'ipaobject')
 
-    def test_2_group_add(self):
-        """
-        Test the `xmlrpc.group_add` method duplicate detection.
-        """
-        try:
-            api.Command['group_add'](**self.kw)
-        except errors.DuplicateEntry:
-            pass
+class test_group(Declarative):
+    cleanup_commands = [
+        ('group_del', [u'testgroup1'], {}),
+        ('group_del', [u'testgroup2'], {}),
+    ]
 
-    def test_3_group_add(self):
-        """
-        Test the `xmlrpc.group_add` method: testgroup2.
-        """
-        self.kw['cn'] = self.cn2
-        (dn, res) = api.Command['group_add'](**self.kw)
-        assert res
-        assert_attr_equal(res, 'description', self.description)
-        assert_attr_equal(res, 'cn', self.cn2)
+    tests = [
+        # testgroup1:
+        dict(
+            desc='Try to retrieve a non-existant testgroup1',
+            command=('group_show', [u'testgroup2'], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
 
-    def test_3_group_add_member(self):
-        """
-        Test the `xmlrpc.group_add_member` method.
-        """
-        kw = {'raw': True}
-        kw['group'] = self.cn2
-        (total, failed, res) = api.Command['group_add_member'](self.cn, **kw)
-        assert total == 1, '%r %r %r' % (total, failed, res)
+        dict(
+            desc='Create testgroup1',
+            command=(
+                'group_add', [u'testgroup1'], dict(description=u'Test desc 1')
+            ),
+            expected=dict(
+                value=u'testgroup1',
+                result=dict(
+                    cn=(u'testgroup1',),
+                    description=(u'Test desc 1',),
+                    objectclass=group_objectclass,
+                ),
+                summary=u'Added group "testgroup1"',
+            ),
+            ignore_values=['ipauniqueid'],
+        ),
 
-    def test_4_group_add_member(self):
-        """
-        Test the `xmlrpc.group_add_member` with a non-existent member
-        """
-        kw = {'raw': True}
-        kw['group'] = u'notfound'
-        (total, failed, res) = api.Command['group_add_member'](self.cn, **kw)
-        assert total == 0
-        assert 'member' in failed
-        assert 'group' in failed['member']
-        assert 'notfound' in failed['member']['group']
+        dict(
+            desc='Try to create testgroup1 again',
+            command=(
+                'group_add', [u'testgroup1'], dict(description=u'Test desc 1')
+            ),
+            expected=errors.DuplicateEntry(),
+        ),
 
-    def test_5_group_show(self):
-        """
-        Test the `xmlrpc.group_show` method.
-        """
-        (dn, res) = api.Command['group_show'](self.cn, raw=True)
-        assert res
-        assert_attr_equal(res, 'description', self.description)
-        assert_attr_equal(res, 'cn', self.cn)
+        dict(
+            desc='Retrieve testgroup1',
+            command=('group_show', [u'testgroup1'], {}),
+            expected=dict(
+                value=u'testgroup1',
+                result=dict(
+                    cn=(u'testgroup1',),
+                    description=(u'Test desc 1',),
+                ),
+                summary=None,
+            ),
+            ignore_values=['dn'],
+        ),
 
-    def test_6_group_find(self):
-        """
-        Test the `xmlrpc.group_find` method.
-        """
-        (res, truncated) = api.Command['group_find'](cn=self.cn, raw=True)
-        assert res
-        assert_attr_equal(res[0][1], 'description', self.description)
-        assert_attr_equal(res[0][1], 'cn', self.cn)
+        dict(
+            desc='Updated testgroup1',
+            command=(
+                'group_mod', [u'testgroup1'], dict(description=u'New desc 1')
+            ),
+            expected=dict(
+                result=dict(
+                    description=(u'New desc 1',),
+                ),
+                summary=u'Modified group "testgroup1"',
+                value=u'testgroup1',
+            ),
+        ),
 
-    def test_7_group_mod(self):
-        """
-        Test the `xmlrpc.group_mod` method.
-        """
-        modkw = self.kw
-        modkw['cn'] = self.cn
-        modkw['description'] = u'New description'
-        (dn, res) = api.Command['group_mod'](**modkw)
-        assert res
-        assert_attr_equal(res, 'description', 'New description')
-        # Ok, double-check that it was changed
-        (dn, res) = api.Command['group_show'](self.cn)
-        assert res
-        assert_attr_equal(res, 'description', 'New description')
-        assert_attr_equal(res, 'cn', self.cn)
+        dict(
+            desc='Retrieve testgroup1 to check update',
+            command=('group_show', [u'testgroup1'], {}),
+            expected=dict(
+                value=u'testgroup1',
+                result=dict(
+                    cn=(u'testgroup1',),
+                    description=(u'New desc 1',),
+                ),
+                summary=None,
+            ),
+            ignore_values=['dn'],
+        ),
 
-    def test_8_group_mod(self):
-        """
-        Test the `xmlrpc.group_mod` method, promote a posix group
-        """
-        modkw = self.kw
-        modkw['cn'] = self.cn
-        modkw['posix'] = True
-        modkw['all'] = True
-        modkw['raw'] = True
-        (dn, res) = api.Command['group_mod'](**modkw)
-        assert res
-        assert_attr_equal(res, 'description', 'New description')
-        assert_attr_equal(res, 'cn', self.cn)
-        # Ok, double-check that it was changed
-        (dn, res) = api.Command['group_show'](self.cn, all=True, raw=True)
-        assert res
-        assert_attr_equal(res, 'description', 'New description')
-        assert_attr_equal(res, 'cn', self.cn)
-        assert res.get('gidnumber', '')
+        # FIXME: The return value is totally different here than from the above
+        # group_mod() test.  I think that for all *_mod() commands we should
+        # just return the entry exactly as *_show() does.
+        dict(
+            desc='Updated testgroup1 to promote it to posix group',
+            command=('group_mod', [u'testgroup1'], dict(posix=True)),
+            expected=dict(
+                result=dict(
+                    cn=(u'testgroup1',),
+                    description=(u'New desc 1',),
+                    objectclass=group_objectclass + (u'posixgroup',),
+                ),
+                value=u'testgroup1',
+                summary=u'Modified group "testgroup1"',
+            ),
+            ignore_values=['gidnumber', 'ipauniqueid'],
+        ),
 
-    def test_9_group_remove_member(self):
-        """
-        Test the `xmlrpc.group_remove_member` method.
-        """
-        kw = {'raw': True}
-        kw['group'] = self.cn2
-        (total, failed, res) = api.Command['group_remove_member'](self.cn, **kw)
-        assert res
-        assert total == 1
+        dict(
+            desc="Retrieve testgroup1 to check it's a posix group",
+            command=('group_show', [u'testgroup1'], {}),
+            expected=dict(
+                value=u'testgroup1',
+                result=dict(
+                    cn=(u'testgroup1',),
+                    description=(u'New desc 1',),
+                ),
+                summary=None,
+            ),
+            ignore_values=['dn', 'gidnumber'],
+        ),
 
-    def test_a_group_remove_member(self):
-        """
-        Test the `xmlrpc.group_remove_member` method with non-member
-        """
-        kw = {'raw': True}
-        kw['group'] = u'notfound'
-        # an error isn't thrown, the list of failed members is returned
-        (total, failed, res) = api.Command['group_remove_member'](self.cn, **kw)
-        assert total == 0
-        assert 'member' in failed
-        assert 'group' in failed['member']
-        assert 'notfound' in failed['member']['group']
+        dict(
+            desc='Search for testgroup1',
+            command=('group_find', [], dict(cn=u'testgroup1')),
+            expected=dict(
+                count=1,
+                truncated=False,
+                result=(
+                    dict(
+                        cn=(u'testgroup1',),
+                        description=(u'New desc 1',),
+                    ),
+                ),
+                summary=u'1 group matched',
+            ),
+            ignore_values=['gidnumber'],
+        ),
 
-    def test_b_group_del(self):
-        """
-        Test the `xmlrpc.group_del` method: testgroup.
-        """
-        res = api.Command['group_del'](self.cn)
-        assert res == True
 
-        # Verify that it is gone
-        try:
-            api.Command['group_show'](self.cn)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
+        # testgroup2:
+        dict(
+            desc='Try to retrieve a non-existant testgroup2',
+            command=('group_show', [u'testgroup2'], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
 
-    def test_c_group_del(self):
-        """
-        Test the `xmlrpc.group_del` method: testgroup2.
-        """
-        res = api.Command['group_del'](self.cn2)
-        assert res == True
+        dict(
+            desc='Create testgroup2',
+            command=(
+                'group_add', [u'testgroup2'], dict(description=u'Test desc 2')
+            ),
+            expected=dict(
+                value=u'testgroup2',
+                result=dict(
+                    cn=(u'testgroup2',),
+                    description=(u'Test desc 2',),
+                    objectclass=group_objectclass,
+                ),
+                summary=u'Added group "testgroup2"',
+            ),
+            ignore_values=['ipauniqueid'],
+        ),
 
-        # Verify that it is gone
-        try:
-            api.Command['group_show'](self.cn2)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
+        dict(
+            desc='Try to create testgroup2 again',
+            command=(
+                'group_add', [u'testgroup2'], dict(description=u'Test desc 2')
+            ),
+            expected=errors.DuplicateEntry(),
+        ),
 
+        dict(
+            desc='Retrieve testgroup2',
+            command=('group_show', [u'testgroup2'], {}),
+            expected=dict(
+                value=u'testgroup2',
+                result=dict(
+                    cn=(u'testgroup2',),
+                    description=(u'Test desc 2',),
+                ),
+                summary=None,
+            ),
+            ignore_values=['dn'],
+        ),
+
+        dict(
+            desc='Search for testgroup2',
+            command=('group_find', [], dict(cn=u'testgroup2')),
+            expected=dict(
+                count=1,
+                truncated=False,
+                result=(
+                    dict(
+                        cn=(u'testgroup2',),
+                        description=(u'Test desc 2',),
+                    ),
+                ),
+                summary=u'1 group matched',
+            ),
+        ),
+
+        dict(
+            desc='Updated testgroup2',
+            command=(
+                'group_mod', [u'testgroup2'], dict(description=u'New desc 2')
+            ),
+            expected=dict(
+                result=dict(
+                    description=(u'New desc 2',),
+                ),
+                value=u'testgroup2',
+                summary=u'Modified group "testgroup2"',
+            ),
+        ),
+
+        dict(
+            desc='Retrieve testgroup2 to check update',
+            command=('group_show', [u'testgroup2'], {}),
+            expected=dict(
+                value=u'testgroup2',
+                result=dict(
+                    cn=(u'testgroup2',),
+                    description=(u'New desc 2',),
+                ),
+                summary=None,
+            ),
+            ignore_values=['dn'],
+        ),
+
+
+        # member stuff:
+        dict(
+            desc='Make testgroup2 member of testgroup1',
+            command=(
+                'group_add_member', [u'testgroup1'], dict(group=u'testgroup2')
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                ),
+                result={'member group': (u'testgroup2',)},
+            ),
+        ),
+
+        dict(
+            # FIXME: Shouldn't this raise a NotFound instead?
+            desc='Try to add a non-existent member to testgroup1',
+            command=(
+                'group_add_member', [u'testgroup1'], dict(group=u'notfound')
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        group=(u'notfound',),
+                        user=tuple(),
+                    ),
+                ),
+                result={'member group': (u'testgroup2',)},
+            ),
+        ),
+
+        dict(
+            desc='Remove member testgroup2 from testgroup1',
+            command=('group_remove_member',
+                [u'testgroup1'], dict(group=u'testgroup2')
+            ),
+            expected=dict(
+                completed=1,
+                result=dict(),
+                failed=dict(
+                    member=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                ),
+            ),
+        ),
+
+        dict(
+            # FIXME: Shouldn't this raise a NotFound instead?
+            desc='Try to remove a non-existent member from testgroup1',
+            command=('group_remove_member',
+                [u'testgroup1'], dict(group=u'notfound')
+            ),
+            expected=dict(
+                completed=0,
+                result=dict(),
+                failed=dict(
+                    member=dict(
+                        group=(u'notfound',),
+                        user=tuple(),
+                    ),
+                ),
+            ),
+        ),
+
+
+        # Delete:
+        dict(
+            desc='Delete testgroup1',
+            command=('group_del', [u'testgroup1'], {}),
+            expected=dict(
+                result=True,
+                value=u'testgroup1',
+                summary=u'Deleted group "testgroup1"',
+            ),
+        ),
+
+        dict(
+            desc='Delete testgroup2',
+            command=('group_del', [u'testgroup2'], {}),
+            expected=dict(
+                result=True,
+                value=u'testgroup2',
+                summary=u'Deleted group "testgroup2"',
+            ),
+        ),
+
+
+        ##############
+        # Non-existent
+        ##############
+
+        # testgroup1:
+        dict(
+            desc='Try to retrieve non-existent testgroup1',
+            command=('group_show', [u'testgroup1'], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+        dict(
+            desc='Try to update non-existent testgroup1',
+            command=(
+                'group_mod', [u'testgroup1'], dict(description=u'New desc 1')
+            ),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+        dict(
+            desc='Try to delete non-existent testgroup1',
+            command=('group_del', [u'testgroup1'], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+        # testgroup2:
+        dict(
+            desc='Try to retrieve non-existent testgroup2',
+            command=('group_show', [u'testgroup2'], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+        dict(
+            desc='Try to update non-existent testgroup2',
+            command=(
+                'group_mod', [u'testgroup2'], dict(description=u'New desc 2')
+            ),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+        dict(
+            desc='Try to delete non-existent testgroup2',
+            command=('group_del', [u'testgroup2'], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+    ]

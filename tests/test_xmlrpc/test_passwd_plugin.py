@@ -41,27 +41,25 @@ class test_passwd(XMLRPC_test):
         """
         Create a test user
         """
-        (dn, res) = api.Command['user_add'](**self.kw)
-        assert res
-        assert_attr_equal(res, 'givenname', self.givenname)
-        assert_attr_equal(res, 'sn', self.sn)
-        assert_attr_equal(res, 'uid', self.uid)
-        assert_attr_equal(res, 'homedirectory', self.home)
-        assert_attr_equal(res, 'objectclass', 'ipaobject')
+        entry = api.Command['user_add'](**self.kw)['result']
+        assert_attr_equal(entry, 'givenname', self.givenname)
+        assert_attr_equal(entry, 'sn', self.sn)
+        assert_attr_equal(entry, 'uid', self.uid)
+        assert_attr_equal(entry, 'homedirectory', self.home)
+        assert_attr_equal(entry, 'objectclass', 'ipaobject')
 
     def test_2_set_passwd(self):
         """
         Test the `xmlrpc.passwd` method.
         """
-        res = api.Command['passwd'](self.uid, password=u'password1')
-        assert res
+        out = api.Command['passwd'](self.uid, password=u'password1')
+        assert out['result'] is True
 
     def test_3_user_del(self):
         """
         Remove the test user
         """
-        res = api.Command['user_del'](self.uid)
-        assert res == True
+        assert api.Command['user_del'](self.uid)['result'] is True
 
         # Verify that it is gone
         try:

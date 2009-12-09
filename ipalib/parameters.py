@@ -233,8 +233,8 @@ class Param(ReadOnly):
     kwargs = (
         ('cli_name', str, None),
         ('cli_short_name', str, None),
-        ('label', callable, None),
-        ('doc', str, ''),
+        ('label', str, None),
+        ('doc', str, None),
         ('required', bool, True),
         ('multivalue', bool, False),
         ('primary_key', bool, False),
@@ -285,9 +285,15 @@ class Param(ReadOnly):
                 )
             )
 
-        # Merge in default for 'cli_name' if not given:
-        if kw.get('cli_name', None) is None:
+        # Merge in default for 'cli_name', label, doc if not given:
+        if kw.get('cli_name') is None:
             kw['cli_name'] = self.name
+
+        if kw.get('label') is None:
+            kw['label'] = '<%s>' % self.name
+
+        if kw.get('doc') is None:
+            kw['doc'] = kw['label']
 
         # Wrap 'default_from' in a DefaultFrom if not already:
         df = kw.get('default_from', None)
@@ -504,14 +510,6 @@ class Param(ReadOnly):
         kw = dict(self.__clonekw)
         kw.update(overrides)
         return self.__class__(self.name, **kw)
-
-    def get_label(self):
-        """
-        Return translated label using `request.ugettext`.
-        """
-        if self.label is None:
-            return self.cli_name.decode('UTF-8')
-        return self.label(ugettext)
 
     def normalize(self, value):
         """

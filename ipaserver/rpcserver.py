@@ -77,7 +77,7 @@ def extract_query(environ):
         qstr = environ['QUERY_STRING']
     if qstr:
         query = dict(nicify_query(
-            parse_qs(qstr, keep_blank_values=True)
+            parse_qs(qstr)#, keep_blank_values=True)
         ))
     else:
         query = {}
@@ -125,6 +125,9 @@ class WSGIExecutioner(Executioner):
                 error = InternalError()
         finally:
             destroy_context()
+        self.debug('Returning:\n%s',
+            json.dumps(result, sort_keys=True, indent=4)
+        )
         return self.marshal(result, error, _id)
 
     def simple_unmarshal(self, environ):

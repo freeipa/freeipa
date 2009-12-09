@@ -27,6 +27,7 @@ from ipalib import api
 from ipalib import errors
 import tempfile
 from ipapython import ipautil
+import nose
 
 
 class test_cert(XMLRPC_test):
@@ -37,6 +38,8 @@ class test_cert(XMLRPC_test):
         return ipautil.run(new_args, stdin)
 
     def setUp(self):
+        if 'cert_request' not in api.Command:
+            raise nose.SkipTest('cert_request not registered')
         super(test_cert, self).setUp()
         self.reqdir = tempfile.mkdtemp(prefix = "tmp-")
         self.reqfile = self.reqdir + "/test.csr"

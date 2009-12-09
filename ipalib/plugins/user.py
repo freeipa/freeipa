@@ -24,6 +24,7 @@ Users (Identity)
 from ipalib import api, errors
 from ipalib import Flag, Int, Password, Str
 from ipalib.plugins.baseldap import *
+from ipalib import _, ngettext
 
 
 class user(LDAPObject):
@@ -68,57 +69,59 @@ class user(LDAPObject):
     }
 
     takes_params = (
-        Str('givenname',
-            cli_name='first',
-            doc='First name',
-        ),
-        Str('sn',
-            cli_name='last',
-            doc='Last name',
-        ),
         Str('uid',
-            cli_name='user',
-            doc='Login name',
+            cli_name='login',
+            label='User login',
             primary_key=True,
             default_from=lambda givenname, sn: givenname[0] + sn,
             normalizer=lambda value: value.lower(),
         ),
-        Str('gecos?',
-            doc='GECOS field',
-            default_from=lambda uid: uid,
-            autofill=True,
+        Str('givenname',
+            cli_name='first',
+            label='First name',
+        ),
+        Str('sn',
+            cli_name='last',
+            label='Last name',
         ),
         Str('homedirectory?',
             cli_name='homedir',
-            doc='Home directory',
+            label='Home directory',
             default_from=lambda uid: '/home/%s' % uid,
+        ),
+        Str('gecos?',
+            label='GECOS field',
+            default_from=lambda uid: uid,
+            autofill=True,
         ),
         Str('loginshell?',
             cli_name='shell',
+            label='Login shell',
             default=u'/bin/sh',
-            doc='login shell',
         ),
         Str('krbprincipalname?',
             cli_name='principal',
-            doc='Kerberos principal name',
+            label='Kerberos principal',
             default_from=lambda uid: '%s@%s' % (uid, api.env.realm),
             autofill=True,
         ),
         Str('mail?',
             cli_name='email',
-            doc='e-mail address',
+            label='Email address',
         ),
         Password('userpassword?',
             cli_name='password',
-            doc='password',
+            label='Password',
+            doc='Set the user password',
         ),
         Int('uidnumber?',
             cli_name='uid',
+            label='UID',
             doc='UID (use this option to set it manually)',
         ),
         Str('street?',
             cli_name='street',
-            doc='street address',
+            label='Street address',
         ),
     )
 
@@ -129,6 +132,9 @@ class user_add(LDAPCreate):
     """
     Create new user.
     """
+
+    msg_summary = _('Added user "%(value)s"')
+
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         config = ldap.get_ipa_config()[1]
         entry_attrs.setdefault('loginshell', config.get('ipadefaultloginshell'))
@@ -171,6 +177,9 @@ class user_del(LDAPDelete):
     """
     Delete user.
     """
+
+    msg_summary = _('Deleted user "%(value)s"')
+
     def pre_callback(self, ldap, dn, *keys, **options):
         if keys[-1] == 'admin':
             raise errors.ExecutionError('Cannot delete user "admin".')
@@ -188,6 +197,8 @@ class user_mod(LDAPUpdate):
     Modify user.
     """
 
+    msg_summary = _('Modified user "%(value)s"')
+
 api.register(user_mod)
 
 
@@ -195,6 +206,10 @@ class user_find(LDAPSearch):
     """
     Search for users.
     """
+
+    msg_summary = ngettext(
+        '%(count)d user matched', '%(count)d users matched', 0
+    )
 
 api.register(user_find)
 
@@ -211,6 +226,10 @@ class user_lock(LDAPQuery):
     """
     Lock user account.
     """
+
+    has_output = output.standard_value
+    msg_summary = _('Locked user "%(value)s"')
+
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
@@ -221,11 +240,10 @@ class user_lock(LDAPQuery):
         except errors.AlreadyInactive:
             pass
 
-        return True
-
-    def output_for_cli(self, textui, result, *keys, **options):
-        textui.print_name(self.name)
-        textui.print_dashed('Locked user "%s".' % keys[-1])
+        return dict(
+            result=True,
+            value=keys[0],
+        )
 
 api.register(user_lock)
 
@@ -234,6 +252,10 @@ class user_unlock(LDAPQuery):
     """
     Unlock user account.
     """
+
+    has_output = output.standard_value
+    msg_summary = _('Unlocked user "%(value)s"')
+
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
@@ -244,10 +266,9 @@ class user_unlock(LDAPQuery):
         except errors.AlreadyActive:
             pass
 
-        return True
-
-    def output_for_cli(self, textui, result, *keys, **options):
-        textui.print_name(self.name)
-        textui.print_dashed('Unlocked user "%s".' % keys[-1])
+        return dict(
+            result=True,
+            value=keys[0],
+        )
 
 api.register(user_unlock)

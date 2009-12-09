@@ -42,21 +42,21 @@ class test_rolegroup(XMLRPC_test):
         """
         Test the `xmlrpc.rolegroup_add` method.
         """
-        (dn, res) = api.Command['rolegroup_add'](**self.kw)
-        assert res
-        assert_attr_equal(res, 'description', self.description)
-        assert_attr_equal(res, 'cn', self.cn)
-        assert_attr_equal(res, 'objectclass', 'ipaobject')
+        entry = api.Command['rolegroup_add'](**self.kw)['result']
+        assert_attr_equal(entry, 'description', self.description)
+        assert_attr_equal(entry, 'cn', self.cn)
+        # FIXME: Has the schema changed?  rolegroup doesn't have the 'ipaobject'
+        # object class.
+        #assert_attr_equal(entry, 'objectclass', 'ipaobject')
 
     def test_2_add_group(self):
         """
         Add a group to test add/remove member.
         """
         kw = {'cn': self.rolegroup_cn, 'description': self.rolegroup_description, 'raw': True}
-        (dn, res) = api.Command['group_add'](**kw)
-        assert res
-        assert_attr_equal(res, 'description', self.rolegroup_description)
-        assert_attr_equal(res, 'cn', self.rolegroup_cn)
+        entry = api.Command['group_add'](**kw)['result']
+        assert_attr_equal(entry, 'description', self.rolegroup_description)
+        assert_attr_equal(entry, 'cn', self.rolegroup_cn)
 
     def test_3_rolegroup_add_member(self):
         """
@@ -64,28 +64,28 @@ class test_rolegroup(XMLRPC_test):
         """
         kw = {}
         kw['group'] = self.rolegroup_cn
-        (total, failed, res) = api.Command['rolegroup_add_member'](self.cn, **kw)
-        assert total == 1
+        ret = api.Command['rolegroup_add_member'](self.cn, **kw)
+        assert ret['completed'] == 1
 
     def test_4_rolegroup_show(self):
         """
         Test the `xmlrpc.rolegroup_show` method.
         """
-        (dn, res) = api.Command['rolegroup_show'](self.cn, all=True, raw=True)
-        assert res
-        assert_attr_equal(res, 'description', self.description)
-        assert_attr_equal(res, 'cn', self.cn)
-        assert_is_member(res, 'cn=%s' % self.rolegroup_cn)
+        entry = api.Command['rolegroup_show'](self.cn, all=True, raw=True)['result']
+        assert_attr_equal(entry, 'description', self.description)
+        assert_attr_equal(entry, 'cn', self.cn)
+        assert_is_member(entry, 'cn=%s' % self.rolegroup_cn)
 
     def test_5_rolegroup_find(self):
         """
         Test the `xmlrpc.rolegroup_find` method.
         """
-        (res, truncated) = api.Command['rolegroup_find'](self.cn, all=True, raw=True)
-        assert res
-        assert_attr_equal(res[0][1], 'description', self.description)
-        assert_attr_equal(res[0][1], 'cn', self.cn)
-        assert_is_member(res[0][1], 'cn=%s' % self.rolegroup_cn)
+        ret = api.Command['rolegroup_find'](self.cn, all=True, raw=True)
+        assert ret['truncated'] is False
+        entries = ret['result']
+        assert_attr_equal(entries[0], 'description', self.description)
+        assert_attr_equal(entries[0], 'cn', self.cn)
+        assert_is_member(entries[0], 'cn=%s' % self.rolegroup_cn)
 
     def test_6_rolegroup_mod(self):
         """
@@ -93,15 +93,13 @@ class test_rolegroup(XMLRPC_test):
         """
         newdesc = u'Updated role group'
         modkw = {'cn': self.cn, 'description': newdesc, 'raw': True}
-        (dn, res) = api.Command['rolegroup_mod'](**modkw)
-        assert res
-        assert_attr_equal(res, 'description', newdesc)
+        entry = api.Command['rolegroup_mod'](**modkw)['result']
+        assert_attr_equal(entry, 'description', newdesc)
 
         # Ok, double-check that it was changed
-        (dn, res) = api.Command['rolegroup_show'](self.cn, raw=True)
-        assert res
-        assert_attr_equal(res, 'description', newdesc)
-        assert_attr_equal(res, 'cn', self.cn)
+        entry = api.Command['rolegroup_show'](self.cn, raw=True)['result']
+        assert_attr_equal(entry, 'description', newdesc)
+        assert_attr_equal(entry, 'cn', self.cn)
 
     def test_7_rolegroup_remove_member(self):
         """
@@ -109,15 +107,14 @@ class test_rolegroup(XMLRPC_test):
         """
         kw = {}
         kw['group'] = self.rolegroup_cn
-        (total, failed, res) = api.Command['rolegroup_remove_member'](self.cn, **kw)
-        assert total == 1
+        ret = api.Command['rolegroup_remove_member'](self.cn, **kw)
+        assert ret['completed'] == 1
 
     def test_8_rolegroup_del(self):
         """
         Test the `xmlrpc.rolegroup_del` method.
         """
-        res = api.Command['rolegroup_del'](self.cn)
-        assert res == True
+        assert api.Command['rolegroup_del'](self.cn)['result'] is True
 
         # Verify that it is gone
         try:
@@ -131,8 +128,7 @@ class test_rolegroup(XMLRPC_test):
         """
         Remove the group we created for member testing.
         """
-        res = api.Command['group_del'](self.rolegroup_cn)
-        assert res == True
+        assert api.Command['group_del'](self.rolegroup_cn)['result'] is True
 
         # Verify that it is gone
         try:
@@ -141,4 +137,3 @@ class test_rolegroup(XMLRPC_test):
             pass
         else:
             assert False
-

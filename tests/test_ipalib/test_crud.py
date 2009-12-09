@@ -34,7 +34,6 @@ class CrudChecker(ClassChecker):
         """
         Return a finalized `ipalib.plugable.API` instance.
         """
-        assert self.cls.__bases__ == (frontend.Method,)
         (api, home) = get_api()
         class user(frontend.Object):
             takes_params = (
@@ -50,6 +49,136 @@ class CrudChecker(ClassChecker):
         api.register(user_verb)
         api.finalize()
         return api
+
+
+class test_Create(CrudChecker):
+    """
+    Test the `ipalib.crud.Create` class.
+    """
+
+    _cls = crud.Create
+
+    def test_get_args(self):
+        """
+        Test the `ipalib.crud.Create.get_args` method.
+        """
+        api = self.get_api()
+        assert list(api.Method.user_verb.args) == ['uid']
+        assert api.Method.user_verb.args.uid.required is True
+
+    def test_get_options(self):
+        """
+        Test the `ipalib.crud.Create.get_options` method.
+        """
+        api = self.get_api()
+        assert list(api.Method.user_verb.options) == \
+            ['givenname', 'sn', 'initials']
+        for param in api.Method.user_verb.options():
+            assert param.required is True
+        api = self.get_api(options=('extra?',))
+        assert list(api.Method.user_verb.options) == \
+            ['givenname', 'sn', 'initials', 'extra']
+        assert api.Method.user_verb.options.extra.required is False
+
+
+class test_Update(CrudChecker):
+    """
+    Test the `ipalib.crud.Update` class.
+    """
+
+    _cls = crud.Update
+
+    def test_get_args(self):
+        """
+        Test the `ipalib.crud.Update.get_args` method.
+        """
+        api = self.get_api()
+        assert list(api.Method.user_verb.args) == ['uid']
+        assert api.Method.user_verb.args.uid.required is True
+
+    def test_get_options(self):
+        """
+        Test the `ipalib.crud.Update.get_options` method.
+        """
+        api = self.get_api()
+        assert list(api.Method.user_verb.options) == \
+            ['givenname', 'sn', 'initials']
+        for param in api.Method.user_verb.options():
+            assert param.required is False
+
+
+class test_Retrieve(CrudChecker):
+    """
+    Test the `ipalib.crud.Retrieve` class.
+    """
+
+    _cls = crud.Retrieve
+
+    def test_get_args(self):
+        """
+        Test the `ipalib.crud.Retrieve.get_args` method.
+        """
+        api = self.get_api()
+        assert list(api.Method.user_verb.args) == ['uid']
+        assert api.Method.user_verb.args.uid.required is True
+
+    def test_get_options(self):
+        """
+        Test the `ipalib.crud.Retrieve.get_options` method.
+        """
+        api = self.get_api()
+        assert list(api.Method.user_verb.options) == []
+        assert len(api.Method.user_verb.options) == 0
+
+
+class test_Delete(CrudChecker):
+    """
+    Test the `ipalib.crud.Delete` class.
+    """
+
+    _cls = crud.Delete
+
+    def test_get_args(self):
+        """
+        Test the `ipalib.crud.Delete.get_args` method.
+        """
+        api = self.get_api()
+        assert list(api.Method.user_verb.args) == ['uid']
+        assert api.Method.user_verb.args.uid.required is True
+
+    def test_get_options(self):
+        """
+        Test the `ipalib.crud.Delete.get_options` method.
+        """
+        api = self.get_api()
+        assert list(api.Method.user_verb.options) == []
+        assert len(api.Method.user_verb.options) == 0
+
+
+class test_Search(CrudChecker):
+    """
+    Test the `ipalib.crud.Search` class.
+    """
+
+    _cls = crud.Search
+
+    def test_get_args(self):
+        """
+        Test the `ipalib.crud.Search.get_args` method.
+        """
+        api = self.get_api()
+        assert list(api.Method.user_verb.args) == ['criteria']
+        assert api.Method.user_verb.args.criteria.required is False
+
+    def test_get_options(self):
+        """
+        Test the `ipalib.crud.Search.get_options` method.
+        """
+        api = self.get_api()
+        assert list(api.Method.user_verb.options) == \
+            ['givenname', 'sn', 'uid', 'initials']
+        for param in api.Method.user_verb.options():
+            assert param.required is False
 
 
 class test_CrudBackend(ClassChecker):

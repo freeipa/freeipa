@@ -27,8 +27,11 @@ from base import lock, check_name, NameSpace
 from plugable import Plugin
 from parameters import create_param, parse_param_spec, Param, Str, Flag, Password
 from util import make_repr
+from output import Output
+from text import _, ngettext
 
 from errors import ZeroArgumentError, MaxArgumentError, OverlapError, RequiresRoot
+from errors import InvocationError
 from constants import TYPE_ERROR
 
 
@@ -41,6 +44,7 @@ def rule(obj):
 
 def is_rule(obj):
     return callable(obj) and getattr(obj, RULE_FLAG, False) is True
+
 
 
 class HasParam(Plugin):
@@ -198,7 +202,7 @@ class HasParam(Plugin):
     that consider arbitrary ``api.env`` values.
     """
 
-    def _get_param_iterable(self, name):
+    def _get_param_iterable(self, name, verb='takes'):
         """
         Return an iterable of params defined by the attribute named ``name``.
 
@@ -257,19 +261,19 @@ class HasParam(Plugin):
 
         Also see `HasParam._filter_param_by_context()`.
         """
-        takes_name = 'takes_' + name
-        takes = getattr(self, takes_name, None)
-        if type(takes) is tuple:
-            return takes
-        if isinstance(takes, (Param, str)):
-            return (takes,)
-        if callable(takes):
-            return takes()
-        if takes is None:
+        src_name = verb + '_' + name
+        src = getattr(self, src_name, None)
+        if type(src) is tuple:
+            return src
+        if isinstance(src, (Param, str)):
+            return (src,)
+        if callable(src):
+            return src()
+        if src is None:
             return tuple()
         raise TypeError(
             '%s.%s must be a tuple, callable, or spec; got %r' % (
-                self.name, takes_name, takes
+                self.name, src_name, src
             )
         )
 
@@ -377,6 +381,15 @@ class Command(HasParam):
     output_for_cli = None
     obj = None
 
+    use_output_validation = True
+    output = None
+    has_output = ('result',)
+    output_params = None
+    has_output_params = tuple()
+
+    msg_summary = None
+    msg_truncated = _('Results are truncated, try a more specific search')
+
     def __call__(self, *args, **options):
         """
         Perform validation and then execute the command.
@@ -396,9 +409,32 @@ class Command(HasParam):
         )
         self.validate(**params)
         (args, options) = self.params_2_args_options(**params)
-        result = self.run(*args, **options)
-        self.debug('result from %s(): %r', self.name, result)
-        return result
+        ret = self.run(*args, **options)
+        if (
+            isinstance(ret, dict)
+            and 'summary' in self.output
+            and 'summary' not in ret
+        ):
+            if self.msg_summary:
+                ret['summary'] = self.msg_summary % ret
+            else:
+                ret['summary'] = None
+        if self.use_output_validation and (self.output or ret is not None):
+            self.validate_output(ret)
+        return ret
+
+    def soft_validate(self, values):
+        errors = dict()
+        for p in self.params():
+            try:
+                value = values.get(p.name)
+                values[p.name] = p(value, **values)
+            except InvocationError, e:
+                errors[p.name] = str(e)
+        return dict(
+            values=values,
+            errors=errors,
+        )
 
     def _repr_iter(self, **params):
         """
@@ -511,10 +547,10 @@ class Command(HasParam):
                     yield (name, kw[name])
 
         adddict = {}
-        if 'setattr' in kw:
+        if kw.get('setattr'):
             adddict = self.__convert_2_dict(kw['setattr'], append=False)
 
-        if 'addattr' in kw:
+        if kw.get('addattr'):
             adddict.update(self.__convert_2_dict(kw['addattr']))
 
         for name in adddict:
@@ -691,7 +727,23 @@ class Command(HasParam):
             sorted(tuple(self.args()) + tuple(self.options()), key=get_key),
             sort=False
         )
+        self.output = NameSpace(self._iter_output(), sort=False)
+        self._create_param_namespace('output_params')
         super(Command, self).finalize()
+
+    def _iter_output(self):
+        if type(self.has_output) is not tuple:
+            raise TypeError('%s.has_output: need a %r; got a %r: %r' % (
+                self.name, tuple, type(self.has_output), self.has_output)
+            )
+        for (i, o) in enumerate(self.has_output):
+            if isinstance(o, str):
+                o = Output(o)
+            if not isinstance(o, Output):
+                raise TypeError('%s.has_output[%d]: need a %r; got a %r: %r' % (
+                    self.name, i, (str, Output), type(o), o)
+                )
+            yield o
 
     def get_args(self):
         """
@@ -740,6 +792,55 @@ class Command(HasParam):
         """
         for option in self._get_param_iterable('options'):
             yield option
+
+    def validate_output(self, output):
+        """
+        Validate the return value to make sure it meets the interface contract.
+        """
+        nice = '%s.validate_output()' % self.name
+        if not isinstance(output, dict):
+            raise TypeError('%s: need a %r; got a %r: %r' % (
+                nice, dict, type(output), output)
+            )
+        if len(output) < len(self.output):
+            missing = sorted(set(self.output).difference(output))
+            raise ValueError('%s: missing keys %r in %r' % (
+                nice, missing, output)
+            )
+        if len(output) > len(self.output):
+            extra = sorted(set(output).difference(self.output))
+            raise ValueError('%s: unexpected keys %r in %r' % (
+                nice, extra, output)
+            )
+        for o in self.output():
+            value = output[o.name]
+            if not (o.type is None or isinstance(value, o.type)):
+                raise TypeError('%s:\n  output[%r]: need %r; got %r: %r' % (
+                    nice, o.name, o.type, type(value), value)
+                )
+            if callable(o.validate):
+                o.validate(self, value)
+
+    def get_output_params(self):
+        for param in self._get_param_iterable('output_params', verb='has'):
+            yield param
+
+    def output_for_cli(self, textui, output, *args, **options):
+        if not isinstance(output, dict):
+            return
+        result = output.get('result')
+        summary = output.get('summary')
+
+        if (summary and isinstance(result, (list, tuple, dict)) and result):
+            textui.print_name(self.name)
+
+        if isinstance(result, (tuple, list)):
+            textui.print_entries(result, self.output_params)
+        elif isinstance(result, dict):
+            textui.print_entry(result, self.output_params)
+
+        if isinstance(summary, unicode):
+            textui.print_summary(summary)
 
 
 class LocalOrRemote(Command):
@@ -972,7 +1073,7 @@ class Method(Attribute, Command):
     >>> api = create_api()
     >>> class user_add(Method):
     ...     def run(self):
-    ...             return 'Added the user!'
+    ...             return dict(result='Added the user!')
     ...
     >>> class user(Object):
     ...     pass
@@ -987,7 +1088,7 @@ class Method(Attribute, Command):
     >>> list(api.Method)
     ['user_add']
     >>> api.Method.user_add() # Will call user_add.run()
-    'Added the user!'
+    {'result': 'Added the user!'}
 
     Second, because `Method` is a subclass of `Command`, the ``user_add``
     plugin can also be accessed through the ``api.Command`` namespace:
@@ -995,7 +1096,7 @@ class Method(Attribute, Command):
     >>> list(api.Command)
     ['user_add']
     >>> api.Command.user_add() # Will call user_add.run()
-    'Added the user!'
+    {'result': 'Added the user!'}
 
     And third, ``user_add`` can be accessed as an attribute on the ``user``
     `Object`:
@@ -1005,7 +1106,7 @@ class Method(Attribute, Command):
     >>> list(api.Object.user.methods)
     ['add']
     >>> api.Object.user.methods.add() # Will call user_add.run()
-    'Added the user!'
+    {'result': 'Added the user!'}
 
     The `Attribute` base class implements the naming convention for the
     attribute-to-object association.  Also see the `Object` and the
@@ -1017,6 +1118,10 @@ class Method(Attribute, Command):
 
     def __init__(self):
         super(Method, self).__init__()
+
+    def get_output_params(self):
+        for param in self.obj.params():
+            yield param
 
 
 class Property(Attribute):

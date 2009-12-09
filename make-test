@@ -1,33 +1,63 @@
-#!/bin/bash
+#!/usr/bin/env python
 
-# Script to run nosetests under multiple versions of Python
+"""
+Run IPA unit tests under multiple versions of Python (if present).
+"""
 
-export IPA_UNIT_TEST_MODE="cli_test"
-versions="python2.4 python2.5 python2.6"
+import sys
+import optparse
+import os
+from os import path
+from subprocess import call
 
-for name in $versions
-do
-    executable="/usr/bin/$name"
-    if [[ -f $executable ]]; then
-        echo "[ $name: Starting tests... ]"
-        ((runs += 1))
-        if $executable /usr/bin/nosetests --debug-log=/dev/null -v --with-doctest --exclude="plugins"
-        then
-            echo "[ $name: Tests OK ]"
-        else
-            echo "[ $name: Tests FAILED ]"
-            ((failures += 1))
-        fi
-    else
-        echo "[ $name: Not found ]"
-    fi
-    echo ""
-done
+versions = ('2.4', '2.5', '2.6', '2.7')
+python = '/usr/bin/python'
+nose = '/usr/bin/nosetests'
+ran = []
+fail = []
 
-if [ $failures ]; then
-    echo "[ Ran under $runs version(s); FAILED under $failures version(s) ]"
-    echo "FAIL!"
-    exit $failures
-else
-    echo "[ Ran under $runs version(s); all OK ]"
-fi
+parser = optparse.OptionParser(
+	usage='usage: %prog [MODULE...]',
+)
+parser.add_option('--stop',
+	action='store_true',
+	default=False,
+	help='Stop running tests after the first error or failure',
+)
+(options, args) = parser.parse_args()
+
+cmd = [nose] + args + [
+    '-v',
+    '--with-doctest',
+    '--exclude=plugins',
+]
+if options.stop:
+    cmd.append('--stop')
+
+
+# This must be set so ipalib.api gets initialized property for tests:
+os.environ['IPA_UNIT_TEST_MODE'] = 'cli_test'
+
+if not path.isfile(nose):
+    print 'ERROR: need %r' % nose
+    sys.exit(100)
+for v in versions:
+    pver = python + v
+    if not path.isfile(pver):
+        continue
+    if 0 != call([pver] + cmd):
+        fail.append(pver)
+    ran.append(pver)
+
+
+print '=' * 70
+for pver in ran:
+    if pver in fail:
+        print 'FAILED under %r' % pver
+    else:
+        print 'passed under %r' % pver
+print ''
+if fail:
+    print '** FAIL **'
+else:
+    print '** pass **'

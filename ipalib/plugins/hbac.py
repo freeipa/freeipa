@@ -35,7 +35,7 @@ class hbac(LDAPObject):
     default_attributes = [
         'cn', 'accessruletype', 'ipaenabledflag', 'servicename',
         'accesstime', 'description',
-        
+
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_names = {
@@ -128,7 +128,7 @@ class hbac_add(LDAPCreate):
         if not dn.startswith('cn='):
             msg = 'HBAC rule with name "%s" already exists' % keys[-1]
             raise errors.DuplicateEntry(message=msg)
-        # HBAC rules are enabled by default 
+        # HBAC rules are enabled by default
         entry_attrs['ipaenabledflag'] = 'TRUE'
         return ldap.make_dn(
             entry_attrs, self.obj.uuid_attribute, self.obj.container_dn
@@ -184,7 +184,7 @@ class hbac_enable(LDAPQuery):
         except errors.EmptyModlist:
             pass
 
-        return True
+        return dict(result=True)
 
     def output_for_cli(self, textui, result, cn):
         textui.print_name(self.name)
@@ -208,7 +208,7 @@ class hbac_disable(LDAPQuery):
         except errors.EmptyModlist:
             pass
 
-        return True
+        return dict(result=True)
 
     def output_for_cli(self, textui, result, cn):
         textui.print_name(self.name)
@@ -242,7 +242,7 @@ class hbac_add_accesstime(LDAPQuery):
         except errors.EmptyModlist:
             pass
 
-        return True
+        return dict(result=True)
 
     def output_for_cli(self, textui, result, cn, **options):
         textui.print_name(self.name)
@@ -280,7 +280,7 @@ class hbac_remove_accesstime(LDAPQuery):
         except (ValueError, errors.EmptyModlist):
             pass
 
-        return True
+        return dict(result=True)
 
     def output_for_cli(self, textui, result, cn, **options):
         textui.print_name(self.name)
@@ -351,5 +351,3 @@ class hbac_remove_sourcehost(LDAPRemoveMember):
     member_count_out = ('%i object removed.', '%i objects removed.')
 
 api.register(hbac_remove_sourcehost)
-
-

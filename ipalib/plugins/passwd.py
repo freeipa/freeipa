@@ -67,7 +67,7 @@ class passwd(Command):
 
         ldap.modify_password(dn, password)
 
-        return True
+        return dict(result=True)
 
     def output_for_cli(self, textui, result, principal, password):
         assert password is None
@@ -75,4 +75,3 @@ class passwd(Command):
         textui.print_dashed('Changed password for "%s."' % principal)
 
 api.register(passwd)
-

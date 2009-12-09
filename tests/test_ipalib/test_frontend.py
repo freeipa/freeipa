@@ -27,6 +27,7 @@ from tests.util import assert_equal
 from ipalib.constants import TYPE_ERROR
 from ipalib.base import NameSpace
 from ipalib import frontend, backend, plugable, errors, parameters, config
+from ipalib import output
 
 def test_RULE_FLAG():
     assert frontend.RULE_FLAG == 'validation_rule'
@@ -317,6 +318,73 @@ class test_Command(ClassChecker):
         assert ns.files.required is False
         assert ns.files.multivalue is True
 
+    def test_output(self):
+        """
+        Test the ``ipalib.frontend.Command.output`` instance attribute.
+        """
+        inst = self.cls()
+        assert inst.output is None
+        inst.finalize()
+        assert type(inst.output) is plugable.NameSpace
+        assert list(inst.output) == ['result']
+        assert type(inst.output.result) is output.Output
+
+    def test_iter_output(self):
+        """
+        Test the ``ipalib.frontend.Command._iter_output`` instance attribute.
+        """
+        class Example(self.cls):
+            pass
+        inst = Example()
+
+        inst.has_output = tuple()
+        assert list(inst._iter_output()) == []
+
+        wrong = ['hello', 'world']
+        inst.has_output = wrong
+        e = raises(TypeError, list, inst._iter_output())
+        assert str(e) == 'Example.has_output: need a %r; got a %r: %r' % (
+            tuple, list, wrong
+        )
+
+        wrong = ('hello', 17)
+        inst.has_output = wrong
+        e = raises(TypeError, list, inst._iter_output())
+        assert str(e) == 'Example.has_output[1]: need a %r; got a %r: %r' % (
+            (str, output.Output), int, 17
+        )
+
+        okay = ('foo', output.Output('bar'), 'baz')
+        inst.has_output = okay
+        items = list(inst._iter_output())
+        assert len(items) == 3
+        assert list(o.name for o in items) == ['foo', 'bar', 'baz']
+        for o in items:
+            assert type(o) is output.Output
+
+    def test_soft_validate(self):
+        """
+        Test the `ipalib.frontend.Command.soft_validate` method.
+        """
+        class user_add(frontend.Command):
+            takes_args = parameters.Str('uid',
+                normalizer=lambda value: value.lower(),
+                default_from=lambda givenname, sn: givenname[0] + sn,
+            )
+
+            takes_options = ('givenname', 'sn')
+
+        cmd = user_add()
+        cmd.finalize()
+        assert list(cmd.params) == ['givenname', 'sn', 'uid']
+        ret = cmd.soft_validate({})
+        assert len(ret['values']) == 0
+        assert len(ret['errors']) == 3
+        assert cmd.soft_validate(dict(givenname=u'First', sn=u'Last')) == dict(
+            values=dict(givenname=u'First', sn=u'Last', uid=u'flast'),
+            errors=dict(),
+        )
+
     def test_convert(self):
         """
         Test the `ipalib.frontend.Command.convert` method.
@@ -517,6 +585,84 @@ class test_Command(ClassChecker):
         assert o.run.im_func is self.cls.run.im_func
         assert ('forward', args, kw) == o.run(*args, **kw)
 
+    def test_validate_output(self):
+        """
+        Test the `ipalib.frontend.Command.validate_output` method.
+        """
+        class Example(self.cls):
+            has_output = ('foo', 'bar', 'baz')
+
+        inst = Example()
+        inst.finalize()
+
+        # Test with wrong type:
+        wrong = ('foo', 'bar', 'baz')
+        e = raises(TypeError, inst.validate_output, wrong)
+        assert str(e) == '%s.validate_output(): need a %r; got a %r: %r' % (
+            'Example', dict, tuple, wrong
+        )
+
+        # Test with a missing keys:
+        wrong = dict(bar='hello')
+        e = raises(ValueError, inst.validate_output, wrong)
+        assert str(e) == '%s.validate_output(): missing keys %r in %r' % (
+            'Example', ['baz', 'foo'], wrong
+        )
+
+        # Test with extra keys:
+        wrong = dict(foo=1, bar=2, baz=3, fee=4, azz=5)
+        e = raises(ValueError, inst.validate_output, wrong)
+        assert str(e) == '%s.validate_output(): unexpected keys %r in %r' % (
+            'Example', ['azz', 'fee'], wrong
+        )
+
+        # Test with per item type validation:
+        class Complex(self.cls):
+            has_output = (
+                output.Output('foo', int),
+                output.Output('bar', list),
+            )
+        inst = Complex()
+        inst.finalize()
+
+        wrong = dict(foo=17.9, bar=[18])
+        e = raises(TypeError, inst.validate_output, wrong)
+        assert str(e) == '%s:\n  output[%r]: need %r; got %r: %r' % (
+            'Complex.validate_output()', 'foo', int, float, 17.9
+        )
+
+        wrong = dict(foo=18, bar=17)
+        e = raises(TypeError, inst.validate_output, wrong)
+        assert str(e) == '%s:\n  output[%r]: need %r; got %r: %r' % (
+            'Complex.validate_output()', 'bar', list, int, 17
+        )
+
+        class Subclass(output.ListOfEntries):
+            pass
+
+        # Test nested validation:
+        class nested(self.cls):
+            has_output = (
+                output.Output('hello', int),
+                Subclass('world'),
+            )
+        inst = nested()
+        inst.finalize()
+        okay = dict(foo='bar')
+        nope = ('aye', 'bee')
+
+        wrong = dict(hello=18, world=[okay, nope, okay])
+        e = raises(TypeError, inst.validate_output, wrong)
+        assert str(e) == output.emsg % (
+            'nested', 'Subclass', 'world', 1, dict, tuple, nope
+        )
+
+        wrong = dict(hello=18, world=[okay, okay, okay, okay, nope])
+        e = raises(TypeError, inst.validate_output, wrong)
+        assert str(e) == output.emsg % (
+            'nested', 'Subclass', 'world', 4, dict, tuple, nope
+        )
+
 
 class test_LocalOrRemote(ClassChecker):
     """
@@ -544,32 +690,46 @@ class test_LocalOrRemote(ClassChecker):
             takes_args = 'key?'
 
             def forward(self, *args, **options):
-                return ('forward', args, options)
+                return dict(result=('forward', args, options))
 
             def execute(self, *args, **options):
-                return ('execute', args, options)
+                return dict(result=('execute', args, options))
 
         # Test when in_server=False:
         (api, home) = create_test_api(in_server=False)
         api.register(example)
         api.finalize()
         cmd = api.Command.example
-        assert cmd() == ('execute', (None,), dict(server=False))
-        assert cmd(u'var') == ('execute', (u'var',), dict(server=False))
-        assert cmd(server=True) == ('forward', (None,), dict(server=True))
-        assert cmd(u'var', server=True) == \
-            ('forward', (u'var',), dict(server=True))
+        assert cmd() == dict(
+            result=('execute', (None,), dict(server=False))
+        )
+        assert cmd(u'var') == dict(
+            result=('execute', (u'var',), dict(server=False))
+        )
+        assert cmd(server=True) == dict(
+            result=('forward', (None,), dict(server=True))
+        )
+        assert cmd(u'var', server=True) == dict(
+            result=('forward', (u'var',), dict(server=True))
+        )
 
         # Test when in_server=True (should always call execute):
         (api, home) = create_test_api(in_server=True)
         api.register(example)
         api.finalize()
         cmd = api.Command.example
-        assert cmd() == ('execute', (None,), dict(server=False))
-        assert cmd(u'var') == ('execute', (u'var',), dict(server=False))
-        assert cmd(server=True) == ('execute', (None,), dict(server=True))
-        assert cmd(u'var', server=True) == \
-            ('execute', (u'var',), dict(server=True))
+        assert cmd() == dict(
+            result=('execute', (None,), dict(server=False))
+        )
+        assert cmd(u'var') == dict(
+            result=('execute', (u'var',), dict(server=False))
+        )
+        assert cmd(server=True) == dict(
+            result=('execute', (None,), dict(server=True))
+        )
+        assert cmd(u'var', server=True) == dict(
+            result=('execute', (u'var',), dict(server=True))
+        )
 
 
 class test_Object(ClassChecker):
@@ -834,6 +994,26 @@ class test_Method(ClassChecker):
     """
     _cls = frontend.Method
 
+    def get_api(self, args=tuple(), options=tuple()):
+        """
+        Return a finalized `ipalib.plugable.API` instance.
+        """
+        (api, home) = create_test_api()
+        class user(frontend.Object):
+            takes_params = (
+                'givenname',
+                'sn',
+                frontend.Param('uid', primary_key=True),
+                'initials',
+            )
+        class user_verb(self.cls):
+            takes_args = args
+            takes_options = options
+        api.register(user)
+        api.register(user_verb)
+        api.finalize()
+        return api
+
     def test_class(self):
         """
         Test the `ipalib.frontend.Method` class.
@@ -854,6 +1034,8 @@ class test_Method(ClassChecker):
         assert o.attr_name == 'add'
         assert frontend.Command.implemented_by(o)
         assert frontend.Attribute.implemented_by(o)
+
+
 
 
 class test_Property(ClassChecker):
