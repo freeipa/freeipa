@@ -135,7 +135,7 @@ class user_add(LDAPCreate):
 
     msg_summary = _('Added user "%(value)s"')
 
-    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         config = ldap.get_ipa_config()[1]
         entry_attrs.setdefault('loginshell', config.get('ipadefaultloginshell'))
         # hack so we can request separate first and last name in CLI

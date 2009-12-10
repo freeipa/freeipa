@@ -148,7 +148,7 @@ class service_add(LDAPCreate):
             doc='force principal name even if not in DNS',
         ),
     )
-    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         (service, hostname, realm) = split_principal(keys[-1])
         if service.lower() == 'host' and not options['force']:
             raise errors.HostService()

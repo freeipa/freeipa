@@ -124,7 +124,7 @@ class hbac_add(LDAPCreate):
     """
     Create new HBAC rule.
     """
-    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         if not dn.startswith('cn='):
             msg = 'HBAC rule with name "%s" already exists' % keys[-1]
             raise errors.DuplicateEntry(message=msg)

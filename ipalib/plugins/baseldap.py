@@ -135,6 +135,10 @@ class LDAPCreate(crud.Create):
             doc='print entries as they are stored in LDAP',
             exclude='webui',
         ),
+        Flag('all',
+            cli_name='all',
+            doc='retrieve all attributes',
+        ),
         Str('addattr*', validate_add_attribute,
             cli_name='addattr',
             doc='Add an attribute/value pair. Format is attr=value',
@@ -170,11 +174,18 @@ class LDAPCreate(crud.Create):
         if self.obj.uuid_attribute:
             entry_attrs[self.obj.uuid_attribute] = str(uuid.uuid1())
 
-        dn = self.pre_callback(ldap, dn, entry_attrs, *keys, **options)
+        if options.get('all', False):
+            attrs_list = ['*']
+        else:
+            attrs_list = list(
+                set(self.obj.default_attributes + entry_attrs.keys())
+            )
+
+        dn = self.pre_callback(ldap, dn, entry_attrs, attrs_list, *keys, **options)
 
         ldap.add_entry(dn, entry_attrs)
 
-        (dn, entry_attrs) = ldap.get_entry(dn, entry_attrs.keys())
+        (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
 
         dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
 
@@ -204,7 +215,7 @@ class LDAPCreate(crud.Create):
         else:
             textui.print_dashed('Created %s.' % self.obj.object_name)
 
-    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -245,7 +256,7 @@ class LDAPRetrieve(LDAPQuery):
 
         dn = self.obj.get_dn(*keys, **options)
 
-        if options['all']:
+        if options.get('all', False):
             attrs_list = ['*']
         else:
             attrs_list = list(self.obj.default_attributes)
@@ -307,10 +318,12 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
         entry_attrs = self.args_options_2_entry(**options)
 
-        if options['all']:
+        if options.get('all', False):
             attrs_list = ['*']
         else:
-            attrs_list = entry_attrs.keys()
+            attrs_list = list(
+                set(self.obj.default_attributes + entry_attrs.keys())
+            )
 
         dn = self.pre_callback(ldap, dn, entry_attrs, attrs_list, *keys, **options)
 
@@ -666,10 +679,12 @@ class LDAPSearch(crud.Search):
 
         search_kw = self.args_options_2_entry(**options)
 
-        if options['all']:
+        if options.get('all', False):
             attrs_list = ['*']
         else:
-            attrs_list = self.obj.default_attributes + search_kw.keys()
+            attrs_list = list(
+                set(self.obj.default_attributes + search_kw.keys())
+            )
 
         search_kw['objectclass'] = self.obj.object_class
         attr_filter = ldap.make_filter(search_kw, rules=ldap.MATCH_ALL)
@@ -740,3 +755,4 @@ class LDAPSearch(crud.Search):
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         pass
+

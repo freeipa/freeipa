@@ -142,7 +142,7 @@ class host_add(LDAPCreate):
 
     msg_summary = _('Added host "%(value)s"')
 
-    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         entry_attrs['cn'] = keys[-1]
         entry_attrs['serverhostname'] = keys[-1].split('.', 1)[0]
         # FIXME: do DNS lookup to ensure host exists
