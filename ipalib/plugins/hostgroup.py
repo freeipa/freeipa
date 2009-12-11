@@ -50,12 +50,14 @@ class hostgroup(LDAPObject):
     takes_params = (
         Str('cn',
             cli_name='name',
+            label='Hostgroup name',
             doc='group name',
             primary_key=True,
             normalizer=lambda value: value.lower(),
         ),
         Str('description',
             cli_name='desc',
+            label='Description',
             doc='A description of this group',
         ),
     )
