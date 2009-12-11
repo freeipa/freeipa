@@ -62,6 +62,8 @@ from ipalib import api, crud, errors
 from ipalib import Object, Command
 from ipalib import Flag, Int, List, Str, StrEnum
 from ipalib.aci import ACI
+from ipalib import output
+from ipalib import _, ngettext
 import logging
 
 _type_map = {
@@ -74,6 +76,26 @@ _valid_permissions_values = [
     u'read', u'write', u'add', u'delete', u'selfwrite', u'all'
 ]
 
+class ListOfACI(output.Output):
+    type = (list, tuple)
+    doc = 'A list of ACI values'
+
+    def validate(self, cmd, entries):
+        assert isinstance(entries, self.type)
+        for (i, entry) in enumerate(entries):
+            if not isinstance(entry, unicode):
+                raise TypeError(output.emsg %
+                    (cmd.name, self.__class__.__name__,
+                    self.name, i, unicode, type(entry), entry)
+                )
+
+aci_output = (
+    output.Output('result', unicode, 'A string representing the ACI'),
+    output.value,
+    output.summary,
+)
+
+
 
 def _make_aci(current, aciname, kw):
     # Do some quick and dirty validation
@@ -84,36 +106,40 @@ def _make_aci(current, aciname, kw):
     t5 = 'attrs' in kw
     t6 = 'memberof' in kw
     if t1 + t2 + t3 + t4 > 1:
-        raise errors.ValidationError(name='target', error='type, filter, subtree and targetgroup are mutually exclusive')
+        raise errors.ValidationError(name='target', error=_('type, filter, subtree and targetgroup are mutually exclusive'))
 
     if t1 + t2 + t3 + t4 + t5 + t6 == 0:
-        raise errors.ValidationError(name='target', error='at least one of: type, filter, subtree, targetgroup, attrs or memberof are required')
+        raise errors.ValidationError(name='target', error=_('at least one of: type, filter, subtree, targetgroup, attrs or memberof are required'))
 
     group = 'group' in kw
     taskgroup = 'taskgroup' in kw
     if group + taskgroup > 1:
-        raise errors.ValidationError(name='target', error='group and taskgroup are mutually exclusive')
+        raise errors.ValidationError(name='target', error=_('group and taskgroup are mutually exclusive'))
     elif group + taskgroup == 0:
-        raise errors.ValidationError(name='target', error='One of group or taskgroup is required')
+        raise errors.ValidationError(name='target', error=_('One of group or taskgroup is required'))
 
     # Grab the dn of the group we're granting access to. This group may be a
     # taskgroup or a user group.
+    entry_attrs = []
     if taskgroup:
         try:
-            (dn, entry_attrs) = api.Command['taskgroup_show'](kw['taskgroup'])
+            entry_attrs = api.Command['taskgroup_show'](kw['taskgroup'])['result']
         except errors.NotFound:
             # The task group doesn't exist, let's be helpful and add it
             tgkw = {'description': aciname}
-            (dn, entry_attrs) = api.Command['taskgroup_add'](
+            entry_attrs = api.Command['taskgroup_add'](
                 kw['taskgroup'], **tgkw
-            )
+            )['result']
+            import pdb
+            pdb.set_trace()
     elif group:
         # Not so friendly with groups. This will raise
         try:
-            (dn, entry_attrs) = api.Command['group_show'](kw['group'])
+            entry_attrs = api.Command['group_show'](kw['group'])['result']
         except errors.NotFound:
-            raise errors.NotFound(reason="Group '%s' does not exist" % kw['group'])
+            raise errors.NotFound(reason=_("Group '%s' does not exist") % kw['group'])
 
+    dn = entry_attrs['dn']
     a = ACI(current)
     a.name = aciname
     a.permissions = kw['permissions']
@@ -155,7 +181,7 @@ def _find_aci_by_name(acis, aciname):
     for a in acis:
         if a.name.lower() == aciname.lower():
             return a
-    raise errors.NotFound(reason='ACI with name "%s" not found' % aciname)
+    raise errors.NotFound(reason=_('ACI with name "%s" not found') % aciname)
 
 def _normalize_permissions(permissions):
     valid_permissions = []
@@ -225,6 +251,9 @@ class aci_add(crud.Create):
     """
     Create new ACI.
     """
+    has_output = aci_output
+    msg_summary = _('Created ACI "%(value)s"')
+
     def execute(self, aciname, **kw):
         """
         Execute the aci-create operation.
@@ -246,17 +275,21 @@ class aci_add(crud.Create):
             if a.isequal(newaci):
                 raise errors.DuplicateEntry()
 
-        newaci_str = str(newaci)
+        newaci_str = unicode(newaci)
         entry_attrs['aci'].append(newaci_str)
 
         ldap.update_entry(dn, entry_attrs)
 
-        return newaci_str
+        return dict(
+            result=newaci_str,
+            value=newaci.name
+        )
 
     def output_for_cli(self, textui, result, aciname, **options):
         """
         Display the newly created ACI and a success message.
         """
+        result = result['result']
         textui.print_name(self.name)
         textui.print_plain(result)
         textui.print_dashed('Created ACI "%s".' % aciname)
@@ -268,6 +301,9 @@ class aci_del(crud.Delete):
     """
     Delete ACI.
     """
+    has_output = output.standard_delete
+    msg_summary = _('Deleted ACI "%(value)s"')
+
     def execute(self, aciname, **kw):
         """
         Execute the aci-delete operation.
@@ -293,14 +329,10 @@ class aci_del(crud.Delete):
 
         ldap.update_entry(dn, entry_attrs)
 
-        return True
-
-    def output_for_cli(self, textui, result, aciname, **options):
-        """
-        Output result of this command to command line interface.
-        """
-        textui.print_name(self.name)
-        textui.print_plain('Deleted ACI "%s".' % aciname)
+        return dict(
+            result=True,
+            value=aciname,
+        )
 
 api.register(aci_del)
 
@@ -309,6 +341,9 @@ class aci_mod(crud.Update):
     """
     Modify ACI.
     """
+    has_output = aci_output
+    msg_summary = _('Modified ACI "%(value)s"')
+
     def execute(self, aciname, **kw):
         ldap = self.api.Backend.ldap2
 
@@ -334,6 +369,7 @@ class aci_mod(crud.Update):
         """
         Display the updated ACI and a success message.
         """
+        result = result['result']
         textui.print_name(self.name)
         textui.print_plain(result)
         textui.print_dashed('Modified ACI "%s".' % aciname)
@@ -361,6 +397,13 @@ class aci_find(crud.Search):
     have ipausers as a memberof. There may be other ACIs that apply to
     members of that group indirectly.
     """
+    has_output = (
+        ListOfACI('result'),
+        output.Output('count', int, 'Number of entries returned'),
+        output.summary,
+    )
+    msg_summary = ngettext('%(count)d ACI matched', '%(count)d ACIs matched', 0)
+
     def execute(self, term, **kw):
         ldap = self.api.Backend.ldap2
 
@@ -396,9 +439,9 @@ class aci_find(crud.Search):
 
         if 'taskgroup' in kw:
             try:
-                (dn, entry_attrs) = self.api.Command['taskgroup_show'](
+                self.api.Command['taskgroup_show'](
                     kw['taskgroup']
-                )
+                )['result']
             except errors.NotFound:
                 pass
             else:
@@ -417,7 +460,7 @@ class aci_find(crud.Search):
 
         if 'memberof' in kw:
             try:
-                (dn, entry_attrs) = self.api.Command['group_show'](
+                self.api.Command['group_show'](
                     kw['memberof']
                 )
             except errors.NotFound:
@@ -436,18 +479,21 @@ class aci_find(crud.Search):
 
         # TODO: searching by: type, filter, subtree
 
-        return [str(aci) for aci in results]
+        return dict(
+            result=[unicode(aci) for aci in results],
+            count=len(results),
+        )
 
     def output_for_cli(self, textui, result, term, **options):
         """
         Display the search results
         """
         textui.print_name(self.name)
-        for aci in result:
+        for aci in result['result']:
             textui.print_plain(aci)
             textui.print_plain('')
         textui.print_count(
-            len(result), '%i ACI matched.', '%i ACIs matched.'
+            result['count'], '%i ACI matched.', '%i ACIs matched.'
         )
 
 api.register(aci_find)
@@ -457,6 +503,12 @@ class aci_show(crud.Retrieve):
     """
     Display a single ACI given an ACI name.
     """
+    has_output = (
+        output.Output('result', unicode, 'A string representing the ACI'),
+        output.value,
+        output.summary,
+    )
+
     def execute(self, aciname, **kw):
         """
         Execute the aci-show operation.
@@ -472,12 +524,16 @@ class aci_show(crud.Retrieve):
 
         acis = _convert_strings_to_acis(entry_attrs.get('aci', []))
 
-        return str(_find_aci_by_name(acis, aciname))
+        return dict(
+            result=unicode(_find_aci_by_name(acis, aciname)),
+            value=aciname,
+        )
 
     def output_for_cli(self, textui, result, aciname, **options):
         """
         Display the requested ACI
         """
+        result = result['result']
         textui.print_name(self.name)
         textui.print_plain(result)
 

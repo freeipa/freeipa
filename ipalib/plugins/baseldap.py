@@ -178,6 +178,8 @@ class LDAPCreate(crud.Create):
 
         dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
 
+        entry_attrs['dn'] = dn
+
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
         return dict(
             result=entry_attrs,
