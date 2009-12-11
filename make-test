@@ -24,6 +24,16 @@ parser.add_option('--stop',
 	default=False,
 	help='Stop running tests after the first error or failure',
 )
+parser.add_option('--pdb',
+	action='store_true',
+	default=False,
+	help='Drop into debugger on errors',
+)
+parser.add_option('--pdb-failures',
+	action='store_true',
+	default=False,
+	help='Drop into debugger on failures',
+)
 (options, args) = parser.parse_args()
 
 cmd = [nose] + args + [
@@ -33,6 +43,10 @@ cmd = [nose] + args + [
 ]
 if options.stop:
     cmd.append('--stop')
+if options.pdb:
+    cmd.append('--pdb')
+if options.pdb_failures:
+    cmd.append('--pdb-failures')
 
 
 # This must be set so ipalib.api gets initialized property for tests:
