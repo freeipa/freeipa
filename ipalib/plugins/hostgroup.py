@@ -21,9 +21,8 @@
 Groups of hosts.
 """
 
-from ipalib import api
-from ipalib import Int
 from ipalib.plugins.baseldap import *
+from ipalib import api, Int, _, ngettext
 
 
 class hostgroup(LDAPObject):
@@ -70,6 +69,8 @@ class hostgroup_add(LDAPCreate):
     Create new hostgroup.
     """
 
+    msg_summary = _('Added hostgroup "%(value)s"')
+
 api.register(hostgroup_add)
 
 
@@ -77,6 +78,8 @@ class hostgroup_del(LDAPDelete):
     """
     Delete hostgroup.
     """
+
+    msg_summary = _('Deleted hostgroup "%(value)s"')
 
 api.register(hostgroup_del)
 
@@ -86,6 +89,8 @@ class hostgroup_mod(LDAPUpdate):
     Modify hostgroup.
     """
 
+    msg_summary = _('Modified hostgroup "%(value)s"')
+
 api.register(hostgroup_mod)
 
 
@@ -93,6 +98,10 @@ class hostgroup_find(LDAPSearch):
     """
     Search for hostgroups.
     """
+
+    msg_summary = ngettext(
+        '%(count)d hostgroup matched', '%(count)d hostgroups matched'
+    )
 
 api.register(hostgroup_find)
 
@@ -119,4 +128,3 @@ class hostgroup_remove_member(LDAPRemoveMember):
     """
 
 api.register(hostgroup_remove_member)
-

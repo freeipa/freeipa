@@ -64,7 +64,7 @@ class test_group(Declarative):
                 ),
                 summary=u'Added group "testgroup1"',
             ),
-            ignore_values=['ipauniqueid'],
+            ignore_values=['ipauniqueid', 'dn'],
         ),
 
         dict(
@@ -188,7 +188,7 @@ class test_group(Declarative):
                 ),
                 summary=u'Added group "testgroup2"',
             ),
-            ignore_values=['ipauniqueid'],
+            ignore_values=['ipauniqueid', 'dn'],
         ),
 
         dict(

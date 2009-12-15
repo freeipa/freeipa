@@ -78,9 +78,7 @@ class test_user(Declarative):
                 ),
                 summary=u'Added user "tuser1"',
             ),
-            ignore_values=(
-                'ipauniqueid', 'gidnumber'
-            ),
+            ignore_values=['ipauniqueid', 'gidnumber', 'dn'],
         ),
 
 
