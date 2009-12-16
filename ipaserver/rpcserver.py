@@ -125,9 +125,6 @@ class WSGIExecutioner(Executioner):
                 error = InternalError()
         finally:
             destroy_context()
-        self.debug('Returning:\n%s',
-            json.dumps(result, sort_keys=True, indent=4)
-        )
         return self.marshal(result, error, _id)
 
     def simple_unmarshal(self, environ):
