@@ -26,10 +26,12 @@ import os
 import sys
 
 from ipalib import api, errors, util
-from ipalib import Str, Flag
+from ipalib import Str, Flag, Bytes
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.service import split_principal
+from ipalib.plugins.service import validate_certificate
 from ipalib import _, ngettext
+import base64
 
 
 def validate_host(ugettext, fqdn):
@@ -48,11 +50,11 @@ class host(LDAPObject):
     container_dn = api.env.container_host
     object_name = 'host'
     object_name_plural = 'hosts'
-    object_class = ['ipaobject', 'nshost', 'ipahost', 'pkiuser']
+    object_class = ['ipaobject', 'nshost', 'ipahost', 'pkiuser', 'ipaservice']
     # object_class_config = 'ipahostobjectclasses'
     default_attributes = [
         'fqdn', 'description', 'localityname', 'nshostlocation',
-        'nshardwareplatform', 'nsosversion'
+        'nshardwareplatform', 'nsosversion', 'usercertificate',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_names = {
@@ -107,6 +109,10 @@ class host(LDAPObject):
             label='User password',
             doc='Password used in bulk enrollment',
         ),
+        Bytes('usercertificate?', validate_certificate,
+            cli_name='certificate',
+            doc='base-64 encoded server certificate',
+        ),
     )
 
     def get_dn(self, *keys, **options):
@@ -148,6 +154,7 @@ class host_add(LDAPCreate):
                 entry_attrs['objectclass'].append('krbprincipal')
         elif 'krbprincipalaux' in entry_attrs['objectclass']:
             entry_attrs['objectclass'].remove('krbprincipalaux')
+        entry_attrs['managedby'] = dn
         return dn
 
 api.register(host_add)
@@ -209,6 +216,18 @@ class host_mod(LDAPUpdate):
             if 'krbprincipalaux' not in obj_classes:
                 obj_classes.append('krbprincipalaux')
                 entry_attrs['objectclass'] = obj_classes
+        cert = entry_attrs.get('usercertificate')
+        if cert:
+            (dn, entry_attrs_old) = ldap.get_entry(dn, ['usercertificate'])
+            if 'usercertificate' in entry_attrs_old:
+                # FIXME: what to do here? do we revoke the old cert?
+                fmt = 'entry already has a certificate, serial number: %s' % (
+                    get_serial(entry_attrs_old['usercertificate'])
+                )
+                raise errors.GenericError(format=fmt)
+            # FIXME: should be in normalizer; see service_add
+            entry_attrs['usercertificate'] = base64.b64decode(cert)
+
         return dn
 
 api.register(host_mod)

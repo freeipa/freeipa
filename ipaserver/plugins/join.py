@@ -91,13 +91,14 @@ class join(Command):
         try:
             # First see if the host exists
             kw = {'fqdn': hostname, 'all': True}
-            (dn, attrs_list) = api.Command['host_show'](**kw)
+            attrs_list = api.Command['host_show'](**kw)['result']
+            dn = attrs_list['dn']
 
             # If no principal name is set yet we need to try to add
             # one.
             if 'krbprincipalname' not in attrs_list:
                 service = "host/%s@%s" % (hostname, api.env.realm)
-                (d, a) = api.Command['host_mod'](hostname, krbprincipalname=service)
+                api.Command['host_mod'](hostname, krbprincipalname=service)
 
             # It exists, can we write the password attributes?
             allowed = ldap.can_write(dn, 'krblastpwdchange')
@@ -105,9 +106,11 @@ class join(Command):
                 raise errors.ACIError(info="Insufficient 'write' privilege to the 'krbLastPwdChange' attribute of entry '%s'." % dn)
 
             kw = {'fqdn': hostname, 'all': True}
-            (dn, attrs_list) = api.Command['host_show'](**kw)
+            attrs_list = api.Command['host_show'](**kw)['result']
+            dn = attrs_list['dn']
         except errors.NotFound:
-            (dn, attrs_list) = api.Command['host_add'](hostname)
+            attrs_list = api.Command['host_add'](hostname)['result']
+            dn = attrs_list['dn']
 
         return (dn, attrs_list)
 

@@ -112,7 +112,7 @@ class KrbInstance(service.Service):
         # Create a host entry for this master
         host_dn = "fqdn=%s,cn=computers,cn=accounts,%s" % (self.fqdn, self.suffix)
         host_entry = ipaldap.Entry(host_dn)
-        host_entry.setValues('objectclass', ['top', 'ipaobject', 'nshost', 'ipahost', 'pkiuser', 'krbprincipalaux', 'krbprincipal', 'krbticketpolicyaux'])
+        host_entry.setValues('objectclass', ['top', 'ipaobject', 'nshost', 'ipahost', 'ipaservice', 'pkiuser', 'krbprincipalaux', 'krbprincipal', 'krbticketpolicyaux'])
         host_entry.setValue('krbextradata', service_entry.getValue('krbextradata'))
         host_entry.setValue('krblastpwdchange', service_entry.getValue('krblastpwdchange'))
         host_entry.setValue('krbpasswordexpiration', service_entry.getValue('krbpasswordexpiration'))
@@ -123,6 +123,7 @@ class KrbInstance(service.Service):
         host_entry.setValue('cn', self.fqdn)
         host_entry.setValue('fqdn', self.fqdn)
         host_entry.setValue('ipauniqueid', str(uuid.uuid1()))
+        host_entry.setValue('managedby', host_dn)
         conn.addEntry(host_entry)
         conn.unbind()
 

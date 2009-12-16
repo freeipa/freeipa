@@ -40,6 +40,7 @@ from pyasn1.error import PyAsn1Error
 import logging
 import traceback
 from ipalib.request import ugettext as _
+from ipalib.request import context
 
 def get_serial(certificate):
     """
@@ -154,8 +155,10 @@ class cert_request(VirtualCommand):
         taskgroup (directly or indirectly via role membership).
         """
 
+        bind_principal = getattr(context, 'principal')
         # Can this user request certs?
-        self.check_access()
+        if not bind_principal.startswith('host/'):
+            self.check_access()
 
         # FIXME: add support for subject alt name
 
@@ -170,7 +173,17 @@ class cert_request(VirtualCommand):
         # See if the service exists and punt if it doesn't and we aren't
         # going to add it
         try:
-            (dn, service) = api.Command['service_show'](principal, all=True, raw=True)
+            if not principal.startswith('host/'):
+                service = api.Command['service_show'](principal, all=True, raw=True)
+                dn = service['dn']
+            else:
+                realm = principal.find('@')
+                if realm == -1:
+                    realm = len(principal)
+                hostname = principal[5:realm]
+
+                service = api.Command['host_show'](hostname, all=True, raw=True)['result']
+                dn = service['dn']
             if 'usercertificate' in service:
                 # FIXME, what to do here? Do we revoke the old cert?
                 raise errors.CertificateOperationError(error=_('entry already has a certificate, serial number %s') % get_serial(base64.b64encode(service['usercertificate'][0])))
@@ -178,7 +191,8 @@ class cert_request(VirtualCommand):
             if not add:
                 raise errors.NotFound(reason="The service principal for this request doesn't exist.")
             try:
-                (dn, service) = api.Command['service_add'](principal, **{})
+                service = api.Command['service_add'](principal, **{})
+                dn = service['dn']
             except errors.ACIError:
                 raise errors.ACIError(info='You need to be a member of the serviceadmin role to add services')
 
@@ -191,7 +205,8 @@ class cert_request(VirtualCommand):
         if subjectaltname is not None:
             for name in subjectaltname:
                 try:
-                    (hostdn, hostentry) = api.Command['host_show'](name, all=True, raw=True)
+                    hostentry = api.Command['host_show'](name, all=True, raw=True)['result']
+                    hostdn = hostentry['dn']
                 except errors.NotFound:
                     # We don't want to issue any certificates referencing
                     # machines we don't know about. Nothing is stored in this
@@ -206,11 +221,21 @@ class cert_request(VirtualCommand):
         result = self.Backend.ra.request_certificate(csr, **kw)
 
         # Success? Then add it to the service entry.
-        if result.get('status') == 0:
-            skw = {"usercertificate": str(result.get('certificate'))}
-            api.Command['service_mod'](principal, **skw)
+        if 'certificate' in result:
+            if not principal.startswith('host/'):
+                skw = {"usercertificate": str(result.get('certificate'))}
+                api.Command['service_mod'](principal, **skw)
+            else:
+                realm = principal.find('@')
+                if realm == -1:
+                    realm = len(principal)
+                hostname = principal[5:realm]
+                skw = {"usercertificate": str(result.get('certificate'))}
+                api.Command['host_mod'](hostname, **skw)
 
-        return result
+        return dict(
+            result=result
+        )
 
     def output_for_cli(self, textui, result, *args, **kw):
         if isinstance(result, dict) and len(result) > 0:
