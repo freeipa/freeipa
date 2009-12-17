@@ -116,6 +116,11 @@ remove_realm(krb5_context context, krb5_keytab ktid, const char *realm, int debu
             goto done;
         }
 
+
+        /* keytab entries are locked when looping. Temporarily suspend
+         * the looping. */
+        krb5_kt_end_seq_get(context, ktid, &kt_cursor);
+
         if (strstr(entry_princ_s, realm) != NULL) {
             rval = remove_principal(context, ktid, entry_princ_s, debug);
             if (rval != 0)
