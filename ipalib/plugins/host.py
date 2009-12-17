@@ -30,6 +30,7 @@ from ipalib import Str, Flag, Bytes
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.service import split_principal
 from ipalib.plugins.service import validate_certificate
+from ipalib.plugins.service import get_serial
 from ipalib import _, ngettext
 import base64
 

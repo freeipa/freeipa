@@ -53,6 +53,11 @@ def get_serial(certificate):
     if type(certificate) in (list, tuple):
         certificate = certificate[0]
     try:
+        certificate = base64.b64decode(certificate)
+    except Exception, e:
+        pass
+    try:
+
         serial = x509.get_serial_number(certificate)
     except PyAsn1Error:
         raise errors.CertificateOperationError(error=_('Unable to decode certificate in entry'))
