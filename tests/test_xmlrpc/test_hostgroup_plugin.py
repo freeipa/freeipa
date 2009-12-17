@@ -23,32 +23,35 @@ Test the `ipalib.plugins.hostgroup` module.
 """
 
 from ipalib import api, errors
-from tests.test_xmlrpc.xmlrpc_test import Declarative
+from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
 from tests.test_xmlrpc import objectclasses
 
+hostgroup1 = u'testhostgroup1'
+dn1 = u'cn=%s,cn=hostgroups,cn=accounts,%s' % (hostgroup1, api.env.basedn)
 
 fqdn1 = u'testhost1.%s' % api.env.domain
+host_dn1 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn1, api.env.basedn)
 
 
 class test_hostgroup(Declarative):
 
     cleanup_commands = [
-        ('hostgroup_del', [u'testhostgroup1'], {}),
+        ('hostgroup_del', [hostgroup1], {}),
         ('host_del', [fqdn1], {}),
     ]
 
     tests=[
 
         dict(
-            desc='Try to retrieve non-existent testhostgroup1',
-            command=('hostgroup_show', [u'testhostgroup1'], {}),
+            desc='Try to retrieve non-existent %r' % hostgroup1,
+            command=('hostgroup_show', [hostgroup1], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
 
         dict(
-            desc='Try to update non-existent testhostgroup1',
-            command=('hostgroup_mod', [u'testhostgroup1'],
+            desc='Try to update non-existent %r' % hostgroup1,
+            command=('hostgroup_mod', [hostgroup1],
                 dict(description=u'Updated hostgroup 1')
             ),
             expected=errors.NotFound(reason='no such entry'),
@@ -56,33 +59,34 @@ class test_hostgroup(Declarative):
 
 
         dict(
-            desc='Try to delete non-existent testhostgroup1',
-            command=('hostgroup_del', [u'testhostgroup1'], {}),
+            desc='Try to delete non-existent %r' % hostgroup1,
+            command=('hostgroup_del', [hostgroup1], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
 
         dict(
-            desc='Create hostgroup testhostgroup1',
-            command=('hostgroup_add', [u'testhostgroup1'],
+            desc='Create %r' % hostgroup1,
+            command=('hostgroup_add', [hostgroup1],
                 dict(description=u'Test hostgroup 1')
             ),
             expected=dict(
-                value=u'testhostgroup1',
+                value=hostgroup1,
                 summary=u'Added hostgroup "testhostgroup1"',
                 result=dict(
-                    cn=(u'testhostgroup1',),
+                    dn=dn1,
+                    cn=[hostgroup1],
                     objectclass=objectclasses.hostgroup,
-                    description=(u'Test hostgroup 1',),
+                    description=[u'Test hostgroup 1'],
+                    ipauniqueid=[fuzzy_uuid],
                 ),
             ),
-            ignore_values=['ipauniqueid', 'dn'],
         ),
 
 
         dict(
-            desc='Try to create duplicate testhostgroup1',
-            command=('hostgroup_add', [u'testhostgroup1'],
+            desc='Try to create duplicate %r' % hostgroup1,
+            command=('hostgroup_add', [hostgroup1],
                 dict(description=u'Test hostgroup 1')
             ),
             expected=errors.DuplicateEntry(),
@@ -101,23 +105,25 @@ class test_hostgroup(Declarative):
                 value=fqdn1,
                 summary=u'Added host "%s"' % fqdn1,
                 result=dict(
-                    cn=(fqdn1,),  # FIXME: we should only return fqdn
-                    fqdn=(fqdn1,),
-                    description=(u'Test host 1',),
-                    localityname=(u'Undisclosed location 1',),
-                    krbprincipalname=(u'host/%s@%s' % (fqdn1, api.env.realm),),
-                    serverhostname=(u'testhost1',),
+                    dn=host_dn1,
+                    cn=[fqdn1],  # FIXME: we should only return fqdn
+                    fqdn=[fqdn1],
+                    description=[u'Test host 1'],
+                    localityname=[u'Undisclosed location 1'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    serverhostname=[u'testhost1'],
                     objectclass=objectclasses.host,
+                    managedby=[host_dn1],
+                    ipauniqueid=[fuzzy_uuid],
                 ),
             ),
-            ignore_values=['ipauniqueid', 'dn'],
         ),
 
 
         dict(
-            desc=u'Add %r to testhostgroup1' % fqdn1,
+            desc=u'Add host %r to %r' % (fqdn1, hostgroup1),
             command=(
-                'hostgroup_add_member', [u'testhostgroup1'], dict(host=fqdn1)
+                'hostgroup_add_member', [hostgroup1], dict(host=fqdn1)
             ),
             expected=dict(
                 completed=1,
@@ -128,80 +134,80 @@ class test_hostgroup(Declarative):
                     ),
                 ),
                 result={
-                    'member host': (fqdn1,),
+                    'member host': [fqdn1],
                 },
             ),
         ),
 
 
         dict(
-            desc='Retrieve testhostgroup1',
-            command=('hostgroup_show', [u'testhostgroup1'], {}),
+            desc='Retrieve %r' % hostgroup1,
+            command=('hostgroup_show', [hostgroup1], {}),
             expected=dict(
-                value=u'testhostgroup1',
+                value=hostgroup1,
                 summary=None,
                 result={
-                    'member host': (u'testhost1.example.com',),
-                    'cn': (u'testhostgroup1',),
-                    'description': (u'Test hostgroup 1',)
+                    'dn': dn1,
+                    'member host': [u'testhost1.example.com'],
+                    'cn': [hostgroup1],
+                    'description': [u'Test hostgroup 1'],
                 },
             ),
-            ignore_values=['dn'],
         ),
 
 
         dict(
-            desc='Search for testhostgroup1',
-            command=('hostgroup_find', [], dict(cn=u'testhostgroup1')),
+            desc='Search for %r' % hostgroup1,
+            command=('hostgroup_find', [], dict(cn=hostgroup1)),
             expected=dict(
                 count=1,
                 truncated=False,
                 summary=u'1 hostgroup matched',
-                result=(
+                result=[
                     {
-                        'member host': (u'testhost1.example.com',),
-                        'cn': (u'testhostgroup1',),
-                        'description': (u'Test hostgroup 1',),
+                        'member host': [u'testhost1.example.com'],
+                        'cn': [hostgroup1],
+                        'description': [u'Test hostgroup 1'],
                     },
-                ),
+                ],
             ),
         ),
 
 
         dict(
-            desc='Update testhostgroup1',
-            command=('hostgroup_mod', [u'testhostgroup1'],
+            desc='Update %r' % hostgroup1,
+            command=('hostgroup_mod', [hostgroup1],
                 dict(description=u'Updated hostgroup 1')
             ),
             expected=dict(
-                value=u'testhostgroup1',
+                value=hostgroup1,
                 summary=u'Modified hostgroup "testhostgroup1"',
                 result=dict(
-                    description=(u'Updated hostgroup 1',),
+                    description=[u'Updated hostgroup 1'],
                 ),
             ),
         ),
 
 
         dict(
-            desc='Retrieve testhostgroup1 to verify update',
-            command=('hostgroup_show', [u'testhostgroup1'], {}),
+            desc='Retrieve %r to verify update' % hostgroup1,
+            command=('hostgroup_show', [hostgroup1], {}),
             expected=dict(
-                value=u'testhostgroup1',
+                value=hostgroup1,
                 summary=None,
                 result={
-                    'member host': (u'testhost1.example.com',),
-                    'cn': (u'testhostgroup1',),
-                    'description': (u'Updated hostgroup 1',)
+                    'dn': dn1,
+                    'member host': [u'testhost1.example.com'],
+                    'cn': [hostgroup1],
+                    'description': [u'Updated hostgroup 1'],
                 },
             ),
-            ignore_values=['dn'],
         ),
 
 
         dict(
-            desc='Remove %s from testhostgroup1',
-            command=('hostgroup_remove_member', [u'testhostgroup1'],
+            desc='Remove host %r from %r' % (fqdn1, hostgroup1),
+            command=('hostgroup_remove_member', [hostgroup1],
                 dict(host=fqdn1)
             ),
             expected=dict(
@@ -218,10 +224,10 @@ class test_hostgroup(Declarative):
 
 
         dict(
-            desc='Delete testhostgroup1',
-            command=('hostgroup_del', [u'testhostgroup1'], {}),
+            desc='Delete %r' % hostgroup1,
+            command=('hostgroup_del', [hostgroup1], {}),
             expected=dict(
-                value=u'testhostgroup1',
+                value=hostgroup1,
                 summary=u'Deleted hostgroup "testhostgroup1"',
                 result=True,
             ),
@@ -229,7 +235,7 @@ class test_hostgroup(Declarative):
 
 
         dict(
-            desc='Delete %s' % fqdn1,
+            desc='Delete host %r' % fqdn1,
             command=('host_del', [fqdn1], {}),
             expected=dict(
                 value=fqdn1,

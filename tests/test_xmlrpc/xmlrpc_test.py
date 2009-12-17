@@ -24,9 +24,20 @@ Base class for all XML-RPC tests
 import sys
 import socket
 import nose
-from tests.util import assert_deepequal
+from tests.util import assert_deepequal, Fuzzy
 from ipalib import api, request
 from ipalib import errors
+
+
+# Matches a gidnumber like '1391016742'
+# FIXME: Does it make more sense to return gidnumber, uidnumber, etc. as `int`
+# or `long`?  If not, we still need to return them as `unicode` instead of `str`.
+fuzzy_digits = Fuzzy('^\d+$', type=str)
+
+# Matches an ipauniqueid like u'784d85fd-eae7-11de-9d01-54520012478b'
+fuzzy_uuid = Fuzzy(
+    '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+)
 
 
 try:
@@ -146,10 +157,10 @@ class Declarative(XMLRPC_test):
     tests = tuple()
 
     def cleanup_generate(self, stage):
-        for command in self.cleanup_commands:
+        for (i, command) in enumerate(self.cleanup_commands):
             func = lambda: self.cleanup(command)
-            func.description = '%s %s-cleanup: %r' % (
-                self.__class__.__name__, stage, command
+            func.description = '%s %s-cleanup[%d]: %r' % (
+                self.__class__.__name__, stage, i, command
             )
             yield (func,)
 
@@ -194,11 +205,10 @@ class Declarative(XMLRPC_test):
         if cmd not in api.Command:
             raise nose.SkipTest('%r not in api.Command' % cmd)
         expected = test['expected']
-        ignore_values = test.get('ignore_values')
         if isinstance(expected, errors.PublicError):
             self.check_exception(nice, cmd, args, options, expected)
         else:
-            self.check_output(nice, cmd, args, options, expected, ignore_values)
+            self.check_output(nice, cmd, args, options, expected)
 
     def check_exception(self, nice, cmd, args, options, expected):
         klass = expected.__class__
@@ -224,28 +234,6 @@ class Declarative(XMLRPC_test):
 #                KWARGS % (cmd, name, args, options, expected.kw, e.kw)
 #            )
 
-    def check_output(self, nice, cmd, args, options, expected, ignore_values):
+    def check_output(self, nice, cmd, args, options, expected):
             got = api.Command[cmd](*args, **options)
-            result = got['result']
-            if ignore_values:
-                if isinstance(result, dict):
-                    self.clean_entry(
-                        nice, cmd, args, options, result, ignore_values
-                    )
-                elif isinstance(result, (list, tuple)):
-                    for entry in result:
-                        self.clean_entry(
-                            nice, cmd, args, options, entry, ignore_values
-                        )
             assert_deepequal(expected, got, nice)
-
-    def clean_entry(self, nice, cmd, args, options, entry, ignore_values):
-        """
-        Remove attributes like 'ipauniqueid' whose value is unpredictable.
-        """
-        for key in ignore_values:
-            if key not in entry:
-                raise AssertionError(
-                    IGNORE % (cmd, key, args, options, entry)
-                )
-            entry.pop(key)

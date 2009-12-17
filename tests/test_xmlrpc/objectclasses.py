@@ -21,20 +21,41 @@
 Defines the expected objectclass for various entries.
 """
 
-host = (
+user = [
+    u'top',
+    u'person',
+    u'organizationalperson',
+    u'inetorgperson',
+    u'inetuser',
+    u'posixaccount',
+    u'krbprincipalaux',
+    u'radiusprofile',
+    u'ipaobject',
+]
+
+group = [
+    u'top',
+    u'groupofnames',
+    u'nestedgroup',
+    u'ipausergroup',
+    u'ipaobject',
+]
+
+host = [
     u'ipaobject',
     u'nshost',
     u'ipahost',
     u'pkiuser',
+    u'ipaservice',
     u'krbprincipalaux',
     u'krbprincipal',
     u'top',
-)
+]
 
-hostgroup = (
+hostgroup = [
     u'ipaobject',
     u'ipahostgroup',
     u'nestedGroup',
     u'groupOfNames',
     u'top',
-)
+]

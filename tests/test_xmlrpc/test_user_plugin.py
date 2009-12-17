@@ -24,66 +24,71 @@ Test the `ipalib/plugins/user.py` module.
 """
 
 from ipalib import api, errors
-from xmlrpc_test import Declarative
+from tests.test_xmlrpc import objectclasses
+from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 
-user_objectclass = (
-    u'top',
-    u'person',
-    u'organizationalperson',
-    u'inetorgperson',
-    u'inetuser',
-    u'posixaccount',
-    u'krbprincipalaux',
-    u'radiusprofile',
-    u'ipaobject',
-)
 
 user_memberof = (u'cn=ipausers,cn=groups,cn=accounts,dc=example,dc=com',)
+user1=u'tuser1'
 
 
 class test_user(Declarative):
 
     cleanup_commands = [
-        ('user_del', [u'tuser1'], {}),
+        ('user_del', [user1], {}),
     ]
 
     tests = [
 
         dict(
-            desc='Try to retrieve non-existant user',
-            command=(
-                'user_show', [u'tuser1'], {}
-            ),
+            desc='Try to retrieve non-existent %r' % user1,
+            command=('user_show', [user1], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
 
         dict(
-            desc='Create a user',
-            command=(
-                'user_add', [], dict(givenname=u'Test', sn=u'User1')
-            ),
-            expected=dict(
-                value=u'tuser1',
-                result=dict(
-                    cn=(u'Test User1',),
-                    gecos=(u'tuser1',),
-                    givenname=(u'Test',),
-                    homedirectory=(u'/home/tuser1',),
-                    krbprincipalname=(u'tuser1@' + api.env.realm,),
-                    loginshell=(u'/bin/sh',),
-                    objectclass=user_objectclass,
-                    sn=(u'User1',),
-                    uid=(u'tuser1',),
-                ),
-                summary=u'Added user "tuser1"',
-            ),
-            ignore_values=['ipauniqueid', 'gidnumber', 'dn'],
+            desc='Try to update non-existent %r' % user1,
+            command=('user_mod', [user1], dict(givenname=u'Foo')),
+            expected=errors.NotFound(reason='no such entry'),
         ),
 
 
         dict(
-            desc='Try to create another user with same login',
+            desc='Try to delete non-existent %r' % user1,
+            command=('user_del', [user1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Create %r' % user1,
+            command=(
+                'user_add', [], dict(givenname=u'Test', sn=u'User1')
+            ),
+            expected=dict(
+                value=user1,
+                summary=u'Added user "tuser1"',
+                result=dict(
+                    cn=[u'Test User1'],
+                    gecos=[user1],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser1'],
+                    krbprincipalname=[u'tuser1@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User1'],
+                    uid=[user1],
+                    gidnumber=[fuzzy_digits],
+                    ipauniqueid=[fuzzy_uuid],
+                    dn=u'uid=tuser1,cn=users,cn=accounts,' + api.env.basedn,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Try to create duplicate %r' % user1,
             command=(
                 'user_add', [], dict(givenname=u'Test', sn=u'User1')
             ),
@@ -92,68 +97,70 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Retrieve the user',
+            desc='Retrieve %r' % user1,
             command=(
-                'user_show', [u'tuser1'], {}
+                'user_show', [user1], {}
             ),
             expected=dict(
                 result=dict(
                     dn=u'uid=tuser1,cn=users,cn=accounts,dc=example,dc=com',
-                    givenname=(u'Test',),
-                    homedirectory=(u'/home/tuser1',),
-                    loginshell=(u'/bin/sh',),
-                    sn=(u'User1',),
-                    uid=(u'tuser1',),
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[user1],
                 ),
-                value=u'tuser1',
+                value=user1,
                 summary=None,
             ),
         ),
 
 
         dict(
-            desc='Search for this user with all=True',
+            desc='Search for %r with all=True' % user1,
             command=(
-                'user_find', [u'tuser1'], {'all': True}
+                'user_find', [user1], {'all': True}
             ),
             expected=dict(
-                result=(
+                result=[
                     {
-                        'cn': (u'Test User1',),
-                        'gecos': (u'tuser1',),
-                        'givenname': (u'Test',),
-                        'homedirectory': (u'/home/tuser1',),
-                        'krbprincipalname': (u'tuser1@' + api.env.realm,),
-                        'loginshell': (u'/bin/sh',),
-                        'memberof group': (u'ipausers',),
-                        'objectclass': user_objectclass,
-                        'sn': (u'User1',),
-                        'uid': (u'tuser1',),
+                        'cn': [u'Test User1'],
+                        'gecos': [user1],
+                        'givenname': [u'Test'],
+                        'homedirectory': [u'/home/tuser1'],
+                        'krbprincipalname': [u'tuser1@' + api.env.realm],
+                        'loginshell': [u'/bin/sh'],
+                        'memberof group': [u'ipausers'],
+                        'objectclass': objectclasses.user,
+                        'sn': [u'User1'],
+                        'uid': [user1],
+                        'uidnumber': [fuzzy_digits],
+                        'gidnumber': [fuzzy_digits],
+                        'ipauniqueid': [fuzzy_uuid],
                     },
-                ),
+                ],
                 summary=u'1 user matched',
                 count=1,
                 truncated=False,
             ),
-            ignore_values=['uidnumber', 'gidnumber', 'ipauniqueid'],
         ),
 
 
         dict(
-            desc='Search for this user with minimal attributes',
+            desc='Search for %r with minimal attributes' % user1,
             command=(
-                'user_find', [u'tuser1'], {}
+                'user_find', [user1], {}
             ),
             expected=dict(
-                result=(
+                result=[
                     dict(
-                        givenname=(u'Test',),
-                        homedirectory=(u'/home/tuser1',),
-                        loginshell=(u'/bin/sh',),
-                        sn=(u'User1',),
-                        uid=(u'tuser1',),
+                        givenname=[u'Test'],
+                        homedirectory=[u'/home/tuser1'],
+                        loginshell=[u'/bin/sh'],
+                        sn=[u'User1'],
+                        uid=[user1],
                     ),
-                ),
+                ],
                 summary=u'1 user matched',
                 count=1,
                 truncated=False,
@@ -167,21 +174,21 @@ class test_user(Declarative):
                 'user_find', [], {}
             ),
             expected=dict(
-                result=(
+                result=[
                     dict(
-                        homedirectory=(u'/home/admin',),
-                        loginshell=(u'/bin/bash',),
-                        sn=(u'Administrator',),
-                        uid=(u'admin',),
+                        homedirectory=[u'/home/admin'],
+                        loginshell=[u'/bin/bash'],
+                        sn=[u'Administrator'],
+                        uid=[u'admin'],
                     ),
                     dict(
-                        givenname=(u'Test',),
-                        homedirectory=(u'/home/tuser1',),
-                        loginshell=(u'/bin/sh',),
-                        sn=(u'User1',),
-                        uid=(u'tuser1',),
+                        givenname=[u'Test'],
+                        homedirectory=[u'/home/tuser1'],
+                        loginshell=[u'/bin/sh'],
+                        sn=[u'User1'],
+                        uid=[user1],
                     ),
-                ),
+                ],
                 summary=u'2 users matched',
                 count=2,
                 truncated=False,
@@ -190,95 +197,95 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Lock user',
+            desc='Lock %r' % user1,
             command=(
-                'user_lock', [u'tuser1'], {}
+                'user_lock', [user1], {}
             ),
             expected=dict(
                 result=True,
-                value=u'tuser1',
+                value=user1,
                 summary=u'Locked user "tuser1"',
             ),
         ),
 
 
         dict(
-            desc='Unlock user',
+            desc='Unlock %r'  % user1,
             command=(
-                'user_unlock', [u'tuser1'], {}
+                'user_unlock', [user1], {}
             ),
             expected=dict(
                 result=True,
-                value=u'tuser1',
+                value=user1,
                 summary=u'Unlocked user "tuser1"',
             ),
         ),
 
 
         dict(
-            desc='Update user',
+            desc='Update %r' % user1,
             command=(
-                'user_mod', [u'tuser1'], dict(givenname=u'Finkle')
+                'user_mod', [user1], dict(givenname=u'Finkle')
             ),
             expected=dict(
                 result=dict(
-                    givenname=(u'Finkle',),
+                    givenname=[u'Finkle'],
                 ),
                 summary=u'Modified user "tuser1"',
-                value=u'tuser1',
+                value=user1,
             ),
         ),
 
 
         dict(
-            desc='Retrieve user to verify update',
-            command=(
-                'user_show', [u'tuser1'], {}
-            ),
+            desc='Retrieve %r to verify update' % user1,
+            command=('user_show', [user1], {}),
             expected=dict(
                 result=dict(
                     dn=u'uid=tuser1,cn=users,cn=accounts,dc=example,dc=com',
-                    givenname=(u'Finkle',),
-                    homedirectory=(u'/home/tuser1',),
-                    loginshell=(u'/bin/sh',),
-                    sn=(u'User1',),
-                    uid=(u'tuser1',),
+                    givenname=[u'Finkle'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[user1],
                 ),
                 summary=None,
-                value=u'tuser1',
+                value=user1,
             ),
 
         ),
 
 
         dict(
-            desc='Delete user',
-            command=(
-                'user_del', [u'tuser1'], {}
-            ),
+            desc='Delete %r' % user1,
+            command=('user_del', [user1], {}),
             expected=dict(
                 result=True,
                 summary=u'Deleted user "tuser1"',
-                value=u'tuser1',
+                value=user1,
             ),
         ),
 
 
         dict(
-            desc='Do double delete',
-            command=(
-                'user_del', [u'tuser1'], {}
-            ),
+            desc='Try to delete non-existent %r' % user1,
+            command=('user_del', [user1], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
 
         dict(
-            desc='Verify user is gone',
-            command=(
-                'user_show', [u'tuser1'], {}
-            ),
+            desc='Try to retrieve non-existent %r' % user1,
+            command=('user_show', [user1], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
+
+
+        dict(
+            desc='Try to update non-existent %r' % user1,
+            command=('user_mod', [user1], dict(givenname=u'Foo')),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
 
     ]

@@ -21,6 +21,7 @@
 Test the `tests.util` module.
 """
 
+import re
 import util
 from util import raises, TYPE, VALUE, LEN, KEYS
 
@@ -48,12 +49,99 @@ class Prop(object):
     prop = property(__get_prop, __set_prop, __del_prop)
 
 
+class test_Fuzzy(object):
+    klass = util.Fuzzy
+
+    def test_init(self):
+        inst = self.klass()
+        assert inst.regex is None
+        assert inst.type is None
+        assert inst.test is None
+        assert inst.re is None
+
+        inst = self.klass('(foo|bar)')
+        assert inst.regex == '(foo|bar)'
+        assert inst.type is unicode
+        assert inst.test is None
+        assert isinstance(inst.re, re._pattern_type)
+
+        inst = self.klass('(foo|bar)', type=str)
+        assert inst.regex == '(foo|bar)'
+        assert inst.type is str
+        assert inst.test is None
+        assert isinstance(inst.re, re._pattern_type)
+
+        t = lambda other: other > 500
+
+        inst = self.klass(test=t)
+        assert inst.regex is None
+        assert inst.type is None
+        assert inst.test is t
+        assert inst.re is None
+
+        inst = self.klass(type=(int, float), test=t)
+        assert inst.regex is None
+        assert inst.type == (int, float)
+        assert inst.test is t
+        assert inst.re is None
+
+    def test_repr(self):
+        s = 'Fuzzy(regex=%r, type=%r, test=%r)'
+        t = lambda other: 0.0 <= other <= 1.0
+
+        inst = self.klass()
+        assert repr(inst) == s % (None, None, None)
+
+        inst = self.klass('foo')
+        assert repr(inst) == s % ('foo', unicode, None)
+
+        inst = self.klass(type=(int, float))
+        assert repr(inst) == s % (None, (int, float), None)
+
+        inst = self.klass(type=(int, float), test=t)
+        assert repr(inst) == s % (None, (int, float), t)
+
+        inst = self.klass(test=t)
+        assert repr(inst) == s % (None, None, t)
+
+    def test_eq(self):
+        assert (self.klass('bar') == u'foobar') is True
+        assert (self.klass('^bar') == u'foobar') is False
+        assert (self.klass('bar', type=str) == u'foobar') is False
+
+        assert ('18' == self.klass()) is True
+        assert ('18' == self.klass(type=int)) is False
+        assert (18 == self.klass(type=int)) is True
+        assert ('18' == self.klass(type=(int, str))) is True
+
+        assert (self.klass() == '18') is True
+        assert (self.klass(type=int) == '18') is False
+        assert (self.klass(type=int) == 18) is True
+        assert (self.klass(type=(int, str)) == '18') is True
+
+        t = lambda other: other.endswith('bar')
+        assert (self.klass(test=t) == 'foobar') is True
+        assert (self.klass(test=t, type=unicode) == 'foobar') is False
+        assert (self.klass(test=t) == 'barfoo') is False
+
+        assert (False == self.klass()) is True
+        assert (True == self.klass()) is True
+        assert (None == self.klass()) is True
+
+
 def test_assert_deepequal():
     f = util.assert_deepequal
 
     # Test with good scalar values:
-    f(u'hello', u'hello', 'foo')
-    f(18, 18, 'foo')
+    f(u'hello', u'hello')
+    f(util.Fuzzy(), u'hello')
+    f(util.Fuzzy(type=unicode), u'hello')
+    f(util.Fuzzy('ell'), u'hello')
+    f(util.Fuzzy(test=lambda other: other.endswith('llo')), u'hello')
+    f(18, 18)
+    f(util.Fuzzy(), 18)
+    f(util.Fuzzy(type=int), 18)
+    f(util.Fuzzy(type=(int, float), test=lambda other: other > 17.9), 18)
 
     # Test with bad scalar values:
     e = raises(AssertionError, f, u'hello', u'world', 'foo')

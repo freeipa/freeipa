@@ -23,11 +23,12 @@ Test the `ipalib.plugins.host` module.
 """
 
 from ipalib import api, errors
-from tests.test_xmlrpc.xmlrpc_test import Declarative
+from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
 from tests.test_xmlrpc import objectclasses
 
 
 fqdn1 = u'testhost1.%s' % api.env.domain
+dn1 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn1, api.env.basedn)
 
 
 class test_host(Declarative):
@@ -71,16 +72,18 @@ class test_host(Declarative):
                 value=fqdn1,
                 summary=u'Added host "%s"' % fqdn1,
                 result=dict(
-                    cn=(fqdn1,),  # FIXME: we should only return fqdn
-                    fqdn=(fqdn1,),
-                    description=(u'Test host 1',),
-                    localityname=(u'Undisclosed location 1',),
-                    krbprincipalname=(u'host/%s@%s' % (fqdn1, api.env.realm),),
-                    serverhostname=(u'testhost1',),
+                    dn=dn1,
+                    cn=[fqdn1],  # FIXME: we should only return fqdn
+                    fqdn=[fqdn1],
+                    description=[u'Test host 1'],
+                    localityname=[u'Undisclosed location 1'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    serverhostname=[u'testhost1'],
                     objectclass=objectclasses.host,
+                    managedby=[dn1],
+                    ipauniqueid=[fuzzy_uuid],
                 ),
             ),
-            ignore_values=['ipauniqueid', 'dn'],
         ),
 
 
@@ -103,12 +106,12 @@ class test_host(Declarative):
                 value=fqdn1,
                 summary=None,
                 result=dict(
-                    fqdn=(fqdn1,),
-                    description=(u'Test host 1',),
-                    localityname=(u'Undisclosed location 1',),
+                    dn=dn1,
+                    fqdn=[fqdn1],
+                    description=[u'Test host 1'],
+                    localityname=[u'Undisclosed location 1'],
                 ),
             ),
-            ignore_values=['dn'],
         ),
 
 
@@ -119,20 +122,22 @@ class test_host(Declarative):
                 value=fqdn1,
                 summary=None,
                 result=dict(
-                    cn=(fqdn1,),
-                    fqdn=(fqdn1,),
-                    description=(u'Test host 1',),
+                    dn=dn1,
+                    cn=[fqdn1],
+                    fqdn=[fqdn1],
+                    description=[u'Test host 1'],
                     # FIXME: Why is 'localalityname' returned as 'l' with --all?
                     # It is intuitive for --all to return additional attributes,
                     # but not to return existing attributes under different
                     # names.
-                    l=(u'Undisclosed location 1',),
-                    krbprincipalname=(u'host/%s@%s' % (fqdn1, api.env.realm),),
-                    serverhostname=(u'testhost1',),
+                    l=[u'Undisclosed location 1'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    serverhostname=[u'testhost1'],
                     objectclass=objectclasses.host,
+                    managedby=[dn1],
+                    ipauniqueid=[fuzzy_uuid],
                 ),
             ),
-            ignore_values=['dn', 'ipauniqueid'],
         ),
 
 
@@ -143,13 +148,13 @@ class test_host(Declarative):
                 count=1,
                 truncated=False,
                 summary=u'1 host matched',
-                result=(
+                result=[
                     dict(
-                        fqdn=(fqdn1,),
-                        description=(u'Test host 1',),
-                        localityname=(u'Undisclosed location 1',),
+                        fqdn=[fqdn1],
+                        description=[u'Test host 1'],
+                        localityname=[u'Undisclosed location 1'],
                     ),
-                ),
+                ],
             ),
         ),
 
@@ -161,25 +166,24 @@ class test_host(Declarative):
                 count=1,
                 truncated=False,
                 summary=u'1 host matched',
-                result=(
+                result=[
                     dict(
-                        cn=(fqdn1,),
-                        fqdn=(fqdn1,),
-                        description=(u'Test host 1',),
+                        cn=[fqdn1],
+                        fqdn=[fqdn1],
+                        description=[u'Test host 1'],
                         # FIXME: Why is 'localalityname' returned as 'l' with --all?
                         # It is intuitive for --all to return additional attributes,
                         # but not to return existing attributes under different
                         # names.
-                        l=(u'Undisclosed location 1',),
-                        krbprincipalname=(u'host/%s@%s' % (fqdn1, api.env.realm),),
-                        serverhostname=(u'testhost1',),
+                        l=[u'Undisclosed location 1'],
+                        krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                        serverhostname=[u'testhost1'],
                         objectclass=objectclasses.host,
+                        managedby=[dn1],
+                        ipauniqueid=[fuzzy_uuid],
                     ),
-                ),
+                ],
             ),
-            # FIXME: With --all, host_show() returns the 'dn', but host_find()
-            # doesn't.
-            ignore_values=['ipauniqueid'],
         ),
 
 
@@ -190,7 +194,7 @@ class test_host(Declarative):
                 value=fqdn1,
                 summary=u'Modified host "%s"' % fqdn1,
                 result=dict(
-                    description=(u'Updated host 1',),
+                    description=[u'Updated host 1'],
                 ),
             ),
         ),
@@ -203,12 +207,12 @@ class test_host(Declarative):
                 value=fqdn1,
                 summary=None,
                 result=dict(
-                    fqdn=(fqdn1,),
-                    description=(u'Updated host 1',),
-                    localityname=(u'Undisclosed location 1',),
+                    dn=dn1,
+                    fqdn=[fqdn1],
+                    description=[u'Updated host 1'],
+                    localityname=[u'Undisclosed location 1'],
                 ),
             ),
-            ignore_values=['dn'],
         ),
 
 

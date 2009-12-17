@@ -26,6 +26,7 @@ import os
 from os import path
 import tempfile
 import shutil
+import re
 import ipalib
 from ipalib.plugable import Plugin
 from ipalib.request import context
@@ -108,6 +109,58 @@ def assert_equal(val1, val2):
     assert val1 == val2, '%r != %r' % (val1, val2)
 
 
+class Fuzzy(object):
+    """
+    Perform a fuzzy (non-strict) equality test.
+
+    `Fuzzy` instances will likely be used when comparing nesting data-structures
+    using `assert_deepequal()`.
+    """
+
+    def __init__(self, regex=None, type=None, test=None):
+        """
+        Initialize.
+
+        :param regex: A regular expression pattern to match, e.g.
+            ``u'^\d+foo'``
+
+        :param type: A type or tuple of types to test using ``isinstance()``,
+            e.g. ``(int, float)``
+
+        :param test: A callable used to perform equality test, e.g.
+            ``lambda other: other >= 18``
+        """
+        assert regex is None or isinstance(regex, basestring)
+        assert test is None or callable(test)
+        if regex is None:
+            self.re = None
+        else:
+            self.re = re.compile(regex)
+            if type is None:
+                type = unicode
+            assert type in (unicode, str)
+        self.regex = regex
+        self.type = type
+        self.test = test
+
+    def __repr__(self):
+        return '%s(regex=%r, type=%r, test=%r)' % (
+            self.__class__.__name__, self.regex, self.type, self.test
+        )
+
+    def __eq__(self, other):
+        if not (self.type is None or isinstance(other, self.type)):
+            return False
+        if not (self.re is None or self.re.search(other)):
+            return False
+        if not (self.test is None or self.test(other)):
+            return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
 VALUE = """assert_deepequal: expected != got.
   %s
   expected = %r
@@ -160,7 +213,11 @@ def assert_deepequal(expected, got, src='', stack=tuple()):
       got = 'nurse'
       path = (1, 'naughty')
     """
-    if type(expected) is not type(got):
+    if isinstance(expected, tuple):
+        expected = list(expected)
+    if isinstance(got, tuple):
+        got = list(got)
+    if not (isinstance(expected, Fuzzy) or type(expected) is type(got)):
         raise AssertionError(
             TYPE % (src, type(expected), type(got), expected, got, stack)
         )
@@ -184,7 +241,7 @@ def assert_deepequal(expected, got, src='', stack=tuple()):
             e_sub = expected[key]
             g_sub = got[key]
             assert_deepequal(e_sub, g_sub, src, stack + (key,))
-    if expected != got:
+    elif expected != got:
         raise AssertionError(
             VALUE % (src, expected, got, stack)
         )

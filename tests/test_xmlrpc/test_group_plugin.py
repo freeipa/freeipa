@@ -21,248 +21,331 @@
 Test the `ipalib/plugins/group.py` module.
 """
 
-import sys
-from xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api, errors
-from xmlrpc_test import Declarative
+from tests.test_xmlrpc import objectclasses
+from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 
-
-group_objectclass = (
-    u'top',
-    u'groupofnames',
-    u'nestedgroup',
-    u'ipausergroup',
-    u'ipaobject',
-)
+group1 = u'testgroup1'
+group2 = u'testgroup2'
 
 
 class test_group(Declarative):
     cleanup_commands = [
-        ('group_del', [u'testgroup1'], {}),
-        ('group_del', [u'testgroup2'], {}),
+        ('group_del', [group1], {}),
+        ('group_del', [group2], {}),
     ]
 
     tests = [
-        # testgroup1:
+
+        ################
+        # create group1:
         dict(
-            desc='Try to retrieve a non-existant testgroup1',
-            command=('group_show', [u'testgroup2'], {}),
+            desc='Try to retrieve non-existant %r' % group1,
+            command=('group_show', [group1], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
-        dict(
-            desc='Create testgroup1',
-            command=(
-                'group_add', [u'testgroup1'], dict(description=u'Test desc 1')
-            ),
-            expected=dict(
-                value=u'testgroup1',
-                result=dict(
-                    cn=(u'testgroup1',),
-                    description=(u'Test desc 1',),
-                    objectclass=group_objectclass,
-                ),
-                summary=u'Added group "testgroup1"',
-            ),
-            ignore_values=['ipauniqueid', 'dn'],
-        ),
 
         dict(
-            desc='Try to create testgroup1 again',
+            desc='Try to update non-existant %r' % group1,
+            command=('group_mod', [group1], dict(description=u'Foo')),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Try to delete non-existant %r' % group1,
+            command=('group_del', [group1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Create %r' % group1,
             command=(
-                'group_add', [u'testgroup1'], dict(description=u'Test desc 1')
+                'group_add', [group1], dict(description=u'Test desc 1')
+            ),
+            expected=dict(
+                value=group1,
+                summary=u'Added group "testgroup1"',
+                result=dict(
+                    cn=[group1],
+                    description=[u'Test desc 1'],
+                    objectclass=objectclasses.group,
+                    ipauniqueid=[fuzzy_uuid],
+                    dn=u'cn=testgroup1,cn=groups,cn=accounts,' + api.env.basedn,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Try to create duplicate %r' % group1,
+            command=(
+                'group_add', [group1], dict(description=u'Test desc 1')
             ),
             expected=errors.DuplicateEntry(),
         ),
 
-        dict(
-            desc='Retrieve testgroup1',
-            command=('group_show', [u'testgroup1'], {}),
-            expected=dict(
-                value=u'testgroup1',
-                result=dict(
-                    cn=(u'testgroup1',),
-                    description=(u'Test desc 1',),
-                ),
-                summary=None,
-            ),
-            ignore_values=['dn'],
-        ),
 
         dict(
-            desc='Updated testgroup1',
+            desc='Retrieve %r' % group1,
+            command=('group_show', [group1], {}),
+            expected=dict(
+                value=group1,
+                summary=None,
+                result=dict(
+                    cn=[group1],
+                    description=[u'Test desc 1'],
+                    dn=u'cn=testgroup1,cn=groups,cn=accounts,' + api.env.basedn,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Updated %r' % group1,
             command=(
-                'group_mod', [u'testgroup1'], dict(description=u'New desc 1')
+                'group_mod', [group1], dict(description=u'New desc 1')
             ),
             expected=dict(
                 result=dict(
-                    description=(u'New desc 1',),
+                    description=[u'New desc 1'],
                 ),
                 summary=u'Modified group "testgroup1"',
-                value=u'testgroup1',
+                value=group1,
             ),
         ),
 
+
         dict(
-            desc='Retrieve testgroup1 to check update',
-            command=('group_show', [u'testgroup1'], {}),
+            desc='Retrieve %r to verify update' % group1,
+            command=('group_show', [group1], {}),
             expected=dict(
-                value=u'testgroup1',
+                value=group1,
                 result=dict(
-                    cn=(u'testgroup1',),
-                    description=(u'New desc 1',),
+                    cn=[group1],
+                    description=[u'New desc 1'],
+                    dn=u'cn=testgroup1,cn=groups,cn=accounts,' + api.env.basedn,
                 ),
                 summary=None,
             ),
-            ignore_values=['dn'],
         ),
+
 
         # FIXME: The return value is totally different here than from the above
         # group_mod() test.  I think that for all *_mod() commands we should
         # just return the entry exactly as *_show() does.
         dict(
-            desc='Updated testgroup1 to promote it to posix group',
-            command=('group_mod', [u'testgroup1'], dict(posix=True)),
+            desc='Updated %r to promote it to a posix group' % group1,
+            command=('group_mod', [group1], dict(posix=True)),
             expected=dict(
                 result=dict(
-                    cn=(u'testgroup1',),
-                    description=(u'New desc 1',),
-                    objectclass=group_objectclass + (u'posixgroup',),
+                    cn=[group1],
+                    description=[u'New desc 1'],
+                    objectclass=objectclasses.group + [u'posixgroup'],
+                    ipauniqueid=[fuzzy_uuid],
+                    gidnumber=[fuzzy_digits],
                 ),
-                value=u'testgroup1',
+                value=group1,
                 summary=u'Modified group "testgroup1"',
             ),
-            ignore_values=['gidnumber', 'ipauniqueid'],
         ),
 
+
         dict(
-            desc="Retrieve testgroup1 to check it's a posix group",
-            command=('group_show', [u'testgroup1'], {}),
+            desc="Retrieve %r to verify it's a posix group" % group1,
+            command=('group_show', [group1], {}),
             expected=dict(
-                value=u'testgroup1',
+                value=group1,
                 result=dict(
-                    cn=(u'testgroup1',),
+                    cn=[group1],
                     description=(u'New desc 1',),
+                    dn=u'cn=testgroup1,cn=groups,cn=accounts,' + api.env.basedn,
+                    gidnumber=[fuzzy_digits],
                 ),
                 summary=None,
             ),
-            ignore_values=['dn', 'gidnumber'],
         ),
 
+
         dict(
-            desc='Search for testgroup1',
-            command=('group_find', [], dict(cn=u'testgroup1')),
+            desc='Search for %r' % group1,
+            command=('group_find', [], dict(cn=group1)),
             expected=dict(
                 count=1,
                 truncated=False,
-                result=(
+                result=[
                     dict(
-                        cn=(u'testgroup1',),
-                        description=(u'New desc 1',),
+                        cn=[group1],
+                        description=[u'New desc 1'],
+                        gidnumber=[fuzzy_digits],
                     ),
-                ),
+                ],
                 summary=u'1 group matched',
             ),
-            ignore_values=['gidnumber'],
         ),
 
 
-        # testgroup2:
+
+        ################
+        # create group2:
         dict(
-            desc='Try to retrieve a non-existant testgroup2',
-            command=('group_show', [u'testgroup2'], {}),
+            desc='Try to retrieve non-existant %r' % group2,
+            command=('group_show', [group2], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
-        dict(
-            desc='Create testgroup2',
-            command=(
-                'group_add', [u'testgroup2'], dict(description=u'Test desc 2')
-            ),
-            expected=dict(
-                value=u'testgroup2',
-                result=dict(
-                    cn=(u'testgroup2',),
-                    description=(u'Test desc 2',),
-                    objectclass=group_objectclass,
-                ),
-                summary=u'Added group "testgroup2"',
-            ),
-            ignore_values=['ipauniqueid', 'dn'],
-        ),
 
         dict(
-            desc='Try to create testgroup2 again',
+            desc='Try to update non-existant %r' % group2,
+            command=('group_mod', [group2], dict(description=u'Foo')),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Try to delete non-existant %r' % group2,
+            command=('group_del', [group2], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Create %r' % group2,
             command=(
-                'group_add', [u'testgroup2'], dict(description=u'Test desc 2')
+                'group_add', [group2], dict(description=u'Test desc 2')
+            ),
+            expected=dict(
+                value=group2,
+                summary=u'Added group "testgroup2"',
+                result=dict(
+                    cn=[group2],
+                    description=[u'Test desc 2'],
+                    objectclass=objectclasses.group,
+                    ipauniqueid=[fuzzy_uuid],
+                    dn=u'cn=testgroup2,cn=groups,cn=accounts,' + api.env.basedn,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Try to create duplicate %r' % group2,
+            command=(
+                'group_add', [group2], dict(description=u'Test desc 2')
             ),
             expected=errors.DuplicateEntry(),
         ),
 
+
         dict(
-            desc='Retrieve testgroup2',
-            command=('group_show', [u'testgroup2'], {}),
+            desc='Retrieve %r' % group2,
+            command=('group_show', [group2], {}),
             expected=dict(
-                value=u'testgroup2',
+                value=group2,
+                summary=None,
                 result=dict(
-                    cn=(u'testgroup2',),
-                    description=(u'Test desc 2',),
+                    cn=[group2],
+                    description=[u'Test desc 2'],
+                    dn=u'cn=testgroup2,cn=groups,cn=accounts,' + api.env.basedn,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Updated %r' % group2,
+            command=(
+                'group_mod', [group2], dict(description=u'New desc 2')
+            ),
+            expected=dict(
+                result=dict(
+                    description=[u'New desc 2'],
+                ),
+                summary=u'Modified group "testgroup2"',
+                value=group2,
+            ),
+        ),
+
+
+        dict(
+            desc='Retrieve %r to verify update' % group2,
+            command=('group_show', [group2], {}),
+            expected=dict(
+                value=group2,
+                result=dict(
+                    cn=[group2],
+                    description=[u'New desc 2'],
+                    dn=u'cn=testgroup2,cn=groups,cn=accounts,' + api.env.basedn,
                 ),
                 summary=None,
             ),
-            ignore_values=['dn'],
         ),
 
+
         dict(
-            desc='Search for testgroup2',
-            command=('group_find', [], dict(cn=u'testgroup2')),
+            desc='Search for %r' % group2,
+            command=('group_find', [], dict(cn=group2)),
             expected=dict(
                 count=1,
                 truncated=False,
-                result=(
+                result=[
                     dict(
-                        cn=(u'testgroup2',),
-                        description=(u'Test desc 2',),
+                        cn=[group2],
+                        description=[u'New desc 2'],
                     ),
-                ),
+                ],
                 summary=u'1 group matched',
             ),
         ),
 
+
         dict(
-            desc='Updated testgroup2',
-            command=(
-                'group_mod', [u'testgroup2'], dict(description=u'New desc 2')
-            ),
+            desc='Search for all groups',
+            command=('group_find', [], {}),
             expected=dict(
-                result=dict(
-                    description=(u'New desc 2',),
-                ),
-                value=u'testgroup2',
-                summary=u'Modified group "testgroup2"',
+                summary=u'5 groups matched',
+                count=5,
+                truncated=False,
+                result=[
+                    {
+                        'member user': [u'admin'],
+                        'gidnumber': [fuzzy_digits],
+                        'cn': [u'admins'],
+                        'description': [u'Account administrators group'],
+                    },
+                    {
+                        'gidnumber': [fuzzy_digits],
+                        'cn': [u'ipausers'],
+                        'description': [u'Default group for all users'],
+                    },
+                    {
+                        'gidnumber': [fuzzy_digits],
+                        'cn': [u'editors'],
+                        'description': [u'Limited admins who can edit other users'],
+                    },
+                    dict(
+                        cn=[group1],
+                        description=[u'New desc 1'],
+                        gidnumber=[fuzzy_digits],
+                    ),
+                    dict(
+                        cn=[group2],
+                        description=[u'New desc 2'],
+                    ),
+                ],
             ),
         ),
 
-        dict(
-            desc='Retrieve testgroup2 to check update',
-            command=('group_show', [u'testgroup2'], {}),
-            expected=dict(
-                value=u'testgroup2',
-                result=dict(
-                    cn=(u'testgroup2',),
-                    description=(u'New desc 2',),
-                ),
-                summary=None,
-            ),
-            ignore_values=['dn'],
-        ),
 
 
+        ###############
         # member stuff:
         dict(
-            desc='Make testgroup2 member of testgroup1',
+            desc='Add member %r to %r' % (group2, group1),
             command=(
-                'group_add_member', [u'testgroup1'], dict(group=u'testgroup2')
+                'group_add_member', [group1], dict(group=group2)
             ),
             expected=dict(
                 completed=1,
@@ -272,15 +355,15 @@ class test_group(Declarative):
                         user=tuple(),
                     ),
                 ),
-                result={'member group': (u'testgroup2',)},
+                result={'member group': (group2,)},
             ),
         ),
 
         dict(
             # FIXME: Shouldn't this raise a NotFound instead?
-            desc='Try to add a non-existent member to testgroup1',
+            desc='Try to add non-existent member to %r' % group1,
             command=(
-                'group_add_member', [u'testgroup1'], dict(group=u'notfound')
+                'group_add_member', [group1], dict(group=u'notfound')
             ),
             expected=dict(
                 completed=0,
@@ -290,14 +373,14 @@ class test_group(Declarative):
                         user=tuple(),
                     ),
                 ),
-                result={'member group': (u'testgroup2',)},
+                result={'member group': (group2,)},
             ),
         ),
 
         dict(
-            desc='Remove member testgroup2 from testgroup1',
+            desc='Remove member %r from %r' % (group2, group1),
             command=('group_remove_member',
-                [u'testgroup1'], dict(group=u'testgroup2')
+                [group1], dict(group=group2)
             ),
             expected=dict(
                 completed=1,
@@ -313,9 +396,9 @@ class test_group(Declarative):
 
         dict(
             # FIXME: Shouldn't this raise a NotFound instead?
-            desc='Try to remove a non-existent member from testgroup1',
+            desc='Try to remove non-existent member from %r' % group1,
             command=('group_remove_member',
-                [u'testgroup1'], dict(group=u'notfound')
+                [group1], dict(group=u'notfound')
             ),
             expected=dict(
                 completed=0,
@@ -330,69 +413,73 @@ class test_group(Declarative):
         ),
 
 
-        # Delete:
+
+        ################
+        # delete group1:
         dict(
-            desc='Delete testgroup1',
-            command=('group_del', [u'testgroup1'], {}),
+            desc='Delete %r' % group1,
+            command=('group_del', [group1], {}),
             expected=dict(
                 result=True,
-                value=u'testgroup1',
+                value=group1,
                 summary=u'Deleted group "testgroup1"',
-            ),
+            )
         ),
 
+
         dict(
-            desc='Delete testgroup2',
-            command=('group_del', [u'testgroup2'], {}),
+            desc='Try to delete non-existant %r' % group1,
+            command=('group_del', [group1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Try to retrieve non-existant %r' % group1,
+            command=('group_show', [group1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Try to update non-existant %r' % group1,
+            command=('group_mod', [group1], dict(description=u'Foo')),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+
+        ################
+        # delete group2:
+        dict(
+            desc='Delete %r' % group2,
+            command=('group_del', [group2], {}),
             expected=dict(
                 result=True,
-                value=u'testgroup2',
+                value=group2,
                 summary=u'Deleted group "testgroup2"',
-            ),
+            )
         ),
 
 
-        ##############
-        # Non-existent
-        ##############
-
-        # testgroup1:
         dict(
-            desc='Try to retrieve non-existent testgroup1',
-            command=('group_show', [u'testgroup1'], {}),
-            expected=errors.NotFound(reason='no such entry'),
-        ),
-        dict(
-            desc='Try to update non-existent testgroup1',
-            command=(
-                'group_mod', [u'testgroup1'], dict(description=u'New desc 1')
-            ),
-            expected=errors.NotFound(reason='no such entry'),
-        ),
-        dict(
-            desc='Try to delete non-existent testgroup1',
-            command=('group_del', [u'testgroup1'], {}),
+            desc='Try to delete non-existant %r' % group2,
+            command=('group_del', [group2], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
-        # testgroup2:
+
         dict(
-            desc='Try to retrieve non-existent testgroup2',
-            command=('group_show', [u'testgroup2'], {}),
-            expected=errors.NotFound(reason='no such entry'),
-        ),
-        dict(
-            desc='Try to update non-existent testgroup2',
-            command=(
-                'group_mod', [u'testgroup2'], dict(description=u'New desc 2')
-            ),
-            expected=errors.NotFound(reason='no such entry'),
-        ),
-        dict(
-            desc='Try to delete non-existent testgroup2',
-            command=('group_del', [u'testgroup2'], {}),
+            desc='Try to retrieve non-existant %r' % group2,
+            command=('group_show', [group2], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
+
+        dict(
+            desc='Try to update non-existant %r' % group2,
+            command=('group_mod', [group2], dict(description=u'Foo')),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
 
     ]
