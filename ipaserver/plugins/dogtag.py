@@ -1511,7 +1511,7 @@ class ra(rabase.rabase):
         http_status, http_reason_phrase, http_headers, http_body = \
             self._sslget('/ca/ee/ca/profileSubmit',
                          self.env.ca_ee_port,
-                         profileId='caRAserverCert',
+                         profileId='caIPAserviceCert',
                          cert_request_type=request_type,
                          cert_request=csr,
                          xml='true')

@@ -179,7 +179,7 @@ class cert_request(VirtualCommand):
         # going to add it
         try:
             if not principal.startswith('host/'):
-                service = api.Command['service_show'](principal, all=True, raw=True)
+                service = api.Command['service_show'](principal, all=True, raw=True)['result']
                 dn = service['dn']
             else:
                 realm = principal.find('@')
@@ -196,7 +196,7 @@ class cert_request(VirtualCommand):
             if not add:
                 raise errors.NotFound(reason="The service principal for this request doesn't exist.")
             try:
-                service = api.Command['service_add'](principal, **{})
+                service = api.Command['service_add'](principal, **{})['result']
                 dn = service['dn']
             except errors.ACIError:
                 raise errors.ACIError(info='You need to be a member of the serviceadmin role to add services')
