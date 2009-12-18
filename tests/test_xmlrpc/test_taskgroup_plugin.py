@@ -17,157 +17,429 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
 """
 Test the `ipalib/plugins/taskgroup.py` module.
 """
 
-import sys
-from xmlrpc_test import XMLRPC_test, assert_attr_equal, assert_is_member
-from ipalib import api
-from ipalib import errors
+from ipalib import api, errors
+from tests.test_xmlrpc import objectclasses
+from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+
+search = u'test-taskgroup'
+
+taskgroup1 = u'test-taskgroup-1'
+taskgroup1_dn = u'cn=%s,cn=taskgroups,cn=accounts,%s' % (
+    taskgroup1, api.env.basedn
+)
+
+taskgroup2 = u'test-taskgroup-2'
+taskgroup2_dn = u'cn=%s,cn=taskgroups,cn=accounts,%s' % (
+    taskgroup2, api.env.basedn
+)
+
+group1 = u'testgroup1'
+group1_dn = u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn)
+
+rolegroup1 = u'test-rolegroup-1'
+rolegroup1_dn = u'cn=%s,cn=rolegroups,cn=accounts,%s' % (
+    rolegroup1, api.env.basedn
+)
 
 
-class test_taskgroup(XMLRPC_test):
-    """
-    Test the `taskgroup` plugin.
-    """
-    cn = u'testgroup'
-    description = u'Test task group'
-    kw = {'cn': cn, 'description': description, 'raw': True}
+class test_taskgroup(Declarative):
 
-    taskgroup_cn = u'ipatestgroup'
-    taskgroup_description = u'Test group for taskgroups'
+    cleanup_commands = [
+        ('taskgroup_del', [taskgroup1], {}),
+        ('taskgroup_del', [taskgroup2], {}),
+        ('group_del', [group1], {}),
+        ('rolegroup_del', [rolegroup1], {}),
+    ]
 
-    rolegroup_cn = u'iparolegroup'
-    rolegroup_description = u'Test rolegroup for taskgroups'
+    tests = [
 
-    def test_1_taskgroup_add(self):
-        """
-        Test the `xmlrpc.taskgroup_add` method.
-        """
-        ret = self.failsafe_add(
-            api.Object.taskgroup, self.cn, description=self.description,
-        )
-        entry = ret['result']
-        assert_attr_equal(entry, 'description', self.description)
-        assert_attr_equal(entry, 'cn', self.cn)
-        # FIXME: why is 'ipaobject' missing?
-        #assert_attr_equal(entry, 'objectclass', 'ipaobject')
+        dict(
+            desc='Try to retrieve non-existent %r' % taskgroup1,
+            command=('taskgroup_show', [taskgroup1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
 
-    def test_2_add_rolegroup(self):
-        """
-        Add a rolegroup to test add/remove member.
-        """
-        ret = self.failsafe_add(api.Object.rolegroup, self.rolegroup_cn,
-            description=self.rolegroup_description,
-        )
-        entry = ret['result']
-        assert_attr_equal(entry, 'description', self.rolegroup_description)
-        assert_attr_equal(entry, 'cn', self.rolegroup_cn)
 
-    def test_3_add_taskgroup(self):
-        """
-        Add a group to test add/remove member.
-        """
-        ret = self.failsafe_add(api.Object.group, self.taskgroup_cn,
-            description=self.taskgroup_description,
-        )
-        entry = ret['result']
-        assert_attr_equal(entry, 'description', self.taskgroup_description)
-        assert_attr_equal(entry, 'cn', self.taskgroup_cn)
+        dict(
+            desc='Try to update non-existent %r' % taskgroup1,
+            command=('taskgroup_mod', [taskgroup1], dict(description=u'Foo')),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
 
-    def test_4_taskgroup_add_member(self):
-        """
-        Test the `xmlrpc.taskgroup_add_member` method.
-        """
-        kw = {}
-        kw['group'] = self.taskgroup_cn
-        kw['rolegroup'] = self.rolegroup_cn
-        ret = api.Command['taskgroup_add_member'](self.cn, **kw)
-        assert ret['completed'] == 2
 
-    def test_5_taskgroup_show(self):
-        """
-        Test the `xmlrpc.taskgroup_show` method.
-        """
-        entry = api.Command['taskgroup_show'](self.cn, all=True)['result']
-        assert_attr_equal(entry, 'description', self.description)
-        assert_attr_equal(entry, 'cn', self.cn)
-        #assert_is_member(entry, 'cn=%s' % self.taskgroup_cn)
-        #assert_is_member(entry, 'cn=%s' % self.rolegroup_cn)
+        dict(
+            desc='Try to delete non-existent %r' % taskgroup1,
+            command=('taskgroup_del', [taskgroup1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
 
-    def test_6_taskgroup_find(self):
-        """
-        Test the `xmlrpc.taskgroup_find` method.
-        """
-        ret = api.Command['taskgroup_find'](self.cn, all=True, raw=True)
-        entry = ret['result'][0]
-        assert_attr_equal(entry, 'description', self.description)
-        assert_attr_equal(entry, 'cn', self.cn)
-        #assert_is_member(entry, 'cn=%s' % self.taskgroup_cn)
-        #assert_is_member(entry, 'cn=%s' % self.rolegroup_cn)
 
-    def test_7_taskgroup_mod(self):
-        """
-        Test the `xmlrpc.taskgroup_mod` method.
-        """
-        newdesc = u'Updated task group'
-        modkw = {'cn': self.cn, 'description': newdesc, 'raw': True}
-        entry = api.Command['taskgroup_mod'](**modkw)['result']
-        assert_attr_equal(entry, 'description', newdesc)
+        dict(
+            desc='Search for non-existent %r' % taskgroup1,
+            command=('taskgroup_find', [taskgroup1], {}),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary=u'0 taskgroups matched',
+                result=[],
+            ),
+        ),
 
-        # Ok, double-check that it was changed
-        entry = api.Command['taskgroup_show'](self.cn, raw=True)['result']
-        assert_attr_equal(entry, 'description', newdesc)
-        assert_attr_equal(entry, 'cn', self.cn)
 
-    def test_8_taskgroup_del_member(self):
-        """
-        Test the `xmlrpc.taskgroup_remove_member` method.
-        """
-        kw = {}
-        kw['group'] = self.taskgroup_cn
-        ret = api.Command['taskgroup_remove_member'](self.cn, **kw)
-        assert ret['completed'] == 1
+        dict(
+            desc='Create %r' % taskgroup1,
+            command=(
+                'taskgroup_add', [taskgroup1], dict(description=u'Test desc 1')
+            ),
+            expected=dict(
+                value=taskgroup1,
+                summary=u'Added taskgroup "test-taskgroup-1"',
+                result=dict(
+                    dn=taskgroup1_dn,
+                    cn=[taskgroup1],
+                    description=[u'Test desc 1'],
+                    objectclass=objectclasses.taskgroup,
+                ),
+            ),
+        ),
 
-    def test_9_taskgroup_del(self):
-        """
-        Test the `xmlrpc.taskgroup_del` method.
-        """
-        assert api.Command['taskgroup_del'](self.cn)['result'] is True
 
-        # Verify that it is gone
-        try:
-            api.Command['taskgroup_show'](self.cn)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
+        dict(
+            desc='Try to create duplicate %r' % taskgroup1,
+            command=(
+                'taskgroup_add', [taskgroup1], dict(description=u'Test desc 1')
+            ),
+            expected=errors.DuplicateEntry(),
+        ),
 
-    def test_a_del_taskgroup(self):
-        """
-        Remove the group we created for member testing.
-        """
-        assert api.Command['group_del'](self.taskgroup_cn)['result'] is True
 
-        # Verify that it is gone
-        try:
-            api.Command['group_show'](self.taskgroup_cn)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
+        dict(
+            desc='Create %r' % rolegroup1,
+            command=('rolegroup_add', [rolegroup1],
+                dict(description=u'rolegroup desc. 1')
+            ),
+            expected=dict(
+                value=rolegroup1,
+                summary=u'Added rolegroup "test-rolegroup-1"',
+                result=dict(
+                    dn=rolegroup1_dn,
+                    cn=[rolegroup1],
+                    description=[u'rolegroup desc. 1'],
+                    objectclass=objectclasses.rolegroup,
+                ),
+            ),
+        ),
 
-    def test_b_del_rolegroup(self):
-        """
-        Remove the rolegroup we created for member testing.
-        """
-        assert api.Command['rolegroup_del'](self.rolegroup_cn)['result'] is True
 
-        # Verify that it is gone
-        try:
-            api.Command['rolegroup_show'](self.rolegroup_cn)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
+        dict(
+            desc='Create %r' % group1,
+            command=(
+                'group_add', [group1], dict(description=u'Test group desc 1')
+            ),
+            expected=dict(
+                value=group1,
+                summary=u'Added group "testgroup1"',
+                result=dict(
+                    dn=group1_dn,
+                    cn=[group1],
+                    description=[u'Test group desc 1'],
+                    objectclass=objectclasses.group,
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Add member to %r' % taskgroup1,
+            command=('taskgroup_add_member', [taskgroup1],
+                dict(rolegroup=rolegroup1, group=group1)
+            ),
+            expected=dict(
+                completed=2,
+                failed=dict(
+                    member=dict(
+                        rolegroup=[],
+                        group=[],
+                        user=[],
+                    ),
+                ),
+                result={
+                    'member rolegroup': [rolegroup1],
+                    'member group': [group1],
+                }
+            ),
+        ),
+
+
+        dict(
+            desc='Retrieve %r' % taskgroup1,
+            command=('taskgroup_show', [taskgroup1], {}),
+            expected=dict(
+                value=taskgroup1,
+                summary=None,
+                result={
+                    'dn': taskgroup1_dn,
+                    'cn': [taskgroup1],
+                    'description': [u'Test desc 1'],
+                    'member rolegroup': [rolegroup1],
+                    'member group': [group1],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r' % taskgroup1,
+            command=('taskgroup_find', [taskgroup1], {}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 taskgroup matched',
+                result=[
+                    {
+                        # FIXME: crud.Search subclasses should return 'dn' also
+                        #'dn': taskgroup1_dn,
+                        'cn': [taskgroup1],
+                        'description': [u'Test desc 1'],
+                        'member rolegroup': [rolegroup1],
+                        'member group': [group1],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r' % search,
+            command=('taskgroup_find', [search], {}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 taskgroup matched',
+                result=[
+                    {
+                        'cn': [taskgroup1],
+                        'description': [u'Test desc 1'],
+                        'member rolegroup': [rolegroup1],
+                        'member group': [group1],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Create %r' % taskgroup2,
+            command=(
+                'taskgroup_add', [taskgroup2], dict(description=u'Test desc 2')
+            ),
+            expected=dict(
+                value=taskgroup2,
+                summary=u'Added taskgroup "test-taskgroup-2"',
+                result=dict(
+                    dn=taskgroup2_dn,
+                    cn=[taskgroup2],
+                    description=[u'Test desc 2'],
+                    objectclass=objectclasses.taskgroup,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r' % taskgroup1,
+            command=('taskgroup_find', [taskgroup1], {}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 taskgroup matched',
+                result=[
+                    {
+                        # FIXME: crud.Search subclasses should return 'dn' also
+                        #'dn': taskgroup1_dn,
+                        'cn': [taskgroup1],
+                        'description': [u'Test desc 1'],
+                        'member rolegroup': [rolegroup1],
+                        'member group': [group1],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r' % search,
+            command=('taskgroup_find', [search], {}),
+            expected=dict(
+                count=2,
+                truncated=False,
+                summary=u'2 taskgroups matched',
+                result=[
+                    {
+                        'cn': [taskgroup1],
+                        'description': [u'Test desc 1'],
+                        'member rolegroup': [rolegroup1],
+                        'member group': [group1],
+                    },
+                    {
+                        'cn': [taskgroup2],
+                        'description': [u'Test desc 2'],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Updated %r' % taskgroup1,
+            command=(
+                'taskgroup_mod', [taskgroup1], dict(description=u'New desc 1')
+            ),
+            expected=dict(
+                value=taskgroup1,
+                summary=u'Modified taskgroup "test-taskgroup-1"',
+                result=dict(
+                    description=[u'New desc 1'],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Retrieve %r to verify update' % taskgroup1,
+            command=('taskgroup_show', [taskgroup1], {}),
+            expected=dict(
+                value=taskgroup1,
+                summary=None,
+                result={
+                    'dn': taskgroup1_dn,
+                    'cn': [taskgroup1],
+                    'description': [u'New desc 1'],
+                    'member rolegroup': [rolegroup1],
+                    'member group': [group1],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Remove member from %r' % taskgroup1,
+            command=('taskgroup_remove_member', [taskgroup1],
+                dict(group=group1),
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        rolegroup=[],
+                        group=[],
+                        user=[],
+                    ),
+                ),
+                result={
+                    'member rolegroup': [rolegroup1],
+                }
+            ),
+        ),
+
+
+        dict(
+            desc='Delete %r' % taskgroup1,
+            command=('taskgroup_del', [taskgroup1], {}),
+            expected=dict(
+                result=True,
+                value=taskgroup1,
+                summary=u'Deleted taskgroup "test-taskgroup-1"',
+            )
+        ),
+
+
+        dict(
+            desc='Try to delete non-existent %r' % taskgroup1,
+            command=('taskgroup_del', [taskgroup1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Try to retrieve non-existent %r' % taskgroup1,
+            command=('taskgroup_show', [group1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Try to update non-existent %r' % taskgroup1,
+            command=('taskgroup_mod', [taskgroup1], dict(description=u'Foo')),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Search for %r' % search,
+            command=('taskgroup_find', [search], {}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 taskgroup matched',
+                result=[
+                    {
+                        'cn': [taskgroup2],
+                        'description': [u'Test desc 2'],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Delete %r' % taskgroup2,
+            command=('taskgroup_del', [taskgroup2], {}),
+            expected=dict(
+                result=True,
+                value=taskgroup2,
+                summary=u'Deleted taskgroup "test-taskgroup-2"',
+            )
+        ),
+
+
+        dict(
+            desc='Search for %r' % search,
+            command=('taskgroup_find', [search], {}),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary=u'0 taskgroups matched',
+                result=[],
+            ),
+        ),
+
+
+        dict(
+            desc='Delete %r' % group1,
+            command=('group_del', [group1], {}),
+            expected=dict(
+                result=True,
+                value=group1,
+                summary=u'Deleted group "testgroup1"',
+            )
+        ),
+
+
+        dict(
+            desc='Delete %r' % rolegroup1,
+            command=('rolegroup_del', [rolegroup1], {}),
+            expected=dict(
+                result=True,
+                value=rolegroup1,
+                summary=u'Deleted rolegroup "test-rolegroup-1"',
+            )
+        ),
+
+    ]

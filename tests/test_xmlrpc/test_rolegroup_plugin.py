@@ -21,119 +21,397 @@
 Test the `ipalib/plugins/rolegroup.py` module.
 """
 
-import sys
-from xmlrpc_test import XMLRPC_test, assert_attr_equal, assert_is_member
-from ipalib import api
-from ipalib import errors
+from ipalib import api, errors
+from tests.test_xmlrpc import objectclasses
+from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+
+search = u'test-rolegroup'
+
+rolegroup1 = u'test-rolegroup-1'
+rolegroup1_dn = u'cn=%s,cn=rolegroups,cn=accounts,%s' % (
+    rolegroup1, api.env.basedn
+)
+
+rolegroup2 = u'test-rolegroup-2'
+rolegroup2_dn = u'cn=%s,cn=rolegroups,cn=accounts,%s' % (
+    rolegroup2, api.env.basedn
+)
+
+group1 = u'testgroup1'
+group1_dn = u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn)
 
 
-class test_rolegroup(XMLRPC_test):
-    """
-    Test the `rolegroup` plugin.
-    """
-    cn = u'testgroup'
-    description = u'Test role group'
-    kw = {'cn': cn, 'description': description, 'raw': True}
+class test_rolegroup(Declarative):
 
-    rolegroup_cn = u'ipatestgroup'
-    rolegroup_description = u'Test group for rolegroups'
+    cleanup_commands = [
+        ('rolegroup_del', [rolegroup1], {}),
+        ('rolegroup_del', [rolegroup2], {}),
+        ('group_del', [group1], {}),
+    ]
 
-    def test_1_rolegroup_add(self):
-        """
-        Test the `xmlrpc.rolegroup_add` method.
-        """
-        entry = api.Command['rolegroup_add'](**self.kw)['result']
-        assert_attr_equal(entry, 'description', self.description)
-        assert_attr_equal(entry, 'cn', self.cn)
-        # FIXME: Has the schema changed?  rolegroup doesn't have the 'ipaobject'
-        # object class.
-        #assert_attr_equal(entry, 'objectclass', 'ipaobject')
+    tests = [
 
-    def test_2_add_group(self):
-        """
-        Add a group to test add/remove member.
-        """
-        kw = {'cn': self.rolegroup_cn, 'description': self.rolegroup_description, 'raw': True}
-        entry = api.Command['group_add'](**kw)['result']
-        assert_attr_equal(entry, 'description', self.rolegroup_description)
-        assert_attr_equal(entry, 'cn', self.rolegroup_cn)
+        dict(
+            desc='Try to retrieve non-existent %r' % rolegroup1,
+            command=('rolegroup_show', [rolegroup1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
 
-    def test_3_rolegroup_add_member(self):
-        """
-        Test the `xmlrpc.rolegroup_add_member` method.
-        """
-        kw = {}
-        kw['group'] = self.rolegroup_cn
-        ret = api.Command['rolegroup_add_member'](self.cn, **kw)
-        assert ret['completed'] == 1
 
-    def test_4_rolegroup_show(self):
-        """
-        Test the `xmlrpc.rolegroup_show` method.
-        """
-        entry = api.Command['rolegroup_show'](self.cn, all=True, raw=True)['result']
-        assert_attr_equal(entry, 'description', self.description)
-        assert_attr_equal(entry, 'cn', self.cn)
-        assert_is_member(entry, 'cn=%s' % self.rolegroup_cn)
+        dict(
+            desc='Try to update non-existent %r' % rolegroup1,
+            command=('rolegroup_mod', [rolegroup1], dict(description=u'Foo')),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
 
-    def test_5_rolegroup_find(self):
-        """
-        Test the `xmlrpc.rolegroup_find` method.
-        """
-        ret = api.Command['rolegroup_find'](self.cn, all=True, raw=True)
-        assert ret['truncated'] is False
-        entries = ret['result']
-        assert_attr_equal(entries[0], 'description', self.description)
-        assert_attr_equal(entries[0], 'cn', self.cn)
-        assert_is_member(entries[0], 'cn=%s' % self.rolegroup_cn)
 
-    def test_6_rolegroup_mod(self):
-        """
-        Test the `xmlrpc.rolegroup_mod` method.
-        """
-        newdesc = u'Updated role group'
-        modkw = {'cn': self.cn, 'description': newdesc, 'raw': True}
-        entry = api.Command['rolegroup_mod'](**modkw)['result']
-        assert_attr_equal(entry, 'description', newdesc)
+        dict(
+            desc='Try to delete non-existent %r' % rolegroup1,
+            command=('rolegroup_del', [rolegroup1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
 
-        # Ok, double-check that it was changed
-        entry = api.Command['rolegroup_show'](self.cn, raw=True)['result']
-        assert_attr_equal(entry, 'description', newdesc)
-        assert_attr_equal(entry, 'cn', self.cn)
 
-    def test_7_rolegroup_remove_member(self):
-        """
-        Test the `xmlrpc.rolegroup_remove_member` method.
-        """
-        kw = {}
-        kw['group'] = self.rolegroup_cn
-        ret = api.Command['rolegroup_remove_member'](self.cn, **kw)
-        assert ret['completed'] == 1
+        dict(
+            desc='Search for non-existent %r' % rolegroup1,
+            command=('rolegroup_find', [rolegroup1], {}),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary=u'0 rolegroups matched',
+                result=[],
+            ),
+        ),
 
-    def test_8_rolegroup_del(self):
-        """
-        Test the `xmlrpc.rolegroup_del` method.
-        """
-        assert api.Command['rolegroup_del'](self.cn)['result'] is True
 
-        # Verify that it is gone
-        try:
-            api.Command['rolegroup_show'](self.cn)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
+        dict(
+            desc='Create %r' % rolegroup1,
+            command=('rolegroup_add', [rolegroup1],
+                dict(description=u'rolegroup desc 1')
+            ),
+            expected=dict(
+                value=rolegroup1,
+                summary=u'Added rolegroup "test-rolegroup-1"',
+                result=dict(
+                    dn=rolegroup1_dn,
+                    cn=[rolegroup1],
+                    description=[u'rolegroup desc 1'],
+                    objectclass=objectclasses.rolegroup,
+                ),
+            ),
+        ),
 
-    def test_9_del_group(self):
-        """
-        Remove the group we created for member testing.
-        """
-        assert api.Command['group_del'](self.rolegroup_cn)['result'] is True
 
-        # Verify that it is gone
-        try:
-            api.Command['group_show'](self.rolegroup_cn)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
+        dict(
+            desc='Retrieve %r' % rolegroup1,
+            command=('rolegroup_show', [rolegroup1], {}),
+            expected=dict(
+                value=rolegroup1,
+                summary=None,
+                result=dict(
+                    dn=rolegroup1_dn,
+                    cn=[rolegroup1],
+                    description=[u'rolegroup desc 1'],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Create %r' % group1,
+            command=(
+                'group_add', [group1], dict(description=u'group desc 1')
+            ),
+            expected=dict(
+                value=group1,
+                summary=u'Added group "testgroup1"',
+                result=dict(
+                    dn=group1_dn,
+                    cn=[group1],
+                    description=[u'group desc 1'],
+                    objectclass=objectclasses.group,
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Add member %r to %r' % (group1, rolegroup1),
+            command=('rolegroup_add_member', [rolegroup1], dict(group=group1)),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        user=[],
+                        group=[],
+                        host=[],
+                        hostgroup=[],
+                    ),
+                ),
+                result={
+                    'member group': [group1],
+                }
+            ),
+        ),
+
+
+        dict(
+            desc='Retrieve %r to verify member-add' % rolegroup1,
+            command=('rolegroup_show', [rolegroup1], {}),
+            expected=dict(
+                value=rolegroup1,
+                summary=None,
+                result={
+                    'dn': rolegroup1_dn,
+                    'cn': [rolegroup1],
+                    'description': [u'rolegroup desc 1'],
+                    'member group': [group1],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r' % rolegroup1,
+            command=('rolegroup_find', [rolegroup1], {}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 rolegroup matched',
+                result=[
+                    {
+                        # FIXME: find() should return 'dn' just like show()
+                        #'dn': rolegroup1_dn,
+                        'cn': [rolegroup1],
+                        'description': [u'rolegroup desc 1'],
+                        'member group': [group1],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r' % search,
+            command=('rolegroup_find', [search], {}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 rolegroup matched',
+                result=[
+                    {
+                        'cn': [rolegroup1],
+                        'description': [u'rolegroup desc 1'],
+                        'member group': [group1],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Create %r' % rolegroup2,
+            command=('rolegroup_add', [rolegroup2],
+                dict(description=u'rolegroup desc 2')
+            ),
+            expected=dict(
+                value=rolegroup2,
+                summary=u'Added rolegroup "test-rolegroup-2"',
+                result=dict(
+                    dn=rolegroup2_dn,
+                    cn=[rolegroup2],
+                    description=[u'rolegroup desc 2'],
+                    objectclass=objectclasses.rolegroup,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r' % rolegroup1,
+            command=('rolegroup_find', [rolegroup1], {}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 rolegroup matched',
+                result=[
+                    {
+                        'cn': [rolegroup1],
+                        'description': [u'rolegroup desc 1'],
+                        'member group': [group1],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r' % search,
+            command=('rolegroup_find', [search], {}),
+            expected=dict(
+                count=2,
+                truncated=False,
+                summary=u'2 rolegroups matched',
+                result=[
+                    {
+                        'cn': [rolegroup1],
+                        'description': [u'rolegroup desc 1'],
+                        'member group': [group1],
+                    },
+                    {
+                        'cn': [rolegroup2],
+                        'description': [u'rolegroup desc 2'],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Updated %r' % rolegroup1,
+            command=(
+                'rolegroup_mod', [rolegroup1], dict(description=u'New desc 1')
+            ),
+            expected=dict(
+                value=rolegroup1,
+                summary=u'Modified rolegroup "test-rolegroup-1"',
+                result=dict(
+                    description=[u'New desc 1'],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Retrieve %r to verify update' % rolegroup1,
+            command=('rolegroup_show', [rolegroup1], {}),
+            expected=dict(
+                value=rolegroup1,
+                summary=None,
+                result={
+                    'dn': rolegroup1_dn,
+                    'cn': [rolegroup1],
+                    'description': [u'New desc 1'],
+                    'member group': [group1],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Remove member %r from %r' % (group1, rolegroup1),
+            command=('rolegroup_remove_member', [rolegroup1], dict(group=group1)),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        user=[],
+                        group=[],
+                        host=[],
+                        hostgroup=[],
+                    ),
+                ),
+                result={},
+            ),
+        ),
+
+
+        dict(
+            desc='Retrieve %r to verify member-del' % rolegroup1,
+            command=('rolegroup_show', [rolegroup1], {}),
+            expected=dict(
+                value=rolegroup1,
+                summary=None,
+                result={
+                    'dn': rolegroup1_dn,
+                    'cn': [rolegroup1],
+                    'description': [u'New desc 1'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Delete %r' % group1,
+            command=('group_del', [group1], {}),
+            expected=dict(
+                result=True,
+                value=group1,
+                summary=u'Deleted group "testgroup1"',
+            )
+        ),
+
+
+        dict(
+            desc='Delete %r' % rolegroup1,
+            command=('rolegroup_del', [rolegroup1], {}),
+            expected=dict(
+                result=True,
+                value=rolegroup1,
+                summary=u'Deleted rolegroup "test-rolegroup-1"',
+            )
+        ),
+
+
+        dict(
+            desc='Try to delete non-existent %r' % rolegroup1,
+            command=('rolegroup_del', [rolegroup1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Try to retrieve non-existent %r' % rolegroup1,
+            command=('rolegroup_show', [group1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Try to update non-existent %r' % rolegroup1,
+            command=('rolegroup_mod', [rolegroup1], dict(description=u'Foo')),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Search for %r' % search,
+            command=('rolegroup_find', [search], {}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 rolegroup matched',
+                result=[
+                    {
+                        'cn': [rolegroup2],
+                        'description': [u'rolegroup desc 2'],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Delete %r' % rolegroup2,
+            command=('rolegroup_del', [rolegroup2], {}),
+            expected=dict(
+                result=True,
+                value=rolegroup2,
+                summary=u'Deleted rolegroup "test-rolegroup-2"',
+            )
+        ),
+
+
+        dict(
+            desc='Search for %r' % search,
+            command=('rolegroup_find', [search], {}),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary=u'0 rolegroups matched',
+                result=[],
+            ),
+        ),
+
+    ]

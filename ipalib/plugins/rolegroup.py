@@ -21,9 +21,8 @@
 Rolegroups
 """
 
-from ipalib import api
-from ipalib import Str
 from ipalib.plugins.baseldap import *
+from ipalib import api, Str, _, ngettext
 
 
 class rolegroup(LDAPObject):
@@ -51,13 +50,15 @@ class rolegroup(LDAPObject):
     takes_params = (
         Str('cn',
             cli_name='name',
-            doc='group name',
+            label='Name',
+            doc='rolegroup name',
             primary_key=True,
             normalizer=lambda value: value.lower(),
         ),
         Str('description',
             cli_name='desc',
-            doc='A description of this group',
+            label='Description',
+            doc='A description of this rolegroup',
         ),
     )
 
@@ -69,6 +70,8 @@ class rolegroup_add(LDAPCreate):
     Create new rolegroup.
     """
 
+    msg_summary = _('Added rolegroup "%(value)s"')
+
 api.register(rolegroup_add)
 
 
@@ -76,6 +79,8 @@ class rolegroup_del(LDAPDelete):
     """
     Delete rolegroup.
     """
+
+    msg_summary = _('Deleted rolegroup "%(value)s"')
 
 api.register(rolegroup_del)
 
@@ -85,6 +90,8 @@ class rolegroup_mod(LDAPUpdate):
     Edit rolegroup.
     """
 
+    msg_summary = _('Modified rolegroup "%(value)s"')
+
 api.register(rolegroup_mod)
 
 
@@ -92,6 +99,10 @@ class rolegroup_find(LDAPSearch):
     """
     Search for rolegroups.
     """
+
+    msg_summary = ngettext(
+        '%(count)d rolegroup matched', '%(count)d rolegroups matched'
+    )
 
 api.register(rolegroup_find)
 
@@ -118,4 +129,3 @@ class rolegroup_remove_member(LDAPRemoveMember):
     """
 
 api.register(rolegroup_remove_member)
-

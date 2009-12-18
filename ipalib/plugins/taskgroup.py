@@ -21,8 +21,9 @@
 Taskgroups
 """
 
-from ipalib import api
 from ipalib.plugins.baseldap import *
+from ipalib import api, _, ngettext
+
 
 
 class taskgroup(LDAPObject):
@@ -49,12 +50,14 @@ class taskgroup(LDAPObject):
     takes_params = (
         Str('cn',
             cli_name='name',
+            label='Taskgroup name',
             doc='taskgroup name',
             primary_key=True,
             normalizer=lambda value: value.lower(),
         ),
         Str('description',
             cli_name='desc',
+            label='Description',
             doc='taskgroup description',
         ),
     )
@@ -67,6 +70,8 @@ class taskgroup_add(LDAPCreate):
     Create new taskgroup.
     """
 
+    msg_summary = _('Added taskgroup "%(value)s"')
+
 api.register(taskgroup_add)
 
 
@@ -74,6 +79,8 @@ class taskgroup_del(LDAPDelete):
     """
     Delete taskgroup.
     """
+
+    msg_summary = _('Deleted taskgroup "%(value)s"')
 
 api.register(taskgroup_del)
 
@@ -83,6 +90,8 @@ class taskgroup_mod(LDAPUpdate):
     Modify taskgroup.
     """
 
+    msg_summary = _('Modified taskgroup "%(value)s"')
+
 api.register(taskgroup_mod)
 
 
@@ -90,6 +99,10 @@ class taskgroup_find(LDAPSearch):
     """
     Search for taskgroups.
     """
+
+    msg_summary = ngettext(
+        '%(count)d taskgroup matched', '%(count)d taskgroups matched'
+    )
 
 api.register(taskgroup_find)
 
@@ -116,4 +129,3 @@ class taskgroup_remove_member(LDAPRemoveMember):
     """
 
 api.register(taskgroup_remove_member)
-

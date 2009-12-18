@@ -59,3 +59,14 @@ hostgroup = [
     u'groupOfNames',
     u'top',
 ]
+
+rolegroup = [
+    u'groupofnames',
+    u'nestedgroup',
+    u'top',
+]
+
+taskgroup = [
+    u'groupofnames',
+    u'top'
+]
