@@ -148,7 +148,7 @@ class test_hostgroup(Declarative):
                 summary=None,
                 result={
                     'dn': dn1,
-                    'member host': [u'testhost1.example.com'],
+                    'member host': [u'testhost1.%s' % api.env.domain],
                     'cn': [hostgroup1],
                     'description': [u'Test hostgroup 1'],
                 },
@@ -165,7 +165,7 @@ class test_hostgroup(Declarative):
                 summary=u'1 hostgroup matched',
                 result=[
                     {
-                        'member host': [u'testhost1.example.com'],
+                        'member host': [u'testhost1.%s' % api.env.domain],
                         'cn': [hostgroup1],
                         'description': [u'Test hostgroup 1'],
                     },
@@ -197,7 +197,7 @@ class test_hostgroup(Declarative):
                 summary=None,
                 result={
                     'dn': dn1,
-                    'member host': [u'testhost1.example.com'],
+                    'member host': [u'testhost1.%s' % api.env.domain],
                     'cn': [hostgroup1],
                     'description': [u'Updated hostgroup 1'],
                 },

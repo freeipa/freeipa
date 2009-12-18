@@ -28,7 +28,7 @@ from tests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 
 
-user_memberof = (u'cn=ipausers,cn=groups,cn=accounts,dc=example,dc=com',)
+user_memberof = (u'cn=ipausers,cn=groups,cn=accounts,%s' % api.env.basedn,)
 user1=u'tuser1'
 
 
@@ -103,7 +103,7 @@ class test_user(Declarative):
             ),
             expected=dict(
                 result=dict(
-                    dn=u'uid=tuser1,cn=users,cn=accounts,dc=example,dc=com',
+                    dn=u'uid=tuser1,cn=users,cn=accounts,%s' % api.env.basedn,
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
                     loginshell=[u'/bin/sh'],
@@ -242,7 +242,7 @@ class test_user(Declarative):
             command=('user_show', [user1], {}),
             expected=dict(
                 result=dict(
-                    dn=u'uid=tuser1,cn=users,cn=accounts,dc=example,dc=com',
+                    dn=u'uid=tuser1,cn=users,cn=accounts,%s' % api.env.basedn,
                     givenname=[u'Finkle'],
                     homedirectory=[u'/home/tuser1'],
                     loginshell=[u'/bin/sh'],
