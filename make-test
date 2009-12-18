@@ -39,6 +39,7 @@ parser.add_option('--pdb-failures',
 cmd = [nose] + args + [
     '-v',
     '--with-doctest',
+    '--doctest-tests',
     '--exclude=plugins',
 ]
 if options.stop:

@@ -566,7 +566,7 @@ class LDAPUpdate:
                        self.conn.deleteEntry(dn)
                    self.modified = True
                 except errors.NotFound, e:
-                    logging.info("Deleting non-existant entry %s", e)
+                    logging.info("Deleting non-existent entry %s", e)
                     self.modified = True
                 except errors.DatabaseError, e:
                     logging.error("Delete failed: %s", e)

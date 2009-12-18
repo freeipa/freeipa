@@ -40,21 +40,21 @@ class test_group(Declarative):
         ################
         # create group1:
         dict(
-            desc='Try to retrieve non-existant %r' % group1,
+            desc='Try to retrieve non-existent %r' % group1,
             command=('group_show', [group1], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
 
         dict(
-            desc='Try to update non-existant %r' % group1,
+            desc='Try to update non-existent %r' % group1,
             command=('group_mod', [group1], dict(description=u'Foo')),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
 
         dict(
-            desc='Try to delete non-existant %r' % group1,
+            desc='Try to delete non-existent %r' % group1,
             command=('group_del', [group1], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
@@ -191,21 +191,21 @@ class test_group(Declarative):
         ################
         # create group2:
         dict(
-            desc='Try to retrieve non-existant %r' % group2,
+            desc='Try to retrieve non-existent %r' % group2,
             command=('group_show', [group2], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
 
         dict(
-            desc='Try to update non-existant %r' % group2,
+            desc='Try to update non-existent %r' % group2,
             command=('group_mod', [group2], dict(description=u'Foo')),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
 
         dict(
-            desc='Try to delete non-existant %r' % group2,
+            desc='Try to delete non-existent %r' % group2,
             command=('group_del', [group2], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
@@ -428,21 +428,21 @@ class test_group(Declarative):
 
 
         dict(
-            desc='Try to delete non-existant %r' % group1,
+            desc='Try to delete non-existent %r' % group1,
             command=('group_del', [group1], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
 
         dict(
-            desc='Try to retrieve non-existant %r' % group1,
+            desc='Try to retrieve non-existent %r' % group1,
             command=('group_show', [group1], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
 
         dict(
-            desc='Try to update non-existant %r' % group1,
+            desc='Try to update non-existent %r' % group1,
             command=('group_mod', [group1], dict(description=u'Foo')),
             expected=errors.NotFound(reason='no such entry'),
         ),
@@ -463,21 +463,21 @@ class test_group(Declarative):
 
 
         dict(
-            desc='Try to delete non-existant %r' % group2,
+            desc='Try to delete non-existent %r' % group2,
             command=('group_del', [group2], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
 
         dict(
-            desc='Try to retrieve non-existant %r' % group2,
+            desc='Try to retrieve non-existent %r' % group2,
             command=('group_show', [group2], {}),
             expected=errors.NotFound(reason='no such entry'),
         ),
 
 
         dict(
-            desc='Try to update non-existant %r' % group2,
+            desc='Try to update non-existent %r' % group2,
             command=('group_mod', [group2], dict(description=u'Foo')),
             expected=errors.NotFound(reason='no such entry'),
         ),

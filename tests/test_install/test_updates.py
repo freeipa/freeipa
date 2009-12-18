@@ -158,7 +158,7 @@ class test_update(object):
 
     def test_6_update_1(self):
         """
-        Test the updater removing a non-existant value from a multi-valued attribute
+        Test the updater removing a non-existent value from a multi-valued attribute
         """
         modified = self.updater.update([self.testdir + "6_update.update"])
         assert(modified == False)

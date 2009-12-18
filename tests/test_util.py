@@ -86,7 +86,7 @@ class test_Fuzzy(object):
         assert inst.re is None
 
     def test_repr(self):
-        s = 'Fuzzy(regex=%r, type=%r, test=%r)'
+        s = 'Fuzzy(%r, %r, %r)'
         t = lambda other: 0.0 <= other <= 1.0
 
         inst = self.klass()

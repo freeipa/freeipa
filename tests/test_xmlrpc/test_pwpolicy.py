@@ -81,7 +81,7 @@ class test_pwpolicy(XMLRPC_test):
 
     def test_4_pwpolicy_add(self):
         """
-        Add a pwpolicy for a non-existant group
+        Add a pwpolicy for a non-existent group
         """
         try:
             api.Command['pwpolicy_add'](group=u'nopwpolicy',cospriority=1,krbminpwdlife=1)

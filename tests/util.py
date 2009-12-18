@@ -111,10 +111,82 @@ def assert_equal(val1, val2):
 
 class Fuzzy(object):
     """
-    Perform a fuzzy (non-strict) equality test.
+    Perform a fuzzy (non-strict) equality tests.
 
     `Fuzzy` instances will likely be used when comparing nesting data-structures
     using `assert_deepequal()`.
+
+    By default a `Fuzzy` instance is equal to everything.  For example, all of
+    these evaluate to ``True``:
+
+    >>> Fuzzy() == False
+    True
+    >>> 7 == Fuzzy()  # Order doesn't matter
+    True
+    >>> Fuzzy() == u'Hello False, Lucky 7!'
+    True
+
+    The first optional argument *regex* is a regular expression pattern to
+    match.  For example, you could match a phone number like this:
+
+    >>> phone = Fuzzy('^\d{3}-\d{3}-\d{4}$')
+    >>> u'123-456-7890' == phone
+    True
+
+    Use of a regular expression by default implies the ``unicode`` type, so
+    comparing with an ``str`` instance will evaluate to ``False``:
+
+    >>> phone.type
+    <type 'unicode'>
+    >>> '123-456-7890' == phone
+    False
+
+    The *type* kwarg allows you to specify a type constraint, so you can force
+    the above to work on ``str`` instances instead:
+
+    >>> '123-456-7890' == Fuzzy('^\d{3}-\d{3}-\d{4}$', type=str)
+    True
+
+    You can also use the *type* constraint on its own without the *regex*, for
+    example:
+
+    >>> 42 == Fuzzy(type=int)
+    True
+    >>> 42.0 == Fuzzy(type=int)
+    False
+    >>> 42.0 == Fuzzy(type=(int, float))
+    True
+
+    Finally the *test* kwarg is an optional callable that will be called to
+    perform the loose equality test.  For example:
+
+    >>> 42 == Fuzzy(test=lambda other: other > 42)
+    False
+    >>> 43 == Fuzzy(test=lambda other: other > 42)
+    True
+
+    You can use *type* and *test* together.  For example:
+
+    >>> 43 == Fuzzy(type=float, test=lambda other: other > 42)
+    False
+    >>> 42.5 == Fuzzy(type=float, test=lambda other: other > 42)
+    True
+
+    The *regex*, *type*, and *test* kwargs are all availabel via attributes on
+    the `Fuzzy` instance:
+
+    >>> fuzzy = Fuzzy('.+', type=str, test=lambda other: True)
+    >>> fuzzy.regex
+    '.+'
+    >>> fuzzy.type
+    <type 'str'>
+    >>> fuzzy.test  # doctest:+ELLIPSIS
+    <function <lambda> at 0x...>
+
+    To aid debugging, `Fuzzy.__repr__()` revealse these kwargs as well:
+
+    >>> fuzzy  # doctest:+ELLIPSIS
+    Fuzzy('.+', <type 'str'>, <function <lambda> at 0x...>)
     """
 
     def __init__(self, regex=None, type=None, test=None):
@@ -144,7 +216,7 @@ class Fuzzy(object):
         self.test = test
 
     def __repr__(self):
-        return '%s(regex=%r, type=%r, test=%r)' % (
+        return '%s(%r, %r, %r)' % (
             self.__class__.__name__, self.regex, self.type, self.test
         )
 
@@ -192,26 +264,27 @@ KEYS = """assert_deepequal: dict keys mismatch.
   path = %r"""
 
 
-def assert_deepequal(expected, got, src='', stack=tuple()):
+def assert_deepequal(expected, got, doc='', stack=tuple()):
     """
     Recursively check for type and equality.
 
     If the tests fails, it will raise an ``AssertionError`` with detailed
     information, including the path to the offending value.  For example:
 
-    >>> expected = [u'hello', dict(naughty=u'nurse')]
-    >>> got = [u'hello', dict(naughty='nurse')]
+    >>> expected = [u'Hello', dict(world=u'how are you?')]
+    >>> got = [u'Hello', dict(world='how are you?')]
     >>> expected == got
     True
-    >>> assert_deepequal(expected, got)
+    >>> assert_deepequal(expected, got, doc='Testing my nested data')
     Traceback (most recent call last):
       ...
-    AssertionError: assert_deepequal: type(expected) is not type(got):
+    AssertionError: assert_deepequal: type(expected) is not type(got).
+      Testing my nested data
       type(expected) = <type 'unicode'>
       type(got) = <type 'str'>
-      expected = u'nurse'
-      got = 'nurse'
-      path = (1, 'naughty')
+      expected = u'how are you?'
+      got = 'how are you?'
+      path = (1, 'world')
     """
     if isinstance(expected, tuple):
         expected = list(expected)
@@ -219,31 +292,31 @@ def assert_deepequal(expected, got, src='', stack=tuple()):
         got = list(got)
     if not (isinstance(expected, Fuzzy) or type(expected) is type(got)):
         raise AssertionError(
-            TYPE % (src, type(expected), type(got), expected, got, stack)
+            TYPE % (doc, type(expected), type(got), expected, got, stack)
         )
     if isinstance(expected, (list, tuple)):
         if len(expected) != len(got):
             raise AssertionError(
-                LEN % (src, len(expected), len(got), expected, got, stack)
+                LEN % (doc, len(expected), len(got), expected, got, stack)
             )
         for (i, e_sub) in enumerate(expected):
             g_sub = got[i]
-            assert_deepequal(e_sub, g_sub, src, stack + (i,))
+            assert_deepequal(e_sub, g_sub, doc, stack + (i,))
     elif isinstance(expected, dict):
         missing = set(expected).difference(got)
         extra = set(got).difference(expected)
         if missing or extra:
             raise AssertionError(KEYS % (
-                    src, sorted(missing), sorted(extra), expected, got, stack
+                    doc, sorted(missing), sorted(extra), expected, got, stack
                 )
             )
         for key in sorted(expected):
             e_sub = expected[key]
             g_sub = got[key]
-            assert_deepequal(e_sub, g_sub, src, stack + (key,))
+            assert_deepequal(e_sub, g_sub, doc, stack + (key,))
     elif expected != got:
         raise AssertionError(
-            VALUE % (src, expected, got, stack)
+            VALUE % (doc, expected, got, stack)
         )
 
 
