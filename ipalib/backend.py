@@ -44,52 +44,60 @@ class Connectible(Backend):
     `request.destroy_context()` can properly close all open connections.
     """
 
+    def __init__(self, shared_instance=True):
+        Backend.__init__(self)
+        if shared_instance:
+            self.id = self.name
+        else:
+            self.id = '%s_%s' % (self.name, str(id(self)))
+
     def connect(self, *args, **kw):
         """
         Create thread-local connection.
         """
-        if hasattr(context, self.name):
+        if hasattr(context, self.id):
             raise StandardError(
                 "connect: 'context.%s' already exists in thread %r" % (
-                    self.name, threading.currentThread().getName()
+                    self.id, threading.currentThread().getName()
                 )
             )
         conn = self.create_connection(*args, **kw)
-        setattr(context, self.name, Connection(conn, self.disconnect))
+        setattr(context, self.id, Connection(conn, self.disconnect))
         assert self.conn is conn
-        self.info('Created connection context.%s' % self.name)
+        self.info('Created connection context.%s' % self.id)
 
     def create_connection(self, *args, **kw):
-        raise NotImplementedError('%s.create_connection()' % self.name)
+        raise NotImplementedError('%s.create_connection()' % self.id)
 
     def disconnect(self):
-        if not hasattr(context, self.name):
+        if not hasattr(context, self.id):
             raise StandardError(
                 "disconnect: 'context.%s' does not exist in thread %r" % (
-                    self.name, threading.currentThread().getName()
+                    self.id, threading.currentThread().getName()
                 )
             )
         self.destroy_connection()
-        self.info('Destroyed connection context.%s' % self.name)
+        delattr(context, self.id)
+        self.info('Destroyed connection context.%s' % self.id)
 
     def destroy_connection(self):
-        raise NotImplementedError('%s.destroy_connection()' % self.name)
+        raise NotImplementedError('%s.destroy_connection()' % self.id)
 
     def isconnected(self):
         """
         Return ``True`` if thread-local connection on `request.context` exists.
         """
-        return hasattr(context, self.name)
+        return hasattr(context, self.id)
 
     def __get_conn(self):
         """
         Return thread-local connection.
         """
-        if not hasattr(context, self.name):
+        if not hasattr(context, self.id):
             raise AttributeError('no context.%s in thread %r' % (
-                self.name, threading.currentThread().getName())
+                self.id, threading.currentThread().getName())
             )
-        return getattr(context, self.name).conn
+        return getattr(context, self.id).conn
     conn = property(__get_conn)
 
 
