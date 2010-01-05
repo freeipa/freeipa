@@ -46,26 +46,6 @@ from ipalib.crud import CrudBackend
 from ipalib.encoder import Encoder, encode_args, decode_retval
 from ipalib.request import context
 
-# attribute syntax to python type mapping, 'SYNTAX OID': type
-# everything not in this dict is considered human readable unicode
-_syntax_mapping = {
-    '1.3.6.1.4.1.1466.115.121.1.1': str,  # ACI item
-    '1.3.6.1.4.1.1466.115.121.1.4': str,  # Audio
-    '1.3.6.1.4.1.1466.115.121.1.5': str,  # Binary
-    '1.3.6.1.4.1.1466.115.121.1.7': str,  # Boolean
-    '1.3.6.1.4.1.1466.115.121.1.8': str,  # Certificate
-    '1.3.6.1.4.1.1466.115.121.1.9': str,  # Certificate List
-    '1.3.6.1.4.1.1466.115.121.1.10': str, # Certificate Pair
-    '1.3.6.1.4.1.1466.115.121.1.23': str, # Fax
-    '1.3.6.1.4.1.1466.115.121.1.27': str, # Integer, might not fit into int
-    '1.3.6.1.4.1.1466.115.121.1.28': str, # JPEG
-    '1.3.6.1.4.1.1466.115.121.1.40': str, # OctetString (same as Binary)
-    '1.3.6.1.4.1.1466.115.121.1.49': str, # Supported Algorithm
-    '1.3.6.1.4.1.1466.115.121.1.51': str, # Teletext Terminal Identifier
-}
-
-# SASL authentication mechanism
-_sasl_auth = _ldap_sasl.sasl({}, 'GSSAPI')
 
 # universal LDAPError handler
 def _handle_errors(e, **kw):
@@ -117,15 +97,9 @@ def _handle_errors(e, **kw):
     except _ldap.LDAPError, e:
         raise errors.DatabaseError(desc=desc, info=info)
 
-# utility function, builds LDAP URL string
-def _get_url(host, port, using_cacert=False):
-    if using_cacert:
-        return 'ldaps://%s:%d' % (host, port)
-    return 'ldap://%s:%d' % (host, port)
 
 # retrieves LDAP schema from server
-def _load_schema(url):
-    global _schema
+def load_schema(url):
     try:
         conn = _ldap.initialize(url)
         # assume anonymous access is enabled
@@ -146,11 +120,17 @@ def _load_schema(url):
     return _ldap.schema.SubSchema(schema_entry[1])
 
 # cache schema when importing module
-_schema = _load_schema(api.env.ldap_uri)
+try:
+    _schema = load_schema(api.env.ldap_uri)
+except AttributeError:
+    _schema = None
 
-def _get_syntax(attr, value):
+
+def get_syntax(attr, value):
     global _schema
 
+    if not _schema:
+        return None
     obj = _schema.get_obj(_ldap.schema.AttributeType, attr)
     if obj is not None:
         return obj.syntax
@@ -158,12 +138,34 @@ def _get_syntax(attr, value):
         return None
 
 
-# ldap backend class
 class ldap2(CrudBackend, Encoder):
+    """
+    LDAP Backend Take 2.
+    """
+    # attribute syntax to python type mapping, 'SYNTAX OID': type
+    # everything not in this dict is considered human readable unicode
+    _SYNTAX_MAPPING = {
+        '1.3.6.1.4.1.1466.115.121.1.1': str,  # ACI item
+        '1.3.6.1.4.1.1466.115.121.1.4': str,  # Audio
+        '1.3.6.1.4.1.1466.115.121.1.5': str,  # Binary
+        '1.3.6.1.4.1.1466.115.121.1.7': str,  # Boolean
+        '1.3.6.1.4.1.1466.115.121.1.8': str,  # Certificate
+        '1.3.6.1.4.1.1466.115.121.1.9': str,  # Certificate List
+        '1.3.6.1.4.1.1466.115.121.1.10': str, # Certificate Pair
+        '1.3.6.1.4.1.1466.115.121.1.23': str, # Fax
+        '1.3.6.1.4.1.1466.115.121.1.27': str, # Integer, might not fit into int
+        '1.3.6.1.4.1.1466.115.121.1.28': str, # JPEG
+        '1.3.6.1.4.1.1466.115.121.1.40': str, # OctetString (same as Binary)
+        '1.3.6.1.4.1.1466.115.121.1.49': str, # Supported Algorithm
+        '1.3.6.1.4.1.1466.115.121.1.51': str, # Teletext Terminal Identifier
+    }
 
     # attributes in this list cannot be deleted by update_entry
     # only MOD_REPLACE operations are generated for them
-    force_replace_on_update_attrs = ['uidnumber', 'gidnumber']
+    _FORCE_REPLACE_ON_UPDATE_ATTRS = []
+
+    # SASL authentication mechanism
+    _SASL_AUTH = _ldap_sasl.sasl({}, 'GSSAPI')
 
     # rules for generating filters from entries
     MATCH_ANY = '|'   # (|(filter1)(filter2))
@@ -175,27 +177,41 @@ class ldap2(CrudBackend, Encoder):
     SCOPE_ONELEVEL = _ldap.SCOPE_ONELEVEL
     SCOPE_SUBTREE = _ldap.SCOPE_SUBTREE
 
-    def __init__(self):
+    def __init__(self, shared_instance=True, ldap_uri=None, base_dn=None,
+                 schema=None):
+        CrudBackend.__init__(self, shared_instance=shared_instance)
         Encoder.__init__(self)
         self.encoder_settings.encode_dict_keys = True
         self.encoder_settings.decode_dict_keys = True
         self.encoder_settings.decode_dict_vals_postprocess = False
-        self.encoder_settings.decode_dict_vals_table = _syntax_mapping
-        self.encoder_settings.decode_dict_vals_table_keygen = _get_syntax
+        self.encoder_settings.decode_dict_vals_table = self._SYNTAX_MAPPING
+        self.encoder_settings.decode_dict_vals_table_keygen = get_syntax
         self.encoder_settings.decode_postprocessor = lambda x: string.lower(x)
-        self._ldapuri = api.env.ldap_uri
-        CrudBackend.__init__(self)
+        if ldap_uri is None:
+            self.ldap_uri = api.env.ldap_uri
+        else:
+            self.ldap_uri = ldap_uri
+        if base_dn is None:
+            self.base_dn = api.env.basedn
+        else:
+            self.base_dn = base_dn
+        if schema is None:
+            self.schema = _schema
+        else:
+            self.schema = schema
+
 
     def __del__(self):
-        self.disconnect()
+        if self.isconnected():
+            self.disconnect()
 
     def __str__(self):
-        return self._ldapuri
+        return self.ldap_uri
 
-    @encode_args(3, 4, 'bind_dn', 'bind_pw')
-    def create_connection(self, ldapuri=None, ccache=None,
-            bind_dn='', bind_pw='', debug_level=255,
-            tls_cacertfile=None, tls_certfile=None, tls_keyfile=None):
+    @encode_args(2, 3, 'bind_dn', 'bind_pw')
+    def create_connection(self, ccache=None, bind_dn='', bind_pw='',
+            tls_cacertfile=None, tls_certfile=None, tls_keyfile=None,
+            debug_level=255):
         """
         Connect to LDAP server.
 
@@ -211,14 +227,6 @@ class ldap2(CrudBackend, Encoder):
 
         Extends backend.Connectible.create_connection.
         """
-        global _schema
-        if ldapuri is not None:
-            self._ldapuri = ldapuri
-
-        # if we don't have this server's schema cached, do it now
-        if self._ldapuri != api.env.ldap_uri or _schema is None:
-            _schema = _load_schema(self._ldapuri)
-
         if tls_cacertfile is not None:
             _ldap.set_option(_ldap.OPT_X_TLS_CACERTFILE, tls_cacertfile)
         if tls_certfile is not None:
@@ -226,14 +234,14 @@ class ldap2(CrudBackend, Encoder):
         if tls_keyfile is not None:
             _ldap.set_option(_ldap.OPT_X_TLS_KEYFILE, tls_keyfile)
 
-        conn = _ldap.initialize(self._ldapuri)
+        conn = _ldap.initialize(self.ldap_uri)
         if ccache is not None:
             try:
                 os.environ['KRB5CCNAME'] = ccache
-                conn.sasl_interactive_bind_s('', _sasl_auth)
+                conn.sasl_interactive_bind_s('', self._SASL_AUTH)
                 principal = krbV.CCache(name=ccache,
                             context=krbV.default_context()).principal().name
-                setattr(context, "principal", principal)
+                setattr(context, 'principal', principal)
             except _ldap.LDAPError, e:
                 _handle_errors(e, **{})
         else:
@@ -243,7 +251,11 @@ class ldap2(CrudBackend, Encoder):
 
     def destroy_connection(self):
         """Disconnect from LDAP server."""
-        self.conn.unbind_s()
+        try:
+            self.conn.unbind_s()
+        except _ldap.LDAPError:
+            # ignore when trying to unbind multiple times
+            pass
 
     def normalize_dn(self, dn):
         """
@@ -255,10 +267,10 @@ class ldap2(CrudBackend, Encoder):
         rdns = explode_dn(dn)
         if rdns:
             dn = ','.join(rdns)
-            if not dn.endswith(self.api.env.basedn):
-                dn = '%s,%s' % (dn, self.api.env.basedn)
+            if not dn.endswith(self.base_dn):
+                dn = '%s,%s' % (dn, self.base_dn)
             return dn
-        return self.api.env.basedn
+        return self.base_dn
 
     def get_container_rdn(self, name):
         """Get relative distinguished name of cotainer."""
@@ -478,9 +490,8 @@ class ldap2(CrudBackend, Encoder):
         return self.find_entries(filter, None, 'cn=etc', self.SCOPE_ONELEVEL)[0][0]
 
     def get_schema(self):
-        global _schema
         """Returns a copy of the current LDAP schema."""
-        return copy.deepcopy(_schema)
+        return copy.deepcopy(self.schema)
 
     @encode_args(1, 2)
     def get_effective_rights(self, dn, entry_attrs):
@@ -568,11 +579,13 @@ class ldap2(CrudBackend, Encoder):
         # we could call search_s directly, but this saves a lot of code at
         # the expense of a little bit of performace
         entry_attrs_old = self.encode(entry_attrs_old)
-        # generate modlist, we don't want any MOD_REPLACE operations
-        # to handle simultaneous updates better
+        # generate modlist
+        # for multi value attributes: no MOD_REPLACE to handle simultaneous
+        # updates better
+        # for single value attribute: always MOD_REPLACE
         modlist = []
         for (k, v) in entry_attrs.iteritems():
-            if v is None:
+            if v is None and k in entry_attrs_old:
                 modlist.append((_ldap.MOD_DELETE, k, None))
             else:
                 if not isinstance(v, (list, tuple)):
@@ -581,14 +594,25 @@ class ldap2(CrudBackend, Encoder):
                 old_v = set(entry_attrs_old.get(k.lower(), []))
 
                 adds = list(v.difference(old_v))
+                rems = list(old_v.difference(v))
+
+                force_replace = False
+                if k in self._FORCE_REPLACE_ON_UPDATE_ATTRS:
+                    force_replace = True
+                elif self.schema:
+                    obj = self.schema.get_obj(_ldap.schema.AttributeType, k)
+                    if obj and obj.single_value:
+                        force_replace = True
+                elif len(adds) == 1 and len(rems) == 1:
+                    force_replace = True
+
                 if adds:
-                    if k in self.force_replace_on_update_attrs:
+                    if force_replace:
                         modlist.append((_ldap.MOD_REPLACE, k, adds))
                     else:
                         modlist.append((_ldap.MOD_ADD, k, adds))
-                rems = list(old_v.difference(v))
                 if rems:
-                    if k not in self.force_replace_on_update_attrs:
+                    if not force_replace:
                         modlist.append((_ldap.MOD_DELETE, k, rems))
 
         return modlist
