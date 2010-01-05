@@ -21,6 +21,7 @@ Base classes for LDAP plugins.
 """
 
 import re
+
 from ipalib import crud, errors, uuid
 from ipalib import Command, Method, Object
 from ipalib import Flag, List, Str
@@ -51,6 +52,7 @@ def get_attributes(attrs):
 
     return attrlist
 
+
 class LDAPObject(Object):
     """
     Object representing a LDAP entry.
@@ -75,9 +77,11 @@ class LDAPObject(Object):
             parent_dn = self.api.Object[self.parent_object].get_dn(*keys[:-1])
         else:
             parent_dn = self.container_dn
-        return self.backend.make_dn_from_attr(
-            self.primary_key.name, keys[-1], parent_dn
-        )
+        if self.primary_key and keys[-1] is not None:
+            return self.backend.make_dn_from_attr(
+                self.primary_key.name, keys[-1], parent_dn
+            )
+        return parent_dn
 
     def get_primary_key_from_dn(self, dn):
         return dn[len(self.primary_key.name) + 1:dn.find(',')]
@@ -109,7 +113,7 @@ class LDAPObject(Object):
             textui.print_attribute('dn', entry[0])
             textui.print_entry(entry[1], attr_order=self.attribute_order)
         else:
-            if self.primary_key:
+            if self.primary_key and keys[-1] is not None:
                 textui.print_attribute(
                     self.object_name.capitalize(), keys[-1], indent=0
                 )
@@ -192,10 +196,9 @@ class LDAPCreate(crud.Create):
         entry_attrs['dn'] = dn
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
-        return dict(
-            result=entry_attrs,
-            value=keys[0],
-        )
+        if self.obj.primary_key and keys[-1] is not None:
+            return dict(result=entry_attrs, value=keys[-1])
+        return dict(result=entry_attrs, value=u'')
 
     def dont_output_for_cli(self, textui, entry, *keys, **options):
         textui.print_name(self.name)
@@ -210,7 +213,7 @@ class LDAPCreate(crud.Create):
             )
         elif len(keys) == 1:
             textui.print_dashed(
-                'Created %s "%s".' % (self.obj.object_name, keys[0])
+                'Created %s "%s".' % (self.obj.object_name, keys[-1])
             )
         else:
             textui.print_dashed('Created %s.' % self.obj.object_name)
@@ -269,11 +272,9 @@ class LDAPRetrieve(LDAPQuery):
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
         entry_attrs['dn'] = dn
-        return dict(
-            result=entry_attrs,
-            value=keys[0],
-        )
-
+        if self.obj.primary_key and keys[-1] is not None:
+            return dict(result=entry_attrs, value=keys[-1])
+        return dict(result=entry_attrs, value=u'')
 
     def dont_output_for_cli(self, textui, entry, *keys, **options):
         textui.print_name(self.name)
@@ -355,10 +356,9 @@ class LDAPUpdate(LDAPQuery, crud.Update):
         dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
-        return dict(
-            result=entry_attrs,
-            value=keys[0],
-        )
+        if self.obj.primary_key and keys[-1] is not None:
+            return dict(result=entry_attrs, value=keys[-1])
+        return dict(result=entry_attrs, value=u'')
 
     def dont_output_for_cli(self, textui, entry, *keys, **options):
         textui.print_name(self.name)
@@ -373,7 +373,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             )
         elif len(keys) == 1:
             textui.print_dashed(
-                'Modified %s "%s".' % (self.obj.object_name, keys[0])
+                'Modified %s "%s".' % (self.obj.object_name, keys[-1])
             )
         else:
             textui.print_dashed('Modified %s.' % self.obj.object_name)
@@ -416,11 +416,9 @@ class LDAPDelete(LDAPQuery):
 
         result = self.post_callback(ldap, dn, *keys, **options)
 
-        return dict(
-            result=result,
-            value=keys[0],
-        )
-
+        if self.obj.primary_key and keys[-1] is not None:
+            return dict(result=result, value=keys[-1])
+        return dict(result=result, value=u'')
 
     def dont_output_for_cli(self, textui, result, *keys, **options):
         textui.print_name(self.name)
@@ -434,7 +432,7 @@ class LDAPDelete(LDAPQuery):
             )
         elif len(keys) == 1:
             textui.print_dashed(
-                'Deleted %s "%s".' % (self.obj.object_name, keys[0])
+                'Deleted %s "%s".' % (self.obj.object_name, keys[-1])
             )
         else:
             textui.print_dashed('Deleted %s.' % self.obj.object_name)
@@ -726,8 +724,6 @@ class LDAPSearch(crud.Search):
             count=len(entries),
             truncated=truncated,
         )
-
-
 
     def dont_output_for_cli(self, textui, result, *args, **options):
         (entries, truncated) = result
