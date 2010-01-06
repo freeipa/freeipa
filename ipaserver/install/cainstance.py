@@ -381,7 +381,7 @@ class CAInstance(service.Service):
     """
 
     def __init__(self):
-        service.Service.__init__(self, "pki-ca")
+        service.Service.__init__(self, "pki-cad")
         self.pki_user = "pkiuser"
         self.dm_password = None
         self.admin_password = None
@@ -524,7 +524,7 @@ class CAInstance(service.Service):
         except ipautil.CalledProcessError, e:
             print "failed to restart ca instance", e
 
-        preop_pin = get_preop_pin(self.server_root, self.service_name)
+        preop_pin = get_preop_pin(self.server_root, PKI_INSTANCE_NAME)
 
         try:
             args = ["/usr/bin/perl", "/usr/bin/pkisilent",  "ConfigureCA",
@@ -1003,7 +1003,7 @@ class CAInstance(service.Service):
     def uninstall(self):
         try:
             ipautil.run(["/usr/bin/pkiremove", "-pki_instance_root=/var/lib",
-                         "-pki_instance_name=pki-ca", "--force"])
+                         "-pki_instance_name=%s" % PKI_INSTANCE_NAME, "--force"])
         except ipautil.CalledProcessError, e:
             logging.critical("failed to uninstall CA instance %s" % e)
 
