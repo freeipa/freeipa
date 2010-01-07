@@ -1,14 +1,14 @@
 # Define ONLY_CLIENT to only make the ipa-client and ipa-python subpackages
-%{!?ONLY_CLIENT:%define ONLY_CLIENT 0}
+%{!?ONLY_CLIENT:%global ONLY_CLIENT 0}
 
 # Define WITH_RADIUS to build the radius packages
-%define WITH_RADIUS 0
+%global WITH_RADIUS 0
 
-%define httpd_conf /etc/httpd/conf.d
-%define plugin_dir %{_libdir}/dirsrv/plugins
-%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
-%{!?python_sitearch: %define python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
-%define POLICYCOREUTILSVER 1.33.12-1
+%global httpd_conf /etc/httpd/conf.d
+%global plugin_dir %{_libdir}/dirsrv/plugins
+%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
+%global POLICYCOREUTILSVER 1.33.12-1
 
 Name:           ipa
 Version:        __VERSION__
