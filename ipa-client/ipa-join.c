@@ -541,6 +541,12 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
         hostname = strdup(uinfo.nodename);
     }
 
+    if (NULL == strstr(hostname, ".")) {
+        fprintf(stderr, "The hostname must be fully-qualified: %s\n", hostname);
+        rval = 16;
+        goto cleanup;
+    }
+
     if (bindpw)
         rval = join_ldap(ipaserver, hostname, &hostdn, bindpw, &princ, quiet);
     else {
