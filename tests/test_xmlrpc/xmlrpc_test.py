@@ -32,7 +32,7 @@ from ipalib import errors
 # Matches a gidnumber like '1391016742'
 # FIXME: Does it make more sense to return gidnumber, uidnumber, etc. as `int`
 # or `long`?  If not, we still need to return them as `unicode` instead of `str`.
-fuzzy_digits = Fuzzy('^\d+$', type=str)
+fuzzy_digits = Fuzzy('^\d+$', type=basestring)
 
 # Matches an ipauniqueid like u'784d85fd-eae7-11de-9d01-54520012478b'
 fuzzy_uuid = Fuzzy(

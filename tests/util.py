@@ -210,7 +210,7 @@ class Fuzzy(object):
             self.re = re.compile(regex)
             if type is None:
                 type = unicode
-            assert type in (unicode, str)
+            assert type in (unicode, str, basestring)
         self.regex = regex
         self.type = type
         self.test = test
