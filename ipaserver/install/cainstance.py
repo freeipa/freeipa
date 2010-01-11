@@ -610,9 +610,9 @@ class CAInstance(service.Service):
                 sys.exit(0)
 
             # pkisilent doesn't return 1 on error so look at the output of
-            # /sbin/service pki-ca status. It will tell us if the instance
+            # /sbin/service pki-cad status. It will tell us if the instance
             # still needs to be configured.
-            (stdout, stderr, returncode) = ipautil.run(["/sbin/service", "pki-ca", "status"])
+            (stdout, stderr, returncode) = ipautil.run(["/sbin/service", self.service_name, "status"])
             try:
                 stdout.index("CONFIGURED!")
                 raise RuntimeError("pkisilent failed to configure instance.")
