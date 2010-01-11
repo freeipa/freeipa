@@ -27,6 +27,10 @@ function start() {
     /sbin/service krb5kdc start
     /sbin/service ipa_kpasswd start
     /sbin/service httpd start
+
+    if [ -e /var/lib/pki-ca ]; then
+        /sbin/service pki-cad start
+    fi
 }
 
 function stop() {
@@ -35,6 +39,10 @@ function stop() {
     /sbin/service krb5kdc stop
     /sbin/service dirsrv stop
     /sbin/service ntpd stop
+
+    if [ -e /var/lib/pki-ca ]; then
+        /sbin/service pki-cad stop
+    fi
 }
 
 case "$1" in
