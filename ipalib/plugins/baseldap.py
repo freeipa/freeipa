@@ -111,7 +111,7 @@ class LDAPObject(Object):
     def print_entry(self, textui, entry, *keys, **options):
         if options.get('raw', False):
             textui.print_attribute('dn', entry[0])
-            textui.print_entry(entry[1], attr_order=self.attribute_order)
+            textui.print_entry1(entry[1], attr_order=self.attribute_order)
         else:
             if self.primary_key and keys[-1] is not None:
                 textui.print_attribute(
@@ -123,7 +123,7 @@ class LDAPObject(Object):
             for a in self.hidden_attributes:
                 if a in entry_attrs:
                     del entry_attrs[a]
-            textui.print_entry(
+            textui.print_entry1(
                 entry_attrs, attr_map=self.attribute_names,
                 attr_order=self.attribute_order, one_value_per_line=False
             )

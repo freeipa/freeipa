@@ -277,7 +277,7 @@ class textui(backend.Backend):
                 for line in text[1:]:
                     self.print_plain('%s%s' % (s_indent, line))
 
-    def print_entry(self, entry, indent=1, attr_map={}, attr_order=['dn'],
+    def print_entry1(self, entry, indent=1, attr_map={}, attr_order=['dn'],
             one_value_per_line=True):
         """
         Print an ldap entry dict.
