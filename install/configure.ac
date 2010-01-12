@@ -34,6 +34,7 @@ AC_CONFIG_FILES([
     Makefile
     conf/Makefile
     html/Makefile
+    migration/Makefile
     share/Makefile
     tools/Makefile
     tools/man/Makefile

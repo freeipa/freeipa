@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="migration.css" type="text/css">
+    <title>IPA Password Migration Page</title>
+</head>
+
+<body>
+<p>
+If you have been sent here by your administrator, your personal
+information is being migrated to a new Identity management solution (IPA).
+</p>
+<p>
+Please, enter your credentials in the form below to complete the process.
+</p>
+<p>
+Upon successful login your Kerberos account will be activated.
+</p>
+<div class="migration_form">
+<div class="migration_form_inner">
+<form action="migration.py/bind" method="post">
+    <div class="migration_form_title">
+        <span>Password Migration</span>
+    </div>
+    <div class="migration_form_input">
+        <label><em>U</em>sername:</label>
+        <input name="username" value="" type="text" accesskey="u" />
+    </div>
+    <div class="migration_form_input">
+        <label><em>P</em>assword:</label>
+        <input name="password" value="" type="password" accesskey="p" />
+    </div>
+    <div class="migration_form_submit">
+        <input name="submit" value="Migrate!" type="submit" />
+    </div>
+</form>
+</div>
+</div>
+</body>
+
+</html>
+

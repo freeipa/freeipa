@@ -7,6 +7,7 @@ NULL =
 SUBDIRS =			\
         conf			\
         html			\
+        migration		\
         share			\
         tools			\
         updates			\

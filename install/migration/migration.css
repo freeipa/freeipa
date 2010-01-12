@@ -1,0 +1,69 @@
+/* migration page CSS; author: Pavel Zuna <pzuna@redhat.com> */
+
+body
+{
+    font-family: Verdana;
+    text-align: center;
+}
+
+p
+{
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+.migration_form
+{
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    width: 18em;
+}
+
+.migration_form_inner
+{
+    border: solid 1px #284775;
+    font-size: 0.8em;
+    padding: 4px;
+}
+
+.migration_form_title
+{
+    background: #5d7b9d;
+    color: #f7f6f3;
+    font-weight: bold;
+    height: 1.7em;
+    margin-bottom: 0.3em;
+    padding-top: 0.4em;
+    text-align: center;
+}
+
+.migration_form_input
+{
+    color: #5d7b9d;
+    font-size: 1em;
+    text-align: right;
+}
+
+.migration_form_input em
+{
+    font-style: normal;
+    text-decoration: underline;
+}
+
+.migration_form_submit
+{
+    text-align: center;
+}
+
+.migration_form_submit input
+{
+    background: #5d7b9d;
+    border: solid 1px #284775;
+    color: #f7f6f3;
+    height: 1.7em;
+    margin-top: 0.3em;
+}
+
+/* end of file */
+
