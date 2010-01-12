@@ -70,6 +70,7 @@ objectClass: top
 objectClass: person
 objectClass: posixaccount
 objectClass: krbprincipalaux
+objectClass: krbticketpolicyaux
 objectClass: inetuser
 uid: admin
 krbPrincipalName: admin@$REALM
@@ -165,6 +166,7 @@ ipaUserObjectClasses: inetorgperson
 ipaUserObjectClasses: inetuser
 ipaUserObjectClasses: posixaccount
 ipaUserObjectClasses: krbprincipalaux
+ipaUserObjectClasses: krbticketpolicyaux
 ipaUserObjectClasses: radiusprofile
 ipaUserObjectClasses: ipaobject
 ipaDefaultEmailDomain: $DOMAIN

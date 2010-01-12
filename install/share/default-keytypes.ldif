@@ -11,6 +11,12 @@ krbSupportedEncSaltTypes: des-cbc-md5:normal
 krbSupportedEncSaltTypes: des-cbc-crc:normal
 krbSupportedEncSaltTypes: des-cbc-crc:v4
 krbSupportedEncSaltTypes: des-cbc-crc:afs3
+-
+add: krbMaxTicketLife
+krbMaxTicketLife: 86400
+-
+add: krbMaxRenewableAge
+krbMaxRenewableAge: 604800
 
 #kerberos keytypes
 dn: cn=$REALM,cn=kerberos,$SUFFIX
