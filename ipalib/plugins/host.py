@@ -54,7 +54,7 @@ class host(LDAPObject):
     object_class = ['ipaobject', 'nshost', 'ipahost', 'pkiuser', 'ipaservice']
     # object_class_config = 'ipahostobjectclasses'
     default_attributes = [
-        'fqdn', 'description', 'localityname', 'nshostlocation',
+        'fqdn', 'description', 'l', 'nshostlocation',
         'nshardwareplatform', 'nsosversion', 'usercertificate',
     ]
     uuid_attribute = 'ipauniqueid'
@@ -91,7 +91,7 @@ class host(LDAPObject):
             label='Description',
             doc='Description of the host',
         ),
-        Str('localityname?',
+        Str('locality?',
             cli_name='locality',
             label='Locality',
             doc='Locality of the host (Baltimore, MD)',
@@ -149,6 +149,9 @@ class host_add(LDAPCreate):
     msg_summary = _('Added host "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        if 'locality' in entry_attrs:
+            entry_attrs['l'] = entry_attrs['locality']
+            del entry_attrs['locality']
         entry_attrs['cn'] = keys[-1]
         entry_attrs['serverhostname'] = keys[-1].split('.', 1)[0]
         # FIXME: do DNS lookup to ensure host exists
@@ -212,6 +215,9 @@ class host_mod(LDAPUpdate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         # Once a principal name is set it cannot be changed
+        if 'locality' in entry_attrs:
+            entry_attrs['l'] = entry_attrs['locality']
+            del entry_attrs['locality']
         if 'krbprincipalname' in entry_attrs:
             (dn, entry_attrs_old) = ldap.get_entry(
                 dn, ['objectclass', 'krbprincipalname']
@@ -248,6 +254,12 @@ class host_find(LDAPSearch):
     msg_summary = ngettext(
         '%(count)d host matched', '%(count)d hosts matched'
     )
+
+    def pre_callback(self, ldap, filter, attrs_list, base_dn, *args, **options):
+        if 'locality' in attrs_list:
+            attrs_list.remove('locality')
+            attrs_list.append('l')
+        return filter.replace('locality', 'l')
 
 api.register(host_find)
 
