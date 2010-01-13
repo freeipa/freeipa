@@ -45,9 +45,14 @@ class test_Backend(ClassChecker):
 class Disconnect(object):
     called = False
 
+    def __init__(self, id=None):
+        self.id = id
+
     def __call__(self):
         assert self.called is False
         self.called = True
+        if self.id is not None:
+            delattr(context, self.id)
 
 
 class test_Connectible(ClassChecker):
@@ -207,11 +212,13 @@ class test_Executioner(ClassChecker):
         o.finalize()
 
         # Test that CommandError is raised:
-        conn = Connection('The connection.', Disconnect())
+        conn = Connection('The connection.', Disconnect('someconn'))
         context.someconn = conn
+        print str(context.__dict__.keys())
         e = raises(errors.CommandError, o.execute, 'nope')
         assert e.name == 'nope'
         assert conn.disconnect.called is True  # Make sure destroy_context() was called
+        print str(context.__dict__.keys())
         assert context.__dict__.keys() == []
 
         # Test with echo command:
@@ -220,7 +227,7 @@ class test_Executioner(ClassChecker):
         args = (arg1,) + arg2
         options = dict(option1=u'How are you?', option2=unicode_str)
 
-        conn = Connection('The connection.', Disconnect())
+        conn = Connection('The connection.', Disconnect('someconn'))
         context.someconn = conn
         assert o.execute('echo', arg1, arg2, **options) == dict(
             result=(arg1, arg2, options)
@@ -228,7 +235,7 @@ class test_Executioner(ClassChecker):
         assert conn.disconnect.called is True  # Make sure destroy_context() was called
         assert context.__dict__.keys() == []
 
-        conn = Connection('The connection.', Disconnect())
+        conn = Connection('The connection.', Disconnect('someconn'))
         context.someconn = conn
         assert o.execute('echo', *args, **options) == dict(
             result=(arg1, arg2, options)
@@ -237,7 +244,7 @@ class test_Executioner(ClassChecker):
         assert context.__dict__.keys() == []
 
         # Test with good command:
-        conn = Connection('The connection.', Disconnect())
+        conn = Connection('The connection.', Disconnect('someconn'))
         context.someconn = conn
         e = raises(errors.ValidationError, o.execute, 'good')
         assert e.name == 'nurse'
@@ -246,13 +253,13 @@ class test_Executioner(ClassChecker):
         assert context.__dict__.keys() == []
 
         # Test with bad command:
-        conn = Connection('The connection.', Disconnect())
+        conn = Connection('The connection.', Disconnect('someconn'))
         context.someconn = conn
         e = raises(errors.InternalError, o.execute, 'bad')
         assert conn.disconnect.called is True  # Make sure destroy_context() was called
         assert context.__dict__.keys() == []
 
         # Test with option 'name':
-        conn = Connection('The connection.', Disconnect())
+        conn = Connection('The connection.', Disconnect('someconn'))
         context.someconn = conn
         assert o.execute('with_name', name=u'test') == dict(result=u'TEST')
