@@ -63,7 +63,7 @@ EXAMPLES:
 
 import time
 
-from ipalib import api, crud, errors
+from ipalib import api, crud, errors, output
 from ipalib import Object, Command
 from ipalib import Flag, Int, Str, StrEnum
 
@@ -203,14 +203,18 @@ class dns_add(crud.Create):
         ldap.add_entry(dn, entry_attrs)
 
         # get zone entry with created attributes for output
-        return ldap.get_entry(dn, entry_attrs.keys())
+        (dn, entry_attrs) = ldap.get_entry(dn, entry_attrs.keys())
+        entry_attrs['dn'] = dn
+
+        return dict(result=entry_attrs, value=idnsname)
 
     def output_for_cli(self, textui, result, *args, **options):
-        (dn, entry_attrs) = result
-        idnsname = args[0]
+        entry_attrs = result['result']
+        idnsname = result['value']
 
         textui.print_name(self.name)
-        textui.print_attribute('dn', dn)
+        textui.print_attribute('dn', entry_attrs['dn'])
+        del entry_attrs['dn']
         textui.print_entry(entry_attrs)
         textui.print_dashed('Created DNS zone "%s".' % idnsname)
 
@@ -244,8 +248,7 @@ class dns_del(crud.Delete):
             ldap.delete_entry(e[0])
         ldap.delete_entry(dn)
 
-        # return something positive
-        return True
+        return dict(result=True, value=u'')
 
     def output_for_cli(self, textui, result, *args, **options):
         textui.print_name(self.name)
@@ -276,16 +279,20 @@ class dns_mod(crud.Update):
         ldap.update_entry(dn, entry_attrs)
 
         # get zone entry with modified + default attributes for output
-        return ldap.get_entry(
+        (dn, entry_attrs) = ldap.get_entry(
             dn, (entry_attrs.keys() + _zone_default_attributes)
         )
+        entry_attrs['dn'] = dn
+
+        return dict(result=entry_attrs, value=idnsname)
 
     def output_for_cli(self, textui, result, *args, **options):
-        (dn, entry_attrs) = result
-        idnsname = args[0]
+        entry_attrs = result['result']
+        idnsname = result['value']
 
         textui.print_name(self.name)
-        textui.print_attribute('dn', dn)
+        textui.print_attribute('dn', entry_attrs['dn'])
+        del entry_attrs['dn']
         textui.print_entry(entry_attrs)
         textui.print_dashed('Modified DNS zone "%s".' % idnsname)
 
@@ -323,14 +330,20 @@ class dns_find(crud.Search):
         except errors.NotFound:
             (entries, truncated) = (tuple(), False)
 
-        return (entries, truncated)
+        for e in entries:
+            e[1]['dn'] = e[0]
+        entries = tuple(e for (dn, e) in entries)
+
+        return dict(result=entries, count=len(entries), truncated=truncated)
 
     def output_for_cli(self, textui, result, term, **options):
-        (entries, truncated) = result
+        entries = result['result']
+        truncated = result['truncated']
 
         textui.print_name(self.name)
-        for (dn, entry_attrs) in entries:
-            textui.print_attribute('dn', dn)
+        for entry_attrs in entries:
+            textui.print_attribute('dn', entry_attrs['dn'])
+            del entry_attrs['dn']
             textui.print_entry(entry_attrs)
             textui.print_plain('')
         textui.print_count(
@@ -368,13 +381,17 @@ class dns_show(crud.Retrieve):
         else:
             attrs_list = _zone_default_attributes
 
-        return ldap.get_entry(dn, attrs_list)
+        (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        entry_attrs['dn'] = dn
+
+        return dict(result=entry_attrs, value=idnsname)
 
     def output_for_cli(self, textui, result, *args, **options):
-        (dn, entry_attrs) = result
+        entry_attrs = result['result']
 
         textui.print_name(self.name)
-        textui.print_attribute('dn', dn)
+        textui.print_attribute('dn', entry_attrs['dn'])
+        del entry_attrs['dn']
         textui.print_entry(entry_attrs)
 
 api.register(dns_show)
@@ -393,6 +410,8 @@ class dns_enable(Command):
         ),
     )
 
+    has_output = output.standard_value
+
     def execute(self, zone):
         ldap = self.api.Backend.ldap2
 
@@ -405,8 +424,7 @@ class dns_enable(Command):
         except errors.EmptyModlist:
             pass
 
-        # return something positive
-        return True
+        return dict(result=True, value=zone)
 
     def output_for_cli(self, textui, result, zone):
         textui.print_name(self.name)
@@ -428,6 +446,8 @@ class dns_disable(Command):
         ),
     )
 
+    has_output = output.standard_value
+
     def execute(self, zone):
         ldap = self.api.Backend.ldap2
 
@@ -440,8 +460,7 @@ class dns_disable(Command):
         except errors.EmptyModlist:
             pass
 
-        # return something positive
-        return True
+        return dict(result=True, value=zone)
 
     def output_for_cli(self, textui, result, zone):
         textui.print_name(self.name)
@@ -492,6 +511,8 @@ class dns_add_rr(Command):
         ),
     )
 
+    has_output = output.standard_entry
+
     def execute(self, zone, idnsname, type, data, **options):
         ldap = self.api.Backend.ldap2
         attr = '%srecord' % type
@@ -524,7 +545,10 @@ class dns_add_rr(Command):
                 ldap.add_entry(dn, entry_attrs)
 
                 # get entry with created attributes for output
-                return ldap.get_entry(dn, entry_attrs.keys())
+                (dn, entry_attrs) = ldap.get_entry(dn, entry_attrs.keys())
+                entry_attrs['dn'] = dn
+
+                return dict(result=entry_attrs, value=idnsname)
 
             # zone doesn't exist
             raise
@@ -541,17 +565,21 @@ class dns_add_rr(Command):
 
         ldap.update_entry(dn, {attr: attr_value})
         # get entry with updated attribute for output
-        return ldap.get_entry(dn, ['idnsname', attr])
+        (dn, entry_attrs) = ldap.get_entry(dn, ['idnsname', attr])
+        entry_attrs['dn'] = dn
+
+        return dict(result=entry_attrs, value=idnsname)
 
     def output_for_cli(self, textui, result, zone, idnsname, type, data,
             **options):
-        (dn, entry_attrs) = result
+        entry_attrs = result['result']
         output = '"%s %s %s" to zone "%s"' % (
             idnsname, type, data, zone,
         )
 
         textui.print_name(self.name)
-        textui.print_attribute('dn', dn)
+        textui.print_attribute('dn', entry_attrs['dn'])
+        del entry_attrs['dn']
         textui.print_entry(entry_attrs)
         textui.print_dashed('Added DNS resource record %s.' % output)
 
@@ -586,6 +614,8 @@ class dns_del_rr(Command):
         ),
     )
 
+    has_output = output.standard_entry
+
     def execute(self, zone, idnsname, type, data):
         ldap = self.api.Backend.ldap2
         attr = '%srecord' % type
@@ -619,21 +649,25 @@ class dns_del_rr(Command):
             if not record_attrs:
                 # it's not
                 ldap.delete_entry(dn)
-                return True
+                return dict(result={}, value=idnsname)
 
         ldap.update_entry(dn, {attr: attr_value})
         # get entry with updated attribute for output
-        return ldap.get_entry(dn, ['idnsname', attr])
+        (dn, entry_attrs) = ldap.get_entry(dn, ['idnsname', attr])
+        entry_attrs['dn'] = dn
+
+        return dict(result=result, value=idnsname)
 
     def output_for_cli(self, textui, result, zone, idnsname, type, data):
         output = '"%s %s %s" from zone "%s"' % (
             idnsname, type, data, zone,
         )
+        entry_attrs = result['result']
 
         textui.print_name(self.name)
-        if not isinstance(result, bool):
-            (dn, entry_attrs) = result
-            textui.print_attribute('dn', dn)
+        if entry_attrs:
+            textui.print_attribute('dn', entry_attrs['dn'])
+            del entry_attrs['dn']
             textui.print_entry(entry_attrs)
         textui.print_dashed('Deleted DNS resource record %s' % output)
 
@@ -677,6 +711,8 @@ class dns_find_rr(Command):
         ),
     )
 
+    has_output = output.standard_list_of_entries
+
     def execute(self, zone, term, **options):
         ldap = self.api.Backend.ldap2
         if 'type' in options:
@@ -712,7 +748,6 @@ class dns_find_rr(Command):
                 search_kw[a] = term
             term_filter = ldap.make_filter(search_kw, exact=False)
             filter = ldap.combine_filters((filter, term_filter), ldap.MATCH_ALL)
-        self.log.info(filter)
 
         # select attributes we want to retrieve
         if options['all']:
@@ -740,14 +775,20 @@ class dns_find_rr(Command):
                     related_entries.append(e)
             entries = related_entries
 
-        return (entries, truncated)
+        for e in entries:
+            e[1]['dn'] = e[0]
+        entries = tuple(e for (dn, e) in entries)
+
+        return dict(result=entries, count=len(entries), truncated=truncated)
 
     def output_for_cli(self, textui, result, zone, term, **options):
-        (entries, truncated) = result
+        entries = result['result']
+        truncated = result['truncated']
 
         textui.print_name(self.name)
-        for (dn, entry_attrs) in entries:
-            textui.print_attribute('dn', dn)
+        for entry_attrs in entries:
+            textui.print_attribute('dn', entry_attrs['dn'])
+            del entry_attrs['dn']
             textui.print_entry(entry_attrs)
             textui.print_plain('')
         textui.print_count(
@@ -787,6 +828,8 @@ class dns_show_rr(Command):
         ),
     )
 
+    has_output = output.standard_entry
+
     def execute(self, zone, idnsname, **options):
         # shows all records associated with resource
         ldap = self.api.Backend.ldap2
@@ -800,13 +843,17 @@ class dns_show_rr(Command):
         else:
             attrs_list = _record_default_attributes
 
-        return ldap.get_entry(dn, attrs_list)
+        (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        entry_attrs['dn'] = dn
+
+        return dict(result=entry_attrs, value=idnsname)
 
     def output_for_cli(self, textui, result, zone, idnsname, **options):
-        (dn, entry_attrs) = result
+        entry_attrs = result['result']
 
         textui.print_name(self.name)
-        textui.print_attribute('dn', dn)
+        textui.print_attribute('dn', entry_attrs['dn'])
+        del entry_attrs['dn']
         textui.print_entry(entry_attrs)
 
 api.register(dns_show_rr)
