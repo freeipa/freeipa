@@ -332,7 +332,7 @@ class IPAServer:
 
         schema_entry = self.__get_base_entry("", "objectclass=*", ['dn','subschemasubentry'], opts)
         schema_cn = schema_entry.get('subschemasubentry')
-        schema = self.__get_base_entry(schema_cn, "objectclass=*", ['*'], opts)
+        schema = self.__get_base_entry(schema_cn, "objectclass=*", ['*','objectclasses','attributetypes','matchingrules'], opts)
 
         return schema
 
