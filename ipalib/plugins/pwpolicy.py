@@ -26,6 +26,7 @@ from ipalib import api, crud, errors
 from ipalib import Command, Object
 from ipalib import Int, Str
 from ipalib import output
+from ipalib import _, ngettext
 from ldap.functions import explode_dn
 
 _fields = {
@@ -55,6 +56,15 @@ def _convert_time_on_input(entry_attrs):
     if 'krbminpwdlife' in entry_attrs:
         entry_attrs['krbminpwdlife'] = entry_attrs['krbminpwdlife'] * 3600
 
+def find_group_dn(group):
+    """
+    Given a group name find the DN of that group
+    """
+    try:
+        entry = api.Command['group_show'](group)['result']
+    except errors.NotFound:
+        raise errors.NotFound(reason="group '%s' does not exist" % group)
+    return entry['dn']
 
 def make_cos_entry(group, cospriority=None):
     """
@@ -65,11 +75,7 @@ def make_cos_entry(group, cospriority=None):
      cos_entry = entry representing this new object
     """
 
-    try:
-        entry = api.Command['group_show'](group)['result']
-    except errors.NotFound:
-        raise errors.NotFound(reason="group '%s' does not exist" % group)
-    groupdn = entry['dn']
+    groupdn = find_group_dn(group)
 
     cos_entry = {}
     if cospriority:
@@ -157,7 +163,7 @@ class pwpolicy_add(crud.Create):
         Int('cospriority',
             cli_name='priority',
             label='Priority',
-            doc='Priority of the policy. Higher number equals higher priority',
+            doc='Priority of the policy. Higher number equals lower priority',
             minvalue=0,
             attribute=True,
         ),
@@ -206,7 +212,7 @@ class pwpolicy_mod(crud.Update):
         ),
         Int('cospriority?',
             cli_name='priority',
-            doc='Priority of the policy. Higher number equals higher priority',
+            doc='Priority of the policy. Higher number equals lower priority',
             minvalue=0,
             attribute=True,
         ),
@@ -221,9 +227,17 @@ class pwpolicy_mod(crud.Update):
         ldap = self.api.Backend.ldap2
 
         if not 'group' in options:
+            if 'cospriority' in options:
+                raise errors.ValidationError(name='priority', error=_('priority cannot be set on global policy'))
             dn = self.api.env.container_accounts
             entry_attrs = self.args_options_2_entry(*args, **options)
         else:
+            if 'cospriority' in options:
+                groupdn = find_group_dn(options['group'])
+                cos_dn = 'cn="%s", cn=cosTemplates, cn=accounts, %s' % (groupdn, api.env.basedn)
+                self.log.debug('%s' % cos_dn)
+                ldap.update_entry(cos_dn, dict(cospriority = options['cospriority']), normalize=False)
+                del options['cospriority']
             entry_attrs = self.args_options_2_entry(*args, **options)
             (dn, entry_attrs) = make_policy_entry(options['group'], entry_attrs)
         _convert_time_on_input(entry_attrs)
@@ -318,6 +332,12 @@ class pwpolicy_show(Command):
                 policy_entry = self.args_options_2_entry(*args, **options)
                 (dn, policy_entry) = make_policy_entry(options['group'], policy_entry)
         (dn, entry_attrs) = ldap.get_entry(dn)
+
+        if 'group' in options:
+            groupdn = find_group_dn(options['group'])
+            cos_dn = 'cn="%s", cn=cosTemplates, cn=accounts, %s' % (groupdn, api.env.basedn)
+            (dn, cos_attrs) = ldap.get_entry(cos_dn, normalize=False)
+            entry_attrs['priority'] = cos_attrs['cospriority']
 
         if 'user' in options:
             if group:

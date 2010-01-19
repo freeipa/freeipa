@@ -421,7 +421,8 @@ class ldap2(CrudBackend, Encoder):
     @encode_args(1, 2, 3)
     @decode_retval()
     def find_entries(self, filter, attrs_list=None, base_dn='',
-            scope=_ldap.SCOPE_SUBTREE, time_limit=1, size_limit=3000):
+            scope=_ldap.SCOPE_SUBTREE, time_limit=1, size_limit=3000,
+            normalize=True):
         """
         Return a list of entries [(dn, entry_attrs)] matching specified
         search parameters followed by truncated flag. If the truncated flag is
@@ -433,8 +434,10 @@ class ldap2(CrudBackend, Encoder):
         scope -- search scope, see LDAP docs (default ldap2.SCOPE_SUBTREE)
         time_limit -- time limit in seconds (default 1)
         size_limit -- size (number of entries returned) limit (default 3000)
+        normalize -- normalize the DN (default True)
         """
-        base_dn = self.normalize_dn(base_dn)
+        if normalize:
+            base_dn = self.normalize_dn(base_dn)
         if not filter:
             filter = '(objectClass=*)'
         res = []
@@ -475,14 +478,14 @@ class ldap2(CrudBackend, Encoder):
         filter = self.make_filter(search_kw, rules=self.MATCH_ALL)
         return self.find_entries(filter, attrs_list, base_dn)[0][0]
 
-    def get_entry(self, dn, attrs_list=None):
+    def get_entry(self, dn, attrs_list=None, normalize=True):
         """
         Get entry (dn, entry_attrs) by dn.
 
         Keyword arguments:
         attrs_list - list of attributes to return, all if None (default None)
         """
-        return self.find_entries(None, attrs_list, dn, self.SCOPE_BASE)[0][0]
+        return self.find_entries(None, attrs_list, dn, self.SCOPE_BASE, normalize=normalize)[0][0]
 
     def get_ipa_config(self):
         """Returns the IPA configuration entry (dn, entry_attrs)."""
@@ -572,9 +575,9 @@ class ldap2(CrudBackend, Encoder):
         except _ldap.LDAPError, e:
             _handle_errors(e, **{})
 
-    def _generate_modlist(self, dn, entry_attrs):
+    def _generate_modlist(self, dn, entry_attrs, normalize):
         # get original entry
-        (dn, entry_attrs_old) = self.get_entry(dn, entry_attrs.keys())
+        (dn, entry_attrs_old) = self.get_entry(dn, entry_attrs.keys(), normalize)
         # get_entry returns a decoded entry, encode it back
         # we could call search_s directly, but this saves a lot of code at
         # the expense of a little bit of performace
@@ -618,16 +621,17 @@ class ldap2(CrudBackend, Encoder):
         return modlist
 
     @encode_args(1, 2)
-    def update_entry(self, dn, entry_attrs):
+    def update_entry(self, dn, entry_attrs, normalize=True):
         """
         Update entry's attributes.
 
         An attribute value set to None deletes all current values.
         """
-        dn = self.normalize_dn(dn)
+        if normalize:
+            dn = self.normalize_dn(dn)
 
         # generate modlist
-        modlist = self._generate_modlist(dn, entry_attrs)
+        modlist = self._generate_modlist(dn, entry_attrs, normalize)
         if not modlist:
             raise errors.EmptyModlist()
 
