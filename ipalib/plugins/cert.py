@@ -58,7 +58,7 @@ def get_serial(certificate):
         pass
     try:
 
-        serial = x509.get_serial_number(certificate)
+        serial = x509.get_serial_number(certificate, x509.DER)
     except PyAsn1Error:
         raise errors.CertificateOperationError(error=_('Unable to decode certificate in entry'))
 
