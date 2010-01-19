@@ -222,10 +222,9 @@ def get_subject_components(certificate, type=PEM):
     Load an X509.3 certificate and get the subject.
 
     Return a tuple of a certificate subject.
-       (('CN', u'www.example.com', ('O', u'IPA'))
+       (('CN', u'www.example.com'), ('O', u'IPA'))
     """
 
-    # Grab the subject, reverse it, combine it and return it
     x509cert = load_certificate(certificate, type)
     return x509cert.get_subject().get_components()
 
