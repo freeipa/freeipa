@@ -445,9 +445,9 @@ class CAInstance(service.Service):
             self.cert_chain_file=cert_chain_file
             self.external=2
 
+        self.step("creating certificate server user", self.__create_ca_user)
         if not ipautil.dir_exists("/var/lib/pki-ca"):
             self.step("creating pki-ca instance", self.create_instance)
-        self.step("creating certificate server user", self.__create_ca_user)
         self.step("configuring certificate server instance", self.__configure_instance)
         # Step 1 of external is getting a CSR so we don't need to do these
         # steps until we get a cert back from the external CA.
