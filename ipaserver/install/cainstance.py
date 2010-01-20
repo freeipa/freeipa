@@ -46,7 +46,6 @@ from ipapython import nsslib
 
 from ipaserver.install import service
 from ipaserver.install import installutils
-from ipaserver import ipaldap
 from ipaserver.install import dsinstance
 from ipalib import util
 
@@ -414,7 +413,8 @@ class CAInstance(service.Service):
     def configure_instance(self, pki_user, host_name, dm_password,
                            admin_password, ds_port=DEFAULT_DSPORT,
                            pkcs12_info=None, master_host=None, csr_file=None,
-                           cert_file=None, cert_chain_file=None):
+                           cert_file=None, cert_chain_file=None,
+                           subject_base="O=IPA"):
         """Create a CA instance. This may involve creating the pki-ca instance
            dogtag instance.
 
@@ -434,6 +434,7 @@ class CAInstance(service.Service):
         if self.pkcs12_info is not None:
             self.clone = True
         self.master_host = master_host
+        self.subject_base = subject_base
 
         # Determine if we are installing as an externally-signed CA and
         # what stage we're in.
@@ -540,7 +541,7 @@ class CAInstance(service.Service):
                     "-agent_name", "ipa-ca-agent",
                     "-agent_key_size", "2048",
                     "-agent_key_type", "rsa",
-                    "-agent_cert_subject", "\"CN=ipa-ca-agent,O=" + self.domain_name + "\"",
+                    "-agent_cert_subject", "\"CN=ipa-ca-agent,%s\"" % self.subject_base,
                     "-ldap_host", self.host_name,
                     "-ldap_port", str(self.ds_port),
                     "-bind_dn", "\"cn=Directory Manager\"",
@@ -553,11 +554,11 @@ class CAInstance(service.Service):
                     "-backup_pwd", self.admin_password,
                     "-subsystem_name", self.service_name,
                     "-token_name", "internal",
-                    "-ca_subsystem_cert_subject_name", "\"CN=CA Subsystem Certificate,O=" + self.domain_name + "\"",
-                    "-ca_ocsp_cert_subject_name", "\"CN=OCSP Signing Certificate,O=" + self.domain_name + "\"",
-                    "-ca_server_cert_subject_name", "CN=" + self.host_name + ",O=" + self.domain_name,
-                    "-ca_audit_signing_cert_subject_name", "\"CN=CA Audit Signing Certificate,O=" + self.domain_name + "\"",
-                    "-ca_sign_cert_subject_name", "\"CN=Certificate Authority,O=" + self.domain_name + "\"" ]
+                    "-ca_subsystem_cert_subject_name", "\"CN=CA Subsystem,%s\"" % self.subject_base,
+                    "-ca_ocsp_cert_subject_name", "\"CN=OCSP Subsystem,%s\"" % self.subject_base,
+                    "-ca_server_cert_subject_name", "\"CN=%s,%s\"" % (self.host_name, self.subject_base),
+                    "-ca_audit_signing_cert_subject_name", "\"CN=CA Audit,%s\"" % self.subject_base,
+                    "-ca_sign_cert_subject_name", "\"CN=Certificate Authority,%s\"" % self.subject_base ]
             if self.external == 1:
                 args.append("-external")
                 args.append("true")
@@ -770,7 +771,7 @@ class CAInstance(service.Service):
         ('usertype', "agentType"),
         ('userstate', "1"),
         ('userCertificate', decoded),
-        ('description', '2;%s;CN=Certificate Authority,O=%s;CN=RA Subsystem Certificate,OU=pki-ipa,O=%s' % (str(self.requestId), self.domain_name, self.domain_name)),]
+        ('description', '2;%s;CN=Certificate Authority,%s;CN=RA Subsystem,%s' % (str(self.requestId), self.subject_base, self.subject_base)),]
 
         ld.add_s(entry_dn, entry)
 
@@ -886,7 +887,7 @@ class CAInstance(service.Service):
 
         # Generate our CSR. The result gets put into stdout
         try:
-            (stdout, stderr, returncode) = self.__run_certutil(["-R", "-k", "rsa", "-g", "2048", "-s", "CN=RA Subsystem Certificate,OU=pki-ipa,O=%s" % self.domain_name, "-z", noise_name, "-a"])
+            (stdout, stderr, returncode) = self.__run_certutil(["-R", "-k", "rsa", "-g", "2048", "-s", "CN=RA Subsystem,%s" % self.subject_base, "-z", noise_name, "-a"])
         finally:
             os.remove(noise_name)
 
@@ -999,6 +1000,13 @@ class CAInstance(service.Service):
             return
 
         ipautil.run(["/usr/sbin/semodule", "-i", "/usr/share/selinux/targeted/ipa_dogtag.pp"])
+
+    def set_subject_in_config(self, suffix):
+        # dogtag ships with an IPA-specific profile that forces a subject
+        # format. We need to update that template with our base subject
+        if installutils.update_file("/var/lib/%s/profiles/ca/caIPAserviceCert.cfg" % PKI_INSTANCE_NAME, 'OU=pki-ipa, O=IPA', self.subject_base):
+            print "Updating subject_base in CA template failed"
+        self.__restart_instance()
 
     def uninstall(self):
         try:

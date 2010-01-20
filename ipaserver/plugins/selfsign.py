@@ -38,13 +38,18 @@ if api.env.ra_plugin != 'selfsign':
 from ipalib import Backend
 from ipalib import errors
 from ipalib import x509
+from ipalib import pkcs10
 import subprocess
 import os
+import re
 from ipaserver.plugins import rabase
 from ipaserver.install import certs
 import tempfile
 from pyasn1 import error
 from ipalib.request import ugettext as _
+from pyasn1.codec.der import encoder
+import base64
+from ipalib.plugins.cert import get_csr_hostname
 
 class ra(rabase.rabase):
     """
@@ -79,6 +84,28 @@ class ra(rabase.rabase):
         .. [2] Base64 encoded
 
         """
+        try:
+            config = api.Command['config_show']()['result']
+            subject_base = config.get('ipacertificatesubjectbase')[0]
+            hostname = get_csr_hostname(csr)
+            request = pkcs10.load_certificate_request(csr)
+            base = re.split(',\s*(?=\w+=)', subject_base)
+            base.reverse()
+            base.append("CN=%s" % hostname)
+            request_subject = request.get_subject().get_components()
+            new_request = []
+            for r in request_subject:
+                new_request.append("%s=%s" % (r[0], r[1]))
+
+            if str(base).lower() != str(new_request).lower():
+                subject_base='CN=%s, %s' % (hostname, subject_base)
+                new_request.reverse()
+                raise errors.CertificateOperationError(error=_('Request subject \'%s\' does not match the form \'%s\'' % (", ".join(new_request), subject_base)))
+        except errors.CertificateOperationError, e:
+            raise e
+        except Exception, e:
+            raise errors.CertificateOperationError(error=_('unable to decode csr: %s' % e))
+
         # certutil wants the CSR to have have a header and footer. Add one
         # if it isn't there.
         s = csr.find('-----BEGIN NEW CERTIFICATE REQUEST-----')
@@ -86,7 +113,7 @@ class ra(rabase.rabase):
             s = csr.find('-----BEGIN CERTIFICATE REQUEST-----')
             if s == -1:
                 csr = '-----BEGIN NEW CERTIFICATE REQUEST-----\n' + csr + \
-                      '-----END NEW CERTIFICATE REQUEST-----\n'
+                      '\n-----END NEW CERTIFICATE REQUEST-----\n'
 
         try:
             (csr_fd, csr_name) = tempfile.mkstemp()

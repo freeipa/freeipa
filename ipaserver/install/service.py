@@ -160,9 +160,15 @@ class Service:
         Add a certificate to a service
 
         This should be passed in DER format but we'll be nice and convert
-        a base64-encoded cert if needed.
+        a base64-encoded cert if needed (like when we add certs that come
+        from PKCS#12 files.)
         """
         try:
+            s = self.dercert.find('-----BEGIN CERTIFICATE-----')
+            if s > -1:
+                e = self.dercert.find('-----END CERTIFICATE-----')
+                s = s + 27
+                self.dercert = self.dercert[s:e]
             self.dercert = base64.b64decode(self.dercert)
         except Exception:
             pass

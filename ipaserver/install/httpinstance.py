@@ -56,7 +56,7 @@ class HTTPInstance(service.Service):
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
-    def create_instance(self, realm, fqdn, domain_name, dm_password=None, autoconfig=True, pkcs12_info=None, self_signed_ca=False):
+    def create_instance(self, realm, fqdn, domain_name, dm_password=None, autoconfig=True, pkcs12_info=None, self_signed_ca=False, subject_base=None):
         self.fqdn = fqdn
         self.realm = realm
         self.domain = domain_name
@@ -66,6 +66,7 @@ class HTTPInstance(service.Service):
         self.self_signed_ca = self_signed_ca
         self.principal = "HTTP/%s@%s" % (self.fqdn, self.realm)
         self.dercert = None
+        self.subject_base = subject_base
         self.sub_dict = { "REALM" : realm, "FQDN": fqdn, "DOMAIN" : self.domain }
 
         self.step("disabling mod_ssl in httpd", self.__disable_mod_ssl)
@@ -164,10 +165,10 @@ class HTTPInstance(service.Service):
 
     def __setup_ssl(self):
         if self.self_signed_ca:
-            ca_db = certs.CertDB(NSS_DIR)
+            ca_db = certs.CertDB(NSS_DIR, subject_base=self.subject_base)
         else:
-            ca_db = certs.CertDB(NSS_DIR, host_name=self.fqdn)
-        db = certs.CertDB(NSS_DIR)
+            ca_db = certs.CertDB(NSS_DIR, host_name=self.fqdn, subject_base=self.subject_base)
+        db = certs.CertDB(NSS_DIR, subject_base=self.subject_base)
         if self.pkcs12_info:
             db.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1], passwd="")
             server_certs = db.find_server_certs()
@@ -221,7 +222,7 @@ class HTTPInstance(service.Service):
         prefs_fd.close()
 
         # The signing cert is generated in __setup_ssl
-        db = certs.CertDB(NSS_DIR)
+        db = certs.CertDB(NSS_DIR, subject_base=self.subject_base)
 
         pwdfile = open(db.passwd_fname)
         pwd = pwdfile.read()

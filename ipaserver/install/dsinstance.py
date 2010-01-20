@@ -153,7 +153,7 @@ class DsInstance(service.Service):
         else:
             self.suffix = None
 
-    def create_instance(self, ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info=None, self_signed_ca=False, uidstart=1100, gidstart=1100):
+    def create_instance(self, ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info=None, self_signed_ca=False, uidstart=1100, gidstart=1100, subject_base=None):
         self.ds_user = ds_user
         self.realm_name = realm_name.upper()
         self.serverid = realm_to_serverid(self.realm_name)
@@ -166,6 +166,7 @@ class DsInstance(service.Service):
         self.uidstart = uidstart
         self.gidstart = gidstart
         self.principal = "ldap/%s@%s" % (self.host_name, self.realm_name)
+        self.subject_base = subject_base
         self.__setup_sub_dict()
 
         self.step("creating directory server user", self.__create_ds_user)
@@ -328,7 +329,7 @@ class DsInstance(service.Service):
 
     def __enable_ssl(self):
         dirname = config_dirname(self.serverid)
-        dsdb = certs.CertDB(dirname)
+        dsdb = certs.CertDB(dirname, subject_base=self.subject_base)
         if self.pkcs12_info:
             dsdb.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1])
             server_certs = dsdb.find_server_certs()
@@ -340,7 +341,7 @@ class DsInstance(service.Service):
             self.dercert = dsdb.get_cert_from_db(nickname)
         else:
             nickname = "Server-Cert"
-            cadb = certs.CertDB(httpinstance.NSS_DIR, host_name=self.host_name)
+            cadb = certs.CertDB(httpinstance.NSS_DIR, host_name=self.host_name, subject_base=self.subject_base)
             if self.self_signed_ca:
                 cadb.create_self_signed()
                 dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
@@ -466,7 +467,7 @@ class DsInstance(service.Service):
         self.stop()
 
         dirname = config_dirname(realm_to_serverid(self.realm_name))
-        certdb = certs.CertDB(dirname)
+        certdb = certs.CertDB(dirname, subject_base=self.subject_base)
         if not cacert_name or len(cacert_name) == 0:
             cacert_name = "Imported CA"
         # we can't pass in the nickname, so we set the instance variable

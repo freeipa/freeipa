@@ -33,6 +33,7 @@ from ipaserver import ipaldap
 from ipapython import version
 from ipalib.constants import DEFAULT_CONFIG
 from ipalib import api
+from ipalib import util
 import ldap
 
 def parse_options():
@@ -94,13 +95,23 @@ def get_domain_name():
 
     return domain_name
 
+def get_subject_base(host_name, dm_password, suffix):
+    try:
+        conn = ipaldap.IPAdmin(host_name)
+        conn.do_simple_bind(bindpw=dm_password)
+    except Exception, e:
+        logging.critical("Could not connect to the Directory Server on %s" % host_name)
+        raise e
+    entry = conn.getEntry("cn=ipaConfig, cn=etc, %s" % suffix, ldap.SCOPE_SUBTREE)
+    return entry.getValue('ipacertificatesubjectbase')
+
 def check_ipa_configuration(realm_name):
     config_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name))
     if not ipautil.dir_exists(config_dir):
         logging.error("could not find directory instance: %s" % config_dir)
         sys.exit(1)
 
-def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, hostname):
+def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, hostname, subject_base=None):
     """realm is the kerberos realm for the IPA server.
        ds_dir is the location of the master DS we are creating a replica for.
        dir is the location of the files for the replica we are creating.
@@ -113,14 +124,14 @@ def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, hostname):
     try:
         self_signed = certs.ipa_self_signed()
 
-        db = certs.CertDB(dir)
+        db = certs.CertDB(dir, subject_base=subject_base)
         db.create_passwd_file()
 #        if self_signed:
 #            ca_db = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name)))
 #            db.create_from_cacert(ca_db.cacert_fname)
 #        else:
 #            ca_db = certs.CertDB(httpinstance.NSS_DIR, host_name=get_host_name())
-        ca_db = certs.CertDB(httpinstance.NSS_DIR, host_name=get_host_name())
+        ca_db = certs.CertDB(httpinstance.NSS_DIR, host_name=get_host_name(), subject_base=subject_base)
         db.create_from_cacert(ca_db.cacert_fname)
         db.create_server_cert("Server-Cert", hostname, ca_db)
     except Exception, e:
@@ -174,7 +185,8 @@ def get_ds_user(ds_dir):
 
     return user
 
-def save_config(dir, realm_name, host_name, ds_user, domain_name, dest_host):
+def save_config(dir, realm_name, host_name, ds_user, domain_name, dest_host,
+                subject_base):
     config = SafeConfigParser()
     config.add_section("realm")
     config.set("realm", "realm_name", realm_name)
@@ -182,6 +194,7 @@ def save_config(dir, realm_name, host_name, ds_user, domain_name, dest_host):
     config.set("realm", "ds_user", ds_user)
     config.set("realm", "domain_name", domain_name)
     config.set("realm", "destination_host", dest_host)
+    config.set("realm", "subject_base", subject_base)
     fd = open(dir + "/realm_info", "w")
     config.write(fd)
 
@@ -265,6 +278,8 @@ def main():
 
     print "Preparing replica for %s from %s" % (replica_fqdn, host_name)
 
+    subject_base = get_subject_base(host_name, dirman_password, util.realm_to_suffix(realm_name))
+
     top_dir = tempfile.mkdtemp("ipa")
     dir = top_dir + "/realm_info"
     os.mkdir(dir, 0700)
@@ -298,7 +313,7 @@ def main():
             print "Copy failed %s" %  e
             sys.exit(1)
         print "Creating SSL certificate for the Directory Server"
-        export_certdb(realm_name, ds_dir, dir, passwd_fname, "dscert", replica_fqdn)
+        export_certdb(realm_name, ds_dir, dir, passwd_fname, "dscert", replica_fqdn, subject_base)
 
     if options.http_pin:
         passwd = options.http_pin
@@ -319,13 +334,15 @@ def main():
             sys.exit(1)
     else:
         print "Creating SSL certificate for the Web Server"
-        export_certdb(realm_name, ds_dir, dir, passwd_fname, "httpcert", replica_fqdn)
+        export_certdb(realm_name, ds_dir, dir, passwd_fname, "httpcert", replica_fqdn, subject_base)
         print "Exporting RA certificate"
         export_ra_pkcs12(dir, dirman_password)
+
     print "Copying additional files"
     copy_files(realm_name, dir)
+
     print "Finalizing configuration"
-    save_config(dir, realm_name, host_name, ds_user, domain_name, replica_fqdn)
+    save_config(dir, realm_name, host_name, ds_user, domain_name, replica_fqdn, subject_base)
 
     replicafile = "/var/lib/ipa/replica-info-" + replica_fqdn
     encfile = replicafile+".gpg"

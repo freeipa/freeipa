@@ -35,6 +35,7 @@ import signal
 import shutil
 import glob
 import traceback
+import ldap
 from optparse import OptionParser
 from ConfigParser import RawConfigParser
 import random
@@ -49,6 +50,7 @@ from ipaserver.install import certs
 from ipaserver.install import service
 from ipapython import version
 from ipaserver.install.installutils import *
+from ipaserver import ipaldap
 
 from ipapython import sysrestore
 from ipapython.ipautil import *
@@ -117,6 +119,8 @@ def parse_options():
                       help="The starting uid value (default random)")
     parser.add_option("--gidstart", dest="gidstart", default=namespace, type=int,
                       help="The starting gid value (default random)")
+    parser.add_option("--subject", dest="subject", default="O=IPA",
+                      help="The certificate subject base (default O=IPA)")
     options, args = parser.parse_args()
 
     if not options.setup_dns:
@@ -456,6 +460,20 @@ def render_assets():
     ui = ipawebui.create_wsgi_app(api)
     ui.render_assets()
 
+def set_subject_in_config(host_name, dm_password, suffix, subject_base):
+        try:
+            conn = ipaldap.IPAdmin(host_name)
+            conn.do_simple_bind(bindpw=dm_password)
+        except Exception, e:
+            logging.critical("Could not connect to the Directory Server on %s" % host_name)
+            raise e
+        entry = conn.getEntry("cn=ipaConfig, cn=etc, %s" % suffix, ldap.SCOPE_SUBTREE)
+        if entry.getValue('ipaCertificateSubjectBase') is None:
+            newentry = entry.toDict()
+            newentry['ipaCertificateSubjectBase'] = subject_base
+            conn.updateEntry(entry.dn, entry.toDict(), newentry)
+
+        conn.unbind()
 
 def main():
     global ds
@@ -502,7 +520,7 @@ def main():
                 print "Aborting uninstall operation."
                 sys.exit(1)
 
-        return uninstall(not certs.ipa_self_signed())
+        return uninstall(not certs.ipa_self_signed() or options.ca)
 
     # This will override any settings passed in on the cmdline
     options._update_loose(read_cache())
@@ -702,12 +720,12 @@ def main():
             cs.create_instance(ds_user, realm_name, host_name, domain_name, dm_password)
         ca = cainstance.CAInstance()
         if external == 0:
-            ca.configure_instance("pkiuser", host_name, dm_password, dm_password)
+            ca.configure_instance("pkiuser", host_name, dm_password, dm_password, subject_base=options.subject)
         elif external == 1:
             write_cache(options)
-            ca.configure_instance("pkiuser", host_name, dm_password, dm_password, csr_file="/root/ipa.csr")
+            ca.configure_instance("pkiuser", host_name, dm_password, dm_password, csr_file="/root/ipa.csr", subject_base=options.subject)
         else:
-            ca.configure_instance("pkiuser", host_name, dm_password, dm_password, cert_file=options.external_cert_file, cert_chain_file=options.external_ca_file)
+            ca.configure_instance("pkiuser", host_name, dm_password, dm_password, cert_file=options.external_cert_file, cert_chain_file=options.external_ca_file, subject_base=options.subject)
 
     # Configure ntpd
     if options.conf_ntp:
@@ -719,11 +737,11 @@ def main():
     if options.dirsrv_pkcs12:
         pkcs12_info = (options.dirsrv_pkcs12, pw_name)
         try:
-            ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info)
+            ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info, subject_base=options.subject)
         finally:
             os.remove(pw_name)
     else:
-        ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, self_signed_ca=not options.ca, uidstart=options.uidstart, gidstart=options.gidstart)
+        ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, self_signed_ca=not options.ca, uidstart=options.uidstart, gidstart=options.gidstart, subject_base=options.subject)
 
     # Create a kerberos instance
     krb = krbinstance.KrbInstance(fstore)
@@ -747,10 +765,10 @@ def main():
     http = httpinstance.HTTPInstance(fstore)
     if options.http_pkcs12:
         pkcs12_info = (options.http_pkcs12, pw_name)
-        http.create_instance(realm_name, host_name, domain_name, dm_password, autoconfig=False, pkcs12_info=pkcs12_info)
+        http.create_instance(realm_name, host_name, domain_name, dm_password, autoconfig=False, pkcs12_info=pkcs12_info, subject_base=options.subject)
         os.remove(pw_name)
     else:
-        http.create_instance(realm_name, host_name, domain_name, dm_password, autoconfig=True, self_signed_ca=not options.ca)
+        http.create_instance(realm_name, host_name, domain_name, dm_password, autoconfig=True, self_signed_ca=not options.ca, subject_base=options.subject)
     ipautil.run(["/sbin/restorecon", "/var/cache/ipa/sessions"])
 
     # Create the management framework config file
@@ -767,6 +785,11 @@ def main():
         fd.write("ra_plugin=dogtag\n")
     fd.write('webui_assets_dir=' + ASSETS_DIR + '\n')
     fd.close()
+
+    set_subject_in_config(host_name, dm_password, util.realm_to_suffix(realm_name), options.subject)
+    if options.ca:
+        service.print_msg("Setting the certificate subject base")
+        ca.set_subject_in_config(util.realm_to_suffix(realm_name))
 
     # Apply any LDAP updates. Needs to be done after the configuration file
     # is created

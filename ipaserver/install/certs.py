@@ -173,7 +173,7 @@ def next_replica(serial_file=CA_SERIALNO):
     return str(serial)
 
 class CertDB(object):
-    def __init__(self, nssdir, fstore=None, host_name=None):
+    def __init__(self, nssdir, fstore=None, host_name=None, subject_base=None):
         self.secdir = nssdir
 
         self.noise_fname = self.secdir + "/noise.txt"
@@ -189,13 +189,14 @@ class CertDB(object):
         self.certreq_fname = None
         self.certder_fname = None
         self.host_name = host_name
+        self.cwd = os.getcwd()
 
         self.self_signed_ca = ipa_self_signed()
 
-        if self.self_signed_ca:
-            self.subject_format = "CN=%s,ou=test-ipa,O=IPA"
+        if subject_base:
+            self.subject_format = "CN=%%s,%s" % subject_base
         else:
-            self.subject_format = "CN=%s,OU=pki-ipa,O=IPA"
+            self.subject_format = "CN=%s,O=IPA"
 
         self.cacert_name = "CA certificate"
         self.valid_months = "120"
@@ -218,6 +219,10 @@ class CertDB(object):
     def __del__(self):
         if self.reqdir is not None:
             shutil.rmtree(self.reqdir, ignore_errors=True)
+        try:
+            os.chdir(self.cwd)
+        except:
+            pass
 
     def setup_cert_request(self):
         """
@@ -233,6 +238,10 @@ class CertDB(object):
         self.reqdir = tempfile.mkdtemp('', 'ipa-', '/var/lib/ipa')
         self.certreq_fname = self.reqdir + "/tmpcertreq"
         self.certder_fname = self.reqdir + "/tmpcert.der"
+
+        # When certutil makes a request it creates a file in the cwd, make
+        # sure we are in a unique place when this happens
+        os.chdir(self.reqdir)
 
     def set_serial_from_pkcs12(self):
         """A CA cert was loaded from a PKCS#12 file. Set up our serial file"""
@@ -584,6 +593,9 @@ class CertDB(object):
                 doc.unlink()
                 conn.close()
 
+            # base64-decode the result
+            cert = base64.b64decode(cert)
+
             # Write the certificate to a file. It will be imported in a later
             # step.
             f = open(cert_fname, "w")
@@ -670,6 +682,9 @@ class CertDB(object):
             doc.unlink()
             conn.close()
 
+            # base64-decode the cert
+            cert = base64.b64decode(cert)
+
             f = open(cert_fname, "w")
             f.write(cert)
             f.close()
@@ -684,8 +699,6 @@ class CertDB(object):
                 "-t", "u,u,u",
                 "-i", cert_fname,
                 "-f", self.passwd_fname]
-        if not self.self_signed_ca:
-            args.append("-a")
         self.run_certutil(args)
 
     def create_pin_file(self):
