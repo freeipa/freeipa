@@ -101,7 +101,7 @@ class config(LDAPObject):
             doc='A comma-separated list of fields to search when searching for groups',
         ),
         Bool('ipamigrationenabled?',
-            doc='Migration mode',
+            label='Migration mode',
             cli_name='enable_migration',
             doc='Enabled migration mode',
         ),
