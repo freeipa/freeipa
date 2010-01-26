@@ -273,4 +273,5 @@ class jsonserver(WSGIExecutioner):
             raise JSONError(
                 error='params[1] (aka options) must be a dict'
             )
+        options = dict((str(k), v) for (k, v) in options.iteritems())
         return (method, args, options, _id)

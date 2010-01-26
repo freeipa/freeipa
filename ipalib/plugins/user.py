@@ -113,6 +113,9 @@ class user(LDAPObject):
             cli_name='password',
             label='Password',
             doc='Set the user password',
+            # FIXME: This is temporary till bug is fixed causing updates to
+            # bomb out via the webUI.
+            exclude='webui',
         ),
         Int('uidnumber?',
             cli_name='uid',

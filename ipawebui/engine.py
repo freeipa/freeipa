@@ -65,7 +65,17 @@ class ParamMapper(object):
         )
 
 
+def filter_params(namespace):
+    for param in namespace():
+        if param.exclude and 'webui' in param.exclude:
+            continue
+        yield param
+
+
 class Engine(object):
+
+    cruds = frozenset(['add', 'show', 'mod', 'del', 'find'])
+
     def __init__(self, api, app):
         self.api = api
         self.app = app
@@ -86,11 +96,21 @@ class Engine(object):
             )
 
     def build(self):
-        for cmd in self.api.Object.user.methods():
-            self.pages[cmd.name] = self.build_page(cmd)
-        for page in self.pages.itervalues():
-            page.menu.label = 'Users'
-            self.add_object_menuitems(page.menu, 'user')
+        for obj in self.api.Object():
+            if self.cruds.issubset(obj.methods) and obj.primary_key is not None:
+                self.pages[obj.name] = self.build_cruds_page(obj)
+
+        # Add landing page:
+        landing = self.app.new('PageApp', id='', title='Welcome to FreeIPA')
+
+        for page in self.pages.values() + [landing]:
+            page.menu.label = 'FreeIPA'
+            for name in sorted(self.pages):
+                p = self.pages[name]
+                page.menu.new_child('MenuItem', label=p.title, href=p.url)
+
+
+
 
         # Add in the info pages:
         page = self.app.new('PageApp', id='api', title='api')
@@ -110,6 +130,58 @@ class Engine(object):
                     )
                 )
 
+    def build_cruds_page(self, obj):
+        page = self.app.new('PageGrid', title=obj.name, id=obj.name)
+
+        # Setup CRUDS widget:
+        page.cruds.autoload = True
+        page.cruds.jsonrpc_url = self.api.Backend.jsonserver.url
+        page.cruds.key = obj.primary_key.name
+        page.cruds.method_create = obj.methods['add'].name
+        page.cruds.method_retrieve = obj.methods['show'].name
+        page.cruds.method_update = obj.methods['mod'].name
+        page.cruds.method_delete = obj.methods['del'].name
+        page.cruds.method_search = obj.methods['find'].name
+        page.cruds.display_cols = tuple(
+            dict(
+                name=p.name,
+                label=p.label,
+                css_classes=None,
+            )
+            for p in obj.params()
+        )
+
+        # Setup the Grid widget:
+        page.grid.cols = tuple(
+            dict(
+                name=p.name,
+                label=p.label,
+                css_classes=None,
+            )
+            for p in obj.params() if p.required
+        )
+
+
+        # Setup the create Dialog:
+        cmd = obj.methods['add']
+        page.create.title = cmd.summary.rstrip('.')
+        for p in filter_params(cmd.params):
+            page.create.fieldtable.add(self.param_mapper(p, cmd))
+
+        # Setup the retrieve Dialog
+        page.retrieve.title = 'Showing "{value}"'
+
+        # Setup the update Dialog:
+        page.update.title = 'Updating "{value}"'
+        cmd = obj.methods['mod']
+        for p in filter_params(cmd.options):
+            page.update.fieldtable.add(self.param_mapper(p, cmd))
+
+        # Setup the delete Dialog
+        page.delete.title = 'Delete "{value}"?'
+
+        return page
+
     def build_info_page(self, kind):
         # Add in the Object page:
         plugins = tuple(self.api[kind]())
@@ -126,45 +198,3 @@ class Engine(object):
                 self.app.new(kind)
             )
         return page
-
-    def build_page(self, cmd):
-        page = self.app.new('PageCmd',
-            cmd=cmd,
-            id=cmd.name,
-            title=cmd.summary.rstrip('.'),
-        )
-        page.form.action = page.url
-        page.form.method = 'GET'
-        page.form.add(
-            self.app.new('Hidden', name='__mode__', value='output')
-        )
-        page.notification = self.app.new('Notification')
-        page.view.add(page.notification)
-        page.prompt = self.make_prompt(cmd)
-        page.show = self.make_show(cmd)
-        self.conditional('input', page.actions, self.app.new('Submit'))
-        self.conditional('input', page.view, page.prompt)
-        self.conditional('output', page.view, page.show)
-        return page
-
-    def conditional(self, mode, parent, *children):
-        conditional = self.app.new('Conditional', mode=mode)
-        conditional.add(*children)
-        parent.add(conditional)
-
-    def make_prompt(self, cmd):
-        table = self.app.new('FieldTable')
-        for param in self._iter_params(cmd.params):
-            table.add(
-                self.param_mapper(param, cmd)
-            )
-        return table
-
-    def make_show(self, cmd):
-        return self.app.new('Output')
-
-    def _iter_params(self, namespace):
-        for param in namespace():
-            if param.exclude and 'webui' in param.exclude:
-                continue
-            yield param

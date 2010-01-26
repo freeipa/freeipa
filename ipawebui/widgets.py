@@ -228,169 +228,170 @@ class Object(base.Widget):
     """
 
 
-
-class Conditional(base.Container):
-
-    mode = Static('mode', default='input')
-
-    @DynamicProp
-    def page_mode(self):
-        if self.page is None:
-            return
-        return self.page.mode
+class LandingPage(base.Widget):
+    pages = Static('pages', default=tuple())
 
     xml = """
     <div
         xmlns:py="http://genshi.edgewall.org/"
-        py:if="mode == page_mode"
-        py:strip="True"
+        class="${css_classes}"
+        id="${id}"
     >
-    <child py:for="child in children" py:replace="child.generate()" />
+    <a
+        py:for="p in pages"
+        py:content="p.title"
+        href="${relurl(p.url)}"
+    />
     </div>
     """
 
 
-class Output(base.Widget):
-    """
-    Shows attributes form an LDAP entry.
-    """
+class Form(builtins.Form):
+    js_class = 'Form'
 
-    order = Dynamic('order')
-    labels = Dynamic('labels')
-    result = Dynamic('result')
+    javascript = """
+    Wehjit.bases.Form = new Class({
+        Extends: Wehjit.bases.Widget,
 
-    xml = """
-    <div
-        xmlns:py="http://genshi.edgewall.org/"
-        class="${klass}"
-        id="${id}"
-    >
-    <table py:if="isinstance(result, dict)">
-    <tr py:for="key in order" py:if="key in result">
-    <th py:content="labels[key]" />
-    <td py:content="result[key]" />
-    </tr>
-    </table>
+        post_init: function() {
+            this.focused = null;
+            $each(this.el.elements, function(field) {
+                field.connect('focus', this);
+            }, this);
+            var parent = this.get_parent();
+            if (parent && parent.klass == 'Dialog') {
+                parent.addEvent('run', this.on_run.bind(this));
+                this.parent = parent;
+            }
+            this.formdata = null;
+        },
 
-    <table
-        py:if="isinstance(result, (list, tuple)) and len(result) > 0"
-    >
-    <tr>
-    <th
-        py:for="key in order"
-        py:if="key in result[0]"
-        py:content="labels[key]"
-    />
-    </tr>
-    <tr py:for="entry in result">
-    <td
-        py:for="key in order"
-        py:if="key in result[0]"
-        py:content="entry[key]"
-    />
-    </tr>
-    </table>
-    </div>
-    """
+        on_focus: function(field, event) {
+            this.focused = field;
+        },
 
-    style = (
-        ('table', (
-            ('empty-cells', 'show'),
-            ('border-collapse', 'collapse'),
-        )),
+        on_run: function(dialog, params) {
+            console.assert(dialog == this.parent);
+            this.refocus();
+        },
 
-        ('th', (
-            ('text-align', 'right'),
-            ('padding', '.25em 0.5em'),
-            ('line-height', '%(height_bar)s'),
-            ('vertical-align', 'top'),
-        )),
+        refocus: function() {
+            console.log('refocus', this.id, this.focused);
+            if (this.focused) {
+                this.focused.focus();
+                return true;
+            }
+            if (this.el.elements.length > 0) {
+                this.el.elements[0].focus();
+                return true;
+            }
+            return false;
+        },
 
-        ('td', (
-            ('padding', '.25em'),
-            ('vertical-align', 'top'),
-            ('text-align', 'left'),
-            ('line-height', '%(height_bar)s'),
-        )),
-    )
+        get_data: function() {
+            console.log('Form.get_data');
+            var rawdata = this.el.get_data();
+            var data = {};
 
+            if (this.formdata == null) {
+                $each(rawdata, function(value, key) {
+                    if (value !== '') {
+                        data[key] = value;
+                    }
+                });
+            }
+            else {
+                $each(rawdata, function(value, key) {
+                    var old = this.formdata[key];
+                    if (old  == undefined && value === '') {
+                        return;
+                    }
+                    if (old != value) {
+                        console.log('changed: %s = %s', key, value);
+                        data[key] = value;
+                    }
+                }, this);
+            }
 
-class Hidden(base.Field):
-    xml = """
-    <input
-        xmlns:py="http://genshi.edgewall.org/"
-        type="hidden"
-        name="${name}"
-    />
-    """
+            return data;
 
+        },
 
-class Notification(base.Widget):
-    message = Dynamic('message')
-    error = Dynamic('error', default=False)
+        set_data: function(data) {
+            console.log('Form.set_data', data);
+            this.focused = null;
+            if ($type(data) == 'object') {
+                this.formdata = data;
+            }
+            else {
+                this.formdata = null;
+            }
+            this.el.set_data(data);
+        },
 
-    @property
-    def extra_css_classes(self):
-        if self.error:
-            yield 'error'
-        else:
-            yield 'okay'
+        reset: function() {
+            this.formdata = null;
+            this.focused = null;
+            this.el.reset();
+        },
 
-    xml = """
-    <p
-        xmlns:py="http://genshi.edgewall.org/"
-        class="${klass}"
-        id="${id}"
-        py:if="message"
-        py:content="message"
-    />
+    });
     """
 
-    style = (
-        ('', (
-            ('font-weight', 'bold'),
-            ('-moz-border-radius', '100%%'),
-            ('background-color', '#eee'),
-            ('border', '2px solid #966'),
-            ('padding', '0.5em'),
-            ('text-align', 'center'),
-        )),
-    )
+
+class CRUDS(builtins.CRUDS):
+    display_cols = Static('display_cols', json=True, default=tuple())
 
 
-class PageCmd(builtins.PageApp):
-    cmd = Static('cmd')
-    mode = Dynamic('mode', default='input')
+class Display(builtins.Display):
+    cols = None
 
-    def controller(self, environ):
-        query = extract_query(environ)
-        self.mode = query.pop('__mode__', 'input')
-        if self.mode == 'input':
-            return
-        soft = self.cmd.soft_validate(query)
-        errors = soft['errors']
-        values = soft['values']
-        if errors:
-            self.mode = 'input'
-            for key in self.form:
-                if key in errors:
-                    self.form[key].error = errors[key]
-                if key in values:
-                    self.form[key].value = values[key]
-            return
-        output = self.cmd(**query)
-        if isinstance(output, dict) and 'summary' in output:
-            self.notification.message = output['summary']
-        params = self.cmd.output_params
-        if params:
-            order = list(params)
-            labels = dict((p.name, p.label) for p in params())
-        else:
-            order = sorted(entry)
-            labels = dict((k, k) for k in order)
-        self.show.order = order
-        self.show.labels = labels
-        self.show.result = output.get('result')
+    javascript = """
+    Wehjit.bases.Display = new Class({
+        Extends: Wehjit.bases.Widget,
+
+        post_init: function() {
+            var parent = this.get_parent();
+            console.assert(parent);
+            parent.addEvent('run', this.on_run.bind(this));
+            this.cruds = Wehjit.get('cruds');
+            this.cols = this.cruds.data.display_cols;
+            console.assert(this.cols);
+            if (this.cols.length == 0) {
+                this.cols = Wehjit.data.grid.cols;
+            }
+        },
+
+        on_run: function(dialog, row) {
+            console.log('Display.on_run(%s, %s)', dialog, row);
+            this.el.empty();
+            if ($type(row) != 'object') {
+                return;
+            }
+            this.cols.each(function(col) {
+                var tr = new Element('tr');
+                var th = new Element('th');
+                th.textContent = col.label + ':';
+                tr.appendChild(th);
+                this.el.appendChild(tr);
+                var td = new Element('td');
+                var value = row[col.name];
+                if ($type(value) == 'array') {
+                    var value = value.join(',');
+                }
+                if ($type(value) != 'string') {
+                    var value = '';
+                }
+                td.textContent = value;
+                tr.appendChild(td);
+            }, this);
+        },
+
+    });
+    """
+
+
+
 
 
 def create_widgets():
@@ -401,12 +402,10 @@ def create_widgets():
     widgets.register(IPAPlugins)
     widgets.register(Command)
     widgets.register(Object)
-    widgets.register(Conditional)
-    widgets.register(Output)
-    widgets.register(Hidden)
-    widgets.register(Notification)
-
-    widgets.register(PageCmd)
+    widgets.register(LandingPage)
+    widgets.register(Form, override=True)
+    widgets.register(CRUDS, override=True)
+    widgets.register(Display, override=True)
 
 
     freeze(widgets)

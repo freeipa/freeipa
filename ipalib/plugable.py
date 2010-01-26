@@ -531,6 +531,8 @@ class API(DictProxy):
             value = getattr(options, key, None)
             if value is not None:
                 overrides[key] = value
+        if hasattr(options, 'prod'):
+            overrides['webui_prod'] = options.prod
         if context is not None:
             overrides['context'] = context
         self.bootstrap(**overrides)

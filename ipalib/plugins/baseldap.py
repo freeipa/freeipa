@@ -133,6 +133,7 @@ class LDAPCreate(crud.Create):
     """
     Create a new entry in LDAP.
     """
+
     takes_options = (
         Flag('raw',
             cli_name='raw',
@@ -142,6 +143,7 @@ class LDAPCreate(crud.Create):
         Flag('all',
             cli_name='all',
             doc='retrieve all attributes',
+            exclude='webui',
         ),
         Str('addattr*', validate_add_attribute,
             cli_name='addattr',
@@ -291,14 +293,17 @@ class LDAPUpdate(LDAPQuery, crud.Update):
     """
     Update an LDAP entry.
     """
+
     takes_options = (
         Flag('raw',
             cli_name='raw',
             doc='print entries as they are stored in LDAP',
+            exclude='webui',
         ),
         Flag('all',
             cli_name='all',
             doc='retrieve all attributes',
+            exclude='webui',
         ),
         Str('addattr*', validate_add_attribute,
             cli_name='addattr',
@@ -456,6 +461,7 @@ class LDAPModMember(LDAPQuery):
         Flag('raw',
             cli_name='raw',
             doc='print entries as they are stored in LDAP',
+            exclude='webui',
         ),
     )
 
@@ -751,4 +757,3 @@ class LDAPSearch(crud.Search):
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         pass
-
