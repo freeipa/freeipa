@@ -359,20 +359,6 @@ class Command(HasParam):
     ipalib.frontend.my_command()
     """
 
-    __public__ = frozenset((
-        'get_default',
-        'convert',
-        'normalize',
-        'validate',
-        'execute',
-        '__call__',
-        'args',
-        'options',
-        'params',
-        'params_2_args_options',
-        'args_options_2_params',
-        'output_for_cli',
-    ))
     takes_options = tuple()
     takes_args = tuple()
     args = None
@@ -875,16 +861,6 @@ class LocalOrRemote(Command):
 
 
 class Object(HasParam):
-    __public__ = frozenset((
-        'backend',
-        'methods',
-        'properties',
-        'params',
-        'primary_key',
-        'params_minus_pk',
-        'params_minus',
-        'get_dn',
-    ))
     backend = None
     methods = None
     properties = None
@@ -1011,10 +987,6 @@ class Attribute(Plugin):
     only the base class for the `Method` and `Property` classes.  Also see
     the `Object` class.
     """
-    __public__ = frozenset((
-        'obj',
-        'obj_name',
-    ))
     __obj = None
 
     def __init__(self):
@@ -1112,7 +1084,6 @@ class Method(Attribute, Command):
     attribute-to-object association.  Also see the `Object` and the
     `Property` classes.
     """
-    __public__ = Attribute.__public__.union(Command.__public__)
     extra_options_first = False
     extra_args_first = False
 
@@ -1125,12 +1096,6 @@ class Method(Attribute, Command):
 
 
 class Property(Attribute):
-    __public__ = frozenset((
-        'rules',
-        'param',
-        'type',
-    )).union(Attribute.__public__)
-
     klass = Str
     default = None
     default_from = None

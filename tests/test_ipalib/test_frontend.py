@@ -250,7 +250,6 @@ class test_Command(ClassChecker):
         """
         Test the ``ipalib.frontend.Command.args`` instance attribute.
         """
-        assert 'args' in self.cls.__public__ # Public
         assert self.cls().args is None
         o = self.cls()
         o.finalize()
@@ -300,7 +299,6 @@ class test_Command(ClassChecker):
         """
         Test the ``ipalib.frontend.Command.options`` instance attribute.
         """
-        assert 'options' in self.cls.__public__ # Public
         assert self.cls().options is None
         o = self.cls()
         o.finalize()
@@ -389,7 +387,6 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.convert` method.
         """
-        assert 'convert' in self.cls.__public__ # Public
         kw = dict(
             option0=u'1.5',
             option1=u'7',
@@ -403,7 +400,6 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.normalize` method.
         """
-        assert 'normalize' in self.cls.__public__ # Public
         kw = dict(
             option0=u'OPTION0',
             option1=u'OPTION1',
@@ -417,14 +413,12 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.get_default` method.
         """
-        assert 'get_default' in self.cls.__public__ # Public
         # FIXME: Add an updated unit tests for get_default()
 
     def test_validate(self):
         """
         Test the `ipalib.frontend.Command.validate` method.
         """
-        assert 'validate' in self.cls.__public__ # Public
 
         sub = self.subcls()
         sub.finalize()
@@ -457,7 +451,6 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.execute` method.
         """
-        assert 'execute' in self.cls.__public__ # Public
         o = self.cls()
         e = raises(NotImplementedError, o.execute)
         assert str(e) == 'Command.execute()'
@@ -466,7 +459,6 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.args_options_2_params` method.
         """
-        assert 'args_options_2_params' in self.cls.__public__ # Public
 
         # Test that ZeroArgumentError is raised:
         o = self.get_instance()
@@ -548,7 +540,6 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.params_2_args_options` method.
         """
-        assert 'params_2_args_options' in self.cls.__public__ # Public
         o = self.get_instance(args='one', options='two')
         assert o.params_2_args_options() == ((None,), {})
         assert o.params_2_args_options(one=1) == ((1,), {})
@@ -915,7 +906,6 @@ class test_Object(ClassChecker):
         """
         Test the `ipalib.frontend.Object.get_dn` method.
         """
-        assert 'get_dn' in self.cls.__public__ # Public
         o = self.cls()
         e = raises(NotImplementedError, o.get_dn, 'primary key')
         assert str(e) == 'Object.get_dn()'
@@ -1019,8 +1009,6 @@ class test_Method(ClassChecker):
         Test the `ipalib.frontend.Method` class.
         """
         assert self.cls.__bases__ == (frontend.Attribute, frontend.Command)
-        assert self.cls.implements(frontend.Command)
-        assert self.cls.implements(frontend.Attribute)
 
     def test_init(self):
         """
@@ -1032,10 +1020,6 @@ class test_Method(ClassChecker):
         assert o.name == 'user_add'
         assert o.obj_name == 'user'
         assert o.attr_name == 'add'
-        assert frontend.Command.implemented_by(o)
-        assert frontend.Attribute.implemented_by(o)
-
-
 
 
 class test_Property(ClassChecker):

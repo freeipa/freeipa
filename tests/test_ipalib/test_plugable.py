@@ -209,7 +209,6 @@ class test_Plugin(ClassChecker):
         Test the `ipalib.plugable.Plugin` class.
         """
         assert self.cls.__bases__ == (plugable.ReadOnly,)
-        assert self.cls.__public__ == frozenset()
         assert type(self.cls.api) is property
 
     def test_init(self):
@@ -250,98 +249,6 @@ class test_Plugin(ClassChecker):
         e = raises(StandardError, check)
         assert str(e) == \
             "check.info attribute ('whatever') conflicts with Plugin logger"
-
-    def test_implements(self):
-        """
-        Test the `ipalib.plugable.Plugin.implements` classmethod.
-        """
-        class example(self.cls):
-            __public__ = frozenset((
-                'some_method',
-                'some_property',
-            ))
-        class superset(self.cls):
-            __public__ = frozenset((
-                'some_method',
-                'some_property',
-                'another_property',
-            ))
-        class subset(self.cls):
-            __public__ = frozenset((
-                'some_property',
-            ))
-        class any_object(object):
-            __public__ = frozenset((
-                'some_method',
-                'some_property',
-            ))
-
-        for ex in (example, example()):
-            # Test using str:
-            assert ex.implements('some_method')
-            assert not ex.implements('another_method')
-
-            # Test using frozenset:
-            assert ex.implements(frozenset(['some_method']))
-            assert not ex.implements(
-                frozenset(['some_method', 'another_method'])
-            )
-
-            # Test using another object/class with __public__ frozenset:
-            assert ex.implements(example)
-            assert ex.implements(example())
-
-            assert ex.implements(subset)
-            assert not subset.implements(ex)
-
-            assert not ex.implements(superset)
-            assert superset.implements(ex)
-
-            assert ex.implements(any_object)
-            assert ex.implements(any_object())
-
-    def test_implemented_by(self):
-        """
-        Test the `ipalib.plugable.Plugin.implemented_by` classmethod.
-        """
-        class base(self.cls):
-            __public__ = frozenset((
-                'attr0',
-                'attr1',
-                'attr2',
-            ))
-
-        class okay(base):
-            def attr0(self):
-                pass
-            def __get_attr1(self):
-                assert False # Make sure property isn't accesed on instance
-            attr1 = property(__get_attr1)
-            attr2 = 'hello world'
-            another_attr = 'whatever'
-
-        class fail(base):
-            def __init__(self):
-                # Check that class, not instance is inspected:
-                self.attr2 = 'hello world'
-            def attr0(self):
-                pass
-            def __get_attr1(self):
-                assert False # Make sure property isn't accesed on instance
-            attr1 = property(__get_attr1)
-            another_attr = 'whatever'
-
-        # Test that AssertionError is raised trying to pass something not
-        # subclass nor instance of base:
-        raises(AssertionError, base.implemented_by, object)
-
-        # Test on subclass with needed attributes:
-        assert base.implemented_by(okay) is True
-        assert base.implemented_by(okay()) is True
-
-        # Test on subclass *without* needed attributes:
-        assert base.implemented_by(fail) is False
-        assert base.implemented_by(fail()) is False
 
     def test_set_api(self):
         """
@@ -507,18 +414,10 @@ class test_API(ClassChecker):
 
         # Setup the test bases, create the API:
         class base0(plugable.Plugin):
-            __public__ = frozenset((
-                'method',
-            ))
-
             def method(self, n):
                 return n
 
         class base1(plugable.Plugin):
-            __public__ = frozenset((
-                'method',
-            ))
-
             def method(self, n):
                 return n + 1
 

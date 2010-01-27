@@ -32,8 +32,6 @@ class Backend(plugable.Plugin):
     Base class for all backend plugins.
     """
 
-    __proxy__ = False  # Backend plugins are not wrapped in a PluginProxy
-
 
 class Connectible(Backend):
     """

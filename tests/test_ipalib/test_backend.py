@@ -39,7 +39,6 @@ class test_Backend(ClassChecker):
 
     def test_class(self):
         assert self.cls.__bases__ == (plugable.Plugin,)
-        assert self.cls.__proxy__ is False
 
 
 class Disconnect(object):

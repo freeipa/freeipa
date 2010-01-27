@@ -154,11 +154,9 @@ class Plugin(ReadOnly):
     """
     Base class for all plugins.
     """
-    __public__ = frozenset()
-    __proxy__ = True
-    __api = None
 
     def __init__(self):
+        self.__api = None
         cls = self.__class__
         self.name = cls.__name__
         self.module = cls.__module__
@@ -188,75 +186,6 @@ class Plugin(ReadOnly):
         """
         return self.__api
     api = property(__get_api)
-
-    @classmethod
-    def implements(cls, arg):
-        """
-        Return True if this class implements ``arg``.
-
-        There are three different ways this method can be called:
-
-        With a <type 'str'> argument, e.g.:
-
-        >>> class base(Plugin):
-        ...     __public__ = frozenset(['attr1', 'attr2'])
-        ...
-        >>> base.implements('attr1')
-        True
-        >>> base.implements('attr2')
-        True
-        >>> base.implements('attr3')
-        False
-
-        With a <type 'frozenset'> argument, e.g.:
-
-        With any object that has a `__public__` attribute that is
-        <type 'frozenset'>, e.g.:
-
-        Unlike ProxyTarget.implemented_by(), this returns an abstract answer
-        because only the __public__ frozenset is checked... a ProxyTarget
-        need not itself have attributes for all names in __public__
-        (subclasses might provide them).
-        """
-        assert type(cls.__public__) is frozenset
-        if isinstance(arg, str):
-            return arg in cls.__public__
-        if type(getattr(arg, '__public__', None)) is frozenset:
-            return cls.__public__.issuperset(arg.__public__)
-        if type(arg) is frozenset:
-            return cls.__public__.issuperset(arg)
-        raise TypeError(
-            "must be str, frozenset, or have frozenset '__public__' attribute"
-        )
-
-    @classmethod
-    def implemented_by(cls, arg):
-        """
-        Return True if ``arg`` implements public interface of this class.
-
-        This classmethod returns True if:
-
-        1. ``arg`` is an instance of or subclass of this class, and
-
-        2. ``arg`` (or ``arg.__class__`` if instance) has an attribute for
-           each name in this class's ``__public__`` frozenset.
-
-        Otherwise, returns False.
-
-        Unlike `Plugin.implements`, this returns a concrete answer because
-        the attributes of the subclass are checked.
-
-        :param arg: An instance of or subclass of this class.
-        """
-        if inspect.isclass(arg):
-            subclass = arg
-        else:
-            subclass = arg.__class__
-        assert issubclass(subclass, cls), 'must be subclass of %r' % cls
-        for name in cls.__public__:
-            if not hasattr(subclass, name):
-                return False
-        return True
 
     def finalize(self):
         """
