@@ -104,7 +104,10 @@ def load_schema(url):
         conn = _ldap.initialize(url)
         # assume anonymous access is enabled
         conn.simple_bind_s('', '')
-        schema_entry = conn.search_s('cn=schema', _ldap.SCOPE_BASE)[0]
+        schema_entry = conn.search_s(
+            'cn=schema', _ldap.SCOPE_BASE,
+            attrlist=['attributetypes', 'objectclasses']
+        )[0]
         conn.unbind_s()
     except _ldap.SERVER_DOWN:
         return None
