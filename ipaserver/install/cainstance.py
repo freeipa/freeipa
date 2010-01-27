@@ -518,6 +518,18 @@ class CAInstance(service.Service):
         pent = pwd.getpwnam(self.pki_user)
         os.chown('/var/lib/pki-ca/conf/CS.cfg', pent.pw_uid, pent.pw_gid )
 
+        # Update the servlet mapping to so we use the agent interface rather
+        # than the end-user interface. The agent interface always requires
+        # client auth which lets us work work around the NSS change which
+        # disallows renegotation (CVE-2009-3555)
+        #
+        # The spaces here, while ugly, are required because update_file()
+        # escapes the incoming string.
+        installutils.update_file('/var/lib/%s/webapps/ca/WEB-INF/web.xml' % PKI_INSTANCE_NAME,
+            '      <url-pattern>   /ee/ca/profileSubmitSSLClient  </url-pattern>',
+            '      <url-pattern>   /agent/ca/profileSubmitSSLClient  </url-pattern>'
+)
+
         logging.debug("restarting ca instance")
         try:
             self.restart()
