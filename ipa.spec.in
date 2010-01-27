@@ -83,7 +83,7 @@ Requires: mod_nss
 Requires: python-ldap
 Requires: python-krbV
 Requires: python-assets
-Requires: python-wehjit
+Requires: python-wehjit >= 0.2.0
 Requires: acl
 Requires: python-pyasn1 >= 0.0.9a
 Requires: libcap
@@ -490,6 +490,9 @@ fi
 %endif
 
 %changelog
+* Wed Jan 27 2010 Jason Gerard DeRose <jderose@redhat.com> - 1.99-14
+- Require python-wehjit >= 0.2.0
+
 * Fri Dec  4 2009 Rob Crittenden <rcritten@redhat.com> - 1.99-13
 - Add ipa-rmkeytab tool
 
