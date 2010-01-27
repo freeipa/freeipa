@@ -2,6 +2,7 @@ module ipa_httpd 1.2;
 
 require {
         type httpd_t;
+        type named_t;
         type initrc_t;
         type var_run_t;
         type krb5kdc_t;
@@ -11,11 +12,13 @@ require {
         class file write;
 }
 
-# Let Apache and the KDC talk to DS over ldapi
+# Let Apache, bind and the KDC talk to DS over ldapi
 allow httpd_t var_run_t:sock_file write;
 allow httpd_t initrc_t:unix_stream_socket connectto;
 allow krb5kdc_t var_run_t:sock_file write;
 allow krb5kdc_t initrc_t:unix_stream_socket connectto;
+allow named_t var_run_t:sock_file write;
+allow named_t initrc_t:unix_stream_socket connectto;
 
 # Let Apache access the NSS certificate database so it can issue certs
 # See ipa_httpd.fe for the list of files that are granted write access
