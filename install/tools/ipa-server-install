@@ -397,6 +397,12 @@ def uninstall(ca = False):
         os.remove(ANSWER_CACHE)
     except Exception:
         pass
+    # ipa-client-install removes /etc/ipa/default.conf
+    try:
+        os.remove("/etc/httpd/conf.d/ipa-rewrite.conf")
+        os.remove("/etc/httpd/conf.d/ipa.conf")
+    except:
+        pass
     return 0
 
 
@@ -624,7 +630,6 @@ def main():
         dns_forwarders = ()
 
     # Create the management framework config file and finalize api
-    fstore.backup_file("/etc/ipa/default.conf")
     fd = open("/etc/ipa/default.conf", "w")
     fd.write("[global]\n")
     fd.write("basedn=" + util.realm_to_suffix(realm_name) + "\n")

@@ -140,6 +140,12 @@ def uninstall(options):
                     print "Reboot command failed to exceute. " + str(e)
                     sys.exit(1)
 
+    # Remove the IPA configuration file
+    try:
+        os.remove("/etc/ipa/default.conf")
+    except:
+        pass
+
 def configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server):
     ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
     ipaconf.setOptionAssignment(" = ")
