@@ -99,7 +99,8 @@ class ra(rabase.rabase):
             if str(base).lower() != str(new_request).lower():
                 subject_base='CN=%s, %s' % (hostname, subject_base)
                 new_request.reverse()
-                raise errors.CertificateOperationError(error=_('Request subject \'%s\' does not match the form \'%s\'' % (", ".join(new_request), subject_base)))
+                raise errors.CertificateOperationError(error=_('Request subject "%(request_subject)s" does not match the form "%(subject_base)s"') % \
+                                                              {'request_subject' : ', '.join(new_request), 'subject_base' : subject_base})
         except errors.CertificateOperationError, e:
             raise e
         except Exception, e:
