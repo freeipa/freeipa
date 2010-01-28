@@ -349,3 +349,35 @@ class pwpolicy_show(Command):
         return dict(result=entry_attrs)
 
 api.register(pwpolicy_show)
+
+class pwpolicy_find(Command):
+    """
+    Display all groups with a password policy.
+    """
+
+    has_output = output.standard_list_of_entries
+
+    def execute(self, *args, **options):
+        ldap = self.api.Backend.ldap2
+        attrs = ('cn','krbminpwdlife', 'krbmaxpwdlife', 'krbpwdmindiffchars', 'krbpwdminlength', 'krbpwdhistorylength',)
+
+        attr_filter = ldap.make_filter({'objectclass':'krbpwdpolicy'}, rules=ldap.MATCH_ALL)
+
+        try:
+            (entries, truncated) = ldap.find_entries(
+                attr_filter, attrs, 'cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn), scope=ldap.SCOPE_ONELEVEL
+            )
+        except errors.NotFound:
+            (entries, truncated) = (tuple(), False)
+
+        for e in entries:
+            _convert_time_for_output(e[1])
+            e[1]['dn'] = e[0]
+        entries = tuple(e for (dn, e) in entries)
+
+        return dict(result=entries,
+                    count=len(entries),
+                    truncated=truncated,
+        )
+
+api.register(pwpolicy_find)
