@@ -234,9 +234,6 @@ class cert_request(VirtualCommand):
 
                 service = api.Command['host_show'](hostname, all=True, raw=True)['result']
                 dn = service['dn']
-            if 'usercertificate' in service:
-                # FIXME, what to do here? Do we revoke the old cert?
-                raise errors.CertificateOperationError(error=_('entry already has a certificate, serial number %s') % get_serial(base64.b64encode(service['usercertificate'][0])))
         except errors.NotFound, e:
             if not add:
                 raise errors.NotFound(reason="The service principal for this request doesn't exist.")
@@ -266,6 +263,13 @@ class cert_request(VirtualCommand):
                 if authprincipal.startswith("host/"):
                     if not hostdn in service.get('managedby', []):
                         raise errors.ACIError(info="Insufficient privilege to create a certificate with subject alt name '%s'." % name)
+
+        if 'usercertificate' in service:
+            serial = get_serial(base64.b64encode(service['usercertificate'][0]))
+            # revoke the certificate and remove it from the service
+            # entry before proceeding
+            api.Command['cert_revoke'](unicode(serial), revocation_reason=4)
+            api.Command['service_mod'](principal, usercertificate=None)
 
         # Request the certificate
         result = self.Backend.ra.request_certificate(csr, **kw)
