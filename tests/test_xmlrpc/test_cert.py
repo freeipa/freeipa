@@ -21,6 +21,7 @@ Test the `ipalib/plugins/cert.py` module against the selfsign plugin.
 """
 
 import sys
+import os
 import shutil
 from xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
@@ -29,6 +30,16 @@ import tempfile
 from ipapython import ipautil
 import nose
 
+# Test setup
+#
+# This test needs a configured CA behind it in order to work properly
+# It currently specifically tests for a self-signed CA but there is no
+# reason the test wouldn't work with a dogtag CA as well with some
+# additional work. This will change when selfsign is no longer the default CA.
+#
+# To set it up grab the 3 NSS db files from a self-signed CA from
+# /etc/httpd/alias to ~/.ipa/alias. Copy /etc/httpd/alias/pwdfile.txt to
+# ~/.ipa/alias/.pwd. Change ownership of these files too. That should do it.
 
 class test_cert(XMLRPC_test):
 
@@ -40,6 +51,8 @@ class test_cert(XMLRPC_test):
     def setUp(self):
         if 'cert_request' not in api.Command:
             raise nose.SkipTest('cert_request not registered')
+        if not ipautil.file_exists(api.env.dot_ipa + os.sep + 'alias' + os.sep + '.pwd'):
+            raise nose.SkipTest('developer self-signed CA not configured')
         super(test_cert, self).setUp()
         self.reqdir = tempfile.mkdtemp(prefix = "tmp-")
         self.reqfile = self.reqdir + "/test.csr"
@@ -74,6 +87,7 @@ class test_cert(XMLRPC_test):
     """
     host_fqdn = u'ipatestcert.%s' % api.env.domain
     service_princ = u'test/%s@%s' % (host_fqdn, api.env.realm)
+    subject = 'CN=%s,O=IPA' % host_fqdn
 
     def test_1_cert_add(self):
         """
@@ -82,12 +96,11 @@ class test_cert(XMLRPC_test):
         This should fail because the service principal doesn't exist
         """
         # First create the host that will use this policy
-        (hostdn, res) = api.Command['host_add'](self.host_fqdn)
+        res = api.Command['host_add'](self.host_fqdn)['result']
 
-        csr = unicode(self.generateCSR("CN=%s" % self.host_fqdn))
+        csr = unicode(self.generateCSR(self.subject))
         try:
-            (dn, res) = api.Command['cert_request'](csr, principal=self.service_princ)
-            api.Command['cert_request'](csr, principal=self.service_princ)
+            res = api.Command['cert_request'](csr, principal=self.service_princ)
             assert False
         except errors.NotFound:
             pass
@@ -98,10 +111,13 @@ class test_cert(XMLRPC_test):
         """
         # Our host should exist from previous test
 
-        csr = unicode(self.generateCSR("CN=%s" % self.host_fqdn))
-        res = api.Command['cert_request'](csr, principal=self.service_princ, add=True)
-        assert res['subject'] == 'CN=ipatestcert.greyoak.com'
+        csr = unicode(self.generateCSR(self.subject))
+        res = api.Command['cert_request'](csr, principal=self.service_princ, add=True)['result']
+        assert res['subject'] == self.subject
 
+
+    def test_3_cleanup(self):
         # Now clean things up
         api.Command['host_del'](self.host_fqdn)
-#        api.Command['service_del'](self.service_princ)
+
+        assert(True)
