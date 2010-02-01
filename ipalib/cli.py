@@ -31,6 +31,7 @@ import socket
 import fcntl
 import termios
 import struct
+import base64
 
 import frontend
 import backend
@@ -138,6 +139,17 @@ class textui(backend.Backend):
             return singular % n
         return plural % n
 
+    def encode_binary(self, value):
+        """
+        Convert a binary value to base64. We know a value is binary
+        if it is a python str type, otherwise it is a plain string.
+        """
+        assert isinstance(value, basestring)
+        if type(value) is str:
+            return base64.b64encode(value)
+        else:
+            return value
+
     def print_plain(self, string):
         """
         Print exactly like ``print`` statement would.
@@ -232,7 +244,7 @@ class textui(backend.Backend):
         Also see `textui.print_indented`.
         """
         for (key, value) in rows:
-            self.print_indented('%s = %r' % (key, value), indent)
+            self.print_indented('%s = %r' % (key, self.encode_binary(value)), indent)
 
     def print_attribute(self, attr, value, indent=1, one_value_per_line=True):
         """
@@ -254,13 +266,14 @@ class textui(backend.Backend):
         assert isinstance(attr, basestring)
         if not isinstance(value, (list, tuple)):
             # single-value attribute
-            self.print_indented('%s: %s' % (attr, value), indent)
+            self.print_indented('%s: %s' % (attr, self.encode_binary(value)), indent)
         else:
             # multi-value attribute
             if one_value_per_line:
                 for v in value:
-                    self.print_indented('%s: %s' % (attr, v), indent)
+                    self.print_indented('%s: %s' % (attr, self.encode_binary(v)), indent)
             else:
+                value = map(lambda v: self.encode_binary(v), value)
                 text = ', '.join(value)
                 line_len = self.get_tty_width()
                 if line_len and text:
@@ -339,6 +352,7 @@ class textui(backend.Backend):
             label = labels[key]
             value = entry[key]
             if isinstance(value, (list, tuple)):
+                value = map(lambda v: self.encode_binary(v), value)
                 value = ', '.join(value)
             self.print_indented(format % (label, value), indent)
 
