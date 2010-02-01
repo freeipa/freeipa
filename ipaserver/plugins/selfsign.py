@@ -48,7 +48,6 @@ import tempfile
 from pyasn1 import error
 from ipalib.request import ugettext as _
 from pyasn1.codec.der import encoder
-import base64
 from ipalib.plugins.cert import get_csr_hostname
 
 class ra(rabase.rabase):

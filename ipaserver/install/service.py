@@ -169,7 +169,7 @@ class Service:
                 e = self.dercert.find('-----END CERTIFICATE-----')
                 s = s + 27
                 self.dercert = self.dercert[s:e]
-            self.dercert = base64.b64decode(self.dercert)
+                self.dercert = base64.b64decode(self.dercert)
         except Exception:
             pass
         dn = "krbprincipalname=%s,cn=services,cn=accounts,%s" % (self.principal, self.suffix)

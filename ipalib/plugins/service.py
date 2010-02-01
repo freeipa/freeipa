@@ -28,6 +28,7 @@ from ipalib import Str, Flag, Bytes
 from ipalib.plugins.baseldap import *
 from ipalib import x509
 from pyasn1.error import PyAsn1Error
+from ipalib import _, ngettext
 
 
 def get_serial(certificate):
@@ -37,16 +38,12 @@ def get_serial(certificate):
     """
     if type(certificate) in (list, tuple):
         certificate = certificate[0]
-    try:
-        certificate = base64.b64decode(certificate)
-    except Exception:
-        pass
 
     try:
         serial = x509.get_serial_number(certificate, type=x509.DER)
-    except PyAsn1Error:
+    except PyAsn1Error, e:
         raise errors.GenericError(
-            format='Unable to decode certificate in entry'
+            format='Unable to decode certificate in entry: %s' % e
         )
     return serial
 

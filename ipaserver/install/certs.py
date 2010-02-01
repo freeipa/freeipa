@@ -476,11 +476,6 @@ class CertDB(object):
         os.unlink(self.certreq_fname)
         os.unlink(self.certder_fname)
 
-        # On the off-chance the certificate is base64-encoded
-        try:
-            dercert = base64.b64decode(dercert)
-        except:
-            pass
         return dercert
 
     def create_signing_cert(self, nickname, hostname, other_certdb=None, subject=None):
@@ -593,11 +588,11 @@ class CertDB(object):
                 doc.unlink()
                 conn.close()
 
-            # base64-decode the result
+            # base64-decode the result for uniformity
             cert = base64.b64decode(cert)
 
             # Write the certificate to a file. It will be imported in a later
-            # step.
+            # step. This file will be read later to be imported.
             f = open(cert_fname, "w")
             f.write(cert)
             f.close()
@@ -682,9 +677,11 @@ class CertDB(object):
             doc.unlink()
             conn.close()
 
-            # base64-decode the cert
+            # base64-decode the cert for uniformity
             cert = base64.b64decode(cert)
 
+            # Write the certificate to a file. It will be imported in a later
+            # step. This file will be read later to be imported.
             f = open(cert_fname, "w")
             f.write(cert)
             f.close()
