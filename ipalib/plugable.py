@@ -365,10 +365,11 @@ class API(DictProxy):
         self.env._finalize_core(**dict(DEFAULT_CONFIG))
         log = logging.getLogger()
         object.__setattr__(self, 'log', log)
-        if self.env.debug:
-            log.setLevel(logging.DEBUG)
-        else:
-            log.setLevel(logging.INFO)
+        if log.level == logging.NOTSET:
+            if self.env.debug:
+                log.setLevel(logging.DEBUG)
+            else:
+                log.setLevel(logging.INFO)
 
         # Add stderr handler:
         stderr = logging.StreamHandler()
