@@ -137,6 +137,8 @@ Requires: nss_ldap
 Requires: wget
 Requires: xmlrpc-c
 Requires: libcurl
+Requires: sssd
+Requires: certmonger
 
 %description client
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -490,6 +492,9 @@ fi
 %endif
 
 %changelog
+* Wed Feb  3 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-15
+- Add sssd and certmonger as a Requires on ipa-client
+
 * Wed Jan 27 2010 Jason Gerard DeRose <jderose@redhat.com> - 1.99-14
 - Require python-wehjit >= 0.2.0
 

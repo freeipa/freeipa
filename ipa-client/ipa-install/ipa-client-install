@@ -35,6 +35,7 @@ try:
     from ipapython.ipautil import run, user_input
     from ipapython import sysrestore
     from ipapython import version
+    import SSSDConfig
 except ImportError:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
@@ -58,6 +59,8 @@ def parse_options():
                       action="store_true",
                       help="unattended installation never prompts the user")
     parser.add_option("--ntp-server", dest="ntp_server", help="ntp server to use")
+    parser.add_option("-S", "--no-sssd", action="store_false",
+                      help="do not configure sssd", default=True, dest="sssd")
     parser.add_option("-N", "--no-ntp", action="store_false",
                       help="do not configure ntp", default=True, dest="conf_ntp")
     parser.add_option("-w", "--password", dest="password",
@@ -69,6 +72,8 @@ def parse_options():
                       help="principal to use to join the IPA realm"),
     parser.add_option("--on-master", dest="on_master", action="store_true",
                       help="use this option when run on a master", default=False)
+    parser.add_option("--permit", dest="permit", action="store_true",
+                      help="disable access rules by default, permit all access.", default=False)
     parser.add_option("", "--uninstall", dest="uninstall", action="store_true",
                       default=False, help="uninstall an existing installation")
 
@@ -110,9 +115,26 @@ def uninstall(options):
     print "Restoring client configuration files"
     fstore.restore_all_files()
 
+    # Remove our host cert
+    try:
+        run(["/usr/bin/ipa-getcert", "stop-tracking", "-d", "/etc/pki/nssdb", "-n", "Server-Cert"])
+        run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", "Server-Cert"])
+    except Exception, e:
+        print "Failed to remove Server-Cert from /etc/pki/nssdb: %s" % str(e)
+ 
+    try:
+        run(["/sbin/service", "certmonger", "stop"])
+    except:
+        print "Failed to stop the certmonger daemon"
+
+    try:
+        run(["/sbin/chkconfig", "certmonger", "off"])
+    except:
+        print "Failed to disable automatic startup of the certmonger daemon"
+
     print "Disabling client Kerberos and Ldap configurations"
     try:
-        run(["/usr/sbin/authconfig", "--disableldap", "--disablekrb5", "--update"])
+        run(["/usr/sbin/authconfig", "--disableldap", "--disablekrb5", "--disablesssd", "--disablesssdauth", "--update"])
     except Exception, e:
         print "Failed to remove krb5/ldap configuration. " +str(e)
         sys.exit(1)
@@ -277,6 +299,59 @@ def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, d
 
     return 0
 
+def configure_certmonger(fstore, options):
+    started = True
+
+    try:
+        run(["/sbin/service", "certmonger", "restart"])
+    except:
+        print "Failed to start the certmonger daemon"
+        print "Automatic certificate management will not be available"
+        started = False
+
+    try:
+        run(["/sbin/chkconfig", "certmonger", "on"])
+    except:
+        print "Failed to configure automatic startup of the certmonger daemon"
+        print "Automatic certificate management will not be available"
+
+    # Request our host cert
+    if started:
+        try:
+            run(["ipa-getcert", "request", "-d", "/etc/pki/nssdb", "-n", "Server-Cert"])
+        except:
+            print "certmonger request for host certificate failed"
+
+def configure_sssd_conf(fstore, cli_domain, cli_server, options):
+    fstore.backup_file("/etc/sssd/sssd.conf")
+    sssdconfig = SSSDConfig.SSSDConfig()
+    sssdconfig.new_config()
+
+    domain = sssdconfig.new_domain(cli_domain)
+    domain.add_provider('ipa', 'id')
+
+    domain.set_option('ipa_server', cli_server)
+    domain.set_option('ipa_domain', cli_domain)
+
+    # Might need this if /bin/hostname doesn't return a FQDN
+    #domain.set_option('ipa_hostname', 'client.example.com')
+
+    domain.add_provider('ipa', 'auth')
+    domain.add_provider('ipa', 'chpass')
+    if not options.permit:
+        domain.add_provider('ipa', 'access')
+    else:
+        domain.add_provider('permit', 'access')
+
+    domain.set_option('cache_credentials', True)
+
+    domain.set_active(True)
+
+    sssdconfig.save_domain(domain)
+    sssdconfig.write("/etc/sssd/sssd.conf")
+
+    return 0
+
 def main():
     options = parse_options()
     logging_setup(options)
@@ -424,10 +499,17 @@ def main():
         configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server)
         print "Created /etc/ipa/default.conf"
 
-    # Configure ldap.conf
-    if configure_ldap_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options):
-        return 1
-    print "Configured /etc/ldap.conf"
+    if options.sssd:
+        if configure_sssd_conf(fstore, cli_domain, cli_server, options):
+            return 1
+        print "Configured /etc/sssd/sssd.conf"
+    else:
+        if configure_ldap_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options):
+            return 1
+        print "Configured /etc/ldap.conf"
+
+    if not options.on_master:
+        configure_certmonger(fstore, options)
 
     # If on master assume kerberos is already configured properly.
     if not options.on_master:
@@ -438,9 +520,13 @@ def main():
 
         print "Configured /etc/krb5.conf for IPA realm " + cli_realm
 
-    # Modify nsswitch to add nss_ldap
-    run(["/usr/sbin/authconfig", "--enableldap", "--update"])
-    print "LDAP enabled"
+    # Modify nsswitch/pam stack
+    if options.sssd:
+        run(["/usr/sbin/authconfig", "--enablesssd", "--enablesssdauth", "--update"])
+        print "SSSD enabled"
+    else:
+        run(["/usr/sbin/authconfig", "--enableldap", "--update"])
+        print "LDAP enabled"
 
     #Check nss_ldap is working properly
     if not options.on_master:
