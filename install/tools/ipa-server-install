@@ -268,7 +268,7 @@ def resolve_host(host_name):
 def read_ds_user():
     print "The server must run as a specific user in a specific group."
     print "It is strongly recommended that this user should have no privileges"
-    print "on the computer (i.e. a non-root user).  The setup procedure"
+    print "on the computer (i.e. a non-root user).  The set up procedure"
     print "will give this user/group some permissions in specific paths/files"
     print "to perform server-specific operations."
     print ""
@@ -433,7 +433,7 @@ def main():
     options = parse_options()
 
     if os.getegid() != 0:
-        print "Must be root to setup server"
+        print "Must be root to set up server"
         return 1
 
     signal.signal(signal.SIGTERM, signal_handler)
@@ -472,7 +472,7 @@ def main():
     options._update_loose(read_cache())
 
     print "=============================================================================="
-    print "This program will setup the FreeIPA Server."
+    print "This program will set up the FreeIPA Server."
     print ""
     print "This includes:"
     if options.conf_ntp:
