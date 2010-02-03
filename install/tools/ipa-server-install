@@ -798,7 +798,7 @@ def main():
         print "\t\t  * 123: ntp"
     print ""
     print "\t2. You can now obtain a kerberos ticket using the command: 'kinit admin'"
-    print "\t   This ticket will allow you to use the IPA tools (e.g., ipa-adduser)"
+    print "\t   This ticket will allow you to use the IPA tools (e.g., ipa user-add)"
     print "\t   and the web user interface."
 
     if not service.is_running("ntpd"):
