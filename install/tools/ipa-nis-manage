@@ -78,7 +78,7 @@ def get_nis_config(conn):
 
 def main():
     retval = 0
-    loglevel = logging.NOTSET
+    loglevel = logging.ERROR
     files=['/usr/share/ipa/nis.uldif']
     servicemsg = ""
 
