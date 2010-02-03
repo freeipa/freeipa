@@ -190,7 +190,10 @@ class CertDB(object):
         self.certreq_fname = None
         self.certder_fname = None
         self.host_name = host_name
-        self.cwd = os.getcwd()
+        try:
+            self.cwd = os.getcwd()
+        except OSError, e:
+            raise RuntimeError("Unable to determine the current directory: %s" % str(e))
 
         self.self_signed_ca = ipa_self_signed()
 
@@ -352,6 +355,7 @@ class CertDB(object):
         return False
 
     def create_ca_cert(self):
+        os.chdir(self.secdir)
         p = subprocess.Popen(["/usr/bin/certutil",
                               "-d", self.secdir,
                               "-S", "-n", self.cacert_name,
@@ -382,6 +386,7 @@ class CertDB(object):
         p.stdin.write("y\n\ny\n")
         p.stdin.write("5\n6\n7\n9\nn\n")
         p.wait()
+        os.chdir(self.cwd)
 
     def export_ca_cert(self, nickname, create_pkcs12=False):
         """create_pkcs12 tells us whether we should create a PKCS#12 file
