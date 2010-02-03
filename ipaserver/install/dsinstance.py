@@ -21,6 +21,7 @@
 import shutil
 import logging
 import pwd
+import grp
 import glob
 import sys
 import os
@@ -217,6 +218,14 @@ class DsInstance(service.Service):
             user_exists = False
             logging.debug("adding ds user %s" % self.ds_user)
             args = ["/usr/sbin/useradd", "-c", "DS System User", "-d", "/var/lib/dirsrv", "-M", "-r", "-s", "/sbin/nologin", self.ds_user]
+            try:
+                # if the group already exists we need to request to add it,
+                # otherwise useradd will create it for us
+                grp.getgrnam(self.ds_user)
+                args.append("-g")
+                args.append(self.ds_user)
+            except KeyError:
+                pass
             try:
                 ipautil.run(args)
                 logging.debug("done adding user")
