@@ -1197,14 +1197,10 @@ if api.env.ra_plugin != 'dogtag':
     # In this case, abort loading this plugin module...
     raise SkipPluginModule(reason='dogtag not selected as RA plugin')
 import os
-from httplib import HTTPConnection
-from urllib import urlencode
 from ipaserver.plugins import rabase
-import socket
 from ipalib.errors import NetworkError, CertificateOperationError
 from ipalib.constants import TYPE_ERROR
-from ipapython import nsslib
-import nss.nss as nss
+from ipapython import dogtag
 from ipalib.request import ugettext as _
 
 class ra(rabase.rabase):
@@ -1239,32 +1235,7 @@ class ra(rabase.rabase):
 
         Perform an HTTP request.
         """
-        uri = 'http://%s:%s%s' % (self.env.ca_host, port, url)
-        post = urlencode(kw)
-        self.info('request %r', uri)
-        self.debug('request post %r', post)
-        conn = HTTPConnection(self.env.ca_host, port)
-        try:
-            conn.request('POST', url,
-                body=post,
-                headers={'Content-type': 'application/x-www-form-urlencoded'},
-            )
-            res = conn.getresponse()
-
-            http_status = res.status
-            http_reason_phrase = unicode(res.reason, 'utf-8')
-            http_headers = res.msg.dict
-            http_body = res.read()
-            conn.close()
-        except socket.error, e:
-            raise NetworkError(uri=uri, error=e.args[1])
-
-        self.debug('request status %d',        http_status)
-        self.debug('request reason_phrase %r', http_reason_phrase)
-        self.debug('request headers %s',       http_headers)
-        self.debug('request body %r',          http_body)
-
-        return http_status, http_reason_phrase, http_headers, http_body
+        return dogtag.http_request(self.env.ca_host, port, url, **kw)
 
     def _sslget(self, url, port, **kw):
         """
@@ -1275,36 +1246,8 @@ class ra(rabase.rabase):
 
         Perform an HTTPS request
         """
-        uri = 'https://%s:%d%s' % (self.env.ca_host, port, url)
-        post = urlencode(kw)
-        self.info('sslget %r', uri)
-        self.debug('sslget post %r', post)
-        request_headers = {"Content-type": "application/x-www-form-urlencoded",
-                           "Accept": "text/plain"}
-        try:
-            conn = nsslib.NSSConnection(self.env.ca_host, port, dbdir=self.sec_dir)
-            conn.sslsock.set_client_auth_data_callback(nsslib.client_auth_data_callback,
-                                                       self.ipa_certificate_nickname,
-                                                       self.password, nss.get_default_certdb())
-            conn.set_debuglevel(10)
-            conn.request("POST", url, post, request_headers)
 
-            res = conn.getresponse()
-
-            http_status = res.status
-            http_reason_phrase = unicode(res.reason, 'utf-8')
-            http_headers = res.msg.dict
-            http_body = res.read()
-            conn.close()
-        except Exception, e:
-            raise NetworkError(uri=uri, error=str(e))
-
-        self.debug('sslget status %d',        http_status)
-        self.debug('sslget reason_phrase %r', http_reason_phrase)
-        self.debug('sslget headers %s',       http_headers)
-        self.debug('sslget body %r',          http_body)
-
-        return http_status, http_reason_phrase, http_headers, http_body
+        return dogtag.https_request(self.env.ca_host, port, url, self.sec_dir, self.password, self.ipa_certificate_nickname, **kw)
 
     def get_parse_result_xml(self, xml_text, parse_func):
         '''

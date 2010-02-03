@@ -20,6 +20,12 @@
 from ipalib import api, errors
 import httplib
 import xml.dom.minidom
+from ipapython import nsslib
+import nss.nss as nss
+from ipalib.errors import NetworkError, CertificateOperationError
+from urllib import urlencode
+import socket
+import logging
 
 def get_ca_certchain(ca_host=None):
     """
@@ -28,7 +34,7 @@ def get_ca_certchain(ca_host=None):
     if ca_host is None:
         ca_host = api.env.ca_host
     chain = None
-    conn = httplib.HTTPConnection(ca_host, 9180)
+    conn = httplib.HTTPConnection(ca_host, api.env.ca_port)
     conn.request("GET", "/ca/ee/ca/getCertChain")
     res = conn.getresponse()
     if res.status == 200:
@@ -50,3 +56,74 @@ def get_ca_certchain(ca_host=None):
             doc.unlink()
 
     return chain
+
+def https_request(host, port, url, secdir, password, nickname, **kw):
+    """
+    :param url: The URL to post to.
+    :param kw:  Keyword arguments to encode into POST body.
+    :return:   (http_status, http_reason_phrase, http_headers, http_body)
+               as (integer, unicode, dict, str)
+
+    Perform a client authenticated HTTPS request
+    """
+    uri = 'https://%s:%d%s' % (host, port, url)
+    post = urlencode(kw)
+    logging.info('sslget %r', uri)
+    logging.debug('sslget post %r', post)
+    request_headers = {"Content-type": "application/x-www-form-urlencoded",
+                       "Accept": "text/plain"}
+    try:
+        conn = nsslib.NSSConnection(host, port, dbdir=secdir)
+        conn.sslsock.set_client_auth_data_callback(nsslib.client_auth_data_callback,
+                                                   nickname,
+                                                   password, nss.get_default_certdb())
+        conn.set_debuglevel(0)
+        conn.request("POST", url, post, request_headers)
+
+        res = conn.getresponse()
+
+        http_status = res.status
+        http_reason_phrase = unicode(res.reason, 'utf-8')
+        http_headers = res.msg.dict
+        http_body = res.read()
+        conn.close()
+    except Exception, e:
+        raise NetworkError(uri=uri, error=str(e))
+
+    return http_status, http_reason_phrase, http_headers, http_body
+
+def http_request(host, port, url, **kw):
+        """
+        :param url: The URL to post to.
+        :param kw: Keyword arguments to encode into POST body.
+        :return:   (http_status, http_reason_phrase, http_headers, http_body)
+                   as (integer, unicode, dict, str)
+
+        Perform an HTTP request.
+        """
+        uri = 'http://%s:%s%s' % (host, port, url)
+        post = urlencode(kw)
+        logging.info('request %r', uri)
+        logging.debug('request post %r', post)
+        conn = httplib.HTTPConnection(host, port)
+        try:
+            conn.request('POST', url,
+                body=post,
+                headers={'Content-type': 'application/x-www-form-urlencoded'},
+            )
+            res = conn.getresponse()
+
+            http_status = res.status
+            http_reason_phrase = unicode(res.reason, 'utf-8')
+            http_headers = res.msg.dict
+            http_body = res.read()
+            conn.close()
+        except socket.error, e:
+            raise NetworkError(uri=uri, error=e.args[1])
+
+        logging.debug('request status %d',        http_status)
+        logging.debug('request reason_phrase %r', http_reason_phrase)
+        logging.debug('request headers %s',       http_headers)
+        logging.debug('request body %r',          http_body)
+
+        return http_status, http_reason_phrase, http_headers, http_body

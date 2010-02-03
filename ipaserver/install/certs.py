@@ -29,6 +29,7 @@ import fcntl
 import base64
 
 from ipapython import nsslib
+from ipapython import dogtag
 from ipapython import sysrestore
 from ipapython import ipautil
 from ConfigParser import RawConfigParser
@@ -553,31 +554,25 @@ class CertDB(object):
             if s >= 0:
                 csr = csr[s:]
 
-            params = urllib.urlencode({'profileId': 'caRAserverCert',
+            params = {'profileId': 'caRAserverCert',
                     'cert_request_type': 'pkcs10',
                     'requestor_name': 'IPA Installer',
                     'cert_request': csr,
-                    'xmlOutput': 'true'})
-            headers = {"Content-type": "application/x-www-form-urlencoded",
-                       "Accept": "text/plain"}
+                    'xmlOutput': 'true'}
 
             # Send the request to the CA
             f = open(self.passwd_fname, "r")
             password = f.readline()
             f.close()
-            conn = nsslib.NSSConnection(self.host_name, api.env.ca_agent_port, dbdir=self.secdir)
-            conn.sslsock.set_client_auth_data_callback(client_auth_data_callback, "ipaCert", password, nss.get_default_certdb())
-            conn.set_debuglevel(0)
+            http_status, http_reason_phrase, http_headers, http_body = \
+                dogtag.https_request(self.host_name, api.env.ca_agent_port, "/ca/agent/ca/profileSubmitSSLClient", self.secdir, password, "ipaCert", **params)
 
-            conn.request("POST", "/ca/agent/ca/profileSubmitSSLClient", params, headers)
-            res = conn.getresponse()
-            data = res.read()
-            conn.close()
-            if res.status != 200:
-                raise RuntimeError("Unable to submit cert request")
+            if http_status != 200:
+                raise CertificateOperationError(error=_('Unable to communicate with CMS (%s)') % \
+                      http_reason_phrase)
 
             # The result is an XML blob. Pull the certificate out of that
-            doc = xml.dom.minidom.parseString(data)
+            doc = xml.dom.minidom.parseString(http_body)
             item_node = doc.getElementsByTagName("b64")
             try:
                 try:
@@ -586,7 +581,6 @@ class CertDB(object):
                     raise RuntimeError("Certificate issuance failed")
             finally:
                 doc.unlink()
-                conn.close()
 
             # base64-decode the result for uniformity
             cert = base64.b64decode(cert)
@@ -647,35 +641,26 @@ class CertDB(object):
             if s >= 0:
                 csr = csr[s:]
 
-            params = urllib.urlencode({'profileId': 'caJarSigningCert',
+            params = {'profileId': 'caJarSigningCert',
                     'cert_request_type': 'pkcs10',
                     'requestor_name': 'IPA Installer',
                     'cert_request': csr,
-                    'xmlOutput': 'true'})
-            headers = {"Content-type": "application/x-www-form-urlencoded",
-                       "Accept": "text/plain"}
+                    'xmlOutput': 'true'}
 
             # Send the request to the CA
             f = open(self.passwd_fname, "r")
             password = f.readline()
             f.close()
-            conn = nsslib.NSSConnection(self.host_name, api.env.ca_agent_port, dbdir=self.secdir)
-            conn.sslsock.set_client_auth_data_callback(client_auth_data_callback, "ipaCert", password, nss.get_default_certdb())
-            conn.set_debuglevel(0)
-
-            conn.request("POST", "/ca/agent/ca/profileSubmitSSLClient", params, headers)
-            res = conn.getresponse()
-            data = res.read()
-            conn.close()
-            if res.status != 200:
+            http_status, http_reason_phrase, http_headers, http_body = \
+                dogtag.https_request(self.host_name, api.env.ca_agent_port, "/ca/agent/ca/profileSubmitSSLClient", self.secdir, password, "ipaCert", **params)
+            if http_status != 200:
                 raise RuntimeError("Unable to submit cert request")
 
             # The result is an XML blob. Pull the certificate out of that
-            doc = xml.dom.minidom.parseString(data)
+            doc = xml.dom.minidom.parseString(http_body)
             item_node = doc.getElementsByTagName("b64")
             cert = item_node[0].childNodes[0].data
             doc.unlink()
-            conn.close()
 
             # base64-decode the cert for uniformity
             cert = base64.b64decode(cert)
