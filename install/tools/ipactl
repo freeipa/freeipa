@@ -45,6 +45,18 @@ function stop() {
     fi
 }
 
+function status() {
+    /sbin/service ipa_kpasswd status
+    /sbin/service httpd status
+    /sbin/service krb5kdc status
+    /sbin/service dirsrv status
+    /sbin/service ntpd status
+
+    if [ -e /var/lib/pki-ca ]; then
+        /sbin/service pki-cad status
+    fi
+}
+
 case "$1" in
 restart)
     stop
@@ -56,8 +68,11 @@ start)
 stop)
     stop
     ;;
+status)
+    status
+    ;;
 *)
-    echo "Usage: ipactl {start|stop|restart}"
+    echo "Usage: ipactl {start|stop|restart|status}"
     exit 1
     ;;
 esac
