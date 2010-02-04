@@ -23,6 +23,7 @@ Test the `ipalib.crud` module.
 
 from tests.util import read_only, raises, get_api, ClassChecker
 from ipalib import crud, frontend, plugable, config
+from ipalib.parameters import Str
 
 
 class CrudChecker(ClassChecker):
@@ -38,9 +39,10 @@ class CrudChecker(ClassChecker):
         class user(frontend.Object):
             takes_params = (
                 'givenname',
-                'sn',
-                frontend.Param('uid', primary_key=True),
+                Str('sn', flags='no_update'),
+                Str('uid', primary_key=True),
                 'initials',
+                Str('uidnumber', flags=['no_create', 'no_search'])
             )
         class user_verb(self.cls):
             takes_args = args
@@ -102,7 +104,7 @@ class test_Update(CrudChecker):
         """
         api = self.get_api()
         assert list(api.Method.user_verb.options) == \
-            ['givenname', 'sn', 'initials']
+            ['givenname', 'initials', 'uidnumber']
         for param in api.Method.user_verb.options():
             assert param.required is False
 
