@@ -3467,7 +3467,8 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     struct ipapwd_operation *pwdop = NULL;
     void *op;
     int is_repl_op, is_root, is_krb, is_smb;
-    int ret, rc;
+    int ret;
+    int rc = LDAP_SUCCESS;
 
     slapi_log_error(SLAPI_LOG_TRACE, IPAPWD_PLUGIN_NAME, "=> ipapwd_pre_add\n");
 
@@ -3516,14 +3517,16 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
             /* unhashed#user#password doesn't always contain the clear text
              * password, therefore we need to check if its value isn't the same
              * as userPassword to make sure */
-            if (!userpw || (0 == strcmp(userpw, userpw_clear))) {
+            if (!userpw_clear || (0 == strcmp(userpw, userpw_clear))) {
                 rc = LDAP_CONSTRAINT_VIOLATION;
+                slapi_ch_free_string(&userpw);
+            } else {
+                userpw = slapi_ch_strdup(userpw_clear);
             }
 
-            slapi_ch_free_string(&userpw);
             slapi_ch_free_string(&userpw_clear);
 
-            if (rc) {
+            if (rc != LDAP_SUCCESS) {
                 /* we don't have access to the clear text password;
                  * let it slide if migration is enabled, but don't
                  * generate kerberos keys */
@@ -3547,12 +3550,12 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     rc = ipapwd_entry_checks(pb, e,
                              &is_root, &is_krb, &is_smb,
                              NULL, SLAPI_ACL_ADD);
-    if (rc) {
+    if (rc != LDAP_SUCCESS) {
         goto done;
     }
 
     rc = ipapwd_gen_checks(pb, &errMesg, &krbcfg, IPAPWD_CHECK_DN);
-    if (rc) {
+    if (rc != LDAP_SUCCESS) {
         goto done;
     }
 
@@ -3623,7 +3626,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
                                      pwdop, userpw,
                                      is_krb, is_smb,
                                      &svals, &nt, &lm);
-        if (rc) {
+        if (rc != LDAP_SUCCESS) {
             goto done;
         }
 
