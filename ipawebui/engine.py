@@ -131,7 +131,7 @@ class Engine(object):
                 )
 
     def build_cruds_page(self, obj):
-        page = self.app.new('PageGrid', title=obj.name, id=obj.name)
+        page = self.app.new('PageGrid', title=obj.label, id=obj.name)
 
         # Setup CRUDS widget:
         page.cruds.autoload = True

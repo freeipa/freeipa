@@ -79,6 +79,8 @@ class host(LDAPObject):
         'memberof': ['hostgroup', 'netgroup', 'rolegroup'],
     }
 
+    label = _('Hosts')
+
     takes_params = (
         Str('fqdn', validate_host,
             cli_name='hostname',

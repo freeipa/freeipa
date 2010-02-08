@@ -47,6 +47,8 @@ class taskgroup(LDAPObject):
         # FIXME: taskgroup can be member of ???
     }
 
+    label = _('Task Groups')
+
     takes_params = (
         Str('cn',
             cli_name='name',

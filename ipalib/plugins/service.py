@@ -119,6 +119,8 @@ class service(LDAPObject):
         'managedby': ['host'],
     }
 
+    label = _('Services')
+
     takes_params = (
         Str('krbprincipalname', validate_principal,
             cli_name='principal',

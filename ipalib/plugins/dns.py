@@ -66,6 +66,7 @@ import time
 from ipalib import api, crud, errors, output
 from ipalib import Object, Command
 from ipalib import Flag, Int, Str, StrEnum
+from ipalib import _, ngettext
 
 # parent DN
 _zone_container_dn = api.env.container_dns
@@ -109,6 +110,8 @@ def _get_record_dn(ldap, zone, idnsname):
 
 class dns(Object):
     """DNS zone/SOA record object."""
+
+    label = _('DNS')
 
     takes_params = (
         Str('idnsname',
@@ -857,4 +860,3 @@ class dns_show_rr(Command):
         textui.print_entry(entry_attrs)
 
 api.register(dns_show_rr)
-

@@ -23,6 +23,7 @@ Host based access control
 from ipalib import api, errors
 from ipalib import AccessTime, Password, Str, StrEnum
 from ipalib.plugins.baseldap import *
+from ipalib import _, ngettext
 
 class hbac(LDAPObject):
     """
@@ -57,6 +58,8 @@ class hbac(LDAPObject):
         'memberhost': ['host', 'hostgroup'],
         'sourcehost': ['host', 'hostgroup'],
     }
+
+    label = _('HBAC')
 
     takes_params = (
         Str('cn',

@@ -39,6 +39,25 @@ class test_LazyText(object):
         assert inst.localedir == 'bar'
 
 
+class test_FixMe(object):
+    klass = text.FixMe
+
+    def test_init(self):
+        inst = self.klass('user.label')
+        assert inst.msg == 'user.label'
+        assert inst.domain is None
+        assert inst.localedir is None
+
+    def test_repr(self):
+        inst = self.klass('user.label')
+        assert repr(inst) == "FixMe('user.label')"
+
+    def test_unicode(self):
+        inst = self.klass('user.label')
+        assert unicode(inst) == u'<user.label>'
+        assert type(unicode(inst)) is unicode
+
+
 class test_Gettext(object):
 
     klass = text.Gettext

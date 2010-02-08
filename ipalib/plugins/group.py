@@ -55,6 +55,8 @@ class group(LDAPObject):
         'memberof': ['group', 'netgroup', 'rolegroup', 'taskgroup'],
     }
 
+    label = _('User Groups')
+
     takes_params = (
         Str('cn',
             cli_name='name',

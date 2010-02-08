@@ -1110,6 +1110,9 @@ class Property(Attribute):
 
     def __init__(self):
         super(Property, self).__init__()
+        # FIXME: This is a hack till Param.label is updated to require a
+        # LazyText instance:
+        self.label = None
         self.rules = tuple(
             sorted(self.__rules_iter(), key=lambda f: getattr(f, '__name__'))
         )

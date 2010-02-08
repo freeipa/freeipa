@@ -26,9 +26,24 @@ placeholders for the rest of the code.
 
 
 class LazyText(object):
-    def __init__(self, domain, localedir):
+    def __init__(self, domain=None, localedir=None):
         self.domain = domain
         self.localedir = localedir
+
+    def __mod__(self, kw):
+        return self.__unicode__() % kw
+
+
+class FixMe(LazyText):
+    def __init__(self, msg):
+        self.msg = msg
+        super(FixMe, self).__init__()
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, self.msg)
+
+    def __unicode__(self):
+        return u'<%s>' % self.msg
 
 
 class Gettext(LazyText):
@@ -39,8 +54,7 @@ class Gettext(LazyText):
     def __unicode__(self):
         return self.msg.decode('utf-8')
 
-    def __mod__(self, value):
-        return self.__unicode__() % value
+
 
 
 class NGettext(LazyText):

@@ -47,6 +47,8 @@ class rolegroup(LDAPObject):
         'memberof': ['taskgroup'],
     }
 
+    label = _('Role Groups')
+
     takes_params = (
         Str('cn',
             cli_name='name',

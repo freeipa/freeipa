@@ -23,6 +23,7 @@ Netgroups
 
 from ipalib import api, errors
 from ipalib.plugins.baseldap import *
+from ipalib import _, ngettext
 
 
 class netgroup(LDAPObject):
@@ -50,6 +51,8 @@ class netgroup(LDAPObject):
         'memberof': ['netgroup'],
         'externalhost': [],
     }
+
+    label = _('Net Groups')
 
     takes_params = (
         Str('cn',
@@ -200,4 +203,3 @@ class netgroup_remove_member(LDAPRemoveMember):
         return (completed + completed_external, dn)
 
 api.register(netgroup_remove_member)
-

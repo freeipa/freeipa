@@ -88,6 +88,7 @@ from ipalib import api, errors
 from ipalib import Object, Command
 from ipalib import Flag, Str
 from ipalib.plugins.baseldap import *
+from ipalib import _, ngettext
 
 
 class automountlocation(LDAPObject):
@@ -227,6 +228,8 @@ class automountmap(LDAPObject):
         ),
     )
 
+    label = _('Automount Maps')
+
 api.register(automountmap)
 
 
@@ -315,6 +318,8 @@ class automountkey(LDAPObject):
         ),
     )
 
+    label = _('Automount Keys')
+
 api.register(automountkey)
 
 
@@ -384,4 +389,3 @@ class automountkey_show(LDAPRetrieve):
     """
 
 api.register(automountkey_show)
-

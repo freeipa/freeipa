@@ -68,6 +68,8 @@ class user(LDAPObject):
         'memberof': ['group', 'netgroup', 'rolegroup', 'taskgroup'],
     }
 
+    label = _('Users')
+
     takes_params = (
         Str('uid',
             cli_name='login',

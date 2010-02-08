@@ -197,6 +197,9 @@ class aci(Object):
     """
     ACI object.
     """
+
+    label = _('ACIs')
+
     takes_params = (
         Str('aciname',
             cli_name='name',

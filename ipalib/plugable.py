@@ -37,8 +37,12 @@ import optparse
 import errors
 from config import Env
 import util
+import text
 from base import ReadOnly, NameSpace, lock, islocked, check_name
 from constants import DEFAULT_CONFIG, FORMAT_STDERR, FORMAT_FILE
+
+# FIXME: Updated constants.TYPE_ERROR to use this clearer format from wehjit:
+TYPE_ERROR = '%s: need a %r; got a %r: %r'
 
 
 class SetProxy(ReadOnly):
@@ -155,6 +159,8 @@ class Plugin(ReadOnly):
     Base class for all plugins.
     """
 
+    label = None
+
     def __init__(self):
         self.__api = None
         cls = self.__class__
@@ -177,6 +183,17 @@ class Plugin(ReadOnly):
                         self.name, name, getattr(self, name))
                 )
             setattr(self, name, getattr(log, name))
+        if self.label is None:
+            self.label = text.FixMe(self.name + '.label')
+        if not isinstance(self.label, text.LazyText):
+            raise TypeError(
+                TYPE_ERROR % (
+                    self.fullname + '.label',
+                    text.LazyText,
+                    type(self.label),
+                    self.label
+                )
+            )
 
     def __get_api(self):
         """

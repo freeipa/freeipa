@@ -46,6 +46,8 @@ class hostgroup(LDAPObject):
         'memberof': ['hostgroup'],
     }
 
+    label = _('Host Groups')
+
     takes_params = (
         Str('cn',
             cli_name='name',
