@@ -311,12 +311,21 @@ def main():
     except ldap.INVALID_CREDENTIALS, e :
         sys.exit("\nThe password provided is incorrect for LDAP server %s" % config.master_host_name)
 
+    # Create the management framework config file
+    # Note: We must do this before bootstraping and finalizing ipalib.api
+    fd = open("/etc/ipa/default.conf", "w")
+    fd.write("[global]\n")
+    fd.write("basedn=" + util.realm_to_suffix(config.realm_name) + "\n")
+    fd.write("realm=" + config.realm_name + "\n")
+    fd.write("domain=" + config.domain_name + "\n")
+    fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % config.host_name)
+    fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(config.realm_name))
     if ipautil.file_exists(config.dir + "/ca.p12"):
-        ca_type = 'dogtag'
-    else:
-        ca_type = 'selfsign'
+        fd.write("enable_ra=True\n")
+        fd.write("ra_plugin=dogtag\n")
+    fd.close()
 
-    api.bootstrap(in_server=True, ra_plugin=ca_type)
+    api.bootstrap(in_server=True)
     api.finalize()
 
     # Install CA cert so that we can do SSL connections with ldap
@@ -354,19 +363,6 @@ def main():
     # The DS instance is created before the keytab, add the SSL cert we
     # generated
     ds.add_cert_to_service()
-
-    # Create the management framework config file
-    fd = open("/etc/ipa/default.conf", "w")
-    fd.write("[global]\n")
-    fd.write("basedn=" + util.realm_to_suffix(config.realm_name) + "\n")
-    fd.write("realm=" + config.realm_name + "\n")
-    fd.write("domain=" + config.domain_name + "\n")
-    fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % config.host_name)
-    fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(config.realm_name))
-    if ipautil.file_exists(config.dir + "/ca.p12"):
-        fd.write("enable_ra=True\n")
-        fd.write("ra_plugin=dogtag\n")
-    fd.close()
 
     # Apply any LDAP updates. Needs to be done after the replica is synced-up
     service.print_msg("Applying LDAP updates")

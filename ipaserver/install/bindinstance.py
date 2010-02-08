@@ -54,6 +54,31 @@ def check_inst(unattended):
 
     return True
 
+def dns_container_exists(fqdn, realm):
+    """
+    Test whether the dns container exists.
+    """
+
+    def object_exists(dn):
+        """
+        Test whether the given object exists in LDAP.
+        """
+        try:
+            server.search_ext_s(dn, ldap.SCOPE_BASE)
+        except ldap.NO_SUCH_OBJECT:
+            return False
+        else:
+            return True
+
+    server = ldap.initialize("ldap://" + fqdn)
+    server.simple_bind_s()
+
+    suffix = util.realm_to_suffix(realm)
+    ret = object_exists("cn=dns,%s" % suffix)
+    server.unbind_s()
+
+    return ret
+
 def get_reverse_zone(ip_address):
     tmp = ip_address.split(".")
     tmp.reverse()
@@ -155,7 +180,8 @@ class BindInstance(service.Service):
         except:
             pass
 
-        self.__add_zone_steps()
+        if not dns_container_exists(self.fqdn, self.suffix):
+            self.step("adding DNS container", self.__setup_dns_container)
         self.step("setting up our zone", self.__setup_zone)
         self.step("setting up reverse zone", self.__setup_reverse_zone)
 
@@ -167,30 +193,6 @@ class BindInstance(service.Service):
 
         self.step("changing resolv.conf to point to ourselves", self.__setup_resolv_conf)
         self.start_creation("Configuring named:")
-
-    def __add_zone_steps(self):
-        """
-        Add a DNS container if it doesn't exist.
-        """
-
-        def object_exists(dn):
-            """
-            Test whether the given object exists in LDAP.
-            """
-            try:
-                server.search_ext_s(dn, ldap.SCOPE_BASE)
-            except ldap.NO_SUCH_OBJECT:
-                return False
-            else:
-                return True
-
-        server = ldap.initialize("ldap://" + self.fqdn)
-        server.simple_bind_s()
-
-        if not object_exists("cn=dns,%s" % self.suffix):
-            self.step("adding DNS container", self.__setup_dns_container)
-
-        server.unbind_s()
 
     def __start(self):
         try:

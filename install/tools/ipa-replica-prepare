@@ -26,12 +26,10 @@ from ConfigParser import SafeConfigParser
 import krbV
 from optparse import OptionParser
 
-import ipapython.config
 from ipapython import ipautil
 from ipaserver.install import dsinstance, installutils, certs, httpinstance
 from ipaserver import ipaldap
 from ipapython import version
-from ipalib.constants import DEFAULT_CONFIG
 from ipalib import api
 from ipalib import util
 import ldap
@@ -51,7 +49,6 @@ def parse_options():
     parser.add_option("-p", "--password", dest="password", 
                       help="Directory Manager (existing master) password")
 
-    ipapython.config.add_standard_options(parser)
     options, args = parser.parse_args()
 
     # If any of the PKCS#12 options are selected, all are required. Create a
@@ -62,38 +59,15 @@ def parse_options():
     if cnt > 0 and cnt < 4:
         parser.error("All PKCS#12 options are required if any are used.")
 
+    if options.ip_address:
+        if not installutils.verify_ip_address(options.ip_address):
+            parser.error("Bad IP address")
+            sys.exit(1)
+
     if len(args) != 1:
         parser.error("must provide the fully-qualified name of the replica")
 
-    ipapython.config.init_config(options)
-
     return options, args
-
-def get_host_name():
-    hostname = installutils.get_fqdn()
-    try:
-        installutils.verify_fqdn(hostname)
-    except RuntimeError, e:
-        logging.error(str(e))
-        sys.exit(1)
-
-    return hostname
-
-def get_realm_name():
-    try:
-        c = krbV.default_context()
-        return c.default_realm
-    except Exception, e:
-        return None
-
-def get_domain_name():
-    try:
-        ipapython.config.init_config()
-        domain_name = ipapython.config.config.get_domain()
-    except Exception, e:
-        return None
-
-    return domain_name
 
 def get_subject_base(host_name, dm_password, suffix):
     try:
@@ -130,8 +104,8 @@ def export_certdb(realm_name, ds_dir, dir, passwd_fname, fname, hostname, subjec
 #            ca_db = certs.CertDB(dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name)))
 #            db.create_from_cacert(ca_db.cacert_fname)
 #        else:
-#            ca_db = certs.CertDB(httpinstance.NSS_DIR, host_name=get_host_name())
-        ca_db = certs.CertDB(httpinstance.NSS_DIR, host_name=get_host_name(), subject_base=subject_base)
+#            ca_db = certs.CertDB(httpinstance.NSS_DIR, host_name=api.env.host)
+        ca_db = certs.CertDB(httpinstance.NSS_DIR, host_name=api.env.host, subject_base=subject_base)
         db.create_from_cacert(ca_db.cacert_fname)
         db.create_server_cert("Server-Cert", hostname, ca_db)
     except Exception, e:
@@ -169,7 +143,7 @@ def export_ra_pkcs12(dir, dm_password):
 
     try:
         try:
-            db = certs.CertDB(httpinstance.NSS_DIR, host_name=get_host_name())
+            db = certs.CertDB(httpinstance.NSS_DIR, host_name=api.env.host)
 
             if db.has_nickname("ipaCert"):
                 pkcs12_fname = "%s/ra.p12" % dir
@@ -229,31 +203,18 @@ def main():
 
     # Just initialize the environment. This is so the installer can have
     # access to the plugin environment
-    api.env._bootstrap()
-    api.env._finalize_core(**dict(DEFAULT_CONFIG))
+    api.bootstrap(in_server=True)
+    api.finalize()
 
     if not certs.ipa_self_signed() and not ipautil.file_exists("/var/lib/pki-ca/conf/CS.cfg") and not options.dirsrv_pin:
         sys.exit("The replica must be created on the primary IPA server.\nIf you installed IPA with your own certificates using PKCS#12 files you must provide PKCS#12 files for any replicas you create as well.")
 
-    print "Determining current realm name"
-    realm_name = get_realm_name()
-    if realm_name is None:
-        print "Unable to determine default realm"
-        sys.exit(1)
+    check_ipa_configuration(api.env.realm)
 
-    check_ipa_configuration(realm_name)
-
-    print "Getting domain name from LDAP"
-    domain_name = get_domain_name()
-    if domain_name is None:
-        print "Unable to determine LDAP default domain"
-        sys.exit(1)
-
-    host_name = get_host_name()
-    if host_name == replica_fqdn:
+    if api.env.host == replica_fqdn:
         print "You can't create a replica on itself"
         sys.exit(1)
-    ds_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name))
+    ds_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(api.env.realm))
     ds_user = get_ds_user(ds_dir)
 
     # get the directory manager password
@@ -266,19 +227,19 @@ def main():
 
     # Try out the password
     try:
-        conn = ipaldap.IPAdmin(host_name)
+        conn = ipaldap.IPAdmin(api.env.host)
         conn.do_simple_bind(bindpw=dirman_password)
         conn.unbind()
     except ldap.CONNECT_ERROR, e:
-        sys.exit("\nUnable to connect to LDAP server %s" % host_name)
+        sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
     except ldap.SERVER_DOWN, e:
-        sys.exit("\nUnable to connect to LDAP server %s" % host_name)
+        sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
     except ldap.INVALID_CREDENTIALS, e :
-        sys.exit("\nThe password provided is incorrect for LDAP server %s" % host_name)
+        sys.exit("\nThe password provided is incorrect for LDAP server %s" % api.env.host)
 
-    print "Preparing replica for %s from %s" % (replica_fqdn, host_name)
+    print "Preparing replica for %s from %s" % (replica_fqdn, api.env.host)
 
-    subject_base = get_subject_base(host_name, dirman_password, util.realm_to_suffix(realm_name))
+    subject_base = get_subject_base(api.env.host, dirman_password, util.realm_to_suffix(api.env.realm))
 
     top_dir = tempfile.mkdtemp("ipa")
     dir = top_dir + "/realm_info"
@@ -313,7 +274,7 @@ def main():
             print "Copy failed %s" %  e
             sys.exit(1)
         print "Creating SSL certificate for the Directory Server"
-        export_certdb(realm_name, ds_dir, dir, passwd_fname, "dscert", replica_fqdn, subject_base)
+        export_certdb(api.env.realm, ds_dir, dir, passwd_fname, "dscert", replica_fqdn, subject_base)
 
     if options.http_pin:
         passwd = options.http_pin
@@ -334,15 +295,14 @@ def main():
             sys.exit(1)
     else:
         print "Creating SSL certificate for the Web Server"
-        export_certdb(realm_name, ds_dir, dir, passwd_fname, "httpcert", replica_fqdn, subject_base)
+        export_certdb(api.env.realm, ds_dir, dir, passwd_fname, "httpcert", replica_fqdn, subject_base)
         print "Exporting RA certificate"
         export_ra_pkcs12(dir, dirman_password)
 
     print "Copying additional files"
-    copy_files(realm_name, dir)
-
+    copy_files(api.env.realm, dir)
     print "Finalizing configuration"
-    save_config(dir, realm_name, host_name, ds_user, domain_name, replica_fqdn, subject_base)
+    save_config(dir, api.env.realm, api.env.host, ds_user, api.env.domain, replica_fqdn, subject_base)
 
     replicafile = "/var/lib/ipa/replica-info-" + replica_fqdn
     encfile = replicafile+".gpg"
