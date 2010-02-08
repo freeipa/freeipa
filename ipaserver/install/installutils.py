@@ -151,19 +151,23 @@ def read_ip_address(host_name, fstore):
 
 def read_dns_forwarders():
     addrs = []
-    while True:
-        ip = ipautil.user_input("Enter IP address for a DNS forwarder (empty to stop)", allow_empty=True)
+    if ipautil.user_input("Do you wish to configure DNS forwarders?", False):
+        print "Please enter the IP addresses of DNS forwarders that you want to use."
+        print "After you are done, enter a blank line to stop."
 
-        if not ip:
-            break
-        if ip == "127.0.0.1" or ip == "::1":
-            print "You cannot use localhost as a DNS forwarder"
-            continue
-        if not verify_ip_address(ip):
-            continue
+        while True:
+            ip = ipautil.user_input("Enter IP address for a DNS forwarder",
+                                    allow_empty=True)
+            if not ip:
+                break
+            if ip == "127.0.0.1" or ip == "::1":
+                print "You cannot use localhost as a DNS forwarder"
+                continue
+            if not verify_ip_address(ip):
+                continue
 
-        print "DNS forwarder %s added" % ip
-        addrs.append(ip)
+            print "DNS forwarder %s added" % ip
+            addrs.append(ip)
 
     if not addrs:
         print "No DNS forwarders configured"
