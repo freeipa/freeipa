@@ -1,0 +1,605 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Red Hat
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ipa\n"
+"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
+"newticket\n"
+"POT-Creation-Date: 2010-02-09 12:59-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: ../../ipalib/parameters.py:228
+msgid "incorrect type"
+msgstr ""
+
+#: ../../ipalib/parameters.py:231
+msgid "Only one value is allowed"
+msgstr ""
+
+#: ../../ipalib/parameters.py:795
+msgid "must be True or False"
+msgstr ""
+
+#: ../../ipalib/parameters.py:896
+msgid "must be an integer"
+msgstr ""
+
+#: ../../ipalib/parameters.py:947
+#, python-format
+msgid "must be at least %(minvalue)d"
+msgstr ""
+
+#: ../../ipalib/parameters.py:957
+#, python-format
+msgid "can be at most %(maxvalue)d"
+msgstr ""
+
+#: ../../ipalib/parameters.py:967
+msgid "must be a decimal number"
+msgstr ""
+
+#: ../../ipalib/parameters.py:989
+#, python-format
+msgid "must be at least %(minvalue)f"
+msgstr ""
+
+#: ../../ipalib/parameters.py:999
+#, python-format
+msgid "can be at most %(maxvalue)f"
+msgstr ""
+
+#: ../../ipalib/parameters.py:1059
+#, python-format
+msgid "must match pattern \"%(pattern)s\""
+msgstr ""
+
+#: ../../ipalib/parameters.py:1077
+msgid "must be binary data"
+msgstr ""
+
+#: ../../ipalib/parameters.py:1092
+#, python-format
+msgid "must be at least %(minlength)d bytes"
+msgstr ""
+
+#: ../../ipalib/parameters.py:1102
+#, python-format
+msgid "can be at most %(maxlength)d bytes"
+msgstr ""
+
+#: ../../ipalib/parameters.py:1112
+#, python-format
+msgid "must be exactly %(length)d bytes"
+msgstr ""
+
+#: ../../ipalib/parameters.py:1130
+msgid "must be Unicode text"
+msgstr ""
+
+#: ../../ipalib/parameters.py:1160
+#, python-format
+msgid "must be at least %(minlength)d characters"
+msgstr ""
+
+#: ../../ipalib/parameters.py:1170
+#, python-format
+msgid "can be at most %(maxlength)d characters"
+msgstr ""
+
+#: ../../ipalib/parameters.py:1180
+#, python-format
+msgid "must be exactly %(length)d characters"
+msgstr ""
+
+#: ../../ipalib/parameters.py:1219
+#, python-format
+msgid "must be one of %(values)r"
+msgstr ""
+
+#: ../../ipalib/cli.py:505
+#, python-format
+msgid "Enter %(label)s again to verify: "
+msgstr ""
+
+#: ../../ipalib/cli.py:509
+msgid "Passwords do not match!"
+msgstr ""
+
+#: ../../ipalib/cli.py:514
+msgid "Cancelled."
+msgstr ""
+
+#: ../../ipalib/frontend.py:377
+msgid "Results are truncated, try a more specific search"
+msgstr ""
+
+#: ../../ipalib/errors.py:297
+#, python-format
+msgid "%(cver)s client incompatible with %(sver)s server at %(server)r"
+msgstr ""
+
+#: ../../ipalib/errors.py:315
+#, python-format
+msgid "unknown error %(code)d from %(server)s: %(error)s"
+msgstr ""
+
+#: ../../ipalib/errors.py:331
+msgid "an internal error has occurred"
+msgstr ""
+
+#: ../../ipalib/errors.py:353
+#, python-format
+msgid "an internal error has occurred on server at %(server)r"
+msgstr ""
+
+#: ../../ipalib/errors.py:369
+#, python-format
+msgid "unknown command %(name)r"
+msgstr ""
+
+#: ../../ipalib/errors.py:386 ../../ipalib/errors.py:411
+#, python-format
+msgid "error on server %(server)r: %(error)s"
+msgstr ""
+
+#: ../../ipalib/errors.py:402
+#, python-format
+msgid "cannot connect to %(uri)r: %(error)s"
+msgstr ""
+
+#: ../../ipalib/errors.py:420
+#, python-format
+msgid "Invalid JSON-RPC request: %(error)s"
+msgstr ""
+
+#: ../../ipalib/errors.py:448
+#, python-format
+msgid "Kerberos error: %(major)s/%(minor)s"
+msgstr ""
+
+#: ../../ipalib/errors.py:465
+msgid "did not receive Kerberos credentials"
+msgstr ""
+
+#: ../../ipalib/errors.py:481
+#, python-format
+msgid "Service %(service)r not found in Kerberos database"
+msgstr ""
+
+#: ../../ipalib/errors.py:497
+msgid "No credentials cache found"
+msgstr ""
+
+#: ../../ipalib/errors.py:513
+msgid "Ticket expired"
+msgstr ""
+
+#: ../../ipalib/errors.py:529
+msgid "Credentials cache permissions incorrect"
+msgstr ""
+
+#: ../../ipalib/errors.py:545
+msgid "Bad format in credentials cache"
+msgstr ""
+
+#: ../../ipalib/errors.py:561
+msgid "Cannot resolve KDC for requested realm"
+msgstr ""
+
+#: ../../ipalib/errors.py:580
+#, python-format
+msgid "Insufficient access: %(info)s"
+msgstr ""
+
+#: ../../ipalib/errors.py:624
+#, python-format
+msgid "command %(name)r takes no arguments"
+msgstr ""
+
+#: ../../ipalib/errors.py:644
+#, python-format
+msgid "command %(name)r takes at most %(count)d argument"
+msgid_plural "command %(name)r takes at most %(count)d arguments"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../../ipalib/errors.py:674
+#, python-format
+msgid "overlapping arguments and options: %(names)r"
+msgstr ""
+
+#: ../../ipalib/errors.py:690
+#, python-format
+msgid "%(name)r is required"
+msgstr ""
+
+#: ../../ipalib/errors.py:706 ../../ipalib/errors.py:722
+#, python-format
+msgid "invalid %(name)r: %(error)s"
+msgstr ""
+
+#: ../../ipalib/errors.py:738
+#, python-format
+msgid "api has no such namespace: %(name)r"
+msgstr ""
+
+#: ../../ipalib/errors.py:747
+msgid "Passwords do not match"
+msgstr ""
+
+#: ../../ipalib/errors.py:755
+msgid "Command not implemented"
+msgstr ""
+
+#: ../../ipalib/errors.py:783 ../../ipalib/errors.py:1023
+#, python-format
+msgid "%(reason)s"
+msgstr ""
+
+#: ../../ipalib/errors.py:799
+msgid "This entry already exists"
+msgstr ""
+
+#: ../../ipalib/errors.py:815
+msgid "You must enroll a host in order to create a host service"
+msgstr ""
+
+#: ../../ipalib/errors.py:831
+#, python-format
+msgid ""
+"Service principal is not of the form: service/fully-qualified host name: %"
+"(reason)s"
+msgstr ""
+
+#: ../../ipalib/errors.py:847
+msgid ""
+"The realm for the principal does not match the realm for this IPA server"
+msgstr ""
+
+#: ../../ipalib/errors.py:863
+msgid "This command requires root access"
+msgstr ""
+
+#: ../../ipalib/errors.py:879
+msgid "This is already a posix group"
+msgstr ""
+
+#: ../../ipalib/errors.py:895
+#, python-format
+msgid "Principal is not of the form user@REALM: %(principal)r"
+msgstr ""
+
+#: ../../ipalib/errors.py:911
+msgid "This entry is already unlocked"
+msgstr ""
+
+#: ../../ipalib/errors.py:927
+msgid "This entry is already locked"
+msgstr ""
+
+#: ../../ipalib/errors.py:943
+msgid "This entry has nsAccountLock set, it cannot be locked or unlocked"
+msgstr ""
+
+#: ../../ipalib/errors.py:959
+msgid "This entry is not a member of the group"
+msgstr ""
+
+#: ../../ipalib/errors.py:975
+msgid "A group may not be a member of itself"
+msgstr ""
+
+#: ../../ipalib/errors.py:991
+msgid "This entry is already a member of the group"
+msgstr ""
+
+#: ../../ipalib/errors.py:1007
+#, python-format
+msgid "Base64 decoding failed: %(reason)s"
+msgstr ""
+
+#: ../../ipalib/errors.py:1039
+msgid "A group may not be added as a member of itself"
+msgstr ""
+
+#: ../../ipalib/errors.py:1055
+msgid "The default users group cannot be removed"
+msgstr ""
+
+#: ../../ipalib/errors.py:1078
+#, python-format
+msgid "no command nor help topic %(topic)r"
+msgstr ""
+
+#: ../../ipalib/errors.py:1102
+msgid "change collided with another change"
+msgstr ""
+
+#: ../../ipalib/errors.py:1118
+msgid "no modifications to be performed"
+msgstr ""
+
+#: ../../ipalib/errors.py:1134
+#, python-format
+msgid "%(desc)s:%(info)s"
+msgstr ""
+
+#: ../../ipalib/errors.py:1150
+msgid "limits exceeded for this query"
+msgstr ""
+
+#: ../../ipalib/errors.py:1165
+#, python-format
+msgid "%(info)s"
+msgstr ""
+
+#: ../../ipalib/errors.py:1190
+#, python-format
+msgid "Certificate operation cannot be completed: %(error)s"
+msgstr ""
+
+#: ../../ipalib/plugins/rolegroup.py:73
+#, python-format
+msgid "Added rolegroup \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/rolegroup.py:83
+#, python-format
+msgid "Deleted rolegroup \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/rolegroup.py:93
+#, python-format
+msgid "Modified rolegroup \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/rolegroup.py:104
+#, python-format
+msgid "%(count)d rolegroup matched"
+msgid_plural "%(count)d rolegroups matched"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../../ipalib/plugins/host.py:149
+#, python-format
+msgid "Added host \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/host.py:178
+#, python-format
+msgid "Deleted host \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/host.py:206
+#, python-format
+msgid "Modified host \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/host.py:255
+#, python-format
+msgid "%(count)d host matched"
+msgid_plural "%(count)d hosts matched"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../../ipalib/plugins/group.py:85
+#, python-format
+msgid "Added group \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/group.py:108
+#, python-format
+msgid "Deleted group \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/group.py:134
+#, python-format
+msgid "Modified group \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/group.py:163
+#, python-format
+msgid "%(count)d group matched"
+msgid_plural "%(count)d groups matched"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../../ipalib/plugins/cert.py:63 ../../ipalib/plugins/cert.py:84
+msgid "Unable to decode certificate in entry"
+msgstr ""
+
+#: ../../ipalib/plugins/cert.py:106 ../../ipalib/plugins/cert.py:120
+#: ../../ipalib/plugins/cert.py:137
+msgid "Failure decoding Certificate Signing Request"
+msgstr ""
+
+#: ../../ipalib/plugins/cert.py:139
+#, python-format
+msgid "Failure decoding Certificate Signing Request: %s"
+msgstr ""
+
+#: ../../ipalib/plugins/aci.py:109
+msgid "type, filter, subtree and targetgroup are mutually exclusive"
+msgstr ""
+
+#: ../../ipalib/plugins/aci.py:112
+msgid ""
+"at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
+"required"
+msgstr ""
+
+#: ../../ipalib/plugins/aci.py:117
+msgid "group and taskgroup are mutually exclusive"
+msgstr ""
+
+#: ../../ipalib/plugins/aci.py:119
+msgid "One of group or taskgroup is required"
+msgstr ""
+
+#: ../../ipalib/plugins/aci.py:140
+#, python-format
+msgid "Group '%s' does not exist"
+msgstr ""
+
+#: ../../ipalib/plugins/aci.py:184
+#, python-format
+msgid "ACI with name \"%s\" not found"
+msgstr ""
+
+#: ../../ipalib/plugins/aci.py:255
+#, python-format
+msgid "Created ACI \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/aci.py:305
+#, python-format
+msgid "Deleted ACI \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/aci.py:345
+#, python-format
+msgid "Modified ACI \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/aci.py:405
+#, python-format
+msgid "%(count)d ACI matched"
+msgid_plural "%(count)d ACIs matched"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../../ipalib/plugins/misc.py:37
+#, python-format
+msgid "%(count)d variables"
+msgstr ""
+
+#: ../../ipalib/plugins/misc.py:96
+#, python-format
+msgid "%(count)d plugin loaded"
+msgid_plural "%(count)d plugins loaded"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../../ipalib/plugins/user.py:139
+#, python-format
+msgid "Added user \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/user.py:184
+#, python-format
+msgid "Deleted user \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/user.py:203
+#, python-format
+msgid "Modified user \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/user.py:214
+#, python-format
+msgid "%(count)d user matched"
+msgid_plural "%(count)d users matched"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../../ipalib/plugins/user.py:234
+#, python-format
+msgid "Locked user \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/user.py:260
+#, python-format
+msgid "Unlocked user \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/taskgroup.py:73
+#, python-format
+msgid "Added taskgroup \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/taskgroup.py:83
+#, python-format
+msgid "Deleted taskgroup \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/taskgroup.py:93
+#, python-format
+msgid "Modified taskgroup \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/taskgroup.py:104
+#, python-format
+msgid "%(count)d taskgroup matched"
+msgid_plural "%(count)d taskgroups matched"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../../ipalib/plugins/hostgroup.py:72
+#, python-format
+msgid "Added hostgroup \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/hostgroup.py:82
+#, python-format
+msgid "Deleted hostgroup \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/hostgroup.py:92
+#, python-format
+msgid "Modified hostgroup \"%(value)s\""
+msgstr ""
+
+#: ../../ipalib/plugins/hostgroup.py:103
+#, python-format
+msgid "%(count)d hostgroup matched"
+msgid_plural "%(count)d hostgroups matched"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../../ipalib/plugins/pwpolicy.py:231
+msgid "priority cannot be set on global policy"
+msgstr ""
+
+#: ../../ipaserver/install/certs.py:571 ../../ipaserver/plugins/dogtag.py:1313
+#: ../../ipaserver/plugins/dogtag.py:1398
+#: ../../ipaserver/plugins/dogtag.py:1463
+#: ../../ipaserver/plugins/dogtag.py:1543
+#: ../../ipaserver/plugins/dogtag.py:1602
+#, python-format
+msgid "Unable to communicate with CMS (%s)"
+msgstr ""
+
+#: ../../ipaserver/plugins/selfsign.py:102
+#, python-format
+msgid ""
+"Request subject \"%(request_subject)s\" does not match the form \"%"
+"(subject_base)s\""
+msgstr ""
+
+#: ../../ipaserver/plugins/selfsign.py:107
+#, python-format
+msgid "unable to decode csr: %s"
+msgstr ""
+
+#: ../../ipaserver/plugins/selfsign.py:128
+#: ../../ipaserver/plugins/selfsign.py:143
+msgid "file operation"
+msgstr ""
+
+#: ../../ipaserver/plugins/selfsign.py:157
+msgid "cannot obtain next serial number"
+msgstr ""
+
+#: ../../ipaserver/plugins/selfsign.py:192
+msgid "certutil failure"
+msgstr ""

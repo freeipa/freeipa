@@ -9,6 +9,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
 %global POLICYCOREUTILSVER 1.33.12-1
+%global gettext_domain ipa
 
 Name:           ipa
 Version:        __VERSION__
@@ -44,6 +45,7 @@ BuildRequires:  python-setuptools
 BuildRequires:  python-krbV
 BuildRequires:  xmlrpc-c-devel
 BuildRequires:  libcurl-devel
+BuildRequires:  gettext
 %endif
 
 %description
@@ -251,6 +253,8 @@ cd ..
 %else
 make client-install DESTDIR=%{buildroot}
 %endif
+%find_lang %{gettext_domain}
+
 
 %if ! %{ONLY_CLIENT}
 # Remove .la files from libtool - we don't want to package
@@ -461,7 +465,7 @@ fi
 %{_sysconfdir}/bash_completion.d
 %endif
 
-%files python
+%files python -f %{gettext_domain}.lang
 %doc LICENSE README
 %defattr(-,root,root,-)
 %dir %{python_sitelib}/ipapython

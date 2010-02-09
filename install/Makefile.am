@@ -11,6 +11,7 @@ SUBDIRS =			\
         share			\
         tools			\
         updates			\
+        po			\
 	$(NULL)
 
 install-exec-local:

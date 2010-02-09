@@ -1,0 +1,217 @@
+prefix = @prefix@
+exec_prefix = ${prefix}
+datarootdir = ${prefix}/share
+datadir = ${datarootdir}
+localedir = ${datarootdir}/locale
+
+INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL@ -m 644
+MKDIR_P = @MKDIR_P@
+XGETTEXT = @XGETTEXT@
+MSGFMT = @MSGFMT@
+MSGINIT = @MSGINIT@
+MSGMERGE = @MSGMERGE@
+
+DOMAIN = @GETTEXT_DOMAIN@
+MSGMERGE_UPDATE = $(MSGMERGE) --update
+
+COPYRIGHT_HOLDER = Red Hat
+PACKAGE_NAME = $(DOMAIN)
+PACKAGE_BUGREPORT = https://hosted.fedoraproject.org/projects/freeipa/newticket
+XGETTEXT_OPTIONS = \
+--add-comments="TRANSLATORS:" \
+--copyright-holder="$(COPYRIGHT_HOLDER)" \
+--package-name="$(PACKAGE_NAME)" \
+--msgid-bugs-address="$(PACKAGE_BUGREPORT)"
+
+languages = $(shell sed 's/\#.*//' LINGUAS)
+po_files = $(patsubst %, %.po, $(languages))
+mo_files = $(patsubst %.po, %.mo, $(po_files))
+
+PYTHON_POTFILES = \
+     ../../ipa \
+     ../../lite-server.py \
+     ../../ipapython/config.py \
+     ../../ipapython/sysrestore.py \
+     ../../ipapython/ipasslfile.py \
+     ../../ipapython/__init__.py \
+     ../../ipapython/ipautil.py \
+     ../../ipapython/certdb.py \
+     ../../ipapython/ipavalidate.py \
+     ../../ipapython/dnsclient.py \
+     ../../ipapython/dogtag.py \
+     ../../ipapython/nsslib.py \
+     ../../ipapython/entity.py \
+     ../../install/tools/ipa-replica-manage \
+     ../../install/tools/ipa-server-certinstall \
+     ../../install/tools/ipa-replica-install \
+     ../../install/tools/ipa-nis-manage \
+     ../../install/tools/ipa-upgradeconfig \
+     ../../install/tools/ipa-replica-prepare \
+     ../../install/tools/ipa-compat-manage \
+     ../../install/tools/ipa-server-install \
+     ../../install/tools/ipa-ldap-updater \
+     ../../install/migration/migration.py \
+     ../../ipalib/config.py \
+     ../../ipalib/parameters.py \
+     ../../ipalib/request.py \
+     ../../ipalib/output.py \
+     ../../ipalib/__init__.py \
+     ../../ipalib/backend.py \
+     ../../ipalib/pkcs10.py \
+     ../../ipalib/x509.py \
+     ../../ipalib/plugable.py \
+     ../../ipalib/constants.py \
+     ../../ipalib/aci.py \
+     ../../ipalib/base.py \
+     ../../ipalib/ipauuid.py \
+     ../../ipalib/crud.py \
+     ../../ipalib/cli.py \
+     ../../ipalib/text.py \
+     ../../ipalib/compat.py \
+     ../../ipalib/frontend.py \
+     ../../ipalib/rpc.py \
+     ../../ipalib/errors.py \
+     ../../ipalib/encoder.py \
+     ../../ipalib/util.py \
+     ../../ipalib/plugins/config.py \
+     ../../ipalib/plugins/rolegroup.py \
+     ../../ipalib/plugins/host.py \
+     ../../ipalib/plugins/group.py \
+     ../../ipalib/plugins/migration.py \
+     ../../ipalib/plugins/xmlclient.py \
+     ../../ipalib/plugins/service.py \
+     ../../ipalib/plugins/passwd.py \
+     ../../ipalib/plugins/__init__.py \
+     ../../ipalib/plugins/virtual.py \
+     ../../ipalib/plugins/hbac.py \
+     ../../ipalib/plugins/cert.py \
+     ../../ipalib/plugins/baseldap.py \
+     ../../ipalib/plugins/aci.py \
+     ../../ipalib/plugins/kerberos.py \
+     ../../ipalib/plugins/krbtpolicy.py \
+     ../../ipalib/plugins/dns.py \
+     ../../ipalib/plugins/automount.py \
+     ../../ipalib/plugins/netgroup.py \
+     ../../ipalib/plugins/misc.py \
+     ../../ipalib/plugins/user.py \
+     ../../ipalib/plugins/taskgroup.py \
+     ../../ipalib/plugins/hostgroup.py \
+     ../../ipalib/plugins/pwpolicy.py \
+     ../../ipaserver/__init__.py \
+     ../../ipaserver/servercore.py \
+     ../../ipaserver/ipautil.py \
+     ../../ipaserver/rpcserver.py \
+     ../../ipaserver/conn.py \
+     ../../ipaserver/ipaldap.py \
+     ../../ipaserver/install/installutils.py \
+     ../../ipaserver/install/service.py \
+     ../../ipaserver/install/ldapupdate.py \
+     ../../ipaserver/install/__init__.py \
+     ../../ipaserver/install/cainstance.py \
+     ../../ipaserver/install/ntpinstance.py \
+     ../../ipaserver/install/bindinstance.py \
+     ../../ipaserver/install/krbinstance.py \
+     ../../ipaserver/install/certs.py \
+     ../../ipaserver/install/dsinstance.py \
+     ../../ipaserver/install/replication.py \
+     ../../ipaserver/install/httpinstance.py \
+     ../../ipaserver/plugins/ldap2.py \
+     ../../ipaserver/plugins/rabase.py \
+     ../../ipaserver/plugins/selfsign.py \
+     ../../ipaserver/plugins/__init__.py \
+     ../../ipaserver/plugins/join.py \
+     ../../ipaserver/plugins/ldapapi.py \
+     ../../ipaserver/plugins/xmlserver.py \
+     ../../ipaserver/plugins/dogtag.py \
+     ../../contrib/RHEL4/ipachangeconf.py \
+     ../../ipawebui/engine.py \
+     ../../ipawebui/__init__.py \
+     ../../ipawebui/widgets.py \
+     ../../ipawebui/controllers.py \
+     ../../ipa-client/ipaclient/ntpconf.py \
+     ../../ipa-client/ipaclient/__init__.py \
+     ../../ipa-client/ipaclient/ipachangeconf.py \
+     ../../ipa-client/ipaclient/ipadiscovery.py \
+     ../../ipa-client/ipa-install/ipa-client-install 
+
+C_POTFILES = \
+     ../../daemons/ipa-kpasswd/ipa_kpasswd.c \
+     ../../daemons/ipa-slapi-plugins/ipa-enrollment/ipa_enrollment.c \
+     ../../daemons/ipa-slapi-plugins/ipa-memberof/ipa-memberof.c \
+     ../../daemons/ipa-slapi-plugins/ipa-memberof/ipa-memberof.h \
+     ../../daemons/ipa-slapi-plugins/ipa-memberof/ipa-memberof_config.c \
+     ../../daemons/ipa-slapi-plugins/ipa-pwd-extop/ipa_pwd_extop.c \
+     ../../daemons/ipa-slapi-plugins/ipa-winsync/ipa-winsync-config.c \
+     ../../daemons/ipa-slapi-plugins/ipa-winsync/ipa-winsync.c \
+     ../../daemons/ipa-slapi-plugins/ipa-winsync/ipa-winsync.h \
+     ../../ipa-client/config.c \
+     ../../ipa-client/ipa-getkeytab.c \
+     ../../ipa-client/ipa-join.c \
+     ../../ipa-client/ipa-rmkeytab.c
+
+POTFILES = $(PYTHON_POTFILES) $(C_POTFILES)
+
+.SUFFIXES:
+.SUFFIXES: .po .mo
+
+all: $(po_files)
+	@
+
+SUFFIXES = .po .mo
+
+.po.mo:
+	@echo Creating $@; \
+	$(MSGFMT) -c -o t-$@ $< && mv t-$@ $@
+
+$(po_files): $(DOMAIN).pot
+	@if [ ! -f @a ]; then \
+	    echo Creating nonexistent $@, you should add this file to your SCM repository; \
+	    $(MSGINIT) --locale en_US --no-translator -i $(DOMAIN).pot -o $@; \
+	fi; \
+	$(MSGMERGE) $@ -o $@ $(DOMAIN).pot
+
+create-po: $(DOMAIN).pot
+	@for po_file in $(po_files); do \
+	    if [ ! -e $$po_file ]; then \
+	        echo Creating nonexistent $$po_file, you should add this file to your SCM repository; \
+	        $(MSGINIT) --locale en_US --no-translator -i $(DOMAIN).pot -o $$po_file; \
+	    fi; \
+	done
+
+$(DOMAIN).pot: $(POTFILES)
+	$(MAKE) update-pot
+
+update-po: update-pot
+	$(MAKE) all
+
+update-pot:
+	rm -f $(DOMAIN).pot.update
+	$(XGETTEXT) $(XGETTEXT_OPTIONS) \
+	--output $(DOMAIN).pot.update \
+	--language="python" \
+	$(PYTHON_POTFILES) \
+	&& \
+	$(XGETTEXT) $(XGETTEXT_OPTIONS) \
+	--output $(DOMAIN).pot.update \
+	--join-existing \
+	--language="c" \
+	$(C_POTFILES) \
+	&& \
+	mv $(DOMAIN).pot.update $(DOMAIN).pot
+
+install: $(mo_files)
+	@for lang in $(languages); do \
+	    dstdir=$(DESTDIR)$(localedir)/$$lang/LC_MESSAGES; \
+	    $(MKDIR_P) $$dstdir; \
+	    $(INSTALL) $$lang.mo $$dstdir/$(DOMAIN).mo; \
+	done
+
+mostlyclean:
+	rm -f *.mo
+
+clean: mostlyclean
+
+distclean: clean
+	rm -f Makefile
+
