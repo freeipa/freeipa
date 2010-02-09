@@ -1,12 +1,15 @@
-module ipa_dogtag 1.2;
+module ipa_dogtag 1.3;
 
 require {
 	type httpd_t;
 	type cert_t;
 	type pki_ca_t;
+	type pki_ca_var_lib_t;
 	class dir write;
 	class dir add_name;
 	class dir remove_name;
+	class dir search;
+	class dir getattr;
 	class file create;
 	class file write;
 	class file rename;
@@ -27,3 +30,6 @@ allow pki_ca_t cert_t:file rename;
 # Let dogtag manage cert_t symbolic links
 allow pki_ca_t cert_t:lnk_file create;
 allow pki_ca_t cert_t:lnk_file rename;
+
+# Let apache read the CRLs
+allow httpd_t pki_ca_var_lib_t:dir { search getattr };
