@@ -24,7 +24,7 @@ XGETTEXT_OPTIONS = \
 --package-name="$(PACKAGE_NAME)" \
 --msgid-bugs-address="$(PACKAGE_BUGREPORT)"
 
-languages = $(shell sed 's/\#.*//' LINGUAS)
+languages = $(shell sed 's/\#.*//' LINGUAS) # The sed command removes comments
 po_files = $(patsubst %, %.po, $(languages))
 mo_files = $(patsubst %.po, %.mo, $(po_files))
 
@@ -167,16 +167,18 @@ SUFFIXES = .po .mo
 
 $(po_files): $(DOMAIN).pot
 	@if [ ! -f @a ]; then \
+	    lang=`echo $@ | sed -r -e 's/\.po$$//'` # Strip .po suffix ; \
 	    echo Creating nonexistent $@, you should add this file to your SCM repository; \
-	    $(MSGINIT) --locale en_US --no-translator -i $(DOMAIN).pot -o $@; \
+	    $(MSGINIT) --locale $$lang --no-translator -i $(DOMAIN).pot -o $@; \
 	fi; \
 	$(MSGMERGE) $@ -o $@ $(DOMAIN).pot
 
 create-po: $(DOMAIN).pot
 	@for po_file in $(po_files); do \
 	    if [ ! -e $$po_file ]; then \
+	        lang=`echo $$po_file | sed -r -e 's/\.po$$//'` # Strip .po suffix ; \
 	        echo Creating nonexistent $$po_file, you should add this file to your SCM repository; \
-	        $(MSGINIT) --locale en_US --no-translator -i $(DOMAIN).pot -o $$po_file; \
+	        $(MSGINIT) --locale $$lang --no-translator -i $(DOMAIN).pot -o $$po_file; \
 	    fi; \
 	done
 
@@ -199,7 +201,11 @@ update-pot:
 	--language="c" \
 	$(C_POTFILES) \
 	&& \
-	mv $(DOMAIN).pot.update $(DOMAIN).pot
+	mv $(DOMAIN).pot.update $(DOMAIN).pot \
+	&& \
+	# Replace the charset with UTF-8 ; \
+	sed -i -r -e 's%("Content-Type: text/plain; charset=)(.*)(\\n")%\1UTF-8\3%' $(DOMAIN).pot
+
 
 install: $(mo_files)
 	@for lang in $(languages); do \
@@ -216,9 +222,33 @@ clean: mostlyclean
 distclean: clean
 	rm -f Makefile
 
+# We test our translations by taking the original untranslated string
+# (e.g. msgid) and prepend a prefix character and then append a suffix
+# character. The test consists of asserting that the first character in the
+# translated string is the prefix, the last character in the translated string
+# is the suffix and the everything between the first and last character exactly
+# matches the original msgid.
+#
+# We use unicode characters not in the ascii character set for the prefix and
+# suffix to enhance the test. To make reading the translated string easier the
+# prefix is the unicode right pointing arrow and the suffix left pointing arrow,
+# thus the translated string looks like the original string enclosed in
+# arrows. In ASCII art the string "foo" would render as:
+# -->foo<--
+#
+# Unicode right pointing arrow: u'\u2192', utf-8 = '\xe2\x86\x92'
+# Unicode left pointing arrow:  u'\u2190', utf-8 = '\xe2\x86\x90'
+#
+# The sed command below performs the prefix and suffix substitution.
+#
+# When msginit is invoked with an English target locale it copies the msgid
+# into the msgstr. This is an undocumented feature of msginit. Otherwise the
+# msgstr will be set to the empty string (i.e. untranslated). We depend on
+# the msgid being copied to the msgstr.
+
 test_lang:
 	rm -rf test.po test_locale
-	$(MSGINIT) --no-translator -i $(DOMAIN).pot -o test.po
+	$(MSGINIT) --no-translator -i $(DOMAIN).pot -l en_US -o test.po
 	sed -i -r -e 's/^msgstr[ \t]+"(.*)"[ \t]*$$/msgstr "\xe2\x86\x92\1\xe2\x86\x90"/' test.po
 	$(MKDIR_P) test_locale/en_US/LC_MESSAGES
 	$(MSGFMT) -o test_locale/en_US/LC_MESSAGES/ipa.mo test.po
