@@ -39,6 +39,8 @@ suffix = u'\u2190'               # utf-8 == '\xe2\x86\x90'
 
 def main():
 
+    test_file = 'test.po'
+
     try:
 
         # The test installs the test message catalog under the en_US (e.g. U.S. English)
@@ -53,28 +55,30 @@ def main():
         gettext.install('ipa', 'test_locale', unicode=1)
 
         # We need a translatable string to test with, read one from the test po file
-        msgid = get_msgid('test.po')
+        msgid = get_msgid(test_file)
+
+        print "Using message string \"%s\" found in file \"%s\"" % (msgid, test_file)
 
         # Get the translated version of the msgid string by invoking _()
         translated = _(msgid)
 
         # Verify the first character is the test prefix
         if translated[0] != prefix:
-            raise ValueError("first char in (%s) not equal to prefix (%s)" % \
+            raise ValueError("First char in translated string \"%s\" not equal to prefix \"%s\"" % \
                                  (translated.encode('utf-8'), prefix.encode('utf-8')))
 
         # Verify the last character is the test suffix
         if translated[-1] != suffix:
-            raise ValueError("last char in (%s) not equal to suffix (%s)" % \
+            raise ValueError("Last char in translated string \"%s\" not equal to suffix \"%s\"" % \
                                  (translated.encode('utf-8'), suffix.encode('utf-8')))
 
         # Verify everything between the first and last character is the
         # original untranslated string
         if translated[1:-1] != msgid:
-            raise ValueError("interior of (%s) not equal to msgid (%s)" % \
+            raise ValueError("Translated string \"%s\" minus the first & last character is not equal to msgid \"%s\"" % \
                                  (translated.encode('utf-8'), msgid))
 
-        print "success: %s = %s" % (msgid, _(msgid).encode('utf-8'))
+        print "Success: message string \"%s\" maps to translated string \"%s\"" % (msgid, _(msgid).encode('utf-8'))
     except Exception, e:
         print >> sys.stderr, "ERROR: %s" % e
         return 1
