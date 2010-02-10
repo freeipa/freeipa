@@ -154,6 +154,7 @@ POTFILES = $(PYTHON_POTFILES) $(C_POTFILES)
 
 .SUFFIXES:
 .SUFFIXES: .po .mo
+.PHONY: all create-po update-po update-pot install mostlyclean clean distclean test_lang test
 
 all: $(po_files)
 	@
@@ -208,10 +209,19 @@ install: $(mo_files)
 	done
 
 mostlyclean:
-	rm -f *.mo
+	rm -rf *.mo test.po test_locale
 
 clean: mostlyclean
 
 distclean: clean
 	rm -f Makefile
 
+test_lang:
+	rm -rf test.po test_locale
+	$(MSGINIT) --no-translator -i $(DOMAIN).pot -o test.po
+	sed -i -r -e 's/^msgstr[ \t]+"(.*)"[ \t]*$$/msgstr "\xe2\x86\x92\1\xe2\x86\x90"/' test.po
+	$(MKDIR_P) test_locale/en_US/LC_MESSAGES
+	$(MSGFMT) -o test_locale/en_US/LC_MESSAGES/ipa.mo test.po
+
+test: test_lang
+	./test_i18n.py
