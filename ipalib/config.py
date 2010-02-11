@@ -243,7 +243,9 @@ class Env(object):
             )
         assert not hasattr(self, key)
         if isinstance(value, basestring):
-            value = str(value.strip())
+            value = value.strip()
+            if isinstance(value, str):
+                value = value.decode('utf-8')
             m = {
                 'True': True,
                 'False': False,
@@ -259,7 +261,7 @@ class Env(object):
                     value = float(value)
                 except (TypeError, ValueError):
                     pass
-        assert type(value) in (str, int, float, bool, NoneType)
+        assert type(value) in (unicode, int, float, bool, NoneType)
         object.__setattr__(self, key, value)
         self.__d[key] = value
 
