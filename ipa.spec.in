@@ -85,7 +85,7 @@ Requires: mod_nss
 Requires: python-ldap
 Requires: python-krbV
 Requires: python-assets
-Requires: python-wehjit >= 0.2.0
+Requires: python-wehjit >= 0.2.2
 Requires: acl
 Requires: python-pyasn1 >= 0.0.9a
 Requires: libcap
@@ -497,6 +497,9 @@ fi
 %endif
 
 %changelog
+* Thu Feb 11 2010 Jason Gerard DeRose <jderose@redhat.com> - 1.99-16
+- Require python-wehjit >= 0.2.2
+
 * Wed Feb  3 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-15
 - Add sssd and certmonger as a Requires on ipa-client
 
@@ -655,7 +658,7 @@ fi
 
 * Thu Jan 24 2008 Rob Crittenden <rcritten@redhat.com> 0.99-3
 - Included LICENSE and README in all packages for documentation
-- Move user-modifiable content to /etc/ipa and linked back to 
+- Move user-modifiable content to /etc/ipa and linked back to
   /usr/share/ipa/html
 - Changed some references to /usr to the {_usr} macro and /etc
   to {_sysconfdir}
@@ -702,7 +705,7 @@ fi
 - Convert to autotools-based build
 
 * Tue Sep 25 2007 Karl MacMillan <kmacmill@redhat.com> - 0.4.0-2
-  
+
 * Fri Sep 7 2007 Karl MacMillan <kmacmill@redhat.com> - 0.3.0-1
 - Added support for libipa-dna-plugin
 

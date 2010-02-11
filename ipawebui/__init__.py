@@ -20,6 +20,13 @@
 IPA web UI.
 """
 
+# Special wehjit initialization to prevent it from loading the plugins that
+# require pygments, which uses ctypes, which makes the httpd SELinux policy
+# crazy:
+import wehjit
+wehjit.builtins._skip_pygments = True
+wehjit.init_builtins()
+
 from ipalib.backend import Executioner
 from ipalib.request import destroy_context
 from ipaserver.rpcserver import extract_query
