@@ -810,6 +810,13 @@ class Command(HasParam):
     def get_output_params(self):
         for param in self._get_param_iterable('output_params', verb='has'):
             yield param
+        if self.params is None:
+            return
+        for param in self.params():
+            if 'no_output' in param.flags:
+                continue
+            yield param
+
 
     def output_for_cli(self, textui, output, *args, **options):
         if not isinstance(output, dict):

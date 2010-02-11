@@ -28,6 +28,7 @@ from ipalib.constants import TYPE_ERROR
 from ipalib.base import NameSpace
 from ipalib import frontend, backend, plugable, errors, parameters, config
 from ipalib import output
+from ipalib.parameters import Str
 
 def test_RULE_FLAG():
     assert frontend.RULE_FLAG == 'validation_rule'
@@ -653,6 +654,32 @@ class test_Command(ClassChecker):
         assert str(e) == output.emsg % (
             'nested', 'Subclass', 'world', 4, dict, tuple, nope
         )
+
+    def test_get_output_params(self):
+        """
+        Test the `ipalib.frontend.Command.get_output_params` method.
+        """
+        class example(self.cls):
+            has_output_params = (
+                'one',
+                'two',
+                'three',
+            )
+            takes_args = (
+                'foo',
+            )
+            takes_options = (
+                Str('bar', flags='no_output'),
+                'baz',
+            )
+
+        inst = example()
+        assert list(inst.get_output_params()) == ['one', 'two', 'three']
+        inst.finalize()
+        assert list(inst.get_output_params()) == [
+            'one', 'two', 'three', inst.params.foo, inst.params.baz
+        ]
+        assert list(inst.output_params) == ['one', 'two', 'three', 'foo', 'baz']
 
 
 class test_LocalOrRemote(ClassChecker):
