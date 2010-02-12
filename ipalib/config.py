@@ -74,11 +74,11 @@ class Env(object):
     >>> env.BadName = 'Wont work as an attribute'
     Traceback (most recent call last):
       ...
-    ValueError: name must match '^[a-z][_a-z0-9]*[a-z0-9]$'; got 'BadName'
+    ValueError: name must match '^[a-z][_a-z0-9]*[a-z0-9]$|^[a-z]$'; got 'BadName'
     >>> env['BadName'] = 'Also wont work as a dictionary item'
     Traceback (most recent call last):
       ...
-    ValueError: name must match '^[a-z][_a-z0-9]*[a-z0-9]$'; got 'BadName'
+    ValueError: name must match '^[a-z][_a-z0-9]*[a-z0-9]$|^[a-z]$'; got 'BadName'
 
     The variable values can be ``str``, ``int``, or ``float`` instances, or the
     ``True``, ``False``, or ``None`` constants.  When the value provided is an

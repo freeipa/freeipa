@@ -216,7 +216,7 @@ def check_name(name):
     >>> check_name('MyName')
     Traceback (most recent call last):
       ...
-    ValueError: name must match '^[a-z][_a-z0-9]*[a-z0-9]$'; got 'MyName'
+    ValueError: name must match '^[a-z][_a-z0-9]*[a-z0-9]$|^[a-z]$'; got 'MyName'
 
     Also, this function will raise a ``TypeError`` if ``name`` is not an
     ``str`` instance.  For example:

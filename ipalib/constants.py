@@ -26,7 +26,7 @@ All constants centralised in one file.
 NULLS = (None, '', u'', tuple(), [])
 
 # regular expression NameSpace member names must match:
-NAME_REGEX = r'^[a-z][_a-z0-9]*[a-z0-9]$'
+NAME_REGEX = r'^[a-z][_a-z0-9]*[a-z0-9]$|^[a-z]$'
 
 # Format for ValueError raised when name does not match above regex:
 NAME_ERROR = 'name must match %r; got %r'

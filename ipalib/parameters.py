@@ -192,10 +192,6 @@ def parse_param_spec(spec):
         raise TypeError(
             TYPE_ERROR % ('spec', str, spec, type(spec))
         )
-    if len(spec) < 2:
-        raise ValueError(
-            'spec must be at least 2 characters; got %r' % spec
-        )
     _map = {
         '?': dict(required=False, multivalue=False),
         '*': dict(required=False, multivalue=True),

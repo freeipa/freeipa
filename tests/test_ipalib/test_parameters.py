@@ -134,10 +134,6 @@ def test_parse_param_spec():
     e = raises(TypeError, f, u'name?')
     assert str(e) == TYPE_ERROR % ('spec', str, u'name?', unicode)
 
-    # Test that ValueError is raised if len(spec) < 2:
-    e = raises(ValueError, f, 'n')
-    assert str(e) == "spec must be at least 2 characters; got 'n'"
-
 
 class DummyRule(object):
     def __init__(self, error=None):
