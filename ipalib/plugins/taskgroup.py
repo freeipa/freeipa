@@ -37,9 +37,9 @@ class taskgroup(LDAPObject):
     default_attributes = ['cn', 'description', 'member', 'memberof']
     attribute_names = {
         'cn': 'name',
-        'member user': 'member users',
-        'member group': 'member groups',
-        'member rolegroup': 'member rolegroups',
+        'member_user': 'member users',
+        'member_group': 'member groups',
+        'member_rolegroup': 'member rolegroups',
         # FIXME: 'memberof ???': 'member of ???'
     }
     attribute_members = {
@@ -61,6 +61,18 @@ class taskgroup(LDAPObject):
             cli_name='desc',
             label='Description',
             doc='taskgroup description',
+        ),
+        Str('member_group?',
+            label='Member Groups',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('member_user?',
+            label='Member Users',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('member_rolegroup?',
+            label='Member Role Groups',
+            flags=['no_create', 'no_update', 'no_search'],
         ),
     )
 

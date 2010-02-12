@@ -144,7 +144,6 @@ class textui(backend.Backend):
         Convert a binary value to base64. We know a value is binary
         if it is a python str type, otherwise it is a plain string.
         """
-        assert isinstance(value, basestring)
         if type(value) is str:
             return base64.b64encode(value)
         else:
@@ -231,15 +230,15 @@ class textui(backend.Backend):
 
         >>> items = [
         ...     ('in_server', True),
-        ...     ('mode', 'production'),
+        ...     ('mode', u'production'),
         ... ]
         >>> ui = textui()
         >>> ui.print_keyval(items)
           in_server = True
-          mode = 'production'
+          mode = u'production'
         >>> ui.print_keyval(items, indent=0)
         in_server = True
-        mode = 'production'
+        mode = u'production'
 
         Also see `textui.print_indented`.
         """
@@ -354,7 +353,11 @@ class textui(backend.Backend):
             if isinstance(value, (list, tuple)):
                 value = map(lambda v: self.encode_binary(v), value)
                 value = ', '.join(value)
-            self.print_indented(format % (label, value), indent)
+            if isinstance(value, dict):
+                self.print_indented(format % (label, ''), indent)
+                self.print_entry(value, params, indent=indent+1)
+            else:
+                self.print_indented(format % (label, value), indent)
 
 
     def print_dashed(self, string, above=True, below=True, indent=0, dash='-'):

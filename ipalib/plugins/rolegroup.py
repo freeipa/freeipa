@@ -36,11 +36,11 @@ class rolegroup(LDAPObject):
     default_attributes = ['cn', 'description', 'member', 'memberof']
     attribute_names = {
         'cn': 'name',
-        'member user': 'member users',
-        'member group': 'member groups',
-        'member host': 'member hosts',
-        'member hostgroup': 'member hostgroups',
-        'memberof taskgroup': 'member of taskgroup',
+        'member_user': 'member users',
+        'member_group': 'member groups',
+        'member_host': 'member hosts',
+        'member_hostgroup': 'member hostgroups',
+        'memberof_taskgroup': 'member of taskgroup',
     }
     attribute_members = {
         'member': ['user', 'group', 'host', 'hostgroup'],
@@ -61,6 +61,18 @@ class rolegroup(LDAPObject):
             cli_name='desc',
             label='Description',
             doc='A description of this rolegroup',
+        ),
+        Str('member_group?',
+            label='Member Groups',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('member_user?',
+            label='Member Users',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('memberof_taskgroup?',
+            label='Member of Task Groups',
+            flags=['no_create', 'no_update', 'no_search'],
         ),
     )
 

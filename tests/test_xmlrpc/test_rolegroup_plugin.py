@@ -150,7 +150,9 @@ class test_rolegroup(Declarative):
                     ),
                 ),
                 result={
-                    'member group': [group1],
+                    'cn': [rolegroup1],
+                    'description': [u'rolegroup desc 1'],
+                    'member_group': [group1],
                 }
             ),
         ),
@@ -166,7 +168,7 @@ class test_rolegroup(Declarative):
                     'dn': rolegroup1_dn,
                     'cn': [rolegroup1],
                     'description': [u'rolegroup desc 1'],
-                    'member group': [group1],
+                    'member_group': [group1],
                 },
             ),
         ),
@@ -181,11 +183,10 @@ class test_rolegroup(Declarative):
                 summary=u'1 rolegroup matched',
                 result=[
                     {
-                        # FIXME: find() should return 'dn' just like show()
                         #'dn': rolegroup1_dn,
                         'cn': [rolegroup1],
                         'description': [u'rolegroup desc 1'],
-                        'member group': [group1],
+                        'member_group': [group1],
                     },
                 ],
             ),
@@ -201,9 +202,10 @@ class test_rolegroup(Declarative):
                 summary=u'1 rolegroup matched',
                 result=[
                     {
+                        #'dn': rolegroup1_dn,
                         'cn': [rolegroup1],
                         'description': [u'rolegroup desc 1'],
-                        'member group': [group1],
+                        'member_group': [group1],
                     },
                 ],
             ),
@@ -237,9 +239,10 @@ class test_rolegroup(Declarative):
                 summary=u'1 rolegroup matched',
                 result=[
                     {
+                        #'dn': rolegroup1_dn,
                         'cn': [rolegroup1],
                         'description': [u'rolegroup desc 1'],
-                        'member group': [group1],
+                        'member_group': [group1],
                     },
                 ],
             ),
@@ -255,11 +258,13 @@ class test_rolegroup(Declarative):
                 summary=u'2 rolegroups matched',
                 result=[
                     {
+                        #'dn': rolegroup1_dn,
                         'cn': [rolegroup1],
                         'description': [u'rolegroup desc 1'],
-                        'member group': [group1],
+                        'member_group': [group1],
                     },
                     {
+                        #'dn': rolegroup2_dn,
                         'cn': [rolegroup2],
                         'description': [u'rolegroup desc 2'],
                     },
@@ -277,7 +282,9 @@ class test_rolegroup(Declarative):
                 value=rolegroup1,
                 summary=u'Modified rolegroup "test-rolegroup-1"',
                 result=dict(
+                    cn=[rolegroup1],
                     description=[u'New desc 1'],
+                    member_group=[group1],
                 ),
             ),
         ),
@@ -293,7 +300,7 @@ class test_rolegroup(Declarative):
                     'dn': rolegroup1_dn,
                     'cn': [rolegroup1],
                     'description': [u'New desc 1'],
-                    'member group': [group1],
+                    'member_group': [group1],
                 },
             ),
         ),
@@ -384,6 +391,7 @@ class test_rolegroup(Declarative):
                 summary=u'1 rolegroup matched',
                 result=[
                     {
+                        #'dn': rolegroup2_dn,
                         'cn': [rolegroup2],
                         'description': [u'rolegroup desc 2'],
                     },

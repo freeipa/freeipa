@@ -35,12 +35,12 @@ from ipalib.plugins.virtual import *
 from ipalib.plugins.service import split_principal
 import base64
 from ipalib.request import context
-from ipapython import dnsclient
 from pyasn1.error import PyAsn1Error
 import logging
 import traceback
 from ipalib.request import ugettext as _
 from ipalib.request import context
+from ipalib.output import Output
 
 def get_serial(certificate):
     """
@@ -184,6 +184,25 @@ class cert_request(VirtualCommand):
             default=False,
             autofill=True
         ),
+        Str('certificate?',
+            label='Certificate',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('subject?',
+            label='Subject',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('serial_number?',
+            label='Serial number',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+    )
+
+    has_output = (
+        Output('result',
+            type=dict,
+            doc='Dictionary mapping variable name to value',
+        ),
     )
 
     def execute(self, csr, **kw):
@@ -268,7 +287,11 @@ class cert_request(VirtualCommand):
             serial = get_serial(base64.b64encode(service['usercertificate'][0]))
             # revoke the certificate and remove it from the service
             # entry before proceeding
-            api.Command['cert_revoke'](unicode(serial), revocation_reason=4)
+            try:
+                api.Command['cert_revoke'](unicode(serial), revocation_reason=4)
+            except errors.NotImplementedError:
+                # some CA's might not implement revoke
+                pass
             api.Command['service_mod'](principal, usercertificate=None)
 
         # Request the certificate
@@ -299,7 +322,18 @@ class cert_status(VirtualCommand):
     Check status of a certificate signing request.
     """
 
-    takes_args = ('request_id')
+    takes_args = (
+        Str('request_id',
+            label='Request id',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+    )
+    takes_options = (
+        Str('cert_request_status?',
+            label='Request status',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+    )
     operation = "certificate status"
 
 
@@ -318,7 +352,19 @@ class cert_get(VirtualCommand):
     """
 
     takes_args = (Str('serial_number',
+                      label='Serial number',
                       doc='serial number in decimal or if prefixed with 0x in hexadecimal'))
+    takes_options = (
+        Str('certificate?',
+            label='Certificate',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('subject?',
+            label='Subject',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+    )
+
     operation="retrieve certificate"
 
     def execute(self, serial_number):
@@ -337,6 +383,12 @@ class cert_revoke(VirtualCommand):
 
     takes_args = (Str('serial_number',
                       doc='serial number in decimal or if prefixed with 0x in hexadecimal'))
+    takes_options = (
+        Flag('revoked?',
+            label='Revoked',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+    )
     operation = "revoke certificate"
 
     # FIXME: The default is 0.  Is this really an Int param?
@@ -366,6 +418,16 @@ class cert_remove_hold(VirtualCommand):
 
     takes_args = (Str('serial_number',
                       doc='serial number in decimal or if prefixed with 0x in hexadecimal'))
+    takes_options = (
+        Flag('unrevoked?',
+            label='Unrevoked',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('error_string?',
+            label='Error',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+    )
     operation = "certificate remove hold"
 
     def execute(self, serial_number, **kw):

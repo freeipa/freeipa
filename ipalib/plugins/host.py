@@ -54,8 +54,8 @@ class host(LDAPObject):
     object_class = ['ipaobject', 'nshost', 'ipahost', 'pkiuser', 'ipaservice']
     # object_class_config = 'ipahostobjectclasses'
     default_attributes = [
-        'fqdn', 'description', 'l', 'nshostlocation',
-        'nshardwareplatform', 'nsosversion', 'usercertificate',
+        'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
+        'nshardwareplatform', 'nsosversion', 'usercertificate', 'memberof',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_names = {
@@ -70,9 +70,9 @@ class host(LDAPObject):
         'enrolledby user': 'enrolled by',
         'krbprincipalname': 'kerberos principal',
         'ipauniqueid': 'unique identifier',
-        'memberof hostgroup': 'member of hostgroups',
-        'memberof netgroup': 'member of netgroups',
-        'memberof rolegroup': 'member of rolegroups',
+        'memberof_hostgroup': 'member of hostgroups',
+        'memberof_netgroup': 'member of netgroups',
+        'memberof_rolegroup': 'member of rolegroups',
     }
     attribute_members = {
         'enrolledby': ['user'],
@@ -93,7 +93,7 @@ class host(LDAPObject):
             label='Description',
             doc='Description of the host',
         ),
-        Str('locality?',
+        Str('l?',
             cli_name='locality',
             label='Locality',
             doc='Locality of the host (Baltimore, MD)',
@@ -121,6 +121,22 @@ class host(LDAPObject):
         Bytes('usercertificate?', validate_certificate,
             cli_name='certificate',
             doc='base-64 encoded server certificate',
+        ),
+        Str('krbprincipalname?',
+            label='Principal Name',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('memberof_hostgroup?',
+            label='Member of Host Groups',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('memberof_netgroup?',
+            label='Member Net Groups',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('memberof_rolegroup?',
+            label='Member of Role Groups',
+            flags=['no_create', 'no_update', 'no_search'],
         ),
     )
 

@@ -38,7 +38,7 @@ class user(LDAPObject):
     object_class_config = 'ipauserobjectclasses'
     default_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell', 'ou',
-        'telephonenumber', 'title',
+        'telephonenumber', 'title', 'memberof',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_names = {
@@ -53,10 +53,10 @@ class user(LDAPObject):
         'krbpasswordexpiration': 'password expiration',
         'uidnumber': 'uid number',
         'gidnumber': 'gid number',
-        'memberof group': 'member of groups',
-        'memberof netgroup': 'member of netgroups',
-        'memberof rolegroup': 'member of rolegroups',
-        'memberof taskgroup': 'member of taskgroups',
+        'memberof_group': 'member of groups',
+        'memberof_netgroup': 'member of netgroups',
+        'memberof_rolegroup': 'member of rolegroups',
+        'memberof_taskgroup': 'member of taskgroups',
         'ipauniqueid': 'unique identifier'
     }
     attribute_order = [
@@ -127,6 +127,10 @@ class user(LDAPObject):
         Str('street?',
             cli_name='street',
             label='Street address',
+        ),
+        Str('memberof_group?',
+            label='Groups',
+            flags=['no_create', 'no_update', 'no_search'],
         ),
     )
 

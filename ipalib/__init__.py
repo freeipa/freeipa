@@ -584,9 +584,9 @@ For example, say we setup a command like this:
 ...
 ...     def execute(self, key, **options):
 ...         items = dict(
-...             fruit='apple',
-...             pet='dog',
-...             city='Berlin',
+...             fruit=u'apple',
+...             pet=u'dog',
+...             city=u'Berlin',
 ...         )
 ...         if key in items:
 ...             return dict(result=items[key])
@@ -627,9 +627,9 @@ through the ``ipa`` script basically will do the following:
 -----------
 show-items:
 -----------
-  city = 'Berlin'
-  fruit = 'apple'
-  pet = 'dog'
+  city = u'Berlin'
+  fruit = u'apple'
+  pet = u'dog'
 -------
 3 items
 -------
@@ -641,9 +641,9 @@ Similarly, calling it with ``reverse=True``  would result in the following:
 -----------
 show-items:
 -----------
-  pet = 'dog'
-  fruit = 'apple'
-  city = 'Berlin'
+  pet = u'dog'
+  fruit = u'apple'
+  city = u'Berlin'
 --------------------------
 3 items (in reverse order)
 --------------------------
@@ -652,7 +652,7 @@ Lastly, providing a ``key`` would result in the following:
 
 >>> result = api.Command.show_items(u'city')
 >>> api.Command.show_items.output_for_cli(textui, result, 'city', reverse=False)
-city = 'Berlin'
+city = u'Berlin'
 
 See the `ipalib.cli.textui` plugin for a description of its methods.
 

@@ -123,12 +123,14 @@ class service(LDAPObject):
 
     takes_params = (
         Str('krbprincipalname', validate_principal,
+            label='Principal',
             cli_name='principal',
             doc='service principal',
             primary_key=True,
             normalizer=lambda value: normalize_principal(value),
         ),
         Bytes('usercertificate?', validate_certificate,
+            label='Certificate',
             cli_name='certificate',
             doc='base-64 encoded server certificate',
         ),
@@ -141,6 +143,7 @@ class service_add(LDAPCreate):
     """
     Add new service.
     """
+    msg_summary = _('Added service "%(value)s"')
     member_attributes = ['managedby']
     takes_options = (
         Flag('force',
@@ -187,6 +190,7 @@ class service_del(LDAPDelete):
     """
     Delete an existing service.
     """
+    msg_summary = _('Deleted service "%(value)s"')
     member_attributes = ['managedby']
     def pre_callback(self, ldap, dn, *keys, **options):
         if self.api.env.enable_ra:

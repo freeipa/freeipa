@@ -70,7 +70,6 @@ class test_user(Declarative):
                 value=user1,
                 summary=u'Added user "tuser1"',
                 result=dict(
-                    cn=[u'Test User1'],
                     gecos=[user1],
                     givenname=[u'Test'],
                     homedirectory=[u'/home/tuser1'],
@@ -79,7 +78,6 @@ class test_user(Declarative):
                     objectclass=objectclasses.user,
                     sn=[u'User1'],
                     uid=[user1],
-                    gidnumber=[fuzzy_digits],
                     ipauniqueid=[fuzzy_uuid],
                     dn=u'uid=tuser1,cn=users,cn=accounts,' + api.env.basedn,
                 ),
@@ -109,6 +107,7 @@ class test_user(Declarative):
                     loginshell=[u'/bin/sh'],
                     sn=[u'User1'],
                     uid=[user1],
+                    memberof_group=[u'ipausers'],
                 ),
                 value=user1,
                 summary=None,
@@ -124,13 +123,14 @@ class test_user(Declarative):
             expected=dict(
                 result=[
                     {
+                        #'dn': u'uid=user1,cn=users,cn=accounts,' + api.env.basedn,
                         'cn': [u'Test User1'],
                         'gecos': [user1],
                         'givenname': [u'Test'],
                         'homedirectory': [u'/home/tuser1'],
                         'krbprincipalname': [u'tuser1@' + api.env.realm],
                         'loginshell': [u'/bin/sh'],
-                        'memberof group': [u'ipausers'],
+                        'memberof_group': [u'ipausers'],
                         'objectclass': objectclasses.user,
                         'sn': [u'User1'],
                         'uid': [user1],
@@ -140,8 +140,7 @@ class test_user(Declarative):
                     },
                 ],
                 summary=u'1 user matched',
-                count=1,
-                truncated=False,
+                count=1, truncated=False,
             ),
         ),
 
@@ -154,11 +153,13 @@ class test_user(Declarative):
             expected=dict(
                 result=[
                     dict(
+                        #dn=u'uid=tuser1,cn=users,cn=accounts,' + api.env.basedn,
                         givenname=[u'Test'],
                         homedirectory=[u'/home/tuser1'],
                         loginshell=[u'/bin/sh'],
                         sn=[u'User1'],
                         uid=[user1],
+                        memberof_group=[u'ipausers'],
                     ),
                 ],
                 summary=u'1 user matched',
@@ -176,17 +177,21 @@ class test_user(Declarative):
             expected=dict(
                 result=[
                     dict(
+                        #dn=u'uid=admin,cn=users,cn=accounts,' + api.env.basedn,
                         homedirectory=[u'/home/admin'],
                         loginshell=[u'/bin/bash'],
                         sn=[u'Administrator'],
                         uid=[u'admin'],
+                        memberof_group=[u'admins'],
                     ),
                     dict(
+                        #dn=u'uid=tuser1,cn=users,cn=accounts,' + api.env.basedn,
                         givenname=[u'Test'],
                         homedirectory=[u'/home/tuser1'],
                         loginshell=[u'/bin/sh'],
                         sn=[u'User1'],
                         uid=[user1],
+                        memberof_group=[u'ipausers'],
                     ),
                 ],
                 summary=u'2 users matched',
@@ -230,6 +235,11 @@ class test_user(Declarative):
             expected=dict(
                 result=dict(
                     givenname=[u'Finkle'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[user1],
+                    memberof_group=[u'ipausers'],
                 ),
                 summary=u'Modified user "tuser1"',
                 value=user1,
@@ -248,6 +258,7 @@ class test_user(Declarative):
                     loginshell=[u'/bin/sh'],
                     sn=[u'User1'],
                     uid=[user1],
+                    memberof_group=[u'ipausers'],
                 ),
                 summary=None,
                 value=user1,

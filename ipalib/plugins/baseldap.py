@@ -102,7 +102,7 @@ class LDAPObject(Object):
                 for ldap_obj_name in self.attribute_members[attr]:
                     ldap_obj = self.api.Object[ldap_obj_name]
                     if member.find(ldap_obj.container_dn) > 0:
-                        new_attr = '%s %s' % (attr, ldap_obj.object_name)
+                        new_attr = '%s_%s' % (attr, ldap_obj.object_name)
                         entry_attrs.setdefault(new_attr, []).append(
                             ldap_obj.get_primary_key_from_dn(member)
                         )
@@ -521,13 +521,13 @@ class LDAPAddMember(LDAPModMember):
 
     has_output = (
         output.Entry('result'),
-        output.Output('completed',
-            type=int,
-            doc='Number of members added',
-        ),
         output.Output('failed',
             type=dict,
             doc='Members that could not be added',
+        ),
+        output.Output('completed',
+            type=int,
+            doc='Number of members added',
         ),
     )
 
@@ -557,7 +557,7 @@ class LDAPAddMember(LDAPModMember):
                     else:
                         completed += 1
 
-        (dn, entry_attrs) = ldap.get_entry(dn, member_dns.keys())
+        (dn, entry_attrs) = ldap.get_entry(dn, member_dns.keys()+self.obj.default_attributes)
 
         (completed, dn) = self.post_callback(
             ldap, completed, failed, dn, entry_attrs, *keys, **options

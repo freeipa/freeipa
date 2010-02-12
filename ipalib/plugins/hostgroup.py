@@ -37,9 +37,9 @@ class hostgroup(LDAPObject):
     uuid_attribute = 'ipauniqueid'
     attribute_names = {
         'cn': 'names',
-        'member host': 'member hosts',
-        'member hostgroup': 'member hostgroups',
-        'memberof hostgroup': 'member of hostgroup',
+        'member_host': 'member hosts',
+        'member_hostgroup': 'member hostgroups',
+        'memberof_hostgroup': 'member of hostgroup',
     }
     attribute_members = {
         'member': ['host', 'hostgroup'],
@@ -60,6 +60,18 @@ class hostgroup(LDAPObject):
             cli_name='desc',
             label='Description',
             doc='A description of this group',
+        ),
+        Str('member_host?',
+            label='Member Hosts',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('member_hostgroup?',
+            label='Member Host Groups',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('memberof_hostgroup?',
+            label='Member of Hostgroups',
+            flags=['no_create', 'no_update', 'no_search'],
         ),
     )
 

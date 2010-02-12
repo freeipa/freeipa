@@ -824,16 +824,27 @@ class Command(HasParam):
         result = output.get('result')
         summary = output.get('summary')
 
-        if (summary and isinstance(result, (list, tuple, dict)) and result):
-            textui.print_name(self.name)
+        for o in self.output:
+            if 'no_display' in self.output[o].flags:
+                continue
+            result = output[o]
 
-        if isinstance(result, (tuple, list)):
-            textui.print_entries(result, self.output_params)
-        elif isinstance(result, dict):
-            textui.print_entry(result, self.output_params)
+            if isinstance(result, (tuple, list)):
+                textui.print_entries(result, self.output_params)
+            elif isinstance(result, dict):
+                textui.print_entry(result, self.output_params)
+            elif isinstance(result, unicode):
+                if o == 'summary':
+                    textui.print_summary(result)
+                else:
+                    textui.print_indented(result)
+            elif isinstance(result, bool):
+                # the Delete commands return a boolean indicating
+                # success or failure. Ignore these.
+                pass
+            elif isinstance(result, int):
+                textui.print_count(result, '%s %%d' % self.output[o].doc)
 
-        if isinstance(summary, unicode):
-            textui.print_summary(summary)
 
 
 class LocalOrRemote(Command):

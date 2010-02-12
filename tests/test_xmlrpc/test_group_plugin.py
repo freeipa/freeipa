@@ -110,6 +110,7 @@ class test_group(Declarative):
             ),
             expected=dict(
                 result=dict(
+                    cn=[group1],
                     description=[u'New desc 1'],
                 ),
                 summary=u'Modified group "testgroup1"',
@@ -143,8 +144,6 @@ class test_group(Declarative):
                 result=dict(
                     cn=[group1],
                     description=[u'New desc 1'],
-                    objectclass=objectclasses.group + [u'posixgroup'],
-                    ipauniqueid=[fuzzy_uuid],
                     gidnumber=[fuzzy_digits],
                 ),
                 value=group1,
@@ -177,6 +176,7 @@ class test_group(Declarative):
                 truncated=False,
                 result=[
                     dict(
+                        #dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
                         cn=[group1],
                         description=[u'New desc 1'],
                         gidnumber=[fuzzy_digits],
@@ -261,6 +261,7 @@ class test_group(Declarative):
             ),
             expected=dict(
                 result=dict(
+                    cn=[group2],
                     description=[u'New desc 2'],
                 ),
                 summary=u'Modified group "testgroup2"',
@@ -292,6 +293,7 @@ class test_group(Declarative):
                 truncated=False,
                 result=[
                     dict(
+                        #dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group2, api.env.basedn),
                         cn=[group2],
                         description=[u'New desc 2'],
                     ),
@@ -310,27 +312,32 @@ class test_group(Declarative):
                 truncated=False,
                 result=[
                     {
-                        'member user': [u'admin'],
+                        #'dn': u'cn=admins,cn=groups,cn=accounts,%s' % api.env.basedn,
+                        'member_user': [u'admin'],
                         'gidnumber': [fuzzy_digits],
                         'cn': [u'admins'],
                         'description': [u'Account administrators group'],
                     },
                     {
+                        #'dn': u'cn=ipausers,cn=groups,cn=accounts,%s' % api.env.basedn,
                         'gidnumber': [fuzzy_digits],
                         'cn': [u'ipausers'],
                         'description': [u'Default group for all users'],
                     },
                     {
+                        #'dn': u'cn=editors,cn=groups,cn=accounts,%s' % api.env.basedn,
                         'gidnumber': [fuzzy_digits],
                         'cn': [u'editors'],
                         'description': [u'Limited admins who can edit other users'],
                     },
                     dict(
+                        #dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
                         cn=[group1],
                         description=[u'New desc 1'],
                         gidnumber=[fuzzy_digits],
                     ),
                     dict(
+                        #dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group2, api.env.basedn),
                         cn=[group2],
                         description=[u'New desc 2'],
                     ),
@@ -355,7 +362,11 @@ class test_group(Declarative):
                         user=tuple(),
                     ),
                 ),
-                result={'member group': (group2,)},
+                result={'member_group': (group2,),
+                        'gidnumber': [fuzzy_digits],
+                        'cn': [group1],
+                        'description': [u'New desc 1'],
+                },
             ),
         ),
 
@@ -373,7 +384,11 @@ class test_group(Declarative):
                         user=tuple(),
                     ),
                 ),
-                result={'member group': (group2,)},
+                result={'member_group': (group2,),
+                        'gidnumber': [fuzzy_digits],
+                        'cn': [group1],
+                        'description': [u'New desc 1'],
+                },
             ),
         ),
 

@@ -178,8 +178,8 @@ class test_hbac(XMLRPC_test):
         assert 'group' in failed['memberuser']
         assert not failed['memberuser']['group']
         entry = ret['result']
-        assert_attr_equal(entry, 'memberuser user', self.test_user)
-        assert_attr_equal(entry, 'memberuser group', self.test_group)
+        assert_attr_equal(entry, 'memberuser_user', self.test_user)
+        assert_attr_equal(entry, 'memberuser_group', self.test_group)
 
     def test_9_hbac_remove_user(self):
         """
@@ -196,8 +196,8 @@ class test_hbac(XMLRPC_test):
         assert 'group' in failed['memberuser']
         assert not failed['memberuser']['group']
         entry = ret['result']
-        assert 'memberuser user' not in entry
-        assert 'memberuser group' not in entry
+        assert 'memberuser_user' not in entry
+        assert 'memberuser_group' not in entry
 
     def test_a_hbac_add_host(self):
         """
@@ -214,8 +214,8 @@ class test_hbac(XMLRPC_test):
         assert 'hostgroup' in failed['memberhost']
         assert not failed['memberhost']['hostgroup']
         entry = ret['result']
-        assert_attr_equal(entry, 'memberhost host', self.test_host)
-        assert_attr_equal(entry, 'memberhost hostgroup', self.test_hostgroup)
+        assert_attr_equal(entry, 'memberhost_host', self.test_host)
+        assert_attr_equal(entry, 'memberhost_hostgroup', self.test_hostgroup)
 
     def test_b_hbac_remove_host(self):
         """
@@ -232,8 +232,8 @@ class test_hbac(XMLRPC_test):
         assert 'hostgroup' in failed['memberhost']
         assert not failed['memberhost']['hostgroup']
         entry = ret['result']
-        assert 'memberhost host' not in res[1]
-        assert 'memberhost hostgroup' not in res[1]
+        assert 'memberhost_host' not in res[1]
+        assert 'memberhost_hostgroup' not in res[1]
 
     def test_a_hbac_add_sourcehost(self):
         """
@@ -250,8 +250,8 @@ class test_hbac(XMLRPC_test):
         assert 'hostgroup' in failed['sourcehost']
         assert not failed['sourcehost']['hostgroup']
         entry = ret['result']
-        assert_attr_equal(entry, 'sourcehost host', self.test_host)
-        assert_attr_equal(entry, 'sourcehost hostgroup', self.test_hostgroup)
+        assert_attr_equal(entry, 'sourcehost_host', self.test_host)
+        assert_attr_equal(entry, 'sourcehost_hostgroup', self.test_hostgroup)
 
     def test_b_hbac_remove_host(self):
         """

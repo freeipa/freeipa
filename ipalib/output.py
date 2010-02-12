@@ -29,18 +29,55 @@ from plugable import ReadOnly, lock
 class Output(ReadOnly):
     """
     Simple description of a member in the return value ``dict``.
+
+    This class controls both the type of object being returned by
+    a command as well as how the output will be displayed.
+
+    For example, this class defines two return results: an entry
+    and a value.
+
+    >>> from ipalib import crud, output
+    >>> class user(crud.Update):
+    ...
+    ...     has_output = (
+    ...         output.Entry('result'),
+    ...         output.value,
+    ...     )
+
+    The order of the values in has_output controls the order of output.
+    If you have values that you don't want to be printed then add
+    ``'no_display'`` to flags.
+
+    The difference between ``'no_dipslay`` and ``'no_output'`` is
+    that ``'no_output`` will prevent a Param value from being returned
+    at all. ``'no_display'`` will cause the API to return a value, it
+    simply won't be displayed to the user. This is so some things may
+    be returned that while not interesting to us, but may be to others.
+
+    >>> from ipalib import crud, output
+    >>> myvalue = output.Output('myvalue', unicode,
+    ...     'Do not print this value', flags=['no_display'],
+    ... )
+    >>> class user(crud.Update):
+    ...
+    ...     has_output = (
+    ...         output.Entry('result'),
+    ...         myvalue,
+    ...     )
     """
 
     type = None
     validate = None
     doc = None
+    flags = []
 
-    def __init__(self, name, type=None, doc=None):
+    def __init__(self, name, type=None, doc=None, flags=[]):
         self.name = name
         if type is not None:
             self.type = type
         if doc is not None:
             self.doc = doc
+        self.flags = flags
         lock(self)
 
     def __repr__(self):
@@ -77,28 +114,29 @@ summary = Output('summary', (unicode, NoneType),
 )
 
 value = Output('value', unicode,
-    "The primary_key value of the entry, e.g. 'jdoe' for a user"
+    "The primary_key value of the entry, e.g. 'jdoe' for a user",
+    flags=['no_display'],
 )
 
-standard = (result, summary)
+standard = (summary, result)
 
 standard_entry = (
+    summary,
     Entry('result'),
     value,
-    summary,
 )
 
 standard_list_of_entries = (
+    summary,
     ListOfEntries('result'),
     Output('count', int, 'Number of entries returned'),
     Output('truncated', bool, 'True if not all results were returned'),
-    summary,
 )
 
 standard_delete = (
+    summary,
     Output('result', bool, 'True means the operation was successful'),
     value,
-    summary,
 )
 
 standard_value = standard_delete

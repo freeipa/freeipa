@@ -34,22 +34,21 @@ class netgroup(LDAPObject):
     object_name = 'netgroup'
     object_name_plural = 'netgroups'
     object_class = ['ipaobject', 'ipaassociation', 'ipanisnetgroup']
-    default_attributes = ['cn', 'description', 'member', 'memberof']
+    default_attributes = ['cn', 'description', 'member', 'memberof', 'externalhost']
     uuid_attribute = 'ipauniqueid'
     attribute_names = {
         'cn': 'name',
-        'member user': 'member users',
-        'member group': 'member groups',
-        'member host': 'member hosts',
-        'member hostgroup': 'member hostgroups',
-        'member netgroup': 'member netgroups',
-        'memberof netgroup': 'member of netgroups',
-        'externalhost': 'external hosts',
+        'member_user': 'member users',
+        'member_group': 'member groups',
+        'member_host': 'member hosts',
+        'member_hostgroup': 'member hostgroups',
+        'member_netgroup': 'member netgroups',
+        'memberof_netgroup': 'member of netgroups',
+        'externalhost': 'externalhost',
     }
     attribute_members = {
         'member': ['user', 'group', 'host', 'hostgroup', 'netgroup'],
         'memberof': ['netgroup'],
-        'externalhost': [],
     }
 
     label = _('Net Groups')
@@ -71,6 +70,14 @@ class netgroup(LDAPObject):
             cli_name='nisdomain',
             label='NIS domain name',
             doc='NIS domain name',
+        ),
+        Str('member_host?',
+            label='Member Host',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('externalhost?',
+            label='External Host',
+            flags=['no_create', 'no_update', 'no_search'],
         ),
     )
 

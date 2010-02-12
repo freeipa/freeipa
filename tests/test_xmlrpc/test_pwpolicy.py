@@ -148,17 +148,3 @@ class test_pwpolicy(XMLRPC_test):
 
         # Remove the user we created
         api.Command['user_del'](self.user)
-
-    def test_a_pwpolicy_del(self):
-        """
-        Remove the second test policy with `xmlrpc.pwpolicy_del`.
-        """
-        assert api.Command['pwpolicy_del'](group=self.group2)['result'] is True
-
-        # Verify that it is gone
-        try:
-            api.Command['pwpolicy_show'](group=self.group2)
-        except errors.NotFound:
-            pass
-        else:
-            assert False

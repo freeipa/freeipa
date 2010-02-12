@@ -65,7 +65,7 @@ class test_host(Declarative):
             command=('host_add', [fqdn1],
                 dict(
                     description=u'Test host 1',
-                    localityname=u'Undisclosed location 1',
+                    l=u'Undisclosed location 1',
                 ),
             ),
             expected=dict(
@@ -73,14 +73,11 @@ class test_host(Declarative):
                 summary=u'Added host "%s"' % fqdn1,
                 result=dict(
                     dn=dn1,
-                    cn=[fqdn1],  # FIXME: we should only return fqdn
                     fqdn=[fqdn1],
                     description=[u'Test host 1'],
-                    localityname=[u'Undisclosed location 1'],
+                    l=[u'Undisclosed location 1'],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    serverhostname=[u'testhost1'],
                     objectclass=objectclasses.host,
-                    managedby=[dn1],
                     ipauniqueid=[fuzzy_uuid],
                 ),
             ),
@@ -109,7 +106,8 @@ class test_host(Declarative):
                     dn=dn1,
                     fqdn=[fqdn1],
                     description=[u'Test host 1'],
-                    localityname=[u'Undisclosed location 1'],
+                    l=[u'Undisclosed location 1'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                 ),
             ),
         ),
@@ -150,9 +148,11 @@ class test_host(Declarative):
                 summary=u'1 host matched',
                 result=[
                     dict(
+                        #dn=dn1,
                         fqdn=[fqdn1],
                         description=[u'Test host 1'],
-                        localityname=[u'Undisclosed location 1'],
+                        l=[u'Undisclosed location 1'],
+                        krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                     ),
                 ],
             ),
@@ -195,6 +195,9 @@ class test_host(Declarative):
                 summary=u'Modified host "%s"' % fqdn1,
                 result=dict(
                     description=[u'Updated host 1'],
+                    fqdn=[fqdn1],
+                    l=[u'Undisclosed location 1'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                 ),
             ),
         ),
@@ -210,7 +213,8 @@ class test_host(Declarative):
                     dn=dn1,
                     fqdn=[fqdn1],
                     description=[u'Updated host 1'],
-                    localityname=[u'Undisclosed location 1'],
+                    l=[u'Undisclosed location 1'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                 ),
             ),
         ),

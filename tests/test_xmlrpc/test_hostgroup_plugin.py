@@ -98,7 +98,7 @@ class test_hostgroup(Declarative):
             command=('host_add', [fqdn1],
                 dict(
                     description=u'Test host 1',
-                    localityname=u'Undisclosed location 1',
+                    l=u'Undisclosed location 1',
                 ),
             ),
             expected=dict(
@@ -106,14 +106,11 @@ class test_hostgroup(Declarative):
                 summary=u'Added host "%s"' % fqdn1,
                 result=dict(
                     dn=host_dn1,
-                    cn=[fqdn1],  # FIXME: we should only return fqdn
                     fqdn=[fqdn1],
                     description=[u'Test host 1'],
-                    localityname=[u'Undisclosed location 1'],
+                    l=[u'Undisclosed location 1'],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    serverhostname=[u'testhost1'],
                     objectclass=objectclasses.host,
-                    managedby=[host_dn1],
                     ipauniqueid=[fuzzy_uuid],
                 ),
             ),
@@ -134,7 +131,9 @@ class test_hostgroup(Declarative):
                     ),
                 ),
                 result={
-                    'member host': [fqdn1],
+                    'cn': [hostgroup1],
+                    'description': [u'Test hostgroup 1'],
+                    'member_host': [fqdn1],
                 },
             ),
         ),
@@ -148,7 +147,7 @@ class test_hostgroup(Declarative):
                 summary=None,
                 result={
                     'dn': dn1,
-                    'member host': [u'testhost1.%s' % api.env.domain],
+                    'member_host': [u'testhost1.%s' % api.env.domain],
                     'cn': [hostgroup1],
                     'description': [u'Test hostgroup 1'],
                 },
@@ -165,7 +164,8 @@ class test_hostgroup(Declarative):
                 summary=u'1 hostgroup matched',
                 result=[
                     {
-                        'member host': [u'testhost1.%s' % api.env.domain],
+                        #'dn': dn1,
+                        'member_host': [u'testhost1.%s' % api.env.domain],
                         'cn': [hostgroup1],
                         'description': [u'Test hostgroup 1'],
                     },
@@ -183,7 +183,9 @@ class test_hostgroup(Declarative):
                 value=hostgroup1,
                 summary=u'Modified hostgroup "testhostgroup1"',
                 result=dict(
+                    cn=[hostgroup1],
                     description=[u'Updated hostgroup 1'],
+                    member_host=[u'testhost1.%s' % api.env.domain],
                 ),
             ),
         ),
@@ -197,7 +199,7 @@ class test_hostgroup(Declarative):
                 summary=None,
                 result={
                     'dn': dn1,
-                    'member host': [u'testhost1.%s' % api.env.domain],
+                    'member_host': [u'testhost1.%s' % api.env.domain],
                     'cn': [hostgroup1],
                     'description': [u'Updated hostgroup 1'],
                 },
