@@ -121,6 +121,9 @@ class automountlocation_add(LDAPCreate):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         # create auto.master for the new location
         self.api.Command['automountmap_add'](keys[-1], u'auto.master')
+        self.api.Command['automountmap_add_indirect'](
+            keys[-1], u'auto.direct', key=u'/-'
+        )
         return dn
 
 api.register(automountlocation_add)

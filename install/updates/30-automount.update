@@ -4,15 +4,19 @@ dn: cn=automount,$SUFFIX
 add:objectClass: nsContainer
 add:cn: automount
 
-dn: automountmapname=auto.master,cn=automount,$SUFFIX
+dn: cn=default,cn=automount,$SUFFIX
+add:objectClass: nsContainer
+add:cn: automount
+
+dn: automountmapname=auto.master,cn=default,cn=automount,$SUFFIX
 add:objectClass: automountMap
 add:automountMapName: auto.master
 
-dn: automountkey=/-,automountmapname=auto.master,cn=automount,$SUFFIX
+dn: automountmapname=auto.direct,cn=default,cn=automount,$SUFFIX
+add:objectClass: automountMap
+add:automountMapName: auto.direct
+
+dn: automountkey=/-,automountmapname=auto.master,cn=default,cn=automount,$SUFFIX
 add:objectClass: automount
 add:automountKey: '/-'
 add:automountInformation: auto.direct
-
-dn: automountmapname=auto.direct,cn=automount,$SUFFIX
-add:objectClass: automountMap
-add:automountMapName: auto.direct
