@@ -107,6 +107,7 @@ class automountlocation(LDAPObject):
     takes_params = (
         Str('cn',
             cli_name='location',
+            label='Location',
             doc='automount location name',
             primary_key=True,
         ),
@@ -162,37 +163,44 @@ class automountlocation_tofiles(LDAPQuery):
         ldap = self.obj.backend
 
         maps = []
-        (maps, truncated) = self.api.Command['automountkey_find'](
+        result = self.api.Command['automountkey_find'](
             cn=args[0], automountmapname=u'auto.master'
         )
+        truncated = result['truncated']
+        maps = result['result']
+
+        # maps, truncated
         # TODO: handle truncated results
         #       ?use ldap.find_entries instead of automountkey_find?
 
         keys = {}
-        for (dn, m) in maps:
+        for m in maps:
             info = m['automountinformation'][0]
-            (keys[info], truncated) = self.api.Command['automountkey_find'](
+            result = self.api.Command['automountkey_find'](
                 cn=args[0], automountmapname=info
             )
+            truncated = result['truncated']
+            keys[info] = result['result']
             # TODO: handle truncated results, same as above
 
-        return (maps, keys)
+        return dict(result=dict(maps=maps, keys=keys))
 
     def output_for_cli(self, textui, result, *keys, **options):
-        (maps, keys) = result
+        maps = result['result']['maps']
+        keys = result['result']['keys']
 
         textui.print_plain('/etc/auto.master:')
-        for (dn, m) in maps:
+        for m in maps:
             textui.print_plain(
                 '%s\t/etc/%s' % (
                     m['automountkey'][0], m['automountinformation'][0]
                 )
             )
-        for (dn, m) in maps:
+        for m in maps:
             info = m['automountinformation'][0]
             textui.print_plain('---------------------------')
             textui.print_plain('/etc/%s:' % info)
-            for (dn, k) in keys[info]:
+            for k in keys[info]:
                 textui.print_plain(
                     '%s\t%s' % (
                         k['automountkey'][0], k['automountinformation'][0]
@@ -219,11 +227,13 @@ class automountmap(LDAPObject):
     takes_params = (
         Str('automountmapname',
             cli_name='map',
+            label='Map',
             primary_key=True,
             doc='automount map name',
         ),
         Str('description?',
             cli_name='desc',
+            label='Description',
             doc='description',
         ),
     )
