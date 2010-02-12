@@ -555,8 +555,11 @@ def uuid4():
 
 def uuid5(namespace, name):
     """Generate a UUID from the SHA-1 hash of a namespace UUID and a name."""
-    import sha
-    hash = sha.sha(namespace.bytes + name).digest()
+    try:
+        from hashlib import sha1 as sha
+    except ImportError:
+        from sha import sha
+    hash = sha(namespace.bytes + name).digest()
     return UUID(bytes=hash[:16], version=5)
 
 # The following standard UUIDs are for use with uuid3() or uuid5().
