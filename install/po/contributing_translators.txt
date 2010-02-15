@@ -1,0 +1,6 @@
+pl: Polish
+    Piotr Drąg <piotrdrag@gmail.com>
+id: Indonesian
+    Teguh DC <dheche@songolimo.net>
+kn: Kannada
+    gundachandru <gundachandru@gmail.com>
