@@ -91,7 +91,7 @@ get_config_entry(char * in_data, const char *section, const char *key)
     if (NULL == in_data)
         return NULL;
     else
-        strdup(in_data);
+        data = strdup(in_data);
 
     for (line = strtok_r(data, "\n", &ptr); line != NULL;
          line = strtok_r(NULL, "\n", &ptr)) {
@@ -156,5 +156,6 @@ get_config_entry(char * in_data, const char *section, const char *key)
             }
         }
     }
+    free(data);
     return NULL;
 }
