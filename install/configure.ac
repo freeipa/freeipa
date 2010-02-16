@@ -20,6 +20,8 @@ AM_MAINTAINER_MODE
 AC_SUBST(VERSION)
 
 AC_PROG_MKDIR_P
+AC_PROG_AWK
+AC_PROG_SED
 
 AC_PATH_PROG(XGETTEXT, xgettext, [no])
 if test "x$XGETTEXT" = "xno"; then
@@ -40,6 +42,11 @@ AC_PATH_PROG(MSGMERGE, msgmerge, [no])
 if test "x$MSGMERGE" = "xno"; then
     AC_MSG_ERROR([msgmerge not found, install gettext])
 fi                                                                       
+
+AC_PATH_PROG(MSGCMP, msgcmp, [no])
+if test "x$MSGCMP" = "xno"; then
+    AC_MSG_ERROR([msgcmp not found, install gettext])
+fi
 
 AC_ARG_WITH([gettext_domain],
   [AS_HELP_STRING([--with-gettext-domain=name],

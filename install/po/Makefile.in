@@ -6,11 +6,14 @@ localedir = ${datarootdir}/locale
 
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL@ -m 644
+AWK = @AWK@
+SED = @SED@
 MKDIR_P = @MKDIR_P@
 XGETTEXT = @XGETTEXT@
 MSGFMT = @MSGFMT@
 MSGINIT = @MSGINIT@
 MSGMERGE = @MSGMERGE@
+MSGCMP = @MSGCMP@
 
 DOMAIN = @GETTEXT_DOMAIN@
 MSGMERGE_UPDATE = $(MSGMERGE) --update
@@ -24,7 +27,7 @@ XGETTEXT_OPTIONS = \
 --package-name="$(PACKAGE_NAME)" \
 --msgid-bugs-address="$(PACKAGE_BUGREPORT)"
 
-languages = $(shell sed 's/\#.*//' LINGUAS) # The sed command removes comments
+languages = $(shell $(SED) 's/\#.*//' LINGUAS) # The sed command removes comments
 po_files = $(patsubst %, %.po, $(languages))
 mo_files = $(patsubst %.po, %.mo, $(po_files))
 
@@ -167,7 +170,7 @@ SUFFIXES = .po .mo
 
 $(po_files): $(DOMAIN).pot
 	@if [ ! -f @a ]; then \
-	    lang=`echo $@ | sed -r -e 's/\.po$$//'` # Strip .po suffix ; \
+	    lang=`echo $@ | $(SED) -r -e 's/\.po$$//'` # Strip .po suffix ; \
 	    echo Creating nonexistent $@, you should add this file to your SCM repository; \
 	    $(MSGINIT) --locale $$lang --no-translator -i $(DOMAIN).pot -o $@; \
 	fi; \
@@ -176,7 +179,7 @@ $(po_files): $(DOMAIN).pot
 create-po: $(DOMAIN).pot
 	@for po_file in $(po_files); do \
 	    if [ ! -e $$po_file ]; then \
-	        lang=`echo $$po_file | sed -r -e 's/\.po$$//'` # Strip .po suffix ; \
+	        lang=`echo $$po_file | $(SED) -r -e 's/\.po$$//'` # Strip .po suffix ; \
 	        echo Creating nonexistent $$po_file, you should add this file to your SCM repository; \
 	        $(MSGINIT) --locale $$lang --no-translator -i $(DOMAIN).pot -o $$po_file; \
 	    fi; \
@@ -204,8 +207,26 @@ update-pot:
 	mv $(DOMAIN).pot.update $(DOMAIN).pot \
 	&& \
 	# Replace the charset with UTF-8 ; \
-	sed -i -r -e 's%("Content-Type: text/plain; charset=)(.*)(\\n")%\1UTF-8\3%' $(DOMAIN).pot
+	$(SED) -i -r -e 's%("Content-Type: text/plain; charset=)(.*)(\\n")%\1UTF-8\3%' $(DOMAIN).pot
 
+
+msg-stats:
+	@pot_count=`$(MSGFMT) --statistics $(DOMAIN).pot 2>&1 | \
+	$(AWK) '{match($$0, /([0-9]+) translated messages, ([0-9]+) untranslated messages/, groups); \
+	      printf "%s\n", groups[2];}'` ; \
+	echo "$(DOMAIN).pot has $$pot_count messages" ; \
+	for po_file in $(po_files); do \
+	    $(MSGCMP) $$po_file $(DOMAIN).pot 2>&1 | \
+	    $(AWK) -v po_file=$$po_file -v pot_count=$$pot_count -v pot_file=$(DOMAIN).pot \
+                'BEGIN {po_untranslated=0; undefined=0;} \
+                /this message is untranslated/ {po_untranslated++} \
+                /this message is used but not defined/ {undefined++} \
+                END {untranslated = po_untranslated+undefined; \
+	             translated = pot_count - untranslated; \
+	             ratio = sprintf("%d/%d", translated, pot_count); \
+                     printf "%-7s %8s %5.1f%% %4d po untranslated, %4d missing, %4d untranslated\n", \
+                     po_file ":", ratio, translated/pot_count*100.0, po_untranslated, undefined, untranslated;}'; \
+	done
 
 install: $(mo_files)
 	@for lang in $(languages); do \
@@ -249,7 +270,7 @@ distclean: clean
 test_lang:
 	rm -rf test.po test_locale
 	$(MSGINIT) --no-translator -i $(DOMAIN).pot -l en_US -o test.po
-	sed -i -r -e 's/^msgstr[ \t]+"(.*)"[ \t]*$$/msgstr "\xe2\x86\x92\1\xe2\x86\x90"/' test.po
+	$(SED) -i -r -e 's/^msgstr[ \t]+"(.*)"[ \t]*$$/msgstr "\xe2\x86\x92\1\xe2\x86\x90"/' test.po
 	$(MKDIR_P) test_locale/en_US/LC_MESSAGES
 	$(MSGFMT) -o test_locale/en_US/LC_MESSAGES/ipa.mo test.po
 
