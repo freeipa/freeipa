@@ -23,7 +23,7 @@ Password policy
 """
 
 from ipalib import api, crud, errors
-from ipalib import Command, Object
+from ipalib import Method, Object
 from ipalib import Int, Str
 from ipalib import output
 from ipalib import _, ngettext
@@ -37,6 +37,8 @@ _fields = {
     'krbpwdminlength': 'Minimum length',
     'krbpwdhistorylength': 'History size',
 }
+
+_global=u'global'
 
 def _convert_time_for_output(entry_attrs):
     # Convert seconds to hours and days for displaying to user
@@ -115,33 +117,42 @@ class pwpolicy(Object):
     """
 
     takes_params = (
+        Str('cn?',
+            label='Group',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
         Int('krbmaxpwdlife?',
             cli_name='maxlife',
             doc='Max. Password Lifetime (days)',
+            label='Maximum lifetime (in days)',
             minvalue=0,
             attribute=True,
         ),
         Int('krbminpwdlife?',
             cli_name='minlife',
             doc='Min. Password Lifetime (hours)',
+            label='Mininum lifetime (in hours)',
             minvalue=0,
             attribute=True,
         ),
         Int('krbpwdhistorylength?',
             cli_name='history',
             doc='Password History Size',
+            label='Password History Size',
             minvalue=0,
             attribute=True,
         ),
         Int('krbpwdmindiffchars?',
             cli_name='minclasses',
             doc='Min. Number of Character Classes',
+            label='Min. Number of Character Classes',
             minvalue=0,
             attribute=True,
         ),
         Int('krbpwdminlength?',
             cli_name='minlength',
             doc='Min. Length of Password',
+            label='Min. Length of Password',
             minvalue=0,
             attribute=True,
         ),
@@ -155,6 +166,7 @@ class pwpolicy_add(crud.Create):
     Create a new password policy associated with a group.
     """
 
+    msg_summary = _('Added policy for group "%(value)s"')
     takes_options = (
         Str('group',
             doc='Group to set policy for',
@@ -205,6 +217,7 @@ class pwpolicy_mod(crud.Update):
     """
     Modify password policy.
     """
+    msg_summary = _('Modified policy for group "%(value)s"')
     takes_options = (
         Str('group?',
             doc='Group to set policy for',
@@ -218,20 +231,18 @@ class pwpolicy_mod(crud.Update):
         ),
     )
 
-    has_output = (
-        output.Entry('result'),
-    )
-
     def execute(self, *args, **options):
         assert 'dn' not in options
         ldap = self.api.Backend.ldap2
 
         if not 'group' in options:
+            group_cn = _global
             if 'cospriority' in options:
                 raise errors.ValidationError(name='priority', error=_('priority cannot be set on global policy'))
             dn = self.api.env.container_accounts
             entry_attrs = self.args_options_2_entry(*args, **options)
         else:
+            group_cn = options['group']
             if 'cospriority' in options:
                 groupdn = find_group_dn(options['group'])
                 cos_dn = 'cn="%s", cn=cosTemplates, cn=accounts, %s' % (groupdn, api.env.basedn)
@@ -250,7 +261,7 @@ class pwpolicy_mod(crud.Update):
 
         _convert_time_for_output(entry_attrs)
 
-        return dict(result=entry_attrs)
+        return dict(result=entry_attrs, value=group_cn)
 
 api.register(pwpolicy_mod)
 
@@ -260,6 +271,7 @@ class pwpolicy_del(crud.Delete):
     Delete a group password policy.
     """
 
+    msg_summary = _('Deleted policy for group "%(value)s"')
     takes_options = (
         Str('group',
             doc='Group to remove policy from',
@@ -293,11 +305,14 @@ class pwpolicy_del(crud.Delete):
 api.register(pwpolicy_del)
 
 
-class pwpolicy_show(Command):
+class pwpolicy_show(Method):
     """
     Display password policy.
     """
 
+    has_output = (
+        output.Entry('result'),
+    )
     takes_options = (
         Str('group?',
             doc='Group to display policy',
@@ -343,14 +358,14 @@ class pwpolicy_show(Command):
             if group:
                 entry_attrs['group'] = group
             else:
-                entry_attrs['group'] = 'global'
+                entry_attrs['group'] = _global
         _convert_time_for_output(entry_attrs)
 
         return dict(result=entry_attrs)
 
 api.register(pwpolicy_show)
 
-class pwpolicy_find(Command):
+class pwpolicy_find(Method):
     """
     Display all groups with a password policy.
     """
