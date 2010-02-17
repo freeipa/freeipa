@@ -63,7 +63,7 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx):
     entry_attrs.setdefault('gidnumber', ctx['def_group_gid'])
 
     # generate a principal name and check if it isn't already taken
-    principal = '%s@%s' % (pkey, api.env.realm)
+    principal = u'%s@%s' % (pkey, api.env.realm)
     try:
         ldap.find_entry_by_attr(
             'krbprincipalname', principal, 'krbprincipalaux', ['']
@@ -308,7 +308,7 @@ class migrate_ds(Command):
                 try:
                     ldap.add_entry(dn, entry_attrs)
                 except errors.ExecutionError, e:
-                    failed[ldap_obj_name][pkey] = str(e)
+                    failed[ldap_obj_name][pkey] = unicode(e)
                 else:
                     migrated[ldap_obj_name].append(pkey)
 
