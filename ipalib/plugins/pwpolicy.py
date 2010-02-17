@@ -43,11 +43,11 @@ _global=u'global'
 def _convert_time_for_output(entry_attrs):
     # Convert seconds to hours and days for displaying to user
     if 'krbmaxpwdlife' in entry_attrs:
-        entry_attrs['krbmaxpwdlife'][0] = str(
+        entry_attrs['krbmaxpwdlife'][0] = unicode(
             int(entry_attrs['krbmaxpwdlife'][0]) / 86400
         )
     if 'krbminpwdlife' in entry_attrs:
-        entry_attrs['krbminpwdlife'][0] = str(
+        entry_attrs['krbminpwdlife'][0] = unicode(
             int(entry_attrs['krbminpwdlife'][0]) / 3600
         )
 
