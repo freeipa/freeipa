@@ -145,7 +145,11 @@ class textui(backend.Backend):
         if it is a python str type, otherwise it is a plain string.
         """
         if type(value) is str:
-            return base64.b64encode(value)
+            try:
+                int(value)
+                return value
+            except ValueError:
+                return base64.b64encode(value)
         else:
             return value
 
