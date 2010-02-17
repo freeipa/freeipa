@@ -151,12 +151,10 @@ class ldap2(CrudBackend, Encoder):
         '1.3.6.1.4.1.1466.115.121.1.1': str,  # ACI item
         '1.3.6.1.4.1.1466.115.121.1.4': str,  # Audio
         '1.3.6.1.4.1.1466.115.121.1.5': str,  # Binary
-        '1.3.6.1.4.1.1466.115.121.1.7': str,  # Boolean
         '1.3.6.1.4.1.1466.115.121.1.8': str,  # Certificate
         '1.3.6.1.4.1.1466.115.121.1.9': str,  # Certificate List
         '1.3.6.1.4.1.1466.115.121.1.10': str, # Certificate Pair
         '1.3.6.1.4.1.1466.115.121.1.23': str, # Fax
-        '1.3.6.1.4.1.1466.115.121.1.27': str, # Integer, might not fit into int
         '1.3.6.1.4.1.1466.115.121.1.28': str, # JPEG
         '1.3.6.1.4.1.1466.115.121.1.40': str, # OctetString (same as Binary)
         '1.3.6.1.4.1.1466.115.121.1.49': str, # Supported Algorithm
