@@ -153,7 +153,7 @@ class migrate_ds(Command):
             _pre_migrate_user, _post_migrate_user
         ),
         'group': (
-            '(&(objectClass=groupOfUniqueNames)(cn=*))',
+            '(&(|(objectClass=groupOfUniqueNames)(objectClass=groupOfNames))(cn=*))',
             _pre_migrate_group, None
         ),
     }
