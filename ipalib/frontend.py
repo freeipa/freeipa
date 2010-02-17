@@ -27,7 +27,7 @@ from base import lock, check_name, NameSpace
 from plugable import Plugin
 from parameters import create_param, parse_param_spec, Param, Str, Flag, Password
 from util import make_repr
-from output import Output
+from output import Output, Entry, ListOfEntries
 from text import _, ngettext
 
 from errors import ZeroArgumentError, MaxArgumentError, OverlapError, RequiresRoot
@@ -778,6 +778,19 @@ class Command(HasParam):
         """
         for option in self._get_param_iterable('options'):
             yield option
+        for o in self.has_output:
+            if isinstance(o, (Entry, ListOfEntries)):
+                yield Flag('all',
+                    cli_name='all',
+                    doc='retrieve all attributes',
+                    exclude='webui',
+                )
+                yield Flag('raw',
+                    cli_name='raw',
+                    doc='print entries as stored on the server',
+                    exclude='webui',
+                )
+                return
 
     def validate_output(self, output):
         """
@@ -817,12 +830,21 @@ class Command(HasParam):
                 continue
             yield param
 
-
     def output_for_cli(self, textui, output, *args, **options):
         if not isinstance(output, dict):
             return
-        result = output.get('result')
-        summary = output.get('summary')
+
+        order = [p.name for p in self.output_params()]
+        if options.get('all', False):
+            order.insert(0, 'dn')
+            print_all = True
+        else:
+            print_all = False
+
+        if options.get('raw', False):
+            labels = None
+        else:
+            labels = dict((p.name, p.label) for p in self.output_params())
 
         for o in self.output:
             if 'no_display' in self.output[o].flags:
@@ -830,9 +852,9 @@ class Command(HasParam):
             result = output[o]
 
             if isinstance(result, (tuple, list)):
-                textui.print_entries(result, self.output_params)
+                textui.print_entries(result, order, labels, print_all)
             elif isinstance(result, dict):
-                textui.print_entry(result, self.output_params)
+                textui.print_entry(result, order, labels, print_all)
             elif isinstance(result, unicode):
                 if o == 'summary':
                     textui.print_summary(result)
@@ -844,7 +866,6 @@ class Command(HasParam):
                 pass
             elif isinstance(result, int):
                 textui.print_count(result, '%s %%d' % self.output[o].doc)
-
 
 
 class LocalOrRemote(Command):

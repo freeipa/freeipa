@@ -249,7 +249,7 @@ class textui(backend.Backend):
         for (key, value) in rows:
             self.print_indented('%s = %r' % (key, self.encode_binary(value)), indent)
 
-    def print_attribute(self, attr, value, indent=1, one_value_per_line=True):
+    def print_attribute(self, attr, value, format='%s: %s', indent=1, one_value_per_line=True):
         """
         Print an ldap attribute.
 
@@ -269,12 +269,12 @@ class textui(backend.Backend):
         assert isinstance(attr, basestring)
         if not isinstance(value, (list, tuple)):
             # single-value attribute
-            self.print_indented('%s: %s' % (attr, self.encode_binary(value)), indent)
+            self.print_indented(format % (attr, self.encode_binary(value)), indent)
         else:
             # multi-value attribute
             if one_value_per_line:
                 for v in value:
-                    self.print_indented('%s: %s' % (attr, self.encode_binary(v)), indent)
+                    self.print_indented(format % (attr, self.encode_binary(v)), indent)
             else:
                 value = map(lambda v: self.encode_binary(v), value)
                 text = ', '.join(value)
@@ -289,7 +289,7 @@ class textui(backend.Backend):
                     )
                 else:
                     text = [text]
-                self.print_indented('%s: %s' % (attr, text[0]), indent)
+                self.print_indented(format % (attr, text[0]), indent)
                 for line in text[1:]:
                     self.print_plain('%s%s' % (s_indent, line))
 
@@ -328,41 +328,49 @@ class textui(backend.Backend):
         for attr in sorted(entry):
             print_attr(attr)
 
-    def print_entries(self, entries, params=None, format='%s: %s', indent=1):
+    def print_entries(self, entries, order=None, labels=None, print_all=False, format='%s: %s', indent=1):
         assert isinstance(entries, (list, tuple))
         first = True
         for entry in entries:
             if not first:
                 print ''
             first = False
-            self.print_entry(entry, params, format, indent)
+            self.print_entry(entry, order, labels, print_all, format, indent)
 
-    def print_entry(self, entry, params=None, format='%s: %s', indent=1):
+    def print_entry(self, entry, order=None, labels=None, print_all=False, format='%s: %s', indent=1):
         """
         """
         if isinstance(entry, (list, tuple)):
             entry = dict(entry)
         assert isinstance(entry, dict)
-        if params:
-            order = list(params)
-            labels = dict((p.name, p.label) for p in params())
+        if labels is None:
+            labels = dict()
+            one_value_per_line = True
         else:
-            order = sorted(entry)
-            labels = dict((k, k) for k in order)
-        for key in order:
-            if key not in entry:
-                continue
-            label = labels[key]
-            value = entry[key]
-            if isinstance(value, (list, tuple)):
-                value = map(lambda v: self.encode_binary(v), value)
-                value = ', '.join(value)
-            if isinstance(value, dict):
-                self.print_indented(format % (label, ''), indent)
-                self.print_entry(value, params, indent=indent+1)
-            else:
-                self.print_indented(format % (label, value), indent)
-
+            one_value_per_line = False
+        if order is not None:
+            for key in order:
+                if key not in entry:
+                    continue
+                label = labels.get(key, key)
+                value = entry[key]
+                if isinstance(value, dict):
+                    self.print_indented(format % (label, ''), indent)
+                    self.print_entry(
+                        value, order, labels, print_all, format,
+                        indent=indent+1
+                    )
+                else:
+                    self.print_attribute(
+                        label, value, format, indent, one_value_per_line
+                    )
+                del entry[key]
+        if print_all:
+            for key in sorted(entry):
+                label = labels.get(key, key)
+                self.print_attribute(
+                    key, entry[key], format, indent, one_value_per_line
+                )
 
     def print_dashed(self, string, above=True, below=True, indent=0, dash='-'):
         """

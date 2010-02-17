@@ -135,16 +135,6 @@ class LDAPCreate(crud.Create):
     """
 
     takes_options = (
-        Flag('raw',
-            cli_name='raw',
-            doc='print entries as they are stored in LDAP',
-            exclude='webui',
-        ),
-        Flag('all',
-            cli_name='all',
-            doc='retrieve all attributes',
-            exclude='webui',
-        ),
         Str('addattr*', validate_add_attribute,
             cli_name='addattr',
             doc='Add an attribute/value pair. Format is attr=value',
@@ -242,18 +232,6 @@ class LDAPRetrieve(LDAPQuery):
     """
     Retrieve an LDAP entry.
     """
-
-    takes_options = (
-        Flag('raw',
-            cli_name='raw',
-            doc='print entries as they are stored in LDAP',
-        ),
-        Flag('all',
-            cli_name='all',
-            doc='retrieve all attributes',
-        ),
-    )
-
     has_output = output.standard_entry
 
     def execute(self, *keys, **options):
@@ -295,16 +273,6 @@ class LDAPUpdate(LDAPQuery, crud.Update):
     """
 
     takes_options = (
-        Flag('raw',
-            cli_name='raw',
-            doc='print entries as they are stored in LDAP',
-            exclude='webui',
-        ),
-        Flag('all',
-            cli_name='all',
-            doc='retrieve all attributes',
-            exclude='webui',
-        ),
         Str('addattr*', validate_add_attribute,
             cli_name='addattr',
             doc='Add an attribute/value pair. Format is attr=value',
@@ -456,14 +424,6 @@ class LDAPModMember(LDAPQuery):
     member_attributes = ['member']
     member_param_doc = 'comma-separated list of %s'
     member_count_out = ('%i member processed.', '%i members processed.')
-
-    takes_options = (
-        Flag('raw',
-            cli_name='raw',
-            doc='print entries as they are stored in LDAP',
-            exclude='webui',
-        ),
-    )
 
     def get_options(self):
         for option in super(LDAPModMember, self).get_options():
@@ -645,17 +605,6 @@ class LDAPSearch(crud.Search):
     """
     Retrieve all LDAP entries matching the given criteria.
     """
-    takes_options = (
-        Flag('raw',
-            cli_name='raw',
-            doc='print entries as they are stored in LDAP',
-        ),
-        Flag('all',
-            cli_name='all',
-            doc='retrieve all attributes',
-        ),
-    )
-
     def get_args(self):
         for key in self.obj.get_ancestor_primary_keys():
             yield key
@@ -664,13 +613,6 @@ class LDAPSearch(crud.Search):
     def get_options(self):
         for option in super(LDAPSearch, self).get_options():
             yield option
-        if self.obj.uuid_attribute:
-            yield Str('%s?' % self.obj.uuid_attribute,
-                cli_name='uuid',
-                doc='unique identifier',
-                attribute=True,
-                query=True,
-            )
 
     def execute(self, *args, **options):
         ldap = self.obj.backend
@@ -716,13 +658,11 @@ class LDAPSearch(crud.Search):
         self.post_callback(self, ldap, entries, truncated, *args, **options)
 
         if not options.get('raw', False):
-            for i in xrange(len(entries)):
-                dn = self.obj.get_primary_key_from_dn(entries[i][0])
-                self.obj.convert_attribute_members(
-                    entries[i][1], *args, **options
-                )
-                entries[i] = (dn, entries[i][1])
+            for e in entries:
+                self.obj.convert_attribute_members(e[1], *args, **options)
 
+        for e in entries:
+            e[1]['dn'] = e[0]
         entries = tuple(e for (dn, e) in entries)
 
         return dict(

@@ -110,7 +110,6 @@ def _get_record_dn(ldap, zone, idnsname):
 
 class dns(Object):
     """DNS zone/SOA record object."""
-
     label = _('DNS')
 
     takes_params = (
@@ -176,7 +175,6 @@ class dns_add(crud.Create):
     """
     Create new DNS zone/SOA record.
     """
-
     def execute(self, *args, **options):
         ldap = self.Backend.ldap2
         idnsname = args[0]
@@ -228,7 +226,6 @@ class dns_del(crud.Delete):
     """
     Delete existing DNS zone/SOA record.
     """
-
     def execute(self, *args, **options):
         ldap = self.api.Backend.ldap2
         idnsname = args[0]
@@ -264,7 +261,6 @@ class dns_mod(crud.Update):
     """
     Modify DNS zone/SOA record.
     """
-
     def execute(self, *args, **options):
         ldap = self.api.Backend.ldap2
         idnsname = args[0]
@@ -306,13 +302,6 @@ class dns_find(crud.Search):
     """
     Search for DNS zones/SOA records.
     """
-
-    takes_options = (
-        Flag('all',
-            doc='retrieve all attributes',
-        ),
-    )
-
     def execute(self, term, **options):
         ldap = self.api.Backend.ldap2
 
@@ -365,13 +354,6 @@ class dns_show(crud.Retrieve):
     """
     Display DNS zone/SOA record.
     """
-
-    takes_options = (
-        Flag('all',
-            doc='retrieve all attributes',
-        ),
-    )
-
     def execute(self, idnsname, **options):
         ldap = self.api.Backend.ldap2
 
@@ -404,7 +386,6 @@ class dns_enable(Command):
     """
     Activate DNS zone.
     """
-
     takes_args = (
         Str('zone',
             cli_name='zone',
@@ -440,7 +421,6 @@ class dns_disable(Command):
     """
     Deactivate DNS zone.
     """
-
     takes_args = (
         Str('zone',
             cli_name='zone',
@@ -476,7 +456,6 @@ class dns_add_rr(Command):
     """
     Add new DNS resource record.
     """
-
     takes_args = (
         Str('zone',
             cli_name='zone',
@@ -593,7 +572,6 @@ class dns_del_rr(Command):
     """
     Delete DNS resource record.
     """
-
     takes_args = (
         Str('zone',
             cli_name='zone',
@@ -681,7 +659,6 @@ class dns_find_rr(Command):
     """
     Search for DNS resource records.
     """
-
     takes_args = (
         Str('zone',
             cli_name='zone',
@@ -708,9 +685,6 @@ class dns_find_rr(Command):
         Str('data?',
             cli_name='data',
             doc='type-specific data',
-        ),
-        Flag('all',
-            doc='retrieve all attributes',
         ),
     )
 
@@ -811,7 +785,6 @@ class dns_show_rr(Command):
     """
     Show existing DNS resource records.
     """
-
     takes_args = (
         Str('zone',
             cli_name='zone',
@@ -822,12 +795,6 @@ class dns_show_rr(Command):
             cli_name='resource',
             doc='resource name',
             normalizer=lambda value: value.lower(),
-        ),
-    )
-
-    takes_options = (
-        Flag('all',
-            doc='retrieve all attributes',
         ),
     )
 
