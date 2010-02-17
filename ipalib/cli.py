@@ -310,11 +310,11 @@ class textui(backend.Backend):
         def print_attr(a):
             if attr in attr_map:
                 self.print_attribute(
-                    attr_map[attr], entry[attr], indent, one_value_per_line
+                    attr_map[attr], entry[attr], indent=indent, one_value_per_line=one_value_per_line
                 )
             else:
                 self.print_attribute(
-                    attr, entry[attr], indent, one_value_per_line
+                    attr, entry[attr], indent=indent, one_value_per_line=one_value_per_line
                 )
 
         for attr in attr_order:
