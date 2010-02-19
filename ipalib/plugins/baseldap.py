@@ -28,6 +28,7 @@ from ipalib import Flag, List, Str
 from ipalib.base import NameSpace
 from ipalib.cli import to_cli, from_cli
 from ipalib import output
+from ipalib.text import _
 
 
 def validate_add_attribute(ugettext, attr):
@@ -129,23 +130,27 @@ class LDAPObject(Object):
             )
 
 
+# Options used by create and update.
+_attr_options = (
+    Str('addattr*', validate_add_attribute,
+        cli_name='addattr',
+        doc=_('Add an attribute/value pair. Format is attr=value'),
+        exclude='webui',
+    ),
+    Str('setattr*', validate_set_attribute,
+        cli_name='setattr',
+        doc=_('Set an attribute to an name/value pair. Format is attr=value'),
+        exclude='webui',
+    ),
+)
+
+
 class LDAPCreate(crud.Create):
     """
     Create a new entry in LDAP.
     """
 
-    takes_options = (
-        Str('addattr*', validate_add_attribute,
-            cli_name='addattr',
-            doc='Add an attribute/value pair. Format is attr=value',
-            exclude='webui',
-        ),
-        Str('setattr*', validate_set_attribute,
-            cli_name='setattr',
-            doc='Set an attribute to an name/value pair. Format is attr=value',
-            exclude='webui',
-        ),
-    )
+    takes_options = _attr_options
 
     def get_args(self):
         for key in self.obj.get_ancestor_primary_keys():
@@ -272,18 +277,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
     Update an LDAP entry.
     """
 
-    takes_options = (
-        Str('addattr*', validate_add_attribute,
-            cli_name='addattr',
-            doc='Add an attribute/value pair. Format is attr=value',
-            exclude='webui',
-        ),
-        Str('setattr*', validate_set_attribute,
-            cli_name='setattr',
-            doc='Set an attribute to an name/value pair. Format is attr=value',
-            exclude='webui',
-        ),
-    )
+    takes_options = _attr_options
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend

@@ -34,27 +34,24 @@ class LazyText(object):
         return self.__unicode__() % kw
 
 
-class FixMe(LazyText):
-    def __init__(self, msg):
-        self.msg = msg
-        super(FixMe, self).__init__()
-
-    def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, self.msg)
-
-    def __unicode__(self):
-        return u'<%s>' % self.msg
-
-
 class Gettext(LazyText):
-    def __init__(self, msg, domain, localedir):
+    def __init__(self, msg, domain=None, localedir=None):
         self.msg = msg
         super(Gettext, self).__init__(domain, localedir)
 
     def __unicode__(self):
         return self.msg.decode('utf-8')
 
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, self.msg)
 
+    def __json__(self):
+        return self.__unicode__()
+
+
+class FixMe(Gettext):
+    def __unicode__(self):
+        return u'<%s>' % self.msg
 
 
 class NGettext(LazyText):

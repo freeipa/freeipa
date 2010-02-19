@@ -844,7 +844,7 @@ class Command(HasParam):
         if options.get('raw', False):
             labels = None
         else:
-            labels = dict((p.name, p.label) for p in self.output_params())
+            labels = dict((p.name, unicode(p.label)) for p in self.output_params())
 
         for o in self.output:
             if 'no_display' in self.output[o].flags:

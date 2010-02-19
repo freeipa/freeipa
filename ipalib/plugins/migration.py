@@ -31,6 +31,7 @@ from ipalib import api, errors, output, uuid
 from ipalib import Command, List, Password, Str
 from ipalib.cli import to_cli
 from ipaserver.plugins.ldap2 import ldap2
+from ipalib import _
 
 
 # USER MIGRATION CALLBACKS AND VARS
@@ -72,7 +73,7 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx):
         entry_attrs['krbprincipalname'] = principal
     else:
         failed[pkey] = _krb_err_msg % principal
- 
+
     return dn
 
 
@@ -93,7 +94,7 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx):
         """
         new_members = []
         entry_attrs.setdefault(member_attr, [])
-        for m in entry_attrs[member_attr]: 
+        for m in entry_attrs[member_attr]:
             col = m.find(',')
             if col == -1:
                 continue
@@ -162,7 +163,8 @@ class migrate_ds(Command):
     takes_args = (
         Str('ldapuri', validate_ldapuri,
             cli_name='ldap_uri',
-            doc='LDAP URI of DS server to migrate from',
+            label=_('LDAP URI'),
+            doc=_('LDAP URI of DS server to migrate from'),
         ),
         Password('bindpw',
             cli_name='password',
@@ -173,19 +175,21 @@ class migrate_ds(Command):
     takes_options = (
         Str('binddn?',
             cli_name='bind_dn',
-            doc='bind DN',
+            label=_('Bind DN'),
             default=u'cn=directory manager',
             autofill=True,
         ),
         Str('usercontainer?',
             cli_name='user_container',
-            doc='RDN of container for users in DS',
+            label=_('User container'),
+            doc=_('RDN of container for users in DS'),
             default=u'ou=people',
             autofill=True,
         ),
         Str('groupcontainer?',
             cli_name='group_container',
-            doc='RDN of container for groups in DS',
+            label=_('Group container'),
+            doc=_('RDN of container for groups in DS'),
             default=u'ou=groups',
             autofill=True,
         ),
@@ -371,4 +375,3 @@ class migrate_ds(Command):
         textui.print_plain(self.pwd_migration_msg)
 
 api.register(migrate_ds)
-

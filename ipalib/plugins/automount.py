@@ -107,8 +107,8 @@ class automountlocation(LDAPObject):
     takes_params = (
         Str('cn',
             cli_name='location',
-            label='Location',
-            doc='automount location name',
+            label=_('Location'),
+            doc=_('Automount location name'),
             primary_key=True,
         ),
     )
@@ -227,14 +227,13 @@ class automountmap(LDAPObject):
     takes_params = (
         Str('automountmapname',
             cli_name='map',
-            label='Map',
+            label=_('Map'),
+            doc=_('Aautomount map name'),
             primary_key=True,
-            doc='automount map name',
         ),
         Str('description?',
             cli_name='desc',
-            label='Description',
-            doc='description',
+            label=_('Description'),
         ),
     )
 
@@ -315,16 +314,17 @@ class automountkey(LDAPObject):
     takes_params = (
         Str('automountkey',
             cli_name='key',
-            doc='key name',
+            label=_('Key'),
+            doc=_('Automount key name'),
             primary_key=True,
         ),
         Str('automountinformation',
             cli_name='info',
-            doc='mount information',
+            label=_('Mount information'),
         ),
         Str('description?',
             cli_name='desc',
-            doc='description',
+            label=_('description'),
         ),
     )
 
@@ -348,11 +348,12 @@ class automountmap_add_indirect(LDAPCreate):
     takes_options = LDAPCreate.takes_options + (
         Str('key',
             cli_name='mount',
-            doc='mount point',
+            label=_('Mount point'),
         ),
         Str('parentmap?',
             cli_name='parentmap',
-            doc='name of parent automount map (default: auto.master)',
+            label=_('Parent map'),
+            doc=_('Name of parent automount map (default: auto.master)'),
             default=u'auto.master',
             autofill=True,
         ),

@@ -64,41 +64,45 @@ class hbac(LDAPObject):
     takes_params = (
         Str('cn',
             cli_name='name',
-            doc='rule name',
+            label=_('Rule name'),
             primary_key=True,
         ),
         StrEnum('accessruletype',
             cli_name='type',
-            doc='rule type (allow or deny)',
+            label=_('Rule type (allow or deny)'),
             values=(u'allow', u'deny'),
         ),
         Str('servicename?',
             cli_name='service',
-            doc='name of service the rule applies to (e.g. ssh)',
+            label=_('Service name'),
+            doc=_('Name of service the rule applies to (e.g. ssh)'),
         ),
         # FIXME: {user,host,sourcehost}categories should expand in the future
         StrEnum('usercategory?',
             cli_name='usercat',
-            doc='user category the rule applies to',
+            label=_('User category'),
+            doc=_('User category the rule applies to'),
             values=(u'all', ),
         ),
         StrEnum('hostcategory?',
             cli_name='hostcat',
-            doc='host category the rule applies to',
+            label=_('Host category'),
+            doc=_('Host category the rule applies to'),
             values=(u'all', ),
         ),
         StrEnum('sourcehostcategory?',
             cli_name='srchostcat',
-            doc='source host category the rule applies to',
+            label=_('Source host category'),
+            doc=_('Source host category the rule applies to'),
             values=(u'all', ),
         ),
         AccessTime('accesstime?',
             cli_name='time',
-            doc='access time',
+            label=_('Access time'),
         ),
         Str('description?',
             cli_name='desc',
-            doc='description',
+            label=_('Description'),
         ),
     )
 
@@ -224,10 +228,11 @@ class hbac_add_accesstime(LDAPQuery):
     """
     Add access time to HBAC rule.
     """
+
     takes_options = (
         AccessTime('accesstime',
             cli_name='time',
-            doc='access time',
+            label=_('Access time'),
         ),
     )
 
@@ -265,7 +270,7 @@ class hbac_remove_accesstime(LDAPQuery):
     takes_options = (
         AccessTime('accesstime?',
             cli_name='time',
-            doc='access time',
+            label=_('Access time'),
         ),
     )
 

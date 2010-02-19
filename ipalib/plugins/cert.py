@@ -34,11 +34,10 @@ from ipalib import x509
 from ipalib.plugins.virtual import *
 from ipalib.plugins.service import split_principal
 import base64
-from ipalib.request import context
 from pyasn1.error import PyAsn1Error
 import logging
 import traceback
-from ipalib.request import ugettext as _
+from ipalib.text import _
 from ipalib.request import context
 from ipalib.output import Output
 
@@ -173,27 +172,28 @@ class cert_request(VirtualCommand):
 
     takes_options = (
         Str('principal',
-            doc="service principal for this certificate (e.g. HTTP/test.example.com)",
+            label=_('Principal'),
+            doc=_('Service principal for this certificate (e.g. HTTP/test.example.com)'),
         ),
         Str('request_type',
             default=u'pkcs10',
             autofill=True,
         ),
         Flag('add',
-            doc="automatically add the principal if it doesn't exist",
+            doc=_("automatically add the principal if it doesn't exist"),
             default=False,
             autofill=True
         ),
         Str('certificate?',
-            label='Certificate',
+            label=_('Certificate'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
         Str('subject?',
-            label='Subject',
+            label=_('Subject'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
         Str('serial_number?',
-            label='Serial number',
+            label=_('Serial number'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
     )
@@ -324,13 +324,13 @@ class cert_status(VirtualCommand):
 
     takes_args = (
         Str('request_id',
-            label='Request id',
+            label=_('Request id'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
     )
     takes_options = (
         Str('cert_request_status?',
-            label='Request status',
+            label=_('Request status'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
     )
@@ -346,21 +346,25 @@ class cert_status(VirtualCommand):
 api.register(cert_status)
 
 
+_serial_number = Str('serial_number',
+    label=_('Serial number'),
+    doc=_('Serial number in decimal or if prefixed with 0x in hexadecimal'),
+)
+
 class cert_get(VirtualCommand):
     """
     Retrieve an existing certificate.
     """
 
-    takes_args = (Str('serial_number',
-                      label='Serial number',
-                      doc='serial number in decimal or if prefixed with 0x in hexadecimal'))
+    takes_args = _serial_number
+
     takes_options = (
         Str('certificate?',
-            label='Certificate',
+            label=_('Certificate'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
         Str('subject?',
-            label='Subject',
+            label=_('Subject'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
     )
@@ -381,11 +385,11 @@ class cert_revoke(VirtualCommand):
     Revoke a certificate.
     """
 
-    takes_args = (Str('serial_number',
-                      doc='serial number in decimal or if prefixed with 0x in hexadecimal'))
+    takes_args = _serial_number
+
     takes_options = (
         Flag('revoked?',
-            label='Revoked',
+            label=_('Revoked'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
     )
@@ -394,13 +398,13 @@ class cert_revoke(VirtualCommand):
     # FIXME: The default is 0.  Is this really an Int param?
     takes_options = (
         Int('revocation_reason?',
-            doc='Reason for revoking the certificate (0-10)',
+            label=_('Reason'),
+            doc=_('Reason for revoking the certificate (0-10)'),
             minvalue=0,
             maxvalue=10,
             default=0,
         ),
     )
-
 
     def execute(self, serial_number, **kw):
         self.check_access()
@@ -416,15 +420,15 @@ class cert_remove_hold(VirtualCommand):
     Take a revoked certificate off hold.
     """
 
-    takes_args = (Str('serial_number',
-                      doc='serial number in decimal or if prefixed with 0x in hexadecimal'))
+    takes_args = _serial_number
+
     takes_options = (
         Flag('unrevoked?',
-            label='Unrevoked',
+            label=_('Unrevoked'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
         Str('error_string?',
-            label='Error',
+            label=_('Error'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
     )

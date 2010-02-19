@@ -174,8 +174,8 @@ class test_Param(ClassChecker):
 
         # Test default kwarg values:
         assert o.cli_name is name
-        assert o.label == '<my_param>'
-        assert o.doc == '<my_param>'
+        assert o.label.msg == 'my_param'
+        assert o.doc.msg == 'my_param'
         assert o.required is True
         assert o.multivalue is False
         assert o.primary_key is False
@@ -193,7 +193,7 @@ class test_Param(ClassChecker):
 
         # Test that doc defaults from label:
         o = self.cls('my_param', doc='Hello world')
-        assert o.label == '<my_param>'
+        assert o.label.msg == 'my_param'
         assert o.doc == 'Hello world'
 
         o = self.cls('my_param', label='My Param')

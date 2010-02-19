@@ -23,6 +23,7 @@ Kerberos ticket policy
 from ipalib import api
 from ipalib import Int, Str
 from ipalib.plugins.baseldap import *
+from ipalib import _
 
 
 # FIXME: load this from a config file?
@@ -47,16 +48,19 @@ class krbtpolicy(LDAPObject):
     takes_params = (
         Str('uid?',
             cli_name='user',
-            doc='manage ticket policy for specific user',
+            label=_('User name'),
+            doc=_('Manage ticket policy for specific user'),
             primary_key=True,
         ),
         Int('krbmaxticketlife?',
             cli_name='maxlife',
-            doc='maximum ticket life',
+            label=_('Max life'),
+            doc=_('Maximum ticket life'),
         ),
         Int('krbmaxrenewableage?',
             cli_name='maxrenew',
-            doc='maximum renewable age',
+            label=_('Max renew'),
+            doc=_('Maximum renewable age'),
         ),
     )
 
@@ -141,4 +145,3 @@ class krbtpolicy_reset(LDAPQuery):
         return dict(result=entry_attrs, value=u'')
 
 api.register(krbtpolicy_reset)
-

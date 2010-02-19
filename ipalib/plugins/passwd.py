@@ -23,16 +23,18 @@ Password changes
 from ipalib import api, errors, util
 from ipalib import Command
 from ipalib import Str, Password
+from ipalib import _
 
 
 class passwd(Command):
     """
     Change user password.
     """
+
     takes_args = (
         Str('principal',
             cli_name='user',
-            doc='username',
+            label=_('User name'),
             primary_key=True,
             autofill=True,
             create_default=lambda **kw: util.get_current_principal(),

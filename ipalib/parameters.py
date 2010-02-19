@@ -20,13 +20,83 @@
 """
 Parameter system for command plugins.
 
-TODO:
+A `Param` instance can be used to describe an argument or option that a command
+takes, or an attribute that a command returns.  The `Param` base class is not
+used directly, but there are many subclasses for specific Python data types
+(like `Str` or `Int`) and specific properties (like `Password`).
 
-  * Change rule call signature to rule(_, value, **kw) so that rules can also
-    validate relative to other parameter values (e.g., login name as it relates
-    to first name and last name)
+To create a `Param` instance, you must always provide the parameter *name*,
+which should be the LDAP attribute name if the parameter describes the attribute
+of an LDAP entry.  For example, we could create an `Str` instance describing the user's last-name attribute like this:
 
-  * Add the _rule_pattern() methods to `Bytes` and `Str`
+>>> from ipalib import Str
+>>> sn = Str('sn')
+>>> sn.name
+'sn'
+
+When creating a `Param`, there are also a number of optional kwargs which
+which can provide additional meta-data and functionality.  For example, every
+parameter has a *cli_name*, the name used on the command-line-interface.  By
+default the *cli_name* is the same as the *name*:
+
+>>> sn.cli_name
+'sn'
+
+But often the LDAP attribute name isn't user friendly for the command-line, so
+you can override this with the *cli_name* kwarg:
+
+>>> sn = Str('sn', cli_name='last')
+>>> sn.name
+'sn'
+>>> sn.cli_name
+'last'
+
+Note that the RPC interfaces (and the internal processing pipeline) always use
+the parameter *name*, regardless of what the *cli_name* might be.
+
+A `Param` also has two translatable kwargs: *label* and *doc*.  These must both
+be `Gettext` instances.  They both default to a place-holder `FixMe` instance,
+a subclass of `Gettext` used to mark a missing translatable string:
+
+>>> sn.label
+FixMe('sn')
+>>> sn.doc
+FixMe('sn')
+
+The *label* is a short phrase describing the parameter.  It's used on the CLI
+when interactively prompting for values, and as a label for form inputs in the
+web-UI.  The *label* should start with an initial capital.  For example:
+
+>>> from ipalib import _
+>>> sn = Str('sn',
+...     cli_name='last',
+...     label=_('Last name'),
+... )
+>>> sn.label
+Gettext('Last name')
+
+The *doc* is a longer description of the parameter.  It's used on the CLI when
+displaying the help information for a command, and as extra instruction for a
+form input on the web-UI.  By default the *doc* is the same as the *label*:
+
+>>> sn.doc
+Gettext('Last name')
+
+But you can override this with the *doc* kwarg.  Like the *label*, the *doc*
+should also start with an initial capital and should not end with any
+punctuation.  For example:
+
+>>> sn = Str('sn',
+...     cli_name='last',
+...     label=_('Last name'),
+...     doc=_("The user's last name"),
+... )
+>>> sn.doc
+Gettext("The user's last name")
+
+Demonstration aside, you should always provide at least the *label* so the
+various UIs are translatable.  Only provide the *doc* if the parameter needs
+a more detailed description for clarity.
 """
 
 import re
@@ -37,6 +107,7 @@ from plugable import ReadOnly, lock, check_name
 from errors import ConversionError, RequirementError, ValidationError
 from errors import PasswordMismatch
 from constants import NULLS, TYPE_ERROR, CALLABLE_ERROR
+from text import Gettext, FixMe
 import csv
 
 
@@ -229,8 +300,8 @@ class Param(ReadOnly):
     kwargs = (
         ('cli_name', str, None),
         ('cli_short_name', str, None),
-        ('label', str, None),
-        ('doc', str, None),
+        ('label', (str, Gettext), None),
+        ('doc', (str, Gettext), None),
         ('required', bool, True),
         ('multivalue', bool, False),
         ('primary_key', bool, False),
@@ -286,7 +357,7 @@ class Param(ReadOnly):
             kw['cli_name'] = self.name
 
         if kw.get('label') is None:
-            kw['label'] = '<%s>' % self.name
+            kw['label'] = FixMe(self.name)
 
         if kw.get('doc') is None:
             kw['doc'] = kw['label']

@@ -24,6 +24,7 @@ IPA configuration
 from ipalib import api
 from ipalib import Bool, Int, Str
 from ipalib.plugins.baseldap import *
+from ipalib import _
 
 
 class config(LDAPObject):
@@ -54,46 +55,45 @@ class config(LDAPObject):
     takes_params = (
         Int('ipamaxusernamelength?',
             cli_name='maxusername',
-            label='Max. Username length',
-            doc='Max. Username length',
+            label=_('Max username length'),
             minvalue=1,
         ),
         Str('ipahomesrootdir?',
             cli_name='homedirectory',
-            label='Home Directory base',
-            doc='Default location of home directories',
+            label=_('Home directory base'),
+            doc=_('Default location of home directories'),
         ),
         Str('ipadefaultloginshell?',
             cli_name='defaultshell',
-            label='Default shell',
-            doc='Default shell for new users',
+            label=_('Default shell'),
+            doc=_('Default shell for new users'),
         ),
         Str('ipadefaultprimarygroup?',
             cli_name='defaultgroup',
-            label='Default users group',
-            doc='Default group for new users',
+            label=_('Default users group'),
+            doc=_('Default group for new users'),
         ),
         Str('ipadefaultemaildomain?',
             cli_name='emaildomain',
-            label='Default e-mail domain',
-            doc='Default e-mail domain new users',
+            label=_('Default e-mail domain'),
+            doc=_('Default e-mail domain new users'),
         ),
         Int('ipasearchtimelimit?',
             cli_name='searchtimelimit',
-            label='Search time limit',
-            doc='Max. amount of time (sec.) for a search (-1 is unlimited)',
+            label=_('Search time limit'),
+            doc=_('Max. amount of time (sec.) for a search (-1 is unlimited)'),
             minvalue=-1,
         ),
         Int('ipasearchrecordslimit?',
             cli_name='searchrecordslimit',
-            label='Search size limit',
-            doc='Max. number of records to search (-1 is unlimited)',
+            label=_('Search size limit'),
+            doc=_('Max. number of records to search (-1 is unlimited)'),
             minvalue=-1,
         ),
         Str('ipausersearchfields?',
             cli_name='usersearch',
-            label='User search fields',
-            doc='A comma-separated list of fields to search when searching for users',
+            label=_('User search fields'),
+            doc=_('A comma-separated list of fields to search when searching for users'),
         ),
         Str('ipagroupsearchfields?',
             cli_name='groupsearch',
@@ -101,14 +101,14 @@ class config(LDAPObject):
             doc='A comma-separated list of fields to search when searching for groups',
         ),
         Bool('ipamigrationenabled?',
-            label='Migration mode',
             cli_name='enable_migration',
-            doc='Enabled migration mode',
+            label=_('Migration mode'),
+            doc=_('Enabled migration mode'),
         ),
         Str('ipacertificatesubjectbase?',
-            label='Certificate Subject base',
             cli_name='subject',
-            doc='base for certificate subjects (OU=Test,O=Example)',
+            label=_('Certificate Subject base'),
+            doc=_('base for certificate subjects (OU=Test,O=Example)'),
         ),
     )
 
@@ -139,4 +139,3 @@ class config_show(LDAPRetrieve):
     """
 
 api.register(config_show)
-

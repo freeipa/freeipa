@@ -123,16 +123,16 @@ class service(LDAPObject):
 
     takes_params = (
         Str('krbprincipalname', validate_principal,
-            label='Principal',
             cli_name='principal',
-            doc='service principal',
+            label=_('Principal'),
+            doc=_('Service principal'),
             primary_key=True,
             normalizer=lambda value: normalize_principal(value),
         ),
         Bytes('usercertificate?', validate_certificate,
-            label='Certificate',
             cli_name='certificate',
-            doc='base-64 encoded server certificate',
+            label=_('Certificate'),
+            doc=_('Base-64 encoded server certificate'),
         ),
     )
 
