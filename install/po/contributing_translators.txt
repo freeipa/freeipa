@@ -4,3 +4,5 @@ id: Indonesian
     Teguh DC <dheche@songolimo.net>
 kn: Kannada
     gundachandru <gundachandru@gmail.com>
+bn_IN: Bengali India
+    sankarshan mukhopadhyay <sankarshan@fedoraproject.org>
