@@ -38,6 +38,8 @@ TIMEOUT = 120
 IPA_REPLICA = 1
 WINSYNC = 2
 
+SASL_AUTH = ldap.sasl.sasl({}, 'GSSAPI')
+
 class ReplicationManager:
     """Manage replication agreements between DS servers, and sync
     agreements with Windows servers"""
@@ -45,8 +47,13 @@ class ReplicationManager:
         self.hostname = hostname
         self.dirman_passwd = dirman_passwd
 
+        # If we are passed a password we'll use it as the DM password
+        # otherwise we'll do a GSSAPI bind.
         self.conn = ipaldap.IPAdmin(hostname, port=PORT, cacert=CACERT)
-        self.conn.do_simple_bind(bindpw=dirman_passwd)
+        if dirman_passwd:
+            self.conn.do_simple_bind(bindpw=dirman_passwd)
+        else:
+            self.conn.sasl_interactive_bind_s('', SASL_AUTH)
 
         self.repl_man_passwd = dirman_passwd
 
@@ -98,6 +105,16 @@ class ReplicationManager:
         return retval
 
     def find_replication_dns(self, conn):
+        """
+        The replication agreements are stored in
+        cn="$SUFFIX",cn=mapping tree,cn=config
+
+        FIXME: Rather than failing with a read error if a user tries
+        to read this it simply returns zero entries. We need to use
+        GER to determine if we are allowed to read this to return a proper
+        response. For now just return "No entries" even if the user may
+        not be allowed to see them.
+        """
         filt = "(|(objectclass=nsDSWindowsReplicationAgreement)(objectclass=nsds5ReplicationAgreement))"
         try:
             ents = conn.search_s("cn=mapping tree,cn=config", ldap.SCOPE_SUBTREE, filt)
@@ -465,6 +482,7 @@ class ReplicationManager:
         # allow connections using two different CA certs
         other_conn = ipaldap.IPAdmin(other_hostname, port=oth_port, cacert=oth_cacert)
         try:
+            # For now we always require a password to set up new replica
             other_conn.do_simple_bind(binddn=oth_binddn, bindpw=oth_bindpw)
         except Exception, e:
             if iswinsync:

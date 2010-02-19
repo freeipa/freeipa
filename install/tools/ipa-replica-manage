@@ -27,6 +27,7 @@ from ipaserver.install import replication, dsinstance, installutils
 from ipaserver import ipaldap
 from ipapython import version
 from ipalib import util
+from ipalib import errors
 
 def parse_options():
     from optparse import OptionParser
@@ -102,12 +103,15 @@ def del_master(replman, hostname, force=False):
     try:
         t = replman.get_agreement_type(hostname)
     except ldap.NO_SUCH_OBJECT:
-        print "No replication agreement found for %s" % hostname
+        print "No replication agreement found for '%s'" % hostname
+        return
+    except errors.NotFound:
+        print "No replication agreement found for '%s'" % hostname
+        return
 
     if t == replication.IPA_REPLICA:
-        dirman_passwd = getpass.getpass("Directory Manager password (%s): " % hostname)
         try:
-            other_replman = replication.ReplicationManager(hostname, dirman_passwd)
+            other_replman = replication.ReplicationManager(hostname, dirman_passwd=None)
             other_replman.suffix = get_suffix()
             other_replman.delete_agreement(replman.conn.host)
         except Exception, e:
@@ -179,10 +183,13 @@ def synch_master(replman, hostname):
 def main():
     options, args = parse_options()
     
+    dirman_passwd = None
+
     if options.dirman_passwd:
         dirman_passwd = options.dirman_passwd
     else:
-        dirman_passwd = getpass.getpass("Directory Manager password: ")
+        if args[0] in ["add", "init"]:
+            dirman_passwd = getpass.getpass("Directory Manager password: ")
 
     if options.host:
         host = options.host
@@ -227,5 +234,12 @@ except SystemExit, e:
 except ldap.INVALID_CREDENTIALS:
     print "Invalid password"
     sys.exit(1)
+except ldap.INSUFFICIENT_ACCESS:
+    print "Insufficient access"
+    sys.exit(1)
+except ldap.LOCAL_ERROR, e:
+    print e.args[0]['info']
+    sys.exit(1)
 except Exception, e:
     print "unexpected error: %s" % str(e)
+    sys.exit(1)

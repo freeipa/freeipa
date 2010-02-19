@@ -72,6 +72,13 @@ add:objectClass: nestedgroup
 add:cn: certadmin
 add:description: Certificate Administrators
 
+dn: cn=replicaadmin,cn=rolegroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: nestedgroup
+add:cn: replicaadmin
+add:description: Replication Administrators
+add:member:'uid=admin,cn=users,cn=accounts,$SUFFIX'
+
 # Add the taskgroups referenced by the ACIs for user administration
 
 dn: cn=taskgroups,cn=accounts,$SUFFIX
@@ -648,3 +655,33 @@ add: aci: '(targetattr = "objectClass")(target =
  $SUFFIX" )(version 3.0 ; acl "Certificate Remove Hold"
   ; allow (write) groupdn = "ldap:///cn=certificate_remove_hold,
  cn=taskgroups,cn=accounts,$SUFFIX";)'
+
+# Taskgroup for managing replicas
+dn: cn=managereplica,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: nestedgroup
+add:cn: managereplica
+add:description: Manage Replication Agreements
+add:member:'cn=replicaadmin,cn=rolegroups,cn=accounts,$SUFFIX'
+
+# Taskgroup for deleting replicas
+dn: cn=deletereplica,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: nestedgroup
+add:cn: deletereplica
+add:description: Delete Replication Agreements
+add:member:'cn=replicaadmin,cn=rolegroups,cn=accounts,$SUFFIX'
+
+# Add acis allowing admins to read/write/delete replicas
+dn: cn="$SUFFIX",cn=mapping tree,cn=config
+add: aci: '(targetattr=*)(targetfilter="(|(objectclass=nsds5Replica)
+ (objectclass=nsds5replicationagreement)(objectclass=
+ nsDSWindowsReplicationAgreement))")(version 3.0; acl "Manage
+  replication agreements"; allow (read, write, search) groupdn =
+  "ldap:///cn=managereplica,cn=taskgroups,cn=accounts,$SUFFIX";)'
+
+dn: cn="$SUFFIX",cn=mapping tree,cn=config
+add: aci: '(targetattr=*)(targetfilter="(|(objectclass=
+ nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement
+ ))")(version 3.0;acl "Delete replication agreements";allow (delete)
+  groupdn = "ldap:///cn=deletereplica,cn=taskgroups,cn=accounts,$SUFFIX";)'

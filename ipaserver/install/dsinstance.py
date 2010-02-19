@@ -148,6 +148,8 @@ class DsInstance(service.Service):
         self.pkcs12_info = None
         self.ds_user = None
         self.dercert = None
+        self.uidstart = 1100
+        self.gidstart = 1100
         if realm_name:
             self.suffix = util.realm_to_suffix(self.realm_name)
             self.__setup_sub_dict()
