@@ -218,16 +218,16 @@ msg-stats:
 	for po_file in $(po_files); do \
 	    $(MSGCMP) $$po_file $(DOMAIN).pot 2>&1 | \
 	    $(AWK) -v po_file=$$po_file -v pot_count=$$pot_count -v pot_file=$(DOMAIN).pot \
-                'BEGIN {po_untranslated=0; undefined=0;} \
+                'BEGIN {po_untranslated=0; undefined=0; \
+	                po_name = gensub(/.po$$/, "", 1, po_file)} \
                 /this message is untranslated/ {po_untranslated++} \
                 /this message is used but not defined/ {undefined++} \
                 END {untranslated = po_untranslated+undefined; \
 	             translated = pot_count - untranslated; \
 	             ratio = sprintf("%d/%d", translated, pot_count); \
                      printf "%-7s %8s %5.1f%% %4d po untranslated, %4d missing, %4d untranslated\n", \
-                     po_file ":", ratio, translated/pot_count*100.0, po_untranslated, undefined, untranslated;}'; \
+                     po_name ":", ratio, translated/pot_count*100.0, po_untranslated, undefined, untranslated;}'; \
 	done
-
 install: $(mo_files)
 	@for lang in $(languages); do \
 	    dstdir=$(DESTDIR)$(localedir)/$$lang/LC_MESSAGES; \
