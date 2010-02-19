@@ -74,12 +74,12 @@ class test_Create(CrudChecker):
         """
         api = self.get_api()
         assert list(api.Method.user_verb.options) == \
-            ['givenname', 'sn', 'initials']
+            ['givenname', 'sn', 'initials', 'all', 'raw']
         for param in api.Method.user_verb.options():
             assert param.required is True
         api = self.get_api(options=('extra?',))
         assert list(api.Method.user_verb.options) == \
-            ['givenname', 'sn', 'initials', 'extra']
+            ['givenname', 'sn', 'initials', 'extra', 'all', 'raw']
         assert api.Method.user_verb.options.extra.required is False
 
 
@@ -104,9 +104,12 @@ class test_Update(CrudChecker):
         """
         api = self.get_api()
         assert list(api.Method.user_verb.options) == \
-            ['givenname', 'initials', 'uidnumber']
+            ['givenname', 'initials', 'uidnumber', 'all', 'raw']
         for param in api.Method.user_verb.options():
-            assert param.required is False
+            if param.name in ['all', 'raw']:
+                assert param.required is True
+            else:
+                assert param.required is False
 
 
 class test_Retrieve(CrudChecker):
@@ -129,8 +132,7 @@ class test_Retrieve(CrudChecker):
         Test the `ipalib.crud.Retrieve.get_options` method.
         """
         api = self.get_api()
-        assert list(api.Method.user_verb.options) == []
-        assert len(api.Method.user_verb.options) == 0
+        assert list(api.Method.user_verb.options) == ['all', 'raw']
 
 
 class test_Delete(CrudChecker):
@@ -178,9 +180,12 @@ class test_Search(CrudChecker):
         """
         api = self.get_api()
         assert list(api.Method.user_verb.options) == \
-            ['givenname', 'sn', 'uid', 'initials']
+            ['givenname', 'sn', 'uid', 'initials', 'all', 'raw']
         for param in api.Method.user_verb.options():
-            assert param.required is False
+            if param.name in ['all', 'raw']:
+                assert param.required is True
+            else:
+                assert param.required is False
 
 
 class test_CrudBackend(ClassChecker):

@@ -293,15 +293,6 @@ class textui(backend.Backend):
             one_value_per_line=True):
         """
         Print an ldap entry dict.
-
-        For example:
-
-        >>> entry = dict(sn='Last', givenname='First', uid='flast')
-        >>> ui = textui()
-        >>> ui.print_entry(entry)
-          givenname: First
-          sn: Last
-          uid: flast
         """
         assert isinstance(entry, dict)
         assert isinstance(attr_map, dict)
