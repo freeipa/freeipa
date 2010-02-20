@@ -193,8 +193,8 @@ update-po: update-pot
 	$(MAKE) all
 
 update-pot:
-	rm -f $(DOMAIN).pot.update
-	$(XGETTEXT) $(XGETTEXT_OPTIONS) \
+	@rm -f $(DOMAIN).pot.update
+	@$(XGETTEXT) $(XGETTEXT_OPTIONS) \
 	--output $(DOMAIN).pot.update \
 	--language="python" \
 	$(PYTHON_POTFILES) \
@@ -203,13 +203,19 @@ update-pot:
 	--output $(DOMAIN).pot.update \
 	--join-existing \
 	--language="c" \
-	$(C_POTFILES) \
-	&& \
-	mv $(DOMAIN).pot.update $(DOMAIN).pot \
-	&& \
-	# Replace the charset with UTF-8 ; \
-	$(SED) -i -r -e 's%("Content-Type: text/plain; charset=)(.*)(\\n")%\1UTF-8\3%' $(DOMAIN).pot
-
+	$(C_POTFILES) ; \
+	$(SED) '/^"POT-Creation-Date: .*"$$/d' $(DOMAIN).pot.update > $(DOMAIN).pot.update.tmp ; \
+	$(SED) -i -r -e 's%("Content-Type: text/plain; charset=)(.*)(\\n")%\1UTF-8\3%' $(DOMAIN).pot.update.tmp ; \
+	$(SED) '/^"POT-Creation-Date: .*"$$/d' $(DOMAIN).pot >  $(DOMAIN).pot.tmp ; \
+	if ! cmp -s $(DOMAIN).pot.update.tmp $(DOMAIN).pot.tmp ; then \
+	    echo "$(DOMAIN).pot updated" ; \
+	    mv $(DOMAIN).pot.update $(DOMAIN).pot ; \
+	    # Replace the charset with UTF-8 ; \
+	    $(SED) -i -r -e 's%("Content-Type: text/plain; charset=)(.*)(\\n")%\1UTF-8\3%' $(DOMAIN).pot ; \
+	else \
+	    echo "$(DOMAIN).pot unmodified" ; \
+	fi || :
+	@rm -f $(DOMAIN).pot.update $(DOMAIN).pot.update.tmp $(DOMAIN).pot.tmp
 
 msg-stats:
 	@pot_count=`$(MSGFMT) --statistics $(DOMAIN).pot 2>&1 | \
@@ -238,6 +244,7 @@ install: $(mo_files)
 
 mostlyclean:
 	rm -rf *.mo test.po test_locale
+	rm -f $(DOMAIN).pot.update $(DOMAIN).pot.update.tmp $(DOMAIN).pot.tmp
 
 clean: mostlyclean
 
