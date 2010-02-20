@@ -6,3 +6,5 @@ kn: Kannada
     gundachandru <gundachandru@gmail.com>
 bn_IN: Bengali India
     sankarshan mukhopadhyay <sankarshan@fedoraproject.org>
+ru: Russian
+    Andrew Martynov <andrewm@inventa.ru>

@@ -30,6 +30,7 @@ XGETTEXT_OPTIONS = \
 languages = $(shell $(SED) 's/\#.*//' LINGUAS) # The sed command removes comments
 po_files = $(patsubst %, %.po, $(languages))
 mo_files = $(patsubst %.po, %.mo, $(po_files))
+po_count=$(words $(po_files))
 
 PYTHON_POTFILES = \
      ../../ipa \
@@ -214,7 +215,7 @@ msg-stats:
 	@pot_count=`$(MSGFMT) --statistics $(DOMAIN).pot 2>&1 | \
 	$(AWK) '{match($$0, /([0-9]+) translated messages, ([0-9]+) untranslated messages/, groups); \
 	      printf "%s\n", groups[2];}'` ; \
-	echo "$(DOMAIN).pot has $$pot_count messages" ; \
+	echo "$(DOMAIN).pot has $$pot_count messages. There are $(po_count) po translation files." ; \
 	for po_file in $(po_files); do \
 	    $(MSGCMP) $$po_file $(DOMAIN).pot 2>&1 | \
 	    $(AWK) -v po_file=$$po_file -v pot_count=$$pot_count -v pot_file=$(DOMAIN).pot \

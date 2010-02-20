@@ -6,8 +6,8 @@ msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2010-02-10 09:13-0500\n"
-"PO-Revision-Date: 2010-02-11 23:29+0100\n"
+"POT-Creation-Date: 2010-02-15 14:55-0500\n"
+"PO-Revision-Date: 2010-02-10 02:39+0100\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <trans-pl@lists.fedoraproject.org>\n"
 "MIME-Version: 1.0\n"
@@ -16,90 +16,90 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: ../../ipalib/parameters.py:228
+#: ../../ipalib/parameters.py:224
 msgid "incorrect type"
 msgstr "niepoprawny typ"
 
-#: ../../ipalib/parameters.py:231
+#: ../../ipalib/parameters.py:227
 msgid "Only one value is allowed"
 msgstr "Dozwolona jest tylko jedna wartość"
 
-#: ../../ipalib/parameters.py:795
+#: ../../ipalib/parameters.py:791
 msgid "must be True or False"
 msgstr "musi być prawdą lub fałszem"
 
-#: ../../ipalib/parameters.py:896
+#: ../../ipalib/parameters.py:892
 msgid "must be an integer"
 msgstr "musi być liczba całkowitą"
 
-#: ../../ipalib/parameters.py:947
+#: ../../ipalib/parameters.py:943
 #, python-format
 msgid "must be at least %(minvalue)d"
 msgstr "musi wynosić co najmniej %(minvalue)d"
 
-#: ../../ipalib/parameters.py:957
+#: ../../ipalib/parameters.py:953
 #, python-format
 msgid "can be at most %(maxvalue)d"
 msgstr "może wynosić co najwyżej %(maxvalue)d"
 
-#: ../../ipalib/parameters.py:967
+#: ../../ipalib/parameters.py:963
 msgid "must be a decimal number"
 msgstr "musi być liczbą dziesiętną"
 
-#: ../../ipalib/parameters.py:989
+#: ../../ipalib/parameters.py:985
 #, python-format
 msgid "must be at least %(minvalue)f"
 msgstr "musi wynosić co najmniej %(minvalue)f"
 
-#: ../../ipalib/parameters.py:999
+#: ../../ipalib/parameters.py:995
 #, python-format
 msgid "can be at most %(maxvalue)f"
 msgstr "może wynosić co najwyżej %(maxvalue)f"
 
-#: ../../ipalib/parameters.py:1059
+#: ../../ipalib/parameters.py:1055
 #, python-format
 msgid "must match pattern \"%(pattern)s\""
 msgstr "musi pasować do wzorca \"%(pattern)s\""
 
-#: ../../ipalib/parameters.py:1077
+#: ../../ipalib/parameters.py:1073
 msgid "must be binary data"
 msgstr "musi być danymi binarnymi"
 
-#: ../../ipalib/parameters.py:1092
+#: ../../ipalib/parameters.py:1088
 #, python-format
 msgid "must be at least %(minlength)d bytes"
 msgstr "musi wynosić co najmniej %(minlength)d bajtów"
 
-#: ../../ipalib/parameters.py:1102
+#: ../../ipalib/parameters.py:1098
 #, python-format
 msgid "can be at most %(maxlength)d bytes"
 msgstr "może wynosić co najwyżej %(maxlength)d bajtów"
 
-#: ../../ipalib/parameters.py:1112
+#: ../../ipalib/parameters.py:1108
 #, python-format
 msgid "must be exactly %(length)d bytes"
 msgstr "musi wynosić dokładnie %(length)d bajtów"
 
-#: ../../ipalib/parameters.py:1130
+#: ../../ipalib/parameters.py:1126
 msgid "must be Unicode text"
 msgstr "musi być tekstem w unikodzie"
 
-#: ../../ipalib/parameters.py:1160
+#: ../../ipalib/parameters.py:1156
 #, python-format
 msgid "must be at least %(minlength)d characters"
 msgstr "musi wynosić co najmniej %(minlength)d znaków"
 
-#: ../../ipalib/parameters.py:1170
+#: ../../ipalib/parameters.py:1166
 #, python-format
 msgid "can be at most %(maxlength)d characters"
 msgstr "może wynosić co najwyżej %(maxlength)d znaków"
 
-#: ../../ipalib/parameters.py:1180
+#: ../../ipalib/parameters.py:1176
 #, python-format
 msgid "must be exactly %(length)d characters"
 msgstr "musi wynosić dokładnie %(length)d znaków"
 
-#: ../../ipalib/parameters.py:1219
+#: ../../ipalib/parameters.py:1215
 #, python-format
 msgid "must be one of %(values)r"
 msgstr "musi być jednym z %(values)r"
@@ -355,22 +355,26 @@ msgstr "%(info)s"
 msgid "Certificate operation cannot be completed: %(error)s"
 msgstr "Nie można ukończyć działania na certyfikacie: %(error)s"
 
-#: ../../ipalib/plugins/rolegroup.py:73
+#: ../../ipalib/plugins/rolegroup.py:50
+msgid "Role Groups"
+msgstr "Grupy rol"
+
+#: ../../ipalib/plugins/rolegroup.py:75
 #, python-format
 msgid "Added rolegroup \"%(value)s\""
 msgstr "Dodano grupę roli \"%(value)s\""
 
-#: ../../ipalib/plugins/rolegroup.py:83
+#: ../../ipalib/plugins/rolegroup.py:85
 #, python-format
 msgid "Deleted rolegroup \"%(value)s\""
 msgstr "Usunięto  grupę roli \"%(value)s\""
 
-#: ../../ipalib/plugins/rolegroup.py:93
+#: ../../ipalib/plugins/rolegroup.py:95
 #, python-format
 msgid "Modified rolegroup \"%(value)s\""
 msgstr "Zmodyfikowano grupę roli \"%(value)s\""
 
-#: ../../ipalib/plugins/rolegroup.py:104
+#: ../../ipalib/plugins/rolegroup.py:106
 #, python-format
 msgid "%(count)d rolegroup matched"
 msgid_plural "%(count)d rolegroups matched"
@@ -378,22 +382,26 @@ msgstr[0] "Pasuje %(count)d grupa roli"
 msgstr[1] "Pasują %(count)d grupy roli"
 msgstr[2] "Pasuje %(count)d grup roli"
 
-#: ../../ipalib/plugins/host.py:149
+#: ../../ipalib/plugins/host.py:82
+msgid "Hosts"
+msgstr "Komputery"
+
+#: ../../ipalib/plugins/host.py:151
 #, python-format
 msgid "Added host \"%(value)s\""
 msgstr "Dodano komputer \"%(value)s\""
 
-#: ../../ipalib/plugins/host.py:178
+#: ../../ipalib/plugins/host.py:180
 #, python-format
 msgid "Deleted host \"%(value)s\""
 msgstr "Usunięto komputer \"%(value)s\""
 
-#: ../../ipalib/plugins/host.py:206
+#: ../../ipalib/plugins/host.py:208
 #, python-format
 msgid "Modified host \"%(value)s\""
 msgstr "Zmodyfikowano komputer \"%(value)s\""
 
-#: ../../ipalib/plugins/host.py:255
+#: ../../ipalib/plugins/host.py:257
 #, python-format
 msgid "%(count)d host matched"
 msgid_plural "%(count)d hosts matched"
@@ -401,28 +409,40 @@ msgstr[0] "Pasuje %(count)d komputer"
 msgstr[1] "Pasuje %(count)d komputery"
 msgstr[2] "Pasuje %(count)d komputerów"
 
-#: ../../ipalib/plugins/group.py:85
+#: ../../ipalib/plugins/group.py:58
+msgid "User Groups"
+msgstr "Grupy użytkowników"
+
+#: ../../ipalib/plugins/group.py:87
 #, python-format
 msgid "Added group \"%(value)s\""
 msgstr "Dodano grupę \"%(value)s\""
 
-#: ../../ipalib/plugins/group.py:108
+#: ../../ipalib/plugins/group.py:110
 #, python-format
 msgid "Deleted group \"%(value)s\""
 msgstr "Usunięto grupę \"%(value)s\""
 
-#: ../../ipalib/plugins/group.py:134
+#: ../../ipalib/plugins/group.py:136
 #, python-format
 msgid "Modified group \"%(value)s\""
 msgstr "Zmodyfikowano grupę \"%(value)s\""
 
-#: ../../ipalib/plugins/group.py:163
+#: ../../ipalib/plugins/group.py:165
 #, python-format
 msgid "%(count)d group matched"
 msgid_plural "%(count)d groups matched"
 msgstr[0] "Pasuje %(count)d grupa"
 msgstr[1] "Pasują %(count)d grupy"
 msgstr[2] "Pasuje %(count)d grup"
+
+#: ../../ipalib/plugins/service.py:122
+msgid "Services"
+msgstr "Usługi"
+
+#: ../../ipalib/plugins/hbac.py:62
+msgid "HBAC"
+msgstr "HBAC"
 
 #: ../../ipalib/plugins/cert.py:63 ../../ipalib/plugins/cert.py:84
 msgid "Unable to decode certificate in entry"
@@ -470,28 +490,48 @@ msgstr "Grupa \"%s\" nie istnieje"
 msgid "ACI with name \"%s\" not found"
 msgstr "Nie odnaleziono ACI o nazwie \"%s\""
 
-#: ../../ipalib/plugins/aci.py:255
+#: ../../ipalib/plugins/aci.py:201
+msgid "ACIs"
+msgstr "ACI"
+
+#: ../../ipalib/plugins/aci.py:258
 #, python-format
 msgid "Created ACI \"%(value)s\""
 msgstr "Utworzono ACI \"%(value)s\""
 
-#: ../../ipalib/plugins/aci.py:305
+#: ../../ipalib/plugins/aci.py:308
 #, python-format
 msgid "Deleted ACI \"%(value)s\""
 msgstr "Usunięto ACI \"%(value)s\""
 
-#: ../../ipalib/plugins/aci.py:345
+#: ../../ipalib/plugins/aci.py:348
 #, python-format
 msgid "Modified ACI \"%(value)s\""
 msgstr "Zmodyfikowano ACI \"%(value)s\""
 
-#: ../../ipalib/plugins/aci.py:405
+#: ../../ipalib/plugins/aci.py:408
 #, python-format
 msgid "%(count)d ACI matched"
 msgid_plural "%(count)d ACIs matched"
 msgstr[0] "Pasuje %(count)d ACI"
 msgstr[1] "Pasują %(count)d ACI"
 msgstr[2] "Pasuje %(count)d ACI"
+
+#: ../../ipalib/plugins/dns.py:114
+msgid "DNS"
+msgstr "DNS"
+
+#: ../../ipalib/plugins/automount.py:231
+msgid "Automount Maps"
+msgstr "Automatyczne montowanie map"
+
+#: ../../ipalib/plugins/automount.py:321
+msgid "Automount Keys"
+msgstr "Automatyczne montowanie kluczy"
+
+#: ../../ipalib/plugins/netgroup.py:55
+msgid "Net Groups"
+msgstr "Grupy sieci"
 
 #: ../../ipalib/plugins/misc.py:37
 #, python-format
@@ -506,22 +546,26 @@ msgstr[0] "Wczytano %(count)d wtyczkę"
 msgstr[1] "Wczytano %(count)d wtyczki"
 msgstr[2] "Wczytano %(count)d wtyczek"
 
-#: ../../ipalib/plugins/user.py:139
+#: ../../ipalib/plugins/user.py:71
+msgid "Users"
+msgstr "Użytkownicy"
+
+#: ../../ipalib/plugins/user.py:141
 #, python-format
 msgid "Added user \"%(value)s\""
 msgstr "Dodano użytkownika \"%(value)s\""
 
-#: ../../ipalib/plugins/user.py:184
+#: ../../ipalib/plugins/user.py:186
 #, python-format
 msgid "Deleted user \"%(value)s\""
 msgstr "Usunięto użytkownika \"%(value)s\""
 
-#: ../../ipalib/plugins/user.py:203
+#: ../../ipalib/plugins/user.py:205
 #, python-format
 msgid "Modified user \"%(value)s\""
 msgstr "Zmodyfikowano użytkownika \"%(value)s\""
 
-#: ../../ipalib/plugins/user.py:214
+#: ../../ipalib/plugins/user.py:216
 #, python-format
 msgid "%(count)d user matched"
 msgid_plural "%(count)d users matched"
@@ -529,32 +573,36 @@ msgstr[0] "Pasuje %(count)d użytkownik"
 msgstr[1] "Pasuje %(count)d użytkowników"
 msgstr[2] "Pasuje %(count)d użytkowników"
 
-#: ../../ipalib/plugins/user.py:234
+#: ../../ipalib/plugins/user.py:236
 #, python-format
 msgid "Locked user \"%(value)s\""
 msgstr "Zablokowany użytkownik \"%(value)s\""
 
-#: ../../ipalib/plugins/user.py:260
+#: ../../ipalib/plugins/user.py:262
 #, python-format
 msgid "Unlocked user \"%(value)s\""
 msgstr "Odblokowany użytkownik \"%(value)s\""
 
-#: ../../ipalib/plugins/taskgroup.py:73
+#: ../../ipalib/plugins/taskgroup.py:50
+msgid "Task Groups"
+msgstr "Grupy zadaniowe"
+
+#: ../../ipalib/plugins/taskgroup.py:75
 #, python-format
 msgid "Added taskgroup \"%(value)s\""
 msgstr "Dodano grupę zadaniową \"%(value)s\""
 
-#: ../../ipalib/plugins/taskgroup.py:83
+#: ../../ipalib/plugins/taskgroup.py:85
 #, python-format
 msgid "Deleted taskgroup \"%(value)s\""
 msgstr "Usunięto grupę zadaniową \"%(value)s\""
 
-#: ../../ipalib/plugins/taskgroup.py:93
+#: ../../ipalib/plugins/taskgroup.py:95
 #, python-format
 msgid "Modified taskgroup \"%(value)s\""
 msgstr "Zmodyfikowano grupę zadaniową \"%(value)s\""
 
-#: ../../ipalib/plugins/taskgroup.py:104
+#: ../../ipalib/plugins/taskgroup.py:106
 #, python-format
 msgid "%(count)d taskgroup matched"
 msgid_plural "%(count)d taskgroups matched"
@@ -562,22 +610,26 @@ msgstr[0] "Pasuje %(count)d grupa zadaniowa"
 msgstr[1] "Pasują %(count)d grupy zadaniowe"
 msgstr[2] "Pasuje %(count)d grup zadaniowych"
 
-#: ../../ipalib/plugins/hostgroup.py:72
+#: ../../ipalib/plugins/hostgroup.py:49
+msgid "Host Groups"
+msgstr "Grupy komputerów"
+
+#: ../../ipalib/plugins/hostgroup.py:74
 #, python-format
 msgid "Added hostgroup \"%(value)s\""
 msgstr "Dodano grupę komputera \"%(value)s\""
 
-#: ../../ipalib/plugins/hostgroup.py:82
+#: ../../ipalib/plugins/hostgroup.py:84
 #, python-format
 msgid "Deleted hostgroup \"%(value)s\""
 msgstr "Usunięto grupę komputera \"%(value)s\""
 
-#: ../../ipalib/plugins/hostgroup.py:92
+#: ../../ipalib/plugins/hostgroup.py:94
 #, python-format
 msgid "Modified hostgroup \"%(value)s\""
 msgstr "Zmodyfikowano grupę komputera \"%(value)s\""
 
-#: ../../ipalib/plugins/hostgroup.py:103
+#: ../../ipalib/plugins/hostgroup.py:105
 #, python-format
 msgid "%(count)d hostgroup matched"
 msgid_plural "%(count)d hostgroups matched"
