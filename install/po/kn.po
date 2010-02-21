@@ -2,12 +2,12 @@
 # Copyright (C) 2010 Red Hat
 # This file is distributed under the same license as the PACKAGE package.
 # gundachandru <gundachandru@gmail.com>, 2010.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/newticket\n"
-"POT-Creation-Date: 2010-02-10 09:13-0500\n"
+"POT-Creation-Date: 2010-02-15 14:55-0500\n"
 "PO-Revision-Date: 2010-02-14 22:37+0530\n"
 "Last-Translator: gundachandru <gundachandru@gmail.com>\n"
 "Language-Team: Kannada <LL@li.org>\n"
@@ -16,98 +16,98 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../../ipalib/parameters.py:228
+#: ../../ipalib/parameters.py:224
 msgid "incorrect type"
 msgstr "ಸರಿಯಲ್ಲದ ಬಗೆ"
 
-#: ../../ipalib/parameters.py:231
+#: ../../ipalib/parameters.py:227
 msgid "Only one value is allowed"
 msgstr "ಕೇವಲ ಒಂದು ಬೆಲೆ ಮಾತ್ರ ಅನುಮೋದಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/parameters.py:795
+#: ../../ipalib/parameters.py:791
 msgid "must be True or False"
-msgstr "ನಿಜ (True) ಅಥವಾ ಸುಳ್ಳು (False) ಆಗಿರಬೇಕು"
+msgstr "ನಿಜ (True) ಅಥವಾ ಸುಳ್ಳು (False) ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:896
+#: ../../ipalib/parameters.py:892
 msgid "must be an integer"
-msgstr "ಇನ್ಟೀಜರ್ ಆಗಿರಬೇಕು"
+msgstr "ಇನ್ಟೀಜರ್ ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:947
+#: ../../ipalib/parameters.py:943
 #, python-format
 msgid "must be at least %(minvalue)d"
-msgstr ""
+msgstr "ಕನಿಷ್ಠವಾಗಿ %(minvalue)d ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:957
+#: ../../ipalib/parameters.py:953
 #, python-format
 msgid "can be at most %(maxvalue)d"
-msgstr ""
+msgstr "ಗರಿಷ್ಠವಾಗಿ %(maxvalue)d ಆಗಿರಬಹುದು"
 
-#: ../../ipalib/parameters.py:967
+#: ../../ipalib/parameters.py:963
 msgid "must be a decimal number"
-msgstr ""
+msgstr "ದಶಾಂಶ ಸಂಖ್ಯೆ ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:989
+#: ../../ipalib/parameters.py:985
 #, python-format
 msgid "must be at least %(minvalue)f"
-msgstr ""
+msgstr "ಕನಿಷ್ಠವಾಗಿ %(minvalue)f ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:999
+#: ../../ipalib/parameters.py:995
 #, python-format
 msgid "can be at most %(maxvalue)f"
-msgstr ""
+msgstr "ಗರಿಷ್ಠವಾಗಿ %(maxvalue)f ಆಗಿರಬಹುದು"
 
-#: ../../ipalib/parameters.py:1059
+#: ../../ipalib/parameters.py:1055
 #, python-format
 msgid "must match pattern \"%(pattern)s\""
-msgstr ""
+msgstr "ನಮೂನೆ \"%(pattern)s\" ಹೊಂದಾಣಿಕೆಯಾಗಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:1077
+#: ../../ipalib/parameters.py:1073
 msgid "must be binary data"
-msgstr ""
+msgstr "ಬೈನರಿ ಡಾಟಾ ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:1092
+#: ../../ipalib/parameters.py:1088
 #, python-format
 msgid "must be at least %(minlength)d bytes"
-msgstr ""
+msgstr "ಕನಿಷ್ಠವಾಗಿ %(minlength)d ಬೈಟ್ಸ್ ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:1102
+#: ../../ipalib/parameters.py:1098
 #, python-format
 msgid "can be at most %(maxlength)d bytes"
-msgstr ""
+msgstr "ಗರಿಷ್ಠವಾಗಿ %(maxlength)d ಬೈಟ್ಸ್ ಆಗಿರಬಹುದು"
 
-#: ../../ipalib/parameters.py:1112
+#: ../../ipalib/parameters.py:1108
 #, python-format
 msgid "must be exactly %(length)d bytes"
-msgstr ""
+msgstr "ನಿಖರವಾಗಿ %(length)d ಬೈಟ್ಸ್ ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:1130
+#: ../../ipalib/parameters.py:1126
 msgid "must be Unicode text"
-msgstr ""
+msgstr "ಯುನಿಕೋಡ್ ಪಠ್ಯ ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:1160
+#: ../../ipalib/parameters.py:1156
 #, python-format
 msgid "must be at least %(minlength)d characters"
-msgstr ""
+msgstr "ಕನಿಷ್ಠವಾಗಿ %(minlength)d ಅಕ್ಷರಗಳು ಇರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:1170
+#: ../../ipalib/parameters.py:1166
 #, python-format
 msgid "can be at most %(maxlength)d characters"
-msgstr ""
+msgstr "ಗರಿಷ್ಠವಾಗಿ %(maxlength)d ಅಕ್ಷರಗಳು ಇರಬಹುದು"
 
-#: ../../ipalib/parameters.py:1180
+#: ../../ipalib/parameters.py:1176
 #, python-format
 msgid "must be exactly %(length)d characters"
-msgstr ""
+msgstr "ನಿಖರವಾಗಿ %(length)d ಅಕ್ಷರಗಳು ಇರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:1219
+#: ../../ipalib/parameters.py:1215
 #, python-format
 msgid "must be one of %(values)r"
-msgstr ""
+msgstr "%(values)r ನಲ್ಲಿ ಒಂದು ಆಗಿರಲೇಬೇಕು"
 
 #: ../../ipalib/cli.py:505
 #, python-format
 msgid "Enter %(label)s again to verify: "
-msgstr ""
+msgstr "ಮತ್ತೊಮ್ಮೆ ಪರಿಶೀಲಿಸಲು %(label)s ಎಂಟರ್ ಮಾಡಿ"
 
 #: ../../ipalib/cli.py:509
 msgid "Passwords do not match!"
@@ -145,8 +145,7 @@ msgstr ""
 msgid "unknown command %(name)r"
 msgstr ""
 
-#: ../../ipalib/errors.py:386
-#: ../../ipalib/errors.py:411
+#: ../../ipalib/errors.py:386 ../../ipalib/errors.py:411
 #, python-format
 msgid "error on server %(server)r: %(error)s"
 msgstr ""
@@ -222,8 +221,7 @@ msgstr ""
 msgid "%(name)r is required"
 msgstr ""
 
-#: ../../ipalib/errors.py:706
-#: ../../ipalib/errors.py:722
+#: ../../ipalib/errors.py:706 ../../ipalib/errors.py:722
 #, python-format
 msgid "invalid %(name)r: %(error)s"
 msgstr ""
@@ -241,8 +239,7 @@ msgstr ""
 msgid "Command not implemented"
 msgstr ""
 
-#: ../../ipalib/errors.py:783
-#: ../../ipalib/errors.py:1023
+#: ../../ipalib/errors.py:783 ../../ipalib/errors.py:1023
 #, python-format
 msgid "%(reason)s"
 msgstr ""
@@ -346,79 +343,97 @@ msgstr ""
 msgid "Certificate operation cannot be completed: %(error)s"
 msgstr ""
 
-#: ../../ipalib/plugins/rolegroup.py:73
+#: ../../ipalib/plugins/rolegroup.py:50
+msgid "Role Groups"
+msgstr ""
+
+#: ../../ipalib/plugins/rolegroup.py:75
 #, python-format
 msgid "Added rolegroup \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/rolegroup.py:83
+#: ../../ipalib/plugins/rolegroup.py:85
 #, python-format
 msgid "Deleted rolegroup \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/rolegroup.py:93
+#: ../../ipalib/plugins/rolegroup.py:95
 #, python-format
 msgid "Modified rolegroup \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/rolegroup.py:104
+#: ../../ipalib/plugins/rolegroup.py:106
 #, python-format
 msgid "%(count)d rolegroup matched"
 msgid_plural "%(count)d rolegroups matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../../ipalib/plugins/host.py:149
+#: ../../ipalib/plugins/host.py:82
+msgid "Hosts"
+msgstr ""
+
+#: ../../ipalib/plugins/host.py:151
 #, python-format
 msgid "Added host \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/host.py:178
+#: ../../ipalib/plugins/host.py:180
 #, python-format
 msgid "Deleted host \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/host.py:206
+#: ../../ipalib/plugins/host.py:208
 #, python-format
 msgid "Modified host \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/host.py:255
+#: ../../ipalib/plugins/host.py:257
 #, python-format
 msgid "%(count)d host matched"
 msgid_plural "%(count)d hosts matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../../ipalib/plugins/group.py:85
+#: ../../ipalib/plugins/group.py:58
+msgid "User Groups"
+msgstr ""
+
+#: ../../ipalib/plugins/group.py:87
 #, python-format
 msgid "Added group \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/group.py:108
+#: ../../ipalib/plugins/group.py:110
 #, python-format
 msgid "Deleted group \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/group.py:134
+#: ../../ipalib/plugins/group.py:136
 #, python-format
 msgid "Modified group \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/group.py:163
+#: ../../ipalib/plugins/group.py:165
 #, python-format
 msgid "%(count)d group matched"
 msgid_plural "%(count)d groups matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../../ipalib/plugins/cert.py:63
-#: ../../ipalib/plugins/cert.py:84
+#: ../../ipalib/plugins/service.py:122
+msgid "Services"
+msgstr ""
+
+#: ../../ipalib/plugins/hbac.py:62
+msgid "HBAC"
+msgstr ""
+
+#: ../../ipalib/plugins/cert.py:63 ../../ipalib/plugins/cert.py:84
 msgid "Unable to decode certificate in entry"
 msgstr ""
 
-#: ../../ipalib/plugins/cert.py:106
-#: ../../ipalib/plugins/cert.py:120
+#: ../../ipalib/plugins/cert.py:106 ../../ipalib/plugins/cert.py:120
 #: ../../ipalib/plugins/cert.py:137
 msgid "Failure decoding Certificate Signing Request"
 msgstr ""
@@ -454,27 +469,47 @@ msgstr ""
 msgid "ACI with name \"%s\" not found"
 msgstr ""
 
-#: ../../ipalib/plugins/aci.py:255
+#: ../../ipalib/plugins/aci.py:201
+msgid "ACIs"
+msgstr ""
+
+#: ../../ipalib/plugins/aci.py:258
 #, python-format
 msgid "Created ACI \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/aci.py:305
+#: ../../ipalib/plugins/aci.py:308
 #, python-format
 msgid "Deleted ACI \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/aci.py:345
+#: ../../ipalib/plugins/aci.py:348
 #, python-format
 msgid "Modified ACI \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/aci.py:405
+#: ../../ipalib/plugins/aci.py:408
 #, python-format
 msgid "%(count)d ACI matched"
 msgid_plural "%(count)d ACIs matched"
 msgstr[0] ""
 msgstr[1] ""
+
+#: ../../ipalib/plugins/dns.py:114
+msgid "DNS"
+msgstr ""
+
+#: ../../ipalib/plugins/automount.py:231
+msgid "Automount Maps"
+msgstr ""
+
+#: ../../ipalib/plugins/automount.py:321
+msgid "Automount Keys"
+msgstr ""
+
+#: ../../ipalib/plugins/netgroup.py:55
+msgid "Net Groups"
+msgstr ""
 
 #: ../../ipalib/plugins/misc.py:37
 #, python-format
@@ -488,76 +523,88 @@ msgid_plural "%(count)d plugins loaded"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../../ipalib/plugins/user.py:139
+#: ../../ipalib/plugins/user.py:71
+msgid "Users"
+msgstr ""
+
+#: ../../ipalib/plugins/user.py:141
 #, python-format
 msgid "Added user \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/user.py:184
+#: ../../ipalib/plugins/user.py:186
 #, python-format
 msgid "Deleted user \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/user.py:203
+#: ../../ipalib/plugins/user.py:205
 #, python-format
 msgid "Modified user \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/user.py:214
+#: ../../ipalib/plugins/user.py:216
 #, python-format
 msgid "%(count)d user matched"
 msgid_plural "%(count)d users matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../../ipalib/plugins/user.py:234
+#: ../../ipalib/plugins/user.py:236
 #, python-format
 msgid "Locked user \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/user.py:260
+#: ../../ipalib/plugins/user.py:262
 #, python-format
 msgid "Unlocked user \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/taskgroup.py:73
+#: ../../ipalib/plugins/taskgroup.py:50
+msgid "Task Groups"
+msgstr ""
+
+#: ../../ipalib/plugins/taskgroup.py:75
 #, python-format
 msgid "Added taskgroup \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/taskgroup.py:83
+#: ../../ipalib/plugins/taskgroup.py:85
 #, python-format
 msgid "Deleted taskgroup \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/taskgroup.py:93
+#: ../../ipalib/plugins/taskgroup.py:95
 #, python-format
 msgid "Modified taskgroup \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/taskgroup.py:104
+#: ../../ipalib/plugins/taskgroup.py:106
 #, python-format
 msgid "%(count)d taskgroup matched"
 msgid_plural "%(count)d taskgroups matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../../ipalib/plugins/hostgroup.py:72
+#: ../../ipalib/plugins/hostgroup.py:49
+msgid "Host Groups"
+msgstr ""
+
+#: ../../ipalib/plugins/hostgroup.py:74
 #, python-format
 msgid "Added hostgroup \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/hostgroup.py:82
+#: ../../ipalib/plugins/hostgroup.py:84
 #, python-format
 msgid "Deleted hostgroup \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/hostgroup.py:92
+#: ../../ipalib/plugins/hostgroup.py:94
 #, python-format
 msgid "Modified hostgroup \"%(value)s\""
 msgstr ""
 
-#: ../../ipalib/plugins/hostgroup.py:103
+#: ../../ipalib/plugins/hostgroup.py:105
 #, python-format
 msgid "%(count)d hostgroup matched"
 msgid_plural "%(count)d hostgroups matched"
@@ -568,8 +615,7 @@ msgstr[1] ""
 msgid "priority cannot be set on global policy"
 msgstr ""
 
-#: ../../ipaserver/install/certs.py:571
-#: ../../ipaserver/plugins/dogtag.py:1313
+#: ../../ipaserver/install/certs.py:571 ../../ipaserver/plugins/dogtag.py:1313
 #: ../../ipaserver/plugins/dogtag.py:1398
 #: ../../ipaserver/plugins/dogtag.py:1463
 #: ../../ipaserver/plugins/dogtag.py:1543
@@ -600,4 +646,3 @@ msgstr ""
 #: ../../ipaserver/plugins/selfsign.py:192
 msgid "certutil failure"
 msgstr ""
-
