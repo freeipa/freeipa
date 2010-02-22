@@ -160,7 +160,7 @@ POTFILES = $(PYTHON_POTFILES) $(C_POTFILES)
 .SUFFIXES: .po .mo
 .PHONY: all create-po update-po update-pot install mostlyclean clean distclean test_lang test
 
-all: $(po_files)
+all:
 	@
 
 SUFFIXES = .po .mo
@@ -170,7 +170,7 @@ SUFFIXES = .po .mo
 	$(MSGFMT) -c -o t-$@ $< && mv t-$@ $@
 
 $(po_files): $(DOMAIN).pot
-	@if [ ! -f @a ]; then \
+	@if [ ! -f $@ ]; then \
 	    lang=`echo $@ | $(SED) -r -e 's/\.po$$//'` # Strip .po suffix ; \
 	    echo Creating nonexistent $@, you should add this file to your SCM repository; \
 	    $(MSGINIT) --locale $$lang --no-translator -i $(DOMAIN).pot -o $@; \
@@ -235,6 +235,9 @@ msg-stats:
                      printf "%-7s %8s %5.1f%% %4d po untranslated, %4d missing, %4d untranslated\n", \
                      po_name ":", ratio, translated/pot_count*100.0, po_untranslated, undefined, untranslated;}'; \
 	done
+
+mo-files: $(mo_files)
+
 install: $(mo_files)
 	@for lang in $(languages); do \
 	    dstdir=$(DESTDIR)$(localedir)/$$lang/LC_MESSAGES; \
