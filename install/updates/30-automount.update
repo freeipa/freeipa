@@ -6,7 +6,7 @@ add:cn: automount
 
 dn: cn=default,cn=automount,$SUFFIX
 add:objectClass: nsContainer
-add:cn: automount
+add:cn: default
 
 dn: automountmapname=auto.master,cn=default,cn=automount,$SUFFIX
 add:objectClass: automountMap
