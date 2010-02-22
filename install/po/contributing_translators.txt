@@ -8,3 +8,5 @@ bn_IN: Bengali India
     sankarshan mukhopadhyay <sankarshan@fedoraproject.org>
 ru: Russian
     Andrew Martynov <andrewm@inventa.ru>
+es: Spanish
+    Héctor Daniel Cabrera <logan@fedoraproject.org>
