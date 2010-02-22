@@ -754,7 +754,7 @@ For example:
 >>> api.register(motd)
 >>> api.finalize()
 >>> api.Command.motd()
-{'result': 'Hello, world!'}
+{'result': u'Hello, world!'}
 
 Also see the `plugable.API.bootstrap_with_global_options()` method.
 

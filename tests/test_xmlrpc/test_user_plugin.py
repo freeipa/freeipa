@@ -123,7 +123,7 @@ class test_user(Declarative):
             expected=dict(
                 result=[
                     {
-                        #'dn': u'uid=user1,cn=users,cn=accounts,' + api.env.basedn,
+                        'dn': u'uid=tuser1,cn=users,cn=accounts,' + api.env.basedn,
                         'cn': [u'Test User1'],
                         'gecos': [user1],
                         'givenname': [u'Test'],
@@ -153,7 +153,7 @@ class test_user(Declarative):
             expected=dict(
                 result=[
                     dict(
-                        #dn=u'uid=tuser1,cn=users,cn=accounts,' + api.env.basedn,
+                        dn=u'uid=tuser1,cn=users,cn=accounts,' + api.env.basedn,
                         givenname=[u'Test'],
                         homedirectory=[u'/home/tuser1'],
                         loginshell=[u'/bin/sh'],
@@ -177,7 +177,7 @@ class test_user(Declarative):
             expected=dict(
                 result=[
                     dict(
-                        #dn=u'uid=admin,cn=users,cn=accounts,' + api.env.basedn,
+                        dn=u'uid=admin,cn=users,cn=accounts,' + api.env.basedn,
                         homedirectory=[u'/home/admin'],
                         loginshell=[u'/bin/bash'],
                         sn=[u'Administrator'],
@@ -185,7 +185,7 @@ class test_user(Declarative):
                         memberof_group=[u'admins'],
                     ),
                     dict(
-                        #dn=u'uid=tuser1,cn=users,cn=accounts,' + api.env.basedn,
+                        dn=u'uid=tuser1,cn=users,cn=accounts,' + api.env.basedn,
                         givenname=[u'Test'],
                         homedirectory=[u'/home/tuser1'],
                         loginshell=[u'/bin/sh'],

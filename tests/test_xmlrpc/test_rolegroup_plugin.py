@@ -184,7 +184,7 @@ class test_rolegroup(Declarative):
                 summary=u'1 rolegroup matched',
                 result=[
                     {
-                        #'dn': rolegroup1_dn,
+                        'dn': rolegroup1_dn,
                         'cn': [rolegroup1],
                         'description': [u'rolegroup desc 1'],
                         'member_group': [group1],
@@ -203,7 +203,7 @@ class test_rolegroup(Declarative):
                 summary=u'1 rolegroup matched',
                 result=[
                     {
-                        #'dn': rolegroup1_dn,
+                        'dn': rolegroup1_dn,
                         'cn': [rolegroup1],
                         'description': [u'rolegroup desc 1'],
                         'member_group': [group1],
@@ -240,7 +240,7 @@ class test_rolegroup(Declarative):
                 summary=u'1 rolegroup matched',
                 result=[
                     {
-                        #'dn': rolegroup1_dn,
+                        'dn': rolegroup1_dn,
                         'cn': [rolegroup1],
                         'description': [u'rolegroup desc 1'],
                         'member_group': [group1],
@@ -259,13 +259,13 @@ class test_rolegroup(Declarative):
                 summary=u'2 rolegroups matched',
                 result=[
                     {
-                        #'dn': rolegroup1_dn,
+                        'dn': rolegroup1_dn,
                         'cn': [rolegroup1],
                         'description': [u'rolegroup desc 1'],
                         'member_group': [group1],
                     },
                     {
-                        #'dn': rolegroup2_dn,
+                        'dn': rolegroup2_dn,
                         'cn': [rolegroup2],
                         'description': [u'rolegroup desc 2'],
                     },
@@ -396,7 +396,7 @@ class test_rolegroup(Declarative):
                 summary=u'1 rolegroup matched',
                 result=[
                     {
-                        #'dn': rolegroup2_dn,
+                        'dn': rolegroup2_dn,
                         'cn': [rolegroup2],
                         'description': [u'rolegroup desc 2'],
                     },

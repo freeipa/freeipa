@@ -301,7 +301,7 @@ class HasParam(Plugin):
         >>> bar = Env(context='bar')
         >>> another = Env(context='another')
         >>> (foo.context, bar.context, another.context)
-        ('foo', 'bar', 'another')
+        (u'foo', u'bar', u'another')
         >>> list(eg._filter_param_by_context('args', foo))
         [Str('foo_only', include=['foo']), Str('not_bar', exclude=['bar']), Str('both')]
         >>> list(eg._filter_param_by_context('args', bar))

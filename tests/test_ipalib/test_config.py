@@ -39,8 +39,8 @@ from ipalib import config, constants, base
 #    raw: the value being set (possibly a string repr)
 #    value: the expected value after the lightweight conversion
 good_vars = (
-    ('a_string', 'Hello world!', 'Hello world!'),
-    ('trailing_whitespace', ' value  ', 'value'),
+    ('a_string', u'Hello world!', u'Hello world!'),
+    ('trailing_whitespace', u' value  ', u'value'),
     ('an_int', 42, 42),
     ('int_repr', ' 42 ', 42),
     ('a_float', 3.14, 3.14),
@@ -54,16 +54,16 @@ good_vars = (
     ('empty', '', None),
 
     # These verify that the implied conversion is case-sensitive:
-    ('not_true', ' true ', 'true'),
-    ('not_false', ' false ', 'false'),
-    ('not_none', ' none ', 'none'),
+    ('not_true', u' true ', u'true'),
+    ('not_false', u' false ', u'false'),
+    ('not_none', u' none ', u'none'),
 )
 
 
 bad_names = (
-    ('CamelCase', 'value'),
-    ('_leading_underscore', 'value'),
-    ('trailing_underscore_', 'value'),
+    ('CamelCase', u'value'),
+    ('_leading_underscore', u'value'),
+    ('trailing_underscore_', u'value'),
 )
 
 
@@ -253,7 +253,7 @@ class test_Env(ClassChecker):
         Test the `ipalib.config.Env.__getitem__` method.
         """
         o = self.cls()
-        value = 'some value'
+        value = u'some value'
         o.key = value
         assert o.key is value
         assert o['key'] is value
@@ -300,7 +300,7 @@ class test_Env(ClassChecker):
         assert len(o) == 0
         for i in xrange(1, 11):
             key = 'key%d' % i
-            value = 'value %d' % i
+            value = u'value %d' % i
             o[key] = value
             assert o[key] is value
             assert len(o) == i
@@ -321,16 +321,16 @@ class test_Env(ClassChecker):
         Test the `ipalib.config.Env._merge` method.
         """
         group1 = (
-            ('key1', 'value 1'),
-            ('key2', 'value 2'),
-            ('key3', 'value 3'),
-            ('key4', 'value 4'),
+            ('key1', u'value 1'),
+            ('key2', u'value 2'),
+            ('key3', u'value 3'),
+            ('key4', u'value 4'),
         )
         group2 = (
-            ('key0', 'Value 0'),
-            ('key2', 'Value 2'),
-            ('key4', 'Value 4'),
-            ('key5', 'Value 5'),
+            ('key0', u'Value 0'),
+            ('key2', u'Value 2'),
+            ('key4', u'Value 4'),
+            ('key5', u'Value 5'),
         )
         o = self.cls()
         assert o._merge(**dict(group1)) == (4, 4)
@@ -599,7 +599,7 @@ class test_Env(ClassChecker):
         # Check that **lastchance works
         (o, home) = self.finalize_core(None)
         key = 'just_one_more_key'
-        value = 'with one more value'
+        value = u'with one more value'
         lastchance = {key: value}
         assert key not in o
         assert o._isdone('_finalize') is False

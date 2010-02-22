@@ -165,7 +165,7 @@ class test_hostgroup(Declarative):
                 summary=u'1 hostgroup matched',
                 result=[
                     {
-                        #'dn': dn1,
+                        'dn': dn1,
                         'member_host': [u'testhost1.%s' % api.env.domain],
                         'cn': [hostgroup1],
                         'description': [u'Test hostgroup 1'],

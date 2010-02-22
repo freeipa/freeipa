@@ -148,7 +148,7 @@ class test_host(Declarative):
                 summary=u'1 host matched',
                 result=[
                     dict(
-                        #dn=dn1,
+                        dn=dn1,
                         fqdn=[fqdn1],
                         description=[u'Test host 1'],
                         l=[u'Undisclosed location 1'],
@@ -168,6 +168,7 @@ class test_host(Declarative):
                 summary=u'1 host matched',
                 result=[
                     dict(
+                        dn=dn1,
                         cn=[fqdn1],
                         fqdn=[fqdn1],
                         description=[u'Test host 1'],

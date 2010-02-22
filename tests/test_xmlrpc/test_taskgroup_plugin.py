@@ -206,7 +206,7 @@ class test_taskgroup(Declarative):
                 summary=u'1 taskgroup matched',
                 result=[
                     {
-                        #'dn': taskgroup1_dn,
+                        'dn': taskgroup1_dn,
                         'cn': [taskgroup1],
                         'description': [u'Test desc 1'],
                         'member_rolegroup': [rolegroup1],
@@ -226,7 +226,7 @@ class test_taskgroup(Declarative):
                 summary=u'1 taskgroup matched',
                 result=[
                     {
-                        #'dn': taskgroup1_dn,
+                        'dn': taskgroup1_dn,
                         'cn': [taskgroup1],
                         'description': [u'Test desc 1'],
                         'member_rolegroup': [rolegroup1],
@@ -264,7 +264,7 @@ class test_taskgroup(Declarative):
                 summary=u'1 taskgroup matched',
                 result=[
                     {
-                        #'dn': taskgroup1_dn,
+                        'dn': taskgroup1_dn,
                         'cn': [taskgroup1],
                         'description': [u'Test desc 1'],
                         'member_rolegroup': [rolegroup1],
@@ -284,14 +284,14 @@ class test_taskgroup(Declarative):
                 summary=u'2 taskgroups matched',
                 result=[
                     {
-                        #'dn': taskgroup1_dn,
+                        'dn': taskgroup1_dn,
                         'cn': [taskgroup1],
                         'description': [u'Test desc 1'],
                         'member_rolegroup': [rolegroup1],
                         'member_group': [group1],
                     },
                     {
-                        #'dn': taskgroup2_dn,
+                        'dn': taskgroup2_dn,
                         'cn': [taskgroup2],
                         'description': [u'Test desc 2'],
                     },
@@ -401,7 +401,7 @@ class test_taskgroup(Declarative):
                 summary=u'1 taskgroup matched',
                 result=[
                     {
-                        #'dn': taskgroup2_dn,
+                        'dn': taskgroup2_dn,
                         'cn': [taskgroup2],
                         'description': [u'Test desc 2'],
                     },

@@ -176,7 +176,7 @@ class test_group(Declarative):
                 truncated=False,
                 result=[
                     dict(
-                        #dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
+                        dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
                         cn=[group1],
                         description=[u'New desc 1'],
                         gidnumber=[fuzzy_digits],
@@ -293,7 +293,7 @@ class test_group(Declarative):
                 truncated=False,
                 result=[
                     dict(
-                        #dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group2, api.env.basedn),
+                        dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group2, api.env.basedn),
                         cn=[group2],
                         description=[u'New desc 2'],
                     ),
@@ -312,32 +312,32 @@ class test_group(Declarative):
                 truncated=False,
                 result=[
                     {
-                        #'dn': u'cn=admins,cn=groups,cn=accounts,%s' % api.env.basedn,
+                        'dn': u'cn=admins,cn=groups,cn=accounts,%s' % api.env.basedn,
                         'member_user': [u'admin'],
                         'gidnumber': [fuzzy_digits],
                         'cn': [u'admins'],
                         'description': [u'Account administrators group'],
                     },
                     {
-                        #'dn': u'cn=ipausers,cn=groups,cn=accounts,%s' % api.env.basedn,
+                        'dn': u'cn=ipausers,cn=groups,cn=accounts,%s' % api.env.basedn,
                         'gidnumber': [fuzzy_digits],
                         'cn': [u'ipausers'],
                         'description': [u'Default group for all users'],
                     },
                     {
-                        #'dn': u'cn=editors,cn=groups,cn=accounts,%s' % api.env.basedn,
+                        'dn': u'cn=editors,cn=groups,cn=accounts,%s' % api.env.basedn,
                         'gidnumber': [fuzzy_digits],
                         'cn': [u'editors'],
                         'description': [u'Limited admins who can edit other users'],
                     },
                     dict(
-                        #dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
+                        dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
                         cn=[group1],
                         description=[u'New desc 1'],
                         gidnumber=[fuzzy_digits],
                     ),
                     dict(
-                        #dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group2, api.env.basedn),
+                        dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group2, api.env.basedn),
                         cn=[group2],
                         description=[u'New desc 2'],
                     ),
