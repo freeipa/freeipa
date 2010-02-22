@@ -158,10 +158,9 @@ POTFILES = $(PYTHON_POTFILES) $(C_POTFILES)
 
 .SUFFIXES:
 .SUFFIXES: .po .mo
-.PHONY: all create-po update-po update-pot install mostlyclean clean distclean test_lang test
+.PHONY: all create-po update-po update-pot install mostlyclean clean distclean test_lang test mo-files
 
 all:
-	@
 
 SUFFIXES = .po .mo
 
