@@ -505,7 +505,7 @@ class Param(ReadOnly):
         """
         kw = dict(self.__clonekw)
         kw.update(overrides)
-        return self.__class__(self.name, **kw)
+        return self.__class__(self.name, *self.rules, **kw)
 
     def normalize(self, value):
         """
