@@ -222,3 +222,7 @@ def webui(req):
     mod_python handler for web-UI requests (place holder).
     """
     return adapter(req, ui)
+
+
+def handler(req):
+    return adapter(req, api.Backend.session)

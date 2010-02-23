@@ -47,7 +47,6 @@ def join_url(base, url):
 class WebUI(Application):
     def __init__(self, api):
         self.api = api
-        self.session = api.Backend.session
         baseurl = api.env.mount_ipa
         assets = Assets(
             url=join_url(baseurl, api.env.mount_webui_assets),
@@ -60,16 +59,8 @@ class WebUI(Application):
             widgets=create_widgets(),
             prod=api.env.webui_prod,
         )
+        self.api.Backend.session.mount(self, api.env.mount_webui)
 
-    def __call__(self, environ, start_response):
-        self.session.create_context(ccache=environ.get('KRB5CCNAME'))
-        try:
-            query = extract_query(environ)
-            print query
-            response = super(WebUI, self).__call__(environ, start_response)
-        finally:
-            destroy_context()
-        return response
 
 
 def create_wsgi_app(api):

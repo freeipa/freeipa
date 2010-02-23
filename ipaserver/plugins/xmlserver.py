@@ -19,17 +19,13 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-XML-RPC client plugin.
+Loads WSGI server plugins.
 """
 
 from ipalib import api
 
 if 'in_server' in api.env and api.env.in_server is True:
-    from ipaserver.rpcserver import xmlserver, jsonserver
-    from ipalib.backend import Executioner
+    from ipaserver.rpcserver import session, xmlserver, jsonserver
+    api.register(session)
     api.register(xmlserver)
     api.register(jsonserver)
-
-    class session(Executioner):
-        pass
-    api.register(session)

@@ -24,6 +24,7 @@ Also see the `ipalib.rpc` module.
 """
 
 from cgi import parse_qs
+from xml.sax.saxutils import escape
 from xmlrpclib import Fault
 from ipalib.backend import Executioner
 from ipalib.errors import PublicError, InternalError, CommandError, JSONError
@@ -31,6 +32,33 @@ from ipalib.request import context, Connection, destroy_context
 from ipalib.rpc import xml_dumps, xml_loads
 from ipalib.util import make_repr
 from ipalib.compat import json
+from wsgiref.util import shift_path_info
+
+
+_not_found_template = """<html>
+<head>
+<title>404 Not Found</title>
+</head>
+<body>
+<h1>Not Found</h1>
+<p>
+The requested URL <strong>%(url)s</strong> was not found on this server.
+</p>
+</body>
+</html>"""
+
+
+def not_found(environ, start_response):
+    """
+    Return a 404 Not Found error.
+    """
+    status = '404 Not Found'
+    response_headers = [('Content-Type', 'text/html')]
+    start_response(status, response_headers)
+    output = _not_found_template % dict(
+        url=escape(environ['SCRIPT_NAME'] + environ['PATH_INFO'])
+    )
+    return [output]
 
 
 def read_input(environ):
@@ -85,17 +113,81 @@ def extract_query(environ):
     return query
 
 
+class session(Executioner):
+    """
+    WSGI routing middleware and entry point into IPA server.
+
+    The `session` plugin is the entry point into the IPA server.  It will create
+    an LDAP connection (from a session cookie or the KRB5CCNAME header) and then
+    dispatch the request to the appropriate application.  In WSGI parlance,
+    `session` is *middleware*.
+    """
+
+    def __init__(self):
+        super(session, self).__init__()
+        self.__apps = {}
+
+    def __iter__(self):
+        for key in sorted(self.__apps):
+            yield key
+
+    def __getitem__(self, key):
+        return self.__apps[key]
+
+    def __contains__(self, key):
+        return key in self.__apps
+
+    def __call__(self, environ, start_response):
+        try:
+            self.create_context(ccache=environ.get('KRB5CCNAME'))
+            return self.route(environ, start_response)
+        finally:
+            destroy_context()
+
+    def finalize(self):
+        self.url = self.env['mount_ipa']
+        super(session, self).finalize()
+
+    def route(self, environ, start_response):
+        key = shift_path_info(environ)
+        if key in self.__apps:
+            app = self.__apps[key]
+            return app(environ, start_response)
+        return not_found(environ, start_response)
+
+    def mount(self, app, key):
+        """
+        Mount the WSGI application *app* at *key*.
+        """
+#        if self.__islocked__():
+#            raise StandardError('%s.mount(): locked, cannot mount %r at %r' % (
+#                self.name, app, key)
+#            )
+        if key in self.__apps:
+            raise StandardError('%s.mount(): cannot replace %r with %r at %r' % (
+                self.name, self.__apps[key], app, key)
+            )
+        self.info('Mounting %r at %r', app, key)
+        self.__apps[key] = app
+
+
+
+
+
 class WSGIExecutioner(Executioner):
     """
     Base class for execution backends with a WSGI application interface.
     """
 
+    key = ''
+
+    def set_api(self, api):
+        super(WSGIExecutioner, self).set_api(api)
+        if 'session' in self.api.Backend:
+            self.api.Backend.session.mount(self, self.key)
+
     def finalize(self):
-        url = self.env['mount_' + self.name]
-        if url.startswith('/'):
-            self.url = url
-        else:
-            self.url = self.env.mount_ipa + url
+        self.url = self.env.mount_ipa + self.key
         super(WSGIExecutioner, self).finalize()
 
     def wsgi_execute(self, environ):
@@ -103,28 +195,24 @@ class WSGIExecutioner(Executioner):
         error = None
         _id = None
         try:
-            try:
-                self.create_context(ccache=environ.get('KRB5CCNAME'))
-                if (
-                    environ.get('CONTENT_TYPE', '').startswith(self.content_type)
-                    and environ['REQUEST_METHOD'] == 'POST'
-                ):
-                    data = read_input(environ)
-                    (name, args, options, _id) = self.unmarshal(data)
-                else:
-                    (name, args, options, _id) = self.simple_unmarshal(environ)
-                if name not in self.Command:
-                    raise CommandError(name=name)
-                result = self.Command[name](*args, **options)
-            except PublicError, e:
-                error = e
-            except StandardError, e:
-                self.exception(
-                    'non-public: %s: %s', e.__class__.__name__, str(e)
-                )
-                error = InternalError()
-        finally:
-            destroy_context()
+            if (
+                environ.get('CONTENT_TYPE', '').startswith(self.content_type)
+                and environ['REQUEST_METHOD'] == 'POST'
+            ):
+                data = read_input(environ)
+                (name, args, options, _id) = self.unmarshal(data)
+            else:
+                (name, args, options, _id) = self.simple_unmarshal(environ)
+            if name not in self.Command:
+                raise CommandError(name=name)
+            result = self.Command[name](*args, **options)
+        except PublicError, e:
+            error = e
+        except StandardError, e:
+            self.exception(
+                'non-public: %s: %s', e.__class__.__name__, str(e)
+            )
+            error = InternalError()
         return self.marshal(result, error, _id)
 
     def simple_unmarshal(self, environ):
@@ -155,11 +243,6 @@ class WSGIExecutioner(Executioner):
         raise NotImplementedError('%s.marshal()' % self.fullname)
 
 
-
-class session(Executioner):
-    pass
-
-
 class xmlserver(WSGIExecutioner):
     """
     Execution backend plugin for XML-RPC server.
@@ -168,6 +251,7 @@ class xmlserver(WSGIExecutioner):
     """
 
     content_type = 'text/xml'
+    key = 'xml'
 
     def finalize(self):
         self.__system = {
@@ -226,6 +310,7 @@ class jsonserver(WSGIExecutioner):
     """
 
     content_type = 'application/json'
+    key = 'json'
 
     def marshal(self, result, error, _id=None):
         if error:

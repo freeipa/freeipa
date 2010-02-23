@@ -86,13 +86,11 @@ if __name__ == '__main__':
 
     urlmap = URLMap()
     apps = [
-        ('XML RPC', api.Backend.xmlserver),
-        ('JSON RPC', api.Backend.jsonserver),
+        ('IPA', KRBCheater(api.Backend.session)),
         ('Assets', AssetsApp(ui.assets)),
-        ('Web UI', ui),
     ]
     for (name, app) in apps:
-        urlmap[app.url] = KRBCheater(app)
+        urlmap[app.url] = app
         api.log.info('Mounting %s at %s', name, app.url)
 
     if path.isfile(api.env.lite_pem):

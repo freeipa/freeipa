@@ -108,7 +108,7 @@ DEFAULT_CONFIG = (
     ('mount_ipa', '/ipa/'),
     ('mount_xmlserver', 'xml'),
     ('mount_jsonserver', 'json'),
-    ('mount_webui', 'ui/'),
+    ('mount_webui', 'ui'),
     ('mount_webui_assets', '/ipa-assets/'),
 
     # WebUI stuff:
