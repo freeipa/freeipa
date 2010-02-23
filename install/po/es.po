@@ -216,155 +216,155 @@ msgstr[1] ""
 #: ../../ipalib/errors.py:674
 #, python-format
 msgid "overlapping arguments and options: %(names)r"
-msgstr ""
+msgstr "superponiendo argumentos y opciones: %(names)r"
 
 #: ../../ipalib/errors.py:690
 #, python-format
 msgid "%(name)r is required"
-msgstr ""
+msgstr "%(name)r es necesario"
 
 #: ../../ipalib/errors.py:706
 #: ../../ipalib/errors.py:722
 #, python-format
 msgid "invalid %(name)r: %(error)s"
-msgstr ""
+msgstr "%(name)r inválido: %(error)s"
 
 #: ../../ipalib/errors.py:738
 #, python-format
 msgid "api has no such namespace: %(name)r"
-msgstr ""
+msgstr "api no posee tal nombre de espacio: %(name)r"
 
 #: ../../ipalib/errors.py:747
 msgid "Passwords do not match"
-msgstr ""
+msgstr "Las contraseñas no coinciden"
 
 #: ../../ipalib/errors.py:755
 msgid "Command not implemented"
-msgstr ""
+msgstr "El comando no se ha implementado"
 
 #: ../../ipalib/errors.py:783
 #: ../../ipalib/errors.py:1023
 #, python-format
 msgid "%(reason)s"
-msgstr ""
+msgstr "%(reason)s"
 
 #: ../../ipalib/errors.py:799
 msgid "This entry already exists"
-msgstr ""
+msgstr "Esta entrada ya existe"
 
 #: ../../ipalib/errors.py:815
 msgid "You must enroll a host in order to create a host service"
-msgstr ""
+msgstr "Debe registrar un equipo para poder generar un servicio de equipo"
 
 #: ../../ipalib/errors.py:831
 #, python-format
 msgid "Service principal is not of the form: service/fully-qualified host name: %(reason)s"
-msgstr ""
+msgstr "El servicio principal no tiene la forma de servicio/nombre de equipo totalmente calificado: %(reason)s"
 
 #: ../../ipalib/errors.py:847
 msgid "The realm for the principal does not match the realm for this IPA server"
-msgstr ""
+msgstr "El reinado para el principal no coincide con el reinado para este servidor IPA"
 
 #: ../../ipalib/errors.py:863
 msgid "This command requires root access"
-msgstr ""
+msgstr "Este comando necesita acceso de usuario root"
 
 #: ../../ipalib/errors.py:879
 msgid "This is already a posix group"
-msgstr ""
+msgstr "Este ya es un grupo posix"
 
 #: ../../ipalib/errors.py:895
 #, python-format
 msgid "Principal is not of the form user@REALM: %(principal)r"
-msgstr ""
+msgstr "El principal no tiene la forma usuario@REINADO: %(principal)r"
 
 #: ../../ipalib/errors.py:911
 msgid "This entry is already unlocked"
-msgstr ""
+msgstr "Esta entrada ya se encuentra desbloqueada"
 
 #: ../../ipalib/errors.py:927
 msgid "This entry is already locked"
-msgstr ""
+msgstr "Esta entrada ya se encuentra bloqueada"
 
 #: ../../ipalib/errors.py:943
 msgid "This entry has nsAccountLock set, it cannot be locked or unlocked"
-msgstr ""
+msgstr "Esta entrada posee definido nsAccountLock, no puede ser bloqueada ni desbloqueada"
 
 #: ../../ipalib/errors.py:959
 msgid "This entry is not a member of the group"
-msgstr ""
+msgstr "Esta entrada no es miembro del grupo"
 
 #: ../../ipalib/errors.py:975
 msgid "A group may not be a member of itself"
-msgstr ""
+msgstr "Un grupo no puede ser miembro de sí mismo"
 
 #: ../../ipalib/errors.py:991
 msgid "This entry is already a member of the group"
-msgstr ""
+msgstr "Esta entrada ya es miembro del grupo"
 
 #: ../../ipalib/errors.py:1007
 #, python-format
 msgid "Base64 decoding failed: %(reason)s"
-msgstr ""
+msgstr "Falló la decodificación base64: %(reason)s"
 
 #: ../../ipalib/errors.py:1039
 msgid "A group may not be added as a member of itself"
-msgstr ""
+msgstr "Un grupo no puede ser agregado como miembro de sí mismo"
 
 #: ../../ipalib/errors.py:1055
 msgid "The default users group cannot be removed"
-msgstr ""
+msgstr "El grupo de usuarios predeterminado no puede ser eliminado"
 
 #: ../../ipalib/errors.py:1078
 #, python-format
 msgid "no command nor help topic %(topic)r"
-msgstr ""
+msgstr "no existe un comando para el tópico de ayuda %(topic)r"
 
 #: ../../ipalib/errors.py:1102
 msgid "change collided with another change"
-msgstr ""
+msgstr "la modificación choca con otra modificación diferente"
 
 #: ../../ipalib/errors.py:1118
 msgid "no modifications to be performed"
-msgstr ""
+msgstr "no existen modificaciones a ser realizadas"
 
 #: ../../ipalib/errors.py:1134
 #, python-format
 msgid "%(desc)s:%(info)s"
-msgstr ""
+msgstr "%(desc)s:%(info)s"
 
 #: ../../ipalib/errors.py:1150
 msgid "limits exceeded for this query"
-msgstr ""
+msgstr "han sido excedidos los límites para esta consulta"
 
 #: ../../ipalib/errors.py:1165
 #, python-format
 msgid "%(info)s"
-msgstr ""
+msgstr "%(info)s"
 
 #: ../../ipalib/errors.py:1190
 #, python-format
 msgid "Certificate operation cannot be completed: %(error)s"
-msgstr ""
+msgstr "La operación certificada no puede ser completada: %(error)s"
 
 #: ../../ipalib/plugins/rolegroup.py:50
 msgid "Role Groups"
-msgstr ""
+msgstr "Grupos de funciones"
 
 #: ../../ipalib/plugins/rolegroup.py:75
 #, python-format
 msgid "Added rolegroup \"%(value)s\""
-msgstr ""
+msgstr "Ha sido agregado el grupo de funciones \"%(value)s\""
 
 #: ../../ipalib/plugins/rolegroup.py:85
 #, python-format
 msgid "Deleted rolegroup \"%(value)s\""
-msgstr ""
+msgstr "Ha sido eliminado el grupo de funciones \"%(value)s\""
 
 #: ../../ipalib/plugins/rolegroup.py:95
 #, python-format
 msgid "Modified rolegroup \"%(value)s\""
-msgstr ""
+msgstr "Ha sido modificado el grupo de funciones \"%(value)s\""
 
 #: ../../ipalib/plugins/rolegroup.py:106
 #, python-format
@@ -375,22 +375,22 @@ msgstr[1] ""
 
 #: ../../ipalib/plugins/host.py:82
 msgid "Hosts"
-msgstr ""
+msgstr "Equipos"
 
 #: ../../ipalib/plugins/host.py:151
 #, python-format
 msgid "Added host \"%(value)s\""
-msgstr ""
+msgstr "Ha sido agregado el equipo \"%(value)s\""
 
 #: ../../ipalib/plugins/host.py:180
 #, python-format
 msgid "Deleted host \"%(value)s\""
-msgstr ""
+msgstr "Ha sido eliminado el equipo \"%(value)s\""
 
 #: ../../ipalib/plugins/host.py:208
 #, python-format
 msgid "Modified host \"%(value)s\""
-msgstr ""
+msgstr "Ha sido modificado el equipo \"%(value)s\""
 
 #: ../../ipalib/plugins/host.py:257
 #, python-format
@@ -401,22 +401,22 @@ msgstr[1] ""
 
 #: ../../ipalib/plugins/group.py:58
 msgid "User Groups"
-msgstr ""
+msgstr "Grupos de usuarios"
 
 #: ../../ipalib/plugins/group.py:87
 #, python-format
 msgid "Added group \"%(value)s\""
-msgstr ""
+msgstr "Ha sido agregado el grupo \"%(value)s\""
 
 #: ../../ipalib/plugins/group.py:110
 #, python-format
 msgid "Deleted group \"%(value)s\""
-msgstr ""
+msgstr "Ha sido eliminado el grupo \"%(value)s\""
 
 #: ../../ipalib/plugins/group.py:136
 #, python-format
 msgid "Modified group \"%(value)s\""
-msgstr ""
+msgstr "Ha sido modificado el grupo \"%(value)s\""
 
 #: ../../ipalib/plugins/group.py:165
 #, python-format
@@ -427,72 +427,72 @@ msgstr[1] ""
 
 #: ../../ipalib/plugins/service.py:122
 msgid "Services"
-msgstr ""
+msgstr "Servicios"
 
 #: ../../ipalib/plugins/hbac.py:62
 msgid "HBAC"
-msgstr ""
+msgstr "HBAC"
 
 #: ../../ipalib/plugins/cert.py:63
 #: ../../ipalib/plugins/cert.py:84
 msgid "Unable to decode certificate in entry"
-msgstr ""
+msgstr "No es posible decodificar el certificado en la entrada"
 
 #: ../../ipalib/plugins/cert.py:106
 #: ../../ipalib/plugins/cert.py:120
 #: ../../ipalib/plugins/cert.py:137
 msgid "Failure decoding Certificate Signing Request"
-msgstr ""
+msgstr "Falla al intentar decodificar la petición de identificación de certificado"
 
 #: ../../ipalib/plugins/cert.py:139
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
-msgstr ""
+msgstr "Falla al intentar decodificar la petición de identificación de certificado: %s"
 
 #: ../../ipalib/plugins/aci.py:109
 msgid "type, filter, subtree and targetgroup are mutually exclusive"
-msgstr ""
+msgstr "tipo, filtro, subárbol y grupo de destino, se excluyen mutuamente"
 
 #: ../../ipalib/plugins/aci.py:112
 msgid "at least one of: type, filter, subtree, targetgroup, attrs or memberof are required"
-msgstr ""
+msgstr "es necesario como mínimo alguno de: tipo, filtro, subárbol, grupo de destino, atributos, o miembro de "
 
 #: ../../ipalib/plugins/aci.py:117
 msgid "group and taskgroup are mutually exclusive"
-msgstr ""
+msgstr "grupo y grupo de tareas se excluyen mutuamente"
 
 #: ../../ipalib/plugins/aci.py:119
 msgid "One of group or taskgroup is required"
-msgstr ""
+msgstr "Es necesario grupo o grupo de tareas"
 
 #: ../../ipalib/plugins/aci.py:140
 #, python-format
 msgid "Group '%s' does not exist"
-msgstr ""
+msgstr "El grupo '%s' no existe"
 
 #: ../../ipalib/plugins/aci.py:184
 #, python-format
 msgid "ACI with name \"%s\" not found"
-msgstr ""
+msgstr "No se encuentra un ACI cuyo nombre sea \"%s\""
 
 #: ../../ipalib/plugins/aci.py:201
 msgid "ACIs"
-msgstr ""
+msgstr "ACIs"
 
 #: ../../ipalib/plugins/aci.py:258
 #, python-format
 msgid "Created ACI \"%(value)s\""
-msgstr ""
+msgstr "Ha sido creado ACI \"%(value)s\""
 
 #: ../../ipalib/plugins/aci.py:308
 #, python-format
 msgid "Deleted ACI \"%(value)s\""
-msgstr ""
+msgstr "Ha sido eliminado ACI \"%(value)s\""
 
 #: ../../ipalib/plugins/aci.py:348
 #, python-format
 msgid "Modified ACI \"%(value)s\""
-msgstr ""
+msgstr "Ha sido modificado ACI \"%(value)s\""
 
 #: ../../ipalib/plugins/aci.py:408
 #, python-format
@@ -503,24 +503,24 @@ msgstr[1] ""
 
 #: ../../ipalib/plugins/dns.py:114
 msgid "DNS"
-msgstr ""
+msgstr "DNS"
 
 #: ../../ipalib/plugins/automount.py:231
 msgid "Automount Maps"
-msgstr ""
+msgstr "Mapeos de automontaje"
 
 #: ../../ipalib/plugins/automount.py:321
 msgid "Automount Keys"
-msgstr ""
+msgstr "Llaves de automontaje"
 
 #: ../../ipalib/plugins/netgroup.py:55
 msgid "Net Groups"
-msgstr ""
+msgstr "Grupos de red"
 
 #: ../../ipalib/plugins/misc.py:37
 #, python-format
 msgid "%(count)d variables"
-msgstr ""
+msgstr "%(count)d variables"
 
 #: ../../ipalib/plugins/misc.py:96
 #, python-format
@@ -531,22 +531,22 @@ msgstr[1] ""
 
 #: ../../ipalib/plugins/user.py:71
 msgid "Users"
-msgstr ""
+msgstr "Usuarios"
 
 #: ../../ipalib/plugins/user.py:141
 #, python-format
 msgid "Added user \"%(value)s\""
-msgstr ""
+msgstr "Ha sido agregado el usuario \"%(value)s\""
 
 #: ../../ipalib/plugins/user.py:186
 #, python-format
 msgid "Deleted user \"%(value)s\""
-msgstr ""
+msgstr "Ha sido eliminado el usuario \"%(value)s\""
 
 #: ../../ipalib/plugins/user.py:205
 #, python-format
 msgid "Modified user \"%(value)s\""
-msgstr ""
+msgstr "Ha sido modificado el usuario \"%(value)s\""
 
 #: ../../ipalib/plugins/user.py:216
 #, python-format
@@ -558,31 +558,31 @@ msgstr[1] ""
 #: ../../ipalib/plugins/user.py:236
 #, python-format
 msgid "Locked user \"%(value)s\""
-msgstr ""
+msgstr "Ha sido bloqueado el usuario \"%(value)s\""
 
 #: ../../ipalib/plugins/user.py:262
 #, python-format
 msgid "Unlocked user \"%(value)s\""
-msgstr ""
+msgstr "Ha sido desbloqueado el usuario \"%(value)s\""
 
 #: ../../ipalib/plugins/taskgroup.py:50
 msgid "Task Groups"
-msgstr ""
+msgstr "Grupos de tareas"
 
 #: ../../ipalib/plugins/taskgroup.py:75
 #, python-format
 msgid "Added taskgroup \"%(value)s\""
-msgstr ""
+msgstr "Ha sido agregado el grupo de tareas \"%(value)s\""
 
 #: ../../ipalib/plugins/taskgroup.py:85
 #, python-format
 msgid "Deleted taskgroup \"%(value)s\""
-msgstr ""
+msgstr "Ha sido eliminado el grupo de tareas \"%(value)s\""
 
 #: ../../ipalib/plugins/taskgroup.py:95
 #, python-format
 msgid "Modified taskgroup \"%(value)s\""
-msgstr ""
+msgstr "Ha sido modificado el grupo de tareas \"%(value)s\""
 
 #: ../../ipalib/plugins/taskgroup.py:106
 #, python-format
@@ -593,22 +593,22 @@ msgstr[1] ""
 
 #: ../../ipalib/plugins/hostgroup.py:49
 msgid "Host Groups"
-msgstr ""
+msgstr "Grupos de equipo"
 
 #: ../../ipalib/plugins/hostgroup.py:74
 #, python-format
 msgid "Added hostgroup \"%(value)s\""
-msgstr ""
+msgstr "Ha sido agregado el grupo de equipo \"%(value)s\""
 
 #: ../../ipalib/plugins/hostgroup.py:84
 #, python-format
 msgid "Deleted hostgroup \"%(value)s\""
-msgstr ""
+msgstr "Ha sido eliminado el grupo de equipo \"%(value)s\""
 
 #: ../../ipalib/plugins/hostgroup.py:94
 #, python-format
 msgid "Modified hostgroup \"%(value)s\""
-msgstr ""
+msgstr "Ha sido modificado el grupo de equipo \"%(value)s\""
 
 #: ../../ipalib/plugins/hostgroup.py:105
 #, python-format
@@ -619,7 +619,7 @@ msgstr[1] ""
 
 #: ../../ipalib/plugins/pwpolicy.py:231
 msgid "priority cannot be set on global policy"
-msgstr ""
+msgstr "la prioridad no puede ser definida en una plítica global"
 
 #: ../../ipaserver/install/certs.py:571
 #: ../../ipaserver/plugins/dogtag.py:1313
@@ -629,28 +629,28 @@ msgstr ""
 #: ../../ipaserver/plugins/dogtag.py:1602
 #, python-format
 msgid "Unable to communicate with CMS (%s)"
-msgstr ""
+msgstr "No es posible comunicarse con CMS (%s)"
 
 #: ../../ipaserver/plugins/selfsign.py:102
 #, python-format
 msgid "Request subject \"%(request_subject)s\" does not match the form \"%(subject_base)s\""
-msgstr ""
+msgstr "El asunto solicitado \"%(request_subject)s\" no coincide con la forma \"%(subject_base)s\""
 
 #: ../../ipaserver/plugins/selfsign.py:107
 #, python-format
 msgid "unable to decode csr: %s"
-msgstr ""
+msgstr "no es posible decodificar csr: %s"
 
 #: ../../ipaserver/plugins/selfsign.py:128
 #: ../../ipaserver/plugins/selfsign.py:143
 msgid "file operation"
-msgstr ""
+msgstr "operación de archivo"
 
 #: ../../ipaserver/plugins/selfsign.py:157
 msgid "cannot obtain next serial number"
-msgstr ""
+msgstr "no es posible obtener el próximo número de serie"
 
 #: ../../ipaserver/plugins/selfsign.py:192
 msgid "certutil failure"
-msgstr ""
+msgstr "falla de certutil"
 
