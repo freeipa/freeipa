@@ -39,7 +39,7 @@ def validate_host(ugettext, fqdn):
     """
     Require at least one dot in the hostname (to support localhost.localdomain)
     """
-    if fqdn.index('.') == -1:
+    if fqdn.find('.') == -1:
         return 'Fully-qualified hostname required'
     return None
 
