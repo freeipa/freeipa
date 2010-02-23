@@ -34,7 +34,10 @@ class netgroup(LDAPObject):
     object_name = 'netgroup'
     object_name_plural = 'netgroups'
     object_class = ['ipaobject', 'ipaassociation', 'ipanisnetgroup']
-    default_attributes = ['cn', 'description', 'member', 'memberof', 'externalhost']
+    default_attributes = [
+        'cn', 'description', 'member', 'memberof', 'externalhost',
+        'nisdomainname',
+    ]
     uuid_attribute = 'ipauniqueid'
     attribute_names = {
         'cn': 'name',
@@ -71,8 +74,26 @@ class netgroup(LDAPObject):
             label='NIS domain name',
             doc='NIS domain name',
         ),
+        Str('ipauniqueid?',
+            cli_name='uuid',
+            label='IPA unique ID',
+            doc='IPA unique ID',
+            flags=['no_create', 'no_update'],
+        ),
+        Str('member_user?',
+            label='Member User',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('member_group?',
+            label='Member Group',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
         Str('member_host?',
             label='Member Host',
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('member_hostgroup?',
+            label='Member Hostgroup',
             flags=['no_create', 'no_update', 'no_search'],
         ),
         Str('externalhost?',
