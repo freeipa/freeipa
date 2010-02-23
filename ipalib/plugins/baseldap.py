@@ -511,11 +511,19 @@ class LDAPAddMember(LDAPModMember):
                     else:
                         completed += 1
 
-        (dn, entry_attrs) = ldap.get_entry(dn, member_dns.keys()+self.obj.default_attributes)
+        if options.get('all', False):
+            attrs_list = ['*']
+        else:
+            attrs_list = list(
+                set(self.obj.default_attributes + member_dns.keys())
+            )
+
+        (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
 
         (completed, dn) = self.post_callback(
             ldap, completed, failed, dn, entry_attrs, *keys, **options
         )
+        entry_attrs['dn'] = dn
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
         return dict(
@@ -575,11 +583,19 @@ class LDAPRemoveMember(LDAPModMember):
                     else:
                         completed += 1
 
-        (dn, entry_attrs) = ldap.get_entry(dn, member_dns.keys())
+        if options.get('all', False):
+            attrs_list = ['*']
+        else:
+            attrs_list = list(
+                set(self.obj.default_attributes + member_dns.keys())
+            )
+
+        (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
 
         (completed, dn) = self.post_callback(
             ldap, completed, failed, dn, entry_attrs, *keys, **options
         )
+        entry_attrs['dn'] = dn
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
         return dict(

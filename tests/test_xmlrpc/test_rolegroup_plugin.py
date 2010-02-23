@@ -150,6 +150,7 @@ class test_rolegroup(Declarative):
                     ),
                 ),
                 result={
+                    'dn': rolegroup1_dn,
                     'cn': [rolegroup1],
                     'description': [u'rolegroup desc 1'],
                     'member_group': [group1],
@@ -319,7 +320,11 @@ class test_rolegroup(Declarative):
                         hostgroup=[],
                     ),
                 ),
-                result={},
+                result={
+                    'dn': rolegroup1_dn,
+                    'cn': [rolegroup1],
+                    'description': [u'New desc 1'],
+                },
             ),
         ),
 

@@ -131,6 +131,7 @@ class test_hostgroup(Declarative):
                     ),
                 ),
                 result={
+                    'dn': dn1,
                     'cn': [hostgroup1],
                     'description': [u'Test hostgroup 1'],
                     'member_host': [fqdn1],
@@ -220,7 +221,11 @@ class test_hostgroup(Declarative):
                     ),
                 ),
                 completed=1,
-                result={},
+                result={
+                    'dn': dn1,
+                    'cn': [hostgroup1],
+                    'description': [u'Updated hostgroup 1'],
+                },
             ),
         ),
 

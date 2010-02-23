@@ -170,6 +170,7 @@ class test_taskgroup(Declarative):
                     ),
                 ),
                 result={
+                    'dn': taskgroup1_dn,
                     'cn': [taskgroup1],
                     'description': [u'Test desc 1'],
                     'member_rolegroup': [rolegroup1],
@@ -350,6 +351,9 @@ class test_taskgroup(Declarative):
                     ),
                 ),
                 result={
+                    'dn': taskgroup1_dn,
+                    'cn': [taskgroup1],
+                    'description': [u'New desc 1'],
                     'member_rolegroup': [rolegroup1],
                 }
             ),

@@ -362,7 +362,9 @@ class test_group(Declarative):
                         user=tuple(),
                     ),
                 ),
-                result={'member_group': (group2,),
+                result={
+                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
+                        'member_group': (group2,),
                         'gidnumber': [fuzzy_digits],
                         'cn': [group1],
                         'description': [u'New desc 1'],
@@ -384,7 +386,9 @@ class test_group(Declarative):
                         user=tuple(),
                     ),
                 ),
-                result={'member_group': (group2,),
+                result={
+                        'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
+                        'member_group': (group2,),
                         'gidnumber': [fuzzy_digits],
                         'cn': [group1],
                         'description': [u'New desc 1'],
@@ -399,13 +403,18 @@ class test_group(Declarative):
             ),
             expected=dict(
                 completed=1,
-                result=dict(),
                 failed=dict(
                     member=dict(
                         group=tuple(),
                         user=tuple(),
                     ),
                 ),
+                result={
+                    'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
+                    'cn': [group1],
+                    'gidnumber': [fuzzy_digits],
+                    'description': [u'New desc 1'],
+                },
             ),
         ),
 
@@ -417,13 +426,18 @@ class test_group(Declarative):
             ),
             expected=dict(
                 completed=0,
-                result=dict(),
                 failed=dict(
                     member=dict(
                         group=(u'notfound',),
                         user=tuple(),
                     ),
                 ),
+                result={
+                    'dn': u'cn=%s,cn=groups,cn=accounts,%s' % (group1, api.env.basedn),
+                    'cn': [group1],
+                    'gidnumber': [fuzzy_digits],
+                    'description': [u'New desc 1'],
+                },
             ),
         ),
 
