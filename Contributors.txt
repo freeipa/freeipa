@@ -5,24 +5,13 @@ The following people have contributed to the FreeIPA project.
 
 Developers:
 	Rob Crittenden
-	Frank Cusac
 	Nalin Dahyabhai
-	Don Davis
 	John Dennis
 	Jason DeRose
-	Gunther Deschner
 	Endi Dewata
-	Stephen Gallagher
-	Jakub Hrozek
 	Nathan Kinder
-	Karl MacMillan
-	Jon McCann
-	Kevin McCarthy
 	Rich Megginson
-	Jim Meyering
 	Martin Nagy
-	Pete Rowley
-	Andreas Schneider
 	Simo Sorce
 	Andrew Wnuk
 	Pavel Zůna
@@ -61,5 +50,17 @@ Managment:
 	Kevin Unthank
 	Karl Wirth
 
+Past and Occasional Contributors:
+	Frank Cusack
+	Don Davis
+	Gunther Deschner
+	Stephen Gallagher
+	Jakub Hrozek
+	Karl MacMillan
+	Jon McCann
+	Kevin McCarthy
+	Jim Meyering
+	Pete Rowley
+	Andreas Schneider
 
 
