@@ -54,8 +54,7 @@ the entry from the local keytab.
 The non\-realm part of the full principal name.
 .TP
 \fB\-k keytab\-file\fR
-The keytab file where to append the new key (will be
-created if it does not exist).
+The keytab file to append the principal(s) from.
 .TP
 \fB\-r realm\fR
 A realm to remove all principals for.
@@ -67,13 +66,13 @@ Remove the NFS service principal on the host foo.example.com from /tmp/nfs.keyta
 
    # ipa\-rmkeytab \-p nfs/foo.example.com \-k /tmp/nfs.keytab
 
-Remove the ldap service principal onthe host foo.example.com from /etc/krb5.keytab.
+Remove the ldap service principal on the host foo.example.com from /etc/krb5.keytab.
 
-   # ipa\-rmkeytab \-p ldap/foo.example.com \-k /tmp/ldap.keytab
+   # ipa\-rmkeytab \-p ldap/foo.example.com \-k /etc/krb5.keytab
 
 Remove all principals for the realm EXAMPLE.COM.
 
-  # ipa\-rmkeytab \-r EXAMPLE.COM \-k /tmp/ldap.keytab
+  # ipa\-rmkeytab \-r EXAMPLE.COM \-k /etc/krb5.keytab
 .SH "EXIT STATUS"
 The exit status is 0 on success, nonzero on error.
 

@@ -20,7 +20,7 @@
 .SH "NAME"
 ipa\-join \- Join a machine to an IPA realm and get a keytab for the host service principal
 .SH "SYNOPSIS"
-ipa\-join [ \fB\-h\fR hostname ] [ \fB\-k\fR keytab\-file ] [ \fB\-w\fR bulk\-bind\-password ] [ \fB\-d\fR ] [ \fB\-q\fR ]
+ipa\-join [ \fB\-h\fR hostname ] [ \fB\-k\fR keytab\-file ] [ \fB\-s\fR server ] [ \fB\-w\fR bulk\-bind\-password ] [ \fB\-d\fR ] [ \fB\-q\fR ]
 
 .SH "DESCRIPTION"
 Joins a host to an IPA realm and retrieves a kerberos \fIkeytab\fR for the host service principal.
@@ -29,19 +29,35 @@ Kerberos keytabs are used for services (like sshd) to perform kerberos authentic
 
 The ipa\-join command will create and retrieve a service principal for host/foo.example.com@EXAMPLE.COM and place it by default into /etc/krb5.keytab. The location can be overridden with the \-k option.
 
-The IPA server to contact is set in /etc/ipa/default.conf
+The IPA server to contact is set in /etc/ipa/default.conf by default and can be overridden using the -s,--server option.
+
+In order to join the machine needs to be authenticated. This can happen in one of two ways:
+
+* Authenticate using the current kerberos principal
+
+* Provide a password to authenticate with
+
+If a client host has already been joined to the IPA realm the ipa-join command will fail. The host will need to be removed from the server using `ipa host-del FQDN` in order to join the client to the realm.
+
+This command is normally executed by the ipa-client-install command as part of the enrollment process.
 .SH "OPTIONS"
 .TP
-\fB\-h hostname\fR
+\fB\-h,--hostname hostname\fR
 The hostname of this server (FQDN). By default of nodename from uname(2) is used.
 .TP
-\fB\-k keytab\-file\fR
+\fB\-s,--server server\fR
+The hostname of this server (FQDN). By default of nodename from uname(2) is used.
+.TP
+\fB\-k,--keytab keytab\-file\fR
 The keytab file where to append the new key (will be created if it does not exist). Default: /etc/krb5.keytab
 .TP
-\fB\-q\fR
+\fB\-w,--bindpw password\fR
+The password to use if not using kerberos to authenticate
+.TP
+\fB\-q,--quiet\fR
 Quiet mode. Only errors are displayed.
 .TP
-\fB\-d\fR
+\fB\-d,--debug\fR
 Debug mode.
 .SH "EXAMPLES"
 Join IPA domain and retrieve a keytab with kerberos credentials.
