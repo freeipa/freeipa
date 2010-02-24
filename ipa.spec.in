@@ -370,7 +370,7 @@ fi
 
 %if ! %{ONLY_CLIENT}
 %files server
-%doc LICENSE README
+%doc LICENSE README Contributors.txt
 %defattr(-,root,root,-)
 %{_sbindir}/ipa-dns-install
 %{_sbindir}/ipa-server-install
@@ -438,7 +438,7 @@ fi
 %endif
 
 %files client
-%doc LICENSE README
+%doc LICENSE README Contributors.txt
 %{_sbindir}/ipa-client-install
 %{_sbindir}/ipa-getkeytab
 %{_sbindir}/ipa-rmkeytab
@@ -458,7 +458,7 @@ fi
 
 %if ! %{ONLY_CLIENT}
 %files admintools
-%doc LICENSE README
+%doc LICENSE README Contributors.txt
 %defattr(-,root,root,-)
 %{_bindir}/ipa
 %{_sbindir}/ipa-fix-CVE-2008-3274
@@ -469,7 +469,7 @@ fi
 %endif
 
 %files python -f %{gettext_domain}.lang
-%doc LICENSE README
+%doc LICENSE README Contributors.txt
 %defattr(-,root,root,-)
 %dir %{python_sitelib}/ipapython
 %{python_sitelib}/ipapython/*.py*
@@ -482,13 +482,13 @@ fi
 
 %if %{WITH_RADIUS}
 %files radius-server
-%doc LICENSE README
+%doc LICENSE README Contributors.txt
 %{_usr}/share/ipa/ipaserver/plugins/*
 %dir %{_usr}/share/ipa/plugins
 %{_usr}/share/ipa/plugins/radius.radiusd.conf.template
 
 %files radius-admintools
-%doc LICENSE README
+%doc LICENSE README Contributors.txt
 %{_sbindir}/ipa-addradiusclient
 %{_sbindir}/ipa-addradiusprofile
 %{_sbindir}/ipa-delradiusclient
