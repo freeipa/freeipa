@@ -1,0 +1,65 @@
+# -*- coding: utf-8 -*-
+
+The following people have contributed to the FreeIPA project.
+(Listed in alphabetical order within category)
+
+Developers:
+	Rob Crittenden
+	Frank Cusac
+	Nalin Dahyabhai
+	Don Davis
+	John Dennis
+	Jason DeRose
+	Gunther Deschner
+	Endi Dewata
+	Stephen Gallagher
+	Jakub Hrozek
+	Nathan Kinder
+	Karl MacMillan
+	Jon McCann
+	Kevin McCarthy
+	Rich Megginson
+	Jim Meyering
+	Martin Nagy
+	Pete Rowley
+	Andreas Schneider
+	Simo Sorce
+	Andrew Wnuk
+	Pavel Zůna
+
+Documentation:
+	David O'Brien
+
+Testing:
+	Jenny Galipeau
+	Michael Gregg
+	Suzanne Hillman
+	Chandrasekar Kannan
+	Gowrishankar Rayaiyan
+	Yi Zhang
+
+Translators:
+	Héctor Daniel Cabrera
+	Teguh DC
+	Piotr Drąg
+	Gundachandru
+	Andrew Martynov
+	Sankarshan Mukhopadhyay
+
+Wiki, Solution and Idea Contributors:
+	Viji V Nair
+	Ryan Thompson
+	David Zeuthen
+
+Graphic Design and User Interaction Design:
+	Máirín Duffy
+
+Managment:
+	Scott Haines
+	Bob Lord
+	Dmitri Pal
+	Kevin Unthank
+	Karl Wirth
+
+
+
