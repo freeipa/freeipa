@@ -46,6 +46,7 @@ from ipaserver.install import bindinstance
 from ipaserver.install import httpinstance
 from ipaserver.install import ntpinstance
 from ipaserver.install import certs
+from ipaserver.install import cainstance
 
 from ipaserver.install import service
 from ipapython import version
@@ -81,8 +82,8 @@ def parse_options():
                       help="admin user kerberos password")
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="print debugging information")
-    parser.add_option("", "--ca", dest="ca", action="store_true",
-                      default=False, help="Configure a CA instance")
+    parser.add_option("", "--selfsign", dest="selfsign", action="store_true",
+                      default=False, help="Configure a self-signed CA instance rather than a dogtag CA")
     parser.add_option("", "--external-ca", dest="external_ca", action="store_true",
                       default=False, help="Generate a CSR to be signed by an external CA")
     parser.add_option("", "--external_cert_file", dest="external_cert_file",
@@ -152,16 +153,12 @@ def parse_options():
     if cnt > 0 and cnt < 4:
         parser.error("All PKCS#12 options are required if any are used.")
 
-    if (options.external_cert_file or options.external_ca_file) and not options.ca:
-        parser.error("--ca required to use the external CA options.")
+    if (options.external_cert_file or options.external_ca_file) and options.selfsign:
+        parser.error("--selfsign cannot be used with the external CA options.")
 
     if ((options.external_cert_file and not options.external_ca_file) or
        (not options.external_cert_file and options.external_ca_file)):
         parser.error("if either external option is used, both are required.")
-
-    if options.external_ca and not options.ca:
-        # Go ahead and be nice and fix things up
-        options.ca = True
 
     return options
 
@@ -469,7 +466,7 @@ def main():
 
         api.bootstrap(**cfg)
         api.finalize()
-        return uninstall(not certs.ipa_self_signed() or options.ca)
+        return uninstall(not certs.ipa_self_signed())
 
     # This will override any settings passed in on the cmdline
     options._update_loose(read_cache())
@@ -510,18 +507,6 @@ def main():
     if options.setup_dns:
         if not bindinstance.check_inst(options.unattended):
             print "Aborting installation"
-            return 1
-
-    if options.ca:
-        try:
-            from ipaserver.install import cainstance
-        except ImportError:
-            print >> sys.stderr, "Import failed: %s" % sys.exc_value
-            sys.exit(1)
-        if not cainstance.check_inst():
-            print "--ca was specified but the dogtag certificate server"
-            print "is not installed on the system"
-            print "Please install dogtag and restart the setup program"
             return 1
 
     # check the hostname is correctly configured, it must be as the kldap
@@ -638,7 +623,7 @@ def main():
     fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % host_name)
     fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(realm_name))
     fd.write("enable_ra=True\n")
-    if options.ca:
+    if not options.selfsign:
         fd.write("ra_plugin=dogtag\n")
     fd.write('webui_assets_dir=' + ASSETS_DIR + '\n')
     fd.close()
@@ -657,7 +642,7 @@ def main():
         os.write(pw_fd, options.dirsrv_pin)
         os.close(pw_fd)
 
-    if options.ca:
+    if not options.selfsign:
         # Clean up any previous self-signed CA that may exist
         try:
             os.remove(certs.CA_SERIALNO)
@@ -707,7 +692,7 @@ def main():
         finally:
             os.remove(pw_name)
     else:
-        ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, self_signed_ca=not options.ca, uidstart=options.uidstart, gidstart=options.gidstart, subject_base=options.subject)
+        ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, self_signed_ca=options.selfsign, uidstart=options.uidstart, gidstart=options.gidstart, subject_base=options.subject)
 
     # Create a kerberos instance
     krb = krbinstance.KrbInstance(fstore)
@@ -734,11 +719,11 @@ def main():
         http.create_instance(realm_name, host_name, domain_name, dm_password, autoconfig=False, pkcs12_info=pkcs12_info, subject_base=options.subject)
         os.remove(pw_name)
     else:
-        http.create_instance(realm_name, host_name, domain_name, dm_password, autoconfig=True, self_signed_ca=not options.ca, subject_base=options.subject)
+        http.create_instance(realm_name, host_name, domain_name, dm_password, autoconfig=True, self_signed_ca=options.selfsign, subject_base=options.subject)
     ipautil.run(["/sbin/restorecon", "/var/cache/ipa/sessions"])
 
     set_subject_in_config(host_name, dm_password, util.realm_to_suffix(realm_name), options.subject)
-    if options.ca:
+    if not options.selfsign:
         service.print_msg("Setting the certificate subject base")
         ca.set_subject_in_config(util.realm_to_suffix(realm_name))
 

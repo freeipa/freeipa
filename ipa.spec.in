@@ -98,6 +98,7 @@ Requires: selinux-policy
 %endif
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.15
+Requires: pki-ca
 Conflicts: mod_ssl
 
 %description server
