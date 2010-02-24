@@ -153,7 +153,8 @@ main(int argc, char **argv)
         { "principal", 'p', POPT_ARG_STRING, &principal, 0, "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)", "Kerberos Service Principal Name" },
         { "keytab", 'k', POPT_ARG_STRING, &keytab, 0, "File were to store the keytab information", "Keytab File Name" },
         { "realm", 'r', POPT_ARG_STRING, &realm, 0, "Remove all principals in this realm", "Realm name" },
-{ NULL, 0, POPT_ARG_NONE, NULL, 0, NULL, NULL }
+        POPT_AUTOHELP
+        POPT_TABLEEND
     };
 
     memset(&ktid, 0, sizeof(ktid));

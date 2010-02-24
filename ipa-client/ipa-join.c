@@ -663,7 +663,8 @@ main(int argc, char **argv) {
             { "server", 's', POPT_ARG_STRING, &server, 0, "IPA Server to use", "IPA Server Name" },
             { "keytab", 'k', POPT_ARG_STRING, &keytab, 0, "File were to store the keytab information", "Keytab File Name" },
             { "bindpw", 'w', POPT_ARG_STRING, &bindpw, 0, "LDAP password", "password to use if not using kerberos" },
-            { NULL, 0, POPT_ARG_NONE, NULL, 0, NULL, NULL }
+            POPT_AUTOHELP
+            POPT_TABLEEND
     };
     poptContext pc;
     int ret;

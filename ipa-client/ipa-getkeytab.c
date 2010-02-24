@@ -724,7 +724,8 @@ int main(int argc, char *argv[])
 		{ "password", 'P', POPT_ARG_NONE, &askpass, 0, "Asks for a non-random password to use for the principal" },
 		{ "binddn", 'D', POPT_ARG_STRING, &binddn, 0, "LDAP DN", "DN to bind as if not using kerberos" },
 		{ "bindpw", 'w', POPT_ARG_STRING, &bindpw, 0, "LDAP password", "password to use if not using kerberos" },
-		{ NULL, 0, POPT_ARG_NONE, NULL, 0, NULL, NULL }
+                POPT_AUTOHELP
+                POPT_TABLEEND
 	};
 	poptContext pc;
 	char *ktname;
