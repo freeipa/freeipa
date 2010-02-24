@@ -75,6 +75,7 @@ Requires: cyrus-sasl-gssapi
 Requires: ntp
 Requires: httpd
 Requires: mod_python
+Requires: mod_wsgi
 Requires: mod_auth_kerb
 %{?fc8:Requires: mod_nss >= 1.0.7-2}
 %{?fc9:Requires: mod_nss >= 1.0.7-5}
@@ -383,6 +384,7 @@ fi
 %{python_sitelib}/ipaserver/*
 %{python_sitelib}/ipawebui/*
 %dir %{_usr}/share/ipa
+%{_usr}/share/ipa/wsgi.py
 %{_usr}/share/ipa/*.ldif
 %{_usr}/share/ipa/*.uldif
 %{_usr}/share/ipa/*.template
@@ -497,6 +499,9 @@ fi
 %endif
 
 %changelog
+* Wed Feb 24 2010 Jason Gerard DeRose <jderose@redhat.com> - 1.99-17
+- Added Require mod_wsgi, added share/ipa/wsgi.py
+
 * Thu Feb 11 2010 Jason Gerard DeRose <jderose@redhat.com> - 1.99-16
 - Require python-wehjit >= 0.2.2
 

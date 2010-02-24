@@ -38,6 +38,7 @@ app_DATA =				\
 	unique-attributes.ldif		\
 	schema_compat.uldif		\
 	ldapi.ldif			\
+	wsgi.py				\
 	$(NULL)
 
 EXTRA_DIST =				\
