@@ -9,13 +9,14 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/newticket\n"
 "POT-Creation-Date: 2010-02-15 14:55-0500\n"
 "PO-Revision-Date: \n"
-"Last-Translator: Héctor Daniel Cabrera <logan@fedoraproject.org>\n"
-"Language-Team: Fedora Spanisg <fedora-trans-es@redhat.com>\n"
+"Last-Translator: Domingo Becker <domingobecker@gmail.com>\n"
+"Language-Team: Fedora Spanisg <trans-es@lists.fedoraproject.org. >\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-Language: Spanish\n"
 "X-Poedit-Country: ARGENTINA\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../../ipalib/parameters.py:224
 msgid "incorrect type"
@@ -210,8 +211,8 @@ msgstr "el comando %(name)r no tiene argumentos"
 #, python-format
 msgid "command %(name)r takes at most %(count)d argument"
 msgid_plural "command %(name)r takes at most %(count)d arguments"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "el comando %(name)r lleva al menos %(count)d argumento"
+msgstr[1] "el comando %(name)r lleva al menos %(count)d argumentos"
 
 #: ../../ipalib/errors.py:674
 #, python-format
@@ -370,8 +371,8 @@ msgstr "Ha sido modificado el grupo de funciones \"%(value)s\""
 #, python-format
 msgid "%(count)d rolegroup matched"
 msgid_plural "%(count)d rolegroups matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d grupo de roles coincidente"
+msgstr[1] "%(count)d grupo de roles coincidentes"
 
 #: ../../ipalib/plugins/host.py:82
 msgid "Hosts"
@@ -396,8 +397,8 @@ msgstr "Ha sido modificado el equipo \"%(value)s\""
 #, python-format
 msgid "%(count)d host matched"
 msgid_plural "%(count)d hosts matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d equipo coincidente"
+msgstr[1] "%(count)d equipos coincidentes"
 
 #: ../../ipalib/plugins/group.py:58
 msgid "User Groups"
@@ -422,8 +423,8 @@ msgstr "Ha sido modificado el grupo \"%(value)s\""
 #, python-format
 msgid "%(count)d group matched"
 msgid_plural "%(count)d groups matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d grupo coincidente"
+msgstr[1] "%(count)d grupos coincidentes"
 
 #: ../../ipalib/plugins/service.py:122
 msgid "Services"
@@ -498,8 +499,8 @@ msgstr "Ha sido modificado ACI \"%(value)s\""
 #, python-format
 msgid "%(count)d ACI matched"
 msgid_plural "%(count)d ACIs matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d ACI coincidente"
+msgstr[1] "%(count)d ACIs coincidentes"
 
 #: ../../ipalib/plugins/dns.py:114
 msgid "DNS"
@@ -526,8 +527,8 @@ msgstr "%(count)d variables"
 #, python-format
 msgid "%(count)d plugin loaded"
 msgid_plural "%(count)d plugins loaded"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d complemento cargado"
+msgstr[1] "%(count)d complementos cargados"
 
 #: ../../ipalib/plugins/user.py:71
 msgid "Users"
@@ -552,8 +553,8 @@ msgstr "Ha sido modificado el usuario \"%(value)s\""
 #, python-format
 msgid "%(count)d user matched"
 msgid_plural "%(count)d users matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d usuario coincidente"
+msgstr[1] "%(count)d usuarios coincidentes"
 
 #: ../../ipalib/plugins/user.py:236
 #, python-format
@@ -588,8 +589,8 @@ msgstr "Ha sido modificado el grupo de tareas \"%(value)s\""
 #, python-format
 msgid "%(count)d taskgroup matched"
 msgid_plural "%(count)d taskgroups matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d grupo de tarea coincidente"
+msgstr[1] "%(count)d grupos de tarea coincidentes"
 
 #: ../../ipalib/plugins/hostgroup.py:49
 msgid "Host Groups"
@@ -614,8 +615,8 @@ msgstr "Ha sido modificado el grupo de equipo \"%(value)s\""
 #, python-format
 msgid "%(count)d hostgroup matched"
 msgid_plural "%(count)d hostgroups matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d grupo de equipos coincidente"
+msgstr[1] "%(count)d grupos de equipos coincidentes"
 
 #: ../../ipalib/plugins/pwpolicy.py:231
 msgid "priority cannot be set on global policy"
