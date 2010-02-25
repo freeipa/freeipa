@@ -69,8 +69,6 @@ class LDAPObject(Object):
     default_attributes = []
     hidden_attributes = ['objectclass', 'aci']
     uuid_attribute = ''
-    attribute_names = {}
-    attribute_order = []
     attribute_members = {}
 
     def get_dn(self, *keys, **kwargs):
@@ -108,26 +106,6 @@ class LDAPObject(Object):
                             ldap_obj.get_primary_key_from_dn(member)
                         )
             del entry_attrs[attr]
-
-    def print_entry(self, textui, entry, *keys, **options):
-        if options.get('raw', False):
-            textui.print_attribute('dn', entry[0])
-            textui.print_entry1(entry[1], attr_order=self.attribute_order)
-        else:
-            if self.primary_key and keys[-1] is not None:
-                textui.print_attribute(
-                    self.object_name.capitalize(), keys[-1], indent=0
-                )
-            else:
-                textui.print_plain(self.object_name.capitalize())
-            entry_attrs = entry[1]
-            for a in self.hidden_attributes:
-                if a in entry_attrs:
-                    del entry_attrs[a]
-            textui.print_entry1(
-                entry_attrs, attr_map=self.attribute_names,
-                attr_order=self.attribute_order, one_value_per_line=False
-            )
 
 
 # Options used by create and update.
@@ -197,24 +175,6 @@ class LDAPCreate(crud.Create):
             return dict(result=entry_attrs, value=keys[-1])
         return dict(result=entry_attrs, value=u'')
 
-    def dont_output_for_cli(self, textui, entry, *keys, **options):
-        textui.print_name(self.name)
-        self.obj.print_entry(textui, entry, *keys, **options)
-        if len(keys) > 1:
-            textui.print_dashed(
-                'Created %s "%s" in %s "%s".' % (
-                    self.obj.object_name, keys[-1],
-                    self.api.Object[self.obj.parent_object].object_name,
-                    keys[-2]
-                )
-            )
-        elif len(keys) == 1:
-            textui.print_dashed(
-                'Created %s "%s".' % (self.obj.object_name, keys[-1])
-            )
-        else:
-            textui.print_dashed('Created %s.' % self.obj.object_name)
-
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         return dn
 
@@ -260,10 +220,6 @@ class LDAPRetrieve(LDAPQuery):
         if self.obj.primary_key and keys[-1] is not None:
             return dict(result=entry_attrs, value=keys[-1])
         return dict(result=entry_attrs, value=u'')
-
-    def dont_output_for_cli(self, textui, entry, *keys, **options):
-        textui.print_name(self.name)
-        self.obj.print_entry(textui, entry, *keys, **options)
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
         return dn
@@ -327,24 +283,6 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             return dict(result=entry_attrs, value=keys[-1])
         return dict(result=entry_attrs, value=u'')
 
-    def dont_output_for_cli(self, textui, entry, *keys, **options):
-        textui.print_name(self.name)
-        self.obj.print_entry(textui, entry, *keys, **options)
-        if len(keys) > 1:
-            textui.print_dashed(
-                'Modified %s "%s" in %s "%s".' % (
-                    self.obj.object_name, keys[-1],
-                    self.api.Object[self.obj.parent_object].object_name,
-                    keys[-2]
-                )
-            )
-        elif len(keys) == 1:
-            textui.print_dashed(
-                'Modified %s "%s".' % (self.obj.object_name, keys[-1])
-            )
-        else:
-            textui.print_dashed('Modified %s.' % self.obj.object_name)
-
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         return dn
 
@@ -386,23 +324,6 @@ class LDAPDelete(LDAPQuery):
         if self.obj.primary_key and keys[-1] is not None:
             return dict(result=result, value=keys[-1])
         return dict(result=result, value=u'')
-
-    def dont_output_for_cli(self, textui, result, *keys, **options):
-        textui.print_name(self.name)
-        if len(keys) > 1:
-            textui.print_dashed(
-                'Deleted %s "%s" in %s "%s".' % (
-                    self.obj.object_name, keys[-1],
-                    self.api.Object[self.obj.parent_object].object_name,
-                    keys[-2]
-                )
-            )
-        elif len(keys) == 1:
-            textui.print_dashed(
-                'Deleted %s "%s".' % (self.obj.object_name, keys[-1])
-            )
-        else:
-            textui.print_dashed('Deleted %s.' % self.obj.object_name)
 
     def pre_callback(self, ldap, dn, *keys, **options):
         return dn
@@ -447,23 +368,6 @@ class LDAPModMember(LDAPQuery):
                     except errors.PublicError:
                         failed[attr][ldap_obj_name].append(name)
         return (dns, failed)
-
-    def dont_output_for_cli(self, textui, result, *keys, **options):
-        (completed, failed, entry) = result
-
-        for (attr, objs) in failed.iteritems():
-            for ldap_obj_name in objs:
-                if failed[attr][ldap_obj_name]:
-                    failed_string = ','.join(failed[attr][ldap_obj_name])
-                    textui.print_plain('%ss failed: %s' % (
-                            to_cli(ldap_obj_name), failed_string
-                        )
-                    )
-        textui.print_name(self.name)
-        self.obj.print_entry(textui, entry, *keys, **options)
-        textui.print_count(
-            completed, self.member_count_out[0], self.member_count_out[1]
-        )
 
 
 class LDAPAddMember(LDAPModMember):
@@ -680,27 +584,6 @@ class LDAPSearch(crud.Search):
             count=len(entries),
             truncated=truncated,
         )
-
-    def dont_output_for_cli(self, textui, result, *args, **options):
-        (entries, truncated) = result
-
-        textui.print_name(self.name)
-        for e in entries:
-            self.obj.print_entry(textui, e, e[0], **options)
-            textui.print_plain('')
-        textui.print_count(
-            len(entries),
-            '%i ' + self.obj.object_name + ' matched.',
-            '%i ' + self.obj.object_name_plural + ' matched.',
-        )
-        if truncated:
-            textui.print_dashed('These results are truncated.', below=False)
-            textui.print_dashed(
-                'Please refine your search and try again.', above=False
-            )
-        elif len(entries) == 0:
-            # nothing was found, return error code 1
-            return 1
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, *args, **options):
         return filter

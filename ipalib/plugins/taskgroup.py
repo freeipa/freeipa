@@ -35,13 +35,6 @@ class taskgroup(LDAPObject):
     object_name_plural = 'taskgroups'
     object_class = ['groupofnames']
     default_attributes = ['cn', 'description', 'member', 'memberof']
-    attribute_names = {
-        'cn': 'name',
-        'member_user': 'member users',
-        'member_group': 'member groups',
-        'member_rolegroup': 'member rolegroups',
-        # FIXME: 'memberof ???': 'member of ???'
-    }
     attribute_members = {
         'member': ['user', 'group', 'rolegroup'],
         # FIXME: taskgroup can be member of ???

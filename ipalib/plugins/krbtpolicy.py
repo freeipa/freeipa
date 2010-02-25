@@ -40,10 +40,6 @@ class krbtpolicy(LDAPObject):
     container_dn = 'cn=%s,cn=kerberos' % api.env.realm
     object_name = 'kerberos ticket policy settings'
     default_attributes = ['krbmaxticketlife', 'krbmaxrenewableage']
-    attribute_names = {
-        'krbmaxticketlife': 'maximum life',
-        'krbmaxrenewableage': 'maximum renewable age',
-    }
 
     takes_params = (
         Str('uid?',

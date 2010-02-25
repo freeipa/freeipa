@@ -39,20 +39,6 @@ class hbac(LDAPObject):
 
     ]
     uuid_attribute = 'ipauniqueid'
-    attribute_names = {
-        'cn': 'name',
-        'accessruletype': 'type',
-        'ipaenabledflag': 'enabled',
-        'servicename': 'service',
-        'ipauniqueid': 'unique id',
-        'memberuser user': 'affected users',
-        'memberuser group': 'affected groups',
-        'memberhost host': 'affected hosts',
-        'memberhost hostgroup': 'affected hostgroups',
-        'sourcehost host': 'affected source hosts',
-        'sourcehost hostgroup': 'affected source hostgroups',
-    }
-    attribute_order = ['cn', 'accessruletype', 'ipaenabledflag', 'servicename']
     attribute_members = {
         'memberuser': ['user', 'group'],
         'memberhost': ['host', 'hostgroup'],

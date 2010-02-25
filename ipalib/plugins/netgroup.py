@@ -39,16 +39,6 @@ class netgroup(LDAPObject):
         'nisdomainname',
     ]
     uuid_attribute = 'ipauniqueid'
-    attribute_names = {
-        'cn': 'name',
-        'member_user': 'member users',
-        'member_group': 'member groups',
-        'member_host': 'member hosts',
-        'member_hostgroup': 'member hostgroups',
-        'member_netgroup': 'member netgroups',
-        'memberof_netgroup': 'member of netgroups',
-        'externalhost': 'externalhost',
-    }
     attribute_members = {
         'member': ['user', 'group', 'host', 'hostgroup', 'netgroup'],
         'memberof': ['netgroup'],

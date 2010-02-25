@@ -100,9 +100,6 @@ class automountlocation(LDAPObject):
     object_name_plural = 'automount locations'
     object_class = ['nscontainer']
     default_attributes = ['cn']
-    attribute_names = {
-        'cn': 'name',
-    }
 
     takes_params = (
         Str('cn',
@@ -220,9 +217,6 @@ class automountmap(LDAPObject):
     object_name_plural = 'automount maps'
     object_class = ['automountmap']
     default_attributes = ['automountmapname', 'description']
-    attribute_names = {
-        'automountmapname': 'name',
-    }
 
     takes_params = (
         Str('automountmapname',
@@ -305,11 +299,6 @@ class automountkey(LDAPObject):
     default_attributes = [
         'automountkey', 'automountinformation', 'description'
     ]
-    attribute_names = {
-        'automountkey': 'key',
-        'automountinformation': 'mount information',
-    }
-    attribute_order = ['automountkey', 'automountinformation']
 
     takes_params = (
         Str('automountkey',

@@ -38,19 +38,6 @@ class config(LDAPObject):
         'ipasearchrecordslimit', 'ipausersearchfields', 'ipagroupsearchfields',
         'ipamigrationenabled', 'ipacertificatesubjectbase',
     ]
-    attribute_names = {
-        'ipamaxusernamelength': 'maximum username length',
-        'ipahomesrootdir': 'root of home directories',
-        'ipadefaultloginshell': 'default login shell',
-        'ipadefaultprimarygroup': 'default primary group',
-        'ipadefaultdomain': 'default e-mail domain',
-        'ipasearchtimelimit': 'time limit for search queries',
-        'ipasearchrecordslimit': 'result count limit for search queries',
-        'ipausersearchfields': 'search fields for users',
-        'ipagroupsearchfields': 'search fields for groups',
-        'ipamigrationenabled': 'enable migration mode',
-        'ipacertificatesubjectbase': 'base for certificate subjects',
-    }
 
     takes_params = (
         Int('ipamaxusernamelength?',

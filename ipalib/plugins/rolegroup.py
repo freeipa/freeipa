@@ -34,14 +34,6 @@ class rolegroup(LDAPObject):
     object_name_plural = 'rolegroups'
     object_class = ['groupofnames', 'nestedgroup']
     default_attributes = ['cn', 'description', 'member', 'memberof']
-    attribute_names = {
-        'cn': 'name',
-        'member_user': 'member users',
-        'member_group': 'member groups',
-        'member_host': 'member hosts',
-        'member_hostgroup': 'member hostgroups',
-        'memberof_taskgroup': 'member of taskgroup',
-    }
     attribute_members = {
         'member': ['user', 'group', 'host', 'hostgroup'],
         'memberof': ['taskgroup'],

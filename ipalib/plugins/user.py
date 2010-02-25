@@ -41,29 +41,6 @@ class user(LDAPObject):
         'telephonenumber', 'title', 'memberof',
     ]
     uuid_attribute = 'ipauniqueid'
-    attribute_names = {
-        'uid': 'user id',
-        'cn': 'full name',
-        'givenname': 'first name',
-        'sn': 'last name',
-        'homedirectory': 'home directory',
-        'loginshell': 'login shell',
-        'krbprincipalname': 'kerberos principal',
-        'krblastpwdchange': 'last password change',
-        'krbpasswordexpiration': 'password expiration',
-        'uidnumber': 'uid number',
-        'gidnumber': 'gid number',
-        'memberof_group': 'member of groups',
-        'memberof_netgroup': 'member of netgroups',
-        'memberof_rolegroup': 'member of rolegroups',
-        'memberof_taskgroup': 'member of taskgroups',
-        'ipauniqueid': 'unique identifier'
-    }
-    attribute_order = [
-        'uid', 'cn', 'givenname', 'sn', 'title', 'telephonenumber', 'ou',
-        'homedirectory', 'loginshell', 'uidnumber', 'gidnumber', 'gecos',
-        'krbprincipalname', 'krblastpwdchange', 'krbpasswordexpiration',
-    ]
     attribute_members = {
         'memberof': ['group', 'netgroup', 'rolegroup', 'taskgroup'],
     }
@@ -130,6 +107,18 @@ class user(LDAPObject):
         ),
         Str('memberof_group?',
             label=_('Groups'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('memberof_netgroup?',
+            label=_('Netgroups'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('memberof_rolegroup?',
+            label=_('Rolegroups'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('memberof_taskgroup?',
+            label=_('Taskgroups'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
     )

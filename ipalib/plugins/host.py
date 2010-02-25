@@ -58,22 +58,6 @@ class host(LDAPObject):
         'nshardwareplatform', 'nsosversion', 'usercertificate', 'memberof',
     ]
     uuid_attribute = 'ipauniqueid'
-    attribute_names = {
-        'cn': 'name',
-        'fqdn': 'hostname',
-        'localityname': 'locality',
-        'l': 'locality',
-        'nshostlocation': 'location',
-        'nshardwareplatform': 'platform',
-        'nsosversion': 'operating system',
-        'serverhostname': 'server hostname',
-        'enrolledby user': 'enrolled by',
-        'krbprincipalname': 'kerberos principal',
-        'ipauniqueid': 'unique identifier',
-        'memberof_hostgroup': 'member of hostgroups',
-        'memberof_netgroup': 'member of netgroups',
-        'memberof_rolegroup': 'member of rolegroups',
-    }
     attribute_members = {
         'enrolledby': ['user'],
         'memberof': ['hostgroup', 'netgroup', 'rolegroup'],

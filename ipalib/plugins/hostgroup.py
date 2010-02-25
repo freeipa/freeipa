@@ -35,12 +35,6 @@ class hostgroup(LDAPObject):
     object_class = ['ipaobject', 'ipahostgroup']
     default_attributes = ['cn', 'description', 'member', 'memberof']
     uuid_attribute = 'ipauniqueid'
-    attribute_names = {
-        'cn': 'names',
-        'member_host': 'member hosts',
-        'member_hostgroup': 'member hostgroups',
-        'memberof_hostgroup': 'member of hostgroup',
-    }
     attribute_members = {
         'member': ['host', 'hostgroup'],
         'memberof': ['hostgroup'],

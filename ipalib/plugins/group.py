@@ -40,16 +40,6 @@ class group(LDAPObject):
         'cn', 'description', 'gidnumber', 'member', 'memberof'
     ]
     uuid_attribute = 'ipauniqueid'
-    attribute_names = {
-        'cn': 'name',
-        'gidnumber': 'group id',
-        'member_user': 'member users',
-        'member_group': 'member groups',
-        'memberof_group': 'member of groups',
-        'memberof_netgroup': 'member of netgroups',
-        'memberof_rolegroup': 'member of rolegroup',
-        'memberof_taskgroup': 'member of taskgroup',
-    }
     attribute_members = {
         'member': ['user', 'group'],
         'memberof': ['group', 'netgroup', 'rolegroup', 'taskgroup'],

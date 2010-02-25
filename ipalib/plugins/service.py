@@ -109,12 +109,6 @@ class service(LDAPObject):
     ]
     default_attributes = ['krbprincipalname', 'usercertificate', 'managedby']
     uuid_attribute = 'ipauniqueid'
-    attribute_names = {
-        'krbprincipalname': 'kerberos principal',
-        'usercertificate': 'user certificate',
-        'ipauniqueid': 'unique identifier',
-        'managedby': 'managed by',
-    }
     attribute_members = {
         'managedby': ['host'],
     }
