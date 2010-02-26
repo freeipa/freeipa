@@ -2,13 +2,13 @@
 # Copyright (C) 2010 Red Hat
 # This file is distributed under the same license as the PACKAGE package.
 # gundachandru <gundachandru@gmail.com>, 2010.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/newticket\n"
 "POT-Creation-Date: 2010-02-15 14:55-0500\n"
-"PO-Revision-Date: 2010-02-14 22:37+0530\n"
+"PO-Revision-Date: 2010-02-26 23:05+0530\n"
 "Last-Translator: gundachandru <gundachandru@gmail.com>\n"
 "Language-Team: Kannada <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -107,542 +107,549 @@ msgstr "%(values)r ನಲ್ಲಿ ಒಂದು ಆಗಿರಲೇಬೇಕು"
 #: ../../ipalib/cli.py:505
 #, python-format
 msgid "Enter %(label)s again to verify: "
-msgstr "ಮತ್ತೊಮ್ಮೆ ಪರಿಶೀಲಿಸಲು %(label)s ಎಂಟರ್ ಮಾಡಿ"
+msgstr "ಮತ್ತೊಮ್ಮೆ ಪರಿಶೀಲಿಸಲು %(label)s ಎಂಟರ್ ಮಾಡಿ:"
 
 #: ../../ipalib/cli.py:509
 msgid "Passwords do not match!"
-msgstr ""
+msgstr "ಗುಪ್ತಪದಗಳು ಹೊಂದಾಣಿಕೆಯಾಗುತ್ತಿಲ್ಲ!"
 
 #: ../../ipalib/cli.py:514
 msgid "Cancelled."
-msgstr ""
+msgstr "ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ."
 
 #: ../../ipalib/frontend.py:377
 msgid "Results are truncated, try a more specific search"
-msgstr ""
+msgstr "ಫಲಿತಾಂಶಗಳು ಕತ್ತರಿಸಲ್ಪಟ್ಟಿವೆ, ಹೆಚ್ಚ್ಹು ನಿರ್ದಿಷ್ಟವಾದ ಶೋಧನೆ ಪ್ರಯತ್ನಿಸಿ"
 
 #: ../../ipalib/errors.py:297
 #, python-format
 msgid "%(cver)s client incompatible with %(sver)s server at %(server)r"
-msgstr ""
+msgstr "%(server)r ನಲ್ಲಿ ಕ್ಲೈಂಟ್ %(cver)s ಸರ್ವರ್‌ %(sver)s ನೊಂದಿಗೆ ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ"
 
 #: ../../ipalib/errors.py:315
 #, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
-msgstr ""
+msgstr "%(server)s ಸರ್ವರ್‌ನಿಂದ ಅಜ್ಞಾತ ದೋಷ %(code)d: %(error)s"
 
 #: ../../ipalib/errors.py:331
 msgid "an internal error has occurred"
-msgstr ""
+msgstr "ಆಂತರಿಕ ದೋಷ ಉಂಟಾಗಿದೆ"
 
 #: ../../ipalib/errors.py:353
 #, python-format
 msgid "an internal error has occurred on server at %(server)r"
-msgstr ""
+msgstr "%(server)r ನಲ್ಲಿ ಸರ್ವರ್‌ನಲ್ಲಿ ಆಂತರಿಕ ದೋಷ ಉಂಟಾಗಿದೆ"
 
 #: ../../ipalib/errors.py:369
 #, python-format
 msgid "unknown command %(name)r"
-msgstr ""
+msgstr "ಅಜ್ಞಾತ ಆಜ್ಞೆ(ಕಮ್ಯಾಂಡ್) %(name)r "
 
-#: ../../ipalib/errors.py:386 ../../ipalib/errors.py:411
+#: ../../ipalib/errors.py:386
+#: ../../ipalib/errors.py:411
 #, python-format
 msgid "error on server %(server)r: %(error)s"
-msgstr ""
+msgstr "%(server)r ಸರ್ವರ್‌ನಲ್ಲಿ ದೋಷ: %(error)s"
 
 #: ../../ipalib/errors.py:402
 #, python-format
 msgid "cannot connect to %(uri)r: %(error)s"
-msgstr ""
+msgstr "%(uri)r ಗೆ ಸಂಪರ್ಕಿಸಲು ಆಗುತ್ತಿಲ್ಲ: %(error)s"
 
 #: ../../ipalib/errors.py:420
 #, python-format
 msgid "Invalid JSON-RPC request: %(error)s"
-msgstr ""
+msgstr "ಅಸಿಂಧುವಾದ JSON-RPC ಬೇಡಿಕೆ: %(error)s"
 
 #: ../../ipalib/errors.py:448
 #, python-format
 msgid "Kerberos error: %(major)s/%(minor)s"
-msgstr ""
+msgstr "Kerberos ದೋಷ: %(major)s/%(minor)s"
 
 #: ../../ipalib/errors.py:465
 msgid "did not receive Kerberos credentials"
-msgstr ""
+msgstr "Kerberos ಯೋಗ್ಯತಾಪತ್ರಗಳನ್ನು ಪಡೆದಿಲ್ಲ"
 
 #: ../../ipalib/errors.py:481
 #, python-format
 msgid "Service %(service)r not found in Kerberos database"
-msgstr ""
+msgstr "Kerberos ಡೇಟಾಬೇಸ್‌ನಲ್ಲಿ %(service)r ಸೇವೆ(ಸರ್ವಿಸ್) ಸಿಗುತ್ತಿಲ್ಲ"
 
 #: ../../ipalib/errors.py:497
 msgid "No credentials cache found"
-msgstr ""
+msgstr "ಕ್ಯಾಶ್‌ನಲ್ಲಿ ಯೋಗ್ಯತಾಪತ್ರಗಳು ಸಿಗುತ್ತಿಲ್ಲ"
 
 #: ../../ipalib/errors.py:513
 msgid "Ticket expired"
-msgstr ""
+msgstr "ಟಿಕೆಟ್‌ನ ಅವಧಿ ಮುಗಿದಿದೆ"
 
 #: ../../ipalib/errors.py:529
 msgid "Credentials cache permissions incorrect"
-msgstr ""
+msgstr "ಯೋಗ್ಯತಾಪತ್ರಗಳ ಕ್ಯಾಶ್‌ನ ಅನುಮತಿಗಳು ಸರಿಯಿಲ್ಲ"
 
 #: ../../ipalib/errors.py:545
 msgid "Bad format in credentials cache"
-msgstr ""
+msgstr "ಯೋಗ್ಯತಾಪತ್ರಗಳ ಕ್ಯಾಶ್‌ನಲ್ಲಿ ಜೋಡಣೆ ಸರಿಯಿಲ್ಲ"
 
 #: ../../ipalib/errors.py:561
 msgid "Cannot resolve KDC for requested realm"
-msgstr ""
+msgstr "ಕೋರಿದ ಕ್ಷೇತ್ರ(ರೆಲ್ಮ್)ಕ್ಕಾಗಿ KDC ಯನ್ನು ಬಗೆಹರಿಸಲು ಆಗುತ್ತಿಲ್ಲ"
 
 #: ../../ipalib/errors.py:580
 #, python-format
 msgid "Insufficient access: %(info)s"
-msgstr ""
+msgstr "ನಿಲುಕಣೆ(ಆಕ್ಸೆಸ್) ಸಾಲದಾಗಿದೆ: %(info)s"
 
 #: ../../ipalib/errors.py:624
 #, python-format
 msgid "command %(name)r takes no arguments"
-msgstr ""
+msgstr "%(name)r ಆಜ್ಞೆ(ಕಮ್ಯಾಂಡ್) ಯಾವುದೇ ಆರ್ಗುಮೆಂಟ್‌ಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುವುದಿಲ್ಲ"
 
 #: ../../ipalib/errors.py:644
 #, python-format
 msgid "command %(name)r takes at most %(count)d argument"
 msgid_plural "command %(name)r takes at most %(count)d arguments"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(name)r ಆಜ್ಞೆ(ಕಮ್ಯಾಂಡ್) ಗರಿಷ್ಠ %(count)d ಆರ್ಗುಮೆಂಟ್‌ವನ್ನು  ತೆಗೆದುಕೊಳ್ಳುತ್ತದೆ"
+msgstr[1] "%(name)r ಆಜ್ಞೆ(ಕಮ್ಯಾಂಡ್) ಗರಿಷ್ಠ %(count)d ಆರ್ಗುಮೆಂಟ್‌ಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುತ್ತದೆ"
 
 #: ../../ipalib/errors.py:674
 #, python-format
 msgid "overlapping arguments and options: %(names)r"
-msgstr ""
+msgstr "ಆರ್ಗುಮೆಂಟ್‌ಗಳನ್ನು ಮತ್ತು ಆಯ್ಕೆಗಳನ್ನು ಒಂದರಮೇಲೊಂದಾಗಿಸಲಾಗುತ್ತಿದೆ: %(names)r"
 
 #: ../../ipalib/errors.py:690
 #, python-format
 msgid "%(name)r is required"
-msgstr ""
+msgstr "%(name)r ಅಗತ್ಯವಿದೆ"
 
-#: ../../ipalib/errors.py:706 ../../ipalib/errors.py:722
+#: ../../ipalib/errors.py:706
+#: ../../ipalib/errors.py:722
 #, python-format
 msgid "invalid %(name)r: %(error)s"
-msgstr ""
+msgstr "ಅಸಿಂಧುವಾದ %(name)r: %(error)s"
 
 #: ../../ipalib/errors.py:738
 #, python-format
 msgid "api has no such namespace: %(name)r"
-msgstr ""
+msgstr "apiನಲ್ಲಿ ಆ ತರಹದ ಯಾವುದೇ ನೇಮ್‌ಸ್ಪೇಸ್ ಇಲ್ಲ: %(name)r"
 
 #: ../../ipalib/errors.py:747
 msgid "Passwords do not match"
-msgstr ""
+msgstr "ಗುಪ್ತಪದಗಳು ಹೊಂದಾಣಿಕೆಯಾಗುತ್ತಿಲ್ಲ"
 
 #: ../../ipalib/errors.py:755
 msgid "Command not implemented"
-msgstr ""
+msgstr "ಆಜ್ಞೆ(ಕಮ್ಯಾಂಡ್)ಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಲಾಗಿಲ್ಲ"
 
-#: ../../ipalib/errors.py:783 ../../ipalib/errors.py:1023
+#: ../../ipalib/errors.py:783
+#: ../../ipalib/errors.py:1023
 #, python-format
 msgid "%(reason)s"
-msgstr ""
+msgstr "%(reason)s"
 
 #: ../../ipalib/errors.py:799
 msgid "This entry already exists"
-msgstr ""
+msgstr "ಈ ನಮೂದು ಈಗಾಗಲೇ ಅಸ್ತಿತ್ವದಲ್ಲಿದೆ"
 
 #: ../../ipalib/errors.py:815
 msgid "You must enroll a host in order to create a host service"
-msgstr ""
+msgstr "ಒಂದು ಹೋಸ್ಟ್ ಸೇವೆ(ಸರ್ವಿಸ್)ಯನ್ನು ರಚಿಸುವ ಸಲುವಾಗಿ ನೀವು ಒಂದು ಹೋಸ್ಟ್ ಅನ್ನು ಸೇರಿಸಲೇಬೇಕಾಗಿದೆ"
 
 #: ../../ipalib/errors.py:831
 #, python-format
 msgid "Service principal is not of the form: service/fully-qualified host name: %(reason)s"
-msgstr ""
+msgstr "Service principalನ ಸ್ವರೂಪ ಹೀಗಿಲ್ಲ: service/fully-qualified host name: %(reason)s"
 
 #: ../../ipalib/errors.py:847
 msgid "The realm for the principal does not match the realm for this IPA server"
-msgstr ""
+msgstr "principalನ ಕ್ಷೇತ್ರ(ರೆಲ್ಮ್)ವು ಈ IPA ಸರ್ವರ್‌ನ ಕ್ಷೇತ್ರ(ರೆಲ್ಮ್)ಕ್ಕೆ ತಾಳೆಯಾಗುತ್ತಿಲ್ಲ"
 
 #: ../../ipalib/errors.py:863
 msgid "This command requires root access"
-msgstr ""
+msgstr "ಈ ಆಜ್ಞೆ(ಕಮ್ಯಾಂಡ್) ರೂಟ್(root) ನಿಲುಕಣೆ(ಆಕ್ಸೆಸ್) ಕೋರುತ್ತದೆ"
 
 #: ../../ipalib/errors.py:879
 msgid "This is already a posix group"
-msgstr ""
+msgstr "ಈ ನಮೂದು ಈಗಾಗಲೇ posix ಗುಂಪು"
 
 #: ../../ipalib/errors.py:895
 #, python-format
 msgid "Principal is not of the form user@REALM: %(principal)r"
-msgstr ""
+msgstr "Principalನ ಸ್ವರೂಪ  user@REALM ನಂತಲ್ಲ: %(principal)r"
 
 #: ../../ipalib/errors.py:911
 msgid "This entry is already unlocked"
-msgstr ""
+msgstr "ಈ ನಮೂದು ಈಗಾಗಲೇ ಅನ್‌ಲಾಕ್ ಆಗಿದೆ"
 
 #: ../../ipalib/errors.py:927
 msgid "This entry is already locked"
-msgstr ""
+msgstr "ಈ ನಮೂದು ಈಗಾಗಲೇ ಲಾಕ್ ಆಗಿದೆ"
 
 #: ../../ipalib/errors.py:943
 msgid "This entry has nsAccountLock set, it cannot be locked or unlocked"
-msgstr ""
+msgstr "ಈ ನಮೂದಿಗೆ nsAccountLock ಸೆಟ್ ಆಗಿದೆ, ಇದನ್ನು ಲಾಕ್ ಅಥವಾ ಅನ್‌ಲಾಕ್ ಮಾಡಲಾಗುವುದಿಲ್ಲ"
 
 #: ../../ipalib/errors.py:959
 msgid "This entry is not a member of the group"
-msgstr ""
+msgstr "ಈ ನಮೂದು ಗುಂಪಿನ ಒಂದು ಸದಸ್ಯ ಆಗಿಲ್ಲ"
 
 #: ../../ipalib/errors.py:975
 msgid "A group may not be a member of itself"
-msgstr ""
+msgstr "ಒಂದು ಗುಂಪು ಅದರ ಒಂದು ಸದಸ್ಯ ಆಗದಿರಬಹುದು"
 
 #: ../../ipalib/errors.py:991
 msgid "This entry is already a member of the group"
-msgstr ""
+msgstr "ಈ ನಮೂದು ಈಗಾಗಲೇ ಗುಂಪಿನ ಒಂದು ಸದಸ್ಯ ಆಗಿದೆ"
 
 #: ../../ipalib/errors.py:1007
 #, python-format
 msgid "Base64 decoding failed: %(reason)s"
-msgstr ""
+msgstr "Base64 ಡೆಕೋಡಿಂಗ್ ವಿಫಲಗೊಂಡಿದೆ: %(reason)s"
 
 #: ../../ipalib/errors.py:1039
 msgid "A group may not be added as a member of itself"
-msgstr ""
+msgstr "ಒಂದು ಗುಂಪು ಅದರ ಒಂದು ಸದಸ್ಯನಂತೆ ಸೇರಿಸಲು ಆಗದಿರಬಹುದು"
 
 #: ../../ipalib/errors.py:1055
 msgid "The default users group cannot be removed"
-msgstr ""
+msgstr "ಡಿಫಾಲ್ಟ್ ಬಳಕೆದಾರರ ಗುಂಪನ್ನು ತೆಗೆದುಹಾಕಲು ಆಗುವುದಿಲ್ಲ"
 
 #: ../../ipalib/errors.py:1078
 #, python-format
 msgid "no command nor help topic %(topic)r"
-msgstr ""
+msgstr "ಆಜ್ಞೆ(ಕಮ್ಯಾಂಡ್) ಇಲ್ಲ ಸಹಾಯದ ಟಾಪಿಕ್ %(topic)r ಕೂಡ ಇಲ್ಲ"
 
 #: ../../ipalib/errors.py:1102
 msgid "change collided with another change"
-msgstr ""
+msgstr "ಬದಲಾವಣೆ ಮತ್ತೊಂದು ಬದಲಾವಣೆಯೊಂದಿಗೆ ಡಿಕ್ಕಿಹೊಡೆದಿದೆ"
 
 #: ../../ipalib/errors.py:1118
 msgid "no modifications to be performed"
-msgstr ""
+msgstr "ಯಾವುದೇ ಬದಲಾವಣೆಗಳು ನಡೆಯಬಾರದು"
 
 #: ../../ipalib/errors.py:1134
 #, python-format
 msgid "%(desc)s:%(info)s"
-msgstr ""
+msgstr "%(desc)s:%(info)s"
 
 #: ../../ipalib/errors.py:1150
 msgid "limits exceeded for this query"
-msgstr ""
+msgstr "ಈ ಕ್ವೇರಿಗೆ ಮಿತಿಗಳು ಮೀರಿವೆ"
 
 #: ../../ipalib/errors.py:1165
 #, python-format
 msgid "%(info)s"
-msgstr ""
+msgstr "%(info)s"
 
 #: ../../ipalib/errors.py:1190
 #, python-format
 msgid "Certificate operation cannot be completed: %(error)s"
-msgstr ""
+msgstr "ಪ್ರಮಾಣಪತ್ರದ ಕಾರ್ಯಾಚರಣೆಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಲು ಆಗುತ್ತಿಲ್ಲ: %(error)s"
 
 #: ../../ipalib/plugins/rolegroup.py:50
 msgid "Role Groups"
-msgstr ""
+msgstr "ಕೆಲಸ(ರೋಲ್)ದ ಗುಂಪುಗಳು"
 
 #: ../../ipalib/plugins/rolegroup.py:75
 #, python-format
 msgid "Added rolegroup \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ರೋಲ್‌ಗ್ರೂಪನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/rolegroup.py:85
 #, python-format
 msgid "Deleted rolegroup \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ರೋಲ್‌ಗ್ರೂಪನ್ನು ಅಳಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/rolegroup.py:95
 #, python-format
 msgid "Modified rolegroup \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ರೋಲ್‌ಗ್ರೂಪನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/rolegroup.py:106
 #, python-format
 msgid "%(count)d rolegroup matched"
 msgid_plural "%(count)d rolegroups matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d ರೋಲ್‌ಗ್ರೂಪ್ ತಾಳೆಯಾಗುತ್ತಿದೆ"
+msgstr[1] "%(count)d ರೋಲ್‌ಗ್ರೂಪ್‌ಗಳು ತಾಳೆಯಾಗುತ್ತಿವೆ"
 
 #: ../../ipalib/plugins/host.py:82
 msgid "Hosts"
-msgstr ""
+msgstr "ಹೋಸ್ಟ್‌ಗಳು"
 
 #: ../../ipalib/plugins/host.py:151
 #, python-format
 msgid "Added host \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ಹೋಸ್ಟನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/host.py:180
 #, python-format
 msgid "Deleted host \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ಹೋಸ್ಟನ್ನು ಅಳಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/host.py:208
 #, python-format
 msgid "Modified host \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ಹೋಸ್ಟನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/host.py:257
 #, python-format
 msgid "%(count)d host matched"
 msgid_plural "%(count)d hosts matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d ಹೋಸ್ಟ್‌ ತಾಳೆಯಾಗುತ್ತಿದೆ"
+msgstr[1] "%(count)d ಹೋಸ್ಟ್‌ಗಳು ತಾಳೆಯಾಗುತ್ತಿವೆ"
 
 #: ../../ipalib/plugins/group.py:58
 msgid "User Groups"
-msgstr ""
+msgstr "ಬಳಕೆದಾರರ ಗುಂಪುಗಳು"
 
 #: ../../ipalib/plugins/group.py:87
 #, python-format
 msgid "Added group \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ಗುಂಪನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/group.py:110
 #, python-format
 msgid "Deleted group \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ಗುಂಪನ್ನು ಅಳಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/group.py:136
 #, python-format
 msgid "Modified group \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ಗುಂಪನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/group.py:165
 #, python-format
 msgid "%(count)d group matched"
 msgid_plural "%(count)d groups matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d ಗುಂಪು ತಾಳೆಯಾಗುತ್ತಿದೆ"
+msgstr[1] "%(count)d ಗುಂಪುಗಳು ತಾಳೆಯಾಗುತ್ತಿವೆ"
 
 #: ../../ipalib/plugins/service.py:122
 msgid "Services"
-msgstr ""
+msgstr "ಸೇವೆಗಳು(ಸರ್ವೀಸಸ್)"
 
 #: ../../ipalib/plugins/hbac.py:62
 msgid "HBAC"
-msgstr ""
+msgstr "HBAC"
 
-#: ../../ipalib/plugins/cert.py:63 ../../ipalib/plugins/cert.py:84
+#: ../../ipalib/plugins/cert.py:63
+#: ../../ipalib/plugins/cert.py:84
 msgid "Unable to decode certificate in entry"
-msgstr ""
+msgstr "ನಮೂದಿನಲ್ಲಿರುವ ಪ್ರಮಾಣಪತ್ರದ ಡಿಕೋಡಿಂಗ್ ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ"
 
-#: ../../ipalib/plugins/cert.py:106 ../../ipalib/plugins/cert.py:120
+#: ../../ipalib/plugins/cert.py:106
+#: ../../ipalib/plugins/cert.py:120
 #: ../../ipalib/plugins/cert.py:137
 msgid "Failure decoding Certificate Signing Request"
-msgstr ""
+msgstr "ಪ್ರಮಾಣಪತ್ರದ ಸಹಿಯ ಕೋರಿಕೆಯ ಡಿಕೋಡಿಂಗ್‌ನ ವಿಫಲತೆ"
 
 #: ../../ipalib/plugins/cert.py:139
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
-msgstr ""
+msgstr "ಪ್ರಮಾಣಪತ್ರದ ಸಹಿಯ ಕೋರಿಕೆಯ ಡಿಕೋಡಿಂಗ್‌ನ ವಿಫಲತೆ: %s"
 
 #: ../../ipalib/plugins/aci.py:109
 msgid "type, filter, subtree and targetgroup are mutually exclusive"
-msgstr ""
+msgstr " ಬಗೆ, ಫಿಲ್ಟರ್, ಸಬ್‌ಟ್ರೀ ಮತ್ತು ಟಾರ್ಗೆಟ್‌ಗ್ರೂಪ್  ಗಳು ಪರಸ್ಪರ ಪ್ರತ್ಯೇಕ"
 
 #: ../../ipalib/plugins/aci.py:112
 msgid "at least one of: type, filter, subtree, targetgroup, attrs or memberof are required"
-msgstr ""
+msgstr "ಕನಿಷ್ಟ ಒಂದು : ಬಗೆ, ಫಿಲ್ಟರ್, ಸಬ್‌ಟ್ರೀ, ಟಾರ್ಗೆಟ್‌ಗ್ರೂಪ್, attrs ಅಥವಾ memberof ಗಳ ಅಗತ್ಯವಿದೆ"
 
 #: ../../ipalib/plugins/aci.py:117
 msgid "group and taskgroup are mutually exclusive"
-msgstr ""
+msgstr "ಗುಂಪು ಮತ್ತು ಟಾಸ್ಕ್‌ಗ್ರೂಪ್ ಪರಸ್ಪರ ಪ್ರತ್ಯೇಕ"
 
 #: ../../ipalib/plugins/aci.py:119
 msgid "One of group or taskgroup is required"
-msgstr ""
+msgstr "ಒಂದು ಗುಂಪು ಅಥವಾ ಟಾಸ್ಕ್‌ಗ್ರೂಪ್ ಅಗತ್ಯವಿದೆ"
 
 #: ../../ipalib/plugins/aci.py:140
 #, python-format
 msgid "Group '%s' does not exist"
-msgstr ""
+msgstr " '%s' ಗುಂಪು ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ"
 
 #: ../../ipalib/plugins/aci.py:184
 #, python-format
 msgid "ACI with name \"%s\" not found"
-msgstr ""
+msgstr "\"%s\" ಹೆಸರು ಹೊಂದಿರುವ ACI ಪತ್ತೆಯಾಗಿಲ್ಲ"
 
 #: ../../ipalib/plugins/aci.py:201
 msgid "ACIs"
-msgstr ""
+msgstr "ACIs"
 
 #: ../../ipalib/plugins/aci.py:258
 #, python-format
 msgid "Created ACI \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ACIವನ್ನು ರಚಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/aci.py:308
 #, python-format
 msgid "Deleted ACI \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ACIವನ್ನು ಅಳಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/aci.py:348
 #, python-format
 msgid "Modified ACI \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ACIವನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/aci.py:408
 #, python-format
 msgid "%(count)d ACI matched"
 msgid_plural "%(count)d ACIs matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d ACI ತಾಳೆಯಾಗುತ್ತಿದೆ"
+msgstr[1] "%(count)d ACIಗಳು ತಾಳೆಯಾಗುತ್ತಿವೆ"
 
 #: ../../ipalib/plugins/dns.py:114
 msgid "DNS"
-msgstr ""
+msgstr "DNS"
 
 #: ../../ipalib/plugins/automount.py:231
 msgid "Automount Maps"
-msgstr ""
+msgstr "ಮ್ಯಾಪ್‌ಗಳ ಆಟೋಮೌಂಟ್"
 
 #: ../../ipalib/plugins/automount.py:321
 msgid "Automount Keys"
-msgstr ""
+msgstr "ಕೀಗಳ ಆಟೋಮೌಂಟ್"
 
 #: ../../ipalib/plugins/netgroup.py:55
 msgid "Net Groups"
-msgstr ""
+msgstr "ನೆಟ್ ಗುಂಪುಗಳು"
 
 #: ../../ipalib/plugins/misc.py:37
 #, python-format
 msgid "%(count)d variables"
-msgstr ""
+msgstr "%(count)d ವೇರಿಯೇಬಲ್‌ಗಳು"
 
 #: ../../ipalib/plugins/misc.py:96
 #, python-format
 msgid "%(count)d plugin loaded"
 msgid_plural "%(count)d plugins loaded"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d ಪ್ಲಗಿನ್ ಲೋಡ್ ಆಗಿದೆ"
+msgstr[1] "%(count)d ಪ್ಲಗಿನ್‌ಗಳು ಲೋಡ್ ಆಗಿವೆ"
 
 #: ../../ipalib/plugins/user.py:71
 msgid "Users"
-msgstr ""
+msgstr "ಬಳಕೆದಾರರು"
 
 #: ../../ipalib/plugins/user.py:141
 #, python-format
 msgid "Added user \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/user.py:186
 #, python-format
 msgid "Deleted user \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಅಳಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/user.py:205
 #, python-format
 msgid "Modified user \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/user.py:216
 #, python-format
 msgid "%(count)d user matched"
 msgid_plural "%(count)d users matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d ಬಳಕೆದಾರ ತಾಳೆಯಾಗುತ್ತಿದ್ದಾನೆ"
+msgstr[1] "%(count)d ಬಳಕೆದಾರರು ತಾಳೆಯಾಗುತ್ತಿದ್ದಾರೆ"
 
 #: ../../ipalib/plugins/user.py:236
 #, python-format
 msgid "Locked user \"%(value)s\""
-msgstr ""
+msgstr "ಲಾಕ್ ಆಗಿರುವ ಬಳಕೆದಾರ \"%(value)s\""
 
 #: ../../ipalib/plugins/user.py:262
 #, python-format
 msgid "Unlocked user \"%(value)s\""
-msgstr ""
+msgstr "ಅನ್‌ಲಾಕ್ ಆಗಿರುವ ಬಳಕೆದಾರ \"%(value)s\""
 
 #: ../../ipalib/plugins/taskgroup.py:50
 msgid "Task Groups"
-msgstr ""
+msgstr "ಕೆಲಸ(ಟಾಸ್ಕ್)ದ  ಗುಂಪುಗಳು"
 
 #: ../../ipalib/plugins/taskgroup.py:75
 #, python-format
 msgid "Added taskgroup \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ಟಾಸ್ಕ್‌ಗ್ರೂಪನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/taskgroup.py:85
 #, python-format
 msgid "Deleted taskgroup \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ಟಾಸ್ಕ್‌ಗ್ರೂಪನ್ನು ಅಳಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/taskgroup.py:95
 #, python-format
 msgid "Modified taskgroup \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ಟಾಸ್ಕ್‌ಗ್ರೂಪನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/taskgroup.py:106
 #, python-format
 msgid "%(count)d taskgroup matched"
 msgid_plural "%(count)d taskgroups matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d ಟಾಸ್ಕ್‌ಗ್ರೂಪ್‌ ತಾಳೆಯಾಗುತ್ತಿದೆ"
+msgstr[1] "%(count)d ಟಾಸ್ಕ್‌ಗ್ರೂಪ್‌ಗಳು ತಾಳೆಯಾಗುತ್ತಿವೆ"
 
 #: ../../ipalib/plugins/hostgroup.py:49
 msgid "Host Groups"
-msgstr ""
+msgstr "ಹೋಸ್ಟ್ ಗುಂಪುಗಳು"
 
 #: ../../ipalib/plugins/hostgroup.py:74
 #, python-format
 msgid "Added hostgroup \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ಹೋಸ್ಟ್‌ಗ್ರೂಪನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/hostgroup.py:84
 #, python-format
 msgid "Deleted hostgroup \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ಹೋಸ್ಟ್‌ಗ್ರೂಪನ್ನು ಅಳಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/hostgroup.py:94
 #, python-format
 msgid "Modified hostgroup \"%(value)s\""
-msgstr ""
+msgstr "\"%(value)s\" ಹೋಸ್ಟ್‌ಗ್ರೂಪನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
 #: ../../ipalib/plugins/hostgroup.py:105
 #, python-format
 msgid "%(count)d hostgroup matched"
 msgid_plural "%(count)d hostgroups matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d ಹೋಸ್ಟ್‌ಗ್ರೂಪ್‌ ತಾಳೆಯಾಗುತ್ತಿದೆ"
+msgstr[1] "%(count)d ಹೋಸ್ಟ್‌ಗ್ರೂಪ್‌ಗಳು ತಾಳೆಯಾಗುತ್ತಿವೆ"
 
 #: ../../ipalib/plugins/pwpolicy.py:231
 msgid "priority cannot be set on global policy"
-msgstr ""
+msgstr "ಗ್ಲೋಬಲ್ ಪಾಲಿಸಿಯಲ್ಲಿ ಆದ್ಯತೆಯನ್ನು ಸೆಟ್ ಮಾಡಲಾಗುವುದಿಲ್ಲ"
 
-#: ../../ipaserver/install/certs.py:571 ../../ipaserver/plugins/dogtag.py:1313
+#: ../../ipaserver/install/certs.py:571
+#: ../../ipaserver/plugins/dogtag.py:1313
 #: ../../ipaserver/plugins/dogtag.py:1398
 #: ../../ipaserver/plugins/dogtag.py:1463
 #: ../../ipaserver/plugins/dogtag.py:1543
 #: ../../ipaserver/plugins/dogtag.py:1602
 #, python-format
 msgid "Unable to communicate with CMS (%s)"
-msgstr ""
+msgstr "CMS (%s) ಜೊತೆ ಸಂಪರ್ಕಿಸಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ"
 
 #: ../../ipaserver/plugins/selfsign.py:102
 #, python-format
 msgid "Request subject \"%(request_subject)s\" does not match the form \"%(subject_base)s\""
-msgstr ""
+msgstr "ಕೋರಿಕೆ ವಿಷಯ \"%(request_subject)s\" ಸ್ವರೂಪ \"%(subject_base)s\" ಕ್ಕೆ ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ"
 
 #: ../../ipaserver/plugins/selfsign.py:107
 #, python-format
 msgid "unable to decode csr: %s"
-msgstr ""
+msgstr "csr ವನ್ನು ಡಿಕೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ: %s"
 
 #: ../../ipaserver/plugins/selfsign.py:128
 #: ../../ipaserver/plugins/selfsign.py:143
 msgid "file operation"
-msgstr ""
+msgstr "ಕಡತದ ಕಾರ್ಯಾಚರಣೆ"
 
 #: ../../ipaserver/plugins/selfsign.py:157
 msgid "cannot obtain next serial number"
-msgstr ""
+msgstr "ಮುಂದಿನ ಸೀರಿಯಲ್ ನಂಬರ್ ಅನ್ನು ಪಡೆಯಲು ಆಗುತ್ತಿಲ್ಲ"
 
 #: ../../ipaserver/plugins/selfsign.py:192
 msgid "certutil failure"
-msgstr ""
+msgstr "certutil ವಿಫಲತೆ"
+
