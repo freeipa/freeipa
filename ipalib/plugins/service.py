@@ -199,9 +199,15 @@ class service_del(LDAPDelete):
             if cert:
                 serial = unicode(get_serial(cert))
                 try:
-                    self.api.Command['cert_revoke'](serial, revocation_reason=5)
+                    result = api.Command['cert_get'](unicode(serial))['result']
+                    if 'revocation_reason' not in result:
+                        try:
+                            api.Command['cert_revoke'](unicode(serial), revocation_reason=4)
+                        except errors.NotImplementedError:
+                            # some CA's might not implement revoke
+                            pass
                 except errors.NotImplementedError:
-                    # selfsign CA doesn't do revocation
+                    # some CA's might not implement revoke
                     pass
         return dn
 

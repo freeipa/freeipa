@@ -286,11 +286,18 @@ class cert_request(VirtualCommand):
         if 'usercertificate' in service:
             serial = get_serial(base64.b64encode(service['usercertificate'][0]))
             # revoke the certificate and remove it from the service
-            # entry before proceeding
+            # entry before proceeding. First we retrieve the certificate to
+            # see if it is already revoked, if not then we revoke it.
             try:
-                api.Command['cert_revoke'](unicode(serial), revocation_reason=4)
+                result = api.Command['cert_get'](unicode(serial))['result']
+                if 'revocation_reason' not in result:
+                    try:
+                        api.Command['cert_revoke'](unicode(serial), revocation_reason=4)
+                    except errors.NotImplementedError:
+                        # some CA's might not implement revoke
+                        pass
             except errors.NotImplementedError:
-                # some CA's might not implement revoke
+                # some CA's might not implement get
                 pass
             api.Command['service_mod'](principal, usercertificate=None)
 
@@ -365,6 +372,10 @@ class cert_get(VirtualCommand):
         ),
         Str('subject?',
             label=_('Subject'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('revocation_reason?',
+            label=_('Revocation reason'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
     )
