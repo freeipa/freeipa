@@ -33,7 +33,7 @@ from ipalib.rpc import xml_dumps, xml_loads
 from ipalib.util import make_repr
 from ipalib.compat import json
 from wsgiref.util import shift_path_info
-
+import base64
 
 _not_found_template = """<html>
 <head>
@@ -59,7 +59,6 @@ def not_found(environ, start_response):
         url=escape(environ['SCRIPT_NAME'] + environ['PATH_INFO'])
     )
     return [output]
-
 
 def read_input(environ):
     """
@@ -300,6 +299,102 @@ class xmlserver(WSGIExecutioner):
         return xml_dumps(response, methodresponse=True)
 
 
+def json_encode_binary(val):
+    '''
+   JSON cannot encode binary values. We encode binary values in Python str
+   objects and text in Python unicode objects. In order to allow a binary
+   object to be passed through JSON we base64 encode it thus converting it to
+   text which JSON can transport. To assure we recognize the value is a base64
+   encoded representation of the original binary value and not confuse it with
+   other text we convert the binary value to a dict in this form:
+
+   {'__base64__' : base64_encoding_of_binary_value}
+
+   This modification of the original input value cannot be done "in place" as
+   one might first assume (e.g. replacing any binary items in a container
+   (e.g. list, tuple, dict) with the base64 dict because the container might be
+   an immutable object (i.e. a tuple). Therefore this function returns a copy
+   of any container objects it encounters with tuples replaced by lists. This
+   is O.K. because the JSON encoding will map both lists and tuples to JSON
+   arrays.
+   '''
+
+    if isinstance(val, dict):
+        new_dict = {}
+        for k,v in val.items():
+            if isinstance(v, str):
+                new_dict[k] = {'__base64__' : base64.b64encode(v)}
+            else:
+                new_dict[k] = json_encode_binary(v)
+        del val
+        return new_dict
+    elif isinstance(val, (list, tuple)):
+        new_list = []
+        n = len(val)
+        i = 0
+        while i < n:
+            v = val[i]
+            if isinstance(v, str):
+                new_list.append({'__base64__' : base64.b64encode(v)})
+            else:
+                new_list.append(json_encode_binary(v))
+            i += 1
+        del val
+        return new_list
+    elif isinstance(val, str):
+        return {'__base64__' : base64.b64encode(val)}
+    else:
+        return val
+
+def json_decode_binary(val):
+    '''
+    JSON cannot transport binary data. In order to transport binary data we
+    convert binary data to a form like this:
+
+   {'__base64__' : base64_encoding_of_binary_value}
+
+   see json_encode_binary()
+
+    After JSON had decoded the JSON stream back into a Python object we must
+    recursively scan the object looking for any dicts which might represent
+    binary values and replace the dict containing the base64 encoding of the
+    binary value with the decoded binary value. Unlike the encoding problem
+    where the input might consist of immutable object, all JSON decoded
+    container are mutable so the conversion could be done in place. However we
+    don't modify objects in place because of side effects which may be
+    dangerous. Thus we elect to spend a few more cycles and avoid the
+    possibility of unintended side effects in favor of robustness.
+    '''
+
+    if isinstance(val, dict):
+        if val.has_key('__base64__'):
+            return base64.b64decode(val['__base64__'])
+        else:
+            new_dict = {}
+            for k,v in val.items():
+                if isinstance(v, dict) and v.has_key('__base64__'):
+                        new_dict[k] = base64.b64decode(v['__base64__'])
+                else:
+                    new_dict[k] = json_decode_binary(v)
+            del val
+            return new_dict
+    elif isinstance(val, list):
+        new_list = []
+        n = len(val)
+        i = 0
+        while i < n:
+            v = val[i]
+            if isinstance(v, dict) and v.has_key('__base64__'):
+                binary_val = base64.b64decode(v['__base64__'])
+                new_list.append(binary_val)
+            else:
+                new_list.append(json_decode_binary(v))
+            i += 1
+        del val
+        return new_list
+    else:
+        return val
+
 class jsonserver(WSGIExecutioner):
     """
     JSON RPC server.
@@ -326,6 +421,7 @@ class jsonserver(WSGIExecutioner):
             error=error,
             id=_id,
         )
+        response = json_encode_binary(response)
         return json.dumps(response, sort_keys=True, indent=4)
 
     def unmarshal(self, data):
@@ -339,6 +435,7 @@ class jsonserver(WSGIExecutioner):
             raise JSONError(error='Request is missing "method"')
         if 'params' not in d:
             raise JSONError(error='Request is missing "params"')
+        d = json_decode_binary(d)
         method = d['method']
         params = d['params']
         _id = d.get('id')
