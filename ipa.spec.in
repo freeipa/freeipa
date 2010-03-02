@@ -384,7 +384,7 @@ fi
 %{python_sitelib}/ipaserver/*
 %{python_sitelib}/ipawebui/*
 %dir %{_usr}/share/ipa
-%{_usr}/share/ipa/wsgi.py
+%{_usr}/share/ipa/wsgi.py*
 %{_usr}/share/ipa/*.ldif
 %{_usr}/share/ipa/*.uldif
 %{_usr}/share/ipa/*.template
@@ -499,6 +499,9 @@ fi
 %endif
 
 %changelog
+* Mon Mar 1 2010 Jason Gerard DeRose <jderose@redhat.com> - 1.99-18
+- Fixed share/ipa/wsgi.py so .pyc, .pyo files are included
+
 * Wed Feb 24 2010 Jason Gerard DeRose <jderose@redhat.com> - 1.99-17
 - Added Require mod_wsgi, added share/ipa/wsgi.py
 
