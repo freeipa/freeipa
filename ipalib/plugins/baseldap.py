@@ -71,6 +71,10 @@ class LDAPObject(Object):
     uuid_attribute = ''
     attribute_members = {}
 
+    container_not_found_msg = _('container entry (%(container)s) not found')
+    parent_not_found_msg = _('%(parent)s: %(oname)s not found')
+    object_not_found_msg = _('%(pkey)s: %(oname)s not found')
+
     def get_dn(self, *keys, **kwargs):
         if self.parent_object:
             parent_dn = self.api.Object[self.parent_object].get_dn(*keys[:-1])
@@ -106,6 +110,13 @@ class LDAPObject(Object):
                             ldap_obj.get_primary_key_from_dn(member)
                         )
             del entry_attrs[attr]
+
+    def handle_not_found(self, *keys):
+        raise errors.NotFound(
+            reason=self.object_not_found_msg % {
+                'pkey': keys[-1], 'oname': self.object_name,
+            }
+        )
 
 
 # Options used by create and update.
@@ -162,9 +173,27 @@ class LDAPCreate(crud.Create):
 
         dn = self.pre_callback(ldap, dn, entry_attrs, attrs_list, *keys, **options)
 
-        ldap.add_entry(dn, entry_attrs)
+        try:
+            ldap.add_entry(dn, entry_attrs)
+        except errors.NotFound:
+            parent = self.obj.parent_object
+            if parent:
+                raise errors.NotFound(
+                    reason=self.obj.parent_not_found_msg % {
+                        'parent': keys[-2],
+                        'oname': self.api.Object[parent].object_name,
+                    }
+                )
+            raise errors.NotFound(
+                reason=self.obj.container_not_found_msg % {
+                    'container': self.obj.container_dn,
+                }
+            )
 
-        (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        try:
+            (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
 
         dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
 
@@ -211,7 +240,10 @@ class LDAPRetrieve(LDAPQuery):
 
         dn = self.pre_callback(ldap, dn, attrs_list, *keys, **options)
 
-        (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        try:
+            (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
 
         dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
 
@@ -259,7 +291,10 @@ class LDAPUpdate(LDAPQuery, crud.Update):
         set.
         """
         if 'addattr' in options:
-            (dn, old_entry) = ldap.get_entry(dn, attrs_list)
+            try:
+                (dn, old_entry) = ldap.get_entry(dn, attrs_list)
+            except errors.NotFound:
+                self.obj.handle_not_found(*keys)
             attrlist = get_attributes(options['addattr'])
             for attr in attrlist:
                 if attr in old_entry:
@@ -271,10 +306,17 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
         try:
             ldap.update_entry(dn, entry_attrs)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
         except errors.EmptyModlist:
             pass
 
-        (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        try:
+            (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        except errors.NotFound:
+            raise errors.MidairCollision(
+                format=_('the entry was deleted while being modified')
+            )
 
         dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
 
@@ -422,7 +464,10 @@ class LDAPAddMember(LDAPModMember):
                 set(self.obj.default_attributes + member_dns.keys())
             )
 
-        (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        try:
+            (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
 
         (completed, dn) = self.post_callback(
             ldap, completed, failed, dn, entry_attrs, *keys, **options
@@ -494,7 +539,10 @@ class LDAPRemoveMember(LDAPModMember):
                 set(self.obj.default_attributes + member_dns.keys())
             )
 
-        (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        try:
+            (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
 
         (completed, dn) = self.post_callback(
             ldap, completed, failed, dn, entry_attrs, *keys, **options
