@@ -828,7 +828,7 @@ class cli(backend.Executioner):
         for option in cmd.options():
             kw = dict(
                 dest=option.name,
-                help=option.doc,
+                help=unicode(option.doc),
             )
             if option.password and self.env.interactive:
                 kw['action'] = 'store_true'
