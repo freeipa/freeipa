@@ -270,6 +270,9 @@ class LDAPUpdate(LDAPQuery, crud.Update):
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
+        if len(options) == 2: # 'all' and 'raw' are always sent
+            raise errors.EmptyModlist()
+
         dn = self.obj.get_dn(*keys, **options)
 
         entry_attrs = self.args_options_2_entry(**options)

@@ -238,14 +238,20 @@ class pwpolicy_mod(crud.Update):
         assert 'dn' not in options
         ldap = self.api.Backend.ldap2
 
-        if not 'group' in options:
+        if 'group' in options:
+            group_cn = options['group']
+            del options['group']
+        else:
             group_cn = _global
+        if len(options) == 2: # 'all' and 'raw' are always sent
+            raise errors.EmptyModlist()
+
+        if not 'group' in options:
             if 'cospriority' in options:
                 raise errors.ValidationError(name='priority', error=_('priority cannot be set on global policy'))
             dn = self.api.env.container_accounts
             entry_attrs = self.args_options_2_entry(*args, **options)
         else:
-            group_cn = options['group']
             if 'cospriority' in options:
                 groupdn = find_group_dn(options['group'])
                 cos_dn = 'cn="%s", cn=cosTemplates, cn=accounts, %s' % (groupdn, api.env.basedn)
