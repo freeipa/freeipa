@@ -23,7 +23,7 @@ Base classes for LDAP plugins.
 import re
 
 from ipalib import crud, errors, uuid
-from ipalib import Command, Method, Object
+from ipalib import Method, Object
 from ipalib import Flag, List, Str
 from ipalib.base import NameSpace
 from ipalib.cli import to_cli, from_cli
@@ -134,11 +134,46 @@ _attr_options = (
 )
 
 
-class LDAPCreate(crud.Create):
+class CallbackInterface(Method):
+    """
+    Callback registration interface
+    """
+    def __init__(self):
+        if not hasattr(self.__class__, 'PRE_CALLBACKS'):
+            self.__class__.PRE_CALLBACKS = []
+        if not hasattr(self.__class__, 'POST_CALLBACKS'):
+            self.__class__.POST_CALLBACKS = []
+        if hasattr(self, 'pre_callback'):
+            self.register_pre_callback(self.pre_callback, True)
+        if hasattr(self, 'post_callback'):
+            self.register_post_callback(self.post_callback, True)
+        super(Method, self).__init__()
+
+    @classmethod
+    def register_pre_callback(klass, callback, first=False):
+        assert callable(callback)
+        if not hasattr(klass, 'PRE_CALLBACKS'):
+            klass.PRE_CALLBACKS = []
+        if first:
+            klass.PRE_CALLBACKS.insert(0, callback)
+        else:
+            klass.PRE_CALLBACKS.append(callback)
+
+    @classmethod
+    def register_post_callback(klass, callback, first=False):
+        assert callable(callback)
+        if not hasattr(klass, 'POST_CALLBACKS'):
+            klass.POST_CALLBACKS = []
+        if first:
+            klass.POST_CALLBACKS.insert(0, callback)
+        else:
+            klass.POST_CALLBACKS.append(callback)
+
+
+class LDAPCreate(CallbackInterface, crud.Create):
     """
     Create a new entry in LDAP.
     """
-
     takes_options = _attr_options
 
     def get_args(self):
@@ -171,7 +206,15 @@ class LDAPCreate(crud.Create):
                 set(self.obj.default_attributes + entry_attrs.keys())
             )
 
-        dn = self.pre_callback(ldap, dn, entry_attrs, attrs_list, *keys, **options)
+        for callback in self.PRE_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                dn = callback(
+                    ldap, dn, entry_attrs, attrs_list, *keys, **options
+                )
+            else:
+                dn = callback(
+                    self, ldap, dn, entry_attrs, attrs_list, *keys, **options
+                )
 
         try:
             ldap.add_entry(dn, entry_attrs)
@@ -195,7 +238,11 @@ class LDAPCreate(crud.Create):
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
-        dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
+        for callback in self.POST_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                dn = callback(ldap, dn, entry_attrs, *keys, **options)
+            else:
+                dn = callback(self, ldap, dn, entry_attrs, *keys, **options)
 
         entry_attrs['dn'] = dn
 
@@ -211,7 +258,7 @@ class LDAPCreate(crud.Create):
         return dn
 
 
-class LDAPQuery(crud.PKQuery):
+class LDAPQuery(CallbackInterface, crud.PKQuery):
     """
     Base class for commands that need to retrieve an existing entry.
     """
@@ -238,14 +285,22 @@ class LDAPRetrieve(LDAPQuery):
         else:
             attrs_list = list(self.obj.default_attributes)
 
-        dn = self.pre_callback(ldap, dn, attrs_list, *keys, **options)
+        for callback in self.PRE_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                dn = callback(ldap, dn, attrs_list, *keys, **options)
+            else:
+                dn = callback(self, ldap, dn, attrs_list, *keys, **options)
 
         try:
             (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
-        dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
+        for callback in self.POST_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                dn = callback(ldap, dn, entry_attrs, *keys, **options)
+            else:
+                dn = callback(self, ldap, dn, entry_attrs, *keys, **options)
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
         entry_attrs['dn'] = dn
@@ -284,7 +339,15 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                 set(self.obj.default_attributes + entry_attrs.keys())
             )
 
-        dn = self.pre_callback(ldap, dn, entry_attrs, attrs_list, *keys, **options)
+        for callback in self.PRE_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                dn = callback(
+                    ldap, dn, entry_attrs, attrs_list, *keys, **options
+                )
+            else:
+                dn = callback(
+                    self, ldap, dn, entry_attrs, attrs_list, *keys, **options
+                )
 
         """
         Some special handling is needed because we need to update the
@@ -319,7 +382,11 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                 format=_('the entry was deleted while being modified')
             )
 
-        dn = self.post_callback(ldap, dn, entry_attrs, *keys, **options)
+        for callback in self.POST_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                dn = callback(ldap, dn, entry_attrs, *keys, **options)
+            else:
+                dn = callback(self, ldap, dn, entry_attrs, *keys, **options)
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
         if self.obj.primary_key and keys[-1] is not None:
@@ -344,7 +411,11 @@ class LDAPDelete(LDAPQuery):
 
         dn = self.obj.get_dn(*keys, **options)
 
-        dn = self.pre_callback(ldap, dn, *keys, **options)
+        for callback in self.PRE_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                dn = callback(ldap, dn, *keys, **options)
+            else:
+                dn = callback(self, ldap, dn, *keys, **options)
 
         def delete_subtree(base_dn):
             truncated = True
@@ -362,7 +433,11 @@ class LDAPDelete(LDAPQuery):
 
         delete_subtree(dn)
 
-        result = self.post_callback(ldap, dn, *keys, **options)
+        for callback in self.POST_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                result = callback(ldap, dn, *keys, **options)
+            else:
+                result = callback(self, ldap, dn, *keys, **options)
 
         if self.obj.primary_key and keys[-1] is not None:
             return dict(result=result, value=keys[-1])
@@ -432,7 +507,6 @@ class LDAPAddMember(LDAPModMember):
         ),
     )
 
-
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
@@ -440,7 +514,13 @@ class LDAPAddMember(LDAPModMember):
 
         dn = self.obj.get_dn(*keys, **options)
 
-        dn = self.pre_callback(ldap, dn, member_dns, failed, *keys, **options)
+        for callback in self.PRE_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                dn = callback(ldap, dn, member_dns, failed, *keys, **options)
+            else:
+                dn = callback(
+                    self, ldap, dn, member_dns, failed, *keys, **options
+                )
 
         completed = 0
         for (attr, objs) in member_dns.iteritems():
@@ -470,11 +550,18 @@ class LDAPAddMember(LDAPModMember):
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
-        (completed, dn) = self.post_callback(
-            ldap, completed, failed, dn, entry_attrs, *keys, **options
-        )
-        entry_attrs['dn'] = dn
+        for callback in self.POST_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                (completed, dn) = self.post_callback(
+                    ldap, completed, failed, dn, entry_attrs, *keys, **options
+                )
+            else:
+                (completed, dn) = self.post_callback(
+                    self, ldap, completed, failed, dn, entry_attrs, *keys,
+                    **options
+                )
 
+        entry_attrs['dn'] = dn
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
         return dict(
             completed=completed,
@@ -515,7 +602,13 @@ class LDAPRemoveMember(LDAPModMember):
 
         dn = self.obj.get_dn(*keys, **options)
 
-        dn = self.pre_callback(ldap, dn, member_dns, failed, *keys, **options)
+        for callback in self.PRE_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                dn = callback(ldap, dn, member_dns, failed, *keys, **options)
+            else:
+                dn = callback(
+                    self, ldap, dn, member_dns, failed, *keys, **options
+                )
 
         completed = 0
         for (attr, objs) in member_dns.iteritems():
@@ -545,9 +638,17 @@ class LDAPRemoveMember(LDAPModMember):
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
-        (completed, dn) = self.post_callback(
-            ldap, completed, failed, dn, entry_attrs, *keys, **options
-        )
+        for callback in self.POST_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                (completed, dn) = callback(
+                    ldap, completed, failed, dn, entry_attrs, *keys, **options
+                )
+            else:
+                (completed, dn) = callback(
+                    self, ldap, completed, failed, dn, entry_attrs, *keys,
+                    **options
+                )
+
         entry_attrs['dn'] = dn
 
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
@@ -564,7 +665,7 @@ class LDAPRemoveMember(LDAPModMember):
         return (completed, dn)
 
 
-class LDAPSearch(crud.Search):
+class LDAPSearch(CallbackInterface, crud.Search):
     """
     Retrieve all LDAP entries matching the given criteria.
     """
@@ -607,9 +708,15 @@ class LDAPSearch(crud.Search):
             (term_filter, attr_filter), rules=ldap.MATCH_ALL
         )
 
-        filter = self.pre_callback(
-            ldap, filter, attrs_list, base_dn, *args, **options
-        )
+        for callback in self.PRE_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                filter = callback(
+                    ldap, filter, attrs_list, base_dn, *args, **options
+                )
+            else:
+                filter = callback(
+                    self, ldap, filter, attrs_list, base_dn, *args, **options
+                )
 
         try:
             (entries, truncated) = ldap.find_entries(
@@ -618,7 +725,11 @@ class LDAPSearch(crud.Search):
         except errors.NotFound:
             (entries, truncated) = (tuple(), False)
 
-        self.post_callback(self, ldap, entries, truncated, *args, **options)
+        for callback in self.POST_CALLBACKS:
+            if hasattr(callback, 'im_self'):
+                callback(ldap, entries, truncated, *args, **options)
+            else:
+                callback(self, ldap, entries, truncated, *args, **options)
 
         if not options.get('raw', False):
             for e in entries:
@@ -639,3 +750,4 @@ class LDAPSearch(crud.Search):
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         pass
+
