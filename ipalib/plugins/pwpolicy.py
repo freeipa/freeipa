@@ -227,6 +227,7 @@ class pwpolicy_mod(crud.Update):
             attribute=False,
         ),
         Int('cospriority?',
+            cli_name='priority',
             label=_('Priority'),
             doc=_('Priority of the policy (higher number equals lower priority)'),
             minvalue=0,
@@ -237,29 +238,34 @@ class pwpolicy_mod(crud.Update):
     def execute(self, *args, **options):
         assert 'dn' not in options
         ldap = self.api.Backend.ldap2
+        cospriority = None
 
         if 'group' in options:
             group_cn = options['group']
             del options['group']
         else:
-            group_cn = _global
+            group_cn = None
         if len(options) == 2: # 'all' and 'raw' are always sent
             raise errors.EmptyModlist()
 
-        if not 'group' in options:
+        if not group_cn:
+            group_cn = _global
             if 'cospriority' in options:
                 raise errors.ValidationError(name='priority', error=_('priority cannot be set on global policy'))
             dn = self.api.env.container_accounts
             entry_attrs = self.args_options_2_entry(*args, **options)
         else:
             if 'cospriority' in options:
-                groupdn = find_group_dn(options['group'])
+                if options['cospriority'] is None:
+                    raise errors.RequirementError(name='priority')
+                groupdn = find_group_dn(group_cn)
                 cos_dn = 'cn="%s", cn=cosTemplates, cn=accounts, %s' % (groupdn, api.env.basedn)
                 self.log.debug('%s' % cos_dn)
                 ldap.update_entry(cos_dn, dict(cospriority = options['cospriority']), normalize=False)
+                cospriority = options['cospriority']
                 del options['cospriority']
             entry_attrs = self.args_options_2_entry(*args, **options)
-            (dn, entry_attrs) = make_policy_entry(options['group'], entry_attrs)
+            (dn, entry_attrs) = make_policy_entry(group_cn, entry_attrs)
         _convert_time_on_input(entry_attrs)
         try:
             ldap.update_entry(dn, entry_attrs)
@@ -267,6 +273,9 @@ class pwpolicy_mod(crud.Update):
             pass
 
         (dn, entry_attrs) = ldap.get_entry(dn, entry_attrs.keys())
+
+        if cospriority:
+            entry_attrs['cospriority'] = cospriority
 
         _convert_time_for_output(entry_attrs)
 
@@ -331,6 +340,11 @@ class pwpolicy_show(Method):
             label=_('User'),
             doc=_('Display policy applied to a given user'),
         ),
+        Int('cospriority?',
+            cli_name='priority',
+            label=_('Priority'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
     )
 
     def execute(self, *args, **options):
@@ -363,13 +377,13 @@ class pwpolicy_show(Method):
             groupdn = find_group_dn(options['group'])
             cos_dn = 'cn="%s", cn=cosTemplates, cn=accounts, %s' % (groupdn, api.env.basedn)
             (dn, cos_attrs) = ldap.get_entry(cos_dn, normalize=False)
-            entry_attrs['priority'] = cos_attrs['cospriority']
+            entry_attrs['cospriority'] = cos_attrs['cospriority']
+        else:
+            entry_attrs['cn'] = _global
 
         if 'user' in options:
             if group:
-                entry_attrs['group'] = group
-            else:
-                entry_attrs['group'] = _global
+                entry_attrs['cn'] = unicode(group)
         _convert_time_for_output(entry_attrs)
 
         return dict(result=entry_attrs)
