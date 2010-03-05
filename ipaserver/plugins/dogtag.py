@@ -1201,7 +1201,7 @@ from ipaserver.plugins import rabase
 from ipalib.errors import NetworkError, CertificateOperationError
 from ipalib.constants import TYPE_ERROR
 from ipapython import dogtag
-from ipalib.request import ugettext as _
+from ipalib import _
 
 class ra(rabase.rabase):
     """

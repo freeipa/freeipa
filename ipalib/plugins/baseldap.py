@@ -381,11 +381,11 @@ class LDAPAddMember(LDAPModMember):
         output.Entry('result'),
         output.Output('failed',
             type=dict,
-            doc='Members that could not be added',
+            doc=_('Members that could not be added'),
         ),
         output.Output('completed',
             type=int,
-            doc='Number of members added',
+            doc=_('Number of members added'),
         ),
     )
 
@@ -454,11 +454,11 @@ class LDAPRemoveMember(LDAPModMember):
         output.Entry('result'),
         output.Output('completed',
             type=int,
-            doc='Number of members removed',
+            doc=_('Number of members removed'),
         ),
         output.Output('failed',
             type=dict,
-            doc='Members that could not be removed',
+            doc=_('Members that could not be removed'),
         ),
     )
 

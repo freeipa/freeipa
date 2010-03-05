@@ -277,7 +277,7 @@ class pwpolicy_del(crud.Delete):
     msg_summary = _('Deleted policy for group "%(value)s"')
     takes_options = (
         Str('group',
-            doc='Group to remove policy from',
+            doc=_('Group to remove policy from'),
         ),
     )
 

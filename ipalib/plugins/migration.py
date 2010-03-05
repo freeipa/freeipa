@@ -32,14 +32,13 @@ from ipalib import Command, List, Password, Str
 from ipalib.cli import to_cli
 from ipaserver.plugins.ldap2 import ldap2
 from ipalib import _
+from ipalib.text import Gettext # FIXME: remove once the other Gettext FIXME is removed
 
 
 # USER MIGRATION CALLBACKS AND VARS
 
-_krb_err_msg = 'Kerberos principal %s already exists. ' \
-               'Use \'ipa user-mod\' to set it manually.'
-_grp_err_msg = 'Failed to add user to the default group. ' \
-               'Use \'ipa group-add-member\' to add manually.'
+_krb_err_msg = _('Kerberos principal %s already exists. Use \'ipa user-mod\' to set it manually.')
+_grp_err_msg = _('Failed to add user to the default group. Use \'ipa group-add-member\' to add manually.')
 
 
 def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx):
@@ -168,7 +167,7 @@ class migrate_ds(Command):
         ),
         Password('bindpw',
             cli_name='password',
-            doc='bind password',
+            doc=_('bind password'),
         ),
     )
 
@@ -198,30 +197,34 @@ class migrate_ds(Command):
     has_output = (
         output.Output('result',
             type=dict,
-            doc='Lists of objects migrated; categorized by type.',
+            doc=_('Lists of objects migrated; categorized by type.'),
         ),
         output.Output('failed',
             type=dict,
-            doc='Lists of objects that could not be migrated; ' \
-                'categorized by type.',
+            doc=_('Lists of objects that could not be migrated; categorized by type.'),
         ),
         output.Output('enabled',
             type=bool,
-            doc='False if migration mode was disabled.',
+            doc=_('False if migration mode was disabled.'),
         ),
     )
 
-    exclude_doc = 'comma-separated list of %s to exclude from migration'
-    truncated_err_msg = 'search results for objects to be migrated ' \
-                        'have been truncated by the server; migration ' \
-                        'process might be uncomplete\n'
-    migration_disabled_msg = 'Migration mode is disabled. ' \
-                             'Use \'ipa config-mod\' to enable it.'
-    pwd_migration_msg = 'Passwords have been migrated in pre-hashed format. ' \
-                        'IPA is unable to generate Kerberos keys unless provided ' \
-                        'with clear text passwords. All migrated users need to ' \
-                        'login at https://your.domain/ipa/migration/ before they ' \
-                        'can use their Kerberos accounts.'
+    exclude_doc = _('comma-separated list of %s to exclude from migration')
+
+    truncated_err_msg = _('''\
+search results for objects to be migrated
+have been truncated by the server;
+migration process might be uncomplete\n''')
+
+    migration_disabled_msg = _('''\
+Migration mode is disabled. Use \'ipa config-mod\' to enable it.''')
+
+    pwd_migration_msg = _('''\
+Passwords have been migrated in pre-hashed format.
+IPA is unable to generate Kerberos keys unless provided
+with clear text passwords. All migrated users need to
+login at https://your.domain/ipa/migration/ before they
+can use their Kerberos accounts.''')
 
     def get_options(self):
         """
@@ -233,7 +236,8 @@ class migrate_ds(Command):
         for ldap_obj_name in self.migrate_objects:
             ldap_obj = self.api.Object[ldap_obj_name]
             name = 'exclude_%ss' % to_cli(ldap_obj_name)
-            doc = self.exclude_doc % ldap_obj.object_name_plural
+            # FIXME: can't substitute strings static Gettext instance
+            doc = Gettext(self.exclude_doc % ldap_obj.object_name_plural)
             yield List(
                 '%s?' % name, cli_name=name, doc=doc, default=tuple(),
                 autofill=True

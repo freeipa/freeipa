@@ -43,15 +43,15 @@ class env(LocalOrRemote):
     has_output = (
         Output('result',
             type=dict,
-            doc='Dictionary mapping variable name to value',
+            doc=_('Dictionary mapping variable name to value'),
         ),
         Output('total',
             type=int,
-            doc='Total number of variables env (>= count)',
+            doc=_('Total number of variables env (>= count)'),
         ),
         Output('count',
             type=int,
-            doc='Number of variables returned (<= total)',
+            doc=_('Number of variables returned (<= total)'),
         ),
         summary,
     )
@@ -100,7 +100,7 @@ class plugins(LocalOrRemote):
         Output('result', dict, 'Dictionary mapping plugin names to bases'),
         Output('count',
             type=int,
-            doc='Number of plugins loaded',
+            doc=_('Number of plugins loaded'),
         ),
         summary,
     )

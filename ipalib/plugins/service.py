@@ -141,7 +141,7 @@ class service_add(LDAPCreate):
     member_attributes = ['managedby']
     takes_options = (
         Flag('force',
-            doc='force principal name even if not in DNS',
+            doc=_('force principal name even if not in DNS'),
         ),
     )
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):

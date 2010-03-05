@@ -148,7 +148,7 @@ class group_mod(LDAPUpdate):
     takes_options = LDAPUpdate.takes_options + (
         Flag('posix',
              cli_name='posix',
-             doc='change to posix group',
+             doc=_('change to posix group'),
         ),
     )
 

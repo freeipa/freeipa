@@ -128,7 +128,7 @@ def test_xml_dumps():
     # Test serializing an RPC request:
     data = f(params, 'the_method')
     (p, m) = loads(data)
-    assert_equal(m, u'the_method')
+    assert_equal(m, 'the_method')
     assert type(p) is tuple
     assert rpc.xml_unwrap(p) == params
 
@@ -159,7 +159,7 @@ def test_xml_loads():
     # Test un-serializing an RPC request:
     data = dumps(wrapped, 'the_method', allow_none=True)
     (p, m) = f(data)
-    assert_equal(m, u'the_method')
+    assert_equal(m, 'the_method')
     assert_equal(p, params)
 
     # Test un-serializing an RPC response:

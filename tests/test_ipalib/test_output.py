@@ -24,6 +24,7 @@ Test the `ipalib.output` module.
 from tests.util import raises, ClassChecker
 from ipalib import output
 from ipalib.frontend import Command
+from ipalib import _
 
 class test_Output(ClassChecker):
     """

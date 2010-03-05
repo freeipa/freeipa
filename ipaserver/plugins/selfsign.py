@@ -46,7 +46,7 @@ from ipaserver.plugins import rabase
 from ipaserver.install import certs
 import tempfile
 from pyasn1 import error
-from ipalib.request import ugettext as _
+from ipalib import  _
 from pyasn1.codec.der import encoder
 from ipalib.plugins.cert import get_csr_hostname
 

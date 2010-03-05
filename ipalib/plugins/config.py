@@ -85,7 +85,7 @@ class config(LDAPObject):
         Str('ipagroupsearchfields?',
             cli_name='groupsearch',
             label='Group search fields',
-            doc='A comma-separated list of fields to search when searching for groups',
+            doc=_('A comma-separated list of fields to search when searching for groups'),
         ),
         Bool('ipamigrationenabled?',
             cli_name='enable_migration',

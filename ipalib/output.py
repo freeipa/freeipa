@@ -24,6 +24,7 @@ Simple description of return values.
 from inspect import getdoc
 from types import NoneType
 from plugable import ReadOnly, lock
+from text import _
 
 
 class Output(ReadOnly):
@@ -88,7 +89,7 @@ class Output(ReadOnly):
 
 class Entry(Output):
     type = dict
-    doc = 'A dictionary representing an LDAP entry'
+    doc = _('A dictionary representing an LDAP entry')
 
 
 emsg = """%s.validate_output() => %s.validate():
@@ -96,7 +97,7 @@ emsg = """%s.validate_output() => %s.validate():
 
 class ListOfEntries(Output):
     type = (list, tuple)
-    doc = 'A list of LDAP entries'
+    doc = _('A list of LDAP entries')
 
     def validate(self, cmd, entries):
         assert isinstance(entries, self.type)
@@ -107,7 +108,7 @@ class ListOfEntries(Output):
                 )
 
 
-result = Output('result', doc='All commands should at least have a result')
+result = Output('result', doc=_('All commands should at least have a result'))
 
 summary = Output('summary', (unicode, NoneType),
     'User-friendly description of action performed'

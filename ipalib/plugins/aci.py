@@ -78,7 +78,7 @@ _valid_permissions_values = [
 
 class ListOfACI(output.Output):
     type = (list, tuple)
-    doc = 'A list of ACI values'
+    doc = _('A list of ACI values')
 
     def validate(self, cmd, entries):
         assert isinstance(entries, self.type)

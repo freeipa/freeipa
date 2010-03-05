@@ -31,8 +31,6 @@ import ipalib
 from ipalib.plugable import Plugin
 from ipalib.request import context
 
-
-
 class TempDir(object):
     def __init__(self):
         self.__path = tempfile.mkdtemp(prefix='ipa.tests.')

@@ -201,7 +201,7 @@ class cert_request(VirtualCommand):
     has_output = (
         Output('result',
             type=dict,
-            doc='Dictionary mapping variable name to value',
+            doc=_('Dictionary mapping variable name to value'),
         ),
     )
 

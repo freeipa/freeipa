@@ -31,7 +31,7 @@ from tests.data import binary_bytes, utf8_bytes, unicode_str
 from ipalib import parameters, request, errors, config
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, NULLS
 from ipalib.errors import ValidationError
-
+from ipalib import _
 
 class test_DefaultFrom(ClassChecker):
     """
@@ -192,9 +192,9 @@ class test_Param(ClassChecker):
         assert o.flags == frozenset()
 
         # Test that doc defaults from label:
-        o = self.cls('my_param', doc='Hello world')
+        o = self.cls('my_param', doc=_('Hello world'))
         assert o.label.msg == 'my_param'
-        assert o.doc == 'Hello world'
+        assert o.doc.msg == 'Hello world'
 
         o = self.cls('my_param', label='My Param')
         assert o.label == 'My Param'

@@ -65,7 +65,7 @@ class netgroup(LDAPObject):
         Str('ipauniqueid?',
             cli_name='uuid',
             label='IPA unique ID',
-            doc='IPA unique ID',
+            doc=_('IPA unique ID'),
             flags=['no_create', 'no_update'],
         ),
         Str('member_user?',

@@ -25,6 +25,7 @@ from ipalib import api, util
 from ipalib import Command, Str
 from ipalib import errors
 import krbV
+from ipalib import _
 
 def get_realm():
     """
@@ -50,7 +51,7 @@ class join(Command):
         Str('cn',
             validate_host,
             cli_name='hostname',
-            doc="The hostname to register as",
+            doc=_("The hostname to register as"),
             create_default=lambda **kw: unicode(util.get_fqdn()),
             autofill=True,
             #normalizer=lamda value: value.lower(),
@@ -58,17 +59,17 @@ class join(Command):
     )
     takes_options= (
         Str('realm',
-            doc="The IPA realm",
+            doc=_("The IPA realm"),
             create_default=lambda **kw: get_realm(),
             autofill=True,
         ),
         Str('nshardwareplatform?',
             cli_name='platform',
-            doc='Hardware platform of the host (e.g. Lenovo T61)',
+            doc=_('Hardware platform of the host (e.g. Lenovo T61)'),
         ),
         Str('nsosversion?',
             cli_name='os',
-            doc='Operating System and version of the host (e.g. Fedora 9)',
+            doc=_('Operating System and version of the host (e.g. Fedora 9)'),
         ),
     )
 

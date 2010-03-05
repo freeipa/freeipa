@@ -40,7 +40,7 @@ import util
 from errors import PublicError, CommandError, HelpError, InternalError, NoSuchNamespaceError, ValidationError, NotFound
 from constants import CLI_TAB
 from parameters import Password, Bytes, File
-from request import ugettext as _
+from text import _
 
 
 def to_cli(name):

@@ -782,12 +782,12 @@ class Command(HasParam):
             if isinstance(o, (Entry, ListOfEntries)):
                 yield Flag('all',
                     cli_name='all',
-                    doc='retrieve all attributes',
+                    doc=_('retrieve all attributes'),
                     exclude='webui',
                 )
                 yield Flag('raw',
                     cli_name='raw',
-                    doc='print entries as stored on the server',
+                    doc=_('print entries as stored on the server'),
                     exclude='webui',
                 )
                 return
@@ -880,7 +880,7 @@ class LocalOrRemote(Command):
 
     takes_options = (
         Flag('server?',
-            doc='Forward to server instead of running locally',
+            doc=_('Forward to server instead of running locally'),
         ),
     )
 
