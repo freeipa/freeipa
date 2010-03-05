@@ -53,9 +53,9 @@ def _convert_time_for_output(entry_attrs):
 
 def _convert_time_on_input(entry_attrs):
     # Convert hours and days to seconds for writing to LDAP
-    if 'krbmaxpwdlife' in entry_attrs:
+    if 'krbmaxpwdlife' in entry_attrs and entry_attrs['krbmaxpwdlife']:
         entry_attrs['krbmaxpwdlife'] = entry_attrs['krbmaxpwdlife'] * 86400
-    if 'krbminpwdlife' in entry_attrs:
+    if 'krbminpwdlife' in entry_attrs and entry_attrs['krbminpwdlife']:
         entry_attrs['krbminpwdlife'] = entry_attrs['krbminpwdlife'] * 3600
 
 def find_group_dn(group):
