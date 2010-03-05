@@ -703,7 +703,7 @@ class Param(ReadOnly):
         """
         if value is None:
             if self.required:
-                raise RequirementError(name=self.name)
+                raise RequirementError(name=self.cli_name)
             return
         if self.query:
             return
