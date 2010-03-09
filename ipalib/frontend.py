@@ -784,11 +784,13 @@ class Command(HasParam):
                     cli_name='all',
                     doc=_('retrieve all attributes'),
                     exclude='webui',
+                    flags=['no_output'],
                 )
                 yield Flag('raw',
                     cli_name='raw',
                     doc=_('print entries as stored on the server'),
                     exclude='webui',
+                    flags=['no_output'],
                 )
                 return
 
@@ -1131,7 +1133,14 @@ class Method(Attribute, Command):
 
     def get_output_params(self):
         for param in self.obj.params():
+            if 'no_output' in param.flags:
+                continue
             yield param
+        for param in self.params():
+            if param.name not in list(self.obj.params):
+                if 'no_output' in param.flags:
+                    continue
+                yield param
 
 
 class Property(Attribute):
