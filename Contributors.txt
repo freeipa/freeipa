@@ -32,6 +32,7 @@ Translators:
 	Teguh DC
 	Piotr Drąg
 	Gundachandru
+	Jake Li
 	Andrew Martynov
 	Sankarshan Mukhopadhyay
 
