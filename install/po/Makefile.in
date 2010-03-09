@@ -185,9 +185,6 @@ create-po: $(DOMAIN).pot
 	    fi; \
 	done
 
-$(DOMAIN).pot: $(POTFILES)
-	$(MAKE) update-pot
-
 update-po: update-pot
 	$(MAKE) all
 
