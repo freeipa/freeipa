@@ -881,7 +881,7 @@ from crud import Create, Retrieve, Update, Delete, Search
 from parameters import DefaultFrom, Bool, Flag, Int, Float, Bytes, Str, Password,List
 from parameters import BytesEnum, StrEnum, AccessTime, File
 from errors import SkipPluginModule
-from text import _, gettext, ngettext
+from text import _, ngettext, GettextFactory, NGettextFactory
 
 # We can't import the python uuid since it includes ctypes which makes
 # httpd throw up when run in in mod_python due to SELinux issues

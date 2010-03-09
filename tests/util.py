@@ -417,8 +417,7 @@ class ClassChecker(object):
         """
         nose tear-down fixture.
         """
-        for name in context.__dict__.keys():
-            delattr(context, name)
+        context.__dict__.clear()
 
 
 
@@ -509,8 +508,7 @@ class PluginTester(object):
         """
         nose tear-down fixture.
         """
-        for name in context.__dict__.keys():
-            delattr(context, name)
+        context.__dict__.clear()
 
 
 class dummy_ugettext(object):

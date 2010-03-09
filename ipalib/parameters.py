@@ -73,14 +73,14 @@ web-UI.  The *label* should start with an initial capital.  For example:
 ...     label=_('Last name'),
 ... )
 >>> sn.label
-Gettext('Last name')
+Gettext('Last name', domain='ipa', localedir=None)
 
 The *doc* is a longer description of the parameter.  It's used on the CLI when
 displaying the help information for a command, and as extra instruction for a
 form input on the web-UI.  By default the *doc* is the same as the *label*:
 
 >>> sn.doc
-Gettext('Last name')
+Gettext('Last name', domain='ipa', localedir=None)
 
 But you can override this with the *doc* kwarg.  Like the *label*, the *doc*
 should also start with an initial capital and should not end with any
@@ -92,7 +92,7 @@ punctuation.  For example:
 ...     doc=_("The user's last name"),
 ... )
 >>> sn.doc
-Gettext("The user's last name")
+Gettext("The user's last name", domain='ipa', localedir=None)
 
 Demonstration aside, you should always provide at least the *label* so the
 various UIs are translatable.  Only provide the *doc* if the parameter needs

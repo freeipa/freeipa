@@ -52,10 +52,11 @@ def destroy_context():
     """
     Delete all attributes on thread-local `request.context`.
     """
-    # need to use .items(), 'cos value.disconnect modifies the dict
-    for (name, value) in context.__dict__.items():
+    # need to use .values(), 'cos value.disconnect modifies the dict
+    for value in context.__dict__.values():
         if isinstance(value, Connection):
             value.disconnect()
+    context.__dict__.clear()
 
 
 def ugettext(message):
