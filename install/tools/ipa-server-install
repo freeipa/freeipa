@@ -792,14 +792,19 @@ def main():
         print "\t   and servers for correct operation. You should consider enabling ntpd."
 
     print ""
-    if not options.dirsrv_pkcs12:
-        print "Be sure to back up the CA certificate stored in /etc/httpd/alias/cacert.p12"
-        print "The password for this file is in /etc/httpd/alias/pwdfile.txt"
-    else:
+    if options.http_pkcs12:
         print "In order for Firefox autoconfiguration to work you will need to"
         print "use a SSL signing certificate. See the IPA documentation for more details."
-        print "You also need to install a PEM copy of the HTTP issuing CA into"
+        print "You also need to install a PEM copy of the CA certificate into"
         print "/usr/share/ipa/html/ca.crt"
+    else:
+        if options.selfsign:
+            print "Be sure to back up the CA certificate stored in /etc/httpd/alias/cacert.p12"
+            print "The password for this file is in /etc/httpd/alias/pwdfile.txt"
+        else:
+            print "Be sure to back up the CA certificate stored in /root/cacert.p12"
+            print "This file is required to create replicas. The password for this"
+            print "file is the Directory Manager password"
 
     return 0
 
