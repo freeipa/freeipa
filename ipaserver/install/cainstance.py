@@ -644,6 +644,11 @@ class CAInstance(service.Service):
             print "failed to restart ca instance", e
             logging.debug("failed to restart ca instance %s" % e)
 
+        # pkisilent makes a copy of the CA PKCS#12 file for us but gives
+        # it a lousy name.
+        if ipautil.file_exists("/root/tmp-ca.p12"):
+            shutil.move("/root/tmp-ca.p12", "/root/cacert.p12")
+
     def __restart_instance(self):
         try:
             self.restart()

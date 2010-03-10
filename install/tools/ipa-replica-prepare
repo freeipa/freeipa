@@ -51,6 +51,8 @@ def parse_options():
                       help="Directory Manager (existing master) password")
     parser.add_option("--ip-address", dest="ip_address",
                       help="Add A and PTR records of the future replica")
+    parser.add_option("--ca", dest="ca_file", default="/root/cacert.p12",
+                      help="Location of CA PKCS#12 file, default /root/cacert.p12")
 
     options, args = parser.parse_args()
 
@@ -274,10 +276,10 @@ def main():
         try:
             if not certs.ipa_self_signed():
                 # FIXME, need option for location of CA backup
-                if ipautil.file_exists("/root/tmp-ca.p12"):
-                    shutil.copy("/root/tmp-ca.p12", dir + "/ca.p12")
+                if ipautil.file_exists(options.ca_file):
+                    shutil.copy(options.ca_file, dir + "/cacert.p12")
                 else:
-                    raise RuntimeError("Root CA PKCS#12 not found in /root/tmp-ca.p12")
+                    raise RuntimeError("Root CA PKCS#12 not found in %s" % options.ca_file)
         except IOError, e:
             print "Copy failed %s" %  e
             sys.exit(1)
