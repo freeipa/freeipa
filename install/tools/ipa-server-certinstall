@@ -31,6 +31,7 @@ from ipapython.ipautil import user_input
 
 from ipaserver import ipaldap
 from ipaserver.install import certs, dsinstance, httpinstance, installutils
+from ipalib import api
 
 def get_realm_name():
     c = krbV.default_context()
@@ -100,6 +101,7 @@ def import_cert(dirname, pkcs12_fname, pkcs12_passwd, db_password):
     try:
         try:
             cdb.import_pkcs12(pkcs12_fname, pw_name)
+            ca_names = cdb.find_root_cert_from_pkcs12(pkcs12_fname, pw_name)
         except RuntimeError, e:
             print str(e)
             sys.exit(1)
@@ -115,12 +117,18 @@ def import_cert(dirname, pkcs12_fname, pkcs12_passwd, db_password):
     else:
         server_cert = choose_server_cert(server_certs)
 
-    cdb.trust_root_cert(server_cert[0])
+    for ca in ca_names:
+        cdb.trust_root_cert(ca)
 
     return server_cert
 
 def main():
     options, pkcs12_fname = parse_options()
+
+    cfg = dict(in_server=True,)
+
+    api.bootstrap(**cfg)
+    api.finalize()
 
     try:
         if options.dirsrv:
