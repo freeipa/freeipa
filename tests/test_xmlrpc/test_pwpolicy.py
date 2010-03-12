@@ -57,16 +57,32 @@ class test_pwpolicy(XMLRPC_test):
 
     def test_2_pwpolicy_add(self):
         """
+        Add a policy with a duplicate priority
+
+        The priority validation is done first so it's ok that the group
+        is the same here.
+        """
+        try:
+            api.Command['pwpolicy_add'](**self.kw)
+        except errors.ValidationError:
+            pass
+        else:
+            assert False
+
+    def test_3_pwpolicy_add(self):
+        """
         Add a policy that already exists
         """
         try:
+            # cospriority needs to be unique
+            self.kw['cospriority'] = 3
             api.Command['pwpolicy_add'](**self.kw)
         except errors.DuplicateEntry:
             pass
         else:
             assert False
 
-    def test_3_pwpolicy_add(self):
+    def test_4_pwpolicy_add(self):
         """
         Test adding another per-group policy using the `xmlrpc.pwpolicy_add` method.
         """
@@ -79,18 +95,18 @@ class test_pwpolicy(XMLRPC_test):
         assert_attr_equal(entry, 'krbpwdhistorylength', '8')
         assert_attr_equal(entry, 'krbpwdminlength', '9')
 
-    def test_4_pwpolicy_add(self):
+    def test_5_pwpolicy_add(self):
         """
         Add a pwpolicy for a non-existent group
         """
         try:
-            api.Command['pwpolicy_add'](group=u'nopwpolicy',cospriority=1,krbminpwdlife=1)
+            api.Command['pwpolicy_add'](group=u'nopwpolicy',cospriority=4,krbminpwdlife=1)
         except errors.NotFound:
             pass
         else:
             assert False
 
-    def test_5_pwpolicy_show(self):
+    def test_6_pwpolicy_show(self):
         """
         Test the `xmlrpc.pwpolicy_show` method with global policy.
         """
@@ -101,7 +117,7 @@ class test_pwpolicy(XMLRPC_test):
         assert_attr_equal(entry, 'krbpwdhistorylength', '0')
         assert_attr_equal(entry, 'krbpwdminlength', '8')
 
-    def test_6_pwpolicy_show(self):
+    def test_7_pwpolicy_show(self):
         """
         Test the `xmlrpc.pwpolicy_show` method.
         """
@@ -111,7 +127,7 @@ class test_pwpolicy(XMLRPC_test):
         assert_attr_equal(entry, 'krbpwdhistorylength', '5')
         assert_attr_equal(entry, 'krbpwdminlength', '6')
 
-    def test_7_pwpolicy_mod(self):
+    def test_8_pwpolicy_mod(self):
         """
         Test the `xmlrpc.pwpolicy_mod` method for global policy.
         """
@@ -122,14 +138,25 @@ class test_pwpolicy(XMLRPC_test):
         entry = api.Command['pwpolicy_mod'](krbminpwdlife=1)['result']
         assert_attr_equal(entry, 'krbminpwdlife', '1')
 
-    def test_8_pwpolicy_mod(self):
+    def test_9_pwpolicy_mod(self):
         """
         Test the `xmlrpc.pwpolicy_mod` method.
         """
         entry = api.Command['pwpolicy_mod'](group=self.group, krbminpwdlife=50)['result']
         assert_attr_equal(entry, 'krbminpwdlife', '50')
 
-    def test_9_pwpolicy_del(self):
+    def test_a_pwpolicy_mod(self):
+        """
+        Test `xmlrpc.pwpolicy_mod` with a duplicate priority
+        """
+        try:
+            api.Command['pwpolicy_mod'](group=self.group, cospriority=1)
+        except errors.ValidationError:
+            pass
+        else:
+            assert False
+
+    def test_b_pwpolicy_del(self):
         """
         Test the `xmlrpc.pwpolicy_del` method.
         """

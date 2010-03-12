@@ -110,6 +110,41 @@ def make_policy_entry(group_cn, policy_entry):
 
     return (policy_dn, policy_entry)
 
+def find_group_policy(ldap):
+    """
+    Return all group policy entries.
+    """
+    attrs = ('cn','krbminpwdlife', 'krbmaxpwdlife', 'krbpwdmindiffchars', 'krbpwdminlength', 'krbpwdhistorylength',)
+
+    attr_filter = ldap.make_filter({'objectclass':'krbpwdpolicy'}, rules=ldap.MATCH_ALL)
+
+    try:
+        (entries, truncated) = ldap.find_entries(
+            attr_filter, attrs, 'cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn), scope=ldap.SCOPE_ONELEVEL
+        )
+    except errors.NotFound:
+        (entries, truncated) = (tuple(), False)
+
+    return (entries, truncated)
+
+def unique_priority(ldap, priority):
+    """
+    Return True if the given priority is unique, False otherwise
+
+    Having two cosPriority with the same value is undefined in the DS.
+
+    This isn't done as a validation on the attribute since we want it done
+    only on the server side.
+    """
+    (entries, truncated) = find_group_policy(ldap)
+    for e in entries:
+        groupdn = find_group_dn(e[1]['cn'][0])
+        cos_dn = 'cn="%s", cn=cosTemplates, cn=accounts, %s' % (groupdn, api.env.basedn)
+        (dn, cos_attrs) = ldap.get_entry(cos_dn, normalize=False)
+        if priority == int(cos_attrs['cospriority'][0]):
+            return False
+
+    return True
 
 class pwpolicy(Object):
     """
@@ -188,6 +223,10 @@ class pwpolicy_add(crud.Create):
 
         group_cn = options['group']
 
+        if 'cospriority' in options:
+            if not unique_priority(ldap, options['cospriority']):
+                raise errors.ValidationError(name='priority', error=_('Priority must be a unique value.'))
+
         # Create the CoS template
         (cos_dn, cos_entry) = make_cos_entry(group_cn, options.get('cospriority', None))
         if 'cospriority' in options:
@@ -258,6 +297,8 @@ class pwpolicy_mod(crud.Update):
             if 'cospriority' in options:
                 if options['cospriority'] is None:
                     raise errors.RequirementError(name='priority')
+                if not unique_priority(ldap, options['cospriority']):
+                    raise errors.ValidationError(name='priority', error=_('Priority must be a unique value.'))
                 groupdn = find_group_dn(group_cn)
                 cos_dn = 'cn="%s", cn=cosTemplates, cn=accounts, %s' % (groupdn, api.env.basedn)
                 self.log.debug('%s' % cos_dn)
@@ -397,22 +438,25 @@ class pwpolicy_find(Method):
 
     has_output = output.standard_list_of_entries
 
+    takes_options = (
+        Int('cospriority?',
+            cli_name='priority',
+            label=_('Priority'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+    )
+
     def execute(self, *args, **options):
         ldap = self.api.Backend.ldap2
-        attrs = ('cn','krbminpwdlife', 'krbmaxpwdlife', 'krbpwdmindiffchars', 'krbpwdminlength', 'krbpwdhistorylength',)
 
-        attr_filter = ldap.make_filter({'objectclass':'krbpwdpolicy'}, rules=ldap.MATCH_ALL)
-
-        try:
-            (entries, truncated) = ldap.find_entries(
-                attr_filter, attrs, 'cn=%s,cn=kerberos,%s' % (api.env.realm, api.env.basedn), scope=ldap.SCOPE_ONELEVEL
-            )
-        except errors.NotFound:
-            (entries, truncated) = (tuple(), False)
-
+        (entries, truncated) = find_group_policy(ldap)
         for e in entries:
             _convert_time_for_output(e[1])
             e[1]['dn'] = e[0]
+            groupdn = find_group_dn(e[1]['cn'][0])
+            cos_dn = 'cn="%s", cn=cosTemplates, cn=accounts, %s' % (groupdn, api.env.basedn)
+            (dn, cos_attrs) = ldap.get_entry(cos_dn, normalize=False)
+            e[1]['cospriority'] = cos_attrs['cospriority']
         entries = tuple(e for (dn, e) in entries)
 
         return dict(result=entries,
