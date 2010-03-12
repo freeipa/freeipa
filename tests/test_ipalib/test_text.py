@@ -21,13 +21,101 @@
 Test the `ipalib.text` module.
 """
 
+import re
 from tests.util import raises, assert_equal
 from ipalib.request import context
+from ipalib import request
 from ipalib import text
 
 singular = '%(count)d goose makes a %(dish)s'
 plural = '%(count)d geese make a %(dish)s'
 
+
+# Unicode right pointing arrow
+prefix = u'\u2192'               # utf-8 == '\xe2\x86\x92'
+# Unicode left pointing arrow
+suffix = u'\u2190'               # utf-8 == '\xe2\x86\x90'
+
+def get_msgid(po_file):
+    'Get the first non-empty msgid from the po file'
+
+    msgid_re = re.compile(r'^\s*msgid\s+"(.+)"\s*$')
+    f = open(po_file)
+    for line in f.readlines():
+        match = msgid_re.search(line)
+        if match:
+            msgid = match.group(1)
+            f.close()
+            return msgid
+    f.close()
+    raise ValueError('No msgid found in %s' % po_file)
+
+def test_gettext():
+    '''
+    Test gettext translation
+
+    We test our translations by taking the original untranslated
+    string (e.g. msgid) and prepend a prefix character and then append
+    a suffix character. The test consists of asserting that the first
+    character in the translated string is the prefix, the last
+    character in the translated string is the suffix and the
+    everything between the first and last character exactly matches
+    the original msgid.
+
+    We use unicode characters not in the ascii character set for the
+    prefix and suffix to enhance the test. To make reading the
+    translated string easier the prefix is the unicode right pointing
+    arrow and the suffix left pointing arrow, thus the translated
+    string looks like the original string enclosed in arrows. In ASCII
+    art the string "foo" would render as: "-->foo<--"
+    '''
+
+    localedir='../../install/po/test_locale'
+    test_file='../../install/po/test.po'
+
+    # The test installs the test message catalog under the en_US
+    # (e.g. U.S. English) language. It would be nice to use a dummy
+    # language not associated with any real language, but the
+    # setlocale function demands the locale be a valid known locale,
+    # U.S. English is a reasonable choice.
+    request.set_languages('en_US.UTF-8')
+
+    # Tell gettext that our domain is 'ipa', that locale_dir is
+    # 'test_locale' (i.e. where to look for the message catalog)
+    _ = text.GettextFactory('ipa', localedir)
+
+    # We need a translatable string to test with, read one from the
+    # test po file
+    msgid = get_msgid(test_file)
+
+    # Get the localized instance of the msgid, it should be a Gettext
+    # instance.
+    localized = _(msgid)
+    assert(isinstance(localized, text.Gettext))
+
+    # Get the translated string from the Gettext instance by invoking
+    # unicode on it.
+    translated = unicode(localized)
+
+    # Perform the verifications on the translated string.
+
+    # Verify the first character is the test prefix
+    assert(translated[0] == prefix)
+
+    # Verify the last character is the test suffix
+    assert(translated[-1] == suffix)
+
+    # Verify everything between the first and last character is the
+    # original untranslated string
+    assert(translated[1:-1] == msgid)
+    
+    # Reset the language and assure we don't get the test values
+    context.__dict__.clear()
+    request.set_languages('fr_FR')
+    translated = unicode(localized)
+
+    assert(translated[0] != prefix)
+    assert(translated[-1] != suffix)
 
 def test_create_translation():
     f = text.create_translation
