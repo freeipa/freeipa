@@ -89,7 +89,32 @@ def write_tmp_file(txt):
 
     return fd
 
-def run(args, stdin=None, raiseonerr=True):
+def run(args, stdin=None, raiseonerr=True, nolog=()):
+    """
+    Execute a command and return stdin, stdout and the process return code.
+
+    args is a list of arguments for the command
+
+    stdin is used if you want to pass input to the command
+
+    raiseonerr raises an exception if the return code is not zero
+
+    nolog is a tuple of tuple values that describes things in the argument
+    list that shouldn't be logged, like passwords. Each tuple consists of
+    a value to search for in the argument list and an offset from this
+    location to set to XXX.
+
+    For example, the command ['/usr/bin/setpasswd', '--password', 'Secret123', 'someuser']
+
+    We don't want to log the password so nolog would be set to:
+    (('--password', 1),)
+
+    The resulting log output would be:
+
+    /usr/bin/setpasswd --password XXXXXXXX someuser
+
+    If an argument isn't found in the list it is silently ignored.
+    """
     if stdin:
         p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         stdout,stderr = p.communicate(stdin)
@@ -97,6 +122,14 @@ def run(args, stdin=None, raiseonerr=True):
         p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         stdout,stderr = p.communicate()
 
+    # The command may include passwords that we don't want to log. Run through
+    # the nolog items
+    for (item, offset) in nolog:
+        try:
+            item_offset = args.index(item) + offset
+            args[item_offset] = 'XXXXXXXX'
+        except ValueError:
+            pass
     logging.info('args=%s' % ' '.join(args))
     logging.info('stdout=%s' % stdout)
     logging.info('stderr=%s' % stderr)

@@ -614,8 +614,17 @@ class CAInstance(service.Service):
                 args.append("-clone")
                 args.append("false")
 
+            # Define the things we don't want logged
+            nolog = (('-client_certdb_pwd', 1),
+                     ('-admin_password', 1),
+                     ('-bind_password', 1),
+                     ('-backup_pwd', 1),
+                     ('-clone_p12_password', 1),
+                     ('-sd_admin_password', 1),
+            )
+
             logging.debug(args)
-            ipautil.run(args)
+            ipautil.run(args, nolog=nolog)
 
             if self.external == 1:
                 print "The next step is to get %s signed by your CA and re-run ipa-server-install as:" % self.csr_file
