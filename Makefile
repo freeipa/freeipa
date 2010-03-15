@@ -60,6 +60,7 @@ bootstrap-autogen: version-update client-autogen
 
 client-autogen: version-update
 	cd ipa-client; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR) --with-openldap; fi
+	cd install; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
 install: all server-install
 	@for subdir in $(SUBDIRS); do \
@@ -70,6 +71,7 @@ client-install: client
 	@for subdir in $(CLIENTDIRS); do \
 		(cd $$subdir && $(MAKE) install) || exit 1; \
 	done
+	cd install/po && $(MAKE) install || exit 1;
 	if [ "$(DESTDIR)" = "" ]; then \
 		python setup-client.py install; \
 	else \

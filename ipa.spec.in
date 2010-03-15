@@ -276,12 +276,12 @@ ln -s ../../../..%{_sysconfdir}/ipa/html/unauthorized.html \
     %{buildroot}%{_usr}/share/ipa/html/unauthorized.html
 
 # So we can own our Apache configuration
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/ipa/
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/
-/bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/ipa/default.conf
 /bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/ipa.conf
 /bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 %endif
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/ipa/
+/bin/touch $RPM_BUILD_ROOT%{_sysconfdir}/ipa/default.conf
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
 
 %if ! %{ONLY_CLIENT}
