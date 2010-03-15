@@ -74,6 +74,8 @@ def parse_options():
                       help="use this option when run on a master", default=False)
     parser.add_option("--permit", dest="permit", action="store_true",
                       help="disable access rules by default, permit all access.", default=False)
+    parser.add_option("--mkhomedir", dest="mkhomedir", action="store_true",
+                      help="create home directories for users on their first login", default=False)
     parser.add_option("", "--uninstall", dest="uninstall", action="store_true",
                       default=False, help="uninstall an existing installation")
 
@@ -134,7 +136,7 @@ def uninstall(options):
 
     print "Disabling client Kerberos and Ldap configurations"
     try:
-        run(["/usr/sbin/authconfig", "--disableldap", "--disablekrb5", "--disablesssd", "--disablesssdauth", "--update"])
+        run(["/usr/sbin/authconfig", "--disableldap", "--disablekrb5", "--disablesssd", "--disablesssdauth", "--disablemkhomedir", "--update"])
     except Exception, e:
         print "Failed to remove krb5/ldap configuration. " +str(e)
         sys.exit(1)
@@ -522,11 +524,16 @@ def main():
 
     # Modify nsswitch/pam stack
     if options.sssd:
-        run(["/usr/sbin/authconfig", "--enablesssd", "--enablesssdauth", "--update"])
-        print "SSSD enabled"
+        cmd = ["/usr/sbin/authconfig", "--enablesssd", "--enablesssdauth", "--update"]
+        message = "SSSD enabled"
     else:
-        run(["/usr/sbin/authconfig", "--enableldap", "--update"])
-        print "LDAP enabled"
+        cmd = ["/usr/sbin/authconfig", "--enableldap", "--update"]
+        message = "LDAP enabled"
+
+    if options.mkhomedir:
+        cmd.append("--enablemkhomedir")
+    run(cmd)
+    print message
 
     #Check nss_ldap is working properly
     if not options.on_master:
