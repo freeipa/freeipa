@@ -612,6 +612,8 @@ class help(frontend.Command):
 
         # build help topics
         for c in self.Command():
+            if c.INTERNAL:
+                continue
             topic = self._get_command_module(c.module)
             if topic:
                 self._topics.setdefault(topic, [0]).append(c)
@@ -779,7 +781,7 @@ class cli(backend.Executioner):
         self.create_context()
         (key, argv) = (argv[0], argv[1:])
         name = from_cli(key)
-        if name not in self.Command:
+        if name not in self.Command or self.Command[name].INTERNAL:
             raise CommandError(name=key)
         cmd = self.Command[name]
         kw = self.parse(cmd, argv)

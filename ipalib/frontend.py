@@ -201,6 +201,9 @@ class HasParam(Plugin):
     of ``api.env.context``, subclasses can override this with implementations
     that consider arbitrary ``api.env`` values.
     """
+    # HasParam is the base class for most frontend plugins, that make it to users
+    # This flag should be used by UI components to make the plugin unaccessible
+    INTERNAL = False
 
     def _get_param_iterable(self, name, verb='takes'):
         """
