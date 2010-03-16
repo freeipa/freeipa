@@ -96,9 +96,13 @@ def make_policy_entry(group_cn, policy_entry):
      policy_dn = DN of the new password policy entry
      policy_entry = entry representing this new object
     """
+    ldap = api.Backend.ldap2
 
     # This DN must *NOT* have spaces between elements
-    policy_dn = "cn=%s,cn=%s,cn=kerberos,%s" % (group_cn, api.env.realm, api.env.basedn)
+    policy_dn = ldap.make_dn_from_attr(
+        'cn', api.env.realm, 'cn=kerberos,%s' % api.env.basedn
+    )
+    policy_dn = ldap.make_dn_from_attr('cn', group_cn, policy_dn)
 
     # Create the krb password policy entry. This MUST be located
     # in the same container as the REALM or the kldap plugin won't
