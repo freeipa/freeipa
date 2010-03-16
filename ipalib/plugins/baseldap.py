@@ -62,6 +62,7 @@ class LDAPObject(Object):
 
     parent_object = ''
     container_dn = ''
+    normalize_dn = True
     object_name = 'entry'
     object_name_plural = 'entries'
     object_class = []
@@ -217,7 +218,7 @@ class LDAPCreate(CallbackInterface, crud.Create):
                 )
 
         try:
-            ldap.add_entry(dn, entry_attrs)
+            ldap.add_entry(dn, entry_attrs, normalize=self.obj.normalize_dn)
         except errors.NotFound:
             parent = self.obj.parent_object
             if parent:
@@ -234,7 +235,9 @@ class LDAPCreate(CallbackInterface, crud.Create):
             )
 
         try:
-            (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+            (dn, entry_attrs) = ldap.get_entry(
+                dn, attrs_list, normalize=self.obj.normalize_dn
+            )
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
@@ -292,7 +295,9 @@ class LDAPRetrieve(LDAPQuery):
                 dn = callback(self, ldap, dn, attrs_list, *keys, **options)
 
         try:
-            (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+            (dn, entry_attrs) = ldap.get_entry(
+                dn, attrs_list, normalize=self.obj.normalize_dn
+            )
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
@@ -358,7 +363,9 @@ class LDAPUpdate(LDAPQuery, crud.Update):
         """
         if 'addattr' in options:
             try:
-                (dn, old_entry) = ldap.get_entry(dn, attrs_list)
+                (dn, old_entry) = ldap.get_entry(
+                    dn, attrs_list, normalize=self.obj.normalize_dn
+                )
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
             attrlist = get_attributes(options['addattr'])
@@ -371,12 +378,14 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                         entry_attrs[attr] = old_entry[attr]
 
         try:
-            ldap.update_entry(dn, entry_attrs)
+            ldap.update_entry(dn, entry_attrs, normalize=self.obj.normalize_dn)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
         try:
-            (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+            (dn, entry_attrs) = ldap.get_entry(
+                dn, attrs_list, normalize=self.obj.normalize_dn
+            )
         except errors.NotFound:
             raise errors.MidairCollision(
                 format=_('the entry was deleted while being modified')
@@ -429,7 +438,10 @@ class LDAPDelete(LDAPQuery):
                 else:
                     for (dn_, entry_attrs) in subentries:
                         delete_subtree(dn_)
-            ldap.delete_entry(base_dn)
+            try:
+                ldap.delete_entry(base_dn, normalize=self.obj.normalize_dn)
+            except errors.NotFound:
+                self.obj.handle_not_found(*keys)
 
         delete_subtree(dn)
 
@@ -546,7 +558,9 @@ class LDAPAddMember(LDAPModMember):
             )
 
         try:
-            (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+            (dn, entry_attrs) = ldap.get_entry(
+                dn, attrs_list, normalize=self.obj.normalize_dn
+            )
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
@@ -634,7 +648,9 @@ class LDAPRemoveMember(LDAPModMember):
             )
 
         try:
-            (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+            (dn, entry_attrs) = ldap.get_entry(
+                dn, attrs_list, normalize=self.obj.normalize_dn
+            )
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
@@ -723,7 +739,7 @@ class LDAPSearch(CallbackInterface, crud.Search):
                 filter, attrs_list, base_dn, scope=ldap.SCOPE_ONELEVEL
             )
         except errors.NotFound:
-            (entries, truncated) = (tuple(), False)
+            (entries, truncated) = ([], False)
 
         for callback in self.POST_CALLBACKS:
             if hasattr(callback, 'im_self'):
@@ -737,7 +753,7 @@ class LDAPSearch(CallbackInterface, crud.Search):
 
         for e in entries:
             e[1]['dn'] = e[0]
-        entries = tuple(e for (dn, e) in entries)
+        entries = [e for (dn, e) in entries]
 
         return dict(
             result=entries,
