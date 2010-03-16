@@ -29,6 +29,7 @@ Testing:
 
 Translators:
 	Héctor Daniel Cabrera
+	Yuri Chornoivan
 	Teguh DC
 	Piotr Drąg
 	Gundachandru
