@@ -222,7 +222,7 @@ class automountmap(LDAPObject):
         Str('automountmapname',
             cli_name='map',
             label=_('Map'),
-            doc=_('Aautomount map name'),
+            doc=_('Automount map name'),
             primary_key=True,
         ),
         Str('description?',
