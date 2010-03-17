@@ -30,6 +30,8 @@ import copy
 import os
 import socket
 import string
+import shutil
+import tempfile
 
 import krbV
 import ldap as _ldap
@@ -46,6 +48,9 @@ from ipalib.crud import CrudBackend
 from ipalib.encoder import Encoder, encode_args, decode_retval
 from ipalib.request import context
 
+
+# SASL authentication mechanism
+SASL_AUTH = _ldap_sasl.sasl({}, 'GSSAPI')
 
 # universal LDAPError handler
 def _handle_errors(e, **kw):
@@ -98,12 +103,38 @@ def _handle_errors(e, **kw):
         raise errors.DatabaseError(desc=desc, info=info)
 
 
-# retrieves LDAP schema from server
 def load_schema(url):
+    """
+    Retrieve the LDAP schema from the provided url.
+
+    Bind using kerberos credentials. If in the context of the
+    in-tree "lite" server then use the current ccache. If in the context of
+    Apache then create a new ccache and bind using the Apache HTTP service
+    principal.
+    """
+    tmpdir = None
+
+    if not api.env.in_server or api.env.context not in ['lite', 'server']:
+        # The schema is only needed on the server side
+        return
+
     try:
+        if api.env.context == 'server':
+            # Create a new credentials cache for this Apache process
+            tmpdir = tempfile.mkdtemp(prefix = "tmp-")
+            ccache_file = 'FILE:%s/ccache' % tmpdir
+            krbcontext = krbV.default_context()
+            principal = str('HTTP/%s@%s' % (api.env.host, api.env.realm))
+            keytab = krbV.Keytab(name='/etc/httpd/conf/ipa.keytab', context=krbcontext)
+            principal = krbV.Principal(name=principal, context=krbcontext)
+            os.environ['KRB5CCNAME'] = ccache_file
+            ccache = krbV.CCache(name=ccache_file, context=krbcontext, primary_principal=principal)
+            ccache.init(principal)
+            ccache.init_creds_keytab(keytab=keytab, principal=principal)
+
         conn = _ldap.initialize(url)
-        # assume anonymous access is enabled
-        conn.simple_bind_s('', '')
+        conn.sasl_interactive_bind_s('', SASL_AUTH)
+
         schema_entry = conn.search_s(
             'cn=schema', _ldap.SCOPE_BASE,
             attrlist=['attributetypes', 'objectclasses']
@@ -119,6 +150,9 @@ def load_schema(url):
         # TODO: DS uses 'cn=schema', support for other server?
         #       raise a more appropriate exception
         raise
+    finally:
+        if tmpdir:
+            shutil.rmtree(tmpdir)
 
     return _ldap.schema.SubSchema(schema_entry[1])
 
@@ -164,9 +198,6 @@ class ldap2(CrudBackend, Encoder):
     # attributes in this list cannot be deleted by update_entry
     # only MOD_REPLACE operations are generated for them
     _FORCE_REPLACE_ON_UPDATE_ATTRS = []
-
-    # SASL authentication mechanism
-    _SASL_AUTH = _ldap_sasl.sasl({}, 'GSSAPI')
 
     # rules for generating filters from entries
     MATCH_ANY = '|'   # (|(filter1)(filter2))
@@ -239,7 +270,7 @@ class ldap2(CrudBackend, Encoder):
         if ccache is not None:
             try:
                 os.environ['KRB5CCNAME'] = ccache
-                conn.sasl_interactive_bind_s('', self._SASL_AUTH)
+                conn.sasl_interactive_bind_s('', SASL_AUTH)
                 principal = krbV.CCache(name=ccache,
                             context=krbV.default_context()).principal().name
                 setattr(context, 'principal', principal)

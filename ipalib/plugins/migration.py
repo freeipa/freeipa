@@ -30,7 +30,8 @@ import re
 from ipalib import api, errors, output, uuid
 from ipalib import Command, List, Password, Str
 from ipalib.cli import to_cli
-from ipaserver.plugins.ldap2 import ldap2
+if api.env.in_server and api.env.context in ['lite', 'server']:
+    from ipaserver.plugins.ldap2 import ldap2
 from ipalib import _
 from ipalib.text import Gettext # FIXME: remove once the other Gettext FIXME is removed
 

@@ -452,6 +452,7 @@ def main():
     # Configuration for ipalib, we will bootstrap and finalize later, after
     # we are sure we have the configuration file ready.
     cfg = dict(
+        context='installer',
         in_server=True,
         debug=options.debug
     )
