@@ -976,7 +976,6 @@ class CAInstance(service.Service):
         pent = pwd.getpwnam(self.pki_user)
         os.chown(publishdir, pent.pw_uid, pent.pw_gid )
 
-
         # Enable file publishing, disable LDAP
         installutils.set_directive(caconfig, 'ca.publish.enable', 'true', quotes=False, separator='=')
         installutils.set_directive(caconfig, 'ca.publish.ldappublish.enable', 'false', quotes=False, separator='=')
@@ -1007,6 +1006,9 @@ class CAInstance(service.Service):
         installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapUserCertRule.enable', 'false', quotes=False, separator='=')
         installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapXCertRule.enable', 'false', quotes=False, separator='=')
 
+        # Fix the CRL URI in the profile
+        installutils.set_directive('/var/lib/%s/profiles/ca/caIPAserviceCert.cfg' % PKI_INSTANCE_NAME, 'policyset.serverCertSet.9.default.params.crlDistPointsPointName_0', 'https://%s/ipa/crl/MasterCRL.bin' % self.host_name, quotes=False, separator='=')
+
         ipautil.run(["/sbin/restorecon", publishdir])
 
     def __setup_selinux(self):
@@ -1032,6 +1034,7 @@ class CAInstance(service.Service):
         # format. We need to update that template with our base subject
         if installutils.update_file("/var/lib/%s/profiles/ca/caIPAserviceCert.cfg" % PKI_INSTANCE_NAME, 'OU=pki-ipa, O=IPA', self.subject_base):
             print "Updating subject_base in CA template failed"
+        self.print_msg("restarting certificate server")
         self.__restart_instance()
 
     def uninstall(self):
