@@ -311,8 +311,6 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             ldap.update_entry(dn, entry_attrs)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
-        except errors.EmptyModlist:
-            pass
 
         try:
             (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
