@@ -6,8 +6,8 @@ msgstr ""
 "Project-Id-Version: pl\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2010-03-01 19:57-0500\n"
-"PO-Revision-Date: 2010-03-08 19:58+0100\n"
+"POT-Creation-Date: 2010-03-16 17:21-0400\n"
+"PO-Revision-Date: 2010-03-07 20:58+0100\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <trans-pl@lists.fedoraproject.org>\n"
 "MIME-Version: 1.0\n"
@@ -104,6 +104,18 @@ msgstr "musi wynosić dokładnie %(length)d znaków"
 msgid "must be one of %(values)r"
 msgstr "musi być jednym z %(values)r"
 
+#: ../../ipalib/output.py:92
+msgid "A dictionary representing an LDAP entry"
+msgstr "Słownik reprezentujący wpis LDAP"
+
+#: ../../ipalib/output.py:100
+msgid "A list of LDAP entries"
+msgstr "Lista wpisów LDAP"
+
+#: ../../ipalib/output.py:111
+msgid "All commands should at least have a result"
+msgstr "Wszystkie polecenia powinny powiadać przynajmniej wynik"
+
 #: ../../ipalib/cli.py:507
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -121,6 +133,18 @@ msgstr "Anulowano."
 msgid "Results are truncated, try a more specific search"
 msgstr ""
 "Wyniki zostały obcięte, proszę spróbować bardziej konkretnego wyszukiwania"
+
+#: ../../ipalib/frontend.py:785
+msgid "retrieve all attributes"
+msgstr "odbiór wszystkich atrybutów"
+
+#: ../../ipalib/frontend.py:790
+msgid "print entries as stored on the server"
+msgstr "wyświetlenie wpisów przechowywanych w serwerze"
+
+#: ../../ipalib/frontend.py:883
+msgid "Forward to server instead of running locally"
+msgstr "Przekazanie do serwera zamiast uruchamiania lokalnie"
 
 #: ../../ipalib/errors.py:297
 #, python-format
@@ -419,6 +443,11 @@ msgstr ""
 "Lista pól oddzielonych przecinkami do przeszukania podczas wyszukiwania "
 "użytkowników"
 
+#: ../../ipalib/plugins/config.py:88
+msgid "A comma-separated list of fields to search when searching for groups"
+msgstr ""
+"Lista pól oddzielonych przecinkami do przeszukania podczas wyszukiwania grup"
+
 #: ../../ipalib/plugins/config.py:92
 msgid "Migration mode"
 msgstr "Tryb migracji"
@@ -646,6 +675,10 @@ msgstr "Usunięto grupę \"%(value)s\""
 msgid "Modified group \"%(value)s\""
 msgstr "Zmodyfikowano grupę \"%(value)s\""
 
+#: ../../ipalib/plugins/group.py:151
+msgid "change to posix group"
+msgstr "zmiana na grupę POSIX"
+
 #: ../../ipalib/plugins/group.py:175
 #, python-format
 msgid "%(count)d group matched"
@@ -654,33 +687,103 @@ msgstr[0] "Pasuje %(count)d grupa"
 msgstr[1] "Pasują %(count)d grupy"
 msgstr[2] "Pasuje %(count)d grup"
 
-#: ../../ipalib/plugins/migration.py:166
+#: ../../ipalib/plugins/migration.py:40
+#, python-format
+msgid ""
+"Kerberos principal %s already exists. Use 'ipa user-mod' to set it manually."
+msgstr ""
+"Naczelnik Kerberosa %s już istnieje. Należy użyć polecenia \"ipa user-mod\", "
+"aby ustawić go ręcznie."
+
+#: ../../ipalib/plugins/migration.py:41
+msgid ""
+"Failed to add user to the default group. Use 'ipa group-add-member' to add "
+"manually."
+msgstr ""
+"Dodanie użytkownika do domyślnej grupy nie powiodło się. Należy użyć "
+"polecenia \"ipa group-add-member\", aby dodać go ręcznie."
+
+#: ../../ipalib/plugins/migration.py:165
 msgid "LDAP URI"
 msgstr "Adres URI LDAP"
 
-#: ../../ipalib/plugins/migration.py:167
+#: ../../ipalib/plugins/migration.py:166
 msgid "LDAP URI of DS server to migrate from"
 msgstr "Adres URI LDAP serwera DS, z którego migrować"
 
-#: ../../ipalib/plugins/migration.py:178
+#: ../../ipalib/plugins/migration.py:170
+msgid "bind password"
+msgstr "hasło Bind"
+
+#: ../../ipalib/plugins/migration.py:177
 msgid "Bind DN"
 msgstr "DN dowiązania"
 
-#: ../../ipalib/plugins/migration.py:184
+#: ../../ipalib/plugins/migration.py:183
 msgid "User container"
 msgstr "Kontener użytkownika"
 
-#: ../../ipalib/plugins/migration.py:185
+#: ../../ipalib/plugins/migration.py:184
 msgid "RDN of container for users in DS"
 msgstr "RDN kontenera dla użytkowników w DS"
 
-#: ../../ipalib/plugins/migration.py:191
+#: ../../ipalib/plugins/migration.py:190
 msgid "Group container"
 msgstr "Kontener grupy"
 
-#: ../../ipalib/plugins/migration.py:192
+#: ../../ipalib/plugins/migration.py:191
 msgid "RDN of container for groups in DS"
 msgstr "RDN kontenera dla grup w DS"
+
+#: ../../ipalib/plugins/migration.py:200
+msgid "Lists of objects migrated; categorized by type."
+msgstr "Lista migrowanych obiektów, ułożonych w kategorie według typu."
+
+#: ../../ipalib/plugins/migration.py:204
+msgid "Lists of objects that could not be migrated; categorized by type."
+msgstr ""
+"Lista obiektów, które nie mogły zostać migrowane, ułożonych w kategorie "
+"według typu."
+
+#: ../../ipalib/plugins/migration.py:208
+msgid "False if migration mode was disabled."
+msgstr "Fałsz, jeśli wyłączono tryb migracji"
+
+#: ../../ipalib/plugins/migration.py:212
+#, python-format
+msgid "comma-separated list of %s to exclude from migration"
+msgstr "lista %s oddzielonych przecinkami do wykluczenia z migracji"
+
+#: ../../ipalib/plugins/migration.py:214
+msgid ""
+"search results for objects to be migrated\n"
+"have been truncated by the server;\n"
+"migration process might be uncomplete\n"
+msgstr ""
+"wyniki wyszukiwania obiektów do migrowania\n"
+"zostały skrócone przez serwer. Proces\n"
+"migracji mógł nie zostać ukończony\n"
+
+#: ../../ipalib/plugins/migration.py:219
+msgid "Migration mode is disabled. Use 'ipa config-mod' to enable it."
+msgstr ""
+"Tryb migracji jest wyłączony. Należy użyć polecenia \"ipa config-mod\", aby "
+"go włączyć."
+
+#: ../../ipalib/plugins/migration.py:222
+msgid ""
+"Passwords have been migrated in pre-hashed format.\n"
+"IPA is unable to generate Kerberos keys unless provided\n"
+"with clear text passwords. All migrated users need to\n"
+"login at https://your.domain/ipa/migration/ before they\n"
+"can use their Kerberos accounts."
+msgstr ""
+"Hasła zostały migrowane w formacie sprzed mieszania.\n"
+"Program IPA nie może utworzyć kluczy Kerberosa, chyba\n"
+"że zostały podane z hasłami w zwykłym tekście. Wszyscy\n"
+"migrowani użytkownicy muszą zalogować się na stronie\n"
+"https://twoja.domena/ipa/migration/, zanim będą mogli\n"
+"używać swoich kont Kerberosa."
 
 #: ../../ipalib/plugins/service.py:116
 msgid "Services"
@@ -698,6 +801,10 @@ msgstr "Naczelnik usługi"
 #, python-format
 msgid "Added service \"%(value)s\""
 msgstr "Dodano usługę \"%(value)s\""
+
+#: ../../ipalib/plugins/service.py:144
+msgid "force principal name even if not in DNS"
+msgstr "wymuszenie nazwy naczelnika nawet, jeśli nie w DNS"
 
 #: ../../ipalib/plugins/service.py:187
 #, python-format
@@ -787,6 +894,10 @@ msgstr "Temat"
 msgid "Serial number"
 msgstr "Numer seryjny"
 
+#: ../../ipalib/plugins/cert.py:204 ../../ipalib/plugins/misc.py:46
+msgid "Dictionary mapping variable name to value"
+msgstr "Nazwa zmiennej mapowania słownika do ustawienia jako wartość"
+
 #: ../../ipalib/plugins/cert.py:334
 msgid "Request id"
 msgstr "Identyfikator żądania"
@@ -824,13 +935,52 @@ msgstr "Cofnięto unieważnienie"
 msgid "Error"
 msgstr "Błąd"
 
-#: ../../ipalib/plugins/baseldap.py:115
+#: ../../ipalib/plugins/baseldap.py:74
+#, python-format
+msgid "container entry (%(container)s) not found"
+msgstr "nie odnaleziono wpisu kontenera (%(container)s)"
+
+#: ../../ipalib/plugins/baseldap.py:75
+#, python-format
+msgid "%(parent)s: %(oname)s not found"
+msgstr "%(parent)s: nie odnaleziono %(oname)s"
+
+#: ../../ipalib/plugins/baseldap.py:76
+#, python-format
+msgid "%(pkey)s: %(oname)s not found"
+msgstr "%(pkey)s: nie odnaleziono %(oname)s"
+
+#: ../../ipalib/plugins/baseldap.py:126
 msgid "Add an attribute/value pair. Format is attr=value"
 msgstr "Dodaj parę atrybut/wartość. Format to atrybut=wartość"
 
-#: ../../ipalib/plugins/baseldap.py:120
+#: ../../ipalib/plugins/baseldap.py:131
 msgid "Set an attribute to an name/value pair. Format is attr=value"
 msgstr "Ustaw atrybut dla pary nazwa/wartość. Format to atrybut=wartość"
+
+#: ../../ipalib/plugins/baseldap.py:318
+msgid "the entry was deleted while being modified"
+msgstr "wpis został usunięty podczas modyfikowania"
+
+#: ../../ipalib/plugins/baseldap.py:426
+msgid "Members that could not be added"
+msgstr "Elementy, które nie mogły zostać dodane"
+
+#: ../../ipalib/plugins/baseldap.py:430
+msgid "Number of members added"
+msgstr "Liczba dodanych elementów"
+
+#: ../../ipalib/plugins/baseldap.py:502
+msgid "Number of members removed"
+msgstr "Liczba usuniętych elementów"
+
+#: ../../ipalib/plugins/baseldap.py:506
+msgid "Members that could not be removed"
+msgstr "Liczba elementów, które nie mogły zostać usunięte"
+
+#: ../../ipalib/plugins/aci.py:81
+msgid "A list of ACI values"
+msgstr "Lista wartości ACI"
 
 #: ../../ipalib/plugins/aci.py:109
 msgid "type, filter, subtree and targetgroup are mutually exclusive"
@@ -1100,8 +1250,8 @@ msgid "Map"
 msgstr "Mapa"
 
 #: ../../ipalib/plugins/automount.py:225
-msgid "Aautomount map name"
-msgstr "Automatyczne montowanie nazw map"
+msgid "Automount map name"
+msgstr "Automatyczne montowanie nazwy mapy"
 
 #: ../../ipalib/plugins/automount.py:234
 msgid "Automount Maps"
@@ -1156,6 +1306,10 @@ msgstr "Opis grupy sieciowej"
 msgid "NIS domain name"
 msgstr "Nazwa domeny NIS"
 
+#: ../../ipalib/plugins/netgroup.py:68
+msgid "IPA unique ID"
+msgstr "Unikalny identyfikator IPA"
+
 #: ../../ipalib/plugins/netgroup.py:80
 msgid "Member host"
 msgstr "Komputer elementu"
@@ -1169,6 +1323,14 @@ msgstr "Zewnętrzny komputer"
 msgid "%(count)d variables"
 msgstr "%(count)d zmiennych"
 
+#: ../../ipalib/plugins/misc.py:50
+msgid "Total number of variables env (>= count)"
+msgstr "Całkowita liczba zmiennych środowiskowych (>= licznik)"
+
+#: ../../ipalib/plugins/misc.py:54
+msgid "Number of variables returned (<= total)"
+msgstr "Liczba zwróconych zmiennych (<= razem)"
+
 #: ../../ipalib/plugins/misc.py:96
 #, python-format
 msgid "%(count)d plugin loaded"
@@ -1176,6 +1338,10 @@ msgid_plural "%(count)d plugins loaded"
 msgstr[0] "Wczytano %(count)d wtyczkę"
 msgstr[1] "Wczytano %(count)d wtyczki"
 msgstr[2] "Wczytano %(count)d wtyczek"
+
+#: ../../ipalib/plugins/misc.py:103
+msgid "Number of plugins loaded"
+msgstr "Liczba wczytanych wtyczek"
 
 #: ../../ipalib/plugins/user.py:53
 msgid "User login"
@@ -1432,6 +1598,10 @@ msgstr "nie można ustawiać priorytetu dla globalnej polityki"
 msgid "Deleted policy for group \"%(value)s\""
 msgstr "Usunięto politykę dla grupy \"%(value)s\""
 
+#: ../../ipalib/plugins/pwpolicy.py:280
+msgid "Group to remove policy from"
+msgstr "Grupa, z której usunąć politykę"
+
 #: ../../ipalib/plugins/pwpolicy.py:322
 msgid "Group to display policy"
 msgstr "Grupa, dla której wyświetlić politykę"
@@ -1479,3 +1649,19 @@ msgstr "nie można uzyskać następnego numeru szeregowego"
 #: ../../ipaserver/plugins/selfsign.py:192
 msgid "certutil failure"
 msgstr "narzędzie certyfikatów nie powiodło się"
+
+#: ../../ipaserver/plugins/join.py:54
+msgid "The hostname to register as"
+msgstr "Nazwa komputera, pod jaką zarejestrować"
+
+#: ../../ipaserver/plugins/join.py:62
+msgid "The IPA realm"
+msgstr "Obszar IPA"
+
+#: ../../ipaserver/plugins/join.py:68
+msgid "Hardware platform of the host (e.g. Lenovo T61)"
+msgstr "Platforma sprzętowa komputera (np. Lenovo T61)"
+
+#: ../../ipaserver/plugins/join.py:72
+msgid "Operating System and version of the host (e.g. Fedora 9)"
+msgstr "System operacyjny komputera i jego wersja (np. Fedora 9)"
