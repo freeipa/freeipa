@@ -142,11 +142,11 @@ def unique_priority(ldap, priority):
     """
     attrs = ('cospriority',)
 
-    attr_filter = ldap.make_filter({'objectclass':'krbcontainer', 'cospriority':
+    attr_filter = ldap.make_filter({'objectclass':'krbcontainer', 'cospriority':priority }, rules=ldap.MATCH_ALL)
 
     try:
         (entries, truncated) = ldap.find_entries(
-            attr_filter, attrs, 'cn=cosTemplates,%s' % (api.env.container_accoun
+            attr_filter, attrs, 'cn=cosTemplates,%s' % (api.env.container_accounts), scope=ldap.SCOPE_ONELEVEL
         )
         return False
     except errors.NotFound:
