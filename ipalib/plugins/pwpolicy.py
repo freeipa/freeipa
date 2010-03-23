@@ -140,13 +140,17 @@ def unique_priority(ldap, priority):
     This isn't done as a validation on the attribute since we want it done
     only on the server side.
     """
-    (entries, truncated) = find_group_policy(ldap)
-    for e in entries:
-        groupdn = find_group_dn(e[1]['cn'][0])
-        cos_dn = 'cn="%s", cn=cosTemplates, cn=accounts, %s' % (groupdn, api.env.basedn)
-        (dn, cos_attrs) = ldap.get_entry(cos_dn, normalize=False)
-        if priority == int(cos_attrs['cospriority'][0]):
-            return False
+    attrs = ('cospriority',)
+
+    attr_filter = ldap.make_filter({'objectclass':'krbcontainer', 'cospriority':
+
+    try:
+        (entries, truncated) = ldap.find_entries(
+            attr_filter, attrs, 'cn=cosTemplates,%s' % (api.env.container_accoun
+        )
+        return False
+    except errors.NotFound:
+        return True
 
     return True
 
