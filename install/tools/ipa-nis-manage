@@ -22,12 +22,11 @@
 import sys
 try:
     from optparse import OptionParser
-    from ipaserver import ipaldap
     from ipapython import entity, ipautil, config
     from ipaserver.install import installutils
     from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax, UPDATES_DIR
+    from ipaserver.plugins.ldap2 import ldap2
     from ipalib import errors
-    import ldap
     import logging
 except ImportError:
     print >> sys.stderr, """\
@@ -68,12 +67,9 @@ def get_dirman_password():
 def get_nis_config(conn):
     entry = None
     try:
-        entry = conn.getEntry(nis_config_dn, ldap.SCOPE_BASE, "(objectclass=*)")
+        (dn, entry) = conn.get_entry(nis_config_dn)
     except errors.NotFound:
         pass
-    except ldap.LDAPError, e:
-        raise e
-
     return entry
 
 def main():
@@ -103,22 +99,26 @@ def main():
     else:
         dirman_password = get_dirman_password()
 
+    conn = None
     try:
+        ldapuri = 'ldap://%s' % installutils.get_fqdn()
         try:
-            conn = ipaldap.IPAdmin(installutils.get_fqdn())
-            conn.do_simple_bind(bindpw=dirman_password)
-        except ldap.LDAPError, e:
+            conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
+            conn.connect(
+                bind_dn='cn=directory manager', bind_pw=dirman_password
+            )
+        except errors.LDAPError, e:
             print "An error occurred while connecting to the server."
-            print "%s" % e[0]['desc']
+            print e
             return 1
 
         if args[0] == "enable":
             entry = None
             try:
                 entry = get_nis_config(conn)
-            except ldap.LDAPError, e:
+            except errors.LDAPError, e:
                 print "An error occurred while talking to the server."
-                print "%s" % e[0]['desc']
+                print e
                 retval = 1
 
             # Enable either the portmap or rpcbind service
@@ -142,27 +142,25 @@ def main():
                     ld = LDAPUpdate(dm_password=dirman_password, sub_dict={})
                     retval = ld.update(files)
             else:
-                if entry.getValue('nsslapd-pluginenabled').lower() == "off":
+                if entry.get('nsslapd-pluginenabled', '').lower() == 'off':
                     # Already configured, just enable the plugin
                     print "Enabling plugin"
-                    mod = [(ldap.MOD_REPLACE, "nsslapd-pluginenabled", "on")]
-
-                    conn.modify_s(nis_config_dn, mod)
+                    mod = {'nsslapd-pluginenabled': 'on'}
+                    conn.update_entry(nis_config_dn, mod)
                 else:
                     print "Plugin already Enabled"
                     retval = 2
 
         elif args[0] == "disable":
             try:
-                mod = [(ldap.MOD_REPLACE, "nsslapd-pluginenabled", "off")]
-
-                conn.modify_s(nis_config_dn, mod)
+                mod = {'nsslapd-pluginenabled': 'off'}
+                conn.update_entry(nis_config_dn, mod)
             except errors.NotFound:
                 print "Plugin is already disabled"
                 retval = 2
-            except ldap.LDAPError, e:
+            except errors.LDAPError, e:
                 print "An error occurred while talking to the server."
-                print "%s" % e[0]['desc']
+                print e
                 retval = 1
 
         else:
@@ -176,7 +174,7 @@ def main():
 
     finally:
         if conn:
-            conn.unbind()
+            conn.disconnect()
 
     return retval
 
@@ -198,6 +196,6 @@ except config.IPAConfigError, e:
     print "An IPA server to update cannot be found. Has one been configured yet?"
     print "The error was: %s" % e
     sys.exit(1)
-except ldap.LDAPError, e:
+except errors.LDAPError, e:
     print "An error occurred while performing operations: %s" % e
     sys.exit(1)

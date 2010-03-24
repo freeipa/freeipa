@@ -23,15 +23,14 @@ import socket
 
 import tempfile, os, pwd, traceback, logging, shutil
 from ConfigParser import SafeConfigParser
-import ldap
 
 from ipapython import ipautil
 
 from ipaserver.install import dsinstance, replication, installutils, krbinstance, service
 from ipaserver.install import bindinstance, httpinstance, ntpinstance, certs
-from ipaserver import ipaldap
+from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
-from ipalib import api, util
+from ipalib import api, errors, util
 
 CACERT="/usr/share/ipa/html/ca.crt"
 
@@ -300,16 +299,17 @@ def main():
     config.dir = dir
 
     # Try out the password
+    ldapuri = 'ldap://%s' % config.master_host_name
     try:
-        conn = ipaldap.IPAdmin(config.master_host_name)
-        conn.do_simple_bind(bindpw=config.dirman_password)
-        conn.unbind()
-    except ldap.CONNECT_ERROR, e:
-        sys.exit("\nUnable to connect to LDAP server %s" % config.master_host_name)
-    except ldap.SERVER_DOWN, e:
-        sys.exit("\nUnable to connect to LDAP server %s" % config.master_host_name)
-    except ldap.INVALID_CREDENTIALS, e :
+        conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
+        conn.connect(
+            bind_dn='cn=directory manager', bind_pw=config.dirman_password
+        )
+        conn.disconnect()
+    except errors.ACIError:
         sys.exit("\nThe password provided is incorrect for LDAP server %s" % config.master_host_name)
+    except errors.LDAPError:
+        sys.exit("\nUnable to connect to LDAP server %s" % config.master_host_name)
 
     # Create the management framework config file
     # Note: We must do this before bootstraping and finalizing ipalib.api

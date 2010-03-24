@@ -35,7 +35,6 @@ import signal
 import shutil
 import glob
 import traceback
-import ldap
 from optparse import OptionParser
 from ConfigParser import RawConfigParser
 import random
@@ -51,11 +50,11 @@ from ipaserver.install import cainstance
 from ipaserver.install import service
 from ipapython import version
 from ipaserver.install.installutils import *
-from ipaserver import ipaldap
+from ipaserver.plugins.ldap2 import ldap2
 
 from ipapython import sysrestore
 from ipapython.ipautil import *
-from ipalib import api, util
+from ipalib import api, errors, util
 
 import ipawebui
 
@@ -411,19 +410,18 @@ def render_assets():
     ui.render_assets()
 
 def set_subject_in_config(host_name, dm_password, suffix, subject_base):
+        ldapuri = 'ldap://%s' % host_name
         try:
-            conn = ipaldap.IPAdmin(host_name)
-            conn.do_simple_bind(bindpw=dm_password)
-        except Exception, e:
+            conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn=suffix)
+            conn.connect(bind_dn='cn=directory manager', bind_pw=dm_password)
+        except errors.ExecutionError, e:
             logging.critical("Could not connect to the Directory Server on %s" % host_name)
             raise e
-        entry = conn.getEntry("cn=ipaConfig, cn=etc, %s" % suffix, ldap.SCOPE_SUBTREE)
-        if entry.getValue('ipaCertificateSubjectBase') is None:
-            newentry = entry.toDict()
-            newentry['ipaCertificateSubjectBase'] = subject_base
-            conn.updateEntry(entry.dn, entry.toDict(), newentry)
-
-        conn.unbind()
+        (dn, entry_attrs) = conn.get_ipa_config()
+        if 'ipacertificatesubjectbase' not in entry_attrs:
+            mod = {'ipacertificatesubjectbase': subject_base}
+            conn.update_entry(dn, mod)
+        conn.disconnect()
 
 def main():
     global ds

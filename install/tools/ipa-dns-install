@@ -22,13 +22,12 @@
 from optparse import OptionParser
 import traceback
 
-from ipaserver import ipaldap
+from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import bindinstance, ntpinstance
 from ipaserver.install.installutils import *
 from ipapython import version
 from ipapython import ipautil, sysrestore
-from ipalib import api, util
-import ldap
+from ipalib import api, errors, util
 
 def parse_options():
     parser = OptionParser(version=version.VERSION)
@@ -134,14 +133,15 @@ def main():
         dm_password = options.dm_password
 
     # Try out the password
+    ldapuri = 'ldap://%s' % api.env.host
     try:
-        conn = ipaldap.IPAdmin(api.env.host)
-        conn.do_simple_bind(bindpw=dm_password)
-        conn.unbind()
-    except (ldap.CONNECT_ERROR, ldap.SERVER_DOWN), e:
-        sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
-    except ldap.INVALID_CREDENTIALS, e :
+        conn = ldap2(shared_instance=False, ldap_uri=ldapuri)
+        conn.connect(bind_dn='cn=directory manager', bind_pw=dm_password)
+        conn.disconnect()
+    except errors.ACIError:
         sys.exit("\nThe password provided is incorrect for LDAP server %s" % api.env.host)
+    except errors.LDAPError:
+        sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
 
     conf_ntp = ntpinstance.NTPInstance(fstore).is_enabled()
 

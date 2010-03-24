@@ -219,19 +219,15 @@ class ldap2(CrudBackend, Encoder):
         self.encoder_settings.decode_dict_vals_table = self._SYNTAX_MAPPING
         self.encoder_settings.decode_dict_vals_table_keygen = get_syntax
         self.encoder_settings.decode_postprocessor = lambda x: string.lower(x)
-        if ldap_uri is None:
-            self.ldap_uri = api.env.ldap_uri
-        else:
-            self.ldap_uri = ldap_uri
-        if base_dn is None:
-            self.base_dn = api.env.basedn
-        else:
-            self.base_dn = base_dn
-        if schema is None:
-            self.schema = _schema
-        else:
-            self.schema = schema
-
+        try:
+            self.ldap_uri = ldap_uri or api.env.ldap_uri
+        except AttributeError:
+            self.ldap_uri = 'ldap://example.com'
+        try:
+            self.base_dn = base_dn or api.env.basedn
+        except AttributeError:
+            self.base_dn = ''
+        self.schema = schema or _schema
 
     def __del__(self):
         if self.isconnected():

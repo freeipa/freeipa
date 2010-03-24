@@ -22,12 +22,11 @@
 import sys
 try:
     from optparse import OptionParser
-    from ipaserver import ipaldap
     from ipapython import entity, ipautil, config
     from ipaserver.install import installutils
     from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax, UPDATES_DIR
+    from ipaserver.plugins.ldap2 import ldap2
     from ipalib import errors
-    import ldap
     import logging
     import re
     import krbV
@@ -95,26 +94,29 @@ def main():
     else:
         dirman_password = get_dirman_password()
 
+    conn = None
     try:
+        ldapuri = 'ldap://%s' % installutils.get_fqdn()
         try:
-            conn = ipaldap.IPAdmin(installutils.get_fqdn())
-            conn.do_simple_bind(bindpw=dirman_password)
-        except ldap.LDAPError, e:
+            conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
+            conn.connect(
+                bind_dn='cn=directory manager', bind_pw=dirman_password
+            )
+        except errors.LDAPError, e:
             print "An error occurred while connecting to the server."
-            print "%s" % e[0]['desc']
+            print e
             return 1
 
         if args[0] == "enable":
             try:
-                conn.getEntry("cn=Schema Compatibility,cn=plugins,cn=config",
-                              ldap.SCOPE_BASE, "(objectclass=*)")
+                conn.get_entry('cn=Schema Compatibility,cn=plugins,cn=config')
                 print "Plugin already Enabled"
                 retval = 2
             except errors.NotFound:
                 print "Enabling plugin"
-            except ldap.LDAPError, e:
+            except errors.LDAPError, e:
                 print "An error occurred while talking to the server."
-                print "%s" % e[0]['desc']
+                print e
                 retval = 1
 
             if retval == 0:
@@ -127,17 +129,15 @@ def main():
             # Make a quick hack foir now, directly delete the entries by name,
             # In future we should add delete capabilites to LDAPUpdate
             try:
-                conn.getEntry("cn=Schema Compatibility,cn=plugins,cn=config",
-                              ldap.SCOPE_BASE, "(objectclass=*)")
-                conn.deleteEntry("cn=groups,cn=Schema Compatibility,cn=plugins,cn=config")
-                conn.deleteEntry("cn=users,cn=Schema Compatibility,cn=plugins,cn=config")
-                conn.deleteEntry("cn=Schema Compatibility,cn=plugins,cn=config")
+                conn.delete_entry('cn=groups,cn=Schema Compatibility,cn=plugins,cn=config')
+                conn.delete_entry('cn=users,cn=Schema Compatibility,cn=plugins,cn=config')
+                conn.delete_entry('cn=Schema Compatibility,cn=plugins,cn=config')
             except errors.NotFound:
                 print "Plugin is already disabled"
                 retval = 2
-            except ldap.LDAPError, e:
+            except errors.LDAPError, e:
                 print "An error occurred while talking to the server."
-                print "%s" % e[0]['desc']
+                print e
                 retval = 1
 
         else:
@@ -145,7 +145,7 @@ def main():
 
     finally:
         if conn:
-            conn.unbind()
+            conn.disconnect()
 
     return retval
 
@@ -167,6 +167,6 @@ except config.IPAConfigError, e:
     print "An IPA server to update cannot be found. Has one been configured yet?"
     print "The error was: %s" % e
     sys.exit(1)
-except ldap.LDAPError, e:
+except errors.LDAPError, e:
     print "An error occurred while performing operations: %s" % e
     sys.exit(1)

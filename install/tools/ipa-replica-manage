@@ -24,10 +24,9 @@ import traceback, logging
 
 from ipapython import ipautil
 from ipaserver.install import replication, dsinstance, installutils
-from ipaserver import ipaldap
+from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
-from ipalib import util
-from ipalib import errors
+from ipalib import errors, util
 
 def parse_options():
     from optparse import OptionParser
@@ -73,7 +72,8 @@ def get_realm_name():
     return c.default_realm
 
 def get_suffix():
-    suffix = ipaldap.IPAdmin.normalizeDN(util.realm_to_suffix(get_realm_name()))
+    l = ldap2(shared_instance=False, base_dn='')
+    suffix = l.normalize_dn(util.realm_to_suffix(get_realm_name()))
     return suffix
 
 def get_host_name():

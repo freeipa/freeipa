@@ -29,11 +29,9 @@ from optparse import OptionParser
 from ipapython import ipautil
 from ipaserver.install import bindinstance, dsinstance, installutils, certs, httpinstance
 from ipaserver.install.bindinstance import add_zone, add_reverze_zone, add_rr, add_ptr_rr
-from ipaserver import ipaldap
+from ipaserver.plugins.ldap2 import ldap2
 from ipapython import version
-from ipalib import api
-from ipalib import util
-import ldap
+from ipalib import api, errors, util
 
 def parse_options():
     usage = "%prog [options] FQDN (e.g. replica.example.com)"
@@ -75,14 +73,16 @@ def parse_options():
     return options, args
 
 def get_subject_base(host_name, dm_password, suffix):
+    ldapuri = 'ldap://%s:389' % host_name
     try:
-        conn = ipaldap.IPAdmin(host_name)
-        conn.do_simple_bind(bindpw=dm_password)
-    except Exception, e:
+        conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn=suffix)
+        conn.connect(bind_dn='cn=directory manager', bind_pw=dm_password)
+    except errors.ExecutionError, e:
         logging.critical("Could not connect to the Directory Server on %s" % host_name)
         raise e
-    entry = conn.getEntry("cn=ipaConfig, cn=etc, %s" % suffix, ldap.SCOPE_SUBTREE)
-    return entry.getValue('ipacertificatesubjectbase')
+    (dn, entry_attrs) = conn.get_ipa_config()
+    conn.disconnect()
+    return entry_attrs.get('ipacertificatesubjectbase', [None])[0]
 
 def check_ipa_configuration(realm_name):
     config_dir = dsinstance.config_dirname(dsinstance.realm_to_serverid(realm_name))
@@ -236,16 +236,15 @@ def main():
             sys.exit(0)
 
     # Try out the password
+    ldapuri = 'ldap://%s:389' % api.env.host
     try:
-        conn = ipaldap.IPAdmin(api.env.host)
-        conn.do_simple_bind(bindpw=dirman_password)
-        conn.unbind()
-    except ldap.CONNECT_ERROR, e:
-        sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
-    except ldap.SERVER_DOWN, e:
-        sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
-    except ldap.INVALID_CREDENTIALS, e :
+        conn = ldap2(shared_instance=False, ldap_uri=ldapuri)
+        conn.connect(bind_dn='cn=directory manager', bind_pw=dirman_password)
+        conn.disconnect()
+    except errors.ACIError:
         sys.exit("\nThe password provided is incorrect for LDAP server %s" % api.env.host)
+    except errors.LDAPError:
+        sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
 
     print "Preparing replica for %s from %s" % (replica_fqdn, api.env.host)
 

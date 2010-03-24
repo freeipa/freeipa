@@ -25,13 +25,13 @@ import tempfile
 
 import traceback
 
-import krbV, ldap, getpass
+import krbV, getpass
 
 from ipapython.ipautil import user_input
 
-from ipaserver import ipaldap
 from ipaserver.install import certs, dsinstance, httpinstance, installutils
 from ipalib import api
+from ipaserver.plugins.ldap2 import ldap2
 
 def get_realm_name():
     c = krbV.default_context()
@@ -64,14 +64,12 @@ def parse_options():
     return options, args[0]
 
 def set_ds_cert_name(cert_name, dm_password):
-    conn = ipaldap.IPAdmin("127.0.0.1")
-    conn.simple_bind_s("cn=directory manager", dm_password)
-
-    mod = [(ldap.MOD_REPLACE, "nsSSLPersonalitySSL", cert_name)]
-
-    conn.modify_s("cn=RSA,cn=encryption,cn=config", mod)
-
-    conn.unbind()
+    ldapuri = 'ldap://127.0.0.1'
+    conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
+    conn.connect(bind_dn='cn=directory manager', bind_pw=dm_password)
+    mod = {'nssslpersonalityssl': cert_name}
+    conn.update_entry('cn=RSA,cn=encryption,cn=config', mod)
+    conn.disconnect()
 
 def choose_server_cert(server_certs):
     print "Please select the certificate to use:"
