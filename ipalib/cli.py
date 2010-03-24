@@ -315,7 +315,7 @@ class textui(backend.Backend):
         for attr in sorted(entry):
             print_attr(attr)
 
-    def print_entries(self, entries, order=None, labels=None, print_all=False, format='%s: %s', indent=1):
+    def print_entries(self, entries, order=None, labels=None, print_all=True, format='%s: %s', indent=1):
         assert isinstance(entries, (list, tuple))
         first = True
         for entry in entries:
@@ -324,7 +324,7 @@ class textui(backend.Backend):
             first = False
             self.print_entry(entry, order, labels, print_all, format, indent)
 
-    def print_entry(self, entry, order=None, labels=None, print_all=False, format='%s: %s', indent=1):
+    def print_entry(self, entry, order=None, labels=None, print_all=True, format='%s: %s', indent=1):
         """
         """
         if isinstance(entry, (list, tuple)):

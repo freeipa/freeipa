@@ -775,6 +775,10 @@ class Command(HasParam):
 
         This method gets called by `HasParam._create_param_namespace()`.
 
+        For commnds that return entries two special options are generated:
+        --all   makes the command retrieve/dispaly all attribute
+        --raw   makes the command display attributes as they are stored
+
         Subclasses can override this to customize how the arguments are
         determined.  For an example of why this can be useful, see the
         `ipalib.crud.Create` subclass.
@@ -836,6 +840,18 @@ class Command(HasParam):
             yield param
 
     def output_for_cli(self, textui, output, *args, **options):
+        """
+        Generic output method. Prints values the output argument according
+        to their type and self.output.
+
+        Entry attributes are labeled and printed in the order specified in
+        self.output_params. Attributes that aren't present in
+        self.output_params are not printed unless the command was invokend
+        with the --all option. Attribute labelling is disabled if the --raw
+        option was given.
+
+        Subclasses can override this method, if custom output is needed.
+        """
         if not isinstance(output, dict):
             return
 
@@ -852,14 +868,19 @@ class Command(HasParam):
             labels = dict((p.name, unicode(p.label)) for p in self.output_params())
 
         for o in self.output:
-            if 'no_display' in self.output[o].flags:
+            outp = self.output[o]
+            if 'no_display' in outp.flags:
                 continue
             result = output[o]
 
-            if isinstance(result, (tuple, list)):
+            if isinstance(outp, ListOfEntries):
                 textui.print_entries(result, order, labels, print_all)
-            elif isinstance(result, dict):
+            elif isinstance(result, (tuple, list)):
+                textui.print_entries(result)
+            elif isinstance(outp, Entry):
                 textui.print_entry(result, order, labels, print_all)
+            elif isinstance(result, dict):
+                textui.print_entry(result)
             elif isinstance(result, unicode):
                 if o == 'summary':
                     textui.print_summary(result)
