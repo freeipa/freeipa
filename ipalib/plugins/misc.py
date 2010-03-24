@@ -48,10 +48,12 @@ class env(LocalOrRemote):
         Output('total',
             type=int,
             doc=_('Total number of variables env (>= count)'),
+            flags=['no_display'],
         ),
         Output('count',
             type=int,
             doc=_('Number of variables returned (<= total)'),
+            flags=['no_display'],
         ),
         summary,
     )
