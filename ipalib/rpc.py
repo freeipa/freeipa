@@ -401,7 +401,7 @@ class xmlclient(Connectible):
             )
         self.info('Forwarding %r to server %r', name, self.env.xmlrpc_uri)
         command = getattr(self.conn, name)
-        params = args + (kw,)
+        params = [args, kw]
         try:
             response = command(*xml_wrap(params))
             return xml_unwrap(response)

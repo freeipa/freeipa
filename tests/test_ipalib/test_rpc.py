@@ -204,7 +204,7 @@ class test_xmlclient(PluginTester):
         (o, api, home) = self.instance('Backend', user_add, in_server=False)
         args = (binary_bytes, utf8_bytes, unicode_str)
         kw = dict(one=binary_bytes, two=utf8_bytes, three=unicode_str)
-        params = args + (kw,)
+        params = [args, kw]
         result = (unicode_str, binary_bytes, utf8_bytes)
         conn = DummyClass(
             (

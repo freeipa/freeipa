@@ -72,12 +72,11 @@ def read_input(environ):
 
 
 def params_2_args_options(params):
-    assert type(params) is tuple
     if len(params) == 0:
         return (tuple(), dict())
-    if type(params[-1]) is dict:
-        return (params[:-1], params[-1])
-    return (params, dict())
+    if len(params) == 1:
+        return (params[0], dict())
+    return (params[0], params[1])
 
 
 def nicify_query(query, encoding='utf-8'):

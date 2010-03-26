@@ -79,10 +79,8 @@ def test_params_2_args_options():
     args = ('Hello', u'world!')
     options = dict(one=1, two=u'Two', three='Three')
     assert f(tuple()) == (tuple(), dict())
-    assert f(args) == (args, dict())
-    assert f((options,)) == (tuple(), options)
-    assert f(args + (options,)) == (args, options)
-    assert f((options,) + args) == ((options,) + args, dict())
+    assert f([args]) == (args, dict())
+    assert f([args, options]) == (args, options)
 
 
 class test_session(object):
