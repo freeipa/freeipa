@@ -40,7 +40,7 @@ def validate_host(ugettext, fqdn):
     Require at least one dot in the hostname (to support localhost.localdomain)
     """
     if fqdn.find('.') == -1:
-        return 'Fully-qualified hostname required'
+        return _('Fully-qualified hostname required')
     return None
 
 
@@ -181,11 +181,17 @@ class host_del(LDAPDelete):
     msg_summary = _('Deleted host "%(value)s"')
 
     def pre_callback(self, ldap, dn, *keys, **options):
+        # If we aren't given a fqdn, find it
+        if validate_host(None, keys[-1]) is not None:
+            hostentry = api.Command['host_show'](keys[-1])['result']
+            fqdn = hostentry['fqdn'][0]
+        else:
+            fqdn = keys[-1]
         # Remove all service records for this host
         truncated = True
         while truncated:
             try:
-                ret = api.Command['service_find'](keys[-1])
+                ret = api.Command['service_find'](fqdn)
                 truncated = ret['truncated']
                 services = ret['result']
             except errors.NotFound:
@@ -194,7 +200,7 @@ class host_del(LDAPDelete):
                 for entry_attrs in services:
                     principal = entry_attrs['krbprincipalname'][0]
                     (service, hostname, realm) = split_principal(principal)
-                    if hostname.lower() == keys[-1]:
+                    if hostname.lower() == fqdn:
                         api.Command['service_del'](principal)
         return dn
 

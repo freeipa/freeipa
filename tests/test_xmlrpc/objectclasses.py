@@ -71,3 +71,13 @@ taskgroup = [
     u'groupofnames',
     u'top'
 ]
+
+service = [
+    u'krbprincipal',
+    u'krbprincipalaux',
+    u'krbticketpolicyaux',
+    u'ipaobject',
+    u'ipaservice',
+    u'pkiuser',
+    u'top',
+]

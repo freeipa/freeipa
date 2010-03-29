@@ -28,13 +28,17 @@ from tests.test_xmlrpc import objectclasses
 
 
 fqdn1 = u'testhost1.%s' % api.env.domain
+short1 = u'testhost1'
 dn1 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn1, api.env.basedn)
+service1 = u'dns/%s@%s' % (fqdn1, api.env.realm)
+service1dn = u'krbprincipalname=%s,cn=services,cn=accounts,%s' % (service1.lower(), api.env.basedn)
 
 
 class test_host(Declarative):
 
     cleanup_commands = [
         ('host_del', [fqdn1], {}),
+        ('service_del', [service1], {}),
     ]
 
     tests = [
@@ -250,6 +254,68 @@ class test_host(Declarative):
             desc='Try to delete non-existent %r' % fqdn1,
             command=('host_del', [fqdn1], {}),
             expected=errors.NotFound(reason='no such entry'),
+        ),
+
+        # Test deletion using a non-fully-qualified hostname. Services
+        # associated with this host should also be removed.
+        dict(
+            desc='Re-create %r' % fqdn1,
+            command=('host_add', [fqdn1],
+                dict(
+                    description=u'Test host 1',
+                    l=u'Undisclosed location 1',
+                ),
+            ),
+            expected=dict(
+                value=fqdn1,
+                summary=u'Added host "%s"' % fqdn1,
+                result=dict(
+                    dn=dn1,
+                    fqdn=[fqdn1],
+                    description=[u'Test host 1'],
+                    l=[u'Undisclosed location 1'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    objectclass=objectclasses.host,
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Add a service to host %r' % fqdn1,
+            command=('service_add', [service1], {}),
+            expected=dict(
+                value=service1,
+                summary=u'Added service "%s"' % service1,
+                result=dict(
+                    dn=service1dn,
+                    krbprincipalname=[service1],
+                    objectclass=objectclasses.service,
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Delete using host name %r' % short1,
+            command=('host_del', [short1], {}),
+            expected=dict(
+                value=short1,
+                summary=u'Deleted host "%s"' % short1,
+                result=True,
+            ),
+        ),
+
+        dict(
+            desc='Search for services for %r' % fqdn1,
+            command=('service_find', [fqdn1], {}),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary=None,
+                result=[
+                ],
+            ),
         ),
 
     ]
