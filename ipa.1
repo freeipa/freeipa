@@ -1,0 +1,160 @@
+.\" A man page for ipa
+.\" Copyright (C) 2010 Red Hat, Inc.
+.\"
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; version 2 only
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\"
+.\" Author: Pavel Zuna <pzuna@redhat.com>
+.\"
+.TH "IPA" "1" "02/22/2010" "IPA 2\&.0\&.0" "IPA CLI Manual"
+.SH "NAME"
+ipa \- IPA command\-line interface
+.SH "SYNOPSIS"
+.nf
+\fBipa\fR [options] [\fB\-c\fR \fIFILE\fR] [\fB\-e\fR \fIKEY=VAL\fR] \fICOMMAND\fR [parameters]
+.fi
+.SH "DESCRIPTION"
+IPA is an integrated security information management solution based on 389 Directory Server (formerly know as Fedora Directory Server), MIT Kerberos, Dogtag Certificate System, NTP and DNS. It includes a web interface and command\-line administration tools for managing identity data.
+
+This manual page focuses on the \fIipa\fR script that serves as the main command\-line interface (CLI) for IPA administration.
+
+More information about the project is available on its homepage located at http://www.freeipa.org.
+.SH "OPTIONS"
+.TP
+\fB\-a\fR, \fB\-\-prompt\-all\fR
+Prompt for all parameters of \fICOMMAND\fR, even if they are optional.
+.TP
+\fB\-c\fR \fIFILE\fR
+Load configuration from \fIFILE\fR.
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+Produce full debugging output.
+.TP
+\fB\-e\fR \fIKEY=VAL\fR
+Set enviromental variable \fIKEY\fR to the value \fIVAL\fR. This option overrides configuration files.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Display a help message with a list of options.
+.TP
+\fB\-n\fR, \fB\-\-no\-prompt\fR
+Don't prompt for any parameters of \fBCOMMAND\fR, even if they are required.
+.TP
+\fB\-v\fR, \fB\-\-prompt\-all\fR
+Produce verbose output.
+.SH "COMMANDS"
+The principal function of the CLI is to execute administrative commands specified by the \fICOMMAND\fR argument. The majority of commands are executed remotely over XML\-RPC on a IPA server listed in the configuration file (see FILES section of this manual page).
+
+From the implementation perspective, the CLI distinguishes two types of commands \- built\-ins and plugin provided.
+
+Built\-in commands are static and are all available in all installations of IPA. There are two of them:
+.TP
+\fBconsole\fR
+Start the IPA interactive Python console.
+.TP
+\fBhelp\fR [\fITOPIC\fR | \fICOMMAND\fR | \fBtopics\fR | \fBcommands\fR]
+Display help for a command or topic.
+
+The \fBhelp\fR command invokes the built\-in documentation system. Without parameters a list of built\-in commands and help topics is displayed. Help topics are generated from loaded IPA plugin modules. Executing \fBhelp\fR with the name of an available topic displays a help message provided by the corresponding plugin module and list of commands it contains.
+.LP
+Plugin provided commands, as the name suggests, originate from IPA plugin modules. The available set may vary depending on your configuration and can be listed using the built\-in \fBhelp\fR command (see above).
+
+Most plugin provided commands are tied to a certain type of IPA object. IPA objects encompass common abstractions such as users (user identities/accounts), hosts (machine identities), services, password policies, etc. Commands associated with an object are easily identified thanks to the enforced naming convention; the command names are composed of two parts separated with a dash: the name of the corresponding IPA object type and the name of action performed on it. For example all commands used to manage user indentities start with "user\-" (e.g. user\-add, user\-del).
+
+The following actions are available for most IPA object types:
+.TP
+\fBadd\fR [\fIPRIMARYKEY\fR] [options]
+Create a new object.
+.TP
+\fBshow\fR [\fIPRIMARYKEY\fR] [options]
+Display an existing object.
+.TP
+\fBmod\fR [\fIPRIMARYKEY\fR] [options]
+Modify an existing object.
+.TP
+\fBdel\fR [\fIPRIMARYKEY\fR]
+Delete an existing object.
+.TP
+\fBfind\fR [\fICRITERIA\fR] [options]
+Search for existing objects.
+.LP
+The above types of commands except \fBfind\fR take the objects primary key (e.g. user name for users) as their only positional argument unless there can be only one object of the given type. They can also take a number of options (some of which might be required in the case of \fBadd\fR) that represent the objects attributes.
+
+\fBfind\fR commands take an optional criteria string as their only positional argument. If present, all objects with an attribute that contains the criteria string are displayed. If an option representing an attribute is set, only object with the attribute exactly matching the specified value are displayed. Without parameters all objects of the corresponding type are displayed.
+
+For IPA objects with attributes that can contain references to other objects (e.g. groups), the following action are usually available:
+.TP
+\fBadd\-member\fR [\fIPRIMARYKEY\fR] [options]
+Add references to other objects.
+.TP
+\fBremove\-member\fR [\fIPRIMARYKEY\fR] [options]
+Remove references to other objects.
+.LP
+The above types of commands take the objects primary key as their only positional argument unless there can be only one object of the given type. They also take a number of options that represent lists of other object primary keys. Each of these options represent one type of object.
+
+For some types of objects, these commands might need to take more than one primary key. This applies to IPA objects organized in hierarchies where the parent object needs to be identified first. Parent primary keys are always aligned to the left (higher in the hierarchy = more to the left). For example the automount IPA plugin enables users to manage automount maps per location, as a result all automount commands take an automountlocation primary key as their first positional argument.
+
+All commands that display objects have two special options for controlling output:
+.TP
+\fB\-\-all\fR
+Dispaly all attributes. Without this option only the most relevant attributes are displayed.
+.TP
+\fB\-\-raw\fR
+Display objects as they are stored in the backing store. Disables formatting and attribute labels.
+.SH "EXAMPLES"
+.TP
+\fBipa help commands\fR
+Display a list of available commands
+\fBipa help topoics\fR
+Display a high\-level list of help topics
+\fBipa help user\fR
+Display documentation and list of commands in the "user" topic.
+.TP
+\fBipa env\fR
+List IPA enviromental variables and their values.
+.TP
+\fBipa user\-add foo \-\-first foo \-\-last bar\fR
+Create a new user with username "foo", first name "foo" and last name "bar".
+.TP
+\fBipa group\-add bar \-\-desc "this is an example group"
+Create a new group with name "bar" and description "this is an example group".
+.TP
+\fBipa group\-add\-member bar \-\-users=admin,foo\fR
+Add users "admin" and "foo" to the group "bar".
+.TP
+\fBipa user\-show foo \-\-raw\fR
+Display user "foo" as (s)he is stored on the server.
+.TP
+\fBipa group\-show bar \-\-all\fR
+Display group "bar" and all of its attributes.
+.TP
+\fBipa config\-mod \-\-maxusername 20\fR
+Set maximum user name length to 20 characters.
+.TP
+\fBipa user\-find foo\fR
+Search for all users with "foo" in either uid, first name, last name, full name, etc. A user with uid "foobar" would match the search criteria.
+.TP
+\fBipa user\-find foo \-\-first bar\fR
+Same as the previous example, except this time the users first name has to be exactly "bar". A user with uid "foobar" and first name "bar" would match the search criteria.
+.TP
+\fBipa user\-find foo \-\-first bar \-\-last foo\fR
+A user with uid "foobar", first name "bar" and last name "foo" would match the search criteria.
+.TP
+\fBipa user\-find \-\-uuid 936407bd\-da9b\-11de\-9abd\-54520012e7cd\fR
+Only the user with the specified IPA unique ID would match the search criteria.
+.TP
+\fBipa user\-find\fR
+All users would match the search criteria (as there are none).
+.SH "FILES"
+.TP
+\fB/etc/ipa/default.conf\fR
+IPA default configuration file.

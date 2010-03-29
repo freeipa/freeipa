@@ -462,6 +462,7 @@ fi
 %{_sbindir}/ipa-compat-manage
 %{_sbindir}/ipa-nis-manage
 %{_sysconfdir}/bash_completion.d
+%{_mandir}/man1/ipa.1.gz
 %endif
 
 %files python -f %{gettext_domain}.lang
