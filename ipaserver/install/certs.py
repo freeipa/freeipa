@@ -570,7 +570,7 @@ class CertDB(object):
             password = f.readline()
             f.close()
             http_status, http_reason_phrase, http_headers, http_body = \
-                dogtag.https_request(self.host_name, api.env.ca_agent_port, "/ca/agent/ca/profileSubmitSSLClient", self.secdir, password, "ipaCert", **params)
+                dogtag.https_request(self.host_name, api.env.ca_ee_port, "/ca/ee/ca/profileSubmitSSLClient", self.secdir, password, "ipaCert", **params)
 
             if http_status != 200:
                 raise CertificateOperationError(error=_('Unable to communicate with CMS (%s)') % \
@@ -657,7 +657,7 @@ class CertDB(object):
             password = f.readline()
             f.close()
             http_status, http_reason_phrase, http_headers, http_body = \
-                dogtag.https_request(self.host_name, api.env.ca_agent_port, "/ca/agent/ca/profileSubmitSSLClient", self.secdir, password, "ipaCert", **params)
+                dogtag.https_request(self.host_name, api.env.ca_ee_port, "/ca/ee/ca/profileSubmitSSLClient", self.secdir, password, "ipaCert", **params)
             if http_status != 200:
                 raise RuntimeError("Unable to submit cert request")
 

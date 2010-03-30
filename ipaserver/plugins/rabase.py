@@ -41,7 +41,7 @@ class rabase(Backend):
     Request Authority backend plugin.
     """
     def __init__(self):
-        if api.env.home:
+        if api.env.in_tree:
             self.sec_dir = api.env.dot_ipa + os.sep + 'alias'
             self.pwd_file = self.sec_dir + os.sep + '.pwd'
             self.serial_file = self.sec_dir + os.sep + 'ca_serialno'

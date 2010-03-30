@@ -1208,7 +1208,7 @@ class ra(rabase.rabase):
     Request Authority backend plugin.
     """
     def __init__(self):
-        if api.env.home:
+        if api.env.in_tree:
             self.sec_dir = api.env.dot_ipa + os.sep + 'alias'
             self.pwd_file = self.sec_dir + os.sep + '.pwd'
         else:
@@ -1452,8 +1452,8 @@ class ra(rabase.rabase):
 
         # Call CMS
         http_status, http_reason_phrase, http_headers, http_body = \
-            self._sslget('/ca/agent/ca/profileSubmitSSLClient',
-                         self.env.ca_agent_port,
+            self._sslget('/ca/ee/ca/profileSubmitSSLClient',
+                         self.env.ca_ee_port,
                          profileId='caIPAserviceCert',
                          cert_request_type=request_type,
                          cert_request=csr,
