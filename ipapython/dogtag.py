@@ -66,6 +66,8 @@ def https_request(host, port, url, secdir, password, nickname, **kw):
 
     Perform a client authenticated HTTPS request
     """
+    if isinstance(host, unicode):
+        host = host.encode('utf-8')
     uri = 'https://%s:%d%s' % (host, port, url)
     post = urlencode(kw)
     logging.info('sslget %r', uri)
@@ -101,6 +103,8 @@ def http_request(host, port, url, **kw):
 
         Perform an HTTP request.
         """
+        if isinstance(host, unicode):
+            host = host.encode('utf-8')
         uri = 'http://%s:%s%s' % (host, port, url)
         post = urlencode(kw)
         logging.info('request %r', uri)
