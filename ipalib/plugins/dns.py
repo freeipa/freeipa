@@ -67,6 +67,7 @@ from ipalib import api, crud, errors, output
 from ipalib import Object, Command
 from ipalib import Flag, Int, Str, StrEnum
 from ipalib import _, ngettext
+from ipalib.output import Output, standard_entry, standard_list_of_entries
 
 # parent DN
 _zone_container_dn = api.env.container_dns
@@ -310,7 +311,7 @@ class dns_find(crud.Search):
         filter = ldap.make_filter_from_attr('idnsname', term, exact=False)
 
         # select attributes we want to retrieve
-        if options['all']:
+        if options.get('all', False):
             attrs_list = ['*']
         else:
             attrs_list = _zone_default_attributes
@@ -362,7 +363,7 @@ class dns_show(crud.Retrieve):
         dn = _get_zone_dn(ldap, idnsname)
 
         # select attributes we want to retrieve
-        if options['all']:
+        if options.get('all', False):
             attrs_list = ['*']
         else:
             attrs_list = _zone_default_attributes
@@ -492,11 +493,11 @@ class dns_add_rr(Command):
         ),
     )
 
-    has_output = output.standard_entry
+    has_output = standard_entry
 
     def execute(self, zone, idnsname, type, data, **options):
         ldap = self.api.Backend.ldap2
-        attr = '%srecord' % type
+        attr = ('%srecord' % type).lower()
 
         # build entry DN
         dn = _get_record_dn(ldap, zone, idnsname)
@@ -593,11 +594,11 @@ class dns_del_rr(Command):
         ),
     )
 
-    has_output = output.standard_entry
+    has_output = standard_entry
 
-    def execute(self, zone, idnsname, type, data):
+    def execute(self, zone, idnsname, type, data, **options):
         ldap = self.api.Backend.ldap2
-        attr = '%srecord' % type
+        attr = ('%srecord' % type).lower()
 
         # build entry DN
         dn = _get_record_dn(ldap, zone, idnsname)
@@ -635,9 +636,9 @@ class dns_del_rr(Command):
         (dn, entry_attrs) = ldap.get_entry(dn, ['idnsname', attr])
         entry_attrs['dn'] = dn
 
-        return dict(result=result, value=idnsname)
+        return dict(result=entry_attrs, value=idnsname)
 
-    def output_for_cli(self, textui, result, zone, idnsname, type, data):
+    def output_for_cli(self, textui, result, zone, idnsname, type, data, **options):
         output = '"%s %s %s" from zone "%s"' % (
             idnsname, type, data, zone,
         )
@@ -683,12 +684,12 @@ class dns_find_rr(Command):
         ),
     )
 
-    has_output = output.standard_list_of_entries
+    has_output = standard_list_of_entries
 
     def execute(self, zone, term, **options):
         ldap = self.api.Backend.ldap2
         if 'type' in options:
-            attr = '%srecord' % options['type']
+            attr = ('%srecord' % options['type']).lower()
         else:
             attr = None
 
@@ -722,7 +723,7 @@ class dns_find_rr(Command):
             filter = ldap.combine_filters((filter, term_filter), ldap.MATCH_ALL)
 
         # select attributes we want to retrieve
-        if options['all']:
+        if options.get('all', False):
             attrs_list = ['*']
         elif attr is not None:
             attrs_list = [attr]
@@ -793,7 +794,7 @@ class dns_show_rr(Command):
         ),
     )
 
-    has_output = output.standard_entry
+    has_output = standard_entry
 
     def execute(self, zone, idnsname, **options):
         # shows all records associated with resource
@@ -803,7 +804,7 @@ class dns_show_rr(Command):
         dn = _get_record_dn(ldap, zone, idnsname)
 
         # select attributes we want to retrieve
-        if options['all']:
+        if options.get('all', False):
             attrs_list = ['*']
         else:
             attrs_list = _record_default_attributes
