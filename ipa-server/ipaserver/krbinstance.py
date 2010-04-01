@@ -344,12 +344,68 @@ class KrbInstance(service.Service):
         self.__ldap_mod("pwd-extop-conf.ldif")
 
     def __add_master_key(self):
+        #check for a keytab file by checking if the header magic is for a keytab
+        def __is_keytab(header):
+            if header == 0x0502 or header == 0x0501 or header == 0x0205 or header == 0x0105:
+                return 1
+            else:
+                return 0
+        #check whether a keytab file is v1 or v2
+        def __keytab_version(header):
+            if header == 0x0502 or header == 0x0205:
+                return 2
+            elif header == 0x0501 or header == 0x0105:
+                return 1
+            else:
+                return 0
         #get the Master Key from the stash file
         try:
             stash = open("/var/kerberos/krb5kdc/.k5."+self.realm, "r")
             keytype = struct.unpack('h', stash.read(2))[0]
-            keylen = struct.unpack('i', stash.read(4))[0]
-            keydata = stash.read(keylen)
+            if __is_keytab(keytype):
+                #in v2, all numbers are stored in network order
+                if __keytab_version(keytype) > 1:
+                    __endian = '!'
+                else:
+                    __endian = ''
+                #walk the first entry (there should only be one)
+                keyentrylen = struct.unpack(__endian + 'i', stash.read(4))[0]
+                #number of components in the principal name
+                keyprinccomps = struct.unpack(__endian + 'h', stash.read(2))[0]
+                #version 1 counted the realm as a component, version 2 doesn't
+                if __keytab_version(keytype) == 1:
+                    keyprinccomps = keyprinccomps - 1
+                keyprinc = []
+                #read the components. the realm goes first, so we should
+                #end up with (realm, "K", "M")
+                for i in range(keyprinccomps + 1):
+                    keyprinccompsize = struct.unpack(__endian + 'h', stash.read(2))[0]
+                    keyprinc = keyprinc + [stash.read(keyprinccompsize)]
+                #version 2 added the principal name type, otherwise we just
+                #assume it's a regular old principal name
+                if __keytab_version(keytype) > 1:
+                    keyprinctype = struct.unpack(__endian + 'i', stash.read(4))[0]
+                else:
+                    keyprinctype = 1
+                #date the key was added to this keytab
+                keydate = struct.unpack(__endian + 'i', stash.read(4))[0]
+                #kvno
+                keyversion = struct.unpack('B', stash.read(1))[0]
+                #read the real enctype
+                keytype = struct.unpack(__endian + 'h', stash.read(2))[0]
+                keylen = struct.unpack(__endian + 'h', stash.read(2))[0]
+                keydata = stash.read(keylen)
+                #check that we parsed the whole file, so no surprises
+                keyoffset = stash.tell()
+                stash.seek(0,2)
+                if stash.tell() != keyoffset:
+                    logging.critical("Unexpected unprocessed data in Stash file (processed %ld bytes, %ld left)." % (keyoffset, stash.tell() - keyoffset))
+            else:
+                keyversion = 1
+                keyprinctype = 1
+                keyprinc = [self.realm,"K","M"]
+                keylen = struct.unpack('i', stash.read(4))[0]
+                keydata = stash.read(keylen)
         except os.error:
             logging.critical("Failed to retrieve Master Key from Stash file: %s")
 	#encode it in the asn.1 attribute
@@ -357,7 +413,7 @@ class KrbInstance(service.Service):
         MasterKey.setComponentByPosition(0, univ.Integer(keytype))
         MasterKey.setComponentByPosition(1, univ.OctetString(keydata))
         krbMKey = univ.Sequence()
-        krbMKey.setComponentByPosition(0, univ.Integer(0)) #we have no kvno
+        krbMKey.setComponentByPosition(0, univ.Integer(keyversion))
         krbMKey.setComponentByPosition(1, MasterKey)
         asn1key = pyasn1.codec.ber.encoder.encode(krbMKey)
 
