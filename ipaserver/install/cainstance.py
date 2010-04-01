@@ -618,7 +618,7 @@ class CAInstance(service.Service):
 
             if self.external == 1:
                 print "The next step is to get %s signed by your CA and re-run ipa-server-install as:" % self.csr_file
-                print "ipa-server-install --ca --external_cert_file=/path/to/signed_certificate --external_ca_file=/path/to/external_ca_certificate"
+                print "ipa-server-install --external_cert_file=/path/to/signed_certificate --external_ca_file=/path/to/external_ca_certificate"
                 sys.exit(0)
 
             # pkisilent doesn't return 1 on error so look at the output of

@@ -159,6 +159,11 @@ def parse_options():
        (not options.external_cert_file and options.external_ca_file)):
         parser.error("if either external option is used, both are required.")
 
+    if (options.external_ca_file and not os.path.isabs(options.external_ca_file)):
+        parser.error("--external-ca-file must use an absolute path")
+    if (options.external_cert_file and not os.path.isabs(options.external_cert_file)):
+        parser.error("--external-cert-file must use an absolute path")
+
     return options
 
 def signal_handler(signum, frame):
@@ -194,9 +199,12 @@ def read_cache():
         raise RuntimeError("Unable to determine serial number: %s" % str(e))
 
     for opt in optlist:
-        optdict[opt[0]] = opt[1]
-        if optdict[opt[0]] == 'None':
-            optdict[opt[0]] = None
+        value = opt[1]
+        if value.lower() in ['true', 'false']:
+            value = value.lower() == 'true'
+        if value == 'None':
+            value = None
+        optdict[opt[0]] = value
 
     # These are the only ones that may be overridden
     if 'external_ca_file' in optdict:
@@ -656,7 +664,7 @@ def main():
         if external and ipautil.file_exists("/root/ipa.csr"):
             external = 2
             if options.external_cert_file is None or options.external_ca_file is None:
-                print "You have a CA signing request for this server (/root/ipa.csr), you need to include --external_cert_file and --external_ca_file"
+                print "You already have a CA signing request for this server (/root/ipa.csr), you need to include --external_cert_file and --external_ca_file"
                 sys.exit(1);
         if external and options.external_cert_file and not ipautil.file_exists(options.external_cert_file):
             print "%s does not exist" % options.external_cert_file
@@ -672,6 +680,12 @@ def main():
         if external == 0:
             ca.configure_instance("pkiuser", host_name, dm_password, dm_password, subject_base=options.subject)
         elif external == 1:
+            options.realm_name = realm_name
+            options.domain_name = domain_name
+            options.ds_user = ds_user
+            options.master_password = master_password
+            options.host_name = host_default
+            options.unattended = True
             write_cache(options)
             ca.configure_instance("pkiuser", host_name, dm_password, dm_password, csr_file="/root/ipa.csr", subject_base=options.subject)
         else:
