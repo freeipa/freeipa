@@ -791,8 +791,11 @@ class CertDB(object):
         if root_nickname[:7] == "Builtin":
             logging.debug("No need to add trust for built-in root CA's, skipping %s" % root_nickname)
         else:
-            self.run_certutil(["-M", "-n", root_nickname,
-                               "-t", "CT,CT,"])
+            try:
+                self.run_certutil(["-M", "-n", root_nickname,
+                                   "-t", "CT,CT,"])
+            except ipautil.CalledProcessError, e:
+                logging.error("Setting trust on %s failed" % root_nickname)
 
     def find_server_certs(self):
         p = subprocess.Popen(["/usr/bin/certutil", "-d", self.secdir,
