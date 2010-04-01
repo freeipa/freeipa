@@ -48,3 +48,7 @@ default:schema-compat-entry-attribute: gidNumber=%{gidNumber}
 default:schema-compat-entry-attribute: memberUid=%{memberUid}
 default:schema-compat-entry-attribute: memberUid=%deref("member","uid")
 default:schema-compat-entry-attribute: memberUid=%referred("cn=users","memberOf","uid")
+
+# Enable anonymous VLV browsing for Solaris
+dn: oid=2.16.840.1.113730.3.4.9,cn=features,cn=config 
+only:aci: '(targetattr !="aci")(version 3.0; acl "VLV Request Control"; allow (read, search, compare, proxy) userdn = "ldap:///anyone"; )'
