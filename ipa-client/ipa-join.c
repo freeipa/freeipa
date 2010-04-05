@@ -261,6 +261,57 @@ done:
     return rval;
 }
 
+static int
+get_subject(const char *ipaserver, char *ldap_base, char **subject)
+{
+    LDAP *ld = NULL;
+    char *attrs[] = {"ipaCertificateSubjectBase", NULL};
+    char base[LINE_MAX];
+    LDAPMessage *entry, *res = NULL;
+    struct berval **ncvals;
+    int ret, rval = 0;
+
+    ld = connect_ldap(ipaserver, NULL, NULL);
+    if (!ld) {
+        rval = 14;
+        goto done;
+    }
+
+    strcpy(base, "cn=ipaconfig,cn=etc,");
+    strcat(base, ldap_base);
+
+    ret = ldap_search_ext_s(ld, base, LDAP_SCOPE_BASE,
+                            "objectclass=*", attrs, 0,
+                            NULL, NULL, NULL, 0, &res);
+
+    if (ret != LDAP_SUCCESS) {
+        fprintf(stderr, "Search for ipaCertificateSubjectBase failed with error %d",
+                attrs[0], ret);
+        rval = 14;
+        goto done;
+    }
+
+    entry = ldap_first_entry(ld, res);
+    ncvals = ldap_get_values_len(ld, entry, attrs[0]);
+    if (!ncvals) {
+        fprintf(stderr, "No values for %s", attrs[0]);
+        rval = 14;
+        goto done;
+    }
+
+    *subject = strdup(ncvals[0]->bv_val);
+
+    ldap_value_free_len(ncvals);
+
+done:
+    if (res) ldap_msgfree(res);
+    if (ld != NULL) {
+        ldap_unbind_ext(ld, NULL, NULL);
+    }
+
+    return rval;
+}
+
 /* Join a host to the current IPA realm.
  *
  * There are several scenarios for this:
@@ -280,7 +331,7 @@ done:
  * the state of the entry.
  */
 static int
-join_ldap(const char *ipaserver, const char *hostname, const char ** binddn, const char *bindpw, const char ** princ, int quiet)
+join_ldap(const char *ipaserver, const char *hostname, const char ** binddn, const char *bindpw, const char **princ, const char **subject, int quiet)
 {
     LDAP *ld;
     char *filter = NULL;
@@ -302,6 +353,11 @@ join_ldap(const char *ipaserver, const char *hostname, const char ** binddn, con
         fprintf(stderr, "Unable to determine root DN of %s\n", ipaserver);
         rval = 14;
         goto done;
+    }
+
+    if (get_subject(ipaserver, ldap_base, &subject) != 0) {
+        fprintf(stderr, "Unable to determine certificate subject of %s\n", ipaserver);
+        /* Not a critical failure */
     }
 
     ld = connect_ldap(ipaserver, NULL, NULL);
@@ -382,6 +438,7 @@ ldap_done:
     free(filter);
     free(search_base);
     free(ldap_base);
+    free(subject);
     if (ld != NULL) {
         ldap_unbind_ext(ld, NULL, NULL);
     }
@@ -392,8 +449,9 @@ done:
 }
 
 static int
-join_krb5(const char *ipaserver, const char *hostname, const char **hostdn, const char **princ, int quiet) {
+join_krb5(const char *ipaserver, const char *hostname, const char **hostdn, const char **princ, const char **subject, int quiet) {
     xmlrpc_env env;
+    xmlrpc_value * argArrayP = NULL;
     xmlrpc_value * paramArrayP = NULL;
     xmlrpc_value * paramP = NULL;
     xmlrpc_value * optionsP = NULL;
@@ -403,6 +461,7 @@ join_krb5(const char *ipaserver, const char *hostname, const char **hostdn, cons
     struct utsname uinfo;
     xmlrpc_value *princP = NULL;
     xmlrpc_value *krblastpwdchangeP = NULL;
+    xmlrpc_value *subjectP = NULL;
     xmlrpc_value *hostdnP = NULL;
     const char *krblastpwdchange = NULL;
     char * url = NULL;
@@ -424,17 +483,19 @@ join_krb5(const char *ipaserver, const char *hostname, const char **hostdn, cons
 #endif
     serverInfoP = xmlrpc_server_info_new(&env, url);
 
+    argArrayP = xmlrpc_array_new(&env);
     paramArrayP = xmlrpc_array_new(&env);
 
     if (hostname == NULL)
         paramP = xmlrpc_string_new(&env, uinfo.nodename);
     else
         paramP = xmlrpc_string_new(&env, hostname);
+    xmlrpc_array_append_item(&env, argArrayP, paramP);
 #ifdef REALM
     if (!quiet)
         printf("Joining %s to IPA realm %s\n", uinfo.nodename, iparealm);
 #endif
-    xmlrpc_array_append_item(&env, paramArrayP, paramP);
+    xmlrpc_array_append_item(&env, paramArrayP, argArrayP);
     xmlrpc_DECREF(paramP);
 
     optionsP = xmlrpc_build_value(&env, "{s:s,s:s}",
@@ -488,7 +549,20 @@ join_krb5(const char *ipaserver, const char *hostname, const char **hostdn, cons
         goto cleanup;
     }
 
+    xmlrpc_struct_find_value(&env, structP, "ipacertificatesubjectbase", &subjectP);
+    if (subjectP) {
+        xmlrpc_value * singleprincP = NULL;
+
+        /* FIXME: all values are returned as lists currently. Once this is
+         * fixed we can read the string directly.
+         */
+        xmlrpc_array_read_item(&env, subjectP, 0, &singleprincP);
+        xmlrpc_read_string(&env, singleprincP, *&subject);
+        xmlrpc_DECREF(subjectP);
+    }
+
 cleanup:
+    if (argArrayP) xmlrpc_DECREF(argArrayP);
     if (paramArrayP) xmlrpc_DECREF(paramArrayP);
     if (resultP) xmlrpc_DECREF(resultP);
 
@@ -513,6 +587,7 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
     char *iparealm = NULL;
     char * conf_data = NULL;
     const char * princ = NULL;
+    const char * subject = NULL;
     const char * hostdn = NULL;
     struct utsname uinfo;
 
@@ -548,7 +623,7 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
     }
 
     if (bindpw)
-        rval = join_ldap(ipaserver, hostname, &hostdn, bindpw, &princ, quiet);
+        rval = join_ldap(ipaserver, hostname, &hostdn, bindpw, &princ, &subject, quiet);
     else {
         krberr = krb5_init_context(&krbctx);
         if (krberr) {
@@ -569,7 +644,7 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
             rval = 6;
             goto cleanup;
         }
-        rval = join_krb5(ipaserver, hostname, &hostdn, &princ, quiet);
+        rval = join_krb5(ipaserver, hostname, &hostdn, &princ, &subject, quiet);
     }
 
     if (rval) goto cleanup;
@@ -629,7 +704,11 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
     }
 
 cleanup:
+    if (NULL != subject)
+        fprintf(stderr, "Certificate subject base is: %s\n", subject);
+
     free((char *)princ);
+    free((char *)subject);
     if (bindpw)
         ldap_memfree((void *)hostdn);
     else

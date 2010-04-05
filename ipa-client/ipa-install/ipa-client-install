@@ -301,7 +301,7 @@ def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, d
 
     return 0
 
-def configure_certmonger(fstore, options):
+def configure_certmonger(fstore, subject_base, cli_realm, options):
     started = True
 
     try:
@@ -319,8 +319,10 @@ def configure_certmonger(fstore, options):
 
     # Request our host cert
     if started:
+        subject = 'CN=%s,%s' % (socket.getfqdn(), subject_base)
+        principal = 'host/%s@%s' % (socket.getfqdn(), cli_realm)
         try:
-            run(["ipa-getcert", "request", "-d", "/etc/pki/nssdb", "-n", "Server-Cert"])
+            run(["ipa-getcert", "request", "-d", "/etc/pki/nssdb", "-n", "Server-Cert", "-N", subject, "-K", principal])
         except:
             print "certmonger request for host certificate failed"
 
@@ -369,6 +371,8 @@ def main():
     cli_server = None
     cli_realm = None
     cli_basedn = None
+
+    subject_base = "O=IPA"
 
     if options.unattended and (options.password is None and options.principal is None and options.prompt_password is False) and not options.on_master:
         print "One of password and principal are required."
@@ -489,6 +493,13 @@ def main():
                 if not options.force:
                     return 1
                 print "  Use ipa-getkeytab to obtain a host principal for this server."
+
+            start = stderr.find('Certificate subject base is: ')
+            if start >= 0:
+                start = start + 29
+                subject_base = stderr[start:]
+                subject_base = subject_base.strip()
+
         finally:
             if options.principal is not None:
                 (stderr, stdout, returncode) = run(["/usr/kerberos/bin/kdestroy"], raiseonerr=False)
@@ -511,7 +522,7 @@ def main():
         print "Configured /etc/ldap.conf"
 
     if not options.on_master:
-        configure_certmonger(fstore, options)
+        configure_certmonger(fstore, subject_base, cli_realm, options)
 
     # If on master assume kerberos is already configured properly.
     if not options.on_master:

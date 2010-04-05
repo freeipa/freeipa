@@ -295,7 +295,8 @@ class xmlserver(WSGIExecutioner):
             self.info('response: %s: %s', error.__class__.__name__, str(error))
             response = Fault(error.errno, error.strerror)
         else:
-            self.info('response: entries returned %d', result.get('count', 1))
+            if isinstance(result, dict):
+                self.info('response: entries returned %d', result.get('count', 1))
             response = (result,)
         return xml_dumps(response, methodresponse=True)
 

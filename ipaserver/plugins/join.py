@@ -113,6 +113,9 @@ class join(Command):
             attrs_list = api.Command['host_add'](hostname)['result']
             dn = attrs_list['dn']
 
+        config = api.Command['config_show']()['result']
+        attrs_list['ipacertificatesubjectbase'] = config['ipacertificatesubjectbase']
+
         return (dn, attrs_list)
 
 api.register(join)
