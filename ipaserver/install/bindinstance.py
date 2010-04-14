@@ -263,7 +263,12 @@ class BindInstance(service.Service):
         # Store the keytab on disk
         self.fstore.backup_file("/etc/named.keytab")
         installutils.create_keytab("/etc/named.keytab", dns_principal)
-        dns_principal = self.move_service(dns_principal)
+        p = self.move_service(dns_principal)
+        if p is None:
+            # the service has already been moved, perhaps we're doing a DNS reinstall
+            dns_principal = "krbprincipalname=%s,cn=services,cn=accounts,%s" % (dns_principal, self.suffix)
+        else:
+            dns_principal = p
 
         # Make sure access is strictly reserved to the named user
         pent = pwd.getpwnam(self.named_user)
@@ -284,10 +289,14 @@ class BindInstance(service.Service):
             raise e
 
         dns_group = "cn=dnsserver,cn=rolegroups,cn=accounts,%s" % self.suffix
+        if isinstance(dns_principal, unicode):
+            dns_principal = dns_principal.encode('utf-8')
         mod = [(ldap.MOD_ADD, 'member', dns_principal)]
 
         try:
             conn.modify_s(dns_group, mod)
+        except ldap.TYPE_OR_VALUE_EXISTS:
+            pass
         except Exception, e:
             logging.critical("Could not modify principal's %s entry" % dns_principal)
             raise e
