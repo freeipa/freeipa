@@ -282,8 +282,8 @@ class StateFile:
         by the string @key and with the value @value. @value may be
         a string or boolean.
         """
-        if not (isinstance(value, str) or isinstance(value, bool)):
-            raise ValueError("Only strings or booleans supported")
+        if not isinstance(value, (str, bool, unicode)):
+            raise ValueError("Only strings, booleans or unicode strings are supported")
 
         if not self.modules.has_key(module):
             self.modules[module] = {}
