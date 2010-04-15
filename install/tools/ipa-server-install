@@ -133,9 +133,8 @@ def parse_options():
 
     if options.uninstall:
         if (options.ds_user or options.realm_name or
-            options.dm_password or options.admin_password or
-            options.master_password):
-            parser.error("In uninstall mode, -u, r, -p and -P options are not allowed")
+            options.admin_password or options.master_password):
+            parser.error("In uninstall mode, -u, r and -P options are not allowed")
     elif options.unattended:
         if (not options.ds_user or not options.realm_name or
             not options.dm_password or not options.admin_password):
@@ -375,7 +374,10 @@ def check_dirsrv(unattended):
             print "\t636"
         sys.exit(1)
 
-def uninstall(ca = False):
+def uninstall(ca=False, dm_password=None):
+    if dm_password:
+        api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dm_password)
+
     try:
         run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--uninstall"])
     except Exception, e:
@@ -464,16 +466,34 @@ def main():
     )
 
     if options.uninstall:
+        dm_password = options.dm_password
+
+        # We will need at least api.env, finalize api now. This system is
+        # already installed, so the configuration file is there.
+        api.bootstrap(**cfg)
+        api.finalize()
+
         if not options.unattended:
             print "\nThis is a NON REVERSIBLE operation and will delete all data and configuration!\n"
             if not user_input("Are you sure you want to continue with the uninstall procedure?", False):
                 print ""
                 print "Aborting uninstall operation."
                 sys.exit(1)
+            if not dm_password:
+                if user_input("Do you want to remove old SRV and NS records?", False):
+                    dm_password = read_password("Directory Manager", confirm=False, validate=False)
+                    # Try out the password
+                    try:
+                        conn = ipaldap.IPAdmin(api.env.host)
+                        conn.do_simple_bind(bindpw=dm_password)
+                        conn.unbind()
+                    except (ldap.CONNECT_ERROR, ldap.SERVER_DOWN), e:
+                        sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
+                    except ldap.INVALID_CREDENTIALS, e :
+                        sys.exit("\nThe password provided is incorrect for LDAP server %s" % api.env.host)
 
-        api.bootstrap(**cfg)
-        api.finalize()
-        return uninstall(not certs.ipa_self_signed())
+
+        return uninstall(not certs.ipa_self_signed(), dm_password)
 
     # This will override any settings passed in on the cmdline
     options._update_loose(read_cache())
