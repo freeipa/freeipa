@@ -76,6 +76,7 @@ def make_cos_entry(group, cospriority=None):
      cos_dn = DN of the new CoS entry
      cos_entry = entry representing this new object
     """
+    ldap = api.Backend.ldap2
 
     groupdn = find_group_dn(group)
 
@@ -83,7 +84,9 @@ def make_cos_entry(group, cospriority=None):
     if cospriority:
         cos_entry['cospriority'] = cospriority
     cos_entry['objectclass'] = ['top', 'costemplate', 'extensibleobject', 'krbcontainer']
-    cos_dn = 'cn=\"%s\", cn=cosTemplates, cn=accounts, %s' % (groupdn, api.env.basedn)
+    cos_dn = ldap.make_dn_from_attr(
+        'cn', groupdn, 'cn=cosTemplates,%s' % api.env.container_accounts
+    )
 
     return (cos_dn, cos_entry)
 
@@ -146,7 +149,7 @@ def unique_priority(ldap, priority):
 
     try:
         (entries, truncated) = ldap.find_entries(
-            attr_filter, attrs, 'cn=cosTemplates,%s' % (api.env.container_accounts), scope=ldap.SCOPE_ONELEVEL
+            attr_filter, attrs, 'cn=cosTemplates,%s' % api.env.container_accounts, scope=ldap.SCOPE_ONELEVEL
         )
         return False
     except errors.NotFound:
@@ -248,8 +251,8 @@ class pwpolicy_add(crud.Create):
         # Link the two entries together
         cos_entry['krbpwdpolicyreference'] = policy_dn
 
-        ldap.add_entry(policy_dn, policy_entry, normalize=False)
-        ldap.add_entry(cos_dn, cos_entry, normalize=False)
+        ldap.add_entry(policy_dn, policy_entry)
+        ldap.add_entry(cos_dn, cos_entry)
 
         # The policy is what is interesting, return that
         (dn, entry_attrs) = ldap.get_entry(policy_dn, policy_entry.keys())
@@ -308,9 +311,11 @@ class pwpolicy_mod(crud.Update):
                 if not unique_priority(ldap, options['cospriority']):
                     raise errors.ValidationError(name='priority', error=_('Priority must be a unique value.'))
                 groupdn = find_group_dn(group_cn)
-                cos_dn = 'cn="%s", cn=cosTemplates, cn=accounts, %s' % (groupdn, api.env.basedn)
-                self.log.debug('%s' % cos_dn)
-                ldap.update_entry(cos_dn, dict(cospriority = options['cospriority']), normalize=False)
+                cos_dn = ldap.make_dn_from_attr(
+                    'cn', groupdn,
+                    'cn=cosTemplates,%s' % self.api.env.container_accounts
+                )
+                ldap.update_entry(cos_dn, dict(cospriority = options['cospriority']))
                 cospriority = options['cospriority']
                 del options['cospriority']
             entry_attrs = self.args_options_2_entry(*args, **options)
@@ -358,12 +363,14 @@ class pwpolicy_del(crud.Delete):
             # Ok, perhaps the group was deleted, try to make the group DN
             rdn = ldap.make_rdn_from_attr('cn', group_cn)
             group_dn = ldap.make_dn_from_rdn(rdn, api.env.container_group)
-            cos_dn = 'cn=\"%s\", cn=cosTemplates, cn=accounts, %s' % (group_dn, api.env.basedn)
+            cos_dn = ldap.make_dn_from_attr(
+                'cn', group_dn,
+                'cn=cosTemplates,%s' % self.api.env.container_accounts
+            )
         policy_entry = self.args_options_2_entry(*args, **options)
         (policy_dn, policy_entry) = make_policy_entry(group_cn, policy_entry)
-
-        ldap.delete_entry(policy_dn, normalize=False)
-        ldap.delete_entry(cos_dn, normalize=False)
+        ldap.delete_entry(policy_dn)
+        ldap.delete_entry(cos_dn)
         return dict(
             result=True,
             value=group_cn,
@@ -424,8 +431,11 @@ class pwpolicy_show(Method):
 
         if 'group' in options:
             groupdn = find_group_dn(options['group'])
-            cos_dn = 'cn="%s", cn=cosTemplates, cn=accounts, %s' % (groupdn, api.env.basedn)
-            (dn, cos_attrs) = ldap.get_entry(cos_dn, normalize=False)
+            cos_dn = ldap.make_dn_from_attr(
+                'cn', groupdn,
+                'cn=cosTemplates,%s' % self.api.env.container_accounts
+            )
+            (dn, cos_attrs) = ldap.get_entry(cos_dn)
             entry_attrs['cospriority'] = cos_attrs['cospriority']
         else:
             entry_attrs['cn'] = _global
@@ -462,8 +472,11 @@ class pwpolicy_find(Method):
             _convert_time_for_output(e[1])
             e[1]['dn'] = e[0]
             groupdn = find_group_dn(e[1]['cn'][0])
-            cos_dn = 'cn="%s", cn=cosTemplates, cn=accounts, %s' % (groupdn, api.env.basedn)
-            (dn, cos_attrs) = ldap.get_entry(cos_dn, normalize=False)
+            cos_dn = ldap.make_dn_from_attr(
+                'cn', groupdn,
+                'cn=cosTemplates,%s' % self.api.env.container_accounts
+            )
+            (dn, cos_attrs) = ldap.get_entry(cos_dn)
             e[1]['cospriority'] = cos_attrs['cospriority']
         entries = tuple(e for (dn, e) in entries)
 

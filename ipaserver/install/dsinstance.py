@@ -34,6 +34,7 @@ import service
 import installutils
 import certs
 import ldap
+from ldap.dn import escape_dn_chars
 from ipaserver import ipaldap
 from ipaserver.install import ldapupdate
 from ipaserver.install import httpinstance
@@ -209,7 +210,9 @@ class DsInstance(service.Service):
                              REALM=self.realm_name, USER=self.ds_user,
                              SERVER_ROOT=server_root, DOMAIN=self.domain,
                              TIME=int(time.time()), UIDSTART=self.uidstart,
-                             GIDSTART=self.gidstart, HOST=self.host_name)
+                             GIDSTART=self.gidstart, HOST=self.host_name,
+                             ESCAPED_SUFFIX= escape_dn_chars(self.suffix.lower()),
+                         )
 
     def __create_ds_user(self):
         user_exists = True

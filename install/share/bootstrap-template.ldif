@@ -190,7 +190,7 @@ objectclass: top
 objectclass: nsContainer
 cn: cosTemplates
 
-dn: cn="cn=inactivated,cn=account inactivation,cn=accounts,$SUFFIX", cn=cosTemplates,cn=accounts,$SUFFIX
+dn: cn=cn\=inactivated\,cn\=account inactivation\,cn\=accounts\,$ESCAPED_SUFFIX,cn=cosTemplates,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: cosTemplate
@@ -203,7 +203,7 @@ changetype: add
 objectclass: top
 objectclass: groupofnames
 
-dn: cn="cn=activated,cn=account inactivation,cn=accounts,$SUFFIX", cn=cosTemplates,cn=accounts,$SUFFIX
+dn: cn=cn\=activated\,cn\=account inactivation\,cn\=accounts\,$ESCAPED_SUFFIX,cn=cosTemplates,cn=accounts,$SUFFIX
 changetype: add
 objectClass: top
 objectClass: cosTemplate

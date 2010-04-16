@@ -31,6 +31,7 @@ from ipapython import entity, ipautil
 from ipalib import util, uuid
 from ipalib import errors
 import ldap
+from ldap.dn import escape_dn_chars
 import logging
 import krbV
 import platform
@@ -76,6 +77,8 @@ class LDAPUpdate:
             self.sub_dict["DOMAIN"] = domain
         if not self.sub_dict.get("SUFFIX"):
             self.sub_dict["SUFFIX"] = suffix
+        if not self.sub_dict.get("ESCAPED_SUFFIX"):
+            self.sub_dict["ESCAPED_SUFFIX"] = escape_dn_chars(suffix)
         if not self.sub_dict.get("LIBARCH"):
             self.sub_dict["LIBARCH"] = libarch
         if not self.sub_dict.get("TIME"):
