@@ -84,7 +84,7 @@ radius-install: radius install
 	done
 
 test:
-	cd install/po && $(MAKE) test_lang
+	$(MAKE) -C install/po test_lang
 	./make-test
 
 release-update:
