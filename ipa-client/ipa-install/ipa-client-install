@@ -114,15 +114,19 @@ def logging_setup(options):
 
 def uninstall(options):
 
-    print "Restoring client configuration files"
-    fstore.restore_all_files()
-
-    # Remove our host cert
+    # Remove our host cert and CA cert
     try:
-        run(["/usr/bin/ipa-getcert", "stop-tracking", "-d", "/etc/pki/nssdb", "-n", "Server-Cert"])
+        run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", "IPA CA"])
+    except Exception, e:
+        print "Failed to remove IPA CA from /etc/pki/nssdb: %s" % str(e)
+    try:
         run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", "Server-Cert"])
     except Exception, e:
         print "Failed to remove Server-Cert from /etc/pki/nssdb: %s" % str(e)
+    try:
+        run(["/usr/bin/ipa-getcert", "stop-tracking", "-d", "/etc/pki/nssdb", "-n", "Server-Cert"])
+    except Exception, e:
+        print "Failed to stop tracking Server-Cert in certmonger: %s" % str(e)
  
     try:
         run(["/sbin/service", "certmonger", "stop"])
@@ -134,6 +138,13 @@ def uninstall(options):
     except:
         print "Failed to disable automatic startup of the certmonger daemon"
 
+    print "Removing Kerberos service principals from /etc/krb5.keytab"
+    try:
+        ctx = krbV.default_context()
+        run(["/usr/sbin/ipa-rmkeytab", "-k", "/etc/krb5.keytab", "-r", ctx.default_realm])
+    except:
+        print "Failed to clean up /etc/krb5.keytab"
+
     print "Disabling client Kerberos and Ldap configurations"
     try:
         run(["/usr/sbin/authconfig", "--disableldap", "--disablekrb5", "--disablesssd", "--disablesssdauth", "--disablemkhomedir", "--update"])
@@ -141,17 +152,13 @@ def uninstall(options):
         print "Failed to remove krb5/ldap configuration. " +str(e)
         sys.exit(1)
 
-    print "Removing Kerberos service principals from /etc/krb5.keytab"
+    print "Restoring client configuration files"
+    fstore.restore_all_files()
+
     try:
         run(["/sbin/service", "nscd", "restart"])
     except:
         print "Failed to restart start the NSCD daemon"
-
-    try:
-        ctx = krbV.default_context()
-        run(["/usr/sbin/ipa-rmkeytab", "-k", "/etc/krb5.keytab", "-r", ctx.default_realm])
-    except:
-        print "Failed to clean up /etc/krb5.keytab"
 
     if not options.unattended:
         print "The original nsswitch.conf configuration has been restored."
@@ -183,7 +190,8 @@ def configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server):
                {'name':'realm', 'type':'option', 'value':cli_realm},
                {'name':'domain', 'type':'option', 'value':cli_domain},
                {'name':'server', 'type':'option', 'value':cli_server},
-               {'name':'xmlrpc_uri', 'type':'option', 'value':'https://%s/ipa/xml' % cli_server}]
+               {'name':'xmlrpc_uri', 'type':'option', 'value':'https://%s/ipa/xml' % cli_server},
+               {'name':'enable_ra', 'type':'option', 'value':'True'}]
 
     opts.append({'name':'global', 'type':'section', 'value':defopts})
     opts.append({'name':'empty', 'type':'empty'})
@@ -521,6 +529,12 @@ def main():
             return 1
         print "Configured /etc/ldap.conf"
 
+    # Get the CA certificate
+    if not options.on_master:
+        run(["/usr/bin/wget", "-O", "/etc/ipa/ca.crt", "http://%s/ipa/config/ca.crt" % cli_server])
+        # Add the CA to the default NSS database and trust it
+        run(["/usr/bin/certutil", "-A", "-d", "/etc/pki/nssdb", "-n", "IPA CA", "-t", "CT,C,C", "-a", "-i", "/etc/ipa/ca.crt"])
+
     if not options.on_master:
         configure_certmonger(fstore, subject_base, cli_realm, options)
 
@@ -586,9 +600,6 @@ def main():
         print "Failed to configure automatic startup of the NSCD daemon"
         print "Caching of users/groups will not be available after reboot"
         pass
-
-    # Get the CA certificate
-    run(["/usr/bin/wget", "-O", "/etc/ipa/ca.crt", "http://%s/ipa/config/ca.crt" % cli_server])
 
     print "Client configuration complete."
 
