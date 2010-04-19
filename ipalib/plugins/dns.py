@@ -95,6 +95,13 @@ _zone_default_attributes = [
 ]
 
 
+# normalizer for admin email
+def _rname_normalizer(value):
+    value = value.replace('@', '.')
+    if not value.endswith('.'):
+        value += '.'
+    return value
+
 # build zone dn
 def _get_zone_dn(ldap, idnsname):
     rdn = ldap.make_rdn_from_attr('idnsname', idnsname)
@@ -129,7 +136,7 @@ class dns(Object):
             cli_name='admin_email',
             label=_('administrator e-mail address'),
             default_from=lambda idnsname: 'root.%s' % idnsname,
-            normalizer=lambda value: value.replace('@', '.'),
+            normalizer=_rname_normalizer,
         ),
         Int('idnssoaserial?',
             cli_name='serial',

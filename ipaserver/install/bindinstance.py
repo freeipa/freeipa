@@ -93,7 +93,7 @@ def add_zone(name, update_policy=None, dns_backup=None):
 
     try:
         api.Command.dns_add(unicode(name),
-                            idnssoamname=unicode(api.env.host),
+                            idnssoamname=unicode(api.env.host+"."),
                             idnsallowdynupdate=True,
                             idnsupdatepolicy=unicode(update_policy))
     except (errors.DuplicateEntry, errors.EmptyModlist):
@@ -109,13 +109,13 @@ def add_reverze_zone(ip_address, update_policy=None, dns_backup=None):
         update_policy = "grant %s krb5-subdomain %s. PTR;" % (api.env.realm, zone)
     try:
         api.Command.dns_add(unicode(zone),
-                            idnssoamname=unicode(api.env.host),
+                            idnssoamname=unicode(api.env.host+"."),
                             idnsallowdynupdate=True,
                             idnsupdatepolicy=unicode(update_policy))
     except (errors.DuplicateEntry, errors.EmptyModlist):
         pass
 
-    add_rr(zone, "@", "NS", api.env.host, dns_backup)
+    add_rr(zone, "@", "NS", api.env.host+".", dns_backup)
 
     return zone
 
