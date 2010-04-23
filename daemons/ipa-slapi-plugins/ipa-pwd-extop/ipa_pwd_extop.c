@@ -124,6 +124,11 @@
 
 void krb5int_c_free_keyblock_contents(krb5_context context, register krb5_keyblock *key);
 
+/* Forward definition */
+static int ipapwd_entry_checks(Slapi_PBlock *pb, struct slapi_entry *e,
+                               int *is_root, int *is_krb, int *is_smb,
+                               char *attr, int access);
+
 static const char *ipapwd_def_encsalts[] = {
 	"des3-hmac-sha1:normal",
 /*	"arcfour-hmac:normal",
@@ -1738,7 +1743,8 @@ static void hexbuf(char *out, const uint8_t *in)
 
 /* Modify the Password attributes of the entry */
 static int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
-				struct ipapwd_data *data)
+				struct ipapwd_data *data,
+				int is_krb)
 {
 	int ret = 0;
 	Slapi_Mods *smods;
@@ -1758,33 +1764,35 @@ static int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
 
 	smods = slapi_mods_new();
 
-	/* generate kerberos keys to be put into krbPrincipalKey */
-	svals = encrypt_encode_key(krbcfg, data, &errMesg);
-	if (!svals) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "key encryption/encoding failed\n");
-		ret = LDAP_OPERATIONS_ERROR;
-		goto free_and_return;
-	}
+	if (is_krb) {
+		/* generate kerberos keys to be put into krbPrincipalKey */
+		svals = encrypt_encode_key(krbcfg, data, &errMesg);
+		if (!svals) {
+			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "key encryption/encoding failed\n");
+			ret = LDAP_OPERATIONS_ERROR;
+			goto free_and_return;
+		}
 
-	slapi_mods_add_mod_values(smods, LDAP_MOD_REPLACE, "krbPrincipalKey", svals);
+		slapi_mods_add_mod_values(smods, LDAP_MOD_REPLACE, "krbPrincipalKey", svals);
 
-	/* change Last Password Change field with the current date */
-	if (!gmtime_r(&(data->timeNow), &utctime)) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "failed to retrieve current date (buggy gmtime_r ?)\n");
-		ret = LDAP_OPERATIONS_ERROR;
-		goto free_and_return;
-	}
-	strftime(timestr, GENERALIZED_TIME_LENGTH+1, "%Y%m%d%H%M%SZ", &utctime);
-	slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "krbLastPwdChange", timestr);
+		/* change Last Password Change field with the current date */
+		if (!gmtime_r(&(data->timeNow), &utctime)) {
+			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "failed to retrieve current date (buggy gmtime_r ?)\n");
+			ret = LDAP_OPERATIONS_ERROR;
+			goto free_and_return;
+		}
+		strftime(timestr, GENERALIZED_TIME_LENGTH+1, "%Y%m%d%H%M%SZ", &utctime);
+		slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "krbLastPwdChange", timestr);
 
-	/* set Password Expiration date */
-	if (!gmtime_r(&(data->expireTime), &utctime)) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "failed to convert expiration date\n");
-		ret = LDAP_OPERATIONS_ERROR;
-		goto free_and_return;
+		/* set Password Expiration date */
+		if (!gmtime_r(&(data->expireTime), &utctime)) {
+			slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "failed to convert expiration date\n");
+			ret = LDAP_OPERATIONS_ERROR;
+			goto free_and_return;
+		}
+		strftime(timestr, GENERALIZED_TIME_LENGTH+1, "%Y%m%d%H%M%SZ", &utctime);
+		slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "krbPasswordExpiration", timestr);
 	}
-	strftime(timestr, GENERALIZED_TIME_LENGTH+1, "%Y%m%d%H%M%SZ", &utctime);
-	slapi_mods_add_string(smods, LDAP_MOD_REPLACE, "krbPasswordExpiration", timestr);
 
 	sambaSamAccount = slapi_value_new_string("sambaSamAccount");
 	if (slapi_entry_attr_has_syntax_value(data->target, "objectClass", sambaSamAccount)) {
@@ -1858,6 +1866,7 @@ static int ipapwd_chpwop(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	Slapi_Entry *targetEntry=NULL;
 	char *attrlist[] = {"*", "passwordHistory", NULL };
 	struct ipapwd_data pwdata;
+	int is_krb, is_smb;
 
 	/* Get the ber value of the extended operation */
 	slapi_pblock_get(pb, SLAPI_EXT_OP_REQ_VALUE, &extop_value);
@@ -1993,6 +2002,13 @@ parse_req_done:
 		goto free_and_return;
 	 }
 
+	 rc = ipapwd_entry_checks(pb, targetEntry,
+				&is_root, &is_krb, &is_smb,
+				SLAPI_USERPWD_ATTR, SLAPI_ACL_WRITE);
+	 if (rc) {
+		goto free_and_return;
+	 }
+
 	 /* First thing to do is to ask access control if the bound identity has
 	  * rights to modify the userpassword attribute on this entry. If not,
 	  * then we fail immediately with insufficient access. This means that
@@ -2080,7 +2096,7 @@ parse_req_done:
 	}
 
 	/* Now we're ready to set the kerberos key material */
-	ret = ipapwd_SetPassword(krbcfg, &pwdata);
+	ret = ipapwd_SetPassword(krbcfg, &pwdata, is_krb);
 	if (ret != LDAP_SUCCESS) {
 		/* Failed to modify the password,
 		 * e.g. because insufficient access allowed */
@@ -3403,7 +3419,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     }
 
     /* generate kerberos keys */
-    ret = ipapwd_SetPassword(krbcfg, &pwdata);
+    ret = ipapwd_SetPassword(krbcfg, &pwdata, 1);
     if (ret) {
         slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
                         "failed to set kerberos key for user entry: %s\n", dn);
