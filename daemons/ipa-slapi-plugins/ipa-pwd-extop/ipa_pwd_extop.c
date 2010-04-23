@@ -477,7 +477,8 @@ static inline void encode_int16(unsigned int val, unsigned char *p)
 }
 
 static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
-					struct ipapwd_data *data)
+					struct ipapwd_data *data,
+					char **errMesg)
 {
 	krb5_context krbctx;
 	char *krbPrincipalName = NULL;
@@ -503,7 +504,8 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 
 	krbPrincipalName = slapi_entry_attr_get_charptr(data->target, "krbPrincipalName");
 	if (!krbPrincipalName) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "no krbPrincipalName present in this entry\n");
+                *errMesg = "no krbPrincipalName present in this entry\n";
+		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", *errMesg);
 		return NULL;
 	}
 
@@ -765,6 +767,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 	return svals;
 
 enc_error:
+        *errMesg = "key encryption/encoding failed\n";
 	if (kset) ipapwd_keyset_free(&kset);
 	krb5_free_principal(krbctx, princ);
 	slapi_ch_free_string(&krbPrincipalName);
@@ -1737,7 +1740,7 @@ static void hexbuf(char *out, const uint8_t *in)
 static int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
 				struct ipapwd_data *data)
 {
-	int ret = 0, i = 0;
+	int ret = 0;
 	Slapi_Mods *smods;
 	Slapi_Value **svals = NULL;
 	Slapi_Value **pwvals = NULL;
@@ -1749,13 +1752,14 @@ static int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
 	struct ntlm_keys ntlm;
 	int ntlm_flags = 0;
 	Slapi_Value *sambaSamAccount;
+        char *errMesg = NULL;
 
 	slapi_log_error(SLAPI_LOG_TRACE, "ipa_pwd_extop", "=> ipapwd_SetPassword\n");
 
 	smods = slapi_mods_new();
 
 	/* generate kerberos keys to be put into krbPrincipalKey */
-	svals = encrypt_encode_key(krbcfg, data);
+	svals = encrypt_encode_key(krbcfg, data, &errMesg);
 	if (!svals) {
 		slapi_log_error(SLAPI_LOG_FATAL, "ipa_pwd_extop", "key encryption/encoding failed\n");
 		ret = LDAP_OPERATIONS_ERROR;
@@ -3184,7 +3188,8 @@ static int ipapwd_preop_gen_hashes(struct ipapwd_krbcfg *krbcfg,
                                    char *userpw,
                                    int is_krb, int is_smb,
                                    Slapi_Value ***svals,
-                                   char **nthash, char **lmhash)
+                                   char **nthash, char **lmhash,
+                                   char **errMesg)
 {
     int rc;
 
@@ -3192,9 +3197,10 @@ static int ipapwd_preop_gen_hashes(struct ipapwd_krbcfg *krbcfg,
 
         pwdop->is_krb = 1;
 
-        *svals = encrypt_encode_key(krbcfg, &pwdop->pwdata);
+        *svals = encrypt_encode_key(krbcfg, &pwdop->pwdata, errMesg);
 
         if (!*svals) {
+            /* errMesg should have been set in encrypt_encode_key() */
             slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
                             "key encryption/encoding failed\n");
 	    rc = LDAP_OPERATIONS_ERROR;
@@ -3213,8 +3219,9 @@ static int ipapwd_preop_gen_hashes(struct ipapwd_krbcfg *krbcfg,
 
         ret = encode_ntlm_keys(userpw, ntlm_flags, &ntlm);
         if (ret) {
+            *errMesg = "Failed to generate NT/LM hashes\n";
             slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                            "Failed to generate NT/LM hashes\n");
+                            *errMesg);
             rc = LDAP_OPERATIONS_ERROR;
             goto done;
         }
@@ -3625,7 +3632,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
         rc = ipapwd_preop_gen_hashes(krbcfg,
                                      pwdop, userpw,
                                      is_krb, is_smb,
-                                     &svals, &nt, &lm);
+                                     &svals, &nt, &lm, &errMesg);
         if (rc != LDAP_SUCCESS) {
             goto done;
         }
@@ -4017,7 +4024,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
         rc = ipapwd_preop_gen_hashes(krbcfg,
                                      pwdop, unhashedpw,
                                      is_krb, is_smb,
-                                     &svals, &nt, &lm);
+                                     &svals, &nt, &lm, &errMesg);
         if (rc) {
             goto done;
         }
@@ -4069,7 +4076,6 @@ done:
 
 static int ipapwd_post_op(Slapi_PBlock *pb)
 {
-    char *errMesg = "Internal operations error\n";
     void *op;
     struct ipapwd_operation *pwdop = NULL;
     Slapi_Mods *smods;
