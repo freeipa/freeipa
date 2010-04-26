@@ -876,11 +876,11 @@ class Command(HasParam):
             if isinstance(outp, ListOfEntries):
                 textui.print_entries(result, order, labels, print_all)
             elif isinstance(result, (tuple, list)):
-                textui.print_entries(result)
+                textui.print_entries(result, order, labels, print_all)
             elif isinstance(outp, Entry):
                 textui.print_entry(result, order, labels, print_all)
             elif isinstance(result, dict):
-                textui.print_entry(result)
+                textui.print_entry(result, order, labels, print_all)
             elif isinstance(result, unicode):
                 if o == 'summary':
                     textui.print_summary(result)
@@ -891,7 +891,7 @@ class Command(HasParam):
                 # success or failure. Ignore these.
                 pass
             elif isinstance(result, int):
-                textui.print_count(result, '%s %%d' % self.output[o].doc)
+                textui.print_count(result, '%s %%d' % unicode(self.output[o].doc))
 
 
 class LocalOrRemote(Command):
