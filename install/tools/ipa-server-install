@@ -59,6 +59,7 @@ from ipalib import api, errors, util
 import ipawebui
 
 pw_name = None
+uninstalling = False
 
 # Used to determine the the highest possible uid/gid
 MAXINT_32BIT = 2147483648
@@ -436,6 +437,7 @@ def set_subject_in_config(host_name, dm_password, suffix, subject_base):
 def main():
     global ds
     global pw_name
+    global uninstalling
     ds = None
 
     options = parse_options()
@@ -448,6 +450,7 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
 
     if options.uninstall:
+        uninstalling = True
         standard_logging_setup("/var/log/ipaserver-uninstall.log", options.debug)
     else:
         standard_logging_setup("/var/log/ipaserver-install.log", options.debug)
@@ -846,9 +849,9 @@ try:
     except SystemExit, e:
         sys.exit(e)
     except Exception, e:
-        if options.uninstall:
+        if uninstalling:
             message = "Unexpected error - see ipaserver-uninstall.log for details:\n %s" % str(e)
-        else
+        else:
             message = "Unexpected error - see ipaserver-install.log for details:\n %s" % str(e)
         print message
         message = str(e)
