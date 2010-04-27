@@ -262,19 +262,19 @@ class ldap2(CrudBackend, Encoder):
         if tls_keyfile is not None:
             _ldap.set_option(_ldap.OPT_X_TLS_KEYFILE, tls_keyfile)
 
-        conn = _ldap.initialize(self.ldap_uri)
-        if ccache is not None:
-            try:
+        try:
+            conn = _ldap.initialize(self.ldap_uri)
+            if ccache is not None:
                 os.environ['KRB5CCNAME'] = ccache
                 conn.sasl_interactive_bind_s('', SASL_AUTH)
                 principal = krbV.CCache(name=ccache,
                             context=krbV.default_context()).principal().name
                 setattr(context, 'principal', principal)
-            except _ldap.LDAPError, e:
-                _handle_errors(e, **{})
-        else:
-            # no kerberos ccache, use simple bind
-            conn.simple_bind_s(bind_dn, bind_pw)
+            else:
+                # no kerberos ccache, use simple bind
+                conn.simple_bind_s(bind_dn, bind_pw)
+        except _ldap.LDAPError, e:
+            _handle_errors(e, **{})
         return conn
 
     def destroy_connection(self):

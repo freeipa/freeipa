@@ -483,15 +483,15 @@ def main():
                 if user_input("Do you want to remove old SRV and NS records?", False):
                     dm_password = read_password("Directory Manager", confirm=False, validate=False)
                     # Try out the password
+                    ldapuri = 'ldap://%s' % api.env.host
                     try:
-                        conn = ipaldap.IPAdmin(api.env.host)
-                        conn.do_simple_bind(bindpw=dm_password)
-                        conn.unbind()
-                    except (ldap.CONNECT_ERROR, ldap.SERVER_DOWN), e:
-                        sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
-                    except ldap.INVALID_CREDENTIALS, e :
+                        conn = ldap2(shared_instance=False, ldap_uri=ldapuri)
+                        conn.connect(bind_dn='cn=directory manager', bind_pw=dm_password)
+                    except errors.ACIError:
                         sys.exit("\nThe password provided is incorrect for LDAP server %s" % api.env.host)
-
+                    except errors.ExecutionError:
+                        sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
+                    conn.disconnect()
 
         return uninstall(not certs.ipa_self_signed(), dm_password)
 
@@ -846,7 +846,10 @@ try:
     except SystemExit, e:
         sys.exit(e)
     except Exception, e:
-        message = "Unexpected error - see ipaserver-install.log for details:\n %s" % str(e)
+        if options.uninstall:
+            message = "Unexpected error - see ipaserver-uninstall.log for details:\n %s" % str(e)
+        else
+            message = "Unexpected error - see ipaserver-install.log for details:\n %s" % str(e)
         print message
         message = str(e)
         for str in traceback.format_tb(sys.exc_info()[2]):
