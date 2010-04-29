@@ -183,6 +183,7 @@ def port_available(port):
 
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         fcntl.fcntl(s, fcntl.F_SETFD, fcntl.FD_CLOEXEC)
         s.bind(('', port))
         s.close()
@@ -193,6 +194,7 @@ def port_available(port):
     if rv:
         try:
             s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             fcntl.fcntl(s, fcntl.F_SETFD, fcntl.FD_CLOEXEC)
             s.bind(('', port))
             s.close()
