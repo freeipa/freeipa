@@ -1348,6 +1348,46 @@ class test_List(ClassChecker):
         # the output w/o skipspace is ['a',' "b','c"',' d']
         assert len(n) is 4
 
+class test_AccessTime(ClassChecker):
+    """
+    Test the `ipalib.parameters.AccessTime` class.
+    """
+    _cls = parameters.AccessTime
+
+    def test_init(self):
+        """
+        Test the `ipalib.parameters.AccessTime.__init__` method.
+        """
+        # Test with no kwargs:
+        o = self.cls('my_time')
+        assert o.type is unicode
+        assert isinstance(o, parameters.AccessTime)
+        assert o.multivalue is False
+        translation = u'length=%(length)r'
+        dummy = dummy_ugettext(translation)
+        assert dummy.translation is translation
+        rule = o._rule_required
+
+        # Check some good rules
+        for value in (u'absolute 201012161032 ~ 201012161033',
+                      u'periodic monthly week 2 day Sat,Sun 0900-1300',
+                      u'periodic yearly month 4 day 1-31 0800-1400',
+                      u'periodic daily 0800-1400',
+            ):
+            assert rule(dummy, value) is None
+            assert dummy.called() is False
+
+        # FIXME, weekly is not implemented in AccessTime
+#                      u'periodic weekly day 8 0800-1400',
+
+        # And some bad ones
+        for value in (u'absolute 201012161032 - 201012161033',
+                      u'absolute 201012161032 ~',
+                      u'periodic monthly day Sat,Sun 0900-1300',
+                      u'periodical yearly month 4 day 1-31 0800-1400',
+            ):
+            e = raises(ValidationError, o._rule_required, None, value)
+
 def test_create_param():
     """
     Test the `ipalib.parameters.create_param` function.

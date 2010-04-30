@@ -1451,7 +1451,7 @@ class AccessTime(Str):
             for v in values:
                 check_func(v)
             if len(values) == 2:
-                if int(v[0]) > int(v[1]):
+                if int(values[0]) > int(values[1]):
                     raise ValueError('invalid time range')
 
     def _check_W_spec(self, ts, index):
@@ -1477,7 +1477,7 @@ class AccessTime(Str):
             index += 1
             self._check_interval(ts[index], self._check_month_num)
             month_num = int(ts[index])
-            index = self._check_M_spec(ts, index + 1, month_num)
+            index = self._check_M_spec(ts, index + 1)
         elif ts[index] == 'week':
             self._check_interval(ts[index + 1], self._check_woty)
             index = self._check_W_spec(ts, index + 2)
@@ -1489,6 +1489,7 @@ class AccessTime(Str):
         return index
 
     def _check_generalized(self, t):
+        assert type(t) is unicode
         if len(t) not in (10, 12, 14):
             raise ValueError('incomplete generalized time')
         if not t.isnumeric():
@@ -1510,6 +1511,8 @@ class AccessTime(Str):
     def _check(self, time):
         ts = time.split()
         if ts[0] == 'absolute':
+            if len(ts) != 4:
+                raise ValueError('invalid format, must be \'absolute generalizedTime ~ generalizedTime\'')
             self._check_generalized(ts[1])
             if ts[2] != '~':
                 raise ValueError('invalid time range separator')
@@ -1517,12 +1520,15 @@ class AccessTime(Str):
             if int(ts[1]) >= int(ts[3]):
                 raise ValueError('invalid time range')
         elif ts[0] == 'periodic':
+            index = None
             if ts[1] == 'yearly':
                 index = self._check_Y_spec(ts, 2)
             elif ts[1] == 'monthly':
                 index = self._check_M_spec(ts, 2)
             elif ts[1] == 'daily':
                 index = 1
+            if index is None:
+                raise ValueError('period must be yearly, monthy or daily, got \'%s\'' % ts[1])
             self._check_interval(ts[index + 1], self._check_HHMM)
         else:
             raise ValueError('time neither absolute or periodic')
@@ -1531,10 +1537,10 @@ class AccessTime(Str):
         try:
             self._check(value)
         except ValueError, e:
-            raise ValidationError(name=self.cli_name, error=e.message)
+            raise ValidationError(name=self.cli_name, error=e.args[0])
         except IndexError:
             raise ValidationError(
-                name=self.cli_name, errors='incomplete time value'
+                name=self.cli_name, error='incomplete time value'
             )
         return None
 
