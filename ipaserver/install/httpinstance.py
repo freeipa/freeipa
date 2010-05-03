@@ -242,6 +242,9 @@ class HTTPInstance(service.Service):
         os.chmod("/usr/share/ipa/html/ca.crt", 0444)
 
     def uninstall(self):
+        if self.is_configured():
+            self.print_msg("Unconfiguring web server")
+
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
 

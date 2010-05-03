@@ -186,6 +186,9 @@ class Service:
             logging.critical("Could not add certificate to service %s entry: %s" % (self.principal, str(e)))
         conn.unbind()
 
+    def is_configured(self):
+        return self.sstore.has_state(self.service_name)
+
     def set_output(self, fd):
         self.output_fd = fd
 
@@ -257,6 +260,9 @@ class SimpleServiceInstance(Service):
         self.chkconfig_on()
 
     def uninstall(self):
+        if self.is_configured():
+            self.print_msg("Unconfiguring %s" % self.service_name)
+
         running = self.restore_state("running")
         enabled = not self.restore_state("enabled")
 

@@ -336,6 +336,9 @@ class CADSInstance(service.Service):
             logging.critical("Failed to restart the directory server. See the installation log for details.")
 
     def uninstall(self):
+        if self.is_configured():
+            self.print_msg("Unconfiguring CA directory server")
+
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
         serverid = self.restore_state("serverid")
@@ -351,6 +354,7 @@ class CADSInstance(service.Service):
         if not serverid is None:
             dsinstance.erase_ds_instance_data(serverid)
 
+        self.service_name="pkids"
         ds_user = self.restore_state("user")
         user_exists = self.restore_state("user_exists")
 
@@ -1028,6 +1032,13 @@ class CAInstance(service.Service):
         self.__restart_instance()
 
     def uninstall(self):
+        if self.is_configured():
+            self.print_msg("Unconfiguring CA")
+
+        enabled = self.restore_state("enabled")
+        if not enabled is None and not enabled:
+            self.chkconfig_off()
+
         try:
             ipautil.run(["/usr/bin/pkiremove", "-pki_instance_root=/var/lib",
                          "-pki_instance_name=%s" % PKI_INSTANCE_NAME, "--force"])
@@ -1038,6 +1049,14 @@ class CAInstance(service.Service):
             ipautil.run(["/usr/sbin/semodule", "-r", "ipa_dogtag"])
         except ipautil.CalledProcessError, e:
             pass
+
+        pki_user = self.restore_state("user")
+        user_exists = self.restore_state("user_exists")
+        if not pki_user is None and not user_exists is None and not user_exists:
+            try:
+                ipautil.run(["/usr/sbin/userdel", pki_user])
+            except ipautil.CalledProcessError, e:
+                logging.critical("failed to delete user %s" % e)
 
 if __name__ == "__main__":
     installutils.standard_logging_setup("install.log", False)

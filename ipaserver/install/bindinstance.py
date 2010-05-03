@@ -377,6 +377,9 @@ class BindInstance(service.Service):
         resolv_fd.close()
 
     def uninstall(self):
+        if self.is_configured():
+            self.print_msg("Unconfiguring %s" % self.service_name)
+
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
 

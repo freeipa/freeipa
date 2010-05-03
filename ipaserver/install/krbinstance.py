@@ -85,8 +85,6 @@ class KrbInstance(service.Service):
         self.kdc_password = None
         self.sub_dict = None
 
-        self.kpasswd = KpasswdInstance()
-
         if fstore:
             self.fstore = fstore
         else:
@@ -181,6 +179,8 @@ class KrbInstance(service.Service):
 
         self.start_creation("Configuring Kerberos KDC")
 
+        self.kpasswd = KpasswdInstance()
+
         self.kpasswd.create_instance()
 
     def create_replica(self, ds_user, realm_name, host_name, domain_name, admin_password, ldap_passwd_filename, kpasswd_filename):
@@ -200,6 +200,7 @@ class KrbInstance(service.Service):
 
         self.start_creation("Configuring Kerberos KDC")
 
+        self.kpasswd = KpasswdInstance()
         self.kpasswd.create_instance()
 
     def __copy_ldap_passwd(self, filename):
@@ -473,7 +474,8 @@ class KrbInstance(service.Service):
         update_key_val_in_file("/etc/sysconfig/ipa_kpasswd", "export KRB5_KTNAME", "/var/kerberos/krb5kdc/kpasswd.keytab")
 
     def uninstall(self):
-        self.kpasswd.uninstall()
+        if self.is_configured():
+            self.print_msg("Unconfiguring %s" % self.service_name)
 
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
@@ -495,3 +497,6 @@ class KrbInstance(service.Service):
 
         if not running is None and running:
             self.start()
+
+        self.kpasswd = KpasswdInstance()
+        self.kpasswd.uninstall()

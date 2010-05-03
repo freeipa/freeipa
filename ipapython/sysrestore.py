@@ -314,3 +314,14 @@ class StateFile:
         self.save()
 
         return value
+
+    def has_state(self, module):
+        """Return True or False if there is any state stored for @module.
+
+        Can be used to determine if a service is configured.
+        """
+
+        if self.modules.has_key(module):
+            return True
+        else:
+            return False

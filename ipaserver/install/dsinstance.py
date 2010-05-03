@@ -430,6 +430,9 @@ class DsInstance(service.Service):
             logging.debug("Unable to set admin password %s" % e)
 
     def uninstall(self):
+        if self.is_configured():
+            self.print_msg("Unconfiguring directory server")
+
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
 

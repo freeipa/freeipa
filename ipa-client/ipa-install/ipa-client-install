@@ -535,10 +535,9 @@ def main():
         print "Configured /etc/ldap.conf"
 
     # Get the CA certificate
-    if not options.on_master:
-        run(["/usr/bin/wget", "-O", "/etc/ipa/ca.crt", "http://%s/ipa/config/ca.crt" % cli_server])
-        # Add the CA to the default NSS database and trust it
-        run(["/usr/bin/certutil", "-A", "-d", "/etc/pki/nssdb", "-n", "IPA CA", "-t", "CT,C,C", "-a", "-i", "/etc/ipa/ca.crt"])
+    run(["/usr/bin/wget", "-O", "/etc/ipa/ca.crt", "http://%s/ipa/config/ca.crt" % cli_server])
+    # Add the CA to the default NSS database and trust it
+    run(["/usr/bin/certutil", "-A", "-d", "/etc/pki/nssdb", "-n", "IPA CA", "-t", "CT,C,C", "-a", "-i", "/etc/ipa/ca.crt"])
 
     if not options.on_master:
         configure_certmonger(fstore, subject_base, cli_realm, options)
