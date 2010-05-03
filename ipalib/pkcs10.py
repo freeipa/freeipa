@@ -372,12 +372,14 @@ def strip_header(csr):
     """
     Remove the header and footer from a CSR.
     """
+    headerlen = 40
     s = csr.find("-----BEGIN NEW CERTIFICATE REQUEST-----")
     if s == -1:
+        headerlen = 36
         s = csr.find("-----BEGIN CERTIFICATE REQUEST-----")
     if s >= 0:
         e = csr.find("-----END")
-        csr = csr[s+40:e]
+        csr = csr[s+headerlen:e]
 
     return csr
 

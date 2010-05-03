@@ -32,6 +32,7 @@ from ipapython import nsslib
 from ipapython import dogtag
 from ipapython import sysrestore
 from ipapython import ipautil
+from ipalib import pkcs10
 from ConfigParser import RawConfigParser
 
 from nss.error import NSPRError
@@ -552,12 +553,7 @@ class CertDB(object):
             csr = "".join(csr)
 
             # We just want the CSR bits, make sure there is nothing else
-            s = csr.find("-----BEGIN NEW CERTIFICATE REQUEST-----")
-            e = csr.find("-----END NEW CERTIFICATE REQUEST-----")
-            if e > 0:
-                e = e + 37
-            if s >= 0:
-                csr = csr[s:]
+            csr = pkcs10.strip_header(csr)
 
             params = {'profileId': 'caRAserverCert',
                     'cert_request_type': 'pkcs10',
@@ -639,12 +635,7 @@ class CertDB(object):
             csr = "".join(csr)
 
             # We just want the CSR bits, make sure there is no thing else
-            s = csr.find("-----BEGIN NEW CERTIFICATE REQUEST-----")
-            e = csr.find("-----END NEW CERTIFICATE REQUEST-----")
-            if e > 0:
-                e = e + 37
-            if s >= 0:
-                csr = csr[s:]
+            csr = pkcs10.strip_header(csr)
 
             params = {'profileId': 'caJarSigningCert',
                     'cert_request_type': 'pkcs10',

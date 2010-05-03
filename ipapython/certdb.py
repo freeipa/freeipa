@@ -19,6 +19,7 @@
 
 from ipapython import ipautil
 from ipapython import nsslib
+from ipalib import pkcs10
 import tempfile
 import sha
 import shutil
@@ -99,13 +100,7 @@ class CertDB(object):
         f.close()
         csr = "".join(csr)
 
-        # We just want the CSR bits, make sure there is nothing else
-        s = csr.find("-----BEGIN NEW CERTIFICATE REQUEST-----")
-        e = csr.find("-----END NEW CERTIFICATE REQUEST-----")
-        if e > 0:
-            e = e + 37
-        if s >= 0:
-            csr = csr[s:]
+        csr = pkcs10.strip_header(csr)
 
         return csr
 

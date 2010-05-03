@@ -36,6 +36,7 @@ import urllib
 import xml.dom.minidom
 import stat
 from ipapython import dogtag
+from ipalib import pkcs10
 import subprocess
 
 from nss.error import NSPRError
@@ -911,9 +912,7 @@ class CAInstance(service.Service):
         finally:
             os.remove(noise_name)
 
-        csr = stdout.find("-----BEGIN NEW CERTIFICATE REQUEST-----")
-        if csr >= 0:
-            csr = stdout[csr:]
+        csr = pkcs10.strip_header(stdout)
 
         # Send the request to the CA
         conn = httplib.HTTPConnection(self.host_name, 9180)
