@@ -596,10 +596,10 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
     krb5_principal uprinc = NULL;
     krb5_error_code krberr;
 
-    conf_data = read_config_file(IPA_CONFIG);
     if (server) {
         ipaserver = strdup(server);
     } else if ((ipaserver = getIPAserver(conf_data)) == NULL) {
+        conf_data = read_config_file(IPA_CONFIG);
         fprintf(stderr, "Unable to determine IPA server from %s\n", IPA_CONFIG);
         exit(1);
     }
