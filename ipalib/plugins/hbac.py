@@ -35,7 +35,8 @@ class hbac(LDAPObject):
     object_class = ['ipaassociation', 'ipahbacrule']
     default_attributes = [
         'cn', 'accessruletype', 'ipaenabledflag', 'servicename',
-        'accesstime', 'description',
+        'accesstime', 'description', 'usercategory', 'hostcategory',
+        'sourcehostcategory', 'ipaenabledflag',
 
     ]
     uuid_attribute = 'ipauniqueid'
@@ -55,7 +56,8 @@ class hbac(LDAPObject):
         ),
         StrEnum('accessruletype',
             cli_name='type',
-            label=_('Rule type (allow or deny)'),
+            doc=_('Rule type (allow or deny)'),
+            label=_('Rule type'),
             values=(u'allow', u'deny'),
         ),
         Str('servicename?',
@@ -89,6 +91,10 @@ class hbac(LDAPObject):
         Str('description?',
             cli_name='desc',
             label=_('Description'),
+        ),
+        Flag('ipaenabledflag?',
+             label=_('Enabled'),
+             flags=['no_create', 'no_update', 'no_search'],
         ),
     )
 
