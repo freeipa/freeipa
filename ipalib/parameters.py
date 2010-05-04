@@ -1525,6 +1525,8 @@ class AccessTime(Str):
                 index = self._check_Y_spec(ts, 2)
             elif ts[1] == 'monthly':
                 index = self._check_M_spec(ts, 2)
+            elif ts[1] == 'weekly':
+                index = self._check_W_spec(ts, 2)
             elif ts[1] == 'daily':
                 index = 1
             if index is None:

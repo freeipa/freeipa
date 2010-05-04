@@ -1372,19 +1372,18 @@ class test_AccessTime(ClassChecker):
         for value in (u'absolute 201012161032 ~ 201012161033',
                       u'periodic monthly week 2 day Sat,Sun 0900-1300',
                       u'periodic yearly month 4 day 1-31 0800-1400',
+                      u'periodic weekly day 7 0800-1400',
                       u'periodic daily 0800-1400',
             ):
             assert rule(dummy, value) is None
             assert dummy.called() is False
-
-        # FIXME, weekly is not implemented in AccessTime
-#                      u'periodic weekly day 8 0800-1400',
 
         # And some bad ones
         for value in (u'absolute 201012161032 - 201012161033',
                       u'absolute 201012161032 ~',
                       u'periodic monthly day Sat,Sun 0900-1300',
                       u'periodical yearly month 4 day 1-31 0800-1400',
+                      u'periodic weekly day 8 0800-1400',
             ):
             e = raises(ValidationError, o._rule_required, None, value)
 
