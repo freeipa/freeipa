@@ -122,6 +122,9 @@ def parse_options():
                       help="The starting gid value (default random)")
     parser.add_option("--subject", dest="subject", default="O=IPA",
                       help="The certificate subject base (default O=IPA)")
+    parser.add_option("--no_hbac_allow", dest="hbac_allow", default=False,
+                      action="store_true",
+                      help="Don't install allow_all HBAC rule")
     options, args = parser.parse_args()
 
     if not options.setup_dns:
@@ -722,11 +725,11 @@ def main():
     if options.dirsrv_pkcs12:
         pkcs12_info = (options.dirsrv_pkcs12, pw_name)
         try:
-            ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info, subject_base=options.subject)
+            ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info, subject_base=options.subject, hbac_allow=not options.hbac_allow)
         finally:
             os.remove(pw_name)
     else:
-        ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, self_signed_ca=options.selfsign, uidstart=options.uidstart, gidstart=options.gidstart, subject_base=options.subject)
+        ds.create_instance(ds_user, realm_name, host_name, domain_name, dm_password, self_signed_ca=options.selfsign, uidstart=options.uidstart, gidstart=options.gidstart, subject_base=options.subject, hbac_allow=not options.hbac_allow)
 
     # Create a kerberos instance
     krb = krbinstance.KrbInstance(fstore)

@@ -1,0 +1,14 @@
+# default HBAC policy that grants permission to all services
+dn: ipauniqueid=$UUID,cn=hbac,$SUFFIX
+changetype: add
+objectclass: ipaassociation
+objectclass: ipahbacrule
+cn: allow_all
+accessruletype: allow
+usercategory: all
+hostcategory: all
+sourcehostcategory: all
+ipaenabledflag: TRUE
+description: Allow all users to access any host from any host
+# ipauniqueid gets added for us by 389-ds
+

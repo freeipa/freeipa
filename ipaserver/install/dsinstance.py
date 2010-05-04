@@ -38,7 +38,7 @@ from ldap.dn import escape_dn_chars
 from ipaserver import ipaldap
 from ipaserver.install import ldapupdate
 from ipaserver.install import httpinstance
-from ipalib import util
+from ipalib import util, uuid
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
@@ -157,7 +157,7 @@ class DsInstance(service.Service):
         else:
             self.suffix = None
 
-    def create_instance(self, ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info=None, self_signed_ca=False, uidstart=1100, gidstart=1100, subject_base=None):
+    def create_instance(self, ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info=None, self_signed_ca=False, uidstart=1100, gidstart=1100, subject_base=None, hbac_allow=True):
         self.ds_user = ds_user
         self.realm_name = realm_name.upper()
         self.serverid = realm_to_serverid(self.realm_name)
@@ -194,6 +194,8 @@ class DsInstance(service.Service):
                   self.__add_master_entry_first_master)
         self.step("initializing group membership",
                   self.init_memberof)
+        if hbac_allow:
+            self.step("creating default HBAC rule allow_all", self.add_hbac)
 
         self.step("configuring directory to start on boot", self.__enable)
 
@@ -410,6 +412,11 @@ class DsInstance(service.Service):
 
     def __enable_ldapi(self):
         self._ldap_mod("ldapi.ldif", self.sub_dict)
+
+    def add_hbac(self):
+        self.sub_dict['UUID'] = str(uuid.uuid1())
+        self._ldap_mod("default-hbac.ldif", self.sub_dict)
+        del self.sub_dict['UUID']
 
     def change_admin_password(self, password):
         logging.debug("Changing admin password")

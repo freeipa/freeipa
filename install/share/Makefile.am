@@ -13,6 +13,7 @@ app_DATA =				\
 	bootstrap-template.ldif		\
 	caJarSigningCert.cfg.template	\
 	default-aci.ldif		\
+	default-hbac.ldif		\
 	default-keytypes.ldif		\
 	delegation.ldif			\
 	dns.ldif			\
