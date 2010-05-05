@@ -134,9 +134,12 @@ callRPC(xmlrpc_env *            const envP,
     struct xmlrpc_curl_xportparms * curlXportParmsP = NULL;
     xmlrpc_client * clientP = NULL;
 
+    memset(&clientparms, 0, sizeof(clientparms));
+
     XMLRPC_ASSERT(xmlrpc_value_type(paramArrayP) == XMLRPC_TYPE_ARRAY);
 
     curlXportParmsP = malloc(sizeof(*curlXportParmsP));
+    memset(curlXportParmsP, 0, sizeof(*curlXportParmsP));
 
     /* Have curl do SSL certificate validation */
     curlXportParmsP->no_ssl_verifypeer = 1;
@@ -148,7 +151,7 @@ callRPC(xmlrpc_env *            const envP,
             curlXportParmsP;
     clientparms.transportparm_size = XMLRPC_CXPSIZE(cainfo);
     xmlrpc_client_create(envP, XMLRPC_CLIENT_NO_FLAGS, NAME, VERSION,
-                         &clientparms, XMLRPC_CPSIZE(transportparm_size),
+                         &clientparms, sizeof(clientparms),
                          &clientP);
 
     /* Set up kerberos negotiate authentication in curl. */
@@ -585,7 +588,6 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
     int status = 0;
     char *ipaserver = NULL;
     char *iparealm = NULL;
-    char * conf_data = NULL;
     const char * princ = NULL;
     const char * subject = NULL;
     const char * hostdn = NULL;
@@ -598,18 +600,14 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
 
     if (server) {
         ipaserver = strdup(server);
-    } else if ((ipaserver = getIPAserver(conf_data)) == NULL) {
-        conf_data = read_config_file(IPA_CONFIG);
-        fprintf(stderr, "Unable to determine IPA server from %s\n", IPA_CONFIG);
-        exit(1);
+    } else {
+        char * conf_data = read_config_file(IPA_CONFIG);
+        if ((ipaserver = getIPAserver(conf_data)) == NULL) {
+            fprintf(stderr, "Unable to determine IPA server from %s\n", IPA_CONFIG);
+            exit(1);
+        }
+        free(conf_data);
     }
-#if 0
-    if ((iparealm = getIPArealm(conf_data)) == NULL) {
-        fprintf(stderr, "Unable to determine IPA realm from %s\n", IPA_CONFIG);
-        exit(1);
-    }
-#endif
-    free(conf_data);
 
     if (NULL == hostname) {
         uname(&uinfo);
