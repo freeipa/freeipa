@@ -64,7 +64,7 @@ def parse_options():
     parser.add_option("-N", "--no-ntp", action="store_false",
                       help="do not configure ntp", default=True, dest="conf_ntp")
     parser.add_option("-w", "--password", dest="password",
-                      help="password to join the IPA realm"),
+                      help="password to join the IPA realm (assumes bulk password unless principal is also set)"),
     parser.add_option("-W", dest="prompt_password", action="store_true",
                       default=False,
                       help="Prompt for a password to join the IPA realm"),
@@ -112,21 +112,31 @@ def logging_setup(options):
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
+def nickname_exists(nickname):
+        (sout, serr, returncode) = run(["/usr/bin/certutil", "-L", "-d", "/etc/pki/nssdb", "-n", nickname], raiseonerr=False)
+
+        if returncode == 0:
+            return True
+        else:
+            return False
+
 def uninstall(options):
 
     # Remove our host cert and CA cert
-    try:
-        run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", "IPA CA"])
-    except Exception, e:
-        print "Failed to remove IPA CA from /etc/pki/nssdb: %s" % str(e)
-    try:
-        run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", "Server-Cert"])
-    except Exception, e:
-        print "Failed to remove Server-Cert from /etc/pki/nssdb: %s" % str(e)
-    try:
-        run(["/usr/bin/ipa-getcert", "stop-tracking", "-d", "/etc/pki/nssdb", "-n", "Server-Cert"])
-    except Exception, e:
-        print "Failed to stop tracking Server-Cert in certmonger: %s" % str(e)
+    if nickname_exists("IPA CA"):
+        try:
+            run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", "IPA CA"])
+        except Exception, e:
+            print "Failed to remove IPA CA from /etc/pki/nssdb: %s" % str(e)
+    if nickname_exists("Server-Cert"):
+        try:
+            run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", "Server-Cert"])
+        except Exception, e:
+            print "Failed to remove Server-Cert from /etc/pki/nssdb: %s" % str(e)
+        try:
+            run(["/usr/bin/ipa-getcert", "stop-tracking", "-d", "/etc/pki/nssdb", "-n", "Server-Cert"])
+        except Exception, e:
+            print "Failed to stop tracking Server-Cert in certmonger: %s" % str(e)
 
     try:
         run(["/sbin/service", "certmonger", "stop"])
@@ -480,12 +490,24 @@ def main():
             if options.debug:
                 join_args.append("-d")
             if options.principal is not None:
+                stdin = None
                 principal = options.principal
                 if principal.find('@') == -1:
                     principal = '%s@%s' % (principal, cli_realm)
-                print "Password for %s: " % principal,
-                sys.stdout.flush()
-                (stderr, stdout, returncode) = run(["/usr/kerberos/bin/kinit", principal], raiseonerr=False)
+                if options.password is not None:
+                    stdin = options.password
+                else:
+                    if not options.unattended:
+                        print "Password for %s: " % principal,
+                        sys.stdout.flush()
+                    else:
+                        if sys.stdin.isatty():
+                            print "Password must be provided in non-interactive mode"
+                            return 1
+                        else:
+                            stdin = sys.stdin.readline()
+
+                (stderr, stdout, returncode) = run(["/usr/kerberos/bin/kinit", principal], raiseonerr=False, stdin=stdin)
                 print ""
                 if returncode != 0:
                     print stdout
@@ -494,6 +516,9 @@ def main():
                 join_args.append("-w")
                 join_args.append(options.password)
             elif options.prompt_password:
+                if options.unattended:
+                    print "Password must be provided in non-interactive mode"
+                    return 1
                 password = getpass.getpass("Password: ")
                 join_args.append("-w")
                 join_args.append(password)
@@ -539,8 +564,6 @@ def main():
     # Add the CA to the default NSS database and trust it
     run(["/usr/bin/certutil", "-A", "-d", "/etc/pki/nssdb", "-n", "IPA CA", "-t", "CT,C,C", "-a", "-i", "/etc/ipa/ca.crt"])
 
-    if not options.on_master:
-        configure_certmonger(fstore, subject_base, cli_realm, options)
 
     # If on master assume kerberos is already configured properly.
     if not options.on_master:
@@ -550,6 +573,8 @@ def main():
             return 1
 
         print "Configured /etc/krb5.conf for IPA realm " + cli_realm
+
+        configure_certmonger(fstore, subject_base, cli_realm, options)
 
     # Modify nsswitch/pam stack
     if options.sssd:

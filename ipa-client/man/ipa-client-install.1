@@ -50,26 +50,30 @@ Unattended installation. The user will not be prompted.
 \fB\-N\fR, \fB\-\-no\-ntp\fR
 Do not configure or enable NTP.
 .TP 
+\fB\-\-ntp-server\fR=\fINTP_SERVER\fR
+Configure ntpd to use this NTP server.
+Do not configure or enable NTP.
+.TP
 \fB\-S\fR, \fB\-\-no\-sssd\fR
 Do not configure the client to use SSSD for authentication, use nss_ldap instead.
 .TP
 \fB\-\-on\-master\fB
 The client is being configured on an IPA server.
 .TP 
-\fB\-w\fR, \fB\-\-password\fR
-Password for joining a machine to the IPA realm.
+\fB\-w\fR \fIPASSWORD\fR, \fB\-\-password\fR=\fIPASSWORD\fR
+Password for joining a machine to the IPA realm. Assumes bulk password unless principal is also set.
 .TP 
 \fB\-W\fR
 Prompt for the password for joining a machine to the IPA realm.
 .TP 
 \fB\-p\fR, \fB\-\-principal\fR
-Principal to use to join the IPA realm.
+Authorized kerberos principal to use to join the IPA realm.
 .TP 
 \fB\-\-permit\fR
-Set the SSSD access rules to permit all access. Otherwise the machine will be controlled by the Host-based Access Controls on the IPA server.
+Configure SSSD to permit all access. Otherwise the machine will be controlled by the Host-based Access Controls (HBAC) on the IPA server.
 .TP 
 \fB\-\-mkhomedir\fR
-Create a users home directory if it does not exist.
+Configure pam to create a users home directory if it does not exist.
 .TP
 \fB\-\-uninstall\fR
 Remove the IPA client software and restore the configuration to the pre-IPA state.
