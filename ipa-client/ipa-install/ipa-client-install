@@ -32,7 +32,7 @@ try:
     import ipaclient.ipadiscovery
     import ipaclient.ipachangeconf
     import ipaclient.ntpconf
-    from ipapython.ipautil import run, user_input
+    from ipapython.ipautil import run, user_input, CalledProcessError
     from ipapython import sysrestore
     from ipapython import version
     import SSSDConfig
@@ -120,6 +120,56 @@ def nickname_exists(nickname):
         else:
             return False
 
+def service(name, status):
+    """
+    Run a System V init script 'name' with the status 'status'
+
+    The return value of /sbin/service name start/stop/status is:
+
+    0 - Ok
+    1 - unrecognized service, bad usage
+    > 1 - generally command-specific
+
+    For status == 'status' it means:
+    0 - running
+    1 - dead but pid file exists
+    2 - dead but sybsys locked
+    3 - stopped
+    """
+    (sout, serr, returncode) = run(['/sbin/service', name, 'status'], raiseonerr=False)
+
+    # If the service isn't installed return with no error
+    if returncode == 1:
+        return
+
+    args = ['/sbin/service', name, status]
+    (sout, serr, returncode) = run(args, raiseonerr=False)
+
+    if returncode != 0:
+        raise CalledProcessError(returncode, ' '.join(args))
+
+    return
+
+def chkconfig(name, status):
+    """
+    Set startup of service 'name' to 'status' (on or off)
+
+    chkconfig returns 1 if the service is unknown, 0 otherwise
+    """
+    (sout, serr, returncode) = run(['/sbin/chkconfig', name, '--list'], raiseonerr=False)
+
+    # If the service isn't installed return with no error
+    if returncode == 1:
+        return
+
+    args = ['/sbin/chkconfig', name, status]
+    (sout, serr, returncode) = run(args, raiseonerr=False)
+
+    if returncode != 0:
+        raise CalledProcessError(returncode, ' '.join(args))
+
+    return
+
 def uninstall(options):
 
     # Remove our host cert and CA cert
@@ -139,12 +189,12 @@ def uninstall(options):
             print "Failed to stop tracking Server-Cert in certmonger: %s" % str(e)
 
     try:
-        run(["/sbin/service", "certmonger", "stop"])
+        service('certmonger', 'stop')
     except:
         print "Failed to stop the certmonger daemon"
 
     try:
-        run(["/sbin/chkconfig", "certmonger", "off"])
+        chkconfig('certmonger', 'off')
     except:
         print "Failed to disable automatic startup of the certmonger daemon"
 
@@ -166,12 +216,12 @@ def uninstall(options):
     fstore.restore_all_files()
 
     try:
-        run(["/sbin/service", "nscd", "restart"])
+        service('nscd', 'restart')
     except:
         print "Failed to restart start the NSCD daemon"
 
     try:
-        run(["/sbin/chkconfig", "nscd", "on"])
+        chkconfig('nscd', 'on')
     except:
         print "Failed to configure automatic startup of the NSCD daemon"
 
@@ -328,14 +378,14 @@ def configure_certmonger(fstore, subject_base, cli_realm, options):
     started = True
 
     try:
-        run(["/sbin/service", "certmonger", "restart"])
+        service('certmonger', 'restart')
     except:
         print "Failed to start the certmonger daemon"
         print "Automatic certificate management will not be available"
         started = False
 
     try:
-        run(["/sbin/chkconfig", "certmonger", "on"])
+        chkconfig('certmonger', 'on')
     except:
         print "Failed to configure automatic startup of the certmonger daemon"
         print "Automatic certificate management will not be available"
@@ -624,14 +674,14 @@ def main():
 
     #Name Server Caching Daemon. Disable for SSSD, use otherwise
     try:
-        run(["/sbin/service", "nscd", nscd_action])
+        service('nscd', nscd_action)
     except:
         print "Failed to %s the NSCD daemon" % nscd_action
         if not options.sssd:
             print "Caching of users/groups will not be available"
 
     try:
-        run(["/sbin/chkconfig", "nscd", nscd_status])
+        chkconfig('nscd', nscd_status)
     except:
         print "Failed to configure automatic startup of the NSCD daemon"
         if not options.sssd:
