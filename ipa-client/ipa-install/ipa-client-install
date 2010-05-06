@@ -440,6 +440,10 @@ def main():
     if options.uninstall:
         return uninstall(options)
 
+    if fstore.has_files():
+        print "IPA client is already configured on this system."
+        return 1
+
     cli_domain = None
     cli_server = None
     cli_realm = None

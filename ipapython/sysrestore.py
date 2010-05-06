@@ -203,6 +203,14 @@ class FileStore:
 
         return True
 
+    def has_files(self):
+        """Return True or False if there are any files in the index
+
+        Can be used to determine if a program is configured.
+        """
+
+        return len(self.files) > 0
+
 class StateFile:
     """A metadata file for recording system state which can
     be backed up and later restored. The format is something
