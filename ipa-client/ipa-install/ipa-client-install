@@ -172,6 +172,10 @@ def chkconfig(name, status):
 
 def uninstall(options):
 
+    if not fstore.has_files() and not options.force:
+        print "IPA client is not configured on this system."
+        return 1
+
     # Remove our host cert and CA cert
     if nickname_exists("IPA CA"):
         try:
@@ -440,7 +444,7 @@ def main():
     if options.uninstall:
         return uninstall(options)
 
-    if fstore.has_files():
+    if fstore.has_files() and not options.force:
         print "IPA client is already configured on this system."
         return 1
 
