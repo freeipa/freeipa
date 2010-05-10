@@ -144,10 +144,14 @@ class CallbackInterface(Method):
             self.__class__.PRE_CALLBACKS = []
         if not hasattr(self.__class__, 'POST_CALLBACKS'):
             self.__class__.POST_CALLBACKS = []
+        if not hasattr(self.__class__, 'EXC_CALLBACKS'):
+            self.__class__.EXC_CALLBACKS = []
         if hasattr(self, 'pre_callback'):
             self.register_pre_callback(self.pre_callback, True)
         if hasattr(self, 'post_callback'):
             self.register_post_callback(self.post_callback, True)
+        if hasattr(self, 'exc_callback'):
+            self.register_exc_callback(self.exc_callback, True)
         super(Method, self).__init__()
 
     @classmethod
@@ -169,6 +173,37 @@ class CallbackInterface(Method):
             klass.POST_CALLBACKS.insert(0, callback)
         else:
             klass.POST_CALLBACKS.append(callback)
+
+    @classmethod
+    def register_exc_callback(klass, callback, first=False):
+        assert callable(callback)
+        if not hasattr(klass, 'EXC_CALLBACKS'):
+            klass.EXC_CALLBACKS = []
+        if first:
+            klass.EXC_CALLBACKS.insert(0, callback)
+        else:
+            klass.EXC_CALLBACKS.append(callback)
+
+    def _call_exc_callbacks(self, args, options, exc, call_func, *call_args, **call_kwargs):
+        rv = None
+        for i in xrange(len(getattr(self, 'EXC_CALLBACKS', []))):
+            callback = self.EXC_CALLBACKS[i]
+            try:
+                if hasattr(callback, 'im_self'):
+                    rv = callback(
+                        args, options, exc, call_func, *call_args, **call_kwargs
+                    )
+                else:
+                    rv = callback(
+                        self, args, options, exc, call_func, *call_args,
+                        **call_kwargs
+                    )
+            except errors.ExecutionError, e:
+                if (i + 1) < len(self.EXC_CALLBACKS):
+                    exc = e
+                    continue
+                raise e
+        return rv
 
 
 class LDAPCreate(CallbackInterface, crud.Create):
@@ -219,27 +254,39 @@ class LDAPCreate(CallbackInterface, crud.Create):
 
         try:
             ldap.add_entry(dn, entry_attrs, normalize=self.obj.normalize_dn)
-        except errors.NotFound:
-            parent = self.obj.parent_object
-            if parent:
+        except errors.ExecutionError, e:
+            try:
+                self._call_exc_callbacks(
+                    keys, options, e, ldap.add_entry, dn, entry_attrs,
+                    normalize=self.obj.normalize_dn
+                )
+            except errors.NotFound:
+                parent = self.obj.parent_object
+                if parent:
+                    raise errors.NotFound(
+                        reason=self.obj.parent_not_found_msg % {
+                            'parent': keys[-2],
+                            'oname': self.api.Object[parent].object_name,
+                        }
+                    )
                 raise errors.NotFound(
-                    reason=self.obj.parent_not_found_msg % {
-                        'parent': keys[-2],
-                        'oname': self.api.Object[parent].object_name,
+                    reason=self.obj.container_not_found_msg % {
+                        'container': self.obj.container_dn,
                     }
                 )
-            raise errors.NotFound(
-                reason=self.obj.container_not_found_msg % {
-                    'container': self.obj.container_dn,
-                }
-            )
 
         try:
             (dn, entry_attrs) = ldap.get_entry(
                 dn, attrs_list, normalize=self.obj.normalize_dn
             )
-        except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+        except errors.ExecutionError, e:
+            try:
+                (dn, entry_attrs) = self._call_exc_callbacks(
+                    keys, options, e, ldap.get_entry, dn, attrs_list,
+                    normalize=self.obj.normalize_dn
+                )
+            except errors.NotFound:
+                self.obj.handle_not_found(*keys)
 
         for callback in self.POST_CALLBACKS:
             if hasattr(callback, 'im_self'):
@@ -259,6 +306,9 @@ class LDAPCreate(CallbackInterface, crud.Create):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         return dn
+
+    def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
+        raise exc
 
 
 class LDAPQuery(CallbackInterface, crud.PKQuery):
@@ -298,8 +348,14 @@ class LDAPRetrieve(LDAPQuery):
             (dn, entry_attrs) = ldap.get_entry(
                 dn, attrs_list, normalize=self.obj.normalize_dn
             )
-        except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+        except errors.ExecutionError, e:
+            try:
+                (dn, entry_attrs) = self._call_exc_callbacks(
+                    keys, options, e, ldap.get_entry, dn, attrs_list,
+                    normalize=self.obj.normalize_dn
+                )
+            except errors.NotFound:
+                self.obj.handle_not_found(*keys)
 
         for callback in self.POST_CALLBACKS:
             if hasattr(callback, 'im_self'):
@@ -318,6 +374,9 @@ class LDAPRetrieve(LDAPQuery):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         return dn
+
+    def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
+        raise exc
 
 
 class LDAPUpdate(LDAPQuery, crud.Update):
@@ -366,8 +425,14 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                 (dn, old_entry) = ldap.get_entry(
                     dn, attrs_list, normalize=self.obj.normalize_dn
                 )
-            except errors.NotFound:
-                self.obj.handle_not_found(*keys)
+            except errors.ExecutionError, e:
+                try:
+                    (dn, old_entry) = self._call_exc_callbacks(
+                        keys, options, e, ldap.get_entry, dn, attrs_list,
+                        normalize=self.obj.normalize_dn
+                    )
+                except errors.NotFound:
+                    self.obj.handle_not_found(*keys)
             attrlist = get_attributes(options['addattr'])
             for attr in attrlist:
                 if attr in old_entry:
@@ -379,17 +444,29 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
         try:
             ldap.update_entry(dn, entry_attrs, normalize=self.obj.normalize_dn)
-        except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+        except errors.ExecutionError, e:
+            try:
+                self._call_exc_callbacks(
+                    keys, options, e, ldap.update_entry, dn, entry_attrs,
+                    normalize=self.obj.normalize_dn
+                )
+            except errors.NotFound:
+                self.obj.handle_not_found(*keys)
 
         try:
             (dn, entry_attrs) = ldap.get_entry(
                 dn, attrs_list, normalize=self.obj.normalize_dn
             )
-        except errors.NotFound:
-            raise errors.MidairCollision(
-                format=_('the entry was deleted while being modified')
-            )
+        except errors.ExecutionError, e:
+            try:
+                (dn, entry_attrs) = self._call_exc_callbacks(
+                    keys, options, e, ldap.get_entry, dn, attrs_list,
+                    normalize=self.obj.normalize_dn
+                )
+            except errors.NotFound:
+                raise errors.MidairCollision(
+                    format=_('the entry was deleted while being modified')
+                )
 
         for callback in self.POST_CALLBACKS:
             if hasattr(callback, 'im_self'):
@@ -407,6 +484,9 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         return dn
+
+    def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
+        raise exc
 
 
 class LDAPDelete(LDAPQuery):
@@ -440,8 +520,14 @@ class LDAPDelete(LDAPQuery):
                         delete_subtree(dn_)
             try:
                 ldap.delete_entry(base_dn, normalize=self.obj.normalize_dn)
-            except errors.NotFound:
-                self.obj.handle_not_found(*keys)
+            except errors.ExecutionError, e:
+                try:
+                    self._call_exc_callbacks(
+                        keys, options, e, ldap.delete_entry, base_dn,
+                        normalize=self.obj.normalize_dn
+                    )
+                except errors.NotFound:
+                    self.obj.handle_not_found(*keys)
 
         delete_subtree(dn)
 
@@ -460,6 +546,9 @@ class LDAPDelete(LDAPQuery):
 
     def post_callback(self, ldap, dn, *keys, **options):
         return True
+
+    def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
+        raise exc
 
 
 class LDAPModMember(LDAPQuery):
@@ -561,16 +650,22 @@ class LDAPAddMember(LDAPModMember):
             (dn, entry_attrs) = ldap.get_entry(
                 dn, attrs_list, normalize=self.obj.normalize_dn
             )
-        except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+        except errors.ExecutionError, e:
+            try:
+                (dn, entry_attrs) = self._call_exc_callbacks(
+                    keys, options, e, ldap.get_entry, dn, attrs_list,
+                    normalize=self.obj.normalize_dn
+                )
+            except errors.NotFound:
+                self.obj.handle_not_found(*keys)
 
         for callback in self.POST_CALLBACKS:
             if hasattr(callback, 'im_self'):
-                (completed, dn) = self.post_callback(
+                (completed, dn) = callback(
                     ldap, completed, failed, dn, entry_attrs, *keys, **options
                 )
             else:
-                (completed, dn) = self.post_callback(
+                (completed, dn) = callback(
                     self, ldap, completed, failed, dn, entry_attrs, *keys,
                     **options
                 )
@@ -588,6 +683,9 @@ class LDAPAddMember(LDAPModMember):
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         return (completed, dn)
+
+    def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
+        raise exc
 
 
 class LDAPRemoveMember(LDAPModMember):
@@ -651,8 +749,14 @@ class LDAPRemoveMember(LDAPModMember):
             (dn, entry_attrs) = ldap.get_entry(
                 dn, attrs_list, normalize=self.obj.normalize_dn
             )
-        except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+        except errors.ExecutionError, e:
+            try:
+                (dn, entry_attrs) = self._call_exc_callbacks(
+                    keys, options, e, ldap.get_entry, dn, attrs_list,
+                    normalize=self.obj.normalize_dn
+                )
+            except errors.NotFound:
+                self.obj.handle_not_found(*keys)
 
         for callback in self.POST_CALLBACKS:
             if hasattr(callback, 'im_self'):
@@ -679,6 +783,9 @@ class LDAPRemoveMember(LDAPModMember):
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         return (completed, dn)
+
+    def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
+        raise exc
 
 
 class LDAPSearch(CallbackInterface, crud.Search):
@@ -738,8 +845,15 @@ class LDAPSearch(CallbackInterface, crud.Search):
             (entries, truncated) = ldap.find_entries(
                 filter, attrs_list, base_dn, scope=ldap.SCOPE_ONELEVEL
             )
-        except errors.NotFound:
-            (entries, truncated) = ([], False)
+        except errors.ExecutionError, e:
+            try:
+                (entries, truncated) = self._call_exc_callbacks(
+                    args, options, e, ldap.find_entries, filter, attrs_list,
+                    base_dn, scoope=ldap.SCOPE_ONELEVEL,
+                    normalize=self.obj.normalize_dn
+                )
+            except errors.NotFound:
+                (entries, truncated) = ([], False)
 
         for callback in self.POST_CALLBACKS:
             if hasattr(callback, 'im_self'):
@@ -766,4 +880,7 @@ class LDAPSearch(CallbackInterface, crud.Search):
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         pass
+
+    def exc_callback(self, args, options, exc, call_func, *call_args, **call_kwargs):
+        raise exc
 
