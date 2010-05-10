@@ -276,11 +276,18 @@ class pwpolicy2_mod(LDAPUpdate):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if not options.get('raw', False):
             if options.get('cospriority') is not None:
-                entry_attrs['cospriority'] = [unicode(options['copriority'])]
+                entry_attrs['cospriority'] = [unicode(options['cospriority'])]
             if keys[-1] is None:
                 entry_attrs['cn'] = GLOBAL_POLICY_NAME
         self.obj.convert_time_for_output(entry_attrs, **options)
         return dn
+
+    def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
+        if isinstance(exc, errors.EmptyModlist):
+            entry_attrs = call_args[1]
+            if not entry_attrs and 'cospriority' in options:
+                return
+        raise exc
 
 api.register(pwpolicy2_mod)
 
@@ -340,12 +347,13 @@ class pwpolicy2_find(LDAPSearch):
                 except errors.NotFound:
                     pass
                 self.obj.convert_time_for_output(e[1], **options)
-        global_entry = self.api.Command.pwpolicy2_show(
-            all=options.get('all', False), raw=options.get('raw', False)
-        )['result']
-        dn = global_entry['dn']
-        del global_entry['dn']
-        entries.insert(0, (dn, global_entry))
+        if not args[-1]:
+            global_entry = self.api.Command.pwpolicy2_show(
+                all=options.get('all', False), raw=options.get('raw', False)
+            )['result']
+            dn = global_entry['dn']
+            del global_entry['dn']
+            entries.insert(0, (dn, global_entry))
 
 api.register(pwpolicy2_find)
 
