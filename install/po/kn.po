@@ -7,113 +7,113 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/newticket\n"
-"POT-Creation-Date: 2010-02-15 14:55-0500\n"
-"PO-Revision-Date: 2010-02-26 23:05+0530\n"
+"POT-Creation-Date: 2010-03-01 19:57-0500\n"
+"PO-Revision-Date: 2010-05-11 20:03+0530\n"
 "Last-Translator: gundachandru <gundachandru@gmail.com>\n"
-"Language-Team: Kannada <LL@li.org>\n"
+"Language-Team: Kannada\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../../ipalib/parameters.py:224
+#: ../../ipalib/parameters.py:295
 msgid "incorrect type"
 msgstr "ಸರಿಯಲ್ಲದ ಬಗೆ"
 
-#: ../../ipalib/parameters.py:227
+#: ../../ipalib/parameters.py:298
 msgid "Only one value is allowed"
 msgstr "ಕೇವಲ ಒಂದು ಬೆಲೆ ಮಾತ್ರ ಅನುಮೋದಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/parameters.py:791
+#: ../../ipalib/parameters.py:862
 msgid "must be True or False"
 msgstr "ನಿಜ (True) ಅಥವಾ ಸುಳ್ಳು (False) ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:892
+#: ../../ipalib/parameters.py:963
 msgid "must be an integer"
 msgstr "ಇನ್ಟೀಜರ್ ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:943
+#: ../../ipalib/parameters.py:1014
 #, python-format
 msgid "must be at least %(minvalue)d"
 msgstr "ಕನಿಷ್ಠವಾಗಿ %(minvalue)d ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:953
+#: ../../ipalib/parameters.py:1024
 #, python-format
 msgid "can be at most %(maxvalue)d"
 msgstr "ಗರಿಷ್ಠವಾಗಿ %(maxvalue)d ಆಗಿರಬಹುದು"
 
-#: ../../ipalib/parameters.py:963
+#: ../../ipalib/parameters.py:1034
 msgid "must be a decimal number"
 msgstr "ದಶಾಂಶ ಸಂಖ್ಯೆ ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:985
+#: ../../ipalib/parameters.py:1056
 #, python-format
 msgid "must be at least %(minvalue)f"
 msgstr "ಕನಿಷ್ಠವಾಗಿ %(minvalue)f ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:995
+#: ../../ipalib/parameters.py:1066
 #, python-format
 msgid "can be at most %(maxvalue)f"
 msgstr "ಗರಿಷ್ಠವಾಗಿ %(maxvalue)f ಆಗಿರಬಹುದು"
 
-#: ../../ipalib/parameters.py:1055
+#: ../../ipalib/parameters.py:1126
 #, python-format
 msgid "must match pattern \"%(pattern)s\""
 msgstr "ನಮೂನೆ \"%(pattern)s\" ಹೊಂದಾಣಿಕೆಯಾಗಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:1073
+#: ../../ipalib/parameters.py:1144
 msgid "must be binary data"
 msgstr "ಬೈನರಿ ಡಾಟಾ ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:1088
+#: ../../ipalib/parameters.py:1159
 #, python-format
 msgid "must be at least %(minlength)d bytes"
 msgstr "ಕನಿಷ್ಠವಾಗಿ %(minlength)d ಬೈಟ್ಸ್ ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:1098
+#: ../../ipalib/parameters.py:1169
 #, python-format
 msgid "can be at most %(maxlength)d bytes"
 msgstr "ಗರಿಷ್ಠವಾಗಿ %(maxlength)d ಬೈಟ್ಸ್ ಆಗಿರಬಹುದು"
 
-#: ../../ipalib/parameters.py:1108
+#: ../../ipalib/parameters.py:1179
 #, python-format
 msgid "must be exactly %(length)d bytes"
 msgstr "ನಿಖರವಾಗಿ %(length)d ಬೈಟ್ಸ್ ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:1126
+#: ../../ipalib/parameters.py:1197
 msgid "must be Unicode text"
 msgstr "ಯುನಿಕೋಡ್ ಪಠ್ಯ ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:1156
+#: ../../ipalib/parameters.py:1227
 #, python-format
 msgid "must be at least %(minlength)d characters"
 msgstr "ಕನಿಷ್ಠವಾಗಿ %(minlength)d ಅಕ್ಷರಗಳು ಇರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:1166
+#: ../../ipalib/parameters.py:1237
 #, python-format
 msgid "can be at most %(maxlength)d characters"
 msgstr "ಗರಿಷ್ಠವಾಗಿ %(maxlength)d ಅಕ್ಷರಗಳು ಇರಬಹುದು"
 
-#: ../../ipalib/parameters.py:1176
+#: ../../ipalib/parameters.py:1247
 #, python-format
 msgid "must be exactly %(length)d characters"
 msgstr "ನಿಖರವಾಗಿ %(length)d ಅಕ್ಷರಗಳು ಇರಲೇಬೇಕು"
 
-#: ../../ipalib/parameters.py:1215
+#: ../../ipalib/parameters.py:1286
 #, python-format
 msgid "must be one of %(values)r"
 msgstr "%(values)r ನಲ್ಲಿ ಒಂದು ಆಗಿರಲೇಬೇಕು"
 
-#: ../../ipalib/cli.py:505
+#: ../../ipalib/cli.py:507
 #, python-format
 msgid "Enter %(label)s again to verify: "
 msgstr "ಮತ್ತೊಮ್ಮೆ ಪರಿಶೀಲಿಸಲು %(label)s ಎಂಟರ್ ಮಾಡಿ:"
 
-#: ../../ipalib/cli.py:509
+#: ../../ipalib/cli.py:511
 msgid "Passwords do not match!"
 msgstr "ಗುಪ್ತಪದಗಳು ಹೊಂದಾಣಿಕೆಯಾಗುತ್ತಿಲ್ಲ!"
 
-#: ../../ipalib/cli.py:514
+#: ../../ipalib/cli.py:516
 msgid "Cancelled."
 msgstr "ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ."
 
@@ -210,7 +210,7 @@ msgstr "%(name)r ಆಜ್ಞೆ(ಕಮ್ಯಾಂಡ್) ಯಾವುದೇ �
 msgid "command %(name)r takes at most %(count)d argument"
 msgid_plural "command %(name)r takes at most %(count)d arguments"
 msgstr[0] "%(name)r ಆಜ್ಞೆ(ಕಮ್ಯಾಂಡ್) ಗರಿಷ್ಠ %(count)d ಆರ್ಗುಮೆಂಟ್‌ವನ್ನು  ತೆಗೆದುಕೊಳ್ಳುತ್ತದೆ"
-msgstr[1] "%(name)r ಆಜ್ಞೆ(ಕಮ್ಯಾಂಡ್) ಗರಿಷ್ಠ %(count)d ಆರ್ಗುಮೆಂಟ್‌ಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುತ್ತದೆ"
+msgstr[1] "%(name)r ಆಜ್ಞೆ(ಕಮ್ಯಾಂಡ್) ಗರಿಷ್ಠ %(count)d ಆರ್ಗುಮೆಂಟ್‌ಗಳನ್ನು  ತೆಗೆದುಕೊಳ್ಳುತ್ತದೆ"
 
 #: ../../ipalib/errors.py:674
 #, python-format
@@ -270,7 +270,7 @@ msgstr "ಈ ಆಜ್ಞೆ(ಕಮ್ಯಾಂಡ್) ರೂಟ್(root) ನಿ�
 
 #: ../../ipalib/errors.py:879
 msgid "This is already a posix group"
-msgstr "ಈ ನಮೂದು ಈಗಾಗಲೇ posix ಗುಂಪು"
+msgstr "ಇದು ಈಗಾಗಲೇ posix ಗುಂಪು"
 
 #: ../../ipalib/errors.py:895
 #, python-format
@@ -346,107 +346,495 @@ msgstr "%(info)s"
 msgid "Certificate operation cannot be completed: %(error)s"
 msgstr "ಪ್ರಮಾಣಪತ್ರದ ಕಾರ್ಯಾಚರಣೆಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಲು ಆಗುತ್ತಿಲ್ಲ: %(error)s"
 
-#: ../../ipalib/plugins/rolegroup.py:50
+#: ../../ipalib/plugins/config.py:45
+msgid "Max username length"
+msgstr "ಬಳಕೆದಾರಹೆಸರಿನ ಗರಿಷ್ಟ ಉದ್ದ"
+
+#: ../../ipalib/plugins/config.py:50
+msgid "Home directory base"
+msgstr "ಹೋಮ್ ಡೈರೆಕ್ಟರೀ ಮೂಲ"
+
+#: ../../ipalib/plugins/config.py:51
+msgid "Default location of home directories"
+msgstr "ಹೋಮ್ ಡೈರೆಕ್ಟರೀಗಳ ಡಿಫಾಲ್ಟ್ ತಾಣ"
+
+#: ../../ipalib/plugins/config.py:55
+msgid "Default shell"
+msgstr "ಡೀಫಾಲ್ಟ್ ಶೆಲ್"
+
+#: ../../ipalib/plugins/config.py:56
+msgid "Default shell for new users"
+msgstr "ಹೊಸ ಬಳಕೆದಾರರಿಗಾಗಿ ಡಿಫಾಲ್ಟ್ ಶೆಲ್"
+
+#: ../../ipalib/plugins/config.py:60
+msgid "Default users group"
+msgstr "ಡಿಫಾಲ್ಟ್ ಬಳಕೆದಾರರ ಗುಂಪು"
+
+#: ../../ipalib/plugins/config.py:61
+msgid "Default group for new users"
+msgstr "ಹೊಸ ಬಳಕೆದಾರರಿಗಾಗಿ ಡಿಫಾಲ್ಟ್ ಗುಂಪು"
+
+#: ../../ipalib/plugins/config.py:65
+msgid "Default e-mail domain"
+msgstr "ಡಿಫಾಲ್ಟ್ ಈ-ಅಂಚೆ  ಡೊಮೇನ್"
+
+#: ../../ipalib/plugins/config.py:66
+msgid "Default e-mail domain new users"
+msgstr "ಡಿಫಾಲ್ಟ್ ಈ-ಅಂಚೆ  ಡೊಮೇನ್ ಹೊಸ ಬಳಕೆದಾರರು"
+
+#: ../../ipalib/plugins/config.py:70
+msgid "Search time limit"
+msgstr "ಹುಡುಕು ಸಮಯ ಮಿತಿ"
+
+#: ../../ipalib/plugins/config.py:71
+msgid "Max. amount of time (sec.) for a search (-1 is unlimited)"
+msgstr "ಒಂದು ಹುಡುಕುವಿಕೆಗಾಗಿ (-1 ಅಪರಿಮಿತ)  ಗರಿಷ್ಟ ಮೊತ್ತದ ಸಮಯ (sec.)"
+
+#: ../../ipalib/plugins/config.py:76
+msgid "Search size limit"
+msgstr "ಹುಡುಕು ಗಾತ್ರ ಮಿತಿ"
+
+#: ../../ipalib/plugins/config.py:77
+msgid "Max. number of records to search (-1 is unlimited)"
+msgstr "ಗರಿಷ್ಟ ಸಂಖ್ಯೆಯ ರೆಕಾರ್ಡ್‌ಗಳನ್ನು ಹುಡುಕುವುದಕ್ಕಾಗಿ (-1 ಅಪರಿಮಿತ)"
+
+#: ../../ipalib/plugins/config.py:82
+msgid "User search fields"
+msgstr "ಬಳಕೆದಾರನ ಶೋಧ ಫೀಲ್ಡ್‌ಗಳು"
+
+#: ../../ipalib/plugins/config.py:83
+msgid "A comma-separated list of fields to search when searching for users"
+msgstr "A comma-separated list of fields to search when searching for users"
+
+#: ../../ipalib/plugins/config.py:92
+msgid "Migration mode"
+msgstr "ಮೈಗ್ರೇಶನ್ ಕ್ರಮ"
+
+#: ../../ipalib/plugins/config.py:93
+msgid "Enabled migration mode"
+msgstr "ಮೈಗ್ರೇಶನ್ ಬಗೆಯನ್ನು ಶಕ್ತಗೊಳಿಸಲಾಗಿದೆ"
+
+#: ../../ipalib/plugins/config.py:97
+msgid "Certificate Subject base"
+msgstr "ಪ್ರಮಾಣಪತ್ರದ ವಿಷಯ ಮೂಲ"
+
+#: ../../ipalib/plugins/config.py:98
+msgid "base for certificate subjects (OU=Test,O=Example)"
+msgstr "base for certificate subjects (OU=Test,O=Example)"
+
+#: ../../ipalib/plugins/rolegroup.py:42
 msgid "Role Groups"
 msgstr "ಕೆಲಸ(ರೋಲ್)ದ ಗುಂಪುಗಳು"
 
-#: ../../ipalib/plugins/rolegroup.py:75
+#: ../../ipalib/plugins/rolegroup.py:47
+msgid "Role-group name"
+msgstr "ರೋಲ್-ಗುಂಪಿನ ಹೆಸರು"
+
+#: ../../ipalib/plugins/rolegroup.py:53
+#: ../../ipalib/plugins/host.py:77
+#: ../../ipalib/plugins/group.py:59
+#: ../../ipalib/plugins/hbac.py:91
+#: ../../ipalib/plugins/automount.py:230
+#: ../../ipalib/plugins/netgroup.py:58
+#: ../../ipalib/plugins/taskgroup.py:54
+#: ../../ipalib/plugins/hostgroup.py:55
+msgid "Description"
+msgstr "ವಿವರಣೆ"
+
+#: ../../ipalib/plugins/rolegroup.py:54
+msgid "A description of this role-group"
+msgstr "ಈ ರೋಲ್-ಗ್ರೂಪ್‌ನ ವಿವರಣೆ"
+
+#: ../../ipalib/plugins/rolegroup.py:57
+#: ../../ipalib/plugins/group.py:68
+#: ../../ipalib/plugins/taskgroup.py:58
+msgid "Member groups"
+msgstr "ಸದಸ್ಯ ಗುಂಪುಗಳು"
+
+#: ../../ipalib/plugins/rolegroup.py:61
+#: ../../ipalib/plugins/group.py:72
+#: ../../ipalib/plugins/taskgroup.py:62
+msgid "Member users"
+msgstr "ಸದಸ್ಯ ಬಳಕೆದಾರರು"
+
+#: ../../ipalib/plugins/rolegroup.py:65
+msgid "Member of task-groups"
+msgstr "ಟಾಸ್ಕ್-ಗುಂಪುಗಳ ಸದಸ್ಯ"
+
+#: ../../ipalib/plugins/rolegroup.py:78
 #, python-format
 msgid "Added rolegroup \"%(value)s\""
 msgstr "\"%(value)s\" ರೋಲ್‌ಗ್ರೂಪನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/rolegroup.py:85
+#: ../../ipalib/plugins/rolegroup.py:88
 #, python-format
 msgid "Deleted rolegroup \"%(value)s\""
 msgstr "\"%(value)s\" ರೋಲ್‌ಗ್ರೂಪನ್ನು ಅಳಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/rolegroup.py:95
+#: ../../ipalib/plugins/rolegroup.py:98
 #, python-format
 msgid "Modified rolegroup \"%(value)s\""
 msgstr "\"%(value)s\" ರೋಲ್‌ಗ್ರೂಪನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/rolegroup.py:106
+#: ../../ipalib/plugins/rolegroup.py:109
 #, python-format
 msgid "%(count)d rolegroup matched"
 msgid_plural "%(count)d rolegroups matched"
 msgstr[0] "%(count)d ರೋಲ್‌ಗ್ರೂಪ್ ತಾಳೆಯಾಗುತ್ತಿದೆ"
 msgstr[1] "%(count)d ರೋಲ್‌ಗ್ರೂಪ್‌ಗಳು ತಾಳೆಯಾಗುತ್ತಿವೆ"
 
-#: ../../ipalib/plugins/host.py:82
+#: ../../ipalib/plugins/host.py:66
 msgid "Hosts"
 msgstr "ಹೋಸ್ಟ್‌ಗಳು"
 
-#: ../../ipalib/plugins/host.py:151
+#: ../../ipalib/plugins/host.py:71
+msgid "Host name"
+msgstr "ಹೋಸ್ಟ್  ಹೆಸರು"
+
+#: ../../ipalib/plugins/host.py:78
+msgid "A description of this host"
+msgstr "ಈ ಹೋಸ್ಟ್‌ನ ವಿವರಣೆ"
+
+#: ../../ipalib/plugins/host.py:82
+msgid "Locality"
+msgstr "ಪ್ರದೇಶ"
+
+#: ../../ipalib/plugins/host.py:83
+msgid "Host locality (e.g. \"Baltimore, MD\")"
+msgstr "ಹೋಸ್ಟ್ ತಾಣ (e.g. \"Baltimore, MD\")"
+
+#: ../../ipalib/plugins/host.py:87
+#: ../../ipalib/plugins/automount.py:107
+msgid "Location"
+msgstr "ಸ್ಥಳ"
+
+#: ../../ipalib/plugins/host.py:88
+msgid "Host location (e.g. \"Lab 2\")"
+msgstr "ಹೋಸ್ಟ್ ತಾಣ (e.g. \"Lab 2\")"
+
+#: ../../ipalib/plugins/host.py:92
+msgid "Platform"
+msgstr "ಪ್ಲಾಟ್‌ಫಾರ್ಮ್"
+
+#: ../../ipalib/plugins/host.py:93
+msgid "Host hardware platform (e.g. \"Lenovo T61\")"
+msgstr "ಹೋಸ್ಟ್ ಹಾರ್ಡ್‌ವೇರ್ ಪ್ಲ್ಯಾಟ್‌ಫಾರ್ಮ್ (e.g. \"Lenovo T61\")"
+
+#: ../../ipalib/plugins/host.py:97
+msgid "Operating system"
+msgstr "ಕಾರ್ಯಕಾರಿ ವ್ಯವಸ್ಥೆ"
+
+#: ../../ipalib/plugins/host.py:98
+msgid "Host operating system and version (e.g. \"Fedora 9\")"
+msgstr "ಹೋಸ್ಟ್ ಕಾರ್ಯಕಾರಿ ವ್ಯವಸ್ಥೆ ಮತ್ತು ಆವೃತ್ತಿ (e.g. \"Fedora 9\")"
+
+#: ../../ipalib/plugins/host.py:102
+msgid "User password"
+msgstr "ಬಳಕೆದಾರನ ಗುಪ್ತಪದ"
+
+#: ../../ipalib/plugins/host.py:103
+msgid "Password used in bulk enrollment"
+msgstr "ದೊಡ್ಡ ಪ್ರಮಾಣದ ದಾಖಲಾತಿಯಲ್ಲಿ ಬಳಸಲಾದ ಗುಪ್ತಪದ"
+
+#: ../../ipalib/plugins/host.py:107
+#: ../../ipalib/plugins/service.py:128
+#: ../../ipalib/plugins/cert.py:188
+#: ../../ipalib/plugins/cert.py:370
+msgid "Certificate"
+msgstr "ಪ್ರಮಾಣಪತ್ರ"
+
+#: ../../ipalib/plugins/host.py:108
+#: ../../ipalib/plugins/service.py:129
+msgid "Base-64 encoded server certificate"
+msgstr "Base-64 ಎನ್‌ಕೋಡೆಡ್ ಸರ್ವರ್ ಪ್ರಮಾಣಪತ್ರ"
+
+#: ../../ipalib/plugins/host.py:111
+#: ../../ipalib/plugins/host.py:214
+msgid "Principal name"
+msgstr "Principal ಹೆಸರು"
+
+#: ../../ipalib/plugins/host.py:115
+#: ../../ipalib/plugins/hostgroup.py:67
+msgid "Member of host-groups"
+msgstr "ಹೋಸ್ಟ್-ಗುಂಪಿನ ಸದಸ್ಯ"
+
+#: ../../ipalib/plugins/host.py:119
+msgid "Member of net-groups"
+msgstr "ನೆಟ್-ಗುಂಪುಗಳ ಸದಸ್ಯ"
+
+#: ../../ipalib/plugins/host.py:123
+msgid "Member of role-groups"
+msgstr "ರೋಲ್-ಗುಂಪುಗಳ ಸದಸ್ಯ"
+
+#: ../../ipalib/plugins/host.py:152
 #, python-format
 msgid "Added host \"%(value)s\""
 msgstr "\"%(value)s\" ಹೋಸ್ಟನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/host.py:180
+#: ../../ipalib/plugins/host.py:181
 #, python-format
 msgid "Deleted host \"%(value)s\""
 msgstr "\"%(value)s\" ಹೋಸ್ಟನ್ನು ಅಳಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/host.py:208
+#: ../../ipalib/plugins/host.py:209
 #, python-format
 msgid "Modified host \"%(value)s\""
 msgstr "\"%(value)s\" ಹೋಸ್ಟನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/host.py:257
+#: ../../ipalib/plugins/host.py:215
+msgid "Kerberos principal name for this host"
+msgstr "ಈ ಹೋಸ್ಟ್‌ಗೆ Kerberos principalನ ಹೆಸರು"
+
+#: ../../ipalib/plugins/host.py:259
 #, python-format
 msgid "%(count)d host matched"
 msgid_plural "%(count)d hosts matched"
 msgstr[0] "%(count)d ಹೋಸ್ಟ್‌ ತಾಳೆಯಾಗುತ್ತಿದೆ"
 msgstr[1] "%(count)d ಹೋಸ್ಟ್‌ಗಳು ತಾಳೆಯಾಗುತ್ತಿವೆ"
 
-#: ../../ipalib/plugins/group.py:58
+#: ../../ipalib/plugins/group.py:48
 msgid "User Groups"
 msgstr "ಬಳಕೆದಾರರ ಗುಂಪುಗಳು"
 
-#: ../../ipalib/plugins/group.py:87
+#: ../../ipalib/plugins/group.py:53
+msgid "Group name"
+msgstr "ಗುಂಪಿನ ಹೆಸರು"
+
+#: ../../ipalib/plugins/group.py:60
+msgid "Group description"
+msgstr "ಗುಂಪಿನ ವಿವರಣೆ"
+
+#: ../../ipalib/plugins/group.py:64
+msgid "GID"
+msgstr "GID"
+
+#: ../../ipalib/plugins/group.py:65
+msgid "GID (use this option to set it manually)"
+msgstr "GID (ಇದನ್ನು ಮ್ಯಾನ್ಯೂವಲ್ ಆಗಿ ಸೆಟ್ ಮಾಡಲು ಈ ಆಯ್ಕೆಯನ್ನು ಬಳಸಿ)"
+
+#: ../../ipalib/plugins/group.py:76
+msgid "Failed members"
+msgstr "ವಿಫಲಗೊಂಡ ಸದಸ್ಯರು"
+
+#: ../../ipalib/plugins/group.py:80
+#: ../../ipalib/plugins/user.py:48
+msgid "Users"
+msgstr "ಬಳಕೆದಾರರು"
+
+#: ../../ipalib/plugins/group.py:84
+#: ../../ipalib/plugins/user.py:109
+msgid "Groups"
+msgstr "ಗುಂಪುಗಳು"
+
+#: ../../ipalib/plugins/group.py:97
 #, python-format
 msgid "Added group \"%(value)s\""
 msgstr "\"%(value)s\" ಗುಂಪನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/group.py:110
+#: ../../ipalib/plugins/group.py:102
+msgid "Create as posix group?"
+msgstr "posix ಗುಂಪಿನಂತೆ ರಚಿಸಬೇಕೆ?"
+
+#: ../../ipalib/plugins/group.py:120
 #, python-format
 msgid "Deleted group \"%(value)s\""
 msgstr "\"%(value)s\" ಗುಂಪನ್ನು ಅಳಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/group.py:136
+#: ../../ipalib/plugins/group.py:146
 #, python-format
 msgid "Modified group \"%(value)s\""
 msgstr "\"%(value)s\" ಗುಂಪನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/group.py:165
+#: ../../ipalib/plugins/group.py:175
 #, python-format
 msgid "%(count)d group matched"
 msgid_plural "%(count)d groups matched"
 msgstr[0] "%(count)d ಗುಂಪು ತಾಳೆಯಾಗುತ್ತಿದೆ"
-msgstr[1] "%(count)d ಗುಂಪುಗಳು ತಾಳೆಯಾಗುತ್ತಿವೆ"
+msgstr[1] "%(count)d ಗುಂಪುಗಳು ತಾಳೆಯಾಗುತ್ತಿವೆ "
 
-#: ../../ipalib/plugins/service.py:122
+#: ../../ipalib/plugins/migration.py:166
+msgid "LDAP URI"
+msgstr "LDAP URI"
+
+#: ../../ipalib/plugins/migration.py:167
+msgid "LDAP URI of DS server to migrate from"
+msgstr "LDAP URI of DS server to migrate from"
+
+#: ../../ipalib/plugins/migration.py:178
+msgid "Bind DN"
+msgstr "ಬೈಂಡ್ DN"
+
+#: ../../ipalib/plugins/migration.py:184
+msgid "User container"
+msgstr "ಬಳಕೆದಾರನ ಕಂಟೇನರ್"
+
+#: ../../ipalib/plugins/migration.py:185
+msgid "RDN of container for users in DS"
+msgstr "DSನಲ್ಲಿರುವ ಬಳಕೆದಾರರಿಗಾಗಿ RDNನ ಕಂಟೇನರ್  "
+
+#: ../../ipalib/plugins/migration.py:191
+msgid "Group container"
+msgstr "ಗುಂಪಿನ ಕಂಟೇನರ್"
+
+#: ../../ipalib/plugins/migration.py:192
+msgid "RDN of container for groups in DS"
+msgstr "DSನಲ್ಲಿರುವ ಗುಂಪುಗಳಿಗಾಗಿ RDNನ ಕಂಟೇನರ್  "
+
+#: ../../ipalib/plugins/service.py:116
 msgid "Services"
 msgstr "ಸೇವೆಗಳು(ಸರ್ವೀಸಸ್)"
 
-#: ../../ipalib/plugins/hbac.py:62
+#: ../../ipalib/plugins/service.py:121
+#: ../../ipalib/plugins/cert.py:175
+msgid "Principal"
+msgstr "Principal"
+
+#: ../../ipalib/plugins/service.py:122
+msgid "Service principal"
+msgstr "Service principal"
+
+#: ../../ipalib/plugins/service.py:140
+#, python-format
+msgid "Added service \"%(value)s\""
+msgstr "\"%(value)s\" ಸೇವೆ(ಸರ್ವೀಸ್)ಯನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
+
+#: ../../ipalib/plugins/service.py:187
+#, python-format
+msgid "Deleted service \"%(value)s\""
+msgstr "\"%(value)s\" ಸೇವೆ(ಸರ್ವೀಸ್)ಯನ್ನು ಅಳಿಸಲಾಗಿದೆ"
+
+#: ../../ipalib/plugins/passwd.py:37
+#: ../../ipalib/plugins/krbtpolicy.py:47
+msgid "User name"
+msgstr "ಬಳಕೆದಾರನ ಹೆಸರು"
+
+#: ../../ipalib/plugins/hbac.py:48
 msgid "HBAC"
 msgstr "HBAC"
 
-#: ../../ipalib/plugins/cert.py:63
-#: ../../ipalib/plugins/cert.py:84
+#: ../../ipalib/plugins/hbac.py:53
+msgid "Rule name"
+msgstr "ನಿಯಮದ ಹೆಸರು"
+
+#: ../../ipalib/plugins/hbac.py:58
+msgid "Rule type (allow or deny)"
+msgstr "ನಿಯಮದ ಬಗೆ(ಅನುಮತಿಸು ಅಥವಾ ನಿರಾಕರಿಸು)"
+
+#: ../../ipalib/plugins/hbac.py:63
+msgid "Service name"
+msgstr "ಸೇವೆಯ ಹೆಸರು"
+
+#: ../../ipalib/plugins/hbac.py:64
+msgid "Name of service the rule applies to (e.g. ssh)"
+msgstr "Name of service the rule applies to (e.g. ssh)"
+
+#: ../../ipalib/plugins/hbac.py:69
+msgid "User category"
+msgstr "ಬಳಕೆದಾರನ ವರ್ಗ"
+
+#: ../../ipalib/plugins/hbac.py:70
+msgid "User category the rule applies to"
+msgstr "ನಿಯಮ ಅನ್ವಯಿಸುವಂತಹ ಬಳಕೆದಾರನ ವರ್ಗ"
+
+#: ../../ipalib/plugins/hbac.py:75
+msgid "Host category"
+msgstr "ಹೋಸ್ಟ್ ವರ್ಗ"
+
+#: ../../ipalib/plugins/hbac.py:76
+msgid "Host category the rule applies to"
+msgstr "ನಿಯಮ ಅನ್ವಯಿಸುವಂತಹ ಹೋಸ್ಟ್ ವರ್ಗ"
+
+#: ../../ipalib/plugins/hbac.py:81
+msgid "Source host category"
+msgstr "ಮೂಲ ಹೋಸ್ಟ್ ವರ್ಗ"
+
+#: ../../ipalib/plugins/hbac.py:82
+msgid "Source host category the rule applies to"
+msgstr "ನಿಯಮ ಅನ್ವಯಿಸುವಂತಹ ಮೂಲ ಹೋಸ್ಟ್ ವರ್ಗ"
+
+#: ../../ipalib/plugins/hbac.py:87
+#: ../../ipalib/plugins/hbac.py:221
+#: ../../ipalib/plugins/hbac.py:259
+msgid "Access time"
+msgstr "ಪ್ರವೇಶದ ಸಮಯ"
+
+#: ../../ipalib/plugins/cert.py:62
+#: ../../ipalib/plugins/cert.py:83
 msgid "Unable to decode certificate in entry"
 msgstr "ನಮೂದಿನಲ್ಲಿರುವ ಪ್ರಮಾಣಪತ್ರದ ಡಿಕೋಡಿಂಗ್ ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ"
 
-#: ../../ipalib/plugins/cert.py:106
-#: ../../ipalib/plugins/cert.py:120
-#: ../../ipalib/plugins/cert.py:137
+#: ../../ipalib/plugins/cert.py:105
+#: ../../ipalib/plugins/cert.py:119
+#: ../../ipalib/plugins/cert.py:136
 msgid "Failure decoding Certificate Signing Request"
 msgstr "ಪ್ರಮಾಣಪತ್ರದ ಸಹಿಯ ಕೋರಿಕೆಯ ಡಿಕೋಡಿಂಗ್‌ನ ವಿಫಲತೆ"
 
-#: ../../ipalib/plugins/cert.py:139
+#: ../../ipalib/plugins/cert.py:138
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
 msgstr "ಪ್ರಮಾಣಪತ್ರದ ಸಹಿಯ ಕೋರಿಕೆಯ ಡಿಕೋಡಿಂಗ್‌ನ ವಿಫಲತೆ: %s"
+
+#: ../../ipalib/plugins/cert.py:176
+msgid "Service principal for this certificate (e.g. HTTP/test.example.com)"
+msgstr "ಈ ಪ್ರಮಾಣಪತ್ರಕ್ಕಾಗಿ Service principal (e.g. HTTP/test.example.com)"
+
+#: ../../ipalib/plugins/cert.py:183
+msgid "automatically add the principal if it doesn't exist"
+msgstr "ಸ್ವಯಂಚಾಲಿತವಾಗಿ principal ಸೇರಿಸಿ ಅದು ಅಸ್ತಿತ್ವದಲ್ಲಿ ಇಲ್ಲದಿದ್ದಲ್ಲಿ"
+
+#: ../../ipalib/plugins/cert.py:192
+#: ../../ipalib/plugins/cert.py:374
+msgid "Subject"
+msgstr "ವಿಷಯ"
+
+#: ../../ipalib/plugins/cert.py:196
+#: ../../ipalib/plugins/cert.py:357
+msgid "Serial number"
+msgstr "ಅನುಕ್ರಮ ಸಂಖ್ಯೆ"
+
+#: ../../ipalib/plugins/cert.py:334
+msgid "Request id"
+msgstr "ಬೇಡಿಕೆ ID"
+
+#: ../../ipalib/plugins/cert.py:340
+msgid "Request status"
+msgstr "ಬೇಡಿಕೆ ಸ್ಥಿತಿ"
+
+#: ../../ipalib/plugins/cert.py:358
+msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
+msgstr "ಕ್ರಮ ಸಂಖ್ಯೆ ಡೆಸಿಮಲ್‌ನಲ್ಲಿ ಅಥವಾ 0x ಮೊದಲು ಸೇರಿಸಿದ್ದಲ್ಲಿ ಹೆಕ್ಸಾಡೆಸಿಮಲ್‌ನಲ್ಲಿ"
+
+#: ../../ipalib/plugins/cert.py:378
+msgid "Revocation reason"
+msgstr "ರದ್ದು ಮಾಡುವುದಕ್ಕೆ ಕಾರಣ"
+
+#: ../../ipalib/plugins/cert.py:403
+msgid "Revoked"
+msgstr "ರದ್ದು ಮಾಡಲಾಗಿದೆ"
+
+#: ../../ipalib/plugins/cert.py:412
+msgid "Reason"
+msgstr "ಕಾರಣ"
+
+#: ../../ipalib/plugins/cert.py:413
+msgid "Reason for revoking the certificate (0-10)"
+msgstr "ಪ್ರಮಾಣಪತ್ರವನ್ನು (0-10) ರದ್ದು ಮಾಡಲು ಕಾರಣ"
+
+#: ../../ipalib/plugins/cert.py:438
+msgid "Unrevoked"
+msgstr "ರದ್ದು ಮಾಡಲಾಗಿಲ್ಲ"
+
+#: ../../ipalib/plugins/cert.py:442
+msgid "Error"
+msgstr "ದೋಷ"
+
+#: ../../ipalib/plugins/baseldap.py:115
+msgid "Add an attribute/value pair. Format is attr=value"
+msgstr "Add an attribute/value pair. Format is attr=value"
+
+#: ../../ipalib/plugins/baseldap.py:120
+msgid "Set an attribute to an name/value pair. Format is attr=value"
+msgstr "Set an attribute to an name/value pair. Format is attr=value"
 
 #: ../../ipalib/plugins/aci.py:109
 msgid "type, filter, subtree and targetgroup are mutually exclusive"
@@ -478,43 +866,302 @@ msgstr "\"%s\" ಹೆಸರು ಹೊಂದಿರುವ ACI ಪತ್ತೆಯ�
 msgid "ACIs"
 msgstr "ACIs"
 
-#: ../../ipalib/plugins/aci.py:258
+#: ../../ipalib/plugins/aci.py:206
+msgid "ACI name"
+msgstr "ACI ಹೆಸರು"
+
+#: ../../ipalib/plugins/aci.py:211
+msgid "Taskgroup"
+msgstr "ಟಾಸ್ಕ್‌ಗ್ರೂಪ್"
+
+#: ../../ipalib/plugins/aci.py:212
+msgid "Taskgroup ACI grants access to"
+msgstr "Taskgroup ACI grants access to"
+
+#: ../../ipalib/plugins/aci.py:216
+msgid "User group"
+msgstr "ಬಳಕೆದಾರ ಗುಂಪು"
+
+#: ../../ipalib/plugins/aci.py:217
+msgid "User group ACI grants access to"
+msgstr "User group ACI grants access to"
+
+#: ../../ipalib/plugins/aci.py:221
+msgid "Permissions"
+msgstr "ಅನುಮತಿಗಳು"
+
+#: ../../ipalib/plugins/aci.py:222
+msgid "comma-separated list of permissions to grant(read, write, add, delete, selfwrite, all)"
+msgstr "comma-separated list of permissions to grant(read, write, add, delete, selfwrite, all)"
+
+#: ../../ipalib/plugins/aci.py:228
+msgid "Attributes"
+msgstr "ವೈಶಿಷ್ಟ್ಯಗಳು"
+
+#: ../../ipalib/plugins/aci.py:229
+msgid "Comma-separated list of attributes"
+msgstr "Comma-separated ವೈಶಿಷ್ಟ್ಯಗಳ ಪಟ್ಟಿ"
+
+#: ../../ipalib/plugins/aci.py:233
+msgid "Type"
+msgstr "ಬಗೆ"
+
+#: ../../ipalib/plugins/aci.py:234
+msgid "type of IPA object (user, group, host)"
+msgstr "IPA ಆಬ್ಜೆಕ್ಟ್ ಬಗೆ (ಬಳಕೆದಾರ, ಗುಂಪು, ಹೋಸ್ಟ್)"
+
+#: ../../ipalib/plugins/aci.py:239
+msgid "Member of"
+msgstr "ಸದಸ್ಯ"
+
+#: ../../ipalib/plugins/aci.py:240
+msgid "Member of a group"
+msgstr "ಒಂದು ಗುಂಪಿನ ಸದಸ್ಯ"
+
+#: ../../ipalib/plugins/aci.py:244
+msgid "Filter"
+msgstr "ಶೋಧಕ (ಫಿಲ್ಟರ್)"
+
+#: ../../ipalib/plugins/aci.py:245
+msgid "Legal LDAP filter (e.g. ou=Engineering)"
+msgstr "Legal LDAP filter (e.g. ou=Engineering)"
+
+#: ../../ipalib/plugins/aci.py:249
+msgid "Subtree"
+msgstr "ಉಪವೃಕ್ಷ"
+
+#: ../../ipalib/plugins/aci.py:250
+msgid "Subtree to apply ACI to"
+msgstr "Subtree to apply ACI to"
+
+#: ../../ipalib/plugins/aci.py:254
+msgid "Target group"
+msgstr "Target ಗುಂಪು"
+
+#: ../../ipalib/plugins/aci.py:255
+msgid "Group to apply ACI to"
+msgstr "Group to apply ACI to"
+
+#: ../../ipalib/plugins/aci.py:267
 #, python-format
 msgid "Created ACI \"%(value)s\""
 msgstr "\"%(value)s\" ACIವನ್ನು ರಚಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/aci.py:308
+#: ../../ipalib/plugins/aci.py:317
 #, python-format
 msgid "Deleted ACI \"%(value)s\""
 msgstr "\"%(value)s\" ACIವನ್ನು ಅಳಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/aci.py:348
+#: ../../ipalib/plugins/aci.py:357
 #, python-format
 msgid "Modified ACI \"%(value)s\""
 msgstr "\"%(value)s\" ACIವನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/aci.py:408
+#: ../../ipalib/plugins/aci.py:417
 #, python-format
 msgid "%(count)d ACI matched"
 msgid_plural "%(count)d ACIs matched"
 msgstr[0] "%(count)d ACI ತಾಳೆಯಾಗುತ್ತಿದೆ"
 msgstr[1] "%(count)d ACIಗಳು ತಾಳೆಯಾಗುತ್ತಿವೆ"
 
-#: ../../ipalib/plugins/dns.py:114
+#: ../../ipalib/plugins/krbtpolicy.py:48
+msgid "Manage ticket policy for specific user"
+msgstr "ನಿಗದಿತ ಬಳಕೆದಾರನಿಗೆ ಟಿಕೆಟ್ ಪಾಲಿಸಿಯನ್ನು ನಿರ್ವಹಿಸು"
+
+#: ../../ipalib/plugins/krbtpolicy.py:53
+msgid "Max life"
+msgstr "ಗರಿಷ್ಟ ಜೀವಿತಾವಧಿ"
+
+#: ../../ipalib/plugins/krbtpolicy.py:54
+msgid "Maximum ticket life"
+msgstr "ಗರಿಷ್ಟ ಟಿಕೆಟ್ ಜೀವಿತಾವಧಿ"
+
+#: ../../ipalib/plugins/krbtpolicy.py:58
+msgid "Max renew"
+msgstr "ಗರಿಷ್ಟ ನವೀಕರಣ"
+
+#: ../../ipalib/plugins/krbtpolicy.py:59
+msgid "Maximum renewable age"
+msgstr "ಗರಿಷ್ಟ ನವೀಕರಿಸಬಲ್ಲ ಆಯಸ್ಸು"
+
+#: ../../ipalib/plugins/dns.py:113
 msgid "DNS"
 msgstr "DNS"
 
-#: ../../ipalib/plugins/automount.py:231
+#: ../../ipalib/plugins/dns.py:118
+msgid "Zone"
+msgstr "ವಲಯ"
+
+#: ../../ipalib/plugins/dns.py:119
+msgid "Zone name (FQDN)"
+msgstr "ವಲಯದ ಹೆಸರು (FQDN)"
+
+#: ../../ipalib/plugins/dns.py:125
+msgid "Authoritative name server"
+msgstr "Authoritative name server"
+
+#: ../../ipalib/plugins/dns.py:129
+msgid "administrator e-mail address"
+msgstr "ಅಡ್ಮಿನಿಸ್ಟ್ರೇಟರ್ ಈ-ಅಂಚೆ ವಿಳಾಸ"
+
+#: ../../ipalib/plugins/dns.py:135
+msgid "SOA serial"
+msgstr "SOA serial"
+
+#: ../../ipalib/plugins/dns.py:139
+msgid "SOA refresh"
+msgstr "SOA refresh"
+
+#: ../../ipalib/plugins/dns.py:143
+msgid "SOA retry"
+msgstr "SOA retry"
+
+#: ../../ipalib/plugins/dns.py:147
+msgid "SOA expire"
+msgstr "SOA expire"
+
+#: ../../ipalib/plugins/dns.py:151
+msgid "SOA minimum"
+msgstr "SOA minimum"
+
+#: ../../ipalib/plugins/dns.py:155
+msgid "SOA time to live"
+msgstr "SOA time to live"
+
+#: ../../ipalib/plugins/dns.py:159
+msgid "SOA class"
+msgstr "SOA class"
+
+#: ../../ipalib/plugins/dns.py:164
+msgid "allow dynamic update?"
+msgstr "ಡೈನಮಿಕ್ ಅಪ್‌ಡೇಟ್ ಅನುಮತಿಸಬೇಕೆ?"
+
+#: ../../ipalib/plugins/dns.py:168
+msgid "BIND update policy"
+msgstr "BIND update policy"
+
+#: ../../ipalib/plugins/dns.py:393
+#: ../../ipalib/plugins/dns.py:427
+#: ../../ipalib/plugins/dns.py:462
+#: ../../ipalib/plugins/dns.py:577
+#: ../../ipalib/plugins/dns.py:662
+#: ../../ipalib/plugins/dns.py:786
+msgid "Zone name"
+msgstr "ವಲಯದ ಹೆಸರು"
+
+#: ../../ipalib/plugins/dns.py:467
+msgid "resource name"
+msgstr "ರೀಸೊರ್ಸ್ ಹೆಸರು"
+
+#: ../../ipalib/plugins/dns.py:472
+#: ../../ipalib/plugins/dns.py:587
+#: ../../ipalib/plugins/dns.py:678
+msgid "Record type"
+msgstr "ದಾಖಲೆಯ ಬಗೆ"
+
+#: ../../ipalib/plugins/dns.py:476
+#: ../../ipalib/plugins/dns.py:591
+msgid "Data"
+msgstr "ದತ್ತಾಂಶ"
+
+#: ../../ipalib/plugins/dns.py:477
+#: ../../ipalib/plugins/dns.py:592
+msgid "Type-specific data"
+msgstr "ನಮೂನೆ-ನಿಗದಿತ ದತ್ತಾಂಶ"
+
+#: ../../ipalib/plugins/dns.py:484
+msgid "Time to live"
+msgstr "ಉಳಿದಿರಬೇಕಾದ ಸಮಯ"
+
+#: ../../ipalib/plugins/dns.py:489
+msgid "Class"
+msgstr "ವರ್ಗ"
+
+#: ../../ipalib/plugins/dns.py:582
+#: ../../ipalib/plugins/dns.py:674
+#: ../../ipalib/plugins/dns.py:791
+msgid "Resource name"
+msgstr "ರೀಸೊರ್ಸ್ ಹೆಸರು"
+
+#: ../../ipalib/plugins/dns.py:667
+msgid "Search criteria"
+msgstr "ಹುಡುಕು criteria"
+
+#: ../../ipalib/plugins/dns.py:682
+msgid "type-specific data"
+msgstr "ನಮೂನೆ-ನಿಗದಿತ ದತ್ತಾಂಶ"
+
+#: ../../ipalib/plugins/automount.py:108
+msgid "Automount location name"
+msgstr "ಆಟೊಮೌಂಟ್ ತಾಣದ ಹೆಸರು"
+
+#: ../../ipalib/plugins/automount.py:224
+msgid "Map"
+msgstr "ನಕ್ಷೆ"
+
+#: ../../ipalib/plugins/automount.py:225
+msgid "Automount map name"
+msgstr "ಆಟೊಮೌಂಟ್ ಮ್ಯಾಪ್‌ನ ಹೆಸರು"
+
+#: ../../ipalib/plugins/automount.py:234
 msgid "Automount Maps"
 msgstr "ಮ್ಯಾಪ್‌ಗಳ ಆಟೋಮೌಂಟ್"
 
-#: ../../ipalib/plugins/automount.py:321
+#: ../../ipalib/plugins/automount.py:306
+msgid "Key"
+msgstr "ಕೀ"
+
+#: ../../ipalib/plugins/automount.py:307
+msgid "Automount key name"
+msgstr "ಆಟೊಮೌಂಟ್ ಕೀ ಹೆಸರು"
+
+#: ../../ipalib/plugins/automount.py:312
+msgid "Mount information"
+msgstr "ಮೌಂಟ್ ಮಾಹಿತಿ"
+
+#: ../../ipalib/plugins/automount.py:316
+msgid "description"
+msgstr "ವಿವರಣೆ"
+
+#: ../../ipalib/plugins/automount.py:320
 msgid "Automount Keys"
 msgstr "ಕೀಗಳ ಆಟೋಮೌಂಟ್"
 
-#: ../../ipalib/plugins/netgroup.py:55
+#: ../../ipalib/plugins/automount.py:340
+msgid "Mount point"
+msgstr "ಮೌಂಟ್ ಪಾಯಂಟ್"
+
+#: ../../ipalib/plugins/automount.py:344
+msgid "Parent map"
+msgstr "Parent map"
+
+#: ../../ipalib/plugins/automount.py:345
+msgid "Name of parent automount map (default: auto.master)"
+msgstr "Name of parent automount map (default: auto.master)"
+
+#: ../../ipalib/plugins/netgroup.py:47
 msgid "Net Groups"
 msgstr "ನೆಟ್ ಗುಂಪುಗಳು"
+
+#: ../../ipalib/plugins/netgroup.py:52
+msgid "Netgroup name"
+msgstr "ನೆಟ್‌ಗ್ರೂಪ್ ಹೆಸರು"
+
+#: ../../ipalib/plugins/netgroup.py:59
+msgid "Netgroup description"
+msgstr "ನೆಟ್‌ಗ್ರೂಪ್ ವಿವರಣೆ"
+
+#: ../../ipalib/plugins/netgroup.py:63
+msgid "NIS domain name"
+msgstr "NIS ಡೊಮೇನ್ ಹೆಸರು"
+
+#: ../../ipalib/plugins/netgroup.py:80
+msgid "Member host"
+msgstr "ಸದಸ್ಯ ಹೋಸ್ಟ್"
+
+#: ../../ipalib/plugins/netgroup.py:88
+msgid "External host"
+msgstr "ಹೊರಗಿನ ಹೋಸ್ಟ್"
 
 #: ../../ipalib/plugins/misc.py:37
 #, python-format
@@ -526,101 +1173,278 @@ msgstr "%(count)d ವೇರಿಯೇಬಲ್‌ಗಳು"
 msgid "%(count)d plugin loaded"
 msgid_plural "%(count)d plugins loaded"
 msgstr[0] "%(count)d ಪ್ಲಗಿನ್ ಲೋಡ್ ಆಗಿದೆ"
-msgstr[1] "%(count)d ಪ್ಲಗಿನ್‌ಗಳು ಲೋಡ್ ಆಗಿವೆ"
+msgstr[1] "%(count)d ಪ್ಲಗಿನ್‌ಗಳು ಲೋಡ್ ಆಗಿವೆ "
 
-#: ../../ipalib/plugins/user.py:71
-msgid "Users"
-msgstr "ಬಳಕೆದಾರರು"
+#: ../../ipalib/plugins/user.py:53
+msgid "User login"
+msgstr "ಬಳಕೆದಾರನ ಪ್ರವೇಶ"
 
-#: ../../ipalib/plugins/user.py:141
+#: ../../ipalib/plugins/user.py:60
+msgid "First name"
+msgstr "ಮೊದಲ ಹೆಸರು"
+
+#: ../../ipalib/plugins/user.py:64
+msgid "Last name"
+msgstr "ಕೊನೆಯ ಹೆಸರು"
+
+#: ../../ipalib/plugins/user.py:72
+msgid "GECOS field"
+msgstr "GECOS ಕ್ಷೇತ್ರ"
+
+#: ../../ipalib/plugins/user.py:78
+msgid "Login shell"
+msgstr "ಪ್ರವೇಶ ಶೆಲ್"
+
+#: ../../ipalib/plugins/user.py:83
+msgid "Kerberos principal"
+msgstr "Kerberos principal"
+
+#: ../../ipalib/plugins/user.py:89
+msgid "Email address"
+msgstr "ಇಮೇಲ್ ವಿಳಾಸ"
+
+#: ../../ipalib/plugins/user.py:93
+msgid "Password"
+msgstr "ಗುಪ್ತಪದ"
+
+#: ../../ipalib/plugins/user.py:94
+msgid "Set the user password"
+msgstr "ಬಳಕೆದಾರನ ಗುಪ್ತಪದ ಸೆಟ್ ಮಾಡು"
+
+#: ../../ipalib/plugins/user.py:101
+msgid "UID"
+msgstr "UID"
+
+#: ../../ipalib/plugins/user.py:102
+msgid "UID (use this option to set it manually)"
+msgstr "UID (ಇದನ್ನು ಮ್ಯಾನ್ಯೂವಲ್ ಆಗಿ ಸೆಟ್ ಮಾಡಲು ಈ ಆಯ್ಕೆಯನ್ನು ಬಳಸಿ)"
+
+#: ../../ipalib/plugins/user.py:106
+msgid "Street address"
+msgstr "ಕೇರಿ ವಿಳಾಸ"
+
+#: ../../ipalib/plugins/user.py:113
+msgid "Netgroups"
+msgstr "ನೆಟ್‌ಗ್ರೂಪ್‌ಗಳು"
+
+#: ../../ipalib/plugins/user.py:117
+msgid "Rolegroups"
+msgstr "ರೋಲ್‌ಗ್ರೂಪ್‌ಗಳು"
+
+#: ../../ipalib/plugins/user.py:121
+msgid "Taskgroups"
+msgstr "ಟಾಸ್ಕ್‌ಗ್ರೂಪ್‌ಗಳು"
+
+#: ../../ipalib/plugins/user.py:134
 #, python-format
 msgid "Added user \"%(value)s\""
 msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/user.py:186
+#: ../../ipalib/plugins/user.py:179
 #, python-format
 msgid "Deleted user \"%(value)s\""
 msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಅಳಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/user.py:205
+#: ../../ipalib/plugins/user.py:198
 #, python-format
 msgid "Modified user \"%(value)s\""
 msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/user.py:216
+#: ../../ipalib/plugins/user.py:209
 #, python-format
 msgid "%(count)d user matched"
 msgid_plural "%(count)d users matched"
 msgstr[0] "%(count)d ಬಳಕೆದಾರ ತಾಳೆಯಾಗುತ್ತಿದ್ದಾನೆ"
 msgstr[1] "%(count)d ಬಳಕೆದಾರರು ತಾಳೆಯಾಗುತ್ತಿದ್ದಾರೆ"
 
-#: ../../ipalib/plugins/user.py:236
+#: ../../ipalib/plugins/user.py:229
 #, python-format
 msgid "Locked user \"%(value)s\""
 msgstr "ಲಾಕ್ ಆಗಿರುವ ಬಳಕೆದಾರ \"%(value)s\""
 
-#: ../../ipalib/plugins/user.py:262
+#: ../../ipalib/plugins/user.py:255
 #, python-format
 msgid "Unlocked user \"%(value)s\""
 msgstr "ಅನ್‌ಲಾಕ್ ಆಗಿರುವ ಬಳಕೆದಾರ \"%(value)s\""
 
-#: ../../ipalib/plugins/taskgroup.py:50
+#: ../../ipalib/plugins/taskgroup.py:43
 msgid "Task Groups"
 msgstr "ಕೆಲಸ(ಟಾಸ್ಕ್)ದ  ಗುಂಪುಗಳು"
 
-#: ../../ipalib/plugins/taskgroup.py:75
+#: ../../ipalib/plugins/taskgroup.py:48
+msgid "Task-group name"
+msgstr "ಟಾಸ್ಕ್-ಗ್ರೂಪ್ ಹೆಸರು"
+
+#: ../../ipalib/plugins/taskgroup.py:55
+msgid "Task-group description"
+msgstr "ಟಾಸ್ಕ್-ಗ್ರೂಪ್ ವಿವರಣೆ"
+
+#: ../../ipalib/plugins/taskgroup.py:66
+msgid "Member role-groups"
+msgstr "ಸದಸ್ಯ ರೋಲ್-ಗ್ರೂಪ್‌ಗಳು"
+
+#: ../../ipalib/plugins/taskgroup.py:79
 #, python-format
 msgid "Added taskgroup \"%(value)s\""
 msgstr "\"%(value)s\" ಟಾಸ್ಕ್‌ಗ್ರೂಪನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/taskgroup.py:85
+#: ../../ipalib/plugins/taskgroup.py:89
 #, python-format
 msgid "Deleted taskgroup \"%(value)s\""
 msgstr "\"%(value)s\" ಟಾಸ್ಕ್‌ಗ್ರೂಪನ್ನು ಅಳಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/taskgroup.py:95
+#: ../../ipalib/plugins/taskgroup.py:99
 #, python-format
 msgid "Modified taskgroup \"%(value)s\""
 msgstr "\"%(value)s\" ಟಾಸ್ಕ್‌ಗ್ರೂಪನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/taskgroup.py:106
+#: ../../ipalib/plugins/taskgroup.py:110
 #, python-format
 msgid "%(count)d taskgroup matched"
 msgid_plural "%(count)d taskgroups matched"
 msgstr[0] "%(count)d ಟಾಸ್ಕ್‌ಗ್ರೂಪ್‌ ತಾಳೆಯಾಗುತ್ತಿದೆ"
 msgstr[1] "%(count)d ಟಾಸ್ಕ್‌ಗ್ರೂಪ್‌ಗಳು ತಾಳೆಯಾಗುತ್ತಿವೆ"
 
-#: ../../ipalib/plugins/hostgroup.py:49
+#: ../../ipalib/plugins/hostgroup.py:43
 msgid "Host Groups"
 msgstr "ಹೋಸ್ಟ್ ಗುಂಪುಗಳು"
 
-#: ../../ipalib/plugins/hostgroup.py:74
+#: ../../ipalib/plugins/hostgroup.py:48
+msgid "Host-group"
+msgstr "ಹೋಸ್ಟ್-ಗುಂಪು"
+
+#: ../../ipalib/plugins/hostgroup.py:49
+msgid "Name of host-group"
+msgstr "ಹೋಸ್ಟ್-ಗುಂಪಿನ ಹೆಸರು"
+
+#: ../../ipalib/plugins/hostgroup.py:56
+msgid "A description of this host-group"
+msgstr "ಈ ಹೋಸ್ಟ್-ಗ್ರೂಪ್‌ನ ವಿವರಣೆ"
+
+#: ../../ipalib/plugins/hostgroup.py:59
+msgid "Member hosts"
+msgstr "ಸದಸ್ಯ ಹೋಸ್ಟ್‌ಗಳು"
+
+#: ../../ipalib/plugins/hostgroup.py:63
+msgid "Member host-groups"
+msgstr "ಸದಸ್ಯ ಹೋಸ್ಟ್-ಗ್ರೂಪ್‌ಗಳು"
+
+#: ../../ipalib/plugins/hostgroup.py:80
 #, python-format
 msgid "Added hostgroup \"%(value)s\""
 msgstr "\"%(value)s\" ಹೋಸ್ಟ್‌ಗ್ರೂಪನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/hostgroup.py:84
+#: ../../ipalib/plugins/hostgroup.py:90
 #, python-format
 msgid "Deleted hostgroup \"%(value)s\""
 msgstr "\"%(value)s\" ಹೋಸ್ಟ್‌ಗ್ರೂಪನ್ನು ಅಳಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/hostgroup.py:94
+#: ../../ipalib/plugins/hostgroup.py:100
 #, python-format
 msgid "Modified hostgroup \"%(value)s\""
 msgstr "\"%(value)s\" ಹೋಸ್ಟ್‌ಗ್ರೂಪನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
-#: ../../ipalib/plugins/hostgroup.py:105
+#: ../../ipalib/plugins/hostgroup.py:111
 #, python-format
 msgid "%(count)d hostgroup matched"
 msgid_plural "%(count)d hostgroups matched"
 msgstr[0] "%(count)d ಹೋಸ್ಟ್‌ಗ್ರೂಪ್‌ ತಾಳೆಯಾಗುತ್ತಿದೆ"
 msgstr[1] "%(count)d ಹೋಸ್ಟ್‌ಗ್ರೂಪ್‌ಗಳು ತಾಳೆಯಾಗುತ್ತಿವೆ"
 
+#: ../../ipalib/plugins/pwpolicy.py:121
+#: ../../ipalib/plugins/pwpolicy.py:173
+#: ../../ipalib/plugins/pwpolicy.py:225
+#: ../../ipalib/plugins/pwpolicy.py:321
+msgid "Group"
+msgstr "ಗುಂಪು"
+
+#: ../../ipalib/plugins/pwpolicy.py:126
+msgid "Max lifetime (days)"
+msgstr "ಗರಿಷ್ಟ ಜೀವಿತಾವಧಿ (ದಿನಗಳು)"
+
+#: ../../ipalib/plugins/pwpolicy.py:127
+msgid "Maximum password lifetime (in days)"
+msgstr "ಗುಪ್ತಪದದ ಗರಿಷ್ಟ ಜೀವಿತಾವಧಿ (ದಿನಗಳಲ್ಲಿ)"
+
+#: ../../ipalib/plugins/pwpolicy.py:133
+msgid "Min lifetime (hours)"
+msgstr "ಕನಿಷ್ಟ ಜೀವಿತಾವಧಿ (ಘಂಟೆಗಳು)"
+
+#: ../../ipalib/plugins/pwpolicy.py:134
+msgid "Minimum password lifetime (in hours)"
+msgstr "ಗುಪ್ತಪದದ ಕನಿಷ್ಟ ಜೀವಿತಾವಧಿ (ಘಂಟೆಗಳಲ್ಲಿ)"
+
+#: ../../ipalib/plugins/pwpolicy.py:140
+msgid "History size"
+msgstr "ಇತಿಹಾಸದ ಗಾತ್ರ"
+
+#: ../../ipalib/plugins/pwpolicy.py:141
+msgid "Password history size"
+msgstr "ಗುಪ್ತಪದ ಇತಿಹಾಸದ ಗಾತ್ರ"
+
+#: ../../ipalib/plugins/pwpolicy.py:147
+msgid "Character classes"
+msgstr "ಕ್ಯಾರೆಕ್ಟರ್ ಕ್ಲಾಸ್‌ಗಳು"
+
+#: ../../ipalib/plugins/pwpolicy.py:148
+msgid "Minimum number of character classes"
+msgstr "ಕನಿಷ್ಟ ಸಂಖ್ಯೆಯ ಕ್ಯಾರಕ್ಟರ್ ಕ್ಲಾಸ್‌ಗಳು"
+
+#: ../../ipalib/plugins/pwpolicy.py:154
+msgid "Min length"
+msgstr "ಕನಿಷ್ಟ ಉದ್ದ"
+
+#: ../../ipalib/plugins/pwpolicy.py:155
+msgid "Minimum length of password"
+msgstr "ಗುಪ್ತಪದದ ಕನಿಷ್ಟ ಉದ್ದ"
+
+#: ../../ipalib/plugins/pwpolicy.py:169
+#, python-format
+msgid "Added policy for group \"%(value)s\""
+msgstr "ಗುಂಪು \"%(value)s\" ಗೆ ಪಾಲಿಸಿಯನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
+
+#: ../../ipalib/plugins/pwpolicy.py:174
+#: ../../ipalib/plugins/pwpolicy.py:226
+msgid "Group to set policy for"
+msgstr "Group to set policy for"
+
+#: ../../ipalib/plugins/pwpolicy.py:179
+#: ../../ipalib/plugins/pwpolicy.py:230
+msgid "Priority"
+msgstr "ಆದ್ಯತೆ"
+
+#: ../../ipalib/plugins/pwpolicy.py:180
 #: ../../ipalib/plugins/pwpolicy.py:231
+msgid "Priority of the policy (higher number equals lower priority)"
+msgstr "ಪಾಲಿಸಿಯ ಆದ್ಯತೆ (ಗರಿಷ್ಟ ಸಂಖ್ಯೆ ಕನಿಷ್ಟ ಆದ್ಯತೆಗೆ ಸಮನಾಗಿರುತ್ತದೆ)"
+
+#: ../../ipalib/plugins/pwpolicy.py:222
+#, python-format
+msgid "Modified policy for group \"%(value)s\""
+msgstr "ಗುಂಪು \"%(value)s\" ಗೆ ಪಾಲಿಸಿಯನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
+
+#: ../../ipalib/plugins/pwpolicy.py:244
 msgid "priority cannot be set on global policy"
 msgstr "ಗ್ಲೋಬಲ್ ಪಾಲಿಸಿಯಲ್ಲಿ ಆದ್ಯತೆಯನ್ನು ಸೆಟ್ ಮಾಡಲಾಗುವುದಿಲ್ಲ"
 
-#: ../../ipaserver/install/certs.py:571
+#: ../../ipalib/plugins/pwpolicy.py:277
+#, python-format
+msgid "Deleted policy for group \"%(value)s\""
+msgstr "ಗುಂಪು \"%(value)s\" ಗೆ ಪಾಲಿಸಿಯನ್ನು ಅಳಿಸಲಾಗಿದೆ"
+
+#: ../../ipalib/plugins/pwpolicy.py:322
+msgid "Group to display policy"
+msgstr "ಪಾಲಿಸೀ ತೋರಿಸುವುದಕ್ಕಾಗಿ ಗುಂಪು"
+
+#: ../../ipalib/plugins/pwpolicy.py:325
+msgid "User"
+msgstr "ಬಳಕೆದಾರ"
+
+#: ../../ipalib/plugins/pwpolicy.py:326
+msgid "Display policy applied to a given user"
+msgstr "ಒಬ್ಬ ಬಳಕೆದಾರನಿಗೆ ಅನ್ವಯಿಸಿರುವ ಪಾಲಿಸೀ ತೋರಿಸು"
+
+#: ../../ipaserver/install/certs.py:576
 #: ../../ipaserver/plugins/dogtag.py:1313
 #: ../../ipaserver/plugins/dogtag.py:1398
 #: ../../ipaserver/plugins/dogtag.py:1463
