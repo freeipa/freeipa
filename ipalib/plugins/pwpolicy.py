@@ -25,7 +25,6 @@ from ipalib import Int, Str
 from ipalib.plugins.baseldap import *
 from ipalib import _
 
-
 class cosentry(LDAPObject):
     """
     Class of Service object used for linking policies with groups
@@ -201,6 +200,30 @@ class pwpolicy(LDAPObject):
         if 'krbminpwdlife' in entry_attrs and entry_attrs['krbminpwdlife']:
             entry_attrs['krbminpwdlife'] = entry_attrs['krbminpwdlife'] * 3600
 
+    def validate_lifetime(self, entry_attrs, add=False, *keys):
+        """
+        Ensure that the maximum lifetime is greater than the minimum.
+        If there is no minimum lifetime set then don't return an error.
+        """
+        maxlife=entry_attrs.get('krbmaxpwdlife', None)
+        minlife=entry_attrs.get('krbminpwdlife', None)
+        existing_entry = {}
+        if not add: # then read existing entry
+            existing_entry = self.api.Command.pwpolicy_show(keys[-1],
+                all=True, raw=True,
+            )['result']
+            if minlife is None and 'krbminpwdlife' in existing_entry:
+                minlife = int(existing_entry['krbminpwdlife'][0])
+            if maxlife is None and 'krbmaxpwdlife' in existing_entry:
+                maxlife = int(existing_entry['krbmaxpwdlife'][0])
+
+        if maxlife is not None and minlife is not None:
+            if minlife > maxlife:
+                raise errors.ValidationError(
+                    name='maxlife',
+                    error=_('Maximum password life must be greater than minimum.'),
+                )
+
 api.register(pwpolicy)
 
 
@@ -212,13 +235,14 @@ class pwpolicy_add(LDAPCreate):
         yield self.obj.primary_key.clone(attribute=True, required=True)
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        self.obj.convert_time_on_input(entry_attrs)
+        self.obj.validate_lifetime(entry_attrs, True)
         self.api.Command.cosentry_add(
             keys[-1], krbpwdpolicyreference=dn,
             cospriority=options.get('cospriority')
         )
         if 'cospriority' in entry_attrs:
             del entry_attrs['cospriority']
-        self.obj.convert_time_on_input(entry_attrs)
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -254,6 +278,8 @@ class pwpolicy_mod(LDAPUpdate):
     Modify group password policy.
     """
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        self.obj.convert_time_on_input(entry_attrs)
+        self.obj.validate_lifetime(entry_attrs, False, *keys)
         if options.get('cospriority') is not None:
             if keys[-1] is None:
                 raise errors.ValidationError(
@@ -270,7 +296,6 @@ class pwpolicy_mod(LDAPUpdate):
                     cospriority=options['cospriority']
                 )
             del entry_attrs['cospriority']
-        self.obj.convert_time_on_input(entry_attrs)
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
