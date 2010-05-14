@@ -130,8 +130,6 @@ def _make_aci(current, aciname, kw):
             entry_attrs = api.Command['taskgroup_add'](
                 kw['taskgroup'], **tgkw
             )['result']
-            import pdb
-            pdb.set_trace()
     elif group:
         # Not so friendly with groups. This will raise
         try:
