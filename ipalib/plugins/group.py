@@ -129,7 +129,7 @@ class group_del(LDAPDelete):
 
     def post_callback(self, ldap, dn, *keys, **options):
         try:
-            api.Command['pwpolicy_del'](group=keys[-1])
+            api.Command['pwpolicy_del'](keys[-1])
         except errors.NotFound:
             pass
 
