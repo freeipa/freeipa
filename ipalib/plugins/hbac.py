@@ -34,16 +34,18 @@ class hbac(LDAPObject):
     object_name_plural = 'HBAC rules'
     object_class = ['ipaassociation', 'ipahbacrule']
     default_attributes = [
-        'cn', 'accessruletype', 'ipaenabledflag', 'servicename',
+        'cn', 'accessruletype', 'ipaenabledflag',
         'accesstime', 'description', 'usercategory', 'hostcategory',
-        'sourcehostcategory', 'ipaenabledflag',
-
+        'sourcehostcategory', 'servicecategory', 'ipaenabledflag',
+        'memberuser', 'sourcehost', 'memberhost', 'memberservice',
+        'memberhostgroup',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'memberuser': ['user', 'group'],
         'memberhost': ['host', 'hostgroup'],
         'sourcehost': ['host', 'hostgroup'],
+        'memberservice': ['hbacsvc', 'hbacsvcgroup'],
     }
 
     label = _('HBAC')
@@ -60,12 +62,7 @@ class hbac(LDAPObject):
             label=_('Rule type'),
             values=(u'allow', u'deny'),
         ),
-        Str('servicename?',
-            cli_name='service',
-            label=_('Service name'),
-            doc=_('Name of service the rule applies to (e.g. ssh)'),
-        ),
-        # FIXME: {user,host,sourcehost}categories should expand in the future
+        # FIXME: {user,host,sourcehost,service}categories should expand in the future
         StrEnum('usercategory?',
             cli_name='usercat',
             label=_('User category'),
@@ -84,6 +81,12 @@ class hbac(LDAPObject):
             doc=_('Source host category the rule applies to'),
             values=(u'all', ),
         ),
+        StrEnum('servicecategory?',
+            cli_name='servicecat',
+            label=_('Service category'),
+            doc=_('Service category the rule applies to'),
+            values=(u'all', ),
+        ),
         AccessTime('accesstime?',
             cli_name='time',
             label=_('Access time'),
@@ -95,6 +98,30 @@ class hbac(LDAPObject):
         Flag('ipaenabledflag?',
              label=_('Enabled'),
              flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('memberuser_user?',
+            label=_('Users'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('memberhost_host?',
+            label=_('Hosts'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('memberhost_hostgroup?',
+            label=_('Host Groups'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('sourcehost_host?',
+            label=_('Source hosts'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('memberservice_service?',
+            label=_('Services'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('memberservice_servicegroup?',
+            label=_('Service Groups'),
+            flags=['no_create', 'no_update', 'no_search'],
         ),
     )
 
@@ -351,3 +378,23 @@ class hbac_remove_sourcehost(LDAPRemoveMember):
     member_count_out = ('%i object removed.', '%i objects removed.')
 
 api.register(hbac_remove_sourcehost)
+
+
+class hbac_add_service(LDAPAddMember):
+    """
+    Add services affected by HBAC rule.
+    """
+    member_attributes = ['memberservice']
+    member_count_out = ('%i object added.', '%i objects added.')
+
+api.register(hbac_add_service)
+
+
+class hbac_remove_service(LDAPRemoveMember):
+    """
+    Remove source hosts and hostgroups affected by HBAC rule.
+    """
+    member_attributes = ['memberservice']
+    member_count_out = ('%i object removed.', '%i objects removed.')
+
+api.register(hbac_remove_service)

@@ -95,6 +95,8 @@ DEFAULT_CONFIG = (
     ('container_policylinks', 'cn=policylinks,cn=configs,cn=policies'),
     ('container_netgroup', 'cn=ng,cn=alt'),
     ('container_hbac', 'cn=hbac'),
+    ('container_hbacservice', 'cn=hbacservices,cn=accounts'),
+    ('container_hbacservicegroup', 'cn=hbacservicegroups,cn=accounts'),
     ('container_dns', 'cn=dns'),
     ('container_virtual', 'cn=virtual operations'),
 

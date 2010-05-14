@@ -34,6 +34,18 @@ objectClass: top
 objectClass: nsContainer
 cn: computers
 
+dn: cn=hbacservices,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: hbacservices
+
+dn: cn=hbacservicegroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: hbacservicegroups
+
 dn: cn=hbac,$SUFFIX
 changetype: add
 objectClass: top
