@@ -99,7 +99,7 @@ class user(LDAPObject):
         Int('uidnumber?',
             cli_name='uid',
             label=_('UID'),
-            doc=_('UID (use this option to set it manually)'),
+            doc=_('User ID Number (system will assign one if not provided)'),
         ),
         Str('street?',
             cli_name='street',
