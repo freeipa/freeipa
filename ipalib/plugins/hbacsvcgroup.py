@@ -67,24 +67,6 @@ class hbacsvcgroup(LDAPObject):
         ),
     )
 
-    def get_dn(self, *keys, **kwargs):
-        try:
-            (dn, entry_attrs) = self.backend.find_entry_by_attr(
-                self.primary_key.name, keys[-1], self.object_class, [''],
-                self.container_dn
-            )
-        except errors.NotFound:
-            dn = super(hbacsvcgroup, self).get_dn(*keys, **kwargs)
-        return dn
-
-    def get_primary_key_from_dn(self, dn):
-        pkey = self.primary_key.name
-        (dn, entry_attrs) = self.backend.get_entry(dn, [pkey])
-        try:
-            return entry_attrs[pkey][0]
-        except (KeyError, IndexError):
-            return ''
-
 api.register(hbacsvcgroup)
 
 
@@ -92,6 +74,7 @@ class hbacsvcgroup_add(LDAPCreate):
     """
     Create new hbacsvcgroup.
     """
+    msg_summary = _('Added HBAC Service group "%(value)s"')
 
 api.register(hbacsvcgroup_add)
 
@@ -100,6 +83,7 @@ class hbacsvcgroup_del(LDAPDelete):
     """
     Delete hbacsvcgroup.
     """
+    msg_summary = _('Deleted HBAC Service group "%(value)s"')
 
 api.register(hbacsvcgroup_del)
 
@@ -108,6 +92,7 @@ class hbacsvcgroup_mod(LDAPUpdate):
     """
     Modify hbacsvcgroup.
     """
+    msg_summary = _('Modified HBAC Service group "%(value)s"')
 
 api.register(hbacsvcgroup_mod)
 
@@ -116,6 +101,9 @@ class hbacsvcgroup_find(LDAPSearch):
     """
     Search the groups.
     """
+    msg_summary = ngettext(
+        '%(count)d group matched', '%(count)d groups matched', 0
+    )
 
 api.register(hbacsvcgroup_find)
 

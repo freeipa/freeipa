@@ -81,3 +81,14 @@ service = [
     u'pkiuser',
     u'top',
 ]
+
+hbacsvc = [
+    u'ipahbacservice',
+]
+
+hbacsvcgroup = [
+    u'ipahbacservicegroup',
+    u'nestedGroup',
+    u'groupOfNames',
+    u'top',
+]
