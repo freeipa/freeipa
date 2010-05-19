@@ -605,6 +605,8 @@ class CAInstance(service.Service):
                 args.append("admin")
                 args.append("-sd_admin_password")
                 args.append(self.admin_password)
+                args.append("-clone_uri")
+                args.append("https://%s:%d" % (self.master_host, EE_SECURE_PORT))
             else:
                 args.append("-clone")
                 args.append("false")
