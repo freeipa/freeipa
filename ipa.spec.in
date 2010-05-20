@@ -330,7 +330,7 @@ if [ -s /etc/selinux/config ]; then
 fi
 
 %post server-selinux
-semodule -s targeted -i /usr/share/selinux/targeted/ipa_kpasswd.pp /usr/share/selinux/targeted/ipa_httpd.pp
+semodule -s targeted -i /usr/share/selinux/targeted/ipa_kpasswd.pp /usr/share/selinux/targeted/ipa_httpd.pp /usr/share/selinux/targeted/ipa_dogtag.pp
 . %{_sysconfdir}/selinux/config
 FILE_CONTEXT=%{_sysconfdir}/selinux/targeted/contexts/files/file_contexts
 selinuxenabled
@@ -352,7 +352,7 @@ fi
 
 %postun server-selinux
 if [ $1 = 0 ]; then
-semodule -s targeted -r ipa_kpasswd ipa_httpd
+semodule -s targeted -r ipa_kpasswd ipa_httpd ipa_dogtag
 . %{_sysconfdir}/selinux/config
 FILE_CONTEXT=%{_sysconfdir}/selinux/targeted/contexts/files/file_contexts
 selinuxenabled
@@ -497,6 +497,9 @@ fi
 %endif
 
 %changelog
+* Mon May 17 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-21
+- Load ipa_dogtag.pp in post install
+
 * Mon Apr 26 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-20
 - Set minimum level of sssd to 1.1.1 to pull in required hbac fixes.
 
