@@ -12,7 +12,6 @@ app_DATA =				\
 	30-automount.update		\
 	30-groupofhosts.update		\
 	30-netgroups.update		\
-	30-policy.update		\
 	30-rolegroup.update		\
 	30-taskgroup.update		\
 	40-delegation.update		\

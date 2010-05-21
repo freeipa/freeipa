@@ -1,4 +1,4 @@
-# bootstrap the policy DIT structure
+# bootstrap the policy DIT structure. Currently not used.
 
 dn: cn=policies,$SUFFIX
 add: objectclass: nsContainer
