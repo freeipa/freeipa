@@ -83,10 +83,12 @@ service = [
 ]
 
 hbacsvc = [
+    u'ipaobject',
     u'ipahbacservice',
 ]
 
 hbacsvcgroup = [
+    u'ipaobject',
     u'ipahbacservicegroup',
     u'nestedGroup',
     u'groupOfNames',

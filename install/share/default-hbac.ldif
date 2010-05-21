@@ -13,33 +13,3 @@ ipaenabledflag: TRUE
 description: Allow all users to access any host from any host
 # ipauniqueid gets added for us by 389-ds
 
-dn: cn=sshd,cn=hbacservices,cn=accounts,$SUFFIX
-changetype: add
-objectclass: ipahbacservice
-cn: sshd
-description: sshd
-
-dn: cn=ftp,cn=hbacservices,cn=accounts,$SUFFIX
-changetype: add
-objectclass: ipahbacservice
-cn: ftp
-description: ftp
-
-dn: cn=sudo,cn=hbacservices,cn=accounts,$SUFFIX
-changetype: add
-objectclass: ipahbacservice
-cn: sudo
-description: sudo
-
-dn: cn=su,cn=hbacservices,cn=accounts,$SUFFIX
-changetype: add
-objectclass: ipahbacservice
-cn: su
-description: su
-
-dn: cn=login,cn=hbacservices,cn=accounts,$SUFFIX
-changetype: add
-objectclass: ipahbacservice
-cn: login
-description: login
-
