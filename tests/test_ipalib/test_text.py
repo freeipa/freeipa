@@ -70,8 +70,8 @@ def test_gettext():
     art the string "foo" would render as: "-->foo<--"
     '''
 
-    localedir='../../install/po/test_locale'
-    test_file='../../install/po/test.po'
+    localedir='install/po/test_locale'
+    test_file='install/po/test.po'
 
     # The test installs the test message catalog under the en_US
     # (e.g. U.S. English) language. It would be nice to use a dummy
