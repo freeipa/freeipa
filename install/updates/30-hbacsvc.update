@@ -1,0 +1,35 @@
+dn: cn=sshd,cn=hbacservices,cn=accounts,$SUFFIX
+default:objectclass: ipahbacservice
+default:objectclass: ipaobject
+default:cn: sshd
+default:description: sshd
+default:ipauniqueid:$UUID
+
+dn: cn=ftp,cn=hbacservices,cn=accounts,$SUFFIX
+default:objectclass: ipahbacservice
+default:objectclass: ipaobject
+default:cn: ftp
+default:description: ftp
+default:ipauniqueid:$UUID
+
+dn: cn=sudo,cn=hbacservices,cn=accounts,$SUFFIX
+default:objectclass: ipahbacservice
+default:objectclass: ipaobject
+default:cn: sudo
+default:description: sudo
+default:ipauniqueid:$UUID
+
+dn: cn=su,cn=hbacservices,cn=accounts,$SUFFIX
+default:objectclass: ipahbacservice
+default:objectclass: ipaobject
+default:cn: su
+default:description: su
+default:ipauniqueid:$UUID
+
+dn: cn=login,cn=hbacservices,cn=accounts,$SUFFIX
+default:objectclass: ipahbacservice
+default:objectclass: ipaobject
+default:cn: login
+default:description: login
+default:ipauniqueid:$UUID
+
