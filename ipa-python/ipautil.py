@@ -149,7 +149,7 @@ def encrypt_file(source, dest, password, workdir = None):
             #give gpg a fake dir so that we can leater remove all
             #the cruft when we clean up the tempdir
             os.mkdir(gpgdir)
-            args = ['/usr/bin/gpg', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-c', source]
+            args = ['/usr/bin/gpg', '--batch', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-c', source]
             run(args, password)
         except:
             raise
@@ -179,7 +179,7 @@ def decrypt_file(source, dest, password, workdir = None):
             #give gpg a fake dir so that we can leater remove all
             #the cruft when we clean up the tempdir
             os.mkdir(gpgdir)
-            args = ['/usr/bin/gpg', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-d', source]
+            args = ['/usr/bin/gpg', '--batch', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-d', source]
             run(args, password)
         except:
             raise
@@ -446,11 +446,11 @@ def ipa_generate_password():
 
 def format_list(items, quote=None, page_width=80):
     '''Format a list of items formatting them so they wrap to fit the
-    available width. The items will be sorted. 
+    available width. The items will be sorted.
 
     The items may optionally be quoted. The quote parameter may either be
     a string, in which case it is added before and after the item. Or the
-    quote parameter may be a pair (either a tuple or list). In this case 
+    quote parameter may be a pair (either a tuple or list). In this case
     quote[0] is left hand quote and quote[1] is the right hand quote.
     '''
     left_quote = right_quote = ''
@@ -501,8 +501,8 @@ def parse_key_value_pairs(input):
 
     Example: The string
 
-    arg0 = '' arg1 = 1 arg2='two' arg3 = "three's a crowd" arg4 = "this is a \" quote" 
-    
+    arg0 = '' arg1 = 1 arg2='two' arg3 = "three's a crowd" arg4 = "this is a \" quote"
+
     will produce
 
     arg0=   arg1=1
@@ -562,7 +562,7 @@ def user_input(prompt, default = None, allow_empty = True):
             ret = raw_input("%s: " % prompt)
             if allow_empty or ret.strip():
                 return ret
-                
+
     if isinstance(default, basestring):
         while True:
             ret = raw_input("%s [%s]: " % (prompt, default))
@@ -722,7 +722,7 @@ class AttributeValueCompleter:
         # Restore previous state
         readline.set_completer_delims(self.prev_completer_delims)
         readline.set_completer(self.prev_completer)
-        
+
     def parse_input(self):
         '''We are looking for 3 tokens: <lhs,op,rhs>
         Extract as much of each token as possible.
@@ -918,7 +918,7 @@ class ItemCompleter:
         # Restore previous state
         readline.set_completer_delims(self.prev_completer_delims)
         readline.set_completer(self.prev_completer)
-        
+
     def get_item_completions(self, text):
         if text:
             self.completions = [lhs for lhs in self.items if lhs.startswith(text)]
@@ -940,7 +940,7 @@ class ItemCompleter:
 
     def read_input(self, prompt, initial_input=None):
         items = []
-        
+
         self.initial_input = initial_input
         try:
             if initial_input is None:
