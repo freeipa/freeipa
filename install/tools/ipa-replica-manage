@@ -86,6 +86,22 @@ def get_host_name():
 
     return hostname
 
+def test_connection(host):
+    """
+    Make a GSSAPI connection to the remote LDAP server to test out credentials.
+
+    This is used so we can fall back to promping for the DM password.
+
+    returns True if connection successful, False otherwise
+    """
+    try:
+        replman = replication.ReplicationManager(host, None)
+        dns = replman.find_replication_dns(replman.conn)
+        del replman
+        return True
+    except ldap.LOCAL_ERROR:
+        return False
+
 def list_masters(replman, verbose):
     dns = replman.find_replication_dns(replman.conn)
 
@@ -109,17 +125,29 @@ def del_master(replman, hostname, force=False):
         print "No replication agreement found for '%s'" % hostname
         return
 
+    # Delete the remote agreement first
     if t == replication.IPA_REPLICA:
+        failed = False
         try:
             other_replman = replication.ReplicationManager(hostname, dirman_passwd=None)
             other_replman.suffix = get_suffix()
             other_replman.delete_agreement(replman.conn.host)
+        except ldap.LDAPError, e:
+            desc = e.args[0]['desc'].strip()
+            info = e.args[0].get('info', '').strip()
+            print "Unable to remove agreement on %s: %s: %s" % (hostname, desc, info)
+            failed = True
         except Exception, e:
-            if force:
-                print "Unable to remove agreement on %s: %s" % (hostname, str(e))
-            else:
-                raise e
+            print "Unable to remove agreement on %s: %s" % (hostname, str(e))
+            failed = True
 
+        if failed:
+            if force:
+                print "Forcing removal on local server"
+            else:
+                return
+
+    # Delete the local agreement
     replman.delete_agreement(hostname)
 
 def add_master(replman, hostname, options):
@@ -185,16 +213,16 @@ def main():
     
     dirman_passwd = None
 
-    if options.dirman_passwd:
-        dirman_passwd = options.dirman_passwd
-    else:
-        if args[0] in ["add", "init"]:
-            dirman_passwd = getpass.getpass("Directory Manager password: ")
-
     if options.host:
         host = options.host
     else:
         host = get_host_name()
+
+    if options.dirman_passwd:
+        dirman_passwd = options.dirman_passwd
+    else:
+        if (not test_connection(host)) or args[0] in ["add", "init"]:
+            dirman_passwd = getpass.getpass("Directory Manager password: ")
 
     r = replication.ReplicationManager(host, dirman_passwd)
     r.suffix = get_suffix()
@@ -240,6 +268,8 @@ except ldap.INSUFFICIENT_ACCESS:
 except ldap.LOCAL_ERROR, e:
     print e.args[0]['info']
     sys.exit(1)
+except ldap.SERVER_DOWN, e:
+    print e.args[0]['desc']
 except Exception, e:
     print "unexpected error: %s" % str(e)
     sys.exit(1)
