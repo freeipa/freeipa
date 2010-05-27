@@ -190,7 +190,7 @@ def encrypt_file(source, dest, password, workdir = None):
             #give gpg a fake dir so that we can leater remove all
             #the cruft when we clean up the tempdir
             os.mkdir(gpgdir)
-            args = ['/usr/bin/gpg', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-c', source]
+            args = ['/usr/bin/gpg', '--batch', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-c', source]
             run(args, password)
         except:
             raise
@@ -220,7 +220,7 @@ def decrypt_file(source, dest, password, workdir = None):
             #give gpg a fake dir so that we can leater remove all
             #the cruft when we clean up the tempdir
             os.mkdir(gpgdir)
-            args = ['/usr/bin/gpg', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-d', source]
+            args = ['/usr/bin/gpg', '--batch', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-d', source]
             run(args, password)
         except:
             raise
