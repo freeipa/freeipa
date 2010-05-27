@@ -26,16 +26,12 @@
 import sys
 try:
     from optparse import OptionParser
-    from ipapython import entity, ipautil, config
+    from ipapython import ipautil, config
     from ipaserver.install import installutils
     from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax, UPDATES_DIR
+    from ipaserver.install.upgradeinstance import IPAUpgrade
     import logging
-    import re
     import krbV
-    import platform
-    import shlex
-    import time
-    import random
 except ImportError:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
@@ -56,6 +52,10 @@ def parse_options():
                       help="Run through the update without changing anything")
     parser.add_option("-y", dest="password",
                       help="File containing the Directory Manager password")
+    parser.add_option("-l", '--ldapi', action="store_true", dest="ldapi",
+                      default=False, help="Connect to the LDAP server using the ldapi socket")
+    parser.add_option("-u", '--upgrade', action="store_true", dest="upgrade",
+                      default=False, help="Upgrade an installed server in offline mode")
 
     config.add_standard_options(parser)
     options, args = parser.parse_args()
@@ -79,25 +79,33 @@ def main():
     if options.debug:
         loglevel = logging.DEBUG
 
-    logging.basicConfig(level=loglevel,
-                        format='%(levelname)s %(message)s')
-
     dirman_password = ""
     if options.password:
         pw = ipautil.template_file(options.password, [])
         dirman_password = pw.strip()
     else:
-        dirman_password = get_dirman_password()
+        if not options.ldapi and not options.upgrade:
+            dirman_password = get_dirman_password()
 
-    ld = LDAPUpdate(dm_password=dirman_password, sub_dict={}, live_run=not options.test)
-
-    files=[]
-    if len(args) < 1:
-        files = ld.get_all_files(UPDATES_DIR)
-    else:
+    files = []
+    if len(args) > 0:
         files = args
 
-    modified = ld.update(files)
+    if options.upgrade:
+        logging.basicConfig(level=loglevel,
+                            format='%(levelname)s %(message)s',
+                            filename='/var/log/ipaupgrade.log')
+        realm = krbV.default_context().default_realm
+        upgrade = IPAUpgrade(realm, files, live_run=not options.test)
+        upgrade.create_instance()
+        modified = upgrade.modified
+    else:
+        logging.basicConfig(level=loglevel,
+                            format='%(levelname)s %(message)s')
+        ld = LDAPUpdate(dm_password=dirman_password, sub_dict={}, live_run=not options.test, ldapi=options.ldapi)
+        if len(files) < 1:
+            files = ld.get_all_files(UPDATES_DIR)
+        modified = ld.update(files)
 
     if modified and options.test:
         return 2

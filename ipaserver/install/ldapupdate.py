@@ -38,6 +38,7 @@ import platform
 import time
 import random
 import os
+import pwd
 import fnmatch
 import csv
 
@@ -48,16 +49,23 @@ class BadSyntax(Exception):
         return repr(self.value)
 
 class LDAPUpdate:
-    def __init__(self, dm_password, sub_dict={}, live_run=True):
+    def __init__(self, dm_password, sub_dict={}, live_run=True,
+                 online=True, ldapi=False):
         """dm_password = Directory Manager password
            sub_dict = substitution dictionary
            live_run = Apply the changes or just test
+           online = do an online LDAP update or use an experimental LDIF updater
+           ldapi = bind using ldapi. This assumes autobind is enabled.
         """
         self.sub_dict = sub_dict
         self.live_run = live_run
         self.dm_password = dm_password
         self.conn = None
         self.modified = False
+        self.online = online
+        self.ldapi = ldapi
+
+        self.pw_name = pwd.getpwuid(os.geteuid()).pw_name
 
         krbctx = krbV.default_context()
 
@@ -68,6 +76,7 @@ class LDAPUpdate:
         domain = ipautil.get_domain_name()
         libarch = self.__identify_arch()
         suffix = util.realm_to_suffix(krbctx.default_realm)
+        self.realm = krbctx.default_realm
 
         if not self.sub_dict.get("REALM"):
             self.sub_dict["REALM"] = krbctx.default_realm
@@ -84,17 +93,24 @@ class LDAPUpdate:
         if not self.sub_dict.get("TIME"):
             self.sub_dict["TIME"] = int(time.time())
 
-        # Try out the password
-        try:
-            conn = ipaldap.IPAdmin(fqdn)
-            conn.do_simple_bind(bindpw=self.dm_password)
-            conn.unbind()
-        except ldap.CONNECT_ERROR:
-            raise RuntimeError("Unable to connect to LDAP server %s" % fqdn)
-        except ldap.SERVER_DOWN:
-            raise RuntimeError("Unable to connect to LDAP server %s" % fqdn)
-        except ldap.INVALID_CREDENTIALS:
-            raise RuntimeError("The password provided is incorrect for LDAP server %s" % fqdn)
+        if online:
+            # Try out the password
+            if not self.ldapi:
+                try:
+                    conn = ipaldap.IPAdmin(fqdn)
+                    conn.do_simple_bind(bindpw=self.dm_password)
+                    conn.unbind()
+                except ldap.CONNECT_ERROR:
+                    raise RuntimeError("Unable to connect to LDAP server %s" % fqdn)
+                except ldap.SERVER_DOWN:
+                    raise RuntimeError("Unable to connect to LDAP server %s" % fqdn)
+                except ldap.INVALID_CREDENTIALS:
+                    raise RuntimeError("The password provided is incorrect for LDAP server %s" % fqdn)
+            else:
+                conn = ipaldap.IPAdmin(ldapi=True, realm=self.realm)
+                conn.do_external_bind(self.pw_name)
+        else:
+            raise RuntimeError("Offline updates are not supported.")
 
     # The following 2 functions were taken from the Python
     # documentation at http://docs.python.org/library/csv.html
@@ -595,8 +611,15 @@ class LDAPUpdate:
         """
 
         try:
-            self.conn = ipaldap.IPAdmin(self.sub_dict['FQDN'])
-            self.conn.do_simple_bind(bindpw=self.dm_password)
+            if self.online:
+                if self.ldapi:
+                    self.conn = ipaldap.IPAdmin(ldapi=True, realm=self.realm)
+                    self.conn.do_external_bind(self.pw_name)
+                else:
+                    self.conn = ipaldap.IPAdmin(self.sub_dict['FQDN'])
+                    self.conn.do_simple_bind(bindpw=self.dm_password)
+            else:
+                raise RuntimeError("Offline updates are not supported.")
             all_updates = {}
             dn_list = {}
             for f in files:

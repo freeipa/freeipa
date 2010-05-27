@@ -217,9 +217,12 @@ class IPAdmin(SimpleLDAPObject):
         if self.cacert is not None:
             SimpleLDAPObject.__init__(self,'ldaps://%s:%d' % (self.host,self.port))
         else:
-            SimpleLDAPObject.__init__(self,'ldap://%s:%d' % (self.host,self.port))
+            if self.ldapi:
+                SimpleLDAPObject.__init__(self,'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % "-".join(self.realm.split(".")))
+            else:
+                SimpleLDAPObject.__init__(self,'ldap://%s:%d' % (self.host,self.port))
 
-    def __init__(self,host,port=389,cacert=None,bindcert=None,bindkey=None,proxydn=None,debug=None):
+    def __init__(self,host='',port=389,cacert=None,bindcert=None,bindkey=None,proxydn=None,debug=None,ldapi=False,realm=None):
         """We just set our instance variables and wrap the methods - the real
            work is done in __localinit. This is separated out this way so
            that we can call it from places other than instance creation
@@ -241,6 +244,8 @@ class IPAdmin(SimpleLDAPObject):
         self.bindcert = bindcert
         self.bindkey = bindkey
         self.proxydn = proxydn
+        self.ldapi = ldapi
+        self.realm = realm
         self.suffixes = {}
         self.__localinit()
 
@@ -343,6 +348,11 @@ class IPAdmin(SimpleLDAPObject):
         self.binddn = binddn
         self.bindpwd = bindpw
         self.simple_bind_s(binddn, bindpw)
+        self.__lateinit()
+
+    def do_external_bind(self, user_name=None):
+        auth_tokens = ldap.sasl.external(user_name)
+        self.sasl_interactive_bind_s("", auth_tokens)
         self.__lateinit()
 
     def getEntry(self,*args):

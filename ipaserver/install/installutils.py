@@ -306,6 +306,7 @@ def get_directive(filename, directive, separator=' '):
             line = line.strip()
             result = line.split(separator, 1)[1]
             result = result.strip('"')
+            result = result.strip(' ')
             fd.close()
             return result
     fd.close()
