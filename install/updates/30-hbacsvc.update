@@ -33,3 +33,9 @@ default:cn: login
 default:description: login
 default:ipauniqueid:$UUID
 
+dn: cn=su-l,cn=hbacservices,cn=accounts,$SUFFIX
+default:objectclass: ipahbacservice
+default:objectclass: ipaobject
+default:cn: su-l
+default:description: su with login shell
+default:ipauniqueid:$UUID
