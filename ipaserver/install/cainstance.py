@@ -113,6 +113,9 @@ def get_preop_pin(instance_root, instance_name):
             preop_pin=match.group(1)
             break
 
+    if preop_pin is None:
+        raise RuntimeError("Unable to find preop.pin in %s. Is your CA already configured?" % filename)
+
     return preop_pin
 
 def import_pkcs12(input_file, input_passwd, cert_database,
