@@ -22,9 +22,9 @@ import httplib
 import xml.dom.minidom
 from ipapython import nsslib
 import nss.nss as nss
+from nss.error import NSPRError
 from ipalib.errors import NetworkError, CertificateOperationError
 from urllib import urlencode
-import socket
 import logging
 
 def get_ca_certchain(ca_host=None):
@@ -76,10 +76,11 @@ def https_request(host, port, url, secdir, password, nickname, **kw):
                        "Accept": "text/plain"}
     try:
         conn = nsslib.NSSConnection(host, port, dbdir=secdir)
-        conn.sslsock.set_client_auth_data_callback(nsslib.client_auth_data_callback,
-                                                   nickname,
-                                                   password, nss.get_default_certdb())
+        conn.sock.set_client_auth_data_callback(nsslib.client_auth_data_callback,
+                                                nickname,
+                                                password, nss.get_default_certdb())
         conn.set_debuglevel(0)
+        conn.connect()
         conn.request("POST", url, post, request_headers)
 
         res = conn.getresponse()
@@ -122,8 +123,8 @@ def http_request(host, port, url, **kw):
             http_headers = res.msg.dict
             http_body = res.read()
             conn.close()
-        except socket.error, e:
-            raise NetworkError(uri=uri, error=e.args[1])
+        except NSPRError, e:
+            raise NetworkError(uri=uri, error=str(e))
 
         logging.debug('request status %d',        http_status)
         logging.debug('request reason_phrase %r', http_reason_phrase)

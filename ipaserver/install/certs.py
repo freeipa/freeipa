@@ -60,30 +60,6 @@ def ipa_self_signed():
     else:
         return False
 
-def client_auth_data_callback(ca_names, chosen_nickname, password, certdb):
-    cert = None
-    if chosen_nickname:
-        try:
-            cert = nss.find_cert_from_nickname(chosen_nickname, password)
-            priv_key = nss.find_key_by_any_cert(cert, password)
-            return cert, priv_key
-        except NSPRError, e:
-            logging.debug("client auth callback failed %s" % str(e))
-            return False
-    else:
-        nicknames = nss.get_cert_nicknames(certdb, nss.SEC_CERT_NICKNAMES_USER)
-        for nickname in nicknames:
-            try:
-                cert = nss.find_cert_from_nickname(nickname, password)
-                if cert.check_valid_times():
-                    if cert.has_signer_in_ca_names(ca_names):
-                        priv_key = nss.find_key_by_any_cert(cert, password)
-                        return cert, priv_key
-            except NSPRError, e:
-                logging.debug("client auth callback failed %s" % str(e))
-                return False
-        return False
-
 def find_cert_from_txt(cert, start=0):
     """
     Given a cert blob (str) which may or may not contian leading and
