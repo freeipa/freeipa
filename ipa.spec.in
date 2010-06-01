@@ -130,7 +130,6 @@ Summary: IPA authentication for use on clients
 Group: System Environment/Base
 Requires: %{name}-python = %{version}-%{release}
 Requires: python-ldap
-Requires: python-krbV
 Requires: cyrus-sasl-gssapi
 Requires: ntp
 Requires: krb5-workstation
@@ -497,6 +496,9 @@ fi
 %endif
 
 %changelog
+* Tue Jun  1 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-22
+- Drop Requires of python-krbV on ipa-client
+
 * Mon May 17 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-21
 - Load ipa_dogtag.pp in post install
 
