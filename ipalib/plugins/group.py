@@ -19,6 +19,45 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
 Groups of users
+
+Manage groups of users. By default new groups are not Posix groups.
+You can mark it as Posix at creation time with the --posix flag and
+can promose a non-Posix group using the --posix flag in group-mod.
+Once a group is a Posix group there is no way to undo this.
+
+Every group must have a description.
+
+Posix groups must have a group id number (gid). Changing a gid is
+supported but can have impact on your file permissions.
+
+EXAMPLES:
+
+ Add a new group:
+   ipa group-add --desc='local administrators' localadmins
+
+ Add a new posix group:
+   ipa group-add --posix --desc='remote administrators' remoteadmins
+
+ Promote a non-posix group to posix:
+   ipa group-mod --posix localadmins
+
+ Create a group with a specific group ID number"
+   ipa group-add --posix --gid=500 --desc='unix admins' unixadmins
+
+ Remove a group:
+   ipa group-del unixadmins
+
+ Manage group membership, nested groups:
+   ipa group-add-member --groups=remoteadmins localadmins
+
+ Manage group membership, users:
+   ipa group-add-member --users=test1,test2 localadmins
+
+ Manage group membership, users:
+   ipa group-remove-member --users=test2 localadmins
+
+ Show a group:
+   ipa group-show localadmins
 """
 
 from ipalib import api

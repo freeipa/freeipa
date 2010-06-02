@@ -18,6 +18,44 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
 Host based access control
+
+Control who can access what services where from where. With HBAC
+you can control which users or groups of users may access a service
+or group of services, additionally restricting the source and source
+hosts.
+
+You can also control the times that the rule is active.
+
+It is possible to specify a category of users, hosts or source hosts.
+Currently this is limited to 'all' but may be expanded in the future.
+
+Hosts and source hosts must be host entries in IPA (see host plugin).
+
+EXAMPLES:
+
+ Create a new rule that grants all users access to the host 'server' from
+ anywhere:
+   ipa hbac-add --type=allow --usercat=all --srchostcat=all test1
+   ipa hbac-add-host --hosts=server.example.com test1
+
+ Show an HBAC rule:
+   ipa hbac-show test1
+
+ Add an access time to a rule:
+   ipa hbac-add-accesstime --time='periodic daily 0800-1400' test1
+   ipa hbac-add-accesstime --time='absolute 201012161032 ~ 201012161033' test1
+
+ Create a rule for a specific service. This lets the user john access
+ the sshd service on any machine from any machine:
+   ipa hbac-add --type=allow --hostcat=all --srchostcat=all john_sshd
+   ipa hbac-add-user --users=john john_sshd
+   ipa hbac-add-service --hbacsvcs=sshd john_sshd
+
+ Disable a rule:
+   ipa hbac-disable test1
+
+ Remove an HBAC rule:
+   ipa hbac-del allow_server
 """
 
 from ipalib import api, errors

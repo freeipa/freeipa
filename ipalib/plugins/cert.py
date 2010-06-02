@@ -20,7 +20,42 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
-Command plugins for IPA-RA certificate operations.
+IPA certificate operations
+
+Implements a set of commands for managing server SSL certificates.
+
+Certificate request come in the form of a Certificate Signing Request (CSR)
+in PEM format.
+
+If using the selfsign backend then the subject in the CSR needs to match
+the subject configured in the server. The dogtag CA uses just the CN
+value of the CSR and forces the rest of the subject.
+
+A certificate is stored with a service principal and a service principal
+needs a host. So in order to request a certificate the following conditions
+must be met:
+
+* The host exists
+* The service exists (or you use the --add option to automatically add it)
+
+EXAMPLES:
+
+ Request a new certificate, add the principal:
+   ipa cert-request --add --principal=HTTP/lion.example.com example.csr
+
+ Retrieve an existing certificate:
+   ipa cert-request 1032
+
+ Revoke a certificate (see RFC 5280 for reason details):
+   ipa cert-revoke --revocation-reason=6 1032
+
+ Remove a certificate from revocation hold status:
+   ipa cert-remove-hold 1032
+
+ Check the status of a signing request:
+   ipa cert-status 10
+
+IPA currently immediately issues (or declines) all certificate requests.
 """
 
 from ipalib import api, SkipPluginModule

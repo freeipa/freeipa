@@ -18,7 +18,38 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
-IPA configuration
+Manage IPA configuration
+
+Manage default values tha IPA uses and some tuning parameters:
+
+ Show the current configuration:
+   ipa config-show
+
+ Modify the configuration:
+   ipa config-mod --maxusername=99
+
+The available options are:
+
+User management options:
+
+  --maxusername=INT     Max username length when creating/modifing a user
+  --homedirectory=STR   Default location of home directories (default /home)
+  --defaultshell=STR    Default shell for new users (default /bin/sh)
+  --defaultgroup=STR    Default group for new users (default ipausers)
+  --emaildomain=STR     Default e-mail domain new users
+
+Search tuning options. These impact how much data is searched through and
+how many records may be returned on a given search.
+
+  --searchtimelimit=INT Max. amount of time (sec.) for a search (-1 is
+                        unlimited)
+  --searchrecordslimit=INT Max. number of records to search (-1 is unlimited)
+
+Server Configuration.
+
+  --enable-migration=BOOL Enable migration mode
+  --subject=STR           base for certificate subjects (OU=Test,O=Example)
+
 """
 
 from ipalib import api
@@ -90,7 +121,7 @@ class config(LDAPObject):
         Bool('ipamigrationenabled?',
             cli_name='enable_migration',
             label=_('Migration mode'),
-            doc=_('Enabled migration mode'),
+            doc=_('Enable migration mode'),
         ),
         Str('ipacertificatesubjectbase?',
             cli_name='subject',

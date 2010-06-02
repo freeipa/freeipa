@@ -19,6 +19,26 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
 Netgroups
+
+A netgroup is a group used for permission checking. It can contain both
+user and host values.
+
+EXAMPLES:
+
+ Create a new netgroup:
+   ipa netgroup-add --desc='NFS admins' admins
+
+ Add a member to the group:
+   ipa netgroup-add-member --users=tuser1,tuser2 admins
+
+ Remove a member from the group:
+   ipa netgroup-remove-member --users=tuser2 admins
+
+ Display a netgroup:
+   ipa netgroup-show admins
+
+ Remove a netgroup:
+   ipa netgroup-del admins
 """
 
 from ipalib import api, errors

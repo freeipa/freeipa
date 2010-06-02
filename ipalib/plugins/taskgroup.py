@@ -19,6 +19,12 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
 Taskgroups
+
+A taskgroup is used for fine-grained delegation. Access control rules (ACIs)
+grant permission to performa a given task (add user, modify group, etc) to
+task groups. 
+
+A taskgroup may not be members of other taskgroups.
 """
 
 from ipalib.plugins.baseldap import *

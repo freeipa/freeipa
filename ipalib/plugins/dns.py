@@ -24,7 +24,7 @@ the BIND LDAP plugin.
 
 EXAMPLES:
 
- Add new zone;
+ Add new zone:
    ipa dns-add example.com nameserver.example.com admin@example.com
 
  Add second nameserver for example.com:
@@ -35,6 +35,9 @@ EXAMPLES:
 
  Add new A record for www.example.com: (random IP)
    ipa dns-add-rr example.com www A 80.142.15.2
+
+ Add new PTR record for www.example.com
+   ipa dns-add-rr 15.142.80.in-addr.arpa 2 PTR www.example.com.
 
  Show zone example.com:
    ipa dns-show example.com

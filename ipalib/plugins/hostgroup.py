@@ -19,6 +19,26 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
 Groups of hosts.
+
+This is useful for Host-Based Access Control (HBAC) to group a series
+of hosts together for applying access control.
+
+EXAMPLES:
+
+ Create a new host group:
+   ipa hostgroup-add --desc='Baltimore hosts' baltimore
+
+ Add some hosts to the group:
+   ipa hostgroup-add-member --hosts=box1,box2,box3 baltimore
+
+ Remove a host from the group:
+   ipa hostgroup-remove-member --hosts=box2 baltimore
+
+ Display a host group:
+   ipa hostgroup-show baltimore
+
+ Removey a host group:
+   ipa hostgroup-del baltimore
 """
 
 from ipalib.plugins.baseldap import *

@@ -20,6 +20,39 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
 Services (Identity)
+
+A service represents a running service on a host. This service record
+may store a kerberos principal or an SSL certificate (or both).
+
+A service may be managed directly by a machine, if it has been given
+the proper permission (even a machine other than the one the service is
+associated with). An example of this is requesting an SSL certificate
+using the host service principal credentials of the host.
+
+Adding a service makes it possible to request an SSL certificate or
+keytab for that service but this is done as a separate step later. The
+creation of a service in itself doesn't generate these.
+
+The certificate stored in a service is just the public portion. The
+private key is not stored.
+
+EXAMPLES:
+
+ Add a service:
+   ipa service-add HTTP/web.example.com
+
+ Allow a host to manage the service certificate:
+  ipa service-add-host --hosts=web.example.com HTTP/web.example.com
+  ipa rolegroup-add-member --hosts=web.example.com certadmin
+
+ Remove a service:
+   ipa service-del HTTP/web.example.com
+
+ Find all services for a host:
+   ipa service-find web.example.com
+
+ Find all HTTP services:
+   ipa service-find HTTP
 """
 import base64
 

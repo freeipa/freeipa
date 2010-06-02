@@ -18,6 +18,27 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
 HBAC Service Groups
+
+Manage groups of services for HBAC
+
+EXAMPLES:
+ 
+ Create a group of HBAC services:
+   ipa hbacsvcgroup-add --desc="login services" login
+
+ Add some members to a HBAC service group:
+   ipa hbacsvcgroup-add-member --hbacsvcs=sshd,login login
+
+ Show a group:
+   ipa hbacsvcgroup-show login
+
+ A group can contain other groups, add a new group to login:
+   ipa hbacsvcgroup-add --desc="switch users" suers
+   ipa hbacsvcgroup-add-member --hbacsvcs=su,su-l suers
+   ipa hbacsvsgroup-add-member --hbacsvsgroups=suers login
+
+ Remove a group:
+   ipa hbacsvcgroup-del login
 """
 
 from ipalib import api, errors

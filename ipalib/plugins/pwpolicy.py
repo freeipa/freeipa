@@ -18,6 +18,43 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
 Password policy
+
+A password policy sets limitations on passwords including maximum lifetime,
+minimum lifetime, number of passwords to save in history, number of character
+classes required (for stronger passwords) and the password minimum length.
+
+By default there is a single global policy for all users. One can also
+create a password policy associate with a group. A user has only one
+password policy, either the group policy or the global policy. A group
+policy stands alone, it isn't a super-set of the global policy plus
+custom settings.
+
+Each group password policy requires a unique priority setting. If a user
+is in multiple groups that have password policies this priority determines
+which password policy is applied. The lower the value the higher the priority.
+
+A group password policy is automatically removed when the group it is
+assicated with it is removed.
+
+EXAMPLES:
+
+ Update the global policy:
+   ipa pwpolicy-mod --minlength=10
+
+ Create a group password policy:
+   ipa pwpolicy-add --maxlife=90 --minlife=1 --history=10 --minclasses=3 --minlength=8 --priority=10 localadmins
+
+ Display the global password policy:
+   ipa pwpolicy-show
+
+ Display a group password policy:
+   ipa pwpolicy-show localadmins
+ 
+ Display the policy that would be applied to a given user:
+   ipa pwpolicy-show --user=tuser1
+
+ Modify a group policy:
+   ipa pwpolicy-mod --minclasses=2 localadmins
 """
 
 from ipalib import api

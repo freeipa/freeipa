@@ -18,6 +18,21 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
 Kerberos ticket policy
+
+There is a single kerberos ticket policy. This policy defines the
+maximum ticket lifetime (maximum life of a ticket) and maximum renewal
+age, the period during which the ticket is renewable.
+
+EXAMPLES:
+
+ Display the current policy:
+  ipa krbtpolicy-show
+
+ Reset the policy to the default:
+  ipa krbtpolicy-reset
+
+ Modify the policy to 8 hours max life, 1-day max renewal:
+  ipa krbtpolicy-mod --maxlife=28800 --maxrenew=86400
 """
 
 from ipalib import api
@@ -51,12 +66,12 @@ class krbtpolicy(LDAPObject):
         Int('krbmaxticketlife?',
             cli_name='maxlife',
             label=_('Max life'),
-            doc=_('Maximum ticket life'),
+            doc=_('Maximum ticket life (seconds)'),
         ),
         Int('krbmaxrenewableage?',
             cli_name='maxrenew',
             label=_('Max renew'),
-            doc=_('Maximum renewable age'),
+            doc=_('Maximum renewable age (seconds)'),
         ),
     )
 

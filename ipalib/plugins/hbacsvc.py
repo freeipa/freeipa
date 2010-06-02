@@ -18,6 +18,24 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
 HBAC Services
+
+The PAM services that HBAC can control access to. The name used here
+must match the service name that PAM is evaluating.
+
+EXAMPLES:
+
+ Create a new service:
+   ipa hbacsvc-add tftp
+
+ Update a service:
+   ipa hbacsvc-mod --desc='TFTP service' tftp
+
+ Find a service (this will find 2, the ftp service and the new tftp service):
+   ipa hbacsvc-find ftp
+
+ Remove a service:
+   ipa hbacsvc-del tftp
+
 """
 import base64
 

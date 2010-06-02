@@ -19,6 +19,38 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
 Rolegroups
+
+A rolegroup is used for fine-grained delegation. Access control rules (ACIs)
+grant permission to performa a given task (add user, modify group, etc) to 
+task groups. Role groups are members of task groups, giving them permission
+to perform the task.
+
+The logic looks like this:
+
+ ACI grants permission to taskgroup
+ rolegroups are members of taskgroups
+ users, groups, hosts and hostgroups are members of role groups
+
+A host/hostgroup may be members because you may want to perform
+operations using the host service principal associated with a machine.
+
+A rolegroup may not be members of other rolegroups.
+
+EXAMPLES:
+
+ Create a new role group:
+   ipa rolegroup-add --desc="Junion level admin" junioradmin
+
+ Add this role to some tasks
+   ipa taskgroup-add-member --rolegroups=junioradmin addusers
+   ipa taskgroup-add-member --rolegroups=junioradmin change_password
+   ipa taskgroup-add-member --rolegroups=junioradmin add_user_to_default_group
+
+ Add a group of users to this role:
+   ipa rolegroup-add-member --groups=junioradmins junioradmin
+
+ Display this role group:
+   ipa rolegroup-show junioradmin
 """
 
 from ipalib.plugins.baseldap import *

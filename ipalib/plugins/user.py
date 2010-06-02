@@ -19,6 +19,28 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
 Users (Identity)
+
+Manage user entries.
+
+EXAMPLES:
+
+ Create a new user:
+   ipa user-add --first=Tim --last=User --passwd tuser1
+
+ Find a user Tim:
+   ipa user-find Tim
+
+ Find all users with Tim as the first name:
+   ipa user-find --first=Tim
+
+ Lock a user account:
+   ipa user-lock tuser1
+
+ Unlock a user account:
+   ipa user-unlock tuser1
+
+ Delete a user:
+   ipa user-del tuser1
 """
 
 from ipalib import api, errors

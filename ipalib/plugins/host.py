@@ -19,6 +19,44 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
 Hosts/Machines (Identity)
+
+A host represents a machine. It can be used in a number of contexts:
+- service entries are associated with a host
+- a host stores the host/ service principal
+- a host may be used in Host-Based Access Control (HBAC) rules
+- every enrolled client generates a host entry
+
+ENROLLMENT:
+
+There are three enrollment scenarios when enrolling a new client.
+
+1. You are enrolling as a full administrator (hostadmin rolegroup). The
+   host entry may exist or not.
+2. You are enrolling as a limited administrator (enrollhost rolegroup). The
+   host must already exist.
+3. The host has been created with a one-time password.
+
+A host may only be enrolled once. If a client has enrolled and needs to
+be re-enrolled then the host entry needs to be removed and re-created.
+Note that this will result in all services for this host being removed too,
+and all SSL certificates associated with those services to be revoked.
+
+A host can optionally store information such as where it is located,
+the OS that it runs, etc.
+
+EXAMPLES:
+
+ Create a new host
+   ipa host-add --location='3rd floor lab' --locality=Dallas test.example.com
+
+ Remove a host
+   ipa host-del test.example.com
+
+ Create a new host with a one-time password
+   ipa host-add --os='Fedora 12' --password=Secret123 test.example.com
+
+ Update information about a host
+   ipa host-mod --os='Fedora 12' test.example.com
 """
 
 import platform
