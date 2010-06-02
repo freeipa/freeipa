@@ -79,6 +79,12 @@ add:cn: replicaadmin
 add:description: Replication Administrators
 add:member:'uid=admin,cn=users,cn=accounts,$SUFFIX'
 
+dn: cn=enrollhost,cn=rolegroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: nestedgroup
+add:cn: enrollhost
+add:description: Host Enrollment
+
 # Add the taskgroups referenced by the ACIs for user administration
 
 dn: cn=taskgroups,cn=accounts,$SUFFIX
@@ -465,6 +471,7 @@ add:objectClass: nestedgroup
 add:cn: manage_host_keytab
 add:description: Manage host keytab
 add:member:'cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX'
+add:member:'cn=enrollhost,cn=rolegroups,cn=accounts,$SUFFIX'
 
 # Add the ACI needed to do host keytab admin
 dn: $SUFFIX
@@ -482,6 +489,7 @@ add:objectClass: nestedgroup
 add:cn: enroll_host
 add:description: Enroll a host
 add:member:'cn=hostadmin,cn=rolegroups,cn=accounts,$SUFFIX'
+add:member:'cn=enrollhost,cn=rolegroups,cn=accounts,$SUFFIX'
 
 # Add the ACI needed to do host enrollment. When this occurs we
 # set the krbPrincipalName, add krbPrincipalAux to objectClass and
