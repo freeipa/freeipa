@@ -59,7 +59,7 @@ bootstrap-autogen: version-update client-autogen
 	cd install; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
 client-autogen: version-update
-	cd ipa-client; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR) --with-openldap; fi
+	cd ipa-client; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 	cd install; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
 install: all server-install
@@ -131,7 +131,7 @@ archive-cleanup:
 tarballs: local-archive
 	-mkdir -p dist/sources
 	# tar up clean sources
-	cd dist/$(TARBALL_PREFIX)/ipa-client; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR) --with-openldap; make distclean
+	cd dist/$(TARBALL_PREFIX)/ipa-client; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
 	cd dist/$(TARBALL_PREFIX)/daemons; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
 	cd dist/$(TARBALL_PREFIX)/install; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
 	cd dist; tar cfz sources/$(TARBALL) $(TARBALL_PREFIX)

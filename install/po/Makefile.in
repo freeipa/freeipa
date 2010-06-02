@@ -283,3 +283,6 @@ test_lang:
 
 test: test_lang
 	./test_i18n.py
+
+maintainer-clean:
+	
