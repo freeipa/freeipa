@@ -397,7 +397,7 @@ class API(DictProxy):
         stderr = logging.StreamHandler()
         if self.env.debug:
             stderr.setLevel(logging.DEBUG)
-        elif self.env.verbose:
+        elif self.env.verbose > 0:
             stderr.setLevel(logging.INFO)
         else:
             stderr.setLevel(logging.WARNING)
@@ -444,8 +444,8 @@ class API(DictProxy):
         parser.add_option('-d', '--debug', action='store_true',
             help='Produce full debuging output',
         )
-        parser.add_option('-v', '--verbose', action='store_true',
-            help='Produce more verbose output',
+        parser.add_option('-v', '--verbose', action='count',
+            help='Produce more verbose output. A second -v displays the XML-RPC request',
         )
         if context == 'cli':
             parser.add_option('-a', '--prompt-all', action='store_true',

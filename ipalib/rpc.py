@@ -374,11 +374,11 @@ class xmlclient(Connectible):
         super(xmlclient, self).__init__()
         self.__errors = dict((e.errno, e) for e in public_errors)
 
-    def create_connection(self, ccache=None):
+    def create_connection(self, ccache=None, verbose=False):
         kw = dict(allow_none=True, encoding='UTF-8')
         if self.env.xmlrpc_uri.startswith('https://'):
             kw['transport'] = KerbTransport()
-        kw['verbose'] = False
+        kw['verbose'] = verbose
         return ServerProxy(self.env.xmlrpc_uri, **kw)
 
     def destroy_connection(self):

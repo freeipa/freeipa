@@ -118,7 +118,7 @@ DEFAULT_CONFIG = (
     ('webui_assets_dir', None),
 
     # Debugging:
-    ('verbose', False),
+    ('verbose', 0),
     ('debug', False),
     ('mode', 'production'),
 

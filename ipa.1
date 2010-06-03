@@ -49,8 +49,11 @@ Display a help message with a list of options.
 \fB\-n\fR, \fB\-\-no\-prompt\fR
 Don't prompt for any parameters of \fBCOMMAND\fR, even if they are required.
 .TP
-\fB\-v\fR, \fB\-\-prompt\-all\fR
-Produce verbose output.
+\fB\-a\fR, \fB\-\-prompt\-all\fR
+Prompt for ALL values (even if optional)
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+Produce verbose output. A second \-v displays the XML\-RPC request
 .SH "COMMANDS"
 The principal function of the CLI is to execute administrative commands specified by the \fICOMMAND\fR argument. The majority of commands are executed remotely over XML\-RPC on a IPA server listed in the configuration file (see FILES section of this manual page).
 
