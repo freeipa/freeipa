@@ -1423,7 +1423,7 @@ class AccessTime(Str):
         if not t.isnumeric():
             raise ValueError('week of the month non-numeric')
         value = int(t)
-        if value < 1 or value > 4:
+        if value < 1 or value > 6:
             raise ValueError('week of the month out of range')
 
     def _check_woty(self, t):
