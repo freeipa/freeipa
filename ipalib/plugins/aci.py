@@ -145,7 +145,7 @@ def _make_aci(current, aciname, kw):
     if 'attrs' in kw:
         a.set_target_attr(kw['attrs'])
     if 'memberof' in kw:
-        (dn, entry_attrs) = api.Command['group_show'](kw['memberof'])
+        entry_attrs = api.Command['group_show'](kw['memberof'])['result']
         a.set_target_filter('memberOf=%s' % dn)
     if 'filter' in kw:
         a.set_target_filter(kw['filter'])
@@ -154,7 +154,7 @@ def _make_aci(current, aciname, kw):
         a.set_target(target)
     if 'targetgroup' in kw:
         # Purposely no try here so we'll raise a NotFound
-        (dn, entry_attrs) = api.Command['group_show'](kw['targetgroup'])
+        entry_attrs = api.Command['group_show'](kw['targetgroup'])['result']
         target = 'ldap:///%s' % dn
         a.set_target(target)
     if 'subtree' in kw:
@@ -165,6 +165,53 @@ def _make_aci(current, aciname, kw):
         a.set_target(target)
 
     return a
+
+def _aci_to_kw(ldap, a):
+    """Convert an ACI into its equivalent keywords.
+
+       This is used for the modify operation so we can merge the
+       incoming kw and existing ACI and pass the result to
+       _make_aci().
+    """
+    kw = {}
+    kw['aciname'] = a.name
+    kw['permissions'] = tuple(a.permissions)
+    if 'targetattr' in a.target:
+        kw['attrs'] = tuple(a.target['targetattr']['expression'])
+    if 'targetfilter' in a.target:
+        target = a.target['targetfilter']['expression']
+        if target.startswith('memberOf'):
+            kw['memberof'] = target
+        else:
+            kw['filter'] = target
+    if 'target' in a.target:
+        target = a.target['target']['expression']
+        found = False
+        for k in _type_map.keys():
+            if _type_map[k] == target:
+                kw['type'] = unicode(k)
+                found = True
+                break;
+        if not found:
+            if target.startswith('('):
+                kw['filter'] = target
+            else:
+                # See if the target is a group. If so we set the
+                # targetgroup attr, otherwise we consider it a subtree
+                if api.env.container_group in target:
+                    kw['targetgroup'] = target
+                else:
+                    kw['subtree'] = target
+
+    groupdn = a.bindrule['expression']
+    groupdn = groupdn.replace('ldap:///','')
+    (dn, entry_attrs) = ldap.get_entry(groupdn, ['cn'])
+    if api.env.container_taskgroup in dn:
+        kw['taskgroup'] = entry_attrs['cn'][0]
+    else:
+        kw['group'] = entry_attrs['cn'][0]
+
+    return kw
 
 def _convert_strings_to_acis(acistrs):
     acis = []
@@ -362,18 +409,23 @@ class aci_mod(crud.Update):
         acis = _convert_strings_to_acis(entry_attrs.get('aci', []))
         aci = _find_aci_by_name(acis, aciname)
 
-        kw.setdefault('aciname', aci.name)
-        kw.setdefault('taskgroup', aci.bindrule['expression'])
-        kw.setdefault('permissions', aci.permissions)
-        kw.setdefault('attrs', aci.target['targetattr']['expression'])
-        if 'type' not in kw and 'targetgroup' not in kw and 'subtree' not in kw:
-            kw['subtree'] = aci.target['target']['expression']
-        if 'memberof' not in kw and 'filter' not in kw:
-            kw['filter'] = aci.target['targetfilter']['expression']
+        # The strategy here is to convert the ACI we're updating back into
+        # a series of keywords. Then we replace any keywords that have been
+        # updated and convert that back into an ACI and write it out.
+        newkw =  _aci_to_kw(ldap, aci)
+        for k in kw.keys():
+            newkw[k] = kw[k]
+        if 'aciname' in newkw:
+            del newkw['aciname']
 
         self.api.Command['aci_del'](aciname)
 
-        return self.api.Command['aci_add'](aciname, **kw)
+        result = self.api.Command['aci_add'](aciname, **newkw)['result']
+
+        return dict(
+            result=result,
+            value=aciname,
+        )
 
     def output_for_cli(self, textui, result, aciname, **options):
         """
@@ -451,7 +503,7 @@ class aci_find(crud.Search):
             try:
                 self.api.Command['taskgroup_show'](
                     kw['taskgroup']
-                )['result']
+                )
             except errors.NotFound:
                 pass
             else:
