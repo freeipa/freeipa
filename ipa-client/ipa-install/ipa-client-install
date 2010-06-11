@@ -539,6 +539,15 @@ def main():
         if options.principal is None and options.password is None and options.prompt_password is False:
             options.principal = user_input("Principal", allow_empty=False)
 
+    # Get the CA certificate
+    try:
+        # Remove anything already there so that wget doesn't use its
+        # too-clever renaming feature
+        os.remove("/etc/ipa/ca.crt")
+    except:
+        pass
+    run(["/usr/bin/wget", "-O", "/etc/ipa/ca.crt", "http://%s/ipa/config/ca.crt" % cli_server])
+
     if not options.on_master:
         # First test out the kerberos configuration
         try:
@@ -621,8 +630,6 @@ def main():
             return 1
         print "Configured /etc/ldap.conf"
 
-    # Get the CA certificate
-    run(["/usr/bin/wget", "-O", "/etc/ipa/ca.crt", "http://%s/ipa/config/ca.crt" % cli_server])
     # Add the CA to the default NSS database and trust it
     run(["/usr/bin/certutil", "-A", "-d", "/etc/pki/nssdb", "-n", "IPA CA", "-t", "CT,C,C", "-a", "-i", "/etc/ipa/ca.crt"])
 
