@@ -2168,7 +2168,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	char timestr[GENERALIZED_TIME_LENGTH+1];
 	time_t time_now = time(NULL);
 	char *pw = NULL;
-	char *krbPrincipalName = NULL;
+	Slapi_Value *objectclass;
 
 	svals = (Slapi_Value **)calloc(2, sizeof(Slapi_Value *));
 	if (!svals) {
@@ -2587,8 +2587,9 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	 * the userPassword attribute if it exists
 	*/
 	pw = slapi_entry_attr_get_charptr(targetEntry, "userPassword");
-	krbPrincipalName = slapi_entry_attr_get_charptr(targetEntry, "krbPrincipalName");
-	if ((strncmp(krbPrincipalName, "host/", 5) == 0)) {
+	objectclass = slapi_value_new_string("ipaHost");
+	if ((slapi_entry_attr_has_syntax_value(targetEntry, SLAPI_ATTR_OBJECTCLASS, objectclass)) == 1)
+	{
 		char * krbLastPwdChange = slapi_entry_attr_get_charptr(targetEntry, "krbLastPwdChange");
 		char * enrolledBy = slapi_entry_attr_get_charptr(targetEntry, "enrolledBy");
 		if (NULL == enrolledBy) {
@@ -2604,9 +2605,9 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 					"Removing userPassword from host entry\n");
 			slapi_ch_free_string(&pw);
 		}
-		slapi_ch_free_string(&krbLastPwdChange);
+		slapi_value_free(&objectclass);
 	}
-	slapi_ch_free_string(&krbPrincipalName);
+	slapi_value_free(&objectclass);
 
 	/* commit changes */
 	ret = ipapwd_apply_mods(slapi_entry_get_dn_const(targetEntry), smods);
@@ -3280,6 +3281,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     char *errMesg = "Internal operations error\n"; /* error message */
     char *expire = NULL; /* passwordExpirationTime attribute value */
     char *dn = NULL; /* bind DN */
+    Slapi_Value *objectclass;
     int method; /* authentication method */
     int ret = 0;
 
@@ -3321,6 +3323,14 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
                         "no krbPrincipalName in user entry: %s\n", dn);
         goto done;
     }
+
+    /* we aren't interested in host principals */
+    objectclass = slapi_value_new_string("ipaHost");
+    if ((slapi_entry_attr_has_syntax_value(entry, SLAPI_ATTR_OBJECTCLASS, objectclass)) == 1) {
+        slapi_value_free(&objectclass);
+        goto done;
+    }
+    slapi_value_free(&objectclass);
 
     /* check the krbPrincipalKey attribute is NOT present */
     ret = slapi_entry_attr_find(entry, "krbprincipalkey", &attr);
