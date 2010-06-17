@@ -250,6 +250,8 @@ clean: mostlyclean
 distclean: clean
 	rm -f Makefile
 
+maintainer-clean: distclean
+
 # We test our translations by taking the original untranslated string
 # (e.g. msgid) and prepend a prefix character and then append a suffix
 # character. The test consists of asserting that the first character in the
