@@ -188,7 +188,6 @@ class NSPRConnection(httplib.HTTPConnection):
         httplib.HTTPConnection.__init__(self, host, port, strict)
 
         logging.debug('%s init %s', self.__class__.__name__, host)
-        nss.nss_init_nodb()
 
         self.sock = io.Socket()
     def connect(self):

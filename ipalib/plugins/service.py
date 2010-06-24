@@ -64,25 +64,8 @@ from ipalib import api, errors
 from ipalib import Str, Flag, Bytes
 from ipalib.plugins.baseldap import *
 from ipalib import x509
-from pyasn1.error import PyAsn1Error
 from ipalib import _, ngettext
 
-
-def get_serial(certificate):
-    """
-    Given a certificate, return the serial number in that
-    cert as a Python long object.
-    """
-    if type(certificate) in (list, tuple):
-        certificate = certificate[0]
-
-    try:
-        serial = x509.get_serial_number(certificate, type=x509.DER)
-    except PyAsn1Error, e:
-        raise errors.GenericError(
-            format='Unable to decode certificate in entry: %s' % e
-        )
-    return serial
 
 def split_principal(principal):
     service = hostname = realm = None
@@ -194,6 +177,7 @@ class service_add(LDAPCreate):
 
         cert = entry_attrs.get('usercertificate')
         if cert:
+            cert = cert[0]
             # FIXME: should be in a normalizer: need to fix normalizers
             #        to work on non-unicode data
             entry_attrs['usercertificate'] = base64.b64decode(cert)
@@ -229,9 +213,10 @@ class service_del(LDAPDelete):
             (dn, entry_attrs) = ldap.get_entry(dn, ['usercertificate'])
             cert = entry_attrs.get('usercertificate')
             if cert:
-                serial = unicode(get_serial(cert))
+                cert = cert[0]
+                serial = unicode(x509.get_serial_number(cert, x509.DER))
                 try:
-                    result = api.Command['cert_get'](unicode(serial))['result']
+                    result = api.Command['cert_show'](unicode(serial))['result']
                     if 'revocation_reason' not in result:
                         try:
                             api.Command['cert_revoke'](unicode(serial), revocation_reason=4)
@@ -267,7 +252,7 @@ class service_mod(LDAPUpdate):
             if 'usercertificate' in entry_attrs_old:
                 # FIXME: what to do here? do we revoke the old cert?
                 fmt = 'entry already has a certificate, serial number: %s' % (
-                    get_serial(entry_attrs_old['usercertificate'])
+                    x509.get_serial_number(entry_attrs_old['usercertificate'][0], x509.DER)
                 )
                 raise errors.GenericError(format=fmt)
             # FIXME: should be in normalizer; see service_add

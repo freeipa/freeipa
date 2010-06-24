@@ -71,8 +71,8 @@ from ipalib import Str, Flag, Bytes
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.service import split_principal
 from ipalib.plugins.service import validate_certificate
-from ipalib.plugins.service import get_serial
 from ipalib import _, ngettext
+from ipalib import x509
 import base64
 
 
@@ -291,10 +291,10 @@ class host_mod(LDAPUpdate):
             if 'usercertificate' in entry_attrs_old:
                 # FIXME: what to do here? do we revoke the old cert?
                 fmt = 'entry already has a certificate, serial number: %s' % (
-                    get_serial(entry_attrs_old['usercertificate'])
+                    x509.get_serial_number(entry_attrs_old['usercertificate'][0], x509.DER)
                 )
                 raise errors.GenericError(format=fmt)
-            # FIXME: should be in normalizer; see service_add
+            # FIXME: decoding should be in normalizer; see service_add
             entry_attrs['usercertificate'] = base64.b64decode(cert)
 
         return dn
