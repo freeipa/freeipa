@@ -179,6 +179,7 @@ class DsInstance(service.Service):
         self.step("enabling memberof plugin", self.__add_memberof_module)
         self.step("enabling referential integrity plugin", self.__add_referint_module)
         self.step("enabling winsync plugin", self.__add_winsync_module)
+        self.step("configuring replication version plugin", self.__config_version_module)
         self.step("enabling IPA enrollment plugin", self.__add_enrollment_module)
         self.step("enabling ldapi", self.__enable_ldapi)
         self.step("configuring uniqueness plugin", self.__set_unique_attrs)
@@ -337,6 +338,9 @@ class DsInstance(service.Service):
 
     def __add_winsync_module(self):
         self._ldap_mod("ipa-winsync-conf.ldif")
+
+     def __config_version_module(self):
+         self._ldap_mod("ipa-version-conf.ldif")
 
     def __add_enrollment_module(self):
         self._ldap_mod("enrollment-conf.ldif", self.sub_dict)

@@ -101,6 +101,10 @@ version-update: release-update
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipapython/version.py.in \
 		> ipapython/version.py
 	perl -pi -e "s:__NUM_VERSION__:$(IPA_VERSION_MAJOR)$(IPA_VERSION_MINOR)$(IPA_VERSION_RELEASE):" ipapython/version.py
+	sed -e s/__VERSION__/$(IPA_VERSION)/ daemons/ipa-version.h.in \
+		> daemons/ipa-version.h
+	perl -pi -e "s:__NUM_VERSION__:$(IPA_VERSION_MAJOR)$(IPA_VERSION_MINOR)$(IPA_VERSION_RELEASE):" daemons/ipa-version.h
+	perl -pi -e "s:__DATA_VERSION__:$(IPA_DATA_VERSION):" daemons/ipa-version.h
 
 	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
 		ipa-client/ipa-client.spec.in > ipa-client/ipa-client.spec

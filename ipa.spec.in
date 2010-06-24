@@ -263,6 +263,7 @@ make client-install DESTDIR=%{buildroot}
 rm %{buildroot}/%{plugin_dir}/libipa_pwd_extop.la
 rm %{buildroot}/%{plugin_dir}/libipa_enrollment_extop.la
 rm %{buildroot}/%{plugin_dir}/libipa_winsync.la
+rm %{buildroot}/%{plugin_dir}/libipa_repl_version.la
 
 # Some user-modifiable HTML files are provided. Move these to /etc
 # and link back.
@@ -409,6 +410,7 @@ fi
 %attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so
 %attr(755,root,root) %{plugin_dir}/libipa_enrollment_extop.so
 %attr(755,root,root) %{plugin_dir}/libipa_winsync.so
+%attr(755,root,root) %{plugin_dir}/libipa_repl_version.so
 %dir %{_localstatedir}/lib/ipa
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
 %dir %{_localstatedir}/cache/ipa

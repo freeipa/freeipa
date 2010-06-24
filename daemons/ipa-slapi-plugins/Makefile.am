@@ -3,6 +3,7 @@ NULL =
 SUBDIRS =			\
 	ipa-enrollment		\
 	ipa-pwd-extop		\
+	ipa-version		\
 	ipa-winsync		\
 	$(NULL)
 

@@ -53,3 +53,16 @@ IPA_VERSION_RC_RELEASE=
 #  ->  "1.0.0GITabcdefg"                               #
 ########################################################
 IPA_VERSION_IS_GIT_SNAPSHOT="yes"
+
+########################################################
+# The version of IPA data. This is used to identify    #
+# incompatibilities in data that could cause issues    #
+# with replication. If the built-in versions don't     #
+# match exactly then replication will fail.            #
+#                                                      #
+# The format is %Y%m%d%H%M%S                           #
+#                                                      #
+# e.g. IPA_DATA_VERSION=`date +%Y%m%d%H%M%S`           #
+#  ->  "20100614120000"                                #
+########################################################
+IPA_DATA_VERSION=20100614120000
