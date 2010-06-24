@@ -37,13 +37,11 @@ EXAMPLES:
    ipa hbacsvc-del tftp
 
 """
-import base64
+from ipalib import api
+from ipalib import Str
+from ipalib.plugins.baseldap import LDAPObject, LDAPCreate, LDAPDelete
+from ipalib.plugins.baseldap import LDAPUpdate, LDAPSearch, LDAPRetrieve
 
-from ipalib import api, errors
-from ipalib import Str, Flag, Bytes
-from ipalib.plugins.baseldap import *
-from ipalib import x509
-from pyasn1.error import PyAsn1Error
 from ipalib import _, ngettext
 
 
