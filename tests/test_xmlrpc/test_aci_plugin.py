@@ -131,7 +131,7 @@ class test_aci(Declarative):
             ),
             expected=dict(
                 value=aci1,
-                summary=u'Updated ACI "test1"',
+                summary=u'Modified ACI "test1"',
                 result=u'(target = "ldap:///uid=*,cn=users,cn=accounts,%s")(version 3.0;acl "test1";allow (add,write) groupdn = "ldap:///cn=testtaskgroup,cn=taskgroups,cn=accounts,%s";)' % (api.env.basedn, api.env.basedn),
             ),
         ),
@@ -155,7 +155,7 @@ class test_aci(Declarative):
             ),
             expected=dict(
                 value=aci1,
-                summary=u'Updated ACI "test1"',
+                summary=u'Modified ACI "test1"',
                 result=u'(targetattr = "cn || sn || givenName")(target = "ldap:///uid=*,cn=users,cn=accounts,%s")(version 3.0;acl "test1";allow (add,write) groupdn = "ldap:///cn=testtaskgroup,cn=taskgroups,cn=accounts,%s";)' % (api.env.basedn, api.env.basedn),
             ),
         ),
@@ -168,7 +168,7 @@ class test_aci(Declarative):
             ),
             expected=dict(
                 value=aci1,
-                summary=u'Updated ACI "test1"',
+                summary=u'Modified ACI "test1"',
                 result=u'(targetattr = "cn || sn || givenName")(target = "ldap:///cn=*,cn=groups,cn=accounts,%s")(version 3.0;acl "test1";allow (add,write) groupdn = "ldap:///cn=testtaskgroup,cn=taskgroups,cn=accounts,%s";)' % (api.env.basedn, api.env.basedn),
             ),
         ),
@@ -181,7 +181,7 @@ class test_aci(Declarative):
             ),
             expected=dict(
                 value=aci1,
-                summary=u'Updated ACI "test1"',
+                summary=u'Modified ACI "test1"',
                 result=u'(targetattr = "cn || sn || givenName")(targetfilter = "(memberOf=cn=testtaskgroup,cn=taskgroups,cn=accounts,%s)")(target = "ldap:///cn=*,cn=groups,cn=accounts,%s")(version 3.0;acl "test1";allow (add,write) groupdn = "ldap:///cn=testtaskgroup,cn=taskgroups,cn=accounts,%s";)' % (api.env.basedn, api.env.basedn, api.env.basedn),
             ),
         ),
