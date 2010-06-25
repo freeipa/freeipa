@@ -208,12 +208,7 @@ class ra(rabase.rabase):
 
         try:
             # Grab the subject, reverse it, combine it and return it
-            sub = list(x509.get_subject_components(cert))
-            sub.reverse()
-            subject = ""
-            for s in sub:
-                subject = subject + "%s=%s," % (s[0], s[1])
-            subject = subject[:-1]
+            subject = x509.get_subject(cert)
 
             serial = x509.get_serial_number(cert)
         except error.PyAsn1Error, e:
