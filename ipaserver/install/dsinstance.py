@@ -339,8 +339,8 @@ class DsInstance(service.Service):
     def __add_winsync_module(self):
         self._ldap_mod("ipa-winsync-conf.ldif")
 
-     def __config_version_module(self):
-         self._ldap_mod("ipa-version-conf.ldif")
+    def __config_version_module(self):
+        self._ldap_mod("ipa-version-conf.ldif")
 
     def __add_enrollment_module(self):
         self._ldap_mod("enrollment-conf.ldif", self.sub_dict)
