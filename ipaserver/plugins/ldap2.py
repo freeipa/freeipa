@@ -103,9 +103,12 @@ def _handle_errors(e, **kw):
         raise errors.DatabaseError(desc=desc, info=info)
 
 
-def load_schema(url):
+def global_init(url):
     """
-    Retrieve the LDAP schema from the provided url.
+    Perform global initialization when the module is loaded.
+
+    Retrieve the LDAP schema from the provided url and determine if
+    User-Private Groups (upg) are configured.
 
     Bind using kerberos credentials. If in the context of the
     in-tree "lite" server then use the current ccache. If in the context of
@@ -113,10 +116,11 @@ def load_schema(url):
     principal.
     """
     tmpdir = None
+    upg = False
 
     if not api.env.in_server or api.env.context not in ['lite', 'server']:
         # The schema is only needed on the server side
-        return
+        return (None, None)
 
     try:
         if api.env.context == 'server':
@@ -139,9 +143,17 @@ def load_schema(url):
             'cn=schema', _ldap.SCOPE_BASE,
             attrlist=['attributetypes', 'objectclasses']
         )[0]
+        try:
+            upg_entry = conn.search_s(
+                'cn=UPG Template, %s' % api.env.basedn, _ldap.SCOPE_BASE,
+                attrlist=['*']
+            )[0]
+            upg = True
+        except _ldap.NO_SUCH_OBJECT, e:
+            upg = False
         conn.unbind_s()
     except _ldap.SERVER_DOWN:
-        return None
+        return (None, upg)
     except _ldap.LDAPError, e:
         # TODO: raise a more appropriate exception
         _handle_errors(e, **{})
@@ -154,13 +166,14 @@ def load_schema(url):
         if tmpdir:
             shutil.rmtree(tmpdir)
 
-    return _ldap.schema.SubSchema(schema_entry[1])
+    return (_ldap.schema.SubSchema(schema_entry[1]), upg)
 
-# cache schema when importing module
+# cache schema and User-Private Groups when importing module
 try:
-    _schema = load_schema(api.env.ldap_uri)
+    (_schema, _upg) = global_init(api.env.ldap_uri)
 except AttributeError:
     _schema = None
+    _upg = None
 
 
 def get_syntax(attr, value):
@@ -523,6 +536,16 @@ class ldap2(CrudBackend, Encoder):
     def get_schema(self):
         """Returns a copy of the current LDAP schema."""
         return copy.deepcopy(self.schema)
+
+    def has_upg(self):
+        """Returns True/False whether User-Private Groups are enabled.
+           This is determined based on whether the UPG Template exists.
+           We determine this at module load so we don't have to test for
+           it every time.
+        """
+        global _upg
+
+        return _upg
 
     @encode_args(1, 2)
     def get_effective_rights(self, dn, entry_attrs):

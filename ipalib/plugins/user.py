@@ -122,6 +122,8 @@ class user(LDAPObject):
             cli_name='uid',
             label=_('UID'),
             doc=_('User ID Number (system will assign one if not provided)'),
+            autofill=True,
+            default=999,
         ),
         Str('street?',
             cli_name='street',
@@ -169,16 +171,20 @@ class user_add(LDAPCreate):
             home_dir = home_dir.replace('//', '/').rstrip('/')
             entry_attrs['homedirectory'] = home_dir
 
-        # we're adding new users to a default group, get its gidNumber
-        # get default group name from config
-        def_primary_group = config.get('ipadefaultprimarygroup')
-        group_dn = self.api.Object['group'].get_dn(def_primary_group)
-        try:
-            (group_dn, group_attrs) = ldap.get_entry(group_dn, ['gidnumber'])
-        except errors.NotFound:
-            error_msg = 'Default group for new users not found.'
-            raise errors.NotFound(reason=error_msg)
-        entry_attrs['gidnumber'] = group_attrs['gidnumber']
+        if ldap.has_upg():
+            # User Private Groups - uidNumber == gidNumber
+            entry_attrs['gidnumber'] = entry_attrs['uidnumber']
+        else:
+            # we're adding new users to a default group, get its gidNumber
+            # get default group name from config
+            def_primary_group = config.get('ipadefaultprimarygroup')
+            group_dn = self.api.Object['group'].get_dn(def_primary_group)
+            try:
+                (group_dn, group_attrs) = ldap.get_entry(group_dn, ['gidnumber'])
+            except errors.NotFound:
+                error_msg = 'Default group for new users not found.'
+                raise errors.NotFound(reason=error_msg)
+            entry_attrs['gidnumber'] = group_attrs['gidnumber']
 
         return dn
 

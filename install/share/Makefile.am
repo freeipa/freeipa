@@ -31,6 +31,7 @@ app_DATA =				\
 	preferences.html.template 	\
 	referint-conf.ldif		\
 	dna-posix.ldif			\
+	dna-upg.ldif			\
 	master-entry.ldif		\
 	memberof-task.ldif		\
 	memberof-conf.ldif		\
@@ -39,6 +40,7 @@ app_DATA =				\
 	schema_compat.uldif		\
 	ldapi.ldif			\
 	wsgi.py				\
+	user_private_groups.ldif	\
 	$(NULL)
 
 EXTRA_DIST =				\

@@ -38,7 +38,8 @@ from ldap.dn import escape_dn_chars
 from ipaserver import ipaldap
 from ipaserver.install import ldapupdate
 from ipaserver.install import httpinstance
-from ipalib import util, uuid
+from ipalib import util, uuid, errors
+from ipaserver.plugins.ldap2 import ldap2
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
@@ -114,6 +115,25 @@ def is_ds_running():
         ret = False
     return ret
 
+def has_managed_entries(host_name, dm_password):
+    """Check to see if the Managed Entries plugin is available"""
+    ldapuri = 'ldap://%s' % host_name
+    conn = None
+    try:
+        conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='cn=config')
+        conn.connect(bind_dn='cn=Directory Manager', bind_pw=dm_password)
+        (dn, attrs) = conn.get_entry('cn=Managed Entries,cn=plugins',
+                      ['*'])
+        return True
+    except errors.NotFound:
+        return False
+    except errors.ExecutionError, e:
+        logging.critical("Could not connect to the Directory Server on %s" % host_name)
+        raise e
+    finally:
+        if conn:
+            conn.disconnect()
+
 
 INF_TEMPLATE = """
 [General]
@@ -179,6 +199,8 @@ class DsInstance(service.Service):
         self.step("enabling memberof plugin", self.__add_memberof_module)
         self.step("enabling referential integrity plugin", self.__add_referint_module)
         self.step("enabling winsync plugin", self.__add_winsync_module)
+        if self.uidstart == self.gidstart:
+            self.step("configuring user private groups", self.__user_private_groups)
         self.step("configuring replication version plugin", self.__config_version_module)
         self.step("enabling IPA enrollment plugin", self.__add_enrollment_module)
         self.step("enabling ldapi", self.__enable_ldapi)
@@ -331,7 +353,11 @@ class DsInstance(service.Service):
         self._ldap_mod("unique-attributes.ldif", self.sub_dict)
 
     def __config_uidgid_gen_first_master(self):
-        self._ldap_mod("dna-posix.ldif", self.sub_dict)
+        if (self.uidstart == self.gidstart and
+            has_managed_entries(self.host_name, self.dm_password)):
+            self._ldap_mod("dna-upg.ldif", self.sub_dict)
+        else:
+            self._ldap_mod("dna-posix.ldif", self.sub_dict)
 
     def __add_master_entry_first_master(self):
         self._ldap_mod("master-entry.ldif", self.sub_dict)
@@ -341,6 +367,10 @@ class DsInstance(service.Service):
 
     def __config_version_module(self):
         self._ldap_mod("ipa-version-conf.ldif")
+
+    def __user_private_groups(self):
+        if has_managed_entries(self.host_name, self.dm_password):
+            self._ldap_mod("user_private_groups.ldif", self.sub_dict)
 
     def __add_enrollment_module(self):
         self._ldap_mod("enrollment-conf.ldif", self.sub_dict)
