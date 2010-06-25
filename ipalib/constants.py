@@ -120,6 +120,7 @@ DEFAULT_CONFIG = (
     # Debugging:
     ('verbose', 0),
     ('debug', False),
+    ('startup_traceback', False),
     ('mode', 'production'),
 
     # CA plugin:

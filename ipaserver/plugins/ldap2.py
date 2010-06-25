@@ -124,17 +124,20 @@ def global_init(url):
 
     try:
         if api.env.context == 'server':
-            # Create a new credentials cache for this Apache process
-            tmpdir = tempfile.mkdtemp(prefix = "tmp-")
-            ccache_file = 'FILE:%s/ccache' % tmpdir
-            krbcontext = krbV.default_context()
-            principal = str('HTTP/%s@%s' % (api.env.host, api.env.realm))
-            keytab = krbV.Keytab(name='/etc/httpd/conf/ipa.keytab', context=krbcontext)
-            principal = krbV.Principal(name=principal, context=krbcontext)
-            os.environ['KRB5CCNAME'] = ccache_file
-            ccache = krbV.CCache(name=ccache_file, context=krbcontext, primary_principal=principal)
-            ccache.init(principal)
-            ccache.init_creds_keytab(keytab=keytab, principal=principal)
+            try:
+                # Create a new credentials cache for this Apache process
+                tmpdir = tempfile.mkdtemp(prefix = "tmp-")
+                ccache_file = 'FILE:%s/ccache' % tmpdir
+                krbcontext = krbV.default_context()
+                principal = str('HTTP/%s@%s' % (api.env.host, api.env.realm))
+                keytab = krbV.Keytab(name='/etc/httpd/conf/ipa.keytab', context=krbcontext)
+                principal = krbV.Principal(name=principal, context=krbcontext)
+                os.environ['KRB5CCNAME'] = ccache_file
+                ccache = krbV.CCache(name=ccache_file, context=krbcontext, primary_principal=principal)
+                ccache.init(principal)
+                ccache.init_creds_keytab(keytab=keytab, principal=principal)
+            except krbV.Krb5Error, e:
+                raise StandardError('Unable to retrieve LDAP schema. Error initializing principal %s in %s: %s' % (principal.name, '/etc/httpd/conf/ipa.keytab', str(e)))
 
         conn = _ldap.initialize(url)
         conn.sasl_interactive_bind_s('', SASL_AUTH)
@@ -155,8 +158,9 @@ def global_init(url):
     except _ldap.SERVER_DOWN:
         return (None, upg)
     except _ldap.LDAPError, e:
-        # TODO: raise a more appropriate exception
-        _handle_errors(e, **{})
+        desc = e.args[0]['desc'].strip()
+        info = e.args[0].get('info', '').strip()
+        raise StandardError('Unable to retrieve LDAP schema: %s: %s' % (desc, info))
     except IndexError:
         # no 'cn=schema' entry in LDAP? some servers use 'cn=subschema'
         # TODO: DS uses 'cn=schema', support for other server?

@@ -72,6 +72,7 @@ if __name__ == '__main__':
     )
 
     api.env.in_server = True
+    api.env.startup_traceback = True
     (options, args) = api.bootstrap_with_global_options(parser, context='lite')
     api.env._merge(
         lite_port=options.port,
