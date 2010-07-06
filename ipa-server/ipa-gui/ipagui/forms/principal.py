@@ -31,6 +31,7 @@ class PrincipalFields(object):
                        ("HTTP", "HTTP"),
                        ("ldap", "ldap"),
                        ("nfs", "nfs"),
+                       ("libvirt", "libvirt")
                        ("other", "other")
                       ],
             attrs=dict(onchange="toggleOther(this.id)"))
