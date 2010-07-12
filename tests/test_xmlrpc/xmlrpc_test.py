@@ -46,6 +46,8 @@ try:
     res = api.Command['user_show'](u'notfound')
 except errors.NetworkError:
     server_available = False
+except IOError:
+    server_available = False
 except errors.NotFound:
     server_available = True
 

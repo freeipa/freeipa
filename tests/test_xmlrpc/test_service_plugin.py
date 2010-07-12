@@ -93,6 +93,7 @@ class test_service(XMLRPC_test):
         """
         entry = api.Command['service_show'](self.principal)['result']
         assert_attr_equal(entry, 'krbprincipalname', self.principal)
+        assert(entry['has_keytab'] == False)
 
     def test_6_service_find(self):
         """

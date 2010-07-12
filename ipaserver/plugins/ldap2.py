@@ -825,6 +825,22 @@ class ldap2(CrudBackend, Encoder):
         """Mark entry inactive."""
         self.set_entry_active(dn, False)
 
+    def remove_principal_key(self, dn):
+        """Remove a kerberos principal key."""
+
+        dn = self.normalize_dn(dn)
+
+        # We need to do this directly using the LDAP library because we
+        # don't have read access to krbprincipalkey so we need to delete
+        # it in the blind.
+        mod = [(_ldap.MOD_REPLACE, 'krbprincipalkey', None),
+               (_ldap.MOD_REPLACE, 'krblastpwdchange', None)]
+
+        try:
+            self.conn.modify_s(dn, mod)
+        except _ldap.LDAPError, e:
+            self._handle_errors(e, **{})
+
     # CrudBackend methods
 
     def _get_normalized_entry_for_crud(self, dn, attrs_list=None):

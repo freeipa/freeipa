@@ -57,6 +57,9 @@ EXAMPLES:
 
  Update information about a host
    ipa host-mod --os='Fedora 12' test.example.com
+
+ Disable the host kerberos key
+   ipa host-disable test.example.com
 """
 
 import platform
@@ -91,9 +94,14 @@ class host(LDAPObject):
     object_name_plural = 'hosts'
     object_class = ['ipaobject', 'nshost', 'ipahost', 'pkiuser', 'ipaservice']
     # object_class_config = 'ipahostobjectclasses'
+    search_attributes = [
+        'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
+        'nshardwareplatform', 'nsosversion',
+    ]
     default_attributes = [
         'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
         'nshardwareplatform', 'nsosversion', 'usercertificate', 'memberof',
+        'krblastpwdchange',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
@@ -316,5 +324,47 @@ class host_show(LDAPRetrieve):
     """
     Display host.
     """
+    has_output_params = (
+        Flag('has_keytab',
+            label=_('Keytab'),
+        )
+    )
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        if 'krblastpwdchange' in entry_attrs:
+            entry_attrs['has_keytab'] = True
+            if not options.get('all', False):
+                del entry_attrs['krblastpwdchange']
+        else:
+            entry_attrs['has_keytab'] = False
+
+        return dn
 
 api.register(host_show)
+
+
+class host_disable(LDAPQuery):
+    """
+    Disable the kerberos key of this host.
+    """
+    has_output = output.standard_value
+    msg_summary = _('Removed kerberos key from "%(value)s"')
+
+    def execute(self, *keys, **options):
+        ldap = self.obj.backend
+
+        dn = self.obj.get_dn(*keys, **options)
+        (dn, entry_attrs) = ldap.get_entry(dn, ['krblastpwdchange'])
+
+        if 'krblastpwdchange' not in entry_attrs:
+            error_msg = _('Host principal has no kerberos key')
+            raise errors.NotFound(reason=error_msg)
+
+        ldap.remove_principal_key(dn)
+
+        return dict(
+            result=True,
+            value=keys[0],
+        )
+
+api.register(host_disable)

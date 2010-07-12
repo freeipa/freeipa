@@ -53,6 +53,10 @@ EXAMPLES:
 
  Find all HTTP services:
    ipa service-find HTTP
+
+ Disable a service kerberos key:
+   ipa service-disable HTTP/web.example.com
+
 """
 import base64
 
@@ -140,7 +144,8 @@ class service(LDAPObject):
         'krbprincipal', 'krbprincipalaux', 'krbticketpolicyaux', 'ipaobject',
         'ipaservice', 'pkiuser'
     ]
-    default_attributes = ['krbprincipalname', 'usercertificate', 'managedby']
+    search_attributes = ['krbprincipalname', 'managedby']
+    default_attributes = ['krbprincipalname', 'usercertificate', 'managedby', 'krblastpwdchange']
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'managedby': ['host'],
@@ -156,11 +161,6 @@ class service(LDAPObject):
             primary_key=True,
             normalizer=lambda value: normalize_principal(value),
         ),
-        Bytes('usercertificate?', validate_certificate,
-            cli_name='certificate',
-            label=_('Certificate'),
-            doc=_('Base-64 encoded server certificate'),
-        ),
     )
 
 api.register(service)
@@ -175,6 +175,11 @@ class service_add(LDAPCreate):
     takes_options = (
         Flag('force',
             doc=_('force principal name even if not in DNS'),
+        ),
+        Bytes('usercertificate?', validate_certificate,
+            cli_name='certificate',
+            label=_('Certificate'),
+            doc=_('Base-64 encoded server certificate'),
         ),
     )
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
@@ -245,9 +250,18 @@ class service_mod(LDAPUpdate):
     """
     Modify service.
     """
+    takes_options = LDAPUpdate.takes_options + (
+        Bytes('usercertificate?', validate_certificate,
+            cli_name='certificate',
+            label=_('Certificate'),
+            doc=_('Base-64 encoded server certificate'),
+        ),
+    )
+
     member_attributes = ['managedby']
+
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        cert = entry_attrs.get('usercertificate')
+        cert = options.get('usercertificate')
         if cert:
             (dn, entry_attrs_old) = ldap.get_entry(dn, ['usercertificate'])
             if 'usercertificate' in entry_attrs_old:
@@ -268,6 +282,13 @@ class service_find(LDAPSearch):
     Search for services.
     """
     member_attributes = ['managedby']
+    takes_options = LDAPSearch.takes_options + (
+        Bytes('usercertificate?', validate_certificate,
+            cli_name='certificate',
+            label=_('Certificate'),
+            doc=_('Base-64 encoded server certificate'),
+        ),
+    )
     def pre_callback(self, ldap, filter, attrs_list, base_dn, *args, **options):
         # lisp style!
         custom_filter = '(&(objectclass=ipaService)' \
@@ -289,6 +310,28 @@ class service_show(LDAPRetrieve):
     Display service.
     """
     member_attributes = ['managedby']
+    takes_options = LDAPRetrieve.takes_options + (
+        Bytes('usercertificate?', validate_certificate,
+            cli_name='certificate',
+            label=_('Certificate'),
+            doc=_('Base-64 encoded server certificate'),
+        ),
+    )
+    has_output_params = (
+        Flag('has_keytab',
+            label=_('Keytab'),
+        )
+    )
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        if 'krblastpwdchange' in entry_attrs:
+            entry_attrs['has_keytab'] = True
+            if not options.get('all', False):
+                del entry_attrs['krblastpwdchange']
+        else:
+            entry_attrs['has_keytab'] = False
+
+        return dn
 
 api.register(service_show)
 
@@ -308,3 +351,30 @@ class service_remove_host(LDAPRemoveMember):
     member_attributes = ['managedby']
 
 api.register(service_remove_host)
+
+
+class service_disable(LDAPQuery):
+    """
+    Disable the kerberos key of this service.
+    """
+    has_output = output.standard_value
+    msg_summary = _('Removed kerberos key from "%(value)s"')
+
+    def execute(self, *keys, **options):
+        ldap = self.obj.backend
+
+        dn = self.obj.get_dn(*keys, **options)
+        (dn, entry_attrs) = ldap.get_entry(dn, ['krblastpwdchange'])
+
+        if 'krblastpwdchange' not in entry_attrs:
+            error_msg = _('Service principal has no kerberos key')
+            raise errors.NotFound(reason=error_msg)
+
+        ldap.remove_principal_key(dn)
+
+        return dict(
+            result=True,
+            value=keys[0],
+        )
+
+api.register(service_disable)

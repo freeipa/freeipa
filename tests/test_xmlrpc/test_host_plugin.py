@@ -112,6 +112,7 @@ class test_host(Declarative):
                     description=[u'Test host 1'],
                     l=[u'Undisclosed location 1'],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    has_keytab=False
                 ),
             ),
         ),
@@ -138,6 +139,7 @@ class test_host(Declarative):
                     objectclass=objectclasses.host,
                     managedby=[dn1],
                     ipauniqueid=[fuzzy_uuid],
+                    has_keytab=False
                 ),
             ),
         ),
@@ -220,6 +222,7 @@ class test_host(Declarative):
                     description=[u'Updated host 1'],
                     l=[u'Undisclosed location 1'],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    has_keytab=False
                 ),
             ),
         ),
