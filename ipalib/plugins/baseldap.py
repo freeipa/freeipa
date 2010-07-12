@@ -67,6 +67,8 @@ class LDAPObject(Object):
     object_name_plural = 'entries'
     object_class = []
     object_class_config = None
+    search_attributes = []
+    search_attributes_config = None
     default_attributes = []
     hidden_attributes = ['objectclass', 'aci']
     uuid_attribute = ''
@@ -819,11 +821,23 @@ class LDAPSearch(CallbackInterface, crud.Search):
                 set(self.obj.default_attributes + search_kw.keys())
             )
 
+        if self.obj.search_attributes:
+            search_attrs = self.obj.search_attributes
+        else:
+            search_attrs = self.obj.default_attributes
+        if self.obj.search_attributes_config:
+            config = ldap.get_ipa_config()[1]
+            config_attrs = config.get(
+                self.obj.search_attributes_config, [])
+            if len(config_attrs) == 1 and (
+                isinstance(config_attrs[0], basestring)):
+                search_attrs = config_attrs[0].split(',')
+
         search_kw['objectclass'] = self.obj.object_class
         attr_filter = ldap.make_filter(search_kw, rules=ldap.MATCH_ALL)
 
         search_kw = {}
-        for a in self.obj.default_attributes:
+        for a in search_attrs:
             search_kw[a] = term
         term_filter = ldap.make_filter(search_kw, exact=False)
 

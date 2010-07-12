@@ -75,6 +75,7 @@ class group(LDAPObject):
     object_name_plural = 'groups'
     object_class = ['ipausergroup']
     object_class_config = 'ipagroupobjectclasses'
+    search_attributes_config = 'ipagroupsearchfields'
     default_attributes = [
         'cn', 'description', 'gidnumber', 'member', 'memberof'
     ]
