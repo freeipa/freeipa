@@ -29,6 +29,10 @@ from ipalib import errors
 import tempfile
 from ipapython import ipautil
 import nose
+import base64
+
+# So we can save the cert from issuance and compare it later
+cert = None
 
 # Test setup
 #
@@ -110,14 +114,40 @@ class test_cert(XMLRPC_test):
         Test the `xmlrpc.cert_request` method with --add.
         """
         # Our host should exist from previous test
+        global cert
 
         csr = unicode(self.generateCSR(self.subject))
         res = api.Command['cert_request'](csr, principal=self.service_princ, add=True)['result']
         assert res['subject'] == self.subject
+        # save the cert for the service_show/find tests
+        cert = res['certificate']
 
+    def test_3_service_show(self):
+        """
+        Verify that service-show has the right certificate.
+        """
+        global cert
 
-    def test_3_cleanup(self):
+        res = api.Command['service_show'](self.service_princ)['result']
+        assert base64.b64encode(res['usercertificate'][0]) == cert
+
+    def test_4_service_find(self):
+        """
+        Verify that service-find has the right certificate.
+        """
+        global cert
+
+        # Assume there is only one service
+        res = api.Command['service_find'](self.service_princ)['result']
+        assert base64.b64encode(res[0]['usercertificate'][0]) == cert
+
+    def test_5_cleanup(self):
+        """
+        Clean up cert test data
+        """
         # Now clean things up
         api.Command['host_del'](self.host_fqdn)
 
-        assert(True)
+        # Verify that the service is gone
+        res = api.Command['service_find'](self.service_princ)
+        assert res['count'] == 0
