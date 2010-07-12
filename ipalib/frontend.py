@@ -1165,6 +1165,8 @@ class Method(Attribute, Command):
                 if 'no_output' in param.flags:
                     continue
                 yield param
+        for param in self._get_param_iterable('output_params', verb='has'):
+            yield param
 
 
 class Property(Attribute):
