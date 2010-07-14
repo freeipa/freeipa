@@ -46,6 +46,23 @@ from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
 
+output_params = (
+        Str('memberuser_user?',
+            label='Member User',
+        ),
+        Str('memberuser_group?',
+            label='Member Group',
+        ),
+        Str('memberhost_host?',
+            label=_('Member Host'),
+        ),
+        Str('memberhost_hostgroup?',
+            label='Member Hostgroup',
+        ),
+        Str('externalhost?',
+            label=_('External host'),
+        ),
+    )
 class netgroup(LDAPObject):
     """
     Netgroup object.
@@ -55,13 +72,14 @@ class netgroup(LDAPObject):
     object_name_plural = 'netgroups'
     object_class = ['ipaobject', 'ipaassociation', 'ipanisnetgroup']
     default_attributes = [
-        'cn', 'description', 'member', 'memberof', 'externalhost',
-        'nisdomainname',
+        'cn', 'description', 'memberof', 'externalhost',
+        'nisdomainname', 'memberuser', 'memberhost',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
-        'member': ['user', 'group', 'host', 'hostgroup', 'netgroup'],
         'memberof': ['netgroup'],
+        'memberuser': ['user', 'group'],
+        'memberhost': ['host', 'hostgroup'],
     }
 
     label = _('Net Groups')
@@ -87,26 +105,6 @@ class netgroup(LDAPObject):
             label='IPA unique ID',
             doc=_('IPA unique ID'),
             flags=['no_create', 'no_update'],
-        ),
-        Str('member_user?',
-            label='Member User',
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('member_group?',
-            label='Member Group',
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('member_host?',
-            label=_('Member host'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('member_hostgroup?',
-            label='Member Hostgroup',
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('externalhost?',
-            label=_('External host'),
-            flags=['no_create', 'no_update', 'no_search'],
         ),
     )
 
@@ -135,6 +133,7 @@ class netgroup_add(LDAPCreate):
     """
     Create new netgroup.
     """
+    has_output_params = output_params
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         if not dn.startswith('cn='):
             msg = 'netgroup with name "%s" already exists' % keys[-1]
@@ -160,6 +159,7 @@ class netgroup_mod(LDAPUpdate):
     """
     Modify netgroup.
     """
+    has_output_params = output_params
 
 api.register(netgroup_mod)
 
@@ -168,6 +168,7 @@ class netgroup_find(LDAPSearch):
     """
     Search the groups.
     """
+    has_output_params = output_params
 
 api.register(netgroup_find)
 
@@ -176,6 +177,7 @@ class netgroup_show(LDAPRetrieve):
     """
     Display netgroup.
     """
+    has_output_params = output_params
 
 api.register(netgroup_show)
 
@@ -184,14 +186,18 @@ class netgroup_add_member(LDAPAddMember):
     """
     Add members to netgroup.
     """
+    has_output_params = output_params
+    member_attributes = ['memberuser', 'memberhost']
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
-        if 'member' in failed and 'host' in failed['member']:
+        completed_external = 0
+        # Sift through the host failures. We assume that these are all
+        # hosts that aren't stored in IPA, aka external hosts.
+        if 'memberhost' in failed and 'host' in failed['memberhost']:
             (dn, entry_attrs_) = ldap.get_entry(dn, ['externalhost'])
-            members = entry_attrs.get('member', [])
+            members = entry_attrs.get('memberhost', [])
             external_hosts = entry_attrs_.get('externalhost', [])
             failed_hosts = []
-            completed_external = 0
-            for host in failed['member']['host']:
+            for host in failed['memberhost']['host']:
                 host = host.lower()
                 host_dn = self.api.Object['host'].get_dn(host)
                 if host not in external_hosts and host_dn not in members:
@@ -204,7 +210,7 @@ class netgroup_add_member(LDAPAddMember):
                     ldap.update_entry(dn, {'externalhost': external_hosts})
                 except errors.EmptyModlist:
                     pass
-                failed['member']['host'] = failed_hosts
+                failed['memberhost']['host'] = failed_hosts
                 entry_attrs['externalhost'] = external_hosts
         return (completed + completed_external, dn)
 
@@ -216,13 +222,17 @@ class netgroup_remove_member(LDAPRemoveMember):
     """
     Remove members from netgroup.
     """
+    has_output_params = output_params
+    member_attributes = ['memberuser', 'memberhost']
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
-        if 'member' in failed and 'host' in failed['member']:
+        # Run through the host failures and gracefully remove any defined as
+        # as an externalhost.
+        if 'memberhost' in failed and 'host' in failed['memberhost']:
             (dn, entry_attrs) = ldap.get_entry(dn, ['externalhost'])
             external_hosts = entry_attrs.get('externalhost', [])
             failed_hosts = []
             completed_external = 0
-            for host in failed['member']['host']:
+            for host in failed['memberhost']['host']:
                 host = host.lower()
                 if host in external_hosts:
                     external_hosts.remove(host)
@@ -234,7 +244,7 @@ class netgroup_remove_member(LDAPRemoveMember):
                     ldap.update_entry(dn, {'externalhost': external_hosts})
                 except errors.EmptyModlist:
                     pass
-                failed['member']['host'] = failed_hosts
+                failed['memberhost']['host'] = failed_hosts
                 entry_attrs['externalhost'] = external_hosts
         return (completed + completed_external, dn)
 
