@@ -22,11 +22,11 @@
 import sys
 try:
     from optparse import OptionParser
-    from ipapython import entity, ipautil, config
+    from ipapython import ipautil, config
     from ipaserver.install import installutils
-    from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax, UPDATES_DIR
+    from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax
     from ipaserver.plugins.ldap2 import ldap2
-    from ipalib import errors
+    from ipalib import api, errors
     import logging
 except ImportError:
     print >> sys.stderr, """\
@@ -38,6 +38,7 @@ error was:
     sys.exit(1)
 
 nis_config_dn = "cn=NIS Server, cn=plugins, cn=config"
+compat_dn = "cn=Schema Compatibility,cn=plugins,cn=config"
 
 def parse_options():
     usage = "%prog [options] <enable|disable>\n"
@@ -64,10 +65,14 @@ def get_dirman_password():
 
     return password
 
-def get_nis_config(conn):
+def get_entry(dn, conn):
+    """
+    Return the entry for the given DN. If the entry is not found return
+    None.
+    """
     entry = None
     try:
-        (dn, entry) = conn.get_entry(nis_config_dn)
+        (dn, entry) = conn.get_entry(dn, normalize=False)
     except errors.NotFound:
         pass
     return entry
@@ -75,7 +80,7 @@ def get_nis_config(conn):
 def main():
     retval = 0
     loglevel = logging.ERROR
-    files=['/usr/share/ipa/nis.uldif']
+    files = ['/usr/share/ipa/nis.uldif']
     servicemsg = ""
 
     options, args = parse_options()
@@ -99,6 +104,9 @@ def main():
     else:
         dirman_password = get_dirman_password()
 
+    api.bootstrap(context='cli', debug=options.debug)
+    api.finalize()
+
     conn = None
     try:
         ldapuri = 'ldap://%s' % installutils.get_fqdn()
@@ -107,61 +115,85 @@ def main():
             conn.connect(
                 bind_dn='cn=directory manager', bind_pw=dirman_password
             )
-        except errors.LDAPError, e:
+        except errors.LDAPError, lde:
             print "An error occurred while connecting to the server."
-            print e
+            print lde
             return 1
 
         if args[0] == "enable":
+            compat = get_entry(compat_dn, conn)
+            if compat is None:
+                print "The compat plugin needs to be enabled: ipa-compat-manage enable"
+                return 1
             entry = None
             try:
-                entry = get_nis_config(conn)
-            except errors.LDAPError, e:
+                entry = get_entry(nis_config_dn, conn)
+            except errors.LDAPError, lde:
                 print "An error occurred while talking to the server."
-                print e
+                print lde
                 retval = 1
 
             # Enable either the portmap or rpcbind service
             try:
                 ipautil.run(["/sbin/chkconfig", "portmap", "on"])
                 servicemsg = "portmap"
-            except ipautil.CalledProcessError, e:
-                if e.returncode == 1:
+            except ipautil.CalledProcessError, cpe:
+                if cpe.returncode == 1:
                     try:
                         ipautil.run(["/sbin/chkconfig", "rpcbind", "on"])
                         servicemsg = "rpcbind"
-                    except ipautil.CalledProcessError, e:
+                    except ipautil.CalledProcessError, cpe:
                         print "Unable to enable either portmap or rpcbind"
                         retval = 3
 
-            if entry is None:
+            # The cn=config entry for the plugin may already exist but it
+            # could be turned off, handle both cases.
+            if (entry is None or
+              entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'off'):
+                # Already configured, just enable the plugin
                 print "Enabling plugin"
-
-                if entry is None:
-                    # Load the plugin configuration
-                    ld = LDAPUpdate(dm_password=dirman_password, sub_dict={})
-                    retval = ld.update(files)
+                ld = LDAPUpdate(dm_password=dirman_password, sub_dict={})
+                if ld.update(files) != True:
+                    retval = 1
+                mod = {'nsslapd-pluginenabled': 'on'}
+                try:
+                    conn.update_entry(nis_config_dn, mod, normalize=False)
+                except errors.EmptyModlist:
+                    # plugin is already enabled, silently continue
+                    pass
             else:
-                if entry.get('nsslapd-pluginenabled', '').lower() == 'off':
-                    # Already configured, just enable the plugin
-                    print "Enabling plugin"
-                    mod = {'nsslapd-pluginenabled': 'on'}
-                    conn.update_entry(nis_config_dn, mod)
-                else:
-                    print "Plugin already Enabled"
-                    retval = 2
+                print "Plugin already Enabled"
+                retval = 2
 
         elif args[0] == "disable":
             try:
                 mod = {'nsslapd-pluginenabled': 'off'}
-                conn.update_entry(nis_config_dn, mod)
+                conn.update_entry(nis_config_dn, mod, normalize=False)
             except errors.NotFound:
                 print "Plugin is already disabled"
                 retval = 2
-            except errors.LDAPError, e:
+            except errors.EmptyModlist:
+                print "Plugin is already disabled"
+                retval = 2
+            except errors.LDAPError, lde:
                 print "An error occurred while talking to the server."
-                print e
+                print lde
                 retval = 1
+
+            # delete the netgroups compat area.
+            try:
+                conn.delete_entry('cn=ng,cn=Schema Compatibility,cn=plugins,cn=config', normalize=False)
+            except errors.NotFound:
+                pass
+            except errors.DatabaseError, dbe:
+                print "An error occurred while talking to the server."
+                print lde
+                retval = 1
+            except errors.LDAPError, lde:
+                print "An error occurred while talking to the server."
+                print lde
+                retval = 1
+
 
         else:
             retval = 1

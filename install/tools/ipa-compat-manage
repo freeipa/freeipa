@@ -22,18 +22,12 @@
 import sys
 try:
     from optparse import OptionParser
-    from ipapython import entity, ipautil, config
+    from ipapython import ipautil, config
     from ipaserver.install import installutils
-    from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax, UPDATES_DIR
+    from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax
     from ipaserver.plugins.ldap2 import ldap2
-    from ipalib import errors
+    from ipalib import api, errors
     import logging
-    import re
-    import krbV
-    import platform
-    import shlex
-    import time
-    import random
 except ImportError:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
@@ -42,6 +36,8 @@ error was:
     %s
 """ % sys.exc_value
     sys.exit(1)
+
+netgroup_compat_dn = "cn=ng,cn=Schema Compatibility,cn=plugins,cn=config"
 
 def parse_options():
     usage = "%prog [options] <enable|disable>\n"
@@ -71,7 +67,7 @@ def get_dirman_password():
 def main():
     retval = 0
     loglevel = logging.ERROR
-    files=['/usr/share/ipa/schema_compat.uldif']
+    files = ['/usr/share/ipa/schema_compat.uldif']
 
     options, args = parse_options()
     if options.debug:
@@ -94,6 +90,9 @@ def main():
     else:
         dirman_password = get_dirman_password()
 
+    api.bootstrap(context='cli', debug=options.debug)
+    api.finalize()
+
     conn = None
     try:
         ldapuri = 'ldap://%s' % installutils.get_fqdn()
@@ -102,42 +101,57 @@ def main():
             conn.connect(
                 bind_dn='cn=directory manager', bind_pw=dirman_password
             )
-        except errors.LDAPError, e:
+        except errors.LDAPError, lde:
             print "An error occurred while connecting to the server."
-            print e
+            print lde
             return 1
 
         if args[0] == "enable":
             try:
-                conn.get_entry('cn=Schema Compatibility,cn=plugins,cn=config')
+                conn.get_entry('cn=Schema Compatibility,cn=plugins,cn=config', normalize=False)
                 print "Plugin already Enabled"
                 retval = 2
             except errors.NotFound:
                 print "Enabling plugin"
-            except errors.LDAPError, e:
+            except errors.LDAPError, lde:
                 print "An error occurred while talking to the server."
-                print e
+                print lde
                 retval = 1
 
             if retval == 0:
                 ld = LDAPUpdate(dm_password=dirman_password, sub_dict={})
-                retval = ld.update(files)
-                if retval == 0:
+                rv = ld.update(files)
+                if rv:
                     print "This setting will not take effect until you restart Directory Server."
+                else:
+                    print "Updating Directory Server failed."
+                    retval = 1
 
         elif args[0] == "disable":
-            # Make a quick hack foir now, directly delete the entries by name,
+            # We can't disable schema compat if the NIS plugin is enabled
+            try:
+                conn.get_entry(netgroup_compat_dn, normalize=False)
+                print "The NIS plugin is configured, cannot disable compatibility."
+                print "Run 'ipa-nis-manage disable' first."
+                return 2
+            except errors.NotFound:
+                pass
+            # Make a quick hack for now, directly delete the entries by name,
             # In future we should add delete capabilites to LDAPUpdate
             try:
-                conn.delete_entry('cn=groups,cn=Schema Compatibility,cn=plugins,cn=config')
-                conn.delete_entry('cn=users,cn=Schema Compatibility,cn=plugins,cn=config')
-                conn.delete_entry('cn=Schema Compatibility,cn=plugins,cn=config')
+                conn.delete_entry('cn=groups,cn=Schema Compatibility,cn=plugins,cn=config', normalize=False)
+                conn.delete_entry('cn=users,cn=Schema Compatibility,cn=plugins,cn=config', normalize=False)
+                conn.delete_entry('cn=Schema Compatibility,cn=plugins,cn=config', normalize=False)
             except errors.NotFound:
                 print "Plugin is already disabled"
                 retval = 2
-            except errors.LDAPError, e:
+            except errors.DatabaseError, dbe:
                 print "An error occurred while talking to the server."
-                print e
+                print lde
+                retval = 1
+            except errors.LDAPError, lde:
+                print "An error occurred while talking to the server."
+                print lde
                 retval = 1
 
         else:
