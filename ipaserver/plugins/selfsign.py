@@ -45,10 +45,9 @@ import re
 from ipaserver.plugins import rabase
 from ipaserver.install import certs
 import tempfile
-from pyasn1 import error
 from ipalib import  _
-from pyasn1.codec.der import encoder
 from ipalib.plugins.cert import get_csr_hostname
+from nss.error import NSPRError
 
 class ra(rabase.rabase):
     """
@@ -87,23 +86,19 @@ class ra(rabase.rabase):
             config = api.Command['config_show']()['result']
             subject_base = config.get('ipacertificatesubjectbase')[0]
             hostname = get_csr_hostname(csr)
-            request = pkcs10.load_certificate_request(csr)
             base = re.split(',\s*(?=\w+=)', subject_base)
-            base.reverse()
-            base.append("CN=%s" % hostname)
-            request_subject = request.get_subject().get_components()
-            new_request = []
-            for r in request_subject:
-                new_request.append("%s=%s" % (r[0], r[1]))
+            base.insert(0,'CN=%s' % hostname)
+            subject_base = ",".join(base)
+            request = pkcs10.load_certificate_request(csr)
+            # python-nss normalizes the request subject
+            request_subject = str(pkcs10.get_subject(request))
 
-            if str(base).lower() != str(new_request).lower():
-                subject_base='CN=%s, %s' % (hostname, subject_base)
-                new_request.reverse()
+            if str(subject_base).lower() != request_subject.lower():
                 raise errors.CertificateOperationError(error=_('Request subject "%(request_subject)s" does not match the form "%(subject_base)s"') % \
-                                                              {'request_subject' : ', '.join(new_request), 'subject_base' : subject_base})
+                {'request_subject' : request_subject, 'subject_base' : subject_base})
         except errors.CertificateOperationError, e:
             raise e
-        except Exception, e:
+        except NSPRError, e:
             raise errors.CertificateOperationError(error=_('unable to decode csr: %s' % e))
 
         # certutil wants the CSR to have have a header and footer. Add one
@@ -207,11 +202,10 @@ class ra(rabase.rabase):
                 pass
 
         try:
-            # Grab the subject, reverse it, combine it and return it
             subject = x509.get_subject(cert)
 
             serial = x509.get_serial_number(cert)
-        except error.PyAsn1Error, e:
+        except NSPRError, e:
             self.log.error('Unable to decode certificate in entry: %s' % str(e))
             raise errors.CertificateOperationError(error='Unable to decode certificate in entry: %s' % str(e))
 

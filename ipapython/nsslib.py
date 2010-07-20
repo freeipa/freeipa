@@ -122,6 +122,10 @@ class NSSConnection(httplib.HTTPConnection):
             raise RuntimeError("dbdir is required")
 
         logging.debug('%s init %s', self.__class__.__name__, host)
+        if nss.nss_is_initialized():
+            # close any open NSS database and use the new one
+            ssl.clear_session_cache()
+            nss.nss_shutdown()
         nss.nss_init(dbdir)
         ssl.set_domestic_policy()
         nss.set_password_callback(self.password_callback)

@@ -69,7 +69,6 @@ from ipalib import x509
 from ipalib.plugins.virtual import *
 from ipalib.plugins.service import split_principal
 import base64
-from pyasn1.error import PyAsn1Error
 import logging
 import traceback
 from ipalib.text import _
@@ -77,37 +76,31 @@ from ipalib.request import context
 from ipalib.output import Output
 from ipalib.plugins.service import validate_principal
 import nss.nss as nss
+from nss.error import NSPRError
 
 def get_csr_hostname(csr):
     """
-    Return the value of CN in the subject of the request
+    Return the value of CN in the subject of the request or None
     """
     try:
         request = pkcs10.load_certificate_request(csr)
-        sub = request.get_subject().get_components()
-        for s in sub:
-            if s[0].lower() == "cn":
-                return s[1]
-    except PyAsn1Error:
-        # The ASN.1 decoding errors tend to be long and involved and the
-        # last bit is generally not interesting. We need the whole traceback.
-        logging.error('Unable to decode CSR\n%s', traceback.format_exc())
-        raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request'))
-
-    return None
+        subject = pkcs10.get_subject(request)
+        return subject.common_name
+    except NSPRError, nsprerr:
+        raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request:'))
 
 def get_subjectaltname(csr):
     """
-    Return the value of the subject alt name, if any
+    Return the first value of the subject alt name, if any
     """
     try:
         request = pkcs10.load_certificate_request(csr)
-    except PyAsn1Error:
-        # The ASN.1 decoding errors tend to be long and involved and the
-        # last bit is generally not interesting. We need the whole traceback.
-        logging.error('Unable to decode CSR\n%s', traceback.format_exc())
+        for extension in request.extensions:
+            if extension.oid_tag == nss.SEC_OID_X509_SUBJECT_ALT_NAME:
+                return nss.x509_alt_name(extension.value)[0]
+        return None
+    except NSPRError, nsprerr:
         raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request'))
-    return request.get_subjectaltname()
 
 def validate_csr(ugettext, csr):
     """
@@ -116,13 +109,9 @@ def validate_csr(ugettext, csr):
     """
     try:
         request = pkcs10.load_certificate_request(csr)
-
-        # Explicitly request the attributes. This fires off additional
-        # decoding to get things like the subjectAltName.
-        attrs = request.get_attributes()
     except TypeError, e:
         raise errors.Base64DecodeError(reason=str(e))
-    except PyAsn1Error:
+    except NSPRError:
         raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request'))
     except Exception, e:
         raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request: %s') % str(e))
@@ -290,7 +279,8 @@ class cert_request(VirtualCommand):
             raise errors.ACIError(info="Insufficient 'write' privilege to the 'userCertificate' attribute of entry '%s'." % dn)
 
         # Validate the subject alt name, if any
-        subjectaltname = get_subjectaltname(csr)
+        request = pkcs10.load_certificate_request(csr)
+        subjectaltname = pkcs10.get_subjectaltname(request)
         if subjectaltname is not None:
             for name in subjectaltname:
                 try:

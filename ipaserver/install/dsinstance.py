@@ -366,7 +366,7 @@ class DsInstance(service.Service):
         self._ldap_mod("ipa-winsync-conf.ldif")
 
     def __config_version_module(self):
-        self._ldap_mod("ipa-version-conf.ldif")
+        self._ldap_mod("version-conf.ldif")
 
     def __user_private_groups(self):
         if has_managed_entries(self.host_name, self.dm_password):

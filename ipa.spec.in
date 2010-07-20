@@ -176,7 +176,7 @@ Requires: python-kerberos >= 1.1-3
 Requires: authconfig
 Requires: gnupg
 Requires: pyOpenSSL
-Requires: python-nss >= 0.9
+Requires: python-nss >= 0.9-8
 Requires: python-lxml
 
 %description python
@@ -494,6 +494,9 @@ fi
 %endif
 
 %changelog
+* Mon Jul 19 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-25
+- Bump up minimum version of python-nss to pick up nss_is_initialize() API
+
 * Thu Jun 24 2010 Adam Young <ayoung@redhat.com> - 1.99-24
 - Removed python-asset based webui
 

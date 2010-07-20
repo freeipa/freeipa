@@ -26,6 +26,8 @@ import nose
 from tests.util import raises, PluginTester
 from ipalib import pkcs10
 from ipapython import ipautil
+import nss.nss as nss
+from nss.error import NSPRError
 
 class test_update(object):
     """
@@ -33,6 +35,7 @@ class test_update(object):
     """
 
     def setUp(self):
+        nss.nss_init_nodb()
         if ipautil.file_exists("test0.csr"):
             self.testdir="./"
         elif ipautil.file_exists("tests/test_pkcs10/test0.csr"):
@@ -53,15 +56,11 @@ class test_update(object):
         csr = self.read_file("test0.csr")
         request = pkcs10.load_certificate_request(csr)
 
-        attributes = request.get_attributes()
-        subject = request.get_subject()
-        components = subject.get_components()
-        compdict = dict(components)
+        subject = pkcs10.get_subject(request)
 
-        assert(attributes == ())
-        assert(compdict['CN'] == u'test.example.com')
-        assert(compdict['ST'] == u'California')
-        assert(compdict['C'] == u'US')
+        assert(subject.common_name == 'test.example.com')
+        assert(subject.state_name == 'California')
+        assert(subject.country_name == 'US')
 
     def test_1(self):
         """
@@ -70,23 +69,15 @@ class test_update(object):
         csr = self.read_file("test1.csr")
         request = pkcs10.load_certificate_request(csr)
 
-        attributes = request.get_attributes()
-        subject = request.get_subject()
-        components = subject.get_components()
-        compdict = dict(components)
-        attrdict = dict(attributes)
+        subject = pkcs10.get_subject(request)
 
-        assert(compdict['CN'] == u'test.example.com')
-        assert(compdict['ST'] == u'California')
-        assert(compdict['C'] == u'US')
+        assert(subject.common_name == 'test.example.com')
+        assert(subject.state_name == 'California')
+        assert(subject.country_name == 'US')
 
-        extensions = attrdict['1.2.840.113549.1.9.14']
-
-        for ext in range(len(extensions)):
-            if extensions[ext][0] == '2.5.29.17':
-                names = extensions[ext][2]
-                # check the dNSName field
-                assert(names[2] == [u'testlow.example.com'])
+        for extension in request.extensions:
+            if extension.oid_tag == nss.SEC_OID_X509_SUBJECT_ALT_NAME:
+                assert nss.x509_alt_name(extension.value)[0] == 'testlow.example.com'
 
     def test_2(self):
         """
@@ -95,25 +86,39 @@ class test_update(object):
         csr = self.read_file("test2.csr")
         request = pkcs10.load_certificate_request(csr)
 
-        attributes = request.get_attributes()
-        subject = request.get_subject()
-        components = subject.get_components()
-        compdict = dict(components)
-        attrdict = dict(attributes)
+        subject = pkcs10.get_subject(request)
 
-        assert(compdict['CN'] == u'test.example.com')
-        assert(compdict['ST'] == u'California')
-        assert(compdict['C'] == u'US')
+        assert(subject.common_name == 'test.example.com')
+        assert(subject.state_name == 'California')
+        assert(subject.country_name == 'US')
 
-        extensions = attrdict['1.2.840.113549.1.9.14']
+        for extension in request.extensions:
+            if extension.oid_tag == nss.SEC_OID_X509_SUBJECT_ALT_NAME:
+                assert nss.x509_alt_name(extension.value)[0] == 'testlow.example.com'
+            if extension.oid_tag == nss.SEC_OID_X509_CRL_DIST_POINTS:
+                pts = nss.CRLDistributionPts(extension.value)
+                urls = pts[0].get_general_names()
+                assert('http://ca.example.com/my.crl' in urls)
+                assert('http://other.example.com/my.crl' in urls)
 
-        for ext in range(len(extensions)):
-            if extensions[ext][0] == '2.5.29.17':
-                names = extensions[ext][2]
-                # check the dNSName field
-                assert(names[2] == [u'testlow.example.com'])
-            if extensions[ext][0] == '2.5.29.31':
-                urls = extensions[ext][2]
-                assert(len(urls) == 2)
-                assert(urls[0] == u'http://ca.example.com/my.crl')
-                assert(urls[1] == u'http://other.example.com/my.crl')
+    def test_3(self):
+        """
+        Test CSR with base64-encoded bogus data
+        """
+        csr = self.read_file("test3.csr")
+
+        try:
+            request = pkcs10.load_certificate_request(csr)
+        except NSPRError, nsprerr:
+            # (SEC_ERROR_BAD_DER) security library: improperly formatted DER-encoded message.
+            assert(nsprerr. errno== -8183)
+
+    def test_4(self):
+        """
+        Test CSR with badly formatted base64-encoded data
+        """
+        csr = self.read_file("test4.csr")
+        try:
+            request = pkcs10.load_certificate_request(csr)
+        except TypeError, typeerr:
+            assert(str(typeerr) == 'Incorrect padding')
