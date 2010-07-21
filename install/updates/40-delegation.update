@@ -85,6 +85,12 @@ add:objectClass: nestedgroup
 add:cn: enrollhost
 add:description: Host Enrollment
 
+dn: cn=entitlementadmin,cn=rolegroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: nestedgroup
+add:cn: entitlementadmin
+add:description: Entitlement Administrators
+
 # Add the taskgroups referenced by the ACIs for user administration
 
 dn: cn=taskgroups,cn=accounts,$SUFFIX
@@ -693,3 +699,34 @@ add: aci: '(targetattr=*)(targetfilter="(|(objectclass=
  nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement
  ))")(version 3.0;acl "Delete replication agreements";allow (delete)
   groupdn = "ldap:///cn=deletereplica,cn=taskgroups,cn=accounts,$SUFFIX";)'
+
+# Entitlement management
+dn: cn=addentitlements,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: nestedgroup
+add:cn: addentitlements
+add:description: Add Entitlements
+add:member:'cn=entitlementadmin,cn=rolegroups,cn=accounts,$SUFFIX'
+
+dn: cn=removeentitlements,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: nestedgroup
+add:cn: removeentitlements
+add:description: Remove Entitlements
+add:member:'cn=entitlementadmin,cn=rolegroups,cn=accounts,$SUFFIX'
+
+dn: cn=modifyentitlements,cn=taskgroups,cn=accounts,$SUFFIX
+add:objectClass: top
+add:objectClass: nestedgroup
+add:cn: modifyentitlements
+add:description: Modify Entitlements
+add:member:'cn=entitlementadmin,cn=rolegroups,cn=accounts,$SUFFIX'
+
+dn: $SUFFIX
+add: aci: '(target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,dc=greyoak,dc=com")(version 3.0;acl "Add entitlements";allow (add) groupdn = "ldap:///cn=addentitlements,cn=taskgroups,cn=accounts,dc=greyoak,dc=com";)'
+
+dn: $SUFFIX
+add: aci: '(targetattr = "userCertificate")(target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,dc=greyoak,dc=com")(version 3.0;acl "Modify entitlements";allow (write) groupdn = "ldap:///cn=modifyentitlements,cn=taskgroups,cn=accounts,dc=greyoak,dc=com";)'
+
+dn: $SUFFIX
+add: aci: '(target = "ldap:///ipauniqueid=*,cn=entitlements,cn=etc,dc=greyoak,dc=com")(version 3.0;acl "Remove entitlement entries";allow (delete) groupdn = "ldap:///cn=removeentitlements,cn=taskgroups,cn=accounts,dc=greyoak,dc=com";)'
