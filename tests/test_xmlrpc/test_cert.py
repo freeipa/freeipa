@@ -33,6 +33,7 @@ import base64
 
 # So we can save the cert from issuance and compare it later
 cert = None
+newcert = None
 
 # Test setup
 #
@@ -124,7 +125,7 @@ class test_cert(XMLRPC_test):
 
     def test_3_service_show(self):
         """
-        Verify that service-show has the right certificate.
+        Verify that service-show has the right certificate using service-show.
         """
         global cert
 
@@ -133,7 +134,7 @@ class test_cert(XMLRPC_test):
 
     def test_4_service_find(self):
         """
-        Verify that service-find has the right certificate.
+        Verify that service-find has the right certificate using service-find.
         """
         global cert
 
@@ -141,7 +142,31 @@ class test_cert(XMLRPC_test):
         res = api.Command['service_find'](self.service_princ)['result']
         assert base64.b64encode(res[0]['usercertificate'][0]) == cert
 
-    def test_5_cleanup(self):
+    def test_5_cert_renew(self):
+        """
+        Issue a new certificate for a service
+        """
+        global newcert
+
+        csr = unicode(self.generateCSR(self.subject))
+        res = api.Command['cert_request'](csr, principal=self.service_princ)['result']
+        assert res['subject'] == self.subject
+        # save the cert for the service_show/find tests
+        newcert = res['certificate']
+
+    def test_6_service_show(self):
+        """
+        Verify the new certificate with service-show.
+        """
+        global cert, newcert
+
+        res = api.Command['service_show'](self.service_princ)['result']
+        # It should no longer match our old cert
+        assert base64.b64encode(res['usercertificate'][0]) != cert
+        # And it should match the new one
+        assert base64.b64encode(res['usercertificate'][0]) == newcert
+
+    def test_7_cleanup(self):
         """
         Clean up cert test data
         """

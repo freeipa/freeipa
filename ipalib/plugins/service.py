@@ -246,17 +246,20 @@ class service_mod(LDAPUpdate):
     member_attributes = ['managedby']
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        cert = options.get('usercertificate')
-        if cert:
-            (dn, entry_attrs_old) = ldap.get_entry(dn, ['usercertificate'])
-            if 'usercertificate' in entry_attrs_old:
-                # FIXME: what to do here? do we revoke the old cert?
-                fmt = 'entry already has a certificate, serial number: %s' % (
-                    x509.get_serial_number(entry_attrs_old['usercertificate'][0], x509.DER)
-                )
-                raise errors.GenericError(format=fmt)
-            # FIXME: should be in normalizer; see service_add
-            entry_attrs['usercertificate'] = base64.b64decode(cert)
+        if 'usercertificate' in options:
+            cert = options.get('usercertificate')
+            if cert:
+                (dn, entry_attrs_old) = ldap.get_entry(dn, ['usercertificate'])
+                if 'usercertificate' in entry_attrs_old:
+                    # FIXME: what to do here? do we revoke the old cert?
+                    fmt = 'entry already has a certificate, serial number: %s' % (
+                        x509.get_serial_number(entry_attrs_old['usercertificate'][0], x509.DER)
+                    )
+                    raise errors.GenericError(format=fmt)
+                # FIXME: should be in normalizer; see service_add
+                entry_attrs['usercertificate'] = base64.b64decode(cert)
+            else:
+                entry_attrs['usercertificate'] = None
         return dn
 
 api.register(service_mod)
