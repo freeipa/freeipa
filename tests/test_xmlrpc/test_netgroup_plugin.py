@@ -46,7 +46,7 @@ class test_netgroup(XMLRPC_test):
     host_fqdn = u'ipatesthost.%s' % api.env.domain
     host_description = u'Test host'
     host_localityname = u'Undisclosed location'
-    host_kw = {'fqdn': host_fqdn, 'description': host_description, 'localityname': host_localityname, 'raw': True}
+    host_kw = {'fqdn': host_fqdn, 'description': host_description, 'localityname': host_localityname, 'raw': True, 'force': True}
 
     hg_cn = u'hg1'
     hg_description = u'Netgroup'

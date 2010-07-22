@@ -70,7 +70,7 @@ class test_ipagetkeytab(cmdline_test):
         """
         # Create the service
         try:
-            api.Command['host_add'](self.host_fqdn)
+            api.Command['host_add'](self.host_fqdn, force=True)
         except errors.DuplicateEntry:
             # it already exists, no problem
             pass
@@ -93,7 +93,7 @@ class test_ipagetkeytab(cmdline_test):
         """
         # Create the service
         try:
-            api.Command['service_add'](self.service_princ)
+            api.Command['service_add'](self.service_princ, force=True)
         except errors.DuplicateEntry:
             # it already exists, no problem
             pass

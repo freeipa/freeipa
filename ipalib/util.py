@@ -28,6 +28,7 @@ import time
 import krbV
 import socket
 from ipalib import errors
+from ipapython import dnsclient
 
 
 def get_current_principal():
@@ -113,3 +114,18 @@ def realm_to_suffix(realm_name):
     s = realm_name.split(".")
     terms = ["dc=" + x.lower() for x in s]
     return ",".join(terms)
+
+def validate_host_dns(log, fqdn):
+    """
+    See if the hostname has a DNS A record.
+    """
+    rs = dnsclient.query(fqdn + '.', dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
+    if len(rs) == 0:
+        log.debug(
+            'IPA: DNS A record lookup failed for %s' % fqdn
+        )
+        raise errors.DNSNotARecordError()
+    else:
+        log.debug(
+            'IPA: found %d records for %s' % (len(rs), fqdn)
+        )

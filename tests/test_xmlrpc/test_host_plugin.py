@@ -32,12 +32,15 @@ short1 = u'testhost1'
 dn1 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn1, api.env.basedn)
 service1 = u'dns/%s@%s' % (fqdn1, api.env.realm)
 service1dn = u'krbprincipalname=%s,cn=services,cn=accounts,%s' % (service1.lower(), api.env.basedn)
+fqdn2 = u'shouldnotexist.%s' % api.env.domain
+dn2 = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn2, api.env.basedn)
 
 
 class test_host(Declarative):
 
     cleanup_commands = [
         ('host_del', [fqdn1], {}),
+        ('host_del', [fqdn2], {}),
         ('service_del', [service1], {}),
     ]
 
@@ -70,6 +73,7 @@ class test_host(Declarative):
                 dict(
                     description=u'Test host 1',
                     l=u'Undisclosed location 1',
+                    force=True,
                 ),
             ),
             expected=dict(
@@ -94,6 +98,7 @@ class test_host(Declarative):
                 dict(
                     description=u'Test host 1',
                     localityname=u'Undisclosed location 1',
+                    force=True,
                 ),
             ),
             expected=errors.DuplicateEntry(),
@@ -267,6 +272,7 @@ class test_host(Declarative):
                 dict(
                     description=u'Test host 1',
                     l=u'Undisclosed location 1',
+                    force=True,
                 ),
             ),
             expected=dict(
@@ -286,7 +292,7 @@ class test_host(Declarative):
 
         dict(
             desc='Add a service to host %r' % fqdn1,
-            command=('service_add', [service1], {}),
+            command=('service_add', [service1], {'force': True}),
             expected=dict(
                 value=service1,
                 summary=u'Added service "%s"' % service1,
@@ -318,6 +324,38 @@ class test_host(Declarative):
                 summary=None,
                 result=[
                 ],
+            ),
+        ),
+
+
+        dict(
+            desc='Try to add host not in DNS %r without force' % fqdn2,
+            command=('host_add', [fqdn2], {}),
+            expected=errors.DNSNotARecordError(reason='Host does not have corresponding DNS A record'),
+        ),
+
+
+        dict(
+            desc='Try to add host not in DNS %r with force' % fqdn2,
+            command=('host_add', [fqdn2],
+                dict(
+                    description=u'Test host 2',
+                    l=u'Undisclosed location 2',
+                    force=True,
+                ),
+            ),
+            expected=dict(
+                value=fqdn2,
+                summary=u'Added host "%s"' % fqdn2,
+                result=dict(
+                    dn=dn2,
+                    fqdn=[fqdn2],
+                    description=[u'Test host 2'],
+                    l=[u'Undisclosed location 2'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn2, api.env.realm)],
+                    objectclass=objectclasses.host,
+                    ipauniqueid=[fuzzy_uuid],
+                ),
             ),
         ),
 

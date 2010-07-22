@@ -101,7 +101,7 @@ class test_cert(XMLRPC_test):
         This should fail because the service principal doesn't exist
         """
         # First create the host that will use this policy
-        res = api.Command['host_add'](self.host_fqdn)['result']
+        res = api.Command['host_add'](self.host_fqdn, force= True)['result']
 
         csr = unicode(self.generateCSR(self.subject))
         try:

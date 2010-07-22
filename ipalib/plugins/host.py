@@ -84,7 +84,6 @@ def validate_host(ugettext, fqdn):
         return _('Fully-qualified hostname required')
     return None
 
-
 class host(LDAPObject):
     """
     Host object.
@@ -196,8 +195,15 @@ class host_add(LDAPCreate):
     """
 
     msg_summary = _('Added host "%(value)s"')
+    takes_options = (
+        Flag('force',
+            doc=_('force host name even if not in DNS'),
+        ),
+    )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        if not options.get('force', False):
+            util.validate_host_dns(self.log, keys[-1])
         if 'locality' in entry_attrs:
             entry_attrs['l'] = entry_attrs['locality']
             del entry_attrs['locality']

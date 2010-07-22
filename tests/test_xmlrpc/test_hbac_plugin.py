@@ -149,19 +149,19 @@ class test_hbac(XMLRPC_test):
             self.test_group, description=u'description'
         )
         self.failsafe_add(api.Object.host,
-            self.test_host
+            self.test_host, force=True
         )
         self.failsafe_add(api.Object.hostgroup,
             self.test_hostgroup, description=u'description'
         )
         self.failsafe_add(api.Object.host,
-            self.test_sourcehost
+            self.test_sourcehost, force=True
         )
         self.failsafe_add(api.Object.hostgroup,
             self.test_sourcehostgroup, description=u'desc'
         )
         self.failsafe_add(api.Object.hbacsvc,
-            self.test_service, description=u'desc'
+            self.test_service, description=u'desc', force=True
         )
 
     def test_8_hbac_add_user(self):

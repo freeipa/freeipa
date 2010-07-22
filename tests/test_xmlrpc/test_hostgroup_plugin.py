@@ -99,6 +99,7 @@ class test_hostgroup(Declarative):
                 dict(
                     description=u'Test host 1',
                     l=u'Undisclosed location 1',
+                    force=True,
                 ),
             ),
             expected=dict(

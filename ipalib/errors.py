@@ -1054,6 +1054,22 @@ class DefaultGroupError(ExecutionError):
     errno = 4018
     format = _('The default users group cannot be removed')
 
+class DNSNotARecordError(ExecutionError):
+    """
+    **4019** Raised when a hostname is not a DNS A record
+
+    For example:
+
+    >>> raise DNSNotARecordError()
+    Traceback (most recent call last):
+      ...
+    DNSNotARecordError: Host does not have corresponding DNS A record
+
+    """
+
+    errno = 4019
+    format = _('Host does not have corresponding DNS A record')
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).

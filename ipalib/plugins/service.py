@@ -60,7 +60,7 @@ EXAMPLES:
 """
 import base64
 
-from ipalib import api, errors
+from ipalib import api, errors, util
 from ipalib import Str, Flag, Bytes
 from ipalib.plugins.baseldap import *
 from ipalib import x509
@@ -183,19 +183,11 @@ class service_add(LDAPCreate):
             entry_attrs['usercertificate'] = base64.b64decode(cert)
             # FIXME: shouldn't we request signing at this point?
 
-        # TODO: once DNS client is done (code below for reference only!)
-        # if not kw['force']:
-        #     fqdn = hostname + '.'
-        #     rs = dnsclient.query(fqdn, dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
-        #     if len(rs) == 0:
-        #         self.log.debug(
-        #             'IPA: DNS A record lookup failed for '%s'" % hostname
-        #         )
-        #         raise ipaerror.gen_exception(ipaerror.INPUT_NOT_DNS_A_RECORD)
-        #     else:
-        #         self.log.debug(
-        #             'IPA: found %d records for '%s'" % (len(rs), hostname)
-        #         )
+        if not options.get('force', False):
+             # We know the host exists if we've gotten this far but we
+             # really want to discourage creating services for hosts that
+             # don't exist in DNS.
+             util.validate_host_dns(self.log, hostname)
 
         return dn
 

@@ -40,8 +40,8 @@ class test_service(XMLRPC_test):
         """
         Test adding a HTTP principal using the `xmlrpc.service_add` method.
         """
-        self.failsafe_add(api.Object.host, self.host)
-        entry = self.failsafe_add(api.Object.service, self.principal)['result']
+        self.failsafe_add(api.Object.host, self.host, force=True)
+        entry = self.failsafe_add(api.Object.service, self.principal, force=True)['result']
         assert_attr_equal(entry, 'krbprincipalname', self.principal)
         assert_attr_equal(entry, 'objectclass', 'ipaobject')
 
@@ -50,11 +50,6 @@ class test_service(XMLRPC_test):
         Test adding a host principal using `xmlrpc.service_add`. Host
         services are not allowed.
         """
-        # FIXME: Are host principals not allowed still?  Running this test gives
-        # this error:
-        #
-        # NotFound: The host 'ipatest.example.com' does not exist to add a service to.
-
         kw = {'krbprincipalname': self.hostprincipal}
         try:
             api.Command['service_add'](**kw)
@@ -67,7 +62,7 @@ class test_service(XMLRPC_test):
         """
         Test adding a malformed principal ('foo').
         """
-        kw = {'krbprincipalname': u'foo'}
+        kw = {'krbprincipalname': u'foo', 'force': True}
         try:
             api.Command['service_add'](**kw)
         except errors.MalformedServicePrincipal:
@@ -79,7 +74,7 @@ class test_service(XMLRPC_test):
         """
         Test adding a malformed principal ('HTTP/foo@FOO.NET').
         """
-        kw = {'krbprincipalname': u'HTTP/foo@FOO.NET'}
+        kw = {'krbprincipalname': u'HTTP/foo@FOO.NET', 'force': True}
         try:
             api.Command['service_add'](**kw)
         except errors.RealmMismatch:
@@ -115,3 +110,5 @@ class test_service(XMLRPC_test):
             pass
         else:
             assert False
+
+        api.Command['host_del'](self.host)
