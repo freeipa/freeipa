@@ -22,10 +22,12 @@ Test the `ipalib.text` module.
 """
 
 import re
+import nose
 from tests.util import raises, assert_equal
 from ipalib.request import context
 from ipalib import request
 from ipalib import text
+from ipapython.ipautil import file_exists
 
 singular = '%(count)d goose makes a %(dish)s'
 plural = '%(count)d geese make a %(dish)s'
@@ -86,6 +88,10 @@ def test_gettext():
 
     # We need a translatable string to test with, read one from the
     # test po file
+    if not file_exists(test_file):
+        raise nose.SkipTest(
+           'Test language not available, run "make test_lang" in install/po'
+        )
     msgid = get_msgid(test_file)
 
     # Get the localized instance of the msgid, it should be a Gettext
