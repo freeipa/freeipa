@@ -24,6 +24,7 @@ Misc plugins
 import re
 from ipalib import api, LocalOrRemote, _, ngettext
 from ipalib.output import Output, summary
+from ipalib import Flag
 
 # FIXME: We should not let env return anything in_server
 # when mode == 'production'.  This would allow an attacker to see the
@@ -38,6 +39,16 @@ class env(LocalOrRemote):
 
     takes_args = (
         'variables*',
+    )
+
+    takes_options = LocalOrRemote.takes_options + (
+        Flag('all',
+            cli_name='all',
+            doc=_('retrieve all attributes'),
+            exclude='webui',
+            flags=['no_output'],
+            default=True,
+        ),
     )
 
     has_output = (
