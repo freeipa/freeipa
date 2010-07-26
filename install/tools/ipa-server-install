@@ -56,14 +56,12 @@ from ipapython import sysrestore
 from ipapython.ipautil import *
 from ipalib import api, errors, util
 
-import ipawebui
 
 pw_name = None
 uninstalling = False
 
 # Used to determine the the highest possible uid/gid
 MAXINT_32BIT = 2147483648
-ASSETS_DIR = '/var/cache/ipa/assets'
 
 def parse_options():
     namespace = random.randint(1000000, (MAXINT_32BIT - 1000000))
@@ -412,13 +410,6 @@ def uninstall(dm_password=None):
     return 0
 
 
-def render_assets():
-    """
-    Render CSS and JavaScript assets.
-    """
-    ui = ipawebui.create_wsgi_app(api)
-    ui.render_assets()
-
 def set_subject_in_config(host_name, dm_password, suffix, subject_base):
         ldapuri = 'ldap://%s' % host_name
         try:
@@ -511,7 +502,6 @@ def main():
     print "  * Create and configure an instance of Directory Server"
     print "  * Create and configure a Kerberos Key Distribution Center (KDC)"
     print "  * Configure Apache (httpd)"
-    print "  * Render web UI JavaScript and CSS assets"
     if options.setup_dns:
         print "  * Configure DNS (bind)"
     if not options.conf_ntp:
@@ -656,7 +646,6 @@ def main():
     fd.write("enable_ra=True\n")
     if not options.selfsign:
         fd.write("ra_plugin=dogtag\n")
-    fd.write('webui_assets_dir=' + ASSETS_DIR + '\n')
     fd.close()
 
     api.bootstrap(**cfg)
@@ -739,9 +728,6 @@ def main():
     # generated
     ds.add_cert_to_service()
 
-    # Render webui assets:
-    ipautil.run(["/sbin/restorecon", ASSETS_DIR])
-    render_assets()
 
     # Create a HTTP instance
 

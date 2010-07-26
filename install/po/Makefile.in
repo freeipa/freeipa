@@ -129,10 +129,6 @@ PYTHON_POTFILES = \
      ../../ipaserver/plugins/xmlserver.py \
      ../../ipaserver/plugins/dogtag.py \
      ../../contrib/RHEL4/ipachangeconf.py \
-     ../../ipawebui/engine.py \
-     ../../ipawebui/__init__.py \
-     ../../ipawebui/widgets.py \
-     ../../ipawebui/controllers.py \
      ../../ipa-client/ipaclient/ntpconf.py \
      ../../ipa-client/ipaclient/__init__.py \
      ../../ipa-client/ipaclient/ipachangeconf.py \

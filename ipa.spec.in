@@ -85,8 +85,6 @@ Requires: mod_nss
 %endif
 Requires: python-ldap
 Requires: python-krbV
-Requires: python-assets
-Requires: python-wehjit >= 0.2.2
 Requires: acl
 Requires: python-pyasn1 >= 0.0.9a
 Requires: libcap
@@ -379,7 +377,6 @@ fi
 %{_sbindir}/ipa-upgradeconfig
 %attr(755,root,root) %{_initrddir}/ipa_kpasswd
 %{python_sitelib}/ipaserver/*
-%{python_sitelib}/ipawebui/*
 %dir %{_usr}/share/ipa
 %{_usr}/share/ipa/wsgi.py*
 %{_usr}/share/ipa/*.ldif
@@ -415,7 +412,6 @@ fi
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
 %dir %{_localstatedir}/cache/ipa
 %attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/sessions
-%attr(700,apache,apache) %dir %{_localstatedir}/cache/ipa/assets
 %attr(700,root,root) %dir %{_localstatedir}/cache/ipa/kpasswd
 %{_mandir}/man1/ipa-replica-install.1.gz
 %{_mandir}/man1/ipa-replica-manage.1.gz
@@ -498,6 +494,9 @@ fi
 %endif
 
 %changelog
+* Thu Jun 24 2010 Adam Young <ayoung@redhat.com> - 1.99-24
+- Removed python-asset based webui
+
 * Thu Jun 24 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-23
 - Change Requires from fedora-ds-base to 389-ds-base
 - Set minimum level of 389-ds-base to 1.2.6 for the replication

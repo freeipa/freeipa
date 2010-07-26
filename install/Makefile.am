@@ -19,13 +19,10 @@ install-exec-local:
 	chmod 700 $(DESTDIR)$(localstatedir)/lib/ipa/sysrestore
 	mkdir -p $(DESTDIR)$(localstatedir)/cache/ipa/sessions
 	chmod 700 $(DESTDIR)$(localstatedir)/cache/ipa/sessions
-	mkdir -p $(DESTDIR)$(localstatedir)/cache/ipa/assets
-	chmod 700 $(DESTDIR)$(localstatedir)/cache/ipa/assets
 
 uninstall-local:
 	-rmdir $(DESTDIR)$(localstatedir)/lib/ipa/sysrestore
 	-rmdir $(DESTDIR)$(localstatedir)/lib/ipa
-	-rmdir $(DESTDIR)$(localstatedir)/cache/ipa/assets
 	-rmdir $(DESTDIR)$(localstatedir)/cache/ipa/sessions
 	-rmdir $(DESTDIR)$(localstatedir)/cache/ipa
 

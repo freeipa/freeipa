@@ -2,7 +2,7 @@
 
 # Hackish script to generate documentation using epydoc
 
-sources="ipalib ipaserver ipawebui tests"
+sources="ipalib ipaserver tests"
 out="./freeipa2-dev-doc"
 
 init="./ipalib/__init__.py"

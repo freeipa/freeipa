@@ -36,9 +36,7 @@ import optparse
 from paste import httpserver
 import paste.gzipper
 from paste.urlmap import URLMap
-from assetslib.wsgi import AssetsApp
 from ipalib import api
-import ipawebui
 
 
 class KRBCheater(object):
@@ -82,13 +80,9 @@ if __name__ == '__main__':
     )
     api.finalize()
 
-    ui = ipawebui.create_wsgi_app(api)
-    ui.render_assets()
-
     urlmap = URLMap()
     apps = [
         ('IPA', KRBCheater(api.Backend.session)),
-        ('Assets', AssetsApp(ui.assets)),
     ]
     for (name, app) in apps:
         urlmap[app.url] = app
