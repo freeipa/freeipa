@@ -130,6 +130,7 @@ DEFAULT_CONFIG = (
     # Special CLI:
     ('prompt_all', False),
     ('interactive', True),
+    ('fallback', True),
 
     # Enable certain optional plugins:
     ('enable_ra', False),

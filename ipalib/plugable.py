@@ -455,6 +455,10 @@ class API(DictProxy):
                 dest='interactive',
                 help='Prompt for NO values (even if required)'
             )
+            parser.add_option('-f', '--no-fallback', action='store_false',
+                dest='fallback',
+                help='Only use the server configured in /etc/ipa/default.conf'
+            )
         topics = optparse.OptionGroup(parser, "Available help topics",
                     "ipa help topics")
         cmds = optparse.OptionGroup(parser, "Available commands",
@@ -479,7 +483,8 @@ class API(DictProxy):
                     # --Jason, 2008-10-31
                     pass
                 overrides[str(key.strip())] = value.strip()
-        for key in ('conf', 'debug', 'verbose', 'prompt_all', 'interactive'):
+        for key in ('conf', 'debug', 'verbose', 'prompt_all', 'interactive',
+            'fallback'):
             value = getattr(options, key, None)
             if value is not None:
                 overrides[key] = value

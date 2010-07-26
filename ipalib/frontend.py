@@ -930,6 +930,21 @@ class LocalOrRemote(Command):
         return self.execute(*args, **options)
 
 
+class Local(Command):
+    """
+    A command that is explicitly executed locally.
+
+    This is for commands that makes sense to execute only locally
+    such as the help command.
+    """
+
+    def run(self, *args, **options):
+        """
+        Dispatch to forward() onlly.
+        """
+        return self.forward(*args, **options)
+
+
 class Object(HasParam):
     backend = None
     methods = None

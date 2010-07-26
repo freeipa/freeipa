@@ -52,6 +52,9 @@ Don't prompt for any parameters of \fBCOMMAND\fR, even if they are required.
 \fB\-a\fR, \fB\-\-prompt\-all\fR
 Prompt for ALL values (even if optional)
 .TP
+\fB\-f\fR, \fB\-\-no\-fallback\fR
+Don't fall back to other IPA servers if the default doesn't work.
+.TP
 \fB\-v\fR, \fB\-\-verbose\fR
 Produce verbose output. A second \-v displays the XML\-RPC request
 .SH "COMMANDS"
@@ -157,6 +160,16 @@ Only the user with the specified IPA unique ID would match the search criteria.
 .TP
 \fBipa user\-find\fR
 All users would match the search criteria (as there are none).
+.SH "SERVERS"
+The ipa client will determine which server to connect to in this order:
+
+.TP
+1. The server configured in \fB/etc/ipa/default.conf\fR in the \fIxmlrpc_uri\fR directive.
+.TP
+2. An unordered list of servers from the ldap DNS SRV records.
+
+.TP
+If a kerberos error is raised by any of the requests then it will stop processing and display the error message.
 .SH "FILES"
 .TP
 \fB/etc/ipa/default.conf\fR

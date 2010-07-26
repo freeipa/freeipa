@@ -42,7 +42,7 @@ fuzzy_uuid = Fuzzy(
 
 try:
     if not api.Backend.xmlclient.isconnected():
-        api.Backend.xmlclient.connect()
+        api.Backend.xmlclient.connect(fallback=False)
     res = api.Command['user_show'](u'notfound')
 except errors.NetworkError:
     server_available = False
@@ -103,7 +103,7 @@ class XMLRPC_test(object):
                 'Server not available: %r' % api.env.xmlrpc_uri
             )
         if not api.Backend.xmlclient.isconnected():
-            api.Backend.xmlclient.connect()
+            api.Backend.xmlclient.connect(fallback=False)
 
     def tearDown(self):
         """

@@ -109,7 +109,8 @@ class Executioner(Backend):
         if self.env.in_server:
             self.Backend.ldap2.connect(ccache=ccache)
         else:
-            self.Backend.xmlclient.connect(verbose=(self.env.verbose >= 2))
+            self.Backend.xmlclient.connect(verbose=(self.env.verbose >= 2),
+                fallback=self.env.fallback)
         if client_ip is not None:
             setattr(context, "client_ip", client_ip)
 

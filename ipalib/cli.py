@@ -572,7 +572,7 @@ class textui(backend.Backend):
         self.print_line('')
         return selection
 
-class help(frontend.Command):
+class help(frontend.Local):
     """
     Display help for a command or topic.
     """
@@ -778,12 +778,13 @@ class cli(backend.Executioner):
         if len(argv) == 0:
             self.Command.help()
             return
-        self.create_context()
         (key, argv) = (argv[0], argv[1:])
         name = from_cli(key)
         if name not in self.Command or self.Command[name].INTERNAL:
             raise CommandError(name=key)
         cmd = self.Command[name]
+        if not isinstance(cmd, frontend.Local):
+            self.create_context()
         kw = self.parse(cmd, argv)
         if self.env.interactive:
             self.prompt_interactively(cmd, kw)

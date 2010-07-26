@@ -161,6 +161,20 @@ class NSSConnection(httplib.HTTPConnection):
         logging.debug("connect: %s", net_addr)
         self.sock.connect(net_addr)
 
+    def endheaders(self):
+        """
+        Explicitly close the connection if an error is returned after the
+        headers are sent. This will likely mean the initial SSL handshake
+        failed. If this isn't done then the connection is never closed and
+        subsequent NSS activities will fail with a BUSY error.
+        """
+        try:
+            # FIXME: httplib uses old-style classes so super doesn't work
+            httplib.HTTPConnection.endheaders(self)
+        except NSPRError, e:
+            self.close()
+            raise e
+
 class NSSHTTPS(httplib.HTTP):
     # We would like to use HTTP 1.1 not the older HTTP 1.0 but xmlrpclib
     # and httplib do not play well together. httplib when the protocol

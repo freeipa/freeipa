@@ -37,13 +37,14 @@ import errno
 from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy, Transport, ProtocolError
 import kerberos
 from ipalib.backend import Connectible
-from ipalib.errors import public_errors, PublicError, UnknownError, NetworkError
+from ipalib.errors import public_errors, PublicError, UnknownError, NetworkError, KerberosError
 from ipalib import errors
 from ipalib.request import context
-from ipapython import ipautil
+from ipapython import ipautil, dnsclient
 import httplib
 from ipapython.nsslib import NSSHTTPS
 from nss.error import NSPRError
+from urllib2 import urlparse
 
 # Some Kerberos error definitions from krb5.h
 KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN = (-1765328377L)
@@ -255,12 +256,70 @@ class xmlclient(Connectible):
         super(xmlclient, self).__init__()
         self.__errors = dict((e.errno, e) for e in public_errors)
 
-    def create_connection(self, ccache=None, verbose=False):
-        kw = dict(allow_none=True, encoding='UTF-8')
-        if self.env.xmlrpc_uri.startswith('https://'):
-            kw['transport'] = KerbTransport()
-        kw['verbose'] = verbose
-        return ServerProxy(self.env.xmlrpc_uri, **kw)
+    def reconstruct_url(self):
+        """
+        The URL directly isn't stored in the ServerProxy. We can't store
+        it in the connection object itself but we can reconstruct it
+        from the ServerProxy.
+        """
+        if not hasattr(self.conn, '_ServerProxy__transport'):
+            return None
+        if isinstance(self.conn._ServerProxy__transport, KerbTransport):
+            scheme = "https"
+        else:
+            scheme = "http"
+        server = '%s://%s%s' % (scheme, self.conn._ServerProxy__host, self.conn._ServerProxy__handler)
+        return server
+
+    def get_url_list(self):
+        """
+        Create a list of urls consisting of the available IPA servers.
+        """
+        # the configured URL defines what we use for the discovered servers
+        (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(self.env.xmlrpc_uri)
+        servers = []
+        name = '_ldap._tcp.%s.' % self.env.domain
+        rs = dnsclient.query(name, dnsclient.DNS_C_IN, dnsclient.DNS_T_SRV)
+        for r in rs:
+            if r.dns_type == dnsclient.DNS_T_SRV:
+                rsrv = r.rdata.server.rstrip('.')
+                servers.append('https://%s%s' % (rsrv, path))
+        servers = list(set(servers))
+        # the list/set conversion won't preserve order so stick in the
+        # local config file version here.
+        servers.insert(0, self.env.xmlrpc_uri)
+        return servers
+
+    def create_connection(self, ccache=None, verbose=False, fallback=True):
+        servers = self.get_url_list()
+        serverproxy = None
+        for server in servers:
+            kw = dict(allow_none=True, encoding='UTF-8')
+            kw['verbose'] = verbose
+            if server.startswith('https://'):
+                kw['transport'] = KerbTransport()
+            self.log.info('trying %s' % server)
+            serverproxy = ServerProxy(server, **kw)
+            if len(servers) == 1 or not fallback:
+                # if we have only 1 server to try then let the main
+                # requester handle any errors
+                return serverproxy
+            try:
+                command = getattr(serverproxy, 'ping')
+                response = command()
+                # We don't care about the response, just that we got one
+                break
+            except KerberosError, krberr:
+                # kerberos error on one server is likely on all
+                raise errors.KerberosError(major=str(krberr), minor='')
+            except Exception, e:
+                if not fallback:
+                    raise e
+                serverproxy = None
+
+        if serverproxy is None:
+            raise NetworkError(uri='any of the configured servers', error=', '.join(servers))
+        return serverproxy
 
     def destroy_connection(self):
         pass
@@ -280,7 +339,8 @@ class xmlclient(Connectible):
             raise ValueError(
                 '%s.forward(): %r not in api.Command' % (self.name, name)
             )
-        self.info('Forwarding %r to server %r', name, self.env.xmlrpc_uri)
+        server = self.reconstruct_url()
+        self.info('Forwarding %r to server %r', name, server)
         command = getattr(self.conn, name)
         params = [args, kw]
         try:
@@ -289,16 +349,16 @@ class xmlclient(Connectible):
         except Fault, e:
             e = decode_fault(e)
             self.debug('Caught fault %d from server %s: %s', e.faultCode,
-                self.env.xmlrpc_uri, e.faultString)
+                server, e.faultString)
             if e.faultCode in self.__errors:
                 error = self.__errors[e.faultCode]
                 raise error(message=e.faultString)
             raise UnknownError(
                 code=e.faultCode,
                 error=e.faultString,
-                server=self.env.xmlrpc_uri,
+                server=server,
             )
         except NSPRError, e:
-            raise NetworkError(uri=self.env.xmlrpc_uri, error=str(e))
+            raise NetworkError(uri=server, error=str(e))
         except ProtocolError, e:
-            raise NetworkError(uri=self.env.xmlrpc_uri, error=e.errmsg)
+            raise NetworkError(uri=server, error=e.errmsg)

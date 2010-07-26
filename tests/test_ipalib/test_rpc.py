@@ -234,7 +234,7 @@ class test_xmlclient(PluginTester):
 
         # Test with an errno the client knows:
         e = raises(errors.RequirementError, o.forward, 'user_add', *args, **kw)
-        assert_equal(e.message, u"'four' is required")
+        assert_equal(e.args[0], u"'four' is required")
 
         # Test with an errno the client doesn't know
         e = raises(errors.UnknownError, o.forward, 'user_add', *args, **kw)
