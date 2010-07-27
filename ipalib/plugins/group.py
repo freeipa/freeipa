@@ -89,6 +89,9 @@ class group(LDAPObject):
 
     takes_params = (
         Str('cn',
+            pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,30}[a-zA-Z0-9_.$-]?$',
+            pattern_errmsg='may only include letters, numbers, _, -, . and $',
+            maxlength=33,
             cli_name='name',
             label=_('Group name'),
             primary_key=True,

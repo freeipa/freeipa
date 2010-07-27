@@ -28,6 +28,9 @@ from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 group1 = u'testgroup1'
 group2 = u'testgroup2'
 
+invalidgroup1=u'+tgroup1'
+invalidgroup2=u'tgroup1234567890123456789012345678901234567890'
+
 
 class test_group(Declarative):
     cleanup_commands = [
@@ -510,5 +513,19 @@ class test_group(Declarative):
             command=('group_mod', [group2], dict(description=u'Foo')),
             expected=errors.NotFound(reason='no such entry'),
         ),
+
+        dict(
+            desc='Test an invalid group name %r' % invalidgroup1,
+            command=('group_add', [invalidgroup1], dict(description=u'Test')),
+            expected=errors.ValidationError(name='cn', error='may only include letters, numbers, _, -, . and $'),
+        ),
+
+
+        dict(
+            desc='Test a group name that is too long %r' % invalidgroup2,
+            command=('group_add', [invalidgroup2], dict(description=u'Test')),
+            expected=errors.ValidationError(name='cn', error='can be at most 33 characters'),
+        ),
+
 
     ]

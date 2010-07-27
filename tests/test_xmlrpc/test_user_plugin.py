@@ -31,6 +31,9 @@ from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 user_memberof = (u'cn=ipausers,cn=groups,cn=accounts,%s' % api.env.basedn,)
 user1=u'tuser1'
 
+invaliduser1=u'+tuser1'
+invaliduser2=u'tuser1234567890123456789012345678901234567890'
+
 
 class test_user(Declarative):
 
@@ -78,6 +81,7 @@ class test_user(Declarative):
                     objectclass=objectclasses.user,
                     sn=[u'User1'],
                     uid=[user1],
+                    uidnumber=[fuzzy_digits],
                     ipauniqueid=[fuzzy_uuid],
                     dn=u'uid=tuser1,cn=users,cn=accounts,' + api.env.basedn,
                 ),
@@ -183,6 +187,8 @@ class test_user(Declarative):
                         sn=[u'Administrator'],
                         uid=[u'admin'],
                         memberof_group=[u'admins'],
+                        memberof_rolegroup=[u'replicaadmin'],
+                        memberof_taskgroup=[u'managereplica', u'deletereplica'],
                     ),
                     dict(
                         dn=u'uid=tuser1,cn=users,cn=accounts,' + api.env.basedn,
@@ -298,5 +304,18 @@ class test_user(Declarative):
             expected=errors.NotFound(reason='no such entry'),
         ),
 
+
+        dict(
+            desc='Test an invalid login name %r' % invaliduser1,
+            command=('user_add', [invaliduser1], dict(givenname=u'Test', sn=u'User1')),
+            expected=errors.ValidationError(name='uid', error='may only include letters, numbers, _, -, . and $'),
+        ),
+
+
+        dict(
+            desc='Test a login name that is too long %r' % invaliduser2,
+            command=('user_add', [invaliduser2], dict(givenname=u'Test', sn=u'User1')),
+            expected=errors.ValidationError(name='uid', error='can be at most 33 characters'),
+        ),
 
     ]

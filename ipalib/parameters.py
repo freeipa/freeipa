@@ -1082,6 +1082,7 @@ class Data(Param):
         ('maxlength', int, None),
         ('length', int, None),
         ('pattern', (basestring,), None),
+        ('pattern_errmsg', (basestring,), None),
     )
 
     def __init__(self, name, *rules, **kw):
@@ -1123,9 +1124,12 @@ class Data(Param):
         """
         assert type(value) is self.type
         if self.re.match(value) is None:
-            return _('must match pattern "%(pattern)s"') % dict(
-                pattern=self.pattern,
-            )
+            if self.re_errmsg:
+                return self.re_errmsg % dict(pattern=self.pattern,)
+            else:
+                return _('must match pattern "%(pattern)s"') % dict(
+                    pattern=self.pattern,
+                )
 
 
 class Bytes(Data):
@@ -1148,6 +1152,7 @@ class Bytes(Data):
             self.re = None
         else:
             self.re = re.compile(kw['pattern'])
+        self.re_errmsg = kw.get('pattern_errmsg', None)
         super(Bytes, self).__init__(name, *rules, **kw)
 
     def _rule_minlength(self, _, value):
@@ -1201,6 +1206,7 @@ class Str(Data):
             self.re = None
         else:
             self.re = re.compile(kw['pattern'], re.UNICODE)
+        self.re_errmsg = kw.get('pattern_errmsg', None)
         super(Str, self).__init__(name, *rules, **kw)
 
     def _convert_scalar(self, value, index=None):
