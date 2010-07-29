@@ -45,6 +45,13 @@ dnl ---------------------------------------------------------------------------
 SAVE_CPPFLAGS=$CPPFLAGS
 CPPFLAGS="-I/usr/include/nspr4"
 AC_CHECK_HEADER(dirsrv/slapi-plugin.h)
+if test "x$ac_cv_header_dirsrv_slapi-plugin_h" = "xno" ; then
+	AC_MSG_ERROR([Required 389-ds header not available (389-ds-base-devel)])
+fi
+AC_CHECK_HEADER(dirsrv/repl-session-plugin.h)
+if test "x$ac_cv_header_dirsrv_repl_session_plugin_h" = "xno" ; then
+	AC_MSG_ERROR([Required 389-ds header not available (389-ds-base-devel)])
+fi
 CPPFLAGS=$SAVE_CPPFLAGS
 
 if test "x$ac_cv_header_dirsrv_slapi_plugin_h" = "xno" ; then
