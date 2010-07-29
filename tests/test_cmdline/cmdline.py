@@ -28,6 +28,7 @@ from ipalib import api, request
 from ipalib import errors
 from tests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from ipaserver.plugins.ldap2 import ldap2
+from ipapython import ipautil
 
 # See if our LDAP server is up and we can talk to it over GSSAPI
 ccache = krbV.default_context().default_ccache().name
@@ -46,8 +47,16 @@ class cmdline_test(XMLRPC_test):
     """
     Base class for all command-line tests
     """
+    # some reasonable default command
+    command = '/bin/ls'
 
     def setUp(self):
+        # raise an error if the command is missing even if the remote
+        # server is not available.
+        if not ipautil.file_exists(self.command):
+            raise AssertionError(
+                'Command %r not available' % self.command
+            )
         super(cmdline_test, self).setUp()
         if not server_available:
             raise nose.SkipTest(

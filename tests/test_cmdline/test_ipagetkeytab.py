@@ -58,6 +58,7 @@ class test_ipagetkeytab(cmdline_test):
     """
     Test `ipa-getkeytab`.
     """
+    command = "ipa-client/ipa-getkeytab"
     host_fqdn = u'ipatest.%s' % api.env.domain
     service_princ = u'test/%s@%s' % (host_fqdn, api.env.realm)
     subject = 'CN=%s,O=IPA' % host_fqdn
@@ -79,7 +80,7 @@ class test_ipagetkeytab(cmdline_test):
         """
         Create a keytab with `ipa-getkeytab` for a non-existent service.
         """
-        new_args = ["ipa-client/ipa-getkeytab",
+        new_args = [self.command,
                     "-s", api.env.host,
                     "-p", "test/notfound.example.com",
                     "-k", self.keytabname,
@@ -99,7 +100,7 @@ class test_ipagetkeytab(cmdline_test):
             pass
 
         os.unlink(self.keytabname)
-        new_args = ["ipa-client/ipa-getkeytab",
+        new_args = [self.command,
                     "-s", api.env.host,
                     "-p", self.service_princ,
                     "-k", self.keytabname,
