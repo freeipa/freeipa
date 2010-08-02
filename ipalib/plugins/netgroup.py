@@ -186,7 +186,7 @@ class netgroup_add_member(LDAPAddMember):
     """
     Add members to netgroup.
     """
-    has_output_params = output_params
+    has_output_params = LDAPAddMember.has_output_params + output_params
     member_attributes = ['memberuser', 'memberhost']
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         completed_external = 0
@@ -222,7 +222,7 @@ class netgroup_remove_member(LDAPRemoveMember):
     """
     Remove members from netgroup.
     """
-    has_output_params = output_params
+    has_output_params = LDAPRemoveMember.has_output_params + output_params
     member_attributes = ['memberuser', 'memberhost']
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         # Run through the host failures and gracefully remove any defined as

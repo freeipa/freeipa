@@ -115,18 +115,6 @@ class group(LDAPObject):
             label=_('Member users'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('member?',
-            label=_('Failed members'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('user?',
-            label=_('Users'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('group?',
-            label=_('Groups'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
     )
 
 api.register(group)

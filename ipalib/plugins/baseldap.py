@@ -569,7 +569,8 @@ class LDAPModMember(LDAPQuery):
                 ldap_obj = self.api.Object[ldap_obj_name]
                 name = to_cli(ldap_obj_name)
                 doc = self.member_param_doc % ldap_obj.object_name_plural
-                yield List('%s?' % name, cli_name='%ss' % name, doc=doc)
+                yield List('%s?' % name, cli_name='%ss' % name, doc=doc,
+                           label=ldap_obj.object_name_plural)
 
     def get_member_dns(self, **options):
         dns = {}
@@ -607,6 +608,12 @@ class LDAPAddMember(LDAPModMember):
         output.Output('completed',
             type=int,
             doc=_('Number of members added'),
+        ),
+    )
+
+    has_output_params = (
+        Str('member',
+            label=_('Failed members'),
         ),
     )
 
@@ -699,13 +706,19 @@ class LDAPRemoveMember(LDAPModMember):
 
     has_output = (
         output.Entry('result'),
+        output.Output('failed',
+            type=dict,
+            doc=_('Members that could not be removed'),
+        ),
         output.Output('completed',
             type=int,
             doc=_('Number of members removed'),
         ),
-        output.Output('failed',
-            type=dict,
-            doc=_('Members that could not be removed'),
+    )
+
+    has_output_params = (
+        Str('member',
+            label=_('Failed members'),
         ),
     )
 
