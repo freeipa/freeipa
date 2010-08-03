@@ -9,6 +9,7 @@ SUBDIRS =			\
         html			\
         migration		\
         share			\
+        static			\
         tools			\
         updates			\
         po			\
