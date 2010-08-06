@@ -1,0 +1,56 @@
+{
+    "error": null, 
+    "id": 0, 
+    "result": {
+        "count": 2, 
+        "result": [
+            {
+                "cn": [
+                    "net-stage"
+                ], 
+                "description": [
+                    "staging servers"
+                ], 
+                "dn": "ipauniqueid=f6ee9f40-9456-11df-973b-00163e26b89e,cn=ng,cn=alt,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com", 
+                "memberhost": [], 
+                "memberof": [], 
+                "memberuser": [
+                    "cn=muppets,cn=groups,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com"
+                ], 
+                "memberuser_group": [
+                    "muppets"
+                ], 
+                "nisdomainname": [
+                    "idm.lab.bos.redhat.com"
+                ]
+            }, 
+            {
+                "cn": [
+                    "net-live"
+                ], 
+                "description": [
+                    "live servers"
+                ], 
+                "dn": "ipauniqueid=f763e426-9456-11df-934d-00163e26b89e,cn=ng,cn=alt,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com", 
+                "memberhost": [
+                    "cn=host-live,cn=hostgroups,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com"
+                ], 
+                "memberhost_hostgroup": [
+                    "host-live"
+                ], 
+                "memberof": [], 
+                "memberuser": [
+                    "cn=muppets,cn=groups,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com"
+                ], 
+                "memberuser_group": [
+                    "muppets"
+                ], 
+                "nisdomainname": [
+                    "idm.lab.bos.redhat.com"
+                ]
+            }
+        ], 
+        "summary": null, 
+        "truncated": false
+    }
+}

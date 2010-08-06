@@ -1,0 +1,69 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>IPA: Identity Policy Audit</title>
+    <link href="ipa.css"  rel="stylesheet" type="text/css" />
+
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="jquery.cookie.js"></script>
+    <script type="text/javascript" src="ipa.js" />
+    <script type="text/javascript" src="pageparams.js" />
+
+    <script type="text/javascript" src="navigation.js" />
+    <script type="text/javascript" src="sampledata/develop.js" />
+    <script type="text/javascript" src="search.js" />
+    <script type="text/javascript" src="details.js" />
+    <script type="text/javascript" src="user.js" />
+    <script type="text/javascript" src="usermeta.js" />
+    <script type="text/javascript" src="group.js" />
+    <script type="text/javascript" src="groupmeta.js" />
+    <script type="text/javascript" src="host.js" />
+    <script type="text/javascript" src="hostgroup.js" />
+    <script type="text/javascript" src="netgroup.js" />
+
+    <script type="text/javascript">
+
+      $(document).ready(function(){
+      buildNavigation();
+      });
+
+    </script>
+  </head>
+  <body>
+    <div class="header" >
+      <span class="logo">
+	<a href="#"><img src="ipalogo.png" /></a>
+      </span>
+      <span class="LoggedInAs" id="loggedinas">
+	  Logged in as <strong>hardcoded@FREEIP.ORG</strong>
+      </span>
+    </div>
+
+    <div id="navigation">
+      <div id="main-nav" />
+      <div id="sub-nav">Edit: </div>
+    </div>
+
+    <div id="content" border="1"  style="visibility:hidden" >
+    </div>
+
+    <div id="search"  style="visibility:hidden">
+      <div class="searchControls" >
+	<span class="filter"  >
+	  <input id="queryFilter" type="text"/>
+	  <input id="query" type="submit" value="find" />
+	  <input id="new" type="submit" value="new" />
+	</span>
+	<span class="filter" id="searchButtons" />
+      </div>
+      <table id="searchResultsTable"  class="SearchResults" >
+	<thead></thead>
+	<tfoot></tfoot>
+
+	<tbody></tbody>
+      </table>
+    </div>
+
+  </body>
+</html>

@@ -1,0 +1,271 @@
+/* Authors:
+ *   Pavel Zuna <pzuna@redhat.com>
+ *   Adam Young <ayoung@redhat.com>
+ *
+ * Copyright (C) 2010 Red Hat
+*/
+
+body {
+    font-family: sans-serif;
+    font-size: 14pt;
+}
+
+a {
+    text-decoration: none;
+    border: 0;
+}
+a img { border-width: 0; }
+a:link, a:visited {
+    text-decoration: none;
+    border: 0;
+}
+
+/*  ----  Header  ----  */
+div.header {
+    background-image: url(header_background.png);
+    background: -moz-linear-gradient(top, #65646e, #1f1f1f);
+    background-color: #1f1f1f;
+    height: 70px;
+}
+div.header span.LoggedInAs {
+    color: #fff;
+    padding-right: 10px;
+    line-height: 35px;
+    float: right;
+}
+div.header div.logo {
+    float: left;
+    padding: 10px 10px 0 10px;
+}
+div.header div.logo img {
+    border: 0;
+}
+
+
+div#view {
+    bottom: 0;
+    left: 0;
+    overflow: auto;
+    position: fixed;
+    right: 0;
+    top: 0;
+}
+
+div#header {
+    background: -moz-linear-gradient(top, #65646e, #1f1f1f);
+    background-color: #1f1f1f;
+    height: 70px;
+}
+
+div#header div#logo img {
+    border: 0;
+}
+
+div#header div#loggedinas {
+    color: #fff;
+    font-size: 12pt;
+    font-weight: bold;
+    line-height: 35px;
+    padding-right: 10px;
+    text-align: right;
+}
+
+div#header div#loggedinas a {
+    color: #fff;
+    text-decoration: underline;
+}
+
+h1 {
+    font-size: 26pt;
+    font-weight: bold;
+    margin-bottom: 30px;
+    margin-left: 15px;
+    margin-top: 18px;
+}
+
+div#content {
+    float: left;
+}
+
+
+div#content ul#viewtype {
+    padding-left: 20px;
+}
+
+div#content ul#viewtype li {
+    color: #656565;
+    display: inline;
+    font-weight: bold;
+    list-style-type: none;
+    padding-right: 20px;
+}
+
+div#content ul#viewtype li#viewcaption {
+    color: #000;
+    padding-right: 10px;
+}
+
+div#content ul#viewtype li img {
+    vertical-align: middle;
+}
+
+div#content ul#viewtype li a {
+    font-weight: normal;
+}
+
+
+div#content div#buttons img {
+    border: 0;
+}
+
+h2 {
+    font-size: 18pt;
+    font-weight: bold;
+    margin-left: 15px;
+    margin-top: 0;
+    margin-bottom: 0px;
+    text-align: left;
+}
+
+hr {
+    background-color: #b2b2b2;
+    clear: both;
+    color: #b2b2b2;
+    height: 1px;
+    margin-left: 15px;
+    margin-right: 15px;
+    margin-top: 10px;
+}
+
+dl.entryattrs {
+    clear: both;
+    margin-left: 15px;
+    margin-top: 18px;
+    white-space: nowrap;
+}
+
+dl.entryattrs dt {
+    clear: left;
+    float: left;
+    padding-bottom: 18px;
+    padding-right: 18px;
+    text-align: right;
+    width: 160px;
+}
+
+dl.entryattrs dd {
+    float: left;
+    padding-bottom: 18px;
+}
+
+dl.entryattrs dd.first {
+    margin-left: 0px;
+}
+
+dl.entryattrs dd.other {
+    clear: both;
+    margin-left: 178px;
+}
+
+dl.entryattrs input {
+    margin-right: 5px;
+}
+
+div#backtotop {
+    margin-left: 20px;
+    margin-right: 20px;
+    text-align: right;
+}
+
+
+/*Navigation */
+
+span.sub-nav-off > a:link, span.sub-nav-off >  a:visited{
+    color:white;
+}
+
+span.main-nav-off > a:link, span.main-nav-off >  a:visited{
+    color:white;
+}
+
+#main-nav{
+    background-image: url(Mainnav-background.png);
+    font-size: 100%;
+}
+
+span.main-nav-on{
+    background-image: url(Mainnav-ontab.png);
+}
+
+span.main-nav-off{
+    background-image: url(Mainnav-offtab.png);
+}
+
+
+span.main-separator{
+    background: #333339;
+	padding:1px;
+}
+
+#sub-nav{
+    background-image: url(Subnav-background.png);
+    padding:5px;
+    color: white;
+    font-size: 80%;
+}
+
+span.sub-nav-on{
+    background-image: url(Subnav-onbutton.png);
+    margin: 10px;
+}
+
+span.sub-nav-off{
+    background-image: url(Subnav-offbutton.png);
+    margin: 10px;
+}
+
+
+
+
+/* Search  */
+
+#search{
+    float: left;
+    width: 80%;
+    margin: 10px;
+    padding: 10px;
+    background: #e8e8e8;
+}
+
+div.searchControls{
+    background:#a5a5a5;
+}
+
+
+
+#searchResultsTable{
+    padding: 0px;
+    width:100%;
+    border-width: thin;
+    border-style: solid;
+    border-color: black;
+}
+
+#searchResultsTable > a:link,a:visted{
+    color:black;
+}
+
+
+#searchResultsTable th{
+    background-color:gray;
+    color:white;
+}
+
+#searchResultsTable tr:nth-child(even){
+    background-color:#CCC;
+}
+#searchResultsTable tr:nth-child(odd){
+    background-color:#FFF;
+}
+
+

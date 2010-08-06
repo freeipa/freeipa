@@ -1,0 +1,71 @@
+{
+    "error": null, 
+    "id": 0, 
+    "result": {
+        "result": {
+            "cn": [
+                "Kermit Frog"
+            ], 
+            "dn": "uid=kfrog,cn=users,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com", 
+            "gecos": [
+                "kfrog"
+            ], 
+            "gidnumber": [
+                "1079249051"
+            ], 
+            "givenname": [
+                "Kermit"
+            ], 
+            "homedirectory": [
+                "/home/kfrog"
+            ], 
+            "ipauniqueid": [
+                "41bcf085-8baa-11df-8155-00163e26b89e"
+            ], 
+            "krbprincipalname": [
+                "kfrog@IDM.LAB.BOS.REDHAT.COM"
+            ], 
+            "loginshell": [
+                "/bin/sh"
+            ], 
+            "mail": [
+                "kfrog@redhat.com"
+            ], 
+	    "memberof": [
+                   "cn=ipausers,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                   "cn=muppets,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+               ], 
+               "memberof_group": [
+                   "ipausers", 
+                   "muppets"
+               ], 
+            "mepmanagedentry": [
+                "cn=kfrog,cn=groups,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com"
+            ], 
+            "objectclass": [
+                "top", 
+                "person", 
+                "organizationalperson", 
+                "inetorgperson", 
+                "inetuser", 
+                "posixaccount", 
+                "krbprincipalaux", 
+                "krbticketpolicyaux", 
+                "radiusprofile", 
+                "ipaobject", 
+                "mepOriginEntry"
+            ], 
+            "sn": [
+                "Frog"
+            ], 
+            "uid": [
+                "kfrog"
+            ], 
+            "uidnumber": [
+                "1079249051"
+            ]
+        }, 
+        "summary": null, 
+        "value": "kfrog"
+    }
+}
