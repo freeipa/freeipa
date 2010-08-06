@@ -69,14 +69,19 @@ static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *s
 	sasl_interact_t *in = NULL;
 	int ret = LDAP_OTHER;
 	krb5_principal princ = (krb5_principal)priv_data;
+	krb5_context krbctx;
+	char *outname = NULL;
 
 	if (!ld) return LDAP_PARAM_ERROR;
+
+	krb5_init_context(&krbctx);
 
 	for (in = sit; in && in->id != SASL_CB_LIST_END; in++) {
 		switch(in->id) {
 		case SASL_CB_USER:
-			in->result = princ->data[0].data;
-			in->len = princ->data[0].length;
+			krb5_unparse_name(krbctx, princ, &outname);
+			in->result = outname;
+			in->len = strlen(outname);
 			ret = LDAP_SUCCESS;
 			break;
 		case SASL_CB_GETREALM:
@@ -90,7 +95,8 @@ static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *s
 			ret = LDAP_OTHER;
 		}
 	}
-        return ret;
+	krb5_free_context(krbctx);
+	return ret;
 }
 
 static void free_keys_contents(krb5_context krbctx, struct keys_container *keys)
@@ -809,19 +815,19 @@ int main(int argc, char *argv[])
 	}
 
 	if (NULL == bindpw) {
-	krberr = krb5_cc_default(krbctx, &ccache);
-	if (krberr) {
-		fprintf(stderr, "Kerberos Credential Cache not found\n"
-				"Do you have a Kerberos Ticket?\n");
-		exit(5);
-	}
+		krberr = krb5_cc_default(krbctx, &ccache);
+		if (krberr) {
+			fprintf(stderr, "Kerberos Credential Cache not found\n"
+					"Do you have a Kerberos Ticket?\n");
+			exit(5);
+		}
 
-	krberr = krb5_cc_get_principal(krbctx, ccache, &uprinc);
-	if (krberr) {
-		fprintf(stderr, "Kerberos User Principal not found\n"
-				"Do you have a valid Credential Cache?\n");
-		exit(6);
-	}
+		krberr = krb5_cc_get_principal(krbctx, ccache, &uprinc);
+		if (krberr) {
+			fprintf(stderr, "Kerberos User Principal not found\n"
+					"Do you have a valid Credential Cache?\n");
+			exit(6);
+		}
 	}
 
 	krberr = krb5_kt_resolve(krbctx, ktname, &kt);

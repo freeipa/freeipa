@@ -21,94 +21,288 @@
 Test the `ipalib/plugins/service.py` module.
 """
 
-import sys
-from xmlrpc_test import XMLRPC_test, assert_attr_equal
-from ipalib import api
-from ipalib import errors
+from ipalib import api, errors
+from tests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
+from tests.test_xmlrpc import objectclasses
 
 
-class test_service(XMLRPC_test):
-    """
-    Test the `service` plugin.
-    """
-    host = u'ipatest.%s' % api.env.domain
-    principal = u'HTTP/ipatest.%s@%s' % (api.env.domain, api.env.realm)
-    hostprincipal = u'host/ipatest.%s@%s' % (api.env.domain, api.env.realm)
-    kw = {'krbprincipalname': principal}
+fqdn1 = u'testhost1.%s' % api.env.domain
+fqdn2 = u'testhost2.%s' % api.env.domain
+service1 = u'HTTP/%s@%s' % (fqdn1, api.env.realm)
+hostprincipal1 = u'host/%s@%s'  % (fqdn1, api.env.realm)
+service1dn = u'krbprincipalname=%s,cn=services,cn=accounts,%s' % (service1.lower(), api.env.basedn)
+host1dn = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn1, api.env.basedn)
+host2dn = u'fqdn=%s,cn=computers,cn=accounts,%s' % (fqdn2, api.env.basedn)
 
-    def test_1_service_add(self):
-        """
-        Test adding a HTTP principal using the `xmlrpc.service_add` method.
-        """
-        self.failsafe_add(api.Object.host, self.host, force=True)
-        entry = self.failsafe_add(api.Object.service, self.principal, force=True)['result']
-        assert_attr_equal(entry, 'krbprincipalname', self.principal)
-        assert_attr_equal(entry, 'objectclass', 'ipaobject')
 
-    def test_2_service_add(self):
-        """
-        Test adding a host principal using `xmlrpc.service_add`. Host
-        services are not allowed.
-        """
-        kw = {'krbprincipalname': self.hostprincipal}
-        try:
-            api.Command['service_add'](**kw)
-        except errors.HostService:
-            pass
-        else:
-            assert False
+class test_host(Declarative):
 
-    def test_3_service_add(self):
-        """
-        Test adding a malformed principal ('foo').
-        """
-        kw = {'krbprincipalname': u'foo', 'force': True}
-        try:
-            api.Command['service_add'](**kw)
-        except errors.MalformedServicePrincipal:
-            pass
-        else:
-            assert False
+    cleanup_commands = [
+        ('host_del', [fqdn1], {}),
+        ('host_del', [fqdn2], {}),
+        ('service_del', [service1], {}),
+    ]
 
-    def test_4_service_add(self):
-        """
-        Test adding a malformed principal ('HTTP/foo@FOO.NET').
-        """
-        kw = {'krbprincipalname': u'HTTP/foo@FOO.NET', 'force': True}
-        try:
-            api.Command['service_add'](**kw)
-        except errors.RealmMismatch:
-            pass
-        else:
-            assert False
+    tests = [
+        dict(
+            desc='Try to retrieve non-existent %r' % service1,
+            command=('service_show', [service1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
 
-    def test_5_service_show(self):
-        """
-        Test the `xmlrpc.service_show` method.
-        """
-        entry = api.Command['service_show'](self.principal)['result']
-        assert_attr_equal(entry, 'krbprincipalname', self.principal)
-        assert(entry['has_keytab'] == False)
 
-    def test_6_service_find(self):
-        """
-        Test the `xmlrpc.service_find` method.
-        """
-        entries = api.Command['service_find'](self.principal)['result']
-        assert_attr_equal(entries[0], 'krbprincipalname', self.principal)
+        dict(
+            desc='Try to update non-existent %r' % service1,
+            command=('service_mod', [service1], dict(usercertificate='Nope')),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
 
-    def test_7_service_del(self):
-        """
-        Test the `xmlrpc.service_del` method.
-        """
-        assert api.Command['service_del'](self.principal)['result'] is True
 
-        # Verify that it is gone
-        try:
-            api.Command['service_show'](self.principal)
-        except errors.NotFound:
-            pass
-        else:
-            assert False
+        dict(
+            desc='Try to delete non-existent %r' % service1,
+            command=('service_del', [service1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
 
-        api.Command['host_del'](self.host)
+
+        dict(
+            desc='Create %r' % fqdn1,
+            command=('host_add', [fqdn1],
+                dict(
+                    description=u'Test host 1',
+                    l=u'Undisclosed location 1',
+                    force=True,
+                ),
+            ),
+            expected=dict(
+                value=fqdn1,
+                summary=u'Added host "%s"' % fqdn1,
+                result=dict(
+                    dn=host1dn,
+                    fqdn=[fqdn1],
+                    description=[u'Test host 1'],
+                    l=[u'Undisclosed location 1'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    objectclass=objectclasses.host,
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Create %r' % fqdn2,
+            command=('host_add', [fqdn2],
+                dict(
+                    description=u'Test host 2',
+                    l=u'Undisclosed location 2',
+                    force=True,
+                ),
+            ),
+            expected=dict(
+                value=fqdn2,
+                summary=u'Added host "%s"' % fqdn2,
+                result=dict(
+                    dn=host2dn,
+                    fqdn=[fqdn2],
+                    description=[u'Test host 2'],
+                    l=[u'Undisclosed location 2'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn2, api.env.realm)],
+                    objectclass=objectclasses.host,
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Create %r' % service1,
+            command=('service_add', [service1],
+                dict(
+                    force=True,
+                ),
+            ),
+            expected=dict(
+                value=service1,
+                summary=u'Added service "%s"' % service1,
+                result=dict(
+                    dn=service1dn,
+                    krbprincipalname=[service1],
+                    objectclass=objectclasses.service,
+                    ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Try to create duplicate %r' % service1,
+            command=('service_add', [service1],
+                dict(
+                    force=True,
+                ),
+            ),
+            expected=errors.DuplicateEntry(),
+        ),
+
+
+        dict(
+            desc='Retrieve %r' % service1,
+            command=('service_show', [service1], {}),
+            expected=dict(
+                value=service1,
+                summary=None,
+                result=dict(
+                    dn=service1dn,
+                    krbprincipalname=[service1],
+                    has_keytab=False,
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Retrieve %r with all=True' % service1,
+            command=('service_show', [service1], dict(all=True)),
+            expected=dict(
+                value=service1,
+                summary=None,
+                result=dict(
+                    dn=service1dn,
+                    krbprincipalname=[service1],
+                    objectclass=objectclasses.service,
+                    ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[fqdn1],
+                    has_keytab=False
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r' % service1,
+            command=('service_find', [service1], {}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 service matched',
+                result=[
+                    dict(
+                        dn=service1dn,
+                        krbprincipalname=[service1],
+                        managedby_host=[fqdn1],
+                        has_keytab=False,
+                    ),
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r with all=True' % service1,
+            command=('service_find', [service1], dict(all=True)),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 service matched',
+                result=[
+                    dict(
+                        dn=service1dn,
+                        krbprincipalname=[service1],
+                        objectclass=objectclasses.service,
+                        ipauniqueid=[fuzzy_uuid],
+                        has_keytab=False,
+                        managedby_host=[fqdn1],
+                    ),
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Update %r' % service1,
+            command=('service_mod', [service1], dict(usercertificate='aGVsbG8=')),
+            expected=dict(
+                value=service1,
+                summary=u'Modified service "%s"' % service1,
+                result=dict(
+                    usercertificate=['hello'],
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Retrieve %r to verify update' % service1,
+            command=('service_show', [service1], {}),
+            expected=dict(
+                value=service1,
+                summary=None,
+                result=dict(
+                    dn=service1dn,
+                    usercertificate=['hello'],
+                    krbprincipalname=[service1],
+                    has_keytab=False,
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Delete %r' % service1,
+            command=('service_del', [service1], {}),
+            expected=dict(
+                value=service1,
+                summary=u'Deleted service "%s"' % service1,
+                result=True,
+            ),
+        ),
+
+
+        dict(
+            desc='Try to retrieve non-existent %r' % service1,
+            command=('service_show', [service1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Try to update non-existent %r' % service1,
+            command=('service_mod', [service1], dict(usercertificate='Nope')),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Try to delete non-existent %r' % service1,
+            command=('service_del', [service1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Create service with malformed principal "foo"',
+            command=('service_add', [u'foo'], {}),
+            expected=errors.MalformedServicePrincipal(reason='missing service')
+        ),
+
+
+        dict(
+            desc='Create service with bad realm "HTTP/foo@FOO.NET"',
+            command=('service_add', [u'HTTP/foo@FOO.NET'], {}),
+            expected=errors.RealmMismatch(),
+        ),
+
+
+        dict(
+            desc='Create a host service %r' % hostprincipal1,
+            command=('service_add', [hostprincipal1], {}),
+            expected=errors.HostService()
+        ),
+
+    ]

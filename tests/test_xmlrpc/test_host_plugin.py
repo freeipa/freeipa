@@ -300,6 +300,7 @@ class test_host(Declarative):
                     dn=service1dn,
                     krbprincipalname=[service1],
                     objectclass=objectclasses.service,
+                    managedby_host=[fqdn1],
                     ipauniqueid=[fuzzy_uuid],
                 ),
             ),
@@ -321,7 +322,7 @@ class test_host(Declarative):
             expected=dict(
                 count=0,
                 truncated=False,
-                summary=None,
+                summary=u'0 services matched',
                 result=[
                 ],
             ),

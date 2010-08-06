@@ -65,7 +65,17 @@ from ipalib import Str, Flag, Bytes
 from ipalib.plugins.baseldap import *
 from ipalib import x509
 from ipalib import _, ngettext
+from nss.error import NSPRError
 
+
+output_params = (
+    Flag('has_keytab',
+        label=_('Keytab'),
+    ),
+    Str('managedby_host',
+        label='Managed by',
+    ),
+)
 
 def split_principal(principal):
     service = hostname = realm = None
@@ -155,6 +165,7 @@ class service_add(LDAPCreate):
     """
     msg_summary = _('Added service "%(value)s"')
     member_attributes = ['managedby']
+    has_output_params = LDAPCreate.has_output_params + output_params
     takes_options = (
         Flag('force',
             doc=_('force principal name even if not in DNS'),
@@ -171,7 +182,7 @@ class service_add(LDAPCreate):
             raise errors.HostService()
 
         try:
-            api.Command['host_show'](hostname)
+            hostresult = api.Command['host_show'](hostname)['result']
         except errors.NotFound:
             raise errors.NotFound(reason="The host '%s' does not exist to add a service to." % hostname)
 
@@ -188,6 +199,8 @@ class service_add(LDAPCreate):
              # really want to discourage creating services for hosts that
              # don't exist in DNS.
              util.validate_host_dns(self.log, hostname)
+        if not 'managedby' in entry_attrs:
+             entry_attrs['managedby'] = hostresult['dn']
 
         return dn
 
@@ -206,18 +219,26 @@ class service_del(LDAPDelete):
             cert = entry_attrs.get('usercertificate')
             if cert:
                 cert = cert[0]
-                serial = unicode(x509.get_serial_number(cert, x509.DER))
                 try:
-                    result = api.Command['cert_show'](unicode(serial))['result']
-                    if 'revocation_reason' not in result:
-                        try:
-                            api.Command['cert_revoke'](unicode(serial), revocation_reason=4)
-                        except errors.NotImplementedError:
-                            # some CA's might not implement revoke
-                            pass
-                except errors.NotImplementedError:
-                    # some CA's might not implement revoke
-                    pass
+                    serial = unicode(x509.get_serial_number(cert, x509.DER))
+                    try:
+                        result = api.Command['cert_show'](unicode(serial))['result']
+                        if 'revocation_reason' not in result:
+                            try:
+                                api.Command['cert_revoke'](unicode(serial), revocation_reason=4)
+                            except errors.NotImplementedError:
+                                # some CA's might not implement revoke
+                                pass
+                    except errors.NotImplementedError:
+                        # some CA's might not implement revoke
+                        pass
+                except NSPRError, nsprerr:
+                    if nsprerr.errno == -8183:
+                        # If we can't decode the cert them proceed with
+                        # removing the service.
+                        self.log.info("Problem decoding certificate %s" % nsprerr.args[1])
+                    else:
+                        raise nsprerr
         return dn
 
 api.register(service_del)
@@ -227,6 +248,7 @@ class service_mod(LDAPUpdate):
     """
     Modify service.
     """
+    msg_summary = _('Modified service "%(value)s"')
     takes_options = LDAPUpdate.takes_options + (
         Bytes('usercertificate?', validate_certificate,
             cli_name='certificate',
@@ -234,6 +256,7 @@ class service_mod(LDAPUpdate):
             doc=_('Base-64 encoded server certificate'),
         ),
     )
+    has_output_params = LDAPUpdate.has_output_params + output_params
 
     member_attributes = ['managedby']
 
@@ -261,6 +284,9 @@ class service_find(LDAPSearch):
     """
     Search for services.
     """
+    msg_summary = ngettext(
+        '%(count)d service matched', '%(count)d services matched'
+    )
     member_attributes = ['managedby']
     takes_options = LDAPSearch.takes_options + (
         Bytes('usercertificate?', validate_certificate,
@@ -269,6 +295,7 @@ class service_find(LDAPSearch):
             doc=_('Base-64 encoded server certificate'),
         ),
     )
+    has_output_params = LDAPSearch.has_output_params + output_params
     def pre_callback(self, ldap, filter, attrs_list, base_dn, *args, **options):
         # lisp style!
         custom_filter = '(&(objectclass=ipaService)' \
@@ -281,6 +308,16 @@ class service_find(LDAPSearch):
         return ldap.combine_filters(
             (custom_filter, filter), rules=ldap.MATCH_ALL
         )
+
+    def post_callback(self, ldap, entries, truncated, *args, **options):
+        for entry in entries:
+            entry_attrs = entry[1]
+            if 'krblastpwdchange' in entry_attrs:
+                entry_attrs['has_keytab'] = True
+                if not options.get('all', False):
+                    del entry_attrs['krblastpwdchange']
+            else:
+                entry_attrs['has_keytab'] = False
 
 api.register(service_find)
 
@@ -297,11 +334,7 @@ class service_show(LDAPRetrieve):
             doc=_('Base-64 encoded server certificate'),
         ),
     )
-    has_output_params = (
-        Flag('has_keytab',
-            label=_('Keytab'),
-        )
-    )
+    has_output_params = LDAPRetrieve.has_output_params + output_params
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if 'krblastpwdchange' in entry_attrs:
@@ -320,6 +353,7 @@ class service_add_host(LDAPAddMember):
     Add hosts that can manage this service.
     """
     member_attributes = ['managedby']
+    has_output_params = LDAPAddMember.has_output_params + output_params
 
 api.register(service_add_host)
 
@@ -329,6 +363,7 @@ class service_remove_host(LDAPRemoveMember):
     Remove hosts that can manage this service.
     """
     member_attributes = ['managedby']
+    has_output_params = LDAPRemoveMember.has_output_params + output_params
 
 api.register(service_remove_host)
 
@@ -339,6 +374,7 @@ class service_disable(LDAPQuery):
     """
     has_output = output.standard_value
     msg_summary = _('Removed kerberos key from "%(value)s"')
+    has_output_params = LDAPQuery.has_output_params + output_params
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
