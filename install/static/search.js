@@ -15,6 +15,9 @@ function showSearch(){
     $('#content').css("visibility","hidden");
     $('#search').css("display","block");
     $('#content').css("display","none");
+    $("#filter").css("display","block");
+    $("#searchButtons").html("");
+    
 
 }
 

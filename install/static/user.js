@@ -66,7 +66,7 @@ function renderUserLinks(current, cell){
     }).appendTo(cell);
 
     $("<a/>",{
-	href: "#tab=user&facet=details&pkey="+current.uid,
+	href: "#?tab=user&facet=group&pkey="+current.uid,
 	click:setupUserGroupMembership,
 	html: "[G]"
     }).appendTo(cell);
@@ -243,16 +243,14 @@ function populateUserEnrollments(userData){
 
 function setupUserGroupMembership(){
 
-    $("#searchButtons").html("");
-
+    showSearch();    
+    $("#filter").css("display","none");
     $("<input/>",{
 	type:  'button',
 	value: 'enroll',
 	click: setupUserGroupEnrollmentSearch
     }).appendTo("#searchButtons");
 
-
-    showSearch();
     var columnHeaders  = document.createElement("tr");
     for (var i =0 ; i != groupMembershipColumns.length ;i++){
 	var th = document.createElement("th");
