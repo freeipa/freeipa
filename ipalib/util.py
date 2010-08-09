@@ -31,6 +31,12 @@ from ipalib import errors
 from ipapython import dnsclient
 
 
+def json_serialize(obj):
+    if not callable(getattr(obj, '__json__', None)):
+        # raise TypeError('%r is not JSON serializable')
+        return ''
+    return obj.__json__()
+
 def get_current_principal():
     try:
         return unicode(krbV.default_context().default_ccache().principal().name)

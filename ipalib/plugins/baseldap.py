@@ -21,6 +21,7 @@ Base classes for LDAP plugins.
 """
 
 import re
+import json
 
 from ipalib import crud, errors, uuid
 from ipalib import Method, Object
@@ -29,6 +30,7 @@ from ipalib.base import NameSpace
 from ipalib.cli import to_cli, from_cli
 from ipalib import output
 from ipalib.text import _
+from ipalib.util import json_serialize
 
 
 def validate_add_attribute(ugettext, attr):
@@ -120,6 +122,21 @@ class LDAPObject(Object):
                 'pkey': keys[-1], 'oname': self.object_name,
             }
         )
+
+    # list of attributes we want exported to JSON
+    json_friendly_attributes = (
+        'parent_object', 'container_dn', 'object_name', 'object_name_plural',
+        'object_class', 'object_class_config', 'default_attributes', 'label',
+        'hidden_attributes', 'uuid_attribute', 'attribute_members', 'name',
+        'takes_params',
+    )
+    def __json__(self):
+        json_dict = dict(
+            (a, getattr(self, a)) for a in self.json_friendly_attributes
+        )
+        json_dict['primary_key'] = self.primary_key.name
+        json_dict['methods'] = [m for m in self.methods]
+        return json_dict
 
 
 # Options used by create and update.
