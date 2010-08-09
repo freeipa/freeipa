@@ -25,7 +25,7 @@ import json
 
 from ipalib import crud, errors, uuid
 from ipalib import Method, Object
-from ipalib import Flag, List, Str
+from ipalib import Flag, Int, List, Str
 from ipalib.base import NameSpace
 from ipalib.cli import to_cli, from_cli
 from ipalib import output
@@ -824,6 +824,25 @@ class LDAPSearch(CallbackInterface, crud.Search):
     """
     Retrieve all LDAP entries matching the given criteria.
     """
+    takes_options = (
+        Int('timelimit',
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds (default 1)'),
+            flags=['no_dispaly'],
+            minvalue=0,
+            default=1,
+            autofill=True,
+        ),
+        Int('sizelimit',
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned (default 3000)'),
+            flags=['no_dispaly'],
+            minvalue=0,
+            default=3000,
+            autofill=True,
+        ),
+    )
+
     def get_args(self):
         for key in self.obj.get_ancestor_primary_keys():
             yield key
@@ -887,7 +906,9 @@ class LDAPSearch(CallbackInterface, crud.Search):
 
         try:
             (entries, truncated) = ldap.find_entries(
-                filter, attrs_list, base_dn, scope=ldap.SCOPE_ONELEVEL
+                filter, attrs_list, base_dn, scope=ldap.SCOPE_ONELEVEL,
+                time_limit=options.get('timelimit', 1),
+                size_limit=options.get('sizelimit', 3000)
             )
         except errors.ExecutionError, e:
             try:
