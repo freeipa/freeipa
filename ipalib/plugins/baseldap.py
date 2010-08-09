@@ -117,9 +117,12 @@ class LDAPObject(Object):
             del entry_attrs[attr]
 
     def handle_not_found(self, *keys):
+        pkey = ''
+        if self.primary_key:
+            pkey = keys[-1]
         raise errors.NotFound(
             reason=self.object_not_found_msg % {
-                'pkey': keys[-1], 'oname': self.object_name,
+                'pkey': pkey, 'oname': self.object_name,
             }
         )
 
