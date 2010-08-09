@@ -27,6 +27,7 @@ from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 
 group1 = u'testgroup1'
 group2 = u'testgroup2'
+user1 = u'tuser1'
 
 invalidgroup1=u'+tgroup1'
 invalidgroup2=u'tgroup1234567890123456789012345678901234567890'
@@ -36,6 +37,7 @@ class test_group(Declarative):
     cleanup_commands = [
         ('group_del', [group1], {}),
         ('group_del', [group2], {}),
+        ('user_del', [user1], {}),
     ]
 
     tests = [
@@ -527,5 +529,81 @@ class test_group(Declarative):
             expected=errors.ValidationError(name='cn', error='can be at most 33 characters'),
         ),
 
+        ##### managed entry tests
+        dict(
+            desc='Create %r' % user1,
+            command=(
+                'user_add', [], dict(givenname=u'Test', sn=u'User1')
+            ),
+            expected=dict(
+                value=user1,
+                summary=u'Added user "%s"' % user1,
+                result=dict(
+                    gecos=[user1],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/%s' % user1],
+                    krbprincipalname=[u'%s@%s' % (user1, api.env.realm)],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    ipauniqueid=[fuzzy_uuid],
+                    dn=u'uid=%s,cn=users,cn=accounts,%s' % (user1, api.env.basedn),
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Verify the managed group %r was created' % user1,
+            command=('group_show', [user1], {}),
+            expected=dict(
+                value=user1,
+                summary=None,
+                result=dict(
+                    cn=[user1],
+                    description=[u'User private group for %s' % user1],
+                    gidnumber=[fuzzy_digits],
+                    dn=u'cn=%s,cn=groups,cn=accounts,%s' % (user1,  api.env.basedn),
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Try to delete a managed group %r' % user1,
+            command=('group_del', [user1], {}),
+            expected=errors.ManagedGroupError(),
+        ),
+
+
+        dict(
+            desc='Detach managed group %r' % user1,
+            command=('group_detach', [user1], {}),
+            expected=dict(
+                result=True,
+                value=user1,
+                summary=u'Detached group "%s" from user "%s"' % (user1, user1),
+            ),
+        ),
+
+
+        dict(
+            desc='Now delete the unmanaged group %r' % user1,
+            command=('group_del', [user1], {}),
+            expected=dict(
+                result=True,
+                value=user1,
+                summary=u'Deleted group "%s"' % user1,
+            )
+        ),
+
+
+        dict(
+            desc='Verify that %r is really gone' % user1,
+            command=('group_show', [user1], {}),
+            expected=errors.NotFound(reason='no such entry'),
+        ),
 
     ]

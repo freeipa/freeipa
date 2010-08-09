@@ -158,6 +158,9 @@ class group_del(LDAPDelete):
         def_primary_group_dn = group_dn = self.obj.get_dn(def_primary_group)
         if dn == def_primary_group_dn:
             raise errors.DefaultGroup()
+        (group_dn, group_attrs) = ldap.get_entry(dn)
+        if 'mepmanagedby' in group_attrs:
+            raise errors.ManagedGroupError()
         return dn
 
     def post_callback(self, ldap, dn, *keys, **options):
@@ -235,3 +238,59 @@ class group_remove_member(LDAPRemoveMember):
     """
 
 api.register(group_remove_member)
+
+
+class group_detach(LDAPRemoveMember):
+    """
+    Detach a managed group from a user
+    """
+    has_output = output.standard_value
+    msg_summary = _('Detached group "%(value)s" from user "%(value)s"')
+
+    def execute(self, *keys, **options):
+        """
+        This requires updating both the user and the group. We first need to
+        verify that both the user and group can be updated, then we go
+        about our work. We don't want a situation where only the user or
+        group can be modified and we're left in a bad state.
+        """
+        ldap = self.obj.backend
+
+        group_dn = self.obj.get_dn(*keys, **options)
+        user_dn = self.api.Object['user'].get_dn(*keys)
+
+        if (not ldap.can_write(user_dn, "objectclass") or
+            not ldap.can_write(user_dn, "mepManagedEntry")):
+            raise errors.ACIError(info=_('not allowed to modify user entries'))
+
+        if (not ldap.can_write(group_dn, "objectclass") or
+            not ldap.can_write(group_dn, "mepManagedBy")):
+            raise errors.ACIError(info=_('not allowed to modify group entries'))
+
+        (user_dn, user_attrs) = ldap.get_entry(user_dn)
+        objectclasses = user_attrs['objectclass']
+        try:
+            i = objectclasses.index('mepOriginEntry')
+        except ValueError:
+            raise NotFound(reason=_('Not a managed group'))
+        del objectclasses[i]
+        update_attrs = {'objectclass': objectclasses, 'mepManagedEntry': None}
+        ldap.update_entry(user_dn, update_attrs)
+
+        (group_dn, group_attrs) = ldap.get_entry(group_dn)
+        objectclasses = group_attrs['objectclass']
+        try:
+            i = objectclasses.index('mepManagedEntry')
+        except ValueError:
+            # this should never happen
+            raise NotFound(reason=_('Not a managed group'))
+        del objectclasses[i]
+        update_attrs = {'objectclass': objectclasses, 'mepManagedBy': None}
+        ldap.update_entry(group_dn, update_attrs)
+
+        return dict(
+            result=True,
+            value=keys[0],
+        )
+
+api.register(group_detach)

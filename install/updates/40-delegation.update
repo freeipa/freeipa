@@ -154,10 +154,10 @@ add:aci: '(targetattr = "givenName || sn || cn || displayName || title || initia
  || loginShell || gecos || homePhone || mobile || pager || facsimileTelephoneN
  umber || telephoneNumber || street || roomNumber || l || st || postalCode || 
  manager || secretary || description || carLicense || labeledURI || inetUserHT
- TPURL || seeAlso || employeeType || businessCategory || ou")(target = "ldap:/
- //uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "Modify User
- s";allow (write) groupdn = "ldap:///cn=modifyusers,cn=taskgroups,cn=accounts,
- $SUFFIX";)'
+ TPURL || seeAlso || employeeType || businessCategory || ou || mepManagedEntry
+ || objectclass")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")
+ (version 3.0;acl "Modify Users";allow (write) groupdn =
+ "ldap:///cn=modifyusers,cn=taskgroups,cn=accounts,$SUFFIX";)'
 
 # Add the taskgroups referenced by the ACIs for group administration
 
@@ -204,10 +204,10 @@ add:aci: '(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version
  askgroups,cn=accounts,$SUFFIX";)'
 # we need objectclass and gidnumber in modify so a non-posix group can be
 # promoted
-add:aci: '(targetattr = "cn || description || gidnumber || objectclass")(target
-  = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "Modify Group
- s";allow (write) groupdn = "ldap:///cn=modifygroups,cn=taskgroups,cn=accounts,
- $SUFFIX";)'
+add:aci: '(targetattr = "cn || description || gidnumber || objectclass ||
+  mepManagedBy")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")
+ (version 3.0;acl "Modify Groups";allow (write) groupdn =
+ "ldap:///cn=modifygroups,cn=taskgroups,cn=accounts,$SUFFIX";)'
 
 # Add the taskgroups referenced by the ACIs for host administration
 

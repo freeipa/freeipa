@@ -1070,6 +1070,21 @@ class DNSNotARecordError(ExecutionError):
     errno = 4019
     format = _('Host does not have corresponding DNS A record')
 
+class ManagedGroupError(ExecutionError):
+    """
+    **4020** Raised when a managed group is deleted
+
+    For example:
+
+    >>> raise ManagedGroupError()
+    Traceback (most recent call last):
+      ...
+    ManagedGroupError: Deleting a managed group is not allowed. It must be detached first.
+    """
+
+    errno = 4020
+    format = _('Deleting a managed group is not allowed. It must be detached first.')
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).
