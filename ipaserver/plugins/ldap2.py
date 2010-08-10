@@ -839,7 +839,7 @@ class ldap2(CrudBackend, Encoder):
         try:
             self.conn.modify_s(dn, mod)
         except _ldap.LDAPError, e:
-            self._handle_errors(e, **{})
+            _handle_errors(e, **{})
 
     # CrudBackend methods
 
