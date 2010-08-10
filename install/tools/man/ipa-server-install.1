@@ -22,7 +22,7 @@ ipa\-server\-install \- Configure an IPA server
 .SH "SYNOPSIS"
 ipa\-server\-install [\fIOPTION\fR]...
 .SH "DESCRIPTION"
-Configures the services needed by an IPA server. This includes setting up a Kerberos Key Distribution Center (KDC) with an LDAP back\-end, configuring Apache, configuring NTP and starting some IPA\-provided services: ipa_kpasswd and ipa_webgui.
+Configures the services needed by an IPA server. This includes setting up a Kerberos Key Distribution Center (KDC) with an LDAP back\-end, configuring Apache, configuring NTP and starting some IPA\-provided services: ipa_kpasswd and ipa_webgui. By default a dogtag-based CA will be configured to issue server certificates.
 .SH "OPTIONS"
 .TP
 \fB\-u\fR, \fB\-\-user\fR=\fIDS_USER\fR
@@ -46,8 +46,8 @@ The password for the IPA admin user
 \fB\-d\fR, \fB\-\-debug\fR
 Enable debug logging when more verbose output is needed
 .TP
-\fB\-\-ca\fR
-Configure a CA instance for issuing server certificates
+\fB\-\-selfsign\fR
+Configure a self-signed CA instance for issuing server certificates instead of using dogtag for certificates
 .TP
 \fB\-\-hostname\fR=\fIHOST_NAME\fR
 The fully\-qualified DNS name of this server
