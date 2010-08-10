@@ -29,11 +29,14 @@ from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 aci1=u'test1'
 taskgroup = u'testtaskgroup'
 
+aci2=u'selftest1'
+
 
 class test_aci(Declarative):
 
     cleanup_commands = [
         ('aci_del', [aci1], {}),
+        ('aci_del', [aci2], {}),
     ]
 
     tests = [
@@ -216,6 +219,40 @@ class test_aci(Declarative):
             desc='Try to update non-existent %r' % aci1,
             command=('aci_mod', [aci1], dict(givenname=u'Foo')),
             expected=errors.NotFound(reason='no such entry'),
+        ),
+
+
+        dict(
+            desc='Create %r' % aci2,
+            command=(
+                'aci_add', [aci2], dict(permissions=u'write', attrs=(u'givenName',u'sn',u'cn'), selfaci=True)
+            ),
+            expected=dict(
+                value=aci2,
+                summary=u'Created ACI "%s"' % aci2,
+                result=u'(targetattr = "givenName || sn || cn")(version 3.0;acl "selftest1";allow (write) userdn = "ldap:///self";)'),
+        ),
+
+
+        dict(
+            desc='Update attributes in %r' % aci2,
+            command=(
+                'aci_mod', [aci2], dict(attrs=(u'givenName',u'sn',u'cn',u'uidNumber'))
+            ),
+            expected=dict(
+                value=aci2,
+                summary=u'Modified ACI "%s"' % aci2,
+                result=u'(targetattr = "givenName || sn || cn || uidNumber")(version 3.0;acl "selftest1";allow (write) userdn = "ldap:///self";)'
+            ),
+        ),
+
+
+        dict(
+            desc='Update self ACI with a taskgroup %r' % aci2,
+            command=(
+                'aci_mod', [aci2], dict(attrs=(u'givenName',u'sn',u'cn',u'uidNumber'), taskgroup=taskgroup)
+            ),
+            expected=errors.ValidationError(name='target', error='group, taskgroup and self are mutually exclusive'),
         ),
 
 

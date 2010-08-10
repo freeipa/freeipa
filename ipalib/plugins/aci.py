@@ -56,6 +56,10 @@ EXAMPLES:
 
 The show command will show the raw DS ACI.
 
+IMPORTANT: When modifying the target attributes of an existing ACI you
+must include all existing attributes as well. When doing an aci-mod the
+targetattr REPLACES the current attributes, it does not add to them.
+
 """
 
 from ipalib import api, crud, errors
@@ -98,7 +102,10 @@ aci_output = (
 
 
 def _make_aci(current, aciname, kw):
-    # Do some quick and dirty validation
+    """
+    Given a name and a set of keywords construct an ACI.
+    """
+    # Do some quick and dirty validation.
     t1 = 'type' in kw
     t2 = 'filter' in kw
     t3 = 'subtree' in kw
@@ -113,10 +120,11 @@ def _make_aci(current, aciname, kw):
 
     group = 'group' in kw
     taskgroup = 'taskgroup' in kw
-    if group + taskgroup > 1:
-        raise errors.ValidationError(name='target', error=_('group and taskgroup are mutually exclusive'))
-    elif group + taskgroup == 0:
-        raise errors.ValidationError(name='target', error=_('One of group or taskgroup is required'))
+    selfaci = 'selfaci' in kw and kw['selfaci'] == True
+    if group + taskgroup + selfaci > 1:
+        raise errors.ValidationError(name='target', error=_('group, taskgroup and self are mutually exclusive'))
+    elif group + taskgroup + selfaci == 0:
+        raise errors.ValidationError(name='target', error=_('One of group, taskgroup or self is required'))
 
     # Grab the dn of the group we're granting access to. This group may be a
     # taskgroup or a user group.
@@ -137,11 +145,14 @@ def _make_aci(current, aciname, kw):
         except errors.NotFound:
             raise errors.NotFound(reason=_("Group '%s' does not exist") % kw['group'])
 
-    dn = entry_attrs['dn']
     a = ACI(current)
     a.name = aciname
     a.permissions = kw['permissions']
-    a.set_bindrule('groupdn = "ldap:///%s"' % dn)
+    if 'selfaci' in kw and kw['selfaci']:
+        a.set_bindrule('userdn = "ldap:///self"')
+    else:
+        dn = entry_attrs['dn']
+        a.set_bindrule('groupdn = "ldap:///%s"' % dn)
     if 'attrs' in kw:
         a.set_target_attr(kw['attrs'])
     if 'memberof' in kw:
@@ -205,11 +216,14 @@ def _aci_to_kw(ldap, a):
 
     groupdn = a.bindrule['expression']
     groupdn = groupdn.replace('ldap:///','')
-    (dn, entry_attrs) = ldap.get_entry(groupdn, ['cn'])
-    if api.env.container_taskgroup in dn:
-        kw['taskgroup'] = entry_attrs['cn'][0]
+    if groupdn == 'self':
+        kw['selfaci'] = True
     else:
-        kw['group'] = entry_attrs['cn'][0]
+        (dn, entry_attrs) = ldap.get_entry(groupdn, ['cn'])
+        if api.env.container_taskgroup in dn:
+            kw['taskgroup'] = entry_attrs['cn'][0]
+        else:
+            kw['group'] = entry_attrs['cn'][0]
 
     return kw
 
@@ -298,6 +312,11 @@ class aci(Object):
             cli_name='targetgroup',
             label=_('Target group'),
             doc=_('Group to apply ACI to'),
+        ),
+        Flag('selfaci?',
+             cli_name='self',
+             label=_('Target your own entry (self)'),
+             doc=_('Apply ACI to your own entry (self)'),
         ),
     )
 
@@ -413,10 +432,17 @@ class aci_mod(crud.Update):
         # a series of keywords. Then we replace any keywords that have been
         # updated and convert that back into an ACI and write it out.
         newkw =  _aci_to_kw(ldap, aci)
+        if 'selfaci' in newkw and newkw['selfaci'] == True:
+            # selfaci is set in aci_to_kw to True only if the target is self
+            kw['selfaci'] = True
         for k in kw.keys():
             newkw[k] = kw[k]
         if 'aciname' in newkw:
             del newkw['aciname']
+
+        # _make_aci is what is run in aci_add and validates the input.
+        # Do this before we delete the existing ACI.
+        newaci = _make_aci(None, aciname, newkw)
 
         self.api.Command['aci_del'](aciname)
 
