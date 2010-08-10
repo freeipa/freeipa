@@ -852,6 +852,20 @@ class Param(ReadOnly):
                     pass
         return self.default
 
+    def __json__(self):
+        json_dict = {}
+        for (a, k, d) in self.kwargs:
+            if k in (callable, DefaultFrom):
+                continue
+            elif isinstance(getattr(self, a), frozenset):
+                json_dict[a] = [k for k in getattr(self, a, [])]
+            else:
+                json_dict[a] = getattr(self, a, '')
+        json_dict['class'] = self.__class__.__name__
+        json_dict['name'] = self.name
+        json_dict['type'] = self.type.__name__
+        return json_dict
+
 
 class Bool(Param):
     """

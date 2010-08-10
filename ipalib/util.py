@@ -27,15 +27,25 @@ import logging
 import time
 import krbV
 import socket
+from types import NoneType
+
 from ipalib import errors
 from ipapython import dnsclient
 
 
 def json_serialize(obj):
+    if isinstance(obj, (list, tuple)):
+        return [json_serialize(o) for o in obj]
+    if isinstance(obj, dict):
+        return dict((k, json_serialize(v)) for (k, v) in obj.iteritems())
+    if isinstance(obj, (bool, float, int, unicode, NoneType)):
+        return obj
+    if isinstance(obj, str):
+        return obj.decode('utf-8')
     if not callable(getattr(obj, '__json__', None)):
         # raise TypeError('%r is not JSON serializable')
         return ''
-    return obj.__json__()
+    return json_serialize(obj.__json__())
 
 def get_current_principal():
     try:
