@@ -85,6 +85,7 @@ h1 {
 
 div#content {
     float: left;
+    width: 100%;
 }
 
 
@@ -113,6 +114,10 @@ div#content ul#viewtype li a {
     font-weight: normal;
 }
 
+div#content div#buttons {
+    float: right;
+    margin-right: 15px;
+}
 
 div#content div#buttons img {
     border: 0;
