@@ -46,6 +46,7 @@ BuildRequires:  python-krbV
 BuildRequires:  xmlrpc-c-devel
 BuildRequires:  libcurl-devel
 BuildRequires:  gettext
+BuildRequires:  authconfig
 %endif
 
 %description
@@ -500,6 +501,9 @@ fi
 %endif
 
 %changelog
+* Tue Aug 10 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-26
+- Add BuildRequires for authconfig
+
 * Mon Jul 19 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-25
 - Bump up minimum version of python-nss to pick up nss_is_initialize() API
 
