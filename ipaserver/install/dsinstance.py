@@ -219,6 +219,8 @@ class DsInstance(service.Service):
                   self.init_memberof)
         if hbac_allow:
             self.step("creating default HBAC rule allow_all", self.add_hbac)
+        self.step("enabling compatibility plugin",
+                  self.__enable_compat_plugin)
 
         self.step("configuring directory to start on boot", self.__enable)
 
@@ -342,7 +344,7 @@ class DsInstance(service.Service):
         self._ldap_mod("memberof-task.ldif", self.sub_dict)
 
     def apply_updates(self):
-        ld = ldapupdate.LDAPUpdate(dm_password=self.dm_password)
+        ld = ldapupdate.LDAPUpdate(dm_password=self.dm_password, sub_dict=self.sub_dict)
         files = ld.get_all_files(ldapupdate.UPDATES_DIR)
         ld.update(files)
 
@@ -364,6 +366,12 @@ class DsInstance(service.Service):
 
     def __add_winsync_module(self):
         self._ldap_mod("ipa-winsync-conf.ldif")
+
+    def __enable_compat_plugin(self):
+        ld = ldapupdate.LDAPUpdate(dm_password=self.dm_password, sub_dict=self.sub_dict)
+        rv = ld.update(['/usr/share/ipa/schema_compat.uldif'])
+        if not rv:
+            raise RuntimeError("Enabling compatibility plugin failed")
 
     def __config_version_module(self):
         self._ldap_mod("version-conf.ldif")

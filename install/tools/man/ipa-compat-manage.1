@@ -20,13 +20,15 @@
 .SH "NAME"
 ipa\-compat\-manage \- Enables or disables the schema compatibility plugin
 .SH "SYNOPSIS"
-ipa\-compat\-manage [options] <enable|disable>
+ipa\-compat\-manage [options] <enable|disable|status>
 .SH "DESCRIPTION"
 Run the command with the \fBenable\fR option to enable the compat plugin.
 
 Run the command with the \fBdisable\fR option to disable the compat plugin.
 
-In both cases the user will be prompted to provide the Directory Manager's password unless option \fB\-y\fR is used.
+Run the command with the \fBstatus\fR to determine the current status of the compat plugin.
+
+In all cases the user will be prompted to provide the Directory Manager's password unless option \fB\-y\fR is used.
 
 Directory Server will need to be restarted after the schema compatibility plugin has been enabled.
 

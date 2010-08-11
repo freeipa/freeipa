@@ -76,7 +76,7 @@ def main():
     if len(args) != 1:
         print "You must specify one action, either enable or disable"
         sys.exit(1)
-    elif args[0] != "enable" and args[0] != "disable":
+    elif args[0] != "enable" and args[0] != "disable" and args[0] != "status":
         print "Unrecognized action [" + args[0] + "]"
         sys.exit(1)
 
@@ -105,6 +105,17 @@ def main():
             print "An error occurred while connecting to the server."
             print lde
             return 1
+
+        if args[0] == "status":
+            try:
+                conn.get_entry('cn=Schema Compatibility,cn=plugins,cn=config', normalize=False)
+                print "Plugin Enabled"
+            except errors.NotFound:
+                print "Plugin Disabled" 
+            except errors.LDAPError, lde:
+                print "An error occurred while talking to the server."
+                print lde
+            return 0
 
         if args[0] == "enable":
             try:
