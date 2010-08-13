@@ -519,11 +519,12 @@ class Command(HasParam):
             if len(value) == 0:
                 # None means "delete this attribute"
                 value = None
-            if attr not in self.params:
-                if append and attr in newdict:
-                    newdict[attr].append(value)
-                else:
-                    newdict[attr] = [value]
+            if attr in self.params:
+                value = self.params[attr](value)
+            if append and attr in newdict:
+                newdict[attr].append(value)
+            else:
+                newdict[attr] = [value]
         return newdict
 
     def __attributes_2_entry(self, kw):
@@ -540,7 +541,11 @@ class Command(HasParam):
             adddict = self.__convert_2_dict(kw['setattr'], append=False)
 
         if kw.get('addattr'):
-            adddict.update(self.__convert_2_dict(kw['addattr']))
+            for (k, v) in self.__convert_2_dict(kw['addattr']).iteritems():
+                if k in adddict:
+                    adddict[k] += v
+                else:
+                    adddict[k] = v
 
         for name in adddict:
             value = adddict[name]

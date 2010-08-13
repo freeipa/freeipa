@@ -419,6 +419,35 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
         entry_attrs = self.args_options_2_entry(**options)
 
+        """
+        Some special handling is needed because we need to update the
+        values here rather than letting ldap.update_entry() do the work. We
+        have to do the work of adding new values to an existing attribute
+        because if we pass just what is addded only the new values get
+        set.
+        """
+        if 'addattr' in options:
+            setset = set(get_attributes(options.get('setattr', [])))
+            addset = set(get_attributes(options.get('addattr', [])))
+            difflist = list(addset.difference(setset))
+            if difflist:
+                try:
+                    (dn, old_entry) = ldap.get_entry(
+                        dn, difflist, normalize=self.obj.normalize_dn
+                    )
+                except errors.ExecutionError, e:
+                    try:
+                        (dn, old_entry) = self._call_exc_callbacks(
+                            keys, options, e, ldap.get_entry, dn, attrs_list,
+                            normalize=self.obj.normalize_dn
+                        )
+                    except errors.NotFound:
+                        self.obj.handle_not_found(*keys)
+                for a in old_entry:
+                    if not isinstance(entry_attrs[a], (list, tuple)):
+                        entry_attrs[a] = [entry_attrs[a]]
+                    entry_attrs[a] += old_entry[a]
+
         if options.get('all', False):
             attrs_list = ['*']
         else:
@@ -435,35 +464,6 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                 dn = callback(
                     self, ldap, dn, entry_attrs, attrs_list, *keys, **options
                 )
-
-        """
-        Some special handling is needed because we need to update the
-        values here rather than letting ldap.update_entry() do the work. We
-        have to do the work of adding new values to an existing attribute
-        because if we pass just what is addded only the new values get
-        set.
-        """
-        if 'addattr' in options:
-            try:
-                (dn, old_entry) = ldap.get_entry(
-                    dn, attrs_list, normalize=self.obj.normalize_dn
-                )
-            except errors.ExecutionError, e:
-                try:
-                    (dn, old_entry) = self._call_exc_callbacks(
-                        keys, options, e, ldap.get_entry, dn, attrs_list,
-                        normalize=self.obj.normalize_dn
-                    )
-                except errors.NotFound:
-                    self.obj.handle_not_found(*keys)
-            attrlist = get_attributes(options['addattr'])
-            for attr in attrlist:
-                if attr in old_entry:
-                    if type(entry_attrs[attr]) in (tuple,list):
-                        entry_attrs[attr] = old_entry[attr] + entry_attrs[attr]
-                    else:
-                        old_entry[attr].append(entry_attrs[attr])
-                        entry_attrs[attr] = old_entry[attr]
 
         try:
             ldap.update_entry(dn, entry_attrs, normalize=self.obj.normalize_dn)
