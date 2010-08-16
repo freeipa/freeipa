@@ -97,7 +97,8 @@ Requires: selinux-policy
 %endif
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.15
-Requires: pki-ca
+Requires: pki-ca >= 1.3.6
+Requires: pki-silent >= 1.3.4
 Conflicts: mod_ssl
 
 %description server
@@ -139,8 +140,8 @@ Requires: nss_ldap
 Requires: wget
 Requires: xmlrpc-c
 Requires: libcurl
-Requires: sssd >= 1.1.1
-Requires: certmonger
+Requires: sssd >= 1.2.1
+Requires: certmonger >= 0.26
 
 %description client
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -501,6 +502,12 @@ fi
 %endif
 
 %changelog
+* Fri Aug 13 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-27
+- Set minimum version of certmonger to 0.26 (to pck up #621670)
+- Set minimum version of pki-silent to 1.3.4 (adds -key_algorithm)
+- Set minimum version of pki-ca to 1.3.6
+- Set minimum version of sssd to 1.2.1
+
 * Tue Aug 10 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-26
 - Add BuildRequires for authconfig
 
