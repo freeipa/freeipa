@@ -31,7 +31,6 @@ var _ipa_obj_name = '';
 /* initialize the IPA Object Details library */
 function ipa_details_init(obj_name, url)
 {
-    ipa_init(url);
     _ipa_obj_name = obj_name;
 }
 
@@ -162,11 +161,14 @@ function _ipa_update_on_fail(xhr, text_status, error_thrown)
 	_ipa_update_on_fail_callback(xhr, text_status, error_thrown);
 }
 
-function ipa_details_create(dls)
+function ipa_details_create(dls, container)
 {
-    for (var i = 0; i < def_lists.length; ++i) {
+    if (!container)
+        container = $('body');
+
+    for (var i = 0; i < dls.length; ++i) {
 	var d = dls[i];
-	ipa_generate_dl($('hr').last(), d[0], d[1], d[2]);
+	ipa_generate_dl(container.children('hr').last(), d[0], d[1], d[2]);
     }
 }
 
@@ -377,43 +379,6 @@ function _ipa_remove_on_click(obj)
     return (false);
 }
 
-var qs = ipa_parse_qs();
-
-/* "Top-level" code */
-
-function load_object(body,obj)
-{
-    if (!qs['pkey'])
-	return;
-    ipa_details_init(obj);
-    $('#butreset').click(reset_on_click);
-    $('#butupdate').click(update_on_click);
-    ipa_details_load(qs['pkey'], on_win);
-    $('h1').text('Managing user: ' + qs['pkey']);
-
-}
-
-function on_win(data, textStatus, xhr)
-{
-    if (data['error'])
-	alert(data['error']['message']);
-}
-
-function reset_on_click()
-{
-    if (ipa_details_cache)
-	ipa_details_display(ipa_details_cache);
-    return (false);
-}
-
-function update_on_click()
-{
-    ipa_details_update(qs['pkey'], on_win);
-    return (false);
-}
-
-/* H2 expand/collapse */
-
 function _h2_on_click(obj)
 {
     var jobj = $(obj);
@@ -428,132 +393,5 @@ function _h2_on_click(obj)
 	    String.fromCharCode(8722) + txt.substr(1)
 	);
     }
-}
-
-/* Account status Toggle button */
-
-function toggle_on_click(obj)
-{
-    var jobj = $(obj);
-    var val = jobj.attr('title');
-    if (val == 'Active') {
-	ipa_cmd(
-	    'lock', [qs['pkey']], {}, on_lock_win, on_fail,
-	    PluginData['name']
-	);
-    } else {
-	ipa_cmd(
-	    'unlock', [qs['pkey']], {}, on_lock_win, on_fail,
-	    PluginData['name']
-	);
-    }
-    return (false);
-}
-
-function on_lock_win(data, textStatus, xhr)
-{
-    if (data['error']) {
-	alert(data['error']['message']);
-	return;
-    }
-
-    var jobj = $('a[title=Active]');
-    if (jobj.length) {
-	if (ipa_details_cache) {
-	    var memberof = ipa_details_cache['memberof'];
-	    if (memberof) {
-		memberof.push(
-		    'cn=inactivated,cn=account inactivation'
-		);
-	    } else {
-		memberof = ['cn=inactivated,cn=account inactivation'];
-	    }
-	    ipa_details_cache['memberof'] = memberof;
-	    a_status(jobj.parent().prev(), ipa_details_cache);
-	    jobj.parent().remove()
-	}
-	return;
-    }
-
-    var jobj = $('a[title=Inactive]');
-    if (jobj.length) {
-	if (ipa_details_cache) {
-	    var memberof = ipa_details_cache['memberof'];
-	    if (memberof) {
-		for (var i = 0; i < memberof.length; ++i) {
-		    if (memberof[i].indexOf('cn=inactivated,cn=account inactivation') != -1) {
-			memberof.splice(i, 1);
-			break;
-		    }
-		}
-	    } else {
-		memberof = [];
-	    }
-	    ipa_details_cache['memberof'] = memberof;
-	    a_status(jobj.parent().prev(), ipa_details_cache);
-	    jobj.parent().remove();
-	}
-	return;
-    }
-}
-
-/* ATTRIBUTE CALLBACKS */
-
-var toggle_temp = 'S <a href="jslink" onclick="return (toggle_on_click(this))" title="S">Toggle</a>';
-function a_status(jobj, result, mode)
-{
-    if (mode != IPA_DETAILS_POPULATE)
-	return;
-
-    var memberof = result['memberof'];
-    if (memberof) {
-	for (var i = 0; i < memberof.length; ++i) {
-	    if (memberof[i].indexOf('cn=inactivated,cn=account inactivation') != -1) {
-		var t = toggle_temp.replace(/S/g, 'Inactive');
-		ipa_insert_first_dd(jobj, t);
-		return;
-	    }
-	}
-    }
-    ipa_insert_first_dd(jobj, toggle_temp.replace(/S/g, 'Inactive'));
-}
-
-var pwd_temp = '<a href="jslink" onclick="return (resetpwd_on_click(this))" title="A">Reset Password</a>';
-function a_password(jobj, result, mode)
-{
-    if (mode == IPA_DETAILS_POPULATE)
-	ipa_insert_first_dd(jobj, pwd_temp.replace('A', 'userpassword'));
-}
-
-var select_temp = '<select title="st"></select>';
-var option_temp = '<option value="V">V</option>';
-var states = [
-    'AL', 'AK', 'AS', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FM',
-    'FL', 'GA', 'GU', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA',
-    'ME', 'MH', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV',
-    'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'MP', 'OH', 'OK', 'OR', 'PW',
-    'PA', 'PR', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VI', 'VA',
-    'WA', 'WV', 'WI', 'WY', '',
-];
-function a_st(jobj, result, mode)
-{
-    if (mode != IPA_DETAILS_POPULATE)
-	return;
-
-    var next = jobj.next();
-    next.css('clear', 'none');
-    next.css('width', '70px');
-
-    ipa_insert_first_dd(jobj, select_temp);
-
-    var sel = jobj.next().children().first();
-    for (var i = 0; i < states.length; ++i)
-	sel.append(option_temp.replace(/V/g, states[i]));
-
-    var st = result['st'];
-    if (st)
-	sel.val(st);
-    else
-	sel.val('');
 }
 
