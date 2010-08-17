@@ -18,17 +18,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-
-
-//the develop.js file that follows will set this to true.
-//that file should only exist in the source file system
-//and should not get deployed to the web server
-var useSampleData = false;
-
-
-//Maximum number of records to return on any query.
-var sizelimit=100;
-
 /* IPA JSON-RPC helper */
 
 /* JSON-RPC ID counter */
@@ -37,11 +26,35 @@ var ipa_jsonrpc_id = 0;
 /* IPA objects data in JSON format */
 var ipa_objs = {};
 
+var _ipa_init_on_win_callback = null;
 /* initialize the IPA JSON-RPC helper
  * arguments:
  *   url - JSON-RPC URL to use (optional) */
-function ipa_init(url)
+function ipa_init(url, on_win)
 {
+    if (!url)
+        url = '/ipa/json';
+
+    _ipa_init_on_win_callback = on_win;
+
+    var options = {
+        url: url,
+        type: 'POST',
+        contentType: 'application/json',
+        dataType: 'json',
+        processData: false,
+    };
+
+    $.ajaxSetup(options);
+
+    ipa_cmd('json_metadata', [], {}, _ipa_load_objs);
+}
+
+function _ipa_load_objs(data, textStatus, xhr)
+{
+    ipa_objs = data.result.result;
+    if (_ipa_init_on_win_callback)
+        _ipa_init_on_win_callback(data, textStatus, xhr);
 }
 
 /* call an IPA command over JSON-RPC
@@ -58,31 +71,19 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
     if (objname)
 	name = objname + '_' + name;
 
-    options.sizelimit	= sizelimit;
-
     var data = {
 	method: name,
 	params: [args, options],
 	id: id,
     };
 
-    var jsonUrl =  '/ipa/json';
-    if (useSampleData){
-	jsonUrl = sampleData;
-    }
-    $.ajax({
-	    beforeSend: function(xhrObj){
-		xhrObj.setRequestHeader("Content-Type","application/json");
-		xhrObj.setRequestHeader("Accept","application/json");
-	    },
-	    type: "POST",
-	    url: jsonUrl,
-	    processData: false,
-	    data: JSON.stringify(data),
-	    dataType: "json",
-	    success: win_callback,
-	    error: fail_callback,
-    });
+    var request = {
+        data: JSON.stringify(data),
+        success: win_callback,
+        error: fail_callback,
+    };
+
+    $.ajax(request);
 
     return (id);
 }

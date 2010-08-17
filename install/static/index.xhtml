@@ -7,6 +7,14 @@
 
     <script type="text/javascript" src="jquery.js"></script>
     <script type="text/javascript" src="jquery.cookie.js"></script>
+
+    <script type="text/javascript">
+        /* the develop.js file that follows will set this to true.
+           that file should only exist in the source file system
+           and should not get deployed to the web server */
+        var useSampleData = false;
+    </script>
+
     <script type="text/javascript" src="ipa.js" />
     <script type="text/javascript" src="pageparams.js" />
 
@@ -25,7 +33,10 @@
     <script type="text/javascript">
 
       $(document).ready(function(){
-      buildNavigation();
+      if (useSampleData)
+        ipa_init(sampleData, buildNavigation);
+      else
+        ipa_init(null, buildNavigation);
       });
 
     </script>
@@ -49,8 +60,8 @@
     </div>
 
     <div id="search"  style="visibility:hidden">
-      <div id="searchControls"  class="searchControls" >
-	<span id="filter" class="filter"  >
+      <div class="searchControls" >
+	<span class="filter"  >
 	  <input id="queryFilter" type="text"/>
 	  <input id="query" type="submit" value="find" />
 	  <input id="new" type="submit" value="new" />
