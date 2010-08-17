@@ -49,10 +49,10 @@ def get_attributes(attrs):
     Given a list of values in the form name=value, return a list of name.
     """
     attrlist=[]
-    for attr in attrs:
-        m = re.match("\s*(.*?)\s*=\s*(.*?)\s*$", attr)
-        attrlist.append(str(m.group(1)).lower())
-
+    if attrs:
+        for attr in attrs:
+            m = re.match("\s*(.*?)\s*=\s*(.*?)\s*$", attr)
+            attrlist.append(str(m.group(1)).lower())
     return attrlist
 
 

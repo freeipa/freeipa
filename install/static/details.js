@@ -92,16 +92,8 @@ function ipa_details_update(pkey, on_win, on_fail)
 	    return;
 
 	var attr = dt.attr('title');
-	if (!attr)
+	if (!attr || attr.indexOf('call_') == 0)
 	    return;
-
-	if (attr.indexOf('call_') == 0) {
-	    var func = window[attr.substr(5)];
-	    if (!func)
-		return;
-	    func(dt, modlist, IPA_DETAILS_UPDATE);
-	    return;
-	}
 
 	var param_info = ipa_get_param_info(attr);
 	if (param_info) {
@@ -118,8 +110,19 @@ function ipa_details_update(pkey, on_win, on_fail)
 	var jobj = $(this);
 
 	var attr = jobj.attr('title');
-	if (!attr || attr.indexOf('call_') == 0)
+	if (!attr)
 	    return;
+
+	if (attr.indexOf('call_') == 0) {
+	    var func = window[attr.substr(5)];
+	    if (func)
+	        func(jobj, modlist, IPA_DETAILS_UPDATE);
+	    return;
+	}
+
+        var param_info = ipa_get_param_info(attr);
+        if (param_info && param_info['primary_key'])
+            return;
 
 	var next = jobj.next('dd');
 	if ((!next.length) || (!next.children('input').length))
