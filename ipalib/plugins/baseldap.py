@@ -829,21 +829,19 @@ class LDAPSearch(CallbackInterface, crud.Search):
     Retrieve all LDAP entries matching the given criteria.
     """
     takes_options = (
-        Int('timelimit',
+        Int('timelimit?',
             label=_('Time Limit'),
-            doc=_('Time limit of search in seconds (default 1)'),
-            flags=['no_dispaly'],
+            doc=_('Time limit of search in seconds'),
+            flags=['no_display'],
             minvalue=0,
-            default=1,
-            autofill=True,
+            autofill=False,
         ),
-        Int('sizelimit',
+        Int('sizelimit?',
             label=_('Size Limit'),
-            doc=_('Maximum number of entries returned (default 3000)'),
-            flags=['no_dispaly'],
+            doc=_('Maximum number of entries returned'),
+            flags=['no_display'],
             minvalue=0,
-            default=3000,
-            autofill=True,
+            autofill=False,
         ),
     )
 
@@ -911,8 +909,8 @@ class LDAPSearch(CallbackInterface, crud.Search):
         try:
             (entries, truncated) = ldap.find_entries(
                 filter, attrs_list, base_dn, scope=ldap.SCOPE_ONELEVEL,
-                time_limit=options.get('timelimit', 1),
-                size_limit=options.get('sizelimit', 3000)
+                time_limit=options.get('timelimit', None),
+                size_limit=options.get('sizelimit', None)
             )
         except errors.ExecutionError, e:
             try:

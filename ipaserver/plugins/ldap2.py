@@ -466,7 +466,7 @@ class ldap2(CrudBackend, Encoder):
     @encode_args(1, 2, 3)
     @decode_retval()
     def find_entries(self, filter, attrs_list=None, base_dn='',
-            scope=_ldap.SCOPE_SUBTREE, time_limit=1, size_limit=3000,
+            scope=_ldap.SCOPE_SUBTREE, time_limit=None, size_limit=None,
             normalize=True):
         """
         Return a list of entries [(dn, entry_attrs)] matching specified
@@ -477,8 +477,8 @@ class ldap2(CrudBackend, Encoder):
         attrs_list -- list of attributes to return, all if None (default None)
         base_dn -- dn of the entry at which to start the search (default '')
         scope -- search scope, see LDAP docs (default ldap2.SCOPE_SUBTREE)
-        time_limit -- time limit in seconds (default 1)
-        size_limit -- size (number of entries returned) limit (default 3000)
+        time_limit -- time limit in seconds (default use IPA config values)
+        size_limit -- size (number of entries returned) limit (default use IPA config values)
         normalize -- normalize the DN (default True)
         """
         if normalize:
@@ -487,6 +487,17 @@ class ldap2(CrudBackend, Encoder):
             filter = '(objectClass=*)'
         res = []
         truncated = False
+
+        if time_limit is None or size_limit is None:
+            (cdn, config) = self.get_ipa_config()
+            if time_limit is None:
+                time_limit = config.get('ipasearchtimelimit')[0]
+            if size_limit is None:
+                size_limit = config.get('ipasearchrecordslimit')[0]
+        if not isinstance(size_limit, int):
+            size_limit = int(size_limit)
+        if not isinstance(time_limit, float):
+            time_limit = float(time_limit)
 
         # pass arguments to python-ldap
         try:
@@ -534,8 +545,9 @@ class ldap2(CrudBackend, Encoder):
 
     def get_ipa_config(self):
         """Returns the IPA configuration entry (dn, entry_attrs)."""
-        filter = '(cn=ipaConfig)'
-        return self.find_entries(filter, None, 'cn=etc', self.SCOPE_ONELEVEL)[0][0]
+        cdn = "%s,%s" % (api.Object.config.get_dn(), api.env.basedn)
+        return self.find_entries(None, None, cdn, self.SCOPE_BASE,
+            time_limit=2, size_limit=10)[0][0]
 
     def get_schema(self):
         """Returns a copy of the current LDAP schema."""

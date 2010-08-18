@@ -209,6 +209,31 @@ class test_user(Declarative):
 
 
         dict(
+            desc='Search for all users with a limit of 1',
+            command=(
+                'user_find', [], dict(sizelimit=1,),
+            ),
+            expected=dict(
+                result=[
+                    dict(
+                        dn=u'uid=admin,cn=users,cn=accounts,' + api.env.basedn,
+                        homedirectory=[u'/home/admin'],
+                        loginshell=[u'/bin/bash'],
+                        sn=[u'Administrator'],
+                        uid=[u'admin'],
+                        memberof_group=[u'admins'],
+                        memberof_rolegroup=[u'replicaadmin'],
+                        memberof_taskgroup=[u'managereplica', u'deletereplica'],
+                    ),
+                ],
+                summary=u'1 user matched',
+                count=1,
+                truncated=True,
+            ),
+        ),
+
+
+        dict(
             desc='Lock %r' % user1,
             command=(
                 'user_lock', [user1], {}
