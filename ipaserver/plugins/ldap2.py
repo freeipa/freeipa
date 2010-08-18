@@ -103,7 +103,7 @@ def _handle_errors(e, **kw):
         raise errors.DatabaseError(desc=desc, info=info)
 
 
-def global_init(url):
+def get_schema(url, conn=None):
     """
     Perform global initialization when the module is loaded.
 
@@ -114,16 +114,20 @@ def global_init(url):
     in-tree "lite" server then use the current ccache. If in the context of
     Apache then create a new ccache and bind using the Apache HTTP service
     principal.
+
+    If a connection is provided then it the credentials bound to it are
+    used. The connection is not closed when the request is done.
     """
     tmpdir = None
-    upg = False
+    has_conn = conn is not None
 
-    if not api.env.in_server or api.env.context not in ['lite', 'server']:
+    if (not api.env.in_server or api.env.context not in ['lite', 'server']
+        and conn is None):
         # The schema is only needed on the server side
-        return (None, None)
+        return None
 
     try:
-        if api.env.context == 'server':
+        if api.env.context == 'server' and conn is None:
             try:
                 # Create a new credentials cache for this Apache process
                 tmpdir = tempfile.mkdtemp(prefix = "tmp-")
@@ -139,24 +143,18 @@ def global_init(url):
             except krbV.Krb5Error, e:
                 raise StandardError('Unable to retrieve LDAP schema. Error initializing principal %s in %s: %s' % (principal.name, '/etc/httpd/conf/ipa.keytab', str(e)))
 
-        conn = _ldap.initialize(url)
-        conn.sasl_interactive_bind_s('', SASL_AUTH)
+        if conn is None:
+            conn = _ldap.initialize(url)
+            conn.sasl_interactive_bind_s('', SASL_AUTH)
 
         schema_entry = conn.search_s(
             'cn=schema', _ldap.SCOPE_BASE,
             attrlist=['attributetypes', 'objectclasses']
         )[0]
-        try:
-            upg_entry = conn.search_s(
-                'cn=UPG Template, %s' % api.env.basedn, _ldap.SCOPE_BASE,
-                attrlist=['*']
-            )[0]
-            upg = True
-        except _ldap.NO_SUCH_OBJECT, e:
-            upg = False
-        conn.unbind_s()
+        if not has_conn:
+            conn.unbind_s()
     except _ldap.SERVER_DOWN:
-        return (None, upg)
+        return None
     except _ldap.LDAPError, e:
         desc = e.args[0]['desc'].strip()
         info = e.args[0].get('info', '').strip()
@@ -170,27 +168,16 @@ def global_init(url):
         if tmpdir:
             shutil.rmtree(tmpdir)
 
-    return (_ldap.schema.SubSchema(schema_entry[1]), upg)
+    return _ldap.schema.SubSchema(schema_entry[1])
 
-# cache schema and User-Private Groups when importing module
+# cache schema when importing module
 try:
-    (_schema, _upg) = global_init(api.env.ldap_uri)
+    _schema = get_schema(api.env.ldap_uri)
 except AttributeError:
     _schema = None
-    _upg = None
 
-
-def get_syntax(attr, value):
-    global _schema
-
-    if not _schema:
-        return None
-    obj = _schema.get_obj(_ldap.schema.AttributeType, attr)
-    if obj is not None:
-        return obj.syntax
-    else:
-        return None
-
+# The UPG setting will be cached the first time a module checks it
+_upg = None
 
 class ldap2(CrudBackend, Encoder):
     """
@@ -228,13 +215,14 @@ class ldap2(CrudBackend, Encoder):
 
     def __init__(self, shared_instance=True, ldap_uri=None, base_dn=None,
                  schema=None):
+        global _schema
         CrudBackend.__init__(self, shared_instance=shared_instance)
         Encoder.__init__(self)
         self.encoder_settings.encode_dict_keys = True
         self.encoder_settings.decode_dict_keys = True
         self.encoder_settings.decode_dict_vals_postprocess = False
         self.encoder_settings.decode_dict_vals_table = self._SYNTAX_MAPPING
-        self.encoder_settings.decode_dict_vals_table_keygen = get_syntax
+        self.encoder_settings.decode_dict_vals_table_keygen = self.get_syntax
         self.encoder_settings.decode_postprocessor = lambda x: string.lower(x)
         try:
             self.ldap_uri = ldap_uri or api.env.ldap_uri
@@ -252,6 +240,15 @@ class ldap2(CrudBackend, Encoder):
 
     def __str__(self):
         return self.ldap_uri
+
+    def get_syntax(self, attr, value):
+        if not self.schema:
+            return None
+        obj = self.schema.get_obj(_ldap.schema.AttributeType, attr)
+        if obj is not None:
+            return obj.syntax
+        else:
+            return None
 
     @encode_args(2, 3, 'bind_dn', 'bind_pw')
     def create_connection(self, ccache=None, bind_dn='', bind_pw='',
@@ -272,6 +269,7 @@ class ldap2(CrudBackend, Encoder):
 
         Extends backend.Connectible.create_connection.
         """
+        global _schema
         if tls_cacertfile is not None:
             _ldap.set_option(_ldap.OPT_X_TLS_CACERTFILE, tls_cacertfile)
         if tls_certfile is not None:
@@ -292,6 +290,9 @@ class ldap2(CrudBackend, Encoder):
                 conn.simple_bind_s(bind_dn, bind_pw)
         except _ldap.LDAPError, e:
             _handle_errors(e, **{})
+
+        if self.schema is None and _schema is None:
+            self.schema = get_schema(self.ldap_uri, conn)
         return conn
 
     def destroy_connection(self):
@@ -534,14 +535,15 @@ class ldap2(CrudBackend, Encoder):
         filter = self.make_filter(search_kw, rules=self.MATCH_ALL)
         return self.find_entries(filter, attrs_list, base_dn)[0][0]
 
-    def get_entry(self, dn, attrs_list=None, normalize=True):
+    def get_entry(self, dn, attrs_list=None, time_limit=None,
+                  size_limit=None, normalize=True):
         """
         Get entry (dn, entry_attrs) by dn.
 
         Keyword arguments:
         attrs_list - list of attributes to return, all if None (default None)
         """
-        return self.find_entries(None, attrs_list, dn, self.SCOPE_BASE, normalize=normalize)[0][0]
+        return self.find_entries(None, attrs_list, dn, self.SCOPE_BASE, time_limit=time_limit, size_limit=size_limit, normalize=normalize)[0][0]
 
     def get_ipa_config(self):
         """Returns the IPA configuration entry (dn, entry_attrs)."""
@@ -560,6 +562,16 @@ class ldap2(CrudBackend, Encoder):
            it every time.
         """
         global _upg
+
+        if _upg is None:
+            try:
+                upg_entry = self.conn.search_s(
+                    'cn=UPG Template, %s' % api.env.basedn, _ldap.SCOPE_BASE,
+                    attrlist=['*']
+                )[0]
+                _upg = True
+            except _ldap.NO_SUCH_OBJECT, e:
+                _upg = False
 
         return _upg
 

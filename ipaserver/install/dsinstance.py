@@ -123,7 +123,7 @@ def has_managed_entries(host_name, dm_password):
         conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='cn=config')
         conn.connect(bind_dn='cn=Directory Manager', bind_pw=dm_password)
         (dn, attrs) = conn.get_entry('cn=Managed Entries,cn=plugins',
-                      ['*'])
+                      ['*'], time_limit=2, size_limit=3000)
         return True
     except errors.NotFound:
         return False
