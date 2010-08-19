@@ -265,7 +265,7 @@ done:
 }
 
 static int
-get_subject(const char *ipaserver, char *ldap_base, char **subject)
+get_subject(const char *ipaserver, char *ldap_base, const char **subject)
 {
     LDAP *ld = NULL;
     char *attrs[] = {"ipaCertificateSubjectBase", NULL};
@@ -358,7 +358,7 @@ join_ldap(const char *ipaserver, const char *hostname, const char ** binddn, con
         goto done;
     }
 
-    if (get_subject(ipaserver, ldap_base, &subject) != 0) {
+    if (get_subject(ipaserver, ldap_base, subject) != 0) {
         fprintf(stderr, "Unable to determine certificate subject of %s\n", ipaserver);
         /* Not a critical failure */
     }
@@ -441,7 +441,7 @@ ldap_done:
     free(filter);
     free(search_base);
     free(ldap_base);
-    free(subject);
+    free((void *)*subject);
     if (ld != NULL) {
         ldap_unbind_ext(ld, NULL, NULL);
     }
