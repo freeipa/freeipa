@@ -481,6 +481,23 @@ int filter_keys(krb5_context krbctx, struct keys_container *keys,
     return n;
 }
 
+static int ipa_ldap_init(LDAP ** ld, const char * scheme, const char * servername, const int  port)
+{
+	char* url = NULL;
+	int  url_len = snprintf(url,0,"%s://%s:%d",scheme,servername,port) +1;
+       
+	url = (char *)malloc (url_len);
+	if (!url){
+		fprintf(stderr, "Out of memory \n");       
+		return LDAP_NO_MEMORY;
+	}
+	sprintf(url,"%s://%s:%d",scheme,servername,port);
+	int rc = ldap_initialize(ld, url);
+
+	free(url);
+	return rc;
+}
+
 static int ldap_set_keytab(krb5_context krbctx,
 			   const char *servername,
 			   const char *principal_name,
@@ -526,13 +543,17 @@ static int ldap_set_keytab(krb5_context krbctx,
 		if (ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTFILE, "/etc/ipa/ca.crt") != LDAP_OPT_SUCCESS) {
 			goto error_out;
 		}
-
-		ld = ldap_init(servername, 636);
+ 
+		if ( ipa_ldap_init(&ld, "ldaps",servername, 636) != LDAP_SUCCESS){
+		  goto error_out;
+		}
 		if (ldap_set_option(ld, LDAP_OPT_X_TLS, &ssl) != LDAP_OPT_SUCCESS) {
 			goto error_out;
 		}
 	} else {
-		ld = ldap_init(servername, 389);
+		if (ipa_ldap_init(&ld, "ldap",servername, 389) != LDAP_SUCCESS){
+			goto error_out;			
+		}
 	}
 
 	if(ld == NULL) {
