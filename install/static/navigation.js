@@ -16,7 +16,7 @@ function unimplemented(facet){
 }
 
 function buildNavigation(){
-    params= getPageParams();
+    params= ipa_parse_qs();
     var tab = params["tab"];
 
     if (!tab){
@@ -107,10 +107,9 @@ function buildNavigation(){
 	currentMain.setup(facet);
     }
 
-    sampleData = "sampledata/whoami.json";
     var whoami = $.cookie("whoami");
     if (whoami == null){
-	ipa_cmd( 'whoami', [], {}, whoamiSuccess);
+	ipa_cmd( 'whoami', [], {}, whoamiSuccess, null,null, "sampledata/whoami.json");
     }else{
 	setLoggedInText(whoami);
     }
@@ -145,14 +144,49 @@ function setActiveSubtab(){
 	netgroup:setupNetgroup,
 };
 
-
-
-
     var subtabName = this.id.substring("subtab-".length);
     $(".sub-nav-on").removeClass('sub-nav-on').addClass("sub-nav-off")
     var active = "#span-subtab-"+subtabName;
     $(active).removeClass('sub-nav-off').addClass("sub-nav-on")
 
     setupFunctions[subtabName]();
+}
 
+function clearOld(){
+    $('#searchResultsTable thead').html("");
+    $('#searchResultsTable tfoot').html("");
+    $('#searchResultsTable tbody').find("tr").remove();
+    $("#searchButtons").html("");
+
+    $('#content').html("");
+
+    //remove old details
+    $('.entryattrs dd').remove();
+    $('#detail-lists').html("<hr/>");
+
+}
+
+
+
+function showSearch(){
+    $('#content').css("display","none");
+    $('#details').css("display","none");
+    clearOld();
+    $('#search').css("display","block");
+    $("#filter").css("display","block");
+}
+
+function showContent(){
+    $('#search').css("display","none");
+    $('#details').css("display","none");
+    clearOld();
+    $('#content').css("display","block");
+}
+
+
+function showDetails(){
+    $('#search').css("display","none");
+    $('#content').css("display","none");
+    clearOld();
+    $('#details').css("display","block");
 }

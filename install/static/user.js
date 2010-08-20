@@ -1,5 +1,4 @@
 
-var qs = ipa_parse_qs();
 
 var user_details_lists = [
     ['identity', 'Identity Details', [
@@ -79,41 +78,46 @@ function addAnotherUser(){
 
 function addEditUser(){
     addUser(function (response){
-	location.href="index.xhtml?tab=user&facet=details&pkey="+$("#login").val();
+	setupUserDetails($("#login").val());
     });
 }
 
 function setupAddUser(){
-
     showContent();
-
     $('#content').load("user-add.inc");
 }
 
+function setupUserDetails(user){
 
-function setupUserDetails(){
-    showContent();
-    sampleData = "sampledata/usershow.json";
-    $('#content').load("user-details.inc", [], renderUserDetails);
+    window.location.hash="#tab=user&facet=details&pkey="+user;
+
+    //re initialize global parse of parameters
+    qs = ipa_parse_qs();
+
+    //TODO make this work for more than just user details
+    details_lists =  user_details_lists;
+
+    showDetails();
+    renderUserDetails();
 }
 
 function renderUserDetails()
 {
     ipa_details_init('user');
-    ipa_details_create(user_details_lists, $('#content'));
+    ipa_details_create(user_details_lists, $('#details'));
 
     if (qs['principal']) {
         ipa_cmd(
             'find', [], {'krbprincipalname': qs['principal']},
-            on_win_find, null, 'user'
-        );
+            on_win_find, null, 'user', "sampledata/usershow.json");
+
         return;
     }
 
     if (!qs['pkey'])
         return;
 
-    ipa_details_load(qs['pkey'], on_win);
+    ipa_details_load(qs['pkey'], on_win, null, "sampledata/usershow.json");
     $('h1').text('Managing user: ' + qs['pkey']);
 }
 
@@ -126,24 +130,24 @@ function renderUserLinks(current, cell){
 	cell.appendChild(link);
 
     $("<a/>",{
-	href:"?tab=user&facet=details&pkey="+current.uid,
+	href:"#tab=user&facet=details&pkey="+current.uid,
 	html:  "[D]",
-	click:setupUserDetails,
+	click: function(){ setupUserDetails(current.uid)},
     }).appendTo(cell);
 
     $("<a/>",{
-	href: "#tab=user&facet=details&pkey="+current.uid,
+	href: "#tab=user&facet=group&pkey="+current.uid,
 	click:setupUserGroupMembership,
 	html: "[G]"
     }).appendTo(cell);
 
     $("<a/>",{
-	href:"?tab=user&facet=netgroup&pkey="+current.uid,
+	href:"#tab=user&facet=netgroup&pkey="+current.uid,
 	html: "[N]"
     }).appendTo(cell);
 
     $("<a/>",{
-	href:"?tab=user&facet=role&pkey="+current.uid,
+	href:"#tab=user&facet=role&pkey="+current.uid,
 	html:"[R]"
     }).appendTo(cell);
 }
@@ -151,9 +155,13 @@ function renderUserLinks(current, cell){
 
 
 function renderUserDetailColumn(current,cell){
-    renderDetailColumn(current,cell,current[this.column],"user");
-}
 
+    $("<a/>",{
+	href:"#tab=user&facet=details&pkey="+current.uid,
+	html:  ""+ current[this.column],
+	click: function(){ setupUserDetails(current.uid)},
+    }).appendTo(cell);
+}
 
 var columns  = [
     {title:"Name",     column:"cn",             render: renderSimpleColumn},
@@ -166,7 +174,7 @@ var columns  = [
 ];
 
 function setupUserSearch(){
-    var userSearchForm = new SearchForm("user", "find", columns);
+    var userSearchForm = new SearchForm("user", "find", columns,  "sampledata/userlist.json");
 
     $("#query").unbind();
     $("#query").click(function(){
@@ -183,8 +191,6 @@ function setupUserSearch(){
 function populateUserGroupFailure(){
     alert("Can't find user");
 }
-
-
 
 function setupUserGroupEnrollmentSearch(pkey){
     sampleData = "sampledata/usershow.json";
@@ -224,7 +230,7 @@ function enrollUserInNextGroup(){
 
 	ipa_cmd( 'add_member',args, options ,
 		 enrollUserInGroupSuccess,
-		 enrollUserInGroupFailure, 'group' );
+		 enrollUserInGroupFailure );
     }else{
 	setupUserGroupMembership();
     }
@@ -259,8 +265,7 @@ function initializeUserGroupEnrollments(){
     });
 
     $("#query").click(function(){
-	 sampleData="sampledata/grouplist.json";
-	 ipa_cmd( 'find', [], {}, populateUserGroupSearch, populateUserGroupFailure, 'group' );
+	ipa_cmd( 'find', [], {}, populateUserGroupSearch, populateUserGroupFailure, 'group', "sampledata/grouplist.json" );
 
     });
 

@@ -30,6 +30,12 @@ var _ipa_init_on_win_callback = null;
 /* initialize the IPA JSON-RPC helper
  * arguments:
  *   url - JSON-RPC URL to use (optional) */
+
+/*Query String*/
+var qs;
+
+
+
 function ipa_init(url, on_win)
 {
     if (!url)
@@ -65,11 +71,22 @@ function _ipa_load_objs(data, textStatus, xhr)
  *   win_callback - function to call if the JSON request succeeds
  *   fail_callback - function to call if the JSON request fails
  *   objname - name of an IPA object (optional) */
-function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
+function ipa_cmd(name, args, options, win_callback, fail_callback, objname,sampleData)
 {
     id = ipa_jsonrpc_id++;
     if (objname)
 	name = objname + '_' + name;
+
+    if (useSampleData && sampleData){
+	var ajax_options = {
+	    url: sampleData,
+	    type: 'POST',
+	    contentType: 'application/json',
+	    dataType: 'json',
+	    processData: false,
+	};
+	 $.ajaxSetup(ajax_options);
+    }
 
     var data = {
 	method: name,
@@ -96,7 +113,7 @@ function ipa_parse_qs(qs)
     var dict = {};
 
     if (!qs)
-	qs = location.search.substring(1, location.search.length);
+	qs = location.hash.substring(1);
     qs = qs.replace(/\+/g, ' ');
 
     var args = qs.split('&');

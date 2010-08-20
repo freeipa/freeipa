@@ -16,7 +16,6 @@
     </script>
 
     <script type="text/javascript" src="ipa.js" />
-    <script type="text/javascript" src="pageparams.js" />
 
     <script type="text/javascript" src="navigation.js" />
     <script type="text/javascript" src="sampledata/develop.js" />
@@ -34,7 +33,7 @@
 
       $(document).ready(function(){
       if (useSampleData)
-        ipa_init(sampleData, buildNavigation);
+        ipa_init("sampledata/metadata.json", buildNavigation);
       else
         ipa_init(null, buildNavigation);
       });
@@ -56,10 +55,40 @@
       <div id="sub-nav">Edit: </div>
     </div>
 
-    <div id="content" border="1"  style="visibility:hidden" >
+    <div id="content" border="1"  style="display:none" >
     </div>
 
-    <div id="search"  style="visibility:hidden">
+    <div id="details" style="display:none" >
+      <h1>Managing user:</h1>
+      <div id="buttons">
+	<a href="jslink" onclick="return (reset_on_click(this));">
+          <img id="butreset" src="but-reset.png" alt="Reset" />
+	</a>
+	<a href="jslink" onclick="return (update_on_click(this));">
+          <img id="butupdate" src="but-update.png" alt="Update" />
+	</a>
+      </div>
+
+      <ul id="viewtype">
+	<li id="viewcaption">View:</li>
+	<li>
+          <img src="but-selected.png" alt="" />
+          Identity Details
+	</li>
+	<li>
+          <img src="but-unselected.png" alt="" />
+          <a href="memberof?pkey=${pkey}">Memberships</a>
+	</li>
+      </ul>
+      <div id="detail-lists">
+	<hr />
+      </div>
+      <div id="backtotop">
+	<a href="#viewtype">Back to Top</a>
+      </div>
+    </div>
+
+    <div id="search"  style="display:none">
       <div class="searchControls" >
 	<span class="filter"  >
 	  <input id="queryFilter" type="text"/>

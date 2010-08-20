@@ -83,17 +83,17 @@ h1 {
     margin-top: 18px;
 }
 
-div#content {
+div#details {
     float: left;
     width: 100%;
 }
 
 
-div#content ul#viewtype {
+div#details ul#viewtype {
     padding-left: 20px;
 }
 
-div#content ul#viewtype li {
+div#details ul#viewtype li {
     color: #656565;
     display: inline;
     font-weight: bold;
@@ -106,20 +106,20 @@ div#content ul#viewtype li#viewcaption {
     padding-right: 10px;
 }
 
-div#content ul#viewtype li img {
+div#details ul#viewtype li img {
     vertical-align: middle;
 }
 
-div#content ul#viewtype li a {
+div#details ul#viewtype li a {
     font-weight: normal;
 }
 
-div#content div#buttons {
+div#details div#buttons {
     float: right;
     margin-right: 15px;
 }
 
-div#content div#buttons img {
+div#details div#buttons img {
     border: 0;
 }
 

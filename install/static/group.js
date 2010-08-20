@@ -68,29 +68,60 @@ function setupAddGroup(){
 
 }
 
-function setupGroupDetails(){
+var group_details_list =
+    [['identity', 'Group Details', [
+        ['cn', 'Group Name'],
+        ['description', 'Description'],
+	['gidnumber', 'Group ID']]]];
 
-    $('#search').css("visibility","hidden");
-    $('#content').css("visibility","visible");
-    $('#content').load("group-details.inc");
-    sampleData = "sampledata/groupshow.json";
+function setupGroupDetails(group){
+
+    window.location.hash="#tab=user&facet=details&pkey="+group;
+
+    //re initialize global parse of parameters
+    qs = ipa_parse_qs();
+
+    //TODO make this work for more than just user details
+    user_details_lists;
+
+    showDetails();
+
+    ipa_details_init('group');
+    ipa_details_create(group_details_list, $('#details'));
+    ipa_details_load(qs['pkey'], on_win, null, "sampledata/groupshow.json");
+    $('h1').text('Managing group: ' + group);
 }
+
+
+
+function renderGroupDetails(group)
+{
+
+}
+
+
+function renderGroupDetailColumn(current,cell){
+
+    $("<a/>",{
+	href:"#tab=group&facet=details&pkey="+current.cn,
+	html:  ""+ current[this.column],
+	click: function(){ setupGroupDetails(current.cn)},
+    }).appendTo(cell);
+}
+
 
 function setupGroupSearch(){
 
     var columns = [
-	{title:"Group Name",  column:"cn",render: function(current,cell){
-	    renderDetailColumn(current,cell,current[this.column],"group");
-	}},
+	{title:"Group Name",  column:"cn",render: renderGroupDetailColumn},
 	{title:"GID",  column:"gidnumber",render: renderSimpleColumn},
 	{title:"Description",  column:"description",render: renderSimpleColumn}
     ];
 
-    var groupSearchForm = new SearchForm("group", "find", columns);
+    var groupSearchForm = new SearchForm("group", "find", columns,"sampledata/grouplist.json");
 
     $("#query").unbind();
     $("#query").click(function(){
-	sampleData = "sampledata/grouplist.json";
 	executeSearch(groupSearchForm);
     });
     $("#new").unbind();

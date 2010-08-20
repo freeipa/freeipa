@@ -39,7 +39,7 @@ var _ipa_load_on_fail_callback = null;
 
 var ipa_details_cache = null;
 
-function ipa_details_load(pkey, on_win, on_fail)
+function ipa_details_load(pkey, on_win, on_fail,sampleData)
 {
     if (!pkey)
 	return;
@@ -49,8 +49,7 @@ function ipa_details_load(pkey, on_win, on_fail)
 
     ipa_cmd(
 	'show', [pkey], {all: true}, _ipa_load_on_win, _ipa_load_on_fail,
-	_ipa_obj_name
-    );
+	_ipa_obj_name, sampleData );
 }
 
 function _ipa_load_on_win(data, text_status, xhr)
@@ -171,7 +170,9 @@ function ipa_details_create(dls, container)
 
     for (var i = 0; i < dls.length; ++i) {
 	var d = dls[i];
-	ipa_generate_dl(container.children('hr').last(), d[0], d[1], d[2]);
+
+	ipa_generate_dl($('#detail-lists hr').last(), d[0], d[1], d[2]);
+//	ipa_generate_dl($("#detail-lists"), d[0], d[1], d[2]);
     }
 }
 
@@ -188,7 +189,6 @@ function ipa_generate_dl(jobj, id, name, dts)
     jobj = jobj.next();
     jobj.after(_ipa_dl_template.replace('I', id));
     jobj = jobj.next();
-    jobj.after('<hr />');
 
     for (var i = 0; i < dts.length; ++i) {
 	var label = '';
@@ -203,6 +203,7 @@ function ipa_generate_dl(jobj, id, name, dts)
 	    _ipa_dt_template.replace('T', dts[i][0]).replace('N', label)
 	);
     }
+    jobj.after('<hr />');
 }
 
 /* HTML templates for ipa_details_display() */

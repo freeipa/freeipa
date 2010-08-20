@@ -11,7 +11,6 @@ app_DATA =                              \
 	ipa.css				\
 	jquery.js			\
 	group.js 			\
-	group-details.inc		\
 	host.js 			\
 	hostgroup.js 			\
 	index.xhtml 			\
@@ -23,7 +22,6 @@ app_DATA =                              \
 	details.js 			\
 	user.js 			\
 	user-add.inc 			\
-	user-details.inc		\
 	ipalogo.png			\
 	gray-fade-line.png		\
 	Mainnav-background.png		\

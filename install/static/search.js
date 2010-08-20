@@ -2,33 +2,6 @@
 var sampleData;
 
 
-function clearOld(){
-    $('#searchResultsTable thead').html("");
-    $('#searchResultsTable tfoot').html("");
-    $('#searchResultsTable tbody').find("tr").remove();
-    $('#content').html("");
-}
-
-function showSearch(){
-    clearOld();
-    $('#search').css("visibility","visible");
-    $('#content').css("visibility","hidden");
-    $('#search').css("display","block");
-    $('#content').css("display","none");
-    $("#filter").css("display","block");
-    $("#searchButtons").html("");
-    
-
-}
-
-function showContent(){
-    clearOld();
-    $('#search').css("visibility","hidden");
-    $('#content').css("visibility","visible");
-    $('#search').css("display","none");
-    $('#content').css("display","block");
-}
-
 //Columns is an array of items in the form
 // {title, column,  render}
 //title: the the value that goes at the head of the column
@@ -52,15 +25,16 @@ function  renderUnknownColumn(current,cell){
 }
 
 function renderDetailColumn(current,cell,pkey,obj){
-    link = document.createElement("a");
-    link.href= "?tab=" +obj+"&facet=details&pkey="+pkey;
-    link.innerHTML = pkey;
-    cell.appendChild(link);
+    $("<a/>",{
+	href:"#tab=user&facet=details&pkey="+pkey,
+	html:  ""+ current[this.column],
+	click: function(){ setupUserDetails(current.uid)},
+    }).appendTo(cell);
 }
 
 
 
-function SearchForm(obj, method, cols){
+function SearchForm(obj, method, cols, searchSampleData){
 
     this.buildColumnHeaders =  function (){
 	var columnHeaders  = document.createElement("tr");
@@ -96,35 +70,55 @@ function SearchForm(obj, method, cols){
 	}
     }
 
+    this.searchWithFilter = function(queryFilter){
+	var form = this;
+	window.location.hash="#tab="
+	+this.obj
+	    +"&facet=search&criteria="
+	    +queryFilter;
+
+	$('#searchResultsTable tbody').html("");
+	$('#searchResultsTable tbody').html("");
+	$('#searchResultsTable tfoot').html("");
+
+	ipa_cmd(this.method,
+		[queryFilter],
+		{"all":"true"},
+		function(json){
+		    form.searchSuccess(json);
+		},
+		function(json){
+		    alert("Search Failed");
+		},form.obj, form.searchSampleData);
+
+    }
+
     this.obj = obj;
     this.method = method;
     this.columns = cols;
+    this.searchSampleData = searchSampleData;
 
     showSearch();
 
     $('#searchResultsTable thead').html("");
     $('#searchResultsTable tbody').html("");
+    $('#searchResultsTable tfoot').html("");
+
     $("#new").click(function(){
-	location.href="?tab="+obj+"&facet=add";
+	location.href="#tab="+obj+"&facet=add";
     });
     this.buildColumnHeaders();
+
+    var params = ipa_parse_qs();
+
+    if (params["criteria"]){
+	this.searchWithFilter(params["criteria"]);
+    }
 }
 
 
 executeSearch = function(searchForm){
     var queryFilter = $("#queryFilter").val();
-
-    $('#searchResultsTable tbody').html("");
-
-    ipa_cmd(searchForm.method,
-	    [queryFilter],
-	    {"all":"true"},
-	    function(json){
-		searchForm.searchSuccess(json);
-	    },
-	    function(json){
-		alert("Search Failed");
-	    },searchForm.obj);
-
+    searchForm.searchWithFilter(queryFilter);
 }
 
