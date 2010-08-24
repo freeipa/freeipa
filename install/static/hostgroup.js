@@ -1,35 +1,48 @@
 function setupHostgroup(facet){
     if (facet == "details"){
-	setupHostgroupDetails();
+        hostgroupDetailsForm.setup();
+    }else if (facet == "add"){
+        hostgroupBuilder.setup();
     }else{
-	setupHostgroupSearch();
+        hostgroupSearchForm.setup();
     }
 }
 
-function setupHostgroupDetails(){
-    var detailsForm = new DetailsForm();
+var hostgroup_details_list =
+    [['identity', 'Hostgroup Details', [
+        ['cn', 'Hostgroup Name'],
+        ['description', 'Description']]]];
+
+
+var hostgroupDetailsForm = new DetailsForm("hostgroup",hostgroup_details_list,"cn","sampledata/hostgroupshow.json") ;
+
+
+
+function hostgroupAddOptionsFunction (){
+    var options = {
+        name: $('#pkey').val(),
+        description: $('#description').val()
+    };
+    return options;
 }
 
+var hostgroupAddProperties =
+    [{title: 'Hostgroup Name', id: 'pkey', type: 'text'},
+     {title: 'Description', id: 'description', type: 'text'}];
 
-function setupHostgroupSearch(){
+var hostgroupBuilder = new EntityBuilder("hostgroup",hostgroupAddProperties,hostgroupAddOptionsFunction);
 
-    var columns = [
-	{title:"Hostgroup",column:"cn",render:  function(current,cell){
-	     renderDetailColumn(current,cell,current[this.column],"hostgroup");
-	 }},
-	{title:"Description", column:"description",render: renderSimpleColumn}];
 
-    var hostgroupSearchForm = new SearchForm("hostgroup", "find", columns);
+var hostgroupSearchColumns = [
+    {
+        title:"Hostgroup", 
+        column:"cn", 
+        render:  function(current,cell){
+            renderPkeyColumn(hostgroupDetailsForm, current,cell);
+        }
+    },
+    {title:"Description", column:"description",render: renderSimpleColumn}];
 
-    $("#query").unbind();
-
-    $("#query").click(function(){
-	sampleData = "sampledata/hostgrouplist.json";
-	executeSearch(hostgroupSearchForm);
-    });
-    $("#new").unbind();
-    $("#new").click( function() {
-	alert("New Hostgroup...");
-    });
-
-}
+var hostgroupSearchForm = 
+    new SearchForm("hostgroup", "find", hostgroupSearchColumns,
+                   "sampledata/hostgrouplist.json");

@@ -1,38 +1,32 @@
 function setupHost(facet){
     if (facet == "details"){
-	setupHostDetails();
+    hostDetailsForm.setup();
+    }else if (facet == "add"){
+    hostBuilder.setup();
     }else{
-	setupHostSearch();
+    hostSearchForm.setup();
     }
 }
 
-function setupHostDetails(){
-    var detailsForm = new DetailsForm();
-}
+var hostAddProperties = [{title: 'Domain Name', id: 'pkey', type: 'text'}];
+var hostBuilder = new EntityBuilder("host",hostAddProperties);
 
-function setupHostSearch(){
 
-    sampleData = "sampledata/hostlist.json";
-    var columns = [
-	{title:"Host",column:"fqdn",render: function(current,cell){
-	    renderDetailColumn(current,cell,current[this.column],"group");
-	}},
-	{title:"Comment",   column: "description", render: renderSimpleColumn},
-	{title:"Enrolled?",  render: renderUnknownColumn},
-	{title:"Manages?",   render: renderUnknownColumn}
-    ];
+var host_details_list =  [['host', 'Host Details', [
+    ['fqdn', 'Fully Qualified Domain Name'],
+    ['krbprincipalname', 'Kerberos Principal'],
+    ['serverhostname', 'Server Host Name']
+]]];
+ 
+var hostDetailsForm = new DetailsForm("host",host_details_list,"fqdn","sampledata/hostshow.json") ;
 
-    var hostSearchForm = new SearchForm("host", "find", columns);
 
-    $("#query").unbind();
-    $("#query").click(function(){
-	sampleData = "sampledata/hostlist.json";
-	executeSearch(hostSearchForm);
-    });
-
-    $("#new").unbind();
-    $("#new").click( function() {
-	alert("New Host...");
-    });
-
-}
+var hostDetailsColumns = [
+    {title:"Host",column:"fqdn",render: function(current,cell){
+    renderPkeyColumn(hostDetailsForm,current,cell);
+    }},
+    {title:"Comment",   column: "description", render: renderSimpleColumn},
+    {title:"Enrolled?",  render: renderUnknownColumn},
+    {title:"Manages?",   render: renderUnknownColumn}
+];
+var hostSearchForm = new SearchForm("host", "find", hostDetailsColumns,"sampledata/hostlist.json");

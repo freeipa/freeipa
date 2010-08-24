@@ -2,6 +2,7 @@ NULL =
 
 appdir = $(IPA_DATA_DIR)/static
 app_DATA =                              \
+	add.js				\
 	but-reset.png			\
 	but-update.png			\
 	but-selected.png		\

@@ -89,11 +89,11 @@ div#details {
 }
 
 
-div#details ul#viewtype {
+ul#viewtype {
     padding-left: 20px;
 }
 
-div#details ul#viewtype li {
+ul#viewtype li {
     color: #656565;
     display: inline;
     font-weight: bold;
@@ -101,16 +101,12 @@ div#details ul#viewtype li {
     padding-right: 20px;
 }
 
-div#content ul#viewtype li#viewcaption {
-    color: #000;
-    padding-right: 10px;
-}
 
-div#details ul#viewtype li img {
+ul#viewtype li img {
     vertical-align: middle;
 }
 
-div#details ul#viewtype li a {
+ul#viewtype li a {
     font-weight: normal;
 }
 

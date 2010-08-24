@@ -1,0 +1,17 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "result": {
+            "cn": [
+                "host-live"
+            ],
+            "description": [
+                "Live servers"
+            ],
+            "dn": "cn=host-live,cn=hostgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+        },
+        "summary": null,
+        "value": "host-live"
+    }
+}

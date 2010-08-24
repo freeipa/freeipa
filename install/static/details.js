@@ -1,5 +1,6 @@
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
+ *    Adam Young <ayoung@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -16,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-*/
+ */
 
 /* IPA Object Details - populating definiton lists from entry data */
 
@@ -134,6 +135,7 @@ function ipa_details_update(pkey, on_win, on_fail)
         modlist['setattr'].push(attr + '=' + values[0]);
         for (var i = 1; i < values.length; ++i)
             modlist['addattr'].push(attr + '=' + values[i]);
+
     }
 
     _ipa_update_on_win_callback = on_win;
@@ -162,6 +164,7 @@ function _ipa_update_on_fail(xhr, text_status, error_thrown)
 {
     if (_ipa_update_on_fail_callback)
         _ipa_update_on_fail_callback(xhr, text_status, error_thrown);
+
 }
 
 function ipa_details_create(dls, container)
@@ -173,7 +176,7 @@ function ipa_details_create(dls, container)
         var d = dls[i];
 
         ipa_generate_dl($('#detail-lists hr').last(), d[0], d[1], d[2]);
-//        ipa_generate_dl($("#detail-lists"), d[0], d[1], d[2]);
+        //        ipa_generate_dl($("#detail-lists"), d[0], d[1], d[2]);
     }
 }
 
@@ -332,7 +335,7 @@ function ipa_create_input(attr, value)
         if (param_info['multivalue'] || param_info['class'] == 'List') {
             return (
                 handler(attr, value, param_info) +
-                _ipa_create_remove_link(attr, param_info)
+                    _ipa_create_remove_link(attr, param_info)
             );
         }
         return (handler(attr, value, param_info));
@@ -378,6 +381,7 @@ function ipa_details_reset()
 {
     if (ipa_details_cache)
         ipa_details_display(ipa_details_cache);
+
 }
 
 /* Event handlers */
@@ -435,3 +439,22 @@ function _h2_on_click(obj)
     }
 }
 
+function DetailsForm(obj, details_list, pkeyCol, sampleData   ){
+
+    this.obj = obj;
+    this.details_list = details_list;
+    this.sampleData = sampleData;
+    this.pkeyCol = pkeyCol;
+
+    this.setup= function(key){
+        //re initialize global parse of parameters
+        qs = ipa_parse_qs();
+
+        showDetails();
+        $('h1').text("Managing " + this.obj +": " +qs['pkey'] );
+
+        ipa_details_init(this.obj);
+        ipa_details_create(this.details_list, $('#details'));
+        ipa_details_load(qs.pkey, on_win, null, this.sampleData);
+    }
+}

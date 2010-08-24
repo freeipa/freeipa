@@ -39,16 +39,16 @@ var qs;
 function ipa_init(url, on_win)
 {
     if (!url)
-        url = '/ipa/json';
+	url = '/ipa/json';
 
     _ipa_init_on_win_callback = on_win;
 
     var options = {
-        url: url,
-        type: 'POST',
-        contentType: 'application/json',
-        dataType: 'json',
-        processData: false,
+	url: url,
+	type: 'POST',
+	contentType: 'application/json',
+	dataType: 'json',
+	processData: false,
     };
 
     $.ajaxSetup(options);
@@ -60,7 +60,7 @@ function _ipa_load_objs(data, textStatus, xhr)
 {
     ipa_objs = data.result.result;
     if (_ipa_init_on_win_callback)
-        _ipa_init_on_win_callback(data, textStatus, xhr);
+	_ipa_init_on_win_callback(data, textStatus, xhr);
 }
 
 /* call an IPA command over JSON-RPC
@@ -95,9 +95,9 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname,sampl
     };
 
     var request = {
-        data: JSON.stringify(data),
-        success: win_callback,
-        error: fail_callback,
+	data: JSON.stringify(data),
+	success: win_callback,
+	error: fail_callback,
     };
 
     $.ajax(request);
@@ -143,4 +143,3 @@ function ipa_get_param_info(attr)
 
     return (null);
 }
-

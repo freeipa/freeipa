@@ -16,7 +16,7 @@ var sampleData;
 //These are helper functions, either assigned to the rneder method
 //Or called from a thin wrapper render method
 function  renderSimpleColumn(current,cell){
-	cell.innerHTML = current[this.column];
+    cell.innerHTML = current[this.column];
 }
 
 
@@ -24,11 +24,19 @@ function  renderUnknownColumn(current,cell){
     cell.innerHTML = "Unknown";
 }
 
+
+function renderPkeyColumn(form,current,cell){
+    $("<a/>",{
+    href:"#tab="+form.obj+"&facet=details&pkey="+current[form.pkeyCol],
+    html:  "" + current[form.pkeyCol],
+    }).appendTo(cell);
+}
+
+
 function renderDetailColumn(current,cell,pkey,obj){
     $("<a/>",{
-	href:"#tab=user&facet=details&pkey="+pkey,
-	html:  ""+ current[this.column],
-	click: function(){ setupUserDetails(current.uid)},
+    href:"#tab="+obj+"&facet=details&pkey="+pkey,
+    html:  ""+ current[this.column],
     }).appendTo(cell);
 }
 
@@ -37,67 +45,59 @@ function renderDetailColumn(current,cell,pkey,obj){
 function SearchForm(obj, method, cols, searchSampleData){
 
     this.buildColumnHeaders =  function (){
-	var columnHeaders  = document.createElement("tr");
-	for (var i =0 ; i != this.columns.length ;i++){
-	    var th = document.createElement("th");
-	    th.innerHTML = this.columns[i].title;
-	    columnHeaders.appendChild(th);
-	}
-	$('#searchResultsTable thead:last').append(columnHeaders);
+    var columnHeaders  = document.createElement("tr");
+    for (var i =0 ; i != this.columns.length ;i++){
+        var th = document.createElement("th");
+        th.innerHTML = this.columns[i].title;
+        columnHeaders.appendChild(th);
+    }
+    $('#searchResultsTable thead:last').append(columnHeaders);
     }
 
 
     this.renderResultRow = function(current){
-	var row = document.createElement("tr");
-	var cell;
-	var link;
-	for(var index = 0 ; index < this.columns.length; index++){
-	    this.columns[index].render(current, row.insertCell(-1));
-	}
-	return row;
+    var row = document.createElement("tr");
+    var cell;
+    var link;
+    for(var index = 0 ; index < this.columns.length; index++){
+        this.columns[index].render(current, row.insertCell(-1));
+    }
+    return row;
     }
 
     this.searchSuccess = function (json){
-	if (json.result.truncated){
-	    $("#searchResultsTable tfoot").html("More than "+sizelimit+" results returned.  First "+ sizelimit+" results shown." );
-	}else{
-	    $("#searchResultsTable tfoot").html(json.result.summary);
-	}
-	$("#searchResultsTable tbody").find("tr").remove();
-	for (var index = 0; index !=  json.result.result.length; index++){
-	var current = json.result.result[index];
-	    $('#searchResultsTable tbody:last').append(this.renderResultRow(current));
-	}
+    if (json.result.truncated){
+        $("#searchResultsTable tfoot").html("More than "+sizelimit+" results returned.  First "+ sizelimit+" results shown." );
+    }else{
+        $("#searchResultsTable tfoot").html(json.result.summary);
+    }
+    $("#searchResultsTable tbody").find("tr").remove();
+    for (var index = 0; index !=  json.result.result.length; index++){
+    var current = json.result.result[index];
+        $('#searchResultsTable tbody:last').append(this.renderResultRow(current));
+    }
     }
 
     this.searchWithFilter = function(queryFilter){
-	var form = this;
-	window.location.hash="#tab="
-	+this.obj
-	    +"&facet=search&criteria="
-	    +queryFilter;
+    var form = this;
 
-	$('#searchResultsTable tbody').html("");
-	$('#searchResultsTable tbody').html("");
-	$('#searchResultsTable tfoot').html("");
+    $('#searchResultsTable tbody').html("");
+    $('#searchResultsTable tbody').html("");
+    $('#searchResultsTable tfoot').html("");
 
-	ipa_cmd(this.method,
-		[queryFilter],
-		{"all":"true"},
-		function(json){
-		    form.searchSuccess(json);
-		},
-		function(json){
-		    alert("Search Failed");
-		},form.obj, form.searchSampleData);
+    ipa_cmd(this.method,
+        [queryFilter],
+        {"all":"true"},
+        function(json){
+            form.searchSuccess(json);
+        },
+        function(json){
+            alert("Search Failed");
+        },form.obj, form.searchSampleData);
 
     }
 
-    this.obj = obj;
-    this.method = method;
-    this.columns = cols;
-    this.searchSampleData = searchSampleData;
-
+    this.setup = function(){
     showSearch();
 
     $('#searchResultsTable thead').html("");
@@ -105,20 +105,39 @@ function SearchForm(obj, method, cols, searchSampleData){
     $('#searchResultsTable tfoot').html("");
 
     $("#new").click(function(){
-	location.href="#tab="+obj+"&facet=add";
+        location.hash="tab="+obj+"&facet=add";
     });
+
+    $("#query").click(executeSearch);
+
     this.buildColumnHeaders();
 
     var params = ipa_parse_qs();
 
-    if (params["criteria"]){
-	this.searchWithFilter(params["criteria"]);
+    qs = location.hash.substring(1);
+    //TODO fix this hack.  since parse returns an object, I don't know how to see if that object has a"critia" property if criteria is null.
+    if (qs.indexOf("criteria") > 0)
+    {
+        this.searchWithFilter(params["criteria"]);
     }
+    }
+
+    this.obj = obj;
+    this.method = method;
+    this.columns = cols;
+    this.searchSampleData = searchSampleData;
+
+    this.setup();
 }
-
-
-executeSearch = function(searchForm){
+executeSearch = function(){
     var queryFilter = $("#queryFilter").val();
-    searchForm.searchWithFilter(queryFilter);
+    var qp = ipa_parse_qs();
+    var tab = qp.tab;
+    if (!tab){
+        tab = 'user';
+    }
+    window.location.hash="#tab="
+      +tab
+    +"&facet=search&criteria="
+    +queryFilter;
 }
-

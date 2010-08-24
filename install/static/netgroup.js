@@ -1,39 +1,46 @@
 function setupNetgroup(facet){
     if (facet == "details"){
-	setupNetgroupDetails();
+        netgroupDetailsForm.setup();
+    }else  if(facet == "add"){
+        netgroupBuilder.setup();
     }else{
-	setupNetgroupSearch();
+        netgroupSearchForm.setup();
     }
 }
 
 
+var netgroup_details_list =
+    [['identity', 'Netgroup Details', [
+        ['cn', 'Netgroup Name'],
+        ['description', 'Description'],
+        ['nisdomainname', 'NIS Domain']]]];
 
 
-function setupNetgroupDetails(){
-    var detailsForm = new DetailsForm();
+var netgroupDetailsForm = new DetailsForm("netgroup",netgroup_details_list,"cn","sampledata/netgroupshow.json") ;
+
+
+var netgroupAddProperties =
+    [{title: 'Netgroup Name', id: 'pkey', type: 'text'},
+     {title: 'Description', id: 'description', type: 'text'}];
+
+
+function netgroupAddOptionsFunction (){
+    var options = {
+        name: $('#pkey').val(),
+        description: $('#description').val()
+    };
+    return options;
 }
 
 
-function setupNetgroupSearch(){
+var netgroupBuilder = new EntityBuilder("netgroup",netgroupAddProperties,netgroupAddOptionsFunction);
 
 
-    var columns = [
-	{title:"Netgroup",column:"cn",render:  function(current,cell){
-	    renderDetailColumn(current,cell,current[this.column],"netgroup");
-	}},
-	{title:"Description", column:"description",render: renderSimpleColumn}];
+var netgroupSearchColumns = [
+    {title:"Netgroup",column:"cn",render:  function(current,cell){
+        renderPkeyColumn(netgroupDetailsForm, current,cell);
+    }},
+    {title:"Description", column:"description",render: renderSimpleColumn}];
 
-    var netgroupSearchForm = new SearchForm("netgroup", "find", columns);
-
-    $("#query").unbind();
-    $("#query").click(function(){
-	sampleData = "sampledata/netgrouplist.json";
-	executeSearch(netgroupSearchForm);
-    });
-    $("#new").unbind();
-    $("#new").click( function() {
-	alert("New Netgroup...");
-    });
-
-
-}
+var netgroupSearchForm =
+    new SearchForm("netgroup", "find", netgroupSearchColumns,"sampledata/netgrouplist.json");
