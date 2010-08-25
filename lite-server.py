@@ -31,7 +31,7 @@ Unfortunately, SSL support is broken under Python 2.6 with paste 1.7.2, see:
     http://trac.pythonpaste.org/pythonpaste/ticket/314
 """
 
-from os import path
+from os import path, getcwd
 import optparse
 from paste import httpserver
 import paste.gzipper
@@ -48,6 +48,46 @@ class KRBCheater(object):
     def __call__(self, environ, start_response):
         environ['KRB5CCNAME'] = self.ccname
         return self.app(environ, start_response)
+
+
+class WebUIApp(object):
+    INDEX_FILE = 'index.xhtml'
+    EXTENSION_TO_MIME_MAP = {
+        'xhtml': 'text/html',
+        'html': 'text/html',
+        'js': 'text/javascript',
+        'inc': 'text/html',
+        'css': 'text/css',
+        'png': 'image/png',
+        'json': 'text/javascript',
+    }
+
+    def __init__(self):
+        self.url = '/ipa/ui'
+
+    def __call__(self, environ, start_response):
+        path_info = environ['PATH_INFO'].lstrip('/')
+        if path_info == '':
+            path_info = self.INDEX_FILE
+        requested_file = path.join(getcwd(), 'install/static/', path_info)
+        extension = requested_file.rsplit('.', 1)[-1]
+
+        if extension not in self.EXTENSION_TO_MIME_MAP:
+            start_response('404 Not Found', [('Content-Type', 'text/plain')])
+            return ['NOT FOUND']
+        mime_type = self.EXTENSION_TO_MIME_MAP[extension]
+
+        f = None
+        try:
+            f = open(requested_file, 'r')
+            start_response('200 OK', [('Content-Type', mime_type)])
+            return [f.read()]
+        except IOError:
+            start_response('404 Not Found', [('Content-Type', 'text/plain')])
+            return ['NOT FOUND']
+        finally:
+            if f is not None:
+                f.close()
 
 
 if __name__ == '__main__':
@@ -83,6 +123,7 @@ if __name__ == '__main__':
     urlmap = URLMap()
     apps = [
         ('IPA', KRBCheater(api.Backend.session)),
+        ('webUI', KRBCheater(WebUIApp())),
     ]
     for (name, app) in apps:
         urlmap[app.url] = app
