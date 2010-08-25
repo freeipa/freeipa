@@ -20,36 +20,41 @@
 """
 Rolegroups
 
-A rolegroup is used for fine-grained delegation. Access control rules (ACIs)
-grant permission to performa a given task (add user, modify group, etc) to 
-task groups. Role groups are members of task groups, giving them permission
-to perform the task.
+A rolegroup is used for fine-grained delegation. Access control rules
+(ACIs) grant permission to perform given tasks (add a user, modify a group,
+etc.), to task groups. Rolegroups are members of taskgroups, giving them
+permission to perform the task.
 
-The logic looks like this:
+The logic behind ACIs and rolegroups proceeds as follows:
 
- ACI grants permission to taskgroup
+ ACIs grants permission to taskgroup
  rolegroups are members of taskgroups
- users, groups, hosts and hostgroups are members of role groups
+ users, groups, hosts and hostgroups are members of rolegroups
 
-A host/hostgroup may be members because you may want to perform
+Rolegroups can contain both hosts and hostgroups, enabling
 operations using the host service principal associated with a machine.
 
-A rolegroup may not be members of other rolegroups.
+Rolegroups can not contain other rolegroups.
 
 EXAMPLES:
 
- Create a new role group:
-   ipa rolegroup-add --desc="Junion level admin" junioradmin
+ Add a new rolegroup:
+   ipa rolegroup-add --desc="Junior-level admin" junioradmin
 
- Add this role to some tasks
+ Add this role to some tasks:
    ipa taskgroup-add-member --rolegroups=junioradmin addusers
    ipa taskgroup-add-member --rolegroups=junioradmin change_password
    ipa taskgroup-add-member --rolegroups=junioradmin add_user_to_default_group
 
- Add a group of users to this role:
-   ipa rolegroup-add-member --groups=junioradmins junioradmin
+ Yes, this can seem backwards. The taskgroup is the entry that is granted
+ permissions by the ACIs. By adding a rolegroup as a member of a taskgroup
+ it inherits those permissions.
 
- Display this role group:
+ Add a group of users to this role:
+   ipa group-add --desc="User admins" useradmins
+   ipa rolegroup-add-member --groups=useradmins junioradmin
+
+ Display information about a rolegroup:
    ipa rolegroup-show junioradmin
 """
 
@@ -104,7 +109,7 @@ api.register(rolegroup)
 
 class rolegroup_add(LDAPCreate):
     """
-    Create new rolegroup.
+    Add a new rolegroup.
     """
 
     msg_summary = _('Added rolegroup "%(value)s"')
@@ -114,7 +119,7 @@ api.register(rolegroup_add)
 
 class rolegroup_del(LDAPDelete):
     """
-    Delete rolegroup.
+    Delete a rolegroup.
     """
 
     msg_summary = _('Deleted rolegroup "%(value)s"')
@@ -124,7 +129,7 @@ api.register(rolegroup_del)
 
 class rolegroup_mod(LDAPUpdate):
     """
-    Edit rolegroup.
+    Modify a rolegroup.
     """
 
     msg_summary = _('Modified rolegroup "%(value)s"')
@@ -146,7 +151,7 @@ api.register(rolegroup_find)
 
 class rolegroup_show(LDAPRetrieve):
     """
-    Display rolegroup.
+    Display information about a rolegroup.
     """
 
 api.register(rolegroup_show)
@@ -154,7 +159,7 @@ api.register(rolegroup_show)
 
 class rolegroup_add_member(LDAPAddMember):
     """
-    Add member to rolegroup.
+    Add members to a rolegroup.
     """
 
 api.register(rolegroup_add_member)
@@ -162,7 +167,7 @@ api.register(rolegroup_add_member)
 
 class rolegroup_remove_member(LDAPRemoveMember):
     """
-    Remove member from rolegroup.
+    Remove members from a rolegroup.
     """
 
 api.register(rolegroup_remove_member)

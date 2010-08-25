@@ -24,7 +24,7 @@ IPA certificate operations
 
 Implements a set of commands for managing server SSL certificates.
 
-Certificate request come in the form of a Certificate Signing Request (CSR)
+Certificate request exist in the form of a Certificate Signing Request (CSR)
 in PEM format.
 
 If using the selfsign backend then the subject in the CSR needs to match
@@ -32,15 +32,16 @@ the subject configured in the server. The dogtag CA uses just the CN
 value of the CSR and forces the rest of the subject.
 
 A certificate is stored with a service principal and a service principal
-needs a host. So in order to request a certificate the following conditions
-must be met:
+needs a host.
 
-* The host exists
-* The service exists (or you use the --add option to automatically add it)
+In order to request a certificate:
+
+* The host must exist
+* The service must exist (or you use the --add option to automatically add it)
 
 EXAMPLES:
 
- Request a new certificate, add the principal:
+ Request a new certificate and add the principal:
    ipa cert-request --add --principal=HTTP/lion.example.com example.csr
 
  Retrieve an existing certificate:
@@ -55,7 +56,9 @@ EXAMPLES:
  Check the status of a signing request:
    ipa cert-status 10
 
-IPA currently immediately issues (or declines) all certificate requests.
+IPA currently immediately issues (or declines) all certificate requests so
+the status of a request is not normally useful. This is for future-use
+or the case where a CA does not immediately issue a certificate.
 """
 
 from ipalib import api, SkipPluginModule

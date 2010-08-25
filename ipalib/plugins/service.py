@@ -19,43 +19,53 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
-Services (Identity)
+Services
 
-A service represents a running service on a host. This service record
-may store a kerberos principal or an SSL certificate (or both).
+A IPA service represents a service that runs on a host. The IPA service
+record can store a Kerberos principal, an SSL certificate, or both.
 
-A service may be managed directly by a machine, if it has been given
-the proper permission (even a machine other than the one the service is
-associated with). An example of this is requesting an SSL certificate
-using the host service principal credentials of the host.
+An IPA service can be managed directly from a machine, provided that
+machine has been given the correct permission. This is true even for
+machines other than the one the service is associated with. For example,
+requesting an SSL certificate using the host service principal credentials
+of the host. To manage a services using a host credentials you need to
+kinit as the host:
 
-Adding a service makes it possible to request an SSL certificate or
-keytab for that service but this is done as a separate step later. The
-creation of a service in itself doesn't generate these.
+ # kinit -kt /etc/krb5.keytab host/ipa.example.com@EXAMPLE.COM
 
-The certificate stored in a service is just the public portion. The
-private key is not stored.
+Adding an IPA service allows the associated service to request an SSL
+certificate or keytab, but this is performed as a separate step; they
+are not produced as a result of adding the service.
+
+Only the public aspect of a certificate is stored in a service record;
+the private key is not stored.
 
 EXAMPLES:
 
- Add a service:
+ Add a new IPA service:
    ipa service-add HTTP/web.example.com
 
- Allow a host to manage the service certificate:
+ Allow a host to manage an IPA service certificate:
   ipa service-add-host --hosts=web.example.com HTTP/web.example.com
   ipa rolegroup-add-member --hosts=web.example.com certadmin
 
- Remove a service:
+ Delete an IPA service:
    ipa service-del HTTP/web.example.com
 
- Find all services for a host:
+ Find all IPA services assicated with a host:
    ipa service-find web.example.com
 
  Find all HTTP services:
    ipa service-find HTTP
 
- Disable a service kerberos key:
+ Disable a service Kerberos key:
    ipa service-disable HTTP/web.example.com
+
+ Request a certificate for an IPA service:
+   ipa cert-request --principal=HTTP/web.example.com example.csr
+
+ Generate and retrieve a keytab for an IPA service:
+   ipa-getkeytab -s ipa.example.com -p HTTP/web.example.com -k /etc/httpd/httpd.keytab
 
 """
 import base64
@@ -161,7 +171,7 @@ api.register(service)
 
 class service_add(LDAPCreate):
     """
-    Add new service.
+    Add a new IPA new service.
     """
     msg_summary = _('Added service "%(value)s"')
     member_attributes = ['managedby']
@@ -209,7 +219,7 @@ api.register(service_add)
 
 class service_del(LDAPDelete):
     """
-    Delete an existing service.
+    Delete an IPA service.
     """
     msg_summary = _('Deleted service "%(value)s"')
     member_attributes = ['managedby']
@@ -246,7 +256,7 @@ api.register(service_del)
 
 class service_mod(LDAPUpdate):
     """
-    Modify service.
+    Modify an existing IPA service.
     """
     msg_summary = _('Modified service "%(value)s"')
     takes_options = LDAPUpdate.takes_options + (
@@ -282,7 +292,7 @@ api.register(service_mod)
 
 class service_find(LDAPSearch):
     """
-    Search for services.
+    Search for IPA services.
     """
     msg_summary = ngettext(
         '%(count)d service matched', '%(count)d services matched'
@@ -324,7 +334,7 @@ api.register(service_find)
 
 class service_show(LDAPRetrieve):
     """
-    Display service.
+    Display information about an IPA service.
     """
     member_attributes = ['managedby']
     takes_options = LDAPRetrieve.takes_options + (
@@ -370,7 +380,7 @@ api.register(service_remove_host)
 
 class service_disable(LDAPQuery):
     """
-    Disable the kerberos key of this service.
+    Disable the Kerberos key of a service.
     """
     has_output = output.standard_value
     msg_summary = _('Removed kerberos key from "%(value)s"')

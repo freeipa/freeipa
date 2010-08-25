@@ -20,41 +20,67 @@
 """
 Directory Server Access Control Instructions (ACIs)
 
-ACI's are used to allow or deny access to information. This module is
-currently designed to allow, not deny, access, primarily write access.
+ACIs are used to allow or deny access to information. This module is
+currently designed to allow, not deny, access.
 
-The primary use of this plugin is to create low-level permission sets
-to allow a group to write or update entries or a set of attributes. This
-may include adding or removing entries as well. These groups are called
-taskgroups. These low-level permissions can be combined into roles
-that grant broader access. These roles are another type of group, rolegroups.
+The aci commands are designed to grant permissions that allow updating
+existing entries or adding or deleting new ones. The goal of the ACIs
+that ship with IPA is to provide a set of low-level permissions that
+grant access to special groups called taskgroups. These low-level
+permissions can be combined into roles that grant broader access. These
+roles are another type of group, rolegroups.
 
 For example, if you have taskgroups that allow adding and modifying users you
 could create a rolegroup, useradmin. You would assign users to the useradmin
 rolegroup to allow them to do the operations defined by the taskgroups.
 
-You can create ACIs that delegate permission so users in
-group A can write attributes on group B.
+You can create ACIs that delegate permission so users in group A can write
+attributes on group B.
 
 The type option is a map that applies to all entries in the users, groups or
 host location. It is primarily designed to be used when granting add
 permissions (to write new entries).
+
+An ACI consists of three parts:
+1. target
+2. permissions
+3. bind rules
+
+The target is a set of rules that define which LDAP objects are being
+targetted. This can include a list of attributes, an area of that LDAP
+tree or an LDAP filter.
+
+The permissions define what the ACI is allowed to do, they are one or more
+of:
+1. write - write one or more attributes
+2. read - read one or more attributes
+3. add - add a new entry to the tree
+4. delete - delete an existing entry
+5. all - all permissions are granted
+
+Note the distinction between attributes and entries. The permissions are
+independent, so being able to add a user does not mean that the user will
+be editabe.
+
+The bind rule defines who this ACI grants permissions to. The LDAP server
+allows this to be any valid LDAP entry but we encourage the use of
+taskgroups so that the rights can be easily shared through rolegroups.
 
 For a more thorough description of access controls see
 http://www.redhat.com/docs/manuals/dir-server/ag/8.0/Managing_Access_Control.html
 
 EXAMPLES:
 
- Add an ACI so the group 'secretaries' can update the address on any user:
+ Add an ACI so that the group "secretaries" can update the address on any user:
    ipa aci-add --attrs=streetAddress --memberof=ipausers --group=secretaries --permissions=write "Secretaries write addresses"
 
  Show the new ACI:
    ipa aci-show "Secretaries write addresses"
 
- Add an ACI that allows members of the 'addusers' taskgroup to add new users:
+ Add an ACI that allows members of the "addusers" taskgroup to add new users:
    ipa aci-add --type=user --taskgroup=addusers --permissions=add "Add new users"
 
-The show command will show the raw DS ACI.
+The show command shows the raw 389-ds ACI.
 
 IMPORTANT: When modifying the target attributes of an existing ACI you
 must include all existing attributes as well. When doing an aci-mod the
@@ -77,7 +103,7 @@ _type_map = {
 }
 
 _valid_permissions_values = [
-    u'read', u'write', u'add', u'delete', u'selfwrite', u'all'
+    u'read', u'write', u'add', u'delete', u'all'
 ]
 
 class ListOfACI(output.Output):
@@ -279,7 +305,7 @@ class aci(Object):
             cli_name='permissions',
             label=_('Permissions'),
             doc=_('comma-separated list of permissions to grant' \
-                '(read, write, add, delete, selfwrite, all)'),
+                '(read, write, add, delete, all)'),
             normalizer=_normalize_permissions,
         ),
         List('attrs?',

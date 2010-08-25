@@ -18,47 +18,49 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
-Hosts/Machines (Identity)
+Hosts/Machines
 
 A host represents a machine. It can be used in a number of contexts:
 - service entries are associated with a host
 - a host stores the host/ service principal
-- a host may be used in Host-Based Access Control (HBAC) rules
+- a host can be used in Host-Based Access Control (HBAC) rules
 - every enrolled client generates a host entry
 
 ENROLLMENT:
 
-There are three enrollment scenarios when enrolling a new client.
+There are three enrollment scenarios when enrolling a new client:
 
-1. You are enrolling as a full administrator (hostadmin rolegroup). The
-   host entry may exist or not.
-2. You are enrolling as a limited administrator (enrollhost rolegroup). The
-   host must already exist.
+1. You are enrolling as a full administrator. The host entry may exist
+   or not. A full administrator is a member of the hostadmin rolegroup
+   or the admins group.
+2. You are enrolling as a limited administrator. The host must already
+   exist. A limited administrator is a member of the enrollhost rolegroup.
 3. The host has been created with a one-time password.
 
-A host may only be enrolled once. If a client has enrolled and needs to
-be re-enrolled then the host entry needs to be removed and re-created.
-Note that this will result in all services for this host being removed too,
-and all SSL certificates associated with those services to be revoked.
+A host can only be enrolled once. If a client has enrolled and needs to
+be re-enrolled, the host entry must be removed and re-created. Note that
+re-creating the host entry will result in all services for the host being
+removed, and all SSL certificates associated with those services being
+revoked.
 
 A host can optionally store information such as where it is located,
 the OS that it runs, etc.
 
 EXAMPLES:
 
- Create a new host
-   ipa host-add --location='3rd floor lab' --locality=Dallas test.example.com
+ Add a new host:
+   ipa host-add --location="3rd floor lab" --locality=Dallas test.example.com
 
- Remove a host
+ Delete a host:
    ipa host-del test.example.com
 
- Create a new host with a one-time password
+ Add a new host with a one-time password:
    ipa host-add --os='Fedora 12' --password=Secret123 test.example.com
 
- Update information about a host
+ Modify information about a host:
    ipa host-mod --os='Fedora 12' test.example.com
 
- Disable the host kerberos key
+ Disable the host kerberos key:
    ipa host-disable test.example.com
 """
 
@@ -191,7 +193,7 @@ api.register(host)
 
 class host_add(LDAPCreate):
     """
-    Create new host.
+    Add a new host.
     """
 
     msg_summary = _('Added host "%(value)s"')
@@ -227,7 +229,7 @@ api.register(host_add)
 
 class host_del(LDAPDelete):
     """
-    Delete host.
+    Delete a host.
     """
 
     msg_summary = _('Deleted host "%(value)s"')
@@ -261,7 +263,7 @@ api.register(host_del)
 
 class host_mod(LDAPUpdate):
     """
-    Modify host.
+    Modify information about a host.
     """
 
     msg_summary = _('Modified host "%(value)s"')
@@ -328,7 +330,7 @@ api.register(host_find)
 
 class host_show(LDAPRetrieve):
     """
-    Display host.
+    Display information about a host.
     """
     has_output_params = (
         Flag('has_keytab',
@@ -351,7 +353,7 @@ api.register(host_show)
 
 class host_disable(LDAPQuery):
     """
-    Disable the kerberos key of this host.
+    Disable the kerberos key of a host.
     """
     has_output = output.standard_value
     msg_summary = _('Removed kerberos key from "%(value)s"')

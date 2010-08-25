@@ -18,19 +18,23 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
-Users (Identity)
+Users
 
-Manage user entries.
+Manage user entries. All users are POSIX users.
+
+Locking a user account prevents that user from obtaining new Kerberos
+credentials. It does not invalidate any credentials that have already
+been issued.
 
 EXAMPLES:
 
- Create a new user:
+ Add a new user:
    ipa user-add --first=Tim --last=User --passwd tuser1
 
- Find a user Tim:
+ Find all users whose entries include the string "Tim":
    ipa user-find Tim
 
- Find all users with Tim as the first name:
+ Find all users with "Tim" as the first name:
    ipa user-find --first=Tim
 
  Lock a user account:
@@ -156,7 +160,7 @@ api.register(user)
 
 class user_add(LDAPCreate):
     """
-    Create new user.
+    Add a new user.
     """
 
     msg_summary = _('Added user "%(value)s"')
@@ -205,7 +209,7 @@ api.register(user_add)
 
 class user_del(LDAPDelete):
     """
-    Delete user.
+    Delete a user.
     """
 
     msg_summary = _('Deleted user "%(value)s"')
@@ -224,7 +228,7 @@ api.register(user_del)
 
 class user_mod(LDAPUpdate):
     """
-    Modify user.
+    Modify a user.
     """
 
     msg_summary = _('Modified user "%(value)s"')
@@ -246,7 +250,7 @@ api.register(user_find)
 
 class user_show(LDAPRetrieve):
     """
-    Display user.
+    Display information about a user.
     """
 
 api.register(user_show)
@@ -254,7 +258,7 @@ api.register(user_show)
 
 class user_lock(LDAPQuery):
     """
-    Lock user account.
+    Lock a user account.
     """
 
     has_output = output.standard_value
@@ -280,7 +284,7 @@ api.register(user_lock)
 
 class user_unlock(LDAPQuery):
     """
-    Unlock user account.
+    Unlock a user account.
     """
 
     has_output = output.standard_value

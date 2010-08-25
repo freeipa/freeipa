@@ -25,19 +25,19 @@ user and host values.
 
 EXAMPLES:
 
- Create a new netgroup:
-   ipa netgroup-add --desc='NFS admins' admins
+ Add a new netgroup:
+   ipa netgroup-add --desc="NFS admins" admins
 
- Add a member to the group:
+ Add members to the netgroup:
    ipa netgroup-add-member --users=tuser1,tuser2 admins
 
- Remove a member from the group:
+ Remove a member from the netgroup:
    ipa netgroup-remove-member --users=tuser2 admins
 
- Display a netgroup:
+ Display infromation about a netgroup:
    ipa netgroup-show admins
 
- Remove a netgroup:
+ Delete a netgroup:
    ipa netgroup-del admins
 """
 
@@ -131,7 +131,7 @@ api.register(netgroup)
 
 class netgroup_add(LDAPCreate):
     """
-    Create new netgroup.
+    Add a new netgroup.
     """
     has_output_params = output_params
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
@@ -149,7 +149,7 @@ api.register(netgroup_add)
 
 class netgroup_del(LDAPDelete):
     """
-    Delete netgroup.
+    Delete a netgroup.
     """
 
 api.register(netgroup_del)
@@ -157,7 +157,7 @@ api.register(netgroup_del)
 
 class netgroup_mod(LDAPUpdate):
     """
-    Modify netgroup.
+    Modify a netgroup.
     """
     has_output_params = output_params
 
@@ -166,7 +166,7 @@ api.register(netgroup_mod)
 
 class netgroup_find(LDAPSearch):
     """
-    Search the groups.
+    Search for a netgroup.
     """
     has_output_params = output_params
 
@@ -175,7 +175,7 @@ api.register(netgroup_find)
 
 class netgroup_show(LDAPRetrieve):
     """
-    Display netgroup.
+    Display information about a netgroup.
     """
     has_output_params = output_params
 
@@ -184,7 +184,7 @@ api.register(netgroup_show)
 
 class netgroup_add_member(LDAPAddMember):
     """
-    Add members to netgroup.
+    Add members to a netgroup.
     """
     has_output_params = LDAPAddMember.has_output_params + output_params
     member_attributes = ['memberuser', 'memberhost']
@@ -220,7 +220,7 @@ api.register(netgroup_add_member)
 
 class netgroup_remove_member(LDAPRemoveMember):
     """
-    Remove members from netgroup.
+    Remove members from a netgroup.
     """
     has_output_params = LDAPRemoveMember.has_output_params + output_params
     member_attributes = ['memberuser', 'memberhost']

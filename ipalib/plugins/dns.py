@@ -17,10 +17,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
-Domain Name System (DNS) plugin
+Domain Name System (DNS) plug-in
 
 Implements a set of commands useful for manipulating DNS records used by
-the BIND LDAP plugin.
+the BIND LDAP plug-in.
 
 EXAMPLES:
 
@@ -42,10 +42,10 @@ EXAMPLES:
  Show zone example.com:
    ipa dns-show example.com
 
- Find zone with 'example' in it's domain name:
+ Find zone with "example" in it's domain name:
    ipa dns-find example
 
- Find records for resources with 'www' in their name in zone example.com:
+ Find records for resources with "www" in their name in zone example.com:
    ipa dns-find-rr example.com www
 
  Find A records for resource www in zone example.com

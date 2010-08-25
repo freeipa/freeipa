@@ -17,32 +17,40 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
-Host based access control
+Host-based access control
 
-Control who can access what services where from where. With HBAC
-you can control which users or groups of users may access a service
-or group of services, additionally restricting the source and source
-hosts.
+Control who can access what services on what hosts and from where. You
+can use HBAC to control which users or groups on a source host can
+access a service, or group of services, on a target host. You can also
+control the times that the rule is active.
 
-You can also control the times that the rule is active.
+You can also specify a category of users, target hosts, and source
+hosts. This is currently limited to "all", but might be expanded in the
+future.
 
-It is possible to specify a category of users, hosts or source hosts.
-Currently this is limited to 'all' but may be expanded in the future.
+The access time(s) of a host are cumulative and are not guaranteed to be
+applied in the order displayed.
 
-Hosts and source hosts must be host entries in IPA (see host plugin).
+Target hosts and source hosts in HBAC rules must be hosts managed by IPA.
+
+The available services and groups of services are controlled by the
+hbacsvc and hbacsvcgroup plug-ins respectively.
 
 EXAMPLES:
 
- Create a new rule that grants all users access to the host 'server' from
+ Create a rule, "test1", that grants all users access to the host "server" from
  anywhere:
    ipa hbac-add --type=allow --usercat=all --srchostcat=all test1
    ipa hbac-add-host --hosts=server.example.com test1
 
- Show an HBAC rule:
+ Display the properties of a named HBAC rule:
    ipa hbac-show test1
 
- Add an access time to a rule:
+ Specify that the rule "test1" be active every day between 0800 and 1400:
    ipa hbac-add-accesstime --time='periodic daily 0800-1400' test1
+
+  Specify that the rule "test1" be active once, from 10:32 until 10:33 on
+  December 16, 2010:
    ipa hbac-add-accesstime --time='absolute 201012161032 ~ 201012161033' test1
 
  Create a rule for a specific service. This lets the user john access
@@ -51,10 +59,10 @@ EXAMPLES:
    ipa hbac-add-user --users=john john_sshd
    ipa hbac-add-service --hbacsvcs=sshd john_sshd
 
- Disable a rule:
+ Disable a named HBAC rule:
    ipa hbac-disable test1
 
- Remove an HBAC rule:
+ Remove a named HBAC rule:
    ipa hbac-del allow_server
 """
 
@@ -186,7 +194,7 @@ api.register(hbac)
 
 class hbac_add(LDAPCreate):
     """
-    Create new HBAC rule.
+    Create a new HBAC rule.
     """
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         if not dn.startswith('cn='):
@@ -203,7 +211,7 @@ api.register(hbac_add)
 
 class hbac_del(LDAPDelete):
     """
-    Delete HBAC rule.
+    Delete an HBAC rule.
     """
 
 api.register(hbac_del)
@@ -211,7 +219,7 @@ api.register(hbac_del)
 
 class hbac_mod(LDAPUpdate):
     """
-    Modify HBAC rule.
+    Modify an HBAC rule.
     """
 
 api.register(hbac_mod)
@@ -227,7 +235,7 @@ api.register(hbac_find)
 
 class hbac_show(LDAPRetrieve):
     """
-    Dispaly HBAC rule.
+    Display the properties of an HBAC rule.
     """
 
 api.register(hbac_show)
@@ -235,7 +243,7 @@ api.register(hbac_show)
 
 class hbac_enable(LDAPQuery):
     """
-    Enable HBAC rule.
+    Enable an HBAC rule.
     """
     def execute(self, cn):
         ldap = self.obj.backend
@@ -259,7 +267,7 @@ api.register(hbac_enable)
 
 class hbac_disable(LDAPQuery):
     """
-    Disable HBAC rule.
+    Disable an HBAC rule.
     """
     def execute(self, cn):
         ldap = self.obj.backend
@@ -283,7 +291,7 @@ api.register(hbac_disable)
 
 class hbac_add_accesstime(LDAPQuery):
     """
-    Add access time to HBAC rule.
+    Add an access time to an HBAC rule.
     """
 
     takes_options = (
@@ -360,7 +368,7 @@ api.register(hbac_remove_accesstime)
 
 class hbac_add_user(LDAPAddMember):
     """
-    Add users and groups affected by HBAC rule.
+    Add users and groups to an HBAC rule.
     """
     member_attributes = ['memberuser']
     member_count_out = ('%i object added.', '%i objects added.')
@@ -370,7 +378,7 @@ api.register(hbac_add_user)
 
 class hbac_remove_user(LDAPRemoveMember):
     """
-    Remove users and groups affected by HBAC rule.
+    Remove users and groups from an HBAC rule.
     """
     member_attributes = ['memberuser']
     member_count_out = ('%i object removed.', '%i objects removed.')
@@ -380,7 +388,7 @@ api.register(hbac_remove_user)
 
 class hbac_add_host(LDAPAddMember):
     """
-    Add hosts and hostgroups affected by HBAC rule.
+    Add target hosts and hostgroups to an HBAC rule
     """
     member_attributes = ['memberhost']
     member_count_out = ('%i object added.', '%i objects added.')
@@ -390,7 +398,7 @@ api.register(hbac_add_host)
 
 class hbac_remove_host(LDAPRemoveMember):
     """
-    Remove hosts and hostgroups affected by HBAC rule.
+    Remove target hosts and hostgroups from a HBAC rule.
     """
     member_attributes = ['memberhost']
     member_count_out = ('%i object removed.', '%i objects removed.')
@@ -400,7 +408,7 @@ api.register(hbac_remove_host)
 
 class hbac_add_sourcehost(LDAPAddMember):
     """
-    Add source hosts and hostgroups affected by HBAC rule.
+    Add source hosts and hostgroups from a HBAC rule.
     """
     member_attributes = ['sourcehost']
     member_count_out = ('%i object added.', '%i objects added.')
@@ -410,7 +418,7 @@ api.register(hbac_add_sourcehost)
 
 class hbac_remove_sourcehost(LDAPRemoveMember):
     """
-    Remove source hosts and hostgroups affected by HBAC rule.
+    Remove source hosts and hostgroups from an HBAC rule.
     """
     member_attributes = ['sourcehost']
     member_count_out = ('%i object removed.', '%i objects removed.')
@@ -420,7 +428,7 @@ api.register(hbac_remove_sourcehost)
 
 class hbac_add_service(LDAPAddMember):
     """
-    Add services affected by HBAC rule.
+    Add services to an HBAC rule.
     """
     member_attributes = ['memberservice']
     member_count_out = ('%i object added.', '%i objects added.')
@@ -430,7 +438,7 @@ api.register(hbac_add_service)
 
 class hbac_remove_service(LDAPRemoveMember):
     """
-    Remove source hosts and hostgroups affected by HBAC rule.
+    Remove source hosts and hostgroups from an HBAC rule.
     """
     member_attributes = ['memberservice']
     member_count_out = ('%i object removed.', '%i objects removed.')

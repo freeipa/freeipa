@@ -18,14 +18,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """
-Manage IPA configuration
+Manage the IPA configuration
 
-Manage default values tha IPA uses and some tuning parameters:
+Manage the default values tha IPA uses and some of its tuning parameters.
 
- Show the current configuration:
+ To show the current configuration:
    ipa config-show
 
- Modify the configuration:
+ To modify the configuration:
    ipa config-mod --maxusername=99
 
 The available options are:
@@ -48,7 +48,7 @@ how many records may be returned on a given search.
 Server Configuration.
 
   --enable-migration=BOOL Enable migration mode
-  --subject=STR           base for certificate subjects (OU=Test,O=Example)
+  --subject=STR           Base for certificate subjects (OU=Test,O=Example)
 
 """
 
@@ -126,7 +126,7 @@ class config(LDAPObject):
         Str('ipacertificatesubjectbase?',
             cli_name='subject',
             label=_('Certificate Subject base'),
-            doc=_('base for certificate subjects (OU=Test,O=Example)'),
+            doc=_('Base for certificate subjects (OU=Test,O=Example)'),
         ),
     )
 
@@ -153,7 +153,7 @@ api.register(config_mod)
 
 class config_show(LDAPRetrieve):
     """
-    Display configuration options.
+    Show the current configuration.
     """
 
 api.register(config_show)

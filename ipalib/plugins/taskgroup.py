@@ -20,11 +20,13 @@
 """
 Taskgroups
 
-A taskgroup is used for fine-grained delegation. Access control rules (ACIs)
-grant permission to performa a given task (add user, modify group, etc) to
-task groups. 
+A taskgroup enables fine-grained delegation of permissions. Access Control
+Rules, or instructions (ACIs), grant permission to taskgroups to perform
+given tasks such as adding a user, modifying a group, etc.
 
 A taskgroup may not be members of other taskgroups.
+
+See rolegroup and aci for additional information.
 """
 
 from ipalib.plugins.baseldap import *
@@ -79,7 +81,7 @@ api.register(taskgroup)
 
 class taskgroup_add(LDAPCreate):
     """
-    Create new taskgroup.
+    Add a new taskgroup.
     """
 
     msg_summary = _('Added taskgroup "%(value)s"')
@@ -89,7 +91,7 @@ api.register(taskgroup_add)
 
 class taskgroup_del(LDAPDelete):
     """
-    Delete taskgroup.
+    Delete a taskgroup.
     """
 
     msg_summary = _('Deleted taskgroup "%(value)s"')
@@ -99,7 +101,7 @@ api.register(taskgroup_del)
 
 class taskgroup_mod(LDAPUpdate):
     """
-    Modify taskgroup.
+    Modify a taskgroup.
     """
 
     msg_summary = _('Modified taskgroup "%(value)s"')
@@ -121,7 +123,7 @@ api.register(taskgroup_find)
 
 class taskgroup_show(LDAPRetrieve):
     """
-    Display taskgroup.
+    Display information about a taskgroup.
     """
 
 api.register(taskgroup_show)
@@ -129,7 +131,7 @@ api.register(taskgroup_show)
 
 class taskgroup_add_member(LDAPAddMember):
     """
-    Add member to taskgroup.
+    Add members to a taskgroup.
     """
 
 api.register(taskgroup_add_member)
@@ -137,7 +139,7 @@ api.register(taskgroup_add_member)
 
 class taskgroup_remove_member(LDAPRemoveMember):
     """
-    Remove member from taskgroup.
+    Remove members from a taskgroup.
     """
 
 api.register(taskgroup_remove_member)

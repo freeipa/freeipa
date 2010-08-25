@@ -19,13 +19,13 @@
 """
 Kerberos ticket policy
 
-There is a single kerberos ticket policy. This policy defines the
-maximum ticket lifetime (maximum life of a ticket) and maximum renewal
-age, the period during which the ticket is renewable.
+There is a single Kerberos ticket policy. This policy defines the
+maximum ticket lifetime and the maximum renewal age, the period during
+which the ticket is renewable.
 
 EXAMPLES:
 
- Display the current policy:
+ Display the current Kerberos ticket policy:
   ipa krbtpolicy-show
 
  Reset the policy to the default:
@@ -85,7 +85,7 @@ api.register(krbtpolicy)
 
 class krbtpolicy_mod(LDAPUpdate):
     """
-    Modify kerberos ticket policy.
+    Modify Kerberos ticket policy.
     """
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         # disable all flag
@@ -99,7 +99,7 @@ api.register(krbtpolicy_mod)
 
 class krbtpolicy_show(LDAPRetrieve):
     """
-    Display kerberos ticket policy.
+    Display the current Kerberos ticket policy.
     """
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
         # disable all flag
@@ -123,7 +123,7 @@ api.register(krbtpolicy_show)
 
 class krbtpolicy_reset(LDAPQuery):
     """
-    Reset kerberos ticket policy to default.
+    Reset Kerberos ticket policy to the default values.
     """
     has_output = output.standard_entry
 

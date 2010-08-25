@@ -20,43 +20,49 @@
 """
 Groups of users
 
-Manage groups of users. By default new groups are not Posix groups.
-You can mark it as Posix at creation time with the --posix flag and
-can promose a non-Posix group using the --posix flag in group-mod.
-Once a group is a Posix group there is no way to undo this.
+Manage groups of users. By default, new groups are not POSIX groups. You
+can add the --posix to the group-add command to mark a new group
+as POSIX, and you can use the same argument to the group-mod command to
+convert a non-POSIX group to a POSIX group. POSIX groups cannot be
+converted to non-POSIX groups.
 
 Every group must have a description.
 
-Posix groups must have a group id number (gid). Changing a gid is
-supported but can have impact on your file permissions.
+POSIX groups must have a Group ID number (GID). Changing a GID is
+supported but can have impact on your file permissions. It is not necessary
+to supply a GID when creating a group. IPA will generate one automatically
+if it is not provided.
 
 EXAMPLES:
 
  Add a new group:
    ipa group-add --desc='local administrators' localadmins
 
- Add a new posix group:
+ Add a new POSIX group:
    ipa group-add --posix --desc='remote administrators' remoteadmins
 
- Promote a non-posix group to posix:
+ Convert a non-POSIX group to posix:
    ipa group-mod --posix localadmins
 
- Create a group with a specific group ID number"
+ Add a new POSIX group with a specific Group ID number:
    ipa group-add --posix --gid=500 --desc='unix admins' unixadmins
+
+ Add a new POSIX group and let IPA assign a Group ID number:
+   ipa group-add --posix --desc='printer admins' printeradmins
 
  Remove a group:
    ipa group-del unixadmins
 
- Manage group membership, nested groups:
+ To add the "remoteadmins" group to the "localadmins" group:
    ipa group-add-member --groups=remoteadmins localadmins
 
- Manage group membership, users:
+ Add a list of users to the "localadmins" group:
    ipa group-add-member --users=test1,test2 localadmins
 
- Manage group membership, users:
+ Remove a user from the "localadmins" group:
    ipa group-remove-member --users=test2 localadmins
 
- Show a group:
+ Display information about a named group.
    ipa group-show localadmins
 """
 
@@ -122,7 +128,7 @@ api.register(group)
 
 class group_add(LDAPCreate):
     """
-    Create new group.
+    Create a new group.
     """
 
     msg_summary = _('Added group "%(value)s"')
@@ -176,7 +182,7 @@ api.register(group_del)
 
 class group_mod(LDAPUpdate):
     """
-    Modify group.
+    Modify a group.
     """
 
     msg_summary = _('Modified group "%(value)s"')
@@ -218,7 +224,7 @@ api.register(group_find)
 
 class group_show(LDAPRetrieve):
     """
-    Display group.
+    Display information about a named group.
     """
 
 api.register(group_show)
@@ -226,7 +232,7 @@ api.register(group_show)
 
 class group_add_member(LDAPAddMember):
     """
-    Add members to group.
+    Add members to a group.
     """
 
 api.register(group_add_member)
@@ -234,7 +240,7 @@ api.register(group_add_member)
 
 class group_remove_member(LDAPRemoveMember):
     """
-    Remove members from group.
+    Remove members from a group.
     """
 
 api.register(group_remove_member)

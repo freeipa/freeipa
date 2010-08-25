@@ -20,24 +20,30 @@
 """
 Groups of hosts.
 
-This is useful for Host-Based Access Control (HBAC) to group a series
-of hosts together for applying access control.
+Manage groups of hosts. This is useful for applying access control to a
+number of hosts by using Host-based Access Control.
 
 EXAMPLES:
 
- Create a new host group:
-   ipa hostgroup-add --desc='Baltimore hosts' baltimore
+ Add a new host group:
+   ipa hostgroup-add --desc="Baltimore hosts" baltimore
 
- Add some hosts to the group:
+ Add another new host group:
+   ipa hostgroup-add --desc="Maryland hosts" maryland
+
+ Add members to the hostgroup:
    ipa hostgroup-add-member --hosts=box1,box2,box3 baltimore
 
- Remove a host from the group:
+ Add a hostgroup as a member of another hostgroup:
+   ipa hostgroup-add-member --hostgroups=baltimore maryland
+
+ Remove a host from the hostgroup:
    ipa hostgroup-remove-member --hosts=box2 baltimore
 
  Display a host group:
    ipa hostgroup-show baltimore
 
- Removey a host group:
+ Delete a hostgroup:
    ipa hostgroup-del baltimore
 """
 
@@ -94,7 +100,7 @@ api.register(hostgroup)
 
 class hostgroup_add(LDAPCreate):
     """
-    Create new hostgroup.
+    Add a new hostgroup.
     """
 
     msg_summary = _('Added hostgroup "%(value)s"')
@@ -104,7 +110,7 @@ api.register(hostgroup_add)
 
 class hostgroup_del(LDAPDelete):
     """
-    Delete hostgroup.
+    Delete a hostgroup.
     """
 
     msg_summary = _('Deleted hostgroup "%(value)s"')
@@ -114,7 +120,7 @@ api.register(hostgroup_del)
 
 class hostgroup_mod(LDAPUpdate):
     """
-    Modify hostgroup.
+    Modify a hostgroup.
     """
 
     msg_summary = _('Modified hostgroup "%(value)s"')
@@ -136,7 +142,7 @@ api.register(hostgroup_find)
 
 class hostgroup_show(LDAPRetrieve):
     """
-    Display hostgroup.
+    Display information about a hostgroup.
     """
 
 api.register(hostgroup_show)
@@ -144,7 +150,7 @@ api.register(hostgroup_show)
 
 class hostgroup_add_member(LDAPAddMember):
     """
-    Add members to hostgroup.
+    Add members to a hostgroup.
     """
 
 api.register(hostgroup_add_member)
@@ -152,7 +158,7 @@ api.register(hostgroup_add_member)
 
 class hostgroup_remove_member(LDAPRemoveMember):
     """
-    Remove members from hostgroup.
+    Remove members from a hostgroup.
     """
 
 api.register(hostgroup_remove_member)

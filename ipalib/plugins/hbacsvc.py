@@ -24,16 +24,17 @@ must match the service name that PAM is evaluating.
 
 EXAMPLES:
 
- Create a new service:
+ Add a new HBAC service:
    ipa hbacsvc-add tftp
 
- Update a service:
-   ipa hbacsvc-mod --desc='TFTP service' tftp
+ Modify an existing HBAC service:
+   ipa hbacsvc-mod --desc="TFTP service" tftp
 
- Find a service (this will find 2, the ftp service and the new tftp service):
+ Search for HBAC services. This example will return two results, the FTP
+ service and the newly-added tftp service:
    ipa hbacsvc-find ftp
 
- Remove a service:
+ Delete an HBAC service:
    ipa hbacsvc-del tftp
 
 """
@@ -78,7 +79,7 @@ api.register(hbacsvc)
 
 class hbacsvc_add(LDAPCreate):
     """
-    Add new HBAC service.
+    Add a new HBAC service.
     """
     msg_summary = _('Added service "%(value)s"')
 
@@ -96,7 +97,7 @@ api.register(hbacsvc_del)
 
 class hbacsvc_mod(LDAPUpdate):
     """
-    Modify HBAC service.
+    Modify an HBAC service.
     """
 
 api.register(hbacsvc_mod)
@@ -112,7 +113,7 @@ api.register(hbacsvc_find)
 
 class hbacsvc_show(LDAPRetrieve):
     """
-    Display HBAC service.
+    Display information about an HBAC service.
     """
 
 api.register(hbacsvc_show)
