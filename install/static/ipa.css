@@ -182,6 +182,13 @@ div#backtotop {
     text-align: right;
 }
 
+span.attrhint {
+    font-size: 8pt;
+    left: 40em;
+    margin-left: 100px;
+    position: absolute;
+}
+
 
 /*Navigation */
 

@@ -42,23 +42,23 @@ var ipa_details_cache = null;
 function ipa_details_load(pkey, on_win, on_fail,sampleData)
 {
     if (!pkey)
-	return;
+        return;
 
     _ipa_load_on_win_callback = on_win;
     _ipa_load_on_fail_callback = on_fail;
 
     ipa_cmd(
-	'show', [pkey], {all: true}, _ipa_load_on_win, _ipa_load_on_fail,
-	_ipa_obj_name, sampleData );
+        'show', [pkey], {all: true}, _ipa_load_on_win, _ipa_load_on_fail,
+        _ipa_obj_name, sampleData );
 }
 
 function _ipa_load_on_win(data, text_status, xhr)
 {
     if (_ipa_load_on_win_callback)
-	_ipa_load_on_win_callback(data, text_status, xhr);
+        _ipa_load_on_win_callback(data, text_status, xhr);
 
     if (data['error'])
-	return;
+        return;
 
     var result = data.result.result;
 
@@ -69,7 +69,7 @@ function _ipa_load_on_win(data, text_status, xhr)
 function _ipa_load_on_fail(xhr, text_status, error_thrown)
 {
     if (_ipa_load_on_fail_callback)
-	_ipa_load_on_fail_callback(xhr, text_status, error_thrown);
+        _ipa_load_on_fail_callback(xhr, text_status, error_thrown);
 }
 
 var _ipa_update_on_win_callback = null;
@@ -78,79 +78,80 @@ var _ipa_update_on_fail_callback = null;
 function ipa_details_update(pkey, on_win, on_fail)
 {
     if (!pkey)
-	return;
+        return;
 
     var modlist = {'all': true, 'setattr': [], 'addattr': []};
     var attrs_wo_option = {};
 
     $('.entryattrs input').each(function () {
-	var jobj = $(this);
+        var jobj = $(this);
 
-	var dt = jobj.parent().prevAll('dt').slice(0, 1);
-	if (!dt)
-	    return;
+        var dt = jobj.parent().prevAll('dt').slice(0, 1);
+        if (!dt)
+            return;
 
-	var attr = dt.attr('title');
-	if (!attr || attr.indexOf('call_') == 0)
-	    return;
+        var attr = dt.attr('title');
+        if (!attr || attr.indexOf('call_') == 0)
+            return;
+        var value = jQuery.trim(jobj.val());
 
-	var param_info = ipa_get_param_info(attr);
-	if (param_info) {
-	    modlist[attr] = jobj.val();
-	    return;
-	}
+        var param_info = ipa_get_param_info(attr);
+        if (param_info) {
+            modlist[attr] = value;
+            return;
+        }
 
-	if (!attrs_wo_option[attr])
-	    attrs_wo_option[attr] = [];
-	attrs_wo_option[attr].push(jobj.val());
+        if (!attrs_wo_option[attr])
+            attrs_wo_option[attr] = [];
+        attrs_wo_option[attr].push(value);
     });
 
     $('.entryattrs dt').each(function () {
-	var jobj = $(this);
+        var jobj = $(this);
 
-	var attr = jobj.attr('title');
-	if (!attr)
-	    return;
+        var attr = jobj.attr('title');
+        if (!attr)
+            return;
 
-	if (attr.indexOf('call_') == 0) {
-	    var func = window[attr.substr(5)];
-	    if (func)
-	        func(jobj, modlist, IPA_DETAILS_UPDATE);
-	    return;
-	}
+        if (attr.indexOf('call_') == 0) {
+            var func = window[attr.substr(5)];
+            if (func)
+                func(jobj, modlist, IPA_DETAILS_UPDATE);
+            return;
+        }
 
         var param_info = ipa_get_param_info(attr);
         if (param_info && param_info['primary_key'])
             return;
 
-	var next = jobj.next('dd');
-	if ((!next.length) || (!next.children('input').length))
-	    attrs_wo_option[attr] = [''];
+        var next = jobj.next('dd');
+        if ((!next.length) || (!next.children('input').length))
+            attrs_wo_option[attr] = [''];
     });
 
     for (attr in attrs_wo_option) {
-	var values = attrs_wo_option[attr];
-	modlist['setattr'].push(attr + '=' + values[0]);
-	for (var i = 1; i < values.length; ++i)
-	    modlist['addattr'].push(attr + '=' + values[i]);
+        var values = attrs_wo_option[attr];
+        modlist['setattr'].push(attr + '=' + values[0]);
+        for (var i = 1; i < values.length; ++i)
+            modlist['addattr'].push(attr + '=' + values[i]);
     }
 
     _ipa_update_on_win_callback = on_win;
     _ipa_update_on_fail_callback = on_fail;
 
     ipa_cmd(
-	'mod', [pkey], modlist, _ipa_update_on_win, _ipa_update_on_fail,
-	_ipa_obj_name
+        'mod', [pkey], modlist, _ipa_update_on_win, _ipa_update_on_fail,
+        _ipa_obj_name
     );
 }
 
 function _ipa_update_on_win(data, text_status, xhr)
 {
     if (_ipa_update_on_win_callback)
-	_ipa_update_on_win_callback(data, text_status, xhr);
+        _ipa_update_on_win_callback(data, text_status, xhr);
 
     if (data['error'])
-	return;
+        return;
 
     var result = data.result.result;
     ipa_details_cache = $.extend(true, {}, result);
@@ -160,7 +161,7 @@ function _ipa_update_on_win(data, text_status, xhr)
 function _ipa_update_on_fail(xhr, text_status, error_thrown)
 {
     if (_ipa_update_on_fail_callback)
-	_ipa_update_on_fail_callback(xhr, text_status, error_thrown);
+        _ipa_update_on_fail_callback(xhr, text_status, error_thrown);
 }
 
 function ipa_details_create(dls, container)
@@ -169,10 +170,10 @@ function ipa_details_create(dls, container)
         container = $('body');
 
     for (var i = 0; i < dls.length; ++i) {
-	var d = dls[i];
+        var d = dls[i];
 
-	ipa_generate_dl($('#detail-lists hr').last(), d[0], d[1], d[2]);
-//	ipa_generate_dl($("#detail-lists"), d[0], d[1], d[2]);
+        ipa_generate_dl($('#detail-lists hr').last(), d[0], d[1], d[2]);
+//        ipa_generate_dl($("#detail-lists"), d[0], d[1], d[2]);
     }
 }
 
@@ -183,7 +184,7 @@ var _ipa_dt_template = '<dt title="T">N:</dt>';
 function ipa_generate_dl(jobj, id, name, dts)
 {
     if (!dts)
-	return;
+        return;
 
     jobj.after(_ipa_h2_template.replace('I', name));
     jobj = jobj.next();
@@ -191,17 +192,17 @@ function ipa_generate_dl(jobj, id, name, dts)
     jobj = jobj.next();
 
     for (var i = 0; i < dts.length; ++i) {
-	var label = '';
-	if (dts[i][0].indexOf('call_') != 0) {
-	    var param_info = ipa_get_param_info(dts[i][0]);
-	    if (param_info)
-		label = param_info['label'];
-	}
-	if ((!label) && (dts[i].length > 1))
-	    label = dts[i][1];
-	jobj.append(
-	    _ipa_dt_template.replace('T', dts[i][0]).replace('N', label)
-	);
+        var label = '';
+        if (dts[i][0].indexOf('call_') != 0) {
+            var param_info = ipa_get_param_info(dts[i][0]);
+            if (param_info)
+                label = param_info['label'];
+        }
+        if ((!label) && (dts[i].length > 1))
+            label = dts[i][1];
+        jobj.append(
+            _ipa_dt_template.replace('T', dts[i][0]).replace('N', label)
+        );
     }
     jobj.after('<hr />');
 }
@@ -209,6 +210,7 @@ function ipa_generate_dl(jobj, id, name, dts)
 /* HTML templates for ipa_details_display() */
 var _ipa_a_add_template =
     '<a href="jslink" onclick="return (_ipa_add_on_click(this))" title="A">Add</a>';
+var _ipa_span_doc_template = '<span class="attrhint">Hint: D</span>';
 
 /* populate definition lists with the class 'entryattrs' with entry attributes
  *
@@ -232,29 +234,56 @@ function ipa_details_display(entry_attrs)
 
     /* go through all <dt> tags and pair them with newly created <dd>s */
     $('.entryattrs dt').each(function () {
-	var jobj = $(this);
+        var jobj = $(this);
 
-	var attr = jobj.attr('title');
-	if (attr.indexOf('call_') == 0) {
-	    /* title contains callback instead of attribute name */
-	    var func = window[attr.substr(5)];
-	    if (func)
-		func(jobj, entry_attrs, IPA_DETAILS_POPULATE);
-	    else
-		jobj.after(_ipa_dd_first_template.replace('I', '-'));
-	} else {
-	    /* title contains attribute name - default behaviour */
-	    var value = entry_attrs[attr];
-	    if (value) {
-		ipa_insert_first_dd(jobj, ipa_create_input(attr, value[0]));
-		for (var i = 1; i < value.length; ++i) {
-		    jobj = jobj.next();
-		    ipa_insert_other_dd(jobj, ipa_create_input(attr, value[i]));
-		}
-	    } else {
-		ipa_insert_first_dd(jobj, _ipa_a_add_template.replace('A', attr));
-	    }
-	}
+        var attr = jobj.attr('title');
+        if (attr.indexOf('call_') == 0) {
+            /* title contains callback instead of attribute name */
+            var func = window[attr.substr(5)];
+            if (func)
+                func(jobj, entry_attrs, IPA_DETAILS_POPULATE);
+            else
+                jobj.after(_ipa_dd_first_template.replace('I', '-'));
+        } else {
+            /* title contains attribute name - default behaviour */
+            var multivalue = false;
+            var hint_span = '';
+
+            var param_info = ipa_get_param_info(attr);
+            if (param_info) {
+                if (param_info['multivalue'] || param_info['class'] == 'List')
+                    multivalue = true;
+                var hint = param_info['hint'];
+                if (hint)
+                    hint_span = _ipa_span_hint_template.replace('D', hint);
+            }
+
+            var value = entry_attrs[attr];
+            if (value) {
+                ipa_insert_first_dd(
+                    jobj, ipa_create_input(attr, value[0]) + hint_span
+                );
+                for (var i = 1; i < value.length; ++i) {
+                    jobj = jobj.next();
+                    ipa_insert_other_dd(jobj, ipa_create_input(attr, value[i]));
+                }
+                if (multivalue) {
+                    ipa_insert_other_dd(
+                        jobj.next(), _ipa_a_add_template.replace('A', attr)
+                    );
+                }
+            } else {
+                if (multivalue) {
+                    ipa_insert_first_dd(
+                        jobj, _ipa_a_add_template.replace('A', attr) + hint_span
+                    );
+                } else {
+                    ipa_insert_first_dd(
+                        jobj, ipa_create_input(attr, '') + hint_span
+                    );
+                }
+            }
+        }
     });
 }
 
@@ -278,6 +307,7 @@ var _ipa_param_type_2_handler_map = {
     'Str': _ipa_create_text_input,
     'Int': _ipa_create_text_input,
     'Bool': _ipa_create_text_input,
+    'List': _ipa_create_text_input,
 };
 
 /* create an HTML element for displaying/editing an attribute
@@ -288,24 +318,24 @@ function ipa_create_input(attr, value)
 {
     var param_info = ipa_get_param_info(attr);
     if (!param_info) {
-	/* no information about the param is available, default to text input */
-	return (
-	    _ipa_create_text_input(attr, value, null) +
-	    _ipa_create_remove_link(attr, null)
-	);
+        /* no information about the param is available, default to text input */
+        return (_ipa_create_text_input(attr, value, null));
     }
 
     /* check if the param value can be modified */
     if (param_info['primary_key'] || ('no_update' in param_info['flags']))
-	return (value.toString());
+        return (value.toString());
 
     /* call handler by param class */
     var handler = _ipa_param_type_2_handler_map[param_info['class']];
     if (handler) {
-	return (
-	    handler(attr, value, param_info) +
-	    _ipa_create_remove_link(attr, param_info)
-	);
+        if (param_info['multivalue'] || param_info['class'] == 'List') {
+            return (
+                handler(attr, value, param_info) +
+                _ipa_create_remove_link(attr, param_info)
+            );
+        }
+        return (handler(attr, value, param_info));
     }
 
     /* no handler for this type? don't allow modification */
@@ -320,12 +350,12 @@ var _ipa_a_remove_template =
 function _ipa_create_remove_link(attr, param_info)
 {
     if (!param_info)
-	return (_ipa_a_remove_template.replace('A', attr));
+        return (_ipa_a_remove_template.replace('A', attr));
 
     /* check if the param is required or of the Password type
      * if it is, then we don't want people to be able to remove it */
     if ((param_info['required']) || (param_info['class'] == 'Password'))
-	return ('');
+        return ('');
 
     return (_ipa_a_remove_template.replace('A', attr));
 }
@@ -338,16 +368,16 @@ var _ipa_input_text_template =
 function _ipa_create_text_input(attr, value, param_info)
 {
     return (
-	_ipa_input_text_template.replace('A', attr).replace(
-	    'V', value.toString()
-	)
+        _ipa_input_text_template.replace('A', attr).replace(
+            'V', value.toString()
+        )
     );
 }
 
 function ipa_details_reset()
 {
     if (ipa_details_cache)
-	ipa_details_display(ipa_details_cache);
+        ipa_details_display(ipa_details_cache);
 }
 
 /* Event handlers */
@@ -355,10 +385,14 @@ function ipa_details_reset()
 function _ipa_add_on_click(obj)
 {
     var jobj = $(obj);
+    var attr = jobj.attr('title');
     var par = jobj.parent();
-    par.append(ipa_create_input(jobj.attr('title'), ''));
+
+    par.prepend(ipa_create_input(attr, ''));
+    ipa_insert_other_dd(par, _ipa_a_add_template.replace('A', attr));
     jobj.next('input').focus();
     jobj.remove();
+
     return (false);
 }
 
@@ -370,14 +404,16 @@ function _ipa_remove_on_click(obj)
 
     var next = par.next('dd');
     if (next.length) {
-	if (par.hasClass('first')) {
-	    next.addClass('first');
-	    next.removeClass('other');
-	}
-	par.remove();
+        if (par.hasClass('first')) {
+            var hint = par.children('span').detach();
+            next.append(hint);
+            next.addClass('first');
+            next.removeClass('other');
+        }
+        par.remove();
     } else {
-	par.empty();
-	par.append(_ipa_a_add_template.replace('A', attr));
+        par.empty();
+        par.append(_ipa_a_add_template.replace('A', attr));
     }
 
     return (false);
@@ -388,14 +424,14 @@ function _h2_on_click(obj)
     var jobj = $(obj);
     var txt = jobj.text().replace(/^\s*/, '');
     if (txt.charCodeAt(0) == 8722) {
-	obj.dl = jobj.next().detach();
-	jobj.text('+' + txt.substr(1));
+        obj.dl = jobj.next().detach();
+        jobj.text('+' + txt.substr(1));
     } else {
-	if (obj.dl)
-	    obj.dl.insertAfter(obj);
-	jobj.text(
-	    String.fromCharCode(8722) + txt.substr(1)
-	);
+        if (obj.dl)
+            obj.dl.insertAfter(obj);
+        jobj.text(
+            String.fromCharCode(8722) + txt.substr(1)
+        );
     }
 }
 
