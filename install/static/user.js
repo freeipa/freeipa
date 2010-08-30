@@ -265,7 +265,7 @@ function enrollUserInNextGroup(){
 
         ipa_cmd( 'add_member',args, options ,
                  enrollUserInGroupSuccess,
-                 enrollUserInGroupFailure,group );
+                 enrollUserInGroupFailure,'group' );
     }else{
         location.hash="tab=user&facet=group&pkey="+qs.pkey;
     }
