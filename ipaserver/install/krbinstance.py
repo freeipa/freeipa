@@ -111,11 +111,12 @@ class KrbInstance(service.Service):
         host_dn = "fqdn=%s,cn=computers,cn=accounts,%s" % (self.fqdn, self.suffix)
         host_entry = ipaldap.Entry(host_dn)
         host_entry.setValues('objectclass', ['top', 'ipaobject', 'nshost', 'ipahost', 'ipaservice', 'pkiuser', 'krbprincipalaux', 'krbprincipal', 'krbticketpolicyaux'])
-        host_entry.setValue('krbextradata', service_entry.getValue('krbextradata'))
+        host_entry.setValues('krbextradata', service_entry.getValues('krbextradata'))
         host_entry.setValue('krblastpwdchange', service_entry.getValue('krblastpwdchange'))
         host_entry.setValue('krbpasswordexpiration', service_entry.getValue('krbpasswordexpiration'))
         host_entry.setValue('krbprincipalname', service_entry.getValue('krbprincipalname'))
-        host_entry.setValue('krbticketflags', service_entry.getValue('krbticketflags'))
+        if 'krbticketflags' in service_entry.toDict():
+            host_entry.setValue('krbticketflags', service_entry.getValue('krbticketflags'))
         host_entry.setValue('krbprincipalkey', service_entry.getValue('krbprincipalkey'))
         host_entry.setValue('serverhostname', self.fqdn.split('.',1)[0])
         host_entry.setValue('cn', self.fqdn)
@@ -323,7 +324,7 @@ class KrbInstance(service.Service):
 
         if not replica:
             #populate the directory with the realm structure
-            args = ["/usr/kerberos/sbin/kdb5_ldap_util", "-D", "uid=kdc,cn=sysaccounts,cn=etc,"+self.suffix, "-w", self.kdc_password, "create", "-s", "-P", self.master_password, "-r", self.realm, "-subtrees", self.suffix, "-sscope", "sub"]
+            args = ["kdb5_ldap_util", "-D", "uid=kdc,cn=sysaccounts,cn=etc,"+self.suffix, "-w", self.kdc_password, "create", "-s", "-P", self.master_password, "-r", self.realm, "-subtrees", self.suffix, "-sscope", "sub"]
             try:
                 ipautil.run(args)
             except ipautil.CalledProcessError, e:

@@ -89,7 +89,7 @@ def write_tmp_file(txt):
 
     return fd
 
-def run(args, stdin=None, raiseonerr=True, nolog=()):
+def run(args, stdin=None, raiseonerr=True, nolog=(), env=None):
     """
     Execute a command and return stdin, stdout and the process return code.
 
@@ -113,11 +113,13 @@ def run(args, stdin=None, raiseonerr=True, nolog=()):
 
     If an value isn't found in the list it is silently ignored.
     """
+    if env is None:
+        env={"PATH": "/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"}
     if stdin:
-        p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True, env=env)
         stdout,stderr = p.communicate(stdin)
     else:
-        p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True, env=env)
         stdout,stderr = p.communicate()
 
     # The command and its output may include passwords that we don't want

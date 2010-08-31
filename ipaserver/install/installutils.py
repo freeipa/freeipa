@@ -313,7 +313,7 @@ def get_directive(filename, directive, separator=' '):
     return None
 
 def kadmin(command):
-    ipautil.run(["/usr/kerberos/sbin/kadmin.local", "-q", command])
+    ipautil.run(["kadmin.local", "-q", command])
 
 def kadmin_addprinc(principal):
     kadmin("addprinc -randkey " + principal)

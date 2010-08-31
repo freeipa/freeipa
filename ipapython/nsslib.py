@@ -18,6 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+import sys
 import httplib
 import getpass
 import logging
@@ -161,7 +162,7 @@ class NSSConnection(httplib.HTTPConnection):
         logging.debug("connect: %s", net_addr)
         self.sock.connect(net_addr)
 
-    def endheaders(self):
+    def endheaders(self, message=None):
         """
         Explicitly close the connection if an error is returned after the
         headers are sent. This will likely mean the initial SSL handshake
@@ -170,7 +171,13 @@ class NSSConnection(httplib.HTTPConnection):
         """
         try:
             # FIXME: httplib uses old-style classes so super doesn't work
-            httplib.HTTPConnection.endheaders(self)
+            # Python 2.7 changed the API for endheaders. This is an attempt
+            # to work across versions
+            (major, minor, micro, releaselevel, serial) = sys.version_info
+            if major == 2 and minor < 7:
+                httplib.HTTPConnection.endheaders(self)
+            else:
+                httplib.HTTPConnection.endheaders(self, message)
         except NSPRError, e:
             self.close()
             raise e

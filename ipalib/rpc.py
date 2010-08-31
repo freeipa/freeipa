@@ -32,6 +32,7 @@ Also see the `ipaserver.rpcserver` module.
 
 from types import NoneType
 import threading
+import sys
 import os
 import errno
 from xmlrpclib import Binary, Fault, dumps, loads, ServerProxy, Transport, ProtocolError
@@ -42,7 +43,7 @@ from ipalib import errors
 from ipalib.request import context
 from ipapython import ipautil, dnsclient
 import httplib
-from ipapython.nsslib import NSSHTTPS
+from ipapython.nsslib import NSSHTTPS, NSSConnection
 from nss.error import NSPRError
 from urllib2 import urlparse
 
@@ -192,8 +193,15 @@ class SSLTransport(Transport):
     """Handles an HTTPS transaction to an XML-RPC server."""
 
     def make_connection(self, host):
-        host, extra_headers, x509 = self.get_host_info(host)
-        conn = NSSHTTPS(host, 443, dbdir="/etc/pki/nssdb")
+        host, self._extra_headers, x509 = self.get_host_info(host)
+        host, self._extra_headers, x509 = self.get_host_info(host)
+        # Python 2.7 changed the internal class used in xmlrpclib from
+        # HTTP to HTTPConnection. We need to use the proper subclass
+        (major, minor, micro, releaselevel, serial) = sys.version_info
+        if major == 2 and minor < 7:
+            conn = NSSHTTPS(host, 443, dbdir="/etc/pki/nssdb")
+        else:
+            conn = NSSConnection(host, 443, dbdir="/etc/pki/nssdb")
         conn.connect()
         return conn
 
