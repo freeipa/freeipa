@@ -35,6 +35,8 @@ var _ipa_init_on_win_callback = null;
 var qs;
 
 
+var useSampleData = (window.location.protocol == "file:");
+
 
 function ipa_init(url, on_win)
 {
