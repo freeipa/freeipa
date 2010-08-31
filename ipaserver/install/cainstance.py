@@ -580,15 +580,8 @@ class CAInstance(service.Service):
                 args.append("false")
 
             # Define the things we don't want logged
-            nolog = (('-client_certdb_pwd', 1),
-                     ('-admin_password', 1),
-                     ('-bind_password', 1),
-                     ('-backup_pwd', 1),
-                     ('-clone_p12_password', 1),
-                     ('-sd_admin_password', 1),
-            )
+            nolog = (self.admin_password, self.dm_password,)
 
-            logging.debug(args)
             ipautil.run(args, nolog=nolog)
 
             if self.external == 1:
@@ -682,8 +675,7 @@ class CAInstance(service.Service):
             '-r', '/ca/agent/ca/profileReview?requestId=%s' % self.requestId,
             '%s:%d' % (self.host_name, AGENT_SECURE_PORT),
         ]
-        logging.debug("running sslget %s" % args)
-        (stdout, stderr, returncode) = ipautil.run(args)
+        (stdout, stderr, returncode) = ipautil.run(args, nolog=(self.admin_password,))
 
         data = stdout.split('\r\n')
         params = get_defList(data)
@@ -703,8 +695,7 @@ class CAInstance(service.Service):
             '-r', '/ca/agent/ca/profileProcess',
             '%s:%d' % (self.host_name, AGENT_SECURE_PORT),
         ]
-        logging.debug("running sslget %s" % args)
-        (stdout, stderr, returncode) = ipautil.run(args)
+        (stdout, stderr, returncode) = ipautil.run(args, nolog=(self.admin_password,))
 
         data = stdout.split('\r\n')
         outputList = get_outputList(data)

@@ -99,21 +99,19 @@ def run(args, stdin=None, raiseonerr=True, nolog=()):
 
     raiseonerr raises an exception if the return code is not zero
 
-    nolog is a tuple of tuple values that describes things in the argument
-    list that shouldn't be logged, like passwords. Each tuple consists of
-    a value to search for in the argument list and an offset from this
-    location to set to XXX.
+    nolog is a tuple of strings that shouldn't be logged, like passwords.
+    Each tuple consists of a string to be replaced by XXXXXXXX.
 
     For example, the command ['/usr/bin/setpasswd', '--password', 'Secret123', 'someuser']
 
     We don't want to log the password so nolog would be set to:
-    (('--password', 1),)
+    ('Secret123',)
 
     The resulting log output would be:
 
     /usr/bin/setpasswd --password XXXXXXXX someuser
 
-    If an argument isn't found in the list it is silently ignored.
+    If an value isn't found in the list it is silently ignored.
     """
     if stdin:
         p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
@@ -122,20 +120,19 @@ def run(args, stdin=None, raiseonerr=True, nolog=()):
         p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
         stdout,stderr = p.communicate()
 
-    # The command may include passwords that we don't want to log. Run through
-    # the nolog items
-    for (item, offset) in nolog:
-        try:
-            item_offset = args.index(item) + offset
-            args[item_offset] = 'XXXXXXXX'
-        except ValueError:
-            pass
-    logging.info('args=%s' % ' '.join(args))
+    # The command and its output may include passwords that we don't want
+    * to log. Run through the nolog items.
+    args = ' '.join(args)
+    for value in nolog:
+        args = args.replace(value, 'XXXXXXXX')
+        stdout = stdout.replace(value, 'XXXXXXXX')
+        stderr = stderr.replace(value, 'XXXXXXXX')
+    logging.info('args=%s' % args)
     logging.info('stdout=%s' % stdout)
     logging.info('stderr=%s' % stderr)
 
     if p.returncode != 0 and raiseonerr:
-        raise CalledProcessError(p.returncode, ' '.join(args))
+        raise CalledProcessError(p.returncode, args)
 
     return (stdout, stderr, p.returncode)
 
