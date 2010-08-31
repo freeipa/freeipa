@@ -76,6 +76,36 @@ def get_request_value(request_id, directive):
 
     return None
 
+def get_request_id(criteria):
+    """
+    If you don't know the certmonger request_id then try to find it by looking
+    through all the request files. An alternative would be to parse the
+    ipa-getcert list output but this seems cleaner.
+
+    criteria is a tuple of key/value pairs to search for. The more specific
+    the better. An error is raised if multiple request_ids are returned for
+    the same criteria.
+
+    None is returned if none of the criteria match.
+    """
+    assert type(criteria) is tuple
+
+    reqid=None
+    fileList=os.listdir(REQUEST_DIR)
+    for file in fileList:
+        match = True
+        for (key, value) in criteria:
+            rv = find_request_value('%s/%s' % (REQUEST_DIR, file), key)
+            if rv is None or rv.rstrip() != value:
+                match = False
+                break
+        if match and reqid is not None:
+            raise RuntimeError('multiple certmonger requests match the criteria')
+        if match:
+            reqid = find_request_value('%s/%s' % (REQUEST_DIR, file), 'id').rstrip()
+
+    return reqid
+
 def add_request_value(request_id, directive, value):
     """
     Add a new directive to a certmonger request file.
@@ -133,17 +163,83 @@ def request_cert(nssdb, nickname, subject, principal, passwd_fname=None):
     request_id = m.group(1)
     return request_id
 
-def stop_tracking(request_id):
+def cert_exists(nickname, secdir):
     """
-    Stop tracking the current request.
+    See if a nickname exists in an NSS database.
+
+    Returns True/False
+
+    This isn't very sophisticated in that it doesn't differentiate between
+    a database that doesn't exist and a nickname that doesn't exist within
+    the database.
+    """
+    args = ["/usr/bin/certutil", "-L",
+           "-d", secdir,
+           "-n", nickname
+          ]
+    (stdout, stderr, rc) = ipautil.run(args, raiseonerr=False)
+    if rc == 0:
+        return True
+    else:
+        return False
+
+def start_tracking(nickname, secdir, password_file=None):
+    """
+    Tell certmonger to track the given certificate nickname in NSS
+    database in secdir protected by optional password file password_file.
+
+    Returns the stdout, stderr and returncode from running ipa-getcert
+
+    This assumes that certmonger is already running.
+    """
+    if not cert_exists(nickname, secdir):
+        raise RuntimeError('Nickname "%s" doesn\'t exist in NSS database "%s"' % (nickname, secdir))
+    args = ["/usr/bin/ipa-getcert", "start-tracking",
+            "-d", secdir,
+            "-n", nickname]
+    if password_file:
+        args.append("-p")
+        args.append(password_file)
+
+    (stdout, stderr, returncode) = ipautil.run(args)
+
+    return (stdout, stderr, returncode)
+
+def stop_tracking(secdir, request_id=None, nickname=None):
+    """
+    Stop tracking the current request using either the request_id or nickname.
 
     This assumes that the certmonger service is running.
     """
+    if request_id is None and nickname is None:
+        raise RuntimeError('Both request_id and nickname are missing.')
+    if nickname:
+        # Using the nickname find the certmonger request_id
+        criteria = (('cert_storage_location','%s' % secdir),('cert_nickname', '%s' % nickname))
+        try:
+            request_id = get_request_id(criteria)
+            if request_id is None:
+                return ('', '', 0)
+        except RuntimeError:
+            # This means that multiple requests matched, skip it for now
+            # Fall back to trying to stop tracking using nickname
+            pass
+
     args = ['/usr/bin/ipa-getcert',
             'stop-tracking',
-            '-i', request_id
     ]
+    if request_id:
+        args.append('-i')
+        args.append(request_id)
+    else:
+        args.append('-n')
+        args.append(nickname)
+        args.append('-d')
+        args.append(secdir)
+
     (stdout, stderr, returncode) = ipautil.run(args)
+
+    return (stdout, stderr, returncode)
 
 if __name__ == '__main__':
     request_id = request_cert("/etc/httpd/alias", "Test", "cn=tiger.example.com,O=IPA", "HTTP/tiger.example.com@EXAMPLE.COM")

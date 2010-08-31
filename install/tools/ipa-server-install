@@ -381,11 +381,12 @@ def uninstall(dm_password=None):
         api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dm_password)
 
     try:
-        run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--uninstall"])
+        (stdout, stderr, rc) = run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--uninstall"], raiseonerr=False)
+        if rc != 2:
+            raise RuntimeError(stdout)
     except Exception, e:
         print "Uninstall of client side components failed!"
         print "ipa-client-install returned: " + str(e)
-        pass
 
     ntpinstance.NTPInstance(fstore).uninstall()
     if cainstance.CADSInstance().is_configured():

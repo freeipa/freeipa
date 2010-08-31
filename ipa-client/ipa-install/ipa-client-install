@@ -34,6 +34,7 @@ try:
     from ipapython.ipautil import run, user_input, CalledProcessError, file_exists
     from ipapython import sysrestore
     from ipapython import version
+    from ipapython import certmonger
     import SSSDConfig
     from ConfigParser import RawConfigParser
 except ImportError:
@@ -174,7 +175,7 @@ def uninstall(options):
 
     if not fstore.has_files() and not options.force:
         print "IPA client is not configured on this system."
-        return 1
+        return 2
 
     # Remove our host cert and CA cert
     if nickname_exists("IPA CA"):
@@ -183,19 +184,25 @@ def uninstall(options):
         except Exception, e:
             print "Failed to remove IPA CA from /etc/pki/nssdb: %s" % str(e)
     if nickname_exists("Server-Cert"):
+        # Always start certmonger. We can't untrack something if it isn't
+        # running
+        try:
+            service('certmonger', 'start')
+        except:
+            pass
+        try:
+            certmonger.stop_tracking('/etc/pki/nssdb', nickname='Server-Cert')
+        except (CalledProcessError, RuntimeError), e:
+            logging.error("certmonger failed to stop tracking certificate: %s" % str(e))
         try:
             run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", "Server-Cert"])
         except Exception, e:
             print "Failed to remove Server-Cert from /etc/pki/nssdb: %s" % str(e)
-        try:
-            run(["/usr/bin/ipa-getcert", "stop-tracking", "-d", "/etc/pki/nssdb", "-n", "Server-Cert"])
-        except Exception, e:
-            print "Failed to stop tracking Server-Cert in certmonger: %s" % str(e)
 
     try:
         service('certmonger', 'stop')
     except:
-        print "Failed to stop the certmonger daemon"
+        pass
 
     try:
         chkconfig('certmonger', 'off')

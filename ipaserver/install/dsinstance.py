@@ -493,7 +493,9 @@ class DsInstance(service.Service):
 
         serverid = self.restore_state("serverid")
         if not serverid is None:
-            dirname = config_dirname(serverid)
+            # drop the trailing / off the config_dirname so the directory
+            # will match what is in certmonger
+            dirname = config_dirname(serverid)[:-1]
             dsdb = certs.CertDB(dirname)
             dsdb.untrack_server_cert("Server-Cert")
             erase_ds_instance_data(serverid)

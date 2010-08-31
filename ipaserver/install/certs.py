@@ -32,10 +32,10 @@ from ipapython import nsslib
 from ipapython import dogtag
 from ipapython import sysrestore
 from ipapython import ipautil
+from ipapython import certmonger
 from ipalib import pkcs10
 from ConfigParser import RawConfigParser
 import service
-import certmonger
 from ipalib import x509
 
 from nss.error import NSPRError
@@ -441,21 +441,19 @@ class CertDB(object):
         """
         service.chkconfig_on("certmonger")
         service.start("certmonger")
-        args = ["/usr/bin/ipa-getcert", "start-tracking",
-                "-d", self.secdir,
-                "-n", nickname]
-        if password_file:
-            args.append("-p")
-            args.append(password_file)
         try:
-            (stdout, stderr, returncode) = ipautil.run(args)
-        except ipautil.CalledProcessError, e:
-            logging.error("tracking certificate failed: %s" % str(e))
+            (stdout, stderr, rc) = certmonger.start_tracking(nickname, self.secdir, password_file)
+        except (ipautil.CalledProcessError, RuntimeError), e:
+            logging.error("certmonger failed starting to track certificate: %s" % str(e))
+            return
 
         service.stop("certmonger")
         cert = self.get_cert_from_db(nickname)
         subject = str(x509.get_subject(cert))
         m = re.match('New tracking request "(\d+)" added', stdout)
+        if not m:
+            logging.error('Didn\'t get new certmonger request, got %s' % stdout)
+            raise RuntimeError('certmonger did not issue new tracking request for \'%s\' in \'%s\'. Use \'ipa-getcert list\' to list existing certificates.' % (nickname, self.secdir))
         request_id = m.group(1)
 
         certmonger.add_principal(request_id, principal)
@@ -471,13 +469,10 @@ class CertDB(object):
         # Always start certmonger. We can't untrack something if it isn't
         # running
         service.start("certmonger")
-        args = ["/usr/bin/ipa-getcert", "stop-tracking",
-                "-d", self.secdir,
-                "-n", nickname]
         try:
-            (stdout, stderr, returncode) = ipautil.run(args)
-        except ipautil.CalledProcessError, e:
-            logging.error("untracking certificate failed: %s" % str(e))
+            certmonger.stop_tracking(self.secdir, nickname=nickname)
+        except (ipautil.CalledProcessError, RuntimeError), e:
+            logging.error("certmonger failed to stop tracking certificate: %s" % str(e))
         service.stop("certmonger")
 
     def create_server_cert(self, nickname, hostname, other_certdb=None, subject=None):
