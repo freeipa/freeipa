@@ -21,40 +21,85 @@
 # proper order
 # 
 
-function start() {
-    /sbin/service dirsrv start
-    /sbin/service ntpd start
-    /sbin/service krb5kdc start
-    /sbin/service ipa_kpasswd start
-    /sbin/service httpd start
+# Set IFS so we can do space-embedded lists of services
+IFS=";"
 
-    if [ -e /var/lib/pki-ca ]; then
-        /sbin/service pki-cad start
+# start and stop are basically a reverse of each other
+services_stop="ipa_kpasswd;httpd;krb5kdc;dirsrv;ntpd;named;pki-cad pki-ca"
+services_start="dirsrv;ntpd;named;krb5kdc;ipa_kpasswd;httpd;pki-cad pki-ca"
+
+function is_running() {
+    # $1 = service to check on
+    # $2 = optional instance to check on, for dirsrv and pki-cad
+
+    # Returns
+    #  0 - running
+    #  1 - pid but dead service
+    #  2 - dead but locked subsys
+    #  3 - stopped
+    #  4 - no such service
+    if [ "$#" = 2 ] ; then
+        /sbin/service $1 status $2 > /dev/null 2>&1
+    else
+        out=`/sbin/service $1 status 2>&1`
     fi
+    case "$?" in
+        0)
+            return 0;;
+        1)
+            x=`echo $out | grep -c exists`
+            if [ $x -eq 1 ] ; then
+                return 1
+            else
+                return 4
+            fi
+            ;;
+        2)
+            return 2;;
+        3)
+            return 3;;
+    esac
+}
+
+function start() {
+    for service in $services_start ; do
+        is_running $service
+        case "$?" in
+            0)  # running
+                ;;
+            4)  # no such service
+                ;;
+            *)  # otherwise not running
+                /sbin/service $service start
+                ;;
+        esac
+    done
 }
 
 function stop() {
-    /sbin/service ipa_kpasswd stop
-    /sbin/service httpd stop
-    /sbin/service krb5kdc stop
-    /sbin/service dirsrv stop
-    /sbin/service ntpd stop
-
-    if [ -e /var/lib/pki-ca ]; then
-        /sbin/service pki-cad stop
-    fi
+    for service in $services_stop ; do
+        is_running $service
+        case "$?" in
+            0)  # running
+                /sbin/service $service stop
+                ;;
+            *)  # otherwise not running or doesn't exist
+                ;;
+        esac
+    done
 }
 
 function status() {
-    /sbin/service ipa_kpasswd status
-    /sbin/service httpd status
-    /sbin/service krb5kdc status
-    /sbin/service dirsrv status
-    /sbin/service ntpd status
-
-    if [ -e /var/lib/pki-ca ]; then
-        /sbin/service pki-cad status
-    fi
+    for service in $services_start ; do
+        is_running $service
+        case "$?" in
+            4)
+                ;;
+            *)
+                /sbin/service $service status
+                ;;
+        esac
+    done
 }
 
 case "$1" in
