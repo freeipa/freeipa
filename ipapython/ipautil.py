@@ -123,7 +123,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None):
         stdout,stderr = p.communicate()
 
     # The command and its output may include passwords that we don't want
-    * to log. Run through the nolog items.
+    # to log. Run through the nolog items.
     args = ' '.join(args)
     for value in nolog:
         args = args.replace(value, 'XXXXXXXX')
