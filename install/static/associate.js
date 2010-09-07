@@ -85,7 +85,7 @@ function BulkAssociator(form, pkey, manyObjPkeys){
         options[form.manyObj] = option;
 
         var args = [this.pkey];
-
+        var associator = this;
         ipa_cmd( form.method,args, options ,
                  function(response){
                      var qs = ipa_parse_qs();
@@ -93,7 +93,7 @@ function BulkAssociator(form, pkey, manyObjPkeys){
                          alert("error adding memeber");
                      }else{
                          location.hash="tab=" +form.oneObj
-                             +"&facet=details&pkey="+this.pkey;
+                             +"&facet=details&pkey="+associator.pkey;
                      }
                  },
                  function(response){
