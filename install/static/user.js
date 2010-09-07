@@ -49,7 +49,7 @@ function setupUser(facet){
     }else  if (facet == "group"){
         setupUserGroupList();
     }else  if (facet == "groupmembership"){
-        setupUserGroupMembership();
+        userGroupMembershipForm.setup();
     }else{
         userSearchForm.setup();
     }
@@ -94,29 +94,13 @@ var userBuilder =
         });
 
 
-function setupFacetNavigation(pkey,facet){
-    $("#viewtype").html("");
-    var facets = ["details","group", "groupmembership"];
+var userFacets = ["details","group", "groupmembership"];
 
-    for (var i =0; i < facets.length; i++){
-        var li = $('<li>').appendTo($("#viewtype"));
-        if (facets[i] == facet){
-            $('<img src="but-selected.png" alt="" />');
-            li.html(facets[i]);
-        }else{
-            $('<img src="but-unselected.png" alt="" />').appendTo(li);
-            $('<a/>',{
-                href: "#tab=user&facet="+facets[i]+"&pkey="+pkey,
-                html: facets[i]
-            }).appendTo(li);
-        }
-    }
-}
 
 function setupUserDetails(user){
     qs = ipa_parse_qs();
-    setupFacetNavigation(qs.pkey,qs.facet);
     showDetails();
+    setupFacetNavigation('user',qs.pkey,qs.facet,userFacets);
     renderUserDetails();
 }
 
@@ -128,7 +112,7 @@ function renderUserDetails()
     if (qs['principal']) {
         ipa_cmd(
             'find', [], {'krbprincipalname': qs['principal']},
-            on_win_find, null, 'user', "sampledata/usershow.json");
+            on_win_find, null, 'user');
 
         return;
     }
@@ -136,7 +120,7 @@ function renderUserDetails()
     if (!qs['pkey'])
         return;
 
-    ipa_details_load(qs['pkey'], on_win, null, "sampledata/usershow.json");
+    ipa_details_load(qs['pkey'], on_win, null);
     $('h1').text('Managing user: ' + qs['pkey']);
 }
 
@@ -188,7 +172,7 @@ var userSearchColumns  = [
     {title:"Actions",  column:"none",           render: renderUserLinks}
 ];
 
-var userSearchForm = new SearchForm("user", "find", userSearchColumns,  "sampledata/userlist.json");
+var userSearchForm = new SearchForm("user", "find", userSearchColumns);
 
 /*Usr group enrollement:
   given a user, manage the groups in which they are enrolled */
@@ -196,146 +180,26 @@ function populateUserGroupFailure(){
     alert("Can't find user");
 }
 
-function setupUserGroupMembership(pkey){
-    sampleData = "sampledata/usershow.json";
-    showAssociations();
-    qs = ipa_parse_qs();
-    setupFacetNavigation(qs['pkey'],qs['facet']);
 
-    $('h1').text('Enroll user ' + qs['pkey'] + ' in groups');
 
-    $("#enrollGroups").click(function(){
-        groupsToEnroll =  [];
-        $('#enrollments').children().each(function(i, selected){
-            groupsToEnroll.push(selected.value);
-        });
 
-        currentUserToEnroll = qs['pkey'];
-        enrollUserInNextGroup();
-    });
-
-    $("#addToList").click(function(){
-        $('#grouplist :selected').each(function(i, selected){
-            $("#enrollments").append(selected);
-        });
-        $('#grouplist :selected').remove();
-    });
-
-    $("#removeFromList").click(function(){
-        $('#enrollments :selected').each(function(i, selected){
-            $("#grouplist").append(selected);
-        });
-        $('#enrollments :selected').remove();
-    });
-
-    $("#find").click(function(){
-        ipa_cmd( 'find', [], {}, populateUserGroupSearch, populateUserGroupFailure, 'group', "sampledata/grouplist.json" );
-
-    });
+var userGroupMembershipForm = new AssociationForm("user","group","groupmembership",userFacets, "cn", function(){
+    return 'Enroll user '  + qs['pkey'] + ' in groups';
 }
+);
 
-function populateUserGroupSearch(searchResults){
-    results = searchResults.result;
-    $("#grouplist").html("");
-    for (var i =0; i != searchResults.result.count; i++){
-        var li = document.createElement("option");
-        li.value = searchResults.result.result[i].cn;
-        li.innerHTML = searchResults.result.result[i].cn;
-        $("#grouplist").append(li);
-    }
-}
-
-var currentUserToEnroll;
-var groupsToEnroll;
-
-function enrollUserInGroupSuccess(response){
-    enrollUserInNextGroup();
-}
-
-function enrollUserInGroupFailure(response){
-    alert("enrollUserInGroupFailure");
-}
-
-function enrollUserInNextGroup(){
-    var  currentGroupToEnroll =     groupsToEnroll.shift();
-
-    if (currentGroupToEnroll){
-        var options = {"user":currentUserToEnroll};
-        var args = [currentGroupToEnroll];
-
-        ipa_cmd( 'add_member',args, options ,
-                 enrollUserInGroupSuccess,
-                 enrollUserInGroupFailure,'group' );
-    }else{
-        location.hash="tab=user&facet=group&pkey="+qs.pkey;
-    }
-}
-
-function renderUserGroupColumn(){
-}
-
-/*Group Membership&*/
-
-function  renderUserGroupColumn(current,cell){
-    cell.innerHTML = "Nothing to see here";
-}
-
+/*Group Membership*/
 var groupMembershipColumns  = [
-    {title:"Group",       column:"cn",        render: renderUserGroupColumn},
-    {title:"GID",         column:"gid",       render: renderUserGroupColumn},
-    {title:"Description", column:"uidnumber", render: renderUserGroupColumn},
-
+    {title:"Group", column:"memberof_group"},
 ];
 
-
 function populateUserEnrollments(userData){
-
-    var memberof_group = userData.result.result.memberof_group
-    for (var j = 0; j < memberof_group.length; j++){
-        var row  = document.createElement("tr");
-
-        var td = document.createElement("td");
-        td.innerHTML = memberof_group[j];
-        row.appendChild(td);
-
-        td = document.createElement("td");
-        td.innerHTML = "TBD";
-        row.appendChild(td);
-
-        var td = document.createElement("td");
-        td.innerHTML = "TBD";
-        row.appendChild(td);
-
-        $('#searchResultsTable thead:last').append(row);
-    }
+    userEnrollmentList.populate(userData);
 }
-
-
-function setupUserGroupList(){
-    qs = ipa_parse_qs();
-    setupFacetNavigation(qs['pkey'],qs['facet']);
-    showSearch();
-
-    $("#filter").css("display","none");
-
-    $("#searchButtons").html("");
-    $("<input/>",{
-        type:  'button',
-        value: 'enroll',
-        click: function(){
-            location.hash="tab=user&facet=groupmembership&pkey="+qs['pkey'];
-        }
-    }).appendTo("#searchButtons");
-    var columnHeaders  = document.createElement("tr");
-    for (var i =0 ; i != groupMembershipColumns.length ;i++){
-        var th = document.createElement("th");
-        th.innerHTML = groupMembershipColumns[i].title;
-        columnHeaders.appendChild(th);
-    }
-    $('#searchResultsTable thead:last').append(columnHeaders);
-
-    ipa_cmd( 'show', [qs['pkey']], {}, populateUserEnrollments, populateUserGroupFailure, 'user',"sampledata/usershow.json" );
+function  setupUserGroupList(){
+    userEnrollmentList.setup();
 }
+var userEnrollmentList = new AssociationList('user', 'group','groupmembership',groupMembershipColumns,userFacets);
 
 
 function on_win(data, textStatus, xhr)

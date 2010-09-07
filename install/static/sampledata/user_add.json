@@ -1,0 +1,50 @@
+{
+    "error": null,
+    "id": 10,
+    "result": {
+        "result": {
+            "dn": "uid=snuffy,cn=users,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "gecos": [
+                "snuffy"
+            ],
+            "givenname": [
+                "Aloysius"
+            ],
+            "homedirectory": [
+                "/home/snuffy"
+            ],
+            "ipauniqueid": [
+                "a4ce7d19-b439-11df-a9ae-525400674dcd"
+            ],
+            "krbprincipalname": [
+                "snuffy@AYOUNG.BOSTON.DEVEL.REDHAT.COM"
+            ],
+            "loginshell": [
+                "/bin/sh"
+            ],
+            "objectclass": [
+                "top",
+                "person",
+                "organizationalperson",
+                "inetorgperson",
+                "inetuser",
+                "posixaccount",
+                "krbprincipalaux",
+                "krbticketpolicyaux",
+                "radiusprofile",
+                "ipaobject"
+            ],
+            "sn": [
+                "Snuffleupagus"
+            ],
+            "uid": [
+                "snuffy"
+            ],
+            "uidnumber": [
+                "1869788865"
+            ]
+        },
+        "summary": "Added user \"snuffy\"",
+        "value": "snuffy"
+    }
+}

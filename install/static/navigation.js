@@ -119,14 +119,14 @@ function buildNavigation(){
         selectedSub.setup(facet);
     }
     }else if (currentMain && currentMain.setup){
-    currentMain.setup(facet);
+        currentMain.setup(facet);
     }
 
     var whoami = $.cookie("whoami");
     if (whoami == null){
-    ipa_cmd( 'whoami', [], {}, whoamiSuccess, null,null, "sampledata/whoami.json");
+        ipa_cmd( 'whoami', [], {}, whoamiSuccess, null,null);
     }else{
-    setLoggedInText(whoami);
+        setLoggedInText(whoami);
     }
 }
 
@@ -168,11 +168,40 @@ function setActiveTab(tabName){
     $(activeTab).removeClass('main-nav-off').addClass("main-nav-on")
 }
 
+
+function buildFacetNavigation(facets){
+        setupFacetNavigation(qs['tab'], qs['pkey'],qs['facet'], facets);
+}
+
+function setupFacetNavigation(tab, pkey,facet,facets){
+    $('#viewtype').css("display","block");
+    $("#viewtype").html("");
+
+    for (var i =0; i < facets.length; i++){
+        var li = $('<li>').appendTo($("#viewtype"));
+        if (facets[i] == facet){
+            $('<img src="but-selected.png" alt="" />');
+            li.html(facets[i]);
+        }else{
+            $('<img src="but-unselected.png" alt="" />').appendTo(li);
+            $('<a/>',{
+                href: "#tab="+tab+"&facet="+facets[i]+"&pkey="+pkey,
+                html: facets[i]
+            }).appendTo(li);
+        }
+    }
+}
+
 function clearOld(){
+
+    $('h1').html("");
+    $('#viewtype').css("display","none");
+
     $('#search').css("display","none");
     $('#details').css("display","none");
     $('#content').css("display","none");
     $('#associations').css("display","none");
+
 
     $('#searchResultsTable thead').html("");
     $('#searchResultsTable tfoot').html("");
@@ -194,11 +223,13 @@ function showSearch(){
 
 function showContent(){
     clearOld();
+    $('#viewtype').css("display","block");
     $('#content').css("display","block");
 }
 
 function showDetails(){
     clearOld();
+    $('#viewtype').css("display","block");
     $('#details').css("display","block");
 }
 

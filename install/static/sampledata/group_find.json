@@ -1,75 +1,75 @@
 {
-    "error": null, 
-    "id": 0, 
+    "error": null,
+    "id": 0,
     "result": {
-        "count": 5, 
+        "count": 5,
         "result": [
             {
                 "cn": [
                     "admins"
-                ], 
+                ],
                 "description": [
                     "Account administrators group"
-                ], 
-                "dn": "cn=admins,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                ],
+                "dn": "cn=admins,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                 "gidnumber": [
                     "1948497956"
-                ], 
+                ],
                 "member_user": [
                     "admin"
                 ]
-            }, 
+            },
             {
                 "cn": [
                     "ipausers"
-                ], 
+                ],
                 "description": [
                     "Default group for all users"
-                ], 
-                "dn": "cn=ipausers,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                ],
+                "dn": "cn=ipausers,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                 "gidnumber": [
                     "1948497957"
-                ], 
+                ],
                 "member_user": [
-                    "kfrog", 
+                    "kfrog",
                     "moi"
                 ]
-            }, 
+            },
             {
                 "cn": [
                     "editors"
-                ], 
+                ],
                 "description": [
                     "Limited admins who can edit other users"
-                ], 
-                "dn": "cn=editors,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                ],
+                "dn": "cn=editors,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                 "gidnumber": [
                     "1948497958"
                 ]
-            }, 
+            },
             {
                 "cn": [
                     "deleteme"
-                ], 
+                ],
                 "description": [
                     "This is a group that should go away."
-                ], 
+                ],
                 "dn": "cn=deleteme,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
-            }, 
+            },
             {
                 "cn": [
                     "testgroup"
-                ], 
+                ],
                 "description": [
                     "Detlete this if you see it"
-                ], 
-                "dn": "cn=testgroup,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                ],
+                "dn": "cn=testgroup,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                 "gidnumber": [
                     "1948497959"
                 ]
             }
-        ], 
-        "summary": "5 groups matched", 
+        ],
+        "summary": "5 groups matched",
         "truncated": false
     }
 }

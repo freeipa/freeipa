@@ -1,0 +1,28 @@
+{
+    "error": null,
+    "id": 17,
+    "result": {
+        "result": {
+            "cn": [
+                "butterfly_net"
+            ],
+            "description": [
+                "Butterfly Networks"
+            ],
+            "dn": "ipauniqueid=b16f7240-b43a-11df-89fa-525400674dcd,cn=ng,cn=alt,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "ipauniqueid": [
+                "b16f7240-b43a-11df-89fa-525400674dcd"
+            ],
+            "nisdomainname": [
+                "ayoung.boston.devel.redhat.com"
+            ],
+            "objectclass": [
+                "ipaobject",
+                "ipaassociation",
+                "ipanisnetgroup"
+            ]
+        },
+        "summary": null,
+        "value": "butterfly_net"
+    }
+}

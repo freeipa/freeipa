@@ -38,10 +38,9 @@ var qs;
 var useSampleData = (window.location.protocol == "file:");
 
 
-function ipa_init(url, on_win)
+function ipa_init(on_win)
 {
-    if (!url)
-	url = '/ipa/json';
+    var url = '/ipa/json';
 
     _ipa_init_on_win_callback = on_win;
 
@@ -55,7 +54,10 @@ function ipa_init(url, on_win)
 
     $.ajaxSetup(options);
 
-    ipa_cmd('json_metadata', [], {}, _ipa_load_objs);
+    ipa_cmd('json_metadata', [], {}, _ipa_load_objs,
+            function(response){
+                alert('init failed');
+            });
 }
 
 function _ipa_load_objs(data, textStatus, xhr)
@@ -79,7 +81,9 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname,sampl
     if (objname)
 	name = objname + '_' + name;
 
-    if (useSampleData && sampleData){
+    if (useSampleData){
+        var sampleData ="sampledata/"+name+".json";
+
 	var ajax_options = {
 	    url: sampleData,
 	    type: 'POST',

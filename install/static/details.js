@@ -40,7 +40,7 @@ var _ipa_load_on_fail_callback = null;
 
 var ipa_details_cache = null;
 
-function ipa_details_load(pkey, on_win, on_fail,sampleData)
+function ipa_details_load(pkey, on_win, on_fail)
 {
     if (!pkey)
         return;
@@ -50,7 +50,7 @@ function ipa_details_load(pkey, on_win, on_fail,sampleData)
 
     ipa_cmd(
         'show', [pkey], {all: true}, _ipa_load_on_win, _ipa_load_on_fail,
-        _ipa_obj_name, sampleData );
+        _ipa_obj_name);
 }
 
 function _ipa_load_on_win(data, text_status, xhr)
@@ -439,12 +439,12 @@ function _h2_on_click(obj)
     }
 }
 
-function DetailsForm(obj, details_list, pkeyCol, sampleData   ){
+function DetailsForm(obj, details_list, pkeyCol,  facets ){
 
     this.obj = obj;
     this.details_list = details_list;
-    this.sampleData = sampleData;
     this.pkeyCol = pkeyCol;
+    this.facets = facets;
 
     this.setup= function(key){
         //re initialize global parse of parameters
@@ -452,9 +452,11 @@ function DetailsForm(obj, details_list, pkeyCol, sampleData   ){
 
         showDetails();
         $('h1').text("Managing " + this.obj +": " +qs['pkey'] );
+        setupFacetNavigation(this.obj,qs.pkey,qs.facet,this.facets);
+
 
         ipa_details_init(this.obj);
         ipa_details_create(this.details_list, $('#details'));
-        ipa_details_load(qs.pkey, on_win, null, this.sampleData);
+        ipa_details_load(qs.pkey, on_win, null);
     }
 }

@@ -1,10 +1,10 @@
 function setupHost(facet){
     if (facet == "details"){
-    hostDetailsForm.setup();
+        hostDetailsForm.setup();
     }else if (facet == "add"){
-    hostBuilder.setup();
+        hostBuilder.setup();
     }else{
-    hostSearchForm.setup();
+        hostSearchForm.setup();
     }
 }
 
@@ -17,11 +17,13 @@ var host_details_list =  [['host', 'Host Details', [
     ['krbprincipalname', 'Kerberos Principal'],
     ['serverhostname', 'Server Host Name']
 ]]];
- 
-var hostDetailsForm = new DetailsForm("host",host_details_list,"fqdn","sampledata/hostshow.json") ;
 
+var hostFacets = ["details","hostgroup", "hostgroupmembership"];
 
-var hostDetailsColumns = [
+var hostDetailsForm = new DetailsForm("host",host_details_list,"fqdn",
+                                      hostFacets ) ;
+
+var hostSearchColumns = [
     {title:"Host",column:"fqdn",render: function(current,cell){
     renderPkeyColumn(hostDetailsForm,current,cell);
     }},
@@ -29,4 +31,4 @@ var hostDetailsColumns = [
     {title:"Enrolled?",  render: renderUnknownColumn},
     {title:"Manages?",   render: renderUnknownColumn}
 ];
-var hostSearchForm = new SearchForm("host", "find", hostDetailsColumns,"sampledata/hostlist.json");
+var hostSearchForm = new SearchForm("host", "find", hostSearchColumns);

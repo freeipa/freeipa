@@ -1,6 +1,3 @@
-//useSampleData is defined in index.xhtml.  Work around for development
-var sampleData;
-
 
 //Columns is an array of items in the form
 // {title, column,  render}
@@ -25,12 +22,18 @@ function  renderUnknownColumn(current,cell){
 }
 
 
-function renderPkeyColumn(form,current,cell){
+function renderPkeyColumn2(obj,pkeyCol,current,cell){
     $("<a/>",{
-    href:"#tab="+form.obj+"&facet=details&pkey="+current[form.pkeyCol],
-    html:  "" + current[form.pkeyCol],
+    href:"#tab="+obj+"&facet=details&pkey="+current[pkeyCol],
+    html:  "" + current[pkeyCol],
     }).appendTo(cell);
 }
+
+function renderPkeyColumn(form,current,cell){
+    renderPkeyColumn2(form.obj, form.pkeyCol,current, cell);
+}
+
+
 
 
 function renderDetailColumn(current,cell,pkey,obj){
@@ -42,7 +45,7 @@ function renderDetailColumn(current,cell,pkey,obj){
 
 
 
-function SearchForm(obj, method, cols, searchSampleData){
+function SearchForm(obj, method, cols){
 
     this.buildColumnHeaders =  function (){
     var columnHeaders  = document.createElement("tr");
@@ -66,67 +69,60 @@ function SearchForm(obj, method, cols, searchSampleData){
     }
 
     this.searchSuccess = function (json){
-    if (json.result.truncated){
-        $("#searchResultsTable tfoot").html("More than "+sizelimit+" results returned.  First "+ sizelimit+" results shown." );
-    }else{
-        $("#searchResultsTable tfoot").html(json.result.summary);
-    }
-    $("#searchResultsTable tbody").find("tr").remove();
-    for (var index = 0; index !=  json.result.result.length; index++){
-    var current = json.result.result[index];
-        $('#searchResultsTable tbody:last').append(this.renderResultRow(current));
-    }
+        if (json.result.truncated){
+            $("#searchResultsTable tfoot").html("More than "+sizelimit+" results returned.  First "+ sizelimit+" results shown." );
+        }else{
+            $("#searchResultsTable tfoot").html(json.result.summary);
+        }
+        $("#searchResultsTable tbody").find("tr").remove();
+        for (var index = 0; index !=  json.result.result.length; index++){
+            var current = json.result.result[index];
+            $('#searchResultsTable tbody:last').append(this.renderResultRow(current));
+        }
     }
 
     this.searchWithFilter = function(queryFilter){
-    var form = this;
+        var form = this;
 
-    $('#searchResultsTable tbody').html("");
-    $('#searchResultsTable tbody').html("");
-    $('#searchResultsTable tfoot').html("");
+        $('#searchResultsTable tbody').html("");
+        $('#searchResultsTable tbody').html("");
+        $('#searchResultsTable tfoot').html("");
 
-    ipa_cmd(this.method,
-        [queryFilter],
-        {"all":"true"},
-        function(json){
-            form.searchSuccess(json);
-        },
-        function(json){
-            alert("Search Failed");
-        },form.obj, form.searchSampleData);
-
+        ipa_cmd(this.method,
+                [queryFilter],
+                {"all":"true"},
+                function(json){
+                    form.searchSuccess(json);
+                },
+                function(json){
+                    alert("Search Failed");
+                },
+                form.obj);
     }
 
     this.setup = function(){
-    showSearch();
+        showSearch();
 
-    $('#searchResultsTable thead').html("");
-    $('#searchResultsTable tbody').html("");
-    $('#searchResultsTable tfoot').html("");
-
-    $("#new").click(function(){
-        location.hash="tab="+obj+"&facet=add";
-    });
-
-    $("#query").click(executeSearch);
-
-    this.buildColumnHeaders();
-
-    var params = ipa_parse_qs();
-
-    qs = location.hash.substring(1);
-    //TODO fix this hack.  since parse returns an object, I don't know how to see if that object has a"critia" property if criteria is null.
-    if (qs.indexOf("criteria") > 0)
-    {
-        this.searchWithFilter(params["criteria"]);
-    }
+        $('#searchResultsTable thead').html("");
+        $('#searchResultsTable tbody').html("");
+        $('#searchResultsTable tfoot').html("");
+        $("#new").click(function(){
+            location.hash="tab="+obj+"&facet=add";
+        });
+        $("#query").click(executeSearch);
+        this.buildColumnHeaders();
+        var params = ipa_parse_qs();
+        qs = location.hash.substring(1);
+        //TODO fix this hack.  since parse returns an object, I don't know how to see if that object has a"critia" property if criteria is null.
+        if (qs.indexOf("criteria") > 0)
+        {
+            this.searchWithFilter(params["criteria"]);
+        }
     }
 
     this.obj = obj;
     this.method = method;
     this.columns = cols;
-    this.searchSampleData = searchSampleData;
-
     this.setup();
 }
 executeSearch = function(){

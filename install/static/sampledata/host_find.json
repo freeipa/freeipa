@@ -1,45 +1,45 @@
 {
-    "error": null, 
-    "id": 0, 
+    "error": null,
+    "id": 0,
     "result": {
-        "count": 2, 
+        "count": 2,
         "result": [
             {
-                "dn": "fqdn=vm-121.idm.lab.bos.redhat.com,cn=computers,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com", 
-                "enrolledby": [], 
+                "dn": "fqdn=vm-121.idm.lab.bos.redhat.com,cn=computers,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com",
+                "enrolledby": [],
                 "fqdn": [
                     "vm-121.idm.lab.bos.redhat.com"
-                ], 
+                ],
                 "krbprincipalname": [
                     "host/vm-121.idm.lab.bos.redhat.com@IDM.LAB.BOS.REDHAT.COM"
-                ], 
+                ],
                 "memberof": []
-            }, 
+            },
             {
                 "description": [
                     "sample host"
-                ], 
-                "dn": "fqdn=ayounghost1.idm.lab.bos.redhat.com,cn=computers,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com", 
-                "enrolledby": [], 
+                ],
+                "dn": "fqdn=ayounghost1.idm.lab.bos.redhat.com,cn=computers,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com",
+                "enrolledby": [],
                 "fqdn": [
                     "ayounghost1.idm.lab.bos.redhat.com"
-                ], 
+                ],
                 "l": [
                     "VM-lab"
-                ], 
-                "memberof": [], 
+                ],
+                "memberof": [],
                 "nshardwareplatform": [
                     "kvm"
-                ], 
+                ],
                 "nshostlocation": [
                     "VM-lab"
-                ], 
+                ],
                 "nsosversion": [
                     "F13"
                 ]
             }
-        ], 
-        "summary": "2 hosts matched", 
+        ],
+        "summary": "2 hosts matched",
         "truncated": false
     }
 }

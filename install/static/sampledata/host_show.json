@@ -1,56 +1,56 @@
 {
-    "error": null, 
-    "id": 0, 
+    "error": null,
+    "id": 0,
     "result": {
         "result": {
             "cn": [
                 "vm-121.idm.lab.bos.redhat.com"
-            ], 
-            "dn": "fqdn=vm-121.idm.lab.bos.redhat.com,cn=computers,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com", 
-            "enrolledby": [], 
+            ],
+            "dn": "fqdn=vm-121.idm.lab.bos.redhat.com,cn=computers,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com",
+            "enrolledby": [],
             "fqdn": [
                 "vm-121.idm.lab.bos.redhat.com"
-            ], 
+            ],
             "ipauniqueid": [
                 "b54b73a8-8ba8-11df-80bc-00163e26b89e"
-            ], 
+            ],
             "krbextradata": [
                 {
                     "__base64__": "AAKOoTdMYWRtaW4vYWRtaW5ASURNLkxBQi5CT1MuUkVESEFULkNPTQA="
                 }
-            ], 
+            ],
             "krblastpwdchange": [
                 "20100709222414Z"
-            ], 
+            ],
             "krbpasswordexpiration": [
                 "19700101000000Z"
-            ], 
+            ],
             "krbprincipalname": [
                 "host/vm-121.idm.lab.bos.redhat.com@IDM.LAB.BOS.REDHAT.COM"
-            ], 
+            ],
             "krbticketflags": [
                 "0"
-            ], 
+            ],
             "managedby": [
                 "fqdn=vm-121.idm.lab.bos.redhat.com,cn=computers,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com"
-            ], 
-            "memberof": [], 
+            ],
+            "memberof": [],
             "objectclass": [
-                "top", 
-                "ipaobject", 
-                "nshost", 
-                "ipahost", 
-                "ipaservice", 
-                "pkiuser", 
-                "krbprincipalaux", 
-                "krbprincipal", 
+                "top",
+                "ipaobject",
+                "nshost",
+                "ipahost",
+                "ipaservice",
+                "pkiuser",
+                "krbprincipalaux",
+                "krbprincipal",
                 "krbticketpolicyaux"
-            ], 
+            ],
             "serverhostname": [
                 "vm-121"
             ]
-        }, 
-        "summary": null, 
+        },
+        "summary": null,
         "value": "vm-121.idm.lab.bos.redhat.com"
     }
 }

@@ -1,0 +1,25 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "completed": 1,
+        "failed": {
+            "member": {
+                "group": [],
+                "user": []
+            }
+        },
+        "result": {
+            "cn": [
+                "testgroup"
+            ],
+            "description": [
+                "testgroup"
+            ],
+            "dn": "cn=testgroup,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "member_user": [
+                "kfrog"
+            ]
+        }
+    }
+}

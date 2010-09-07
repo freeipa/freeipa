@@ -1,26 +1,26 @@
 {
-    "error": null, 
-    "id": 0, 
+    "error": null,
+    "id": 0,
     "result": {
         "result": {
             "cn": [
                 "net-live"
-            ], 
+            ],
             "description": [
                 "live servers"
-            ], 
-            "dn": "ipauniqueid=51451097-abef-11df-ad3a-525400674dcd,cn=ng,cn=alt,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+            ],
+            "dn": "ipauniqueid=51451097-abef-11df-ad3a-525400674dcd,cn=ng,cn=alt,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
             "memberhost_hostgroup": [
                 "host-live"
-            ], 
+            ],
             "memberuser_group": [
                 "muppets"
-            ], 
+            ],
             "nisdomainname": [
                 "ayoung.boston.devel.redhat.com"
             ]
-        }, 
-        "summary": null, 
+        },
+        "summary": null,
         "value": "net-live"
     }
 }

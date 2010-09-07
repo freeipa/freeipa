@@ -12,6 +12,7 @@
     <script type="text/javascript" src="search.js"></script>
     <script type="text/javascript" src="details.js"></script>
     <script type="text/javascript" src="add.js"></script>
+    <script type="text/javascript" src="associate.js"></script>
     <script type="text/javascript" src="user.js"></script>
     <script type="text/javascript" src="usermeta.js"></script>
     <script type="text/javascript" src="group.js"></script>
@@ -23,10 +24,7 @@
     <script type="text/javascript">
 
       $(document).ready(function(){
-      if (useSampleData)
-        ipa_init("sampledata/metadata.json", buildNavigation);
-      else
-        ipa_init(null, buildNavigation);
+        ipa_init( buildNavigation);
       });
 
     </script>
@@ -46,11 +44,16 @@
       <div id="sub-nav">Edit: </div>
     </div>
 
+    <h1></h1>
+    <ul id="viewtype" style="display:none" >
+      <li id="viewcaption"></li>
+    </ul>
+
+
     <div id="content" border="1"  style="display:none" >
     </div>
 
     <div id="details" style="display:none" >
-      <h1>Managing user:</h1>
       <div id="buttons">
 	<a href="jslink" onclick="return (reset_on_click(this));">
           <img id="butreset" src="but-reset.png" alt="Reset" />
@@ -60,9 +63,6 @@
 	</a>
       </div>
 
-      <ul id="viewtype">
-	<li id="viewcaption">View:</li>
-      </ul>
       <div id="detail-lists">
 	<hr />
       </div>
@@ -89,24 +89,23 @@
     </div>
 
     <div id="associations" style="display:none">
-      <h1>Enroll in Groups</h1>
       <ul id="viewtype">
 	<li id="viewcaption">View:</li>
       </ul>
       <form>
 	<div style="border-width:1px">
 	  <div >
-	    <input type="text"/>
-	    <input id="find" type="button" value="Find Groups"/>
+	    <input id="associateFilter" type="text"/>
+	    <input id="find" type="button" value="Find"/>
 	    <span style="float:right">
-	      <input id="cancelEnrollGroups" type="button" value="Cancel"/>
-	      <input id="enrollGroups" type="button" value="Enroll"/>
+	      <input id="cancel" type="button" value="Cancel"/>
+	      <input id="enroll" type="button" value="Enroll"/>
 	    </span>
 	  </div>
 	  <div  id="results"  style="border: 2px solid rgb(0, 0, 0); position:relative;  height:200px;" >
 	    <div style="float:left;">
-	      <div>Groups</div>
-	      <select id="grouplist" width="150px" size="10" multiple="true" >
+	      <div>Available</div>
+	      <select id="availableList" width="150px" size="10" multiple="true" >
 	      </select>
 	    </div>
 	    <div style="float:left;">
@@ -114,7 +113,7 @@
 	      <p><input id="addToList" type="button" value="&gt;&gt;"/></p>
 	    </div>
 	    <div style="float:left;">
-	      <div>Prospective Enrollments</div>
+	      <div>Prospective</div>
 	      <select id="enrollments" width="150px"  size="10" multiple="true" >
 	      </select>
 	    </div>

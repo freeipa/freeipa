@@ -1,10 +1,13 @@
 function setupGroup(facet){
-    if (facet == "details"){
-    setupGroupDetails();
-    }else  if (facet == "add"){
-    setupAddGroup();
+
+    if (groupForms[facet]){
+        groupForms[facet].setup();
+    }else if (facet == "details"){
+        setupGroupDetails();
+    }else if (facet == "add"){
+        setupAddGroup();
     }else{
-    groupSearchForm.setup();
+        groupForms.search.setup();
     }
 }
 
@@ -74,33 +77,26 @@ var group_details_list =
     ['description', 'Description'],
     ['gidnumber', 'Group ID']]]];
 
+var groupFacets=['details','users'];
+
 function setupGroupDetails(group){
 
     //re initialize global parse of parameters
     qs = ipa_parse_qs();
 
     showDetails();
-
+    setupFacetNavigation('group',qs['pkey'],qs['facet'],groupFacets);
     ipa_details_init('group');
     ipa_details_create(group_details_list, $('#details'));
-    ipa_details_load(qs['pkey'], on_win, null, "sampledata/groupshow.json");
+    ipa_details_load(qs['pkey'], on_win, null);
     $('h1').text('Managing group: ' + group);
 }
-
-
-
-function renderGroupDetails(group)
-{
-
-}
-
 
 function renderGroupDetailColumn(current,cell){
 
     $("<a/>",{
-    href:"#tab=group&facet=details&pkey="+current.cn,
-    html:  ""+ current[this.column],
-    //click: function(){ setupGroupDetails(current.cn)},
+        href:"#tab=group&facet=details&pkey="+current.cn,
+        html:  ""+ current[this.column],
     }).appendTo(cell);
 }
 
@@ -112,7 +108,32 @@ var groupSearchColumns = [
     {title:"Description",  column:"description",render: renderSimpleColumn}
 ];
 
-var groupSearchForm = new SearchForm("group", "find", groupSearchColumns ,"sampledata/grouplist.json");
+var groupForms = new GroupForms();
+
+function GroupForms(){
+
+    this.userListColumns = [ {title:"user",column:"member_user" }];
+    this.obj="group";
+    this.users = new AssociationList(
+        this.obj,
+        "users",
+        "assignusers",
+        this.userListColumns, groupFacets );
+
+    this.assignusers = new AssociationForm(
+        this.obj,
+        "user",
+        "assignusers",
+        groupFacets,
+        "uid",
+        function(){
+            return 'Add Users to group : '  + qs['pkey'] ;
+        },
+        BulkAssociator);
 
 
+    this.search =  new SearchForm("group", "find", groupSearchColumns );
+
+
+}
 

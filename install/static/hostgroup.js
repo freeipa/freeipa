@@ -1,11 +1,6 @@
+
 function setupHostgroup(facet){
-    if (facet == "details"){
-        hostgroupDetailsForm.setup();
-    }else if (facet == "add"){
-        hostgroupBuilder.setup();
-    }else{
-        hostgroupSearchForm.setup();
-    }
+        hostgroupForms.setup(facet);
 }
 
 var hostgroup_details_list =
@@ -13,8 +8,7 @@ var hostgroup_details_list =
         ['cn', 'Hostgroup Name'],
         ['description', 'Description']]]];
 
-
-var hostgroupDetailsForm = new DetailsForm("hostgroup",hostgroup_details_list,"cn","sampledata/hostgroupshow.json") ;
+var hostgroupFacets = ["details","hosts","assignhosts"];
 
 
 
@@ -26,23 +20,63 @@ function hostgroupAddOptionsFunction (){
     return options;
 }
 
-var hostgroupAddProperties =
+var hostgroupForms = new HostgroupsForms();
+
+function HostgroupsForms(){
+
+    this.setup = function(facet){
+        if (this[facet]){
+            this[facet].setup();
+        }else{
+            this.unspecified.setup();
+        }
+    }
+
+
+/**
+*  used to initialize the search
+*/
+    this.hostgroupSearchColumns = [
+        {
+            title:"Hostgroup",
+            column:"cn",
+            render:  function(current,cell){
+                renderPkeyColumn2('hostgroup', 'cn', current,cell);
+            }
+        },
+        {title:"Description", column:"description",render: renderSimpleColumn}];
+
+    this.hostgroupAddProperties =
     [{title: 'Hostgroup Name', id: 'pkey', type: 'text'},
      {title: 'Description', id: 'description', type: 'text'}];
 
-var hostgroupBuilder = new EntityBuilder("hostgroup",hostgroupAddProperties,hostgroupAddOptionsFunction);
 
+    /**
+       Facets
+    */
+    this.hostListColumns = [ {title:"Host",column:"member_host" }];
+    this.obj="hostgroup";
+    this.hosts = new AssociationList(
+        this.obj,
+        "hosts",
+        "assignhosts",
+        this.hostListColumns, hostgroupFacets );
 
-var hostgroupSearchColumns = [
-    {
-        title:"Hostgroup", 
-        column:"cn", 
-        render:  function(current,cell){
-            renderPkeyColumn(hostgroupDetailsForm, current,cell);
-        }
-    },
-    {title:"Description", column:"description",render: renderSimpleColumn}];
+    this.assignhosts = new AssociationForm(
+        this.obj,
+        "host",
+        "assignhosts",
+        hostgroupFacets,
+        "fqdn",
+        function(){
+            return 'Add Hosts to to  hostgroup : '  + qs['pkey'] ;
+        },
+        BulkAssociator);
 
-var hostgroupSearchForm = 
-    new SearchForm("hostgroup", "find", hostgroupSearchColumns,
-                   "sampledata/hostgrouplist.json");
+    this.details = new DetailsForm("hostgroup",hostgroup_details_list,"cn",hostgroupFacets) ;
+
+    this.add = new EntityBuilder("hostgroup",this.hostgroupAddProperties,hostgroupAddOptionsFunction);
+
+    this.search = new SearchForm("hostgroup", "find", this.hostgroupSearchColumns);
+    this.unspecified = this.search;
+}

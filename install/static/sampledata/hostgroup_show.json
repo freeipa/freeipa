@@ -9,7 +9,12 @@
             "description": [
                 "Live servers"
             ],
-            "dn": "cn=host-live,cn=hostgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+            "dn": "cn=host-live,cn=hostgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "member_host": [
+                "live3.pbs.org",
+                "live2.pbs.org",
+                "live1.pbs.org"
+            ]
         },
         "summary": null,
         "value": "host-live"

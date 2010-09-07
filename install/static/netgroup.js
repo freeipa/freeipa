@@ -16,7 +16,7 @@ var netgroup_details_list =
         ['nisdomainname', 'NIS Domain']]]];
 
 
-var netgroupDetailsForm = new DetailsForm("netgroup",netgroup_details_list,"cn","sampledata/netgroupshow.json") ;
+var netgroupDetailsForm = new DetailsForm("netgroup",netgroup_details_list,"cn", ["details","hosts","groups","users"]) ;
 
 
 var netgroupAddProperties =
@@ -32,7 +32,6 @@ function netgroupAddOptionsFunction (){
     return options;
 }
 
-
 var netgroupBuilder = new EntityBuilder("netgroup",netgroupAddProperties,netgroupAddOptionsFunction);
 
 
@@ -43,4 +42,4 @@ var netgroupSearchColumns = [
     {title:"Description", column:"description",render: renderSimpleColumn}];
 
 var netgroupSearchForm =
-    new SearchForm("netgroup", "find", netgroupSearchColumns,"sampledata/netgrouplist.json");
+    new SearchForm("netgroup", "find", netgroupSearchColumns);

@@ -1,246 +1,246 @@
 
 {
-    "error": null, 
-    "id": 0, 
+    "error": null,
+    "id": 0,
     "result": {
-        "count": 4, 
+        "count": 4,
         "result": [
             {
                 "cn": [
                     "Administrator"
-                ], 
-                "dn": "uid=admin,cn=users,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                ],
+                "dn": "uid=admin,cn=users,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                 "gecos": [
                     "Administrator"
-                ], 
+                ],
                 "gidnumber": [
                     "444194797"
-                ], 
+                ],
                 "homedirectory": [
                     "/home/admin"
-                ], 
+                ],
                 "krblastpwdchange": [
                     "20100614200400Z"
-                ], 
+                ],
                 "krbpasswordexpiration": [
                     "20100912200400Z"
-                ], 
+                ],
                 "krbprincipalname": [
                     "admin@AYOUNG.BOSTON.DEVEL.REDHAT.COM"
-                ], 
+                ],
                 "loginshell": [
                     "/bin/bash"
-                ], 
+                ],
                 "memberof_group": [
                     "admins"
-                ], 
+                ],
                 "memberof_rolegroup": [
                     "replicaadmin"
-                ], 
+                ],
                 "memberof_taskgroup": [
-                    "managereplica", 
+                    "managereplica",
                     "deletereplica"
-                ], 
+                ],
                 "objectclass": [
-                    "top", 
-                    "person", 
-                    "posixaccount", 
-                    "krbprincipalaux", 
-                    "krbticketpolicyaux", 
+                    "top",
+                    "person",
+                    "posixaccount",
+                    "krbprincipalaux",
+                    "krbticketpolicyaux",
                     "inetuser"
-                ], 
+                ],
                 "sn": [
                     "Administrator"
-                ], 
+                ],
                 "uid": [
                     "admin"
-                ], 
+                ],
                 "uidnumber": [
                     "444194797"
                 ]
-            }, 
+            },
             {
                 "cn": [
                     "Kermit Frog"
-                ], 
-                "dn": "uid=kfrog,cn=users,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                ],
+                "dn": "uid=kfrog,cn=users,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                 "gecos": [
                     "Some of my best friends are Geckos"
-                ], 
+                ],
                 "gidnumber": [
                     "444194798"
-                ], 
+                ],
                 "givenname": [
                     "Kermit"
-                ], 
+                ],
                 "homedirectory": [
                     "/home/kfrog"
-                ], 
+                ],
                 "ipauniqueid": [
                     "89dc1f68-77f3-11df-afb7-525400ed2d11"
-                ], 
+                ],
                 "krbprincipalname": [
                     "kfrog"
-                ], 
+                ],
                 "loginshell": [
                     "/bin/sh"
-                ], 
+                ],
                 "mail": [
                     "kfrog@pbs.org"
-                ], 
+                ],
                 "memberof_group": [
                     "ipausers"
-                ], 
+                ],
                 "objectclass": [
-                    "top", 
-                    "person", 
-                    "organizationalperson", 
-                    "inetorgperson", 
-                    "inetuser", 
-                    "posixaccount", 
-                    "krbprincipalaux", 
-                    "krbticketpolicyaux", 
-                    "radiusprofile", 
+                    "top",
+                    "person",
+                    "organizationalperson",
+                    "inetorgperson",
+                    "inetuser",
+                    "posixaccount",
+                    "krbprincipalaux",
+                    "krbticketpolicyaux",
+                    "radiusprofile",
                     "ipaobject"
-                ], 
+                ],
                 "sn": [
                     "Frog"
-                ], 
+                ],
                 "street": [
                     "55 Seasame Street"
-                ], 
+                ],
                 "title": [
                     "Reporter"
-                ], 
+                ],
                 "uid": [
                     "kfrog"
-                ], 
+                ],
                 "uidnumber": [
                     "444194798"
                 ]
-            }, 
+            },
             {
                 "cn": [
                     "Oscar Grouch"
-                ], 
-                "dn": "uid=scram,cn=users,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                ],
+                "dn": "uid=scram,cn=users,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                 "gecos": [
                     "scram"
-                ], 
+                ],
                 "gidnumber": [
                     "444194798"
-                ], 
+                ],
                 "givenname": [
                     "Oscar"
-                ], 
+                ],
                 "homedirectory": [
                     "/home/trash"
-                ], 
+                ],
                 "ipauniqueid": [
                     "adba909c-77f3-11df-ae3f-525400ed2d11"
-                ], 
+                ],
                 "krbprincipalname": [
                     "scram"
-                ], 
+                ],
                 "loginshell": [
                     "/bin/sh"
-                ], 
+                ],
                 "mail": [
                     "oscar@pbs.org"
-                ], 
+                ],
                 "memberof_group": [
                     "ipausers"
-                ], 
+                ],
                 "objectclass": [
-                    "top", 
-                    "person", 
-                    "organizationalperson", 
-                    "inetorgperson", 
-                    "inetuser", 
-                    "posixaccount", 
-                    "krbprincipalaux", 
-                    "krbticketpolicyaux", 
-                    "radiusprofile", 
+                    "top",
+                    "person",
+                    "organizationalperson",
+                    "inetorgperson",
+                    "inetuser",
+                    "posixaccount",
+                    "krbprincipalaux",
+                    "krbticketpolicyaux",
+                    "radiusprofile",
                     "ipaobject"
-                ], 
+                ],
                 "sn": [
                     "Grouch"
-                ], 
+                ],
                 "street": [
                     "123a Sesame Street"
-                ], 
+                ],
                 "title": [
                     "Sys Admin"
-                ], 
+                ],
                 "uid": [
                     "scram"
-                ], 
+                ],
                 "uidnumber": [
                     "444194799"
                 ]
-            }, 
+            },
             {
                 "cn": [
                     "Sid Monster"
-                ], 
-                "dn": "uid=cookie,cn=users,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                ],
+                "dn": "uid=cookie,cn=users,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
                 "gecos": [
                     "cookie"
-                ], 
+                ],
                 "gidnumber": [
                     "444194798"
-                ], 
+                ],
                 "givenname": [
                     "Sid"
-                ], 
+                ],
                 "homedirectory": [
                     "cookie"
-                ], 
+                ],
                 "ipauniqueid": [
                     "c7d10507-77f3-11df-ac53-525400ed2d11"
-                ], 
+                ],
                 "krbprincipalname": [
                     "cookie"
-                ], 
+                ],
                 "loginshell": [
                     "/bin/sh"
-                ], 
+                ],
                 "mail": [
                     "cookie@pbs.org"
-                ], 
+                ],
                 "memberof_group": [
                     "ipausers"
-                ], 
+                ],
                 "objectclass": [
-                    "top", 
-                    "person", 
-                    "organizationalperson", 
-                    "inetorgperson", 
-                    "inetuser", 
-                    "posixaccount", 
-                    "krbprincipalaux", 
-                    "krbticketpolicyaux", 
-                    "radiusprofile", 
+                    "top",
+                    "person",
+                    "organizationalperson",
+                    "inetorgperson",
+                    "inetuser",
+                    "posixaccount",
+                    "krbprincipalaux",
+                    "krbticketpolicyaux",
+                    "radiusprofile",
                     "ipaobject"
-                ], 
+                ],
                 "sn": [
                     "Monster"
-                ], 
+                ],
                 "street": [
                     "123 Sesame Street"
-                ], 
+                ],
                 "title": [
                     "Chef"
-                ], 
+                ],
                 "uid": [
                     "cookie"
-                ], 
+                ],
                 "uidnumber": [
                     "444194800"
                 ]
             }
-        ], 
-        "summary": "4 users matched", 
+        ],
+        "summary": "4 users matched",
         "truncated": false
     }
 }
