@@ -54,7 +54,7 @@ function HostgroupsForms(){
     /**
        Facets
     */
-    this.hostListColumns = [ {title:"Host",column:"member_host" }];
+    this.hostListColumns = [ {title:"host",column:"member_host" }];
     this.obj="hostgroup";
     this.hosts = new AssociationList(
         this.obj,

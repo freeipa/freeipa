@@ -2,6 +2,17 @@
     "error": null,
     "id": 0,
     "result": {
+        "completed": 3,
+        "failed": {
+            "memberhost": {
+                "host": [],
+                "hostgroup": []
+            },
+            "memberuser": {
+                "group": [],
+                "user": []
+            }
+        },
         "result": {
             "cn": [
                 "net-live"
@@ -13,10 +24,7 @@
             "memberhost_host": [
                 "live3.pbs.org",
                 "live2.pbs.org",
-                "live1.pbs.org",
-                "www1.pbs.org",
-                "www2.pbs.org",
-                "www3.pbs.org"
+                "live1.pbs.org"
             ],
             "memberhost_hostgroup": [
                 "host-live"
@@ -24,15 +32,9 @@
             "memberuser_group": [
                 "muppets"
             ],
-            "memberuser_user": [
-                "kfrog",
-                "count123"
-            ],
             "nisdomainname": [
                 "ayoung.boston.devel.redhat.com"
             ]
-        },
-        "summary": null,
-        "value": "net-live"
+        }
     }
 }

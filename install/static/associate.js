@@ -218,8 +218,15 @@ function AssociationList(obj,facet,assignFacet,associationColumns,facets) {
             var row  = $("<tr/>").appendTo($('#searchResultsTable thead:last'));
             for (var k = 0; k < associationColumns.length ;k++){
                 var column = this.associationColumns[k].column;
+                var link =
+                    "#tab="+this.associationColumns[k].title
+                    +"&facet=details"
+                    +"&pkey="+userData.result.result[column][j];
                 $("<td/>",{
-                    html: userData.result.result[column][j]
+                    html: $("<a />",{
+                        href:link,
+                        html:userData.result.result[column][j]
+                    })
                 }).appendTo(row);
             }
         }

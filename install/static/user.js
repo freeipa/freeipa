@@ -190,7 +190,7 @@ var userGroupMembershipForm = new AssociationForm("user","group","groupmembershi
 
 /*Group Membership*/
 var groupMembershipColumns  = [
-    {title:"Group", column:"memberof_group"},
+    {title:"group", column:"memberof_group"},
 ];
 
 function populateUserEnrollments(userData){
