@@ -1,0 +1,18 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "result": {
+            "dn": "krbprincipalname=test/dev.example.com@dev.example.com,cn=services,cn=accounts,dc=dev,dc=example,dc=com",
+            "has_keytab": false,
+            "krbprincipalname": [
+                "test/dev.example.com@DEV.EXAMPLE.COM"
+            ],
+            "managedby_host": [
+                "dev.example.com"
+            ]
+        },
+        "summary": null,
+        "value": "test/dev.example.com@DEV.EXAMPLE.COM"
+    }
+}

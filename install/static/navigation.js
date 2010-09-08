@@ -24,6 +24,7 @@ function getParentTabs(){
         host     : "identity",
         hostgroup: "identity",
         netgroup : "identity",
+        service  : "identity",
         policy   : "policy",
         config   : "config"
     };
@@ -54,7 +55,8 @@ function buildNavigation(){
             {name:"Hostgroups",
              tab:"hostgroup",
              setup:  setupHostgroup},
-            {name:"Netgroups",tab:"netgroup", setup:setupNetgroup}
+            {name:"Netgroups",tab:"netgroup", setup:setupNetgroup},
+            {name:"Services",tab:"service", setup:setupService}
             ]},
            {name:"POLICY",  tab:"policy", setup: unimplemented},
            {name:"CONFIG",  tab:"config", setup: unimplemented }];
@@ -139,6 +141,7 @@ function getSetupFunctions(){
         host:     setupHost,
         hostgroup:setupHostgroup,
         netgroup:setupNetgroup,
+        service:setupService,
     };
     }
     return setupFunctions;

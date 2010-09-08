@@ -19,6 +19,7 @@ app_DATA =                              \
 	jquery.cookie.js 		\
 	navigation.js			\
 	netgroup.js 			\
+	service.js 			\
 	pageparams.js 			\
 	search.js 			\
 	details.js 			\

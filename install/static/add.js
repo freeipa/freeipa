@@ -96,11 +96,19 @@ function EntityBuilder(obj,addProperties,addOptionsFunction ){
 
 
 function addAnother(response){
+    if (response.error){
+        alert("error adding entry");
+        return;
+    }
     var params = ipa_parse_qs();
     builders[params["tab"]].setup();
 }
 
 function addEdit(response){
+    if (response.error){
+        alert("error adding entry");
+        return;
+    }
     var params = ipa_parse_qs();
     var hash= "tab="
         + params["tab"]
