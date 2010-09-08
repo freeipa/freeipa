@@ -292,7 +292,9 @@ class ldap2(CrudBackend, Encoder):
             _handle_errors(e, **{})
 
         if self.schema is None and _schema is None:
-            self.schema = get_schema(self.ldap_uri, conn)
+            # explicitly use setattr here so the schema can be set after
+            # the object is finalized.
+            object.__setattr__(self, 'schema', get_schema(self.ldap_uri, conn))
         return conn
 
     def destroy_connection(self):
