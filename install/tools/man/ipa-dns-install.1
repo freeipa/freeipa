@@ -1,0 +1,48 @@
+.\" A man page for ipa-dns-install
+.\" Copyright (C) 2010 Red Hat, Inc.
+.\"
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; version 2 only
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\"
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\"
+.TH "ipa-dns-install" "1" "Sep 9, 2010" "freeipa" ""
+.SH "NAME"
+ipa\-dns\-install \- Add DNS as a service to an IPA server
+.SH "SYNOPSIS"
+ipa\-dns\-install [\fIOPTION\fR]...
+.SH "DESCRIPTION"
+Adds DNS as an IPA\-managed service. This requires that the IPA server is already installed and configured.
+.SH "OPTIONS"
+.TP
+\fB\-p\fR <fl>DM_PASSWORD\fR, \fB\-\-ds\-password\fR=\fIDM_PASSWORD\fR
+The password to be used by the Directory Server for the Directory Manager user
+.TP
+\fB\-\-ip\-address\fR=\fIIP_ADDRESS\fR
+The IP address of the IPA server. If not provided then this is determined based on the hostname of the server.
+.TP
+\fB\-\-forwarders\fR=\fIFORWARDERS\fR
+A forwarder is a DNS server where queries for a specific non\-resolvable address can be directed. To define multiple forwarders use mutliple instances of \fB\-\-forwarders\fR
+.TP
+\fB\-\-noforwarders\fR
+Do not add any DNS forwarders, send non\-resolvable addresses to the DNS root servers.
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+Enable debug logging when more verbose output is needed
+.TP
+\fB\-U\fR, \fB\-\-unattended\fR
+An unattended installation that will never prompt for user input
+.SH "EXIT STATUS"
+0 if the installation was successful
+
+1 if an error occurred

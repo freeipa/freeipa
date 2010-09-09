@@ -1,0 +1,33 @@
+.\" A man page for ipa-upgradeconfig
+.\" Copyright (C) 2010 Red Hat, Inc.
+.\" 
+.\" This is free software; you can redistribute it and/or modify it under
+.\" the terms of the GNU Library General Public License as published by
+.\" the Free Software Foundation; version 2 only
+.\" 
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU Library General Public
+.\" License along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.\" 
+.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\" 
+.TH "ipa-upgradeconfig" "8" "Sep 9 2010" "freeipa" ""
+.SH "NAME"
+ipa\-upgradeconfig \- Upgrade the IPA Apache configuration
+.SH "SYNOPSIS"
+ipa\-upgradeconfig
+.SH "DESCRIPTION"
+A tool to update the IPA Apache configuration during an upgrade.
+
+It examines the VERSION value in the head of \fI/etc/httpd/conf.d/ipa.conf\fR and \fI/etc/httpd/conf.d/ipa\-rewrite.conf\fR and compares this with the templates. If an update is needed then new files are written.
+
+This is not intended to be run by an end\-user. It is executed when the IPA rpms are upgraded.
+.SH "EXIT STATUS"
+0 if the update was successful or there was nothing to do
+
+1 if an error occurred
