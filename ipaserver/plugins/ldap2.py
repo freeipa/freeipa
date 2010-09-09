@@ -121,7 +121,7 @@ def get_schema(url, conn=None):
     tmpdir = None
     has_conn = conn is not None
 
-    if (not api.env.in_server or api.env.context not in ['lite', 'server']
+    if ((not api.env.in_server or api.env.context not in ['lite', 'server'])
         and conn is None):
         # The schema is only needed on the server side
         return None
