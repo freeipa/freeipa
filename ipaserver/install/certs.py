@@ -34,6 +34,9 @@ from ipapython import sysrestore
 from ipapython import ipautil
 from ipalib import pkcs10
 from ConfigParser import RawConfigParser
+import service
+import certmonger
+from ipalib import x509
 
 from nss.error import NSPRError
 import nss.nss as nss
@@ -432,6 +435,51 @@ class CertDB(object):
 
         raise RuntimeError("Unable to find serial number")
 
+    def track_server_cert(self, nickname, principal, password_file=None):
+        """
+        Tell certmonger to track the given certificate nickname.
+        """
+        service.chkconfig_on("certmonger")
+        service.start("certmonger")
+        args = ["/usr/bin/ipa-getcert", "start-tracking",
+                "-d", self.secdir,
+                "-n", nickname]
+        if password_file:
+            args.append("-p")
+            args.append(password_file)
+        try:
+            (stdout, stderr, returncode) = ipautil.run(args)
+        except ipautil.CalledProcessError, e:
+            logging.error("tracking certificate failed: %s" % str(e))
+
+        service.stop("certmonger")
+        cert = self.get_cert_from_db(nickname)
+        subject = str(x509.get_subject(cert))
+        m = re.match('New tracking request "(\d+)" added', stdout)
+        request_id = m.group(1)
+
+        certmonger.add_principal(request_id, principal)
+        certmonger.add_subject(request_id, subject)
+
+        service.start("certmonger")
+
+    def untrack_server_cert(self, nickname):
+        """
+        Tell certmonger to stop tracking the given certificate nickname.
+        """
+
+        # Always start certmonger. We can't untrack something if it isn't
+        # running
+        service.start("certmonger")
+        args = ["/usr/bin/ipa-getcert", "stop-tracking",
+                "-d", self.secdir,
+                "-n", nickname]
+        try:
+            (stdout, stderr, returncode) = ipautil.run(args)
+        except ipautil.CalledProcessError, e:
+            logging.error("untracking certificate failed: %s" % str(e))
+        service.stop("certmonger")
+
     def create_server_cert(self, nickname, hostname, other_certdb=None, subject=None):
         """
         other_certdb can mean one of two things, depending on the context.
@@ -449,7 +497,7 @@ class CertDB(object):
             cdb = self
         if subject is None:
             subject=self.subject_format % hostname
-        (out, err) = self.request_cert(subject)
+        self.request_cert(subject)
         cdb.issue_server_cert(self.certreq_fname, self.certder_fname)
         self.add_cert(self.certder_fname, nickname)
         fd = open(self.certder_fname, "r")
@@ -486,7 +534,6 @@ class CertDB(object):
             args.append("-a")
         (stdout, stderr, returncode) = self.run_certutil(args)
         os.remove(self.noise_fname)
-
         return (stdout, stderr)
 
     def issue_server_cert(self, certreq_fname, cert_fname):

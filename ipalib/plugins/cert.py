@@ -417,7 +417,16 @@ class cert_show(VirtualCommand):
     operation="retrieve certificate"
 
     def execute(self, serial_number):
-        self.check_access()
+        hostname = None
+        try:
+            self.check_access()
+        except errors.ACIError, acierr:
+            self.debug("Not granted by ACI to retrieve certificate, looking at principal")
+            bind_principal = getattr(context, 'principal')
+            if not bind_principal.startswith('host/'):
+                raise acierr
+            hostname = get_host_from_principal(bind_principal)
+
         result=self.Backend.ra.get_certificate(serial_number)
         cert = x509.load_certificate(result['certificate'])
         result['subject'] = unicode(cert.subject)
@@ -426,6 +435,12 @@ class cert_show(VirtualCommand):
         result['valid_not_after'] = unicode(cert.valid_not_after_str)
         result['md5_fingerprint'] = unicode(nss.data_to_hex(nss.md5_digest(cert.der_data), 64)[0])
         result['sha1_fingerprint'] = unicode(nss.data_to_hex(nss.sha1_digest(cert.der_data), 64)[0])
+        if hostname:
+            # If we have a hostname we want to verify that the subject
+            # of the certificate matches it, otherwise raise an error
+            if hostname != cert.subject.common_name:
+                raise acierr
+
         return dict(result=result)
 
 api.register(cert_show)
@@ -457,7 +472,17 @@ class cert_revoke(VirtualCommand):
     )
 
     def execute(self, serial_number, **kw):
-        self.check_access()
+        hostname = None
+        try:
+            self.check_access()
+        except errors.ACIError, acierr:
+            self.debug("Not granted by ACI to revoke certificate, looking at principal")
+            try:
+                # Let cert_show() handle verifying that the subject of the
+                # cert we're dealing with matches the hostname in the principal
+                result = api.Command['cert_show'](unicode(serial_number))['result']
+            except errors.NotImplementedError:
+                pass
         return dict(
             result=self.Backend.ra.revoke_certificate(serial_number, **kw)
         )

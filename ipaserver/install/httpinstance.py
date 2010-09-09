@@ -120,10 +120,9 @@ class HTTPInstance(service.Service):
                 self.print_msg(selinux_warning)
 
     def __create_http_keytab(self):
-        http_principal = "HTTP/" + self.fqdn + "@" + self.realm
-        installutils.kadmin_addprinc(http_principal)
-        installutils.create_keytab("/etc/httpd/conf/ipa.keytab", http_principal)
-        self.move_service(http_principal)
+        installutils.kadmin_addprinc(self.principal)
+        installutils.create_keytab("/etc/httpd/conf/ipa.keytab", self.principal)
+        self.move_service(self.principal)
         self.add_cert_to_service()
 
         pent = pwd.getpwnam("apache")
@@ -186,9 +185,11 @@ class HTTPInstance(service.Service):
                 db.create_from_cacert(ca_db.cacert_fname)
                 db.create_password_conf()
                 self.dercert = db.create_server_cert("Server-Cert", self.fqdn, ca_db)
+                db.track_server_cert("Server-Cert", self.principal, db.passwd_fname)
                 db.create_signing_cert("Signing-Cert", "Object Signing Cert", ca_db)
             else:
                 self.dercert = db.create_server_cert("Server-Cert", self.fqdn, ca_db)
+                db.track_server_cert("Server-Cert", self.principal, db.passwd_fname)
                 db.create_signing_cert("Signing-Cert", "Object Signing Cert", ca_db)
                 db.create_password_conf()
 
@@ -251,6 +252,8 @@ class HTTPInstance(service.Service):
         if not running is None:
             self.stop()
 
+        db = certs.CertDB(NSS_DIR)
+        db.untrack_server_cert("Server-Cert")
         if not enabled is None and not enabled:
             self.chkconfig_off()
 

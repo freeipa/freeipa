@@ -145,12 +145,14 @@ class Service:
             conn.unbind()
             return
         newdn = "krbprincipalname=%s,cn=services,cn=accounts,%s" % (principal, self.suffix)
+        hostdn = "fqdn=%s,cn=computers,cn=accounts,%s" % (self.fqdn, self.suffix)
         conn.deleteEntry(dn)
         entry.dn = newdn
         classes = entry.getValues("objectclass")
         classes = classes + ["ipaobject", "ipaservice", "pkiuser"]
         entry.setValues("objectclass", list(set(classes)))
         entry.setValue("ipauniqueid", str(uuid.uuid1()))
+        entry.setValue("managedby", hostdn)
         conn.addEntry(entry)
         conn.unbind()
         return newdn

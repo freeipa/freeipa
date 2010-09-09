@@ -165,7 +165,7 @@ class DsInstance(service.Service):
         self.sub_dict = None
         self.domain = domain_name
         self.serverid = None
-        self.host_name = None
+        self.fqdn = None
         self.pkcs12_info = None
         self.ds_user = None
         self.dercert = None
@@ -177,19 +177,19 @@ class DsInstance(service.Service):
         else:
             self.suffix = None
 
-    def create_instance(self, ds_user, realm_name, host_name, domain_name, dm_password, pkcs12_info=None, self_signed_ca=False, uidstart=1100, gidstart=1100, subject_base=None, hbac_allow=True):
+    def create_instance(self, ds_user, realm_name, fqdn, domain_name, dm_password, pkcs12_info=None, self_signed_ca=False, uidstart=1100, gidstart=1100, subject_base=None, hbac_allow=True):
         self.ds_user = ds_user
         self.realm_name = realm_name.upper()
         self.serverid = realm_to_serverid(self.realm_name)
         self.suffix = util.realm_to_suffix(self.realm_name)
-        self.host_name = host_name
+        self.fqdn = fqdn
         self.dm_password = dm_password
         self.domain = domain_name
         self.pkcs12_info = pkcs12_info
         self.self_signed_ca = self_signed_ca
         self.uidstart = uidstart
         self.gidstart = gidstart
-        self.principal = "ldap/%s@%s" % (self.host_name, self.realm_name)
+        self.principal = "ldap/%s@%s" % (self.fqdn, self.realm_name)
         self.subject_base = subject_base
         self.__setup_sub_dict()
 
@@ -232,12 +232,12 @@ class DsInstance(service.Service):
 
     def __setup_sub_dict(self):
         server_root = find_server_root()
-        self.sub_dict = dict(FQHN=self.host_name, SERVERID=self.serverid,
+        self.sub_dict = dict(FQHN=self.fqdn, SERVERID=self.serverid,
                              PASSWORD=self.dm_password, SUFFIX=self.suffix.lower(),
                              REALM=self.realm_name, USER=self.ds_user,
                              SERVER_ROOT=server_root, DOMAIN=self.domain,
                              TIME=int(time.time()), UIDSTART=self.uidstart,
-                             GIDSTART=self.gidstart, HOST=self.host_name,
+                             GIDSTART=self.gidstart, HOST=self.fqdn,
                              ESCAPED_SUFFIX= escape_dn_chars(self.suffix.lower()),
                          )
 
@@ -356,7 +356,7 @@ class DsInstance(service.Service):
 
     def __config_uidgid_gen_first_master(self):
         if (self.uidstart == self.gidstart and
-            has_managed_entries(self.host_name, self.dm_password)):
+            has_managed_entries(self.fqdn, self.dm_password)):
             self._ldap_mod("dna-upg.ldif", self.sub_dict)
         else:
             self._ldap_mod("dna-posix.ldif", self.sub_dict)
@@ -377,7 +377,7 @@ class DsInstance(service.Service):
         self._ldap_mod("version-conf.ldif")
 
     def __user_private_groups(self):
-        if has_managed_entries(self.host_name, self.dm_password):
+        if has_managed_entries(self.fqdn, self.dm_password):
             self._ldap_mod("user_private_groups.ldif", self.sub_dict)
 
     def __add_enrollment_module(self):
@@ -397,17 +397,19 @@ class DsInstance(service.Service):
             self.dercert = dsdb.get_cert_from_db(nickname)
         else:
             nickname = "Server-Cert"
-            cadb = certs.CertDB(httpinstance.NSS_DIR, host_name=self.host_name, subject_base=self.subject_base)
+            cadb = certs.CertDB(httpinstance.NSS_DIR, host_name=self.fqdn, subject_base=self.subject_base)
             if self.self_signed_ca:
                 cadb.create_self_signed()
                 dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
-                self.dercert = dsdb.create_server_cert("Server-Cert", self.host_name, cadb)
+                self.dercert = dsdb.create_server_cert("Server-Cert", self.fqdn, cadb)
+                dsdb.track_server_cert("Server-Cert", self.principal, dsdb.passwd_fname)
                 dsdb.create_pin_file()
             else:
                 # FIXME, need to set this nickname in the RA plugin
                 cadb.export_ca_cert('ipaCert', False)
                 dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
-                self.dercert = dsdb.create_server_cert("Server-Cert", self.host_name, cadb)
+                self.dercert = dsdb.create_server_cert("Server-Cert", self.fqdn, cadb)
+                dsdb.track_server_cert("Server-Cert", self.principal, dsdb.passwd_fname)
                 dsdb.create_pin_file()
 
         conn = ipaldap.IPAdmin("127.0.0.1")
@@ -491,6 +493,9 @@ class DsInstance(service.Service):
 
         serverid = self.restore_state("serverid")
         if not serverid is None:
+            dirname = config_dirname(serverid)
+            dsdb = certs.CertDB(dirname)
+            dsdb.untrack_server_cert("Server-Cert")
             erase_ds_instance_data(serverid)
 
         ds_user = self.restore_state("user")

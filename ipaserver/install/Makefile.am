@@ -15,6 +15,7 @@ app_PYTHON = 			\
 	replication.py		\
 	certs.py		\
         ldapupdate.py		\
+        certmonger.py		\
 	$(NULL)
 
 EXTRA_DIST =			\
