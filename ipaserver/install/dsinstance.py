@@ -316,6 +316,8 @@ class DsInstance(service.Service):
                         schema_dirname(self.serverid) + "60ipaconfig.ldif")
         shutil.copyfile(ipautil.SHARE_DIR + "60basev2.ldif",
                         schema_dirname(self.serverid) + "60basev2.ldif")
+        shutil.copyfile(ipautil.SHARE_DIR + "60sudo.ldif",
+                        schema_dirname(self.serverid) + "60sudo.ldif")
         try:
             shutil.move(schema_dirname(self.serverid) + "05rfc2247.ldif",
                             schema_dirname(self.serverid) + "05rfc2247.ldif.old")

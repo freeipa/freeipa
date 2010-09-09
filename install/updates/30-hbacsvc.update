@@ -12,13 +12,6 @@ default:cn: ftp
 default:description: ftp
 default:ipauniqueid:$UUID
 
-dn: cn=sudo,cn=hbacservices,cn=accounts,$SUFFIX
-default:objectclass: ipahbacservice
-default:objectclass: ipaobject
-default:cn: sudo
-default:description: sudo
-default:ipauniqueid:$UUID
-
 dn: cn=su,cn=hbacservices,cn=accounts,$SUFFIX
 default:objectclass: ipahbacservice
 default:objectclass: ipaobject
@@ -39,3 +32,29 @@ default:objectclass: ipaobject
 default:cn: su-l
 default:description: su with login shell
 default:ipauniqueid:$UUID
+
+dn: cn=sudo,cn=hbacservices,cn=accounts,$SUFFIX
+default:objectclass: ipahbacservice
+default:objectclass: ipaobject
+default:cn: sudo
+default:description: sudo
+default:ipauniqueid:$UUID
+
+dn: cn=sudo-i,cn=hbacservices,cn=accounts,$SUFFIX
+default:objectclass: ipahbacservice
+default:objectclass: ipaobject
+default:cn: sudo-i
+default:description: sudo-i
+default:ipauniqueid:$UUID
+
+dn: cn=SUDO,cn=hbacservicegroups,cn=accounts,$SUFFIX
+default:objectClass: ipaobject
+default:objectClass: ipahbacservicegroup
+default:objectClass: nestedGroup
+default:objectClass: groupOfNames
+default:objectClass: top
+default:cn: SUDO
+default:ipauniqueid:$UUID
+default:description: Default group of SUDO related services
+default:member: cn=sudo,cn=hbacservices,cn=accounts,$SUFFIX
+default:member: cn=sudo-i,cn=hbacservices,cn=accounts,$SUFFIX

@@ -52,6 +52,12 @@ objectClass: top
 objectClass: nsContainer
 cn: hbac
 
+dn: cn=SUDOers,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: SUDOers
+
 dn: cn=etc,$SUFFIX
 changetype: add
 objectClass: nsContainer
@@ -245,4 +251,3 @@ objectClass: cosClassicDefinition
 cosTemplateDn: cn=cosTemplates,cn=accounts,$SUFFIX
 cosAttribute: krbPwdPolicyReference
 cosSpecifier: memberOf
-
