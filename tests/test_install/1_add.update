@@ -2,9 +2,8 @@
 
 dn: cn=test, cn=accounts, $SUFFIX
 add:objectClass: top
-add:objectClass: ipaContainer
+add:objectClass: nsContainer
 add:cn: test
-add:description: Test container
 
 # Add a test user
 dn: uid=tuser, cn=test, cn=accounts, $SUFFIX
