@@ -20,7 +20,6 @@
 import ConfigParser
 from optparse import OptionParser, IndentedHelpFormatter
 
-import krbV
 import socket
 import ipapython.dnsclient
 import re
@@ -113,8 +112,13 @@ def __discover_config(discover_server = True):
     rl = 0
     try:
         if not config.default_realm:
-            krbctx = krbV.default_context()
-            config.default_realm = krbctx.default_realm
+            try:
+                # only import krbV when we need it
+                import krbV
+                krbctx = krbV.default_context()
+                config.default_realm = krbctx.default_realm
+            except ImportError:
+                pass
             if not config.default_realm:
                 return False
 

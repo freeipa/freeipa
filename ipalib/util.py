@@ -25,7 +25,6 @@ import os
 import imp
 import logging
 import time
-import krbV
 import socket
 from types import NoneType
 
@@ -49,7 +48,11 @@ def json_serialize(obj):
 
 def get_current_principal():
     try:
+        # krbV isn't necessarily available on client machines, fail gracefully
+        import krbV
         return unicode(krbV.default_context().default_ccache().principal().name)
+    except ImportError:
+        raise RuntimeError('python-krbV is not available.')
     except krbV.Krb5Error:
         #TODO: do a kinit?
         raise errors.CCacheError()

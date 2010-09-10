@@ -490,6 +490,7 @@ def main():
     options = parse_options()
     logging_setup(options)
     dnsok = True
+    env={"PATH":"/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"}
 
     global fstore
     fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
@@ -605,7 +606,7 @@ def main():
             if configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, dnsok, options, krb_name):
                 print "Test kerberos configuration failed"
                 return 1
-            os.environ['KRB5_CONFIG'] = krb_name
+            env['KRB5_CONFIG'] = krb_name
             join_args = ["/usr/sbin/ipa-join", "-s", cli_server]
             if options.debug:
                 join_args.append("-d")
@@ -627,7 +628,7 @@ def main():
                         else:
                             stdin = sys.stdin.readline()
 
-                (stderr, stdout, returncode) = run(["/usr/kerberos/bin/kinit", principal], raiseonerr=False, stdin=stdin)
+                (stderr, stdout, returncode) = run(["kinit", principal], raiseonerr=False, stdin=stdin, env=env)
                 print ""
                 if returncode != 0:
                     print stdout
@@ -644,7 +645,7 @@ def main():
                 join_args.append(password)
 
             # Now join the domain
-            (stdout, stderr, returncode) = run(join_args, raiseonerr=False)
+            (stdout, stderr, returncode) = run(join_args, raiseonerr=False, env=env)
 
             if returncode != 0:
                 print "Joining realm failed: %s" % stderr,
@@ -660,8 +661,7 @@ def main():
 
         finally:
             if options.principal is not None:
-                (stderr, stdout, returncode) = run(["/usr/kerberos/bin/kdestroy"], raiseonerr=False)
-            del os.environ['KRB5_CONFIG']
+                (stderr, stdout, returncode) = run(["kdestroy"], raiseonerr=False, env=env)
             os.remove(krb_name)
             os.remove(krb_name + ".ipabkp")
 
