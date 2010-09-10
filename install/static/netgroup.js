@@ -2,14 +2,6 @@ function setupNetgroup(facet){
     netgroupForms.setup(facet);
 }
 
-function netgroupAddOptionsFunction (){
-    var options = {
-        name: $('#pkey').val(),
-        description: $('#description').val()
-    };
-    return options;
-}
-
 var netgroupForms = new NetgroupForms();
 
 function NetgroupForms(){
@@ -39,8 +31,16 @@ function NetgroupForms(){
         [{title: 'Netgroup Name', id: 'pkey', type: 'text'},
          {title: 'Description', id: 'description', type: 'text'}];
 
-    this.add = new EntityBuilder("netgroup",this.add_properties,
-                           netgroupAddOptionsFunction);
+    this.add = new EntityBuilder("netgroup",this.add_properties);
+
+    this.add.getOptions = function() {
+        var options = {
+            name: $('#pkey').val(),
+            description: $('#description').val()
+        };
+        return options;
+    }
+
     this.search =  new SearchForm("netgroup", "find", this.netgroupSearchColumns);
 
     this.userListColumns = [ {title:"user",column:"memberuser_user", }];

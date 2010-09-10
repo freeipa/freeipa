@@ -12,14 +12,6 @@ var hostgroupFacets = ["details","hosts","assignhosts"];
 
 
 
-function hostgroupAddOptionsFunction (){
-    var options = {
-        name: $('#pkey').val(),
-        description: $('#description').val()
-    };
-    return options;
-}
-
 var hostgroupForms = new HostgroupsForms();
 
 function HostgroupsForms(){
@@ -75,7 +67,15 @@ function HostgroupsForms(){
 
     this.details = new DetailsForm("hostgroup",hostgroup_details_list,"cn",hostgroupFacets) ;
 
-    this.add = new EntityBuilder("hostgroup",this.hostgroupAddProperties,hostgroupAddOptionsFunction);
+    this.add = new EntityBuilder("hostgroup",this.hostgroupAddProperties);
+
+    this.add.getOptions = function() {
+        var options = {
+            name: $('#pkey').val(),
+            description: $('#description').val()
+        };
+        return options;
+    }
 
     this.search = new SearchForm("hostgroup", "find", this.hostgroupSearchColumns);
     this.unspecified = this.search;

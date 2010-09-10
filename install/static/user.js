@@ -83,16 +83,18 @@ var userAddProperties = [
     {title: 'First Name', id: 'firstname', type:'text'},
     {title: 'Last Name', id: 'lastname', type:'text'}
 ];
+
 var userBuilder =
     new EntityBuilder(
         "user",
-        userAddProperties,
-        function(){
-            var options = {  givenname:  $("#firstname").val(),
-                             sn:  $("#lastname").val()};
-            return options;
-        });
+        userAddProperties);
 
+userBuilder.getOptions = function() {
+    var options = {
+        givenname: $("#firstname").val(),
+        sn: $("#lastname").val()};
+    return options;
+}
 
 var userFacets = ["details","group", "groupmembership"];
 

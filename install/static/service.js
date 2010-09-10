@@ -55,21 +55,18 @@ function ServiceForms() {
     );
 
     this.addProperties = [
-        {title: 'Principal', id: 'pkey', type: 'text'}
+        {title: 'Service', id: 'service', type: 'text'},
+        {title: 'Host Name', id: 'host', type: 'text'}
     ];
-
-    this.addOptionsFunction = function() {
-        var options = {
-            name: $('#pkey').val()
-        };
-        return options;
-    };
 
     this.add = new EntityBuilder(
         "service",
-        this.addProperties,
-        this.addOptionsFunction
+        this.addProperties
     );
+
+    this.add.getPKey = function() {
+        return $("#service").val()+"/"+$("#host").val();
+    }
 
     this.searchColumns = [
         {

@@ -22,34 +22,31 @@
 
 /* REQUIRES: ipa.js */
 
-/*
- * An associatev array between entity names and their builders
- */
-var builders = {} ;
-
-
-function add_fail(desc){
-    alert(desc);
-}
-
 
 //Process for managing the 'add' functionality
-function EntityBuilder(obj,addProperties,addOptionsFunction ){
+function EntityBuilder(obj,addProperties){
+
+    var builder = this;
+
     this.obj = obj;
     this.addProperties = addProperties;
-    if (addOptionsFunction){
-        this.addOptionsFunction = addOptionsFunction;
-    }else{
-        this.addOptionsFunction = function(){
-            var options = { };
-            return options;
-        }
+
+    this.getPKey = function(){
+        return $("#pkey").val();
     }
 
-    this.add = function(on_success){
-        var options = this.addOptionsFunction();
-        var params = [$("#pkey").val()];
-        ipa_cmd( 'add', params, options, on_success, add_fail, this.obj );
+    this.getOptions = function(){
+        return {};
+    }
+
+    this.add_fail = function(desc){
+        alert(desc);
+    }
+
+    this.add = function(pkey, on_success){
+        var params = [pkey];
+        var options = this.getOptions();
+        ipa_cmd( 'add', params, options, on_success, this.add_fail, this.obj );
     }
 
     this.setup = function(){
@@ -58,24 +55,53 @@ function EntityBuilder(obj,addProperties,addOptionsFunction ){
         $("<div id='addForm'> </div>")
             .appendTo("#content");
         var label =$("<span>Add and </span>").appendTo("#addForm")
-        $("<input \>",
-          {id:'addEdit',
-           type:'button',
-           value:'Edit',
-           click: function(){
-               var params = ipa_parse_qs();
-               builders[params["tab"]].add (addEdit)
-           }
-          }).appendTo(label);
+
+        $("<input \>", {
+            id:'addEdit',
+            type:'button',
+            value:'Edit',
+            click: function(){
+                var params = ipa_parse_qs();
+                var pkey = builder.getPKey();
+                builder.add(pkey, function(response){
+                    if (response.error){
+                        if (response.error.message) {
+                            alert(response.error.message);
+                        } else {
+                            alert("error adding entry");
+                        }
+                        return;
+                    }
+                    var hash= "tab="
+                        +params["tab"]
+                        +"&facet=details&pkey="
+                        +pkey;
+                    window.location.hash = hash;
+                });
+            }
+        }).appendTo(label);
+
         $("<input\>", {
             id:'addAnother',
             type:'button',
             value:'Add Another',
             click: function(){
-               var params = ipa_parse_qs();
-                builders[params["tab"]].add (addAnother)
+                var params = ipa_parse_qs();
+                var pkey = builder.getPKey();
+                builder.add(pkey, function(response){
+                    if (response.error){
+                        if (response.error.message) {
+                            alert(response.error.message);
+                        } else {
+                            alert("error adding entry");
+                        }
+                        return;
+                    }
+                    builder.setup();
+                });
             }
         }).appendTo(label);
+
         $("<dl id='addProperties' />").appendTo("#addForm");
 
         for (index = 0; index < this.addProperties.length; index++){
@@ -90,29 +116,7 @@ function EntityBuilder(obj,addProperties,addOptionsFunction ){
             title.appendTo("#addProperties");
         }
     }
-    //register the new object with the associatev array of builders.
-    builders[obj] = this;
 }
 
 
-function addAnother(response){
-    if (response.error){
-        alert("error adding entry");
-        return;
-    }
-    var params = ipa_parse_qs();
-    builders[params["tab"]].setup();
-}
 
-function addEdit(response){
-    if (response.error){
-        alert("error adding entry");
-        return;
-    }
-    var params = ipa_parse_qs();
-    var hash= "tab="
-        + params["tab"]
-        +"&facet=details&pkey="
-        +$("#pkey").val();
-    window.location.hash = hash;
-}
