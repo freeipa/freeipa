@@ -1,21 +1,21 @@
 .\" A man page for ipa-replica-install
 .\" Copyright (C) 2008 Red Hat, Inc.
-.\" 
+.\"
 .\" This is free software; you can redistribute it and/or modify it under
 .\" the terms of the GNU Library General Public License as published by
 .\" the Free Software Foundation; version 2 only
-.\" 
+.\"
 .\" This program is distributed in the hope that it will be useful, but
 .\" WITHOUT ANY WARRANTY; without even the implied warranty of
 .\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 .\" General Public License for more details.
-.\" 
+.\"
 .\" You should have received a copy of the GNU Library General Public
 .\" License along with this program; if not, write to the Free Software
 .\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-.\" 
+.\"
 .\" Author: Rob Crittenden <rcritten@redhat.com>
-.\" 
+.\"
 .TH "ipa-replica-install" "1" "Mar 14 2008" "freeipa" ""
 .SH "NAME"
 ipa\-replica\-install \- Create an IPA replica
@@ -26,21 +26,21 @@ Configures a new IPA server that is a replica of the server that generated it. O
 
 The replica_file is created using the ipa\-replica\-prepare utility.
 .SH "OPTIONS"
-.TP 
+.TP
 \fB\-d\fR, \fB\-\-debug
 Enable debug logging when more verbose output is needed
-.TP 
+.TP
 \fB\-n\fR, \fB\-\-no\-ntp\fR
 Do not configure NTP
-.TP 
-\fB\-p\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR 
+.TP
+\fB\-p\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
 Directory Manager (existing master) password
 .TP
 \fB\-\-setup\-dns\fR
 Generate a DNS zone if it does not exist already and configure the DNS server.
 This option requires that you either specify at least one DNS forwarder through
 the \fB\-\-forwarder\fR option or use the \fB\-\-no\-forwarders\fR option.
-.TP 
+.TP
 \fB\-\-forwarder\fR=\fIIP_ADDRESS\fR
 Add a DNS forwarder to the DNS configuration. You can use this option multiple
 times to specify more forwarders, but at least one must be provided, unless
@@ -48,6 +48,9 @@ the \fB\-\-no\-forwarders\fR option is specified.
 .TP
 \fB\-\-no\-forwarders\fR
 Do not add any DNS forwarders. Root DNS servers will be used instead.
+.TP
+\fB\-\-no\-host\-dns\fR
+Do not use DNS for hostname lookup during installation
 .SH "EXIT STATUS"
 0 if the command was successful
 

@@ -64,6 +64,9 @@ def parse_options():
                       help="Add a DNS forwarder")
     parser.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
+    parser.add_option("--no-host-dns", dest="no_host_dns", action="store_true",
+                      default=False,
+                      help="Do not use DNS for hostname lookup during installation")
 
     options, args = parser.parse_args()
 
@@ -108,10 +111,10 @@ def read_info(dir, rconfig):
     rconfig.host_name = config.get("realm", "destination_host")
     rconfig.subject_base = config.get("realm", "subject_base")
 
-def get_host_name():
+def get_host_name(no_host_dns):
     hostname = installutils.get_fqdn()
     try:
-        installutils.verify_fqdn(hostname)
+        installutils.verify_fqdn(hostname, no_host_dns)
     except RuntimeError, e:
         logging.error(str(e))
         sys.exit(1)
@@ -285,7 +288,7 @@ def main():
     config = ReplicaConfig()
     read_info(dir, config)
     config.dirman_password = dirman_password
-    host = get_host_name()
+    host = get_host_name(options.no_host_dns)
     if config.host_name != host:
         try:
             print "This replica was created for '%s' but this machine is named '%s'" % (config.host_name, host)
