@@ -51,6 +51,7 @@ from ipalib import api, errors
 from ipalib import Flag, Int, Password, Str
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
+from ipalib import util
 
 
 class user(LDAPObject):
@@ -240,6 +241,16 @@ class user_find(LDAPSearch):
     """
     Search for users.
     """
+
+    takes_options = (
+        Flag('whoami',
+            label=_('Self'),
+            doc=_('Display user record for current Kerberos principal'),
+        ),
+    )
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        if options.get('whoami', True):
+            return "(&(objectclass=posixaccount)(krbprincipalname="+util.get_current_principal() + "))"
 
     msg_summary = ngettext(
         '%(count)d user matched', '%(count)d users matched', 0
