@@ -27,7 +27,7 @@ ipa_entity_set_search_definition('user', [
     ['mail', 'EMAIL', null],
     ['telephonenumber', 'Phone', null],
     ['title', 'Job Title', null],
-    ['actions', 'Actions', null]
+    ['quick_links', 'Quick Links', user_render_quick_links]
 ]);
 
 ipa_entity_set_add_definition('user', [
@@ -209,3 +209,59 @@ function a_manager(jobj, result, mode)
 {
 }
 
+function user_render_quick_links(tr, attr, value, entry_attrs) {
+
+    var td = $("<td/>");
+    tr.append(td);
+
+    $("<a/>", {
+        href: "jslink",
+        html: "[D]",
+        click: function() {
+            var state = {};
+            state['user-facet'] = 'details';
+            state['user-pkey'] = entry_attrs['uid'][0];
+            $.bbq.pushState(state);
+            return false;
+        }
+    }).appendTo(td);
+
+    $("<a/>", {
+        href: "jslink",
+        html: "[G]",
+        click: function() {
+            var state = {};
+            state['user-facet'] = 'associate';
+            state['user-enroll'] = 'group';
+            state['user-pkey'] = entry_attrs['uid'][0];
+            $.bbq.pushState(state);
+            return false;
+        }
+    }).appendTo(td);
+
+    $("<a/>", {
+        href: "jslink",
+        html: "[N]",
+        click: function() {
+            var state = {};
+            state['user-facet'] = 'associate';
+            state['user-enroll'] = 'netgroup';
+            state['user-pkey'] = entry_attrs['uid'][0];
+            $.bbq.pushState(state);
+            return false;
+        }
+    }).appendTo(td);
+
+    $("<a/>", {
+        href: "jslink",
+        html: "[R]",
+        click: function() {
+            var state = {};
+            state['user-facet'] = 'associate';
+            state['user-enroll'] = 'role';
+            state['user-pkey'] = entry_attrs['uid'][0];
+            $.bbq.pushState(state);
+            return false;
+        }
+    }).appendTo(td);
+}

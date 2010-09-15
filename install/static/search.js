@@ -113,9 +113,9 @@ function search_generate_tr(thead, tbody, entry_attrs)
         var value = entry_attrs[attr];
 
         var render_call = window[jobj.attr('title')];
-        if (typeof render_call == 'function')
-            render_call(tr, attr, value);
-        else
+        if (typeof render_call == 'function') {
+            render_call(tr, attr, value, entry_attrs);
+        } else
             search_generate_td(tr, attr, value);
     }
 
