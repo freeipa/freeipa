@@ -306,6 +306,8 @@ class test_hbac(XMLRPC_test):
         """
         Clear data for HBAC plugin testing.
         """
+        api.Command['hbac_remove_host'](self.rule_name, host=self.test_host)
+        api.Command['hbac_remove_host'](self.rule_name, hostgroup=self.test_hostgroup)
         api.Command['user_del'](self.test_user)
         api.Command['group_del'](self.test_group)
         api.Command['host_del'](self.test_host)
@@ -333,9 +335,78 @@ class test_hbac(XMLRPC_test):
          # FIXME: Should this be 'enabled' or 'TRUE'?
         assert_attr_equal(entry, 'ipaenabledflag', 'TRUE')
 
-    def test_f_hbac_del(self):
+    def test_f_hbac_exclusiveuser(self):
         """
-        Test deleting a HBAC rule using `xmlrpc.hbac_remove_sourcehost`.
+        Test adding a user to an HBAC rule when usercat='all'
+        """
+        api.Command['hbac_mod'](self.rule_name, usercategory=u'all')
+        try:
+            api.Command['hbac_add_user'](self.rule_name, users='admin')
+        except errors.MutuallyExclusiveError:
+            pass
+        api.Command['hbac_mod'](self.rule_name, usercategory=u'')
+
+    def test_g_hbac_exclusiveuser(self):
+        """
+        Test setting usercat='all' in an HBAC rule when there are users
+        """
+        api.Command['hbac_add_user'](self.rule_name, users='admin')
+        try:
+            api.Command['hbac_mod'](self.rule_name, usercategory=u'all')
+        except errors.MutuallyExclusiveError:
+            pass
+        finally:
+            api.Command['hbac_remove_user'](self.rule_name, users='admin')
+
+    def test_h_hbac_exclusivehost(self):
+        """
+        Test adding a host to an HBAC rule when hostcat='all'
+        """
+        api.Command['hbac_mod'](self.rule_name, hostcategory=u'all')
+        try:
+            api.Command['hbac_add_host'](self.rule_name, host=self.test_host)
+        except errors.MutuallyExclusiveError:
+            pass
+        api.Command['hbac_mod'](self.rule_name, hostcategory=u'')
+
+    def test_i_hbac_exclusivehost(self):
+        """
+        Test setting hostcat='all' in an HBAC rule when there are hosts
+        """
+        api.Command['hbac_add_host'](self.rule_name, host=self.test_host)
+        try:
+            api.Command['hbac_mod'](self.rule_name, hostcategory=u'all')
+        except errors.MutuallyExclusiveError:
+            pass
+        finally:
+            api.Command['hbac_remove_host'](self.rule_name, host=self.test_host)
+
+    def test_j_hbac_exclusiveservice(self):
+        """
+        Test adding a service to an HBAC rule when servicecat='all'
+        """
+        api.Command['hbac_mod'](self.rule_name, servicecategory=u'all')
+        try:
+            api.Command['hbac_add_host'](self.rule_name, hbacsvc=self.test_service)
+        except errors.MutuallyExclusiveError:
+            pass
+        api.Command['hbac_mod'](self.rule_name, servicecategory=u'')
+
+    def test_k_hbac_exclusiveservice(self):
+        """
+        Test setting servicecat='all' in an HBAC rule when there are services
+        """
+        api.Command['hbac_add_service'](self.rule_name, hbacsvc=self.test_service)
+        try:
+            api.Command['hbac_mod'](self.rule_name, servicecategory=u'all')
+        except errors.MutuallyExclusiveError:
+            pass
+        finally:
+            api.Command['hbac_remove_service'](self.rule_name, hbacsvc=self.test_service)
+
+    def test_z_hbac_del(self):
+        """
+        Test deleting a HBAC rule using `xmlrpc.hbac_del`.
         """
         assert api.Command['hbac_del'](self.rule_name)['result'] is True
         # verify that it's gone

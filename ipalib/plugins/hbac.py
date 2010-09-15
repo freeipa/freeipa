@@ -231,6 +231,22 @@ class hbac_mod(LDAPUpdate):
     Modify an HBAC rule.
     """
 
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
+        if 'usercategory' in options and options['usercategory'].lower() == 'all' and \
+            'memberuser' in entry_attrs:
+            raise errors.MutuallyExclusiveError(reason="user category cannot be set to 'all' while there are allowed users")
+        if 'hostcategory' in options and options['hostcategory'].lower() == 'all' and \
+            'memberhost' in entry_attrs:
+            raise errors.MutuallyExclusiveError(reason="host category cannot be set to 'all' while there are allowed hosts")
+        if 'sourcehostcategory' in options and options['sourcehostcategory'].lower() == 'all' and \
+            'sourcehost' in entry_attrs:
+            raise errors.MutuallyExclusiveError(reason="sourcehost category cannot be set to 'all' while there are allowed source hosts")
+        if 'servicecategory' in options and options['servicecategory'].lower() == 'all' and \
+            'memberservice' in entry_attrs:
+            raise errors.MutuallyExclusiveError(reason="service category cannot be set to 'all' while there are allowed services")
+        return dn
+
 api.register(hbac_mod)
 
 
@@ -382,6 +398,13 @@ class hbac_add_user(LDAPAddMember):
     member_attributes = ['memberuser']
     member_count_out = ('%i object added.', '%i objects added.')
 
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        if 'usercategory' in entry_attrs and \
+            entry_attrs['usercategory'][0].lower() == 'all':
+            raise errors.MutuallyExclusiveError(reason="users cannot be added when user category='all'")
+        return dn
+
 api.register(hbac_add_user)
 
 
@@ -401,6 +424,13 @@ class hbac_add_host(LDAPAddMember):
     """
     member_attributes = ['memberhost']
     member_count_out = ('%i object added.', '%i objects added.')
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        if 'hostcategory' in entry_attrs and \
+            entry_attrs['hostcategory'][0].lower() == 'all':
+            raise errors.MutuallyExclusiveError(reason="hosts cannot be added when host category='all'")
+        return dn
 
 api.register(hbac_add_host)
 
@@ -422,6 +452,13 @@ class hbac_add_sourcehost(LDAPAddMember):
     member_attributes = ['sourcehost']
     member_count_out = ('%i object added.', '%i objects added.')
 
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        if 'sourcehostcategory' in entry_attrs and \
+            entry_attrs['sourcehostcategory'][0].lower() == 'all':
+            raise errors.MutuallyExclusiveError(reason="source hosts cannot be added when sourcehost category='all'")
+        return dn
+
 api.register(hbac_add_sourcehost)
 
 
@@ -441,6 +478,13 @@ class hbac_add_service(LDAPAddMember):
     """
     member_attributes = ['memberservice']
     member_count_out = ('%i object added.', '%i objects added.')
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        (dn, entry_attrs) = ldap.get_entry(dn, self.obj.default_attributes)
+        if 'servicecategory' in entry_attrs and \
+            entry_attrs['servicecategory'][0].lower() == 'all':
+            raise errors.MutuallyExclusiveError(reason="services cannot be added when service category='all'")
+        return dn
 
 api.register(hbac_add_service)
 

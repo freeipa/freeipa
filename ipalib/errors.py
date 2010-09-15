@@ -1221,6 +1221,23 @@ class CertificateOperationError(ExecutionError):
     format = _('Certificate operation cannot be completed: %(error)s')
 
 
+class MutuallyExclusiveError(ExecutionError):
+    """
+    **4302** Raised when an operation would result in setting two attributes which are mutually exlusive.
+
+    For example:
+
+    >>> raise MutuallyExclusiveError(reason=u'hosts may not be added when hostcategory=all')
+    Traceback (most recent call last):
+      ...
+    MutuallyExclusiveError: hosts may not be added when hostcategory=all
+
+    """
+
+    errno = 4302
+    format = _('%(reason)s')
+
+
 ##############################################################################
 # 5000 - 5999: Generic errors
 
