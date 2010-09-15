@@ -61,14 +61,6 @@ div.tabs {
     overflow: auto;
 }
 
-/* ---- Search ---- */
-table.search-table {
-    width: 100%;
-}
-
-table.search-table th {
-    text-align: left;
-}
 
 h1 {
     font-size: 26pt;
@@ -228,11 +220,9 @@ span.sub-nav-off{
 }
 
 
-
-
 /* Search  */
 
-#search{
+.search-container{
     float: left;
     width: 80%;
     margin: 10px;
@@ -240,35 +230,33 @@ span.sub-nav-off{
     background: #e8e8e8;
 }
 
-div.searchControls{
-    background:#a5a5a5;
+.search-controls {
+     background:#a5a5a5;
 }
 
+.search-table > a:link,a:visted{
+    color:black;
+}
 
-
-#searchResultsTable{
+.search-table{
     padding: 0px;
     width:100%;
     border-width: thin;
     border-style: solid;
     border-color: black;
+
 }
 
-#searchResultsTable > a:link,a:visted{
-    color:black;
-}
-
-
-#searchResultsTable th{
+.search-table th{
     background-color:gray;
     color:white;
+    text-align: left;
 }
 
-#searchResultsTable tr:nth-child(even){
+.search-table tr:nth-child(even){
     background-color:#CCC;
 }
-#searchResultsTable tr:nth-child(odd){
+
+.search-table tr:nth-child(odd){
     background-color:#FFF;
 }
-
-
