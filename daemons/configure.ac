@@ -22,19 +22,33 @@ dnl ---------------------------------------------------------------------------
 dnl - Check for NSPR
 dnl ---------------------------------------------------------------------------
 AC_CHECK_HEADER(nspr4/nspr.h)
-if test "x$ac_cv_header_nspr4_nspr_h" = "xno" ; then
+AC_CHECK_HEADER(nspr/nspr.h)
+if test "x$ac_cv_header_nspr4_nspr_h" = "xno" && test "x$ac_cv_header_nspr_nspr_h" = "xno" ; then
 	AC_MSG_ERROR([Required NSPR header not available (nspr-devel)])
+fi
+if test "x$ac_cv_header_nspr4_nspr_h" = "xyes" ; then
+	NSPR4="-I/usr/include/nspr4"
+fi
+if test "x$ac_cv_header_nspr_nspr_h" = "xyes" ; then
+	NSPR4="-I/usr/include/nspr"
 fi
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for NSS
 dnl ---------------------------------------------------------------------------
 SAVE_CPPFLAGS=$CPPFLAGS
-CPPFLAGS="-I/usr/include/nspr4"
+CPPFLAGS=$NSPR4
 AC_CHECK_HEADER(nss3/nss.h)
+AC_CHECK_HEADER(nss/nss.h)
 CPPFLAGS=$SAVE_CPPFLAGS
-if test "x$ac_cv_header_nss3_nss_h" = "xno" ; then
+if test "x$ac_cv_header_nss3_nss_h" = "xno" && test "x$ac_cv_header_nss_nss_h" = "xno" ; then
 	AC_MSG_ERROR([Required NSS header not available (nss-devel)])
+fi
+if test "x$ac_cv_header_nss3_nss_h" = "xyes" ; then
+	NSS3="-I/usr/include/nss3"
+fi
+if test "x$ac_cv_header_nss_nss_h" = "xyes" ; then
+	NSS3="-I/usr/include/nss"
 fi
 
 dnl ---------------------------------------------------------------------------
@@ -43,7 +57,7 @@ dnl ---------------------------------------------------------------------------
 
 # Need to hack CPPFLAGS to be able to correctly detetct slapi-plugin.h
 SAVE_CPPFLAGS=$CPPFLAGS
-CPPFLAGS="-I/usr/include/nspr4"
+CPPFLAGS=$NSPR4
 AC_CHECK_HEADER(dirsrv/slapi-plugin.h)
 if test "x$ac_cv_header_dirsrv_slapi-plugin_h" = "xno" ; then
 	AC_MSG_ERROR([Required 389-ds header not available (389-ds-base-devel)])
@@ -129,11 +143,16 @@ AC_ARG_WITH(openldap, [  --with-openldap            Use OpenLDAP])
 dnl The mozldap libraries are always needed because ipa-slapi-plugins/dna/ 
 dnl will not build against OpenLDAP.
 SAVE_CPPFLAGS=$CPPFLAGS
-CPPFLAGS="-I/usr/include/nspr4 -I/usr/include/nss3"
+CPPFLAGS="$NSPR4 $NSS3"
 AC_CHECK_HEADER(svrcore.h)
-if test "x$ac_cv_header_svrcore_h" = "xno" ; then
+AC_CHECK_HEADER(svrcore/svrcore.h)
+if test "x$ac_cv_header_svrcore_h" = "xno" && test "x$ac_cv_header_svrcore_svrcore_h" = "xno" ; then
 	AC_MSG_ERROR([Required svrcore header not available (svrcore-devel)])
 fi
+if test "x$ac_cv_header_svrcore_svrcore_h" = "yes" ; then
+	CPPFLAGS="$CPPFLAGS -I/usr/include/svrcore"
+fi
+
 CPPFLAGS=$SAVE_CPPFLAGS
 AC_CHECK_HEADER(mozldap/ldap.h)
 if test "x$ac_cv_header_mozldap_ldap_h" = "xno" ; then

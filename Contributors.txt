@@ -64,5 +64,5 @@ Past and Occasional Contributors:
 	Jim Meyering
 	Pete Rowley
 	Andreas Schneider
-
+	Ian Kumlien
 
