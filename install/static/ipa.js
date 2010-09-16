@@ -21,7 +21,7 @@
 /* IPA JSON-RPC helper */
 
 var IPA_DEFAULT_JSON_URL = '/ipa/json';
-var IPA_SAMPLEDATA_URL = '/ipa/ui/sampledata';
+var IPA_SAMPLEDATA_URL = 'sampledata';
 
 var ipa_use_sampledata = false;
 
