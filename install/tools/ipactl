@@ -26,7 +26,7 @@ IFS=";"
 
 # start and stop are basically a reverse of each other
 services_stop="ipa_kpasswd;httpd;krb5kdc;dirsrv;ntpd;named;pki-cad pki-ca"
-services_start="dirsrv;ntpd;named;krb5kdc;ipa_kpasswd;httpd;pki-cad pki-ca"
+services_start="dirsrv;ntpd;krb5kdc;named;ipa_kpasswd;httpd;pki-cad pki-ca"
 
 function is_running() {
     # $1 = service to check on
