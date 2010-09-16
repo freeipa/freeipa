@@ -12,6 +12,9 @@ app_DATA =                              \
 	ipa.js				\
 	ipa.css				\
 	jquery.js			\
+	jquery-ui.js			\
+	jquery.ba-bbq.js		\
+	jquery-ui.css			\
 	group.js 			\
 	host.js 			\
 	hostgroup.js 			\
