@@ -131,17 +131,19 @@ function ipa_entity_generate_views(obj_name, container)
 
     var ul = $('<ul></ul>', {'class': 'entity-views'});
 
+    //TODO replace the plus image with the correct image for each facet
     ul.append($('<li></li>', {
-        text: 'Back to Search',
         title: 'search',
         click: switch_view
-    }));
+    })).append('<img src="plus-enabled.png"/>')
+        .append('Search')  ;
 
     ul.append($('<li></li>', {
         text: 'Details',
         title: 'details',
         click: switch_view
-    }));
+    })).append('<img src="plus-enabled.png"/>')
+        .append('Details')  ;
 
     var attribute_members = ipa_objs[obj_name].attribute_members;
     for (attr in attribute_members) {
@@ -151,10 +153,10 @@ function ipa_entity_generate_views(obj_name, container)
             var label = ipa_objs[m].label;
 
             ul.append($('<li></li>', {
-                text: label,
                 title: m,
                 click: switch_view
-            }));
+            })).append('<img src="plus-enabled.png"/>')
+                .append(label);
         }
     }
 

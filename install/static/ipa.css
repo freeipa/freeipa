@@ -8,7 +8,13 @@
 body {
     font-family: sans-serif;
     font-size: 14pt;
+    margin: 25px;
 }
+
+/*demo page css*/
+.demoHeaders { margin-top: 2em; }
+.input_link {padding: .4em 1em .4em 20px;text-decoration: none;position: relative;}
+.input_link span.ui-icon {margin: 0 5px 0 0;position: absolute;left: .2em;top: 50%;margin-top: -8px;}
 
 a {
     text-decoration: none;
@@ -175,6 +181,46 @@ span.attrhint {
 
 /*Navigation */
 
+
+.tabs1 .ui-tabs-nav{
+    padding: 0.1em;
+
+}
+
+.tabs1 .ui-tabs-nav {
+    background-image: url(Mainnav-background.png);
+}
+
+.tabs1 .ui-tabs-nav li > a:link, span.main-nav-off >  a:visited{
+    color:white;
+}
+
+.tabs1 .ui-tabs-nav li.ui-tabs-selected {
+    background-image: url(Mainnav-ontab.png);
+}
+
+.tabs1 .ui-tabs-panel { display: block; border-width: 0; padding: 0.1em 0.4em; background: none; }
+
+
+.tabs2 .ui-tabs-nav {
+    background-image: url(Subnav-background.png);
+}
+
+.tabs2 .ui-tabs-nav li{
+    background-image: url(Subnav-offbutton.png);
+    padding:0px;
+    color: white;
+    font-size: 80%;
+}
+
+.tabs2 .ui-tabs-nav li.ui-tabs-selected{
+    background-image: url(Subnav-onbutton.png);
+    padding:5px;
+    color: white;
+    font-size: 80%;
+}
+
+
 span.sub-nav-off > a:link, span.sub-nav-off >  a:visited{
     color:white;
 }
@@ -183,41 +229,11 @@ span.main-nav-off > a:link, span.main-nav-off >  a:visited{
     color:white;
 }
 
-#main-nav{
-    background-image: url(Mainnav-background.png);
-    font-size: 100%;
-}
-
-span.main-nav-on{
-    background-image: url(Mainnav-ontab.png);
-}
-
-span.main-nav-off{
-    background-image: url(Mainnav-offtab.png);
-}
-
-
 span.main-separator{
     background: #333339;
-	padding:1px;
+    padding:1px;
 }
 
-#sub-nav{
-    background-image: url(Subnav-background.png);
-    padding:5px;
-    color: white;
-    font-size: 80%;
-}
-
-span.sub-nav-on{
-    background-image: url(Subnav-onbutton.png);
-    margin: 10px;
-}
-
-span.sub-nav-off{
-    background-image: url(Subnav-offbutton.png);
-    margin: 10px;
-}
 
 
 /* Search  */
@@ -260,3 +276,12 @@ span.sub-nav-off{
 .search-table tr:nth-child(odd){
     background-color:#FFF;
 }
+
+.entity-views{
+    list-style-type:none;
+}
+
+.entity-views li {
+    display:inline;
+}
+

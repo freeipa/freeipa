@@ -25,16 +25,17 @@ function nav_create(nls, container, tabclass)
     if (!tabclass)
         tabclass = 'tabs';
 
-    nav_generate_tabs(nls, container, tabclass);
+    nav_generate_tabs(nls, container, tabclass, 1);
 
     var tabs = $('.' + tabclass);
     tabs.tabs({event: 'change'});
     tabs.find('ul.ui-tabs-nav a').click(_nav_tab_on_click);
 }
 
-function nav_generate_tabs(nls, container, tabclass)
+function nav_generate_tabs(nls, container, tabclass, depth)
 {
     container.addClass(tabclass);
+    container.addClass('tabs'+depth);
     container.prepend('<ul></ul>');
 
     var ul = container.children().first();
@@ -48,7 +49,7 @@ function nav_generate_tabs(nls, container, tabclass)
         if (typeof n[2] == 'function') {
             n[2](div);
         } else if (n[2].length) {
-            nav_generate_tabs(n[2], div, tabclass);
+            nav_generate_tabs(n[2], div, tabclass, depth +1 );
         }
     }
 }

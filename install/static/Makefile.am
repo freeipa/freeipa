@@ -1,5 +1,9 @@
 NULL =
 
+SUBDIRS =                       	\
+	images				\
+	$(NULL)
+
 appdir = $(IPA_DATA_DIR)/static
 app_DATA =                              \
 	add.js				\
