@@ -134,16 +134,15 @@ function ipa_entity_generate_views(obj_name, container)
     //TODO replace the plus image with the correct image for each facet
     ul.append($('<li></li>', {
         title: 'search',
+        text: 'Search',
         click: switch_view
-    })).append('<img src="plus-enabled.png"/>')
-        .append('Search')  ;
+    }).prepend('<img src="plus-enabled.png"/>'));
 
     ul.append($('<li></li>', {
         text: 'Details',
         title: 'details',
         click: switch_view
-    })).append('<img src="plus-enabled.png"/>')
-        .append('Details')  ;
+    }).prepend('<img src="plus-enabled.png"/>'));
 
     var attribute_members = ipa_objs[obj_name].attribute_members;
     for (attr in attribute_members) {
@@ -154,9 +153,9 @@ function ipa_entity_generate_views(obj_name, container)
 
             ul.append($('<li></li>', {
                 title: m,
+                text:label,
                 click: switch_view
-            })).append('<img src="plus-enabled.png"/>')
-                .append(label);
+            }).prepend('<img src="plus-enabled.png"/>'));
         }
     }
 
