@@ -23,7 +23,6 @@ app_DATA =                              \
 	navigation.js			\
 	netgroup.js 			\
 	service.js 			\
-	pageparams.js 			\
 	search.js 			\
 	details.js 			\
 	entity.js 			\
