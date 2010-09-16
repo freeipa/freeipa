@@ -314,6 +314,7 @@ class Param(ReadOnly):
         ('include', frozenset, None),
         ('exclude', frozenset, None),
         ('flags', frozenset, frozenset()),
+        ('hint', (str, Gettext), None),
 
         # The 'default' kwarg gets appended in Param.__init__():
         # ('default', self.type, None),

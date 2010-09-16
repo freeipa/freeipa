@@ -23,6 +23,8 @@ app_DATA =                              \
 	pageparams.js 			\
 	search.js 			\
 	details.js 			\
+	entity.js 			\
+	webui.js 			\
 	user.js 			\
 	user-add.inc 			\
 	ipalogo.png			\

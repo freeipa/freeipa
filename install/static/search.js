@@ -1,139 +1,171 @@
+/*  Authors:
+ *    Pavel Zuna <pzuna@redhat.com>
+ *    Adam Young <ayoung@redhat.com>
+ *
+ * Copyright (C) 2010 Red Hat
+ * see file 'COPYING' for use and warranty information
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; version 2 only
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ */
 
-//Columns is an array of items in the form
-// {title, column,  render}
-//title: the the value that goes at the head of the column
-//filed: the column in the response used for populating the value
-//render: the function used to generate  cell.innerHtml
-//       it is in the form:
-//       render(current, cell)
-//        current is the row in response
-//        cell is the td in the table
+/* REQUIRES: ipa.js */
 
+function search_create(obj_name, scl, container)
+{
+    function find_on_click() {
+        var filter = $(this).prev('input[type=text]').val();
+        var state = {};
+        state[obj_name + '-filter'] = filter;
+        $.bbq.pushState(state);
+    };
 
-//These are helper functions, either assigned to the rneder method
-//Or called from a thin wrapper render method
-function  renderSimpleColumn(current,cell){
-    cell.innerHTML = current[this.column];
+    if (!container) {
+        alert('ERROR: search_create: Second argument "container" missing!');
+        return;
+    }
+
+    container.attr('title', obj_name);
+    container.addClass('search-container');
+
+    container.append('<div class="search-controls"></div>');
+    var div = container.children().last();
+    div.append('<span class="search-filter"></span>');
+    var jobj = div.children().last();
+    jobj.append('<input type="text" />');
+    jobj.children().last().attr('name', 'search-' + obj_name + '-filter')
+    jobj.append('<input type="submit" value="find" />');;
+    jobj.children().last().click(find_on_click);
+    div.append('<span class="search-buttons"></span>');
+
+    container.append('<table class="search-table"></table>');
+    jobj = container.children().last();
+    jobj.append('<thead><tr></tr></thead>');
+    jobj.append('<tbody></tbody>');
+    jobj.append('<tfoot></tfoot>');
+
+    var tr = jobj.find('tr');
+    for (var i = 0; i < scl.length; ++i) {
+        var c = scl[i];
+        search_insert_th(tr, obj_name, c[0], c[1], c[2]);
+    }
 }
 
+var _search_th_template = '<th abbr="A" title="C">N</th>';
 
-function  renderUnknownColumn(current,cell){
-    cell.innerHTML = "Unknown";
+function search_insert_th(jobj, obj_name, attr, name, render_call)
+{
+    var th = _search_th_template.replace('A', attr);
+
+    var param_info = ipa_get_param_info(obj_name, attr);
+    if (param_info && param_info['label'])
+        th = th.replace('N', param_info['label']);
+    else
+        th = th.replace('N', name);
+
+    if (typeof render_call == 'function')
+        th = th.replace('C', render_call.name);
+    else
+        th = th.replace('C', '-');
+
+    jobj.append(th);
 }
 
+function search_load(obj_name, criteria, on_win, on_fail)
+{
+    function load_on_win(data, text_status, xhr) {
+        if (data.error)
+            return;
+        search_display(obj_name, data);
+        if (on_win)
+            on_win(data, text_status, xhr);
+    };
 
-function renderPkeyColumn2(obj,pkeyCol,current,cell){
-    $("<a/>",{
-    href:"#tab="+obj+"&facet=details&pkey="+current[pkeyCol],
-    html:  "" + current[pkeyCol],
-    }).appendTo(cell);
+    function load_on_fail(xhr, text_status, error_thrown) {
+        if (on_fail)
+            on_fail(xhr, text_status, error_thrown);
+    };
+
+    ipa_cmd(
+      'find', [criteria], {all: true}, load_on_win, load_on_fail, obj_name
+    );
 }
 
-function renderPkeyColumn(form,current,cell){
-    renderPkeyColumn2(form.obj, form.pkeyCol,current, cell);
+function search_generate_tr(thead, tbody, entry_attrs)
+{
+    tbody.append('<tr></tr>');
+    var tr = tbody.children().last();
+
+    var ths = thead.find('th');
+    for (var i = 0; i < ths.length; ++i) {
+        var jobj = $(ths[i]);
+        var attr = jobj.attr('abbr');
+        var value = entry_attrs[attr];
+
+        var render_call = window[jobj.attr('title')];
+        if (typeof render_call == 'function')
+            render_call(tr, attr, value);
+        else
+            search_generate_td(tr, attr, value);
+    }
+
+    tbody.find('.search-a-pkey').click(function () {
+        var jobj = $(this);
+        var obj_name = tbody.closest('.search-container').attr('title');
+
+        var state = {};
+        state[obj_name + '-facet'] = 'details';
+        state[obj_name + '-pkey'] = $(this).text();
+        $.bbq.pushState(state);
+
+        return (false);
+    });
 }
 
+var _search_td_template = '<td title="A">V</td>';
+var _search_a_pkey_template = '<a href="jslink" class="search-a-pkey">V</a>';
 
+function search_generate_td(tr, attr, value)
+{
+    var obj_name = tr.closest('.search-container').attr('title');
 
+    var param_info = ipa_get_param_info(obj_name, attr);
+    if (param_info && param_info['primary_key'])
+        value = _search_a_pkey_template.replace('V', value);
 
-function renderDetailColumn(current,cell,pkey,obj){
-    $("<a/>",{
-    href:"#tab="+obj+"&facet=details&pkey="+pkey,
-    html:  ""+ current[this.column],
-    }).appendTo(cell);
+    tr.append(_search_td_template.replace('A', attr).replace('V', value));
 }
 
+function search_display(obj_name, data)
+{
+    var selector = '.search-container[title=' + obj_name + ']';
+    var thead = $(selector + ' thead');
+    var tbody = $(selector + ' tbody');
+    var tfoot = $(selector + ' tfoot');
 
+    tbody.find('tr').remove();
 
-function SearchForm(obj, method, cols){
+    var result = data.result.result;
+    for (var i = 0; i < result.length; ++i)
+        search_generate_tr(thead, tbody, result[i]);
 
-    this.buildColumnHeaders =  function (){
-    var columnHeaders  = document.createElement("tr");
-    for (var i =0 ; i != this.columns.length ;i++){
-        var th = document.createElement("th");
-        th.innerHTML = this.columns[i].title;
-        columnHeaders.appendChild(th);
+    if (data.result.truncated) {
+        tfoot.text(
+            'More than ' + sizelimit + ' results returned. ' +
+            'First ' + sizelimit + ' results shown.'
+        );
+    } else {
+        tfoot.text(data.result.summary);
     }
-    $('#searchResultsTable thead:last').append(columnHeaders);
-    }
-
-
-    this.renderResultRow = function(current){
-    var row = document.createElement("tr");
-    var cell;
-    var link;
-    for(var index = 0 ; index < this.columns.length; index++){
-        this.columns[index].render(current, row.insertCell(-1));
-    }
-    return row;
-    }
-
-    this.searchSuccess = function (json){
-        if (json.result.truncated){
-            $("#searchResultsTable tfoot").html("More than "+sizelimit+" results returned.  First "+ sizelimit+" results shown." );
-        }else{
-            $("#searchResultsTable tfoot").html(json.result.summary);
-        }
-        $("#searchResultsTable tbody").find("tr").remove();
-        for (var index = 0; index !=  json.result.result.length; index++){
-            var current = json.result.result[index];
-            $('#searchResultsTable tbody:last').append(this.renderResultRow(current));
-        }
-    }
-
-    this.searchWithFilter = function(queryFilter){
-        var form = this;
-
-        $('#searchResultsTable tbody').html("");
-        $('#searchResultsTable tbody').html("");
-        $('#searchResultsTable tfoot').html("");
-
-        ipa_cmd(this.method,
-                [queryFilter],
-                {"all":"true"},
-                function(json){
-                    form.searchSuccess(json);
-                },
-                function(json){
-                    alert("Search Failed");
-                },
-                form.obj);
-    }
-
-    this.setup = function(){
-        showSearch();
-
-        $('#searchResultsTable thead').html("");
-        $('#searchResultsTable tbody').html("");
-        $('#searchResultsTable tfoot').html("");
-        $("#new").click(function(){
-            location.hash="tab="+obj+"&facet=add";
-        });
-        $("#query").click(executeSearch);
-        this.buildColumnHeaders();
-        var params = ipa_parse_qs();
-        qs = location.hash.substring(1);
-        //TODO fix this hack.  since parse returns an object, I don't know how to see if that object has a"critia" property if criteria is null.
-        if (qs.indexOf("criteria") > 0)
-        {
-            this.searchWithFilter(params["criteria"]);
-        }
-    }
-
-    this.obj = obj;
-    this.method = method;
-    this.columns = cols;
-    this.setup();
 }
-executeSearch = function(){
-    var queryFilter = $("#queryFilter").val();
-    var qp = ipa_parse_qs();
-    var tab = qp.tab;
-    if (!tab){
-        tab = 'user';
-    }
-    window.location.hash="#tab="
-      +tab
-    +"&facet=search&criteria="
-    +queryFilter;
-}
+

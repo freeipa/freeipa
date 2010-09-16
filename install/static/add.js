@@ -1,5 +1,5 @@
 /*  Authors:
- *    Adam Young <ayoung@redhat.com>
+ *    Pavel Zuna <pzuna@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -16,107 +16,94 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
-
-/* IPA Object Add  - creating new instances of entities */
+*/
 
 /* REQUIRES: ipa.js */
 
+var IPA_ADD_POPULATE = 1;
+var IPA_ADD_UPDATE = 2;
 
-//Process for managing the 'add' functionality
-function EntityBuilder(obj,addProperties){
+function add_dialog_create(obj_name, adl)
+{
+    var add_dialog = $('<div></div>');
 
-    var builder = this;
-
-    this.obj = obj;
-    this.addProperties = addProperties;
-
-    this.getPKey = function(){
-        return $("#pkey").val();
-    }
-
-    this.getOptions = function(){
-        return {};
-    }
-
-    this.add_fail = function(desc){
-        alert(desc);
-    }
-
-    this.add = function(pkey, on_success){
-        var params = [pkey];
-        var options = this.getOptions();
-        ipa_cmd( 'add', params, options, on_success, this.add_fail, this.obj );
-    }
-
-    this.setup = function(){
-        showContent();
-        $("<h1/>" ,{ html : "Add new " + this.obj } ).appendTo("#content");
-        $("<div id='addForm'> </div>")
-            .appendTo("#content");
-        var label =$("<span>Add and </span>").appendTo("#addForm")
-
-        $("<input \>", {
-            id:'addEdit',
-            type:'button',
-            value:'Edit',
-            click: function(){
-                var params = ipa_parse_qs();
-                var pkey = builder.getPKey();
-                builder.add(pkey, function(response){
-                    if (response.error){
-                        if (response.error.message) {
-                            alert(response.error.message);
-                        } else {
-                            alert("error adding entry");
-                        }
-                        return;
-                    }
-                    var hash= "tab="
-                        +params["tab"]
-                        +"&facet=details&pkey="
-                        +pkey;
-                    window.location.hash = hash;
-                });
+    function add(evt, called_from_add_and_edit) {
+        function add_win(data, text_status, xhr) {
+            if (called_from_add_and_edit) {
+                var state = {};
+                state[obj_name + '-facet'] = 'details';
+                var pkey_name = ipa_objs[obj_name].primary_key;
+                var selector = 'input[name=' + pkey_name + ']';
+                state[obj_name + '-pkey'] = add_dialog.find(selector).val();
+                $.bbq.pushState(state);
             }
-        }).appendTo(label);
+        };
 
-        $("<input\>", {
-            id:'addAnother',
-            type:'button',
-            value:'Add Another',
-            click: function(){
-                var params = ipa_parse_qs();
-                var pkey = builder.getPKey();
-                builder.add(pkey, function(response){
-                    if (response.error){
-                        if (response.error.message) {
-                            alert(response.error.message);
-                        } else {
-                            alert("error adding entry");
-                        }
-                        return;
-                    }
-                    builder.setup();
-                });
+        var pkey = [];
+        var options = {};
+        var pkey_name = ipa_objs[obj_name].primary_key;
+
+        var fields = adl[2];
+        for (var i = 0; i < fields.length; ++i) {
+            var f = fields[i];
+            var attr = f[0];
+            if (typeof f[2] == 'function') {
+                var value = f[2](add_dialog, IPA_ADD_UPDATE);
+                if (value != null) {
+                    if (attr == pkey_name)
+                        pkey = [value];
+                    else
+                        options[attr] = value;
+                }
             }
-        }).appendTo(label);
+        }
 
-        $("<dl id='addProperties' />").appendTo("#addForm");
+        add_dialog.find('input').each(function () {
+            var jobj = $(this);
+            var attr = jobj.attr('name');
+            var value = jobj.val();
+            if (value) {
+                if (pkey.length == 0 && attr == pkey_name)
+                    pkey = [jobj.val()];
+                else if (options[attr] == null)
+                    options[attr] = jobj.val();
+            }
+        });
 
-        for (index = 0; index < this.addProperties.length; index++){
-            var prop = this.addProperties[index];
-            var title = $("<dt/>",{html:prop.title});
-            var definition =    $("<dd></dd>");
-            $("<input/>",{
-                id:prop.id,
-                type:prop.type
-            }).appendTo(definition);
-            definition.appendTo(title);
-            title.appendTo("#addProperties");
+        ipa_cmd('add', pkey, options, add_win, null, obj_name);
+        add_dialog.dialog('close');
+    };
+
+    function add_and_edit(evt) {
+        add(evt, true);
+        add_dialog.dialog('close');
+    };
+
+    function cancel() {
+        add_dialog.dialog('close');
+    };
+
+    add_dialog.attr('id', adl[0]);
+    add_dialog.attr('title', adl[1]);
+
+    var fields = adl[2];
+    for (var i = 0; i < fields.length; ++i) {
+        var f = fields[i];
+        if (typeof f[2] == 'function') {
+            f[2](add_dialog, IPA_ADD_POPULATE);
+        } else {
+            add_dialog.append('<label>' + f[1] + '</label>');
+            add_dialog.append('<input type="text" name="' + f[0] + '" />');
         }
     }
+
+    add_dialog.dialog({
+        modal: true,
+        buttons: {
+            'Add': add,
+            'Add and edit': add_and_edit,
+            'Cancel': cancel
+        }
+    });
 }
-
-
 

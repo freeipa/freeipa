@@ -1,107 +1,42 @@
-function setupNetgroup(facet){
-    netgroupForms.setup(facet);
-}
+/*  Authors:
+ *    Pavel Zuna <pzuna@redhat.com>
+ *
+ * Copyright (C) 2010 Red Hat
+ * see file 'COPYING' for use and warranty information
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; version 2 only
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ */
 
-var netgroupForms = new NetgroupForms();
+/* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
-function NetgroupForms(){
-    this.obj='netgroup';
-    this.pkeycol = 'cn';
-    this.facets = ["details","users","assignusers","groups","assigngroups","hosts","assignhosts","hostgroups","assignhostgroups"];
+ipa_entity_set_search_definition('netgroup', [
+    ['cn', 'Name', null],
+    ['description', 'Description', null]
+]);
 
-    this.netgroupSearchColumns = [
-        {title:"Netgroup",column:"cn",render:  function(current,cell){
-            renderPkeyColumn2('netgroup', 'cn', current,cell);
-        }},
-        {title:"Description", column:"description",render: renderSimpleColumn}];
+ipa_entity_set_add_definition('netgroup', [
+    'dialog-add-netgroup', 'Add New Netgroup', [
+        ['cn', 'Name', null],
+        ['description', 'Description', null]
+    ]
+]);
 
+ipa_entity_set_details_definition('netgroup', [
+    ['identity', 'Netgroup Details', [
+        ['cn', 'Name', null],
+        ['description', 'Description', null],
+        ['nisdomainname', 'NIS Domain', null]
+    ]]
+]);
 
-    this.details_list =
-        [['identity', 'Netgroup Details', [
-            ['cn', 'Netgroup Name'],
-            ['description', 'Description'],
-            ['nisdomainname', 'NIS Domain']]]];
-
-    this.details = new DetailsForm(this.obj,this.details_list,this.pkeycol,
-                              this.facets) ;
-
-
-
-    this.add_properties =
-        [{title: 'Netgroup Name', id: 'pkey', type: 'text'},
-         {title: 'Description', id: 'description', type: 'text'}];
-
-    this.add = new EntityBuilder("netgroup",this.add_properties);
-
-    this.add.getOptions = function() {
-        var options = {
-            name: $('#pkey').val(),
-            description: $('#description').val()
-        };
-        return options;
-    }
-
-    this.search =  new SearchForm("netgroup", "find", this.netgroupSearchColumns);
-
-    this.userListColumns = [ {title:"user",column:"memberuser_user", }];
-    this.users = new AssociationList(
-        this.obj, "users", "assignusers", this.userListColumns, this.facets );
-
-    this.assignusers = new AssociationForm(
-        this.obj, "user", "assignuser", this.facets, "uid",
-        function(){
-            return 'Add Hosts to to  netgroup : '  + qs['pkey'] ;
-        },
-        BulkAssociator);
-
-
-    this.groupListColumns = [ {title:"group",column:"memberuser_group", }];
-    this.groups = new AssociationList(
-        this.obj, "groups", "assigngroups", this.groupListColumns, this.facets );
-
-    this.assigngroups = new AssociationForm(
-        this.obj, "group", "assigngroup", this.facets, "cn",
-        function(){
-            return 'Add Hosts to to  netgroup : '  + qs['pkey'] ;
-        },
-        BulkAssociator);
-
-
-
-    this.hostListColumns = [ {title:"host",column:"memberhost_host", }];
-
-    this.hosts = new AssociationList(
-        this.obj, "hosts", "assignhosts", this.hostListColumns, this.facets );
-
-    this.assignhosts = new AssociationForm(
-        this.obj, "host", "assignhosts", this.facets, "fqdn",
-        function(){
-            return 'Add Hosts to to  netgroup : '  + qs['pkey'] ;
-        },
-        BulkAssociator);
-
-
-    this.hostgroupListColumns = [ {title:"hostgroup",column:"memberhost_hostgroup", }];
-
-    this.hostgroups = new AssociationList(
-        this.obj, "hostgroups", "assignhostgroups", this.hostgroupListColumns, this.facets );
-
-    this.assignhostgroups = new AssociationForm(
-        this.obj, "hostgroup", "assignhostgroups", this.facets, "cn",
-        function(){
-            return 'Add Hostgroups to to  netgroup : '  + qs['pkey'] ;
-        },
-        BulkAssociator);
-
-
-
-    this.unspecified = this.search;
-    this.setup = function(facet){
-        if (this[facet]){
-            this[facet].setup();
-        }else{
-            this.unspecified.setup();
-        }
-    }
-
-}

@@ -27,52 +27,47 @@ div.header {
     background-color: #1f1f1f;
     height: 70px;
 }
-div.header span.LoggedInAs {
-    color: #fff;
-    padding-right: 10px;
-    line-height: 35px;
-    float: right;
+
+div.header a {
+    text-decoration: none;
 }
-div.header div.logo {
+
+div.header a:link {
+    text-decoration: none;
+}
+
+div.header a:visited {
+    text-decoration: none;
+}
+
+div.header div.header-logo {
     float: left;
     padding: 10px 10px 0 10px;
 }
-div.header div.logo img {
+
+div.header div.header-logo img {
     border: 0;
 }
 
-
-div#view {
-    bottom: 0;
-    left: 0;
-    overflow: auto;
-    position: fixed;
-    right: 0;
-    top: 0;
-}
-
-div#header {
-    background: -moz-linear-gradient(top, #65646e, #1f1f1f);
-    background-color: #1f1f1f;
-    height: 70px;
-}
-
-div#header div#logo img {
-    border: 0;
-}
-
-div#header div#loggedinas {
+div.header span.header-loggedinas {
     color: #fff;
-    font-size: 12pt;
-    font-weight: bold;
+    float: right;
     line-height: 35px;
     padding-right: 10px;
-    text-align: right;
 }
 
-div#header div#loggedinas a {
-    color: #fff;
-    text-decoration: underline;
+/* ---- Navigation ---- */
+div.tabs {
+    overflow: auto;
+}
+
+/* ---- Search ---- */
+table.search-table {
+    width: 100%;
+}
+
+table.search-table th {
+    text-align: left;
 }
 
 h1 {

@@ -1,243 +1,78 @@
-var user_details_lists = [
+/*  Authors:
+ *    Pavel Zuna <pzuna@redhat.com>
+ *
+ * Copyright (C) 2010 Red Hat
+ * see file 'COPYING' for use and warranty information
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; version 2 only
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ */
+
+/* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
+
+ipa_entity_set_search_definition('user', [
+    ['cn', 'Name', null],
+    ['uid', 'Login', null],
+    ['uidnumber', 'UID', null],
+    ['mail', 'EMAIL', null],
+    ['telephonenumber', 'Phone', null],
+    ['title', 'Job Title', null],
+    ['actions', 'Actions', null]
+]);
+
+ipa_entity_set_add_definition('user', [
+    'dialog-add-user', 'Add New User', [
+        ['uid', 'Login', null],
+        ['givenname', 'First Name', null],
+        ['sn', 'Last Name', null]
+    ]
+]);
+
+ipa_entity_set_details_definition('user', [
     ['identity', 'Identity Details', [
-        ['title', 'Title'],
-        ['givenname', 'First Name'],
-        ['sn', 'Last Name'],
-        ['cn', 'Full Name'],
-        ['displayname', 'Dispaly Name'],
-        ['initials', 'Initials']
-    ]
-    ],
+        ['title', 'Title', null],
+        ['givenname', 'First Name', null],
+        ['sn', 'Last Name', null],
+        ['cn', 'Full Name', null],
+        ['displayname', 'Dispaly Name', null],
+        ['initials', 'Initials', null]
+    ]],
     ['account', 'Account Details', [
-        ['call_a_status', 'Account Status'],
-        ['uid', 'Login'],
-        ['call_a_password', 'Password'],
-        ['uidnumber', 'UID'],
-        ['gidnumber', 'GID'],
-        ['homedirectory', 'homedirectory']
-    ]
-    ],
+        ['status', 'Account Status', a_status],
+        ['uid', 'Login', null],
+        ['userpassword', 'Password', a_password],
+        ['uidnumber', 'UID', null],
+        ['gidnumber', 'GID', null],
+        ['homedirectory', 'homedirectory', null]
+    ]],
     ['contact', 'Contact Details', [
-        ['mail', 'E-mail Address'],
-        ['call_a_numbers', 'Numbers']
-    ]
-    ],
+        ['mail', 'E-mail Address', null],
+        ['numbers', 'Numbers', a_numbers]
+    ]],
     ['address', 'Mailing Address', [
-        ['street', 'Address'],
-        ['location', 'City'],
-        ['call_a_st', 'State'],
-        ['postalcode', 'ZIP']
-    ]
-    ],
+        ['street', 'Address', null],
+        ['location', 'City', null],
+        ['state', 'State', a_st],
+        ['postalcode', 'ZIP', null]
+    ]],
     ['employee', 'Employee Information', [
-        ['ou', 'Org. Unit'],
-        ['call_a_manager', 'Manager']
-    ]
-    ],
+        ['ou', 'Org. Unit', null],
+        ['manager', 'Manager', a_manager]
+    ]],
     ['misc', 'Misc. Information', [
-        ['carlicense', 'Car License']
-    ]
-    ]
-];
-
-
-function setupUser(facet){
-    if (facet == "details"){
-        setupUserDetails();
-    }else  if (facet == "add"){
-        userBuilder.setup();
-    }else  if (facet == "group"){
-        setupUserGroupList();
-    }else  if (facet == "groupmembership"){
-        userGroupMembershipForm.setup();
-    }else{
-        userSearchForm.setup();
-    }
-}
-
-function add_user_fail(reason){
-    alert("Add User Failed:"+JSON.stringify(reason));
-}
-
-function addUser(on_success){
-
-    var options = {  givenname:  $("#firstname").val(),
-                     sn:  $("#lastname").val(),
-                     uid :        $("#login").val()};
-
-    ipa_cmd( 'add', [], options, on_success, add_user_fail, 'user' );
-}
-
-function addAnotherUser(){
-    addUser(setupAddUser);
-}
-
-function addEditUser(){
-    addUser(function (response){
-        setupUserDetails($("#login").val());
-    });
-}
-
-var userAddProperties = [
-    {title: 'login',      id: 'pkey',      type: 'text'},
-    {title: 'First Name', id: 'firstname', type:'text'},
-    {title: 'Last Name', id: 'lastname', type:'text'}
-];
-
-var userBuilder =
-    new EntityBuilder(
-        "user",
-        userAddProperties);
-
-userBuilder.getOptions = function() {
-    var options = {
-        givenname: $("#firstname").val(),
-        sn: $("#lastname").val()};
-    return options;
-}
-
-var userFacets = ["details","group", "groupmembership"];
-
-
-function setupUserDetails(user){
-    qs = ipa_parse_qs();
-    showDetails();
-    setupFacetNavigation('user',qs.pkey,qs.facet,userFacets);
-    renderUserDetails();
-}
-
-function renderUserDetails()
-{
-    ipa_details_init('user');
-    ipa_details_create(user_details_lists, $('#details'));
-
-    if (qs['principal']) {
-        ipa_cmd(
-            'find', [], {'krbprincipalname': qs['principal']},
-            on_win_find, null, 'user');
-
-        return;
-    }
-
-    if (!qs['pkey'])
-        return;
-
-    ipa_details_load(qs['pkey'], on_win, null);
-    $('h1').text('Managing user: ' + qs['pkey']);
-}
-
-function  renderSimpleColumn(current,cell){
-    cell.innerHTML = current[this.column];
-}
-
-function renderUserLinks(current, cell){
-    link = document.createElement("a");
-    cell.appendChild(link);
-
-    $("<a/>",{
-        href:"#tab=user&facet=details&pkey="+current.uid,
-        html:  "[D]",
-    }).appendTo(cell);
-
-    $("<a/>",{
-        href: "#tab=user&facet=group&pkey="+current.uid,
-        html: "[G]"
-    }).appendTo(cell);
-
-    $("<a/>",{
-        href:"#tab=user&facet=netgroup&pkey="+current.uid,
-        html: "[N]"
-    }).appendTo(cell);
-
-    $("<a/>",{
-        href:"#tab=user&facet=role&pkey="+current.uid,
-        html:"[R]"
-    }).appendTo(cell);
-}
-
-function renderUserDetailColumn(current,cell){
-
-    $("<a/>",{
-        href:"#tab=user&facet=details&pkey="+current.uid,
-        html:  ""+ current[this.column],
-        click: function(){ setupUserDetails(current.uid)},
-    }).appendTo(cell);
-}
-
-var userSearchColumns  = [
-    {title:"Name",     column:"cn",             render: renderSimpleColumn},
-    {title:"Login",    column:"uid",            render: renderUserDetailColumn},
-    {title:"UID",      column:"uidnumber",      render: renderSimpleColumn},
-    {title:"EMAIL",    column:"mail",           render: renderSimpleColumn},
-    {title:"Phone",    column:"telephonenumber",render: renderSimpleColumn},
-    {title:"Job Title",column:"title",          render: renderSimpleColumn},
-    {title:"Actions",  column:"none",           render: renderUserLinks}
-];
-
-var userSearchForm = new SearchForm("user", "find", userSearchColumns);
-
-/*Usr group enrollement:
-  given a user, manage the groups in which they are enrolled */
-function populateUserGroupFailure(){
-    alert("Can't find user");
-}
-
-
-
-
-var userGroupMembershipForm = new AssociationForm("user","group","groupmembership",userFacets, "cn", function(){
-    return 'Enroll user '  + qs['pkey'] + ' in groups';
-}
-);
-
-/*Group Membership*/
-var groupMembershipColumns  = [
-    {title:"group", column:"memberof_group"},
-];
-
-function populateUserEnrollments(userData){
-    userEnrollmentList.populate(userData);
-}
-function  setupUserGroupList(){
-    userEnrollmentList.setup();
-}
-var userEnrollmentList = new AssociationList('user', 'group','groupmembership',groupMembershipColumns,userFacets);
-
-
-function on_win(data, textStatus, xhr)
-{
-    if (data['error'])
-        alert(data['error']['message']);
-}
-
-function on_win_find(data, textStatus, xhr)
-{
-    if (data['error']) {
-        alert(data['error']['message']);
-        return;
-    }
-
-    var result = data.result.result;
-    if (result.length == 1) {
-        var entry_attrs = result[0];
-        qs['pkey'] = entry_attrs['uid'][0];
-
-        ipa_details_load(qs['pkey'], on_win);
-        $('h1').text('Managing user: ' + qs['pkey']);
-    }
-}
-
-function reset_on_click()
-{
-    ipa_details_reset();
-    return (false);
-}
-
-function update_on_click()
-{
-    ipa_details_update(qs['pkey'], on_win);
-    return (false);
-}
+        ['carlicense', 'Car License', null]
+    ]]
+]);
 
 /* Account status Toggle button */
 
@@ -365,3 +200,12 @@ function a_st(jobj, result, mode)
     else
         sel.val('');
 }
+
+function a_numbers(jobj, result, mode)
+{
+}
+
+function a_manager(jobj, result, mode)
+{
+}
+

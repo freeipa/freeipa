@@ -390,6 +390,7 @@ fi
 %{_usr}/share/ipa/migration/migration.css
 %{_usr}/share/ipa/migration/migration.py*
 %dir %{_usr}/share/ipa/static
+%{_usr}/share/ipa/static/index.xhtml
 %{_usr}/share/ipa/static/*.png
 %{_usr}/share/ipa/static/*.css
 %{_usr}/share/ipa/static/*.js

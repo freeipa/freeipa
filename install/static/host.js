@@ -1,34 +1,43 @@
-function setupHost(facet){
-    if (facet == "details"){
-        hostDetailsForm.setup();
-    }else if (facet == "add"){
-        hostBuilder.setup();
-    }else{
-        hostSearchForm.setup();
-    }
-}
+/*  Authors:
+ *    Pavel Zuna <pzuna@redhat.com>
+ *
+ * Copyright (C) 2010 Red Hat
+ * see file 'COPYING' for use and warranty information
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; version 2 only
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ */
 
-var hostAddProperties = [{title: 'Domain Name', id: 'pkey', type: 'text'}];
-var hostBuilder = new EntityBuilder("host",hostAddProperties);
+/* REQUIRES: ipa.js, details.js, search.js, add.js, entity.js */
 
+ipa_entity_set_search_definition('host', [
+    ['fqdn', 'Name', null],
+    ['description', 'Description', null],
+    ['enrolled', 'Enrolled?', null],
+    ['manages', 'Manages?', null]
+]);
 
-var host_details_list =  [['host', 'Host Details', [
-    ['fqdn', 'Fully Qualified Domain Name'],
-    ['krbprincipalname', 'Kerberos Principal'],
-    ['serverhostname', 'Server Host Name']
-]]];
+ipa_entity_set_add_definition('host', [
+    'dialog-add-host', 'Add New Host', [
+        ['fqdn', 'Name', null]
+    ]
+]);
 
-var hostFacets = ["details","hostgroup", "hostgroupmembership"];
+ipa_entity_set_details_definition('host', [
+    ['host', 'Host Details', [
+        ['fqdn', 'Fully Qualified Domain Name', null],
+        ['krbprincipalname', 'Kerberos Principal', null],
+        ['serverhostname', 'Server Host Name', null]
+    ]]
+]);
 
-var hostDetailsForm = new DetailsForm("host",host_details_list,"fqdn",
-                                      hostFacets ) ;
-
-var hostSearchColumns = [
-    {title:"Host",column:"fqdn",render: function(current,cell){
-    renderPkeyColumn(hostDetailsForm,current,cell);
-    }},
-    {title:"Comment",   column: "description", render: renderSimpleColumn},
-    {title:"Enrolled?",  render: renderUnknownColumn},
-    {title:"Manages?",   render: renderUnknownColumn}
-];
-var hostSearchForm = new SearchForm("host", "find", hostSearchColumns);

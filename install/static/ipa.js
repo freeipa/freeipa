@@ -20,6 +20,11 @@
 
 /* IPA JSON-RPC helper */
 
+var IPA_DEFAULT_JSON_URL = '/ipa/json';
+var IPA_SAMPLEDATA_URL = '/ipa/ui/sampledata';
+
+var ipa_use_sampledata = false;
+
 /* JSON-RPC ID counter */
 var ipa_jsonrpc_id = 0;
 
@@ -27,29 +32,26 @@ var ipa_jsonrpc_id = 0;
 var ipa_objs = {};
 
 var _ipa_init_on_win_callback = null;
+
 /* initialize the IPA JSON-RPC helper
  * arguments:
  *   url - JSON-RPC URL to use (optional) */
-
-/*Query String*/
-var qs;
-
-
-var useSampleData = (window.location.protocol == "file:");
-
-
-function ipa_init(on_win)
+function ipa_init(url, on_win, use_sampledata)
 {
-    var url = '/ipa/json';
+    if (url)
+        ipa_json_url = url;
+    else
+        ipa_json_url = IPA_DEFAULT_JSON_URL;
+    if (use_sampledata)
+        ipa_use_sampledata = use_sampledata;
 
     _ipa_init_on_win_callback = on_win;
 
     var options = {
-	url: url,
-	type: 'POST',
-	contentType: 'application/json',
-	dataType: 'json',
-	processData: false,
+        type: 'POST',
+        contentType: 'application/json',
+        dataType: 'json',
+        processData: false,
     };
 
     $.ajaxSetup(options);
@@ -64,7 +66,7 @@ function _ipa_load_objs(data, textStatus, xhr)
 {
     ipa_objs = data.result.result;
     if (_ipa_init_on_win_callback)
-	_ipa_init_on_win_callback(data, textStatus, xhr);
+        _ipa_init_on_win_callback(data, textStatus, xhr);
 }
 
 /* call an IPA command over JSON-RPC
@@ -75,35 +77,27 @@ function _ipa_load_objs(data, textStatus, xhr)
  *   win_callback - function to call if the JSON request succeeds
  *   fail_callback - function to call if the JSON request fails
  *   objname - name of an IPA object (optional) */
-function ipa_cmd(name, args, options, win_callback, fail_callback, objname,sampleData)
+function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
 {
     id = ipa_jsonrpc_id++;
     if (objname)
-	name = objname + '_' + name;
+        name = objname + '_' + name;
 
-    if (useSampleData){
-        var sampleData ="sampledata/"+name+".json";
-
-	var ajax_options = {
-	    url: sampleData,
-	    type: 'POST',
-	    contentType: 'application/json',
-	    dataType: 'json',
-	    processData: false,
-	};
-	 $.ajaxSetup(ajax_options);
-    }
+    var url = ipa_json_url;
+    if (ipa_use_sampledata && IPA_SAMPLEDATA_URL)
+        url = IPA_SAMPLEDATA_URL + '/' + name + '.json';
 
     var data = {
-	method: name,
-	params: [args, options],
-	id: id,
+        method: name,
+        params: [args, options],
+        id: id,
     };
 
     var request = {
-	data: JSON.stringify(data),
-	success: win_callback,
-	error: fail_callback,
+        url: url,
+        data: JSON.stringify(data),
+        success: win_callback,
+        error: fail_callback,
     };
 
     $.ajax(request);
@@ -119,33 +113,47 @@ function ipa_parse_qs(qs)
     var dict = {};
 
     if (!qs)
-	qs = location.hash.substring(1);
+        qs = location.hash.substring(1);
     qs = qs.replace(/\+/g, ' ');
 
     var args = qs.split('&');
     for (var i = 0; i < args.length; ++i) {
-	var parts = args[i].split('=', 2);
-	var key = decodeURIComponent(parts[0]);
-	if (parts.length == 2)
-	    dict[key] = decodeURIComponent(parts[1]);
-	else
-	    dict[key] = key;
+        var parts = args[i].split('=', 2);
+        var key = decodeURIComponent(parts[0]);
+    if (parts.length == 2)
+        dict[key] = decodeURIComponent(parts[1]);
+    else
+        dict[key] = key;
     }
 
     return (dict);
 }
 
 /* helper function used to retrieve information about an attribute */
-function ipa_get_param_info(attr)
+function ipa_get_param_info(obj_name, attr)
 {
-    var takes_params = ipa_objs[_ipa_obj_name]['takes_params'];
+    var takes_params = ipa_objs[obj_name].takes_params;
     if (!takes_params)
-	return (null);
+        return (null);
 
     for (var i = 0; i < takes_params.length; ++i) {
-	if (takes_params[i]['name'] == attr)
-	    return (takes_params[i]);
+        if (takes_params[i]['name'] == attr)
+            return (takes_params[i]);
     }
 
     return (null);
 }
+
+/* helper function used to retrieve attr name with members of type `member` */
+function ipa_get_member_attribute(obj_name, member)
+{
+    var attribute_members = ipa_objs[obj_name].attribute_members
+    for (var a in attribute_members) {
+        var objs = attribute_members[a];
+        for (var i = 0; i < objs.length; ++i) {
+            if (objs[i] == member)
+                return a;
+        }
+    }
+}
+
