@@ -5,16 +5,15 @@
  * Copyright (C) 2010 Red Hat
 */
 
-body {
-    font-family: sans-serif;
-    font-size: 14pt;
-    margin: 25px;
-}
 
-/*demo page css*/
+body{ font: 62.5% "Trebuchet MS", sans-serif; margin: 50px;}
 .demoHeaders { margin-top: 2em; }
+
+
 .input_link {padding: .4em 1em .4em 20px;text-decoration: none;position: relative;}
 .input_link span.ui-icon {margin: 0 5px 0 0;position: absolute;left: .2em;top: 50%;margin-top: -8px;}
+
+
 
 a {
     text-decoration: none;
@@ -178,13 +177,9 @@ span.attrhint {
     position: absolute;
 }
 
-
 /*Navigation */
-
-
 .tabs1 .ui-tabs-nav{
     padding: 0.1em;
-
 }
 
 .tabs1 .ui-tabs-nav {
@@ -206,18 +201,12 @@ span.attrhint {
     background-image: url(Subnav-background.png);
 }
 
-.tabs2 .ui-tabs-nav li{
+.tabs2 .ui-tabs-nav li a{
     background-image: url(Subnav-offbutton.png);
-    padding:0px;
-    color: white;
-    font-size: 80%;
 }
 
-.tabs2 .ui-tabs-nav li.ui-tabs-selected{
+.tabs2 .ui-tabs-nav li.ui-tabs-selected a{
     background-image: url(Subnav-onbutton.png);
-    padding:5px;
-    color: white;
-    font-size: 80%;
 }
 
 
@@ -278,10 +267,9 @@ span.main-separator{
 }
 
 .entity-views{
-    list-style-type:none;
+     list-style-type:none;
 }
 
 .entity-views li {
     display:inline;
 }
-
