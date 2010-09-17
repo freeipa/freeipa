@@ -23,6 +23,7 @@ try:
     import sys
 
     import os
+    import time
     import socket
     import logging
     import tempfile
@@ -46,6 +47,7 @@ error was:
 """ % sys.exc_value
     sys.exit(1)
 
+client_nss_nickname = 'IPA Machine Certificate - %s' % socket.getfqdn()
 
 def parse_options():
     parser = OptionParser(version=version.VERSION)
@@ -183,7 +185,7 @@ def uninstall(options):
             run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", "IPA CA"])
         except Exception, e:
             print "Failed to remove IPA CA from /etc/pki/nssdb: %s" % str(e)
-    if nickname_exists("Server-Cert"):
+    if nickname_exists(client_nss_nickname):
         # Always start certmonger. We can't untrack something if it isn't
         # running
         try:
@@ -191,13 +193,13 @@ def uninstall(options):
         except:
             pass
         try:
-            certmonger.stop_tracking('/etc/pki/nssdb', nickname='Server-Cert')
+            certmonger.stop_tracking('/etc/pki/nssdb', nickname=client_nss_nickname)
         except (CalledProcessError, RuntimeError), e:
             logging.error("certmonger failed to stop tracking certificate: %s" % str(e))
         try:
-            run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", "Server-Cert"])
+            run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", client_nss_nickname])
         except Exception, e:
-            print "Failed to remove Server-Cert from /etc/pki/nssdb: %s" % str(e)
+            print "Failed to remove %s from /etc/pki/nssdb: %s" % (client_nss_nickname, str(e))
 
     try:
         service('certmonger', 'stop')
@@ -452,7 +454,7 @@ def configure_certmonger(fstore, subject_base, cli_realm, options):
         subject = 'CN=%s,%s' % (socket.getfqdn(), subject_base)
         principal = 'host/%s@%s' % (socket.getfqdn(), cli_realm)
         try:
-            run(["ipa-getcert", "request", "-d", "/etc/pki/nssdb", "-n", "Server-Cert", "-N", subject, "-K", principal])
+            run(["ipa-getcert", "request", "-d", "/etc/pki/nssdb", "-n", client_nss_nickname, "-N", subject, "-K", principal])
         except:
             print "certmonger request for host certificate failed"
 
@@ -652,6 +654,8 @@ def main():
                 if not options.force:
                     return 1
                 print "  Use ipa-getkeytab to obtain a host principal for this server."
+            else:
+                print "Enrolled in IPA realm %s" % cli_realm
 
             start = stderr.find('Certificate subject base is: ')
             if start >= 0:
@@ -709,11 +713,22 @@ def main():
     run(cmd)
     print message
 
-    #Check nss_ldap is working properly
+    #Check that nss is working properly
     if not options.on_master:
-        try:
-            run(["getent", "passwd", "admin"])
-        except Exception, e:
+        n = 0
+        found = False
+        # Loop for up to 5 seconds to see if nss is working properly.
+        # It can sometimes take a few seconds to connect to the remote
+        # provider.
+        while n < 5 and not found:
+            try:
+                run(["getent", "passwd", "admin"])
+                found = True
+            except Exception, e:
+                time.sleep(1)
+                n = n + 1
+
+        if not found:
             print "nss_ldap is not able to use DNS discovery!"
             print "Changing configuration to use hardcoded server name: " +cli_server
 
