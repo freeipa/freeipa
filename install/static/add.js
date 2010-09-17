@@ -28,20 +28,18 @@ function add_dialog_create(obj_name, adl)
     var add_dialog = $('<div></div>');
 
     function add(evt, called_from_add_and_edit) {
+        var pkey = [];
+        var options = {};
+        var pkey_name = ipa_objs[obj_name].primary_key;
+
         function add_win(data, text_status, xhr) {
             if (called_from_add_and_edit) {
                 var state = {};
                 state[obj_name + '-facet'] = 'details';
-                var pkey_name = ipa_objs[obj_name].primary_key;
-                var selector = 'input[name=' + pkey_name + ']';
-                state[obj_name + '-pkey'] = add_dialog.find(selector).val();
+                state[obj_name + '-pkey'] = pkey[0];
                 $.bbq.pushState(state);
             }
         };
-
-        var pkey = [];
-        var options = {};
-        var pkey_name = ipa_objs[obj_name].primary_key;
 
         var fields = adl[2];
         for (var i = 0; i < fields.length; ++i) {
