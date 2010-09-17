@@ -272,4 +272,5 @@ span.main-separator{
 
 .entity-views li {
     display:inline;
+    cursor: pointer;
 }
