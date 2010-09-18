@@ -31,6 +31,31 @@ class IPADiscovery:
         self.server = None
         self.basedn = None
 
+    def __get_resolver_domains(self):
+        """
+        Read /etc/resolv.conf and return all the domains found in domain and
+        search.
+
+        Returns a list
+        """
+        domains = []
+        domain = None
+        try:
+            fp = open('/etc/resolv.conf', 'r')
+            lines = fp.readlines()
+            fp.close()
+
+            for line in lines:
+                if line.lower().startswith('domain'):
+                    domain = line.split(None)[-1]
+                elif line.lower().startswith('search'):
+                    domains = domains + line.split(None)[1:]
+        except:
+            pass
+        if domain and not domain in domains:
+            domains = [domain] + domains
+        return domains
+
     def getServerName(self):
         return self.server
 
@@ -42,6 +67,27 @@ class IPADiscovery:
 
     def getBaseDN(self):
         return self.basedn
+
+    def check_domain(self, domain):
+        """
+        Given a domain search it for SRV records, breaking it down to search
+        all subdomains too.
+
+        Returns a tuple (server, domain) or (None,None) if a SRV record
+        isn't found.
+        """
+        server = None
+        while not server:
+            logging.debug("[ipadnssearchldap("+domain+")]")
+            server = self.ipadnssearchldap(domain)
+            if server:
+                return (server, domain)
+            else:
+                p = domain.find(".")
+                if p == -1: #no ldap server found and last component of the domain already tested
+                    return (None, None)
+                domain = domain[p+1:]
+        return (None, None)
 
     def search(self, domain = "", server = ""):
         hostname = ""
@@ -66,16 +112,22 @@ class IPADiscovery:
                     return -1
                 domain = hostname[p+1:]
 
-                while not self.server:
-                    logging.debug("[ipadnssearchldap("+domain+")]")
-                    self.server = self.ipadnssearchldap(domain)
-                    if self.server:
+                # Get the list of domains from /etc/resolv.conf, we'll search
+                # them all. We search the domain of our hostname first though,
+                # even if that means searching it twice. This is to avoid the
+                # situation where domain isn't set in /etc/resolv.conf and
+                # the search list has the hostname domain not first. We could
+                # end up with the wrong SRV record.
+                domains = self.__get_resolver_domains()
+                domains = [domain] + domains
+                for domain in domains:
+                    (server, domain) = self.check_domain(domain)
+                    if server:
+                        self.server = server
                         self.domain = domain
-                    else:
-                        p = domain.find(".")
-                        if p == -1: #no ldap server found and last component of the domain already tested
-                            return -1
-                        domain = domain[p+1:]
+                        break
+                if not self.domain: #no ldap server found
+                    return -1
             else:
                 logging.debug("[ipadnssearchldap]")
                 self.server = self.ipadnssearchldap(domain)
