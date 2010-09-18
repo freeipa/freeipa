@@ -57,6 +57,28 @@ app_DATA =                              \
 	ui-icons_ededed_256x240.png \
 	ui-icons_ffcf29_256x240.png \
 	ui-icons_ffffff_256x240.png \
+	group_details.png		\
+	host_details.png		\
+	hostgroup_details.png		\
+	netgroup_details.png		\
+	service_details.png		\
+	user_details.png		\
+	group_member.png		\
+	host_member.png			\
+	hostgroup_member.png		\
+	netgroup_member.png		\
+	service_member.png		\
+	user_member.png			\
+	group_enroll.png		\
+	host_enroll.png			\
+	hostgroup_enroll.png		\
+	netgroup_enroll.png		\
+	service_enroll.png		\
+	user_enroll.png			\
+	search.png			\
+	taskgroup_details.png		\
+	rolegroup_details.png		\
+	rolegroup_member.png		\
 	$(NULL)
 
 EXTRA_DIST =                            \

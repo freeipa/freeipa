@@ -136,13 +136,13 @@ function ipa_entity_generate_views(obj_name, container)
         title: 'search',
         text: 'Search',
         click: switch_view
-    }).prepend('<img src="plus-enabled.png"/>'));
+    }).prepend('<img src="search.png"/>'));
 
     ul.append($('<li></li>', {
         text: 'Details',
         title: 'details',
         click: switch_view
-    }).prepend('<img src="plus-enabled.png"/>'));
+    }).prepend('<img src="' + obj_name +'_details.png"/>'));
 
     var attribute_members = ipa_objs[obj_name].attribute_members;
     for (attr in attribute_members) {
@@ -155,7 +155,7 @@ function ipa_entity_generate_views(obj_name, container)
                 title: m,
                 text:label,
                 click: switch_view
-            }).prepend('<img src="plus-enabled.png"/>'));
+            }).prepend('<img src="' + ipa_objs[m].name + '_member.png"/>'));
         }
     }
 

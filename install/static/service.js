@@ -46,7 +46,7 @@ function service_render_quick_links(tr, attr, value, entry_attrs) {
 
     $("<a/>", {
         href: "jslink",
-        html: "[D]",
+        html: $("<img src='service_details.png' />"),
         click: function() {
             var state = {};
             state['service-facet'] = 'details';
@@ -58,7 +58,7 @@ function service_render_quick_links(tr, attr, value, entry_attrs) {
 
     $("<a/>", {
         href: "jslink",
-        html: "[G]",
+        html: $("<img src='host_enroll.png' />"),
         click: function() {
             var state = {};
             state['service-facet'] = 'associate';

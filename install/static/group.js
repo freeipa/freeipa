@@ -72,7 +72,7 @@ function group_render_quick_links(tr, attr, value, entry_attrs) {
 
     $("<a/>", {
         href: "jslink",
-        html: "[D]",
+        html: $("<img src='group_details.png' />"),
         click: function() {
             var state = {};
             state['group-facet'] = 'details';
@@ -84,7 +84,7 @@ function group_render_quick_links(tr, attr, value, entry_attrs) {
 
     $("<a/>", {
         href: "jslink",
-        html: "[U]",
+        html: $("<img src='user_enroll.png' />"),
         click: function() {
             var state = {};
             state['group-facet'] = 'associate';
@@ -97,7 +97,7 @@ function group_render_quick_links(tr, attr, value, entry_attrs) {
 
     $("<a/>", {
         href: "jslink",
-        html: "[N]",
+        html: $("<img src='netgroup_member.png' />"),
         click: function() {
             var state = {};
             state['group-facet'] = 'associate';

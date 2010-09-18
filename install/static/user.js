@@ -216,7 +216,7 @@ function user_render_quick_links(tr, attr, value, entry_attrs) {
 
     $("<a/>", {
         href: "jslink",
-        html: "[D]",
+        html: $("<img src='user_details.png' />"),
         click: function() {
             var state = {};
             state['user-facet'] = 'details';
@@ -228,7 +228,7 @@ function user_render_quick_links(tr, attr, value, entry_attrs) {
 
     $("<a/>", {
         href: "jslink",
-        html: "[G]",
+        html: $("<img src='group_member.png' />"),
         click: function() {
             var state = {};
             state['user-facet'] = 'associate';
@@ -241,7 +241,7 @@ function user_render_quick_links(tr, attr, value, entry_attrs) {
 
     $("<a/>", {
         href: "jslink",
-        html: "[N]",
+        html: $("<img src='netgroup_member.png' />"),
         click: function() {
             var state = {};
             state['user-facet'] = 'associate';
@@ -254,7 +254,7 @@ function user_render_quick_links(tr, attr, value, entry_attrs) {
 
     $("<a/>", {
         href: "jslink",
-        html: "[R]",
+        html: $("<img src='rolegroup_member.png' />"),
         click: function() {
             var state = {};
             state['user-facet'] = 'associate';
