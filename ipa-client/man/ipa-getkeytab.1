@@ -1,22 +1,22 @@
 .\" A man page for ipa-getkeytab
 .\" Copyright (C) 2007 Red Hat, Inc.
-.\" 
+.\"
 .\" This is free software; you can redistribute it and/or modify it under
 .\" the terms of the GNU Library General Public License as published by
 .\" the Free Software Foundation; version 2 only
-.\" 
+.\"
 .\" This program is distributed in the hope that it will be useful, but
 .\" WITHOUT ANY WARRANTY; without even the implied warranty of
 .\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 .\" General Public License for more details.
-.\" 
+.\"
 .\" You should have received a copy of the GNU Library General Public
 .\" License along with this program; if not, write to the Free Software
 .\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-.\" 
+.\"
 .\" Author: Karl MacMillan <kmacmill@redhat.com>
 .\" Author: Simo Sorce <ssorce@redhat.com>
-.\" 
+.\"
 .TH "ipa-getkeytab" "1" "Oct 10 2007" "freeipa" ""
 .SH "NAME"
 ipa\-getkeytab \- Get a keytab for a kerberos principal
@@ -47,17 +47,17 @@ example above).
 \fBWARNING:\fR retrieving the keytab resets the secret for the Kerberos principal.
 This renders all other keytabs for that principal invalid.
 .SH "OPTIONS"
-.TP 
+.TP
 \fB\-s ipaserver\fR
 The IPA server to retrieve the keytab from (FQDN).
-.TP 
+.TP
 \fB\-p principal\-name\fR
 The non\-realm part of the full principal name.
-.TP 
+.TP
 \fB\-k keytab\-file\fR
 The keytab file where to append the new key (will be
 created if it does not exist).
-.TP 
+.TP
 \fB\-e encryption\-types\fR
 The list of encryption types to use to generate keys.
 ipa\-getkeytab will use local client defaults if not provided.
@@ -70,10 +70,10 @@ arcfour\-hmac
 des\-hmac\-sha1
 des\-cbc\-md5
 des\-cbc\-crc
-.TP 
+.TP
 \fB\-q\fR
 Quiet mode. Only errors are displayed.
-.TP 
+.TP
 \fB\-\-permitted\-enctypes\fR
 This options returns a description of the permitted encryption types, like this:
 Supported encryption types:
@@ -99,3 +99,29 @@ the host foo.example.com and save it in the file /tmp/ldap.keytab.
 
 .SH "EXIT STATUS"
 The exit status is 0 on success, nonzero on error.
+
+0 Success
+
+1 Kerberos context initialization failed
+
+2 Incorrect usage
+
+3 Out of memory
+
+4 Invalid service principal name
+
+5 No Kerberos credentials cache
+
+6 No Kerberos principal and no bind DN and password
+
+7 Failed to open keytab
+
+8 Failed to create key material
+
+9 Setting keytab failed
+
+10 Bind password required when using a bind DN
+
+11 Failed to add key to keytab
+
+12 Failed to close keytab

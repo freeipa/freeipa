@@ -46,8 +46,9 @@ add: aci
 aci: (targetattr="userCertificate || krbPrincipalKey")(version 3.0; aci "Hosts can manage service Certificates and kerberos keys"; allow(write) userattr = "parent[0,1].managedby#USERDN";)
 
 # Allow hosts to update their own certificate in host/
+# krbLastPwdChange lets a host unenroll itself
 dn: cn=computers,cn=accounts,$SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr="userCertificate")(version 3.0; aci "Hosts can modify service userCertificate"; allow(write) userdn = "ldap:///self";)
+aci: (targetattr="userCertificate || krbLastPwdChange")(version 3.0; aci "Hosts can modify service userCertificate"; allow(write) userdn = "ldap:///self";)
 

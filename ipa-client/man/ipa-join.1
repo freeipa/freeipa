@@ -20,16 +20,16 @@
 .SH "NAME"
 ipa\-join \- Join a machine to an IPA realm and get a keytab for the host service principal
 .SH "SYNOPSIS"
-ipa\-join [ \fB\-h\fR hostname ] [ \fB\-k\fR keytab\-file ] [ \fB\-s\fR server ] [ \fB\-w\fR bulk\-bind\-password ] [ \fB\-d\fR ] [ \fB\-q\fR ]
+ipa\-join [ \fB\-h\fR hostname ] [ \fB\-k\fR keytab\-file ] [ \fB\-s\fR server ] [ \fB\-w\fR bulk\-bind\-password ] [\fB\-u\fR] [ \fB\-d\fR ] [ \fB\-q\fR ]
 
 .SH "DESCRIPTION"
-Joins a host to an IPA realm and retrieves a kerberos \fIkeytab\fR for the host service principal.
+Joins a host to an IPA realm and retrieves a kerberos \fIkeytab\fR for the host service principal, or unenrolls an enrolled host from an IPA server.
 
 Kerberos keytabs are used for services (like sshd) to perform kerberos authentication. A keytab is a file with one or more secrets (or keys) for a kerberos principal.
 
 The ipa\-join command will create and retrieve a service principal for host/foo.example.com@EXAMPLE.COM and place it by default into /etc/krb5.keytab. The location can be overridden with the \-k option.
 
-The IPA server to contact is set in /etc/ipa/default.conf by default and can be overridden using the -s,--server option.
+The IPA server to contact is set in /etc/ipa/default.conf by default and can be overridden using the \-s,\-\-server option.
 
 In order to join the machine needs to be authenticated. This can happen in one of two ways:
 
@@ -37,27 +37,32 @@ In order to join the machine needs to be authenticated. This can happen in one o
 
 * Provide a password to authenticate with
 
-If a client host has already been joined to the IPA realm the ipa-join command will fail. The host will need to be removed from the server using `ipa host-del FQDN` in order to join the client to the realm.
+If a client host has already been joined to the IPA realm the ipa\-join command will fail. The host will need to be removed from the server using `ipa host\-del FQDN` in order to join the client to the realm.
 
-This command is normally executed by the ipa-client-install command as part of the enrollment process.
+This command is normally executed by the ipa\-client\-install command as part of the enrollment process.
+
+The reverse is unenrollment. Unenrolling a host removes the Kerberos key on the IPA server. This prepares the host to be re\-enrolled. This uses the host principal stored in /etc/krb5.conf to authenticate to the IPA server to perform the unenrollment.
 .SH "OPTIONS"
 .TP
-\fB\-h,--hostname hostname\fR
+\fB\-h,\-\-hostname hostname\fR
 The hostname of this server (FQDN). By default of nodename from uname(2) is used.
 .TP
-\fB\-s,--server server\fR
+\fB\-s,\-\-server server\fR
 The hostname of this server (FQDN). By default of nodename from uname(2) is used.
 .TP
-\fB\-k,--keytab keytab\-file\fR
+\fB\-k,\-\-keytab keytab\-file\fR
 The keytab file where to append the new key (will be created if it does not exist). Default: /etc/krb5.keytab
 .TP
-\fB\-w,--bindpw password\fR
+\fB\-w,\-\-bindpw password\fR
 The password to use if not using kerberos to authenticate
 .TP
-\fB\-q,--quiet\fR
+\fB\-u,\-\-unenroll\fR
+Unenroll this host from the IPA server
+.TP
+\fB\-q,\-\-quiet\fR
 Quiet mode. Only errors are displayed.
 .TP
-\fB\-d,--debug\fR
+\fB\-d,\-\-debug\fR
 Debug mode.
 .SH "EXAMPLES"
 Join IPA domain and retrieve a keytab with kerberos credentials.
@@ -74,3 +79,45 @@ Join IPA domain and save the keytab in another location.
   # ipa\-join \-k /tmp/host.keytab
 .SH "EXIT STATUS"
 The exit status is 0 on success, nonzero on error.
+
+0 Success
+
+1 Kerberos context initialization failed
+
+2 Incorrect usage
+
+3 Out of memory
+
+4 Invalid service principal name
+
+5 No Kerberos credentials cache
+
+6 No Kerberos principal and no bind DN and password
+
+7 Failed to open keytab
+
+8 Failed to create key material
+
+9 Setting keytab failed
+
+10 Bind password required when using a bind DN
+
+11 Failed to add key to keytab
+
+12 Failed to close keytab
+
+13 Host is already enrolled
+
+14 LDAP failure
+
+15 Incorrect bulk password
+
+16 Host name must be fully\-qualified
+
+17 XML\-RPC fault
+
+18 Principal not found in host entry
+
+19 Unable to generate Kerberos credentials cache
+
+20 Unenrollment result not in XML\-RPC response

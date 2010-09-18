@@ -173,7 +173,7 @@ def chkconfig(name, status):
 
     return
 
-def uninstall(options):
+def uninstall(options, env):
 
     if not fstore.has_files() and not options.force:
         print "IPA client is not configured on this system."
@@ -210,6 +210,12 @@ def uninstall(options):
         chkconfig('certmonger', 'off')
     except:
         print "Failed to disable automatic startup of the certmonger daemon"
+
+    print "Unenrolling client from IPA server"
+    join_args = ["/usr/sbin/ipa-join", "--unenroll"]
+    (stdout, stderr, returncode) = run(join_args, raiseonerr=False, env=env)
+    if returncode != 0:
+        print "Unenrolling host failed: %s" % stderr
 
     print "Removing Kerberos service principals from /etc/krb5.keytab"
     try:
@@ -498,7 +504,7 @@ def main():
     fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
 
     if options.uninstall:
-        return uninstall(options)
+        return uninstall(options, env)
 
     if fstore.has_files() and not options.force:
         print "IPA client is already configured on this system."
