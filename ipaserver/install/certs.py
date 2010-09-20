@@ -37,6 +37,7 @@ from ipalib import pkcs10
 from ConfigParser import RawConfigParser
 import service
 from ipalib import x509
+from ipalib.errors import CertificateOperationError
 
 from nss.error import NSPRError
 import nss.nss as nss

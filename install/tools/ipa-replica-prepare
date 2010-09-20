@@ -283,7 +283,11 @@ def main():
             print "Copy failed %s" %  e
             sys.exit(1)
         print "Creating SSL certificate for the Directory Server"
-        export_certdb(api.env.realm, ds_dir, dir, passwd_fname, "dscert", replica_fqdn, subject_base)
+        try:
+            export_certdb(api.env.realm, ds_dir, dir, passwd_fname, "dscert", replica_fqdn, subject_base)
+        except errors.CertificateOperationError, e:
+            print "%s" % e
+            sys.exit(1)
 
     if options.http_pin:
         passwd = options.http_pin
@@ -304,7 +308,11 @@ def main():
             sys.exit(1)
     else:
         print "Creating SSL certificate for the Web Server"
-        export_certdb(api.env.realm, ds_dir, dir, passwd_fname, "httpcert", replica_fqdn, subject_base)
+        try:
+            export_certdb(api.env.realm, ds_dir, dir, passwd_fname, "httpcert", replica_fqdn, subject_base)
+        except errors.CertificateOperationError, e:
+            print "%s" % e
+            sys.exit(1)
         print "Exporting RA certificate"
         export_ra_pkcs12(dir, dirman_password)
 
