@@ -173,7 +173,7 @@ def chkconfig(name, status):
 
     return
 
-def uninstall(options):
+def uninstall(options, env):
 
     if not fstore.has_files() and not options.force:
         print "IPA client is not configured on this system."
@@ -210,6 +210,12 @@ def uninstall(options):
         chkconfig('certmonger', 'off')
     except:
         print "Failed to disable automatic startup of the certmonger daemon"
+
+    print "Unenrolling client from IPA server"
+    join_args = ["/usr/sbin/ipa-join", "--unenroll"]
+    (stdout, stderr, returncode) = run(join_args, raiseonerr=False, env=env)
+    if returncode != 0:
+        print "Unenrolling host failed: %s" % stderr
 
     print "Removing Kerberos service principals from /etc/krb5.keytab"
     try:
@@ -491,14 +497,14 @@ def configure_sssd_conf(fstore, cli_domain, cli_server, options):
 def main():
     options = parse_options()
     logging_setup(options)
-    dnsok = True
+    dnsok = False
     env={"PATH":"/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"}
 
     global fstore
     fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
 
     if options.uninstall:
-        return uninstall(options)
+        return uninstall(options, env)
 
     if fstore.has_files() and not options.force:
         print "IPA client is already configured on this system."
@@ -518,7 +524,7 @@ def main():
     # Create the discovery instance
     ds = ipaclient.ipadiscovery.IPADiscovery()
 
-    ret = ds.search(domain=options.domain, server=options.server)
+    ret = ds.search()
     if ret == -10:
         print "Can't get the fully qualified name of this host"
         print "Please check that the client is properly configured"
@@ -532,13 +538,12 @@ def main():
         else:
             print "DNS discovery failed to determine your DNS domain"
             cli_domain = user_input("Please provide the domain name of your IPA server (ex: example.com)", allow_empty = False)
-        ret = ds.search(domain=cli_domain, server=options.server)
+        ret = ds.search(domain=cli_domain)
     if not cli_domain:
         if ds.getDomainName():
             cli_domain = ds.getDomainName()
 
     if ret == -2 or not ds.getServerName():
-        dnsok = False
         logging.debug("IPA Server not found")
         if options.server:
             cli_server = options.server
@@ -548,6 +553,8 @@ def main():
             print "DNS discovery failed to find the IPA Server"
             cli_server = user_input("Please provide your IPA server name (ex: ipa.example.com)", allow_empty = False)
         ret = ds.search(domain=cli_domain, server=cli_server)
+    else:
+        dnsok = True
     if not cli_server:
         if ds.getServerName():
             cli_server = ds.getServerName()

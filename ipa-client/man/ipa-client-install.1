@@ -1,21 +1,21 @@
 .\" A man page for ipa-client-install
 .\" Copyright (C) 2008 Red Hat, Inc.
-.\" 
+.\"
 .\" This is free software; you can redistribute it and/or modify it under
 .\" the terms of the GNU Library General Public License as published by
 .\" the Free Software Foundation; version 2 only
-.\" 
+.\"
 .\" This program is distributed in the hope that it will be useful, but
 .\" WITHOUT ANY WARRANTY; without even the implied warranty of
 .\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 .\" General Public License for more details.
-.\" 
+.\"
 .\" You should have received a copy of the GNU Library General Public
 .\" License along with this program; if not, write to the Free Software
 .\" Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-.\" 
+.\"
 .\" Author: Rob Crittenden <rcritten@redhat.com>
-.\" 
+.\"
 .TH "ipa-client-install" "1" "Mar 14 2008" "freeipa" ""
 .SH "NAME"
 ipa\-client\-install \- Configure an IPA client
@@ -26,31 +26,33 @@ Configures a client machine to use IPA for authentication and identity services.
 
 By default this configures SSSD to connect to an IPA server for authentication and authorization. Optionally one can instead configure PAM and NSS (Name Switching Service) to work with an IPA server over Kerberos and LDAP.
 
-An authorized user is required to join a client machine to IPA. This can take the form of a kerberos principal or a one-time password associated with the machine.
+An authorized user is required to join a client machine to IPA. This can take the form of a kerberos principal or a one\-time password associated with the machine.
+
+This same tool is used to unconfigure IPA and attemps to return the machine to its previous state. Part of this process is to unenroll the host from the IPA server. Unenrollment consists of disabling the prinicipal key on the IPA server so that it may be re\-enrolled. The machine principal in /etc/krb5.keytab (host/<fqdn>@REALM) is used to authenticate to the IPA server to unenroll itself. If this principal does not exist then unenrollment will fail and an administrator will need to disable the host principal (ipa host\-disable <fqdn>).
 .SH "OPTIONS"
-.TP 
+.TP
 \fB\-\-domain\fR=\fIDOMAIN\fR
 Set the domain name to DOMAIN
-.TP 
+.TP
 \fB\-\-server\fR=\fISERVER\fR
 Set the IPA server to connect to
-.TP 
+.TP
 \fB\-\-realm\fR=\fIREALM_NAME\fR
 Set the IPA realm name to REALM_NAME
-.TP 
+.TP
 \fB\-f\fR, \fB\-\-force\fR
 Force the settings even if errors occur
-.TP 
+.TP
 \fB\-d\fR, \fB\-\-debug\fR
 Print debugging information to stdout
-.TP 
+.TP
 \fB\-U\fR, \fB\-\-unattended\fR
 Unattended installation. The user will not be prompted.
-.TP 
+.TP
 \fB\-N\fR, \fB\-\-no\-ntp\fR
 Do not configure or enable NTP.
-.TP 
-\fB\-\-ntp-server\fR=\fINTP_SERVER\fR
+.TP
+\fB\-\-ntp\-server\fR=\fINTP_SERVER\fR
 Configure ntpd to use this NTP server.
 Do not configure or enable NTP.
 .TP
@@ -59,24 +61,24 @@ Do not configure the client to use SSSD for authentication, use nss_ldap instead
 .TP
 \fB\-\-on\-master\fB
 The client is being configured on an IPA server.
-.TP 
+.TP
 \fB\-w\fR \fIPASSWORD\fR, \fB\-\-password\fR=\fIPASSWORD\fR
 Password for joining a machine to the IPA realm. Assumes bulk password unless principal is also set.
-.TP 
+.TP
 \fB\-W\fR
 Prompt for the password for joining a machine to the IPA realm.
-.TP 
+.TP
 \fB\-p\fR, \fB\-\-principal\fR
 Authorized kerberos principal to use to join the IPA realm.
-.TP 
+.TP
 \fB\-\-permit\fR
-Configure SSSD to permit all access. Otherwise the machine will be controlled by the Host-based Access Controls (HBAC) on the IPA server.
-.TP 
+Configure SSSD to permit all access. Otherwise the machine will be controlled by the Host\-based Access Controls (HBAC) on the IPA server.
+.TP
 \fB\-\-mkhomedir\fR
 Configure pam to create a users home directory if it does not exist.
 .TP
 \fB\-\-uninstall\fR
-Remove the IPA client software and restore the configuration to the pre-IPA state.
+Remove the IPA client software and restore the configuration to the pre\-IPA state.
 .SH "EXIT STATUS"
 0 if the installation was successful
 
