@@ -1,0 +1,9 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "result": true,
+        "summary": "Deleted rolegroup \"test\"",
+        "value": "test"
+    }
+}

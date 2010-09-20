@@ -29,6 +29,7 @@ var nav_tabs_lists = [
         ['hostgroup', 'Hostgroups', ipa_entity_setup],
         ['netgroup', 'Netgroups', ipa_entity_setup],
         ['service', 'Services', ipa_entity_setup],
+        ['rolegroup', 'Rolegroups', ipa_entity_setup],
     ]],
     ['policy', 'POLICY', unimplemented_tab],
     ['config', 'CONFIG', unimplemented_tab]

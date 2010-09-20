@@ -28,6 +28,7 @@ app_DATA =                              \
 	navigation.js			\
 	netgroup.js 			\
 	service.js 			\
+	rolegroup.js 			\
 	search.js 			\
 	details.js 			\
 	entity.js 			\

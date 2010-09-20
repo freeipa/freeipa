@@ -1,0 +1,24 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "completed": 1,
+        "failed": {
+            "member": {
+                "group": [],
+                "host": [],
+                "hostgroup": [],
+                "user": []
+            }
+        },
+        "result": {
+            "cn": [
+                "test"
+            ],
+            "description": [
+                "Test role"
+            ],
+            "dn": "cn=test,cn=rolegroups,cn=accounts,dc=dev,dc=example,dc=com"
+        }
+    }
+}

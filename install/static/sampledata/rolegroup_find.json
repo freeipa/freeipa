@@ -1,0 +1,185 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "count": 15,
+        "result": [
+            {
+                "cn": [
+                    "helpdesk"
+                ],
+                "description": [
+                    "Helpdesk"
+                ],
+                "dn": "cn=helpdesk,cn=rolegroups,cn=accounts,dc=dev,dc=example,dc=com",
+                "member_user": [
+                    "edewata"
+                ]
+            },
+            {
+                "cn": [
+                    "useradmin"
+                ],
+                "description": [
+                    "User Administrators"
+                ],
+                "dn": "cn=useradmin,cn=rolegroups,cn=accounts,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "groupadmin"
+                ],
+                "description": [
+                    "Group Administrators"
+                ],
+                "dn": "cn=groupadmin,cn=rolegroups,cn=accounts,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "hostadmin"
+                ],
+                "description": [
+                    "Host Administrators"
+                ],
+                "dn": "cn=hostadmin,cn=rolegroups,cn=accounts,dc=dev,dc=example,dc=com",
+                "memberof_taskgroup": [
+                    "addhosts",
+                    "removehosts",
+                    "modifyhosts",
+                    "manage_host_keytab",
+                    "enroll_host"
+                ]
+            },
+            {
+                "cn": [
+                    "hostgroupadmin"
+                ],
+                "description": [
+                    "Host Group Administrators"
+                ],
+                "dn": "cn=hostgroupadmin,cn=rolegroups,cn=accounts,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "delegationadmin"
+                ],
+                "description": [
+                    "Role administration"
+                ],
+                "dn": "cn=delegationadmin,cn=rolegroups,cn=accounts,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "serviceadmin"
+                ],
+                "description": [
+                    "Service Administrators"
+                ],
+                "dn": "cn=serviceadmin,cn=rolegroups,cn=accounts,dc=dev,dc=example,dc=com",
+                "memberof_taskgroup": [
+                    "addservices",
+                    "removeservices",
+                    "modifyservices"
+                ]
+            },
+            {
+                "cn": [
+                    "automountadmin"
+                ],
+                "description": [
+                    "Automount Administrators"
+                ],
+                "dn": "cn=automountadmin,cn=rolegroups,cn=accounts,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "netgroupadmin"
+                ],
+                "description": [
+                    "Netgroups Administrators"
+                ],
+                "dn": "cn=netgroupadmin,cn=rolegroups,cn=accounts,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "dnsadmin"
+                ],
+                "description": [
+                    "DNS Administrators"
+                ],
+                "dn": "cn=dnsadmin,cn=rolegroups,cn=accounts,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "dnsserver"
+                ],
+                "description": [
+                    "DNS Servers"
+                ],
+                "dn": "cn=dnsserver,cn=rolegroups,cn=accounts,dc=dev,dc=example,dc=com"
+            },
+            {
+                "cn": [
+                    "certadmin"
+                ],
+                "description": [
+                    "Certificate Administrators"
+                ],
+                "dn": "cn=certadmin,cn=rolegroups,cn=accounts,dc=dev,dc=example,dc=com",
+                "memberof_taskgroup": [
+                    "retrieve_certs",
+                    "request_certs",
+                    "request_cert_different_host",
+                    "certificate_status",
+                    "revoke_certificate",
+                    "certificate_remove_hold"
+                ]
+            },
+            {
+                "cn": [
+                    "replicaadmin"
+                ],
+                "description": [
+                    "Replication Administrators"
+                ],
+                "dn": "cn=replicaadmin,cn=rolegroups,cn=accounts,dc=dev,dc=example,dc=com",
+                "member_user": [
+                    "admin"
+                ],
+                "memberof_taskgroup": [
+                    "managereplica",
+                    "deletereplica"
+                ]
+            },
+            {
+                "cn": [
+                    "enrollhost"
+                ],
+                "description": [
+                    "Host Enrollment"
+                ],
+                "dn": "cn=enrollhost,cn=rolegroups,cn=accounts,dc=dev,dc=example,dc=com",
+                "memberof_taskgroup": [
+                    "manage_host_keytab",
+                    "enroll_host"
+                ]
+            },
+            {
+                "cn": [
+                    "entitlementadmin"
+                ],
+                "description": [
+                    "Entitlement Administrators"
+                ],
+                "dn": "cn=entitlementadmin,cn=rolegroups,cn=accounts,dc=dev,dc=example,dc=com",
+                "memberof_taskgroup": [
+                    "addentitlements",
+                    "removeentitlements",
+                    "modifyentitlements"
+                ]
+            }
+        ],
+        "summary": "15 rolegroups matched",
+        "truncated": false
+    }
+}
