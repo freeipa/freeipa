@@ -155,7 +155,6 @@ Group: System Environment/Base
 Requires: %{name}-python = %{version}-%{release}
 Requires: python-krbV
 Requires: python-ldap
-Requires: python-configobj
 
 %description admintools
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -297,11 +296,6 @@ if [ -e /usr/share/ipa/serial ]; then
     mv /usr/share/ipa/serial /var/lib/ipa/ca_serialno
 fi
 /usr/sbin/ipa-upgradeconfig || :
-if [ -e /etc/httpd/conf.d/ipa.conf ]; then
-    echo ""
-    echo "Run /usr/sbin/ipa-ldap-updater to complete the upgrade process."
-    echo ""
-fi
 
 %preun server
 if [ $1 = 0 ]; then
@@ -499,6 +493,10 @@ fi
 %endif
 
 %changelog
+* Mon Sep 20 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-29
+- Drop requires on python-configobj (not used any more)
+- Drop ipa-ldap-updater message, upgrades are done differently now
+
 * Wed Sep  8 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-28
 - Drop conflicts on mod_nss
 - Require nss-pam-ldapd on F-14 or higher instead of nss_ldap (#606847)
