@@ -34,7 +34,7 @@ from ipalib.util import make_repr
 from ipalib.compat import json
 from wsgiref.util import shift_path_info
 import base64
-
+import os
 _not_found_template = """<html>
 <head>
 <title>404 Not Found</title>
@@ -192,7 +192,10 @@ class WSGIExecutioner(Executioner):
         result = None
         error = None
         _id = None
+        lang= os.environ['LANG']
         try:
+            if ('HTTP_ACCEPT_LANGUAGE' in environ):
+                os.environ['LANG']=environ['HTTP_ACCEPT_LANGUAGE']
             if (
                 environ.get('CONTENT_TYPE', '').startswith(self.content_type)
                 and environ['REQUEST_METHOD'] == 'POST'
@@ -211,6 +214,8 @@ class WSGIExecutioner(Executioner):
                 'non-public: %s: %s', e.__class__.__name__, str(e)
             )
             error = InternalError()
+        finally:
+            os.environ['LANG']=lang
         return self.marshal(result, error, _id)
 
     def simple_unmarshal(self, environ):
