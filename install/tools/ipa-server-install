@@ -96,6 +96,8 @@ def parse_options():
                       help="Add a DNS forwarder")
     parser.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
+    parser.add_option("--zonemgr", dest="zonemgr", 
+                      help="DNS zone manager e-mail address. Defaults to root")
     parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
                       default=False, help="unattended installation never prompts the user")
     parser.add_option("", "--uninstall", dest="uninstall", action="store_true",
@@ -769,7 +771,7 @@ def main():
 
     # Create a BIND instance
     bind = bindinstance.BindInstance(fstore, dm_password)
-    bind.setup(host_name, ip_address, realm_name, domain_name, dns_forwarders, options.conf_ntp)
+    bind.setup(host_name, ip_address, realm_name, domain_name, dns_forwarders, options.conf_ntp, zonemgr=options.zonemgr)
     if options.setup_dns:
         api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dm_password)
 

@@ -1,6 +1,6 @@
 $$ORIGIN $DOMAIN.
 $$TTL	86400
-@			IN SOA	$DOMAIN. root.$HOST.$DOMAIN. (
+@			IN SOA	$DOMAIN. $ZONEMGR. (
 				01		; serial 
 				3H		; refresh
 				15M		; retry

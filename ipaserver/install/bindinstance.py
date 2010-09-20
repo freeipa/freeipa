@@ -91,13 +91,14 @@ def get_reverse_zone(ip_address):
 
     return zone, name
 
-def add_zone(name, update_policy=None, dns_backup=None):
+def add_zone(name, update_policy=None, zonemgr=None, dns_backup=None):
     if not update_policy:
         update_policy = "grant %s krb5-self * A;" % api.env.realm
 
     try:
         api.Command.dns_add(unicode(name),
                             idnssoamname=unicode(api.env.host+"."),
+                            idnssoarname=unicode(zonemgr),
                             idnsallowdynupdate=True,
                             idnsupdatepolicy=unicode(update_policy))
     except (errors.DuplicateEntry, errors.EmptyModlist):
@@ -202,7 +203,7 @@ class BindInstance(service.Service):
         else:
             self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
-    def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, ntp, named_user="named"):
+    def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, ntp, named_user="named", zonemgr=None):
         self.named_user = named_user
         self.fqdn = fqdn
         self.ip_address = ip_address
@@ -212,6 +213,11 @@ class BindInstance(service.Service):
         self.host = fqdn.split(".")[0]
         self.suffix = util.realm_to_suffix(self.realm)
         self.ntp = ntp
+
+        if zonemgr:
+            self.zonemgr = zonemgr.replace('@','.')
+        else:
+            self.zonemgr = 'root.%s.%s' % (self.host, self.domain)
 
         tmp = ip_address.split(".")
         tmp.reverse()
@@ -283,7 +289,8 @@ class BindInstance(service.Service):
                              SERVER_ID=realm_to_serverid(self.realm),
                              FORWARDERS=fwds,
                              SUFFIX=self.suffix,
-                             OPTIONAL_NTP=optional_ntp)
+                             OPTIONAL_NTP=optional_ntp,
+                             ZONEMGR=self.zonemgr)
 
     def __setup_dns_container(self):
         self._ldap_mod("dns.ldif", self.sub_dict)
@@ -301,7 +308,7 @@ class BindInstance(service.Service):
             ("_kpasswd._udp", "SRV", "0 100 464 %s" % self.host),
         )
 
-        zone = add_zone(self.domain, dns_backup=self.dns_backup)
+        zone = add_zone(self.domain, zonemgr=self.zonemgr, dns_backup=self.dns_backup)
 
         for (host, type, rdata) in resource_records:
             if type == "SRV":
