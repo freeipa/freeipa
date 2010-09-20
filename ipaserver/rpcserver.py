@@ -35,6 +35,7 @@ from ipalib.compat import json
 from wsgiref.util import shift_path_info
 import base64
 import os
+import string
 _not_found_template = """<html>
 <head>
 <title>404 Not Found</title>
@@ -195,7 +196,8 @@ class WSGIExecutioner(Executioner):
         lang= os.environ['LANG']
         try:
             if ('HTTP_ACCEPT_LANGUAGE' in environ):
-                os.environ['LANG']=environ['HTTP_ACCEPT_LANGUAGE']
+                os.environ['LANG']=string.split(
+                    environ['HTTP_ACCEPT_LANGUAGE'],",")[0].split(';')[0]
             if (
                 environ.get('CONTENT_TYPE', '').startswith(self.content_type)
                 and environ['REQUEST_METHOD'] == 'POST'
