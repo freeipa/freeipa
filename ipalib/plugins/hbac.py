@@ -59,6 +59,15 @@ EXAMPLES:
    ipa hbac-add-user --users=john john_sshd
    ipa hbac-add-service --hbacsvcs=sshd john_sshd
 
+ Create a rule for a new service group. This lets the user john access
+ the any FTP service on any machine from any machine:
+   ipa hbacsvcgroup-add ftpers
+   ipa hbacsvc-add sftp
+   ipa hbacsvcgroup-add-member --hbacsvcs=ftp,sftp ftpers
+   ipa hbac-add --type=allow --hostcat=all --srchostcat=all john_ftp
+   ipa hbac-add-user --users=john john_ftp
+   ipa hbac-add-service --hbacsvcgroups=ftpers john_ftp
+
  Disable a named HBAC rule:
    ipa hbac-disable test1
 
