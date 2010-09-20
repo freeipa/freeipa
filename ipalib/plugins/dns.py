@@ -56,6 +56,12 @@ EXAMPLES:
 
  Delete zone example.com with all resource records:
    ipa dns-delete example.com
+
+ Resolve a host name to see if it exists (will add default IPA domain
+ if one is not included):
+   ipa dns-resolve www.example.com
+   ipa dns-resolve www
+
 """
 
 # A few notes about the LDAP schema to make this plugin more understandable:
@@ -71,6 +77,7 @@ from ipalib import Object, Command
 from ipalib import Flag, Int, Str, StrEnum
 from ipalib import _, ngettext
 from ipalib.output import Output, standard_entry, standard_list_of_entries
+from ipapython import dnsclient
 
 # parent DN
 _zone_container_dn = api.env.container_dns
@@ -833,3 +840,32 @@ class dns_show_rr(Command):
         textui.print_entry(entry_attrs)
 
 api.register(dns_show_rr)
+
+
+class dns_resolve(Command):
+    """
+    Resolve a host name in DNS
+    """
+    has_output = output.standard_value
+    msg_summary = _('Found \'%(value)s\'')
+
+    takes_args = (
+        Str('hostname',
+            label=_('Hostname'),
+        ),
+    )
+
+    def execute(self, *args, **options):
+        query=args[0]
+        if query.find(api.env.domain) == -1 and query.find('.') == -1:
+            query = '%s.%s.' % (query, api.env.domain)
+        if query[-1] != '.':
+            query = query + '.'
+        rr = dnsclient.query(query, dnsclient.DNS_C_IN, dnsclient.DNS_T_A)
+        self.log.debug('%s' % rr)
+        if len(rr) == 0:
+            raise errors.NotFound(reason=_('Host \'%(host)s\' not found' % {'host':query}))
+
+        return dict(result=True, value=query)
+
+api.register(dns_resolve)
