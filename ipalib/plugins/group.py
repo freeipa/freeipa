@@ -188,7 +188,6 @@ class group_mod(LDAPUpdate):
     """
     Modify a group.
     """
-
     msg_summary = _('Modified group "%(value)s"')
 
     takes_options = LDAPUpdate.takes_options + (
@@ -218,10 +217,38 @@ class group_find(LDAPSearch):
     """
     Search for groups.
     """
-
     msg_summary = ngettext(
         '%(count)d group matched', '%(count)d groups matched', 0
     )
+
+    takes_options = LDAPSearch.takes_options + (
+        Flag('private',
+            cli_name='private',
+            doc=_('search for private groups'),
+        ),
+    )
+
+    def pre_callback(self, ldap, filter, attrs_list, base_dn, *args, **options):
+        # if looking for private groups, we need to create a new search filter,
+        # because private groups have different object classes
+        if options['private']:
+            # filter based on options, oflt
+            search_kw = self.args_options_2_entry(**options)
+            search_kw['objectclass'] = ['posixGroup', 'mepManagedEntry']
+            oflt = ldap.make_filter(search_kw, rules=ldap.MATCH_ALL)
+
+            # filter based on 'criteria' argument
+            search_kw = {}
+            config = ldap.get_ipa_config()[1]
+            attrs = config.get(self.obj.search_attributes_config, [])
+            if len(attrs) == 1 and isinstance(attrs[0], basestring):
+                search_attrs = attrs[0].split(',')
+                for a in search_attrs:
+                    search_kw[a] = args[-1]
+            cflt = ldap.make_filter(search_kw, exact=False)
+
+            filter = ldap.combine_filters((oflt, cflt), rules=ldap.MATCH_ALL)
+        return filter
 
 api.register(group_find)
 

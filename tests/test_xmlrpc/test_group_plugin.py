@@ -571,8 +571,27 @@ class test_group(Declarative):
                     cn=[user1],
                     description=[u'User private group for %s' % user1],
                     gidnumber=[fuzzy_digits],
-                    dn=u'cn=%s,cn=groups,cn=accounts,%s' % (user1,  api.env.basedn),
+                    dn=u'cn=%s,cn=groups,cn=accounts,%s' % (user1, api.env.basedn),
                 ),
+            ),
+        ),
+
+
+        dict(
+            desc='Verify that managed group %r can be found' % user1,
+            command=('group_find', [], {'cn': user1, 'private': True}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                result=[
+                    dict(
+                        dn=u'cn=%s,cn=groups,cn=accounts,%s' % (user1, api.env.basedn),
+                        cn=[user1],
+                        description=[u'User private group for %s' % user1],
+                        gidnumber=[fuzzy_digits],
+                    ),
+                ],
+                summary=u'1 group matched',
             ),
         ),
 

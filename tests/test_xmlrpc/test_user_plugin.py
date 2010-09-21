@@ -30,6 +30,7 @@ from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 
 user_memberof = (u'cn=ipausers,cn=groups,cn=accounts,%s' % api.env.basedn,)
 user1=u'tuser1'
+user2=u'tuser2'
 
 invaliduser1=u'+tuser1'
 invaliduser2=u'tuser1234567890123456789012345678901234567890'
@@ -38,7 +39,7 @@ invaliduser2=u'tuser1234567890123456789012345678901234567890'
 class test_user(Declarative):
 
     cleanup_commands = [
-        ('user_del', [user1], {}),
+        ('user_del', [user1, user2], {}),
     ]
 
     tests = [
@@ -67,7 +68,7 @@ class test_user(Declarative):
         dict(
             desc='Create %r' % user1,
             command=(
-                'user_add', [], dict(givenname=u'Test', sn=u'User1')
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
             ),
             expected=dict(
                 value=user1,
@@ -92,7 +93,7 @@ class test_user(Declarative):
         dict(
             desc='Try to create duplicate %r' % user1,
             command=(
-                'user_add', [], dict(givenname=u'Test', sn=u'User1')
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
             ),
             expected=errors.DuplicateEntry(),
         ),
@@ -316,6 +317,64 @@ class test_user(Declarative):
             expected=errors.NotFound(reason='no such entry'),
         ),
 
+
+        dict(
+            desc='Create %r' % user1,
+            command=(
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
+            ),
+            expected=dict(
+                value=user1,
+                summary=u'Added user "tuser1"',
+                result=dict(
+                    gecos=[user1],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser1'],
+                    krbprincipalname=[u'tuser1@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    ipauniqueid=[fuzzy_uuid],
+                    dn=u'uid=tuser1,cn=users,cn=accounts,' + api.env.basedn,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Create %r' % user2,
+            command=(
+                'user_add', [user2], dict(givenname=u'Test', sn=u'User2')
+            ),
+            expected=dict(
+                value=user2,
+                summary=u'Added user "tuser2"',
+                result=dict(
+                    gecos=[user2],
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser2'],
+                    krbprincipalname=[u'tuser2@' + api.env.realm],
+                    loginshell=[u'/bin/sh'],
+                    objectclass=objectclasses.user,
+                    sn=[u'User2'],
+                    uid=[user2],
+                    uidnumber=[fuzzy_digits],
+                    ipauniqueid=[fuzzy_uuid],
+                    dn=u'uid=tuser2,cn=users,cn=accounts,' + api.env.basedn,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Delete %r and %r at the same time' % (user1, user2),
+            command=('user_del', [user1, user2], {}),
+            expected=dict(
+                result=True,
+                summary=u'Deleted user "tuser1,tuser2"',
+                value=u','.join((user1, user2)),
+            ),
+        ),
 
         dict(
             desc='Try to retrieve non-existent %r' % user1,
