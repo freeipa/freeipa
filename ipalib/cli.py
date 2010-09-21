@@ -674,9 +674,10 @@ class help(frontend.Local):
 
         print doc
         print ''
-        print 'Related commands:'
-        for c in commands:
-            print '  %s  %s' % (to_cli(c.name).ljust(mcl), c.summary)
+        if len(commands) > 1:
+            print 'Topic commands:'
+            for c in commands:
+                print '  %s  %s' % (to_cli(c.name).ljust(mcl), c.summary)
 
 
 class console(frontend.Command):
