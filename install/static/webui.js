@@ -21,7 +21,7 @@
 /* REQUIRES: everything, this file puts it all togheter */
 
 /* tabs definition for IPA webUI */
-var nav_tabs_lists = [
+var admin_tabs_lists = [
     ['identity', 'IDENTITY', [
         ['user', 'Users', ipa_entity_setup],
         ['group', 'Groups', ipa_entity_setup],
@@ -36,29 +36,43 @@ var nav_tabs_lists = [
     ]]
 ];
 
+
+var self_serv_tabs_lists = 
+    [
+    ['identity', 'IDENTITY', [
+        ['user', 'Users', ipa_entity_setup]]]];
+
+var nav_tabs_lists;
+
 /* main (document onready event handler) */
 $(function() {
-    function set_logged_in_as(principal) {
-        $.cookie('whoami', principal);
-        $('#loggedinas').find('strong').text(principal);
-    };
 
     function whoami_on_win(data, text_status, xhr) {
-        if (!data.error)
-            set_logged_in_as(data.result.summary);
+        $(window).bind('hashchange', window_hashchange);
+        if (!data.error){
+            var whoami = data.result.result[0];
+            $('#loggedinas').find('strong').text(whoami.krbprincipalname[0]);
+            if (whoami.hasOwnProperty('memberof_rolegroup') &&
+                whoami.memberof_rolegroup.length > 0){
+                nav_tabs_lists = admin_tabs_lists;
+                window_hashchange(null);
+            }else{
+                nav_tabs_lists = self_serv_tabs_lists;
+
+                var state = {'user-pkey': whoami.uid[0],
+                             'user-facet': jQuery.bbq.getState('user-facet') ||
+                             'details'};
+                $.bbq.pushState(state);
+            }
+            nav_create(nav_tabs_lists, $('#navigation'), 'tabs');
+
+        }else{
+            alert("Unable to find prinicpal for logged in user");
+        }
     };
 
     function init_on_win(data, text_status, xhr) {
-        nav_create(nav_tabs_lists, $('#navigation'), 'tabs');
-
-        $(window).bind('hashchange', window_hashchange);
-        window_hashchange(null);
-
-        var whoami = $.cookie('whoami');
-        if (whoami)
-            set_logged_in_as(whoami);
-        else
-            ipa_cmd('whoami', [], {}, whoami_on_win, null, null, 'sampledata/whoami.json');
+        ipa_cmd('user_find', [], {"whoami":"true","all":"true"}, whoami_on_win, null, null);
     };
 
     ipa_init(null, init_on_win);
