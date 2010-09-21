@@ -211,11 +211,12 @@ def uninstall(options, env):
     except:
         print "Failed to disable automatic startup of the certmonger daemon"
 
-    print "Unenrolling client from IPA server"
-    join_args = ["/usr/sbin/ipa-join", "--unenroll"]
-    (stdout, stderr, returncode) = run(join_args, raiseonerr=False, env=env)
-    if returncode != 0:
-        print "Unenrolling host failed: %s" % stderr
+    if not options.on_master:
+        print "Unenrolling client from IPA server"
+        join_args = ["/usr/sbin/ipa-join", "--unenroll"]
+        (stdout, stderr, returncode) = run(join_args, raiseonerr=False, env=env)
+        if returncode != 0:
+            print "Unenrolling host failed: %s" % stderr
 
     print "Removing Kerberos service principals from /etc/krb5.keytab"
     try:
@@ -416,9 +417,13 @@ def configure_krb5_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, d
         kropts =[{'name':'kdc', 'type':'option', 'value':cli_server+':88'},
                  {'name':'admin_server', 'type':'option', 'value':cli_server+':749'},
                  {'name':'default_domain', 'type':'option', 'value':cli_domain}]
-        ropts = [{'name':cli_realm, 'type':'subsection', 'value':kropts}]
-        opts.append({'name':'realms', 'type':'section', 'value':ropts})
-        opts.append({'name':'empty', 'type':'empty'})
+    else:
+        kropts = []
+    kropts.append({'name':'pkinit_anchors', 'type':'option', 'value':'FILE:/etc/ipa/ca.crt'})
+    ropts = [{'name':cli_realm, 'type':'subsection', 'value':kropts}]
+
+    opts.append({'name':'realms', 'type':'section', 'value':ropts})
+    opts.append({'name':'empty', 'type':'empty'})
 
     #[domain_realm]
     dropts = [{'name':'.'+cli_domain, 'type':'option', 'value':cli_realm},
