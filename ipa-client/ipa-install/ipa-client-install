@@ -529,7 +529,10 @@ def main():
     # Create the discovery instance
     ds = ipaclient.ipadiscovery.IPADiscovery()
 
-    ret = ds.search()
+    if options.on_master:
+        ret = ds.search(domain=options.domain, server=options.server)
+    else:
+        ret = ds.search()
     if ret == -10:
         print "Can't get the fully qualified name of this host"
         print "Please check that the client is properly configured"
@@ -543,7 +546,10 @@ def main():
         else:
             print "DNS discovery failed to determine your DNS domain"
             cli_domain = user_input("Please provide the domain name of your IPA server (ex: example.com)", allow_empty = False)
-        ret = ds.search(domain=cli_domain)
+        if options.on_master:
+            ret = ds.search(domain=options.domain, server=options.server)
+        else:
+            ret = ds.search(domain=cli_domain)
     if not cli_domain:
         if ds.getDomainName():
             cli_domain = ds.getDomainName()
