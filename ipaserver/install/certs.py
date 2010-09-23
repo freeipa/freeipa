@@ -34,7 +34,7 @@ from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import certmonger
 from ipalib import pkcs10
-from ConfigParser import RawConfigParser
+from ConfigParser import RawConfigParser, MissingSectionHeaderError
 import service
 from ipalib import x509
 from ipalib.errors import CertificateOperationError
@@ -105,6 +105,18 @@ def next_serial(serial_file=CA_SERIALNO):
             cur_serial = serial + 1
         except IOError, e:
             raise RuntimeError("Unable to determine serial number: %s" % str(e))
+        except MissingSectionHeaderError:
+            fcntl.flock(fp.fileno(), fcntl.LOCK_UN)
+            fp.close()
+            f=open(serial_file,"r")
+            r = f.readline()
+            f.close()
+            cur_serial = int(r) + 1
+            fp = open(serial_file, "w")
+            fcntl.flock(fp.fileno(), fcntl.LOCK_EX)
+            parser.add_section('selfsign')
+            parser.set('selfsign', 'nextreplica', 500000)
+            parser.set('selfsign', 'replicainterval', 500000)
     else:
         fp = open(serial_file, "w")
         fcntl.flock(fp.fileno(), fcntl.LOCK_EX)
