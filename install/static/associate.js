@@ -25,11 +25,12 @@
 /**
 *This associator is built for the case where each association requires a separate rpc
 */
-function SerialAssociator(form, oneObjPkey, manyObjPkeys)
+function SerialAssociator(form, manyObjPkeys, on_success)
 {
+    var associator = this;
     this.form = form;
     this.manyObjPkeys =  manyObjPkeys;
-    this.oneObjPkey = oneObjPkey;
+    this.on_success = on_success;
 
     this.associateNext = function(){
         var form = this.form;
@@ -37,23 +38,23 @@ function SerialAssociator(form, oneObjPkey, manyObjPkeys)
         var  manyObjPkey =  manyObjPkeys.shift();
         if (manyObjPkey){
             var options = {};
-            options[form.oneObj] = oneObjPkey;
+            options[form.oneObj] = form.pkey;
             var args = [manyObjPkey];
-            var associator = this;
 
             ipa_cmd( form.method,args, options ,
-                     function(){
-                         associator.associateNext();
+                     function(response){
+                         if (response.error){
+                             alert("error adding member: "+response.error.message);
+                         }else{
+                             associator.associateNext();
+                         }
                      },
                      function(response){
                          alert("associateFailure");
                      },
                      form.manyObj );
         }else{
-            var state = {};
-            state[form.oneObj + '-facet'] = 'associate';
-            state[form.oneObj + '-pkey'] = this.oneObjPkey;
-            $.bbq.pushState(state);
+            associator.on_success();
         }
     }
 }
@@ -62,11 +63,11 @@ function SerialAssociator(form, oneObjPkey, manyObjPkeys)
 *This associator is for the common case where all the asociations can be sent
 in a single rpc
 */
-function BulkAssociator(form, pkey, manyObjPkeys)
+function BulkAssociator(form, manyObjPkeys, on_success)
 {
     this.form = form;
-    this.pkey = pkey;
     this.manyObjPkeys = manyObjPkeys;
+    this.on_success = on_success;
 
     this.associateNext = function() {
         var form = this.form;
@@ -80,17 +81,14 @@ function BulkAssociator(form, pkey, manyObjPkeys)
         };
         options[form.manyObj] = option;
 
-        var args = [this.pkey];
+        var args = [form.pkey];
 
         ipa_cmd( form.method,args, options ,
                  function(response){
                      if (response.error){
-                         alert("error adding memeber");
+                         alert("error adding member: "+response.error.message);
                      }else{
-                         var state = {};
-                         state[form.onObj + '-facet'] = 'associate';
-                         state[form.oneObj + '-pkey'] = this.pkey;
-                         $.bbq.pushState(state);
+                         form.on_success();
                      }
                  },
                  function(response){
@@ -104,12 +102,16 @@ function BulkAssociator(form, pkey, manyObjPkeys)
  *  Create a form for a one to many association.
  *
  */
-function AssociationForm(oneObj, manyObj, pkey, jobj, associatorConstructor, method)
+function AssociationForm(oneObj, pkey, manyObj, on_success, associatorConstructor, method)
 {
+    var form = this;
+
     this.oneObj = oneObj;
+    this.pkey = pkey;
     this.manyObj = manyObj;
-    this.searchColumn = pkey;
-    this.parentTab = jobj
+    this.on_success = on_success;
+
+    this.dialog = $('<div></div>');
 
     //An optional parameter to determine what ipa method to call to create
     //the association
@@ -124,51 +126,66 @@ function AssociationForm(oneObj, manyObj, pkey, jobj, associatorConstructor, met
         this.associatorConstructor = SerialAssociator;
 
     this.setup = function() {
-        association_form_create(this.parentTab);
-        this.parentTab.find('#availableList').html('');
-        this.parentTab.find('#enrollments').html('');
+        var label = ipa_objs[form.manyObj].label;
 
-        var currentObjToEnroll = $.bbq.getState(this.oneObj + '-pkey', true) || '';
-        var form = this;
+        form.dialog.attr('title', 'Enroll '+form.oneObj+' '+form.pkey+' in '+label);
 
-        $('h1').text('Enroll ' + this.oneObj + ' ' + currentObjToEnroll + ' in ' + this.manyObj + '.');
-        $('#enroll').click(function () {
-            form.associate();
-        });
-        $('#cancel').click(function () {
-            var state = {};
-            state[form.oneObj + '-facet'] = 'associate';
-            $.bbq.pushState(state);
-        });
-        $("#addToList").click(function(){
-            $('#availableList :selected').each(function(i, selected){
-                $("#enrollments").append(selected);
+        association_form_create(form.dialog);
+
+        var availableList = $('#availableList', form.dialog);
+        availableList.html('');
+
+        var enrollments = $('#enrollments', form.dialog);
+        enrollments.html('');
+
+        $("#addToList", form.dialog).click(function(){
+            $('#availableList :selected', form.dialog).each(function(i, selected){
+                enrollments.append(selected);
             });
-            $('#availableList :selected').remove();
+            $('#availableList :selected', form.dialog).remove();
         });
-        $("#removeFromList").click(function(){
-            $('#enrollments :selected').each(function(i, selected){
-                $("#availableList").append(selected);
+        $("#removeFromList", form.dialog).click(function(){
+            $('#enrollments :selected', form.dialog).each(function(i, selected){
+                availableList.append(selected);
             });
-            $('#enrollments :selected').remove();
+            $('#enrollments :selected', form.dialog).remove();
         });
-        $("#find").click(function(){
+
+        $("#find", form.dialog).click(function(){
             form.search();
+        });
+
+        form.dialog.dialog({
+            modal: true,
+            width: 600,
+            buttons: {
+                'Enroll': function(evt) {
+                    form.associate(form.on_success);
+                },
+                'Cancel': form.close
+            }
         });
     };
 
+    this.close = function() {
+        form.dialog.dialog('close');
+    }
+
     this.search = function() {
-        var form = this;
 
         function search_on_win(data, text_status, xhr) {
             var results = data.result;
-            $("#availableList").html("");
+            var list = $("#availableList", form.dialog);
+            list.html("");
+
+            var searchColumn = ipa_objs[form.manyObj].primary_key;
+
             for (var i =0; i != results.count; i++){
                 var result = results.result[i];
                 $("<option></option>",{
-                    value: result[form.searchColumn][0],
-                    html: result[form.searchColumn][0]
-                }).appendTo( $("#availableList"));
+                    value: result[searchColumn][0],
+                    html: result[searchColumn][0]
+                }).appendTo(list);
             }
         };
 
@@ -176,18 +193,17 @@ function AssociationForm(oneObj, manyObj, pkey, jobj, associatorConstructor, met
             alert("associationSearchFailure");
         };
 
-        var queryFilter = $('#associateFilter').val();
-        ipa_cmd('find', [queryFilter], {}, search_on_win, null, this.manyObj);
+        var queryFilter = $('#associateFilter', form.dialog).val();
+        ipa_cmd('find', [queryFilter], {}, search_on_win, null, form.manyObj);
     };
 
-    this.associate = function () {
+    this.associate = function (on_success) {
         var manyObjPkeys = [];
-        $('#enrollments').children().each(function (i, selected) {
+        $('#enrollments', form.dialog).children().each(function (i, selected) {
             manyObjPkeys.push(selected.value);
         });
-        var pkey = $.bbq.getState(this.oneObj + '-pkey', true) || '';
         var associator =
-            new this.associatorConstructor(this, pkey, manyObjPkeys);
+            new this.associatorConstructor(form, manyObjPkeys, on_success);
         associator.associateNext();
     };
 }
@@ -195,11 +211,14 @@ function AssociationForm(oneObj, manyObj, pkey, jobj, associatorConstructor, met
 /**
     A modfied version of search. It shows the  associations for an object.
 */
-function AssociationList(obj, assignFacet, associationColumns, jobj)
+function AssociationList(obj, pkey, manyObj, associationColumns, jobj)
 {
+    var form = this;
+
     this.obj = obj;
+    this.pkey = pkey;
     this.associationColumns = associationColumns;
-    this.assignFacet = assignFacet;
+    this.manyObj = manyObj;
     this.parentTab = jobj;
 
     this.populate = function(userData) {
@@ -217,20 +236,26 @@ function AssociationList(obj, assignFacet, associationColumns, jobj)
         }
     }
 
+    this.refresh = function() {
+        ipa_cmd( 'show', [this.pkey], {},
+                 function(result){
+                     form.populate(result);
+                 },
+                 function(){
+                     alert("associationListFailure");
+                 },
+                 form.obj);
+    }
+
     this.setup = function() {
         association_list_create(this.obj, this.parentTab);
-        var form = this;
-        var pkey_hash = this.obj + '-pkey';
-        var pkey = $.bbq.getState(pkey_hash, true) || '';
         this.parentTab.find(".search-filter").css("display", "none");
         this.parentTab.find(".search-buttons").html("");
         $("<input/>", {
             type:  'button',
             value: 'enroll',
             click: function() {
-                var state = {};
-                state[form.obj + '-facet'] = form.assignFacet;
-                $.bbq.pushState(state);
+                form.show_enrollment_dialog();
             }
         }).appendTo(this.parentTab.find(".search-buttons"));
         var header = $("<tr></tr>").appendTo(this.parentTab.find('.search-table thead:last'));
@@ -239,14 +264,21 @@ function AssociationList(obj, assignFacet, associationColumns, jobj)
                 html: associationColumns[i].title
             }).appendTo(header);
         }
-        ipa_cmd( 'show', [pkey], {},
-                 function(result){
-                     form.populate(result);
-                 },
-                 function(){
-                     alert("associationListFailure");
-                 },
-                 this.obj);
+        this.refresh();
+    }
+
+    this.show_enrollment_dialog = function() {
+
+        var enrollment_dialog = new AssociationForm(
+            this.obj,
+            this.pkey,
+            this.manyObj,
+            function() {
+                form.refresh();
+                enrollment_dialog.close();
+            }
+        );
+        enrollment_dialog.setup();
     }
 }
 
@@ -255,9 +287,7 @@ function AssociationList(obj, assignFacet, associationColumns, jobj)
 function association_form_create(jobj)
 {
     var div = $('<div id="associations"></div>');
-    div.append($('<h1></h1>', {
-        text: 'Enroll in Groups'
-    }));
+
     var form = $('<form></form>');
     var form_div = $('<div></div>');
     form_div.css('border-width', '1px');
@@ -271,19 +301,7 @@ function association_form_create(jobj)
         type: 'button',
         value: 'Find'
     }));
-    var but_span = $('<span></span>');
-    but_span.css('float', 'right');
-    but_span.append($('<input />', {
-        id: 'cancel',
-        type: 'button',
-        value: 'Cancel'
-    }));
-    but_span.append($('<input />', {
-        id: 'enroll',
-        type: 'button',
-        value: 'Enroll'
-    }));
-    sub_div.append(but_span);
+
     form_div.append(sub_div);
     form.append(form_div);
     var form_div = $('<div id="results"></div>');

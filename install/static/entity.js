@@ -80,6 +80,7 @@ function ipa_entity_setup(jobj)
     };
 
     function setup_associate_facet() {
+        var pkey = $.bbq.getState(obj_name + '-pkey', true) || '';
         var enroll_obj_name = $.bbq.getState(obj_name + '-enroll', true) || '';
         var attr = ipa_get_member_attribute(obj_name, enroll_obj_name);
         var columns  = [
@@ -88,15 +89,8 @@ function ipa_entity_setup(jobj)
                 column: attr + '_' + enroll_obj_name
             }
         ];
-        var frm = new AssociationList(obj_name, 'enroll', columns, jobj);
+        var frm = new AssociationList(obj_name, pkey, enroll_obj_name, columns, jobj);
         ipa_entity_generate_views(obj_name, jobj);
-        frm.setup();
-    };
-
-    function setup_enroll_facet() {
-        var enroll_obj_name = $.bbq.getState(obj_name + '-enroll', true) || '';
-        var pkey = ipa_objs[enroll_obj_name].primary_key;
-        var frm = new AssociationForm(obj_name, enroll_obj_name, pkey, jobj);
         frm.setup();
     };
 
@@ -109,8 +103,6 @@ function ipa_entity_setup(jobj)
         setup_details_facet();
     } else if (facet == 'associate') {
         setup_associate_facet();
-    } else if (facet == 'enroll') {
-        setup_enroll_facet();
     }
 }
 
