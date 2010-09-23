@@ -384,7 +384,8 @@ def uninstall(dm_password=None):
 
     try:
         (stdout, stderr, rc) = run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--uninstall"], raiseonerr=False)
-        if rc != 2:
+        if rc not in [0,2]:
+            logging.debug("ipa-client-install returned %d" % rc)
             raise RuntimeError(stdout)
     except Exception, e:
         print "Uninstall of client side components failed!"
