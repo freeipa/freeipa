@@ -72,10 +72,19 @@ $(function() {
     };
 
     function init_on_win(data, text_status, xhr) {
-        ipa_cmd('user_find', [], {"whoami":"true","all":"true"}, whoami_on_win, null, null);
+        ipa_cmd('user_find', [], {"whoami":"true","all":"true"}, whoami_on_win,
+            function(xhr, options, thrownError) {
+                alert("Error: "+thrownError);
+            },
+            null
+        );
     };
 
-    ipa_init(null, init_on_win);
+    ipa_init(null, null, init_on_win,
+        function(xhr, options, thrownError) {
+            alert("Error: "+thrownError);
+        }
+    );
 });
 
 /* use this to track individual changes between two hashchange events */

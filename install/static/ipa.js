@@ -21,9 +21,17 @@
 /* IPA JSON-RPC helper */
 
 var IPA_DEFAULT_JSON_URL = '/ipa/json';
-var IPA_SAMPLEDATA_URL = 'sampledata';
 
-var ipa_use_sampledata = false;
+var ipa_json_url;
+var ipa_use_static_files;
+
+var ipa_ajax_options = {
+    type: 'POST',
+    contentType: 'application/json',
+    dataType: 'json',
+    async: true,
+    processData: false,
+};
 
 /* JSON-RPC ID counter */
 var ipa_jsonrpc_id = 0;
@@ -31,42 +39,27 @@ var ipa_jsonrpc_id = 0;
 /* IPA objects data in JSON format */
 var ipa_objs = {};
 
-var _ipa_init_on_win_callback = null;
 
 /* initialize the IPA JSON-RPC helper
  * arguments:
  *   url - JSON-RPC URL to use (optional) */
-function ipa_init(url, on_win, use_sampledata)
+function ipa_init(url, use_static_files, on_win, on_error)
 {
     if (url)
         ipa_json_url = url;
-    else
-        ipa_json_url = IPA_DEFAULT_JSON_URL;
-    if (use_sampledata)
-        ipa_use_sampledata = use_sampledata;
 
-    _ipa_init_on_win_callback = on_win;
+    if (use_static_files)
+        ipa_use_static_files = use_static_files;
 
-    var options = {
-        type: 'POST',
-        contentType: 'application/json',
-        dataType: 'json',
-        processData: false,
-    };
+    $.ajaxSetup(ipa_ajax_options);
 
-    $.ajaxSetup(options);
-
-    ipa_cmd('json_metadata', [], {}, _ipa_load_objs,
-            function(response){
-                alert('init failed');
-            });
-}
-
-function _ipa_load_objs(data, textStatus, xhr)
-{
-    ipa_objs = data.result.result;
-    if (_ipa_init_on_win_callback)
-        _ipa_init_on_win_callback(data, textStatus, xhr);
+    ipa_cmd('json_metadata', [], {},
+        function(data, status, xhr) {
+            ipa_objs = data.result.result;
+            if (on_win) on_win(data, status, xhr);
+        },
+        on_error
+    );
 }
 
 /* call an IPA command over JSON-RPC
@@ -84,8 +77,12 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
         name = objname + '_' + name;
 
     var url = ipa_json_url;
-    if (ipa_use_sampledata && IPA_SAMPLEDATA_URL)
-        url = IPA_SAMPLEDATA_URL + '/' + name + '.json';
+
+    if (!url)
+        url = IPA_DEFAULT_JSON_URL;
+
+    if (ipa_use_static_files)
+        url += '/' + name + '.json';
 
     var data = {
         method: name,
@@ -132,7 +129,10 @@ function ipa_parse_qs(qs)
 /* helper function used to retrieve information about an attribute */
 function ipa_get_param_info(obj_name, attr)
 {
-    var takes_params = ipa_objs[obj_name].takes_params;
+    var ipa_obj = ipa_objs[obj_name];
+    if (!ipa_obj) return null;
+
+    var takes_params = ipa_obj.takes_params;
     if (!takes_params)
         return (null);
 
@@ -147,7 +147,10 @@ function ipa_get_param_info(obj_name, attr)
 /* helper function used to retrieve attr name with members of type `member` */
 function ipa_get_member_attribute(obj_name, member)
 {
-    var attribute_members = ipa_objs[obj_name].attribute_members
+    var ipa_obj = ipa_objs[obj_name];
+    if (!ipa_obj) return null;
+
+    var attribute_members = ipa_obj.attribute_members
     for (var a in attribute_members) {
         var objs = attribute_members[a];
         for (var i = 0; i < objs.length; ++i) {
@@ -155,5 +158,7 @@ function ipa_get_member_attribute(obj_name, member)
                 return a;
         }
     }
+
+    return null;
 }
 
