@@ -14,7 +14,6 @@ body{ font: 62.5% "Trebuchet MS", sans-serif; margin: 50px;}
 .input_link span.ui-icon {margin: 0 5px 0 0;position: absolute;left: .2em;top: 50%;margin-top: -8px;}
 
 
-
 a {
     text-decoration: none;
     border: 0;
@@ -39,10 +38,12 @@ div.header a {
 
 div.header a:link {
     text-decoration: none;
+    color: white;
 }
 
 div.header a:visited {
     text-decoration: none;
+    color: white;
 }
 
 div.header div.header-logo {

@@ -23,6 +23,10 @@
 
 function search_create(obj_name, scl, container)
 {
+    if (!scl){
+        scl = [];
+    }
+
     function find_on_click() {
         var filter = $(this).prev('input[type=text]').val();
         var state = {};

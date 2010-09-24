@@ -37,7 +37,7 @@ var admin_tabs_lists = [
 ];
 
 
-var self_serv_tabs_lists = 
+var self_serv_tabs_lists =
     [
     ['identity', 'IDENTITY', [
         ['user', 'Users', ipa_entity_setup]]]];
@@ -47,11 +47,16 @@ var nav_tabs_lists;
 /* main (document onready event handler) */
 $(function() {
 
+    var whoami_pkey;
+
     function whoami_on_win(data, text_status, xhr) {
         $(window).bind('hashchange', window_hashchange);
         if (!data.error){
             var whoami = data.result.result[0];
+            whoami_pkey=whoami.uid[0];
             $('#loggedinas').find('strong').text(whoami.krbprincipalname[0]);
+            $('#loggedinas a').fragment(
+                {'user-facet':'details', 'user-pkey':whoami_pkey},2);
             if (whoami.hasOwnProperty('memberof_rolegroup') &&
                 whoami.memberof_rolegroup.length > 0){
                 nav_tabs_lists = admin_tabs_lists;
@@ -59,7 +64,7 @@ $(function() {
             }else{
                 nav_tabs_lists = self_serv_tabs_lists;
 
-                var state = {'user-pkey': whoami.uid[0],
+                var state = {'user-pkey':whoami_pkey ,
                              'user-facet': jQuery.bbq.getState('user-facet') ||
                              'details'};
                 $.bbq.pushState(state);
