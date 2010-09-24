@@ -99,6 +99,8 @@ def _handle_errors(e, **kw):
         raise errors.LimitsExceeded()
     except _ldap.TIMELIMIT_EXCEEDED, e:
         raise errors.LimitsExceeded()
+    except _ldap.SUCCESS:
+        pass
     except _ldap.LDAPError, e:
         raise errors.DatabaseError(desc=desc, info=info)
 
