@@ -51,7 +51,7 @@ from ipalib import api, errors
 from ipalib import Flag, Int, Password, Str
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
-from ipalib import util
+from ipalib.request import context
 
 
 class user(LDAPObject):
@@ -251,7 +251,7 @@ class user_find(LDAPSearch):
     def pre_callback(self, ldap, filter, entry_attrs, attrs_list, *keys, **options):
         if options.get('whoami'):
             return "(&(objectclass=posixaccount)(krbprincipalname=%s))"%\
-                util.get_current_principal()
+                getattr(context, 'principal')
         return filter
 
     msg_summary = ngettext(
