@@ -20,10 +20,92 @@
 """
 Automount
 
+Stores automount(8) configuration for autofs(8) in IPA.
+
+The base of an automount configuration is the configuration file auto.master.
+This is also the base location in IPA. Multiple auto.master configurations
+can be stored in separate locations. A location is implementation-specific
+with the default being a location named 'default'. For example, you can have
+locations by geographic region, by floor, by type, etc.
+
+Automount has three basic object types: locations, maps and keys.
+
+A location defines a set of maps anchored in auto.master. This allows you
+to store multiple automount configurations. A location in itself isn't
+very interesting, it is just a point to start a new automount map.
+
+A map is roughly equivalent to discrete automount files. It is storage
+location for keys.
+
+A key is a mount point associated to a map.
+
+When a new location is created two maps are automatically created for
+it: auto.master and auto.direct. auto.master is the root map for all
+automount maps for the location. auto.direct is the default map for
+direct mounts and is mounted on /-.
+
+EXAMPLES:
+
+Locations:
+
+  Create a named location, "Baltimore":
+    ipa automountlocation-add baltimore
+
+  Display the new locations:
+    ipa automountlocation-show baltimore
+
+  Find available locations:
+    ipa automountlocation-find
+
+  Remove a named automount location:
+    ipa automountlocation-del baltimore
+
+  Show what the automount maps would look like if they were in the filesystem:
+    ipa automountlocation-tofiles baltimore
+
+  Import an existing configuration into a location:
+    ipa automountlocation-import baltimore /etc/auto.master
+
+    The import will fail if any duplicate entries are found. For
+    continous operation where errors are ignored use the --continue
+    option.
+
+Maps:
+
+  Create a new map, "auto.share":
+    ipa automountmap-add baltimore auto.share
+
+  Display the new map:
+    ipa automountmap-show baltimore auto.share
+
+  Find maps in the location baltimore:
+    ipa automountmap-find baltimore
+
+  Remove the auto.share map:
+    ipa automountmap-del baltimore auto.share
+
+Keys:
+
+  Create a new key for the auto.share map in location baltimore. This ties
+  the map we previously created to auto.master:
+  ipa automountkey-add baltimore auto.master /share --info=auto.share
+
+  Create a new key for our auto.share map, an NFS mount for man pages:
+    ipa automountkey-add baltimore auto.share man --info="-ro,soft,rsize=8192,wsize=8192 ipa.example.com:/shared/man"
+
+  Find all keys for the auto.share map:
+    ipa automountkey-find baltimore auto.share
+
+  Remove the man key from the auto.share map:
+    ipa automountkey-del baltimore auto.share man
+"""
+
+"""
+Developer notes:
+
 RFC 2707bis http://www.padl.com/~lukeh/rfc2307bis.txt
 
 A few notes on automount:
-- It was a design decision to not support different maps by location
 - The default parent when adding an indirect map is auto.master
 - This uses the short format for automount maps instead of the
   URL format. Support for ldap as a map source in nsswitch.conf was added
@@ -89,6 +171,7 @@ from ipalib import Object, Command
 from ipalib import Flag, Str
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
+import os
 
 
 class automountlocation(LDAPObject):
@@ -161,6 +244,8 @@ class automountlocation_tofiles(LDAPQuery):
     def execute(self, *args, **options):
         ldap = self.obj.backend
 
+        location = self.api.Command['automountlocation_show'](args[0])
+
         maps = []
         result = self.api.Command['automountkey_find'](
             cn=args[0], automountmapname=u'auto.master'
@@ -175,8 +260,9 @@ class automountlocation_tofiles(LDAPQuery):
         keys = {}
         for m in maps:
             info = m['automountinformation'][0]
+            key = info.split(None)
             result = self.api.Command['automountkey_find'](
-                cn=args[0], automountmapname=info
+                cn=args[0], automountmapname=key[0]
             )
             truncated = result['truncated']
             keys[info] = result['result']
@@ -190,12 +276,21 @@ class automountlocation_tofiles(LDAPQuery):
 
         textui.print_plain('/etc/auto.master:')
         for m in maps:
-            textui.print_plain(
-                '%s\t/etc/%s' % (
-                    m['automountkey'][0], m['automountinformation'][0]
+            if m['automountinformation'][0].startswith('-'):
+                textui.print_plain(
+                    '%s\t%s' % (
+                        m['automountkey'][0], m['automountinformation'][0]
+                    )
                 )
-            )
+            else:
+                textui.print_plain(
+                    '%s\t/etc/%s' % (
+                        m['automountkey'][0], m['automountinformation'][0]
+                    )
+                )
         for m in maps:
+            if m['automountinformation'][0].startswith('-'):
+                continue
             info = m['automountinformation'][0]
             textui.print_plain('---------------------------')
             textui.print_plain('/etc/%s:' % info)
@@ -208,6 +303,176 @@ class automountlocation_tofiles(LDAPQuery):
 
 api.register(automountlocation_tofiles)
 
+
+class automountlocation_import(LDAPQuery):
+    """
+    Import automount files for a specific location.
+    """
+
+    takes_args = (
+        Str('masterfile',
+            label=_('Master file'),
+            doc=_('Automount master file'),
+        ),
+    )
+
+    takes_options = (
+        Flag('continue?',
+             cli_name='continue',
+             doc=_('Continous operation mode. Errors are reported but the process continues'),
+        ),
+    )
+
+    def __read_mapfile(self, filename):
+        try:
+            fp = open(filename, 'r')
+            map = fp.readlines()
+            fp.close()
+        except IOError, e:
+            if e.errno == 2:
+                raise errors.NotFound(reason=_('File %(file)s not found' % {'file':filename}))
+            else:
+                raise e
+        return map
+
+    def forward(self, *args, **options):
+        """
+        The basic idea is to read the master file and create all the maps
+        we need, then read each map file and add all the keys for the map.
+        """
+        location = self.api.Command['automountlocation_show'](args[0])
+
+        result = {'maps':[], 'keys':[], 'skipped':[], 'duplicatekeys':[], 'duplicatemaps':[]}
+        maps = {}
+        master = self.__read_mapfile(args[1])
+        for m in master:
+            if m.startswith('#'):
+                continue
+            m = m.rstrip()
+            if m.startswith('+'):
+                result['skipped'].append([m,args[1]])
+                continue
+            if len(m) == 0:
+                continue
+            am = m.split(None)
+            if am[1].startswith('/'):
+                mapfile = am[1].replace('"','')
+                am[1] = os.path.basename(am[1])
+                maps[am[1]] = mapfile
+            info = ' '.join(am[1:])
+
+            # Add a new key to the auto.master map for the new map file
+            try:
+                api.Command['automountkey_add'](cn=args[0], automountmapname=u'auto.master', automountkey=unicode(am[0]), automountinformation=unicode(' '.join(am[1:])))
+                result['keys'].append([am[0], u'auto.master'])
+            except errors.DuplicateEntry, e:
+                if options.get('continue', False):
+                    result['duplicatekeys'].append(am[0])
+                    pass
+                else:
+                    raise errors.DuplicateEntry(message=unicode('key %(key)s already exists' % {'key':am[0]}))
+            # Add the new map
+            if not am[1].startswith('-'):
+                try:
+                    api.Command['automountmap_add'](cn=args[0], automountmapname=unicode(am[1]))
+                    result['maps'].append(am[1])
+                except errors.DuplicateEntry, e:
+                    if options.get('continue', False):
+                        result['duplicatemaps'].append(am[0])
+                        pass
+                    else:
+                        raise errors.DuplicateEntry(message=unicode('map %(map)s already exists' % {'map':am[1]}))
+                except errors.DuplicateEntry:
+                    # This means the same map is used on several mount points.
+                    pass
+
+        # Now iterate over the map files and add the keys. To handle
+        # continuation lines I'll make a pass through it to skip comments
+        # etc and also to combine lines.
+        for m in maps:
+            map = self.__read_mapfile(maps[m])
+            lines = []
+            cont = ''
+            for x in map:
+                if x.startswith('#'):
+                    continue
+                x = x.rstrip()
+                if x.startswith('+'):
+                    result['skipped'].append([m, maps[m]])
+                    continue
+                if len(x) == 0:
+                    continue
+                if x.endswith("\\"):
+                    cont = cont + x[:-1] + ' '
+                else:
+                    lines.append(cont + x)
+                    cont=''
+            for x in lines:
+                am = x.split(None)
+                key = unicode(am[0].replace('"',''))
+                try:
+                    api.Command['automountkey_add'](cn=args[0], automountmapname=unicode(m), automountkey=key, automountinformation=unicode(' '.join(am[1:])))
+                    result['keys'].append([key,m])
+                except errors.DuplicateEntry, e:
+                    if options.get('continue', False):
+                        result['duplicatekeys'].append(am[0])
+                        pass
+                    else:
+                        raise e
+
+        return dict(result=result)
+
+    def output_for_cli(self, textui, result, *keys, **options):
+        maps = result['result']['maps']
+        keys = result['result']['keys']
+        duplicatemaps = result['result']['duplicatemaps']
+        duplicatekeys = result['result']['duplicatekeys']
+        skipped = result['result']['skipped']
+
+        textui.print_plain('Imported maps:')
+        for m in maps:
+            textui.print_plain(
+                'Added %s' % m
+            )
+        textui.print_plain('')
+
+        textui.print_plain('Imported keys:')
+        for k in keys:
+            textui.print_plain(
+                'Added %s to %s' % (
+                    k[0], k[1]
+                )
+            )
+        textui.print_plain('')
+
+        textui.print_plain('Ignored keys:')
+        for k in keys:
+            textui.print_plain(
+                'Ignored %s to %s' % (
+                    k[0], k[1]
+                )
+            )
+
+
+        if options.get('continue', False) and len(duplicatemaps) > 0:
+            textui.print_plain('')
+            textui.print_plain('Duplicate maps skipped:')
+            for m in duplicatemaps:
+                textui.print_plain(
+                    'Skipped %s' % m
+                )
+
+
+        if options.get('continue', False) and len(duplicatekeys) > 0:
+            textui.print_plain('')
+            textui.print_plain('Duplicate keys skipped:')
+            for k in duplicatekeys:
+                textui.print_plain(
+                    'Skipped %s' % k
+                )
+
+
+api.register(automountlocation_import)
 
 class automountmap(LDAPObject):
     """
