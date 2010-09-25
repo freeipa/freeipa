@@ -70,7 +70,7 @@ $(function() {
                 $.bbq.pushState(state);
             }
             nav_create(nav_tabs_lists, $('#navigation'), 'tabs');
-
+            $('#login_header').html(ipa_messages.login.header);
         }else{
             alert("Unable to find prinicpal for logged in user");
         }

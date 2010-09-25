@@ -33,7 +33,29 @@ class json_metadata(Command):
     """
     Export plugin meta-data for the webUI.
     """
-    INTERNAL = True
+    INTERNAL = False
+
+    messages={
+        "login": {"header" :_("Logged In As")},
+        "button":{
+            "add":_("Add"),
+            "find": _("Find"),
+            "reset":_("Reset"),
+            "update":_("Update"),
+            "enroll":_("Enroll")
+            },
+        "search":{
+            "quick_links":_("Quick Links")
+            },
+        "details":{
+            "identity":_("Identity Details"),
+            "account":_("Account Details"),
+            "contact":_("Contact Details"),
+            "mailing":_("Mailing Address"),
+            "employee":_("      Employee Information"),
+            "misc":_("Misc. Information"),
+            "to_top":_("Back to Top")}
+        }
 
     takes_args = (
         Str('objname?',
@@ -42,7 +64,8 @@ class json_metadata(Command):
     )
 
     has_output = (
-        Output('result', dict, doc=_('Dict of JSON encoded IPA Objects')),
+        Output('metadata', dict, doc=_('Dict of JSON encoded IPA Objects')),
+        Output('messages', dict, doc=_('Dict of I18N messages')),
     )
 
     def execute(self, objname):
@@ -52,11 +75,12 @@ class json_metadata(Command):
                     ((objname, json_serialize(self.api.Object[objname])), )
                 )
             )
-        return dict(
-            result=dict(
-                (o.name, json_serialize(o)) for o in self.api.Object()
+        result=dict(
+            (o.name, json_serialize(o)) for o in self.api.Object()
             )
-        )
+        retval= dict([("metadata",result),("messages",json_serialize(self.messages))])
+
+        return retval
 
     def output_for_cli(self, textui, result, *args, **options):
         print json.dumps(result, default=json_serialize)

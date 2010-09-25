@@ -1,39 +1,37 @@
-# Copyright (C) YEAR Red Hat
-# This file is distributed under the same license as the PACKAGE package.
+# Italian translations for ipa package.
+# Copyright (C) 2010 Red Hat
+# This file is distributed under the same license as the ipa package.
+# Automatically generated, 2010.
 #
-# Jake Li <gnozil@gmail.com>, 2010.
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/newticket\n"
 "POT-Creation-Date: 2010-09-27 10:25-0400\n"
-"PO-Revision-Date: 2010-03-18 22:43+0800\n"
-"Last-Translator: Jake Li <gnozil@gmail.com>\n"
-"Language-Team: Chinese Simplified <zh_CN>\n"
-"Language: \n"
+"PO-Revision-Date: 2010-09-27 10:25-0400\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Poedit-Language: Chinese\n"
-"X-Poedit-Country: CHINA\n"
-"X-Generator: Lokalize 1.0\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../../ipalib/parameters.py:295
 msgid "incorrect type"
-msgstr "不正确的类型"
+msgstr ""
 
 #: ../../ipalib/parameters.py:298
 msgid "Only one value is allowed"
-msgstr "只允许一个值"
+msgstr ""
 
 #: ../../ipalib/parameters.py:877
 msgid "must be True or False"
-msgstr "必须是True或False"
+msgstr ""
 
 #: ../../ipalib/parameters.py:978
 msgid "must be an integer"
-msgstr "必须是一个整数"
+msgstr ""
 
 #: ../../ipalib/parameters.py:1029
 #, python-format
@@ -47,7 +45,7 @@ msgstr ""
 
 #: ../../ipalib/parameters.py:1049
 msgid "must be a decimal number"
-msgstr "必须是一个十进制数"
+msgstr ""
 
 #: ../../ipalib/parameters.py:1071
 #, python-format
@@ -66,7 +64,7 @@ msgstr ""
 
 #: ../../ipalib/parameters.py:1163
 msgid "must be binary data"
-msgstr "必须是二进制数据"
+msgstr ""
 
 #: ../../ipalib/parameters.py:1179
 #, python-format
@@ -85,7 +83,7 @@ msgstr ""
 
 #: ../../ipalib/parameters.py:1217
 msgid "must be Unicode text"
-msgstr "必须是Unicode文本"
+msgstr ""
 
 #: ../../ipalib/parameters.py:1248
 #, python-format
@@ -122,19 +120,19 @@ msgstr ""
 #: ../../ipalib/cli.py:507
 #, python-format
 msgid "Enter %(label)s again to verify: "
-msgstr "再次输入 %(label)s进行校验: "
+msgstr ""
 
 #: ../../ipalib/cli.py:511
 msgid "Passwords do not match!"
-msgstr "密码不匹配！"
+msgstr ""
 
 #: ../../ipalib/cli.py:516
 msgid "Cancelled."
-msgstr "已取消"
+msgstr ""
 
 #: ../../ipalib/frontend.py:380
 msgid "Results are truncated, try a more specific search"
-msgstr "结果被截断，请尝试更明确的搜索"
+msgstr ""
 
 #: ../../ipalib/frontend.py:797 ../../ipalib/plugins/misc.py:47
 msgid "retrieve all attributes"
@@ -160,17 +158,17 @@ msgstr ""
 
 #: ../../ipalib/errors.py:331
 msgid "an internal error has occurred"
-msgstr "发生了一个内部错误"
+msgstr ""
 
 #: ../../ipalib/errors.py:353
 #, python-format
 msgid "an internal error has occurred on server at %(server)r"
-msgstr "服务器%(server)r上发生了一个内部错误"
+msgstr ""
 
 #: ../../ipalib/errors.py:369
 #, python-format
 msgid "unknown command %(name)r"
-msgstr "未知的命令%(name)r"
+msgstr ""
 
 #: ../../ipalib/errors.py:386 ../../ipalib/errors.py:411
 #, python-format
@@ -180,12 +178,12 @@ msgstr ""
 #: ../../ipalib/errors.py:402
 #, python-format
 msgid "cannot connect to %(uri)r: %(error)s"
-msgstr "无法连接到%(uri)r: %(error)s"
+msgstr ""
 
 #: ../../ipalib/errors.py:420
 #, python-format
 msgid "Invalid JSON-RPC request: %(error)s"
-msgstr "无效的JSON-RPC请求: %(error)s"
+msgstr ""
 
 #: ../../ipalib/errors.py:448
 #, python-format
@@ -229,14 +227,14 @@ msgstr ""
 #: ../../ipalib/errors.py:624
 #, python-format
 msgid "command %(name)r takes no arguments"
-msgstr "命令 %(name)r不需要参数"
+msgstr ""
 
 #: ../../ipalib/errors.py:644
 #, python-format
 msgid "command %(name)r takes at most %(count)d argument"
 msgid_plural "command %(name)r takes at most %(count)d arguments"
-msgstr[0] "命令 %(name)r最多接受%(count)d个参数"
-msgstr[1] "命令 %(name)r最多接受%(count)d个参数"
+msgstr[0] ""
+msgstr[1] ""
 
 #: ../../ipalib/errors.py:674
 #, python-format
@@ -246,34 +244,34 @@ msgstr ""
 #: ../../ipalib/errors.py:690
 #, python-format
 msgid "%(name)r is required"
-msgstr "需要%(name)r"
+msgstr ""
 
 #: ../../ipalib/errors.py:706 ../../ipalib/errors.py:722
 #, python-format
 msgid "invalid %(name)r: %(error)s"
-msgstr "%(name)r无效: %(error)s"
+msgstr ""
 
 #: ../../ipalib/errors.py:738
 #, python-format
 msgid "api has no such namespace: %(name)r"
-msgstr "API没有这个名字空间: %(name)r"
+msgstr ""
 
 #: ../../ipalib/errors.py:747
 msgid "Passwords do not match"
-msgstr "密码不匹配"
+msgstr ""
 
 #: ../../ipalib/errors.py:755
 msgid "Command not implemented"
-msgstr "命令没有实现"
+msgstr ""
 
 #: ../../ipalib/errors.py:783 ../../ipalib/errors.py:1023
 #, python-format
 msgid "%(reason)s"
-msgstr "%(reason)s"
+msgstr ""
 
 #: ../../ipalib/errors.py:799
 msgid "This entry already exists"
-msgstr "条目已经存在"
+msgstr ""
 
 #: ../../ipalib/errors.py:815
 msgid "You must enroll a host in order to create a host service"
@@ -293,11 +291,11 @@ msgstr ""
 
 #: ../../ipalib/errors.py:863
 msgid "This command requires root access"
-msgstr "该命令需要root访问权限"
+msgstr ""
 
 #: ../../ipalib/errors.py:879
 msgid "This is already a posix group"
-msgstr "这已经是一个posix组"
+msgstr ""
 
 #: ../../ipalib/errors.py:895
 #, python-format
@@ -306,11 +304,11 @@ msgstr ""
 
 #: ../../ipalib/errors.py:911
 msgid "This entry is already unlocked"
-msgstr "该条目已经解锁"
+msgstr ""
 
 #: ../../ipalib/errors.py:927
 msgid "This entry is already locked"
-msgstr "该条目已经被锁定"
+msgstr ""
 
 #: ../../ipalib/errors.py:943
 msgid "This entry has nsAccountLock set, it cannot be locked or unlocked"
@@ -318,28 +316,28 @@ msgstr ""
 
 #: ../../ipalib/errors.py:959
 msgid "This entry is not a member of the group"
-msgstr "该条目不是该组的成员"
+msgstr ""
 
 #: ../../ipalib/errors.py:975
 msgid "A group may not be a member of itself"
-msgstr "一个组不能是自己的成员"
+msgstr ""
 
 #: ../../ipalib/errors.py:991
 msgid "This entry is already a member of the group"
-msgstr "该条目已经是该组的成员"
+msgstr ""
 
 #: ../../ipalib/errors.py:1007
 #, python-format
 msgid "Base64 decoding failed: %(reason)s"
-msgstr "Base64解码失败: %(reason)s"
+msgstr ""
 
 #: ../../ipalib/errors.py:1039
 msgid "A group may not be added as a member of itself"
-msgstr "一个组不能是自己的成员"
+msgstr ""
 
 #: ../../ipalib/errors.py:1055
 msgid "The default users group cannot be removed"
-msgstr "默认的用户组不成被删除"
+msgstr ""
 
 #: ../../ipalib/errors.py:1071
 msgid "Host does not have corresponding DNS A record"
@@ -356,7 +354,7 @@ msgstr ""
 
 #: ../../ipalib/errors.py:1133
 msgid "change collided with another change"
-msgstr "修改冲突"
+msgstr ""
 
 #: ../../ipalib/errors.py:1149
 msgid "no modifications to be performed"
@@ -365,7 +363,7 @@ msgstr ""
 #: ../../ipalib/errors.py:1165
 #, python-format
 msgid "%(desc)s:%(info)s"
-msgstr "%(desc)s:%(info)s"
+msgstr ""
 
 #: ../../ipalib/errors.py:1181
 msgid "limits exceeded for this query"
@@ -374,7 +372,7 @@ msgstr ""
 #: ../../ipalib/errors.py:1196
 #, python-format
 msgid "%(info)s"
-msgstr "%(info)s"
+msgstr ""
 
 #: ../../ipalib/errors.py:1221
 #, python-format
@@ -387,43 +385,43 @@ msgstr ""
 
 #: ../../ipalib/plugins/config.py:78
 msgid "Max username length"
-msgstr "最大用户名长度"
+msgstr ""
 
 #: ../../ipalib/plugins/config.py:83
 msgid "Home directory base"
-msgstr "主目录"
+msgstr ""
 
 #: ../../ipalib/plugins/config.py:84
 msgid "Default location of home directories"
-msgstr "主目录的默认位置"
+msgstr ""
 
 #: ../../ipalib/plugins/config.py:88
 msgid "Default shell"
-msgstr "默认shell"
+msgstr ""
 
 #: ../../ipalib/plugins/config.py:89
 msgid "Default shell for new users"
-msgstr "新用户的默认shell"
+msgstr ""
 
 #: ../../ipalib/plugins/config.py:93
 msgid "Default users group"
-msgstr "默认用户组"
+msgstr ""
 
 #: ../../ipalib/plugins/config.py:94
 msgid "Default group for new users"
-msgstr "新用户默认组"
+msgstr ""
 
 #: ../../ipalib/plugins/config.py:98
 msgid "Default e-mail domain"
-msgstr "默认的邮件域名"
+msgstr ""
 
 #: ../../ipalib/plugins/config.py:99
 msgid "Default e-mail domain new users"
-msgstr "新用户的默认邮件域名"
+msgstr ""
 
 #: ../../ipalib/plugins/config.py:103
 msgid "Search time limit"
-msgstr "搜索时间限制"
+msgstr ""
 
 #: ../../ipalib/plugins/config.py:104
 msgid "Max. amount of time (sec.) for a search (-1 is unlimited)"
@@ -439,7 +437,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/config.py:115
 msgid "User search fields"
-msgstr "用户搜索字段"
+msgstr ""
 
 #: ../../ipalib/plugins/config.py:116
 msgid "A comma-separated list of fields to search when searching for users"
@@ -451,12 +449,11 @@ msgstr ""
 
 #: ../../ipalib/plugins/config.py:125
 msgid "Migration mode"
-msgstr "迁移模式"
+msgstr ""
 
 #: ../../ipalib/plugins/config.py:126
-#, fuzzy
 msgid "Enable migration mode"
-msgstr "启用迁移模式"
+msgstr ""
 
 #: ../../ipalib/plugins/config.py:130
 msgid "Certificate Subject base"
@@ -468,36 +465,36 @@ msgstr ""
 
 #: ../../ipalib/plugins/rolegroup.py:79
 msgid "Role Groups"
-msgstr "角色组"
+msgstr ""
 
 #: ../../ipalib/plugins/rolegroup.py:84
 msgid "Role-group name"
-msgstr "角色组名称"
+msgstr ""
 
 #: ../../ipalib/plugins/rolegroup.py:90 ../../ipalib/plugins/host.py:124
 #: ../../ipalib/plugins/group.py:108 ../../ipalib/plugins/hbac.py:151
 #: ../../ipalib/plugins/automount.py:230 ../../ipalib/plugins/netgroup.py:96
 #: ../../ipalib/plugins/taskgroup.py:62 ../../ipalib/plugins/hostgroup.py:81
 msgid "Description"
-msgstr "描述"
+msgstr ""
 
 #: ../../ipalib/plugins/rolegroup.py:91
 msgid "A description of this role-group"
-msgstr "该角色组的描述"
+msgstr ""
 
 #: ../../ipalib/plugins/rolegroup.py:94 ../../ipalib/plugins/group.py:117
 #: ../../ipalib/plugins/taskgroup.py:66
 msgid "Member groups"
-msgstr "成员组"
+msgstr ""
 
 #: ../../ipalib/plugins/rolegroup.py:98 ../../ipalib/plugins/group.py:121
 #: ../../ipalib/plugins/taskgroup.py:70
 msgid "Member users"
-msgstr "成员用户"
+msgstr ""
 
 #: ../../ipalib/plugins/rolegroup.py:102
 msgid "Member of task-groups"
-msgstr "任务组成员"
+msgstr ""
 
 #: ../../ipalib/plugins/rolegroup.py:115
 #, python-format
@@ -527,11 +524,11 @@ msgstr ""
 
 #: ../../ipalib/plugins/host.py:113 ../../ipalib/plugins/hbac.py:162
 msgid "Hosts"
-msgstr "主机"
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:118
 msgid "Host name"
-msgstr "主机名"
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:125
 msgid "A description of this host"
@@ -543,35 +540,35 @@ msgstr ""
 
 #: ../../ipalib/plugins/host.py:130
 msgid "Host locality (e.g. \"Baltimore, MD\")"
-msgstr "主机地点(如\"Baltimore, MD\")"
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:134 ../../ipalib/plugins/automount.py:107
 msgid "Location"
-msgstr "位置"
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:135
 msgid "Host location (e.g. \"Lab 2\")"
-msgstr "主机位置(如\"Lab 2\")"
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:139
 msgid "Platform"
-msgstr "平台"
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:140
 msgid "Host hardware platform (e.g. \"Lenovo T61\")"
-msgstr "主机硬件平台 (e.g. \"Lenovo T61\")"
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:144
 msgid "Operating system"
-msgstr "操作系统"
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:145
 msgid "Host operating system and version (e.g. \"Fedora 9\")"
-msgstr "主机操作系统及版本(e.g. \"Fedora 9\")"
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:149
 msgid "User password"
-msgstr "用户密码"
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:150
 msgid "Password used in bulk enrollment"
@@ -582,13 +579,13 @@ msgstr ""
 #: ../../ipalib/plugins/service.py:343 ../../ipalib/plugins/cert.py:187
 #: ../../ipalib/plugins/cert.py:392
 msgid "Certificate"
-msgstr "证书"
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:155 ../../ipalib/plugins/service.py:186
 #: ../../ipalib/plugins/service.py:266 ../../ipalib/plugins/service.py:305
 #: ../../ipalib/plugins/service.py:344
 msgid "Base-64 encoded server certificate"
-msgstr "Base-64 编码格式的服务器证书"
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:158 ../../ipalib/plugins/host.py:274
 msgid "Principal name"
@@ -596,11 +593,11 @@ msgstr ""
 
 #: ../../ipalib/plugins/host.py:162 ../../ipalib/plugins/hostgroup.py:93
 msgid "Member of host-groups"
-msgstr "主机组成员"
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:166
 msgid "Member of net-groups"
-msgstr "网络组成员"
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:170
 msgid "Member of role-groups"
@@ -609,7 +606,7 @@ msgstr ""
 #: ../../ipalib/plugins/host.py:199
 #, python-format
 msgid "Added host \"%(value)s\""
-msgstr "新增主机 \"%(value)s\""
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:202
 msgid "force host name even if not in DNS"
@@ -618,12 +615,12 @@ msgstr ""
 #: ../../ipalib/plugins/host.py:235
 #, python-format
 msgid "Deleted host \"%(value)s\""
-msgstr "已删除主机 \"%(value)s\""
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:269
 #, python-format
 msgid "Modified host \"%(value)s\""
-msgstr "已修改主机 \"%(value)s\""
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:275
 msgid "Kerberos principal name for this host"
@@ -641,9 +638,9 @@ msgid "Keytab"
 msgstr ""
 
 #: ../../ipalib/plugins/host.py:359 ../../ipalib/plugins/service.py:386
-#, fuzzy, python-format
+#, python-format
 msgid "Removed kerberos key from \"%(value)s\""
-msgstr "已锁定用户\"%(value)s\""
+msgstr ""
 
 #: ../../ipalib/plugins/host.py:368
 msgid "Host principal has no kerberos key"
@@ -651,19 +648,19 @@ msgstr ""
 
 #: ../../ipalib/plugins/group.py:94
 msgid "User Groups"
-msgstr "用户组"
+msgstr ""
 
 #: ../../ipalib/plugins/group.py:102
 msgid "Group name"
-msgstr "组名"
+msgstr ""
 
 #: ../../ipalib/plugins/group.py:109
 msgid "Group description"
-msgstr "组描述"
+msgstr ""
 
 #: ../../ipalib/plugins/group.py:113
 msgid "GID"
-msgstr "GID"
+msgstr ""
 
 #: ../../ipalib/plugins/group.py:114
 msgid "GID (use this option to set it manually)"
@@ -672,7 +669,7 @@ msgstr ""
 #: ../../ipalib/plugins/group.py:134
 #, python-format
 msgid "Added group \"%(value)s\""
-msgstr "已添加组\"%(value)s\""
+msgstr ""
 
 #: ../../ipalib/plugins/group.py:139
 msgid "Create as posix group?"
@@ -681,29 +678,28 @@ msgstr ""
 #: ../../ipalib/plugins/group.py:159
 #, python-format
 msgid "Deleted group \"%(value)s\""
-msgstr "已删除组\"%(value)s\""
+msgstr ""
 
 #: ../../ipalib/plugins/group.py:188
 #, python-format
 msgid "Modified group \"%(value)s\""
-msgstr "已修改组\"%(value)s\""
+msgstr ""
 
 #: ../../ipalib/plugins/group.py:193
-#, fuzzy
 msgid "change to posix group"
-msgstr "这已经是一个posix组"
+msgstr ""
 
 #: ../../ipalib/plugins/group.py:219
 #, python-format
 msgid "%(count)d group matched"
 msgid_plural "%(count)d groups matched"
-msgstr[0] "%(count)d 个组匹配"
-msgstr[1] "%(count)d 个组匹配"
+msgstr[0] ""
+msgstr[1] ""
 
 #: ../../ipalib/plugins/group.py:254
-#, fuzzy, python-format
+#, python-format
 msgid "Detached group \"%(value)s\" from user \"%(value)s\""
-msgstr "已删除组\"%(value)s\""
+msgstr ""
 
 #: ../../ipalib/plugins/group.py:270
 msgid "not allowed to modify user entries"
@@ -731,16 +727,15 @@ msgstr ""
 
 #: ../../ipalib/plugins/migration.py:169
 msgid "LDAP URI"
-msgstr "LDAP URI"
+msgstr ""
 
 #: ../../ipalib/plugins/migration.py:170
 msgid "LDAP URI of DS server to migrate from"
 msgstr ""
 
 #: ../../ipalib/plugins/migration.py:174
-#, fuzzy
 msgid "bind password"
-msgstr "用户密码"
+msgstr ""
 
 #: ../../ipalib/plugins/migration.py:181
 msgid "Bind DN"
@@ -748,7 +743,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/migration.py:187
 msgid "User container"
-msgstr "用户容器"
+msgstr ""
 
 #: ../../ipalib/plugins/migration.py:188
 msgid "RDN of container for users in DS"
@@ -756,7 +751,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/migration.py:194
 msgid "Group container"
-msgstr "组容器"
+msgstr ""
 
 #: ../../ipalib/plugins/migration.py:195
 msgid "RDN of container for groups in DS"
@@ -771,9 +766,8 @@ msgid "Lists of objects that could not be migrated; categorized by type."
 msgstr ""
 
 #: ../../ipalib/plugins/migration.py:212
-#, fuzzy
 msgid "False if migration mode was disabled."
-msgstr "启用迁移模式"
+msgstr ""
 
 #: ../../ipalib/plugins/migration.py:216
 #, python-format
@@ -802,7 +796,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/service.py:157 ../../ipalib/plugins/hbac.py:174
 msgid "Services"
-msgstr "服务"
+msgstr ""
 
 #: ../../ipalib/plugins/service.py:162 ../../ipalib/plugins/cert.py:171
 msgid "Principal"
@@ -827,16 +821,16 @@ msgid "Deleted service \"%(value)s\""
 msgstr ""
 
 #: ../../ipalib/plugins/service.py:261
-#, fuzzy, python-format
+#, python-format
 msgid "Modified service \"%(value)s\""
-msgstr "已修改用户\"%(value)s\""
+msgstr ""
 
 #: ../../ipalib/plugins/service.py:298
-#, fuzzy, python-format
+#, python-format
 msgid "%(count)d service matched"
 msgid_plural "%(count)d services matched"
-msgstr[0] "%(count)d 个组匹配"
-msgstr[1] "%(count)d 个组匹配"
+msgstr[0] ""
+msgstr[1] ""
 
 #: ../../ipalib/plugins/service.py:396
 msgid "Service principal has no kerberos key"
@@ -844,28 +838,27 @@ msgstr ""
 
 #: ../../ipalib/plugins/passwd.py:52 ../../ipalib/plugins/krbtpolicy.py:62
 msgid "User name"
-msgstr "用户名"
+msgstr ""
 
 #: ../../ipalib/plugins/hbac.py:106
 msgid "HBAC"
-msgstr "HBAC"
+msgstr ""
 
 #: ../../ipalib/plugins/hbac.py:111
 msgid "Rule name"
-msgstr "规则名"
+msgstr ""
 
 #: ../../ipalib/plugins/hbac.py:116
 msgid "Rule type (allow or deny)"
-msgstr "规则类型(允许或禁止)"
+msgstr ""
 
 #: ../../ipalib/plugins/hbac.py:117
-#, fuzzy
 msgid "Rule type"
-msgstr "记录类型"
+msgstr ""
 
 #: ../../ipalib/plugins/hbac.py:123
 msgid "User category"
-msgstr "用户类别"
+msgstr ""
 
 #: ../../ipalib/plugins/hbac.py:124
 msgid "User category the rule applies to"
@@ -873,7 +866,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/hbac.py:129
 msgid "Host category"
-msgstr "主机类别"
+msgstr ""
 
 #: ../../ipalib/plugins/hbac.py:130
 msgid "Host category the rule applies to"
@@ -881,16 +874,15 @@ msgstr ""
 
 #: ../../ipalib/plugins/hbac.py:135
 msgid "Source host category"
-msgstr "源主机类别"
+msgstr ""
 
 #: ../../ipalib/plugins/hbac.py:136
 msgid "Source host category the rule applies to"
 msgstr ""
 
 #: ../../ipalib/plugins/hbac.py:141
-#, fuzzy
 msgid "Service category"
-msgstr "用户类别"
+msgstr ""
 
 #: ../../ipalib/plugins/hbac.py:142
 msgid "Service category the rule applies to"
@@ -899,7 +891,7 @@ msgstr ""
 #: ../../ipalib/plugins/hbac.py:147 ../../ipalib/plugins/hbac.py:309
 #: ../../ipalib/plugins/hbac.py:347
 msgid "Access time"
-msgstr "访问时间"
+msgstr ""
 
 #: ../../ipalib/plugins/hbac.py:154
 msgid "Enabled"
@@ -907,26 +899,23 @@ msgstr ""
 
 #: ../../ipalib/plugins/hbac.py:158 ../../ipalib/plugins/user.py:76
 msgid "Users"
-msgstr "用户"
+msgstr ""
 
 #: ../../ipalib/plugins/hbac.py:166 ../../ipalib/plugins/hostgroup.py:69
 msgid "Host Groups"
-msgstr "主机组"
+msgstr ""
 
 #: ../../ipalib/plugins/hbac.py:170
-#, fuzzy
 msgid "Source hosts"
-msgstr "源主机类别"
+msgstr ""
 
 #: ../../ipalib/plugins/hbac.py:178
-#, fuzzy
 msgid "Service Groups"
-msgstr "服务"
+msgstr ""
 
 #: ../../ipalib/plugins/cert.py:93
-#, fuzzy
 msgid "Failure decoding Certificate Signing Request:"
-msgstr "不能解码项目中的证书"
+msgstr ""
 
 #: ../../ipalib/plugins/cert.py:106 ../../ipalib/plugins/cert.py:118
 msgid "Failure decoding Certificate Signing Request"
@@ -947,7 +936,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/cert.py:191 ../../ipalib/plugins/cert.py:395
 msgid "Subject"
-msgstr "主题"
+msgstr ""
 
 #: ../../ipalib/plugins/cert.py:195 ../../ipalib/plugins/cert.py:398
 msgid "Issuer"
@@ -971,7 +960,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/cert.py:215 ../../ipalib/plugins/cert.py:379
 msgid "Serial number"
-msgstr "序列号"
+msgstr ""
 
 #: ../../ipalib/plugins/cert.py:223 ../../ipalib/plugins/misc.py:57
 msgid "Dictionary mapping variable name to value"
@@ -979,11 +968,11 @@ msgstr ""
 
 #: ../../ipalib/plugins/cert.py:357
 msgid "Request id"
-msgstr "请求号"
+msgstr ""
 
 #: ../../ipalib/plugins/cert.py:363
 msgid "Request status"
-msgstr "请求状态"
+msgstr ""
 
 #: ../../ipalib/plugins/cert.py:380
 msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
@@ -991,19 +980,19 @@ msgstr ""
 
 #: ../../ipalib/plugins/cert.py:413
 msgid "Revocation reason"
-msgstr "撤消原因"
+msgstr ""
 
 #: ../../ipalib/plugins/cert.py:458
 msgid "Revoked"
-msgstr "撤销"
+msgstr ""
 
 #: ../../ipalib/plugins/cert.py:466
 msgid "Reason"
-msgstr "原因"
+msgstr ""
 
 #: ../../ipalib/plugins/cert.py:467
 msgid "Reason for revoking the certificate (0-10)"
-msgstr "撤消证书的原因(0-10)"
+msgstr ""
 
 #: ../../ipalib/plugins/cert.py:502
 msgid "Unrevoked"
@@ -1011,7 +1000,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/cert.py:505
 msgid "Error"
-msgstr "错误"
+msgstr ""
 
 #: ../../ipalib/plugins/baseldap.py:79
 #, python-format
@@ -1050,7 +1039,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/baseldap.py:637 ../../ipalib/plugins/baseldap.py:742
 msgid "Failed members"
-msgstr "失败的成员"
+msgstr ""
 
 #: ../../ipalib/plugins/baseldap.py:732
 msgid "Members that could not be removed"
@@ -1101,7 +1090,7 @@ msgstr ""
 #: ../../ipalib/plugins/aci.py:172
 #, python-format
 msgid "Group '%s' does not exist"
-msgstr "组 '%s' 不存在"
+msgstr ""
 
 #: ../../ipalib/plugins/aci.py:269
 #, python-format
@@ -1110,15 +1099,15 @@ msgstr ""
 
 #: ../../ipalib/plugins/aci.py:286
 msgid "ACIs"
-msgstr "ACIs"
+msgstr ""
 
 #: ../../ipalib/plugins/aci.py:291
 msgid "ACI name"
-msgstr "ACI名称"
+msgstr ""
 
 #: ../../ipalib/plugins/aci.py:296
 msgid "Taskgroup"
-msgstr "任务组"
+msgstr ""
 
 #: ../../ipalib/plugins/aci.py:297
 msgid "Taskgroup ACI grants access to"
@@ -1126,7 +1115,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/aci.py:301
 msgid "User group"
-msgstr "用户组"
+msgstr ""
 
 #: ../../ipalib/plugins/aci.py:302
 msgid "User group ACI grants access to"
@@ -1134,7 +1123,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/aci.py:306
 msgid "Permissions"
-msgstr "权限"
+msgstr ""
 
 #: ../../ipalib/plugins/aci.py:307
 msgid ""
@@ -1143,7 +1132,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/aci.py:313
 msgid "Attributes"
-msgstr "属性"
+msgstr ""
 
 #: ../../ipalib/plugins/aci.py:314
 msgid "Comma-separated list of attributes"
@@ -1151,7 +1140,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/aci.py:318
 msgid "Type"
-msgstr "类型"
+msgstr ""
 
 #: ../../ipalib/plugins/aci.py:319
 msgid "type of IPA object (user, group, host)"
@@ -1163,11 +1152,11 @@ msgstr ""
 
 #: ../../ipalib/plugins/aci.py:325
 msgid "Member of a group"
-msgstr "组成员"
+msgstr ""
 
 #: ../../ipalib/plugins/aci.py:329
 msgid "Filter"
-msgstr "过滤"
+msgstr ""
 
 #: ../../ipalib/plugins/aci.py:330
 msgid "Legal LDAP filter (e.g. ou=Engineering)"
@@ -1175,7 +1164,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/aci.py:334
 msgid "Subtree"
-msgstr "子树"
+msgstr ""
 
 #: ../../ipalib/plugins/aci.py:335
 msgid "Subtree to apply ACI to"
@@ -1183,7 +1172,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/aci.py:339
 msgid "Target group"
-msgstr "目标组"
+msgstr ""
 
 #: ../../ipalib/plugins/aci.py:340
 msgid "Group to apply ACI to"
@@ -1241,7 +1230,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/dns.py:131
 msgid "DNS"
-msgstr "DNS"
+msgstr ""
 
 #: ../../ipalib/plugins/dns.py:136
 msgid "Zone"
@@ -1257,7 +1246,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/dns.py:147
 msgid "administrator e-mail address"
-msgstr "管理员邮件地址"
+msgstr ""
 
 #: ../../ipalib/plugins/dns.py:153
 msgid "SOA serial"
@@ -1289,7 +1278,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/dns.py:182
 msgid "allow dynamic update?"
-msgstr "允许动态更新？"
+msgstr ""
 
 #: ../../ipalib/plugins/dns.py:186
 msgid "BIND update policy"
@@ -1303,16 +1292,16 @@ msgstr ""
 
 #: ../../ipalib/plugins/dns.py:485
 msgid "resource name"
-msgstr "资源名称"
+msgstr ""
 
 #: ../../ipalib/plugins/dns.py:490 ../../ipalib/plugins/dns.py:605
 #: ../../ipalib/plugins/dns.py:696
 msgid "Record type"
-msgstr "记录类型"
+msgstr ""
 
 #: ../../ipalib/plugins/dns.py:494 ../../ipalib/plugins/dns.py:609
 msgid "Data"
-msgstr "数据"
+msgstr ""
 
 #: ../../ipalib/plugins/dns.py:495 ../../ipalib/plugins/dns.py:610
 msgid "Type-specific data"
@@ -1329,25 +1318,24 @@ msgstr ""
 #: ../../ipalib/plugins/dns.py:600 ../../ipalib/plugins/dns.py:692
 #: ../../ipalib/plugins/dns.py:809
 msgid "Resource name"
-msgstr "资源名称"
+msgstr ""
 
 #: ../../ipalib/plugins/dns.py:685
 msgid "Search criteria"
-msgstr "搜索条件"
+msgstr ""
 
 #: ../../ipalib/plugins/dns.py:700
 msgid "type-specific data"
 msgstr ""
 
 #: ../../ipalib/plugins/dns.py:850
-#, fuzzy, python-format
+#, python-format
 msgid "Found '%(value)s'"
-msgstr "已添加组\"%(value)s\""
+msgstr ""
 
 #: ../../ipalib/plugins/dns.py:854
-#, fuzzy
 msgid "Hostname"
-msgstr "主机名"
+msgstr ""
 
 #: ../../ipalib/plugins/dns.py:867
 #, python-format
@@ -1384,7 +1372,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/automount.py:316
 msgid "description"
-msgstr "描述"
+msgstr ""
 
 #: ../../ipalib/plugins/automount.py:320
 msgid "Automount Keys"
@@ -1392,7 +1380,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/automount.py:340
 msgid "Mount point"
-msgstr "挂载点"
+msgstr ""
 
 #: ../../ipalib/plugins/automount.py:344
 msgid "Parent map"
@@ -1403,29 +1391,28 @@ msgid "Name of parent automount map (default: auto.master)"
 msgstr ""
 
 #: ../../ipalib/plugins/netgroup.py:57
-#, fuzzy
 msgid "Member Host"
-msgstr "成员主机"
+msgstr ""
 
 #: ../../ipalib/plugins/netgroup.py:63
 msgid "External host"
-msgstr "外部主机"
+msgstr ""
 
 #: ../../ipalib/plugins/netgroup.py:85
 msgid "Net Groups"
-msgstr "网络组"
+msgstr ""
 
 #: ../../ipalib/plugins/netgroup.py:90
 msgid "Netgroup name"
-msgstr "网络组名称"
+msgstr ""
 
 #: ../../ipalib/plugins/netgroup.py:97
 msgid "Netgroup description"
-msgstr "网络组描述"
+msgstr ""
 
 #: ../../ipalib/plugins/netgroup.py:101
 msgid "NIS domain name"
-msgstr "NIS域名"
+msgstr ""
 
 #: ../../ipalib/plugins/netgroup.py:106
 msgid "IPA unique ID"
@@ -1457,23 +1444,23 @@ msgstr ""
 
 #: ../../ipalib/plugins/user.py:84
 msgid "User login"
-msgstr "用户登录名"
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:91
 msgid "First name"
-msgstr "名"
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:95
 msgid "Last name"
-msgstr "姓"
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:103
 msgid "GECOS field"
-msgstr "GECOS字段"
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:109
 msgid "Login shell"
-msgstr "登录shell"
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:114
 msgid "Kerberos principal"
@@ -1481,19 +1468,19 @@ msgstr ""
 
 #: ../../ipalib/plugins/user.py:120
 msgid "Email address"
-msgstr "邮件地址"
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:124
 msgid "Password"
-msgstr "密码"
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:125
 msgid "Set the user password"
-msgstr "设置用户密码"
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:132
 msgid "UID"
-msgstr "UID"
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:133
 msgid "User ID Number (system will assign one if not provided)"
@@ -1501,38 +1488,38 @@ msgstr ""
 
 #: ../../ipalib/plugins/user.py:139
 msgid "Street address"
-msgstr "街道地址"
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:142
 msgid "Groups"
-msgstr "用户组"
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:146
 msgid "Netgroups"
-msgstr "网络组"
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:150
 msgid "Rolegroups"
-msgstr "角色组"
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:154
 msgid "Taskgroups"
-msgstr "任务组"
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:167
 #, python-format
 msgid "Added user \"%(value)s\""
-msgstr "新增用户\"%(value)s\""
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:216
 #, python-format
 msgid "Deleted user \"%(value)s\""
-msgstr "已删除用户\"%(value)s\""
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:235
 #, python-format
 msgid "Modified user \"%(value)s\""
-msgstr "已修改用户\"%(value)s\""
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:247
 msgid "Self"
@@ -1552,24 +1539,24 @@ msgstr[1] ""
 #: ../../ipalib/plugins/user.py:278
 #, python-format
 msgid "Locked user \"%(value)s\""
-msgstr "已锁定用户\"%(value)s\""
+msgstr ""
 
 #: ../../ipalib/plugins/user.py:304
 #, python-format
 msgid "Unlocked user \"%(value)s\""
-msgstr "已解锁用户\"%(value)s\""
+msgstr ""
 
 #: ../../ipalib/plugins/taskgroup.py:51
 msgid "Task Groups"
-msgstr "任务组"
+msgstr ""
 
 #: ../../ipalib/plugins/taskgroup.py:56
 msgid "Task-group name"
-msgstr "任务组名称"
+msgstr ""
 
 #: ../../ipalib/plugins/taskgroup.py:63
 msgid "Task-group description"
-msgstr "任务组描述"
+msgstr ""
 
 #: ../../ipalib/plugins/taskgroup.py:74
 msgid "Member role-groups"
@@ -1599,11 +1586,11 @@ msgstr[1] ""
 
 #: ../../ipalib/plugins/hostgroup.py:74
 msgid "Host-group"
-msgstr "主机组"
+msgstr ""
 
 #: ../../ipalib/plugins/hostgroup.py:75
 msgid "Name of host-group"
-msgstr "主机组名称"
+msgstr ""
 
 #: ../../ipalib/plugins/hostgroup.py:82
 msgid "A description of this host-group"
@@ -1611,11 +1598,11 @@ msgstr ""
 
 #: ../../ipalib/plugins/hostgroup.py:85
 msgid "Member hosts"
-msgstr "成员主机"
+msgstr ""
 
 #: ../../ipalib/plugins/hostgroup.py:89
 msgid "Member host-groups"
-msgstr "主机组成员"
+msgstr ""
 
 #: ../../ipalib/plugins/hostgroup.py:106
 #, python-format
@@ -1646,7 +1633,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/pwpolicy.py:173
 msgid "Group"
-msgstr "组"
+msgstr ""
 
 #: ../../ipalib/plugins/pwpolicy.py:174
 msgid "Manage password policy for specific group"
@@ -1686,7 +1673,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/pwpolicy.py:204
 msgid "Min length"
-msgstr "最小长度"
+msgstr ""
 
 #: ../../ipalib/plugins/pwpolicy.py:205
 msgid "Minimum length of password"
@@ -1694,7 +1681,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/pwpolicy.py:210
 msgid "Priority"
-msgstr "优先级"
+msgstr ""
 
 #: ../../ipalib/plugins/pwpolicy.py:211
 msgid "Priority of the policy (higher number means lower priority"
@@ -1710,7 +1697,7 @@ msgstr ""
 
 #: ../../ipalib/plugins/pwpolicy.py:365
 msgid "User"
-msgstr "用户"
+msgstr ""
 
 #: ../../ipalib/plugins/pwpolicy.py:366
 msgid "Display effective policy for a specific user"
@@ -1757,9 +1744,8 @@ msgid "Contact Details"
 msgstr ""
 
 #: ../../ipalib/plugins/internal.py:54
-#, fuzzy
 msgid "Mailing Address"
-msgstr "邮件地址"
+msgstr ""
 
 #: ../../ipalib/plugins/internal.py:55
 msgid "      Employee Information"
@@ -1804,16 +1790,16 @@ msgstr ""
 #: ../../ipaserver/plugins/selfsign.py:102
 #, python-format
 msgid "unable to decode csr: %s"
-msgstr "不能解码csr: %s"
+msgstr ""
 
 #: ../../ipaserver/plugins/selfsign.py:123
 #: ../../ipaserver/plugins/selfsign.py:138
 msgid "file operation"
-msgstr "文件操作"
+msgstr ""
 
 #: ../../ipaserver/plugins/selfsign.py:152
 msgid "cannot obtain next serial number"
-msgstr "无法得到下一个序列号"
+msgstr ""
 
 #: ../../ipaserver/plugins/selfsign.py:187
 msgid "certutil failure"
@@ -1828,14 +1814,9 @@ msgid "The IPA realm"
 msgstr ""
 
 #: ../../ipaserver/plugins/join.py:68
-#, fuzzy
 msgid "Hardware platform of the host (e.g. Lenovo T61)"
-msgstr "主机硬件平台 (e.g. \"Lenovo T61\")"
+msgstr ""
 
 #: ../../ipaserver/plugins/join.py:72
-#, fuzzy
 msgid "Operating System and version of the host (e.g. Fedora 9)"
-msgstr "主机操作系统及版本(e.g. \"Fedora 9\")"
-
-#~ msgid "Service name"
-#~ msgstr "服务名"
+msgstr ""

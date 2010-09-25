@@ -37,6 +37,7 @@ var ipa_ajax_options = {
 var ipa_jsonrpc_id = 0;
 
 /* IPA objects data in JSON format */
+var ipa_messages = {};
 var ipa_objs = {};
 
 
@@ -55,7 +56,8 @@ function ipa_init(url, use_static_files, on_win, on_error)
 
     ipa_cmd('json_metadata', [], {},
         function(data, status, xhr) {
-            ipa_objs = data.result.result;
+            ipa_objs = data.result.metadata;
+            ipa_messages = data.result.messages;
             if (on_win) on_win(data, status, xhr);
         },
         on_error

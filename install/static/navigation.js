@@ -42,7 +42,13 @@ function nav_generate_tabs(nls, container, tabclass, depth)
     for (var i = 0; i < nls.length; ++i) {
         var n = nls[i];
 
-        nav_insert_tab_li(ul, n[0], n[1]);
+        var name = n[1];
+        if ((ipa_objs[n[0]]) && (ipa_objs[n[0]].label)){
+            name = ipa_objs[n[0]].label;
+        }
+
+        nav_insert_tab_li(ul, n[0], name);
+
         nav_insert_tab_div(container, n[0]);
 
         var div = ul.parent().children().last();

@@ -48,7 +48,7 @@ function search_create(obj_name, scl, container)
     var jobj = div.children().last();
     jobj.append('<input type="text" />');
     jobj.children().last().attr('name', 'search-' + obj_name + '-filter')
-    jobj.append('<input type="submit" value="find" />');;
+    jobj.append('<input type="submit" value="'+ipa_messages.button.find+ '" />');
     jobj.children().last().click(find_on_click);
     div.append('<span class="search-buttons"></span>');
 

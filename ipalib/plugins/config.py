@@ -70,6 +70,8 @@ class config(LDAPObject):
         'ipamigrationenabled', 'ipacertificatesubjectbase',
     ]
 
+    label = _('Configuration')
+
     takes_params = (
         Int('ipamaxusernamelength?',
             cli_name='maxusername',

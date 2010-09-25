@@ -1,21 +1,21 @@
-prefix = @prefix@
+prefix = /usr
 exec_prefix = ${prefix}
 datarootdir = ${prefix}/share
 datadir = ${datarootdir}
 localedir = ${datarootdir}/locale
 
-INSTALL = @INSTALL@
-INSTALL_DATA = @INSTALL@ -m 644
-AWK = @AWK@
-SED = @SED@
-MKDIR_P = @MKDIR_P@
-XGETTEXT = @XGETTEXT@
-MSGFMT = @MSGFMT@
-MSGINIT = @MSGINIT@
-MSGMERGE = @MSGMERGE@
-MSGCMP = @MSGCMP@
+INSTALL = /usr/bin/install -c
+INSTALL_DATA = /usr/bin/install -c -m 644
+AWK = gawk
+SED = /bin/sed
+MKDIR_P = /bin/mkdir -p
+XGETTEXT = /usr/bin/xgettext
+MSGFMT = /usr/bin/msgfmt
+MSGINIT = /usr/bin/msginit
+MSGMERGE = /usr/bin/msgmerge
+MSGCMP = /usr/bin/msgcmp
 
-DOMAIN = @GETTEXT_DOMAIN@
+DOMAIN = ipa
 MSGMERGE_UPDATE = $(MSGMERGE) --update
 
 COPYRIGHT_HOLDER = Red Hat
