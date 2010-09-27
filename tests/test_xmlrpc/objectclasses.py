@@ -94,3 +94,15 @@ hbacsvcgroup = [
     u'groupOfNames',
     u'top',
 ]
+
+sudocmd = [
+    u'ipaobject',
+    u'ipasudocmd',
+]
+
+sudocmdgroup = [
+    u'ipaobject',
+    u'ipasudocmdgrp',
+    u'groupOfNames',
+    u'top',
+]
