@@ -28,7 +28,7 @@ import logging
 import re
 
 from ipalib import api, errors, output, uuid
-from ipalib import Command, List, Password, Str
+from ipalib import Command, List, Password, Str, Flag
 from ipalib.cli import to_cli
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
@@ -196,6 +196,10 @@ class migrate_ds(Command):
             default=u'ou=groups',
             autofill=True,
         ),
+        Flag('continue?',
+            doc=_('Continous operation mode. Errors are reported but the process continues'),
+            default=False,
+        ),
     )
 
     has_output = (
@@ -283,10 +287,17 @@ can use their Kerberos accounts.''')
             failed[ldap_obj_name] = {}
 
             # FIXME: with limits set, we get a strange 'Success' exception
-            (entries, truncated) = ds_ldap.find_entries(
-                search_filter, ['*'], search_base, ds_ldap.SCOPE_ONELEVEL#,
-                #time_limit=0, size_limit=0
-            )
+            try:
+                (entries, truncated) = ds_ldap.find_entries(
+                    search_filter, ['*'], search_base, ds_ldap.SCOPE_ONELEVEL#,
+                    #time_limit=0, size_limit=0
+                )
+            except errors.NotFound:
+                if not options.get('continue',False):
+                    raise errors.NotFound(reason=_('Container for %(container)s not found' % {'container':ldap_obj_name}))
+                else:
+                    truncated = False
+                    entries = []
             if truncated:
                 self.log.error(
                     '%s: %s' % (
@@ -380,6 +391,6 @@ can use their Kerberos accounts.''')
                 one_value_per_line=True,
             )
         textui.print_plain('-' * len(self.name))
-        textui.print_plain(self.pwd_migration_msg)
+        textui.print_plain(unicode(self.pwd_migration_msg))
 
 api.register(migrate_ds)

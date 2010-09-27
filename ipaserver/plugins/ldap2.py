@@ -231,7 +231,10 @@ class ldap2(CrudBackend, Encoder):
         except AttributeError:
             self.ldap_uri = 'ldap://example.com'
         try:
-            self.base_dn = base_dn or api.env.basedn
+            if base_dn is not None:
+                self.base_dn = base_dn
+            else:
+                self.base_dn = api.env.basedn
         except AttributeError:
             self.base_dn = ''
         self.schema = schema or _schema
@@ -552,8 +555,13 @@ class ldap2(CrudBackend, Encoder):
     def get_ipa_config(self):
         """Returns the IPA configuration entry (dn, entry_attrs)."""
         cdn = "%s,%s" % (api.Object.config.get_dn(), api.env.basedn)
-        return self.find_entries(None, None, cdn, self.SCOPE_BASE,
-            time_limit=2, size_limit=10)[0][0]
+        try:
+            return self.find_entries(None, None, cdn, self.SCOPE_BASE,
+                time_limit=2, size_limit=10)[0][0]
+        except errors.NotFound:
+            return (cdn, {'ipasearchtimelimit': [2], 'ipasearchrecordslimit': [0]})
+        except Exception, e:
+            raise e
 
     def get_schema(self):
         """Returns a copy of the current LDAP schema."""
