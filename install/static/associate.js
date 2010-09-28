@@ -65,6 +65,7 @@ in a single rpc
 */
 function BulkAssociator(form, manyObjPkeys, on_success)
 {
+    var associator = this;
     this.form = form;
     this.manyObjPkeys = manyObjPkeys;
     this.on_success = on_success;
@@ -88,7 +89,7 @@ function BulkAssociator(form, manyObjPkeys, on_success)
                      if (response.error){
                          alert("error adding member: "+response.error.message);
                      }else{
-                         form.on_success();
+                         associator.on_success();
                      }
                  },
                  function(response){

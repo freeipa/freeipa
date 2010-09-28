@@ -78,7 +78,13 @@ test("Testing ipa_entity_generate_views().", function() {
     );
 
     var container = $("<div/>");
-    ipa_entity_generate_views("user", container);
+
+    var counter = 0;
+    var callback = function() {
+        counter++;
+    };
+
+    ipa_entity_generate_views("user", container, callback);
 
     var list = container.children();
     var facets = list.children();
@@ -92,15 +98,19 @@ test("Testing ipa_entity_generate_views().", function() {
 
     equals(
         search.attr("title"), "search",
-        "Checking the first facet"
+        "Checking the search facet"
     )
+
+    search.click();
 
     var details = search.next();
 
     equals(
         details.attr("title"), "details",
-        "Checking the second facet"
+        "Checking the details facet"
     )
+
+    details.click();
 
     var facet = details.next();
     var attribute_members = ipa_objs["user"].attribute_members;
@@ -111,10 +121,17 @@ test("Testing ipa_entity_generate_views().", function() {
 
             equals(
                 facet.attr("title"), object,
-                "Checking the next facet"
+                "Checking the "+object+" facet"
             );
+
+            facet.click();
 
             facet = facet.next();
         }
     }
+
+    equals(
+        counter, 6,
+        "Checking callback invocations"
+    );
 });

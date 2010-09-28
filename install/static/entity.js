@@ -59,6 +59,19 @@ function ipa_entity_setup(jobj)
         return (false);
     };
 
+    function switch_view() {
+        var enroll_obj_name = $(this).attr('title');
+        var state = {};
+        if (enroll_obj_name != 'search' && enroll_obj_name != 'details') {
+            state[obj_name + '-facet'] = 'associate';
+            state[obj_name + '-enroll'] = enroll_obj_name;
+        } else {
+            state[obj_name + '-facet'] = enroll_obj_name;
+            state[obj_name + '-enroll'] = '';
+        }
+        $.bbq.pushState(state);
+    };
+
     function setup_search_facet() {
         var filter = $.bbq.getState(obj_name + '-filter', true);
         search_create(obj_name, ipa_entity_search_list[obj_name], jobj);
@@ -71,7 +84,7 @@ function ipa_entity_setup(jobj)
 
     function setup_details_facet() {
         var pkey = $.bbq.getState(obj_name + '-pkey', true);
-        ipa_entity_generate_views(obj_name, jobj);
+        ipa_entity_generate_views(obj_name, jobj, switch_view);
         ipa_details_create(obj_name, ipa_entity_details_list[obj_name], jobj);
         jobj.find('.details-reset').click(reset_on_click);
         jobj.find('.details-update').click(update_on_click);
@@ -90,7 +103,7 @@ function ipa_entity_setup(jobj)
             }
         ];
         var frm = new AssociationList(obj_name, pkey, enroll_obj_name, columns, jobj);
-        ipa_entity_generate_views(obj_name, jobj);
+        ipa_entity_generate_views(obj_name, jobj, switch_view);
         frm.setup();
     };
 
@@ -106,21 +119,8 @@ function ipa_entity_setup(jobj)
     }
 }
 
-function ipa_entity_generate_views(obj_name, container)
+function ipa_entity_generate_views(obj_name, container, switch_view)
 {
-    function switch_view() {
-        var enroll_obj_name = $(this).attr('title');
-        var state = {};
-        if (enroll_obj_name != 'search' && enroll_obj_name != 'details') {
-            state[obj_name + '-facet'] = 'associate';
-            state[obj_name + '-enroll'] = enroll_obj_name;
-        } else {
-            state[obj_name + '-facet'] = enroll_obj_name;
-            state[obj_name + '-enroll'] = '';
-        }
-        $.bbq.pushState(state);
-    };
-
     var ul = $('<ul></ul>', {'class': 'entity-views'});
 
     //TODO replace the plus image with the correct image for each facet
