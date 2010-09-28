@@ -75,9 +75,13 @@ function ipa_entity_setup(jobj)
     function setup_search_facet() {
         var filter = $.bbq.getState(obj_name + '-filter', true);
         search_create(obj_name, ipa_entity_search_list[obj_name], jobj);
-        var input = jobj.find('input[value=find]');
-        input.after('<input type="submit" value="new" />');
-        input.next().click(new_on_click);
+
+        $('<input />',{
+            type:"submit",
+            value: ipa_messages.button.add, 
+            click:new_on_click
+        }).appendTo($( "div#" + obj_name + " > div.search-controls"));
+
         if (typeof filter != 'undefined')
             search_load(obj_name, filter, null, null);
     };
