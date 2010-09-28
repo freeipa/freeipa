@@ -28,17 +28,25 @@ function nav_create(nls, container, tabclass)
     nav_generate_tabs(nls, container, tabclass, 1);
 
     var tabs = $('.' + tabclass);
-    tabs.tabs({event: 'change'});
-    tabs.find('ul.ui-tabs-nav a').click(_nav_tab_on_click);
+    tabs.tabs({
+        select: function(event, ui) {
+            var state = {};
+            var id = $(ui.panel).parent().attr('id');
+            state[id] = ui.index;
+            $.bbq.pushState(state);
+            return true;
+        }
+    });
 }
 
 function nav_generate_tabs(nls, container, tabclass, depth)
 {
     container.addClass(tabclass);
     container.addClass('tabs'+depth);
-    container.prepend('<ul></ul>');
 
-    var ul = container.children().first();
+    var ul = $('<ul/>');
+    container.append(ul);
+
     for (var i = 0; i < nls.length; ++i) {
         var n = nls[i];
 
@@ -47,11 +55,12 @@ function nav_generate_tabs(nls, container, tabclass, depth)
             name = ipa_objs[n[0]].label;
         }
 
-        nav_insert_tab_li(ul, n[0], name);
+        var li = nav_create_tab_li(n[0], name);
+        ul.append(li);
 
-        nav_insert_tab_div(container, n[0]);
+        var div = nav_create_tab_div(n[0]);
+        container.append(div);
 
-        var div = ul.parent().children().last();
         if (typeof n[2] == 'function') {
             n[2](div);
         } else if (n[2].length) {
@@ -60,28 +69,36 @@ function nav_generate_tabs(nls, container, tabclass, depth)
     }
 }
 
-var _nav_li_tab_template = '<li><a href="#I">N</a></li>';
-
-function nav_insert_tab_li(jobj, id, name)
+function nav_create_tab_li(id, name)
 {
-    jobj.append(_nav_li_tab_template.replace('I', id).replace('N', name));
+    return $('<li/>').append($('<a/>', {
+        href: '#'+id,
+        title: id,
+        html: name
+    }));
 }
 
-var _nav_div_tab_template = '<div id="T"></div>';
-
-function nav_insert_tab_div(jobj, id)
+function nav_create_tab_div(id)
 {
-    jobj.append(_nav_div_tab_template.replace('T', id));
+    return $('<div/>', {
+        id: id
+    });
 }
 
-function _nav_tab_on_click(obj)
+function nav_select_tabs(nls, container)
 {
-    var jobj = $(this);
-    var state = {};
-    var id = jobj.closest('.tabs').attr('id');
-    var index = jobj.parent().prevAll().length;
+    var id = container.attr('id');
+    var selectedTab = $.bbq.getState(id, true) || 0;
+    if (selectedTab >= nls.length) selectedTab = 0;
+    container.tabs('select', selectedTab);
 
-    state[id] = index;
-    $.bbq.pushState(state);
+    for (var i = 0; i < nls.length; ++i) {
+        var n = nls[i];
+
+        var div = $('#'+n[0]);
+
+        if (typeof n[2] != 'function' && n[2].length) {
+            nav_select_tabs(n[2], div);
+        }
+    }
 }
-

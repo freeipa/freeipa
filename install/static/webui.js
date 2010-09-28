@@ -60,7 +60,6 @@ $(function() {
             if (whoami.hasOwnProperty('memberof_rolegroup') &&
                 whoami.memberof_rolegroup.length > 0){
                 nav_tabs_lists = admin_tabs_lists;
-                window_hashchange(null);
             }else{
                 nav_tabs_lists = self_serv_tabs_lists;
 
@@ -69,7 +68,11 @@ $(function() {
                              'details'};
                 $.bbq.pushState(state);
             }
-            nav_create(nav_tabs_lists, $('#navigation'), 'tabs');
+
+            var navigation = $('#navigation');
+            nav_create(nav_tabs_lists, navigation, 'tabs');
+            nav_select_tabs(nav_tabs_lists, navigation);
+
             $('#login_header').html(ipa_messages.login.header);
         }else{
             alert("Unable to find prinicpal for logged in user");
@@ -98,11 +101,8 @@ var window_hash_cache = {};
 /* main loop (hashchange event handler) */
 function window_hashchange(evt)
 {
-    $('.tabs').each(function () {
-        var jobj = $(this);
-        var index = $.bbq.getState(jobj.attr('id'), true) || 0;
-        jobj.find('ul.ui-tabs-nav a').eq(index).triggerHandler('change');
-    });
+    var navigation = $('#navigation');
+    nav_select_tabs(nav_tabs_lists, navigation);
 
     for (var i = 0; i < nav_tabs_lists.length; ++i) {
         var t = nav_tabs_lists[i];
@@ -111,7 +111,7 @@ function window_hashchange(evt)
                 var tt = t[2][j];
                 var obj_name = tt[0];
                 var entity_setup = tt[2];
-                var div = $('#' + t[0] + ' div[title=' + obj_name + ']');
+                var div = $('#' + tt[0]);
 
                 var state = obj_name + '-facet';
                 var facet = $.bbq.getState(state, true) || 'search';
@@ -133,7 +133,7 @@ function window_hashchange(evt)
                     var last_pkey = window_hash_cache[state];
                     if (pkey != last_pkey)
                         entity_setup(div);
-                } else if (facet == 'associate' || facet == 'enroll') {
+                } else if (facet == 'associate') {
                     state = obj_name + '-enroll';
                     var enroll = $.bbq.getState(state, true);
                     var last_enroll = window_hash_cache[state];
