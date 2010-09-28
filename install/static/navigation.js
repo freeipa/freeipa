@@ -18,6 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
+
 function nav_create(nls, container, tabclass)
 {
     if (!container)
@@ -50,21 +51,21 @@ function nav_generate_tabs(nls, container, tabclass, depth)
     for (var i = 0; i < nls.length; ++i) {
         var n = nls[i];
 
-        var name = n[1];
-        if ((ipa_objs[n[0]]) && (ipa_objs[n[0]].label)){
-            name = ipa_objs[n[0]].label;
+        var name = n.name;
+        if ((ipa_objs[n.name]) && (ipa_objs[n.name].label)){
+            name = ipa_objs[n.name].label;
         }
 
-        var li = nav_create_tab_li(n[0], name);
+        var li = nav_create_tab_li(n.name, name);
         ul.append(li);
 
-        var div = nav_create_tab_div(n[0]);
+        var div = nav_create_tab_div(n.name);
         container.append(div);
 
-        if (typeof n[2] == 'function') {
-            n[2](div);
-        } else if (n[2].length) {
-            nav_generate_tabs(n[2], div, tabclass, depth +1 );
+        if (n.setup) {
+            n.setup(div);
+        } else if (n.children) {
+            nav_generate_tabs(n.children, div, tabclass, depth +1 );
         }
     }
 }
@@ -95,10 +96,10 @@ function nav_select_tabs(nls, container)
     for (var i = 0; i < nls.length; ++i) {
         var n = nls[i];
 
-        var div = $('#'+n[0]);
+        var div = $('#'+n.name);
 
-        if (typeof n[2] != 'function' && n[2].length) {
-            nav_select_tabs(n[2], div);
+        if ( (!n.setup) && n.children) {
+            nav_select_tabs(n.children, div);
         }
     }
 }

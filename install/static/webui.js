@@ -21,26 +21,30 @@
 /* REQUIRES: everything, this file puts it all togheter */
 
 /* tabs definition for IPA webUI */
-var admin_tabs_lists = [
-    ['identity', 'IDENTITY', [
-        ['user', 'Users', ipa_entity_setup],
-        ['group', 'Groups', ipa_entity_setup],
-        ['host', 'Hosts', ipa_entity_setup],
-        ['hostgroup', 'Hostgroups', ipa_entity_setup],
-        ['netgroup', 'Netgroups', ipa_entity_setup],
-        ['service', 'Services', ipa_entity_setup],
-    ]],
-    ['policy', 'POLICY', unimplemented_tab],
-    ['config', 'CONFIG', [
-        ['rolegroup', 'Rolegroups', ipa_entity_setup]
-    ]]
+
+
+var admin_tab_set = [
+    {name:'identity', label:'IDENTITY', children:[
+        {name:'user', label:'Users', setup: ipa_entity_setup},
+        {name:'group', label:'Groups', setup: ipa_entity_setup},
+        {name:'host', label:'Hosts', setup: ipa_entity_setup},
+        {name:'hostgroup', label:'Hostgroups', setup: ipa_entity_setup},
+        {name:'netgroup', label:'Netgroups', setup: ipa_entity_setup},
+        {name:'service', label:'Services', setup: ipa_entity_setup},
+    ]},
+    {name:'policy', label:'POLICY', setup: unimplemented_tab},
+    {name:'config', label:'CONFIG', children: [
+        {name:'rolegroup', label:'Rolegroups', setup: ipa_entity_setup}
+    ]}
 ];
+
+
 
 
 var self_serv_tabs_lists =
     [
-    ['identity', 'IDENTITY', [
-        ['user', 'Users', ipa_entity_setup]]]];
+        { name:'identity', label:'IDENTITY', children: [
+            {name:'user', label:'Users', setup:ipa_entity_setup}]}];
 
 var nav_tabs_lists;
 
@@ -59,9 +63,9 @@ $(function() {
                 {'user-facet':'details', 'user-pkey':whoami_pkey},2);
             if (whoami.hasOwnProperty('memberof_rolegroup') &&
                 whoami.memberof_rolegroup.length > 0){
-                nav_tabs_lists = admin_tabs_lists;
+                nav_tabs_lists = admin_tab_set;
             }else{
-                nav_tabs_lists = self_serv_tabs_lists;
+                nav_tabs_lists = self_serv_tab_set;
 
                 var state = {'user-pkey':whoami_pkey ,
                              'user-facet': jQuery.bbq.getState('user-facet') ||
@@ -106,12 +110,12 @@ function window_hashchange(evt)
 
     for (var i = 0; i < nav_tabs_lists.length; ++i) {
         var t = nav_tabs_lists[i];
-        if (typeof t[2] != 'function' && t[2].length) {
-            for (var j = 0; j < t[2].length; ++j) {
-                var tt = t[2][j];
-                var obj_name = tt[0];
-                var entity_setup = tt[2];
-                var div = $('#' + tt[0]);
+        if (!(t.setup) && t.children) {
+            for (var j = 0; j < t.children.length; ++j) {
+                var tt = t.children[j];
+                var obj_name = tt.name;
+                var entity_setup = tt.setup;
+                var div = $('#' + tt.name);
 
                 var state = obj_name + '-facet';
                 var facet = $.bbq.getState(state, true) || 'search';
