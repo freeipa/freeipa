@@ -15,6 +15,7 @@ Developers:
 	Simo Sorce
 	Andrew Wnuk
 	Pavel Zůna
+	Jr Aquino
 
 Documentation:
 	David O'Brien
