@@ -1,4 +1,4 @@
-# Language iw translations for ipa package.
+# Japanese translations for ipa package.
 # Copyright (C) 2010 Red Hat
 # This file is distributed under the same license as the ipa package.
 # Automatically generated, 2010.
@@ -6,17 +6,17 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/newticket\n"
+"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
+"newticket\n"
 "POT-Creation-Date: 2010-09-27 10:25-0400\n"
-"PO-Revision-Date: 2010-09-27 10:23-0400\n"
+"PO-Revision-Date: 2010-09-27 10:25-0400\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
-"Language: iw\n"
+"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
-
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: ../../ipalib/parameters.py:295
 msgid "incorrect type"
@@ -235,7 +235,6 @@ msgstr ""
 msgid "command %(name)r takes at most %(count)d argument"
 msgid_plural "command %(name)r takes at most %(count)d arguments"
 msgstr[0] ""
-msgstr[1] ""
 
 #: ../../ipalib/errors.py:674
 #, python-format
@@ -517,7 +516,6 @@ msgstr ""
 msgid "%(count)d rolegroup matched"
 msgid_plural "%(count)d rolegroups matched"
 msgstr[0] ""
-msgstr[1] ""
 
 #: ../../ipalib/plugins/host.py:86
 msgid "Fully-qualified hostname required"
@@ -632,7 +630,6 @@ msgstr ""
 msgid "%(count)d host matched"
 msgid_plural "%(count)d hosts matched"
 msgstr[0] ""
-msgstr[1] ""
 
 #: ../../ipalib/plugins/host.py:337 ../../ipalib/plugins/service.py:83
 msgid "Keytab"
@@ -695,7 +692,6 @@ msgstr ""
 msgid "%(count)d group matched"
 msgid_plural "%(count)d groups matched"
 msgstr[0] ""
-msgstr[1] ""
 
 #: ../../ipalib/plugins/group.py:254
 #, python-format
@@ -831,7 +827,6 @@ msgstr ""
 msgid "%(count)d service matched"
 msgid_plural "%(count)d services matched"
 msgstr[0] ""
-msgstr[1] ""
 
 #: ../../ipalib/plugins/service.py:396
 msgid "Service principal has no kerberos key"
@@ -1207,7 +1202,6 @@ msgstr ""
 msgid "%(count)d ACI matched"
 msgid_plural "%(count)d ACIs matched"
 msgstr[0] ""
-msgstr[1] ""
 
 #: ../../ipalib/plugins/krbtpolicy.py:63
 msgid "Manage ticket policy for specific user"
@@ -1437,7 +1431,6 @@ msgstr ""
 msgid "%(count)d plugin loaded"
 msgid_plural "%(count)d plugins loaded"
 msgstr[0] ""
-msgstr[1] ""
 
 #: ../../ipalib/plugins/misc.py:116
 msgid "Number of plugins loaded"
@@ -1535,7 +1528,6 @@ msgstr ""
 msgid "%(count)d user matched"
 msgid_plural "%(count)d users matched"
 msgstr[0] ""
-msgstr[1] ""
 
 #: ../../ipalib/plugins/user.py:278
 #, python-format
@@ -1583,7 +1575,6 @@ msgstr ""
 msgid "%(count)d taskgroup matched"
 msgid_plural "%(count)d taskgroups matched"
 msgstr[0] ""
-msgstr[1] ""
 
 #: ../../ipalib/plugins/hostgroup.py:74
 msgid "Host-group"
@@ -1625,7 +1616,6 @@ msgstr ""
 msgid "%(count)d hostgroup matched"
 msgid_plural "%(count)d hostgroups matched"
 msgstr[0] ""
-msgstr[1] ""
 
 #: ../../ipalib/plugins/pwpolicy.py:84
 #, python-format

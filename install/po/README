@@ -22,6 +22,9 @@ A: Edit the LINGUAS file and add the new language. Then run "make create-po".
    yet. Be sure to add the new .po file(s) to the source code repository.  For
    certain languages, you may have to edit the Plurals line.  See:
    http://www.gnu.org/software/hello/manual/gettext/Plural-forms.html
+   However, if this line is wrong, it is often an indicator that the locale
+   value is incorrect.  For example, using 'jp' for Japanese in stead of 'ja'
+   will result in an invailid Plural's line.
 
 Q: What files must be under source code control?
 
