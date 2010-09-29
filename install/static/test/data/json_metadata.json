@@ -3103,7 +3103,7 @@
                         "doc": "User login",
                         "exclude": null,
                         "flags": [],
-                        "hint": null,
+                        "hint": "Numeric user Identifer",
                         "include": null,
                         "label": "User login",
                         "length": null,

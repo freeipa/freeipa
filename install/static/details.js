@@ -1,5 +1,6 @@
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
+ *    Adam Young <ayoung@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -43,8 +44,8 @@ function ipa_details_create(obj_name, dls, container)
 
     details.append('<div class="details-buttons"></div>');
     var jobj = details.children().last();
-    jobj.append('<a class="details-reset" href="jslink">Reset</a>');
-    jobj.append('<a class="details-update" href="jslink">Update</a>');
+    jobj.append('<a class="details-reset ui-state-default ui-corner-all input_link " href="jslink"><span class="ui-icon ui-icon-refresh" ></span> Reset</a>');
+    jobj.append('<a class="details-update ui-state-default ui-corner-all input_link  " href="jslink"><span class="ui-icon ui-icon-check" ></span>Update</a>');
 
     details.append('<hr />');
 
@@ -58,21 +59,23 @@ function ipa_details_create(obj_name, dls, container)
     jobj.append('<a href="#details-viewtype">Back to Top</a>');
 }
 
-var _ipa_h2_template = '<h2 onclick="_h2_on_click(this)">&#8722; I</h2>';
-var _ipa_dl_template = '<dl id="I" class="entryattrs"></dl>';
-var _ipa_dt_template = '<dt title="T">N:</dt>';
 
 function ipa_generate_dl(jobj, id, name, dts)
 {
     if (!dts)
         return;
 
-    var obj_name = jobj.parent().attr('title');
+    var parent = jobj.parent();
+    var obj_name = parent.attr('title');
 
-    jobj.after(_ipa_h2_template.replace('I', name));
-    jobj = jobj.next();
-    jobj.after(_ipa_dl_template.replace('I', id));
-    jobj = jobj.next();
+    parent.append($("<h2/>",{
+        click: function(){_h2_on_click(this)},
+        html:"&#8722; "+name
+    }));
+
+    var dl = $('<dl></dl>',{
+        id:id,
+        "class":"entryattrs"})
 
     for (var i = 0; i < dts.length; ++i) {
         var label = '';
@@ -83,12 +86,14 @@ function ipa_generate_dl(jobj, id, name, dts)
         }
         if ((!label) && (dts[i].length > 1))
             label = dts[i][1];
-        jobj.append(
-            _ipa_dt_template.replace('T', dts[i][0]).replace('N', label)
+        dl.append(
+            $('<dt/>',{
+                title:dts[i][0],
+                html:label+":"})
         );
     }
-
-    jobj.after('<hr />');
+    parent.append(dl);
+    parent.append('<hr/>');
 }
 
 function ipa_details_load(jobj, pkey, on_win, on_fail)
@@ -210,6 +215,7 @@ function ipa_details_update(obj_name, pkey, on_win, on_fail)
 var _ipa_a_add_template =
     '<a href="jslink" onclick="return (_ipa_add_on_click(this))" title="A">Add</a>';
 var _ipa_span_doc_template = '<span class="attrhint">Hint: D</span>';
+var _ipa_span_hint_template = '<span class="attrhint">Hint: D</span>';
 
 /* populate definition lists with the class 'entryattrs' with entry attributes
  *
@@ -248,26 +254,29 @@ function ipa_details_display(obj_name, entry_attrs)
         } else {
             /* title contains attribute name - default behaviour */
             var multivalue = false;
-            var hint_span = '';
+            var hint_span = null;
 
             var param_info = ipa_get_param_info(obj_name, attr);
             if (param_info) {
                 if (param_info['multivalue'] || param_info['class'] == 'List')
                     multivalue = true;
                 var hint = param_info['hint'];
-                if (hint)
-                    hint_span = _ipa_span_hint_template.replace('D', hint);
+                if (hint){
+                    hint_span = $("<span />",{
+                        "class":"attrhint",
+                        html:"Hint: " + hint});
+                }
             }
 
             var value = entry_attrs[attr];
             if (value) {
                 ipa_insert_first_dd(
-                    jobj, ipa_create_input(obj_name, attr, value[0]) + hint_span
+                    jobj, ipa_create_input(obj_name, attr, value[0],hint_span)
                 );
                 for (var i = 1; i < value.length; ++i) {
                     jobj = jobj.next();
                     ipa_insert_other_dd(
-                      jobj, ipa_create_input(obj_name, attr, value[i])
+                      jobj, ipa_create_input(obj_name, attr, value[i],hint_span)
                     );
                 }
                 if (multivalue) {
@@ -278,11 +287,11 @@ function ipa_details_display(obj_name, entry_attrs)
             } else {
                 if (multivalue) {
                     ipa_insert_first_dd(
-                        jobj, _ipa_a_add_template.replace('A', attr) + hint_span
+                        jobj, _ipa_a_add_template.replace('A', attr) /*.append( hint_span)*/
                     );
                 } else {
                     ipa_insert_first_dd(
-                        jobj, ipa_create_input(obj_name, attr, '') + hint_span
+                        jobj, ipa_create_input(obj_name, attr, '')/*.append( hint_span)*/
                     );
                 }
             }
@@ -290,18 +299,16 @@ function ipa_details_display(obj_name, entry_attrs)
     });
 }
 
-var _ipa_dd_first_template = '<dd class="first">I</dd>';
 
 function ipa_insert_first_dd(jobj, content)
 {
-    jobj.after(_ipa_dd_first_template.replace('I', content));
-}
+    jobj.after( $('<dd class="first"></dd>').append(content))
 
-var _ipa_dd_other_template = '<dd class="other">I</dd>';
+}
 
 function ipa_insert_other_dd(jobj, content)
 {
-    jobj.after(_ipa_dd_other_template.replace('I', content));
+    jobj.after($('<dd class="other"></dd>').append(content));
 }
 
 
@@ -317,32 +324,37 @@ var _ipa_param_type_2_handler_map = {
  * arguments:
  *   attr - LDAP attribute name
  *   value - the attributes value */
-function ipa_create_input(obj_name, attr, value)
+function ipa_create_input(obj_name, attr, value,hint)
 {
+    var input = $("<label>",{html:value.toString()});
     var param_info = ipa_get_param_info(obj_name, attr);
     if (!param_info) {
         /* no information about the param is available, default to text input */
-        return (_ipa_create_text_input(attr, value, null));
-    }
-
-    /* check if the param value can be modified */
-    if (param_info['primary_key'] || ('no_update' in param_info['flags']))
-        return (value.toString());
-
-    /* call handler by param class */
-    var handler = _ipa_param_type_2_handler_map[param_info['class']];
-    if (handler) {
-        if (param_info['multivalue'] || param_info['class'] == 'List') {
-            return (
-                handler(attr, value, param_info) +
-                    _ipa_create_remove_link(attr, param_info)
-            );
+        input = _ipa_create_text_input(attr, value, null);
+        if (hint){
+            input.after(hint);
         }
-        return (handler(attr, value, param_info));
+    }else if (param_info['primary_key'] ||
+              ('no_update' in param_info['flags'])){
+        /* check if the param value can be modified */
+        /*  THis is currently a no-op, as we use this logic for the
+            default case as well */
+    }else{
+        /* call handler by param class */
+        var handler = _ipa_param_type_2_handler_map[param_info['class']];
+        if (handler) {
+            if (param_info['multivalue'] || param_info['class'] == 'List') {
+                input = handler(attr, value, param_info) +
+                    _ipa_create_remove_link(attr, param_info);
+            }else{
+                input =  (handler(attr, value, param_info));
+                if (hint){
+                    input.after(hint);
+                }
+            }
+        }
     }
-
-    /* no handler for this type? don't allow modification */
-    return (value.toString());
+    return input;
 }
 
 /* HTML template for _ipa_create_remove_link() */
@@ -363,24 +375,48 @@ function _ipa_create_remove_link(attr, param_info)
     return (_ipa_a_remove_template.replace('A', attr));
 }
 
-/* HTML template for _ipa_create_text_input() */
-var _ipa_input_text_template =
-    '<input type="text" name="A" value="V" />';
 
 /* creates a input box for editing a string attribute */
 function _ipa_create_text_input(attr, value, param_info)
 {
-    return (
-        _ipa_input_text_template.replace('A', attr).replace(
-            'V', value.toString()
-        )
-    );
+    return $("<input/>",{
+        type:"text",
+        name:attr,
+        value:value.toString(),
+        keypress: function(){
+            var validation_info=param_info;
+            var undo_link=this.nextElementSibling;
+            undo_link.style.display ="inline";
+            if(false){
+                var error_link = undo_link.nextElementSibling;
+                error_link.style.display ="block";
+            }
+        }
+    }).after($("<a/>",{
+        html:"undo",
+        "class":"ui-state-highlight ui-corner-all",
+        style:"display:none",
+        click: function(){
+            var key = this.previousElementSibling.name;
+            var entity_divs = $(this).parents('.details-container');
+            var entry_attrs = ipa_details_cache[entity_divs[0].id];
+            var previous_value = entry_attrs[key] || "";
+            this.previousElementSibling.value =  previous_value;
+            this.style.display = "none";
+        }
+    })).after($("<span/>",{
+        html:"Does not match pattern",
+        "class":"ui-state-error ui-corner-all",
+        style:"display:none",
+    }));
+
 }
 
 function ipa_details_reset(obj_name)
 {
-    if (ipa_details_cache[obj_name])
+    if (ipa_details_cache[obj_name]){
         ipa_details_display(obj_name, ipa_details_cache[obj_name]);
+    }
 
 }
 
