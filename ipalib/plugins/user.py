@@ -215,11 +215,6 @@ class user_del(LDAPDelete):
 
     msg_summary = _('Deleted user "%(value)s"')
 
-    def pre_callback(self, ldap, dn, *keys, **options):
-        if keys[-1] == 'admin':
-            raise errors.ExecutionError('Cannot delete user "admin".')
-        return dn
-
     def post_callback(self, ldap, dn, *keys, **options):
         self.log.info('IPA: %s "%s"' % (self.name, keys[-1]))
         return True
