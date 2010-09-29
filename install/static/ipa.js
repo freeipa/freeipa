@@ -56,10 +56,10 @@ function ipa_init(url, use_static_files, on_win, on_error)
     $.ajaxSetup(ipa_ajax_options);
 
     ipa_cmd('json_metadata', [], {},
-        function(data, status, xhr) {
+        function(data, text_status, xhr) {
             ipa_objs = data.result.metadata;
             ipa_messages = data.result.messages;
-            if (on_win) on_win(data, status, xhr);
+            if (on_win) on_win(data, text_status, xhr);
         },
         on_error
     );
@@ -75,10 +75,26 @@ function ipa_init(url, use_static_files, on_win, on_error)
  *   objname - name of an IPA object (optional) */
 function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
 {
+    function ipa_success_handler(data, text_status, xhr) {
+        if (!data) {
+            var error_thrown = {
+                name: 'HTTP Error '+xhr.status,
+                message: data ? xhr.statusText : "No response"
+            }
+            ipa_error_handler(xhr, text_status, error_thrown);
+
+        } else if (win_callback) {
+            win_callback(data, text_status, xhr);
+        }
+    }
+
     function ipa_error_handler(xhr, text_status, error_thrown) {
         ipa_dialog.empty();
         ipa_dialog.attr('title', 'Error: '+error_thrown.name);
-        ipa_dialog.append('<p>'+error_thrown.message+'</p>');
+
+        if (error_thrown.message) {
+            ipa_dialog.append('<p>'+error_thrown.message+'</p>');
+        }
 
         ipa_dialog.dialog({
             modal: true,
@@ -120,7 +136,7 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
     var request = {
         url: url,
         data: JSON.stringify(data),
-        success: win_callback,
+        success: ipa_success_handler,
         error: ipa_error_handler
     };
 
