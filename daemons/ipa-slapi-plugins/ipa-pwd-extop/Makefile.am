@@ -20,6 +20,9 @@ plugin_LTLIBRARIES = 			\
 	$(NULL)
 
 libipa_pwd_extop_la_SOURCES = 		\
+	ipapwd_common.c			\
+	ipapwd_encoding.c		\
+	ipapwd_prepost.c		\
 	ipa_pwd_extop.c			\
 	$(NULL)
 
