@@ -33,6 +33,7 @@ from ipapython import dogtag
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import certmonger
+from ipapython.certdb import CA_NICKNAME
 from ipalib import pkcs10
 from ConfigParser import RawConfigParser, MissingSectionHeaderError
 import service
@@ -44,12 +45,7 @@ import nss.nss as nss
 
 from ipalib import api
 
-# The sha module is deprecated in Python 2.6, replaced by hashlib. Try
-# that first and fall back to sha.sha if it isn't available.
-try:
-    from hashlib import sha256 as sha
-except ImportError:
-    from sha import sha
+from ipalib.compat import sha1
 
 CA_SERIALNO="/var/lib/ipa/ca_serialno"
 
@@ -195,7 +191,7 @@ class CertDB(object):
         else:
             self.subject_format = "CN=%s,O=IPA"
 
-        self.cacert_name = "CA certificate"
+        self.cacert_name = CA_NICKNAME
         self.valid_months = "120"
         self.keysize = "1024"
 
@@ -268,7 +264,7 @@ class CertDB(object):
         os.chmod(fname, perms)
 
     def gen_password(self):
-        return sha(ipautil.ipa_generate_password()).hexdigest()
+        return sha1(ipautil.ipa_generate_password()).hexdigest()
 
     def run_certutil(self, args, stdin=None):
         new_args = ["/usr/bin/certutil", "-d", self.secdir]
@@ -857,7 +853,7 @@ class CertDB(object):
             else:
                 raise RuntimeError("unknown error import pkcs#12 file")
 
-    def export_pkcs12(self, pkcs12_fname, pkcs12_pwd_fname, nickname="CA certificate"):
+    def export_pkcs12(self, pkcs12_fname, pkcs12_pwd_fname, nickname=CA_NICKNAME):
         ipautil.run(["/usr/bin/pk12util", "-d", self.secdir,
                      "-o", pkcs12_fname,
                      "-n", nickname,

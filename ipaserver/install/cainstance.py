@@ -36,6 +36,7 @@ import urllib
 import xml.dom.minidom
 import stat
 from ipapython import dogtag
+from ipapython.certdb import CA_NICKNAME
 from ipalib import pkcs10
 import subprocess
 
@@ -381,7 +382,7 @@ class CAInstance(service.Service):
         # The same database is used for mod_nss because the NSS context
         # will already have been initialized by Apache by the time
         # mod_python wants to do things.
-        self.canickname = "CA certificate"
+        self.canickname = CA_NICKNAME
         self.basedn = "o=ipaca"
         self.ca_agent_db = tempfile.mkdtemp(prefix = "tmp-")
         self.ra_agent_db = "/etc/httpd/alias"

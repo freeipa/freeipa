@@ -21,9 +21,11 @@ from ipapython import ipautil
 from ipapython import nsslib
 from ipalib import pkcs10
 import tempfile
-import sha
+from ipalib.compat import sha1
 import shutil
 import os
+
+CA_NICKNAME = "IPA CA"
 
 class CertDB(object):
     """
@@ -64,7 +66,7 @@ class CertDB(object):
         return ipautil.run(new_args, stdin)
 
     def generate_random(self):
-        return sha.sha(ipautil.ipa_generate_password()).hexdigest()
+        return sha1(ipautil.ipa_generate_password()).hexdigest()
 
     def create_noise_file(self):
         """

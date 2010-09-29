@@ -522,7 +522,7 @@ class DsInstance(service.Service):
         first have to shut down the directory server in case it has
         opened the cert db read-only.  Then we use the CertDB class
         to add the CA cert.  We have to provide a nickname, and we
-        do not use 'CA certificate' since that's the default, so
+        do not use 'IPA CA' since that's the default, so
         we use 'Imported CA' if none specified.  Then we restart
         the server."""
         # first make sure we have a valid cacert_fname
