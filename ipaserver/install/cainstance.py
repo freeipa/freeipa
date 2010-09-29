@@ -245,7 +245,7 @@ class CADSInstance(service.Service):
         self.step("configuring directory to start on boot", self.__enable)
         self.step("restarting directory server", self.__restart_instance)
 
-        self.start_creation("Configuring directory server for the CA:")
+        self.start_creation("Configuring directory server for the CA", 30)
 
     def __setup_sub_dict(self):
         server_root = dsinstance.find_server_root()
@@ -455,7 +455,7 @@ class CAInstance(service.Service):
             self.step("configuring certificate server to start on boot", self.__enable)
             self.step("restarting certificate server", self.__restart_instance)
 
-        self.start_creation("Configuring certificate server:")
+        self.start_creation("Configuring certificate server", 360)
 
     def create_instance(self):
         """

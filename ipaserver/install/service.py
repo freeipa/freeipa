@@ -26,6 +26,8 @@ from ipalib import uuid, errors
 import ldap
 from ipaserver import ipaldap
 import base64
+import time
+import datetime
 
 
 def stop(service_name, instance_name=""):
@@ -233,13 +235,29 @@ class Service:
     def step(self, message, method):
         self.steps.append((message, method))
 
-    def start_creation(self, message):
-        self.print_msg(message)
+    def start_creation(self, message, runtime=-1):
+        if runtime > 0:
+            plural=''
+            est = time.localtime(runtime)
+            if est.tm_min > 0:
+                if est.tm_min > 1:
+                    plural = 's'
+                self.print_msg('%s: Estimated time %d minute%s' % (message, est.tm_min, plural))
+            else:
+                if est.tm_sec > 1:
+                    plural = 's'
+                self.print_msg('%s: Estimated time %d second%s' % (message, est.tm_sec, plural))
+        else:
+            self.print_msg(message)
 
         step = 0
         for (message, method) in self.steps:
             self.print_msg("  [%d/%d]: %s" % (step+1, len(self.steps), message))
+            s = datetime.datetime.now()
             method()
+            e = datetime.datetime.now()
+            d = e - s
+            logging.debug("  duration: %d seconds" % d.seconds)
             step += 1
 
         self.print_msg("done configuring %s." % self.service_name)

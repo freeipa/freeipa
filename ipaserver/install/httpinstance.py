@@ -83,7 +83,7 @@ class HTTPInstance(service.Service):
         self.step("restarting httpd", self.__start)
         self.step("configuring httpd to start on boot", self.__enable)
 
-        self.start_creation("Configuring the web interface")
+        self.start_creation("Configuring the web interface", 60)
 
     def __start(self):
         self.backup_state("running", self.is_running())

@@ -224,7 +224,7 @@ class DsInstance(service.Service):
 
         self.step("configuring directory to start on boot", self.__enable)
 
-        self.start_creation("Configuring directory server:")
+        self.start_creation("Configuring directory server", 60)
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())

@@ -178,7 +178,7 @@ class KrbInstance(service.Service):
 
         self.__common_post_setup()
 
-        self.start_creation("Configuring Kerberos KDC")
+        self.start_creation("Configuring Kerberos KDC", 30)
 
         self.kpasswd = KpasswdInstance()
 
@@ -199,7 +199,7 @@ class KrbInstance(service.Service):
 
         self.__common_post_setup()
 
-        self.start_creation("Configuring Kerberos KDC")
+        self.start_creation("Configuring Kerberos KDC", 30)
 
         self.kpasswd = KpasswdInstance()
         self.kpasswd.create_instance()
