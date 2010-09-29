@@ -74,8 +74,11 @@ def dns_container_exists(fqdn, realm):
         else:
             return True
 
-    server = ldap.initialize("ldap://" + fqdn)
-    server.simple_bind_s()
+    try:
+        server = ldap.initialize("ldap://" + fqdn)
+        server.simple_bind_s()
+    except ldap.SERVER_DOWN:
+        raise RuntimeError('LDAP server on %s is not responding. Is IPA installed?' % fqdn)
 
     suffix = util.realm_to_suffix(realm)
     ret = object_exists("cn=dns,%s" % suffix)

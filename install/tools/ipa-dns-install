@@ -110,6 +110,9 @@ def main():
     api.bootstrap(**cfg)
     api.finalize()
 
+    if bindinstance.dns_container_exists(api.env.host, api.env.realm):
+        sys.exit("\nDNS is already configured in this IPA server.")
+
     # Check we have a public IP that is associated with the hostname
     if options.ip_address:
         ip_address = options.ip_address
@@ -176,6 +179,8 @@ except SystemExit, e:
     sys.exit(e)
 except KeyboardInterrupt:
     print "Installation cancelled."
+except RuntimeError, e:
+    print str(e)
 except Exception, e:
     message = "Unexpected error - see ipaserver-install.log for details:\n %s" % str(e)
     print message
