@@ -222,30 +222,30 @@ function AssociationList(obj, pkey, manyObj, associationColumns, jobj)
     this.manyObj = manyObj;
     this.parentTab = jobj;
 
-    this.populate = function(userData) {
-       var tbody = this.parentTab.find('.search-table tbody');
-       tbody.empty();
-       var associationList = userData.result.result[this.associationColumns[0].column];
-       for (var j = 0; j < associationList.length; j++){
-            var row  = $("<tr/>").appendTo(tbody);
-            for (var k = 0; k < associationColumns.length ;k++){
-                var column = this.associationColumns[k].column;
-                $("<td></td>",{
-                    html: userData.result.result[column][j]
-                }).appendTo(row);
+    this.refresh = function() {
+
+        function refresh_on_success(userData) {
+           var tbody = this.parentTab.find('.search-table tbody');
+           tbody.empty();
+           var associationList = userData.result.result[this.associationColumns[0].column];
+           for (var j = 0; j < associationList.length; j++){
+                var row  = $("<tr/>").appendTo(tbody);
+                for (var k = 0; k < associationColumns.length ;k++){
+                    var column = this.associationColumns[k].column;
+                    $("<td></td>",{
+                        html: userData.result.result[column][j]
+                    }).appendTo(row);
+                }
             }
         }
-    }
 
-    this.refresh = function() {
-        ipa_cmd( 'show', [this.pkey], {},
-                 function(result){
-                     form.populate(result);
-                 },
-                 function(){
-                     alert("associationListFailure");
-                 },
-                 form.obj);
+        function refresh_on_error(xhr, text_status, error_thrown) {
+            var search_results = $('.search-results', jobj).empty();
+            search_results.append('<p>Error: '+error_thrown.name+'</p>');
+            search_results.append('<p>'+error_thrown.message+'</p>');
+        }
+
+        ipa_cmd('show', [this.pkey], {}, refresh_on_success, refresh_on_error, form.obj);
     }
 
     this.setup = function() {

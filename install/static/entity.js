@@ -83,7 +83,7 @@ function ipa_entity_setup(jobj)
         }).appendTo($( "div#" + obj_name + " > div.search-controls"));
 
         if (typeof filter != 'undefined')
-            search_load(obj_name, filter, null, null);
+            search_load(jobj, filter, null, null);
     };
 
     function setup_details_facet() {
@@ -92,8 +92,9 @@ function ipa_entity_setup(jobj)
         ipa_details_create(obj_name, ipa_entity_details_list[obj_name], jobj);
         jobj.find('.details-reset').click(reset_on_click);
         jobj.find('.details-update').click(update_on_click);
+
         if (pkey)
-            ipa_details_load(obj_name, pkey, null, null);
+            ipa_details_load(jobj, pkey, null, null);
     };
 
     function setup_associate_facet() {

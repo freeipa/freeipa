@@ -52,13 +52,19 @@ function search_create(obj_name, scl, container)
     jobj.children().last().click(find_on_click);
     div.append('<span class="search-buttons"></span>');
 
-    container.append('<table class="search-table"></table>');
-    jobj = container.children().last();
-    jobj.append('<thead><tr></tr></thead>');
-    jobj.append('<tbody></tbody>');
-    jobj.append('<tfoot></tfoot>');
+    var search_results = $('<div/>', {
+        class: 'search-results'
+    }).appendTo(container);
 
-    var tr = jobj.find('tr');
+    var search_table = $('<table/>', {
+        class: 'search-table'
+    }).appendTo(search_results);
+
+    search_table.append('<thead><tr></tr></thead>');
+    search_table.append('<tbody></tbody>');
+    search_table.append('<tfoot></tfoot>');
+
+    var tr = search_table.find('tr');
     for (var i = 0; i < scl.length; ++i) {
         var c = scl[i];
         search_insert_th(tr, obj_name, c[0], c[1], c[2]);
@@ -85,23 +91,29 @@ function search_insert_th(jobj, obj_name, attr, name, render_call)
     jobj.append(th);
 }
 
-function search_load(obj_name, criteria, on_win, on_fail)
+function search_load(jobj, criteria, on_win, on_fail)
 {
-    function load_on_win(data, text_status, xhr) {
+    var obj_name = jobj.attr('id');
+
+    function search_on_success(data, text_status, xhr) {
+        if (on_win)
+            on_win(data, text_status, xhr);
         if (data.error)
             return;
         search_display(obj_name, data);
-        if (on_win)
-            on_win(data, text_status, xhr);
     };
 
-    function load_on_fail(xhr, text_status, error_thrown) {
+    function search_on_error(xhr, text_status, error_thrown) {
         if (on_fail)
             on_fail(xhr, text_status, error_thrown);
-    };
+
+        var search_results = $('.search-results', jobj);
+        search_results.append('<p>Error: '+error_thrown.name+'</p>');
+        search_results.append('<p>'+error_thrown.message+'</p>');
+    }
 
     ipa_cmd(
-      'find', [criteria], {all: true}, load_on_win, load_on_fail, obj_name
+      'find', [criteria], {all: true}, search_on_success, search_on_error, obj_name
     );
 }
 

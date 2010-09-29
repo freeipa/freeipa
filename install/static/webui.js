@@ -75,7 +75,6 @@ $(function() {
 
             var navigation = $('#navigation');
             nav_create(nav_tabs_lists, navigation, 'tabs');
-            nav_select_tabs(nav_tabs_lists, navigation);
 
             $('#login_header').html(ipa_messages.login.header);
         }else{
@@ -84,71 +83,23 @@ $(function() {
     };
 
     function init_on_win(data, text_status, xhr) {
-        ipa_cmd('user_find', [], {"whoami":"true","all":"true"}, whoami_on_win,
-            function(xhr, options, thrownError) {
-                alert("Error: "+thrownError);
-            },
-            null
-        );
+        ipa_cmd('user_find', [], {"whoami":"true","all":"true"}, whoami_on_win, init_on_error, null);
     };
 
-    ipa_init(null, null, init_on_win,
-        function(xhr, options, thrownError) {
-            alert("Error: "+thrownError);
-        }
-    );
-});
+    function init_on_error(xhr, text_status, error_thrown) {
+        var navigation = $('#navigation').empty();
+        navigation.append('<p>Error: '+error_thrown.name+'</p>');
+        navigation.append('<p>'+error_thrown.message+'</p>');
+    }
 
-/* use this to track individual changes between two hashchange events */
-var window_hash_cache = {};
+    ipa_init(null, null, init_on_win, init_on_error);
+});
 
 /* main loop (hashchange event handler) */
 function window_hashchange(evt)
 {
     var navigation = $('#navigation');
-    nav_select_tabs(nav_tabs_lists, navigation);
-
-    for (var i = 0; i < nav_tabs_lists.length; ++i) {
-        var t = nav_tabs_lists[i];
-        if (!(t.setup) && t.children) {
-            for (var j = 0; j < t.children.length; ++j) {
-                var tt = t.children[j];
-                var obj_name = tt.name;
-                var entity_setup = tt.setup;
-                var div = $('#' + tt.name);
-
-                var state = obj_name + '-facet';
-                var facet = $.bbq.getState(state, true) || 'search';
-                var last_facet = window_hash_cache[state] || 'search';
-                if (facet != last_facet) {
-                    entity_setup(div);
-                    continue;
-                }
-
-                if (facet == 'search') {
-                    state = obj_name + '-filter';
-                    var filter = $.bbq.getState(state, true);
-                    var last_filter = window_hash_cache[state];
-                    if (filter != last_filter)
-                        entity_setup(div);
-                } else if (facet == 'details') {
-                    state = obj_name + '-pkey';
-                    var pkey = $.bbq.getState(state, true);
-                    var last_pkey = window_hash_cache[state];
-                    if (pkey != last_pkey)
-                        entity_setup(div);
-                } else if (facet == 'associate') {
-                    state = obj_name + '-enroll';
-                    var enroll = $.bbq.getState(state, true);
-                    var last_enroll = window_hash_cache[state];
-                    if (enroll != last_enroll)
-                        entity_setup(div);
-                }
-            }
-        }
-    }
-
-    window_hash_cache = $.bbq.getState();
+    nav_update_tabs(nav_tabs_lists, navigation);
 }
 
 /* builder function for unimplemented tab content */

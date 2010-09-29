@@ -41,17 +41,17 @@ test("Testing nav_create().", function() {
 
     }
     ipa_objs= {};
-    var navigation = $('<div id="navigation"/>');
+    var navigation = $('<div id="navigation"/>').appendTo(document.body);
     var user_mock_called = false;
     var group_mock_called = false;
     nav_create(mock_tabs_lists, navigation, 'tabs')
-    ok(user_mock_called, "mock setup was called");
-    ok(group_mock_called, "mock setup was called");
+    ok(user_mock_called, "mock user setup was called");
+    ok(!group_mock_called, "mock group setup was not called because the tab is inactive");
     same( navigation[0].children.length, 2, "Two Child tabs");
     same( navigation[0].children[1].id, 'identity', "Identity Tab");
     same( navigation[0].children[1].children[1].id, 'user', "User Tab");
     same( navigation[0].children[1].children[2].id, 'group', "User Tab");
-
+    navigation.remove();
 });
 
 test("Testing  nav_select_tabs().", function() {
@@ -64,12 +64,14 @@ test("Testing  nav_select_tabs().", function() {
                 {name:'two', label:'Two', setup: function (){}},
             ]}];
 
-    var navigation = $('<div id="navigation"/>');
+    var navigation = $('<div id="navigation"/>').appendTo(document.body);
 
     nav_create(mock_tabs_lists, navigation, 'tabs')
 
     $.bbq.pushState({"identity":2});
     nav_select_tabs(mock_tabs_lists, navigation);
     same( navigation[0].children[1].children[2].id, 'two', "Tab two");
+    $.bbq.removeState(["identity"]);
 
+    navigation.remove();
 });

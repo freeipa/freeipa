@@ -37,20 +37,24 @@ function ipa_details_create(obj_name, dls, container)
     container.attr('title', obj_name);
     container.addClass('details-container');
 
-    container.append('<div class="details-buttons"></div>');
-    var jobj = container.children().last();
+    var details = $('<div/>', {
+        class: 'details'
+    }).appendTo(container);
+
+    details.append('<div class="details-buttons"></div>');
+    var jobj = details.children().last();
     jobj.append('<a class="details-reset" href="jslink">Reset</a>');
     jobj.append('<a class="details-update" href="jslink">Update</a>');
 
-    container.append('<hr />');
+    details.append('<hr />');
 
     for (var i = 0; i < dls.length; ++i) {
         var d = dls[i];
-        ipa_generate_dl(container.children().last(), d[0], d[1], d[2]);
+        ipa_generate_dl(details.children().last(), d[0], d[1], d[2]);
     }
 
-    container.append('<div class="details-back"></div>');
-    var jobj = container.children().last();
+    details.append('<div class="details-back"></div>');
+    var jobj = details.children().last();
     jobj.append('<a href="#details-viewtype">Back to Top</a>');
 }
 
@@ -87,8 +91,10 @@ function ipa_generate_dl(jobj, id, name, dts)
     jobj.after('<hr />');
 }
 
-function ipa_details_load(obj_name, pkey, on_win, on_fail, sampleData)
+function ipa_details_load(jobj, pkey, on_win, on_fail)
 {
+    var obj_name = jobj.attr('id');
+
     function load_on_win(data, text_status, xhr) {
         if (on_win)
             on_win(data, text_status, xhr);
@@ -103,14 +109,17 @@ function ipa_details_load(obj_name, pkey, on_win, on_fail, sampleData)
     function load_on_fail(xhr, text_status, error_thrown) {
         if (on_fail)
             on_fail(xhr, text_status, error_thrown);
+
+        var details = $('.details', jobj).empty();
+        details.append('<p>Error: '+error_thrown.name+'</p>');
+        details.append('<p>'+error_thrown.message+'</p>');
     };
 
     if (!pkey)
         return;
 
     ipa_cmd(
-        'show', [pkey], {all: true}, load_on_win, load_on_fail,
-        obj_name, sampleData
+        'show', [pkey], {all: true}, load_on_win, load_on_fail, obj_name
     );
 }
 
@@ -301,7 +310,7 @@ var _ipa_param_type_2_handler_map = {
     'Str': _ipa_create_text_input,
     'Int': _ipa_create_text_input,
     'Bool': _ipa_create_text_input,
-    'List': _ipa_create_text_input,
+    'List': _ipa_create_text_input
 };
 
 /* create an HTML element for displaying/editing an attribute

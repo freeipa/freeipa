@@ -30,7 +30,7 @@ var ipa_ajax_options = {
     contentType: 'application/json',
     dataType: 'json',
     async: true,
-    processData: false,
+    processData: false
 };
 
 /* JSON-RPC ID counter */
@@ -40,6 +40,7 @@ var ipa_jsonrpc_id = 0;
 var ipa_messages = {};
 var ipa_objs = {};
 
+var ipa_dialog = $('<div/>', {id: 'ipa_dialog'});
 
 /* initialize the IPA JSON-RPC helper
  * arguments:
@@ -74,9 +75,33 @@ function ipa_init(url, use_static_files, on_win, on_error)
  *   objname - name of an IPA object (optional) */
 function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
 {
+    function ipa_error_handler(xhr, text_status, error_thrown) {
+        ipa_dialog.empty();
+        ipa_dialog.attr('title', 'Error: '+error_thrown.name);
+        ipa_dialog.append('<p>'+error_thrown.message+'</p>');
+
+        ipa_dialog.dialog({
+            modal: true,
+            width: 400,
+            buttons: {
+                'Retry': function() {
+                    ipa_dialog.dialog('close');
+                    ipa_cmd(name, args, options, win_callback, fail_callback, objname);
+                },
+                'Cancel': function() {
+                    ipa_dialog.dialog('close');
+                    fail_callback(xhr, text_status, error_thrown);
+                }
+            }
+        });
+    };
+
     id = ipa_jsonrpc_id++;
+
+    var method_name = name;
+
     if (objname)
-        name = objname + '_' + name;
+        method_name = objname + '_' + name;
 
     var url = ipa_json_url;
 
@@ -84,19 +109,19 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
         url = IPA_DEFAULT_JSON_URL;
 
     if (ipa_use_static_files)
-        url += '/' + name + '.json';
+        url += '/' + method_name + '.json';
 
     var data = {
-        method: name,
+        method: method_name,
         params: [args, options],
-        id: id,
+        id: id
     };
 
     var request = {
         url: url,
         data: JSON.stringify(data),
         success: win_callback,
-        error: fail_callback,
+        error: ipa_error_handler
     };
 
     $.ajax(request);
@@ -163,4 +188,3 @@ function ipa_get_member_attribute(obj_name, member)
 
     return null;
 }
-
