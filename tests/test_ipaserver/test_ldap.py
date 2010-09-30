@@ -29,6 +29,7 @@ import nose
 import os
 from ipaserver.plugins.ldap2 import ldap2
 from ipalib.plugins.service import service, service_show
+from ipalib.plugins.host import host
 import nss.nss as nss
 from ipalib import api, x509, create_api
 from ipapython import ipautil
@@ -105,12 +106,13 @@ class test_ldap(object):
         myapi = create_api(mode=None)
         myapi.bootstrap(context='cli', in_server=True, in_tree=True)
         myapi.register(ldap2)
+        myapi.register(host)
         myapi.register(service)
         myapi.register(service_show)
         myapi.finalize()
         myapi.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw='password')
 
-        result = myapi.Command['service_show']('ldap/%s@%s' %  (myapi.env.host, myapi.env.realm,))
+        result = myapi.Command['service_show']('ldap/%s@%s' %  (api.env.host, api.env.realm,))
         entry_attrs = result['result']
         cert = entry_attrs.get('usercertificate')
         cert = cert[0]
