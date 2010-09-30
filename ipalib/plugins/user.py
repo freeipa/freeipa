@@ -242,7 +242,7 @@ class user_find(LDAPSearch):
     Search for users.
     """
 
-    takes_options = (
+    takes_options = LDAPSearch.takes_options + (
         Flag('whoami',
             label=_('Self'),
             doc=_('Display user record for current Kerberos principal'),
