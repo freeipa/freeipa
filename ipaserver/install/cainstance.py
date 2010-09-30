@@ -507,12 +507,12 @@ class CAInstance(service.Service):
                     "-cs_hostname", self.host_name,
                     "-cs_port", str(ADMIN_SECURE_PORT),
                     "-client_certdb_dir", self.ca_agent_db,
-                    "-client_certdb_pwd", self.admin_password,
+                    "-client_certdb_pwd", '"%s"' % self.admin_password,
                     "-preop_pin" , preop_pin,
                     "-domain_name", self.domain_name,
                     "-admin_user", "admin",
                     "-admin_email",  "root@localhost",
-                    "-admin_password", self.admin_password,
+                    "-admin_password", '"%s"' % self.admin_password,
                     "-agent_name", "ipa-ca-agent",
                     "-agent_key_size", "2048",
                     "-agent_key_type", "rsa",
@@ -520,14 +520,14 @@ class CAInstance(service.Service):
                     "-ldap_host", self.host_name,
                     "-ldap_port", str(self.ds_port),
                     "-bind_dn", "\"cn=Directory Manager\"",
-                    "-bind_password", self.dm_password,
+                    "-bind_password", '"%s"' % self.dm_password,
                     "-base_dn", self.basedn,
                     "-db_name", "ipaca",
                     "-key_size", "2048",
                     "-key_type", "rsa",
                     "-key_algorithm", "SHA256withRSA",
                     "-save_p12", "true",
-                    "-backup_pwd", self.admin_password,
+                    "-backup_pwd", '"%s"' % self.admin_password,
                     "-subsystem_name", self.service_name,
                     "-token_name", "internal",
                     "-ca_subsystem_cert_subject_name", "\"CN=CA Subsystem,%s\"" % self.subject_base,
@@ -565,7 +565,7 @@ class CAInstance(service.Service):
                 args.append("-clone_p12_file")
                 args.append("ca.p12")
                 args.append("-clone_p12_password")
-                args.append(self.dm_password)
+                args.append('"%s"' % self.dm_password)
                 args.append("-sd_hostname")
                 args.append(self.master_host)
                 args.append("-sd_admin_port")
@@ -573,7 +573,7 @@ class CAInstance(service.Service):
                 args.append("-sd_admin_name")
                 args.append("admin")
                 args.append("-sd_admin_password")
-                args.append(self.admin_password)
+                args.append('"%s"' % self.admin_password)
                 args.append("-clone_uri")
                 args.append("https://%s:%d" % (self.master_host, EE_SECURE_PORT))
             else:
@@ -604,6 +604,7 @@ class CAInstance(service.Service):
             logging.debug("completed creating ca instance")
         except ipautil.CalledProcessError, e:
             logging.critical("failed to restart ca instance %s" % e)
+            raise RuntimeError('Configuration of CA failed')
 
         # Turn off Nonces (again)
         if installutils.update_file('/var/lib/pki-ca/conf/CS.cfg', 'ca.enableNonces=true', 'ca.enableNonces=false') != 0:
