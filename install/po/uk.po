@@ -5,18 +5,19 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/newticket\n"
-"POT-Creation-Date: 2010-09-27 10:06-0400\n"
-"PO-Revision-Date: 2010-03-17 00:01+0200\n"
+"Report-Msgid-Bugs-To: https://hosted.fedoraproject."
+"org/projects/freeipa/newticket\n"
+"POT-Creation-Date: 2010-09-27 10:25-0400\n"
+"PO-Revision-Date: 2010-09-28 18:04+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation@linux.org.ua>\n"
-"Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Lokalize 1.0\n"
+"Language: uk\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Lokalize 1.1\n"
 
 #: ../../ipalib/parameters.py:295
 msgid "incorrect type"
@@ -283,17 +284,18 @@ msgstr "Щоб створити службу вузла, вам слід зар�
 #: ../../ipalib/errors.py:831
 #, python-format
 msgid ""
-"Service principal is not of the form: service/fully-qualified host name: "
-"%(reason)s"
+"Service principal is not of the form: service/fully-qualified host name: %"
+"(reason)s"
 msgstr ""
-"Обліковий запис служби вказано у формі, відмінній від: служба/повна назва "
+"Реєстраційний запис служби вказано у формі, відмінній від: служба/повна "
+"назва "
 "вузла: %(reason)s"
 
 #: ../../ipalib/errors.py:847
 msgid ""
 "The realm for the principal does not match the realm for this IPA server"
 msgstr ""
-"Область дії облікового запису не збігається з областю цього сервера IPA"
+"Область дії реєстраційного запису не збігається з областю цього сервера IPA"
 
 #: ../../ipalib/errors.py:863
 msgid "This command requires root access"
@@ -307,8 +309,8 @@ msgstr "Вже є posix-групою"
 #, python-format
 msgid "Principal is not of the form user@REALM: %(principal)r"
 msgstr ""
-"Обліковий запис вказано у формі, відмінній від користувач@ОБЛАСТЬ: "
-"%(principal)r"
+"Реєстраційний запис вказано у формі, відмінній від користувач@ОБЛАСТЬ: %"
+"(principal)r"
 
 #: ../../ipalib/errors.py:911
 msgid "This entry is already unlocked"
@@ -351,11 +353,11 @@ msgstr "Не можна вилучати типову групу користу�
 
 #: ../../ipalib/errors.py:1071
 msgid "Host does not have corresponding DNS A record"
-msgstr ""
+msgstr "Вузол не має відповідного запису DNS A"
 
 #: ../../ipalib/errors.py:1086
 msgid "Deleting a managed group is not allowed. It must be detached first."
-msgstr ""
+msgstr "Вилучення керованих груп заборонено. Спочатку групу слід від’єднати."
 
 #: ../../ipalib/errors.py:1109
 #, python-format
@@ -390,9 +392,8 @@ msgid "Certificate operation cannot be completed: %(error)s"
 msgstr "Не вдалося завершити дію з сертифікатом: %(error)s"
 
 #: ../../ipalib/plugins/config.py:73
-#, fuzzy
 msgid "Configuration"
-msgstr "Інформація щодо монтування"
+msgstr "Налаштування"
 
 #: ../../ipalib/plugins/config.py:78
 msgid "Max username length"
@@ -437,8 +438,8 @@ msgstr "Обмеження часу пошуку"
 #: ../../ipalib/plugins/config.py:104
 msgid "Max. amount of time (sec.) for a search (-1 is unlimited)"
 msgstr ""
-"Максимальний проміжок часу (у секундах) для виконання однієї дії з пошуку "
-"(-1 — без обмежень)"
+"Максимальний проміжок часу (у секундах) для виконання однієї дії з пошуку (-"
+"1 — без обмежень)"
 
 #: ../../ipalib/plugins/config.py:109
 msgid "Search size limit"
@@ -468,7 +469,6 @@ msgid "Migration mode"
 msgstr "Режим міграції"
 
 #: ../../ipalib/plugins/config.py:126
-#, fuzzy
 msgid "Enable migration mode"
 msgstr "Увімкнути режим міграції"
 
@@ -477,9 +477,8 @@ msgid "Certificate Subject base"
 msgstr "Базовий об’єкт сертифікації"
 
 #: ../../ipalib/plugins/config.py:131
-#, fuzzy
 msgid "Base for certificate subjects (OU=Test,O=Example)"
-msgstr "основа для створення записів об’єктів сертифікації (OU=Test,O=Example)"
+msgstr "Основа для створення записів об’єктів сертифікації (OU=Test,O=Example)"
 
 #: ../../ipalib/plugins/rolegroup.py:79
 msgid "Role Groups"
@@ -539,7 +538,7 @@ msgstr[2] "встановлено відповідність %(count)d груп 
 
 #: ../../ipalib/plugins/host.py:86
 msgid "Fully-qualified hostname required"
-msgstr ""
+msgstr "Слід вказати назву вузла повністю"
 
 #: ../../ipalib/plugins/host.py:113 ../../ipalib/plugins/hbac.py:162
 msgid "Hosts"
@@ -628,10 +627,8 @@ msgid "Added host \"%(value)s\""
 msgstr "Додано вузол «%(value)s»"
 
 #: ../../ipalib/plugins/host.py:202
-#, fuzzy
 msgid "force host name even if not in DNS"
-msgstr ""
-"примусове значення назви реєстраційного запису, навіть якщо назви немає у DNS"
+msgstr "примусове значення назви вузла, навіть якщо назви немає у DNS"
 
 #: ../../ipalib/plugins/host.py:235
 #, python-format
@@ -657,16 +654,16 @@ msgstr[2] "встановлено відповідність %(count)d вузл�
 
 #: ../../ipalib/plugins/host.py:337 ../../ipalib/plugins/service.py:83
 msgid "Keytab"
-msgstr ""
+msgstr "Таблиця ключів"
 
 #: ../../ipalib/plugins/host.py:359 ../../ipalib/plugins/service.py:386
-#, fuzzy, python-format
+#, python-format
 msgid "Removed kerberos key from \"%(value)s\""
-msgstr "Вилучено групу ролей «%(value)s»"
+msgstr "Вилучено ключ kerberos з «%(value)s»"
 
 #: ../../ipalib/plugins/host.py:368
 msgid "Host principal has no kerberos key"
-msgstr ""
+msgstr "У реєстраційного запису вузла немає ключа kerberos"
 
 #: ../../ipalib/plugins/group.py:94
 msgid "User Groups"
@@ -720,21 +717,21 @@ msgstr[1] "встановлено відповідність %(count)d груп"
 msgstr[2] "встановлено відповідність %(count)d груп"
 
 #: ../../ipalib/plugins/group.py:254
-#, fuzzy, python-format
+#, python-format
 msgid "Detached group \"%(value)s\" from user \"%(value)s\""
-msgstr "Вилучено групу ролей «%(value)s»"
+msgstr "Від’єднати групу «%(value)s» від користувача «%(value)s»"
 
 #: ../../ipalib/plugins/group.py:270
 msgid "not allowed to modify user entries"
-msgstr ""
+msgstr "заборонено змінювати записи користувачів"
 
 #: ../../ipalib/plugins/group.py:274
 msgid "not allowed to modify group entries"
-msgstr ""
+msgstr "заборонено змінювати записи груп"
 
 #: ../../ipalib/plugins/group.py:281 ../../ipalib/plugins/group.py:292
 msgid "Not a managed group"
-msgstr ""
+msgstr "Не є керованою групою"
 
 #: ../../ipalib/plugins/migration.py:44
 #, python-format
@@ -861,22 +858,21 @@ msgid "Deleted service \"%(value)s\""
 msgstr "Вилучено службу «%(value)s»"
 
 #: ../../ipalib/plugins/service.py:261
-#, fuzzy, python-format
+#, python-format
 msgid "Modified service \"%(value)s\""
-msgstr "Змінено користувача «%(value)s»"
+msgstr "Змінено службу «%(value)s»"
 
 #: ../../ipalib/plugins/service.py:298
-#, fuzzy, python-format
+#, python-format
 msgid "%(count)d service matched"
 msgid_plural "%(count)d services matched"
-msgstr[0] "встановлено відповідність %(count)d користувача"
-msgstr[1] "встановлено відповідність %(count)d користувачів"
-msgstr[2] "встановлено відповідність %(count)d користувачів"
+msgstr[0] "встановлено відповідність %(count)d служби"
+msgstr[1] "встановлено відповідність %(count)d служб"
+msgstr[2] "встановлено відповідність %(count)d служб"
 
 #: ../../ipalib/plugins/service.py:396
-#, fuzzy
 msgid "Service principal has no kerberos key"
-msgstr "Реєстраційний запис служби"
+msgstr "Реєстраційний запис служби не має ключа kerberos"
 
 #: ../../ipalib/plugins/passwd.py:52 ../../ipalib/plugins/krbtpolicy.py:62
 msgid "User name"
@@ -895,9 +891,8 @@ msgid "Rule type (allow or deny)"
 msgstr "Тип правила (дозволити (allow) чи заборонити (deny))"
 
 #: ../../ipalib/plugins/hbac.py:117
-#, fuzzy
 msgid "Rule type"
-msgstr "Тип запису"
+msgstr "Тип правила"
 
 #: ../../ipalib/plugins/hbac.py:123
 msgid "User category"
@@ -924,14 +919,12 @@ msgid "Source host category the rule applies to"
 msgstr "Категорія вузлів вихідних даних, до якої застосовується правило"
 
 #: ../../ipalib/plugins/hbac.py:141
-#, fuzzy
 msgid "Service category"
-msgstr "Категорія користувачів"
+msgstr "Категорія служб"
 
 #: ../../ipalib/plugins/hbac.py:142
-#, fuzzy
 msgid "Service category the rule applies to"
-msgstr "Категорія користувачів, до якої застосовується правило"
+msgstr "Категорія служб, до якої застосовується правило"
 
 #: ../../ipalib/plugins/hbac.py:147 ../../ipalib/plugins/hbac.py:309
 #: ../../ipalib/plugins/hbac.py:347
@@ -940,7 +933,7 @@ msgstr "Час доступу"
 
 #: ../../ipalib/plugins/hbac.py:154
 msgid "Enabled"
-msgstr ""
+msgstr "Увімкнено"
 
 #: ../../ipalib/plugins/hbac.py:158 ../../ipalib/plugins/user.py:76
 msgid "Users"
@@ -951,19 +944,16 @@ msgid "Host Groups"
 msgstr "Групи вузлів"
 
 #: ../../ipalib/plugins/hbac.py:170
-#, fuzzy
 msgid "Source hosts"
-msgstr "Категорія вузлів вихідних даних"
+msgstr "Вузли вихідних даних"
 
 #: ../../ipalib/plugins/hbac.py:178
-#, fuzzy
 msgid "Service Groups"
-msgstr "Служби"
+msgstr "Групи служб"
 
 #: ../../ipalib/plugins/cert.py:93
-#, fuzzy
 msgid "Failure decoding Certificate Signing Request:"
-msgstr "Помилка під час декодування запиту на підписування сертифіката (CSR)"
+msgstr "Помилка під час декодування запиту на підписування сертифіката (CSR):"
 
 #: ../../ipalib/plugins/cert.py:106 ../../ipalib/plugins/cert.py:118
 msgid "Failure decoding Certificate Signing Request"
@@ -991,23 +981,23 @@ msgstr "Об’єкт"
 
 #: ../../ipalib/plugins/cert.py:195 ../../ipalib/plugins/cert.py:398
 msgid "Issuer"
-msgstr ""
+msgstr "Видавець"
 
 #: ../../ipalib/plugins/cert.py:199 ../../ipalib/plugins/cert.py:401
 msgid "Not Before"
-msgstr ""
+msgstr "Не раніше"
 
 #: ../../ipalib/plugins/cert.py:203 ../../ipalib/plugins/cert.py:404
 msgid "Not After"
-msgstr ""
+msgstr "Не пізніше"
 
 #: ../../ipalib/plugins/cert.py:207 ../../ipalib/plugins/cert.py:407
 msgid "Fingerprint (MD5)"
-msgstr ""
+msgstr "Відбиток (MD5)"
 
 #: ../../ipalib/plugins/cert.py:211 ../../ipalib/plugins/cert.py:410
 msgid "Fingerprint (SHA1)"
-msgstr ""
+msgstr "Відбиток (SHA1)"
 
 #: ../../ipalib/plugins/cert.py:215 ../../ipalib/plugins/cert.py:379
 msgid "Serial number"
@@ -1102,21 +1092,19 @@ msgstr "Кількість вилучених учасників"
 
 #: ../../ipalib/plugins/baseldap.py:833
 msgid "Time Limit"
-msgstr ""
+msgstr "Обмеження часу"
 
 #: ../../ipalib/plugins/baseldap.py:834
 msgid "Time limit of search in seconds"
-msgstr ""
+msgstr "Обмеження часу пошуку у секундах"
 
 #: ../../ipalib/plugins/baseldap.py:840
-#, fuzzy
 msgid "Size Limit"
-msgstr "Обмеження розміру пошуку"
+msgstr "Обмеження розміру"
 
 #: ../../ipalib/plugins/baseldap.py:841
-#, fuzzy
 msgid "Maximum number of entries returned"
-msgstr "Кількість повернутих змінних (<= загальної)"
+msgstr "Максимальна кількість повернутих записів"
 
 #: ../../ipalib/plugins/aci.py:111
 msgid "A list of ACI values"
@@ -1135,14 +1123,12 @@ msgstr ""
 "memberof"
 
 #: ../../ipalib/plugins/aci.py:151
-#, fuzzy
 msgid "group, taskgroup and self are mutually exclusive"
-msgstr "group і taskgroup є взаємовиключними"
+msgstr "group, taskgroup і self є взаємовиключними"
 
 #: ../../ipalib/plugins/aci.py:153
-#, fuzzy
 msgid "One of group, taskgroup or self is required"
-msgstr "Слід вказати group або taskgroup"
+msgstr "Слід вказати group, taskgroup або self"
 
 #: ../../ipalib/plugins/aci.py:172
 #, python-format
@@ -1183,12 +1169,11 @@ msgid "Permissions"
 msgstr "Права доступу"
 
 #: ../../ipalib/plugins/aci.py:307
-#, fuzzy
 msgid ""
 "comma-separated list of permissions to grant(read, write, add, delete, all)"
 msgstr ""
 "відокремлений комами список прав доступу, які слід надати (read, write, add, "
-"delete, selfwrite, all)"
+"delete, all)"
 
 #: ../../ipalib/plugins/aci.py:313
 msgid "Attributes"
@@ -1240,11 +1225,11 @@ msgstr "Група, до якої слід застосувати ACI"
 
 #: ../../ipalib/plugins/aci.py:344
 msgid "Target your own entry (self)"
-msgstr ""
+msgstr "Виконати над власним записом (self)"
 
 #: ../../ipalib/plugins/aci.py:345
 msgid "Apply ACI to your own entry (self)"
-msgstr ""
+msgstr "Застосувати ACI до вашого власного запису (self)"
 
 #: ../../ipalib/plugins/aci.py:357
 #, python-format
@@ -1278,18 +1263,16 @@ msgid "Max life"
 msgstr "Макс. строк дії"
 
 #: ../../ipalib/plugins/krbtpolicy.py:69
-#, fuzzy
 msgid "Maximum ticket life (seconds)"
-msgstr "Максимальний строк дії квитка"
+msgstr "Максимальний строк дії квитка (у секундах)"
 
 #: ../../ipalib/plugins/krbtpolicy.py:73
 msgid "Max renew"
 msgstr "Макс. вік поновлення"
 
 #: ../../ipalib/plugins/krbtpolicy.py:74
-#, fuzzy
 msgid "Maximum renewable age (seconds)"
-msgstr "Максимальний вік, протягом якого можливе поновлення"
+msgstr "Максимальний вік, протягом якого можливе поновлення (у секундах)"
 
 #: ../../ipalib/plugins/dns.py:131
 msgid "DNS"
@@ -1392,19 +1375,18 @@ msgid "type-specific data"
 msgstr "специфічні для типу дані"
 
 #: ../../ipalib/plugins/dns.py:850
-#, fuzzy, python-format
+#, python-format
 msgid "Found '%(value)s'"
-msgstr "Додано групу «%(value)s»"
+msgstr "Знайдено «%(value)s»"
 
 #: ../../ipalib/plugins/dns.py:854
-#, fuzzy
 msgid "Hostname"
 msgstr "Назва вузла"
 
 #: ../../ipalib/plugins/dns.py:867
-#, fuzzy, python-format
+#, python-format
 msgid "Host '%(host)s' not found"
-msgstr "%(pkey)s: не знайдено %(oname)s"
+msgstr "Вузла «%(host)s» не знайдено"
 
 #: ../../ipalib/plugins/automount.py:108
 msgid "Automount location name"
@@ -1455,7 +1437,6 @@ msgid "Name of parent automount map (default: auto.master)"
 msgstr "Назва батьківської карти автомонтування (типове значення: auto.master)"
 
 #: ../../ipalib/plugins/netgroup.py:57
-#, fuzzy
 msgid "Member Host"
 msgstr "Вузол-учасник"
 
@@ -1551,6 +1532,8 @@ msgstr "UID"
 #: ../../ipalib/plugins/user.py:133
 msgid "User ID Number (system will assign one if not provided)"
 msgstr ""
+"Ідентифікаційний номер користувача (система призначить його, якщо не буде "
+"вказано)"
 
 #: ../../ipalib/plugins/user.py:139
 msgid "Street address"
@@ -1589,11 +1572,12 @@ msgstr "Змінено користувача «%(value)s»"
 
 #: ../../ipalib/plugins/user.py:247
 msgid "Self"
-msgstr ""
+msgstr "Self"
 
 #: ../../ipalib/plugins/user.py:248
 msgid "Display user record for current Kerberos principal"
 msgstr ""
+"Показати запис користувача для поточного реєстраційного запису Kerberos"
 
 #: ../../ipalib/plugins/user.py:258
 #, python-format
@@ -1699,15 +1683,16 @@ msgstr[2] "встановлено відповідність %(count)d груп 
 #, python-format
 msgid "priority must be a unique value (%(prio)d already used by %(gname)s)"
 msgstr ""
+"пріоритет повинен мати унікальне значення (%(prio)d вже використано для "
+"%(gname)s)"
 
 #: ../../ipalib/plugins/pwpolicy.py:173
 msgid "Group"
 msgstr "Група"
 
 #: ../../ipalib/plugins/pwpolicy.py:174
-#, fuzzy
 msgid "Manage password policy for specific group"
-msgstr "Керування правилами обробки квитків певного користувача"
+msgstr "Керування правилами обробки паролів для певної групи"
 
 #: ../../ipalib/plugins/pwpolicy.py:179
 msgid "Max lifetime (days)"
@@ -1754,14 +1739,13 @@ msgid "Priority"
 msgstr "Пріоритет"
 
 #: ../../ipalib/plugins/pwpolicy.py:211
-#, fuzzy
 msgid "Priority of the policy (higher number means lower priority"
 msgstr "Пріоритет правил (більше число — нижчий пріоритет)"
 
 #: ../../ipalib/plugins/pwpolicy.py:263
-#, fuzzy
 msgid "Maximum password life must be greater than minimum."
-msgstr "Максимальний строк дії пароля (у днях)"
+msgstr ""
+"Максимальний строк дії пароля має перевищувати мінімальний строк його дії."
 
 #: ../../ipalib/plugins/pwpolicy.py:326
 msgid "priority cannot be set on global policy"
@@ -1772,79 +1756,76 @@ msgid "User"
 msgstr "Користувач"
 
 #: ../../ipalib/plugins/pwpolicy.py:366
-#, fuzzy
 msgid "Display effective policy for a specific user"
-msgstr "Керування правилами обробки квитків певного користувача"
+msgstr "Показати поточні правила для певного користувача"
 
 #: ../../ipalib/plugins/internal.py:39
 msgid "Logged In As"
-msgstr ""
+msgstr "Вхід до системи від імені"
 
 #: ../../ipalib/plugins/internal.py:41
 msgid "Add"
-msgstr ""
+msgstr "Додати"
 
 #: ../../ipalib/plugins/internal.py:42
 msgid "Find"
-msgstr ""
+msgstr "Знайти"
 
 #: ../../ipalib/plugins/internal.py:43
 msgid "Reset"
-msgstr ""
+msgstr "Скинути"
 
 #: ../../ipalib/plugins/internal.py:44
 msgid "Update"
-msgstr ""
+msgstr "Оновити"
 
 #: ../../ipalib/plugins/internal.py:45
 msgid "Enroll"
-msgstr ""
+msgstr "Зареєструвати"
 
 #: ../../ipalib/plugins/internal.py:48
 msgid "Quick Links"
-msgstr ""
+msgstr "Швидкі посилання"
 
 #: ../../ipalib/plugins/internal.py:51
 msgid "Identity Details"
-msgstr ""
+msgstr "Параметри профілю"
 
 #: ../../ipalib/plugins/internal.py:52
 msgid "Account Details"
-msgstr ""
+msgstr "Параметри облікового запису"
 
 #: ../../ipalib/plugins/internal.py:53
 msgid "Contact Details"
-msgstr ""
+msgstr "Контактні дані"
 
 #: ../../ipalib/plugins/internal.py:54
-#, fuzzy
 msgid "Mailing Address"
 msgstr "Адреса ел. пошти"
 
 #: ../../ipalib/plugins/internal.py:55
 msgid "      Employee Information"
-msgstr ""
+msgstr "      Відомості щодо працівника"
 
 #: ../../ipalib/plugins/internal.py:56
-#, fuzzy
 msgid "Misc. Information"
-msgstr "Інформація щодо монтування"
+msgstr "Інша інформація"
 
 #: ../../ipalib/plugins/internal.py:57
 msgid "Back to Top"
-msgstr ""
+msgstr "Повернутися до початку"
 
 #: ../../ipalib/plugins/internal.py:62
 msgid "Name of object to export"
-msgstr ""
+msgstr "Назва об’єкта, який слід експортувати"
 
 #: ../../ipalib/plugins/internal.py:67
 msgid "Dict of JSON encoded IPA Objects"
-msgstr ""
+msgstr "Словник закодованих JSON об’єктів IPA"
 
 #: ../../ipalib/plugins/internal.py:68
 msgid "Dict of I18N messages"
-msgstr ""
+msgstr "Словник перекладених повідомлень"
 
 #: ../../ipaserver/install/certs.py:603 ../../ipaserver/plugins/dogtag.py:1313
 #: ../../ipaserver/plugins/dogtag.py:1398
@@ -1858,11 +1839,11 @@ msgstr "Не вдалося обмінятися даними з CMS (%s)"
 #: ../../ipaserver/plugins/selfsign.py:97
 #, python-format
 msgid ""
-"Request subject \"%(request_subject)s\" does not match the form "
-"\"%(subject_base)s\""
+"Request subject \"%(request_subject)s\" does not match the form \"%"
+"(subject_base)s\""
 msgstr ""
-"Об’єкт запиту «%(request_subject)s» вказано у формі, відмінній від "
-"«%(subject_base)s»"
+"Об’єкт запиту «%(request_subject)s» вказано у формі, відмінній від «%"
+"(subject_base)s»"
 
 #: ../../ipaserver/plugins/selfsign.py:102
 #, python-format
