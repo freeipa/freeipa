@@ -57,7 +57,7 @@ ipa_entity_set_details_definition('user', [
     ]],
     ['contact', 'Contact Details', [
         ['mail', 'E-mail Address', null],
-        ['numbers', 'Numbers', a_numbers]
+        ['telephonenumber', 'Numbers', a_numbers]
     ]],
     ['address', 'Mailing Address', [
         ['street', 'Address', null],
