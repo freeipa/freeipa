@@ -129,7 +129,7 @@ function _ipa_entity_setup(jobj,unspecified) {
     };
 
     function setup_search_facet() {
-        var filter = $.bbq.getState(obj_name + '-filter', true);
+        var filter = $.bbq.getState(obj_name + '-filter', true) || '';
         search_create(obj_name, ipa_entity_search_list[obj_name], jobj);
 
         $('<input />',{
@@ -138,8 +138,7 @@ function _ipa_entity_setup(jobj,unspecified) {
             click:new_on_click
         }).appendTo($( "div#" + obj_name + " > div.search-controls"));
 
-        if (typeof filter != 'undefined')
-            search_load(jobj, filter, null, null);
+        search_load(jobj, filter, null, null);
     };
 
     function setup_details_facet(unspecified) {
