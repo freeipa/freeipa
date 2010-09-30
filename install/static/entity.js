@@ -24,6 +24,9 @@ var ipa_entity_search_list = {};
 var ipa_entity_add_list = {};
 var ipa_entity_details_list = {};
 
+/* use this to track individual changes between two hashchange events */
+var window_hash_cache = {};
+
 function ipa_entity_set_search_definition(obj_name, data)
 {
     ipa_entity_search_list[obj_name] = data;
@@ -39,8 +42,49 @@ function ipa_entity_set_details_definition(obj_name, data)
     ipa_entity_details_list[obj_name] = data;
 }
 
-function ipa_entity_setup(jobj)
+function ipa_entity_setup(container)
 {
+    var id = container.attr('id');
+
+    var state = id + '-facet';
+    var facet = $.bbq.getState(state, true) || 'search';
+    var last_facet = window_hash_cache[state];
+
+    if (facet != last_facet) {
+        _ipa_entity_setup(container);
+        window_hash_cache[state] = facet;
+
+    } else if (facet == 'search') {
+        state = id + '-filter';
+        var filter = $.bbq.getState(state, true);
+        var last_filter = window_hash_cache[state];
+        if (filter == last_filter) return;
+
+        _ipa_entity_setup(container);
+        window_hash_cache[state] = filter;
+
+    } else if (facet == 'details') {
+        state = id + '-pkey';
+        var pkey = $.bbq.getState(state, true);
+        var last_pkey = window_hash_cache[state];
+        if (pkey == last_pkey) return;
+
+        _ipa_entity_setup(container);
+        window_hash_cache[state] = pkey;
+
+    } else if (facet == 'associate') {
+        state = id + '-enroll';
+        var enroll = $.bbq.getState(state, true);
+        var last_enroll = window_hash_cache[state];
+        if (enroll == last_enroll) return;
+
+        _ipa_entity_setup(container);
+        window_hash_cache[state] = enroll;
+    }
+}
+
+function _ipa_entity_setup(jobj) {
+
     var obj_name = jobj.attr('id');
 
     function reset_on_click() {
@@ -158,4 +202,3 @@ function ipa_entity_generate_views(obj_name, container, switch_view)
 
     container.append(ul);
 }
-

@@ -18,8 +18,23 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-/* use this to track individual changes between two hashchange events */
-var window_hash_cache = {};
+var nav_tabs_lists;
+var nav_container;
+
+function nav_push_state(params)
+{
+    $.bbq.pushState(params);
+}
+
+function nav_get_state(key)
+{
+    return $.bbq.getState(key, true);
+}
+
+function nav_remove_state(key)
+{
+    $.bbq.removeState(key);
+}
 
 function nav_create(nls, container, tabclass)
 {
@@ -27,6 +42,9 @@ function nav_create(nls, container, tabclass)
         container = $('#navigation');
     if (!tabclass)
         tabclass = 'tabs';
+
+    nav_tabs_lists = nls;
+    nav_container = container;
 
     nav_generate_tabs(nls, container, tabclass, 1);
 
@@ -36,12 +54,12 @@ function nav_create(nls, container, tabclass)
             var state = {};
             var id = $(ui.panel).parent().attr('id');
             state[id] = ui.index;
-            $.bbq.pushState(state);
+            nav_push_state(state);
             return true;
         }
     });
 
-    nav_update_tabs(nls, container);
+    nav_update_tabs();
 }
 
 function nav_generate_tabs(nls, container, tabclass, depth)
@@ -88,76 +106,26 @@ function nav_create_tab_div(id)
     });
 }
 
-function nav_select_tabs(nls, container)
+function nav_update_tabs()
 {
-    var id = container.attr('id');
-    var selectedTab = $.bbq.getState(id, true) || 0;
-    if (selectedTab >= nls.length) selectedTab = 0;
-    container.tabs('select', selectedTab);
-
-    for (var i = 0; i < nls.length; ++i) {
-        var n = nls[i];
-
-        var div = $('#'+n.name);
-
-        if ( (!n.setup) && n.children) {
-            nav_select_tabs(n.children, div);
-        }
-    }
+    _nav_update_tabs(nav_tabs_lists, nav_container);
 }
 
-function nav_update_tabs(nls, container)
+function _nav_update_tabs(nls, container)
 {
-    nav_select_tabs(nls, container);
+    var id = container.attr('id');
+    var index = nav_get_state(id);
+    if (!index || index >= nls.length) index = 0;
 
-    var index1 = container.tabs('option', 'selected');
-    if (index1 >= nls.length) return;
+    container.tabs('select', index);
 
-    var tab1 = nls[index1];
-    if (!tab1.children) return;
+    var tab = nls[index];
+    var container2 = $('#' + tab.name);
 
-    var div1 = $('#' + tab1.name);
-    var index2 = div1.tabs('option', 'selected');
-    if (index2 >= tab1.children.length) return;
+    if (tab.children) {
+        _nav_update_tabs(tab.children, container2);
 
-    var tab2 = tab1.children[index2];
-    var obj_name = tab2.name;
-    var entity_setup = tab2.setup;
-    var div2 = $('#' + tab2.name);
-
-    var state = obj_name + '-facet';
-    var facet = $.bbq.getState(state, true) || 'search';
-    var last_facet = window_hash_cache[state];
-
-    if (facet != last_facet) {
-        entity_setup(div2);
-        window_hash_cache[state] = facet;
-
-    } else if (facet == 'search') {
-        state = obj_name + '-filter';
-        var filter = $.bbq.getState(state, true);
-        var last_filter = window_hash_cache[state];
-        if (filter == last_filter) return;
-
-        entity_setup(div2);
-        window_hash_cache[state] = filter;
-
-    } else if (facet == 'details') {
-        state = obj_name + '-pkey';
-        var pkey = $.bbq.getState(state, true);
-        var last_pkey = window_hash_cache[state];
-        if (pkey == last_pkey) return;
-
-        entity_setup(div2);
-        window_hash_cache[state] = pkey;
-
-    } else if (facet == 'associate') {
-        state = obj_name + '-enroll';
-        var enroll = $.bbq.getState(state, true);
-        var last_enroll = window_hash_cache[state];
-        if (enroll == last_enroll) return;
-
-        entity_setup(div2);
-        window_hash_cache[state] = enroll;
+    } else if (tab.setup) {
+        tab.setup(container2);
     }
 }

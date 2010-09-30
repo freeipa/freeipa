@@ -27,7 +27,7 @@ test("Testing nav_create().", function() {
         [
             { name:'identity', label:'IDENTITY', children: [
                 {name:'user', label:'Users', setup:mock_setup_user},
-                {name:'group', label:'Users', setup:mock_setup_group},
+                {name:'group', label:'Users', setup:mock_setup_group}
             ]}];
     function  mock_setup_user (jobj){
         user_mock_called = true;
@@ -44,7 +44,7 @@ test("Testing nav_create().", function() {
     var navigation = $('<div id="navigation"/>').appendTo(document.body);
     var user_mock_called = false;
     var group_mock_called = false;
-    nav_create(mock_tabs_lists, navigation, 'tabs')
+    nav_create(mock_tabs_lists, navigation, 'tabs');
     ok(user_mock_called, "mock user setup was called");
     ok(!group_mock_called, "mock group setup was not called because the tab is inactive");
     same( navigation[0].children.length, 2, "Two Child tabs");
@@ -54,24 +54,104 @@ test("Testing nav_create().", function() {
     navigation.remove();
 });
 
-test("Testing  nav_select_tabs().", function() {
+test("Testing nav_update_tabs() with valid index.", function() {
 
+    var orig_push_state = nav_push_state;
+    var orig_get_state = nav_get_state;
+    var orig_remove_state = nav_remove_state;
+
+    var state = {};
+
+    nav_push_state = function(params) {
+        $.extend(state, params);
+    };
+    nav_get_state = function(key) {
+        return state[key];
+    };
+    nav_remove_state = function(key) {
+        delete state[key];
+    };
 
     var mock_tabs_lists =
         [
             { name:'identity', label:'IDENTITY', children: [
                 {name:'one', label:'One', setup: function (){}},
-                {name:'two', label:'Two', setup: function (){}},
+                {name:'two', label:'Two', setup: function (){}}
             ]}];
 
     var navigation = $('<div id="navigation"/>').appendTo(document.body);
 
-    nav_create(mock_tabs_lists, navigation, 'tabs')
+    nav_create(mock_tabs_lists, navigation, 'tabs');
 
-    $.bbq.pushState({"identity":2});
-    nav_select_tabs(mock_tabs_lists, navigation);
-    same( navigation[0].children[1].children[2].id, 'two', "Tab two");
-    $.bbq.removeState(["identity"]);
+    nav_push_state({"identity":1});
+    nav_update_tabs();
+
+    same(
+        navigation.tabs('option', 'selected'), 0,
+        "Active tab at level 1"
+    );
+
+    same(
+        $('#identity').tabs('option', 'selected'), 1,
+        "Active tab at level 2"
+    );
+
+    nav_remove_state("identity");
 
     navigation.remove();
+
+    nav_push_state = orig_push_state;
+    nav_get_state = orig_get_state;
+    nav_remove_state = orig_remove_state;
+});
+
+test("Testing nav_update_tabs() with out-of-range index.", function() {
+
+    var orig_push_state = nav_push_state;
+    var orig_get_state = nav_get_state;
+    var orig_remove_state = nav_remove_state;
+
+    var state = {};
+
+    nav_push_state = function(params) {
+        $.extend(state, params);
+    };
+    nav_get_state = function(key) {
+        return state[key];
+    };
+    nav_remove_state = function(key) {
+        delete state[key];
+    };
+
+    var mock_tabs_lists =
+        [
+            { name:'identity', label:'IDENTITY', children: [
+                {name:'one', label:'One', setup: function (){}},
+                {name:'two', label:'Two', setup: function (){}}
+            ]}];
+
+    var navigation = $('<div id="navigation"/>').appendTo(document.body);
+
+    nav_create(mock_tabs_lists, navigation, 'tabs');
+
+    nav_push_state({"identity":2});
+    nav_update_tabs();
+
+    same(
+        navigation.tabs('option', 'selected'), 0,
+        "Active tab at level 1"
+    );
+
+    same(
+        $('#identity').tabs('option', 'selected'), 0,
+        "Active tab at level 2"
+    );
+
+    nav_remove_state("identity");
+
+    navigation.remove();
+
+    nav_push_state = orig_push_state;
+    nav_get_state = orig_get_state;
+    nav_remove_state = orig_remove_state;
 });

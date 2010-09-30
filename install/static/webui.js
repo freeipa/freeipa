@@ -30,7 +30,7 @@ var admin_tab_set = [
         {name:'host', label:'Hosts', setup: ipa_entity_setup},
         {name:'hostgroup', label:'Hostgroups', setup: ipa_entity_setup},
         {name:'netgroup', label:'Netgroups', setup: ipa_entity_setup},
-        {name:'service', label:'Services', setup: ipa_entity_setup},
+        {name:'service', label:'Services', setup: ipa_entity_setup}
     ]},
     {name:'policy', label:'POLICY', setup: unimplemented_tab},
     {name:'config', label:'CONFIG', children: [
@@ -38,15 +38,10 @@ var admin_tab_set = [
     ]}
 ];
 
-
-
-
-var self_serv_tabs_lists =
+var self_serv_tab_set =
     [
         { name:'identity', label:'IDENTITY', children: [
             {name:'user', label:'Users', setup:ipa_entity_setup}]}];
-
-var nav_tabs_lists;
 
 /* main (document onready event handler) */
 $(function() {
@@ -61,11 +56,15 @@ $(function() {
             $('#loggedinas').find('strong').text(whoami.krbprincipalname[0]);
             $('#loggedinas a').fragment(
                 {'user-facet':'details', 'user-pkey':whoami_pkey},2);
+
+            var navigation = $('#navigation');
+
             if (whoami.hasOwnProperty('memberof_rolegroup') &&
                 whoami.memberof_rolegroup.length > 0){
-                nav_tabs_lists = admin_tab_set;
+                nav_create(admin_tab_set, navigation, 'tabs');
+
             }else{
-                nav_tabs_lists = self_serv_tab_set;
+                nav_create(self_serv_tab_set, navigation, 'tabs');
 
                 var state = {'user-pkey':whoami_pkey ,
                              'user-facet': jQuery.bbq.getState('user-facet') ||
@@ -73,8 +72,6 @@ $(function() {
                 $.bbq.pushState(state);
             }
 
-            var navigation = $('#navigation');
-            nav_create(nav_tabs_lists, navigation, 'tabs');
 
             $('#login_header').html(ipa_messages.login.header);
         }else{
@@ -98,8 +95,7 @@ $(function() {
 /* main loop (hashchange event handler) */
 function window_hashchange(evt)
 {
-    var navigation = $('#navigation');
-    nav_update_tabs(nav_tabs_lists, navigation);
+    nav_update_tabs();
 }
 
 /* builder function for unimplemented tab content */
