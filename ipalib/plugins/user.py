@@ -154,6 +154,16 @@ class user(LDAPObject):
             label=_('Taskgroups'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
+        Str('telephonenumber*',
+            cli_name='phone',
+            label=_('Telephone Number') ),
+        Str('mobile*',
+            label=_('Mobile Telephone Number') ),
+        Str('pager*',
+            label=_('Pager Number') ),
+        Str('facsimiletelephonenumber*',
+            cli_name='fax',
+            label=_('Fax Number') ),
     )
 
 api.register(user)
