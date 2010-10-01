@@ -345,6 +345,19 @@ class LDAPQuery(CallbackInterface, crud.PKQuery):
             yield self.obj.primary_key.clone(attribute=True, query=True)
 
 
+class LDAPMultiQuery(LDAPQuery):
+    """
+    Base class for commands that need to retrieve one or more existing entries.
+    """
+    def get_args(self):
+        for key in self.obj.get_ancestor_primary_keys():
+            yield key
+        if self.obj.primary_key:
+            yield self.obj.primary_key.clone(
+                attribute=True, query=True, multivalue=True
+            )
+
+
 class LDAPRetrieve(LDAPQuery):
     """
     Retrieve an LDAP entry.
@@ -512,7 +525,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
         raise exc
 
 
-class LDAPDelete(LDAPQuery):
+class LDAPDelete(LDAPMultiQuery):
     """
     Delete an LDAP entry and all of its direct subentries.
     """
@@ -521,47 +534,66 @@ class LDAPDelete(LDAPQuery):
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
-        dn = self.obj.get_dn(*keys, **options)
+        def delete_entry(pkey):
+            nkeys = keys[:-1] + (pkey, )
+            dn = self.obj.get_dn(*nkeys, **options)
 
-        for callback in self.PRE_CALLBACKS:
-            if hasattr(callback, 'im_self'):
-                dn = callback(ldap, dn, *keys, **options)
-            else:
-                dn = callback(self, ldap, dn, *keys, **options)
-
-        def delete_subtree(base_dn):
-            truncated = True
-            while truncated:
-                try:
-                    (subentries, truncated) = ldap.find_entries(
-                        None, [''], base_dn, ldap.SCOPE_ONELEVEL
-                    )
-                except errors.NotFound:
-                    break
+            for callback in self.PRE_CALLBACKS:
+                if hasattr(callback, 'im_self'):
+                    dn = callback(ldap, dn, *nkeys, **options)
                 else:
-                    for (dn_, entry_attrs) in subentries:
-                        delete_subtree(dn_)
-            try:
-                ldap.delete_entry(base_dn, normalize=self.obj.normalize_dn)
-            except errors.ExecutionError, e:
+                    dn = callback(self, ldap, dn, *nkeys, **options)
+
+            def delete_subtree(base_dn):
+                truncated = True
+                while truncated:
+                    try:
+                        (subentries, truncated) = ldap.find_entries(
+                            None, [''], base_dn, ldap.SCOPE_ONELEVEL
+                        )
+                    except errors.NotFound:
+                        break
+                    else:
+                        for (dn_, entry_attrs) in subentries:
+                            delete_subtree(dn_)
                 try:
-                    self._call_exc_callbacks(
-                        keys, options, e, ldap.delete_entry, base_dn,
-                        normalize=self.obj.normalize_dn
-                    )
-                except errors.NotFound:
-                    self.obj.handle_not_found(*keys)
+                    ldap.delete_entry(base_dn, normalize=self.obj.normalize_dn)
+                except errors.ExecutionError, e:
+                    try:
+                        self._call_exc_callbacks(
+                            nkeys, options, e, ldap.delete_entry, base_dn,
+                            normalize=self.obj.normalize_dn
+                        )
+                    except errors.NotFound:
+                        self.obj.handle_not_found(*nkeys)
 
-        delete_subtree(dn)
+            delete_subtree(dn)
 
-        for callback in self.POST_CALLBACKS:
-            if hasattr(callback, 'im_self'):
-                result = callback(ldap, dn, *keys, **options)
+            for callback in self.POST_CALLBACKS:
+                if hasattr(callback, 'im_self'):
+                    result = callback(ldap, dn, *nkeys, **options)
+                else:
+                    result = callback(self, ldap, dn, *nkeys, **options)
+
+            return result
+
+        if not self.obj.primary_key or not isinstance(keys[-1], (list, tuple)):
+            keys = keys[:-1] + (keys[-1], )
+
+        deleted = []
+        failed = []
+        result = True
+        for pkey in keys[-1]:
+            try:
+                if not delete_entry(pkey):
+                    result = False
+            except errors.ExecutionError:
+                failed.append(pkey)
             else:
-                result = callback(self, ldap, dn, *keys, **options)
+                deleted.append(pkey)
 
         if self.obj.primary_key and keys[-1] is not None:
-            return dict(result=result, value=keys[-1])
+            return dict(result=result, value=u','.join(deleted))
         return dict(result=result, value=u'')
 
     def pre_callback(self, ldap, dn, *keys, **options):
