@@ -157,28 +157,26 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
 
     config = calloc(1, sizeof(struct ipapwd_krbcfg));
     if (!config) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
-                        "Out of memory!\n");
+        slapi_log_error(SLAPI_LOG_FATAL, __func__, "Out of memory!\n");
         goto free_and_error;
     }
     kmkey = calloc(1, sizeof(krb5_keyblock));
     if (!kmkey) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
-                        "Out of memory!\n");
+        slapi_log_error(SLAPI_LOG_FATAL, __func__, "Out of memory!\n");
         goto free_and_error;
     }
     config->kmkey = kmkey;
 
     krberr = krb5_init_context(&config->krbctx);
     if (krberr) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+        slapi_log_error(SLAPI_LOG_FATAL, __func__,
                         "krb5_init_context failed\n");
         goto free_and_error;
     }
 
     ret = krb5_get_default_realm(config->krbctx, &config->realm);
     if (ret) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+        slapi_log_error(SLAPI_LOG_FATAL, __func__,
                         "Failed to get default realm?!\n");
         goto free_and_error;
     }
@@ -186,8 +184,7 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
     /* get the Realm Container entry */
     ret = ipapwd_getEntry(ipa_realm_dn, &realm_entry, NULL);
     if (ret != LDAP_SUCCESS) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
-                        "No realm Entry?\n");
+        slapi_log_error(SLAPI_LOG_FATAL, __func__, "No realm Entry?\n");
         goto free_and_error;
     }
 
@@ -195,36 +192,33 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
 
     ret = slapi_entry_attr_find(realm_entry, "krbMKey", &a);
     if (ret == -1) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
-                        "No master key??\n");
+        slapi_log_error(SLAPI_LOG_FATAL, __func__, "No master key??\n");
         goto free_and_error;
     }
 
     /* there should be only one value here */
     ret = slapi_attr_first_value(a, &v);
     if (ret == -1) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
-                        "No master key??\n");
+        slapi_log_error(SLAPI_LOG_FATAL, __func__, "No master key??\n");
         goto free_and_error;
     }
 
     bval = slapi_value_get_berval(v);
     if (!bval) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+        slapi_log_error(SLAPI_LOG_FATAL, __func__,
                         "Error retrieving master key berval\n");
         goto free_and_error;
     }
 
     be = ber_init(bval);
     if (!bval) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
-                        "ber_init() failed!\n");
+        slapi_log_error(SLAPI_LOG_FATAL, __func__, "ber_init() failed!\n");
         goto free_and_error;
     }
 
     tag = ber_scanf(be, "{i{iO}}", &tmp, &ttype, &mkey);
     if (tag == LBER_ERROR) {
-        slapi_log_error(SLAPI_LOG_TRACE, "ipapwd_getConfig",
+        slapi_log_error(SLAPI_LOG_TRACE, __func__,
                         "Bad Master key encoding ?!\n");
         goto free_and_error;
     }
@@ -234,8 +228,7 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
     kmkey->length = mkey->bv_len;
     kmkey->contents = malloc(mkey->bv_len);
     if (!kmkey->contents) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
-                        "Out of memory!\n");
+        slapi_log_error(SLAPI_LOG_FATAL, __func__, "Out of memory!\n");
         goto free_and_error;
     }
     memcpy(kmkey->contents, mkey->bv_val, mkey->bv_len);
@@ -246,7 +239,8 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
 
     /*** get the Supported Enc/Salt types ***/
 
-    encsalts = slapi_entry_attr_get_charray(realm_entry, "krbSupportedEncSaltTypes");
+    encsalts = slapi_entry_attr_get_charray(realm_entry,
+                                            "krbSupportedEncSaltTypes");
     if (encsalts) {
         ret = new_ipapwd_encsalt(config->krbctx,
                                  (const char * const *)encsalts,
@@ -254,7 +248,7 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
                                  &config->num_supp_encsalts);
         slapi_ch_array_free(encsalts);
     } else {
-        slapi_log_error(SLAPI_LOG_TRACE, "ipapwd_getConfig",
+        slapi_log_error(SLAPI_LOG_TRACE, __func__,
                         "No configured salt types use defaults\n");
         ret = new_ipapwd_encsalt(config->krbctx,
                                  ipapwd_def_encsalts,
@@ -262,14 +256,15 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
                                  &config->num_supp_encsalts);
     }
     if (ret) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+        slapi_log_error(SLAPI_LOG_FATAL, __func__,
                         "Can't get Supported EncSalt Types\n");
         goto free_and_error;
     }
 
     /*** get the Preferred Enc/Salt types ***/
 
-    encsalts = slapi_entry_attr_get_charray(realm_entry, "krbDefaultEncSaltTypes");
+    encsalts = slapi_entry_attr_get_charray(realm_entry,
+                                            "krbDefaultEncSaltTypes");
     if (encsalts) {
         ret = new_ipapwd_encsalt(config->krbctx,
                                  (const char * const *)encsalts,
@@ -277,7 +272,7 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
                                  &config->num_pref_encsalts);
         slapi_ch_array_free(encsalts);
     } else {
-        slapi_log_error(SLAPI_LOG_TRACE, "ipapwd_getConfig",
+        slapi_log_error(SLAPI_LOG_TRACE, __func__,
                         "No configured salt types use defaults\n");
         ret = new_ipapwd_encsalt(config->krbctx,
                                  ipapwd_def_encsalts,
@@ -285,7 +280,7 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
                                  &config->num_pref_encsalts);
     }
     if (ret) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+        slapi_log_error(SLAPI_LOG_FATAL, __func__,
                         "Can't get Preferred EncSalt Types\n");
         goto free_and_error;
     }
@@ -295,17 +290,17 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
     /* get the Realm Container entry */
     ret = ipapwd_getEntry(ipa_pwd_config_dn, &config_entry, NULL);
     if (ret != LDAP_SUCCESS) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
+        slapi_log_error(SLAPI_LOG_FATAL, __func__,
                         "No config Entry? Impossible!\n");
         goto free_and_error;
     }
-    config->passsync_mgrs = slapi_entry_attr_get_charray(config_entry, "passSyncManagersDNs");
+    config->passsync_mgrs =
+            slapi_entry_attr_get_charray(config_entry, "passSyncManagersDNs");
     /* now add Directory Manager, it is always added by default */
     tmpstr = slapi_ch_strdup("cn=Directory Manager");
     slapi_ch_array_add(&config->passsync_mgrs, tmpstr);
     if (config->passsync_mgrs == NULL) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_getConfig",
-                        "Out of memory!\n");
+        slapi_log_error(SLAPI_LOG_FATAL, __func__, "Out of memory!\n");
         goto free_and_error;
     }
     for (i = 0; config->passsync_mgrs[i]; i++) /* count */ ;
