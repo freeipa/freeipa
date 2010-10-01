@@ -24,7 +24,8 @@ ipa_entity_set_search_definition('host', [
     ['fqdn', 'Name', null],
     ['description', 'Description', null],
     ['enrolled', 'Enrolled?', null],
-    ['manages', 'Manages?', null]
+    ['manages', 'Manages?', null],
+    ['quick_links', 'Quick Links', ipa_entity_quick_links]
 ]);
 
 ipa_entity_set_add_definition('host', [

@@ -202,3 +202,50 @@ function ipa_entity_generate_views(obj_name, container, switch_view)
 
     container.append(ul);
 }
+
+function ipa_entity_quick_links(tr, attr, value, entry_attrs) {
+
+    var obj_name = tr.closest('.search-container').attr('title');
+    var pkey = ipa_objs[obj_name].primary_key;
+    var pkey_value = entry_attrs[pkey][0];
+
+    var td = $("<td/>");
+    tr.append(td);
+
+    $("<a/>", {
+        href: "#details",
+        click: function() {
+            var state = {};
+            state[obj_name+'-facet'] = 'details';
+            state[obj_name+'-pkey'] = pkey_value;
+            nav_push_state(state);
+            return false;
+        }
+    }).append($('<img/>', {
+         src: obj_name+'_details.png'
+    })).appendTo(td);
+
+    var attribute_members = ipa_objs[obj_name].attribute_members;
+    for (attr_name in attribute_members) {
+        var objs = attribute_members[attr_name];
+        for (var i = 0; i < objs.length; ++i) {
+            var m = objs[i];
+
+            $("<a/>", {
+                href: '#'+m,
+                click: function(m) {
+                    return function() {
+                        var state = {};
+                        state[obj_name+'-facet'] = 'associate';
+                        state[obj_name+'-enroll'] = m;
+                        state[obj_name+'-pkey'] = pkey_value;
+                        nav_push_state(state);
+                        return false;
+                    }
+                }(m)
+            }).append($('<img/>', {
+                src: m+'_member.png'
+            })).appendTo(td);
+        }
+    }
+}

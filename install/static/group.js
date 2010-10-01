@@ -24,7 +24,7 @@ ipa_entity_set_search_definition('group', [
     ['cn', 'Name', null],
     ['gidnumber', 'GID', null],
     ['description', 'Description', null],
-    ['quick_links', 'Quick Links', group_render_quick_links]
+    ['quick_links', 'Quick Links', ipa_entity_quick_links]
 ]);
 
 ipa_entity_set_add_definition('group', [
@@ -63,48 +63,4 @@ function f_posix(dlg, mode)
             return (true);
         return (false);
     }
-}
-
-function group_render_quick_links(tr, attr, value, entry_attrs) {
-
-    var td = $("<td/>");
-    tr.append(td);
-
-    $("<a/>", {
-        href: "jslink",
-        html: $("<img src='group_details.png' />"),
-        click: function() {
-            var state = {};
-            state['group-facet'] = 'details';
-            state['group-pkey'] = entry_attrs['cn'][0];
-            $.bbq.pushState(state);
-            return false;
-        }
-    }).appendTo(td);
-
-    $("<a/>", {
-        href: "jslink",
-        html: $("<img src='user_enroll.png' />"),
-        click: function() {
-            var state = {};
-            state['group-facet'] = 'associate';
-            state['group-enroll'] = 'user';
-            state['group-pkey'] = entry_attrs['cn'][0];
-            $.bbq.pushState(state);
-            return false;
-        }
-    }).appendTo(td);
-
-    $("<a/>", {
-        href: "jslink",
-        html: $("<img src='netgroup_member.png' />"),
-        click: function() {
-            var state = {};
-            state['group-facet'] = 'associate';
-            state['group-enroll'] = 'netgroup';
-            state['group-pkey'] = entry_attrs['cn'][0];
-            $.bbq.pushState(state);
-            return false;
-        }
-    }).appendTo(td);
 }

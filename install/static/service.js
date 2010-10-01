@@ -22,7 +22,7 @@
 
 ipa_entity_set_search_definition('service', [
     ['krbprincipalname', 'Principal', null],
-    ['quick_links', 'Quick Links', service_render_quick_links]
+    ['quick_links', 'Quick Links', ipa_entity_quick_links]
 ]);
 
 ipa_entity_set_add_definition('service', [
@@ -38,37 +38,6 @@ ipa_entity_set_details_definition('service', [
         ['krbprincipalname', 'Principal', null],
     ]]
 ]);
-
-function service_render_quick_links(tr, attr, value, entry_attrs) {
-
-    var td = $("<td/>");
-    tr.append(td);
-
-    $("<a/>", {
-        href: "jslink",
-        html: $("<img src='service_details.png' />"),
-        click: function() {
-            var state = {};
-            state['service-facet'] = 'details';
-            state['service-pkey'] = entry_attrs['krbprincipalname'][0];
-            $.bbq.pushState(state);
-            return false;
-        }
-    }).appendTo(td);
-
-    $("<a/>", {
-        href: "jslink",
-        html: $("<img src='host_enroll.png' />"),
-        click: function() {
-            var state = {};
-            state['service-facet'] = 'associate';
-            state['service-enroll'] = 'host';
-            state['service-pkey'] = entry_attrs['krbprincipalname'][0];
-            $.bbq.pushState(state);
-            return false;
-        }
-    }).appendTo(td);
-}
 
 function service_add_krbprincipalname(add_dialog, flag) {
     if (flag == IPA_ADD_UPDATE) {

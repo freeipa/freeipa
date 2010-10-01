@@ -23,7 +23,7 @@
 ipa_entity_set_search_definition('rolegroup', [
     ['cn', 'Role-group name', null],
     ['description', 'Description', null],
-    ['quick_links', 'Quick Links', rolegroup_render_quick_links]
+    ['quick_links', 'Quick Links', ipa_entity_quick_links]
 ]);
 
 ipa_entity_set_add_definition('rolegroup', [
@@ -39,73 +39,3 @@ ipa_entity_set_details_definition('rolegroup', [
         ['description', 'Description', null],
     ]]
 ]);
-
-function rolegroup_render_quick_links(tr, attr, value, entry_attrs) {
-
-    var td = $("<td/>");
-    tr.append(td);
-
-    $("<a/>", {
-        href: "jslink",
-        html: $("<img src='rolegroup_details.png' />"),
-        click: function() {
-            var state = {};
-            state['rolegroup-facet'] = 'details';
-            state['rolegroup-pkey'] = entry_attrs['cn'][0];
-            $.bbq.pushState(state);
-            return false;
-        }
-    }).appendTo(td);
-
-    $("<a/>", {
-        href: "jslink",
-        html: $("<img src='user_member.png' />"),
-        click: function() {
-            var state = {};
-            state['rolegroup-facet'] = 'associate';
-            state['rolegroup-enroll'] = 'user';
-            state['rolegroup-pkey'] = entry_attrs['cn'][0];
-            $.bbq.pushState(state);
-            return false;
-        }
-    }).appendTo(td);
-
-    $("<a/>", {
-        href: "jslink",
-        html: $("<img src='group_member.png' />"),
-        click: function() {
-            var state = {};
-            state['rolegroup-facet'] = 'associate';
-            state['rolegroup-enroll'] = 'group';
-            state['rolegroup-pkey'] = entry_attrs['cn'][0];
-            $.bbq.pushState(state);
-            return false;
-        }
-    }).appendTo(td);
-
-    $("<a/>", {
-        href: "jslink",
-        html: $("<img src='host_member.png' />"),
-        click: function() {
-            var state = {};
-            state['rolegroup-facet'] = 'associate';
-            state['rolegroup-enroll'] = 'host';
-            state['rolegroup-pkey'] = entry_attrs['cn'][0];
-            $.bbq.pushState(state);
-            return false;
-        }
-    }).appendTo(td);
-
-    $("<a/>", {
-        href: "jslink",
-        html: $("<img src='hostgroup_member.png' />"),
-        click: function() {
-            var state = {};
-            state['rolegroup-facet'] = 'associate';
-            state['rolegroup-enroll'] = 'hostgroup';
-            state['rolegroup-pkey'] = entry_attrs['cn'][0];
-            $.bbq.pushState(state);
-            return false;
-        }
-    }).appendTo(td);
-}

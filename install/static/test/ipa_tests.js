@@ -27,11 +27,11 @@ test("Testing ipa_init().", function() {
     ipa_init(
         "data",
         true,
-        function(data, status, xhr) {
+        function(data, text_status, xhr) {
             ok(true, "ipa_init() succeeded.");
         },
-        function(xhr, options, thrownError) {
-            ok(false, "ipa_init() failed: "+thrownError);
+        function(xhr, text_status, error_thrown) {
+            ok(false, "ipa_init() failed: "+error_thrown);
         }
     );
 });
