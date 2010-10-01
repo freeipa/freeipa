@@ -844,6 +844,22 @@ class Command(HasParam):
                 continue
             yield param
 
+    def number_failed(self, failed):
+        """
+        Return the number of entries in the failed output parameter.
+
+        This is used to determine whether the failed members should be
+        displayed and what the return value should be.
+        """
+        num_failed = 0
+        for f in failed:
+            if type(failed[f]) is dict:
+                num_failed = num_failed + self.number_failed(failed[f])
+            else:
+                num_failed = num_failed + len(failed[f])
+
+        return num_failed
+
     def output_for_cli(self, textui, output, *args, **options):
         """
         Generic output method. Prints values the output argument according
@@ -859,6 +875,8 @@ class Command(HasParam):
         """
         if not isinstance(output, dict):
             return
+
+        rv = 0
 
         order = [p.name for p in self.output_params()]
         if options.get('all', False):
@@ -878,6 +896,13 @@ class Command(HasParam):
                 continue
             result = output[o]
 
+            if o.lower() == 'failed':
+                if self.number_failed(result) == 0:
+                    # Don't display an empty failed list
+                    continue
+                else:
+                    # Return an error to the shell
+                    rv = 1
             if isinstance(outp, ListOfEntries):
                 textui.print_entries(result, order, labels, print_all)
             elif isinstance(result, (tuple, list)):
@@ -898,6 +923,7 @@ class Command(HasParam):
             elif isinstance(result, int):
                 textui.print_count(result, '%s %%d' % unicode(self.output[o].doc))
 
+        return rv
 
 class LocalOrRemote(Command):
     """
