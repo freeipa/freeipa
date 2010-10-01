@@ -120,7 +120,8 @@ class test_rolegroup(Declarative):
         dict(
             desc='Create %r' % group1,
             command=(
-                'group_add', [group1], dict(description=u'group desc 1')
+                'group_add', [group1], dict(description=u'group desc 1',
+                nonposix=True,)
             ),
             expected=dict(
                 value=group1,
