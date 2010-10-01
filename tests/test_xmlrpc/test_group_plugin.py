@@ -66,9 +66,9 @@ class test_group(Declarative):
 
 
         dict(
-            desc='Create %r' % group1,
+            desc='Create non-POSIX %r' % group1,
             command=(
-                'group_add', [group1], dict(description=u'Test desc 1')
+                'group_add', [group1], dict(description=u'Test desc 1',nonposix=True)
             ),
             expected=dict(
                 value=group1,
@@ -94,7 +94,7 @@ class test_group(Declarative):
 
 
         dict(
-            desc='Retrieve %r' % group1,
+            desc='Retrieve non-POSIX %r' % group1,
             command=('group_show', [group1], {}),
             expected=dict(
                 value=group1,
@@ -109,7 +109,7 @@ class test_group(Declarative):
 
 
         dict(
-            desc='Updated %r' % group1,
+            desc='Updated non-POSIX %r' % group1,
             command=(
                 'group_mod', [group1], dict(description=u'New desc 1')
             ),
@@ -143,7 +143,7 @@ class test_group(Declarative):
         # group_mod() test.  I think that for all *_mod() commands we should
         # just return the entry exactly as *_show() does.
         dict(
-            desc='Updated %r to promote it to a posix group' % group1,
+            desc='Updated %r to promote it to a POSIX group' % group1,
             command=('group_mod', [group1], dict(posix=True)),
             expected=dict(
                 result=dict(
@@ -158,7 +158,7 @@ class test_group(Declarative):
 
 
         dict(
-            desc="Retrieve %r to verify it's a posix group" % group1,
+            desc="Retrieve %r to verify it's a POSIX group" % group1,
             command=('group_show', [group1], {}),
             expected=dict(
                 value=group1,
@@ -227,7 +227,8 @@ class test_group(Declarative):
                 result=dict(
                     cn=[group2],
                     description=[u'Test desc 2'],
-                    objectclass=objectclasses.group,
+                    gidnumber=[fuzzy_digits],
+                    objectclass=objectclasses.group + [u'posixgroup'],
                     ipauniqueid=[fuzzy_uuid],
                     dn=u'cn=testgroup2,cn=groups,cn=accounts,' + api.env.basedn,
                 ),
@@ -253,6 +254,7 @@ class test_group(Declarative):
                 result=dict(
                     cn=[group2],
                     description=[u'Test desc 2'],
+                    gidnumber=[fuzzy_digits],
                     dn=u'cn=testgroup2,cn=groups,cn=accounts,' + api.env.basedn,
                 ),
             ),
@@ -267,6 +269,7 @@ class test_group(Declarative):
             expected=dict(
                 result=dict(
                     cn=[group2],
+                    gidnumber=[fuzzy_digits],
                     description=[u'New desc 2'],
                 ),
                 summary=u'Modified group "testgroup2"',
@@ -283,6 +286,7 @@ class test_group(Declarative):
                 result=dict(
                     cn=[group2],
                     description=[u'New desc 2'],
+                    gidnumber=[fuzzy_digits],
                     dn=u'cn=testgroup2,cn=groups,cn=accounts,' + api.env.basedn,
                 ),
                 summary=None,
@@ -301,6 +305,7 @@ class test_group(Declarative):
                         dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group2, api.env.basedn),
                         cn=[group2],
                         description=[u'New desc 2'],
+                        gidnumber=[fuzzy_digits],
                     ),
                 ],
                 summary=u'1 group matched',
@@ -345,6 +350,7 @@ class test_group(Declarative):
                         dn=u'cn=%s,cn=groups,cn=accounts,%s' % (group2, api.env.basedn),
                         cn=[group2],
                         description=[u'New desc 2'],
+                        gidnumber=[fuzzy_digits],
                     ),
                 ],
             ),

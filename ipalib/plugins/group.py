@@ -20,10 +20,10 @@
 """
 Groups of users
 
-Manage groups of users. By default, new groups are not POSIX groups. You
-can add the --posix to the group-add command to mark a new group
-as POSIX, and you can use the same argument to the group-mod command to
-convert a non-POSIX group to a POSIX group. POSIX groups cannot be
+Manage groups of users. By default, new groups are POSIX groups. You
+can add the --nonposix to the group-add command to mark a new group
+as non-POSIX, and you can use the same argument to the group-mod command
+to convert a non-POSIX group to a POSIX group. POSIX groups cannot be
 converted to non-POSIX groups.
 
 Every group must have a description.
@@ -38,17 +38,17 @@ EXAMPLES:
  Add a new group:
    ipa group-add --desc='local administrators' localadmins
 
- Add a new POSIX group:
-   ipa group-add --posix --desc='remote administrators' remoteadmins
+ Add a new non-POSIX group:
+   ipa group-add --nonposix --desc='remote administrators' remoteadmins
 
  Convert a non-POSIX group to posix:
-   ipa group-mod --posix localadmins
+   ipa group-mod --posix remoteadmins
 
  Add a new POSIX group with a specific Group ID number:
-   ipa group-add --posix --gid=500 --desc='unix admins' unixadmins
+   ipa group-add --gid=500 --desc='unix admins' unixadmins
 
  Add a new POSIX group and let IPA assign a Group ID number:
-   ipa group-add --posix --desc='printer admins' printeradmins
+   ipa group-add --desc='printer admins' printeradmins
 
  Remove a group:
    ipa group-del unixadmins
@@ -134,14 +134,15 @@ class group_add(LDAPCreate):
     msg_summary = _('Added group "%(value)s"')
 
     takes_options = LDAPCreate.takes_options + (
-        Flag('posix',
-             cli_name='posix',
-             doc=_('Create as posix group?'),
+        Flag('nonposix',
+             cli_name='nonposix',
+             doc=_('Create as a non-POSIX group?'),
+             default=False,
         ),
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        if options['posix'] or 'gidnumber' in options:
+        if not options['nonposix']:
             entry_attrs['objectclass'].append('posixgroup')
             if not 'gidnumber' in options:
                 entry_attrs['gidnumber'] = 999
@@ -190,7 +191,7 @@ class group_mod(LDAPUpdate):
     takes_options = LDAPUpdate.takes_options + (
         Flag('posix',
              cli_name='posix',
-             doc=_('change to posix group'),
+             doc=_('change to a POSIX group'),
         ),
     )
 
