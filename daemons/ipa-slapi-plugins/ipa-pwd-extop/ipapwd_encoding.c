@@ -717,10 +717,6 @@ static int encode_ntlm_keys(char *newPasswd,
 
         /* get the final ucs2 string length */
         sl -= ol;
-        /* we are interested only in the first 14 wchars for the nt password */
-        if (sl > 28) {
-            sl = 28;
-        }
 
         ret = MD4_Init(&md4ctx);
         if (ret == 0) {
