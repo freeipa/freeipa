@@ -42,10 +42,14 @@ class json_metadata(Command):
             "find": _("Find"),
             "reset":_("Reset"),
             "update":_("Update"),
-            "enroll":_("Enroll")
+            "enroll":_("Enroll"),
+            "delete":_("Delete"),
             },
         "search":{
-            "quick_links":_("Quick Links")
+            "quick_links":_("Quick Links"),
+            "select_all":_("Select All"),
+            "unselect_all":_("Unselect All"),
+            "delete_confirm":_("Do you really want to delete the selected entries?"),
             },
         "details":{
             "identity":_("Identity Details"),

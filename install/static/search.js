@@ -34,6 +34,52 @@ function search_create(obj_name, scl, container)
         $.bbq.pushState(state);
     };
 
+    function delete_on_click() {
+        var delete_list = [];
+        var delete_dialog = $('<div></div>', {
+            title: ipa_messages.button.delete,
+            'class': 'search-dialog-delete',
+        });
+
+        function delete_on_click() {
+            ipa_cmd('del', delete_list, {}, delete_on_win, null, obj_name);
+            delete_dialog.dialog('close');
+        };
+
+        function delete_on_win() {
+            for (var i = 0; i < delete_list.length; ++i) {
+                var chk = container.find(
+                    '.search-selector[title=' + delete_list[i] + ']'
+                );
+                if (chk)
+                    chk.closest('tr').remove();
+            }
+        };
+
+        function cancel_on_click() {
+            delete_dialog.dialog('close');
+        };
+
+        container.find('.search-selector').each(function () {
+            var jobj = $(this);
+            if (jobj.attr('checked'))
+                delete_list.push(jobj.attr('title'));
+        });
+
+        if (delete_list.length == 0)
+            return;
+
+        delete_dialog.text(ipa_messages.search.delete_confirm);
+
+        delete_dialog.dialog({
+            modal: true,
+            buttons: {
+                'Delete': delete_on_click,
+                'Cancel': cancel_on_click,
+            },
+        });
+    };
+
     if (!container) {
         alert('ERROR: search_create: Second argument "container" missing!');
         return;
@@ -50,6 +96,8 @@ function search_create(obj_name, scl, container)
     jobj.children().last().attr('name', 'search-' + obj_name + '-filter')
     jobj.append('<input type="submit" value="'+ipa_messages.button.find+ '" />');
     jobj.children().last().click(find_on_click);
+    jobj.append('<input type="submit" value="'+ipa_messages.button.delete+ '" />');
+    jobj.children().last().click(delete_on_click);
     div.append('<span class="search-buttons"></span>');
 
     var search_results = $('<div/>', {
@@ -65,10 +113,43 @@ function search_create(obj_name, scl, container)
     search_table.append('<tfoot></tfoot>');
 
     var tr = search_table.find('tr');
+    search_insert_checkbox_th(tr);
     for (var i = 0; i < scl.length; ++i) {
         var c = scl[i];
         search_insert_th(tr, obj_name, c[0], c[1], c[2]);
     }
+}
+
+function search_insert_checkbox_th(jobj)
+{
+    function select_all_on_click() {
+        var jobj = $(this);
+
+        var checked = null;
+        if (jobj.attr('checked')) {
+            checked = true;
+            jobj.attr('title', 'Unselect All');
+        } else {
+            checked = false;
+            jobj.attr('title', 'Select All');
+        }
+        jobj.attr('checked', checked);
+
+        var chks = jobj.closest('.search-container').find('.search-selector');
+        for (var i = 0; i < chks.length; ++i)
+            chks[i].checked = checked;
+    };
+
+    var checkbox = $('<input />', {
+        type: 'checkbox',
+        title: 'Select All',
+    });
+    checkbox.click(select_all_on_click);
+
+    var th = $('<th></th>');
+    th.append(checkbox);
+
+    jobj.append(th);
 }
 
 var _search_th_template = '<th abbr="A" title="C">N</th>';
@@ -119,11 +200,16 @@ function search_load(jobj, criteria, on_win, on_fail)
 
 function search_generate_tr(thead, tbody, entry_attrs)
 {
+    var obj_name = tbody.closest('.search-container').attr('title');
+    var pkey = ipa_objs[obj_name].primary_key;
+    var pkey_value = entry_attrs[pkey];
+
     tbody.append('<tr></tr>');
     var tr = tbody.children().last();
+    search_generate_checkbox_td(tr, pkey_value);
 
     var ths = thead.find('th');
-    for (var i = 0; i < ths.length; ++i) {
+    for (var i = 1; i < ths.length; ++i) {
         var jobj = $(ths[i]);
         var attr = jobj.attr('abbr');
         var value = entry_attrs[attr];
@@ -137,7 +223,6 @@ function search_generate_tr(thead, tbody, entry_attrs)
 
     tbody.find('.search-a-pkey').click(function () {
         var jobj = $(this);
-        var obj_name = tbody.closest('.search-container').attr('title');
 
         var state = {};
         state[obj_name + '-facet'] = 'details';
@@ -146,6 +231,20 @@ function search_generate_tr(thead, tbody, entry_attrs)
 
         return (false);
     });
+}
+
+function search_generate_checkbox_td(tr, pkey)
+{
+    var checkbox = $('<input />', {
+        name: pkey,
+        title: pkey,
+        type: 'checkbox',
+        'class': 'search-selector',
+    });
+    var td = $('<td></td>');
+
+    td.append(checkbox);
+    tr.append(td);
 }
 
 var _search_td_template = '<td title="A">V</td>';
