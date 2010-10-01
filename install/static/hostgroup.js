@@ -39,4 +39,3 @@ ipa_entity_set_details_definition('hostgroup', [
         ['description', 'Description', null]
     ]]
 ]);
-

@@ -42,14 +42,14 @@ function SerialAssociator(form, manyObjPkeys, on_success)
             var args = [manyObjPkey];
 
             ipa_cmd( form.method,args, options ,
-                     function(response){
-                         if (response.error){
-                             alert("error adding member: "+response.error.message);
+                     function(data, text_status, xhr) {
+                         if (data.error){
+                             alert("error adding member: "+data.error.message);
                          }else{
                              associator.associateNext();
                          }
                      },
-                     function(response){
+                     function(xhr, text_status, error_thrown) {
                          alert("associateFailure");
                      },
                      form.manyObj );
@@ -85,14 +85,14 @@ function BulkAssociator(form, manyObjPkeys, on_success)
         var args = [form.pkey];
 
         ipa_cmd( form.method,args, options ,
-                 function(response){
-                     if (response.error){
-                         alert("error adding member: "+response.error.message);
+                 function(data, text_status, xhr) {
+                     if (data.error){
+                         alert("error adding member: "+data.error.message);
                      }else{
                          associator.on_success();
                      }
                  },
-                 function(response){
+                 function(xhr, text_status, error_thrown) {
                      alert("associateFailure");
                  },
                  form.oneObj );
@@ -124,7 +124,7 @@ function AssociationForm(oneObj, pkey, manyObj, on_success, associatorConstructo
     if (associatorConstructor)
         this.associatorConstructor = associatorConstructor;
     else
-        this.associatorConstructor = SerialAssociator;
+        this.associatorConstructor = BulkAssociator;
 
     this.setup = function() {
         var label = ipa_objs[form.manyObj].label;
@@ -212,7 +212,7 @@ function AssociationForm(oneObj, pkey, manyObj, on_success, associatorConstructo
 /**
     A modfied version of search. It shows the  associations for an object.
 */
-function AssociationList(obj, pkey, manyObj, associationColumns, jobj)
+function AssociationList(obj, pkey, manyObj, associationColumns, jobj, associationConstructor, method)
 {
     var form = this;
 
@@ -220,20 +220,22 @@ function AssociationList(obj, pkey, manyObj, associationColumns, jobj)
     this.pkey = pkey;
     this.associationColumns = associationColumns;
     this.manyObj = manyObj;
-    this.parentTab = jobj;
+    this.container = jobj;
+    this.associationConstructor = associationConstructor;
+    this.method = method;
 
     this.refresh = function() {
 
-        function refresh_on_success(userData) {
-           var tbody = this.parentTab.find('.search-table tbody');
-           tbody.empty();
-           var associationList = userData.result.result[this.associationColumns[0].column];
-           for (var j = 0; j < associationList.length; j++){
+        function refresh_on_success(data, text_status, xhr) {
+            var tbody = form.container.find('.search-table tbody');
+            tbody.empty();
+            var associationList = data.result.result[form.associationColumns[0].column];
+            for (var j = 0; j < associationList.length; j++){
                 var row  = $("<tr/>").appendTo(tbody);
                 for (var k = 0; k < associationColumns.length ;k++){
-                    var column = this.associationColumns[k].column;
+                    var column = form.associationColumns[k].column;
                     $("<td></td>",{
-                        html: userData.result.result[column][j]
+                        html: data.result.result[column][j]
                     }).appendTo(row);
                 }
             }
@@ -249,17 +251,17 @@ function AssociationList(obj, pkey, manyObj, associationColumns, jobj)
     }
 
     this.setup = function() {
-        association_list_create(this.obj, this.parentTab);
-        this.parentTab.find(".search-filter").css("display", "none");
-        this.parentTab.find(".search-buttons").html("");
+        association_list_create(this.obj, this.container);
+        this.container.find(".search-filter").css("display", "none");
+        this.container.find(".search-buttons").html("");
         $("<input/>", {
             type:  'button',
             value: 'enroll',
             click: function() {
                 form.show_enrollment_dialog();
             }
-        }).appendTo(this.parentTab.find(".search-buttons"));
-        var header = $("<tr></tr>").appendTo(this.parentTab.find('.search-table thead:last'));
+        }).appendTo(this.container.find(".search-buttons"));
+        var header = $("<tr></tr>").appendTo(this.container.find('.search-table thead:last'));
         for (var i =0 ; i != associationColumns.length ;i++){
             $("<th></th>",{
                 html: associationColumns[i].title
@@ -277,7 +279,9 @@ function AssociationList(obj, pkey, manyObj, associationColumns, jobj)
             function() {
                 form.refresh();
                 enrollment_dialog.close();
-            }
+            },
+            this.associationConstructor,
+            this.method
         );
         enrollment_dialog.setup();
     }

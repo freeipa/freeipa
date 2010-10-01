@@ -83,6 +83,13 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
             }
             ipa_error_handler(xhr, text_status, error_thrown);
 
+        } else if (data.error) {
+            var error_thrown = {
+                name: 'IPA Error '+data.error.code,
+                message: data.error.message
+            }
+            ipa_error_handler(xhr, text_status, error_thrown);
+
         } else if (win_callback) {
             win_callback(data, text_status, xhr);
         }

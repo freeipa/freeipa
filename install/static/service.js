@@ -47,3 +47,7 @@ function service_add_krbprincipalname(add_dialog, flag) {
     }
     return null;
 }
+
+ipa_entity_set_association_definition('service', {
+    'host': { method: 'add_host' }
+});

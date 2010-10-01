@@ -1,5 +1,6 @@
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
+ *    Endi S. Dewata <edewata@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -23,6 +24,7 @@
 var ipa_entity_search_list = {};
 var ipa_entity_add_list = {};
 var ipa_entity_details_list = {};
+var ipa_entity_association_list = {};
 
 /* use this to track individual changes between two hashchange events */
 var window_hash_cache = {};
@@ -40,6 +42,11 @@ function ipa_entity_set_add_definition(obj_name, data)
 function ipa_entity_set_details_definition(obj_name, data)
 {
     ipa_entity_details_list[obj_name] = data;
+}
+
+function ipa_entity_set_association_definition(obj_name, data)
+{
+    ipa_entity_association_list[obj_name] = data;
 }
 
 function ipa_entity_setup(container)
@@ -151,7 +158,17 @@ function _ipa_entity_setup(jobj) {
                 column: attr + '_' + enroll_obj_name
             }
         ];
-        var frm = new AssociationList(obj_name, pkey, enroll_obj_name, columns, jobj);
+
+        var association = ipa_entity_association_list[obj_name];
+        var association_config = association ? association[enroll_obj_name] : null;
+        var associator = association_config ? association_config.associator : null;
+        var method = association_config ? association_config.method : null;
+
+        var frm = new AssociationList(
+                obj_name, pkey, enroll_obj_name, columns, jobj,
+                associator, method
+        );
+
         ipa_entity_generate_views(obj_name, jobj, switch_view);
         frm.setup();
     };

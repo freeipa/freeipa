@@ -39,3 +39,7 @@ ipa_entity_set_details_definition('rolegroup', [
         ['description', 'Description', null],
     ]]
 ]);
+
+ipa_entity_set_association_definition('rolegroup', {
+    'taskgroup': { associator: SerialAssociator }
+});

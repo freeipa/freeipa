@@ -74,6 +74,13 @@ ipa_entity_set_details_definition('user', [
     ]]
 ]);
 
+ipa_entity_set_association_definition('user', {
+    'group': { associator: SerialAssociator },
+    'netgroup': { associator: SerialAssociator },
+    'rolegroup': { associator: SerialAssociator },
+    'taskgroup': { associator: SerialAssociator }
+});
+
 /* Account status Toggle button */
 
 function toggle_on_click(obj)
