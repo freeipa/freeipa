@@ -231,6 +231,7 @@ function ipa_entity_quick_links(tr, attr, value, entry_attrs) {
 
     $("<a/>", {
         href: "#details",
+        title: "Details",
         click: function() {
             var state = {};
             state[obj_name+'-facet'] = 'details';
@@ -247,9 +248,11 @@ function ipa_entity_quick_links(tr, attr, value, entry_attrs) {
         var objs = attribute_members[attr_name];
         for (var i = 0; i < objs.length; ++i) {
             var m = objs[i];
+            var label = ipa_objs[m].label;
 
             $("<a/>", {
                 href: '#'+m,
+                title: label,
                 click: function(m) {
                     return function() {
                         var state = {};
