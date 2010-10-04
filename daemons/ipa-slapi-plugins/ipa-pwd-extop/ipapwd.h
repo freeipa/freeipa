@@ -47,6 +47,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include <prio.h>
 #include <ssl.h>
@@ -110,6 +111,8 @@ struct ipapwd_krbcfg {
     struct ipapwd_encsalt *pref_encsalts;
     char **passsync_mgrs;
     int num_passsync_mgrs;
+    bool allow_lm_hash;
+    bool allow_nt_hash;
 };
 
 int ipapwd_entry_checks(Slapi_PBlock *pb, struct slapi_entry *e,

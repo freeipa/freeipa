@@ -73,6 +73,7 @@ const char *ipa_realm_tree;
 /* dn of Kerberos realm entry */
 const char *ipa_realm_dn;
 const char *ipa_pwd_config_dn;
+const char *ipa_etc_config_dn;
 const char *ipa_changepw_principal_dn;
 
 Slapi_PluginDesc ipapwd_plugin_desc = {
@@ -1113,6 +1114,14 @@ static int ipapwd_start( Slapi_PBlock *pb )
                           realm, ipa_realm_dn);
     if (!ipa_changepw_principal_dn) {
         slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory ?\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    ipa_etc_config_dn = slapi_ch_smprintf("cn=ipaConfig,cn=etc,%s",
+                                          ipa_realm_tree);
+    if (!ipa_etc_config_dn) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory?\n");
         ret = LDAP_OPERATIONS_ERROR;
         goto done;
     }

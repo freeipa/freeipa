@@ -48,6 +48,7 @@
 
 extern void *ipapwd_plugin_id;
 extern const char *ipa_realm_dn;
+extern const char *ipa_etc_config_dn;
 extern const char *ipa_pwd_config_dn;
 
 /* These are the default enc:salt types if nothing is defined.
@@ -152,6 +153,7 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
     const struct berval *bval;
     struct berval *mkey = NULL;
     char **encsalts;
+    char **tmparray;
     char *tmpstr;
     int i, ret;
 
@@ -305,6 +307,32 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
     }
     for (i = 0; config->passsync_mgrs[i]; i++) /* count */ ;
     config->num_passsync_mgrs = i;
+
+    slapi_entry_free(config_entry);
+
+    /* get the ipa etc/ipaConfig entry */
+    config->allow_lm_hash = false;
+    config->allow_nt_hash = false;
+    ret = ipapwd_getEntry(ipa_etc_config_dn, &config_entry, NULL);
+    if (ret != LDAP_SUCCESS) {
+        slapi_log_error(SLAPI_LOG_FATAL, __func__, "No config Entry?\n");
+    } else {
+        tmparray = slapi_entry_attr_get_charray(config_entry,
+                                                "ipaConfigString");
+        for (i = 0; tmparray && tmparray[i]; i++) {
+            if (strcasecmp(tmparray[i], "AllowLMhash") == 0) {
+                config->allow_lm_hash = true;
+                continue;
+            }
+            if (strcasecmp(tmparray[i], "AllowNThash") == 0) {
+                config->allow_nt_hash = true;
+                continue;
+            }
+        }
+        if (tmparray) slapi_ch_array_free(tmparray);
+    }
+
+    slapi_entry_free(config_entry);
 
     return config;
 

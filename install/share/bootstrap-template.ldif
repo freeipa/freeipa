@@ -187,6 +187,7 @@ changetype: add
 objectClass: nsContainer
 objectClass: top
 objectClass: ipaGuiConfig
+objectClass: ipaConfigObject
 ipaUserSearchFields: uid,givenname,sn,telephonenumber,ou,title
 ipaGroupSearchFields: cn,description
 ipaSearchTimeLimit: 2
@@ -213,6 +214,7 @@ ipaUserObjectClasses: radiusprofile
 ipaUserObjectClasses: ipaobject
 ipaDefaultEmailDomain: $DOMAIN
 ipaMigrationEnabled: FALSE
+ipaConfigString: AllowNThash
 
 dn: cn=account inactivation,cn=accounts,$SUFFIX
 changetype: add

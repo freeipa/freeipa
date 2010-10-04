@@ -557,8 +557,6 @@ enc_error:
 }
 
 
-#define KTF_LM_HASH 0x01
-#define KTF_NT_HASH 0x02
 #define KTF_DOS_CHARSET "CP850" /* same default as samba */
 #define KTF_UTF8 "UTF-8"
 #define KTF_UCS2 "UCS-2LE"
@@ -593,16 +591,19 @@ struct ntlm_keys {
 
 /* create the lm and nt hashes
    newPassword: the clear text utf8 password
-   flags: KTF_LM_HASH | KTF_NT_HASH
+   do_lm_hash: determine if LM hash is generated
+   do_nt_hash: determine if NT hash is generated
+   keys[out]: array with generated hashes
 */
 static int encode_ntlm_keys(char *newPasswd,
-                            unsigned int flags,
+                            bool do_lm_hash,
+                            bool do_nt_hash,
                             struct ntlm_keys *keys)
 {
     int ret = 0;
 
     /* do lanman first */
-    if (flags & KTF_LM_HASH) {
+    if (do_lm_hash) {
         iconv_t cd;
         size_t cs, il, ol;
         char *inc, *outc;
@@ -678,7 +679,7 @@ static int encode_ntlm_keys(char *newPasswd,
         memset(keys->lm, 0, 16);
     }
 
-    if (flags & KTF_NT_HASH) {
+    if (do_nt_hash) {
         iconv_t cd;
         size_t cs, il, ol, sl;
         char *inc, *outc;
@@ -770,13 +771,12 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
     if (is_smb) {
         char lm[33], nt[33];
         struct ntlm_keys ntlm;
-        int ntlm_flags = 0;
         int ret;
 
-        /* TODO: retrieve if we want to store the LM hash or not */
-        ntlm_flags = KTF_LM_HASH | KTF_NT_HASH;
-
-        ret = encode_ntlm_keys(userpw, ntlm_flags, &ntlm);
+        ret = encode_ntlm_keys(userpw,
+                               krbcfg->allow_lm_hash,
+                               krbcfg->allow_nt_hash,
+                               &ntlm);
         if (ret) {
             *errMesg = "Failed to generate NT/LM hashes\n";
             slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
@@ -784,12 +784,12 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
             rc = LDAP_OPERATIONS_ERROR;
             goto done;
         }
-        if (ntlm_flags & KTF_LM_HASH) {
+        if (krbcfg->allow_lm_hash) {
             hexbuf(lm, ntlm.lm);
             lm[32] = '\0';
             *lmhash = slapi_ch_strdup(lm);
         }
-        if (ntlm_flags & KTF_NT_HASH) {
+        if (krbcfg->allow_nt_hash) {
             hexbuf(nt, ntlm.nt);
             nt[32] = '\0';
             *nthash = slapi_ch_strdup(nt);
