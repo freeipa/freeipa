@@ -53,14 +53,17 @@ class hbacsvcgroup(LDAPObject):
     HBAC service group object.
     """
     container_dn = api.env.container_hbacservicegroup
-    object_name = 'servicegroup'
-    object_name_plural = 'servicegroups'
+    object_name = 'hbacsvcgroup'
+    object_name_plural = 'hbacsvcgroups'
     object_class = ['ipaobject', 'ipahbacservicegroup']
-    default_attributes = [ 'cn', 'description', 'member', 'memberof', ]
+    default_attributes = [ 'cn', 'description', 'member', 'memberof',
+        'memberindirect',
+    ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'member': ['hbacsvc', 'hbacsvcgroup'],
         'memberof': ['hbacsvcgroup'],
+        'memberindirect': ['hbacsvc', 'hbacsvcgroup'],
     }
 
     label = _('HBAC Service Groups')
@@ -76,18 +79,6 @@ class hbacsvcgroup(LDAPObject):
             cli_name='desc',
             label=_('Description'),
             doc=_('HBAC service group description'),
-        ),
-        Str('member_service?',
-            label=_('Member services'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('member_servicegroup?',
-            label=_('Member service groups'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('memberof_servicegroup?',
-            label='Member of service groups',
-            flags=['no_create', 'no_update', 'no_search'],
         ),
     )
 

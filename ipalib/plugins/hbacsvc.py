@@ -51,10 +51,10 @@ class hbacsvc(LDAPObject):
     HBAC Service object.
     """
     container_dn = api.env.container_hbacservice
-    object_name = 'service'
-    object_name_plural = 'services'
+    object_name = 'hbacsvc'
+    object_name_plural = 'hbacsvcs'
     object_class = [ 'ipaobject', 'ipahbacservice' ]
-    default_attributes = ['cn', 'description']
+    default_attributes = ['cn', 'description', 'memberindirect',]
     uuid_attribute = 'ipauniqueid'
 
     label = _('Services')

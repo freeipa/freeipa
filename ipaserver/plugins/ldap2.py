@@ -49,6 +49,11 @@ from ipalib.encoder import Encoder, encode_args, decode_retval
 from ipalib.request import context
 
 
+# Group Member types
+MEMBERS_ALL = 0
+MEMBERS_DIRECT = 1
+MEMBERS_INDIRECT = 2
+
 # SASL authentication mechanism
 SASL_AUTH = _ldap_sasl.sasl({}, 'GSSAPI')
 
@@ -543,6 +548,13 @@ class ldap2(CrudBackend, Encoder):
         if not res:
             raise errors.NotFound(reason='no such entry')
 
+        if attrs_list and ('memberindirect' in attrs_list or '*' in attrs_list):
+            for r in res:
+                indirect = self.get_members(r[0], membertype=MEMBERS_INDIRECT,
+                    time_limit=time_limit, size_limit=size_limit, normalize=normalize)
+                if len(indirect) > 0:
+                    r[1]['memberindirect'] = indirect
+
         return (res, truncated)
 
     def find_entry_by_attr(self, attr, value, object_class, attrs_list=None,
@@ -813,6 +825,65 @@ class ldap2(CrudBackend, Encoder):
 
         # update group entry
         self.update_entry(group_dn, group_entry_attrs)
+
+    def get_members(self, group_dn, attr_list=[], membertype=MEMBERS_ALL, time_limit=None, size_limit=None, normalize=True):
+        """Do a memberOf search of groupdn and return the attributes in
+           attr_list (an empty list returns all attributes).
+
+           membertype = MEMBERS_ALL all members returned
+           membertype = MEMBERS_DIRECT only direct members are returned
+           membertype = MEMBERS_INDIRECT only inherited members are returned
+
+           Members may be included in a group as a result of being a member
+           of a group that is a member of the group being queried.
+
+           Returns a list of DNs.
+        """
+        if membertype not in [MEMBERS_ALL, MEMBERS_DIRECT, MEMBERS_INDIRECT]:
+            return None
+
+        searchfilter = "(memberof=%s)" % group_dn
+
+        attr_list.append("member")
+
+        # We have to do two searches because netgroups are not within the
+        # accounts container.
+        try:
+            (results, truncated) = self.find_entries(searchfilter, attr_list,
+                api.env.container_accounts, time_limit=time_limit, size_limit = size_limit, normalize=normalize)
+        except errors.NotFound:
+            results = []
+        try:
+            (netresults, truncated) = self.find_entries(searchfilter, attr_list,
+                api.env.container_netgroup, time_limit=time_limit, size_limit = size_limit, normalize=normalize)
+        except errors.NotFound:
+            netresults = []
+        results = results + netresults
+
+        if membertype == MEMBERS_ALL:
+            entries = []
+            for e in results:
+                entries.append(e[0])
+
+            return entries
+
+        (dn, group) = self.get_entry(group_dn, ['dn', 'member'])
+        real_members = group.get('member')
+        if isinstance(real_members, basestring):
+            real_members = [real_members]
+        if real_members is None:
+            real_members = []
+
+        entries = []
+        for e in results:
+            if unicode(e[0]) not in real_members:
+                if membertype == MEMBERS_INDIRECT:
+                    entries.append(e[0])
+            else:
+                if membertype == MEMBERS_DIRECT:
+                    entries.append(e[0])
+
+        return entries
 
     def set_entry_active(self, dn, active):
         """Mark entry active/inactive."""

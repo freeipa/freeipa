@@ -32,6 +32,93 @@ from ipalib import output
 from ipalib.text import _
 from ipalib.util import json_serialize
 
+global_output_params = (
+    Str('member',
+        label=_('Failed members'),
+    ),
+    Str('member_user?',
+        label=_('Member users'),
+    ),
+    Str('member_group?',
+        label=_('Member groups'),
+    ),
+    Str('member_host?',
+        label=_('Member hosts'),
+    ),
+    Str('memberof_hostgroup?',
+        label=_('Member of host-groups'),
+    ),
+    Str('memberof_taskgroup?',
+        label=_('Member of task-groups'),
+    ),
+    Str('member_rolegroup?',
+        label=_('Member role-groups'),
+    ),
+    Str('member_netgroup?',
+        label=_('Member netgroups'),
+    ),
+    Str('memberof_netgroup?',
+        label=_('Member of netgroups'),
+    ),
+    Str('member_service?',
+        label=_('Member services'),
+    ),
+    Str('member_servicegroup?',
+        label=_('Member service groups'),
+    ),
+    Str('memberof_servicegroup?',
+        label='Member of service groups',
+    ),
+    Str('member_hbacsvcgroup?',
+        label=_('Member HBAC service groups'),
+    ),
+    Str('memberof_hbacsvcgroup?',
+        label='Member of HBAC service groups',
+    ),
+    Str('member_sudocmdgroup?',
+        label='Member SUDO command groups',
+    ),
+    Str('member_sudocmd?',
+        label='Member SUDO commands',
+    ),
+    Str('memberindirect_user?',
+        label=_('Indirect Member users'),
+    ),
+    Str('memberindirect_group?',
+        label=_('Indirect Member groups'),
+    ),
+    Str('memberindirect_host?',
+        label=_('Indirect Member hosts'),
+    ),
+    Str('memberindirect_hostgroup?',
+        label=_('Indirect Member host-groups'),
+    ),
+    Str('memberindirect_rolegroup?',
+        label=_('Indirect Member role-groups'),
+    ),
+    Str('memberindirect_taskgroup?',
+        label=_('Indirect Member role-groups'),
+    ),
+    Str('memberindirect_hbacsvc?',
+        label=_('Indirect Member HBAC service'),
+    ),
+    Str('memberindirect_hbacsvcgrp?',
+        label=_('Indirect Member HBAC service group'),
+    ),
+    Str('memberindirect_netgroup?',
+        label=_('Indirect Member netgroups'),
+    ),
+    Str('memberindirect_sudocmdgroup?',
+        label='Indirect Member SUDO command groups',
+    ),
+    Str('memberindirect_sudocmd?',
+        label='Indirect Member SUDO commands',
+    ),
+    Str('externalhost?',
+        label=_('External host'),
+    ),
+)
+
 
 def validate_add_attribute(ugettext, attr):
     validate_attribute(ugettext, 'addattr', attr)
@@ -273,6 +360,8 @@ class LDAPCreate(CallbackInterface, crud.Create):
         for arg in super(crud.Create, self).get_args():
             yield arg
 
+    has_output_params = global_output_params
+
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
@@ -425,6 +514,7 @@ class LDAPRetrieve(LDAPQuery):
     Retrieve an LDAP entry.
     """
     has_output = output.standard_entry
+    has_output_params = global_output_params
 
     takes_options = (
         Flag('rights',
@@ -501,6 +591,8 @@ class LDAPUpdate(LDAPQuery, crud.Update):
     """
 
     takes_options = _attr_options
+
+    has_output_params = global_output_params
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
@@ -629,6 +721,8 @@ class LDAPDelete(LDAPMultiQuery):
     Delete an LDAP entry and all of its direct subentries.
     """
     has_output = output.standard_delete
+
+    has_output_params = global_output_params
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
@@ -765,11 +859,7 @@ class LDAPAddMember(LDAPModMember):
         ),
     )
 
-    has_output_params = (
-        Str('member',
-            label=_('Failed members'),
-        ),
-    )
+    has_output_params = global_output_params
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
@@ -870,11 +960,7 @@ class LDAPRemoveMember(LDAPModMember):
         ),
     )
 
-    has_output_params = (
-        Str('member',
-            label=_('Failed members'),
-        ),
-    )
+    has_output_params = global_output_params
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
@@ -988,6 +1074,8 @@ class LDAPSearch(CallbackInterface, crud.Search):
     def get_options(self):
         for option in super(LDAPSearch, self).get_options():
             yield option
+
+    has_output_params = global_output_params
 
     def execute(self, *args, **options):
         ldap = self.obj.backend

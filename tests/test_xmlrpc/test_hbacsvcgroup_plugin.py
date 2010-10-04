@@ -130,7 +130,7 @@ class test_hbacsvcgroup(Declarative):
                     'dn': dn1,
                     'cn': [hbacsvcgroup1],
                     'description': [u'Test hbacsvcgroup 1'],
-                    'member_service': [hbacsvc1],
+                    'member_hbacsvc': [hbacsvc1],
                 },
             ),
         ),
@@ -144,7 +144,7 @@ class test_hbacsvcgroup(Declarative):
                 summary=None,
                 result={
                     'dn': dn1,
-                    'member_service': [hbacsvc1],
+                    'member_hbacsvc': [hbacsvc1],
                     'cn': [hbacsvcgroup1],
                     'description': [u'Test hbacsvcgroup 1'],
                 },
@@ -162,7 +162,7 @@ class test_hbacsvcgroup(Declarative):
                 result=[
                     {
                         'dn': dn1,
-                        'member_service': [hbacsvc1],
+                        'member_hbacsvc': [hbacsvc1],
                         'cn': [hbacsvcgroup1],
                         'description': [u'Test hbacsvcgroup 1'],
                     },
@@ -182,7 +182,7 @@ class test_hbacsvcgroup(Declarative):
                 result=dict(
                     cn=[hbacsvcgroup1],
                     description=[u'Updated hbacsvcgroup 1'],
-                    member_service=[hbacsvc1],
+                    member_hbacsvc=[hbacsvc1],
                 ),
             ),
         ),
@@ -196,7 +196,7 @@ class test_hbacsvcgroup(Declarative):
                 summary=None,
                 result={
                     'dn': dn1,
-                    'member_service': [hbacsvc1],
+                    'member_hbacsvc': [hbacsvc1],
                     'cn': [hbacsvcgroup1],
                     'description': [u'Updated hbacsvcgroup 1'],
                 },

@@ -46,23 +46,6 @@ from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
 
-output_params = (
-        Str('memberuser_user?',
-            label='Member User',
-        ),
-        Str('memberuser_group?',
-            label='Member Group',
-        ),
-        Str('memberhost_host?',
-            label=_('Member Host'),
-        ),
-        Str('memberhost_hostgroup?',
-            label='Member Hostgroup',
-        ),
-        Str('externalhost?',
-            label=_('External host'),
-        ),
-    )
 class netgroup(LDAPObject):
     """
     Netgroup object.
@@ -72,13 +55,15 @@ class netgroup(LDAPObject):
     object_name_plural = 'netgroups'
     object_class = ['ipaobject', 'ipaassociation', 'ipanisnetgroup']
     default_attributes = [
-        'cn', 'description', 'memberof', 'externalhost',
-        'nisdomainname', 'memberuser', 'memberhost',
+        'cn', 'description', 'memberof', 'externalhost', 'nisdomainname',
+        'memberuser', 'memberhost','member', 'memberindirect',
     ]
     uuid_attribute = 'ipauniqueid'
     rdn_attribute = 'ipauniqueid'
     attribute_members = {
+        'member': ['netgroup'],
         'memberof': ['netgroup'],
+        'memberindirect': ['netgroup'],
         'memberuser': ['user', 'group'],
         'memberhost': ['host', 'hostgroup'],
     }
@@ -116,7 +101,6 @@ class netgroup_add(LDAPCreate):
     """
     Add a new netgroup.
     """
-    has_output_params = output_params
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         entry_attrs.setdefault('nisdomainname', self.api.env.domain)
         return dn
@@ -128,6 +112,7 @@ class netgroup_del(LDAPDelete):
     """
     Delete a netgroup.
     """
+    msg_summary = _('Deleted netgroup "%(value)s"')
 
 api.register(netgroup_del)
 
@@ -136,7 +121,6 @@ class netgroup_mod(LDAPUpdate):
     """
     Modify a netgroup.
     """
-    has_output_params = output_params
 
 api.register(netgroup_mod)
 
@@ -145,7 +129,6 @@ class netgroup_find(LDAPSearch):
     """
     Search for a netgroup.
     """
-    has_output_params = output_params
 
 api.register(netgroup_find)
 
@@ -154,7 +137,6 @@ class netgroup_show(LDAPRetrieve):
     """
     Display information about a netgroup.
     """
-    has_output_params = output_params
 
 api.register(netgroup_show)
 
@@ -163,8 +145,7 @@ class netgroup_add_member(LDAPAddMember):
     """
     Add members to a netgroup.
     """
-    has_output_params = LDAPAddMember.has_output_params + output_params
-    member_attributes = ['memberuser', 'memberhost']
+    member_attributes = ['memberuser', 'memberhost', 'member']
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         completed_external = 0
         # Sift through the host failures. We assume that these are all
@@ -199,7 +180,6 @@ class netgroup_remove_member(LDAPRemoveMember):
     """
     Remove members from a netgroup.
     """
-    has_output_params = LDAPRemoveMember.has_output_params + output_params
     member_attributes = ['memberuser', 'memberhost']
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         # Run through the host failures and gracefully remove any defined as

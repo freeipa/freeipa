@@ -33,7 +33,6 @@ from ipalib.plugins.baseldap import *
 from ipalib import api, _, ngettext
 
 
-
 class taskgroup(LDAPObject):
     """
     Taskgroup object.
@@ -42,9 +41,12 @@ class taskgroup(LDAPObject):
     object_name = 'taskgroup'
     object_name_plural = 'taskgroups'
     object_class = ['groupofnames']
-    default_attributes = ['cn', 'description', 'member', 'memberof']
+    default_attributes = ['cn', 'description', 'member', 'memberof',
+        'memberindirect'
+    ]
     attribute_members = {
         'member': ['user', 'group', 'rolegroup'],
+        'memberindirect': ['user', 'group', 'rolegroup'],
         # FIXME: taskgroup can be member of ???
     }
     rdnattr='cn'
@@ -62,18 +64,6 @@ class taskgroup(LDAPObject):
             cli_name='desc',
             label=_('Description'),
             doc=_('Task-group description'),
-        ),
-        Str('member_group?',
-            label=_('Member groups'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('member_user?',
-            label=_('Member users'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('member_rolegroup?',
-            label=_('Member role-groups'),
-            flags=['no_create', 'no_update', 'no_search'],
         ),
     )
 

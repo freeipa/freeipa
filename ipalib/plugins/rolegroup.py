@@ -70,10 +70,13 @@ class rolegroup(LDAPObject):
     object_name = 'rolegroup'
     object_name_plural = 'rolegroups'
     object_class = ['groupofnames', 'nestedgroup']
-    default_attributes = ['cn', 'description', 'member', 'memberof']
+    default_attributes = ['cn', 'description', 'member', 'memberof',
+        'memberindirect'
+    ]
     attribute_members = {
         'member': ['user', 'group', 'host', 'hostgroup'],
         'memberof': ['taskgroup'],
+        'memberindirect': ['user', 'group', 'host', 'hostgroup'],
     }
     rdnattr='cn'
 
@@ -90,18 +93,6 @@ class rolegroup(LDAPObject):
             cli_name='desc',
             label=_('Description'),
             doc=_('A description of this role-group'),
-        ),
-        Str('member_group?',
-            label=_('Member groups'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('member_user?',
-            label=_('Member users'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('memberof_taskgroup?',
-            label=_('Member of task-groups'),
-            flags=['no_create', 'no_update', 'no_search'],
         ),
     )
 

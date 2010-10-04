@@ -159,18 +159,6 @@ class host(LDAPObject):
             label=_('Principal name'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('memberof_hostgroup?',
-            label=_('Member of host-groups'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('memberof_netgroup?',
-            label=_('Member of net-groups'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('memberof_rolegroup?',
-            label=_('Member of role-groups'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
     )
 
     def get_dn(self, *keys, **options):

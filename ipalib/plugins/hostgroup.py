@@ -59,11 +59,14 @@ class hostgroup(LDAPObject):
     object_name = 'hostgroup'
     object_name_plural = 'hostgroups'
     object_class = ['ipaobject', 'ipahostgroup']
-    default_attributes = ['cn', 'description', 'member', 'memberof']
+    default_attributes = ['cn', 'description', 'member', 'memberof',
+        'memberindirect'
+    ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'member': ['host', 'hostgroup'],
         'memberof': ['hostgroup'],
+        'memberindirect': ['host', 'hostgroup'],
     }
 
     label = _('Host Groups')
@@ -80,18 +83,6 @@ class hostgroup(LDAPObject):
             cli_name='desc',
             label=_('Description'),
             doc=_('A description of this host-group'),
-        ),
-        Str('member_host?',
-            label=_('Member hosts'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('member_hostgroup?',
-            label=_('Member host-groups'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('memberof_hostgroup?',
-            label=_('Member of host-groups'),
-            flags=['no_create', 'no_update', 'no_search'],
         ),
     )
 

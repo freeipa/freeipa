@@ -267,7 +267,7 @@ class test_hbac(XMLRPC_test):
         assert 'hbacsvc' in failed['memberservice']
         assert not failed['memberservice']['hbacsvc']
         entry = ret['result']
-        assert_attr_equal(entry, 'memberservice_service', self.test_service)
+        assert_attr_equal(entry, 'memberservice_hbacsvc', self.test_service)
 
     def test_a_hbac_remove_service(self):
         """

@@ -55,12 +55,13 @@ class sudocmdgroup(LDAPObject):
     object_name_plural = 'sudocmdgroups'
     object_class = ['ipaobject', 'ipasudocmdgrp']
     default_attributes = [
-        'cn', 'description', 'member', 'memberof'
+        'cn', 'description', 'member', 'memberof', 'memberindirect',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'member': ['sudocmd', 'sudocmdgroup'],
         'memberof': ['sudocmdgroup'],
+        'memberindirect': ['sudocmd', 'sudocmdgroup'],
     }
 
     label = _('Sudo Command Groups')

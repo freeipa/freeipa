@@ -83,12 +83,14 @@ class group(LDAPObject):
     object_class_config = 'ipagroupobjectclasses'
     search_attributes_config = 'ipagroupsearchfields'
     default_attributes = [
-        'cn', 'description', 'gidnumber', 'member', 'memberof'
+        'cn', 'description', 'gidnumber', 'member', 'memberof',
+        'memberindirect',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'member': ['user', 'group'],
         'memberof': ['group', 'netgroup', 'rolegroup', 'taskgroup'],
+        'memberindirect': ['user', 'group', 'netgroup', 'rolegroup', 'taskgroup'],
     }
     rdnattr = 'cn'
 
@@ -113,14 +115,6 @@ class group(LDAPObject):
             cli_name='gid',
             label=_('GID'),
             doc=_('GID (use this option to set it manually)'),
-        ),
-        Str('member_group?',
-            label=_('Member groups'),
-            flags=['no_create', 'no_update', 'no_search'],
-        ),
-        Str('member_user?',
-            label=_('Member users'),
-            flags=['no_create', 'no_update', 'no_search'],
         ),
     )
 
