@@ -1058,62 +1058,69 @@ Slapi_Filter *ipapwd_string2filter(char *strfilter)
 /* Init data structs */
 static int ipapwd_start( Slapi_PBlock *pb )
 {
-	krb5_context krbctx = NULL;
-	krb5_error_code krberr;
-	char *realm = NULL;
-	char *config_dn;
-	Slapi_Entry *config_entry = NULL;
-	int ret;
+    krb5_context krbctx = NULL;
+    krb5_error_code krberr;
+    char *realm = NULL;
+    char *config_dn;
+    Slapi_Entry *config_entry = NULL;
+    int ret;
 
-	krberr = krb5_init_context(&krbctx);
-	if (krberr) {
-		slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start", "krb5_init_context failed\n");
-		return LDAP_OPERATIONS_ERROR;
-	}
+    krberr = krb5_init_context(&krbctx);
+    if (krberr) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
+                        "krb5_init_context failed\n");
+        return LDAP_OPERATIONS_ERROR;
+    }
 
-	if (slapi_pblock_get(pb, SLAPI_TARGET_DN, &config_dn) != 0) {
-		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "No config DN?\n");
-		ret = LDAP_OPERATIONS_ERROR;
-		goto done;
-	}
-
-	if (ipapwd_getEntry(config_dn, &config_entry, NULL) != LDAP_SUCCESS) {
-		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "No config Entry?\n");
-		ret = LDAP_OPERATIONS_ERROR;
-		goto done;
-	}
-
-	ipa_realm_tree = slapi_entry_attr_get_charptr(config_entry, "nsslapd-realmtree");
-	if (!ipa_realm_tree) {
-		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Missing partition configuration entry (nsslapd-realmTree)!\n");
-		ret = LDAP_OPERATIONS_ERROR;
-		goto done;
-	}
-
-	ret = krb5_get_default_realm(krbctx, &realm);
-	if (ret) {
-		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Failed to get default realm?!\n");
-		ret = LDAP_OPERATIONS_ERROR;
-		goto done;
-	}
-	ipa_realm_dn = slapi_ch_smprintf("cn=%s,cn=kerberos,%s", realm, ipa_realm_tree);
-	if (!ipa_realm_dn) {
-		slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory ?\n");
-		ret = LDAP_OPERATIONS_ERROR;
-		goto done;
-	}
-
-    ipa_pwd_config_dn = slapi_ch_strdup(config_dn);
-    if (!ipa_pwd_config_dn) {
-        slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory ?\n");
+    if (slapi_pblock_get(pb, SLAPI_TARGET_DN, &config_dn) != 0) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start", "No config DN?\n");
         ret = LDAP_OPERATIONS_ERROR;
         goto done;
     }
-    ipa_changepw_principal_dn =
-        slapi_ch_smprintf("krbprincipalname=kadmin/changepw@%s,%s",
-                          realm, ipa_realm_dn);
+
+    if (ipapwd_getEntry(config_dn, &config_entry, NULL) != LDAP_SUCCESS) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
+                        "No config Entry?\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    ipa_realm_tree = slapi_entry_attr_get_charptr(config_entry,
+                                                  "nsslapd-realmtree");
+    if (!ipa_realm_tree) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
+                        "Missing partition configuration entry "
+                        "(nsslapd-realmTree)!\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    ret = krb5_get_default_realm(krbctx, &realm);
+    if (ret) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start",
+                        "Failed to get default realm?!\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+    ipa_realm_dn = slapi_ch_smprintf("cn=%s,cn=kerberos,%s",
+                                     realm, ipa_realm_tree);
+    if (!ipa_realm_dn) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory ?\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    ipa_pwd_config_dn = slapi_ch_strdup(config_dn);
+    if (!ipa_pwd_config_dn) {
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory ?\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+    ipa_changepw_principal_dn = slapi_ch_smprintf("krbprincipalname="
+                                                  "kadmin/changepw@%s,%s",
+                                                  realm, ipa_realm_dn);
     if (!ipa_changepw_principal_dn) {
-        slapi_log_error( SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory ?\n");
+        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_start", "Out of memory ?\n");
         ret = LDAP_OPERATIONS_ERROR;
         goto done;
     }
@@ -1129,10 +1136,10 @@ static int ipapwd_start( Slapi_PBlock *pb )
     ret = LDAP_SUCCESS;
 
 done:
-	free(realm);
-	krb5_free_context(krbctx);
-	if (config_entry) slapi_entry_free(config_entry);
-	return ret;
+    free(realm);
+    krb5_free_context(krbctx);
+    if (config_entry) slapi_entry_free(config_entry);
+    return ret;
 }
 
 
