@@ -1293,7 +1293,7 @@ Slapi_Value **ipapwd_setPasswordHistory(Slapi_Mods *smods,
     ret = slapi_entry_attr_find(data->target,
                                 "passwordHistory", &passwordHistory);
     if (ret == 0) {
-        int ret, hint, count, i;
+        int ret, hint, count, i, j;
         const char *pwstr;
         Slapi_Value *pw;
 
@@ -1327,6 +1327,11 @@ Slapi_Value **ipapwd_setPasswordHistory(Slapi_Mods *smods,
             qsort(pH, i, sizeof(Slapi_Value *), ipapwd_sv_pw_cmp);
 
             if (i >= data->pwHistoryLen) {
+                /* need to rotate out the first entry */
+                for (j = 0; j < data->pwHistoryLen; j++) {
+                    pH[j] = pH[j + 1];
+                }
+
                 i = data->pwHistoryLen;
                 pH[i] = NULL;
                 i--;
