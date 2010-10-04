@@ -6,7 +6,7 @@ dn: cn=schema
 ## ObjectClasses:       2.16.840.1.113730.3.8.8.x
 ##
 ## Attribute to store DN of a SUDO command or a group of SUDO commands
-attributetypes: (2.16.840.1.113730.3.8.7.1 NAME 'memberAllowCmd' DESC 'Reference to a command or group of the commands that are allowed by the rule.' SUP distinguishedName EQUALITY distinguishedNameMatch ORDERING distinguishedNameMatch SUBSTR distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 X-ORIGIN 'IPA v2' )
+attributetypes: (2.16.840.1.113730.3.8.7.1 NAME 'memberAllowCmd' DESC 'Reference to a command or group of commands that are allowed by the rule.' SUP distinguishedName EQUALITY distinguishedNameMatch ORDERING distinguishedNameMatch SUBSTR distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 X-ORIGIN 'IPA v2' )
 ## Attribute to store command category
 attributetypes: (2.16.840.1.113730.3.8.7.2 NAME 'memberDenyCmd' DESC 'Reference to a command or group of the commands that are denied by the rule.' SUP distinguishedName EQUALITY distinguishedNameMatch ORDERING distinguishedNameMatch SUBSTR distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 X-ORIGIN 'IPA v2' )
 ## Attribute to store command category
