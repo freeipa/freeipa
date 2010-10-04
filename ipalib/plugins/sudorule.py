@@ -34,14 +34,15 @@ class sudorule(LDAPObject):
     object_name_plural = 'Sudo Rules'
     object_class = ['ipaassociation', 'ipasudorule']
     default_attributes = [
-        'cn', 'accessruletype', 'description',
+        'cn', 'description',
 
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'memberuser': ['user', 'group'],
         'memberhost': ['host', 'hostgroup'],
-        'membercmd': ['sudocmd', 'sudocmdgroup'],
+        'memberallowcmd': ['sudocmd', 'sudocmdgroup'],
+        'memberdenycmd': ['sudocmd', 'sudocmdgroup'],
     }
 
     label = _('SudoRule')
@@ -56,12 +57,6 @@ class sudorule(LDAPObject):
             cli_name='desc',
             label=_('Description'),
         ),
-        StrEnum('accessruletype',
-            cli_name='type',
-            doc=_('Rule type (allow or deny)'),
-            label=_('Rule type'),
-            values=(u'allow', u'deny'),
-        ),
             Str('memberuser_user?',
             label=_('Users'),
             flags=['no_create', 'no_update', 'no_search'],
@@ -74,14 +69,23 @@ class sudorule(LDAPObject):
             label=_('Host Groups'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('membercmd_sudocmd?',
-            label=_('Sudo Commands'),
+        Str('memberallowcmd_sudocmd?',
+            label=_('Sudo Allow Commands'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('membercmd_sudocmdgroup?',
+        Str('memberdenycmd_sudocmd?',
+            label=_('Sudo Deny Commands'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('memberallowcmd_sudocmdgroup?',
             label=_('Sudo Command Groups'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
+        Str('memberdenycmd_sudocmdgroup?',
+            label=_('Sudo Command Groups'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+
     )
 
     def get_dn(self, *keys, **kwargs):
@@ -139,24 +143,44 @@ class sudorule_show(LDAPRetrieve):
 api.register(sudorule_show)
 
 
-class sudorule_add_command(LDAPAddMember):
+class sudorule_add_allow_command(LDAPAddMember):
     """
     Add commands and sudo command groups affected by Sudo Rule.
     """
-    member_attributes = ['membercmd']
+    member_attributes = ['memberallowcmd']
     member_count_out = ('%i object added.', '%i objects added.')
 
-api.register(sudorule_add_command)
+api.register(sudorule_add_allow_command)
 
 
-class sudorule_remove_command(LDAPRemoveMember):
+class sudorule_remove_allow_command(LDAPRemoveMember):
     """
     Remove commands and sudo command groups affected by Sudo Rule.
     """
-    member_attributes = ['membercmd']
+    member_attributes = ['memberallowcmd']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
-api.register(sudorule_remove_command)
+api.register(sudorule_remove_allow_command)
+
+
+class sudorule_add_deny_command(LDAPAddMember):
+    """
+    Add commands and sudo command groups affected by Sudo Rule.
+    """
+    member_attributes = ['memberdenycmd']
+    member_count_out = ('%i object added.', '%i objects added.')
+
+api.register(sudorule_add_deny_command)
+
+
+class sudorule_remove_deny_command(LDAPRemoveMember):
+    """
+    Remove commands and sudo command groups affected by Sudo Rule.
+    """
+    member_attributes = ['memberdenycmd']
+    member_count_out = ('%i object removed.', '%i objects removed.')
+
+api.register(sudorule_remove_deny_command)
 
 
 class sudorule_add_user(LDAPAddMember):
