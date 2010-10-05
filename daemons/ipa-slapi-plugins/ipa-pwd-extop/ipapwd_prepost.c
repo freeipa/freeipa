@@ -351,6 +351,19 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
             slapi_entry_attr_set_charptr(e, "sambaNTPassword", nt);
             slapi_ch_free_string(&nt);
         }
+
+        if (is_smb) {
+            /* with samba integration we need to also set sambaPwdLastSet or
+             * samba will decide the user has to change the password again */
+            if (pwdop->pwdata.changetype == IPA_CHANGETYPE_ADMIN) {
+                /* if it is an admin change instead we need to let know to
+                * samba as well that the use rmust change its password */
+                slapi_entry_attr_set_long(e, "sambaPwdLastset", 0L);
+            } else {
+                slapi_entry_attr_set_long(e, "sambaPwdLastset",
+                                      (long)pwdop->pwdata.timeNow);
+            }
+        }
     }
 
     rc = LDAP_SUCCESS;
@@ -735,6 +748,19 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
             slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
                                   "sambaNTPassword", nt);
             slapi_ch_free_string(&nt);
+        }
+
+        if (is_smb) {
+            /* with samba integration we need to also set sambaPwdLastSet or
+             * samba will decide the user has to change the password again */
+            if (pwdop->pwdata.changetype == IPA_CHANGETYPE_ADMIN) {
+                /* if it is an admin change instead we need to let know to
+                * samba as well that the use rmust change its password */
+                slapi_entry_attr_set_long(e, "sambaPwdLastset", 0L);
+            } else {
+                slapi_entry_attr_set_long(e, "sambaPwdLastset",
+                                      (long)pwdop->pwdata.timeNow);
+            }
         }
     }
 

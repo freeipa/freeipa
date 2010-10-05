@@ -1165,6 +1165,7 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
     int is_smb = 0;
     Slapi_Value *sambaSamAccount;
     char *errMesg = NULL;
+    char *modtime = NULL;
 
     slapi_log_error(SLAPI_LOG_TRACE, IPAPWD_PLUGIN_NAME,
                     "=> ipapwd_SetPassword\n");
@@ -1224,7 +1225,25 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
         slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
                               "sambaNTPassword", nt);
     }
-
+    if (is_smb) {
+        /* with samba integration we need to also set sambaPwdLastSet or
+         * samba will decide the user has to change the password again */
+        if (data->changetype == IPA_CHANGETYPE_ADMIN) {
+            /* if it is an admin change instead we need to let know to
+             * samba as well that the use rmust change its password */
+            modtime = slapi_ch_smprintf("0");
+        } else {
+            modtime = slapi_ch_smprintf("%ld", (long)data->timeNow);
+        }
+        if (!modtime) {
+            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
+                            "failed to smprintf string!\n");
+            ret = LDAP_OPERATIONS_ERROR;
+            goto free_and_return;
+        }
+        slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
+                              "sambaPwdLastset", modtime);
+    }
     /* let DS encode the password itself, this allows also other plugins to
      * intercept it to perform operations like synchronization with Active
      * Directory domains through the replication plugin */
@@ -1252,6 +1271,7 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
 free_and_return:
     if (lm) slapi_ch_free((void **)&lm);
     if (nt) slapi_ch_free((void **)&nt);
+    if (modtime) slapi_ch_free((void **)&modtime);
     slapi_mods_free(&smods);
     ipapwd_free_slapi_value_array(&svals);
     ipapwd_free_slapi_value_array(&pwvals);
