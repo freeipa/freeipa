@@ -8,7 +8,7 @@ INCLUDES =							\
 	-DLIBDIR=\""$(libdir)"\" 				\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
-	$(LDAP_CFLAGS)						\
+	$(OPENLDAP_CFLAGS)						\
 	$(KRB5_CFLAGS)						\
 	$(WARN_CFLAGS)						\
 	$(NULL)
@@ -22,7 +22,7 @@ ipa_kpasswd_SOURCES = 		\
 	$(NULL)
 
 ipa_kpasswd_LDADD =		\
-	$(LDAP_LIBS)		\
+	$(OPENLDAP_LIBS)		\
 	$(KRB5_LIBS)		\
 	$(NULL)
 
