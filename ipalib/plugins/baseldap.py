@@ -353,6 +353,13 @@ class LDAPMultiQuery(LDAPQuery):
     """
     Base class for commands that need to retrieve one or more existing entries.
     """
+    takes_options = (
+        Flag('continue',
+            cli_name='continue',
+            doc=_('Continuous mode: Don\'t stop on errors.'),
+        ),
+    )
+
     def get_args(self):
         for key in self.obj.get_ancestor_primary_keys():
             yield key
@@ -594,6 +601,8 @@ class LDAPDelete(LDAPMultiQuery):
                 if not delete_entry(pkey):
                     result = False
             except errors.ExecutionError:
+                if not options.get('continuous', False):
+                    raise
                 failed.append(pkey)
             else:
                 deleted.append(pkey)
