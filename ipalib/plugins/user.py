@@ -37,11 +37,11 @@ EXAMPLES:
  Find all users with "Tim" as the first name:
    ipa user-find --first=Tim
 
- Lock a user account:
-   ipa user-lock tuser1
+ Disable a user account:
+   ipa user-disable tuser1
 
- Unlock a user account:
-   ipa user-unlock tuser1
+ Enable a user account:
+   ipa user-enable tuser1
 
  Delete a user:
    ipa user-del tuser1
@@ -274,13 +274,13 @@ class user_show(LDAPRetrieve):
 api.register(user_show)
 
 
-class user_lock(LDAPQuery):
+class user_disable(LDAPQuery):
     """
-    Lock a user account.
+    Disable user account.
     """
 
     has_output = output.standard_value
-    msg_summary = _('Locked user "%(value)s"')
+    msg_summary = _('Disabled user account "%(value)s"')
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
@@ -297,16 +297,16 @@ class user_lock(LDAPQuery):
             value=keys[0],
         )
 
-api.register(user_lock)
+api.register(user_disable)
 
 
-class user_unlock(LDAPQuery):
+class user_enable(LDAPQuery):
     """
-    Unlock a user account.
+    Enable user account.
     """
 
     has_output = output.standard_value
-    msg_summary = _('Unlocked user "%(value)s"')
+    msg_summary = _('Enabled user account "%(value)s"')
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
@@ -323,4 +323,4 @@ class user_unlock(LDAPQuery):
             value=keys[0],
         )
 
-api.register(user_unlock)
+api.register(user_enable)

@@ -234,27 +234,27 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Lock %r' % user1,
+            desc='Disable %r' % user1,
             command=(
-                'user_lock', [user1], {}
+                'user_disable', [user1], {}
             ),
             expected=dict(
                 result=True,
                 value=user1,
-                summary=u'Locked user "tuser1"',
+                summary=u'Disabled user account "tuser1"',
             ),
         ),
 
 
         dict(
-            desc='Unlock %r'  % user1,
+            desc='Enable %r'  % user1,
             command=(
-                'user_unlock', [user1], {}
+                'user_enable', [user1], {}
             ),
             expected=dict(
                 result=True,
                 value=user1,
-                summary=u'Unlocked user "tuser1"',
+                summary=u'Enabled user account "tuser1"',
             ),
         ),
 
