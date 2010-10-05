@@ -300,7 +300,9 @@ class pwpolicy_del(LDAPDelete):
     Delete a group password policy.
     """
     def get_args(self):
-        yield self.obj.primary_key.clone(attribute=True, required=True)
+        yield self.obj.primary_key.clone(
+            attribute=True, required=True, multivalue=True
+        )
 
     def post_callback(self, ldap, dn, *keys, **options):
         try:

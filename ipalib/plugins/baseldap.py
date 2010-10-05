@@ -240,6 +240,8 @@ class LDAPCreate(CallbackInterface, crud.Create):
             yield key
         if self.obj.primary_key:
             yield self.obj.primary_key.clone(attribute=True)
+        for arg in super(crud.Create, self).get_args():
+            yield arg
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
@@ -343,6 +345,8 @@ class LDAPQuery(CallbackInterface, crud.PKQuery):
             yield key
         if self.obj.primary_key:
             yield self.obj.primary_key.clone(attribute=True, query=True)
+        for arg in super(crud.PKQuery, self).get_args():
+            yield arg
 
 
 class LDAPMultiQuery(LDAPQuery):
@@ -356,6 +360,8 @@ class LDAPMultiQuery(LDAPQuery):
             yield self.obj.primary_key.clone(
                 attribute=True, query=True, multivalue=True
             )
+        for arg in super(crud.PKQuery, self).get_args():
+            yield arg
 
 
 class LDAPRetrieve(LDAPQuery):
@@ -881,6 +887,8 @@ class LDAPSearch(CallbackInterface, crud.Search):
         for key in self.obj.get_ancestor_primary_keys():
             yield key
         yield Str('criteria?')
+        for arg in super(crud.Search, self).get_args():
+            yield arg
 
     def get_options(self):
         for option in super(LDAPSearch, self).get_options():
