@@ -389,9 +389,8 @@ fi
 %{_usr}/share/ipa/static/index.xhtml
 %{_usr}/share/ipa/static/*.png
 %{_usr}/share/ipa/static/*.css
+%{_usr}/share/ipa/static/*.inc
 %{_usr}/share/ipa/static/*.js
-%dir %{_usr}/share/ipa/static
-%{_usr}/share/ipa/static/*
 %dir %{_sysconfdir}/ipa
 %dir %{_sysconfdir}/ipa/html
 %config(noreplace) %{_sysconfdir}/ipa/html/ssbrowser.html
@@ -470,9 +469,11 @@ fi
 %dir %{python_sitelib}/ipapython
 %{python_sitelib}/ipapython/*.py*
 %{python_sitelib}/ipalib/*
+%{python_sitearch}/default_encoding_utf8.so
 %if 0%{?fedora} >= 12 || 0%{?rhel} >= 6
 %{python_sitelib}/ipapython-*.egg-info
 %{python_sitelib}/freeipa-*.egg-info
+%{python_sitearch}/python_default_encoding-*.egg-info
 %endif
 %config(noreplace) %{_sysconfdir}/ipa/default.conf
 
@@ -496,6 +497,10 @@ fi
 %endif
 
 %changelog
+* Wed Oct  6 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-30
+- Remove duplicate %%files entries on share/ipa/static
+- Add python default encoding shared library
+
 * Mon Sep 20 2010 Rob Crittenden <rcritten@redhat.com> - 1.99-29
 - Drop requires on python-configobj (not used any more)
 - Drop ipa-ldap-updater message, upgrades are done differently now
