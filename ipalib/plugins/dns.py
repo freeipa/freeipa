@@ -187,6 +187,21 @@ class dns(Object):
         ),
     )
 
+    default_attributes = _zone_default_attributes
+
+    json_friendly_attributes = (
+        'default_attributes', 'label', 'name', 'takes_params' )
+
+    def __json__(self):
+        json_dict = dict(
+            (a, getattr(self, a)) for a in self.json_friendly_attributes
+        )
+        if self.primary_key:
+            json_dict['primary_key'] = self.primary_key.name
+        json_dict['methods'] = [m for m in self.methods]
+        return json_dict
+
+
 api.register(dns)
 
 

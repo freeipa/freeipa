@@ -73,16 +73,23 @@ class json_metadata(Command):
     )
 
     def execute(self, objname):
+
         if objname and objname in self.api.Object:
-            return dict(
+
+            meta = dict(
                 result=dict(
                     ((objname, json_serialize(self.api.Object[objname])), )
                 )
             )
-        result=dict(
-            (o.name, json_serialize(o)) for o in self.api.Object()
-            )
-        retval= dict([("metadata",result),("messages",json_serialize(self.messages))])
+            retval= dict([("metadata",meta), ("messages",dict())])
+
+        else:
+            meta=dict(
+                (o.name, json_serialize(o)) for o in self.api.Object()
+                )
+
+            retval= dict([("metadata",meta),
+                          ("messages",json_serialize(self.messages))])
 
         return retval
 
