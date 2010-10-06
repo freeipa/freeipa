@@ -79,19 +79,23 @@ function ipa_generate_dl(jobj, id, name, dts)
 
     for (var i = 0; i < dts.length; ++i) {
         var label = '';
-        if (dts[i][0].indexOf('call_') != 0) {
-            var param_info = ipa_get_param_info(obj_name, dts[i][0]);
-            if (param_info)
-                label = param_info['label'];
-        }
+        var param_info = ipa_get_param_info(obj_name, dts[i][0]);
+        if (param_info)
+            label = param_info['label'];
         if ((!label) && (dts[i].length > 1))
             label = dts[i][1];
+
+        var title = dts[i][0];
+        if (typeof dts[i][2] == 'function')
+            title = 'call_' + dts[i][2].name;
         dl.append(
-            $('<dt/>',{
-                title:dts[i][0],
-                html:label+":"})
+            $('<dt></dt>', {
+                title: title,
+                html: label + ':',
+            })
         );
     }
+
     parent.append(dl);
     parent.append('<hr/>');
 }
