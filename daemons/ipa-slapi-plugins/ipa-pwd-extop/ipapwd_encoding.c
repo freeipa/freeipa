@@ -119,8 +119,7 @@ struct berval *encode_keys(struct ipapwd_keyset *kset)
     be = ber_alloc_t(LBER_USE_DER);
 
     if (!be) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "memory allocation failed\n");
+        LOG_OOM();
         return NULL;
     }
 
@@ -135,8 +134,7 @@ struct berval *encode_keys(struct ipapwd_keyset *kset)
                     kset->mkvno,
                     (ber_tag_t)(LBER_CONSTRUCTED | LBER_CLASS_CONTEXT | 4));
     if (ret == -1) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "encoding asn1 vno info failed\n");
+        LOG_FATAL("encoding asn1 vno info failed\n");
         goto done;
     }
 
@@ -144,8 +142,7 @@ struct berval *encode_keys(struct ipapwd_keyset *kset)
 
         ret = ber_printf(be, "{");
         if (ret == -1) {
-            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                            "encoding asn1 EncryptionKey failed\n");
+            LOG_FATAL("encoding asn1 EncryptionKey failed\n");
             goto done;
         }
 
@@ -176,8 +173,7 @@ struct berval *encode_keys(struct ipapwd_keyset *kset)
                  kset->keys[i].ekey->value.bv_val,
                  kset->keys[i].ekey->value.bv_len);
         if (ret == -1) {
-            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                            "encoding asn1 EncryptionKey failed\n");
+            LOG_FATAL("encoding asn1 EncryptionKey failed\n");
             goto done;
         }
 
@@ -185,23 +181,20 @@ struct berval *encode_keys(struct ipapwd_keyset *kset)
 
         ret = ber_printf(be, "}");
         if (ret == -1) {
-            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                            "encoding asn1 EncryptionKey failed\n");
+            LOG_FATAL("encoding asn1 EncryptionKey failed\n");
             goto done;
         }
     }
 
     ret = ber_printf(be, "}]}");
     if (ret == -1) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "encoding asn1 end of sequences failed\n");
+        LOG_FATAL("encoding asn1 end of sequences failed\n");
         goto done;
     }
 
     ret = ber_flatten(be, &bval);
     if (ret == -1) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "flattening asn1 failed\n");
+        LOG_FATAL("flattening asn1 failed\n");
         goto done;
     }
 done:
@@ -260,8 +253,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 
     svals = (Slapi_Value **)calloc(2, sizeof(Slapi_Value *));
     if (!svals) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "memory allocation failed\n");
+        LOG_OOM();
         return NULL;
     }
 
@@ -271,15 +263,14 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
                                                     "krbPrincipalName");
     if (!krbPrincipalName) {
         *errMesg = "no krbPrincipalName present in this entry\n";
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME, *errMesg);
+        LOG_FATAL("%s", *errMesg);
         return NULL;
     }
 
     krberr = krb5_parse_name(krbctx, krbPrincipalName, &princ);
     if (krberr) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "krb5_parse_name failed [%s]\n",
-                        krb5_get_error_message(krbctx, krberr));
+        LOG_FATAL("krb5_parse_name failed [%s]\n",
+                  krb5_get_error_message(krbctx, krberr));
         goto enc_error;
     }
 
@@ -298,8 +289,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 
     kset = malloc(sizeof(struct ipapwd_keyset));
     if (!kset) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "malloc failed!\n");
+        LOG_OOM();
         goto enc_error;
     }
 
@@ -315,8 +305,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
     kset->num_keys = krbcfg->num_pref_encsalts;
     kset->keys = calloc(kset->num_keys, sizeof(struct ipapwd_krbkey));
     if (!kset->keys) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "malloc failed!\n");
+        LOG_OOM();
         goto enc_error;
     }
 
@@ -337,15 +326,13 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 
             p = strchr(krbPrincipalName, '@');
             if (!p) {
-                slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                                "Invalid principal name, no realm found!\n");
+                LOG_FATAL("Invalid principal name, no realm found!\n");
                 goto enc_error;
             }
             p++;
             salt.data = strdup(p);
             if (!salt.data) {
-                slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                                "memory allocation failed\n");
+                LOG_OOM();
                 goto enc_error;
             }
             salt.length = strlen(salt.data); /* final \0 omitted on purpose */
@@ -355,9 +342,8 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 
             krberr = krb5_principal2salt_norealm(krbctx, princ, &salt);
             if (krberr) {
-                slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                                "krb5_principal2salt failed [%s]\n",
-                                krb5_get_error_message(krbctx, krberr));
+                LOG_FATAL("krb5_principal2salt failed [%s]\n",
+                          krb5_get_error_message(krbctx, krberr));
                 goto enc_error;
             }
             break;
@@ -373,24 +359,21 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
                 salt.length = KRB5P_SALT_SIZE;
                 salt.data = malloc(KRB5P_SALT_SIZE);
                 if (!salt.data) {
-                    slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                                    "memory allocation failed\n");
+                    LOG_OOM();
                     goto enc_error;
                 }
                 krberr = krb5_c_random_make_octets(krbctx, &salt);
                 if (krberr) {
-                    slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                                    "krb5_c_random_make_octets failed [%s]\n",
-                                    krb5_get_error_message(krbctx, krberr));
+                    LOG_FATAL("krb5_c_random_make_octets failed [%s]\n",
+                              krb5_get_error_message(krbctx, krberr));
                     goto enc_error;
                 }
             } else {
 #endif
                 krberr = krb5_principal2salt(krbctx, princ, &salt);
                 if (krberr) {
-                    slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                                    "krb5_principal2salt failed [%s]\n",
-                                    krb5_get_error_message(krbctx, krberr));
+                    LOG_FATAL("krb5_principal2salt failed [%s]\n",
+                              krb5_get_error_message(krbctx, krberr));
                     goto enc_error;
                 }
 #if 0
@@ -406,24 +389,21 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 
             p = strchr(krbPrincipalName, '@');
             if (!p) {
-                slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                                "Invalid principal name, no realm found!\n");
+                LOG_FATAL("Invalid principal name, no realm found!\n");
                 goto enc_error;
             }
             p++;
             salt.data = strdup(p);
             if (!salt.data) {
-                slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                                "memory allocation failed\n");
+                LOG_OOM();
                 goto enc_error;
             }
             salt.length = SALT_TYPE_AFS_LENGTH; /* special value */
             break;
 
         default:
-            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                            "Invalid salt type [%d]\n",
-                            krbcfg->pref_encsalts[i].salt_type);
+            LOG_FATAL("Invalid salt type [%d]\n",
+                      krbcfg->pref_encsalts[i].salt_type);
             goto enc_error;
         }
 
@@ -433,9 +413,8 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
                                       krbcfg->pref_encsalts[i].enc_type,
                                       &pwd, &salt, &key);
         if (krberr) {
-            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                            "krb5_c_string_to_key failed [%s]\n",
-                            krb5_get_error_message(krbctx, krberr));
+            LOG_FATAL("krb5_c_string_to_key failed [%s]\n",
+                      krb5_get_error_message(krbctx, krberr));
             krb5_free_data_contents(krbctx, &salt);
             goto enc_error;
         }
@@ -447,17 +426,15 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
                                        krbcfg->kmkey->enctype,
                                        key.length, &len);
         if (krberr) {
-            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                            "krb5_c_string_to_key failed [%s]\n",
-                            krb5_get_error_message(krbctx, krberr));
+            LOG_FATAL("krb5_c_string_to_key failed [%s]\n",
+                      krb5_get_error_message(krbctx, krberr));
             krb5int_c_free_keyblock_contents(krbctx, &key);
             krb5_free_data_contents(krbctx, &salt);
             goto enc_error;
         }
 
         if ((ptr = (krb5_octet *) malloc(2 + len)) == NULL) {
-            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                            "memory allocation failed\n");
+            LOG_OOM();
             krb5int_c_free_keyblock_contents(krbctx, &key);
             krb5_free_data_contents(krbctx, &salt);
             goto enc_error;
@@ -473,9 +450,8 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 
         krberr = krb5_c_encrypt(krbctx, krbcfg->kmkey, 0, 0, &plain, &cipher);
         if (krberr) {
-            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                            "krb5_c_encrypt failed [%s]\n",
-                            krb5_get_error_message(krbctx, krberr));
+            LOG_FATAL("krb5_c_encrypt failed [%s]\n",
+                      krb5_get_error_message(krbctx, krberr));
             krb5int_c_free_keyblock_contents(krbctx, &key);
             krb5_free_data_contents(krbctx, &salt);
             free(ptr);
@@ -485,8 +461,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
         /* KrbSalt  */
         kset->keys[i].salt = malloc(sizeof(struct ipapwd_krbkeydata));
         if (!kset->keys[i].salt) {
-            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                            "malloc failed!\n");
+            LOG_OOM();
             krb5int_c_free_keyblock_contents(krbctx, &key);
             free(ptr);
             goto enc_error;
@@ -502,8 +477,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
         /* EncryptionKey */
         kset->keys[i].ekey = malloc(sizeof(struct ipapwd_krbkeydata));
         if (!kset->keys[i].ekey) {
-            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                            "malloc failed!\n");
+            LOG_OOM();
             krb5int_c_free_keyblock_contents(krbctx, &key);
             free(ptr);
             goto enc_error;
@@ -512,8 +486,7 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
         kset->keys[i].ekey->value.bv_len = len+2;
         kset->keys[i].ekey->value.bv_val = malloc(len+2);
         if (!kset->keys[i].ekey->value.bv_val) {
-            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                            "malloc failed!\n");
+            LOG_OOM();
             krb5int_c_free_keyblock_contents(krbctx, &key);
             free(ptr);
             goto enc_error;
@@ -527,15 +500,13 @@ static Slapi_Value **encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 
     bval = encode_keys(kset);
     if (!bval) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "encoding asn1 KrbSalt failed\n");
+        LOG_FATAL("encoding asn1 KrbSalt failed\n");
         goto enc_error;
     }
 
     svals[0] = slapi_value_new_berval(bval);
     if (!svals[0]) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "Converting berval to Slapi_Value\n");
+        LOG_FATAL("Converting berval to Slapi_Value\n");
         goto enc_error;
     }
 
@@ -760,8 +731,7 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
 
         if (!*svals) {
             /* errMesg should have been set in encrypt_encode_key() */
-            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                            "key encryption/encoding failed\n");
+            LOG_FATAL("key encryption/encoding failed\n");
             rc = LDAP_OPERATIONS_ERROR;
             goto done;
         }
@@ -778,8 +748,7 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
                                &ntlm);
         if (ret) {
             *errMesg = "Failed to generate NT/LM hashes\n";
-            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                            *errMesg);
+            LOG_FATAL("%s", *errMesg);
             rc = LDAP_OPERATIONS_ERROR;
             goto done;
         }

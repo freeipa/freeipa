@@ -121,15 +121,13 @@ static char *ipapwd_getIpaConfigAttr(const char *attr)
 
     dn = slapi_ch_smprintf("cn=ipaconfig,cn=etc,%s", ipa_realm_tree);
     if (!dn) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "Out of memory ?\n");
+        LOG_OOM();
         goto done;
     }
 
     ret = ipapwd_getEntry(dn, &entry, (char **) attrs_list);
     if (ret) {
-        slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
-                        "failed to retrieve config entry: %s\n", dn);
+        LOG("failed to retrieve config entry: %s\n", dn);
         goto done;
     }
 
@@ -166,12 +164,11 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     int ret;
     int rc = LDAP_SUCCESS;
 
-    slapi_log_error(SLAPI_LOG_TRACE, IPAPWD_PLUGIN_NAME, "=> ipapwd_pre_add\n");
+    LOG_TRACE("=>\n");
 
     ret = slapi_pblock_get(pb, SLAPI_IS_REPLICATED_OPERATION, &is_repl_op);
     if (ret != 0) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "slapi_pblock_get failed!?\n");
+        LOG_FATAL("slapi_pblock_get failed!?\n");
         rc = LDAP_OPERATIONS_ERROR;
         goto done;
     }
@@ -198,8 +195,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
         if (0 == strncasecmp(userpw, "{CLEAR}", strlen("{CLEAR}"))) {
             char *tmp = slapi_ch_strdup(&userpw[strlen("{CLEAR}")]);
             if (NULL == tmp) {
-                slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                                "Strdup failed, Out of memory\n");
+                LOG_OOM();
                 rc = LDAP_OPERATIONS_ERROR;
                 goto done;
             }
@@ -228,15 +224,12 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
                  * generate kerberos keys */
                 char *enabled = ipapwd_getIpaConfigAttr("ipamigrationenabled");
                 if (NULL == enabled) {
-                    slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
-                                    "no ipaMigrationEnabled in config;"
-                                    " assuming FALSE\n");
+                    LOG("no ipaMigrationEnabled in config, assuming FALSE\n");
                 } else if (0 == strcmp(enabled, "TRUE")) {
                     return 0;
                 }
 
-                slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
-                                "pre-hashed passwords are not valid\n");
+                LOG("pre-hashed passwords are not valid\n");
                 errMesg = "pre-hashed passwords are not valid\n";
                 goto done;
             }
@@ -265,8 +258,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     /* time to get the operation handler */
     ret = slapi_pblock_get(pb, SLAPI_OPERATION, &op);
     if (ret != 0) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "slapi_pblock_get failed!?\n");
+        LOG_FATAL("slapi_pblock_get failed!?\n");
         rc = LDAP_OPERATIONS_ERROR;
         goto done;
     }
@@ -331,8 +323,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
             /* add/replace values in existing entry */
             ret = slapi_entry_attr_replace_sv(e, "krbPrincipalKey", svals);
             if (ret) {
-                slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                                "failed to set encoded values in entry\n");
+                LOG_FATAL("failed to set encoded values in entry\n");
                 rc = LDAP_OPERATIONS_ERROR;
                 ipapwd_free_slapi_value_array(&svals);
                 goto done;
@@ -406,12 +397,11 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     int is_repl_op, is_pwd_op, is_root, is_krb, is_smb;
     int ret, rc;
 
-    slapi_log_error(SLAPI_LOG_TRACE, IPAPWD_PLUGIN_NAME, "=> ipapwd_pre_mod\n");
+    LOG_TRACE( "=>\n");
 
     ret = slapi_pblock_get(pb, SLAPI_IS_REPLICATED_OPERATION, &is_repl_op);
     if (ret != 0) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "slapi_pblock_get failed!?\n");
+        LOG_FATAL("slapi_pblock_get failed!?\n");
         rc = LDAP_OPERATIONS_ERROR;
         goto done;
     }
@@ -511,8 +501,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
         ret = slapi_search_internal_get_entry(tmp_dn, 0, &e, ipapwd_plugin_id);
         slapi_sdn_free(&tmp_dn);
         if (ret != LDAP_SUCCESS) {
-            slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
-                            "Failed tpo retrieve entry?!?\n");
+            LOG("Failed to retrieve entry?!\n");
            rc = LDAP_NO_SUCH_OBJECT;
            goto done;
         }
@@ -636,8 +625,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
             if (0 == strncasecmp(userpw, "{CLEAR}", strlen("{CLEAR}"))) {
                 unhashedpw = slapi_ch_strdup(&userpw[strlen("{CLEAR}")]);
                 if (NULL == unhashedpw) {
-                    slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                                    "Strdup failed, Out of memory\n");
+                    LOG_OOM();
                     rc = LDAP_OPERATIONS_ERROR;
                     goto done;
                 }
@@ -645,8 +633,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
 
             } else if (slapi_is_encoded(userpw)) {
 
-                slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
-                                "Pre-Encoded passwords are not valid\n");
+                LOG("Pre-Encoded passwords are not valid\n");
                 errMesg = "Pre-Encoded passwords are not valid\n";
                 rc = LDAP_CONSTRAINT_VIOLATION;
                 goto done;
@@ -657,8 +644,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     /* time to get the operation handler */
     ret = slapi_pblock_get(pb, SLAPI_OPERATION, &op);
     if (ret != 0) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "slapi_pblock_get failed!?\n");
+        LOG_FATAL("slapi_pblock_get failed!?\n");
         rc = LDAP_OPERATIONS_ERROR;
         goto done;
     }
@@ -798,22 +784,19 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
     char timestr[GENERALIZED_TIME_LENGTH+1];
     int ret;
 
-    slapi_log_error(SLAPI_LOG_TRACE, IPAPWD_PLUGIN_NAME,
-                    "=> ipapwd_post_op\n");
+    LOG_TRACE("=>\n");
 
     /* time to get the operation handler */
     ret = slapi_pblock_get(pb, SLAPI_OPERATION, &op);
     if (ret != 0) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "slapi_pblock_get failed!?\n");
+        LOG_FATAL("slapi_pblock_get failed!?\n");
         return 0;
     }
 
     pwdop = slapi_get_object_extension(ipapwd_op_ext_list.object_type,
                                        op, ipapwd_op_ext_list.handle);
     if (NULL == pwdop) {
-        slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
-                        "Internal error, couldn't find pluginextension ?!\n");
+        LOG_FATAL("Internal error, couldn't find pluginextension ?!\n");
         return 0;
     }
 
@@ -822,8 +805,7 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
         return 0;
 
     if ( ! (pwdop->is_krb)) {
-        slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
-                        "Not a kerberos user, ignore krb attributes\n");
+        LOG("Not a kerberos user, ignore krb attributes\n");
         return 0;
     }
 
@@ -832,8 +814,7 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
 
     /* change Last Password Change field with the current date */
     if (!gmtime_r(&(pwdop->pwdata.timeNow), &utctime)) {
-        slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
-                        "failed to parse current date (buggy gmtime_r ?)\n");
+        LOG_FATAL("failed to parse current date (buggy gmtime_r ?)\n");
         goto done;
     }
     strftime(timestr, GENERALIZED_TIME_LENGTH+1,
@@ -843,8 +824,7 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
 
     /* set Password Expiration date */
     if (!gmtime_r(&(pwdop->pwdata.expireTime), &utctime)) {
-        slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
-                        "failed to parse expiration date (buggy gmtime_r ?)\n");
+        LOG_FATAL("failed to parse expiration date (buggy gmtime_r ?)\n");
         goto done;
     }
     strftime(timestr, GENERALIZED_TIME_LENGTH+1,
@@ -862,8 +842,7 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
                                                   ipapwd_plugin_id);
             slapi_sdn_free(&tmp_dn);
             if (ret != LDAP_SUCCESS) {
-                slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
-                                "Failed tpo retrieve entry?!?\n");
+                LOG("Failed to retrieve entry?!\n");
                 goto done;
             }
         }
@@ -876,8 +855,7 @@ static int ipapwd_post_op(Slapi_PBlock *pb)
 
     ret = ipapwd_apply_mods(pwdop->pwdata.dn, smods);
     if (ret)
-        slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
-           "Failed to set additional password attributes in the post-op!\n");
+        LOG("Failed to set additional password attributes in the post-op!\n");
 
 done:
     if (pwdop && pwdop->pwdata.target) slapi_entry_free(pwdop->pwdata.target);
@@ -909,16 +887,14 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     int method; /* authentication method */
     int ret = 0;
 
-    slapi_log_error(SLAPI_LOG_TRACE, IPAPWD_PLUGIN_NAME,
-                    "=> ipapwd_pre_bind\n");
+    LOG_TRACE("=>\n");
 
     /* get BIND parameters */
     ret |= slapi_pblock_get(pb, SLAPI_BIND_TARGET, &dn);
     ret |= slapi_pblock_get(pb, SLAPI_BIND_METHOD, &method);
     ret |= slapi_pblock_get(pb, SLAPI_BIND_CREDENTIALS, &credentials);
     if (ret) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_pre_bind",
-                        "slapi_pblock_get failed!?\n");
+        LOG_FATAL("slapi_pblock_get failed!?\n");
         goto done;
     }
 
@@ -935,16 +911,14 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     /* retrieve user entry */
     ret = ipapwd_getEntry(dn, &entry, (char **) attrs_list);
     if (ret) {
-        slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
-                        "failed to retrieve user entry: %s\n", dn);
+        LOG("failed to retrieve user entry: %s\n", dn);
         goto done;
     }
 
     /* check the krbPrincipalName attribute is present */
     ret = slapi_entry_attr_find(entry, "krbprincipalname", &attr);
     if (ret) {
-        slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
-                        "no krbPrincipalName in user entry: %s\n", dn);
+        LOG("no krbPrincipalName in user entry: %s\n", dn);
         goto done;
     }
 
@@ -959,16 +933,14 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     /* check the krbPrincipalKey attribute is NOT present */
     ret = slapi_entry_attr_find(entry, "krbprincipalkey", &attr);
     if (!ret) {
-        slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
-                        "kerberos key already present in user entry: %s\n", dn);
+        LOG("kerberos key already present in user entry: %s\n", dn);
         goto done;
     }
 
     /* retrieve userPassword attribute */
     ret = slapi_entry_attr_find(entry, SLAPI_USERPWD_ATTR, &attr);
     if (ret) {
-        slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
-                        "no " SLAPI_USERPWD_ATTR " in user entry: %s\n", dn);
+        LOG("no " SLAPI_USERPWD_ATTR " in user entry: %s\n", dn);
         goto done;
     }
 
@@ -978,8 +950,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     pwd_values = (Slapi_Value **) slapi_ch_malloc(ret);
     if (!pwd_values) {
         /* probably not required: should terminate the server anyway */
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "out of memory!?\n");
+        LOG_OOM();
         goto done;
     }
     /* zero-fill the allocated memory; we need the array ending with NULL */
@@ -1001,16 +972,14 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     slapi_value_free(&value);
 
     if (ret) {
-        slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
-                        "invalid BIND password for user entry: %s\n", dn);
+        LOG("invalid BIND password for user entry: %s\n", dn);
         goto done;
     }
 
     /* general checks */
     ret = ipapwd_gen_checks(pb, &errMesg, &krbcfg, IPAPWD_CHECK_DN);
     if (ret) {
-        slapi_log_error(SLAPI_LOG_FATAL, "ipapwd_pre_bind",
-                        "ipapwd_gen_checks failed: %s", errMesg);
+        LOG_FATAL("Generic checks failed: %s", errMesg);
         goto done;
     }
 
@@ -1020,8 +989,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
      * and force a password change on next login  */
     ret = slapi_entry_attr_delete(entry, SLAPI_USERPWD_ATTR);
     if (ret) {
-        slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
-                        "failed to delete " SLAPI_USERPWD_ATTR "\n");
+        LOG_FATAL("failed to delete " SLAPI_USERPWD_ATTR "\n");
         goto done;
     }
 
@@ -1046,22 +1014,19 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     if (ret) {
         /* Password fails to meet IPA password policy,
          * force user to change his password next time he logs in. */
-        slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
-                        "password policy check failed on user entry: %s"
-                        " (force password change on next login)\n", dn);
+        LOG("password policy check failed on user entry: %s"
+            " (force password change on next login)\n", dn);
         pwdata.expireTime = time(NULL);
     }
 
     /* generate kerberos keys */
     ret = ipapwd_SetPassword(krbcfg, &pwdata, 1);
     if (ret) {
-        slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
-                        "failed to set kerberos key for user entry: %s\n", dn);
+        LOG("failed to set kerberos key for user entry: %s\n", dn);
         goto done;
     }
 
-    slapi_log_error(SLAPI_LOG_PLUGIN, "ipapwd_pre_bind",
-                    "kerberos key generated for user entry: %s\n", dn);
+    LOG("kerberos key generated for user entry: %s\n", dn);
 
 done:
     slapi_ch_free_string(&expire);

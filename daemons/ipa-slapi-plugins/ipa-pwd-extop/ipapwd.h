@@ -64,6 +64,32 @@
 #define IPAPWD_FEATURE_DESC  "IPA Password Manager"
 #define IPAPWD_PLUGIN_DESC   "IPA Password Extended Operation plugin"
 
+#ifndef discard_const
+#define discard_const(ptr) ((void *)((uintptr_t)(ptr)))
+#endif
+
+#define log_func discard_const(__func__)
+
+#define LOG(fmt, ...) \
+    do { \
+        slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME, \
+                        fmt, ##__VA_ARGS__); \
+    } while (0)
+
+#define LOG_FATAL(fmt, ...) \
+    do { \
+        slapi_log_error(SLAPI_LOG_PLUGIN, log_func, \
+                        "[file %s, line %d]: " fmt, \
+                        __FILE__, __LINE__, ##__VA_ARGS__); \
+    } while (0)
+
+#define LOG_TRACE(fmt, ...) \
+    do { \
+        slapi_log_error(SLAPI_LOG_PLUGIN, log_func, fmt, ##__VA_ARGS__); \
+    } while (0)
+
+#define LOG_OOM() LOG_FATAL("Out of Memory!\n")
+
 #define IPAPWD_CHECK_CONN_SECURE    0x00000001
 #define IPAPWD_CHECK_DN             0x00000002
 
