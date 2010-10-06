@@ -1,0 +1,72 @@
+{
+    "error": null, 
+    "id": 6, 
+    "result": {
+        "count": 3, 
+        "result": [
+            {
+                "cn": "GLOBAL", 
+                "dn": "cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "krbmaxpwdlife": [
+                    "90"
+                ], 
+                "krbminpwdlife": [
+                    "1"
+                ], 
+                "krbpwdhistorylength": [
+                    "0"
+                ], 
+                "krbpwdmindiffchars": [
+                    "0"
+                ], 
+                "krbpwdminlength": [
+                    "8"
+                ]
+            }, 
+            {
+                "cn": [
+                    "testgroup12"
+                ], 
+                "cospriority": [
+                    "1"
+                ], 
+                "dn": "cn=testgroup12,cn=ayoung.boston.devel.redhat.com,cn=kerberos,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "krbmaxpwdlife": [
+                    "40"
+                ], 
+                "krbminpwdlife": [
+                    "50"
+                ], 
+                "krbpwdhistorylength": [
+                    "5"
+                ], 
+                "krbpwdminlength": [
+                    "6"
+                ]
+            }, 
+            {
+                "cn": [
+                    "testgroup22"
+                ], 
+                "cospriority": [
+                    "2"
+                ], 
+                "dn": "cn=testgroup22,cn=ayoung.boston.devel.redhat.com,cn=kerberos,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "krbmaxpwdlife": [
+                    "60"
+                ], 
+                "krbminpwdlife": [
+                    "40"
+                ], 
+                "krbpwdhistorylength": [
+                    "8"
+                ], 
+                "krbpwdminlength": [
+                    "9"
+                ]
+            }
+        ], 
+        "summary": null, 
+        "truncated": false
+    }
+}

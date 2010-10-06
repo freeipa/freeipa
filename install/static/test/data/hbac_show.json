@@ -1,0 +1,35 @@
+{
+    "error": null, 
+    "id": 6, 
+    "result": {
+        "result": {
+            "accessruletype": [
+                "allow"
+            ], 
+            "cn": [
+                "allow_all"
+            ], 
+            "description": [
+                "Allow all users to access any host from any host"
+            ], 
+            "dn": "ipauniqueid=c943a8cf-d05b-11df-b68f-525400674dcd,cn=hbac,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+            "hostcategory": [
+                "all"
+            ], 
+            "ipaenabledflag": [
+                "TRUE"
+            ], 
+            "servicecategory": [
+                "all"
+            ], 
+            "sourcehostcategory": [
+                "all"
+            ], 
+            "usercategory": [
+                "all"
+            ]
+        }, 
+        "summary": null, 
+        "value": "allow_all"
+    }
+}

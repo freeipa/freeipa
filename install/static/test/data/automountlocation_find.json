@@ -1,0 +1,17 @@
+{
+    "error": null, 
+    "id": 6, 
+    "result": {
+        "count": 1, 
+        "result": [
+            {
+                "cn": [
+                    "default"
+                ], 
+                "dn": "cn=default,cn=automount,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+            }
+        ], 
+        "summary": null, 
+        "truncated": false
+    }
+}

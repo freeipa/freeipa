@@ -1,0 +1,554 @@
+{
+    "error": null, 
+    "id": 6, 
+    "result": {
+        "count": 45, 
+        "result": [
+            {
+                "cn": [
+                    "addusers"
+                ], 
+                "description": [
+                    "Add Users"
+                ], 
+                "dn": "cn=addusers,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "useradmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "change_password"
+                ], 
+                "description": [
+                    "Change a user password"
+                ], 
+                "dn": "cn=change_password,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "useradmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "add_user_to_default_group"
+                ], 
+                "description": [
+                    "Add user to default group"
+                ], 
+                "dn": "cn=add_user_to_default_group,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "useradmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "removeusers"
+                ], 
+                "description": [
+                    "Remove Users"
+                ], 
+                "dn": "cn=removeusers,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "useradmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "modifyusers"
+                ], 
+                "description": [
+                    "Modify Users"
+                ], 
+                "dn": "cn=modifyusers,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "useradmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "addgroups"
+                ], 
+                "description": [
+                    "Add Groups"
+                ], 
+                "dn": "cn=addgroups,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "groupadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "removegroups"
+                ], 
+                "description": [
+                    "Remove Groups"
+                ], 
+                "dn": "cn=removegroups,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "groupadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "modifygroups"
+                ], 
+                "description": [
+                    "Modify Groups"
+                ], 
+                "dn": "cn=modifygroups,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "groupadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "modifygroupmembership"
+                ], 
+                "description": [
+                    "Modify Group membership"
+                ], 
+                "dn": "cn=modifygroupmembership,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "groupadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "addhosts"
+                ], 
+                "description": [
+                    "Add Hosts"
+                ], 
+                "dn": "cn=addhosts,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "hostadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "removehosts"
+                ], 
+                "description": [
+                    "Remove Hosts"
+                ], 
+                "dn": "cn=removehosts,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "hostadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "modifyhosts"
+                ], 
+                "description": [
+                    "Modify Hosts"
+                ], 
+                "dn": "cn=modifyhosts,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "hostadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "addhostgroups"
+                ], 
+                "description": [
+                    "Add Host Groups"
+                ], 
+                "dn": "cn=addhostgroups,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "hostgroupadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "removehostgroups"
+                ], 
+                "description": [
+                    "Remove Host Groups"
+                ], 
+                "dn": "cn=removehostgroups,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "hostgroupadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "modifyhostgroups"
+                ], 
+                "description": [
+                    "Modify Host Groups"
+                ], 
+                "dn": "cn=modifyhostgroups,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "hostgroupadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "modifyhostgroupmembership"
+                ], 
+                "description": [
+                    "Modify Host Group membership"
+                ], 
+                "dn": "cn=modifyhostgroupmembership,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "hostgroupadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "addservices"
+                ], 
+                "description": [
+                    "Add Services"
+                ], 
+                "dn": "cn=addservices,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "serviceadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "removeservices"
+                ], 
+                "description": [
+                    "Remove Services"
+                ], 
+                "dn": "cn=removeservices,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "serviceadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "addhrole", 
+                    "addroles"
+                ], 
+                "description": [
+                    "Add Roles"
+                ], 
+                "dn": "cn=addroles,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "delegationadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "removeroles"
+                ], 
+                "description": [
+                    "Remove Roles"
+                ], 
+                "dn": "cn=removeroles,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "delegationadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "modifyroles"
+                ], 
+                "description": [
+                    "Modify Roles"
+                ], 
+                "dn": "cn=modifyroles,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "delegationadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "modifyrolegroupmembership"
+                ], 
+                "description": [
+                    "Modify Role Group membership"
+                ], 
+                "dn": "cn=modifyrolegroupmembership,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "delegationadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "modifytaskgroupmembership"
+                ], 
+                "description": [
+                    "Modify Task Group membership"
+                ], 
+                "dn": "cn=modifytaskgroupmembership,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "delegationadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "addautomount"
+                ], 
+                "description": [
+                    "Add Automount maps/keys"
+                ], 
+                "dn": "cn=addautomount,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "automountadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "removeautomount"
+                ], 
+                "description": [
+                    "Remove Automount maps/keys"
+                ], 
+                "dn": "cn=removeautomount,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "automountadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "addnetgroups"
+                ], 
+                "description": [
+                    "Add netgroups"
+                ], 
+                "dn": "cn=addnetgroups,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "netgroupadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "removenetgroups"
+                ], 
+                "description": [
+                    "Remove netgroups"
+                ], 
+                "dn": "cn=removenetgroups,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "netgroupadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "modifynetgroups"
+                ], 
+                "description": [
+                    "Modify netgroups"
+                ], 
+                "dn": "cn=modifynetgroups,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "netgroupadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "modifynetgroupmembership"
+                ], 
+                "description": [
+                    "Modify netgroup membership"
+                ], 
+                "dn": "cn=modifynetgroupmembership,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "netgroupadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "manage_host_keytab"
+                ], 
+                "description": [
+                    "Manage host keytab"
+                ], 
+                "dn": "cn=manage_host_keytab,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "hostadmin", 
+                    "enrollhost"
+                ]
+            }, 
+            {
+                "cn": [
+                    "manage_host_keytab", 
+                    "update_dns", 
+                    "update_sn"
+                ], 
+                "description": [
+                    "Updates DNS"
+                ], 
+                "dn": "cn=update_dns,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "dnsadmin", 
+                    "dnsserver"
+                ]
+            }, 
+            {
+                "cn": [
+                    "modifyservices"
+                ], 
+                "description": [
+                    "Modify Services"
+                ], 
+                "dn": "cn=modifyservices,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "serviceadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "enroll_host"
+                ], 
+                "description": [
+                    "Enroll a host"
+                ], 
+                "dn": "cn=enroll_host,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "hostadmin", 
+                    "enrollhost"
+                ]
+            }, 
+            {
+                "cn": [
+                    "retrieve_certs"
+                ], 
+                "description": [
+                    "Retrieve SSL Certificates"
+                ], 
+                "dn": "cn=retrieve_certs,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "certadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "request_certs"
+                ], 
+                "description": [
+                    "Request a SSL Certificate"
+                ], 
+                "dn": "cn=request_certs,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "certadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "request_cert_different_host"
+                ], 
+                "description": [
+                    "Request a SSL Certificate from a different host"
+                ], 
+                "dn": "cn=request_cert_different_host,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "certadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "certificate_status"
+                ], 
+                "description": [
+                    "Status of cert request"
+                ], 
+                "dn": "cn=certificate_status,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "certadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "revoke_certificate"
+                ], 
+                "description": [
+                    "Revoke Certificate"
+                ], 
+                "dn": "cn=revoke_certificate,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "certadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "certificate_remove_hold"
+                ], 
+                "description": [
+                    "Certificate Remove Hold"
+                ], 
+                "dn": "cn=certificate_remove_hold,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "certadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "managereplica"
+                ], 
+                "description": [
+                    "Manage Replication Agreements"
+                ], 
+                "dn": "cn=managereplica,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "replicaadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "deletereplica"
+                ], 
+                "description": [
+                    "Delete Replication Agreements"
+                ], 
+                "dn": "cn=deletereplica,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "replicaadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "addentitlements"
+                ], 
+                "description": [
+                    "Add Entitlements"
+                ], 
+                "dn": "cn=addentitlements,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "entitlementadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "removeentitlements"
+                ], 
+                "description": [
+                    "Remove Entitlements"
+                ], 
+                "dn": "cn=removeentitlements,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "entitlementadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "modifyentitlements"
+                ], 
+                "description": [
+                    "Modify Entitlements"
+                ], 
+                "dn": "cn=modifyentitlements,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+                "member_rolegroup": [
+                    "entitlementadmin"
+                ]
+            }, 
+            {
+                "cn": [
+                    "testtaskgroup"
+                ], 
+                "description": [
+                    "test1"
+                ], 
+                "dn": "cn=testtaskgroup,cn=taskgroups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
+            }
+        ], 
+        "summary": "45 grupos de tarea coincidentes", 
+        "truncated": false
+    }
+}

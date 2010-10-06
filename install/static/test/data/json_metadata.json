@@ -149,7 +149,7 @@
                     "objectclass",
                     "aci"
                 ],
-                "label": "<automountlocation.label>",
+                "label": "Automount Location",
                 "methods": [
                     "add",
                     "del",
@@ -2176,7 +2176,7 @@
                     "objectclass",
                     "aci"
                 ],
-                "label": "<krbtpolicy.label>",
+                "label": "Kerberos Ticket Policy",
                 "methods": [
                     "mod",
                     "reset",
@@ -2434,7 +2434,7 @@
                     "objectclass",
                     "aci"
                 ],
-                "label": "<pwpolicy.label>",
+                "label": "Password Policy",
                 "methods": [
                     "add",
                     "del",

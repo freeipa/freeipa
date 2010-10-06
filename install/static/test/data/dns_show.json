@@ -1,0 +1,38 @@
+{
+    "error": null, 
+    "id": 0, 
+    "result": {
+        "result": {
+            "dn": "idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+            "idnsname": [
+                "ayoung.boston.devel.redhat.com"
+            ], 
+            "idnssoaexpire": [
+                "1209600"
+            ], 
+            "idnssoaminimum": [
+                "3600"
+            ], 
+            "idnssoamname": [
+                "ipa.ayoung.boston.devel.redhat.com."
+            ], 
+            "idnssoarefresh": [
+                "3600"
+            ], 
+            "idnssoaretry": [
+                "900"
+            ], 
+            "idnssoarname": [
+                "root.ipa.ayoung.boston.devel.redhat.com."
+            ], 
+            "idnssoaserial": [
+                "2010061001"
+            ], 
+            "idnszoneactive": [
+                "TRUE"
+            ]
+        }, 
+        "summary": null, 
+        "value": "ayoung.boston.devel.redhat.com"
+    }
+}

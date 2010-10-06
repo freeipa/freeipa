@@ -1,0 +1,101 @@
+{
+    "error": null,
+    "id": 0,
+    "result": {
+        "count": 3,
+        "result": [
+            {
+                "dn": "idnsname=ayoung.boston.devel.redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "idnsname": [
+                    "ayoung.boston.devel.redhat.com"
+                ],
+                "idnssoaexpire": [
+                    "1209600"
+                ],
+                "idnssoaminimum": [
+                    "3600"
+                ],
+                "idnssoamname": [
+                    "ipa.ayoung.boston.devel.redhat.com."
+                ],
+                "idnssoarefresh": [
+                    "3600"
+                ],
+                "idnssoaretry": [
+                    "900"
+                ],
+                "idnssoarname": [
+                    "root.ipa.ayoung.boston.devel.redhat.com."
+                ],
+                "idnssoaserial": [
+                    "2010061001"
+                ],
+                "idnszoneactive": [
+                    "TRUE"
+                ]
+            },
+            {
+                "dn": "idnsname=122.168.192.in-addr.arpa,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "idnsname": [
+                    "122.168.192.in-addr.arpa"
+                ],
+                "idnssoaexpire": [
+                    "1209600"
+                ],
+                "idnssoaminimum": [
+                    "3600"
+                ],
+                "idnssoamname": [
+                    "ipa.ayoung.boston.devel.redhat.com."
+                ],
+                "idnssoarefresh": [
+                    "3600"
+                ],
+                "idnssoaretry": [
+                    "900"
+                ],
+                "idnssoarname": [
+                    "root.122.168.192.in-addr.arpa."
+                ],
+                "idnssoaserial": [
+                    "2010061001"
+                ],
+                "idnszoneactive": [
+                    "TRUE"
+                ]
+            },
+            {
+                "dn": "idnsname=redhat.com,cn=dns,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+                "idnsname": [
+                    "redhat.com"
+                ],
+                "idnssoaexpire": [
+                    "1209600"
+                ],
+                "idnssoaminimum": [
+                    "3600"
+                ],
+                "idnssoamname": [
+                    "127.0.0.1"
+                ],
+                "idnssoarefresh": [
+                    "3600"
+                ],
+                "idnssoaretry": [
+                    "900"
+                ],
+                "idnssoarname": [
+                    "root.redhat.com."
+                ],
+                "idnssoaserial": [
+                    "2010061001"
+                ],
+                "idnszoneactive": [
+                    "TRUE"
+                ]
+            }
+        ],
+        "summary": null,
+        "truncated": false
+    }
+}

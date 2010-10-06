@@ -1,0 +1,17 @@
+{
+    "error": null, 
+    "id": 6, 
+    "result": {
+        "result": {
+            "dn": "cn=ayoung.boston.devel.redhat.com,cn=kerberos,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com", 
+            "krbmaxrenewableage": [
+                "604800"
+            ], 
+            "krbmaxticketlife": [
+                "86400"
+            ]
+        }, 
+        "summary": null, 
+        "value": ""
+    }
+}

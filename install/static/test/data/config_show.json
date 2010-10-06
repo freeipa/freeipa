@@ -1,0 +1,41 @@
+{
+    "error": null,
+    "id": 6,
+    "result": {
+        "result": {
+            "dn": "cn=ipaconfig,cn=etc,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "ipacertificatesubjectbase": [
+                "O=IPA"
+            ],
+            "ipadefaultloginshell": [
+                "/bin/sh"
+            ],
+            "ipadefaultprimarygroup": [
+                "ipausers"
+            ],
+            "ipagroupsearchfields": [
+                "cn,description"
+            ],
+            "ipahomesrootdir": [
+                "/home"
+            ],
+            "ipamaxusernamelength": [
+                "8"
+            ],
+            "ipamigrationenabled": [
+                "FALSE"
+            ],
+            "ipasearchrecordslimit": [
+                "0"
+            ],
+            "ipasearchtimelimit": [
+                "2"
+            ],
+            "ipausersearchfields": [
+                "uid,givenname,sn,telephonenumber,ou,title"
+            ]
+        },
+        "summary": null,
+        "value": ""
+    }
+}
