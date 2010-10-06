@@ -32,6 +32,7 @@ import fcntl
 import termios
 import struct
 import base64
+import default_encoding_utf8
 
 import frontend
 import backend
@@ -153,7 +154,7 @@ class textui(backend.Backend):
         """
         Print exactly like ``print`` statement would.
         """
-        print string
+        print unicode(string)
 
     def print_line(self, text, width=None):
         """
@@ -175,7 +176,7 @@ class textui(backend.Backend):
             width = self.get_tty_width()
         if width is not None and width < len(text):
             text = text[:width - 3] + '...'
-        print text
+        print unicode(text)
 
     def print_paragraph(self, text, width=None):
         """
@@ -479,7 +480,7 @@ class textui(backend.Backend):
         )
 
     def print_error(self, text):
-        print '  ** %s **' % text
+        print '  ** %s **' % unicode(text)
 
     def prompt(self, label, default=None, get_values=None):
         """
@@ -504,7 +505,7 @@ class textui(backend.Backend):
                 while True:
                     pw1 = getpass.getpass('%s: ' % label)
                     pw2 = getpass.getpass(
-                        _('Enter %(label)s again to verify: ') % dict(label=label)
+                        unicode(_('Enter %(label)s again to verify: ') % dict(label=label))
                     )
                     if pw1 == pw2:
                         return self.decode(pw1)
