@@ -190,6 +190,7 @@ function search_load(jobj, criteria, on_win, on_fail)
 
         var search_results = $('.search-results', jobj);
         search_results.append('<p>Error: '+error_thrown.name+'</p>');
+        search_results.append('<p>URL: '+this.url+'</p>');
         search_results.append('<p>'+error_thrown.message+'</p>');
     }
 

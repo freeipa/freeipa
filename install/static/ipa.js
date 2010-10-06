@@ -80,18 +80,18 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
             var error_thrown = {
                 name: 'HTTP Error '+xhr.status,
                 message: data ? xhr.statusText : "No response"
-            }
-            ipa_error_handler(xhr, text_status, error_thrown);
+            };
+            ipa_error_handler.call(this, xhr, text_status, error_thrown);
 
         } else if (data.error) {
             var error_thrown = {
                 name: 'IPA Error '+data.error.code,
                 message: data.error.message
-            }
-            ipa_error_handler(xhr, text_status, error_thrown);
+            };
+            ipa_error_handler.call(this, xhr, text_status, error_thrown);
 
         } else if (win_callback) {
-            win_callback(data, text_status, xhr);
+            win_callback.call(this, data, text_status, xhr);
         }
     }
 
@@ -99,9 +99,12 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
         ipa_dialog.empty();
         ipa_dialog.attr('title', 'Error: '+error_thrown.name);
 
+        ipa_dialog.append('<p>URL: '+this.url+'</p>');
         if (error_thrown.message) {
             ipa_dialog.append('<p>'+error_thrown.message+'</p>');
         }
+
+        var that = this;
 
         ipa_dialog.dialog({
             modal: true,
@@ -113,13 +116,13 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
                 },
                 'Cancel': function() {
                     ipa_dialog.dialog('close');
-                    fail_callback(xhr, text_status, error_thrown);
+                    fail_callback.call(that, xhr, text_status, error_thrown);
                 }
             }
         });
-    };
+    }
 
-    id = ipa_jsonrpc_id++;
+    var id = ipa_jsonrpc_id++;
 
     var method_name = name;
 

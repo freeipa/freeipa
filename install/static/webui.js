@@ -86,6 +86,7 @@ $(function() {
     function init_on_error(xhr, text_status, error_thrown) {
         var navigation = $('#navigation').empty();
         navigation.append('<p>Error: '+error_thrown.name+'</p>');
+        navigation.append('<p>URL: '+this.url+'</p>');
         navigation.append('<p>'+error_thrown.message+'</p>');
     }
 
