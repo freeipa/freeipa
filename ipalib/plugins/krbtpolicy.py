@@ -56,6 +56,8 @@ class krbtpolicy(LDAPObject):
     object_name = 'kerberos ticket policy settings'
     default_attributes = ['krbmaxticketlife', 'krbmaxrenewableage']
 
+    label=_('Kerberos Ticket Policy')
+
     takes_params = (
         Str('uid?',
             cli_name='user',

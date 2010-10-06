@@ -125,14 +125,14 @@ function ipa_details_load(jobj, pkey, on_win, on_fail)
         details.append('<p>'+error_thrown.message+'</p>');
     };
 
-    if (!pkey)
-        return;
-
+    var params = [pkey];
+    if (!pkey){
+        params = [];
+    }
     ipa_cmd(
-        'show', [pkey], {all: true}, load_on_win, load_on_fail, obj_name
+        'show', params, {all: true}, load_on_win, load_on_fail, obj_name
     );
 }
-
 function ipa_details_update(obj_name, pkey, on_win, on_fail)
 {
     function update_on_win(data, text_status, xhr) {

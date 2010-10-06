@@ -167,6 +167,8 @@ class pwpolicy(LDAPObject):
         'krbpwdhistorylength', 'krbpwdmindiffchars', 'krbpwdminlength',
     ]
 
+    label = _('Password Policy')
+
     takes_params = (
         Str('cn?',
             cli_name='group',

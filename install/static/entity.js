@@ -49,16 +49,21 @@ function ipa_entity_set_association_definition(obj_name, data)
     ipa_entity_association_list[obj_name] = data;
 }
 
-function ipa_entity_setup(container)
+
+function ipa_details_only_setup(container){
+    ipa_entity_setup(container, 'details');
+}
+
+function ipa_entity_setup(container, unspecified)
 {
     var id = container.attr('id');
 
     var state = id + '-facet';
-    var facet = $.bbq.getState(state, true) || 'search';
+    var facet = $.bbq.getState(state, true) || unspecified || 'search';
     var last_facet = window_hash_cache[state];
 
     if (facet != last_facet) {
-        _ipa_entity_setup(container);
+        _ipa_entity_setup(container,unspecified);
         window_hash_cache[state] = facet;
 
     } else if (facet == 'search') {
@@ -90,7 +95,7 @@ function ipa_entity_setup(container)
     }
 }
 
-function _ipa_entity_setup(jobj) {
+function _ipa_entity_setup(jobj,unspecified) {
 
     var obj_name = jobj.attr('id');
 
@@ -137,15 +142,16 @@ function _ipa_entity_setup(jobj) {
             search_load(jobj, filter, null, null);
     };
 
-    function setup_details_facet() {
+    function setup_details_facet(unspecified) {
         var pkey = $.bbq.getState(obj_name + '-pkey', true);
         ipa_entity_generate_views(obj_name, jobj, switch_view);
         ipa_details_create(obj_name, ipa_entity_details_list[obj_name], jobj);
         jobj.find('.details-reset').click(reset_on_click);
         jobj.find('.details-update').click(update_on_click);
 
-        if (pkey)
+        if (pkey||unspecified){
             ipa_details_load(jobj, pkey, null, null);
+        }
     };
 
     function setup_associate_facet() {
@@ -175,11 +181,12 @@ function _ipa_entity_setup(jobj) {
 
     jobj.empty();
 
-    var facet = $.bbq.getState(obj_name + '-facet', true) || 'search';
+    var facet = $.bbq.getState(obj_name + '-facet', true) || 
+        unspecified || 'search';
     if (facet == 'search') {
         setup_search_facet();
     } else if (facet == 'details') {
-        setup_details_facet();
+        setup_details_facet(unspecified);
     } else if (facet == 'associate') {
         setup_associate_facet();
     }

@@ -24,7 +24,7 @@
 
 
 var admin_tab_set = [
-    {name:'identity', label:'IDENTITY', children:[
+    {name:'identity', children:[
         {name:'user', label:'Users', setup: ipa_entity_setup},
         {name:'group', label:'Groups', setup: ipa_entity_setup},
         {name:'host', label:'Hosts', setup: ipa_entity_setup},
@@ -32,9 +32,18 @@ var admin_tab_set = [
         {name:'netgroup', label:'Netgroups', setup: ipa_entity_setup},
         {name:'service', label:'Services', setup: ipa_entity_setup}
     ]},
-    {name:'policy', label:'POLICY', setup: unimplemented_tab},
-    {name:'config', label:'CONFIG', children: [
-        {name:'rolegroup', label:'Rolegroups', setup: ipa_entity_setup}
+    {name:'policy', children:[
+        {name:'hbac', setup: ipa_entity_setup},
+        {name:'dns', setup: ipa_entity_setup},
+        {name:'automountlocation',  setup: ipa_entity_setup},
+        {name:'pwpolicy', setup: ipa_entity_setup},
+        {name:'krbtpolicy', setup:ipa_details_only_setup}
+    ]},
+    {name:'ipaserver', children: [
+//        {name:'aci', setup: ipa_entity_setup},
+        {name:'taskgroup', setup: ipa_entity_setup},
+        {name:'rolegroup', label:'Rolegroups', setup: ipa_entity_setup},
+        {name:'config', setup: ipa_details_only_setup}
     ]}
 ];
 
