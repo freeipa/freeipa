@@ -281,13 +281,13 @@ add:member:'cn=hostgroupadmin,cn=rolegroups,cn=accounts,$SUFFIX'
 
 dn: $SUFFIX
 add:aci: '(target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version
-  3.0;acl "Add Hosts";allow (add) groupdn = "ldap:///cn=addhostgroups,cn=
+  3.0;acl "Add Hostgroups";allow (add) groupdn = "ldap:///cn=addhostgroups,cn=
  taskgroups,cn=accounts,$SUFFIX";)'
 add:aci: '(target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version
-  3.0;acl "Remove Hosts";allow (delete) groupdn = "ldap:///cn=
+  3.0;acl "Remove Hostgroups";allow (delete) groupdn = "ldap:///cn=
  removehostgroups,cn=taskgroups,cn=accounts,$SUFFIX";)'
 add:aci: '(targetattr = "cn || description")(target = "ldap:///cn=*,cn=
- hostgroups,cn=accounts,$SUFFIX")(version 3.0; acl "Modify Hosts";allow
+ hostgroups,cn=accounts,$SUFFIX")(version 3.0; acl "Modify Hostgroups";allow
   (write) groupdn = "ldap:///cn=modifyhostgroups,cn=taskgroups,
  cn=accounts,$SUFFIX";)'
 add:aci: '(targetattr = "member")(target = "ldap:///cn=*,cn=hostgroups,cn=accoun
