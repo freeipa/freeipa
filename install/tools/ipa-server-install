@@ -378,9 +378,7 @@ def check_dirsrv(unattended):
             print "\t636"
         sys.exit(1)
 
-def uninstall(dm_password=None):
-    if dm_password:
-        api.Backend.ldap2.connect(bind_dn="cn=Directory Manager", bind_pw=dm_password)
+def uninstall():
 
     try:
         (stdout, stderr, rc) = run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--uninstall"], raiseonerr=False)
@@ -465,7 +463,6 @@ def main():
     )
 
     if options.uninstall:
-        dm_password = options.dm_password
 
         # We will need at least api.env, finalize api now. This system is
         # already installed, so the configuration file is there.
@@ -478,21 +475,8 @@ def main():
                 print ""
                 print "Aborting uninstall operation."
                 sys.exit(1)
-            if not dm_password:
-                if user_input("Do you want to remove old SRV and NS records?", False):
-                    dm_password = read_password("Directory Manager", confirm=False, validate=False)
-                    # Try out the password
-                    ldapuri = 'ldap://%s' % api.env.host
-                    try:
-                        conn = ldap2(shared_instance=False, ldap_uri=ldapuri)
-                        conn.connect(bind_dn='cn=directory manager', bind_pw=dm_password)
-                    except errors.ACIError:
-                        sys.exit("\nThe password provided is incorrect for LDAP server %s" % api.env.host)
-                    except errors.ExecutionError:
-                        sys.exit("\nUnable to connect to LDAP server %s" % api.env.host)
-                    conn.disconnect()
 
-        return uninstall(dm_password)
+        return uninstall()
 
     # This will override any settings passed in on the cmdline
     options._update_loose(read_cache())
