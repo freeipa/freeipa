@@ -57,6 +57,9 @@ EXAMPLES:
  Add a new host with a one-time password:
    ipa host-add --os='Fedora 12' --password=Secret123 test.example.com
 
+ Add a new host with a random one-time password:
+   ipa host-add --os='Fedora 12' --random test.example.com
+
  Modify information about a host:
    ipa host-mod --os='Fedora 12' test.example.com
 
@@ -75,6 +78,8 @@ from ipalib.plugins.service import split_principal
 from ipalib.plugins.service import validate_certificate
 from ipalib import _, ngettext
 from ipalib import x509
+from ipapython.ipautil import ipa_generate_password
+from ipalib.request import context
 import base64
 import nss.nss as nss
 
@@ -150,6 +155,15 @@ class host(LDAPObject):
             label=_('User password'),
             doc=_('Password used in bulk enrollment'),
         ),
+        Flag('random?',
+            doc=_('Generate a random password to be used in bulk enrollment'),
+            flags=['no_search'],
+            default=False,
+        ),
+        Str('randompassword?',
+            label=_('Random password'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
         Bytes('usercertificate?', validate_certificate,
             cli_name='certificate',
             label=_('Certificate'),
@@ -200,8 +214,8 @@ class host_add(LDAPCreate):
             del entry_attrs['locality']
         entry_attrs['cn'] = keys[-1]
         entry_attrs['serverhostname'] = keys[-1].split('.', 1)[0]
-        # FIXME: do DNS lookup to ensure host exists
-        if 'userpassword' not in entry_attrs:
+        if 'userpassword' not in entry_attrs and \
+            options.get('random', False) == False:
             entry_attrs['krbprincipalname'] = 'host/%s@%s' % (
                 keys[-1], self.api.env.realm
             )
@@ -210,7 +224,23 @@ class host_add(LDAPCreate):
                 entry_attrs['objectclass'].append('krbprincipal')
         elif 'krbprincipalaux' in entry_attrs['objectclass']:
             entry_attrs['objectclass'].remove('krbprincipalaux')
+        if 'random' in options:
+            if options.get('random'):
+                entry_attrs['userpassword'] = ipa_generate_password()
+                # save the password so it can be displayed in post_callback
+                setattr(context, 'randompassword', entry_attrs['userpassword'])
+            del entry_attrs['random']
         entry_attrs['managedby'] = dn
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        if options.get('random', False):
+            try:
+                entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
+            except AttributeError:
+                # On the off-chance some other extension deletes this from the
+                # context, don't crash.
+                pass
         return dn
 
 api.register(host_add)
@@ -293,7 +323,18 @@ class host_mod(LDAPUpdate):
                 raise errors.GenericError(format=fmt)
             # FIXME: decoding should be in normalizer; see service_add
             entry_attrs['usercertificate'] = base64.b64decode(cert)
+        if 'random' in options:
+            if options.get('random'):
+                entry_attrs['userpassword'] = ipa_generate_password()
+                setattr(context, 'randompassword', entry_attrs['userpassword'])
+            del entry_attrs['random']
+        entry_attrs['managedby'] = dn
 
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        if options.get('random', False):
+            entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
         return dn
 
 api.register(host_mod)
