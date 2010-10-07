@@ -34,10 +34,10 @@ ipa_entity_set_add_definition('netgroup', [
 ]);
 
 ipa_entity_set_details_definition('netgroup', [
-    ['identity', 'Netgroup Details', [
-        ['cn', 'Name', null],
-        ['description', 'Description', null],
-        ['nisdomainname', 'NIS Domain', null]
-    ]]
+    {name:'identity', label:'Netgroup Details', fields:[
+        {name:'cn', label:'Name'},
+        {name:'description', label:'Description'},
+        {name:'nisdomainname', label:'NIS Domain'}
+    ]}
 ]);
 

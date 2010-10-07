@@ -1,6 +1,7 @@
 /*  Authors:
  *    Pavel Zuna <pzuna@redhat.com>
  *    Adam Young <ayoung@redhat.com>
+ *    Endi S. Dewata <edewata@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -23,35 +24,35 @@
 
 /* REQUIRES: ipa.js */
 
-var IPA_DETAILS_POPULATE = 1;
-var IPA_DETAILS_UPDATE = 2;
-
 var ipa_details_cache = {};
 
-function ipa_details_create(obj_name, dls, container)
+function ipa_details_create(container, sections)
 {
     if (!container) {
         alert('ERROR: ipa_details_create: Missing container argument!');
         return;
     }
 
+    var obj_name = container.attr('id');
     container.attr('title', obj_name);
     container.addClass('details-container');
 
     var details = $('<div/>', {
-        class: 'details'
+        'class': 'details'
     }).appendTo(container);
 
-    details.append('<div class="details-buttons"></div>');
-    var jobj = details.children().last();
-    jobj.append('<a class="details-reset ui-state-default ui-corner-all input_link " href="jslink"><span class="ui-icon ui-icon-refresh" ></span> Reset</a>');
-    jobj.append('<a class="details-update ui-state-default ui-corner-all input_link  " href="jslink"><span class="ui-icon ui-icon-check" ></span>Update</a>');
+    var buttons = $('<div/>', {
+        'class': 'details-buttons'
+    }).appendTo(details);
+
+    buttons.append('<a class="details-reset ui-state-default ui-corner-all input_link " href="jslink"><span class="ui-icon ui-icon-refresh" ></span> Reset</a>');
+    buttons.append('<a class="details-update ui-state-default ui-corner-all input_link  " href="jslink"><span class="ui-icon ui-icon-check" ></span>Update</a>');
 
     details.append('<hr />');
 
-    for (var i = 0; i < dls.length; ++i) {
-        var d = dls[i];
-        ipa_generate_dl(details.children().last(), d[0], d[1], d[2]);
+    for (var i = 0; i < sections.length; ++i) {
+        var section = sections[i];
+        ipa_details_section_setup(container, details, section);
     }
 
     details.append('<div class="details-back"></div>');
@@ -60,49 +61,61 @@ function ipa_details_create(obj_name, dls, container)
 }
 
 
-function ipa_generate_dl(jobj, id, name, dts)
+function ipa_details_section_setup(container, details, section)
 {
-    if (!dts)
+    var id = section.name;
+    var name = section.label;
+    var fields = section.fields;
+
+    if (!fields)
         return;
 
-    var parent = jobj.parent();
-    var obj_name = parent.attr('title');
-
-    parent.append($("<h2/>",{
+    details.append($("<h2/>",{
         click: function(){_h2_on_click(this)},
         html:"&#8722; "+name
     }));
 
     var dl = $('<dl></dl>',{
         id:id,
-        "class":"entryattrs"})
+        "class":"entryattrs"
+    }).appendTo(details);
 
-    for (var i = 0; i < dts.length; ++i) {
-        var label = '';
-        var param_info = ipa_get_param_info(obj_name, dts[i][0]);
-        if (param_info)
-            label = param_info['label'];
-        if ((!label) && (dts[i].length > 1))
-            label = dts[i][1];
+    for (var i = 0; i < fields.length; ++i) {
+        var field = fields[i];
 
-        var title = dts[i][0];
-        if (typeof dts[i][2] == 'function')
-            title = 'call_' + dts[i][2].name;
-        dl.append(
-            $('<dt></dt>', {
-                title: title,
-                html: label + ':',
-            })
-        );
+        if (field.setup) {
+            field.setup.call(field, container, dl, section);
+            
+        } else {
+            ipa_details_field_setup.call(field, container, dl, section);
+        }
     }
 
-    parent.append(dl);
-    parent.append('<hr/>');
+    details.append('<hr/>');
 }
 
-function ipa_details_load(jobj, pkey, on_win, on_fail)
+function ipa_details_field_setup(container, dl, section) {
+
+    var obj_name = container.attr('title');
+    
+    var title = this.name;
+    var label = '';
+    var param_info = ipa_get_param_info(obj_name, this.name);
+    if (param_info)
+        label = param_info['label'];
+    if (!label)
+        label = this.label;
+
+    $('<dt></dt>', {
+        id: this.name,
+        title: title,
+        html: label + ':'
+    }).appendTo(dl);
+}
+
+function ipa_details_load(container, pkey, on_win, on_fail)
 {
-    var obj_name = jobj.attr('id');
+    var obj_name = container.attr('id');
 
     function load_on_win(data, text_status, xhr) {
         if (on_win)
@@ -112,18 +125,18 @@ function ipa_details_load(jobj, pkey, on_win, on_fail)
 
         var result = data.result.result;
         ipa_details_cache[obj_name] = $.extend(true, {}, result);
-        ipa_details_display(obj_name, result);
-    };
+        ipa_details_display(container, result);
+    }
 
     function load_on_fail(xhr, text_status, error_thrown) {
         if (on_fail)
             on_fail(xhr, text_status, error_thrown);
 
-        var details = $('.details', jobj).empty();
+        var details = $('.details', container).empty();
         details.append('<p>Error: '+error_thrown.name+'</p>');
         details.append('<p>URL: '+this.url+'</p>');
         details.append('<p>'+error_thrown.message+'</p>');
-    };
+    }
 
     var params = [pkey];
     if (!pkey){
@@ -133,8 +146,10 @@ function ipa_details_load(jobj, pkey, on_win, on_fail)
         'show', params, {all: true}, load_on_win, load_on_fail, obj_name
     );
 }
-function ipa_details_update(obj_name, pkey, on_win, on_fail)
+function ipa_details_update(container, pkey, on_win, on_fail)
 {
+    var obj_name = container.attr('id');
+
     function update_on_win(data, text_status, xhr) {
         if (on_win)
             on_win(data, text_status, xhr);
@@ -143,77 +158,74 @@ function ipa_details_update(obj_name, pkey, on_win, on_fail)
 
         var result = data.result.result;
         ipa_details_cache[obj_name] = $.extend(true, {}, result);
-        ipa_details_display(obj_name, result);
-    };
+        ipa_details_display(container, result);
+    }
 
     function update_on_fail(xhr, text_status, error_thrown) {
         if (on_fail)
             on_fail(xhr, text_status, error_thrown);
-    };
+    }
 
     if (!pkey)
         return;
 
-    var selector = '.details-container[title=' + obj_name + ']';
-
+    var values;
     var modlist = {'all': true, 'setattr': [], 'addattr': []};
     var attrs_wo_option = {};
 
-    $(selector + ' .entryattrs input').each(function () {
-        var jobj = $(this);
+    var sections = ipa_entity_get_details_sections(obj_name);
+    for (var i=0; i<sections.length; i++) {
+        var section = sections[i];
+        var fields = section.fields;
+        if (!fields) continue;
 
-        var dt = jobj.parent().prevAll('dt').slice(0, 1);
-        if (!dt)
-            return;
+        for (var j=0; j<fields.length; j++) {
+            var field = fields[j];
 
-        var attr = dt.attr('title');
-        if (!attr || attr.indexOf('call_') == 0)
-            return;
-        var value = jQuery.trim(jobj.val());
+            if (field.save) {
+                values = field.save.call(field, container);
 
-        var param_info = ipa_get_param_info(obj_name, attr);
-        if (param_info) {
-            modlist[attr] = value;
-            return;
+            } else {
+                values = ipa_details_field_save.call(field, container);
+            }
+
+            var param_info = ipa_get_param_info(obj_name, field.name);
+            if (param_info) {
+                if (param_info['primary_key']) continue;
+                if (values.length) modlist[field.name] = values[0];
+
+            } else {
+                if (values.length) attrs_wo_option[field.name] = values;
+            }
         }
-
-        if (!attrs_wo_option[attr])
-            attrs_wo_option[attr] = [];
-        attrs_wo_option[attr].push(value);
-    });
-
-    $(selector + ' .entryattrs dt').each(function () {
-        var jobj = $(this);
-
-        var attr = jobj.attr('title');
-        if (!attr)
-            return;
-
-        if (attr.indexOf('call_') == 0) {
-            var func = window[attr.substr(5)];
-            if (func)
-                func(jobj, modlist, IPA_DETAILS_UPDATE);
-            return;
-        }
-
-        var param_info = ipa_get_param_info(obj_name, attr);
-        if (param_info && param_info['primary_key'])
-            return;
-
-        var next = jobj.next('dd');
-        if ((!next.length) || (!next.children('input').length))
-            attrs_wo_option[attr] = [''];
-    });
+    }
 
     for (attr in attrs_wo_option) {
-        var values = attrs_wo_option[attr];
+        values = attrs_wo_option[attr];
         modlist['setattr'].push(attr + '=' + values[0]);
         for (var i = 1; i < values.length; ++i)
             modlist['addattr'].push(attr + '=' + values[i]);
-
     }
 
     ipa_cmd('mod', [pkey], modlist, update_on_win, update_on_fail, obj_name);
+}
+
+function ipa_details_field_save(container) {
+    var field = this;
+    var values = [];
+
+    var dd = $('dd[title='+field.name+']', container);
+    dd.each(function () {
+        var input = $('input', dd);
+        if (!input.length) return;
+
+        var value = $.trim(input.val());
+        if (!value) value = '';
+
+        values.push(value);
+    });
+
+    return values;
 }
 
 /* HTML templates for ipa_details_display() */
@@ -237,83 +249,104 @@ var _ipa_span_hint_template = '<span class="attrhint">Hint: D</span>';
  * arguments:
  *   entry_attrs - 'result' field as returned by ipa *-show commnads
  *                 (basically an associative array with attr:value pairs) */
-function ipa_details_display(obj_name, entry_attrs)
+function ipa_details_display(container, entry_attrs)
 {
-    var selector = '.details-container[title=' + obj_name + ']';
+    var obj_name = container.attr('id');
 
     /* remove all <dd> tags i.e. all attribute values */
-    $(selector + ' .entryattrs dd').remove();
+    $('dd', container).remove();
 
     /* go through all <dt> tags and pair them with newly created <dd>s */
-    $(selector + ' .entryattrs dt').each(function () {
-        var jobj = $(this);
+    var sections = ipa_entity_get_details_sections(obj_name);
+    for (var i=0; i<sections.length; i++) {
+        var section = sections[i];
+        var fields = section.fields;
+        if (!fields) continue;
 
-        var attr = jobj.attr('title');
-        if (attr.indexOf('call_') == 0) {
-            /* title contains callback instead of attribute name */
-            var func = window[attr.substr(5)];
-            if (func)
-                func(jobj, entry_attrs, IPA_DETAILS_POPULATE);
-            else
-                jobj.after(_ipa_dd_first_template.replace('I', '-'));
-        } else {
-            /* title contains attribute name - default behaviour */
-            var multivalue = false;
-            var hint_span = null;
+        for (var j=0; j<fields.length; j++) {
+            var field = fields[j];
+            var dt = $('dt[title='+field.name+']', container);
+            if (!dt.length) continue;
 
-            var param_info = ipa_get_param_info(obj_name, attr);
-            if (param_info) {
-                if (param_info['multivalue'] || param_info['class'] == 'List')
-                    multivalue = true;
-                var hint = param_info['hint'];
-                if (hint){
-                    hint_span = $("<span />",{
-                        "class":"attrhint",
-                        html:"Hint: " + hint});
-                }
-            }
+            if (field.load) {
+                field.load.call(field, dt, entry_attrs);
 
-            var value = entry_attrs[attr];
-            if (value) {
-                ipa_insert_first_dd(
-                    jobj, ipa_create_input(obj_name, attr, value[0],hint_span)
-                );
-                for (var i = 1; i < value.length; ++i) {
-                    jobj = jobj.next();
-                    ipa_insert_other_dd(
-                      jobj, ipa_create_input(obj_name, attr, value[i],hint_span)
-                    );
-                }
-                if (multivalue) {
-                    ipa_insert_other_dd(
-                        jobj.next(), _ipa_a_add_template.replace('A', attr)
-                    );
-                }
             } else {
-                if (multivalue) {
-                    ipa_insert_first_dd(
-                        jobj, _ipa_a_add_template.replace('A', attr) /*.append( hint_span)*/
-                    );
-                } else {
-                    ipa_insert_first_dd(
-                        jobj, ipa_create_input(obj_name, attr, '')/*.append( hint_span)*/
-                    );
-                }
+                ipa_details_field_load.call(field, container, dt, entry_attrs);
             }
         }
-    });
+    }
 }
 
+function ipa_details_field_load(container, dt, entry_attrs) {
+    var obj_name = container.attr('id');
 
-function ipa_insert_first_dd(jobj, content)
-{
-    jobj.after( $('<dd class="first"></dd>').append(content))
+    var multivalue = false;
+    var hint_span = null;
+    var dd;
 
+    var param_info = ipa_get_param_info(obj_name, this.name);
+    if (param_info) {
+        if (param_info['multivalue'] || param_info['class'] == 'List')
+            multivalue = true;
+        var hint = param_info['hint'];
+        if (hint){
+            hint_span = $('<span />',{
+                'class': 'attrhint',
+                'html': 'Hint: ' + hint});
+        }
+    }
+
+    var value = entry_attrs[this.name];
+    if (value) {
+        dd = ipa_create_first_dd(
+            this.name, ipa_create_input(obj_name, this.name, value[0],hint_span)
+        );
+        dt.after(dd);
+        var last_dd = dd;
+        for (var i = 1; i < value.length; ++i) {
+            dd = ipa_create_other_dd(
+              this.name, ipa_create_input(obj_name, this.name, value[i],hint_span)
+            );
+            last_dd.after(dd);
+            last_dd = dd;
+        }
+        if (multivalue) {
+            dd = ipa_create_other_dd(
+                this.name, _ipa_a_add_template.replace('A', this.name)
+            );
+            last_dd.after(dd);
+        }
+    } else {
+        if (multivalue) {
+            dd = ipa_create_first_dd(
+                this.name, _ipa_a_add_template.replace('A', this.name) /*.append(hint_span)*/
+            );
+            dt.after(dd);
+        } else {
+            dd = ipa_create_first_dd(
+                this.name, ipa_create_input(obj_name, this.name, '') /*.append(hint_span)*/
+            );
+            dt.after(dd);
+        }
+    }
 }
 
-function ipa_insert_other_dd(jobj, content)
+function ipa_create_first_dd(field_name, content)
 {
-    jobj.after($('<dd class="other"></dd>').append(content));
+    return $('<dd/>', {
+
+        'class': 'first',
+        'title': field_name
+    }).append(content);
+}
+
+function ipa_create_other_dd(field_name, content)
+{
+    return $('<dd/>', {
+        'class': 'other',
+        'title': field_name
+    }).append(content);
 }
 
 
@@ -412,15 +445,17 @@ function _ipa_create_text_input(attr, value, param_info)
     })).after($("<span/>",{
         html:"Does not match pattern",
         "class":"ui-state-error ui-corner-all",
-        style:"display:none",
+        style:"display:none"
     }));
 
 }
 
-function ipa_details_reset(obj_name)
+function ipa_details_reset(container)
 {
+    var obj_name = container.attr('id');
+
     if (ipa_details_cache[obj_name]){
-        ipa_details_display(obj_name, ipa_details_cache[obj_name]);
+        ipa_details_display(container, ipa_details_cache[obj_name]);
     }
 
 }
@@ -435,7 +470,8 @@ function _ipa_add_on_click(obj)
     var obj_name = jobj.closest('.details-container').attr('title');
 
     par.prepend(ipa_create_input(obj_name, attr, ''));
-    ipa_insert_other_dd(par, _ipa_a_add_template.replace('A', attr));
+    var dd = ipa_create_other_dd(field.name, _ipa_a_add_template.replace('A', attr));
+    par.after(dd);
     jobj.next('input').focus();
     jobj.remove();
 
@@ -448,7 +484,7 @@ function _ipa_remove_on_click(obj)
     var attr = jobj.attr('title');
     var par = jobj.parent();
 
-    var next = par.next('dd');
+    var next = par.next('dd[title='+attr+']');
     if (next.length) {
         if (par.hasClass('first')) {
             var hint = par.children('span').detach();

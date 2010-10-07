@@ -39,39 +39,39 @@ ipa_entity_set_add_definition('user', [
 ]);
 
 ipa_entity_set_details_definition('user', [
-    ['identity', 'Identity Details', [
-        ['title', 'Title', null],
-        ['givenname', 'First Name', null],
-        ['sn', 'Last Name', null],
-        ['cn', 'Full Name', null],
-        ['displayname', 'Dispaly Name', null],
-        ['initials', 'Initials', null]
-    ]],
-    ['account', 'Account Details', [
-        ['status', 'Account Status', a_status],
-        ['uid', 'Login', null],
-        ['userpassword', 'Password', a_password],
-        ['uidnumber', 'UID', null],
-        ['gidnumber', 'GID', null],
-        ['homedirectory', 'homedirectory', null]
-    ]],
-    ['contact', 'Contact Details', [
-        ['mail', 'E-mail Address', null],
-        ['telephonenumber', 'Numbers', a_numbers]
-    ]],
-    ['address', 'Mailing Address', [
-        ['street', 'Address', null],
-        ['location', 'City', null],
-        ['state', 'State', a_st],
-        ['postalcode', 'ZIP', null]
-    ]],
-    ['employee', 'Employee Information', [
-        ['ou', 'Org. Unit', null],
-        ['manager', 'Manager', a_manager]
-    ]],
-    ['misc', 'Misc. Information', [
-        ['carlicense', 'Car License', null]
-    ]]
+    {name:'identity', label:'Identity Details', fields:[
+        {name:'title', label:'Title'},
+        {name:'givenname', label:'First Name'},
+        {name:'sn', label:'Last Name'},
+        {name:'cn', label:'Full Name'},
+        {name:'displayname', label:'Dispaly Name'},
+        {name:'initials', label:'Initials'}
+    ]},
+    {name:'account', label:'Account Details', fields:[
+        {name:'status', label:'Account Status', load:user_status_load},
+        {name:'uid', label:'Login'},
+        {name:'userpassword', label:'Password', load:user_password_load},
+        {name:'uidnumber', label:'UID'},
+        {name:'gidnumber', label:'GID'},
+        {name:'homedirectory', label:'homedirectory'}
+    ]},
+    {name:'contact', label:'Contact Details', fields:[
+        {name:'mail', label:'E-mail Address'},
+        {name:'telephonenumber', label:'Numbers', load:user_telephonenumber_load}
+    ]},
+    {name:'address', label:'Mailing Address', fields:[
+        {name:'street', label:'Address'},
+        {name:'location', label:'City'},
+        {name:'state', label:'State', load:user_state_load},
+        {name:'postalcode', label:'ZIP'}
+    ]},
+    {name:'employee', label:'Employee Information', fields:[
+        {name:'ou', label:'Org. Unit'},
+        {name:'manager', label:'Manager', load:user_manager_load}
+    ]},
+    {name:'misc', label:'Misc. Information', fields:[
+        {name:'carlicense', label:'Car License'}
+    ]}
 ]);
 
 ipa_entity_set_association_definition('user', {
@@ -151,29 +151,31 @@ function on_lock_win(data, textStatus, xhr)
 /* ATTRIBUTE CALLBACKS */
 
 var toggle_temp = 'S <a href="jslink" onclick="return (toggle_on_click(this))" title="S">Toggle</a>';
-function a_status(jobj, result, mode)
+function user_status_load(dt, result)
 {
-    if (mode != IPA_DETAILS_POPULATE)
-        return;
-
     var memberof = result['memberof'];
+    var dd;
+
     if (memberof) {
         for (var i = 0; i < memberof.length; ++i) {
             if (memberof[i].indexOf('cn=inactivated,cn=account inactivation') != -1) {
                 var t = toggle_temp.replace(/S/g, 'Inactive');
-                ipa_insert_first_dd(jobj, t);
+                dd = ipa_create_first_dd(this.name, t);
+                dt.after(dd);
                 return;
             }
         }
     }
-    ipa_insert_first_dd(jobj, toggle_temp.replace(/S/g, 'Inactive'));
+
+    dd = ipa_create_first_dd(this.name, toggle_temp.replace(/S/g, 'Inactive'));
+    dt.after(dd);
 }
 
 var pwd_temp = '<a href="jslink" onclick="return (resetpwd_on_click(this))" title="A">Reset Password</a>';
-function a_password(jobj, result, mode)
+function user_password_load(dt, result)
 {
-    if (mode == IPA_DETAILS_POPULATE)
-        ipa_insert_first_dd(jobj, pwd_temp.replace('A', 'userpassword'));
+    var dd = ipa_create_first_dd(this.name, pwd_temp.replace('A', 'userpassword'));
+    dt.after(dd);
 }
 
 var select_temp = '<select title="st"></select>';
@@ -184,20 +186,18 @@ var states = [
     'ME', 'MH', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV',
     'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'MP', 'OH', 'OK', 'OR', 'PW',
     'PA', 'PR', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VI', 'VA',
-    'WA', 'WV', 'WI', 'WY', '',
+    'WA', 'WV', 'WI', 'WY', ''
 ];
-function a_st(jobj, result, mode)
+function user_state_load(dt, result)
 {
-    if (mode != IPA_DETAILS_POPULATE)
-        return;
-
-    var next = jobj.next();
+    var next = dt.next();
     next.css('clear', 'none');
     next.css('width', '70px');
 
-    ipa_insert_first_dd(jobj, select_temp);
+    var dd = ipa_create_first_dd(this.name, select_temp);
+    dt.after(dd);
 
-    var sel = jobj.next().children().first();
+    var sel = dt.next().children().first();
     for (var i = 0; i < states.length; ++i)
         sel.append(option_temp.replace(/V/g, states[i]));
 
@@ -208,10 +208,10 @@ function a_st(jobj, result, mode)
         sel.val('');
 }
 
-function a_numbers(jobj, result, mode)
+function user_telephonenumber_load(dt, result)
 {
 }
 
-function a_manager(jobj, result, mode)
+function user_manager_load(dt, result)
 {
 }

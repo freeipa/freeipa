@@ -34,8 +34,8 @@ ipa_entity_set_add_definition('hostgroup', [
 ]);
 
 ipa_entity_set_details_definition('hostgroup', [
-    ['identity', 'Hostgroup Details', [
-        ['cn', 'Name', null],
-        ['description', 'Description', null]
-    ]]
+    {name:'identity', label:'Hostgroup Details', fields:[
+        {name:'cn', label:'Name'},
+        {name:'description', label:'Description'}
+    ]}
 ]);

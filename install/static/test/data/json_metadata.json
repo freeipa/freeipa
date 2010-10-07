@@ -2865,6 +2865,31 @@
                         "query": false,
                         "required": true,
                         "type": "unicode"
+                    },
+                    {
+                        "attribute": false,
+                        "autofill": false,
+                        "class": "Bytes",
+                        "cli_name": "certificate",
+                        "cli_short_name": null,
+                        "default": null,
+                        "doc": "Base-64 encoded server certificate",
+                        "exclude": null,
+                        "flags": [],
+                        "hint": null,
+                        "include": null,
+                        "label": "Certificate",
+                        "length": null,
+                        "maxlength": null,
+                        "minlength": null,
+                        "multivalue": false,
+                        "name": "usercertificate",
+                        "pattern": null,
+                        "pattern_errmsg": null,
+                        "primary_key": false,
+                        "query": false,
+                        "required": false,
+                        "type": "str"
                     }
                 ],
                 "uuid_attribute": "ipauniqueid"

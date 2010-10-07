@@ -35,11 +35,11 @@ ipa_entity_set_add_definition('host', [
 ]);
 
 ipa_entity_set_details_definition('host', [
-    ['host', 'Host Details', [
-        ['fqdn', 'Fully Qualified Domain Name', null],
-        ['krbprincipalname', 'Kerberos Principal', null],
-        ['serverhostname', 'Server Host Name', null]
-    ]]
+    {name:'host', label:'Host Details', fields:[
+        {name:'fqdn', label:'Fully Qualified Domain Name'},
+        {name:'krbprincipalname', label:'Kerberos Principal'},
+        {name:'serverhostname', label:'Server Host Name'}
+    ]}
 ]);
 
 ipa_entity_set_association_definition('host', {

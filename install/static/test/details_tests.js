@@ -22,26 +22,37 @@
 
 test("Testing ipa_details_create().", function() {
 
-    var details = [
-        ['identity', 'Entity Details', [
-            ['cn', 'Entity Name'],
-            ['description', 'Description'],
-            ['number', 'Entity ID']
-        ]]
+    var fields = [
+        {name:'cn', label:'Entity Name'},
+        {name:'description', label:'Description'},
+        {name:'number', label:'Entity ID'}
     ];
 
-    var identity = details[0];
-    var attrs=identity[2];
+    var sections = [
+        {name:'identity', label:'Entity Details', fields:fields}
+    ];
+
+    var identity = sections[0];
     var key = 'entity';
 
-    var container = $("<div/>",{id: "container"});
-    ipa_details_create(key, details, container)
+    var container = $("<div/>",{id: key});
+    ipa_details_create(container, sections);
 
-    same(container[0].title,key);
+    same(
+        container[0].title, key,
+        "Checking container name"
+    );
+    
     var dl = container.find('dl#identity');
-    ok(dl );
+    ok(
+        dl,
+        "Checking section"
+    );
 
-    same(dl[0].children.length, attrs.length);
+    same(
+        dl[0].children.length, fields.length,
+        "Checking fields"
+    );
 
 });
 
@@ -60,33 +71,39 @@ test("Testing  _ipa_create_text_input().", function(){
 
 
 
-test("Testing ipa_generate_dl()",function(){
+test("Testing ipa_details_section_setup()",function(){
 
-    var details = [
-        ['cn', 'Entity Name'],
-        ['description', 'Description'],
-        ['number', 'Entity ID']
+    var fields = [
+        {name:'cn', label:'Entity Name'},
+        {name:'description', label:'Description'},
+        {name:'number', label:'Entity ID'}
     ];
-    var name = 'NAMENAMENAME';
-    var identity = 'IDIDID';
-    var parent = $("<div/>");
-    var jobj = $("<div title='entity'/>");
-    parent.append(jobj);
-    ipa_generate_dl(jobj, identity,name, details);
 
-    ok(parent.find('hr'));
+    var section = {
+        name: 'IDIDID',
+        label: 'NAMENAMENAME',
+        fields: fields
+    };
 
-    var h2= parent.find('h2');
+    var container = $("<div title='entity'/>");
+    var details = $("<div/>");
+    container.append(details);
+
+    ipa_details_section_setup(container, details, section);
+
+    ok(container.find('hr'));
+
+    var h2= container.find('h2');
     ok(h2);
-    ok(h2[0].innerHTML.indexOf(name) > 1,"find name in html");
+    ok(h2[0].innerHTML.indexOf(section.label) > 1,"find name in html");
 
-    var dl = parent.find('dl');
+    var dl = container.find('dl');
     ok(dl);
     same(dl[0].children.length,3);
-    same(dl[0].id, identity);
-    same(dl[0].children[0].title,details[0][0]);
-    same(dl[0].children[0].innerHTML,details[0][1]+":");
-    same(dl[0].children[2].title,details[2][0]);
-    same(dl[0].children[2].innerHTML,details[2][1]+":");
+    same(dl[0].id, section.name);
+    same(dl[0].children[0].title, fields[0].name);
+    same(dl[0].children[0].innerHTML, fields[0].label+":");
+    same(dl[0].children[2].title, fields[2].name);
+    same(dl[0].children[2].innerHTML, fields[2].label+":");
 
 });

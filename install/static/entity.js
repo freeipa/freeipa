@@ -44,6 +44,13 @@ function ipa_entity_set_details_definition(obj_name, data)
     ipa_entity_details_list[obj_name] = data;
 }
 
+function ipa_entity_get_details_sections(obj_name)
+{
+    var sections = ipa_entity_details_list[obj_name];
+    if (sections) return sections;
+    return [];
+}
+
 function ipa_entity_set_association_definition(obj_name, data)
 {
     ipa_entity_association_list[obj_name] = data;
@@ -95,25 +102,25 @@ function ipa_entity_setup(container, unspecified)
     }
 }
 
-function _ipa_entity_setup(jobj,unspecified) {
+function _ipa_entity_setup(container, unspecified) {
 
-    var obj_name = jobj.attr('id');
+    var obj_name = container.attr('id');
 
     function reset_on_click() {
-        ipa_details_reset(obj_name);
+        ipa_details_reset(container);
         return (false);
-    };
+    }
 
     function update_on_click() {
         var pkey_name = ipa_objs[obj_name].primary_key;
-        ipa_details_update(obj_name, ipa_details_cache[obj_name][pkey_name][0]);
+        ipa_details_update(container, ipa_details_cache[obj_name][pkey_name][0]);
         return (false);
-    };
+    }
 
     function new_on_click() {
         add_dialog_create(obj_name, ipa_entity_add_list[obj_name]);
         return (false);
-    };
+    }
 
     function switch_view() {
         var enroll_obj_name = $(this).attr('title');
@@ -126,11 +133,11 @@ function _ipa_entity_setup(jobj,unspecified) {
             state[obj_name + '-enroll'] = '';
         }
         $.bbq.pushState(state);
-    };
+    }
 
     function setup_search_facet() {
         var filter = $.bbq.getState(obj_name + '-filter', true) || '';
-        search_create(obj_name, ipa_entity_search_list[obj_name], jobj);
+        search_create(obj_name, ipa_entity_search_list[obj_name], container);
 
         $('<input />',{
             type:"submit",
@@ -138,20 +145,21 @@ function _ipa_entity_setup(jobj,unspecified) {
             click:new_on_click
         }).appendTo($( "div#" + obj_name + " > div.search-controls"));
 
-        search_load(jobj, filter, null, null);
-    };
+        search_load(container, filter, null, null);
+    }
 
     function setup_details_facet(unspecified) {
         var pkey = $.bbq.getState(obj_name + '-pkey', true);
-        ipa_entity_generate_views(obj_name, jobj, switch_view);
-        ipa_details_create(obj_name, ipa_entity_details_list[obj_name], jobj);
-        jobj.find('.details-reset').click(reset_on_click);
-        jobj.find('.details-update').click(update_on_click);
+        ipa_entity_generate_views(obj_name, container, switch_view);
+        var sections = ipa_entity_get_details_sections(obj_name);
+        ipa_details_create(container, sections);
+        container.find('.details-reset').click(reset_on_click);
+        container.find('.details-update').click(update_on_click);
 
         if (pkey||unspecified){
-            ipa_details_load(jobj, pkey, null, null);
+            ipa_details_load(container, pkey, null, null);
         }
-    };
+    }
 
     function setup_associate_facet() {
         var pkey = $.bbq.getState(obj_name + '-pkey', true) || '';
@@ -170,15 +178,15 @@ function _ipa_entity_setup(jobj,unspecified) {
         var method = association_config ? association_config.method : null;
 
         var frm = new AssociationList(
-                obj_name, pkey, enroll_obj_name, columns, jobj,
+                obj_name, pkey, enroll_obj_name, columns, container,
                 associator, method
         );
 
-        ipa_entity_generate_views(obj_name, jobj, switch_view);
+        ipa_entity_generate_views(obj_name, container, switch_view);
         frm.setup();
-    };
+    }
 
-    jobj.empty();
+    container.empty();
 
     var facet = $.bbq.getState(obj_name + '-facet', true) || 
         unspecified || 'search';

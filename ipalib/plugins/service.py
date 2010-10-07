@@ -131,7 +131,7 @@ def validate_certificate(ugettext, cert):
     """
     For now just verify that it is properly base64-encoded.
     """
-    if util.isvalid_base64(cert):
+    if cert and util.isvalid_base64(cert):
         try:
             base64.b64decode(cert)
         except Exception, e:
@@ -147,6 +147,9 @@ def normalize_certificate(cert):
     Note that this can't be a normalizer on the Param because only unicode
     variables are normalized.
     """
+    if not cert:
+        return cert
+
     if util.isvalid_base64(cert):
         try:
             cert = base64.b64decode(cert)
@@ -196,6 +199,11 @@ class service(LDAPObject):
             primary_key=True,
             normalizer=lambda value: normalize_principal(value),
         ),
+        Bytes('usercertificate?', validate_certificate,
+            cli_name='certificate',
+            label=_('Certificate'),
+            doc=_('Base-64 encoded server certificate'),
+        ),
     )
 
 api.register(service)
@@ -211,11 +219,6 @@ class service_add(LDAPCreate):
     takes_options = (
         Flag('force',
             doc=_('force principal name even if not in DNS'),
-        ),
-        Bytes('usercertificate?', validate_certificate,
-            cli_name='certificate',
-            label=_('Certificate'),
-            doc=_('Base-64 encoded server certificate'),
         ),
     )
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
@@ -287,13 +290,7 @@ class service_mod(LDAPUpdate):
     Modify an existing IPA service.
     """
     msg_summary = _('Modified service "%(value)s"')
-    takes_options = LDAPUpdate.takes_options + (
-        Bytes('usercertificate?', validate_certificate,
-            cli_name='certificate',
-            label=_('Certificate'),
-            doc=_('Base-64 encoded server certificate'),
-        ),
-    )
+    takes_options = LDAPUpdate.takes_options
     has_output_params = LDAPUpdate.has_output_params + output_params
 
     member_attributes = ['managedby']
@@ -326,13 +323,7 @@ class service_find(LDAPSearch):
         '%(count)d service matched', '%(count)d services matched'
     )
     member_attributes = ['managedby']
-    takes_options = LDAPSearch.takes_options + (
-        Bytes('usercertificate?', validate_certificate,
-            cli_name='certificate',
-            label=_('Certificate'),
-            doc=_('Base-64 encoded server certificate'),
-        ),
-    )
+    takes_options = LDAPSearch.takes_options
     has_output_params = LDAPSearch.has_output_params + output_params
     def pre_callback(self, ldap, filter, attrs_list, base_dn, *args, **options):
         # lisp style!
@@ -365,13 +356,7 @@ class service_show(LDAPRetrieve):
     Display information about an IPA service.
     """
     member_attributes = ['managedby']
-    takes_options = LDAPRetrieve.takes_options + (
-        Bytes('usercertificate?', validate_certificate,
-            cli_name='certificate',
-            label=_('Certificate'),
-            doc=_('Base-64 encoded server certificate'),
-        ),
-    )
+    takes_options = LDAPRetrieve.takes_options
     has_output_params = LDAPRetrieve.has_output_params + output_params
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):

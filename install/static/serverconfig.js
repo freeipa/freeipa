@@ -37,10 +37,10 @@ ipa_entity_set_add_definition('aci', [
 ]);
 
 ipa_entity_set_details_definition('aci', [
-    ['ipaserver', 'Aci Details', [
-        ['cn', 'Name', null],
-        ['description', 'Description', null],
-    ]]
+    {name:'ipaserver', label:'Aci Details', fields:[
+        {name:'cn', label:'Name'},
+        {name:'description', label:'Description'}
+    ]}
 ]);
 
 
@@ -60,10 +60,10 @@ ipa_entity_set_add_definition('taskgroup', [
 ]);
 
 ipa_entity_set_details_definition('taskgroup', [
-    ['ipaserver', 'Taskgroup Details', [
-        ['cn', 'Name', null],
-        ['description', 'Description', null],
-    ]]
+    {name:'ipaserver', label:'Taskgroup Details', fields:[
+        {name:'cn', label:'Name'},
+        {name:'description', label:'Description'}
+    ]}
 ]);
 
 ipa_entity_set_association_definition('rolegroup', {
@@ -89,10 +89,10 @@ ipa_entity_set_add_definition('rolegroup', [
 ]);
 
 ipa_entity_set_details_definition('rolegroup', [
-    ['ipaserver', 'Rolegroup Details', [
-        ['cn', 'Name', null],
-        ['description', 'Description', null],
-    ]]
+    {name:'ipaserver', label:'Rolegroup Details', fields:[
+        {name:'cn', label:'Name'},
+        {name:'description', label:'Description'}
+    ]}
 ]);
 
 ipa_entity_set_association_definition('rolegroup', {
@@ -101,18 +101,18 @@ ipa_entity_set_association_definition('rolegroup', {
 
 /* Configuration */
 ipa_entity_set_details_definition('config',[
-    ['ipaserver', 'Configuration', [
-        ['cn', 'Name', null],
-        ['description', 'Description', null],
-        ['ipacertificatesubjectbase', 'Certificat Subject Base',null],
-        [ 'ipadefaultloginshell', 'Default Login Shell',null],
-        ['ipadefaultprimarygroup', 'Default Primary Group',null],
-        ['ipagroupsearchfields', 'Group Search Fields',null],
-        ['ipahomesrootdir', 'Home Root Dir',null],
-        ['ipamaxusernamelength', 'Max Username Length',null],
-        ['ipamigrationenabled', 'Migration enabled?',null],
-        ['ipasearchrecordslimit', 'Search Record Limit',null],
-        ['ipasearchtimelimit', 'Search Time Limit',null],
-        ['ipausersearchfields', 'User Search Fields',null]
-    ]]
+    {name:'ipaserver', label:'Configuration', fields:[
+        {name:'cn', label:'Name'},
+        {name:'description', label:'Description'},
+        {name:'ipacertificatesubjectbase', label:'Certificat Subject Base'},
+        {name:'ipadefaultloginshell', label:'Default Login Shell'},
+        {name:'ipadefaultprimarygroup', label:'Default Primary Group'},
+        {name:'ipagroupsearchfields', label:'Group Search Fields'},
+        {name:'ipahomesrootdir', label:'Home Root Dir'},
+        {name:'ipamaxusernamelength', label:'Max Username Length'},
+        {name:'ipamigrationenabled', label:'Migration enabled?'},
+        {name:'ipasearchrecordslimit', label:'Search Record Limit'},
+        {name:'ipasearchtimelimit', label:'Search Time Limit'},
+        {name:'ipausersearchfields', label:'User Search Fields'}
+    ]}
 ]);
