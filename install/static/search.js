@@ -277,8 +277,8 @@ function search_display(obj_name, data)
 
     if (data.result.truncated) {
         tfoot.text(
-            'More than ' + sizelimit + ' results returned. ' +
-            'First ' + sizelimit + ' results shown.'
+            'More than ' + ipa_record_limit + ' results returned. ' +
+            'First ' + ipa_record_limit + ' results shown.'
         );
     } else {
         tfoot.text(data.result.summary);

@@ -24,6 +24,7 @@ var IPA_DEFAULT_JSON_URL = '/ipa/json';
 
 var ipa_json_url;
 var ipa_use_static_files;
+var ipa_record_limit=100;
 
 var ipa_ajax_options = {
     type: 'POST',
@@ -137,6 +138,7 @@ function ipa_cmd(name, args, options, win_callback, fail_callback, objname)
     if (ipa_use_static_files)
         url += '/' + method_name + '.json';
 
+    options.sizelimit=ipa_record_limit;
     var data = {
         method: method_name,
         params: [args, options],
