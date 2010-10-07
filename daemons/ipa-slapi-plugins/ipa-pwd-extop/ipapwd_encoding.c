@@ -234,8 +234,7 @@ void ipapwd_keyset_free(struct ipapwd_keyset **pkset)
 }
 
 
-
-static inline void encode_int16(unsigned int val, unsigned char *p)
+void encode_int16(unsigned int val, unsigned char *p)
 {
     p[1] = (val >>  8) & 0xff;
     p[0] = (val      ) & 0xff;
