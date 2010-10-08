@@ -26,6 +26,7 @@ import imp
 import logging
 import time
 import socket
+import re
 from types import NoneType
 
 from ipalib import errors
@@ -148,3 +149,24 @@ def validate_host_dns(log, fqdn):
         log.debug(
             'IPA: found %d records for %s' % (len(rs), fqdn)
         )
+
+def isvalid_base64(data):
+    """
+    Validate the incoming data as valid base64 data or not.
+
+    The character set must only include of a-z, A-Z, 0-9, + or / and
+    be padded with = to be a length divisible by 4 (so only 0-2 =s are
+    allowed). Its length must be divisible by 4. White space is
+    not significant so it is removed.
+
+    This doesn't guarantee we have a base64-encoded value, just that it
+    fits the base64 requirements.
+    """
+
+    data = ''.join(data.split())
+
+    if len(data) % 4 > 0 or \
+        re.match('^[a-zA-Z0-9\+\/]+\={0,2}$', data) is None:
+        return False
+    else:
+        return True

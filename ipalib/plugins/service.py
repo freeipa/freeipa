@@ -75,6 +75,7 @@ from ipalib import Str, Flag, Bytes
 from ipalib.plugins.baseldap import *
 from ipalib import x509
 from ipalib import _, ngettext
+from ipalib import util
 from nss.error import NSPRError
 
 
@@ -130,10 +131,41 @@ def validate_certificate(ugettext, cert):
     """
     For now just verify that it is properly base64-encoded.
     """
+    if util.isvalid_base64(cert):
+        try:
+            base64.b64decode(cert)
+        except Exception, e:
+            raise errors.Base64DecodeError(reason=str(e))
+    else:
+        # We'll assume this is DER data
+        pass
+
+def normalize_certificate(cert):
+    """
+    Incoming certificates should be DER-encoded.
+
+    Note that this can't be a normalizer on the Param because only unicode
+    variables are normalized.
+    """
+    if util.isvalid_base64(cert):
+        try:
+            cert = base64.b64decode(cert)
+        except Exception, e:
+            raise errors.Base64DecodeError(reason=str(e))
+
+    # At this point we should have a certificate, either because the data
+    # was base64-encoded and now its not or it came in as DER format.
+    # Let's decode it and see. Fetching the serial number will pass the
+    # certificate through the NSS DER parser.
     try:
-        base64.b64decode(cert)
-    except Exception, e:
-        raise errors.Base64DecodeError(reason=str(e))
+        serial = unicode(x509.get_serial_number(cert, x509.DER))
+    except NSPRError, nsprerr:
+        if nsprerr.errno == -8183: # SEC_ERROR_BAD_DER
+            raise errors.CertificateFormatError(error='improperly formatted DER-encoded certificate')
+        else:
+            raise errors.CertificateFormatError(error=str(nsprerr))
+
+    return cert
 
 
 class service(LDAPObject):
@@ -196,13 +228,9 @@ class service_add(LDAPCreate):
         except errors.NotFound:
             raise errors.NotFound(reason="The host '%s' does not exist to add a service to." % hostname)
 
-        cert = entry_attrs.get('usercertificate')
+        cert = options.get('usercertificate')
         if cert:
-            cert = cert[0]
-            # FIXME: should be in a normalizer: need to fix normalizers
-            #        to work on non-unicode data
-            entry_attrs['usercertificate'] = base64.b64decode(cert)
-            # FIXME: shouldn't we request signing at this point?
+            entry_attrs['usercertificate'] = normalize_certificate(cert)
 
         if not options.get('force', False):
              # We know the host exists if we've gotten this far but we
@@ -273,6 +301,7 @@ class service_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         if 'usercertificate' in options:
             cert = options.get('usercertificate')
+            cert = normalize_certificate(cert)
             if cert:
                 (dn, entry_attrs_old) = ldap.get_entry(dn, ['usercertificate'])
                 if 'usercertificate' in entry_attrs_old:
@@ -281,8 +310,7 @@ class service_mod(LDAPUpdate):
                         x509.get_serial_number(entry_attrs_old['usercertificate'][0], x509.DER)
                     )
                     raise errors.GenericError(format=fmt)
-                # FIXME: should be in normalizer; see service_add
-                entry_attrs['usercertificate'] = base64.b64decode(cert)
+                entry_attrs['usercertificate'] = cert
             else:
                 entry_attrs['usercertificate'] = None
         return dn

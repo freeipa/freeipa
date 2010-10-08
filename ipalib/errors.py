@@ -1204,7 +1204,7 @@ class CertificateError(ExecutionError):
     errno = 4300
 
 
-class CertificateOperationError(ExecutionError):
+class CertificateOperationError(CertificateError):
     """
     **4301** Raised when a certificate operation cannot be completed
 
@@ -1219,6 +1219,22 @@ class CertificateOperationError(ExecutionError):
 
     errno = 4301
     format = _('Certificate operation cannot be completed: %(error)s')
+
+class CertificateFormatError(CertificateError):
+    """
+    **4302** Raised when a certificate is badly formatted
+
+    For example:
+
+    >>> raise CertificateFormatError(error=u'improperly formated DER-encoded certificate')
+    Traceback (most recent call last):
+      ...
+    CertificateFormatError: improperly formated DER-encoded certificate
+
+    """
+
+    errno = 4302
+    format = _('Certificate format error: %(error)s')
 
 
 class MutuallyExclusiveError(ExecutionError):
