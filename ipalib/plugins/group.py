@@ -165,9 +165,10 @@ class group_del(LDAPDelete):
         def_primary_group_dn = group_dn = self.obj.get_dn(def_primary_group)
         if dn == def_primary_group_dn:
             raise errors.DefaultGroup()
-        (group_dn, group_attrs) = self.obj.methods.show(
-            self.obj.get_primary_key_from_dn(dn)
-        )
+        group_attrs = self.obj.methods.show(
+            self.obj.get_primary_key_from_dn(dn), all=True
+        )['result']
+
         if 'mepmanagedby' in group_attrs:
             raise errors.ManagedGroupError()
         return dn
