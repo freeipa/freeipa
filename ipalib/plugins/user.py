@@ -178,6 +178,9 @@ class user_add(LDAPCreate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         config = ldap.get_ipa_config()[1]
+        if 'ipamaxusernamelength' in config:
+            if len(keys[-1]) > int(config.get('ipamaxusernamelength')[0]):
+                raise errors.ValidationError(name='uid', error=_('can be at most %(len)d characters' % dict(len = int(config.get('ipamaxusernamelength')[0]))))
         entry_attrs.setdefault('loginshell', config.get('ipadefaultloginshell'))
         # hack so we can request separate first and last name in CLI
         full_name = '%s %s' % (entry_attrs['givenname'], entry_attrs['sn'])
