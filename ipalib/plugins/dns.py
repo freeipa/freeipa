@@ -126,6 +126,18 @@ def _get_record_dn(ldap, zone, idnsname):
     return ldap.make_dn_from_rdn(rdn, parent_dn)
 
 
+def dns_container_exists(ldap):
+    """
+    See if the dns container exists. If not raise an exception.
+    """
+    basedn = 'cn=dns,%s' % api.env.basedn
+    try:
+        ret = ldap.find_entries('(objectclass=*)', None, basedn,
+            ldap.SCOPE_BASE)
+    except errors.NotFound:
+        raise errors.NotFound(reason=_('DNS is not configured'))
+
+
 class dns(Object):
     """DNS zone/SOA record object."""
     label = _('DNS')
@@ -213,6 +225,8 @@ class dns_add(crud.Create):
         ldap = self.Backend.ldap2
         idnsname = args[0]
 
+        dns_container_exists(ldap)
+
         # build entry attributes
         entry_attrs = self.args_options_2_entry(*args, **options)
 
@@ -264,6 +278,8 @@ class dns_del(crud.Delete):
         ldap = self.api.Backend.ldap2
         idnsname = args[0]
 
+        dns_container_exists(ldap)
+
         # build zone entry DN
         dn = _get_zone_dn(ldap, idnsname)
         # just check if zone exists for now
@@ -298,6 +314,8 @@ class dns_mod(crud.Update):
     def execute(self, *args, **options):
         ldap = self.api.Backend.ldap2
         idnsname = args[0]
+
+        dns_container_exists(ldap)
 
         # build entry attributes, don't include idnsname!
         entry_attrs = self.args_options_2_entry(*tuple(), **options)
@@ -338,6 +356,8 @@ class dns_find(crud.Search):
     """
     def execute(self, term, **options):
         ldap = self.api.Backend.ldap2
+
+        dns_container_exists(ldap)
 
         # build search filter
         filter = ldap.make_filter_from_attr('idnsname', term, exact=False)
@@ -391,6 +411,8 @@ class dns_show(crud.Retrieve):
     def execute(self, idnsname, **options):
         ldap = self.api.Backend.ldap2
 
+        dns_container_exists(ldap)
+
         # build entry DN
         dn = _get_zone_dn(ldap, idnsname)
 
@@ -433,6 +455,8 @@ class dns_enable(Command):
     def execute(self, zone):
         ldap = self.api.Backend.ldap2
 
+        dns_container_exists(ldap)
+
         # build entry DN
         dn = _get_zone_dn(ldap, zone)
 
@@ -466,6 +490,8 @@ class dns_disable(Command):
 
     def execute(self, zone):
         ldap = self.api.Backend.ldap2
+
+        dns_container_exists(ldap)
 
         # build entry DN
         dn = _get_zone_dn(ldap, zone)
@@ -530,6 +556,8 @@ class dns_add_rr(Command):
     def execute(self, zone, idnsname, type, data, **options):
         ldap = self.api.Backend.ldap2
         attr = ('%srecord' % type).lower()
+
+        dns_container_exists(ldap)
 
         # build entry DN
         dn = _get_record_dn(ldap, zone, idnsname)
@@ -632,6 +660,8 @@ class dns_del_rr(Command):
         ldap = self.api.Backend.ldap2
         attr = ('%srecord' % type).lower()
 
+        dns_container_exists(ldap)
+
         # build entry DN
         dn = _get_record_dn(ldap, zone, idnsname)
 
@@ -724,6 +754,8 @@ class dns_find_rr(Command):
             attr = ('%srecord' % options['type']).lower()
         else:
             attr = None
+
+        dns_container_exists(ldap)
 
         # build base dn for search
         base_dn = _get_zone_dn(ldap, zone)
@@ -831,6 +863,8 @@ class dns_show_rr(Command):
     def execute(self, zone, idnsname, **options):
         # shows all records associated with resource
         ldap = self.api.Backend.ldap2
+
+        dns_container_exists(ldap)
 
         # build entry DN
         dn = _get_record_dn(ldap, zone, idnsname)
