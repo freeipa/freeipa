@@ -51,7 +51,8 @@ class ReplicaConfig:
 
 def parse_options():
     from optparse import OptionParser
-    parser = OptionParser(version=version.VERSION)
+    usage = "%prog [options] REPLICA_FILE"
+    parser = OptionParser(usage=usage, version=version.VERSION)
     parser.add_option("-N", "--no-ntp", dest="conf_ntp", action="store_false",
                       help="do not configure ntp", default=True)
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
