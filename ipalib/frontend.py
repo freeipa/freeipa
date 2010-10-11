@@ -896,7 +896,9 @@ class Command(HasParam):
                 continue
             result = output[o]
 
-            if o.lower() == 'failed':
+            if o.lower() == 'count' and result == 0:
+                rv = 1
+            elif o.lower() == 'failed':
                 if self.number_failed(result) == 0:
                     # Don't display an empty failed list
                     continue
