@@ -80,6 +80,18 @@ from ipalib import AccessTime, Password, Str, StrEnum
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
+def is_all(options, attribute):
+    """
+    See if options[attribute] is lower-case 'all' in a safe way.
+    """
+    if attribute in options and \
+        options[attribute] is not None and \
+        options[attribute].lower() == 'all':
+        return True
+    else:
+        return False
+
+
 class hbac(LDAPObject):
     """
     HBAC object.
@@ -233,17 +245,13 @@ class hbac_mod(LDAPUpdate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         (dn, entry_attrs) = ldap.get_entry(dn, attrs_list)
-        if 'usercategory' in options and options['usercategory'].lower() == 'all' and \
-            'memberuser' in entry_attrs:
+        if is_all(options, 'usercategory') and 'memberuser' in entry_attrs:
             raise errors.MutuallyExclusiveError(reason="user category cannot be set to 'all' while there are allowed users")
-        if 'hostcategory' in options and options['hostcategory'].lower() == 'all' and \
-            'memberhost' in entry_attrs:
+        if is_all(options, 'hostcategory') and 'memberhost' in entry_attrs:
             raise errors.MutuallyExclusiveError(reason="host category cannot be set to 'all' while there are allowed hosts")
-        if 'sourcehostcategory' in options and options['sourcehostcategory'].lower() == 'all' and \
-            'sourcehost' in entry_attrs:
+        if is_all(options, 'sourcehostcategory') and 'sourcehost' in entry_attrs:
             raise errors.MutuallyExclusiveError(reason="sourcehost category cannot be set to 'all' while there are allowed source hosts")
-        if 'servicecategory' in options and options['servicecategory'].lower() == 'all' and \
-            'memberservice' in entry_attrs:
+        if is_all(options, 'servicecategory') and 'memberservice' in entry_attrs:
             raise errors.MutuallyExclusiveError(reason="service category cannot be set to 'all' while there are allowed services")
         return dn
 
