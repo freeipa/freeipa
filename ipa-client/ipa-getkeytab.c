@@ -40,6 +40,10 @@
 #include <sasl/sasl.h>
 #include <popt.h>
 
+#include "config.h"
+#include <libintl.h>
+#define _(STRING) gettext(STRING)
+
 /* Salt types */
 #define NO_SALT                        -1
 #define KRB5_KDB_SALTTYPE_NORMAL        0
@@ -131,7 +135,7 @@ static int prep_ksdata(krb5_context krbctx, const char *str,
 
         krberr = krb5_get_permitted_enctypes(krbctx, &ktypes);
         if (krberr) {
-            fprintf(stderr, "No system preferred enctypes ?!\n");
+            fprintf(stderr, _("No system preferred enctypes ?!\n"));
             return 0;
         }
 
@@ -139,7 +143,7 @@ static int prep_ksdata(krb5_context krbctx, const char *str,
 
         ksdata = calloc(n + 1, sizeof(struct krb_key_salt));
         if (NULL == ksdata) {
-            fprintf(stderr, "Out of memory!?\n");
+            fprintf(stderr, _("Out of memory!?\n"));
             return 0;
         }
 
@@ -157,7 +161,7 @@ static int prep_ksdata(krb5_context krbctx, const char *str,
 
         t = tmp = strdup(str);
         if (!tmp) {
-            fprintf(stderr, "Out of memory\n");
+            fprintf(stderr, _("Out of memory\n"));
             return 0;
         }
 
@@ -172,7 +176,7 @@ static int prep_ksdata(krb5_context krbctx, const char *str,
         /* at the end we will have at most n entries + 1 terminating */
         ksdata = calloc(n + 1, sizeof(struct krb_key_salt));
         if (!ksdata) {
-            fprintf(stderr, "Out of memory\n");
+            fprintf(stderr, _("Out of memory\n"));
             return 0;
         }
 
@@ -187,7 +191,7 @@ static int prep_ksdata(krb5_context krbctx, const char *str,
             krberr = krb5_string_to_enctype(t, &ksdata[j].enctype);
             if (krberr != 0) {
                 fprintf(stderr,
-                        "Warning unrecognized encryption type: [%s]\n", t);
+                        _("Warning unrecognized encryption type: [%s]\n"), t);
                 t = p+1;
                 continue;
             }
@@ -201,7 +205,8 @@ static int prep_ksdata(krb5_context krbctx, const char *str,
 
             krberr = krb5_string_to_salttype(q, &ksdata[j].salttype);
             if (krberr != 0) {
-                fprintf(stderr, "Warning unrecognized salt type: [%s]\n", q);
+                fprintf(stderr,
+                        _("Warning unrecognized salt type: [%s]\n"), q);
                 continue;
             }
 
@@ -227,7 +232,7 @@ static int prep_ksdata(krb5_context krbctx, const char *str,
                                             &similar);
             if (krberr) {
                 free_keys_contents(krbctx, keys);
-                fprintf(stderr, "Enctype comparison failed!\n");
+                fprintf(stderr, _("Enctype comparison failed!\n"));
                 return 0;
             }
             if (similar &&
@@ -289,7 +294,7 @@ static int create_keys(krb5_context krbctx,
                                             ksdata[i].enctype,
                                             &ksdata[i].key);
             if (krberr) {
-                fprintf(stderr, "Failed to create random key!\n");
+                fprintf(stderr, _("Failed to create random key!\n"));
                 return 0;
             }
             /* set the salt to NO_SALT as the key was random */
@@ -302,14 +307,14 @@ static int create_keys(krb5_context krbctx,
         case KRB5_KDB_SALTTYPE_ONLYREALM:
             krberr = krb5_copy_data(krbctx, realm, &salt);
             if (krberr) {
-                fprintf(stderr, "Failed to create key!\n");
+                fprintf(stderr, _("Failed to create key!\n"));
                 return 0;
             }
 
             ksdata[i].salt.length = salt->length;
             ksdata[i].salt.data = malloc(salt->length);
             if (!ksdata[i].salt.data) {
-                fprintf(stderr, "Out of memory!\n");
+                fprintf(stderr, _("Out of memory!\n"));
                 return 0;
             }
             memcpy(ksdata[i].salt.data, salt->data, salt->length);
@@ -319,7 +324,7 @@ static int create_keys(krb5_context krbctx,
         case KRB5_KDB_SALTTYPE_NOREALM:
             krberr = krb5_principal2salt_norealm(krbctx, princ, &ksdata[i].salt);
             if (krberr) {
-                fprintf(stderr, "Failed to create key!\n");
+                fprintf(stderr, _("Failed to create key!\n"));
                 return 0;
             }
             break;
@@ -327,7 +332,7 @@ static int create_keys(krb5_context krbctx,
         case KRB5_KDB_SALTTYPE_NORMAL:
             krberr = krb5_principal2salt(krbctx, princ, &ksdata[i].salt);
             if (krberr) {
-                fprintf(stderr, "Failed to create key!\n");
+                fprintf(stderr, _("Failed to create key!\n"));
                 return 0;
             }
             break;
@@ -342,7 +347,7 @@ static int create_keys(krb5_context krbctx,
              */
             ksdata[i].salt.data = (char *)malloc(realm->length + 1);
             if (NULL == ksdata[i].salt.data) {
-                fprintf(stderr, "Out of memory!\n");
+                fprintf(stderr, _("Out of memory!\n"));
                 return 0;
             }
             memcpy((char *)ksdata[i].salt.data,
@@ -353,7 +358,7 @@ static int create_keys(krb5_context krbctx,
             break;
 
         default:
-            fprintf(stderr, "Bad or unsupported salt type (%d)!\n",
+            fprintf(stderr, _("Bad or unsupported salt type (%d)!\n"),
                 ksdata[i].salttype);
             return 0;
         }
@@ -364,7 +369,7 @@ static int create_keys(krb5_context krbctx,
                                       &ksdata[i].salt,
                                       &ksdata[i].key);
         if (krberr) {
-            fprintf(stderr, "Failed to create key!\n");
+            fprintf(stderr, _("Failed to create key!\n"));
             return 0;
         }
 
@@ -473,7 +478,7 @@ int filter_keys(krb5_context krbctx, struct keys_container *keys,
     }
 
     if (n == 0) {
-        fprintf(stderr, "No keys accepted by KDC\n");
+        fprintf(stderr, _("No keys accepted by KDC\n"));
         return 0;
     }
 
@@ -488,7 +493,7 @@ static int ipa_ldap_init(LDAP ** ld, const char * scheme, const char * servernam
        
 	url = (char *)malloc (url_len);
 	if (!url){
-		fprintf(stderr, "Out of memory \n");       
+		fprintf(stderr, _("Out of memory \n"));
 		return LDAP_NO_MEMORY;
 	}
 	sprintf(url,"%s://%s:%d",scheme,servername,port);
@@ -526,14 +531,14 @@ static int ldap_set_keytab(krb5_context krbctx,
 	/* cant' return more than nkeys, sometimes less */
 	encs = calloc(keys->nkeys + 1, sizeof(ber_int_t));
 	if (!encs) {
-		fprintf(stderr, "Out of Memory!\n");
+		fprintf(stderr, _("Out of Memory!\n"));
 		return 0;
 	}
 
 	/* build password change control */
 	control = create_key_control(keys, principal_name);
 	if (!control) {
-		fprintf(stderr, "Failed to create control!\n");
+		fprintf(stderr, _("Failed to create control!\n"));
 		goto error_out;
 	}
 
@@ -557,21 +562,21 @@ static int ldap_set_keytab(krb5_context krbctx,
 	}
 
 	if(ld == NULL) {
-		fprintf(stderr, "Unable to initialize ldap library!\n");
+		fprintf(stderr, _("Unable to initialize ldap library!\n"));
 		goto error_out;
 	}
 
 	version = LDAP_VERSION3;
 	ret = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
         if (ret != LDAP_SUCCESS) {
-		fprintf(stderr, "Unable to set ldap options!\n");
+		fprintf(stderr, _("Unable to set ldap options!\n"));
 		goto error_out;
 	}
 
 	if (binddn) {
 		ret = ldap_bind_s(ld, binddn, bindpw, LDAP_AUTH_SIMPLE);
 		if (ret != LDAP_SUCCESS) {
-			fprintf(stderr, "Simple bind failed\n");
+			fprintf(stderr, _("Simple bind failed\n"));
 			goto error_out;
 		}
 	} else {
@@ -581,7 +586,7 @@ static int ldap_set_keytab(krb5_context krbctx,
 						   LDAP_SASL_QUIET,
 						   ldap_sasl_interact, princ);
 		if (ret != LDAP_SUCCESS) {
-			fprintf(stderr, "SASL Bind failed!\n");
+			fprintf(stderr, _("SASL Bind failed!\n"));
 			goto error_out;
 		}
 	}
@@ -597,7 +602,8 @@ static int ldap_set_keytab(krb5_context krbctx,
 					control, NULL, NULL,
 					&msgid);
 	if (ret != LDAP_SUCCESS) {
-		fprintf(stderr, "Operation failed! %s\n", ldap_err2string(ret));
+		fprintf(stderr, _("Operation failed! %s\n"),
+                                ldap_err2string(ret));
 		goto error_out;
 	}
 
@@ -609,24 +615,27 @@ static int ldap_set_keytab(krb5_context krbctx,
 
 	ret = ldap_result(ld, msgid, 1, &tv, &res);
 	if (ret == -1) {
-		fprintf(stderr, "Operation failed! %s\n", ldap_err2string(ret));
+		fprintf(stderr, _("Operation failed! %s\n"),
+                                ldap_err2string(ret));
 		goto error_out;
 	}
 
 	ret = ldap_parse_extended_result(ld, res, &retoid, &retdata, 0);
 	if(ret != LDAP_SUCCESS) {
-		fprintf(stderr, "Operation failed! %s\n", ldap_err2string(ret));
+		fprintf(stderr, _("Operation failed! %s\n"),
+                                ldap_err2string(ret));
 		goto error_out;
 	}
 
 	ret = ldap_parse_result(ld, res, &rc, NULL, &err, NULL, &srvctrl, 0);
         if(ret != LDAP_SUCCESS || rc != LDAP_SUCCESS) {
-		fprintf(stderr, "Operation failed! %s\n", err?err:ldap_err2string(ret));
+		fprintf(stderr, _("Operation failed! %s\n"),
+                                err ? err : ldap_err2string(ret));
 		goto error_out;
         }
 
 	if (!srvctrl) {
-		fprintf(stderr, "Missing reply control!\n");
+		fprintf(stderr, _("Missing reply control!\n"));
 		goto error_out;
 	}
 
@@ -636,14 +645,14 @@ static int ldap_set_keytab(krb5_context krbctx,
 		}
 	}
 	if (!pprc) {
-		fprintf(stderr, "Missing reply control!\n");
+		fprintf(stderr, _("Missing reply control!\n"));
 		goto error_out;
 	}
 
 	sctrl = ber_init(&pprc->ldctl_value);
 
 	if (!sctrl) {
-		fprintf(stderr, "ber_init() failed, Invalid control ?!\n");
+		fprintf(stderr, _("ber_init() failed, Invalid control ?!\n"));
 		goto error_out;
 	}
 
@@ -662,7 +671,7 @@ static int ldap_set_keytab(krb5_context krbctx,
 
 	rtag = ber_scanf(sctrl, "{i{", &kvno);
 	if (rtag == LBER_ERROR) {
-		fprintf(stderr, "ber_scanf() failed, Invalid control ?!\n");
+		fprintf(stderr, _("ber_scanf() failed, Invalid control ?!\n"));
 		goto error_out;
 	}
 
@@ -703,13 +712,13 @@ static char *ask_password(krb5_context krbctx)
 
     k5d_pw0.length = sizeof(pw0);
     k5d_pw0.data = pw0;
-    ap_prompts[0].prompt = "New Principal Password";
+    ap_prompts[0].prompt = _("New Principal Password");
     ap_prompts[0].hidden = 1;
     ap_prompts[0].reply = &k5d_pw0;
 
     k5d_pw1.length = sizeof(pw1);
     k5d_pw1.data = pw1;
-    ap_prompts[1].prompt = "Verify Principal Password";
+    ap_prompts[1].prompt = _("Verify Principal Password");
     ap_prompts[1].hidden = 1;
     ap_prompts[1].reply = &k5d_pw1;
 
@@ -718,7 +727,7 @@ static char *ask_password(krb5_context krbctx)
                 2, ap_prompts);
 
     if (strcmp(pw0, pw1)) {
-        fprintf(stderr, "Passwords do not match!");
+        fprintf(stderr, _("Passwords do not match!"));
         return NULL;
     }
 
@@ -728,6 +737,30 @@ static char *ask_password(krb5_context krbctx)
     password[k5d_pw0.length] = '\0';
 
     return password;
+}
+
+int init_gettext(void)
+{
+    char *c;
+
+    c = setlocale(LC_ALL, "");
+    if (!c) {
+        return EIO;
+    }
+
+    errno = 0;
+    c = bindtextdomain(PACKAGE, LOCALEDIR);
+    if (c == NULL) {
+        return errno;
+    }
+
+    errno = 0;
+    c = textdomain(PACKAGE);
+    if (c == NULL) {
+        return errno;
+    }
+
+    return 0;
 }
 
 int main(int argc, char *argv[])
@@ -742,17 +775,31 @@ int main(int argc, char *argv[])
 	int askpass = 0;
 	int permitted_enctypes = 0;
         struct poptOption options[] = {
-		{ "quiet", 'q', POPT_ARG_NONE, &quiet, 0, "Print as little as possible", "Output only on errors"},
-                { "server", 's', POPT_ARG_STRING, &server, 0, "Contact this specific KDC Server", "Server Name" },
-                { "principal", 'p', POPT_ARG_STRING, &principal, 0, "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)", "Kerberos Service Principal Name" },
-                { "keytab", 'k', POPT_ARG_STRING, &keytab, 0, "File were to store the keytab information", "Keytab File Name" },
-		{ "enctypes", 'e', POPT_ARG_STRING, &enctypes_string, 0, "Encryption types to request", "Comma separated encryption types list" },
-		{ "permitted-enctypes", 0, POPT_ARG_NONE, &permitted_enctypes, 0, "Show the list of permitted encryption types and exit", "Permitted Encryption Types"},
-		{ "password", 'P', POPT_ARG_NONE, &askpass, 0, "Asks for a non-random password to use for the principal" },
-		{ "binddn", 'D', POPT_ARG_STRING, &binddn, 0, "LDAP DN", "DN to bind as if not using kerberos" },
-		{ "bindpw", 'w', POPT_ARG_STRING, &bindpw, 0, "LDAP password", "password to use if not using kerberos" },
-                POPT_AUTOHELP
-                POPT_TABLEEND
+            { "quiet", 'q', POPT_ARG_NONE, &quiet, 0,
+              _("Print as little as possible"), _("Output only on errors")},
+            { "server", 's', POPT_ARG_STRING, &server, 0,
+              _("Contact this specific KDC Server"),
+              _("Server Name") },
+            { "principal", 'p', POPT_ARG_STRING, &principal, 0,
+              _("The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"),
+              _("Kerberos Service Principal Name") },
+            { "keytab", 'k', POPT_ARG_STRING, &keytab, 0,
+              _("File were to store the keytab information"),
+              _("Keytab File Name") },
+	    { "enctypes", 'e', POPT_ARG_STRING, &enctypes_string, 0,
+              _("Encryption types to request"),
+              _("Comma separated encryption types list") },
+	    { "permitted-enctypes", 0, POPT_ARG_NONE, &permitted_enctypes, 0,
+              _("Show the list of permitted encryption types and exit"),
+              _("Permitted Encryption Types") },
+	    { "password", 'P', POPT_ARG_NONE, &askpass, 0,
+              _("Asks for a non-random password to use for the principal") },
+	    { "binddn", 'D', POPT_ARG_STRING, &binddn, 0,
+              _("LDAP DN"), _("DN to bind as if not using kerberos") },
+	    { "bindpw", 'w', POPT_ARG_STRING, &bindpw, 0,
+              _("LDAP password"), _("password to use if not using kerberos") },
+            POPT_AUTOHELP
+            POPT_TABLEEND
 	};
 	poptContext pc;
 	char *ktname;
@@ -768,9 +815,14 @@ int main(int argc, char *argv[])
 	int kvno;
 	int i, ret;
 
+    ret = init_gettext();
+    if (ret) {
+        exit(1);
+    }
+
 	krberr = krb5_init_context(&krbctx);
 	if (krberr) {
-		fprintf(stderr, "Kerberos context initialization failed\n");
+		fprintf(stderr, _("Kerberos context initialization failed\n"));
 		exit(1);
 	}
 
@@ -783,14 +835,15 @@ int main(int argc, char *argv[])
 
 		krberr = krb5_get_permitted_enctypes(krbctx, &ktypes);
 		if (krberr) {
-			fprintf(stderr, "No system preferred enctypes ?!\n");
+			fprintf(stderr, _("No system preferred enctypes ?!\n"));
 			exit(1);
 		}
-		fprintf(stdout, "Supported encryption types:\n");
+		fprintf(stdout, _("Supported encryption types:\n"));
 		for (i = 0; ktypes[i]; i++) {
 			krberr = krb5_enctype_to_string(ktypes[i], enc, 79);
 			if (krberr) {
-				fprintf(stderr, "Warning: failed to convert type (#%d)\n", i);
+				fprintf(stderr, _("Warning: "
+                                        "failed to convert type (#%d)\n"), i);
 				continue;
 			}
 			fprintf(stdout, "%s\n", enc);
@@ -807,7 +860,8 @@ int main(int argc, char *argv[])
 	}
 
 	if (NULL!=binddn && NULL==bindpw) {
-		fprintf(stderr, "Bind password required when using a bind DN.\n");
+		fprintf(stderr,
+                        _("Bind password required when using a bind DN.\n"));
 		if (!quiet)
 			poptPrintUsage(pc, stderr, 0);
 		exit(10);
@@ -820,7 +874,8 @@ int main(int argc, char *argv[])
 		}
 	} else if (enctypes_string && strchr(enctypes_string, ':')) {
 		if (!quiet) {
-			fprintf(stderr, "Warning: salt types are not honored with randomized passwords (see opt. -P)\n");
+			fprintf(stderr, _("Warning: salt types are not honored"
+                                " with randomized passwords (see opt. -P)\n"));
 		}
 	}
 
@@ -831,36 +886,38 @@ int main(int argc, char *argv[])
 
 	krberr = krb5_parse_name(krbctx, principal, &sprinc);
 	if (krberr) {
-		fprintf(stderr, "Invalid Service Principal Name\n");
+		fprintf(stderr, _("Invalid Service Principal Name\n"));
 		exit(4);
 	}
 
 	if (NULL == bindpw) {
 		krberr = krb5_cc_default(krbctx, &ccache);
 		if (krberr) {
-			fprintf(stderr, "Kerberos Credential Cache not found\n"
-					"Do you have a Kerberos Ticket?\n");
+			fprintf(stderr,
+                                _("Kerberos Credential Cache not found. "
+				  "Do you have a Kerberos Ticket?\n"));
 			exit(5);
 		}
 
 		krberr = krb5_cc_get_principal(krbctx, ccache, &uprinc);
 		if (krberr) {
-			fprintf(stderr, "Kerberos User Principal not found\n"
-					"Do you have a valid Credential Cache?\n");
+			fprintf(stderr,
+                                _("Kerberos User Principal not found. "
+				  "Do you have a valid Credential Cache?\n"));
 			exit(6);
 		}
 	}
 
 	krberr = krb5_kt_resolve(krbctx, ktname, &kt);
 	if (krberr) {
-		fprintf(stderr, "Failed to open Keytab\n");
+		fprintf(stderr, _("Failed to open Keytab\n"));
 		exit(7);
 	}
 
 	/* create key material */
 	ret = create_keys(krbctx, sprinc, password, enctypes_string, &keys);
 	if (!ret) {
-		fprintf(stderr, "Failed to create key material\n");
+		fprintf(stderr, _("Failed to create key material\n"));
 		exit(8);
 	}
 
@@ -878,7 +935,8 @@ int main(int argc, char *argv[])
 
 		krberr = krb5_kt_add_entry(krbctx, kt, &kt_entry);
 		if (krberr) {
-			fprintf(stderr, "Failed to add key to the keytab\n");
+			fprintf(stderr,
+                                _("Failed to add key to the keytab\n"));
 			exit (11);
 		}
 	}
@@ -887,13 +945,13 @@ int main(int argc, char *argv[])
 
 	krberr = krb5_kt_close(krbctx, kt);
 	if (krberr) {
-		fprintf(stderr, "Failed to close the keytab\n");
+		fprintf(stderr, _("Failed to close the keytab\n"));
 		exit (12);
 	}
 
 	if (!quiet) {
 		fprintf(stderr,
-			"Keytab successfully retrieved and stored in: %s\n",
+			_("Keytab successfully retrieved and stored in: %s\n"),
 			keytab);
 	}
 	exit(0);

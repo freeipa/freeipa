@@ -3,6 +3,9 @@ Q: I've added a new source file, how do I make sure it's strings get translated?
 A: Edit Makefile.in and add the source file to the appropriate *_POTFILES list.
    Then run "make update-po".
 
+   NOTE: Now this i only necessary for python files that lack the .py
+         extension. All .py, .c and .h files are automatically sourced.
+
 Q: How do I pick up new strings to translate from the source files after the
    source have been modified?
 

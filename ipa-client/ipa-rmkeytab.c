@@ -25,6 +25,11 @@
 #include <popt.h>
 #include <errno.h>
 
+#include "config.h"
+#include <libintl.h>
+#define _(STRING) gettext(STRING)
+
+
 int
 remove_principal(krb5_context context, krb5_keytab ktid, const char *principal, int debug)
 {
@@ -36,9 +41,10 @@ remove_principal(krb5_context context, krb5_keytab ktid, const char *principal, 
     memset(&entry, 0, sizeof(entry));
     krberr = krb5_parse_name(context, principal, &entry.principal);
     if (krberr) {
-        fprintf(stderr, "Unable to parse principal name\n");
+        fprintf(stderr, _("Unable to parse principal name\n"));
         if (debug)
-            fprintf(stderr, "krb5_parse_name %d: %s\n", krberr, error_message(krberr));
+            fprintf(stderr, _("krb5_parse_name %d: %s\n"),
+                            krberr, error_message(krberr));
         rval = 4;
         goto done;
     }
@@ -47,7 +53,7 @@ remove_principal(krb5_context context, krb5_keytab ktid, const char *principal, 
      * irrespective of the encryption type. A failure to find one after the
      * first means we're done.
      */
-    fprintf(stderr, "Removing principal %s\n", principal);
+    fprintf(stderr, _("Removing principal %s\n"), principal);
     while (1) {
         memset(&entry2, 0, sizeof(entry2));
         krberr = krb5_kt_get_entry(context, ktid,
@@ -60,23 +66,25 @@ remove_principal(krb5_context context, krb5_keytab ktid, const char *principal, 
                 /* not found but we've removed some, we're done */
                 break;
             if (krberr == ENOENT) {
-                fprintf(stderr, "Failed to open keytab\n");
+                fprintf(stderr, _("Failed to open keytab\n"));
                 rval = 3;
                 goto done;
             }
-            fprintf(stderr, "principal not found\n");
+            fprintf(stderr, _("principal not found\n"));
             if (debug)
-                fprintf(stderr, "krb5_kt_get_entry %d: %s\n", krberr, error_message(krberr));
+                fprintf(stderr, _("krb5_kt_get_entry %d: %s\n"),
+                                krberr, error_message(krberr));
             rval = 5;
             break;
         }
 
         krberr = krb5_kt_remove_entry(context, ktid, &entry2);
         if (krberr) {
-            fprintf(stderr, "Unable to remove entry\n");
+            fprintf(stderr, _("Unable to remove entry\n"));
             if (debug) {
-                fprintf(stdout, "kvno %d\n", entry2.vno);
-                fprintf(stderr, "krb5_kt_remove_entry %d: %s\n", krberr, error_message(krberr));
+                fprintf(stdout, _("kvno %d\n"), entry2.vno);
+                fprintf(stderr, _("krb5_kt_remove_entry %d: %s\n"),
+                                krberr, error_message(krberr));
             }
             rval = 6;
             break;
@@ -108,9 +116,10 @@ remove_realm(krb5_context context, krb5_keytab ktid, const char *realm, int debu
     while (krb5_kt_next_entry(context, ktid, &entry, &kt_cursor) == 0) {
         krberr = krb5_unparse_name(context, entry.principal, &entry_princ_s);
         if (krberr) {
-            fprintf(stderr, "Unable to parse principal\n");
+            fprintf(stderr, _("Unable to parse principal\n"));
             if (debug) {
-                fprintf(stderr, "krb5_unparse_name %d: %s\n", krberr, error_message(krberr));
+                fprintf(stderr, _("krb5_unparse_name %d: %s\n"),
+                                krberr, error_message(krberr));
             }
             rval = 4;
             goto done;
@@ -134,6 +143,30 @@ done:
     return rval;
 }
 
+int init_gettext(void)
+{
+    char *c;
+
+    c = setlocale(LC_ALL, "");
+    if (!c) {
+        return EIO;
+    }
+
+    errno = 0;
+    c = bindtextdomain(PACKAGE, LOCALEDIR);
+    if (c == NULL) {
+        return errno;
+    }
+
+    errno = 0;
+    c = textdomain(PACKAGE);
+    if (c == NULL) {
+        return errno;
+    }
+
+    return 0;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -149,19 +182,29 @@ main(int argc, char **argv)
     int debug = 0;
     int ret, rval;
     struct poptOption options[] = {
-        { "debug", 'd', POPT_ARG_NONE, &debug, 0, "Print debugging information", "Debugging output" },
-        { "principal", 'p', POPT_ARG_STRING, &principal, 0, "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)", "Kerberos Service Principal Name" },
-        { "keytab", 'k', POPT_ARG_STRING, &keytab, 0, "File were to store the keytab information", "Keytab File Name" },
-        { "realm", 'r', POPT_ARG_STRING, &realm, 0, "Remove all principals in this realm", "Realm name" },
+        { "debug", 'd', POPT_ARG_NONE, &debug, 0,
+          _("Print debugging information"), _("Debugging output") },
+        { "principal", 'p', POPT_ARG_STRING, &principal, 0,
+          _("The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"),
+          _("Kerberos Service Principal Name") },
+        { "keytab", 'k', POPT_ARG_STRING, &keytab, 0,
+          _("File were to store the keytab information"), _("Keytab File Name") },
+        { "realm", 'r', POPT_ARG_STRING, &realm, 0,
+          _("Remove all principals in this realm"), _("Realm name") },
         POPT_AUTOHELP
         POPT_TABLEEND
     };
+
+    ret = init_gettext();
+    if (ret) {
+        exit(1);
+    }
 
     memset(&ktid, 0, sizeof(ktid));
 
     krberr = krb5_init_context(&context);
     if (krberr) {
-        fprintf(stderr, "Kerberos context initialization failed\n");
+        fprintf(stderr, _("Kerberos context initialization failed\n"));
         exit(1);
     }
 
@@ -195,7 +238,7 @@ main(int argc, char **argv)
 
     krberr = krb5_kt_resolve(context, ktname, &ktid);
     if (krberr) {
-        fprintf(stderr, "Failed to open keytab '%s'\n", keytab);
+        fprintf(stderr, _("Failed to open keytab '%s'\n"), keytab);
         rval = 3;
         goto cleanup;
     }
@@ -209,9 +252,10 @@ cleanup:
     if (rval == 0 || rval > 3) {
         krberr = krb5_kt_close(context, ktid);
         if (krberr) {
-            fprintf(stderr, "Closing keytab failed\n");
+            fprintf(stderr, _("Closing keytab failed\n"));
             if (debug)
-                fprintf(stderr, "krb5_kt_close %d: %s\n", krberr, error_message(krberr));
+                fprintf(stderr, _("krb5_kt_close %d: %s\n"),
+                                krberr, error_message(krberr));
         }
     }
 

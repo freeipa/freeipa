@@ -12,6 +12,7 @@ INCLUDES =							\
 	-DLIBDIR=\""$(libdir)"\" 				\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
+	-DLOCALEDIR=\""$(localedir)"\"				\
 	$(KRB5_CFLAGS)						\
 	$(OPENLDAP_CFLAGS)					\
 	$(MOZLDAP_CFLAGS)					\

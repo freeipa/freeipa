@@ -37,6 +37,11 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#include <errno.h>
+#include "config.h"
+#include <libintl.h>
+#define _(STRING) gettext(STRING)
+
 char *
 read_config_file(const char *filename)
 {
@@ -47,14 +52,14 @@ read_config_file(const char *filename)
 
     fd = open(filename, O_RDONLY);
     if (fd == -1) {
-        fprintf(stderr, "cannot open configuration file %s\n", filename);
+        fprintf(stderr, _("cannot open configuration file %s\n"), filename);
         return NULL;
     }
 
     /* stat() the file so we know the size and can pre-allocate the right
      * amount of memory. */
     if (fstat(fd, &st) == -1) {
-        fprintf(stderr, "cannot stat() configuration file %s\n", filename);
+        fprintf(stderr, _("cannot stat() configuration file %s\n"), filename);
         return NULL;
     }
     left = st.st_size;
@@ -67,7 +72,7 @@ read_config_file(const char *filename)
         if (res == 0)
             break;
         if (res < 0) {
-            fprintf(stderr, "read error\n");
+            fprintf(stderr, _("read error\n"));
             close(fd);
             free(dest);
             return NULL;
@@ -158,4 +163,28 @@ get_config_entry(char * in_data, const char *section, const char *key)
     }
     free(data);
     return NULL;
+}
+
+int init_gettext(void)
+{
+    char *c;
+
+    c = setlocale(LC_ALL, "");
+    if (!c) {
+        return EIO;
+    }
+
+    errno = 0;
+    c = bindtextdomain(PACKAGE, LOCALEDIR);
+    if (c == NULL) {
+        return errno;
+    }
+
+    errno = 0;
+    c = textdomain(PACKAGE);
+    if (c == NULL) {
+        return errno;
+    }
+
+    return 0;
 }

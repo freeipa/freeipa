@@ -38,6 +38,9 @@
 #include "xmlrpc-c/base.h"
 #include "xmlrpc-c/client.h"
 
+#include <libintl.h>
+#define _(STRING) gettext(STRING)
+
 #define NAME "ipa-join"
 #define VERSION "1.0"
 
@@ -60,7 +63,8 @@ handle_fault(xmlrpc_env * const envP) {
     if (envP->fault_occurred) {
         switch(envP->fault_code) {
         case 2100: /* unable to add new host entry or write objectClass */
-            fprintf(stderr, "No permission to join this host to the IPA domain.\n");
+            fprintf(stderr,
+                    _("No permission to join this host to the IPA domain.\n"));
             break;
         default:
             fprintf(stderr, "%s\n", envP->fault_string);
@@ -96,7 +100,9 @@ static int check_perms(const char *keytab)
     if (ret == -1) {
         switch(errno) {
             case EACCES:
-                fprintf(stderr, "No write permissions on keytab file '%s'\n", keytab);
+                fprintf(stderr,
+                        _("No write permissions on keytab file '%s'\n"),
+                        keytab);
                 break;
             case ENOENT:
                 /* file doesn't exist, lets touch it and see if writable */
@@ -106,10 +112,14 @@ static int check_perms(const char *keytab)
                     unlink(keytab);
                     return 0;
                 }
-                fprintf(stderr, "No write permissions on keytab file '%s'\n", keytab);
+                fprintf(stderr,
+                        _("No write permissions on keytab file '%s'\n"),
+                        keytab);
                 break;
             default:
-                fprintf(stderr, "access() on %s failed: errno = %d\n", keytab, errno);
+                fprintf(stderr,
+                        _("access() on %s failed: errno = %d\n"),
+                        keytab, errno);
                 break;
         }
         return 1;
@@ -187,13 +197,13 @@ connect_ldap(const char *hostname, const char *binddn, const char *bindpw) {
 
     ld = (LDAP *)ldap_init(hostname, 636);
     if (ldap_set_option(ld, LDAP_OPT_X_TLS, &ssl) != LDAP_OPT_SUCCESS) {
-        fprintf(stderr, "Unable to enable SSL in LDAP\n");
+        fprintf(stderr, _("Unable to enable SSL in LDAP\n"));
         goto fail;
     }
 
     ret = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
     if (ret != LDAP_SUCCESS) {
-        fprintf(stderr, "Unable to set LDAP version\n");
+        fprintf(stderr, _("Unable to set LDAP version\n"));
         goto fail;
     }
 
@@ -203,7 +213,7 @@ connect_ldap(const char *hostname, const char *binddn, const char *bindpw) {
 
         ldap_get_option(ld, LDAP_OPT_RESULT_CODE, &err);
         if (debug)
-            fprintf(stderr, "Bind failed: %s\n", ldap_err2string(err));
+            fprintf(stderr, _("Bind failed: %s\n"), ldap_err2string(err));
         goto fail;
     }
 
@@ -236,7 +246,7 @@ get_root_dn(const char *ipaserver, char **ldap_base)
                             NULL, NULL, NULL, 0, &res);
 
     if (ret != LDAP_SUCCESS) {
-        fprintf(stderr, "Search for %s on rootdse failed with error %d",
+        fprintf(stderr, _("Search for %s on rootdse failed with error %d"),
                 root_attrs[0], ret);
         rval = 14;
         goto done;
@@ -246,7 +256,7 @@ get_root_dn(const char *ipaserver, char **ldap_base)
     entry = ldap_first_entry(ld, res);
     ncvals = ldap_get_values_len(ld, entry, root_attrs[0]);
     if (!ncvals) {
-        fprintf(stderr, "No values for %s", root_attrs[0]);
+        fprintf(stderr, _("No values for %s"), root_attrs[0]);
         rval = 14;
         goto done;
     }
@@ -288,7 +298,9 @@ get_subject(const char *ipaserver, char *ldap_base, const char **subject)
                             NULL, NULL, NULL, 0, &res);
 
     if (ret != LDAP_SUCCESS) {
-        fprintf(stderr, "Search for ipaCertificateSubjectBase failed with error %d", ret);
+        fprintf(stderr,
+                _("Search for ipaCertificateSubjectBase failed with error %d"),
+                ret);
         rval = 14;
         goto done;
     }
@@ -296,7 +308,7 @@ get_subject(const char *ipaserver, char *ldap_base, const char **subject)
     entry = ldap_first_entry(ld, res);
     ncvals = ldap_get_values_len(ld, entry, attrs[0]);
     if (!ncvals) {
-        fprintf(stderr, "No values for %s", attrs[0]);
+        fprintf(stderr, _("No values for %s"), attrs[0]);
         rval = 14;
         goto done;
     }
@@ -353,21 +365,25 @@ join_ldap(const char *ipaserver, char *hostname, const char ** binddn, const cha
 
     if (get_root_dn(ipaserver, &ldap_base) != 0) {
         if (!quiet)
-            fprintf(stderr, "Unable to determine root DN of %s\n", ipaserver);
+            fprintf(stderr, _("Unable to determine root DN of %s\n"),
+                            ipaserver);
         rval = 14;
         goto done;
     }
 
     if (get_subject(ipaserver, ldap_base, subject) != 0) {
         if (!quiet)
-            fprintf(stderr, "Unable to determine certificate subject of %s\n", ipaserver);
+            fprintf(stderr,
+                    _("Unable to determine certificate subject of %s\n"),
+                    ipaserver);
         /* Not a critical failure */
     }
 
     ld = connect_ldap(ipaserver, NULL, NULL);
     if (!ld) {
         if (!quiet)
-            fprintf(stderr, "Unable to make an LDAP connection to %s\n", ipaserver);
+            fprintf(stderr, _("Unable to make an LDAP connection to %s\n"),
+                    ipaserver);
         rval = 14;
         goto done;
     }
@@ -375,26 +391,28 @@ join_ldap(const char *ipaserver, char *hostname, const char ** binddn, const cha
     asprintf(&filter, "(fqdn=%s)", hostname);
     asprintf(&search_base, "cn=computers,cn=accounts,%s", ldap_base);
     if (debug) {
-        fprintf(stderr, "Searching with %s in %s\n", filter, search_base);
+        fprintf(stderr, _("Searching with %s in %s\n"), filter, search_base);
     }
     if ((ret = ldap_search_ext_s(ld, ldap_base, LDAP_SCOPE_SUB,
          filter, attrs, 0, NULL, NULL, LDAP_NO_LIMIT,
          LDAP_NO_LIMIT, &result)) != LDAP_SUCCESS) {
         if (!quiet)
-            fprintf(stderr, "ldap_search_ext_s: %s\n", ldap_err2string(ret));
+            fprintf(stderr, _("ldap_search_ext_s: %s\n"),
+                    ldap_err2string(ret));
         rval = 14;
         goto ldap_done;
     }
     e = ldap_first_entry(ld, result);
     if (!e) {
         if (!quiet)
-            fprintf(stderr, "Unable to find host '%s'\n", hostname);
+            fprintf(stderr, _("Unable to find host '%s'\n"), hostname);
         rval = 14;
         goto ldap_done;
     }
     if ((*binddn = ldap_get_dn(ld, e)) == NULL) {
         if (!quiet)
-            fprintf(stderr, "Unable to get binddn for host '%s'\n", hostname);
+            fprintf(stderr,
+                    _("Unable to get binddn for host '%s'\n"), hostname);
         rval = 14;
         goto ldap_done;
     }
@@ -406,7 +424,8 @@ join_ldap(const char *ipaserver, char *hostname, const char ** binddn, const cha
          */
         has_principal = 1;
         if (debug)
-            fprintf(stderr, "Host already has principal, trying bind anyway\n");
+            fprintf(stderr,
+                    _("Host already has principal, trying bind anyway\n"));
     }
 
     ldap_value_free_len(ncvals);
@@ -420,11 +439,11 @@ join_ldap(const char *ipaserver, char *hostname, const char ** binddn, const cha
     if (!ld) {
         if (has_principal) {
             if (!quiet)
-                fprintf(stderr, "Host is already joined.\n");
+                fprintf(stderr, _("Host is already joined.\n"));
             rval = 13;
         } else {
             if (!quiet)
-                fprintf(stderr, "Incorrect password.\n");
+                fprintf(stderr, _("Incorrect password.\n"));
             rval = 15;
         }
         goto done;
@@ -435,7 +454,7 @@ join_ldap(const char *ipaserver, char *hostname, const char ** binddn, const cha
 
     if ((rc = ldap_extended_operation_s(ld, JOIN_OID, &valrequest, NULL, NULL, &oidresult, &valresult)) != LDAP_SUCCESS) {
         if (!quiet)
-            fprintf(stderr, "principal not found in host entry\n");
+            fprintf(stderr, _("principal not found in host entry\n"));
         if (debug) ldap_perror(ld, "ldap_extended_operation_s");
         rval = 18;
         goto ldap_done;
@@ -542,7 +561,7 @@ join_krb5(const char *ipaserver, char *hostname, const char **hostdn, const char
         xmlrpc_DECREF(singleprincP);
     } else {
         if (!quiet)
-            fprintf(stderr, "principal not found in XML-RPC response\n");
+            fprintf(stderr, _("principal not found in XML-RPC response\n"));
         rval = 12;
         goto cleanup;
     }
@@ -557,7 +576,7 @@ join_krb5(const char *ipaserver, char *hostname, const char **hostdn, const char
         xmlrpc_read_string(&env, singleprincP, &krblastpwdchange);
         xmlrpc_DECREF(krblastpwdchangeP);
         if (!quiet)
-            fprintf(stderr, "Host is already joined.\n");
+            fprintf(stderr, _("Host is already joined.\n"));
         rval = 13;
         goto cleanup;
     }
@@ -624,7 +643,8 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
         char * conf_data = read_config_file(IPA_CONFIG);
         if ((ipaserver = getIPAserver(conf_data)) == NULL) {
             if (!quiet)
-                fprintf(stderr, "Unable to determine IPA server from %s\n", IPA_CONFIG);
+                fprintf(stderr, _("Unable to determine IPA server from %s\n"),
+                        IPA_CONFIG);
             exit(1);
         }
         free(conf_data);
@@ -639,7 +659,8 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
 
     if (NULL == strstr(host, ".")) {
         if (!quiet)
-            fprintf(stderr, "The hostname must be fully-qualified: %s\n", host);
+            fprintf(stderr, _("The hostname must be fully-qualified: %s\n"),
+                    host);
         rval = 16;
         goto cleanup;
     }
@@ -647,14 +668,15 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
     krberr = krb5_init_context(&krbctx);
     if (krberr) {
         if (!quiet)
-            fprintf(stderr, "Unable to join host: Kerberos context initialization failed\n");
+            fprintf(stderr, _("Unable to join host: "
+                              "Kerberos context initialization failed\n"));
         rval = 1;
         goto cleanup;
     }
     krberr = krb5_kt_resolve(krbctx, ktname, &keytab);
     if (krberr != 0) {
         if (!quiet)
-            fprintf(stderr, "Error resolving keytab: %s.\n",
+            fprintf(stderr, _("Error resolving keytab: %s.\n"),
                 error_message(krberr));
             rval = 7;
             goto cleanup;
@@ -664,8 +686,8 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
     krberr = krb5_parse_name(krbctx, principal, &princ);
     if (krberr != 0) {
         if (!quiet)
-            fprintf(stderr, "Error parsing \"%s\": %s.\n", principal,
-                    error_message(krberr));
+            fprintf(stderr, _("Error parsing \"%s\": %s.\n"),
+                            principal, error_message(krberr));
         return krberr;
     }
     strcpy(tgs, KRB5_TGS_NAME);
@@ -682,7 +704,7 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
                                       0, tgs, &gicopts);
     if (krberr != 0) {
         if (!quiet)
-            fprintf(stderr, "Error obtaining initial credentials: %s.\n",
+            fprintf(stderr, _("Error obtaining initial credentials: %s.\n"),
                     error_message(krberr));
         return krberr;
     }
@@ -692,14 +714,16 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
         krberr = krb5_cc_initialize(krbctx, ccache, creds.client);
     } else {
         if (!quiet)
-            fprintf(stderr, "Unable to generate Kerberos Credential Cache\n");
+            fprintf(stderr,
+                    _("Unable to generate Kerberos Credential Cache\n"));
         rval = 19;
         goto cleanup;
     }
     krberr = krb5_cc_store_cred(krbctx, ccache, &creds);
     if (krberr != 0) {
         if (!quiet)
-            fprintf(stderr, "Error storing creds in credential cache: %s.\n",
+            fprintf(stderr,
+                    _("Error storing creds in credential cache: %s.\n"),
                     error_message(krberr));
         return krberr;
     }
@@ -742,15 +766,15 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
         xmlrpc_read_bool(&env, princP, &result);
         if (result == 1) {
             if (!quiet)
-                fprintf(stderr, "Unenrollment successful.\n");
+                fprintf(stderr, _("Unenrollment successful.\n"));
         } else {
             if (!quiet)
-                fprintf(stderr, "Unenrollment failed.\n");
+                fprintf(stderr, _("Unenrollment failed.\n"));
         }
 
         xmlrpc_DECREF(princP);
     } else {
-        fprintf(stderr, "result not found in XML-RPC response\n");
+        fprintf(stderr, _("result not found in XML-RPC response\n"));
         rval = 20;
         goto cleanup;
     }
@@ -796,7 +820,8 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
     } else {
         char * conf_data = read_config_file(IPA_CONFIG);
         if ((ipaserver = getIPAserver(conf_data)) == NULL) {
-            fprintf(stderr, "Unable to determine IPA server from %s\n", IPA_CONFIG);
+            fprintf(stderr, _("Unable to determine IPA server from %s\n"),
+                    IPA_CONFIG);
             exit(1);
         }
         free(conf_data);
@@ -810,7 +835,7 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
     }
 
     if (NULL == strstr(host, ".")) {
-        fprintf(stderr, "The hostname must be fully-qualified: %s\n", host);
+        fprintf(stderr, _("The hostname must be fully-qualified: %s\n"), host);
         rval = 16;
         goto cleanup;
     }
@@ -820,20 +845,23 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
     else {
         krberr = krb5_init_context(&krbctx);
         if (krberr) {
-            fprintf(stderr, "Unable to join host: Kerberos context initialization failed\n");
+            fprintf(stderr, _("Unable to join host: "
+                              "Kerberos context initialization failed\n"));
             rval = 1;
             goto cleanup;
         }
         krberr = krb5_cc_default(krbctx, &ccache);
         if (krberr) {
-            fprintf(stderr, "Unable to join host: Kerberos Credential Cache not found\n");
+            fprintf(stderr, _("Unable to join host:"
+                              " Kerberos Credential Cache not found\n"));
             rval = 5;
             goto cleanup;
         }
         
         krberr = krb5_cc_get_principal(krbctx, ccache, &uprinc);
         if (krberr) {
-            fprintf(stderr, "Unable to join host: Kerberos User Principal not found and host password not provided.\n");
+            fprintf(stderr, _("Unable to join host: Kerberos User Principal "
+                              "not found and host password not provided.\n"));
             rval = 6;
             goto cleanup;
         }
@@ -846,7 +874,7 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
     childpid = fork();
 
     if (childpid < 0) {
-        fprintf(stderr, "fork() failed\n");
+        fprintf(stderr, _("fork() failed\n"));
         rval = 1;
         goto cleanup;
     }
@@ -874,15 +902,16 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
         err = execv(path, argv);
         if (err == -1) {
             switch(errno) {
-                case ENOENT:
-                    fprintf(stderr, "ipa-getkeytab not found\n");
-                    break;
-                case EACCES:
-                    fprintf(stderr, "ipa-getkeytab has bad permissions?\n");
-                    break;
-                default:
-                    fprintf(stderr, "executing ipa-getkeytab failed, errno %d\n", errno);
-                    break;
+            case ENOENT:
+                fprintf(stderr, _("ipa-getkeytab not found\n"));
+                break;
+            case EACCES:
+                fprintf(stderr, _("ipa-getkeytab has bad permissions?\n"));
+                break;
+            default:
+                fprintf(stderr, _("executing ipa-getkeytab failed, "
+                                  "errno %d\n"), errno);
+                break;
             }
         }
     } else {
@@ -892,13 +921,13 @@ join(const char *server, const char *hostname, const char *bindpw, const char *k
     if WIFEXITED(status) {
         rval = WEXITSTATUS(status);
         if (rval != 0) {
-            fprintf(stderr, "child exited with %d\n", rval);
+            fprintf(stderr, _("child exited with %d\n"), rval);
         }
     }
 
 cleanup:
     if (NULL != subject)
-        fprintf(stderr, "Certificate subject base is: %s\n", subject);
+        fprintf(stderr, _("Certificate subject base is: %s\n"), subject);
 
     free((char *)princ);
     free((char *)subject);
@@ -930,18 +959,30 @@ main(int argc, char **argv) {
     int quiet = 0;
     int unenroll = 0;
     struct poptOption options[] = {
-            { "debug", 'd', POPT_ARG_NONE, &debug, 0, "Print the raw XML-RPC output", "XML-RPC debugging Output"},
-            { "quiet", 'q', POPT_ARG_NONE, &quiet, 0, "Print as little as possible", "Output only on errors"},
-            { "unenroll", 'u', POPT_ARG_NONE, &unenroll, 0, "Unenroll this host", "Unenroll this host from IPA server" },
-            { "hostname", 'h', POPT_ARG_STRING, &hostname, 0, "Use this hostname instead of the node name", "Host Name" },
-            { "server", 's', POPT_ARG_STRING, &server, 0, "IPA Server to use", "IPA Server Name" },
-            { "keytab", 'k', POPT_ARG_STRING, &keytab, 0, "File were to store the keytab information", "Keytab File Name" },
-            { "bindpw", 'w', POPT_ARG_STRING, &bindpw, 0, "LDAP password", "password to use if not using kerberos" },
-            POPT_AUTOHELP
-            POPT_TABLEEND
+        { "debug", 'd', POPT_ARG_NONE, &debug, 0,
+          _("Print the raw XML-RPC output"), _("XML-RPC debugging Output") },
+        { "quiet", 'q', POPT_ARG_NONE, &quiet, 0,
+          _("Print as little as possible"), _("Output only on errors") },
+        { "unenroll", 'u', POPT_ARG_NONE, &unenroll, 0,
+          _("Unenroll this host"), _("Unenroll this host from IPA server") },
+        { "hostname", 'h', POPT_ARG_STRING, &hostname, 0,
+          _("Use this hostname instead of the node name"), _("Host Name") },
+        { "server", 's', POPT_ARG_STRING, &server, 0,
+          _("IPA Server to use"), _("IPA Server Name") },
+        { "keytab", 'k', POPT_ARG_STRING, &keytab, 0,
+          _("File were to store the keytab information"), _("Keytab File Name") },
+        { "bindpw", 'w', POPT_ARG_STRING, &bindpw, 0,
+          _("LDAP password"), _("password to use if not using kerberos") },
+        POPT_AUTOHELP
+        POPT_TABLEEND
     };
     poptContext pc;
     int ret;
+
+    ret = init_gettext();
+    if (ret) {
+        exit(2);
+    }
 
     pc = poptGetContext("ipa-join", argc, (const char **)argv, options, 0);
     ret = poptGetNextOpt(pc);

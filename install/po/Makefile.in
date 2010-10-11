@@ -32,129 +32,30 @@ po_files = $(patsubst %, %.po, $(languages))
 mo_files = $(patsubst %.po, %.mo, $(po_files))
 po_count=$(words $(po_files))
 
-PYTHON_POTFILES = \
-     ../../ipa \
-     ../../lite-server.py \
-     ../../ipapython/config.py \
-     ../../ipapython/sysrestore.py \
-     ../../ipapython/__init__.py \
-     ../../ipapython/ipautil.py \
-     ../../ipapython/certdb.py \
-     ../../ipapython/ipavalidate.py \
-     ../../ipapython/dnsclient.py \
-     ../../ipapython/dogtag.py \
-     ../../ipapython/nsslib.py \
-     ../../ipapython/entity.py \
-     ../../install/tools/ipa-replica-manage \
-     ../../install/tools/ipa-server-certinstall \
-     ../../install/tools/ipa-replica-install \
-     ../../install/tools/ipa-nis-manage \
-     ../../install/tools/ipa-upgradeconfig \
-     ../../install/tools/ipa-replica-prepare \
-     ../../install/tools/ipa-compat-manage \
-     ../../install/tools/ipa-server-install \
-     ../../install/tools/ipa-ldap-updater \
-     ../../install/migration/migration.py \
-     ../../ipalib/config.py \
-     ../../ipalib/parameters.py \
-     ../../ipalib/request.py \
-     ../../ipalib/output.py \
-     ../../ipalib/__init__.py \
-     ../../ipalib/backend.py \
-     ../../ipalib/pkcs10.py \
-     ../../ipalib/x509.py \
-     ../../ipalib/plugable.py \
-     ../../ipalib/constants.py \
-     ../../ipalib/aci.py \
-     ../../ipalib/base.py \
-     ../../ipalib/ipauuid.py \
-     ../../ipalib/crud.py \
-     ../../ipalib/cli.py \
-     ../../ipalib/text.py \
-     ../../ipalib/compat.py \
-     ../../ipalib/frontend.py \
-     ../../ipalib/rpc.py \
-     ../../ipalib/errors.py \
-     ../../ipalib/encoder.py \
-     ../../ipalib/util.py \
-     ../../ipalib/plugins/config.py \
-     ../../ipalib/plugins/rolegroup.py \
-     ../../ipalib/plugins/host.py \
-     ../../ipalib/plugins/group.py \
-     ../../ipalib/plugins/migration.py \
-     ../../ipalib/plugins/xmlclient.py \
-     ../../ipalib/plugins/service.py \
-     ../../ipalib/plugins/passwd.py \
-     ../../ipalib/plugins/__init__.py \
-     ../../ipalib/plugins/virtual.py \
-     ../../ipalib/plugins/hbac.py \
-     ../../ipalib/plugins/cert.py \
-     ../../ipalib/plugins/baseldap.py \
-     ../../ipalib/plugins/aci.py \
-     ../../ipalib/plugins/kerberos.py \
-     ../../ipalib/plugins/krbtpolicy.py \
-     ../../ipalib/plugins/dns.py \
-     ../../ipalib/plugins/automount.py \
-     ../../ipalib/plugins/netgroup.py \
-     ../../ipalib/plugins/misc.py \
-     ../../ipalib/plugins/user.py \
-     ../../ipalib/plugins/taskgroup.py \
-     ../../ipalib/plugins/hostgroup.py \
-     ../../ipalib/plugins/pwpolicy.py \
-     ../../ipalib/plugins/internal.py \
-     ../../ipaserver/__init__.py \
-     ../../ipaserver/servercore.py \
-     ../../ipaserver/ipautil.py \
-     ../../ipaserver/rpcserver.py \
-     ../../ipaserver/conn.py \
-     ../../ipaserver/ipaldap.py \
-     ../../ipaserver/install/installutils.py \
-     ../../ipaserver/install/service.py \
-     ../../ipaserver/install/ldapupdate.py \
-     ../../ipaserver/install/__init__.py \
-     ../../ipaserver/install/cainstance.py \
-     ../../ipaserver/install/ntpinstance.py \
-     ../../ipaserver/install/bindinstance.py \
-     ../../ipaserver/install/krbinstance.py \
-     ../../ipaserver/install/certs.py \
-     ../../ipaserver/install/dsinstance.py \
-     ../../ipaserver/install/replication.py \
-     ../../ipaserver/install/httpinstance.py \
-     ../../ipaserver/plugins/ldap2.py \
-     ../../ipaserver/plugins/rabase.py \
-     ../../ipaserver/plugins/selfsign.py \
-     ../../ipaserver/plugins/__init__.py \
-     ../../ipaserver/plugins/join.py \
-     ../../ipaserver/plugins/ldapapi.py \
-     ../../ipaserver/plugins/xmlserver.py \
-     ../../ipaserver/plugins/dogtag.py \
-     ../../contrib/RHEL4/ipachangeconf.py \
-     ../../ipa-client/ipaclient/ntpconf.py \
-     ../../ipa-client/ipaclient/__init__.py \
-     ../../ipa-client/ipaclient/ipachangeconf.py \
-     ../../ipa-client/ipaclient/ipadiscovery.py \
-     ../../ipa-client/ipa-install/ipa-client-install 
+PY_FILES = $(shell cd ../..; git ls-files | grep -v -e "^tests/" -e "^doc/" -e "^install/po/" -e "^ipapython/test/" -e "^ipa-radius-server/" -e "setup.py" -e "setup-client.py" | grep "\.py$$" | tr '\n' ' '; cd install/po)
+C_FILES = $(shell cd ../..; git ls-files | grep "\.c$$" | tr '\n' ' '; cd install/po)
+H_FILES = $(shell cd ../..; git ls-files | grep "\.h$$" | tr '\n' ' '; cd install/po)
 
-C_POTFILES = \
-     ../../daemons/ipa-kpasswd/ipa_kpasswd.c \
-     ../../daemons/ipa-slapi-plugins/ipa-enrollment/ipa_enrollment.c \
-     ../../daemons/ipa-slapi-plugins/ipa-memberof/ipa-memberof.c \
-     ../../daemons/ipa-slapi-plugins/ipa-memberof/ipa-memberof.h \
-     ../../daemons/ipa-slapi-plugins/ipa-memberof/ipa-memberof_config.c \
-     ../../daemons/ipa-slapi-plugins/ipa-pwd-extop/ipa_pwd_extop.c \
-     ../../daemons/ipa-slapi-plugins/ipa-winsync/ipa-winsync-config.c \
-     ../../daemons/ipa-slapi-plugins/ipa-winsync/ipa-winsync.c \
-     ../../daemons/ipa-slapi-plugins/ipa-winsync/ipa-winsync.h \
-     ../../ipa-client/config.c \
-     ../../ipa-client/ipa-getkeytab.c \
-     ../../ipa-client/ipa-join.c \
-     ../../ipa-client/ipa-rmkeytab.c
+PY_EXPLICIT_FILES = \
+     ipa \
+     install/tools/ipa-replica-manage \
+     install/tools/ipa-server-certinstall \
+     install/tools/ipa-replica-install \
+     install/tools/ipa-nis-manage \
+     install/tools/ipa-upgradeconfig \
+     install/tools/ipa-replica-prepare \
+     install/tools/ipa-compat-manage \
+     install/tools/ipa-server-install \
+     install/tools/ipa-ldap-updater \
+     ipa-client/ipa-install/ipa-client-install
 
-POTFILES = $(PYTHON_POTFILES) $(C_POTFILES)
+PYTHON_POTFILES = $(PY_FILES) $(PY_EXPLICIT_FILES)
+
+C_POTFILES = $(C_FILES) $(H_FILES)
 
 .SUFFIXES:
 .SUFFIXES: .po .mo
-.PHONY: all create-po update-po update-pot install mostlyclean clean distclean test_lang test mo-files
+.PHONY: all create-po update-po update-pot install mostlyclean clean distclean test_lang test mo-files debug
 
 all:
 
@@ -170,6 +71,7 @@ $(po_files): $(DOMAIN).pot
 	    echo Creating nonexistent $@, you should add this file to your SCM repository; \
 	    $(MSGINIT) --locale $$lang --no-translator -i $(DOMAIN).pot -o $@; \
 	fi; \
+	echo Merging $(DOMAIN).pot into $@; \
 	$(MSGMERGE) $@ -o $@ $(DOMAIN).pot
 
 create-po: $(DOMAIN).pot
@@ -182,20 +84,24 @@ create-po: $(DOMAIN).pot
 	done
 
 update-po: update-pot
-	$(MAKE) all
+	$(MAKE) $(po_files)
 
 update-pot:
 	@rm -f $(DOMAIN).pot.update
-	@$(XGETTEXT) $(XGETTEXT_OPTIONS) \
-	--output $(DOMAIN).pot.update \
+	@pushd ../.. ; \
+	$(XGETTEXT) $(XGETTEXT_OPTIONS) \
+	--output install/po/$(DOMAIN).pot.update \
 	--language="python" \
 	$(PYTHON_POTFILES) \
 	&& \
 	$(XGETTEXT) $(XGETTEXT_OPTIONS) \
-	--output $(DOMAIN).pot.update \
+	--output install/po/$(DOMAIN).pot.update \
 	--join-existing \
 	--language="c" \
+	--from-code="UTF-8" \
+	--keyword='_' \
 	$(C_POTFILES) ; \
+	popd ; \
 	$(SED) '/^"POT-Creation-Date: .*"$$/d' $(DOMAIN).pot.update > $(DOMAIN).pot.update.tmp ; \
 	$(SED) -i -r -e 's%("Content-Type: text/plain; charset=)(.*)(\\n")%\1UTF-8\3%' $(DOMAIN).pot.update.tmp ; \
 	$(SED) '/^"POT-Creation-Date: .*"$$/d' $(DOMAIN).pot >  $(DOMAIN).pot.tmp ; \
@@ -282,5 +188,11 @@ test_lang:
 test: test_lang
 	./test_i18n.py
 
-maintainer-clean:
-	
+debug:
+	@echo Python potfiles:
+	@echo PY_FILES = $(PY_FILES)
+	@echo PY_EXPLICIT_FILES = $(PY_EXPLICIT_FILES)
+	@echo C potfiles:
+	@echo C_FILES = $(C_FILES)
+	@echo H_FILES = $(H_FILES)
+
