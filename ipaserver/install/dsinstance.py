@@ -133,7 +133,7 @@ def has_managed_entries(host_name, dm_password):
         logging.critical("Could not connect to the Directory Server on %s" % host_name)
         raise e
     finally:
-        if conn:
+        if conn.isconnected():
             conn.disconnect()
 
 

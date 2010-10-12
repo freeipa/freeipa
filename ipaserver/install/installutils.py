@@ -59,6 +59,7 @@ def verify_fqdn(host_name,no_host_dns=False):
         if a[4][0] == '127.0.0.1' or a[4][0] == '::1':
             raise RuntimeError("The IPA Server hostname cannot resolve to localhost (%s). A routable IP address must be used. Check /etc/hosts to see if %s is an alias for %s" % (a[4][0], host_name, a[4][0]))
         try:
+            revaddr = a[4][0]
             revname = socket.gethostbyaddr(a[4][0])[0]
         except:
             raise RuntimeError("Unable to resolve the reverse ip address, check /etc/hosts or DNS name resolution")
@@ -97,6 +98,8 @@ def verify_fqdn(host_name,no_host_dns=False):
 
     addr = socket.inet_ntoa(struct.pack('<L',rec.rdata.address))
     ipaddr = socket.inet_ntoa(struct.pack('!L',rec.rdata.address))
+    if revaddr != ipaddr:
+        raise RuntimeError("The network address %s does not match the reverse lookup %s. Check /etc/hosts and ensure that %s is the IP address for %s" % (ipaddr, revaddr, ipaddr, host_name))
 
     addr = addr + ".in-addr.arpa."
     rs = dnsclient.query(addr, dnsclient.DNS_C_IN, dnsclient.DNS_T_PTR)
