@@ -4,8 +4,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: pl\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/newticket\n"
-"POT-Creation-Date: 2010-09-27 10:25-0400\n"
+"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
+"newticket\n"
+"POT-Creation-Date: 2010-10-12 11:51-0400\n"
 "PO-Revision-Date: 2010-03-07 20:58+0100\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <trans-pl@lists.fedoraproject.org>\n"
@@ -16,223 +17,107 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: ../../ipalib/parameters.py:295
-msgid "incorrect type"
-msgstr "niepoprawny typ"
-
-#: ../../ipalib/parameters.py:298
-msgid "Only one value is allowed"
-msgstr "Dozwolona jest tylko jedna wartość"
-
-#: ../../ipalib/parameters.py:877
-msgid "must be True or False"
-msgstr "musi być prawdą lub fałszem"
-
-#: ../../ipalib/parameters.py:978
-msgid "must be an integer"
-msgstr "musi być liczba całkowitą"
-
-#: ../../ipalib/parameters.py:1029
-#, python-format
-msgid "must be at least %(minvalue)d"
-msgstr "musi wynosić co najmniej %(minvalue)d"
-
-#: ../../ipalib/parameters.py:1039
-#, python-format
-msgid "can be at most %(maxvalue)d"
-msgstr "może wynosić co najwyżej %(maxvalue)d"
-
-#: ../../ipalib/parameters.py:1049
-msgid "must be a decimal number"
-msgstr "musi być liczbą dziesiętną"
-
-#: ../../ipalib/parameters.py:1071
-#, python-format
-msgid "must be at least %(minvalue)f"
-msgstr "musi wynosić co najmniej %(minvalue)f"
-
-#: ../../ipalib/parameters.py:1081
-#, python-format
-msgid "can be at most %(maxvalue)f"
-msgstr "może wynosić co najwyżej %(maxvalue)f"
-
-#: ../../ipalib/parameters.py:1145
-#, python-format
-msgid "must match pattern \"%(pattern)s\""
-msgstr "musi pasować do wzorca \"%(pattern)s\""
-
-#: ../../ipalib/parameters.py:1163
-msgid "must be binary data"
-msgstr "musi być danymi binarnymi"
-
-#: ../../ipalib/parameters.py:1179
-#, python-format
-msgid "must be at least %(minlength)d bytes"
-msgstr "musi wynosić co najmniej %(minlength)d bajtów"
-
-#: ../../ipalib/parameters.py:1189
-#, python-format
-msgid "can be at most %(maxlength)d bytes"
-msgstr "może wynosić co najwyżej %(maxlength)d bajtów"
-
-#: ../../ipalib/parameters.py:1199
-#, python-format
-msgid "must be exactly %(length)d bytes"
-msgstr "musi wynosić dokładnie %(length)d bajtów"
-
-#: ../../ipalib/parameters.py:1217
-msgid "must be Unicode text"
-msgstr "musi być tekstem w unikodzie"
-
-#: ../../ipalib/parameters.py:1248
-#, python-format
-msgid "must be at least %(minlength)d characters"
-msgstr "musi wynosić co najmniej %(minlength)d znaków"
-
-#: ../../ipalib/parameters.py:1258
-#, python-format
-msgid "can be at most %(maxlength)d characters"
-msgstr "może wynosić co najwyżej %(maxlength)d znaków"
-
-#: ../../ipalib/parameters.py:1268
-#, python-format
-msgid "must be exactly %(length)d characters"
-msgstr "musi wynosić dokładnie %(length)d znaków"
-
-#: ../../ipalib/parameters.py:1307
-#, python-format
-msgid "must be one of %(values)r"
-msgstr "musi być jednym z %(values)r"
-
-#: ../../ipalib/output.py:92
-msgid "A dictionary representing an LDAP entry"
-msgstr "Słownik reprezentujący wpis LDAP"
-
-#: ../../ipalib/output.py:100
-msgid "A list of LDAP entries"
-msgstr "Lista wpisów LDAP"
-
-#: ../../ipalib/output.py:111
-msgid "All commands should at least have a result"
-msgstr "Wszystkie polecenia powinny powiadać przynajmniej wynik"
-
-#: ../../ipalib/cli.py:507
+#: ipalib/cli.py:507
 #, python-format
 msgid "Enter %(label)s again to verify: "
 msgstr "Proszę podać %(label)s ponownie, aby sprawdzić: "
 
-#: ../../ipalib/cli.py:511
+#: ipalib/cli.py:511 ipa-client/ipa-getkeytab.c:730
+#, c-format
 msgid "Passwords do not match!"
 msgstr "Hasła się nie zgadzają."
 
-#: ../../ipalib/cli.py:516
+#: ipalib/cli.py:516
 msgid "Cancelled."
 msgstr "Anulowano."
 
-#: ../../ipalib/frontend.py:380
-msgid "Results are truncated, try a more specific search"
-msgstr ""
-"Wyniki zostały obcięte, proszę spróbować bardziej konkretnego wyszukiwania"
-
-#: ../../ipalib/frontend.py:797 ../../ipalib/plugins/misc.py:47
-msgid "retrieve all attributes"
-msgstr "odbiór wszystkich atrybutów"
-
-#: ../../ipalib/frontend.py:803
-msgid "print entries as stored on the server"
-msgstr "wyświetlenie wpisów przechowywanych w serwerze"
-
-#: ../../ipalib/frontend.py:914
-msgid "Forward to server instead of running locally"
-msgstr "Przekazanie do serwera zamiast uruchamiania lokalnie"
-
-#: ../../ipalib/errors.py:297
+#: ipalib/errors.py:297
 #, python-format
 msgid "%(cver)s client incompatible with %(sver)s server at %(server)r"
 msgstr ""
 "klient w wersji %(cver)s nie jest zgodny z serwerem w wersji %(sver)s na "
 "%(server)r"
 
-#: ../../ipalib/errors.py:315
+#: ipalib/errors.py:315
 #, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
 msgstr "nieznany błąd %(code)d z %(server)s: %(error)s"
 
-#: ../../ipalib/errors.py:331
+#: ipalib/errors.py:331
 msgid "an internal error has occurred"
 msgstr "wystąpił wewnętrzny błąd"
 
-#: ../../ipalib/errors.py:353
+#: ipalib/errors.py:353
 #, python-format
 msgid "an internal error has occurred on server at %(server)r"
 msgstr "wystąpił wewnętrzny błąd w serwerze na %(server)r"
 
-#: ../../ipalib/errors.py:369
+#: ipalib/errors.py:369
 #, python-format
 msgid "unknown command %(name)r"
 msgstr "nieznane polecenie %(name)r"
 
-#: ../../ipalib/errors.py:386 ../../ipalib/errors.py:411
+#: ipalib/errors.py:386 ipalib/errors.py:411
 #, python-format
 msgid "error on server %(server)r: %(error)s"
 msgstr "błąd w serwerze %(server)r: %(error)s"
 
-#: ../../ipalib/errors.py:402
+#: ipalib/errors.py:402
 #, python-format
 msgid "cannot connect to %(uri)r: %(error)s"
 msgstr "nie można połączyć się z %(uri)r: %(error)s"
 
-#: ../../ipalib/errors.py:420
+#: ipalib/errors.py:420
 #, python-format
 msgid "Invalid JSON-RPC request: %(error)s"
 msgstr "Nieprawidłowe żądanie JSON-RPC: %(error)s"
 
-#: ../../ipalib/errors.py:448
+#: ipalib/errors.py:448
 #, python-format
 msgid "Kerberos error: %(major)s/%(minor)s"
 msgstr "Błąd Kerberosa: %(major)s/%(minor)s"
 
-#: ../../ipalib/errors.py:465
+#: ipalib/errors.py:465
 msgid "did not receive Kerberos credentials"
 msgstr "nie otrzymano danych uwierzytelniających Kerberosa"
 
-#: ../../ipalib/errors.py:481
+#: ipalib/errors.py:481
 #, python-format
 msgid "Service %(service)r not found in Kerberos database"
 msgstr "Nie odnaleziono usługi %(service)r w bazie danych Kerberosa"
 
-#: ../../ipalib/errors.py:497
+#: ipalib/errors.py:497
 msgid "No credentials cache found"
 msgstr "Nie odnaleziono pamięci podręcznej danych uwierzytelniających"
 
-#: ../../ipalib/errors.py:513
+#: ipalib/errors.py:513
 msgid "Ticket expired"
 msgstr "Zgłoszenie wygasło"
 
-#: ../../ipalib/errors.py:529
+#: ipalib/errors.py:529
 msgid "Credentials cache permissions incorrect"
 msgstr ""
 "Uprawnienia pamięci podręcznej danych uwierzytelniających są niepoprawne"
 
-#: ../../ipalib/errors.py:545
+#: ipalib/errors.py:545
 msgid "Bad format in credentials cache"
 msgstr "Błędny format w pamięci podręcznej danych uwierzytelniających"
 
-#: ../../ipalib/errors.py:561
+#: ipalib/errors.py:561
 msgid "Cannot resolve KDC for requested realm"
 msgstr "Nie można rozwiązać KDC dla żądanego obszaru"
 
-#: ../../ipalib/errors.py:580
+#: ipalib/errors.py:580
 #, python-format
 msgid "Insufficient access: %(info)s"
 msgstr "Niewystarczający dostęp: %(info)s"
 
-#: ../../ipalib/errors.py:624
+#: ipalib/errors.py:624
 #, python-format
 msgid "command %(name)r takes no arguments"
 msgstr "polecenie %(name)r nie przyjmuje parametrów"
 
-#: ../../ipalib/errors.py:644
+#: ipalib/errors.py:644
 #, python-format
 msgid "command %(name)r takes at most %(count)d argument"
 msgid_plural "command %(name)r takes at most %(count)d arguments"
@@ -240,48 +125,48 @@ msgstr[0] "polecenie %(name)r przyjmuje co najwyżej %(count)d parametr"
 msgstr[1] "polecenie %(name)r przyjmuje co najwyżej %(count)d parametry"
 msgstr[2] "polecenie %(name)r przyjmuje co najwyżej %(count)d parametrów"
 
-#: ../../ipalib/errors.py:674
+#: ipalib/errors.py:674
 #, python-format
 msgid "overlapping arguments and options: %(names)r"
 msgstr "pokrywanie parametrów i opcji: %(names)r"
 
-#: ../../ipalib/errors.py:690
+#: ipalib/errors.py:690
 #, python-format
 msgid "%(name)r is required"
 msgstr "%(name)r jest wymagane"
 
-#: ../../ipalib/errors.py:706 ../../ipalib/errors.py:722
+#: ipalib/errors.py:706 ipalib/errors.py:722
 #, python-format
 msgid "invalid %(name)r: %(error)s"
 msgstr "nieprawidłowe %(name)r: %(error)s"
 
-#: ../../ipalib/errors.py:738
+#: ipalib/errors.py:738
 #, python-format
 msgid "api has no such namespace: %(name)r"
 msgstr "API nie posiada takiej przestrzeni nazw: %(name)r"
 
-#: ../../ipalib/errors.py:747
+#: ipalib/errors.py:747
 msgid "Passwords do not match"
 msgstr "Hasła się nie zgadzają"
 
-#: ../../ipalib/errors.py:755
+#: ipalib/errors.py:755
 msgid "Command not implemented"
 msgstr "Polecenie nie jest zaimplementowane"
 
-#: ../../ipalib/errors.py:783 ../../ipalib/errors.py:1023
+#: ipalib/errors.py:783 ipalib/errors.py:1023
 #, python-format
 msgid "%(reason)s"
 msgstr "%(reason)s"
 
-#: ../../ipalib/errors.py:799
+#: ipalib/errors.py:799
 msgid "This entry already exists"
 msgstr "Ten wpis już istnieje"
 
-#: ../../ipalib/errors.py:815
+#: ipalib/errors.py:815
 msgid "You must enroll a host in order to create a host service"
 msgstr "Należy zapisać się do komputera, aby utworzyć jego usługę"
 
-#: ../../ipalib/errors.py:831
+#: ipalib/errors.py:831
 #, python-format
 msgid ""
 "Service principal is not of the form: service/fully-qualified host name: "
@@ -290,425 +175,870 @@ msgstr ""
 "Naczelnik usługi nie jest w formacie: usługa/w pełni kwalifikowana nazwa "
 "komputera: %(reason)s"
 
-#: ../../ipalib/errors.py:847
+#: ipalib/errors.py:847
 msgid ""
 "The realm for the principal does not match the realm for this IPA server"
 msgstr "Obszar naczelnika nie zgadza się z obszarem dla tego serwera IPA"
 
-#: ../../ipalib/errors.py:863
+#: ipalib/errors.py:863
 msgid "This command requires root access"
 msgstr "Te polecenie wymaga dostępu roota"
 
-#: ../../ipalib/errors.py:879
+#: ipalib/errors.py:879
 msgid "This is already a posix group"
 msgstr "To jest już grupa POSIX"
 
-#: ../../ipalib/errors.py:895
+#: ipalib/errors.py:895
 #, python-format
 msgid "Principal is not of the form user@REALM: %(principal)r"
 msgstr "Naczelnik nie jest w formacie użytkownik@OBSZAR: %(principal)r"
 
-#: ../../ipalib/errors.py:911
+#: ipalib/errors.py:911
 msgid "This entry is already unlocked"
 msgstr "Ten wpis jest już odblokowany"
 
-#: ../../ipalib/errors.py:927
+#: ipalib/errors.py:927
 msgid "This entry is already locked"
 msgstr "Ten wpis jest już zablokowany"
 
-#: ../../ipalib/errors.py:943
+#: ipalib/errors.py:943
 msgid "This entry has nsAccountLock set, it cannot be locked or unlocked"
 msgstr ""
 "Ten wpis posiada ustawione nsAccountLock, nie może być zablokowany lub "
 "niezablokowany"
 
-#: ../../ipalib/errors.py:959
+#: ipalib/errors.py:959
 msgid "This entry is not a member of the group"
 msgstr "Ten wpis nie jest elementem grupy"
 
-#: ../../ipalib/errors.py:975
+#: ipalib/errors.py:975
 msgid "A group may not be a member of itself"
 msgstr "Grupa nie może być własnym elementem"
 
-#: ../../ipalib/errors.py:991
+#: ipalib/errors.py:991
 msgid "This entry is already a member of the group"
 msgstr "Ten wpis jest już elementem grupy"
 
-#: ../../ipalib/errors.py:1007
+#: ipalib/errors.py:1007
 #, python-format
 msgid "Base64 decoding failed: %(reason)s"
 msgstr "Dekodowanie base64 nie powiodło się: %(reason)s"
 
-#: ../../ipalib/errors.py:1039
+#: ipalib/errors.py:1039
 msgid "A group may not be added as a member of itself"
 msgstr "Nie można dodać grupy jako elementu jej samej"
 
-#: ../../ipalib/errors.py:1055
+#: ipalib/errors.py:1055
 msgid "The default users group cannot be removed"
 msgstr "Nie można usunąć domyślnej grupy użytkowników"
 
-#: ../../ipalib/errors.py:1071
+#: ipalib/errors.py:1071
 msgid "Host does not have corresponding DNS A record"
 msgstr ""
 
-#: ../../ipalib/errors.py:1086
+#: ipalib/errors.py:1086
 msgid "Deleting a managed group is not allowed. It must be detached first."
 msgstr ""
 
-#: ../../ipalib/errors.py:1109
+#: ipalib/errors.py:1109
 #, python-format
 msgid "no command nor help topic %(topic)r"
 msgstr "nie ma takiego polecenia lub tematu pomocy %(topic)r"
 
-#: ../../ipalib/errors.py:1133
+#: ipalib/errors.py:1133
 msgid "change collided with another change"
 msgstr "zmiana koliduje z inną zmianą"
 
-#: ../../ipalib/errors.py:1149
+#: ipalib/errors.py:1149
 msgid "no modifications to be performed"
 msgstr "żadne modyfikacje nie zostaną wykonane"
 
-#: ../../ipalib/errors.py:1165
+#: ipalib/errors.py:1165
 #, python-format
 msgid "%(desc)s:%(info)s"
 msgstr "%(desc)s:%(info)s"
 
-#: ../../ipalib/errors.py:1181
+#: ipalib/errors.py:1181
 msgid "limits exceeded for this query"
 msgstr "przekroczono ograniczenia dla tego zapytania"
 
-#: ../../ipalib/errors.py:1196
+#: ipalib/errors.py:1196
 #, python-format
 msgid "%(info)s"
 msgstr "%(info)s"
 
-#: ../../ipalib/errors.py:1221
+#: ipalib/errors.py:1221
 #, python-format
 msgid "Certificate operation cannot be completed: %(error)s"
 msgstr "Nie można ukończyć działania na certyfikacie: %(error)s"
 
-#: ../../ipalib/plugins/config.py:73
+#: ipalib/frontend.py:380
+msgid "Results are truncated, try a more specific search"
+msgstr ""
+"Wyniki zostały obcięte, proszę spróbować bardziej konkretnego wyszukiwania"
+
+#: ipalib/frontend.py:797 ipalib/plugins/misc.py:47
+msgid "retrieve all attributes"
+msgstr "odbiór wszystkich atrybutów"
+
+#: ipalib/frontend.py:803
+msgid "print entries as stored on the server"
+msgstr "wyświetlenie wpisów przechowywanych w serwerze"
+
+#: ipalib/frontend.py:914
+msgid "Forward to server instead of running locally"
+msgstr "Przekazanie do serwera zamiast uruchamiania lokalnie"
+
+#: ipalib/output.py:92
+msgid "A dictionary representing an LDAP entry"
+msgstr "Słownik reprezentujący wpis LDAP"
+
+#: ipalib/output.py:100
+msgid "A list of LDAP entries"
+msgstr "Lista wpisów LDAP"
+
+#: ipalib/output.py:111
+msgid "All commands should at least have a result"
+msgstr "Wszystkie polecenia powinny powiadać przynajmniej wynik"
+
+#: ipalib/parameters.py:295
+msgid "incorrect type"
+msgstr "niepoprawny typ"
+
+#: ipalib/parameters.py:298
+msgid "Only one value is allowed"
+msgstr "Dozwolona jest tylko jedna wartość"
+
+#: ipalib/parameters.py:877
+msgid "must be True or False"
+msgstr "musi być prawdą lub fałszem"
+
+#: ipalib/parameters.py:978
+msgid "must be an integer"
+msgstr "musi być liczba całkowitą"
+
+#: ipalib/parameters.py:1029
+#, python-format
+msgid "must be at least %(minvalue)d"
+msgstr "musi wynosić co najmniej %(minvalue)d"
+
+#: ipalib/parameters.py:1039
+#, python-format
+msgid "can be at most %(maxvalue)d"
+msgstr "może wynosić co najwyżej %(maxvalue)d"
+
+#: ipalib/parameters.py:1049
+msgid "must be a decimal number"
+msgstr "musi być liczbą dziesiętną"
+
+#: ipalib/parameters.py:1071
+#, python-format
+msgid "must be at least %(minvalue)f"
+msgstr "musi wynosić co najmniej %(minvalue)f"
+
+#: ipalib/parameters.py:1081
+#, python-format
+msgid "can be at most %(maxvalue)f"
+msgstr "może wynosić co najwyżej %(maxvalue)f"
+
+#: ipalib/parameters.py:1145
+#, python-format
+msgid "must match pattern \"%(pattern)s\""
+msgstr "musi pasować do wzorca \"%(pattern)s\""
+
+#: ipalib/parameters.py:1163
+msgid "must be binary data"
+msgstr "musi być danymi binarnymi"
+
+#: ipalib/parameters.py:1179
+#, python-format
+msgid "must be at least %(minlength)d bytes"
+msgstr "musi wynosić co najmniej %(minlength)d bajtów"
+
+#: ipalib/parameters.py:1189
+#, python-format
+msgid "can be at most %(maxlength)d bytes"
+msgstr "może wynosić co najwyżej %(maxlength)d bajtów"
+
+#: ipalib/parameters.py:1199
+#, python-format
+msgid "must be exactly %(length)d bytes"
+msgstr "musi wynosić dokładnie %(length)d bajtów"
+
+#: ipalib/parameters.py:1217
+msgid "must be Unicode text"
+msgstr "musi być tekstem w unikodzie"
+
+#: ipalib/parameters.py:1248
+#, python-format
+msgid "must be at least %(minlength)d characters"
+msgstr "musi wynosić co najmniej %(minlength)d znaków"
+
+#: ipalib/parameters.py:1258
+#, python-format
+msgid "can be at most %(maxlength)d characters"
+msgstr "może wynosić co najwyżej %(maxlength)d znaków"
+
+#: ipalib/parameters.py:1268
+#, python-format
+msgid "must be exactly %(length)d characters"
+msgstr "musi wynosić dokładnie %(length)d znaków"
+
+#: ipalib/parameters.py:1307
+#, python-format
+msgid "must be one of %(values)r"
+msgstr "musi być jednym z %(values)r"
+
+#: ipalib/plugins/aci.py:111
+msgid "A list of ACI values"
+msgstr "Lista wartości ACI"
+
+#: ipalib/plugins/aci.py:142
+msgid "type, filter, subtree and targetgroup are mutually exclusive"
+msgstr ""
+"wartości \"type\", \"filter\", \"subtree\" i \"targetgroup\" są wzajemnie "
+"wyłączne"
+
+#: ipalib/plugins/aci.py:145
+msgid ""
+"at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
+"required"
+msgstr ""
+"co najmniej jedna z wartości: \"type\", \"filter\", \"subtree\", "
+"\"targetgroup\", \"attrs\" lub \"memberof\" jest wymagana"
+
+#: ipalib/plugins/aci.py:151
+#, fuzzy
+msgid "group, taskgroup and self are mutually exclusive"
+msgstr "wartości \"group\" i \"taskgroup\" są wzajemnie wyłączne"
+
+#: ipalib/plugins/aci.py:153
+#, fuzzy
+msgid "One of group, taskgroup or self is required"
+msgstr "Wymagana jest wartość \"group\" lub \"taskgroup\""
+
+#: ipalib/plugins/aci.py:172
+#, python-format
+msgid "Group '%s' does not exist"
+msgstr "Grupa \"%s\" nie istnieje"
+
+#: ipalib/plugins/aci.py:269
+#, python-format
+msgid "ACI with name \"%s\" not found"
+msgstr "Nie odnaleziono ACI o nazwie \"%s\""
+
+#: ipalib/plugins/aci.py:286
+msgid "ACIs"
+msgstr "ACI"
+
+#: ipalib/plugins/aci.py:291
+msgid "ACI name"
+msgstr "Nazwa ACI"
+
+#: ipalib/plugins/aci.py:296
+msgid "Taskgroup"
+msgstr "Grupa zadaniowa"
+
+#: ipalib/plugins/aci.py:297
+msgid "Taskgroup ACI grants access to"
+msgstr "Grupa zadaniowa, do której ACI zapewnia dostęp"
+
+#: ipalib/plugins/aci.py:301
+msgid "User group"
+msgstr "Grupa użytkowników"
+
+#: ipalib/plugins/aci.py:302
+msgid "User group ACI grants access to"
+msgstr "Grupa użytkowników, do której ACI zapewnia dostęp"
+
+#: ipalib/plugins/aci.py:306
+msgid "Permissions"
+msgstr "Uprawnienia"
+
+#: ipalib/plugins/aci.py:307
+#, fuzzy
+msgid ""
+"comma-separated list of permissions to grant(read, write, add, delete, all)"
+msgstr ""
+"lista uprawnień oddzielonych przecinkami do udzielenia (odczyt, zapis, "
+"dodanie, usunięcie, zapisanie do siebie, wszystkie)"
+
+#: ipalib/plugins/aci.py:313
+msgid "Attributes"
+msgstr "Atrybuty"
+
+#: ipalib/plugins/aci.py:314
+msgid "Comma-separated list of attributes"
+msgstr "Lista atrybutów oddzielonych przecinkami"
+
+#: ipalib/plugins/aci.py:318
+msgid "Type"
+msgstr "Typ"
+
+#: ipalib/plugins/aci.py:319
+msgid "type of IPA object (user, group, host)"
+msgstr "typ obiektu IPA (użytkownik, grupa, komputer)"
+
+#: ipalib/plugins/aci.py:324
+msgid "Member of"
+msgstr "Element"
+
+#: ipalib/plugins/aci.py:325
+msgid "Member of a group"
+msgstr "Element grupy"
+
+#: ipalib/plugins/aci.py:329
+msgid "Filter"
+msgstr "Filtr"
+
+#: ipalib/plugins/aci.py:330
+msgid "Legal LDAP filter (e.g. ou=Engineering)"
+msgstr "Dozwolony filtr LDAP (np. ou=Inżynieria)"
+
+#: ipalib/plugins/aci.py:334
+msgid "Subtree"
+msgstr "Poddrzewo"
+
+#: ipalib/plugins/aci.py:335
+msgid "Subtree to apply ACI to"
+msgstr "Poddrzewo, do którego zastosować ACI"
+
+#: ipalib/plugins/aci.py:339
+msgid "Target group"
+msgstr "Grupa docelowa"
+
+#: ipalib/plugins/aci.py:340
+msgid "Group to apply ACI to"
+msgstr "Grupa, do której zastosować ACI"
+
+#: ipalib/plugins/aci.py:344
+msgid "Target your own entry (self)"
+msgstr ""
+
+#: ipalib/plugins/aci.py:345
+msgid "Apply ACI to your own entry (self)"
+msgstr ""
+
+#: ipalib/plugins/aci.py:357
+#, python-format
+msgid "Created ACI \"%(value)s\""
+msgstr "Utworzono ACI \"%(value)s\""
+
+#: ipalib/plugins/aci.py:407
+#, python-format
+msgid "Deleted ACI \"%(value)s\""
+msgstr "Usunięto ACI \"%(value)s\""
+
+#: ipalib/plugins/aci.py:447
+#, python-format
+msgid "Modified ACI \"%(value)s\""
+msgstr "Zmodyfikowano ACI \"%(value)s\""
+
+#: ipalib/plugins/aci.py:519
+#, python-format
+msgid "%(count)d ACI matched"
+msgid_plural "%(count)d ACIs matched"
+msgstr[0] "Pasuje %(count)d ACI"
+msgstr[1] "Pasują %(count)d ACI"
+msgstr[2] "Pasuje %(count)d ACI"
+
+#: ipalib/plugins/automount.py:107 ipalib/plugins/host.py:134
+msgid "Location"
+msgstr "Położenie"
+
+#: ipalib/plugins/automount.py:108
+msgid "Automount location name"
+msgstr "Automatyczne montowanie nazwy położenia"
+
+#: ipalib/plugins/automount.py:224
+msgid "Map"
+msgstr "Mapa"
+
+#: ipalib/plugins/automount.py:225
+msgid "Automount map name"
+msgstr "Automatyczne montowanie nazwy mapy"
+
+#: ipalib/plugins/automount.py:230 ipalib/plugins/group.py:108
+#: ipalib/plugins/hbac.py:151 ipalib/plugins/hbacsvc.py:72
+#: ipalib/plugins/hbacsvcgroup.py:77 ipalib/plugins/host.py:124
+#: ipalib/plugins/hostgroup.py:81 ipalib/plugins/netgroup.py:96
+#: ipalib/plugins/rolegroup.py:90 ipalib/plugins/sudocmd.py:71
+#: ipalib/plugins/sudocmdgroup.py:77 ipalib/plugins/sudorule.py:58
+#: ipalib/plugins/taskgroup.py:62
+msgid "Description"
+msgstr "Opis"
+
+#: ipalib/plugins/automount.py:234
+msgid "Automount Maps"
+msgstr "Automatyczne montowanie map"
+
+#: ipalib/plugins/automount.py:306
+msgid "Key"
+msgstr "Klucz"
+
+#: ipalib/plugins/automount.py:307
+msgid "Automount key name"
+msgstr "Automatyczne montowanie nazw kluczy"
+
+#: ipalib/plugins/automount.py:312
+msgid "Mount information"
+msgstr "Informacje o montowaniu"
+
+#: ipalib/plugins/automount.py:316
+msgid "description"
+msgstr "opis"
+
+#: ipalib/plugins/automount.py:320
+msgid "Automount Keys"
+msgstr "Automatyczne montowanie kluczy"
+
+#: ipalib/plugins/automount.py:340
+msgid "Mount point"
+msgstr "Punkt montowania"
+
+#: ipalib/plugins/automount.py:344
+msgid "Parent map"
+msgstr "Mapa nadrzędna"
+
+#: ipalib/plugins/automount.py:345
+msgid "Name of parent automount map (default: auto.master)"
+msgstr ""
+"Nazwa nadrzędnej mapy automatycznego montowania (domyślnie: auto.master)"
+
+#: ipalib/plugins/baseldap.py:79
+#, python-format
+msgid "container entry (%(container)s) not found"
+msgstr "nie odnaleziono wpisu kontenera (%(container)s)"
+
+#: ipalib/plugins/baseldap.py:80
+#, python-format
+msgid "%(parent)s: %(oname)s not found"
+msgstr "%(parent)s: nie odnaleziono %(oname)s"
+
+#: ipalib/plugins/baseldap.py:81
+#, python-format
+msgid "%(pkey)s: %(oname)s not found"
+msgstr "%(pkey)s: nie odnaleziono %(oname)s"
+
+#: ipalib/plugins/baseldap.py:150
+msgid "Add an attribute/value pair. Format is attr=value"
+msgstr "Dodaj parę atrybut/wartość. Format to atrybut=wartość"
+
+#: ipalib/plugins/baseldap.py:155
+msgid "Set an attribute to an name/value pair. Format is attr=value"
+msgstr "Ustaw atrybut dla pary nazwa/wartość. Format to atrybut=wartość"
+
+#: ipalib/plugins/baseldap.py:359
+msgid "Continuous mode: Don't stop on errors."
+msgstr ""
+
+#: ipalib/plugins/baseldap.py:517
+msgid "the entry was deleted while being modified"
+msgstr "wpis został usunięty podczas modyfikowania"
+
+#: ipalib/plugins/baseldap.py:674
+msgid "Members that could not be added"
+msgstr "Elementy, które nie mogły zostać dodane"
+
+#: ipalib/plugins/baseldap.py:678
+msgid "Number of members added"
+msgstr "Liczba dodanych elementów"
+
+#: ipalib/plugins/baseldap.py:684 ipalib/plugins/baseldap.py:789
+msgid "Failed members"
+msgstr "Elementy, które się nie powiodły"
+
+#: ipalib/plugins/baseldap.py:779
+msgid "Members that could not be removed"
+msgstr "Liczba elementów, które nie mogły zostać usunięte"
+
+#: ipalib/plugins/baseldap.py:783
+msgid "Number of members removed"
+msgstr "Liczba usuniętych elementów"
+
+#: ipalib/plugins/baseldap.py:880
+msgid "Time Limit"
+msgstr ""
+
+#: ipalib/plugins/baseldap.py:881
+msgid "Time limit of search in seconds"
+msgstr ""
+
+#: ipalib/plugins/baseldap.py:887
+#, fuzzy
+msgid "Size Limit"
+msgstr "Ograniczenie rozmiaru wyszukiwania"
+
+#: ipalib/plugins/baseldap.py:888
+#, fuzzy
+msgid "Maximum number of entries returned"
+msgstr "Liczba zwróconych zmiennych (<= razem)"
+
+#: ipalib/plugins/cert.py:93
+#, fuzzy
+msgid "Failure decoding Certificate Signing Request:"
+msgstr "Dekodowanie żądania podpisywania certyfikatu nie powiodło się"
+
+#: ipalib/plugins/cert.py:106 ipalib/plugins/cert.py:118
+msgid "Failure decoding Certificate Signing Request"
+msgstr "Dekodowanie żądania podpisywania certyfikatu nie powiodło się"
+
+#: ipalib/plugins/cert.py:120
+#, python-format
+msgid "Failure decoding Certificate Signing Request: %s"
+msgstr "Dekodowanie żądania podpisywania certyfikatu nie powiodło się: %s"
+
+#: ipalib/plugins/cert.py:171 ipalib/plugins/service.py:162
+msgid "Principal"
+msgstr "Naczelnik"
+
+#: ipalib/plugins/cert.py:172
+msgid "Service principal for this certificate (e.g. HTTP/test.example.com)"
+msgstr "Naczelnik usługi dla tego certyfikatu (np. HTTP/test.przykład.pl)"
+
+#: ipalib/plugins/cert.py:179
+msgid "automatically add the principal if it doesn't exist"
+msgstr "automatycznie dodaj naczelnika, jeśli nie istnieje"
+
+#: ipalib/plugins/cert.py:187 ipalib/plugins/cert.py:392
+#: ipalib/plugins/host.py:154 ipalib/plugins/service.py:185
+#: ipalib/plugins/service.py:265 ipalib/plugins/service.py:304
+#: ipalib/plugins/service.py:343
+msgid "Certificate"
+msgstr "Certyfikat"
+
+#: ipalib/plugins/cert.py:191 ipalib/plugins/cert.py:395
+msgid "Subject"
+msgstr "Temat"
+
+#: ipalib/plugins/cert.py:195 ipalib/plugins/cert.py:398
+msgid "Issuer"
+msgstr ""
+
+#: ipalib/plugins/cert.py:199 ipalib/plugins/cert.py:401
+msgid "Not Before"
+msgstr ""
+
+#: ipalib/plugins/cert.py:203 ipalib/plugins/cert.py:404
+msgid "Not After"
+msgstr ""
+
+#: ipalib/plugins/cert.py:207 ipalib/plugins/cert.py:407
+msgid "Fingerprint (MD5)"
+msgstr ""
+
+#: ipalib/plugins/cert.py:211 ipalib/plugins/cert.py:410
+msgid "Fingerprint (SHA1)"
+msgstr ""
+
+#: ipalib/plugins/cert.py:215 ipalib/plugins/cert.py:379
+msgid "Serial number"
+msgstr "Numer seryjny"
+
+#: ipalib/plugins/cert.py:223 ipalib/plugins/misc.py:57
+msgid "Dictionary mapping variable name to value"
+msgstr "Nazwa zmiennej mapowania słownika do ustawienia jako wartość"
+
+#: ipalib/plugins/cert.py:357
+msgid "Request id"
+msgstr "Identyfikator żądania"
+
+#: ipalib/plugins/cert.py:363
+msgid "Request status"
+msgstr "Stan żądania"
+
+#: ipalib/plugins/cert.py:380
+msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
+msgstr ""
+"Numer seryjny w formie dziesiętnej lub szesnastkowej, jeśli poprzedzone 0x"
+
+#: ipalib/plugins/cert.py:413
+msgid "Revocation reason"
+msgstr "Przyczyna unieważnienia"
+
+#: ipalib/plugins/cert.py:458
+msgid "Revoked"
+msgstr "Unieważniono"
+
+#: ipalib/plugins/cert.py:466
+msgid "Reason"
+msgstr "Przyczyna"
+
+#: ipalib/plugins/cert.py:467
+msgid "Reason for revoking the certificate (0-10)"
+msgstr "Przyczyna unieważnienia certyfikatu (0-10)"
+
+#: ipalib/plugins/cert.py:502
+msgid "Unrevoked"
+msgstr "Cofnięto unieważnienie"
+
+#: ipalib/plugins/cert.py:505
+msgid "Error"
+msgstr "Błąd"
+
+#: ipalib/plugins/config.py:73
 #, fuzzy
 msgid "Configuration"
 msgstr "Informacje o montowaniu"
 
-#: ../../ipalib/plugins/config.py:78
+#: ipalib/plugins/config.py:78
 msgid "Max username length"
 msgstr "Maksymalna długość nazwy użytkownika"
 
-#: ../../ipalib/plugins/config.py:83
+#: ipalib/plugins/config.py:83
 msgid "Home directory base"
 msgstr "Podstawa katalogu domowego"
 
-#: ../../ipalib/plugins/config.py:84
+#: ipalib/plugins/config.py:84
 msgid "Default location of home directories"
 msgstr "Domyślne położenie katalogów domowych"
 
-#: ../../ipalib/plugins/config.py:88
+#: ipalib/plugins/config.py:88
 msgid "Default shell"
 msgstr "Domyślna powłoka"
 
-#: ../../ipalib/plugins/config.py:89
+#: ipalib/plugins/config.py:89
 msgid "Default shell for new users"
 msgstr "Domyślna powłoka dla nowych użytkowników"
 
-#: ../../ipalib/plugins/config.py:93
+#: ipalib/plugins/config.py:93
 msgid "Default users group"
 msgstr "Domyślna grupa użytkowników"
 
-#: ../../ipalib/plugins/config.py:94
+#: ipalib/plugins/config.py:94
 msgid "Default group for new users"
 msgstr "Domyślna grupa dla nowych użytkowników"
 
-#: ../../ipalib/plugins/config.py:98
+#: ipalib/plugins/config.py:98
 msgid "Default e-mail domain"
 msgstr "Domyślna domena e-mail"
 
-#: ../../ipalib/plugins/config.py:99
+#: ipalib/plugins/config.py:99
 msgid "Default e-mail domain new users"
 msgstr "Domyślna domena e-mail dla nowych użytkowników"
 
-#: ../../ipalib/plugins/config.py:103
+#: ipalib/plugins/config.py:103
 msgid "Search time limit"
 msgstr "Ograniczenie czasu wyszukiwania"
 
-#: ../../ipalib/plugins/config.py:104
+#: ipalib/plugins/config.py:104
 msgid "Max. amount of time (sec.) for a search (-1 is unlimited)"
 msgstr ""
 "Maksymalny czas (w sekundach) wyszukiwania (-1 oznacza brak ograniczenia)"
 
-#: ../../ipalib/plugins/config.py:109
+#: ipalib/plugins/config.py:109
 msgid "Search size limit"
 msgstr "Ograniczenie rozmiaru wyszukiwania"
 
-#: ../../ipalib/plugins/config.py:110
+#: ipalib/plugins/config.py:110
 msgid "Max. number of records to search (-1 is unlimited)"
 msgstr ""
 "Maksymalna liczba wpisów do wyszukiwania (-1 oznacza brak ograniczenia)"
 
-#: ../../ipalib/plugins/config.py:115
+#: ipalib/plugins/config.py:115
 msgid "User search fields"
 msgstr "Pola wyszukiwania użytkowników"
 
-#: ../../ipalib/plugins/config.py:116
+#: ipalib/plugins/config.py:116
 msgid "A comma-separated list of fields to search when searching for users"
 msgstr ""
 "Lista pól oddzielonych przecinkami do przeszukania podczas wyszukiwania "
 "użytkowników"
 
-#: ../../ipalib/plugins/config.py:121
+#: ipalib/plugins/config.py:121
 msgid "A comma-separated list of fields to search when searching for groups"
 msgstr ""
 "Lista pól oddzielonych przecinkami do przeszukania podczas wyszukiwania grup"
 
-#: ../../ipalib/plugins/config.py:125
+#: ipalib/plugins/config.py:125
 msgid "Migration mode"
 msgstr "Tryb migracji"
 
-#: ../../ipalib/plugins/config.py:126
+#: ipalib/plugins/config.py:126
 #, fuzzy
 msgid "Enable migration mode"
 msgstr "Włączono tryb migracji"
 
-#: ../../ipalib/plugins/config.py:130
+#: ipalib/plugins/config.py:130
 msgid "Certificate Subject base"
 msgstr "Podstawa tematu certyfikatu"
 
-#: ../../ipalib/plugins/config.py:131
+#: ipalib/plugins/config.py:131
 #, fuzzy
 msgid "Base for certificate subjects (OU=Test,O=Example)"
 msgstr "podstawa dla tematów certyfikatów (OU=Test,O=Przykład)"
 
-#: ../../ipalib/plugins/rolegroup.py:79
-msgid "Role Groups"
-msgstr "Grupy rol"
+#: ipalib/plugins/dns.py:131
+msgid "DNS"
+msgstr "DNS"
 
-#: ../../ipalib/plugins/rolegroup.py:84
-msgid "Role-group name"
-msgstr "Nazwa grupy rol"
+#: ipalib/plugins/dns.py:136
+msgid "Zone"
+msgstr "Strefa"
 
-#: ../../ipalib/plugins/rolegroup.py:90 ../../ipalib/plugins/host.py:124
-#: ../../ipalib/plugins/group.py:108 ../../ipalib/plugins/hbac.py:151
-#: ../../ipalib/plugins/automount.py:230 ../../ipalib/plugins/netgroup.py:96
-#: ../../ipalib/plugins/taskgroup.py:62 ../../ipalib/plugins/hostgroup.py:81
-msgid "Description"
-msgstr "Opis"
+#: ipalib/plugins/dns.py:137
+msgid "Zone name (FQDN)"
+msgstr "Nazwa strefy (FQDN)"
 
-#: ../../ipalib/plugins/rolegroup.py:91
-msgid "A description of this role-group"
-msgstr "Opis tej grupy rol"
+#: ipalib/plugins/dns.py:143
+msgid "Authoritative name server"
+msgstr "Autorytatywny serwer nazwa"
 
-#: ../../ipalib/plugins/rolegroup.py:94 ../../ipalib/plugins/group.py:117
-#: ../../ipalib/plugins/taskgroup.py:66
-msgid "Member groups"
-msgstr "Elementy grupy"
+#: ipalib/plugins/dns.py:147
+msgid "administrator e-mail address"
+msgstr "adres e-mail administratora"
 
-#: ../../ipalib/plugins/rolegroup.py:98 ../../ipalib/plugins/group.py:121
-#: ../../ipalib/plugins/taskgroup.py:70
-msgid "Member users"
-msgstr "Elementy użytkowników"
+#: ipalib/plugins/dns.py:153
+msgid "SOA serial"
+msgstr "Numer seryjny SOA"
 
-#: ../../ipalib/plugins/rolegroup.py:102
-msgid "Member of task-groups"
-msgstr "Element grupy zadaniowej"
+#: ipalib/plugins/dns.py:157
+msgid "SOA refresh"
+msgstr "Odświeżenie SOA"
 
-#: ../../ipalib/plugins/rolegroup.py:115
-#, python-format
-msgid "Added rolegroup \"%(value)s\""
-msgstr "Dodano grupę roli \"%(value)s\""
+#: ipalib/plugins/dns.py:161
+msgid "SOA retry"
+msgstr "Ponowienie SOA"
 
-#: ../../ipalib/plugins/rolegroup.py:125
-#, python-format
-msgid "Deleted rolegroup \"%(value)s\""
-msgstr "Usunięto grupę roli \"%(value)s\""
+#: ipalib/plugins/dns.py:165
+msgid "SOA expire"
+msgstr "Wygaszenie SOA"
 
-#: ../../ipalib/plugins/rolegroup.py:135
-#, python-format
-msgid "Modified rolegroup \"%(value)s\""
-msgstr "Zmodyfikowano grupę roli \"%(value)s\""
+#: ipalib/plugins/dns.py:169
+msgid "SOA minimum"
+msgstr "Minimalne SOA"
 
-#: ../../ipalib/plugins/rolegroup.py:146
-#, python-format
-msgid "%(count)d rolegroup matched"
-msgid_plural "%(count)d rolegroups matched"
-msgstr[0] "Pasuje %(count)d grupa roli"
-msgstr[1] "Pasują %(count)d grupy roli"
-msgstr[2] "Pasuje %(count)d grup roli"
+#: ipalib/plugins/dns.py:173
+msgid "SOA time to live"
+msgstr "Czas życia SOA"
 
-#: ../../ipalib/plugins/host.py:86
-msgid "Fully-qualified hostname required"
-msgstr ""
+#: ipalib/plugins/dns.py:177
+msgid "SOA class"
+msgstr "Klasa SOA"
 
-#: ../../ipalib/plugins/host.py:113 ../../ipalib/plugins/hbac.py:162
-msgid "Hosts"
-msgstr "Komputery"
+#: ipalib/plugins/dns.py:182
+msgid "allow dynamic update?"
+msgstr "zezwolić na dynamiczne aktualizacje?"
 
-#: ../../ipalib/plugins/host.py:118
-msgid "Host name"
+#: ipalib/plugins/dns.py:186
+msgid "BIND update policy"
+msgstr "Polityka aktualizacji BIND"
+
+#: ipalib/plugins/dns.py:411 ipalib/plugins/dns.py:445
+#: ipalib/plugins/dns.py:480 ipalib/plugins/dns.py:595
+#: ipalib/plugins/dns.py:680 ipalib/plugins/dns.py:804
+msgid "Zone name"
+msgstr "Nazwa strefy"
+
+#: ipalib/plugins/dns.py:485
+msgid "resource name"
+msgstr "nazwa zasobu"
+
+#: ipalib/plugins/dns.py:490 ipalib/plugins/dns.py:605
+#: ipalib/plugins/dns.py:696
+msgid "Record type"
+msgstr "Typ wpisu"
+
+#: ipalib/plugins/dns.py:494 ipalib/plugins/dns.py:609
+msgid "Data"
+msgstr "Dane"
+
+#: ipalib/plugins/dns.py:495 ipalib/plugins/dns.py:610
+msgid "Type-specific data"
+msgstr "Dane specyficzne dla typu"
+
+#: ipalib/plugins/dns.py:502
+msgid "Time to live"
+msgstr "Czas życia"
+
+#: ipalib/plugins/dns.py:507
+msgid "Class"
+msgstr "Klasa"
+
+#: ipalib/plugins/dns.py:600 ipalib/plugins/dns.py:692
+#: ipalib/plugins/dns.py:809
+msgid "Resource name"
+msgstr "Nazwa zasobu"
+
+#: ipalib/plugins/dns.py:685
+msgid "Search criteria"
+msgstr "Kryterium wyszukiwania"
+
+#: ipalib/plugins/dns.py:700
+msgid "type-specific data"
+msgstr "dane specyficzne dla typu"
+
+#: ipalib/plugins/dns.py:850
+#, fuzzy, python-format
+msgid "Found '%(value)s'"
+msgstr "Dodano grupę \"%(value)s\""
+
+#: ipalib/plugins/dns.py:854
+#, fuzzy
+msgid "Hostname"
 msgstr "Nazwa komputera"
 
-#: ../../ipalib/plugins/host.py:125
-msgid "A description of this host"
-msgstr "Opis tego komputera"
-
-#: ../../ipalib/plugins/host.py:129
-msgid "Locality"
-msgstr "Lokalizacja"
-
-#: ../../ipalib/plugins/host.py:130
-msgid "Host locality (e.g. \"Baltimore, MD\")"
-msgstr "Lokalizacja komputera (np. \"Baltimore, MD\")"
-
-#: ../../ipalib/plugins/host.py:134 ../../ipalib/plugins/automount.py:107
-msgid "Location"
-msgstr "Położenie"
-
-#: ../../ipalib/plugins/host.py:135
-msgid "Host location (e.g. \"Lab 2\")"
-msgstr "Położenie komputera (np. \"Laboratorium nr 2\")"
-
-#: ../../ipalib/plugins/host.py:139
-msgid "Platform"
-msgstr "Platforma"
-
-#: ../../ipalib/plugins/host.py:140
-msgid "Host hardware platform (e.g. \"Lenovo T61\")"
-msgstr "Platforma sprzętowa komputera (np. \"Lenovo T61\")"
-
-#: ../../ipalib/plugins/host.py:144
-msgid "Operating system"
-msgstr "System operacyjny"
-
-#: ../../ipalib/plugins/host.py:145
-msgid "Host operating system and version (e.g. \"Fedora 9\")"
-msgstr "System operacyjny komputera i jego wersja (np. \"Fedora 9\")"
-
-#: ../../ipalib/plugins/host.py:149
-msgid "User password"
-msgstr "Hasło użytkownika"
-
-#: ../../ipalib/plugins/host.py:150
-msgid "Password used in bulk enrollment"
-msgstr "Hasło używane w zapisywaniu większej części"
-
-#: ../../ipalib/plugins/host.py:154 ../../ipalib/plugins/service.py:185
-#: ../../ipalib/plugins/service.py:265 ../../ipalib/plugins/service.py:304
-#: ../../ipalib/plugins/service.py:343 ../../ipalib/plugins/cert.py:187
-#: ../../ipalib/plugins/cert.py:392
-msgid "Certificate"
-msgstr "Certyfikat"
-
-#: ../../ipalib/plugins/host.py:155 ../../ipalib/plugins/service.py:186
-#: ../../ipalib/plugins/service.py:266 ../../ipalib/plugins/service.py:305
-#: ../../ipalib/plugins/service.py:344
-msgid "Base-64 encoded server certificate"
-msgstr "Certyfikat serwera zakodowany za pomocą Base-64"
-
-#: ../../ipalib/plugins/host.py:158 ../../ipalib/plugins/host.py:274
-msgid "Principal name"
-msgstr "Nazwa naczelnika"
-
-#: ../../ipalib/plugins/host.py:162 ../../ipalib/plugins/hostgroup.py:93
-msgid "Member of host-groups"
-msgstr "Element grupy komputerów"
-
-#: ../../ipalib/plugins/host.py:166
-msgid "Member of net-groups"
-msgstr "Element grupy sieci"
-
-#: ../../ipalib/plugins/host.py:170
-msgid "Member of role-groups"
-msgstr "Element grupy roli"
-
-#: ../../ipalib/plugins/host.py:199
-#, python-format
-msgid "Added host \"%(value)s\""
-msgstr "Dodano komputer \"%(value)s\""
-
-#: ../../ipalib/plugins/host.py:202
-#, fuzzy
-msgid "force host name even if not in DNS"
-msgstr "wymuszenie nazwy naczelnika nawet, jeśli nie w DNS"
-
-#: ../../ipalib/plugins/host.py:235
-#, python-format
-msgid "Deleted host \"%(value)s\""
-msgstr "Usunięto komputer \"%(value)s\""
-
-#: ../../ipalib/plugins/host.py:269
-#, python-format
-msgid "Modified host \"%(value)s\""
-msgstr "Zmodyfikowano komputer \"%(value)s\""
-
-#: ../../ipalib/plugins/host.py:275
-msgid "Kerberos principal name for this host"
-msgstr "Nazwa naczelnika Kerberosa dla tego komputera"
-
-#: ../../ipalib/plugins/host.py:319
-#, python-format
-msgid "%(count)d host matched"
-msgid_plural "%(count)d hosts matched"
-msgstr[0] "Pasuje %(count)d komputer"
-msgstr[1] "Pasuje %(count)d komputery"
-msgstr[2] "Pasuje %(count)d komputerów"
-
-#: ../../ipalib/plugins/host.py:337 ../../ipalib/plugins/service.py:83
-msgid "Keytab"
-msgstr ""
-
-#: ../../ipalib/plugins/host.py:359 ../../ipalib/plugins/service.py:386
+#: ipalib/plugins/dns.py:867
 #, fuzzy, python-format
-msgid "Removed kerberos key from \"%(value)s\""
-msgstr "Usunięto grupę roli \"%(value)s\""
+msgid "Host '%(host)s' not found"
+msgstr "%(pkey)s: nie odnaleziono %(oname)s"
 
-#: ../../ipalib/plugins/host.py:368
-msgid "Host principal has no kerberos key"
-msgstr ""
-
-#: ../../ipalib/plugins/group.py:94
+#: ipalib/plugins/group.py:94
 msgid "User Groups"
 msgstr "Grupy użytkowników"
 
-#: ../../ipalib/plugins/group.py:102
+#: ipalib/plugins/group.py:102
 msgid "Group name"
 msgstr "Nazwa grupy"
 
-#: ../../ipalib/plugins/group.py:109
+#: ipalib/plugins/group.py:109 ipalib/plugins/sudocmdgroup.py:78
 msgid "Group description"
 msgstr "Opis grupy"
 
-#: ../../ipalib/plugins/group.py:113
+#: ipalib/plugins/group.py:113
 msgid "GID"
 msgstr "GID"
 
-#: ../../ipalib/plugins/group.py:114
+#: ipalib/plugins/group.py:114
 msgid "GID (use this option to set it manually)"
 msgstr "GID (ta opcja umożliwia jego ręczne ustawienie)"
 
-#: ../../ipalib/plugins/group.py:134
+#: ipalib/plugins/group.py:117 ipalib/plugins/rolegroup.py:94
+#: ipalib/plugins/taskgroup.py:66
+msgid "Member groups"
+msgstr "Elementy grupy"
+
+#: ipalib/plugins/group.py:121 ipalib/plugins/rolegroup.py:98
+#: ipalib/plugins/taskgroup.py:70
+msgid "Member users"
+msgstr "Elementy użytkowników"
+
+#: ipalib/plugins/group.py:134
 #, python-format
 msgid "Added group \"%(value)s\""
 msgstr "Dodano grupę \"%(value)s\""
 
-#: ../../ipalib/plugins/group.py:139
-msgid "Create as posix group?"
+#: ipalib/plugins/group.py:139
+#, fuzzy
+msgid "Create as a non-POSIX group?"
 msgstr "Utworzyć jako grupę POSIX?"
 
-#: ../../ipalib/plugins/group.py:159
+#: ipalib/plugins/group.py:160
 #, python-format
 msgid "Deleted group \"%(value)s\""
 msgstr "Usunięto grupę \"%(value)s\""
 
-#: ../../ipalib/plugins/group.py:188
+#: ipalib/plugins/group.py:191
 #, python-format
 msgid "Modified group \"%(value)s\""
 msgstr "Zmodyfikowano grupę \"%(value)s\""
 
-#: ../../ipalib/plugins/group.py:193
-msgid "change to posix group"
+#: ipalib/plugins/group.py:196
+#, fuzzy
+msgid "change to a POSIX group"
 msgstr "zmiana na grupę POSIX"
 
-#: ../../ipalib/plugins/group.py:219
+#: ipalib/plugins/group.py:222 ipalib/plugins/hbacsvcgroup.py:129
 #, python-format
 msgid "%(count)d group matched"
 msgid_plural "%(count)d groups matched"
@@ -716,24 +1046,448 @@ msgstr[0] "Pasuje %(count)d grupa"
 msgstr[1] "Pasują %(count)d grupy"
 msgstr[2] "Pasuje %(count)d grup"
 
-#: ../../ipalib/plugins/group.py:254
+#: ipalib/plugins/group.py:257
 #, fuzzy, python-format
 msgid "Detached group \"%(value)s\" from user \"%(value)s\""
 msgstr "Usunięto grupę roli \"%(value)s\""
 
-#: ../../ipalib/plugins/group.py:270
+#: ipalib/plugins/group.py:273
 msgid "not allowed to modify user entries"
 msgstr ""
 
-#: ../../ipalib/plugins/group.py:274
+#: ipalib/plugins/group.py:277
 msgid "not allowed to modify group entries"
 msgstr ""
 
-#: ../../ipalib/plugins/group.py:281 ../../ipalib/plugins/group.py:292
+#: ipalib/plugins/group.py:284 ipalib/plugins/group.py:295
 msgid "Not a managed group"
 msgstr ""
 
-#: ../../ipalib/plugins/migration.py:44
+#: ipalib/plugins/hbac.py:106
+msgid "HBAC"
+msgstr "HBAC"
+
+#: ipalib/plugins/hbac.py:111 ipalib/plugins/sudorule.py:53
+msgid "Rule name"
+msgstr "Nazwa reguły"
+
+#: ipalib/plugins/hbac.py:116
+msgid "Rule type (allow or deny)"
+msgstr "Typ reguły (zezwalanie lub zabranianie)"
+
+#: ipalib/plugins/hbac.py:117
+#, fuzzy
+msgid "Rule type"
+msgstr "Typ wpisu"
+
+#: ipalib/plugins/hbac.py:123
+msgid "User category"
+msgstr "Kategoria użytkowników"
+
+#: ipalib/plugins/hbac.py:124
+msgid "User category the rule applies to"
+msgstr "Kategoria użytkowników, do których zastosowywana jest reguła"
+
+#: ipalib/plugins/hbac.py:129
+msgid "Host category"
+msgstr "Kategoria komputerów"
+
+#: ipalib/plugins/hbac.py:130
+msgid "Host category the rule applies to"
+msgstr "Kategoria komputerów, do których zastosowywana jest reguła"
+
+#: ipalib/plugins/hbac.py:135
+msgid "Source host category"
+msgstr "Kategoria komputerów źródłowych"
+
+#: ipalib/plugins/hbac.py:136
+msgid "Source host category the rule applies to"
+msgstr "Kategoria komputerów źródłowych, do których zastosowywana jest reguła"
+
+#: ipalib/plugins/hbac.py:141
+#, fuzzy
+msgid "Service category"
+msgstr "Kategoria użytkowników"
+
+#: ipalib/plugins/hbac.py:142
+#, fuzzy
+msgid "Service category the rule applies to"
+msgstr "Kategoria użytkowników, do których zastosowywana jest reguła"
+
+#: ipalib/plugins/hbac.py:147 ipalib/plugins/hbac.py:309
+#: ipalib/plugins/hbac.py:347
+msgid "Access time"
+msgstr "Czas dostępu"
+
+#: ipalib/plugins/hbac.py:154
+msgid "Enabled"
+msgstr ""
+
+#: ipalib/plugins/hbac.py:158 ipalib/plugins/sudorule.py:61
+#: ipalib/plugins/user.py:76
+msgid "Users"
+msgstr "Użytkownicy"
+
+#: ipalib/plugins/hbac.py:162 ipalib/plugins/host.py:113
+#: ipalib/plugins/sudorule.py:65
+msgid "Hosts"
+msgstr "Komputery"
+
+#: ipalib/plugins/hbac.py:166 ipalib/plugins/hostgroup.py:69
+#: ipalib/plugins/sudorule.py:69
+msgid "Host Groups"
+msgstr "Grupy komputerów"
+
+#: ipalib/plugins/hbac.py:170
+#, fuzzy
+msgid "Source hosts"
+msgstr "Kategoria komputerów źródłowych"
+
+#: ipalib/plugins/hbac.py:174 ipalib/plugins/hbacsvc.py:60
+#: ipalib/plugins/service.py:157
+msgid "Services"
+msgstr "Usługi"
+
+#: ipalib/plugins/hbac.py:178
+#, fuzzy
+msgid "Service Groups"
+msgstr "Usługi"
+
+#: ipalib/plugins/hbacsvc.py:65
+msgid "Service name"
+msgstr "Nazwa usługi"
+
+#: ipalib/plugins/hbacsvc.py:66
+#, fuzzy
+msgid "HBAC Service"
+msgstr "Usługi"
+
+#: ipalib/plugins/hbacsvc.py:73
+#, fuzzy
+msgid "Description of service"
+msgstr "Opis"
+
+#: ipalib/plugins/hbacsvc.py:84 ipalib/plugins/service.py:176
+#, python-format
+msgid "Added service \"%(value)s\""
+msgstr "Dodano usługę \"%(value)s\""
+
+#: ipalib/plugins/hbacsvc.py:93 ipalib/plugins/service.py:224
+#, python-format
+msgid "Deleted service \"%(value)s\""
+msgstr "Usunięto usługę \"%(value)s\""
+
+#: ipalib/plugins/hbacsvcgroup.py:66
+#, fuzzy
+msgid "HBAC Service Groups"
+msgstr "Usługi"
+
+#: ipalib/plugins/hbacsvcgroup.py:71
+#, fuzzy
+msgid "Service group name"
+msgstr "Nazwa usługi"
+
+#: ipalib/plugins/hbacsvcgroup.py:78
+#, fuzzy
+msgid "HBAC service group description"
+msgstr "Opis grupy sieciowej"
+
+#: ipalib/plugins/hbacsvcgroup.py:81
+#, fuzzy
+msgid "Member services"
+msgstr "Elementy użytkowników"
+
+#: ipalib/plugins/hbacsvcgroup.py:85
+#, fuzzy
+msgid "Member service groups"
+msgstr "Element grupy zadaniowej"
+
+#: ipalib/plugins/hbacsvcgroup.py:101
+#, fuzzy, python-format
+msgid "Added HBAC Service group \"%(value)s\""
+msgstr "Dodano grupę roli \"%(value)s\""
+
+#: ipalib/plugins/hbacsvcgroup.py:110
+#, fuzzy, python-format
+msgid "Deleted HBAC Service group \"%(value)s\""
+msgstr "Usunięto grupę roli \"%(value)s\""
+
+#: ipalib/plugins/hbacsvcgroup.py:119
+#, fuzzy, python-format
+msgid "Modified HBAC Service group \"%(value)s\""
+msgstr "Zmodyfikowano grupę roli \"%(value)s\""
+
+#: ipalib/plugins/host.py:86
+msgid "Fully-qualified hostname required"
+msgstr ""
+
+#: ipalib/plugins/host.py:118
+msgid "Host name"
+msgstr "Nazwa komputera"
+
+#: ipalib/plugins/host.py:125
+msgid "A description of this host"
+msgstr "Opis tego komputera"
+
+#: ipalib/plugins/host.py:129
+msgid "Locality"
+msgstr "Lokalizacja"
+
+#: ipalib/plugins/host.py:130
+msgid "Host locality (e.g. \"Baltimore, MD\")"
+msgstr "Lokalizacja komputera (np. \"Baltimore, MD\")"
+
+#: ipalib/plugins/host.py:135
+msgid "Host location (e.g. \"Lab 2\")"
+msgstr "Położenie komputera (np. \"Laboratorium nr 2\")"
+
+#: ipalib/plugins/host.py:139
+msgid "Platform"
+msgstr "Platforma"
+
+#: ipalib/plugins/host.py:140
+msgid "Host hardware platform (e.g. \"Lenovo T61\")"
+msgstr "Platforma sprzętowa komputera (np. \"Lenovo T61\")"
+
+#: ipalib/plugins/host.py:144
+msgid "Operating system"
+msgstr "System operacyjny"
+
+#: ipalib/plugins/host.py:145
+msgid "Host operating system and version (e.g. \"Fedora 9\")"
+msgstr "System operacyjny komputera i jego wersja (np. \"Fedora 9\")"
+
+#: ipalib/plugins/host.py:149
+msgid "User password"
+msgstr "Hasło użytkownika"
+
+#: ipalib/plugins/host.py:150
+msgid "Password used in bulk enrollment"
+msgstr "Hasło używane w zapisywaniu większej części"
+
+#: ipalib/plugins/host.py:155 ipalib/plugins/service.py:186
+#: ipalib/plugins/service.py:266 ipalib/plugins/service.py:305
+#: ipalib/plugins/service.py:344
+msgid "Base-64 encoded server certificate"
+msgstr "Certyfikat serwera zakodowany za pomocą Base-64"
+
+#: ipalib/plugins/host.py:158 ipalib/plugins/host.py:274
+msgid "Principal name"
+msgstr "Nazwa naczelnika"
+
+#: ipalib/plugins/host.py:162 ipalib/plugins/hostgroup.py:93
+msgid "Member of host-groups"
+msgstr "Element grupy komputerów"
+
+#: ipalib/plugins/host.py:166
+msgid "Member of net-groups"
+msgstr "Element grupy sieci"
+
+#: ipalib/plugins/host.py:170
+msgid "Member of role-groups"
+msgstr "Element grupy roli"
+
+#: ipalib/plugins/host.py:199
+#, python-format
+msgid "Added host \"%(value)s\""
+msgstr "Dodano komputer \"%(value)s\""
+
+#: ipalib/plugins/host.py:202
+#, fuzzy
+msgid "force host name even if not in DNS"
+msgstr "wymuszenie nazwy naczelnika nawet, jeśli nie w DNS"
+
+#: ipalib/plugins/host.py:235
+#, python-format
+msgid "Deleted host \"%(value)s\""
+msgstr "Usunięto komputer \"%(value)s\""
+
+#: ipalib/plugins/host.py:269
+#, python-format
+msgid "Modified host \"%(value)s\""
+msgstr "Zmodyfikowano komputer \"%(value)s\""
+
+#: ipalib/plugins/host.py:275
+msgid "Kerberos principal name for this host"
+msgstr "Nazwa naczelnika Kerberosa dla tego komputera"
+
+#: ipalib/plugins/host.py:319
+#, python-format
+msgid "%(count)d host matched"
+msgid_plural "%(count)d hosts matched"
+msgstr[0] "Pasuje %(count)d komputer"
+msgstr[1] "Pasuje %(count)d komputery"
+msgstr[2] "Pasuje %(count)d komputerów"
+
+#: ipalib/plugins/host.py:337 ipalib/plugins/service.py:83
+msgid "Keytab"
+msgstr ""
+
+#: ipalib/plugins/host.py:359 ipalib/plugins/service.py:386
+#, fuzzy, python-format
+msgid "Removed kerberos key from \"%(value)s\""
+msgstr "Usunięto grupę roli \"%(value)s\""
+
+#: ipalib/plugins/host.py:368
+msgid "Host principal has no kerberos key"
+msgstr ""
+
+#: ipalib/plugins/hostgroup.py:74
+msgid "Host-group"
+msgstr "Grupa komputerów"
+
+#: ipalib/plugins/hostgroup.py:75
+msgid "Name of host-group"
+msgstr "Nazwa grupy komputerów"
+
+#: ipalib/plugins/hostgroup.py:82
+msgid "A description of this host-group"
+msgstr "Opis tej grupy komputerów"
+
+#: ipalib/plugins/hostgroup.py:85
+msgid "Member hosts"
+msgstr "Element komputerów"
+
+#: ipalib/plugins/hostgroup.py:89
+msgid "Member host-groups"
+msgstr "Element grupy komputerów"
+
+#: ipalib/plugins/hostgroup.py:106
+#, python-format
+msgid "Added hostgroup \"%(value)s\""
+msgstr "Dodano grupę komputerów \"%(value)s\""
+
+#: ipalib/plugins/hostgroup.py:116
+#, python-format
+msgid "Deleted hostgroup \"%(value)s\""
+msgstr "Usunięto grupę komputerów \"%(value)s\""
+
+#: ipalib/plugins/hostgroup.py:126
+#, python-format
+msgid "Modified hostgroup \"%(value)s\""
+msgstr "Zmodyfikowano grupę komputerów \"%(value)s\""
+
+#: ipalib/plugins/hostgroup.py:137
+#, python-format
+msgid "%(count)d hostgroup matched"
+msgid_plural "%(count)d hostgroups matched"
+msgstr[0] "Pasuje %(count)d grupa komputerów"
+msgstr[1] "Pasują %(count)d grupy komputerów"
+msgstr[2] "Pasuje %(count)d grup komputerów"
+
+#: ipalib/plugins/internal.py:39
+msgid "Logged In As"
+msgstr ""
+
+#: ipalib/plugins/internal.py:41
+msgid "Add"
+msgstr ""
+
+#: ipalib/plugins/internal.py:42
+msgid "Find"
+msgstr ""
+
+#: ipalib/plugins/internal.py:43
+msgid "Reset"
+msgstr ""
+
+#: ipalib/plugins/internal.py:44
+msgid "Update"
+msgstr ""
+
+#: ipalib/plugins/internal.py:45
+msgid "Enroll"
+msgstr ""
+
+#: ipalib/plugins/internal.py:46
+msgid "Delete"
+msgstr ""
+
+#: ipalib/plugins/internal.py:49
+msgid "Quick Links"
+msgstr ""
+
+#: ipalib/plugins/internal.py:50
+msgid "Select All"
+msgstr ""
+
+#: ipalib/plugins/internal.py:51
+msgid "Unselect All"
+msgstr ""
+
+#: ipalib/plugins/internal.py:52
+msgid "Do you really want to delete the selected entries?"
+msgstr ""
+
+#: ipalib/plugins/internal.py:55
+msgid "Identity Details"
+msgstr ""
+
+#: ipalib/plugins/internal.py:56
+msgid "Account Details"
+msgstr ""
+
+#: ipalib/plugins/internal.py:57
+msgid "Contact Details"
+msgstr ""
+
+#: ipalib/plugins/internal.py:58
+#, fuzzy
+msgid "Mailing Address"
+msgstr "Adres e-mail"
+
+#: ipalib/plugins/internal.py:59
+msgid "      Employee Information"
+msgstr ""
+
+#: ipalib/plugins/internal.py:60
+#, fuzzy
+msgid "Misc. Information"
+msgstr "Informacje o montowaniu"
+
+#: ipalib/plugins/internal.py:61
+msgid "Back to Top"
+msgstr ""
+
+#: ipalib/plugins/internal.py:66
+msgid "Name of object to export"
+msgstr ""
+
+#: ipalib/plugins/internal.py:71
+msgid "Dict of JSON encoded IPA Objects"
+msgstr ""
+
+#: ipalib/plugins/internal.py:72
+msgid "Dict of I18N messages"
+msgstr ""
+
+#: ipalib/plugins/krbtpolicy.py:62 ipalib/plugins/passwd.py:52
+msgid "User name"
+msgstr "Nazwa użytkownika"
+
+#: ipalib/plugins/krbtpolicy.py:63
+msgid "Manage ticket policy for specific user"
+msgstr "Zarządzaj polityką zgłoszeń dla podanego użytkownika"
+
+#: ipalib/plugins/krbtpolicy.py:68
+msgid "Max life"
+msgstr "Maksymalny czas życia"
+
+#: ipalib/plugins/krbtpolicy.py:69
+#, fuzzy
+msgid "Maximum ticket life (seconds)"
+msgstr "Minimalny czas życia zgłoszenia"
+
+#: ipalib/plugins/krbtpolicy.py:73
+msgid "Max renew"
+msgstr "Maksymalne odnowienie"
+
+#: ipalib/plugins/krbtpolicy.py:74
+#, fuzzy
+msgid "Maximum renewable age (seconds)"
+msgstr "Maksymalny czas, w którym możliwe jest odnowienie"
+
+#: ipalib/plugins/migration.py:44
 #, python-format
 msgid ""
 "Kerberos principal %s already exists. Use 'ipa user-mod' to set it manually."
@@ -741,7 +1495,7 @@ msgstr ""
 "Naczelnik Kerberosa %s już istnieje. Należy użyć polecenia \"ipa user-mod\", "
 "aby ustawić go ręcznie."
 
-#: ../../ipalib/plugins/migration.py:45
+#: ipalib/plugins/migration.py:45
 msgid ""
 "Failed to add user to the default group. Use 'ipa group-add-member' to add "
 "manually."
@@ -749,58 +1503,62 @@ msgstr ""
 "Dodanie użytkownika do domyślnej grupy nie powiodło się. Należy użyć "
 "polecenia \"ipa group-add-member\", aby dodać go ręcznie."
 
-#: ../../ipalib/plugins/migration.py:169
+#: ipalib/plugins/migration.py:169
 msgid "LDAP URI"
 msgstr "Adres URI LDAP"
 
-#: ../../ipalib/plugins/migration.py:170
+#: ipalib/plugins/migration.py:170
 msgid "LDAP URI of DS server to migrate from"
 msgstr "Adres URI LDAP serwera DS, z którego migrować"
 
-#: ../../ipalib/plugins/migration.py:174
+#: ipalib/plugins/migration.py:174
 msgid "bind password"
 msgstr "hasło Bind"
 
-#: ../../ipalib/plugins/migration.py:181
+#: ipalib/plugins/migration.py:181
 msgid "Bind DN"
 msgstr "DN dowiązania"
 
-#: ../../ipalib/plugins/migration.py:187
+#: ipalib/plugins/migration.py:187
 msgid "User container"
 msgstr "Kontener użytkownika"
 
-#: ../../ipalib/plugins/migration.py:188
+#: ipalib/plugins/migration.py:188
 msgid "RDN of container for users in DS"
 msgstr "RDN kontenera dla użytkowników w DS"
 
-#: ../../ipalib/plugins/migration.py:194
+#: ipalib/plugins/migration.py:194
 msgid "Group container"
 msgstr "Kontener grupy"
 
-#: ../../ipalib/plugins/migration.py:195
+#: ipalib/plugins/migration.py:195
 msgid "RDN of container for groups in DS"
 msgstr "RDN kontenera dla grup w DS"
 
-#: ../../ipalib/plugins/migration.py:204
+#: ipalib/plugins/migration.py:200
+msgid "Continous operation mode. Errors are reported but the process continues"
+msgstr ""
+
+#: ipalib/plugins/migration.py:208
 msgid "Lists of objects migrated; categorized by type."
 msgstr "Lista migrowanych obiektów, ułożonych w kategorie według typu."
 
-#: ../../ipalib/plugins/migration.py:208
+#: ipalib/plugins/migration.py:212
 msgid "Lists of objects that could not be migrated; categorized by type."
 msgstr ""
 "Lista obiektów, które nie mogły zostać migrowane, ułożonych w kategorie "
 "według typu."
 
-#: ../../ipalib/plugins/migration.py:212
+#: ipalib/plugins/migration.py:216
 msgid "False if migration mode was disabled."
 msgstr "Fałsz, jeśli wyłączono tryb migracji"
 
-#: ../../ipalib/plugins/migration.py:216
+#: ipalib/plugins/migration.py:220
 #, python-format
 msgid "comma-separated list of %s to exclude from migration"
 msgstr "lista %s oddzielonych przecinkami do wykluczenia z migracji"
 
-#: ../../ipalib/plugins/migration.py:218
+#: ipalib/plugins/migration.py:222
 msgid ""
 "search results for objects to be migrated\n"
 "have been truncated by the server;\n"
@@ -810,13 +1568,13 @@ msgstr ""
 "zostały skrócone przez serwer. Proces\n"
 "migracji mógł nie zostać ukończony\n"
 
-#: ../../ipalib/plugins/migration.py:223
+#: ipalib/plugins/migration.py:227
 msgid "Migration mode is disabled. Use 'ipa config-mod' to enable it."
 msgstr ""
 "Tryb migracji jest wyłączony. Należy użyć polecenia \"ipa config-mod\", aby "
 "go włączyć."
 
-#: ../../ipalib/plugins/migration.py:226
+#: ipalib/plugins/migration.py:230
 msgid ""
 "Passwords have been migrated in pre-hashed format.\n"
 "IPA is unable to generate Kerberos keys unless provided\n"
@@ -831,670 +1589,25 @@ msgstr ""
 "https://twoja.domena/ipa/migration/, zanim będą mogli\n"
 "używać swoich kont Kerberosa."
 
-#: ../../ipalib/plugins/service.py:157 ../../ipalib/plugins/hbac.py:174
-msgid "Services"
-msgstr "Usługi"
-
-#: ../../ipalib/plugins/service.py:162 ../../ipalib/plugins/cert.py:171
-msgid "Principal"
-msgstr "Naczelnik"
-
-#: ../../ipalib/plugins/service.py:163
-msgid "Service principal"
-msgstr "Naczelnik usługi"
-
-#: ../../ipalib/plugins/service.py:176
-#, python-format
-msgid "Added service \"%(value)s\""
-msgstr "Dodano usługę \"%(value)s\""
-
-#: ../../ipalib/plugins/service.py:181
-msgid "force principal name even if not in DNS"
-msgstr "wymuszenie nazwy naczelnika nawet, jeśli nie w DNS"
-
-#: ../../ipalib/plugins/service.py:224
-#, python-format
-msgid "Deleted service \"%(value)s\""
-msgstr "Usunięto usługę \"%(value)s\""
-
-#: ../../ipalib/plugins/service.py:261
+#: ipalib/plugins/migration.py:297
 #, fuzzy, python-format
-msgid "Modified service \"%(value)s\""
-msgstr "Zmodyfikowano użytkownika \"%(value)s\""
-
-#: ../../ipalib/plugins/service.py:298
-#, fuzzy, python-format
-msgid "%(count)d service matched"
-msgid_plural "%(count)d services matched"
-msgstr[0] "Pasuje %(count)d użytkownik"
-msgstr[1] "Pasuje %(count)d użytkowników"
-msgstr[2] "Pasuje %(count)d użytkowników"
-
-#: ../../ipalib/plugins/service.py:396
-#, fuzzy
-msgid "Service principal has no kerberos key"
-msgstr "Naczelnik usługi"
-
-#: ../../ipalib/plugins/passwd.py:52 ../../ipalib/plugins/krbtpolicy.py:62
-msgid "User name"
-msgstr "Nazwa użytkownika"
-
-#: ../../ipalib/plugins/hbac.py:106
-msgid "HBAC"
-msgstr "HBAC"
-
-#: ../../ipalib/plugins/hbac.py:111
-msgid "Rule name"
-msgstr "Nazwa reguły"
-
-#: ../../ipalib/plugins/hbac.py:116
-msgid "Rule type (allow or deny)"
-msgstr "Typ reguły (zezwalanie lub zabranianie)"
-
-#: ../../ipalib/plugins/hbac.py:117
-#, fuzzy
-msgid "Rule type"
-msgstr "Typ wpisu"
-
-#: ../../ipalib/plugins/hbac.py:123
-msgid "User category"
-msgstr "Kategoria użytkowników"
-
-#: ../../ipalib/plugins/hbac.py:124
-msgid "User category the rule applies to"
-msgstr "Kategoria użytkowników, do których zastosowywana jest reguła"
-
-#: ../../ipalib/plugins/hbac.py:129
-msgid "Host category"
-msgstr "Kategoria komputerów"
-
-#: ../../ipalib/plugins/hbac.py:130
-msgid "Host category the rule applies to"
-msgstr "Kategoria komputerów, do których zastosowywana jest reguła"
-
-#: ../../ipalib/plugins/hbac.py:135
-msgid "Source host category"
-msgstr "Kategoria komputerów źródłowych"
-
-#: ../../ipalib/plugins/hbac.py:136
-msgid "Source host category the rule applies to"
-msgstr "Kategoria komputerów źródłowych, do których zastosowywana jest reguła"
-
-#: ../../ipalib/plugins/hbac.py:141
-#, fuzzy
-msgid "Service category"
-msgstr "Kategoria użytkowników"
-
-#: ../../ipalib/plugins/hbac.py:142
-#, fuzzy
-msgid "Service category the rule applies to"
-msgstr "Kategoria użytkowników, do których zastosowywana jest reguła"
-
-#: ../../ipalib/plugins/hbac.py:147 ../../ipalib/plugins/hbac.py:309
-#: ../../ipalib/plugins/hbac.py:347
-msgid "Access time"
-msgstr "Czas dostępu"
-
-#: ../../ipalib/plugins/hbac.py:154
-msgid "Enabled"
-msgstr ""
-
-#: ../../ipalib/plugins/hbac.py:158 ../../ipalib/plugins/user.py:76
-msgid "Users"
-msgstr "Użytkownicy"
-
-#: ../../ipalib/plugins/hbac.py:166 ../../ipalib/plugins/hostgroup.py:69
-msgid "Host Groups"
-msgstr "Grupy komputerów"
-
-#: ../../ipalib/plugins/hbac.py:170
-#, fuzzy
-msgid "Source hosts"
-msgstr "Kategoria komputerów źródłowych"
-
-#: ../../ipalib/plugins/hbac.py:178
-#, fuzzy
-msgid "Service Groups"
-msgstr "Usługi"
-
-#: ../../ipalib/plugins/cert.py:93
-#, fuzzy
-msgid "Failure decoding Certificate Signing Request:"
-msgstr "Dekodowanie żądania podpisywania certyfikatu nie powiodło się"
-
-#: ../../ipalib/plugins/cert.py:106 ../../ipalib/plugins/cert.py:118
-msgid "Failure decoding Certificate Signing Request"
-msgstr "Dekodowanie żądania podpisywania certyfikatu nie powiodło się"
-
-#: ../../ipalib/plugins/cert.py:120
-#, python-format
-msgid "Failure decoding Certificate Signing Request: %s"
-msgstr "Dekodowanie żądania podpisywania certyfikatu nie powiodło się: %s"
-
-#: ../../ipalib/plugins/cert.py:172
-msgid "Service principal for this certificate (e.g. HTTP/test.example.com)"
-msgstr "Naczelnik usługi dla tego certyfikatu (np. HTTP/test.przykład.pl)"
-
-#: ../../ipalib/plugins/cert.py:179
-msgid "automatically add the principal if it doesn't exist"
-msgstr "automatycznie dodaj naczelnika, jeśli nie istnieje"
-
-#: ../../ipalib/plugins/cert.py:191 ../../ipalib/plugins/cert.py:395
-msgid "Subject"
-msgstr "Temat"
-
-#: ../../ipalib/plugins/cert.py:195 ../../ipalib/plugins/cert.py:398
-msgid "Issuer"
-msgstr ""
-
-#: ../../ipalib/plugins/cert.py:199 ../../ipalib/plugins/cert.py:401
-msgid "Not Before"
-msgstr ""
-
-#: ../../ipalib/plugins/cert.py:203 ../../ipalib/plugins/cert.py:404
-msgid "Not After"
-msgstr ""
-
-#: ../../ipalib/plugins/cert.py:207 ../../ipalib/plugins/cert.py:407
-msgid "Fingerprint (MD5)"
-msgstr ""
-
-#: ../../ipalib/plugins/cert.py:211 ../../ipalib/plugins/cert.py:410
-msgid "Fingerprint (SHA1)"
-msgstr ""
-
-#: ../../ipalib/plugins/cert.py:215 ../../ipalib/plugins/cert.py:379
-msgid "Serial number"
-msgstr "Numer seryjny"
-
-#: ../../ipalib/plugins/cert.py:223 ../../ipalib/plugins/misc.py:57
-msgid "Dictionary mapping variable name to value"
-msgstr "Nazwa zmiennej mapowania słownika do ustawienia jako wartość"
-
-#: ../../ipalib/plugins/cert.py:357
-msgid "Request id"
-msgstr "Identyfikator żądania"
-
-#: ../../ipalib/plugins/cert.py:363
-msgid "Request status"
-msgstr "Stan żądania"
-
-#: ../../ipalib/plugins/cert.py:380
-msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
-msgstr ""
-"Numer seryjny w formie dziesiętnej lub szesnastkowej, jeśli poprzedzone 0x"
-
-#: ../../ipalib/plugins/cert.py:413
-msgid "Revocation reason"
-msgstr "Przyczyna unieważnienia"
-
-#: ../../ipalib/plugins/cert.py:458
-msgid "Revoked"
-msgstr "Unieważniono"
-
-#: ../../ipalib/plugins/cert.py:466
-msgid "Reason"
-msgstr "Przyczyna"
-
-#: ../../ipalib/plugins/cert.py:467
-msgid "Reason for revoking the certificate (0-10)"
-msgstr "Przyczyna unieważnienia certyfikatu (0-10)"
-
-#: ../../ipalib/plugins/cert.py:502
-msgid "Unrevoked"
-msgstr "Cofnięto unieważnienie"
-
-#: ../../ipalib/plugins/cert.py:505
-msgid "Error"
-msgstr "Błąd"
-
-#: ../../ipalib/plugins/baseldap.py:79
-#, python-format
-msgid "container entry (%(container)s) not found"
+msgid "Container for %(container)s not found"
 msgstr "nie odnaleziono wpisu kontenera (%(container)s)"
 
-#: ../../ipalib/plugins/baseldap.py:80
-#, python-format
-msgid "%(parent)s: %(oname)s not found"
-msgstr "%(parent)s: nie odnaleziono %(oname)s"
-
-#: ../../ipalib/plugins/baseldap.py:81
-#, python-format
-msgid "%(pkey)s: %(oname)s not found"
-msgstr "%(pkey)s: nie odnaleziono %(oname)s"
-
-#: ../../ipalib/plugins/baseldap.py:150
-msgid "Add an attribute/value pair. Format is attr=value"
-msgstr "Dodaj parę atrybut/wartość. Format to atrybut=wartość"
-
-#: ../../ipalib/plugins/baseldap.py:155
-msgid "Set an attribute to an name/value pair. Format is attr=value"
-msgstr "Ustaw atrybut dla pary nazwa/wartość. Format to atrybut=wartość"
-
-#: ../../ipalib/plugins/baseldap.py:491
-msgid "the entry was deleted while being modified"
-msgstr "wpis został usunięty podczas modyfikowania"
-
-#: ../../ipalib/plugins/baseldap.py:627
-msgid "Members that could not be added"
-msgstr "Elementy, które nie mogły zostać dodane"
-
-#: ../../ipalib/plugins/baseldap.py:631
-msgid "Number of members added"
-msgstr "Liczba dodanych elementów"
-
-#: ../../ipalib/plugins/baseldap.py:637 ../../ipalib/plugins/baseldap.py:742
-msgid "Failed members"
-msgstr "Elementy, które się nie powiodły"
-
-#: ../../ipalib/plugins/baseldap.py:732
-msgid "Members that could not be removed"
-msgstr "Liczba elementów, które nie mogły zostać usunięte"
-
-#: ../../ipalib/plugins/baseldap.py:736
-msgid "Number of members removed"
-msgstr "Liczba usuniętych elementów"
-
-#: ../../ipalib/plugins/baseldap.py:833
-msgid "Time Limit"
-msgstr ""
-
-#: ../../ipalib/plugins/baseldap.py:834
-msgid "Time limit of search in seconds"
-msgstr ""
-
-#: ../../ipalib/plugins/baseldap.py:840
-#, fuzzy
-msgid "Size Limit"
-msgstr "Ograniczenie rozmiaru wyszukiwania"
-
-#: ../../ipalib/plugins/baseldap.py:841
-#, fuzzy
-msgid "Maximum number of entries returned"
-msgstr "Liczba zwróconych zmiennych (<= razem)"
-
-#: ../../ipalib/plugins/aci.py:111
-msgid "A list of ACI values"
-msgstr "Lista wartości ACI"
-
-#: ../../ipalib/plugins/aci.py:142
-msgid "type, filter, subtree and targetgroup are mutually exclusive"
-msgstr ""
-"wartości \"type\", \"filter\", \"subtree\" i \"targetgroup\" są wzajemnie "
-"wyłączne"
-
-#: ../../ipalib/plugins/aci.py:145
-msgid ""
-"at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
-"required"
-msgstr ""
-"co najmniej jedna z wartości: \"type\", \"filter\", \"subtree\", "
-"\"targetgroup\", \"attrs\" lub \"memberof\" jest wymagana"
-
-#: ../../ipalib/plugins/aci.py:151
-#, fuzzy
-msgid "group, taskgroup and self are mutually exclusive"
-msgstr "wartości \"group\" i \"taskgroup\" są wzajemnie wyłączne"
-
-#: ../../ipalib/plugins/aci.py:153
-#, fuzzy
-msgid "One of group, taskgroup or self is required"
-msgstr "Wymagana jest wartość \"group\" lub \"taskgroup\""
-
-#: ../../ipalib/plugins/aci.py:172
-#, python-format
-msgid "Group '%s' does not exist"
-msgstr "Grupa \"%s\" nie istnieje"
-
-#: ../../ipalib/plugins/aci.py:269
-#, python-format
-msgid "ACI with name \"%s\" not found"
-msgstr "Nie odnaleziono ACI o nazwie \"%s\""
-
-#: ../../ipalib/plugins/aci.py:286
-msgid "ACIs"
-msgstr "ACI"
-
-#: ../../ipalib/plugins/aci.py:291
-msgid "ACI name"
-msgstr "Nazwa ACI"
-
-#: ../../ipalib/plugins/aci.py:296
-msgid "Taskgroup"
-msgstr "Grupa zadaniowa"
-
-#: ../../ipalib/plugins/aci.py:297
-msgid "Taskgroup ACI grants access to"
-msgstr "Grupa zadaniowa, do której ACI zapewnia dostęp"
-
-#: ../../ipalib/plugins/aci.py:301
-msgid "User group"
-msgstr "Grupa użytkowników"
-
-#: ../../ipalib/plugins/aci.py:302
-msgid "User group ACI grants access to"
-msgstr "Grupa użytkowników, do której ACI zapewnia dostęp"
-
-#: ../../ipalib/plugins/aci.py:306
-msgid "Permissions"
-msgstr "Uprawnienia"
-
-#: ../../ipalib/plugins/aci.py:307
-#, fuzzy
-msgid ""
-"comma-separated list of permissions to grant(read, write, add, delete, all)"
-msgstr ""
-"lista uprawnień oddzielonych przecinkami do udzielenia (odczyt, zapis, "
-"dodanie, usunięcie, zapisanie do siebie, wszystkie)"
-
-#: ../../ipalib/plugins/aci.py:313
-msgid "Attributes"
-msgstr "Atrybuty"
-
-#: ../../ipalib/plugins/aci.py:314
-msgid "Comma-separated list of attributes"
-msgstr "Lista atrybutów oddzielonych przecinkami"
-
-#: ../../ipalib/plugins/aci.py:318
-msgid "Type"
-msgstr "Typ"
-
-#: ../../ipalib/plugins/aci.py:319
-msgid "type of IPA object (user, group, host)"
-msgstr "typ obiektu IPA (użytkownik, grupa, komputer)"
-
-#: ../../ipalib/plugins/aci.py:324
-msgid "Member of"
-msgstr "Element"
-
-#: ../../ipalib/plugins/aci.py:325
-msgid "Member of a group"
-msgstr "Element grupy"
-
-#: ../../ipalib/plugins/aci.py:329
-msgid "Filter"
-msgstr "Filtr"
-
-#: ../../ipalib/plugins/aci.py:330
-msgid "Legal LDAP filter (e.g. ou=Engineering)"
-msgstr "Dozwolony filtr LDAP (np. ou=Inżynieria)"
-
-#: ../../ipalib/plugins/aci.py:334
-msgid "Subtree"
-msgstr "Poddrzewo"
-
-#: ../../ipalib/plugins/aci.py:335
-msgid "Subtree to apply ACI to"
-msgstr "Poddrzewo, do którego zastosować ACI"
-
-#: ../../ipalib/plugins/aci.py:339
-msgid "Target group"
-msgstr "Grupa docelowa"
-
-#: ../../ipalib/plugins/aci.py:340
-msgid "Group to apply ACI to"
-msgstr "Grupa, do której zastosować ACI"
-
-#: ../../ipalib/plugins/aci.py:344
-msgid "Target your own entry (self)"
-msgstr ""
-
-#: ../../ipalib/plugins/aci.py:345
-msgid "Apply ACI to your own entry (self)"
-msgstr ""
-
-#: ../../ipalib/plugins/aci.py:357
-#, python-format
-msgid "Created ACI \"%(value)s\""
-msgstr "Utworzono ACI \"%(value)s\""
-
-#: ../../ipalib/plugins/aci.py:407
-#, python-format
-msgid "Deleted ACI \"%(value)s\""
-msgstr "Usunięto ACI \"%(value)s\""
-
-#: ../../ipalib/plugins/aci.py:447
-#, python-format
-msgid "Modified ACI \"%(value)s\""
-msgstr "Zmodyfikowano ACI \"%(value)s\""
-
-#: ../../ipalib/plugins/aci.py:519
-#, python-format
-msgid "%(count)d ACI matched"
-msgid_plural "%(count)d ACIs matched"
-msgstr[0] "Pasuje %(count)d ACI"
-msgstr[1] "Pasują %(count)d ACI"
-msgstr[2] "Pasuje %(count)d ACI"
-
-#: ../../ipalib/plugins/krbtpolicy.py:63
-msgid "Manage ticket policy for specific user"
-msgstr "Zarządzaj polityką zgłoszeń dla podanego użytkownika"
-
-#: ../../ipalib/plugins/krbtpolicy.py:68
-msgid "Max life"
-msgstr "Maksymalny czas życia"
-
-#: ../../ipalib/plugins/krbtpolicy.py:69
-#, fuzzy
-msgid "Maximum ticket life (seconds)"
-msgstr "Minimalny czas życia zgłoszenia"
-
-#: ../../ipalib/plugins/krbtpolicy.py:73
-msgid "Max renew"
-msgstr "Maksymalne odnowienie"
-
-#: ../../ipalib/plugins/krbtpolicy.py:74
-#, fuzzy
-msgid "Maximum renewable age (seconds)"
-msgstr "Maksymalny czas, w którym możliwe jest odnowienie"
-
-#: ../../ipalib/plugins/dns.py:131
-msgid "DNS"
-msgstr "DNS"
-
-#: ../../ipalib/plugins/dns.py:136
-msgid "Zone"
-msgstr "Strefa"
-
-#: ../../ipalib/plugins/dns.py:137
-msgid "Zone name (FQDN)"
-msgstr "Nazwa strefy (FQDN)"
-
-#: ../../ipalib/plugins/dns.py:143
-msgid "Authoritative name server"
-msgstr "Autorytatywny serwer nazwa"
-
-#: ../../ipalib/plugins/dns.py:147
-msgid "administrator e-mail address"
-msgstr "adres e-mail administratora"
-
-#: ../../ipalib/plugins/dns.py:153
-msgid "SOA serial"
-msgstr "Numer seryjny SOA"
-
-#: ../../ipalib/plugins/dns.py:157
-msgid "SOA refresh"
-msgstr "Odświeżenie SOA"
-
-#: ../../ipalib/plugins/dns.py:161
-msgid "SOA retry"
-msgstr "Ponowienie SOA"
-
-#: ../../ipalib/plugins/dns.py:165
-msgid "SOA expire"
-msgstr "Wygaszenie SOA"
-
-#: ../../ipalib/plugins/dns.py:169
-msgid "SOA minimum"
-msgstr "Minimalne SOA"
-
-#: ../../ipalib/plugins/dns.py:173
-msgid "SOA time to live"
-msgstr "Czas życia SOA"
-
-#: ../../ipalib/plugins/dns.py:177
-msgid "SOA class"
-msgstr "Klasa SOA"
-
-#: ../../ipalib/plugins/dns.py:182
-msgid "allow dynamic update?"
-msgstr "zezwolić na dynamiczne aktualizacje?"
-
-#: ../../ipalib/plugins/dns.py:186
-msgid "BIND update policy"
-msgstr "Polityka aktualizacji BIND"
-
-#: ../../ipalib/plugins/dns.py:411 ../../ipalib/plugins/dns.py:445
-#: ../../ipalib/plugins/dns.py:480 ../../ipalib/plugins/dns.py:595
-#: ../../ipalib/plugins/dns.py:680 ../../ipalib/plugins/dns.py:804
-msgid "Zone name"
-msgstr "Nazwa strefy"
-
-#: ../../ipalib/plugins/dns.py:485
-msgid "resource name"
-msgstr "nazwa zasobu"
-
-#: ../../ipalib/plugins/dns.py:490 ../../ipalib/plugins/dns.py:605
-#: ../../ipalib/plugins/dns.py:696
-msgid "Record type"
-msgstr "Typ wpisu"
-
-#: ../../ipalib/plugins/dns.py:494 ../../ipalib/plugins/dns.py:609
-msgid "Data"
-msgstr "Dane"
-
-#: ../../ipalib/plugins/dns.py:495 ../../ipalib/plugins/dns.py:610
-msgid "Type-specific data"
-msgstr "Dane specyficzne dla typu"
-
-#: ../../ipalib/plugins/dns.py:502
-msgid "Time to live"
-msgstr "Czas życia"
-
-#: ../../ipalib/plugins/dns.py:507
-msgid "Class"
-msgstr "Klasa"
-
-#: ../../ipalib/plugins/dns.py:600 ../../ipalib/plugins/dns.py:692
-#: ../../ipalib/plugins/dns.py:809
-msgid "Resource name"
-msgstr "Nazwa zasobu"
-
-#: ../../ipalib/plugins/dns.py:685
-msgid "Search criteria"
-msgstr "Kryterium wyszukiwania"
-
-#: ../../ipalib/plugins/dns.py:700
-msgid "type-specific data"
-msgstr "dane specyficzne dla typu"
-
-#: ../../ipalib/plugins/dns.py:850
-#, fuzzy, python-format
-msgid "Found '%(value)s'"
-msgstr "Dodano grupę \"%(value)s\""
-
-#: ../../ipalib/plugins/dns.py:854
-#, fuzzy
-msgid "Hostname"
-msgstr "Nazwa komputera"
-
-#: ../../ipalib/plugins/dns.py:867
-#, fuzzy, python-format
-msgid "Host '%(host)s' not found"
-msgstr "%(pkey)s: nie odnaleziono %(oname)s"
-
-#: ../../ipalib/plugins/automount.py:108
-msgid "Automount location name"
-msgstr "Automatyczne montowanie nazwy położenia"
-
-#: ../../ipalib/plugins/automount.py:224
-msgid "Map"
-msgstr "Mapa"
-
-#: ../../ipalib/plugins/automount.py:225
-msgid "Automount map name"
-msgstr "Automatyczne montowanie nazwy mapy"
-
-#: ../../ipalib/plugins/automount.py:234
-msgid "Automount Maps"
-msgstr "Automatyczne montowanie map"
-
-#: ../../ipalib/plugins/automount.py:306
-msgid "Key"
-msgstr "Klucz"
-
-#: ../../ipalib/plugins/automount.py:307
-msgid "Automount key name"
-msgstr "Automatyczne montowanie nazw kluczy"
-
-#: ../../ipalib/plugins/automount.py:312
-msgid "Mount information"
-msgstr "Informacje o montowaniu"
-
-#: ../../ipalib/plugins/automount.py:316
-msgid "description"
-msgstr "opis"
-
-#: ../../ipalib/plugins/automount.py:320
-msgid "Automount Keys"
-msgstr "Automatyczne montowanie kluczy"
-
-#: ../../ipalib/plugins/automount.py:340
-msgid "Mount point"
-msgstr "Punkt montowania"
-
-#: ../../ipalib/plugins/automount.py:344
-msgid "Parent map"
-msgstr "Mapa nadrzędna"
-
-#: ../../ipalib/plugins/automount.py:345
-msgid "Name of parent automount map (default: auto.master)"
-msgstr ""
-"Nazwa nadrzędnej mapy automatycznego montowania (domyślnie: auto.master)"
-
-#: ../../ipalib/plugins/netgroup.py:57
-#, fuzzy
-msgid "Member Host"
-msgstr "Komputer elementu"
-
-#: ../../ipalib/plugins/netgroup.py:63
-msgid "External host"
-msgstr "Zewnętrzny komputer"
-
-#: ../../ipalib/plugins/netgroup.py:85
-msgid "Net Groups"
-msgstr "Grupy sieciowe"
-
-#: ../../ipalib/plugins/netgroup.py:90
-msgid "Netgroup name"
-msgstr "Nazwa grupy sieciowej"
-
-#: ../../ipalib/plugins/netgroup.py:97
-msgid "Netgroup description"
-msgstr "Opis grupy sieciowej"
-
-#: ../../ipalib/plugins/netgroup.py:101
-msgid "NIS domain name"
-msgstr "Nazwa domeny NIS"
-
-#: ../../ipalib/plugins/netgroup.py:106
-msgid "IPA unique ID"
-msgstr "Unikalny identyfikator IPA"
-
-#: ../../ipalib/plugins/misc.py:38
+#: ipalib/plugins/misc.py:38
 #, python-format
 msgid "%(count)d variables"
 msgstr "%(count)d zmiennych"
 
-#: ../../ipalib/plugins/misc.py:61
+#: ipalib/plugins/misc.py:61
 msgid "Total number of variables env (>= count)"
 msgstr "Całkowita liczba zmiennych środowiskowych (>= licznik)"
 
-#: ../../ipalib/plugins/misc.py:66
+#: ipalib/plugins/misc.py:66
 msgid "Number of variables returned (<= total)"
 msgstr "Liczba zwróconych zmiennych (<= razem)"
 
-#: ../../ipalib/plugins/misc.py:109
+#: ipalib/plugins/misc.py:109
 #, python-format
 msgid "%(count)d plugin loaded"
 msgid_plural "%(count)d plugins loaded"
@@ -1502,147 +1615,307 @@ msgstr[0] "Wczytano %(count)d wtyczkę"
 msgstr[1] "Wczytano %(count)d wtyczki"
 msgstr[2] "Wczytano %(count)d wtyczek"
 
-#: ../../ipalib/plugins/misc.py:116
+#: ipalib/plugins/misc.py:116
 msgid "Number of plugins loaded"
 msgstr "Liczba wczytanych wtyczek"
 
-#: ../../ipalib/plugins/user.py:84
-msgid "User login"
-msgstr "Login użytkownika"
+#: ipalib/plugins/netgroup.py:57
+#, fuzzy
+msgid "Member Host"
+msgstr "Komputer elementu"
 
-#: ../../ipalib/plugins/user.py:91
-msgid "First name"
-msgstr "Imię"
+#: ipalib/plugins/netgroup.py:63
+msgid "External host"
+msgstr "Zewnętrzny komputer"
 
-#: ../../ipalib/plugins/user.py:95
-msgid "Last name"
-msgstr "Nazwisko"
-
-#: ../../ipalib/plugins/user.py:103
-msgid "GECOS field"
-msgstr "Pole GECOS"
-
-#: ../../ipalib/plugins/user.py:109
-msgid "Login shell"
-msgstr "Powłoka logowania"
-
-#: ../../ipalib/plugins/user.py:114
-msgid "Kerberos principal"
-msgstr "Naczelnik Kerberosa"
-
-#: ../../ipalib/plugins/user.py:120
-msgid "Email address"
-msgstr "Adres e-mail"
-
-#: ../../ipalib/plugins/user.py:124
-msgid "Password"
-msgstr "Hasło"
-
-#: ../../ipalib/plugins/user.py:125
-msgid "Set the user password"
-msgstr "Ustaw hasło użytkownika"
-
-#: ../../ipalib/plugins/user.py:132
-msgid "UID"
-msgstr "UID"
-
-#: ../../ipalib/plugins/user.py:133
-msgid "User ID Number (system will assign one if not provided)"
-msgstr ""
-
-#: ../../ipalib/plugins/user.py:139
-msgid "Street address"
-msgstr "Adres zamieszkania"
-
-#: ../../ipalib/plugins/user.py:142
-msgid "Groups"
-msgstr "Grupy"
-
-#: ../../ipalib/plugins/user.py:146
-msgid "Netgroups"
+#: ipalib/plugins/netgroup.py:85
+msgid "Net Groups"
 msgstr "Grupy sieciowe"
 
-#: ../../ipalib/plugins/user.py:150
-msgid "Rolegroups"
+#: ipalib/plugins/netgroup.py:90
+msgid "Netgroup name"
+msgstr "Nazwa grupy sieciowej"
+
+#: ipalib/plugins/netgroup.py:97
+msgid "Netgroup description"
+msgstr "Opis grupy sieciowej"
+
+#: ipalib/plugins/netgroup.py:101
+msgid "NIS domain name"
+msgstr "Nazwa domeny NIS"
+
+#: ipalib/plugins/netgroup.py:106
+msgid "IPA unique ID"
+msgstr "Unikalny identyfikator IPA"
+
+#: ipalib/plugins/pwpolicy.py:84
+#, python-format
+msgid "priority must be a unique value (%(prio)d already used by %(gname)s)"
+msgstr ""
+
+#: ipalib/plugins/pwpolicy.py:173
+msgid "Group"
+msgstr "Grupa"
+
+#: ipalib/plugins/pwpolicy.py:174
+#, fuzzy
+msgid "Manage password policy for specific group"
+msgstr "Zarządzaj polityką zgłoszeń dla podanego użytkownika"
+
+#: ipalib/plugins/pwpolicy.py:179
+msgid "Max lifetime (days)"
+msgstr "Maksymalny czas życia (w dniach)"
+
+#: ipalib/plugins/pwpolicy.py:180
+msgid "Maximum password lifetime (in days)"
+msgstr "Maksymalny czas życia hasła (w dniach)"
+
+#: ipalib/plugins/pwpolicy.py:185
+msgid "Min lifetime (hours)"
+msgstr "Minimalny czas życia (w godzinach)"
+
+#: ipalib/plugins/pwpolicy.py:186
+msgid "Minimum password lifetime (in hours)"
+msgstr "Minimalny czas życia hasła (w godzinach)"
+
+#: ipalib/plugins/pwpolicy.py:191
+msgid "History size"
+msgstr "Rozmiar historii"
+
+#: ipalib/plugins/pwpolicy.py:192
+msgid "Password history size"
+msgstr "Rozmiar historii haseł"
+
+#: ipalib/plugins/pwpolicy.py:197
+msgid "Character classes"
+msgstr "Klasy znaków"
+
+#: ipalib/plugins/pwpolicy.py:198
+msgid "Minimum number of character classes"
+msgstr "Minimalna liczba klas znaków"
+
+#: ipalib/plugins/pwpolicy.py:204
+msgid "Min length"
+msgstr "Minimalna długość"
+
+#: ipalib/plugins/pwpolicy.py:205
+msgid "Minimum length of password"
+msgstr "Minimalna długość hasła"
+
+#: ipalib/plugins/pwpolicy.py:210
+msgid "Priority"
+msgstr "Priorytet"
+
+#: ipalib/plugins/pwpolicy.py:211
+#, fuzzy
+msgid "Priority of the policy (higher number means lower priority"
+msgstr "Priorytet polityki (wyższy numer równa się niższemu priorytetowi)"
+
+#: ipalib/plugins/pwpolicy.py:263
+#, fuzzy
+msgid "Maximum password life must be greater than minimum."
+msgstr "Maksymalny czas życia hasła (w dniach)"
+
+#: ipalib/plugins/pwpolicy.py:328
+msgid "priority cannot be set on global policy"
+msgstr "nie można ustawiać priorytetu dla globalnej polityki"
+
+#: ipalib/plugins/pwpolicy.py:367
+msgid "User"
+msgstr "Użytkownik"
+
+#: ipalib/plugins/pwpolicy.py:368
+#, fuzzy
+msgid "Display effective policy for a specific user"
+msgstr "Zarządzaj polityką zgłoszeń dla podanego użytkownika"
+
+#: ipalib/plugins/rolegroup.py:79
+msgid "Role Groups"
 msgstr "Grupy rol"
 
-#: ../../ipalib/plugins/user.py:154
-msgid "Taskgroups"
-msgstr "Grupy zadaniowe"
+#: ipalib/plugins/rolegroup.py:84
+msgid "Role-group name"
+msgstr "Nazwa grupy rol"
 
-#: ../../ipalib/plugins/user.py:167
-#, python-format
-msgid "Added user \"%(value)s\""
-msgstr "Dodano użytkownika \"%(value)s\""
+#: ipalib/plugins/rolegroup.py:91
+msgid "A description of this role-group"
+msgstr "Opis tej grupy rol"
 
-#: ../../ipalib/plugins/user.py:216
-#, python-format
-msgid "Deleted user \"%(value)s\""
-msgstr "Usunięto użytkownika \"%(value)s\""
+#: ipalib/plugins/rolegroup.py:102
+msgid "Member of task-groups"
+msgstr "Element grupy zadaniowej"
 
-#: ../../ipalib/plugins/user.py:235
+#: ipalib/plugins/rolegroup.py:115
 #, python-format
-msgid "Modified user \"%(value)s\""
+msgid "Added rolegroup \"%(value)s\""
+msgstr "Dodano grupę roli \"%(value)s\""
+
+#: ipalib/plugins/rolegroup.py:125
+#, python-format
+msgid "Deleted rolegroup \"%(value)s\""
+msgstr "Usunięto grupę roli \"%(value)s\""
+
+#: ipalib/plugins/rolegroup.py:135
+#, python-format
+msgid "Modified rolegroup \"%(value)s\""
+msgstr "Zmodyfikowano grupę roli \"%(value)s\""
+
+#: ipalib/plugins/rolegroup.py:146
+#, python-format
+msgid "%(count)d rolegroup matched"
+msgid_plural "%(count)d rolegroups matched"
+msgstr[0] "Pasuje %(count)d grupa roli"
+msgstr[1] "Pasują %(count)d grupy roli"
+msgstr[2] "Pasuje %(count)d grup roli"
+
+#: ipalib/plugins/service.py:163
+msgid "Service principal"
+msgstr "Naczelnik usługi"
+
+#: ipalib/plugins/service.py:181
+msgid "force principal name even if not in DNS"
+msgstr "wymuszenie nazwy naczelnika nawet, jeśli nie w DNS"
+
+#: ipalib/plugins/service.py:261
+#, fuzzy, python-format
+msgid "Modified service \"%(value)s\""
 msgstr "Zmodyfikowano użytkownika \"%(value)s\""
 
-#: ../../ipalib/plugins/user.py:247
-msgid "Self"
-msgstr ""
-
-#: ../../ipalib/plugins/user.py:248
-msgid "Display user record for current Kerberos principal"
-msgstr ""
-
-#: ../../ipalib/plugins/user.py:258
-#, python-format
-msgid "%(count)d user matched"
-msgid_plural "%(count)d users matched"
+#: ipalib/plugins/service.py:298
+#, fuzzy, python-format
+msgid "%(count)d service matched"
+msgid_plural "%(count)d services matched"
 msgstr[0] "Pasuje %(count)d użytkownik"
 msgstr[1] "Pasuje %(count)d użytkowników"
 msgstr[2] "Pasuje %(count)d użytkowników"
 
-#: ../../ipalib/plugins/user.py:278
-#, python-format
-msgid "Locked user \"%(value)s\""
-msgstr "Zablokowany użytkownik \"%(value)s\""
+#: ipalib/plugins/service.py:396
+#, fuzzy
+msgid "Service principal has no kerberos key"
+msgstr "Naczelnik usługi"
 
-#: ../../ipalib/plugins/user.py:304
-#, python-format
-msgid "Unlocked user \"%(value)s\""
-msgstr "Odblokowany użytkownik \"%(value)s\""
+#: ipalib/plugins/sudocmd.py:60
+msgid "SudoCmds"
+msgstr ""
 
-#: ../../ipalib/plugins/taskgroup.py:51
+#: ipalib/plugins/sudocmd.py:65
+msgid "Sudo Command"
+msgstr ""
+
+#: ipalib/plugins/sudocmd.py:72
+#, fuzzy
+msgid "A description of this command"
+msgstr "Opis tego komputera"
+
+#: ipalib/plugins/sudocmd.py:99
+#, fuzzy, python-format
+msgid "Added sudo command \"%(value)s\""
+msgstr "Dodano komputer \"%(value)s\""
+
+#: ipalib/plugins/sudocmd.py:108
+#, fuzzy, python-format
+msgid "Deleted sudo command \"%(value)s\""
+msgstr "Usunięto komputer \"%(value)s\""
+
+#: ipalib/plugins/sudocmd.py:117
+#, fuzzy, python-format
+msgid "Modified sudo command \"%(value)s\""
+msgstr "Zmodyfikowano komputer \"%(value)s\""
+
+#: ipalib/plugins/sudocmd.py:127
+#, fuzzy, python-format
+msgid "%(count)d sudo command matched"
+msgid_plural "%(count)d sudo command matched"
+msgstr[0] "Pasuje %(count)d komputer"
+msgstr[1] "Pasuje %(count)d komputery"
+msgstr[2] "Pasuje %(count)d komputerów"
+
+#: ipalib/plugins/sudocmdgroup.py:66 ipalib/plugins/sudocmdgroup.py:85
+#: ipalib/plugins/sudorule.py:81 ipalib/plugins/sudorule.py:85
+msgid "Sudo Command Groups"
+msgstr ""
+
+#: ipalib/plugins/sudocmdgroup.py:71
+#, fuzzy
+msgid "Sudo Command Group name"
+msgstr "Nazwa grupy"
+
+#: ipalib/plugins/sudocmdgroup.py:81
+msgid "Commands"
+msgstr ""
+
+#: ipalib/plugins/sudocmdgroup.py:98
+#, fuzzy, python-format
+msgid "Added sudo command group \"%(value)s\""
+msgstr "Dodano grupę \"%(value)s\""
+
+#: ipalib/plugins/sudocmdgroup.py:108
+#, fuzzy, python-format
+msgid "Deleted sudo command group \"%(value)s\""
+msgstr "Usunięto grupę \"%(value)s\""
+
+#: ipalib/plugins/sudocmdgroup.py:118
+#, fuzzy, python-format
+msgid "Modified sudo command group \"%(value)s\""
+msgstr "Zmodyfikowano grupę \"%(value)s\""
+
+#: ipalib/plugins/sudocmdgroup.py:129
+#, fuzzy, python-format
+msgid "%(count)d sudo command group matched"
+msgid_plural "%(count)d sudo command groups matched"
+msgstr[0] "Pasuje %(count)d grupa"
+msgstr[1] "Pasują %(count)d grupy"
+msgstr[2] "Pasuje %(count)d grup"
+
+#: ipalib/plugins/sudorule.py:48
+msgid "SudoRule"
+msgstr ""
+
+#: ipalib/plugins/sudorule.py:73
+msgid "Sudo Allow Commands"
+msgstr ""
+
+#: ipalib/plugins/sudorule.py:77
+msgid "Sudo Deny Commands"
+msgstr ""
+
+#: ipalib/plugins/sudorule.py:109
+#, fuzzy, python-format
+msgid "Added sudo rule \"%(value)s\""
+msgstr "Dodano użytkownika \"%(value)s\""
+
+#: ipalib/plugins/taskgroup.py:51
 msgid "Task Groups"
 msgstr "Grupy zadaniowe"
 
-#: ../../ipalib/plugins/taskgroup.py:56
+#: ipalib/plugins/taskgroup.py:56
 msgid "Task-group name"
 msgstr "Nazwa grupy zadaniowej"
 
-#: ../../ipalib/plugins/taskgroup.py:63
+#: ipalib/plugins/taskgroup.py:63
 msgid "Task-group description"
 msgstr "Opis grupy zadaniowej"
 
-#: ../../ipalib/plugins/taskgroup.py:74
+#: ipalib/plugins/taskgroup.py:74
 msgid "Member role-groups"
 msgstr "Element grupy zadaniowej"
 
-#: ../../ipalib/plugins/taskgroup.py:87
+#: ipalib/plugins/taskgroup.py:87
 #, python-format
 msgid "Added taskgroup \"%(value)s\""
 msgstr "Dodano grupę zadaniową \"%(value)s\""
 
-#: ../../ipalib/plugins/taskgroup.py:97
+#: ipalib/plugins/taskgroup.py:97
 #, python-format
 msgid "Deleted taskgroup \"%(value)s\""
 msgstr "Usunięto grupę zadaniową \"%(value)s\""
 
-#: ../../ipalib/plugins/taskgroup.py:107
+#: ipalib/plugins/taskgroup.py:107
 #, python-format
 msgid "Modified taskgroup \"%(value)s\""
 msgstr "Zmodyfikowano grupę zadaniową \"%(value)s\""
 
-#: ../../ipalib/plugins/taskgroup.py:118
+#: ipalib/plugins/taskgroup.py:118
 #, python-format
 msgid "%(count)d taskgroup matched"
 msgid_plural "%(count)d taskgroups matched"
@@ -1650,210 +1923,153 @@ msgstr[0] "Pasuje %(count)d grupa zadaniowa"
 msgstr[1] "Pasują %(count)d grupy zadaniowe"
 msgstr[2] "Pasuje %(count)d grup zadaniowych"
 
-#: ../../ipalib/plugins/hostgroup.py:74
-msgid "Host-group"
-msgstr "Grupa komputerów"
+#: ipalib/plugins/user.py:84
+msgid "User login"
+msgstr "Login użytkownika"
 
-#: ../../ipalib/plugins/hostgroup.py:75
-msgid "Name of host-group"
-msgstr "Nazwa grupy komputerów"
+#: ipalib/plugins/user.py:91
+msgid "First name"
+msgstr "Imię"
 
-#: ../../ipalib/plugins/hostgroup.py:82
-msgid "A description of this host-group"
-msgstr "Opis tej grupy komputerów"
+#: ipalib/plugins/user.py:95
+msgid "Last name"
+msgstr "Nazwisko"
 
-#: ../../ipalib/plugins/hostgroup.py:85
-msgid "Member hosts"
-msgstr "Element komputerów"
+#: ipalib/plugins/user.py:103
+msgid "GECOS field"
+msgstr "Pole GECOS"
 
-#: ../../ipalib/plugins/hostgroup.py:89
-msgid "Member host-groups"
-msgstr "Element grupy komputerów"
+#: ipalib/plugins/user.py:109
+msgid "Login shell"
+msgstr "Powłoka logowania"
 
-#: ../../ipalib/plugins/hostgroup.py:106
-#, python-format
-msgid "Added hostgroup \"%(value)s\""
-msgstr "Dodano grupę komputerów \"%(value)s\""
+#: ipalib/plugins/user.py:114
+msgid "Kerberos principal"
+msgstr "Naczelnik Kerberosa"
 
-#: ../../ipalib/plugins/hostgroup.py:116
-#, python-format
-msgid "Deleted hostgroup \"%(value)s\""
-msgstr "Usunięto grupę komputerów \"%(value)s\""
-
-#: ../../ipalib/plugins/hostgroup.py:126
-#, python-format
-msgid "Modified hostgroup \"%(value)s\""
-msgstr "Zmodyfikowano grupę komputerów \"%(value)s\""
-
-#: ../../ipalib/plugins/hostgroup.py:137
-#, python-format
-msgid "%(count)d hostgroup matched"
-msgid_plural "%(count)d hostgroups matched"
-msgstr[0] "Pasuje %(count)d grupa komputerów"
-msgstr[1] "Pasują %(count)d grupy komputerów"
-msgstr[2] "Pasuje %(count)d grup komputerów"
-
-#: ../../ipalib/plugins/pwpolicy.py:84
-#, python-format
-msgid "priority must be a unique value (%(prio)d already used by %(gname)s)"
-msgstr ""
-
-#: ../../ipalib/plugins/pwpolicy.py:173
-msgid "Group"
-msgstr "Grupa"
-
-#: ../../ipalib/plugins/pwpolicy.py:174
-#, fuzzy
-msgid "Manage password policy for specific group"
-msgstr "Zarządzaj polityką zgłoszeń dla podanego użytkownika"
-
-#: ../../ipalib/plugins/pwpolicy.py:179
-msgid "Max lifetime (days)"
-msgstr "Maksymalny czas życia (w dniach)"
-
-#: ../../ipalib/plugins/pwpolicy.py:180
-msgid "Maximum password lifetime (in days)"
-msgstr "Maksymalny czas życia hasła (w dniach)"
-
-#: ../../ipalib/plugins/pwpolicy.py:185
-msgid "Min lifetime (hours)"
-msgstr "Minimalny czas życia (w godzinach)"
-
-#: ../../ipalib/plugins/pwpolicy.py:186
-msgid "Minimum password lifetime (in hours)"
-msgstr "Minimalny czas życia hasła (w godzinach)"
-
-#: ../../ipalib/plugins/pwpolicy.py:191
-msgid "History size"
-msgstr "Rozmiar historii"
-
-#: ../../ipalib/plugins/pwpolicy.py:192
-msgid "Password history size"
-msgstr "Rozmiar historii haseł"
-
-#: ../../ipalib/plugins/pwpolicy.py:197
-msgid "Character classes"
-msgstr "Klasy znaków"
-
-#: ../../ipalib/plugins/pwpolicy.py:198
-msgid "Minimum number of character classes"
-msgstr "Minimalna liczba klas znaków"
-
-#: ../../ipalib/plugins/pwpolicy.py:204
-msgid "Min length"
-msgstr "Minimalna długość"
-
-#: ../../ipalib/plugins/pwpolicy.py:205
-msgid "Minimum length of password"
-msgstr "Minimalna długość hasła"
-
-#: ../../ipalib/plugins/pwpolicy.py:210
-msgid "Priority"
-msgstr "Priorytet"
-
-#: ../../ipalib/plugins/pwpolicy.py:211
-#, fuzzy
-msgid "Priority of the policy (higher number means lower priority"
-msgstr "Priorytet polityki (wyższy numer równa się niższemu priorytetowi)"
-
-#: ../../ipalib/plugins/pwpolicy.py:263
-#, fuzzy
-msgid "Maximum password life must be greater than minimum."
-msgstr "Maksymalny czas życia hasła (w dniach)"
-
-#: ../../ipalib/plugins/pwpolicy.py:326
-msgid "priority cannot be set on global policy"
-msgstr "nie można ustawiać priorytetu dla globalnej polityki"
-
-#: ../../ipalib/plugins/pwpolicy.py:365
-msgid "User"
-msgstr "Użytkownik"
-
-#: ../../ipalib/plugins/pwpolicy.py:366
-#, fuzzy
-msgid "Display effective policy for a specific user"
-msgstr "Zarządzaj polityką zgłoszeń dla podanego użytkownika"
-
-#: ../../ipalib/plugins/internal.py:39
-msgid "Logged In As"
-msgstr ""
-
-#: ../../ipalib/plugins/internal.py:41
-msgid "Add"
-msgstr ""
-
-#: ../../ipalib/plugins/internal.py:42
-msgid "Find"
-msgstr ""
-
-#: ../../ipalib/plugins/internal.py:43
-msgid "Reset"
-msgstr ""
-
-#: ../../ipalib/plugins/internal.py:44
-msgid "Update"
-msgstr ""
-
-#: ../../ipalib/plugins/internal.py:45
-msgid "Enroll"
-msgstr ""
-
-#: ../../ipalib/plugins/internal.py:48
-msgid "Quick Links"
-msgstr ""
-
-#: ../../ipalib/plugins/internal.py:51
-msgid "Identity Details"
-msgstr ""
-
-#: ../../ipalib/plugins/internal.py:52
-msgid "Account Details"
-msgstr ""
-
-#: ../../ipalib/plugins/internal.py:53
-msgid "Contact Details"
-msgstr ""
-
-#: ../../ipalib/plugins/internal.py:54
-#, fuzzy
-msgid "Mailing Address"
+#: ipalib/plugins/user.py:120
+msgid "Email address"
 msgstr "Adres e-mail"
 
-#: ../../ipalib/plugins/internal.py:55
-msgid "      Employee Information"
+#: ipalib/plugins/user.py:124
+msgid "Password"
+msgstr "Hasło"
+
+#: ipalib/plugins/user.py:125
+msgid "Set the user password"
+msgstr "Ustaw hasło użytkownika"
+
+#: ipalib/plugins/user.py:132
+msgid "UID"
+msgstr "UID"
+
+#: ipalib/plugins/user.py:133
+msgid "User ID Number (system will assign one if not provided)"
 msgstr ""
 
-#: ../../ipalib/plugins/internal.py:56
+#: ipalib/plugins/user.py:139
+msgid "Street address"
+msgstr "Adres zamieszkania"
+
+#: ipalib/plugins/user.py:142
+msgid "Groups"
+msgstr "Grupy"
+
+#: ipalib/plugins/user.py:146
+msgid "Netgroups"
+msgstr "Grupy sieciowe"
+
+#: ipalib/plugins/user.py:150
+msgid "Rolegroups"
+msgstr "Grupy rol"
+
+#: ipalib/plugins/user.py:154
+msgid "Taskgroups"
+msgstr "Grupy zadaniowe"
+
+#: ipalib/plugins/user.py:159
+msgid "Telephone Number"
+msgstr ""
+
+#: ipalib/plugins/user.py:161
+msgid "Mobile Telephone Number"
+msgstr ""
+
+#: ipalib/plugins/user.py:163
 #, fuzzy
-msgid "Misc. Information"
-msgstr "Informacje o montowaniu"
+msgid "Pager Number"
+msgstr "Numer seryjny"
 
-#: ../../ipalib/plugins/internal.py:57
-msgid "Back to Top"
+#: ipalib/plugins/user.py:166
+#, fuzzy
+msgid "Fax Number"
+msgstr "Numer seryjny"
+
+#: ipalib/plugins/user.py:177
+#, python-format
+msgid "Added user \"%(value)s\""
+msgstr "Dodano użytkownika \"%(value)s\""
+
+#: ipalib/plugins/user.py:226
+#, python-format
+msgid "Deleted user \"%(value)s\""
+msgstr "Usunięto użytkownika \"%(value)s\""
+
+#: ipalib/plugins/user.py:240
+#, python-format
+msgid "Modified user \"%(value)s\""
+msgstr "Zmodyfikowano użytkownika \"%(value)s\""
+
+#: ipalib/plugins/user.py:252
+msgid "Self"
 msgstr ""
 
-#: ../../ipalib/plugins/internal.py:62
-msgid "Name of object to export"
+#: ipalib/plugins/user.py:253
+msgid "Display user record for current Kerberos principal"
 msgstr ""
 
-#: ../../ipalib/plugins/internal.py:67
-msgid "Dict of JSON encoded IPA Objects"
-msgstr ""
+#: ipalib/plugins/user.py:263
+#, python-format
+msgid "%(count)d user matched"
+msgid_plural "%(count)d users matched"
+msgstr[0] "Pasuje %(count)d użytkownik"
+msgstr[1] "Pasuje %(count)d użytkowników"
+msgstr[2] "Pasuje %(count)d użytkowników"
 
-#: ../../ipalib/plugins/internal.py:68
-msgid "Dict of I18N messages"
-msgstr ""
+#: ipalib/plugins/user.py:283
+#, fuzzy, python-format
+msgid "Disabled user account \"%(value)s\""
+msgstr "Usunięto użytkownika \"%(value)s\""
 
-#: ../../ipaserver/install/certs.py:603 ../../ipaserver/plugins/dogtag.py:1313
-#: ../../ipaserver/plugins/dogtag.py:1398
-#: ../../ipaserver/plugins/dogtag.py:1463
-#: ../../ipaserver/plugins/dogtag.py:1543
-#: ../../ipaserver/plugins/dogtag.py:1602
+#: ipalib/plugins/user.py:309
+#, fuzzy, python-format
+msgid "Enabled user account \"%(value)s\""
+msgstr "Odblokowany użytkownik \"%(value)s\""
+
+#: ipaserver/install/certs.py:599 ipaserver/plugins/dogtag.py:1313
+#: ipaserver/plugins/dogtag.py:1398 ipaserver/plugins/dogtag.py:1463
+#: ipaserver/plugins/dogtag.py:1543 ipaserver/plugins/dogtag.py:1602
 #, python-format
 msgid "Unable to communicate with CMS (%s)"
 msgstr "Nie można komunikować się z CMS (%s)"
 
-#: ../../ipaserver/plugins/selfsign.py:97
+#: ipaserver/plugins/join.py:54
+msgid "The hostname to register as"
+msgstr "Nazwa komputera, pod jaką zarejestrować"
+
+#: ipaserver/plugins/join.py:62
+msgid "The IPA realm"
+msgstr "Obszar IPA"
+
+#: ipaserver/plugins/join.py:68
+msgid "Hardware platform of the host (e.g. Lenovo T61)"
+msgstr "Platforma sprzętowa komputera (np. Lenovo T61)"
+
+#: ipaserver/plugins/join.py:72
+msgid "Operating System and version of the host (e.g. Fedora 9)"
+msgstr "System operacyjny komputera i jego wersja (np. Fedora 9)"
+
+#: ipaserver/plugins/selfsign.py:98
 #, python-format
 msgid ""
 "Request subject \"%(request_subject)s\" does not match the form "
@@ -1862,48 +2078,629 @@ msgstr ""
 "Temat żądania \"%(request_subject)s\" nie pasuje do formatu "
 "\"%(subject_base)s\""
 
-#: ../../ipaserver/plugins/selfsign.py:102
+#: ipaserver/plugins/selfsign.py:103
 #, python-format
 msgid "unable to decode csr: %s"
 msgstr "nie można dekodować csr: %s"
 
-#: ../../ipaserver/plugins/selfsign.py:123
-#: ../../ipaserver/plugins/selfsign.py:138
+#: ipaserver/plugins/selfsign.py:124 ipaserver/plugins/selfsign.py:139
 msgid "file operation"
 msgstr "działanie na pliku"
 
-#: ../../ipaserver/plugins/selfsign.py:152
+#: ipaserver/plugins/selfsign.py:153
 msgid "cannot obtain next serial number"
 msgstr "nie można uzyskać następnego numeru szeregowego"
 
-#: ../../ipaserver/plugins/selfsign.py:187
+#: ipaserver/plugins/selfsign.py:188
 msgid "certutil failure"
 msgstr "narzędzie certyfikatów nie powiodło się"
 
-#: ../../ipaserver/plugins/join.py:54
-msgid "The hostname to register as"
-msgstr "Nazwa komputera, pod jaką zarejestrować"
+#: ipa-client/config.c:55
+#, c-format
+msgid "cannot open configuration file %s\n"
+msgstr ""
 
-#: ../../ipaserver/plugins/join.py:62
-msgid "The IPA realm"
-msgstr "Obszar IPA"
+#: ipa-client/config.c:62
+#, c-format
+msgid "cannot stat() configuration file %s\n"
+msgstr ""
 
-#: ../../ipaserver/plugins/join.py:68
-msgid "Hardware platform of the host (e.g. Lenovo T61)"
-msgstr "Platforma sprzętowa komputera (np. Lenovo T61)"
+#: ipa-client/config.c:75
+#, c-format
+msgid "read error\n"
+msgstr ""
 
-#: ../../ipaserver/plugins/join.py:72
-msgid "Operating System and version of the host (e.g. Fedora 9)"
-msgstr "System operacyjny komputera i jego wersja (np. Fedora 9)"
+#: ipa-client/ipa-getkeytab.c:138 ipa-client/ipa-getkeytab.c:838
+#, c-format
+msgid "No system preferred enctypes ?!\n"
+msgstr ""
 
-#~ msgid "Service name"
-#~ msgstr "Nazwa usługi"
+#: ipa-client/ipa-getkeytab.c:146
+#, c-format
+msgid "Out of memory!?\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:164 ipa-client/ipa-getkeytab.c:179
+#, c-format
+msgid "Out of memory\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:194
+#, c-format
+msgid "Warning unrecognized encryption type: [%s]\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:209
+#, c-format
+msgid "Warning unrecognized salt type: [%s]\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:235
+#, c-format
+msgid "Enctype comparison failed!\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:297
+#, c-format
+msgid "Failed to create random key!\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:310 ipa-client/ipa-getkeytab.c:327
+#: ipa-client/ipa-getkeytab.c:335 ipa-client/ipa-getkeytab.c:372
+#, c-format
+msgid "Failed to create key!\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:317 ipa-client/ipa-getkeytab.c:350
+#, c-format
+msgid "Out of memory!\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:361
+#, c-format
+msgid "Bad or unsupported salt type (%d)!\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:481
+#, c-format
+msgid "No keys accepted by KDC\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:496
+#, c-format
+msgid "Out of memory \n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:534
+#, c-format
+msgid "Out of Memory!\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:541
+#, c-format
+msgid "Failed to create control!\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:565
+#, c-format
+msgid "Unable to initialize ldap library!\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:572
+#, c-format
+msgid "Unable to set ldap options!\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:579
+#, c-format
+msgid "Simple bind failed\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:589
+#, c-format
+msgid "SASL Bind failed!\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:605 ipa-client/ipa-getkeytab.c:618
+#: ipa-client/ipa-getkeytab.c:625 ipa-client/ipa-getkeytab.c:632
+#, c-format
+msgid "Operation failed! %s\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:638 ipa-client/ipa-getkeytab.c:648
+#, c-format
+msgid "Missing reply control!\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:655
+#, c-format
+msgid "ber_init() failed, Invalid control ?!\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:674
+#, c-format
+msgid "ber_scanf() failed, Invalid control ?!\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:715
+#, fuzzy
+msgid "New Principal Password"
+msgstr "Nazwa naczelnika"
+
+#: ipa-client/ipa-getkeytab.c:721
+msgid "Verify Principal Password"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:779 ipa-client/ipa-join.c:965
+msgid "Print as little as possible"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:779 ipa-client/ipa-join.c:965
+msgid "Output only on errors"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:781
+msgid "Contact this specific KDC Server"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:782
+#, fuzzy
+msgid "Server Name"
+msgstr "Nazwa usługi"
+
+#: ipa-client/ipa-getkeytab.c:784 ipa-client/ipa-rmkeytab.c:188
+msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:785 ipa-client/ipa-rmkeytab.c:189
+#, fuzzy
+msgid "Kerberos Service Principal Name"
+msgstr "Naczelnik Kerberosa"
+
+#: ipa-client/ipa-getkeytab.c:787 ipa-client/ipa-join.c:973
+#: ipa-client/ipa-rmkeytab.c:191
+msgid "File were to store the keytab information"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:788 ipa-client/ipa-join.c:973
+#: ipa-client/ipa-rmkeytab.c:191
+msgid "Keytab File Name"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:790
+msgid "Encryption types to request"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:791
+msgid "Comma separated encryption types list"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:793
+msgid "Show the list of permitted encryption types and exit"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:794
+msgid "Permitted Encryption Types"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:796
+msgid "Asks for a non-random password to use for the principal"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:798
+#, fuzzy
+msgid "LDAP DN"
+msgstr "Adres URI LDAP"
+
+#: ipa-client/ipa-getkeytab.c:798
+msgid "DN to bind as if not using kerberos"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:800 ipa-client/ipa-join.c:975
+#, fuzzy
+msgid "LDAP password"
+msgstr "Hasło"
+
+#: ipa-client/ipa-getkeytab.c:800 ipa-client/ipa-join.c:975
+msgid "password to use if not using kerberos"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:825 ipa-client/ipa-rmkeytab.c:207
+#, c-format
+msgid "Kerberos context initialization failed\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:841
+#, c-format
+msgid "Supported encryption types:\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:845
+#, c-format
+msgid "Warning: failed to convert type (#%d)\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:864
+#, c-format
+msgid "Bind password required when using a bind DN.\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:877
+#, c-format
+msgid ""
+"Warning: salt types are not honored with randomized passwords (see opt. -P)\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:889
+#, fuzzy, c-format
+msgid "Invalid Service Principal Name\n"
+msgstr "Naczelnik usługi"
+
+#: ipa-client/ipa-getkeytab.c:897
+#, c-format
+msgid "Kerberos Credential Cache not found. Do you have a Kerberos Ticket?\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:905
+#, c-format
+msgid ""
+"Kerberos User Principal not found. Do you have a valid Credential Cache?\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:913
+#, c-format
+msgid "Failed to open Keytab\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:920
+#, c-format
+msgid "Failed to create key material\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:939
+#, c-format
+msgid "Failed to add key to the keytab\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:948
+#, c-format
+msgid "Failed to close the keytab\n"
+msgstr ""
+
+#: ipa-client/ipa-getkeytab.c:954
+#, c-format
+msgid "Keytab successfully retrieved and stored in: %s\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:67
+#, c-format
+msgid "No permission to join this host to the IPA domain.\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:104 ipa-client/ipa-join.c:116
+#, c-format
+msgid "No write permissions on keytab file '%s'\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:121
+#, c-format
+msgid "access() on %s failed: errno = %d\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:200
+#, c-format
+msgid "Unable to enable SSL in LDAP\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:206
+#, c-format
+msgid "Unable to set LDAP version\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:216
+#, c-format
+msgid "Bind failed: %s\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:249
+#, c-format
+msgid "Search for %s on rootdse failed with error %d"
+msgstr ""
+
+#: ipa-client/ipa-join.c:259 ipa-client/ipa-join.c:311
+#, c-format
+msgid "No values for %s"
+msgstr ""
+
+#: ipa-client/ipa-join.c:302
+#, c-format
+msgid "Search for ipaCertificateSubjectBase failed with error %d"
+msgstr ""
+
+#: ipa-client/ipa-join.c:368
+#, c-format
+msgid "Unable to determine root DN of %s\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:377
+#, fuzzy, c-format
+msgid "Unable to determine certificate subject of %s\n"
+msgstr "Nie można dekodować certyfikatu we wpisie"
+
+#: ipa-client/ipa-join.c:385
+#, c-format
+msgid "Unable to make an LDAP connection to %s\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:394
+#, c-format
+msgid "Searching with %s in %s\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:400
+#, c-format
+msgid "ldap_search_ext_s: %s\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:408
+#, fuzzy, c-format
+msgid "Unable to find host '%s'\n"
+msgstr "nie można dekodować csr: %s"
+
+#: ipa-client/ipa-join.c:415
+#, c-format
+msgid "Unable to get binddn for host '%s'\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:428
+#, c-format
+msgid "Host already has principal, trying bind anyway\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:442 ipa-client/ipa-join.c:579
+#, fuzzy, c-format
+msgid "Host is already joined.\n"
+msgstr "Ten wpis jest już zablokowany"
+
+#: ipa-client/ipa-join.c:446
+#, fuzzy, c-format
+msgid "Incorrect password.\n"
+msgstr "Hasło użytkownika"
+
+#: ipa-client/ipa-join.c:457
+#, c-format
+msgid "principal not found in host entry\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:564
+#, c-format
+msgid "principal not found in XML-RPC response\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:646 ipa-client/ipa-join.c:823
+#, c-format
+msgid "Unable to determine IPA server from %s\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:662 ipa-client/ipa-join.c:838
+#, c-format
+msgid "The hostname must be fully-qualified: %s\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:671 ipa-client/ipa-join.c:848
+#, c-format
+msgid "Unable to join host: Kerberos context initialization failed\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:679
+#, c-format
+msgid "Error resolving keytab: %s.\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:689
+#, c-format
+msgid "Error parsing \"%s\": %s.\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:707
+#, c-format
+msgid "Error obtaining initial credentials: %s.\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:718
+#, fuzzy, c-format
+msgid "Unable to generate Kerberos Credential Cache\n"
+msgstr "nie otrzymano danych uwierzytelniających Kerberosa"
+
+#: ipa-client/ipa-join.c:726
+#, fuzzy, c-format
+msgid "Error storing creds in credential cache: %s.\n"
+msgstr "Błędny format w pamięci podręcznej danych uwierzytelniających"
+
+#: ipa-client/ipa-join.c:769
+#, c-format
+msgid "Unenrollment successful.\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:772
+#, c-format
+msgid "Unenrollment failed.\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:777
+#, c-format
+msgid "result not found in XML-RPC response\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:855
+#, c-format
+msgid "Unable to join host: Kerberos Credential Cache not found\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:863
+#, c-format
+msgid ""
+"Unable to join host: Kerberos User Principal not found and host password not "
+"provided.\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:877
+#, c-format
+msgid "fork() failed\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:906
+#, c-format
+msgid "ipa-getkeytab not found\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:909
+#, c-format
+msgid "ipa-getkeytab has bad permissions?\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:912
+#, c-format
+msgid "executing ipa-getkeytab failed, errno %d\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:924
+#, c-format
+msgid "child exited with %d\n"
+msgstr ""
+
+#: ipa-client/ipa-join.c:930
+#, fuzzy, c-format
+msgid "Certificate subject base is: %s\n"
+msgstr "Podstawa tematu certyfikatu"
+
+#: ipa-client/ipa-join.c:963
+msgid "Print the raw XML-RPC output"
+msgstr ""
+
+#: ipa-client/ipa-join.c:963
+msgid "XML-RPC debugging Output"
+msgstr ""
+
+#: ipa-client/ipa-join.c:967
+msgid "Unenroll this host"
+msgstr ""
+
+#: ipa-client/ipa-join.c:967
+msgid "Unenroll this host from IPA server"
+msgstr ""
+
+#: ipa-client/ipa-join.c:969
+msgid "Use this hostname instead of the node name"
+msgstr ""
+
+#: ipa-client/ipa-join.c:969
+#, fuzzy
+msgid "Host Name"
+msgstr "Nazwa komputera"
+
+#: ipa-client/ipa-join.c:971
+msgid "IPA Server to use"
+msgstr ""
+
+#: ipa-client/ipa-join.c:971
+#, fuzzy
+msgid "IPA Server Name"
+msgstr "Nazwa usługi"
+
+#: ipa-client/ipa-rmkeytab.c:44
+#, c-format
+msgid "Unable to parse principal name\n"
+msgstr ""
+
+#: ipa-client/ipa-rmkeytab.c:46
+#, c-format
+msgid "krb5_parse_name %d: %s\n"
+msgstr ""
+
+#: ipa-client/ipa-rmkeytab.c:56
+#, fuzzy, c-format
+msgid "Removing principal %s\n"
+msgstr "Naczelnik usługi"
+
+#: ipa-client/ipa-rmkeytab.c:69
+#, c-format
+msgid "Failed to open keytab\n"
+msgstr ""
+
+#: ipa-client/ipa-rmkeytab.c:73
+#, c-format
+msgid "principal not found\n"
+msgstr ""
+
+#: ipa-client/ipa-rmkeytab.c:75
+#, c-format
+msgid "krb5_kt_get_entry %d: %s\n"
+msgstr ""
+
+#: ipa-client/ipa-rmkeytab.c:83
+#, fuzzy, c-format
+msgid "Unable to remove entry\n"
+msgstr "Nie można dekodować certyfikatu we wpisie"
+
+#: ipa-client/ipa-rmkeytab.c:85
+#, c-format
+msgid "kvno %d\n"
+msgstr ""
+
+#: ipa-client/ipa-rmkeytab.c:86
+#, c-format
+msgid "krb5_kt_remove_entry %d: %s\n"
+msgstr ""
+
+#: ipa-client/ipa-rmkeytab.c:119
+#, fuzzy, c-format
+msgid "Unable to parse principal\n"
+msgstr "Naczelnik Kerberosa"
+
+#: ipa-client/ipa-rmkeytab.c:121
+#, c-format
+msgid "krb5_unparse_name %d: %s\n"
+msgstr ""
+
+#: ipa-client/ipa-rmkeytab.c:186
+#, fuzzy
+msgid "Print debugging information"
+msgstr "Informacje o montowaniu"
+
+#: ipa-client/ipa-rmkeytab.c:186
+msgid "Debugging output"
+msgstr ""
+
+#: ipa-client/ipa-rmkeytab.c:193
+msgid "Remove all principals in this realm"
+msgstr ""
+
+#: ipa-client/ipa-rmkeytab.c:193
+#, fuzzy
+msgid "Realm name"
+msgstr "Nazwa reguły"
+
+#: ipa-client/ipa-rmkeytab.c:241
+#, c-format
+msgid "Failed to open keytab '%s'\n"
+msgstr ""
+
+#: ipa-client/ipa-rmkeytab.c:255
+#, c-format
+msgid "Closing keytab failed\n"
+msgstr ""
+
+#: ipa-client/ipa-rmkeytab.c:257
+#, c-format
+msgid "krb5_kt_close %d: %s\n"
+msgstr ""
+
+#~ msgid "Locked user \"%(value)s\""
+#~ msgstr "Zablokowany użytkownik \"%(value)s\""
 
 #~ msgid "Name of service the rule applies to (e.g. ssh)"
 #~ msgstr "Nazwa usługi, do której zastosowywana jest reguła (np. ssh)"
-
-#~ msgid "Unable to decode certificate in entry"
-#~ msgstr "Nie można dekodować certyfikatu we wpisie"
 
 #~ msgid "UID (use this option to set it manually)"
 #~ msgstr "UID (ta opcja umożliwia jego ręczne ustawienie)"
