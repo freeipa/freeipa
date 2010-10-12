@@ -656,7 +656,7 @@ class Command(HasParam):
         """
         for param in self.params():
             value = kw.get(param.name, None)
-            param.validate(value)
+            param.validate(value, self.env.context)
 
     def run(self, *args, **options):
         """

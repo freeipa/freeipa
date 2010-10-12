@@ -408,32 +408,38 @@ class test_Param(ClassChecker):
 
         # Test in default state (with no rules, no kwarg):
         o = self.cls('my_param')
-        e = raises(errors.RequirementError, o.validate, None)
+        e = raises(errors.RequirementError, o.validate, None, 'cli')
         assert e.name == 'my_param'
+
+        # Test in default state that cli_name gets returned in the exception
+        # when context == 'cli'
+        o = self.cls('my_param', cli_name='short')
+        e = raises(errors.RequirementError, o.validate, None, 'cli')
+        assert e.name == 'short'
 
         # Test with required=False
         o = self.cls('my_param', required=False)
         assert o.required is False
-        assert o.validate(None) is None
+        assert o.validate(None, 'cli') is None
 
         # Test with query=True:
         o = self.cls('my_param', query=True)
         assert o.query is True
-        e = raises(errors.RequirementError, o.validate, None)
+        e = raises(errors.RequirementError, o.validate, None, 'cli')
         assert_equal(e.name, 'my_param')
 
         # Test with multivalue=True:
         o = self.cls('my_param', multivalue=True)
-        e = raises(TypeError, o.validate, [])
+        e = raises(TypeError, o.validate, [], 'cli')
         assert str(e) == TYPE_ERROR % ('value', tuple, [], list)
-        e = raises(ValueError, o.validate, tuple())
+        e = raises(ValueError, o.validate, tuple(), 'cli')
         assert str(e) == 'value: empty tuple must be converted to None'
 
         # Test with wrong (scalar) type:
-        e = raises(ValidationError, o.validate, (None, None, 42, None))
+        e = raises(ValidationError, o.validate, (None, None, 42, None), 'cli')
         assert str(e) == 'invalid %s' % (TYPE_ERROR % ('\'my_param\'', NoneType, 42, int))
         o = self.cls('my_param')
-        e = raises(ValidationError, o.validate, 'Hello')
+        e = raises(ValidationError, o.validate, 'Hello', 'cli')
         assert str(e) == 'invalid %s' % (TYPE_ERROR % ('\'my_param\'', NoneType, 'Hello', str))
 
         class Example(self.cls):
@@ -445,13 +451,13 @@ class test_Param(ClassChecker):
         fail = DummyRule(u'no good')
         o = Example('example', pass1, pass2)
         assert o.multivalue is False
-        assert o.validate(11) is None
+        assert o.validate(11, 'cli') is None
         assert pass1.calls == [(request.ugettext, 11)]
         assert pass2.calls == [(request.ugettext, 11)]
         pass1.reset()
         pass2.reset()
         o = Example('example', pass1, pass2, fail)
-        e = raises(errors.ValidationError, o.validate, 42)
+        e = raises(errors.ValidationError, o.validate, 42, 'cli')
         assert e.name == 'example'
         assert e.error == u'no good'
         assert e.index is None
@@ -465,7 +471,7 @@ class test_Param(ClassChecker):
         fail = DummyRule(u'this one is not good')
         o = Example('example', pass1, pass2, multivalue=True)
         assert o.multivalue is True
-        assert o.validate((3, 9)) is None
+        assert o.validate((3, 9), 'cli') is None
         assert pass1.calls == [
             (request.ugettext, 3),
             (request.ugettext, 9),
@@ -478,7 +484,7 @@ class test_Param(ClassChecker):
         pass2.reset()
         o = Example('multi_example', pass1, pass2, fail, multivalue=True)
         assert o.multivalue is True
-        e = raises(errors.ValidationError, o.validate, (3, 9))
+        e = raises(errors.ValidationError, o.validate, (3, 9), 'cli')
         assert e.name == 'multi_example'
         assert e.error == u'this one is not good'
         assert e.index == 0

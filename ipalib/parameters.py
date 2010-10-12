@@ -476,7 +476,10 @@ class Param(ReadOnly):
             value = self.get_default(**kw)
         else:
             value = self.convert(self.normalize(value))
-        self.validate(value)
+        if hasattr(self, 'env'):
+            self.validate(value, self.env.context)
+        else:
+            self.validate(value)
         return value
 
     def kw(self):
@@ -696,15 +699,19 @@ class Param(ReadOnly):
             error=ugettext(self.type_error),
         )
 
-    def validate(self, value):
+    def validate(self, value, context=None):
         """
         Check validity of ``value``.
 
         :param value: A proposed value for this parameter.
+        :param context: The context we are running in.
         """
         if value is None:
             if self.required:
-                raise RequirementError(name=self.cli_name)
+                if context == 'cli':
+                    raise RequirementError(name=self.cli_name)
+                else:
+                    raise RequirementError(name=self.name)
             return
         if self.query:
             return
@@ -1324,9 +1331,9 @@ class StrEnum(Enum):
     For example:
 
     >>> enum = StrEnum('my_enum', values=(u'One', u'Two', u'Three'))
-    >>> enum.validate(u'Two') is None
+    >>> enum.validate(u'Two', 'cli') is None
     True
-    >>> enum.validate(u'Four')
+    >>> enum.validate(u'Four', 'cli')
     Traceback (most recent call last):
       ...
     ValidationError: invalid 'my_enum': must be one of (u'One', u'Two', u'Three')

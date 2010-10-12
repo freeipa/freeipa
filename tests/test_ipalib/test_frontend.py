@@ -374,6 +374,7 @@ class test_Command(ClassChecker):
             takes_options = ('givenname', 'sn')
 
         cmd = user_add()
+        cmd.env = config.Env(context='cli')
         cmd.finalize()
         assert list(cmd.params) == ['givenname', 'sn', 'uid']
         ret = cmd.soft_validate({})
@@ -422,6 +423,7 @@ class test_Command(ClassChecker):
         """
 
         sub = self.subcls()
+        sub.env = config.Env(context='cli')
         sub.finalize()
 
         # Check with valid values
