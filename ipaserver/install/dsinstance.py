@@ -149,6 +149,7 @@ Suffix=   $SUFFIX
 RootDN=   cn=Directory Manager
 RootDNPwd= $PASSWORD
 InstallLdifFile= /var/lib/dirsrv/boot.ldif
+inst_dir=   /var/lib/dirsrv/scripts-$SERVERID
 """
 
 BASE_TEMPLATE = """
