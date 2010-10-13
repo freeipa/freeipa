@@ -27,6 +27,7 @@ import sys
 import os
 import re
 import time
+import tempfile
 
 from ipapython import ipautil
 
@@ -43,6 +44,7 @@ from ipaserver.plugins.ldap2 import ldap2
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
+CACERT="/usr/share/ipa/html/ca.crt"
 
 def find_server_root():
     if ipautil.dir_exists(SERVER_ROOT_64):
@@ -465,20 +467,34 @@ class DsInstance(service.Service):
     def change_admin_password(self, password):
         logging.debug("Changing admin password")
         dirname = config_dirname(self.serverid)
-        if ipautil.dir_exists("/usr/lib64/mozldap"):
-            app = "/usr/lib64/mozldap/ldappasswd"
-        else:
-            app = "/usr/lib/mozldap/ldappasswd"
-        args = [app,
-                "-D", "cn=Directory Manager", "-w", self.dm_password,
-                "-P", dirname+"/cert8.db", "-ZZZ", "-s", password,
-                "uid=admin,cn=users,cn=accounts,"+self.suffix]
+        dmpwdfile = ""
+        admpwdfile = ""
+
         try:
-            ipautil.run(args)
-            logging.debug("ldappasswd done")
-        except ipautil.CalledProcessError, e:
-            print "Unable to set admin password", e
-            logging.debug("Unable to set admin password %s" % e)
+            (dmpwdfd, dmpwdfile) = tempfile.mkstemp(dir='/var/lib/ipa')
+            os.write(dmpwdfd, self.dm_password)
+            os.close(dmpwdfd)
+
+            (admpwdfd, admpwdfile) = tempfile.mkstemp(dir='/var/lib/ipa')
+            os.write(admpwdfd, password)
+            os.close(admpwdfd)
+
+            args = ["/usr/bin/ldappasswd",
+                    "-ZZ", "-x", "-D", "cn=Directory Manager",
+                    "-y", dmpwdfile, "-T", admpwdfile,
+                    "uid=admin,cn=users,cn=accounts,"+self.suffix]
+            try:
+                ipautil.run(args, env = { 'LDAPTLS_CACERT':CACERT })
+                logging.debug("ldappasswd done")
+            except ipautil.CalledProcessError, e:
+                print "Unable to set admin password", e
+                logging.debug("Unable to set admin password %s" % e)
+
+        finally:
+            if os.path.isfile(dmpwdfile):
+                os.remove(dmpwdfile)
+            if os.path.isfile(admpwdfile):
+                os.remove(admpwdfile)
 
     def uninstall(self):
         if self.is_configured():
