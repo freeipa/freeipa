@@ -25,6 +25,144 @@
 /* REQUIRES: ipa.js */
 
 var ipa_details_cache = {};
+var ipa_entity_details_list = {};
+
+
+function ipa_stanza(spec){
+    var that = {};
+
+    that.name = spec.name || '';
+    that.label = spec.label || '';
+
+    function input(spec){
+
+        /*Was ipa_details_field_setup*/
+        function setup(container, dl, section) {
+
+            var obj_name = container.attr('title');
+            var title = this.name;
+            var label = '';
+            var param_info = ipa_get_param_info(obj_name, this.name);
+            if (param_info)
+                label = param_info['label'];
+            if (!label)
+                label = this.label;
+            $('<dt></dt>', {
+                id: this.name,
+                title: title,
+                html: label + ':'
+            }).appendTo(dl);
+        }
+
+        /*Was ipa_details_field_load*/
+        function load(container, dt, entry_attrs) {
+
+            var obj_name = container.attr('id');
+            var multivalue = false;
+            var hint_span = null;
+            var dd;
+
+            var param_info = ipa_get_param_info(obj_name, this.name);
+            if (param_info) {
+                if (param_info['multivalue'] || param_info['class'] == 'List')
+                    multivalue = true;
+                var hint = param_info['hint'];
+                if (hint){
+                    hint_span = $('<span />',{
+                        'class': 'attrhint',
+                        'html': 'Hint: ' + hint});
+                }
+            }
+
+            var value = entry_attrs[this.name];
+            if (value) {
+                dd = ipa_create_first_dd(
+                    this.name, ipa_create_input(obj_name, this.name, value[0],hint_span)
+                );
+                dt.after(dd);
+                var last_dd = dd;
+                for (var i = 1; i < value.length; ++i) {
+                    dd = ipa_create_other_dd(
+                        this.name, ipa_create_input(obj_name, this.name, value[i],hint_span)
+                    );
+                    last_dd.after(dd);
+                    last_dd = dd;
+                }
+                if (multivalue) {
+                    dd = ipa_create_other_dd(
+                        this.name, _ipa_a_add_template.replace('A', this.name)
+                    );
+                    last_dd.after(dd);
+                }
+            } else {
+                if (multivalue) {
+                    dd = ipa_create_first_dd(
+                        this.name, _ipa_a_add_template.replace('A', this.name) /*.append(hint_span)*/
+                    );
+                    dt.after(dd);
+                } else {
+                    dd = ipa_create_first_dd(
+                        this.name, ipa_create_input(obj_name, this.name, '') /*.append(hint_span)*/
+                    );
+                    dt.after(dd);
+                }
+            }
+        }
+        /*Was ipa_details_field_save*/
+        function save(container) {
+            var field = this;
+            var values = [];
+
+            var dd = $('dd[title='+field.name+']', container);
+            dd.each(function () {
+                var input = $('input', $(this));
+                if (!input.length) return;
+
+                if (input.is('strikethrough')) return;
+
+                var value = $.trim(input.val());
+                if (!value) value = '';
+
+                values.push(value);
+            });
+
+            return values;
+        }
+
+        that.fields.push(spec);
+        that.controls[spec.name] = spec;
+
+        if (!spec.setup){
+            spec.setup = setup;
+        }
+        if (!spec.load){
+            spec.load =  load;
+        }
+
+        if (!spec.save){
+            spec.save = save;
+        }
+
+        return that;
+    };
+    that.input = input;
+    that.fields = [];
+    that.controls={};
+    return that;
+};
+
+
+
+function ipa_make_button(which,text,details_class){
+
+    var button_class= details_class +
+        " ui-state-default ui-corner-all input_link ";
+    return $('<a ></a>',{
+        "class": button_class
+        }).
+        append('<span class="ui-icon ' + which +'" ></span> ').
+        append(text);
+}
 
 function ipa_details_create(container, sections)
 {
@@ -45,8 +183,8 @@ function ipa_details_create(container, sections)
         'class': 'details-buttons'
     }).appendTo(details);
 
-    buttons.append('<a class="details-reset ui-state-default ui-corner-all input_link " href="jslink"><span class="ui-icon ui-icon-refresh" ></span> Reset</a>');
-    buttons.append('<a class="details-update ui-state-default ui-corner-all input_link  " href="jslink"><span class="ui-icon ui-icon-check" ></span>Update</a>');
+    buttons.append(ipa_make_button('ui-icon-refresh','Reset','details-reset'));
+    buttons.append(ipa_make_button('ui-icon-check','Update','details-update'));
 
     details.append('<hr />');
 
@@ -55,9 +193,6 @@ function ipa_details_create(container, sections)
         ipa_details_section_setup(container, details, section);
     }
 
-    details.append('<div class="details-back"></div>');
-    var jobj = details.children().last();
-    jobj.append('<a href="#details-viewtype">Back to Top</a>');
 }
 
 
@@ -83,35 +218,12 @@ function ipa_details_section_setup(container, details, section)
     for (var i = 0; i < fields.length; ++i) {
         var field = fields[i];
 
-        if (field.setup) {
-            field.setup.call(field, container, dl, section);
-            
-        } else {
-            ipa_details_field_setup.call(field, container, dl, section);
-        }
+            field.setup(container, dl, section);
     }
 
     details.append('<hr/>');
 }
 
-function ipa_details_field_setup(container, dl, section) {
-
-    var obj_name = container.attr('title');
-    
-    var title = this.name;
-    var label = '';
-    var param_info = ipa_get_param_info(obj_name, this.name);
-    if (param_info)
-        label = param_info['label'];
-    if (!label)
-        label = this.label;
-
-    $('<dt></dt>', {
-        id: this.name,
-        title: title,
-        html: label + ':'
-    }).appendTo(dl);
-}
 
 function ipa_details_load(container, pkey, on_win, on_fail)
 {
@@ -182,18 +294,13 @@ function ipa_details_update(container, pkey, on_win, on_fail)
         for (var j=0; j<fields.length; j++) {
             var field = fields[j];
 
-            if (field.save) {
-                values = field.save.call(field, container);
-
-            } else {
-                values = ipa_details_field_save.call(field, container);
-            }
+            values = field.save(container);
 
             var param_info = ipa_get_param_info(obj_name, field.name);
             if (param_info) {
                 if (param_info['primary_key']) continue;
-                if (values.length) modlist[field.name] = values[0];
-
+                if (values.length === 1) modlist[field.name] = values[0];
+                if (values.length > 1) modlist[field.name] = values;
             } else {
                 if (values.length) attrs_wo_option[field.name] = values;
             }
@@ -210,29 +317,14 @@ function ipa_details_update(container, pkey, on_win, on_fail)
     ipa_cmd('mod', [pkey], modlist, update_on_win, update_on_fail, obj_name);
 }
 
-function ipa_details_field_save(container) {
-    var field = this;
-    var values = [];
-
-    var dd = $('dd[title='+field.name+']', container);
-    dd.each(function () {
-        var input = $('input', dd);
-        if (!input.length) return;
-
-        var value = $.trim(input.val());
-        if (!value) value = '';
-
-        values.push(value);
-    });
-
-    return values;
-}
 
 /* HTML templates for ipa_details_display() */
 var _ipa_a_add_template =
     '<a href="jslink" onclick="return (_ipa_add_on_click(this))" title="A">Add</a>';
 var _ipa_span_doc_template = '<span class="attrhint">Hint: D</span>';
 var _ipa_span_hint_template = '<span class="attrhint">Hint: D</span>';
+
+
 
 /* populate definition lists with the class 'entryattrs' with entry attributes
  *
@@ -267,73 +359,14 @@ function ipa_details_display(container, entry_attrs)
             var field = fields[j];
             var dt = $('dt[title='+field.name+']', container);
             if (!dt.length) continue;
-
-            if (field.load) {
-                field.load.call(field, dt, entry_attrs);
-
-            } else {
-                ipa_details_field_load.call(field, container, dt, entry_attrs);
-            }
+            field.load(container, dt, entry_attrs);
         }
     }
 }
 
-function ipa_details_field_load(container, dt, entry_attrs) {
-    var obj_name = container.attr('id');
 
-    var multivalue = false;
-    var hint_span = null;
-    var dd;
 
-    var param_info = ipa_get_param_info(obj_name, this.name);
-    if (param_info) {
-        if (param_info['multivalue'] || param_info['class'] == 'List')
-            multivalue = true;
-        var hint = param_info['hint'];
-        if (hint){
-            hint_span = $('<span />',{
-                'class': 'attrhint',
-                'html': 'Hint: ' + hint});
-        }
-    }
-
-    var value = entry_attrs[this.name];
-    if (value) {
-        dd = ipa_create_first_dd(
-            this.name, ipa_create_input(obj_name, this.name, value[0],hint_span)
-        );
-        dt.after(dd);
-        var last_dd = dd;
-        for (var i = 1; i < value.length; ++i) {
-            dd = ipa_create_other_dd(
-              this.name, ipa_create_input(obj_name, this.name, value[i],hint_span)
-            );
-            last_dd.after(dd);
-            last_dd = dd;
-        }
-        if (multivalue) {
-            dd = ipa_create_other_dd(
-                this.name, _ipa_a_add_template.replace('A', this.name)
-            );
-            last_dd.after(dd);
-        }
-    } else {
-        if (multivalue) {
-            dd = ipa_create_first_dd(
-                this.name, _ipa_a_add_template.replace('A', this.name) /*.append(hint_span)*/
-            );
-            dt.after(dd);
-        } else {
-            dd = ipa_create_first_dd(
-                this.name, ipa_create_input(obj_name, this.name, '') /*.append(hint_span)*/
-            );
-            dt.after(dd);
-        }
-    }
-}
-
-function ipa_create_first_dd(field_name, content)
-{
+function ipa_create_first_dd(field_name, content){
     return $('<dd/>', {
 
         'class': 'first',
@@ -341,13 +374,23 @@ function ipa_create_first_dd(field_name, content)
     }).append(content);
 }
 
-function ipa_create_other_dd(field_name, content)
-{
+function ipa_create_other_dd(field_name, content){
     return $('<dd/>', {
         'class': 'other',
         'title': field_name
     }).append(content);
 }
+
+function ipa_insert_first_dd(jobj, content){
+    ipa_insert_dd(jobj, content, "first");
+}
+
+function ipa_insert_dd(jobj, content, dd_class){
+    jobj.after( $('<dd/>',{
+        "class": dd_class
+    }).append(content))
+}
+
 
 
 /* mapping of parameter types to handlers used to create inputs */
@@ -381,14 +424,12 @@ function ipa_create_input(obj_name, attr, value,hint)
         /* call handler by param class */
         var handler = _ipa_param_type_2_handler_map[param_info['class']];
         if (handler) {
+            input = handler(attr, value, param_info);
             if (param_info['multivalue'] || param_info['class'] == 'List') {
-                input = handler(attr, value, param_info) +
-                    _ipa_create_remove_link(attr, param_info);
-            }else{
-                input =  (handler(attr, value, param_info));
-                if (hint){
-                    input.after(hint);
-                }
+                input.append( _ipa_create_remove_link(attr, param_info));
+            }
+            if (hint){
+                input.after(hint);
             }
         }
     }
@@ -417,7 +458,23 @@ function _ipa_create_remove_link(attr, param_info)
 /* creates a input box for editing a string attribute */
 function _ipa_create_text_input(attr, value, param_info)
 {
-    return $("<input/>",{
+
+    function calculate_dd_index(jobj){
+        var index = 0;
+        var dd = jobj.parents('dd').slice(0, 1)[0];
+        dd = dd.previousElementSibling;
+
+        while(dd.nodeName === 'dd'){
+            dd = dd.previousElementSibling;
+            index += 1;
+            if (index > 100 )
+                break;
+        }
+        return index;
+    }
+
+    var input = $("<Span />");
+    input.append($("<input/>",{
         type:"text",
         name:attr,
         value:value.toString(),
@@ -430,7 +487,8 @@ function _ipa_create_text_input(attr, value, param_info)
                 error_link.style.display ="block";
             }
         }
-    }).after($("<a/>",{
+    }));
+    input.append($("<a/>",{
         html:"undo",
         "class":"ui-state-highlight ui-corner-all",
         style:"display:none",
@@ -438,16 +496,26 @@ function _ipa_create_text_input(attr, value, param_info)
             var key = this.previousElementSibling.name;
             var entity_divs = $(this).parents('.details-container');
             var entry_attrs = ipa_details_cache[entity_divs[0].id];
+
+            index = calculate_dd_index($(this));
+
             var previous_value = entry_attrs[key] || "";
+            if (previous_value.length >=  index){
+                previous_value= previous_value[index];
+            }else{
+                previous_value = '';
+            }
+
             this.previousElementSibling.value =  previous_value;
             this.style.display = "none";
         }
-    })).after($("<span/>",{
+    }));
+    input.append($("<span/>",{
         html:"Does not match pattern",
         "class":"ui-state-error ui-corner-all",
         style:"display:none"
     }));
-
+    return input;
 }
 
 function ipa_details_reset(container)
@@ -470,10 +538,9 @@ function _ipa_add_on_click(obj)
     var obj_name = jobj.closest('.details-container').attr('title');
 
     par.prepend(ipa_create_input(obj_name, attr, ''));
-    var dd = ipa_create_other_dd(field.name, _ipa_a_add_template.replace('A', attr));
-    par.after(dd);
     jobj.next('input').focus();
     jobj.remove();
+    par.after( ipa_create_other_dd(attr,_ipa_a_add_template.replace('A', attr)));
 
     return (false);
 }
@@ -484,19 +551,8 @@ function _ipa_remove_on_click(obj)
     var attr = jobj.attr('title');
     var par = jobj.parent();
 
-    var next = par.next('dd[title='+attr+']');
-    if (next.length) {
-        if (par.hasClass('first')) {
-            var hint = par.children('span').detach();
-            next.append(hint);
-            next.addClass('first');
-            next.removeClass('other');
-        }
-        par.remove();
-    } else {
-        par.empty();
-        par.append(_ipa_a_add_template.replace('A', attr));
-    }
+    var input = par.find('input');
+    input.addClass('strikethrough');
 
     return (false);
 }

@@ -38,40 +38,40 @@ ipa_entity_set_add_definition('user', [
     ]
 ]);
 
+
 ipa_entity_set_details_definition('user', [
-    {name:'identity', label:'Identity Details', fields:[
-        {name:'title', label:'Title'},
-        {name:'givenname', label:'First Name'},
-        {name:'sn', label:'Last Name'},
-        {name:'cn', label:'Full Name'},
-        {name:'displayname', label:'Dispaly Name'},
-        {name:'initials', label:'Initials'}
-    ]},
-    {name:'account', label:'Account Details', fields:[
-        {name:'status', label:'Account Status', load:user_status_load},
-        {name:'uid', label:'Login'},
-        {name:'userpassword', label:'Password', load:user_password_load},
-        {name:'uidnumber', label:'UID'},
-        {name:'gidnumber', label:'GID'},
-        {name:'homedirectory', label:'homedirectory'}
-    ]},
-    {name:'contact', label:'Contact Details', fields:[
-        {name:'mail', label:'E-mail Address'},
-        {name:'telephonenumber', label:'Numbers', load:user_telephonenumber_load}
-    ]},
-    {name:'address', label:'Mailing Address', fields:[
-        {name:'street', label:'Address'},
-        {name:'location', label:'City'},
-        {name:'state', label:'State', load:user_state_load},
-        {name:'postalcode', label:'ZIP'}
-    ]},
-    {name:'employee', label:'Employee Information', fields:[
-        {name:'ou', label:'Org. Unit'},
-        {name:'manager', label:'Manager', load:user_manager_load}
-    ]},
-    {name:'misc', label:'Misc. Information', fields:[
-        {name:'carlicense', label:'Car License'}
-    ]}
+    ipa_stanza({name:'identity', label:'Identity Details'}).
+        input({name:'title', label: 'Title'}).
+        input({name:'givenname', label:'First Name'}).
+        input({name:'sn', label:'Last Name'}).
+        input({name:'cn', label:'Full Name'}).
+        input({name:'displayname', label:'Dispaly Name'}).
+        input({name:'initials', label:'Initials'}),
+    ipa_stanza({name:'account', label:'Account Details'}).
+        input({name:'status', label:'Account Status', load:user_status_load}).
+        input({name:'uid', label:'Login'}).
+        input({name:'userpassword',
+               label:'Password',
+               load: user_password_load}).
+        input({name:'uidnumber', label:'UID'}).
+        input({name:'gidnumber', label:'GID'}).
+        input({name:'homedirectory', label:'homedirectory'}),
+    ipa_stanza({name:'contact', label:'Contact Details'}).
+        input({name:'mail', label:'E-mail Address'}).
+        input({name:'telephonenumber', label:'Phone Numbers'}).
+        input({name:'pager', label:'Pager Numbers'}).
+        input({name:'mobile', label:'Mobile Phone Numbers'}).
+        input({name:'facsimiletelephonenumber', label:'Fax Numbers'}),
+    ipa_stanza({name:'address', label:'Mailing Address'}).
+        input({name:'street', label:'Address'}).
+        input({name:'location', label:'City'}).
+        input({name:'state', label:'State', load:user_state_load}).
+        input({name:'postalcode', label:'ZIP'}),
+    ipa_stanza({name:'employee', label:'Employee Information'}).
+        input({name:'ou', label:'Org. Unit'}).
+        input({name:'manager', label:'Manager'}),
+    ipa_stanza({name:'misc', label:'Misc. Information'}).
+        input({name:'carlicense', label:'Car License'})
 ]);
 
 ipa_entity_set_association_definition('user', {
@@ -151,7 +151,7 @@ function on_lock_win(data, textStatus, xhr)
 /* ATTRIBUTE CALLBACKS */
 
 var toggle_temp = 'S <a href="jslink" onclick="return (toggle_on_click(this))" title="S">Toggle</a>';
-function user_status_load(dt, result)
+function user_status_load(container, dt, result)
 {
     var memberof = result['memberof'];
     var dd;
@@ -172,7 +172,7 @@ function user_status_load(dt, result)
 }
 
 var pwd_temp = '<a href="jslink" onclick="return (resetpwd_on_click(this))" title="A">Reset Password</a>';
-function user_password_load(dt, result)
+function user_password_load(container, dt, result)
 {
     var dd = ipa_create_first_dd(this.name, pwd_temp.replace('A', 'userpassword'));
     dt.after(dd);
@@ -188,7 +188,7 @@ var states = [
     'PA', 'PR', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VI', 'VA',
     'WA', 'WV', 'WI', 'WY', ''
 ];
-function user_state_load(dt, result)
+function user_state_load(container, dt, result)
 {
     var next = dt.next();
     next.css('clear', 'none');
@@ -208,10 +208,4 @@ function user_state_load(dt, result)
         sel.val('');
 }
 
-function user_telephonenumber_load(dt, result)
-{
-}
 
-function user_manager_load(dt, result)
-{
-}

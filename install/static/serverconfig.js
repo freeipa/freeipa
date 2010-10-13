@@ -37,11 +37,11 @@ ipa_entity_set_add_definition('aci', [
 ]);
 
 ipa_entity_set_details_definition('aci', [
-    {name:'ipaserver', label:'Aci Details', fields:[
-        {name:'cn', label:'Name'},
-        {name:'description', label:'Description'}
-    ]}
+    ipa_stanza({name:'ipaserver', label:'Aci Details'}).
+        input({name:'cn', label:'Name'}).
+        input({name:'description', label:'Description'})
 ]);
+
 
 
 /* Taskgroup*/
@@ -59,11 +59,11 @@ ipa_entity_set_add_definition('taskgroup', [
     ]
 ]);
 
+
 ipa_entity_set_details_definition('taskgroup', [
-    {name:'ipaserver', label:'Taskgroup Details', fields:[
-        {name:'cn', label:'Name'},
-        {name:'description', label:'Description'}
-    ]}
+    ipa_stanza({name:'ipaserver', label:'Taskgroup Details'}).
+        input({name:'cn', label:'Name'}).
+        input({name:'description', label:'Description'})
 ]);
 
 ipa_entity_set_association_definition('rolegroup', {
@@ -89,10 +89,9 @@ ipa_entity_set_add_definition('rolegroup', [
 ]);
 
 ipa_entity_set_details_definition('rolegroup', [
-    {name:'ipaserver', label:'Rolegroup Details', fields:[
-        {name:'cn', label:'Name'},
-        {name:'description', label:'Description'}
-    ]}
+    ipa_stanza({name:'ipaserver', label:'Rolegroup Details'}).
+        input({name:'cn', label:'Name'}).
+        input({name:'description', label:'Description'})
 ]);
 
 ipa_entity_set_association_definition('rolegroup', {
@@ -101,18 +100,18 @@ ipa_entity_set_association_definition('rolegroup', {
 
 /* Configuration */
 ipa_entity_set_details_definition('config',[
-    {name:'ipaserver', label:'Configuration', fields:[
-        {name:'cn', label:'Name'},
-        {name:'description', label:'Description'},
-        {name:'ipacertificatesubjectbase', label:'Certificat Subject Base'},
-        {name:'ipadefaultloginshell', label:'Default Login Shell'},
-        {name:'ipadefaultprimarygroup', label:'Default Primary Group'},
-        {name:'ipagroupsearchfields', label:'Group Search Fields'},
-        {name:'ipahomesrootdir', label:'Home Root Dir'},
-        {name:'ipamaxusernamelength', label:'Max Username Length'},
-        {name:'ipamigrationenabled', label:'Migration enabled?'},
-        {name:'ipasearchrecordslimit', label:'Search Record Limit'},
-        {name:'ipasearchtimelimit', label:'Search Time Limit'},
-        {name:'ipausersearchfields', label:'User Search Fields'}
-    ]}
+
+    ipa_stanza({name:'ipaserver', lable:'Configuration'}).
+        input({name:'cn', label:'Name'}).
+        input({name:'description', label:'Description'}).
+        input({name:'ipacertificatesubjectbase', label:'Certificat Subject Base'}).
+        input({name: 'ipadefaultloginshell', label:'Default Login Shell'}).
+        input({name:'ipadefaultprimarygroup', label:'Default Primary Group'}).
+        input({name:'ipagroupsearchfields', label:'Group Search Fields'}).
+        input({name:'ipahomesrootdir', label:'Home Root Dir'}).
+        input({name:'ipamaxusernamelength', label:'Max Username Length'}).
+        input({name:'ipamigrationenabled', label:'Migration enabled?'}).
+        input({name:'ipasearchrecordslimit', label:'Search Record Limit'}).
+        input({name:'ipasearchtimelimit', label:'Search Time Limit'}).
+        input({name:'ipausersearchfields', label:'User Search Fields'})
 ]);

@@ -36,12 +36,11 @@ ipa_entity_set_add_definition('group', [
     ]
 ]);
 
-ipa_entity_set_details_definition('group', [
-    {name:'identity', label:'Group Details', fields:[
-        {name:'cn', label:'Group Name'},
-        {name:'description', label:'Description'},
-        {name:'gidnumber', label:'Group ID'}
-    ]}
+ipa_entity_set_details_definition('group',[
+    ipa_stanza({name:'identity', label:'Group Details'}).
+        input({name:'cn', label:'Group Name'}).
+        input({name:'description', label:'Description'}).
+        input({name:'gidnumber', label:'Group ID'})
 ]);
 
 ipa_entity_set_association_definition('group', {

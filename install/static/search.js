@@ -34,7 +34,7 @@ function search_create(obj_name, scl, container)
         $.bbq.pushState(state);
     };
 
-    function delete_on_click() {
+    function delete_on_click_outer() {
         var delete_list = [];
         var delete_dialog = $('<div></div>', {
             title: ipa_messages.button.delete,
@@ -94,10 +94,12 @@ function search_create(obj_name, scl, container)
     var jobj = div.children().last();
     jobj.append('<input type="text" />');
     jobj.children().last().attr('name', 'search-' + obj_name + '-filter')
-    jobj.append('<input type="submit" value="'+ipa_messages.button.find+ '" />');
-    jobj.children().last().click(find_on_click);
-    jobj.append('<input type="submit" value="'+ipa_messages.button.delete+ '" />');
-    jobj.children().last().click(delete_on_click);
+    ipa_make_button('ui-icon-search',ipa_messages.button.find).
+        click(find_on_click).appendTo(jobj);
+
+    ipa_make_button('ui-icon-trash',ipa_messages.button.delete).
+        click(delete_on_click_outer).appendTo(jobj);
+
     div.append('<span class="search-buttons"></span>');
 
     var search_results = $('<div/>', {

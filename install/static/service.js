@@ -34,12 +34,16 @@ ipa_entity_set_add_definition('service', [
 ]);
 
 ipa_entity_set_details_definition('service', [
-    {name:'identity', label:'Service Details', fields:[
-        {name:'krbprincipalname', label:'Principal', setup:service_krbprincipalname_setup, load:service_krbprincipalname_load},
-        {name:'service', label:'Service', load:service_service_load},
-        {name:'host', label:'Host Name', load:service_host_load},
-        {name:'usercertificate', label:'Certificate', load:service_usercertificate_load, save:service_usercertificate_save}
-    ]}
+    ipa_stanza({name:'identity', label:'Service Details'}).
+        input({name:'krbprincipalname',
+               label:'Principal',
+               setup:service_krbprincipalname_setup,
+               load:service_krbprincipalname_load}).
+        input({name:'service', label:'Service', load:service_service_load}).
+        input({name:'host', label:'Host Name', load:service_host_load}).
+        input({name:'usercertificate', label:'Certificate',
+               load:service_usercertificate_load,
+               save:service_usercertificate_save})
 ]);
 
 function service_add_krbprincipalname(add_dialog, mode) {
@@ -59,25 +63,25 @@ function service_krbprincipalname_setup(container, dl, section) {
     // skip krbprincipalname
 }
 
-function service_krbprincipalname_load(dt, result) {
+function service_krbprincipalname_load(container, dt, result) {
     // skip krbprincipalname
 }
 
-function service_service_load(dt, result) {
+function service_service_load(container, dt, result) {
     var krbprincipalname = result['krbprincipalname'][0];
     var service = krbprincipalname.replace(/\/.*$/, '');
     var dd = ipa_create_first_dd(this.name, service);
     dt.after(dd);
 }
 
-function service_host_load(dt, result) {
+function service_host_load(container, dt, result) {
     var krbprincipalname = result['krbprincipalname'][0];
     var host = krbprincipalname.replace(/^.*\//, '');
     var dd = ipa_create_first_dd(this.name, host);
     dt.after(dd);
 }
 
-function service_usercertificate_load(dt, result) {
+function service_usercertificate_load(container, dt, result) {
     var textarea = $("<textarea/>", {
         title: 'usercertificate',
         style: 'width: 300px; height: 200px;'

@@ -33,16 +33,15 @@ ipa_entity_set_add_definition('hbac', [
 ]);
 
 ipa_entity_set_details_definition('hbac', [
-    {name:'identity', label:'HBAC Details', fields:[
-        {name:'cn', label:'HBAC Name'},
-        {name:'accessruletype', label:'Rule Type'},
-        {name:'description', label:'Description'},
-        {name:'hostcategory', label:'Host Category'},
-        {name:'ipaenabledflag', label:'Enabled'},
-        {name:'servicecategory', label:'Service Category'},
-        {name:'sourcehostcategory', label:'Source Host Category'},
-        {name:'usercategory', label:'User Category'}
-    ]}
+    ipa_stanza({name:'identity', label:'HBAC Details'}).
+        input({name:'cn', label:'HBAC Name'}).
+        input({name:'accessruletype', label:'Rule Type'}).
+        input({name:'description', label:'Description'}).
+        input({name:'hostcategory', label:'Host Category'}).
+        input({name:'ipaenabledflag', label:'Enabled'}).
+        input({name:'servicecategory', label:'Service Category'}).
+        input({name:'sourcehostcategory', label:'Source Host Category'}).
+        input({name:'usercategory', label:'User Category'})
 ]);
 
 ipa_entity_set_association_definition('hbac', {
@@ -63,21 +62,20 @@ ipa_entity_set_add_definition('dns', [
 ]);
 
 ipa_entity_set_details_definition('dns', [
-    {name:'identity', label:'DNS Zone Details', fields:[
-        {name:'idnsname', label:'DNS Name'},
-        {name:'idnszoneactive', label:'Zone Active'},
-        {name:'idnssoamname', label:'Authoritative name server'},
-        {name:'idnssoarname', label:'administrator e-mail address'},
-        {name:'idnssoaserial', label:'SOA serial'},
-        {name:'idnssoarefresh', label:'SOA refresh'},
-        {name:'idnssoaretry', label:'SOA retry'},
-        {name:'idnssoaexpire',label:'SOA expire'},
-        {name:'idnssoaminimum', label:'SOA minimum'},
-        {name:'dnsttl', label:'SOA time to live'},
-        {name:'dnsclass', label:'SOA class'},
-        {name:'idnsallowdynupdate', label:'allow dynamic update?'},
-        {name:'idnsupdatepolicy', label:'BIND update policy'}
-    ]}
+    ipa_stanza({name:'identity', label:'DNS Zone Details'}).
+        input({name:'idnsname', label:'DNS Name'}).
+        input({name:'idnszoneactive', label:'Zone Active'}).
+        input({name:'idnssoamname', label:'Authoritative name server'}).
+        input({name:'idnssoarname', label:'administrator e-mail address'}).
+        input({name:'idnssoaserial', label:'SOA serial'}).
+        input({name:'idnssoarefresh', label:'SOA refresh'}).
+        input({name:'idnssoaretry', label:'SOA retry'}).
+        input({name:'idnssoaexpire', label:'SOA expire'}).
+        input({name:'idnssoaminimum', label:'SOA minimum'}).
+        input({name:'dnsttl', label:'SOA time to live'}).
+        input({name:'dnsclass', label:'SOA class'}).
+        input({name:'idnsallowdynupdate', label:'allow dynamic update?'}).
+        input({name:'idnsupdatepolicy', label:'BIND update policy'})
 ]);
 
 ipa_entity_set_association_definition('dns', {
@@ -99,9 +97,8 @@ ipa_entity_set_add_definition('automountlocation', [
 ]);
 
 ipa_entity_set_details_definition('automountlocation', [
-    {name:'identity', label:'Automount Location Details', fields:[
-        {name:'cn', label:'Automount Location'}
-    ]}
+    ipa_stanza({name:'identity', label:'Automount Location Details'}).
+        input({name:'cn', label:'Automount Location'})
 ]);
 
 ipa_entity_set_association_definition('automountlocation', {
@@ -123,13 +120,13 @@ ipa_entity_set_add_definition('pwpolicy', [
 ]);
 
 ipa_entity_set_details_definition('pwpolicy', [
-    {name:'identity', label:'Password Policy', fields:[
-        {name:'krbmaxpwdlife', label:'Max Password Life'},
-        {name:'krbminpwdlife', label:'Min Password Life'},
-        {name:'krbpwdhistorylength', label:'Password History Length'},
-        {name:'krbpwdmindiffchars', label:'Min Different Characters'},
-        {name:'krbpwdminlength', label:'Password Minimum Length'}
-    ]}
+    ipa_stanza({name:'identity', label:'Password Policy'}).
+        input({name:'krbmaxpwdlife',label:'Max Password Life'}).
+        input({name:'krbminpwdlife',label:'Min Password Life'}).
+        input({name:'krbpwdhistorylength',label:'Password History Length'}).
+        input({name:'krbpwdmindiffchars',
+                   label:'Min Different Characters'}).
+        input({name:'krbpwdminlength', label:'Password Minimum Length'})
 ]);
 
 ipa_entity_set_association_definition('pwpolicy', {
@@ -142,11 +139,10 @@ ipa_entity_set_association_definition('pwpolicy', {
 */
 
 ipa_entity_set_details_definition('krbtpolicy', [
-    {name:'identity', label:'Krbtpolicy Location Details', fields:[
-        {name:'cn', label:'Krbtpolicy Location'},
-        {name:'krbmaxrenewableage', label:'Max Renewable Age'},
-        {name:'krbmaxticketlife', label:'Max Ticket Life'}
-    ]}
+    ipa_stanza({name:'identity', label:'Krbtpolicy Location Details'}).
+        input({name:'cn', label:'Krbtpolicy Location'}).
+        input({name:'krbmaxrenewableage', label:'Max Renewable Age'}).
+        input({name:'krbmaxticketlife', label:'Max Ticket Life'})
 ]);
 
 ipa_entity_set_association_definition('krbtpolicy', {

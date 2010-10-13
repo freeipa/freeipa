@@ -23,7 +23,9 @@
 
 var ipa_entity_search_list = {};
 var ipa_entity_add_list = {};
-var ipa_entity_details_list = {};
+
+//moving this to details
+//var ipa_entity_details_list = {};
 var ipa_entity_association_list = {};
 
 /* use this to track individual changes between two hashchange events */
@@ -139,11 +141,9 @@ function _ipa_entity_setup(container, unspecified) {
         var filter = $.bbq.getState(obj_name + '-filter', true) || '';
         search_create(obj_name, ipa_entity_search_list[obj_name], container);
 
-        $('<input />',{
-            type:"submit",
-            value: ipa_messages.button.add, 
-            click:new_on_click
-        }).appendTo($( "div#" + obj_name + " > div.search-controls"));
+        ipa_make_button( 'ui-icon-plus',ipa_messages.button.add).
+            click(new_on_click).
+            appendTo($( "div#" + obj_name + " > div.search-controls"))
 
         search_load(container, filter, null, null);
     }

@@ -1,0 +1,32 @@
+{
+    "error": null,
+    "id": 6,
+    "result": {
+        "result": {
+            "givenname": [
+                "Kermit"
+            ],
+            "homedirectory": [
+                "/home/kfrog"
+            ],
+            "loginshell": [
+                "/bin/sh"
+            ],
+            "memberof_group": [
+                "ipausers",
+                "muppets"
+            ],
+            "sn": [
+                "Frog"
+            ],
+            "title": [
+                "reporter"
+            ],
+            "uid": [
+                "kfrog"
+            ]
+        },
+        "summary": "Modified user \"kfrog\"",
+        "value": "kfrog"
+    }
+}

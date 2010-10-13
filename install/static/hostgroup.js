@@ -34,8 +34,7 @@ ipa_entity_set_add_definition('hostgroup', [
 ]);
 
 ipa_entity_set_details_definition('hostgroup', [
-    {name:'identity', label:'Hostgroup Details', fields:[
-        {name:'cn', label:'Name'},
-        {name:'description', label:'Description'}
-    ]}
+    ipa_stanza({name:'identity', label:'Hostgroup Details'}).
+        input({name:'cn', label:'Name'}).
+        input({name: 'description', label:'Description'})
 ]);

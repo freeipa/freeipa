@@ -10,7 +10,7 @@ body{ font: 62.5% "Trebuchet MS", sans-serif; margin: 50px;}
 .demoHeaders { margin-top: 2em; }
 
 
-.input_link {padding: .4em 1em .4em 20px;text-decoration: none;position: relative;}
+.input_link {padding: .4em 1em .4em 20px;text-decoration: none;position: relative;  cursor: pointer; }
 .input_link span.ui-icon {margin: 0 5px 0 0;position: absolute;left: .2em;top: 50%;margin-top: -8px;}
 
 
@@ -275,3 +275,5 @@ span.main-separator{
     display:inline;
     cursor: pointer;
 }
+
+.strikethrough { text-decoration: line-through; }

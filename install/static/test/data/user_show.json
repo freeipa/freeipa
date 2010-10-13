@@ -1,17 +1,20 @@
 {
     "error": null,
-    "id": 0,
+    "id": 6,
     "result": {
         "result": {
             "cn": [
                 "Kermit Frog"
             ],
-            "dn": "uid=kfrog,cn=users,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com",
+            "dn": "uid=kfrog,cn=users,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
+            "facsimiletelephonenumber": [
+                "415-111-0990"
+            ],
             "gecos": [
                 "kfrog"
             ],
             "gidnumber": [
-                "1079249051"
+                "1155230701"
             ],
             "givenname": [
                 "Kermit"
@@ -20,27 +23,23 @@
                 "/home/kfrog"
             ],
             "ipauniqueid": [
-                "41bcf085-8baa-11df-8155-00163e26b89e"
+                "ddbc79a1-cd9a-11df-98ae-525400674dcd"
             ],
             "krbprincipalname": [
-                "kfrog@IDM.LAB.BOS.REDHAT.COM"
+                "kfrog@AYOUNG.BOSTON.DEVEL.REDHAT.COM"
             ],
             "loginshell": [
                 "/bin/sh"
             ],
             "mail": [
-                "kfrog@redhat.com"
+                "kermit@muppets.com"
             ],
-	    "memberof": [
-                   "cn=ipausers,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com",
-                   "cn=muppets,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
-               ],
-               "memberof_group": [
-                   "ipausers",
-                   "muppets"
-               ],
+            "memberof_group": [
+                "ipausers",
+                "muppets"
+            ],
             "mepmanagedentry": [
-                "cn=kfrog,cn=groups,cn=accounts,dc=idm,dc=lab,dc=bos,dc=redhat,dc=com"
+                "cn=kfrog,cn=groups,cn=accounts,dc=ayoung,dc=boston,dc=devel,dc=redhat,dc=com"
             ],
             "objectclass": [
                 "top",
@@ -55,14 +54,22 @@
                 "ipaobject",
                 "mepOriginEntry"
             ],
+            "pager": [
+                "415-333-1882"
+            ],
             "sn": [
                 "Frog"
+            ],
+            "telephonenumber": [
+                "212-555-4444",
+                "415-333-1882",
+                "415-111-0990"
             ],
             "uid": [
                 "kfrog"
             ],
             "uidnumber": [
-                "1079249051"
+                "1155230701"
             ]
         },
         "summary": null,

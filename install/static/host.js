@@ -35,11 +35,10 @@ ipa_entity_set_add_definition('host', [
 ]);
 
 ipa_entity_set_details_definition('host', [
-    {name:'host', label:'Host Details', fields:[
-        {name:'fqdn', label:'Fully Qualified Domain Name'},
-        {name:'krbprincipalname', label:'Kerberos Principal'},
-        {name:'serverhostname', label:'Server Host Name'}
-    ]}
+    ipa_stanza({name:'host', label:'Host Details'}).
+        input({name:'fqdn', label:'Fully Qualified Domain Name'}).
+        input({name:'krbprincipalname', label:'Kerberos Principal'}).
+        input({name:'serverhostname', label:'Server Host Name'})
 ]);
 
 ipa_entity_set_association_definition('host', {
